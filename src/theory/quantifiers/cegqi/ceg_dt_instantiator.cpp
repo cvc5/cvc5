@@ -2,9 +2,9 @@
 /*! \file ceg_dt_instantiator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,9 +14,10 @@
 
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
 
+#include "expr/node_algorithm.h"
+
 using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
@@ -170,7 +171,7 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
   if (!ret.isNull())
   {
     // ensure does not contain v
-    if (ret.hasSubterm(v))
+    if (expr::hasSubterm(ret, v))
     {
       ret = Node::null();
     }

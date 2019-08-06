@@ -1,3 +1,7 @@
+; COMMAND-LINE: --incremental --simplification=none
+; EXPECT: sat
+; EXPECT: unsat
+
 (set-logic QF_UFLIA)
 (declare-fun base () Int)
 (declare-fun n () Int)

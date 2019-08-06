@@ -2,9 +2,9 @@
 /*! \file options_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
+ **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -112,7 +112,7 @@ struct OptionHandler<T, true, true> {
 
       if(!success){
         throw OptionException(option + ": failed to parse "+ optionarg +
-                              " as an integer of the appropraite type.");
+                              " as an integer of the appropriate type.");
       }
 
       // Depending in the platform unsigned numbers with '-' signs may parse.
@@ -231,7 +231,6 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
 Options::Options()
     : d_holder(new options::OptionsHolder())
     , d_handler(new options::OptionsHandler(this))
-    , d_forceLogicListeners()
     , d_beforeSearchListeners()
     , d_tlimitListeners()
     , d_tlimitPerListeners()
@@ -265,16 +264,22 @@ ListenerCollection::Registration* Options::registerAndNotify(
   ListenerCollection::Registration* registration =
       collection.registerListener(listener);
   if(notify) {
-    listener->notify();
+    try
+    {
+      listener->notify();
+    }
+    catch (OptionException& e)
+    {
+      // It can happen that listener->notify() throws an OptionException. In
+      // that case, we have to make sure that we delete the registration of our
+      // listener before rethrowing the exception. Otherwise the
+      // ListenerCollection deconstructor will complain that not all
+      // registrations have been removed before invoking the deconstructor.
+      delete registration;
+      throw OptionException(e.getRawMessage());
+    }
   }
   return registration;
-}
-
-ListenerCollection::Registration* Options::registerForceLogicListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::forceLogicString);
-  return registerAndNotify(d_forceLogicListeners, listener, notify);
 }
 
 ListenerCollection::Registration* Options::registerBeforeSearchListener(
@@ -433,7 +438,7 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
   smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
-  tptp                           TPTP format (cnf and fof)\n\
+  tptp                           TPTP format (cnf, fof and tff)\n\
   sygus                          SyGuS format\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\

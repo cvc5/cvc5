@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --finite-model-find
+; COMMAND-LINE: --finite-model-find --sort-inference --no-check-models
 ; EXPECT: sat
 ;%--------------------------------------------------------------------------
 ;% File     : ALG008-1 : TPTP v5.4.0. Released v2.2.0.

@@ -2,9 +2,9 @@
 /*! \file attribute_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Morgan Deters
+ **   Tim King, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,16 +42,17 @@ private:
   SmtEngine* d_smtEngine;
   SmtScope* d_scope;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_exprManager = new ExprManager();
     d_nodeManager = NodeManager::fromExprManager(d_exprManager);
     d_smtEngine = new SmtEngine(d_exprManager);
     d_scope = new SmtScope(d_smtEngine);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_smtEngine;
     delete d_exprManager;

@@ -2,9 +2,9 @@
 /*! \file candidate_rewrite_database.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,9 +20,9 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -36,48 +36,64 @@ CandidateRewriteDatabase::CandidateRewriteDatabase()
     : d_qe(nullptr),
       d_tds(nullptr),
       d_ext_rewrite(nullptr),
-      d_using_sygus(false)
+      d_using_sygus(false),
+      d_silent(false)
 {
 }
-void CandidateRewriteDatabase::initialize(ExtendedRewriter* er,
-                                          TypeNode tn,
-                                          std::vector<Node>& vars,
-                                          unsigned nsamples,
-                                          bool unique_type_ids)
+void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
+                                          SygusSampler* ss)
 {
+  Assert(ss != nullptr);
   d_candidate = Node::null();
-  d_type = tn;
   d_using_sygus = false;
   d_qe = nullptr;
   d_tds = nullptr;
-  d_ext_rewrite = er;
-  d_sampler.initialize(tn, vars, nsamples, unique_type_ids);
-  d_crewrite_filter.initialize(&d_sampler, nullptr, false);
+  d_ext_rewrite = nullptr;
+  d_crewrite_filter.initialize(ss, nullptr, false);
+  ExprMiner::initialize(vars, ss);
 }
 
-void CandidateRewriteDatabase::initializeSygus(QuantifiersEngine* qe,
+void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
+                                               QuantifiersEngine* qe,
                                                Node f,
-                                               unsigned nsamples,
-                                               bool useSygusType)
+                                               SygusSampler* ss)
 {
+  Assert(ss != nullptr);
   d_candidate = f;
-  d_type = f.getType();
-  Assert(d_type.isDatatype());
-  Assert(static_cast<DatatypeType>(d_type.toType()).getDatatype().isSygus());
   d_using_sygus = true;
   d_qe = qe;
   d_tds = d_qe->getTermDatabaseSygus();
-  d_ext_rewrite = d_tds->getExtRewriter();
-  d_sampler.initializeSygus(d_tds, f, nsamples, useSygusType);
-  d_crewrite_filter.initialize(&d_sampler, d_tds, true);
+  d_ext_rewrite = nullptr;
+  d_crewrite_filter.initialize(ss, d_tds, d_using_sygus);
+  ExprMiner::initialize(vars, ss);
 }
 
 bool CandidateRewriteDatabase::addTerm(Node sol,
+                                       bool rec,
                                        std::ostream& out,
                                        bool& rew_print)
 {
+  // have we added this term before?
+  std::unordered_map<Node, bool, NodeHashFunction>::iterator itac =
+      d_add_term_cache.find(sol);
+  if (itac != d_add_term_cache.end())
+  {
+    return itac->second;
+  }
+
+  if (rec)
+  {
+    // if recursive, we first add all subterms
+    for (const Node& solc : sol)
+    {
+      // whether a candidate rewrite is printed for any subterm is irrelevant
+      bool rew_printc = false;
+      addTerm(solc, rec, out, rew_printc);
+    }
+  }
+  // register the term
   bool is_unique_term = true;
-  Node eq_sol = d_sampler.registerTerm(sol);
+  Node eq_sol = d_sampler->registerTerm(sol);
   // eq_sol is a candidate solution that is equivalent to sol
   if (eq_sol != sol)
   {
@@ -116,81 +132,23 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
 
         Node crr = solbr.eqNode(eq_solr).negate();
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
-        // quantify over the free variables in crr
-        std::vector<Node> fvs;
-        TermUtil::computeVarContains(crr, fvs);
-        std::map<Node, unsigned> fv_index;
-        std::vector<Node> sks;
-        if (!fvs.empty())
-        {
-          // map to skolems
-          for (unsigned i = 0, size = fvs.size(); i < size; i++)
-          {
-            Node v = fvs[i];
-            fv_index[v] = i;
-            std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
-            if (itf == d_fv_to_skolem.end())
-            {
-              Node sk = nm->mkSkolem("rrck", v.getType());
-              d_fv_to_skolem[v] = sk;
-              sks.push_back(sk);
-            }
-            else
-            {
-              sks.push_back(itf->second);
-            }
-          }
-          crr = crr.substitute(fvs.begin(), fvs.end(), sks.begin(), sks.end());
-        }
 
         // Notice we don't set produce-models. rrChecker takes the same
         // options as the SmtEngine we belong to, where we ensure that
         // produce-models is set.
-        bool needExport = true;
-        ExprManagerMapCollection varMap;
+        bool needExport = false;
         ExprManager em(nm->getOptions());
         std::unique_ptr<SmtEngine> rrChecker;
-        Result r;
-        if (options::sygusRewSynthCheckTimeout.wasSetByUser())
-        {
-          // To support a separate timeout for the subsolver, we need to create
-          // a separate ExprManager with its own options. This requires that
-          // the expressions sent to the subsolver can be exported from on
-          // ExprManager to another. If the export fails, we throw an
-          // OptionException.
-          try
-          {
-            rrChecker.reset(new SmtEngine(&em));
-            rrChecker->setTimeLimit(options::sygusRewSynthCheckTimeout(), true);
-            rrChecker->setLogic(smt::currentSmtEngine()->getLogicInfo());
-            Expr eccr = crr.toExpr().exportTo(&em, varMap);
-            rrChecker->assertFormula(eccr);
-            r = rrChecker->checkSat();
-          }
-          catch (const CVC4::ExportUnsupportedException& e)
-          {
-            std::stringstream msg;
-            msg << "Unable to export " << crr
-                << " but exporting expressions is required for "
-                   "--sygus-rr-synth-check-timeout.";
-            throw OptionException(msg.str());
-          }
-        }
-        else
-        {
-          needExport = false;
-          rrChecker.reset(new SmtEngine(nm->toExprManager()));
-          rrChecker->assertFormula(crr.toExpr());
-          r = rrChecker->checkSat();
-        }
-
+        ExprManagerMapCollection varMap;
+        initializeChecker(rrChecker, em, varMap, crr, needExport);
+        Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)
         {
           Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
           is_unique_term = true;
           std::vector<Node> vars;
-          d_sampler.getVariables(vars);
+          d_sampler->getVariables(vars);
           std::vector<Node> pt;
           for (const Node& v : vars)
           {
@@ -200,8 +158,8 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             // looking up the model value
             if (v.getKind() == BOUND_VARIABLE)
             {
-              std::map<Node, unsigned>::iterator itf = fv_index.find(v);
-              if (itf == fv_index.end())
+              std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
+              if (itf == d_fv_to_skolem.end())
               {
                 // not in conjecture, can use arbitrary value
                 val = v.getType().mkGroundTerm();
@@ -209,7 +167,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
               else
               {
                 // get the model value of its skolem
-                refv = sks[itf->second];
+                refv = itf->second;
               }
             }
             if (val.isNull())
@@ -229,10 +187,10 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             pt.push_back(val);
           }
-          d_sampler.addSamplePoint(pt);
+          d_sampler->addSamplePoint(pt);
           // add the solution again
           // by construction of the above point, we should be unique now
-          Node eq_sol_new = d_sampler.registerTerm(sol);
+          Node eq_sol_new = d_sampler->registerTerm(sol);
           Assert(eq_sol_new == sol);
         }
         else
@@ -252,19 +210,23 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
-        out << "(" << (verified ? "" : "candidate-") << "rewrite ";
-        if (d_using_sygus)
+        if (!d_silent)
         {
-          Printer* p = Printer::getPrinter(options::outputLanguage());
-          p->toStreamSygus(out, sol);
-          out << " ";
-          p->toStreamSygus(out, eq_sol);
+          out << "(" << (verified ? "" : "candidate-") << "rewrite ";
+          if (d_using_sygus)
+          {
+            Printer* p = Printer::getPrinter(options::outputLanguage());
+            p->toStreamSygus(out, sol);
+            out << " ";
+            p->toStreamSygus(out, eq_sol);
+          }
+          else
+          {
+            out << sol << " " << eq_sol;
+          }
+          out << ")" << std::endl;
         }
-        else
-        {
-          out << sol << " " << eq_sol;
-        }
-        out << ")" << std::endl;
+        // we count this as printed, despite not literally printing it
         rew_print = true;
         // debugging information
         if (Trace.isOn("sygus-rr-debug"))
@@ -310,28 +272,36 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
     // it discards it as a redundant candidate rewrite rule before
     // checking its correctness.
   }
+  d_add_term_cache[sol] = is_unique_term;
   return is_unique_term;
 }
 
-bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
+bool CandidateRewriteDatabase::addTerm(Node sol, bool rec, std::ostream& out)
 {
   bool rew_print = false;
-  return addTerm(sol, out, rew_print);
+  return addTerm(sol, rec, out, rew_print);
+}
+bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
+{
+  return addTerm(sol, false, out);
+}
+
+void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
+
+void CandidateRewriteDatabase::setExtendedRewriter(ExtendedRewriter* er)
+{
+  d_ext_rewrite = er;
 }
 
 CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
     std::vector<Node>& vars, unsigned nsamples)
-    : d_vars(vars.begin(), vars.end()), d_nsamples(nsamples)
+    : d_qe(nullptr), d_vars(vars.begin(), vars.end()), d_nsamples(nsamples)
 {
 }
 
 bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
 {
-  ExtendedRewriter* er = nullptr;
-  if (options::synthRrPrepExtRew())
-  {
-    er = &d_ext_rewrite;
-  }
+  ExtendedRewriter* er = &d_ext_rewrite;
   Node nr;
   if (er == nullptr)
   {
@@ -347,12 +317,13 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
   {
     Trace("synth-rr-dbg") << "Initialize database for " << tn << std::endl;
     // initialize with the extended rewriter owned by this class
-    d_cdbs[tn].initialize(er, tn, d_vars, d_nsamples, true);
+    d_cdbs[tn].initialize(d_vars, &d_sampler[tn]);
+    d_cdbs[tn].setExtendedRewriter(er);
     itc = d_cdbs.find(tn);
     Trace("synth-rr-dbg") << "...finish." << std::endl;
   }
   Trace("synth-rr-dbg") << "Add term " << nr << " for " << tn << std::endl;
-  return itc->second.addTerm(nr, out);
+  return itc->second.addTerm(nr, false, out);
 }
 
 } /* CVC4::theory::quantifiers namespace */

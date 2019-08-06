@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include <sstream>
 #include <stack>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -30,6 +31,7 @@
 
 #include "base/configuration.h"
 #include "base/configuration_private.h"
+#include "base/cvc4_check.h"
 #include "base/exception.h"
 #include "base/listener.h"
 #include "base/modal_exception.h"
@@ -44,6 +46,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
 #include "options/arith_options.h"
@@ -65,25 +68,10 @@
 #include "options/sep_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
+#include "options/strings_modes.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "preprocessing/passes/apply_substs.h"
-#include "preprocessing/passes/bool_to_bv.h"
-#include "preprocessing/passes/bv_abstraction.h"
-#include "preprocessing/passes/bv_ackermann.h"
-#include "preprocessing/passes/bv_gauss.h"
-#include "preprocessing/passes/bv_intro_pow2.h"
-#include "preprocessing/passes/bv_to_bool.h"
-#include "preprocessing/passes/int_to_bv.h"
-#include "preprocessing/passes/pseudo_boolean_processor.h"
-#include "preprocessing/passes/real_to_int.h"
-#include "preprocessing/passes/rewrite.h"
-#include "preprocessing/passes/sep_skolem_emp.h"
-#include "preprocessing/passes/static_learning.h"
-#include "preprocessing/passes/symmetry_breaker.h"
-#include "preprocessing/passes/symmetry_detect.h"
-#include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -97,6 +85,8 @@
 #include "smt/command_list.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
+#include "smt/model_blocker.h"
+#include "smt/model_core_builder.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
@@ -107,13 +97,12 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
-#include "theory/quantifiers/global_negate.h"
-#include "theory/quantifiers/macros.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
-#include "theory/quantifiers/sygus_inference.h"
+#include "theory/quantifiers/sygus/sygus_abduct.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
@@ -126,16 +115,24 @@
 #include "util/random.h"
 #include "util/resource_manager.h"
 
+#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
+#include "lfscc.h"
+#endif
+
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::preprocessing;
-using namespace CVC4::preprocessing::passes;
 using namespace CVC4::prop;
 using namespace CVC4::context;
 using namespace CVC4::theory;
 
 namespace CVC4 {
+
+namespace proof {
+extern const char* const plf_signatures;
+}  // namespace proof
+
 namespace smt {
 
 struct DeleteCommandFunction : public std::unary_function<const Command*, void>
@@ -184,38 +181,22 @@ public:
 };/* class DefinedFunction */
 
 struct SmtEngineStatistics {
-  /** time spent in gaussian elimination */
-  TimerStat d_gaussElimTime;
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
-  /** time spent in non-clausal simplification */
-  TimerStat d_nonclausalSimplificationTime;
-  /** time spent in miplib pass */
-  TimerStat d_miplibPassTime;
-  /** number of assertions removed by miplib pass */
-  IntStat d_numMiplibAssertionsRemoved;
   /** number of constant propagations found during nonclausal simp */
   IntStat d_numConstantProps;
-  /** time spent in simplifying ITEs */
-  TimerStat d_simpITETime;
-  /** time spent in simplifying ITEs */
-  TimerStat d_unconstrainedSimpTime;
-  /** time spent removing ITEs */
-  TimerStat d_iteRemovalTime;
-  /** time spent in theory preprocessing */
-  TimerStat d_theoryPreprocessTime;
-  /** time spent in theory preprocessing */
-  TimerStat d_rewriteApplyToConstTime;
   /** time spent converting to CNF */
   TimerStat d_cnfConversionTime;
   /** Num of assertions before ite removal */
   IntStat d_numAssertionsPre;
   /** Num of assertions after ite removal */
   IntStat d_numAssertionsPost;
+  /** Size of all proofs generated */
+  IntStat d_proofsSize;
   /** time spent in checkModel() */
   TimerStat d_checkModelTime;
-  /** time spent in checkProof() */
-  TimerStat d_checkProofTime;
+  /** time spent checking the proof with LFSC */
+  TimerStat d_lfscCheckProofTime;
   /** time spent in checkUnsatCore() */
   TimerStat d_checkUnsatCoreTime;
   /** time spent in PropEngine::checkSat() */
@@ -230,47 +211,30 @@ struct SmtEngineStatistics {
   /** Number of resource units spent. */
   ReferenceStat<uint64_t> d_resourceUnitsUsed;
 
-  SmtEngineStatistics() :
-    d_gaussElimTime("smt::SmtEngine::gaussElimTime"),
-    d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
-    d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
-    d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
-    d_numMiplibAssertionsRemoved("smt::SmtEngine::numMiplibAssertionsRemoved", 0),
-    d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
-    d_simpITETime("smt::SmtEngine::simpITETime"),
-    d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
-    d_iteRemovalTime("smt::SmtEngine::iteRemovalTime"),
-    d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
-    d_rewriteApplyToConstTime("smt::SmtEngine::rewriteApplyToConstTime"),
-    d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
-    d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
-    d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
-    d_checkModelTime("smt::SmtEngine::checkModelTime"),
-    d_checkProofTime("smt::SmtEngine::checkProofTime"),
-    d_checkUnsatCoreTime("smt::SmtEngine::checkUnsatCoreTime"),
-    d_solveTime("smt::SmtEngine::solveTime"),
-    d_pushPopTime("smt::SmtEngine::pushPopTime"),
-    d_processAssertionsTime("smt::SmtEngine::processAssertionsTime"),
-    d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0),
-    d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
- {
-
-    smtStatisticsRegistry()->registerStat(&d_gaussElimTime);
+  SmtEngineStatistics()
+      : d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
+        d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
+        d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
+        d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
+        d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
+        d_proofsSize("smt::SmtEngine::proofsSize", 0),
+        d_checkModelTime("smt::SmtEngine::checkModelTime"),
+        d_lfscCheckProofTime("smt::SmtEngine::lfscCheckProofTime"),
+        d_checkUnsatCoreTime("smt::SmtEngine::checkUnsatCoreTime"),
+        d_solveTime("smt::SmtEngine::solveTime"),
+        d_pushPopTime("smt::SmtEngine::pushPopTime"),
+        d_processAssertionsTime("smt::SmtEngine::processAssertionsTime"),
+        d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0),
+        d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
+  {
     smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
-    smtStatisticsRegistry()->registerStat(&d_nonclausalSimplificationTime);
-    smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
-    smtStatisticsRegistry()->registerStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
-    smtStatisticsRegistry()->registerStat(&d_simpITETime);
-    smtStatisticsRegistry()->registerStat(&d_unconstrainedSimpTime);
-    smtStatisticsRegistry()->registerStat(&d_iteRemovalTime);
-    smtStatisticsRegistry()->registerStat(&d_theoryPreprocessTime);
-    smtStatisticsRegistry()->registerStat(&d_rewriteApplyToConstTime);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPost);
+    smtStatisticsRegistry()->registerStat(&d_proofsSize);
     smtStatisticsRegistry()->registerStat(&d_checkModelTime);
-    smtStatisticsRegistry()->registerStat(&d_checkProofTime);
+    smtStatisticsRegistry()->registerStat(&d_lfscCheckProofTime);
     smtStatisticsRegistry()->registerStat(&d_checkUnsatCoreTime);
     smtStatisticsRegistry()->registerStat(&d_solveTime);
     smtStatisticsRegistry()->registerStat(&d_pushPopTime);
@@ -280,22 +244,14 @@ struct SmtEngineStatistics {
   }
 
   ~SmtEngineStatistics() {
-    smtStatisticsRegistry()->unregisterStat(&d_gaussElimTime);
     smtStatisticsRegistry()->unregisterStat(&d_definitionExpansionTime);
-    smtStatisticsRegistry()->unregisterStat(&d_nonclausalSimplificationTime);
-    smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
-    smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-    smtStatisticsRegistry()->unregisterStat(&d_simpITETime);
-    smtStatisticsRegistry()->unregisterStat(&d_unconstrainedSimpTime);
-    smtStatisticsRegistry()->unregisterStat(&d_iteRemovalTime);
-    smtStatisticsRegistry()->unregisterStat(&d_theoryPreprocessTime);
-    smtStatisticsRegistry()->unregisterStat(&d_rewriteApplyToConstTime);
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPost);
+    smtStatisticsRegistry()->unregisterStat(&d_proofsSize);
     smtStatisticsRegistry()->unregisterStat(&d_checkModelTime);
-    smtStatisticsRegistry()->unregisterStat(&d_checkProofTime);
+    smtStatisticsRegistry()->unregisterStat(&d_lfscCheckProofTime);
     smtStatisticsRegistry()->unregisterStat(&d_checkUnsatCoreTime);
     smtStatisticsRegistry()->unregisterStat(&d_solveTime);
     smtStatisticsRegistry()->unregisterStat(&d_pushPopTime);
@@ -331,18 +287,6 @@ class HardResourceOutListener : public Listener {
  private:
   SmtEngine* d_smt;
 }; /* class HardResourceOutListener */
-
-class SetLogicListener : public Listener {
- public:
-  SetLogicListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override
-  {
-    LogicInfo inOptions(options::forceLogicString());
-    d_smt->setLogic(inOptions);
-  }
- private:
-  SmtEngine* d_smt;
-}; /* class SetLogicListener */
 
 class BeforeSearchListener : public Listener {
  public:
@@ -499,7 +443,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * This list contains:
    *  softResourceOut
    *  hardResourceOut
-   *  setForceLogic
    *  beforeSearchListener
    *  UseTheoryListListener
    *
@@ -508,16 +451,8 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   ListenerRegistrationList* d_listenerRegistrations;
 
-  /** Learned literals */
-  vector<Node> d_nonClausalLearnedLiterals;
-
-  /** Size of assertions array when preprocessing starts */
-  unsigned d_realAssertionsEnd;
-
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
-  bool d_propagatorNeedsFinish;
-  std::vector<Node> d_boolVars;
 
   /** Assertions in the preprocessing pipeline */
   AssertionPipeline d_assertions;
@@ -559,12 +494,8 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** mapping from expressions to name */
   context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
   //------------------------------- end expression names
-public:
-  /**
-   * Map from skolem variables to index in d_assertions containing
-   * corresponding introduced Boolean ite
-   */
-  IteSkolemMap d_iteSkolemMap;
+ public:
+  IteSkolemMap& getIteSkolemMap() { return d_assertions.getIteSkolemMap(); }
 
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
@@ -572,32 +503,39 @@ public:
   /* Finishes the initialization of the private portion of SMTEngine. */
   void finishInit();
 
+  /*------------------- sygus utils ------------------*/
+  /**
+   * sygus variables declared (from "declare-var" and "declare-fun" commands)
+   *
+   * The SyGuS semantics for declared variables is that they are implicitly
+   * universally quantified in the constraints.
+   */
+  std::vector<Node> d_sygusVars;
+  /** types of sygus primed variables (for debugging) */
+  std::vector<Type> d_sygusPrimedVarTypes;
+  /** sygus constraints */
+  std::vector<Node> d_sygusConstraints;
+  /** functions-to-synthesize */
+  std::vector<Node> d_sygusFunSymbols;
+  /** maps functions-to-synthesize to their respective input variables lists */
+  std::map<Node, std::vector<Node>> d_sygusFunVars;
+  /** maps functions-to-synthesize to their respective syntactic restrictions
+   *
+   * If function has syntactic restrictions, these are encoded as a SyGuS
+   * datatype type
+   */
+  std::map<Node, TypeNode> d_sygusFunSyntax;
+
+  /*------------------- end of sygus utils ------------------*/
+
  private:
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
-  PreprocessingPassRegistry d_preprocessingPassRegistry;
-
-  static const bool d_doConstantProp = true;
 
   /**
-   * Runs the nonclausal solver and tries to solve all the assigned
-   * theory literals.
-   *
-   * Returns false if the formula simplifies to "false"
+   * Map of preprocessing pass instances, mapping from names to preprocessing
+   * pass instance
    */
-  bool nonClausalSimplify();
-
-  /**
-   * Performs static learning on the assertions.
-   */
-  void staticLearning();
-
-  /**
-   * Remove ITEs from the assertions.
-   */
-  void removeITEs();
-
-  Node realToInt(TNode n, NodeToNodeHashMap& cache, std::vector< Node >& var_eq);
-  Node purifyNlTerms(TNode n, NodeToNodeHashMap& cache, NodeToNodeHashMap& bcache, std::vector< Node >& var_eq, bool beneathMult = false);
+  std::unordered_map<std::string, std::unique_ptr<PreprocessingPass>> d_passes;
 
   /**
    * Helper function to fix up assertion list to restore invariants needed after
@@ -610,35 +548,6 @@ public:
    * ite removal.
    */
   bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
-
-  // Simplify ITE structure
-  bool simpITE();
-
-  // Simplify based on unconstrained values
-  void unconstrainedSimp();
-
-  /**
-   * Ensures the assertions asserted after before now effectively come before
-   * d_realAssertionsEnd.
-   */
-  void compressBeforeRealAssertions(size_t before);
-
-  /**
-   * Trace nodes back to their assertions using CircuitPropagator's
-   * BackEdgesMap.
-   */
-  void traceBackToAssertions(const std::vector<Node>& nodes,
-                             std::vector<TNode>& assertions);
-
-  /**
-   * Remove conjuncts in toRemove from conjunction n. Return # of removed
-   * conjuncts.
-   */
-  size_t removeFromConjunction(Node& n,
-                               const std::unordered_set<unsigned long>& toRemove);
-
-  /** Scrub miplib encodings. */
-  void doMiplibTrick();
 
   /**
    * Perform non-clausal simplification of a Node.  This involves
@@ -657,11 +566,8 @@ public:
         d_managedDumpChannel(),
         d_managedReplayLog(),
         d_listenerRegistrations(new ListenerRegistrationList()),
-        d_nonClausalLearnedLiterals(),
-        d_realAssertionsEnd(0),
-        d_propagator(d_nonClausalLearnedLiterals, true, true),
-        d_propagatorNeedsFinish(false),
-        d_assertions(d_smt.d_userContext),
+        d_propagator(true, true),
+        d_assertions(),
         d_assertionsProcessed(smt.d_userContext, false),
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
@@ -669,7 +575,6 @@ public:
         d_simplifyAssertionsDepth(0),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.d_userContext),
-        d_iteSkolemMap(),
         d_iteRemover(smt.d_userContext)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
@@ -682,66 +587,78 @@ public:
     d_listenerRegistrations->add(d_resourceManager->registerHardListener(
         new HardResourceOutListener(d_smt)));
 
-    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerForceLogicListener(
-            new SetLogicListener(d_smt), true));
+    try
+    {
+      Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
 
-    // Multiple options reuse BeforeSearchListener so registration requires an
-    // extra bit of care.
-    // We can safely not call notify on this before search listener at
-    // registration time. This d_smt cannot be beforeSearch at construction
-    // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
-    // not have to be called.
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerBeforeSearchListener(
-            new BeforeSearchListener(d_smt)));
+      // Multiple options reuse BeforeSearchListener so registration requires an
+      // extra bit of care.
+      // We can safely not call notify on this before search listener at
+      // registration time. This d_smt cannot be beforeSearch at construction
+      // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
+      // not have to be called.
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerBeforeSearchListener(
+              new BeforeSearchListener(d_smt)));
 
-    // These do need registration calls.
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDefaultExprDepthListener(
-            new SetDefaultExprDepthListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDefaultExprDagListener(
-            new SetDefaultExprDagListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetPrintExprTypesListener(
-            new SetPrintExprTypesListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDumpModeListener(
-            new DumpModeListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetPrintSuccessListener(
-            new PrintSuccessListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetRegularOutputChannelListener(
-            new SetToDefaultSourceListener(&d_managedRegularChannel), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
-            new SetToDefaultSourceListener(&d_managedDiagnosticChannel), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerDumpToFileNameListener(
-            new SetToDefaultSourceListener(&d_managedDumpChannel), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetReplayLogFilename(
-            new SetToDefaultSourceListener(&d_managedReplayLog), true));
+      // These do need registration calls.
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDefaultExprDepthListener(
+              new SetDefaultExprDepthListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDefaultExprDagListener(
+              new SetDefaultExprDagListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetPrintExprTypesListener(
+              new SetPrintExprTypesListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDumpModeListener(new DumpModeListener(),
+                                                         true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetPrintSuccessListener(
+              new PrintSuccessListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetRegularOutputChannelListener(
+              new SetToDefaultSourceListener(&d_managedRegularChannel), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
+              new SetToDefaultSourceListener(&d_managedDiagnosticChannel),
+              true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerDumpToFileNameListener(
+              new SetToDefaultSourceListener(&d_managedDumpChannel), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetReplayLogFilename(
+              new SetToDefaultSourceListener(&d_managedReplayLog), true));
+    }
+    catch (OptionException& e)
+    {
+      // Registering the option listeners can lead to OptionExceptions, e.g.
+      // when the user chooses a dump tag that does not exist. In that case, we
+      // have to make sure that we delete existing listener registrations and
+      // that we unsubscribe from NodeManager events. Otherwise we will have
+      // errors in the deconstructors of the NodeManager (because the
+      // NodeManager tries to notify an SmtEnginePrivate that does not exist)
+      // and the ListenerCollection (because not all registrations have been
+      // removed before calling the deconstructor).
+      delete d_listenerRegistrations;
+      d_smt.d_nodeManager->unsubscribeEvents(this);
+      throw OptionException(e.getRawMessage());
+    }
   }
 
   ~SmtEnginePrivate()
   {
     delete d_listenerRegistrations;
 
-    if(d_propagatorNeedsFinish) {
+    if(d_propagator.getNeedsFinish()) {
       d_propagator.finish();
-      d_propagatorNeedsFinish = false;
+      d_propagator.setNeedsFinish(false);
     }
     d_smt.d_nodeManager->unsubscribeEvents(this);
   }
 
-  void unregisterPreprocessingPasses()
-  {
-    d_preprocessingPassRegistry.unregisterPasses();
-  }
+  void cleanupPreprocessingPasses() { d_passes.clear(); }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
   void spendResource(unsigned amount)
@@ -770,10 +687,14 @@ public:
     }
   }
 
-  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts) override
+  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts,
+                            uint32_t flags) override
   {
-    DatatypeDeclarationCommand c(dtts);
-    d_smt.addToModelCommandAndDump(c);
+    if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
+    {
+      DatatypeDeclarationCommand c(dtts);
+      d_smt.addToModelCommandAndDump(c);
+    }
   }
 
   void nmNotifyNewVar(TNode n, uint32_t flags) override
@@ -783,9 +704,6 @@ public:
                              n.getType().toType());
     if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
       d_smt.addToModelCommandAndDump(c, flags);
-    }
-    if(n.getType().isBoolean() && !options::incrementalSolving()) {
-      d_boolVars.push_back(n);
     }
   }
 
@@ -801,9 +719,6 @@ public:
     if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
       d_smt.addToModelCommandAndDump(c, flags, false, "skolems");
     }
-    if(n.getType().isBoolean() && !options::incrementalSolving()) {
-      d_boolVars.push_back(n);
-    }
   }
 
   void nmNotifyDeleteNode(TNode n) override {}
@@ -811,7 +726,7 @@ public:
   Node applySubstitutions(TNode node)
   {
     return Rewriter::rewrite(
-        d_assertions.getTopLevelSubstitutions().apply(node));
+        d_preprocessingPassContext->getTopLevelSubstitutions().apply(node));
   }
 
   /**
@@ -822,7 +737,7 @@ public:
   /** Process a user push.
   */
   void notifyPush() {
-  
+
   }
 
   /**
@@ -833,9 +748,8 @@ public:
    */
   void notifyPop() {
     d_assertions.clear();
-    d_nonClausalLearnedLiterals.clear();
-    d_realAssertionsEnd = 0;
-    d_iteSkolemMap.clear();
+    d_propagator.getLearnedLiterals().clear();
+    getIteSkolemMap().clear();
   }
 
   /**
@@ -845,8 +759,14 @@ public:
    * immediately, or it might be simplified and kept, or it might not
    * even be simplified.
    * the 2nd and 3rd arguments added for bookkeeping for proofs
+   *
+   * @param isAssumption If true, the formula is considered to be an assumption
+   * (this is used to distinguish assertions and assumptions)
    */
-  void addFormula(TNode n, bool inUnsatCore, bool inInput = true);
+  void addFormula(TNode n,
+                  bool inUnsatCore,
+                  bool inInput = true,
+                  bool isAssumption = false);
 
   /** Expand definitions in n. */
   Node expandDefinitions(TNode n,
@@ -895,66 +815,6 @@ public:
     return retval;
   }
 
-  NodeToNodeHashMap d_rewriteApplyToConstCache;
-  Node rewriteApplyToConst(TNode n) {
-    Trace("rewriteApplyToConst") << "rewriteApplyToConst :: " << n << std::endl;
-
-    if(n.getMetaKind() == kind::metakind::CONSTANT ||
-       n.getMetaKind() == kind::metakind::VARIABLE ||
-       n.getMetaKind() == kind::metakind::NULLARY_OPERATOR)
-    {
-      return n;
-    }
-
-    if(d_rewriteApplyToConstCache.find(n) != d_rewriteApplyToConstCache.end()) {
-      Trace("rewriteApplyToConst") << "in cache :: "
-                                   << d_rewriteApplyToConstCache[n]
-                                   << std::endl;
-      return d_rewriteApplyToConstCache[n];
-    }
-
-    if(n.getKind() == kind::APPLY_UF) {
-      if(n.getNumChildren() == 1 && n[0].isConst() &&
-         n[0].getType().isInteger())
-      {
-        stringstream ss;
-        ss << n.getOperator() << "_";
-        if(n[0].getConst<Rational>() < 0) {
-          ss << "m" << -n[0].getConst<Rational>();
-        } else {
-          ss << n[0];
-        }
-        Node newvar = NodeManager::currentNM()->mkSkolem(
-            ss.str(), n.getType(), "rewriteApplyToConst skolem",
-            NodeManager::SKOLEM_EXACT_NAME);
-        d_rewriteApplyToConstCache[n] = newvar;
-        Trace("rewriteApplyToConst") << "made :: " << newvar << std::endl;
-        return newvar;
-      } else {
-        stringstream ss;
-        ss << "The rewrite-apply-to-const preprocessor is currently limited;"
-           << std::endl
-           << "it only works if all function symbols are unary and with Integer"
-           << std::endl
-           << "domain, and all applications are to integer values." << std::endl
-           << "Found application: " << n;
-        Unhandled(ss.str());
-      }
-    }
-
-    NodeBuilder<> builder(n.getKind());
-    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      builder << n.getOperator();
-    }
-    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-      builder << rewriteApplyToConst(n[i]);
-    }
-    Node rewr = builder;
-    d_rewriteApplyToConstCache[n] = rewr;
-    Trace("rewriteApplyToConst") << "built :: " << rewr << std::endl;
-    return rewr;
-  }
-
   void addUseTheoryListListener(TheoryEngine* theoryEngine){
     Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
     d_listenerRegistrations->add(
@@ -965,13 +825,13 @@ public:
   std::ostream* getReplayLog() const {
     return d_managedReplayLog.getReplayLog();
   }
-  
+
   //------------------------------- expression names
   // implements setExpressionName, as described in smt_engine.h
   void setExpressionName(Expr e, std::string name) {
     d_exprNames[Node::fromExpr(e)] = name;
   }
-  
+
   // implements getExpressionName, as described in smt_engine.h
   bool getExpressionName(Expr e, std::string& name) const {
     context::CDHashMap< Node, std::string, NodeHashFunction >::const_iterator it = d_exprNames.find(e);
@@ -983,7 +843,6 @@ public:
     }
   }
   //------------------------------- end expression names
-
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
@@ -1008,14 +867,16 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_defineCommands(),
       d_logic(),
       d_originalOptions(),
+      d_isInternalSubsolver(false),
       d_pendingPops(0),
       d_fullyInited(false),
-      d_problemExtended(false),
       d_queryMade(false),
       d_needPostsolve(false),
       d_earlyTheoryPP(true),
       d_globalNegation(false),
       d_status(),
+      d_expectedStatus(),
+      d_smtMode(SMT_MODE_START),
       d_replayStream(NULL),
       d_private(NULL),
       d_statisticsRegistry(NULL),
@@ -1042,9 +903,18 @@ SmtEngine::SmtEngine(ExprManager* em)
   d_proofManager = new ProofManager(d_userContext);
 #endif
 
+  d_definedFunctions = new (true) DefinedFunctionMap(d_userContext);
+  d_fmfRecFunctionsDefined = new (true) NodeList(d_userContext);
+  d_modelCommands = new (true) smt::CommandList(d_userContext);
+}
+
+void SmtEngine::finishInit()
+{
+  Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine = new TheoryEngine(d_context, d_userContext,
+  d_theoryEngine = new TheoryEngine(d_context,
+                                    d_userContext,
                                     d_private->d_iteRemover,
                                     const_cast<const LogicInfo&>(d_logic),
                                     d_channels);
@@ -1065,13 +935,6 @@ SmtEngine::SmtEngine(ExprManager* em)
   d_userContext->push();
   d_context->push();
 
-  d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
-  d_fmfRecFunctionsDefined = new(true) NodeList(d_userContext);
-  d_modelCommands = new(true) smt::CommandList(d_userContext);
-}
-
-void SmtEngine::finishInit() {
-  Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // ensure that our heuristics are properly set up
   setDefaults();
 
@@ -1164,12 +1027,6 @@ void SmtEngine::shutdown() {
     internalPop(true);
   }
 
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
-
   if(d_propEngine != NULL) {
     d_propEngine->shutdown();
   }
@@ -1217,7 +1074,19 @@ SmtEngine::~SmtEngine()
     d_fmfRecFunctionsDefined->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
-    d_private->unregisterPreprocessingPasses();
+    d_private->cleanupPreprocessingPasses();
+
+    // d_proofManager is always created when proofs are enabled at configure
+    // time.  Because of this, this code should not be wrapped in PROOF() which
+    // additionally checks flags such as options::proof().
+    //
+    // Note: the proof manager must be destroyed before the theory engine.
+    // Because the destruction of the proofs depends on contexts owned be the
+    // theory solvers.
+#ifdef CVC4_PROOF
+    delete d_proofManager;
+    d_proofManager = NULL;
+#endif
 
     delete d_theoryEngine;
     d_theoryEngine = NULL;
@@ -1225,15 +1094,6 @@ SmtEngine::~SmtEngine()
     d_propEngine = NULL;
     delete d_decisionEngine;
     d_decisionEngine = NULL;
-
-
-// d_proofManager is always created when proofs are enabled at configure time.
-// Becuase of this, this code should not be wrapped in PROOF() which
-// additionally checks flags such as options::proof().
-#ifdef CVC4_PROOF
-    delete d_proofManager;
-    d_proofManager = NULL;
-#endif
 
     delete d_stats;
     d_stats = NULL;
@@ -1282,6 +1142,8 @@ void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
+void SmtEngine::setFilename(std::string filename) { d_filename = filename; }
+std::string SmtEngine::getFilename() const { return d_filename; }
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already"
@@ -1294,29 +1156,19 @@ void SmtEngine::setDefaults() {
   // Language-based defaults
   if (!options::bitvectorDivByZeroConst.wasSetByUser())
   {
+    // Bitvector-divide-by-zero changed semantics in SMT LIB 2.6, thus we
+    // set this option if the input format is SMT LIB 2.6. We also set this
+    // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
     options::bitvectorDivByZeroConst.set(
-        language::isInputLang_smt2_6(options::inputLanguage()));
+        language::isInputLang_smt2_6(options::inputLanguage())
+        || options::inputLanguage() == language::input::LANG_SYGUS
+        || options::inputLanguage() == language::input::LANG_SYGUS_V2);
   }
   bool is_sygus = false;
-  if (options::inputLanguage() == language::input::LANG_SYGUS)
+  if (options::inputLanguage() == language::input::LANG_SYGUS
+      || options::inputLanguage() == language::input::LANG_SYGUS_V2)
   {
     is_sygus = true;
-    if (!options::ceGuidedInst.wasSetByUser())
-    {
-      options::ceGuidedInst.set(true);
-    }
-    // must use Ferrante/Rackoff for real arithmetic
-    if (!options::cbqiMidpoint.wasSetByUser())
-    {
-      options::cbqiMidpoint.set(true);
-    }
-    if (options::sygusRepairConst())
-    {
-      if (!options::cbqi.wasSetByUser())
-      {
-        options::cbqi.set(true);
-      }
-    }
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
@@ -1346,15 +1198,24 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if(options::forceLogicString.wasSetByUser()) {
-    d_logic = LogicInfo(options::forceLogicString());
-  }else if (options::solveIntAsBV() > 0) {
+  if (options::solveIntAsBV() > 0)
+  {
+    if (!(d_logic <= LogicInfo("QF_NIA")))
+    {
+      throw OptionException(
+          "--solve-int-as-bv=X only supported for pure integer logics (QF_NIA, "
+          "QF_LIA, QF_IDL)");
+    }
     d_logic = LogicInfo("QF_BV");
-  }else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt()) {
+  }
+  else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt())
+  {
     d_logic = LogicInfo("QF_NIA");
-  } else if ((d_logic.getLogicString() == "QF_UFBV" ||
-              d_logic.getLogicString() == "QF_ABV") &&
-             options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  }
+  else if ((d_logic.getLogicString() == "QF_UFBV"
+            || d_logic.getLogicString() == "QF_ABV")
+           && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
     d_logic = LogicInfo("QF_BV");
   }
 
@@ -1398,21 +1259,29 @@ void SmtEngine::setDefaults() {
   }
 
   // sygus inference may require datatypes
-  if (options::sygusInference())
+  if (!d_isInternalSubsolver)
   {
-    d_logic = d_logic.getUnlockedCopy();
-    d_logic.enableTheory(THEORY_DATATYPES);
-    d_logic.lock();
-    // since we are trying to recast as sygus, we assume the input is sygus
-    is_sygus = true;
+    if (options::produceAbducts() || options::sygusInference()
+        || options::sygusRewSynthInput())
+    {
+      // since we are trying to recast as sygus, we assume the input is sygus
+      is_sygus = true;
+      // we change the logic to incorporate sygus immediately
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.enableSygus();
+      d_logic.lock();
+    }
   }
 
-  if ((options::checkModels() || options::checkSynthSol())
+  if ((options::checkModels() || options::checkSynthSol()
+       || options::produceAbducts()
+       || options::modelCoresMode() != MODEL_CORES_NONE
+       || options::blockModelsMode() != BLOCK_MODELS_NONE)
       && !options::produceAssertions())
   {
-      Notice() << "SmtEngine: turning on produce-assertions to support "
-               << "check-models or check-synth-sol." << endl;
-      setOption("produce-assertions", SExpr("true"));
+    Notice() << "SmtEngine: turning on produce-assertions to support "
+             << "option requiring assertions." << endl;
+    setOption("produce-assertions", SExpr("true"));
   }
 
   // Disable options incompatible with incremental solving, unsat cores, and
@@ -1450,6 +1319,14 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << endl;
       options::unconstrainedSimp.set(uncSimp);
+    }
+  }
+  if (!options::proof())
+  {
+    // minimizing solutions from single invocation requires proofs
+    if (options::cegqiSolMinCore() && options::cegqiSolMinCore.wasSetByUser())
+    {
+      throw OptionException("cegqi-si-sol-min-core requires --proof");
     }
   }
 
@@ -1522,17 +1399,17 @@ void SmtEngine::setDefaults() {
       options::bitvectorToBool.set(false);
     }
 
-    if (options::boolToBitvector())
+    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
     {
       if (options::boolToBitvector.wasSetByUser())
       {
         throw OptionException(
-            "bool-to-bv not supported with unsat cores/proofs");
+            "bool-to-bv != off not supported with unsat cores/proofs");
       }
-      Notice() << "SmtEngine: turning off bool-to-bitvector to support unsat "
+      Notice() << "SmtEngine: turning off bool-to-bv to support unsat "
                   "cores/proofs"
                << endl;
-      options::boolToBitvector.set(false);
+      setOption("boolToBitvector", SExpr("off"));
     }
 
     if (options::bvIntroducePow2())
@@ -1573,6 +1450,12 @@ void SmtEngine::setDefaults() {
                << endl;
       setOption("global-negate", false);
     }
+
+    if (options::bitvectorAig())
+    {
+      throw OptionException(
+          "bitblast-aig not supported with unsat cores/proofs");
+    }
   }
   else
   {
@@ -1592,13 +1475,18 @@ void SmtEngine::setDefaults() {
 
   if (options::cbqiBv() && d_logic.isQuantified())
   {
-    if(options::boolToBitvector.wasSetByUser()) {
-      throw OptionException(
-          "bool-to-bv not supported with CBQI BV for quantified logics");
+    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
+    {
+      if (options::boolToBitvector.wasSetByUser())
+      {
+        throw OptionException(
+            "bool-to-bv != off not supported with CBQI BV for quantified "
+            "logics");
+      }
+      Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
+               << endl;
+      setOption("boolToBitvector", SExpr("off"));
     }
-    Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
-             << endl;
-    options::boolToBitvector.set(false);
   }
 
   // cases where we need produce models
@@ -1760,6 +1648,19 @@ void SmtEngine::setDefaults() {
     }
   }
 
+  if (options::boolToBitvector() == preprocessing::passes::BOOL_TO_BV_ALL
+      && !d_logic.isTheoryEnabled(THEORY_BV))
+  {
+    if (options::boolToBitvector.wasSetByUser())
+    {
+      throw OptionException(
+          "bool-to-bv=all not supported for non-bitvector logics.");
+    }
+    Notice() << "SmtEngine: turning off bool-to-bv for non-bv logic: "
+             << d_logic.getLogicString() << std::endl;
+    setOption("boolToBitvector", SExpr("off"));
+  }
+
   if (! options::bvEagerExplanations.wasSetByUser() &&
       d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
       d_logic.isTheoryEnabled(THEORY_BV)) {
@@ -1819,35 +1720,40 @@ void SmtEngine::setDefaults() {
   // Set decision mode based on logic (if not set by user)
   if(!options::decisionMode.wasSetByUser()) {
     decision::DecisionMode decMode =
-      // ALL
-      d_logic.hasEverything() ? decision::DECISION_STRATEGY_JUSTIFICATION :
-      ( // QF_BV
-        (not d_logic.isQuantified() &&
-          d_logic.isPure(THEORY_BV)
-          ) ||
-        // QF_AUFBV or QF_ABV or QF_UFBV
-        (not d_logic.isQuantified() &&
-         (d_logic.isTheoryEnabled(THEORY_ARRAYS) ||
-          d_logic.isTheoryEnabled(THEORY_UF)) &&
-         d_logic.isTheoryEnabled(THEORY_BV)
-         ) ||
-        // QF_AUFLIA (and may be ends up enabling QF_AUFLRA?)
-        (not d_logic.isQuantified() &&
-         d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
-         d_logic.isTheoryEnabled(THEORY_UF) &&
-         d_logic.isTheoryEnabled(THEORY_ARITH)
-         ) ||
-        // QF_LRA
-        (not d_logic.isQuantified() &&
-         d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
-         ) ||
-        // Quantifiers
-        d_logic.isQuantified() ||
-        // Strings
-        d_logic.isTheoryEnabled(THEORY_STRINGS)
-        ? decision::DECISION_STRATEGY_JUSTIFICATION
-        : decision::DECISION_STRATEGY_INTERNAL
-      );
+        // sygus uses internal
+        is_sygus ? decision::DECISION_STRATEGY_INTERNAL :
+                 // ALL
+            d_logic.hasEverything()
+                ? decision::DECISION_STRATEGY_JUSTIFICATION
+                : (  // QF_BV
+                      (not d_logic.isQuantified() && d_logic.isPure(THEORY_BV))
+                              ||
+                              // QF_AUFBV or QF_ABV or QF_UFBV
+                              (not d_logic.isQuantified()
+                               && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                                   || d_logic.isTheoryEnabled(THEORY_UF))
+                               && d_logic.isTheoryEnabled(THEORY_BV))
+                              ||
+                              // QF_AUFLIA (and may be ends up enabling
+                              // QF_AUFLRA?)
+                              (not d_logic.isQuantified()
+                               && d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                               && d_logic.isTheoryEnabled(THEORY_UF)
+                               && d_logic.isTheoryEnabled(THEORY_ARITH))
+                              ||
+                              // QF_LRA
+                              (not d_logic.isQuantified()
+                               && d_logic.isPure(THEORY_ARITH)
+                               && d_logic.isLinear()
+                               && !d_logic.isDifferenceLogic()
+                               && !d_logic.areIntegersUsed())
+                              ||
+                              // Quantifiers
+                              d_logic.isQuantified() ||
+                              // Strings
+                              d_logic.isTheoryEnabled(THEORY_STRINGS)
+                          ? decision::DECISION_STRATEGY_JUSTIFICATION
+                          : decision::DECISION_STRATEGY_INTERNAL);
 
     bool stoponly =
       // ALL
@@ -1928,11 +1834,10 @@ void SmtEngine::setDefaults() {
     if( options::mbqiMode()!=quantifiers::MBQI_NONE ){
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
-  }
-  if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-    if( !d_logic.isPure(THEORY_UF) ){
-      //MBQI_ABS is only supported in pure quantified UF
-      options::mbqiMode.set( quantifiers::MBQI_FMC );
+    if (!options::hoElimStoreAx.wasSetByUser())
+    {
+      // by default, use store axioms only if --ho-elim is set
+      options::hoElimStoreAx.set(options::hoElim());
     }
   }
   if( options::fmfFunWellDefinedRelevant() ){
@@ -1972,27 +1877,41 @@ void SmtEngine::setDefaults() {
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
       }
     }
-    if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-      if( !options::preSkolemQuant.wasSetByUser() ){
-        options::preSkolemQuant.set( true );
-      }
-      if( !options::preSkolemQuantNested.wasSetByUser() ){
-        options::preSkolemQuantNested.set( true );
-      }
-      if( !options::fmfOneInstPerRound.wasSetByUser() ){
-        options::fmfOneInstPerRound.set( true );
-      }
-    }
   }
 
   //apply counterexample guided instantiation options
   // if we are attempting to rewrite everything to SyGuS, use ceGuidedInst
-  if (options::sygusInference())
+  if (is_sygus)
   {
     if (!options::ceGuidedInst.wasSetByUser())
     {
       options::ceGuidedInst.set(true);
     }
+    // must use Ferrante/Rackoff for real arithmetic
+    if (!options::cbqiMidpoint.wasSetByUser())
+    {
+      options::cbqiMidpoint.set(true);
+    }
+    if (options::sygusRepairConst())
+    {
+      if (!options::cbqi.wasSetByUser())
+      {
+        options::cbqi.set(true);
+      }
+    }
+    // setting unif requirements
+    if (options::sygusUnifBooleanHeuristicDt()
+        && !options::sygusUnifCondIndependent())
+    {
+      options::sygusUnifCondIndependent.set(true);
+    }
+    if (options::sygusUnifCondIndependent() && !options::sygusUnif())
+    {
+      options::sygusUnif.set(true);
+    }
+  }
+  if (options::sygusInference())
+  {
     // optimization: apply preskolemization, makes it succeed more often
     if (!options::preSkolemQuant.wasSetByUser())
     {
@@ -2008,6 +1927,7 @@ void SmtEngine::setDefaults() {
       options::ceGuidedInst.set( true );
     }
   }
+  // if sygus is enabled, set the defaults for sygus
   if( options::ceGuidedInst() ){
     //counterexample-guided instantiation for sygus
     if( !options::cegqiSingleInvMode.wasSetByUser() ){
@@ -2019,26 +1939,76 @@ void SmtEngine::setDefaults() {
     if( !options::instNoEntail.wasSetByUser() ){
       options::instNoEntail.set( false );
     }
+    if (!options::cbqiFullEffort.wasSetByUser())
+    {
+      // should use full effort cbqi for single invocation and repair const
+      options::cbqiFullEffort.set(true);
+    }
     if (options::sygusRew())
     {
       options::sygusRewSynth.set(true);
       options::sygusRewVerify.set(true);
     }
-    if (options::sygusRewSynth() || options::sygusRewVerify())
+    if (options::sygusRewSynthInput())
+    {
+      // If we are using synthesis rewrite rules from input, we use
+      // sygusRewSynth after preprocessing. See passes/synth_rew_rules.h for
+      // details on this technique.
+      options::sygusRewSynth.set(true);
+      // we should not use the extended rewriter, since we are interested
+      // in rewrites that are not in the main rewriter
+      if (!options::sygusExtRew.wasSetByUser())
+      {
+        options::sygusExtRew.set(false);
+      }
+    }
+    // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
+    // is one that is specialized for returning a single solution. Non-basic
+    // sygus algorithms currently include the PBE solver, static template
+    // inference for invariant synthesis, and single invocation techniques.
+    bool reqBasicSygus = false;
+    if (options::produceAbducts())
+    {
+      // if doing abduction, we should filter strong solutions
+      if (!options::sygusFilterSolMode.wasSetByUser())
+      {
+        options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG);
+      }
+      // we must use basic sygus algorithms, since e.g. we require checking
+      // a sygus side condition for consistency with axioms.
+      reqBasicSygus = true;
+    }
+    if (options::sygusRewSynth() || options::sygusRewVerify()
+        || options::sygusQueryGen())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
     }
     if (options::sygusStream())
     {
-      // PBE and streaming modes are incompatible
-      if (!options::sygusSymBreakPbe.wasSetByUser())
-      {
-        options::sygusSymBreakPbe.set(false);
-      }
+      // Streaming is incompatible with techniques that focus the search towards
+      // finding a single solution.
+      reqBasicSygus = true;
+    }
+    // Now, disable options for non-basic sygus algorithms, if necessary.
+    if (reqBasicSygus)
+    {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
+        // also disable PBE-specific symmetry breaking unless PBE was enabled
+        if (!options::sygusSymBreakPbe.wasSetByUser())
+        {
+          options::sygusSymBreakPbe.set(false);
+        }
+      }
+      if (!options::sygusInvTemplMode.wasSetByUser())
+      {
+        options::sygusInvTemplMode.set(quantifiers::SYGUS_INV_TEMPL_MODE_NONE);
+      }
+      if (!options::cegqiSingleInvMode.wasSetByUser())
+      {
+        options::cegqiSingleInvMode.set(quantifiers::CEGQI_SI_MODE_NONE);
       }
     }
     //do not allow partial functions
@@ -2073,14 +2043,12 @@ void SmtEngine::setDefaults() {
   }
   //counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
-  if (d_logic.isQuantified()
-      && ((options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL
-           && (d_logic.isTheoryEnabled(THEORY_ARITH)
-               || d_logic.isTheoryEnabled(THEORY_DATATYPES)
-               || d_logic.isTheoryEnabled(THEORY_BV)
-               || d_logic.isTheoryEnabled(THEORY_FP)))
-          || d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV)
-          || options::cbqiAll()))
+  if ((d_logic.isQuantified()
+       && (d_logic.isTheoryEnabled(THEORY_ARITH)
+           || d_logic.isTheoryEnabled(THEORY_DATATYPES)
+           || d_logic.isTheoryEnabled(THEORY_BV)
+           || d_logic.isTheoryEnabled(THEORY_FP)))
+      || options::cbqiAll())
   {
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
@@ -2106,7 +2074,6 @@ void SmtEngine::setDefaults() {
     }
     if (d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
     {
-      options::cbqiAll.set( false );
       if( !options::quantConflictFind.wasSetByUser() ){
         options::quantConflictFind.set( false );
       }
@@ -2122,8 +2089,7 @@ void SmtEngine::setDefaults() {
       options::cbqiNestedQE.set(false);
     }
     // prenexing
-    if (options::cbqiNestedQE()
-        || options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL)
+    if (options::cbqiNestedQE())
     {
       // only complete with prenex = disj_normal or normal
       if (options::prenexQuant() <= quantifiers::PRENEX_QUANT_DISJ_NORMAL)
@@ -2335,12 +2301,39 @@ void SmtEngine::setDefaults() {
         << endl;
     options::bvLazyRewriteExtf.set(false);
   }
+
+  if (!options::sygusExprMinerCheckUseExport())
+  {
+    if (options::sygusExprMinerCheckTimeout.wasSetByUser())
+    {
+      throw OptionException(
+          "--sygus-expr-miner-check-timeout=N requires "
+          "--sygus-expr-miner-check-use-export");
+    }
+    if (options::sygusRewSynthInput() || options::produceAbducts())
+    {
+      std::stringstream ss;
+      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
+                                           : "--produce-abducts");
+      ss << "requires --sygus-expr-miner-check-use-export";
+      throw OptionException(ss.str());
+    }
+  }
+
+  if (options::stringFMF() && !options::stringProcessLoopMode.wasSetByUser())
+  {
+    Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
+                    "--strings-fmf enabled"
+                 << endl;
+    options::stringProcessLoopMode.set(
+        theory::strings::ProcessLoopMode::SIMPLE);
+  }
 }
 
-void SmtEngine::setProblemExtended(bool value)
+void SmtEngine::setProblemExtended()
 {
-  d_problemExtended = value;
-  if (value) { d_assumptions.clear(); }
+  d_smtMode = SMT_MODE_ASSERT;
+  d_assumptions.clear();
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
@@ -2361,35 +2354,15 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
     }
   }
 
-  // Check for CVC4-specific info keys (prefixed with "cvc4-" or "cvc4_")
-  if(key.length() > 5) {
-    string prefix = key.substr(0, 5);
-    if(prefix == "cvc4-" || prefix == "cvc4_") {
-      string cvc4key = key.substr(5);
-      if(cvc4key == "logic") {
-        if(! value.isAtom()) {
-          throw OptionException("argument to (set-info :cvc4-logic ..) must be a string");
-        }
-        SmtScope smts(this);
-        d_logic = value.getValue();
-        setLogicInternal();
-        return;
-      } else {
-        throw UnrecognizedOptionException();
-      }
-    }
-  }
-
   // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
-  if (key == "source"
-   || key == "category"
-   || key == "difficulty"
-   || key == "notes"
-   || key == "license")
+  if (key == "source" || key == "category" || key == "difficulty"
+      || key == "notes" || key == "name" || key == "license")
   {
     // ignore these
     return;
-  } else if(key == "name") {
+  }
+  else if (key == "filename")
+  {
     d_filename = value.getValue();
     return;
   }
@@ -2438,7 +2411,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       throw OptionException("argument to (set-info :status ..) must be "
                             "`sat' or `unsat' or `unknown'");
     }
-    d_status = Result(s, d_filename);
+    d_expectedStatus = Result(s, d_filename);
     return;
   }
   throw UnrecognizedOptionException();
@@ -2499,8 +2472,9 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
       transform(s.begin(), s.end(), s.begin(), ::tolower);
       return SExpr(SExpr::Keyword(s));
     } else {
-      throw ModalException("Can't get-info :reason-unknown when the "
-                           "last result wasn't unknown!");
+      throw RecoverableModalException(
+          "Can't get-info :reason-unknown when the "
+          "last result wasn't unknown!");
     }
   } else if(key == "assertion-stack-levels") {
     AlwaysAssert(d_userLevels.size() <=
@@ -2709,78 +2683,38 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 
 void SmtEnginePrivate::finishInit()
 {
-  d_preprocessingPassContext.reset(
-      new PreprocessingPassContext(&d_smt, d_resourceManager));
-  // TODO: register passes here (this will likely change when we add support for
-  // actually assembling preprocessing pipelines).
-  std::unique_ptr<ApplySubsts> applySubsts(
-      new ApplySubsts(d_preprocessingPassContext.get()));
-  std::unique_ptr<BoolToBV> boolToBv(
-      new BoolToBV(d_preprocessingPassContext.get()));
-  std::unique_ptr<BvAbstraction> bvAbstract(
-      new BvAbstraction(d_preprocessingPassContext.get()));
-  std::unique_ptr<BVAckermann> bvAckermann(
-      new BVAckermann(d_preprocessingPassContext.get()));
-  std::unique_ptr<BVGauss> bvGauss(
-      new BVGauss(d_preprocessingPassContext.get()));
-  std::unique_ptr<BvIntroPow2> bvIntroPow2(
-      new BvIntroPow2(d_preprocessingPassContext.get()));
-  std::unique_ptr<BVToBool> bvToBool(
-      new BVToBool(d_preprocessingPassContext.get()));
-  std::unique_ptr<IntToBV> intToBV(
-      new IntToBV(d_preprocessingPassContext.get()));
-  std::unique_ptr<PseudoBooleanProcessor> pbProc(
-      new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
-  std::unique_ptr<RealToInt> realToInt(
-      new RealToInt(d_preprocessingPassContext.get()));
-  std::unique_ptr<Rewrite> rewrite(
-      new Rewrite(d_preprocessingPassContext.get()));
-  std::unique_ptr<StaticLearning> staticLearning(
-      new StaticLearning(d_preprocessingPassContext.get()));
-  std::unique_ptr<SymBreakerPass> sbProc(
-      new SymBreakerPass(d_preprocessingPassContext.get()));
-  std::unique_ptr<SynthRewRulesPass> srrProc(
-      new SynthRewRulesPass(d_preprocessingPassContext.get()));
- std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
-      new SepSkolemEmp(d_preprocessingPassContext.get()));
-   d_preprocessingPassRegistry.registerPass("apply-substs",
-                                           std::move(applySubsts));
-  d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
-  d_preprocessingPassRegistry.registerPass("bv-abstraction",
-                                           std::move(bvAbstract));
-  d_preprocessingPassRegistry.registerPass("bv-ackermann",
-                                           std::move(bvAckermann));
-  d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
-  d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
-                                           std::move(bvIntroPow2));
-  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
-  d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
-  d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
-                                           std::move(pbProc));
-  d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
-  d_preprocessingPassRegistry.registerPass("rewrite", std::move(rewrite));
-  d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
-                                           std::move(sepSkolemEmp));
-  d_preprocessingPassRegistry.registerPass("static-learning", 
-                                           std::move(staticLearning));
-  d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
-  d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
+  PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
+  d_preprocessingPassContext.reset(new PreprocessingPassContext(
+      &d_smt, d_resourceManager, &d_iteRemover, &d_propagator));
+
+  // TODO: this will likely change when we add support for actually assembling
+  // preprocessing pipelines. For now, we just create an instance of each
+  // available preprocessing pass.
+  std::vector<std::string> passNames = ppReg.getAvailablePasses();
+  for (const std::string& passName : passNames)
+  {
+    d_passes[passName].reset(
+        ppReg.createPass(d_preprocessingPassContext.get(), passName));
+  }
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
 {
-  stack< triple<Node, Node, bool> > worklist;
+  stack<std::tuple<Node, Node, bool>> worklist;
   stack<Node> result;
-  worklist.push(make_triple(Node(n), Node(n), false));
+  worklist.push(std::make_tuple(Node(n), Node(n), false));
   // The worklist is made of triples, each is input / original node then the output / rewritten node
   // and finally a flag tracking whether the children have been explored (i.e. if this is a downward
   // or upward pass).
 
   do {
     spendResource(options::preprocessStep());
-    n = worklist.top().first;                      // n is the input / original
-    Node node = worklist.top().second;             // node is the output / result
-    bool childrenPushed = worklist.top().third;
+
+    // n is the input / original
+    // node is the output / result
+    Node node;
+    bool childrenPushed;
+    std::tie(n, node, childrenPushed) = worklist.top();
     worklist.pop();
 
     // Working downwards
@@ -2791,13 +2725,20 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       if(n.isVar()) {
         SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(n);
         if(i != d_smt.d_definedFunctions->end()) {
+          Node f = (*i).second.getFormula();
+          // must expand its definition
+          Node fe = expandDefinitions(f, cache, expandOnly);
           // replacement must be closed
           if((*i).second.getFormals().size() > 0) {
-            result.push(d_smt.d_nodeManager->mkNode(kind::LAMBDA, d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST, (*i).second.getFormals()), (*i).second.getFormula()));
+            result.push(d_smt.d_nodeManager->mkNode(
+                kind::LAMBDA,
+                d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
+                                            (*i).second.getFormals()),
+                fe));
             continue;
           }
           // don't bother putting in the cache
-          result.push((*i).second.getFormula());
+          result.push(fe);
           continue;
         }
         // don't bother putting in the cache
@@ -2815,11 +2756,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
 
       // otherwise expand it
       bool doExpand = false;
-      if (k == kind::APPLY)
-      {
-        doExpand = true;
-      }
-      else if (k == kind::APPLY_UF)
+      if (k == kind::APPLY_UF)
       {
         // Always do beta-reduction here. The reason is that there may be
         // operators such as INTS_MODULUS in the body of the lambda that would
@@ -2832,10 +2769,9 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         {
           doExpand = true;
         }
-        else if (options::macrosQuant() || options::sygusInference())
+        else
         {
-          // The above options assign substitutions to APPLY_UF, thus we check
-          // here and expand if this operator corresponds to a defined function.
+          // We always check if this operator corresponds to a defined function.
           doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
         }
       }
@@ -2904,10 +2840,14 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
 
       // the partial functions can fall through, in which case we still
       // consider their children
-      worklist.push(make_triple(Node(n), node, true));            // Original and rewritten result
+      worklist.push(std::make_tuple(
+          Node(n), node, true));  // Original and rewritten result
 
       for(size_t i = 0; i < node.getNumChildren(); ++i) {
-        worklist.push(make_triple(node[i], node[i], false));      // Rewrite the children of the result only
+        worklist.push(
+            std::make_tuple(node[i],
+                            node[i],
+                            false));  // Rewrite the children of the result only
       }
 
     } else {
@@ -2943,82 +2883,6 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
   return result.top();
 }
 
-typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-
-Node SmtEnginePrivate::purifyNlTerms(TNode n, NodeMap& cache, NodeMap& bcache, std::vector< Node >& var_eq, bool beneathMult) {
-  if( beneathMult ){
-    NodeMap::iterator find = bcache.find(n);
-    if (find != bcache.end()) {
-      return (*find).second;
-    }
-  }else{
-    NodeMap::iterator find = cache.find(n);
-    if (find != cache.end()) {
-      return (*find).second;
-    }
-  }
-  Node ret = n;
-  if( n.getNumChildren()>0 ){
-    if (beneathMult
-        && (n.getKind() == kind::PLUS || n.getKind() == kind::MINUS))
-    {
-      // don't do it if it rewrites to a constant
-      Node nr = Rewriter::rewrite(n);
-      if (nr.isConst())
-      {
-        // return the rewritten constant
-        ret = nr;
-      }
-      else
-      {
-        // new variable
-        ret = NodeManager::currentNM()->mkSkolem(
-            "__purifyNl_var",
-            n.getType(),
-            "Variable introduced in purifyNl pass");
-        Node np = purifyNlTerms(n, cache, bcache, var_eq, false);
-        var_eq.push_back(np.eqNode(ret));
-        Trace("nl-ext-purify")
-            << "Purify : " << ret << " -> " << np << std::endl;
-      }
-    }
-    else
-    {
-      bool beneathMultNew = beneathMult || n.getKind()==kind::MULT;
-      bool childChanged = false;
-      std::vector< Node > children;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node nc = purifyNlTerms( n[i], cache, bcache, var_eq, beneathMultNew );
-        childChanged = childChanged || nc!=n[i];
-        children.push_back( nc );
-      }
-      if( childChanged ){
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-    }
-  }
-  if( beneathMult ){
-    bcache[n] = ret;
-  }else{
-    cache[n] = ret;
-  }
-  return ret;
-}
-
-void SmtEnginePrivate::removeITEs() {
-  d_smt.finalOptionsAreSet();
-  spendResource(options::preprocessStep());
-  Trace("simplify") << "SmtEnginePrivate::removeITEs()" << endl;
-
-  // Remove all of the ITE occurrences and normalize
-  d_iteRemover.run(d_assertions.ref(), d_iteSkolemMap, true);
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    d_assertions.replace(i, Rewriter::rewrite(d_assertions[i]));
-  }
-}
-
-
-
 // do dumping (before/after any preprocessing pass)
 static void dumpAssertions(const char* key,
                            const AssertionPipeline& assertionList) {
@@ -3032,792 +2896,6 @@ static void dumpAssertions(const char* key,
   }
 }
 
-// returns false if it learns a conflict
-bool SmtEnginePrivate::nonClausalSimplify() {
-  spendResource(options::preprocessStep());
-  d_smt.finalOptionsAreSet();
-
-  if(options::unsatCores() || options::fewerPreprocessingHoles()) {
-    return true;
-  }
-
-  TimerStat::CodeTimer nonclausalTimer(d_smt.d_stats->d_nonclausalSimplificationTime);
-
-  Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify()" << endl;
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    Trace("simplify") << "Assertion #" << i << " : " << d_assertions[i] << std::endl;
-  }
-
-  if(d_propagatorNeedsFinish) {
-    d_propagator.finish();
-    d_propagatorNeedsFinish = false;
-  }
-  d_propagator.initialize();
-
-  // Assert all the assertions to the propagator
-  Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                    << "asserting to propagator" << endl;
-  CDO<unsigned>& substs_index = d_assertions.getSubstitutionsIndex();
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    Assert(Rewriter::rewrite(d_assertions[i]) == d_assertions[i]);
-    // Don't reprocess substitutions
-    if (substs_index > 0 && i == substs_index)
-    {
-      continue;
-    }
-    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): asserting " << d_assertions[i] << endl;
-    Debug("cores") << "d_propagator assertTrue: " << d_assertions[i] << std::endl;
-    d_propagator.assertTrue(d_assertions[i]);
-  }
-
-  Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                    << "propagating" << endl;
-  if (d_propagator.propagate()) {
-    // If in conflict, just return false
-    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                      << "conflict in non-clausal propagation" << endl;
-    Node falseNode = NodeManager::currentNM()->mkConst<bool>(false);
-    Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
-    d_assertions.clear();
-    addFormula(falseNode, false, false);
-    d_propagatorNeedsFinish = true;
-    return false;
-  }
-
-
-  Trace("simplify") << "Iterate through " << d_nonClausalLearnedLiterals.size() << " learned literals." << std::endl;
-  // No conflict, go through the literals and solve them
-  SubstitutionMap& top_level_substs = d_assertions.getTopLevelSubstitutions();
-  SubstitutionMap constantPropagations(d_smt.d_context);
-  SubstitutionMap newSubstitutions(d_smt.d_context);
-  SubstitutionMap::iterator pos;
-  unsigned j = 0;
-  for(unsigned i = 0, i_end = d_nonClausalLearnedLiterals.size(); i < i_end; ++ i) {
-    // Simplify the literal we learned wrt previous substitutions
-    Node learnedLiteral = d_nonClausalLearnedLiterals[i];
-    Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
-    Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
-    Trace("simplify") << "Process learnedLiteral : " << learnedLiteral << std::endl;
-    Node learnedLiteralNew = newSubstitutions.apply(learnedLiteral);
-    if (learnedLiteral != learnedLiteralNew) {
-      learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
-    }
-    Trace("simplify") << "Process learnedLiteral, after newSubs : " << learnedLiteral << std::endl;
-    for (;;) {
-      learnedLiteralNew = constantPropagations.apply(learnedLiteral);
-      if (learnedLiteralNew == learnedLiteral) {
-        break;
-      }
-      ++d_smt.d_stats->d_numConstantProps;
-      learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
-    }
-    Trace("simplify") << "Process learnedLiteral, after constProp : " << learnedLiteral << std::endl;
-    // It might just simplify to a constant
-    if (learnedLiteral.isConst()) {
-      if (learnedLiteral.getConst<bool>()) {
-        // If the learned literal simplifies to true, it's redundant
-        continue;
-      } else {
-        // If the learned literal simplifies to false, we're in conflict
-        Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                          << "conflict with "
-                          << d_nonClausalLearnedLiterals[i] << endl;
-        Assert(!options::unsatCores());
-        d_assertions.clear();
-        addFormula(NodeManager::currentNM()->mkConst<bool>(false), false, false);
-        d_propagatorNeedsFinish = true;
-        return false;
-      }
-    }
-
-    // Solve it with the corresponding theory, possibly adding new
-    // substitutions to newSubstitutions
-    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                      << "solving " << learnedLiteral << endl;
-
-    Theory::PPAssertStatus solveStatus =
-      d_smt.d_theoryEngine->solve(learnedLiteral, newSubstitutions);
-
-    switch (solveStatus) {
-      case Theory::PP_ASSERT_STATUS_SOLVED: {
-        // The literal should rewrite to true
-        Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                          << "solved " << learnedLiteral << endl;
-        Assert(Rewriter::rewrite(newSubstitutions.apply(learnedLiteral)).isConst());
-        //        vector<pair<Node, Node> > equations;
-        //        constantPropagations.simplifyLHS(top_level_substs, equations,
-        //        true); if (equations.empty()) {
-        //          break;
-        //        }
-        //        Assert(equations[0].first.isConst() &&
-        //        equations[0].second.isConst() && equations[0].first !=
-        //        equations[0].second);
-        // else fall through
-        break;
-      }
-      case Theory::PP_ASSERT_STATUS_CONFLICT:
-        // If in conflict, we return false
-        Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                          << "conflict while solving "
-                          << learnedLiteral << endl;
-        Assert(!options::unsatCores());
-        d_assertions.clear();
-        addFormula(NodeManager::currentNM()->mkConst<bool>(false), false, false);
-        d_propagatorNeedsFinish = true;
-        return false;
-      default:
-        if (d_doConstantProp && learnedLiteral.getKind() == kind::EQUAL && (learnedLiteral[0].isConst() || learnedLiteral[1].isConst())) {
-          // constant propagation
-          TNode t;
-          TNode c;
-          if (learnedLiteral[0].isConst()) {
-            t = learnedLiteral[1];
-            c = learnedLiteral[0];
-          }
-          else {
-            t = learnedLiteral[0];
-            c = learnedLiteral[1];
-          }
-          Assert(!t.isConst());
-          Assert(constantPropagations.apply(t) == t);
-          Assert(top_level_substs.apply(t) == t);
-          Assert(newSubstitutions.apply(t) == t);
-          constantPropagations.addSubstitution(t, c);
-          // vector<pair<Node,Node> > equations;
-          // constantPropagations.simplifyLHS(t, c, equations, true);
-          // if (!equations.empty()) {
-          //   Assert(equations[0].first.isConst() &&
-          //   equations[0].second.isConst() && equations[0].first !=
-          //   equations[0].second); d_assertions.clear();
-          //   addFormula(NodeManager::currentNM()->mkConst<bool>(false), false,
-          //   false); return;
-          // }
-          // top_level_substs.simplifyRHS(constantPropagations);
-        }
-        else {
-          // Keep the literal
-          d_nonClausalLearnedLiterals[j++] = d_nonClausalLearnedLiterals[i];
-        }
-        break;
-    }
-  }
-
-#ifdef CVC4_ASSERTIONS
-  // NOTE: When debugging this code, consider moving this check inside of the
-  // loop over d_nonClausalLearnedLiterals. This check has been moved outside
-  // because it is costly for certain inputs (see bug 508).
-  //
-  // Check data structure invariants:
-  // 1. for each lhs of top_level_substs, does not appear anywhere in rhs of
-  // top_level_substs or anywhere in constantPropagations
-  // 2. each lhs of constantPropagations rewrites to itself
-  // 3. if l -> r is a constant propagation and l is a subterm of l' with l' ->
-  // r' another constant propagation, then l'[l/r] -> r' should be a
-  //    constant propagation too
-  // 4. each lhs of constantPropagations is different from each rhs
-  for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos) {
-    Assert((*pos).first.isVar());
-    Assert(top_level_substs.apply((*pos).first) == (*pos).first);
-    Assert(top_level_substs.apply((*pos).second) == (*pos).second);
-    Assert(newSubstitutions.apply(newSubstitutions.apply((*pos).second)) == newSubstitutions.apply((*pos).second));
-  }
-  for (pos = constantPropagations.begin(); pos != constantPropagations.end(); ++pos) {
-    Assert((*pos).second.isConst());
-    Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
-    // Node newLeft = top_level_substs.apply((*pos).first);
-    // if (newLeft != (*pos).first) {
-    //   newLeft = Rewriter::rewrite(newLeft);
-    //   Assert(newLeft == (*pos).second ||
-    //          (constantPropagations.hasSubstitution(newLeft) &&
-    //          constantPropagations.apply(newLeft) == (*pos).second));
-    // }
-    // newLeft = constantPropagations.apply((*pos).first);
-    // if (newLeft != (*pos).first) {
-    //   newLeft = Rewriter::rewrite(newLeft);
-    //   Assert(newLeft == (*pos).second ||
-    //          (constantPropagations.hasSubstitution(newLeft) &&
-    //          constantPropagations.apply(newLeft) == (*pos).second));
-    // }
-    Assert(constantPropagations.apply((*pos).second) == (*pos).second);
-  }
-#endif /* CVC4_ASSERTIONS */
-
-  // Resize the learnt
-  Trace("simplify") << "Resize non-clausal learned literals to " << j << std::endl;
-  d_nonClausalLearnedLiterals.resize(j);
-
-  unordered_set<TNode, TNodeHashFunction> s;
-  Trace("debugging") << "NonClausal simplify pre-preprocess\n";
-  for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-    Node assertion = d_assertions[i];
-    Node assertionNew = newSubstitutions.apply(assertion);
-    Trace("debugging") << "assertion = " << assertion << endl;
-    Trace("debugging") << "assertionNew = " << assertionNew << endl;
-    if (assertion != assertionNew) {
-      assertion = Rewriter::rewrite(assertionNew);
-      Trace("debugging") << "rewrite(assertion) = " << assertion << endl;
-    }
-    Assert(Rewriter::rewrite(assertion) == assertion);
-    for (;;) {
-      assertionNew = constantPropagations.apply(assertion);
-      if (assertionNew == assertion) {
-        break;
-      }
-      ++d_smt.d_stats->d_numConstantProps;
-      Trace("debugging") << "assertionNew = " << assertionNew << endl;
-      assertion = Rewriter::rewrite(assertionNew);
-      Trace("debugging") << "assertionNew = " << assertionNew << endl;
-    }
-    Trace("debugging") << "\n";
-    s.insert(assertion);
-    d_assertions.replace(i, assertion);
-    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                      << "non-clausal preprocessed: "
-                      << assertion << endl;
-  }
-
-  // If in incremental mode, add substitutions to the list of assertions
-  if (substs_index > 0)
-  {
-    NodeBuilder<> substitutionsBuilder(kind::AND);
-    substitutionsBuilder << d_assertions[substs_index];
-    pos = newSubstitutions.begin();
-    for (; pos != newSubstitutions.end(); ++pos) {
-      // Add back this substitution as an assertion
-      TNode lhs = (*pos).first, rhs = newSubstitutions.apply((*pos).second);
-      Node n = NodeManager::currentNM()->mkNode(kind::EQUAL, lhs, rhs);
-      substitutionsBuilder << n;
-      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): will notify SAT layer of substitution: " << n << endl;
-    }
-    if (substitutionsBuilder.getNumChildren() > 1) {
-      d_assertions.replace(substs_index,
-                           Rewriter::rewrite(Node(substitutionsBuilder)));
-    }
-  } else {
-    // If not in incremental mode, must add substitutions to model
-    TheoryModel* m = d_smt.d_theoryEngine->getModel();
-    if(m != NULL) {
-      for(pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos) {
-        Node n = (*pos).first;
-        Node v = newSubstitutions.apply((*pos).second);
-        Trace("model") << "Add substitution : " << n << " " << v << endl;
-        m->addSubstitution( n, v );
-      }
-    }
-  }
-
-  NodeBuilder<> learnedBuilder(kind::AND);
-  Assert(d_realAssertionsEnd <= d_assertions.size());
-  learnedBuilder << d_assertions[d_realAssertionsEnd - 1];
-
-  for (unsigned i = 0; i < d_nonClausalLearnedLiterals.size(); ++ i) {
-    Node learned = d_nonClausalLearnedLiterals[i];
-    Assert(top_level_substs.apply(learned) == learned);
-    Node learnedNew = newSubstitutions.apply(learned);
-    if (learned != learnedNew) {
-      learned = Rewriter::rewrite(learnedNew);
-    }
-    Assert(Rewriter::rewrite(learned) == learned);
-    for (;;) {
-      learnedNew = constantPropagations.apply(learned);
-      if (learnedNew == learned) {
-        break;
-      }
-      ++d_smt.d_stats->d_numConstantProps;
-      learned = Rewriter::rewrite(learnedNew);
-    }
-    if (s.find(learned) != s.end()) {
-      continue;
-    }
-    s.insert(learned);
-    learnedBuilder << learned;
-    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                      << "non-clausal learned : "
-                      << learned << endl;
-  }
-  d_nonClausalLearnedLiterals.clear();
-
-  for (pos = constantPropagations.begin(); pos != constantPropagations.end(); ++pos) {
-    Node cProp = (*pos).first.eqNode((*pos).second);
-    Assert(top_level_substs.apply(cProp) == cProp);
-    Node cPropNew = newSubstitutions.apply(cProp);
-    if (cProp != cPropNew) {
-      cProp = Rewriter::rewrite(cPropNew);
-      Assert(Rewriter::rewrite(cProp) == cProp);
-    }
-    if (s.find(cProp) != s.end()) {
-      continue;
-    }
-    s.insert(cProp);
-    learnedBuilder << cProp;
-    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                      << "non-clausal constant propagation : "
-                      << cProp << endl;
-  }
-
-  // Add new substitutions to topLevelSubstitutions
-  // Note that we don't have to keep rhs's in full solved form
-  // because SubstitutionMap::apply does a fixed-point iteration when substituting
-  top_level_substs.addSubstitutions(newSubstitutions);
-
-  if(learnedBuilder.getNumChildren() > 1) {
-    d_assertions.replace(d_realAssertionsEnd - 1,
-      Rewriter::rewrite(Node(learnedBuilder)));
-  }
-
-  d_propagatorNeedsFinish = true;
-  return true;
-}
-
-bool SmtEnginePrivate::simpITE() {
-  TimerStat::CodeTimer simpITETimer(d_smt.d_stats->d_simpITETime);
-
-  spendResource(options::preprocessStep());
-
-  Trace("simplify") << "SmtEnginePrivate::simpITE()" << endl;
-
-  unsigned numAssertionOnEntry = d_assertions.size();
-  for (unsigned i = 0; i < d_assertions.size(); ++i) {
-    spendResource(options::preprocessStep());
-    Node result = d_smt.d_theoryEngine->ppSimpITE(d_assertions[i]);
-    d_assertions.replace(i, result);
-    if(result.isConst() && !result.getConst<bool>()){
-      return false;
-    }
-  }
-  bool result = d_smt.d_theoryEngine->donePPSimpITE(d_assertions.ref());
-  if(numAssertionOnEntry < d_assertions.size()){
-    compressBeforeRealAssertions(numAssertionOnEntry);
-  }
-  return result;
-}
-
-void SmtEnginePrivate::compressBeforeRealAssertions(size_t before){
-  size_t curr = d_assertions.size();
-  if(before >= curr ||
-     d_realAssertionsEnd <= 0 ||
-     d_realAssertionsEnd >= curr){
-    return;
-  }
-
-  // assertions
-  // original: [0 ... d_realAssertionsEnd)
-  //  can be modified
-  // ites skolems [d_realAssertionsEnd, before)
-  //  cannot be moved
-  // added [before, curr)
-  //  can be modified
-  Assert(0 < d_realAssertionsEnd);
-  Assert(d_realAssertionsEnd <= before);
-  Assert(before < curr);
-
-  std::vector<Node> intoConjunction;
-  for(size_t i = before; i<curr; ++i){
-    intoConjunction.push_back(d_assertions[i]);
-  }
-  d_assertions.resize(before);
-  size_t lastBeforeItes = d_realAssertionsEnd - 1;
-  intoConjunction.push_back(d_assertions[lastBeforeItes]);
-  Node newLast = util::NaryBuilder::mkAssoc(kind::AND, intoConjunction);
-  d_assertions.replace(lastBeforeItes, newLast);
-  Assert(d_assertions.size() == before);
-}
-
-void SmtEnginePrivate::unconstrainedSimp() {
-  TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_stats->d_unconstrainedSimpTime);
-  spendResource(options::preprocessStep());
-  Trace("simplify") << "SmtEnginePrivate::unconstrainedSimp()" << endl;
-  d_smt.d_theoryEngine->ppUnconstrainedSimp(d_assertions.ref());
-}
-
-void SmtEnginePrivate::traceBackToAssertions(const std::vector<Node>& nodes, std::vector<TNode>& assertions) {
-  const booleans::CircuitPropagator::BackEdgesMap& backEdges = d_propagator.getBackEdges();
-  for(vector<Node>::const_iterator i = nodes.begin(); i != nodes.end(); ++i) {
-    booleans::CircuitPropagator::BackEdgesMap::const_iterator j = backEdges.find(*i);
-    // term must appear in map, otherwise how did we get here?!
-    Assert(j != backEdges.end());
-    // if term maps to empty, that means it's a top-level assertion
-    if(!(*j).second.empty()) {
-      traceBackToAssertions((*j).second, assertions);
-    } else {
-      assertions.push_back(*i);
-    }
-  }
-}
-
-size_t SmtEnginePrivate::removeFromConjunction(Node& n, const std::unordered_set<unsigned long>& toRemove) {
-  Assert(n.getKind() == kind::AND);
-  size_t removals = 0;
-  for(Node::iterator j = n.begin(); j != n.end(); ++j) {
-    size_t subremovals = 0;
-    Node sub = *j;
-    if(toRemove.find(sub.getId()) != toRemove.end() ||
-       (sub.getKind() == kind::AND && (subremovals = removeFromConjunction(sub, toRemove)) > 0)) {
-      NodeBuilder<> b(kind::AND);
-      b.append(n.begin(), j);
-      if(subremovals > 0) {
-        removals += subremovals;
-        b << sub;
-      } else {
-        ++removals;
-      }
-      for(++j; j != n.end(); ++j) {
-        if(toRemove.find((*j).getId()) != toRemove.end()) {
-          ++removals;
-        } else if((*j).getKind() == kind::AND) {
-          sub = *j;
-          if((subremovals = removeFromConjunction(sub, toRemove)) > 0) {
-            removals += subremovals;
-            b << sub;
-          } else {
-            b << *j;
-          }
-        } else {
-          b << *j;
-        }
-      }
-      if(b.getNumChildren() == 0) {
-        n = d_true;
-        b.clear();
-      } else if(b.getNumChildren() == 1) {
-        n = b[0];
-        b.clear();
-      } else {
-        n = b;
-      }
-      n = Rewriter::rewrite(n);
-      return removals;
-    }
-  }
-
-  Assert(removals == 0);
-  return 0;
-}
-
-void SmtEnginePrivate::doMiplibTrick() {
-  Assert(d_realAssertionsEnd == d_assertions.size());
-  Assert(!options::incrementalSolving());
-
-  const booleans::CircuitPropagator::BackEdgesMap& backEdges = d_propagator.getBackEdges();
-  unordered_set<unsigned long> removeAssertions;
-
-  NodeManager* nm = NodeManager::currentNM();
-  Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
-
-  SubstitutionMap& top_level_substs = d_assertions.getTopLevelSubstitutions();
-  unordered_map<TNode, Node, TNodeHashFunction> intVars;
-  for(vector<Node>::const_iterator i = d_boolVars.begin(); i != d_boolVars.end(); ++i) {
-    if(d_propagator.isAssigned(*i)) {
-      Debug("miplib") << "ineligible: " << *i << " because assigned " << d_propagator.getAssignment(*i) << endl;
-      continue;
-    }
-
-    vector<TNode> assertions;
-    booleans::CircuitPropagator::BackEdgesMap::const_iterator j = backEdges.find(*i);
-    // if not in back edges map, the bool var is unconstrained, showing up in no assertions.
-    // if maps to an empty vector, that means the bool var was asserted itself.
-    if(j != backEdges.end()) {
-      if(!(*j).second.empty()) {
-        traceBackToAssertions((*j).second, assertions);
-      } else {
-        assertions.push_back(*i);
-      }
-    }
-    Debug("miplib") << "for " << *i << endl;
-    bool eligible = true;
-    map<pair<Node, Node>, uint64_t> marks;
-    map<pair<Node, Node>, vector<Rational> > coef;
-    map<pair<Node, Node>, vector<Rational> > checks;
-    map<pair<Node, Node>, vector<TNode> > asserts;
-    for(vector<TNode>::const_iterator j = assertions.begin(); j != assertions.end(); ++j) {
-      Debug("miplib") << "  found: " << *j << endl;
-      if((*j).getKind() != kind::IMPLIES) {
-        eligible = false;
-        Debug("miplib") << "  -- INELIGIBLE -- (not =>)" << endl;
-        break;
-      }
-      Node conj = BooleanSimplification::simplify((*j)[0]);
-      if(conj.getKind() == kind::AND && conj.getNumChildren() > 6) {
-        eligible = false;
-        Debug("miplib") << "  -- INELIGIBLE -- (N-ary /\\ too big)" << endl;
-        break;
-      }
-      if(conj.getKind() != kind::AND && !conj.isVar() && !(conj.getKind() == kind::NOT && conj[0].isVar())) {
-        eligible = false;
-        Debug("miplib") << "  -- INELIGIBLE -- (not /\\ or literal)" << endl;
-        break;
-      }
-      if((*j)[1].getKind() != kind::EQUAL ||
-         !( ( (*j)[1][0].isVar() &&
-              (*j)[1][1].getKind() == kind::CONST_RATIONAL ) ||
-            ( (*j)[1][0].getKind() == kind::CONST_RATIONAL &&
-              (*j)[1][1].isVar() ) )) {
-        eligible = false;
-        Debug("miplib") << "  -- INELIGIBLE -- (=> (and X X) X)" << endl;
-        break;
-      }
-      if(conj.getKind() == kind::AND) {
-        vector<Node> posv;
-        bool found_x = false;
-        map<TNode, bool> neg;
-        for(Node::iterator ii = conj.begin(); ii != conj.end(); ++ii) {
-          if((*ii).isVar()) {
-            posv.push_back(*ii);
-            neg[*ii] = false;
-            found_x = found_x || *i == *ii;
-          } else if((*ii).getKind() == kind::NOT && (*ii)[0].isVar()) {
-            posv.push_back((*ii)[0]);
-            neg[(*ii)[0]] = true;
-            found_x = found_x || *i == (*ii)[0];
-          } else {
-            eligible = false;
-            Debug("miplib") << "  -- INELIGIBLE -- (non-var: " << *ii << ")" << endl;
-            break;
-          }
-          if(d_propagator.isAssigned(posv.back())) {
-            eligible = false;
-            Debug("miplib") << "  -- INELIGIBLE -- (" << posv.back() << " asserted)" << endl;
-            break;
-          }
-        }
-        if(!eligible) {
-          break;
-        }
-        if(!found_x) {
-          eligible = false;
-          Debug("miplib") << "  --INELIGIBLE -- (couldn't find " << *i << " in conjunction)" << endl;
-          break;
-        }
-        sort(posv.begin(), posv.end());
-        const Node pos = NodeManager::currentNM()->mkNode(kind::AND, posv);
-        const TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][1] : (*j)[1][0];
-        const pair<Node, Node> pos_var(pos, var);
-        const Rational& constant = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][0].getConst<Rational>() : (*j)[1][1].getConst<Rational>();
-        uint64_t mark = 0;
-        unsigned countneg = 0, thepos = 0;
-        for(unsigned ii = 0; ii < pos.getNumChildren(); ++ii) {
-          if(neg[pos[ii]]) {
-            ++countneg;
-          } else {
-            thepos = ii;
-            mark |= (0x1 << ii);
-          }
-        }
-        if((marks[pos_var] & (1lu << mark)) != 0) {
-          eligible = false;
-          Debug("miplib") << "  -- INELIGIBLE -- (remarked)" << endl;
-          break;
-        }
-        Debug("miplib") << "mark is " << mark << " -- " << (1lu << mark) << endl;
-        marks[pos_var] |= (1lu << mark);
-        Debug("miplib") << "marks[" << pos << "," << var << "] now " << marks[pos_var] << endl;
-        if(countneg == pos.getNumChildren()) {
-          if(constant != 0) {
-            eligible = false;
-            Debug("miplib") << "  -- INELIGIBLE -- (nonzero constant)" << endl;
-            break;
-          }
-        } else if(countneg == pos.getNumChildren() - 1) {
-          Assert(coef[pos_var].size() <= 6 && thepos < 6);
-          if(coef[pos_var].size() <= thepos) {
-            coef[pos_var].resize(thepos + 1);
-          }
-          coef[pos_var][thepos] = constant;
-        } else {
-          if(checks[pos_var].size() <= mark) {
-            checks[pos_var].resize(mark + 1);
-          }
-          checks[pos_var][mark] = constant;
-        }
-        asserts[pos_var].push_back(*j);
-      } else {
-        TNode x = conj;
-        if(x != *i && x != (*i).notNode()) {
-          eligible = false;
-          Debug("miplib") << "  -- INELIGIBLE -- (x not present where I expect it)" << endl;
-          break;
-        }
-        const bool xneg = (x.getKind() == kind::NOT);
-        x = xneg ? x[0] : x;
-        Debug("miplib") << "  x:" << x << "  " << xneg << endl;
-        const TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][1] : (*j)[1][0];
-        const pair<Node, Node> x_var(x, var);
-        const Rational& constant = ((*j)[1][0].getKind() == kind::CONST_RATIONAL) ? (*j)[1][0].getConst<Rational>() : (*j)[1][1].getConst<Rational>();
-        unsigned mark = (xneg ? 0 : 1);
-        if((marks[x_var] & (1u << mark)) != 0) {
-          eligible = false;
-          Debug("miplib") << "  -- INELIGIBLE -- (remarked)" << endl;
-          break;
-        }
-        marks[x_var] |= (1u << mark);
-        if(xneg) {
-          if(constant != 0) {
-            eligible = false;
-            Debug("miplib") << "  -- INELIGIBLE -- (nonzero constant)" << endl;
-            break;
-          }
-        } else {
-          Assert(coef[x_var].size() <= 6);
-          coef[x_var].resize(6);
-          coef[x_var][0] = constant;
-        }
-        asserts[x_var].push_back(*j);
-      }
-    }
-    if(eligible) {
-      for(map<pair<Node, Node>, uint64_t>::const_iterator j = marks.begin(); j != marks.end(); ++j) {
-        const TNode pos = (*j).first.first;
-        const TNode var = (*j).first.second;
-        const pair<Node, Node>& pos_var = (*j).first;
-        const uint64_t mark = (*j).second;
-        const unsigned numVars = pos.getKind() == kind::AND ? pos.getNumChildren() : 1;
-        uint64_t expected = (uint64_t(1) << (1 << numVars)) - 1;
-        expected = (expected == 0) ? -1 : expected; // fix for overflow
-        Debug("miplib") << "[" << pos << "] => " << hex << mark << " expect " << expected << dec << endl;
-        Assert(pos.getKind() == kind::AND || pos.isVar());
-        if(mark != expected) {
-          Debug("miplib") << "  -- INELIGIBLE " << pos << " -- (insufficiently marked, got " << mark << " for " << numVars << " vars, expected " << expected << endl;
-        } else {
-          if(mark != 3) { // exclude single-var case; nothing to check there
-            uint64_t sz = (uint64_t(1) << checks[pos_var].size()) - 1;
-            sz = (sz == 0) ? -1 : sz; // fix for overflow
-            Assert(sz == mark, "expected size %u == mark %u", sz, mark);
-            for(size_t k = 0; k < checks[pos_var].size(); ++k) {
-              if((k & (k - 1)) != 0) {
-                Rational sum = 0;
-                Debug("miplib") << k << " => " << checks[pos_var][k] << endl;
-                for(size_t v = 1, kk = k; kk != 0; ++v, kk >>= 1) {
-                  if((kk & 0x1) == 1) {
-                    Assert(pos.getKind() == kind::AND);
-                    Debug("miplib") << "var " << v << " : " << pos[v - 1] << " coef:" << coef[pos_var][v - 1] << endl;
-                    sum += coef[pos_var][v - 1];
-                  }
-                }
-                Debug("miplib") << "checkSum is " << sum << " input says " << checks[pos_var][k] << endl;
-                if(sum != checks[pos_var][k]) {
-                  eligible = false;
-                  Debug("miplib") << "  -- INELIGIBLE " << pos << " -- (nonlinear combination)" << endl;
-                  break;
-                }
-              } else {
-                Assert(checks[pos_var][k] == 0, "checks[(%s,%s)][%u] should be 0, but it's %s", pos.toString().c_str(), var.toString().c_str(), k, checks[pos_var][k].toString().c_str()); // we never set for single-positive-var
-              }
-            }
-          }
-          if(!eligible) {
-            eligible = true; // next is still eligible
-            continue;
-          }
-
-          Debug("miplib") << "  -- ELIGIBLE " << *i << " , " << pos << " --" << endl;
-          vector<Node> newVars;
-          expr::NodeSelfIterator ii, iiend;
-          if(pos.getKind() == kind::AND) {
-            ii = pos.begin();
-            iiend = pos.end();
-          } else {
-            ii = expr::NodeSelfIterator::self(pos);
-            iiend = expr::NodeSelfIterator::selfEnd(pos);
-          }
-          for(; ii != iiend; ++ii) {
-            Node& varRef = intVars[*ii];
-            if(varRef.isNull()) {
-              stringstream ss;
-              ss << "mipvar_" << *ii;
-              Node newVar = nm->mkSkolem(ss.str(), nm->integerType(), "a variable introduced due to scrubbing a miplib encoding", NodeManager::SKOLEM_EXACT_NAME);
-              Node geq = Rewriter::rewrite(nm->mkNode(kind::GEQ, newVar, zero));
-              Node leq = Rewriter::rewrite(nm->mkNode(kind::LEQ, newVar, one));
-              addFormula(Rewriter::rewrite(geq.andNode(leq)), false, false);
-              SubstitutionMap nullMap(&d_fakeContext);
-              Theory::PPAssertStatus status CVC4_UNUSED; // just for assertions
-              status = d_smt.d_theoryEngine->solve(geq, nullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                     "unexpected solution from arith's ppAssert()");
-              Assert(nullMap.empty(),
-                     "unexpected substitution from arith's ppAssert()");
-              status = d_smt.d_theoryEngine->solve(leq, nullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                     "unexpected solution from arith's ppAssert()");
-              Assert(nullMap.empty(),
-                     "unexpected substitution from arith's ppAssert()");
-              d_smt.d_theoryEngine->getModel()->addSubstitution(*ii, newVar.eqNode(one));
-              newVars.push_back(newVar);
-              varRef = newVar;
-            } else {
-              newVars.push_back(varRef);
-            }
-            if(!d_smt.d_logic.areIntegersUsed()) {
-              d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
-              d_smt.d_logic.enableIntegers();
-              d_smt.d_logic.lock();
-            }
-          }
-          Node sum;
-          if(pos.getKind() == kind::AND) {
-            NodeBuilder<> sumb(kind::PLUS);
-            for(size_t ii = 0; ii < pos.getNumChildren(); ++ii) {
-              sumb << nm->mkNode(kind::MULT, nm->mkConst(coef[pos_var][ii]), newVars[ii]);
-            }
-            sum = sumb;
-          } else {
-            sum = nm->mkNode(kind::MULT, nm->mkConst(coef[pos_var][0]), newVars[0]);
-          }
-          Debug("miplib") << "vars[] " << var << endl
-                          << "    eq " << Rewriter::rewrite(sum) << endl;
-          Node newAssertion = var.eqNode(Rewriter::rewrite(sum));
-          if (top_level_substs.hasSubstitution(newAssertion[0]))
-          {
-            // Warning() << "RE-SUBSTITUTION " << newAssertion[0] << endl;
-            // Warning() << "REPLACE         " << newAssertion[1] << endl;
-            // Warning() << "ORIG            " <<
-            // top_level_substs.getSubstitution(newAssertion[0]) << endl;
-            Assert(top_level_substs.getSubstitution(newAssertion[0])
-                   == newAssertion[1]);
-          } else if(pos.getNumChildren() <= options::arithMLTrickSubstitutions()) {
-            top_level_substs.addSubstitution(newAssertion[0], newAssertion[1]);
-            Debug("miplib") << "addSubs: " << newAssertion[0] << " to " << newAssertion[1] << endl;
-          } else {
-            Debug("miplib") << "skipSubs: " << newAssertion[0] << " to " << newAssertion[1] << " (threshold is " << options::arithMLTrickSubstitutions() << ")" << endl;
-          }
-          newAssertion = Rewriter::rewrite(newAssertion);
-          Debug("miplib") << "  " << newAssertion << endl;
-          addFormula(newAssertion, false, false);
-          Debug("miplib") << "  assertions to remove: " << endl;
-          for(vector<TNode>::const_iterator k = asserts[pos_var].begin(), k_end = asserts[pos_var].end(); k != k_end; ++k) {
-            Debug("miplib") << "    " << *k << endl;
-            removeAssertions.insert((*k).getId());
-          }
-        }
-      }
-    }
-  }
-  if(!removeAssertions.empty()) {
-    Debug("miplib") << "SmtEnginePrivate::simplify(): scrubbing miplib encoding..." << endl;
-    for(size_t i = 0; i < d_realAssertionsEnd; ++i) {
-      if(removeAssertions.find(d_assertions[i].getId()) != removeAssertions.end()) {
-        Debug("miplib") << "SmtEnginePrivate::simplify(): - removing " << d_assertions[i] << endl;
-        d_assertions[i] = d_true;
-        ++d_smt.d_stats->d_numMiplibAssertionsRemoved;
-      } else if(d_assertions[i].getKind() == kind::AND) {
-        size_t removals = removeFromConjunction(d_assertions[i], removeAssertions);
-        if(removals > 0) {
-          Debug("miplib") << "SmtEnginePrivate::simplify(): - reduced " << d_assertions[i] << endl;
-          Debug("miplib") << "SmtEnginePrivate::simplify(): -      by " << removals << " conjuncts" << endl;
-          d_smt.d_stats->d_numMiplibAssertionsRemoved += removals;
-        }
-      }
-      Debug("miplib") << "had: " << d_assertions[i] << endl;
-      d_assertions[i] =
-          Rewriter::rewrite(top_level_substs.apply(d_assertions[i]));
-      Debug("miplib") << "now: " << d_assertions[i] << endl;
-    }
-  } else {
-    Debug("miplib") << "SmtEnginePrivate::simplify(): miplib pass found nothing." << endl;
-  }
-  d_realAssertionsEnd = d_assertions.size();
-}
-
-
 // returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
 {
@@ -3828,100 +2906,77 @@ bool SmtEnginePrivate::simplifyAssertions()
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
 
-    dumpAssertions("pre-nonclausal", d_assertions);
-
-    if(options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
-      // Perform non-clausal simplification
-      Chat() << "...performing nonclausal simplification..." << endl;
-      Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                        << "performing non-clausal simplification" << endl;
-      bool noConflict = nonClausalSimplify();
-      if(!noConflict) {
-        return false;
+    if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
+    {
+      if (!options::unsatCores() && !options::fewerPreprocessingHoles())
+      {
+        // Perform non-clausal simplification
+        PreprocessingPassResult res =
+            d_passes["non-clausal-simp"]->apply(&d_assertions);
+        if (res == PreprocessingPassResult::CONFLICT)
+        {
+          return false;
+        }
       }
 
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
       // do the miplib trick.
-      if( // check that option is on
+      if (  // check that option is on
           options::arithMLTrick() &&
           // miplib rewrites aren't safe in incremental mode
-          ! options::incrementalSolving() &&
+          !options::incrementalSolving() &&
           // only useful in arith
           d_smt.d_logic.isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
           // restriction only disables miplib processing during
           // re-simplification, which we don't expect to be useful anyway)
-          d_realAssertionsEnd == d_assertions.size() ) {
-        Chat() << "...fixing miplib encodings..." << endl;
-        Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                          << "looking for miplib pseudobooleans..." << endl;
-
-        TimerStat::CodeTimer miplibTimer(d_smt.d_stats->d_miplibPassTime);
-
-        doMiplibTrick();
+          d_assertions.getRealAssertionsEnd() == d_assertions.size())
+      {
+        d_passes["miplib-trick"]->apply(&d_assertions);
       } else {
         Trace("simplify") << "SmtEnginePrivate::simplify(): "
                           << "skipping miplib pseudobooleans pass (either incrementalSolving is on, or miplib pbs are turned off)..." << endl;
       }
     }
 
-    dumpAssertions("post-nonclausal", d_assertions);
-    Trace("smt") << "POST nonClausalSimplify" << endl;
     Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
     // before ppRewrite check if only core theory for BV theory
     d_smt.d_theoryEngine->staticInitializeBVOptions(d_assertions.ref());
 
-    dumpAssertions("pre-theorypp", d_assertions);
-
     // Theory preprocessing
-    if (d_smt.d_earlyTheoryPP) {
-      Chat() << "...doing early theory preprocessing..." << endl;
-      TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_theoryPreprocessTime);
-      // Call the theory preprocessors
-      d_smt.d_theoryEngine->preprocessStart();
-      for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-        Assert(Rewriter::rewrite(d_assertions[i]) == d_assertions[i]);
-        d_assertions.replace(i, d_smt.d_theoryEngine->preprocess(d_assertions[i]));
-        Assert(Rewriter::rewrite(d_assertions[i]) == d_assertions[i]);
-      }
+    if (d_smt.d_earlyTheoryPP)
+    {
+      d_passes["theory-preprocess"]->apply(&d_assertions);
     }
 
-    dumpAssertions("post-theorypp", d_assertions);
-    Trace("smt") << "POST theoryPP" << endl;
-    Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-
     // ITE simplification
-    if(options::doITESimp() &&
-       (d_simplifyAssertionsDepth <= 1 || options::doITESimpOnRepeat())) {
-      Chat() << "...doing ITE simplification..." << endl;
-      bool noConflict = simpITE();
-      if(!noConflict){
+    if (options::doITESimp()
+        && (d_simplifyAssertionsDepth <= 1 || options::doITESimpOnRepeat()))
+    {
+      PreprocessingPassResult res = d_passes["ite-simp"]->apply(&d_assertions);
+      if (res == PreprocessingPassResult::CONFLICT)
+      {
         Chat() << "...ITE simplification found unsat..." << endl;
         return false;
       }
     }
 
-    dumpAssertions("post-itesimp", d_assertions);
-    Trace("smt") << "POST iteSimp" << endl;
     Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
     // Unconstrained simplification
     if(options::unconstrainedSimp()) {
-      Chat() << "...doing unconstrained simplification..." << endl;
-      unconstrainedSimp();
+      d_passes["unconstrained-simplifier"]->apply(&d_assertions);
     }
 
-    dumpAssertions("post-unconstrained", d_assertions);
-    Trace("smt") << "POST unconstrainedSimp" << endl;
-    Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
-
-    if(options::repeatSimp() && options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
-      Chat() << "...doing another round of nonclausal simplification..." << endl;
-      Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                        << " doing repeated simplification" << endl;
-      bool noConflict = nonClausalSimplify();
-      if(!noConflict) {
+    if (options::repeatSimp()
+        && options::simplificationMode() != SIMPLIFICATION_MODE_NONE
+        && !options::unsatCores() && !options::fewerPreprocessingHoles())
+    {
+      PreprocessingPassResult res =
+          d_passes["non-clausal-simp"]->apply(&d_assertions);
+      if (res == PreprocessingPassResult::CONFLICT)
+      {
         return false;
       }
     }
@@ -3974,7 +3029,8 @@ Result SmtEngine::check() {
        (not d_logic.isQuantified() &&
         d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
         )){
-      if(d_private->d_iteSkolemMap.empty()){
+      if (d_private->getIteSkolemMap().empty())
+      {
         options::decisionStopOnly.set(false);
         d_decisionEngine->clearStrategies();
         Trace("smt") << "SmtEngine::check(): turning off stop only" << endl;
@@ -4002,6 +3058,33 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
 }
 
+theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
+{
+  if (!options::assignFunctionValues())
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c << " when --assign-function-values is false.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+
+  if (d_smtMode != SMT_MODE_SAT)
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c
+       << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+  if (!options::produceModels())
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c << " when produce-models options is off.";
+    throw ModalException(ss.str().c_str());
+  }
+
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
+
+  return m;
+}
 
 void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_map<Node, bool, NodeHashFunction>& cache)
 {
@@ -4013,8 +3096,9 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = d_iteSkolemMap.find(n);
-    if (it != d_iteSkolemMap.end()) {
+    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
+    if (it != getIteSkolemMap().end())
+    {
       skolemSet.insert(n);
     }
     cache[n] = true;
@@ -4028,7 +3112,6 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
   cache[n] = true;
 }
 
-
 bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<Node, bool, NodeHashFunction>& cache)
 {
   unordered_map<Node, bool, NodeHashFunction>::iterator it;
@@ -4039,9 +3122,10 @@ bool SmtEnginePrivate::checkForBadSkolems(TNode n, TNode skolem, unordered_map<N
 
   size_t sz = n.getNumChildren();
   if (sz == 0) {
-    IteSkolemMap::iterator it = d_iteSkolemMap.find(n);
+    IteSkolemMap::iterator it = getIteSkolemMap().find(n);
     bool bad = false;
-    if (it != d_iteSkolemMap.end()) {
+    if (it != getIteSkolemMap().end())
+    {
       if (!((*it).first < n)) {
         bad = true;
       }
@@ -4067,7 +3151,8 @@ void SmtEnginePrivate::processAssertions() {
   spendResource(options::preprocessStep());
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
-  SubstitutionMap& top_level_substs = d_assertions.getTopLevelSubstitutions();
+  SubstitutionMap& top_level_substs =
+      d_preprocessingPassContext->getTopLevelSubstitutions();
 
   // Dump the assertions
   dumpAssertions("pre-everything", d_assertions);
@@ -4075,7 +3160,8 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() begin" << endl;
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
-  Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
+  Debug("smt") << "#Assertions : " << d_assertions.size() << endl;
+  Debug("smt") << "#Assumptions: " << d_assertions.getNumAssumptions() << endl;
 
   if (d_assertions.size() == 0) {
     // nothing to do
@@ -4084,8 +3170,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::bvGaussElim())
   {
-    TimerStat::CodeTimer gaussElimTimer(d_smt.d_stats->d_gaussElimTime);
-    d_preprocessingPassRegistry.getPass("bv-gauss")->apply(&d_assertions);
+    d_passes["bv-gauss"]->apply(&d_assertions);
   }
 
   if (d_assertionsProcessed && options::incrementalSolving()) {
@@ -4093,7 +3178,7 @@ void SmtEnginePrivate::processAssertions() {
     // proper data structure.
 
     // Placeholder for storing substitutions
-    d_assertions.getSubstitutionsIndex() = d_assertions.size();
+    d_preprocessingPassContext->setSubstitutionsIndex(d_assertions.size());
     d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
   }
 
@@ -4102,7 +3187,7 @@ void SmtEnginePrivate::processAssertions() {
   d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
   // any assertions added beyond realAssertionsEnd must NOT affect the
   // equisatisfiability
-  d_realAssertionsEnd = d_assertions.size();
+  d_assertions.updateRealAssertionsEnd();
 
   // Assertions are NOT guaranteed to be rewritten by this point
 
@@ -4133,42 +3218,30 @@ void SmtEnginePrivate::processAssertions() {
   if (options::globalNegate())
   {
     // global negation of the formula
-    quantifiers::GlobalNegate gn;
-    gn.simplify(d_assertions.ref());
+    d_passes["global-negate"]->apply(&d_assertions);
     d_smt.d_globalNegation = !d_smt.d_globalNegation;
   }
 
   if( options::nlExtPurify() ){
-    unordered_map<Node, Node, NodeHashFunction> cache;
-    unordered_map<Node, Node, NodeHashFunction> bcache;
-    std::vector< Node > var_eq;
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      Node a = d_assertions[i];
-      d_assertions.replace(i, purifyNlTerms(a, cache, bcache, var_eq));
-      Trace("nl-ext-purify")
-          << "Purify : " << a << " -> " << d_assertions[i] << std::endl;
-    }
-    if( !var_eq.empty() ){
-      unsigned lastIndex = d_assertions.size()-1;
-      var_eq.insert( var_eq.begin(), d_assertions[lastIndex] );
-      d_assertions.replace(lastIndex, NodeManager::currentNM()->mkNode( kind::AND, var_eq ) );
-    }
+    d_passes["nl-ext-purify"]->apply(&d_assertions);
   }
 
   if( options::ceGuidedInst() ){
     //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_smt.d_theoryEngine->getQuantifiersEngine()->getCegInstantiation()->preregisterAssertion( d_assertions[i] );
+      d_smt.d_theoryEngine->getQuantifiersEngine()
+          ->getSynthEngine()
+          ->preregisterAssertion(d_assertions[i]);
     }
   }
 
   if (options::solveRealAsInt()) {
-    d_preprocessingPassRegistry.getPass("real-to-int")->apply(&d_assertions);
+    d_passes["real-to-int"]->apply(&d_assertions);
   }
 
   if (options::solveIntAsBV() > 0)
   {
-    d_preprocessingPassRegistry.getPass("int-to-bv")->apply(&d_assertions);
+    d_passes["int-to-bv"]->apply(&d_assertions);
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
@@ -4183,12 +3256,12 @@ void SmtEnginePrivate::processAssertions() {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
       && !options::incrementalSolving())
   {
-    d_preprocessingPassRegistry.getPass("bv-ackermann")->apply(&d_assertions);
+    d_passes["bv-ackermann"]->apply(&d_assertions);
   }
 
   if (options::bvAbstraction() && !options::incrementalSolving())
   {
-    d_preprocessingPassRegistry.getPass("bv-abstraction")->apply(&d_assertions);
+    d_passes["bv-abstraction"]->apply(&d_assertions);
   }
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
@@ -4197,44 +3270,30 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::extRewPrep())
   {
-    theory::quantifiers::ExtendedRewriter extr(options::extRewPrepAgg());
-    for (unsigned i = 0; i < d_assertions.size(); ++i)
-    {
-      Node a = d_assertions[i];
-      d_assertions.replace(i, extr.extendedRewrite(a));
-    }
+    d_passes["ext-rew-pre"]->apply(&d_assertions);
   }
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
-    dumpAssertions("pre-unconstrained-simp", d_assertions);
-	d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
-    unconstrainedSimp();
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-unconstrained-simp" << endl;
-    dumpAssertions("post-unconstrained-simp", d_assertions);
+    d_passes["rewrite"]->apply(&d_assertions);
+    d_passes["unconstrained-simplifier"]->apply(&d_assertions);
   }
 
   if(options::bvIntroducePow2())
   {
-    d_preprocessingPassRegistry.getPass("bv-intro-pow2")->apply(&d_assertions);
+    d_passes["bv-intro-pow2"]->apply(&d_assertions);
   }
-
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-substitution" << endl;
-  dumpAssertions("pre-substitution", d_assertions);
 
   if (options::unsatCores())
   {
     // special rewriting pass for unsat cores, since many of the passes below
     // are skipped
-	  d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
+    d_passes["rewrite"]->apply(&d_assertions);
   }
   else
   {
-    d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
+    d_passes["apply-substs"]->apply(&d_assertions);
   }
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-substitution" << endl;
-  dumpAssertions("post-substitution", d_assertions);
 
   // Assertions ARE guaranteed to be rewritten by this point
 #ifdef CVC4_ASSERTIONS
@@ -4245,49 +3304,25 @@ void SmtEnginePrivate::processAssertions() {
 #endif
 
   // Lift bit-vectors of size 1 to bool
-  if(options::bitvectorToBool()) {
-    dumpAssertions("pre-bv-to-bool", d_assertions);
-    Chat() << "...doing bvToBool..." << endl;
-    d_preprocessingPassRegistry.getPass("bv-to-bool")->apply(&d_assertions);
-    dumpAssertions("post-bv-to-bool", d_assertions);
-    Trace("smt") << "POST bvToBool" << endl;
+  if (options::bitvectorToBool())
+  {
+    d_passes["bv-to-bool"]->apply(&d_assertions);
   }
   // Convert non-top-level Booleans to bit-vectors of size 1
-  if(options::boolToBitvector()) {
-    dumpAssertions("pre-bool-to-bv", d_assertions);
-    Chat() << "...doing boolToBv..." << endl;
-    d_preprocessingPassRegistry.getPass("bool-to-bv")->apply(&d_assertions);
-    dumpAssertions("post-bool-to-bv", d_assertions);
-    Trace("smt") << "POST boolToBv" << endl;
+  if (options::boolToBitvector())
+  {
+    d_passes["bool-to-bv"]->apply(&d_assertions);
   }
   if(options::sepPreSkolemEmp()) {
-    d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
+    d_passes["sep-skolem-emp"]->apply(&d_assertions);
   }
 
   if( d_smt.d_logic.isQuantified() ){
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
-
-    dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      Node prev = d_assertions[i];
-      Node next = quantifiers::QuantifiersRewriter::preprocess( prev );
-      if( next!=prev ){
-        d_assertions.replace( i, Rewriter::rewrite( next ) );
-        Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
-        Trace("quantifiers-preprocess") << "   ...got " << d_assertions[i] << endl;
-      }
-    }
-    dumpAssertions("post-skolem-quant", d_assertions);
+    d_passes["quantifiers-preprocess"]->apply(&d_assertions);
     if( options::macrosQuant() ){
       //quantifiers macro expansion
-      quantifiers::QuantifierMacros qm( d_smt.d_theoryEngine->getQuantifiersEngine() );
-      bool success;
-      do{
-        success = qm.simplify( d_assertions.ref(), true );
-      }while( success );
-      //finalize the definitions
-      qm.finalizeDefinitions();
+      d_passes["quantifier-macros"]->apply(&d_assertions);
     }
 
     //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF
@@ -4319,37 +3354,28 @@ void SmtEnginePrivate::processAssertions() {
         d_smt.d_fmfRecFunctionsDefined->push_back( f );
       }
     }
-    if (options::sygusInference())
-    {
-      // try recast as sygus
-      quantifiers::SygusInference si;
-      if (si.simplify(d_assertions.ref()))
-      {
-        Trace("smt-proc") << "...converted to sygus conjecture." << std::endl;
-      }
-    }
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-quant-preprocess" << endl;
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
-    //sort inference technique
-    SortInference * si = d_smt.d_theoryEngine->getSortInference();
-    si->simplify( d_assertions.ref(), options::sortInference(), options::ufssFairnessMonotone() );
-    for( std::map< Node, Node >::iterator it = si->d_model_replace_f.begin(); it != si->d_model_replace_f.end(); ++it ){
-      d_smt.setPrintFuncInModel( it->first.toExpr(), false );
-      d_smt.setPrintFuncInModel( it->second.toExpr(), true );
-    }
+    d_passes["sort-inference"]->apply(&d_assertions);
   }
 
   if( options::pbRewrites() ){
-    d_preprocessingPassRegistry.getPass("pseudo-boolean-processor")
-        ->apply(&d_assertions);
+    d_passes["pseudo-boolean-processor"]->apply(&d_assertions);
   }
 
-  if (options::synthRrPrep())
+  // rephrasing normal inputs as sygus problems
+  if (!d_smt.d_isInternalSubsolver)
   {
-    // do candidate rewrite rule synthesis
-    d_preprocessingPassRegistry.getPass("synth-rr")->apply(&d_assertions);
+    if (options::sygusInference())
+    {
+      d_passes["sygus-infer"]->apply(&d_assertions);
+    }
+    else if (options::sygusRewSynthInput())
+    {
+      // do candidate rewrite rule synthesis
+      d_passes["synth-rr"]->apply(&d_assertions);
+    }
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-simplify" << endl;
@@ -4365,31 +3391,23 @@ void SmtEnginePrivate::processAssertions() {
   if (options::symmetryBreakerExp() && !options::incrementalSolving())
   {
     // apply symmetry breaking if not in incremental mode
-    d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
+    d_passes["sym-break"]->apply(&d_assertions);
   }
 
   if(options::doStaticLearning()) {
-    d_preprocessingPassRegistry.getPass("static-learning")
-        ->apply(&d_assertions);
+    d_passes["static-learning"]->apply(&d_assertions);
   }
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-ite-removal" << endl;
-  dumpAssertions("pre-ite-removal", d_assertions);
   {
-    Chat() << "removing term ITEs..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_iteRemovalTime);
-    // Remove ITEs, updating d_iteSkolemMap
     d_smt.d_stats->d_numAssertionsPre += d_assertions.size();
-    removeITEs();
+    d_passes["ite-removal"]->apply(&d_assertions);
     // This is needed because when solving incrementally, removeITEs may introduce
     // skolems that were solved for earlier and thus appear in the substitution
     // map.
-    d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
+    d_passes["apply-substs"]->apply(&d_assertions);
     d_smt.d_stats->d_numAssertionsPost += d_assertions.size();
   }
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-ite-removal" << endl;
-  dumpAssertions("post-ite-removal", d_assertions);
 
   dumpAssertions("pre-repeat-simplify", d_assertions);
   if(options::repeatSimp()) {
@@ -4420,10 +3438,10 @@ void SmtEnginePrivate::processAssertions() {
       // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
       // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
       // If either of these is violated, we must add iteExpr as a proper assertion
-      IteSkolemMap::iterator it = d_iteSkolemMap.begin();
-      IteSkolemMap::iterator iend = d_iteSkolemMap.end();
+      IteSkolemMap::iterator it = getIteSkolemMap().begin();
+      IteSkolemMap::iterator iend = getIteSkolemMap().end();
       NodeBuilder<> builder(kind::AND);
-      builder << d_assertions[d_realAssertionsEnd - 1];
+      builder << d_assertions[d_assertions.getRealAssertionsEnd() - 1];
       vector<TNode> toErase;
       for (; it != iend; ++it) {
         if (skolemSet.find((*it).first) == skolemSet.end()) {
@@ -4449,30 +3467,31 @@ void SmtEnginePrivate::processAssertions() {
       }
       if(builder.getNumChildren() > 1) {
         while (!toErase.empty()) {
-          d_iteSkolemMap.erase(toErase.back());
+          getIteSkolemMap().erase(toErase.back());
           toErase.pop_back();
         }
-        d_assertions[d_realAssertionsEnd - 1] = Rewriter::rewrite(Node(builder));
+        d_assertions[d_assertions.getRealAssertionsEnd() - 1] =
+            Rewriter::rewrite(Node(builder));
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such as
       // QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
-      removeITEs();
-      d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
+      d_passes["ite-removal"]->apply(&d_assertions);
+      d_passes["apply-substs"]->apply(&d_assertions);
       //      Assert(iteRewriteAssertionsEnd == d_assertions.size());
     }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-repeat-simplify" << endl;
   }
   dumpAssertions("post-repeat-simplify", d_assertions);
 
-  dumpAssertions("pre-rewrite-apply-to-const", d_assertions);
-  if(options::rewriteApplyToConst()) {
-    Chat() << "Rewriting applies to constants..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_rewriteApplyToConstTime);
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions[i] = Rewriter::rewrite(rewriteApplyToConst(d_assertions[i]));
-    }
+  if (options::rewriteApplyToConst())
+  {
+    d_passes["apply-to-const"]->apply(&d_assertions);
   }
-  dumpAssertions("post-rewrite-apply-to-const", d_assertions);
+
+  if (options::ufHo())
+  {
+    d_passes["ho-elim"]->apply(&d_assertions);
+  }
 
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
@@ -4485,30 +3504,11 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << "SmtEnginePrivate::processAssertions() POST SIMPLIFICATION" << endl;
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-theory-preprocessing" << endl;
-  dumpAssertions("pre-theory-preprocessing", d_assertions);
-  {
-    Chat() << "theory preprocessing..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_theoryPreprocessTime);
-    // Call the theory preprocessors
-    d_smt.d_theoryEngine->preprocessStart();
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions.replace(i, d_smt.d_theoryEngine->preprocess(d_assertions[i]));
-    }
-  }
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-theory-preprocessing" << endl;
-  dumpAssertions("post-theory-preprocessing", d_assertions);
+  d_passes["theory-preprocess"]->apply(&d_assertions);
 
-  // If we are using eager bit-blasting wrap assertions in fake atom so that
-  // everything gets bit-blasted to internal SAT solver
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    for (unsigned i = 0; i < d_assertions.size(); ++i) {
-      TNode atom = d_assertions[i];
-      Node eager_atom = NodeManager::currentNM()->mkNode(kind::BITVECTOR_EAGER_ATOM, atom);
-      d_assertions.replace(i, eager_atom);
-      TheoryModel* m = d_smt.d_theoryEngine->getModel();
-      m->addSubstitution(eager_atom, atom);
-    }
+  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
+    d_passes["bv-eager-atoms"]->apply(&d_assertions);
   }
 
   //notify theory engine new preprocessed assertions
@@ -4518,8 +3518,7 @@ void SmtEnginePrivate::processAssertions() {
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertions.size());
-    d_smt.d_decisionEngine->addAssertions
-      (d_assertions.ref(), d_realAssertionsEnd, d_iteSkolemMap);
+    d_smt.d_decisionEngine->addAssertions(d_assertions);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
@@ -4527,6 +3526,12 @@ void SmtEnginePrivate::processAssertions() {
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() end" << endl;
   dumpAssertions("post-everything", d_assertions);
+
+  // if incremental, compute which variables are assigned
+  if (options::incrementalSolving())
+  {
+    d_preprocessingPassContext->recordSymbolsInAssertions(d_assertions.ref());
+  }
 
   // Push the formula to SAT
   {
@@ -4541,17 +3546,23 @@ void SmtEnginePrivate::processAssertions() {
   d_assertionsProcessed = true;
 
   d_assertions.clear();
-  d_iteSkolemMap.clear();
+  getIteSkolemMap().clear();
 }
 
-void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
+void SmtEnginePrivate::addFormula(TNode n,
+                                  bool inUnsatCore,
+                                  bool inInput,
+                                  bool isAssumption)
 {
   if (n == d_true) {
     // nothing to do
     return;
   }
 
-  Trace("smt") << "SmtEnginePrivate::addFormula(" << n << "), inUnsatCore = " << inUnsatCore << ", inInput = " << inInput << endl;
+  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
+               << "), inUnsatCore = " << inUnsatCore
+               << ", inInput = " << inInput
+               << ", isAssumption = " << isAssumption << endl;
 
   // Give it to proof manager
   PROOF(
@@ -4574,7 +3585,7 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   );
 
   // Add the normalized formula to the queue
-  d_assertions.push_back(n);
+  d_assertions.push_back(n, isAssumption);
   //d_assertions.push_back(Rewriter::rewrite(n));
 }
 
@@ -4603,8 +3614,10 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 
 Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
 {
-  Assert(!assumption.isNull());
-  return checkSatisfiability(assumption, inUnsatCore, true);
+  return checkSatisfiability(
+      assumption.isNull() ? std::vector<Expr>() : std::vector<Expr>{assumption},
+      inUnsatCore,
+      true);
 }
 
 Result SmtEngine::query(const vector<Expr>& assumptions, bool inUnsatCore)
@@ -4617,7 +3630,7 @@ Result SmtEngine::checkSatisfiability(const Expr& expr,
                                       bool isQuery)
 {
   return checkSatisfiability(
-      expr.isNull() ? vector<Expr>() : vector<Expr>{expr},
+      expr.isNull() ? std::vector<Expr>() : std::vector<Expr>{expr},
       inUnsatCore,
       isQuery);
 }
@@ -4641,11 +3654,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                            "(try --incremental)");
     }
 
-    // check to see if a postsolve() is pending
-    if(d_needPostsolve) {
-      d_theoryEngine->postsolve();
-      d_needPostsolve = false;
-    }
     // Note that a query has been made
     d_queryMade = true;
     // reset global negation
@@ -4653,7 +3661,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     bool didInternalPush = false;
 
-    setProblemExtended(true);
+    setProblemExtended();
 
     if (isQuery)
     {
@@ -4696,7 +3704,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       {
         d_assertionList->push_back(e);
       }
-      d_private->addFormula(e.getNode(), inUnsatCore);
+      d_private->addFormula(e.getNode(), inUnsatCore, true, true);
     }
 
     r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
@@ -4746,12 +3754,9 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       }
       else
       {
-        Dump("benchmark") << CheckSatAssumingCommand(d_assumptions,
-                                                     inUnsatCore);
+        Dump("benchmark") << CheckSatAssumingCommand(d_assumptions);
       }
     }
-
-    d_propEngine->resetTrail();
 
     // Pop the context
     if (didInternalPush)
@@ -4761,8 +3766,25 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Remember the status
     d_status = r;
-
-    setProblemExtended(false);
+    // Check against expected status
+    if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
+        && d_status != d_expectedStatus)
+    {
+      CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
+                   << d_status;
+    }
+    d_expectedStatus = Result();
+    // Update the SMT mode
+    if (d_status.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      d_smtMode = SMT_MODE_UNSAT;
+    }
+    else
+    {
+      // Notice that unknown response moves to sat mode, since the same set
+      // of commands (get-model, get-value) are applicable to this case.
+      d_smtMode = SMT_MODE_SAT;
+    }
 
     Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
                  << assumptions << ") => " << r << endl;
@@ -4778,7 +3800,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     // Check that UNSAT results generate a proof correctly.
     if(options::checkProofs()) {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
-        TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
         checkProof();
       }
     }
@@ -4815,9 +3836,7 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
         "Cannot get unsat assumptions when produce-unsat-assumptions option "
         "is off.");
   }
-  if (d_status.isNull()
-      || d_status.asSatisfiabilityResult() != Result::UNSAT
-      || d_problemExtended)
+  if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
@@ -4835,14 +3854,6 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
     if (find(core.begin(), core.end(), e) != core.end()) { res.push_back(e); }
   }
   return res;
-}
-
-Result SmtEngine::checkSynth(const Expr& e)
-{
-  SmtScope smts(this);
-  Trace("smt") << "Check synth: " << e << std::endl;
-  Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
-  return checkSatisfiability(e, true, false);
 }
 
 Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
@@ -4868,6 +3879,234 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
   d_private->addFormula(e.getNode(), inUnsatCore);
   return quickCheck().asValidityResult();
 }/* SmtEngine::assertFormula() */
+
+/*
+   --------------------------------------------------------------------------
+    Handling SyGuS commands
+   --------------------------------------------------------------------------
+*/
+
+void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
+{
+  d_private->d_sygusVars.push_back(Node::fromExpr(var));
+  Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
+}
+
+void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
+{
+#ifdef CVC4_ASSERTIONS
+  d_private->d_sygusPrimedVarTypes.push_back(type);
+#endif
+  Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
+}
+
+void SmtEngine::declareSygusFunctionVar(const std::string& id,
+                                        Expr var,
+                                        Type type)
+{
+  d_private->d_sygusVars.push_back(Node::fromExpr(var));
+  Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
+}
+
+void SmtEngine::declareSynthFun(const std::string& id,
+                                Expr func,
+                                Type sygusType,
+                                bool isInv,
+                                const std::vector<Expr>& vars)
+{
+  Node fn = Node::fromExpr(func);
+  d_private->d_sygusFunSymbols.push_back(fn);
+  std::vector<Node> var_nodes;
+  for (const Expr& v : vars)
+  {
+    var_nodes.push_back(Node::fromExpr(v));
+  }
+  d_private->d_sygusFunVars[fn] = var_nodes;
+  // whether sygus type encodes syntax restrictions
+  if (sygusType.isDatatype()
+      && static_cast<DatatypeType>(sygusType).getDatatype().isSygus())
+  {
+    d_private->d_sygusFunSyntax[fn] = TypeNode::fromType(sygusType);
+  }
+  Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
+}
+
+void SmtEngine::assertSygusConstraint(Expr constraint)
+{
+  d_private->d_sygusConstraints.push_back(constraint);
+
+  Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
+}
+
+void SmtEngine::assertSygusInvConstraint(const Expr& inv,
+                                         const Expr& pre,
+                                         const Expr& trans,
+                                         const Expr& post)
+{
+  SmtScope smts(this);
+  // build invariant constraint
+
+  // get variables (regular and their respective primed versions)
+  std::vector<Node> terms, vars, primed_vars;
+  terms.push_back(Node::fromExpr(inv));
+  terms.push_back(Node::fromExpr(pre));
+  terms.push_back(Node::fromExpr(trans));
+  terms.push_back(Node::fromExpr(post));
+  // variables are built based on the invariant type
+  FunctionType t = static_cast<FunctionType>(inv.getType());
+  std::vector<Type> argTypes = t.getArgTypes();
+  for (const Type& ti : argTypes)
+  {
+    TypeNode tn = TypeNode::fromType(ti);
+    vars.push_back(d_nodeManager->mkBoundVar(tn));
+    d_private->d_sygusVars.push_back(vars.back());
+    std::stringstream ss;
+    ss << vars.back() << "'";
+    primed_vars.push_back(d_nodeManager->mkBoundVar(ss.str(), tn));
+    d_private->d_sygusVars.push_back(primed_vars.back());
+#ifdef CVC4_ASSERTIONS
+    bool find_new_declared_var = false;
+    for (const Type& t : d_private->d_sygusPrimedVarTypes)
+    {
+      if (t == ti)
+      {
+        d_private->d_sygusPrimedVarTypes.erase(
+            std::find(d_private->d_sygusPrimedVarTypes.begin(),
+                      d_private->d_sygusPrimedVarTypes.end(),
+                      t));
+        find_new_declared_var = true;
+        break;
+      }
+    }
+    if (!find_new_declared_var)
+    {
+      Warning()
+          << "warning: declared primed variables do not match invariant's "
+             "type\n";
+    }
+#endif
+  }
+
+  // make relevant terms; 0 -> Inv, 1 -> Pre, 2 -> Trans, 3 -> Post
+  for (unsigned i = 0; i < 4; ++i)
+  {
+    Node op = terms[i];
+    Trace("smt-debug") << "Make inv-constraint term #" << i << " : " << op
+                       << " with type " << op.getType() << "...\n";
+    std::vector<Node> children;
+    children.push_back(op);
+    // transition relation applied over both variable lists
+    if (i == 2)
+    {
+      children.insert(children.end(), vars.begin(), vars.end());
+      children.insert(children.end(), primed_vars.begin(), primed_vars.end());
+    }
+    else
+    {
+      children.insert(children.end(), vars.begin(), vars.end());
+    }
+    terms[i] = d_nodeManager->mkNode(kind::APPLY_UF, children);
+    // make application of Inv on primed variables
+    if (i == 0)
+    {
+      children.clear();
+      children.push_back(op);
+      children.insert(children.end(), primed_vars.begin(), primed_vars.end());
+      terms.push_back(d_nodeManager->mkNode(kind::APPLY_UF, children));
+    }
+  }
+  // make constraints
+  std::vector<Node> conj;
+  conj.push_back(d_nodeManager->mkNode(kind::IMPLIES, terms[1], terms[0]));
+  Node term0_and_2 = d_nodeManager->mkNode(kind::AND, terms[0], terms[2]);
+  conj.push_back(d_nodeManager->mkNode(kind::IMPLIES, term0_and_2, terms[4]));
+  conj.push_back(d_nodeManager->mkNode(kind::IMPLIES, terms[0], terms[3]));
+  Node constraint = d_nodeManager->mkNode(kind::AND, conj);
+
+  d_private->d_sygusConstraints.push_back(constraint);
+
+  Trace("smt") << "SmtEngine::assertSygusInvConstrant: " << constraint << "\n";
+}
+
+Result SmtEngine::checkSynth()
+{
+  SmtScope smts(this);
+  // build synthesis conjecture from asserted constraints and declared
+  // variables/functions
+  Node sygusVar =
+      d_nodeManager->mkSkolem("sygus", d_nodeManager->booleanType());
+  Node inst_attr = d_nodeManager->mkNode(kind::INST_ATTRIBUTE, sygusVar);
+  Node sygusAttr = d_nodeManager->mkNode(kind::INST_PATTERN_LIST, inst_attr);
+  std::vector<Node> bodyv;
+  Trace("smt") << "Sygus : Constructing sygus constraint...\n";
+  unsigned n_constraints = d_private->d_sygusConstraints.size();
+  Node body = n_constraints == 0
+                  ? d_nodeManager->mkConst(true)
+                  : (n_constraints == 1
+                         ? d_private->d_sygusConstraints[0]
+                         : d_nodeManager->mkNode(
+                               kind::AND, d_private->d_sygusConstraints));
+  body = body.notNode();
+  Trace("smt") << "...constructed sygus constraint " << body << std::endl;
+  if (!d_private->d_sygusVars.empty())
+  {
+    Node boundVars =
+        d_nodeManager->mkNode(kind::BOUND_VAR_LIST, d_private->d_sygusVars);
+    body = d_nodeManager->mkNode(kind::EXISTS, boundVars, body);
+    Trace("smt") << "...constructed exists " << body << std::endl;
+  }
+  if (!d_private->d_sygusFunSymbols.empty())
+  {
+    Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
+                                           d_private->d_sygusFunSymbols);
+    body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
+  }
+  Trace("smt") << "...constructed forall " << body << std::endl;
+
+  // set attribute for synthesis conjecture
+  setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
+
+  // set attributes for functions-to-synthesize
+  for (const Node& synth_fun : d_private->d_sygusFunSymbols)
+  {
+    // associate var list with function-to-synthesize
+    Assert(d_private->d_sygusFunVars.find(synth_fun)
+           != d_private->d_sygusFunVars.end());
+    const std::vector<Node>& vars = d_private->d_sygusFunVars[synth_fun];
+    Node bvl;
+    if (!vars.empty())
+    {
+      bvl = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, vars);
+    }
+    std::vector<Expr> attr_val_bvl;
+    attr_val_bvl.push_back(bvl.toExpr());
+    setUserAttribute(
+        "sygus-synth-fun-var-list", synth_fun.toExpr(), attr_val_bvl, "");
+    // If the function has syntax restrition, bulid a variable "sfproxy" which
+    // carries the type, a SyGuS datatype that corresponding to the syntactic
+    // restrictions.
+    std::map<Node, TypeNode>::const_iterator it =
+        d_private->d_sygusFunSyntax.find(synth_fun);
+    if (it != d_private->d_sygusFunSyntax.end())
+    {
+      Node sym = d_nodeManager->mkBoundVar("sfproxy", it->second);
+      std::vector<Expr> attr_value;
+      attr_value.push_back(sym.toExpr());
+      setUserAttribute(
+          "sygus-synth-grammar", synth_fun.toExpr(), attr_value, "");
+    }
+  }
+
+  Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
+
+  return checkSatisfiability(body.toExpr(), true, false);
+}
+
+/*
+   --------------------------------------------------------------------------
+    End of Handling SyGuS commands
+   --------------------------------------------------------------------------
+*/
 
 Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
   return node;
@@ -4939,9 +4178,8 @@ Expr SmtEngine::getValue(const Expr& ex) const
       "Cannot get value when produce-models options is off.";
     throw ModalException(msg);
   }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT ||
-     d_problemExtended) {
+  if (d_smtMode != SMT_MODE_SAT)
+  {
     const char* msg =
       "Cannot get value unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw RecoverableModalException(msg);
@@ -4975,7 +4213,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = d_theoryEngine->getModel();
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
   Node resultNode;
   if(m != NULL) {
     resultNode = m->getValue(n);
@@ -4987,7 +4225,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
   Trace("smt") << "--- model-post expected " << expectedType << endl;
 
   // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(expectedType),
+  // Notice that lambdas have function type, which does not respect the subtype
+  // relation, so we ignore them here.
+  Assert(resultNode.isNull() || resultNode.getKind() == kind::LAMBDA
+             || resultNode.getType().isSubtypeOf(expectedType),
          "Run with -t smt for details.");
 
   // ensure it's a constant
@@ -4999,6 +4240,16 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   return resultNode.toExpr();
+}
+
+vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
+{
+  vector<Expr> result;
+  for (const Expr& e : exprs)
+  {
+    result.push_back(getValue(e));
+  }
+  return result;
 }
 
 bool SmtEngine::addToAssignment(const Expr& ex) {
@@ -5014,15 +4265,15 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
       "expected Boolean-typed variable or function application "
       "in addToAssignment()" );
   Node n = e.getNode();
-  // must be an APPLY of a zero-ary defined function, or a variable
+  // must be a defined constant, or a variable
   PrettyCheckArgument(
-      ( ( n.getKind() == kind::APPLY &&
-          ( d_definedFunctions->find(n.getOperator()) !=
-            d_definedFunctions->end() ) &&
-          n.getNumChildren() == 0 ) ||
-        n.isVar() ), e,
+      (((d_definedFunctions->find(n) != d_definedFunctions->end())
+        && n.getNumChildren() == 0)
+       || n.isVar()),
+      e,
       "expected variable or defined-function application "
-      "in addToAssignment(),\ngot %s", e.toString().c_str() );
+      "in addToAssignment(),\ngot %s",
+      e.toString().c_str());
   if(!options::produceAssignments()) {
     return false;
   }
@@ -5049,9 +4300,8 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       "produce-assignments option is off.";
     throw ModalException(msg);
   }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT  ||
-     d_problemExtended) {
+  if (d_smtMode != SMT_MODE_SAT)
+  {
     const char* msg =
       "Cannot get the current assignment unless immediately "
       "preceded by SAT/INVALID or UNKNOWN response.";
@@ -5062,7 +4312,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   if (d_assignments != nullptr)
   {
     TypeNode boolType = d_nodeManager->booleanType();
-    TheoryModel* m = d_theoryEngine->getModel();
+    TheoryModel* m = d_theoryEngine->getBuiltModel();
     for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
                                      iend = d_assignments->key_end();
          i != iend;
@@ -5091,8 +4341,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       // ensure it's a constant
       Assert(resultNode.isConst());
 
-      Assert(as.getKind() == kind::APPLY || as.isVar());
-      Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
+      Assert(as.isVar());
       res.emplace_back(as.toExpr(), resultNode.toExpr());
     }
   }
@@ -5113,7 +4362,6 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool 
   if(/* userVisible && */
      (!d_fullyInited || options::produceModels()) &&
      (flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-    doPendingPops();
     if(flags & ExprManager::VAR_FLAG_GLOBAL) {
       d_modelGlobalCommands.push_back(c.clone());
     } else {
@@ -5140,29 +4388,75 @@ Model* SmtEngine::getModel() {
     Dump("benchmark") << GetModelCommand();
   }
 
-  if (!options::assignFunctionValues())
-  {
-    const char* msg =
-        "Cannot get the model when --assign-function-values is false.";
-    throw RecoverableModalException(msg);
-  }
+  TheoryModel* m = getAvailableModel("get model");
 
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT ||
-     d_problemExtended) {
-    const char* msg =
-      "Cannot get the current model unless immediately "
-      "preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
+  // Since model m is being returned to the user, we must ensure that this
+  // model object remains valid with future check-sat calls. Hence, we set
+  // the theory engine into "eager model building" mode. TODO #2648: revisit.
+  d_theoryEngine->setEagerModelBuilding();
+
+  if (options::modelCoresMode() != MODEL_CORES_NONE)
+  {
+    // If we enabled model cores, we compute a model core for m based on our
+    // (expanded) assertions using the model core builder utility
+    std::vector<Expr> eassertsProc = getExpandedAssertions();
+    ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
-  if(!options::produceModels()) {
-    const char* msg =
-      "Cannot get model when produce-models options is off.";
-    throw ModalException(msg);
-  }
-  TheoryModel* m = d_theoryEngine->getModel();
   m->d_inputName = d_filename;
   return m;
+}
+
+Result SmtEngine::blockModel()
+{
+  Trace("smt") << "SMT blockModel()" << endl;
+  SmtScope smts(this);
+
+  finalOptionsAreSet();
+
+  if (Dump.isOn("benchmark"))
+  {
+    Dump("benchmark") << BlockModelCommand();
+  }
+
+  TheoryModel* m = getAvailableModel("block model");
+
+  if (options::blockModelsMode() == BLOCK_MODELS_NONE)
+  {
+    std::stringstream ss;
+    ss << "Cannot block model when block-models is set to none.";
+    throw ModalException(ss.str().c_str());
+  }
+
+  // get expanded assertions
+  std::vector<Expr> eassertsProc = getExpandedAssertions();
+  Expr eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, options::blockModelsMode());
+  return assertFormula(eblocker);
+}
+
+Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
+{
+  Trace("smt") << "SMT blockModelValues()" << endl;
+  SmtScope smts(this);
+
+  finalOptionsAreSet();
+
+  PrettyCheckArgument(
+      !exprs.empty(),
+      "block model values must be called on non-empty set of terms");
+  if (Dump.isOn("benchmark"))
+  {
+    Dump("benchmark") << BlockModelValuesCommand(exprs);
+  }
+
+  TheoryModel* m = getAvailableModel("block model values");
+
+  // get expanded assertions
+  std::vector<Expr> eassertsProc = getExpandedAssertions();
+  // we always do block model values mode here
+  Expr eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, BLOCK_MODELS_VALUES, exprs);
+  return assertFormula(eblocker);
 }
 
 std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
@@ -5177,7 +4471,7 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
   Expr nil;
-  Model* m = getModel();
+  Model* m = d_theoryEngine->getBuiltModel();
   if (m->getHeapModel(heap, nil))
   {
     return std::make_pair(heap, nil);
@@ -5187,9 +4481,69 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
       "expressions from theory model.");
 }
 
+std::vector<Expr> SmtEngine::getExpandedAssertions()
+{
+  std::vector<Expr> easserts = getAssertions();
+  // must expand definitions
+  std::vector<Expr> eassertsProc;
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  for (const Expr& e : easserts)
+  {
+    Node ea = Node::fromExpr(e);
+    Node eae = d_private->expandDefinitions(ea, cache);
+    eassertsProc.push_back(eae.toExpr());
+  }
+  return eassertsProc;
+}
+
 Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
+
+void SmtEngine::checkProof()
+{
+#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
+
+  Chat() << "generating proof..." << endl;
+
+  const Proof& pf = getProof();
+
+  Chat() << "checking proof..." << endl;
+
+  std::string logicString = d_logic.getLogicString();
+
+  if (!(d_logic <= LogicInfo("QF_AUFBVLRA")))
+  {
+    // This logic is not yet supported
+    Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"
+             << endl;
+    return;
+  }
+
+  std::stringstream pfStream;
+
+  pfStream << proof::plf_signatures << endl;
+  int64_t sizeBeforeProof = static_cast<int64_t>(pfStream.tellp());
+
+  pf.toStream(pfStream);
+  d_stats->d_proofsSize +=
+      static_cast<int64_t>(pfStream.tellp()) - sizeBeforeProof;
+
+  {
+    TimerStat::CodeTimer checkProofTimer(d_stats->d_lfscCheckProofTime);
+    lfscc_init();
+    lfscc_check_file(pfStream, false, false, false, false, false, false, false);
+  }
+  // FIXME: we should actually call lfscc_cleanup here, but lfscc_cleanup
+  // segfaults on regress0/bv/core/bitvec7.smt
+  // lfscc_cleanup();
+
+#else  /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
+  Unreachable(
+      "This version of CVC4 was built without proof support; cannot check "
+      "proofs.");
+#endif /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
+}
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
@@ -5199,8 +4553,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores option is off.");
   }
-  if (d_status.isNull() || d_status.asSatisfiabilityResult() != Result::UNSAT
-      || d_problemExtended)
+  if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
@@ -5270,7 +4623,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   // and if Notice() is on, the user gave --verbose (or equivalent).
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  TheoryModel* m = d_theoryEngine->getModel();
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
 
   // check-model is not guaranteed to succeed if approximate values were used
   if (m->hasApproximations())
@@ -5590,9 +4943,8 @@ const Proof& SmtEngine::getProof()
   if(!options::proof()) {
     throw ModalException("Cannot get a proof when produce-proofs option is off.");
   }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() != Result::UNSAT ||
-     d_problemExtended) {
+  if (d_smtMode != SMT_MODE_UNSAT)
+  {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by UNSAT/VALID "
         "response.");
@@ -5606,6 +4958,7 @@ const Proof& SmtEngine::getProof()
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
+  finalOptionsAreSet();
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
     out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
   }
@@ -5621,6 +4974,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
 
 void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
+  finalOptionsAreSet();
   if( d_theoryEngine ){
     d_theoryEngine->printSynthSolution( out );
   }else{
@@ -5631,6 +4985,7 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
 void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   map<Node, Node> sol_mapn;
   Assert(d_theoryEngine != nullptr);
   d_theoryEngine->getSynthSolutions(sol_mapn);
@@ -5643,6 +4998,7 @@ void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
@@ -5681,7 +5037,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
     Assert( inst_qs.size()<=1 );
     Node ret_n;
     if( inst_qs.size()==1 ){
-      Node top_q = inst_qs[0]; 
+      Node top_q = inst_qs[0];
       //Node top_q = Rewriter::rewrite( nn_e ).negate();
       Assert( top_q.getKind()==kind::FORALL );
       Trace("smt-qe") << "Get qe for " << top_q << std::endl;
@@ -5703,6 +5059,113 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
         ->mkConst(n_e.getKind() == kind::EXISTS)
         .toExpr();
   }
+}
+
+bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
+{
+  SmtScope smts(this);
+
+  if (!options::produceAbducts())
+  {
+    const char* msg = "Cannot get abduct when produce-abducts options is off.";
+    throw ModalException(msg);
+  }
+  Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj
+                        << std::endl;
+  std::vector<Expr> easserts = getAssertions();
+  std::vector<Node> axioms;
+  for (unsigned i = 0, size = easserts.size(); i < size; i++)
+  {
+    axioms.push_back(Node::fromExpr(easserts[i]));
+  }
+  std::vector<Node> asserts(axioms.begin(), axioms.end());
+  // negate the conjecture
+  Node conjn = Node::fromExpr(conj).negate();
+  asserts.push_back(conjn);
+  d_sssfVarlist.clear();
+  d_sssfSyms.clear();
+  std::string name("A");
+  Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
+      name,
+      asserts,
+      axioms,
+      TypeNode::fromType(grammarType),
+      d_sssfVarlist,
+      d_sssfSyms);
+  // should be a quantified conjecture with one function-to-synthesize
+  Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
+  // remember the abduct-to-synthesize
+  d_sssf = aconj[0][0].toExpr();
+  Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
+                        << ", solving for " << d_sssf << std::endl;
+  // we generate a new smt engine to do the abduction query
+  d_subsolver.reset(new SmtEngine(NodeManager::currentNM()->toExprManager()));
+  d_subsolver->setIsInternalSubsolver();
+  // get the logic
+  LogicInfo l = d_logic.getUnlockedCopy();
+  // enable everything needed for sygus
+  l.enableSygus();
+  d_subsolver->setLogic(l);
+  // assert the abduction query
+  d_subsolver->assertFormula(aconj.toExpr());
+  if (getAbductInternal(abd))
+  {
+    // successfully generated an abduct, update to abduct state
+    d_smtMode = SMT_MODE_ABDUCT;
+    return true;
+  }
+  // failed, we revert to the assert state
+  d_smtMode = SMT_MODE_ASSERT;
+  return false;
+}
+
+bool SmtEngine::getAbductInternal(Expr& abd)
+{
+  // should have initialized the subsolver by now
+  Assert(d_subsolver != nullptr);
+  Trace("sygus-abduct") << "  SmtEngine::getAbduct check sat..." << std::endl;
+  Result r = d_subsolver->checkSat();
+  Trace("sygus-abduct") << "  SmtEngine::getAbduct result: " << r << std::endl;
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  {
+    // get the synthesis solution
+    std::map<Expr, Expr> sols;
+    d_subsolver->getSynthSolutions(sols);
+    Assert(sols.size() == 1);
+    std::map<Expr, Expr>::iterator its = sols.find(d_sssf);
+    if (its != sols.end())
+    {
+      Trace("sygus-abduct")
+          << "SmtEngine::getAbduct: solution is " << its->second << std::endl;
+      Node abdn = Node::fromExpr(its->second);
+      if (abdn.getKind() == kind::LAMBDA)
+      {
+        abdn = abdn[1];
+      }
+      Assert(d_sssfVarlist.size() == d_sssfSyms.size());
+      // convert back to original
+      // must replace formal arguments of abd with the free variables in the
+      // input problem that they correspond to.
+      abdn = abdn.substitute(d_sssfVarlist.begin(),
+                             d_sssfVarlist.end(),
+                             d_sssfSyms.begin(),
+                             d_sssfSyms.end());
+
+      // convert to expression
+      abd = abdn.toExpr();
+      return true;
+    }
+    Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
+                          << std::endl;
+    throw RecoverableModalException("Could not find solution for get-abduct.");
+  }
+  return false;
+}
+
+bool SmtEngine::getAbduct(const Expr& conj, Expr& abd)
+{
+  Type grammarType;
+  return getAbduct(conj, grammarType, abd);
 }
 
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
@@ -5782,16 +5245,11 @@ void SmtEngine::push()
     throw ModalException("Cannot push when not solving incrementally (use --incremental)");
   }
 
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
 
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
-  // staying symmtric with pop.
-  setProblemExtended(true);
+  // staying symmetric with pop.
+  setProblemExtended();
 
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
@@ -5813,19 +5271,13 @@ void SmtEngine::pop() {
     throw ModalException("Cannot pop beyond the first user frame");
   }
 
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
-
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a pop, simplifying our lives somewhat.  It might
   // not be strictly necessary to do so, since the pops occur lazily,
   // but also it would be weird to have a legally-executed (get-model)
   // that only returns a subset of the assignment (because the rest
   // is no longer in scope!).
-  setProblemExtended(true);
+  setProblemExtended();
 
   AlwaysAssert(d_userContext->getLevel() > 0);
   AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
@@ -5868,13 +5320,24 @@ void SmtEngine::internalPop(bool immediate) {
 }
 
 void SmtEngine::doPendingPops() {
+  Trace("smt") << "SmtEngine::doPendingPops()" << endl;
   Assert(d_pendingPops == 0 || options::incrementalSolving());
+  // check to see if a postsolve() is pending
+  if (d_needPostsolve)
+  {
+    d_propEngine->resetTrail();
+  }
   while(d_pendingPops > 0) {
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     d_propEngine->pop();
     // the d_context pop is done inside of the SAT solver
     d_userContext->pop();
     --d_pendingPops;
+  }
+  if (d_needPostsolve)
+  {
+    d_theoryEngine->postsolve();
+    d_needPostsolve = false;
   }
 }
 
@@ -5970,6 +5433,7 @@ void SmtEngine::setUserAttribute(const std::string& attr,
                                  const std::string& str_value)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   std::vector<Node> node_values;
   for( unsigned i=0; i<expr_values.size(); i++ ){
     node_values.push_back( expr_values[i].getNode() );
@@ -6044,6 +5508,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   nodeManagerOptions.setOption(key, optionarg);
 }
 
+void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(d_nodeManager);
@@ -6104,7 +5569,7 @@ void SmtEngine::setReplayStream(ExprStream* replayStream) {
   AlwaysAssert(!d_fullyInited,
                "Cannot set replay stream once fully initialized");
   d_replayStream = replayStream;
-}  
+}
 
 bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
   return d_private->getExpressionName(e, name);

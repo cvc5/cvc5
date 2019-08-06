@@ -2,9 +2,9 @@
 /*! \file expr_manager_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__EXPR_MANAGER_H
-#define __CVC4__EXPR_MANAGER_H
+#ifndef CVC4__EXPR_MANAGER_H
+#define CVC4__EXPR_MANAGER_H
 
 #include <vector>
 
@@ -301,6 +301,19 @@ public:
   Expr mkAssociative(Kind kind, const std::vector<Expr>& children);
 
   /**
+   * Create an Expr by applying an binary left-associative operator to the
+   * children. For example, mkLeftAssociative( f, { a, b, c } ) returns
+   * f( f( a, b ), c ).
+   */
+  Expr mkLeftAssociative(Kind kind, const std::vector<Expr>& children);
+  /**
+   * Create an Expr by applying an binary right-associative operator to the
+   * children. For example, mkRightAssociative( f, { a, b, c } ) returns
+   * f( a, f( b, c ) ).
+   */
+  Expr mkRightAssociative(Kind kind, const std::vector<Expr>& children);
+
+  /**
    * Determine whether Exprs of a particular Kind have operators.
    * @returns true if Exprs of Kind k have operators.
    */
@@ -372,14 +385,27 @@ public:
   /** Make the type of set with the given parameterization. */
   SetType mkSetType(Type elementType) const;
 
+  /** Bits for use in mkDatatypeType() flags.
+   *
+   * DATATYPE_FLAG_PLACEHOLDER indicates that the type should not be printed
+   * out as a definition, for example, in models or during dumping.
+   */
+  enum
+  {
+    DATATYPE_FLAG_NONE = 0,
+    DATATYPE_FLAG_PLACEHOLDER = 1
+  }; /* enum */
+
   /** Make a type representing the given datatype. */
-  DatatypeType mkDatatypeType(Datatype& datatype);
+  DatatypeType mkDatatypeType(Datatype& datatype,
+                              uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
    * Make a set of types representing the given datatypes, which may be
    * mutually recursive.
    */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(std::vector<Datatype>& datatypes);
+  std::vector<DatatypeType> mkMutualDatatypeTypes(
+      std::vector<Datatype>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
    * Make a set of types representing the given datatypes, which may
@@ -410,7 +436,10 @@ public:
    * then no complicated Type needs to be created, and the above,
    * simpler form of mkMutualDatatypeTypes() is enough.
    */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes);
+  std::vector<DatatypeType> mkMutualDatatypeTypes(
+      std::vector<Datatype>& datatypes,
+      std::set<Type>& unresolvedTypes,
+      uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
    * Make a type representing a constructor with the given parameterization.
@@ -491,7 +520,7 @@ public:
 
   /**
    * Create a new, fresh variable for use in a binder expression
-   * (the BOUND_VAR_LIST of a FORALL, EXISTS, or LAMBDA).  It is
+   * (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or CHOICE).  It is
    * an error for this bound variable to exist outside of a binder,
    * and it should also only be used in a single binder expression.
    * That is, two distinct FORALL expressions should use entirely
@@ -510,7 +539,7 @@ public:
 
   /**
    * Create a (nameless) new, fresh variable for use in a binder
-   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, or LAMBDA).
+   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or CHOICE).
    * It is an error for this bound variable to exist outside of a
    * binder, and it should also only be used in a single binder
    * expression.  That is, two distinct FORALL expressions should use
@@ -557,4 +586,4 @@ ${mkConst_instantiations}
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_MANAGER_H */
+#endif /* CVC4__EXPR_MANAGER_H */

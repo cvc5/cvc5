@@ -2,9 +2,9 @@
 /*! \file cegis.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ **   Andrew Reynolds, Haniel Barbosa, FabianWolff
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEGIS_H
-#define __CVC4__THEORY__QUANTIFIERS__CEGIS_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_H
+#define CVC4__THEORY__QUANTIFIERS__CEGIS_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_module.h"
@@ -41,7 +41,7 @@ namespace quantifiers {
 class Cegis : public SygusModule
 {
  public:
-  Cegis(QuantifiersEngine* qe, CegConjecture* p);
+  Cegis(QuantifiersEngine* qe, SynthConjecture* p);
   ~Cegis() override {}
   /** initialize */
   virtual bool initialize(Node n,
@@ -69,11 +69,11 @@ class Cegis : public SygusModule
  protected:
   /** the evaluation unfold utility of d_tds */
   SygusEvalUnfold* d_eval_unfold;
-  /** If CegConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
+  /** If SynthConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
   std::vector<Node> d_base_vars;
   /**
-   * If CegConjecture::d_base_inst is exists y. P( d, y ), then this is the
-   * formula P( CegConjecture::d_candidates, y ).
+   * If SynthConjecture::d_base_inst is exists y. P( d, y ), then this is the
+   * formula P( SynthConjecture::d_candidates, y ).
    */
   Node d_base_body;
   //----------------------------------cegis-implementation-specific
@@ -104,6 +104,8 @@ class Cegis : public SygusModule
   /** substitution entailed by d_refinement_lemma_unit */
   std::vector<Node> d_rl_eval_hds;
   std::vector<Node> d_rl_vals;
+  /** all variables appearing in refinement lemmas */
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_vars;
   /** adds lem as a refinement lemma */
   void addRefinementLemma(Node lem);
   /** add refinement lemma conjunct
@@ -135,25 +137,50 @@ class Cegis : public SygusModule
 
   /** evaluates candidate values on current refinement lemmas
    *
-   * Returns true if refinement lemmas are added after evaluation, false
-   * otherwise.
+   * This method performs techniques that ensure that
+   * { candidates -> candidate_values } is a candidate solution that should
+   * be checked by the solution verifier of the CEGIS loop. This method
+   * invokes two sub-methods which may reject the current solution.
+   * The first is "refinement evaluation", described above the method
+   * getRefinementEvalLemmas below. The second is "evaluation unfolding",
+   * which eagerly unfolds applications of evaluation functions (see
+   * sygus_eval_unfold.h for details).
    *
-   * Also eagerly unfolds evaluation functions in a heuristic manner, which is
-   * useful e.g. for boolean connectives
+   * If this method returns true, then { candidates -> candidate_values }
+   * is not ready to be tried as a candidate solution. In this case, it may add
+   * lemmas to lems.
+   *
+   * Notice that this method may return true without adding any lemmas to
+   * lems, in the case that terms from candidates are "actively-generated
+   * enumerators", since the model values of such terms are managed
+   * explicitly within getEnumeratedValue. In this case, the owner of the
+   * actively-generated enumerators (e.g. SynthConjecture) is responsible for
+   * blocking the current value of candidates.
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
-                     const std::vector<Node>& candidate_values);
+                     const std::vector<Node>& candidate_values,
+                     std::vector<Node>& lems);
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas
    *
+   * This method performs "refinement evaluation", that is, it tests
+   * whether the current solution, given by { candidates -> candidate_values },
+   * satisfies all current refinement lemmas. If it does not, it may add
+   * blocking lemmas L to lems which exclude (a generalization of) the current
+   * solution.
+   *
    * Given a candidate solution ms for candidates vs, this function adds lemmas
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
    * for previous refinements (d_refinement_lemmas).
+   *
+   * Returns true if any such lemma exists. If doGen is false, then the
+   * lemmas are not generated or added to lems.
    */
-  void getRefinementEvalLemmas(const std::vector<Node>& vs,
+  bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,
-                               std::vector<Node>& lems);
+                               std::vector<Node>& lems,
+                               bool doGen);
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis
@@ -182,4 +209,4 @@ class Cegis : public SygusModule
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEGIS_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEGIS_H */

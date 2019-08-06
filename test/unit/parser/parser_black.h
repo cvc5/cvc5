@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -138,6 +138,13 @@ class ParserBlack
                            .withInputLanguage(d_lang)
                            .build();
 
+      if (d_lang == LANG_SMTLIB_V2)
+      {
+        // Use QF_LIA to make multiplication ("*") available
+        std::unique_ptr<Command> cmd(
+            static_cast<Smt2*>(parser)->setLogic("QF_LIA"));
+      }
+
       TS_ASSERT(!parser->done());
       setupContext(*parser);
       TS_ASSERT(!parser->done());
@@ -217,13 +224,9 @@ class Cvc4ParserTest : public CxxTest::TestSuite, public ParserBlack {
 public:
   Cvc4ParserTest() : ParserBlack(LANG_CVC4) { }
 
-  void setUp() {
-    super::setUp();
-  }
+  void setUp() override { super::setUp(); }
 
-  void tearDown() {
-    super::tearDown();
-  }
+  void tearDown() override { super::tearDown(); }
 
   void testGoodCvc4Inputs() {
     tryGoodInput(""); // empty string is OK
@@ -307,13 +310,9 @@ class Smt1ParserTest : public CxxTest::TestSuite, public ParserBlack {
 public:
   Smt1ParserTest() : ParserBlack(LANG_SMTLIB_V1) { }
 
-  void setUp() {
-    super::setUp();
-  }
+  void setUp() override { super::setUp(); }
 
-  void tearDown() {
-    super::tearDown();
-  }
+  void tearDown() override { super::tearDown(); }
 
   void testGoodSmt1Inputs() {
     tryGoodInput(""); // empty string is OK
@@ -376,15 +375,12 @@ class Smt2ParserTest : public CxxTest::TestSuite, public ParserBlack {
 public:
   Smt2ParserTest() : ParserBlack(LANG_SMTLIB_V2) { }
 
-  void setUp() {
-    super::setUp();
-  }
+  void setUp() override { super::setUp(); }
 
-  void tearDown() {
-    super::tearDown();
-  }
+  void tearDown() override { super::tearDown(); }
 
-  virtual void setupContext(Parser& parser) {
+  void setupContext(Parser& parser) override
+  {
     if(dynamic_cast<Smt2*>(&parser) != NULL){
       dynamic_cast<Smt2*>(&parser)->addTheory(Smt2::THEORY_CORE);
     }

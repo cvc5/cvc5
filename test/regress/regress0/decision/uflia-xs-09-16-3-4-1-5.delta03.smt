@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
+
 (benchmark mathsat
 :logic QF_UFLIA
 :extrafuns ((fmt_length Int))

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Tianyi Liang, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -394,6 +394,43 @@ std::size_t String::rfind(const String &y, const std::size_t start) const {
   return std::string::npos;
 }
 
+bool String::hasPrefix(const String& y) const
+{
+  size_t s = size();
+  size_t ys = y.size();
+  if (ys > s)
+  {
+    return false;
+  }
+  for (size_t i = 0; i < ys; i++)
+  {
+    if (d_str[i] != y.d_str[i])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool String::hasSuffix(const String& y) const
+{
+  size_t s = size();
+  size_t ys = y.size();
+  if (ys > s)
+  {
+    return false;
+  }
+  size_t idiff = s - ys;
+  for (size_t i = 0; i < ys; i++)
+  {
+    if (d_str[i + idiff] != y.d_str[i])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 String String::replace(const String &s, const String &t) const {
   std::size_t ret = find(s);
   if (ret != std::string::npos) {
@@ -442,10 +479,8 @@ bool String::isDigit(unsigned character)
   return c >= '0' && c <= '9';
 }
 
-size_t String::maxSize()
-{
-  return std::numeric_limits<size_t>::max();
-}
+size_t String::maxSize() { return std::numeric_limits<uint32_t>::max(); }
+
 Rational String::toNumber() const
 {
   // when smt2 standard for strings is set, this may change, based on the

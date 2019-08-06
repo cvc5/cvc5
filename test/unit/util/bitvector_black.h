@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Christopher L. Conway, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@ class BitVectorBlack : public CxxTest::TestSuite {
 
 
 public:
- void setUp()
+ void setUp() override
  {
    zero = BitVector(4);
    one = zero.setBit(0);
@@ -93,8 +93,8 @@ public:
     BitVector b = one.concat(zero);
     TS_ASSERT_EQUALS(b.toString(), "00010000");
     TS_ASSERT_EQUALS(b.extract(7, 4), one);
-    TS_ASSERT_THROWS(b.extract(4, 7), IllegalArgumentException);
-    TS_ASSERT_THROWS(b.extract(8, 3), IllegalArgumentException);
+    TS_ASSERT_THROWS(b.extract(4, 7), IllegalArgumentException&);
+    TS_ASSERT_THROWS(b.extract(8, 3), IllegalArgumentException&);
     TS_ASSERT_EQUALS(b.concat(BitVector()), b);
   }
 
@@ -116,10 +116,10 @@ public:
     TS_ASSERT(negOne.signedLessThanEq(negOne));
 
     BitVector b = negOne.concat(negOne);
-    TS_ASSERT_THROWS(b.unsignedLessThan(negOne), IllegalArgumentException);
-    TS_ASSERT_THROWS(negOne.unsignedLessThanEq(b), IllegalArgumentException);
-    TS_ASSERT_THROWS(b.signedLessThan(negOne), IllegalArgumentException);
-    TS_ASSERT_THROWS(negOne.signedLessThanEq(b), IllegalArgumentException);
+    TS_ASSERT_THROWS(b.unsignedLessThan(negOne), IllegalArgumentException&);
+    TS_ASSERT_THROWS(negOne.unsignedLessThanEq(b), IllegalArgumentException&);
+    TS_ASSERT_THROWS(b.signedLessThan(negOne), IllegalArgumentException&);
+    TS_ASSERT_THROWS(negOne.signedLessThanEq(b), IllegalArgumentException&);
   }
 
   void testBitwiseOps()
@@ -145,10 +145,10 @@ public:
     TS_ASSERT_EQUALS(negOne.unsignedRemTotal(two), one);
 
     BitVector b = negOne.concat(negOne);
-    TS_ASSERT_THROWS(b + negOne, IllegalArgumentException);
-    TS_ASSERT_THROWS(negOne * b, IllegalArgumentException);
-    TS_ASSERT_THROWS(b.unsignedDivTotal(negOne), IllegalArgumentException);
-    TS_ASSERT_THROWS(negOne.unsignedRemTotal(b), IllegalArgumentException);
+    TS_ASSERT_THROWS(b + negOne, IllegalArgumentException&);
+    TS_ASSERT_THROWS(negOne * b, IllegalArgumentException&);
+    TS_ASSERT_THROWS(b.unsignedDivTotal(negOne), IllegalArgumentException&);
+    TS_ASSERT_THROWS(negOne.unsignedRemTotal(b), IllegalArgumentException&);
   }
 
   void testExtendOps()

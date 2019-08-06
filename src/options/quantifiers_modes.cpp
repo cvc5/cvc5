@@ -2,9 +2,9 @@
 /*! \file quantifiers_modes.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -64,17 +64,11 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::LiteralMatchMod
 
 std::ostream& operator<<(std::ostream& out, theory::quantifiers::MbqiMode mode) {
   switch(mode) {
-  case theory::quantifiers::MBQI_GEN_EVAL:
-    out << "MBQI_GEN_EVAL";
-    break;
   case theory::quantifiers::MBQI_NONE:
     out << "MBQI_NONE";
     break;
   case theory::quantifiers::MBQI_FMC:
     out << "MBQI_FMC";
-    break;
-  case theory::quantifiers::MBQI_ABS:
-    out << "MBQI_ABS";
     break;
   case theory::quantifiers::MBQI_TRUST:
     out << "MBQI_TRUST";

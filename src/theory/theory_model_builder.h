@@ -2,9 +2,9 @@
 /*! \file theory_model_builder.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORY_MODEL_BUILDER_H
-#define __CVC4__THEORY__THEORY_MODEL_BUILDER_H
+#ifndef CVC4__THEORY__THEORY_MODEL_BUILDER_H
+#define CVC4__THEORY__THEORY_MODEL_BUILDER_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -68,13 +68,14 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * are building fails to satisfy a quantified formula.
    */
   bool buildModel(Model* m) override;
-  /** Debug check model.
+
+  /** postprocess model
    *
-   * This throws an assertion failure if the model
-   * contains an equivalence class with two terms t1 and t2
-   * such that t1^M != t2^M.
+   * This is called when m is a model that will be returned to the user. This
+   * method checks the internal consistency of the model if we are in a debug
+   * build.
    */
-  void debugCheckModel(Model* m);
+  void postProcessModel(bool incomplete, Model* m);
 
  protected:
   /** pointer to theory engine */
@@ -101,6 +102,13 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   virtual void debugModel(TheoryModel* m) {}
   //-----------------------------------end virtual functions
+
+  /** Debug check model.
+   *
+   * This throws an assertion failure if the model contains an equivalence
+   * class with two terms t1 and t2 such that t1^M != t2^M.
+   */
+  void debugCheckModel(TheoryModel* m);
 
   /** is n assignable?
    *
@@ -251,4 +259,4 @@ class TheoryEngineModelBuilder : public ModelBuilder
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_MODEL_BUILDER_H */
+#endif /* CVC4__THEORY__THEORY_MODEL_BUILDER_H */

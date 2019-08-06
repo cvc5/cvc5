@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Dejan Jovanovic, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -77,7 +77,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 
   /* Trickery to stay under number of children possible in a node */
   NodeManager* nodeManager = NodeManager::currentNM();
-  static const unsigned MAX_CHILDREN = (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
+  static const unsigned MAX_CHILDREN = (1u << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
   if (childList.size() < MAX_CHILDREN) {
     Node retNode = nodeManager->mkNode(k, childList);
     return RewriteResponse(REWRITE_DONE, retNode);

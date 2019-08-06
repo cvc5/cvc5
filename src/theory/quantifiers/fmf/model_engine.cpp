@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,13 +15,13 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/fmf/ambqi_builder.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -166,11 +166,6 @@ bool ModelEngine::optOneQuantPerRound(){
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
 
-  //flatten the representatives
-  //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
-  // d_quantEngine->getEqualityQuery()->flattenRepresentatives(
-  // fm->getRepSet()->d_type_reps );
-
   //for debugging, setup
   for (std::map<TypeNode, std::vector<Node> >::iterator it =
            fm->getRepSetPtr()->d_type_reps.begin();
@@ -272,7 +267,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }
     d_triedLemmas += mb->getNumTriedLemmas()-prev_tlem;
     d_addedLemmas += mb->getNumAddedLemmas()-prev_alem;
-    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi += mb->getNumAddedLemmas();
+    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi +=
+        (mb->getNumAddedLemmas() - prev_alem);
   }else{
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";

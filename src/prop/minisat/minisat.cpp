@@ -2,9 +2,9 @@
 /*! \file minisat.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Liana Hadarean, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -207,11 +207,6 @@ void MinisatSatSolver::requirePhase(SatLiteral lit) {
   Debug("minisat") << "requirePhase(" << lit << ")" << " " <<  lit.getSatVariable() << " " << lit.isNegated() << std::endl;
   SatVariable v = lit.getSatVariable();
   d_minisat->freezePolarity(v, lit.isNegated());
-}
-
-bool MinisatSatSolver::flipDecision() {
-  Debug("minisat") << "flipDecision()" << std::endl;
-  return d_minisat->flipDecision();
 }
 
 bool MinisatSatSolver::isDecision(SatVariable decn) const {

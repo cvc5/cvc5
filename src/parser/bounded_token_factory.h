@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
-#define __CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
+#ifndef CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
+#define CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H
 
 namespace CVC4 {
 namespace parser {
@@ -48,4 +48,4 @@ BoundedTokenFactoryNew(pANTLR3_INPUT_STREAM input,ANTLR3_UINT32 size);
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H */
+#endif /* CVC4__PARSER__BOUNDED_TOKEN_FACTORY_H */

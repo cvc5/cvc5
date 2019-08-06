@@ -2,9 +2,9 @@
 /*! \file ceg_arith_instantiator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,12 +14,14 @@
 
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
 using namespace std;
@@ -851,7 +853,7 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
         << pv << " " << atom.getKind() << " " << val << std::endl;
   }
   // when not pure LIA/LRA, we must check whether the lhs contains pv
-  if (val.hasSubterm(pv))
+  if (expr::hasSubterm(val, pv))
   {
     Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
     return 0;

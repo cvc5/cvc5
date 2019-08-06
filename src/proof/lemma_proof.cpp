@@ -2,9 +2,9 @@
 /*! \file lemma_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Guy Katz
+ **   Guy Katz, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,7 +39,7 @@ std::set<Node> LemmaProofRecipe::ProofStep::getAssertions() const {
 }
 
 void LemmaProofRecipe::addStep(ProofStep& proofStep) {
-  d_proofSteps.push_front(proofStep);
+  d_proofSteps.push_back(proofStep);
 }
 
 std::set<Node> LemmaProofRecipe::getMissingAssertionsForStep(unsigned index) const {
@@ -47,14 +47,15 @@ std::set<Node> LemmaProofRecipe::getMissingAssertionsForStep(unsigned index) con
 
   std::set<Node> existingAssertions = getBaseAssertions();
 
-  std::list<ProofStep>::const_iterator step = d_proofSteps.begin();
-  while (index != 0) {
-    existingAssertions.insert(step->getLiteral().negate());
-    ++step;
-    --index;
+  // The literals for all the steps "before" (i.e. behind) the step indicated
+  // by the index are considered "existing"
+  size_t revIndex = d_proofSteps.size() - 1 - index;
+  for (size_t i = d_proofSteps.size() - 1; i != revIndex; --i)
+  {
+    existingAssertions.insert(d_proofSteps[i].getLiteral().negate());
   }
 
-  std::set<Node> neededAssertions = step->getAssertions();
+  std::set<Node> neededAssertions = d_proofSteps[revIndex].getAssertions();
 
   std::set<Node> result;
   std::set_difference(neededAssertions.begin(), neededAssertions.end(),
@@ -85,12 +86,12 @@ void LemmaProofRecipe::dump(const char *tag) const {
   Debug(tag) << std::endl << std::endl << "Proof steps:" << std::endl;
 
   count = 1;
-  for (std::list<ProofStep>::const_iterator step = d_proofSteps.begin(); step != d_proofSteps.end(); ++step) {
-    Debug(tag) << "\tStep #" << count << ": " << "\t[" << step->getTheory() << "] ";
-    if (step->getLiteral() == Node()) {
+  for (const auto& step : (*this)) {
+    Debug(tag) << "\tStep #" << count << ": " << "\t[" << step.getTheory() << "] ";
+    if (step.getLiteral() == Node()) {
       Debug(tag) << "Contradiction";
     } else {
-      Debug(tag) << step->getLiteral();
+      Debug(tag) << step.getLiteral();
     }
 
     Debug(tag) << std::endl;
@@ -158,6 +159,22 @@ LemmaProofRecipe::RewriteIterator LemmaProofRecipe::rewriteEnd() const {
   return d_assertionToExplanation.end();
 }
 
+LemmaProofRecipe::iterator LemmaProofRecipe::begin() {
+  return d_proofSteps.rbegin();
+}
+
+LemmaProofRecipe::iterator LemmaProofRecipe::end() {
+  return d_proofSteps.rend();
+}
+
+LemmaProofRecipe::const_iterator LemmaProofRecipe::begin() const {
+  return d_proofSteps.crbegin();
+}
+
+LemmaProofRecipe::const_iterator LemmaProofRecipe::end() const {
+  return d_proofSteps.crend();
+}
+
 bool LemmaProofRecipe::operator<(const LemmaProofRecipe& other) const {
     return d_baseAssertions < other.d_baseAssertions;
   }
@@ -173,25 +190,17 @@ bool LemmaProofRecipe::compositeLemma() const {
 const LemmaProofRecipe::ProofStep* LemmaProofRecipe::getStep(unsigned index) const {
   Assert(index < d_proofSteps.size());
 
-  std::list<ProofStep>::const_iterator it = d_proofSteps.begin();
-  while (index != 0) {
-    ++it;
-    --index;
-  }
+  size_t revIndex = d_proofSteps.size() - 1 - index;
 
-  return &(*it);
+  return &d_proofSteps[revIndex];
 }
 
 LemmaProofRecipe::ProofStep* LemmaProofRecipe::getStep(unsigned index) {
   Assert(index < d_proofSteps.size());
 
-  std::list<ProofStep>::iterator it = d_proofSteps.begin();
-  while (index != 0) {
-    ++it;
-    --index;
-  }
+  size_t revIndex = d_proofSteps.size() - 1 - index;
 
-  return &(*it);
+  return &d_proofSteps[revIndex];
 }
 
 unsigned LemmaProofRecipe::getNumSteps() const {
@@ -206,5 +215,39 @@ Node LemmaProofRecipe::getOriginalLemma() const {
   return d_originalLemma;
 }
 
+std::ostream& operator<<(std::ostream& out,
+                         const LemmaProofRecipe::ProofStep& step)
+{
+  out << "Proof Step(";
+  out << " lit = " << step.getLiteral() << ",";
+  out << " assertions = " << step.getAssertions() << ",";
+  out << " theory = " << step.getTheory();
+  out << " )";
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const LemmaProofRecipe& recipe)
+{
+  out << "LemmaProofRecipe(";
+  out << "\n  original lemma = " << recipe.getOriginalLemma();
+  out << "\n  actual clause  = " << recipe.getBaseAssertions();
+  out << "\n  theory         = " << recipe.getTheory();
+  out << "\n  steps          = ";
+  for (const auto& step : recipe)
+  {
+    out << "\n    " << step;
+  }
+  out << "\n  rewrites       = ";
+  for (LemmaProofRecipe::RewriteIterator i = recipe.rewriteBegin(),
+                                         end = recipe.rewriteEnd();
+       i != end;
+       ++i)
+  {
+    out << "\n    Rewrite(" << i->first << ", explanation = " << i->second
+        << ")";
+  }
+  out << "\n)";
+  return out;
+}
 
 } /* namespace CVC4 */

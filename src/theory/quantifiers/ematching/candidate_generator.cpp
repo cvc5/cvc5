@@ -2,9 +2,9 @@
 /*! \file candidate_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,8 +33,12 @@ bool CandidateGenerator::isLegalCandidate( Node n ){
   return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
 }
 
-CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node pat ) :
-CandidateGenerator( qe ), d_term_iter( -1 ){
+CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)
+    : CandidateGenerator(qe),
+      d_term_iter(-1),
+      d_term_iter_limit(0),
+      d_mode(cand_term_none)
+{
   d_op = qe->getTermDatabase()->getMatchOperator( pat );
   Assert( !d_op.isNull() );
 }
@@ -53,7 +57,7 @@ void CandidateGeneratorQE::reset( Node eqc ){
     }else{
       eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
       if( ee->hasTerm( eqc ) ){
-        quantifiers::TermArgTrie * tat = d_qe->getTermDatabase()->getTermArgTrie( eqc, d_op );
+        TNodeTrie* tat = d_qe->getTermDatabase()->getTermArgTrie(eqc, d_op);
         if( tat ){
           //create an equivalence class iterator in eq class eqc
           Node rep = ee->getRepresentative( eqc );
@@ -169,16 +173,18 @@ void CandidateGeneratorQEAll::reset( Node eqc ) {
 }
 
 Node CandidateGeneratorQEAll::getNextCandidate() {
+  quantifiers::TermDb* tdb = d_qe->getTermDatabase();
   while( !d_eq.isFinished() ){
     TNode n = (*d_eq);
     ++d_eq;
     if( n.getType().isComparableTo( d_match_pattern_type ) ){
-      TNode nh = d_qe->getTermDatabase()->getEligibleTermInEqc( n );
+      TNode nh = tdb->getEligibleTermInEqc(n);
       if( !nh.isNull() ){
         if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
           nh = d_qe->getInternalRepresentative( nh, d_f, d_index );
           //don't consider this if already the instantiation is ineligible
-          if( !d_qe->getTermDatabase()->isTermEligibleForInstantiation( nh, d_f, false ) ){
+          if (!tdb->isTermEligibleForInstantiation(nh, d_f))
+          {
             nh = Node::null();
           }
         }

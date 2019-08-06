@@ -2,9 +2,9 @@
 /*! \file decision_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Morgan Deters
+ **   Kshitij Bansal, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -98,31 +98,21 @@ SatValue DecisionEngine::getPolarity(SatVariable var)
   }
 }
 
-void DecisionEngine::addAssertions(const vector<Node> &assertions)
-{
-  Assert(false);  // doing this so that we revisit what to do
-                  // here. Currently not being used.
-
-  // d_result = SAT_VALUE_UNKNOWN;
-  // d_assertions.reserve(assertions.size());
-  // for(unsigned i = 0; i < assertions.size(); ++i)
-  //   d_assertions.push_back(assertions[i]);
-}
-
-void DecisionEngine::addAssertions(const vector<Node> &assertions,
-                                   unsigned assertionsEnd,
-                                   IteSkolemMap iteSkolemMap)
+void DecisionEngine::addAssertions(
+    const preprocessing::AssertionPipeline& assertions)
 {
   // new assertions, reset whatever result we knew
   d_result = SAT_VALUE_UNKNOWN;
 
-  // d_assertions.reserve(assertions.size());
-  for(unsigned i = 0; i < assertions.size(); ++i)
-    d_assertions.push_back(assertions[i]);
+  for (const Node& assertion : assertions)
+  {
+    d_assertions.push_back(assertion);
+  }
 
   for(unsigned i = 0; i < d_needIteSkolemMap.size(); ++i)
-    d_needIteSkolemMap[i]->
-      addAssertions(assertions, assertionsEnd, iteSkolemMap);
+  {
+    d_needIteSkolemMap[i]->addAssertions(assertions);
+  }
 }
 
 }/* CVC4 namespace */

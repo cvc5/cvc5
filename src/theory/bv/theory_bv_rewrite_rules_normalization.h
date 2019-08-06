@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,9 +22,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "theory/rewriter.h"
+#include "expr/node_algorithm.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -601,11 +602,13 @@ inline Node RewriteRule<ConcatToMult>::apply(TNode node)
   return NodeManager::currentNM()->mkNode(kind::BITVECTOR_MULT, factor, coef);
 }
 
-template<> inline
-bool RewriteRule<SolveEq>::applies(TNode node) {
-  if (node.getKind() != kind::EQUAL ||
-      (node[0].isVar() && !node[1].hasSubterm(node[0])) ||
-      (node[1].isVar() && !node[0].hasSubterm(node[1]))) {
+template <>
+inline bool RewriteRule<SolveEq>::applies(TNode node)
+{
+  if (node.getKind() != kind::EQUAL
+      || (node[0].isVar() && !expr::hasSubterm(node[1], node[0]))
+      || (node[1].isVar() && !expr::hasSubterm(node[0], node[1])))
+  {
     return false;
   }
   return true;

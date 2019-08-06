@@ -2,9 +2,9 @@
 /*! \file evaluator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -111,8 +111,6 @@ Node EvalResult::toNode() const
       return Node();
     }
   }
-
-  return Node();
 }
 
 Node Evaluator::eval(TNode n,
@@ -261,6 +259,12 @@ EvalResult Evaluator::evalInternal(TNode n,
           break;
         }
 
+        case kind::UMINUS:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(-x);
+          break;
+        }
         case kind::MULT:
         {
           Rational res = results[currNode[0]].d_rat;
@@ -277,6 +281,27 @@ EvalResult Evaluator::evalInternal(TNode n,
           const Rational& x = results[currNode[0]].d_rat;
           const Rational& y = results[currNode[1]].d_rat;
           results[currNode] = EvalResult(x >= y);
+          break;
+        }
+        case kind::LEQ:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          const Rational& y = results[currNode[1]].d_rat;
+          results[currNode] = EvalResult(x <= y);
+          break;
+        }
+        case kind::GT:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          const Rational& y = results[currNode[1]].d_rat;
+          results[currNode] = EvalResult(x > y);
+          break;
+        }
+        case kind::LT:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          const Rational& y = results[currNode[1]].d_rat;
+          results[currNode] = EvalResult(x < y);
           break;
         }
 
@@ -357,7 +382,7 @@ EvalResult Evaluator::evalInternal(TNode n,
           const String& x = results[currNode[1]].d_str;
           Integer i = results[currNode[2]].d_rat.getNumerator();
 
-          if (i.strictlyNegative() || i >= s_len)
+          if (i.strictlyNegative())
           {
             results[currNode] = EvalResult(Rational(-1));
           }
@@ -435,6 +460,21 @@ EvalResult Evaluator::evalInternal(TNode n,
           if (s.isNumber())
           {
             results[currNode] = EvalResult(Rational(s.toNumber()));
+          }
+          else
+          {
+            results[currNode] = EvalResult(Rational(-1));
+          }
+          break;
+        }
+
+        case kind::STRING_CODE:
+        {
+          const String& s = results[currNode[0]].d_str;
+          if (s.size() == 1)
+          {
+            results[currNode] = EvalResult(
+                Rational(String::convertUnsignedIntToCode(s.getVec()[0])));
           }
           else
           {

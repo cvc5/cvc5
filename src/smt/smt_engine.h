@@ -2,9 +2,9 @@
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Morgan Deters, Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT_ENGINE_H
-#define __CVC4__SMT_ENGINE_H
+#ifndef CVC4__SMT_ENGINE_H
+#define CVC4__SMT_ENGINE_H
 
 #include <string>
 #include <vector>
@@ -147,6 +147,34 @@ class CVC4_PUBLIC SmtEngine {
   ProofManager* d_proofManager;
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
+  /** The SMT engine subsolver
+   *
+   * This is a separate copy of the SMT engine which is used for making
+   * calls that cannot be answered by this copy of the SMT engine. An example
+   * of invoking this subsolver is the get-abduct command, where we wish to
+   * solve a sygus conjecture based on the current assertions. In particular,
+   * consider the input:
+   *   (assert A)
+   *   (get-abduct B)
+   * In the copy of the SMT engine where these commands are issued, we maintain
+   * A in the assertion stack. To solve the abduction problem, instead of
+   * modifying the assertion stack to remove A and add the sygus conjecture
+   * (exists I. ...), we invoke a fresh copy of the SMT engine and leave the
+   * assertion stack unchaged. This copy of the SMT engine can be further
+   * queried for information regarding further solutions.
+   */
+  std::unique_ptr<SmtEngine> d_subsolver;
+  /**
+   * If applicable, the function-to-synthesize that the subsolver is solving
+   * for. This is used for the get-abduct command.
+   */
+  Expr d_sssf;
+  /**
+   * The substitution to apply to the solutions from the subsolver, used for
+   * the get-abduct command.
+   */
+  std::vector<Node> d_sssfVarlist;
+  std::vector<Node> d_sssfSyms;
   /** recursive function definition abstractions for --fmf-fun */
   std::map< Node, TypeNode > d_fmfRecFunctionsAbs;
   std::map< Node, std::vector< Node > > d_fmfRecFunctionsConcrete;
@@ -209,6 +237,9 @@ class CVC4_PUBLIC SmtEngine {
    */
   Options d_originalOptions;
 
+  /** whether this is an internal subsolver */
+  bool d_isInternalSubsolver;
+
   /**
    * Number of internal pops that have been deferred.
    */
@@ -217,17 +248,10 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Whether or not this SmtEngine is fully initialized (post-construction).
    * This post-construction initialization is automatically triggered by the
-   * use of the SmtEngine; e.g. when setLogic() is called, or the first
-   * assertion is made, etc.
+   * use of the SmtEngine; e.g. when the first formula is asserted, a call
+   * to simplify() is issued, a scope is pushed, etc.
    */
   bool d_fullyInited;
-
-  /**
-   * Whether or not we have added any assertions/declarations/definitions,
-   * or done push/pop, since the last checkSat/query, and therefore we're
-   * not responsible for models or proofs.
-   */
-  bool d_problemExtended;
 
   /**
    * Whether or not a query() or checkSat() has already been made through
@@ -260,7 +284,32 @@ class CVC4_PUBLIC SmtEngine {
   Result d_status;
 
   /**
-   * The name of the input (if any).
+   * The expected status of the next satisfiability check.
+   */
+  Result d_expectedStatus;
+
+  /**
+   * The current mode of the solver, see Figure 4.1 on page 52 of the
+   * SMT-LIB version 2.6 standard
+   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+   */
+  enum SmtMode
+  {
+    // the initial state of the solver
+    SMT_MODE_START,
+    // normal state of the solver, after assert/push/pop/declare/define
+    SMT_MODE_ASSERT,
+    // immediately after a check-sat returning "sat" or "unknown"
+    SMT_MODE_SAT,
+    // immediately after a check-sat returning "unsat"
+    SMT_MODE_UNSAT,
+    // immediately after a successful call to get-abduct
+    SMT_MODE_ABDUCT
+  };
+  SmtMode d_smtMode;
+
+  /**
+   * The input file name (if any) or the name set through setInfo (if any)
    */
   std::string d_filename;
 
@@ -334,11 +383,11 @@ class CVC4_PUBLIC SmtEngine {
   void setDefaults();
 
   /**
-   * Sets d_problemExtended to the given value.
-   * If d_problemExtended is set to true, the list of assumptions from the
-   * previous call to checkSatisfiability is cleared.
+   * Sets that the problem has been extended. This sets the smt mode of the
+   * solver to SMT_MODE_ASSERT, and clears the list of assumptions from the
+   * previous call to checkSatisfiability.
    */
-  void setProblemExtended(bool value);
+  void setProblemExtended();
 
   /**
    * Create theory engine, prop engine, decision engine. Called by
@@ -366,6 +415,16 @@ class CVC4_PUBLIC SmtEngine {
    * that).
    */
   Result quickCheck();
+  /** get the model, if it is available and return a pointer to it
+   *
+   * This ensures that the model is currently available, which means that
+   * CVC4 is producing models, and is in "SAT mode", otherwise an exception
+   * is thrown.
+   *
+   * The flag c is used for giving an error message to indicate the context
+   * this method was called.
+   */
+  theory::TheoryModel* getAvailableModel(const char* c) const;
 
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -436,6 +495,15 @@ class CVC4_PUBLIC SmtEngine {
   void debugCheckFunctionBody(Expr formula,
                               const std::vector<Expr>& formals,
                               Expr func);
+  /** get abduct internal
+   *
+   * Gets the next abduct from the internal subsolver d_subsolver. If
+   * successful, this method returns true and sets abd to that abduct.
+   *
+   * This method assumes d_subsolver has been initialized to do abduction
+   * problems.
+   */
+  bool getAbductInternal(Expr& abd);
 
   /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
@@ -443,6 +511,12 @@ class CVC4_PUBLIC SmtEngine {
    * element is the nil expression.
    */
   std::pair<Expr, Expr> getSepHeapAndNilExpr();
+
+  /** get expanded assertions
+   *
+   * Returns the set of assertions, after expanding definitions.
+   */
+  std::vector<Expr> getExpandedAssertions();
 
  public:
 
@@ -455,6 +529,14 @@ class CVC4_PUBLIC SmtEngine {
    * Destruct the SMT engine.
    */
   ~SmtEngine();
+
+  /**
+   * Return true if this SmtEngine is fully initialized (post-construction).
+   * This post-construction initialization is automatically triggered by the
+   * use of the SmtEngine; e.g. when the first formula is asserted, a call
+   * to simplify() is issued, a scope is pushed, etc.
+   */
+  bool isFullyInited() { return d_fullyInited; }
 
   /**
    * Set the logic of the script.
@@ -494,12 +576,50 @@ class CVC4_PUBLIC SmtEngine {
   void setOption(const std::string& key, const CVC4::SExpr& value)
       /* throw(OptionException, ModalException) */;
 
+  /** Set is internal subsolver.
+   *
+   * This function is called on SmtEngine objects that are created internally.
+   * It is used to mark that this SmtEngine should not perform preprocessing
+   * passes that rephrase the input, such as --sygus-rr-synth-input or
+   * --sygus-abduct.
+   */
+  void setIsInternalSubsolver();
+
+  /** sets the input name */
+  void setFilename(std::string filename);
+  /** return the input name (if any) */
+  std::string getFilename() const;
   /**
    * Get the model (only if immediately preceded by a SAT
-   * or INVALID query).  Only permitted if CVC4 was built with model
-   * support and produce-models is on.
+   * or INVALID query).  Only permitted if produce-models is on.
    */
   Model* getModel();
+
+  /**
+   * Block the current model. Can be called only if immediately preceded by
+   * a SAT or INVALID query. Only permitted if produce-models is on, and the
+   * block-models option is set to a mode other than "none".
+   *
+   * This adds an assertion to the assertion stack that blocks the current
+   * model based on the current options configured by CVC4.
+   *
+   * The return value has the same meaning as that of assertFormula.
+   */
+  Result blockModel();
+
+  /**
+   * Block the current model values of (at least) the values in exprs.
+   * Can be called only if immediately preceded by a SAT or INVALID query. Only
+   * permitted if produce-models is on, and the block-models option is set to a
+   * mode other than "none".
+   *
+   * This adds an assertion to the assertion stack of the form:
+   *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
+   * where M0 ... Mn are the current model values of exprs[0] ... exprs[n].
+   *
+   * The return value has the same meaning as that of assertFormula.
+   */
+  Result blockModelValues(const std::vector<Expr>& exprs);
 
   /**
    * When using separation logic, obtain the expression for the heap.
@@ -604,11 +724,86 @@ class CVC4_PUBLIC SmtEngine {
    */
   std::vector<Expr> getUnsatAssumptions(void);
 
+  /*------------------- sygus commands  ------------------*/
+
+  /** adds a variable declaration
+   *
+   * Declared SyGuS variables may be used in SyGuS constraints, in which they
+   * are assumed to be universally quantified.
+   */
+  void declareSygusVar(const std::string& id, Expr var, Type type);
+  /** stores information for debugging sygus invariants setup
+   *
+   * Since in SyGuS the commands "declare-primed-var" are not necessary for
+   * building invariant constraints, we only use them to check that the number
+   * of variables declared corresponds to the number of arguments of the
+   * invariant-to-synthesize.
+   */
+  void declareSygusPrimedVar(const std::string& id, Type type);
+  /** adds a function variable declaration
+   *
+   * Is SyGuS semantics declared functions are treated in the same manner as
+   * declared variables, i.e. as universally quantified (function) variables
+   * which can occur in the SyGuS constraints that compose the conjecture to
+   * which a function is being synthesized.
+   */
+  void declareSygusFunctionVar(const std::string& id, Expr var, Type type);
+  /** adds a function-to-synthesize declaration
+   *
+   * The given type may not correspond to the actual function type but to a
+   * datatype encoding the syntax restrictions for the
+   * function-to-synthesize. In this case this information is stored to be used
+   * during solving.
+   *
+   * vars contains the arguments of the function-to-synthesize. These variables
+   * are also stored to be used during solving.
+   *
+   * isInv determines whether the function-to-synthesize is actually an
+   * invariant. This information is necessary if we are dumping a command
+   * corresponding to this declaration, so that it can be properly printed.
+   */
+  void declareSynthFun(const std::string& id,
+                       Expr func,
+                       Type type,
+                       bool isInv,
+                       const std::vector<Expr>& vars);
+  /** adds a regular sygus constraint */
+  void assertSygusConstraint(Expr constraint);
+  /** adds an invariant constraint
+   *
+   * Invariant constraints are not explicitly declared: they are given in terms
+   * of the invariant-to-synthesize, the pre condition, transition relation and
+   * post condition. The actual constraint is built based on the inputs of these
+   * place holder predicates :
+   *
+   * PRE(x) -> INV(x)
+   * INV() ^ TRANS(x, x') -> INV(x')
+   * INV(x) -> POST(x)
+   *
+   * The regular and primed variables are retrieved from the declaration of the
+   * invariant-to-synthesize.
+   */
+  void assertSygusInvConstraint(const Expr& inv,
+                                const Expr& pre,
+                                const Expr& trans,
+                                const Expr& post);
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
+   *
+   * The actual synthesis conjecture is built based on the previously
+   * communicated information to this module (universal variables, defined
+   * functions, functions-to-synthesize, and which constraints compose it). The
+   * built conjecture is a higher-order formula of the form
+   *
+   * exists f1...fn . forall v1...vm . F
+   *
+   * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
+   * universal variables and F is the set of declared constraints.
    */
-  Result checkSynth(const Expr& e) /* throw(Exception) */;
+  Result checkSynth() /* throw(Exception) */;
+
+  /*------------------- end of sygus commands-------------*/
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
@@ -641,6 +836,11 @@ class CVC4_PUBLIC SmtEngine {
   Expr getValue(const Expr& e) const
       /* throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) */
       ;
+
+  /**
+   * Same as getValue but for a vector of expressions
+   */
+  std::vector<Expr> getValues(const std::vector<Expr>& exprs);
 
   /**
    * Add a function to the set of expressions whose value is to be
@@ -745,6 +945,21 @@ class CVC4_PUBLIC SmtEngine {
   Expr doQuantifierElimination(const Expr& e,
                                bool doFull,
                                bool strict = true) /* throw(Exception) */;
+  /**
+   * This method asks this SMT engine to find an abduct with respect to the
+   * current assertion stack (call it A) and the conjecture (call it B).
+   * If this method returns true, then abd is set to a formula C such that
+   * A ^ C is satisfiable, and A ^ ~B ^ C is unsatisfiable.
+   *
+   * The argument grammarType is a sygus datatype type that encodes the syntax
+   * restrictions on the shape of possible solutions.
+   *
+   * This method invokes a separate copy of the SMT engine for solving the
+   * corresponding sygus problem for generating such a solution.
+   */
+  bool getAbduct(const Expr& conj, const Type& grammarType, Expr& abd);
+  /** Same as above, but without user-provided grammar restrictions */
+  bool getAbduct(const Expr& conj, Expr& abd);
 
   /**
    * Get list of quantified formulas that were instantiated
@@ -965,4 +1180,4 @@ class CVC4_PUBLIC SmtEngine {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT_ENGINE_H */
+#endif /* CVC4__SMT_ENGINE_H */

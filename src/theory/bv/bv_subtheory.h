@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
  ** Interface for bit-vectors sub-solvers.
  **/
 
-#ifndef __CVC4__THEORY__BV__BV_SUBTHEORY_H
-#define __CVC4__THEORY__BV__BV_SUBTHEORY_H
+#ifndef CVC4__THEORY__BV__BV_SUBTHEORY_H
+#define CVC4__THEORY__BV__BV_SUBTHEORY_H
 
 #include "cvc4_private.h"
 #include "context/context.h"
@@ -24,6 +24,11 @@
 #include "theory/theory.h"
 
 namespace CVC4 {
+
+namespace proof {
+class BitVectorProof;
+}
+
 namespace theory {
 
 class TheoryModel;
@@ -88,7 +93,7 @@ class SubtheorySolver {
     return res;
   }
   virtual void assertFact(TNode fact) { d_assertionQueue.push_back(fact); }
-  virtual void setProofLog(BitVectorProof* bvp) {}
+  virtual void setProofLog(proof::BitVectorProof* bvp) {}
   AssertionQueue::const_iterator assertionsBegin() {
     return d_assertionQueue.begin();
   }
@@ -103,7 +108,7 @@ class SubtheorySolver {
   /** The bit-vector theory */
   TheoryBV* d_bv;
   /** proof log */
-  BitVectorProof* d_bvp;
+  proof::ResolutionBitVectorProof* d_bvp;
   AssertionQueue d_assertionQueue;
   context::CDO<uint32_t> d_assertionIndex;
 }; /* class SubtheorySolver */
@@ -112,4 +117,4 @@ class SubtheorySolver {
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__BV__BV_SUBTHEORY_H */
+#endif /* CVC4__THEORY__BV__BV_SUBTHEORY_H */

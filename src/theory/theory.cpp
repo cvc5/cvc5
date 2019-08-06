@@ -2,9 +2,9 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Dejan Jovanovic
+ **   Tim King, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include <string>
 
 #include "base/cvc4_assert.h"
+#include "expr/node_algorithm.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/quantifiers_engine.h"
@@ -68,6 +69,7 @@ Theory::Theory(TheoryId id,
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(NULL),
       d_quantEngine(NULL),
+      d_decManager(nullptr),
       d_extTheory(NULL),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
@@ -283,27 +285,33 @@ void Theory::computeRelevantTerms(set<Node>& termSet,
   }
 }
 
-
 Theory::PPAssertStatus Theory::ppAssert(TNode in,
                                         SubstitutionMap& outSubstitutions)
 {
-  if (in.getKind() == kind::EQUAL) {
+  if (in.getKind() == kind::EQUAL)
+  {
     // (and (= x t) phi) can be replaced by phi[x/t] if
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && !in[1].hasSubterm(in[0]) &&
-        (in[1].getType()).isSubtypeOf(in[0].getType()) ){
+    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
+        && (in[1].getType()).isSubtypeOf(in[0].getType())
+        && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
+    {
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && !in[0].hasSubterm(in[1]) &&
-        (in[0].getType()).isSubtypeOf(in[1].getType())){
+    if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
+        && (in[0].getType()).isSubtypeOf(in[1].getType())
+        && in[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
+    {
       outSubstitutions.addSubstitution(in[1], in[0]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[0].isConst() && in[1].isConst()) {
-      if (in[0] != in[1]) {
+    if (in[0].isConst() && in[1].isConst())
+    {
+      if (in[0] != in[1])
+      {
         return PP_ASSERT_STATUS_CONFLICT;
       }
     }
@@ -344,6 +352,13 @@ void Theory::setQuantifiersEngine(QuantifiersEngine* qe) {
   Assert(d_quantEngine == NULL);
   Assert(qe != NULL);
   d_quantEngine = qe;
+}
+
+void Theory::setDecisionManager(DecisionManager* dm)
+{
+  Assert(d_decManager == nullptr);
+  Assert(dm != nullptr);
+  d_decManager = dm;
 }
 
 void Theory::setupExtTheory() {

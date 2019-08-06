@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/ematching/trigger.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
@@ -231,8 +232,8 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
                          << std::endl;
   std::map<Node, std::vector<Node> > ho_apps;
   HigherOrderTrigger::collectHoVarApplyTerms(f, trNodes, ho_apps);
-  Trace("trigger") << "...got " << ho_apps.size()
-                   << " higher-order applications." << std::endl;
+  Trace("trigger-debug") << "...got " << ho_apps.size()
+                         << " higher-order applications." << std::endl;
   Trigger* t;
   if (!ho_apps.empty())
   {
@@ -305,10 +306,12 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
     if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
-        && !n1.hasSubterm(n2))
+        && !expr::hasSubterm(n1, n2))
     {
       return true;
-    }else if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
+    }
+    else if (!quantifiers::TermUtil::hasInstConstAttr(n2))
+    {
       return true;
     }
   }
@@ -485,10 +488,15 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
           // if child was not already removed
           if( tinfo.find( added2[i] )!=tinfo.end() ){
             if( tstrt==quantifiers::TRIGGER_SEL_MAX || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX && !nu_single ) ){
-              //discard all subterms
-              Trace("auto-gen-trigger-debug2") << "......remove it." << std::endl;
-              visited[ added2[i] ].clear();
-              tinfo.erase( added2[i] );
+              // discard all subterms
+              // do not remove if it has smaller weight
+              if (tinfo[nu].d_weight <= tinfo[added2[i]].d_weight)
+              {
+                Trace("auto-gen-trigger-debug2")
+                    << "......remove it." << std::endl;
+                visited[added2[i]].clear();
+                tinfo.erase(added2[i]);
+              }
             }else{
               if( tinfo[ nu ].d_fv.size()==tinfo[ added2[i] ].d_fv.size() ){
                 if (tinfo[nu].d_weight >= tinfo[added2[i]].d_weight)
@@ -545,21 +553,11 @@ int Trigger::getTriggerWeight( Node n ) {
   {
     return 0;
   }
-  else if (isAtomicTrigger(n))
+  if (isAtomicTrigger(n))
   {
     return 1;
-  }else{
-    if( options::relationalTriggers() ){
-      if( isRelationalTrigger( n ) ){
-        for( unsigned i=0; i<2; i++ ){
-          if( n[i].getKind()==INST_CONSTANT && !quantifiers::TermUtil::hasInstConstAttr( n[1-i] ) ){
-            return 0;
-          }
-        }
-      }
-    }
-    return 2;
   }
+  return 2;
 }
 
 bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< Node >& patTerms ) {
@@ -835,6 +833,7 @@ Node Trigger::getInversion( Node n, Node x ) {
     return x;
   }else if( n.getKind()==PLUS || n.getKind()==MULT ){
     int cindex = -1;
+    bool cindexSet = false;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( !quantifiers::TermUtil::hasInstConstAttr(n[i]) ){
         if( n.getKind()==PLUS ){
@@ -856,12 +855,15 @@ Node Trigger::getInversion( Node n, Node x ) {
         }
         x = Rewriter::rewrite( x );
       }else{
-        Assert( cindex==-1 );
+        Assert(!cindexSet);
         cindex = i;
+        cindexSet = true;
       }
     }
-    Assert( cindex!=-1 );
-    return getInversion( n[cindex], x );
+    if (cindexSet)
+    {
+      return getInversion(n[cindex], x);
+    }
   }
   return Node::null();
 }

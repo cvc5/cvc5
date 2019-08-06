@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__EXPR__NODE_MANAGER_LISTENERS_H
-#define __CVC4__EXPR__NODE_MANAGER_LISTENERS_H
+#ifndef CVC4__EXPR__NODE_MANAGER_LISTENERS_H
+#define CVC4__EXPR__NODE_MANAGER_LISTENERS_H
 
 #include "base/listener.h"
 #include "util/resource_manager.h"
@@ -64,4 +64,4 @@ class RlimitPerListener : public Listener {
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__NODE_MANAGER_LISTENERS_H */
+#endif /* CVC4__EXPR__NODE_MANAGER_LISTENERS_H */

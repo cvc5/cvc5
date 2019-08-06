@@ -2,9 +2,9 @@
 /*! \file theory_model_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,6 +47,14 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
       return !n.getType().isFunction();
     }
   }
+  else if (n.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGN)
+  {
+    // Extracting the sign of a floating-point number acts similar to a
+    // selector on a datatype, i.e. if `(sign x)` wasn't assigned a value, we
+    // can pick an arbitrary one. Note that the other components of a
+    // floating-point number should always be assigned a value.
+    return true;
+  }
   else
   {
     // non-function variables, and fully applied functions
@@ -72,7 +80,7 @@ void TheoryEngineModelBuilder::addAssignableSubterms(TNode n,
                                                      TheoryModel* tm,
                                                      NodeSet& cache)
 {
-  if (n.getKind() == FORALL || n.getKind() == EXISTS)
+  if (n.isClosure())
   {
     return;
   }
@@ -808,16 +816,30 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   {
     return false;
   }
-  else
+
+  tm->d_modelBuiltSuccess = true;
+  return true;
+}
+
+void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
+{
+  // if we are incomplete, there is no guarantee on the model.
+  // thus, we do not check the model here. (related to #1693).
+  if (incomplete)
   {
-    tm->d_modelBuiltSuccess = true;
-    return true;
+    return;
+  }
+  TheoryModel* tm = static_cast<TheoryModel*>(m);
+  Assert(tm != nullptr);
+  // debug-check the model if the checkModels() is enabled.
+  if (options::checkModels())
+  {
+    debugCheckModel(tm);
   }
 }
 
-void TheoryEngineModelBuilder::debugCheckModel(Model* m)
+void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
-  TheoryModel* tm = (TheoryModel*)m;
 #ifdef CVC4_ASSERTIONS
   Assert(tm->isBuilt());
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
@@ -983,7 +1005,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     ufmt.simplify();
   }
   std::stringstream ss;
-  ss << "_arg_" << f << "_";
+  ss << "_arg_";
   Node val = ufmt.getFunctionValue(ss.str().c_str(), condenseFuncValues);
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );

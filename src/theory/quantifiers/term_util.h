@@ -2,9 +2,9 @@
 /*! \file term_util.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
 
 #include <map>
 #include <unordered_set>
@@ -196,33 +196,6 @@ public:
                                                Node n,
                                                std::vector<Node>& vars);
 
-  // for term ordering
- private:
-  /** operator id count */
-  int d_op_id_count;
-  /** map from operators to id */
-  std::map< Node, int > d_op_id;
-  /** type id count */
-  int d_typ_id_count;
-  /** map from type to id */
-  std::map< TypeNode, int > d_typ_id;
-  //free variables
-  std::map< TypeNode, std::vector< Node > > d_cn_free_var;
-  // get canonical term, return null if it contains a term apart from handled signature
-  Node getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder, 
-                         std::map< TNode, Node >& visited );
-public:
-  /** get id for operator */
-  int getIdForOperator( Node op );
-  /** get id for type */
-  int getIdForType( TypeNode t );
-  /** get term order */
-  bool getTermOrder( Node a, Node b );
-  /** get canonical free variable #i of type tn */
-  Node getCanonicalFreeVar( TypeNode tn, unsigned i );
-  /** get canonical term */
-  Node getCanonicalTerm( TNode n, bool apply_torder = false );
-
 //for virtual term substitution
 private:
   Node d_vts_delta;
@@ -297,10 +270,18 @@ public:
    * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
    */
   static Node mkNegate(Kind notk, Node n);
-  /** is assoc */
-  static bool isAssoc( Kind k );
-  /** is k commutative? */
-  static bool isComm( Kind k );
+  /** is k associative?
+   *
+   * If flag reqNAry is true, then we additionally require that k is an
+   * n-ary operator.
+   */
+  static bool isAssoc(Kind k, bool reqNAry = false);
+  /** is k commutative?
+   *
+   * If flag reqNAry is true, then we additionally require that k is an
+   * n-ary operator.
+   */
+  static bool isComm(Kind k, bool reqNAry = false);
 
   /** is k non-additive?
    * Returns true if
@@ -340,10 +321,10 @@ public:
 
   /** is singular arg
    * Returns true if
-   *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = n
-   * always holds.
+   *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = ret
+   * always holds for some constant ret, which is returned by this function.
    */
-  Node isSingularArg(Node n, Kind ik, int arg);
+  Node isSingularArg(Node n, Kind ik, unsigned arg);
 
   /** get type value
    * This gets the Node that represents value val for Type tn
@@ -398,4 +379,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H */

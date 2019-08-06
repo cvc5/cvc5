@@ -2,9 +2,9 @@
 /*! \file symbol_table_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Dejan Jovanovic
+ **   Christopher L. Conway, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,21 +37,27 @@ private:
 
   ExprManager* d_exprManager;
 
-public:
-
-  void setUp() {
-    try {
+ public:
+  void setUp() override
+  {
+    try
+    {
       d_exprManager = new ExprManager;
-    } catch(Exception e) {
+    }
+    catch (Exception& e)
+    {
       cerr << "Exception during setUp():" << endl << e;
       throw;
     }
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     try {
       delete d_exprManager;
-    } catch(Exception e) {
+    }
+    catch (Exception& e)
+    {
       cerr << "Exception during tearDown():" << endl << e;
       throw;
     }
@@ -156,6 +162,6 @@ public:
   void testBadPop() {
     SymbolTable symtab;
     // TODO: What kind of exception gets thrown here?
-    TS_ASSERT_THROWS( symtab.popScope(), ScopeException );
+    TS_ASSERT_THROWS(symtab.popScope(), ScopeException&);
   }
 };/* class SymbolTableBlack */

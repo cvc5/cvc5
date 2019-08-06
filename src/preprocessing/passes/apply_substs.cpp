@@ -2,9 +2,9 @@
 /*! \file apply_substs.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -44,8 +44,9 @@ PreprocessingPassResult ApplySubsts::applyInternal(
     // When solving incrementally, all substitutions are piled into the
     // assertion at d_substitutionsIndex: we don't want to apply substitutions
     // to this assertion or information will be lost.
-    context::CDO<unsigned>& substs_index =
-        assertionsToPreprocess->getSubstitutionsIndex();
+    unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
+    theory::SubstitutionMap& substMap =
+        d_preprocContext->getTopLevelSubstitutions();
     unsigned size = assertionsToPreprocess->size();
     unsigned substitutionAssertion = substs_index > 0 ? substs_index : size;
     for (unsigned i = 0; i < size; ++i)
@@ -57,11 +58,9 @@ PreprocessingPassResult ApplySubsts::applyInternal(
       Trace("apply-substs") << "applying to " << (*assertionsToPreprocess)[i]
                         << std::endl;
       d_preprocContext->spendResource(options::preprocessStep());
-      assertionsToPreprocess->replace(
-          i,
-          theory::Rewriter::rewrite(
-              assertionsToPreprocess->getTopLevelSubstitutions().apply(
-                  (*assertionsToPreprocess)[i])));
+      assertionsToPreprocess->replace(i,
+                                      theory::Rewriter::rewrite(substMap.apply(
+                                          (*assertionsToPreprocess)[i])));
       Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                         << std::endl;
     }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__PARSER_STATE_H
-#define __CVC4__PARSER__PARSER_STATE_H
+#ifndef CVC4__PARSER__PARSER_STATE_H
+#define CVC4__PARSER__PARSER_STATE_H
 
 #include <string>
 #include <set>
@@ -137,9 +137,6 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
 private:
- /** The API Solver object. */
- api::Solver* d_solver;
-
  /** The resource manager associated with this expr manager */
  ResourceManager* d_resourceManager;
 
@@ -244,6 +241,9 @@ private:
  Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
+ /** The API Solver object. */
+ api::Solver* d_solver;
+
  /**
   * Create a parser state.
   *
@@ -268,6 +268,9 @@ public:
 
   /** Get the associated <code>ExprManager</code>. */
   ExprManager* getExprManager() const;
+
+  /** Get the associated solver. */
+  api::Solver* getSolver() const;
 
   /** Get the associated input. */
   inline Input* getInput() const {
@@ -319,7 +322,12 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  void forceLogic(const std::string& logic) { assert(!d_logicIsForced); d_logicIsForced = true; d_forcedLogic = logic; }
+  virtual void forceLogic(const std::string& logic)
+  {
+    assert(!d_logicIsForced);
+    d_logicIsForced = true;
+    d_forcedLogic = logic;
+  }
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 
@@ -634,17 +642,17 @@ public:
   /** make higher-order apply
    *
    * This returns the left-associative curried application of (function) expr to
-   * the arguments in args, starting at index startIndex.
+   * the arguments in args.
    *
    * For example, mkHoApply( f, { a, b }, 0 ) returns
    *  (HO_APPLY (HO_APPLY f a) b)
    *
    * If args is non-empty, the expected type of expr is (-> T0 ... Tn T), where
-   *    args[i-startIndex].getType() = Ti
-   * for each i where startIndex <= i < args.size(). If expr is not of this
+   *    args[i].getType() = Ti
+   * for each i where 0 <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
-  Expr mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex = 0);
+  Expr mkHoApply(Expr expr, std::vector<Expr>& args);
 
   /**
    * Add an operator to the current legal set.
@@ -832,4 +840,4 @@ public:
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__PARSER_STATE_H */
+#endif /* CVC4__PARSER__PARSER_STATE_H */

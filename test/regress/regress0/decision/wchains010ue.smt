@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 (benchmark wchains010ue.smt
 :source {
 This benchmark generates write chain permutations and tries to show

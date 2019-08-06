@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,7 +23,6 @@
 #include <memory>
 #include <new>
 
-// This must come before PORTFOLIO_BUILD.
 #include "cvc4autoconfig.h"
 
 #include "api/cvc4cpp.h"
@@ -32,11 +31,6 @@
 #include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
 #include "main/command_executor.h"
-
-#ifdef PORTFOLIO_BUILD
-#  include "main/command_executor_portfolio.h"
-#endif
-
 #include "main/interactive_shell.h"
 #include "main/main.h"
 #include "options/options.h"
@@ -47,6 +41,13 @@
 #include "smt/command.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
+
+// The PORTFOLIO_BUILD is defined when compiling pcvc4 (the parallel version of
+// CVC4) and undefined otherwise. The macro can only be used in
+// driver_unified.cpp because we do not recompile all files for pcvc4.
+#ifdef PORTFOLIO_BUILD
+#  include "main/command_executor_portfolio.h"
+#endif
 
 using namespace std;
 using namespace CVC4;
@@ -269,6 +270,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     ReferenceStat<std::string> s_statFilename("filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
+    // set filename in smt engine
+    pExecutor->getSmtEngine()->setFilename(filenameStr);
 
     // Parse and execute commands until we are done
     Command* cmd;

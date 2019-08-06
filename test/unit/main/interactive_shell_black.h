@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,7 +35,7 @@ using namespace std;
 class InteractiveShellBlack : public CxxTest::TestSuite
 {
  public:
-  void setUp()
+  void setUp() override
   {
     d_sin = new stringstream;
     d_sout = new stringstream;
@@ -45,7 +45,8 @@ class InteractiveShellBlack : public CxxTest::TestSuite
     d_solver.reset(new api::Solver(&d_options));
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_sin;
     delete d_sout;
   }

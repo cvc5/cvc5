@@ -21,7 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_Sort_h
 #define BVMinisat_Sort_h
 
-#include "mtl/Vec.h"
+#include "prop/bvminisat/mtl/Vec.h"
 
 //=================================================================================================
 // Some sorting algorithms for vec's

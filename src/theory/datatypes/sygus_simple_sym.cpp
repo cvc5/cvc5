@@ -2,9 +2,9 @@
 /*! \file sygus_simple_sym.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -116,7 +116,6 @@ class ReqTrie
       std::vector<TypeNode> argts;
       if (tdb->canConstructKind(tn, d_req_kind, argts))
       {
-        bool ret = true;
         for (std::map<unsigned, ReqTrie>::iterator it = d_children.begin();
              it != d_children.end();
              ++it)
@@ -133,10 +132,6 @@ class ReqTrie
           {
             return false;
           }
-        }
-        if (!ret)
-        {
-          return false;
         }
       }
       else

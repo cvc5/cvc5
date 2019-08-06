@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORY_MODEL_H
-#define __CVC4__THEORY__THEORY_MODEL_H
+#ifndef CVC4__THEORY__THEORY_MODEL_H
+#define CVC4__THEORY__THEORY_MODEL_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -223,10 +223,8 @@ public:
   /** Get value function.
    * This should be called only after a ModelBuilder
    * has called buildModel(...) on this model.
-   *   useDontCares is whether to return Node::null() if
-   *     n does not occur in the equality engine.
    */
-  Node getValue(TNode n, bool useDontCares = false) const;
+  Node getValue(TNode n) const;
   /** get comments */
   void getComments(std::ostream& out) const override;
 
@@ -245,16 +243,20 @@ public:
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
   RepSet* getRepSetPtr() { return &d_rep_set; }
-  /** return whether this node is a don't-care */
-  bool isDontCare(Expr expr) const override;
+
+  //---------------------------- model cores
+  /** set using model core */
+  void setUsingModelCore() override;
+  /** record model core symbol */
+  void recordModelCoreSymbol(Expr sym) override;
+  /** Return whether symbol expr is in the model core. */
+  bool isModelCoreSymbol(Expr sym) const override;
+  //---------------------------- end model cores
+
   /** get value function for Exprs. */
   Expr getValue(Expr expr) const override;
   /** get cardinality for sort */
   Cardinality getCardinality(Type t) const override;
-  /** print representative debug function */
-  void printRepresentativeDebug( const char* c, Node r );
-  /** print representative function */
-  void printRepresentative( std::ostream& out, Node r );
 
   //---------------------------- function values
   /** a map from functions f to a list of all APPLY_UF terms with operator f */
@@ -305,16 +307,16 @@ public:
   Node d_false;
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
+  /** are we using model cores? */
+  bool d_using_model_core;
+  /** symbols that are in the model core */
+  std::unordered_set<Node, NodeHashFunction> d_model_core;
   /** Get model value function.
    *
    * This function is a helper function for getValue.
    *   hasBoundVars is whether n may contain bound variables
-   *   useDontCares is whether to return Node::null() if
-   *     n does not occur in the equality engine.
    */
-  Node getModelValue(TNode n,
-                     bool hasBoundVars = false,
-                     bool useDontCares = false) const;
+  Node getModelValue(TNode n, bool hasBoundVars = false) const;
   /** add term internal
    *
    * This will do any model-specific processing necessary for n,
@@ -349,4 +351,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_MODEL_H */
+#endif /* CVC4__THEORY__THEORY_MODEL_H */

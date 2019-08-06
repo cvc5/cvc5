@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,8 +47,7 @@ Parser::Parser(api::Solver* solver,
                Input* input,
                bool strictMode,
                bool parseOnly)
-    : d_solver(solver),
-      d_resourceManager(d_solver->getExprManager()->getResourceManager()),
+    : d_resourceManager(solver->getExprManager()->getResourceManager()),
       d_input(input),
       d_symtabAllocated(),
       d_symtab(&d_symtabAllocated),
@@ -61,7 +60,8 @@ Parser::Parser(api::Solver* solver,
       d_parseOnly(parseOnly),
       d_canIncludeFile(true),
       d_logicIsForced(false),
-      d_forcedLogic()
+      d_forcedLogic(),
+      d_solver(solver)
 {
   d_input->setParser(*this);
 }
@@ -80,6 +80,8 @@ ExprManager* Parser::getExprManager() const
 {
   return d_solver->getExprManager();
 }
+
+api::Solver* Parser::getSolver() const { return d_solver; }
 
 Expr Parser::getSymbol(const std::string& name, SymbolType type) {
   checkDeclaration(name, CHECK_DECLARED, type);
@@ -126,23 +128,18 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
   }
   // now, post-process the expression
   assert( !expr.isNull() );
-  if(isDefinedFunction(expr)) {
-    // defined functions/constants are wrapped in an APPLY so that they are
-    // expanded into their definition, e.g. during SmtEnginePrivate::expandDefinitions
-    expr = getExprManager()->mkExpr(CVC4::kind::APPLY, expr);
-  }else{
-    Type te = expr.getType();
-    if(te.isConstructor() && ConstructorType(te).getArity() == 0) {
-      // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-      expr = getExprManager()->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
-    }
+  Type te = expr.getType();
+  if (te.isConstructor() && ConstructorType(te).getArity() == 0)
+  {
+    // nullary constructors have APPLY_CONSTRUCTOR kind with no children
+    expr = getExprManager()->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
   }
   return expr;
 }
 
 Kind Parser::getKindForFunction(Expr fun) {
   if(isDefinedFunction(fun)) {
-    return APPLY;
+    return APPLY_UF;
   }
   Type t = fun.getType();
   if(t.isConstructor()) {
@@ -495,6 +492,15 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
     // no difference
     return range;
   }
+  if (Debug.isOn("parser"))
+  {
+    Debug("parser") << "mkFlatFunctionType: range " << range << " and domains ";
+    for (Type t : sorts)
+    {
+      Debug("parser") << " " << t;
+    }
+    Debug("parser") << "\n";
+  }
   while (range.isFunction())
   {
     std::vector<Type> domainTypes =
@@ -505,9 +511,9 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
   return getExprManager()->mkFunctionType(sorts, range);
 }
 
-Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex)
+Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
 {
-  for (unsigned i = startIndex; i < args.size(); i++)
+  for (unsigned i = 0; i < args.size(); i++)
   {
     expr = getExprManager()->mkExpr(HO_APPLY, expr, args[i]);
   }

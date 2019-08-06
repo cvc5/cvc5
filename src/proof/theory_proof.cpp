@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Liana Hadarean, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,12 +22,13 @@
 #include "options/proof_options.h"
 #include "proof/arith_proof.h"
 #include "proof/array_proof.h"
-#include "proof/bitvector_proof.h"
+#include "proof/clausal_bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/proof_output_channel.h"
 #include "proof/proof_utils.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "proof/sat_proof.h"
 #include "proof/simplify_boolean_node.h"
 #include "proof/uf_proof.h"
@@ -45,6 +46,9 @@
 #include "util/proof.h"
 
 namespace CVC4 {
+
+using proof::LfscResolutionBitVectorProof;
+using proof::ResolutionBitVectorProof;
 
 unsigned CVC4::ProofLetCount::counter = 0;
 static unsigned LET_COUNT = 1;
@@ -77,8 +81,39 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
       }
 
       if (id == theory::THEORY_BV) {
-        BitVectorProof * bvp = new LFSCBitVectorProof((theory::bv::TheoryBV*)th, this);
-        d_theoryProofTable[id] = bvp;
+        auto thBv = static_cast<theory::bv::TheoryBV*>(th);
+        if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+            && options::bvSatSolver() == theory::bv::SAT_SOLVER_CRYPTOMINISAT)
+        {
+          proof::BitVectorProof* bvp = nullptr;
+          switch (options::bvProofFormat())
+          {
+            case theory::bv::BvProofFormat::BITVECTOR_PROOF_DRAT:
+            {
+              bvp = new proof::LfscDratBitVectorProof(thBv, this);
+              break;
+            }
+            case theory::bv::BvProofFormat::BITVECTOR_PROOF_LRAT:
+            {
+              bvp = new proof::LfscLratBitVectorProof(thBv, this);
+              break;
+            }
+            case theory::bv::BvProofFormat::BITVECTOR_PROOF_ER:
+            {
+              bvp = new proof::LfscErBitVectorProof(thBv, this);
+              break;
+            }
+            default: { Unreachable("Invalid BvProofFormat");
+            }
+          };
+          d_theoryProofTable[id] = bvp;
+        }
+        else
+        {
+          proof::BitVectorProof* bvp =
+              new proof::LfscResolutionBitVectorProof(thBv, this);
+          d_theoryProofTable[id] = bvp;
+        }
         return;
       }
 
@@ -101,10 +136,11 @@ void TheoryProofEngine::finishRegisterTheory(theory::Theory* th) {
   if (th) {
     theory::TheoryId id = th->getId();
     if (id == theory::THEORY_BV) {
+      theory::bv::TheoryBV* bv_th = static_cast<theory::bv::TheoryBV*>(th);
       Assert(d_theoryProofTable.find(id) != d_theoryProofTable.end());
-
-      BitVectorProof *bvp = (BitVectorProof *)d_theoryProofTable[id];
-      ((theory::bv::TheoryBV*)th)->setProofLog( bvp );
+      proof::BitVectorProof* bvp =
+          static_cast<proof::BitVectorProof*>(d_theoryProofTable[id]);
+      bv_th->setProofLog(bvp);
       return;
     }
   }
@@ -529,9 +565,8 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
     }
   }
 
-  BitVectorProof* bv = ProofManager::getBitVectorProof();
+  proof::BitVectorProof* bv = ProofManager::getBitVectorProof();
   bv->finalizeConflicts(bv_lemmas);
-  //  bv->printResolutionProof(os, paren, letMap);
 }
 
 void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
@@ -546,7 +581,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   }
 
   //  finalizeBvConflicts(lemmas, os, paren, map);
-  ProofManager::getBitVectorProof()->printResolutionProof(os, paren, map);
+  ProofManager::getBitVectorProof()->printBBDeclarationAndCnf(os, paren, map);
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     Assert (lemmas.size() == 1);

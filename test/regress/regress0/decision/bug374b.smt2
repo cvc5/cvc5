@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification --no-unconstrained
+; EXPECT: unsat
+
 (set-logic QF_ALL_SUPPORTED)
 (declare-fun _substvar_245_ () Bool)
 (declare-fun _substvar_246_ () Bool)

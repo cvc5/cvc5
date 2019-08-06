@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,8 +25,8 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 
-#ifndef __CVC4__NODE_MANAGER_H
-#define __CVC4__NODE_MANAGER_H
+#ifndef CVC4__NODE_MANAGER_H
+#define CVC4__NODE_MANAGER_H
 
 #include <vector>
 #include <string>
@@ -62,8 +62,10 @@ class NodeManagerListener {
   virtual void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) {}
   virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
                                                   uint32_t flags) {}
-  virtual void nmNotifyNewDatatypes(
-      const std::vector<DatatypeType>& datatypes) {}
+  virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes,
+                                    uint32_t flags)
+  {
+  }
   virtual void nmNotifyNewVar(TNode n, uint32_t flags) {}
   virtual void nmNotifyNewSkolem(TNode n, const std::string& comment,
                                  uint32_t flags) {}
@@ -86,7 +88,8 @@ class NodeManager {
   friend Expr ExprManager::mkVar(Type, uint32_t flags);
 
   // friend so it can access NodeManager's d_listeners and notify clients
-  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>&, std::set<Type>&);
+  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
+      std::vector<Datatype>&, std::set<Type>&, uint32_t);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -128,10 +131,7 @@ class NodeManager {
    * contexts, like as a key in attribute tables), even though
    * normally it's an error to have a TNode to a node value with a
    * reference count of 0.  Being "under deletion" also enables
-   * assertions that inc() is not called on it.  (A poorly-behaving
-   * attribute cleanup function could otherwise create a "Node" that
-   * points to the node value that is in the process of being deleted,
-   * springing it back to life.)
+   * assertions that inc() is not called on it.
    */
   expr::NodeValue* d_nodeUnderDeletion;
 
@@ -276,6 +276,17 @@ class NodeManager {
       Debug("gc") << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
                   << std::endl;
     }
+
+    // `d_zombies` uses the node id to hash and compare nodes. If `d_zombies`
+    // already contains a node value with the same id as `nv`, but the pointers
+    // are different, then the wrong `NodeManager` was in scope for one of the
+    // two nodes when it reached refcount zero. This can happen for example if
+    // you create a node with a `NodeManager` n1 and then call `Node::toExpr()`
+    // on that node while a different `NodeManager` n2 is in scope. When that
+    // `Expr` is deleted and the node reaches refcount zero in the `Expr`'s
+    // destructor, then `markForDeletion()` will be called on n2.
+    Assert(d_zombies.find(nv) == d_zombies.end() || *d_zombies.find(nv) == nv);
+
     d_zombies.insert(nv);  // FIXME multithreading
 
     if(safeToReclaimZombies()) {
@@ -342,7 +353,7 @@ class NodeManager {
    * only be used once.  For more details see the 4/27/2010 CVC4
    * developer's meeting notes at:
    *
-   * http://goedel.cims.nyu.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
+   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
    */
   // bool containsDecision(TNode); // is "atomic"
   // bool properlyContainsDecision(TNode); // all children are atomic
@@ -1204,9 +1215,9 @@ inline TypeNode NodeManager::fromType(Type t) {
 
 }/* CVC4 namespace */
 
-#define __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#define CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 #include "expr/metakind.h"
-#undef __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#undef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 #include "expr/node_builder.h"
 
@@ -1548,4 +1559,4 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_MANAGER_H */
+#endif /* CVC4__NODE_MANAGER_H */

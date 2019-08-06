@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
+
 (set-logic AUFLIRA)
 (set-info :smt-lib-version 2.0)
 (set-info :category "industrial")

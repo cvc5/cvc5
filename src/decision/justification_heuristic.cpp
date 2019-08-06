@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Kshitij Bansal, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -163,12 +163,10 @@ inline void computeXorIffDesiredValues
   }
 }
 
-
-
-void JustificationHeuristic::addAssertions
-(const std::vector<Node> &assertions,
- unsigned assertionsEnd,
- IteSkolemMap iteSkolemMap) {
+void JustificationHeuristic::addAssertions(
+    const preprocessing::AssertionPipeline &assertions)
+{
+  size_t assertionsEnd = assertions.getRealAssertionsEnd();
 
   Trace("decision")
     << "JustificationHeuristic::addAssertions()"
@@ -177,19 +175,19 @@ void JustificationHeuristic::addAssertions
     << std::endl;
 
   // Save the 'real' assertions locally
-  for(unsigned i = 0; i < assertionsEnd; ++i)
+  for (size_t i = 0; i < assertionsEnd; i++)
+  {
     d_assertions.push_back(assertions[i]);
+  }
 
   // Save mapping between ite skolems and ite assertions
-  for(IteSkolemMap::iterator i = iteSkolemMap.begin();
-      i != iteSkolemMap.end(); ++i) {
+  for (const std::pair<const Node, unsigned> &i : assertions.getIteSkolemMap())
+  {
+    Trace("decision::jh::ite") << " jh-ite: " << (i.first) << " maps to "
+                               << assertions[(i.second)] << std::endl;
+    Assert(i.second >= assertionsEnd && i.second < assertions.size());
 
-    Trace("decision::jh::ite")
-      << " jh-ite: " << (i->first) << " maps to "
-      << assertions[(i->second)] << std::endl;
-    Assert(i->second >= assertionsEnd && i->second < assertions.size());
-
-    d_iteAssertions[i->first] = assertions[i->second];
+    d_iteAssertions[i.first] = assertions[i.second];
   }
 
   // Automatic weight computation

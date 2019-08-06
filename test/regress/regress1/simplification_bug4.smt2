@@ -1,3 +1,6 @@
+; COMMAND-LINE: --incremental
+; EXPECT: unsat
+
 (set-logic QF_LIA)
 ;; Simplified benchmark, derived from NuSMV output durationThm_1.bmc_k100.smt2
 ;;

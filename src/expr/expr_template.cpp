@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,10 +21,11 @@
 #include <vector>
 
 #include "base/cvc4_assert.h"
-#include "expr/node.h"
 #include "expr/expr_manager_scope.h"
-#include "expr/variable_type_map.h"
+#include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/variable_type_map.h"
 
 ${includes}
 
@@ -32,7 +33,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 36 "${template}"
+#line 37 "${template}"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -179,7 +180,6 @@ public:
     } else if(n.getMetaKind() == metakind::NULLARY_OPERATOR ){
       Expr from_e(from, new Node(n));
       Type type = from->exportType(from_e.getType(), to, vmap);
-      NodeManagerScope nullScope(NULL);
       return to->mkNullaryOperator(type, n.getKind()); // FIXME thread safety
     } else if(n.getMetaKind() == metakind::VARIABLE) {
       Expr from_e(from, new Node(n));
@@ -193,22 +193,35 @@ public:
         std::string name;
         Type type = from->exportType(from_e.getType(), to, vmap);
         if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
-          // temporarily set the node manager to NULL; this gets around
-          // a check that mkVar isn't called internally
+          if (n.getKind() == kind::BOUND_VARIABLE)
+          {
+            // bound vars are only available at the Node level (not the Expr
+            // level)
+            TypeNode typeNode = TypeNode::fromType(type);
+            NodeManager* to_nm = NodeManager::fromExprManager(to);
+            Node n = to_nm->mkBoundVar(name, typeNode);  // FIXME thread safety
 
-          if(n.getKind() == kind::BOUND_VAR_LIST || n.getKind() == kind::BOUND_VARIABLE) {
-            NodeManagerScope nullScope(NULL);
-            to_e = to->mkBoundVar(name, type);// FIXME thread safety
+            // Make sure that the correct `NodeManager` is in scope while
+            // converting the node to an expression.
+            NodeManagerScope to_nms(to_nm);
+            to_e = n.toExpr();
           } else if(n.getKind() == kind::VARIABLE) {
             bool isGlobal;
             Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
-            NodeManagerScope nullScope(NULL);
+
+            // Temporarily set the node manager to nullptr; this gets around
+            // a check that mkVar isn't called internally
+            NodeManagerScope nullScope(nullptr);
             to_e = to->mkVar(name, type, isGlobal ? ExprManager::VAR_FLAG_GLOBAL : flags);// FIXME thread safety
           } else if(n.getKind() == kind::SKOLEM) {
             // skolems are only available at the Node level (not the Expr level)
             TypeNode typeNode = TypeNode::fromType(type);
             NodeManager* to_nm = NodeManager::fromExprManager(to);
             Node n = to_nm->mkSkolem(name, typeNode, "is a skolem variable imported from another ExprManager");// FIXME thread safety
+
+            // Make sure that the correct `NodeManager` is in scope while
+            // converting the node to an expression.
+            NodeManagerScope to_nms(to_nm);
             to_e = n.toExpr();
           } else {
             Unhandled();
@@ -216,10 +229,26 @@ public:
 
           Debug("export") << "+ exported var `" << from_e << "'[" << from_e.getId() << "] with name `" << name << "' and type `" << from_e.getType() << "' to `" << to_e << "'[" << to_e.getId() << "] with type `" << type << "'" << std::endl;
         } else {
-          // temporarily set the node manager to NULL; this gets around
-          // a check that mkVar isn't called internally
-          NodeManagerScope nullScope(NULL);
-          to_e = to->mkVar(type);// FIXME thread safety
+          if (n.getKind() == kind::BOUND_VARIABLE)
+          {
+            // bound vars are only available at the Node level (not the Expr
+            // level)
+            TypeNode typeNode = TypeNode::fromType(type);
+            NodeManager* to_nm = NodeManager::fromExprManager(to);
+            Node n = to_nm->mkBoundVar(typeNode);  // FIXME thread safety
+
+            // Make sure that the correct `NodeManager` is in scope while
+            // converting the node to an expression.
+            NodeManagerScope to_nms(to_nm);
+            to_e = n.toExpr();
+          }
+          else
+          {
+            // Temporarily set the node manager to nullptr; this gets around
+            // a check that mkVar isn't called internally
+            NodeManagerScope nullScope(nullptr);
+            to_e = to->mkVar(type);  // FIXME thread safety
+          }
           Debug("export") << "+ exported unnamed var `" << from_e << "' with type `" << from_e.getType() << "' to `" << to_e << "' with type `" << type << "'" << std::endl;
         }
         uint64_t to_int = (uint64_t)(to_e.getNode().d_nv);
@@ -227,6 +256,11 @@ public:
         vmap.d_from[to_int] = from_int;
         vmap.d_to[from_int] = to_int;
         vmap.d_typeMap[to_e] = from_e;// insert other direction too
+
+        // Make sure that the expressions are associated with the correct
+        // `ExprManager`s.
+        Assert(from_e.getExprManager() == from);
+        Assert(to_e.getExprManager() == to);
         return Node::fromExpr(to_e);
       }
     } else {
@@ -537,7 +571,7 @@ bool Expr::hasFreeVariable() const
 {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->hasFreeVar();
+  return expr::hasFreeVar(*d_node);
 }
 
 void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
@@ -578,7 +612,8 @@ Expr Expr::xorExpr(const Expr& e) const {
   return d_exprManager->mkExpr(XOR, *this, e);
 }
 
-Expr Expr::iffExpr(const Expr& e) const {
+Expr Expr::eqExpr(const Expr& e) const
+{
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");
   PrettyCheckArgument(d_exprManager == e.d_exprManager, e,

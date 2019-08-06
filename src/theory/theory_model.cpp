@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,6 +31,7 @@ TheoryModel::TheoryModel(context::Context* c,
     : d_substitutions(c, false),
       d_modelBuilt(false),
       d_modelBuiltSuccess(false),
+      d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -79,6 +80,8 @@ void TheoryModel::reset(){
   d_uf_models.clear();
   d_eeContext->pop();
   d_eeContext->push();
+  d_using_model_core = false;
+  d_model_core.clear();
 }
 
 void TheoryModel::getComments(std::ostream& out) const {
@@ -114,12 +117,13 @@ std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
   return approx;
 }
 
-Node TheoryModel::getValue(TNode n, bool useDontCares) const {
+Node TheoryModel::getValue(TNode n) const
+{
   //apply substitutions
   Node nn = d_substitutions.apply(n);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
   //get value in model
-  nn = getModelValue(nn, false, useDontCares);
+  nn = getModelValue(nn, false);
   if (nn.isNull()) return nn;
   if(options::condenseFunctionValues() || nn.getKind() != kind::LAMBDA) {
     //normalize
@@ -130,8 +134,15 @@ Node TheoryModel::getValue(TNode n, bool useDontCares) const {
   return nn;
 }
 
-bool TheoryModel::isDontCare(Expr expr) const {
-  return getValue(Node::fromExpr(expr), true).isNull();
+bool TheoryModel::isModelCoreSymbol(Expr sym) const
+{
+  if (!d_using_model_core)
+  {
+    return true;
+  }
+  Node s = Node::fromExpr(sym);
+  Assert(s.isVar() && s.getKind() != BOUND_VARIABLE);
+  return d_model_core.find(s) != d_model_core.end();
 }
 
 Expr TheoryModel::getValue( Expr expr ) const{
@@ -158,7 +169,7 @@ Cardinality TheoryModel::getCardinality( Type t ) const{
   }
 }
 
-Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) const
+Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
 {
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_modelCache.find(n);
   if (it != d_modelCache.end()) {
@@ -303,10 +314,6 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars, bool useDontCares) c
     }
     else
     {
-      if (options::omitDontCares() && useDontCares)
-      {
-        return Node();
-      }
       // Unknown term - return first enumerated value for this type
       TypeEnumerator te(n.getType());
       ret = *te;
@@ -491,6 +498,16 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   d_approximations[n] = pred;
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
 }
+void TheoryModel::setUsingModelCore()
+{
+  d_using_model_core = true;
+  d_model_core.clear();
+}
+
+void TheoryModel::recordModelCoreSymbol(Expr sym)
+{
+  d_model_core.insert(Node::fromExpr(sym));
+}
 
 void TheoryModel::setUnevaluatedKind(Kind k)
 {
@@ -539,36 +556,6 @@ bool TheoryModel::areDisequal(TNode a, TNode b)
     return d_equalityEngine->areDisequal( a, b, false );
   }else{
     return false;
-  }
-}
-
-//for debugging
-void TheoryModel::printRepresentativeDebug( const char* c, Node r ){
-  if( r.isNull() ){
-    Trace( c ) << "null";
-  }else if( r.getType().isBoolean() ){
-    if( areEqual( r, d_true ) ){
-      Trace( c ) << "true";
-    }else{
-      Trace( c ) << "false";
-    }
-  }else{
-    Trace( c ) << getRepresentative( r );
-  }
-}
-
-void TheoryModel::printRepresentative( std::ostream& out, Node r ){
-  Assert( !r.isNull() );
-  if( r.isNull() ){
-    out << "null";
-  }else if( r.getType().isBoolean() ){
-    if( areEqual( r, d_true ) ){
-      out  << "true";
-    }else{
-      out  << "false";
-    }
-  }else{
-    out << getRepresentative( r );
   }
 }
 

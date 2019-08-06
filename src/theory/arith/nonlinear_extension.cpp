@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include <cmath>
 #include <set>
 
+#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
@@ -882,23 +883,30 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm-debug") << "  get bounds for transcendental functions..."
                            << std::endl;
-  for (std::pair<const Kind, std::map<Node, Node> >& tfs : d_tf_rep_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfs : d_f_map)
   {
     Kind k = tfs.first;
-    for (std::pair<const Node, Node>& tfr : tfs.second)
+    for (const Node& tf : tfs.second)
     {
-      // Figure 3 : tf( x )
-      Node tf = tfr.second;
+      bool success = true;
+      // tf is Figure 3 : tf( x )
       Node atf = computeModelValue(tf, 0);
       if (k == PI)
       {
-        addCheckModelBound(atf, d_pi_bound[0], d_pi_bound[1]);
+        success = addCheckModelBound(atf, d_pi_bound[0], d_pi_bound[1]);
       }
       else if (isRefineableTfFun(tf))
       {
         d_used_approx = true;
         std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
-        addCheckModelBound(atf, bounds.first, bounds.second);
+        success = addCheckModelBound(atf, bounds.first, bounds.second);
+      }
+      if (!success)
+      {
+        Trace("nl-ext-cm-debug")
+            << "...failed to set bound for transcendental function."
+            << std::endl;
+        return false;
       }
       if (Trace.isOn("nl-ext-cm"))
       {
@@ -962,7 +970,8 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
                   << "check-model-bound : exact : " << cur << " = ";
               printRationalApprox("nl-ext-cm", curv);
               Trace("nl-ext-cm") << std::endl;
-              addCheckModelSubstitution(cur, curv);
+              bool ret = addCheckModelSubstitution(cur, curv);
+              AlwaysAssert(ret);
             }
           }
         }
@@ -1036,15 +1045,31 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   return true;
 }
 
-void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
+bool NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
 {
   // should not substitute the same variable twice
   Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s << std::endl;
   // should not set exact bound more than once
   if(std::find(d_check_model_vars.begin(),d_check_model_vars.end(),v)!=d_check_model_vars.end())
   {
+    Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
+    // this should never happen since substitutions should be applied eagerly
     Assert( false );
-    return;
+    return false;
+  }
+  // if we previously had an approximate bound, the exact bound should be in its
+  // range
+  std::map<Node, std::pair<Node, Node> >::iterator itb =
+      d_check_model_bounds.find(v);
+  if (itb != d_check_model_bounds.end())
+  {
+    if (s.getConst<Rational>() >= itb->second.first.getConst<Rational>()
+        || s.getConst<Rational>() <= itb->second.second.getConst<Rational>())
+    {
+      Trace("nl-ext-model")
+          << "...ERROR: already has bound which is out of range." << std::endl;
+      return false;
+    }
   }
   for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
   {
@@ -1058,23 +1083,32 @@ void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
   }
   d_check_model_vars.push_back(v);
   d_check_model_subs.push_back(s);
+  return true;
 }
 
-void NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u)
+bool NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u)
 {
   Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " " << u << "]" << std::endl;
   if( l==u )
   {
     // bound is exact, can add as substitution
-    addCheckModelSubstitution(v,l);
-    return;
+    return addCheckModelSubstitution(v, l);
   }
   // should not set a bound for a value that is exact
-  Assert(std::find(d_check_model_vars.begin(),d_check_model_vars.end(),v)==d_check_model_vars.end());
+  if (std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
+      != d_check_model_vars.end())
+  {
+    Trace("nl-ext-model")
+        << "...ERROR: setting bound for variable that already has exact value."
+        << std::endl;
+    Assert(false);
+    return false;
+  }
   Assert(l.isConst());
   Assert(u.isConst());
   Assert(l.getConst<Rational>() <= u.getConst<Rational>());
   d_check_model_bounds[v] = std::pair<Node, Node>(l, u);
+  return true;
 }
 
 bool NonlinearExtension::hasCheckModelAssignment(Node v) const
@@ -1199,15 +1233,18 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
         {
           Assert(!slv.isNull());
           // currently do not support substitution-with-coefficients
-          if (veqc.isNull() && !slv.hasSubterm(uv))
+          if (veqc.isNull() && !expr::hasSubterm(slv, uv))
           {
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;
-            addCheckModelSubstitution(uv, slv);
-            Trace("nl-ext-cms") << "...success, model substitution " << uv
-                                << " -> " << slv << std::endl;
-            d_check_model_solved[eq] = uv;
-            return true;
+            bool ret = addCheckModelSubstitution(uv, slv);
+            if (ret)
+            {
+              Trace("nl-ext-cms") << "...success, model substitution " << uv
+                                  << " -> " << slv << std::endl;
+              d_check_model_solved[eq] = uv;
+            }
+            return ret;
           }
         }
       }
@@ -1223,9 +1260,9 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
         Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
         printRationalApprox("nl-ext-cm", uvfv);
         Trace("nl-ext-cm") << std::endl;
-        addCheckModelSubstitution(uvf, uvfv);
+        bool ret = addCheckModelSubstitution(uvf, uvfv);
         // recurse
-        return solveEqualitySimple(eq);
+        return ret ? solveEqualitySimple(eq) : false;
       }
     }
     Trace("nl-ext-cms") << "...fail due to constrained invalid terms."
@@ -1252,10 +1289,13 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
     printRationalApprox("nl-ext-cm", val);
     Trace("nl-ext-cm") << std::endl;
-    addCheckModelSubstitution(var, val);
-    Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
-    d_check_model_solved[eq] = var;
-    return true;
+    bool ret = addCheckModelSubstitution(var, val);
+    if (ret)
+    {
+      Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
+      d_check_model_solved[eq] = var;
+    }
+    return ret;
   }
   Trace("nl-ext-quad") << "Solve quadratic : " << seq << std::endl;
   Trace("nl-ext-quad") << "  a : " << a << std::endl;
@@ -1352,10 +1392,14 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   Trace("nl-ext-cm") << " <= " << var << " <= ";
   printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
   Trace("nl-ext-cm") << std::endl;
-  addCheckModelBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
-  d_check_model_solved[eq] = var;
-  Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
-  return true;
+  bool ret =
+      addCheckModelBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
+  if (ret)
+  {
+    d_check_model_solved[eq] = var;
+    Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
+  }
+  return ret;
 }
 
 bool NonlinearExtension::simpleCheckModelLit(Node lit)
@@ -1454,7 +1498,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
     // is it a valid variable?
     std::map<Node, std::pair<Node, Node> >::iterator bit =
         d_check_model_bounds.find(v);
-    if (!invalid_vsum.hasSubterm(v) && bit != d_check_model_bounds.end())
+    if (!expr::hasSubterm(invalid_vsum, v) && bit != d_check_model_bounds.end())
     {
       std::map<Node, Node>::iterator it = v_a.find(v);
       if (it != v_a.end())
@@ -1826,6 +1870,33 @@ std::vector<Node> NonlinearExtension::checkSplitZero() {
   return lemmas;
 }
 
+/** An argument trie, for computing congruent terms */
+class ArgTrie
+{
+ public:
+  /** children of this node */
+  std::map<Node, ArgTrie> d_children;
+  /** the data of this node */
+  Node d_data;
+  /**
+   * Set d as the data on the node whose path is [args], return either d if
+   * that node has no data, or the data that already occurs there.
+   */
+  Node add(Node d, const std::vector<Node>& args)
+  {
+    ArgTrie* at = this;
+    for (const Node& a : args)
+    {
+      at = &(at->d_children[a]);
+    }
+    if (at->d_data.isNull())
+    {
+      at->d_data = d;
+    }
+    return at->d_data;
+  }
+};
+
 int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       const std::vector<Node>& false_asserts,
                                       const std::vector<Node>& xts)
@@ -1839,7 +1910,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci.clear();
   d_ci_exp.clear();
   d_ci_max.clear();
-  d_tf_rep_map.clear();
+  d_f_map.clear();
   d_tf_region.clear();
   d_waiting_lemmas.clear();
 
@@ -1852,6 +1923,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   std::map< Node, Node > mvarg_to_term;
   std::vector<Node> tr_no_base;
   bool needPi = false;
+  // for computing congruence
+  std::map<Kind, ArgTrie> argTrie;
   for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
   {
     Node a = xts[i];
@@ -1893,7 +1966,9 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         }
       }
       */
-    }else if( a.getNumChildren()==1 ){
+    }
+    else if (a.getNumChildren() > 0)
+    {
       if (ak == SINE)
       {
         needPi = true;
@@ -1903,35 +1978,61 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       // applied to a trancendental, purify.
       if (isTranscendentalKind(ak))
       {
-        if ((ak == SINE && d_tr_is_base.find(a) == d_tr_is_base.end())
-            || isTranscendentalKind(a[0].getKind()))
+        if (ak == SINE && d_tr_is_base.find(a) == d_tr_is_base.end())
         {
           consider = false;
+        }
+        else
+        {
+          for (const Node& ac : a)
+          {
+            if (isTranscendentalKind(ac.getKind()))
+            {
+              consider = false;
+              break;
+            }
+          }
+        }
+        if (!consider)
+        {
           tr_no_base.push_back(a);
         }
       }
       if( consider ){
-        Node r = d_containing.getValuation().getModel()->getRepresentative(a[0]);
-        std::map<Node, Node>::iterator itrm = d_tf_rep_map[ak].find(r);
-        if (itrm != d_tf_rep_map[ak].end())
+        std::vector<Node> repList;
+        for (const Node& ac : a)
         {
-          //verify they have the same model value
-          if( d_mv[1][a]!=d_mv[1][itrm->second] ){
-            // if not, add congruence lemma
-            Node cong_lemma = nm->mkNode(
-                IMPLIES, a[0].eqNode(itrm->second[0]), a.eqNode(itrm->second));
+          Node r =
+              d_containing.getValuation().getModel()->getRepresentative(a[0]);
+          repList.push_back(r);
+        }
+        Node aa = argTrie[ak].add(a, repList);
+        if (aa != a)
+        {
+          // apply congruence to pairs of terms that are disequal and congruent
+          Assert(aa.getNumChildren() == a.getNumChildren());
+          if (d_mv[1][a] != d_mv[1][aa])
+          {
+            std::vector<Node> exp;
+            for (unsigned j = 0, size = a.getNumChildren(); j < size; j++)
+            {
+              exp.push_back(a[j].eqNode(aa[j]));
+            }
+            Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+            Node cong_lemma = nm->mkNode(OR, expn.negate(), a.eqNode(aa));
             lemmas.push_back( cong_lemma );
-            //Assert( false );
           }
-        }else{
-          d_tf_rep_map[ak][r] = a;
+        }
+        else
+        {
+          d_f_map[ak].push_back(a);
         }
       }
     }
     else if (ak == PI)
     {
       needPi = true;
-      d_tf_rep_map[ak][a] = a;
+      d_f_map[ak].push_back(a);
     }
     else
     {
@@ -2024,19 +2125,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   {
     Trace("nl-ext-mv") << "Arguments of trancendental functions : "
                        << std::endl;
-    for (std::map<Kind, std::map<Node, Node> >::iterator it =
-             d_tf_rep_map.begin();
-         it != d_tf_rep_map.end();
-         ++it)
+    for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
     {
-      Kind k = it->first;
+      Kind k = tfl.first;
       if (k == SINE || k == EXPONENTIAL)
       {
-        for (std::map<Node, Node>::iterator itt = it->second.begin();
-             itt != it->second.end();
-             ++itt)
+        for (const Node& tf : tfl.second)
         {
-          Node v = itt->second[0];
+          Node v = tf[0];
           computeModelValue(v, 0);
           computeModelValue(v, 1);
           printModelValue("nl-ext-mv", v);
@@ -2525,8 +2621,10 @@ void NonlinearExtension::mkPi(){
     d_pi_neg = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
         MULT, d_pi, NodeManager::currentNM()->mkConst(Rational(-1))));
     //initialize bounds
-    d_pi_bound[0] = NodeManager::currentNM()->mkConst( Rational(333)/Rational(106) );
-    d_pi_bound[1] = NodeManager::currentNM()->mkConst( Rational(355)/Rational(113) );
+    d_pi_bound[0] =
+        NodeManager::currentNM()->mkConst(Rational(103993) / Rational(33102));
+    d_pi_bound[1] =
+        NodeManager::currentNM()->mkConst(Rational(104348) / Rational(33215));
   }
 }
 
@@ -3184,6 +3282,7 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
 std::vector<Node> NonlinearExtension::checkTangentPlanes() {
   std::vector< Node > lemmas;
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   unsigned kstart = d_ms_vars.size();
   for (unsigned k = kstart; k < d_mterms.size(); k++) {
     Node t = d_mterms[k];
@@ -3223,7 +3322,8 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
                   Node pt_v = d_tangent_val_bound[p][a][b];
                   Assert( !pt_v.isNull() );
                   if( curr_v!=pt_v ){
-                    Node do_extend = NodeManager::currentNM()->mkNode( ( p==1 || p==3 ) ? GT : LT, curr_v, pt_v );
+                    Node do_extend =
+                        nm->mkNode((p == 1 || p == 3) ? GT : LT, curr_v, pt_v);
                     do_extend = Rewriter::rewrite( do_extend );
                     if( do_extend==d_true ){
                       for( unsigned q=0; q<2; q++ ){
@@ -3242,26 +3342,69 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
                 Node b_v = pts[1][p];
               
                 // tangent plane
-                Node tplane = NodeManager::currentNM()->mkNode(
-                    MINUS,
-                    NodeManager::currentNM()->mkNode(
-                        PLUS,
-                        NodeManager::currentNM()->mkNode(MULT, b_v, a),
-                        NodeManager::currentNM()->mkNode(MULT, a_v, b)),
-                    NodeManager::currentNM()->mkNode(MULT, a_v, b_v));
+                Node tplane = nm->mkNode(MINUS,
+                                         nm->mkNode(PLUS,
+                                                    nm->mkNode(MULT, b_v, a),
+                                                    nm->mkNode(MULT, a_v, b)),
+                                         nm->mkNode(MULT, a_v, b_v));
                 for (unsigned d = 0; d < 4; d++) {
-                  Node aa = NodeManager::currentNM()->mkNode(
-                      d == 0 || d == 3 ? GEQ : LEQ, a, a_v);
-                  Node ab = NodeManager::currentNM()->mkNode(
-                      d == 1 || d == 3 ? GEQ : LEQ, b, b_v);
-                  Node conc = NodeManager::currentNM()->mkNode(
-                      d <= 1 ? LEQ : GEQ, t, tplane);
-                  Node tlem = NodeManager::currentNM()->mkNode(
-                      OR, aa.negate(), ab.negate(), conc);
+                  Node aa = nm->mkNode(d == 0 || d == 3 ? GEQ : LEQ, a, a_v);
+                  Node ab = nm->mkNode(d == 1 || d == 3 ? GEQ : LEQ, b, b_v);
+                  Node conc = nm->mkNode(d <= 1 ? LEQ : GEQ, t, tplane);
+                  Node tlem = nm->mkNode(OR, aa.negate(), ab.negate(), conc);
                   Trace("nl-ext-tplanes")
                       << "Tangent plane lemma : " << tlem << std::endl;
                   lemmas.push_back(tlem);
                 }
+
+                // tangent plane reverse implication
+
+                // t <= tplane -> ( (a <= a_v ^ b >= b_v) v
+                // (a >= a_v ^ b <= b_v) ).
+                // in clause form, the above becomes
+                // t <= tplane -> a <= a_v v b <= b_v.
+                // t <= tplane -> b >= b_v v a >= a_v.
+                Node a_leq_av = nm->mkNode(LEQ, a, a_v);
+                Node b_leq_bv = nm->mkNode(LEQ, b, b_v);
+                Node a_geq_av = nm->mkNode(GEQ, a, a_v);
+                Node b_geq_bv = nm->mkNode(GEQ, b, b_v);
+
+                Node t_leq_tplane = nm->mkNode(LEQ, t, tplane);
+                Node a_leq_av_or_b_leq_bv = nm->mkNode(OR, a_leq_av, b_leq_bv);
+                Node b_geq_bv_or_a_geq_av = nm->mkNode(OR, b_geq_bv, a_geq_av);
+                Node ub_reverse1 =
+                    nm->mkNode(OR, t_leq_tplane.negate(), a_leq_av_or_b_leq_bv);
+                Trace("nl-ext-tplanes")
+                    << "Tangent plane lemma (reverse) : " << ub_reverse1
+                    << std::endl;
+                lemmas.push_back(ub_reverse1);
+                Node ub_reverse2 =
+                    nm->mkNode(OR, t_leq_tplane.negate(), b_geq_bv_or_a_geq_av);
+                Trace("nl-ext-tplanes")
+                    << "Tangent plane lemma (reverse) : " << ub_reverse2
+                    << std::endl;
+                lemmas.push_back(ub_reverse2);
+
+                // t >= tplane -> ( (a <= a_v ^ b <= b_v) v
+                // (a >= a_v ^ b >= b_v) ).
+                // in clause form, the above becomes
+                // t >= tplane -> a <= a_v v b >= b_v.
+                // t >= tplane -> b >= b_v v a <= a_v
+                Node t_geq_tplane = nm->mkNode(GEQ, t, tplane);
+                Node a_leq_av_or_b_geq_bv = nm->mkNode(OR, a_leq_av, b_geq_bv);
+                Node a_geq_av_or_b_leq_bv = nm->mkNode(OR, a_geq_av, b_leq_bv);
+                Node lb_reverse1 =
+                    nm->mkNode(OR, t_geq_tplane.negate(), a_leq_av_or_b_geq_bv);
+                Trace("nl-ext-tplanes")
+                    << "Tangent plane lemma (reverse) : " << lb_reverse1
+                    << std::endl;
+                lemmas.push_back(lb_reverse1);
+                Node lb_reverse2 =
+                    nm->mkNode(OR, t_geq_tplane.negate(), a_geq_av_or_b_leq_bv);
+                Trace("nl-ext-tplanes")
+                    << "Tangent plane lemma (reverse) : " << lb_reverse2
+                    << std::endl;
+                lemmas.push_back(lb_reverse2);
               }
             }
           }
@@ -3570,7 +3713,7 @@ std::vector<Node> NonlinearExtension::checkFactoring(
             sum = Rewriter::rewrite( sum );
             Trace("nl-ext-factor")
                 << "* Factored sum for " << x << " : " << sum << std::endl;
-            Node kf = getFactorSkolem( sum, lemmas ); 
+            Node kf = getFactorSkolem(sum, lemmas);
             std::vector< Node > poly;
             poly.push_back(NodeManager::currentNM()->mkNode(MULT, x, kf));
             std::map<Node, std::vector<Node> >::iterator itfo =
@@ -3620,7 +3763,7 @@ Node NonlinearExtension::getFactorSkolem( Node n, std::vector< Node >& lemmas ) 
     return itf->second;
   }  
 }
-                    
+
 std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {            
   std::vector< Node > lemmas; 
   Trace("nl-ext") << "Get monomial resolution inferred bound lemmas..." << std::endl;
@@ -3768,15 +3911,17 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
 std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
   std::vector< Node > lemmas;
   Trace("nl-ext") << "Get initial refinement lemmas for transcendental functions..." << std::endl;
-  for( std::map< Kind, std::map< Node, Node > >::iterator it = d_tf_rep_map.begin(); it != d_tf_rep_map.end(); ++it ){
-    for( std::map< Node, Node >::iterator itt = it->second.begin(); itt != it->second.end(); ++itt ){
-      Node t = itt->second;
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
+  {
+    Kind k = tfl.first;
+    for (const Node& t : tfl.second)
+    {
       Assert( d_mv[1].find( t )!=d_mv[1].end() );
       //initial refinements
       if( d_tf_initial_refine.find( t )==d_tf_initial_refine.end() ){
         d_tf_initial_refine[t] = true;
         Node lem;
-        if (it->first == SINE)
+        if (k == SINE)
         {
           Node symn = NodeManager::currentNM()->mkNode(
               SINE, NodeManager::currentNM()->mkNode(MULT, d_neg_one, t[0]));
@@ -3838,7 +3983,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
                           NodeManager::currentNM()->mkNode(
                               MINUS, d_pi_neg, t[0])))));
         }
-        else if (it->first == EXPONENTIAL)
+        else if (k == EXPONENTIAL)
         {
           // ( exp(x) > 0 ) ^ ( x=0 <=> exp( x ) = 1 ) ^ ( x < 0 <=> exp( x ) <
           // 1 ) ^ ( x <= 0 V exp( x ) > x + 1 )
@@ -3876,23 +4021,22 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   //sort arguments of all transcendentals
   std::map< Kind, std::vector< Node > > sorted_tf_args;
   std::map< Kind, std::map< Node, Node > > tf_arg_to_term;
-  
-  for( std::map< Kind, std::map< Node, Node > >::iterator it = d_tf_rep_map.begin(); it != d_tf_rep_map.end(); ++it ){
-    Kind k = it->first;
+
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
+  {
+    Kind k = tfl.first;
     if (k == EXPONENTIAL || k == SINE)
     {
-      for (std::map<Node, Node>::iterator itt = it->second.begin();
-           itt != it->second.end();
-           ++itt)
+      for (const Node& tf : tfl.second)
       {
-        Node a = itt->second[0];
+        Node a = tf[0];
         computeModelValue(a, 1);
         Assert(d_mv[1].find(a) != d_mv[1].end());
         if (d_mv[1][a].isConst())
         {
           Trace("nl-ext-tf-mono-debug") << "...tf term : " << a << std::endl;
           sorted_tf_args[k].push_back(a);
-          tf_arg_to_term[k][a] = itt->second;
+          tf_arg_to_term[k][a] = tf;
         }
       }
     }
@@ -3903,12 +4047,14 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   //sort by concrete values
   smv.d_order_type = 0;
   smv.d_reverse_order = true;
-  for( std::map< Kind, std::map< Node, Node > >::iterator it = d_tf_rep_map.begin(); it != d_tf_rep_map.end(); ++it ){
-    Kind k = it->first;
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
+  {
+    Kind k = tfl.first;
     if( !sorted_tf_args[k].empty() ){
       std::sort( sorted_tf_args[k].begin(), sorted_tf_args[k].end(), smv );
       Trace("nl-ext-tf-mono") << "Sorted transcendental function list for " << k << " : " << std::endl;
-      for( unsigned i=0; i<sorted_tf_args[it->first].size(); i++ ){
+      for (unsigned i = 0; i < sorted_tf_args[k].size(); i++)
+      {
         Node targ = sorted_tf_args[k][i];
         Assert( d_mv[1].find( targ )!=d_mv[1].end() );
         Trace("nl-ext-tf-mono") << "  " << targ << " -> " << d_mv[1][targ] << std::endl;
@@ -3918,7 +4064,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       }
       std::vector< Node > mpoints;
       std::vector< Node > mpoints_vals;
-      if (it->first == SINE)
+      if (k == SINE)
       {
         mpoints.push_back( d_pi );
         mpoints.push_back( d_pi_2 );
@@ -3926,7 +4072,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
         mpoints.push_back( d_pi_neg_2 );
         mpoints.push_back( d_pi_neg );
       }
-      else if (it->first == EXPONENTIAL)
+      else if (k == EXPONENTIAL)
       {
         mpoints.push_back( Node::null() );
       }
@@ -3945,7 +4091,8 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
         int monotonic_dir = -1;
         Node mono_bounds[2];
         Node targ, targval, t, tval;
-        for( unsigned i=0; i<sorted_tf_args[it->first].size(); i++ ){
+        for (unsigned i = 0, size = sorted_tf_args[k].size(); i < size; i++)
+        {
           Node sarg = sorted_tf_args[k][i];
           Assert( d_mv[1].find( sarg )!=d_mv[1].end() );
           Node sargval = d_mv[1][sarg];
@@ -3974,7 +4121,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
               tval = Node::null();
               mono_bounds[1] = mpoints[mdir_index];
               mdir_index++;
-              monotonic_dir = regionToMonotonicityDir(it->first, mdir_index);
+              monotonic_dir = regionToMonotonicityDir(k, mdir_index);
               if (mdir_index < mpoints.size())
               {
                 mono_bounds[0] = mpoints[mdir_index];
@@ -4037,7 +4184,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
                   << std::endl;
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
   // via Incremental Linearization" by Cimatti et al
-  for (std::pair<const Kind, std::map<Node, Node> >& tfs : d_tf_rep_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfs : d_f_map)
   {
     Kind k = tfs.first;
     if (k == PI)
@@ -4059,10 +4206,9 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
 
     // we substitute into the Taylor sum P_{n,f(0)}( x )
 
-    for (std::pair<const Node, Node>& tfr : tfs.second)
+    for (const Node& tf : tfs.second)
     {
-      // Figure 3 : tf( x )
-      Node tf = tfr.second;
+      // tf is Figure 3 : tf( x )
       if (isRefineableTfFun(tf))
       {
         Trace("nl-ext-tftp") << "Compute tangent planes " << tf << std::endl;
@@ -4259,31 +4405,21 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   {
     // compute tangent plane
     // Figure 3: T( x )
-    Node tplane;
-    Node poly_approx_deriv = getDerivative(poly_approx, d_taylor_real_fv);
-    Assert(!poly_approx_deriv.isNull());
-    poly_approx_deriv = Rewriter::rewrite(poly_approx_deriv);
-    Trace("nl-ext-tftp-debug2") << "...derivative of " << poly_approx << " is "
-                                << poly_approx_deriv << std::endl;
-    std::vector<Node> taylor_subs;
-    taylor_subs.push_back(c);
-    Assert(taylor_vars.size() == taylor_subs.size());
-    Node poly_approx_c_deriv = poly_approx_deriv.substitute(taylor_vars.begin(),
-                                                            taylor_vars.end(),
-                                                            taylor_subs.begin(),
-                                                            taylor_subs.end());
-    tplane = nm->mkNode(
-        PLUS,
-        poly_approx_c,
-        nm->mkNode(MULT, poly_approx_c_deriv, nm->mkNode(MINUS, tf[0], c)));
+    // We use zero slope tangent planes, since the concavity of the Taylor
+    // approximation cannot be easily established.
+    Node tplane = poly_approx_c;
 
     Node lem = nm->mkNode(concavity == 1 ? GEQ : LEQ, tf, tplane);
     std::vector<Node> antec;
+    int mdir = regionToMonotonicityDir(k, region);
     for (unsigned i = 0; i < 2; i++)
     {
-      if (!bounds[i].isNull())
+      // Tangent plane is valid in the interval [c,u) if the slope of the
+      // function matches its concavity, and is valid in (l, c] otherwise.
+      Node use_bound = (mdir == concavity) == (i == 0) ? c : bounds[i];
+      if (!use_bound.isNull())
       {
-        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], bounds[i]);
+        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], use_bound);
         antec.push_back(ant);
       }
     }
@@ -4389,6 +4525,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
         Assert(rcoeff_n.isConst());
         Rational rcoeff = rcoeff_n.getConst<Rational>();
         Assert(rcoeff.sgn() != 0);
+        poly_approx_b = Rewriter::rewrite(poly_approx_b);
+        poly_approx_c = Rewriter::rewrite(poly_approx_c);
         splane = nm->mkNode(
             PLUS,
             poly_approx_b,
@@ -4782,6 +4920,48 @@ void NonlinearExtension::getPolynomialApproximationBounds(
   }
 }
 
+void NonlinearExtension::getPolynomialApproximationBoundForArg(
+    Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
+{
+  getPolynomialApproximationBounds(k, d, pbounds);
+  Assert(c.isConst());
+  if (k == EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    Node tft = nm->mkNode(k, d_zero);
+    bool success = false;
+    unsigned ds = d;
+    TNode ttrf = d_taylor_real_fv;
+    TNode tc = c;
+    do
+    {
+      success = true;
+      unsigned n = 2 * ds;
+      std::pair<Node, Node> taylor = getTaylor(tft, n);
+      // check that 1-c^{n+1}/(n+1)! > 0
+      Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
+      Node rus = ru.substitute(ttrf, tc);
+      rus = Rewriter::rewrite(rus);
+      Assert(rus.isConst());
+      if (rus.getConst<Rational>() > d_one.getConst<Rational>())
+      {
+        success = false;
+        ds = ds + 1;
+      }
+    } while (!success);
+    if (ds > d)
+    {
+      Trace("nl-ext-exp-taylor")
+          << "*** Increase Taylor bound to " << ds << " > " << d << " for ("
+          << k << " " << c << ")" << std::endl;
+      // must use sound upper bound
+      std::vector<Node> pboundss;
+      getPolynomialApproximationBounds(k, ds, pboundss);
+      pbounds[2] = pboundss[2];
+    }
+  }
+}
+
 std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
 {
   // compute the model value of the argument
@@ -4792,7 +4972,7 @@ std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
   bool isNeg = csign == -1;
 
   std::vector<Node> pbounds;
-  getPolynomialApproximationBounds(tf.getKind(), d, pbounds);
+  getPolynomialApproximationBoundForArg(tf.getKind(), c, d, pbounds);
 
   std::vector<Node> bounds;
   TNode tfv = d_taylor_real_fv;

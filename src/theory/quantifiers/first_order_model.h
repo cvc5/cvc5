@@ -2,9 +2,9 @@
 /*! \file first_order_model.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Paul Meng
+ **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__FIRST_ORDER_MODEL_H
-#define __CVC4__FIRST_ORDER_MODEL_H
+#ifndef CVC4__FIRST_ORDER_MODEL_H
+#define CVC4__FIRST_ORDER_MODEL_H
 
+#include "expr/attribute.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
-#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
@@ -42,14 +42,9 @@ namespace quantifiers {
 
 class TermDb;
 
-class FirstOrderModelIG;
-
 namespace fmcheck {
   class FirstOrderModelFmc;
 }/* CVC4::theory::quantifiers::fmcheck namespace */
-
-class FirstOrderModelQInt;
-class FirstOrderModelAbs;
 
 struct IsStarAttributeId {};
 typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
@@ -94,10 +89,7 @@ class FirstOrderModel : public TheoryModel
  public:
   FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
 
-  virtual FirstOrderModelIG* asFirstOrderModelIG() { return nullptr; }
   virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
-  virtual FirstOrderModelQInt* asFirstOrderModelQInt() { return nullptr; }
-  virtual FirstOrderModelAbs* asFirstOrderModelAbs() { return nullptr; }
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -118,17 +110,28 @@ class FirstOrderModel : public TheoryModel
   void reset_round();
   /** mark quantified formula relevant */
   void markRelevant( Node q );
-  /** get relevance value */
-  int getRelevanceValue( Node q );
-  /** set quantified formula active/inactive 
-   * a quantified formula may be set inactive if for instance:
-   *   - it is entailed by other quantified formulas
+  /** set quantified formula active/inactive
+   *
+   * This indicates that quantified formula is "inactive", that is, it need
+   * not be considered during this instantiation round.
+   *
+   * A quantified formula may be set inactive if for instance:
+   *   - It is entailed by other quantified formulas, or
+   *   - All of its instances are known to be true in the current model.
+   *
+   * This method should be called after a call to FirstOrderModel::reset_round,
+   * and before calls to QuantifiersModule check calls. A common place to call
+   * this method is during QuantifiersModule reset_round calls.
    */
   void setQuantifierActive( TNode q, bool active );
-  /** is quantified formula active */
-  bool isQuantifierActive( TNode q );
+  /** is quantified formula active?
+   *
+   * Returns false if there has been a call to setQuantifierActive( q, false )
+   * during this instantiation round.
+   */
+  bool isQuantifierActive(TNode q) const;
   /** is quantified formula asserted */
-  bool isQuantifierAsserted( TNode q );
+  bool isQuantifierAsserted(TNode q) const;
   /** get model basis term */
   Node getModelBasisTerm(TypeNode tn);
   /** is model basis term */
@@ -164,19 +167,17 @@ class FirstOrderModel : public TheoryModel
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** quantified formulas marked as relevant */
-  unsigned d_rlv_count;
-  std::map<Node, unsigned> d_forall_rlv;
   std::vector<Node> d_forall_rlv_vec;
   Node d_last_forall_rlv;
   std::vector<Node> d_forall_rlv_assert;
   /** get variable id */
   std::map<Node, std::map<Node, int> > d_quant_var_id;
   /** process initialize model for term */
-  virtual void processInitializeModelForTerm(Node n) = 0;
+  virtual void processInitializeModelForTerm(Node n) {}
   /** process initialize quantifier */
   virtual void processInitializeQuantifier(Node q) {}
   /** process initialize */
-  virtual void processInitialize(bool ispre) = 0;
+  virtual void processInitialize(bool ispre) {}
 
  private:
   // list of inactive quantified formulas
@@ -192,91 +193,6 @@ class FirstOrderModel : public TheoryModel
   /** compute model basis arg */
   void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
-
-class FirstOrderModelIG : public FirstOrderModel
-{
- public:  // for Theory UF:
-  /** class for generating models for uninterpreted functions
-   *
-   * This implements the model construction from page 6 of Reynolds et al,
-   * "Quantifier Instantiation Techniques for Finite Model Finding in SMT",
-   * CADE 2013.
-   */
-  class UfModelTreeGenerator
-  {
-   public:
-    UfModelTreeGenerator() {}
-    ~UfModelTreeGenerator() {}
-    /** set default value */
-    void setDefaultValue(Node v) { d_default_value = v; }
-    /** set value */
-    void setValue(
-        TheoryModel* m, Node n, Node v, bool ground = true, bool isReq = true);
-    /** make model */
-    void makeModel(TheoryModel* m, uf::UfModelTree& tree);
-    /** reset */
-    void clear();
-
-   public:
-    /** the overall default value */
-    Node d_default_value;
-    /**
-     * Stores (required, ground) values in key, value pairs of the form
-     * ( P( a, b ), c ), which indicates P( a, b ) has value c in the model.
-     * The "non-ground" values indicate that the key has a "model-basis"
-     * variable, for example, ( P( _, b ), c ) indicates that P( x, b ) has the
-     * value b for any value of x.
-     */
-    std::map<Node, Node> d_set_values[2][2];
-    /** stores the set of non-ground keys in the above maps */
-    std::vector<Node> d_defaults;
-    /**
-     * Returns the term corresponding to the intersection of n1 and n2, if it
-     * exists, for example, for P( _, a ) and P( b, _ ), this method returns
-     * P( b, a ), where _ is the "model basis" variable. We take into account
-     * equality between arguments, so if a=b, then the intersection of P( a, a )
-     * and P( b, _ ) is P( a, a ).
-     */
-    Node getIntersection(TheoryModel* m, Node n1, Node n2, bool& isGround);
-  };
-  /** models for each UF operator */
-  std::map<Node, uf::UfModelTree> d_uf_model_tree;
-  /** model generators for each UF operator */
-  std::map<Node, UfModelTreeGenerator> d_uf_model_gen;
-
- private:
-  //map from terms to the models used to calculate their value
-  std::map< Node, bool > d_eval_uf_use_default;
-  std::map< Node, uf::UfModelTree > d_eval_uf_model;
-  void makeEvalUfModel( Node n );
-  //index ordering to use for each term
-  std::map< Node, std::vector< int > > d_eval_term_index_order;
-  void makeEvalUfIndexOrder( Node n );
-//the following functions are for evaluating quantifier bodies
-public:
-  FirstOrderModelIG(QuantifiersEngine * qe, context::Context* c, std::string name);
-
-  FirstOrderModelIG* asFirstOrderModelIG() override { return this; }
-  // initialize the model
-  void processInitialize(bool ispre) override;
-  //for initialize model
-  void processInitializeModelForTerm(Node n) override;
-  /** reset evaluation */
-  void resetEvaluate();
-  /** evaluate functions */
-  int evaluate( Node n, int& depIndex, RepSetIterator* ri  );
-  Node evaluateTerm( Node n, int& depIndex, RepSetIterator* ri  );
-public:
-  //statistics
-  int d_eval_formulas;
-  int d_eval_uf_terms;
-  int d_eval_lits;
-  int d_eval_lits_unknown;
-private:
-  //default evaluate term function
-  Node evaluateTermDefault( Node n, int& depIndex, std::vector< int >& childDepIndex, RepSetIterator* ri  );
-};/* class FirstOrderModelIG */
-
 
 namespace fmcheck {
 
@@ -307,38 +223,8 @@ class FirstOrderModelFmc : public FirstOrderModel
 
 }/* CVC4::theory::quantifiers::fmcheck namespace */
 
-class AbsDef;
-
-class FirstOrderModelAbs : public FirstOrderModel
-{
- public:
-  std::map< Node, AbsDef * > d_models;
-  std::map< Node, bool > d_models_valid;
-  std::map< TNode, unsigned > d_rep_id;
-  std::map< TypeNode, unsigned > d_domain;
-  std::map< Node, std::vector< int > > d_var_order;
-  std::map< Node, std::map< int, int > > d_var_index;
-
- private:
-  /** get current model value */
-  void processInitializeModelForTerm(Node n) override;
-  void processInitializeQuantifier(Node q) override;
-  void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );
-  TNode getUsedRepresentative( TNode n );
-
- public:
-  FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name);
-  ~FirstOrderModelAbs() override;
-  FirstOrderModelAbs* asFirstOrderModelAbs() override { return this; }
-  void processInitialize(bool ispre) override;
-  unsigned getRepresentativeId( TNode n );
-  bool isValidType( TypeNode tn ) { return d_domain.find( tn )!=d_domain.end(); }
-  Node getFunctionValue(Node op, const char* argPrefix );
-  Node getVariable( Node q, unsigned i );
-};
-
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC4__FIRST_ORDER_MODEL_H */

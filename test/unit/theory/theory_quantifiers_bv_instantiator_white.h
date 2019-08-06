@@ -2,9 +2,9 @@
 /*! \file theory_quantifiers_bv_instantiator_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds
+ **   Mathias Preiner, Andres Noetzli, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,10 +19,9 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
-
-#include "theory/quantifiers/cegqi/ceg_bv_instantiator.cpp"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
@@ -33,13 +32,14 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 using namespace CVC4::theory::quantifiers;
+using namespace CVC4::theory::quantifiers::utils;
 using namespace CVC4::smt;
 
 class BvInstantiatorWhite : public CxxTest::TestSuite
 {
  public:
-  void setUp();
-  void tearDown();
+  void setUp() override;
+  void tearDown() override;
 
   void testGetPvCoeff();
   void testNormalizePvMult();

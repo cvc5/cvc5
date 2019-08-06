@@ -2,9 +2,9 @@
 /*! \file statistics_registry.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andres Noetzli
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,8 +33,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef __CVC4__STATISTICS_REGISTRY_H
-#define __CVC4__STATISTICS_REGISTRY_H
+#ifndef CVC4__STATISTICS_REGISTRY_H
+#define CVC4__STATISTICS_REGISTRY_H
 
 #include <stdint.h>
 
@@ -60,9 +60,9 @@ namespace CVC4 {
 std::ostream& operator<<(std::ostream& os, const timespec& t) CVC4_PUBLIC;
 
 #ifdef CVC4_STATISTICS_ON
-#  define __CVC4_USE_STATISTICS true
+#  define CVC4_USE_STATISTICS true
 #else
-#  define __CVC4_USE_STATISTICS false
+#  define CVC4_USE_STATISTICS false
 #endif
 
 
@@ -93,7 +93,7 @@ public:
    */
   Stat(const std::string& name) : d_name(name)
   {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       CheckArgument(d_name.find(", ") == std::string::npos, name,
                     "Statistics names cannot include a comma (',')");
     }
@@ -122,7 +122,7 @@ public:
    * May be redefined by a child class
    */
   virtual void flushStat(std::ostream& out) const {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       out << d_name << ", ";
       flushInformation(out);
     }
@@ -135,7 +135,7 @@ public:
    * May be redefined by a child class
    */
   virtual void safeFlushStat(int fd) const {
-    if (__CVC4_USE_STATISTICS) {
+    if (CVC4_USE_STATISTICS) {
       safe_print(fd, d_name);
       safe_print(fd, ", ");
       safeFlushInformation(fd);
@@ -230,14 +230,14 @@ public:
   /** Flush the value of the statistic to the given output stream. */
   void flushInformation(std::ostream& out) const override
   {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       out << getData();
     }
   }
 
   void safeFlushInformation(int fd) const override
   {
-    if (__CVC4_USE_STATISTICS) {
+    if (CVC4_USE_STATISTICS) {
       safe_print<T>(fd, getDataRef());
     }
   }
@@ -317,7 +317,7 @@ public:
   /** Set this reference statistic to refer to the given data cell. */
   void setData(const T& t) override
   {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       d_data = &t;
     }
   }
@@ -352,14 +352,14 @@ public:
   /** Set the underlying data value to the given value. */
   void setData(const T& t) override
   {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       d_data = t;
     }
   }
 
   /** Identical to setData(). */
   BackedStat<T>& operator=(const T& t) {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       d_data = t;
     }
     return *this;
@@ -443,7 +443,7 @@ public:
 
   /** Increment the underlying integer statistic. */
   IntStat& operator++() {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       ++d_data;
     }
     return *this;
@@ -451,7 +451,7 @@ public:
 
   /** Increment the underlying integer statistic by the given amount. */
   IntStat& operator+=(int64_t val) {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       d_data += val;
     }
     return *this;
@@ -459,7 +459,7 @@ public:
 
   /** Keep the maximum of the current statistic value and the given one. */
   void maxAssign(int64_t val) {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       if(d_data < val) {
         d_data = val;
       }
@@ -468,7 +468,7 @@ public:
 
   /** Keep the minimum of the current statistic value and the given one. */
   void minAssign(int64_t val) {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       if(d_data > val) {
         d_data = val;
       }
@@ -530,7 +530,7 @@ public:
 
   /** Add an entry to the running-average calculation. */
   void addEntry(double e) {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       ++d_count;
       d_sum += e;
       setData(d_sum / d_count);
@@ -589,7 +589,7 @@ public:
 
   void flushInformation(std::ostream& out) const override
   {
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       typename Histogram::const_iterator i = d_hist.begin();
       typename Histogram::const_iterator end =  d_hist.end();
       out << "[";
@@ -608,7 +608,7 @@ public:
 
   void safeFlushInformation(int fd) const override
   {
-    if (__CVC4_USE_STATISTICS) {
+    if (CVC4_USE_STATISTICS) {
       typename Histogram::const_iterator i = d_hist.begin();
       typename Histogram::const_iterator end = d_hist.end();
       safe_print(fd, "[");
@@ -630,7 +630,7 @@ public:
   }
 
   HistogramStat& operator<<(const T& val){
-    if(__CVC4_USE_STATISTICS) {
+    if(CVC4_USE_STATISTICS) {
       if(d_hist.find(val) == d_hist.end()){
         d_hist.insert(std::make_pair(val,0));
       }
@@ -797,8 +797,8 @@ private:
 
 };/* class RegisterStatistic */
 
-#undef __CVC4_USE_STATISTICS
+#undef CVC4_USE_STATISTICS
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__STATISTICS_REGISTRY_H */
+#endif /* CVC4__STATISTICS_REGISTRY_H */

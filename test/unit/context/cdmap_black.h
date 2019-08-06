@@ -2,9 +2,9 @@
 /*! \file cdmap_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
+ **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,14 +31,15 @@ class CDMapBlack : public CxxTest::TestSuite {
   Context* d_context;
 
  public:
-  void setUp() {
+  void setUp() override
+  {
     d_context = new Context;
     // Debug.on("context");
     // Debug.on("gc");
     // Debug.on("pushpop");
   }
 
-  void tearDown() { delete d_context; }
+  void tearDown() override { delete d_context; }
 
   // Returns the elements in a CDHashMap.
   static std::map<int, int> GetElements(const CDHashMap<int, int>& map) {
@@ -163,9 +164,9 @@ class CDMapBlack : public CxxTest::TestSuite {
             ElementsAre(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}, {23, 317}}));
 
         TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 317),
-                         AssertionException);
+                         AssertionException&);
         TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 472),
-                         AssertionException);
+                         AssertionException&);
         map.insert(23, 472);
 
         TS_ASSERT(
@@ -177,7 +178,7 @@ class CDMapBlack : public CxxTest::TestSuite {
             ElementsAre(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}, {23, 472}}));
 
           TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0),
-                           AssertionException);
+                           AssertionException&);
           map.insert(23, 1024);
 
           TS_ASSERT(
@@ -193,7 +194,8 @@ class CDMapBlack : public CxxTest::TestSuite {
       TS_ASSERT(
           ElementsAre(map, {{3, 4}, {5, 6}, {9, 8}, {23, 317}}));
 
-      TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0), AssertionException);
+      TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0),
+                       AssertionException&);
       map.insert(23, 477);
 
       TS_ASSERT(
@@ -201,7 +203,7 @@ class CDMapBlack : public CxxTest::TestSuite {
       d_context->pop();
     }
 
-    TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0), AssertionException);
+    TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0), AssertionException&);
 
     TS_ASSERT(
         ElementsAre(map, {{3, 4}, {23, 317}}));

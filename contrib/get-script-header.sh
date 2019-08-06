@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
-set -e
+set -e -o pipefail
 
 cd "$(dirname "$0")/.."
 
@@ -18,9 +18,21 @@ function webget {
   if which wget &>/dev/null; then
     wget -c -O "$2" "$1"
   elif which curl &>/dev/null; then
-    curl "$1" >"$2"
+    curl -L "$1" >"$2"
   else
     echo "Can't figure out how to download from web.  Please install wget or curl." >&2
     exit 1
   fi
 }
+
+for cmd in python python2 python3; do
+  if [ -x "$(command -v $cmd)" ]; then
+    PYTHON="$cmd"
+    break
+  fi
+done
+
+if [ -z "$PYTHON" ]; then
+  echo "Error: Couldn't find python, python2, or python3." >&2
+  exit 1
+fi

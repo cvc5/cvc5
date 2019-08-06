@@ -2,9 +2,9 @@
 /*! \file ext_theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -233,6 +233,7 @@ bool ExtTheory::doInferencesInternal(int effort,
       std::vector<std::vector<Node> > exp;
       getSubstitutedTerms(effort, terms, sterms, exp);
       std::map<Node, unsigned> sterm_index;
+      NodeManager* nm = NodeManager::currentNM();
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
         bool processed = false;
@@ -245,15 +246,24 @@ bool ExtTheory::doInferencesInternal(int effort,
           {
             processed = true;
             markReduced(terms[i]);
+            // We have exp[i] => terms[i] = sr, convert this to a clause.
+            // This ensures the proof infrastructure can process this as a
+            // normal theory lemma.
             Node eq = terms[i].eqNode(sr);
-            Node expn =
-                exp[i].size() > 1
-                    ? NodeManager::currentNM()->mkNode(kind::AND, exp[i])
-                    : (exp[i].size() == 1 ? exp[i][0] : d_true);
+            Node lem = eq;
+            if (!exp[i].empty())
+            {
+              std::vector<Node> eei;
+              for (const Node& e : exp[i])
+              {
+                eei.push_back(e.negate());
+              }
+              eei.push_back(eq);
+              lem = nm->mkNode(kind::OR, eei);
+            }
+
             Trace("extt-debug") << "ExtTheory::doInferences : infer : " << eq
-                                << " by " << expn << std::endl;
-            Node lem =
-                NodeManager::currentNM()->mkNode(kind::IMPLIES, expn, eq);
+                                << " by " << exp[i] << std::endl;
             Trace("extt-debug") << "...send lemma " << lem << std::endl;
             if (sendLemma(lem))
             {
@@ -427,6 +437,7 @@ void ExtTheory::registerTermRec(Node n)
 // mark reduced
 void ExtTheory::markReduced(Node n, bool contextDepend)
 {
+  Trace("extt-debug") << "Mark reduced " << n << std::endl;
   registerTerm(n);
   Assert(d_ext_func_terms.find(n) != d_ext_func_terms.end());
   d_ext_func_terms[n] = false;

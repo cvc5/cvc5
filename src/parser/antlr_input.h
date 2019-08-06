@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,17 +14,12 @@
  ** Base for ANTLR parser classes.
  **/
 
-#ifndef __CVC4__PARSER__ANTLR_INPUT_H
-#define __CVC4__PARSER__ANTLR_INPUT_H
-
-// These headers must be included first. See the documentation
-// in parser/antlr_undefines.h for an explanation.
-// Also while unusual this must also be within the #ifdef guard.
-#include <antlr3.h>
-#include "parser/antlr_undefines.h"
+#ifndef CVC4__PARSER__ANTLR_INPUT_H
+#define CVC4__PARSER__ANTLR_INPUT_H
 
 #include "cvc4parser_private.h"
 
+#include <antlr3.h>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -304,4 +299,4 @@ inline BitVector AntlrInput::tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTL
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__ANTLR_INPUT_H */
+#endif /* CVC4__PARSER__ANTLR_INPUT_H */

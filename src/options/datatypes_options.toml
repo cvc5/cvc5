@@ -41,15 +41,6 @@ header = "options/datatypes_options.h"
   help       = "introduce reference skolems for shorter explanations"
 
 [[option]]
-  name       = "dtUseTesters"
-  category   = "regular"
-  long       = "dt-use-testers"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "do not preprocess away tester predicates"
-
-[[option]]
   name       = "cdtBisimilar"
   category   = "regular"
   long       = "cdt-bisimilar"

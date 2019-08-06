@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -216,7 +216,7 @@ public:
   int getUpId() const;
 
   /**
-   * Looks up a row id to the appropraite arith variable.
+   * Looks up a row id to the appropriate arith variable.
    * Be careful these are deleted in context during replay!
    * failure returns ARITHVAR_SENTINEL */
   ArithVar lookupRowId(int rowId) const;

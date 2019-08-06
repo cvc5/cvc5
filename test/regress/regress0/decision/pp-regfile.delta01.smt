@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 (benchmark pp_regfile.smt
 :logic QF_AUFLIA
 :extrafuns ((REGFILE_INIT Array))

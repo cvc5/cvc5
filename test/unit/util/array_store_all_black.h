@@ -2,9 +2,9 @@
 /*! \file array_store_all_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Tim King, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,12 +30,14 @@ class ArrayStoreAllBlack : public CxxTest::TestSuite {
   ExprManagerScope* d_scope;
 
  public:
-  void setUp() {
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_scope = new ExprManagerScope(*d_em);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_em;
   }
@@ -65,7 +67,7 @@ class ArrayStoreAllBlack : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(
         ArrayStoreAll(d_em->mkArrayType(d_em->integerType(), d_em->mkSort("U")),
                       d_em->mkConst(Rational(9, 2))),
-        IllegalArgumentException);
+        IllegalArgumentException&);
   }
 
   void testConstError() {

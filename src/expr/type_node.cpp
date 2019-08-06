@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -163,6 +163,62 @@ bool TypeNode::isInterpretedFinite()
     return isInterpretedFinite;
   }
   return getAttribute(IsInterpretedFiniteAttr());
+}
+
+/** Attribute true for types that are closed enumerable */
+struct IsClosedEnumerableTag
+{
+};
+struct IsClosedEnumerableComputedTag
+{
+};
+typedef expr::Attribute<IsClosedEnumerableTag, bool> IsClosedEnumerableAttr;
+typedef expr::Attribute<IsClosedEnumerableComputedTag, bool>
+    IsClosedEnumerableComputedAttr;
+
+bool TypeNode::isClosedEnumerable()
+{
+  // check it is already cached
+  if (!getAttribute(IsClosedEnumerableComputedAttr()))
+  {
+    bool ret = true;
+    if (isArray() || isSort() || isCodatatype() || isFunction())
+    {
+      ret = false;
+    }
+    else if (isSet())
+    {
+      ret = getSetElementType().isClosedEnumerable();
+    }
+    else if (isDatatype())
+    {
+      // avoid infinite loops: initially set to true
+      setAttribute(IsClosedEnumerableAttr(), ret);
+      setAttribute(IsClosedEnumerableComputedAttr(), true);
+      TypeNode tn = *this;
+      const Datatype& dt = getDatatype();
+      for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+      {
+        for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+        {
+          TypeNode ctn = TypeNode::fromType(dt[i][j].getRangeType());
+          if (tn != ctn && !ctn.isClosedEnumerable())
+          {
+            ret = false;
+            break;
+          }
+        }
+        if (!ret)
+        {
+          break;
+        }
+      }
+    }
+    setAttribute(IsClosedEnumerableAttr(), ret);
+    setAttribute(IsClosedEnumerableComputedAttr(), true);
+    return ret;
+  }
+  return getAttribute(IsClosedEnumerableAttr());
 }
 
 bool TypeNode::isFirstClass() const {

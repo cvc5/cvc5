@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 (benchmark mathsat
 :source { MathSat group }
 :logic QF_UFLIA

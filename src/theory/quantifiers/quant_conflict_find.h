@@ -2,9 +2,9 @@
 /*! \file quant_conflict_find.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,8 +22,8 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers_engine.h"
+#include "expr/node_trie.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,8 +45,8 @@ private:
   MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
   //MatchGen * getChild( int i ) { return &d_children[i]; }
   //current matching information
-  std::vector< TermArgTrie * > d_qn;
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_qni;
+  std::vector<TNodeTrie*> d_qn;
+  std::vector<std::map<TNode, TNodeTrie>::iterator> d_qni;
   bool doMatching( QuantConflictFind * p, QuantInfo * qi );
   //for matching : each index is either a variable or a ground term
   unsigned d_qni_size;
@@ -90,7 +90,13 @@ public:
   std::vector< MatchGen > d_children;
   short d_type;
   bool d_type_not;
-  void reset_round( QuantConflictFind * p );
+  /** reset round
+   *
+   * Called once at the beginning of each full/last-call effort, prior to
+   * processing this match generator. This method returns false if the reset
+   * failed, e.g. if a conflict was encountered during term indexing.
+   */
+  bool reset_round(QuantConflictFind* p);
   void reset( QuantConflictFind * p, bool tgt, QuantInfo * qi );
   bool getNextMatch( QuantConflictFind * p, QuantInfo * qi );
   bool isValid() { return d_type!=typ_invalid; }
@@ -120,13 +126,9 @@ private: //for completing match
   void getPropagateVars( QuantConflictFind * p, std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
   //optimization: number of variables set, to track when we can stop
   std::map< int, bool > d_vars_set;
-  std::map< Node, bool > d_ground_terms;
   std::vector< Node > d_extra_var;
 public:
-  void setGroundSubterm( Node t ) { d_ground_terms[t] = true; }
-  bool isGroundSubterm( Node t ) { return d_ground_terms.find( t )!=d_ground_terms.end(); }
   bool isBaseMatchComplete();
-  bool isPropagatingInstance( QuantConflictFind * p, Node n );
 public:
   QuantInfo();
   ~QuantInfo();
@@ -236,26 +238,34 @@ public:
   void registerQuantifier(Node q) override;
 
  public:
-  /** assert quantifier */
-  void assertNode(Node q) override;
-  /** new node */
-  void newEqClass( Node n );
-  /** merge */
-  void merge( Node a, Node b );
-  /** assert disequal */
-  void assertDisequal( Node a, Node b );
   /** needs check */
   bool needsCheck(Theory::Effort level) override;
   /** reset round */
   void reset_round(Theory::Effort level) override;
-  /** check */
+  /** check
+   *
+   * This method attempts to construct a conflicting or propagating instance.
+   * If such an instance exists, then it makes a call to
+   * Instantiation::addInstantiation or QuantifiersEngine::addLemma.
+   */
   void check(Theory::Effort level, QEffort quant_e) override;
 
  private:
-  bool d_needs_computeRelEqr;
-public:
-  void computeRelevantEqr();
-private:
+  /** check quantified formula
+   *
+   * This method is called by the above check method for each quantified
+   * formula q. It attempts to find a conflicting or propagating instance for
+   * q, depending on the effort level (d_effort).
+   *
+   * isConflict: this is set to true if we discovered a conflicting instance.
+   * This flag may be set instead of d_conflict if --qcf-all-conflict is true,
+   * in which we continuing adding all conflicts.
+   * addedLemmas: tracks the total number of lemmas added, and is incremented by
+   * this method when applicable.
+   */
+  void checkQuantifiedFormula(Node q, bool& isConflict, unsigned& addedLemmas);
+
+ private:
   void debugPrint( const char * c );
   //for debugging
   std::vector< Node > d_quants;
@@ -274,6 +284,22 @@ public:
   Statistics d_statistics;
   /** Identify this module */
   std::string identify() const override { return "QcfEngine"; }
+  /** is n a propagating instance?
+   *
+   * A propagating instance is any formula that consists of Boolean connectives,
+   * equality, quantified formulas, and terms that exist in the current
+   * context (those in the master equality engine).
+   *
+   * Notice the distinction that quantified formulas that do not appear in the
+   * current context are considered to be legal in propagating instances. This
+   * choice is significant for TPTP, where a net of ~200 benchmarks are gained
+   * due to this decision.
+   *
+   * Propagating instances are the second most useful kind of instantiation
+   * after conflicting instances and are used as a second effort in the
+   * algorithm performed by this class.
+   */
+  bool isPropagatingInstance(Node n) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
