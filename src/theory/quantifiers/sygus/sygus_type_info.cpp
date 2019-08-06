@@ -195,9 +195,19 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
-        Assert(tds->isRegistered(ct));
-        SygusTypeInfo& stic = tds->getTypeInfo(ct);
-        csize += stic.getMinTermSize();
+        if( ct==tn )
+        {
+          csize += d_min_term_size;
+        }
+        else if (tds->isRegistered(ct))
+        {
+          SygusTypeInfo& stic = tds->getTypeInfo(ct);
+          csize += stic.getMinTermSize();
+        }
+        else
+        {
+          Assert( !ct.isDatatype() || !ct.getDatatype().isSygus() );
+        }
       }
     }
     d_min_cons_term_size[i] = csize;
