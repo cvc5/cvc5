@@ -15,7 +15,6 @@
  **/
 #include "parser/smt2/smt2.h"
 
-#include "api/cvc4cpp.h"
 #include "expr/type.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
@@ -23,7 +22,6 @@
 #include "parser/smt1/smt1.h"
 #include "parser/smt2/smt2_input.h"
 #include "printer/sygus_print_callback.h"
-#include "smt/command.h"
 #include "util/bitvector.h"
 
 #include <algorithm>
@@ -36,7 +34,9 @@ namespace CVC4 {
 namespace parser {
 
 Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
-    : Parser(solver, input, strictMode, parseOnly), d_logicSet(false)
+    : Parser(solver, input, strictMode, parseOnly),
+      d_logicSet(false),
+      d_seenSetLogic(false)
 {
   if (!strictModeEnabled())
   {
@@ -45,17 +45,21 @@ Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
 }
 
 void Smt2::addArithmeticOperators() {
-  Parser::addOperator(kind::PLUS);
-  Parser::addOperator(kind::MINUS);
+  addOperator(kind::PLUS, "+");
+  addOperator(kind::MINUS, "-");
+  // kind::MINUS is converted to kind::UMINUS if there is only a single operand
   Parser::addOperator(kind::UMINUS);
-  Parser::addOperator(kind::MULT);
-  Parser::addOperator(kind::LT);
-  Parser::addOperator(kind::LEQ);
-  Parser::addOperator(kind::GT);
-  Parser::addOperator(kind::GEQ);
+  addOperator(kind::MULT, "*");
+  addOperator(kind::LT, "<");
+  addOperator(kind::LEQ, "<=");
+  addOperator(kind::GT, ">");
+  addOperator(kind::GEQ, ">=");
 
-  // NOTE: this operator is non-standard
-  addOperator(kind::POW, "^");
+  if (!strictModeEnabled())
+  {
+    // NOTE: this operator is non-standard
+    addOperator(kind::POW, "^");
+  }
 }
 
 void Smt2::addTranscendentalOperators()
@@ -74,6 +78,14 @@ void Smt2::addTranscendentalOperators()
   addOperator(kind::ARCSECANT, "arcsec");
   addOperator(kind::ARCCOTANGENT, "arccot");
   addOperator(kind::SQRT, "sqrt");
+}
+
+void Smt2::addQuantifiersOperators()
+{
+  if (!strictModeEnabled())
+  {
+    addOperator(kind::INST_CLOSURE, "inst-closure");
+  }
 }
 
 void Smt2::addBitvectorOperators() {
@@ -108,17 +120,39 @@ void Smt2::addBitvectorOperators() {
   addOperator(kind::BITVECTOR_SGE, "bvsge");
   addOperator(kind::BITVECTOR_REDOR, "bvredor");
   addOperator(kind::BITVECTOR_REDAND, "bvredand");
+  addOperator(kind::BITVECTOR_TO_NAT, "bv2nat");
 
-  Parser::addOperator(kind::BITVECTOR_BITOF);
-  Parser::addOperator(kind::BITVECTOR_EXTRACT);
-  Parser::addOperator(kind::BITVECTOR_REPEAT);
-  Parser::addOperator(kind::BITVECTOR_ZERO_EXTEND);
-  Parser::addOperator(kind::BITVECTOR_SIGN_EXTEND);
-  Parser::addOperator(kind::BITVECTOR_ROTATE_LEFT);
-  Parser::addOperator(kind::BITVECTOR_ROTATE_RIGHT);
+  addIndexedOperator(
+      kind::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT_OP, "extract");
+  addIndexedOperator(
+      kind::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT_OP, "repeat");
+  addIndexedOperator(kind::BITVECTOR_ZERO_EXTEND,
+                     api::BITVECTOR_ZERO_EXTEND_OP,
+                     "zero_extend");
+  addIndexedOperator(kind::BITVECTOR_SIGN_EXTEND,
+                     api::BITVECTOR_SIGN_EXTEND_OP,
+                     "sign_extend");
+  addIndexedOperator(kind::BITVECTOR_ROTATE_LEFT,
+                     api::BITVECTOR_ROTATE_LEFT_OP,
+                     "rotate_left");
+  addIndexedOperator(kind::BITVECTOR_ROTATE_RIGHT,
+                     api::BITVECTOR_ROTATE_RIGHT_OP,
+                     "rotate_right");
+  addIndexedOperator(
+      kind::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR_OP, "int2bv");
+}
 
-  Parser::addOperator(kind::INT_TO_BITVECTOR);
-  Parser::addOperator(kind::BITVECTOR_TO_NAT);
+void Smt2::addDatatypesOperators()
+{
+  Parser::addOperator(kind::APPLY_CONSTRUCTOR);
+  Parser::addOperator(kind::APPLY_TESTER);
+  Parser::addOperator(kind::APPLY_SELECTOR);
+  Parser::addOperator(kind::APPLY_SELECTOR_TOTAL);
+
+  if (!strictModeEnabled())
+  {
+    addOperator(kind::DT_SIZE, "dt.size");
+  }
 }
 
 void Smt2::addStringOperators() {
@@ -135,6 +169,11 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_STRIDOF, "str.indexof" );
   addOperator(kind::STRING_STRREPL, "str.replace" );
   addOperator(kind::STRING_STRREPLALL, "str.replaceall");
+  if (!strictModeEnabled())
+  {
+    addOperator(kind::STRING_TOLOWER, "str.tolower");
+    addOperator(kind::STRING_TOUPPER, "str.toupper");
+  }
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   // at the moment, we only use this syntax for smt2.6.1
@@ -194,14 +233,32 @@ void Smt2::addFloatingPointOperators() {
   addOperator(kind::FLOATINGPOINT_ISPOS, "fp.isPositive");
   addOperator(kind::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_GENERIC);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_REAL);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_UBV);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_SBV);
+  addIndexedOperator(kind::FLOATINGPOINT_TO_FP_GENERIC,
+                     api::FLOATINGPOINT_TO_FP_GENERIC_OP,
+                     "to_fp");
+  addIndexedOperator(kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
+                     api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP,
+                     "to_fp_unsigned");
+  addIndexedOperator(
+      kind::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV_OP, "fp.to_ubv");
+  addIndexedOperator(
+      kind::FLOATINGPOINT_TO_SBV, api::FLOATINGPOINT_TO_SBV_OP, "fp.to_sbv");
+
+  if (!strictModeEnabled())
+  {
+    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+                       api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
+                       "to_fp_bv");
+    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
+                       api::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP,
+                       "to_fp_fp");
+    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_REAL,
+                       api::FLOATINGPOINT_TO_FP_REAL_OP,
+                       "to_fp_real");
+    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
+                       api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP,
+                       "to_fp_signed");
+  }
 }
 
 void Smt2::addSepOperators() {
@@ -230,19 +287,19 @@ void Smt2::addTheory(Theory theory) {
     defineType("Bool", getExprManager()->booleanType());
     defineVar("true", getExprManager()->mkConst(true));
     defineVar("false", getExprManager()->mkConst(false));
-    Parser::addOperator(kind::AND);
-    Parser::addOperator(kind::DISTINCT);
-    Parser::addOperator(kind::EQUAL);
-    Parser::addOperator(kind::IMPLIES);
-    Parser::addOperator(kind::ITE);
-    Parser::addOperator(kind::NOT);
-    Parser::addOperator(kind::OR);
-    Parser::addOperator(kind::XOR);
+    addOperator(kind::AND, "and");
+    addOperator(kind::DISTINCT, "distinct");
+    addOperator(kind::EQUAL, "=");
+    addOperator(kind::IMPLIES, "=>");
+    addOperator(kind::ITE, "ite");
+    addOperator(kind::NOT, "not");
+    addOperator(kind::OR, "or");
+    addOperator(kind::XOR, "xor");
     break;
 
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
-    Parser::addOperator(kind::DIVISION);
+    addOperator(kind::DIVISION, "/");
     addOperator(kind::TO_INTEGER, "to_int");
     addOperator(kind::IS_INTEGER, "is_int");
     addOperator(kind::TO_REAL, "to_real");
@@ -253,21 +310,36 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::INTS_DIVISION, "div");
     addOperator(kind::INTS_MODULUS, "mod");
     addOperator(kind::ABS, "abs");
-    Parser::addOperator(kind::DIVISIBLE);
+    addIndexedOperator(kind::DIVISIBLE, api::DIVISIBLE_OP, "divisible");
     break;
 
   case THEORY_REALS:
     defineType("Real", getExprManager()->realType());
     addArithmeticOperators();
-    Parser::addOperator(kind::DIVISION);
+    addOperator(kind::DIVISION, "/");
+    if (!strictModeEnabled())
+    {
+      addOperator(kind::ABS, "abs");
+    }
     break;
 
-  case THEORY_TRANSCENDENTALS: addTranscendentalOperators(); break;
-
-  case THEORY_QUANTIFIERS:
+  case THEORY_TRANSCENDENTALS:
+    defineVar("real.pi",
+              getExprManager()->mkNullaryOperator(getExprManager()->realType(),
+                                                  CVC4::kind::PI));
+    addTranscendentalOperators();
     break;
+
+  case THEORY_QUANTIFIERS: addQuantifiersOperators(); break;
 
   case THEORY_SETS:
+    defineVar("emptyset",
+              d_solver->mkEmptySet(d_solver->getNullSort()).getExpr());
+    // the Boolean sort is a placeholder here since we don't have type info
+    // without type annotation
+    defineVar("univset",
+              d_solver->mkUniverseSet(d_solver->getBooleanSort()).getExpr());
+
     addOperator(kind::UNION, "union");
     addOperator(kind::INTERSECTION, "intersection");
     addOperator(kind::SETMINUS, "setminus");
@@ -287,10 +359,7 @@ void Smt2::addTheory(Theory theory) {
   {
     const std::vector<Type> types;
     defineType("Tuple", getExprManager()->mkTupleType(types));
-    Parser::addOperator(kind::APPLY_CONSTRUCTOR);
-    Parser::addOperator(kind::APPLY_TESTER);
-    Parser::addOperator(kind::APPLY_SELECTOR);
-    Parser::addOperator(kind::APPLY_SELECTOR_TOTAL);
+    addDatatypesOperators();
     break;
   }
 
@@ -298,11 +367,21 @@ void Smt2::addTheory(Theory theory) {
     defineType("String", getExprManager()->stringType());
     defineType("RegLan", getExprManager()->regExpType());
     defineType("Int", getExprManager()->integerType());
+
+    defineVar("re.nostr", d_solver->mkRegexpEmpty().getExpr());
+    defineVar("re.allchar", d_solver->mkRegexpSigma().getExpr());
+
     addStringOperators();
     break;
 
   case THEORY_UF:
     Parser::addOperator(kind::APPLY_UF);
+
+    if (!strictModeEnabled() && d_logic.hasCardinalityConstraints())
+    {
+      addOperator(kind::CARDINALITY_CONSTRAINT, "fmf.card");
+      addOperator(kind::CARDINALITY_VALUE, "fmf.card.val");
+    }
     break;
 
   case THEORY_FP:
@@ -311,10 +390,41 @@ void Smt2::addTheory(Theory theory) {
     defineType("Float32", getExprManager()->mkFloatingPointType(8, 24));
     defineType("Float64", getExprManager()->mkFloatingPointType(11, 53));
     defineType("Float128", getExprManager()->mkFloatingPointType(15, 113));
+
+    defineVar(
+        "RNE",
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN).getExpr());
+    defineVar(
+        "roundNearestTiesToEven",
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN).getExpr());
+    defineVar(
+        "RNA",
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY).getExpr());
+    defineVar(
+        "roundNearestTiesToAway",
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY).getExpr());
+    defineVar("RTP",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE).getExpr());
+    defineVar("roundTowardPositive",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE).getExpr());
+    defineVar("RTN",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE).getExpr());
+    defineVar("roundTowardNegative",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE).getExpr());
+    defineVar("RTZ",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO).getExpr());
+    defineVar("roundTowardZero",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO).getExpr());
+
     addFloatingPointOperators();
     break;
     
   case THEORY_SEP:
+    // the Boolean sort is a placeholder here since we don't have type info
+    // without type annotation
+    defineVar("sep.nil",
+              d_solver->mkSepNil(d_solver->getBooleanSort()).getExpr());
+
     addSepOperators();
     break;
     
@@ -330,6 +440,14 @@ void Smt2::addOperator(Kind kind, const std::string& name) {
                   << std::endl;
   Parser::addOperator(kind);
   operatorKindMap[name] = kind;
+}
+
+void Smt2::addIndexedOperator(Kind tKind,
+                              api::Kind opKind,
+                              const std::string& name)
+{
+  Parser::addOperator(tKind);
+  d_indexedOpKindMap[name] = opKind;
 }
 
 Kind Smt2::getOperatorKind(const std::string& name) const {
@@ -384,15 +502,77 @@ bool Smt2::logicIsSet() {
 }
 
 Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
-  if(sygus() && name[0]=='-' && 
-    name.find_first_not_of("0123456789", 1) == std::string::npos) {
-    //allow unary minus in sygus
+  if (sygus_v1() && name[0] == '-'
+      && name.find_first_not_of("0123456789", 1) == std::string::npos)
+  {
+    // allow unary minus in sygus version 1
     return getExprManager()->mkConst(Rational(name));
-  }else if(isAbstractValue(name)) {
-    return mkAbstractValue(name);
-  }else{
-    return Parser::getExpressionForNameAndType(name, t);
   }
+  else if (isAbstractValue(name))
+  {
+    return mkAbstractValue(name);
+  }
+  return Parser::getExpressionForNameAndType(name, t);
+}
+
+api::Term Smt2::mkIndexedConstant(const std::string& name,
+                                  const std::vector<uint64_t>& numerals)
+{
+  if (isTheoryEnabled(THEORY_FP))
+  {
+    if (name == "+oo")
+    {
+      return d_solver->mkPosInf(numerals[0], numerals[1]);
+    }
+    else if (name == "-oo")
+    {
+      return d_solver->mkNegInf(numerals[0], numerals[1]);
+    }
+    else if (name == "NaN")
+    {
+      return d_solver->mkNaN(numerals[0], numerals[1]);
+    }
+    else if (name == "+zero")
+    {
+      return d_solver->mkPosZero(numerals[0], numerals[1]);
+    }
+    else if (name == "-zero")
+    {
+      return d_solver->mkNegZero(numerals[0], numerals[1]);
+    }
+  }
+
+  if (isTheoryEnabled(THEORY_BITVECTORS) && name.find("bv") == 0)
+  {
+    std::string bvStr = name.substr(2);
+    return d_solver->mkBitVector(numerals[0], bvStr, 10);
+  }
+
+  // NOTE: Theory parametric constants go here
+
+  parseError(std::string("Unknown indexed literal `") + name + "'");
+  return api::Term();
+}
+
+api::OpTerm Smt2::mkIndexedOp(const std::string& name,
+                              const std::vector<uint64_t>& numerals)
+{
+  const auto& kIt = d_indexedOpKindMap.find(name);
+  if (kIt != d_indexedOpKindMap.end())
+  {
+    api::Kind k = (*kIt).second;
+    if (numerals.size() == 1)
+    {
+      return d_solver->mkOpTerm(k, numerals[0]);
+    }
+    else if (numerals.size() == 2)
+    {
+      return d_solver->mkOpTerm(k, numerals[0], numerals[1]);
+    }
+  }
+
+  parseError(std::string("Unknown indexed function `") + name + "'");
+  return api::OpTerm();
 }
 
 Expr Smt2::mkDefineFunRec(
@@ -454,9 +634,25 @@ void Smt2::resetAssertions() {
   }
 }
 
-void Smt2::setLogic(std::string name) {
+Command* Smt2::setLogic(std::string name, bool fromCommand)
+{
+  if (fromCommand)
+  {
+    if (d_seenSetLogic)
+    {
+      parseError("Only one set-logic is allowed.");
+    }
+    d_seenSetLogic = true;
 
-  if(sygus()) {
+    if (logicIsForced())
+    {
+      // If the logic is forced, we ignore all set-logic requests from commands.
+      return new EmptyCommand();
+    }
+  }
+
+  if (sygus_v1())
+  {
     // non-smt2-standard sygus logic names go here (http://sygus.seas.upenn.edu/files/sygus.pdf Section 3.2)
     if(name == "Arrays") {
       name = "A";
@@ -466,11 +662,7 @@ void Smt2::setLogic(std::string name) {
   }
 
   d_logicSet = true;
-  if(logicIsForced()) {
-    d_logic = getForcedLogic();
-  } else {
-    d_logic = name;
-  }
+  d_logic = name;
 
   // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
   // higher-order
@@ -482,11 +674,8 @@ void Smt2::setLogic(std::string name) {
     }
     // get unlocked copy, modify, copy and relock
     LogicInfo log(d_logic.getUnlockedCopy());
-    log.enableQuantifiers();
-    log.enableTheory(theory::THEORY_UF);
-    log.enableTheory(theory::THEORY_DATATYPES);
-    log.enableIntegers();
-    log.enableHigherOrder();
+    // enable everything needed for sygus
+    log.enableSygus();
     d_logic = log;
     d_logic.lock();
   }
@@ -546,8 +735,27 @@ void Smt2::setLogic(std::string name) {
   if (d_logic.isTheoryEnabled(theory::THEORY_SEP)) {
     addTheory(THEORY_SEP);
   }
-  
-}/* Smt2::setLogic() */
+
+  if (sygus())
+  {
+    return new SetBenchmarkLogicCommand(d_logic.getLogicString());
+  }
+  else
+  {
+    return new SetBenchmarkLogicCommand(name);
+  }
+} /* Smt2::setLogic() */
+
+bool Smt2::sygus() const
+{
+  InputLanguage ilang = getLanguage();
+  return ilang == language::input::LANG_SYGUS
+         || ilang == language::input::LANG_SYGUS_V2;
+}
+bool Smt2::sygus_v1() const
+{
+  return getLanguage() == language::input::LANG_SYGUS;
+}
 
 void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
   // TODO: ???
@@ -557,21 +765,33 @@ void Smt2::setOption(const std::string& flag, const SExpr& sexpr) {
   // TODO: ???
 }
 
-void Smt2::checkThatLogicIsSet() {
-  if( ! logicIsSet() ) {
-    if(strictModeEnabled()) {
+void Smt2::checkThatLogicIsSet()
+{
+  if (!logicIsSet())
+  {
+    if (strictModeEnabled())
+    {
       parseError("set-logic must appear before this point.");
-    } else {
-      warning("No set-logic command was given before this point.");
-      warning("CVC4 will make all theories available.");
-      warning("Consider setting a stricter logic for (likely) better performance.");
-      warning("To suppress this warning in the future use (set-logic ALL).");
+    }
+    else
+    {
+      Command* cmd = nullptr;
+      if (logicIsForced())
+      {
+        cmd = setLogic(getForcedLogic(), false);
+      }
+      else
+      {
+        warning("No set-logic command was given before this point.");
+        warning("CVC4 will make all theories available.");
+        warning(
+            "Consider setting a stricter logic for (likely) better "
+            "performance.");
+        warning("To suppress this warning in the future use (set-logic ALL).");
 
-      setLogic("ALL");
-
-      Command* c = new SetBenchmarkLogicCommand("ALL");
-      c->setMuted(true);
-      preemptCommand(c);
+        cmd = setLogic("ALL", false);
+      }
+      preemptCommand(cmd);
     }
   }
 }
@@ -865,7 +1085,7 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
         }
       }
       Kind sk = sop.getKind() != kind::BUILTIN
-                    ? kind::APPLY_UF
+                    ? getKindForFunction(sop)
                     : getExprManager()->operatorToKind(sop);
       Debug("parser-sygus") << ": operator " << sop << " with " << sop.getKind() << " " << sk << std::endl;
       Expr e = getExprManager()->mkExpr( sk, children );
@@ -1227,11 +1447,130 @@ Expr Smt2::makeSygusBoundVarList(Datatype& dt,
   return getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars);
 }
 
+void Smt2::addSygusConstructorTerm(Datatype& dt,
+                                   Expr term,
+                                   std::map<Expr, Type>& ntsToUnres) const
+{
+  Trace("parser-sygus2") << "Add sygus cons term " << term << std::endl;
+  // purify each occurrence of a non-terminal symbol in term, replace by
+  // free variables. These become arguments to constructors. Notice we must do
+  // a tree traversal in this function, since unique paths to the same term
+  // should be treated as distinct terms.
+  // Notice that let expressions are forbidden in the input syntax of term, so
+  // this does not lead to exponential behavior with respect to input size.
+  std::vector<Expr> args;
+  std::vector<Type> cargs;
+  Expr op = purifySygusGTerm(term, ntsToUnres, args, cargs);
+  Trace("parser-sygus2") << "Purified operator " << op
+                         << ", #args/cargs=" << args.size() << "/"
+                         << cargs.size() << std::endl;
+  std::shared_ptr<SygusPrintCallback> spc;
+  // callback prints as the expression
+  spc = std::make_shared<printer::SygusExprPrintCallback>(op, args);
+  if (!args.empty())
+  {
+    bool pureVar = false;
+    if (op.getNumChildren() == args.size())
+    {
+      pureVar = true;
+      for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
+      {
+        if (op[i] != args[i])
+        {
+          pureVar = false;
+          break;
+        }
+      }
+    }
+    Trace("parser-sygus2") << "Pure var is " << pureVar
+                           << ", hasOp=" << op.hasOperator() << std::endl;
+    if (pureVar && op.hasOperator())
+    {
+      // optimization: use just the operator if it an application to only vars
+      op = op.getOperator();
+    }
+    else
+    {
+      Expr lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, args);
+      // its operator is a lambda
+      op = getExprManager()->mkExpr(kind::LAMBDA, lbvl, op);
+    }
+  }
+  Trace("parser-sygus2") << "Generated operator " << op << std::endl;
+  std::stringstream ss;
+  ss << op.getKind();
+  dt.addSygusConstructor(op, ss.str(), cargs, spc);
+}
+
+Expr Smt2::purifySygusGTerm(Expr term,
+                            std::map<Expr, Type>& ntsToUnres,
+                            std::vector<Expr>& args,
+                            std::vector<Type>& cargs) const
+{
+  Trace("parser-sygus2-debug")
+      << "purifySygusGTerm: " << term << " #nchild=" << term.getNumChildren()
+      << std::endl;
+  std::map<Expr, Type>::iterator itn = ntsToUnres.find(term);
+  if (itn != ntsToUnres.end())
+  {
+    Expr ret = getExprManager()->mkBoundVar(term.getType());
+    Trace("parser-sygus2-debug")
+        << "...unresolved non-terminal, intro " << ret << std::endl;
+    args.push_back(ret);
+    cargs.push_back(itn->second);
+    return ret;
+  }
+  std::vector<Expr> pchildren;
+  // To test whether the operator should be passed to mkExpr below, we check
+  // whether this term has an operator which is not constant. This includes
+  // APPLY_UF terms, but excludes applications of interpreted symbols.
+  if (term.hasOperator() && !term.getOperator().isConst())
+  {
+    pchildren.push_back(term.getOperator());
+  }
+  bool childChanged = false;
+  for (unsigned i = 0, nchild = term.getNumChildren(); i < nchild; i++)
+  {
+    Trace("parser-sygus2-debug")
+        << "......purify child " << i << " : " << term[i] << std::endl;
+    Expr ptermc = purifySygusGTerm(term[i], ntsToUnres, args, cargs);
+    pchildren.push_back(ptermc);
+    childChanged = childChanged || ptermc != term[i];
+  }
+  if (!childChanged)
+  {
+    Trace("parser-sygus2-debug") << "...no child changed" << std::endl;
+    return term;
+  }
+  Expr nret = getExprManager()->mkExpr(term.getKind(), pchildren);
+  Trace("parser-sygus2-debug")
+      << "...child changed, return " << nret << std::endl;
+  return nret;
+}
+
+void Smt2::addSygusConstructorVariables(Datatype& dt,
+                                        std::vector<Expr>& sygusVars,
+                                        Type type) const
+{
+  // each variable of appropriate type becomes a sygus constructor in dt.
+  for (unsigned i = 0, size = sygusVars.size(); i < size; i++)
+  {
+    Expr v = sygusVars[i];
+    if (v.getType() == type)
+    {
+      std::stringstream ss;
+      ss << v;
+      std::vector<CVC4::Type> cargs;
+      dt.addSygusConstructor(v, ss.str(), cargs);
+    }
+  }
+}
+
 InputLanguage Smt2::getLanguage() const
 {
   ExprManager* em = getExprManager();
   return em->getOptions().getInputLanguage();
 }
 
-}/* CVC4::parser namespace */
+}  // namespace parser
 }/* CVC4 namespace */

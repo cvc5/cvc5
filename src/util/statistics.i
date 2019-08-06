@@ -4,7 +4,6 @@
 #ifdef SWIGJAVA
 
 #include "bindings/java_iterator_adapter.h"
-#include "bindings/java_stream_adapters.h"
 
 #endif /* SWIGJAVA */
 %}
@@ -24,24 +23,29 @@
 %ignore CVC4::StatisticsBase::begin() const;
 %ignore CVC4::StatisticsBase::end() const;
 %extend CVC4::StatisticsBase {
-  CVC4::JavaIteratorAdapter<CVC4::StatisticsBase> iterator() {
-    return CVC4::JavaIteratorAdapter<CVC4::StatisticsBase>(*$self);
+  CVC4::JavaIteratorAdapter<CVC4::StatisticsBase,
+                            std::pair<std::string, CVC4::SExpr> >
+  iterator()
+  {
+    return CVC4::JavaIteratorAdapter<CVC4::StatisticsBase,
+                                     std::pair<std::string, CVC4::SExpr> >(
+        *$self);
   }
 }
 
 // StatisticsBase is "iterable" on the Java side
-%typemap(javainterfaces) CVC4::StatisticsBase "java.lang.Iterable<Object[]>";
+%typemap(javainterfaces) CVC4::StatisticsBase "java.lang.Iterable<Statistic>";
 
 // the JavaIteratorAdapter should not be public, and implements Iterator
-%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase> "java.util.Iterator<Object[]>";
+%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase, std::pair<std::string, CVC4::SExpr> > "class";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase, std::pair<std::string, CVC4::SExpr> > "java.util.Iterator<Statistic>";
 // add some functions to the Java side (do it here because there's no way to do these in C++)
-%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase> "
+%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase, std::pair<std::string, CVC4::SExpr> > "
   public void remove() {
     throw new java.lang.UnsupportedOperationException();
   }
 
-  public Object[] next() {
+  public Statistic next() {
     if(hasNext()) {
       return getNext();
     } else {
@@ -50,22 +54,7 @@
   }
 "
 // getNext() just allows C++ iterator access from Java-side next(), make it private
-%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::StatisticsBase>::getNext() "private";
-
-// map the types appropriately.  for statistics, the "payload" of the iterator is an Object[].
-// These Object arrays are always of two elements, the first is a String and the second an
-// SExpr.  (On the C++ side, it is a std::pair<std::string, SExpr>.)
-%typemap(jni) CVC4::StatisticsBase::const_iterator::value_type "jobjectArray";
-%typemap(jtype) CVC4::StatisticsBase::const_iterator::value_type "java.lang.Object[]";
-%typemap(jstype) CVC4::StatisticsBase::const_iterator::value_type "java.lang.Object[]";
-%typemap(javaout) CVC4::StatisticsBase::const_iterator::value_type { return $jnicall; }
-%typemap(out) CVC4::StatisticsBase::const_iterator::value_type {
-      $result = jenv->NewObjectArray(2, jenv->FindClass("java/lang/Object"), $null);
-      jenv->SetObjectArrayElement($result, 0, jenv->NewStringUTF($1.first.c_str()));
-      jclass clazz = jenv->FindClass("edu/nyu/acsys/CVC4/SExpr");
-      jmethodID methodid = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
-      jenv->SetObjectArrayElement($result, 1, jenv->NewObject(clazz, methodid, reinterpret_cast<uintptr_t>(new CVC4::SExpr($1.second)), true));
-    };
+%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::StatisticsBase, std::pair<std::string, CVC4::SExpr> >::getNext() "private";
 
 #endif /* SWIGJAVA */
 
@@ -73,9 +62,14 @@
 
 #ifdef SWIGJAVA
 
-%include "bindings/java_iterator_adapter.h"
-%include "bindings/java_stream_adapters.h"
+%include <std_pair.i>
+%include <std_string.i>
+%include <std_vector.i>
 
-%template(JavaIteratorAdapter_StatisticsBase) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase>;
+%include "bindings/java_iterator_adapter.h"
+%include "util/sexpr.h"
+
+%template(Statistic) std::pair<std::string, CVC4::SExpr>;
+%template(JavaIteratorAdapter_StatisticsBase) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase, std::pair<std::string, CVC4::SExpr> >;
 
 #endif /* SWIGJAVA */

@@ -27,16 +27,16 @@
 #define CVC4__PROOF__ER__ER_PROOF_H
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace proof {
 namespace er {
-
-using ClauseUseRecord = std::vector<std::pair<ClauseId, prop::SatClause>>;
 
 /**
  * A definition of the form:
@@ -116,11 +116,18 @@ class ErProof
   /**
    * Construct an ER proof from a DRAT proof, using drat2er
    *
-   * @param usedClauses The CNF formula that we're deriving bottom from.
-   * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream.
+   * @param clauses A store of clauses that might be in our formula
+   * @param usedIds the ids of clauses that are actually in our formula
+   * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream
+   *
+   * @return the Er proof and a timer of the execution of drat2er
    */
-  static ErProof fromBinaryDratProof(const ClauseUseRecord& usedClauses,
-                                     const std::string& dratBinary);
+  static ErProof fromBinaryDratProof(
+      const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+      const std::vector<ClauseId>& usedIds,
+      const std::string& dratBinary,
+      TimerStat& toolTimer
+      );
 
   /**
    * Construct an ER proof from a TRACECHECK ER proof
@@ -128,10 +135,13 @@ class ErProof
    * This basically just identifies groups of lines which correspond to
    * definitions, and extracts them.
    *
-   * @param usedClauses The CNF formula that we're deriving bottom from.
+   * @param clauses A store of clauses that might be in our formula
+   * @param usedIds the ids of clauses that are actually in our formula
    * @param tracecheck  The TRACECHECK proof, as a stream.
    */
-  ErProof(const ClauseUseRecord& usedClauses, TraceCheckProof&& tracecheck);
+  ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+          const std::vector<ClauseId>& usedIds,
+          TraceCheckProof&& tracecheck);
 
   /**
    * Write the ER proof as an LFSC value of type (holds cln).

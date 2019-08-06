@@ -113,9 +113,10 @@
                                       ((clc l c') (cnf_has_bottom rest))))))
 
 ; Return a new cnf with one copy of this clause removed.
+; If the clause is absent, returns the original cnf.
 (program cnf_remove_clause ((c clause) (cs cnf)) cnf
          (match cs
-                (cnfn (fail cnf))
+                (cnfn cnfn)
                 ((cnfc c' cs')
                  (match (clause_eq c c')
                         (tt cs')
@@ -224,9 +225,11 @@
                 (tt tt)
                 (ff (match (is_at cs c)
                            (tt tt)
-                           (ff (are_all_at
+                           (ff (match c
+                                      (cln ff)
+                                      ((clc a b) (are_all_at ; dedent
                                  cs
-                                 (collect_pseudo_resolvents cs c)))))))
+                                 (collect_pseudo_resolvents cs c)))))))))
 
 ; Is this proof a valid DRAT proof of bottom?
 (program is_specified_drat_proof ((f cnf) (proof DRATProof)) bool
@@ -322,7 +325,7 @@
 
 
 ; Do unit propagation on `f`, constructing a UP model for it.
-(program build_up_model ((f cnf)) clause
+(program build_up_model ((f cnf)) UPConstructionResult
          (match (unit_search f)
                 (USRBottom UPCRBottom)
                 (USRNoUnit (UPCRModel cln))
@@ -335,7 +338,7 @@
 
 ; Given some starting assignment (`up_model`), continue UP to construct a larger
 ; model.
-(program extend_up_model ((f cnf) (up_model clause)) clause
+(program extend_up_model ((f cnf) (up_model clause)) UPConstructionResult
          (do (clause_into_global up_model)
            (let result (build_up_model f)
              (do (clause_undo_into_global up_model)

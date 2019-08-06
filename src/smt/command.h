@@ -958,6 +958,37 @@ class CVC4_PUBLIC GetModelCommand : public Command
   SmtEngine* d_smtEngine;
 }; /* class GetModelCommand */
 
+/** The command to block models. */
+class CVC4_PUBLIC BlockModelCommand : public Command
+{
+ public:
+  BlockModelCommand();
+
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class BlockModelCommand */
+
+/** The command to block model values. */
+class CVC4_PUBLIC BlockModelValuesCommand : public Command
+{
+ public:
+  BlockModelValuesCommand(const std::vector<Expr>& terms);
+
+  const std::vector<Expr>& getTerms() const;
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+
+ protected:
+  /** The terms we are blocking */
+  std::vector<Expr> d_terms;
+}; /* class BlockModelValuesCommand */
+
 class CVC4_PUBLIC GetProofCommand : public Command
 {
  public:
@@ -1008,6 +1039,56 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
  protected:
   SmtEngine* d_smtEngine;
 }; /* class GetSynthSolutionCommand */
+
+/** The command (get-abduct s B (G)?)
+ *
+ * This command asks for an abduct from the current set of assertions and
+ * conjecture (goal) given by the argument B.
+ *
+ * The symbol s is the name for the abduction predicate. If we successfully
+ * find a predicate P, then the output response of this command is:
+ *   (define-fun s () Bool P)
+ *
+ * A grammar type G can be optionally provided to indicate the syntactic
+ * restrictions on the possible solutions returned.
+ */
+class CVC4_PUBLIC GetAbductCommand : public Command
+{
+ public:
+  GetAbductCommand();
+  GetAbductCommand(const std::string& name, Expr conj);
+  GetAbductCommand(const std::string& name, Expr conj, const Type& gtype);
+
+  /** Get the conjecture of the abduction query */
+  Expr getConjecture() const;
+  /** Get the grammar type given for the abduction query */
+  Type getGrammarType() const;
+  /** Get the result of the query, which is the solution to the abduction query.
+   */
+  Expr getResult() const;
+
+  void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+
+ protected:
+  /** The name of the abduction predicate */
+  std::string d_name;
+  /** The conjecture of the abduction query */
+  Expr d_conj;
+  /**
+   * The (optional) grammar of the abduction query, expressed as a sygus
+   * datatype type.
+   */
+  Type d_sygus_grammar_type;
+  /** the return status of the command */
+  bool d_resultStatus;
+  /** the return expression of the command */
+  Expr d_result;
+}; /* class GetAbductCommand */
 
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
 {

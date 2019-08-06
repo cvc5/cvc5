@@ -26,8 +26,9 @@
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "proof/dimacs_printer.h"
+#include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
+#include "util/utility.h"
 
 #if CVC4_USE_DRAT2ER
 #include "drat2er_options.h"
@@ -104,6 +105,7 @@ void printHints(std::ostream& o,
  */
 void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 {
+  Assert(indices.size() > 0);
   // Verify that the indices are sorted!
   for (size_t i = 0, n = indices.size() - 1; i < n; ++i)
   {
@@ -123,45 +125,42 @@ void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 // Prints the LRAT addition line in textual format
 
 LratProof LratProof::fromDratProof(
-    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
-    const std::string& dratBinary)
+    const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+    const std::vector<ClauseId> usedIds,
+    const std::string& dratBinary,
+    TimerStat& toolTimer)
 {
   std::ostringstream cmd;
-  char formulaFilename[] = "/tmp/cvc4-dimacs-XXXXXX";
-  char dratFilename[] = "/tmp/cvc4-drat-XXXXXX";
-  char lratFilename[] = "/tmp/cvc4-lrat-XXXXXX";
-  int r;
-  r = mkstemp(formulaFilename);
-  AlwaysAssert(r > 0);
-  close(r);
-  r = mkstemp(dratFilename);
-  AlwaysAssert(r > 0);
-  close(r);
-  r = mkstemp(lratFilename);
-  AlwaysAssert(r > 0);
-  close(r);
-  std::ofstream formStream(formulaFilename);
-  printDimacs(formStream, usedClauses);
-  formStream.close();
+  std::string formulaFilename("cvc4-dimacs-XXXXXX");
+  std::string dratFilename("cvc4-drat-XXXXXX");
+  std::string lratFilename("cvc4-lrat-XXXXXX");
 
-  std::ofstream dratStream(dratFilename);
-  dratStream << dratBinary;
-  dratStream.close();
+  std::unique_ptr<std::fstream> formStream = openTmpFile(&formulaFilename);
+  printDimacs(*formStream, clauses, usedIds);
+  formStream->close();
 
+  std::unique_ptr<std::fstream> dratStream = openTmpFile(&dratFilename);
+  (*dratStream) << dratBinary;
+  dratStream->close();
+
+  std::unique_ptr<std::fstream> lratStream = openTmpFile(&lratFilename);
+
+  {
+    CodeTimer blockTimer{toolTimer};
 #if CVC4_USE_DRAT2ER
-  drat2er::drat_trim::CheckAndConvertToLRAT(
-      formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
+    drat2er::drat_trim::CheckAndConvertToLRAT(
+        formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
 #else
-  Unimplemented(
-      "LRAT proof production requires drat2er.\n"
-      "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented(
+        "LRAT proof production requires drat2er.\n"
+        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
+  }
 
-  std::ifstream lratStream(lratFilename);
-  LratProof lrat(lratStream);
-  remove(formulaFilename);
-  remove(dratFilename);
-  remove(lratFilename);
+  LratProof lrat(*lratStream);
+  remove(formulaFilename.c_str());
+  remove(dratFilename.c_str());
+  remove(lratFilename.c_str());
   return lrat;
 }
 
@@ -206,10 +205,13 @@ LratProof::LratProof(std::istream& textualProof)
         }
         clauses.push_back(di);
       }
-      std::sort(clauses.begin(), clauses.end());
-      std::unique_ptr<LratInstruction> instr(
-          new LratDeletion(clauseIdx, std::move(clauses)));
-      d_instructions.push_back(std::move(instr));
+      if (clauses.size() > 0)
+      {
+        std::sort(clauses.begin(), clauses.end());
+        std::unique_ptr<LratInstruction> instr(
+            new LratDeletion(clauseIdx, std::move(clauses)));
+        d_instructions.push_back(std::move(instr));
+      }
     }
     else
     {
