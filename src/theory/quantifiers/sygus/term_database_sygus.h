@@ -62,10 +62,13 @@ class TermDbSygus {
    *
    * This initializes this database for sygus datatype type tn. This may
    * throw an assertion failure if the sygus grammar has type errors. Otherwise,
-   * after registering a sygus type, the query functions in this class (such
-   * as sygusToBuiltinType, getKindConsNum, etc.) can be called for tn.
+   * after registering a sygus type, the query functions getTypeInfo can be
+   * called for tn.
+   *
+   * This method returns true if tn is a sygus datatype type and false
+   * otherwise.
    */
-  void registerSygusType(TypeNode tn);
+  bool registerSygusType(TypeNode tn);
 
   //------------------------------utilities
   /** get the explanation utility */

@@ -331,28 +331,28 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
   return weight + sum;
 }
 
-void TermDbSygus::registerSygusType( TypeNode tn ) {
+bool TermDbSygus::registerSygusType( TypeNode tn ) {
   std::map<TypeNode, bool>::iterator it = d_registerStatus.find(tn);
   if (it != d_registerStatus.end())
   {
     // already registered
-    return;
+    return it->second;
   }
   d_registerStatus[tn] = false;
   // it must be a sygus datatype
   if (!tn.isDatatype())
   {
-    return;
+    return false;
   }
   const Datatype& dt = tn.getDatatype();
   if (!dt.isSygus())
   {
-    return;
+    return false;
   }
   d_registerStatus[tn] = true;
   SygusTypeInfo& sti = d_tinfo[tn];
   sti.initialize(this, tn);
-  return;
+  return true;
 }
 
 void TermDbSygus::registerEnumerator(Node e,
@@ -708,7 +708,7 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 
 SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 {
-  Assert(d_tinfo.find(tn) != d_tinfo.end());
+  AlwaysAssert(d_tinfo.find(tn) != d_tinfo.end());
   return d_tinfo[tn];
 }
 

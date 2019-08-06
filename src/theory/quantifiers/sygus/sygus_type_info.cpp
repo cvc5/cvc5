@@ -102,12 +102,15 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {
       TypeNode ctn = TypeNode::fromType(dt[i].getArgType(j));
-      tds->registerSygusType(ctn);
-      SygusTypeInfo& stic = tds->getTypeInfo(ctn);
-      // carry type attributes
-      if (stic.d_has_subterm_sym_cons)
+      Trace("sygus-db") << "  register subfield type " << ctn << std::endl;
+      if( tds->registerSygusType(ctn) )
       {
-        d_has_subterm_sym_cons = true;
+        SygusTypeInfo& stic = tds->getTypeInfo(ctn);
+        // carry type attributes
+        if (stic.d_has_subterm_sym_cons)
+        {
+          d_has_subterm_sym_cons = true;
+        }
       }
     }
   }
@@ -464,4 +467,4 @@ bool SygusTypeInfo::isSubclassVarTrivial() const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
+}  // namespace CVC

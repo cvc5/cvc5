@@ -844,7 +844,8 @@ void CegSingleInvSol::registerType(TypeNode tn)
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   // ensure it is registered
   tds->registerSygusType(tn);
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const Datatype& dt = tn.getDatatype();
+  Assert(dt.isSygus());
   TypeNode btn = TypeNode::fromType(dt.getSygusType());
   // for constant reconstruction
   Kind ck = tds->getComparisonKind(btn);
