@@ -718,7 +718,8 @@ class CVC4_PUBLIC Term
   bool hasOpTermOperator() const;
 
   /**
-   * Returns true if this Term was created with an uninterpreted function application.
+   * Returns true if this Term was created with an
+   * uninterpreted function application.
    * If true, getUFOperator() returns the operator UF.
    * @return true iff this Term is the result of
    *         applying an uninterpreted function
