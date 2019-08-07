@@ -23,6 +23,7 @@
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_engine.h"
+#include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/quant_conflict_find.h"
@@ -30,7 +31,6 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
-#include "theory/quantifiers/inst_propagator.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -95,7 +95,7 @@ class QuantifiersEnginePrivate
   std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
   //------------------------------ end quantifiers modules
   /** initialize
-   * 
+   *
    * This constructs the above modules based on the current options. It adds
    * a pointer to each module it constructs to modules. This method sets
    * needsBuilder to true if we require a strategy-specific model builder
@@ -219,7 +219,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
 {
   // initialize the private utility
   d_private.reset(new QuantifiersEnginePrivate);
-  
+
   //---- utilities
   d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
