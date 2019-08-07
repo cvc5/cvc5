@@ -214,7 +214,8 @@ bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
 void QuantAttributes::computeAttributes( Node q ) {
   computeQuantAttributes( q, d_qattr[q] );
   QAttributes& qa = d_qattr[q];
-  if( qa.isFunDef() ){
+  if (qa.isFunDef())
+  {
     Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
       Message() << "Cannot define function " << f << " more than once." << std::endl;

@@ -17,21 +17,21 @@
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/sep/theory_sep.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
+#include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
+#include "theory/quantifiers/fmf/full_model_check.h"
+#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/local_theory_ext.h"
 #include "theory/quantifiers/quant_conflict_find.h"
-#include "theory/quantifiers/conjecture_generator.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
+#include "theory/sep/theory_sep.h"
+#include "theory/theory_engine.h"
+#include "theory/uf/equality_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -39,27 +39,26 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-class QuantifiersEnginePrivate 
+class QuantifiersEnginePrivate
 {
-public:
-  QuantifiersEnginePrivate() :
-    d_alpha_equiv(nullptr),
-    d_inst_engine(nullptr),
-    d_model_engine(nullptr),
-    d_bint(nullptr),
-    d_qcf(nullptr),
-    d_rr_engine(nullptr),
-    d_sg_gen(nullptr),
-    d_synth_e(nullptr),
-    d_lte_part_inst(nullptr),
-    d_fs(nullptr),
-    d_i_cbqi(nullptr),
-    d_qsplit(nullptr),
-    d_anti_skolem(nullptr)
+ public:
+  QuantifiersEnginePrivate()
+      : d_alpha_equiv(nullptr),
+        d_inst_engine(nullptr),
+        d_model_engine(nullptr),
+        d_bint(nullptr),
+        d_qcf(nullptr),
+        d_rr_engine(nullptr),
+        d_sg_gen(nullptr),
+        d_synth_e(nullptr),
+        d_lte_part_inst(nullptr),
+        d_fs(nullptr),
+        d_i_cbqi(nullptr),
+        d_qsplit(nullptr),
+        d_anti_skolem(nullptr)
   {
-    
   }
-  ~QuantifiersEnginePrivate(){}
+  ~QuantifiersEnginePrivate() {}
   /** alpha equivalence */
   std::unique_ptr<quantifiers::AlphaEquivalence> d_alpha_equiv;
   /** instantiation engine */
@@ -87,61 +86,78 @@ public:
   /** quantifiers anti-skolemization */
   std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
   /** initialize */
-  void initialize(QuantifiersEngine* qe, context::Context* c, std::vector<QuantifiersModule*>& modules, bool& needsBuilder, bool& needsRelDom )
+  void initialize(QuantifiersEngine* qe,
+                  context::Context* c,
+                  std::vector<QuantifiersModule*>& modules,
+                  bool& needsBuilder,
+                  bool& needsRelDom)
   {
-    //add quantifiers modules
-    if( options::quantConflictFind() || options::quantRewriteRules() ){
+    // add quantifiers modules
+    if (options::quantConflictFind() || options::quantRewriteRules())
+    {
       d_qcf.reset(new quantifiers::QuantConflictFind(qe, c));
       modules.push_back(d_qcf.get());
     }
-    if( options::conjectureGen() ){
+    if (options::conjectureGen())
+    {
       d_sg_gen.reset(new quantifiers::ConjectureGenerator(qe, c));
       modules.push_back(d_sg_gen.get());
     }
-    if( !options::finiteModelFind() || options::fmfInstEngine() ){
+    if (!options::finiteModelFind() || options::fmfInstEngine())
+    {
       d_inst_engine.reset(new quantifiers::InstantiationEngine(qe));
       modules.push_back(d_inst_engine.get());
     }
-    if( options::cbqi() ){
+    if (options::cbqi())
+    {
       d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
       modules.push_back(d_i_cbqi.get());
     }
-    if( options::ceGuidedInst() ){
+    if (options::ceGuidedInst())
+    {
       d_synth_e.reset(new quantifiers::SynthEngine(qe, c));
       modules.push_back(d_synth_e.get());
-    }  
-    //finite model finding
-    if( options::finiteModelFind() ){
-      if( options::fmfBound() ){
+    }
+    // finite model finding
+    if (options::finiteModelFind())
+    {
+      if (options::fmfBound())
+      {
         d_bint.reset(new quantifiers::BoundedIntegers(c, qe));
         modules.push_back(d_bint.get());
       }
       d_model_engine.reset(new quantifiers::ModelEngine(c, qe));
       modules.push_back(d_model_engine.get());
-      //finite model finder has special ways of building the model
+      // finite model finder has special ways of building the model
       needsBuilder = true;
     }
-    if( options::quantRewriteRules() ){
+    if (options::quantRewriteRules())
+    {
       d_rr_engine.reset(new quantifiers::RewriteEngine(c, qe));
       modules.push_back(d_rr_engine.get());
     }
-    if( options::ltePartialInst() ){
+    if (options::ltePartialInst())
+    {
       d_lte_part_inst.reset(new quantifiers::LtePartialInst(qe, c));
       modules.push_back(d_lte_part_inst.get());
     }
-    if( options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_NONE ){
+    if (options::quantDynamicSplit() != quantifiers::QUANT_DSPLIT_MODE_NONE)
+    {
       d_qsplit.reset(new quantifiers::QuantDSplit(qe, c));
       modules.push_back(d_qsplit.get());
     }
-    if( options::quantAntiSkolem() ){
+    if (options::quantAntiSkolem())
+    {
       d_anti_skolem.reset(new quantifiers::QuantAntiSkolem(qe));
       modules.push_back(d_anti_skolem.get());
     }
-    if( options::quantAlphaEquiv() ){
+    if (options::quantAlphaEquiv())
+    {
       d_alpha_equiv.reset(new quantifiers::AlphaEquivalence(qe));
     }
-    //full saturation : instantiate from relevant domain, then arbitrary terms
-    if( options::fullSaturateQuant() || options::fullSaturateInterleave() ){
+    // full saturation : instantiate from relevant domain, then arbitrary terms
+    if (options::fullSaturateQuant() || options::fullSaturateInterleave())
+    {
       d_fs.reset(new quantifiers::InstStrategyEnum(qe));
       modules.push_back(d_fs.get());
       needsRelDom = true;
@@ -228,8 +244,9 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     Assert( !options::incrementalSolving() );
     d_qepr.reset(new quantifiers::QuantEPR);
   }
-  
-  if( options::cbqi() && options::cbqiBv() ){
+
+  if (options::cbqi() && options::cbqiBv())
+  {
     // if doing instantiation for BV, need the inverter class
     d_bv_invert.reset(new quantifiers::BvInverter);
   }
@@ -246,7 +263,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   bool needsRelDom = false;
   d_private.reset(new QuantifiersEnginePrivate);
   d_private->initialize(this, c, d_modules, needsBuilder, needsRelDom);
-  
+
   if( needsRelDom ){
     d_rel_dom.reset(new quantifiers::RelevantDomain(this));
     d_util.push_back(d_rel_dom.get());
@@ -410,19 +427,24 @@ void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m, int priority ) 
   }
 }
 
-void QuantifiersEngine::setOwner( Node q, quantifiers::QAttributes& qa )
+void QuantifiersEngine::setOwner(Node q, quantifiers::QAttributes& qa)
 {
-  if( !qa.d_rr.isNull() ){
-    if( d_private->d_rr_engine.get()==nullptr ){
-      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
+  if (!qa.d_rr.isNull())
+  {
+    if (d_private->d_rr_engine.get() == nullptr)
+    {
+      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : "
+                          << q << std::endl;
     }
-    //set rewrite engine as owner
-    setOwner( q, d_private->d_rr_engine.get(), 2 );
+    // set rewrite engine as owner
+    setOwner(q, d_private->d_rr_engine.get(), 2);
   }
-  if( qa.d_sygus ){
+  if (qa.d_sygus)
+  {
     if (d_private->d_synth_e.get() == nullptr)
     {
-      Trace("quant-warn") << "WARNING : synth engine is null, and we have : " << q << std::endl;
+      Trace("quant-warn") << "WARNING : synth engine is null, and we have : "
+                          << q << std::endl;
     }
     // set synth engine as owner
     setOwner(q, d_private->d_synth_e.get(), 2);
@@ -822,10 +844,11 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
     Node lem;
     std::map< Node, Node >::iterator itr = d_quants_red_lem.find( q );
     if( itr==d_quants_red_lem.end() ){
-      if( d_private->d_alpha_equiv ){
+      if (d_private->d_alpha_equiv)
+      {
         Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
         //add equivalence with another quantified formula
-        lem = d_private->d_alpha_equiv->reduceQuantifier( q );
+        lem = d_private->d_alpha_equiv->reduceQuantifier(q);
         if( !lem.isNull() ){
           Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
           ++(d_statistics.d_red_alpha_equiv);
@@ -1246,11 +1269,13 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_instantiations_rr);
 }
 
-eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const{
+eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
+{
   return d_te->getMasterEqualityEngine();
 }
 
-eq::EqualityEngine* QuantifiersEngine::getActiveEqualityEngine() const{
+eq::EqualityEngine* QuantifiersEngine::getActiveEqualityEngine() const
+{
   if( d_useModelEe ){
     return d_model->getEqualityEngine();
   }
@@ -1306,5 +1331,5 @@ void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
   }
 }
 
-}
-}
+}  // namespace theory
+}  // namespace CVC4
