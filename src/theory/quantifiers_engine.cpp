@@ -30,6 +30,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
+#include "theory/quantifiers/inst_propagator.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -44,7 +45,8 @@ class QuantifiersEnginePrivate
 {
  public:
   QuantifiersEnginePrivate()
-      : d_alpha_equiv(nullptr),
+      : d_inst_prop(nullptr),
+        d_alpha_equiv(nullptr),
         d_inst_engine(nullptr),
         d_model_engine(nullptr),
         d_bint(nullptr),
@@ -60,6 +62,11 @@ class QuantifiersEnginePrivate
   {
   }
   ~QuantifiersEnginePrivate() {}
+  //------------------------------ private quantifier utilities
+  /** quantifiers instantiation propagator */
+  std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
+  //------------------------------ end private quantifier utilities
+  //------------------------------ quantifiers modules
   /** alpha equivalence */
   std::unique_ptr<quantifiers::AlphaEquivalence> d_alpha_equiv;
   /** instantiation engine */
@@ -86,7 +93,15 @@ class QuantifiersEnginePrivate
   std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
   /** quantifiers anti-skolemization */
   std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
-  /** initialize */
+  //------------------------------ end quantifiers modules
+  /** initialize
+   * 
+   * This constructs the above modules based on the current options. It adds
+   * a pointer to each module it constructs to modules. This method sets
+   * needsBuilder to true if we require a strategy-specific model builder
+   * utility, and needsRelDom to true if we require the relevant domain
+   * utility.
+   */
   void initialize(QuantifiersEngine* qe,
                   context::Context* c,
                   std::vector<QuantifiersModule*>& modules,
@@ -172,7 +187,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     : d_te(te),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
       d_eq_inference(nullptr),
-      d_inst_prop(nullptr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_quant_rel(nullptr),
@@ -203,6 +217,9 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_presolve_cache_wq(u),
       d_presolve_cache_wic(u)
 {
+  // initialize the private utility
+  d_private.reset(new QuantifiersEnginePrivate);
+  
   //---- utilities
   d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
@@ -215,9 +232,9 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
 
   if( options::instPropagate() ){
     // notice that this option is incompatible with options::qcfAllConflict()
-    d_inst_prop.reset(new quantifiers::InstPropagator(this));
-    d_util.push_back(d_inst_prop.get());
-    d_instantiate->addNotify(d_inst_prop->getInstantiationNotify());
+    d_private->d_inst_prop.reset(new quantifiers::InstPropagator(this));
+    d_util.push_back(d_private->d_inst_prop.get());
+    d_instantiate->addNotify(d_private->d_inst_prop->getInstantiationNotify());
   }
   
   if( options::inferArithTriggerEq() ){
@@ -262,7 +279,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
 
   bool needsBuilder = false;
   bool needsRelDom = false;
-  d_private.reset(new QuantifiersEnginePrivate);
   d_private->initialize(this, c, d_modules, needsBuilder, needsRelDom);
 
   if( needsRelDom ){

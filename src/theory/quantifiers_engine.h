@@ -32,7 +32,6 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/model_builder.h"
-#include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_relevance.h"
@@ -86,14 +85,6 @@ public:
   eq::EqualityEngine* getActiveEqualityEngine() const;
   /** get equality query */
   EqualityQuery* getEqualityQuery() const;
-  /** get the equality inference */
-  quantifiers::EqualityInference* getEqualityInference() const;
-  /** get relevant domain */
-  quantifiers::RelevantDomain* getRelevantDomain() const;
-  /** get the BV inverter utility */
-  quantifiers::BvInverter* getBvInverter() const;
-  /** get quantifier relevance */
-  quantifiers::QuantRelevance* getQuantifierRelevance() const;
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
   /** get utility for EPR */
@@ -119,7 +110,17 @@ public:
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
-  //---------------------- modules
+  //---------------------- utilities (TODO move these utilities #1163)
+  /** get the equality inference */
+  quantifiers::EqualityInference* getEqualityInference() const;
+  /** get relevant domain */
+  quantifiers::RelevantDomain* getRelevantDomain() const;
+  /** get the BV inverter utility */
+  quantifiers::BvInverter* getBvInverter() const;
+  /** get quantifier relevance */
+  quantifiers::QuantRelevance* getQuantifierRelevance() const;
+  //---------------------- end utilities
+  //---------------------- modules (TODO remove these #1163)
   /** get bounded integers utility */
   quantifiers::BoundedIntegers* getBoundedIntegers() const;
   /** Conflict find mechanism for quantifiers */
@@ -307,8 +308,6 @@ public:
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** equality inference class */
   std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
-  /** quantifiers instantiation propagator */
-  std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
