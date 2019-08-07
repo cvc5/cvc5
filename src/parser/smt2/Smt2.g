@@ -2196,7 +2196,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 
 /**
  * Matches a qualified identifier, which can be a combination of one or more of
- * the following:
+ * the following, stored in the ParseOp utility class:
  * (1) A kind.
  * (2) A string name.
  * (3) An expression expr.
@@ -2269,7 +2269,7 @@ qualIdentifier[CVC4::ParseOp& p]
 
 /**
  * Matches an identifier, which can be a combination of one or more of the
- * following:
+ * following, stored in the ParseOp utility class:
  * (1) A kind.
  * (2) A string name.
  * (3) An expression expr.

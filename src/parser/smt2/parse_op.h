@@ -48,6 +48,8 @@ namespace CVC4 {
  * AST expression representing generic tuple select, and we do not have enough
  * type information at this point to know the type of the tuple we will be
  * selecting from.
+ * - For array constant specifications prior to type ascription e.g. when we
+ * have parsed "const", we store (1), setting the kind to STORE_ALL.
  * - For array constant specifications (as const (Array T1 T2)), we store (1)
  * and (4), where kind is set to STORE_ALL and type is set to (Array T1 T2).
  * When parsing this as an operator e.g. ((as const (Array T1 T2)) t), we

@@ -1606,23 +1606,23 @@ void Smt2::applyTypeAscription(ParseOp& p, Type type)
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
   Trace("parser-qid") << " " << ekind << " " << etype;
   Trace("parser-qid") << std::endl;
-  if (ekind == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype())
+  if (ekind == kind::APPLY_CONSTRUCTOR && type.isDatatype())
   {
     // nullary constructors with a type ascription
     // could be a parametric constructor or just an overloaded constructor
     DatatypeType dtype = static_cast<DatatypeType>(type);
     if (dtype.isParametric())
     {
-      std::vector<CVC4::Expr> v;
+      std::vector<Expr> v;
       Expr e = p.d_expr.getOperator();
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      v.push_back(em->mkExpr(CVC4::kind::APPLY_TYPE_ASCRIPTION,
+      v.push_back(em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
                           em->mkConst(AscriptionType(
                               dtc.getSpecializedConstructorType(type))),
                           p.d_expr.getOperator()));
       v.insert(v.end(), p.d_expr.begin(), p.d_expr.end());
-      p.d_expr = em->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, v);
+      p.d_expr = em->mkExpr(kind::APPLY_CONSTRUCTOR, v);
     }
   }
   else if (etype.isConstructor())
@@ -1633,23 +1633,23 @@ void Smt2::applyTypeAscription(ParseOp& p, Type type)
     {
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(p.d_expr)[Datatype::indexOf(p.d_expr)];
-      p.d_expr = em->mkExpr(CVC4::kind::APPLY_TYPE_ASCRIPTION,
+      p.d_expr = em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
                       em->mkConst(AscriptionType(
                           dtc.getSpecializedConstructorType(type))),
                       p.d_expr);
     }
   }
-  else if (ekind == CVC4::kind::EMPTYSET)
+  else if (ekind == kind::EMPTYSET)
   {
     Debug("parser") << "Empty set encountered: " << p.d_expr << " " << type
                     << std::endl;
-    p.d_expr = em->mkConst(CVC4::EmptySet(type));
+    p.d_expr = em->mkConst(EmptySet(type));
   }
-  else if (ekind == CVC4::kind::UNIVERSE_SET)
+  else if (ekind == kind::UNIVERSE_SET)
   {
     p.d_expr = em->mkNullaryOperator(type, kind::UNIVERSE_SET);
   }
-  else if (ekind == CVC4::kind::SEP_NIL)
+  else if (ekind == kind::SEP_NIL)
   {
     // We don't want the nil reference to be a constant: for instance, it
     // could be of type Int but is not a const rational. However, the
@@ -1700,12 +1700,18 @@ Expr Smt2::parseOpToExpr(ParseOp& p)
 
 Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
 {
-  bool isOverloadedFunction = false;
   bool isBuiltinOperator = false;
   // the builtin kind of the overall return expression
   Kind kind = kind::NULL_EXPR;
-  // process the operator
-  //Debug("parser") << "Apply parsed op: " << p << std::endl;
+  // First phase: process the operator
+  if( Debug.isOn("parser") )
+  {
+    Debug("parser") << "Apply parse op to:" << std::endl;
+    Debug("parser") << "args has size " << args.size() << std::endl;
+    for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
+      Debug("parser") << "++ " << *i << std::endl;
+    }
+  }
   if (p.d_kind != kind::NULL_EXPR)
   {
     // It is a special case, e.g. tupSel or array constant specification.
@@ -1717,6 +1723,8 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     args.insert(args.begin(),p.d_expr);
     if (p.d_expr.getType().isTester())
     {
+      // Testers are handled differently than other indexed operators,
+      // since they require a kind.
       kind = kind::APPLY_TESTER;
     }
   }
@@ -1741,37 +1749,27 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       }
       else
       {
+        // Overloaded symbol?
         // Could not find the expression. It may be an overloaded symbol,
         // in which case we may find it after knowing the types of its
         // arguments.
-        isOverloadedFunction = true;
+        std::vector< Type > argTypes;
+        for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
+          argTypes.push_back( (*i).getType() );
+        }
+        Expr op = getOverloadedFunctionForTypes(p.d_name, argTypes);
+        if(!op.isNull()) {
+          checkFunctionLike(op);
+          kind = getKindForFunction(op);
+          args.insert(args.begin(),op);
+        }else{
+          parseError("Cannot find unambiguous overloaded function for argument types.");
+        }
       }
     }
   }
-  // now, apply the arguments to the parse op
-  if( Debug.isOn("parser") )
-  {
-    Debug("parser") << "args has size " << args.size() << std::endl;
-    for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
-      Debug("parser") << "++ " << *i << std::endl;
-    }
-  }
-  // We now can figure out what the operator is, if we guessed it was
-  // overloaded.
-  if(isOverloadedFunction) {
-    std::vector< Type > argTypes;
-    for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
-      argTypes.push_back( (*i).getType() );
-    }
-    Expr op = getOverloadedFunctionForTypes(p.d_name, argTypes);
-    if(!op.isNull()) {
-      checkFunctionLike(op);
-      kind = getKindForFunction(op);
-      args.insert(args.begin(),op);
-    }else{
-      parseError("Cannot find unambiguous overloaded function for argument types.");
-    }
-  }
+  
+  // Second phase: apply the arguments to the parse op
   ExprManager * em = getExprManager();
   // handle special cases
   if (p.d_kind == kind::STORE_ALL)
