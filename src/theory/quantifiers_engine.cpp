@@ -31,6 +31,7 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
+#include "theory/quantifiers/rewrite_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -377,10 +378,6 @@ quantifiers::QuantConflictFind* QuantifiersEngine::getConflictFind() const
 {
   return d_private->d_qcf.get();
 }
-quantifiers::RewriteEngine* QuantifiersEngine::getRewriteEngine() const
-{
-  return d_private->d_rr_engine.get();
-}
 quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
 {
   return d_private->d_synth_e.get();
@@ -410,6 +407,25 @@ void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m, int priority ) 
     }
     d_owner[q] = m;
     d_owner_priority[q] = priority;
+  }
+}
+
+void QuantifiersEngine::setOwner( Node q, quantifiers::QAttributes& qa )
+{
+  if( !qa.d_rr.isNull() ){
+    if( d_private->d_rr_engine.get()==nullptr ){
+      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
+    }
+    //set rewrite engine as owner
+    setOwner( q, d_private->d_rr_engine.get(), 2 );
+  }
+  if( qa.d_sygus ){
+    if (d_private->d_synth_e.get() == nullptr)
+    {
+      Trace("quant-warn") << "WARNING : synth engine is null, and we have : " << q << std::endl;
+    }
+    // set synth engine as owner
+    setOwner(q, d_private->d_synth_e.get(), 2);
   }
 }
 

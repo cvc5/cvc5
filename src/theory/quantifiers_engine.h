@@ -17,23 +17,20 @@
 #ifndef CVC4__THEORY__QUANTIFIERS_ENGINE_H
 #define CVC4__THEORY__QUANTIFIERS_ENGINE_H
 
-#include <iostream>
 #include <map>
-#include <memory>
 #include <unordered_map>
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
-#include "options/quantifiers_modes.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/quantifiers/fmf/model_engine.h"
+#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_epr.h"
@@ -47,11 +44,8 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/theory.h"
-#include "util/hash.h"
 #include "util/statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
-#include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 
 namespace CVC4 {
@@ -87,6 +81,10 @@ public:
   const LogicInfo& getLogicInfo() const;
   //---------------------- end external interface
   //---------------------- utilities
+  /** get the master equality engine */
+  eq::EqualityEngine* getMasterEqualityEngine() const;
+  /** get the active equality engine */
+  eq::EqualityEngine* getActiveEqualityEngine() const;
   /** get equality query */
   EqualityQuery* getEqualityQuery() const;
   /** get the equality inference */
@@ -121,32 +119,40 @@ public:
   quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
-  /** get the master equality engine */
-  eq::EqualityEngine* getMasterEqualityEngine() const;
-  /** get the active equality engine */
-  eq::EqualityEngine* getActiveEqualityEngine() const;
   //---------------------- end utilities
   //---------------------- modules
   /** get bounded integers utility */
   quantifiers::BoundedIntegers* getBoundedIntegers() const;
   /** Conflict find mechanism for quantifiers */
   quantifiers::QuantConflictFind* getConflictFind() const;
-  /** rewrite rules utility */
-  quantifiers::RewriteEngine* getRewriteEngine() const;
   /** ceg instantiation */
   quantifiers::SynthEngine* getSynthEngine() const;
   /** get inst strategy cbqi */
   quantifiers::InstStrategyCegqi* getInstStrategyCegqi() const;
   //---------------------- end modules
  private:
-  /** owner of quantified formulas */
+  /** 
+   * Maps quantified formulas to the module that owns them, if any module has
+   * specifically taken ownership of it.
+   */
   std::map< Node, QuantifiersModule * > d_owner;
+  /** 
+   * The priority value associated with the ownership of quantified formulas
+   * in the domain of the above map, where higher values take higher
+   * precendence.
+   */
   std::map< Node, int > d_owner_priority;
 public:
   /** get owner */
   QuantifiersModule * getOwner( Node q );
-  /** set owner */
+  /** 
+   * Set owner of quantified formula q to module m with given priority. If
+   * the quantified formula has previously been assigned an owner with
+   * lower priority, that owner is overwritten.
+   */
   void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
+  /** set owner of quantified formula q based on its attributes qa. */
+  void setOwner( Node q, quantifiers::QAttributes& qa );
   /** considers */
   bool hasOwnership( Node q, QuantifiersModule * m = NULL );
   /** is finite bound */
@@ -335,7 +341,9 @@ public:
   /** term enumeration utility */
   std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
   //------------- end quantifiers utilities
-  /** The private utility */
+  /** 
+   * The private utility, which contains all of the quantifiers modules.
+   */
   std::unique_ptr<QuantifiersEnginePrivate> d_private;
   //------------- temporary information during check
   /** current effort level */
