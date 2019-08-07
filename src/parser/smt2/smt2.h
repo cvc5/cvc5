@@ -434,12 +434,13 @@ class Smt2 : public Parser
     parseError(withLogic);
   }
 
+  //------------------------- processing parse operators
   /**
    * Given a parse operator p, apply a type ascription to it. This method is run
-   * when we encounter "(as t type)" and t has been stored in p.
+   * when we encounter "(as t type)" and information regarding t has been stored
+   * in p.
    *
-   * This updates the ParseOp p to take into account the ascription. Doing this
-   * may include:
+   * This updates p to take into account the ascription. This may include:
    * - Converting an (pre-ascribed) array constant specification "const" to
    * an ascribed array constant specification (as const type) where type is
    * (Array T1 T2) for some T1, T2.
@@ -447,8 +448,8 @@ class Smt2 : public Parser
    * the specialized constructor for the given type.
    * - Converting an empty set, universe set, or separation nil reference to
    * the respective term of the given type.
-   * - If p specifies an ordinary expression, then we check if that expression
-   * has the given type and throw a parse error otherwise.
+   * - If p's expression field is set, then we leave p unchanged, check if
+   * that expression has the given type and throw a parse error otherwise.
    */
   void applyTypeAscription(ParseOp& p, Type type);
   /**
@@ -494,7 +495,7 @@ class Smt2 : public Parser
    * as a chain of HO_APPLY terms.
    */
   Expr applyParseOp(ParseOp& p, std::vector<Expr>& args);
-
+  //------------------------- end processing parse operators
  private:
   std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
   std::map< CVC4::Expr, std::vector< CVC4::Expr > > d_sygus_let_func_to_vars;
