@@ -87,7 +87,9 @@ void OpTermBlack::testGetIndicesUint()
   OpTerm bitvector_repeat_ot = d_solver.mkOpTerm(BITVECTOR_REPEAT_OP, 5);
   uint32_t bitvector_repeat_idx = bitvector_repeat_ot.getIndices<uint32_t>();
   TS_ASSERT(bitvector_repeat_idx == 5);
-  TS_ASSERT_THROWS((bitvector_repeat_ot.getIndices<std::pair<uint32_t, uint32_t>>()), CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      (bitvector_repeat_ot.getIndices<std::pair<uint32_t, uint32_t>>()),
+      CVC4ApiException&);
 
   OpTerm bitvector_zero_extend_ot = d_solver.mkOpTerm(BITVECTOR_ZERO_EXTEND_OP, 6);
   uint32_t bitvector_zero_extend_idx = bitvector_zero_extend_ot.getIndices<uint32_t>();
@@ -128,12 +130,13 @@ void OpTermBlack::testGetIndicesUint()
   OpTerm tuple_update_ot = d_solver.mkOpTerm(TUPLE_UPDATE_OP, 5);
   uint32_t tuple_update_idx = tuple_update_ot.getIndices<uint32_t>();
   TS_ASSERT(tuple_update_idx == 5);
-  TS_ASSERT_THROWS(tuple_update_ot.getIndices<std::string>(), CVC4ApiException&);
+  TS_ASSERT_THROWS(tuple_update_ot.getIndices<std::string>(),
+                   CVC4ApiException&);
 }
 
 void OpTermBlack::testGetIndicesPairUint()
 {
-    OpTerm bitvector_extract_ot = d_solver.mkOpTerm(BITVECTOR_EXTRACT_OP, 4, 0);
+  OpTerm bitvector_extract_ot = d_solver.mkOpTerm(BITVECTOR_EXTRACT_OP, 4, 0);
   std::pair<uint32_t, uint32_t> bitvector_extract_indices = bitvector_extract_ot.getIndices<std::pair<uint32_t, uint32_t>>();
   TS_ASSERT((bitvector_extract_indices == std::pair<uint32_t, uint32_t>{4, 0}));
 
