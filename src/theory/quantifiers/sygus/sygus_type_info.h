@@ -28,19 +28,69 @@ namespace quantifiers {
 
 class TermDbSygus;
 
+/** A trie indexed by types that assigns unique identifiers to nodes. */
+class TypeNodeIdTrie
+{
+ public:
+  /** children of this node */
+  std::map<TypeNode, TypeNodeIdTrie> d_children;
+  /** the data stored at this node */
+  std::vector<Node> d_data;
+  /** add v to this trie, indexed by types */
+  void add(Node v, std::vector<TypeNode>& types)
+  {
+    TypeNodeIdTrie* tnt = this;
+    for (unsigned i = 0, size = types.size(); i < size; i++)
+    {
+      tnt = &tnt->d_children[types[i]];
+    }
+    tnt->d_data.push_back(v);
+  }
+  /**
+   * Assign each node in this trie an identifier such that
+   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
+   */
+  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount)
+  {
+    if (!d_data.empty())
+    {
+      for (const Node& v : d_data)
+      {
+        assign[v] = idCount;
+      }
+      idCount++;
+    }
+    for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
+    {
+      c.second.assignIds(assign, idCount);
+    }
+  }
+};
+
+
 /**
  * This data structure stores statically computed information regarding a sygus
  * datatype type.
  *
  * To use an instance of this class x, call x.initialize(tn); where tn is a
- * sygus datatype type. Then, get methods on x can be called.
+ * sygus datatype type. Then, most of the query methods on x can be called.
+ * As an exception, the variable subclass queries require that additionally
+ * x.initializeVarSubclasses() is called.
+ * 
  */
 class SygusTypeInfo
 {
  public:
   SygusTypeInfo();
+  //-------------------------------------------- initialize
   /** initialize this information for sygus datatype type tn */
   void initialize(TermDbSygus* tds, TypeNode tn);
+  /** 
+   * Initialize the variable subclass information for this class. Must have
+   * called initialize(...) prior to calling this method.
+   */
+  void initializeVarSubclasses();
+  //-------------------------------------------- end initialize
   /** Get the builtin type that this sygus type encodes */
   TypeNode getBuiltinType() const;
   /** Get the variable list (formal argument list) for the sygus type */
@@ -169,6 +219,8 @@ class SygusTypeInfo
   unsigned getMinConsTermSize(unsigned cindex);
 
  private:
+  /** The sygus type that this class is for */
+  TypeNode d_this;
   /** The builtin type that this sygus type encodes */
   TypeNode d_btype;
   /** The variable list of the sygus type */

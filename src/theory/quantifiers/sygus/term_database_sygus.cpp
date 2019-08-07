@@ -506,6 +506,8 @@ void TermDbSygus::registerEnumerator(Node e,
   d_enum_var_agnostic[e] = isVarAgnostic;
   if (isVarAgnostic)
   {
+    // requires variable subclasses
+    eti.initializeVarSubclasses();
     // If no subclass has more than one variable, do not use variable agnostic
     // enumeration
     bool useVarAgnostic = !eti.isSubclassVarTrivial();

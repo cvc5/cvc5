@@ -23,45 +23,6 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-/** A trie indexed by types that assigns unique identifiers to nodes. */
-class TypeNodeIdTrie
-{
- public:
-  /** children of this node */
-  std::map<TypeNode, TypeNodeIdTrie> d_children;
-  /** the data stored at this node */
-  std::vector<Node> d_data;
-  /** add v to this trie, indexed by types */
-  void add(Node v, std::vector<TypeNode>& types)
-  {
-    TypeNodeIdTrie* tnt = this;
-    for (unsigned i = 0, size = types.size(); i < size; i++)
-    {
-      tnt = &tnt->d_children[types[i]];
-    }
-    tnt->d_data.push_back(v);
-  }
-  /**
-   * Assign each node in this trie an identifier such that
-   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
-   */
-  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount)
-  {
-    if (!d_data.empty())
-    {
-      for (const Node& v : d_data)
-      {
-        assign[v] = idCount;
-      }
-      idCount++;
-    }
-    for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
-    {
-      c.second.assignIds(assign, idCount);
-    }
-  }
-};
 
 SygusTypeInfo::SygusTypeInfo()
     : d_hasIte(false),
@@ -73,6 +34,7 @@ SygusTypeInfo::SygusTypeInfo()
 
 void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
 {
+  d_this = tn;
   Assert(tn.isDatatype());
   const Datatype& dt = tn.getDatatype();
   Assert(dt.isSygus());
@@ -225,7 +187,20 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     }
     d_min_cons_term_size[i] = csize;
   }
+}
 
+void SygusTypeInfo::initializeVarSubclasses()
+{
+  if( d_var_list.empty() )
+  {
+    // no variables
+    return;
+  }
+  if( !d_var_subclass_id.empty() )
+  {
+    // already computed
+    return;
+  }
   // compute variable subclasses
   std::vector<TypeNode> sf_types;
   getSubfieldTypes(sf_types);
@@ -270,7 +245,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     Trace("sygus-db") << v << " has subclass id " << sc << std::endl;
     d_var_subclass_list_index[v] = d_var_subclass_list[sc].size();
     d_var_subclass_list[sc].push_back(v);
-  }
+  }  
 }
 
 TypeNode SygusTypeInfo::getBuiltinType() const { return d_btype; }
