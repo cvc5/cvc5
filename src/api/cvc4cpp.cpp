@@ -2872,9 +2872,26 @@ OpTerm Solver::mkOpTerm(Kind kind, Kind k)
 
 OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == RECORD_UPDATE_OP, kind)
-      << "RECORD_UPDATE_OP";
-  return *mkValHelper<CVC4::RecordUpdate>(CVC4::RecordUpdate(arg)).d_expr.get();
+  CVC4_API_KIND_CHECK_EXPECTED(
+      (kind == RECORD_UPDATE_OP) || (kind == DIVISIBLE_OP), kind)
+      << "RECORD_UPDATE_OP or DIVISIBLE_OP";
+  OpTerm res;
+  switch (kind)
+  {
+    case RECORD_UPDATE_OP:
+      res = *mkValHelper<CVC4::RecordUpdate>(CVC4::RecordUpdate(arg))
+                 .d_expr.get();
+      break;
+    case DIVISIBLE_OP:
+      res = *mkValHelper<CVC4::Divisible>(CVC4::Divisible(CVC4::Integer(arg)))
+                 .d_expr.get();
+      break;
+    default:
+      CVC4_API_KIND_CHECK_EXPECTED(false, kind)
+          << "operator kind with string argument";
+  }
+  Assert(!res.isNull());
+  return res;
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)

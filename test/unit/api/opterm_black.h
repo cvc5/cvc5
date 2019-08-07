@@ -27,6 +27,7 @@ class OpTermBlack : public CxxTest::TestSuite
   void testGetKind();
   void testGetSort();
   void testIsNull();
+  void testMakeDivisibleOp();
   void testGetIndicesString();
   void testGetIndicesKind();
   void testGetIndicesUint();
@@ -58,6 +59,13 @@ void OpTermBlack::testIsNull()
   TS_ASSERT(x.isNull());
   x = d_solver.mkOpTerm(BITVECTOR_EXTRACT_OP, 31, 1);
   TS_ASSERT(!x.isNull());
+}
+
+void OpTermBlack::testMakeDivisibleOp()
+{
+  OpTerm d_uint = d_solver.mkOpTerm(DIVISIBLE_OP, 32);
+  // create DIVISIBLE_OP with value not representable in uint32_t
+  OpTerm d_str = d_solver.mkOpTerm(DIVISIBLE_OP, "2147483648");
 }
 
 void OpTermBlack::testGetIndicesString()

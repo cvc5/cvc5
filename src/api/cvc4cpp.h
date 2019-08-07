@@ -1831,6 +1831,7 @@ class CVC4_PUBLIC Solver
   /**
    * Create operator of kind:
    *   - RECORD_UPDATE_OP
+   *   - DIVISIBLE_OP (to support arbitrary precision integers)
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
