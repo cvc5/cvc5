@@ -26,14 +26,45 @@ namespace CVC4 {
 
 /** A parsed operator
  * 
+ * The purpose of this class is to store information regarding a parsed term
+ * in the smt2 language that we are might not be ready to associate with an
+ * expression.
+ * 
+ * While parsing terms in smt2, we may store a combination of one or more of
+ * the following to track how to process this term:
+ * (1) A kind.
+ * (2) A string name.
+ * (3) An expression expr.
+ * (4) A type t.
+ *
+ * Examples:
+ *
+ * - For declared functions f that we have not yet looked up in a symbol table,
+ * we store (2). We may store a name in a state if f is overloaded and we have
+ * not yet parsed its arguments to know how to disambiguate f.
+ * - For tuple selectors (_ tupSel n), we store (1) and (3). Kind is set to
+ * APPLY_SELECTOR, and expr is set to n, which is to be interpreted by the
+ * caller as the n^th generic tuple selector. We do this since there is no
+ * AST expression representing generic tuple select, and we do not have enough
+ * type information at this point to know the type of the tuple we will be
+ * selecting from.
+ * - For array constant specifications (as const (Array T1 T2)), we store (1)
+ * and (4), where kind is set to STORE_ALL and type is set to (Array T1 T2).
+ * When parsing this as an operator e.g. ((as const (Array T1 T2)) t), we
+ * interpret this operator by converting the next parsed constant of type T2 to
+ * an Array of type (Array T1 T2) over that constant.
  */
 class ParseOp
 {
 public:
   ParseOp() : d_kind(kind::NULL_EXPR){}
+  /** The kind associated with the parsed operator, if it exists */
   Kind d_kind;
+  /** The name associated with the parsed operator, if it exists */
   std::string d_name;
+  /** The expression associated with the parsed operator, if it exists */
   Expr d_expr; 
+  /** The type associated with the parsed operator, if it exists */
   Type d_type;
 };
   

@@ -1944,7 +1944,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN_TOK qualIdentifier[p] // qualIdentifier[qkind,name,qexpr,qtype]
+  | LPAREN_TOK qualIdentifier[p]
     termList[args,expr] RPAREN_TOK
     { 
       expr = PARSER_STATE->applyParseOp(p,args);
@@ -2244,7 +2244,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
  * expression (3), which may involve disambiguating f based on type T if it is
  * overloaded.
  */
-//qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type& t]
 qualIdentifier[CVC4::ParseOp& p]
 @init {
   Kind k;
@@ -2276,7 +2275,6 @@ qualIdentifier[CVC4::ParseOp& p]
  * (3) An expression expr.
  * For examples, see documentation of qualIdentifier.
  */
-//identifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr]
 identifier[CVC4::ParseOp& p]
 @init {
   Expr f;
