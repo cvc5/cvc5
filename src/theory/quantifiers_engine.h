@@ -25,6 +25,7 @@
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
 #include "theory/quantifiers/bv_inverter.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
@@ -39,13 +40,12 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/statistics_registry.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 
 namespace CVC4 {
 
@@ -54,7 +54,7 @@ class TheoryEngine;
 namespace theory {
 
 class QuantifiersEnginePrivate;
-  
+
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
@@ -130,12 +130,12 @@ public:
   quantifiers::InstStrategyCegqi* getInstStrategyCegqi() const;
   //---------------------- end modules
  private:
-  /** 
+  /**
    * Maps quantified formulas to the module that owns them, if any module has
    * specifically taken ownership of it.
    */
   std::map< Node, QuantifiersModule * > d_owner;
-  /** 
+  /**
    * The priority value associated with the ownership of quantified formulas
    * in the domain of the above map, where higher values take higher
    * precendence.
@@ -144,14 +144,14 @@ public:
 public:
   /** get owner */
   QuantifiersModule * getOwner( Node q );
-  /** 
+  /**
    * Set owner of quantified formula q to module m with given priority. If
    * the quantified formula has previously been assigned an owner with
    * lower priority, that owner is overwritten.
    */
   void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
   /** set owner of quantified formula q based on its attributes qa. */
-  void setOwner( Node q, quantifiers::QAttributes& qa );
+  void setOwner(Node q, quantifiers::QAttributes& qa);
   /** considers */
   bool hasOwnership( Node q, QuantifiersModule * m = NULL );
   /** is finite bound */
@@ -340,7 +340,7 @@ public:
   /** term enumeration utility */
   std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
   //------------- end quantifiers utilities
-  /** 
+  /**
    * The private utility, which contains all of the quantifiers modules.
    */
   std::unique_ptr<QuantifiersEnginePrivate> d_private;
