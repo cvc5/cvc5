@@ -1301,7 +1301,7 @@ std::string OpTerm::getIndices() const
   else
   {
     CVC4_API_CHECK(false) << "Can't get string index from"
-                                       << " kind " << kindToString(k);
+                          << " kind " << kindToString(k);
   }
 
   return i;
@@ -1412,9 +1412,8 @@ std::pair<uint32_t, uint32_t> OpTerm::getIndices() const
   }
   else
   {
-    CVC4_API_CHECK(false)
-        << "Can't get pair<uint32_t, uint32_t> indices from"
-        << " kind " << kindToString(k);
+    CVC4_API_CHECK(false) << "Can't get pair<uint32_t, uint32_t> indices from"
+                          << " kind " << kindToString(k);
   }
   return indices;
 }
