@@ -450,7 +450,7 @@ class Smt2 : public Parser
    * - If p specifies an ordinary expression, then we check if that expression
    * has the given type and throw a parse error otherwise.
    */
-  void applyTypeAscription(ParseOp& p, Type type) const;
+  void applyTypeAscription(ParseOp& p, Type type);
   /**
    * This converts a ParseOp to expression, assuming it is a standalone term.
    *
@@ -460,7 +460,7 @@ class Smt2 : public Parser
    * of this class.
    * In other cases, a parse error is thrown.
    */
-  Expr parseOpToExpr(ParseOp& p) const;
+  Expr parseOpToExpr(ParseOp& p);
   /**
    * Apply parse operator to list of arguments, and return the resulting
    * expression.
@@ -493,7 +493,7 @@ class Smt2 : public Parser
    * - If the overall expression is a partial application, then we process this
    * as a chain of HO_APPLY terms.
    */
-  Expr applyParseOp(ParseOp& p, std::vector<Expr>& args) const;
+  Expr applyParseOp(ParseOp& p, std::vector<Expr>& args);
 
  private:
   std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
