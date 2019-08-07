@@ -1569,14 +1569,14 @@ InputLanguage Smt2::getLanguage() const
 void Smt2::applyTypeAscription(ParseOp& p, Type type)
 {
   // (as const (Array T1 T2))
-  if( p.d_kind==kind::STORE_ALL )
-  {        
+  if (p.d_kind == kind::STORE_ALL)
+  {
     if (!type.isArray())
     {
       std::stringstream ss;
       ss << "expected array constant term, but cast is not of array type"
-          << std::endl
-          << "cast type: " << type;
+         << std::endl
+         << "cast type: " << type;
       parseError(ss.str());
     }
     p.d_type = type;
@@ -1585,22 +1585,22 @@ void Smt2::applyTypeAscription(ParseOp& p, Type type)
   if (p.d_expr.isNull())
   {
     Trace("parser-overloading")
-        << "Getting variable expression with name " << p.d_name
-        << " and type " << type << std::endl;
+        << "Getting variable expression with name " << p.d_name << " and type "
+        << type << std::endl;
     // get the variable expression for the type
     if (isDeclared(p.d_name, SYM_VARIABLE))
     {
       p.d_expr = getExpressionForNameAndType(p.d_name, type);
     }
-    if(p.d_expr.isNull())
+    if (p.d_expr.isNull())
     {
       std::stringstream ss;
       ss << "Could not resolve expression with name " << p.d_name
-          << " and type " << type << std::endl;
+         << " and type " << type << std::endl;
       parseError(ss.str());
     }
   }
-  ExprManager * em = getExprManager();
+  ExprManager* em = getExprManager();
   Type etype = p.d_expr.getType();
   Kind ekind = p.d_expr.getKind();
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
@@ -1617,10 +1617,10 @@ void Smt2::applyTypeAscription(ParseOp& p, Type type)
       Expr e = p.d_expr.getOperator();
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      v.push_back(em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
-                          em->mkConst(AscriptionType(
-                              dtc.getSpecializedConstructorType(type))),
-                          p.d_expr.getOperator()));
+      v.push_back(em->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
+          p.d_expr.getOperator()));
       v.insert(v.end(), p.d_expr.begin(), p.d_expr.end());
       p.d_expr = em->mkExpr(kind::APPLY_CONSTRUCTOR, v);
     }
@@ -1633,10 +1633,10 @@ void Smt2::applyTypeAscription(ParseOp& p, Type type)
     {
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(p.d_expr)[Datatype::indexOf(p.d_expr)];
-      p.d_expr = em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
-                      em->mkConst(AscriptionType(
-                          dtc.getSpecializedConstructorType(type))),
-                      p.d_expr);
+      p.d_expr = em->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
+          p.d_expr);
     }
   }
   else if (ekind == kind::EMPTYSET)
@@ -1674,7 +1674,7 @@ Expr Smt2::parseOpToExpr(ParseOp& p)
   {
     expr = p.d_expr;
   }
-  else if (!isDeclared(p.d_name,SYM_VARIABLE))
+  else if (!isDeclared(p.d_name, SYM_VARIABLE))
   {
     if (sygus_v1() && p.d_name[0] == '-'
         && p.d_name.find_first_not_of("0123456789", 1) == std::string::npos)
@@ -1697,18 +1697,18 @@ Expr Smt2::parseOpToExpr(ParseOp& p)
   return expr;
 }
 
-
 Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
 {
   bool isBuiltinOperator = false;
   // the builtin kind of the overall return expression
   Kind kind = kind::NULL_EXPR;
   // First phase: process the operator
-  if( Debug.isOn("parser") )
+  if (Debug.isOn("parser"))
   {
     Debug("parser") << "Apply parse op to:" << std::endl;
     Debug("parser") << "args has size " << args.size() << std::endl;
-    for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
+    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+    {
       Debug("parser") << "++ " << *i << std::endl;
     }
   }
@@ -1720,7 +1720,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   else if (!p.d_expr.isNull())
   {
     // An explicit operator, e.g. an indexed symbol.
-    args.insert(args.begin(),p.d_expr);
+    args.insert(args.begin(), p.d_expr);
     if (p.d_expr.getType().isTester())
     {
       // Testers are handled differently than other indexed operators,
@@ -1745,7 +1745,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       {
         checkFunctionLike(v);
         kind = getKindForFunction(v);
-        args.insert(args.begin(),v);
+        args.insert(args.begin(), v);
       }
       else
       {
@@ -1753,24 +1753,30 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         // Could not find the expression. It may be an overloaded symbol,
         // in which case we may find it after knowing the types of its
         // arguments.
-        std::vector< Type > argTypes;
-        for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
-          argTypes.push_back( (*i).getType() );
+        std::vector<Type> argTypes;
+        for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+        {
+          argTypes.push_back((*i).getType());
         }
         Expr op = getOverloadedFunctionForTypes(p.d_name, argTypes);
-        if(!op.isNull()) {
+        if (!op.isNull())
+        {
           checkFunctionLike(op);
           kind = getKindForFunction(op);
-          args.insert(args.begin(),op);
-        }else{
-          parseError("Cannot find unambiguous overloaded function for argument types.");
+          args.insert(args.begin(), op);
+        }
+        else
+        {
+          parseError(
+              "Cannot find unambiguous overloaded function for argument "
+              "types.");
         }
       }
     }
   }
-  
+
   // Second phase: apply the arguments to the parse op
-  ExprManager * em = getExprManager();
+  ExprManager* em = getExprManager();
   // handle special cases
   if (p.d_kind == kind::STORE_ALL)
   {
@@ -1782,8 +1788,8 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       std::stringstream ss;
       ss << "expected constant term inside array constant, but found "
-          << "nonconstant term:" << std::endl
-          << "the term: " << args[0];
+         << "nonconstant term:" << std::endl
+         << "the term: " << args[0];
       parseError(ss.str());
     }
     ArrayType aqtype = static_cast<ArrayType>(p.d_type);
@@ -1791,10 +1797,9 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
-          << "array type:          " << p.d_type << std::endl
-          << "expected const type: " << aqtype.getConstituentType()
-          << std::endl
-          << "computed const type: " << args[0].getType();
+         << "array type:          " << p.d_type << std::endl
+         << "expected const type: " << aqtype.getConstituentType() << std::endl
+         << "computed const type: " << args[0].getType();
       parseError(ss.str());
     }
     return em->mkConst(ArrayStoreAll(p.d_type, args[0]));
@@ -1809,14 +1814,12 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     Integer x = p.d_expr.getConst<Rational>().getNumerator();
     if (!x.fitsUnsignedInt())
     {
-      parseError(
-          "index of tupSel is larger than size of unsigned int");
+      parseError("index of tupSel is larger than size of unsigned int");
     }
     unsigned int n = x.toUnsignedInt();
     if (args.size() > 1)
     {
-      parseError(
-          "tupSel applied to more than one tuple argument");
+      parseError("tupSel applied to more than one tuple argument");
     }
     Type t = args[0].getType();
     if (!t.isTuple())
@@ -1827,8 +1830,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     if (n >= length)
     {
       std::stringstream ss;
-      ss << "tuple is of length " << length << "; cannot access index "
-          << n;
+      ss << "tuple is of length " << length << "; cannot access index " << n;
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t).getDatatype();
@@ -1857,28 +1859,25 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
         /* right-associative, but CVC4 internally only supports 2 args */
         return em->mkRightAssociative(kind, args);
       }
-      else if (kind == kind::EQUAL || kind == kind::LT
-                || kind == kind::GT || kind == kind::LEQ
-                || kind == kind::GEQ)
+      else if (kind == kind::EQUAL || kind == kind::LT || kind == kind::GT
+               || kind == kind::LEQ || kind == kind::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
         return em->mkExpr(em->mkConst(Chain(kind)), args);
       }
     }
 
-    if (kind::isAssociative(kind)
-        && args.size() > em->maxArity(kind))
+    if (kind::isAssociative(kind) && args.size() > em->maxArity(kind))
     {
       /* Special treatment for associative operators with lots of children
-        */
+       */
       return em->mkAssociative(kind, args);
     }
-    else if (!strictModeEnabled()
-              && (kind == kind::AND || kind == kind::OR)
-              && args.size() == 1)
+    else if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
+             && args.size() == 1)
     {
       /* Unary AND/OR can be replaced with the argument.
-        * It just so happens expr should already be the only argument. */
+       * It just so happens expr should already be the only argument. */
       return args[0];
     }
     else if (kind == kind::MINUS && args.size() == 1)

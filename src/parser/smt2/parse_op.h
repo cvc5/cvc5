@@ -25,11 +25,11 @@
 namespace CVC4 {
 
 /** A parsed operator
- * 
+ *
  * The purpose of this class is to store information regarding a parsed term
  * in the smt2 language that we are might not be ready to associate with an
  * expression.
- * 
+ *
  * While parsing terms in smt2, we may store a combination of one or more of
  * the following to track how to process this term:
  * (1) A kind.
@@ -58,18 +58,18 @@ namespace CVC4 {
  */
 class ParseOp
 {
-public:
-  ParseOp() : d_kind(kind::NULL_EXPR){}
+ public:
+  ParseOp() : d_kind(kind::NULL_EXPR) {}
   /** The kind associated with the parsed operator, if it exists */
   Kind d_kind;
   /** The name associated with the parsed operator, if it exists */
   std::string d_name;
   /** The expression associated with the parsed operator, if it exists */
-  Expr d_expr; 
+  Expr d_expr;
   /** The type associated with the parsed operator, if it exists */
   Type d_type;
 };
-  
-}/* CVC4 namespace */
+
+}  // namespace CVC4
 
 #endif /* CVC4__PARSER__SMT2__PARSE_OP_H */

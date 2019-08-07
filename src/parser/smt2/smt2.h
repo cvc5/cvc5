@@ -28,10 +28,10 @@
 #include "api/cvc4cpp.h"
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
+#include "parser/smt2/parse_op.h"
 #include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
-#include "parser/smt2/parse_op.h"
 
 namespace CVC4 {
 
@@ -434,10 +434,10 @@ class Smt2 : public Parser
     parseError(withLogic);
   }
 
-  /** 
+  /**
    * Given a parse operator p, apply a type ascription to it. This method is run
    * when we encounter "(as t type)" and t has been stored in p.
-   * 
+   *
    * This updates the ParseOp p to take into account the ascription. Doing this
    * may include:
    * - Converting an (pre-ascribed) array constant specification "const" to
@@ -451,9 +451,9 @@ class Smt2 : public Parser
    * has the given type and throw a parse error otherwise.
    */
   void applyTypeAscription(ParseOp& p, Type type) const;
-  /** 
+  /**
    * This converts a ParseOp to expression, assuming it is a standalone term.
-   * 
+   *
    * In particular:
    * - If p's expression field is set, then that expression is returned.
    * - If p's name field is set, then we look up that name in the symbol table
@@ -461,14 +461,14 @@ class Smt2 : public Parser
    * In other cases, a parse error is thrown.
    */
   Expr parseOpToExpr(ParseOp& p) const;
-  /** 
+  /**
    * Apply parse operator to list of arguments, and return the resulting
    * expression.
-   * 
+   *
    * This method involves two phases.
    * (1) Processing the operator represented by p,
    * (2) Applying that operator to the set of arguments.
-   * 
+   *
    * For (1), this involves determining the kind of the overall expression. We
    * may be in one the following cases:
    * - If p's expression field is set, we may choose to prepend it to args, or
@@ -479,7 +479,7 @@ class Smt2 : public Parser
    * on the types of args. We then determine the overall kind of the return
    * expression based on that symbol.
    * - p's kind field may be already set.
-   * 
+   *
    * For (2), we construct the overall expression, which may involve the
    * following:
    * - If p is an array constant specification (as const (Array T1 T2)), then
@@ -494,7 +494,8 @@ class Smt2 : public Parser
    * as a chain of HO_APPLY terms.
    */
   Expr applyParseOp(ParseOp& p, std::vector<Expr>& args) const;
-private:
+
+ private:
   std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
   std::map< CVC4::Expr, std::vector< CVC4::Expr > > d_sygus_let_func_to_vars;
   std::map< CVC4::Expr, CVC4::Expr > d_sygus_let_func_to_body;
