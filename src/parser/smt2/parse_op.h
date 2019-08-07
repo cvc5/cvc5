@@ -23,22 +23,20 @@
 #include "expr/kind.h"
 
 namespace CVC4 {
-namespace parser {
 
 /** A parsed operator
  * 
  */
-class ParsedOp
+class ParseOp
 {
 public:
+  ParseOp() : d_kind(kind::NULL_EXPR){}
   Kind d_kind;
   std::string d_name;
   Expr d_expr; 
   Type d_type;
 };
   
-  
-}/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
 #endif /* CVC4__PARSER__SMT2__PARSE_OP_H */

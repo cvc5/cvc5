@@ -31,6 +31,7 @@
 #include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
+#include "parser/smt2/parse_op.h"
 
 namespace CVC4 {
 
@@ -433,6 +434,9 @@ class Smt2 : public Parser
     parseError(withLogic);
   }
 
+  void applyTypeAscription(ParseOp& p, Type type);
+  Expr parseOpToExpr(ParseOp& p);
+  Expr applyParseOp(ParseOp& p, std::vector<Expr>& args);
 private:
   std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
   std::map< CVC4::Expr, std::vector< CVC4::Expr > > d_sygus_let_func_to_vars;
