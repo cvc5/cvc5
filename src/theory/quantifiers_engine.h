@@ -27,37 +27,22 @@
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_modes.h"
-#include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/bv_inverter.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
-#include "theory/quantifiers/conjecture_generator.h"
-#include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
-#include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/inst_propagator.h"
-#include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/local_theory_ext.h"
-#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/relevant_domain.h"
-#include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -65,6 +50,9 @@
 #include "theory/theory.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
+#include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 
 namespace CVC4 {
 
@@ -72,6 +60,8 @@ class TheoryEngine;
 
 namespace theory {
 
+class QuantifiersEnginePrivate;
+  
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
@@ -131,6 +121,10 @@ public:
   quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
+  /** get the master equality engine */
+  eq::EqualityEngine* getMasterEqualityEngine() const;
+  /** get the active equality engine */
+  eq::EqualityEngine* getActiveEqualityEngine() const;
   //---------------------- end utilities
   //---------------------- modules
   /** get bounded integers utility */
@@ -141,8 +135,6 @@ public:
   quantifiers::RewriteEngine* getRewriteEngine() const;
   /** ceg instantiation */
   quantifiers::SynthEngine* getSynthEngine() const;
-  /** get full saturation */
-  quantifiers::InstStrategyEnum* getInstStrategyEnum() const;
   /** get inst strategy cbqi */
   quantifiers::InstStrategyCegqi* getInstStrategyCegqi() const;
   //---------------------- end modules
@@ -199,8 +191,6 @@ public:
   bool removeLemma( Node lem );
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
-  /** add EPR axiom */
-  bool addEPRAxiom( TypeNode tn );
   /** mark relevant quantified formula, this will indicate it should be checked before the others */
   void markRelevant( Node q );
   /** has added lemma */
@@ -225,10 +215,6 @@ public:
   void eqNotifyPreMerge(TNode t1, TNode t2);
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-  /** get the master equality engine */
-  eq::EqualityEngine* getMasterEqualityEngine();
-  /** get the active equality engine */
-  eq::EqualityEngine* getActiveEqualityEngine();
   /** use model equality engine */
   bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
@@ -316,7 +302,7 @@ public:
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** equality inference class */
   std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
-  /** quantifiers instantiation propagtor */
+  /** quantifiers instantiation propagator */
   std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
@@ -349,34 +335,8 @@ public:
   /** term enumeration utility */
   std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
   //------------- end quantifiers utilities
-  //------------- quantifiers modules
-  /** alpha equivalence */
-  std::unique_ptr<quantifiers::AlphaEquivalence> d_alpha_equiv;
-  /** instantiation engine */
-  std::unique_ptr<quantifiers::InstantiationEngine> d_inst_engine;
-  /** model engine */
-  std::unique_ptr<quantifiers::ModelEngine> d_model_engine;
-  /** bounded integers utility */
-  std::unique_ptr<quantifiers::BoundedIntegers> d_bint;
-  /** Conflict find mechanism for quantifiers */
-  std::unique_ptr<quantifiers::QuantConflictFind> d_qcf;
-  /** rewrite rules utility */
-  std::unique_ptr<quantifiers::RewriteEngine> d_rr_engine;
-  /** subgoal generator */
-  std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
-  /** ceg instantiation */
-  std::unique_ptr<quantifiers::SynthEngine> d_synth_e;
-  /** lte partial instantiation */
-  std::unique_ptr<quantifiers::LtePartialInst> d_lte_part_inst;
-  /** full saturation */
-  std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
-  /** counterexample-based quantifier instantiation */
-  std::unique_ptr<quantifiers::InstStrategyCegqi> d_i_cbqi;
-  /** quantifiers splitting */
-  std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
-  /** quantifiers anti-skolemization */
-  std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
-  //------------- end quantifiers modules
+  /** The private utility */
+  std::unique_ptr<QuantifiersEnginePrivate> d_private;
   //------------- temporary information during check
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
