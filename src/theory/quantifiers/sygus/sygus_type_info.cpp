@@ -23,33 +23,45 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-void TypeNodeIdTrie::add(Node v, std::vector<TypeNode>& types)
+  
+/** A trie indexed by types that assigns unique identifiers to nodes. */
+class TypeNodeIdTrie
 {
-  TypeNodeIdTrie* tnt = this;
-  for (unsigned i = 0, size = types.size(); i < size; i++)
+ public:
+  /** children of this node */
+  std::map<TypeNode, TypeNodeIdTrie> d_children;
+  /** the data stored at this node */
+  std::vector<Node> d_data;
+  /** add v to this trie, indexed by types */
+  void add(Node v, std::vector<TypeNode>& types)
   {
-    tnt = &tnt->d_children[types[i]];
-  }
-  tnt->d_data.push_back(v);
-}
-
-void TypeNodeIdTrie::assignIds(std::map<Node, unsigned>& assign,
-                               unsigned& idCount)
-{
-  if (!d_data.empty())
-  {
-    for (const Node& v : d_data)
+    TypeNodeIdTrie* tnt = this;
+    for (unsigned i = 0, size = types.size(); i < size; i++)
     {
-      assign[v] = idCount;
+      tnt = &tnt->d_children[types[i]];
     }
-    idCount++;
+    tnt->d_data.push_back(v);
   }
-  for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
+  /**
+   * Assign each node in this trie an identifier such that
+   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
+   */
+  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount)
   {
-    c.second.assignIds(assign, idCount);
+    if (!d_data.empty())
+    {
+      for (const Node& v : d_data)
+      {
+        assign[v] = idCount;
+      }
+      idCount++;
+    }
+    for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
+    {
+      c.second.assignIds(assign, idCount);
+    }
   }
-}
+};
 
 SygusTypeInfo::SygusTypeInfo()
     : d_hasIte(false),

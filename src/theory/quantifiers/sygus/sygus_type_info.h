@@ -28,23 +28,6 @@ namespace quantifiers {
 
 class TermDbSygus;
 
-/** A trie indexed by types that assigns unique identifiers to nodes. */
-class TypeNodeIdTrie
-{
- public:
-  /** children of this node */
-  std::map<TypeNode, TypeNodeIdTrie> d_children;
-  /** the data stored at this node */
-  std::vector<Node> d_data;
-  /** add v to this trie, indexed by types */
-  void add(Node v, std::vector<TypeNode>& types);
-  /**
-   * Assign each node in this trie an identifier such that
-   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
-   */
-  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount);
-};
-
 /**
  * This data structure stores statically computed information regarding a sygus
  * datatype type.
