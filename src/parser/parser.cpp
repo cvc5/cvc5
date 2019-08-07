@@ -110,7 +110,7 @@ Expr Parser::getExpressionForName(const std::string& name) {
 }
 
 Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
-  assert( isDeclared(name) );
+  assert(isDeclared(name));
   // first check if the variable is declared and not overloaded
   Expr expr = getVariable(name);
   if(expr.isNull()) {

@@ -502,13 +502,7 @@ bool Smt2::logicIsSet() {
 }
 
 Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
-  if (sygus_v1() && name[0] == '-'
-      && name.find_first_not_of("0123456789", 1) == std::string::npos)
-  {
-    // allow unary minus in sygus version 1
-    return getExprManager()->mkConst(Rational(name));
-  }
-  else if (isAbstractValue(name))
+  if (isAbstractValue(name))
   {
     return mkAbstractValue(name);
   }
