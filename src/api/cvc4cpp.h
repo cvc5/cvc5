@@ -708,14 +708,14 @@ class CVC4_PUBLIC Term
    * If true, getKind() will return the operator kind.
    * @return true iff this Term has a builtin operator
    */
-  bool hasBuiltinOperator() const;
+  bool hasOperatorBuiltin() const;
 
   /**
    * Returns true if this Term was created using an OpTerm.
    * If true, getOpTerm() will return the operator OpTerm.
    * @return true iff this Term has an indexed operator
    */
-  bool hasOpTermOperator() const;
+  bool hasOperatorOpTerm() const;
 
   /**
    * Returns true if this Term was created with an
@@ -724,21 +724,21 @@ class CVC4_PUBLIC Term
    * @return true iff this Term is the result of
    *         applying an uninterpreted function
    */
-  bool hasUFOperator() const;
+  bool hasOperatorUF() const;
 
   /**
    * Returns the OpTerm used to create this term.
-   * Valid to call when hasOpTermOperator() returns true.
+   * Valid to call when hasOperatorOpTerm() returns true.
    * @return the OpTerm used to create this term
    */
-  OpTerm getOpTerm() const;
+  OpTerm getOperatorOpTerm() const;
 
   /**
    * Returns the UF term used to create this term.
-   * Valid to call when hasUFOperator() returns true.
+   * Valid to call when hasOperatorUF() returns true.
    * @return the UF term used to create this term
    */
-  Term getUF() const;
+  Term getOperatorUF() const;
 
   /**
    * Boolean negation.

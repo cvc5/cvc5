@@ -38,9 +38,9 @@ class TermBlack : public CxxTest::TestSuite
 
   void testTermAssignment();
 
-  void testBuiltinOperator();
-  void testOpTermOperator();
-  void testUFOperator();
+  void testOperatorBuiltin();
+  void testOperatorOpTerm();
+  void testOperatorUF();
 
  private:
   Solver d_solver;
@@ -546,7 +546,7 @@ void TermBlack::testTermAssignment()
   TS_ASSERT_EQUALS(t1, d_solver.mkReal(1));
 }
 
-void TermBlack::testBuiltinOperator()
+void TermBlack::testOperatorBuiltin()
 {
   Sort bv8 = d_solver.mkBitVectorSort(8);
   Term x = d_solver.mkConst(bv8, "x");
@@ -554,12 +554,12 @@ void TermBlack::testBuiltinOperator()
   Term xpy = d_solver.mkTerm(BITVECTOR_PLUS, x, y);
 
   TS_ASSERT(xpy.hasOperator());
-  TS_ASSERT(xpy.hasBuiltinOperator());
-  TS_ASSERT(!xpy.hasUFOperator());
+  TS_ASSERT(xpy.hasOperatorBuiltin());
+  TS_ASSERT(!xpy.hasOperatorUF());
   TS_ASSERT_EQUALS(xpy.getKind(), BITVECTOR_PLUS);
 }
 
-void TermBlack::testOpTermOperator()
+void TermBlack::testOperatorOpTerm()
 {
   Sort bv8 = d_solver.mkBitVectorSort(8);
   Term x = d_solver.mkConst(bv8, "x");
@@ -570,13 +570,13 @@ void TermBlack::testOpTermOperator()
 
   TS_ASSERT(!x.hasOperator());
   TS_ASSERT(ext40x.hasOperator());
-  TS_ASSERT(ext40x.hasOpTermOperator());
-  TS_ASSERT(!ext40x.hasBuiltinOperator());
-  OpTerm op = ext40x.getOpTerm();
+  TS_ASSERT(ext40x.hasOperatorOpTerm());
+  TS_ASSERT(!ext40x.hasOperatorBuiltin());
+  OpTerm op = ext40x.getOperatorOpTerm();
   TS_ASSERT_EQUALS(op, ext40);
 }
 
-void TermBlack::testUFOperator()
+void TermBlack::testOperatorUF()
 {
   Sort bv8 = d_solver.mkBitVectorSort(8);
   Term x = d_solver.mkConst(bv8, "x");
@@ -586,7 +586,7 @@ void TermBlack::testUFOperator()
   Term fx = d_solver.mkTerm(APPLY_UF, f, x);
 
   TS_ASSERT(fx.hasOperator());
-  TS_ASSERT(fx.hasUFOperator());
-  TS_ASSERT(!fx.hasOpTermOperator());
-  TS_ASSERT_EQUALS(fx.getUF(), f);
+  TS_ASSERT(fx.hasOperatorUF());
+  TS_ASSERT(!fx.hasOperatorOpTerm());
+  TS_ASSERT_EQUALS(fx.getOperatorUF(), f);
 }
