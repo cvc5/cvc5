@@ -875,10 +875,10 @@ class CVC4_PUBLIC OpTerm
   /**
    * Get the indices used to create this OpTerm.
    * Supports the following template arguments:
-   *   string
-   *   Kind
-   *   uint32_t
-   *   pair<uint32_t, uint32_t>
+   *   - string
+   *   - Kind
+   *   - uint32_t
+   *   - pair<uint32_t, uint32_t>
    * Check the OpTerm Kind with getKind() to determine which argument to use.
    * @return the indices used to create this OpTerm
    */
