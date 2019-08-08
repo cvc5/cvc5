@@ -27,7 +27,7 @@ namespace CVC4 {
 /** A parsed operator
  *
  * The purpose of this class is to store information regarding a parsed term
- * in the smt2 language that we are might not be ready to associate with an
+ * in the smt2 language that might not be ready to associate with an
  * expression.
  *
  * While parsing terms in smt2, we may store a combination of one or more of
