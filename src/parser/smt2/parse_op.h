@@ -26,7 +26,7 @@ namespace CVC4 {
 
 /** A parsed operator
  *
- * The purpose of this class is to store information regarding a parsed term
+ * The purpose of this struct is to store information regarding a parsed term
  * in the smt2 language that might not be ready to associate with an
  * expression.
  *
@@ -56,9 +56,8 @@ namespace CVC4 {
  * interpret this operator by converting the next parsed constant of type T2 to
  * an Array of type (Array T1 T2) over that constant.
  */
-class ParseOp
+struct ParseOp
 {
- public:
   ParseOp() : d_kind(kind::NULL_EXPR) {}
   /** The kind associated with the parsed operator, if it exists */
   Kind d_kind;
