@@ -137,7 +137,14 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         // - nfexp => ( x in R ) <=> nx in R'
         // - rnfexp => R = R'
         // We use these explanations below as assumptions on inferences when
-        // appropriate.
+        // appropriate. Notice that for inferring conflicts and tautologies,
+        // we use the normal form of x always. This is because we always want to
+        // discover conflicts/tautologies whenever possible.
+        // For inferences based on regular expression unfolding, we do not use
+        // the normal form of x. The reason is that it is better to unfold
+        // regular expression memberships in a context-indepedent manner,
+        // that is, not taking into account the current normal form of x, since
+        // this ensures these lemmas are still relevant after backtracking.
         std::vector<Node> nfexp;
         std::vector<Node> rnfexp;
         // The normal form of x is stored in nx, while x is left unchanged.
