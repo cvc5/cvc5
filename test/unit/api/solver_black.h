@@ -451,6 +451,7 @@ void SolverBlack::testMkOpTerm()
 
   // mkOpTerm(Kind kind, const std::string& arg)
   TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(RECORD_UPDATE_OP, "asdf"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkOpTerm(DIVISIBLE_OP, "2147483648"));
   TS_ASSERT_THROWS(d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, "asdf"),
                    CVC4ApiException&);
 
