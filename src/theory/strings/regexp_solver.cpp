@@ -80,7 +80,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   if (!addedLemma)
   {
     // get all memberships
-    std::vector<Node> allMems;
+    std::map<Node,Node> allMems;
     for (const std::pair<const Node, std::vector<Node> >& mr : mems)
     {
       for (const Node& m : mr.second)
@@ -88,7 +88,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         bool polarity = m.getKind() != NOT;
         if (polarity || !options::stringIgnNegMembership())
         {
-          allMems.push_back(m);
+          allMems[m] = mr.first;
         }
       }
     }
@@ -100,8 +100,10 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
     // check positive (e=0), then negative (e=1) memberships
     for (unsigned e = 0; e < 2; e++)
     {
-      for (const Node& assertion : allMems)
+      for (const std::pair< const Node, Node >& mp : allMems )
       {
+        Node assertion = mp.first;
+        Node rep = mp.second;
         // check regular expression membership
         Trace("regexp-debug")
             << "Check : " << assertion << " "
@@ -126,9 +128,10 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         bool flag = true;
         Node x = atom[0];
         Node r = atom[1];
+        Assert( rep==d_parent.getRepresentative(x));
         std::vector<Node> rnfexp;
 
-        Node nx;
+        Node nx = x;
         if (!x.isConst())
         {
           nx = d_parent.getNormalString(x, rnfexp);
@@ -159,7 +162,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             break;
           }
         }
-        if (e == 1 && repUnfold.find(x) != repUnfold.end())
+        if (e == 1 && repUnfold.find(rep) != repUnfold.end())
         {
           // do not unfold negative memberships of strings that have new
           // positive unfoldings. For example:
@@ -171,7 +174,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         }
         if (polarity)
         {
-          flag = checkPDerivative(x, r, atom, addedLemma, rnfexp);
+          flag = checkPDerivative(nx, r, atom, addedLemma, rnfexp);
         }
         else
         {
@@ -185,9 +188,8 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         if (flag)
         {
           // check if the term is atomic
-          Node xr = d_parent.getRepresentative(x);
           Trace("strings-regexp")
-              << "Unroll/simplify membership of atomic term " << xr
+              << "Unroll/simplify membership of atomic term " << rep
               << std::endl;
           // if so, do simple unrolling
           std::vector<Node> nvec;
@@ -213,7 +215,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             // Remember that we have unfolded a membership for x
             // notice that we only do this here, after we have definitely
             // added a lemma.
-            repUnfold.insert(x);
+            repUnfold.insert(rep);
           }
         }
         if (d_im.hasConflict())
