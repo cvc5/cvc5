@@ -806,7 +806,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
       {
         curr = Node::null();
       }
-      else if( curr[0].getKind()==REGEXP_SIGMA )
+      else if (curr[0].getKind() == REGEXP_SIGMA)
       {
         allStrIndices.push_back(cvec.size());
       }
@@ -824,26 +824,26 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
     // where arguments are swapped, as described in the loop above.
     return returnRewrite(node, retNode, "re.concat");
   }
-  // (re.* re.allchar) ++ R ++ (re.* re.allchar) -> (re.* re.allchar) if 
+  // (re.* re.allchar) ++ R ++ (re.* re.allchar) -> (re.* re.allchar) if
   // R accepts the empty string
   String emptyStr = String("");
-  for( size_t i=1, size=allStrIndices.size(); i<size; i++ )
+  for (size_t i = 1, size = allStrIndices.size(); i < size; i++)
   {
-    size_t startIndex = allStrIndices[i-1];
+    size_t startIndex = allStrIndices[i - 1];
     size_t endIndex = allStrIndices[i];
     bool success = true;
-    for( size_t j=startIndex+1; j<endIndex; j++ )
+    for (size_t j = startIndex + 1; j < endIndex; j++)
     {
-      Assert( j < cvec.size() );
-      if( !testConstStringInRegExp(emptyStr,0,cvec[j]) )
+      Assert(j < cvec.size());
+      if (!testConstStringInRegExp(emptyStr, 0, cvec[j]))
       {
         success = false;
         break;
       }
     }
-    if( success )
+    if (success)
     {
-      cvec.erase( cvec.begin() + startIndex + 1, cvec.begin() + endIndex + 1 );
+      cvec.erase(cvec.begin() + startIndex + 1, cvec.begin() + endIndex + 1);
       retNode = utils::mkConcat(REGEXP_CONCAT, cvec);
       return returnRewrite(node, retNode, "re.concat-adj-gap");
     }
