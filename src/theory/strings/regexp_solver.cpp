@@ -80,7 +80,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   if (!addedLemma)
   {
     // get all memberships
-    std::map<Node,Node> allMems;
+    std::map<Node, Node> allMems;
     for (const std::pair<const Node, std::vector<Node> >& mr : mems)
     {
       for (const Node& m : mr.second)
@@ -100,7 +100,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
     // check positive (e=0), then negative (e=1) memberships
     for (unsigned e = 0; e < 2; e++)
     {
-      for (const std::pair< const Node, Node >& mp : allMems )
+      for (const std::pair<const Node, Node>& mp : allMems)
       {
         Node assertion = mp.first;
         Node rep = mp.second;
@@ -128,7 +128,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         bool flag = true;
         Node x = atom[0];
         Node r = atom[1];
-        Assert( rep==d_parent.getRepresentative(x));
+        Assert(rep == d_parent.getRepresentative(x));
         // The following code takes normal forms into account for the purposes
         // of simplifying a regular expression membership x in R. For example,
         // if x = "A" in the current context, then we may be interested in
@@ -158,19 +158,19 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         if (!d_regexp_opr.checkConstRegExp(r))
         {
           r = getNormalSymRegExp(r, rnfexp);
-          nfexp.insert(nfexp.end(),rnfexp.begin(),rnfexp.end());
+          nfexp.insert(nfexp.end(), rnfexp.begin(), rnfexp.end());
           changed = true;
         }
         Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
                                    << nx << " IN " << r << std::endl;
-        if (nx!=x || changed)
+        if (nx != x || changed)
         {
           // We rewrite the membership nx IN r.
           Node tmp = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, nx, r));
           Trace("strings-regexp-nf") << "Simplifies to " << tmp << std::endl;
-          if( tmp.isConst() )
+          if (tmp.isConst())
           {
-            if (tmp.getConst<bool>()==polarity)
+            if (tmp.getConst<bool>() == polarity)
             {
               // it is satisfied in this SAT context
               d_regexp_ccached.insert(assertion);
