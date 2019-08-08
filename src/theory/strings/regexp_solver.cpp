@@ -148,19 +148,22 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         {
           Node tmp = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, nx, r));
           Trace("strings-regexp-nf") << "Simplifies to " << tmp << std::endl;
-          if (tmp == d_true && polarity)
+          if( tmp.isConst() )
           {
-            d_regexp_ccached.insert(assertion);
-            continue;
-          }
-          else if (tmp == d_false && !polarity)
-          {
-            std::vector<Node> exp_n;
-            exp_n.push_back(assertion);
-            Node conc = Node::null();
-            d_im.sendInference(nfexp, exp_n, conc, "REGEXP NF Conflict");
-            addedLemma = true;
-            break;
+            if (tmp.getConst<bool>()==polarity)
+            {
+              d_regexp_ccached.insert(assertion);
+              continue;
+            }
+            else
+            {
+              std::vector<Node> exp_n;
+              exp_n.push_back(assertion);
+              Node conc = Node::null();
+              d_im.sendInference(nfexp, exp_n, conc, "REGEXP NF Conflict");
+              addedLemma = true;
+              break;
+            }
           }
         }
         if (e == 1 && repUnfold.find(rep) != repUnfold.end())
