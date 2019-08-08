@@ -129,13 +129,25 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         Node x = atom[0];
         Node r = atom[1];
         Assert( rep==d_parent.getRepresentative(x));
+        // The following code takes normal forms into account for the purposes
+        // of simplifying a regular expression membership x in R. For example,
+        // if x = "A" in the current context, then we may be interested in
+        // reasoning about ( x in R ) * { x -> "A" }. Say we update the
+        // membership to nx in R', then:
+        // - nfexp => ( x in R ) <=> nx in R'
+        // - rnfexp => R = R'
+        // We use these explanations below as assumptions on inferences when
+        // appropriate.
         std::vector<Node> nfexp;
         std::vector<Node> rnfexp;
+        // The normal form of x is stored in nx, while x is left unchanged.
         Node nx = x;
         if (!x.isConst())
         {
           nx = d_parent.getNormalString(x, nfexp);
         }
+        // If r is not a constant regular expression, we update it based on
+        // normal forms, which may concretize its variables.
         if (!d_regexp_opr.checkConstRegExp(r))
         {
           r = getNormalSymRegExp(r, rnfexp);
@@ -146,17 +158,20 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
                                    << nx << " IN " << r << std::endl;
         if (nx!=x || changed)
         {
+          // We rewrite the membership nx IN r.
           Node tmp = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, nx, r));
           Trace("strings-regexp-nf") << "Simplifies to " << tmp << std::endl;
           if( tmp.isConst() )
           {
             if (tmp.getConst<bool>()==polarity)
             {
+              // it is satisfied in this SAT context
               d_regexp_ccached.insert(assertion);
               continue;
             }
             else
             {
+              // we have a conflict
               std::vector<Node> exp_n;
               exp_n.push_back(assertion);
               Node conc = Node::null();
