@@ -110,7 +110,7 @@ Expr Parser::getExpressionForName(const std::string& name) {
 }
 
 Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
-  assert( isDeclared(name) );
+  assert(isDeclared(name));
   // first check if the variable is declared and not overloaded
   Expr expr = getVariable(name);
   if(expr.isNull()) {
@@ -491,6 +491,15 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
   {
     // no difference
     return range;
+  }
+  if (Debug.isOn("parser"))
+  {
+    Debug("parser") << "mkFlatFunctionType: range " << range << " and domains ";
+    for (Type t : sorts)
+    {
+      Debug("parser") << " " << t;
+    }
+    Debug("parser") << "\n";
   }
   while (range.isFunction())
   {

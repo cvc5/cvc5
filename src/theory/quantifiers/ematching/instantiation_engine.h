@@ -17,10 +17,9 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H
 #define CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H
 
-#include <memory>
+#include <vector>
 
-#include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/theory_quantifiers.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -64,7 +63,6 @@ class InstantiationEngine : public QuantifiersModule {
   /** auto gen triggers; only kept for destructor cleanup */
   std::unique_ptr<InstStrategyAutoGenTriggers> d_i_ag;
 
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
   /** current processing quantified formulas */
   std::vector<Node> d_quants;
 

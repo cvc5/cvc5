@@ -37,10 +37,12 @@ SatValue toSatValue(int result)
   return SAT_VALUE_UNKNOWN;
 }
 
+/* Note: CaDiCaL returns lit/-lit for true/false. Older versions returned 1/-1.
+ */
 SatValue toSatValueLit(int value)
 {
-  if (value == 1) return SAT_VALUE_TRUE;
-  Assert(value == -1);
+  if (value > 0) return SAT_VALUE_TRUE;
+  Assert(value < 0);
   return SAT_VALUE_FALSE;
 }
 
@@ -119,7 +121,6 @@ SatValue CadicalSolver::solve(long unsigned int&)
 
 SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
-#ifdef CVC4_INCREMENTAL_CADICAL
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   for (const SatLiteral& lit : assumptions)
   {
@@ -129,9 +130,6 @@ SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
   d_okay = (res == SAT_VALUE_TRUE);
   ++d_statistics.d_numSatCalls;
   return res;
-#else
-  Unimplemented("CaDiCaL version used does not support incremental solving");
-#endif
 }
 
 void CadicalSolver::interrupt() { d_solver->terminate(); }

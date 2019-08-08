@@ -20,11 +20,15 @@
 #include <map>
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** Sygus unification utility
  *

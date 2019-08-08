@@ -22,7 +22,6 @@
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
 #include "theory/quantifiers/lazy_trie.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {

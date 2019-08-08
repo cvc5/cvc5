@@ -886,15 +886,6 @@ header = "options/quantifiers_options.h"
   help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
 
 [[option]]
-  name       = "sygusAbduct"
-  category   = "regular"
-  long       = "sygus-abduct"
-  type       = "bool"
-  default    = "false"
-  read_only  = false
-  help       = "compute abductions using sygus"
-
-[[option]]
   name       = "ceGuidedInst"
   category   = "regular"
   long       = "cegqi"
@@ -1783,6 +1774,24 @@ header = "options/quantifiers_options.h"
   default    = "true"
   read_only  = true
   help       = "merge term indices modulo equality"
+
+[[option]]
+  name       = "hoElim"
+  category   = "regular"
+  long       = "ho-elim"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "eagerly eliminate higher-order constraints"
+
+[[option]]
+  name       = "hoElimStoreAx"
+  category   = "regular"
+  long       = "ho-elim-store-ax"
+  type       = "bool"
+  default    = "true"
+  read_only  = false
+  help       = "use store axiom during ho-elim"
 
 ### Proof options
 

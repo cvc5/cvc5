@@ -15,9 +15,9 @@
 
 #include "theory/quantifiers/anti_skolem.h"
 
+#include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;
@@ -29,7 +29,7 @@ namespace theory {
 namespace quantifiers {
 
 struct sortTypeOrder {
-  TermCanonize* d_tu;
+  expr::TermCanonize* d_tu;
   bool operator() (TypeNode i, TypeNode j) {
     return d_tu->getIdForType( i )<d_tu->getIdForType( j );
   }

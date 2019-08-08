@@ -83,42 +83,47 @@ TraceCheckProof TraceCheckProof::fromText(std::istream& in)
 ErProof ErProof::fromBinaryDratProof(
     const std::unordered_map<ClauseId, prop::SatClause>& clauses,
     const std::vector<ClauseId>& usedIds,
-    const std::string& dratBinary)
+    const std::string& dratBinary,
+    TimerStat& toolTimer)
 {
   std::string formulaFilename("cvc4-dimacs-XXXXXX");
   std::string dratFilename("cvc4-drat-XXXXXX");
   std::string tracecheckFilename("cvc4-tracecheck-er-XXXXXX");
 
   // Write the formula
-  std::fstream formStream = openTmpFile(&formulaFilename);
-  printDimacs(formStream, clauses, usedIds);
-  formStream.close();
+  std::unique_ptr<std::fstream> formStream = openTmpFile(&formulaFilename);
+  printDimacs(*formStream, clauses, usedIds);
+  formStream->close();
 
   // Write the (binary) DRAT proof
-  std::fstream dratStream = openTmpFile(&dratFilename);
-  dratStream << dratBinary;
-  dratStream.close();
+  std::unique_ptr<std::fstream> dratStream = openTmpFile(&dratFilename);
+  (*dratStream) << dratBinary;
+  dratStream->close();
 
-  std::fstream tracecheckStream = openTmpFile(&tracecheckFilename);
+  std::unique_ptr<std::fstream> tracecheckStream =
+      openTmpFile(&tracecheckFilename);
 
   // Invoke drat2er
+  {
+    CodeTimer blockTimer{toolTimer};
 #if CVC4_USE_DRAT2ER
-  drat2er::TransformDRATToExtendedResolution(formulaFilename,
-                                             dratFilename,
-                                             tracecheckFilename,
-                                             false,
-                                             drat2er::options::QUIET,
-                                             false);
+    drat2er::TransformDRATToExtendedResolution(formulaFilename,
+                                               dratFilename,
+                                               tracecheckFilename,
+                                               false,
+                                               drat2er::options::QUIET,
+                                               false);
 #else
-  Unimplemented(
-      "ER proof production requires drat2er.\n"
-      "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented(
+        "ER proof production requires drat2er.\n"
+        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
+  }
 
   // Parse the resulting TRACECHECK proof into an ER proof.
-  TraceCheckProof pf = TraceCheckProof::fromText(tracecheckStream);
+  TraceCheckProof pf = TraceCheckProof::fromText(*tracecheckStream);
   ErProof proof(clauses, usedIds, std::move(pf));
-  tracecheckStream.close();
+  tracecheckStream->close();
 
   remove(formulaFilename.c_str());
   remove(dratFilename.c_str());
