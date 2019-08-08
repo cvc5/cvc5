@@ -128,10 +128,10 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         Node r = atom[1];
         std::vector<Node> rnfexp;
 
+        Node nx;
         if (!x.isConst())
         {
-          x = d_parent.getNormalString(x, rnfexp);
-          changed = true;
+          nx = d_parent.getNormalString(x, rnfexp);
         }
         if (!d_regexp_opr.checkConstRegExp(r))
         {
@@ -139,20 +139,17 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
           changed = true;
         }
         Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
-                                   << x << " IN " << r << std::endl;
-        if (changed)
+                                   << nx << " IN " << r << std::endl;
+        if (nx!=x || changed)
         {
-          Node tmp = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, x, r));
-          if (!polarity)
-          {
-            tmp = tmp.negate();
-          }
-          if (tmp == d_true)
+          Node tmp = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, nx, r));
+          Trace("strings-regexp-nf") << "Simplifies to " << tmp << std::endl;
+          if (tmp == d_true && polarity)
           {
             d_regexp_ccached.insert(assertion);
             continue;
           }
-          else if (tmp == d_false)
+          else if (tmp == d_false && !polarity)
           {
             std::vector<Node> exp_n;
             exp_n.push_back(assertion);
