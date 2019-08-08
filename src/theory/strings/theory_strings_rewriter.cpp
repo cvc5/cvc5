@@ -764,6 +764,8 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
       << "Strings::rewriteConcatRegExp start " << node << std::endl;
   std::vector<Node> cvec;
   std::vector<Node> preReStr;
+  // the indices of the form (re.* re.allchar)
+  std::vector<size_t> allStrIndices;
   for (unsigned i = 0, size = vec.size(); i <= size; i++)
   {
     Node curr;
@@ -804,6 +806,10 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
       {
         curr = Node::null();
       }
+      else if( curr[0].getKind()==REGEXP_SIGMA )
+      {
+        allStrIndices.push_back(cvec.size());
+      }
     }
     if (!curr.isNull())
     {
@@ -817,6 +823,30 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
     // handles all cases where consecutive re constants are combined, and cases
     // where arguments are swapped, as described in the loop above.
     return returnRewrite(node, retNode, "re.concat");
+  }
+  // (re.* re.allchar) ++ R ++ (re.* re.allchar) -> (re.* re.allchar) if 
+  // R accepts the empty string
+  String emptyStr = String("");
+  for( size_t i=1, size=allStrIndices.size(); i<size; i++ )
+  {
+    size_t startIndex = allStrIndices[i-1];
+    size_t endIndex = allStrIndices[i];
+    bool success = true;
+    for( size_t j=startIndex+1; j<endIndex; j++ )
+    {
+      Assert( j < cvec.size() );
+      if( !testConstStringInRegExp(emptyStr,0,cvec[j]) )
+      {
+        success = false;
+        break;
+      }
+    }
+    if( success )
+    {
+      cvec.erase( cvec.begin() + startIndex + 1, cvec.begin() + endIndex + 1 );
+      retNode = utils::mkConcat(REGEXP_CONCAT, cvec);
+      return returnRewrite(node, retNode, "re.concat-adj-gap");
+    }
   }
   return node;
 }
