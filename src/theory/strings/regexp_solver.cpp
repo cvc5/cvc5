@@ -129,16 +129,17 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         Node x = atom[0];
         Node r = atom[1];
         Assert( rep==d_parent.getRepresentative(x));
+        std::vector<Node> nfexp;
         std::vector<Node> rnfexp;
-
         Node nx = x;
         if (!x.isConst())
         {
-          nx = d_parent.getNormalString(x, rnfexp);
+          nx = d_parent.getNormalString(x, nfexp);
         }
         if (!d_regexp_opr.checkConstRegExp(r))
         {
           r = getNormalSymRegExp(r, rnfexp);
+          nfexp.insert(nfexp.end(),rnfexp.begin(),rnfexp.end());
           changed = true;
         }
         Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
@@ -157,7 +158,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             std::vector<Node> exp_n;
             exp_n.push_back(assertion);
             Node conc = Node::null();
-            d_im.sendInference(rnfexp, exp_n, conc, "REGEXP NF Conflict");
+            d_im.sendInference(nfexp, exp_n, conc, "REGEXP NF Conflict");
             addedLemma = true;
             break;
           }
@@ -174,7 +175,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         }
         if (polarity)
         {
-          flag = checkPDerivative(nx, r, atom, addedLemma, rnfexp);
+          flag = checkPDerivative(x, r, atom, addedLemma, rnfexp);
         }
         else
         {
