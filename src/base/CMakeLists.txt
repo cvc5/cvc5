@@ -50,6 +50,7 @@ add_custom_target(
   COMMAND
     ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Debug ${source_files_list}
   DEPENDS mktags
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
 )
 
 add_custom_target(
@@ -57,6 +58,7 @@ add_custom_target(
   COMMAND
     ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Trace ${source_files_list}
   DEPENDS mktags
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
 )
 
 add_custom_command(

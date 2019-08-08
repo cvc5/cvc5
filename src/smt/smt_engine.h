@@ -539,6 +539,11 @@ class CVC4_PUBLIC SmtEngine {
   bool isFullyInited() { return d_fullyInited; }
 
   /**
+   * Return the user context level.
+   */
+  size_t getNumUserLevels() { return d_userLevels.size(); }
+
+  /**
    * Set the logic of the script.
    */
   void setLogic(
