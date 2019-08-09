@@ -183,7 +183,7 @@ class CardinalityExtension
   void checkMinCard();
   /** check cardinality cycles
    *
-   * The purpose of this inference schema is construct two data structures:
+   * The purpose of this inference schema is to construct two data structures:
    *
    * (1) d_card_parent, which maps set terms (A op B) for op in { \, ^ } to
    * equivalence class representatives of their "parents", where:
