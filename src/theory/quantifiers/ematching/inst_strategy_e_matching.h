@@ -98,6 +98,7 @@ private:
  std::map<Node, bool> d_hasUserPatterns;
  /** for computing relevance of quantifiers */
  std::unique_ptr<QuantRelevance> d_quant_rel;
+
 public:
   InstStrategyAutoGenTriggers( QuantifiersEngine* qe );
   ~InstStrategyAutoGenTriggers(){}
@@ -110,7 +111,7 @@ public:
     return std::string("AutoGenTriggers");
   }
   /** register quantifier */
-  void registerQuantifier( Node q ) override;
+  void registerQuantifier(Node q) override;
   /** add pattern */
   void addUserNoPattern( Node q, Node pat );
 };/* class InstStrategyAutoGenTriggers */
