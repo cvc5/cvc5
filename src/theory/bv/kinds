@@ -49,7 +49,7 @@ operator BITVECTOR_XOR 2: "bitwise xor of two or more bit-vectors"
 operator BITVECTOR_NOT 1 "bitwise not of a bit-vector"
 operator BITVECTOR_NAND 2 "bitwise nand of two bit-vectors"
 operator BITVECTOR_NOR 2 "bitwise nor of two bit-vectors"
-operator BITVECTOR_XNOR 2 "bitwise xnor of two bit-vectors"
+operator BITVECTOR_XNOR 2: "bitwise xnor of two or more bit-vectors"
 
 ## arithmetic kinds
 operator BITVECTOR_MULT 2: "multiplication of two or more bit-vectors"

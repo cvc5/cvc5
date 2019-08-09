@@ -404,6 +404,7 @@ class Smt2 : public Parser
       case kind::BITVECTOR_OR:
       case kind::BITVECTOR_PLUS:
       case kind::BITVECTOR_XOR:
+      case kind::BITVECTOR_XNOR:
         if (numArgs != 2 && !v2_6())
         {
           parseError(

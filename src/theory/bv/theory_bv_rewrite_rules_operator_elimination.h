@@ -366,8 +366,7 @@ inline Node RewriteRule<NorEliminate>::apply(TNode node)
 template <>
 inline bool RewriteRule<XnorEliminate>::applies(TNode node)
 {
-  return (node.getKind() == kind::BITVECTOR_XNOR &&
-          node.getNumChildren() == 2);
+  return node.getKind() == kind::BITVECTOR_XNOR;
 }
 
 template <>
@@ -376,9 +375,8 @@ inline Node RewriteRule<XnorEliminate>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<XnorEliminate>(" << node << ")"
                       << std::endl;
   NodeManager *nm = NodeManager::currentNM();
-  TNode a = node[0];
-  TNode b = node[1];
-  Node xorNode = nm->mkNode(kind::BITVECTOR_XOR, a, b);
+  std::vector<TNode> children(node.begin(), node.end());
+  Node xorNode = nm->mkNode(kind::BITVECTOR_XOR, children);
   Node result = nm->mkNode(kind::BITVECTOR_NOT, xorNode);
   return result;
 }

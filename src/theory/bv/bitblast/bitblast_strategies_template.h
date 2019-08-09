@@ -309,22 +309,12 @@ void DefaultXorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
 }
 
 template <class T>
-void DefaultXnorBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
-  Debug("bitvector-bb") << "theory::bv::DefaultXnorBB bitblasting " << node << "\n";
-
-  Assert(node.getNumChildren() == 2 &&
-         node.getKind() == kind::BITVECTOR_XNOR &&
-         bits.size() == 0);
-  std::vector<T> lhs, rhs;
-  bb->bbTerm(node[0], lhs);
-  bb->bbTerm(node[1], rhs);
-  Assert(lhs.size() == rhs.size()); 
-  
-  for (unsigned i = 0; i < lhs.size(); ++i) {
-    bits.push_back(mkIff(lhs[i], rhs[i])); 
-  }
+void DefaultXnorBB(TNode node, std::vector<T>& bits, TBitblaster<T>* bb)
+{
+  Debug("bitvector-bb") << "theory::bv::DefaultXnorBB bitblasting " << node
+                        << "\n";
+  Unimplemented();
 }
-
 
 template <class T>
 void DefaultNandBB (TNode node, std::vector<T>& bits, TBitblaster<T>* bb) {
