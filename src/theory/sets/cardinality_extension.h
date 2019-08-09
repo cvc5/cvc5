@@ -279,7 +279,8 @@ class CardinalityExtension
    *
    * As an example, say we have a context with equivalence classes:
    *   {A, D}, {C, A^B}, {E, C^D}, {C\D}, {D\C}, {A\B}, {empty, B\A},
-   * An ordered list d_oSetEqc for this context:
+   * where assume the first term in each set is its representative. An ordered
+   * list d_oSetEqc for this context:
    *   A, C, E, C\D, D\C, A\B, empty, ...
    * The normal form of {empty, B\A} is {}, since it contains the empty set.
    * The normal forms for each of the singleton equivalence classes are
