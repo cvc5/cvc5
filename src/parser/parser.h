@@ -500,7 +500,7 @@ public:
   /**
    * Create a new CVC4 function expression of the given type,
    * appending a unique index to its name.  (That's the ONLY
-   * difference between mkAnonymousFunction() and mkFunction()).
+   * difference between mkAnonymousFunction() and mkVar()).
    *
    * flags specify information about the variable, e.g. whether it is global or defined
    *   (see enum in expr_manager_template.h).
