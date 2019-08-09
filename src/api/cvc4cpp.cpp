@@ -656,7 +656,10 @@ class CVC4ApiExceptionStream
                             << "', expected non-null object";
 
 #define CVC4_API_ARG_CHECK_NOT_NULL(arg) \
-  CVC4_API_CHECK(arg != nullptr)         \
+  CVC4_API_CHECK(!arg.isNull()) << "Invalid null argument for '" << #arg << "'";
+
+#define CVC4_API_ARG_CHECK_NOT_NULLPTR(arg) \
+  CVC4_API_CHECK(arg != nullptr)            \
       << "Invalid null argument for '" << #arg << "'";
 
 #define CVC4_API_KIND_CHECK(kind)     \
@@ -2352,7 +2355,7 @@ Term Solver::mkPi() const
 Term Solver::mkReal(const char* s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULL(s);
+  CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
 
   return mkRealFromStrHelper(std::string(s));
 
@@ -2521,7 +2524,7 @@ Term Solver::mkBitVector(uint32_t size, uint64_t val) const
 Term Solver::mkBitVector(const char* s, uint32_t base) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULL(s);
+  CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
 
   return mkBVFromStrHelper(std::string(s), base);
 
@@ -2538,7 +2541,7 @@ Term Solver::mkBitVector(const std::string& s, uint32_t base) const
 Term Solver::mkBitVector(uint32_t size, const char* s, uint32_t base) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULL(s);
+  CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
   return mkBVFromStrHelper(size, s, base);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3079,7 +3082,10 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const
 
 Term Solver::simplify(const Term& t)
 {
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   return d_smtEngine->simplify(*t.d_expr);
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Result Solver::checkValid(void) const
