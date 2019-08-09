@@ -283,7 +283,7 @@ class CardinalityExtension
    * The flat form of each of E and C^D does not exist, hence the normal form
    * of {E, C^D} is {E}.
    * The flat form of C is {E, C\D}, noting that C^D and C\D are terms whose
-   * parents are C, hence {E, C\D} is the normal form for class {C, A^B}.
+   * parent is C, hence {E, C\D} is the normal form for class {C, A^B}.
    * The flat form of A is {E, C\D, A\B} and the flat form of D is {E, D\C}.
    * Hence, no normal form can be assigned to class {A, D}. Instead this method
    * will e.g. add (C\D)^E to intro_sets, which will force the solver
