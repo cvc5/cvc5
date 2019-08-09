@@ -153,11 +153,12 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
               << "   Construct match..." << std::endl;
           std::vector<Node> inst;
           qi->getMatch(inst);
-          if( Trace.isOn("rewrite-engine-inst-debug") )
+          if (Trace.isOn("rewrite-engine-inst-debug"))
           {
             Trace("rewrite-engine-inst-debug")
                 << "   Add instantiation..." << std::endl;
-            for (unsigned i = 0, nchild = f[0].getNumChildren(); i < nchild; i++)
+            for (unsigned i = 0, nchild = f[0].getNumChildren(); i < nchild;
+                 i++)
             {
               Trace("rewrite-engine-inst-debug") << "  " << f[0][i] << " -> ";
               if (i < inst.size())
@@ -166,7 +167,8 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
               }
               else
               {
-                Trace("rewrite-engine-inst-debug") << "OUT_OF_RANGE" << std::endl;
+                Trace("rewrite-engine-inst-debug")
+                    << "OUT_OF_RANGE" << std::endl;
                 Assert(false);
               }
             }
