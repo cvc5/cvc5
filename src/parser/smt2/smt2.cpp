@@ -1171,7 +1171,7 @@ void Smt2::processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars,
   Type ft = getExprManager()->mkFunctionType(fsorts, let_body.getType());
   std::stringstream ss;
   ss << datatypes[index].getName() << "_let";
-  Expr let_func = mkFunction(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
+  Expr let_func = mkVar(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
   d_sygus_defined_funs.push_back( let_func );
   preemptCommand( new DefineFunctionCommand(ss.str(), let_func, let_define_args, let_body) );
 
@@ -1338,7 +1338,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           // the given name.
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
         }
-        else if (isDefinedFunction(ops[i]))
+        else if (ops[i].getKind()==kind::VARIABLE)
         {
           Debug("parser-sygus") << "--> Defined function " << ops[i]
                                 << std::endl;

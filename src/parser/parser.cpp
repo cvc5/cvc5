@@ -138,18 +138,15 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
 }
 
 Kind Parser::getKindForFunction(Expr fun) {
-  if(isDefinedFunction(fun)) {
-    return APPLY_UF;
-  }
   Type t = fun.getType();
-  if(t.isConstructor()) {
+  if(t.isFunction()) {
+    return APPLY_UF;
+  }else if(t.isConstructor()) {
     return APPLY_CONSTRUCTOR;
   } else if(t.isSelector()) {
     return APPLY_SELECTOR;
   } else if(t.isTester()) {
     return APPLY_TESTER;
-  } else if(t.isFunction()) {
-    return APPLY_UF;
   }else{
     parseError("internal error: unhandled function application kind");
     return UNDEFINED_KIND;
@@ -191,20 +188,6 @@ bool Parser::isFunctionLike(Expr fun) {
          type.isSelector();
 }
 
-/* Returns true if name is bound to a defined function. */
-bool Parser::isDefinedFunction(const std::string& name) {
-  // more permissive in type than isFunction(), because defined
-  // functions can be zero-ary and declared functions cannot.
-  return d_symtab->isBoundDefinedFunction(name);
-}
-
-/* Returns true if the Expr is a defined function. */
-bool Parser::isDefinedFunction(Expr func) {
-  // more permissive in type than isFunction(), because defined
-  // functions can be zero-ary and declared functions cannot.
-  return d_symtab->isBoundDefinedFunction(func);
-}
-
 /* Returns true if name is bound to a function returning boolean. */
 bool Parser::isPredicate(const std::string& name) {
   Expr expr = getVariable(name);
@@ -225,17 +208,6 @@ Expr Parser::mkBoundVar(const std::string& name, const Type& type) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
   Expr expr = getExprManager()->mkBoundVar(name, type);
   defineVar(name, expr, false);
-  return expr;
-}
-
-Expr Parser::mkFunction(const std::string& name, const Type& type,
-                        uint32_t flags, bool doOverload) {
-  if (d_globalDeclarations) {
-    flags |= ExprManager::VAR_FLAG_GLOBAL;
-  }
-  Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = getExprManager()->mkVar(name, type, flags);
-  defineFunction(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
   return expr;
 }
 
@@ -277,16 +249,6 @@ void Parser::defineVar(const std::string& name, const Expr& val,
     std::stringstream ss;
     ss << "Cannot bind " << name << " to symbol of type " << val.getType();
     ss << ", maybe the symbol has already been defined?";
-    parseError(ss.str()); 
-  }
-  assert(isDeclared(name));
-}
-
-void Parser::defineFunction(const std::string& name, const Expr& val,
-                            bool levelZero, bool doOverload) {
-  if (!d_symtab->bindDefinedFunction(name, val, levelZero, doOverload)) {
-    std::stringstream ss;
-    ss << "Failed to bind defined function " << name << " to symbol of type " << val.getType();
     parseError(ss.str()); 
   }
   assert(isDeclared(name));
