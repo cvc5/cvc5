@@ -139,15 +139,24 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
 
 Kind Parser::getKindForFunction(Expr fun) {
   Type t = fun.getType();
-  if(t.isFunction()) {
+  if (t.isFunction())
+  {
     return APPLY_UF;
-  }else if(t.isConstructor()) {
+  }
+  else if (t.isConstructor())
+  {
     return APPLY_CONSTRUCTOR;
-  } else if(t.isSelector()) {
+  }
+  else if (t.isSelector())
+  {
     return APPLY_SELECTOR;
-  } else if(t.isTester()) {
+  }
+  else if (t.isTester())
+  {
     return APPLY_TESTER;
-  }else{
+  }
+  else
+  {
     parseError("internal error: unhandled function application kind");
     return UNDEFINED_KIND;
   }

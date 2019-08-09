@@ -344,7 +344,8 @@ class SymbolTable::Implementation {
   Implementation()
       : d_context(),
         d_exprMap(new (true) CDHashMap<string, Expr>(&d_context)),
-        d_typeMap(new (true) TypeMap(&d_context)) {
+        d_typeMap(new (true) TypeMap(&d_context))
+  {
     d_overload_trie = new OverloadedTypeTrie(&d_context);
   }
 
