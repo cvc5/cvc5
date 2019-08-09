@@ -24,13 +24,10 @@
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-class QuantConflictFind;
 
 class RewriteEngine : public QuantifiersModule
 {
