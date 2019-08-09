@@ -119,7 +119,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
   }
   // reset QCF module
   QuantInfo* qi = &it->second;
-  if (qi->matchGeneratorIsValid())
+  if (!qi->matchGeneratorIsValid())
   {
     Trace("rewrite-engine-inst-debug") << "...Invalid qinfo." << std::endl;
     return 0;
