@@ -482,6 +482,26 @@ if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Package configuration
+#
+# Install config and configversion for CVC4 for find_package(CVC4).
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/CVC4ConfigVersion.cmake
+  VERSION ${CVC4_RELEASE_STRING}
+  COMPATIBILITY SameMajorVersion
+)
+
+# Install the config, configversion and custom find modules
+install(FILES
+  ${CMAKE_CURRENT_LIST_DIR}/cmake/CVC4Config.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/CVC4ConfigVersion.cmake
+  DESTINATION lib/cmake/CVC4
+)
+
+
+#-----------------------------------------------------------------------------#
 # Print build configuration
 
 # Convert build type to lower case.
