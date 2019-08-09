@@ -105,7 +105,7 @@ class CardinalityExtension
   bool isModelValueBasic(Node eqc);
   /** get model elements
    *
-   * This method updates els so that it is the set of elements that occur in 
+   * This method updates els so that it is the set of elements that occur in
    * an equivalence class (whose representative is eqc) in the model we are
    * building. Notice that els may already have elements in it (from explicit
    * memberships from the base set solver for leaf nodes of the cardinality
@@ -166,7 +166,8 @@ class CardinalityExtension
    * elaborated as lemmas.
    *
    * Notice a term is redundant in a context if it is congruent to another
-   * term that is already in the context; it is not relevant if no cardinality constraints exist for its type.
+   * term that is already in the context; it is not relevant if no cardinality
+   * constraints exist for its type.
    */
   void checkRegister();
   /** check minimum cardinality
