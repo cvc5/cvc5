@@ -149,7 +149,7 @@ class QuantifiersEnginePrivate
     }
     if (options::quantRewriteRules())
     {
-      d_rr_engine.reset(new quantifiers::RewriteEngine(c, qe));
+      d_rr_engine.reset(new quantifiers::RewriteEngine(c, qe, d_qcf.get()));
       modules.push_back(d_rr_engine.get());
     }
     if (options::ltePartialInst())
@@ -407,10 +407,6 @@ inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 quantifiers::BoundedIntegers* QuantifiersEngine::getBoundedIntegers() const
 {
   return d_private->d_bint.get();
-}
-quantifiers::QuantConflictFind* QuantifiersEngine::getConflictFind() const
-{
-  return d_private->d_qcf.get();
 }
 quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
 {
