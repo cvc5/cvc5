@@ -177,9 +177,9 @@ void InstantiationEngine::checkOwnership(Node q)
 
 void InstantiationEngine::registerQuantifier( Node f ){
   if( d_quantEngine->hasOwnership( f, this ) ){
-    //for( unsigned i=0; i<d_instStrategies.size(); ++i ){
-    //  d_instStrategies[i]->registerQuantifier( f );
-    //}
+    for( unsigned i=0, nstrat = d_instStrategies.size(); i<nstrat; ++i ){
+      d_instStrategies[i]->registerQuantifier( f );
+    }
     //take into account user patterns
     if( f.getNumChildren()==3 ){
       Node subsPat =

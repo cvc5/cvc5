@@ -17,12 +17,9 @@
 #ifndef CVC4__INST_STRATEGY_E_MATCHING_H
 #define CVC4__INST_STRATEGY_E_MATCHING_H
 
-#include "context/context.h"
-#include "context/context_mm.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/ematching/trigger.h"
-#include "util/statistics_registry.h"
-#include "options/quantifiers_options.h"
+#include "theory/quantifiers/quant_relevance.h"
 
 namespace CVC4 {
 namespace theory {
@@ -99,6 +96,8 @@ private:
  bool hasUserPatterns(Node q);
  /** has user patterns */
  std::map<Node, bool> d_hasUserPatterns;
+ /** for computing relevance of quantifiers */
+ std::unique_ptr<QuantRelevance> d_quant_rel;
 public:
   InstStrategyAutoGenTriggers( QuantifiersEngine* qe );
   ~InstStrategyAutoGenTriggers(){}
@@ -110,6 +109,8 @@ public:
   {
     return std::string("AutoGenTriggers");
   }
+  /** register quantifier */
+  void registerQuantifier( Node q ) override;
   /** add pattern */
   void addUserNoPattern( Node q, Node pat );
 };/* class InstStrategyAutoGenTriggers */

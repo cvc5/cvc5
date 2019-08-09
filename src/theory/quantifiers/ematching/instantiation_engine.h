@@ -51,7 +51,7 @@ public:
   /** identify */
   virtual std::string identify() const { return std::string("Unknown"); }
   /** register quantifier */
-  //virtual void registerQuantifier( Node q ) {}
+  virtual void registerQuantifier( Node q ) {}
 };/* class InstStrategy */
 
 class InstantiationEngine : public QuantifiersModule {

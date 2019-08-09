@@ -34,7 +34,6 @@
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_epr.h"
-#include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/relevant_domain.h"
@@ -117,8 +116,6 @@ public:
   quantifiers::RelevantDomain* getRelevantDomain() const;
   /** get the BV inverter utility */
   quantifiers::BvInverter* getBvInverter() const;
-  /** get quantifier relevance */
-  quantifiers::QuantRelevance* getQuantifierRelevance() const;
   //---------------------- end utilities
   //---------------------- modules (TODO remove these #1163)
   /** get bounded integers utility */
@@ -312,8 +309,6 @@ public:
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
-  /** for computing relevance of quantifiers */
-  std::unique_ptr<quantifiers::QuantRelevance> d_quant_rel;
   /** relevant domain */
   std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
   /** inversion utility for BV instantiation */
