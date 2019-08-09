@@ -32,9 +32,11 @@ struct PrioritySort {
   }
 };
 
-
-RewriteEngine::RewriteEngine( context::Context* c, QuantifiersEngine* qe, QuantConflictFind * qcf ) : QuantifiersModule(qe),
-      d_qcf(qcf) {
+RewriteEngine::RewriteEngine(context::Context* c,
+                             QuantifiersEngine* qe,
+                             QuantConflictFind* qcf)
+    : QuantifiersModule(qe), d_qcf(qcf)
+{
   d_needsSort = false;
 }
 
@@ -108,67 +110,89 @@ void RewriteEngine::check(Theory::Effort e, QEffort quant_e)
 int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
   Trace("rewrite-engine-inst") << "Check " << d_qinfo_n[f] << ", priority = " << getPriority( f ) << ", effort = " << e << "..." << std::endl;
 
-  //get the proper quantifiers info
-  std::map< Node, QuantInfo >::iterator it = d_qinfo.find( f );
-  if( it==d_qinfo.end() ){
+  // get the proper quantifiers info
+  std::map<Node, QuantInfo>::iterator it = d_qinfo.find(f);
+  if (it == d_qinfo.end())
+  {
     Trace("rewrite-engine-inst-debug") << "...No qinfo." << std::endl;
     return 0;
   }
-  //reset QCF module
-  QuantInfo * qi = &it->second;
-  if( qi->matchGeneratorIsValid() ){
+  // reset QCF module
+  QuantInfo* qi = &it->second;
+  if (qi->matchGeneratorIsValid())
+  {
     Trace("rewrite-engine-inst-debug") << "...Invalid qinfo." << std::endl;
     return 0;
   }
   d_qcf->setEffort(QuantConflictFind::EFFORT_CONFLICT);
-  Node rr = QuantAttributes::getRewriteRule( f );
+  Node rr = QuantAttributes::getRewriteRule(f);
   Trace("rewrite-engine-inst-debug") << "   Reset round..." << std::endl;
-  qi->reset_round( d_qcf );
+  qi->reset_round(d_qcf);
   Trace("rewrite-engine-inst-debug") << "   Get matches..." << std::endl;
   int addedLemmas = 0;
-  while( !d_quantEngine->inConflict() && qi->getNextMatch( d_qcf ) &&
-          ( addedLemmas==0 || !options::rrOneInstPerRound() ) ){
-    Trace("rewrite-engine-inst-debug") << "   Got match to complete..." << std::endl;
-    qi->debugPrintMatch( "rewrite-engine-inst-debug" );
-    std::vector< int > assigned;
-    if( !qi->isMatchSpurious( d_qcf ) ){
+  while (!d_quantEngine->inConflict() && qi->getNextMatch(d_qcf)
+         && (addedLemmas == 0 || !options::rrOneInstPerRound()))
+  {
+    Trace("rewrite-engine-inst-debug")
+        << "   Got match to complete..." << std::endl;
+    qi->debugPrintMatch("rewrite-engine-inst-debug");
+    std::vector<int> assigned;
+    if (!qi->isMatchSpurious(d_qcf))
+    {
       bool doContinue = false;
       bool success = true;
       int tempAddedLemmas = 0;
-      while( !d_quantEngine->inConflict() && tempAddedLemmas==0 && success && ( addedLemmas==0 || !options::rrOneInstPerRound() ) ){
-        success = qi->completeMatch( d_qcf, assigned, doContinue );
+      while (!d_quantEngine->inConflict() && tempAddedLemmas == 0 && success
+             && (addedLemmas == 0 || !options::rrOneInstPerRound()))
+      {
+        success = qi->completeMatch(d_qcf, assigned, doContinue);
         doContinue = true;
-        if( success ){
-          Trace("rewrite-engine-inst-debug") << "   Construct match..." << std::endl;
-          std::vector< Node > inst;
-          qi->getMatch( inst );
-          Trace("rewrite-engine-inst-debug") << "   Add instantiation..." << std::endl;
-          for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
+        if (success)
+        {
+          Trace("rewrite-engine-inst-debug")
+              << "   Construct match..." << std::endl;
+          std::vector<Node> inst;
+          qi->getMatch(inst);
+          Trace("rewrite-engine-inst-debug")
+              << "   Add instantiation..." << std::endl;
+          for (unsigned i = 0; i < f[0].getNumChildren(); i++)
+          {
             Trace("rewrite-engine-inst-debug") << "  " << f[0][i] << " -> ";
-            if( i<inst.size() ){
+            if (i < inst.size())
+            {
               Trace("rewrite-engine-inst-debug") << inst[i] << std::endl;
-            }else{
+            }
+            else
+            {
               Trace("rewrite-engine-inst-debug") << "OUT_OF_RANGE" << std::endl;
-              Assert( false );
+              Assert(false);
             }
           }
-          //resize to remove auxiliary variables
-          if( inst.size()>f[0].getNumChildren() ){
-            inst.resize( f[0].getNumChildren() );
+          // resize to remove auxiliary variables
+          if (inst.size() > f[0].getNumChildren())
+          {
+            inst.resize(f[0].getNumChildren());
           }
           if (d_quantEngine->getInstantiate()->addInstantiation(f, inst))
           {
             addedLemmas++;
             tempAddedLemmas++;
-          }else{
+          }
+          else
+          {
             Trace("rewrite-engine-inst-debug") << "   - failed." << std::endl;
           }
-          Trace("rewrite-engine-inst-debug") << "   Get next completion..." << std::endl;
+          Trace("rewrite-engine-inst-debug")
+              << "   Get next completion..." << std::endl;
         }
       }
-      Trace("rewrite-engine-inst-debug") << "   - failed to complete." << std::endl;
-    }else{
-      Trace("rewrite-engine-inst-debug") << "   - match is spurious." << std::endl;
+      Trace("rewrite-engine-inst-debug")
+          << "   - failed to complete." << std::endl;
+    }
+    else
+    {
+      Trace("rewrite-engine-inst-debug")
+          << "   - match is spurious." << std::endl;
     }
     Trace("rewrite-engine-inst-debug") << "   Get next match..." << std::endl;
   }
@@ -179,68 +203,82 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
 
 void RewriteEngine::registerQuantifier( Node f ) {
   Node rr = QuantAttributes::getRewriteRule( f );
-  if( rr.isNull() ){
+  if (rr.isNull())
+  {
     return;
   }
   Trace("rr-register") << "Register quantifier " << f << std::endl;
   Trace("rr-register") << "  rewrite rule is : " << rr << std::endl;
-  d_rr_quant.push_back( f );
+  d_rr_quant.push_back(f);
   d_rr[f] = rr;
   d_needsSort = true;
   Trace("rr-register") << "  guard is : " << d_rr[f][1] << std::endl;
 
-  std::vector< Node > qcfn_c;
+  std::vector<Node> qcfn_c;
 
-  std::vector< Node > bvl;
-  bvl.insert(bvl.end(),f[0].begin(),f[0].end());
+  std::vector<Node> bvl;
+  bvl.insert(bvl.end(), f[0].begin(), f[0].end());
 
-  NodeManager * nm = NodeManager::currentNM();
-  std::vector< Node > cc;
-  //add patterns
-  for( unsigned i=1; i<f[2].getNumChildren(); i++ ){
-    std::vector< Node > nc;
-    for( unsigned j=0; j<f[2][i].getNumChildren(); j++ ){
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> cc;
+  // add patterns
+  for (unsigned i = 1; i < f[2].getNumChildren(); i++)
+  {
+    std::vector<Node> nc;
+    for (unsigned j = 0; j < f[2][i].getNumChildren(); j++)
+    {
       Node nn;
-      Node nbv = nm->mkBoundVar( f[2][i][j].getType() );
-      if( f[2][i][j].getType().isBoolean() && f[2][i][j].getKind()!=APPLY_UF ){
+      Node nbv = nm->mkBoundVar(f[2][i][j].getType());
+      if (f[2][i][j].getType().isBoolean() && f[2][i][j].getKind() != APPLY_UF)
+      {
         nn = f[2][i][j].negate();
-      }else{
-        nn = f[2][i][j].eqNode( nbv ).negate();
-        bvl.push_back( nbv );
       }
-      nc.push_back( nn );
+      else
+      {
+        nn = f[2][i][j].eqNode(nbv).negate();
+        bvl.push_back(nbv);
+      }
+      nc.push_back(nn);
     }
-    if( !nc.empty() ){
-      Node n = nc.size()==1 ? nc[0] : nm->mkNode( AND, nc );
+    if (!nc.empty())
+    {
+      Node n = nc.size() == 1 ? nc[0] : nm->mkNode(AND, nc);
       Trace("rr-register-debug") << "  pattern is " << n << std::endl;
-      if( std::find( cc.begin(), cc.end(), n )==cc.end() ){
-        cc.push_back( n );
+      if (std::find(cc.begin(), cc.end(), n) == cc.end())
+      {
+        cc.push_back(n);
       }
     }
   }
-  qcfn_c.push_back( nm->mkNode( BOUND_VAR_LIST, bvl ) );
+  qcfn_c.push_back(nm->mkNode(BOUND_VAR_LIST, bvl));
 
-  std::vector< Node > body_c;
-  //add the guards
-  if( d_rr[f][1].getKind()==AND ){
-    for( unsigned j=0; j<d_rr[f][1].getNumChildren(); j++ ){
-      if( MatchGen::isHandled( d_rr[f][1][j] ) ){
-        body_c.push_back( d_rr[f][1][j].negate() );
+  std::vector<Node> body_c;
+  // add the guards
+  if (d_rr[f][1].getKind() == AND)
+  {
+    for (unsigned j = 0; j < d_rr[f][1].getNumChildren(); j++)
+    {
+      if (MatchGen::isHandled(d_rr[f][1][j]))
+      {
+        body_c.push_back(d_rr[f][1][j].negate());
       }
     }
-  }else if( d_rr[f][1]!=d_quantEngine->getTermUtil()->d_true ){
-    if( MatchGen::isHandled( d_rr[f][1] ) ){
-      body_c.push_back( d_rr[f][1].negate() );
+  }
+  else if (d_rr[f][1] != d_quantEngine->getTermUtil()->d_true)
+  {
+    if (MatchGen::isHandled(d_rr[f][1]))
+    {
+      body_c.push_back(d_rr[f][1].negate());
     }
   }
-  //add the patterns to the body
-  body_c.push_back( cc.size()==1 ? cc[0] : nm->mkNode( AND, cc ) );
-  //make the body
-  qcfn_c.push_back( body_c.size()==1 ? body_c[0] : nm->mkNode( OR, body_c ) );
-  //make the quantified formula
-  d_qinfo_n[f] = nm->mkNode( FORALL, qcfn_c );
+  // add the patterns to the body
+  body_c.push_back(cc.size() == 1 ? cc[0] : nm->mkNode(AND, cc));
+  // make the body
+  qcfn_c.push_back(body_c.size() == 1 ? body_c[0] : nm->mkNode(OR, body_c));
+  // make the quantified formula
+  d_qinfo_n[f] = nm->mkNode(FORALL, qcfn_c);
   Trace("rr-register") << "  qcf formula is : " << d_qinfo_n[f] << std::endl;
-  d_qinfo[f].initialize( d_qcf, d_qinfo_n[f], d_qinfo_n[f][1] );
+  d_qinfo[f].initialize(d_qcf, d_qinfo_n[f], d_qinfo_n[f][1]);
 }
 
 void RewriteEngine::assertNode( Node n ) {
