@@ -425,12 +425,12 @@ class Smt2 : public Parser
       }
     }
   }
-  /** Set named attribute 
-   * 
+  /** Set named attribute
+   *
    * This is called when expression expr is annotated with a name, i.e.
    * (! expr :named sexpr). It sets up the necessary information to process
    * this naming, including marking that expr is the last named term.
-   * 
+   *
    * We construct an expression symbol whose name is the name of s-expression
    * which is used later for tracking assertions in unsat cores. This
    * symbol is returned by this method.
