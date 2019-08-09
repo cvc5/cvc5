@@ -54,8 +54,8 @@ class InferenceManager
    * Add facts corresponding to ( exp => fact ) via calls to the assertFact
    * method of TheorySetsPrivate.
    *
-   * The argument lemmas is updated to contain poritions of fact that were
-   * unable to be processed as facts.
+   * The portions of fact that were unable to be processed as facts are added
+   * to the data member d_pendingLemmas.
    *
    * The argument inferType is used for overriding the policy on whether
    * fact is processed as a lemma, where inferType=1 forces fact to be

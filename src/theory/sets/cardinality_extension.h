@@ -191,7 +191,6 @@ class CardinalityExtension
    * equivalence class representatives of their "parents", where:
    *   parent( A ^ B ) = A, B
    *   parent( A \ B ) = A
-   *   parent( B \ A ) = B
    * Additionally, (A union B) is a parent of all three of the above sets
    * if it exists as a term in the current context. As exceptions,
    * if A op B = A, then A is not a parent of A ^ B and similarly for B.
