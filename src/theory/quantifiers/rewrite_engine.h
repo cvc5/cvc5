@@ -46,9 +46,9 @@ class RewriteEngine : public QuantifiersModule
   bool d_needsSort;
   std::map< Node, std::map< Node, Node > > d_inst_const_node;
   Node getInstConstNode( Node n, Node q );
-private:
+ private:
   int checkRewriteRule( Node f, Theory::Effort e );
-public:
+ public:
   RewriteEngine( context::Context* c, QuantifiersEngine* qe, QuantConflictFind * qcf );
 
   bool needsCheck(Theory::Effort e) override;
@@ -58,7 +58,7 @@ public:
   bool checkCompleteFor(Node q) override;
   /** Identify this module */
   std::string identify() const override { return "RewriteEngine"; }
-private:
+ private:
   /** 
    * A pointer to the quantifiers conflict find module of the quantifiers
    * engine. This is the module that computes instantiations for rewrite rule
