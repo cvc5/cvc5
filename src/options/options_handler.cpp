@@ -976,7 +976,7 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
 
 theory::quantifiers::SygusQueryDumpFilesMode
 OptionsHandler::stringToSygusQueryDumpFilesMode(std::string option,
-                                                std::string optarg);
+                                                std::string optarg)
 {
   if (optarg == "none")
   {
