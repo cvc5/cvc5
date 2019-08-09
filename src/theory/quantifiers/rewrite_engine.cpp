@@ -153,19 +153,22 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
               << "   Construct match..." << std::endl;
           std::vector<Node> inst;
           qi->getMatch(inst);
-          Trace("rewrite-engine-inst-debug")
-              << "   Add instantiation..." << std::endl;
-          for (unsigned i = 0; i < f[0].getNumChildren(); i++)
+          if( Trace.isOn("rewrite-engine-inst-debug") )
           {
-            Trace("rewrite-engine-inst-debug") << "  " << f[0][i] << " -> ";
-            if (i < inst.size())
+            Trace("rewrite-engine-inst-debug")
+                << "   Add instantiation..." << std::endl;
+            for (unsigned i = 0, nchild = f[0].getNumChildren(); i < nchild; i++)
             {
-              Trace("rewrite-engine-inst-debug") << inst[i] << std::endl;
-            }
-            else
-            {
-              Trace("rewrite-engine-inst-debug") << "OUT_OF_RANGE" << std::endl;
-              Assert(false);
+              Trace("rewrite-engine-inst-debug") << "  " << f[0][i] << " -> ";
+              if (i < inst.size())
+              {
+                Trace("rewrite-engine-inst-debug") << inst[i] << std::endl;
+              }
+              else
+              {
+                Trace("rewrite-engine-inst-debug") << "OUT_OF_RANGE" << std::endl;
+                Assert(false);
+              }
             }
           }
           // resize to remove auxiliary variables
@@ -222,20 +225,20 @@ void RewriteEngine::registerQuantifier( Node f ) {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> cc;
   // add patterns
-  for (unsigned i = 1; i < f[2].getNumChildren(); i++)
+  for (unsigned i = 1, nchild = f[2].getNumChildren(); i < nchild; i++)
   {
     std::vector<Node> nc;
-    for (unsigned j = 0; j < f[2][i].getNumChildren(); j++)
+    for (const Node& pat : f[2][i])
     {
       Node nn;
-      Node nbv = nm->mkBoundVar(f[2][i][j].getType());
-      if (f[2][i][j].getType().isBoolean() && f[2][i][j].getKind() != APPLY_UF)
+      Node nbv = nm->mkBoundVar(pat.getType());
+      if (pat.getType().isBoolean() && pat.getKind() != APPLY_UF)
       {
-        nn = f[2][i][j].negate();
+        nn = pat.negate();
       }
       else
       {
-        nn = f[2][i][j].eqNode(nbv).negate();
+        nn = pat.eqNode(nbv).negate();
         bvl.push_back(nbv);
       }
       nc.push_back(nn);
@@ -256,11 +259,11 @@ void RewriteEngine::registerQuantifier( Node f ) {
   // add the guards
   if (d_rr[f][1].getKind() == AND)
   {
-    for (unsigned j = 0; j < d_rr[f][1].getNumChildren(); j++)
+    for (const Node& g : d_rr[f][1])
     {
-      if (MatchGen::isHandled(d_rr[f][1][j]))
+      if (MatchGen::isHandled(g))
       {
-        body_c.push_back(d_rr[f][1][j].negate());
+        body_c.push_back(g.negate());
       }
     }
   }
