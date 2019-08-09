@@ -165,7 +165,7 @@ class CardinalityExtension
    * elaborated as lemmas.
    *
    * Notice a term is redundant in a context if it is congruent to another
-   * term; it is not relevant if no cardinality constraints exist for its type.
+   * term that is already in the context; it is not relevant if no cardinality constraints exist for its type.
    */
   void checkRegister();
   /** check minimum cardinality
