@@ -55,11 +55,14 @@
 #ifdef __has_builtin
 #if __has_builtin(__builtin_expect)
 #define CVC4_PREDICT_FALSE(x) (__builtin_expect(x, false))
+#define CVC4_PREDICT_TRUE(x) (__builtin_expect(x, true))
 #else
 #define CVC4_PREDICT_FALSE(x) x
+#define CVC4_PREDICT_TRUE(x) x
 #endif
 #else
 #define CVC4_PREDICT_FALSE(x) x
+#define CVC4_PREDICT_TRUE(x) x
 #endif
 
 namespace CVC4 {
