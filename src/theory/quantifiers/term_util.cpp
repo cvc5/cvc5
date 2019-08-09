@@ -155,18 +155,18 @@ Node TermUtil::getRemoveQuantifiers( Node n ) {
 
 //quantified simplify
 Node TermUtil::getQuantSimplify( Node n ) {
-  
   std::unordered_set<Node, NodeHashFunction> fvs;
-  expr::getFreeVariables(n,fvs);
-  if( fvs.empty() ) {
+  expr::getFreeVariables(n, fvs);
+  if (fvs.empty())
+  {
     return Rewriter::rewrite( n );
   }
-  std::vector< Node > bvs;
-  bvs.insert(bvs.end(),fvs.begin(),fvs.end());
-  NodeManager * nm = NodeManager::currentNM();
-  Node q = nm->mkNode( FORALL, nm->mkNode( BOUND_VAR_LIST, bvs ), n );
-  q = Rewriter::rewrite( q );
-  return getRemoveQuantifiers( q );
+  std::vector<Node> bvs;
+  bvs.insert(bvs.end(), fvs.begin(), fvs.end());
+  NodeManager* nm = NodeManager::currentNM();
+  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
+  q = Rewriter::rewrite(q);
+  return getRemoveQuantifiers(q);
 }
 
 /** get the i^th instantiation constant of q */

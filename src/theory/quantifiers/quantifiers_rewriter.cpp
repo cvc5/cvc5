@@ -1246,7 +1246,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
           // compute variables in itm->first, these are not eligible for
           // elimination
           std::unordered_set<Node, NodeHashFunction> fvs;
-          expr::getFreeVariables(m.first,fvs);
+          expr::getFreeVariables(m.first, fvs);
           for (const Node& v : fvs)
           {
             Trace("var-elim-ineq-debug")

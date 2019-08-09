@@ -282,7 +282,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
                               << std::endl;
         // now must check if it has other bound variables
         std::unordered_set<Node, NodeHashFunction> fvs;
-        expr::getFreeVariables(cr,fvs);
+        expr::getFreeVariables(cr, fvs);
         // bound variables must be contained in the single invocation variables
         for (const Node& bv : fvs)
         {
@@ -313,14 +313,14 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         singleInvocation = false;
         // rename bound variables with maximal overlap with si_vars
         std::unordered_set<Node, NodeHashFunction> fvs;
-        expr::getFreeVariables(cr,fvs);
+        expr::getFreeVariables(cr, fvs);
         std::vector<Node> terms;
         std::vector<Node> subs;
         for (const Node& v : fvs)
         {
           TypeNode tn = v.getType();
-          Trace("si-prt-debug") << "Fit bound var: " << v
-                                << " with si." << std::endl;
+          Trace("si-prt-debug")
+              << "Fit bound var: " << v << " with si." << std::endl;
           for (unsigned k = 0; k < d_si_vars.size(); k++)
           {
             if (tn == d_arg_types[k])
@@ -346,8 +346,8 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
                       << ", result : " << cr << std::endl;
       d_conjuncts[2].push_back(cr);
       std::unordered_set<Node, NodeHashFunction> fvs;
-      expr::getFreeVariables(cr,fvs);
-      d_all_vars.insert(d_all_vars.end(),fvs.begin(),fvs.end());
+      expr::getFreeVariables(cr, fvs);
+      d_all_vars.insert(d_all_vars.end(), fvs.begin(), fvs.end());
       if (singleInvocation)
       {
         // replace with single invocation formulation
