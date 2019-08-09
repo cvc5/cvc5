@@ -146,7 +146,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
 void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
 {
   // external query
-  if (options::sygusQueryGenDumpFiles()==SYGUS_QUERY_DUMP_ALL)
+  if (options::sygusQueryGenDumpFiles() == SYGUS_QUERY_DUMP_ALL)
   {
     dumpQuery(qy, spIndex);
   }
@@ -179,7 +179,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
       ss << "but CVC4 answered unsat!" << std::endl;
       AlwaysAssert(false, ss.str().c_str());
     }
-    if (options::sygusQueryGenDumpFiles()==SYGUS_QUERY_DUMP_UNSOLVED)
+    if (options::sygusQueryGenDumpFiles() == SYGUS_QUERY_DUMP_UNSOLVED)
     {
       if (r.asSatisfiabilityResult().isSat() != Result::SAT)
       {
@@ -214,7 +214,7 @@ void QueryGenerator::dumpQuery(Node qy, unsigned spIndex)
       else
       {
         fs << ";(define-fun " << x << " () " << x.getType() << " " << pt[j]
-            << ")";
+           << ")";
       }
       fs << std::endl;
     }

@@ -974,8 +974,9 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
   }
 }
 
-theory::quantifiers::SygusQueryDumpFilesMode OptionsHandler::stringToSygusQueryDumpFilesMode(
-      std::string option, std::string optarg);
+theory::quantifiers::SygusQueryDumpFilesMode
+OptionsHandler::stringToSygusQueryDumpFilesMode(std::string option,
+                                                std::string optarg);
 {
   if (optarg == "none")
   {
@@ -997,8 +998,8 @@ theory::quantifiers::SygusQueryDumpFilesMode OptionsHandler::stringToSygusQueryD
   else
   {
     throw OptionException(
-        std::string("unknown option for --sygus-query-gen-dump-files: `") + optarg
-        + "'.  Try --sygus-query-gen-dump-files help.");
+        std::string("unknown option for --sygus-query-gen-dump-files: `")
+        + optarg + "'.  Try --sygus-query-gen-dump-files help.");
   }
 }
 theory::quantifiers::SygusFilterSolMode
