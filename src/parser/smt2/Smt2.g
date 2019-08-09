@@ -401,7 +401,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // permitted)
       // we allow overloading for function definitions
       Expr func = PARSER_STATE->mkVar(name, t,
-                                           ExprManager::VAR_FLAG_DEFINED, true);
+                                      ExprManager::VAR_FLAG_DEFINED, true);
       cmd->reset(new DefineFunctionCommand(name, func, terms, expr));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
