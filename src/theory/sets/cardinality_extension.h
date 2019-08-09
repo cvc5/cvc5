@@ -46,9 +46,9 @@ namespace sets {
  * in the procedure implemented by this class.
  *
  * The main difference wrt Bansal et al IJCAR 2016 is that the nodes of the
- * cardinality graph considered by this class are not set terms, but are instead
- * representatives of equivalence classes. For more details, see documentation
- * of the inference schemas in the private methods of this class.
+ * cardinality graph considered by this class are not arbitrary set terms, but
+ * are instead representatives of equivalence classes. For more details, see
+ * documentation of the inference schemas in the private methods of this class.
  *
  * This variant of the procedure takes inspiration from the procedure
  * for word equations in Liang et al, CAV 2014. In that procedure, "normal
@@ -100,16 +100,17 @@ class CardinalityExtension
   /** Is model value basic?
    *
    * This returns true if equivalence class eqc is a "leaf" in the cardinality
-   * graph. In this case, its model value is simply
+   * graph.
    */
   bool isModelValueBasic(Node eqc);
   /** get model elements
    *
-   * This method updates els so that it is the set of elements that occur in eqc
-   * in the model we are building. Notice that els may already have elements
-   * in it (from explicit memberships from the base set solver for leaf nodes
-   * of the cardinality graph). This method is used during the collectModelInfo
-   * method of theory of sets.
+   * This method updates els so that it is the set of elements that occur in 
+   * an equivalence class (whose representative is eqc) in the model we are
+   * building. Notice that els may already have elements in it (from explicit
+   * memberships from the base set solver for leaf nodes of the cardinality
+   * graph). This method is used during the collectModelInfo method of theory
+   * of sets.
    *
    * The argument v is the Valuation utility of the theory of sets, which is
    * used by this method to query the value assigned to cardinality terms by
@@ -227,7 +228,8 @@ class CardinalityExtension
    * eqc.
    *
    * Argument curr contains the equivalence classes we are currently processing,
-   * which are descendants of eqc in the cardinality graph.
+   * which are descendants of eqc in the cardinality graph, where eqc is the
+   * representative of some equivalence class.
    *
    * Argument exp contains an explanation of why the chain of children curr
    * are descedants of . For example, say we are in context with equivalence
@@ -253,8 +255,9 @@ class CardinalityExtension
    * equivalence class whose representative is r) is a set of representatives
    * U = { r1, ..., rn }. If there exists at least one set in [r] that has a
    * "flat form", then all sets in the equivalence class have flat form U.
-   * If no set in E has a flat form, then U = { r } if r does not contain
-   * the empty set, and {} otherwise.
+   * If no set in U has a flat form, then U = { r } if r does not contain
+   * the empty set, and {} otherwise. Notice that the choice of representative
+   * r is determined by the equality engine.
    *
    * A "flat form" of a set term T is the union of the normal forms of the
    * equivalence classes that contain sets whose parent is T.
