@@ -111,7 +111,7 @@ class CardinalityExtension
    * of the cardinality graph). This method is used during the collectModelInfo
    * method of theory of sets.
    *
-   * The argument val is the Valuation utility of the theory of sets, which is
+   * The argument v is the Valuation utility of the theory of sets, which is
    * used by this method to query the value assigned to cardinality terms by
    * the theory of arithmetic.
    *
