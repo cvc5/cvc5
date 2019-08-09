@@ -2866,21 +2866,16 @@ OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg) const
       (kind == RECORD_UPDATE_OP) || (kind == DIVISIBLE_OP), kind)
       << "RECORD_UPDATE_OP or DIVISIBLE_OP";
   OpTerm res;
-  switch (kind)
+  if (kind == RECORD_UPDATE_OP)
   {
-    case RECORD_UPDATE_OP:
-      res = *mkValHelper<CVC4::RecordUpdate>(CVC4::RecordUpdate(arg))
-                 .d_expr.get();
-      break;
-    case DIVISIBLE_OP:
-      res = *mkValHelper<CVC4::Divisible>(CVC4::Divisible(CVC4::Integer(arg)))
-                 .d_expr.get();
-      break;
-    default:
-      CVC4_API_KIND_CHECK_EXPECTED(false, kind)
-          << "operator kind with string argument";
+    res =
+        *mkValHelper<CVC4::RecordUpdate>(CVC4::RecordUpdate(arg)).d_expr.get();
   }
-  Assert(!res.isNull());
+  else
+  {
+    res = *mkValHelper<CVC4::Divisible>(CVC4::Divisible(CVC4::Integer(arg)))
+               .d_expr.get();
+  }
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
