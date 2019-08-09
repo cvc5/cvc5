@@ -211,7 +211,7 @@ public:
    * the theories of separation logic, UF and sets.
    */
   void enableSeparationLogic();
-  
+
   // these are for arithmetic
 
   /** Enable the use of integers in this logic. */

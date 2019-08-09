@@ -283,10 +283,11 @@ std::string LogicInfo::getLogicString() const {
       if(!isQuantified()) {
         ss << "QF_";
       }
-      if(d_theories[THEORY_SEP]) {
+      if (d_theories[THEORY_SEP])
+      {
         ss << "SEP_";
         ++seen;
-      }    
+      }
       if(d_theories[THEORY_ARRAYS]) {
         ss << (d_sharingTheories == 1 ? "AX" : "A");
         ++seen;
@@ -331,7 +332,7 @@ std::string LogicInfo::getLogicString() const {
       if(d_theories[THEORY_SETS]) {
         ss << "FS";
         ++seen;
-      } 
+      }
       if(seen != d_sharingTheories) {
         Unhandled("can't extract a logic string from LogicInfo; at least one "
                   "active theory is unknown to LogicInfo::getLogicString() !");
@@ -412,7 +413,8 @@ void LogicInfo::setLogicString(std::string logicString)
     } else {
       enableQuantifiers();
     }
-    if(!strncmp(p, "SEP_", 3)) {
+    if (!strncmp(p, "SEP_", 3))
+    {
       enableSeparationLogic();
       p += 4;
     }
