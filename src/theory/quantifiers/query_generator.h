@@ -107,6 +107,11 @@ class QueryGenerator : public ExprMiner
    * reported to be unsatisfiable.
    */
   void checkQuery(Node qy, unsigned spIndex);
+  /**
+   * Dumps query qy to the a file queryN.smt2 for the current counter N;
+   * spIndex specifies the sample point that satisfies it (for debugging).
+   */
+  void dumpQuery(Node qy, unsigned spIndex);
 };
 
 }  // namespace quantifiers
