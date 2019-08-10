@@ -204,7 +204,7 @@ void QueryGenerator::dumpQuery(Node qy, unsigned spIndex)
   fs << "(set-logic ALL)" << std::endl;
   for (unsigned i = 0; i < 2; i++)
   {
-    for (unsigned j = 0; j < nvars; j++)
+    for (size_t j = 0; j < nvars; j++)
     {
       Node x = d_vars[j];
       if (i == 0)
