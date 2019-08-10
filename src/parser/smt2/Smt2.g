@@ -745,7 +745,8 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     }
     ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
         if( !terms.empty() ){
-          if( !PARSER_STATE->isDeclared(name) ){
+          if (!PARSER_STATE->isDeclared(name))
+          {
             std::stringstream ss;
             ss << "Function " << name << " in inv-constraint is not defined.";
             PARSER_STATE->parseError(ss.str());
@@ -990,7 +991,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
               << "Sygus grammar " << fun << " : op (declare="
               << PARSER_STATE->isDeclared(name) << ") : " << name
               << std::endl;
-          if(!PARSER_STATE->isDeclared(name) ){
+          if (!PARSER_STATE->isDeclared(name))
+          {
             PARSER_STATE->parseError("Functions in sygus grammars must be "
                                      "defined.");
           }
