@@ -2873,6 +2873,11 @@ OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg) const
   }
   else
   {
+    /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
+     * throws an std::invalid_argument exception. For consistency, we treat it
+     * as invalid. */
+    CVC4_API_ARG_CHECK_EXPECTED(arg != ".", arg)
+        << "a string representing an integer, real or rational value.";
     res = *mkValHelper<CVC4::Divisible>(CVC4::Divisible(CVC4::Integer(arg)))
                .d_expr.get();
   }
