@@ -400,8 +400,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // must not be extended with the name itself; no recursion
       // permitted)
       // we allow overloading for function definitions
-      Expr func = PARSER_STATE->mkFunction(name, t,
-                                           ExprManager::VAR_FLAG_DEFINED, true);
+      Expr func = PARSER_STATE->mkVar(name, t,
+                                      ExprManager::VAR_FLAG_DEFINED, true);
       cmd->reset(new DefineFunctionCommand(name, func, terms, expr));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
@@ -745,7 +745,8 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     }
     ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
         if( !terms.empty() ){
-          if( !PARSER_STATE->isDefinedFunction(name) ){
+          if (!PARSER_STATE->isDeclared(name))
+          {
             std::stringstream ss;
             ss << "Function " << name << " in inv-constraint is not defined.";
             PARSER_STATE->parseError(ss.str());
@@ -988,11 +989,10 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
           // fail, but we need an operator to continue here..
           Debug("parser-sygus")
               << "Sygus grammar " << fun << " : op (declare="
-              << PARSER_STATE->isDeclared(name) << ", define="
-              << PARSER_STATE->isDefinedFunction(name) << ") : " << name
+              << PARSER_STATE->isDeclared(name) << ") : " << name
               << std::endl;
-          if(!PARSER_STATE->isDeclared(name) &&
-             !PARSER_STATE->isDefinedFunction(name) ){
+          if (!PARSER_STATE->isDeclared(name))
+          {
             PARSER_STATE->parseError("Functions in sygus grammars must be "
                                      "defined.");
           }
@@ -1459,8 +1459,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       term[e,e2]
-      { Expr func = PARSER_STATE->mkFunction(name, e.getType(),
-                                             ExprManager::VAR_FLAG_DEFINED);
+      { Expr func = PARSER_STATE->mkVar(name, e.getType(),
+                                        ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(name, func, e));
       }
     | LPAREN_TOK
@@ -1492,8 +1492,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
-        Expr func = PARSER_STATE->mkFunction(name, t,
-                                             ExprManager::VAR_FLAG_DEFINED);
+        Expr func = PARSER_STATE->mkVar(name, t,
+                                        ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(name, func, terms, e));
       }
     )
@@ -1515,8 +1515,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      Expr func = PARSER_STATE->mkFunction(name, t,
-                                           ExprManager::VAR_FLAG_DEFINED);
+      Expr func = PARSER_STATE->mkVar(name, t,
+                                      ExprManager::VAR_FLAG_DEFINED);
       cmd->reset(new DefineFunctionCommand(name, func, terms, e));
     }
 
@@ -2863,7 +2863,7 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
       // check that sexpr is a fresh function symbol, and reserve it
       PARSER_STATE->reserveSymbolAtAssertionLevel(name);
       // define it
-      Expr func = PARSER_STATE->mkFunction(name, expr.getType());
+      Expr func = PARSER_STATE->mkVar(name, expr.getType());
       // remember the last term to have been given a :named attribute
       PARSER_STATE->setLastNamedTerm(expr, name);
       // bind name to expr with define-fun
