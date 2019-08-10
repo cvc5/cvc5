@@ -17,53 +17,33 @@
 #ifndef CVC4__THEORY__QUANTIFIERS_ENGINE_H
 #define CVC4__THEORY__QUANTIFIERS_ENGINE_H
 
-#include <iostream>
 #include <map>
-#include <memory>
 #include <unordered_map>
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
-#include "options/quantifiers_modes.h"
-#include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
-#include "theory/quantifiers/conjecture_generator.h"
-#include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
-#include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/quantifiers/fmf/full_model_check.h"
-#include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/inst_propagator.h"
-#include "theory/quantifiers/inst_strategy_enumerative.h"
+#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/local_theory_ext.h"
-#include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_relevance.h"
-#include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/relevant_domain.h"
-#include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/theory.h"
-#include "util/hash.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -71,6 +51,8 @@ namespace CVC4 {
 class TheoryEngine;
 
 namespace theory {
+
+class QuantifiersEnginePrivate;
 
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
@@ -97,16 +79,12 @@ public:
   const LogicInfo& getLogicInfo() const;
   //---------------------- end external interface
   //---------------------- utilities
+  /** get the master equality engine */
+  eq::EqualityEngine* getMasterEqualityEngine() const;
+  /** get the active equality engine */
+  eq::EqualityEngine* getActiveEqualityEngine() const;
   /** get equality query */
   EqualityQuery* getEqualityQuery() const;
-  /** get the equality inference */
-  quantifiers::EqualityInference* getEqualityInference() const;
-  /** get relevant domain */
-  quantifiers::RelevantDomain* getRelevantDomain() const;
-  /** get the BV inverter utility */
-  quantifiers::BvInverter* getBvInverter() const;
-  /** get quantifier relevance */
-  quantifiers::QuantRelevance* getQuantifierRelevance() const;
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
   /** get utility for EPR */
@@ -132,29 +110,49 @@ public:
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
-  //---------------------- modules
+  //---------------------- utilities (TODO move these utilities #1163)
+  /** get the equality inference */
+  quantifiers::EqualityInference* getEqualityInference() const;
+  /** get relevant domain */
+  quantifiers::RelevantDomain* getRelevantDomain() const;
+  /** get the BV inverter utility */
+  quantifiers::BvInverter* getBvInverter() const;
+  /** get quantifier relevance */
+  quantifiers::QuantRelevance* getQuantifierRelevance() const;
+  //---------------------- end utilities
+  //---------------------- modules (TODO remove these #1163)
   /** get bounded integers utility */
   quantifiers::BoundedIntegers* getBoundedIntegers() const;
   /** Conflict find mechanism for quantifiers */
   quantifiers::QuantConflictFind* getConflictFind() const;
-  /** rewrite rules utility */
-  quantifiers::RewriteEngine* getRewriteEngine() const;
   /** ceg instantiation */
   quantifiers::SynthEngine* getSynthEngine() const;
-  /** get full saturation */
-  quantifiers::InstStrategyEnum* getInstStrategyEnum() const;
   /** get inst strategy cbqi */
   quantifiers::InstStrategyCegqi* getInstStrategyCegqi() const;
   //---------------------- end modules
  private:
-  /** owner of quantified formulas */
+  /**
+   * Maps quantified formulas to the module that owns them, if any module has
+   * specifically taken ownership of it.
+   */
   std::map< Node, QuantifiersModule * > d_owner;
+  /**
+   * The priority value associated with the ownership of quantified formulas
+   * in the domain of the above map, where higher values take higher
+   * precendence.
+   */
   std::map< Node, int > d_owner_priority;
 public:
   /** get owner */
   QuantifiersModule * getOwner( Node q );
-  /** set owner */
+  /**
+   * Set owner of quantified formula q to module m with given priority. If
+   * the quantified formula has previously been assigned an owner with
+   * lower priority, that owner is overwritten.
+   */
   void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
+  /** set owner of quantified formula q based on its attributes qa. */
+  void setOwner(Node q, quantifiers::QAttributes& qa);
   /** considers */
   bool hasOwnership( Node q, QuantifiersModule * m = NULL );
   /** is finite bound */
@@ -199,8 +197,6 @@ public:
   bool removeLemma( Node lem );
   /** add require phase */
   void addRequirePhase( Node lit, bool req );
-  /** add EPR axiom */
-  bool addEPRAxiom( TypeNode tn );
   /** mark relevant quantified formula, this will indicate it should be checked before the others */
   void markRelevant( Node q );
   /** has added lemma */
@@ -225,10 +221,6 @@ public:
   void eqNotifyPreMerge(TNode t1, TNode t2);
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-  /** get the master equality engine */
-  eq::EqualityEngine* getMasterEqualityEngine();
-  /** get the active equality engine */
-  eq::EqualityEngine* getActiveEqualityEngine();
   /** use model equality engine */
   bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
@@ -316,8 +308,6 @@ public:
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** equality inference class */
   std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
-  /** quantifiers instantiation propagtor */
-  std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
@@ -349,34 +339,10 @@ public:
   /** term enumeration utility */
   std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
   //------------- end quantifiers utilities
-  //------------- quantifiers modules
-  /** alpha equivalence */
-  std::unique_ptr<quantifiers::AlphaEquivalence> d_alpha_equiv;
-  /** instantiation engine */
-  std::unique_ptr<quantifiers::InstantiationEngine> d_inst_engine;
-  /** model engine */
-  std::unique_ptr<quantifiers::ModelEngine> d_model_engine;
-  /** bounded integers utility */
-  std::unique_ptr<quantifiers::BoundedIntegers> d_bint;
-  /** Conflict find mechanism for quantifiers */
-  std::unique_ptr<quantifiers::QuantConflictFind> d_qcf;
-  /** rewrite rules utility */
-  std::unique_ptr<quantifiers::RewriteEngine> d_rr_engine;
-  /** subgoal generator */
-  std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
-  /** ceg instantiation */
-  std::unique_ptr<quantifiers::SynthEngine> d_synth_e;
-  /** lte partial instantiation */
-  std::unique_ptr<quantifiers::LtePartialInst> d_lte_part_inst;
-  /** full saturation */
-  std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
-  /** counterexample-based quantifier instantiation */
-  std::unique_ptr<quantifiers::InstStrategyCegqi> d_i_cbqi;
-  /** quantifiers splitting */
-  std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
-  /** quantifiers anti-skolemization */
-  std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
-  //------------- end quantifiers modules
+  /**
+   * The private utility, which contains all of the quantifiers modules.
+   */
+  std::unique_ptr<QuantifiersEnginePrivate> d_private;
   //------------- temporary information during check
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
