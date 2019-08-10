@@ -413,7 +413,7 @@ void LogicInfo::setLogicString(std::string logicString)
     } else {
       enableQuantifiers();
     }
-    if (!strncmp(p, "SEP_", 3))
+    if (!strncmp(p, "SEP_", 4))
     {
       enableSeparationLogic();
       p += 4;
