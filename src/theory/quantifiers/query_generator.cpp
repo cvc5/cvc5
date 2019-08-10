@@ -196,7 +196,7 @@ void QueryGenerator::dumpQuery(Node qy, unsigned spIndex)
   // Print the query and the query + its model (commented) to queryN.smt2
   std::vector<Node> pt;
   d_sampler->getSamplePoint(spIndex, pt);
-  unsigned nvars = d_vars.size();
+  size_t nvars = d_vars.size();
   AlwaysAssert(pt.size() == d_vars.size());
   std::stringstream fname;
   fname << "query" << d_queryCount << ".smt2";
