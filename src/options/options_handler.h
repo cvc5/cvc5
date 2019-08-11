@@ -114,6 +114,8 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::CegisSampleMode stringToCegisSampleMode(
       std::string option, std::string optarg);
+  theory::quantifiers::SygusQueryDumpFilesMode stringToSygusQueryDumpFilesMode(
+      std::string option, std::string optarg);
   theory::quantifiers::SygusFilterSolMode stringToSygusFilterSolMode(
       std::string option, std::string optarg);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(
@@ -269,6 +271,7 @@ public:
   static const std::string s_cegqiSingleInvHelp;
   static const std::string s_cegqiSingleInvRconsHelp;
   static const std::string s_cegisSampleHelp;
+  static const std::string s_sygusQueryDumpFileHelp;
   static const std::string s_sygusFilterSolHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_sygusActiveGenHelp;
