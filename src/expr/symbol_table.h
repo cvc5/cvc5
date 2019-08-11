@@ -70,36 +70,6 @@ class CVC4_PUBLIC SymbolTable {
             bool doOverload = false);
 
   /**
-   * Bind a function body to a name in the current scope.
-   *
-   * When doOverload is false:
-   * if <code>name</code> is already bound to an expression in the current
-   * level, then the binding is replaced. If <code>name</code> is bound
-   * in a previous level, then the binding is "covered" by this one
-   * until the current scope is popped.
-   * If levelZero is true the name shouldn't be already bound.
-   *
-   * When doOverload is true:
-   * if <code>name</code> is already bound to an expression in the current
-   * level, then we mark the previous bound expression and obj as overloaded
-   * functions.
-   *
-   * Same as bind() but registers this as a function (so that
-   * isBoundDefinedFunction() returns true).
-   *
-   * @param name an identifier
-   * @param obj the expression to bind to <code>name</code>
-   * @param levelZero set if the binding must be done at level 0
-   * @param doOverload set if the binding can overload the function name.
-   *
-   * Returns false if the binding was invalid.
-   */
-  bool bindDefinedFunction(const std::string& name,
-                           Expr obj,
-                           bool levelZero = false,
-                           bool doOverload = false);
-
-  /**
    * Bind a type to a name in the current scope.  If <code>name</code>
    * is already bound to a type in the current level, then the binding
    * is replaced. If <code>name</code> is bound in a previous level,
@@ -131,18 +101,12 @@ class CVC4_PUBLIC SymbolTable {
                 bool levelZero = false);
 
   /**
-   * Check whether a name is bound to an expression with either bind()
-   * or bindDefinedFunction().
+   * Check whether a name is bound to an expression with bind().
    *
    * @param name the identifier to check.
    * @returns true iff name is bound in the current scope.
    */
   bool isBound(const std::string& name) const;
-
-  /**
-   * Check whether a name was bound to a function with bindDefinedFunction().
-   */
-  bool isBoundDefinedFunction(const std::string& name) const;
 
   /**
    * Check whether an Expr was bound to a function (i.e., was the
