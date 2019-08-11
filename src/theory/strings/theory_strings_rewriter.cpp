@@ -3171,19 +3171,6 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   {
     return returnRewrite(n, eqs, "suf/prefix-to-eqs");
   }
-  /*
-  if( n[0].isConst() )
-  {
-    NodeManager * nm = NodeManager::currentNM();
-    std::vector< Node > nvec;
-    Node reConst = nm->mkNode(STRING_TO_REGEXP,n[0]);
-    Node reAll = nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, nvec));
-    Node mem = nm->mkNode(STRING_IN_REGEXP,n[1],
-                          nm->mkNode(REGEXP_CONCAT,isPrefix ? reConst : reAll,
-                                     isPrefix ? reAll : reConst));
-    return mem;
-  }
-  */
 
   // general reduction to equality + substr
   Node retNode = n[0].eqNode(
