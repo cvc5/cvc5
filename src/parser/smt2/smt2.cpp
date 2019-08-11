@@ -502,13 +502,7 @@ bool Smt2::logicIsSet() {
 }
 
 Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
-  if (sygus_v1() && name[0] == '-'
-      && name.find_first_not_of("0123456789", 1) == std::string::npos)
-  {
-    // allow unary minus in sygus version 1
-    return getExprManager()->mkConst(Rational(name));
-  }
-  else if (isAbstractValue(name))
+  if (isAbstractValue(name))
   {
     return mkAbstractValue(name);
   }
@@ -674,11 +668,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     }
     // get unlocked copy, modify, copy and relock
     LogicInfo log(d_logic.getUnlockedCopy());
-    log.enableQuantifiers();
-    log.enableTheory(theory::THEORY_UF);
-    log.enableTheory(theory::THEORY_DATATYPES);
-    log.enableIntegers();
-    log.enableHigherOrder();
+    // enable everything needed for sygus
+    log.enableSygus();
     d_logic = log;
     d_logic.lock();
   }
@@ -1180,7 +1171,7 @@ void Smt2::processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars,
   Type ft = getExprManager()->mkFunctionType(fsorts, let_body.getType());
   std::stringstream ss;
   ss << datatypes[index].getName() << "_let";
-  Expr let_func = mkFunction(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
+  Expr let_func = mkVar(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
   d_sygus_defined_funs.push_back( let_func );
   preemptCommand( new DefineFunctionCommand(ss.str(), let_func, let_define_args, let_body) );
 
@@ -1347,7 +1338,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           // the given name.
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
         }
-        else if (isDefinedFunction(ops[i]))
+        else if (ops[i].getKind() == kind::VARIABLE)
         {
           Debug("parser-sygus") << "--> Defined function " << ops[i]
                                 << std::endl;

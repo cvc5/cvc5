@@ -109,6 +109,31 @@ Node mkConcat(Kind k, std::vector<Node>& c)
                       : (c.size() == 1 ? c[0] : nm->mkConst(String("")));
 }
 
+Node getConstantComponent(Node t)
+{
+  Kind tk = t.getKind();
+  if (tk == STRING_TO_REGEXP)
+  {
+    return t[0].isConst() ? t[0] : Node::null();
+  }
+  return tk == CONST_STRING ? t : Node::null();
+}
+
+Node getConstantEndpoint(Node e, bool isSuf)
+{
+  Kind ek = e.getKind();
+  if (ek == STRING_IN_REGEXP)
+  {
+    e = e[1];
+    ek = e.getKind();
+  }
+  if (ek == STRING_CONCAT || ek == REGEXP_CONCAT)
+  {
+    return getConstantComponent(e[isSuf ? e.getNumChildren() - 1 : 0]);
+  }
+  return getConstantComponent(e);
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

@@ -2456,14 +2456,20 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     }
     else
     {
-      CVC4::String s1 = s.substr(0, (int)p);
-      CVC4::String s3 = s.substr((int)p + (int)t.size());
-      Node ns1 = NodeManager::currentNM()->mkConst(::CVC4::String(s1));
-      Node ns3 = NodeManager::currentNM()->mkConst(::CVC4::String(s3));
+      String s1 = s.substr(0, (int)p);
+      String s3 = s.substr((int)p + (int)t.size());
       std::vector<Node> children;
-      children.push_back(ns1);
+      if (s1.size() > 0)
+      {
+        Node ns1 = nm->mkConst(String(s1));
+        children.push_back(ns1);
+      }
       children.push_back(node[2]);
-      children.push_back(ns3);
+      if (s3.size() > 0)
+      {
+        Node ns3 = nm->mkConst(String(s3));
+        children.push_back(ns3);
+      }
       children.insert(children.end(), children0.begin() + 1, children0.end());
       Node ret = utils::mkConcat(STRING_CONCAT, children);
       return returnRewrite(node, ret, "rpl-const-find");

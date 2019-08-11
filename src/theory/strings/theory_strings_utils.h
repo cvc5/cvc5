@@ -58,6 +58,26 @@ void getConcat(Node n, std::vector<Node>& c);
  */
 Node mkConcat(Kind k, std::vector<Node>& c);
 
+/**
+ * Get constant component. Returns the string constant represented by the
+ * string or regular expression t. For example:
+ *   "ABC" -> "ABC", (str.to.re "ABC") -> "ABC", (str.++ x "ABC") -> null
+ */
+Node getConstantComponent(Node t);
+
+/**
+ * Get constant prefix / suffix from expression. For example, if isSuf=false:
+ *   "ABC" -> "ABC"
+ *   (str.++ "ABC" x) -> "ABC"
+ *   (str.to.re "ABC") -> "ABC"
+ *   (re.++ (str.to.re "ABC") ...) -> "ABC"
+ *   (re.in x (str.to.re "ABC")) -> "ABC"
+ *   (re.in x (re.++ (str.to.re "ABC") ...)) -> "ABC"
+ *   (str.++ x "ABC") -> null
+ *   (re.in x (re.++ (re.* "D") (str.to.re "ABC"))) -> null
+ */
+Node getConstantEndpoint(Node e, bool isSuf);
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
