@@ -137,12 +137,12 @@ class QuantifiersEnginePrivate
     // finite model finding
     if (options::fmfBound())
     {
-      d_bint.reset(new quantifiers::BoundedIntegers(c, this));
+      d_bint.reset(new quantifiers::BoundedIntegers(c, qe));
       modules.push_back(d_bint.get());
     }
     if (options::finiteModelFind() || options::fmfBound())
     {
-      d_model_engine.reset(new quantifiers::ModelEngine(c, this));
+      d_model_engine.reset(new quantifiers::ModelEngine(c, qe));
       modules.push_back(d_model_engine.get());
       // finite model finder has special ways of building the model
       needsBuilder = true;
