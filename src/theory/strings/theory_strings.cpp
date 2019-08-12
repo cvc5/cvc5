@@ -214,7 +214,7 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
 
 Node TheoryStrings::getLengthExp( Node t, std::vector< Node >& exp, Node te ){
   Assert( areEqual( t, te ) );
-  Node lt = utils::mkLength( te );
+  Node lt = utils::mkLength(te);
   if( hasTerm( lt ) ){
     // use own length if it exists, leads to shorter explanation
     return lt;
@@ -811,7 +811,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         Assert( r.isConst() || processed.find( r )!=processed.end() );
         nc.push_back(r.isConst() ? r : processed[r]);
       }
-      Node cc = utils::mkConcat( nc );
+      Node cc = utils::mkConcat(nc);
       Assert( cc.getKind()==kind::CONST_STRING );
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
@@ -1651,7 +1651,7 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
   Node n = ti->d_data;
   if( !n.isNull() ){
     //construct the constant
-    Node c = utils::mkConcat( vecc );
+    Node c = utils::mkConcat(vecc);
     if( !areEqual( n, c ) ){
       Trace("strings-debug") << "Constant eqc : " << c << " for " << n << std::endl;
       Trace("strings-debug") << "  ";
@@ -3229,7 +3229,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                 eqnc.push_back(nfkv[index_l]);
               }
             }
-            eqn.push_back( utils::mkConcat( eqnc ) );
+            eqn.push_back(utils::mkConcat(eqnc));
           }
           if( !areEqual( eqn[0], eqn[1] ) ){
             d_im.sendInference(
@@ -3394,7 +3394,9 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                             "c_spt");
                         Trace("strings-csp") << "Const Split: " << prea << " is removed from " << stra << " due to " << strb << ", p=" << p << std::endl;        
                         //set info
-                        info.d_conc = other_str.eqNode( isRev ? utils::mkConcat( sk, prea ) : utils::mkConcat(prea, sk) );
+                        info.d_conc =
+                            other_str.eqNode(isRev ? utils::mkConcat(sk, prea)
+                                                   : utils::mkConcat(prea, sk));
                         info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                         info.d_id = INFER_SSPLIT_CST_PROP;
                         info_valid = true;
@@ -3417,10 +3419,17 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                                 : SkolemCache::SK_ID_VC_BIN_SPT,
                           "cb_spt");
                       Trace("strings-csp") << "Const Split: " << c_firstHalf << " is removed from " << const_str << " (binary) " << std::endl;
-                      info.d_conc = NodeManager::currentNM()->mkNode( kind::OR, other_str.eqNode( isRev ? utils::mkConcat( sk, c_firstHalf ) : utils::mkConcat( c_firstHalf, sk ) ),
-                                                                         NodeManager::currentNM()->mkNode( kind::AND,
-                                                                           sk.eqNode( d_emptyString ).negate(),
-                                                                           c_firstHalf.eqNode( isRev ? utils::mkConcat( sk, other_str ) : utils::mkConcat( other_str, sk ) ) ) );
+                      info.d_conc = nm->mkNode(
+                          OR,
+                          other_str.eqNode(
+                              isRev ? utils::mkConcat(sk, c_firstHalf)
+                                    : utils::mkConcat(c_firstHalf, sk)),
+                          nm->mkNode(
+                              AND,
+                              sk.eqNode(d_emptyString).negate(),
+                              c_firstHalf.eqNode(
+                                  isRev ? utils::mkConcat(sk, other_str)
+                                        : utils::mkConcat(other_str, sk))));
                       info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                       info.d_id = INFER_SSPLIT_CST_BINARY;
                       info_valid = true;
@@ -3433,7 +3442,9 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                                 : SkolemCache::SK_ID_VC_SPT,
                           "c_spt");
                       Trace("strings-csp") << "Const Split: " << firstChar << " is removed from " << const_str << " (serial) " << std::endl;
-                      info.d_conc = other_str.eqNode( isRev ? utils::mkConcat( sk, firstChar ) : utils::mkConcat(firstChar, sk) );
+                      info.d_conc = other_str.eqNode(
+                          isRev ? utils::mkConcat(sk, firstChar)
+                                : utils::mkConcat(firstChar, sk));
                       info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                       info.d_id = INFER_SSPLIT_CST;
                       info_valid = true;
@@ -3485,12 +3496,12 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                     "v_spt");
                 // must add length requirement
                 info.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
-                Node eq1 =
-                    nfiv[index].eqNode(isRev ? utils::mkConcat(sk, nfjv[index])
-                                             : utils::mkConcat(nfjv[index], sk));
-                Node eq2 =
-                    nfjv[index].eqNode(isRev ? utils::mkConcat(sk, nfiv[index])
-                                             : utils::mkConcat(nfiv[index], sk));
+                Node eq1 = nfiv[index].eqNode(
+                    isRev ? utils::mkConcat(sk, nfjv[index])
+                          : utils::mkConcat(nfjv[index], sk));
+                Node eq2 = nfjv[index].eqNode(
+                    isRev ? utils::mkConcat(sk, nfiv[index])
+                          : utils::mkConcat(nfiv[index], sk));
 
                 if( lentTestSuccess!=-1 ){
                   info.d_antn.push_back( lentTestExp );
@@ -3877,11 +3888,14 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               registerLength(sk3, LENGTH_GEQ_ONE);
               //Node nemp = sk3.eqNode(d_emptyString).negate();
               //conc.push_back(nemp);
-              Node lsk1 = utils::mkLength( sk1 );
+              Node lsk1 = utils::mkLength(sk1);
               conc.push_back( lsk1.eqNode( li ) );
-              Node lsk2 = utils::mkLength( sk2 );
+              Node lsk2 = utils::mkLength(sk2);
               conc.push_back( lsk2.eqNode( lj ) );
-              conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( utils::mkConcat( sk1, sk3 ) ), i.eqNode( utils::mkConcat( sk2, sk3 ) ) ) );
+              conc.push_back(nm->mkNode(
+                  OR,
+                  j.eqNode(utils::mkConcat(sk1, sk3)),
+                  i.eqNode(utils::mkConcat(sk2, sk3))));
               d_im.sendInference(
                   antec, antec_new_lits, nm->mkNode(AND, conc), "D-DISL-Split");
               ++(d_statistics.d_deq_splits);
