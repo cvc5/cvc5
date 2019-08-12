@@ -162,6 +162,15 @@ class InferenceManager
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
+  //----------------------------constructing antecedants
+  /**
+   * Adds equality a = b to the vector exp if a and b are distinct terms. It
+   * must be the case that areEqual( a, b ) holds in this context.
+   */
+  void addToExplanation(Node a, Node b, std::vector<Node>& exp) const;
+  /** Adds lit to the vector exp if it is non-null */
+  void addToExplanation(Node lit, std::vector<Node>& exp) const;
+  //----------------------------end constructing antecedants
   /** Do pending facts
    *
    * This method asserts pending facts (d_pending) with explanations

@@ -226,7 +226,7 @@ Node TheoryStrings::getLengthExp( Node t, std::vector< Node >& exp, Node te ){
       length_term = t;
     }
     Debug("strings") << "TheoryStrings::getLengthTerm " << t << " is " << length_term << std::endl;
-    addToExplanation( length_term, te, exp );
+    d_im.addToExplanation( length_term, te, exp );
     return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, length_term ) );
   }
 }
@@ -246,7 +246,7 @@ Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
       NormalForm& nf = it->second;
       Node ret = utils::mkConcat(nf.d_nf);
       nf_exp.insert(nf_exp.end(), nf.d_exp.begin(), nf.d_exp.end());
-      addToExplanation(x, nf.d_base, nf_exp);
+      d_im.addToExplanation(x, nf.d_base, nf_exp);
       Trace("strings-debug")
           << "Term: " << x << " has a normal form " << ret << std::endl;
       return ret;
@@ -383,7 +383,7 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
           exp[n].push_back( d_eqc_to_const_exp[nr] );
         }
         if( !d_eqc_to_const_base[nr].isNull() ){
-          addToExplanation( n, d_eqc_to_const_base[nr], exp[n] );
+          d_im.addToExplanation( n, d_eqc_to_const_base[nr], exp[n] );
         }
       }else if( effort>=1 && effort<3 && n.getType().isString() ){
         //normal forms
@@ -394,12 +394,12 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
                               << " " << nr << std::endl;
         if (!nfnr.d_base.isNull())
         {
-          addToExplanation(n, nfnr.d_base, exp[n]);
+          d_im.addToExplanation(n, nfnr.d_base, exp[n]);
         }
       }else{
         //representative?
         //Trace("strings-subs") << "   representative : " << nr << std::endl;
-        //addToExplanation( n, nr, exp[n] );
+        //d_im.addToExplanation( n, nr, exp[n] );
         //subs.push_back( nr );
         subs.push_back( n );
       }
@@ -1488,20 +1488,6 @@ void TheoryStrings::setPendingConflictWhen(Node conf)
   }
 }
 
-void TheoryStrings::addToExplanation( Node a, Node b, std::vector< Node >& exp ) {
-  if( a!=b ){
-    Debug("strings-explain") << "Add to explanation : " << a << " == " << b << std::endl;
-    Assert( areEqual( a, b ) );
-    exp.push_back( a.eqNode( b ) );
-  }
-}
-
-void TheoryStrings::addToExplanation( Node lit, std::vector< Node >& exp ) {
-  if( !lit.isNull() ){
-    exp.push_back( lit );
-  }
-}
-
 void TheoryStrings::checkInit() {
   //build term index
   d_eqc_to_const.clear();
@@ -1664,7 +1650,7 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
       std::vector< Node > exp;
       while( count<n.getNumChildren() ){
         while( count<n.getNumChildren() && areEqual( n[count], d_emptyString ) ){
-          addToExplanation( n[count], d_emptyString, exp );
+          d_im.addToExplanation( n[count], d_emptyString, exp );
           count++;
         }
         if( count<n.getNumChildren() ){
@@ -1672,10 +1658,10 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
           if( !areEqual( n[count], vecc[countc] ) ){
             Node nrr = getRepresentative( n[count] );
             Assert( !d_eqc_to_const_exp[nrr].isNull() );
-            addToExplanation( n[count], d_eqc_to_const_base[nrr], exp );
+            d_im.addToExplanation( n[count], d_eqc_to_const_base[nrr], exp );
             exp.push_back( d_eqc_to_const_exp[nrr] );
           }else{
-            addToExplanation( n[count], vecc[countc], exp );
+            d_im.addToExplanation( n[count], vecc[countc], exp );
           }
           countc++;
           count++;
@@ -1701,11 +1687,11 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
           Trace("strings-debug") << "Conflict, other constant was " << it->second << ", this constant was " << c << std::endl;
           if( d_eqc_to_const_exp[nr].isNull() ){
             // n==c ^ n == c' => false
-            addToExplanation( n, it->second, exp );
+            d_im.addToExplanation( n, it->second, exp );
           }else{
             // n==c ^ n == d_eqc_to_const_base[nr] == c' => false
             exp.push_back( d_eqc_to_const_exp[nr] );
-            addToExplanation( n, d_eqc_to_const_base[nr], exp );
+            d_im.addToExplanation( n, d_eqc_to_const_base[nr], exp );
           }
           d_im.sendInference(exp, d_false, "I_CONST_CONFLICT");
           return;
@@ -1911,7 +1897,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
     // thus:
     //   n = d_eqc_to_const_base[r] ^ d_eqc_to_const_exp[r] => n = in.d_const
     Assert(d_eqc_to_const_base.find(r) != d_eqc_to_const_base.end());
-    addToExplanation(n, d_eqc_to_const_base[r], in.d_exp);
+    d_im.addToExplanation(n, d_eqc_to_const_base[r], in.d_exp);
     Assert(d_eqc_to_const_exp.find(r) != d_eqc_to_const_exp.end());
     in.d_exp.insert(in.d_exp.end(),
                     d_eqc_to_const_exp[r].begin(),
@@ -2258,7 +2244,7 @@ void TheoryStrings::checkFlatForms()
             // of ( n = f[n] )
             std::vector<Node> exp;
             Assert(d_eqc_to_const_base.find(eqc) != d_eqc_to_const_base.end());
-            addToExplanation(n, d_eqc_to_const_base[eqc], exp);
+            d_im.addToExplanation(n, d_eqc_to_const_base[eqc], exp);
             Assert(d_eqc_to_const_exp.find(eqc) != d_eqc_to_const_exp.end());
             if (!d_eqc_to_const_exp[eqc].isNull())
             {
@@ -2271,7 +2257,7 @@ void TheoryStrings::checkFlatForms()
                 Assert(e >= 0 && e < (int)d_flat_form_index[n].size());
                 Assert(d_flat_form_index[n][e] >= 0
                        && d_flat_form_index[n][e] < (int)n.getNumChildren());
-                addToExplanation(
+                d_im.addToExplanation(
                     d_flat_form[n][e], n[d_flat_form_index[n][e]], exp);
               }
             }
@@ -2404,10 +2390,10 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                     cc_c, curr_c, index, isRev);
                 if (s.isNull())
                 {
-                  addToExplanation(ac, d_eqc_to_const_base[curr], exp);
-                  addToExplanation(d_eqc_to_const_exp[curr], exp);
-                  addToExplanation(bc, d_eqc_to_const_base[cc], exp);
-                  addToExplanation(d_eqc_to_const_exp[cc], exp);
+                  d_im.addToExplanation(ac, d_eqc_to_const_base[curr], exp);
+                  d_im.addToExplanation(d_eqc_to_const_exp[curr], exp);
+                  d_im.addToExplanation(bc, d_eqc_to_const_base[cc], exp);
+                  d_im.addToExplanation(d_eqc_to_const_exp[cc], exp);
                   conc = d_false;
                   inf_type = 0;
                   break;
@@ -2446,7 +2432,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                   }
                   exp.insert(exp.end(), lexp.begin(), lexp.end());
                   exp.insert(exp.end(), lexp2.begin(), lexp2.end());
-                  addToExplanation(lcurr, lcc, exp);
+                  d_im.addToExplanation(lcurr, lcc, exp);
                   conc = ac.eqNode(bc);
                   inf_type = 1;
                   break;
@@ -2462,13 +2448,13 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
       Trace("strings-ff-debug")
           << "Found inference : " << conc << " based on equality " << a
           << " == " << b << ", " << isRev << " " << inf_type << std::endl;
-      addToExplanation(a, b, exp);
+      d_im.addToExplanation(a, b, exp);
       // explain why prefixes up to now were the same
       for (unsigned j = 0; j < count; j++)
       {
         Trace("strings-ff-debug") << "Add at " << d_flat_form_index[a][j] << " "
                                   << d_flat_form_index[b][j] << std::endl;
-        addToExplanation(
+        d_im.addToExplanation(
             a[d_flat_form_index[a][j]], b[d_flat_form_index[b][j]], exp);
       }
       // explain why other components up to now are empty
@@ -2493,7 +2479,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
         {
           if (areEqual(c[j], d_emptyString))
           {
-            addToExplanation(c[j], d_emptyString, exp);
+            d_im.addToExplanation(c[j], d_emptyString, exp);
           }
         }
       }
@@ -2560,8 +2546,8 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
               Node ncy = checkCycles( nr, curr, exp );
               if( !ncy.isNull() ){
                 Trace("strings-cycle") << eqc << " cycle: " << ncy << " at " << n << "[" << i << "] : " << n[i] << std::endl;
-                addToExplanation( n, eqc, exp );
-                addToExplanation( nr, n[i], exp );
+                d_im.addToExplanation( n, eqc, exp );
+                d_im.addToExplanation( nr, n[i], exp );
                 if( ncy==eqc ){
                   //can infer all other components must be empty
                   for( unsigned j=0; j<n.getNumChildren(); j++ ){
@@ -3028,7 +3014,7 @@ void TheoryStrings::getNormalForms(Node eqc,
           //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = N[n] )
           std::vector< Node > exp;
           Assert( d_eqc_to_const_base.find( eqc )!=d_eqc_to_const_base.end() );
-          addToExplanation( n, d_eqc_to_const_base[eqc], exp );
+          d_im.addToExplanation( n, d_eqc_to_const_base[eqc], exp );
           Assert( d_eqc_to_const_exp.find( eqc )!=d_eqc_to_const_exp.end() );
           if( !d_eqc_to_const_exp[eqc].isNull() ){
             exp.push_back( d_eqc_to_const_exp[eqc] );

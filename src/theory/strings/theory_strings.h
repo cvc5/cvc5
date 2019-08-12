@@ -702,13 +702,6 @@ private:
    * updates the set of normal form pairs.
    */
   void doInferInfo(const InferInfo& ii);
-  /**
-   * Adds equality a = b to the vector exp if a and b are distinct terms. It
-   * must be the case that areEqual( a, b ) holds in this context.
-   */
-  void addToExplanation(Node a, Node b, std::vector<Node>& exp);
-  /** Adds lit to the vector exp if it is non-null */
-  void addToExplanation(Node lit, std::vector<Node>& exp);
 
   /** Register term
    *
