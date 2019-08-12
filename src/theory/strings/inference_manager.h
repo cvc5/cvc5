@@ -26,6 +26,7 @@
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/strings/solver_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -70,7 +71,7 @@ class InferenceManager
   InferenceManager(TheoryStrings& p,
                    context::Context* c,
                    context::UserContext* u,
-                   eq::EqualityEngine& ee,
+                   SolverState& s,
                    OutputChannel& out);
   ~InferenceManager() {}
 
@@ -238,11 +239,10 @@ class InferenceManager
 
   /** the parent theory of strings object */
   TheoryStrings& d_parent;
-  /** the equality engine
-   *
-   * This is a reference to the equality engine of the theory of strings.
+  /**
+   * This is a reference to the solver state of the theory of strings.
    */
-  eq::EqualityEngine& d_ee;
+  SolverState& d_state;
   /** the output channel
    *
    * This is a reference to the output channel of the theory of strings.

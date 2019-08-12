@@ -32,9 +32,9 @@ namespace strings {
 InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::Context* c,
                                    context::UserContext* u,
-                                   eq::EqualityEngine& ee,
+                                   SolverState& s,
                                    OutputChannel& out)
-    : d_parent(p), d_ee(ee), d_out(out), d_keep(c)
+    : d_parent(p), d_state(s), d_out(out), d_keep(c)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -63,15 +63,15 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
   {
     for (unsigned i = 0; i < 2; i++)
     {
-      if (!lit[i].isConst() && !d_parent.hasTerm(lit[i]))
+      if (!lit[i].isConst() && !d_state.hasTerm(lit[i]))
       {
         // introduces a new non-constant term, do not infer
         return false;
       }
     }
     // does it already hold?
-    if (pol ? d_parent.areEqual(lit[0], lit[1])
-            : d_parent.areDisequal(lit[0], lit[1]))
+    if (pol ? d_state.areEqual(lit[0], lit[1])
+            : d_state.areDisequal(lit[0], lit[1]))
     {
       return true;
     }
@@ -85,12 +85,12 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
       return true;
     }
   }
-  else if (!d_parent.hasTerm(lit))
+  else if (!d_state.hasTerm(lit))
   {
     // introduces a new non-constant term, do not infer
     return false;
   }
-  else if (d_parent.areEqual(lit, pol ? d_true : d_false))
+  else if (d_state.areEqual(lit, pol ? d_true : d_false))
   {
     // already holds
     return true;
@@ -191,7 +191,7 @@ void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
     Trace("strings-assert")
         << "(assert (not " << ant << ")) ; conflict " << c << std::endl;
     d_out.conflict(ant);
-    d_parent.d_conflict = true;
+    d_state.setConflict();
     return;
   }
   Node lem;
@@ -280,7 +280,7 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
 void InferenceManager::addToExplanation( Node a, Node b, std::vector< Node >& exp ) const {
   if( a!=b ){
     Debug("strings-explain") << "Add to explanation : " << a << " == " << b << std::endl;
-    Assert( areEqual( a, b ) );
+    Assert( d_state.areEqual( a, b ) );
     exp.push_back( a.eqNode( b ) );
   }
 }
@@ -339,7 +339,7 @@ void InferenceManager::doPendingLemmas()
   d_pendingReqPhase.clear();
 }
 
-bool InferenceManager::hasConflict() const { return d_parent.d_conflict; }
+bool InferenceManager::hasConflict() const { return d_state.isInConflict(); }
 
 void InferenceManager::inferSubstitutionProxyVars(
     Node n,
