@@ -780,6 +780,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
     // update preReStr
     if (!curr.isNull() && curr.getKind() == STRING_TO_REGEXP)
     {
+      lastAllStar = false;
       preReStr.push_back(curr[0]);
       curr = Node::null();
     }
