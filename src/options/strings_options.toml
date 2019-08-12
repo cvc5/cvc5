@@ -226,4 +226,3 @@ header = "options/strings_options.h"
   handler    = "stringToRegExpInterMode"
   includes   = ["options/strings_modes.h"]
   help       = "determines which regular expressions intersections to compute"
-
