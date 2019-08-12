@@ -2,9 +2,9 @@
 /*! \file synth_conjecture.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Haniel Barbosa
+ **   Andrew Reynolds, Haniel Barbosa, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,9 +29,11 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -732,63 +734,6 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
   }
   return ret;
 }
-
-/** A basic sygus value generator
- *
- * This class is a "naive" term generator for sygus conjectures, which invokes
- * the type enumerator to generate a stream of (all) sygus terms of a given
- * type.
- */
-class EnumValGeneratorBasic : public EnumValGenerator
-{
- public:
-  EnumValGeneratorBasic(TermDbSygus* tds, TypeNode tn) : d_tds(tds), d_te(tn) {}
-  ~EnumValGeneratorBasic() {}
-  /** initialize (do nothing) */
-  void initialize(Node e) override {}
-  /** initialize (do nothing) */
-  void addValue(Node v) override { d_currTerm = *d_te; }
-  /**
-   * Get next returns the next (T-rewriter-unique) value based on the type
-   * enumerator.
-   */
-  bool increment() override
-  {
-    ++d_te;
-    if (d_te.isFinished())
-    {
-      d_currTerm = Node::null();
-      return false;
-    }
-    d_currTerm = *d_te;
-    if (options::sygusSymBreakDynamic())
-    {
-      Node nextb = d_tds->sygusToBuiltin(d_currTerm);
-      nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
-      if (d_cache.find(nextb) == d_cache.end())
-      {
-        d_cache.insert(nextb);
-        // only return the current term if not unique
-      }
-      else
-      {
-        d_currTerm = Node::null();
-      }
-    }
-    return true;
-  }
-  /** get the current term */
-  Node getCurrent() override { return d_currTerm; }
- private:
-  /** pointer to term database sygus */
-  TermDbSygus* d_tds;
-  /** the type enumerator */
-  TypeEnumerator d_te;
-  /** the current term */
-  Node d_currTerm;
-  /** cache of (enumerated) builtin values we have enumerated so far */
-  std::unordered_set<Node, NodeHashFunction> d_cache;
-};
 
 Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
 {

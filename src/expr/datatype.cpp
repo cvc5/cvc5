@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -180,7 +180,10 @@ void Datatype::addSygusConstructor(Expr op,
 {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   Debug("dt-sygus") << "    sygus op : " << op << std::endl;
-  std::string name = getName() + "_" + cname;
+  // avoid name clashes
+  std::stringstream ss;
+  ss << getName() << "_" << getNumConstructors() << "_" << cname;
+  std::string name = ss.str();
   std::string testerId("is-");
   testerId.append(name);
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);

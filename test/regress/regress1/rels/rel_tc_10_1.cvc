@@ -12,7 +12,7 @@ ASSERT a = d;
 ASSERT (1, c) IS_IN x;
 ASSERT (2, d) IS_IN x;
 ASSERT (a, 5) IS_IN y;
-ASSERT y = (TCLOSURE x);
+ASSERT y = TCLOSURE(x);
 ASSERT ((2, 5) IS_IN y);
 
 CHECKSAT;

@@ -2,9 +2,9 @@
 /*! \file ceg_instantiator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,14 +15,19 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
 
-#include "theory/quantifiers_engine.h"
+#include <vector>
+
+#include "expr/node.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 class CegqiOutput {
@@ -70,15 +75,7 @@ public:
   }
   // compose property, should be such that: 
   //   p.getModifiedTerm( this.getModifiedTerm( x ) ) = this_updated.getModifiedTerm( x )
-  virtual void composeProperty( TermProperties& p ){
-    if( !p.d_coeff.isNull() ){
-      if( d_coeff.isNull() ){
-        d_coeff = p.d_coeff;
-      }else{
-        d_coeff = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MULT, d_coeff, p.d_coeff ) );
-      }
-    }
-  }
+  virtual void composeProperty(TermProperties& p);
 };
 
 /** Solved form
@@ -97,34 +94,9 @@ public:
   //   an example is for linear arithmetic, we store "substitution with coefficients".
   std::vector<Node> d_non_basic;
   // push the substitution pv_prop.getModifiedTerm(pv) -> n
-  void push_back( Node pv, Node n, TermProperties& pv_prop ){
-    d_vars.push_back( pv );
-    d_subs.push_back( n );
-    d_props.push_back( pv_prop );
-    if( !pv_prop.isBasic() ){
-      d_non_basic.push_back( pv );
-      // update theta value
-      Node new_theta = getTheta();
-      if( new_theta.isNull() ){
-        new_theta = pv_prop.d_coeff;
-      }else{
-        new_theta = NodeManager::currentNM()->mkNode( kind::MULT, new_theta, pv_prop.d_coeff );
-        new_theta = Rewriter::rewrite( new_theta );
-      }
-      d_theta.push_back( new_theta );
-    }
-  }
+  void push_back(Node pv, Node n, TermProperties& pv_prop);
   // pop the substitution pv_prop.getModifiedTerm(pv) -> n
-  void pop_back( Node pv, Node n, TermProperties& pv_prop ){
-    d_vars.pop_back();
-    d_subs.pop_back();
-    d_props.pop_back();
-    if( !pv_prop.isBasic() ){
-      d_non_basic.pop_back();
-      // update theta value
-      d_theta.pop_back();
-    }
-  }
+  void pop_back(Node pv, Node n, TermProperties& pv_prop);
   // is this solved form empty?
   bool empty() { return d_vars.empty(); }
 public:

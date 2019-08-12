@@ -2,9 +2,9 @@
 /*! \file sygus_repair_const.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,19 +14,22 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 
 #include <unordered_set>
 #include "expr/node.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 class CegConjecture;
+class TermDbSygus;
 
 /** SygusRepairConst
  *
@@ -215,4 +218,4 @@ class SygusRepairConst
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

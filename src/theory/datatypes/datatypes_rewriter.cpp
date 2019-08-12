@@ -2,9 +2,9 @@
 /*! \file datatypes_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,8 @@
  **/
 
 #include "theory/datatypes/datatypes_rewriter.h"
+
+#include "expr/node_algorithm.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -115,8 +117,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     if (ev.getKind() == APPLY_CONSTRUCTOR)
     {
       Trace("dt-sygus-util") << "Rewrite " << in << " by unfolding...\n";
-      const Datatype& dt =
-          static_cast<DatatypeType>(ev.getType().toType()).getDatatype();
+      const Datatype& dt = ev.getType().getDatatype();
       unsigned i = indexOf(ev.getOperator());
       Node op = Node::fromExpr(dt[i].getSygusOp());
       // if it is the "any constant" constructor, return its argument
@@ -141,14 +142,8 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         children.push_back(nm->mkNode(DT_SYGUS_EVAL, cc));
       }
       Node ret = mkSygusTerm(dt, i, children);
-      // if it is a variable, apply the substitution
-      if (ret.getKind() == BOUND_VARIABLE)
-      {
-        Assert(ret.hasAttribute(SygusVarNumAttribute()));
-        int vn = ret.getAttribute(SygusVarNumAttribute());
-        Assert(Node::fromExpr(dt.getSygusVarList())[vn] == ret);
-        ret = args[vn];
-      }
+      // apply the appropriate substitution
+      ret = applySygusArgs(dt, op, ret, args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
@@ -186,13 +181,72 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   return RewriteResponse(REWRITE_DONE, in);
 }
 
+Node DatatypesRewriter::applySygusArgs(const Datatype& dt,
+                                       Node op,
+                                       Node n,
+                                       const std::vector<Node>& args)
+{
+  if (n.getKind() == BOUND_VARIABLE)
+  {
+    Assert(n.hasAttribute(SygusVarNumAttribute()));
+    int vn = n.getAttribute(SygusVarNumAttribute());
+    Assert(Node::fromExpr(dt.getSygusVarList())[vn] == n);
+    return args[vn];
+  }
+  // n is an application of operator op.
+  // We must compute the free variables in op to determine if there are
+  // any substitutions we need to make to n.
+  TNode val;
+  if (!op.hasAttribute(SygusVarFreeAttribute()))
+  {
+    std::unordered_set<Node, NodeHashFunction> fvs;
+    if (expr::getFreeVariables(op, fvs))
+    {
+      if (fvs.size() == 1)
+      {
+        for (const Node& v : fvs)
+        {
+          val = v;
+        }
+      }
+      else
+      {
+        val = op;
+      }
+    }
+    Trace("dt-sygus-fv") << "Free var in " << op << " : " << val << std::endl;
+    op.setAttribute(SygusVarFreeAttribute(), val);
+  }
+  else
+  {
+    val = op.getAttribute(SygusVarFreeAttribute());
+  }
+  if (val.isNull())
+  {
+    return n;
+  }
+  if (val.getKind() == BOUND_VARIABLE)
+  {
+    // single substitution case
+    int vn = val.getAttribute(SygusVarNumAttribute());
+    TNode sub = args[vn];
+    return n.substitute(val, sub);
+  }
+  // do the full substitution
+  std::vector<Node> vars;
+  Node bvl = Node::fromExpr(dt.getSygusVarList());
+  for (unsigned i = 0, nvars = bvl.getNumChildren(); i < nvars; i++)
+  {
+    vars.push_back(bvl[i]);
+  }
+  return n.substitute(vars.begin(), vars.end(), args.begin(), args.end());
+}
+
 Kind DatatypesRewriter::getOperatorKindForSygusBuiltin(Node op)
 {
   Assert(op.getKind() != BUILTIN);
   if (op.getKind() == LAMBDA)
   {
-    // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
-    // does beta-reduction but does not for APPLY
     return APPLY_UF;
   }
   TypeNode tn = op.getType();
@@ -226,6 +280,13 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   Assert(!dt[i].getSygusOp().isNull());
   std::vector<Node> schildren;
   Node op = Node::fromExpr(dt[i].getSygusOp());
+  Trace("dt-sygus-util") << "Operator is " << op << std::endl;
+  if (children.empty())
+  {
+    // no children, return immediately
+    Trace("dt-sygus-util") << "...return direct op" << std::endl;
+    return op;
+  }
   // if it is the any constant, we simply return the child
   if (op.getAttribute(SygusAnyConstAttribute()))
   {
@@ -245,8 +306,12 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
     return ret;
   }
   Kind ok = NodeManager::operatorToKind(op);
+  Trace("dt-sygus-util") << "operator kind is " << ok << std::endl;
   if (ok != UNDEFINED_KIND)
   {
+    // If it is an APPLY_UF operator, we should have at least an operator and
+    // a child.
+    Assert(ok != APPLY_UF || schildren.size() != 1);
     ret = NodeManager::currentNM()->mkNode(ok, schildren);
     Trace("dt-sygus-util") << "...return (op) " << ret << std::endl;
     return ret;
@@ -364,7 +429,8 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
       // APPLY_SELECTOR) is given by an attribute and obtained via indexOf below
       // The argument is only valid if it is the proper constructor.
       selectorIndex = Datatype::indexOf(selector);
-      if (selectorIndex < 0 || selectorIndex >= c.getNumArgs())
+      if (selectorIndex < 0
+          || selectorIndex >= static_cast<int>(c.getNumArgs()))
       {
         selectorIndex = -1;
       }

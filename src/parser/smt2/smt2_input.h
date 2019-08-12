@@ -2,9 +2,9 @@
 /*! \file smt2_input.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Tim King, Andres Noetzli
+ **   Christopher L. Conway, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__SMT2_INPUT_H
-#define __CVC4__PARSER__SMT2_INPUT_H
+#ifndef CVC4__PARSER__SMT2_INPUT_H
+#define CVC4__PARSER__SMT2_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/smt2/Smt2Lexer.h"
@@ -83,4 +83,4 @@ class Smt2Input : public AntlrInput {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SMT2_INPUT_H */
+#endif /* CVC4__PARSER__SMT2_INPUT_H */

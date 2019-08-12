@@ -2,9 +2,9 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Mathias Preiner
+ **   Andrew Reynolds, Kshitij Bansal, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,12 +16,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
-#define __CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#ifndef CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#define CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
 
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
+#include "theory/sets/skolem_cache.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -69,9 +70,7 @@ private:
   void checkDisequalities( std::vector< Node >& lemmas );
   bool isMember( Node x, Node s );
   bool isSetDisequalityEntailed( Node s, Node t );
-  
-  void flushLemmas( std::vector< Node >& lemmas, bool preprocess = false );
-  void flushLemma( Node lem, bool preprocess = false );
+
   Node getProxy( Node n );
   Node getCongruent( Node n );
   Node getEmptySet( TypeNode tn );
@@ -222,6 +221,12 @@ private: //for universe set
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
+  /**
+   * Get the skolem cache of this theory, which manages a database of introduced
+   * skolem variables used for various inferences.
+   */
+  SkolemCache& getSkolemCache() { return d_skCache; }
+
   void preRegisterTerm(TNode node);
 
   /** expandDefinition
@@ -262,7 +267,38 @@ private: //for universe set
 
   void propagate(Theory::Effort);
 
-private:
+  /** Process inference
+   *
+   * Argument lem specifies an inference inferred by this theory. If lem is
+   * an IMPLIES node, then its antecendant is the explanation of the conclusion.
+   *
+   * Argument c is used for debugging, typically the name of the inference.
+   *
+   * This method may add facts to the equality engine of theory of sets.
+   * Any (portion of) the conclusion of lem that is not sent to the equality
+   * engine is added to the argument lemmas, which should be processed via the
+   * caller of this method.
+   */
+  void processInference(Node lem, const char* c, std::vector<Node>& lemmas);
+  /** Flush lemmas
+   *
+   * This sends lemmas on the output channel of the theory of sets.
+   *
+   * The argument preprocess indicates whether preprocessing should be applied
+   * (by TheoryEngine) on each of lemmas.
+   */
+  void flushLemmas(std::vector<Node>& lemmas, bool preprocess = false);
+  /** singular version of above */
+  void flushLemma(Node lem, bool preprocess = false);
+  /** Are we currently in conflict? */
+  bool isInConflict() const;
+  /** Have we sent out a lemma during a call to a full effort check? */
+  bool sentLemma() const;
+
+  /** get default output channel */
+  OutputChannel* getOutputChannel();
+
+ private:
   TheorySets& d_external;
 
   class Statistics {
@@ -321,6 +357,8 @@ public:
  private:
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
+  /** the skolem cache */
+  SkolemCache d_skCache;
   /** are relations enabled?
    *
    * This flag is set to true during a full effort check if any constraint
@@ -334,4 +372,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */
+#endif /* CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */

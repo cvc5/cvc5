@@ -2,9 +2,9 @@
 /*! \file node_algorithm.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -182,8 +182,7 @@ bool getFreeVariables(TNode n,
       continue;
     }
     Kind k = cur.getKind();
-    bool isQuant = k == kind::FORALL || k == kind::EXISTS || k == kind::LAMBDA
-                   || k == kind::CHOICE;
+    bool isQuant = cur.isClosure();
     std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv =
         visited.find(cur);
     if (itv == visited.end())
@@ -237,6 +236,38 @@ bool getFreeVariables(TNode n,
   return !fvs.empty();
 }
 
+bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    std::unordered_set<TNode, TNodeHashFunction>::iterator itv =
+        visited.find(cur);
+    if (itv == visited.end())
+    {
+      if (cur.isVar())
+      {
+        vs.insert(cur);
+      }
+      else
+      {
+        for (const TNode& cn : cur)
+        {
+          visit.push_back(cn);
+        }
+      }
+      visited.insert(cur);
+    }
+  } while (!visit.empty());
+
+  return !vs.empty();
+}
+
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
@@ -265,6 +296,47 @@ void getSymbols(TNode n,
       {
         visit.push_back(cur.getOperator());
       }
+      for (TNode cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+}
+
+void getOperatorsMap(
+    TNode n,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  getOperatorsMap(n, ops, visited);
+}
+
+void getOperatorsMap(
+    TNode n,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
+    std::unordered_set<TNode, TNodeHashFunction>& visited)
+{
+  // nodes that we still need to visit
+  std::vector<TNode> visit;
+  // current node
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    // if cur is in the cache, do nothing
+    if (visited.find(cur) == visited.end())
+    {
+      // fetch the correct type
+      TypeNode tn = cur.getType();
+      // add the current operator to the result
+      if (cur.hasOperator())
+      {
+        ops[tn].insert(NodeManager::currentNM()->operatorOf(cur.getKind()));
+      }
+      // add children to visit in the future
       for (TNode cn : cur)
       {
         visit.push_back(cn);

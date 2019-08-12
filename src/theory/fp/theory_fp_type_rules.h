@@ -2,9 +2,9 @@
 /*! \file theory_fp_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Tim King
+ **   Martin Brain, Tim King, Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,8 @@
 // This is only needed for checking that components are only applied to leaves.
 #include "theory/theory.h"
 
-#ifndef __CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
-#define __CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
+#ifndef CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
+#define CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
 
 namespace CVC4 {
 namespace theory {
@@ -806,4 +806,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H */
+#endif /* CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H */

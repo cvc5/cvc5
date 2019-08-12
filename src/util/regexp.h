@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__REGEXP_H
-#define __CVC4__REGEXP_H
+#ifndef CVC4__REGEXP_H
+#define CVC4__REGEXP_H
 
 #include <cstddef>
 #include <functional>
@@ -142,6 +142,10 @@ class CVC4_PUBLIC String {
 
   std::size_t find(const String& y, const std::size_t start = 0) const;
   std::size_t rfind(const String& y, const std::size_t start = 0) const;
+  /** Returns true if y is a prefix of this */
+  bool hasPrefix(const String& y) const;
+  /** Returns true if y is a suffix of this */
+  bool hasSuffix(const String& y) const;
 
   String replace(const String& s, const String& t) const;
   String substr(std::size_t i) const;
@@ -246,4 +250,4 @@ std::ostream& operator<<(std::ostream& os, const String& s) CVC4_PUBLIC;
 
 }  // namespace CVC4
 
-#endif /* __CVC4__REGEXP_H */
+#endif /* CVC4__REGEXP_H */

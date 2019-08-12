@@ -2,9 +2,9 @@
 /*! \file statistics_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andres Noetzli, Aina Niemetz
+ **   Morgan Deters, Tim King, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,9 +26,9 @@
 #include "util/ostream_util.h"
 
 #ifdef CVC4_STATISTICS_ON
-#  define __CVC4_USE_STATISTICS true
+#  define CVC4_USE_STATISTICS true
 #else
-#  define __CVC4_USE_STATISTICS false
+#  define CVC4_USE_STATISTICS false
 #endif
 
 
@@ -148,7 +148,7 @@ std::ostream& operator<<(std::ostream& os, const timespec& t) {
 StatisticsRegistry::StatisticsRegistry(const std::string& name) : Stat(name)
 {
   d_prefix = name;
-  if(__CVC4_USE_STATISTICS) {
+  if(CVC4_USE_STATISTICS) {
     PrettyCheckArgument(d_name.find(s_regDelim) == std::string::npos, name,
                         "StatisticsRegistry names cannot contain the string \"%s\"",
                     s_regDelim.c_str());
@@ -194,7 +194,7 @@ void StatisticsRegistry::safeFlushInformation(int fd) const {
 }
 
 void TimerStat::start() {
-  if(__CVC4_USE_STATISTICS) {
+  if(CVC4_USE_STATISTICS) {
     PrettyCheckArgument(!d_running, *this, "timer already running");
     clock_gettime(CLOCK_MONOTONIC, &d_start);
     d_running = true;
@@ -202,7 +202,7 @@ void TimerStat::start() {
 }/* TimerStat::start() */
 
 void TimerStat::stop() {
-  if(__CVC4_USE_STATISTICS) {
+  if(CVC4_USE_STATISTICS) {
     CVC4_CHECK(d_running) << "timer not running";
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
@@ -217,7 +217,7 @@ bool TimerStat::running() const {
 
 timespec TimerStat::getData() const {
   ::timespec data = d_data;
-  if(__CVC4_USE_STATISTICS && d_running) {
+  if(CVC4_USE_STATISTICS && d_running) {
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
     data += end - d_start;
@@ -227,7 +227,7 @@ timespec TimerStat::getData() const {
 
 SExpr TimerStat::getValue() const {
   ::timespec data = d_data;
-  if(__CVC4_USE_STATISTICS && d_running) {
+  if(CVC4_USE_STATISTICS && d_running) {
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
     data += end - d_start;
@@ -253,4 +253,4 @@ RegisterStatistic::~RegisterStatistic() {
 
 }/* CVC4 namespace */
 
-#undef __CVC4_USE_STATISTICS
+#undef CVC4_USE_STATISTICS

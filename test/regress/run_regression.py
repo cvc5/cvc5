@@ -161,7 +161,6 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     elif benchmark_ext == '.cvc':
         pass
     elif benchmark_ext == '.p':
-        basic_command_line_args.append('--finite-model-find')
         status_regex = r'% Status\s*:\s*(Theorem|Unsatisfiable|CounterSatisfiable|Satisfiable)'
         status_to_output = lambda s: '% SZS status {} for {}'.format(s, benchmark_filename)
     elif benchmark_ext == '.sy':
@@ -214,10 +213,10 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     if expected_output == '' and expected_error == '':
         match = None
         if status_regex:
-            match = re.search(status_regex, benchmark_content)
+            match = re.findall(status_regex, benchmark_content)
 
         if match:
-            expected_output = status_to_output(match.group(1))
+            expected_output = status_to_output('\n'.join(match))
         elif expected_exit_status is None:
             # If there is no expected output/error and the exit status has not
             # been set explicitly, the benchmark is invalid.

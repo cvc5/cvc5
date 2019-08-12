@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,15 +14,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
 
 #include <map>
 #include "expr/node.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 /** roles for enumerators
@@ -429,4 +431,4 @@ class SygusUnifStrategy
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */

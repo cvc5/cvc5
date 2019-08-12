@@ -2,9 +2,9 @@
 /*! \file options_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
+ **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -231,7 +231,6 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
 Options::Options()
     : d_holder(new options::OptionsHolder())
     , d_handler(new options::OptionsHandler(this))
-    , d_forceLogicListeners()
     , d_beforeSearchListeners()
     , d_tlimitListeners()
     , d_tlimitPerListeners()
@@ -281,13 +280,6 @@ ListenerCollection::Registration* Options::registerAndNotify(
     }
   }
   return registration;
-}
-
-ListenerCollection::Registration* Options::registerForceLogicListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::forceLogicString);
-  return registerAndNotify(d_forceLogicListeners, listener, notify);
 }
 
 ListenerCollection::Registration* Options::registerBeforeSearchListener(

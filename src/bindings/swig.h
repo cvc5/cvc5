@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
  ** Common swig checks and definitions, when generating swig interfaces.
  **/
 
-#ifndef __CVC4__BINDINGS__SWIG_H
-#define __CVC4__BINDINGS__SWIG_H
+#ifndef CVC4__BINDINGS__SWIG_H
+#define CVC4__BINDINGS__SWIG_H
 
 #ifndef SWIG
 #  error This file should only be included when generating swig interfaces.
@@ -30,4 +30,4 @@
 // swig doesn't like GCC attributes
 #define __attribute__(x)
 
-#endif /* __CVC4__BINDINGS__SWIG_H */
+#endif /* CVC4__BINDINGS__SWIG_H */

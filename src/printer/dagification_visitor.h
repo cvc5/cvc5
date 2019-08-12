@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,11 +16,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PRINTER__DAGIFICATION_VISITOR_H
-#define __CVC4__PRINTER__DAGIFICATION_VISITOR_H
+#ifndef CVC4__PRINTER__DAGIFICATION_VISITOR_H
+#define CVC4__PRINTER__DAGIFICATION_VISITOR_H
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"
@@ -67,6 +68,12 @@ class DagificationVisitor {
    * A map of subexprs to their occurrence count.
    */
   std::unordered_map<TNode, unsigned, TNodeHashFunction> d_nodeCount;
+
+  /**
+   * The set of variable names with the let prefix that appear in the
+   * expression.
+   */
+  std::unordered_set<std::string> d_reservedLetNames;
 
   /**
    * The top-most node we are visiting.
@@ -175,4 +182,4 @@ public:
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PRINTER__DAGIFICATION_VISITOR_H */
+#endif /* CVC4__PRINTER__DAGIFICATION_VISITOR_H */

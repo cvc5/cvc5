@@ -1,4 +1,4 @@
-This file contains a summary of important user-visible changes. 
+This file contains a summary of important user-visible changes.
 
 Changes since 1.6
 =================
@@ -20,6 +20,14 @@ New Features:
     (`--sygus-active-gen=var-agnostic`) and fast (`--sygus-active-gen=enum`).
     By default, CVC4 tries to choose the best term enumerator strategy
     automatically based on the input (`--sygus-active-gen=auto`).
+  * Support for streaming solutions of increasingly smaller size when using the
+    PBE solver (`--sygus-stream --sygus-pbe`). After the first solution is found
+    and printed, the solver will continue to look for new solutions and print
+    those, if any, that are smaller than previously printed solutions.
+  * Support for unification-based techniques in non-separable specifications
+    (`--sygus-unif`). For solving invariant problems a dedicate mode
+    (`--sygus-unif-boolean-heuristic-dt`) is available that builds candidate
+    solutions using heuristic decision tree learning.
 
 Improvements:
 * Strings:
@@ -190,4 +198,3 @@ Changes since 1.0
   use -q.  Previously, this would silence all output (including "sat" or
   "unsat") as well.  Now, single -q silences messages and warnings, and
   double -qq silences all output (except on exception or signal).
-

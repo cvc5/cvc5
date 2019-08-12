@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -279,9 +279,6 @@ void CvcPrinter::toStream(
       toStream(out, n[1], depth, types, true);
       out << ")";
       return;
-      break;
-    case kind::APPLY:
-      toStream(op, n.getOperator(), depth, types, true);
       break;
     case kind::CHAIN:
     case kind::DISTINCT: // chain and distinct not supported directly in CVC4, blast them away with the rewriter
