@@ -336,10 +336,6 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
           d_im.addToExplanation(n, nfnr.d_base, exp[n]);
         }
       }else{
-        // representative?
-        // Trace("strings-subs") << "   representative : " << nr << std::endl;
-        // d_im.addToExplanation( n, nr, exp[n] );
-        // subs.push_back( nr );
         subs.push_back( n );
       }
     }

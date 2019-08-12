@@ -206,16 +206,11 @@ class InferenceManager
    * this returns true if we have a pending fact or lemma, or have encountered
    * a conflict.
    */
-  bool hasProcessed() const
-  {
-    return hasConflict() || !d_pendingLem.empty() || !d_pending.empty();
-  }
+  bool hasProcessed() const;
   /** Do we have a pending fact to add to the equality engine? */
   bool hasPendingFact() const { return !d_pending.empty(); }
   /** Do we have a pending lemma to send on the output channel? */
   bool hasPendingLemma() const { return !d_pendingLem.empty(); }
-  /** Are we in conflict? */
-  bool hasConflict() const;
 
  private:
   /**

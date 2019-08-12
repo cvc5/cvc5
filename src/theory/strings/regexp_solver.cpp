@@ -221,7 +221,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             repUnfold.insert(x);
           }
         }
-        if (d_im.hasConflict())
+        if (d_state.isInConflict())
         {
           break;
         }
@@ -230,7 +230,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   }
   if (addedLemma)
   {
-    if (!d_im.hasConflict())
+    if (!d_state.isInConflict())
     {
       for (unsigned i = 0; i < processed.size(); i++)
       {

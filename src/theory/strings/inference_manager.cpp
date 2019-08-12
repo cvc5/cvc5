@@ -301,7 +301,7 @@ void InferenceManager::addToExplanation(Node lit, std::vector<Node>& exp) const
 void InferenceManager::doPendingFacts()
 {
   size_t i = 0;
-  while (!hasConflict() && i < d_pending.size())
+  while (!d_state.isInConflict() && i < d_pending.size())
   {
     Node fact = d_pending[i];
     Node exp = d_pendingExp[fact];
@@ -328,7 +328,7 @@ void InferenceManager::doPendingFacts()
 
 void InferenceManager::doPendingLemmas()
 {
-  if (!hasConflict())
+  if (!d_state.isInConflict())
   {
     for (const Node& lc : d_pendingLem)
     {
@@ -346,7 +346,10 @@ void InferenceManager::doPendingLemmas()
   d_pendingReqPhase.clear();
 }
 
-bool InferenceManager::hasConflict() const { return d_state.isInConflict(); }
+bool InferenceManager::hasProcessed() const
+{
+  return d_state.isInConflict() || !d_pendingLem.empty() || !d_pending.empty();
+}
 
 void InferenceManager::inferSubstitutionProxyVars(
     Node n,
