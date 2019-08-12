@@ -778,7 +778,7 @@ if(USE_CADICAL)
 endif()
 if(USE_CLN)
   target_link_libraries(cvc4 ${CLN_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${CLN_INCLUDE_DIR})
+  target_include_directories(cvc4 PUBLIC ${CLN_INCLUDE_DIR})
 endif()
 if(USE_CRYPTOMINISAT)
   target_link_libraries(cvc4 ${CryptoMiniSat_LIBRARIES})
@@ -790,20 +790,20 @@ if(USE_DRAT2ER)
 endif()
 if(USE_GLPK)
   target_link_libraries(cvc4 ${GLPK_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
+  target_include_directories(cvc4 PUBLIC ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_LFSC)
   target_link_libraries(cvc4 ${LFSC_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${LFSC_INCLUDE_DIR})
 endif()
 if(USE_SYMFPU)
-  target_include_directories(cvc4 PRIVATE ${SymFPU_INCLUDE_DIR})
+  target_include_directories(cvc4 PUBLIC ${SymFPU_INCLUDE_DIR})
 endif()
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.
 target_link_libraries(cvc4 ${GMP_LIBRARIES})
-target_include_directories(cvc4 PRIVATE ${GMP_INCLUDE_DIR})
+target_include_directories(cvc4 PUBLIC ${GMP_INCLUDE_DIR})
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
