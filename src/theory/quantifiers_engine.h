@@ -123,8 +123,6 @@ public:
   //---------------------- modules (TODO remove these #1163)
   /** get bounded integers utility */
   quantifiers::BoundedIntegers* getBoundedIntegers() const;
-  /** Conflict find mechanism for quantifiers */
-  quantifiers::QuantConflictFind* getConflictFind() const;
   /** ceg instantiation */
   quantifiers::SynthEngine* getSynthEngine() const;
   /** get inst strategy cbqi */
