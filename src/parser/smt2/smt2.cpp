@@ -1566,5 +1566,29 @@ InputLanguage Smt2::getLanguage() const
   return em->getOptions().getInputLanguage();
 }
 
+Expr Smt2::setNamedAttribute(Expr& expr, const SExpr& sexpr)
+{
+  if (!sexpr.isKeyword())
+  {
+    parseError("improperly formed :named annotation");
+  }
+  std::string name = sexpr.getValue();
+  checkUserSymbol(name);
+  // ensure expr is a closed subterm
+  if (expr.hasFreeVariable())
+  {
+    std::stringstream ss;
+    ss << ":named annotations can only name terms that are closed";
+    parseError(ss.str());
+  }
+  // check that sexpr is a fresh function symbol, and reserve it
+  reserveSymbolAtAssertionLevel(name);
+  // define it
+  Expr func = mkVar(name, expr.getType());
+  // remember the last term to have been given a :named attribute
+  setLastNamedTerm(expr, name);
+  return func;
+}
+
 }  // namespace parser
 }/* CVC4 namespace */
