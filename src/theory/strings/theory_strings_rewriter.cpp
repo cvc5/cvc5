@@ -763,9 +763,12 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
   Trace("strings-rewrite-debug")
       << "Strings::rewriteConcatRegExp start " << node << std::endl;
   std::vector<Node> cvec;
+  // the current accumulation of constant strings 
   std::vector<Node> preReStr;
-  // the indices of the form (re.* re.allchar)
-  std::vector<size_t> allStrIndices;
+  // whether the last component was (_)*
+  bool lastAllStar = false;
+  String emptyStr = String("");
+  // this loop checks to see if components can be combined or dropped
   for (unsigned i = 0, size = vec.size(); i <= size; i++)
   {
     Node curr;
@@ -773,17 +776,6 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
     {
       curr = vec[i];
       Assert(curr.getKind() != REGEXP_CONCAT);
-      if (!cvec.empty() && preReStr.empty())
-      {
-        Node cvecLast = cvec.back();
-        if (cvecLast.getKind() == REGEXP_STAR && cvecLast[0] == curr)
-        {
-          // by convention, flip the order (a*)++a ---> a++(a*)
-          cvec[cvec.size() - 1] = curr;
-          cvec.push_back(cvecLast);
-          curr = Node::null();
-        }
-      }
     }
     // update preReStr
     if (!curr.isNull() && curr.getKind() == STRING_TO_REGEXP)
@@ -793,22 +785,43 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
     }
     else if (!preReStr.empty())
     {
+      Assert( !lastAllStar );
       // this groups consecutive strings a++b ---> ab
       Node acc = nm->mkNode(STRING_TO_REGEXP,
                             utils::mkConcat(STRING_CONCAT, preReStr));
       cvec.push_back(acc);
       preReStr.clear();
     }
-    if (!curr.isNull() && curr.getKind() == REGEXP_STAR)
+    else if( !curr.isNull() && lastAllStar )
     {
-      // we can group stars (a*)++(a*) ---> a*
-      if (!cvec.empty() && cvec.back() == curr)
+      // if empty, drop it
+      // e.g. this ensures we rewrite (_)* ++ (a)* ---> (_)*
+      if (testConstStringInRegExp(emptyStr, 0, curr))
       {
         curr = Node::null();
       }
-      else if (curr[0].getKind() == REGEXP_SIGMA)
+    }
+    if( !curr.isNull() )
+    {
+      lastAllStar = false;
+      if (curr.getKind() == REGEXP_STAR)
       {
-        allStrIndices.push_back(cvec.size());
+        // we can group stars (a*)++(a*) ---> a*
+        if (!cvec.empty() && cvec.back() == curr)
+        {
+          curr = Node::null();
+        }
+        else if (curr[0].getKind() == REGEXP_SIGMA)
+        {
+          Assert( !lastAllStar );
+          lastAllStar = true;
+          // go back and remove empty ones from back of cvec
+          // e.g. this ensures we rewrite (a)* ++ (_)* ---> (_)*
+          while (!cvec.empty() && testConstStringInRegExp(emptyStr, 0, cvec.back()) )
+          {
+            cvec.pop_back();
+          }
+        }
       }
     }
     if (!curr.isNull())
@@ -820,34 +833,29 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
   retNode = utils::mkConcat(REGEXP_CONCAT, cvec);
   if (retNode != node)
   {
-    // handles all cases where consecutive re constants are combined, and cases
-    // where arguments are swapped, as described in the loop above.
+    // handles all cases where consecutive re constants are combined or dropped
+    // as described in the loop above.
     return returnRewrite(node, retNode, "re.concat");
   }
-  // (re.* re.allchar) ++ R ++ (re.* re.allchar) -> (re.* re.allchar) if
-  // R accepts the empty string
-  String emptyStr = String("");
-  for (size_t i = 1, size = allStrIndices.size(); i < size; i++)
+  
+  // flipping adjacent star arguments
+  changed = false;
+  for (unsigned i = 0, size = cvec.size(); (i+1) < size; i++)
   {
-    size_t startIndex = allStrIndices[i - 1];
-    size_t endIndex = allStrIndices[i];
-    bool success = true;
-    for (size_t j = startIndex + 1; j < endIndex; j++)
+    if (cvec[i].getKind() == REGEXP_STAR && cvec[i][0] == cvec[i+1])
     {
-      Assert(j < cvec.size());
-      if (!testConstStringInRegExp(emptyStr, 0, cvec[j]))
-      {
-        success = false;
-        break;
-      }
-    }
-    if (success)
-    {
-      cvec.erase(cvec.begin() + startIndex + 1, cvec.begin() + endIndex + 1);
-      retNode = utils::mkConcat(REGEXP_CONCAT, cvec);
-      return returnRewrite(node, retNode, "re.concat-adj-gap");
+      // by convention, flip the order (a*)++a ---> a++(a*)
+      Node tmp = cvec[i+1];
+      cvec[i+1] = cvec[i];
+      cvec[i] = tmp;
+      changed = true;
     }
   }
+  if( changed )
+  {
+    retNode = utils::mkConcat(REGEXP_CONCAT, cvec);
+    return returnRewrite(node, retNode, "re.concat.opt");
+  } 
   return node;
 }
 
