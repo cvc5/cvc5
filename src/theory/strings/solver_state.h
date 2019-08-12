@@ -29,7 +29,8 @@ namespace strings {
 
 /**
  * SAT-context-dependent information about an equivalence class. This
- * information is updated eagerly.
+ * information is updated eagerly as assertions are processed by the theory of
+ * strings at standard effort.
  */
 class EqcInfo
 {
@@ -80,13 +81,14 @@ class EqcInfo
  * of the assertions for the theory of strings. This includes:
  * (1) Equality queries via the equality engine,
  * (2) Whether the set of assertions is in conflict.
- * (3) Equivalence class information
+ * (3) Equivalence class information as in the class above.
  */
 class SolverState
 {
  public:
   SolverState(context::Context* c, eq::EqualityEngine& ee);
   ~SolverState();
+  //-------------------------------------- equality information
   /**
    * Get the representative of t in the equality engine of this class, or t
    * itself if it is not registered as a term.
@@ -106,42 +108,7 @@ class SolverState
   bool areDisequal(Node a, Node b);
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() const;
-  /** get length with explanation
-   *
-   * If possible, this returns an arithmetic term that exists in the current
-   * context that is equal to the length of te, or otherwise returns the
-   * length of t. It adds to exp literals that hold in the current context that
-   * explain why that term is equal to the length of t. For example, if
-   * we have assertions:
-   *   len( x ) = 5 ^ z = x ^ x = y,
-   * then getLengthExp( z, exp, y ) returns len( x ) and adds { z = x } to
-   * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
-   * adds nothing to exp.
-   */
-  Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
-  /** shorthand for getLengthExp(t, exp, t) */
-  Node getLength(Node t, std::vector<Node>& exp);
-  /** map from representatives to information necessary for equivalence classes
-   */
-  std::map<Node, EqcInfo*> d_eqc_info;
-  /**
-   * Get the above information for equivalence class eqc. If doMake is true,
-   * we construct a new information class if one does not exist. The term eqc
-   * should currently be a representative of the equality engine of this class.
-   */
-  EqcInfo* getOrMakeEqcInfo(Node eqc, bool doMake = true);
-
-  /** add endpoints to eqc info
-   *
-   * This method is called when term t is the explanation for why equivalence
-   * class eqc may have a constant endpoint due to a concatentation term concat.
-   * For example, we may call this method on:
-   *   t := (str.++ x y), concat := (str.++ x y), eqc
-   * for some eqc that is currently equal to t. Another example is:
-   *   t := (str.in.re z (re.++ r s)), concat := (re.++ r s), eqc
-   * for some eqc that is currently equal to z.
-   */
-  void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
+  //-------------------------------------- end equality information
   //------------------------------------------ conflicts
   /**
    * Set that the current state of the solver is in conflict. This should be
@@ -165,6 +132,39 @@ class SolverState
   /** get the pending conflict, or null if none exist */
   Node getPendingConflict() const;
   //------------------------------------------ end conflicts
+  /** get length with explanation
+   *
+   * If possible, this returns an arithmetic term that exists in the current
+   * context that is equal to the length of te, or otherwise returns the
+   * length of t. It adds to exp literals that hold in the current context that
+   * explain why that term is equal to the length of t. For example, if
+   * we have assertions:
+   *   len( x ) = 5 ^ z = x ^ x = y,
+   * then getLengthExp( z, exp, y ) returns len( x ) and adds { z = x } to
+   * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
+   * adds nothing to exp.
+   */
+  Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
+  /** shorthand for getLengthExp(t, exp, t) */
+  Node getLength(Node t, std::vector<Node>& exp);
+  /**
+   * Get the above information for equivalence class eqc. If doMake is true,
+   * we construct a new information class if one does not exist. The term eqc
+   * should currently be a representative of the equality engine of this class.
+   */
+  EqcInfo* getOrMakeEqcInfo(Node eqc, bool doMake = true);
+
+  /** add endpoints to eqc info
+   *
+   * This method is called when term t is the explanation for why equivalence
+   * class eqc may have a constant endpoint due to a concatentation term concat.
+   * For example, we may call this method on:
+   *   t := (str.++ x y), concat := (str.++ x y), eqc
+   * for some eqc that is currently equal to t. Another example is:
+   *   t := (str.in.re z (re.++ r s)), concat := (re.++ r s), eqc
+   * for some eqc that is currently equal to z.
+   */
+  void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
  private:
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;
@@ -174,6 +174,8 @@ class SolverState
   context::CDO<bool> d_conflict;
   /** The pending conflict if one exists */
   context::CDO<Node> d_pendingConflict;
+  /** Map from representatives to their equivalence class information */
+  std::map<Node, EqcInfo*> d_eqc_info;
 }; /* class TheoryStrings */
 
 }  // namespace strings
