@@ -151,41 +151,6 @@ using namespace CVC4::parser;
 #define SOLVER PARSER_STATE->getSolver()
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
-static bool isClosed(const Expr& e, std::set<Expr>& free, std::unordered_set<Expr, ExprHashFunction>& closedCache) {
-  if(closedCache.find(e) != closedCache.end()) {
-    return true;
-  }
-
-  if(e.getKind() == kind::FORALL || e.getKind() == kind::EXISTS || e.getKind() == kind::LAMBDA) {
-    isClosed(e[1], free, closedCache);
-    for(Expr::const_iterator i = e[0].begin(); i != e[0].end(); ++i) {
-      free.erase(*i);
-    }
-  } else if(e.getKind() == kind::BOUND_VARIABLE) {
-    free.insert(e);
-    return false;
-  } else {
-    if(e.hasOperator()) {
-      isClosed(e.getOperator(), free, closedCache);
-    }
-    for(Expr::const_iterator i = e.begin(); i != e.end(); ++i) {
-      isClosed(*i, free, closedCache);
-    }
-  }
-
-  if(free.empty()) {
-    closedCache.insert(e);
-    return true;
-  } else {
-    return false;
-  }
-}
-
-static inline bool isClosed(const Expr& e, std::set<Expr>& free) {
-  std::unordered_set<Expr, ExprHashFunction> cache;
-  return isClosed(e, free, cache);
-}
-
 }/* parser::postinclude */
 
 /**
@@ -401,8 +366,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // must not be extended with the name itself; no recursion
       // permitted)
       // we allow overloading for function definitions
-      Expr func = PARSER_STATE->mkFunction(name, t,
-                                           ExprManager::VAR_FLAG_DEFINED, true);
+      Expr func = PARSER_STATE->mkVar(name, t,
+                                      ExprManager::VAR_FLAG_DEFINED, true);
       cmd->reset(new DefineFunctionCommand(name, func, terms, expr));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
@@ -746,7 +711,8 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     }
     ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
         if( !terms.empty() ){
-          if( !PARSER_STATE->isDefinedFunction(name) ){
+          if (!PARSER_STATE->isDeclared(name))
+          {
             std::stringstream ss;
             ss << "Function " << name << " in inv-constraint is not defined.";
             PARSER_STATE->parseError(ss.str());
@@ -989,11 +955,10 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
           // fail, but we need an operator to continue here..
           Debug("parser-sygus")
               << "Sygus grammar " << fun << " : op (declare="
-              << PARSER_STATE->isDeclared(name) << ", define="
-              << PARSER_STATE->isDefinedFunction(name) << ") : " << name
+              << PARSER_STATE->isDeclared(name) << ") : " << name
               << std::endl;
-          if(!PARSER_STATE->isDeclared(name) &&
-             !PARSER_STATE->isDefinedFunction(name) ){
+          if (!PARSER_STATE->isDeclared(name))
+          {
             PARSER_STATE->parseError("Functions in sygus grammars must be "
                                      "defined.");
           }
@@ -1460,8 +1425,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       term[e,e2]
-      { Expr func = PARSER_STATE->mkFunction(name, e.getType(),
-                                             ExprManager::VAR_FLAG_DEFINED);
+      { Expr func = PARSER_STATE->mkVar(name, e.getType(),
+                                        ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(name, func, e));
       }
     | LPAREN_TOK
@@ -1493,8 +1458,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
-        Expr func = PARSER_STATE->mkFunction(name, t,
-                                             ExprManager::VAR_FLAG_DEFINED);
+        Expr func = PARSER_STATE->mkVar(name, t,
+                                        ExprManager::VAR_FLAG_DEFINED);
         cmd->reset(new DefineFunctionCommand(name, func, terms, e));
       }
     )
@@ -1516,8 +1481,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      Expr func = PARSER_STATE->mkFunction(name, t,
-                                           ExprManager::VAR_FLAG_DEFINED);
+      Expr func = PARSER_STATE->mkVar(name, t,
+                                      ExprManager::VAR_FLAG_DEFINED);
       cmd->reset(new DefineFunctionCommand(name, func, terms, e));
     }
 
@@ -2498,30 +2463,8 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
       attr = std::string(":named");
-      if(!sexpr.isKeyword()) {
-        PARSER_STATE->parseError("improperly formed :named annotation");
-      }
+      Expr func = PARSER_STATE->setNamedAttribute(expr, sexpr);
       std::string name = sexpr.getValue();
-      PARSER_STATE->checkUserSymbol(name);
-      // ensure expr is a closed subterm
-      std::set<Expr> freeVars;
-      if(!isClosed(expr, freeVars)) {
-        assert(!freeVars.empty());
-        std::stringstream ss;
-        ss << ":named annotations can only name terms that are closed; this "
-           << "one contains free variables:";
-        for(std::set<Expr>::const_iterator i = freeVars.begin();
-            i != freeVars.end(); ++i) {
-          ss << " " << *i;
-        }
-        PARSER_STATE->parseError(ss.str());
-      }
-      // check that sexpr is a fresh function symbol, and reserve it
-      PARSER_STATE->reserveSymbolAtAssertionLevel(name);
-      // define it
-      Expr func = PARSER_STATE->mkFunction(name, expr.getType());
-      // remember the last term to have been given a :named attribute
-      PARSER_STATE->setLastNamedTerm(expr, name);
       // bind name to expr with define-fun
       Command* c =
         new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);

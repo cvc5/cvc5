@@ -1171,7 +1171,7 @@ void Smt2::processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars,
   Type ft = getExprManager()->mkFunctionType(fsorts, let_body.getType());
   std::stringstream ss;
   ss << datatypes[index].getName() << "_let";
-  Expr let_func = mkFunction(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
+  Expr let_func = mkVar(ss.str(), ft, ExprManager::VAR_FLAG_DEFINED);
   d_sygus_defined_funs.push_back( let_func );
   preemptCommand( new DefineFunctionCommand(ss.str(), let_func, let_define_args, let_body) );
 
@@ -1338,7 +1338,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           // the given name.
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
         }
-        else if (isDefinedFunction(ops[i]))
+        else if (ops[i].getKind() == kind::VARIABLE)
         {
           Debug("parser-sygus") << "--> Defined function " << ops[i]
                                 << std::endl;
@@ -1914,6 +1914,30 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     return em->mkExpr(args[0], eargs);
   }
   return em->mkExpr(kind, args);
+}
+
+Expr Smt2::setNamedAttribute(Expr& expr, const SExpr& sexpr)
+{
+  if (!sexpr.isKeyword())
+  {
+    parseError("improperly formed :named annotation");
+  }
+  std::string name = sexpr.getValue();
+  checkUserSymbol(name);
+  // ensure expr is a closed subterm
+  if (expr.hasFreeVariable())
+  {
+    std::stringstream ss;
+    ss << ":named annotations can only name terms that are closed";
+    parseError(ss.str());
+  }
+  // check that sexpr is a fresh function symbol, and reserve it
+  reserveSymbolAtAssertionLevel(name);
+  // define it
+  Expr func = mkVar(name, expr.getType());
+  // remember the last term to have been given a :named attribute
+  setLastNamedTerm(expr, name);
+  return func;
 }
 
 }  // namespace parser
