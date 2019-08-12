@@ -2151,9 +2151,6 @@ void TheoryStrings::debugPrintFlatForms( const char * tc ){
   Trace( tc ) << std::endl;
 }
 
-void TheoryStrings::debugPrintNormalForms( const char * tc ) {
-}
-
 struct sortConstLength {
   std::map< Node, unsigned > d_const_length;
   bool operator() (Node i, Node j) {
@@ -2770,7 +2767,6 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
     {
       return;
     }
-    // debugPrintNormalForms( "strings-solve", eqc, normal_forms );
 
     //construct the normal form
     Assert( !normal_forms.empty() );
