@@ -215,7 +215,7 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
 
 Node TheoryStrings::getLengthExp( Node t, std::vector< Node >& exp, Node te ){
   Assert( areEqual( t, te ) );
-  Node lt = mkLength( te );
+  Node lt = utils::mkLength( te );
   if( hasTerm( lt ) ){
     // use own length if it exists, leads to shorter explanation
     return lt;
@@ -245,7 +245,7 @@ Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
     if (it != d_normal_form.end())
     {
       NormalForm& nf = it->second;
-      Node ret = mkConcat(nf.d_nf);
+      Node ret = utils::mkConcat(nf.d_nf);
       nf_exp.insert(nf_exp.end(), nf.d_exp.begin(), nf.d_exp.end());
       addToExplanation(x, nf.d_base, nf_exp);
       Trace("strings-debug")
@@ -263,7 +263,7 @@ Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
         Node nc = getNormalString(x[i], nf_exp);
         vec_nodes.push_back(nc);
       }
-      return mkConcat(vec_nodes);
+      return utils::mkConcat(vec_nodes);
     }
   }
   return x;
@@ -498,7 +498,7 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
         d_sk_cache.mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
     Node sk2 =
         d_sk_cache.mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
-    Node eq = Rewriter::rewrite(x.eqNode(mkConcat(sk1, s, sk2)));
+    Node eq = Rewriter::rewrite(x.eqNode(utils::mkConcat(sk1, s, sk2)));
     std::vector<Node> exp_vec;
     exp_vec.push_back(n);
     d_im.sendInference(d_empty_vec, exp_vec, eq, "POS-CTN", true);
@@ -812,7 +812,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         Assert( r.isConst() || processed.find( r )!=processed.end() );
         nc.push_back(r.isConst() ? r : processed[r]);
       }
-      Node cc = mkConcat( nc );
+      Node cc = utils::mkConcat( nc );
       Assert( cc.getKind()==kind::CONST_STRING );
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
@@ -1652,7 +1652,7 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
   Node n = ti->d_data;
   if( !n.isNull() ){
     //construct the constant
-    Node c = mkConcat( vecc );
+    Node c = utils::mkConcat( vecc );
     if( !areEqual( n, c ) ){
       Trace("strings-debug") << "Constant eqc : " << c << " for " << n << std::endl;
       Trace("strings-debug") << "  ";
@@ -2637,7 +2637,7 @@ void TheoryStrings::checkNormalFormsEq()
       return;
     }
     NormalForm& nfe = getNormalForm(eqc);
-    Node nf_term = mkConcat(nfe.d_nf);
+    Node nf_term = utils::mkConcat(nfe.d_nf);
     std::map<Node, Node>::iterator itn = nf_to_eqc.find(nf_term);
     if (itn != nf_to_eqc.end())
     {
@@ -3230,7 +3230,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                 eqnc.push_back(nfkv[index_l]);
               }
             }
-            eqn.push_back( mkConcat( eqnc ) );
+            eqn.push_back( utils::mkConcat( eqnc ) );
           }
           if( !areEqual( eqn[0], eqn[1] ) ){
             d_im.sendInference(
@@ -3395,7 +3395,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                             "c_spt");
                         Trace("strings-csp") << "Const Split: " << prea << " is removed from " << stra << " due to " << strb << ", p=" << p << std::endl;        
                         //set info
-                        info.d_conc = other_str.eqNode( isRev ? mkConcat( sk, prea ) : mkConcat(prea, sk) );
+                        info.d_conc = other_str.eqNode( isRev ? utils::mkConcat( sk, prea ) : utils::mkConcat(prea, sk) );
                         info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                         info.d_id = INFER_SSPLIT_CST_PROP;
                         info_valid = true;
@@ -3418,10 +3418,10 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                                 : SkolemCache::SK_ID_VC_BIN_SPT,
                           "cb_spt");
                       Trace("strings-csp") << "Const Split: " << c_firstHalf << " is removed from " << const_str << " (binary) " << std::endl;
-                      info.d_conc = NodeManager::currentNM()->mkNode( kind::OR, other_str.eqNode( isRev ? mkConcat( sk, c_firstHalf ) : mkConcat( c_firstHalf, sk ) ),
+                      info.d_conc = NodeManager::currentNM()->mkNode( kind::OR, other_str.eqNode( isRev ? utils::mkConcat( sk, c_firstHalf ) : utils::mkConcat( c_firstHalf, sk ) ),
                                                                          NodeManager::currentNM()->mkNode( kind::AND,
                                                                            sk.eqNode( d_emptyString ).negate(),
-                                                                           c_firstHalf.eqNode( isRev ? mkConcat( sk, other_str ) : mkConcat( other_str, sk ) ) ) );
+                                                                           c_firstHalf.eqNode( isRev ? utils::mkConcat( sk, other_str ) : utils::mkConcat( other_str, sk ) ) ) );
                       info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                       info.d_id = INFER_SSPLIT_CST_BINARY;
                       info_valid = true;
@@ -3434,7 +3434,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                                 : SkolemCache::SK_ID_VC_SPT,
                           "c_spt");
                       Trace("strings-csp") << "Const Split: " << firstChar << " is removed from " << const_str << " (serial) " << std::endl;
-                      info.d_conc = other_str.eqNode( isRev ? mkConcat( sk, firstChar ) : mkConcat(firstChar, sk) );
+                      info.d_conc = other_str.eqNode( isRev ? utils::mkConcat( sk, firstChar ) : utils::mkConcat(firstChar, sk) );
                       info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                       info.d_id = INFER_SSPLIT_CST;
                       info_valid = true;
@@ -3487,11 +3487,11 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                 // must add length requirement
                 info.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
                 Node eq1 =
-                    nfiv[index].eqNode(isRev ? mkConcat(sk, nfjv[index])
-                                             : mkConcat(nfjv[index], sk));
+                    nfiv[index].eqNode(isRev ? utils::mkConcat(sk, nfjv[index])
+                                             : utils::mkConcat(nfjv[index], sk));
                 Node eq2 =
-                    nfjv[index].eqNode(isRev ? mkConcat(sk, nfiv[index])
-                                             : mkConcat(nfiv[index], sk));
+                    nfjv[index].eqNode(isRev ? utils::mkConcat(sk, nfiv[index])
+                                             : utils::mkConcat(nfiv[index], sk));
 
                 if( lentTestSuccess!=-1 ){
                   info.d_antn.push_back( lentTestExp );
@@ -3587,15 +3587,15 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
   Trace("strings-loop") << " ... (X)= " << vecoi[index] << std::endl;
   Trace("strings-loop") << " ... T(Y.Z)= ";
   std::vector<Node> vec_t(veci.begin() + index, veci.begin() + loop_index);
-  Node t_yz = mkConcat(vec_t);
+  Node t_yz = utils::mkConcat(vec_t);
   Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
   Trace("strings-loop") << " ... S(Z.Y)= ";
   std::vector<Node> vec_s(vecoi.begin() + index + 1, vecoi.end());
-  Node s_zy = mkConcat(vec_s);
+  Node s_zy = utils::mkConcat(vec_s);
   Trace("strings-loop") << s_zy << std::endl;
   Trace("strings-loop") << " ... R= ";
   std::vector<Node> vec_r(veci.begin() + loop_index + 1, veci.end());
-  Node r = mkConcat(vec_r);
+  Node r = utils::mkConcat(vec_r);
   Trace("strings-loop") << r << std::endl;
 
   if (s_zy.isConst() && r.isConst() && r != d_emptyString)
@@ -3687,12 +3687,12 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
         std::vector<Node> v2(vec_r);
         v2.insert(v2.begin(), y);
         v2.insert(v2.begin(), z);
-        restr = mkConcat(z, y);
-        cc = Rewriter::rewrite(s_zy.eqNode(mkConcat(v2)));
+        restr = utils::mkConcat(z, y);
+        cc = Rewriter::rewrite(s_zy.eqNode(utils::mkConcat(v2)));
       }
       else
       {
-        cc = Rewriter::rewrite(s_zy.eqNode(mkConcat(z, y)));
+        cc = Rewriter::rewrite(s_zy.eqNode(utils::mkConcat(z, y)));
       }
       if (cc == d_false)
       {
@@ -3732,13 +3732,13 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
     registerLength(sk_y, LENGTH_GEQ_ONE);
     Node sk_z = d_sk_cache.mkSkolem("z_loop");
     // t1 * ... * tn = y * z
-    Node conc1 = t_yz.eqNode(mkConcat(sk_y, sk_z));
+    Node conc1 = t_yz.eqNode(utils::mkConcat(sk_y, sk_z));
     // s1 * ... * sk = z * y * r
     vec_r.insert(vec_r.begin(), sk_y);
     vec_r.insert(vec_r.begin(), sk_z);
-    Node conc2 = s_zy.eqNode(mkConcat(vec_r));
-    Node conc3 = vecoi[index].eqNode(mkConcat(sk_y, sk_w));
-    Node restr = r == d_emptyString ? s_zy : mkConcat(sk_z, sk_y);
+    Node conc2 = s_zy.eqNode(utils::mkConcat(vec_r));
+    Node conc3 = vecoi[index].eqNode(utils::mkConcat(sk_y, sk_w));
+    Node restr = r == d_emptyString ? s_zy : utils::mkConcat(sk_z, sk_y);
     str_in_re =
         nm->mkNode(kind::STRING_IN_REGEXP,
                    sk_w,
@@ -3878,11 +3878,11 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               registerLength(sk3, LENGTH_GEQ_ONE);
               //Node nemp = sk3.eqNode(d_emptyString).negate();
               //conc.push_back(nemp);
-              Node lsk1 = mkLength( sk1 );
+              Node lsk1 = utils::mkLength( sk1 );
               conc.push_back( lsk1.eqNode( li ) );
-              Node lsk2 = mkLength( sk2 );
+              Node lsk2 = utils::mkLength( sk2 );
               conc.push_back( lsk2.eqNode( lj ) );
-              conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
+              conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( utils::mkConcat( sk1, sk3 ) ), i.eqNode( utils::mkConcat( sk2, sk3 ) ) ) );
               d_im.sendInference(
                   antec, antec_new_lits, nm->mkNode(AND, conc), "D-DISL-Split");
               ++(d_statistics.d_deq_splits);
@@ -4157,7 +4157,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   {
     d_has_str_code = true;
     // ite( str.len(s)==1, 0 <= str.code(s) < num_codes, str.code(s)=-1 )
-    Node code_len = mkLength(n[0]).eqNode(d_one);
+    Node code_len = utils::mkLength(n[0]).eqNode(d_one);
     Node code_eq_neg1 = n.eqNode(d_neg_one);
     Node code_range = nm->mkNode(
         AND,
@@ -4170,7 +4170,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   }
   else if (n.getKind() == STRING_STRIDOF)
   {
-    Node len = mkLength(n[0]);
+    Node len = utils::mkLength(n[0]);
     Node lem = nm->mkNode(AND,
                           nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
                           nm->mkNode(LT, n, len));
@@ -4257,22 +4257,6 @@ void TheoryStrings::registerLength(Node n, LengthStatus s)
     n_len_geq = Rewriter::rewrite( n_len_geq );
     d_out->lemma( n_len_geq );
   }
-}
-
-Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
-  return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, n1, n2 ) );
-}
-
-Node TheoryStrings::mkConcat( Node n1, Node n2, Node n3 ) {
-  return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, n1, n2, n3 ) );
-}
-
-Node TheoryStrings::mkConcat( const std::vector< Node >& c ) {
-  return Rewriter::rewrite( c.size()>1 ? NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, c ) : ( c.size()==1 ? c[0] : d_emptyString ) );
-}
-
-Node TheoryStrings::mkLength( Node t ) {
-  return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t ) );
 }
 
 Node TheoryStrings::mkExplain(const std::vector<Node>& a)
@@ -4418,7 +4402,7 @@ void TheoryStrings::checkLengthsEqc() {
         Node llt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt );
         //now, check if length normalization has occurred
         if( ei->d_normalized_length.get().isNull() ) {
-          Node nf = mkConcat(nfi.d_nf);
+          Node nf = utils::mkConcat(nfi.d_nf);
           if( Trace.isOn("strings-process-debug") ){
             Trace("strings-process-debug")
                 << "  normal form is " << nf << " from base " << nfi.d_base
@@ -4447,7 +4431,7 @@ void TheoryStrings::checkLengthsEqc() {
       }else{
         Trace("strings-process-debug") << "No length term for eqc " << d_strings_eqc[i] << " " << d_eqc_to_len_term[d_strings_eqc[i]] << std::endl;
         if( !options::stringEagerLen() ){
-          Node c = mkConcat(nfi.d_nf);
+          Node c = utils::mkConcat(nfi.d_nf);
           registerTerm( c, 3 );
         }
       }

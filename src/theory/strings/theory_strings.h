@@ -629,15 +629,6 @@ private:
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
   //--------------------------end for checkNormalFormsDeq
 
-  //--------------------------------for checkMemberships
-  // check membership constraints
-  Node mkRegExpAntec(Node atom, Node ant);
-  bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
-  //check contains
-  void checkPosContains( std::vector< Node >& posContains );
-  void checkNegContains( std::vector< Node >& negContains );
-  //--------------------------------end for checkMemberships
-
  private:
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
@@ -745,12 +736,6 @@ private:
    * channel's conflict method in the current SAT context.
    */
   bool inConflict() const { return d_conflict; }
-
-  /** mkConcat **/
-  inline Node mkConcat(Node n1, Node n2);
-  inline Node mkConcat(Node n1, Node n2, Node n3);
-  inline Node mkConcat(const std::vector<Node>& c);
-  inline Node mkLength(Node n);
 
   /** make explanation
    *
