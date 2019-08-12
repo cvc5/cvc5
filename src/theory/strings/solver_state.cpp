@@ -26,7 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-  
 EqcInfo::EqcInfo(context::Context* c)
     : d_length_term(c),
       d_code_term(c),
@@ -140,63 +139,73 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
   }
   return Node::null();
 }
-  
-SolverState::SolverState(context::Context* c, eq::EqualityEngine& ee) : d_context(c), d_ee(ee), d_conflict(c,false), d_pendingConflict(c)
+
+SolverState::SolverState(context::Context* c, eq::EqualityEngine& ee)
+    : d_context(c), d_ee(ee), d_conflict(c, false), d_pendingConflict(c)
 {
-  
 }
 SolverState::~SolverState()
 {
-  for( std::pair< const Node, EqcInfo* >& it : d_eqc_info ){
+  for (std::pair<const Node, EqcInfo*>& it : d_eqc_info)
+  {
     delete it.second;
   }
 }
-  
-Node SolverState::getRepresentative( Node t ) {
-  if( d_ee.hasTerm( t ) ){
-    return d_ee.getRepresentative( t );
+
+Node SolverState::getRepresentative(Node t)
+{
+  if (d_ee.hasTerm(t))
+  {
+    return d_ee.getRepresentative(t);
   }
   return t;
 }
 
-bool SolverState::hasTerm( Node a ){
-  return d_ee.hasTerm( a );
-}
+bool SolverState::hasTerm(Node a) { return d_ee.hasTerm(a); }
 
-bool SolverState::areEqual( Node a, Node b ){
-  if( a==b ){
+bool SolverState::areEqual(Node a, Node b)
+{
+  if (a == b)
+  {
     return true;
-  }else if( hasTerm( a ) && hasTerm( b ) ){
-    return d_ee.areEqual( a, b );
+  }
+  else if (hasTerm(a) && hasTerm(b))
+  {
+    return d_ee.areEqual(a, b);
   }
   return false;
 }
 
-bool SolverState::areDisequal( Node a, Node b ){
-  if( a==b ){
-    return false;
-  }else if( hasTerm( a ) && hasTerm( b ) ) {
-    Node ar = d_ee.getRepresentative( a );
-    Node br = d_ee.getRepresentative( b );
-    return ( ar!=br && ar.isConst() && br.isConst() ) || d_ee.areDisequal( ar, br, false );
-  }
-  Node ar = getRepresentative( a );
-  Node br = getRepresentative( b );
-  return ar!=br && ar.isConst() && br.isConst();
-}
-
-eq::EqualityEngine* SolverState::getEqualityEngine() const
+bool SolverState::areDisequal(Node a, Node b)
 {
-  return &d_ee;
+  if (a == b)
+  {
+    return false;
+  }
+  else if (hasTerm(a) && hasTerm(b))
+  {
+    Node ar = d_ee.getRepresentative(a);
+    Node br = d_ee.getRepresentative(b);
+    return (ar != br && ar.isConst() && br.isConst())
+           || d_ee.areDisequal(ar, br, false);
+  }
+  Node ar = getRepresentative(a);
+  Node br = getRepresentative(b);
+  return ar != br && ar.isConst() && br.isConst();
 }
 
-EqcInfo * SolverState::getOrMakeEqcInfo( Node eqc, bool doMake ) {
-  std::map< Node, EqcInfo* >::iterator eqc_i = d_eqc_info.find( eqc );
-  if( eqc_i!=d_eqc_info.end() ){
+eq::EqualityEngine* SolverState::getEqualityEngine() const { return &d_ee; }
+
+EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
+{
+  std::map<Node, EqcInfo*>::iterator eqc_i = d_eqc_info.find(eqc);
+  if (eqc_i != d_eqc_info.end())
+  {
     return eqc_i->second;
   }
-  if( doMake ){
-    EqcInfo* ei = new EqcInfo( d_context );
+  if (doMake)
+  {
+    EqcInfo* ei = new EqcInfo(d_context);
     d_eqc_info[eqc] = ei;
     return ei;
   }
@@ -227,34 +236,40 @@ void SolverState::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
   }
 }
 
-Node SolverState::getLengthExp( Node t, std::vector< Node >& exp, Node te ){
-  Assert( areEqual( t, te ) );
+Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
+{
+  Assert(areEqual(t, te));
   Node lt = utils::mkLength(te);
-  if( hasTerm( lt ) ){
+  if (hasTerm(lt))
+  {
     // use own length if it exists, leads to shorter explanation
     return lt;
   }
-  EqcInfo * ei = getOrMakeEqcInfo( t, false );
+  EqcInfo* ei = getOrMakeEqcInfo(t, false);
   Node length_term = ei ? ei->d_length_term : Node::null();
-  if( length_term.isNull() ){
-    //typically shouldnt be necessary
+  if (length_term.isNull())
+  {
+    // typically shouldnt be necessary
     length_term = t;
   }
-  Debug("strings") << "SolverState::getLengthTerm " << t << " is " << length_term << std::endl;
-  if( te!=length_term )
+  Debug("strings") << "SolverState::getLengthTerm " << t << " is "
+                   << length_term << std::endl;
+  if (te != length_term)
   {
     exp.push_back(te.eqNode(length_term));
   }
-  return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, length_term ) );
+  return Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, length_term));
 }
 
-Node SolverState::getLength( Node t, std::vector< Node >& exp ) {
-  return getLengthExp( t, exp, t );
+Node SolverState::getLength(Node t, std::vector<Node>& exp)
+{
+  return getLengthExp(t, exp, t);
 }
 
-  void SolverState::setConflict() { d_conflict = true; }
-  bool SolverState::isInConflict() const { return d_conflict; }
-  
+void SolverState::setConflict() { d_conflict = true; }
+bool SolverState::isInConflict() const { return d_conflict; }
+
 void SolverState::setPendingConflictWhen(Node conf)
 {
   if (!conf.isNull() && d_pendingConflict.get().isNull())
@@ -263,12 +278,8 @@ void SolverState::setPendingConflictWhen(Node conf)
   }
 }
 
-Node SolverState::getPendingConflict() const
-{
-  return d_pendingConflict;
-}
+Node SolverState::getPendingConflict() const { return d_pendingConflict; }
 
-
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4

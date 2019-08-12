@@ -34,7 +34,7 @@ namespace theory {
 namespace strings {
 
 RegExpSolver::RegExpSolver(TheoryStrings& p,
-                          SolverState& s,
+                           SolverState& s,
                            InferenceManager& im,
                            context::Context* c,
                            context::UserContext* u)

@@ -19,70 +19,72 @@
 #ifndef CVC4__THEORY__STRINGS__SOLVER_STATE_H
 #define CVC4__THEORY__STRINGS__SOLVER_STATE_H
 
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "theory/uf/equality_engine.h"
-#include "context/cdo.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** 
-  * SAT-context-dependent information about an equivalence class. This
-  * information is updated eagerly.
-  */
-class EqcInfo {
-public:
-  EqcInfo( context::Context* c );
-  ~EqcInfo(){}
+/**
+ * SAT-context-dependent information about an equivalence class. This
+ * information is updated eagerly.
+ */
+class EqcInfo
+{
+ public:
+  EqcInfo(context::Context* c);
+  ~EqcInfo() {}
   /**
-    * If non-null, this is a term x from this eq class such that str.len( x )
-    * occurs as a term in this SAT context.
-    */
-  context::CDO< Node > d_length_term;
+   * If non-null, this is a term x from this eq class such that str.len( x )
+   * occurs as a term in this SAT context.
+   */
+  context::CDO<Node> d_length_term;
   /**
-    * If non-null, this is a term x from this eq class such that str.code( x )
-    * occurs as a term in this SAT context.
-    */
+   * If non-null, this is a term x from this eq class such that str.code( x )
+   * occurs as a term in this SAT context.
+   */
   context::CDO<Node> d_code_term;
-  context::CDO< unsigned > d_cardinality_lem_k;
-  context::CDO< Node > d_normalized_length;
+  context::CDO<unsigned> d_cardinality_lem_k;
+  context::CDO<Node> d_normalized_length;
   /**
-    * A node that explains the longest constant prefix known of this
-    * equivalence class. This can either be:
-    * (1) A term from this equivalence class, including a constant "ABC" or
-    * concatenation term (str.++ "ABC" ...), or
-    * (2) A membership of the form (str.in.re x R) where x is in this
-    * equivalence class and R is a regular expression of the form
-    * (str.to.re "ABC") or (re.++ (str.to.re "ABC") ...).
-    */
+   * A node that explains the longest constant prefix known of this
+   * equivalence class. This can either be:
+   * (1) A term from this equivalence class, including a constant "ABC" or
+   * concatenation term (str.++ "ABC" ...), or
+   * (2) A membership of the form (str.in.re x R) where x is in this
+   * equivalence class and R is a regular expression of the form
+   * (str.to.re "ABC") or (re.++ (str.to.re "ABC") ...).
+   */
   context::CDO<Node> d_prefixC;
   /** same as above, for suffix. */
   context::CDO<Node> d_suffixC;
   /** add prefix constant
-    *
-    * This informs this equivalence class info that a term t in its
-    * equivalence class has a constant prefix (if isSuf=true) or suffix
-    * (if isSuf=false). The constant c (if non-null) is the value of that
-    * constant, if it has been computed already.
-    *
-    * If this method returns a non-null node ret, then ret is a conjunction
-    * corresponding to a conflict that holds in the current context.
-    */
+   *
+   * This informs this equivalence class info that a term t in its
+   * equivalence class has a constant prefix (if isSuf=true) or suffix
+   * (if isSuf=false). The constant c (if non-null) is the value of that
+   * constant, if it has been computed already.
+   *
+   * If this method returns a non-null node ret, then ret is a conjunction
+   * corresponding to a conflict that holds in the current context.
+   */
   Node addEndpointConst(Node t, Node c, bool isSuf);
 };
-  
+
 /**
  * Solver state for strings.
- * 
+ *
  * The purpose of this class is track and provide query functions for the state
  * of the assertions for the theory of strings. This includes:
  * (1) Equality queries via the equality engine,
  * (2) Whether the set of assertions is in conflict.
- * (3) Equivalence class information 
+ * (3) Equivalence class information
  */
-class SolverState {
-public:
+class SolverState
+{
+ public:
   SolverState(context::Context* c, eq::EqualityEngine& ee);
   ~SolverState();
   /**
@@ -119,14 +121,15 @@ public:
   Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
   /** shorthand for getLengthExp(t, exp, t) */
   Node getLength(Node t, std::vector<Node>& exp);
-  /** map from representatives to information necessary for equivalence classes */
-  std::map< Node, EqcInfo* > d_eqc_info;
+  /** map from representatives to information necessary for equivalence classes
+   */
+  std::map<Node, EqcInfo*> d_eqc_info;
   /**
    * Get the above information for equivalence class eqc. If doMake is true,
    * we construct a new information class if one does not exist. The term eqc
    * should currently be a representative of the equality engine of this class.
    */
-  EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
+  EqcInfo* getOrMakeEqcInfo(Node eqc, bool doMake = true);
 
   /** add endpoints to eqc info
    *
@@ -140,7 +143,7 @@ public:
    */
   void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
   //------------------------------------------ conflicts
-  /** 
+  /**
    * Set that the current state of the solver is in conflict. This should be
    * called immediately after a call to conflict(...) on the output channel of
    * the theory of strings.
@@ -162,7 +165,7 @@ public:
   /** get the pending conflict, or null if none exist */
   Node getPendingConflict() const;
   //------------------------------------------ end conflicts
-private:
+ private:
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;
   /** Reference to equality engine of the theory of strings. */
@@ -171,10 +174,10 @@ private:
   context::CDO<bool> d_conflict;
   /** The pending conflict if one exists */
   context::CDO<Node> d_pendingConflict;
-};/* class TheoryStrings */
+}; /* class TheoryStrings */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */

@@ -277,17 +277,24 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
   d_pendingReqPhase[lit] = pol;
 }
 
-void InferenceManager::addToExplanation( Node a, Node b, std::vector< Node >& exp ) const {
-  if( a!=b ){
-    Debug("strings-explain") << "Add to explanation : " << a << " == " << b << std::endl;
-    Assert( d_state.areEqual( a, b ) );
-    exp.push_back( a.eqNode( b ) );
+void InferenceManager::addToExplanation(Node a,
+                                        Node b,
+                                        std::vector<Node>& exp) const
+{
+  if (a != b)
+  {
+    Debug("strings-explain")
+        << "Add to explanation : " << a << " == " << b << std::endl;
+    Assert(d_state.areEqual(a, b));
+    exp.push_back(a.eqNode(b));
   }
 }
 
-void InferenceManager::addToExplanation( Node lit, std::vector< Node >& exp ) const {
-  if( !lit.isNull() ){
-    exp.push_back( lit );
+void InferenceManager::addToExplanation(Node lit, std::vector<Node>& exp) const
+{
+  if (!lit.isNull())
+  {
+    exp.push_back(lit);
   }
 }
 

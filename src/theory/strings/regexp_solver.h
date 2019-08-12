@@ -24,8 +24,8 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/strings/inference_manager.h"
-#include "theory/strings/solver_state.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/solver_state.h"
 #include "util/regexp.h"
 
 namespace CVC4 {
