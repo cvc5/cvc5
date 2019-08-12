@@ -58,13 +58,24 @@ void getConcat(Node n, std::vector<Node>& c);
  */
 Node mkConcat(Kind k, const std::vector<Node>& c);
 
-
+/** 
+ * Returns the rewritten form of the string concatenation of n1 and n2.
+ */
 Node mkConcat( Node n1, Node n2 );
 
+/** 
+ * Returns the rewritten form of the string concatenation of n1, n2 and n3.
+ */
 Node mkConcat( Node n1, Node n2, Node n3 );
 
+/** 
+ * Returns the rewritten form of the string concatenation of nodes in c.
+ */
 Node mkConcat( const std::vector< Node >& c );
 
+/**
+ * Returns the rewritten form of the length of string term t. 
+ */
 Node mkLength( Node t );
 
 /**

@@ -276,7 +276,6 @@ class TheoryStrings : public Theory {
   StringsPreprocess d_preproc;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
-  NodeSet d_extf_infer_cache_u;
   std::vector< Node > d_empty_vec;
   //
   NodeList d_ee_disequalities;
