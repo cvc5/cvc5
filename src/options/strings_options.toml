@@ -218,15 +218,6 @@ header = "options/strings_options.h"
   help       = "do flat form inferences"
 
 [[option]]
-  name       = "stringSymDef"
-  category   = "regular"
-  long       = "strings-sym-def"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use symbolic definitions to minimize explanations for string lemmas"
-
-[[option]]
   name       = "stringRegExpInterMode"
   category   = "expert"
   long       = "re-inter-mode=MODE"
