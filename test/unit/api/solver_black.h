@@ -84,6 +84,12 @@ class SolverBlack : public CxxTest::TestSuite
   void testDefineFunRec();
   void testDefineFunsRec();
 
+  void testPush1();
+  void testPush2();
+  void testPop1();
+  void testPop2();
+  void testPop3();
+
   void testSetInfo();
   void testSetLogic();
   void testSetOption();
@@ -445,6 +451,7 @@ void SolverBlack::testMkOpTerm()
 
   // mkOpTerm(Kind kind, const std::string& arg)
   TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(RECORD_UPDATE_OP, "asdf"));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(DIVISIBLE_OP, "2147483648"));
   TS_ASSERT_THROWS(d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, "asdf"),
                    CVC4ApiException&);
 
@@ -877,6 +884,42 @@ void SolverBlack::testDefineFunsRec()
   TS_ASSERT_THROWS(
       d_solver->defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v4}),
       CVC4ApiException&);
+}
+
+void SolverBlack::testPush1()
+{
+  d_solver->setOption("incremental", "true");
+  TS_ASSERT_THROWS_NOTHING(d_solver->push(1));
+  TS_ASSERT_THROWS(d_solver->setOption("incremental", "false"),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->setOption("incremental", "true"),
+                   CVC4ApiException&);
+}
+
+void SolverBlack::testPush2()
+{
+  d_solver->setOption("incremental", "false");
+  TS_ASSERT_THROWS(d_solver->push(1), CVC4ApiException&);
+}
+
+void SolverBlack::testPop1()
+{
+  d_solver->setOption("incremental", "false");
+  TS_ASSERT_THROWS(d_solver->pop(1), CVC4ApiException&);
+}
+
+void SolverBlack::testPop2()
+{
+  d_solver->setOption("incremental", "true");
+  TS_ASSERT_THROWS(d_solver->pop(1), CVC4ApiException&);
+}
+
+void SolverBlack::testPop3()
+{
+  d_solver->setOption("incremental", "true");
+  TS_ASSERT_THROWS_NOTHING(d_solver->push(1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->pop(1));
+  TS_ASSERT_THROWS(d_solver->pop(1), CVC4ApiException&);
 }
 
 void SolverBlack::testSetInfo()
