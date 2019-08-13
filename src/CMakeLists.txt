@@ -744,7 +744,7 @@ target_include_directories(cvc4
 )
 
 install(TARGETS cvc4
-	EXPORT cvc4-targets
+  EXPORT cvc4-targets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 
