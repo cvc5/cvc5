@@ -293,6 +293,10 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
                '--unconstrained-simp' not in all_args and \
                not cvc4_binary.endswith('pcvc4'):
                 extra_command_line_args += ['--check-unsat-cores']
+        if '--no-check-abducts' not in all_args and \
+            '--check-abducts' not in all_args and \
+            not cvc4_binary.endswith('pcvc4'):
+            extra_command_line_args += ['--check-abducts']
         if extra_command_line_args:
             command_line_args_configs.append(all_args +
                                              extra_command_line_args)
