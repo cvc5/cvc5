@@ -1015,7 +1015,7 @@ void TheoryStrings::check(Effort e) {
       if (Trace.isOn("strings-check"))
       {
         Trace("strings-check") << "  ...finish run strategy: ";
-        Trace("strings-check") << (addedFact ? "addedFact " : " ");
+        Trace("strings-check") << (addedFact ? "addedFact " : "");
         Trace("strings-check") << (addedLemma ? "addedLemma " : " ");
         Trace("strings-check") << (d_conflict ? "conflict " : " ");
         if (!addedFact && !addedLemma && !d_conflict)
