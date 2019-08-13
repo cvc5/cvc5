@@ -12,6 +12,23 @@
  ** \brief The CVC4 C++ API.
  **
  ** The CVC4 C++ API.
+ **
+ ** A brief note on how to guard API functions:
+ **
+ ** In general, we think of API guards as a fence -- they are supposed to make
+ ** sure that no invalid arguments get passed into internal realms of CVC4.
+ ** Thus we always want to catch such cases on the API level (and can then
+ ** assert internally that no invalid argument is passed in).
+ **
+ ** The only special case is when we use 3rd party back-ends we have no control
+ ** over, and which throw (invalid_argument) exceptions anyways. In this case,
+ ** we do not replicate argument checks but delegate them to the back-end,
+ ** catch thrown exceptions, and raise a CVC4ApiException.
+ **
+ ** Our Integer implementation, e.g., is such a special case since we support
+ ** two different back end implementations (GMP, CLN). Be aware that they do
+ ** not fully agree on what is (in)valid input, which requires extra checks for
+ ** consistent behavior (see Solver::mkRealFromStrHelper for an example).
  **/
 
 #include "api/cvc4cpp.h"
@@ -1287,6 +1304,144 @@ Sort OpTerm::getSort() const
 }
 
 bool OpTerm::isNull() const { return d_expr->isNull(); }
+
+template <>
+std::string OpTerm::getIndices() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  std::string i;
+  Kind k = intToExtKind(d_expr->getKind());
+
+  if (k == DIVISIBLE_OP)
+  {
+    // DIVISIBLE_OP returns a string index to support
+    // arbitrary precision integers
+    CVC4::Integer _int = d_expr->getConst<Divisible>().k;
+    i = _int.toString();
+  }
+  else if (k == RECORD_UPDATE_OP)
+  {
+    i = d_expr->getConst<RecordUpdate>().getField();
+  }
+  else
+  {
+    CVC4_API_CHECK(false) << "Can't get string index from"
+                          << " kind " << kindToString(k);
+  }
+
+  return i;
+}
+
+template <>
+Kind OpTerm::getIndices() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  Kind kind = intToExtKind(d_expr->getKind());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
+  return intToExtKind(d_expr->getConst<Chain>().getOperator());
+}
+
+template <>
+uint32_t OpTerm::getIndices() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  uint32_t i;
+  Kind k = intToExtKind(d_expr->getKind());
+  switch (k)
+  {
+    case BITVECTOR_REPEAT_OP:
+      i = d_expr->getConst<BitVectorRepeat>().repeatAmount;
+      break;
+    case BITVECTOR_ZERO_EXTEND_OP:
+      i = d_expr->getConst<BitVectorZeroExtend>().zeroExtendAmount;
+      break;
+    case BITVECTOR_SIGN_EXTEND_OP:
+      i = d_expr->getConst<BitVectorSignExtend>().signExtendAmount;
+      break;
+    case BITVECTOR_ROTATE_LEFT_OP:
+      i = d_expr->getConst<BitVectorRotateLeft>().rotateLeftAmount;
+      break;
+    case BITVECTOR_ROTATE_RIGHT_OP:
+      i = d_expr->getConst<BitVectorRotateRight>().rotateRightAmount;
+      break;
+    case INT_TO_BITVECTOR_OP:
+      i = d_expr->getConst<IntToBitVector>().size;
+      break;
+    case FLOATINGPOINT_TO_UBV_OP:
+      i = d_expr->getConst<FloatingPointToUBV>().bvs.size;
+      break;
+    case FLOATINGPOINT_TO_UBV_TOTAL_OP:
+      i = d_expr->getConst<FloatingPointToUBVTotal>().bvs.size;
+      break;
+    case FLOATINGPOINT_TO_SBV_OP:
+      i = d_expr->getConst<FloatingPointToSBV>().bvs.size;
+      break;
+    case FLOATINGPOINT_TO_SBV_TOTAL_OP:
+      i = d_expr->getConst<FloatingPointToSBVTotal>().bvs.size;
+      break;
+    case TUPLE_UPDATE_OP: i = d_expr->getConst<TupleUpdate>().getIndex(); break;
+    default:
+      CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
+                                         << " kind " << kindToString(k);
+  }
+  return i;
+}
+
+template <>
+std::pair<uint32_t, uint32_t> OpTerm::getIndices() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  std::pair<uint32_t, uint32_t> indices;
+  Kind k = intToExtKind(d_expr->getKind());
+
+  // using if/else instead of case statement because want local variables
+  if (k == BITVECTOR_EXTRACT_OP)
+  {
+    CVC4::BitVectorExtract ext = d_expr->getConst<BitVectorExtract>();
+    indices = std::make_pair(ext.high, ext.low);
+  }
+  else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP)
+  {
+    CVC4::FloatingPointToFPIEEEBitVector ext =
+        d_expr->getConst<FloatingPointToFPIEEEBitVector>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP)
+  {
+    CVC4::FloatingPointToFPFloatingPoint ext =
+        d_expr->getConst<FloatingPointToFPFloatingPoint>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_REAL_OP)
+  {
+    CVC4::FloatingPointToFPReal ext = d_expr->getConst<FloatingPointToFPReal>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP)
+  {
+    CVC4::FloatingPointToFPSignedBitVector ext =
+        d_expr->getConst<FloatingPointToFPSignedBitVector>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP)
+  {
+    CVC4::FloatingPointToFPUnsignedBitVector ext =
+        d_expr->getConst<FloatingPointToFPUnsignedBitVector>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_GENERIC_OP)
+  {
+    CVC4::FloatingPointToFPGeneric ext =
+        d_expr->getConst<FloatingPointToFPGeneric>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else
+  {
+    CVC4_API_CHECK(false) << "Can't get pair<uint32_t, uint32_t> indices from"
+                          << " kind " << kindToString(k);
+  }
+  return indices;
+}
 
 std::string OpTerm::toString() const { return d_expr->toString(); }
 
@@ -2724,10 +2879,26 @@ OpTerm Solver::mkOpTerm(Kind kind, Kind k) const
 OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_KIND_CHECK_EXPECTED(kind == RECORD_UPDATE_OP, kind)
-      << "RECORD_UPDATE_OP";
-
-  return *mkValHelper<CVC4::RecordUpdate>(CVC4::RecordUpdate(arg)).d_expr.get();
+  CVC4_API_KIND_CHECK_EXPECTED(
+      (kind == RECORD_UPDATE_OP) || (kind == DIVISIBLE_OP), kind)
+      << "RECORD_UPDATE_OP or DIVISIBLE_OP";
+  OpTerm res;
+  if (kind == RECORD_UPDATE_OP)
+  {
+    res =
+        *mkValHelper<CVC4::RecordUpdate>(CVC4::RecordUpdate(arg)).d_expr.get();
+  }
+  else
+  {
+    /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
+     * throws an std::invalid_argument exception. For consistency, we treat it
+     * as invalid. */
+    CVC4_API_ARG_CHECK_EXPECTED(arg != ".", arg)
+        << "a string representing an integer, real or rational value.";
+    res = *mkValHelper<CVC4::Divisible>(CVC4::Divisible(CVC4::Integer(arg)))
+               .d_expr.get();
+  }
+  return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
