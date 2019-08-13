@@ -18,12 +18,13 @@
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 
 using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {

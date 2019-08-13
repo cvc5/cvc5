@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.2)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -306,7 +306,7 @@ if(ENABLE_COVERAGE)
     NAME coverage
     EXECUTABLE
       ctest -j${CTEST_NTHREADS} -LE "example"
-        --output-on-failure $(ARGS) || exit 0
+        --output-on-failure $$ARGS || exit 0
     DEPENDS
       build-tests)
 endif()

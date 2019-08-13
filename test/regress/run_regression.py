@@ -213,10 +213,10 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     if expected_output == '' and expected_error == '':
         match = None
         if status_regex:
-            match = re.search(status_regex, benchmark_content)
+            match = re.findall(status_regex, benchmark_content)
 
         if match:
-            expected_output = status_to_output(match.group(1))
+            expected_output = status_to_output('\n'.join(match))
         elif expected_exit_status is None:
             # If there is no expected output/error and the exit status has not
             # been set explicitly, the benchmark is invalid.

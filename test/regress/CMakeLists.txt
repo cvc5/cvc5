@@ -250,6 +250,7 @@ set(regress_0_tests
   regress0/bv/core/slice-20.smt
   regress0/bv/divtest_2_5.smt2
   regress0/bv/divtest_2_6.smt2
+  regress0/bv/eager-inc-cadical.smt2
   regress0/bv/eager-inc-cryptominisat.smt2
   regress0/bv/eager-force-logic.smt2
   regress0/bv/fuzz01.smt
@@ -504,6 +505,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-cons.smt2
   regress0/issue1063-overloading-dt-fun.smt2
   regress0/issue1063-overloading-dt-sel.smt2
+  regress0/issue2832-qualId.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -2201,7 +2203,7 @@ add_dependencies(build-tests build-regress)
 
 add_custom_target(regress
   COMMAND
-    ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $(ARGS)
+    ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
 
 macro(cvc4_add_regression_test level file)

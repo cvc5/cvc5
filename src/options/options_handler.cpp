@@ -504,6 +504,21 @@ trust  \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusQueryDumpFileHelp =
+    "\
+Query file options supported by --sygus-query-gen-dump-files:\n\
+\n\
+none (default) \n\
++ Do not dump query files when using --sygus-query-gen.\n\
+\n\
+all \n\
++ Dump all query files.\n\
+\n\
+unsolved \n\
++ Dump query files that the subsolver did not solve.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_sygusFilterSolHelp =
     "\
 Modes for filtering sygus solutions supported by --sygus-filter-sol:\n\
@@ -959,6 +974,34 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
   }
 }
 
+theory::quantifiers::SygusQueryDumpFilesMode
+OptionsHandler::stringToSygusQueryDumpFilesMode(std::string option,
+                                                std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_NONE;
+  }
+  else if (optarg == "all")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_ALL;
+  }
+  else if (optarg == "unsolved")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_UNSOLVED;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusQueryDumpFileHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --sygus-query-gen-dump-files: `")
+        + optarg + "'.  Try --sygus-query-gen-dump-files help.");
+  }
+}
 theory::quantifiers::SygusFilterSolMode
 OptionsHandler::stringToSygusFilterSolMode(std::string option,
                                            std::string optarg)
@@ -977,7 +1020,7 @@ OptionsHandler::stringToSygusFilterSolMode(std::string option,
   }
   else if (optarg == "help")
   {
-    puts(s_cegisSampleHelp.c_str());
+    puts(s_sygusFilterSolHelp.c_str());
     exit(1);
   }
   else
@@ -1174,17 +1217,6 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
   else if (optarg == "cadical")
   {
-#ifndef CVC4_INCREMENTAL_CADICAL
-    if (options::incrementalSolving()
-        && options::incrementalSolving.wasSetByUser())
-    {
-      throw OptionException(std::string(
-          "CaDiCaL version used does not support incremental mode. \n\
-                       Update CaDiCal or Try --bv-sat-solver=cryptominisat or "
-          "--bv-sat-solver=minisat"));
-    }
-#endif
-
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
         && options::bitblastMode.wasSetByUser())
     {

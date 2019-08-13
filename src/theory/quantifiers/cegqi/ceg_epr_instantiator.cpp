@@ -18,6 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;

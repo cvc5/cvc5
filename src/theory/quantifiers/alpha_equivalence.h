@@ -17,8 +17,7 @@
 #ifndef CVC4__ALPHA_EQUIVALENCE_H
 #define CVC4__ALPHA_EQUIVALENCE_H
 
-
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
 
 #include "expr/term_canonize.h"
 
