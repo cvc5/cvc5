@@ -2226,7 +2226,7 @@ qualIdentifier[CVC4::ParseOp& p]
     | identifier[p]
       sortSymbol[type, CHECK_DECLARED]
       {
-        PARSER_STATE->applyTypeAscription(p,type);
+        PARSER_STATE->applyTypeAscription(p, type);
       }
     )
     RPAREN_TOK
