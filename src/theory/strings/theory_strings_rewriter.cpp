@@ -807,7 +807,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
       lastAllStar = false;
       if (curr.getKind() == REGEXP_STAR)
       {
-        // we can group stars (a*)++(a*) ---> a*
+        // we can group stars (a)* ++ (a)* ---> (a)*
         if (!cvec.empty() && cvec.back() == curr)
         {
           curr = Node::null();
