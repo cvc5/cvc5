@@ -849,8 +849,8 @@ class SmtEnginePrivate : public NodeManagerListener {
 
 SmtEngine::SmtEngine(ExprManager* em)
     : d_context(new Context()),
-      d_userLevels(),
       d_userContext(new UserContext()),
+      d_userLevels(),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_decisionEngine(NULL),
