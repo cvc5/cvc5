@@ -1016,7 +1016,7 @@ void TheoryStrings::check(Effort e) {
       {
         Trace("strings-check") << "  ...finish run strategy: ";
         Trace("strings-check") << (addedFact ? "addedFact " : "");
-        Trace("strings-check") << (addedLemma ? "addedLemma " : " ");
+        Trace("strings-check") << (addedLemma ? "addedLemma " : "");
         Trace("strings-check") << (d_conflict ? "conflict " : "");
         if (!addedFact && !addedLemma && !d_conflict)
         {
