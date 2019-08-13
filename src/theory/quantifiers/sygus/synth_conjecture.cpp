@@ -1087,6 +1087,8 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         // external terms. This ensures that --sygus-stream prints
         // solutions with no arguments on the predicate for responses to
         // the get-abduct command.
+        // pvs stores the variables that will be printed in the argument list
+        // below.
         std::vector<Node> pvs;
         Node vl = Node::fromExpr(dt.getSygusVarList());
         if (!vl.isNull())
