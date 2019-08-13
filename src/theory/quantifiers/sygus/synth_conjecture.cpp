@@ -1017,7 +1017,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
   {
     return;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
@@ -1087,17 +1087,17 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         // external terms. This ensures that --sygus-stream prints
         // solutions with no arguments on the predicate for responses to
         // the get-abduct command.
-        std::vector< Node > pvs;
+        std::vector<Node> pvs;
         Node vl = Node::fromExpr(dt.getSygusVarList());
-        if( !vl.isNull() )
+        if (!vl.isNull())
         {
-          Assert( vl.getKind()==BOUND_VAR_LIST );
+          Assert(vl.getKind() == BOUND_VAR_LIST);
           SygusVarToTermAttribute sta;
-          for( const Node& v : vl )
+          for (const Node& v : vl)
           {
-            if( !v.hasAttribute(sta) )
+            if (!v.hasAttribute(sta))
             {
-              pvs.push_back( v );
+              pvs.push_back(v);
             }
           }
         }
@@ -1107,7 +1107,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         }
         else
         {
-          vl = nm->mkNode(BOUND_VAR_LIST,pvs);
+          vl = nm->mkNode(BOUND_VAR_LIST, pvs);
           out << vl << " ";
         }
         out << dt.getSygusType() << " ";

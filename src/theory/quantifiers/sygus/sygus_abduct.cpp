@@ -66,7 +66,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
       varlistTypes.push_back(tn);
       // set that this variable encodes the term s
       SygusVarToTermAttribute sta;
-      vlv.setAttribute(sta,s);
+      vlv.setAttribute(sta, s);
     }
   }
   // make the sygus variable list

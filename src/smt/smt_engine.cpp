@@ -5149,10 +5149,7 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   asserts.push_back(conjn);
   std::string name("A");
   Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
-      name,
-      asserts,
-      axioms,
-      TypeNode::fromType(grammarType));
+      name, asserts, axioms, TypeNode::fromType(grammarType));
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
@@ -5206,29 +5203,27 @@ bool SmtEngine::getAbductInternal(Expr& abd)
       // get the grammar type for the abduct
       Node af = Node::fromExpr(d_sssf);
       Node agt = af.getAttribute(theory::SygusSynthGrammarAttribute());
-      Assert( !agt.isNull() );
-      Assert( agt.getType().isDatatype() );
+      Assert(!agt.isNull());
+      Assert(agt.getType().isDatatype());
       const Datatype& agdt = agt.getType().getDatatype();
-      Assert( agdt.isSygus() );
+      Assert(agdt.isSygus());
       // get the formal argument list of the abduct
-      Node agdtbv = Node::fromExpr( agdt.getSygusVarList() );
-      Assert( !agdtbv.isNull() );
-      Assert( agdtbv.getKind()==kind::BOUND_VAR_LIST );
+      Node agdtbv = Node::fromExpr(agdt.getSygusVarList());
+      Assert(!agdtbv.isNull());
+      Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
       // convert back to original
       // must replace formal arguments of abd with the free variables in the
       // input problem that they correspond to.
-      std::vector< Node > vars;
-      std::vector< Node > syms;
+      std::vector<Node> vars;
+      std::vector<Node> syms;
       SygusVarToTermAttribute sta;
-      for( const Node& bv : agdtbv )
+      for (const Node& bv : agdtbv)
       {
         vars.push_back(bv);
         syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
       }
-      abdn = abdn.substitute(vars.begin(),
-                             vars.end(),
-                             syms.begin(),
-                             syms.end());
+      abdn =
+          abdn.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
 
       // convert to expression
       abd = abdn.toExpr();
