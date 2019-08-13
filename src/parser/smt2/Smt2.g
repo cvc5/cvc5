@@ -2221,7 +2221,7 @@ qualIdentifier[CVC4::ParseOp& p]
     ( CONST_TOK sortSymbol[type, CHECK_DECLARED]
       {
         p.d_kind = kind::STORE_ALL;
-        PARSER_STATE->applyTypeAscription(p,type);
+        PARSER_STATE->applyTypeAscription(p, type);
       }
     | identifier[p]
       sortSymbol[type, CHECK_DECLARED]
