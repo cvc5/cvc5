@@ -847,9 +847,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
     if (cvec[i].getKind() == REGEXP_STAR && cvec[i][0] == cvec[i + 1])
     {
       // by convention, flip the order (a*)++a ---> a++(a*)
-      Node tmp = cvec[i + 1];
-      cvec[i + 1] = cvec[i];
-      cvec[i] = tmp;
+      std::swap(cvec[i], cvec[i+1]);
       changed = true;
     }
   }
