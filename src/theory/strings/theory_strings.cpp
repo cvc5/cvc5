@@ -1792,7 +1792,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
           //    y = "" => str.replace( y, y, y ) == ""
           Trace("strings-extf-debug") << "  get symbolic definition..." << std::endl;
           Node nrs;
-          // only if option do we use symbolic definitions
+          // only use symbolic definitions if option is set
           if (options::stringInferSym())
           {
             nrs = getSymbolicDefinition(sn, exps);
