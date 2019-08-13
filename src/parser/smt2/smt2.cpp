@@ -1876,8 +1876,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     else if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
              && args.size() == 1)
     {
-      /* Unary AND/OR can be replaced with the argument.
-       * It just so happens expr should already be the only argument. */
+      // Unary AND/OR can be replaced with the argument.
       return args[0];
     }
     else if (kind == kind::MINUS && args.size() == 1)
