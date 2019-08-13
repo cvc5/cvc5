@@ -744,15 +744,9 @@ target_include_directories(cvc4
 )
 
 install(TARGETS cvc4
-	EXPORT cvc4-export
+	EXPORT cvc4-targets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
-
-install(EXPORT cvc4-export
-  FILE CVC4Targets.cmake
-  NAMESPACE CVC4::
-  DESTINATION lib/cmake/CVC4)
-
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4
