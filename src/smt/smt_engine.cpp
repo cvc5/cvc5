@@ -4919,6 +4919,70 @@ void SmtEngine::checkSynthSolution()
   }
 }
 
+void SmtEngine::checkAbduct(Expr a)
+{
+  Assert(a.getType().isBoolean());
+  Trace("check-abduct") << "SmtEngine::checkAbduct: get expanded assertions"
+                        << std::endl;
+
+  std::vector<Expr> asserts = getExpandedAssertions();
+  asserts.push_back(a);
+
+  // two checks: first, consistent with assertions, second, implies negated goal
+  // is unsatisfiable.
+  for (unsigned j = 0; j < 2; j++)
+  {
+    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+                          << ": make new SMT engine" << std::endl;
+    // Start new SMT engine to check solution
+    SmtEngine abdChecker(d_exprManager);
+    abdChecker.setLogic(getLogicInfo());
+    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+                          << ": asserting formulas" << std::endl;
+    for (const Expr& e : asserts)
+    {
+      abdChecker.assertFormula(e);
+    }
+    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+                          << ": check the assertions" << std::endl;
+    Result r = abdChecker.checkSat();
+    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+                          << ": result is " << r << endl;
+    std::stringstream serr;
+    bool isError = false;
+    if (j == 0)
+    {
+      if (r.asSatisfiabilityResult().isSat() != Result::SAT)
+      {
+        isError = true;
+        serr << "SmtEngine::checkAbduct(): produced solution cannot be shown "
+                "to be consisconsistenttent with assertions, result was "
+             << r;
+      }
+      Trace("check-abduct")
+          << "SmtEngine::checkAbduct: goal is " << d_abdConj << std::endl;
+      // add the goal to the set of assertions
+      Assert(!d_abdConj.isNull());
+      asserts.push_back(d_abdConj);
+    }
+    else
+    {
+      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      {
+        isError = true;
+        serr << "SmtEngine::checkAbduct(): negated goal cannot be shown "
+                "unsatisfiable with produced solution, result was "
+             << r;
+      }
+    }
+    // did we get an unexpected result?
+    if (isError)
+    {
+      InternalError(serr.str().c_str());
+    }
+  }
+}
+
 // TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
@@ -5081,6 +5145,7 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // negate the conjecture
   Node conjn = Node::fromExpr(conj).negate();
+  d_abdConj = conjn.toExpr();
   asserts.push_back(conjn);
   d_sssfVarlist.clear();
   d_sssfSyms.clear();
@@ -5153,6 +5218,12 @@ bool SmtEngine::getAbductInternal(Expr& abd)
 
       // convert to expression
       abd = abdn.toExpr();
+
+      // if check abducts option is set, we check the correctness
+      if (options::checkAbducts())
+      {
+        checkAbduct(abd);
+      }
       return true;
     }
     Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
