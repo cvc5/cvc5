@@ -5202,13 +5202,7 @@ bool SmtEngine::getAbductInternal(Expr& abd)
       }
       // get the grammar type for the abduct
       Node af = Node::fromExpr(d_sssf);
-      Node agt = af.getAttribute(theory::SygusSynthGrammarAttribute());
-      Assert(!agt.isNull());
-      Assert(agt.getType().isDatatype());
-      const Datatype& agdt = agt.getType().getDatatype();
-      Assert(agdt.isSygus());
-      // get the formal argument list of the abduct
-      Node agdtbv = Node::fromExpr(agdt.getSygusVarList());
+      Node agdtbv = af.getAttribute(theory::SygusSynthFunVarListAttribute());
       Assert(!agdtbv.isNull());
       Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
       // convert back to original
