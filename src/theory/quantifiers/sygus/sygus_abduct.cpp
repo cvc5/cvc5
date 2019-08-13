@@ -35,9 +35,7 @@ SygusAbduct::SygusAbduct() {}
 Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
-                                        TypeNode abdGType,
-                                        std::vector<Node>& varlist,
-                                        std::vector<Node>& syms)
+                                        TypeNode abdGType)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_set<Node, NodeHashFunction> symset;
@@ -49,7 +47,9 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
       << "...finish, got " << symset.size() << " symbols." << std::endl;
 
   Trace("sygus-abduct-debug") << "Setup symbols..." << std::endl;
+  std::vector<Node> syms;
   std::vector<Node> vars;
+  std::vector<Node> varlist;
   std::vector<TypeNode> varlistTypes;
   for (const Node& s : symset)
   {
@@ -64,6 +64,9 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
       Node vlv = nm->mkBoundVar(ss.str(), tn);
       varlist.push_back(vlv);
       varlistTypes.push_back(tn);
+      // set that this variable encodes the term s
+      SygusVarToTermAttribute sta;
+      vlv.setAttribute(sta,s);
     }
   }
   // make the sygus variable list

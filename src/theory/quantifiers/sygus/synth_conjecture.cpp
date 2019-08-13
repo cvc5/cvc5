@@ -1017,6 +1017,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
   {
     return;
   }
+  NodeManager * nm = NodeManager::currentNM();
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
@@ -1081,13 +1082,33 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
       if (is_unique_term)
       {
         out << "(define-fun " << f << " ";
-        if (dt.getSygusVarList().isNull())
+        // Only include variables that are truly bound variables of the
+        // function-to-synthesize. This means we exclude variables that encode
+        // external terms. This ensures that --sygus-stream prints
+        // solutions with no arguments on the predicate for responses to
+        // the get-abduct command.
+        std::vector< Node > pvs;
+        Node vl = Node::fromExpr(dt.getSygusVarList());
+        if( !vl.isNull() )
+        {
+          Assert( vl.getKind()==BOUND_VAR_LIST );
+          SygusVarToTermAttribute sta;
+          for( const Node& v : vl )
+          {
+            if( !v.hasAttribute(sta) )
+            {
+              pvs.push_back( v );
+            }
+          }
+        }
+        if (pvs.empty())
         {
           out << "() ";
         }
         else
         {
-          out << dt.getSygusVarList() << " ";
+          vl = nm->mkNode(BOUND_VAR_LIST,pvs);
+          out << vl << " ";
         }
         out << dt.getSygusType() << " ";
         if (status == 0)

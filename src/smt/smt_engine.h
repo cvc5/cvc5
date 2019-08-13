@@ -170,12 +170,6 @@ class CVC4_PUBLIC SmtEngine {
    */
   Expr d_sssf;
   /**
-   * The substitution to apply to the solutions from the subsolver, used for
-   * the get-abduct command.
-   */
-  std::vector<Node> d_sssfVarlist;
-  std::vector<Node> d_sssfSyms;
-  /**
    * The conjecture of the current abduction problem. This expression is only
    * valid while we are in mode SMT_MODE_ABDUCT.
    */
