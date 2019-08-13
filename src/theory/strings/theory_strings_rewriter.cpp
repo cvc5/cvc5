@@ -842,7 +842,7 @@ Node TheoryStringsRewriter::rewriteConcatRegExp(TNode node)
 
   // flipping adjacent star arguments
   changed = false;
-  for (unsigned i = 0, size = cvec.size(); (i + 1) < size; i++)
+  for (size_t i = 0, size = cvec.size() - 1; i < size; i++)
   {
     if (cvec[i].getKind() == REGEXP_STAR && cvec[i][0] == cvec[i + 1])
     {
