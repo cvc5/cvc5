@@ -541,13 +541,13 @@ public:
     info.arithOnlyLinear();
     info.disableIntegers();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "AUFBVFPDTLRASEP" );
+    TS_ASSERT_EQUALS(info.getLogicString(), "SEP_AUFBVFPDTLRA");
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
     info.disableQuantifiers();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFBVFPDTLRASEP" );
+    TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFBVFPDTLRA");
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );
@@ -556,7 +556,7 @@ public:
     info.enableIntegers();
     info.disableReals();
     info.lock();
-    TS_ASSERT_EQUALS( info.getLogicString(), "QF_AUFFPLIASEP" );
+    TS_ASSERT_EQUALS(info.getLogicString(), "QF_SEP_AUFFPLIA");
 
     info = info.getUnlockedCopy();
     TS_ASSERT( !info.isLocked() );

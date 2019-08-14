@@ -18,7 +18,7 @@ add_custom_target(examples)
 # Create target runexamples.
 # Builds and runs all examples.
 add_custom_target(runexamples
-  COMMAND ctest --output-on-failure -L "example" -j${NTHREADS} $(ARGS)
+  COMMAND ctest --output-on-failure -L "example" -j${NTHREADS} $$ARGS
   DEPENDS examples)
 
 # Add example target and create test to run example with ctest.
