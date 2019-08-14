@@ -446,13 +446,13 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         {
           Debug("relevant-trigger")
               << "Terms based on relevance: " << std::endl;
-          for (unsigned i = 0, size = patTerms.size(); i < size; i++)
+          for (const Node& p : patTerms)
           {
-            Debug("relevant-trigger") << "   " << patTerms[i] << " from "
-                                      << d_pat_to_mpat[patTerms[i]] << " (";
+            Debug("relevant-trigger") << "   " << p << " from "
+                                      << d_pat_to_mpat[p] << " (";
             Debug("relevant-trigger")
                 << d_quant_rel->getNumQuantifiersForSymbol(
-                       d_pat_to_mpat[patTerms[i]].getOperator())
+                       d_pat_to_mpat[p].getOperator())
                 << ")" << std::endl;
           }
         }
