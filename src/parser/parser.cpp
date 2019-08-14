@@ -220,7 +220,7 @@ Expr Parser::mkBoundVar(const std::string& name, const Type& type) {
   return expr;
 }
 
-std::vector<Expr> mkBoundVars(std::vector<std::pair<std::string, Type> >& sortedVarNames)
+std::vector<Expr> Parser::mkBoundVars(std::vector<std::pair<std::string, Type> >& sortedVarNames)
 {
   std::vector<Expr> vars;
   for(std::pair<std::string, CVC4::Type>& i : sortedVarNames)
