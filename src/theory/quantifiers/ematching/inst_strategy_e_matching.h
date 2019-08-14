@@ -109,8 +109,6 @@ public:
   {
     return std::string("AutoGenTriggers");
   }
-  /** register quantifier */
-  void registerQuantifier(Node q) override;
   /** add pattern */
   void addUserNoPattern( Node q, Node pat );
 

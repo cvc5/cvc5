@@ -52,7 +52,7 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
     }
 
     // auto-generated patterns
-    d_i_ag.reset(new InstStrategyAutoGenTriggers(d_quantEngine, d_quant_rel));
+    d_i_ag.reset(new InstStrategyAutoGenTriggers(d_quantEngine, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -181,25 +181,25 @@ void InstantiationEngine::checkOwnership(Node q)
   }
 }
 
-void InstantiationEngine::registerQuantifier( Node f ){
-  if( d_quantEngine->hasOwnership( f, this ) ){
-    if (d_quant_rel)
-    {
-      d_quant_rel->registerQuantifier(q);
-    }
-    //take into account user patterns
-    if( f.getNumChildren()==3 ){
-      Node subsPat =
-          d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants(
-              f[2], f);
-      //add patterns
-      for( int i=0; i<(int)subsPat.getNumChildren(); i++ ){
-        //Notice() << "Add pattern " << subsPat[i] << " for " << f << std::endl;
-        if( subsPat[i].getKind()==INST_PATTERN ){
-          addUserPattern( f, subsPat[i] );
-        }else if( subsPat[i].getKind()==INST_NO_PATTERN ){
-          addUserNoPattern( f, subsPat[i] );
-        }
+void InstantiationEngine::registerQuantifier( Node q ){
+  if( !d_quantEngine->hasOwnership( q, this ) ){
+    return;
+  }
+  if (d_quant_rel)
+  {
+    d_quant_rel->registerQuantifier(q);
+  }
+  //take into account user patterns
+  if( q.getNumChildren()==3 ){
+    Node subsPat =
+        d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants(
+            q[2], q);
+    //add patterns
+    for( const Node& p : subsPat ){
+      if( p.getKind()==INST_PATTERN ){
+        addUserPattern( q, p );
+      }else if( p.getKind()==INST_NO_PATTERN ){
+        addUserNoPattern( q, p );
       }
     }
   }
