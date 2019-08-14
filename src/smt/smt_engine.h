@@ -591,7 +591,7 @@ class CVC4_PUBLIC SmtEngine
    * Get list of quantified formulas that were instantiated on the last call
    * to check-sat.
    */
-  void getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs );
+  void getInstantiatedQuantifiedFormulas(std::vector<Expr>& qs);
 
   /**
    * Get instantiations for quantified formula q.
@@ -1026,7 +1026,7 @@ class CVC4_PUBLIC SmtEngine
    * problems.
    */
   bool getAbductInternal(Expr& abd);
-  
+
   /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
    * std::pair where the first element is the heap expression and the second
