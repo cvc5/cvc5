@@ -362,7 +362,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       int needReset = 0;
       // true if one of the commands was interrupted
       bool interrupted = false;
-      while (status || opts.getContinuedExecution()) {
+      while (status)
+      {
         if (interrupted) {
           (*opts.getOut()) << CommandInterrupted();
           break;
@@ -515,7 +516,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         replayParser->useDeclarationsFrom(parser.get());
       }
       bool interrupted = false;
-      while(status || opts.getContinuedExecution()) {
+      while (status)
+      {
         if (interrupted) {
           (*opts.getOut()) << CommandInterrupted();
           pExecutor->reset();

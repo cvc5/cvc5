@@ -54,10 +54,6 @@ bool Options::getCheckProofs() const{
   return (*this)[options::checkProofs];
 }
 
-bool Options::getContinuedExecution() const{
-  return (*this)[options::continuedExecution];
-}
-
 bool Options::getDumpInstantiations() const{
   return (*this)[options::dumpInstantiations];
 }

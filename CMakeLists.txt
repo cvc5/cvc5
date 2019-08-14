@@ -482,6 +482,37 @@ if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Package configuration
+#
+# Export CVC4 targets to support find_package(CVC4) in other cmake projects.
+
+include(CMakePackageConfigHelpers)
+
+install(EXPORT cvc4-targets
+  FILE CVC4Targets.cmake
+  NAMESPACE CVC4::
+  DESTINATION lib/cmake/CVC4)
+
+configure_package_config_file(
+  ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
+  INSTALL_DESTINATION lib/cmake/CVC4
+)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/CVC4ConfigVersion.cmake
+  VERSION ${CVC4_RELEASE_STRING}
+  COMPATIBILITY SameMinorVersion
+)
+
+install(FILES
+  ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
+  ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
+  DESTINATION lib/cmake/CVC4
+)
+
+
+#-----------------------------------------------------------------------------#
 # Print build configuration
 
 # Convert build type to lower case.

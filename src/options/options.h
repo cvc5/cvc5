@@ -198,7 +198,6 @@ public:
   InstFormatMode getInstFormatMode() const;
   OutputLanguage getOutputLanguage() const;
   bool getCheckProofs() const;
-  bool getContinuedExecution() const;
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
   bool getDumpProofs() const;
