@@ -272,6 +272,16 @@ enum SygusActiveGenMode
   SYGUS_ACTIVE_GEN_AUTO,
 };
 
+enum SygusQueryDumpFilesMode
+{
+  /** do not dump query files */
+  SYGUS_QUERY_DUMP_NONE,
+  /** dump all query files */
+  SYGUS_QUERY_DUMP_ALL,
+  /** dump query files that were not solved by the subsolver */
+  SYGUS_QUERY_DUMP_UNSOLVED,
+};
+
 enum SygusFilterSolMode
 {
   /** do not filter solutions */

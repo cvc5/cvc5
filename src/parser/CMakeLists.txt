@@ -41,6 +41,7 @@ set(libcvc4parser_src_files
   smt1/smt1.h
   smt1/smt1_input.cpp
   smt1/smt1_input.h
+  smt2/parse_op.h
   smt2/smt2.cpp
   smt2/smt2.h
   smt2/smt2_input.cpp
