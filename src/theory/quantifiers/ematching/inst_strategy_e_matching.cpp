@@ -432,9 +432,9 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       Trace("auto-gen-trigger") << "Generate trigger for " << f << std::endl;
       //sort terms based on relevance
       if( options::relevantTriggers() ){
-        Assert(d_quant_rel.get());
+        Assert(d_quant_rel);
         sortQuantifiersForSymbol sqfs;
-        sqfs.d_quant_rel = d_quant_rel.get();
+        sqfs.d_quant_rel = d_quant_rel;
         for( unsigned i=0; i<patTerms.size(); i++ ){
           Assert( d_pat_to_mpat.find( patTerms[i] )!=d_pat_to_mpat.end() );
           Assert( d_pat_to_mpat[patTerms[i]].hasOperator() );
