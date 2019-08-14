@@ -1026,7 +1026,8 @@ class CVC4_PUBLIC SmtEngine
    * problems.
    */
   bool getAbductInternal(Expr& abd);
-
+  
+  /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
    * std::pair where the first element is the heap expression and the second
    * element is the nil expression.
