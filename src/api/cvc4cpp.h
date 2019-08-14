@@ -873,6 +873,19 @@ class CVC4_PUBLIC OpTerm
   bool isNull() const;
 
   /**
+   * Get the indices used to create this OpTerm.
+   * Supports the following template arguments:
+   *   - string
+   *   - Kind
+   *   - uint32_t
+   *   - pair<uint32_t, uint32_t>
+   * Check the OpTerm Kind with getKind() to determine which argument to use.
+   * @return the indices used to create this OpTerm
+   */
+  template <typename T>
+  T getIndices() const;
+
+  /**
    * @return a string representation of this operator term
    */
   std::string toString() const;
@@ -1813,16 +1826,17 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param k the kind argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, Kind k);
+  OpTerm mkOpTerm(Kind kind, Kind k) const;
 
   /**
    * Create operator of kind:
    *   - RECORD_UPDATE_OP
+   *   - DIVISIBLE_OP (to support arbitrary precision integers)
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, const std::string& arg);
+  OpTerm mkOpTerm(Kind kind, const std::string& arg) const;
 
   /**
    * Create operator of kind:
@@ -1842,7 +1856,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param arg the uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg);
+  OpTerm mkOpTerm(Kind kind, uint32_t arg) const;
 
   /**
    * Create operator of Kind:
@@ -1858,7 +1872,7 @@ class CVC4_PUBLIC Solver
    * @param arg1 the first uint32_t argument to this operator
    * @param arg2 the second uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2);
+  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */

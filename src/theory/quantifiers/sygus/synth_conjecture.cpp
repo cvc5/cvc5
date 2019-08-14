@@ -29,9 +29,11 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
+#include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -733,63 +735,6 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
   return ret;
 }
 
-/** A basic sygus value generator
- *
- * This class is a "naive" term generator for sygus conjectures, which invokes
- * the type enumerator to generate a stream of (all) sygus terms of a given
- * type.
- */
-class EnumValGeneratorBasic : public EnumValGenerator
-{
- public:
-  EnumValGeneratorBasic(TermDbSygus* tds, TypeNode tn) : d_tds(tds), d_te(tn) {}
-  ~EnumValGeneratorBasic() {}
-  /** initialize (do nothing) */
-  void initialize(Node e) override {}
-  /** initialize (do nothing) */
-  void addValue(Node v) override { d_currTerm = *d_te; }
-  /**
-   * Get next returns the next (T-rewriter-unique) value based on the type
-   * enumerator.
-   */
-  bool increment() override
-  {
-    ++d_te;
-    if (d_te.isFinished())
-    {
-      d_currTerm = Node::null();
-      return false;
-    }
-    d_currTerm = *d_te;
-    if (options::sygusSymBreakDynamic())
-    {
-      Node nextb = d_tds->sygusToBuiltin(d_currTerm);
-      nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
-      if (d_cache.find(nextb) == d_cache.end())
-      {
-        d_cache.insert(nextb);
-        // only return the current term if not unique
-      }
-      else
-      {
-        d_currTerm = Node::null();
-      }
-    }
-    return true;
-  }
-  /** get the current term */
-  Node getCurrent() override { return d_currTerm; }
- private:
-  /** pointer to term database sygus */
-  TermDbSygus* d_tds;
-  /** the type enumerator */
-  TypeEnumerator d_te;
-  /** the current term */
-  Node d_currTerm;
-  /** cache of (enumerated) builtin values we have enumerated so far */
-  std::unordered_set<Node, NodeHashFunction> d_cache;
-};
-
 Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
 {
   bool isEnum = d_tds->isEnumerator(e);
@@ -1072,6 +1017,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
   {
     return;
   }
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
@@ -1136,13 +1082,35 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
       if (is_unique_term)
       {
         out << "(define-fun " << f << " ";
-        if (dt.getSygusVarList().isNull())
+        // Only include variables that are truly bound variables of the
+        // function-to-synthesize. This means we exclude variables that encode
+        // external terms. This ensures that --sygus-stream prints
+        // solutions with no arguments on the predicate for responses to
+        // the get-abduct command.
+        // pvs stores the variables that will be printed in the argument list
+        // below.
+        std::vector<Node> pvs;
+        Node vl = Node::fromExpr(dt.getSygusVarList());
+        if (!vl.isNull())
+        {
+          Assert(vl.getKind() == BOUND_VAR_LIST);
+          SygusVarToTermAttribute sta;
+          for (const Node& v : vl)
+          {
+            if (!v.hasAttribute(sta))
+            {
+              pvs.push_back(v);
+            }
+          }
+        }
+        if (pvs.empty())
         {
           out << "() ";
         }
         else
         {
-          out << dt.getSygusVarList() << " ";
+          vl = nm->mkNode(BOUND_VAR_LIST, pvs);
+          out << vl << " ";
         }
         out << dt.getSygusType() << " ";
         if (status == 0)

@@ -29,7 +29,6 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {

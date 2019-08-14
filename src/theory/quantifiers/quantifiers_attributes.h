@@ -84,6 +84,18 @@ struct SygusSideConditionAttributeId
 typedef expr::Attribute<SygusSideConditionAttributeId, Node>
     SygusSideConditionAttribute;
 
+/** Attribute for indicating that a sygus variable encodes a term
+ *
+ * This is used, e.g., for abduction where the formal argument list of the
+ * abduct-to-synthesize corresponds to the free variables of the sygus
+ * problem.
+ */
+struct SygusVarToTermAttributeId
+{
+};
+typedef expr::Attribute<SygusVarToTermAttributeId, Node>
+    SygusVarToTermAttribute;
+
 namespace quantifiers {
 
 /** Attribute priority for rewrite rules */

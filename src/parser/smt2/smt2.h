@@ -28,6 +28,8 @@
 #include "api/cvc4cpp.h"
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
+#include "parser/smt2/parse_op.h"
+#include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
@@ -65,7 +67,11 @@ class Smt2 : public Parser
   };
 
  private:
+  /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
+  /** Have we seen a set-logic command yet? */
+  bool d_seenSetLogic;
+
   LogicInfo d_logic;
   std::unordered_map<std::string, Kind> operatorKindMap;
   /**
@@ -197,8 +203,11 @@ class Smt2 : public Parser
    * theory symbols.
    *
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
+   * @param fromCommand should be set to true if the request originates from a
+   *                    set-logic command and false otherwise
+   * @return the command corresponding to setting the logic
    */
-  void setLogic(std::string name);
+  Command* setLogic(std::string name, bool fromCommand = true);
 
   /**
    * Get the logic.
@@ -225,8 +234,10 @@ class Smt2 : public Parser
   {
     return language::isInputLang_smt2_6(getLanguage(), exact);
   }
-
-  bool sygus() const { return getLanguage() == language::input::LANG_SYGUS; }
+  /** Are we using a sygus language? */
+  bool sygus() const;
+  /** Are we using the sygus version 1.0 format? */
+  bool sygus_v1() const;
 
   /**
    * Returns true if the language that we are parsing (SMT-LIB version >=2.5
@@ -324,6 +335,30 @@ class Smt2 : public Parser
                         std::vector<std::string>& unresolved_gterm_sym,
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
 
+  /**
+   * Adds a constructor to sygus datatype dt whose sygus operator is term.
+   *
+   * ntsToUnres contains a mapping from non-terminal symbols to the unresolved
+   * types they correspond to. This map indicates how the argument term should
+   * be interpreted (instances of symbols from the domain of ntsToUnres
+   * correspond to constructor arguments).
+   *
+   * The sygus operator that is actually added to dt corresponds to replacing
+   * each occurrence of non-terminal symbols from the domain of ntsToUnres
+   * with bound variables via purifySygusGTerm, and binding these variables
+   * via a lambda.
+   */
+  void addSygusConstructorTerm(Datatype& dt,
+                               Expr term,
+                               std::map<Expr, Type>& ntsToUnres) const;
+  /**
+   * This adds constructors to dt for sygus variables in sygusVars whose
+   * type is argument type. This method should be called when the sygus grammar
+   * term (Variable type) is encountered.
+   */
+  void addSygusConstructorVariables(Datatype& dt,
+                                    std::vector<Expr>& sygusVars,
+                                    Type type) const;
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
@@ -343,7 +378,8 @@ class Smt2 : public Parser
       return;
     }else{
       //it is allowable in sygus
-      if( sygus() && name[0]=='-' ){
+      if (sygus_v1() && name[0] == '-')
+      {
         //do not check anything
         return;
       }
@@ -390,6 +426,17 @@ class Smt2 : public Parser
       }
     }
   }
+  /** Set named attribute
+   *
+   * This is called when expression expr is annotated with a name, i.e.
+   * (! expr :named sexpr). It sets up the necessary information to process
+   * this naming, including marking that expr is the last named term.
+   *
+   * We construct an expression symbol whose name is the name of s-expression
+   * which is used later for tracking assertions in unsat cores. This
+   * symbol is returned by this method.
+   */
+  Expr setNamedAttribute(Expr& expr, const SExpr& sexpr);
 
   // Throw a ParserException with msg appended with the current logic.
   inline void parseErrorLogic(const std::string& msg)
@@ -398,7 +445,69 @@ class Smt2 : public Parser
     parseError(withLogic);
   }
 
-private:
+  //------------------------- processing parse operators
+  /**
+   * Given a parse operator p, apply a type ascription to it. This method is run
+   * when we encounter "(as t type)" and information regarding t has been stored
+   * in p.
+   *
+   * This updates p to take into account the ascription. This may include:
+   * - Converting an (pre-ascribed) array constant specification "const" to
+   * an ascribed array constant specification (as const type) where type is
+   * (Array T1 T2) for some T1, T2.
+   * - Converting a (nullary or non-nullary) parametric datatype constructor to
+   * the specialized constructor for the given type.
+   * - Converting an empty set, universe set, or separation nil reference to
+   * the respective term of the given type.
+   * - If p's expression field is set, then we leave p unchanged, check if
+   * that expression has the given type and throw a parse error otherwise.
+   */
+  void applyTypeAscription(ParseOp& p, Type type);
+  /**
+   * This converts a ParseOp to expression, assuming it is a standalone term.
+   *
+   * In particular:
+   * - If p's expression field is set, then that expression is returned.
+   * - If p's name field is set, then we look up that name in the symbol table
+   * of this class.
+   * In other cases, a parse error is thrown.
+   */
+  Expr parseOpToExpr(ParseOp& p);
+  /**
+   * Apply parse operator to list of arguments, and return the resulting
+   * expression.
+   *
+   * This method involves two phases.
+   * (1) Processing the operator represented by p,
+   * (2) Applying that operator to the set of arguments.
+   *
+   * For (1), this involves determining the kind of the overall expression. We
+   * may be in one the following cases:
+   * - If p's expression field is set, we may choose to prepend it to args, or
+   * otherwise determine the appropriate kind of the overall expression based on
+   * this expression.
+   * - If p's name field is set, then we get the appropriate symbol for that
+   * name, which may involve disambiguating that name if it is overloaded based
+   * on the types of args. We then determine the overall kind of the return
+   * expression based on that symbol.
+   * - p's kind field may be already set.
+   *
+   * For (2), we construct the overall expression, which may involve the
+   * following:
+   * - If p is an array constant specification (as const (Array T1 T2)), then
+   * we return the appropriate array constant based on args[0].
+   * - If p represents a tuple selector, then we infer the appropriate tuple
+   * selector expression based on the type of args[0].
+   * - If the overall kind of the expression is chainable, we may convert it
+   * to a left- or right-associative chain.
+   * - If the overall kind is MINUS and args has size 1, then we return an
+   * application of UMINUS.
+   * - If the overall expression is a partial application, then we process this
+   * as a chain of HO_APPLY terms.
+   */
+  Expr applyParseOp(ParseOp& p, std::vector<Expr>& args);
+  //------------------------- end processing parse operators
+ private:
   std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
   std::map< CVC4::Expr, std::vector< CVC4::Expr > > d_sygus_let_func_to_vars;
   std::map< CVC4::Expr, CVC4::Expr > d_sygus_let_func_to_body;
@@ -440,6 +549,22 @@ private:
                              unsigned i,
                              const std::vector<Type>& ltypes,
                              std::vector<Expr>& lvars);
+
+  /** Purify sygus grammar term
+   *
+   * This returns a term where all occurrences of non-terminal symbols (those
+   * in the domain of ntsToUnres) are replaced by fresh variables. For each
+   * variable replaced in this way, we add the fresh variable it is replaced
+   * with to args, and the unresolved type corresponding to the non-terminal
+   * symbol to cargs (constructor args). In other words, args contains the
+   * free variables in the term returned by this method (which should be bound
+   * by a lambda), and cargs contains the types of the arguments of the
+   * sygus constructor.
+   */
+  Expr purifySygusGTerm(Expr term,
+                        std::map<Expr, Type>& ntsToUnres,
+                        std::vector<Expr>& args,
+                        std::vector<Type>& cargs) const;
 
   void addArithmeticOperators();
 

@@ -21,6 +21,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -363,17 +364,27 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
                                            d_single_inv_arg_sk.begin(),
                                            d_single_inv_arg_sk.end());
     Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv << std::endl;
-    if( options::cbqiPreRegInst() && d_single_inv.getKind()==FORALL ){
+    // check whether we can handle this quantified formula
+    CegHandledStatus status = CegInstantiator::isCbqiQuant(d_single_inv);
+    if( status<CEG_HANDLED )
+    {
+      Trace("cegqi-si") << "...do not invoke single invocation techniques since the quantified formula does not have a handled counterexample-guided instantiation strategy!" << std::endl;
+      d_single_invocation = false;
+      d_single_inv = Node::null();
+    }
+    else if( options::cbqiPreRegInst() && d_single_inv.getKind()==FORALL ){
       //just invoke the presolve now
       d_cinst->presolve( d_single_inv );
     }
-  }else{
+  }
+  if( !d_single_invocation )
+  {
     d_single_inv = Node::null();
     Trace("cegqi-si") << "Formula is not single invocation." << std::endl;
     if (options::cegqiSingleInvAbort())
     {
       std::stringstream ss;
-      ss << "Property is not single invocation." << std::endl;
+      ss << "Property is not handled by single invocation." << std::endl;
       throw LogicException(ss.str());
     }
   }
@@ -604,9 +615,9 @@ Node CegSingleInv::getSolution(unsigned sol_index,
   }
   d_orig_solution = s;
 
-  //simplify the solution
+  //simplify the solution using the extended rewriter
   Trace("csi-sol") << "Solution (pre-simplification): " << d_orig_solution << std::endl;
-  s = d_sol->simplifySolution( s, stn );
+  s = d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   return reconstructToSyntax( s, stn, reconstructed, rconsSygus );
 }

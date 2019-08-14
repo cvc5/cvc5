@@ -22,6 +22,8 @@ set(libcvc4parser_src_files
   bounded_token_buffer.h
   bounded_token_factory.cpp
   bounded_token_factory.h
+  cvc/cvc.cpp
+  cvc/cvc.h
   cvc/cvc_input.cpp
   cvc/cvc_input.h
   input.cpp
@@ -39,6 +41,7 @@ set(libcvc4parser_src_files
   smt1/smt1.h
   smt1/smt1_input.cpp
   smt1/smt1_input.h
+  smt2/parse_op.h
   smt2/smt2.cpp
   smt2/smt2.h
   smt2/smt2_input.cpp
