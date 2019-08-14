@@ -226,7 +226,7 @@ std::vector<Expr> Parser::mkBoundVars(
   std::vector<Expr> vars;
   for (std::pair<std::string, CVC4::Type>& i : sortedVarNames)
   {
-    vars.push_back(mkBoundVar((*i).first, (*i).second));
+    vars.push_back(mkBoundVar(i.first, i.second));
   }
   return vars;
 }
