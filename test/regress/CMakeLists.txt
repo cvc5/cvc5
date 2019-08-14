@@ -1609,6 +1609,7 @@ set(regress_1_tests
   regress1/strings/replaceall-len.smt2
   regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
+  regress1/strings/rew-check1.smt2
   regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
@@ -2203,7 +2204,7 @@ add_dependencies(build-tests build-regress)
 
 add_custom_target(regress
   COMMAND
-    ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $(ARGS)
+    ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-regress)
 
 macro(cvc4_add_regression_test level file)

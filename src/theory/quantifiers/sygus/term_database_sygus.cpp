@@ -869,89 +869,6 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
   return false;
 }
 
-Node TermDbSygus::minimizeBuiltinTerm( Node n ) {
-  if( ( n.getKind()==EQUAL || n.getKind()==LEQ || n.getKind()==LT || n.getKind()==GEQ || n.getKind()==GT ) &&
-      ( n[0].getType().isInteger() || n[0].getType().isReal() ) ){
-    bool changed = false;
-    std::vector< Node > mon[2];
-    for( unsigned r=0; r<2; r++ ){
-      unsigned ro = r==0 ? 1 : 0;
-      Node c;
-      Node nc;
-      if( n[r].getKind()==PLUS ){
-        for( unsigned i=0; i<n[r].getNumChildren(); i++ ){
-          if (ArithMSum::getMonomial(n[r][i], c, nc)
-              && c.getConst<Rational>().isNegativeOne())
-          {
-            mon[ro].push_back( nc );
-            changed = true;
-          }else{
-            if( !n[r][i].isConst() || !n[r][i].getConst<Rational>().isZero() ){
-              mon[r].push_back( n[r][i] );
-            }
-          }
-        }
-      }else{
-        if (ArithMSum::getMonomial(n[r], c, nc)
-            && c.getConst<Rational>().isNegativeOne())
-        {
-          mon[ro].push_back( nc );
-          changed = true;
-        }else{
-          if( !n[r].isConst() || !n[r].getConst<Rational>().isZero() ){
-            mon[r].push_back( n[r] );
-          }
-        }
-      }
-    }
-    if( changed ){
-      Node nn[2];
-      for( unsigned r=0; r<2; r++ ){
-        nn[r] = mon[r].size()==0 ? NodeManager::currentNM()->mkConst( Rational(0) ) : ( mon[r].size()==1 ? mon[r][0] : NodeManager::currentNM()->mkNode( PLUS, mon[r] ) );
-      }
-      return NodeManager::currentNM()->mkNode( n.getKind(), nn[0], nn[1] );
-    }
-  }
-  return n;
-}
-
-Node TermDbSygus::expandBuiltinTerm( Node t ){
-  if( t.getKind()==EQUAL ){
-    if( t[0].getType().isReal() ){
-      return NodeManager::currentNM()->mkNode( AND, NodeManager::currentNM()->mkNode( LEQ, t[0], t[1] ),
-                                                    NodeManager::currentNM()->mkNode( LEQ, t[1], t[0] ) );
-    }else if( t[0].getType().isBoolean() ){
-      return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
-                                                   NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[1].negate() ) );
-    }
-  }else if( t.getKind()==ITE && t.getType().isBoolean() ){
-    return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, t[0], t[1] ),
-                                                 NodeManager::currentNM()->mkNode( AND, t[0].negate(), t[2] ) );
-  }
-  return Node::null();
-}
-
-
-Kind TermDbSygus::getComparisonKind( TypeNode tn ) {
-  if( tn.isInteger() || tn.isReal() ){
-    return LT;
-  }else if( tn.isBitVector() ){
-    return BITVECTOR_ULT;
-  }else{
-    return UNDEFINED_KIND;
-  }
-}
-
-Kind TermDbSygus::getPlusKind( TypeNode tn, bool is_neg ) {
-  if( tn.isInteger() || tn.isReal() ){
-    return is_neg ? MINUS : PLUS;
-  }else if( tn.isBitVector() ){
-    return is_neg ? BITVECTOR_SUB : BITVECTOR_PLUS;
-  }else{
-    return UNDEFINED_KIND;
-  }
-}
-
 bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
@@ -983,14 +900,6 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
 bool TermDbSygus::involvesDivByZero( Node n ) {
   std::map< Node, bool > visited;
   return involvesDivByZero( n, visited );
-}
-
-void doStrReplace(std::string& str, const std::string& oldStr, const std::string& newStr){
-  size_t pos = 0;
-  while((pos = str.find(oldStr, pos)) != std::string::npos){
-     str.replace(pos, oldStr.length(), newStr);
-     pos += newStr.length();
-  }
 }
 
 Node TermDbSygus::getAnchor( Node n ) {
