@@ -1469,16 +1469,13 @@ prefixFormula[CVC4::Expr& f]
   : ( FORALL_TOK { k = kind::FORALL; } | EXISTS_TOK { k = kind::EXISTS; } )
     { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t]
-    { for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
-        bvs.push_back(PARSER_STATE->mkBoundVar(*i, t));
-      }
+    {
+      bvs = PARSER_STATE->mkBoundVars(ids, t);
       ids.clear();
     }
     ( COMMA boundVarDecl[ids,t]
       {
-        for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
-          bvs.push_back(PARSER_STATE->mkBoundVar(*i, t));
-        }
+        bvs = PARSER_STATE->mkBoundVars(ids, t);
         ids.clear();
       }
     )* RPAREN {

@@ -346,12 +346,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
       }
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      terms = PARSER_STATE->mkBoundVars(sortedVarNames);
     }
     term[expr, expr2]
     {
@@ -624,10 +619,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       sygus_type = range;
       // create new scope for parsing the grammar, if any
       PARSER_STATE->pushScope(true);
-      for (const std::pair<std::string, CVC4::Type>& p : sortedVarNames)
-      {
-        sygus_vars.push_back(PARSER_STATE->mkBoundVar(p.first, p.second));
-      }
+      sygus_vars = PARSER_STATE->mkBoundVars(sortedVarNames);
     }
     (
       // optionally, read the sygus grammar
@@ -676,10 +668,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       sygus_type = range;
       // create new scope for parsing the grammar, if any
       PARSER_STATE->pushScope(true);
-      for (const std::pair<std::string, CVC4::Type>& p : sortedVarNames)
-      {
-        sygus_vars.push_back(PARSER_STATE->mkBoundVar(p.first, p.second));
-      }
+      sygus_vars = PARSER_STATE->mkBoundVars(sortedVarNames);
     }
     (
       // optionally, read the sygus grammar
@@ -1436,11 +1425,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { /* add variables to parser state before parsing term */
         Debug("parser") << "define fun: '" << name << "'" << std::endl;
         PARSER_STATE->pushScope(true);
-        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-              sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
-            ++i) {
-          terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-        }
+        terms = PARSER_STATE->mkBoundVars(sortedVarNames);
       }
       term[e,e2]
       { PARSER_STATE->popScope();
@@ -1470,11 +1455,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     { /* add variables to parser state before parsing term */
       Debug("parser") << "define const: '" << name << "'" << std::endl;
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
-          ++i) {
-        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      terms = PARSER_STATE->mkBoundVars(sortedVarNames);
     }
     term[e, e2]
     { PARSER_STATE->popScope();
@@ -1654,12 +1635,7 @@ rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
     {
       kind = CVC4::kind::RR_REWRITE;
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      args = PARSER_STATE->mkBoundVars(sortedVarNames);
       bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
     }
     LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
@@ -1695,12 +1671,7 @@ rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      args = PARSER_STATE->mkBoundVars(sortedVarNames);
       bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
     }
     LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
@@ -1876,12 +1847,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      args = PARSER_STATE->mkBoundVars(sortedVarNames);
       Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
       args.clear();
       args.push_back(bvl);
@@ -2130,9 +2096,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
       PARSER_STATE->pushScope(true);
-      for(const std::pair<std::string, CVC4::Type>& svn : sortedVarNames){
-        args.push_back(PARSER_STATE->mkBoundVar(svn.first, svn.second));
-      }
+      args = PARSER_STATE->mkBoundVars(sortedVarNames);
       Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
       args.clear();
       args.push_back(bvl);
