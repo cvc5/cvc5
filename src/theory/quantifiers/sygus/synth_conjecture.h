@@ -162,7 +162,10 @@ class SynthConjecture
   TermDbSygus* d_tds;
   /** The feasible guard. */
   Node d_feasible_guard;
-  /** do we have a solution in this user context? */
+  /**
+   * Do we have a solution in this user context? This is user-context dependent
+   * to enable use cases of sygus in incremental mode.
+   */
   context::CDO<bool> d_hasSolution;
   /** the decision strategy for the feasible guard */
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
