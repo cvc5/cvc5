@@ -5147,16 +5147,9 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   Node conjn = Node::fromExpr(conj).negate();
   d_abdConj = conjn.toExpr();
   asserts.push_back(conjn);
-  d_sssfVarlist.clear();
-  d_sssfSyms.clear();
   std::string name("A");
   Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
-      name,
-      asserts,
-      axioms,
-      TypeNode::fromType(grammarType),
-      d_sssfVarlist,
-      d_sssfSyms);
+      name, asserts, axioms, TypeNode::fromType(grammarType));
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
@@ -5207,14 +5200,24 @@ bool SmtEngine::getAbductInternal(Expr& abd)
       {
         abdn = abdn[1];
       }
-      Assert(d_sssfVarlist.size() == d_sssfSyms.size());
+      // get the grammar type for the abduct
+      Node af = Node::fromExpr(d_sssf);
+      Node agdtbv = af.getAttribute(theory::SygusSynthFunVarListAttribute());
+      Assert(!agdtbv.isNull());
+      Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
       // convert back to original
       // must replace formal arguments of abd with the free variables in the
       // input problem that they correspond to.
-      abdn = abdn.substitute(d_sssfVarlist.begin(),
-                             d_sssfVarlist.end(),
-                             d_sssfSyms.begin(),
-                             d_sssfSyms.end());
+      std::vector<Node> vars;
+      std::vector<Node> syms;
+      SygusVarToTermAttribute sta;
+      for (const Node& bv : agdtbv)
+      {
+        vars.push_back(bv);
+        syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
+      }
+      abdn =
+          abdn.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
 
       // convert to expression
       abd = abdn.toExpr();
