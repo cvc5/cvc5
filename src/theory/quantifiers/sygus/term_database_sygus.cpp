@@ -331,7 +331,8 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
   return weight + sum;
 }
 
-bool TermDbSygus::registerSygusType( TypeNode tn ) {
+bool TermDbSygus::registerSygusType(TypeNode tn)
+{
   std::map<TypeNode, bool>::iterator it = d_registerStatus.find(tn);
   if (it != d_registerStatus.end())
   {
@@ -1110,7 +1111,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   {
     Assert(res
            == Rewriter::rewrite(bn.substitute(
-               varlist.begin(), varlist.end(), args.begin(), args.end())));
+                  varlist.begin(), varlist.end(), args.begin(), args.end())));
     return res;
   }
   res = bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());

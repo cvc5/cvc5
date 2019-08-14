@@ -37,7 +37,7 @@ class TermDbSygus;
  * sygus datatype type. Then, most of the query methods on x can be called.
  * As an exception, the variable subclass queries require that additionally
  * x.initializeVarSubclasses() is called.
- * 
+ *
  */
 class SygusTypeInfo
 {
@@ -46,7 +46,7 @@ class SygusTypeInfo
   //-------------------------------------------- initialize
   /** initialize this information for sygus datatype type tn */
   void initialize(TermDbSygus* tds, TypeNode tn);
-  /** 
+  /**
    * Initialize the variable subclass information for this class. Must have
    * called initialize(...) prior to calling this method.
    */

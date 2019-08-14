@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of type node identifier trie 
+ ** \brief Implementation of type node identifier trie
  **/
 
 #include "theory/quantifiers/sygus/type_node_id_trie.h"

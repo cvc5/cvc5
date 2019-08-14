@@ -78,7 +78,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     {
       TypeNode ctn = TypeNode::fromType(dt[i].getArgType(j));
       Trace("sygus-db") << "  register subfield type " << ctn << std::endl;
-      if( tds->registerSygusType(ctn) )
+      if (tds->registerSygusType(ctn))
       {
         SygusTypeInfo& stic = tds->getTypeInfo(ctn);
         // carry type attributes
@@ -170,7 +170,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
-        if( ct==tn )
+        if (ct == tn)
         {
           csize += d_min_term_size;
         }
@@ -181,7 +181,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         }
         else
         {
-          Assert( !ct.isDatatype() || !ct.getDatatype().isSygus() );
+          Assert(!ct.isDatatype() || !ct.getDatatype().isSygus());
         }
       }
     }
@@ -191,12 +191,12 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
 
 void SygusTypeInfo::initializeVarSubclasses()
 {
-  if( d_var_list.empty() )
+  if (d_var_list.empty())
   {
     // no variables
     return;
   }
-  if( !d_var_subclass_id.empty() )
+  if (!d_var_subclass_id.empty())
   {
     // already computed
     return;
@@ -245,7 +245,7 @@ void SygusTypeInfo::initializeVarSubclasses()
     Trace("sygus-db") << v << " has subclass id " << sc << std::endl;
     d_var_subclass_list_index[v] = d_var_subclass_list[sc].size();
     d_var_subclass_list[sc].push_back(v);
-  }  
+  }
 }
 
 TypeNode SygusTypeInfo::getBuiltinType() const { return d_btype; }
