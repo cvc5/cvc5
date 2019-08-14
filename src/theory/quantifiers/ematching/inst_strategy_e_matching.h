@@ -100,6 +100,7 @@ private:
 public:
  InstStrategyAutoGenTriggers(QuantifiersEngine* qe, QuantRelevance* qr);
  ~InstStrategyAutoGenTriggers() {}
+
 public:
   /** get auto-generated trigger */
   inst::Trigger* getAutoGenTrigger( Node q );
