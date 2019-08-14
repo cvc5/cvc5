@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_type_info.cpp
+/*! \file type_info.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds

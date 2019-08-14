@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_type_info.h
+/*! \file type_info.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -14,59 +14,20 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_TYPE_INFO_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_TYPE_INFO_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__TYPE_INFO_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS__TYPE_INFO_H
 
 #include <map>
 #include <unordered_set>
 
 #include "expr/node.h"
+#include "theory/quantifiers/sygus/type_node_id_trie.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 class TermDbSygus;
-
-/** A trie indexed by types that assigns unique identifiers to nodes. */
-class TypeNodeIdTrie
-{
- public:
-  /** children of this node */
-  std::map<TypeNode, TypeNodeIdTrie> d_children;
-  /** the data stored at this node */
-  std::vector<Node> d_data;
-  /** add v to this trie, indexed by types */
-  void add(Node v, std::vector<TypeNode>& types)
-  {
-    TypeNodeIdTrie* tnt = this;
-    for (unsigned i = 0, size = types.size(); i < size; i++)
-    {
-      tnt = &tnt->d_children[types[i]];
-    }
-    tnt->d_data.push_back(v);
-  }
-  /**
-   * Assign each node in this trie an identifier such that
-   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
-   */
-  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount)
-  {
-    if (!d_data.empty())
-    {
-      for (const Node& v : d_data)
-      {
-        assign[v] = idCount;
-      }
-      idCount++;
-    }
-    for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
-    {
-      c.second.assignIds(assign, idCount);
-    }
-  }
-};
-
 
 /**
  * This data structure stores statically computed information regarding a sygus
@@ -296,4 +257,4 @@ class SygusTypeInfo
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_TYPE_INFO_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS__TYPE_INFO_H */
