@@ -30,7 +30,7 @@ void TypeNodeIdTrie::add(Node v, std::vector<TypeNode>& types)
   tnt->d_data.push_back(v);
 }
 
-void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount)
+void TypeNodeIdTrie::assignIds(std::map<Node, unsigned>& assign, unsigned& idCount)
 {
   if (!d_data.empty())
   {
