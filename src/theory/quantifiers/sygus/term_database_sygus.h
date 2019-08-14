@@ -564,13 +564,6 @@ class TermDbSygus {
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );
-  /** given a term, construct an equivalent smaller one that respects syntax */
-  Node minimizeBuiltinTerm( Node n );
-  /** given a term, expand it into more basic components */
-  Node expandBuiltinTerm( Node n );
-  /** get comparison kind */
-  Kind getComparisonKind( TypeNode tn );
-  Kind getPlusKind( TypeNode tn, bool is_neg = false );
   /** involves div-by-zero */
   bool involvesDivByZero( Node n );
   /** get anchor */
