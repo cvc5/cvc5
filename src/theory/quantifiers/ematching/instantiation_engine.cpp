@@ -52,7 +52,8 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
     }
 
     // auto-generated patterns
-    d_i_ag.reset(new InstStrategyAutoGenTriggers(d_quantEngine, d_quant_rel.get()));
+    d_i_ag.reset(
+        new InstStrategyAutoGenTriggers(d_quantEngine, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -181,25 +182,32 @@ void InstantiationEngine::checkOwnership(Node q)
   }
 }
 
-void InstantiationEngine::registerQuantifier( Node q ){
-  if( !d_quantEngine->hasOwnership( q, this ) ){
+void InstantiationEngine::registerQuantifier(Node q)
+{
+  if (!d_quantEngine->hasOwnership(q, this))
+  {
     return;
   }
   if (d_quant_rel)
   {
     d_quant_rel->registerQuantifier(q);
   }
-  //take into account user patterns
-  if( q.getNumChildren()==3 ){
+  // take into account user patterns
+  if (q.getNumChildren() == 3)
+  {
     Node subsPat =
         d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants(
             q[2], q);
-    //add patterns
-    for( const Node& p : subsPat ){
-      if( p.getKind()==INST_PATTERN ){
-        addUserPattern( q, p );
-      }else if( p.getKind()==INST_NO_PATTERN ){
-        addUserNoPattern( q, p );
+    // add patterns
+    for (const Node& p : subsPat)
+    {
+      if (p.getKind() == INST_PATTERN)
+      {
+        addUserPattern(q, p);
+      }
+      else if (p.getKind() == INST_NO_PATTERN)
+      {
+        addUserNoPattern(q, p);
       }
     }
   }
