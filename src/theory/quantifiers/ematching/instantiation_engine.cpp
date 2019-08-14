@@ -37,7 +37,8 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
       d_isup(),
       d_i_ag(),
       d_quants(),
-      d_quant_rel(nullptr) {
+      d_quant_rel(nullptr)
+{
   if (options::relevantTriggers())
   {
     d_quant_rel.reset(new quantifiers::QuantRelevance);
@@ -51,7 +52,7 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
     }
 
     // auto-generated patterns
-    d_i_ag.reset(new InstStrategyAutoGenTriggers(d_quantEngine,d_quant_rel));
+    d_i_ag.reset(new InstStrategyAutoGenTriggers(d_quantEngine, d_quant_rel));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }

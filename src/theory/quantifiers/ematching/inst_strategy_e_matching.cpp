@@ -155,7 +155,8 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
   }
 }
 
-InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe, QuantRelevance* qr)
+InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
+                                                         QuantRelevance* qr)
     : InstStrategy(qe), d_quant_rel(qr)
 {
   //how to select trigger terms
