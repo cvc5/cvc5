@@ -68,19 +68,19 @@ class SygusAbduct
    * The type abdGType (if non-null) is a sygus datatype type that encodes the
    * grammar that should be used for solutions of the abduction conjecture.
    *
-   * The arguments varlist and syms specify the relationship between the free
-   * variables of asserts and the formal argument list of the
-   * abduct-to-synthesize. In particular, solutions to the synthesis conjecture
-   * will be in the form of a closed term (lambda varlist. t). The intended
-   * solution, which is a term whose free variables are a subset of asserts,
-   * is the term t { varlist -> syms }.
+   * The relationship between the free variables of asserts and the formal
+   * rgument list of the abduct-to-synthesize are tracked by the attribute
+   * SygusVarToTermAttribute.
+   *
+   * In particular, solutions to the synthesis conjecture will be in the form
+   * of a closed term (lambda varlist. t). The intended solution, which is a
+   * term whose free variables are a subset of asserts, is the term
+   * t * { varlist -> SygusVarToTermAttribute(varlist) }.
    */
   static Node mkAbductionConjecture(const std::string& name,
                                     const std::vector<Node>& asserts,
                                     const std::vector<Node>& axioms,
-                                    TypeNode abdGType,
-                                    std::vector<Node>& varlist,
-                                    std::vector<Node>& syms);
+                                    TypeNode abdGType);
 };
 
 }  // namespace quantifiers
