@@ -96,11 +96,9 @@ private:
  bool hasUserPatterns(Node q);
  /** has user patterns */
  std::map<Node, bool> d_hasUserPatterns;
- /** for computing relevance of quantifiers */
- std::unique_ptr<QuantRelevance> d_quant_rel;
 
 public:
-  InstStrategyAutoGenTriggers( QuantifiersEngine* qe );
+  InstStrategyAutoGenTriggers( QuantifiersEngine* qe, QuantRelevance* qr);
   ~InstStrategyAutoGenTriggers(){}
 public:
   /** get auto-generated trigger */
@@ -114,6 +112,12 @@ public:
   void registerQuantifier(Node q) override;
   /** add pattern */
   void addUserNoPattern( Node q, Node pat );
+private:
+ /** 
+  * Pointer to the module that computes relevance of quantifiers, which is owned
+  * by the instantiation engine that owns this class.
+  */
+ QuantRelevance* d_quant_rel;
 };/* class InstStrategyAutoGenTriggers */
 
 

@@ -36,7 +36,12 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
       d_instStrategies(),
       d_isup(),
       d_i_ag(),
-      d_quants() {
+      d_quants(),
+      d_quant_rel(nullptr) {
+  if (options::relevantTriggers())
+  {
+    d_quant_rel.reset(new quantifiers::QuantRelevance);
+  }
   if (options::eMatching()) {
     // these are the instantiation strategies for E-matching
     // user-provided patterns
@@ -46,7 +51,7 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
     }
 
     // auto-generated patterns
-    d_i_ag.reset(new InstStrategyAutoGenTriggers(d_quantEngine));
+    d_i_ag.reset(new InstStrategyAutoGenTriggers(d_quantEngine,d_quant_rel));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -177,9 +182,9 @@ void InstantiationEngine::checkOwnership(Node q)
 
 void InstantiationEngine::registerQuantifier( Node f ){
   if( d_quantEngine->hasOwnership( f, this ) ){
-    for (unsigned i = 0, nstrat = d_instStrategies.size(); i < nstrat; ++i)
+    if (d_quant_rel)
     {
-      d_instStrategies[i]->registerQuantifier(f);
+      d_quant_rel->registerQuantifier(q);
     }
     //take into account user patterns
     if( f.getNumChildren()==3 ){

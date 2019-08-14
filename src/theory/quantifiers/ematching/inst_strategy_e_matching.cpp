@@ -155,8 +155,8 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
   }
 }
 
-InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe)
-    : InstStrategy(qe), d_quant_rel(nullptr)
+InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe, QuantRelevance* qr)
+    : InstStrategy(qe), d_quant_rel(qr)
 {
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
@@ -167,18 +167,6 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe)
   }else{
     d_regenerate_frequency = 1;
     d_regenerate = false;
-  }
-  if (options::relevantTriggers())
-  {
-    d_quant_rel.reset(new quantifiers::QuantRelevance);
-  }
-}
-
-void InstStrategyAutoGenTriggers::registerQuantifier(Node q)
-{
-  if (d_quant_rel)
-  {
-    d_quant_rel->registerQuantifier(q);
   }
 }
 
