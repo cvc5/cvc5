@@ -137,9 +137,9 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::Model;  // to access d_modelCommands
   friend class ::CVC4::theory::TheoryModel;
 
-/* .......................................................................... */
+  /* .......................................................................  */
  public:
-/* .......................................................................... */
+  /* .......................................................................  */
 
   /** Construct an SmtEngine with the given expression manager.  */
   SmtEngine(ExprManager* em);
@@ -795,9 +795,9 @@ class CVC4_PUBLIC SmtEngine
    */
   void setExpressionName(Expr e, const std::string& name);
 
-/* .......................................................................... */
+  /* .......................................................................  */
  private:
-/* .......................................................................... */
+  /* .......................................................................  */
 
   /** The type of our internal map of defined functions */
   typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
@@ -928,7 +928,7 @@ class CVC4_PUBLIC SmtEngine
    * processAssertionList() then look for inconsistency (based only on
    * that).
    */
-   Result quickCheck();
+  Result quickCheck();
 
   /**
    * Get the model, if it is available and return a pointer to it
