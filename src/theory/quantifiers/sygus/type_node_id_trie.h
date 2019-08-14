@@ -18,7 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__SYGUS__TYPE_NODE_ID_TRIE_H
 
 #include <map>
-#include <vectors>
+#include <vector>
 
 #include "expr/node.h"
 
