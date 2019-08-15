@@ -297,17 +297,8 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   if (!func_vars.empty())
   {
     Node pbvl = nm->mkNode(BOUND_VAR_LIST, func_vars);
-    // mark as quantifier elimination to ensure its structure is preserved
-    Node n_attr =
-        nm->mkSkolem("qe_si",
-                     nm->booleanType(),
-                     "Auxiliary variable for qe attr for single invocation.");
-    QuantElimAttribute qea;
-    n_attr.setAttribute(qea, true);
-    n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
-    n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
     // make the single invocation conjecture
-    d_single_inv = nm->mkNode(FORALL, pbvl, d_single_inv, n_attr);
+    d_single_inv = nm->mkNode(FORALL, pbvl, d_single_inv);
   }
   // now, introduce the skolems
   std::vector<Node> sivars;
@@ -326,6 +317,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
                     << std::endl;
   // check whether we can handle this quantified formula
   CegHandledStatus status = CegInstantiator::isCbqiQuant(d_single_inv);
+  Trace("cegqi-si") << "CegHandledStatus is " << status << std::endl;
   if (status < CEG_HANDLED)
   {
     Trace("cegqi-si") << "...do not invoke single invocation techniques since "
@@ -334,6 +326,20 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
                       << std::endl;
     d_single_invocation = false;
     d_single_inv = Node::null();
+  }
+  // If we succeeded, mark the quantified formula with the quantifier
+  // elimination attribute to ensure its structure is preserved
+  if (!d_single_inv.isNull() && d_single_inv.getKind()==FORALL)
+  {
+    Node n_attr =
+        nm->mkSkolem("qe_si",
+                     nm->booleanType(),
+                     "Auxiliary variable for qe attr for single invocation.");
+    QuantElimAttribute qea;
+    n_attr.setAttribute(qea, true);
+    n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
+    n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
+    d_single_inv = nm->mkNode(FORALL, d_single_inv[0], d_single_inv[1], n_attr);
   }
 }
 bool CegSingleInv::solve()
