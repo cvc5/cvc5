@@ -329,7 +329,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   }
   // If we succeeded, mark the quantified formula with the quantifier
   // elimination attribute to ensure its structure is preserved
-  if (!d_single_inv.isNull() && d_single_inv.getKind()==FORALL)
+  if (!d_single_inv.isNull() && d_single_inv.getKind() == FORALL)
   {
     Node n_attr =
         nm->mkSkolem("qe_si",
