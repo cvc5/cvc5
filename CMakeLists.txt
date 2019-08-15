@@ -502,7 +502,7 @@ configure_package_config_file(
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/CVC4ConfigVersion.cmake
   VERSION ${CVC4_RELEASE_STRING}
-  COMPATIBILITY SameMinorVersion
+  COMPATIBILITY ExactVersion
 )
 
 install(FILES
