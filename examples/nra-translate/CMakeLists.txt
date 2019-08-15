@@ -10,10 +10,8 @@ set(CVC4_EXAMPLES_NRA_TRANSLATE
   smt2toredlog
 )
 
-set(EXAMPLES_NRA_TRANSLATE_LINK_LIBS cvc4 cvc4parser)
 foreach(example ${CVC4_EXAMPLES_NRA_TRANSLATE})
-  cvc4_add_example(${example}
-    "" "${EXAMPLES_NRA_TRANSLATE_LINK_LIBS}" "nra-translate"
+  cvc4_add_example(${example} "" "nra-translate"
     # arguments to binary (for testing)
     # input file is required by all tests
     ${CMAKE_CURRENT_SOURCE_DIR}/nra-translate-example-input.smt2

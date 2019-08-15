@@ -26,10 +26,11 @@
 
 #include <vector>
 
-#include "expr/expr.h"
-#include "expr/expr_iomanip.h"
-#include "options/language.h"
-#include "options/options.h"
+#include <cvc4/cvc4.h>
+#include <cvc4/expr/expr.h>
+#include <cvc4/expr/expr_iomanip.h>
+#include <cvc4/options/language.h>
+#include <cvc4/options/options.h>
 
 using namespace std;
 using namespace hashsmt;
