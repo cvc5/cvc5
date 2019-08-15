@@ -2367,6 +2367,7 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
   : KEYWORD ( simpleSymbolicExprNoKeyword[sexpr] { hasValue = true; } )?
   {
     attr = AntlrInput::tokenText($KEYWORD);
+    // EXPR_MANAGER->setNamedAttribute( expr, attr );
     if(attr == ":rewrite-rule") {
       if(hasValue) {
         std::stringstream ss;
@@ -2462,7 +2463,13 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
       attr = std::string(":named");
-      PARSER_STATE->setNamedAttribute(expr, sexpr);
+      Expr func = PARSER_STATE->setNamedAttribute(expr, sexpr);
+      std::string name = sexpr.getValue();
+      // bind name to expr with define-fun
+      Command* c =
+        new DefineNamedFunctionCommand(name, func, std::vector<Expr>(), expr);
+      c->setMuted(true);
+      PARSER_STATE->preemptCommand(c);
     }
   ;
 

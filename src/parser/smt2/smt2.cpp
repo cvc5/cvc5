@@ -1933,7 +1933,7 @@ Expr Smt2::setNamedAttribute(Expr& expr, const SExpr& sexpr)
   // check that sexpr is a fresh function symbol, and reserve it
   reserveSymbolAtAssertionLevel(name);
   // define it
-  Expr func = mkVar(name, expr.getType());
+  Expr func = mkVar(name, expr.getType(),ExprManager::VAR_FLAG_DEFINED);
   // remember the last term to have been given a :named attribute
   setLastNamedTerm(expr, name);
   return func;
