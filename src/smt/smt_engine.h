@@ -1237,6 +1237,18 @@ class CVC4_PUBLIC SmtEngine
 
   /** Container for the lemma input and output channels for this SmtEngine.*/
   LemmaChannels* d_channels;
+  
+  /*---------------------------- sygus commands  ---------------------------*/
+
+  /**
+   * Set sygus conjecture is stale. This is called when new sygus constraints 
+   * are asserted or when functions-to-synthesize are declared. This function
+   * pops a user context if we are in incremental mode and the sygus conjecture
+   * was previously not stale.
+   */
+  void setSygusConjectureStale();
+
+  /*------------------------- end of sygus commands ------------------------*/
 }; /* class SmtEngine */
 
 /* -------------------------------------------------------------------------- */
