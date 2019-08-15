@@ -517,7 +517,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   std::vector<Node> d_sygusConstraints;
   /** functions-to-synthesize */
   std::vector<Node> d_sygusFunSymbols;
-  /** 
+  /**
    * Whether we need to reconstruct the sygus conjecture.
    */
   CDO<bool> d_sygusConjectureStale;
@@ -3909,13 +3909,12 @@ void SmtEngine::declareSynthFun(const std::string& id,
   doPendingPops();
   Node fn = Node::fromExpr(func);
   d_private->d_sygusFunSymbols.push_back(fn);
-  if( !vars.empty() )
+  if (!vars.empty())
   {
     Expr bvl = d_exprManager->mkExpr(kind::BOUND_VAR_LIST, vars);
     std::vector<Expr> attr_val_bvl;
     attr_val_bvl.push_back(bvl);
-    setUserAttribute(
-        "sygus-synth-fun-var-list", func, attr_val_bvl, "");
+    setUserAttribute("sygus-synth-fun-var-list", func, attr_val_bvl, "");
   }
   // whether sygus type encodes syntax restrictions
   if (sygusType.isDatatype()
@@ -3925,8 +3924,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
     Node sym = d_nodeManager->mkBoundVar("sfproxy", stn);
     std::vector<Expr> attr_value;
     attr_value.push_back(sym.toExpr());
-    setUserAttribute(
-        "sygus-synth-grammar", func, attr_value, "");
+    setUserAttribute("sygus-synth-grammar", func, attr_value, "");
   }
   Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
   // sygus conjecture is now stale
@@ -4038,14 +4036,15 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
 Result SmtEngine::checkSynth()
 {
   SmtScope smts(this);
-  
-  if( options::incrementalSolving() )
+
+  if (options::incrementalSolving())
   {
     // TODO (project #7)
-    throw ModalException("Cannot make check-synth commands when incremental solving is enabled");
+    throw ModalException(
+        "Cannot make check-synth commands when incremental solving is enabled");
   }
-  
-  if( !d_private->d_sygusConjectureStale )
+
+  if (!d_private->d_sygusConjectureStale)
   {
     // do not need to reconstruct, we're done
     return checkSatisfiability(Expr(), true, false);
@@ -4089,16 +4088,16 @@ Result SmtEngine::checkSynth()
   Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
 
   d_private->d_sygusConjectureStale = false;
-  
-  if( options::incrementalSolving() )
+
+  if (options::incrementalSolving())
   {
     // we push a context so that this conjecture is removed if we modify it
     // later
     internalPush();
-    assertFormula(body.toExpr(),true);
-    return checkSatisfiability(body.toExpr(),true,false);
+    assertFormula(body.toExpr(), true);
+    return checkSatisfiability(body.toExpr(), true, false);
   }
-  
+
   return checkSatisfiability(body.toExpr(), true, false);
 }
 
@@ -5656,13 +5655,13 @@ void SmtEngine::setExpressionName(Expr e, const std::string& name) {
 
 void SmtEngine::setSygusConjectureStale()
 {
-  if( d_private->d_sygusConjectureStale )
+  if (d_private->d_sygusConjectureStale)
   {
     // already stale
     return;
   }
   d_private->d_sygusConjectureStale = true;
-  if( options::incrementalSolving() )
+  if (options::incrementalSolving())
   {
     internalPop();
   }
