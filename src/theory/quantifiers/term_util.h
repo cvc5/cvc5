@@ -164,12 +164,8 @@ public:
   
 private:
   /** get bound vars */
-  static void getBoundVars2( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
-  /** get bound vars */
   static Node getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited );
 public:
-  //get the bound variables in this node
-  static void getBoundVars( Node n, std::vector< Node >& vars );
   //remove quantifiers
   static Node getRemoveQuantifiers( Node n );
   //quantified simplify (treat free variables in n as quantified and run rewriter)

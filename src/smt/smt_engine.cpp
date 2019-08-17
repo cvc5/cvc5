@@ -1321,14 +1321,6 @@ void SmtEngine::setDefaults() {
       options::unconstrainedSimp.set(uncSimp);
     }
   }
-  if (!options::proof())
-  {
-    // minimizing solutions from single invocation requires proofs
-    if (options::cegqiSolMinCore() && options::cegqiSolMinCore.wasSetByUser())
-    {
-      throw OptionException("cegqi-si-sol-min-core requires --proof");
-    }
-  }
 
   // Disable options incompatible with unsat cores and proofs or output an
   // error if enabled explicitly
@@ -1804,8 +1796,12 @@ void SmtEngine::setDefaults() {
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
     options::cbqi.set(false);
   }
-  //track instantiations?
-  if( options::cbqiNestedQE() || ( options::proof() && !options::trackInstLemmas.wasSetByUser() ) ){
+  // Do we need to track instantiations?
+  // Needed for sygus due to single invocation techniques.
+  if (options::cbqiNestedQE()
+      || (options::proof() && !options::trackInstLemmas.wasSetByUser())
+      || is_sygus)
+  {
     options::trackInstLemmas.set( true );
   }
 
@@ -2442,12 +2438,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
     }
     return SExpr(stats);
   } else if(key == "error-behavior") {
-    // immediate-exit | continued-execution
-    if( options::continuedExecution() || options::interactive() ) {
-      return SExpr(SExpr::Keyword("continued-execution"));
-    } else {
-      return SExpr(SExpr::Keyword("immediate-exit"));
-    }
+    return SExpr(SExpr::Keyword("immediate-exit"));
   } else if(key == "name") {
     return SExpr(Configuration::getName());
   } else if(key == "version") {

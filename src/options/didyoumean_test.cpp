@@ -734,7 +734,6 @@ set<string> getOptionStrings() {
       "incremental-parallel",
       "no-incremental-parallel",
       "no-interactive-prompt",
-      "continued-execution",
       "immediate-exit",
       "segv-spin",
       "no-segv-spin",
