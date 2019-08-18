@@ -482,8 +482,18 @@ public:
            uint32_t flags = ExprManager::VAR_FLAG_NONE, 
            bool doOverload = false);
 
-  /** Create a new CVC4 bound variable expression of the given type. */
+  /**
+   * Create a new CVC4 bound variable expression of the given type. This binds
+   * the symbol name to that variable in the current scope.
+   */
   Expr mkBoundVar(const std::string& name, const Type& type);
+  /**
+   * Create a new CVC4 bound variable expressions of the given names and types.
+   * Like the method above, this binds these names to those variables in the
+   * current scope.
+   */
+  std::vector<Expr> mkBoundVars(
+      std::vector<std::pair<std::string, Type> >& sortedVarNames);
 
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.

@@ -881,7 +881,8 @@ void TheoryStrings::check(Effort e) {
   }
 
   // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
-  Trace("strings-check") << "Theory of strings, check : " << e << std::endl;
+  Trace("strings-check-debug")
+      << "Theory of strings, check : " << e << std::endl;
   while ( !done() && !d_conflict ) {
     // Get all the assertions
     Assertion assertion = get();
@@ -901,8 +902,8 @@ void TheoryStrings::check(Effort e) {
       d_strat_steps.find(e);
   if (!d_conflict && !d_valuation.needCheck() && itsr != d_strat_steps.end())
   {
-    Trace("strings-check") << "Theory of strings " << e << " effort check "
-                           << std::endl;
+    Trace("strings-check-debug")
+        << "Theory of strings " << e << " effort check " << std::endl;
     if(Trace.isOn("strings-eqc")) {
       for( unsigned t=0; t<2; t++ ) {
         eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator( &d_equalityEngine );
@@ -937,17 +938,29 @@ void TheoryStrings::check(Effort e) {
     unsigned send = itsr->second.second;
     bool addedLemma = false;
     bool addedFact;
+    Trace("strings-check") << "Full effort check..." << std::endl;
     do{
+      Trace("strings-check") << "  * Run strategy..." << std::endl;
       runStrategy(sbegin, send);
       // flush the facts
       addedFact = d_im.hasPendingFact();
       addedLemma = d_im.hasPendingLemma();
       d_im.doPendingFacts();
       d_im.doPendingLemmas();
+      if (Trace.isOn("strings-check"))
+      {
+        Trace("strings-check") << "  ...finish run strategy: ";
+        Trace("strings-check") << (addedFact ? "addedFact " : "");
+        Trace("strings-check") << (addedLemma ? "addedLemma " : "");
+        Trace("strings-check") << (d_conflict ? "conflict " : "");
+        if (!addedFact && !addedLemma && !d_conflict)
+        {
+          Trace("strings-check") << "(none)";
+        }
+        Trace("strings-check") << std::endl;
+      }
       // repeat if we did not add a lemma or conflict
     }while( !d_conflict && !addedLemma && addedFact );
-
-    Trace("strings-check") << "Theory of strings done full effort check " << addedLemma << " " << d_conflict << std::endl;
   }
   Trace("strings-check") << "Theory of strings, done check : " << e << std::endl;
   Assert(!d_im.hasPendingFact());
@@ -1556,7 +1569,12 @@ void TheoryStrings::checkExtfEval( int effort ) {
           //    x = "" => str.replace( x, x, x ) == ""
           //    y = "" => str.replace( y, y, y ) == ""
           Trace("strings-extf-debug") << "  get symbolic definition..." << std::endl;
-          Node nrs = getSymbolicDefinition( sn, exps );
+          Node nrs;
+          // only use symbolic definitions if option is set
+          if (options::stringInferSym())
+          {
+            nrs = getSymbolicDefinition(sn, exps);
+          }
           if( !nrs.isNull() ){
             Trace("strings-extf-debug") << "  rewrite " << nrs << "..." << std::endl;
             Node nrsr = Rewriter::rewrite(nrs);
