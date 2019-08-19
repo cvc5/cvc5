@@ -130,7 +130,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         bool flag = true;
         Node x = atom[0];
         Node r = atom[1];
-        Assert(rep == d_parent.getRepresentative(x));
+        Assert(rep == d_state.getRepresentative(x));
         // The following code takes normal forms into account for the purposes
         // of simplifying a regular expression membership x in R. For example,
         // if x = "A" in the current context, then we may be interested in
