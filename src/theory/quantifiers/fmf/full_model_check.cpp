@@ -22,6 +22,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_rep_bound_ext.h"
 
 using namespace std;
 using namespace CVC4;
