@@ -3084,33 +3084,58 @@ Term Solver::simplify(const Term& t)
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(t);
+
   return d_smtEngine->simplify(*t.d_expr);
+
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Result Solver::checkValid(void) const
 {
-  // CHECK:
-  // if d_queryMade -> incremental enabled
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(!d_smtEngine->isQueryMade()
+                 || d_smtEngine->getOption("incremental").toString() == "true")
+      << "Cannot make multiple queries unless incremental solving is enabled "
+         "(try --incremental)";
+
   CVC4::Result r = d_smtEngine->query();
   return Result(r);
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Result Solver::checkValidAssuming(Term assumption) const
 {
-  // CHECK:
-  // if assumptions.size() > 0:  incremental enabled?
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(!d_smtEngine->isQueryMade()
+                 || d_smtEngine->getOption("incremental").toString() == "true")
+      << "Cannot make multiple queries unless incremental solving is enabled "
+         "(try --incremental)";
+  CVC4_API_ARG_CHECK_NOT_NULL(assumption);
+
   CVC4::Result r = d_smtEngine->query(*assumption.d_expr);
   return Result(r);
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const
 {
-  // CHECK:
-  // if assumptions.size() > 0:  incremental enabled?
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(!d_smtEngine->isQueryMade()
+                 || d_smtEngine->getOption("incremental").toString() == "true")
+      << "Cannot make multiple queries unless incremental solving is enabled "
+         "(try --incremental)";
+  for (const Term& assumption : assumptions)
+  {
+    CVC4_API_ARG_CHECK_NOT_NULL(assumption);
+  }
+
   std::vector<Expr> eassumptions = termVectorToExprs(assumptions);
   CVC4::Result r = d_smtEngine->query(eassumptions);
   return Result(r);
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 /* SMT-LIB commands                                                           */
