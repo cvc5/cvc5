@@ -368,34 +368,44 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
   for( unsigned i=0; i<vars.size(); i++ ){
     Node n = vars[i];
     Trace("strings-subs") << "  get subs for " << n << "..." << std::endl;
-    Node s = getCurrentSubstitutionFor(effort,n, exp[n]);
+    Node s = getCurrentSubstitutionFor(effort, n, exp[n]);
     subs.push_back(s);
   }
   return true;
 }
 
-Node TheoryStrings::getCurrentSubstitutionFor( int effort, Node n, std::vector< Node >& exp )
+Node TheoryStrings::getCurrentSubstitutionFor(int effort,
+                                              Node n,
+                                              std::vector<Node>& exp)
 {
-  if( effort>=3 ){
-    //model values
-    Node mv = d_valuation.getModel()->getRepresentative( n );
+  if (effort >= 3)
+  {
+    // model values
+    Node mv = d_valuation.getModel()->getRepresentative(n);
     Trace("strings-subs") << "   model val : " << mv << std::endl;
     return mv;
   }
-  Node nr = getRepresentative( n );
-  std::map< Node, Node >::iterator itc = d_eqc_to_const.find( nr );
-  if( itc!=d_eqc_to_const.end() ){
-    //constant equivalence classes
-    Trace("strings-subs") << "   constant eqc : " << d_eqc_to_const_exp[nr] << " " << d_eqc_to_const_base[nr] << " " << nr << std::endl;
-    if( !d_eqc_to_const_exp[nr].isNull() ){
-      exp.push_back( d_eqc_to_const_exp[nr] );
+  Node nr = getRepresentative(n);
+  std::map<Node, Node>::iterator itc = d_eqc_to_const.find(nr);
+  if (itc != d_eqc_to_const.end())
+  {
+    // constant equivalence classes
+    Trace("strings-subs") << "   constant eqc : " << d_eqc_to_const_exp[nr]
+                          << " " << d_eqc_to_const_base[nr] << " " << nr
+                          << std::endl;
+    if (!d_eqc_to_const_exp[nr].isNull())
+    {
+      exp.push_back(d_eqc_to_const_exp[nr]);
     }
-    if( !d_eqc_to_const_base[nr].isNull() ){
-      addToExplanation( n, d_eqc_to_const_base[nr], exp );
+    if (!d_eqc_to_const_base[nr].isNull())
+    {
+      addToExplanation(n, d_eqc_to_const_base[nr], exp);
     }
     return itc->second;
-  }else if( effort>=1 && effort<3 && n.getType().isString() ){
-    //normal forms
+  }
+  else if (effort >= 1 && effort < 3 && n.getType().isString())
+  {
+    // normal forms
     NormalForm& nfnr = getNormalForm(nr);
     Node ns = getNormalString(nfnr.d_base, exp);
     Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base
@@ -1589,7 +1599,9 @@ void TheoryStrings::checkInit() {
                   getExtTheory()->markCongruent( nc, n );
                 }
                 //this node is congruent to another one, we can ignore it
-                Trace("strings-process-debug") << "  congruent term : " << n << " (via " << nc << ")" << std::endl;
+                Trace("strings-process-debug")
+                    << "  congruent term : " << n << " (via " << nc << ")"
+                    << std::endl;
                 d_congruent.insert( n );
                 congruent[k]++;
               }else if( k==kind::STRING_CONCAT && c.size()==1 ){
@@ -1746,10 +1758,11 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
 void TheoryStrings::checkExtfEval( int effort ) {
   Trace("strings-extf-list") << "Active extended functions, effort=" << effort << " : " << std::endl;
   d_extf_info_tmp.clear();
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   bool has_nreduce = false;
   std::vector< Node > terms = getExtTheory()->getActive();
-  for( const Node& n : terms ){
+  for (const Node& n : terms)
+  {
     //setup information about extf
     ExtfInfoTmp& einfo = d_extf_info_tmp[n];
     Node r = getRepresentative(n);
@@ -1759,22 +1772,24 @@ void TheoryStrings::checkExtfEval( int effort ) {
       einfo.d_const = itcit->second;
     }
     // get the current value of its children
-    std::vector< Node > exp;
-    std::vector< Node > schildren;
+    std::vector<Node> exp;
+    std::vector<Node> schildren;
     bool schanged = false;
-    for( const Node& nc : n )
+    for (const Node& nc : n)
     {
-      Node sc = getCurrentSubstitutionFor(effort,nc,exp);
+      Node sc = getCurrentSubstitutionFor(effort, nc, exp);
       schildren.push_back(sc);
-      schanged = schanged || sc!=nc;
+      schanged = schanged || sc != nc;
     }
-    //if there is information involving the children, do the inference
+    // if there is information involving the children, do the inference
     Node to_reduce;
-    if( schanged ){
-      Node sn = nm->mkNode(n.getKind(),schildren);
-      Trace("strings-extf-debug") << "Check extf " << n << " == " << sn
-                                  << ", constant = " << einfo.d_const
-                                  << ", effort=" << effort << "..." << std::endl;
+    if (schanged)
+    {
+      Node sn = nm->mkNode(n.getKind(), schildren);
+      Trace("strings-extf-debug")
+          << "Check extf " << n << " == " << sn
+          << ", constant = " << einfo.d_const << ", effort=" << effort << "..."
+          << std::endl;
       einfo.d_exp.insert(einfo.d_exp.end(), exp.begin(), exp.end());
       // inference is rewriting the substituted node
       Node nrc = Rewriter::rewrite( sn );
@@ -1883,7 +1898,9 @@ void TheoryStrings::checkExtfEval( int effort ) {
         }
         to_reduce = nrc;
       }
-    }else{
+    }
+    else
+    {
       to_reduce = n;
     }
     //if not reduced
