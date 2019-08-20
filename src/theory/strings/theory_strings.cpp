@@ -1763,7 +1763,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
   std::vector< Node > terms = getExtTheory()->getActive();
   for (const Node& n : terms)
   {
-    //setup information about extf
+    // Setup information about n, including if it is equal to a constant.
     ExtfInfoTmp& einfo = d_extf_info_tmp[n];
     Node r = getRepresentative(n);
     std::map<Node, Node>::iterator itcit = d_eqc_to_const.find(r);
@@ -1771,7 +1771,19 @@ void TheoryStrings::checkExtfEval( int effort ) {
     {
       einfo.d_const = itcit->second;
     }
-    // get the current value of its children
+    // Get the current values of the children of n.
+    // Notice that we look up the value of the direct children of n, and not
+    // their free variables. In other words, given a term:
+    //   t = (str.replace "B" (str.replace x "A" "B") "C")
+    // we may build the explanation that:
+    //   ((str.replace x "A" "B") = "B") => t = (str.replace "B" "B" "C")
+    // instead of basing this on the free variable x:
+    //   (x = "A") => t = (str.replace "B" (str.replace "A" "A" "B") "C")
+    // Although both allow us to infer t = "C", it is important to use the
+    // first kind of inference since it ensures that its subterms have the
+    // expected values. Otherwise, we may in rare cases fail to realize that
+    // the subterm (str.replace x "A" "B") does not currently have the correct
+    // value, say in this example that (str.replace x "A" "B") != "B".
     std::vector<Node> exp;
     std::vector<Node> schildren;
     bool schanged = false;
@@ -1781,7 +1793,8 @@ void TheoryStrings::checkExtfEval( int effort ) {
       schildren.push_back(sc);
       schanged = schanged || sc != nc;
     }
-    // if there is information involving the children, do the inference
+    // If there is information involving the children, attempt to do an
+    // inference and/or mark n as reduced.
     Node to_reduce;
     if (schanged)
     {
