@@ -261,6 +261,10 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     Node bvl = nm->mkNode(BOUND_VAR_LIST, qvars);
     body = nm->mkNode(EXISTS, bvl, body.negate());
   }
+  else
+  {
+    body = body.negate();
+  }
 
   // sygus attribute to mark the conjecture as a sygus conjecture
   Trace("sygus-infer") << "Make outer sygus conjecture..." << std::endl;
