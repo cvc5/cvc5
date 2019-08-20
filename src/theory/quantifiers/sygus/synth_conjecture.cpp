@@ -1160,7 +1160,7 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
     }
     // store in map
     Node fvar = d_quant[0][i];
-    Assert(fvar.getType() == bsol.getType());
+    Assert(fvar.getType().isComparableTo(bsol.getType()));
     sol_map[fvar] = bsol;
   }
 }
