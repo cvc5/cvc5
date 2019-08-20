@@ -457,9 +457,11 @@ Node CegSingleInv::getSolution(unsigned sol_index,
   Node prog = d_quant[0][sol_index];
   std::vector< Node > vars;
   Node s;
-  // If it is unconstrained: either the variable does not appear in the 
+  // If it is unconstrained: either the variable does not appear in the
   // conjecture or the conjecture can be solved without a single instantiation.
-  if( d_prog_to_sol_index.find( prog )==d_prog_to_sol_index.end() || d_inst.empty() ){
+  if (d_prog_to_sol_index.find(prog) == d_prog_to_sol_index.end()
+      || d_inst.empty())
+  {
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
     s = d_qe->getTermEnumeration()->getEnumerateTerm(
         TypeNode::fromType(dt.getSygusType()), 0);
