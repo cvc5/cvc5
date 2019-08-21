@@ -436,30 +436,11 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   NodeManager* nm = NodeManager::currentNM();
 
   // check the side condition
-  Node sc;
-  if (!d_embedSideCondition.isNull() && constructed_cand)
+  if (!checkSideCondition(candidate_values) )
   {
-    sc = d_embedSideCondition.substitute(d_candidates.begin(),
-                                         d_candidates.end(),
-                                         candidate_values.begin(),
-                                         candidate_values.end());
-    sc = Rewriter::rewrite(sc);
-    Trace("cegqi-engine") << "Check side condition..." << std::endl;
-    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
-    SmtEngine scSmt(nm->toExprManager());
-    scSmt.setIsInternalSubsolver();
-    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-    scSmt.assertFormula(sc.toExpr());
-    Result r = scSmt.checkSat();
-    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
-    if (r == Result::UNSAT)
-    {
-      // exclude the current solution TODO
-      excludeCurrentSolution(terms, candidate_values);
-      Trace("cegqi-engine") << "...failed side condition" << std::endl;
-      return false;
-    }
-    Trace("cegqi-engine") << "...passed side condition" << std::endl;
+    excludeCurrentSolution(terms, candidate_values);
+    Trace("cegqi-engine") << "...failed side condition" << std::endl;
+    return false;
   }
 
   // must get a counterexample to the value of the current candidate
@@ -634,6 +615,32 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
   lem = getStreamGuardedLemma(lem);
   lems.push_back(lem);
+  return true;
+}
+
+bool SynthConjecture::checkSideCondition( const std::vector< Node >& cvals ) const
+{
+  if (!d_embedSideCondition.isNull() && constructed_cand)
+  {
+    Node sc = d_embedSideCondition.substitute(d_candidates.begin(),
+                                         d_candidates.end(),
+                                         cvals.begin(),
+                                         cvals.end());
+    sc = Rewriter::rewrite(sc);
+    Trace("cegqi-engine") << "Check side condition..." << std::endl;
+    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
+    SmtEngine scSmt(nm->toExprManager());
+    scSmt.setIsInternalSubsolver();
+    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
+    scSmt.assertFormula(sc.toExpr());
+    Result r = scSmt.checkSat();
+    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
+    if (r == Result::UNSAT)
+    {
+      return false;
+    }
+    Trace("cegqi-engine") << "...passed side condition" << std::endl;
+  }
   return true;
 }
 

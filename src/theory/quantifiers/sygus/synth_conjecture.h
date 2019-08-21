@@ -154,6 +154,13 @@ class SynthConjecture
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
   void debugPrint(const char* c);
+  /** check side condition
+   * 
+   * This returns false if the solution { d_candidates -> cvals } does not
+   * satisfy the side condition of the conjecture maintained by this class,
+   * if it exists, and true otherwise.
+   */
+  bool checkSideCondition(const std::vector< Node >& candidateValues ) const;
 
  private:
   /** reference to quantifier engine */
