@@ -436,11 +436,14 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   NodeManager* nm = NodeManager::currentNM();
 
   // check the side condition
-  if (!checkSideCondition(candidate_values))
+  if (constructed_cand)
   {
-    excludeCurrentSolution(terms, candidate_values);
-    Trace("cegqi-engine") << "...failed side condition" << std::endl;
-    return false;
+    if (!checkSideCondition(candidate_values))
+    {
+      excludeCurrentSolution(terms, candidate_values);
+      Trace("cegqi-engine") << "...failed side condition" << std::endl;
+      return false;
+    }
   }
 
   // must get a counterexample to the value of the current candidate
@@ -627,6 +630,7 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
     sc = Rewriter::rewrite(sc);
     Trace("cegqi-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
+    NodeManager* nm = NodeManager::currentNM();
     SmtEngine scSmt(nm->toExprManager());
     scSmt.setIsInternalSubsolver();
     scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
