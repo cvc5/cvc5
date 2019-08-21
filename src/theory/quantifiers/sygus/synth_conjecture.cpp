@@ -623,7 +623,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
 
 bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
 {
-  if (!d_embedSideCondition.isNull() && constructed_cand)
+  if (!d_embedSideCondition.isNull())
   {
     Node sc = d_embedSideCondition.substitute(
         d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
