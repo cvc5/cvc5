@@ -299,6 +299,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
   Assert(d_master != nullptr);
 
+  // get the list of terms that the master strategy is interested in
+  std::vector<Node> terms;
+  d_master->getTermList(d_candidates, terms);
+
   // process the sygus streaming guard
   if (options::sygusStream())
   {
@@ -307,16 +311,15 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     Node currGuard = getCurrentStreamGuard();
     if (currGuard != d_current_stream_guard)
     {
+      std::vector<Node> vals;
+      std::vector<int> status;
+      getSynthSolutionsInternal(vals, status);
       // we have a new guard, print and continue the stream
-      printAndContinueStream();
+      printAndContinueStream(terms, vals);
       d_current_stream_guard = currGuard;
       return true;
     }
   }
-
-  // get the list of terms that the master strategy is interested in
-  std::vector<Node> terms;
-  d_master->getTermList(d_candidates, terms);
 
   Assert(!d_candidates.empty());
 
@@ -328,7 +331,9 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   // If a module is not trying to repair constants in solutions and the option
   // sygusRepairConst  is true, we use a default scheme for trying to repair
   // constants here.
-  if (options::sygusRepairConst() && !d_master->usingRepairConst())
+  bool doRepairConst =
+      options::sygusRepairConst() && !d_master->usingRepairConst();
+  if (doRepairConst)
   {
     // have we tried to repair the previous solution?
     // if not, call the repair constant utility
@@ -430,6 +435,33 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
 
   NodeManager* nm = NodeManager::currentNM();
 
+  // check the side condition
+  Node sc;
+  if (!d_embedSideCondition.isNull() && constructed_cand)
+  {
+    sc = d_embedSideCondition.substitute(d_candidates.begin(),
+                                         d_candidates.end(),
+                                         candidate_values.begin(),
+                                         candidate_values.end());
+    sc = Rewriter::rewrite(sc);
+    Trace("cegqi-engine") << "Check side condition..." << std::endl;
+    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
+    SmtEngine scSmt(nm->toExprManager());
+    scSmt.setIsInternalSubsolver();
+    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
+    scSmt.assertFormula(sc.toExpr());
+    Result r = scSmt.checkSat();
+    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
+    if (r == Result::UNSAT)
+    {
+      // exclude the current solution TODO
+      excludeCurrentSolution(terms, candidate_values);
+      Trace("cegqi-engine") << "...failed side condition" << std::endl;
+      return false;
+    }
+    Trace("cegqi-engine") << "...passed side condition" << std::endl;
+  }
+
   // must get a counterexample to the value of the current candidate
   Node inst;
   if (constructed_cand)
@@ -528,33 +560,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   // this is used for remembering the solution
   recordInstantiation(candidate_values);
 
-  // check the side condition
-  Node sc;
-  if (!d_embedSideCondition.isNull() && constructed_cand)
-  {
-    sc = d_embedSideCondition.substitute(d_candidates.begin(),
-                                         d_candidates.end(),
-                                         candidate_values.begin(),
-                                         candidate_values.end());
-    sc = Rewriter::rewrite(sc);
-    Trace("cegqi-engine") << "Check side condition..." << std::endl;
-    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
-    SmtEngine scSmt(nm->toExprManager());
-    scSmt.setIsInternalSubsolver();
-    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-    scSmt.assertFormula(sc.toExpr());
-    Result r = scSmt.checkSat();
-    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
-    if (r == Result::UNSAT)
-    {
-      // exclude the current solution TODO
-      excludeCurrentSolution();
-      Trace("cegqi-engine") << "...failed side condition" << std::endl;
-      return false;
-    }
-    Trace("cegqi-engine") << "...passed side condition" << std::endl;
-  }
-
   Node query = lem;
   bool success = false;
   if (query.isConst() && !query.getConst<bool>())
@@ -622,7 +627,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       // if we were successful, we immediately print the current solution.
       // this saves us from introducing a verification lemma and a new guard.
-      printAndContinueStream();
+      printAndContinueStream(terms, candidate_values);
       return false;
     }
     d_hasSolution = true;
@@ -954,7 +959,8 @@ Node SynthConjecture::SygusStreamDecisionStrategy::mkLiteral(unsigned i)
   return curr_stream_guard;
 }
 
-void SynthConjecture::printAndContinueStream()
+void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
+                                             const std::vector<Node>& values)
 {
   Assert(d_master != nullptr);
   // we have generated a solution, print it
@@ -962,10 +968,11 @@ void SynthConjecture::printAndContinueStream()
   // this output stream should coincide with wherever --dump-synth is output on
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
   printSynthSolution(*nodeManagerOptions.getOut());
-  excludeCurrentSolution();
+  excludeCurrentSolution(enums, values);
 }
 
-void SynthConjecture::excludeCurrentSolution()
+void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
+                                             const std::vector<Node>& values)
 {
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
@@ -975,21 +982,16 @@ void SynthConjecture::excludeCurrentSolution()
   // However, we need to exclude the current solution using an explicit
   // blocking clause, so that we proceed to the next solution. We do this only
   // for passively-generated enumerators (TermDbSygus::isPassiveEnumerator).
-  std::vector<Node> terms;
-  d_master->getTermList(d_candidates, terms);
   std::vector<Node> exp;
-  for (const Node& cprog : terms)
+  for (unsigned i = 0, tsize = enums.size(); i < tsize; i++)
   {
+    Node cprog = enums[i];
     Assert(d_tds->isEnumerator(cprog));
     if (d_tds->isPassiveEnumerator(cprog))
     {
-      Node sol = cprog;
-      if (!d_cinfo[cprog].d_inst.empty())
-      {
-        sol = d_cinfo[cprog].d_inst.back();
-        // add to explanation of exclusion
-        d_tds->getExplain()->getExplanationForEquality(cprog, sol, exp);
-      }
+      Node cval = values[i];
+      // add to explanation of exclusion
+      d_tds->getExplain()->getExplanationForEquality(cprog, cval, exp);
     }
   }
   if (!exp.empty())
