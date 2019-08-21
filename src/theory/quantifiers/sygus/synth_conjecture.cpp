@@ -436,7 +436,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   NodeManager* nm = NodeManager::currentNM();
 
   // check the side condition
-  if (!checkSideCondition(candidate_values) )
+  if (!checkSideCondition(candidate_values))
   {
     excludeCurrentSolution(terms, candidate_values);
     Trace("cegqi-engine") << "...failed side condition" << std::endl;
@@ -618,14 +618,12 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   return true;
 }
 
-bool SynthConjecture::checkSideCondition( const std::vector< Node >& cvals ) const
+bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
 {
   if (!d_embedSideCondition.isNull() && constructed_cand)
   {
-    Node sc = d_embedSideCondition.substitute(d_candidates.begin(),
-                                         d_candidates.end(),
-                                         cvals.begin(),
-                                         cvals.end());
+    Node sc = d_embedSideCondition.substitute(
+        d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
     sc = Rewriter::rewrite(sc);
     Trace("cegqi-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
