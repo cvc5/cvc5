@@ -160,7 +160,7 @@ class SynthConjecture
    * satisfy the side condition of the conjecture maintained by this class,
    * if it exists, and true otherwise.
    */
-  bool checkSideCondition(const std::vector<Node>& candidateValues) const;
+  bool checkSideCondition(const std::vector<Node>& cvals) const;
 
  private:
   /** reference to quantifier engine */
