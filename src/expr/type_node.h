@@ -430,7 +430,7 @@ public:
 
   /**
    * Is this type interpreted as finite.
-   * If finite model finding is enabled, this assumes all uninterpreted sorts 
+   * If finite model finding is enabled, this assumes all uninterpreted sorts
    *   are interpreted as finite.
    */
   bool isInterpretedFinite();
@@ -671,14 +671,14 @@ public:
   static Node getEnsureTypeCondition( Node n, TypeNode tn );
 private:
   static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
-  
+
   /**
    * Is this type interpreted as finite.
-   * If the flag usortFinite is true, this assumes all uninterpreted sorts 
+   * If the flag usortFinite is true, this assumes all uninterpreted sorts
    *   are interpreted as finite.
    */
   bool isFiniteInternal(bool usortFinite);
-  
+
   /**
    * Indents the given stream a given amount of spaces.
    *

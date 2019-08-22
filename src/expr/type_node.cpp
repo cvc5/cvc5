@@ -91,7 +91,7 @@ bool TypeNode::isFinite()
   // FIXME
   // return isInterpretedFinite();
   return !getCardinality().isInfinite();
-  //return isFiniteInternal(false);
+  // return isFiniteInternal(false);
 }
 
 bool TypeNode::isInterpretedFinite()
@@ -102,7 +102,7 @@ bool TypeNode::isInterpretedFinite()
 bool TypeNode::isFiniteInternal(bool usortFinite)
 {
   // check it is already cached
-  if( usortFinite )
+  if (usortFinite)
   {
     if (getAttribute(IsInterpretedFiniteComputedAttr()))
     {
@@ -130,7 +130,8 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     TypeNode tn = *this;
     const Datatype& dt = getDatatype();
-    ret = usortFinite ? dt.isInterpretedFinite(tn.toType()) : dt.isFinite(tn.toType());
+    ret = usortFinite ? dt.isInterpretedFinite(tn.toType())
+                      : dt.isFinite(tn.toType());
   }
   else if (isArray())
   {
