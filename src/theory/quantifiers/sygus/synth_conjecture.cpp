@@ -46,6 +46,7 @@ namespace quantifiers {
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe)
     : d_qe(qe),
       d_tds(qe->getTermDatabaseSygus()),
+      d_hasSolution(false, qe->getUserContext()),
       d_ceg_si(new CegSingleInv(qe, this)),
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
@@ -71,6 +72,12 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe)
 }
 
 SynthConjecture::~SynthConjecture() {}
+
+void SynthConjecture::presolve()
+{
+  // we don't have a solution yet
+  d_hasSolution = false;
+}
 
 void SynthConjecture::assign(Node q)
 {
@@ -216,22 +223,6 @@ void SynthConjecture::assign(Node q)
   // has been used on this call to check.
   d_qe->getOutputChannel().requirePhase(d_feasible_guard, true);
 
-  if (isSingleInvocation())
-  {
-    std::vector<Node> lems;
-    d_ceg_si->getInitialSingleInvLemma(d_feasible_guard, lems);
-    for (unsigned i = 0; i < lems.size(); i++)
-    {
-      Trace("cegqi-lemma") << "Cegqi::Lemma : single invocation " << i << " : "
-                           << lems[i] << std::endl;
-      d_qe->getOutputChannel().lemma(lems[i]);
-      if (Trace.isOn("cegqi-debug"))
-      {
-        Node rlem = Rewriter::rewrite(lems[i]);
-        Trace("cegqi-debug") << "...rewritten : " << rlem << std::endl;
-      }
-    }
-  }
   Node gneg = d_feasible_guard.negate();
   for (unsigned i = 0; i < guarded_lemmas.size(); i++)
   {
@@ -288,17 +279,24 @@ bool SynthConjecture::needsCheck()
   return true;
 }
 
-void SynthConjecture::doSingleInvCheck(std::vector<Node>& lems)
-{
-  if (d_ceg_si != NULL)
-  {
-    d_ceg_si->check(lems);
-  }
-}
-
 bool SynthConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
 bool SynthConjecture::doCheck(std::vector<Node>& lems)
 {
+  if (isSingleInvocation())
+  {
+    // We now try to solve with the single invocation solver, which may or may
+    // not succeed in solving the conjecture. In either case,  we are done and
+    // return true.
+    if (d_ceg_si->solve())
+    {
+      d_hasSolution = true;
+      // the conjecture has a solution, so its negation holds
+      Node lem = d_quant.negate();
+      lem = getStreamGuardedLemma(lem);
+      lems.push_back(lem);
+    }
+    return true;
+  }
   Assert(d_master != nullptr);
 
   // process the sygus streaming guard
@@ -618,12 +616,16 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // free logic is undecidable.
     }
   }
-  if (success && options::sygusStream())
+  if (success)
   {
-    // if we were successful, we immediately print the current solution.
-    // this saves us from introducing a verification lemma and a new guard.
-    printAndContinueStream();
-    return false;
+    if (options::sygusStream())
+    {
+      // if we were successful, we immediately print the current solution.
+      // this saves us from introducing a verification lemma and a new guard.
+      printAndContinueStream();
+      return false;
+    }
+    d_hasSolution = true;
   }
   lem = getStreamGuardedLemma(lem);
   lems.push_back(lem);
@@ -1017,6 +1019,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
   {
     return;
   }
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
@@ -1081,13 +1084,35 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
       if (is_unique_term)
       {
         out << "(define-fun " << f << " ";
-        if (dt.getSygusVarList().isNull())
+        // Only include variables that are truly bound variables of the
+        // function-to-synthesize. This means we exclude variables that encode
+        // external terms. This ensures that --sygus-stream prints
+        // solutions with no arguments on the predicate for responses to
+        // the get-abduct command.
+        // pvs stores the variables that will be printed in the argument list
+        // below.
+        std::vector<Node> pvs;
+        Node vl = Node::fromExpr(dt.getSygusVarList());
+        if (!vl.isNull())
+        {
+          Assert(vl.getKind() == BOUND_VAR_LIST);
+          SygusVarToTermAttribute sta;
+          for (const Node& v : vl)
+          {
+            if (!v.hasAttribute(sta))
+            {
+              pvs.push_back(v);
+            }
+          }
+        }
+        if (pvs.empty())
         {
           out << "() ";
         }
         else
         {
-          out << dt.getSygusVarList() << " ";
+          vl = nm->mkNode(BOUND_VAR_LIST, pvs);
+          out << vl << " ";
         }
         out << dt.getSygusType() << " ";
         if (status == 0)
@@ -1135,7 +1160,7 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
     }
     // store in map
     Node fvar = d_quant[0][i];
-    Assert(fvar.getType() == bsol.getType());
+    Assert(fvar.getType().isComparableTo(bsol.getType()));
     sol_map[fvar] = bsol;
   }
 }

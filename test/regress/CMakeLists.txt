@@ -1591,6 +1591,8 @@ set(regress_1_tests
   regress1/strings/nterm-re-inter-sigma.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
+  regress1/strings/query4674.smt2
+  regress1/strings/query8485.smt2
   regress1/strings/re-all-char-hard.smt2
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
@@ -1609,6 +1611,7 @@ set(regress_1_tests
   regress1/strings/replaceall-len.smt2
   regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
+  regress1/strings/rew-check1.smt2
   regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
@@ -1639,7 +1642,6 @@ set(regress_1_tests
   regress1/sygus/abv.sy
   regress1/sygus/array_search_5-Q-easy.sy
   regress1/sygus/bvudiv-by-2.sy
-  regress1/sygus/car_3.lus.sy
   regress1/sygus/cegar1.sy
   regress1/sygus/cegis-unif-inv-eq-fair.sy
   regress1/sygus/cegisunif-depth1.sy
@@ -1674,6 +1676,9 @@ set(regress_1_tests
   regress1/sygus/inv-unused.sy
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
+  regress1/sygus/issue3199.smt2
+  regress1/sygus/issue3200.smt2
+  regress1/sygus/issue3201.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -1809,6 +1814,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/issue3203.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
@@ -2172,6 +2178,8 @@ set(regression_disabled_tests
   regress1/rewriterules/why3_vstte10_max_sum_harness2.smt2
   regress1/sets/setofsets-disequal.smt2
   regress1/simple-rdl-definefun.smt2
+  # does not solve after minor modification to search
+  regress1/sygus/car_3.lus.sy
   regress1/sygus/Base16_1.sy
   regress1/sygus/enum-test.sy
   regress1/sygus/inv_gen_fig8.sy

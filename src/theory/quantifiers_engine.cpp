@@ -149,7 +149,7 @@ class QuantifiersEnginePrivate
     }
     if (options::quantRewriteRules())
     {
-      d_rr_engine.reset(new quantifiers::RewriteEngine(c, qe));
+      d_rr_engine.reset(new quantifiers::RewriteEngine(c, qe, d_qcf.get()));
       modules.push_back(d_rr_engine.get());
     }
     if (options::ltePartialInst())
@@ -189,7 +189,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_eq_inference(nullptr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
-      d_quant_rel(nullptr),
       d_rel_dom(nullptr),
       d_bv_invert(nullptr),
       d_builder(nullptr),
@@ -252,11 +251,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
 
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
-
-  if( options::relevantTriggers() ){
-    d_quant_rel.reset(new quantifiers::QuantRelevance);
-    d_util.push_back(d_quant_rel.get());
-  }
 
   if( options::quantEpr() ){
     Assert( !options::incrementalSolving() );
@@ -351,10 +345,6 @@ quantifiers::BvInverter* QuantifiersEngine::getBvInverter() const
 {
   return d_bv_invert.get();
 }
-quantifiers::QuantRelevance* QuantifiersEngine::getQuantifierRelevance() const
-{
-  return d_quant_rel.get();
-}
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
@@ -407,10 +397,6 @@ inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 quantifiers::BoundedIntegers* QuantifiersEngine::getBoundedIntegers() const
 {
   return d_private->d_bint.get();
-}
-quantifiers::QuantConflictFind* QuantifiersEngine::getConflictFind() const
-{
-  return d_private->d_qcf.get();
 }
 quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
 {
