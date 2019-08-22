@@ -66,6 +66,13 @@ Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }
 
+bool TypeNode::isFinite()
+{
+  // FIXME
+  //return isInterpretedFinite();
+  return !getCardinality().isInfinite();
+}
+  
 /** Attribute true for types that are interpreted as finite */
 struct IsInterpretedFiniteTag
 {
