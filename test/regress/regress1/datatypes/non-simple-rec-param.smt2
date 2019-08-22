@@ -8,4 +8,6 @@
 (declare-fun c () (T Int))
 (declare-fun d () (T Int))
 (assert (distinct a b c d))
+(assert (= (select (m a) 5) (Data b)))
+(assert (not (= (s b) 0)))
 (check-sat)

@@ -116,14 +116,14 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = true;
   }
-  else if (isString() || isRegExp())
+  else if (isString() || isRegExp() || isReal())
   {
     ret = false;
   }
   else
   {
-    // recursive case (parametric sorts), we assume infinite for the moment
-    // here to prevent infinite loops
+    // recursive case (this may be a parametric sort), we assume infinite for
+    // the moment here to prevent infinite loops
     if (usortFinite)
     {
       setAttribute(IsInterpretedFiniteAttr(), false);
@@ -194,6 +194,8 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
     }
     else
     {
+      // all types should be handled above
+      Assert(false);
       // by default, compute the exact cardinality for the type and check
       // whether it is finite. This should be avoided in general, since
       // computing cardinalities for types can be highly expensive.
