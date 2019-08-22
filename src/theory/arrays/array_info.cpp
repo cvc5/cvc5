@@ -68,7 +68,8 @@ ArrayInfo::ArrayInfo(context::Context* c, Backtracker<TNode>* b, std::string sta
 
 ArrayInfo::~ArrayInfo() {
   CNodeInfoMap::iterator it = info_map.begin();
-  for( ; it != info_map.end(); it++ ) {
+  for (; it != info_map.end(); ++it)
+  {
     if((*it).second!= emptyInfo) {
       delete (*it).second;
     }
@@ -87,7 +88,8 @@ ArrayInfo::~ArrayInfo() {
 
 bool inList(const CTNodeList* l, const TNode el) {
   CTNodeList::const_iterator it = l->begin();
-  for ( ; it!= l->end(); it ++) {
+  for (; it != l->end(); ++it)
+  {
     if(*it == el)
       return true;
   }
@@ -97,7 +99,8 @@ bool inList(const CTNodeList* l, const TNode el) {
 void printList (CTNodeList* list) {
   CTNodeList::const_iterator it = list->begin();
   Trace("arrays-info")<<"   [ ";
-  for(; it != list->end(); it++ ) {
+  for (; it != list->end(); ++it)
+  {
     Trace("arrays-info")<<(*it)<<" ";
   }
   Trace("arrays-info")<<"] \n";
@@ -106,7 +109,8 @@ void printList (CTNodeList* list) {
 void printList (List<TNode>* list) {
   List<TNode>::const_iterator it = list->begin();
   Trace("arrays-info")<<"   [ ";
-  for(; it != list->end(); it++ ) {
+  for (; it != list->end(); ++it)
+  {
     Trace("arrays-info")<<(*it)<<" ";
   }
   Trace("arrays-info")<<"] \n";
@@ -115,11 +119,13 @@ void printList (List<TNode>* list) {
 void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const{
   std::set<TNode> temp;
   CTNodeList::const_iterator it;
-  for(it = la->begin() ; it != la->end(); it++ ) {
+  for (it = la->begin(); it != la->end(); ++it)
+  {
     temp.insert((*it));
   }
 
-  for(it = lb->begin() ; it!= lb->end(); it++ ) {
+  for (it = lb->begin(); it != lb->end(); ++it)
+  {
     if(temp.count(*it) == 0) {
       la->push_back(*it);
     }
