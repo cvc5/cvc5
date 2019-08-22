@@ -328,7 +328,7 @@ SortType Parser::mkUnresolvedType(const std::string& name) {
   d_unresolved.insert(unresolved);
   return unresolved;
 }
-  
+
 SortConstructorType Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                         size_t arity) {
   SortConstructorType unresolved =
@@ -351,11 +351,11 @@ SortConstructorType Parser::mkUnresolvedTypeConstructor(
 
 Type Parser::mkUnresolvedType(const std::string& name, size_t arity)
 {
-  if( arity==0 )
+  if (arity == 0)
   {
     return mkUnresolvedType(name);
   }
-  return mkUnresolvedTypeConstructor(name,arity);
+  return mkUnresolvedTypeConstructor(name, arity);
 }
 
 bool Parser::isUnresolvedType(const std::string& name) {

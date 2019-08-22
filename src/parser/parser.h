@@ -577,7 +577,7 @@ public:
    * depending on the arity.
    */
   Type mkUnresolvedType(const std::string& name, size_t arity);
-  
+
   /**
    * Returns true IFF name is an unresolved type.
    */
