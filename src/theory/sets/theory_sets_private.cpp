@@ -819,7 +819,8 @@ void TheorySetsPrivate::check(Theory::Effort level) {
 /************************ Sharing ************************/
 
 void TheorySetsPrivate::addSharedTerm(TNode n) {
-  Debug("sets") << "[sets] TheorySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
+  Debug("sets") << "[sets] TheorySetsPrivate::addSharedTerm( " << n << ")"
+                << std::endl;
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
 }
 
