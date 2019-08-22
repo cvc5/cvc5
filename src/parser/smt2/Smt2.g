@@ -1627,7 +1627,12 @@ datatypesDef[bool isCo,
         if( arities[dts.size()]>0 ){
           PARSER_STATE->parseError("No parameters given for datatype.");
         }
-        Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
+        else if (arities[dts.size()]<0)
+        {
+          // now declare it as an unresolved type
+          PARSER_STATE->mkUnresolvedType(dnames[dts.size()], 0);
+        }
+        Debug("parser-dt") << "no parameters for " << dnames[dts.size()] << std::endl;
         dts.push_back(Datatype(dnames[dts.size()],params,isCo));
       }
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
