@@ -86,10 +86,7 @@ typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
 typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
     IsInterpretedFiniteComputedAttr;
 
-bool TypeNode::isFinite()
-{
-  return isFiniteInternal(false);
-}
+bool TypeNode::isFinite() { return isFiniteInternal(false); }
 
 bool TypeNode::isInterpretedFinite()
 {
@@ -123,7 +120,7 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = false;
   }
-  else 
+  else
   {
     // recursive case (parametric sorts), we assume infinite for the moment
     // here to prevent infinite loops
