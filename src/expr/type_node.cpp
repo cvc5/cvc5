@@ -88,10 +88,7 @@ typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
 
 bool TypeNode::isFinite()
 {
-  // FIXME
-  // return isInterpretedFinite();
-  return !getCardinality().isInfinite();
-  // return isFiniteInternal(false);
+  return isFiniteInternal(false);
 }
 
 bool TypeNode::isInterpretedFinite()
@@ -126,70 +123,85 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = false;
   }
-  else if (isDatatype())
+  else 
   {
-    TypeNode tn = *this;
-    const Datatype& dt = getDatatype();
-    ret = usortFinite ? dt.isInterpretedFinite(tn.toType())
-                      : dt.isFinite(tn.toType());
-  }
-  else if (isArray())
-  {
-    TypeNode tnc = getArrayConstituentType();
-    if (!tnc.isFiniteInternal(usortFinite))
+    // recursive case (parametric sorts), we assume infinite for the moment
+    // here to prevent infinite loops
+    if (usortFinite)
     {
-      // arrays with consistuent type that is infinite are infinite
-      ret = false;
-    }
-    else if (getArrayIndexType().isFiniteInternal(usortFinite))
-    {
-      // arrays with both finite consistuent and index types are finite
-      ret = true;
+      setAttribute(IsInterpretedFiniteAttr(), false);
+      setAttribute(IsInterpretedFiniteComputedAttr(), true);
     }
     else
     {
-      // If the consistuent type of the array has cardinality one, then the
-      // array type has cardinality one, independent of the index type.
-      ret = tnc.getCardinality().isOne();
+      setAttribute(IsFiniteAttr(), false);
+      setAttribute(IsFiniteComputedAttr(), true);
     }
-  }
-  else if (isSet())
-  {
-    ret = getSetElementType().isFiniteInternal(usortFinite);
-  }
-  else if (isFunction())
-  {
-    ret = true;
-    TypeNode tnr = getRangeType();
-    if (!tnr.isFiniteInternal(usortFinite))
+    if (isDatatype())
     {
-      ret = false;
+      TypeNode tn = *this;
+      const Datatype& dt = getDatatype();
+      ret = usortFinite ? dt.isInterpretedFinite(tn.toType())
+                        : dt.isFinite(tn.toType());
     }
-    else
+    else if (isArray())
     {
-      std::vector<TypeNode> argTypes = getArgTypes();
-      for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+      TypeNode tnc = getArrayConstituentType();
+      if (!tnc.isFiniteInternal(usortFinite))
       {
-        if (!argTypes[i].isFiniteInternal(usortFinite))
+        // arrays with consistuent type that is infinite are infinite
+        ret = false;
+      }
+      else if (getArrayIndexType().isFiniteInternal(usortFinite))
+      {
+        // arrays with both finite consistuent and index types are finite
+        ret = true;
+      }
+      else
+      {
+        // If the consistuent type of the array has cardinality one, then the
+        // array type has cardinality one, independent of the index type.
+        ret = tnc.getCardinality().isOne();
+      }
+    }
+    else if (isSet())
+    {
+      ret = getSetElementType().isFiniteInternal(usortFinite);
+    }
+    else if (isFunction())
+    {
+      ret = true;
+      TypeNode tnr = getRangeType();
+      if (!tnr.isFiniteInternal(usortFinite))
+      {
+        ret = false;
+      }
+      else
+      {
+        std::vector<TypeNode> argTypes = getArgTypes();
+        for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
         {
-          ret = false;
-          break;
+          if (!argTypes[i].isFiniteInternal(usortFinite))
+          {
+            ret = false;
+            break;
+          }
+        }
+        if (!ret)
+        {
+          // similar to arrays, functions are finite if their range type
+          // has cardinality one, regardless of the arguments.
+          ret = tnr.getCardinality().isOne();
         }
       }
-      if (!ret)
-      {
-        // similar to arrays, functions are finite if their range type
-        // has cardinality one, regardless of the arguments.
-        ret = tnr.getCardinality().isOne();
-      }
     }
-  }
-  else
-  {
-    // by default, compute the exact cardinality for the type and check
-    // whether it is finite. This should be avoided in general, since
-    // computing cardinalities for types can be highly expensive.
-    ret = getCardinality().isFinite();
+    else
+    {
+      // by default, compute the exact cardinality for the type and check
+      // whether it is finite. This should be avoided in general, since
+      // computing cardinalities for types can be highly expensive.
+      ret = getCardinality().isFinite();
+    }
   }
   if (usortFinite)
   {
