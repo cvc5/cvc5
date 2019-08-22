@@ -1582,7 +1582,20 @@ datatypesDef[bool isCo,
   std::string name;
   std::vector<Type> params;
 }
-  : { PARSER_STATE->pushScope(true); }
+  : { PARSER_STATE->pushScope(true);
+      // Declare the datatypes that are currently being defined as unresolved
+      // types.
+      for (unsigned i=0, dsize=dnames.size(); i<dsize; i++)
+      {
+        if( arities[i]<0 )
+        {
+          // do not know the arity yet
+          continue;
+        }
+        unsigned arity = static_cast<unsigned>(arities[i]);
+        PARSER_STATE->mkUnresolvedType(dnames[i], arity);
+      }
+    }
     ( LPAREN_TOK {
       params.clear();
       Debug("parser-dt") << "Processing datatype #" << dts.size() << std::endl;
@@ -1598,6 +1611,11 @@ datatypesDef[bool isCo,
         // if the arity was fixed by prelude and is not equal to the number of parameters
         if( arities[dts.size()]>=0 && static_cast<int>(params.size())!=arities[dts.size()] ){
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
+        }
+        if (arities[dts.size()]<0)
+        {
+          // now declare it as an unresolved type
+          PARSER_STATE->mkUnresolvedType(dnames[dts.size()], params.size());
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
         dts.push_back(Datatype(dnames[dts.size()],params,isCo));
