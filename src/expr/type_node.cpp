@@ -66,13 +66,15 @@ Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }
 
-bool TypeNode::isFinite()
+/** Attribute true for types that are finite */
+struct IsFiniteTag
 {
-  // FIXME
-  // return isInterpretedFinite();
-  return !getCardinality().isInfinite();
-}
-
+};
+struct IsFiniteComputedTag
+{
+};
+typedef expr::Attribute<IsFiniteTag, bool> IsFiniteAttr;
+typedef expr::Attribute<IsFiniteComputedTag, bool> IsFiniteComputedAttr;
 /** Attribute true for types that are interpreted as finite */
 struct IsInterpretedFiniteTag
 {
@@ -84,92 +86,121 @@ typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
 typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
     IsInterpretedFiniteComputedAttr;
 
+bool TypeNode::isFinite()
+{
+  // FIXME
+  // return isInterpretedFinite();
+  return !getCardinality().isInfinite();
+  //return isFiniteInternal(false);
+}
+
 bool TypeNode::isInterpretedFinite()
 {
+  return isFiniteInternal(options::finiteModelFind());
+}
+
+bool TypeNode::isFiniteInternal(bool usortFinite)
+{
   // check it is already cached
-  if (!getAttribute(IsInterpretedFiniteComputedAttr()))
+  if( usortFinite )
   {
-    bool isInterpretedFinite = false;
-    if (isSort())
+    if (getAttribute(IsInterpretedFiniteComputedAttr()))
     {
-      // If the finite model finding flag is set, we treat uninterpreted sorts
-      // as finite. If it is not set, we treat them implicitly as infinite
-      // sorts (that is, their cardinality is not constrained to be finite).
-      isInterpretedFinite = options::finiteModelFind();
+      return getAttribute(IsInterpretedFiniteAttr());
     }
-    else if (isBitVector() || isFloatingPoint())
+  }
+  else if (getAttribute(IsFiniteComputedAttr()))
+  {
+    return getAttribute(IsFiniteAttr());
+  }
+  bool isInterpretedFinite = false;
+  if (isSort())
+  {
+    isInterpretedFinite = usortFinite;
+  }
+  else if (isBitVector() || isFloatingPoint())
+  {
+    isInterpretedFinite = true;
+  }
+  else if (isString() || isRegExp())
+  {
+    isInterpretedFinite = false;
+  }
+  else if (isDatatype())
+  {
+    TypeNode tn = *this;
+    const Datatype& dt = getDatatype();
+    isInterpretedFinite = usortFinite ? dt.isInterpretedFinite(tn.toType()) : dt.isFinite(tn.toType());
+  }
+  else if (isArray())
+  {
+    TypeNode tnc = getArrayConstituentType();
+    if (!tnc.isFiniteInternal(usortFinite))
     {
+      // arrays with consistuent type that is infinite are infinite
+      isInterpretedFinite = false;
+    }
+    else if (getArrayIndexType().isFiniteInternal(usortFinite))
+    {
+      // arrays with both finite consistuent and index types are finite
       isInterpretedFinite = true;
-    }
-    else if (isDatatype())
-    {
-      TypeNode tn = *this;
-      const Datatype& dt = getDatatype();
-      isInterpretedFinite = dt.isInterpretedFinite(tn.toType());
-    }
-    else if (isArray())
-    {
-      TypeNode tnc = getArrayConstituentType();
-      if (!tnc.isInterpretedFinite())
-      {
-        // arrays with consistuent type that is infinite are infinite
-        isInterpretedFinite = false;
-      }
-      else if (getArrayIndexType().isInterpretedFinite())
-      {
-        // arrays with both finite consistuent and index types are finite
-        isInterpretedFinite = true;
-      }
-      else
-      {
-        // If the consistuent type of the array has cardinality one, then the
-        // array type has cardinality one, independent of the index type.
-        isInterpretedFinite = tnc.getCardinality().isOne();
-      }
-    }
-    else if (isSet())
-    {
-      isInterpretedFinite = getSetElementType().isInterpretedFinite();
-    }
-    else if (isFunction())
-    {
-      isInterpretedFinite = true;
-      TypeNode tnr = getRangeType();
-      if (!tnr.isInterpretedFinite())
-      {
-        isInterpretedFinite = false;
-      }
-      else
-      {
-        std::vector<TypeNode> argTypes = getArgTypes();
-        for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
-        {
-          if (!argTypes[i].isInterpretedFinite())
-          {
-            isInterpretedFinite = false;
-            break;
-          }
-        }
-        if (!isInterpretedFinite)
-        {
-          // similar to arrays, functions are finite if their range type
-          // has cardinality one, regardless of the arguments.
-          isInterpretedFinite = tnr.getCardinality().isOne();
-        }
-      }
     }
     else
     {
-      // by default, compute the exact cardinality for the type and check
-      // whether it is finite. This should be avoided in general, since
-      // computing cardinalities for types can be highly expensive.
-      isInterpretedFinite = getCardinality().isFinite();
+      // If the consistuent type of the array has cardinality one, then the
+      // array type has cardinality one, independent of the index type.
+      isInterpretedFinite = tnc.getCardinality().isOne();
     }
+  }
+  else if (isSet())
+  {
+    isInterpretedFinite = getSetElementType().isFiniteInternal(usortFinite);
+  }
+  else if (isFunction())
+  {
+    isInterpretedFinite = true;
+    TypeNode tnr = getRangeType();
+    if (!tnr.isFiniteInternal(usortFinite))
+    {
+      isInterpretedFinite = false;
+    }
+    else
+    {
+      std::vector<TypeNode> argTypes = getArgTypes();
+      for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+      {
+        if (!argTypes[i].isFiniteInternal(usortFinite))
+        {
+          isInterpretedFinite = false;
+          break;
+        }
+      }
+      if (!isInterpretedFinite)
+      {
+        // similar to arrays, functions are finite if their range type
+        // has cardinality one, regardless of the arguments.
+        isInterpretedFinite = tnr.getCardinality().isOne();
+      }
+    }
+  }
+  else
+  {
+    // by default, compute the exact cardinality for the type and check
+    // whether it is finite. This should be avoided in general, since
+    // computing cardinalities for types can be highly expensive.
+    isInterpretedFinite = getCardinality().isFinite();
+  }
+  if (usortFinite)
+  {
     setAttribute(IsInterpretedFiniteAttr(), isInterpretedFinite);
     setAttribute(IsInterpretedFiniteComputedAttr(), true);
-    return isInterpretedFinite;
   }
-  return getAttribute(IsInterpretedFiniteAttr());
+  else
+  {
+    setAttribute(IsFiniteAttr(), isInterpretedFinite);
+    setAttribute(IsFiniteComputedAttr(), true);
+  }
+  return isInterpretedFinite;
 }
 
 /** Attribute true for types that are closed enumerable */

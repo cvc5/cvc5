@@ -1000,7 +1000,7 @@ bool DatatypeConstructor::isFinite(Type t) const
     if( DatatypeType(t).isParametric() ){
       tc = tc.substitute( paramTypes, instTypes );
     }
-    if(! tc.getCardinality().isFinite()) {
+    if(! tc.isFinite()) {
       self.setAttribute(DatatypeFiniteComputedAttr(), true);
       self.setAttribute(DatatypeFiniteAttr(), false);
       return false;
