@@ -531,35 +531,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 namespace CVC4 {
   class Expr;
-
-  namespace parser {
-    namespace cvc {
-      /**
-       * This class is just here to get around an unfortunate bit of Antlr.
-       * We use strings below as return values from rules, which require
-       * them to be constructible by a void*.  So we derive the string
-       * class to provide just such a conversion.
-       */
-      class myString : public std::string {
-      public:
-        myString(const std::string& s) : std::string(s) {}
-        myString(void*) : std::string() {}
-        myString() : std::string() {}
-      };/* class myString */
-
-      /**
-       * Just exists to give us the void* construction that
-       * ANTLR requires.
-       */
-      struct myExpr : public CVC4::Expr {
-        myExpr() : CVC4::Expr() {}
-        myExpr(void*) : CVC4::Expr() {}
-        myExpr(const Expr& e) : CVC4::Expr(e) {}
-        myExpr(const myExpr& e) : CVC4::Expr(e) {}
-      };/* struct myExpr */
-
-    }/* CVC4::parser::cvc namespace */
-  }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
 }/* @parser::includes */
