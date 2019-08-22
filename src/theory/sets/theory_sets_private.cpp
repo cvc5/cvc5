@@ -702,7 +702,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
             if( itu==univ_set.end() ){
               Node ueqc = d_state.getUnivSetEqClass(tn);
               // if the universe does not yet exist, or is not in this equivalence class
-              if (itu->second != ueqc)
+              if (s != ueqc)
               {
                 u = d_state.getUnivSet(tn);
               }
@@ -819,7 +819,7 @@ void TheorySetsPrivate::check(Theory::Effort level) {
 /************************ Sharing ************************/
 
 void TheorySetsPrivate::addSharedTerm(TNode n) {
-  Debug("sets") << "[sets] ThoerySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
+  Debug("sets") << "[sets] TheorySetsPrivate::addSharedTerm( " << n << ")" << std::endl;
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
 }
 

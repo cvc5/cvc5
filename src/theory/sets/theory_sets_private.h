@@ -48,7 +48,7 @@ class TheorySetsPrivate {
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** Assert fact holds in the current context with explanation exp.
    *
-   * exp should be explanable by the equality engine of this class, and fact
+   * exp should be explainable by the equality engine of this class, and fact
    * should be a literal.
    */
   bool assertFact(Node fact, Node exp);
