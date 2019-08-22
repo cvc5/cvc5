@@ -403,8 +403,9 @@ Node TheoryStrings::getCurrentSubstitutionFor(int effort,
     }
     return itc->second;
   }
-  else if (effort >= 1 && effort < 3 && n.getType().isString())
+  else if (effort >= 1 && n.getType().isString())
   {
+    Assert( effort < 3 );
     // normal forms
     NormalForm& nfnr = getNormalForm(nr);
     Node ns = getNormalString(nfnr.d_base, exp);
