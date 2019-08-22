@@ -113,24 +113,24 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     return getAttribute(IsFiniteAttr());
   }
-  bool isInterpretedFinite = false;
+  bool ret = false;
   if (isSort())
   {
-    isInterpretedFinite = usortFinite;
+    ret = usortFinite;
   }
   else if (isBitVector() || isFloatingPoint())
   {
-    isInterpretedFinite = true;
+    ret = true;
   }
   else if (isString() || isRegExp())
   {
-    isInterpretedFinite = false;
+    ret = false;
   }
   else if (isDatatype())
   {
     TypeNode tn = *this;
     const Datatype& dt = getDatatype();
-    isInterpretedFinite = usortFinite ? dt.isInterpretedFinite(tn.toType()) : dt.isFinite(tn.toType());
+    ret = usortFinite ? dt.isInterpretedFinite(tn.toType()) : dt.isFinite(tn.toType());
   }
   else if (isArray())
   {
@@ -138,31 +138,31 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
     if (!tnc.isFiniteInternal(usortFinite))
     {
       // arrays with consistuent type that is infinite are infinite
-      isInterpretedFinite = false;
+      ret = false;
     }
     else if (getArrayIndexType().isFiniteInternal(usortFinite))
     {
       // arrays with both finite consistuent and index types are finite
-      isInterpretedFinite = true;
+      ret = true;
     }
     else
     {
       // If the consistuent type of the array has cardinality one, then the
       // array type has cardinality one, independent of the index type.
-      isInterpretedFinite = tnc.getCardinality().isOne();
+      ret = tnc.getCardinality().isOne();
     }
   }
   else if (isSet())
   {
-    isInterpretedFinite = getSetElementType().isFiniteInternal(usortFinite);
+    ret = getSetElementType().isFiniteInternal(usortFinite);
   }
   else if (isFunction())
   {
-    isInterpretedFinite = true;
+    ret = true;
     TypeNode tnr = getRangeType();
     if (!tnr.isFiniteInternal(usortFinite))
     {
-      isInterpretedFinite = false;
+      ret = false;
     }
     else
     {
@@ -171,15 +171,15 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
       {
         if (!argTypes[i].isFiniteInternal(usortFinite))
         {
-          isInterpretedFinite = false;
+          ret = false;
           break;
         }
       }
-      if (!isInterpretedFinite)
+      if (!ret)
       {
         // similar to arrays, functions are finite if their range type
         // has cardinality one, regardless of the arguments.
-        isInterpretedFinite = tnr.getCardinality().isOne();
+        ret = tnr.getCardinality().isOne();
       }
     }
   }
@@ -188,19 +188,19 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
     // by default, compute the exact cardinality for the type and check
     // whether it is finite. This should be avoided in general, since
     // computing cardinalities for types can be highly expensive.
-    isInterpretedFinite = getCardinality().isFinite();
+    ret = getCardinality().isFinite();
   }
   if (usortFinite)
   {
-    setAttribute(IsInterpretedFiniteAttr(), isInterpretedFinite);
+    setAttribute(IsInterpretedFiniteAttr(), ret);
     setAttribute(IsInterpretedFiniteComputedAttr(), true);
   }
   else
   {
-    setAttribute(IsFiniteAttr(), isInterpretedFinite);
+    setAttribute(IsFiniteAttr(), ret);
     setAttribute(IsFiniteComputedAttr(), true);
   }
-  return isInterpretedFinite;
+  return ret;
 }
 
 /** Attribute true for types that are closed enumerable */
