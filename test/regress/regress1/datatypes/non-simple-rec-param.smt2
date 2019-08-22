@@ -1,0 +1,11 @@
+(set-logic ALL)
+(set-info :status sat)
+(declare-datatypes ((T 1)) (
+(par (x) ((Data (s x)) (Map (m (Array Int (T (T Int)))) ) ) ))
+)
+(declare-fun a () (T Int))
+(declare-fun b () (T Int))
+(declare-fun c () (T Int))
+(declare-fun d () (T Int))
+(assert (distinct a b c d))
+(check-sat)

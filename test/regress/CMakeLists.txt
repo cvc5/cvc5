@@ -1140,6 +1140,7 @@ set(regress_1_tests
   regress1/datatypes/error.cvc
   regress1/datatypes/manos-model.smt2
   regress1/datatypes/non-simple-rec.smt2
+  regress1/datatypes/non-simple-rec-param.smt2
   regress1/decision/error3.smt
   regress1/decision/quant-Arrays_Q1-noinfer.smt2
   regress1/decision/quant-symmetric_unsat_7.smt2
