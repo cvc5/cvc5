@@ -452,17 +452,22 @@ Node CegSingleInv::getSolution(unsigned sol_index,
                                bool rconsSygus)
 {
   Assert( d_sol!=NULL );
-  Assert(!d_inst.empty());
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
   Node varList = Node::fromExpr( dt.getSygusVarList() );
   Node prog = d_quant[0][sol_index];
   std::vector< Node > vars;
   Node s;
-  if( d_prog_to_sol_index.find( prog )==d_prog_to_sol_index.end() ){
+  // If it is unconstrained: either the variable does not appear in the
+  // conjecture or the conjecture can be solved without a single instantiation.
+  if (d_prog_to_sol_index.find(prog) == d_prog_to_sol_index.end()
+      || d_inst.empty())
+  {
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
     s = d_qe->getTermEnumeration()->getEnumerateTerm(
         TypeNode::fromType(dt.getSygusType()), 0);
-  }else{
+  }
+  else
+  {
     Trace("csi-sol") << "Get solution for " << prog << ", with skolems : ";
     sol_index = d_prog_to_sol_index[prog];
     d_sol->d_varList.clear();
