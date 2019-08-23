@@ -110,8 +110,8 @@ class SygusConnectiveCore : public Cegis
   std::vector<Node> d_vars;
   /** The evaluation term */
   Node d_eterm;
-  
-  void getModel( SmtEngine& smt, std::vector< Node >& vals );
+
+  void getModel(SmtEngine& smt, std::vector<Node>& vals);
 };
 
 }  // namespace quantifiers

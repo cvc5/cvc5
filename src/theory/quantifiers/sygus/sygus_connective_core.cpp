@@ -373,9 +373,9 @@ Node SygusConnectiveCore::Component::getSygusSolution(
   return sol;
 }
 
-void SygusConnectiveCore::getModel( SmtEngine& smt, std::vector< Node >& vals )
+void SygusConnectiveCore::getModel(SmtEngine& smt, std::vector<Node>& vals)
 {
-  for( const Node& v : d_vars )
+  for (const Node& v : d_vars)
   {
     Node mv = Node::fromExpr(smt.getValue(v.toExpr()));
     Trace("sygus-ccore-model") << v << " -> " << mv << " ";
