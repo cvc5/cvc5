@@ -127,7 +127,7 @@ class TransitionInference
    */
   void process(Node n);
   /**
-   * Get the function that is the subjection of the synthesis problem we are
+   * Get the function that is the subject of the synthesis problem we are
    * analyzing.
    */
   Node getFunction() const;
@@ -197,7 +197,7 @@ class TransitionInference
   /** The variables that the function is applied to */
   std::vector<Node> d_vars;
   /**
-   * The variables that the function is applied to in the conclusion of the
+   * The variables that the function is applied to in the next state of the
    * inferred transition relation.
    */
   std::vector<Node> d_prime_vars;
@@ -286,7 +286,7 @@ class TransitionInference
     /** The list of conjuncts of the above formula */
     std::vector<Node> d_conjuncts;
     /**
-     * Maps formulas to he constant equality substitution that it entails.
+     * Maps formulas to the constant equality substitution that it entails.
      * For example, the formula (x=4 ^ y=x+5) may map to { x -> 4, y -> 9 }.
      */
     std::map<Node, std::map<Node, Node> > d_const_eq;
@@ -297,13 +297,10 @@ class TransitionInference
              != d_conjuncts.end();
     }
   };
-  /**
-   * A collection of components, where:
-   * 1 -> precondition, -1 -> postcondition, 0 -> transition relation.
-   */
-  std::map<int, Component> d_com;
-  /** Get the above component indexed by i */
-  Node getComponent(int i) const;
+  /** Components for the pre/post condition and transition relation. */
+  Component d_pre;
+  Component d_post;
+  Component d_trans;
   /**
    * Initialize trace dt, loc is a node to identify the trace, fwd is whether
    * we are going in the forward direction of the transition system (starting

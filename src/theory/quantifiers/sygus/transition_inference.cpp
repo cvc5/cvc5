@@ -99,11 +99,11 @@ void TransitionInference::getVariables(std::vector<Node>& vars) const
   vars.insert(vars.end(), d_vars.begin(), d_vars.end());
 }
 
-Node TransitionInference::getPreCondition() const { return getComponent(1); }
-Node TransitionInference::getPostCondition() const { return getComponent(-1); }
+Node TransitionInference::getPreCondition() const { return d_pre.d_this; }
+Node TransitionInference::getPostCondition() const { return d_post.d_this; }
 Node TransitionInference::getTransitionRelation() const
 {
-  return getComponent(0);
+  return d_trans.d_this;
 }
 
 void TransitionInference::getConstantSubstitution(
@@ -219,6 +219,8 @@ void TransitionInference::process(Node n)
       continue;
     }
     Node curr;
+    // The component that this disjunct contributes to, where
+    // 1 : pre-condition, -1 : post-condition, 0 : transition relation
     int comp_num;
     std::map<bool, Node>::iterator itt = terms.find(false);
     if (itt != terms.end())
@@ -313,7 +315,8 @@ void TransitionInference::process(Node n)
                        << (comp_num == 1 ? "pre"
                                          : (comp_num == -1 ? "post" : "trans"))
                        << "-condition : " << res << std::endl;
-    d_com[comp_num].d_conjuncts.push_back(res);
+    Component& c = ( comp_num==1 ? d_pre : ( comp_num==-1 ? d_post : d_trans ) );
+    c.d_conjuncts.push_back(res);
     if (!const_var.empty())
     {
       bool has_const_eq = const_var.size() == d_vars.size();
@@ -325,7 +328,7 @@ void TransitionInference::process(Node n)
                            << const_subs[i] << std::endl;
         if (has_const_eq)
         {
-          d_com[comp_num].d_const_eq[res][const_var[i]] = const_subs[i];
+          c.d_const_eq[res][const_var[i]] = const_subs[i];
         }
       }
       Trace("cegqi-inv") << "...size = " << const_var.size()
@@ -336,25 +339,26 @@ void TransitionInference::process(Node n)
   // finalize the components
   for (int i = -1; i <= 1; i++)
   {
+    Component& c = ( i==1 ? d_pre : ( i==-1 ? d_post : d_trans ) );
     Node ret;
-    if (d_com[i].d_conjuncts.empty())
+    if (c.d_conjuncts.empty())
     {
       ret = nm->mkConst(true);
     }
-    else if (d_com[i].d_conjuncts.size() == 1)
+    else if (c.d_conjuncts.size() == 1)
     {
-      ret = d_com[i].d_conjuncts[0];
+      ret = c.d_conjuncts[0];
     }
     else
     {
-      ret = nm->mkNode(AND, d_com[i].d_conjuncts);
+      ret = nm->mkNode(AND, c.d_conjuncts);
     }
     if (i == 0 || i == 1)
     {
       // pre-condition and transition are negated
       ret = TermUtil::simpleNegate(ret);
     }
-    d_com[i].d_this = ret;
+    c.d_this = ret;
   }
 }
 void TransitionInference::getNormalizedSubstitution(
@@ -453,25 +457,15 @@ bool TransitionInference::processDisjunct(
   return true;
 }
 
-Node TransitionInference::getComponent(int i) const
-{
-  std::map<int, Component>::const_iterator it = d_com.find(i);
-  if (it != d_com.end())
-  {
-    return it->second.d_this;
-  }
-  return Node::null();
-}
-
 TraceIncStatus TransitionInference::initializeTrace(DetTrace& dt,
                                                     Node loc,
                                                     bool fwd)
 {
-  int index = fwd ? 1 : -1;
-  Assert(d_com[index].has(loc));
+  Component& c = fwd ? d_pre : d_post;
+  Assert(c.has(loc));
   std::map<Node, std::map<Node, Node> >::iterator it =
-      d_com[index].d_const_eq.find(loc);
-  if (it != d_com[index].d_const_eq.end())
+      c.d_const_eq.find(loc);
+  if (it != c.d_const_eq.end())
   {
     std::vector<Node> next;
     for (const Node& v : d_vars)
@@ -492,10 +486,9 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
                                                    Node loc,
                                                    bool fwd)
 {
-  Assert(d_com[0].has(loc));
+  Assert(d_pre.has(loc));
   // check if it satisfies the pre/post condition
-  int check_index = fwd ? -1 : 1;
-  Node cc = getComponent(check_index);
+  Node cc = fwd ? getPostCondition() : getPreCondition();
   Assert(!cc.isNull());
   Node ccr = Rewriter::rewrite(cc.substitute(
       d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
@@ -509,7 +502,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   }
 
   // terminates?
-  Node c = getComponent(0);
+  Node c = getTransitionRelation();
   Assert(!c.isNull());
 
   Assert(d_vars.size() == dt.d_curr.size());
@@ -530,7 +523,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
     Assert(false);
     return TRACE_INC_INVALID;
   }
-  Component& cm = d_com[0];
+  Component& cm = d_trans;
   std::map<Node, std::map<Node, Node> >::iterator it = cm.d_const_eq.find(loc);
   if (it == cm.d_const_eq.end())
   {
@@ -559,19 +552,19 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
 TraceIncStatus TransitionInference::initializeTrace(DetTrace& dt, bool fwd)
 {
   Trace("cegqi-inv-debug2") << "Initialize trace" << std::endl;
-  int index = fwd ? 1 : -1;
-  if (d_com[index].d_conjuncts.size() == 1)
+  Component& c = fwd ? d_pre : d_post;
+  if (c.d_conjuncts.size() == 1)
   {
-    return initializeTrace(dt, d_com[index].d_conjuncts[0], fwd);
+    return initializeTrace(dt, c.d_conjuncts[0], fwd);
   }
   return TRACE_INC_INVALID;
 }
 
 TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt, bool fwd)
 {
-  if (d_com[0].d_conjuncts.size() == 1)
+  if (d_trans.d_conjuncts.size() == 1)
   {
-    return incrementTrace(dt, d_com[0].d_conjuncts[0], fwd);
+    return incrementTrace(dt, d_trans.d_conjuncts[0], fwd);
   }
   return TRACE_INC_INVALID;
 }
