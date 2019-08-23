@@ -295,7 +295,7 @@ bool SygusConnectiveCore::constructSolution(
     Trace("sygus-ccore-debug")
         << "Excluded " << excAsserts.size() << " assertions for "
         << ccheck.d_numFalseCores << " false cores." << std::endl;
-    std::vector<Node> passerts;
+    std::vector< Node > passerts;
     for (const Node& a : ccheck.d_cpool)
     {
       if (excAsserts.find(a) == excAsserts.end())
@@ -306,23 +306,32 @@ bool SygusConnectiveCore::constructSolution(
     std::shuffle(passerts.begin(), passerts.end(), Random::getRandom());
 
     // ----- check for entailment, adding based on models of failed points
-    bool success;
     std::vector<Node> asserts;
     asserts.push_back(etsr);
+    Node an = etsr;
+    std::vector< Node > mvs;
+    std::unordered_set< Node, NodeHashFunction > visited;
+    bool addSuccess = true;
+    // Ensure that the current conjunction evaluates to false on all refinement
+    // points
+    while (addSuccess && ccheck.getRefinementPt(an,visited,mvs))
+    {
+      addSuccess = addToAsserts(passerts, mvs, asserts, an);
+    }
+    
     do
     {
-      success = false;
+      addSuccess = false;
       // try a new core
       SmtEngine checkCoreSmt(nm->toExprManager());
       checkCoreSmt.setIsInternalSubsolver();
       checkCoreSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
 
       // do the check
-      checkCoreSmt.assertFormula(ccheck.d_this.toExpr());
-      for (const Node& p : asserts)
-      {
-        checkCoreSmt.assertFormula(p.toExpr());
-      }
+      Node query = nm->mkNode(AND,an,ccheck.d_this);
+      query = Rewriter::rewrite(query);
+      
+      checkCoreSmt.assertFormula(query.toExpr());
       Result r = checkCoreSmt.checkSat();
       Trace("sygus-ccore-debug") << "...got " << r << std::endl;
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -340,9 +349,13 @@ bool SygusConnectiveCore::constructSolution(
       else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
       {
         // it does not entail the postcondition, add an assertion that blocks
-        // the current point TODO
+        // the current point
+        mvs.clear();
+        getModel(checkCoreSmt,mvs);
+        ccheck.d_refinementPt.addTerm(query,mvs);
+        addSuccess = addToAsserts(passerts, mvs, asserts, an);
       }
-    } while (success);
+    } while (addSuccess);
   }
   Trace("sygus-ccore") << "...failed to generate candidate" << std::endl;
   return false;
@@ -371,6 +384,28 @@ Node SygusConnectiveCore::Component::getSygusSolution(
     }
   }
   return sol;
+}
+
+bool SygusConnectiveCore::Component::getRefinementPt( Node n, std::unordered_set< Node, NodeHashFunction >& visited, std::vector< Node >& vals )
+{
+  // TODO
+  return false;
+}
+
+bool SygusConnectiveCore::addToAsserts( std::vector< Node >& passerts, const std::vector< Node >& mvs, std::vector< Node >& asserts, Node& an )
+{
+  Node n;
+  // TODO
+  // select condition from passerts that evaluates to false on mvs
+  
+  
+  if( !n.isNull() )
+  {
+    asserts.push_back(n);
+    an = NodeManager::currentNM()->mkNode(AND,n,an);
+    return true;
+  }
+  return false;
 }
 
 void SygusConnectiveCore::getModel(SmtEngine& smt, std::vector<Node>& vals)

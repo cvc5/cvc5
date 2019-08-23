@@ -97,10 +97,18 @@ class SygusConnectiveCore : public Cegis
     std::vector<Node> d_cpool;
     std::map<Node, Node> d_cpoolToSol;
     FalseCoreTrie d_falseCores;
+    NodeTrie d_refinementPt;
     unsigned d_numFalseCores;
     std::unordered_set<Node, NodeHashFunction> d_tried;
     bool isActive() const { return !d_scons.isNull(); }
     Node getSygusSolution(std::vector<Node>& conjs) const;
+    
+    /**
+     * Get a refinement point that n evalutes to true on, taken from the
+     * d_refinementPt trie, and store it in vals. The set visited is the set
+     * of leaf nodes that we've already checked.
+     */
+    bool getRefinementPt( Node n, std::unordered_set< Node, NodeHashFunction >& visited, std::vector< Node >& vals );
   };
   /** Above information for the precondition of the synthesis conjecture */
   Component d_pre;
@@ -111,7 +119,17 @@ class SygusConnectiveCore : public Cegis
   /** The evaluation term */
   Node d_eterm;
 
-  void getModel(SmtEngine& smt, std::vector<Node>& vals);
+  void getModel(SmtEngine& smt, std::vector<Node>& mvs);
+  
+  /** 
+   * Selects a node from passerts that evaluates to false on point mv if one
+   * exists, or otherwise returns null. 
+   * 
+   * If a non-null node is returned, it is removed from passerts.
+   */
+  bool addToAsserts( std::vector< Node >& passerts, const std::vector< Node >& mvs, std::vector< Node >& asserts, Node& an );
+  
+  Node addToAsserts( Node n, Node assertn, std::vector< Node >& asserts );
 };
 
 }  // namespace quantifiers
