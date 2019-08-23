@@ -256,10 +256,11 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
 
   // quantify the body
   Trace("sygus-infer") << "Make inner sygus conjecture..." << std::endl;
+  body = body.negate();
   if (!qvars.empty())
   {
     Node bvl = nm->mkNode(BOUND_VAR_LIST, qvars);
-    body = nm->mkNode(EXISTS, bvl, body.negate());
+    body = nm->mkNode(EXISTS, bvl, body);
   }
 
   // sygus attribute to mark the conjecture as a sygus conjecture

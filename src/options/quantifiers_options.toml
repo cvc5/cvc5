@@ -941,24 +941,6 @@ header = "options/quantifiers_options.h"
   help       = "include constants when reconstruct solutions for single invocation conjectures in original grammar"
 
 [[option]]
-  name       = "cegqiSolMinCore"
-  category   = "regular"
-  long       = "cegqi-si-sol-min-core"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "minimize solutions for single invocation conjectures based on unsat core"
-
-[[option]]
-  name       = "cegqiSolMinInst"
-  category   = "regular"
-  long       = "cegqi-si-sol-min-inst"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "minimize individual instantiations for single invocation conjectures based on unsat core"
-
-[[option]]
   name       = "cegqiSingleInvAbort"
   category   = "regular"
   long       = "cegqi-si-abort"
@@ -1414,10 +1396,12 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "sygusQueryGenDumpFiles"
   category   = "regular"
-  long       = "sygus-query-gen-dump-files"
-  type       = "bool"
-  default    = "false"
-  help       = "dump external files corresponding to interesting satisfiability queries with sygus-query-gen"
+  long       = "sygus-query-gen-dump-files=MODE"
+  type       = "CVC4::theory::quantifiers::SygusQueryDumpFilesMode"
+  default    = "CVC4::theory::quantifiers::SYGUS_QUERY_DUMP_NONE"
+  handler    = "stringToSygusQueryDumpFilesMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "mode for dumping external files corresponding to interesting satisfiability queries with sygus-query-gen"
 
 [[option]]
   name       = "sygusFilterSolMode"
