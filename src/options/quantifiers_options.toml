@@ -1024,6 +1024,14 @@ header = "options/quantifiers_options.h"
   help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]
+  name       = "sygusCoreConnective"
+  category   = "regular"
+  long       = "sygus-core-connective"
+  type       = "bool"
+  default    = "false"
+  help       = "use unsat core analysis to construct Boolean connective to sygus conjectures"
+
+[[option]]
   name       = "sygusRepairConstTimeout"
   category   = "regular"
   long       = "sygus-repair-const-timeout=N"
