@@ -313,11 +313,17 @@ bool SygusConnectiveCore::constructSolution(
     std::unordered_set< Node, NodeHashFunction > visited;
     bool addSuccess = true;
     // Ensure that the current conjunction evaluates to false on all refinement
-    // points
-    while (addSuccess && ccheck.getRefinementPt(an,visited,mvs))
+    // points. We get refinement points until we have exhausted.
+    Node mvId;
+    do
     {
-      addSuccess = addToAsserts(passerts, mvs, asserts, an);
-    }
+      mvs.clear();
+      Node mvId = ccheck.getRefinementPt(an,visited,mvs);
+      if( !mvId.isNull() )
+      {
+        addSuccess = addToAsserts(passerts, mvs, mvId, asserts, an);
+      }
+    } while (!mvId.isNull() && addSuccess);
     
     do
     {
@@ -353,7 +359,7 @@ bool SygusConnectiveCore::constructSolution(
         mvs.clear();
         getModel(checkCoreSmt,mvs);
         ccheck.d_refinementPt.addTerm(query,mvs);
-        addSuccess = addToAsserts(passerts, mvs, asserts, an);
+        addSuccess = addToAsserts(passerts, mvs, query, asserts, an);
       }
     } while (addSuccess);
   }
@@ -386,25 +392,39 @@ Node SygusConnectiveCore::Component::getSygusSolution(
   return sol;
 }
 
-bool SygusConnectiveCore::Component::getRefinementPt( Node n, std::unordered_set< Node, NodeHashFunction >& visited, std::vector< Node >& vals )
+Node SygusConnectiveCore::Component::getRefinementPt( Node n, std::unordered_set< Node, NodeHashFunction >& visited, std::vector< Node >& vals )
 {
   // TODO
-  return false;
+  return Node::null();
 }
 
-bool SygusConnectiveCore::addToAsserts( std::vector< Node >& passerts, const std::vector< Node >& mvs, std::vector< Node >& asserts, Node& an )
+bool SygusConnectiveCore::addToAsserts( std::vector< Node >& passerts, const std::vector< Node >& mvs, Node mvId, std::vector< Node >& asserts, Node& an )
 {
+  // point should be valid
+  Assert( !mvId.isNull() );
   Node n;
-  // TODO
   // select condition from passerts that evaluates to false on mvs
-  
-  
+  for( unsigned i=0, psize=passerts.size(); i<psize; i++ )
+  {
+    Node cn = passerts[i];
+    // TODO : cache
+    Node cne = cn.substitute(d_vars.begin(),d_vars.end(),mvs.begin(),mvs.end());
+    cne = Rewriter::rewrite(cne);
+    if( cne.isConst() && !cne.getConst<bool>() )
+    {
+      n = cn;
+      // remove n from the pool
+      passerts.erase(passerts.begin()+i,passerts.begin()+i+1);
+      break;
+    }
+  }
   if( !n.isNull() )
   {
     asserts.push_back(n);
     an = NodeManager::currentNM()->mkNode(AND,n,an);
     return true;
   }
+  passerts.clear();
   return false;
 }
 

@@ -108,7 +108,7 @@ class SygusConnectiveCore : public Cegis
      * d_refinementPt trie, and store it in vals. The set visited is the set
      * of leaf nodes that we've already checked.
      */
-    bool getRefinementPt( Node n, std::unordered_set< Node, NodeHashFunction >& visited, std::vector< Node >& vals );
+    Node getRefinementPt( Node n, std::unordered_set< Node, NodeHashFunction >& visited, std::vector< Node >& vals );
   };
   /** Above information for the precondition of the synthesis conjecture */
   Component d_pre;
@@ -127,7 +127,7 @@ class SygusConnectiveCore : public Cegis
    * 
    * If a non-null node is returned, it is removed from passerts.
    */
-  bool addToAsserts( std::vector< Node >& passerts, const std::vector< Node >& mvs, std::vector< Node >& asserts, Node& an );
+  bool addToAsserts( std::vector< Node >& passerts, const std::vector< Node >& mvs, Node mvId, std::vector< Node >& asserts, Node& an );
   
   Node addToAsserts( Node n, Node assertn, std::vector< Node >& asserts );
 };
