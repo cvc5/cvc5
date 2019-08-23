@@ -3416,7 +3416,10 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                     // infer the purification equality, and the (dis)equality
                     // with the empty string in the direction that the rewriter
                     // inferred
-                    info.d_conc = nm->mkNode(AND, p.eqNode(other_str), !eq.getConst<bool>() ? pEq.negate() : pEq);
+                    info.d_conc =
+                        nm->mkNode(AND,
+                                   p.eqNode(other_str),
+                                   !eq.getConst<bool>() ? pEq.negate() : pEq);
                     info.d_id = INFER_INFER_EMP;
                   }
                   else
