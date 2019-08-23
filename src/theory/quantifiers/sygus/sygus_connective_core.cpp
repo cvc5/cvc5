@@ -295,7 +295,7 @@ bool SygusConnectiveCore::constructSolution(
     Trace("sygus-ccore-debug")
         << "Excluded " << excAsserts.size() << " assertions for "
         << ccheck.d_numFalseCores << " false cores." << std::endl;
-    std::vector< Node > passerts;
+    std::vector<Node> passerts;
     for (const Node& a : ccheck.d_cpool)
     {
       if (excAsserts.find(a) == excAsserts.end())
@@ -309,8 +309,8 @@ bool SygusConnectiveCore::constructSolution(
     std::vector<Node> asserts;
     asserts.push_back(etsr);
     Node an = etsr;
-    std::vector< Node > mvs;
-    std::unordered_set< Node, NodeHashFunction > visited;
+    std::vector<Node> mvs;
+    std::unordered_set<Node, NodeHashFunction> visited;
     bool addSuccess = true;
     // Ensure that the current conjunction evaluates to false on all refinement
     // points. We get refinement points until we have exhausted.
@@ -318,13 +318,13 @@ bool SygusConnectiveCore::constructSolution(
     do
     {
       mvs.clear();
-      Node mvId = ccheck.getRefinementPt(an,visited,mvs);
-      if( !mvId.isNull() )
+      Node mvId = ccheck.getRefinementPt(an, visited, mvs);
+      if (!mvId.isNull())
       {
         addSuccess = addToAsserts(passerts, mvs, mvId, asserts, an);
       }
     } while (!mvId.isNull() && addSuccess);
-    
+
     do
     {
       addSuccess = false;
@@ -334,9 +334,9 @@ bool SygusConnectiveCore::constructSolution(
       checkCoreSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
 
       // do the check
-      Node query = nm->mkNode(AND,an,ccheck.d_this);
+      Node query = nm->mkNode(AND, an, ccheck.d_this);
       query = Rewriter::rewrite(query);
-      
+
       checkCoreSmt.assertFormula(query.toExpr());
       Result r = checkCoreSmt.checkSat();
       Trace("sygus-ccore-debug") << "...got " << r << std::endl;
@@ -357,8 +357,8 @@ bool SygusConnectiveCore::constructSolution(
         // it does not entail the postcondition, add an assertion that blocks
         // the current point
         mvs.clear();
-        getModel(checkCoreSmt,mvs);
-        ccheck.d_refinementPt.addTerm(query,mvs);
+        getModel(checkCoreSmt, mvs);
+        ccheck.d_refinementPt.addTerm(query, mvs);
         addSuccess = addToAsserts(passerts, mvs, query, asserts, an);
       }
     } while (addSuccess);
@@ -392,36 +392,44 @@ Node SygusConnectiveCore::Component::getSygusSolution(
   return sol;
 }
 
-Node SygusConnectiveCore::Component::getRefinementPt( Node n, std::unordered_set< Node, NodeHashFunction >& visited, std::vector< Node >& vals )
+Node SygusConnectiveCore::Component::getRefinementPt(
+    Node n,
+    std::unordered_set<Node, NodeHashFunction>& visited,
+    std::vector<Node>& vals)
 {
   // TODO
   return Node::null();
 }
 
-bool SygusConnectiveCore::addToAsserts( std::vector< Node >& passerts, const std::vector< Node >& mvs, Node mvId, std::vector< Node >& asserts, Node& an )
+bool SygusConnectiveCore::addToAsserts(std::vector<Node>& passerts,
+                                       const std::vector<Node>& mvs,
+                                       Node mvId,
+                                       std::vector<Node>& asserts,
+                                       Node& an)
 {
   // point should be valid
-  Assert( !mvId.isNull() );
+  Assert(!mvId.isNull());
   Node n;
   // select condition from passerts that evaluates to false on mvs
-  for( unsigned i=0, psize=passerts.size(); i<psize; i++ )
+  for (unsigned i = 0, psize = passerts.size(); i < psize; i++)
   {
     Node cn = passerts[i];
     // TODO : cache
-    Node cne = cn.substitute(d_vars.begin(),d_vars.end(),mvs.begin(),mvs.end());
+    Node cne =
+        cn.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
     cne = Rewriter::rewrite(cne);
-    if( cne.isConst() && !cne.getConst<bool>() )
+    if (cne.isConst() && !cne.getConst<bool>())
     {
       n = cn;
       // remove n from the pool
-      passerts.erase(passerts.begin()+i,passerts.begin()+i+1);
+      passerts.erase(passerts.begin() + i, passerts.begin() + i + 1);
       break;
     }
   }
-  if( !n.isNull() )
+  if (!n.isNull())
   {
     asserts.push_back(n);
-    an = NodeManager::currentNM()->mkNode(AND,n,an);
+    an = NodeManager::currentNM()->mkNode(AND, n, an);
     return true;
   }
   passerts.clear();
