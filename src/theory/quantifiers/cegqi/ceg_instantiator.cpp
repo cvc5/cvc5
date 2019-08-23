@@ -353,7 +353,7 @@ CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
 
 CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
 {
-  Assert(q.getKind()==FORALL);
+  Assert(q.getKind() == FORALL);
   // compute attributes
   QAttributes qa;
   QuantAttributes::computeQuantAttributes(q, qa);

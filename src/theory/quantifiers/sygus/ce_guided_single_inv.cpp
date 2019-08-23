@@ -315,7 +315,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
                     << std::endl;
   // check whether we can handle this quantified formula
   CegHandledStatus status = CEG_HANDLED;
-  if( d_single_inv.getKind()==FORALL )
+  if (d_single_inv.getKind() == FORALL)
   {
     status = CegInstantiator::isCbqiQuant(d_single_inv);
   }
