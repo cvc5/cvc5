@@ -232,7 +232,8 @@ bool SygusConnectiveCore::constructSolution(
   Assert(candidates.size() == candidate_values.size());
   if (Trace.isOn("sygus-ccore"))
   {
-    Trace("sygus-ccore") << "SygusConnectiveCore: Construct candidate solutions..." << std::endl;
+    Trace("sygus-ccore")
+        << "SygusConnectiveCore: Construct candidate solutions..." << std::endl;
     Printer* p = Printer::getPrinter(options::outputLanguage());
     for (unsigned i = 0, size = candidates.size(); i < size; i++)
     {
@@ -285,7 +286,6 @@ bool SygusConnectiveCore::constructSolution(
     Trace("sygus-ccore-debug") << "Add to pool in direction " << r << std::endl;
     ccheck.d_cpool.push_back(etsr);
     ccheck.d_cpoolToSol[etsr] = cval;
-    
 
     // ----- get the pool of assertions
     // exclude one assertion from every false core
@@ -304,7 +304,7 @@ bool SygusConnectiveCore::constructSolution(
       }
     }
     std::shuffle(passerts.begin(), passerts.end(), Random::getRandom());
-    
+
     // ----- check for entailment, adding based on models of failed points
     bool success;
     std::vector<Node> asserts;
@@ -316,7 +316,7 @@ bool SygusConnectiveCore::constructSolution(
       SmtEngine checkCoreSmt(nm->toExprManager());
       checkCoreSmt.setIsInternalSubsolver();
       checkCoreSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-      
+
       // do the check
       checkCoreSmt.assertFormula(ccheck.d_this.toExpr());
       for (const Node& p : asserts)
@@ -329,15 +329,12 @@ bool SygusConnectiveCore::constructSolution(
       {
         // it entails the postcondition
         // check whether it is a false core  TODO
-        
-        
-        
+
         Node sol = ccheck.getSygusSolution(asserts);
         Trace("sygus-ccore-sy") << "Sygus solution : " << sol << std::endl;
         if (ccheck.d_tried.find(sol) == ccheck.d_tried.end())
         {
           ccheck.d_tried.insert(sol);
-          
         }
       }
       else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
@@ -345,22 +342,23 @@ bool SygusConnectiveCore::constructSolution(
         // it does not entail the postcondition, add an assertion that blocks
         // the current point TODO
       }
-    }while(success);
+    } while (success);
   }
   Trace("sygus-ccore") << "...failed to generate candidate" << std::endl;
   return false;
 }
 
-Node SygusConnectiveCore::Component::getSygusSolution(std::vector< Node >& conjs) const
+Node SygusConnectiveCore::Component::getSygusSolution(
+    std::vector<Node>& conjs) const
 {
   std::sort(conjs.begin(), conjs.end());
   Node sol;
   std::map<Node, Node>::const_iterator itu;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (const Node& u : conjs)
   {
     itu = d_cpoolToSol.find(u);
-    Assert( itu!=d_cpoolToSol.end());
+    Assert(itu != d_cpoolToSol.end());
     Node s = itu->second;
     Trace("sygus-ccore-debug-sy") << "  uc-s " << s << std::endl;
     if (sol.isNull())

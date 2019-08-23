@@ -100,17 +100,16 @@ class SygusConnectiveCore : public Cegis
     unsigned d_numFalseCores;
     std::unordered_set<Node, NodeHashFunction> d_tried;
     bool isActive() const { return !d_scons.isNull(); }
-    Node getSygusSolution(std::vector< Node >& conjs) const;
+    Node getSygusSolution(std::vector<Node>& conjs) const;
   };
   /** Above information for the precondition of the synthesis conjecture */
   Component d_pre;
   /** Above information for the postcondition of the synthesis conjecture */
   Component d_post;
   /** the free variables that may appear in solutions */
-  std::vector< Node > d_vars;
+  std::vector<Node> d_vars;
   /** The evaluation term */
   Node d_eterm;
-  
 };
 
 }  // namespace quantifiers
