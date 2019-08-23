@@ -33,6 +33,14 @@ QuantifiersModule( qe ), d_added_split( qe->getUserContext() ){
 
 void QuantDSplit::checkOwnership(Node q)
 {
+  // If q is non-standard (marked as sygus, quantifier elimination, etc.), then
+  // do no split it.
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(q, qa);
+  if (!qa.isStandard())
+  {
+    return;
+  }
   int max_index = -1;
   int max_score = -1;
   Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
