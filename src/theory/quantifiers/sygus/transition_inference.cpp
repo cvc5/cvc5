@@ -486,7 +486,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
                                                    Node loc,
                                                    bool fwd)
 {
-  Assert(d_pre.has(loc));
+  Assert(d_trans.has(loc));
   // check if it satisfies the pre/post condition
   Node cc = fwd ? getPostCondition() : getPreCondition();
   Assert(!cc.isNull());
