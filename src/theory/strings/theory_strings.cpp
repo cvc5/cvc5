@@ -3160,8 +3160,9 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
   unsigned max_index = 0;
   for (unsigned i = 0, size = pinfer.size(); i < size; i++)
   {
-    Trace("strings-solve") << "#" << i << ": From " << pinfer[i].d_i << " / " << pinfer[i].d_j
-                           << " (rev=" << pinfer[i].d_rev << ") : ";
+    Trace("strings-solve") << "#" << i << ": From " << pinfer[i].d_i << " / "
+                           << pinfer[i].d_j << " (rev=" << pinfer[i].d_rev
+                           << ") : ";
     Trace("strings-solve") << pinfer[i].d_conc << " by " << pinfer[i].d_id
                            << std::endl;
     if (!set_use_index || pinfer[i].d_id < min_id
@@ -3402,22 +3403,23 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                 if( !d_equalityEngine.areDisequal( other_str, d_emptyString, true ) ){
                   Node eq = other_str.eqNode( d_emptyString );
                   eq = Rewriter::rewrite(eq);
-                  if( eq.isConst() )
+                  if (eq.isConst())
                   {
                     // If the equality rewrites to a constant, we must use the
                     // purify variable for this string to communicate that
                     // we have inferred whether it is empty.
-                    Node p = d_sk_cache.mkSkolemCached(other_str, SkolemCache::SK_PURIFY, "lsym");
-                    Node pEq = p.eqNode( d_emptyString );
+                    Node p = d_sk_cache.mkSkolemCached(
+                        other_str, SkolemCache::SK_PURIFY, "lsym");
+                    Node pEq = p.eqNode(d_emptyString);
                     // should not be constant
-                    Assert( !Rewriter::rewrite(pEq).isConst() );
+                    Assert(!Rewriter::rewrite(pEq).isConst());
                     // infer the direction that the rewriter inferred
                     info.d_conc = !eq.getConst<bool>() ? pEq.negate() : pEq;
                     info.d_id = INFER_INFER_EMP;
                   }
                   else
                   {
-                    info.d_conc = nm->mkNode( OR, eq, eq.negate() );
+                    info.d_conc = nm->mkNode(OR, eq, eq.negate());
                     info.d_id = INFER_LEN_SPLIT_EMP;
                   }
                   //set info
