@@ -612,14 +612,21 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
   return n.getAttribute(ContainsUConstAttribute())!=0;
 }
 
-Node TermUtil::simpleNegate( Node n ){
+Node TermUtil::simpleNegate(Node n)
+{
+  Assert(n.getType().isBoolean());
+  NodeManager* nm = NodeManager::currentNM();
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
     for (const Node& cn : n)
     {
       children.push_back(simpleNegate(cn));
     }
-    return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
+    return nm->mkNode(n.getKind() == OR ? AND : OR, children);
+  }
+  else if (n.isConst())
+  {
+    return nm->mkConst(!n.getConst<bool>());
   }
   return n.negate();
 }
