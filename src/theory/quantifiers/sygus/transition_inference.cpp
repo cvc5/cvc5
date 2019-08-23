@@ -315,7 +315,8 @@ void TransitionInference::process(Node n)
                        << (comp_num == 1 ? "pre"
                                          : (comp_num == -1 ? "post" : "trans"))
                        << "-condition : " << res << std::endl;
-    Component& c = ( comp_num==1 ? d_pre : ( comp_num==-1 ? d_post : d_trans ) );
+    Component& c =
+        (comp_num == 1 ? d_pre : (comp_num == -1 ? d_post : d_trans));
     c.d_conjuncts.push_back(res);
     if (!const_var.empty())
     {
@@ -339,7 +340,7 @@ void TransitionInference::process(Node n)
   // finalize the components
   for (int i = -1; i <= 1; i++)
   {
-    Component& c = ( i==1 ? d_pre : ( i==-1 ? d_post : d_trans ) );
+    Component& c = (i == 1 ? d_pre : (i == -1 ? d_post : d_trans));
     Node ret;
     if (c.d_conjuncts.empty())
     {
@@ -463,8 +464,7 @@ TraceIncStatus TransitionInference::initializeTrace(DetTrace& dt,
 {
   Component& c = fwd ? d_pre : d_post;
   Assert(c.has(loc));
-  std::map<Node, std::map<Node, Node> >::iterator it =
-      c.d_const_eq.find(loc);
+  std::map<Node, std::map<Node, Node> >::iterator it = c.d_const_eq.find(loc);
   if (it != c.d_const_eq.end())
   {
     std::vector<Node> next;
