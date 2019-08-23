@@ -1179,7 +1179,6 @@ Node QuantifiersRewriter::datatypeExpand(unsigned index,
   {
     return Node::null();
   }
-  Assert(v.getType().isDatatype());
   const Datatype& dt =
       static_cast<DatatypeType>(v.getType().toType()).getDatatype();
   Assert(index < dt.getNumConstructors());
