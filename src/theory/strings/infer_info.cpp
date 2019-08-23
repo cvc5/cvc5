@@ -24,6 +24,7 @@ std::ostream& operator<<(std::ostream& out, Inference i)
 {
   switch (i)
   {
+    case INFER_INFER_EMP: out << "Infer-Emp"; break;
     case INFER_SSPLIT_CST_PROP: out << "S-Split(CST-P)-prop"; break;
     case INFER_SSPLIT_VAR_PROP: out << "S-Split(VAR)-prop"; break;
     case INFER_LEN_SPLIT: out << "Len-Split(Len)"; break;
