@@ -314,7 +314,11 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv
                     << std::endl;
   // check whether we can handle this quantified formula
-  CegHandledStatus status = CegInstantiator::isCbqiQuant(d_single_inv);
+  CegHandledStatus status = CEG_HANDLED;
+  if( d_single_inv.getKind()==FORALL )
+  {
+    status = CegInstantiator::isCbqiQuant(d_single_inv);
+  }
   Trace("cegqi-si") << "CegHandledStatus is " << status << std::endl;
   if (status < CEG_HANDLED)
   {
