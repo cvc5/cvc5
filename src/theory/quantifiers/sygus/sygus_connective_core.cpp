@@ -373,6 +373,16 @@ Node SygusConnectiveCore::Component::getSygusSolution(
   return sol;
 }
 
+void SygusConnectiveCore::getModel( SmtEngine& smt, std::vector< Node >& vals )
+{
+  for( const Node& v : d_vars )
+  {
+    Node mv = Node::fromExpr(smt.getValue(v.toExpr()));
+    Trace("sygus-ccore-model") << v << " -> " << mv << " ";
+    vals.push_back(mv);
+  }
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
