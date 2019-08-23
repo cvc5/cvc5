@@ -191,7 +191,8 @@ void SynthConjecture::assign(Node q)
     d_ceg_proc->initialize(d_base_inst, d_candidates);
     for (unsigned i = 0, size = d_modules.size(); i < size; i++)
     {
-      if (d_modules[i]->initialize(d_base_inst, d_candidates, guarded_lemmas))
+      if (d_modules[i]->initialize(
+              d_simp_quant, d_base_inst, d_candidates, guarded_lemmas))
       {
         d_master = d_modules[i];
         break;
