@@ -1717,7 +1717,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "quant-dsplit-mode=MODE"
   type       = "CVC4::theory::quantifiers::QuantDSplitMode"
-  default    = "CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_NONE"
+  default    = "CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_DEFAULT"
   handler    = "stringToQuantDSplitMode"
   includes   = ["options/quantifiers_modes.h"]
   help       = "mode for dynamic quantifiers splitting"
