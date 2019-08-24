@@ -468,7 +468,7 @@ bool SygusConnectiveCore::addToAsserts(std::vector<Node>& passerts,
   {
     Node cn = passerts[i];
     // TODO : cache
-    Node cne = evaluate(cn,mvId,mvs);
+    Node cne = evaluate(cn, mvId, mvs);
     if (cne.isConst() && !cne.getConst<bool>())
     {
       n = cn;
@@ -497,11 +497,11 @@ void SygusConnectiveCore::getModel(SmtEngine& smt, std::vector<Node>& vals)
   }
 }
 
-Node SygusConnectiveCore::evaluate( Node n, Node id, std::vector< Node >& vals )
+Node SygusConnectiveCore::evaluate(Node n, Node id, std::vector<Node>& vals)
 {
-  std::unordered_map< Node, Node, NodeHashFunction >& ec = d_eval_cache[n];
-  std::unordered_map< Node, Node, NodeHashFunction >::iterator it = ec.find(id);
-  if( it!=ec.end() )
+  std::unordered_map<Node, Node, NodeHashFunction>& ec = d_eval_cache[n];
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = ec.find(id);
+  if (it != ec.end())
   {
     return it->second;
   }

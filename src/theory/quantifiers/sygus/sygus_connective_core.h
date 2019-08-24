@@ -137,8 +137,8 @@ class SygusConnectiveCore : public Cegis
                     Node& an);
 
   Node addToAsserts(Node n, Node assertn, std::vector<Node>& asserts);
-  
-  Node evaluate( Node n, Node id, std::vector< Node >& vals );
+
+  Node evaluate(Node n, Node id, std::vector<Node>& vals);
 };
 
 }  // namespace quantifiers
