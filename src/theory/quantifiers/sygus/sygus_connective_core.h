@@ -138,6 +138,7 @@ class SygusConnectiveCore : public Cegis
 
   Node addToAsserts(Node n, Node assertn, std::vector<Node>& asserts);
 
+  std::unordered_map< Node, std::unordered_map< Node, Node, NodeHashFunction >, NodeHashFunction > d_eval_cache;
   Node evaluate(Node n, Node id, std::vector<Node>& vals);
 };
 
