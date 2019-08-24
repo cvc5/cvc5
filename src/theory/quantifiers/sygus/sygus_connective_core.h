@@ -110,7 +110,7 @@ class SygusConnectiveCore : public Cegis
      */
     Node getRefinementPt(Node n,
                          std::unordered_set<Node, NodeHashFunction>& visited,
-                         const std::vector< Node >& vs,
+                         const std::vector<Node>& vs,
                          std::vector<Node>& ss);
   };
   /** Above information for the precondition of the synthesis conjecture */

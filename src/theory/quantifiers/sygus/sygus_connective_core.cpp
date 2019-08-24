@@ -395,29 +395,30 @@ Node SygusConnectiveCore::Component::getSygusSolution(
 Node SygusConnectiveCore::Component::getRefinementPt(
     Node n,
     std::unordered_set<Node, NodeHashFunction>& visited,
-                         const std::vector< Node >& vs,
-                         std::vector<Node>& ss)
+    const std::vector<Node>& vs,
+    std::vector<Node>& ss)
 {
-  std::vector< Node > ctx;
-  
-  std::map< NodeTrie *, std::map< Node, NodeTrie >::iterator > vt;
-  std::map< NodeTrie *, std::map< Node, NodeTrie >::iterator >::iterator itvt;
+  std::vector<Node> ctx;
+
+  std::map<NodeTrie*, std::map<Node, NodeTrie>::iterator> vt;
+  std::map<NodeTrie*, std::map<Node, NodeTrie>::iterator>::iterator itvt;
   std::vector<NodeTrie*> visit;
   NodeTrie* cur;
   visit.push_back(&d_refinementPt);
-  do {
+  do
+  {
     cur = visit.back();
-    if (ctx.size()==vs.size() )
+    if (ctx.size() == vs.size())
     {
       // at leaf
       Node id = cur->getData();
-      if( visited.find(id)==visited.end() )
+      if (visited.find(id) == visited.end())
       {
         visited.insert(id);
         // check if it is true
-        Node sn = n.substitute(vs.begin(),vs.end(),ctx.begin(),ctx.end());
+        Node sn = n.substitute(vs.begin(), vs.end(), ctx.begin(), ctx.end());
         sn = Rewriter::rewrite(sn);
-        if( sn.isConst() && sn.getConst<bool>() )
+        if (sn.isConst() && sn.getConst<bool>())
         {
           ss = ctx;
           return id;
@@ -429,13 +430,13 @@ Node SygusConnectiveCore::Component::getRefinementPt(
     else
     {
       itvt = vt.find(cur);
-      if( itvt==vt.begin() )
+      if (itvt == vt.begin())
       {
-        std::map< Node, NodeTrie >::iterator itv = cur->d_data.begin();
+        std::map<Node, NodeTrie>::iterator itv = cur->d_data.begin();
         vt[cur] = itv;
         vt.find(cur);
       }
-      if( itvt==vt.end() )
+      if (itvt == vt.end())
       {
         visit.pop_back();
         vt.erase(cur);
@@ -443,12 +444,12 @@ Node SygusConnectiveCore::Component::getRefinementPt(
       }
       else
       {
-        ctx.push_back( itvt->second->first );
-        visit.push_back( &(itvt->second->second) );
+        ctx.push_back(itvt->second->first);
+        visit.push_back(&(itvt->second->second));
         ++vt[cur];
       }
     }
-    
+
   } while (!visit.empty());
   return Node::null();
 }
