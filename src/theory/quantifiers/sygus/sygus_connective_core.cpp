@@ -496,7 +496,7 @@ void SygusConnectiveCore::getModel(SmtEngine& smt, std::vector<Node>& vals)
   }
 }
 
-Node SygusConnectiveCore::evaluate(Node n, Node id, const std::vector<Node>& vals)
+Node SygusConnectiveCore::evaluate(Node n, Node id, const std::vector<Node>& mvs)
 {
   std::unordered_map<Node, Node, NodeHashFunction>& ec = d_eval_cache[n];
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = ec.find(id);
