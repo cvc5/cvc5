@@ -105,12 +105,13 @@ class SygusConnectiveCore : public Cegis
 
     /**
      * Get a refinement point that n evalutes to true on, taken from the
-     * d_refinementPt trie, and store it in vals. The set visited is the set
+     * d_refinementPt trie, and store it in ss. The set visited is the set
      * of leaf nodes that we've already checked.
      */
     Node getRefinementPt(Node n,
                          std::unordered_set<Node, NodeHashFunction>& visited,
-                         std::vector<Node>& vals);
+                         const std::vector< Node >& vs,
+                         std::vector<Node>& ss);
   };
   /** Above information for the precondition of the synthesis conjecture */
   Component d_pre;
