@@ -142,7 +142,7 @@ class SygusConnectiveCore : public Cegis
                      std::unordered_map<Node, Node, NodeHashFunction>,
                      NodeHashFunction>
       d_eval_cache;
-  Node evaluate(Node n, Node id, std::vector<Node>& vals);
+  Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
 };
 
 }  // namespace quantifiers
