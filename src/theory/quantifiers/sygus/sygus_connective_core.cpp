@@ -468,9 +468,7 @@ bool SygusConnectiveCore::addToAsserts(std::vector<Node>& passerts,
   {
     Node cn = passerts[i];
     // TODO : cache
-    Node cne =
-        cn.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
-    cne = Rewriter::rewrite(cne);
+    Node cne = evaluate(cn,mvId,mvs);
     if (cne.isConst() && !cne.getConst<bool>())
     {
       n = cn;
@@ -497,6 +495,21 @@ void SygusConnectiveCore::getModel(SmtEngine& smt, std::vector<Node>& vals)
     Trace("sygus-ccore-model") << v << " -> " << mv << " ";
     vals.push_back(mv);
   }
+}
+
+Node SygusConnectiveCore::evaluate( Node n, Node id, std::vector< Node >& vals )
+{
+  std::unordered_map< Node, Node, NodeHashFunction >& ec = d_eval_cache[n];
+  std::unordered_map< Node, Node, NodeHashFunction >::iterator it = ec.find(id);
+  if( it!=ec.end() )
+  {
+    return it->second;
+  }
+  // TODO: use evaluator
+  Node cn = n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
+  cn = Rewriter::rewrite(cn);
+  ec[id] = cn;
+  return cn;
 }
 
 }  // namespace quantifiers
