@@ -235,25 +235,27 @@ void ErProof::outputAsLfsc(std::ostream& os) const
   {
     for (size_t i = 0, n = def.d_otherLiterals.size(); i < n; ++i)
     {
-
       // Compute the name of the CNF proof we're unrolling in this step
       std::ostringstream previousCnfProof;
       previousCnfProof << "er.cnf" << def.d_newVariable;
       if (i != 0)
       {
-        // For all but the first unrolling, the previous CNF has an unrolling number attached
+        // For all but the first unrolling, the previous CNF has an unrolling
+        // number attached
         previousCnfProof << ".u" << i;
       }
 
       // Prove the first clause in the CNF
       os << "\n    (@ ";
       os << "er.c" << (firstDefClause + 2 + i);
-      os << " (common_tail_cnf_prove_head _ _ _ " << previousCnfProof.str() << ")";
+      os << " (common_tail_cnf_prove_head _ _ _ " << previousCnfProof.str()
+         << ")";
 
       // Prove the rest of the CNF
       os << "\n    (@ ";
       os << "er.cnf" << def.d_newVariable << ".u" << (i + 1);
-      os << " (common_tail_cnf_prove_tail _ _ _ " << previousCnfProof.str() << ")";
+      os << " (common_tail_cnf_prove_tail _ _ _ " << previousCnfProof.str()
+         << ")";
     }
     parenCount += 2 * def.d_otherLiterals.size();
 
