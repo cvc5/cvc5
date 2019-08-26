@@ -136,6 +136,9 @@ class SygusConnectiveCore : public Cegis
   Component d_pre;
   /** Above information for the postcondition of the synthesis conjecture */
   Component d_post;
+  /** The side condition */
+  Node d_scPre;
+  Node d_scPost;
   /** the free variables that may appear in solutions */
   std::vector<Node> d_vars;
   /** The evaluation term */

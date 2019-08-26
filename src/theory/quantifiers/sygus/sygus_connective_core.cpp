@@ -124,12 +124,12 @@ bool SygusConnectiveCore::processInitialize(Node conj,
                                             const std::vector<Node>& candidates,
                                             std::vector<Node>& lemmas)
 {
-  Trace("sygus-ccore") << "SygusConnectiveCore::initialize" << std::endl;
-  Trace("sygus-ccore") << "  conjecture : " << conj << std::endl;
-  Trace("sygus-ccore") << "  candidates : " << candidates << std::endl;
+  Trace("sygus-ccore-init") << "SygusConnectiveCore::initialize" << std::endl;
+  Trace("sygus-ccore-init") << "  conjecture : " << conj << std::endl;
+  Trace("sygus-ccore-init") << "  candidates : " << candidates << std::endl;
   if (candidates.size() != 1)
   {
-    Trace("sygus-ccore") << "...only applies to single candidate conjectures."
+    Trace("sygus-ccore-init") << "...only applies to single candidate conjectures."
                          << std::endl;
     return false;
   }
@@ -144,21 +144,21 @@ bool SygusConnectiveCore::processInitialize(Node conj,
   {
     body = TermUtil::simpleNegate(body);
   }
-  Trace("sygus-ccore") << "  body : " << body << std::endl;
+  Trace("sygus-ccore-init") << "  body : " << body << std::endl;
 
   TransitionInference ti;
   ti.process(body);
 
   if (!ti.isComplete())
   {
-    Trace("sygus-ccore") << "...could not infer predicate." << std::endl;
+    Trace("sygus-ccore-init") << "...could not infer predicate." << std::endl;
     return false;
   }
   Node trans = ti.getTransitionRelation();
-  Trace("sygus-ccore") << "  transition relation: " << trans << std::endl;
+  Trace("sygus-ccore-init") << "  transition relation: " << trans << std::endl;
   if (!trans.isConst() || trans.getConst<bool>())
   {
-    Trace("sygus-ccore")
+    Trace("sygus-ccore-init")
         << "...does not apply conjectures with transition relations."
         << std::endl;
     return false;
@@ -169,22 +169,45 @@ bool SygusConnectiveCore::processInitialize(Node conj,
 
   Node f = ti.getFunction();
   Assert(!f.isNull());
-  Trace("sygus-ccore") << "  predicate: " << f << std::endl;
+  Trace("sygus-ccore-init") << "  predicate: " << f << std::endl;
   ti.getVariables(d_vars);
-  Trace("sygus-ccore") << "  variables: " << d_vars << std::endl;
+  Trace("sygus-ccore-init") << "  variables: " << d_vars << std::endl;
   // make the evaluation function
   std::vector<Node> echildren;
   echildren.push_back(d_candidate);
   echildren.insert(echildren.end(), d_vars.begin(), d_vars.end());
   d_eterm = NodeManager::currentNM()->mkNode(DT_SYGUS_EVAL, echildren);
-  Trace("sygus-ccore") << "  evaluation term: " << d_eterm << std::endl;
+  Trace("sygus-ccore-init") << "  evaluation term: " << d_eterm << std::endl;
 
   d_pre.d_this = ti.getPreCondition();
   // negate the post condition
   d_post.d_this = TermUtil::simpleNegate(ti.getPostCondition());
-  Trace("sygus-ccore") << "  precondition: " << d_pre.d_this << std::endl;
-  Trace("sygus-ccore") << "  postcondition: " << d_post.d_this << std::endl;
+  Trace("sygus-ccore-init") << "  precondition: " << d_pre.d_this << std::endl;
+  Trace("sygus-ccore-init") << "  postcondition: " << d_post.d_this << std::endl;
 
+  // side condition?
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(conj, qa);
+  Node sc = qa.d_sygusSideCondition;
+  if( !sc.isNull() )
+  {
+    Trace("sygus-ccore-init") << "  side condition: " << sc << std::endl;
+    if( sc.getKind()==EXISTS )
+    {
+      sc = sc[1];
+    }
+    Node scb = TermUtil::simpleNegate(sc);
+    TransitionInference tisc;
+    tisc.process(scb);
+    
+    Node scPre = tisc.getPreCondition();
+    Node scPost = tisc.getPostCondition();
+    std::vector< Node > scVars;
+    tisc.getVariables(scVars);
+    Trace("sygus-ccore-init") << "  precondition of SC: " << scPre << std::endl;
+    Trace("sygus-ccore-init") << "  postcondition of SC: " << scPost << std::endl;
+  }
+  
   // We use the postcondition if it non-trivial and the grammar gt for our
   // candidate has the production rule gt -> AND( gt, gt ). Similarly for
   // precondition and OR.
@@ -203,7 +226,7 @@ bool SygusConnectiveCore::processInitialize(Node conj,
         && TypeNode::fromType(gdt[i].getArgType(0)) == gt
         && TypeNode::fromType(gdt[i].getArgType(1)) == gt)
     {
-      Trace("sygus-ccore") << "  will do " << (r == 0 ? "pre" : "post")
+      Trace("sygus-ccore-init") << "  will do " << (r == 0 ? "pre" : "post")
                            << "condition." << std::endl;
       c.d_scons = Node::fromExpr(gdt[i].getConstructor());
       // register the symmetry breaking lemma
@@ -227,14 +250,28 @@ bool SygusConnectiveCore::processConstructCandidates(
     std::vector<Node>& lems)
 {
   Assert(isActive());
-  if (constructSolution(enums, enum_values, candidate_values))
+  bool ret = constructSolution(enums, enum_values, candidate_values);
+  
+  // exclude in the basic way if passive
+  Assert( enums.size()==1 );
+  NodeManager * nm = NodeManager::currentNM();
+  for (unsigned i=0, esize=enums.size(); i<esize; i++ )
   {
-    return true;
+    Node e = enums[i];
+    if( !d_tds->isPassiveEnumerator(e) )
+    {
+      continue;
+    }
+    Node v = enum_values[i];
+    Node lem = d_tds->getExplain()->getExplanationForEquality(e, v).negate();
+    Node g = d_tds->getActiveGuardForEnumerator(e);
+    if(!g.isNull())
+    {
+      lem = nm->mkNode(OR,g.negate(),lem);
+    }
+    lems.push_back(lem);
   }
-  // no special candidate, try the default
-  // return Cegis::processConstructCandidates(
-  //   enums, enum_values, candidates, candidate_values, satisfiedRl, lems);
-  return false;
+  return ret;
 }
 
 bool SygusConnectiveCore::isActive() const
@@ -364,7 +401,7 @@ bool SygusConnectiveCore::constructSolution(
       std::vector<Node> rasserts = asserts;
       rasserts.push_back(ccheck.d_this);
       std::shuffle(rasserts.begin(), rasserts.end(), Random::getRandom());
-      Node query = nm->mkNode(AND, rasserts);
+      Node query = rasserts.size()==1 ? rasserts[0] : nm->mkNode(AND, rasserts);
       for (const Node& a : rasserts)
       {
         checkCoreSmt.assertFormula(a.toExpr());
@@ -374,7 +411,6 @@ bool SygusConnectiveCore::constructSolution(
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
         // it entails the postcondition
-        // check whether it is a false core
         // get the unsat core
         UnsatCore uc = checkCoreSmt.getUnsatCore();
         bool hasCheckF = false;
@@ -390,12 +426,15 @@ bool SygusConnectiveCore::constructSolution(
           }
           uasserts.push_back(uassert);
         }
+        // now, check the side condition
+        
+        
         std::sort(uasserts.begin(), uasserts.end());
         if (hasCheckF)
         {
-          Trace("sygus-ccore") << ">>> Solution : " << an << std::endl;
+          Trace("sygus-ccore") << ">>> Solution : " << uasserts << std::endl;
 
-          Node sol = ccheck.getSygusSolution(asserts);
+          Node sol = ccheck.getSygusSolution(uasserts);
           Trace("sygus-ccore-sy") << "Sygus solution : " << sol << std::endl;
           if (ccheck.d_tried.find(sol) == ccheck.d_tried.end())
           {
