@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,8 +34,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CHECK_H
-#define __CVC4__CHECK_H
+#ifndef CVC4__CHECK_H
+#define CVC4__CHECK_H
 
 #include <ostream>
 
@@ -55,11 +55,14 @@
 #ifdef __has_builtin
 #if __has_builtin(__builtin_expect)
 #define CVC4_PREDICT_FALSE(x) (__builtin_expect(x, false))
+#define CVC4_PREDICT_TRUE(x) (__builtin_expect(x, true))
 #else
 #define CVC4_PREDICT_FALSE(x) x
+#define CVC4_PREDICT_TRUE(x) x
 #endif
 #else
 #define CVC4_PREDICT_FALSE(x) x
+#define CVC4_PREDICT_TRUE(x) x
 #endif
 
 namespace CVC4 {
@@ -143,4 +146,4 @@ class OstreamVoider
 
 }  // namespace CVC4
 
-#endif /* __CVC4__CHECK_H */
+#endif /* CVC4__CHECK_H */

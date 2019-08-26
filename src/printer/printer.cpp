@@ -2,9 +2,9 @@
 /*! \file printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Aina Niemetz
+ **   Morgan Deters, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -63,6 +63,12 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   case LANG_SYGUS:
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::sygus_variant));
+
+  case LANG_SYGUS_V2:
+    // sygus version 2.0 does not have discrepancies with smt2, hence we use
+    // a normal smt2 variant here.
+    return unique_ptr<Printer>(
+        new printer::smt2::Smt2Printer(printer::smt2::smt2_6_1_variant));
 
   case LANG_AST:
     return unique_ptr<Printer>(new printer::ast::AstPrinter());

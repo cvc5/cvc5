@@ -2,9 +2,9 @@
 /*! \file conjecture_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,14 +14,15 @@
  **/
 
 #include "theory/quantifiers/conjecture_generator.h"
+#include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "util/random.h"
 
@@ -1630,7 +1631,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
           //initial binding
           TNode f = s->getTgFunc( d_typ, d_status_num );
           Assert( !eqc.isNull() );
-          TermArgTrie * tat = s->getTermDatabase()->getTermArgTrie( eqc, f );
+          TNodeTrie* tat = s->getTermDatabase()->getTermArgTrie(eqc, f);
           if( tat ){
             d_match_children.push_back( tat->d_data.begin() );
             d_match_children_end.push_back( tat->d_data.end() );

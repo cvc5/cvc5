@@ -2,9 +2,9 @@
 /*! \file anti_skolem.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,9 +15,9 @@
 
 #include "theory/quantifiers/anti_skolem.h"
 
+#include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;
@@ -29,7 +29,7 @@ namespace theory {
 namespace quantifiers {
 
 struct sortTypeOrder {
-  TermCanonize* d_tu;
+  expr::TermCanonize* d_tu;
   bool operator() (TypeNode i, TypeNode j) {
     return d_tu->getIdForType( i )<d_tu->getIdForType( j );
   }

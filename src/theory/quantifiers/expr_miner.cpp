@@ -2,9 +2,9 @@
 /*! \file expr_miner.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -87,6 +87,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
     try
     {
       checker.reset(new SmtEngine(&em));
+      checker->setIsInternalSubsolver();
       checker->setTimeLimit(options::sygusExprMinerCheckTimeout(), true);
       checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
       checker->setOption("sygus-rr-synth-input", false);
@@ -111,6 +112,29 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
     checker.reset(new SmtEngine(nm->toExprManager()));
     checker->assertFormula(squery.toExpr());
   }
+}
+
+Result ExprMiner::doCheck(Node query)
+{
+  Node queryr = Rewriter::rewrite(query);
+  if (queryr.isConst())
+  {
+    if (!queryr.getConst<bool>())
+    {
+      return Result(Result::UNSAT);
+    }
+    else
+    {
+      return Result(Result::SAT);
+    }
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  bool needExport = false;
+  ExprManager em(nm->getOptions());
+  std::unique_ptr<SmtEngine> smte;
+  ExprManagerMapCollection varMap;
+  initializeChecker(smte, em, varMap, queryr, needExport);
+  return smte->checkSat();
 }
 
 }  // namespace quantifiers

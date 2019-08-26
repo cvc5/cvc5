@@ -2,9 +2,9 @@
 /*! \file node_algorithm.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,13 +18,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__EXPR__NODE_ALGORITHM_H
-#define __CVC4__EXPR__NODE_ALGORITHM_H
+#ifndef CVC4__EXPR__NODE_ALGORITHM_H
+#define CVC4__EXPR__NODE_ALGORITHM_H
 
 #include <unordered_map>
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/type_node.h"
 
 namespace CVC4 {
 namespace expr {
@@ -60,16 +61,80 @@ bool hasBoundVar(TNode n);
 bool hasFreeVar(TNode n);
 
 /**
+ * Get the free variables in n, that is, the subterms of n of kind
+ * BOUND_VARIABLE that are not bound in n, adds these to fvs.
+ * @param n The node under investigation
+ * @param fvs The set which free variables are added to
+ * @param computeFv If this flag is false, then we only return true/false and
+ * do not add to fvs.
+ * @return true iff this node contains a free variable.
+ */
+bool getFreeVariables(TNode n,
+                      std::unordered_set<Node, NodeHashFunction>& fvs,
+                      bool computeFv = true);
+
+/**
+ * Get all variables in n.
+ * @param n The node under investigation
+ * @param vs The set which free variables are added to
+ * @return true iff this node contains a free variable.
+ */
+bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs);
+
+/**
  * For term n, this function collects the symbols that occur as a subterms
  * of n. A symbol is a variable that does not have kind BOUND_VARIABLE.
  * @param n The node under investigation
  * @param syms The set which the symbols of n are added to
  */
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
-/** Same as above, with a visited cache */
+
+/**
+ * For term n, this function collects the symbols that occur as a subterms
+ * of n. A symbol is a variable that does not have kind BOUND_VARIABLE.
+ * @param n The node under investigation
+ * @param syms The set which the symbols of n are added to
+ * @param visited A cache to be used for visited nodes.
+ */
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
+
+/**
+ * For term n, this function collects the operators that occur in n.
+ * @param n The node under investigation
+ * @param ops The map (from each type to operators of that type) which the
+ * operators of n are added to
+ */
+void getOperatorsMap(
+    TNode n,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops);
+
+/**
+ * For term n, this function collects the operators that occur in n.
+ * @param n The node under investigation
+ * @param ops The map (from each type to operators of that type) which the
+ * operators of n are added to
+ * @param visited A cache to be used for visited nodes.
+ */
+void getOperatorsMap(
+    TNode n,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
+    std::unordered_set<TNode, TNodeHashFunction>& visited);
+
+/**
+ * Substitution of Nodes in a capture avoiding way.
+ */
+Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
+
+/**
+ * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
+ * source will be replaced by their corresponding element in dest.  Both
+ * vectors should have the same size.
+ */
+Node substituteCaptureAvoiding(TNode n,
+                               std::vector<Node>& src,
+                               std::vector<Node>& dest);
 
 }  // namespace expr
 }  // namespace CVC4

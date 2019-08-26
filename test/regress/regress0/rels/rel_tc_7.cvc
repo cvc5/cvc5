@@ -3,8 +3,8 @@ OPTION "logic" "ALL_SUPPORTED";
 IntPair: TYPE = [INT, INT];
 x : SET OF IntPair;
 y : SET OF IntPair;
-ASSERT y = ((TCLOSURE x) JOIN x);
+ASSERT y = (TCLOSURE(x) JOIN x);
 ASSERT (1,2) IS_IN ((x JOIN x) JOIN x);
-ASSERT NOT (y <= TCLOSURE x);
+ASSERT NOT (y <= TCLOSURE(x));
 
 CHECKSAT;

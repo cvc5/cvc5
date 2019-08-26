@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -152,8 +152,8 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-#ifndef __CVC4__NODE_BUILDER_H
-#define __CVC4__NODE_BUILDER_H
+#ifndef CVC4__NODE_BUILDER_H
+#define CVC4__NODE_BUILDER_H
 
 #include <cstdlib>
 #include <iostream>
@@ -274,7 +274,7 @@ class NodeBuilder {
    */
   inline void realloc() {
     size_t newSize = 2 * size_t(d_nvMaxChildren);
-    size_t hardLimit = (1lu << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
+    size_t hardLimit = (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
     realloc(__builtin_expect( ( newSize > hardLimit ), false ) ? hardLimit : newSize);
   }
 
@@ -772,11 +772,11 @@ void NodeBuilder<nchild_thresh>::clear(Kind k) {
 
 template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
-  Assert( toSize > d_nvMaxChildren,
-          "attempt to realloc() a NodeBuilder to a smaller/equal size!" );
-  Assert( toSize < (1lu << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN),
+  AlwaysAssert(toSize > d_nvMaxChildren,
+               "attempt to realloc() a NodeBuilder to a smaller/equal size!");
+  Assert( toSize < (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN),
           "attempt to realloc() a NodeBuilder to size %u (beyond hard limit of %u)",
-          toSize, (1lu << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1 );
+          toSize, (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1 );
 
   if(__builtin_expect( ( nvIsAllocated() ), false )) {
     // Ensure d_nv is not modified on allocation failure
@@ -1342,4 +1342,4 @@ std::ostream& operator<<(std::ostream& out, const NodeBuilder<nchild_thresh>& nb
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_BUILDER_H */
+#endif /* CVC4__NODE_BUILDER_H */

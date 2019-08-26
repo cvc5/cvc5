@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewrite_rules_simplification.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Aina Niemetz
+ **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -535,7 +535,7 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<AndOrXorConcatPullUp>(" << node << ")"
                       << std::endl;
-  uint32_t m, my, mz, n;
+  uint32_t m, my, mz;
   size_t nc;
   Kind kind = node.getKind();
   TNode concat;
@@ -589,7 +589,9 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
     z = nc > 1 ? zb.constructNode() : zb[0];
   }
   m = utils::getSize(x);
-  n = utils::getSize(c);
+#ifdef CVC4_ASSERTIONS
+  uint32_t n = utils::getSize(c);
+#endif
   my = y.isNull() ? 0 : utils::getSize(y);
   mz = z.isNull() ? 0 : utils::getSize(z);
   Assert(mz == m - my - n);

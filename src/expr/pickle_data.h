@@ -2,9 +2,9 @@
 /*! \file pickle_data.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PICKLE_DATA_H
-#define __CVC4__PICKLE_DATA_H
+#ifndef CVC4__PICKLE_DATA_H
+#define CVC4__PICKLE_DATA_H
 
 #include <sstream>
 #include <deque>
@@ -44,8 +44,8 @@ namespace expr {
 namespace pickle {
 
 const unsigned NBITS_BLOCK = 64;
-const unsigned NBITS_KIND = __CVC4__EXPR__NODE_VALUE__NBITS__KIND;
-const unsigned NBITS_NCHILDREN = __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
+const unsigned NBITS_KIND = CVC4__EXPR__NODE_VALUE__NBITS__KIND;
+const unsigned NBITS_NCHILDREN = CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
 const unsigned NBITS_CONSTBLOCKS = 32;
 
 struct BlockHeader {
@@ -117,4 +117,4 @@ public:
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PICKLE_DATA_H */
+#endif /* CVC4__PICKLE_DATA_H */

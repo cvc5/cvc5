@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__LANGUAGE_H
-#define __CVC4__LANGUAGE_H
+#ifndef CVC4__LANGUAGE_H
+#define CVC4__LANGUAGE_H
 
 #include <sstream>
 #include <string>
@@ -64,6 +64,8 @@ enum CVC4_PUBLIC Language
   LANG_Z3STR,
   /** The SyGuS input language */
   LANG_SYGUS,
+  /** The SyGuS input language version 2.0 */
+  LANG_SYGUS_V2,
 
   // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
@@ -103,6 +105,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SYGUS:
     out << "LANG_SYGUS";
     break;
+  case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   default:
     out << "undefined_input_language";
   }
@@ -147,6 +150,8 @@ enum CVC4_PUBLIC Language
   LANG_Z3STR = input::LANG_Z3STR,
   /** The sygus output language */
   LANG_SYGUS = input::LANG_SYGUS,
+  /** The sygus output language version 2.0 */
+  LANG_SYGUS_V2 = input::LANG_SYGUS_V2,
 
   // START OUTPUT-ONLY LANGUAGES AT ENUM VALUE 10
   // THESE ARE IN PRINCIPLE NOT POSSIBLE INPUT LANGUAGES
@@ -186,6 +191,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SYGUS:
     out << "LANG_SYGUS";
     break;
+  case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   case LANG_AST:
     out << "LANG_AST";
     break;
@@ -232,4 +238,4 @@ OutputLanguage toOutputLanguage(std::string language) CVC4_PUBLIC;
 }/* CVC4::language namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__LANGUAGE_H */
+#endif /* CVC4__LANGUAGE_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Kshitij Bansal, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -89,9 +89,10 @@ bool CommandExecutor::doCommand(Command* cmd)
     // assume no error
     bool status = true;
 
-    for(CommandSequence::iterator subcmd = seq->begin();
-        (status || d_options.getContinuedExecution()) && subcmd != seq->end();
-        ++subcmd) {
+    for (CommandSequence::iterator subcmd = seq->begin();
+         status && subcmd != seq->end();
+         ++subcmd)
+    {
       status = doCommand(*subcmd);
     }
 
@@ -183,7 +184,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       }
       for (const auto& getterCommand : getterCommands) {
         status = doCommandSingleton(getterCommand.get());
-        if (!status && !d_options.getContinuedExecution()) {
+        if (!status)
+        {
           break;
         }
       }

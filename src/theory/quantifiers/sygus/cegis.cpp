@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -38,7 +39,8 @@ Cegis::Cegis(QuantifiersEngine* qe, SynthConjecture* p)
   }
 }
 
-bool Cegis::initialize(Node n,
+bool Cegis::initialize(Node conj,
+                       Node n,
                        const std::vector<Node>& candidates,
                        std::vector<Node>& lemmas)
 {
@@ -60,10 +62,11 @@ bool Cegis::initialize(Node n,
     TypeNode bt = d_base_body.getType();
     d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
   }
-  return processInitialize(n, candidates, lemmas);
+  return processInitialize(conj, n, candidates, lemmas);
 }
 
-bool Cegis::processInitialize(Node n,
+bool Cegis::processInitialize(Node conj,
+                              Node n,
                               const std::vector<Node>& candidates,
                               std::vector<Node>& lemmas)
 {

@@ -2,9 +2,9 @@
 /*! \file ceg_epr_instantiator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,18 +14,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
 
 #include <map>
 #include <vector>
+#include "expr/node_trie.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-class TermArgTrie;
 
 /** Effectively Propositional (EPR) Instantiator
  *
@@ -93,7 +92,7 @@ class EprInstantiator : public Instantiator
                          Node pv,
                          Node catom,
                          std::vector<Node>& arg_reps,
-                         TermArgTrie* tat,
+                         TNodeTrie* tat,
                          unsigned index,
                          std::map<Node, int>& match_score);
   void computeMatchScore(CegInstantiator* ci,
@@ -107,4 +106,4 @@ class EprInstantiator : public Instantiator
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,16 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_STRATEGY_E_MATCHING_H
-#define __CVC4__INST_STRATEGY_E_MATCHING_H
+#ifndef CVC4__INST_STRATEGY_E_MATCHING_H
+#define CVC4__INST_STRATEGY_E_MATCHING_H
 
-#include "context/context.h"
-#include "context/context_mm.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/ematching/trigger.h"
-#include "theory/quantifiers_engine.h"
-#include "util/statistics_registry.h"
-#include "options/quantifiers_options.h"
+#include "theory/quantifiers/quant_relevance.h"
 
 namespace CVC4 {
 namespace theory {
@@ -100,9 +96,11 @@ private:
  bool hasUserPatterns(Node q);
  /** has user patterns */
  std::map<Node, bool> d_hasUserPatterns;
+
 public:
-  InstStrategyAutoGenTriggers( QuantifiersEngine* qe );
-  ~InstStrategyAutoGenTriggers(){}
+ InstStrategyAutoGenTriggers(QuantifiersEngine* qe, QuantRelevance* qr);
+ ~InstStrategyAutoGenTriggers() {}
+
 public:
   /** get auto-generated trigger */
   inst::Trigger* getAutoGenTrigger( Node q );
@@ -113,6 +111,13 @@ public:
   }
   /** add pattern */
   void addUserNoPattern( Node q, Node pat );
+
+ private:
+  /**
+   * Pointer to the module that computes relevance of quantifiers, which is
+   * owned by the instantiation engine that owns this class.
+   */
+  QuantRelevance* d_quant_rel;
 };/* class InstStrategyAutoGenTriggers */
 
 

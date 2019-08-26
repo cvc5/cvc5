@@ -2,9 +2,9 @@
 /*! \file theory_datatypes.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
-#define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
+#ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
+#define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 
 #include <iostream>
 #include <map>
@@ -25,6 +25,7 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/datatype.h"
+#include "expr/node_trie.h"
 #include "theory/datatypes/datatypes_sygus.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -32,17 +33,13 @@
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers{
-  class TermArgTrie;
-}
-
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
  private:
   typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  /** maps nodes to an index in a vector */
+  typedef context::CDHashMap<Node, size_t, NodeHashFunction> NodeUIntMap;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
@@ -159,21 +156,38 @@ private:
   std::map< Node, EqcInfo* > d_eqc_info;
   /** map from nodes to their instantiated equivalent for each constructor type */
   std::map< Node, std::map< int, Node > > d_inst_map;
-  /** which instantiation lemmas we have sent */
-  //std::map< Node, std::vector< Node > > d_inst_lemmas;
+  //---------------------------------labels
   /** labels for each equivalence class
-   * for each eqc n, d_labels[n] is testers that hold for this equivalence class, either:
+   *
+   * For each eqc r, d_labels[r] is testers that hold for this equivalence
+   * class, either:
    * a list of equations of the form
-   *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t ), each of which are unique testers
-   *   and n is less than the number of possible constructors for t minus one,
+   *   NOT is_[constructor_1]( t1 )...NOT is_[constructor_n]( tn ), each of
+   *   which are unique testers, n is less than the number of possible
+   *   constructors for t minus one,
    * or a list of equations of the form
-   *   NOT is_[constructor_1]( t )...NOT is_[constructor_n]( t )  followed by
-   *   is_[constructor_(n+1)]( t ), each of which is a unique tester.
-  */
-  NodeIntMap d_labels;
+   *   NOT is_[constructor_1]( t1 )...NOT is_[constructor_n]( tn ) followed by
+   *   is_[constructor_(n+1)]( t{n+1} ), each of which is a unique tester.
+   * In both cases, t1, ..., tn, t{n+1} are terms in the equivalence class of r.
+   *
+   * We store this list in a context-dependent way, using the four data
+   * structures below. The three vectors d_labels_data, d_labels_args, and
+   * d_labels_tindex store the tester applications, their arguments and the
+   * tester index of the application. The map d_labels stores the number of
+   * values in these vectors that is valid in the current context (this is an
+   * optimization that ensures we don't need to pop data when changing SAT
+   * contexts).
+   */
+  NodeUIntMap d_labels;
+  /** the tester applications */
   std::map< Node, std::vector< Node > > d_labels_data;
+  /** the argument of each node in d_labels_data */
+  std::map<Node, std::vector<Node> > d_labels_args;
+  /** the tester index of each node in d_labels_data */
+  std::map<Node, std::vector<unsigned> > d_labels_tindex;
+  //---------------------------------end labels
   /** selector apps for eqch equivalence class */
-  NodeIntMap d_selector_apps;
+  NodeUIntMap d_selector_apps;
   std::map< Node, std::vector< Node > > d_selector_apps_data;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
@@ -235,7 +249,11 @@ private:
   TNode getEqcConstructor( TNode r );
 
  protected:
-  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
+  void addCarePairs(TNodeTrie* t1,
+                    TNodeTrie* t2,
+                    unsigned arity,
+                    unsigned depth,
+                    unsigned& n_pairs);
   /** compute care graph */
   void computeCareGraph() override;
 
@@ -300,7 +318,7 @@ private:
 
  private:
   /** add tester to equivalence class info */
-  void addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg );
+  void addTester(unsigned ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg);
   /** add selector to equivalence class info */
   void addSelector( Node s, EqcInfo* eqc, Node n, bool assertFacts = true );
   /** add constructor */
@@ -352,4 +370,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */
+#endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */

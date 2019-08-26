@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_ENGINE_H
-#define __CVC4__THEORY_ENGINE_H
+#ifndef CVC4__THEORY_ENGINE_H
+#define CVC4__THEORY_ENGINE_H
 
 #include <deque>
 #include <memory>
@@ -214,6 +214,8 @@ class TheoryEngine {
    */
   theory::TheoryEngineModelBuilder* d_curr_model_builder;
   bool d_aloc_curr_model_builder;
+  /** are we in eager model building mode? (see setEagerModelBuilding). */
+  bool d_eager_model_building;
 
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
@@ -348,6 +350,13 @@ class TheoryEngine {
    * Are we in conflict.
    */
   context::CDO<bool> d_inConflict;
+
+  /**
+   * Are we in "SAT mode"? In this state, the user can query for the model.
+   * This corresponds to the state in Figure 4.1, page 52 of the SMT-LIB
+   * standard, version 2.6.
+   */
+  bool d_inSatMode;
 
   /**
    * Called by the theories to notify of a conflict.
@@ -733,9 +742,28 @@ public:
   void postProcessModel( theory::TheoryModel* m );
 
   /**
-   * Get the current model
+   * Get the pointer to the model object used by this theory engine.
    */
   theory::TheoryModel* getModel();
+  /**
+   * Get the current model for the current set of assertions. This method
+   * should only be called immediately after a satisfiable or unknown
+   * response to a check-sat call, and only if produceModels is true.
+   *
+   * If the model is not already built, this will cause this theory engine
+   * to build to the model.
+   */
+  theory::TheoryModel* getBuiltModel();
+  /** set eager model building
+   *
+   * If this method is called, then this TheoryEngine will henceforth build
+   * its model immediately after every satisfiability check that results
+   * in a satisfiable or unknown result. The motivation for this mode is to
+   * accomodate API users that get the model object from the TheoryEngine,
+   * where we want to ensure that this model is always valid.
+   * TODO (#2648): revisit this.
+   */
+  void setEagerModelBuilding() { d_eager_model_building = true; }
 
   /** get synth solutions
    *
@@ -904,4 +932,4 @@ private:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY_ENGINE_H */
+#endif /* CVC4__THEORY_ENGINE_H */

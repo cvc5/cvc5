@@ -30,6 +30,7 @@ namespace CVC4 {
 %rename(INPUT_LANG_MAX) CVC4::language::input::LANG_MAX;
 %rename(INPUT_LANG_Z3STR) CVC4::language::input::LANG_Z3STR;
 %rename(INPUT_LANG_SYGUS) CVC4::language::input::LANG_SYGUS;
+%rename(INPUT_LANG_SYGUS_V2) CVC4::language::input::LANG_SYGUS_V2;
 
 %rename(OUTPUT_LANG_AUTO) CVC4::language::output::LANG_AUTO;
 %rename(OUTPUT_LANG_SMTLIB_V1) CVC4::language::output::LANG_SMTLIB_V1;
@@ -44,5 +45,6 @@ namespace CVC4 {
 %rename(OUTPUT_LANG_MAX) CVC4::language::output::LANG_MAX;
 %rename(OUTPUT_LANG_Z3STR) CVC4::language::output::LANG_Z3STR;
 %rename(OUTPUT_LANG_SYGUS) CVC4::language::output::LANG_SYGUS;
+%rename(OUTPUT_LANG_SYGUS_V2) CVC4::language::output::LANG_SYGUS_V2;
 
 %include "options/language.h"

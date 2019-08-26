@@ -2,9 +2,9 @@
 /*! \file theory_arith.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Alex Ozdemir, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 
 #include "theory/theory.h"
 #include "expr/node.h"
+#include "proof/arith_proof_recorder.h"
 #include "theory/arith/theory_arith_private_forward.h"
 
 
@@ -39,6 +40,11 @@ private:
   TheoryArithPrivate* d_internal;
 
   TimerStat d_ppRewriteTimer;
+
+  /**
+   * @brief Where to store Farkas proofs of lemmas
+   */
+  proof::ArithProofRecorder * d_proofRecorder;
 
 public:
   TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out,
@@ -89,6 +95,11 @@ public:
       TNode lit,
       const EntailmentCheckParameters* params,
       EntailmentCheckSideEffects* out) override;
+
+  void setProofRecorder(proof::ArithProofRecorder * proofRecorder)
+  {
+    d_proofRecorder = proofRecorder;
+  }
 
 };/* class TheoryArith */
 

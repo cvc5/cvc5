@@ -2,9 +2,9 @@
 /*! \file ceg_epr_instantiator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -107,14 +108,14 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
                                         Node pv,
                                         Node catom,
                                         std::vector<Node>& arg_reps,
-                                        TermArgTrie* tat,
+                                        TNodeTrie* tat,
                                         unsigned index,
                                         std::map<Node, int>& match_score)
 {
   if (index == catom.getNumChildren())
   {
-    Assert(tat->hasNodeData());
-    Node gcatom = tat->getNodeData();
+    Assert(tat->hasData());
+    Node gcatom = tat->getData();
     Trace("cegqi-epr") << "Matched : " << catom << " and " << gcatom
                        << std::endl;
     for (unsigned i = 0, nchild = catom.getNumChildren(); i < nchild; i++)
@@ -132,7 +133,7 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
     }
     return;
   }
-  std::map<TNode, TermArgTrie>::iterator it = tat->d_data.find(arg_reps[index]);
+  std::map<TNode, TNodeTrie>::iterator it = tat->d_data.find(arg_reps[index]);
   if (it != tat->d_data.end())
   {
     computeMatchScore(
@@ -165,7 +166,7 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
   TermDb* tdb = ci->getQuantifiersEngine()->getTermDatabase();
   Node rep = ee->getRepresentative(eqc);
   Node op = tdb->getMatchOperator(catom);
-  TermArgTrie* tat = tdb->getTermArgTrie(rep, op);
+  TNodeTrie* tat = tdb->getTermArgTrie(rep, op);
   Trace("cegqi-epr") << "EPR instantiation match term : " << catom
                      << ", check ground terms=" << (tat != NULL) << std::endl;
   if (tat)

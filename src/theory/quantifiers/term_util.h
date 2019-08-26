@@ -2,9 +2,9 @@
 /*! \file term_util.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
 
 #include <map>
 #include <unordered_set>
@@ -164,12 +164,8 @@ public:
   
 private:
   /** get bound vars */
-  static void getBoundVars2( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
-  /** get bound vars */
   static Node getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited );
 public:
-  //get the bound variables in this node
-  static void getBoundVars( Node n, std::vector< Node >& vars );
   //remove quantifiers
   static Node getRemoveQuantifiers( Node n );
   //quantified simplify (treat free variables in n as quantified and run rewriter)
@@ -270,10 +266,18 @@ public:
    * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
    */
   static Node mkNegate(Kind notk, Node n);
-  /** is assoc */
-  static bool isAssoc( Kind k );
-  /** is k commutative? */
-  static bool isComm( Kind k );
+  /** is k associative?
+   *
+   * If flag reqNAry is true, then we additionally require that k is an
+   * n-ary operator.
+   */
+  static bool isAssoc(Kind k, bool reqNAry = false);
+  /** is k commutative?
+   *
+   * If flag reqNAry is true, then we additionally require that k is an
+   * n-ary operator.
+   */
+  static bool isComm(Kind k, bool reqNAry = false);
 
   /** is k non-additive?
    * Returns true if
@@ -371,4 +375,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H */

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 source "$(dirname "$0")/get-script-header.sh"
 ANTLR_HOME_DIR=antlr-3.4
@@ -46,7 +46,7 @@ cd libantlr3c-3.4
 
 # Use an absolute path for the installation directory to avoid spurious libtool
 # warnings about the ANTLR library having moved
-PREFIX=$(realpath `pwd`/../..)
+PREFIX=$($PYTHON -c "import os; print(os.path.realpath('$(pwd)/../..'))")
 
 # Make antlr3debughandlers.c empty to avoid unreferenced symbols
 rm -rf src/antlr3debughandlers.c && touch src/antlr3debughandlers.c

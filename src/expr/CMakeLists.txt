@@ -16,6 +16,8 @@ libcvc4_add_sources(
   expr_stream.h
   kind_map.h
   matcher.h
+  match_trie.cpp
+  match_trie.h
   node.cpp
   node.h
   node_algorithm.cpp
@@ -27,6 +29,8 @@ libcvc4_add_sources(
   node_manager_listeners.cpp
   node_manager_listeners.h
   node_self_iterator.h
+  node_trie.cpp
+  node_trie.h
   node_value.cpp
   node_value.h
   pickle_data.cpp
@@ -35,6 +39,8 @@ libcvc4_add_sources(
   pickler.h
   symbol_table.cpp
   symbol_table.h
+  term_canonize.cpp
+  term_canonize.h
   type.cpp
   type.h
   type_checker.h

@@ -2,9 +2,9 @@
 /*! \file options_handler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Aina Niemetz
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -73,10 +73,6 @@ void throwLazyBBUnsupported(theory::bv::SatSolverMode m)
 }  // namespace
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
-
-void OptionsHandler::notifyForceLogic(const std::string& option){
-  d_options->d_forceLogicListeners.notify();
-}
 
 void OptionsHandler::notifyBeforeSearch(const std::string& option)
 {
@@ -223,7 +219,7 @@ ErrorSelectionRule OptionsHandler::stringToErrorSelectionRule(
 // theory/quantifiers/options_handlers.h
 
 const std::string OptionsHandler::s_instWhenHelp = "\
-Modes currently supported by the --inst-when option:\n\
+Instantiation modes currently supported by the --inst-when option:\n\
 \n\
 full-last-call (default)\n\
 + Alternate running instantiation rounds at full effort and last\n\
@@ -267,7 +263,8 @@ agg \n\
 \n\
 ";
 
-const std::string OptionsHandler::s_mbqiModeHelp = "\
+const std::string OptionsHandler::s_mbqiModeHelp =
+    "\
 Model-based quantifier instantiation modes currently supported by the --mbqi option:\n\
 \n\
 default \n\
@@ -277,12 +274,8 @@ default \n\
 none \n\
 + Disable model-based quantifier instantiation.\n\
 \n\
-gen-ev \n\
-+ Use model-based quantifier instantiation algorithm from CADE 24 finite\n\
-  model finding paper based on generalizing evaluations.\n\
-\n\
-abs \n\
-+ Use abstract MBQI algorithm (uses disjoint sets). \n\
+trust \n\
++ Do not instantiate quantified formulas (incomplete technique).\n\
 \n\
 ";
 
@@ -356,7 +349,8 @@ min-s-all \n\
 \n\
 ";
 const std::string OptionsHandler::s_triggerActiveSelModeHelp = "\
-Trigger active selection modes currently supported by the --trigger-sel option:\n\
+Trigger active selection modes currently supported by the \
+--trigger-active-sel option:\n\
 \n\
 all \n\
 + Make all triggers active. \n\
@@ -406,7 +400,8 @@ none \n\
 ";
 
 const std::string OptionsHandler::s_termDbModeHelp = "\
-Modes for term database, supported by --term-db-mode:\n\
+Modes for terms included in the quantifiers term database, supported by\
+--term-db-mode:\n\
 \n\
 all  \n\
 + Quantifiers module considers all ground terms.\n\
@@ -432,7 +427,8 @@ all \n\
 
 const std::string OptionsHandler::s_cbqiBvIneqModeHelp =
     "\
-Modes for single invocation techniques, supported by --cbqi-bv-ineq:\n\
+Modes for handling bit-vector inequalities in counterexample-guided\
+instantiation, supported by --cbqi-bv-ineq:\n\
 \n\
 eq-slack (default)  \n\
 + Solve for the inequality using the slack value in the model, e.g.,\
@@ -505,6 +501,36 @@ trust  \n\
 + Trust that when a solution for a conjecture is always true under sampling,\
   then it is indeed a solution. Note this option may print out spurious\
   solutions for synthesis conjectures.\n\
+\n\
+";
+
+const std::string OptionsHandler::s_sygusQueryDumpFileHelp =
+    "\
+Query file options supported by --sygus-query-gen-dump-files:\n\
+\n\
+none (default) \n\
++ Do not dump query files when using --sygus-query-gen.\n\
+\n\
+all \n\
++ Dump all query files.\n\
+\n\
+unsolved \n\
++ Dump query files that the subsolver did not solve.\n\
+\n\
+";
+
+const std::string OptionsHandler::s_sygusFilterSolHelp =
+    "\
+Modes for filtering sygus solutions supported by --sygus-filter-sol:\n\
+\n\
+none (default) \n\
++ Do not filter sygus solutions.\n\
+\n\
+strong \n\
++ Filter solutions that are logically stronger than others.\n\
+\n\
+weak \n\
++ Filter solutions that are logically weaker than others.\n\
 \n\
 ";
 
@@ -645,14 +671,11 @@ void OptionsHandler::checkLiteralMatchMode(
 theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "gen-ev") {
-    return theory::quantifiers::MBQI_GEN_EVAL;
-  } else if(optarg == "none") {
+  if (optarg == "none")
+  {
     return theory::quantifiers::MBQI_NONE;
   } else if(optarg == "default" || optarg ==  "fmc") {
     return theory::quantifiers::MBQI_FMC;
-  } else if(optarg == "abs") {
-    return theory::quantifiers::MBQI_ABS;
   } else if(optarg == "trust") {
     return theory::quantifiers::MBQI_TRUST;
   } else if(optarg == "help") {
@@ -951,6 +974,63 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
   }
 }
 
+theory::quantifiers::SygusQueryDumpFilesMode
+OptionsHandler::stringToSygusQueryDumpFilesMode(std::string option,
+                                                std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_NONE;
+  }
+  else if (optarg == "all")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_ALL;
+  }
+  else if (optarg == "unsolved")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_UNSOLVED;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusQueryDumpFileHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --sygus-query-gen-dump-files: `")
+        + optarg + "'.  Try --sygus-query-gen-dump-files help.");
+  }
+}
+theory::quantifiers::SygusFilterSolMode
+OptionsHandler::stringToSygusFilterSolMode(std::string option,
+                                           std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_NONE;
+  }
+  else if (optarg == "strong")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_STRONG;
+  }
+  else if (optarg == "weak")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_WEAK;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusFilterSolHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --sygus-filter-sol: `") + optarg
+        + "'.  Try --sygus-filter-sol help.");
+  }
+}
+
 theory::quantifiers::SygusInvTemplMode
 OptionsHandler::stringToSygusInvTemplMode(std::string option,
                                           std::string optarg)
@@ -1137,15 +1217,6 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
   else if (optarg == "cadical")
   {
-    if (options::incrementalSolving()
-        && options::incrementalSolving.wasSetByUser())
-    {
-      throw OptionException(
-          std::string("CaDiCaL does not support incremental mode. \n\
-                         Try --bv-sat-solver=cryptominisat or "
-                      "--bv-sat-solver=minisat"));
-    }
-
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
         && options::bitblastMode.wasSetByUser())
     {
@@ -1165,6 +1236,87 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
 }
 
+const std::string OptionsHandler::s_bvProofFormatHelp =
+    "\
+Proof formats currently supported by the --bv-proof-format option:\n\
+\n\
+  lrat : DRAT with unit propagation hints to accelerate checking (default)\n\
+\n\
+  drat : Deletion and Resolution Asymmetric Tautology Additions \n\
+\n\
+  er : Extended Resolution, i.e. resolution with new variable definitions\n\
+\n\
+This option controls which underlying UNSAT proof format is used in BV proofs.\n\
+\n\
+Note: Currently this option does nothing. BV proofs are a work in progress!\
+";
+
+theory::bv::BvProofFormat OptionsHandler::stringToBvProofFormat(
+    std::string option, std::string optarg)
+{
+  if (optarg == "er")
+  {
+    return theory::bv::BITVECTOR_PROOF_ER;
+  }
+  else if (optarg == "lrat")
+  {
+    return theory::bv::BITVECTOR_PROOF_LRAT;
+  }
+  else if (optarg == "drat")
+  {
+    return theory::bv::BITVECTOR_PROOF_DRAT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_bvProofFormatHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bv-proof-format: `")
+                          + optarg + "'.  Try --bv-proof-format=help.");
+  }
+}
+
+const std::string OptionsHandler::s_bvOptimizeSatProofHelp =
+    "\
+Optimization levels currently supported by the --bv-optimize-sat-proof option:\n\
+\n\
+  none    : Do not optimize the SAT proof\n\
+\n\
+  proof   : Use drat-trim to shrink the SAT proof\n\
+\n\
+  formula : Use drat-trim to shrink the SAT proof and formula (default)\
+";
+
+theory::bv::BvOptimizeSatProof OptionsHandler::stringToBvOptimizeSatProof(
+    std::string option, std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_NONE;
+  }
+  else if (optarg == "proof")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF;
+  }
+  else if (optarg == "formula")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_bvOptimizeSatProofHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bv-optimize-sat-proof: `")
+                          + optarg + "'.  Try --bv-optimize-sat-proof=help.");
+  }
+}
+
+
 const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
@@ -1179,26 +1331,34 @@ eager\n\
 theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "lazy") {
-    if (!options::bitvectorPropagate.wasSetByUser()) {
+  if (optarg == "lazy")
+  {
+    if (!options::bitvectorPropagate.wasSetByUser())
+    {
       options::bitvectorPropagate.set(true);
     }
-    if (!options::bitvectorEqualitySolver.wasSetByUser()) {
+    if (!options::bitvectorEqualitySolver.wasSetByUser())
+    {
       options::bitvectorEqualitySolver.set(true);
     }
-    if (!options::bitvectorEqualitySlicer.wasSetByUser()) {
-      if (options::incrementalSolving() ||
-          options::produceModels()) {
+    if (!options::bitvectorEqualitySlicer.wasSetByUser())
+    {
+      if (options::incrementalSolving() || options::produceModels())
+      {
         options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_OFF);
-      } else {
+      }
+      else
+      {
         options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_AUTO);
       }
     }
 
-    if (!options::bitvectorInequalitySolver.wasSetByUser()) {
+    if (!options::bitvectorInequalitySolver.wasSetByUser())
+    {
       options::bitvectorInequalitySolver.set(true);
     }
-    if (!options::bitvectorAlgebraicSolver.wasSetByUser()) {
+    if (!options::bitvectorAlgebraicSolver.wasSetByUser())
+    {
       options::bitvectorAlgebraicSolver.set(true);
     }
     if (options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
@@ -1206,23 +1366,24 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
       throwLazyBBUnsupported(options::bvSatSolver());
     }
     return theory::bv::BITBLAST_MODE_LAZY;
-  } else if(optarg == "eager") {
-    if (!options::bitvectorToBool.wasSetByUser()) {
+  }
+  else if (optarg == "eager")
+  {
+    if (!options::bitvectorToBool.wasSetByUser())
+    {
       options::bitvectorToBool.set(true);
     }
-
-    if (!options::bvAbstraction.wasSetByUser() &&
-        !options::skolemizeArguments.wasSetByUser()) {
-      options::bvAbstraction.set(true);
-      options::skolemizeArguments.set(true);
-    }
     return theory::bv::BITBLAST_MODE_EAGER;
-  } else if(optarg == "help") {
+  }
+  else if (optarg == "help")
+  {
     puts(s_bitblastingModeHelp.c_str());
     exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --bitblast: `") +
-                          optarg + "'.  Try --bitblast=help.");
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bitblast: `")
+                          + optarg + "'.  Try --bitblast=help.");
   }
 }
 
@@ -1254,6 +1415,156 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   } else {
     throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
                           optarg + "'.  Try --bv-eq-slicer=help.");
+  }
+}
+
+const std::string OptionsHandler::s_stringsProcessLoopModeHelp =
+    "Loop processing modes supported by the --strings-process-loop-mode "
+    "option:\n"
+    "\n"
+    "full (default)\n"
+    "+ Perform full processing of looping word equations\n"
+    "\n"
+    "simple (default with --strings-fmf)\n"
+    "+ Omit normal loop breaking\n"
+    "\n"
+    "simple-abort\n"
+    "+ Abort when normal loop breaking is required\n"
+    "\n"
+    "none\n"
+    "+ Omit loop processing\n"
+    "\n"
+    "abort\n"
+    "+ Abort if looping word equations are encountered\n";
+
+theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "full")
+  {
+    return theory::strings::ProcessLoopMode::FULL;
+  }
+  else if (optarg == "simple")
+  {
+    return theory::strings::ProcessLoopMode::SIMPLE;
+  }
+  else if (optarg == "simple-abort")
+  {
+    return theory::strings::ProcessLoopMode::SIMPLE_ABORT;
+  }
+  else if (optarg == "none")
+  {
+    return theory::strings::ProcessLoopMode::NONE;
+  }
+  else if (optarg == "abort")
+  {
+    return theory::strings::ProcessLoopMode::ABORT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_stringsProcessLoopModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --strings-process-loop-mode: `")
+        + optarg + "'.  Try --strings-process-loop-mode=help.");
+  }
+}
+
+const std::string OptionsHandler::s_regExpInterModeHelp =
+    "\
+Regular expression intersection modes supported by the --re-inter-mode option\
+\n\
+\n\
+all \n\
++ Compute intersections for all regular expressions.\n\
+\n\
+constant (default)\n\
++ Compute intersections only between regular expressions that do not contain\
+re.allchar or re.range\n\
+\n\
+one-constant\n\
++ Compute intersections only between regular expressions such that at least one\
+side does not contain re.allchar or re.range\n\
+\n\
+none\n\
++ Do not compute intersections for regular expressions\n\
+";
+
+theory::strings::RegExpInterMode OptionsHandler::stringToRegExpInterMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "all")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_ALL;
+  }
+  else if (optarg == "constant")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_CONSTANT;
+  }
+  else if (optarg == "one-constant")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_ONE_CONSTANT;
+  }
+  else if (optarg == "none")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_NONE;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_regExpInterModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --re-inter-mode: `")
+                          + optarg + "'.  Try --re-inter-mode=help.");
+  }
+}
+
+const std::string OptionsHandler::s_boolToBVModeHelp =
+    "\
+BoolToBV pass modes supported by the --bool-to-bv option:\n\
+\n\
+off (default)\n\
++ Don't push any booleans to width one bit-vectors\n\
+\n\
+ite\n\
++ Try to turn ITEs into BITVECTOR_ITE when possible. It can fail per-formula \n\
+  if not all sub-formulas can be turned to bit-vectors\n\
+\n\
+all\n\
++ Force all booleans to be bit-vectors of width one except at the top level.\n\
+  Most aggressive mode\n\
+";
+
+preprocessing::passes::BoolToBVMode OptionsHandler::stringToBoolToBVMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "off")
+  {
+    return preprocessing::passes::BOOL_TO_BV_OFF;
+  }
+  else if (optarg == "ite")
+  {
+    return preprocessing::passes::BOOL_TO_BV_ITE;
+  }
+  else if (optarg == "all")
+  {
+    return preprocessing::passes::BOOL_TO_BV_ALL;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_boolToBVModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bool-to-bv: `")
+                          + optarg
+                          + "'. Try --bool-to-bv=help");
   }
 }
 
@@ -1362,7 +1673,7 @@ table\n\
 ";
 
 const std::string OptionsHandler::s_instFormatHelp = "\
-Inst format modes currently supported by the --model-format option:\n\
+Inst format modes currently supported by the --inst-format option:\n\
 \n\
 default \n\
 + Print instantiations as a list in the output language format.\n\
@@ -1486,7 +1797,7 @@ SimplificationMode OptionsHandler::stringToSimplificationMode(
 
 const std::string OptionsHandler::s_modelCoresHelp =
     "\
-Model cores modes currently supported by the --simplification option:\n\
+Model cores modes currently supported by the --model-cores option:\n\
 \n\
 none (default) \n\
 + do not compute model cores\n\
@@ -1529,9 +1840,52 @@ ModelCoresMode OptionsHandler::stringToModelCoresMode(std::string option,
   }
 }
 
+const std::string OptionsHandler::s_blockModelsHelp =
+    "\
+Blocking models modes are currently supported by the --block-models option:\n\
+\n\
+none (default) \n\
++ do not block models\n\
+\n\
+literals\n\
++ block models based on the SAT skeleton\n\
+\n\
+values\n\
++ block models based on the concrete model values for the free variables.\n\
+\n\
+";
+
+BlockModelsMode OptionsHandler::stringToBlockModelsMode(std::string option,
+                                                        std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return BLOCK_MODELS_NONE;
+  }
+  else if (optarg == "literals")
+  {
+    return BLOCK_MODELS_LITERALS;
+  }
+  else if (optarg == "values")
+  {
+    return BLOCK_MODELS_VALUES;
+    ;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_blockModelsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --block-models: `")
+                          + optarg + "'.  Try --block-models help.");
+  }
+}
+
 const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
     "\
-Modes for finite model finding bound minimization, supported by --sygus-out:\n\
+Modes for sygus solution output, supported by --sygus-out:\n\
 \n\
 status \n\
 + Print only status for check-synth calls.\n\
@@ -1588,7 +1942,15 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 
 void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_PROOF
+#ifdef CVC4_PROOF
+  if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_CRYPTOMINISAT)
+  {
+    throw OptionException(
+        "Eager BV proofs only supported when MiniSat or CryptoMiniSat is used");
+  }
+#else
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires a proofs-enabled build of CVC4; this binary was not built with proof support";
@@ -1752,6 +2114,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
   print_config_cond("cadical", Configuration::isBuiltWithCadical());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond("drat2er", Configuration::isBuiltWithDrat2Er());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());

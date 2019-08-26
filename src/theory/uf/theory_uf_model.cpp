@@ -2,9 +2,9 @@
 /*! \file theory_uf_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,17 +37,6 @@ void UfModelTreeNode::clear(){
   d_value = Node::null();
 }
 
-bool UfModelTreeNode::hasConcreteArgumentDefinition(){
-  if( d_data.size()>1 ){
-    return true;
-  }else if( d_data.empty() ){
-    return false;
-  }else{
-    Node r;
-    return d_data.find( r )==d_data.end();
-  }
-}
-
 //set value function
 void UfModelTreeNode::setValue( TheoryModel* m, Node n, Node v, std::vector< int >& indexOrder, bool ground, int argIndex ){
   if( d_data.empty() ){
@@ -64,75 +53,6 @@ void UfModelTreeNode::setValue( TheoryModel* m, Node n, Node v, std::vector< int
       r = m->getRepresentative( n[ indexOrder[argIndex] ] );
     }
     d_data[ r ].setValue( m, n, v, indexOrder, ground, argIndex+1 );
-  }
-}
-
-//get value function
-Node UfModelTreeNode::getValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, int& depIndex, int argIndex ){
-  if( !d_value.isNull() && isTotal( n.getOperator(), argIndex ) ){
-    //Notice() << "Constant, return " << d_value << ", depIndex = " << argIndex << std::endl;
-    depIndex = argIndex;
-    return d_value;
-  }else{
-    Node val;
-    int childDepIndex[2] = { argIndex, argIndex };
-    for( int i=0; i<2; i++ ){
-      //first check the argument, then check default
-      Node r;
-      if( i==0 ){
-        r = m->getRepresentative( n[ indexOrder[argIndex] ] );
-      }
-      std::map< Node, UfModelTreeNode >::iterator it = d_data.find( r );
-      if( it!=d_data.end() ){
-        val = it->second.getValue( m, n, indexOrder, childDepIndex[i], argIndex+1 );
-        if( !val.isNull() ){
-          break;
-        }
-      }else{
-        //argument is not a defined argument: thus, it depends on this argument
-        childDepIndex[i] = argIndex+1;
-      }
-    }
-    //update depIndex
-    depIndex = childDepIndex[0]>childDepIndex[1] ? childDepIndex[0] : childDepIndex[1];
-    //Notice() << "Return " << val << ", depIndex = " << depIndex;
-    //Notice() << " ( " << childDepIndex[0] << ", " << childDepIndex[1] << " )" << std::endl;
-    return val;
-  }
-}
-
-Node UfModelTreeNode::getValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, std::vector< int >& depIndex, int argIndex ){
-  if( argIndex==(int)indexOrder.size() ){
-    return d_value;
-  }else{
-    Node val;
-    bool depArg = false;
-    //will try concrete value first, then default
-    for( int i=0; i<2; i++ ){
-      Node r;
-      if( i==0 ){
-        r = m->getRepresentative( n[ indexOrder[argIndex] ] );
-      }
-      std::map< Node, UfModelTreeNode >::iterator it = d_data.find( r );
-      if( it!=d_data.end() ){
-        val = it->second.getValue( m, n, indexOrder, depIndex, argIndex+1 );
-        //we have found a value
-        if( !val.isNull() ){
-          if( i==0 ){
-            depArg = true;
-          }
-          break;
-        }
-      }
-    }
-    //it depends on this argument if we found it via concrete argument value,
-    // or if found by default/disequal from some concrete argument value(s).
-    if( depArg || hasConcreteArgumentDefinition() ){
-      if( std::find( depIndex.begin(), depIndex.end(), indexOrder[argIndex] )==depIndex.end() ){
-        depIndex.push_back( indexOrder[argIndex] );
-      }
-    }
-    return val;
   }
 }
 
@@ -262,10 +182,6 @@ bool UfModelTreeNode::isTotal( Node op, int argIndex ){
       return false;
     }
   }
-}
-
-Node UfModelTreeNode::getConstantValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, int argIndex ){
-  return d_value;
 }
 
 void indent( std::ostream& out, int ind ){

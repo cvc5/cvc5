@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,6 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
@@ -488,7 +487,8 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
   //add to tester if applicable
   Node t_arg;
   int tindex = DatatypesRewriter::isTester( atom, t_arg );
-  if( tindex!=-1 ){
+  if (tindex >= 0)
+  {
     Trace("dt-tester") << "Assert tester : " << atom << " for " << t_arg << std::endl;
     Node rep = getRepresentative( t_arg );
     EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
@@ -552,99 +552,129 @@ void TheoryDatatypes::finishInit() {
 }
 
 Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
-  switch( n.getKind() ){
-  case kind::APPLY_SELECTOR: {
-    Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
-    Node selector = n.getOperator();
-    Expr selectorExpr = selector.toExpr();
-    // APPLY_SELECTOR always applies to an external selector, cindexOf is legal here
-    size_t cindex = Datatype::cindexOf(selectorExpr);
-    const Datatype& dt = Datatype::datatypeOf(selectorExpr);
-    const DatatypeConstructor& c = dt[cindex];
-    Node selector_use;
-    TypeNode ndt = n[0].getType();
-    if( options::dtSharedSelectors() ){
-      size_t selectorIndex = DatatypesRewriter::indexOf(selector);
-      Trace("dt-expand") << "...selector index = " << selectorIndex << std::endl;
-      Assert( selectorIndex<c.getNumArgs() );
-      selector_use = Node::fromExpr( c.getSelectorInternal( ndt.toType(), selectorIndex ) );
-    }else{
-      selector_use = selector;
-    }
-    Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, selector_use, n[0] );
-    if( options::dtRewriteErrorSel() ){
-      return sel;
-    }else{
-      Expr tester = c.getTester();
-      Node tst = NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( tester ), n[0] );
-      tst = Rewriter::rewrite( tst );
-      Node n_ret;
-      if( tst==d_true ){
-        n_ret = sel;
+  NodeManager* nm = NodeManager::currentNM();
+  switch (n.getKind())
+  {
+    case kind::APPLY_SELECTOR:
+    {
+      Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
+      Node selector = n.getOperator();
+      Expr selectorExpr = selector.toExpr();
+      // APPLY_SELECTOR always applies to an external selector, cindexOf is
+      // legal here
+      size_t cindex = Datatype::cindexOf(selectorExpr);
+      const Datatype& dt = Datatype::datatypeOf(selectorExpr);
+      const DatatypeConstructor& c = dt[cindex];
+      Node selector_use;
+      TypeNode ndt = n[0].getType();
+      if (options::dtSharedSelectors())
+      {
+        size_t selectorIndex = DatatypesRewriter::indexOf(selector);
+        Trace("dt-expand") << "...selector index = " << selectorIndex
+                           << std::endl;
+        Assert(selectorIndex < c.getNumArgs());
+        selector_use =
+            Node::fromExpr(c.getSelectorInternal(ndt.toType(), selectorIndex));
       }else{
-        mkExpDefSkolem( selector, ndt, n.getType() );
-        Node sk = NodeManager::currentNM()->mkNode( kind::APPLY_UF, d_exp_def_skolem[ndt][ selector ], n[0]  );
-        if( tst==NodeManager::currentNM()->mkConst( false ) ){
-          n_ret = sk;
+        selector_use = selector;
+      }
+      Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
+      if (options::dtRewriteErrorSel())
+      {
+        return sel;
+      }
+      else
+      {
+        Expr tester = c.getTester();
+        Node tst = nm->mkNode(kind::APPLY_TESTER, Node::fromExpr(tester), n[0]);
+        tst = Rewriter::rewrite(tst);
+        Node n_ret;
+        if (tst == d_true)
+        {
+          n_ret = sel;
         }else{
-          n_ret = NodeManager::currentNM()->mkNode( kind::ITE, tst, sel, sk );
+          mkExpDefSkolem(selector, ndt, n.getType());
+          Node sk =
+              nm->mkNode(kind::APPLY_UF, d_exp_def_skolem[ndt][selector], n[0]);
+          if (tst == nm->mkConst(false))
+          {
+            n_ret = sk;
+          }
+          else
+          {
+            n_ret = nm->mkNode(kind::ITE, tst, sel, sk);
+          }
+        }
+        // n_ret = Rewriter::rewrite( n_ret );
+        Trace("dt-expand") << "Expand def : " << n << " to " << n_ret
+                           << std::endl;
+        return n_ret;
+      }
+    }
+    break;
+    case TUPLE_UPDATE:
+    case RECORD_UPDATE:
+    {
+      TypeNode t = n.getType();
+      Assert(t.isDatatype());
+      const Datatype& dt = DatatypeType(t.toType()).getDatatype();
+      NodeBuilder<> b(APPLY_CONSTRUCTOR);
+      b << Node::fromExpr(dt[0].getConstructor());
+      size_t size, updateIndex;
+      if (n.getKind() == TUPLE_UPDATE)
+      {
+        Assert(t.isTuple());
+        size = t.getTupleLength();
+        updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
+      }
+      else
+      {
+        Assert(t.isRecord());
+        const Record& record = t.getRecord();
+        size = record.getNumFields();
+        updateIndex = record.getIndex(
+            n.getOperator().getConst<RecordUpdate>().getField());
+      }
+      Debug("tuprec") << "expr is " << n << std::endl;
+      Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
+      Debug("tuprec") << "t is " << t << std::endl;
+      Debug("tuprec") << "t has arity " << size << std::endl;
+      for (size_t i = 0; i < size; ++i)
+      {
+        if (i == updateIndex)
+        {
+          b << n[1];
+          Debug("tuprec") << "arg " << i << " gets updated to " << n[1]
+                          << std::endl;
+        }
+        else
+        {
+          b << nm->mkNode(
+              APPLY_SELECTOR_TOTAL,
+              Node::fromExpr(dt[0].getSelectorInternal(t.toType(), i)),
+              n[0]);
+          Debug("tuprec") << "arg " << i << " copies "
+                          << b[b.getNumChildren() - 1] << std::endl;
         }
       }
-      //n_ret = Rewriter::rewrite( n_ret );
-      Trace("dt-expand") << "Expand def : " << n << " to " << n_ret << std::endl;
+      Node n_ret = b;
+      Debug("tuprec") << "return " << n_ret << std::endl;
       return n_ret;
     }
-  }
     break;
-  default:
-    return n;
-    break;
+    default: return n; break;
   }
   Unreachable();
 }
 
-void TheoryDatatypes::presolve() {
+void TheoryDatatypes::presolve()
+{
   Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
 }
 
-Node TheoryDatatypes::ppRewrite(TNode in) {
+Node TheoryDatatypes::ppRewrite(TNode in)
+{
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
-
-  TypeNode t = in.getType();
-
-  if(in.getKind() == kind::TUPLE_UPDATE || in.getKind() == kind::RECORD_UPDATE) {
-    Assert( t.isDatatype() );
-    const Datatype& dt = DatatypeType(t.toType()).getDatatype();
-    NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
-    b << Node::fromExpr(dt[0].getConstructor());
-    size_t size, updateIndex;
-    if(in.getKind() == kind::TUPLE_UPDATE) {
-      Assert( t.isTuple() );
-      size = t.getTupleLength();
-      updateIndex = in.getOperator().getConst<TupleUpdate>().getIndex();
-    } else { // kind::RECORD_UPDATE
-      Assert( t.isRecord() );
-      const Record& record = t.getRecord();
-      size = record.getNumFields();
-      updateIndex = record.getIndex(in.getOperator().getConst<RecordUpdate>().getField());
-    }
-    Debug("tuprec") << "expr is " << in << std::endl;
-    Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
-    Debug("tuprec") << "t is " << t << std::endl;
-    Debug("tuprec") << "t has arity " << size << std::endl;
-    for(size_t i = 0; i < size; ++i) {
-      if(i == updateIndex) {
-        b << in[1];
-        Debug("tuprec") << "arg " << i << " gets updated to " << in[1] << std::endl;
-      } else {
-        b << NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0].getSelectorInternal( t.toType(), i )), in[0]);
-        Debug("tuprec") << "arg " << i << " copies " << b[b.getNumChildren() - 1] << std::endl;
-      }
-    }
-    Debug("tuprec") << "builder says " << b << std::endl;
-    Node n = b;
-    return n;
-  }
 
   if( in.getKind()==EQUAL ){
     Node nn;
@@ -863,17 +893,16 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
 
 
       //merge labels
-      NodeIntMap::iterator lbl_i = d_labels.find( t2 );
+      NodeUIntMap::iterator lbl_i = d_labels.find(t2);
       if( lbl_i != d_labels.end() ){
         Trace("datatypes-debug") << "  merge labels from " << eqc2 << " " << t2 << std::endl;
-        int n_label = (*lbl_i).second;
-        for( int i=0; i<n_label; i++ ){
-          Assert( i<(int)d_labels_data[ t2 ].size() );
+        size_t n_label = (*lbl_i).second;
+        for (size_t i = 0; i < n_label; i++)
+        {
+          Assert(i < d_labels_data[t2].size());
           Node t = d_labels_data[ t2 ][i];
-          Node tt = t.getKind()==kind::NOT ? t[0] : t;
-          Node t_arg;
-          int tindex = DatatypesRewriter::isTester( tt, t_arg );
-          Assert( tindex!=-1 );
+          Node t_arg = d_labels_args[t2][i];
+          unsigned tindex = d_labels_tindex[t2][i];
           addTester( tindex, t, eqc1, t1, t_arg );
           if( d_conflict ){
             Trace("datatypes-debug") << "  conflict!" << std::endl;
@@ -887,11 +916,12 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
         eqc1->d_selectors = true;
         checkInst = true;
       }
-      NodeIntMap::iterator sel_i = d_selector_apps.find( t2 );
+      NodeUIntMap::iterator sel_i = d_selector_apps.find(t2);
       if( sel_i != d_selector_apps.end() ){
         Trace("datatypes-debug") << "  merge selectors from " << eqc2 << " " << t2 << std::endl;
-        int n_sel = (*sel_i).second;
-        for( int j=0; j<n_sel; j++ ){
+        size_t n_sel = (*sel_i).second;
+        for (size_t j = 0; j < n_sel; j++)
+        {
           addSelector( d_selector_apps_data[t2][j], eqc1, t1, eqc2->d_constructor.get().isNull() );
         }
       }
@@ -923,9 +953,9 @@ bool TheoryDatatypes::hasLabel( EqcInfo* eqc, Node n ){
 }
 
 Node TheoryDatatypes::getLabel( Node n ) {
-  NodeIntMap::iterator lbl_i = d_labels.find( n );
+  NodeUIntMap::iterator lbl_i = d_labels.find(n);
   if( lbl_i != d_labels.end() ){
-    unsigned n_lbl = (*lbl_i).second;
+    size_t n_lbl = (*lbl_i).second;
     if( n_lbl>0 && d_labels_data[n][ n_lbl-1 ].getKind()!=kind::NOT ){
       return d_labels_data[n][ n_lbl-1 ];
     }
@@ -949,7 +979,7 @@ int TheoryDatatypes::getLabelIndex( EqcInfo* eqc, Node n ){
 }
 
 bool TheoryDatatypes::hasTester( Node n ) {
-  NodeIntMap::iterator lbl_i = d_labels.find( n );
+  NodeUIntMap::iterator lbl_i = d_labels.find(n);
   if( lbl_i != d_labels.end() ){
     return (*lbl_i).second>0;
   }else{
@@ -965,14 +995,13 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
   if( lindex!=-1 ){
     pcons[ lindex ] = true;
   }else{
-    NodeIntMap::iterator lbl_i = d_labels.find( n );
+    NodeUIntMap::iterator lbl_i = d_labels.find(n);
     if( lbl_i != d_labels.end() ){
-      int n_lbl = (*lbl_i).second;
-      for( int i=0; i<n_lbl; i++ ){
-        Node t = d_labels_data[n][i];
-        Assert( t.getKind()==NOT );
-        int tindex = DatatypesRewriter::isTester( t[0] );
-        Assert( tindex!=-1 );
+      size_t n_lbl = (*lbl_i).second;
+      for (size_t i = 0; i < n_lbl; i++)
+      {
+        Assert(d_labels_data[n][i].getKind() == NOT);
+        unsigned tindex = d_labels_tindex[n][i];
         pcons[ tindex ] = false;
       }
     }
@@ -1009,16 +1038,21 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
   }
 }
 
-void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg ){
+void TheoryDatatypes::addTester(
+    unsigned ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg)
+{
   Trace("datatypes-debug") << "Add tester : " << t << " to eqc(" << n << ")" << std::endl;
   Debug("datatypes-labels") << "Add tester " << t << " " << n << " " << eqc << std::endl;
   bool tpolarity = t.getKind()!=NOT;
   Node j, jt;
   bool makeConflict = false;
-  int jtindex0 = getLabelIndex( eqc, n );
-  if( jtindex0!=-1 ){
+  int prevTIndex = getLabelIndex(eqc, n);
+  if (prevTIndex >= 0)
+  {
+    unsigned ptu = static_cast<unsigned>(prevTIndex);
     //if we already know the constructor type, check whether it is in conflict or redundant
-    if( (jtindex0==ttindex)!=tpolarity ){
+    if ((ptu == ttindex) != tpolarity)
+    {
       if( !eqc->d_constructor.get().isNull() ){
         //conflict because equivalence class contains a constructor
         std::vector< TNode > assumptions;
@@ -1040,19 +1074,18 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
     }
   }else{
     //otherwise, scan list of labels
-    NodeIntMap::iterator lbl_i = d_labels.find( n );
+    NodeUIntMap::iterator lbl_i = d_labels.find(n);
     Assert( lbl_i != d_labels.end() );
-    int n_lbl = (*lbl_i).second;
+    size_t n_lbl = (*lbl_i).second;
     std::map< int, bool > neg_testers;
-    for( int i=0; i<n_lbl; i++ ){
-      Node ti = d_labels_data[n][i];
-      Assert( ti.getKind()==NOT );
-      j = ti;
-      jt = j[0];
-      int jtindex = DatatypesRewriter::isTester( jt );
-      Assert( jtindex!=-1 );
+    for (size_t i = 0; i < n_lbl; i++)
+    {
+      Assert(d_labels_data[n][i].getKind() == NOT);
+      unsigned jtindex = d_labels_tindex[n][i];
       if( jtindex==ttindex ){
         if( tpolarity ){  //we are in conflict
+          j = d_labels_data[n][i];
+          jt = j[0];
           makeConflict = true;
           break;
         }else{            //it is redundant
@@ -1064,12 +1097,17 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
     }
     if( !makeConflict ){
       Debug("datatypes-labels") << "Add to labels " << t << std::endl;
-      //lbl->push_back( t );
       d_labels[n] = n_lbl + 1;
-      if( n_lbl<(int)d_labels_data[n].size() ){
+      if (n_lbl < d_labels_data[n].size())
+      {
+        // reuse spot in the vector
         d_labels_data[n][n_lbl] = t;
+        d_labels_args[n][n_lbl] = t_arg;
+        d_labels_tindex[n][n_lbl] = ttindex;
       }else{
-        d_labels_data[n].push_back( t );
+        d_labels_data[n].push_back(t);
+        d_labels_args[n].push_back(t_arg);
+        d_labels_tindex[n].push_back(ttindex);
       }
       n_lbl++;
       
@@ -1077,8 +1115,8 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
       Debug("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
       if( tpolarity ){
         instantiate( eqc, n );
-        //TODO : and it is not the other testers FIXME
-        for( int i=0; i<(int)dt.getNumConstructors(); i++ ){
+        for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+        {
           if( i!=ttindex && neg_testers.find( i )==neg_testers.end() ){
             Assert( n.getKind()!=APPLY_CONSTRUCTOR );
             Node infer = DatatypesRewriter::mkTester( n, i, dt ).negate();
@@ -1090,8 +1128,8 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
       }else{
         //check if we have reached the maximum number of testers
         // in this case, add the positive tester
-        //this should not be done for sygus, since cases may be limited
-        if( n_lbl==(int)dt.getNumConstructors()-1 ){
+        if (n_lbl == dt.getNumConstructors() - 1)
+        {
           std::vector< bool > pcons;
           getPossibleCons( eqc, n, pcons );
           int testerIndex = -1;
@@ -1105,15 +1143,12 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
           //we must explain why each term in the set of testers for this equivalence class is equal
           std::vector< Node > eq_terms;
           NodeBuilder<> nb(kind::AND);
-          //for( NodeList::const_iterator i = lbl->begin(); i != lbl->end(); i++ ) {
-          
-          for( int i=0; i<n_lbl; i++ ){
+          for (unsigned i = 0; i < n_lbl; i++)
+          {
             Node ti = d_labels_data[n][i];
             nb << ti;
             Assert( ti.getKind()==NOT );
-            Node t_arg2;
-            DatatypesRewriter::isTester( ti[0], t_arg2 );
-            //Assert( tindex!=-1 );
+            Node t_arg2 = d_labels_args[n][i];
             if( std::find( eq_terms.begin(), eq_terms.end(), t_arg2 )==eq_terms.end() ){
               eq_terms.push_back( t_arg2 );
               if( t_arg2!=t_arg ){
@@ -1149,11 +1184,12 @@ void TheoryDatatypes::addTester( int ttindex, Node t, EqcInfo* eqc, Node n, Node
 void TheoryDatatypes::addSelector( Node s, EqcInfo* eqc, Node n, bool assertFacts ) {
   Trace("dt-collapse-sel") << "Add selector : " << s << " to eqc(" << n << ")" << std::endl;
   //check to see if it is redundant
-  NodeIntMap::iterator sel_i = d_selector_apps.find( n );
+  NodeUIntMap::iterator sel_i = d_selector_apps.find(n);
   Assert( sel_i != d_selector_apps.end() );
   if( sel_i != d_selector_apps.end() ){
-    int n_sel = (*sel_i).second;
-    for( int j=0; j<n_sel; j++ ){
+    size_t n_sel = (*sel_i).second;
+    for (size_t j = 0; j < n_sel; j++)
+    {
       Node ss = d_selector_apps_data[n][j];
       if( s.getOperator()==ss.getOperator() && ( s.getKind()!=DT_HEIGHT_BOUND || s[1]==ss[1] ) ){
         Trace("dt-collapse-sel") << "...redundant." << std::endl;
@@ -1163,7 +1199,8 @@ void TheoryDatatypes::addSelector( Node s, EqcInfo* eqc, Node n, bool assertFact
     //add it to the vector
     //sel->push_back( s );
     d_selector_apps[n] = n_sel + 1;
-    if( n_sel<(int)d_selector_apps_data[n].size() ){
+    if (n_sel < d_selector_apps_data[n].size())
+    {
       d_selector_apps_data[n][n_sel] = s;
     }else{
       d_selector_apps_data[n].push_back( s );
@@ -1181,16 +1218,18 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
   Trace("datatypes-debug") << "Add constructor : " << c << " to eqc(" << n << ")" << std::endl;
   Assert( eqc->d_constructor.get().isNull() );
   //check labels
-  NodeIntMap::iterator lbl_i = d_labels.find( n );
+  NodeUIntMap::iterator lbl_i = d_labels.find(n);
   if( lbl_i != d_labels.end() ){
     size_t constructorIndex = DatatypesRewriter::indexOf(c.getOperator());
-    int n_lbl = (*lbl_i).second;
-    for( int i=0; i<n_lbl; i++ ){
+    size_t n_lbl = (*lbl_i).second;
+    for (size_t i = 0; i < n_lbl; i++)
+    {
       Node t = d_labels_data[n][i];
-      if( t.getKind()==NOT ){
-        int tindex = DatatypesRewriter::isTester( t[0] );
-        Assert( tindex!=-1 );
-        if( tindex==(int)constructorIndex ){
+      if (d_labels_data[n][i].getKind() == NOT)
+      {
+        unsigned tindex = d_labels_tindex[n][i];
+        if (tindex == constructorIndex)
+        {
           std::vector< TNode > assumptions;
           explain( t, assumptions );
           explainEquality( c, t[0][0], true, assumptions );
@@ -1204,10 +1243,11 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
     }
   }
   //check selectors
-  NodeIntMap::iterator sel_i = d_selector_apps.find( n );
+  NodeUIntMap::iterator sel_i = d_selector_apps.find(n);
   if( sel_i != d_selector_apps.end() ){
-    int n_sel = (*sel_i).second;
-    for( int j=0; j<n_sel; j++ ){
+    size_t n_sel = (*sel_i).second;
+    for (size_t j = 0; j < n_sel; j++)
+    {
       Node s = d_selector_apps_data[n][j];
       //collapse the selector
       collapseSelector( s, c );
@@ -1323,13 +1363,16 @@ EqualityStatus TheoryDatatypes::getEqualityStatus(TNode a, TNode b){
   return EQUALITY_FALSE_IN_MODEL;
 }
 
-
-
-void TheoryDatatypes::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs ){
+void TheoryDatatypes::addCarePairs(TNodeTrie* t1,
+                                   TNodeTrie* t2,
+                                   unsigned arity,
+                                   unsigned depth,
+                                   unsigned& n_pairs)
+{
   if( depth==arity ){
     if( t2!=NULL ){
-      Node f1 = t1->getNodeData();
-      Node f2 = t2->getNodeData();
+      Node f1 = t1->getData();
+      Node f2 = t2->getData();
       if( !areEqual( f1, f2 ) ){
         Trace("dt-cg") << "Check " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
@@ -1360,13 +1403,17 @@ void TheoryDatatypes::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::
     if( t2==NULL ){
       if( depth<(arity-1) ){
         //add care pairs internal to each child
-        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-          addCarePairs( &it->second, NULL, arity, depth+1, n_pairs );
+        for (std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
+        {
+          addCarePairs(&tt.second, nullptr, arity, depth + 1, n_pairs);
         }
       }
       //add care pairs based on each pair of non-disequal arguments
-      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-        std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = it;
+      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
+           it != t1->d_data.end();
+           ++it)
+      {
+        std::map<TNode, TNodeTrie>::iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
@@ -1378,11 +1425,15 @@ void TheoryDatatypes::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::
       }
     }else{
       //add care pairs based on product of indices, non-disequal arguments
-      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
-          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
-            if( !areCareDisequal(it->first, it2->first) ){
-              addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+      for (std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
+      {
+        for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
+        {
+          if (!d_equalityEngine.areDisequal(tt1.first, tt2.first, false))
+          {
+            if (!areCareDisequal(tt1.first, tt2.first))
+            {
+              addCarePairs(&tt1.second, &tt2.second, arity, depth + 1, n_pairs);
             }
           }
         }
@@ -1395,7 +1446,7 @@ void TheoryDatatypes::computeCareGraph(){
   unsigned n_pairs = 0;
   Trace("dt-cg-summary") << "Compute graph for dt..." << d_functionTerms.size() << " " << d_sharedTerms.size() << std::endl;
   Trace("dt-cg") << "Build indices..." << std::endl;
-  std::map< TypeNode, std::map< Node, quantifiers::TermArgTrie > > index;
+  std::map<TypeNode, std::map<Node, TNodeTrie> > index;
   std::map< Node, unsigned > arity;
   //populate indices
   unsigned functionTerms = d_functionTerms.size();
@@ -1421,10 +1472,13 @@ void TheoryDatatypes::computeCareGraph(){
     }
   }
   //for each index
-  for( std::map< TypeNode, std::map< Node, quantifiers::TermArgTrie > >::iterator iti = index.begin(); iti != index.end(); ++iti ){
-    for( std::map< Node, quantifiers::TermArgTrie >::iterator itii = iti->second.begin(); itii != iti->second.end(); ++itii ){
-      Trace("dt-cg") << "Process index " << itii->first << ", " << iti->first << "..." << std::endl;
-      addCarePairs( &itii->second, NULL, arity[ itii->first ], 0, n_pairs );
+  for (std::pair<const TypeNode, std::map<Node, TNodeTrie> >& tt : index)
+  {
+    for (std::pair<const Node, TNodeTrie>& t : tt.second)
+    {
+      Trace("dt-cg") << "Process index " << tt.first << ", " << t.first << "..."
+                     << std::endl;
+      addCarePairs(&t.second, nullptr, arity[t.first], 0, n_pairs);
     }
   }
   Trace("dt-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
@@ -2121,18 +2175,20 @@ void TheoryDatatypes::printModelDebug( const char* c ){
           if( hasLabel( ei, eqc ) ){
             Trace( c ) << getLabel( eqc );
           }else{
-            NodeIntMap::iterator lbl_i = d_labels.find( eqc );
+            NodeUIntMap::iterator lbl_i = d_labels.find(eqc);
             if( lbl_i != d_labels.end() ){
-              for( int j=0; j<(*lbl_i).second; j++ ){
+              for (size_t j = 0; j < (*lbl_i).second; j++)
+              {
                 Trace( c ) << d_labels_data[eqc][j] << " ";
               }
             }
           }
           Trace( c ) << std::endl;
           Trace( c ) << "   Selectors : " << ( ei->d_selectors ? "yes, " : "no " );
-          NodeIntMap::iterator sel_i = d_selector_apps.find( eqc );
+          NodeUIntMap::iterator sel_i = d_selector_apps.find(eqc);
           if( sel_i != d_selector_apps.end() ){
-            for( int j=0; j<(*sel_i).second; j++ ){
+            for (size_t j = 0; j < (*sel_i).second; j++)
+            {
               Trace( c ) << d_selector_apps_data[eqc][j] << " ";
             }
           }

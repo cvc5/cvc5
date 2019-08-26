@@ -129,22 +129,14 @@ header = "options/strings_options.h"
   help       = "check entailment between length terms to reduce splitting"
 
 [[option]]
-  name       = "stringProcessLoop"
-  category   = "regular"
-  long       = "strings-process-loop"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "reduce looping word equations to regular expressions"
-
-[[option]]
-  name       = "stringAbortLoop"
-  category   = "regular"
-  long       = "strings-abort-loop"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "abort when a looping word equation is encountered"
+  name       = "stringProcessLoopMode"
+  category   = "expert"
+  long       = "strings-process-loop-mode=MODE"
+  type       = "CVC4::theory::strings::ProcessLoopMode"
+  default    = "CVC4::theory::strings::ProcessLoopMode::FULL"
+  handler    = "stringToStringsProcessLoopMode"
+  includes   = ["options/strings_modes.h"]
+  help       = "determines how to process looping string equations"
 
 [[option]]
   name       = "stringInferAsLemmas"
@@ -205,7 +197,7 @@ header = "options/strings_options.h"
   category   = "regular"
   long       = "re-elim"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "elimination techniques for regular expressions"
 
 [[option]]
@@ -224,3 +216,13 @@ header = "options/strings_options.h"
   default    = "true"
   read_only  = true
   help       = "do flat form inferences"
+
+[[option]]
+  name       = "stringRegExpInterMode"
+  category   = "expert"
+  long       = "re-inter-mode=MODE"
+  type       = "CVC4::theory::strings::RegExpInterMode"
+  default    = "CVC4::theory::strings::RE_INTER_CONSTANT"
+  handler    = "stringToRegExpInterMode"
+  includes   = ["options/strings_modes.h"]
+  help       = "determines which regular expressions intersections to compute"

@@ -2,9 +2,9 @@
 /*! \file term_util.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Yoni Zohar
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -64,20 +64,6 @@ void TermUtil::registerQuantifier( Node q ){
       ic.setAttribute( ivna, i );
       InstConstantAttribute ica;
       ic.setAttribute( ica, q );
-    }
-  }
-}
-
-void TermUtil::getBoundVars2( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( n.getKind()==BOUND_VARIABLE ){
-      if( std::find( vars.begin(), vars.end(), n )==vars.end() ) {
-        vars.push_back( n );
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      getBoundVars2( n[i], vars, visited );
     }
   }
 }
@@ -161,11 +147,6 @@ bool TermUtil::hasBoundVarAttr( Node n ) {
   return !getBoundVarAttr(n).isNull();
 }
 
-void TermUtil::getBoundVars( Node n, std::vector< Node >& vars ) {
-  std::map< Node, bool > visited;
-  return getBoundVars2( n, vars, visited );
-}
-
 //remove quantifiers
 Node TermUtil::getRemoveQuantifiers( Node n ) {
   std::map< Node, Node > visited;
@@ -174,15 +155,18 @@ Node TermUtil::getRemoveQuantifiers( Node n ) {
 
 //quantified simplify
 Node TermUtil::getQuantSimplify( Node n ) {
-  std::vector< Node > bvs;
-  getBoundVars( n, bvs );
-  if( bvs.empty() ) {
+  std::unordered_set<Node, NodeHashFunction> fvs;
+  expr::getFreeVariables(n, fvs);
+  if (fvs.empty())
+  {
     return Rewriter::rewrite( n );
-  }else{
-    Node q = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs ), n );
-    q = Rewriter::rewrite( q );
-    return getRemoveQuantifiers( q );
   }
+  std::vector<Node> bvs;
+  bvs.insert(bvs.end(), fvs.begin(), fvs.end());
+  NodeManager* nm = NodeManager::currentNM();
+  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
+  q = Rewriter::rewrite(q);
+  return getRemoveQuantifiers(q);
 }
 
 /** get the i^th instantiation constant of q */
@@ -628,14 +612,21 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
   return n.getAttribute(ContainsUConstAttribute())!=0;
 }
 
-Node TermUtil::simpleNegate( Node n ){
+Node TermUtil::simpleNegate(Node n)
+{
+  Assert(n.getType().isBoolean());
+  NodeManager* nm = NodeManager::currentNM();
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
     for (const Node& cn : n)
     {
       children.push_back(simpleNegate(cn));
     }
-    return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
+    return nm->mkNode(n.getKind() == OR ? AND : OR, children);
+  }
+  else if (n.isConst())
+  {
+    return nm->mkConst(!n.getConst<bool>());
   }
   return n.negate();
 }
@@ -654,7 +645,15 @@ bool TermUtil::isNegate(Kind k)
   return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == UMINUS;
 }
 
-bool TermUtil::isAssoc( Kind k ) {
+bool TermUtil::isAssoc(Kind k, bool reqNAry)
+{
+  if (reqNAry)
+  {
+    if (k == UNION || k == INTERSECTION)
+    {
+      return false;
+    }
+  }
   return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
          || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
@@ -663,7 +662,15 @@ bool TermUtil::isAssoc( Kind k ) {
          || k == SEP_STAR;
 }
 
-bool TermUtil::isComm( Kind k ) {
+bool TermUtil::isComm(Kind k, bool reqNAry)
+{
+  if (reqNAry)
+  {
+    if (k == UNION || k == INTERSECTION)
+    {
+      return false;
+    }
+  }
   return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
          || k == OR || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR

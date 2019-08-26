@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
-#define __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
+#define CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
@@ -23,10 +23,12 @@
 #include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 /** ExpressionMinerManager
@@ -71,8 +73,10 @@ class ExpressionMinerManager
   void enableRewriteRuleSynth();
   /** enable query generation (--sygus-query-gen) */
   void enableQueryGeneration(unsigned deqThresh);
-  /** filter implied solutions (--sygus-sol-filter-implied) */
-  void enableFilterImpliedSolutions();
+  /** filter strong solutions (--sygus-filter-sol=strong) */
+  void enableFilterStrongSolutions();
+  /** filter weak solutions (--sygus-filter-sol=weak) */
+  void enableFilterWeakSolutions();
   /** add term
    *
    * Expression miners may print information on the output stream out, for
@@ -92,8 +96,8 @@ class ExpressionMinerManager
   bool d_doRewSynth;
   /** whether we are doing query generation */
   bool d_doQueryGen;
-  /** whether we are filtering implied candidates */
-  bool d_doFilterImplied;
+  /** whether we are filtering solutions based on logical strength */
+  bool d_doFilterLogicalStrength;
   /** the sygus function passed to initializeSygus, if any */
   Node d_sygus_fun;
   /** whether we are using sygus types */
@@ -106,8 +110,8 @@ class ExpressionMinerManager
   CandidateRewriteDatabase d_crd;
   /** query generator */
   QueryGenerator d_qg;
-  /** solution filter */
-  SolutionFilter d_solf;
+  /** solution filter based on logical strength */
+  SolutionFilterStrength d_sols;
   /** sygus sampler object */
   SygusSampler d_sampler;
   /** extended rewriter object */
@@ -118,4 +122,4 @@ class ExpressionMinerManager
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H */

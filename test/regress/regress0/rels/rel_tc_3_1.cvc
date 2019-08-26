@@ -13,6 +13,6 @@ ASSERT (1, d) IS_IN x;
 ASSERT (b, 1) IS_IN x;
 ASSERT (b = d);
 
-ASSERT y = (TCLOSURE x);
+ASSERT y = TCLOSURE(x);
 
 CHECKSAT;

@@ -20,6 +20,7 @@ General options;
   --best                   turn on dependencies known to give best performance
   --gpl                    permit GPL dependencies, if available
   --win64                  cross-compile for Windows 64 bit
+  --ninja                  use Ninja build system
 
 
 Features:
@@ -55,6 +56,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --abc                    use the ABC AIG library
   --cadical                use the CaDiCaL SAT solver
   --cryptominisat          use the CryptoMiniSat SAT solver
+  --drat2er                use drat2er (required for eager BV proofs)
   --lfsc                   use the LFSC proof checker
   --symfpu                 use SymFPU for floating point solver
   --portfolio              build the multithreaded portfolio version of CVC4
@@ -66,13 +68,13 @@ Optional Path to Optional Packages:
   --antlr-dir=PATH         path to ANTLR C headers and libraries
   --cadical-dir=PATH       path to top level of CaDiCaL source tree
   --cryptominisat-dir=PATH path to top level of CryptoMiniSat source tree
+  --drat2er-dir=PATH       path to the top level of the drat2er installation
   --cxxtest-dir=PATH       path to CxxTest installation
   --glpk-dir=PATH          path to top level of GLPK installation
   --gmp-dir=PATH           path to top level of GMP installation
   --lfsc-dir=PATH          path to top level of LFSC source tree
   --symfpu-dir=PATH        path to top level of SymFPU source tree
 
-Report bugs to <cvc4-bugs@cs.stanford.edu>.
 EOF
   exit 0
 }
@@ -112,9 +114,11 @@ coverage=default
 cryptominisat=default
 debug_symbols=default
 debug_context_mm=default
+drat2er=default
 dumping=default
 gpl=default
 win64=default
+ninja=default
 glpk=default
 lfsc=default
 muzzle=default
@@ -141,6 +145,7 @@ abc_dir=default
 antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
+drat2er_dir=default
 cxxtest_dir=default
 glpk_dir=default
 gmp_dir=default
@@ -202,6 +207,9 @@ do
     --debug-context-mm) debug_context_mm=ON;;
     --no-debug-context-mm) debug_context_mm=OFF;;
 
+    --drat2er) drat2er=ON;;
+    --no-drat2er) drat2er=OFF;;
+
     --dumping) dumping=ON;;
     --no-dumping) dumping=OFF;;
 
@@ -210,6 +218,8 @@ do
 
     --win64) win64=ON;;
     --no-win64) win64=OFF;;
+
+    --ninja) ninja=ON;;
 
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
@@ -297,6 +307,9 @@ do
     --cxxtest-dir) die "missing argument to $1 (try -h)" ;;
     --cxxtest-dir=*) cxxtest_dir=${1##*=} ;;
 
+    --drat2er-dir) die "missing argument to $1 (try -h)" ;;
+    --drat2er-dir=*) drat2er_dir=${1##*=} ;;
+
     --glpk-dir) die "missing argument to $1 (try -h)" ;;
     --glpk-dir=*) glpk_dir=${1##*=} ;;
 
@@ -348,6 +361,7 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+[ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $optimized != default ] \
@@ -386,6 +400,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_CLN=$cln"
 [ $cryptominisat != default ] \
   && cmake_opts="$cmake_opts -DUSE_CRYPTOMINISAT=$cryptominisat"
+[ $drat2er != default ] \
+  && cmake_opts="$cmake_opts -DUSE_DRAT2ER=$drat2er"
 [ $glpk != default ] \
   && cmake_opts="$cmake_opts -DUSE_GLPK=$glpk"
 [ $lfsc != default ] \
@@ -408,6 +424,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
 [ "$cxxtest_dir" != default ] \
   && cmake_opts="$cmake_opts -DCXXTEST_DIR=$cxxtest_dir"
+[ "$drat2er_dir" != default ] \
+  && cmake_opts="$cmake_opts -DDRAT2ER_DIR=$drat2er_dir"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$gmp_dir" != default ] \

@@ -2,9 +2,9 @@
 /*! \file lazy_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,16 +16,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
-#define __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#ifndef CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#define CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 
+#include "proof/resolution_bitvector_proof.h"
 #include "theory/bv/bitblast/bitblaster.h"
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "prop/cnf_stream.h"
 #include "prop/registrar.h"
-#include "prop/sat_solver.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "theory/bv/abstraction.h"
 
 namespace CVC4 {
@@ -76,7 +77,6 @@ class TLazyBitblaster : public TBitblaster<Node>
    * constants to equivalence classes that don't already have them
    */
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog(BitVectorProof* bvp);
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
@@ -106,7 +106,7 @@ class TLazyBitblaster : public TBitblaster<Node>
                              prop::SatLiteralHashFunction>
       ExplanationMap;
   /** This class gets callbacks from minisat on propagations */
-  class MinisatNotify : public prop::BVSatSolverInterface::Notify
+  class MinisatNotify : public prop::BVSatSolverNotify
   {
     prop::CnfStream* d_cnf;
     TheoryBV* d_bv;
@@ -128,11 +128,8 @@ class TLazyBitblaster : public TBitblaster<Node>
   context::Context* d_ctx;
 
   std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
-  std::unique_ptr<context::Context> d_nullContext;
-  // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<prop::BVSatSolverInterface> d_satSolver;
-  std::unique_ptr<prop::BVSatSolverInterface::Notify> d_satSolverNotify;
-  std::unique_ptr<prop::CnfStream> d_cnfStream;
+  std::unique_ptr<prop::BVSatSolverNotify> d_satSolverNotify;
 
   AssertionList*
       d_assertedAtoms;            /**< context dependent list storing the atoms
@@ -153,6 +150,7 @@ class TLazyBitblaster : public TBitblaster<Node>
   void addAtom(TNode atom);
   bool hasValue(TNode a);
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
+  prop::SatSolver* getSatSolver() override { return d_satSolver.get(); }
 
   class Statistics
   {
@@ -178,4 +176,4 @@ class TLazyBitblaster : public TBitblaster<Node>
 }  // namespace bv
 }  // namespace theory
 }  // namespace CVC4
-#endif  //  __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
+#endif  //  CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H

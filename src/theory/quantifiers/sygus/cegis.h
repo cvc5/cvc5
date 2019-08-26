@@ -2,9 +2,9 @@
 /*! \file cegis.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ **   Andrew Reynolds, Haniel Barbosa, FabianWolff
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEGIS_H
-#define __CVC4__THEORY__QUANTIFIERS__CEGIS_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_H
+#define CVC4__THEORY__QUANTIFIERS__CEGIS_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_module.h"
@@ -44,7 +44,8 @@ class Cegis : public SygusModule
   Cegis(QuantifiersEngine* qe, SynthConjecture* p);
   ~Cegis() override {}
   /** initialize */
-  virtual bool initialize(Node n,
+  virtual bool initialize(Node conj,
+                          Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas) override;
   /** get term list */
@@ -77,14 +78,21 @@ class Cegis : public SygusModule
    */
   Node d_base_body;
   //----------------------------------cegis-implementation-specific
-  /** do cegis-implementation-specific initialization for this class */
-  virtual bool processInitialize(Node n,
+  /**
+   * Do cegis-implementation-specific initialization for this class. The return
+   * value and behavior of this function is the same as initialize(...) above.
+   */
+  virtual bool processInitialize(Node conj,
+                                 Node n,
                                  const std::vector<Node>& candidates,
                                  std::vector<Node>& lemmas);
   /** do cegis-implementation-specific post-processing for construct candidate
    *
    * satisfiedRl is whether all refinement lemmas are satisfied under the
    * substitution { enums -> enum_values }.
+   *
+   * The return value and behavior of this function is the same as
+   * constructCandidates(...) above.
    */
   virtual bool processConstructCandidates(const std::vector<Node>& enums,
                                           const std::vector<Node>& enum_values,
@@ -209,4 +217,4 @@ class Cegis : public SygusModule
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEGIS_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEGIS_H */

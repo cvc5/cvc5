@@ -2,9 +2,9 @@
 /*! \file sygus_invariance.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
 
 #include <unordered_map>
 #include <vector>
@@ -249,7 +249,7 @@ class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  NegContainsSygusInvarianceTest() {}
+  NegContainsSygusInvarianceTest() : d_isUniversal(false) {}
 
   /** initialize this invariance test
    *  e is the enumerator which we are reasoning about (associated with a synth
@@ -266,9 +266,19 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
             std::vector<std::vector<Node> >& ex,
             std::vector<Node>& exo,
             std::vector<unsigned>& ncind);
+  /** set universal
+   *
+   * This updates the semantics of this check such that *all* instead of some
+   * examples must fail the containment test.
+   */
+  void setUniversal() { d_isUniversal = true; }
 
  protected:
-  /** checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i. */
+  /**
+   * Checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i; if
+   * d_isUniversal is true, then we check if the rewrite holds for *all* I/O
+   * pairs.
+   */
   bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
@@ -282,10 +292,12 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
    *    contains( out_i, nvn[in_i] ) ---> false
    */
   std::vector<unsigned> d_neg_con_indices;
+  /** requires not being in all examples */
+  bool d_isUniversal;
 };
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H */

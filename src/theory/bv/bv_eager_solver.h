@@ -2,9 +2,9 @@
 /*! \file bv_eager_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Mathias Preiner
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,13 +16,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BV_EAGER_SOLVER_H
-#define __CVC4__THEORY__BV__BV_EAGER_SOLVER_H
+#ifndef CVC4__THEORY__BV__BV_EAGER_SOLVER_H
+#define CVC4__THEORY__BV__BV_EAGER_SOLVER_H
 
 #include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
@@ -47,7 +48,7 @@ class EagerBitblastSolver {
   bool isInitialized();
   void initialize();
   bool collectModelInfo(theory::TheoryModel* m, bool fullModel);
-  void setProofLog(BitVectorProof* bvp);
+  void setProofLog(proof::BitVectorProof* bvp);
 
  private:
   context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
@@ -60,11 +61,11 @@ class EagerBitblastSolver {
   bool d_useAig;
 
   TheoryBV* d_bv;
-  BitVectorProof* d_bvp;
+  proof::BitVectorProof* d_bvp;
 };  // class EagerBitblastSolver
 
 }  // namespace bv
 }  // namespace theory
 }  // namespace CVC4
 
-#endif  // __CVC4__THEORY__BV__BV_EAGER_SOLVER_H
+#endif  // CVC4__THEORY__BV__BV_EAGER_SOLVER_H

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 #include <numeric>  // for std::iota
 
@@ -65,6 +66,11 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   }
   /* Go to next node */
   return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
+}
+
+SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe)
+    : d_qe(qe), d_tds(d_qe->getTermDatabaseSygus())
+{
 }
 
 Kind SygusGrammarNorm::TypeObject::getEliminateKind(Kind ok)

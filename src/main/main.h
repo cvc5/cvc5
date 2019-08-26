@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,8 +25,8 @@
 #include "util/statistics.h"
 #include "util/statistics_registry.h"
 
-#ifndef __CVC4__MAIN__MAIN_H
-#define __CVC4__MAIN__MAIN_H
+#ifndef CVC4__MAIN__MAIN_H
+#define CVC4__MAIN__MAIN_H
 
 namespace CVC4 {
 namespace main {
@@ -70,4 +70,4 @@ void cvc4_shutdown() noexcept;
 int runCvc4(int argc, char* argv[], CVC4::Options&);
 void printUsage(CVC4::Options&, bool full = false);
 
-#endif /* __CVC4__MAIN__MAIN_H */
+#endif /* CVC4__MAIN__MAIN_H */

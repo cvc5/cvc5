@@ -2,9 +2,9 @@
 /*! \file inst_propagator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,18 +14,18 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__QUANTIFIERS_INST_PROPAGATOR_H
-#define __CVC4__QUANTIFIERS_INST_PROPAGATOR_H
+#ifndef CVC4__QUANTIFIERS_INST_PROPAGATOR_H
+#define CVC4__QUANTIFIERS_INST_PROPAGATOR_H
 
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 #include "expr/node.h"
+#include "expr/node_trie.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -72,17 +72,21 @@ public:
   TNode getCongruentTermExp( Node f, std::vector< TNode >& args, std::vector< Node >& exp );
 private:
   /** term index */
-  std::map< Node, TermArgTrie > d_uf_func_map_trie;
-  /** union find for terms beyond what is stored in equality engine */
-  std::map< Node, Node > d_uf;
-  std::map< Node, std::vector< Node > > d_uf_exp;
-  Node getUfRepresentative( Node a, std::vector< Node >& exp );
-  /** disequality list, stores explanations */
-  std::map< Node, std::map< Node, std::vector< Node > > > d_diseq_list;
-  /** add arg */
-  void addArgument( Node n, std::vector< Node >& args, std::vector< Node >& watch, bool is_watch );
-  /** register term */
-  void registerUfTerm( TNode n );
+ std::map<Node, TNodeTrie> d_uf_func_map_trie;
+ /** union find for terms beyond what is stored in equality engine */
+ std::map<Node, Node> d_uf;
+ std::map<Node, std::vector<Node> > d_uf_exp;
+ Node getUfRepresentative(Node a, std::vector<Node>& exp);
+ /** disequality list, stores explanations */
+ std::map<Node, std::map<Node, std::vector<Node> > > d_diseq_list;
+ /** add arg */
+ void addArgument(Node n,
+                  std::vector<Node>& args,
+                  std::vector<Node>& watch,
+                  bool is_watch);
+ /** register term */
+ void registerUfTerm(TNode n);
+
 public:
   enum {
     STATUS_CONFLICT,
