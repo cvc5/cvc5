@@ -296,7 +296,7 @@ void ErProofBlack::testErTraceCheckOutput()
       cln
       (\ er.v4
       (\ er.def4
-        (clausify_rat_elimination_def _ _ _ er.def4 _ _
+        (clausify_rat_elimination_def _ _ _ er.def4 _
           (\ er.c9
           (\ er.c10
           (\ er.cnf4
@@ -428,20 +428,18 @@ void ErProofBlack::testErTraceCheckOutputMedium()
       cln
       (\ er.v5
       (\ er.def5
-        (clausify_rat_elimination_def _ _ _ er.def4 _ _
+        (clausify_rat_elimination_def _ _ _ er.def4 _
           (\ er.c9
           (\ er.c10
           (\ er.cnf4
-        (clausify_rat_elimination_def _ _ _ er.def5 _ _
+        (clausify_rat_elimination_def _ _ _ er.def5 _
           (\ er.c13
           (\ er.c14
           (\ er.cnf5
-            (cnfc_unroll _ _ er.cnf4
-              (\ er.c11
-              (\ er.cnf4.u1
-            (cnfc_unroll _ _ er.cnf4.u1
-              (\ er.c12
-              (\ er.cnf4.u2
+            (@ er.c11 (common_tail_cnf_prove_head _ _ _ er.cnf4)
+            (@ er.cnf4.u1 (common_tail_cnf_prove_tail _ _ _ er.cnf4)
+            (@ er.c12 (common_tail_cnf_prove_head _ _ _ er.cnf4.u1)
+            (@ er.cnf4.u2 (common_tail_cnf_prove_tail _ _ _ er.cnf4.u1)
                 (satlem_simplify _ _ _
                   (R _ _ (R _ _ (Q _ _ (Q _ _ er.c11 bb.pb1 bb.v0)
                     er.c10 er.v4)
@@ -459,7 +457,7 @@ void ErProofBlack::testErTraceCheckOutputMedium()
                   (Q _ _ (R _ _ (Q _ _ bb.pb4 er.c17 bb.v2) er.c16 bb.v3)
                       er.c19 bb.v1) (\ er.c20
                   er.c20 ; (holds cln)
-              ))))))))))))
+              ))))))))))
             )))
             )))
           )))
