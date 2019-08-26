@@ -199,13 +199,19 @@ bool SygusConnectiveCore::processInitialize(Node conj,
     Node scb = TermUtil::simpleNegate(sc);
     TransitionInference tisc;
     tisc.process(scb);
-    
-    Node scPre = tisc.getPreCondition();
-    Node scPost = tisc.getPostCondition();
-    std::vector< Node > scVars;
-    tisc.getVariables(scVars);
-    Trace("sygus-ccore-init") << "  precondition of SC: " << scPre << std::endl;
-    Trace("sygus-ccore-init") << "  postcondition of SC: " << scPost << std::endl;
+    Node scTrans = ti.getTransitionRelation();
+    Trace("sygus-ccore-init") << "  transition relation of SC: " << scTrans << std::endl;
+    if( tisc.isComplete() && scTrans.isConst() && !scTrans.getConst<bool>() )
+    {
+      std::vector< Node > scVars;
+      tisc.getVariables(scVars);
+      Node scPre = tisc.getPreCondition();
+      scPre = scPre.substitute(scVars.begin(),scVars.end(),d_vars.begin(),d_vars.end());
+      Node scPost = TermUtil::simpleNegate(tisc.getPostCondition());
+      scPost = scPost.substitute(scVars.begin(),scVars.end(),d_vars.begin(),d_vars.end());
+      Trace("sygus-ccore-init") << "  precondition of SC: " << scPre << std::endl;
+      Trace("sygus-ccore-init") << "  postcondition of SC: " << scPost << std::endl;
+    }
   }
   
   // We use the postcondition if it non-trivial and the grammar gt for our
