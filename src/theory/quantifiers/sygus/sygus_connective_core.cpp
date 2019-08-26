@@ -736,30 +736,20 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vect
       {
         Assert( !uasserts.empty() );
         Node xu = uasserts[0];
-        std::sort(uasserts.begin(), uasserts.end());
         Trace("sygus-ccore") << "--- Add false core : " << uasserts << std::endl;
         if (uasserts.size() == 1)
         {
           // singleton false core should be removed from pool TODO
         }
-        // false core, remove and continue
+        std::sort(uasserts.begin(), uasserts.end());
+        // add false core
         ccheck.d_falseCores.add(query, uasserts);
-        // TODO: try again
-        /*
-        // exclude the last assertion
-        if( an.getKind()==AND )
-        {
-          Assert( an[0]==asserts.back() );
-          an = an[1];
-        }
-        else
-        {
-          Assert( an==asserts.back() );
-          an = d_true;
-        }
-        asserts.pop_back();
-        addSuccess = true;
-        */
+        // remove and continue
+        std::vector< Node >::iterator ita = std::find( asserts.begin(), asserts.end(), xu );
+        Assert( ita!=asserts.end() );
+        asserts.erase( ita );
+        // start over, since now we don't know which points were required
+        return constructSolutionFromPool(ccheck,asserts,passerts);
       }
     }
     else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
