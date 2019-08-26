@@ -35,6 +35,7 @@ class FalseCoreTrie
   bool add(Node n, std::vector<Node>& i);
   Node getExclusion(std::unordered_set<Node, NodeHashFunction>& excAsserts,
                     std::vector<Node>& ctx) const;
+  bool isFalse( const std::vector< Node >& is ) const;
 };
 
 /** SygusConnectiveCore
@@ -83,6 +84,9 @@ class SygusConnectiveCore : public Cegis
                          std::vector<Node>& solv);
 
  private:
+  /** common constants */
+  Node d_true;
+  Node d_false;
   /** The candidate */
   TNode d_candidate;
   /**
@@ -97,6 +101,9 @@ class SygusConnectiveCore : public Cegis
     std::vector<Node> d_cpool;
     std::map<Node, Node> d_cpoolToSol;
     FalseCoreTrie d_falseCores;
+    /**
+     * Points that satisfy d_this.
+     */
     NodeTrie d_refinementPt;
     unsigned d_numFalseCores;
     std::unordered_set<Node, NodeHashFunction> d_tried;
@@ -108,10 +115,22 @@ class SygusConnectiveCore : public Cegis
      * d_refinementPt trie, and store it in ss. The set visited is the set
      * of leaf nodes that we've already checked.
      */
-    Node getRefinementPt(Node n,
+    Node getRefinementPt(SygusConnectiveCore* p,
+                         Node n,
                          std::unordered_set<Node, NodeHashFunction>& visited,
-                         const std::vector<Node>& vs,
                          std::vector<Node>& ss);
+    /**
+    * Selects a node from passerts that evaluates to false on point mv if one
+    * exists, or otherwise returns null.
+    *
+    * If a non-null node is returned, it is removed from passerts.
+    */
+    bool addToAsserts(SygusConnectiveCore* p,
+                      std::vector<Node>& passerts,
+                      const std::vector<Node>& mvs,
+                      Node mvId,
+                      std::vector<Node>& asserts,
+                      Node& an);
   };
   /** Above information for the precondition of the synthesis conjecture */
   Component d_pre;
@@ -124,25 +143,13 @@ class SygusConnectiveCore : public Cegis
 
   void getModel(SmtEngine& smt, std::vector<Node>& mvs);
 
-  /**
-   * Selects a node from passerts that evaluates to false on point mv if one
-   * exists, or otherwise returns null.
-   *
-   * If a non-null node is returned, it is removed from passerts.
-   */
-  bool addToAsserts(std::vector<Node>& passerts,
-                    const std::vector<Node>& mvs,
-                    Node mvId,
-                    std::vector<Node>& asserts,
-                    Node& an);
-
-  Node addToAsserts(Node n, Node assertn, std::vector<Node>& asserts);
-
   std::unordered_map<Node,
                      std::unordered_map<Node, Node, NodeHashFunction>,
                      NodeHashFunction>
       d_eval_cache;
   Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
+  
+  Result checkSat( Node n, std::vector< Node >& mvs );
 };
 
 }  // namespace quantifiers
