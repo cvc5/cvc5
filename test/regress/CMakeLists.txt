@@ -1701,6 +1701,7 @@ set(regress_1_tests
   regress1/sygus/planning-unif.sy
   regress1/sygus/process-10-vars.sy
   regress1/sygus/qe.sy
+  regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
