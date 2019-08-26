@@ -457,9 +457,13 @@ Node SygusConnectiveCore::Component::getRefinementPt(
       Trace("sygus-ccore-ref") << "...at depth " << std::endl;
       // at leaf
       Node id = cur->getData();
+      Trace("sygus-ccore-ref") << "...data is " << id << std::endl;
+      Assert( !id.isNull() );
+      AlwaysAssert( id.getType().isBoolean() );
       if (visited.find(id) == visited.end())
       {
         visited.insert(id);
+        Trace("sygus-ccore-ref") << "...eval " << std::endl;
         // check if it is true
         Node en = p->evaluate(n, id, ctx);
         if (en.isConst() && en.getConst<bool>())
@@ -469,6 +473,7 @@ Node SygusConnectiveCore::Component::getRefinementPt(
         }
       }
       visit.pop_back();
+      ctx.pop_back();
     }
     else
     {
@@ -480,7 +485,6 @@ Node SygusConnectiveCore::Component::getRefinementPt(
         // initialize the iterator
         itv = cur->d_data.begin();
         vt[cur] = itv;
-        ctx.push_back(Node::null());
         Trace("sygus-ccore-ref") << "...finished init" << std::endl;
       }
       else
@@ -489,22 +493,23 @@ Node SygusConnectiveCore::Component::getRefinementPt(
         itv = itvt->second;
       }
       Trace("sygus-ccore-ref") << "...now check status" << std::endl;
-      AlwaysAssert(!ctx.empty());
-      Trace("sygus-ccore-ref") << "...now check status2 " << cur << std::endl;
       // are we done iterating children?
       if (itv == cur->d_data.end())
       {
         Trace("sygus-ccore-ref") << "...finished iterating " << std::endl;
         // yes, pop back
+        if( !ctx.empty() )
+        {
+          ctx.pop_back();
+        }
         visit.pop_back();
         vt.erase(cur);
-        ctx.pop_back();
       }
       else
       {
         Trace("sygus-ccore-ref") << "...recurse " << itv->first << std::endl;
         // recurse
-        ctx[ctx.size() - 1] = itv->first;
+        ctx.push_back( itv->first );
         visit.push_back(&(itv->second));
         ++vt[cur];
       }
@@ -660,10 +665,13 @@ Node SygusConnectiveCore::evaluate(Node n,
     return nm->mkConst(!expRes);
   }
   std::unordered_map<Node, Node, NodeHashFunction>& ec = d_eval_cache[n];
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it = ec.find(id);
-  if (it != ec.end())
+  if( !id.isNull() )
   {
-    return it->second;
+    std::unordered_map<Node, Node, NodeHashFunction>::iterator it = ec.find(id);
+    if (it != ec.end())
+    {
+      return it->second;
+    }
   }
   // use evaluator
   Node cn = d_eval.eval(n, d_vars, mvs);
@@ -672,7 +680,10 @@ Node SygusConnectiveCore::evaluate(Node n,
     Node cn = n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
     cn = Rewriter::rewrite(cn);
   }
-  ec[id] = cn;
+  if( !id.isNull() )
+  {
+    ec[id] = cn;
+  }
   return cn;
 }
 
@@ -808,6 +819,9 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
       // the current point
       mvs.clear();
       getModel(checkSol, mvs);
+      // should evaluate to true
+      Node ean = evaluate(an,Node::null(),mvs);
+      Assert( ean.isConst() && ean.getConst<bool>());
       Trace("sygus-ccore") << "--- Add refinement point " << mvs << std::endl;
       ccheck.addRefinementPt(query, mvs);
       Trace("sygus-ccore-debug") << "...get new assertion..." << std::endl;
