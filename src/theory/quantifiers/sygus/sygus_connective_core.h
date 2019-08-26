@@ -154,6 +154,8 @@ class SygusConnectiveCore : public Cegis
   Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
 
   Result checkSat(Node n, std::vector<Node>& mvs);
+  
+  Node constructSolutionFromPool(Component& ccheck, std::vector< Node >& asserts, std::vector< Node >& passert );
 };
 
 }  // namespace quantifiers
