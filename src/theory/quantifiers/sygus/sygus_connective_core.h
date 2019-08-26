@@ -21,6 +21,7 @@
 #include "expr/node.h"
 #include "expr/node_trie.h"
 
+#include "theory/evaluator.h"
 #include "theory/quantifiers/sygus/cegis.h"
 
 namespace CVC4 {
@@ -32,7 +33,7 @@ class FalseCoreTrie
  public:
   std::map<Node, FalseCoreTrie> d_children;
   Node d_data;
-  bool add(Node n, std::vector<Node>& i);
+  bool add(Node n, const std::vector<Node>& i);
   Node getExclusion(std::unordered_set<Node, NodeHashFunction>& excAsserts,
                     std::vector<Node>& ctx) const;
   bool isFalse(const std::vector<Node>& is) const;
@@ -95,7 +96,7 @@ class SygusConnectiveCore : public Cegis
   class Component
   {
    public:
-    Component() : d_numFalseCores(0) {}
+    Component() : d_numRefPoints(0), d_numFalseCores(0) {}
     Node d_this;
     Node d_scons;
     std::vector<Node> d_cpool;
@@ -104,12 +105,16 @@ class SygusConnectiveCore : public Cegis
     /**
      * Points that satisfy d_this.
      */
+    unsigned d_numRefPoints;
     NodeTrie d_refinementPt;
     unsigned d_numFalseCores;
     std::unordered_set<Node, NodeHashFunction> d_tried;
     bool isActive() const { return !d_scons.isNull(); }
     Node getSygusSolution(std::vector<Node>& conjs) const;
 
+    void addRefinementPt( Node id, const std::vector< Node >& pt );
+    void addFalseCore( Node id, const std::vector< Node >& u );
+    
     /**
      * Get a refinement point that n evalutes to true on, taken from the
      * d_refinementPt trie, and store it in ss. The set visited is the set
@@ -159,6 +164,7 @@ class SygusConnectiveCore : public Cegis
   Node constructSolutionFromPool(Component& ccheck,
                                  std::vector<Node>& asserts,
                                  std::vector<Node>& passert);
+  Evaluator d_eval;
 };
 
 }  // namespace quantifiers

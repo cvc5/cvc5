@@ -31,7 +31,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-bool FalseCoreTrie::add(Node n, std::vector<Node>& i)
+bool FalseCoreTrie::add(Node n, const std::vector<Node>& i)
 {
   FalseCoreTrie* curr = this;
   for (const Node& ic : i)
@@ -362,7 +362,7 @@ bool SygusConnectiveCore::constructSolution(
         // failed the filter, remember the refinement point
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)
         {
-          cfilter.d_refinementPt.addTerm(fassert, mvs);
+          cfilter.addRefinementPt(fassert, mvs);
         }
         continue;
       }
@@ -388,6 +388,7 @@ bool SygusConnectiveCore::constructSolution(
         return true;
       }
     }
+    Trace("sygus-ccore-summary") << "C[d=" << d << "] size(pool/pts/cores): " << ccheck.d_cpool.size() << "/" << ccheck.d_numRefPoints << "/" << ccheck.d_numFalseCores << std::endl;
   }
   Trace("sygus-ccore") << "SygusConnectiveCore: failed to generate candidate"
                        << std::endl;
@@ -419,6 +420,19 @@ Node SygusConnectiveCore::Component::getSygusSolution(
   return sol;
 }
 
+void SygusConnectiveCore::Component::addRefinementPt( Node id, const std::vector< Node >& pt )
+{
+  d_numRefPoints++;
+  bool res = d_refinementPt.addTerm(id, pt);
+  // this should always be a new point
+  AlwaysAssert(res);
+}
+void SygusConnectiveCore::Component::addFalseCore( Node id, const std::vector< Node >& u )
+{
+  d_numFalseCores++;
+  d_falseCores.add(id, u);
+}
+  
 Node SygusConnectiveCore::Component::getRefinementPt(
     SygusConnectiveCore* p,
     Node n,
@@ -628,15 +642,36 @@ Node SygusConnectiveCore::evaluate(Node n,
                                    Node id,
                                    const std::vector<Node>& mvs)
 {
+  Kind nk = n.getKind();
+  if (nk==AND || nk==OR )
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    bool expRes = nk==OR;
+    // split AND/OR
+    for( const Node& nc : n )
+    {
+      Node enc = evaluate(nc,id,mvs);
+      Assert( enc.isConst() );
+      if( enc.getConst<bool>()==expRes )
+      {
+        return nm->mkConst(expRes);
+      }
+    }
+    return nm->mkConst(!expRes);
+  }
   std::unordered_map<Node, Node, NodeHashFunction>& ec = d_eval_cache[n];
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = ec.find(id);
   if (it != ec.end())
   {
     return it->second;
   }
-  // TODO: use evaluator
-  Node cn = n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
-  cn = Rewriter::rewrite(cn);
+  // use evaluator
+  Node cn = d_eval.eval(n, d_vars, mvs);
+  if( cn.isNull() )
+  {
+    Node cn = n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
+    cn = Rewriter::rewrite(cn);
+  }
   ec[id] = cn;
   return cn;
 }
@@ -660,7 +695,7 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
   {
     mvs.clear();
     Trace("sygus-ccore-debug") << "...get refinement pt..." << std::endl;
-    Node mvId = ccheck.getRefinementPt(this, an, visited, mvs);
+    mvId = ccheck.getRefinementPt(this, an, visited, mvs);
     if (!mvId.isNull())
     {
       Trace("sygus-ccore-debug") << "...got " << mvs << std::endl;
@@ -757,7 +792,7 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
         }
         std::sort(uasserts.begin(), uasserts.end());
         // add false core
-        ccheck.d_falseCores.add(query, uasserts);
+        ccheck.addFalseCore(query, uasserts);
         // remove and continue
         std::vector<Node>::iterator ita =
             std::find(asserts.begin(), asserts.end(), xu);
@@ -774,7 +809,7 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
       mvs.clear();
       getModel(checkSol, mvs);
       Trace("sygus-ccore") << "--- Add refinement point " << mvs << std::endl;
-      ccheck.d_refinementPt.addTerm(query, mvs);
+      ccheck.addRefinementPt(query, mvs);
       Trace("sygus-ccore-debug") << "...get new assertion..." << std::endl;
       addSuccess = ccheck.addToAsserts(this, passerts, mvs, query, asserts, an);
       Trace("sygus-ccore-debug") << "...success is " << addSuccess << std::endl;
