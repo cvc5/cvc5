@@ -35,7 +35,7 @@ class FalseCoreTrie
   bool add(Node n, std::vector<Node>& i);
   Node getExclusion(std::unordered_set<Node, NodeHashFunction>& excAsserts,
                     std::vector<Node>& ctx) const;
-  bool isFalse( const std::vector< Node >& is ) const;
+  bool isFalse(const std::vector<Node>& is) const;
 };
 
 /** SygusConnectiveCore
@@ -120,11 +120,11 @@ class SygusConnectiveCore : public Cegis
                          std::unordered_set<Node, NodeHashFunction>& visited,
                          std::vector<Node>& ss);
     /**
-    * Selects a node from passerts that evaluates to false on point mv if one
-    * exists, or otherwise returns null.
-    *
-    * If a non-null node is returned, it is removed from passerts.
-    */
+     * Selects a node from passerts that evaluates to false on point mv if one
+     * exists, or otherwise returns null.
+     *
+     * If a non-null node is returned, it is removed from passerts.
+     */
     bool addToAsserts(SygusConnectiveCore* p,
                       std::vector<Node>& passerts,
                       const std::vector<Node>& mvs,
@@ -148,8 +148,8 @@ class SygusConnectiveCore : public Cegis
                      NodeHashFunction>
       d_eval_cache;
   Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
-  
-  Result checkSat( Node n, std::vector< Node >& mvs );
+
+  Result checkSat(Node n, std::vector<Node>& mvs);
 };
 
 }  // namespace quantifiers
