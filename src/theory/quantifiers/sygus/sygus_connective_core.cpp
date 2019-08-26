@@ -129,8 +129,8 @@ bool SygusConnectiveCore::processInitialize(Node conj,
   Trace("sygus-ccore-init") << "  candidates : " << candidates << std::endl;
   if (candidates.size() != 1)
   {
-    Trace("sygus-ccore-init") << "...only applies to single candidate conjectures."
-                         << std::endl;
+    Trace("sygus-ccore-init")
+        << "...only applies to single candidate conjectures." << std::endl;
     return false;
   }
   d_candidate = candidates[0];
@@ -183,16 +183,17 @@ bool SygusConnectiveCore::processInitialize(Node conj,
   // negate the post condition
   d_post.d_this = TermUtil::simpleNegate(ti.getPostCondition());
   Trace("sygus-ccore-init") << "  precondition: " << d_pre.d_this << std::endl;
-  Trace("sygus-ccore-init") << "  postcondition: " << d_post.d_this << std::endl;
+  Trace("sygus-ccore-init")
+      << "  postcondition: " << d_post.d_this << std::endl;
 
   // side condition?
   QAttributes qa;
   QuantAttributes::computeQuantAttributes(conj, qa);
   Node sc = qa.d_sygusSideCondition;
-  if( !sc.isNull() )
+  if (!sc.isNull())
   {
     Trace("sygus-ccore-init") << "  side condition: " << sc << std::endl;
-    if( sc.getKind()==EXISTS )
+    if (sc.getKind() == EXISTS)
     {
       sc = sc[1];
     }
@@ -200,22 +201,27 @@ bool SygusConnectiveCore::processInitialize(Node conj,
     TransitionInference tisc;
     tisc.process(scb);
     Node scTrans = ti.getTransitionRelation();
-    Trace("sygus-ccore-init") << "  transition relation of SC: " << scTrans << std::endl;
-    if( tisc.isComplete() && scTrans.isConst() && !scTrans.getConst<bool>() )
+    Trace("sygus-ccore-init")
+        << "  transition relation of SC: " << scTrans << std::endl;
+    if (tisc.isComplete() && scTrans.isConst() && !scTrans.getConst<bool>())
     {
-      std::vector< Node > scVars;
+      std::vector<Node> scVars;
       tisc.getVariables(scVars);
       Node scPre = tisc.getPreCondition();
-      scPre = scPre.substitute(scVars.begin(),scVars.end(),d_vars.begin(),d_vars.end());
+      scPre = scPre.substitute(
+          scVars.begin(), scVars.end(), d_vars.begin(), d_vars.end());
       Node scPost = TermUtil::simpleNegate(tisc.getPostCondition());
-      scPost = scPost.substitute(scVars.begin(),scVars.end(),d_vars.begin(),d_vars.end());
-      Trace("sygus-ccore-init") << "  precondition of SC: " << scPre << std::endl;
-      Trace("sygus-ccore-init") << "  postcondition of SC: " << scPost << std::endl;
+      scPost = scPost.substitute(
+          scVars.begin(), scVars.end(), d_vars.begin(), d_vars.end());
+      Trace("sygus-ccore-init")
+          << "  precondition of SC: " << scPre << std::endl;
+      Trace("sygus-ccore-init")
+          << "  postcondition of SC: " << scPost << std::endl;
       // FIXME
       d_sc = scPost;
     }
   }
-  
+
   // We use the postcondition if it non-trivial and the grammar gt for our
   // candidate has the production rule gt -> AND( gt, gt ). Similarly for
   // precondition and OR.
@@ -235,7 +241,7 @@ bool SygusConnectiveCore::processInitialize(Node conj,
         && TypeNode::fromType(gdt[i].getArgType(1)) == gt)
     {
       Trace("sygus-ccore-init") << "  will do " << (r == 0 ? "pre" : "post")
-                           << "condition." << std::endl;
+                                << "condition." << std::endl;
       c.d_scons = Node::fromExpr(gdt[i].getConstructor());
       // register the symmetry breaking lemma
       // TODO
@@ -259,23 +265,23 @@ bool SygusConnectiveCore::processConstructCandidates(
 {
   Assert(isActive());
   bool ret = constructSolution(enums, enum_values, candidate_values);
-  
+
   // exclude in the basic way if passive
-  Assert( enums.size()==1 );
-  NodeManager * nm = NodeManager::currentNM();
-  for (unsigned i=0, esize=enums.size(); i<esize; i++ )
+  Assert(enums.size() == 1);
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0, esize = enums.size(); i < esize; i++)
   {
     Node e = enums[i];
-    if( !d_tds->isPassiveEnumerator(e) )
+    if (!d_tds->isPassiveEnumerator(e))
     {
       continue;
     }
     Node v = enum_values[i];
     Node lem = d_tds->getExplain()->getExplanationForEquality(e, v).negate();
     Node g = d_tds->getActiveGuardForEnumerator(e);
-    if(!g.isNull())
+    if (!g.isNull())
     {
-      lem = nm->mkNode(OR,g.negate(),lem);
+      lem = nm->mkNode(OR, g.negate(), lem);
     }
     lems.push_back(lem);
   }
@@ -338,9 +344,9 @@ bool SygusConnectiveCore::constructSolution(
       // check refinement points
       Node etsrn = d == 0 ? etsr : etsr.negate();
       std::unordered_set<Node, NodeHashFunction> visited;
-      std::vector< Node > pt;
-      Node rid = cfilter.getRefinementPt(this,etsrn,visited,pt);
-      if( !rid.isNull() )
+      std::vector<Node> pt;
+      Node rid = cfilter.getRefinementPt(this, etsrn, visited, pt);
+      if (!rid.isNull())
       {
         // failed a refinement point
         continue;
@@ -371,13 +377,13 @@ bool SygusConnectiveCore::constructSolution(
     std::shuffle(passerts.begin(), passerts.end(), Random::getRandom());
 
     // ----- check for entailment, adding based on models of failed points
-    std::vector< Node > asserts;
-    Node sol = constructSolutionFromPool( ccheck, asserts, passerts );
-    if( !sol.isNull() )
+    std::vector<Node> asserts;
+    Node sol = constructSolutionFromPool(ccheck, asserts, passerts);
+    if (!sol.isNull())
     {
       if (ccheck.d_tried.find(sol) == ccheck.d_tried.end())
       {
-        ccheck.d_tried.insert(sol);     
+        ccheck.d_tried.insert(sol);
         solv.push_back(sol);
         return true;
       }
@@ -538,7 +544,8 @@ bool SygusConnectiveCore::Component::addToAsserts(SygusConnectiveCore* p,
       n = Node::null();
     }
   } while (n.isNull());
-  Trace("sygus-ccore") << "--- Insert " << n << " to falsify " << mvs << std::endl;
+  Trace("sygus-ccore") << "--- Insert " << n << " to falsify " << mvs
+                       << std::endl;
   // success
   if (an.isConst())
   {
@@ -562,7 +569,9 @@ void SygusConnectiveCore::getModel(SmtEngine& smt, std::vector<Node>& vals)
   }
 }
 
-bool SygusConnectiveCore::getUnsatCore(SmtEngine& smt, Node query, std::vector<Node>& uasserts)
+bool SygusConnectiveCore::getUnsatCore(SmtEngine& smt,
+                                       Node query,
+                                       std::vector<Node>& uasserts)
 {
   UnsatCore uc = smt.getUnsatCore();
   bool hasQuery = false;
@@ -632,11 +641,15 @@ Node SygusConnectiveCore::evaluate(Node n,
   return cn;
 }
 
-Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vector< Node >& asserts, std::vector< Node >& passerts )
+Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
+                                                    std::vector<Node>& asserts,
+                                                    std::vector<Node>& passerts)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-ccore") << "------ Get initial candidate..." << std::endl;
-  Node an = asserts.empty() ? d_true : ( asserts.size()==1 ? asserts[0] : nm->mkNode(AND, asserts) );
+  Node an = asserts.empty()
+                ? d_true
+                : (asserts.size() == 1 ? asserts[0] : nm->mkNode(AND, asserts));
   std::vector<Node> mvs;
   std::unordered_set<Node, NodeHashFunction> visited;
   bool addSuccess = true;
@@ -651,8 +664,7 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vect
     if (!mvId.isNull())
     {
       Trace("sygus-ccore-debug") << "...got " << mvs << std::endl;
-      addSuccess =
-          ccheck.addToAsserts(this, passerts, mvs, mvId, asserts, an);
+      addSuccess = ccheck.addToAsserts(this, passerts, mvs, mvId, asserts, an);
       Trace("sygus-ccore-debug")
           << "...add success is " << addSuccess << std::endl;
     }
@@ -664,7 +676,7 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vect
   if (!addSuccess)
   {
     Trace("sygus-ccore") << ">>> Failed to generate initial candidate"
-                          << std::endl;
+                         << std::endl;
     return Node::null();
   }
   Trace("sygus-ccore") << "----- Initial candidate is " << an << std::endl;
@@ -680,7 +692,7 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vect
     std::vector<Node> rasserts = asserts;
     rasserts.push_back(ccheck.d_this);
     std::shuffle(rasserts.begin(), rasserts.end(), Random::getRandom());
-    Node query = rasserts.size()==1 ? rasserts[0] : nm->mkNode(AND, rasserts);
+    Node query = rasserts.size() == 1 ? rasserts[0] : nm->mkNode(AND, rasserts);
     for (const Node& a : rasserts)
     {
       checkSol.assertFormula(a.toExpr());
@@ -692,12 +704,12 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vect
       // it entails the postcondition
       // get the unsat core
       std::vector<Node> uasserts;
-      bool hasQuery = getUnsatCore(checkSol,ccheck.d_this,uasserts);
+      bool hasQuery = getUnsatCore(checkSol, ccheck.d_this, uasserts);
       // now, check the side condition
       bool falseCore = false;
-      if( !d_sc.isNull() )
+      if (!d_sc.isNull())
       {
-        if( !hasQuery )
+        if (!hasQuery)
         {
           // already know false
           falseCore = true;
@@ -708,17 +720,18 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vect
           SmtEngine checkSc(nm->toExprManager());
           checkSc.setIsInternalSubsolver();
           checkSc.setLogic(smt::currentSmtEngine()->getLogicInfo());
-          std::vector< Node > scasserts;
-          scasserts.insert(scasserts.end(),uasserts.begin(),uasserts.end());
+          std::vector<Node> scasserts;
+          scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
           scasserts.push_back(d_sc);
           std::shuffle(scasserts.begin(), scasserts.end(), Random::getRandom());
           Result rsc = checkSc.checkSat();
-          Trace("sygus-ccore") << "----- check-sat returned " << rsc << std::endl;
+          Trace("sygus-ccore")
+              << "----- check-sat returned " << rsc << std::endl;
           if (rsc.asSatisfiabilityResult().isSat() == Result::UNSAT)
           {
             // can minimize based on this
             uasserts.clear();
-            getUnsatCore(checkSc,d_sc,uasserts);
+            getUnsatCore(checkSc, d_sc, uasserts);
             falseCore = true;
           }
         }
@@ -734,9 +747,10 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vect
       }
       else
       {
-        Assert( !uasserts.empty() );
+        Assert(!uasserts.empty());
         Node xu = uasserts[0];
-        Trace("sygus-ccore") << "--- Add false core : " << uasserts << std::endl;
+        Trace("sygus-ccore")
+            << "--- Add false core : " << uasserts << std::endl;
         if (uasserts.size() == 1)
         {
           // singleton false core should be removed from pool TODO
@@ -745,11 +759,12 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vect
         // add false core
         ccheck.d_falseCores.add(query, uasserts);
         // remove and continue
-        std::vector< Node >::iterator ita = std::find( asserts.begin(), asserts.end(), xu );
-        Assert( ita!=asserts.end() );
-        asserts.erase( ita );
+        std::vector<Node>::iterator ita =
+            std::find(asserts.begin(), asserts.end(), xu);
+        Assert(ita != asserts.end());
+        asserts.erase(ita);
         // start over, since now we don't know which points were required
-        return constructSolutionFromPool(ccheck,asserts,passerts);
+        return constructSolutionFromPool(ccheck, asserts, passerts);
       }
     }
     else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
@@ -761,10 +776,8 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck, std::vect
       Trace("sygus-ccore") << "--- Add refinement point " << mvs << std::endl;
       ccheck.d_refinementPt.addTerm(query, mvs);
       Trace("sygus-ccore-debug") << "...get new assertion..." << std::endl;
-      addSuccess =
-          ccheck.addToAsserts(this, passerts, mvs, query, asserts, an);
-      Trace("sygus-ccore-debug")
-          << "...success is " << addSuccess << std::endl;
+      addSuccess = ccheck.addToAsserts(this, passerts, mvs, query, asserts, an);
+      Trace("sygus-ccore-debug") << "...success is " << addSuccess << std::endl;
     }
   } while (addSuccess);
   return Node::null();

@@ -278,9 +278,10 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
   std::vector<Node> iplc;
   iplc.push_back(instAttr);
-  Node aconj = axioms.size()==0 ? nm->mkConst(true) : ( axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms) );
-  aconj =
-      aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
+  Node aconj = axioms.size() == 0
+                   ? nm->mkConst(true)
+                   : (axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms));
+  aconj = aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
   Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
   Node sc = nm->mkNode(AND, aconj, abdApp);
   Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);

@@ -144,7 +144,8 @@ class SygusConnectiveCore : public Cegis
   Node d_sc;
 
   void getModel(SmtEngine& smt, std::vector<Node>& mvs);
-  /** get the unsat core, exclude query, return true if query was in unsat core */
+  /** get the unsat core, exclude query, return true if query was in unsat core
+   */
   bool getUnsatCore(SmtEngine& smt, Node query, std::vector<Node>& uasserts);
 
   std::unordered_map<Node,
@@ -154,8 +155,10 @@ class SygusConnectiveCore : public Cegis
   Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
 
   Result checkSat(Node n, std::vector<Node>& mvs);
-  
-  Node constructSolutionFromPool(Component& ccheck, std::vector< Node >& asserts, std::vector< Node >& passert );
+
+  Node constructSolutionFromPool(Component& ccheck,
+                                 std::vector<Node>& asserts,
+                                 std::vector<Node>& passert);
 };
 
 }  // namespace quantifiers
