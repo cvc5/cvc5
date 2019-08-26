@@ -5,6 +5,6 @@
 (declare-fun a () (_ BitVec 8))
 (declare-fun b () (_ BitVec 8))
 
-(assert (forall ((x (_ BitVec 8))) (= (bvashr x a) b)))
+(assert (forall ((x (_ BitVec 8))) (= (bvlshr x a) b)))
 
 (check-sat)
