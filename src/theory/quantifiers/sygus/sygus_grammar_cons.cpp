@@ -1033,7 +1033,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
           datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-  Trace("sygus-grammar-def")  << "...finished" << std::endl;
+  Trace("sygus-grammar-def") << "...finished" << std::endl;
   Assert( types.size()==datatypes.size() );
   return TypeNode::fromType( types[0] );
 }
