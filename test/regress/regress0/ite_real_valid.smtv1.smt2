@@ -1,0 +1,6 @@
+(set-option :incremental false)
+(meta-info :status unsat)
+(set-logic QF_LRA)
+(declare-fun x () Real)
+(declare-fun b () Bool)
+(check-sat-assuming ( (not (=> (= x (/ (ite b 0 1) 1)) (>= x 0.0))) ))
