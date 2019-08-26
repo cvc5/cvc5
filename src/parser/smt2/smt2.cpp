@@ -19,7 +19,6 @@
 #include "options/options.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
-#include "parser/smt1/smt1.h"
 #include "parser/smt2/smt2_input.h"
 #include "printer/sygus_print_callback.h"
 #include "util/bitvector.h"
