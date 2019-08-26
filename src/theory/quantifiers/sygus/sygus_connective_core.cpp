@@ -211,6 +211,8 @@ bool SygusConnectiveCore::processInitialize(Node conj,
       scPost = scPost.substitute(scVars.begin(),scVars.end(),d_vars.begin(),d_vars.end());
       Trace("sygus-ccore-init") << "  precondition of SC: " << scPre << std::endl;
       Trace("sygus-ccore-init") << "  postcondition of SC: " << scPost << std::endl;
+      // FIXME
+      d_sc = scPost;
     }
   }
   
@@ -333,8 +335,16 @@ bool SygusConnectiveCore::constructSolution(
     Node fpred = cfilter.d_this;
     if (!fpred.isConst())
     {
-      // TODO : check refinement points
+      // check refinement points
       Node etsrn = d == 0 ? etsr : etsr.negate();
+      std::unordered_set<Node, NodeHashFunction> visited;
+      std::vector< Node > pt;
+      Node rid = cfilter.getRefinementPt(this,etsrn,visited,pt);
+      if( !rid.isNull() )
+      {
+        // failed a refinement point
+        continue;
+      }
       Node fassert = nm->mkNode(AND, fpred, etsrn);
       Trace("sygus-ccore-debug")
           << "...check filter " << fassert << "..." << std::endl;
@@ -400,9 +410,9 @@ bool SygusConnectiveCore::constructSolution(
     {
       addSuccess = false;
       // try a new core
-      SmtEngine checkCoreSmt(nm->toExprManager());
-      checkCoreSmt.setIsInternalSubsolver();
-      checkCoreSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
+      SmtEngine checkSol(nm->toExprManager());
+      checkSol.setIsInternalSubsolver();
+      checkSol.setLogic(smt::currentSmtEngine()->getLogicInfo());
       Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
       std::vector<Node> rasserts = asserts;
       rasserts.push_back(ccheck.d_this);
@@ -410,33 +420,48 @@ bool SygusConnectiveCore::constructSolution(
       Node query = rasserts.size()==1 ? rasserts[0] : nm->mkNode(AND, rasserts);
       for (const Node& a : rasserts)
       {
-        checkCoreSmt.assertFormula(a.toExpr());
+        checkSol.assertFormula(a.toExpr());
       }
-      Result r = checkCoreSmt.checkSat();
+      Result r = checkSol.checkSat();
       Trace("sygus-ccore") << "----- check-sat returned " << r << std::endl;
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
         // it entails the postcondition
         // get the unsat core
-        UnsatCore uc = checkCoreSmt.getUnsatCore();
-        bool hasCheckF = false;
         std::vector<Node> uasserts;
-        for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
-        {
-          Node uassert = Node::fromExpr(*i);
-          Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
-          if (uassert == ccheck.d_this)
-          {
-            hasCheckF = true;
-            continue;
-          }
-          uasserts.push_back(uassert);
-        }
+        bool hasQuery = getUnsatCore(checkSol,ccheck.d_this,uasserts);
         // now, check the side condition
-        
-        
-        std::sort(uasserts.begin(), uasserts.end());
-        if (hasCheckF)
+        bool falseCore = false;
+        if( !d_sc.isNull() )
+        {
+          if( !hasQuery )
+          {
+            // already know false
+            falseCore = true;
+          }
+          else
+          {
+            Trace("sygus-ccore") << "----- Check side condition" << std::endl;
+            SmtEngine checkSc(nm->toExprManager());
+            checkSc.setIsInternalSubsolver();
+            checkSc.setLogic(smt::currentSmtEngine()->getLogicInfo());
+            std::vector< Node > scasserts;
+            scasserts.insert(scasserts.end(),uasserts.begin(),uasserts.end());
+            scasserts.push_back(d_sc);
+            std::shuffle(scasserts.begin(), scasserts.end(), Random::getRandom());
+            Result rsc = checkSc.checkSat();
+            Trace("sygus-ccore") << "----- check-sat returned " << rsc << std::endl;
+            if (rsc.asSatisfiabilityResult().isSat() == Result::UNSAT)
+            {
+              // can minimize based on this
+              uasserts.clear();
+              getUnsatCore(checkSc,d_sc,uasserts);
+              falseCore = true;
+            }
+          }
+        }
+
+        if (!falseCore)
         {
           Trace("sygus-ccore") << ">>> Solution : " << uasserts << std::endl;
 
@@ -451,7 +476,8 @@ bool SygusConnectiveCore::constructSolution(
         }
         else
         {
-          Trace("sygus-ccore") << "--- false core : " << uasserts << std::endl;
+          std::sort(uasserts.begin(), uasserts.end());
+          Trace("sygus-ccore") << "--- Add false core : " << uasserts << std::endl;
           if (uasserts.size() == 1)
           {
             // singleton false core should be removed from pool
@@ -481,7 +507,7 @@ bool SygusConnectiveCore::constructSolution(
         // it does not entail the postcondition, add an assertion that blocks
         // the current point
         mvs.clear();
-        getModel(checkCoreSmt, mvs);
+        getModel(checkSol, mvs);
         Trace("sygus-ccore") << "--- Add refinement point " << mvs << std::endl;
         ccheck.d_refinementPt.addTerm(query, mvs);
         Trace("sygus-ccore-debug") << "...get new assertion..." << std::endl;
@@ -647,7 +673,7 @@ bool SygusConnectiveCore::Component::addToAsserts(SygusConnectiveCore* p,
       n = Node::null();
     }
   } while (n.isNull());
-  Trace("sygus-ccore") << "--- Add " << n << " to falsify " << mvs << std::endl;
+  Trace("sygus-ccore") << "--- Insert " << n << " to falsify " << mvs << std::endl;
   // success
   if (an.isConst())
   {
@@ -669,6 +695,24 @@ void SygusConnectiveCore::getModel(SmtEngine& smt, std::vector<Node>& vals)
     Trace("sygus-ccore-model") << v << " -> " << mv << " ";
     vals.push_back(mv);
   }
+}
+
+bool SygusConnectiveCore::getUnsatCore(SmtEngine& smt, Node query, std::vector<Node>& uasserts)
+{
+  UnsatCore uc = smt.getUnsatCore();
+  bool hasQuery = false;
+  for (UnsatCore::const_iterator i = uc.begin(); i != uc.end(); ++i)
+  {
+    Node uassert = Node::fromExpr(*i);
+    Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
+    if (uassert == query)
+    {
+      hasQuery = true;
+      continue;
+    }
+    uasserts.push_back(uassert);
+  }
+  return hasQuery;
 }
 
 Result SygusConnectiveCore::checkSat(Node n, std::vector<Node>& mvs)

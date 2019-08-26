@@ -144,6 +144,8 @@ class SygusConnectiveCore : public Cegis
   Node d_sc;
 
   void getModel(SmtEngine& smt, std::vector<Node>& mvs);
+  /** get the unsat core, exclude query, return true if query was in unsat core */
+  bool getUnsatCore(SmtEngine& smt, Node query, std::vector<Node>& uasserts);
 
   std::unordered_map<Node,
                      std::unordered_map<Node, Node, NodeHashFunction>,
