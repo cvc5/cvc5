@@ -50,6 +50,13 @@ private:
                                     std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                     std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith );
   static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
+  /** datatype expand
+   *
+   * If v occurs in args and has a datatype type whose index^th constructor is
+   * C, this method returns a node of the form C( x1, ..., xn ), removes v from
+   * args and adds x1...xn to args.
+   */
+  static Node datatypeExpand(unsigned index, Node v, std::vector<Node>& args);
   //-------------------------------------variable elimination
   /** is variable elimination
    *

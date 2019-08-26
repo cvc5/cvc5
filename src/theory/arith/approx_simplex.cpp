@@ -1487,7 +1487,7 @@ static void glpkCallback(glp_tree *tree, void *info){
         RowsDeleted* rd = new RowsDeleted(exec, nrows, num);
 
         node.addCut(rd);
-        delete num;
+        delete[] num;
       }
       break;
     case GLP_ICUTADDED:

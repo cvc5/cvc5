@@ -1358,6 +1358,7 @@ set(regress_1_tests
   regress1/quantifiers/dump-inst.smt2
   regress1/quantifiers/ext-ex-deq-trigger.smt2
   regress1/quantifiers/extract-nproc.smt2
+  regress1/quantifiers/f993-loss-easy.smt2
   regress1/quantifiers/florian-case-ax.smt2
   regress1/quantifiers/fp-cegqi-unsat.smt2
   regress1/quantifiers/gauss_init_0030.fof.smt2
@@ -1369,6 +1370,7 @@ set(regress_1_tests
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
+  regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
   regress1/quantifiers/mix-coeff.smt2
@@ -1570,6 +1572,7 @@ set(regress_1_tests
   regress1/strings/issue2981.smt2
   regress1/strings/issue2982.smt2
   regress1/strings/issue3090.smt2
+  regress1/strings/issue3217.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1679,6 +1682,7 @@ set(regress_1_tests
   regress1/sygus/issue3199.smt2
   regress1/sygus/issue3200.smt2
   regress1/sygus/issue3201.smt2
+  regress1/sygus/issue3205.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -1814,6 +1818,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/issue3203.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
