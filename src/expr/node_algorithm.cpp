@@ -100,7 +100,7 @@ bool hasSubtermMulti(TNode n, TNode t)
       for (const Node& cn : cur)
       {
         it = contains.find(cn);
-        Assert(it != visited.end());
+        Assert(it != contains.end());
         if (it->second)
         {
           if (doesContain)
