@@ -112,9 +112,9 @@ class SygusConnectiveCore : public Cegis
     bool isActive() const { return !d_scons.isNull(); }
     Node getSygusSolution(std::vector<Node>& conjs) const;
 
-    void addRefinementPt( Node id, const std::vector< Node >& pt );
-    void addFalseCore( Node id, const std::vector< Node >& u );
-    
+    void addRefinementPt(Node id, const std::vector<Node>& pt);
+    void addFalseCore(Node id, const std::vector<Node>& u);
+
     /**
      * Get a refinement point that n evalutes to true on, taken from the
      * d_refinementPt trie, and store it in ss. The set visited is the set
@@ -165,10 +165,10 @@ class SygusConnectiveCore : public Cegis
                                  std::vector<Node>& asserts,
                                  std::vector<Node>& passert);
   Evaluator d_eval;
-  
-  class Stats 
+
+  class Stats
   {
-  public:
+   public:
     void reset();
     unsigned d_evals;
     unsigned d_coreCheck;

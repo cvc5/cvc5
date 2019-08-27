@@ -20,11 +20,11 @@
 #include "proof/unsat_core.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "util/random.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -247,8 +247,8 @@ bool SygusConnectiveCore::processInitialize(Node conj,
       // register the symmetry breaking lemma
       Node tst = datatypes::DatatypesRewriter::mkTester(d_candidate, i, gdt);
       Trace("sygus-ccore-init") << "Sym break lemma " << tst << std::endl;
-      //TODO: this?
-      //lemmas.push_back(tst.negate());
+      // TODO: this?
+      // lemmas.push_back(tst.negate());
     }
   }
   if (!isActive())
@@ -308,7 +308,8 @@ bool SygusConnectiveCore::constructSolution(
     return false;
   }
   Assert(candidates.size() == candidate_values.size());
-  Trace("sygus-ccore-summary") << "SygusConnectiveCore: construct solution..." << std::endl;
+  Trace("sygus-ccore-summary")
+      << "SygusConnectiveCore: construct solution..." << std::endl;
   if (Trace.isOn("sygus-ccore"))
   {
     Trace("sygus-ccore")
@@ -394,7 +395,10 @@ bool SygusConnectiveCore::constructSolution(
         return true;
       }
     }
-    Trace("sygus-ccore-summary") << "C[d=" << d << "] size(pool/pts/cores): " << ccheck.d_cpool.size() << "/" << ccheck.d_numRefPoints << "/" << ccheck.d_numFalseCores << std::endl;
+    Trace("sygus-ccore-summary")
+        << "C[d=" << d << "] size(pool/pts/cores): " << ccheck.d_cpool.size()
+        << "/" << ccheck.d_numRefPoints << "/" << ccheck.d_numFalseCores
+        << std::endl;
   }
   Trace("sygus-ccore") << "SygusConnectiveCore: failed to generate candidate"
                        << std::endl;
@@ -427,19 +431,21 @@ Node SygusConnectiveCore::Component::getSygusSolution(
   return sol;
 }
 
-void SygusConnectiveCore::Component::addRefinementPt( Node id, const std::vector< Node >& pt )
+void SygusConnectiveCore::Component::addRefinementPt(
+    Node id, const std::vector<Node>& pt)
 {
   d_numRefPoints++;
   bool res = d_refinementPt.addTerm(id, pt);
   // this should always be a new point
   AlwaysAssert(res);
 }
-void SygusConnectiveCore::Component::addFalseCore( Node id, const std::vector< Node >& u )
+void SygusConnectiveCore::Component::addFalseCore(Node id,
+                                                  const std::vector<Node>& u)
 {
   d_numFalseCores++;
   d_falseCores.add(id, u);
 }
-  
+
 Node SygusConnectiveCore::Component::getRefinementPt(
     SygusConnectiveCore* p,
     Node n,
@@ -465,8 +471,8 @@ Node SygusConnectiveCore::Component::getRefinementPt(
       // at leaf
       Node id = cur->getData();
       Trace("sygus-ccore-ref") << "...data is " << id << std::endl;
-      Assert( !id.isNull() );
-      AlwaysAssert( id.getType().isBoolean() );
+      Assert(!id.isNull());
+      AlwaysAssert(id.getType().isBoolean());
       if (visited.find(id) == visited.end())
       {
         visited.insert(id);
@@ -505,7 +511,7 @@ Node SygusConnectiveCore::Component::getRefinementPt(
       {
         Trace("sygus-ccore-ref") << "...finished iterating " << std::endl;
         // yes, pop back
-        if( !ctx.empty() )
+        if (!ctx.empty())
         {
           ctx.pop_back();
         }
@@ -516,7 +522,7 @@ Node SygusConnectiveCore::Component::getRefinementPt(
       {
         Trace("sygus-ccore-ref") << "...recurse " << itv->first << std::endl;
         // recurse
-        ctx.push_back( itv->first );
+        ctx.push_back(itv->first);
         visit.push_back(&(itv->second));
         ++vt[cur];
       }
@@ -655,16 +661,16 @@ Node SygusConnectiveCore::evaluate(Node n,
                                    const std::vector<Node>& mvs)
 {
   Kind nk = n.getKind();
-  if (nk==AND || nk==OR )
+  if (nk == AND || nk == OR)
   {
-    NodeManager * nm = NodeManager::currentNM();
-    bool expRes = nk==OR;
+    NodeManager* nm = NodeManager::currentNM();
+    bool expRes = nk == OR;
     // split AND/OR
-    for( const Node& nc : n )
+    for (const Node& nc : n)
     {
-      Node enc = evaluate(nc,id,mvs);
-      Assert( enc.isConst() );
-      if( enc.getConst<bool>()==expRes )
+      Node enc = evaluate(nc, id, mvs);
+      Assert(enc.isConst());
+      if (enc.getConst<bool>() == expRes)
       {
         return nm->mkConst(expRes);
       }
@@ -672,7 +678,7 @@ Node SygusConnectiveCore::evaluate(Node n,
     return nm->mkConst(!expRes);
   }
   std::unordered_map<Node, Node, NodeHashFunction>& ec = d_eval_cache[n];
-  if( !id.isNull() )
+  if (!id.isNull())
   {
     std::unordered_map<Node, Node, NodeHashFunction>::iterator it = ec.find(id);
     if (it != ec.end())
@@ -682,12 +688,13 @@ Node SygusConnectiveCore::evaluate(Node n,
   }
   // use evaluator
   Node cn = d_eval.eval(n, d_vars, mvs);
-  if( cn.isNull() )
+  if (cn.isNull())
   {
-    Node cn = n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
+    Node cn =
+        n.substitute(d_vars.begin(), d_vars.end(), mvs.begin(), mvs.end());
     cn = Rewriter::rewrite(cn);
   }
-  if( !id.isNull() )
+  if (!id.isNull())
   {
     ec[id] = cn;
   }
@@ -827,8 +834,8 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
       mvs.clear();
       getModel(checkSol, mvs);
       // should evaluate to true
-      Node ean = evaluate(an,Node::null(),mvs);
-      Assert( ean.isConst() && ean.getConst<bool>());
+      Node ean = evaluate(an, Node::null(), mvs);
+      Assert(ean.isConst() && ean.getConst<bool>());
       Trace("sygus-ccore") << "--- Add refinement point " << mvs << std::endl;
       ccheck.addRefinementPt(query, mvs);
       Trace("sygus-ccore-debug") << "...get new assertion..." << std::endl;
@@ -839,7 +846,7 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
   return Node::null();
 }
 
-void SygusConnectiveCore::Stats::reset() 
+void SygusConnectiveCore::Stats::reset()
 {
   d_evals = 0;
   d_coreCheck = 0;
