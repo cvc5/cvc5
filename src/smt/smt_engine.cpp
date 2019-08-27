@@ -1273,6 +1273,12 @@ void SmtEngine::setDefaults() {
     }
   }
 
+  // sygus core connective requires unsat cores
+  if (options::sygusCoreConnective())
+  {
+    options::unsatCores.set(true);
+  }
+
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
        || options::modelCoresMode() != MODEL_CORES_NONE
@@ -5127,7 +5133,7 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   }
   Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj
                         << std::endl;
-  std::vector<Expr> easserts = getAssertions();
+  std::vector<Expr> easserts = getExpandedAssertions();
   std::vector<Node> axioms;
   for (unsigned i = 0, size = easserts.size(); i < size; i++)
   {
@@ -5135,7 +5141,12 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // negate the conjecture
-  Node conjn = Node::fromExpr(conj).negate();
+  Node conjn = Node::fromExpr(conj);
+  // must expand definitions
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  conjn = d_private->expandDefinitions(conjn, cache);
+  // now negate
+  conjn = conjn.negate();
   d_abdConj = conjn.toExpr();
   asserts.push_back(conjn);
   std::string name("A");
