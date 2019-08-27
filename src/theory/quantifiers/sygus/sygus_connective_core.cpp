@@ -24,6 +24,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "util/random.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -244,7 +245,10 @@ bool SygusConnectiveCore::processInitialize(Node conj,
                                 << "condition." << std::endl;
       c.d_scons = Node::fromExpr(gdt[i].getConstructor());
       // register the symmetry breaking lemma
-      // TODO
+      Node tst = datatypes::DatatypesRewriter::mkTester(d_candidate, i, gdt);
+      Trace("sygus-ccore-init") << "Sym break lemma " << tst << std::endl;
+      //TODO: this?
+      //lemmas.push_back(tst.negate());
     }
   }
   if (!isActive())
@@ -304,6 +308,7 @@ bool SygusConnectiveCore::constructSolution(
     return false;
   }
   Assert(candidates.size() == candidate_values.size());
+  Trace("sygus-ccore-summary") << "SygusConnectiveCore: construct solution..." << std::endl;
   if (Trace.isOn("sygus-ccore"))
   {
     Trace("sygus-ccore")
@@ -385,6 +390,7 @@ bool SygusConnectiveCore::constructSolution(
       {
         ccheck.d_tried.insert(sol);
         solv.push_back(sol);
+        Trace("sygus-ccore-summary") << "...success" << std::endl;
         return true;
       }
     }
@@ -392,6 +398,7 @@ bool SygusConnectiveCore::constructSolution(
   }
   Trace("sygus-ccore") << "SygusConnectiveCore: failed to generate candidate"
                        << std::endl;
+  Trace("sygus-ccore-summary") << "...failed" << std::endl;
   return false;
 }
 
