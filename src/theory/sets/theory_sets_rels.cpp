@@ -1098,7 +1098,8 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
-    return k == TRANSPOSE || k == PRODUCT || k == JOIN || k == TCLOSURE || k == IDEN || k == JOIN_IMAGE;
+    return k == TRANSPOSE || k == PRODUCT || k == JOIN || k == TCLOSURE
+           || k == IDEN || k == JOIN_IMAGE;
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {
