@@ -35,7 +35,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 TheorySetsRels::TheorySetsRels(SolverState& s,
                                InferenceManager& im,
                                eq::EqualityEngine& e,
-                               context::Context* c,
                                context::UserContext* u)
     : d_state(s), d_im(im), d_ee(e), d_shared_terms(u)
 {
@@ -1099,7 +1098,7 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
-    return k == kind::TRANSPOSE || k == kind::PRODUCT || k == kind::JOIN || k == kind::TCLOSURE;
+    return k == TRANSPOSE || k == PRODUCT || k == JOIN || k == TCLOSURE || k == IDEN || k == JOIN_IMAGE;
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {

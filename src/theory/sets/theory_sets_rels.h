@@ -68,7 +68,6 @@ public:
  TheorySetsRels(SolverState& s,
                 InferenceManager& im,
                 eq::EqualityEngine& e,
-                context::Context* c,
                 context::UserContext* u);
 
  ~TheorySetsRels();

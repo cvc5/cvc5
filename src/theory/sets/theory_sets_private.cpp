@@ -46,7 +46,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
       d_state(*this, d_equalityEngine, c, u),
       d_im(*this, d_state, d_equalityEngine, c, u),
-      d_rels(new TheorySetsRels(d_state, d_im, d_equalityEngine, c, u)),
+      d_rels(new TheorySetsRels(d_state, d_im, d_equalityEngine, u)),
       d_cardSolver(
           new CardinalityExtension(d_state, d_im, d_equalityEngine, c, u)),
       d_rels_enabled(false),
@@ -1148,7 +1148,7 @@ void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
   Node conf = explain(a.eqNode(b));
   d_state.setConflict(conf);
-  Debug("sets") << "[sets] conflict: " << a << " iff " << b << ", explaination "
+  Debug("sets") << "[sets] conflict: " << a << " iff " << b << ", explanation "
                 << conf << std::endl;
   Trace("sets-lemma") << "Equality Conflict : " << conf << std::endl;
 }
@@ -1220,7 +1220,6 @@ Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& ou
   //TODO: allow variable elimination for sets when setsExt = true
   
   //this is based off of Theory::ppAssert
-  Node var;
   if (in.getKind() == kind::EQUAL)
   {
     if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
@@ -1229,7 +1228,6 @@ Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& ou
       if (!in[0].getType().isSet() || !options::setsExt())
       {
         outSubstitutions.addSubstitution(in[0], in[1]);
-        var = in[0];
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
@@ -1239,7 +1237,6 @@ Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& ou
       if (!in[1].getType().isSet() || !options::setsExt())
       {
         outSubstitutions.addSubstitution(in[1], in[0]);
-        var = in[1];
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
     }
