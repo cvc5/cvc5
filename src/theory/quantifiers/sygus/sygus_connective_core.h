@@ -165,6 +165,16 @@ class SygusConnectiveCore : public Cegis
                                  std::vector<Node>& asserts,
                                  std::vector<Node>& passert);
   Evaluator d_eval;
+  
+  class Stats 
+  {
+  public:
+    void reset();
+    unsigned d_evals;
+    unsigned d_coreCheck;
+    unsigned d_addLits;
+    unsigned d_maxLits;
+  };
 };
 
 }  // namespace quantifiers

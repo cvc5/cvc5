@@ -839,6 +839,14 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
   return Node::null();
 }
 
+void SygusConnectiveCore::Stats::reset() 
+{
+  d_evals = 0;
+  d_coreCheck = 0;
+  d_addLits = 0;
+  d_maxLits = 0;
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
