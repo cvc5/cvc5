@@ -1241,10 +1241,15 @@ class CVC4_PUBLIC SmtEngine
   /*---------------------------- sygus commands  ---------------------------*/
 
   /**
-   * Set sygus conjecture is stale. This is called when new sygus constraints
-   * are asserted or when functions-to-synthesize are declared. This function
-   * pops a user context if we are in incremental mode and the sygus conjecture
-   * was previously not stale.
+   * Set sygus conjecture is stale. The sygus conjecture is stale if there is
+   * a sygus conjecture that has been added as an assertion internally to this
+   * SMT engine, and there have been further calls such that the asserted
+   * conjecture is no longer up-to-date.
+   *
+   * This method should be called when new sygus constraints are asserted and
+   * when functions-to-synthesize are declared. This function pops a user
+   * context if we are in incremental mode and the sygus conjecture was
+   * previously not stale.
    */
   void setSygusConjectureStale();
 
