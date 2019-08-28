@@ -66,8 +66,47 @@ class VariadicTrie
  *
  * This module implements a specific algorithm for constructing solutions
  * to this conjecture based on Boolean connectives and unsat cores, described
- * in following.
+ * in following. We give two variants of the algorithm, both implemented as
+ * 
  *
+ * Variant #1 (Interpolation)
+ * Let the synthesis conjecture be of the form
+ *   exists C. forall x. A[x] => C[x] ^ C[x] => B[x]
+ * The high level idea for solving for C: we construct solutions of the form
+ *   c_1 OR ... OR c_n where c_i => B for each i=1,...,n, or
+ *   d_1 AND ... AND d_n where A => d_i for each i=1,...,n.
+ * 
+ * Let:
+ * pool(A) be a set of literals { c_1, ..., c_n } s.t. c_i => B for i=1,...,n,
+ * pts(A) : a set of points { x -> v } s.t. A[v] is true,
+ * pool(B) : a set of literals { d_1, ..., d_n } s.t. A => d_i for i=1,...,n,
+ * pts(B) : a set of points { v } s.t. ~B[v] is true.
+
+    while(true)
+    {
+      Let e_i = next_sygus_enum();
+      
+      if e_i[v] is true for all v in pts(A)
+        if A => e_i
+          pool(B) += e_i;
+        else
+          pts(A) += { v } where { x -> v } is a model for A ^ ~e_i;
+      
+      Let D = {}.
+      while 
+        D[v] is true for some v in pts(B), and
+        d'[v] is false for some d' in pool(B)
+      {
+        D += { d' }
+        if D is false for all v in pts(B)
+          if D => B
+            return solution d_1 AND ... AND d_n
+          else
+            pts(B) += { v } where { x -> v } is a model for D ^ ~B
+      }
+      
+      // analogous for the other direction
+    }
  *
  */
 class CegisCoreConnective : public Cegis
