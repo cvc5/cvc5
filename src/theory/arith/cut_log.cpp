@@ -111,8 +111,8 @@ CutInfo::CutInfo(CutInfoKlass kl, int eid, int o)
 {}
 
 CutInfo::~CutInfo(){
-  if(d_exactPrecision == NULL){ delete d_exactPrecision; }
-  if(d_explanation == NULL){ delete d_explanation; }
+  delete d_exactPrecision;
+  delete d_explanation;
 }
 
 int CutInfo::getId() const {
