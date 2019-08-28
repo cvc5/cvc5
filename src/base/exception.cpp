@@ -65,7 +65,7 @@ std::string IllegalArgumentException::formatVariadic(const char* format, ...) {
 
   for (int i = 0; i < 2; ++i){
     Assert(n > 0);
-    delete [] buf;
+    delete[] buf;
     buf = new char[n];
 
     va_list args_copy;
