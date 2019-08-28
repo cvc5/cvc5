@@ -67,47 +67,86 @@ class VariadicTrie
  * This module implements a specific algorithm for constructing solutions
  * to this conjecture based on Boolean connectives and unsat cores, described
  * in following. We give two variants of the algorithm, both implemented as
+ * special cases of this class. Below, let:
  * 
- *
- * Variant #1 (Interpolation)
- * Let the synthesis conjecture be of the form
- *   exists C. forall x. A[x] => C[x] ^ C[x] => B[x]
- * The high level idea for solving for C: we construct solutions of the form
- *   c_1 OR ... OR c_n where c_i => B for each i=1,...,n, or
- *   d_1 AND ... AND d_n where A => d_i for each i=1,...,n.
- * 
- * Let:
  * pool(A) be a set of literals { c_1, ..., c_n } s.t. c_i => B for i=1,...,n,
  * pts(A) : a set of points { x -> v } s.t. A[v] is true,
  * pool(B) : a set of literals { d_1, ..., d_n } s.t. A => d_i for i=1,...,n,
- * pts(B) : a set of points { v } s.t. ~B[v] is true.
-
-    while(true)
-    {
-      Let e_i = next_sygus_enum();
-      
-      if e_i[v] is true for all v in pts(A)
-        if A => e_i
-          pool(B) += e_i;
-        else
-          pts(A) += { v } where { x -> v } is a model for A ^ ~e_i;
-      
-      Let D = {}.
-      while 
-        D[v] is true for some v in pts(B), and
-        d'[v] is false for some d' in pool(B)
-      {
-        D += { d' }
-        if D is false for all v in pts(B)
-          if D => B
-            return solution d_1 AND ... AND d_n
-          else
-            pts(B) += { v } where { x -> v } is a model for D ^ ~B
-      }
-      
-      // analogous for the other direction
-    }
+ * pts(B) : a set of points { v } s.t. ~B[v] is true,
+ * cores(B) : a set of sets of literals { U_1, ..., U_n } s.t. for i=1,...,n:
+ * - U_i is a subset of pool(B),
+ * - A ^ U_i is unsat.
  *
+ * 
+ * Variant #1 (Interpolation)
+ * 
+ * Let the synthesis conjecture be of the form
+ *   exists C. forall x. A[x] => C[x] ^ C[x] => B[x]
+ * 
+ * The high level idea is we construct solutions for C of the form
+ *   c_1 OR ... OR c_n where c_i => B for each i=1,...,n, or
+ *   d_1 AND ... AND d_n where A => d_i for each i=1,...,n.
+ * 
+ * while(true){
+ *   Let e_i = next_sygus_enum();
+ *   // check if e_i should be added to the pool
+ *   if e_i[v] is true for all v in pts(A)
+ *     if A => e_i
+ *       pool(B) += e_i;
+ *     else
+ *       pts(A) += { v } where { x -> v } is a model for A ^ ~e_i;
+ *   // try to construct a solution based on the pool
+ *   Let D = {}.
+ *   while
+ *     D[v] is true for some v in pts(B), and
+ *     d'[v] is false for some d' in pool(B)
+ *   {
+ *     D += { d' }
+ *     if D is false for all v in pts(B)
+ *       if D => B
+ *         return d_1 AND ... AND d_n
+ *       else
+ *         pts(B) += { v } where { x -> v } is a model for D ^ ~B
+ *   }
+ *
+ *   // analogous for the other direction
+ * }
+ *
+ * 
+ * Variant #2 (Abduction)
+ * 
+ * Let the synthesis conjecture be of the form exists C. forall x. C[x] => B[x]
+ * such that A[x] ^ C[x] is satisfiable.
+ * 
+ * The high level idea is we construct solutions for C of the form
+ *   d_1 AND ... AND d_n
+ * where the above conjunction is weakened based on only including conjuncts
+ * that in the unsat core of d_1 AND ... AND d_n => B.
+ * 
+ * while(true){
+ *   Let e_i = next_sygus_enum();
+ *   // add e_i to the pool
+ *   pool(B) += e_i;
+ *   // try to construct a solution based on the pool
+ *   Let D = {}.
+ *   while
+ *     D[v] is true for some v in pts(B), and
+ *     d'[v] is false for some d' in pool(B)
+ *   {
+ *     D += { d' }
+ *     if D is false for all v in pts(B)
+ *       if D => B
+ *         Let U be a subset of D such that U ^ ~B is unsat.
+ *         if A ^ U is unsat
+ *           Let W be a subset of D such that A ^ W is unsat.
+ *             cores(B) += W
+ *             remove some d'' in W from D
+ *         else
+ *           return u_1 AND ... AND u_m where U = { u_1, ..., u_m }
+ *       else
+ *         pts(B) += { v } where { x -> v } is a model for D ^ ~B
+ *   }
+ * }
  */
 class CegisCoreConnective : public Cegis
 {
@@ -176,6 +215,7 @@ class CegisCoreConnective : public Cegis
      * encodes applications of AND or OR.
      */
     Node d_scons;
+    /** This is pool(A)/pool(B) in the algorithms above */
     std::vector<Node> d_cpool;
     /**
      * A map from the formulas in the above vector to their sygus analog.
@@ -313,6 +353,10 @@ class CegisCoreConnective : public Cegis
    * we are building,
    * - the current pool passerts of available assertions that we may add to
    * asserts.
+   * 
+   * This implements the while loop in the algorithms above. If this method
+   * returns a non-null node, then this is a solution for the given synthesis
+   * conjecture.
    */
   Node constructSolutionFromPool(Component& ccheck,
                                  std::vector<Node>& asserts,
