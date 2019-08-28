@@ -128,7 +128,7 @@ class CegisCoreConnective : public Cegis
   class Component
   {
    public:
-    Component() : d_numRefPoints(0), d_numFalseCores(0) {}
+    Component() : d_numFalseCores(0), d_numRefPoints(0) {}
     /** The original formula for the pre/post condition A/B. */
     Node d_this;
     /**
