@@ -54,6 +54,21 @@ class VariadicTrie
 
 /** CegisCoreConnective
  *
+ * A sygus module that is specialized in handling conjectures of the form:
+ * exists P. forall x. A[x] => C(x) ^ C(x) => B(x)
+ * That is, conjectures with a pre/post condition but no inductive relation
+ * or other constraints. Additionally, we may have that the above conjecture
+ * has a side condition, which requires that exists x. SC[x]^C(x) is
+ * satisfiable.
+ * 
+ * Two examples of this kind of sygus conjecture are abduction and
+ * interpolation.
+ * 
+ * This module implements a specific algorithm for constructing solutions
+ * to this conjecture based on Boolean connectives and unsat cores, described
+ * in following.
+ * 
+ * 
  */
 class CegisCoreConnective : public Cegis
 {
@@ -119,14 +134,29 @@ class CegisCoreConnective : public Cegis
      */
     Node d_scons;
     std::vector<Node> d_cpool;
+    /** 
+     * A map from the formulas in the above vector to their sygus analog.
+     */
     std::map<Node, Node> d_cpoolToSol;
+    /** 
+     * An index of list of predicates such that each list ( P1, ..., Pn )
+     * indexed by this trie is such that 
+     */
     VariadicTrie d_falseCores;
     /**
-     * Points that satisfy d_this.
+     * The number of points that have been added to the above trie, for
+     * debugging.
+     */
+    unsigned d_numFalseCores;
+    /**
+     * An index of the points that satisfy d_this.
+     */
+    NodeTrie d_refinementPt;
+    /**
+     * The number of points that have been added to the above trie, for
+     * debugging.
      */
     unsigned d_numRefPoints;
-    NodeTrie d_refinementPt;
-    unsigned d_numFalseCores;
     std::unordered_set<Node, NodeHashFunction> d_tried;
     bool isActive() const { return !d_scons.isNull(); }
     Node getSygusSolution(std::vector<Node>& conjs) const;
