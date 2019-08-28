@@ -547,7 +547,7 @@ bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
   return true;
 }
 
-void CegisCoreConnective::getModel(SmtEngine& smt, std::vector<Node>& vals)
+void CegisCoreConnective::getModel(SmtEngine& smt, std::vector<Node>& vals) const
 {
   for (const Node& v : d_vars)
   {
@@ -559,7 +559,7 @@ void CegisCoreConnective::getModel(SmtEngine& smt, std::vector<Node>& vals)
 
 bool CegisCoreConnective::getUnsatCore(SmtEngine& smt,
                                        Node query,
-                                       std::vector<Node>& uasserts)
+                                       std::vector<Node>& uasserts) const
 {
   UnsatCore uc = smt.getUnsatCore();
   bool hasQuery = false;
@@ -577,7 +577,7 @@ bool CegisCoreConnective::getUnsatCore(SmtEngine& smt,
   return hasQuery;
 }
 
-Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs)
+Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs) const
 {
   Assert(mvs.empty());
   Assert(n.getType().isBoolean());

@@ -63,7 +63,7 @@ class CegisCoreConnective : public Cegis
   /**
    * Return whether this module has the possibility to construct solutions. This
    * is true if this module has been initialized, and the shape of the
-   * conjecture allows us to use the connective core algorithm.
+   * conjecture allows us to use the core connective algorithm.
    */
   bool isActive() const;
 
@@ -101,7 +101,7 @@ class CegisCoreConnective : public Cegis
   /** common constants */
   Node d_true;
   Node d_false;
-  /** The candidate */
+  /** The first-order datatype variable for the function-to-synthesize */
   TNode d_candidate;
   /**
    * Information about the pre and post conditions of the synthesis conjecture.
@@ -110,7 +110,13 @@ class CegisCoreConnective : public Cegis
   {
    public:
     Component() : d_numRefPoints(0), d_numFalseCores(0) {}
+    /** The original formula for the pre/post condition */
     Node d_this;
+    /** 
+     * The sygus constructor for constructing solutions based on the core
+     * connective algorithm. This is a sygus datatype constructor that
+     * encodes applications of AND or OR.
+     */
     Node d_scons;
     std::vector<Node> d_cpool;
     std::map<Node, Node> d_cpoolToSol;
@@ -131,7 +137,8 @@ class CegisCoreConnective : public Cegis
     /**
      * Get a refinement point that n evalutes to true on, taken from the
      * d_refinementPt trie, and store it in ss. The set visited is the set
-     * of leaf nodes that we've already checked.
+     * of leaf nodes (reference by their data) that we have already processed
+     * and should be ignored.
      */
     Node getRefinementPt(CegisCoreConnective* p,
                          Node n,
@@ -154,30 +161,61 @@ class CegisCoreConnective : public Cegis
   Component d_pre;
   /** Above information for the postcondition of the synthesis conjecture */
   Component d_post;
-  /** the free variables that may appear in solutions */
-  std::vector<Node> d_vars;
-  /** The evaluation term */
-  Node d_eterm;
-  /** side condition */
-  Node d_sc;
-
-  void getModel(SmtEngine& smt, std::vector<Node>& mvs);
-  /** get the unsat core, exclude query, return true if query was in unsat core
+  /**
+   * The free variables that may appear in the pre/post condition, and our
+   * pools of predicates.
    */
-  bool getUnsatCore(SmtEngine& smt, Node query, std::vector<Node>& uasserts);
-
+  std::vector<Node> d_vars;
+  /** 
+   * The evaluation term of the form:
+   *   (DT_SYGUS_EVAL d_candidate d_vars[0]...d_vars[n])
+   * This is used to convert enumerated sygus terms t to their builtin
+   * equivalent via rewriting d_eterm * { d_candidate -> t }.
+   */
+  Node d_eterm;
+  /** 
+   * The side condition of the conjecture. If this is non-null, then 
+   * this node is a formula such that (builtin) solutions t' are such that
+   * t' ^ d_sc is satisfiable. Notice that the free variables of d_sc are
+   * a subset of d_vars.
+   */
+  Node d_sc;
+  /** 
+   * Assuming smt has just been called to check-sat and returned "SAT", this
+   * method adds the model for d_vars to mvs.
+   */
+  void getModel(SmtEngine& smt, std::vector<Node>& mvs) const;
+  /**
+   * Assuming smt has just been called to check-sat and returned "SAT", this
+   * method get the unsat core and adds it to uasserts.
+   * 
+   * If query is non-null, then it is excluded from uasserts. If query was 
+   * in the unsat core, then this method returns true. Otherwise, this method
+   * returns false. It also returns false if query was null.
+   */
+  bool getUnsatCore(SmtEngine& smt, Node query, std::vector<Node>& uasserts) const;
+  /** 
+   * Return the result of checking satisfiability of formula n.
+   * If n was satisfiable, then we store the model for d_vars in mvs.
+   */
+  Result checkSat(Node n, std::vector<Node>& mvs) const;
+  /** 
+   * Return the evaluation of n under the substitution { d_vars -> mvs }.
+   * If id is non-null, then id is a unique identifier for mvs, and we cache
+   * the result of n for this point.
+   */
+  Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
+  /** A cache of the above function */
   std::unordered_map<Node,
                      std::unordered_map<Node, Node, NodeHashFunction>,
                      NodeHashFunction>
       d_eval_cache;
-  Node evaluate(Node n, Node id, const std::vector<Node>& mvs);
-
-  Result checkSat(Node n, std::vector<Node>& mvs);
+  /** The evaluator utility used for the above function */
+  Evaluator d_eval;
 
   Node constructSolutionFromPool(Component& ccheck,
                                  std::vector<Node>& asserts,
                                  std::vector<Node>& passert);
-  Evaluator d_eval;
 
   class Stats
   {
