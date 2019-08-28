@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_connective_core.h
+/*! \file cegis_core_connective.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sygus connective core utility.
+ ** \brief Cegis core connective module.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_CONNECTIVE_CORE_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_CONNECTIVE_CORE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
+#define CVC4__THEORY__QUANTIFIERS__CEGIS_CORE_CONNECTIVE_H
 
 #include <unordered_set>
 #include "expr/node.h"
@@ -48,7 +48,7 @@ class VariadicTrie
    * stored at the node indexed by i. 
    */
   bool add(Node n, const std::vector<Node>& i);
-  /** is there data indexed by any subset of is? */ 
+  /** Is there any data in this trie that is indexed by any subset of is? */ 
   bool hasSubset(const std::vector<Node>& is) const;
 };
 

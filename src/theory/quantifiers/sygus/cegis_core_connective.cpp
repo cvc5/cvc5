@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_connective_core.cpp
+/*! \file cegis_core_connective.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of sygus connective core utility.
+ ** \brief Implementation of cegis core connective module.
  **/
 
-#include "theory/quantifiers/sygus/sygus_connective_core.h"
+#include "theory/quantifiers/sygus/cegis_core_connective.h"
 
 #include "expr/datatype.h"
 #include "options/base_options.h"
