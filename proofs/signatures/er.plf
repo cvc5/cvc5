@@ -64,14 +64,6 @@
                                            (holds cln)))
                   (holds cln)))))
 
-; Takes a `list` of literals and a clause, `suffix`, adds the suffix to each
-; literal and returns a list of clauses as a `cnf`.
-(program clause_add_suffix_all ((list clause) (suffix clause)) cnf
-         (match list
-                (cln cnfn)
-                ((clc l rest) (cnfc (clc l suffix)
-                                    (clause_add_suffix_all rest suffix)))))
-
 ; Represents multiple conjoined clauses.
 ; There is a list, `heads` of literals, each of which should is suffixed by the
 ; same `tail`.
