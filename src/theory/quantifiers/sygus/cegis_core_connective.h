@@ -207,6 +207,57 @@ class CegisCoreConnective : public Cegis
   {
    public:
     Component() : d_numFalseCores(0), d_numRefPoints(0) {}
+    /** initialize
+     * 
+     * This initializes this component with pre/post condition given by n
+     * and sygus constructor c.
+     */
+    void initialize(Node n, Node c);
+    /** get the formula n that we initialized this with */
+    Node getFormula() const { return d_this; }
+    /** Is this component active? */
+    bool isActive() const { return !d_scons.isNull(); }
+    /** Add term n to pool whose sygus analog is s */
+    void addToPool(Node n, Node s);
+    /** Add a refinement point to this component */
+    void addRefinementPt(Node id, const std::vector<Node>& pt);
+    /** Add a false case to this component */
+    void addFalseCore(Node id, const std::vector<Node>& u);
+    /**
+     * Selects a node from passerts that evaluates to false on point mv if one
+     * exists, or otherwise returns null.
+     *
+     * If a non-null node is returned, it is removed from passerts.
+     */
+    bool addToAsserts(CegisCoreConnective* p,
+                      std::vector<Node>& passerts,
+                      const std::vector<Node>& mvs,
+                      Node mvId,
+                      std::vector<Node>& asserts,
+                      Node& an);
+
+    /**
+     * Get a refinement point that n evalutes to true on, taken from the
+     * d_refinementPt trie, and store it in ss. The set visited is the set
+     * of leaf nodes (reference by their data) that we have already processed
+     * and should be ignored.
+     */
+    Node getRefinementPt(CegisCoreConnective* p,
+                         Node n,
+                         std::unordered_set<Node, NodeHashFunction>& visited,
+                         std::vector<Node>& ss);
+    /** Get term pool, i.e. pool(A)/pool(B) in the algorithms above */
+    void getTermPool( std::vector< Node >& passerts ) const; 
+    /**
+     * Get the sygus solution corresponding to the Boolean connective for
+     * this component applied to conj. In particular, this returns a
+     * right-associative chain of applications of sygus constructor d_scons
+     * to the sygus analog of formulas in conj.
+     */
+    Node getSygusSolution(std::vector<Node>& conjs) const;
+    /** debug print summary (for debugging) */
+    void debugPrintSummary( std::ostream& os ) const;
+   private:
     /** The original formula for the pre/post condition A/B. */
     Node d_this;
     /**
@@ -240,43 +291,6 @@ class CegisCoreConnective : public Cegis
      * debugging.
      */
     unsigned d_numRefPoints;
-    std::unordered_set<Node, NodeHashFunction> d_tried;
-    /** Is this component active? */
-    bool isActive() const { return !d_scons.isNull(); }
-    /**
-     * Get the sygus solution corresponding to the Boolean connective for
-     * this component applied to conj. In particular, this returns a
-     * right-associative chain of applications of sygus constructor d_scons
-     * to the sygus analog of formulas in conj.
-     */
-    Node getSygusSolution(std::vector<Node>& conjs) const;
-    /** Add a refinement point to this component */
-    void addRefinementPt(Node id, const std::vector<Node>& pt);
-    /** Add a false case to this component */
-    void addFalseCore(Node id, const std::vector<Node>& u);
-
-    /**
-     * Get a refinement point that n evalutes to true on, taken from the
-     * d_refinementPt trie, and store it in ss. The set visited is the set
-     * of leaf nodes (reference by their data) that we have already processed
-     * and should be ignored.
-     */
-    Node getRefinementPt(CegisCoreConnective* p,
-                         Node n,
-                         std::unordered_set<Node, NodeHashFunction>& visited,
-                         std::vector<Node>& ss);
-    /**
-     * Selects a node from passerts that evaluates to false on point mv if one
-     * exists, or otherwise returns null.
-     *
-     * If a non-null node is returned, it is removed from passerts.
-     */
-    bool addToAsserts(CegisCoreConnective* p,
-                      std::vector<Node>& passerts,
-                      const std::vector<Node>& mvs,
-                      Node mvId,
-                      std::vector<Node>& asserts,
-                      Node& an);
   };
   /** Above information for the precondition of the synthesis conjecture */
   Component d_pre;
@@ -361,16 +375,6 @@ class CegisCoreConnective : public Cegis
   Node constructSolutionFromPool(Component& ccheck,
                                  std::vector<Node>& asserts,
                                  std::vector<Node>& passerts);
-
-  class Stats
-  {
-   public:
-    void reset();
-    unsigned d_evals;
-    unsigned d_coreCheck;
-    unsigned d_addLits;
-    unsigned d_maxLits;
-  };
 };
 
 }  // namespace quantifiers
