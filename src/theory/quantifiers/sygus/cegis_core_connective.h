@@ -31,7 +31,7 @@ namespace quantifiers {
 /**
  * A trie for that stores data at undetermined depth. Storing data at
  * undetermined depth is in contrast to the NodeTrie (expr/node_trie.h), which
- * assumes
+ * assumes all data is stored at a fixed depth.
  *
  * Since data can be stored at any depth, we require both a d_children field
  * and a d_data field.
@@ -120,12 +120,16 @@ class CegisCoreConnective : public Cegis
   TNode d_candidate;
   /**
    * Information about the pre and post conditions of the synthesis conjecture.
+   * This maintains all information needed for producing solutions relative to
+   * one direction of the synthesis conjecture. In other words, this component
+   * may be focused on finding a C1 ... Cn such that A => C1 V ... V Cn
+   * or alteratively C1 ^ ... ^ Cn such that C1 ^ ... ^ Cn => B.
    */
   class Component
   {
    public:
     Component() : d_numRefPoints(0), d_numFalseCores(0) {}
-    /** The original formula for the pre/post condition */
+    /** The original formula for the pre/post condition A/B. */
     Node d_this;
     /**
      * The sygus constructor for constructing solutions based on the core
@@ -158,10 +162,18 @@ class CegisCoreConnective : public Cegis
      */
     unsigned d_numRefPoints;
     std::unordered_set<Node, NodeHashFunction> d_tried;
+    /** Is this component active? */
     bool isActive() const { return !d_scons.isNull(); }
+    /** 
+     * Get the sygus solution corresponding to the Boolean connective for 
+     * this component applied to conj. In particular, this returns a
+     * right-associative chain of applications of sygus constructor d_scons
+     * to the sygus analog of formulas in conj.
+     */
     Node getSygusSolution(std::vector<Node>& conjs) const;
-
+    /** Add a refinement point to this component */
     void addRefinementPt(Node id, const std::vector<Node>& pt);
+    /** Add a false case to this component */
     void addFalseCore(Node id, const std::vector<Node>& u);
 
     /**
@@ -210,6 +222,7 @@ class CegisCoreConnective : public Cegis
    * a subset of d_vars.
    */
   Node d_sc;
+  //-----------------------------------for SMT engine calls
   /**
    * Assuming smt has just been called to check-sat and returned "SAT", this
    * method adds the model for d_vars to mvs.
@@ -231,6 +244,8 @@ class CegisCoreConnective : public Cegis
    * If n was satisfiable, then we store the model for d_vars in mvs.
    */
   Result checkSat(Node n, std::vector<Node>& mvs) const;
+  //-----------------------------------end for SMT engine calls
+  //-----------------------------------for evaluation
   /**
    * Return the evaluation of n under the substitution { d_vars -> mvs }.
    * If id is non-null, then id is a unique identifier for mvs, and we cache
@@ -244,10 +259,25 @@ class CegisCoreConnective : public Cegis
       d_eval_cache;
   /** The evaluator utility used for the above function */
   Evaluator d_eval;
+  //-----------------------------------end for evaluation
 
+  /** Construct solution from pool
+   * 
+   * This is the main body of the core connective algorithm, which attempts
+   * to build a solution based on one direction (pre/post) of the synthesis
+   * conjecture.
+   * 
+   * It takes as input:
+   * - a component ccheck that maintains information regarding the direction
+   * we are trying to build a solution for,
+   * - the current set of assertions asserts that comprise the current solution
+   * we are building,
+   * - the current pool passerts of available assertions that we may add to
+   * asserts.
+   */
   Node constructSolutionFromPool(Component& ccheck,
                                  std::vector<Node>& asserts,
-                                 std::vector<Node>& passert);
+                                 std::vector<Node>& passerts);
 
   class Stats
   {
