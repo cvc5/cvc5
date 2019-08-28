@@ -164,8 +164,8 @@ class CegisCoreConnective : public Cegis
     std::unordered_set<Node, NodeHashFunction> d_tried;
     /** Is this component active? */
     bool isActive() const { return !d_scons.isNull(); }
-    /** 
-     * Get the sygus solution corresponding to the Boolean connective for 
+    /**
+     * Get the sygus solution corresponding to the Boolean connective for
      * this component applied to conj. In particular, this returns a
      * right-associative chain of applications of sygus constructor d_scons
      * to the sygus analog of formulas in conj.
@@ -262,11 +262,11 @@ class CegisCoreConnective : public Cegis
   //-----------------------------------end for evaluation
 
   /** Construct solution from pool
-   * 
+   *
    * This is the main body of the core connective algorithm, which attempts
    * to build a solution based on one direction (pre/post) of the synthesis
    * conjecture.
-   * 
+   *
    * It takes as input:
    * - a component ccheck that maintains information regarding the direction
    * we are trying to build a solution for,
