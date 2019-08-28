@@ -95,7 +95,7 @@ protected:
 
   std::unique_ptr<ConstraintCPVec> d_explanation;
 
-public:
+ public:
   CutInfo(CutInfoKlass kl, int cutid, int ordinal);
 
   virtual ~CutInfo();

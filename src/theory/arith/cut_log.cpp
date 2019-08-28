@@ -98,16 +98,16 @@ std::ostream& operator<<(std::ostream& os, const PrimitiveVec& pv){
 }
 
 CutInfo::CutInfo(CutInfoKlass kl, int eid, int o)
-  : d_klass(kl)
-  , d_execOrd(eid)
-  , d_poolOrd(o)
-  , d_cutType(kind::UNDEFINED_KIND)
-  , d_cutRhs()
-  , d_cutVec()
-  , d_mAtCreation(-1)
-  , d_rowId(-1)
-  , d_exactPrecision(nullptr)
-  , d_explanation(nullptr)
+    : d_klass(kl),
+      d_execOrd(eid),
+      d_poolOrd(o),
+      d_cutType(kind::UNDEFINED_KIND),
+      d_cutRhs(),
+      d_cutVec(),
+      d_mAtCreation(-1),
+      d_rowId(-1),
+      d_exactPrecision(nullptr),
+      d_explanation(nullptr)
 {}
 
 CutInfo::~CutInfo(){
@@ -162,9 +162,7 @@ void CutInfo::setRhs(double r){
   d_cutRhs = r;
 }
 
-bool CutInfo::reconstructed() const{
-  return d_exactPrecision != nullptr;
-}
+bool CutInfo::reconstructed() const { return d_exactPrecision != nullptr; }
 
 CutInfoKlass CutInfo::getKlass() const{
   return d_klass;
@@ -188,9 +186,7 @@ int CutInfo::getMAtCreation() const{
 }
 
 /* Returns true if the cut has an explanation. */
-bool CutInfo::proven() const{
-  return d_explanation != nullptr;
-}
+bool CutInfo::proven() const { return d_explanation != nullptr; }
 
 bool CutInfo::operator<(const CutInfo& o) const{
   return d_execOrd < o.d_execOrd;
@@ -199,14 +195,17 @@ bool CutInfo::operator<(const CutInfo& o) const{
 
 void CutInfo::setReconstruction(const DenseVector& ep){
   Assert(!reconstructed());
-  d_exactPrecision.reset( new DenseVector(ep));
+  d_exactPrecision.reset(new DenseVector(ep));
 }
 
 void CutInfo::setExplanation(const ConstraintCPVec& ex){
   Assert(reconstructed());
-  if(d_explanation == nullptr){
+  if (d_explanation == nullptr)
+  {
     d_explanation.reset(new ConstraintCPVec(ex));
-  }else{
+  }
+  else
+  {
     *d_explanation = ex;
   }
 }
@@ -214,7 +213,8 @@ void CutInfo::setExplanation(const ConstraintCPVec& ex){
 void CutInfo::swapExplanation(ConstraintCPVec& ex){
   Assert(reconstructed());
   Assert(!proven());
-  if(d_explanation == nullptr){
+  if (d_explanation == nullptr)
+  {
     d_explanation.reset(new ConstraintCPVec());
   }
   d_explanation->swap(ex);
