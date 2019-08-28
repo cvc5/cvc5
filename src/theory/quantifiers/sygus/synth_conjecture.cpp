@@ -51,7 +51,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe)
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
-      d_sygus_ccore(new SygusConnectiveCore(qe, this)),
+      d_sygus_ccore(new CegisCoreConnective(qe, this)),
       d_ceg_pbe(new SygusPbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
       d_ceg_cegisUnif(new CegisUnif(qe, this)),

@@ -186,7 +186,7 @@ class SynthConjecture
   /** repair constant utility */
   std::unique_ptr<SygusRepairConst> d_sygus_rconst;
   /** connective core utility */
-  std::unique_ptr<SygusConnectiveCore> d_sygus_ccore;
+  std::unique_ptr<CegisCoreConnective> d_sygus_ccore;
 
   //------------------------modules
   /** program by examples module */

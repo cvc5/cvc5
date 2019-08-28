@@ -28,25 +28,38 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class FalseCoreTrie
+/** 
+ * A trie for that stores data at undetermined depth. Storing data at
+ * undetermined depth is in contrast to the NodeTrie (expr/node_trie.h), which
+ * assumes 
+ * 
+ * Since data can be stored at any depth, we require both a d_children field
+ * and a d_data field.
+ */
+class VariadicTrie
 {
  public:
-  std::map<Node, FalseCoreTrie> d_children;
+  /** the children of this node */
+  std::map<Node, VariadicTrie> d_children;
+  /** the data at this node */
   Node d_data;
+  /** 
+   * Add data with identifier n indexed by i, return true if data is not already
+   * stored at the node indexed by i. 
+   */
   bool add(Node n, const std::vector<Node>& i);
-  Node getExclusion(std::unordered_set<Node, NodeHashFunction>& excAsserts,
-                    std::vector<Node>& ctx) const;
-  bool isFalse(const std::vector<Node>& is) const;
+  /** is there data indexed by any subset of is? */ 
+  bool hasSubset(const std::vector<Node>& is) const;
 };
 
-/** SygusConnectiveCore
+/** CegisCoreConnective
  *
  */
-class SygusConnectiveCore : public Cegis
+class CegisCoreConnective : public Cegis
 {
  public:
-  SygusConnectiveCore(QuantifiersEngine* qe, SynthConjecture* p);
-  ~SygusConnectiveCore() {}
+  CegisCoreConnective(QuantifiersEngine* qe, SynthConjecture* p);
+  ~CegisCoreConnective() {}
   /**
    * Return whether this module has the possibility to construct solutions. This
    * is true if this module has been initialized, and the shape of the
@@ -101,7 +114,7 @@ class SygusConnectiveCore : public Cegis
     Node d_scons;
     std::vector<Node> d_cpool;
     std::map<Node, Node> d_cpoolToSol;
-    FalseCoreTrie d_falseCores;
+    VariadicTrie d_falseCores;
     /**
      * Points that satisfy d_this.
      */
@@ -120,7 +133,7 @@ class SygusConnectiveCore : public Cegis
      * d_refinementPt trie, and store it in ss. The set visited is the set
      * of leaf nodes that we've already checked.
      */
-    Node getRefinementPt(SygusConnectiveCore* p,
+    Node getRefinementPt(CegisCoreConnective* p,
                          Node n,
                          std::unordered_set<Node, NodeHashFunction>& visited,
                          std::vector<Node>& ss);
@@ -130,7 +143,7 @@ class SygusConnectiveCore : public Cegis
      *
      * If a non-null node is returned, it is removed from passerts.
      */
-    bool addToAsserts(SygusConnectiveCore* p,
+    bool addToAsserts(CegisCoreConnective* p,
                       std::vector<Node>& passerts,
                       const std::vector<Node>& mvs,
                       Node mvId,

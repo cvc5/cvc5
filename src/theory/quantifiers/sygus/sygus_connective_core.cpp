@@ -32,9 +32,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-bool FalseCoreTrie::add(Node n, const std::vector<Node>& i)
+bool VariadicTrie::add(Node n, const std::vector<Node>& i)
 {
-  FalseCoreTrie* curr = this;
+  VariadicTrie* curr = this;
   for (const Node& ic : i)
   {
     curr = &(curr->d_children[ic]);
@@ -47,63 +47,18 @@ bool FalseCoreTrie::add(Node n, const std::vector<Node>& i)
   return false;
 }
 
-Node FalseCoreTrie::getExclusion(
-    std::unordered_set<Node, NodeHashFunction>& excAsserts,
-    std::vector<Node>& ctx) const
-{
-  if (!d_data.isNull())
-  {
-    Assert(!ctx.empty());
-    unsigned index = Random::getRandom().pick(0, ctx.size() - 1);
-    Node e = ctx[index];
-    return ctx[index];
-  }
-  std::vector<Node> toExclude;
-  for (const std::pair<const Node, FalseCoreTrie>& p : d_children)
-  {
-    if (excAsserts.find(p.first) != excAsserts.end())
-    {
-      // already excluded this branch
-      continue;
-    }
-    ctx.push_back(p.first);
-    Node ec = p.second.getExclusion(excAsserts, ctx);
-    ctx.pop_back();
-    if (!ec.isNull())
-    {
-      if (std::find(ctx.begin(), ctx.end(), ec) != ctx.end())
-      {
-        // excluded for all
-        Assert(excAsserts.find(ec) == excAsserts.end());
-        excAsserts.insert(ec);
-        return ec;
-      }
-      else
-      {
-        toExclude.push_back(ec);
-      }
-    }
-  }
-  for (const Node& e : toExclude)
-  {
-    Assert(excAsserts.find(e) == excAsserts.end());
-    excAsserts.insert(e);
-  }
-  return Node::null();
-}
-
-bool FalseCoreTrie::isFalse(const std::vector<Node>& is) const
+bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
 {
   if (!d_data.isNull())
   {
     return true;
   }
-  for (const std::pair<const Node, FalseCoreTrie>& p : d_children)
+  for (const std::pair<const Node, VariadicTrie>& p : d_children)
   {
     Node n = p.first;
     if (std::find(is.begin(), is.end(), n) != is.end())
     {
-      if (p.second.isFalse(is))
+      if (p.second.hasSubset(is))
       {
         return true;
       }
@@ -112,7 +67,7 @@ bool FalseCoreTrie::isFalse(const std::vector<Node>& is) const
   return false;
 }
 
-SygusConnectiveCore::SygusConnectiveCore(QuantifiersEngine* qe,
+CegisCoreConnective::CegisCoreConnective(QuantifiersEngine* qe,
                                          SynthConjecture* p)
     : Cegis(qe, p)
 {
@@ -120,12 +75,12 @@ SygusConnectiveCore::SygusConnectiveCore(QuantifiersEngine* qe,
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-bool SygusConnectiveCore::processInitialize(Node conj,
+bool CegisCoreConnective::processInitialize(Node conj,
                                             Node n,
                                             const std::vector<Node>& candidates,
                                             std::vector<Node>& lemmas)
 {
-  Trace("sygus-ccore-init") << "SygusConnectiveCore::initialize" << std::endl;
+  Trace("sygus-ccore-init") << "CegisCoreConnective::initialize" << std::endl;
   Trace("sygus-ccore-init") << "  conjecture : " << conj << std::endl;
   Trace("sygus-ccore-init") << "  candidates : " << candidates << std::endl;
   if (candidates.size() != 1)
@@ -244,11 +199,12 @@ bool SygusConnectiveCore::processInitialize(Node conj,
       Trace("sygus-ccore-init") << "  will do " << (r == 0 ? "pre" : "post")
                                 << "condition." << std::endl;
       c.d_scons = Node::fromExpr(gdt[i].getConstructor());
-      // register the symmetry breaking lemma
+      // Register the symmetry breaking lemma: do not do top-level solutions
+      // with this constructor (e.g. we want to enumerate literals, not
+      // conjunctions).
       Node tst = datatypes::DatatypesRewriter::mkTester(d_candidate, i, gdt);
       Trace("sygus-ccore-init") << "Sym break lemma " << tst << std::endl;
-      // TODO: this?
-      // lemmas.push_back(tst.negate());
+      lemmas.push_back(tst.negate());
     }
   }
   if (!isActive())
@@ -259,7 +215,7 @@ bool SygusConnectiveCore::processInitialize(Node conj,
   return Cegis::processInitialize(conj, n, candidates, lemmas);
 }
 
-bool SygusConnectiveCore::processConstructCandidates(
+bool CegisCoreConnective::processConstructCandidates(
     const std::vector<Node>& enums,
     const std::vector<Node>& enum_values,
     const std::vector<Node>& candidates,
@@ -292,12 +248,12 @@ bool SygusConnectiveCore::processConstructCandidates(
   return ret;
 }
 
-bool SygusConnectiveCore::isActive() const
+bool CegisCoreConnective::isActive() const
 {
   return d_pre.isActive() || d_post.isActive();
 }
 
-bool SygusConnectiveCore::constructSolution(
+bool CegisCoreConnective::constructSolution(
     const std::vector<Node>& candidates,
     const std::vector<Node>& candidate_values,
     std::vector<Node>& solv)
@@ -309,11 +265,11 @@ bool SygusConnectiveCore::constructSolution(
   }
   Assert(candidates.size() == candidate_values.size());
   Trace("sygus-ccore-summary")
-      << "SygusConnectiveCore: construct solution..." << std::endl;
+      << "CegisCoreConnective: construct solution..." << std::endl;
   if (Trace.isOn("sygus-ccore"))
   {
     Trace("sygus-ccore")
-        << "SygusConnectiveCore: Construct candidate solutions..." << std::endl;
+        << "CegisCoreConnective: Construct candidate solutions..." << std::endl;
     Printer* p = Printer::getPrinter(options::outputLanguage());
     for (unsigned i = 0, size = candidates.size(); i < size; i++)
     {
@@ -400,13 +356,13 @@ bool SygusConnectiveCore::constructSolution(
         << "/" << ccheck.d_numRefPoints << "/" << ccheck.d_numFalseCores
         << std::endl;
   }
-  Trace("sygus-ccore") << "SygusConnectiveCore: failed to generate candidate"
+  Trace("sygus-ccore") << "CegisCoreConnective: failed to generate candidate"
                        << std::endl;
   Trace("sygus-ccore-summary") << "...failed" << std::endl;
   return false;
 }
 
-Node SygusConnectiveCore::Component::getSygusSolution(
+Node CegisCoreConnective::Component::getSygusSolution(
     std::vector<Node>& conjs) const
 {
   std::sort(conjs.begin(), conjs.end());
@@ -431,7 +387,7 @@ Node SygusConnectiveCore::Component::getSygusSolution(
   return sol;
 }
 
-void SygusConnectiveCore::Component::addRefinementPt(
+void CegisCoreConnective::Component::addRefinementPt(
     Node id, const std::vector<Node>& pt)
 {
   d_numRefPoints++;
@@ -439,15 +395,15 @@ void SygusConnectiveCore::Component::addRefinementPt(
   // this should always be a new point
   AlwaysAssert(res);
 }
-void SygusConnectiveCore::Component::addFalseCore(Node id,
+void CegisCoreConnective::Component::addFalseCore(Node id,
                                                   const std::vector<Node>& u)
 {
   d_numFalseCores++;
   d_falseCores.add(id, u);
 }
 
-Node SygusConnectiveCore::Component::getRefinementPt(
-    SygusConnectiveCore* p,
+Node CegisCoreConnective::Component::getRefinementPt(
+    CegisCoreConnective* p,
     Node n,
     std::unordered_set<Node, NodeHashFunction>& visited,
     std::vector<Node>& ss)
@@ -532,7 +488,7 @@ Node SygusConnectiveCore::Component::getRefinementPt(
   return Node::null();
 }
 
-bool SygusConnectiveCore::Component::addToAsserts(SygusConnectiveCore* p,
+bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
                                                   std::vector<Node>& passerts,
                                                   const std::vector<Node>& mvs,
                                                   Node mvId,
@@ -567,7 +523,7 @@ bool SygusConnectiveCore::Component::addToAsserts(SygusConnectiveCore* p,
     Trace("sygus-ccore-debug") << "...try adding " << n << "..." << std::endl;
     asserts.push_back(n);
     // is it already part of a false core?
-    if (d_falseCores.isFalse(asserts))
+    if (d_falseCores.hasSubset(asserts))
     {
       Trace("sygus-ccore-debug")
           << "..." << n << " was rejected due to previous false core"
@@ -591,7 +547,7 @@ bool SygusConnectiveCore::Component::addToAsserts(SygusConnectiveCore* p,
   return true;
 }
 
-void SygusConnectiveCore::getModel(SmtEngine& smt, std::vector<Node>& vals)
+void CegisCoreConnective::getModel(SmtEngine& smt, std::vector<Node>& vals)
 {
   for (const Node& v : d_vars)
   {
@@ -601,7 +557,7 @@ void SygusConnectiveCore::getModel(SmtEngine& smt, std::vector<Node>& vals)
   }
 }
 
-bool SygusConnectiveCore::getUnsatCore(SmtEngine& smt,
+bool CegisCoreConnective::getUnsatCore(SmtEngine& smt,
                                        Node query,
                                        std::vector<Node>& uasserts)
 {
@@ -621,7 +577,7 @@ bool SygusConnectiveCore::getUnsatCore(SmtEngine& smt,
   return hasQuery;
 }
 
-Result SygusConnectiveCore::checkSat(Node n, std::vector<Node>& mvs)
+Result CegisCoreConnective::checkSat(Node n, std::vector<Node>& mvs)
 {
   Assert(mvs.empty());
   Assert(n.getType().isBoolean());
@@ -656,7 +612,7 @@ Result SygusConnectiveCore::checkSat(Node n, std::vector<Node>& mvs)
   return r;
 }
 
-Node SygusConnectiveCore::evaluate(Node n,
+Node CegisCoreConnective::evaluate(Node n,
                                    Node id,
                                    const std::vector<Node>& mvs)
 {
@@ -701,7 +657,7 @@ Node SygusConnectiveCore::evaluate(Node n,
   return cn;
 }
 
-Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
+Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
                                                     std::vector<Node>& asserts,
                                                     std::vector<Node>& passerts)
 {
@@ -846,7 +802,7 @@ Node SygusConnectiveCore::constructSolutionFromPool(Component& ccheck,
   return Node::null();
 }
 
-void SygusConnectiveCore::Stats::reset()
+void CegisCoreConnective::Stats::reset()
 {
   d_evals = 0;
   d_coreCheck = 0;
