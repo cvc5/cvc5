@@ -278,24 +278,22 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
   std::vector<Node> iplc;
   iplc.push_back(instAttr);
-  if (!axioms.empty())
-  {
-    Node aconj = axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms);
-    aconj =
-        aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
-    Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
-    Node sc = nm->mkNode(AND, aconj, abdApp);
-    Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
-    sc = nm->mkNode(EXISTS, vbvl, sc);
-    Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
-    sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
-    instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
-    // build in the side condition
-    //   exists x. A( x ) ^ input_axioms( x )
-    // as an additional annotation on the sygus conjecture. In other words,
-    // the abducts A we procedure must be consistent with our axioms.
-    iplc.push_back(instAttr);
-  }
+  Node aconj = axioms.size() == 0
+                   ? nm->mkConst(true)
+                   : (axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms));
+  aconj = aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
+  Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
+  Node sc = nm->mkNode(AND, aconj, abdApp);
+  Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
+  sc = nm->mkNode(EXISTS, vbvl, sc);
+  Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
+  sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
+  instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
+  // build in the side condition
+  //   exists x. A( x ) ^ input_axioms( x )
+  // as an additional annotation on the sygus conjecture. In other words,
+  // the abducts A we procedure must be consistent with our axioms.
+  iplc.push_back(instAttr);
   Node instAttrList = nm->mkNode(INST_PATTERN_LIST, iplc);
 
   Node fbvl = nm->mkNode(BOUND_VAR_LIST, abd);
