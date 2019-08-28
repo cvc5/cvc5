@@ -106,13 +106,11 @@ CutInfo::CutInfo(CutInfoKlass kl, int eid, int o)
   , d_cutVec()
   , d_mAtCreation(-1)
   , d_rowId(-1)
-  , d_exactPrecision(NULL)
-  , d_explanation(NULL)
+  , d_exactPrecision(nullptr)
+  , d_explanation(nullptr)
 {}
 
 CutInfo::~CutInfo(){
-  delete d_exactPrecision;
-  delete d_explanation;
 }
 
 int CutInfo::getId() const {
@@ -165,7 +163,7 @@ void CutInfo::setRhs(double r){
 }
 
 bool CutInfo::reconstructed() const{
-  return d_exactPrecision != NULL;
+  return d_exactPrecision != nullptr;
 }
 
 CutInfoKlass CutInfo::getKlass() const{
@@ -191,7 +189,7 @@ int CutInfo::getMAtCreation() const{
 
 /* Returns true if the cut has an explanation. */
 bool CutInfo::proven() const{
-  return d_explanation != NULL;
+  return d_explanation != nullptr;
 }
 
 bool CutInfo::operator<(const CutInfo& o) const{
@@ -201,13 +199,13 @@ bool CutInfo::operator<(const CutInfo& o) const{
 
 void CutInfo::setReconstruction(const DenseVector& ep){
   Assert(!reconstructed());
-  d_exactPrecision = new DenseVector(ep);
+  d_exactPrecision.reset( new DenseVector(ep));
 }
 
 void CutInfo::setExplanation(const ConstraintCPVec& ex){
   Assert(reconstructed());
-  if(d_explanation == NULL){
-    d_explanation = new ConstraintCPVec(ex);
+  if(d_explanation == nullptr){
+    d_explanation.reset(new ConstraintCPVec(ex));
   }else{
     *d_explanation = ex;
   }
@@ -216,8 +214,8 @@ void CutInfo::setExplanation(const ConstraintCPVec& ex){
 void CutInfo::swapExplanation(ConstraintCPVec& ex){
   Assert(reconstructed());
   Assert(!proven());
-  if(d_explanation == NULL){
-    d_explanation = new ConstraintCPVec();
+  if(d_explanation == nullptr){
+    d_explanation.reset(new ConstraintCPVec());
   }
   d_explanation->swap(ex);
 }
@@ -229,13 +227,11 @@ const DenseVector& CutInfo::getReconstruction() const {
 
 void CutInfo::clearReconstruction(){
   if(proven()){
-    delete d_explanation;
-    d_explanation = NULL;
+    d_explanation = nullptr;
   }
 
   if(reconstructed()){
-    delete d_exactPrecision;
-    d_exactPrecision = NULL;
+    d_exactPrecision = nullptr;
   }
 
   Assert(!reconstructed());
