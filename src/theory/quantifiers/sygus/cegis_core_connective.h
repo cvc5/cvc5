@@ -28,11 +28,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * A trie for that stores data at undetermined depth. Storing data at
  * undetermined depth is in contrast to the NodeTrie (expr/node_trie.h), which
- * assumes 
- * 
+ * assumes
+ *
  * Since data can be stored at any depth, we require both a d_children field
  * and a d_data field.
  */
@@ -43,12 +43,12 @@ class VariadicTrie
   std::map<Node, VariadicTrie> d_children;
   /** the data at this node */
   Node d_data;
-  /** 
+  /**
    * Add data with identifier n indexed by i, return true if data is not already
-   * stored at the node indexed by i. 
+   * stored at the node indexed by i.
    */
   bool add(Node n, const std::vector<Node>& i);
-  /** Is there any data in this trie that is indexed by any subset of is? */ 
+  /** Is there any data in this trie that is indexed by any subset of is? */
   bool hasSubset(const std::vector<Node>& is) const;
 };
 
@@ -60,15 +60,15 @@ class VariadicTrie
  * or other constraints. Additionally, we may have that the above conjecture
  * has a side condition, which requires that exists x. SC[x]^C(x) is
  * satisfiable.
- * 
+ *
  * Two examples of this kind of sygus conjecture are abduction and
  * interpolation.
- * 
+ *
  * This module implements a specific algorithm for constructing solutions
  * to this conjecture based on Boolean connectives and unsat cores, described
  * in following.
- * 
- * 
+ *
+ *
  */
 class CegisCoreConnective : public Cegis
 {
@@ -127,20 +127,20 @@ class CegisCoreConnective : public Cegis
     Component() : d_numRefPoints(0), d_numFalseCores(0) {}
     /** The original formula for the pre/post condition */
     Node d_this;
-    /** 
+    /**
      * The sygus constructor for constructing solutions based on the core
      * connective algorithm. This is a sygus datatype constructor that
      * encodes applications of AND or OR.
      */
     Node d_scons;
     std::vector<Node> d_cpool;
-    /** 
+    /**
      * A map from the formulas in the above vector to their sygus analog.
      */
     std::map<Node, Node> d_cpoolToSol;
-    /** 
+    /**
      * An index of list of predicates such that each list ( P1, ..., Pn )
-     * indexed by this trie is such that 
+     * indexed by this trie is such that
      */
     VariadicTrie d_falseCores;
     /**
@@ -196,21 +196,21 @@ class CegisCoreConnective : public Cegis
    * pools of predicates.
    */
   std::vector<Node> d_vars;
-  /** 
+  /**
    * The evaluation term of the form:
    *   (DT_SYGUS_EVAL d_candidate d_vars[0]...d_vars[n])
    * This is used to convert enumerated sygus terms t to their builtin
    * equivalent via rewriting d_eterm * { d_candidate -> t }.
    */
   Node d_eterm;
-  /** 
-   * The side condition of the conjecture. If this is non-null, then 
+  /**
+   * The side condition of the conjecture. If this is non-null, then
    * this node is a formula such that (builtin) solutions t' are such that
    * t' ^ d_sc is satisfiable. Notice that the free variables of d_sc are
    * a subset of d_vars.
    */
   Node d_sc;
-  /** 
+  /**
    * Assuming smt has just been called to check-sat and returned "SAT", this
    * method adds the model for d_vars to mvs.
    */
@@ -218,18 +218,20 @@ class CegisCoreConnective : public Cegis
   /**
    * Assuming smt has just been called to check-sat and returned "SAT", this
    * method get the unsat core and adds it to uasserts.
-   * 
-   * If query is non-null, then it is excluded from uasserts. If query was 
+   *
+   * If query is non-null, then it is excluded from uasserts. If query was
    * in the unsat core, then this method returns true. Otherwise, this method
    * returns false. It also returns false if query was null.
    */
-  bool getUnsatCore(SmtEngine& smt, Node query, std::vector<Node>& uasserts) const;
-  /** 
+  bool getUnsatCore(SmtEngine& smt,
+                    Node query,
+                    std::vector<Node>& uasserts) const;
+  /**
    * Return the result of checking satisfiability of formula n.
    * If n was satisfiable, then we store the model for d_vars in mvs.
    */
   Result checkSat(Node n, std::vector<Node>& mvs) const;
-  /** 
+  /**
    * Return the evaluation of n under the substitution { d_vars -> mvs }.
    * If id is non-null, then id is a unique identifier for mvs, and we cache
    * the result of n for this point.

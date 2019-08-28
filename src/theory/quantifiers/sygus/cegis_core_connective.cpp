@@ -547,7 +547,8 @@ bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
   return true;
 }
 
-void CegisCoreConnective::getModel(SmtEngine& smt, std::vector<Node>& vals) const
+void CegisCoreConnective::getModel(SmtEngine& smt,
+                                   std::vector<Node>& vals) const
 {
   for (const Node& v : d_vars)
   {
