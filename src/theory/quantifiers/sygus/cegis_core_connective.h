@@ -68,7 +68,7 @@ class VariadicTrie
  * to this conjecture based on Boolean connectives and unsat cores, described
  * in following. We give two variants of the algorithm, both implemented as
  * special cases of this class. Below, let:
- * 
+ *
  * pool(A) be a set of literals { c_1, ..., c_n } s.t. c_i => B for i=1,...,n,
  * pts(A) : a set of points { x -> v } s.t. A[v] is true,
  * pool(B) : a set of literals { d_1, ..., d_n } s.t. A => d_i for i=1,...,n,
@@ -77,16 +77,16 @@ class VariadicTrie
  * - U_i is a subset of pool(B),
  * - A ^ U_i is unsat.
  *
- * 
+ *
  * Variant #1 (Interpolation)
- * 
+ *
  * Let the synthesis conjecture be of the form
  *   exists C. forall x. A[x] => C[x] ^ C[x] => B[x]
- * 
+ *
  * The high level idea is we construct solutions for C of the form
  *   c_1 OR ... OR c_n where c_i => B for each i=1,...,n, or
  *   d_1 AND ... AND d_n where A => d_i for each i=1,...,n.
- * 
+ *
  * while(true){
  *   Let e_i = next_sygus_enum();
  *   // check if e_i should be added to the pool
@@ -112,17 +112,17 @@ class VariadicTrie
  *   // analogous for the other direction
  * }
  *
- * 
+ *
  * Variant #2 (Abduction)
- * 
+ *
  * Let the synthesis conjecture be of the form exists C. forall x. C[x] => B[x]
  * such that A[x] ^ C[x] is satisfiable.
- * 
+ *
  * The high level idea is we construct solutions for C of the form
  *   d_1 AND ... AND d_n
  * where the above conjunction is weakened based on only including conjuncts
  * that in the unsat core of d_1 AND ... AND d_n => B.
- * 
+ *
  * while(true){
  *   Let e_i = next_sygus_enum();
  *   // add e_i to the pool
@@ -208,7 +208,7 @@ class CegisCoreConnective : public Cegis
    public:
     Component() : d_numFalseCores(0), d_numRefPoints(0) {}
     /** initialize
-     * 
+     *
      * This initializes this component with pre/post condition given by n
      * and sygus constructor c.
      */
@@ -247,7 +247,7 @@ class CegisCoreConnective : public Cegis
                          std::unordered_set<Node, NodeHashFunction>& visited,
                          std::vector<Node>& ss);
     /** Get term pool, i.e. pool(A)/pool(B) in the algorithms above */
-    void getTermPool( std::vector< Node >& passerts ) const; 
+    void getTermPool(std::vector<Node>& passerts) const;
     /**
      * Get the sygus solution corresponding to the Boolean connective for
      * this component applied to conj. In particular, this returns a
@@ -256,7 +256,8 @@ class CegisCoreConnective : public Cegis
      */
     Node getSygusSolution(std::vector<Node>& conjs) const;
     /** debug print summary (for debugging) */
-    void debugPrintSummary( std::ostream& os ) const;
+    void debugPrintSummary(std::ostream& os) const;
+
    private:
     /** The original formula for the pre/post condition A/B. */
     Node d_this;
@@ -367,7 +368,7 @@ class CegisCoreConnective : public Cegis
    * we are building,
    * - the current pool passerts of available assertions that we may add to
    * asserts.
-   * 
+   *
    * This implements the while loop in the algorithms above. If this method
    * returns a non-null node, then this is a solution for the given synthesis
    * conjecture.

@@ -140,8 +140,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
   // negate the post condition
   prePost[1] = TermUtil::simpleNegate(ti.getPostCondition());
   Trace("sygus-ccore-init") << "  precondition: " << prePost[0] << std::endl;
-  Trace("sygus-ccore-init")
-      << "  postcondition: " << prePost[1] << std::endl;
+  Trace("sygus-ccore-init") << "  postcondition: " << prePost[1] << std::endl;
 
   // side condition?
   QAttributes qa;
@@ -202,7 +201,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
       Trace("sygus-ccore-init") << "  will do " << (r == 0 ? "pre" : "post")
                                 << "condition." << std::endl;
       Node cons = Node::fromExpr(gdt[i].getConstructor());
-      c.initialize(f,cons);
+      c.initialize(f, cons);
       // Register the symmetry breaking lemma: do not do top-level solutions
       // with this constructor (e.g. we want to enumerate literals, not
       // conjunctions).
@@ -251,7 +250,7 @@ bool CegisCoreConnective::processConstructCandidates(
   }
   return ret;
 }
-    
+
 bool CegisCoreConnective::isActive() const
 {
   return d_pre.isActive() || d_post.isActive();
@@ -329,7 +328,7 @@ bool CegisCoreConnective::constructSolution(
     }
     Trace("sygus-ccore-debug")
         << "...add to pool in direction " << d << std::endl;
-    ccheck.addToPool(etsr,cval);
+    ccheck.addToPool(etsr, cval);
 
     // ----- get the pool of assertions and randomize it
     std::vector<Node> passerts;
@@ -349,7 +348,8 @@ bool CegisCoreConnective::constructSolution(
     {
       std::stringstream ss;
       ccheck.debugPrintSummary(ss);
-      Trace("sygus-ccore-summary") << "C[d=" << d << "] " << ss.str() << std::endl;
+      Trace("sygus-ccore-summary")
+          << "C[d=" << d << "] " << ss.str() << std::endl;
     }
   }
   Trace("sygus-ccore") << "CegisCoreConnective: failed to generate candidate"
@@ -369,7 +369,7 @@ void CegisCoreConnective::Component::addToPool(Node n, Node s)
   d_cpool.push_back(n);
   d_cpoolToSol[n] = s;
 }
-    
+
 Node CegisCoreConnective::Component::getSygusSolution(
     std::vector<Node>& conjs) const
 {
@@ -394,13 +394,12 @@ Node CegisCoreConnective::Component::getSygusSolution(
   }
   return sol;
 }
-void CegisCoreConnective::Component::debugPrintSummary( std::ostream& os ) const
+void CegisCoreConnective::Component::debugPrintSummary(std::ostream& os) const
 {
-    os
-        << "size(pool/pts/cores): " << d_cpool.size()
-        << "/" << d_numRefPoints << "/" << d_numFalseCores;
+  os << "size(pool/pts/cores): " << d_cpool.size() << "/" << d_numRefPoints
+     << "/" << d_numFalseCores;
 }
-        
+
 void CegisCoreConnective::Component::addRefinementPt(
     Node id, const std::vector<Node>& pt)
 {
@@ -502,11 +501,12 @@ Node CegisCoreConnective::Component::getRefinementPt(
   return Node::null();
 }
 
-void CegisCoreConnective::Component::getTermPool( std::vector< Node >& passerts ) const
+void CegisCoreConnective::Component::getTermPool(
+    std::vector<Node>& passerts) const
 {
-  passerts.insert(passerts.end(),d_cpool.begin(),d_cpool.end());
+  passerts.insert(passerts.end(), d_cpool.begin(), d_cpool.end());
 }
-    
+
 bool CegisCoreConnective::Component::addToAsserts(CegisCoreConnective* p,
                                                   std::vector<Node>& passerts,
                                                   const std::vector<Node>& mvs,
