@@ -328,8 +328,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
     return false;
   }
   NodeManager* nm = NodeManager::currentNM();
-  bool use_inf = d_type.isInteger() ? options::cbqiUseInfInt()
-                                        : options::cbqiUseInfReal();
+  bool use_inf =
+      d_type.isInteger() ? options::cbqiUseInfInt() : options::cbqiUseInfReal();
   bool upper_first = Random::getRandom().pickWithProb(0.5);
   if (options::cbqiMinBounds())
   {

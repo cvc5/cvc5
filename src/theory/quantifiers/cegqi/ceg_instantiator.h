@@ -174,12 +174,11 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
  */
 class CegInstantiator {
  public:
-  /** 
+  /**
    * The instantiator will be constructing instantiations for quantified formula
    * q, parent is the owner of this object.
    */
-  CegInstantiator(Node q,
-                  InstStrategyCegqi* parent);
+  CegInstantiator(Node q, InstStrategyCegqi* parent);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
@@ -614,7 +613,7 @@ public:
                     Node pv,
                     CegInstEffort effort)
  {
-  }
+ }
 
   /** has process equal term
    *
@@ -816,7 +815,7 @@ public:
                     CegInstEffort effort) override
  {
    return true;
-  }
+ }
   std::string identify() const override { return "ModelValue"; }
 };
 
