@@ -735,50 +735,6 @@ ${options_handler}$
 
     case '?':
     default:
-      if( ( optopt == 0 ||
-            ( optopt >= ${option_value_begin}$ &&
-              optopt <= ${option_value_end}$ )
-          ) && !strncmp(argv[optind - 1], "--thread", 8) &&
-          strlen(argv[optind - 1]) > 8 )
-      {
-        if(! isdigit(argv[optind - 1][8])) {
-          throw OptionException(formatThreadOptionException(option));
-        }
-        std::vector<std::string>& threadArgv = holder->threadArgv;
-        char *end;
-        long tnum = strtol(argv[optind - 1] + 8, &end, 10);
-        if(tnum < 0 || (*end != '\0' && *end != '=')) {
-          throw OptionException(formatThreadOptionException(option));
-        }
-        if(threadArgv.size() <= size_t(tnum)) {
-          threadArgv.resize(tnum + 1);
-        }
-        if(threadArgv[tnum] != "") {
-          threadArgv[tnum] += " ";
-        }
-        if(*end == '\0') { // e.g., we have --thread0 "foo"
-          if(argc <= optind) {
-            throw OptionException(std::string("option `") + option +
-                                  "' missing its required argument");
-          }
-          Debug("options") << "thread " << tnum << " gets option "
-                           << argv[optind] << std::endl;
-          threadArgv[tnum] += argv[main_optind];
-          main_optind++;
-        } else { // e.g., we have --thread0="foo"
-          if(end[1] == '\0') {
-            throw OptionException(std::string("option `") + option +
-                                  "' missing its required argument");
-          }
-          Debug("options") << "thread " << tnum << " gets option "
-                           << (end + 1) << std::endl;
-          threadArgv[tnum] += end + 1;
-        }
-        Debug("options") << "thread " << tnum << " now has "
-                         << threadArgv[tnum] << std::endl;
-        break;
-      }
-
       throw OptionException(std::string("can't understand option `") + option +
                             "'" + suggestCommandLineOptions(option));
     }
