@@ -921,7 +921,6 @@ install(FILES
           util/bitvector.h
           util/bool.h
           util/cardinality.h
-          util/channel.h
           util/divisible.h
           util/gmp_util.h
           util/hash.h
