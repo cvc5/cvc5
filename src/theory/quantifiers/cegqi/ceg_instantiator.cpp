@@ -137,13 +137,13 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
   d_theta.pop_back();
 }
 
-CegInstantiator::CegInstantiator(InstStrategyCegqi* parent,
-                                 CegqiOutput* out,
+CegInstantiator::CegInstantiator(Node q,
+                                 InstStrategyCegqi* parent,
                                  bool use_vts_delta,
                                  bool use_vts_inf)
-    : d_parent(parent),
+    : d_quant(q),
+      d_parent(parent),
       d_qe(parent->getQuantifiersEngine()),
-      d_out(out),
       d_use_vts_delta(use_vts_delta),
       d_use_vts_inf(use_vts_inf),
       d_is_nested_quant(false),
@@ -173,7 +173,7 @@ void CegInstantiator::computeProgVars( Node n ){
     if (d_vars_set.find(n) != d_vars_set.end())
     {
       d_prog_var[n].insert(n);
-    }else if( !d_out->isEligibleForInstantiation( n ) ){
+    }else if( !isEligibleForInstantiation( n ) ){
       d_inelig.insert(n);
       return;
     }
@@ -1058,11 +1058,33 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
     }
   }
   Trace("cbqi-inst-debug") << "Do the instantiation...." << std::endl;
-  bool ret = d_out->doAddInstantiation( subs );
+  bool ret = d_parent->doAddInstantiation( subs );
   for( unsigned i=0; i<lemmas.size(); i++ ){
-    d_out->addLemma( lemmas[i] );
+    d_parent->addLemma( lemmas[i] );
   }
   return ret;
+}
+
+bool CegInstantiator::isEligibleForInstantiation( Node n ) const {
+  if( n.getKind()!=INST_CONSTANT && n.getKind()!=SKOLEM ){
+    return true;
+  }
+  if( n.getAttribute(VirtualTermSkolemAttribute()) ){
+    // virtual terms are allowed
+    return true;
+  }
+  TypeNode tn = n.getType();
+  if( tn.isSort() ){
+    QuantEPR * qepr = d_qe->getQuantEPR();
+    if( qepr!=NULL ){
+      //legal if in the finite set of constants of type tn
+      if( qepr->isEPRConstant( tn, n ) ){
+        return true;
+      }
+    }
+  }
+  //only legal if current quantified formula contains n
+  return expr::hasSubterm(d_quant, n);
 }
 
 bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic ){

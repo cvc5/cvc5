@@ -917,7 +917,7 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
                         ? d_zero
                         : (real_part.size() == 1 ? real_part[0]
                                                  : nm->mkNode(PLUS, real_part));
-    Assert(ci->getOutput()->isEligibleForInstantiation(realPart));
+    Assert(ci->isEligibleForInstantiation(realPart));
     // re-isolate
     Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
     veq_c = Node::null();

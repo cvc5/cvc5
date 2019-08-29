@@ -30,14 +30,6 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
-class CegqiOutput {
-public:
-  virtual ~CegqiOutput() {}
-  virtual bool doAddInstantiation( std::vector< Node >& subs ) = 0;
-  virtual bool isEligibleForInstantiation( Node n ) = 0;
-  virtual bool addLemma( Node lem ) = 0;
-};
-
 class Instantiator;
 class InstantiatorPreprocess;
 class InstStrategyCegqi;
@@ -182,8 +174,8 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
  */
 class CegInstantiator {
  public:
-  CegInstantiator(InstStrategyCegqi* parent,
-                  CegqiOutput* out,
+  CegInstantiator(Node q,
+                  InstStrategyCegqi* parent,
                   bool use_vts_delta = true,
                   bool use_vts_inf = true);
   virtual ~CegInstantiator();
@@ -215,8 +207,6 @@ class CegInstantiator {
    */
   void registerCounterexampleLemma(std::vector<Node>& lems,
                                    std::vector<Node>& ce_vars);
-  /** get the output channel of this class */
-  CegqiOutput* getOutput() { return d_out; }
   //------------------------------interface for instantiators
   /** get quantifiers engine */
   QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
@@ -278,11 +268,17 @@ class CegInstantiator {
   /** does n have variable pv? */
   bool hasVariable(Node n, Node pv);
   /** are we using delta for LRA virtual term substitution? */
-  bool useVtsDelta() { return d_use_vts_delta; }
+  bool useVtsDelta() const { return d_use_vts_delta; }
   /** are we using infinity for LRA virtual term substitution? */
-  bool useVtsInfinity() { return d_use_vts_inf; }
+  bool useVtsInfinity() const { return d_use_vts_inf; }
   /** are we processing a nested quantified formula? */
-  bool hasNestedQuantification() { return d_is_nested_quant; }
+  bool hasNestedQuantification() const { return d_is_nested_quant; }
+  /**
+   * Are we allowed to instantiate the current quantified formula with n? This
+   * includes restrictions such as if n is a variable, it must occur free in
+   * the current quantified formula.
+   */
+  bool isEligibleForInstantiation(Node n) const;
   //------------------------------------ static queries
   /** Is k a kind for which counterexample-guided instantiation is possible?
    *
@@ -334,12 +330,12 @@ class CegInstantiator {
   static CegHandledStatus isCbqiQuant(Node q, QuantifiersEngine* qe = nullptr);
   //------------------------------------ end static queries
  private:
+  /** The quantified formula of this instantiator */
+  Node d_quant;
   /** The parent of this instantiator */
   InstStrategyCegqi * d_parent;
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
-  /** output channel of this instantiator */
-  CegqiOutput* d_out;
   /** whether we are using delta for virtual term substitution
     * (for quantified LRA).
     */

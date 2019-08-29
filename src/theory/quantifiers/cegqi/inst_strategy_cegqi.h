@@ -28,26 +28,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class InstStrategyCegqi;
-
-/**
- * An output channel class, used by instantiator objects below. The methods
- * of this class call the corresponding functions of InstStrategyCegqi below.
- */
-class CegqiOutputInstStrategy : public CegqiOutput
-{
- public:
-  CegqiOutputInstStrategy(InstStrategyCegqi* out) : d_out(out) {}
-  /** The module whose functions we call. */
-  InstStrategyCegqi* d_out;
-  /** add instantiation */
-  bool doAddInstantiation(std::vector<Node>& subs) override;
-  /** is eligible for instantiation */
-  bool isEligibleForInstantiation(Node n) override;
-  /** add lemma */
-  bool addLemma(Node lem) override;
-};
-
 /**
  * Counterexample-guided quantifier instantiation module.
  *
@@ -95,12 +75,6 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
-  /**
-   * Are we allowed to instantiate the current quantified formula with n? This
-   * includes restrictions such as if n is a variable, it must occur free in
-   * the current quantified formula.
-   */
-  bool isEligibleForInstantiation(Node n);
   /** Add lemma lem via the output channel of this class. */
   bool addLemma(Node lem);
   //------------------- end interface for CegqiOutputInstStrategy
@@ -129,11 +103,6 @@ class InstStrategyCegqi : public QuantifiersModule
   std::map< Node, bool > d_active_quant;
   /** Whether cegqi handles each quantified formula. */
   std::map<Node, CegHandledStatus> d_do_cbqi;
-  /**
-   * An output channel used by instantiators for communicating with this
-   * class.
-   */
-  std::unique_ptr<CegqiOutputInstStrategy> d_out;
   /**
    * The instantiator for each quantified formula q registered to this class.
    * This object is responsible for finding instantiatons for q.

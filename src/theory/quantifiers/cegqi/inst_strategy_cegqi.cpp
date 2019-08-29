@@ -30,26 +30,12 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 
-bool CegqiOutputInstStrategy::doAddInstantiation(std::vector<Node>& subs)
-{
-  return d_out->doAddInstantiation(subs);
-}
-
-bool CegqiOutputInstStrategy::isEligibleForInstantiation(Node n)
-{
-  return d_out->isEligibleForInstantiation(n);
-}
-
-bool CegqiOutputInstStrategy::addLemma(Node lem)
-{
-  return d_out->addLemma(lem);
-}
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
     : QuantifiersModule(qe),
@@ -57,7 +43,6 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
       d_incomplete_check(false),
       d_added_cbqi_lemma(qe->getUserContext()),
       d_elim_quants(qe->getSatContext()),
-      d_out(new CegqiOutputInstStrategy(this)),
       d_bv_invert(nullptr),
       d_nested_qe_waitlist_size(qe->getUserContext()),
       d_nested_qe_waitlist_proc(qe->getUserContext())
@@ -670,36 +655,13 @@ bool InstStrategyCegqi::addLemma( Node lem ) {
   return d_quantEngine->addLemma( lem );
 }
 
-bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
-  if( n.getKind()==INST_CONSTANT || n.getKind()==SKOLEM ){
-    if( n.getAttribute(VirtualTermSkolemAttribute()) ){
-      // virtual terms are allowed
-      return true;
-    }else{
-      TypeNode tn = n.getType();
-      if( tn.isSort() ){
-        QuantEPR * qepr = d_quantEngine->getQuantEPR();
-        if( qepr!=NULL ){
-          //legal if in the finite set of constants of type tn
-          if( qepr->isEPRConstant( tn, n ) ){
-            return true;
-          }
-        }
-      }
-      //only legal if current quantified formula contains n
-      return expr::hasSubterm(d_curr_quant, n);
-    }
-  }else{
-    return true;
-  }
-}
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
     d_cinst[q].reset(
-        new CegInstantiator(this, d_out.get(), true, true));
+        new CegInstantiator(q, this, true, true));
     return d_cinst[q].get();
   }
   return it->second.get();
@@ -722,3 +684,6 @@ void InstStrategyCegqi::presolve() {
   }
 }
 
+}
+}
+}
