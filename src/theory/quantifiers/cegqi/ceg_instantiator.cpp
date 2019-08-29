@@ -138,17 +138,15 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
 }
 
 CegInstantiator::CegInstantiator(Node q,
-                                 InstStrategyCegqi* parent,
-                                 bool use_vts_delta,
-                                 bool use_vts_inf)
+                                 InstStrategyCegqi* parent)
     : d_quant(q),
       d_parent(parent),
       d_qe(parent->getQuantifiersEngine()),
-      d_use_vts_delta(use_vts_delta),
-      d_use_vts_inf(use_vts_inf),
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
 {
+  d_use_vts_delta = true;
+  d_use_vts_inf = true;
 }
 
 CegInstantiator::~CegInstantiator() {

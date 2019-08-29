@@ -174,10 +174,12 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
  */
 class CegInstantiator {
  public:
+  /** 
+   * The instantiator will be constructing instantiations for quantified formula
+   * q, parent is the owner of this object.
+   */
   CegInstantiator(Node q,
-                  InstStrategyCegqi* parent,
-                  bool use_vts_delta = true,
-                  bool use_vts_inf = true);
+                  InstStrategyCegqi* parent);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
