@@ -366,8 +366,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $optimized != default ] \
   && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized"
-[ $portfolio != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_PORTFOLIO=$portfolio"
 [ $proofs != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
 [ $replay != default ] \
