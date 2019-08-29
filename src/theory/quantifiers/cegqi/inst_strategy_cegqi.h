@@ -22,6 +22,7 @@
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
+#include "theory/quantifiers/bv_inverter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -136,6 +137,8 @@ class InstStrategyCegqi : public QuantifiersModule
    * This object is responsible for finding instantiatons for q.
    */
   std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
+  /** inversion utility for BV instantiation */
+  std::unique_ptr<BvInverter> d_bv_invert;
   /**
    * The decision strategy for each quantified formula q registered to this
    * class.
@@ -171,6 +174,15 @@ class InstStrategyCegqi : public QuantifiersModule
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
+  /**
+   * Get counterexample literal. This is the fresh Boolean variable whose
+   * semantics is "there exists a set of values for which the body of
+   * quantified formula q does not hold". These literals are cached by this
+   * class.
+   */
+  Node getCounterexampleLiteral(Node q);
+  /** map from universal quantifiers to their counterexample literals */
+  std::map<Node, Node> d_ce_lit;
 
   //for identification
   uint64_t d_qid_count;

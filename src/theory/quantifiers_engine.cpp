@@ -190,7 +190,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_rel_dom(nullptr),
-      d_bv_invert(nullptr),
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
@@ -255,12 +254,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   if( options::quantEpr() ){
     Assert( !options::incrementalSolving() );
     d_qepr.reset(new quantifiers::QuantEPR);
-  }
-
-  if (options::cbqi() && options::cbqiBv())
-  {
-    // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new quantifiers::BvInverter);
   }
   //---- end utilities
 
