@@ -32,8 +32,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ArithInstantiator::ArithInstantiator(QuantifiersEngine* qe, TypeNode tn)
-    : Instantiator(qe, tn)
+ArithInstantiator::ArithInstantiator(TypeNode tn)
+    : Instantiator(tn)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));

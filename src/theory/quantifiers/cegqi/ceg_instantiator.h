@@ -40,6 +40,7 @@ public:
 
 class Instantiator;
 class InstantiatorPreprocess;
+class InstStrategyCegqi;
 
 /** Term Properties
  *
@@ -181,7 +182,7 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
  */
 class CegInstantiator {
  public:
-  CegInstantiator(QuantifiersEngine* qe,
+  CegInstantiator(InstStrategyCegqi* parent,
                   CegqiOutput* out,
                   bool use_vts_delta = true,
                   bool use_vts_inf = true);
@@ -333,6 +334,8 @@ class CegInstantiator {
   static CegHandledStatus isCbqiQuant(Node q, QuantifiersEngine* qe = nullptr);
   //------------------------------------ end static queries
  private:
+  /** The parent of this instantiator */
+  InstStrategyCegqi * d_parent;
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
   /** output channel of this instantiator */
@@ -613,7 +616,7 @@ class CegInstantiator {
  */
 class Instantiator {
 public:
-  Instantiator( QuantifiersEngine * qe, TypeNode tn );
+  Instantiator( TypeNode tn );
   virtual ~Instantiator(){}
   /** reset
    * This is called once, prior to any of the below methods are called.
@@ -819,7 +822,7 @@ public:
 
 class ModelValueInstantiator : public Instantiator {
 public:
-  ModelValueInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
+  ModelValueInstantiator(TypeNode tn ) : Instantiator( tn ){}
   virtual ~ModelValueInstantiator(){}
   bool useModelValue(CegInstantiator* ci,
                      SolvedForm& sf,

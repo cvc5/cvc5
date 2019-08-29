@@ -334,10 +334,6 @@ quantifiers::RelevantDomain* QuantifiersEngine::getRelevantDomain() const
 {
   return d_rel_dom.get();
 }
-quantifiers::BvInverter* QuantifiersEngine::getBvInverter() const
-{
-  return d_bv_invert.get();
-}
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();

@@ -83,6 +83,8 @@ class InstStrategyCegqi : public QuantifiersModule
   std::string identify() const override { return std::string("Cegqi"); }
   /** get instantiator for quantifier */
   CegInstantiator* getInstantiator(Node q);
+  /** get the BV inverter utility */
+  BvInverter* getBvInverter() const;
   /** pre-register quantifier */
   void preRegisterQuantifier(Node q) override;
   // presolve

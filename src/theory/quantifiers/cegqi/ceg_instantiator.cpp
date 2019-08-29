@@ -27,6 +27,7 @@
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -136,11 +137,12 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
   d_theta.pop_back();
 }
 
-CegInstantiator::CegInstantiator(QuantifiersEngine* qe,
+CegInstantiator::CegInstantiator(InstStrategyCegqi* parent,
                                  CegqiOutput* out,
                                  bool use_vts_delta,
                                  bool use_vts_inf)
-    : d_qe(qe),
+    : d_parent(parent),
+      d_qe(parent->getQuantifiersEngine()),
       d_out(out),
       d_use_vts_delta(use_vts_delta),
       d_use_vts_inf(use_vts_inf),
@@ -431,19 +433,19 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     TypeNode tn = v.getType();
     Instantiator * vinst;
     if( tn.isReal() ){
-      vinst = new ArithInstantiator( d_qe, tn );
+      vinst = new ArithInstantiator( tn );
     }else if( tn.isSort() ){
       Assert( options::quantEpr() );
-      vinst = new EprInstantiator( d_qe, tn );
+      vinst = new EprInstantiator( tn );
     }else if( tn.isDatatype() ){
-      vinst = new DtInstantiator( d_qe, tn );
+      vinst = new DtInstantiator( tn );
     }else if( tn.isBitVector() ){
-      vinst = new BvInstantiator( d_qe, tn );
+      vinst = new BvInstantiator( tn, d_parent->getBvInverter() );
     }else if( tn.isBoolean() ){
-      vinst = new ModelValueInstantiator( d_qe, tn );
+      vinst = new ModelValueInstantiator( tn );
     }else{
       //default
-      vinst = new Instantiator( d_qe, tn );
+      vinst = new Instantiator( tn );
     }
     d_instantiator[v] = vinst;
   }
@@ -1701,7 +1703,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 }
 
 
-Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
+Instantiator::Instantiator( TypeNode tn ) : d_type( tn ){
   d_closed_enum_type = tn.isClosedEnumerable();
 }
 

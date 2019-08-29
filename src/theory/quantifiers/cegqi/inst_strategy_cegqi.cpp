@@ -699,10 +699,15 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
       d_cinst.find(q);
   if( it==d_cinst.end() ){
     d_cinst[q].reset(
-        new CegInstantiator(d_quantEngine, d_out.get(), true, true));
+        new CegInstantiator(this, d_out.get(), true, true));
     return d_cinst[q].get();
   }
   return it->second.get();
+}
+
+BvInverter* InstStrategyCegqi::getBvInverter() const
+{
+  return d_bv_invert.get();
 }
 
 void InstStrategyCegqi::presolve() {
