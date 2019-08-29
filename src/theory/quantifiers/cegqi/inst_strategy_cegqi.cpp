@@ -93,7 +93,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     Trace("cbqi-debug") << "Do cbqi for " << q << std::endl;
     //add cbqi lemma
     //get the counterexample literal
-    Node ceLit = d_quantEngine->getTermUtil()->getCounterexampleLiteral( q );
+    Node ceLit = getCounterexampleLiteral( q );
     Node ceBody = d_quantEngine->getTermUtil()->getInstConstantBody( q );
     if( !ceBody.isNull() ){
       //add counterexample lemma
@@ -148,7 +148,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
             d_parent_quant[q].push_back( qi );
             d_children_quant[qi].push_back( q );
             Assert( hasAddedCbqiLemma( qi ) );
-            Node qicel = d_quantEngine->getTermUtil()->getCounterexampleLiteral( qi );
+            Node qicel = getCounterexampleLiteral( qi );
             dep.push_back( qi );
             dep.push_back( qicel );
           }
@@ -220,7 +220,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
       if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
         d_active_quant[q] = true;
         Debug("cbqi-debug") << "Check quantified formula " << q << "..." << std::endl;
-        Node cel = d_quantEngine->getTermUtil()->getCounterexampleLiteral( q );
+        Node cel = getCounterexampleLiteral( q );
         bool value;
         if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
           Debug("cbqi-debug") << "...CE Literal has value " << value << std::endl;
@@ -618,6 +618,18 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       }
     }
   }
+}
+
+Node InstStrategyCegqi::getCounterexampleLiteral( Node q ){
+  std::map< Node, Node >::iterator it = d_ce_lit.find(q);
+  if( it!=d_ce_lit.end() ){
+    return it->second;
+  }
+  Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
+  // ensure that it is a SAT literal
+  Node ceLit = d_quantEngine->getValuation().ensureLiteral( g );
+  d_ce_lit[ q ] = ceLit;
+  return ceLit;
 }
 
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
