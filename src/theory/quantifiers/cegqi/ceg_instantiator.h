@@ -174,11 +174,12 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
  */
 class CegInstantiator {
  public:
-  /**
+  /** 
    * The instantiator will be constructing instantiations for quantified formula
    * q, parent is the owner of this object.
    */
-  CegInstantiator(Node q, InstStrategyCegqi* parent);
+  CegInstantiator(Node q,
+                  InstStrategyCegqi* parent);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
@@ -268,10 +269,6 @@ class CegInstantiator {
   bool isEligible(Node n);
   /** does n have variable pv? */
   bool hasVariable(Node n, Node pv);
-  /** are we using delta for LRA virtual term substitution? */
-  bool useVtsDelta() const { return d_use_vts_delta; }
-  /** are we using infinity for LRA virtual term substitution? */
-  bool useVtsInfinity() const { return d_use_vts_inf; }
   /** are we processing a nested quantified formula? */
   bool hasNestedQuantification() const { return d_is_nested_quant; }
   /**
@@ -337,14 +334,6 @@ class CegInstantiator {
   InstStrategyCegqi* d_parent;
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
-  /** whether we are using delta for virtual term substitution
-    * (for quantified LRA).
-    */
-  bool d_use_vts_delta;
-  /** whether we are using infinity for virtual term substitution
-    * (for quantified LRA).
-    */
-  bool d_use_vts_inf;
 
   //-------------------------------globally cached
   /** cache from nodes to the set of variables it contains
@@ -625,7 +614,7 @@ public:
                     Node pv,
                     CegInstEffort effort)
  {
- }
+  }
 
   /** has process equal term
    *
@@ -827,7 +816,7 @@ public:
                     CegInstEffort effort) override
  {
    return true;
- }
+  }
   std::string identify() const override { return "ModelValue"; }
 };
 

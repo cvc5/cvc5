@@ -266,7 +266,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           << pvmod << " -> " << uval << ", styp = " << uires << std::endl;
     }
     // take into account delta
-    if (ci->useVtsDelta() && (uires == 2 || uires == -2))
+    if (uires == 2 || uires == -2)
     {
       if (options::cbqiModel())
       {
@@ -328,9 +328,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
     return false;
   }
   NodeManager* nm = NodeManager::currentNM();
-  bool use_inf = ci->useVtsInfinity()
-                 && (d_type.isInteger() ? options::cbqiUseInfInt()
-                                        : options::cbqiUseInfReal());
+  bool use_inf = d_type.isInteger() ? options::cbqiUseInfInt()
+                                        : options::cbqiUseInfReal();
   bool upper_first = Random::getRandom().pickWithProb(0.5);
   if (options::cbqiMinBounds())
   {
@@ -504,7 +503,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         // if using cbqiMidpoint, only add the instance based on one bound if
         // the bound is non-strict
         if (!options::cbqiMidpoint() || d_type.isInteger()
-            || (ci->useVtsDelta() && d_mbp_vts_coeff[rr][1][best].isNull()))
+            || d_mbp_vts_coeff[rr][1][best].isNull())
         {
           Node val = d_mbp_bounds[rr][best];
           val = getModelBasedProjectionValue(ci,
