@@ -137,8 +137,7 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
   d_theta.pop_back();
 }
 
-CegInstantiator::CegInstantiator(Node q,
-                                 InstStrategyCegqi* parent)
+CegInstantiator::CegInstantiator(Node q, InstStrategyCegqi* parent)
     : d_quant(q),
       d_parent(parent),
       d_qe(parent->getQuantifiersEngine()),
