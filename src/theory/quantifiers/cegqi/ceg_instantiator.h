@@ -333,7 +333,7 @@ class CegInstantiator {
   /** The quantified formula of this instantiator */
   Node d_quant;
   /** The parent of this instantiator */
-  InstStrategyCegqi * d_parent;
+  InstStrategyCegqi* d_parent;
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
   /** whether we are using delta for virtual term substitution
@@ -612,18 +612,18 @@ class CegInstantiator {
  */
 class Instantiator {
 public:
-  Instantiator( TypeNode tn );
-  virtual ~Instantiator(){}
-  /** reset
-   * This is called once, prior to any of the below methods are called.
-   * This function sets up any initial information necessary for constructing
-   * instantiations for pv based on the current context.
-   */
-  virtual void reset(CegInstantiator* ci,
-                     SolvedForm& sf,
-                     Node pv,
-                     CegInstEffort effort)
-  {
+ Instantiator(TypeNode tn);
+ virtual ~Instantiator() {}
+ /** reset
+  * This is called once, prior to any of the below methods are called.
+  * This function sets up any initial information necessary for constructing
+  * instantiations for pv based on the current context.
+  */
+ virtual void reset(CegInstantiator* ci,
+                    SolvedForm& sf,
+                    Node pv,
+                    CegInstEffort effort)
+ {
   }
 
   /** has process equal term
@@ -818,14 +818,14 @@ public:
 
 class ModelValueInstantiator : public Instantiator {
 public:
-  ModelValueInstantiator(TypeNode tn ) : Instantiator( tn ){}
-  virtual ~ModelValueInstantiator(){}
-  bool useModelValue(CegInstantiator* ci,
-                     SolvedForm& sf,
-                     Node pv,
-                     CegInstEffort effort) override
-  {
-    return true;
+ ModelValueInstantiator(TypeNode tn) : Instantiator(tn) {}
+ virtual ~ModelValueInstantiator() {}
+ bool useModelValue(CegInstantiator* ci,
+                    SolvedForm& sf,
+                    Node pv,
+                    CegInstEffort effort) override
+ {
+   return true;
   }
   std::string identify() const override { return "ModelValue"; }
 };

@@ -19,10 +19,10 @@
 #define CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
 #include "theory/decision_manager.h"
+#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
-#include "theory/quantifiers/bv_inverter.h"
 
 namespace CVC4 {
 namespace theory {
