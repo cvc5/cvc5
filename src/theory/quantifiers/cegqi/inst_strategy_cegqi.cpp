@@ -627,8 +627,8 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
   {
     return it->second;
   }
-  Node g = NodeManager::currentNM()->mkSkolem(
-      "g", NodeManager::currentNM()->booleanType());
+  NodeManager * nm = NodeManager::currentNM();
+  Node g = nm->mkSkolem("g", nm->booleanType());
   // ensure that it is a SAT literal
   Node ceLit = d_quantEngine->getValuation().ensureLiteral(g);
   d_ce_lit[q] = ceLit;
