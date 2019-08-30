@@ -26,12 +26,12 @@
 #include "theory/decision_manager.h"
 
 namespace CVC4 {
-  
+
 class SortInference;
 
 namespace theory {
 namespace uf {
-  
+
 class TheoryUF;
 
 class CardinalityExtension
@@ -41,24 +41,25 @@ class CardinalityExtension
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashMap<TypeNode, bool, TypeNodeHashFunction> TypeNodeBoolMap;
+
  public:
   /**
    * Information for incremental conflict/clique finding for a
    * particular sort.
    */
-  class SortModel 
+  class SortModel
   {
    private:
     std::map< Node, std::vector< int > > d_totality_lems;
     std::map< TypeNode, std::map< int, std::vector< Node > > > d_sym_break_terms;
     std::map< Node, int > d_sym_break_index;
-   public:
 
+   public:
     /**
      * A partition of the current equality graph for which cliques
      * can occur internally.
      */
-    class Region 
+    class Region
     {
      public:
       /** information stored about each node in region */
@@ -292,8 +293,10 @@ class CardinalityExtension
     bool doSendLemma( Node lem );
 
    public:
-    SortModel( Node n, context::Context* c, context::UserContext* u,
-               CardinalityExtension* thss );
+    SortModel(Node n,
+              context::Context* c,
+              context::UserContext* u,
+              CardinalityExtension* thss);
     virtual ~SortModel();
     /** initialize */
     void initialize( OutputChannel* out );
@@ -359,8 +362,10 @@ class CardinalityExtension
   }; /** class SortModel */
 
  public:
-  CardinalityExtension(context::Context* c, context::UserContext* u,
-                       OutputChannel& out, TheoryUF* th);
+  CardinalityExtension(context::Context* c,
+                       context::UserContext* u,
+                       OutputChannel& out,
+                       TheoryUF* th);
   ~CardinalityExtension();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
@@ -469,7 +474,6 @@ class CardinalityExtension
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
 }; /* class CardinalityExtension */
-
 
 }/* CVC4::theory namespace::uf */
 }/* CVC4::theory namespace */

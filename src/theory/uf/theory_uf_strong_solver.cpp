@@ -563,8 +563,8 @@ void SortModel::merge( Node a, Node b ){
       }
       d_regions_map[b] = -1;
     }else{
-      Debug("uf-ss") << "CardinalityExtension: Merging "
-                     << a << " = " << b << "..." << std::endl;
+      Debug("uf-ss") << "CardinalityExtension: Merging " << a << " = " << b
+                     << "..." << std::endl;
       if( a!=b ){
         Assert( d_regions_map.find( a )!=d_regions_map.end() );
         Assert( d_regions_map.find( b )!=d_regions_map.end() );
@@ -619,8 +619,8 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
     }else{
       //if they are not already disequal
       eq::EqualityEngine* ee = d_thss->getTheory()->getEqualityEngine();
-      a = ee->getRepresentative( a );
-      b = ee->getRepresentative( b );
+      a = ee->getRepresentative(a);
+      b = ee->getRepresentative(b);
       int ai = d_regions_map[a];
       int bi = d_regions_map[b];
       if( !d_regions[ai]->isDisequal( a, b, ai==bi ) ){
@@ -659,8 +659,8 @@ void SortModel::assertDisequal( Node a, Node b, Node reason ){
 }
 
 bool SortModel::areDisequal( Node a, Node b ) {
-  Assert( a == d_thss->getTheory()->getEqualityEngine()->getRepresentative( a ) );
-  Assert( b == d_thss->getTheory()->getEqualityEngine()->getRepresentative( b ) );
+  Assert(a == d_thss->getTheory()->getEqualityEngine()->getRepresentative(a));
+  Assert(b == d_thss->getTheory()->getEqualityEngine()->getRepresentative(b));
   if( d_regions_map.find( a )!=d_regions_map.end() &&
       d_regions_map.find( b )!=d_regions_map.end() ){
     int ai = d_regions_map[a];
@@ -675,14 +675,15 @@ bool SortModel::areDisequal( Node a, Node b ) {
 void SortModel::check( Theory::Effort level, OutputChannel* out ){
   Assert( options::ufssMode()==UF_SS_FULL );
   if( level>=Theory::EFFORT_STANDARD && d_hasCard && !d_conflict ){
-    Debug("uf-ss") << "CardinalityExtension: Check " << level << " " << d_type << std::endl;
+    Debug("uf-ss") << "CardinalityExtension: Check " << level << " " << d_type
+                   << std::endl;
     if( level==Theory::EFFORT_FULL ){
       Debug("fmf-full-check") << std::endl;
       Debug("fmf-full-check") << "Full check for SortModel " << d_type << ", status : " << std::endl;
       debugPrint("fmf-full-check");
       Debug("fmf-full-check") << std::endl;
     }
-    //Notice() << "CardinalityExtension: Check " << level << std::endl;
+    // Notice() << "CardinalityExtension: Check " << level << std::endl;
     if( d_reps<=(unsigned)d_cardinality ){
       Debug("uf-ss-debug") << "We have " << d_reps << " representatives for type " << d_type << ", <= " << d_cardinality << std::endl;
       if( level==Theory::EFFORT_FULL ){
@@ -834,8 +835,9 @@ void SortModel::setSplitScore( Node n, int s ){
 void SortModel::assertCardinality( OutputChannel* out, int c, bool val ){
   if( !d_conflict ){
     Trace("uf-ss-assert")
-      << "Assert cardinality "<< d_type << " " << c << " " << val << " level = "
-      << d_thss->getTheory()->getValuation().getAssertionLevel() << std::endl;
+        << "Assert cardinality " << d_type << " " << c << " " << val
+        << " level = "
+        << d_thss->getTheory()->getValuation().getAssertionLevel() << std::endl;
     Assert( c>0 );
     Node cl = getCardinalityLiteral( c );
     if( val ){
@@ -1324,38 +1326,46 @@ CardinalityExtension::CardinalityExtension(context::Context* c,
   }
 }
 
-CardinalityExtension::~CardinalityExtension() {
+CardinalityExtension::~CardinalityExtension()
+{
   for (std::map<TypeNode, SortModel*>::iterator it = d_rep_model.begin();
        it != d_rep_model.end(); ++it) {
     delete it->second;
   }
 }
 
-SortInference* CardinalityExtension::getSortInference() {
+SortInference* CardinalityExtension::getSortInference()
+{
   return d_th->getQuantifiersEngine()->getTheoryEngine()->getSortInference();
 }
 
 /** get default sat context */
-context::Context* CardinalityExtension::getSatContext() {
+context::Context* CardinalityExtension::getSatContext()
+{
   return d_th->getSatContext();
 }
 
 /** get default output channel */
-OutputChannel& CardinalityExtension::getOutputChannel() {
+OutputChannel& CardinalityExtension::getOutputChannel()
+{
   return d_th->getOutputChannel();
 }
 
 /** ensure eqc */
-void CardinalityExtension::ensureEqc( SortModel* c, Node a ) {
+void CardinalityExtension::ensureEqc(SortModel* c, Node a)
+{
   if( !hasEqc( a ) ){
     d_rel_eqc[a] = true;
-    Trace("uf-ss-solver") << "CardinalityExtension: New eq class " << a << " : " << a.getType() << std::endl;
+    Trace("uf-ss-solver") << "CardinalityExtension: New eq class " << a << " : "
+                          << a.getType() << std::endl;
     c->newEqClass( a );
-    Trace("uf-ss-solver") << "CardinalityExtension: Done New eq class." << std::endl;
+    Trace("uf-ss-solver") << "CardinalityExtension: Done New eq class."
+                          << std::endl;
   }
 }
 
-void CardinalityExtension::ensureEqcRec( Node n ) {
+void CardinalityExtension::ensureEqcRec(Node n)
+{
   if( !hasEqc( n ) ){
     SortModel* c = getSortModel( n );
     if( c ){
@@ -1368,34 +1378,40 @@ void CardinalityExtension::ensureEqcRec( Node n ) {
 }
 
 /** has eqc */
-bool CardinalityExtension::hasEqc( Node a ) {
+bool CardinalityExtension::hasEqc(Node a)
+{
   NodeBoolMap::iterator it = d_rel_eqc.find( a );
   return it!=d_rel_eqc.end() && (*it).second;
 }
 
 /** new node */
-void CardinalityExtension::newEqClass( Node a ){
+void CardinalityExtension::newEqClass(Node a)
+{
   SortModel* c = getSortModel( a );
   if( c ){
 #ifdef LAZY_REL_EQC
     //do nothing
 #else
-    Trace("uf-ss-solver") << "CardinalityExtension: New eq class " << a << " : " << a.getType() << std::endl;
+    Trace("uf-ss-solver") << "CardinalityExtension: New eq class " << a << " : "
+                          << a.getType() << std::endl;
     c->newEqClass( a );
-    Trace("uf-ss-solver") << "CardinalityExtension: Done New eq class." << std::endl;
+    Trace("uf-ss-solver") << "CardinalityExtension: Done New eq class."
+                          << std::endl;
 #endif
   }
 }
 
 /** merge */
-void CardinalityExtension::merge( Node a, Node b ){
+void CardinalityExtension::merge(Node a, Node b)
+{
   //TODO: ensure they are relevant
   SortModel* c = getSortModel( a );
   if( c ){
 #ifdef LAZY_REL_EQC
     ensureEqc( c, a );
     if( hasEqc( b ) ){
-      Trace("uf-ss-solver") << "CardinalityExtension: Merge " << a << " " << b << " : " << a.getType() << std::endl;
+      Trace("uf-ss-solver") << "CardinalityExtension: Merge " << a << " " << b
+                            << " : " << a.getType() << std::endl;
       c->merge( a, b );
       Trace("uf-ss-solver") << "CardinalityExtension: Done Merge." << std::endl;
     }else{
@@ -1403,7 +1419,8 @@ void CardinalityExtension::merge( Node a, Node b ){
       d_rel_eqc[b] = true;
     }
 #else
-    Trace("uf-ss-solver") << "CardinalityExtension: Merge " << a << " " << b << " : " << a.getType() << std::endl;
+    Trace("uf-ss-solver") << "CardinalityExtension: Merge " << a << " " << b
+                          << " : " << a.getType() << std::endl;
     c->merge( a, b );
     Trace("uf-ss-solver") << "CardinalityExtension: Done Merge." << std::endl;
 #endif
@@ -1411,21 +1428,25 @@ void CardinalityExtension::merge( Node a, Node b ){
 }
 
 /** assert terms are disequal */
-void CardinalityExtension::assertDisequal( Node a, Node b, Node reason ){
+void CardinalityExtension::assertDisequal(Node a, Node b, Node reason)
+{
   SortModel* c = getSortModel( a );
   if( c ){
 #ifdef LAZY_REL_EQC
     ensureEqc( c, a );
     ensureEqc( c, b );
 #endif
-    Trace("uf-ss-solver") << "CardinalityExtension: Assert disequal " << a << " " << b << " : " << a.getType() << std::endl;
+    Trace("uf-ss-solver") << "CardinalityExtension: Assert disequal " << a
+                          << " " << b << " : " << a.getType() << std::endl;
     c->assertDisequal( a, b, reason );
-    Trace("uf-ss-solver") << "CardinalityExtension: Done Assert disequal." << std::endl;
+    Trace("uf-ss-solver") << "CardinalityExtension: Done Assert disequal."
+                          << std::endl;
   }
 }
 
 /** assert a node */
-void CardinalityExtension::assertNode( Node n, bool isDecision ){
+void CardinalityExtension::assertNode(Node n, bool isDecision)
+{
   Trace("uf-ss") << "Assert " << n << " " << isDecision << std::endl;
 #ifdef LAZY_REL_EQC
   ensureEqcRec( n );
@@ -1523,28 +1544,33 @@ void CardinalityExtension::assertNode( Node n, bool isDecision ){
   Trace("uf-ss") << "Assert: done " << n << " " << isDecision << std::endl;
 }
 
-bool CardinalityExtension::areDisequal( Node a, Node b ) {
+bool CardinalityExtension::areDisequal(Node a, Node b)
+{
   if( a==b ){
     return false;
   }
-  eq::EqualityEngine * ee = d_th->getEqualityEngine();
-  a = ee->getRepresentative( a );
-  b = ee->getRepresentative( b );
-  if( ee->areDisequal( a, b, false ) ){
+  eq::EqualityEngine* ee = d_th->getEqualityEngine();
+  a = ee->getRepresentative(a);
+  b = ee->getRepresentative(b);
+  if (ee->areDisequal(a, b, false))
+  {
     return true;
   }
-  SortModel* c = getSortModel( a );
-  if( c ){
-    return c->areDisequal( a, b );
+  SortModel* c = getSortModel(a);
+  if (c)
+  {
+    return c->areDisequal(a, b);
   }
   return false;
 }
 
 /** check */
-void CardinalityExtension::check( Theory::Effort level ){
+void CardinalityExtension::check(Theory::Effort level)
+{
   if( !d_conflict ){
     if( options::ufssMode()==UF_SS_FULL ){
-      Trace("uf-ss-solver") << "CardinalityExtension: check " << level << std::endl;
+      Trace("uf-ss-solver")
+          << "CardinalityExtension: check " << level << std::endl;
       if (level == Theory::EFFORT_FULL)
       {
         if (Debug.isOn("uf-ss-debug"))
@@ -1605,11 +1631,13 @@ void CardinalityExtension::check( Theory::Effort level ){
       // unhandled uf ss mode
       Assert( false );
     }
-    Trace("uf-ss-solver") << "Done CardinalityExtension: check " << level << std::endl;
+    Trace("uf-ss-solver") << "Done CardinalityExtension: check " << level
+                          << std::endl;
   }
 }
 
-void CardinalityExtension::presolve() {
+void CardinalityExtension::presolve()
+{
   d_initializedCombinedCardinality = false;
   for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
     it->second->presolve();
@@ -1636,7 +1664,8 @@ CardinalityExtension::CombinedCardinalityDecisionStrategy::identify() const
   return std::string("uf_combined_card");
 }
 
-void CardinalityExtension::preRegisterTerm( TNode n ){
+void CardinalityExtension::preRegisterTerm(TNode n)
+{
   if( options::ufssMode()==UF_SS_FULL ){
     //initialize combined cardinality
     initializeCombinedCardinality();
@@ -1678,17 +1707,17 @@ void CardinalityExtension::preRegisterTerm( TNode n ){
   }
 }
 
-//void CardinalityExtension::registerQuantifier( Node f ){
+// void CardinalityExtension::registerQuantifier( Node f ){
 //  Debug("uf-ss-register") << "Register quantifier " << f << std::endl;
-  //must ensure the quantifier does not quantify over arithmetic
-  //for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-  //  TypeNode tn = f[0][i].getType();
-  //  preRegisterType( tn, true );
-  //}
+// must ensure the quantifier does not quantify over arithmetic
+// for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
+//  TypeNode tn = f[0][i].getType();
+//  preRegisterType( tn, true );
+//}
 //}
 
-
-SortModel* CardinalityExtension::getSortModel( Node n ){
+SortModel* CardinalityExtension::getSortModel(Node n)
+{
   TypeNode tn = n.getType();
   std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
   //pre-register the type if not done already
@@ -1704,7 +1733,8 @@ SortModel* CardinalityExtension::getSortModel( Node n ){
 }
 
 /** get cardinality for sort */
-int CardinalityExtension::getCardinality( Node n ) {
+int CardinalityExtension::getCardinality(Node n)
+{
   SortModel* c = getSortModel( n );
   if( c ){
     return c->getCardinality();
@@ -1713,7 +1743,8 @@ int CardinalityExtension::getCardinality( Node n ) {
   }
 }
 
-int CardinalityExtension::getCardinality( TypeNode tn ) {
+int CardinalityExtension::getCardinality(TypeNode tn)
+{
   std::map< TypeNode, SortModel* >::iterator it = d_rep_model.find( tn );
   if( it!=d_rep_model.end() && it->second ){
     return it->second->getCardinality();
@@ -1722,7 +1753,8 @@ int CardinalityExtension::getCardinality( TypeNode tn ) {
 }
 
 //print debug
-void CardinalityExtension::debugPrint( const char* c ){
+void CardinalityExtension::debugPrint(const char* c)
+{
   for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
     Debug( c ) << "Conflict find structure for " << it->first << ": " << std::endl;
     it->second->debugPrint( c );
@@ -1730,7 +1762,8 @@ void CardinalityExtension::debugPrint( const char* c ){
   }
 }
 
-bool CardinalityExtension::debugModel( TheoryModel* m ){
+bool CardinalityExtension::debugModel(TheoryModel* m)
+{
   for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
     if( !it->second->debugModel( m ) ){
       return false;
@@ -1740,7 +1773,8 @@ bool CardinalityExtension::debugModel( TheoryModel* m ){
 }
 
 /** initialize */
-void CardinalityExtension::initializeCombinedCardinality() {
+void CardinalityExtension::initializeCombinedCardinality()
+{
   if (d_cc_dec_strat.get() != nullptr
       && !d_initializedCombinedCardinality.get())
   {
@@ -1751,7 +1785,8 @@ void CardinalityExtension::initializeCombinedCardinality() {
 }
 
 /** check */
-void CardinalityExtension::checkCombinedCardinality() {
+void CardinalityExtension::checkCombinedCardinality()
+{
   Assert( options::ufssMode()==UF_SS_FULL );
   if( options::ufssFairness() ){
     Trace("uf-ss-com-card-debug") << "Check combined cardinality, get maximum negative cardinalities..." << std::endl;
@@ -1831,13 +1866,13 @@ void CardinalityExtension::checkCombinedCardinality() {
   }
 }
 
-CardinalityExtension::Statistics::Statistics():
-  d_clique_conflicts("CardinalityExtension::Clique_Conflicts", 0),
-  d_clique_lemmas("CardinalityExtension::Clique_Lemmas", 0),
-  d_split_lemmas("CardinalityExtension::Split_Lemmas", 0),
-  d_disamb_term_lemmas("CardinalityExtension::Disambiguate_Term_Lemmas", 0),
-  d_totality_lemmas("CardinalityExtension::Totality_Lemmas", 0),
-  d_max_model_size("CardinalityExtension::Max_Model_Size", 1)
+CardinalityExtension::Statistics::Statistics()
+    : d_clique_conflicts("CardinalityExtension::Clique_Conflicts", 0),
+      d_clique_lemmas("CardinalityExtension::Clique_Lemmas", 0),
+      d_split_lemmas("CardinalityExtension::Split_Lemmas", 0),
+      d_disamb_term_lemmas("CardinalityExtension::Disambiguate_Term_Lemmas", 0),
+      d_totality_lemmas("CardinalityExtension::Totality_Lemmas", 0),
+      d_max_model_size("CardinalityExtension::Max_Model_Size", 1)
 {
   smtStatisticsRegistry()->registerStat(&d_clique_conflicts);
   smtStatisticsRegistry()->registerStat(&d_clique_lemmas);
@@ -1847,7 +1882,8 @@ CardinalityExtension::Statistics::Statistics():
   smtStatisticsRegistry()->registerStat(&d_max_model_size);
 }
 
-CardinalityExtension::Statistics::~Statistics(){
+CardinalityExtension::Statistics::~Statistics()
+{
   smtStatisticsRegistry()->unregisterStat(&d_clique_conflicts);
   smtStatisticsRegistry()->unregisterStat(&d_clique_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_split_lemmas);
