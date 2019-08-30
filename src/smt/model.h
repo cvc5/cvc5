@@ -99,8 +99,9 @@ class Model {
   /** get the domain elements for uninterpreted sort s
    *
    * This method is gets the interpretation of an uninterpreted sort s.
-   * All models interpret uninterpreted sort s as a finite set
-   * of domain elements v_1, ..., v_n. This method returns this list.
+   * All models interpret uninterpreted sorts s as finite sets
+   * of domain elements v_1, ..., v_n. This method returns this list for s in
+   * this model.
    */
   virtual std::vector<Expr> getDomainElements(Type t) const = 0;
 };/* class Model */
