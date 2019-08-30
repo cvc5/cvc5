@@ -1940,7 +1940,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         matchcases.push_back(f);
       }
       RPAREN_TOK
-      // casargse with non-nullary pattern
+      // case with non-nullary pattern
       | LPAREN_TOK LPAREN_TOK term[f, f2] {
           args.clear();
           PARSER_STATE->pushScope(true);
