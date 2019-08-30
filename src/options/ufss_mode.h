@@ -23,17 +23,18 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-/** 
+/**
  * These modes determine the role of UF with cardinality when using finite model
  * finding (--finite-model-find).
  */
-enum UfssMode{
-  /** 
+enum UfssMode
+{
+  /**
    * Default, use UF with cardinality to find minimal models for uninterpreted
-   * sorts. 
+   * sorts.
    */
   UF_SS_FULL,
-  /** 
+  /**
    * Use UF with cardinality to shrink model sizes, but do no enforce
    * minimality.
    */
