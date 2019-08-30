@@ -541,15 +541,13 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::LAMBDA:
     out << smtKindString(k, d_variant) << " ";
     break;
-  case kind::MATCH:
-    out << smtKindString(k,d_variant) << " ";
-    break;
+  case kind::MATCH: out << smtKindString(k, d_variant) << " "; break;
   case kind::MATCH_CASE_LIST:
   case kind::MATCH_CASE:
   case kind::MATCH_BIND_CASE:
     // do nothing
     break;
-    
+
   // arith theory
   case kind::PLUS:
   case kind::MULT:
@@ -1024,8 +1022,7 @@ static string smtKindString(Kind k, Variant v)
 
   case kind::LAMBDA:
     return "lambda";
-  case kind::MATCH:
-    return "match";
+  case kind::MATCH: return "match";
 
   // arith theory
   case kind::PLUS: return "+";
