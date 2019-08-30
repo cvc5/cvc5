@@ -683,7 +683,6 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
       debugPrint("fmf-full-check");
       Debug("fmf-full-check") << std::endl;
     }
-    // Notice() << "CardinalityExtension: Check " << level << std::endl;
     if( d_reps<=(unsigned)d_cardinality ){
       Debug("uf-ss-debug") << "We have " << d_reps << " representatives for type " << d_type << ", <= " << d_cardinality << std::endl;
       if( level==Theory::EFFORT_FULL ){
@@ -1706,15 +1705,6 @@ void CardinalityExtension::preRegisterTerm(TNode n)
     }
   }
 }
-
-// void CardinalityExtension::registerQuantifier( Node f ){
-//  Debug("uf-ss-register") << "Register quantifier " << f << std::endl;
-// must ensure the quantifier does not quantify over arithmetic
-// for( int i=0; i<(int)f[0].getNumChildren(); i++ ){
-//  TypeNode tn = f[0][i].getType();
-//  preRegisterType( tn, true );
-//}
-//}
 
 SortModel* CardinalityExtension::getSortModel(Node n)
 {
