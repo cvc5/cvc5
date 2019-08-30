@@ -429,30 +429,37 @@ class DtSyguEvalTypeRule
   }
 }; /* class DtSyguEvalTypeRule */
 
-class MatchTypeRule {
+class MatchTypeRule
+{
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    Assert(n.getKind()==kind::MATCH);
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::MATCH);
     TypeNode retType = n[1].getType(check);
-    if( check )
+    if (check)
     {
       TypeNode headType = n[0].getType(check);
-      if( !headType.isDatatype() )
+      if (!headType.isDatatype())
       {
-        throw TypeCheckingExceptionPrivate(n, "expecting datatype head in match");
+        throw TypeCheckingExceptionPrivate(n,
+                                           "expecting datatype head in match");
       }
-      // must match the patterns 
-      for( const Node& nc : n[1] )
+      // must match the patterns
+      for (const Node& nc : n[1])
       {
-        if (nc.getKind() != kind::MATCH_CASE) 
+        if (nc.getKind() != kind::MATCH_CASE)
         {
-          throw TypeCheckingExceptionPrivate(n, "expected a match case in match");
+          throw TypeCheckingExceptionPrivate(n,
+                                             "expected a match case in match");
         }
         TypeNode patType = nc[0].getType();
-        if( patType!=headType )
+        if (patType != headType)
         {
-          throw TypeCheckingExceptionPrivate(n, "pattern of a match case does not match the head type in match");
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "pattern of a match case does not match the head type in match");
         }
       }
     }
@@ -460,34 +467,39 @@ class MatchTypeRule {
   }
 }; /* class MatchTypeRule */
 
-class MatchCaseListTypeRule {
+class MatchCaseListTypeRule
+{
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    Assert(n.getKind()==kind::MATCH_CASE_LIST);
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::MATCH_CASE_LIST);
     TypeNode retType;
-    for( unsigned i=0, nchildren = n.getNumChildren(); i<nchildren; i++ )
+    for (unsigned i = 0, nchildren = n.getNumChildren(); i < nchildren; i++)
     {
       Node nc = n[i];
-      if (nc.getKind() != kind::MATCH_CASE) 
+      if (nc.getKind() != kind::MATCH_CASE)
       {
         // allow the last child to be a non-match case (for the default case)
-        if( i<nchildren-1 )
+        if (i < nchildren - 1)
         {
-          throw TypeCheckingExceptionPrivate(n, "expected a match case in match case list");
+          throw TypeCheckingExceptionPrivate(
+              n, "expected a match case in match case list");
         }
       }
       TypeNode currType = nc.getType(check);
-      if( i==0 )
+      if (i == 0)
       {
         retType = currType;
       }
       else
       {
         retType = TypeNode::leastCommonTypeNode(retType, currType);
-        if( retType.isNull() )
+        if (retType.isNull())
         {
-          throw TypeCheckingExceptionPrivate(n, "incomparable types in match case list");
+          throw TypeCheckingExceptionPrivate(
+              n, "incomparable types in match case list");
         }
       }
     }
@@ -495,21 +507,26 @@ class MatchCaseListTypeRule {
   }
 }; /* class MatchCaseListTypeRule */
 
-class MatchCaseTypeRule {
+class MatchCaseTypeRule
+{
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    Assert(n.getKind()==kind::MATCH_CASE);
-    if( check )
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::MATCH_CASE);
+    if (check)
     {
-      if (n[0].getKind() != kind::BOUND_VAR_LIST) 
+      if (n[0].getKind() != kind::BOUND_VAR_LIST)
       {
-        throw TypeCheckingExceptionPrivate(n, "expected a bound variable in match case");
+        throw TypeCheckingExceptionPrivate(
+            n, "expected a bound variable in match case");
       }
       TypeNode patType = n[1].getType(check);
-      if( !patType.isDatatype() )
+      if (!patType.isDatatype())
       {
-        throw TypeCheckingExceptionPrivate(n, "expecting datatype pattern in match case");
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting datatype pattern in match case");
       }
     }
     return n[2].getType(check);
