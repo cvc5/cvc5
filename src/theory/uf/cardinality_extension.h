@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_uf_strong_solver.h
+/*! \file cardinality_extension.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Theory uf strong solver
+ ** \brief Theory of UF with cardinality.
  **/
 
 #include "cvc4_private.h"
@@ -26,19 +26,15 @@
 #include "theory/decision_manager.h"
 
 namespace CVC4 {
+  
 class SortInference;
+
 namespace theory {
 namespace uf {
+  
 class TheoryUF;
-} /* namespace CVC4::theory::uf */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
 
-namespace CVC4 {
-namespace theory {
-namespace uf {
-
-class StrongSolverTheoryUF{
+class CardinalityExtension{
 protected:
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
@@ -213,7 +209,7 @@ public:
     /** the type this model is for */
     TypeNode d_type;
     /** strong solver pointer */
-    StrongSolverTheoryUF* d_thss;
+    CardinalityExtension* d_thss;
     /** regions used to d_region_index */
     context::CDO< unsigned > d_regions_index;
     /** vector of regions */
@@ -294,7 +290,7 @@ public:
 
   public:
     SortModel( Node n, context::Context* c, context::UserContext* u,
-               StrongSolverTheoryUF* thss );
+               CardinalityExtension* thss );
     virtual ~SortModel();
     /** initialize */
     void initialize( OutputChannel* out );
@@ -360,9 +356,9 @@ public:
   }; /** class SortModel */
 
 public:
-  StrongSolverTheoryUF(context::Context* c, context::UserContext* u,
+  CardinalityExtension(context::Context* c, context::UserContext* u,
                        OutputChannel& out, TheoryUF* th);
-  ~StrongSolverTheoryUF();
+  ~CardinalityExtension();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
   /** get sort inference module */
@@ -388,7 +384,7 @@ public:
   /** preregister a term */
   void preRegisterTerm( TNode n );
   /** identify */
-  std::string identify() const { return std::string("StrongSolverTheoryUF"); }
+  std::string identify() const { return std::string("CardinalityExtension"); }
   //print debug
   void debugPrint( const char* c );
   /** debug a model */
@@ -469,7 +465,7 @@ public:
   context::CDO<int> d_min_pos_tn_master_card;
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
-}; /* class StrongSolverTheoryUF */
+}; /* class CardinalityExtension */
 
 
 }/* CVC4::theory namespace::uf */

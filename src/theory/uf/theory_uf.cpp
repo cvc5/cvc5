@@ -31,7 +31,7 @@
 #include "theory/type_enumerator.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/uf/theory_uf_strong_solver.h"
+#include "theory/uf/cardinality_extension.h"
 
 using namespace std;
 
@@ -81,7 +81,7 @@ void TheoryUF::finishInit() {
   if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind()
       && options::ufssMode() != UF_SS_NONE)
   {
-    d_thss.reset(new StrongSolverTheoryUF(
+    d_thss.reset(new CardinalityExtension(
         getSatContext(), getUserContext(), *d_out, this));
   }
   if (options::ufHo())
