@@ -451,13 +451,13 @@ class MatchTypeRule
       {
         unsigned pindex = 0;
         Kind nck = nc.getKind();
-        if( nck == kind::MATCH_BIND_CASE )
+        if (nck == kind::MATCH_BIND_CASE)
         {
           pindex = 1;
         }
         else if (nck != kind::MATCH_CASE)
         {
-          //default case
+          // default case
           continue;
         }
         TypeNode patType = nc[pindex].getType();
