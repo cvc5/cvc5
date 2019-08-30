@@ -148,22 +148,22 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
-  else if (k==MATCH)
+  else if (k == MATCH)
   {
     Node h = in[0];
-    std::vector< Node > cases;
-    std::vector< Node > rets;
+    std::vector<Node> cases;
+    std::vector<Node> rets;
     TypeNode t = h.getType();
     const Datatype& dt = t.getDatatype();
-    for( const Node& c : in[1] )
+    for (const Node& c : in[1])
     {
       Node cons;
       Kind ck = c.getKind();
-      if( ck==MATCH_CASE )
+      if (ck == MATCH_CASE)
       {
         cons = c[0].getOperator();
       }
-      else if( ck==MATCH_BIND_CASE )
+      else if (ck == MATCH_BIND_CASE)
       {
         cons = c[1].getOperator();
       }
@@ -174,42 +174,45 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       unsigned cindex = Datatype::indexOf(cons.toExpr());
       Node body;
-      if( ck==MATCH_CASE )
+      if (ck == MATCH_CASE)
       {
         body = c[1];
       }
-      else if( ck==MATCH_BIND_CASE )
+      else if (ck == MATCH_BIND_CASE)
       {
-        std::vector< Node > vars;
-        std::vector< Node > subs;
-        for (unsigned i=0, vsize=c[0].getNumChildren(); i<vsize; i++ )
+        std::vector<Node> vars;
+        std::vector<Node> subs;
+        for (unsigned i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
         {
           vars.push_back(c[0][i]);
-          Node sc = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                              Node::fromExpr(dt[cindex].getSelectorInternal(t.toType(), i)),
-                              h);
+          Node sc = nm->mkNode(
+              APPLY_SELECTOR_TOTAL,
+              Node::fromExpr(dt[cindex].getSelectorInternal(t.toType(), i)),
+              h);
           subs.push_back(sc);
         }
-        body = c[2].substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
+        body =
+            c[2].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       }
-      cases.push_back(mkTester(h,cindex,dt));
+      cases.push_back(mkTester(h, cindex, dt));
       rets.push_back(body);
     }
-    Assert( !cases.empty() );
+    Assert(!cases.empty());
     // now make the ITE
-    std::reverse(cases.begin(),cases.end());
-    std::reverse(rets.begin(),rets.end());
+    std::reverse(cases.begin(), cases.end());
+    std::reverse(rets.begin(), rets.end());
     Node ret = rets[0];
-    if( !cases[0].isNull() && cases.size()<dt.getNumConstructors() )
+    if (!cases[0].isNull() && cases.size() < dt.getNumConstructors())
     {
       // did not fully specify the match
       AlwaysAssert(false);
     }
-    for( unsigned i=1, ncases=cases.size(); i<ncases; i++ )
+    for (unsigned i = 1, ncases = cases.size(); i < ncases; i++)
     {
-      ret = nm->mkNode(ITE, cases[i], rets[i], ret );
+      ret = nm->mkNode(ITE, cases[i], rets[i], ret);
     }
-    Trace("dt-rewrite-match") << "Rewrite match: " << in << " ... " << ret << std::endl;
+    Trace("dt-rewrite-match")
+        << "Rewrite match: " << in << " ... " << ret << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
 
