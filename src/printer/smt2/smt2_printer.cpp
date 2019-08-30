@@ -1369,7 +1369,7 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     // print out the DeclareTypeCommand
     Type t = (*dtc).getType();
-    if( !t.isSort() )
+    if (!t.isSort())
     {
       out << (*dtc) << endl;
     }

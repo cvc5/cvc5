@@ -120,11 +120,11 @@ std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
 std::vector<Expr> TheoryModel::getDomainElements(Type t) const
 {
   // must be an uninterpreted sort
-  Assert( t.isSort() );
+  Assert(t.isSort());
   std::vector<Expr> elements;
   TypeNode tn = TypeNode::fromType(t);
   const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
-  if( type_refs==nullptr || type_refs->empty() )
+  if (type_refs == nullptr || type_refs->empty())
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
