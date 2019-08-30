@@ -862,6 +862,8 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/re.all.smt2
+  regress0/strings/regexp_inclusion.smt2
+  regress0/strings/regexp_inclusion_reduction.smt2
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-const.smt2
   regress0/strings/replaceall-eval.smt2
