@@ -844,6 +844,7 @@ set(regress_0_tests
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
   regress0/strings/bug613.smt2
+  regress0/strings/code-perf.smt2
   regress0/strings/code-sat-neg-one.smt2
   regress0/strings/escchar.smt2
   regress0/strings/escchar_25.smt2
@@ -1824,6 +1825,7 @@ set(regress_2_tests
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
+  regress2/strings/range-perf.smt2
   regress2/strings/repl-repl.smt2
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
