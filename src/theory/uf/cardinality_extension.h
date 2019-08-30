@@ -34,30 +34,33 @@ namespace uf {
   
 class TheoryUF;
 
-class CardinalityExtension{
-protected:
+class CardinalityExtension
+{
+ protected:
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashMap<TypeNode, bool, TypeNodeHashFunction> TypeNodeBoolMap;
-public:
+ public:
   /**
    * Information for incremental conflict/clique finding for a
    * particular sort.
    */
-  class SortModel {
-  private:
+  class SortModel 
+  {
+   private:
     std::map< Node, std::vector< int > > d_totality_lems;
     std::map< TypeNode, std::map< int, std::vector< Node > > > d_sym_break_terms;
     std::map< Node, int > d_sym_break_index;
-  public:
+   public:
 
     /**
      * A partition of the current equality graph for which cliques
      * can occur internally.
      */
-    class Region {
-    public:
+    class Region 
+    {
+     public:
       /** information stored about each node in region */
       class RegionNodeInfo {
       public:
@@ -91,7 +94,7 @@ public:
           context::CDO< int > d_size;
           NodeBoolMap d_disequalities;
         }; /* class DiseqList */
-      public:
+       public:
         /** constructor */
         RegionNodeInfo( context::Context* c )
           : d_internal(c), d_external(c), d_valid(c, true) {
@@ -115,7 +118,7 @@ public:
 
         DiseqList* get(unsigned i) { return d_disequalities[i]; }
 
-      private:
+       private:
         DiseqList d_internal;
         DiseqList d_external;
         context::CDO< bool > d_valid;
@@ -145,7 +148,7 @@ public:
       //whether region is valid
       context::CDO< bool > d_valid;
 
-    public:
+     public:
       //constructor
       Region( SortModel* cf, context::Context* c );
       virtual ~Region();
@@ -205,7 +208,7 @@ public:
       Node frontKey() const { return d_nodes.begin()->first; }
     }; /* class Region */
 
-  private:
+   private:
     /** the type this model is for */
     TypeNode d_type;
     /** strong solver pointer */
@@ -288,7 +291,7 @@ public:
 
     bool doSendLemma( Node lem );
 
-  public:
+   public:
     SortModel( Node n, context::Context* c, context::UserContext* u,
                CardinalityExtension* thss );
     virtual ~SortModel();
@@ -355,7 +358,7 @@ public:
     std::unique_ptr<CardinalityDecisionStrategy> d_c_dec_strat;
   }; /** class SortModel */
 
-public:
+ public:
   CardinalityExtension(context::Context* c, context::UserContext* u,
                        OutputChannel& out, TheoryUF* th);
   ~CardinalityExtension();
