@@ -19,7 +19,6 @@
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
-#include "context/context_mm.h"
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
 
@@ -34,13 +33,17 @@ namespace uf {
 
 class TheoryUF;
 
+/**
+ * This module implements a theory solver for UF with cardinality constraints.
+ * For high level details, see Reynolds et al "Finite Model Finding in SMT",
+ * CAV 2013, or Reynolds dissertation "Finite Model Finding in Satisfiability
+ * Modulo Theories".
+ */
 class CardinalityExtension
 {
  protected:
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
-  typedef context::CDHashMap<TypeNode, bool, TypeNodeHashFunction> TypeNodeBoolMap;
 
  public:
   /**
