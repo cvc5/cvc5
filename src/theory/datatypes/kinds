@@ -121,7 +121,7 @@ typerule DT_SYGUS_EVAL ::CVC4::theory::datatypes::DtSyguEvalTypeRule
 
 operator MATCH 2 "match construct"
 operator MATCH_CASE_LIST 1: "a list of match cases"
-operator MATCH_CASE 2 "a match case"
+operator MATCH_CASE 3 "a match case"
 
 typerule MATCH ::CVC4::theory::datatypes::MatchTypeRule
 typerule MATCH_CASE_LIST ::CVC4::theory::datatypes::MatchCaseListTypeRule

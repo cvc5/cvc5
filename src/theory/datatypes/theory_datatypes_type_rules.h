@@ -502,13 +502,17 @@ class MatchCaseTypeRule {
     Assert(n.getKind()==kind::MATCH_CASE);
     if( check )
     {
-      TypeNode patType = n[0].getType(check);
+      if (n[0].getKind() != kind::BOUND_VAR_LIST) 
+      {
+        throw TypeCheckingExceptionPrivate(n, "expected a bound variable in match case");
+      }
+      TypeNode patType = n[1].getType(check);
       if( !patType.isDatatype() )
       {
         throw TypeCheckingExceptionPrivate(n, "expecting datatype pattern in match case");
       }
     }
-    return n[1].getType(check);
+    return n[2].getType(check);
   }
 }; /* class MatchCaseTypeRule */
 
