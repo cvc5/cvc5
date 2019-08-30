@@ -17,7 +17,7 @@
 (declare-const r Loc)
 
 (define-fun ten-tree0 ((x Loc) (d Int)) Bool 
-(or (and (emp loc0 data0) (= x (as sep.nil Loc))) (and (sep (pto x (node d l r)) (and (emp loc0 data0) (= l (as sep.nil Loc))) (and (emp loc0 data0) (= r (as sep.nil Loc)))) (= dl (- d 10)) (= dr (+ d 10)))))
+(or (and (_ emp Loc Node) (= x (as sep.nil Loc))) (and (sep (pto x (node d l r)) (and (_ emp Loc Node) (= l (as sep.nil Loc))) (and (_ emp Loc Node) (= r (as sep.nil Loc)))) (= dl (- d 10)) (= dr (+ d 10)))))
 
 (declare-const dy Int)
 (declare-const y Loc)
@@ -25,7 +25,7 @@
 (declare-const z Loc)
 
 (define-fun ord-tree0 ((x Loc) (d Int)) Bool 
-(or (and (emp loc0 data0) (= x (as sep.nil Loc))) (and (sep (pto x (node d y z)) (and (emp loc0 data0) (= y (as sep.nil Loc))) (and (emp loc0 data0) (= z (as sep.nil Loc)))) (<= dy d) (<= d dz))))
+(or (and (_ emp Loc Node) (= x (as sep.nil Loc))) (and (sep (pto x (node d y z)) (and (_ emp Loc Node) (= y (as sep.nil Loc))) (and (_ emp Loc Node) (= z (as sep.nil Loc)))) (<= dy d) (<= d dz))))
 
 ;------- f -------
 (assert (= y (as sep.nil Loc)))

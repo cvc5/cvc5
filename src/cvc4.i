@@ -1,11 +1,3 @@
-// We safely ignore some C++11 keywords that older versions of SWIG cannot
-// handle.
-#if SWIG_VERSION < 0x030000
-%define final %enddef
-%define override %enddef
-%define noexcept %enddef
-#endif
-
 %import "bindings/swig.h"
 
 %include "stdint.i"
@@ -64,6 +56,7 @@ using namespace CVC4;
 #include "options/option_exception.h"
 #include "smt/command.h"
 #include "util/bitvector.h"
+#include "util/floatingpoint.h"
 #include "util/integer.h"
 #include "util/sexpr.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -321,6 +314,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/integer.i"
 %include "util/rational.i"
 %include "util/bitvector.i"
+%include "util/floatingpoint.i"
 
 // Tim: The remainder of util/.
 %include "util/bool.i"

@@ -2,9 +2,9 @@
 /*! \file type_node.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Martin Brain
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,8 @@
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef __CVC4__TYPE_NODE_H
-#define __CVC4__TYPE_NODE_H
+#ifndef CVC4__TYPE_NODE_H
+#define CVC4__TYPE_NODE_H
 
 #include <stdint.h>
 
@@ -427,8 +427,20 @@ public:
    * If finite model finding is enabled, this assumes all uninterpreted sorts 
    *   are interpreted as finite.
    */
-  bool isInterpretedFinite() const;
+  bool isInterpretedFinite();
 
+  /** is closed enumerable type
+   *
+   * This returns true if this type has an enumerator that produces constants
+   * that are fully handled by CVC4's quantifier-free theory solvers. Examples
+   * of types that are not closed enumerable are:
+   * (1) uninterpreted sorts,
+   * (2) arrays,
+   * (3) codatatypes,
+   * (4) functions,
+   * (5) parametric sorts involving any of the above.
+   */
+  bool isClosedEnumerable();
 
   /**
    * Is this a first-class type?
@@ -1060,4 +1072,4 @@ static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_H */
+#endif /* CVC4__NODE_H */

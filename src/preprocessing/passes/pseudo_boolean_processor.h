@@ -2,9 +2,9 @@
 /*! \file pseudo_boolean_processor.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng
+ **   Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
-#define __CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
+#ifndef CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
+#define CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
 
 #include <unordered_set>
 #include <vector>
@@ -114,4 +114,4 @@ class PseudoBooleanProcessor : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif  // __CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
+#endif  // CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H

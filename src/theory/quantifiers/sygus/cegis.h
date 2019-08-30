@@ -2,9 +2,9 @@
 /*! \file cegis.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, FabianWolff
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEGIS_H
-#define __CVC4__THEORY__QUANTIFIERS__CEGIS_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEGIS_H
+#define CVC4__THEORY__QUANTIFIERS__CEGIS_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_module.h"
@@ -41,10 +41,11 @@ namespace quantifiers {
 class Cegis : public SygusModule
 {
  public:
-  Cegis(QuantifiersEngine* qe, CegConjecture* p);
-  ~Cegis() {}
+  Cegis(QuantifiersEngine* qe, SynthConjecture* p);
+  ~Cegis() override {}
   /** initialize */
-  virtual bool initialize(Node n,
+  virtual bool initialize(Node conj,
+                          Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas) override;
   /** get term list */
@@ -63,27 +64,74 @@ class Cegis : public SygusModule
   virtual void registerRefinementLemma(const std::vector<Node>& vars,
                                        Node lem,
                                        std::vector<Node>& lems) override;
+  /** using repair const */
+  virtual bool usingRepairConst() override;
 
  protected:
-  /** If CegConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
+  /** the evaluation unfold utility of d_tds */
+  SygusEvalUnfold* d_eval_unfold;
+  /** If SynthConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
   std::vector<Node> d_base_vars;
   /**
-   * If CegConjecture::d_base_inst is exists y. P( d, y ), then this is the
-   * formula P( CegConjecture::d_candidates, y ).
+   * If SynthConjecture::d_base_inst is exists y. P( d, y ), then this is the
+   * formula P( SynthConjecture::d_candidates, y ).
    */
   Node d_base_body;
+  //----------------------------------cegis-implementation-specific
+  /**
+   * Do cegis-implementation-specific initialization for this class. The return
+   * value and behavior of this function is the same as initialize(...) above.
+   */
+  virtual bool processInitialize(Node conj,
+                                 Node n,
+                                 const std::vector<Node>& candidates,
+                                 std::vector<Node>& lemmas);
+  /** do cegis-implementation-specific post-processing for construct candidate
+   *
+   * satisfiedRl is whether all refinement lemmas are satisfied under the
+   * substitution { enums -> enum_values }.
+   *
+   * The return value and behavior of this function is the same as
+   * constructCandidates(...) above.
+   */
+  virtual bool processConstructCandidates(const std::vector<Node>& enums,
+                                          const std::vector<Node>& enum_values,
+                                          const std::vector<Node>& candidates,
+                                          std::vector<Node>& candidate_values,
+                                          bool satisfiedRl,
+                                          std::vector<Node>& lems);
+  //----------------------------------end cegis-implementation-specific
 
   //-----------------------------------refinement lemmas
   /** refinement lemmas */
   std::vector<Node> d_refinement_lemmas;
-  /** get number of refinement lemmas we have added so far */
-  unsigned getNumRefinementLemmas() { return d_refinement_lemmas.size(); }
-  /** get refinement lemma
+  /** (processed) conjunctions of refinement lemmas that are not unit */
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_conj;
+  /** (processed) conjunctions of refinement lemmas that are unit */
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_unit;
+  /** substitution entailed by d_refinement_lemma_unit */
+  std::vector<Node> d_rl_eval_hds;
+  std::vector<Node> d_rl_vals;
+  /** all variables appearing in refinement lemmas */
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_vars;
+  /** adds lem as a refinement lemma */
+  void addRefinementLemma(Node lem);
+  /** add refinement lemma conjunct
    *
-   * If d_embed_quant is forall d. exists y. P( d, y ), then a refinement
-   * lemma is one of the form ~P( d_candidates, c ) for some c.
+   * This is a helper function for addRefinementLemma.
+   *
+   * This adds waiting[wcounter] to the proper vector (d_refinement_lemma_conj
+   * or d_refinement_lemma_unit). In the case that waiting[wcounter] corresponds
+   * to a value propagation, e.g. it is of the form:
+   *   (eval x c1...cn) = c
+   * then it is added to d_refinement_lemma_unit, (eval x c1...cn) -> c is added
+   * as a substitution in d_rl_eval_hds/d_rl_eval_vals, and applied to previous
+   * lemmas in d_refinement_lemma_conj and lemmas waiting[k] for k>wcounter.
+   * Each lemma in d_refinement_lemma_conj that is modifed in this process is
+   * moved to the vector waiting.
    */
-  Node getRefinementLemma(unsigned i) { return d_refinement_lemmas[i]; }
+  void addRefinementLemmaConjunct(unsigned wcounter,
+                                  std::vector<Node>& waiting);
   /** sample add refinement lemma
    *
    * This function will check if there is a sample point in d_sampler that
@@ -97,25 +145,50 @@ class Cegis : public SygusModule
 
   /** evaluates candidate values on current refinement lemmas
    *
-   * Returns true if refinement lemmas are added after evaluation, false
-   * otherwise.
+   * This method performs techniques that ensure that
+   * { candidates -> candidate_values } is a candidate solution that should
+   * be checked by the solution verifier of the CEGIS loop. This method
+   * invokes two sub-methods which may reject the current solution.
+   * The first is "refinement evaluation", described above the method
+   * getRefinementEvalLemmas below. The second is "evaluation unfolding",
+   * which eagerly unfolds applications of evaluation functions (see
+   * sygus_eval_unfold.h for details).
    *
-   * Also eagerly unfolds evaluation functions in a heuristic manner, which is
-   * useful e.g. for boolean connectives
+   * If this method returns true, then { candidates -> candidate_values }
+   * is not ready to be tried as a candidate solution. In this case, it may add
+   * lemmas to lems.
+   *
+   * Notice that this method may return true without adding any lemmas to
+   * lems, in the case that terms from candidates are "actively-generated
+   * enumerators", since the model values of such terms are managed
+   * explicitly within getEnumeratedValue. In this case, the owner of the
+   * actively-generated enumerators (e.g. SynthConjecture) is responsible for
+   * blocking the current value of candidates.
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
-                     const std::vector<Node>& candidate_values);
+                     const std::vector<Node>& candidate_values,
+                     std::vector<Node>& lems);
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas
    *
+   * This method performs "refinement evaluation", that is, it tests
+   * whether the current solution, given by { candidates -> candidate_values },
+   * satisfies all current refinement lemmas. If it does not, it may add
+   * blocking lemmas L to lems which exclude (a generalization of) the current
+   * solution.
+   *
    * Given a candidate solution ms for candidates vs, this function adds lemmas
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
    * for previous refinements (d_refinement_lemmas).
+   *
+   * Returns true if any such lemma exists. If doGen is false, then the
+   * lemmas are not generated or added to lems.
    */
-  void getRefinementEvalLemmas(const std::vector<Node>& vs,
+  bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,
-                               std::vector<Node>& lems);
+                               std::vector<Node>& lems,
+                               bool doGen);
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis
@@ -128,10 +201,20 @@ class Cegis : public SygusModule
    * added as refinement lemmas.
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
+
+  //---------------------------------for sygus repair
+  /** are we using grammar-based repair?
+   *
+   * This flag is set ot true if at least one of the enumerators allocated
+   * by this class has been configured to allow model values with symbolic
+   * constructors, such as the "any constant" constructor.
+   */
+  bool d_using_gr_repair;
+  //---------------------------------end for sygus repair
 };
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEGIS_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEGIS_H */

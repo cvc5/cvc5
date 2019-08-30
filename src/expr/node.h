@@ -2,9 +2,9 @@
 /*! \file node.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,8 @@
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef __CVC4__NODE_H
-#define __CVC4__NODE_H
+#ifndef CVC4__NODE_H
+#define CVC4__NODE_H
 
 #include <stdint.h>
 
@@ -139,7 +139,7 @@ typedef NodeTemplate<true> Node;
  *
  * More guidelines on when to use TNodes is available in the CVC4
  * Developer's Guide:
- * http://goedel.cims.nyu.edu/wiki/Developer%27s_Guide#Dealing_with_expressions_.28Nodes_and_TNodes.29
+ * http://cvc4.cs.stanford.edu/wiki/Developer%27s_Guide#Dealing_with_expressions_.28Nodes_and_TNodes.29
  */
 typedef NodeTemplate<false> TNode;
 
@@ -423,23 +423,11 @@ public:
    * only be used once.  For more details see the 4/27/2010 CVC4
    * developer's meeting notes at:
    *
-   * http://goedel.cims.nyu.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
+   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
    */
   // bool containsDecision(); // is "atomic"
   // bool properlyContainsDecision(); // maybe not atomic but all children are
 
-  /**
-   * Returns true iff this node contains a bound variable.  This bound
-   * variable may or may not be free.
-   * @return true iff this node contains a bound variable.
-   */
-  bool hasBoundVar();
-
-  /**
-   * Returns true iff this node contains a free variable.
-   * @return true iff this node contains a free variable.
-   */
-  bool hasFreeVar();
 
   /**
    * Convert this Node into an Expr using the currently-in-scope
@@ -471,7 +459,7 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
-  
+
   /**
    * Returns true if this node represents a nullary operator
    */
@@ -479,13 +467,15 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
   }
-  
+
+  /**
+   * Returns true if this node represents a closure, that is an expression
+   * that binds variables.
+   */
   inline bool isClosure() const {
     assertTNodeNotExpired();
-    return getKind() == kind::LAMBDA ||
-           getKind() == kind::FORALL ||
-           getKind() == kind::EXISTS ||
-           getKind() == kind::REWRITE_RULE;
+    return getKind() == kind::LAMBDA || getKind() == kind::FORALL
+           || getKind() == kind::EXISTS || getKind() == kind::CHOICE;
   }
 
   /**
@@ -499,7 +489,7 @@ public:
 
   /**
    * Returns a node representing the operator of this expression.
-   * If this is an APPLY, then the operator will be a functional term.
+   * If this is an APPLY_UF, then the operator will be a functional term.
    * Otherwise, it will be a node with kind BUILTIN.
    */
   NodeTemplate<true> getOperator() const;
@@ -888,11 +878,6 @@ public:
    * @param indent number of spaces to indent the formula by.
    */
   inline void printAst(std::ostream& out, int indent = 0) const;
-
-  /**
-   * Check if the node has a subterm t.
-   */
-  inline bool hasSubterm(NodeTemplate<false> t, bool strict = false) const;
 
   template <bool ref_count2>
   NodeTemplate<true> eqNode(const NodeTemplate<ref_count2>& right) const;
@@ -1288,7 +1273,7 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
 
 /**
  * Returns a node representing the operator of this expression.
- * If this is an APPLY, then the operator will be a functional term.
+ * If this is an APPLY_UF, then the operator will be a functional term.
  * Otherwise, it will be a node with kind BUILTIN.
  */
 template <bool ref_count>
@@ -1524,42 +1509,6 @@ inline Node NodeTemplate<true>::fromExpr(const Expr& e) {
   return NodeManager::fromExpr(e);
 }
 
-template<bool ref_count>
-bool NodeTemplate<ref_count>::hasSubterm(NodeTemplate<false> t, bool strict) const {
-  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
-
-  if (!strict && *this == t) {
-    return true;
-  }
-
-  node_set visited;
-  std::vector<TNode> toProcess;
-
-  toProcess.push_back(*this);
-
-  for (unsigned i = 0; i < toProcess.size(); ++ i) {
-    TNode current = toProcess[i];
-    if (current.hasOperator() && current.getOperator() == t)
-    {
-      return true;
-    }
-    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
-      TNode child = current[j];
-      if (child == t) {
-        return true;
-      }
-      if (visited.find(child) != visited.end()) {
-        continue;
-      } else {
-        visited.insert(child);
-        toProcess.push_back(child);
-      }
-    }
-  }
-
-  return false;
-}
-
 #ifdef CVC4_DEBUG
 /**
  * Pretty printer for use within gdb.  This is not intended to be used
@@ -1621,4 +1570,4 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_H */
+#endif /* CVC4__NODE_H */

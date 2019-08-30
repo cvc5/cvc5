@@ -33,8 +33,8 @@ namespace CVC4 {
 namespace BVMinisat {
 class Solver;
 }
-template <class Solver> class ProofProxy;
-typedef ProofProxy<BVMinisat::Solver> BVProofProxy;
+template <class Solver>
+class TSatProof;
 }
 
 namespace CVC4 {
@@ -256,7 +256,9 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         RegionAllocator<uint32_t>::free(clauseWord32Size(c.size(), c.has_extra()));
     }
 
-  void reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* proxy = NULL);
+    void reloc(CRef& cr,
+               ClauseAllocator& to,
+               CVC4::TSatProof<Solver>* proof = NULL);
 };
 
 

@@ -2,9 +2,9 @@
 /*! \file substitutions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Dejan Jovanovic, Morgan Deters
+ **   Dejan Jovanovic, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
  **/
 
 #include "theory/substitutions.h"
+#include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -56,8 +57,8 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
       continue;
     }
 
-    if (!d_substituteUnderQuantifiers &&
-        (current.getKind() == kind::FORALL || current.getKind() == kind::EXISTS)) {
+    if (!d_substituteUnderQuantifiers && current.isClosure())
+    {
       Debug("substitution::internal") << "--not substituting under quantifier" << endl;
       cache[current] = current;
       toVisit.pop_back();
@@ -209,15 +210,18 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-
-static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) CVC4_UNUSED;
-static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions) {
+static bool check(TNode node,
+                  const SubstitutionMap::NodeMap& substitutions) CVC4_UNUSED;
+static bool check(TNode node, const SubstitutionMap::NodeMap& substitutions)
+{
   SubstitutionMap::NodeMap::const_iterator it = substitutions.begin();
   SubstitutionMap::NodeMap::const_iterator it_end = substitutions.end();
   Debug("substitution") << "checking " << node << endl;
-  for (; it != it_end; ++ it) {
+  for (; it != it_end; ++it)
+  {
     Debug("substitution") << "-- hasSubterm( " << (*it).first << " ) ?" << endl;
-    if (node.hasSubterm((*it).first)) {
+    if (expr::hasSubterm(node, (*it).first))
+    {
       Debug("substitution") << "-- FAIL" << endl;
       return false;
     }

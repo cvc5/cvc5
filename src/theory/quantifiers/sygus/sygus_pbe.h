@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file ce_guided_pbe.h
+/*! \file sygus_pbe.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2016 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_PBE_H
-#define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_PBE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_PBE_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_PBE_H
 
 #include "context/cdhashmap.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
@@ -25,79 +25,79 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
 
-/** CegConjecturePbe
-*
-* This class implements optimizations that target synthesis conjectures
-* that are in Programming-By-Examples (PBE) form.
-*
-* [EX#1] An example of a synthesis conjecture in PBE form is :
-* exists f. forall x.
-* ( x = 0 => f( x ) = 2 ) ^ ( x = 5 => f( x ) = 7 ) ^ ( x = 6 => f( x ) = 8 )
-*
-* We say that the above conjecture has I/O examples (0)->2, (5)->7, (6)->8.
-*
-* Internally, this class does the following for SyGuS inputs:
-*
-* (1) Infers whether the input conjecture is in PBE form or not.
-* (2) Based on this information and on the syntactic restrictions, it
-*     devises a strategy for enumerating terms and construction solutions,
-*     which is inspired by Alur et al. "Scaling Enumerative Program Synthesis
-*     via Divide and Conquer" TACAS 2017. In particular, it may consider
-*     strategies for constructing decision trees when the grammar permits ITEs
-*     and a strategy for divide-and-conquer string synthesis when the grammar
-*     permits string concatenation. This is managed through the SygusUnif
-*     utilities, d_sygus_unif.
-* (3) It makes (possibly multiple) calls to
-*     TermDatabaseSygus::regstierEnumerator(...) based
-*     on the strategy, which inform the rest of the system to enumerate values
-*     of particular types in the grammar through use of fresh variables which
-*     we call "enumerators".
-*
-* Points (1)-(3) happen within a call to CegConjecturePbe::initialize(...).
-*
-* Notice that each enumerator is associated with a single
-* function-to-synthesize, but a function-to-sythesize may be mapped to multiple
-* enumerators. Some public functions of this class expect an enumerator as
-* input, which we map to a function-to-synthesize via
-* TermDatabaseSygus::getSynthFunFor(e).
-*
-* An enumerator is initially "active" but may become inactive if the enumeration
-* exhausts all possible values in the datatype corresponding to syntactic
-* restrictions for it. The search may continue unless all enumerators become
-* inactive.
-*
-* (4) During search, the extension of quantifier-free datatypes procedure for
-*     SyGuS datatypes may ask this class whether current candidates can be
-*     discarded based on inferring when two candidate solutions are equivalent
-*     up to examples. For example, the candidate solutions:
-*     f = \x ite( x < 0, x+1, x ) and f = \x x
-*     are equivalent up to examples on the above conjecture, since they have the
-*     same value on the points x = 0,5,6. Hence, we need only consider one of
-*     them. The interface for querying this is
-*       CegConjecturePbe::addSearchVal(...).
-*     For details, see Reynolds et al. SYNT 2017.
-*
-* (5) When the extension of quantifier-free datatypes procedure for SyGuS
-*     datatypes terminates with a model, the parent of this class calls
-*     CegConjecturePbe::getCandidateList(...), where this class returns the list
-*     of active enumerators.
-* (6) The parent class subsequently calls
-*     CegConjecturePbe::constructValues(...), which informs this class that new
-*     values have been enumerated for active enumerators, as indicated by the
-*     current model. This call also requests that based on these
-*     newly enumerated values, whether this class is now able to construct a
-*     solution based on the high-level strategy (stored in d_sygus_unif).
-*
-* This class is not designed to work in incremental mode, since there is no way
-* to specify incremental problems in SyguS.
-*/
-class CegConjecturePbe : public SygusModule
+/** SygusPbe
+ *
+ * This class implements optimizations that target synthesis conjectures
+ * that are in Programming-By-Examples (PBE) form.
+ *
+ * [EX#1] An example of a synthesis conjecture in PBE form is :
+ * exists f. forall x.
+ * ( x = 0 => f( x ) = 2 ) ^ ( x = 5 => f( x ) = 7 ) ^ ( x = 6 => f( x ) = 8 )
+ *
+ * We say that the above conjecture has I/O examples (0)->2, (5)->7, (6)->8.
+ *
+ * Internally, this class does the following for SyGuS inputs:
+ *
+ * (1) Infers whether the input conjecture is in PBE form or not.
+ * (2) Based on this information and on the syntactic restrictions, it
+ *     devises a strategy for enumerating terms and construction solutions,
+ *     which is inspired by Alur et al. "Scaling Enumerative Program Synthesis
+ *     via Divide and Conquer" TACAS 2017. In particular, it may consider
+ *     strategies for constructing decision trees when the grammar permits ITEs
+ *     and a strategy for divide-and-conquer string synthesis when the grammar
+ *     permits string concatenation. This is managed through the SygusUnif
+ *     utilities, d_sygus_unif.
+ * (3) It makes (possibly multiple) calls to
+ *     TermDatabaseSygus::regstierEnumerator(...) based
+ *     on the strategy, which inform the rest of the system to enumerate values
+ *     of particular types in the grammar through use of fresh variables which
+ *     we call "enumerators".
+ *
+ * Points (1)-(3) happen within a call to SygusPbe::initialize(...).
+ *
+ * Notice that each enumerator is associated with a single
+ * function-to-synthesize, but a function-to-sythesize may be mapped to multiple
+ * enumerators. Some public functions of this class expect an enumerator as
+ * input, which we map to a function-to-synthesize via
+ * TermDatabaseSygus::getSynthFunFor(e).
+ *
+ * An enumerator is initially "active" but may become inactive if the
+ * enumeration exhausts all possible values in the datatype corresponding to
+ * syntactic restrictions for it. The search may continue unless all enumerators
+ * become inactive.
+ *
+ * (4) During search, the extension of quantifier-free datatypes procedure for
+ *     SyGuS datatypes may ask this class whether current candidates can be
+ *     discarded based on inferring when two candidate solutions are equivalent
+ *     up to examples. For example, the candidate solutions:
+ *     f = \x ite( x < 0, x+1, x ) and f = \x x
+ *     are equivalent up to examples on the above conjecture, since they have
+ * the same value on the points x = 0,5,6. Hence, we need only consider one of
+ *     them. The interface for querying this is
+ *       SygusPbe::addSearchVal(...).
+ *     For details, see Reynolds et al. SYNT 2017.
+ *
+ * (5) When the extension of quantifier-free datatypes procedure for SyGuS
+ *     datatypes terminates with a model, the parent of this class calls
+ *     SygusPbe::getCandidateList(...), where this class returns the list
+ *     of active enumerators.
+ * (6) The parent class subsequently calls
+ *     SygusPbe::constructValues(...), which informs this class that new
+ *     values have been enumerated for active enumerators, as indicated by the
+ *     current model. This call also requests that based on these
+ *     newly enumerated values, whether this class is now able to construct a
+ *     solution based on the high-level strategy (stored in d_sygus_unif).
+ *
+ * This class is not designed to work in incremental mode, since there is no way
+ * to specify incremental problems in SyguS.
+ */
+class SygusPbe : public SygusModule
 {
  public:
-  CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p);
-  ~CegConjecturePbe();
+  SygusPbe(QuantifiersEngine* qe, SynthConjecture* p);
+  ~SygusPbe();
 
   /** initialize this class
   *
@@ -107,7 +107,8 @@ class CegConjecturePbe : public SygusModule
   * of an enumerator is not ITE if it is being used to construct
   * return values for decision trees.
   */
-  bool initialize(Node n,
+  bool initialize(Node conj,
+                  Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& lemmas) override;
   /** get term list
@@ -117,6 +118,11 @@ class CegConjecturePbe : public SygusModule
   */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& terms) override;
+  /**
+   * PBE allows partial models to handle multiple enumerators if we are not
+   * using a strictly fair enumeration strategy.
+   */
+  bool allowPartialModel() override;
   /** construct candidates
    *
    * This function attempts to use unification-based approaches for constructing
@@ -188,8 +194,6 @@ class CegConjecturePbe : public SygusModule
   Node evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i);
 
  private:
-  /** sygus term database of d_qe */
-  quantifiers::TermDbSygus * d_tds;
   /** true and false nodes */
   Node d_true;
   Node d_false;
@@ -200,7 +204,7 @@ class CegConjecturePbe : public SygusModule
   * In other words, all occurrences of f are guarded by equalities that
   * constraint its arguments to constants.
   */
-  std::map< Node, bool > d_examples_invalid;
+  std::map<Node, bool> d_examples_invalid;
   /** for each candidate variable (function-to-synthesize), whether the
   * conjecture is purely PBE for that variable.
   * An example of a conjecture for which d_examples_invalid is false but
@@ -213,7 +217,7 @@ class CegConjecturePbe : public SygusModule
   * However, the domain of f in both cases is finite, which can be used for
   * search space pruning.
   */
-  std::map< Node, bool > d_examples_out_invalid;
+  std::map<Node, bool> d_examples_out_invalid;
   /**
    * Map from candidates to sygus unif utility. This class implements
    * the core algorithm (e.g. decision tree learning) that this module relies
@@ -227,23 +231,30 @@ class CegConjecturePbe : public SygusModule
   std::map<Node, std::vector<Node> > d_candidate_to_enum;
   /** reverse map of above */
   std::map<Node, Node> d_enum_to_candidate;
-  /** map from enumerators to active guards */
-  std::map<Node, Node> d_enum_to_active_guard;
   /** for each candidate variable (function-to-synthesize), input of I/O
    * examples */
-  std::map< Node, std::vector< std::vector< Node > > > d_examples;
+  std::map<Node, std::vector<std::vector<Node> > > d_examples;
   /** for each candidate variable (function-to-synthesize), output of I/O
    * examples */
-  std::map< Node, std::vector< Node > > d_examples_out;
+  std::map<Node, std::vector<Node> > d_examples_out;
   /** the list of example terms
    * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 )
    */
-  std::map< Node, std::vector< Node > > d_examples_term;
+  std::map<Node, std::vector<Node> > d_examples_term;
+  /**
+   * Map from example input terms to their output, for example [EX#1] above,
+   * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.
+   */
+  std::map<Node, Node> d_exampleTermMap;
   /** collect the PBE examples in n
-  * This is called on the input conjecture, and will populate the above vectors.
-  *   hasPol/pol denote the polarity of n in the conjecture.
-  */
-  void collectExamples( Node n, std::map< Node, bool >& visited, bool hasPol, bool pol );
+   * This is called on the input conjecture, and will populate the above
+   * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
+   * function returns false if it finds two examples that are contradictory.
+   */
+  bool collectExamples(Node n,
+                       std::map<Node, bool>& visited,
+                       bool hasPol,
+                       bool pol);
 
   //--------------------------------- PBE search values
   /**
@@ -254,31 +265,20 @@ class CegConjecturePbe : public SygusModule
    *   term x+y is indexed by 1,4
    *   term 0 is indexed by 0,0.
    */
-  class PbeTrie {
+  class PbeTrie
+  {
    public:
     PbeTrie() {}
     ~PbeTrie() {}
-    /** the data for this node in the trie */
-    Node d_lazy_child;
     /** the children for this node in the trie */
     std::map<Node, PbeTrie> d_children;
     /** clear this trie */
     void clear() { d_children.clear(); }
     /**
-     * Add term b as a value enumerated for enumerator e to the trie.
-     *
-     * cpbe : reference to the parent pbe utility which stores the examples,
-     * index : the index of the example we are processing,
-     * ntotal : the total of the examples for enumerator e.
+     * Add term b whose value on examples is exOut to the trie. Return
+     * the first term registered to this trie whose evaluation was exOut.
      */
-    Node addPbeExample(TypeNode etn, Node e, Node b, CegConjecturePbe* cpbe,
-                       unsigned index, unsigned ntotal);
-
-   private:
-    /** Helper function for above, called when we get the current example ex. */
-    Node addPbeExampleEval(TypeNode etn, Node e, Node b, std::vector<Node>& ex,
-                           CegConjecturePbe* cpbe, unsigned index,
-                           unsigned ntotal);
+    Node addTerm(Node b, const std::vector<Node>& exOut);
   };
   /** trie of candidate solutions tried
   * This stores information for each (enumerator, type),
@@ -288,11 +288,10 @@ class CegConjecturePbe : public SygusModule
   */
   std::map<Node, std::map<TypeNode, PbeTrie> > d_pbe_trie;
   //--------------------------------- end PBE search values
-
 };
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+} /* namespace CVC4::theory::quantifiers */
+} /* namespace CVC4::theory */
+} /* namespace CVC4 */
 
 #endif

@@ -2,9 +2,9 @@
 /*! \file parser.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,31 +16,33 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__PARSER_STATE_H
-#define __CVC4__PARSER__PARSER_STATE_H
+#ifndef CVC4__PARSER__PARSER_STATE_H
+#define CVC4__PARSER__PARSER_STATE_H
 
 #include <string>
 #include <set>
 #include <list>
 #include <cassert>
 
+#include "expr/expr.h"
+#include "expr/expr_stream.h"
+#include "expr/kind.h"
+#include "expr/symbol_table.h"
 #include "parser/input.h"
 #include "parser/parser_exception.h"
-#include "expr/expr.h"
-#include "expr/symbol_table.h"
-#include "expr/kind.h"
-#include "expr/expr_stream.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 // Forward declarations
 class BooleanType;
-class ExprManager;
 class Command;
 class FunctionType;
 class Type;
 class ResourceManager;
+namespace api {
+class Solver;
+}
 
 //for sygus gterm two-pass parsing
 class CVC4_PUBLIC SygusGTerm {
@@ -135,135 +137,140 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
 private:
-  /** The expression manager */
-  ExprManager *d_exprManager;
-  /** The resource manager associated with this expr manager */
-  ResourceManager *d_resourceManager;
+ /** The resource manager associated with this expr manager */
+ ResourceManager* d_resourceManager;
 
-  /** The input that we're parsing. */
-  Input *d_input;
+ /** The input that we're parsing. */
+ Input* d_input;
 
-  /**
-   * The declaration scope that is "owned" by this parser.  May or
-   * may not be the current declaration scope in use.
-   */
-  SymbolTable d_symtabAllocated;
+ /**
+  * The declaration scope that is "owned" by this parser.  May or
+  * may not be the current declaration scope in use.
+  */
+ SymbolTable d_symtabAllocated;
 
-  /**
-   * This current symbol table used by this parser.  Initially points
-   * to d_symtabAllocated, but can be changed (making this parser
-   * delegate its definitions and lookups to another parser).
-   * See useDeclarationsFrom().
-   */
-  SymbolTable* d_symtab;
+ /**
+  * This current symbol table used by this parser.  Initially points
+  * to d_symtabAllocated, but can be changed (making this parser
+  * delegate its definitions and lookups to another parser).
+  * See useDeclarationsFrom().
+  */
+ SymbolTable* d_symtab;
 
-  /**
-   * The level of the assertions in the declaration scope.  Things declared
-   * after this level are bindings from e.g. a let, a quantifier, or a
-   * lambda.
-   */
-  size_t d_assertionLevel;
+ /**
+  * The level of the assertions in the declaration scope.  Things declared
+  * after this level are bindings from e.g. a let, a quantifier, or a
+  * lambda.
+  */
+ size_t d_assertionLevel;
 
-  /**
-   * Whether we're in global declarations mode (all definitions and
-   * declarations are global).
-   */
-  bool d_globalDeclarations;
+ /**
+  * Whether we're in global declarations mode (all definitions and
+  * declarations are global).
+  */
+ bool d_globalDeclarations;
 
-  /**
-   * Maintains a list of reserved symbols at the assertion level that might
-   * not occur in our symbol table.  This is necessary to e.g. support the
-   * proper behavior of the :named annotation in SMT-LIBv2 when used under
-   * a let or a quantifier, since inside a let/quant body the declaration
-   * scope is that of the let/quant body, but the defined name should be
-   * reserved at the assertion level.
-   */
-  std::set<std::string> d_reservedSymbols;
+ /**
+  * Maintains a list of reserved symbols at the assertion level that might
+  * not occur in our symbol table.  This is necessary to e.g. support the
+  * proper behavior of the :named annotation in SMT-LIBv2 when used under
+  * a let or a quantifier, since inside a let/quant body the declaration
+  * scope is that of the let/quant body, but the defined name should be
+  * reserved at the assertion level.
+  */
+ std::set<std::string> d_reservedSymbols;
 
-  /** How many anonymous functions we've created. */
-  size_t d_anonymousFunctionCount;
+ /** How many anonymous functions we've created. */
+ size_t d_anonymousFunctionCount;
 
-  /** Are we done */
-  bool d_done;
+ /** Are we done */
+ bool d_done;
 
-  /** Are semantic checks enabled during parsing? */
-  bool d_checksEnabled;
+ /** Are semantic checks enabled during parsing? */
+ bool d_checksEnabled;
 
-  /** Are we parsing in strict mode? */
-  bool d_strictMode;
+ /** Are we parsing in strict mode? */
+ bool d_strictMode;
 
-  /** Are we only parsing? */
-  bool d_parseOnly;
+ /** Are we only parsing? */
+ bool d_parseOnly;
 
-  /**
-   * Can we include files?  (Set to false for security purposes in
-   * e.g. the online version.)
-   */
-  bool d_canIncludeFile;
+ /**
+  * Can we include files?  (Set to false for security purposes in
+  * e.g. the online version.)
+  */
+ bool d_canIncludeFile;
 
-  /**
-   * Whether the logic has been forced with --force-logic.
-   */
-  bool d_logicIsForced;
+ /**
+  * Whether the logic has been forced with --force-logic.
+  */
+ bool d_logicIsForced;
 
-  /**
-   * The logic, if d_logicIsForced == true.
-   */
-  std::string d_forcedLogic;
+ /**
+  * The logic, if d_logicIsForced == true.
+  */
+ std::string d_forcedLogic;
 
-  /** The set of operators available in the current logic. */
-  std::set<Kind> d_logicOperators;
+ /** The set of operators available in the current logic. */
+ std::set<Kind> d_logicOperators;
 
-  /** The set of attributes already warned about. */
-  std::set<std::string> d_attributesWarnedAbout;
+ /** The set of attributes already warned about. */
+ std::set<std::string> d_attributesWarnedAbout;
 
-  /**
-   * The current set of unresolved types.  We can get by with this NOT
-   * being on the scope, because we can only have one DATATYPE
-   * definition going on at one time.  This is a bit hackish; we
-   * depend on mkMutualDatatypeTypes() to check everything and clear
-   * this out.
-   */
-  std::set<Type> d_unresolved;
+ /**
+  * The current set of unresolved types.  We can get by with this NOT
+  * being on the scope, because we can only have one DATATYPE
+  * definition going on at one time.  This is a bit hackish; we
+  * depend on mkMutualDatatypeTypes() to check everything and clear
+  * this out.
+  */
+ std::set<Type> d_unresolved;
 
-  /**
-   * "Preemption commands": extra commands implied by subterms that
-   * should be issued before the currently-being-parsed command is
-   * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
-   *
-   * Owns the memory of the Commands in the queue.
-   */
-  std::list<Command*> d_commandQueue;
+ /**
+  * "Preemption commands": extra commands implied by subterms that
+  * should be issued before the currently-being-parsed command is
+  * issued.  Used to support SMT-LIBv2 ":named" attribute on terms.
+  *
+  * Owns the memory of the Commands in the queue.
+  */
+ std::list<Command*> d_commandQueue;
 
-  /** Lookup a symbol in the given namespace (as specified by the type). 
-   * Only returns a symbol if it is not overloaded, returns null otherwise.
-   */
-  Expr getSymbol(const std::string& var_name, SymbolType type);
+ /** Lookup a symbol in the given namespace (as specified by the type).
+  * Only returns a symbol if it is not overloaded, returns null otherwise.
+  */
+ Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
-  /**
-   * Create a parser state.
-   *
-   * @attention The parser takes "ownership" of the given
-   * input and will delete it on destruction.
-   *
-   * @param exprManager the expression manager to use when creating expressions
-   * @param input the parser input
-   * @param strictMode whether to incorporate strict(er) compliance checks
-   * @param parseOnly whether we are parsing only (and therefore certain checks
-   * need not be performed, like those about unimplemented features, @see
-   * unimplementedFeature())
-   */
-  Parser(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
+ /** The API Solver object. */
+ api::Solver* d_solver;
+
+ /**
+  * Create a parser state.
+  *
+  * @attention The parser takes "ownership" of the given
+  * input and will delete it on destruction.
+  *
+  * @param the solver API object
+  * @param input the parser input
+  * @param strictMode whether to incorporate strict(er) compliance checks
+  * @param parseOnly whether we are parsing only (and therefore certain checks
+  * need not be performed, like those about unimplemented features, @see
+  * unimplementedFeature())
+  */
+ Parser(api::Solver* solver,
+        Input* input,
+        bool strictMode = false,
+        bool parseOnly = false);
 
 public:
 
   virtual ~Parser();
 
   /** Get the associated <code>ExprManager</code>. */
-  inline ExprManager* getExprManager() const {
-    return d_exprManager;
-  }
+  ExprManager* getExprManager() const;
+
+  /** Get the associated solver. */
+  api::Solver* getSolver() const;
 
   /** Get the associated input. */
   inline Input* getInput() const {
@@ -315,7 +322,12 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  void forceLogic(const std::string& logic) { assert(!d_logicIsForced); d_logicIsForced = true; d_forcedLogic = logic; }
+  virtual void forceLogic(const std::string& logic)
+  {
+    assert(!d_logicIsForced);
+    d_logicIsForced = true;
+    d_forcedLogic = logic;
+  }
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 
@@ -470,8 +482,18 @@ public:
            uint32_t flags = ExprManager::VAR_FLAG_NONE, 
            bool doOverload = false);
 
-  /** Create a new CVC4 bound variable expression of the given type. */
+  /**
+   * Create a new CVC4 bound variable expression of the given type. This binds
+   * the symbol name to that variable in the current scope.
+   */
   Expr mkBoundVar(const std::string& name, const Type& type);
+  /**
+   * Create a new CVC4 bound variable expressions of the given names and types.
+   * Like the method above, this binds these names to those variables in the
+   * current scope.
+   */
+  std::vector<Expr> mkBoundVars(
+      std::vector<std::pair<std::string, Type> >& sortedVarNames);
 
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.
@@ -485,15 +507,10 @@ public:
    */
   std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type);
 
-  /** Create a new CVC4 function expression of the given type. */
-  Expr mkFunction(const std::string& name, const Type& type,
-                  uint32_t flags = ExprManager::VAR_FLAG_NONE, 
-                  bool doOverload=false);
-
   /**
    * Create a new CVC4 function expression of the given type,
    * appending a unique index to its name.  (That's the ONLY
-   * difference between mkAnonymousFunction() and mkFunction()).
+   * difference between mkAnonymousFunction() and mkVar()).
    *
    * flags specify information about the variable, e.g. whether it is global or defined
    *   (see enum in expr_manager_template.h).
@@ -509,15 +526,6 @@ public:
    */
   void defineVar(const std::string& name, const Expr& val,
                  bool levelZero = false, bool doOverload = false);
-
-  /** Create a new function definition (e.g., from a define-fun). 
-   * levelZero is set if the binding must be done at level 0.
-   * If a symbol with name already exists,
-   *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
-   */
-  void defineFunction(const std::string& name, const Expr& val,
-                      bool levelZero = false, bool doOverload = false);
 
   /** Create a new type definition. */
   void defineType(const std::string& name, const Type& type);
@@ -540,7 +548,10 @@ public:
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  SortConstructorType mkSortConstructor(const std::string& name, size_t arity);
+  SortConstructorType mkSortConstructor(
+      const std::string& name,
+      size_t arity,
+      uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
@@ -627,17 +638,17 @@ public:
   /** make higher-order apply
    *
    * This returns the left-associative curried application of (function) expr to
-   * the arguments in args, starting at index startIndex.
+   * the arguments in args.
    *
    * For example, mkHoApply( f, { a, b }, 0 ) returns
    *  (HO_APPLY (HO_APPLY f a) b)
    *
    * If args is non-empty, the expected type of expr is (-> T0 ... Tn T), where
-   *    args[i-startIndex].getType() = Ti
-   * for each i where startIndex <= i < args.size(). If expr is not of this
+   *    args[i].getType() = Ti
+   * for each i where 0 <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
-  Expr mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex = 0);
+  Expr mkHoApply(Expr expr, std::vector<Expr>& args);
 
   /**
    * Add an operator to the current legal set.
@@ -661,12 +672,6 @@ public:
   * Currently this means its type is either a function, constructor, tester, or selector.
   */
   bool isFunctionLike(Expr fun);
-
-  /** Is the symbol bound to a defined function? */
-  bool isDefinedFunction(const std::string& name);
-
-  /** Is the Expr a defined function? */
-  bool isDefinedFunction(Expr func);
 
   /** Is the symbol bound to a predicate? */
   bool isPredicate(const std::string& name);
@@ -825,4 +830,4 @@ public:
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__PARSER_STATE_H */
+#endif /* CVC4__PARSER__PARSER_STATE_H */

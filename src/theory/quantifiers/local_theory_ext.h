@@ -2,9 +2,9 @@
 /*! \file local_theory_ext.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,17 +14,16 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__LOCAL_THEORY_EXT_H
-#define __CVC4__THEORY__LOCAL_THEORY_EXT_H
+#ifndef CVC4__THEORY__LOCAL_THEORY_EXT_H
+#define CVC4__THEORY__LOCAL_THEORY_EXT_H
 
-#include "theory/quantifiers_engine.h"
 #include "context/cdo.h"
+#include "expr/node_trie.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-class TermArgTrie;  
 
 class LtePartialInst : public QuantifiersModule {
 private:
@@ -46,9 +45,16 @@ private:
   void reset();
   /** get instantiations */
   void getInstantiations( std::vector< Node >& lemmas );
-  void getPartialInstantiations( std::vector< Node >& conj, Node q, Node bvl,
-                                 std::vector< Node >& vars, std::vector< Node >& inst, std::vector< TypeNode >& types, TermArgTrie * curr,
-                                 unsigned pindex, unsigned paindex, unsigned iindex );
+  void getPartialInstantiations(std::vector<Node>& conj,
+                                Node q,
+                                Node bvl,
+                                std::vector<Node>& vars,
+                                std::vector<Node>& inst,
+                                std::vector<TypeNode>& types,
+                                TNodeTrie* curr,
+                                unsigned pindex,
+                                unsigned paindex,
+                                unsigned iindex);
   /** get eligible inst variables */
   void getEligibleInstVars( Node n, std::map< Node, bool >& vars );
   
@@ -56,7 +62,7 @@ private:
 public:
   LtePartialInst( QuantifiersEngine * qe, context::Context* c );
   /** determine whether this quantified formula will be reduced */
-  void preRegisterQuantifier(Node q) override;
+  void checkOwnership(Node q) override;
   /** was invoked */
   bool wasInvoked() { return d_wasInvoked; }
   
@@ -64,11 +70,8 @@ public:
   bool needsCheck(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
-  /* Called for new quantifiers */
-  void registerQuantifier(Node q) override {}
   /* check complete */
   bool checkComplete() override { return !d_wasInvoked; }
-  void assertNode(Node n) override {}
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "LtePartialInst"; }
 };

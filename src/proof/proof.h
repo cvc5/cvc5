@@ -2,9 +2,9 @@
 /*! \file proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Paul Meng
+ **   Tim King, Liana Hadarean, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__PROOF_H
-#define __CVC4__PROOF__PROOF_H
+#ifndef CVC4__PROOF__PROOF_H
+#define CVC4__PROOF__PROOF_H
 
 #include "options/smt_options.h"
 
@@ -67,4 +67,4 @@
 # define PSTATS(x)
 #endif /* CVC4_PROOF_STATS */
 
-#endif /* __CVC4__PROOF__PROOF_H */
+#endif /* CVC4__PROOF__PROOF_H */

@@ -2,9 +2,9 @@
 /*! \file bv_eager_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Paul Meng, Tim King
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,12 +16,14 @@
 
 #include "cvc4_private.h"
 
-#pragma once
+#ifndef CVC4__THEORY__BV__BV_EAGER_SOLVER_H
+#define CVC4__THEORY__BV__BV_EAGER_SOLVER_H
 
 #include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
@@ -37,31 +39,33 @@ class AigBitblaster;
  */
 class EagerBitblastSolver {
  public:
-  EagerBitblastSolver(theory::bv::TheoryBV* bv);
+  EagerBitblastSolver(context::Context* c, theory::bv::TheoryBV* bv);
   ~EagerBitblastSolver();
   bool checkSat();
   void assertFormula(TNode formula);
-  // purely for debugging purposes
-  bool hasAssertions(const std::vector<TNode>& formulas);
 
   void turnOffAig();
   bool isInitialized();
   void initialize();
   bool collectModelInfo(theory::TheoryModel* m, bool fullModel);
-  void setProofLog(BitVectorProof* bvp);
+  void setProofLog(proof::BitVectorProof* bvp);
 
  private:
-  typedef std::unordered_set<TNode, TNodeHashFunction> AssertionSet;
-  AssertionSet d_assertionSet;
+  context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
+  context::CDHashSet<Node, NodeHashFunction> d_assumptionSet;
+  context::Context* d_context;
+
   /** Bitblasters */
-  EagerBitblaster* d_bitblaster;
-  AigBitblaster* d_aigBitblaster;
+  std::unique_ptr<EagerBitblaster> d_bitblaster;
+  std::unique_ptr<AigBitblaster> d_aigBitblaster;
   bool d_useAig;
 
   TheoryBV* d_bv;
-  BitVectorProof* d_bvp;
+  proof::BitVectorProof* d_bvp;
 };  // class EagerBitblastSolver
 
 }  // namespace bv
 }  // namespace theory
 }  // namespace CVC4
+
+#endif  // CVC4__THEORY__BV__BV_EAGER_SOLVER_H

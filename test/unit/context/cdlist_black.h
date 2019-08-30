@@ -2,9 +2,9 @@
 /*! \file cdlist_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,9 +40,9 @@ class CDListBlack : public CxxTest::TestSuite {
   Context* d_context;
 
  public:
-  void setUp() { d_context = new Context(); }
+  void setUp() override { d_context = new Context(); }
 
-  void tearDown() { delete d_context; }
+  void tearDown() override { delete d_context; }
 
   // test at different sizes.  this triggers grow() behavior differently.
   // grow() was completely broken in revision 256
@@ -142,11 +142,12 @@ class CDListBlack : public CxxTest::TestSuite {
         {
           // We cap it at UINT_MAX, preferring to terminate with a
           // failure than run indefinitely.
-          for (unsigned i = 0; i < UINT_MAX; ++i) {
+          for (unsigned i = 0; i < UINT_MAX; ++i)
+          {
             list.push_back(i);
           }
         },
-        bad_alloc);
+        bad_alloc&);
 
 #endif /* CVC4_MEMORY_LIMITING_DISABLED */
   }

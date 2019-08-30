@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -68,7 +68,6 @@ class TestOutputChannel : public OutputChannel {
   }
 
   void requirePhase(TNode, bool) override { Unreachable(); }
-  bool flipDecision() override { Unreachable(); }
   void setIncomplete() override { Unreachable(); }
 
   void clear() { d_callHistory.clear(); }
@@ -123,20 +122,19 @@ public:
     return done();
   }
 
-  void check(Effort e) {
+  void check(Effort e) override
+  {
     while(!done()) {
       getWrapper();
     }
   }
 
-  void presolve() {
-    Unimplemented();
-  }
-  void preRegisterTerm(TNode n) {}
-  void propagate(Effort level) {}
-  Node explain(TNode n) { return Node::null(); }
+  void presolve() override { Unimplemented(); }
+  void preRegisterTerm(TNode n) override {}
+  void propagate(Effort level) override {}
+  Node explain(TNode n) override { return Node::null(); }
   Node getValue(TNode n) { return Node::null(); }
-  string identify() const { return "DummyTheory"; }
+  string identify() const override { return "DummyTheory"; }
 };/* class DummyTheory */
 
 class TheoryBlack : public CxxTest::TestSuite {
@@ -156,9 +154,9 @@ class TheoryBlack : public CxxTest::TestSuite {
   Node atom0;
   Node atom1;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
@@ -168,20 +166,25 @@ public:
     d_logicInfo = new LogicInfo();
     d_logicInfo->lock();
 
+    // Notice that this unit test uses the theory engine of a created SMT
+    // engine d_smt. We must ensure that d_smt is properly initialized via
+    // the following call, which constructs its underlying theory engine.
+    d_smt->finalOptionsAreSet();
     // guard against duplicate statistics assertion errors
     delete d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN];
     delete d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN];
     d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
     d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
 
-    d_dummy = new DummyTheory(d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL),
-                              *d_logicInfo);
+    d_dummy = new DummyTheory(
+        d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     atom1 = Node::null();
     atom0 = Node::null();
     delete d_dummy;

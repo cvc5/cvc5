@@ -2,9 +2,9 @@
 /*! \file justification_heuristic.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Paul Meng, Tim King
+ **   Kshitij Bansal, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__DECISION__JUSTIFICATION_HEURISTIC
-#define __CVC4__DECISION__JUSTIFICATION_HEURISTIC
+#ifndef CVC4__DECISION__JUSTIFICATION_HEURISTIC
+#define CVC4__DECISION__JUSTIFICATION_HEURISTIC
 
 #include <unordered_set>
 
@@ -32,6 +32,7 @@
 #include "decision/decision_engine.h"
 #include "decision/decision_strategy.h"
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "prop/sat_solver_types.h"
 
 namespace CVC4 {
@@ -119,9 +120,8 @@ public:
 
   prop::SatLiteral getNext(bool &stopSearch) override;
 
-  void addAssertions(const std::vector<Node> &assertions,
-                     unsigned assertionsEnd,
-                     IteSkolemMap iteSkolemMap) override;
+  void addAssertions(
+      const preprocessing::AssertionPipeline &assertions) override;
 
  private:
   /* getNext with an option to specify threshold */
@@ -181,4 +181,4 @@ public:
 }/* namespace decision */
 }/* namespace CVC4 */
 
-#endif /* __CVC4__DECISION__JUSTIFICATION_HEURISTIC */
+#endif /* CVC4__DECISION__JUSTIFICATION_HEURISTIC */

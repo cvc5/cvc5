@@ -2,9 +2,9 @@
 /*! \file language.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Paul Meng
+ **   Morgan Deters, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -79,6 +79,7 @@ InputLanguage toInputLanguage(OutputLanguage language) {
   case output::LANG_CVC4:
   case output::LANG_Z3STR:
   case output::LANG_SYGUS:
+  case output::LANG_SYGUS_V2:
     // these entries directly correspond (by design)
     return InputLanguage(int(language));
 
@@ -103,6 +104,7 @@ OutputLanguage toOutputLanguage(InputLanguage language) {
   case input::LANG_CVC4:
   case input::LANG_Z3STR:
   case input::LANG_SYGUS:
+  case input::LANG_SYGUS_V2:
     // these entries directly correspond (by design)
     return OutputLanguage(int(language));
 
@@ -128,16 +130,20 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_CVC4;
   } else if(language == "cvc3" || language == "LANG_CVC3") {
     return output::LANG_CVC3;
-  } else if(language == "smtlib" || language == "smt" ||
-            language == "smtlib2" || language == "smt2" ||
-            language == "smtlib2.0" || language == "smt2.0" ||
-            language == "LANG_SMTLIB_V2_0" || language == "LANG_SMTLIB_V2") {
+  }
+  else if (language == "smtlib2.0" || language == "smt2.0"
+           || language == "LANG_SMTLIB_V2_0")
+  {
     return output::LANG_SMTLIB_V2_0;
   } else if(language == "smtlib2.5" || language == "smt2.5" ||
             language == "LANG_SMTLIB_V2_5") {
     return output::LANG_SMTLIB_V2_5;
-  } else if(language == "smtlib2.6" || language == "smt2.6" ||
-            language == "LANG_SMTLIB_V2_6") {
+  }
+  else if (language == "smtlib" || language == "smt" || language == "smtlib2"
+           || language == "smt2" || language == "smtlib2.6"
+           || language == "smt2.6" || language == "LANG_SMTLIB_V2_6"
+           || language == "LANG_SMTLIB_V2")
+  {
     return output::LANG_SMTLIB_V2_6;
   }
   else if (language == "smtlib2.6.1" || language == "smt2.6.1"
@@ -151,9 +157,17 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_Z3STR;
   } else if(language == "sygus" || language == "LANG_SYGUS") {
     return output::LANG_SYGUS;
-  } else if(language == "ast" || language == "LANG_AST") {
+  }
+  else if (language == "sygus2" || language == "LANG_SYGUS_V2")
+  {
+    return output::LANG_SYGUS_V2;
+  }
+  else if (language == "ast" || language == "LANG_AST")
+  {
     return output::LANG_AST;
-  } else if(language == "auto" || language == "LANG_AUTO") {
+  }
+  else if (language == "auto" || language == "LANG_AUTO")
+  {
     return output::LANG_AUTO;
   }
 
@@ -191,7 +205,13 @@ InputLanguage toInputLanguage(std::string language) {
     return input::LANG_Z3STR;
   } else if(language == "sygus" || language == "LANG_SYGUS") {
     return input::LANG_SYGUS;
-  } else if(language == "auto" || language == "LANG_AUTO") {
+  }
+  else if (language == "sygus2" || language == "LANG_SYGUS_V2")
+  {
+    return input::LANG_SYGUS_V2;
+  }
+  else if (language == "auto" || language == "LANG_AUTO")
+  {
     return input::LANG_AUTO;
   }
 

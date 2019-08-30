@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#
+source "$(dirname "$0")/get-script-header.sh"
+
+wdir="symfpu-CVC4"
+
+if [ -e $wdir ]; then
+  echo "error: file or directory "$wdir" exists; please move it out of the way." >&2
+  exit 1
+fi
+
+commit="8fbe139bf0071cbe0758d2f6690a546c69ff0053"
+
+mkdir $wdir
+cd $wdir
+git clone https://github.com/martin-cs/symfpu.git symfpu
+cd symfpu
+git checkout $commit
+
+echo
+echo "Using symfpu commit $commit"
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure.sh --symfpu

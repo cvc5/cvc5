@@ -18,7 +18,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "core/Solver.h"
+#include "prop/bvminisat/core/Solver.h"
 
 #include <math.h>
 
@@ -27,14 +27,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "base/exception.h"
 #include "base/output.h"
-#include "mtl/Sort.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
-#include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
+#include "prop/bvminisat/mtl/Sort.h"
 #include "theory/interrupted.h"
 #include "util/utility.h"
 
@@ -138,7 +138,7 @@ Solver::Solver(CVC4::context::Context* c) :
   , ca                 ()
 
   // even though these are temporaries and technically should be set
-  // before calling, lets intialize them. this will reduces chances of
+  // before calling, lets initialize them. this will reduces chances of
   // non-determinism in portfolio (parallel) solver if variables are
   // being (incorrectly) used without initialization.
   , seen(),  analyze_stack(), analyze_toclear(), add_tmp()
@@ -357,8 +357,11 @@ void Solver::cancelUntil(int level) {
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
             if (marker[x] == 2) marker[x] = 1;
-            if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
-                polarity[x] = sign(trail[c]);
+            if (phase_saving > 1
+                || ((phase_saving == 1) && c > trail_lim.last()))
+            {
+              polarity[x] = sign(trail[c]);
+            }
             insertVarOrder(x); }
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
@@ -1080,16 +1083,19 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               cancelUntil(assumptions.size()); 
               throw e; 
             }
-            
-            if (decisionLevel() > assumptions.size() && nof_conflicts >= 0 && conflictC >= nof_conflicts ||
-                !isWithinBudget) {
-                // Reached bound on number of conflicts:
-                Debug("bvminisat::search") << OUTPUT_TAG << " restarting " << std::endl;
-                progress_estimate = progressEstimate();
-                cancelUntil(assumptions.size());
-                return l_Undef;
+
+            if ((decisionLevel() > assumptions.size() && nof_conflicts >= 0
+                 && conflictC >= nof_conflicts)
+                || !isWithinBudget)
+            {
+              // Reached bound on number of conflicts:
+              Debug("bvminisat::search")
+                  << OUTPUT_TAG << " restarting " << std::endl;
+              progress_estimate = progressEstimate();
+              cancelUntil(assumptions.size());
+              return l_Undef;
             }
- 
+
             // Simplify the set of problem clauses:
             if (decisionLevel() == 0 && !simplify()) {
                 Debug("bvminisat::search") << OUTPUT_TAG << " base level conflict, we're unsat" << std::endl;
@@ -1312,7 +1318,8 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
   }
 }
 
-void Solver::setProofLog( BitVectorProof * bvp ) {
+void Solver::setProofLog(proof::ResolutionBitVectorProof* bvp)
+{
   d_bvp = bvp;
   d_bvp->initSatProof(this);
   d_bvp->getSatProof()->registerTrueLit(mkLit(varTrue, false));
@@ -1412,7 +1419,7 @@ void Solver::relocAll(ClauseAllocator& to)
             // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
             vec<Watcher>& ws = watches[p];
             for (int j = 0; j < ws.size(); j++)
-              ca.reloc(ws[j].cref, to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
+              ca.reloc(ws[j].cref, to, d_bvp ? d_bvp->getSatProof() : NULL);
         }
 
     // All reasons:
@@ -1421,19 +1428,19 @@ void Solver::relocAll(ClauseAllocator& to)
         Var v = var(trail[i]);
 
         if (reason(v) != CRef_Undef && (ca[reason(v)].reloced() || locked(ca[reason(v)])))
-            ca.reloc(vardata[v].reason, to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
+          ca.reloc(vardata[v].reason, to, d_bvp ? d_bvp->getSatProof() : NULL);
     }
 
     // All learnt:
     //
     for (int i = 0; i < learnts.size(); i++)
-        ca.reloc(learnts[i], to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
+      ca.reloc(learnts[i], to, d_bvp ? d_bvp->getSatProof() : NULL);
 
     // All original:
     //
     for (int i = 0; i < clauses.size(); i++)
-        ca.reloc(clauses[i], to, d_bvp ?  d_bvp->getSatProof()->getProxy() : NULL);
-	
+      ca.reloc(clauses[i], to, d_bvp ? d_bvp->getSatProof() : NULL);
+
     if(d_bvp){ d_bvp->getSatProof()->finishUpdateCRef(); }
 }
 
@@ -1451,7 +1458,9 @@ void Solver::garbageCollect()
     to.moveTo(ca);
 }
 
-void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* proxy)
+void ClauseAllocator::reloc(CRef& cr,
+                            ClauseAllocator& to,
+                            CVC4::TSatProof<Solver>* proof)
 {
   CRef old = cr;  // save the old reference
 
@@ -1460,8 +1469,9 @@ void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to, CVC4::BVProofProxy* p
   
   cr = to.alloc(c, c.learnt());
   c.relocate(cr);
-  if (proxy) {
-    proxy->updateCRef(old, cr); 
+  if (proof)
+  {
+    proof->updateCRef(old, cr);
   }
   
   // Copy extra data-fields: 

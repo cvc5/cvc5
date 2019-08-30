@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 (benchmark wchains010ue.smt
 :logic QF_AUFBV
 :extrafuns ((v6 BitVec[32]))

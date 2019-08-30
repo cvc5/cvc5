@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_inequality.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Morgan Deters
+ **   Liana Hadarean, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
-#define __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
+#ifndef CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
+#define CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 
 #include <unordered_set>
 
@@ -38,9 +38,12 @@ typedef expr::Attribute<IneqOnlyAttributeId, bool> IneqOnlyAttribute;
 struct IneqOnlyComputedAttributeId {};
 typedef expr::Attribute<IneqOnlyComputedAttributeId, bool> IneqOnlyComputedAttribute;
 
-class InequalitySolver: public SubtheorySolver {
-  struct Statistics {
+class InequalitySolver : public SubtheorySolver
+{
+  struct Statistics
+  {
     IntStat d_numCallstoCheck;
+    TimerStat d_solveTime;
     Statistics();
     ~Statistics();
   };
@@ -80,4 +83,4 @@ public:
 }
 }
 
-#endif /* __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H */
+#endif /* CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H */

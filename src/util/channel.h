@@ -22,8 +22,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__CHANNEL_H
-#define __CVC4__CHANNEL_H
+#ifndef CVC4__CHANNEL_H
+#define CVC4__CHANNEL_H
 
 #include <boost/circular_buffer.hpp>
 #include <boost/thread/mutex.hpp>
@@ -74,8 +74,10 @@ public:
 
   explicit SynchronizedSharedChannel(size_type capacity) : m_unread(0), m_container(capacity) {}
 
-  bool push(param_type item){
-  // param_type represents the "best" way to pass a parameter of type value_type to a method
+  bool push(param_type item) override
+  {
+    // param_type represents the "best" way to pass a parameter of type
+    // value_type to a method
 
     boost::mutex::scoped_lock lock(m_mutex);
     m_not_full.wait(lock, boost::bind(&SynchronizedSharedChannel<value_type>::is_not_full, this));
@@ -86,7 +88,8 @@ public:
     return true;
   }//function definitions need to be moved to cpp
 
-  value_type pop(){
+  value_type pop() override
+  {
     value_type ret;
     boost::mutex::scoped_lock lock(m_mutex);
     m_not_empty.wait(lock, boost::bind(&SynchronizedSharedChannel<value_type>::is_not_empty, this));
@@ -96,11 +99,10 @@ public:
     return ret;
   }
 
+  bool empty() override { return not is_not_empty(); }
+  bool full() override { return not is_not_full(); }
 
-  bool empty() { return not is_not_empty(); }
-  bool full() { return not is_not_full(); }
-
-private:
+ private:
   SynchronizedSharedChannel(const SynchronizedSharedChannel&);              // Disabled copy constructor
   SynchronizedSharedChannel& operator = (const SynchronizedSharedChannel&); // Disabled assign operator
 
@@ -116,4 +118,4 @@ private:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CHANNEL_H */
+#endif /* CVC4__CHANNEL_H */

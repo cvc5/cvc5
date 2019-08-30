@@ -2,9 +2,9 @@
 /*! \file command.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Aina Niemetz
+ **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,6 +35,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "util/sexpr.h"
+#include "util/utility.h"
 
 using namespace std;
 
@@ -386,10 +387,8 @@ std::string PopCommand::getCommandName() const { return "pop"; }
 /* -------------------------------------------------------------------------- */
 
 CheckSatCommand::CheckSatCommand() : d_expr() {}
-CheckSatCommand::CheckSatCommand(const Expr& expr, bool inUnsatCore)
-    : d_expr(expr), d_inUnsatCore(inUnsatCore)
-{
-}
+
+CheckSatCommand::CheckSatCommand(const Expr& expr) : d_expr(expr) {}
 
 Expr CheckSatCommand::getExpr() const { return d_expr; }
 void CheckSatCommand::invoke(SmtEngine* smtEngine)
@@ -421,15 +420,15 @@ void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
 Command* CheckSatCommand::exportTo(ExprManager* exprManager,
                                    ExprManagerMapCollection& variableMap)
 {
-  CheckSatCommand* c = new CheckSatCommand(
-      d_expr.exportTo(exprManager, variableMap), d_inUnsatCore);
+  CheckSatCommand* c =
+      new CheckSatCommand(d_expr.exportTo(exprManager, variableMap));
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSatCommand::clone() const
 {
-  CheckSatCommand* c = new CheckSatCommand(d_expr, d_inUnsatCore);
+  CheckSatCommand* c = new CheckSatCommand(d_expr);
   c->d_result = d_result;
   return c;
 }
@@ -440,14 +439,10 @@ std::string CheckSatCommand::getCommandName() const { return "check-sat"; }
 /* class CheckSatAssumingCommand                                              */
 /* -------------------------------------------------------------------------- */
 
-CheckSatAssumingCommand::CheckSatAssumingCommand(Expr term) : d_terms()
-{
-  d_terms.push_back(term);
-}
+CheckSatAssumingCommand::CheckSatAssumingCommand(Expr term) : d_terms({term}) {}
 
-CheckSatAssumingCommand::CheckSatAssumingCommand(const std::vector<Expr>& terms,
-                                                 bool inUnsatCore)
-    : d_terms(terms), d_inUnsatCore(inUnsatCore)
+CheckSatAssumingCommand::CheckSatAssumingCommand(const std::vector<Expr>& terms)
+    : d_terms(terms)
 {
 }
 
@@ -495,16 +490,14 @@ Command* CheckSatAssumingCommand::exportTo(
   {
     exportedTerms.push_back(e.exportTo(exprManager, variableMap));
   }
-  CheckSatAssumingCommand* c =
-      new CheckSatAssumingCommand(exportedTerms, d_inUnsatCore);
+  CheckSatAssumingCommand* c = new CheckSatAssumingCommand(exportedTerms);
   c->d_result = d_result;
   return c;
 }
 
 Command* CheckSatAssumingCommand::clone() const
 {
-  CheckSatAssumingCommand* c =
-      new CheckSatAssumingCommand(d_terms, d_inUnsatCore);
+  CheckSatAssumingCommand* c = new CheckSatAssumingCommand(d_terms);
   c->d_result = d_result;
   return c;
 }
@@ -569,17 +562,299 @@ Command* QueryCommand::clone() const
 std::string QueryCommand::getCommandName() const { return "query"; }
 
 /* -------------------------------------------------------------------------- */
+/* class DeclareSygusVarCommand */
+/* -------------------------------------------------------------------------- */
+
+DeclareSygusVarCommand::DeclareSygusVarCommand(const std::string& id,
+                                               Expr var,
+                                               Type t)
+    : DeclarationDefinitionCommand(id), d_var(var), d_type(t)
+{
+}
+
+Expr DeclareSygusVarCommand::getVar() const { return d_var; }
+Type DeclareSygusVarCommand::getType() const { return d_type; }
+
+void DeclareSygusVarCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->declareSygusVar(d_symbol, d_var, d_type);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* DeclareSygusVarCommand::exportTo(ExprManager* exprManager,
+                                          ExprManagerMapCollection& variableMap)
+{
+  return new DeclareSygusVarCommand(d_symbol,
+                                    d_var.exportTo(exprManager, variableMap),
+                                    d_type.exportTo(exprManager, variableMap));
+}
+
+Command* DeclareSygusVarCommand::clone() const
+{
+  return new DeclareSygusVarCommand(d_symbol, d_var, d_type);
+}
+
+std::string DeclareSygusVarCommand::getCommandName() const
+{
+  return "declare-var";
+}
+
+/* -------------------------------------------------------------------------- */
+/* class DeclareSygusPrimedVarCommand */
+/* -------------------------------------------------------------------------- */
+
+DeclareSygusPrimedVarCommand::DeclareSygusPrimedVarCommand(
+    const std::string& id, Type t)
+    : DeclarationDefinitionCommand(id), d_type(t)
+{
+}
+
+Type DeclareSygusPrimedVarCommand::getType() const { return d_type; }
+
+void DeclareSygusPrimedVarCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->declareSygusPrimedVar(d_symbol, d_type);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* DeclareSygusPrimedVarCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  return new DeclareSygusPrimedVarCommand(
+      d_symbol, d_type.exportTo(exprManager, variableMap));
+}
+
+Command* DeclareSygusPrimedVarCommand::clone() const
+{
+  return new DeclareSygusPrimedVarCommand(d_symbol, d_type);
+}
+
+std::string DeclareSygusPrimedVarCommand::getCommandName() const
+{
+  return "declare-primed-var";
+}
+
+/* -------------------------------------------------------------------------- */
+/* class DeclareSygusFunctionCommand                                          */
+/* -------------------------------------------------------------------------- */
+
+DeclareSygusFunctionCommand::DeclareSygusFunctionCommand(const std::string& id,
+                                                         Expr func,
+                                                         Type t)
+    : DeclarationDefinitionCommand(id), d_func(func), d_type(t)
+{
+}
+
+Expr DeclareSygusFunctionCommand::getFunction() const { return d_func; }
+Type DeclareSygusFunctionCommand::getType() const { return d_type; }
+
+void DeclareSygusFunctionCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->declareSygusFunctionVar(d_symbol, d_func, d_type);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* DeclareSygusFunctionCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  return new DeclareSygusFunctionCommand(
+      d_symbol,
+      d_func.exportTo(exprManager, variableMap),
+      d_type.exportTo(exprManager, variableMap));
+}
+
+Command* DeclareSygusFunctionCommand::clone() const
+{
+  return new DeclareSygusFunctionCommand(d_symbol, d_func, d_type);
+}
+
+std::string DeclareSygusFunctionCommand::getCommandName() const
+{
+  return "declare-fun";
+}
+
+/* -------------------------------------------------------------------------- */
+/* class SynthFunCommand                                                    */
+/* -------------------------------------------------------------------------- */
+
+SynthFunCommand::SynthFunCommand(const std::string& id,
+                                 Expr func,
+                                 Type sygusType,
+                                 bool isInv,
+                                 const std::vector<Expr>& vars)
+    : DeclarationDefinitionCommand(id),
+      d_func(func),
+      d_sygusType(sygusType),
+      d_isInv(isInv),
+      d_vars(vars)
+{
+}
+
+SynthFunCommand::SynthFunCommand(const std::string& id,
+                                 Expr func,
+                                 Type sygusType,
+                                 bool isInv)
+    : SynthFunCommand(id, func, sygusType, isInv, {})
+{
+}
+
+Expr SynthFunCommand::getFunction() const { return d_func; }
+const std::vector<Expr>& SynthFunCommand::getVars() const { return d_vars; }
+Type SynthFunCommand::getSygusType() const { return d_sygusType; }
+bool SynthFunCommand::isInv() const { return d_isInv; }
+
+void SynthFunCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->declareSynthFun(d_symbol, d_func, d_sygusType, d_isInv, d_vars);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* SynthFunCommand::exportTo(ExprManager* exprManager,
+                                   ExprManagerMapCollection& variableMap)
+{
+  return new SynthFunCommand(d_symbol,
+                             d_func.exportTo(exprManager, variableMap),
+                             d_sygusType.exportTo(exprManager, variableMap),
+                             d_isInv);
+}
+
+Command* SynthFunCommand::clone() const
+{
+  return new SynthFunCommand(d_symbol, d_func, d_sygusType, d_isInv, d_vars);
+}
+
+std::string SynthFunCommand::getCommandName() const
+{
+  return d_isInv ? "synth-inv" : "synth-fun";
+}
+
+/* -------------------------------------------------------------------------- */
+/* class SygusConstraintCommand */
+/* -------------------------------------------------------------------------- */
+
+SygusConstraintCommand::SygusConstraintCommand(const Expr& e) : d_expr(e) {}
+
+void SygusConstraintCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->assertSygusConstraint(d_expr);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Expr SygusConstraintCommand::getExpr() const { return d_expr; }
+
+Command* SygusConstraintCommand::exportTo(ExprManager* exprManager,
+                                          ExprManagerMapCollection& variableMap)
+{
+  return new SygusConstraintCommand(d_expr.exportTo(exprManager, variableMap));
+}
+
+Command* SygusConstraintCommand::clone() const
+{
+  return new SygusConstraintCommand(d_expr);
+}
+
+std::string SygusConstraintCommand::getCommandName() const
+{
+  return "constraint";
+}
+
+/* -------------------------------------------------------------------------- */
+/* class SygusInvConstraintCommand */
+/* -------------------------------------------------------------------------- */
+
+SygusInvConstraintCommand::SygusInvConstraintCommand(
+    const std::vector<Expr>& predicates)
+    : d_predicates(predicates)
+{
+}
+
+SygusInvConstraintCommand::SygusInvConstraintCommand(const Expr& inv,
+                                                     const Expr& pre,
+                                                     const Expr& trans,
+                                                     const Expr& post)
+    : SygusInvConstraintCommand(std::vector<Expr>{inv, pre, trans, post})
+{
+}
+
+void SygusInvConstraintCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->assertSygusInvConstraint(
+        d_predicates[0], d_predicates[1], d_predicates[2], d_predicates[3]);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+const std::vector<Expr>& SygusInvConstraintCommand::getPredicates() const
+{
+  return d_predicates;
+}
+
+Command* SygusInvConstraintCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  return new SygusInvConstraintCommand(d_predicates);
+}
+
+Command* SygusInvConstraintCommand::clone() const
+{
+  return new SygusInvConstraintCommand(d_predicates);
+}
+
+std::string SygusInvConstraintCommand::getCommandName() const
+{
+  return "inv-constraint";
+}
+
+/* -------------------------------------------------------------------------- */
 /* class CheckSynthCommand                                                    */
 /* -------------------------------------------------------------------------- */
 
-CheckSynthCommand::CheckSynthCommand() : d_expr() {}
-CheckSynthCommand::CheckSynthCommand(const Expr& expr) : d_expr(expr) {}
-Expr CheckSynthCommand::getExpr() const { return d_expr; }
 void CheckSynthCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_result = smtEngine->checkSynth(d_expr);
+    d_result = smtEngine->checkSynth();
     d_commandStatus = CommandSuccess::instance();
     smt::SmtScope scope(smtEngine);
     d_solution.clear();
@@ -631,18 +906,10 @@ void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
 Command* CheckSynthCommand::exportTo(ExprManager* exprManager,
                                      ExprManagerMapCollection& variableMap)
 {
-  CheckSynthCommand* c =
-      new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap));
-  c->d_result = d_result;
-  return c;
+  return new CheckSynthCommand();
 }
 
-Command* CheckSynthCommand::clone() const
-{
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr);
-  c->d_result = d_result;
-  return c;
-}
+Command* CheckSynthCommand::clone() const { return new CheckSynthCommand(); }
 
 std::string CheckSynthCommand::getCommandName() const { return "check-synth"; }
 
@@ -1091,8 +1358,7 @@ void DefineNamedFunctionCommand::invoke(SmtEngine* smtEngine)
   this->DefineFunctionCommand::invoke(smtEngine);
   if (!d_func.isNull() && d_func.getType().isBoolean())
   {
-    smtEngine->addToAssignment(
-        d_func.getExprManager()->mkExpr(kind::APPLY, d_func));
+    smtEngine->addToAssignment(d_func);
   }
   d_commandStatus = CommandSuccess::instance();
 }
@@ -1396,26 +1662,26 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    vector<Expr> result;
     ExprManager* em = smtEngine->getExprManager();
     NodeManager* nm = NodeManager::fromExprManager(em);
-    for (const Expr& e : d_terms)
+    smt::SmtScope scope(smtEngine);
+    vector<Expr> result = smtEngine->getValues(d_terms);
+    Assert(result.size() == d_terms.size());
+    for (int i = 0, size = d_terms.size(); i < size; i++)
     {
+      Expr e = d_terms[i];
       Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
-      smt::SmtScope scope(smtEngine);
       Node request = Node::fromExpr(
           options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
-      Node value = Node::fromExpr(smtEngine->getValue(e));
+      Node value = Node::fromExpr(result[i]);
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
-        // Need to wrap in special marker so that output printers know this
+        // Need to wrap in division-by-one so that output printers know this
         // is an integer-looking constant that really should be output as
-        // a rational.  Necessary for SMT-LIB standards compliance, but ugly.
-        value = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                           nm->mkConst(AscriptionType(em->realType())),
-                           value);
+        // a rational.  Necessary for SMT-LIB standards compliance.
+        value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
       }
-      result.push_back(nm->mkNode(kind::SEXPR, request, value).toExpr());
+      result[i] = nm->mkNode(kind::SEXPR, request, value).toExpr();
     }
     d_result = em->mkExpr(kind::SEXPR, result);
     d_commandStatus = CommandSuccess::instance();
@@ -1486,14 +1752,7 @@ void GetAssignmentCommand::invoke(SmtEngine* smtEngine)
     for (const auto& p : assignments)
     {
       vector<SExpr> v;
-      if (p.first.getKind() == kind::APPLY)
-      {
-        v.emplace_back(SExpr::Keyword(p.first.getOperator().toString()));
-      }
-      else
-      {
-        v.emplace_back(SExpr::Keyword(p.first.toString()));
-      }
+      v.emplace_back(SExpr::Keyword(p.first.toString()));
       v.emplace_back(SExpr::Keyword(p.second.toString()));
       sexprs.emplace_back(v);
     }
@@ -1611,6 +1870,109 @@ Command* GetModelCommand::clone() const
 }
 
 std::string GetModelCommand::getCommandName() const { return "get-model"; }
+
+/* -------------------------------------------------------------------------- */
+/* class BlockModelCommand */
+/* -------------------------------------------------------------------------- */
+
+BlockModelCommand::BlockModelCommand() {}
+void BlockModelCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->blockModel();
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (RecoverableModalException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (UnsafeInterruptException& e)
+  {
+    d_commandStatus = new CommandInterrupted();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* BlockModelCommand::exportTo(ExprManager* exprManager,
+                                     ExprManagerMapCollection& variableMap)
+{
+  BlockModelCommand* c = new BlockModelCommand();
+  return c;
+}
+
+Command* BlockModelCommand::clone() const
+{
+  BlockModelCommand* c = new BlockModelCommand();
+  return c;
+}
+
+std::string BlockModelCommand::getCommandName() const { return "block-model"; }
+
+/* -------------------------------------------------------------------------- */
+/* class BlockModelValuesCommand */
+/* -------------------------------------------------------------------------- */
+
+BlockModelValuesCommand::BlockModelValuesCommand(const std::vector<Expr>& terms)
+    : d_terms(terms)
+{
+  PrettyCheckArgument(terms.size() >= 1,
+                      terms,
+                      "cannot block-model-values of an empty set of terms");
+}
+
+const std::vector<Expr>& BlockModelValuesCommand::getTerms() const
+{
+  return d_terms;
+}
+void BlockModelValuesCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->blockModelValues(d_terms);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (RecoverableModalException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
+  catch (UnsafeInterruptException& e)
+  {
+    d_commandStatus = new CommandInterrupted();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* BlockModelValuesCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  vector<Expr> exportedTerms;
+  for (std::vector<Expr>::const_iterator i = d_terms.begin();
+       i != d_terms.end();
+       ++i)
+  {
+    exportedTerms.push_back((*i).exportTo(exprManager, variableMap));
+  }
+  BlockModelValuesCommand* c = new BlockModelValuesCommand(exportedTerms);
+  return c;
+}
+
+Command* BlockModelValuesCommand::clone() const
+{
+  BlockModelValuesCommand* c = new BlockModelValuesCommand(d_terms);
+  return c;
+}
+
+std::string BlockModelValuesCommand::getCommandName() const
+{
+  return "block-model-values";
+}
 
 /* -------------------------------------------------------------------------- */
 /* class GetProofCommand                                                      */
@@ -1776,11 +2138,98 @@ std::string GetSynthSolutionCommand::getCommandName() const
   return "get-instantiations";
 }
 
+GetAbductCommand::GetAbductCommand() {}
+GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)
+    : d_name(name), d_conj(conj), d_resultStatus(false)
+{
+}
+GetAbductCommand::GetAbductCommand(const std::string& name,
+                                   Expr conj,
+                                   const Type& gtype)
+    : d_name(name),
+      d_conj(conj),
+      d_sygus_grammar_type(gtype),
+      d_resultStatus(false)
+{
+}
+
+Expr GetAbductCommand::getConjecture() const { return d_conj; }
+Type GetAbductCommand::getGrammarType() const { return d_sygus_grammar_type; }
+Expr GetAbductCommand::getResult() const { return d_result; }
+
+void GetAbductCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    if (d_sygus_grammar_type.isNull())
+    {
+      d_resultStatus = smtEngine->getAbduct(d_conj, d_result);
+    }
+    else
+    {
+      d_resultStatus =
+          smtEngine->getAbduct(d_conj, d_sygus_grammar_type, d_result);
+    }
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    expr::ExprDag::Scope scope(out, false);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetAbductCommand::exportTo(ExprManager* exprManager,
+                                    ExprManagerMapCollection& variableMap)
+{
+  GetAbductCommand* c =
+      new GetAbductCommand(d_name, d_conj.exportTo(exprManager, variableMap));
+  c->d_sygus_grammar_type =
+      d_sygus_grammar_type.exportTo(exprManager, variableMap);
+  c->d_result = d_result.exportTo(exprManager, variableMap);
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+Command* GetAbductCommand::clone() const
+{
+  GetAbductCommand* c = new GetAbductCommand(d_name, d_conj);
+  c->d_sygus_grammar_type = d_sygus_grammar_type;
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetAbductCommand::getCommandName() const { return "get-abduct"; }
+
 /* -------------------------------------------------------------------------- */
 /* class GetQuantifierEliminationCommand                                      */
 /* -------------------------------------------------------------------------- */
 
-GetQuantifierEliminationCommand::GetQuantifierEliminationCommand() : d_expr() {}
+GetQuantifierEliminationCommand::GetQuantifierEliminationCommand()
+    : d_expr(), d_doFull(true)
+{
+}
 GetQuantifierEliminationCommand::GetQuantifierEliminationCommand(
     const Expr& expr, bool doFull)
     : d_expr(expr), d_doFull(doFull)
@@ -1875,7 +2324,7 @@ void GetUnsatAssumptionsCommand::printResult(std::ostream& out,
   }
   else
   {
-    out << d_result << endl;
+    container_to_stream(out, d_result, "(", ")\n", " ");
   }
 }
 
@@ -2169,6 +2618,10 @@ void GetInfoCommand::invoke(SmtEngine* smtEngine)
   catch (UnrecognizedOptionException&)
   {
     d_commandStatus = new CommandUnsupported();
+  }
+  catch (RecoverableModalException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
   }
   catch (exception& e)
   {

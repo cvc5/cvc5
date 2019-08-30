@@ -1,6 +1,7 @@
+% REQUIRES: no-competition
 % ERROR-SCRUBBER: sed -e '/^[[:space:]]*$/d'
 % EXPECT-ERROR: CVC4 Error:
-% EXPECT-ERROR: Parse Error: error.cvc:6.8: Symbol 'BOOL' not declared as a type
+% EXPECT-ERROR: Parse Error: error.cvc:7.8: Symbol 'BOOL' not declared as a type
 % EXPECT-ERROR:   p : BOOL;
 % EXPECT-ERROR:       ^
 p : BOOL;

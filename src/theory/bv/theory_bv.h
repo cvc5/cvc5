@@ -2,9 +2,9 @@
 /*! \file theory_bv.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Morgan Deters, Dejan Jovanovic
+ **   Liana Hadarean, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__THEORY_BV_H
-#define __CVC4__THEORY__BV__THEORY_BV_H
+#ifndef CVC4__THEORY__BV__THEORY_BV_H
+#define CVC4__THEORY__BV__THEORY_BV_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -30,6 +30,14 @@
 #include "theory/theory.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"
+
+// Forward declarations, needed because the BV theory and the BV Proof classes
+// are cyclically dependent
+namespace CVC4 {
+namespace proof {
+class BitVectorProof;
+}
+}  // namespace CVC4
 
 namespace CVC4 {
 namespace theory {
@@ -53,7 +61,7 @@ class TheoryBV : public Theory {
   context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
 
-  std::vector<SubtheorySolver*> d_subtheories;
+  std::vector<std::unique_ptr<SubtheorySolver>> d_subtheories;
   std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
 
 public:
@@ -66,9 +74,9 @@ public:
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  void finishInit() override;
 
-  void mkAckermanizationAssertions(std::vector<Node>& assertions);
+  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
 
   void preRegisterTerm(TNode n) override;
 
@@ -104,9 +112,9 @@ public:
 
   bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
 
-  void setProofLog( BitVectorProof * bvp );
+  void setProofLog(proof::BitVectorProof* bvp);
 
-private:
+ private:
 
   class Statistics {
   public:
@@ -136,8 +144,6 @@ private:
   Node getBVDivByZero(Kind k, unsigned width);
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  void collectFunctionSymbols(TNode term, TNodeSet& seen);
-  void storeFunction(TNode func, TNode term);
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
   NodeSet d_staticLearnCache;
 
@@ -148,12 +154,7 @@ private:
   std::unordered_map<unsigned, Node> d_BVDivByZero;
   std::unordered_map<unsigned, Node> d_BVRemByZero;
 
-
-  typedef std::unordered_map<Node, NodeSet, NodeHashFunction>  FunctionToArgs;
   typedef std::unordered_map<Node, Node, NodeHashFunction>  NodeToNode;
-  // for ackermanization
-  FunctionToArgs d_funcToArgs;
-  CVC4::theory::SubstitutionMap d_funcToSkolem;
 
   context::CDO<bool> d_lemmasAdded;
 
@@ -179,8 +180,8 @@ private:
   typedef context::CDHashMap<Node, SubTheory, NodeHashFunction> PropagatedMap;
   PropagatedMap d_propagatedBy;
 
-  EagerBitblastSolver* d_eagerSolver;
-  AbstractionModule* d_abstractionModule;
+  std::unique_ptr<EagerBitblastSolver> d_eagerSolver;
+  std::unique_ptr<AbstractionModule> d_abstractionModule;
   bool d_isCoreTheory;
   bool d_calledPreregister;
   
@@ -188,7 +189,28 @@ private:
   bool d_needsLastCallCheck;
   context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
   context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
+  /** do extended function inferences
+   *
+   * This method adds lemmas on the output channel of TheoryBV based on
+   * reasoning about extended functions, such as bv2nat and int2bv. Examples
+   * of lemmas added by this method include:
+   *   0 <= ((_ int2bv w) x) < 2^w
+   *   ((_ int2bv w) (bv2nat x)) = x
+   *   (bv2nat ((_ int2bv w) x)) == x + k*2^w
+   * The purpose of these lemmas is to recognize easy conflicts before fully
+   * reducing extended functions based on their full semantics.
+   */
   bool doExtfInferences( std::vector< Node >& terms );
+  /** do extended function reductions
+   *
+   * This method adds lemmas on the output channel of TheoryBV based on
+   * reducing all extended function applications that are preregistered to
+   * this theory and have not already been reduced by context-dependent
+   * simplification (see theory/ext_theory.h). Examples of lemmas added by
+   * this method include:
+   *   (bv2nat x) = (ite ((_ extract w w-1) x) 2^{w-1} 0) + ... +
+   *                (ite ((_ extract 1 0) x) 1 0)
+   */
   bool doExtfReductions( std::vector< Node >& terms );
   
   bool wasPropagatedBySubtheory(TNode literal) const {
@@ -251,4 +273,4 @@ private:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BV__THEORY_BV_H */
+#endif /* CVC4__THEORY__BV__THEORY_BV_H */

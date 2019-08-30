@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,12 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_STRATEGY_ENUMERATIVE_H
-#define __CVC4__INST_STRATEGY_ENUMERATIVE_H
+#ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
+#define CVC4__INST_STRATEGY_ENUMERATIVE_H
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -72,8 +72,6 @@ class InstStrategyEnum : public QuantifiersModule
    * quantified formulas via calls to process(...)
    */
   void check(Theory::Effort e, QEffort quant_e) override;
-  /** Register quantifier. */
-  void registerQuantifier(Node q) override;
   /** Identify. */
   std::string identify() const override
   {
@@ -94,8 +92,12 @@ class InstStrategyEnum : public QuantifiersModule
    * well-typed term *not* occurring in the current context.
    * This handles corner cases where there are no well-typed
    * ground terms in the current context to instantiate with.
+   *
+   * The flag isRd indicates whether we are trying relevant domain
+   * instantiations. If this flag is false, we are trying arbitrary ground
+   * term instantiations.
    */
-  bool process(Node q, bool fullEffort);
+  bool process(Node q, bool fullEffort, bool isRd);
 }; /* class InstStrategyEnum */
 
 } /* CVC4::theory::quantifiers namespace */

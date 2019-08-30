@@ -2,9 +2,9 @@
 /*! \file uninterpreted_constant.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,7 @@
 
 #include "expr/uninterpreted_constant.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -34,15 +35,18 @@ UninterpretedConstant::UninterpretedConstant(Type type, Integer index)
 }
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) {
-  stringstream ss;
+  std::stringstream ss;
   ss << uc.getType();
-  string t = ss.str();
-  size_t i = 0;
-  // replace everything that isn't in [a-zA-Z0-9_] with an _
-  while((i = t.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_", i)) != string::npos) {
-    t.replace(i, 1, 1, '_');
+  std::string st(ss.str());
+  // must remove delimiting quotes from the name of the type
+  // this prevents us from printing symbols like |@uc_|T|_n|
+  std::string q("|");
+  size_t pos;
+  while ((pos = st.find(q)) != std::string::npos)
+  {
+    st.replace(pos, 1, "");
   }
-  return out << "uc_" << t << '_' << uc.getIndex();
+  return out << "uc_" << st.c_str() << "_" << uc.getIndex();
 }
 
 }/* CVC4 namespace */

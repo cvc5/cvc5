@@ -2,9 +2,9 @@
 /*! \file quantifiers_attributes.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Andrew Reynolds
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
-#define __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
+#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
+#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 
 #include "expr/attribute.h"
 #include "expr/node.h"
@@ -57,10 +57,6 @@ struct QuantNameAttributeId
 };
 typedef expr::Attribute<QuantNameAttributeId, bool> QuantNameAttribute;
 
-/** Attribute true for quantifiers that are synthesis conjectures */
-struct SynthesisAttributeId {};
-typedef expr::Attribute< SynthesisAttributeId, bool > SynthesisAttribute;
-
 struct InstLevelAttributeId
 {
 };
@@ -77,6 +73,29 @@ struct SygusPrintProxyAttributeId
 typedef expr::Attribute<SygusPrintProxyAttributeId, Node>
     SygusPrintProxyAttribute;
 
+/** Attribute for specifying a "side condition" for a sygus conjecture
+ *
+ * A sygus conjecture of the form exists f. forall x. P[f,x] whose side
+ * condition is C[f] has the semantics exists f. C[f] ^ forall x. P[f,x].
+ */
+struct SygusSideConditionAttributeId
+{
+};
+typedef expr::Attribute<SygusSideConditionAttributeId, Node>
+    SygusSideConditionAttribute;
+
+/** Attribute for indicating that a sygus variable encodes a term
+ *
+ * This is used, e.g., for abduction where the formal argument list of the
+ * abduct-to-synthesize corresponds to the free variables of the sygus
+ * problem.
+ */
+struct SygusVarToTermAttributeId
+{
+};
+typedef expr::Attribute<SygusVarToTermAttributeId, Node>
+    SygusVarToTermAttribute;
+
 namespace quantifiers {
 
 /** Attribute priority for rewrite rules */
@@ -87,8 +106,17 @@ namespace quantifiers {
 struct QAttributes
 {
  public:
-  QAttributes() : d_hasPattern(false), d_conjecture(false), d_axiom(false), d_sygus(false),
-                  d_synthesis(false), d_rr_priority(-1), d_qinstLevel(-1), d_quant_elim(false), d_quant_elim_partial(false){}
+  QAttributes()
+      : d_hasPattern(false),
+        d_conjecture(false),
+        d_axiom(false),
+        d_sygus(false),
+        d_rr_priority(-1),
+        d_qinstLevel(-1),
+        d_quant_elim(false),
+        d_quant_elim_partial(false)
+  {
+  }
   ~QAttributes(){}
   /** does the quantified formula have a pattern? */
   bool d_hasPattern;
@@ -104,8 +132,8 @@ struct QAttributes
   Node d_fundef_f;
   /** is this formula marked as a sygus conjecture? */
   bool d_sygus;
-  /** is this formula marked as a synthesis (non-sygus) conjecture? */
-  bool d_synthesis;
+  /** side condition for sygus conjectures */
+  Node d_sygusSideCondition;
   /** if a rewrite rule, then this is the priority value for the rewrite rule */
   int d_rr_priority;
   /** stores the maximum instantiation level allowed for this quantified formula
@@ -192,8 +220,6 @@ public:
   bool isFunDef( Node q );
   /** is sygus conjecture */
   bool isSygus( Node q );
-  /** is synthesis conjecture */
-  bool isSynthesis( Node q );
   /** get instantiation level */
   int getQuantInstLevel( Node q );
   /** get rewrite rule priority */

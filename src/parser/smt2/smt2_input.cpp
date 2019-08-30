@@ -2,9 +2,9 @@
 /*! \file smt2_input.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Tim King
+ **   Christopher L. Conway, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,13 +14,9 @@
  ** [[ Add file-specific comments here ]]
  **/
 
-// These headers should be the first two included.
-// See the documentation in "parser/antlr_undefines.h" for more details.
-#include <antlr3.h>
-#include "parser/antlr_undefines.h"
-
-
 #include "parser/smt2/smt2_input.h"
+
+#include <antlr3.h>
 
 #include "expr/expr_manager.h"
 #include "parser/input.h"
@@ -34,9 +30,8 @@ namespace CVC4 {
 namespace parser {
 
 /* Use lookahead=2 */
-Smt2Input::Smt2Input(AntlrInputStream& inputStream, InputLanguage lang) :
-  AntlrInput(inputStream, 2) {
-
+Smt2Input::Smt2Input(AntlrInputStream& inputStream) : AntlrInput(inputStream, 2)
+{
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
   assert( input != NULL );
 
@@ -56,18 +51,11 @@ Smt2Input::Smt2Input(AntlrInputStream& inputStream, InputLanguage lang) :
   }
 
   setAntlr3Parser(d_pSmt2Parser->pParser);
-
-  setLanguage(lang);
 }
 
 Smt2Input::~Smt2Input() {
   d_pSmt2Lexer->free(d_pSmt2Lexer);
   d_pSmt2Parser->free(d_pSmt2Parser);
-}
-
-void Smt2Input::setLanguage(InputLanguage lang) {
-  CheckArgument(language::isInputLang_smt2(lang), lang);
-  d_lang = lang;
 }
 
 Command* Smt2Input::parseCommand() {

@@ -2,9 +2,9 @@
 /*! \file sygus_unif_strat.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,15 +14,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_STRAT_H
 
 #include <map>
 #include "expr/node.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 /** roles for enumerators
@@ -93,6 +95,8 @@ std::ostream& operator<<(std::ostream& os, StrategyType st);
 class UnifContext
 {
  public:
+  virtual ~UnifContext() {}
+
   /** Get the current role
    *
    * In a particular context when constructing solutions in synthesis by
@@ -238,6 +242,34 @@ class EnumTypeInfoStrat
 };
 
 /**
+ * flags for extra restrictions to be inferred during redundant operators
+ * learning
+ */
+struct StrategyRestrictions
+{
+  StrategyRestrictions() : d_iteReturnBoolConst(false), d_iteCondOnlyAtoms(true)
+  {
+  }
+  /**
+   * if this flag is true then staticLearnRedundantOps will also try to make
+   * the return value of boolean ITEs to be restricted to constants
+   */
+  bool d_iteReturnBoolConst;
+  /**
+   * if this flag is true then staticLearnRedundantOps will also try to make
+   * the condition values of ITEs to be restricted to atoms
+   */
+  bool d_iteCondOnlyAtoms;
+  /**
+   * A list of unused strategies. This maps strategy points to the indices
+   * in StrategyNode::d_strats that are not used by the caller of
+   * staticLearnRedundantOps, and hence should not be taken into account
+   * when doing redundant operator learning.
+   */
+  std::map<Node, std::unordered_set<unsigned>> d_unused_strategies;
+};
+
+/**
  * Stores strategy and enumeration information for a function-to-synthesize.
  *
  * When this class is initialized, we construct a "strategy tree" based on
@@ -247,7 +279,7 @@ class EnumTypeInfoStrat
 class SygusUnifStrategy
 {
  public:
-  SygusUnifStrategy() {}
+  SygusUnifStrategy() : d_qe(nullptr) {}
   /** initialize
    *
    * This initializes this class with function-to-synthesize f. We also call
@@ -274,13 +306,25 @@ class SygusUnifStrategy
    *
    * This learns static lemmas for pruning enumerative space based on the
    * strategy for the function-to-synthesize of this class, and stores these
-   * into lemmas.
+   * into strategy_lemmas.
    *
    * These may correspond to static symmetry breaking predicates (for example,
    * those that exclude ITE from enumerators whose role is enum_io when the
    * strategy is ITE_strat).
+   *
+   * then the module may also try to apply the given pruning restrictions (see
+   * StrategyRestrictions for more details)
    */
-  void staticLearnRedundantOps(std::vector<Node>& lemmas);
+  void staticLearnRedundantOps(
+      std::map<Node, std::vector<Node>>& strategy_lemmas,
+      StrategyRestrictions& restrictions);
+  /**
+   * creates the default restrictions when they are not given and calls the
+   * above function
+   */
+  void staticLearnRedundantOps(
+      std::map<Node, std::vector<Node>>& strategy_lemmas);
+
   /** debug print this strategy on Trace c */
   void debugPrint(const char* c);
 
@@ -315,12 +359,12 @@ class SygusUnifStrategy
   //-----------------------end debug printing
 
   //------------------------------ strategy registration
-  /** collect enumerator types
+  /** build strategy graph
    *
    * This builds the strategy for enumerated values of type tn for the given
    * role of nrole, for solutions to function-to-synthesize of this class.
    */
-  void collectEnumeratorTypes(TypeNode tn, NodeRole nrole);
+  void buildStrategyGraph(TypeNode tn, NodeRole nrole);
   /** register enumerator
    *
    * This registers that et is an enumerator of type tn, having enumerator
@@ -331,7 +375,7 @@ class SygusUnifStrategy
    * we may use enumerators for which this flag is false to represent strategy
    * nodes that have child strategies.
    */
-  void registerEnumerator(Node et,
+  void registerStrategyPoint(Node et,
                           TypeNode tn,
                           EnumRole enum_role,
                           bool inSearch);
@@ -351,8 +395,9 @@ class SygusUnifStrategy
   void staticLearnRedundantOps(
       Node e,
       NodeRole nrole,
-      std::map<Node, std::map<NodeRole, bool> >& visited,
-      std::map<Node, std::map<unsigned, bool> >& needs_cons);
+      std::map<Node, std::map<NodeRole, bool>>& visited,
+      std::map<Node, std::map<unsigned, bool>>& needs_cons,
+      StrategyRestrictions& restrictions);
   /** finish initialization of the strategy tree
    *
    * (e, nrole) specify the strategy node in the graph we are currently
@@ -386,4 +431,4 @@ class SygusUnifStrategy
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */

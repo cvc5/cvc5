@@ -23,3 +23,20 @@ header = "options/theory_options.h"
   notifies   = ["notifyUseTheoryList"]
   read_only  = true
   help       = "use alternate theory implementation NAME (--use-theory=help for a list). This option may be repeated or a comma separated list."
+
+[[option]]
+  name       = "assignFunctionValues"
+  category   = "regular"
+  long       = "assign-function-values"
+  type       = "bool"
+  default    = "true"
+  help       = "assign values for uninterpreted functions in models"
+
+[[option]]
+  name       = "condenseFunctionValues"
+  category   = "regular"
+  long       = "condense-function-values"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "condense values for functions in models rather than explicitly representing them"

@@ -2,9 +2,9 @@
 /*! \file conjecture_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Paul Meng, Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,14 +18,13 @@
 #define CONJECTURE_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "theory/quantifiers_engine.h"
+#include "expr/node_trie.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-class TermArgTrie;
 
 //algorithm for computing candidate subgoals
 
@@ -70,10 +69,20 @@ class TermGenEnv;
 
 class TermGenerator
 {
-private:
+ private:
   unsigned calculateGeneralizationDepth( TermGenEnv * s, std::map< TypeNode, std::vector< int > >& fvs );
-public:
-  TermGenerator(){}
+
+ public:
+  TermGenerator()
+      : d_id(0),
+        d_status(0),
+        d_status_num(0),
+        d_status_child_num(0),
+        d_match_status(0),
+        d_match_status_child_num(0),
+        d_match_mode(0)
+  {
+  }
   TypeNode d_typ;
   unsigned d_id;
   //1 : consider as unique variable
@@ -95,8 +104,8 @@ public:
   //2 : variables must map to non-ground terms
   unsigned d_match_mode;
   //children
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children;
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children_end;
+  std::vector<std::map<TNode, TNodeTrie>::iterator> d_match_children;
+  std::vector<std::map<TNode, TNodeTrie>::iterator> d_match_children_end;
 
   void reset( TermGenEnv * s, TypeNode tn );
   bool getNextTerm( TermGenEnv * s, unsigned depth );
@@ -277,6 +286,9 @@ private:
   };
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+  /** boolean terms */
+  Node d_true;
+  Node d_false;
   /** (universal) equaltity engine */
   eq::EqualityEngine d_uequalityEngine;
   /** pending adds */
@@ -378,7 +390,23 @@ private:
   std::map< TypeNode, Node > d_typ_pred;
   //get predicate for type
   Node getPredicateForType( TypeNode tn );
-  //
+  /** get enumerate uf term
+   *
+   * This function adds up to #num f-applications to terms, where f is
+   * n.getOperator(). These applications are enumerated in a fair manner based
+   * on an iterative deepening of the sum of indices of the arguments. For
+   * example, if f : U x U -> U, an the term enumerator for U gives t1, t2, t3
+   * ..., then we add f-applications to terms in this order:
+   *   f( t1, t1 )
+   *   f( t2, t1 )
+   *   f( t1, t2 )
+   *   f( t1, t3 )
+   *   f( t2, t2 )
+   *   f( t3, t1 )
+   *   ...
+   * This function may add fewer than #num terms to terms if the enumeration is
+   * exhausted, or if an internal error occurs.
+   */
   void getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms );
   //
   void getEnumeratePredUfTerm( Node n, unsigned num, std::vector< Node >& terms );
@@ -428,9 +456,6 @@ public:
   void reset_round(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
-  /* Called for new quantifiers */
-  void registerQuantifier(Node q) override;
-  void assertNode(Node n) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "ConjectureGenerator"; }
   // options

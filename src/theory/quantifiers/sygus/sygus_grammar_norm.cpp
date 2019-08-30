@@ -2,9 +2,9 @@
 /*! \file sygus_grammar_norm.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,10 +20,12 @@
 #include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 #include <numeric>  // for std::iota
 
@@ -66,15 +68,139 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
 }
 
+SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe)
+    : d_qe(qe), d_tds(d_qe->getTermDatabaseSygus())
+{
+}
+
+Kind SygusGrammarNorm::TypeObject::getEliminateKind(Kind ok)
+{
+  Kind nk = ok;
+  // We also must ensure that builtin operators which are eliminated
+  // during expand definitions are replaced by the proper operator.
+  if (ok == BITVECTOR_UDIV)
+  {
+    nk = BITVECTOR_UDIV_TOTAL;
+  }
+  else if (ok == BITVECTOR_UREM)
+  {
+    nk = BITVECTOR_UREM_TOTAL;
+  }
+  else if (ok == DIVISION)
+  {
+    nk = DIVISION_TOTAL;
+  }
+  else if (ok == INTS_DIVISION)
+  {
+    nk = INTS_DIVISION_TOTAL;
+  }
+  else if (ok == INTS_MODULUS)
+  {
+    nk = INTS_MODULUS_TOTAL;
+  }
+  return nk;
+}
+
+Node SygusGrammarNorm::TypeObject::eliminatePartialOperators(Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end())
+    {
+      visited[cur] = Node::null();
+      visit.push_back(cur);
+      for (const Node& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+    else if (it->second.isNull())
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur)
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      Kind ok = cur.getKind();
+      Kind nk = getEliminateKind(ok);
+      if (nk != ok || childChanged)
+      {
+        ret = nm->mkNode(nk, children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
+}
+
 void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
                                                const DatatypeConstructor& cons)
 {
   Trace("sygus-grammar-normalize") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
    * operator (NOT, ITE, etc) */
-  Node exp_sop_n = Node::fromExpr(
-      smt::currentSmtEngine()->expandDefinitions(cons.getSygusOp()));
-  d_ops.push_back(Rewriter::rewrite(exp_sop_n));
+  Node sygus_op = Node::fromExpr(cons.getSygusOp());
+  Trace("sygus-grammar-normalize-debug")
+      << ".....operator is " << sygus_op << std::endl;
+  Node exp_sop_n = sygus_op;
+  if (exp_sop_n.isConst())
+  {
+    // If it is a builtin operator, convert to total version if necessary.
+    // First, get the kind for the operator.
+    Kind ok = NodeManager::operatorToKind(exp_sop_n);
+    Trace("sygus-grammar-normalize-debug")
+        << "...builtin kind is " << ok << std::endl;
+    Kind nk = getEliminateKind(ok);
+    if (nk != ok)
+    {
+      Trace("sygus-grammar-normalize-debug")
+          << "...replace by builtin operator " << nk << std::endl;
+      exp_sop_n = NodeManager::currentNM()->operatorOf(nk);
+    }
+  }
+  else
+  {
+    // Only expand definitions if the operator is not constant, since calling
+    // expandDefinitions on them should be a no-op. This check ensures we don't
+    // try to expand e.g. bitvector extract operators, whose type is undefined,
+    // and thus should not be passed to expandDefinitions.
+    exp_sop_n = Node::fromExpr(
+        smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
+    exp_sop_n = Rewriter::rewrite(exp_sop_n);
+    Trace("sygus-grammar-normalize-debug")
+        << ".....operator (post-rewrite) is " << exp_sop_n << std::endl;
+    // eliminate all partial operators from it
+    exp_sop_n = eliminatePartialOperators(exp_sop_n);
+    Trace("sygus-grammar-normalize-debug")
+        << ".....operator (eliminate partial operators) is " << exp_sop_n
+        << std::endl;
+    // rewrite again
+    exp_sop_n = Rewriter::rewrite(exp_sop_n);
+  }
+
+  d_ops.push_back(exp_sop_n);
   Trace("sygus-grammar-normalize-defs")
       << "\tOriginal op: " << cons.getSygusOp()
       << "\n\tExpanded one: " << exp_sop_n
@@ -430,6 +556,41 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     Assert(op_pos[i] < dt.getNumConstructors());
     to.addConsInfo(this, dt[op_pos[i]]);
   }
+  if (dt.getSygusAllowConst())
+  {
+    TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
+    // must be handled by counterexample-guided instantiation
+    // don't do it for Boolean (not worth the trouble, since it has only
+    // minimal gain (1 any constant vs 2 constructors for true/false), and
+    // we need to do a lot of special symmetry breaking, e.g. for ensuring
+    // any constant constructors are not the 1st children of ITEs.
+    if (CegInstantiator::isCbqiSort(sygus_type) >= CEG_HANDLED
+        && !sygus_type.isBoolean())
+    {
+      Trace("sygus-grammar-normalize") << "...add any constant constructor.\n";
+      // add an "any constant" proxy variable
+      Node av = NodeManager::currentNM()->mkSkolem("_any_constant", sygus_type);
+      // mark that it represents any constant
+      SygusAnyConstAttribute saca;
+      av.setAttribute(saca, true);
+      std::stringstream ss;
+      ss << to.d_unres_tn << "_any_constant";
+      std::string cname(ss.str());
+      std::vector<Type> builtin_arg;
+      builtin_arg.push_back(dt.getSygusType());
+      // we add this constructor first since we use left associative chains
+      // and our symmetry breaking should group any constants together
+      // beneath the same application
+      // we set its weight to zero since it should be considered at the
+      // same level as constants.
+      to.d_ops.insert(to.d_ops.begin(), av.toExpr());
+      to.d_cons_names.insert(to.d_cons_names.begin(), cname);
+      to.d_cons_args_t.insert(to.d_cons_args_t.begin(), builtin_arg);
+      to.d_pc.insert(to.d_pc.begin(),
+                     printer::SygusEmptyPrintCallback::getEmptyPC());
+      to.d_weight.insert(to.d_weight.begin(), 0);
+    }
+  }
   /* Build normalize datatype */
   if (Trace.isOn("sygus-grammar-normalize"))
   {
@@ -478,7 +639,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   Assert(d_dt_all.size() == d_unres_t_all.size());
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
-          d_dt_all, d_unres_t_all);
+          d_dt_all, d_unres_t_all, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Assert(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();

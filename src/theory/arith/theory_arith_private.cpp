@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "base/output.h"
-#include "base/tls.h"
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
@@ -33,9 +32,11 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
+#include "preprocessing/util/ite_utilities.h"
 #include "smt/logic_exception.h"
 #include "smt/logic_request.h"
 #include "smt/smt_statistics_registry.h"
@@ -43,27 +44,22 @@
 #include "theory/arith/approx_simplex.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/constraint.h"
 #include "theory/arith/cut_log.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
-#include "theory/arith/matrix.h"
 #include "theory/arith/nonlinear_extension.h"
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
-#include "theory/arith/partial_model.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/ite_utilities.h"
+#include "theory/ext_theory.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -1359,24 +1355,37 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
       // Add the substitution if not recursive
       Assert(elim == Rewriter::rewrite(elim));
 
-
-      if(right.size() > options::ppAssertMaxSubSize()){
-        Debug("simplify") << "TheoryArithPrivate::solve(): did not substitute due to the right hand side containing too many terms: " << minVar << ":" << elim << endl;
+      if (right.size() > options::ppAssertMaxSubSize())
+      {
+        Debug("simplify")
+            << "TheoryArithPrivate::solve(): did not substitute due to the "
+               "right hand side containing too many terms: "
+            << minVar << ":" << elim << endl;
         Debug("simplify") << right.size() << endl;
-      }else if(elim.hasSubterm(minVar)){
-        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute due to recursive pattern with sharing: " << minVar << ":" << elim << endl;
-
-      }else if (!minVar.getType().isInteger() || right.isIntegral()) {
-        Assert(!elim.hasSubterm(minVar));
+      }
+      else if (expr::hasSubterm(elim, minVar))
+      {
+        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute "
+                             "due to recursive pattern with sharing: "
+                          << minVar << ":" << elim << endl;
+      }
+      else if (!minVar.getType().isInteger() || right.isIntegral())
+      {
+        Assert(!expr::hasSubterm(elim, minVar));
         // cannot eliminate integers here unless we know the resulting
         // substitution is integral
-        Debug("simplify") << "TheoryArithPrivate::solve(): substitution " << minVar << " |-> " << elim << endl;
+        Debug("simplify") << "TheoryArithPrivate::solve(): substitution "
+                          << minVar << " |-> " << elim << endl;
 
         outSubstitutions.addSubstitution(minVar, elim);
         return Theory::PP_ASSERT_STATUS_SOLVED;
-      } else {
-        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute b/c it's integer: " << minVar << ":" << minVar.getType() << " |-> " << elim << ":" << elim.getType() << endl;
-
+      }
+      else
+      {
+        Debug("simplify") << "TheoryArithPrivate::solve(): can't substitute "
+                             "b/c it's integer: "
+                          << minVar << ":" << minVar.getType() << " |-> "
+                          << elim << ":" << elim.getType() << endl;
       }
     }
   }
@@ -2129,6 +2138,7 @@ Node flattenAndSort(Node n){
 
 /** Outputs conflicts to the output channel. */
 void TheoryArithPrivate::outputConflicts(){
+  Debug("arith::conflict") << "outputting conflicts" << std::endl;
   Assert(anyConflict());
   static unsigned int conflicts = 0;
   
@@ -2136,13 +2146,39 @@ void TheoryArithPrivate::outputConflicts(){
     Assert(!d_conflicts.empty());
     for(size_t i = 0, i_end = d_conflicts.size(); i < i_end; ++i){
       ConstraintCP confConstraint = d_conflicts[i];
+      bool hasProof = confConstraint->hasProof();
       Assert(confConstraint->inConflict());
+      const ConstraintRule& pf = confConstraint->getConstraintRule();
+      if (Debug.isOn("arith::conflict"))
+      {
+        pf.print(std::cout);
+        std::cout << std::endl;
+      }
       Node conflict = confConstraint->externalExplainConflict();
 
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
-        //                               << "("<<conflicts<<")"
-                               << endl;
+                               << " has proof: " << hasProof << endl;
+      PROOF(if (d_containing.d_proofRecorder && confConstraint->hasFarkasProof()
+                && pf.d_farkasCoefficients->size()
+                       == conflict.getNumChildren()) {
+        // The Farkas coefficients and the children of `conflict` seem to be in
+        // opposite orders... There is some relevant documentation in the
+        // comment for the d_farkasCoefficients field  in "constraint.h"
+        //
+        // Anyways, we reverse the children in `conflict` here.
+        NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
+        for (size_t i = 0, nchildren = conflict.getNumChildren(); i < nchildren;
+             ++i)
+        {
+          conflictInFarkasCoefficientOrder
+              << conflict[conflict.getNumChildren() - i - 1];
+        }
+
+        Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
+        d_containing.d_proofRecorder->saveFarkasCoefficients(
+            conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
+      })
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
@@ -2165,7 +2201,9 @@ void TheoryArithPrivate::outputConflicts(){
     (d_containing.d_out)->conflict(bb);
   }
 }
+
 void TheoryArithPrivate::outputLemma(TNode lem) {
+  Debug("arith::lemma") << "Arith Lemma: " << lem << std::endl;
   (d_containing.d_out)->lemma(lem);
 }
 
@@ -4404,7 +4442,7 @@ void TheoryArithPrivate::presolve(){
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 
-  static CVC4_THREAD_LOCAL unsigned callCount = 0;
+  static thread_local unsigned callCount = 0;
   if(Debug.isOn("arith::presolve")) {
     Debug("arith::presolve") << "TheoryArithPrivate::presolve #" << callCount << endl;
     callCount = callCount + 1;
@@ -4800,11 +4838,41 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
     PROOF(d_farkasBuffer.clear());
     RationalVectorP coeffs = NULLPROOF(&d_farkasBuffer);
- 
+
+    // After invoking `propegateRow`:
+    //   * coeffs[0] is for implied
+    //   * coeffs[i+1] is for explain[i]
     d_linEq.propagateRow(explain, ridx, rowUp, implied, coeffs);
     if(d_tableau.getRowLength(ridx) <= options::arithPropAsLemmaLength()){
       Node implication = implied->externalImplication(explain);
       Node clause = flattenImplication(implication);
+      PROOF(if (d_containing.d_proofRecorder
+                && coeffs != RationalVectorCPSentinel
+                && coeffs->size() == clause.getNumChildren()) {
+        Debug("arith::prop") << "implied    : " << implied << std::endl;
+        Debug("arith::prop") << "implication: " << implication << std::endl;
+        Debug("arith::prop") << "coeff len: " << coeffs->size() << std::endl;
+        Debug("arith::prop") << "exp    : " << explain << std::endl;
+        Debug("arith::prop") << "clause : " << clause << std::endl;
+        Debug("arith::prop")
+            << "clause len: " << clause.getNumChildren() << std::endl;
+        Debug("arith::prop") << "exp len: " << explain.size() << std::endl;
+        // Using the information from the above comment we assemble a conflict
+        // AND in coefficient order
+        NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
+        conflictInFarkasCoefficientOrder << implication[1].negate();
+        for (const Node& antecedent : implication[0])
+        {
+          Debug("arith::prop") << "  ante: " << antecedent << std::endl;
+          conflictInFarkasCoefficientOrder << antecedent;
+        }
+
+        Assert(coeffs != RationalVectorPSentinel);
+        Assert(conflictInFarkasCoefficientOrder.getNumChildren()
+               == coeffs->size());
+        d_containing.d_proofRecorder->saveFarkasCoefficients(
+            conflictInFarkasCoefficientOrder, coeffs);
+      })
       outputLemma(clause);
     }else{
       Assert(!implied->negationHasProof());
@@ -5365,7 +5433,7 @@ bool TheoryArithPrivate::decomposeTerm(Node term, Rational& m, Node& p, Rational
   }
 
   // TODO Speed up
-  ContainsTermITEVisitor ctv;
+  preprocessing::util::ContainsTermITEVisitor ctv;
   if(ctv.containsTermITE(t)){
     return false;
   }

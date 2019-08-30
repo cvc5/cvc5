@@ -2,9 +2,9 @@
 /*! \file theory_fp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Paul Meng, Tim King
+ **   Martin Brain, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__FP__THEORY_FP_H
-#define __CVC4__THEORY__FP__THEORY_FP_H
+#ifndef CVC4__THEORY__FP__THEORY_FP_H
+#define CVC4__THEORY__FP__THEORY_FP_H
 
 #include <string>
 #include <utility>
@@ -43,8 +43,11 @@ class TheoryFp : public Theory {
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;
 
+  Node ppRewrite(TNode node) override;
+
   void check(Effort) override;
 
+  bool needsCheckLastEffort() override { return true; }
   Node getModelValue(TNode var) override;
   bool collectModelInfo(TheoryModel* m) override;
 
@@ -100,6 +103,8 @@ class TheoryFp : public Theory {
   context::CDO<Node> d_conflictNode;
 
   /** Uninterpretted functions for partially defined functions. **/
+  void enableUF(LogicRequest& lr);
+
   typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
       ComparisonUFMap;
 
@@ -122,10 +127,25 @@ class TheoryFp : public Theory {
   ComparisonUFMap d_toRealMap;
 
   Node toRealUF(Node);
+
+  /** Uninterpretted functions for lazy handling of conversions */
+  typedef ComparisonUFMap conversionAbstractionMap;
+
+  conversionAbstractionMap realToFloatMap;
+  conversionAbstractionMap floatToRealMap;
+
+  Node abstractRealToFloat(Node);
+  Node abstractFloatToReal(Node);
+
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> abstractionMapType;
+  abstractionMapType abstractionMap;  // abstract -> original
+
+  bool refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete);
+
 }; /* class TheoryFp */
 
 }  // namespace fp
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__FP__THEORY_FP_H */
+#endif /* CVC4__THEORY__FP__THEORY_FP_H */

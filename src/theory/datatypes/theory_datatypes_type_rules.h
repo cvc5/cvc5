@@ -2,9 +2,9 @@
 /*! \file theory_datatypes_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
-#define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
+#ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
+#define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
 #include "expr/matcher.h"
 //#include "expr/attribute.h"
@@ -273,6 +273,18 @@ struct TupleUpdateTypeRule {
   }
 }; /* struct TupleUpdateTypeRule */
 
+class TupleUpdateOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::TUPLE_UPDATE_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class TupleUpdateOpTypeRule */
+
 struct RecordUpdateTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -297,6 +309,18 @@ struct RecordUpdateTypeRule {
     return recordType;
   }
 }; /* struct RecordUpdateTypeRule */
+
+class RecordUpdateOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::RECORD_UPDATE_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class RecordUpdateOpTypeRule */
 
 class DtSizeTypeRule {
  public:
@@ -358,6 +382,52 @@ class DtSygusBoundTypeRule {
     return nodeManager->booleanType();
   }
 }; /* class DtSygusBoundTypeRule */
+
+class DtSyguEvalTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    TypeNode headType = n[0].getType(check);
+    if (!headType.isDatatype())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "datatype sygus eval takes a datatype head");
+    }
+    const Datatype& dt =
+        static_cast<DatatypeType>(headType.toType()).getDatatype();
+    if (!dt.isSygus())
+    {
+      throw TypeCheckingExceptionPrivate(
+          n, "datatype sygus eval must have a datatype head that is sygus");
+    }
+    if (check)
+    {
+      Node svl = Node::fromExpr(dt.getSygusVarList());
+      if (svl.getNumChildren() + 1 != n.getNumChildren())
+      {
+        throw TypeCheckingExceptionPrivate(n,
+                                           "wrong number of arguments to a "
+                                           "datatype sygus evaluation "
+                                           "function");
+      }
+      for (unsigned i = 0, nvars = svl.getNumChildren(); i < nvars; i++)
+      {
+        TypeNode vtype = svl[i].getType(check);
+        TypeNode atype = n[i + 1].getType(check);
+        if (!vtype.isComparableTo(atype))
+        {
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "argument type mismatch in a datatype sygus evaluation function");
+        }
+      }
+    }
+    return TypeNode::fromType(dt.getSygusType());
+  }
+}; /* class DtSyguEvalTypeRule */
 
 class MatchTypeRule {
  public:
@@ -442,9 +512,8 @@ class MatchCaseTypeRule {
   }
 }; /* class MatchCaseTypeRule */
 
-
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H */
+#endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H */

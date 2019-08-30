@@ -2,9 +2,9 @@
 /*! \file quantifiers_attributes.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Paul Meng
+ **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/rewrite_engine.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
@@ -74,10 +74,6 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     Trace("quant-attr-debug") << "Set sygus synth fun var list to " << n << " to "  << node_values[0] << std::endl;
     SygusSynthFunVarListAttribute ssfvla;
     n.setAttribute( ssfvla, node_values[0] );
-  }else if( attr=="synthesis" ){
-    Trace("quant-attr-debug") << "Set synthesis " << n << std::endl;
-    SynthesisAttribute ca;
-    n.setAttribute( ca, true );
   }else if( attr=="quant-inst-max-level" ){
     Assert( node_values.size()==1 );
     uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
@@ -217,33 +213,18 @@ bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
 
 void QuantAttributes::computeAttributes( Node q ) {
   computeQuantAttributes( q, d_qattr[q] );
-  if( !d_qattr[q].d_rr.isNull() ){
-    if( d_quantEngine->getRewriteEngine()==NULL ){
-      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
-    }
-    //set rewrite engine as owner
-    d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine(), 2 );
-  }
-  if( d_qattr[q].isFunDef() ){
-    Node f = d_qattr[q].d_fundef_f;
+  QAttributes& qa = d_qattr[q];
+  if (qa.isFunDef())
+  {
+    Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
       Message() << "Cannot define function " << f << " more than once." << std::endl;
       AlwaysAssert(false);
     }
     d_fun_defs[f] = true;
   }
-  if( d_qattr[q].d_sygus ){
-    if( d_quantEngine->getCegInstantiation()==NULL ){
-      Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
-    }
-    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
-  }
-  if( d_qattr[q].d_synthesis ){
-    if( d_quantEngine->getCegInstantiation()==NULL ){
-      Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
-    }
-    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
-  }
+  // set ownership of quantified formula q based on the computed attributes
+  d_quantEngine->setOwner(q, qa);
 }
 
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
@@ -276,15 +257,19 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           qa.d_sygus = true;
         }
+        if (avar.hasAttribute(SygusSideConditionAttribute()))
+        {
+          qa.d_sygusSideCondition =
+              avar.getAttribute(SygusSideConditionAttribute());
+          Trace("quant-attr")
+              << "Attribute : sygus side condition : "
+              << qa.d_sygusSideCondition << " : " << q << std::endl;
+        }
         if (avar.getAttribute(QuantNameAttribute()))
         {
           Trace("quant-attr") << "Attribute : quantifier name : " << avar
                               << " for " << q << std::endl;
           qa.d_name = avar;
-        }
-        if( avar.getAttribute(SynthesisAttribute()) ){
-          Trace("quant-attr") << "Attribute : synthesis : " << q << std::endl;
-          qa.d_synthesis = true;
         }
         if( avar.hasAttribute(QuantInstLevelAttribute()) ){
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());
@@ -352,15 +337,6 @@ bool QuantAttributes::isSygus( Node q ) {
     return false;
   }else{
     return it->second.d_sygus;
-  }
-}
-
-bool QuantAttributes::isSynthesis( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
-    return false;
-  }else{
-    return it->second.d_synthesis;
   }
 }
 

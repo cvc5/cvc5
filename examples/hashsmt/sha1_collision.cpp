@@ -2,9 +2,9 @@
 /*! \file sha1_collision.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Paul Meng
+ **   Dejan Jovanovic, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,7 +22,6 @@
  *      Author: dejan
  */
 
-#include <boost/uuid/sha1.hpp>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -100,6 +99,9 @@ int main(int argc, char* argv[]) {
 
     // Checksat command
     output << CheckSatCommand() << endl;
+
+    delete[] cvc4input1;
+    delete[] cvc4input2;
 
   } catch (CVC4::Exception& e) {
     cerr << e << endl;

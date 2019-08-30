@@ -2,9 +2,9 @@
 /*! \file eager_bitblaster.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Aina Niemetz
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,6 @@
 #include "theory/bv/bitblast/eager_bitblaster.h"
 
 #include "options/bv_options.h"
-#include "proof/bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
@@ -30,12 +29,11 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
+EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
     : TBitblaster<Node>(),
-      d_nullContext(new context::Context()),
+      d_context(c),
       d_satSolver(),
       d_bitblastingRegistrar(new BitblastingRegistrar(this)),
-      d_cnfStream(),
       d_bv(theory_bv),
       d_bbAtoms(),
       d_variables(),
@@ -75,9 +73,18 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv)
 
 EagerBitblaster::~EagerBitblaster() {}
 
-void EagerBitblaster::bbFormula(TNode node) {
-  d_cnfStream->convertAndAssert(node, false, false, RULE_INVALID,
-                                TNode::null());
+void EagerBitblaster::bbFormula(TNode node)
+{
+  /* For incremental eager solving we assume formulas at context levels > 1. */
+  if (options::incrementalSolving() && d_context->getLevel() > 1)
+  {
+    d_cnfStream->ensureLiteral(node);
+  }
+  else
+  {
+    d_cnfStream->convertAndAssert(
+        node, false, false, RULE_INVALID, TNode::null());
+  }
 }
 
 /**
@@ -89,8 +96,8 @@ void EagerBitblaster::bbFormula(TNode node) {
 void EagerBitblaster::bbAtom(TNode node)
 {
   node = node.getKind() == kind::NOT ? node[0] : node;
-  if (node.getKind() == kind::BITVECTOR_BITOF) return;
-  if (hasBBAtom(node))
+  if (node.getKind() == kind::BITVECTOR_BITOF
+      || node.getKind() == kind::CONST_BOOLEAN || hasBBAtom(node))
   {
     return;
   }
@@ -185,6 +192,17 @@ bool EagerBitblaster::solve() {
   return prop::SAT_VALUE_TRUE == d_satSolver->solve();
 }
 
+bool EagerBitblaster::solve(const std::vector<Node>& assumptions)
+{
+  std::vector<prop::SatLiteral> assumpts;
+  for (const Node& assumption : assumptions)
+  {
+    Assert(d_cnfStream->hasLiteral(assumption));
+    assumpts.push_back(d_cnfStream->getLiteral(assumption));
+  }
+  return prop::SAT_VALUE_TRUE == d_satSolver->solve(assumpts);
+}
+
 /**
  * Returns the value a is currently assigned to in the SAT solver
  * or null if the value is completely unassigned.
@@ -223,6 +241,9 @@ Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
 
 bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
 {
+  NodeManager* nm = NodeManager::currentNM();
+
+  // Collect the values for the bit-vector variables
   TNodeSet::iterator it = d_variables.begin();
   for (; it != d_variables.end(); ++it) {
     TNode var = *it;
@@ -244,13 +265,23 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
       }
     }
   }
-  return true;
-}
 
-void EagerBitblaster::setProofLog(BitVectorProof* bvp) {
-  d_bvp = bvp;
-  d_satSolver->setProofLog(bvp);
-  bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());
+  // Collect the values for the Boolean variables
+  std::vector<TNode> vars;
+  d_cnfStream->getBooleanVariables(vars);
+  for (TNode var : vars)
+  {
+    Assert(d_cnfStream->hasLiteral(var));
+    prop::SatLiteral bit = d_cnfStream->getLiteral(var);
+    prop::SatValue value = d_satSolver->value(bit);
+    Assert(value != prop::SAT_VALUE_UNKNOWN);
+    if (!m->assertEquality(
+            var, nm->mkConst(value == prop::SAT_VALUE_TRUE), true))
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 bool EagerBitblaster::isSharedTerm(TNode node) {

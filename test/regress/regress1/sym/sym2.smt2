@@ -1,4 +1,4 @@
-; COMMAND-LINE: --symmetry-detect
+; COMMAND-LINE: --symmetry-breaker-exp
 (set-logic ALL)
 (set-info :status sat)
 (declare-fun x () Int)

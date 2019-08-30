@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Kshitij Bansal, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "main/main.h"
 #include "smt/command.h"
 
@@ -48,14 +49,28 @@ void setNoLimitCPU() {
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
-CommandExecutor::CommandExecutor(ExprManager &exprMgr, Options &options) :
-  d_exprMgr(exprMgr),
-  d_smtEngine(new SmtEngine(&exprMgr)),
-  d_options(options),
-  d_stats("driver"),
-  d_result(),
-  d_replayStream(NULL)
+CommandExecutor::CommandExecutor(api::Solver* solver, Options& options)
+    : d_solver(solver),
+      d_smtEngine(d_solver->getSmtEngine()),
+      d_options(options),
+      d_stats("driver"),
+      d_result(),
+      d_replayStream(NULL)
 {}
+
+void CommandExecutor::flushStatistics(std::ostream& out) const
+{
+  d_solver->getExprManager()->getStatistics().flushInformation(out);
+  d_smtEngine->getStatistics().flushInformation(out);
+  d_stats.flushInformation(out);
+}
+
+void CommandExecutor::safeFlushStatistics(int fd) const
+{
+  d_solver->getExprManager()->safeFlushStatistics(fd);
+  d_smtEngine->safeFlushStatistics(fd);
+  d_stats.safeFlushInformation(fd);
+}
 
 void CommandExecutor::setReplayStream(ExprStream* replayStream) {
   assert(d_replayStream == NULL);
@@ -74,9 +89,10 @@ bool CommandExecutor::doCommand(Command* cmd)
     // assume no error
     bool status = true;
 
-    for(CommandSequence::iterator subcmd = seq->begin();
-        (status || d_options.getContinuedExecution()) && subcmd != seq->end();
-        ++subcmd) {
+    for (CommandSequence::iterator subcmd = seq->begin();
+         status && subcmd != seq->end();
+         ++subcmd)
+    {
       status = doCommand(*subcmd);
     }
 
@@ -92,11 +108,11 @@ bool CommandExecutor::doCommand(Command* cmd)
 
 void CommandExecutor::reset()
 {
-  if(d_options.getStatistics()) {
+  if (d_options.getStatistics())
+  {
     flushStatistics(*d_options.getErr());
   }
-  delete d_smtEngine;
-  d_smtEngine = new SmtEngine(&d_exprMgr);
+  d_solver->reset();
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
@@ -168,7 +184,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       }
       for (const auto& getterCommand : getterCommands) {
         status = doCommandSingleton(getterCommand.get());
-        if (!status && !d_options.getContinuedExecution()) {
+        if (!status)
+        {
           break;
         }
       }

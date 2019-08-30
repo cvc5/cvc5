@@ -2,9 +2,9 @@
 /*! \file datatypes_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Paul Meng
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
-#define __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
+#ifndef CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
+#define CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 
 #include "expr/node_manager_attributes.h"
 #include "options/datatypes_options.h"
@@ -26,6 +26,53 @@
 
 namespace CVC4 {
 namespace theory {
+
+/** sygus var num */
+struct SygusVarNumAttributeId
+{
+};
+typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
+
+/** Attribute true for variables that represent any constant */
+struct SygusAnyConstAttributeId
+{
+};
+typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
+
+/**
+ * Attribute true for enumerators whose current model values were registered by
+ * the datatypes sygus solver, and were not excluded by sygus symmetry breaking.
+ * This is set by the datatypes sygus solver during LAST_CALL effort checks for
+ * each active sygus enumerator.
+ */
+struct SygusSymBreakOkAttributeId
+{
+};
+typedef expr::Attribute<SygusSymBreakOkAttributeId, bool>
+    SygusSymBreakOkAttribute;
+
+/** sygus var free
+ *
+ * This attribute is used to mark whether sygus operators have free occurrences
+ * of variables from the formal argument list of the function-to-synthesize.
+ *
+ * We store three possible cases for sygus operators op:
+ * (1) op.getAttribute(SygusVarFreeAttribute())==Node::null()
+ * In this case, op has no free variables from the formal argument list of the
+ * function-to-synthesize.
+ * (2) op.getAttribute(SygusVarFreeAttribute())==v, where v is a bound variable.
+ * In this case, op has exactly one free variable, v.
+ * (3) op.getAttribute(SygusVarFreeAttribute())==op
+ * In this case, op has an arbitrary set (cardinality >1) of free variables from
+ * the formal argument list of the function to synthesize.
+ *
+ * This attribute is used to compute applySygusArgs below.
+ */
+struct SygusVarFreeAttributeId
+{
+};
+typedef expr::Attribute<SygusVarFreeAttributeId, Node> SygusVarFreeAttribute;
+
 namespace datatypes {
 
 class DatatypesRewriter {
@@ -59,6 +106,12 @@ public:
  static int isTester(Node n, Node& a);
  /** is tester, same as above but does not update an argument */
  static int isTester(Node n);
+ /**
+  * Get the index of a constructor or tester in its datatype, or the
+  * index of a selector in its constructor.  (Zero is always the
+  * first index.)
+  */
+ static unsigned indexOf(Node n);
  /** make tester is-C( n ), where C is the i^{th} constructor of dt */
  static Node mkTester(Node n, int i, const Datatype& dt);
  /** make tester split
@@ -102,6 +155,59 @@ public:
   *   C( x, y ) and z
   */
  static bool checkClash(Node n1, Node n2, std::vector<Node>& rew);
+ /** get operator kind for sygus builtin
+  *
+  * This returns the Kind corresponding to applications of the operator op
+  * when building the builtin version of sygus terms. This is used by the
+  * function mkSygusTerm.
+  */
+ static Kind getOperatorKindForSygusBuiltin(Node op);
+ /** make sygus term
+  *
+  * This function returns a builtin term f( children[0], ..., children[n] )
+  * where f is the builtin op that the i^th constructor of sygus datatype dt
+  * encodes.
+  */
+ static Node mkSygusTerm(const Datatype& dt,
+                         unsigned i,
+                         const std::vector<Node>& children);
+ /**
+  * n is a builtin term that is an application of operator op.
+  *
+  * This returns an n' such that (eval n args) is n', where n' is a instance of
+  * n for the appropriate substitution.
+  *
+  * For example, given a function-to-synthesize with formal argument list (x,y),
+  * say we have grammar:
+  *   A -> A+A | A+x | A+(x+y) | y
+  * These lead to constructors with sygus ops:
+  *   C1 / (lambda w1 w2. w1+w2)
+  *   C2 / (lambda w1. w1+x)
+  *   C3 / (lambda w1. w1+(x+y))
+  *   C4 / y
+  * Examples of calling this function:
+  *   applySygusArgs( dt, C1, (APPLY_UF (lambda w1 w2. w1+w2) t1 t2), { 3, 5 } )
+  *     ... returns (APPLY_UF (lambda w1 w2. w1+w2) t1 t2).
+  *   applySygusArgs( dt, C2, (APPLY_UF (lambda w1. w1+x) t1), { 3, 5 } )
+  *     ... returns (APPLY_UF (lambda w1. w1+3) t1).
+  *   applySygusArgs( dt, C3, (APPLY_UF (lambda w1. w1+(x+y)) t1), { 3, 5 } )
+  *     ... returns (APPLY_UF (lambda w1. w1+(3+5)) t1).
+  *   applySygusArgs( dt, C4, y, { 3, 5 } )
+  *     ... returns 5.
+  * Notice the attribute SygusVarFreeAttribute is applied to C1, C2, C3, C4,
+  * to cache the results of whether the evaluation of this constructor needs
+  * a substitution over the formal argument list of the function-to-synthesize.
+  */
+ static Node applySygusArgs(const Datatype& dt,
+                            Node op,
+                            Node n,
+                            const std::vector<Node>& args);
+ /**
+  * Get the builtin sygus operator for constructor term n of sygus datatype
+  * type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
+  * constructor whose sygus op is the builtin operator +, this method returns +.
+  */
+ static Node getSygusOpForCTerm(Node n);
 
 private:
  /** rewrite constructor term in */
@@ -205,4 +311,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H */
+#endif /* CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H */

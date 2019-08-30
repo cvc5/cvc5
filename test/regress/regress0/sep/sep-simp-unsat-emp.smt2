@@ -7,6 +7,6 @@
 (declare-fun a () U)
 (declare-fun b () U)
 
-(assert (emp x x))
+(assert (_ emp U U))
 (assert (sep (pto x a) (pto y b)))
 (check-sat)

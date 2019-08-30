@@ -2,9 +2,9 @@
 /*! \file term_util.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
 #include "theory/quantifiers/term_util.h"
 
 #include "expr/datatype.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -35,10 +36,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermUtil::TermUtil(QuantifiersEngine * qe) :
-d_quantEngine(qe),
-d_op_id_count(0),
-d_typ_id_count(0){
+TermUtil::TermUtil(QuantifiersEngine* qe) : d_quantEngine(qe)
+{
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
@@ -65,20 +64,6 @@ void TermUtil::registerQuantifier( Node q ){
       ic.setAttribute( ivna, i );
       InstConstantAttribute ica;
       ic.setAttribute( ica, q );
-    }
-  }
-}
-
-void TermUtil::getBoundVars2( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( n.getKind()==BOUND_VARIABLE ){
-      if( std::find( vars.begin(), vars.end(), n )==vars.end() ) {
-        vars.push_back( n );
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      getBoundVars2( n[i], vars, visited );
     }
   }
 }
@@ -162,11 +147,6 @@ bool TermUtil::hasBoundVarAttr( Node n ) {
   return !getBoundVarAttr(n).isNull();
 }
 
-void TermUtil::getBoundVars( Node n, std::vector< Node >& vars ) {
-  std::map< Node, bool > visited;
-  return getBoundVars2( n, vars, visited );
-}
-
 //remove quantifiers
 Node TermUtil::getRemoveQuantifiers( Node n ) {
   std::map< Node, Node > visited;
@@ -175,15 +155,18 @@ Node TermUtil::getRemoveQuantifiers( Node n ) {
 
 //quantified simplify
 Node TermUtil::getQuantSimplify( Node n ) {
-  std::vector< Node > bvs;
-  getBoundVars( n, bvs );
-  if( bvs.empty() ) {
+  std::unordered_set<Node, NodeHashFunction> fvs;
+  expr::getFreeVariables(n, fvs);
+  if (fvs.empty())
+  {
     return Rewriter::rewrite( n );
-  }else{
-    Node q = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs ), n );
-    q = Rewriter::rewrite( q );
-    return getRemoveQuantifiers( q );
   }
+  std::vector<Node> bvs;
+  bvs.insert(bvs.end(), fvs.begin(), fvs.end());
+  NodeManager* nm = NodeManager::currentNM();
+  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
+  q = Rewriter::rewrite(q);
+  return getRemoveQuantifiers(q);
 }
 
 /** get the i^th instantiation constant of q */
@@ -341,168 +324,6 @@ void TermUtil::computeInstConstContainsForQuant(Node q,
   }
 }
 
-int TermUtil::getIdForOperator( Node op ) {
-  std::map< Node, int >::iterator it = d_op_id.find( op );
-  if( it==d_op_id.end() ){
-    d_op_id[op] = d_op_id_count;
-    d_op_id_count++;
-    return d_op_id[op];
-  }else{
-    return it->second;
-  }
-}
-
-int TermUtil::getIdForType( TypeNode t ) {
-  std::map< TypeNode, int >::iterator it = d_typ_id.find( t );
-  if( it==d_typ_id.end() ){
-    d_typ_id[t] = d_typ_id_count;
-    d_typ_id_count++;
-    return d_typ_id[t];
-  }else{
-    return it->second;
-  }
-}
-
-bool TermUtil::getTermOrder( Node a, Node b ) {
-  if( a.getKind()==BOUND_VARIABLE ){
-    if( b.getKind()==BOUND_VARIABLE ){
-      return a.getAttribute(InstVarNumAttribute())<b.getAttribute(InstVarNumAttribute());
-    }else{
-      return true;
-    }
-  }else if( b.getKind()!=BOUND_VARIABLE ){
-    Node aop = a.hasOperator() ? a.getOperator() : a;
-    Node bop = b.hasOperator() ? b.getOperator() : b;
-    Trace("aeq-debug2") << a << "...op..." << aop << std::endl;
-    Trace("aeq-debug2") << b << "...op..." << bop << std::endl;
-    if( aop==bop ){
-      if( a.getNumChildren()==b.getNumChildren() ){
-        for( unsigned i=0; i<a.getNumChildren(); i++ ){
-          if( a[i]!=b[i] ){
-            //first distinct child determines the ordering
-            return getTermOrder( a[i], b[i] );
-          }
-        }
-      }else{
-        return aop.getNumChildren()<bop.getNumChildren();
-      }
-    }else{
-      return getIdForOperator( aop )<getIdForOperator( bop );
-    }
-  }
-  return false;
-}
-
-
-
-Node TermUtil::getCanonicalFreeVar( TypeNode tn, unsigned i ) {
-  Assert( !tn.isNull() );
-  while( d_cn_free_var[tn].size()<=i ){
-    std::stringstream oss;
-    oss << tn;
-    std::string typ_name = oss.str();
-    while( typ_name[0]=='(' ){
-      typ_name.erase( typ_name.begin() );
-    }
-    std::stringstream os;
-    os << typ_name[0] << i;
-    Node x = NodeManager::currentNM()->mkBoundVar( os.str().c_str(), tn );
-    InstVarNumAttribute ivna;
-    x.setAttribute(ivna,d_cn_free_var[tn].size());
-    d_cn_free_var[tn].push_back( x );
-  }
-  return d_cn_free_var[tn][i];
-}
-
-struct sortTermOrder {
-  TermUtil* d_tu;
-  //std::map< Node, std::map< Node, bool > > d_cache;
-  bool operator() (Node i, Node j) {
-    /*
-    //must consult cache since term order is partial?
-    std::map< Node, bool >::iterator it = d_cache[j].find( i );
-    if( it!=d_cache[j].end() && it->second ){
-      return false;
-    }else{
-      bool ret = d_tdb->getTermOrder( i, j );
-      d_cache[i][j] = ret;
-      return ret;
-    }
-    */
-    return d_tu->getTermOrder( i, j );
-  }
-};
-
-//this function makes a canonical representation of a term (
-//  - orders variables left to right
-//  - if apply_torder, then sort direct subterms of commutative operators
-Node TermUtil::getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder, std::map< TNode, Node >& visited ) {
-  Trace("canon-term-debug") << "Get canonical term for " << n << std::endl;
-  if( n.getKind()==BOUND_VARIABLE ){
-    std::map< TNode, TNode >::iterator it = subs.find( n );
-    if( it==subs.end() ){
-      TypeNode tn = n.getType();
-      //allocate variable
-      unsigned vn = var_count[tn];
-      var_count[tn]++;
-      subs[n] = getCanonicalFreeVar( tn, vn );
-      Trace("canon-term-debug") << "...allocate variable." << std::endl;
-      return subs[n];
-    }else{
-      Trace("canon-term-debug") << "...return variable in subs." << std::endl;
-      return it->second;
-    }
-  }else if( n.getNumChildren()>0 ){
-    std::map< TNode, Node >::iterator it = visited.find( n );
-    if( it!=visited.end() ){
-      return it->second;
-    }else{
-      //collect children
-      Trace("canon-term-debug") << "Collect children" << std::endl;
-      std::vector< Node > cchildren;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        cchildren.push_back( n[i] );
-      }
-      //if applicable, first sort by term order
-      if( apply_torder && isComm( n.getKind() ) ){
-        Trace("canon-term-debug") << "Sort based on commutative operator " << n.getKind() << std::endl;
-        sortTermOrder sto;
-        sto.d_tu = this;
-        std::sort( cchildren.begin(), cchildren.end(), sto );
-      }
-      //now make canonical
-      Trace("canon-term-debug") << "Make canonical children" << std::endl;
-      for( unsigned i=0; i<cchildren.size(); i++ ){
-        cchildren[i] = getCanonicalTerm( cchildren[i], var_count, subs, apply_torder, visited );
-      }
-      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-        Node op = n.getOperator();
-        if (options::ufHo())
-        {
-          op = getCanonicalTerm(op, var_count, subs, apply_torder, visited);
-        }
-        Trace("canon-term-debug") << "Insert operator " << op << std::endl;
-        cchildren.insert(cchildren.begin(), op);
-      }
-      Trace("canon-term-debug") << "...constructing for " << n << "." << std::endl;
-      Node ret = NodeManager::currentNM()->mkNode( n.getKind(), cchildren );
-      Trace("canon-term-debug") << "...constructed " << ret << " for " << n << "." << std::endl;
-      visited[n] = ret;
-      return ret;
-    }
-  }else{
-    Trace("canon-term-debug") << "...return 0-child term." << std::endl;
-    return n;
-  }
-}
-
-Node TermUtil::getCanonicalTerm( TNode n, bool apply_torder ){
-  std::map< TypeNode, unsigned > var_count;
-  std::map< TNode, TNode > subs;
-  std::map< TNode, Node > visited;
-  return getCanonicalTerm( n, var_count, subs, apply_torder, visited );
-}
-
 void TermUtil::getVtsTerms( std::vector< Node >& t, bool isFree, bool create, bool inc_delta ) {
   if( inc_delta ){
     Node delta = getVtsDelta( isFree, create );
@@ -582,7 +403,7 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
     //rewriting infinity always takes precedence over rewriting delta
     for( unsigned r=0; r<2; r++ ){
       Node inf = getVtsInfinityIndex( r, false, false );
-      if (!inf.isNull() && n.hasSubterm(inf))
+      if (!inf.isNull() && expr::hasSubterm(n, inf))
       {
         if( rew_vts_inf.isNull() ){
           rew_vts_inf = inf;
@@ -595,16 +416,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
           subs_lhs.push_back( rew_vts_inf );
           n = n.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
           n = Rewriter::rewrite( n );
-          //may have cancelled
-          if (!n.hasSubterm(rew_vts_inf))
+          // may have cancelled
+          if (!expr::hasSubterm(n, rew_vts_inf))
           {
             rew_vts_inf = Node::null();
           }
         }
       }
     }
-    if( rew_vts_inf.isNull() ){
-      if (!d_vts_delta.isNull() && n.hasSubterm(d_vts_delta))
+    if (rew_vts_inf.isNull())
+    {
+      if (!d_vts_delta.isNull() && expr::hasSubterm(n, d_vts_delta))
       {
         rew_delta = true;
       }
@@ -790,14 +612,21 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
   return n.getAttribute(ContainsUConstAttribute())!=0;
 }
 
-Node TermUtil::simpleNegate( Node n ){
+Node TermUtil::simpleNegate(Node n)
+{
+  Assert(n.getType().isBoolean());
+  NodeManager* nm = NodeManager::currentNM();
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
     for (const Node& cn : n)
     {
       children.push_back(simpleNegate(cn));
     }
-    return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
+    return nm->mkNode(n.getKind() == OR ? AND : OR, children);
+  }
+  else if (n.isConst())
+  {
+    return nm->mkConst(!n.getConst<bool>());
   }
   return n.negate();
 }
@@ -816,19 +645,37 @@ bool TermUtil::isNegate(Kind k)
   return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == UMINUS;
 }
 
-bool TermUtil::isAssoc( Kind k ) {
-  return k == PLUS || k == MULT || k == AND || k == OR || k == BITVECTOR_PLUS
-         || k == BITVECTOR_MULT || k == BITVECTOR_AND || k == BITVECTOR_OR
-         || k == BITVECTOR_XOR || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT
-         || k == STRING_CONCAT || k == UNION || k == INTERSECTION || k == JOIN
-         || k == PRODUCT;
+bool TermUtil::isAssoc(Kind k, bool reqNAry)
+{
+  if (reqNAry)
+  {
+    if (k == UNION || k == INTERSECTION)
+    {
+      return false;
+    }
+  }
+  return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
+         || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
+         || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
+         || k == UNION || k == INTERSECTION || k == JOIN || k == PRODUCT
+         || k == SEP_STAR;
 }
 
-bool TermUtil::isComm( Kind k ) {
-  return k == EQUAL || k == PLUS || k == MULT || k == AND || k == OR || k == XOR
-         || k == BITVECTOR_PLUS || k == BITVECTOR_MULT || k == BITVECTOR_AND
-         || k == BITVECTOR_OR || k == BITVECTOR_XOR || k == BITVECTOR_XNOR
-         || k == UNION || k == INTERSECTION;
+bool TermUtil::isComm(Kind k, bool reqNAry)
+{
+  if (reqNAry)
+  {
+    if (k == UNION || k == INTERSECTION)
+    {
+      return false;
+    }
+  }
+  return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
+         || k == OR || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
+         || k == BITVECTOR_XNOR || k == UNION || k == INTERSECTION
+         || k == SEP_STAR;
 }
 
 bool TermUtil::isNonAdditive( Kind k ) {
@@ -1041,7 +888,7 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
   return false;
 }
 
-Node TermUtil::isSingularArg(Node n, Kind ik, int arg)
+Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
 {
   TypeNode tn = n.getType();
   if (n == getTypeValue(tn, 0))
@@ -1079,10 +926,6 @@ Node TermUtil::isSingularArg(Node n, Kind ik, int arg)
       if (arg == 0)
       {
         return n;
-      }
-      else
-      {
-        // TODO?
       }
     }
     else if (ik == STRING_SUBSTR)

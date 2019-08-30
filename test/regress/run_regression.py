@@ -2,8 +2,9 @@
 """
 Usage:
 
-    run_regression.py [ --proof | --dump ] [ wrapper ] cvc4-binary
-        [ benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p ]
+    run_regression.py [--enable-proof] [--with-lfsc] [--dump]
+        [--use-skip-return-code] [wrapper] cvc4-binary
+        [benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p]
 
 Runs benchmark and checks for correct exit status and output.
 """
@@ -23,6 +24,11 @@ EXPECT = 'EXPECT: '
 EXPECT_ERROR = 'EXPECT-ERROR: '
 EXIT = 'EXIT: '
 COMMAND_LINE = 'COMMAND-LINE: '
+REQUIRES = 'REQUIRES: '
+
+EXIT_OK = 0
+EXIT_FAILURE = 1
+EXIT_SKIP = 77
 
 
 def run_process(args, cwd, timeout, s_input=None):
@@ -42,15 +48,35 @@ def run_process(args, cwd, timeout, s_input=None):
     out = ''
     err = ''
     exit_status = 124
-    timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
     try:
-        timer.start()
+        if timeout:
+            timer = threading.Timer(timeout, lambda p: p.kill(), [proc])
+            timer.start()
         out, err = proc.communicate(input=s_input)
         exit_status = proc.returncode
     finally:
-        timer.cancel()
+        if timeout:
+            timer.cancel()
 
     return out, err, exit_status
+
+
+def get_cvc4_features(cvc4_binary):
+    """Returns a list of features supported by the CVC4 binary `cvc4_binary`."""
+
+    output, _, _ = run_process([cvc4_binary, '--show-config'], None, None)
+    if isinstance(output, bytes):
+        output = output.decode()
+
+    features = []
+    for line in output.split('\n'):
+        tokens = [t.strip() for t in line.split(':')]
+        if len(tokens) == 2:
+            key, value = tokens
+            if value == 'yes':
+                features.append(key)
+
+    return features
 
 
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
@@ -101,17 +127,22 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
     return (output.strip(), error.strip(), exit_status)
 
 
-def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
+def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
+                   cvc4_binary, benchmark_path, timeout):
     """Determines the expected output for a benchmark, runs CVC4 on it and then
     checks whether the output corresponds to the expected output. Optionally
-    uses a wrapper `wrapper`, tests proof generation (if proof is true), or
-    dumps a benchmark and uses that as the input (if dump is true)."""
+    uses a wrapper `wrapper`, tests unsat cores (if unsat_cores is true),
+    checks proofs (if proofs is true), or dumps a benchmark and uses that as
+    the input (if dump is true). `use_skip_return_code` enables/disables
+    returning 77 when a test is skipped."""
 
     if not os.access(cvc4_binary, os.X_OK):
         sys.exit(
             '"{}" does not exist or is not executable'.format(cvc4_binary))
     if not os.path.isfile(benchmark_path):
         sys.exit('"{}" does not exist or is not a file'.format(benchmark_path))
+
+    cvc4_features = get_cvc4_features(cvc4_binary)
 
     basic_command_line_args = []
 
@@ -130,35 +161,21 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     elif benchmark_ext == '.cvc':
         pass
     elif benchmark_ext == '.p':
-        basic_command_line_args.append('--finite-model-find')
         status_regex = r'% Status\s*:\s*(Theorem|Unsatisfiable|CounterSatisfiable|Satisfiable)'
         status_to_output = lambda s: '% SZS status {} for {}'.format(s, benchmark_filename)
     elif benchmark_ext == '.sy':
         comment_char = ';'
         # Do not use proofs/unsat-cores with .sy files
-        proof = False
+        unsat_cores = False
+        proofs = False
     else:
         sys.exit('"{}" must be *.cvc or *.smt or *.smt2 or *.p or *.sy'.format(
             benchmark_basename))
 
-    # If there is an ".expect" file for the benchmark, read the metadata
-    # from there, otherwise from the benchmark file.
-    metadata_filename = benchmark_path + '.expect'
-    if os.path.isfile(metadata_filename):
-        comment_char = '%'
-    else:
-        metadata_filename = benchmark_path
-
-    metadata_lines = None
-    with open(metadata_filename, 'r') as metadata_file:
-        metadata_lines = metadata_file.readlines()
-
-    benchmark_content = None
-    if metadata_filename == benchmark_path:
-        benchmark_content = ''.join(metadata_lines)
-    else:
-        with open(benchmark_path, 'r') as benchmark_file:
-            benchmark_content = benchmark_file.read()
+    benchmark_lines = None
+    with open(benchmark_path, 'r') as benchmark_file:
+        benchmark_lines = benchmark_file.readlines()
+    benchmark_content = ''.join(benchmark_lines)
 
     # Extract the metadata for the benchmark.
     scrubber = None
@@ -166,8 +183,9 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     expected_output = ''
     expected_error = ''
     expected_exit_status = None
-    command_line = ''
-    for line in metadata_lines:
+    command_lines = []
+    requires = []
+    for line in benchmark_lines:
         # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
             continue
@@ -184,7 +202,9 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
         elif line.startswith(EXIT):
             expected_exit_status = int(line[len(EXIT):])
         elif line.startswith(COMMAND_LINE):
-            command_line += line[len(COMMAND_LINE):]
+            command_lines.append(line[len(COMMAND_LINE):])
+        elif line.startswith(REQUIRES):
+            requires.append(line[len(REQUIRES):].strip())
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
 
@@ -193,10 +213,10 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     if expected_output == '' and expected_error == '':
         match = None
         if status_regex:
-            match = re.search(status_regex, benchmark_content)
+            match = re.findall(status_regex, benchmark_content)
 
         if match:
-            expected_output = status_to_output(match.group(1))
+            expected_output = status_to_output('\n'.join(match))
         elif expected_exit_status is None:
             # If there is no expected output/error and the exit status has not
             # been set explicitly, the benchmark is invalid.
@@ -207,70 +227,123 @@ def run_regression(proof, dump, wrapper, cvc4_binary, benchmark_path, timeout):
     if 'CVC4_REGRESSION_ARGS' in os.environ:
         basic_command_line_args += shlex.split(
             os.environ['CVC4_REGRESSION_ARGS'])
-    basic_command_line_args += shlex.split(command_line)
-    command_line_args_configs = [basic_command_line_args]
-    if not proof and ('(get-unsat-core)' in benchmark_content
-                      or '(get-unsat-assumptions)' in benchmark_content
-                      or '--check-proofs' in basic_command_line_args
-                      or '--dump-proofs' in basic_command_line_args):
-        print(
-            '1..0 # Skipped: unsat cores not supported without proof support')
-        return
 
-    extra_command_line_args = []
-    if benchmark_ext == '.sy' and \
-        '--no-check-synth-sol' not in basic_command_line_args and \
-        '--check-synth-sol' not in basic_command_line_args:
-        extra_command_line_args = ['--check-synth-sol']
-    if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
-       '--no-check-models' not in basic_command_line_args:
-        extra_command_line_args = ['--check-models']
-    if proof and re.search(r'^(unsat|valid)$', expected_output):
-        if '--no-check-proofs' not in basic_command_line_args and \
-           '--incremental' not in basic_command_line_args and \
-           '--unconstrained-simp' not in basic_command_line_args and \
-           not cvc4_binary.endswith('pcvc4'):
-            extra_command_line_args = [
-                '--check-proofs', '--no-bv-eq', '--no-bv-ineq',
-                '--no-bv-algebraic'
-            ]
-        if '--no-check-unsat-cores' not in basic_command_line_args and \
-           '--incremental' not in basic_command_line_args and \
-           '--unconstrained-simp' not in basic_command_line_args and \
-           not cvc4_binary.endswith('pcvc4'):
-            extra_command_line_args += ['--check-unsat-cores']
-    if extra_command_line_args:
-        command_line_args_configs.append(
-            basic_command_line_args + extra_command_line_args)
+    if not unsat_cores and ('(get-unsat-core)' in benchmark_content
+                            or '(get-unsat-assumptions)' in benchmark_content):
+        print(
+            '1..0 # Skipped regression: unsat cores not supported without proof support'
+        )
+        return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
+
+    for req_feature in requires:
+        if req_feature.startswith("no-"):
+            inv_feature = req_feature[len("no-"):]
+            if inv_feature in cvc4_features:
+                print('1..0 # Skipped regression: not valid with {}'.format(
+                    inv_feature))
+                return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
+        elif req_feature not in cvc4_features:
+            print('1..0 # Skipped regression: {} not supported'.format(
+                req_feature))
+            return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
+
+    if not command_lines:
+        command_lines.append('')
+
+    command_line_args_configs = []
+    for command_line in command_lines:
+        args = shlex.split(command_line)
+        all_args = basic_command_line_args + args
+
+        if not unsat_cores and ('--check-unsat-cores' in all_args):
+            print(
+                '# Skipped command line options ({}): unsat cores not supported without proof support'
+                .format(all_args))
+            continue
+        if not proofs and ('--check-proofs' in all_args
+                           or '--dump-proofs' in all_args):
+            print(
+                '# Skipped command line options ({}): checking proofs not supported without LFSC support'
+                .format(all_args))
+            continue
+
+        command_line_args_configs.append(all_args)
+
+        extra_command_line_args = []
+        if benchmark_ext == '.sy' and \
+            '--no-check-synth-sol' not in all_args and \
+            '--sygus-rr' not in all_args and \
+            '--check-synth-sol' not in all_args:
+            extra_command_line_args = ['--check-synth-sol']
+        if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
+           '--no-check-models' not in all_args and \
+           '--check-models' not in all_args:
+            extra_command_line_args = ['--check-models']
+        if proofs and re.search(r'^(unsat|valid)$', expected_output):
+            if '--no-check-proofs' not in all_args and \
+               '--check-proofs' not in all_args and \
+               '--incremental' not in all_args and \
+               '--unconstrained-simp' not in all_args and \
+               not cvc4_binary.endswith('pcvc4'):
+                extra_command_line_args = ['--check-proofs']
+        if unsat_cores and re.search(r'^(unsat|valid)$', expected_output):
+            if '--no-check-unsat-cores' not in all_args and \
+               '--check-unsat-cores' not in all_args and \
+               '--incremental' not in all_args and \
+               '--unconstrained-simp' not in all_args and \
+               not cvc4_binary.endswith('pcvc4'):
+                extra_command_line_args += ['--check-unsat-cores']
+        if '--no-check-abducts' not in all_args and \
+            '--check-abducts' not in all_args and \
+            not cvc4_binary.endswith('pcvc4'):
+            extra_command_line_args += ['--check-abducts']
+        if extra_command_line_args:
+            command_line_args_configs.append(all_args +
+                                             extra_command_line_args)
 
     # Run CVC4 on the benchmark with the different option sets and check
     # whether the exit status, stdout output, stderr output are as expected.
     print('1..{}'.format(len(command_line_args_configs)))
     print('# Starting')
+    exit_code = EXIT_OK
     for command_line_args in command_line_args_configs:
         output, error, exit_status = run_benchmark(
             dump, wrapper, scrubber, error_scrubber, cvc4_binary,
             command_line_args, benchmark_dir, benchmark_basename, timeout)
         if output != expected_output:
+            exit_code = EXIT_FAILURE
             print(
-                'not ok - Differences between expected and actual output on stdout - Flags: {}'.
-                format(command_line_args))
+                'not ok - Differences between expected and actual output on stdout - Flags: {}'
+                .format(command_line_args))
             for line in difflib.context_diff(output.splitlines(),
                                              expected_output.splitlines()):
                 print(line)
+            print()
+            print('Error output:')
+            print(error)
         elif error != expected_error:
+            exit_code = EXIT_FAILURE
             print(
-                'not ok - Differences between expected and actual output on stderr - Flags: {}'.
-                format(command_line_args))
+                'not ok - Differences between expected and actual output on stderr - Flags: {}'
+                .format(command_line_args))
             for line in difflib.context_diff(error.splitlines(),
                                              expected_error.splitlines()):
                 print(line)
         elif expected_exit_status != exit_status:
+            exit_code = EXIT_FAILURE
             print(
                 'not ok - Expected exit status "{}" but got "{}" - Flags: {}'.
                 format(expected_exit_status, exit_status, command_line_args))
+            print()
+            print('Output:')
+            print(output)
+            print()
+            print('Error output:')
+            print(error)
         else:
             print('ok - Flags: {}'.format(command_line_args))
+
+    return exit_code
 
 
 def main():
@@ -280,8 +353,10 @@ def main():
     parser = argparse.ArgumentParser(
         description=
         'Runs benchmark and checks for correct exit status and output.')
-    parser.add_argument('--proof', action='store_true')
+    parser.add_argument('--enable-proof', action='store_true')
+    parser.add_argument('--with-lfsc', action='store_true')
     parser.add_argument('--dump', action='store_true')
+    parser.add_argument('--use-skip-return-code', action='store_true')
     parser.add_argument('wrapper', nargs='*')
     parser.add_argument('cvc4_binary')
     parser.add_argument('benchmark')
@@ -294,9 +369,11 @@ def main():
 
     timeout = float(os.getenv('TEST_TIMEOUT', 600.0))
 
-    run_regression(args.proof, args.dump, wrapper, cvc4_binary, args.benchmark,
-                   timeout)
+    return run_regression(args.enable_proof, args.with_lfsc, args.dump,
+                          args.use_skip_return_code, wrapper, cvc4_binary,
+                          args.benchmark, timeout)
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    sys.exit(exit_code)

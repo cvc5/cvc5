@@ -2,9 +2,9 @@
 /*! \file boolean_simplification.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BOOLEAN_SIMPLIFICATION_H
-#define __CVC4__BOOLEAN_SIMPLIFICATION_H
+#ifndef CVC4__BOOLEAN_SIMPLIFICATION_H
+#define CVC4__BOOLEAN_SIMPLIFICATION_H
 
 #include <vector>
 #include <algorithm>
@@ -35,8 +35,8 @@ namespace CVC4 {
  */
 class BooleanSimplification {
   // cannot construct one of these
-  BooleanSimplification() CVC4_UNDEFINED;
-  BooleanSimplification(const BooleanSimplification&) CVC4_UNDEFINED;
+  BooleanSimplification() = delete;
+  BooleanSimplification(const BooleanSimplification&) = delete;
 
   static bool push_back_associative_commute_recursive(
       Node n, std::vector<Node>& buffer, Kind k, Kind notK, bool negateNode)
@@ -238,4 +238,4 @@ class BooleanSimplification {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BOOLEAN_SIMPLIFICATION_H */
+#endif /* CVC4__BOOLEAN_SIMPLIFICATION_H */

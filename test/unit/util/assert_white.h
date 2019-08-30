@@ -2,9 +2,9 @@
 /*! \file assert_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
+ **   Morgan Deters, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,22 +29,22 @@ public:
 
   void testAssert() {
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( Assert(false), AssertionException );
-    TS_ASSERT_THROWS( AssertArgument(false, "x"), AssertArgumentException );
+    TS_ASSERT_THROWS(Assert(false), AssertionException&);
+    TS_ASSERT_THROWS(AssertArgument(false, "x"), AssertArgumentException&);
 #else /* CVC4_ASSERTIONS */
     TS_ASSERT_THROWS_NOTHING( Assert(false) );
     TS_ASSERT_THROWS_NOTHING( AssertArgument(false, "x") );
 #endif /* CVC4_ASSERTIONS */
 
     TS_ASSERT_THROWS_NOTHING( Assert(true) );
-    TS_ASSERT_THROWS( AlwaysAssert(false), AssertionException );
-    TS_ASSERT_THROWS( Unreachable(), UnreachableCodeException );
-    TS_ASSERT_THROWS( Unhandled(), UnhandledCaseException );
-    TS_ASSERT_THROWS( Unimplemented(), UnimplementedOperationException );
-    TS_ASSERT_THROWS( IllegalArgument("x"), IllegalArgumentException );
-    TS_ASSERT_THROWS( CheckArgument(false, "x"), IllegalArgumentException );
-    TS_ASSERT_THROWS( AlwaysAssertArgument(false, "x"),
-                      AssertArgumentException );
+    TS_ASSERT_THROWS(AlwaysAssert(false), AssertionException&);
+    TS_ASSERT_THROWS(Unreachable(), UnreachableCodeException&);
+    TS_ASSERT_THROWS(Unhandled(), UnhandledCaseException&);
+    TS_ASSERT_THROWS(Unimplemented(), UnimplementedOperationException&);
+    TS_ASSERT_THROWS(IllegalArgument("x"), IllegalArgumentException&);
+    TS_ASSERT_THROWS(CheckArgument(false, "x"), IllegalArgumentException&);
+    TS_ASSERT_THROWS(AlwaysAssertArgument(false, "x"),
+                     AssertArgumentException&);
     TS_ASSERT_THROWS_NOTHING( AssertArgument(true, "x") );
     TS_ASSERT_THROWS_NOTHING( AssertArgument(true, "x") );
   }
@@ -99,15 +99,16 @@ public:
   }
 
   void testUnreachable() {
-    TS_ASSERT_THROWS( Unreachable(), UnreachableCodeException );
-    TS_ASSERT_THROWS( Unreachable("hello"), UnreachableCodeException );
-    TS_ASSERT_THROWS( Unreachable("hello %s", "world"), UnreachableCodeException );
+    TS_ASSERT_THROWS(Unreachable(), UnreachableCodeException&);
+    TS_ASSERT_THROWS(Unreachable("hello"), UnreachableCodeException&);
+    TS_ASSERT_THROWS(Unreachable("hello %s", "world"),
+                     UnreachableCodeException&);
 
     int x = 5;
-    TS_ASSERT_THROWS( Unhandled(), UnhandledCaseException );
-    TS_ASSERT_THROWS( Unhandled(x), UnhandledCaseException );
-    TS_ASSERT_THROWS( Unhandled("foo"), UnhandledCaseException );
-    TS_ASSERT_THROWS( Unhandled("foo %s baz", "bar"), UnhandledCaseException );
+    TS_ASSERT_THROWS(Unhandled(), UnhandledCaseException&);
+    TS_ASSERT_THROWS(Unhandled(x), UnhandledCaseException&);
+    TS_ASSERT_THROWS(Unhandled("foo"), UnhandledCaseException&);
+    TS_ASSERT_THROWS(Unhandled("foo %s baz", "bar"), UnhandledCaseException&);
   }
 
 };

@@ -2,9 +2,9 @@
 /*! \file theory_uf_strong_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,14 +14,16 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_UF_STRONG_SOLVER_H
-#define __CVC4__THEORY_UF_STRONG_SOLVER_H
+#ifndef CVC4__THEORY_UF_STRONG_SOLVER_H
+#define CVC4__THEORY_UF_STRONG_SOLVER_H
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "context/context_mm.h"
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
+
+#include "theory/decision_manager.h"
 
 namespace CVC4 {
 class SortInference;
@@ -200,8 +202,6 @@ public:
       void getNumExternalDisequalities(std::map< Node, int >& num_ext_disequalities );
       /** check for cliques */
       bool check( Theory::Effort level, int cardinality, std::vector< Node >& clique );
-      /** get candidate clique */
-      bool getCandidateClique( int cardinality, std::vector< Node >& clique );
       //print debug
       void debugPrint( const char* c, bool incClique = false );
 
@@ -260,40 +260,16 @@ public:
     void addCliqueLemma( std::vector< Node >& clique, OutputChannel* out );
     /** add totality axiom */
     void addTotalityAxiom( Node n, int cardinality, OutputChannel* out );
-
-    class NodeTrie {
-    public:
-      bool add( std::vector< Node >& n, unsigned i = 0 ){
-        Assert( i<n.size() );
-        if( i==(n.size()-1) ){
-          bool ret = d_children.find( n[i] )==d_children.end();
-          d_children[n[i]].d_children.clear();
-          return ret;
-        }else{
-          return d_children[n[i]].add( n, i+1 );
-        }
-      }
-    private:
-      std::map< Node, NodeTrie > d_children;
-    }; /* class NodeTrie */
-
-    std::map< int, NodeTrie > d_clique_trie;
-    void addClique( int c, std::vector< Node >& clique );
-
     /** Are we in conflict */
     context::CDO<bool> d_conflict;
     /** cardinality */
     context::CDO< int > d_cardinality;
-    /** maximum allocated cardinality */
-    context::CDO< int > d_aloc_cardinality;
     /** cardinality lemma term */
     Node d_cardinality_term;
     /** cardinality totality terms */
     std::map< int, std::vector< Node > > d_totality_terms;
     /** cardinality literals */
     std::map< int, Node > d_cardinality_literal;
-    /** cardinality lemmas */
-    std::map< int, Node > d_cardinality_lemma;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
@@ -336,10 +312,6 @@ public:
     void presolve();
     /** propagate */
     void propagate( Theory::Effort level, OutputChannel* out );
-    /** get next decision request */
-    Node getNextDecisionRequest();
-    /** minimize */
-    bool minimize( OutputChannel* out, TheoryModel* m );
     /** assert cardinality */
     void assertCardinality( OutputChannel* out, int c, bool val );
     /** is in conflict */
@@ -351,16 +323,40 @@ public:
     /** get cardinality term */
     Node getCardinalityTerm() { return d_cardinality_term; }
     /** get cardinality literal */
-    Node getCardinalityLiteral( int c );
+    Node getCardinalityLiteral(unsigned c);
     /** get maximum negative cardinality */
     int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
     //print debug
     void debugPrint( const char* c );
     /** debug a model */
     bool debugModel( TheoryModel* m );
-  public:
     /** get number of regions (for debugging) */
     int getNumRegions();
+
+   private:
+    /**
+     * Decision strategy for cardinality constraints. This asserts
+     * the minimal constraint positively in the SAT context. For details, see
+     * Section 6.3 of Reynolds et al, "Constraint Solving for Finite Model
+     * Finding in SMT Solvers", TPLP 2017.
+     */
+    class CardinalityDecisionStrategy : public DecisionStrategyFmf
+    {
+     public:
+      CardinalityDecisionStrategy(Node t,
+                                  context::Context* satContext,
+                                  Valuation valuation);
+      /** make literal (the i^th combined cardinality literal) */
+      Node mkLiteral(unsigned i) override;
+      /** identify */
+      std::string identify() const override;
+
+     private:
+      /** the cardinality term */
+      Node d_cardinality_term;
+    };
+    /** cardinality decision strategy */
+    std::unique_ptr<CardinalityDecisionStrategy> d_c_dec_strat;
   }; /** class SortModel */
 
 public:
@@ -389,12 +385,8 @@ public:
   void check( Theory::Effort level );
   /** presolve */
   void presolve();
-  /** get next decision request */
-  Node getNextDecisionRequest( unsigned& priority );
   /** preregister a term */
   void preRegisterTerm( TNode n );
-  /** notify restart */
-  void notifyRestart();
   /** identify */
   std::string identify() const { return std::string("StrongSolverTheoryUF"); }
   //print debug
@@ -407,8 +399,6 @@ public:
   int getCardinality( Node n );
   /** get cardinality for type */
   int getCardinality( TypeNode tn );
-  /** minimize */
-  bool minimize( TheoryModel* m = NULL );
   /** has eqc */
   bool hasEqc(Node a);
 
@@ -431,8 +421,6 @@ public:
   SortModel* getSortModel(Node n);
   /** initialize */
   void initializeCombinedCardinality();
-  /** allocateCombinedCardinality */
-  void allocateCombinedCardinality();
   /** check */
   void checkCombinedCardinality();
   /** ensure eqc */
@@ -448,14 +436,31 @@ public:
   context::CDO<bool> d_conflict;
   /** rep model structure, one for each type */
   std::map<TypeNode, SortModel*> d_rep_model;
-  /** allocated combined cardinality */
-  context::CDO<int> d_aloc_com_card;
-  /** combined cardinality constraints */
-  std::map<int, Node> d_com_card_literal;
-  /** combined cardinality assertions (indexed by cardinality literals ) */
-  NodeBoolMap d_com_card_assertions;
+
   /** minimum positive combined cardinality */
   context::CDO<int> d_min_pos_com_card;
+  /**
+   * Decision strategy for combined cardinality constraints. This asserts
+   * the minimal combined cardinality constraint positively in the SAT
+   * context. It is enabled by options::ufssFairness(). For details, see
+   * the extension to multiple sorts in Section 6.3 of Reynolds et al,
+   * "Constraint Solving for Finite Model Finding in SMT Solvers", TPLP 2017.
+   */
+  class CombinedCardinalityDecisionStrategy : public DecisionStrategyFmf
+  {
+   public:
+    CombinedCardinalityDecisionStrategy(context::Context* satContext,
+                                        Valuation valuation);
+    /** make literal (the i^th combined cardinality literal) */
+    Node mkLiteral(unsigned i) override;
+    /** identify */
+    std::string identify() const override;
+  };
+  /** combined cardinality decision strategy */
+  std::unique_ptr<CombinedCardinalityDecisionStrategy> d_cc_dec_strat;
+  /** Have we initialized combined cardinality? */
+  context::CDO<bool> d_initializedCombinedCardinality;
+
   /** cardinality literals for which we have added */
   NodeBoolMap d_card_assertions_eqv_lemma;
   /** the master monotone type (if ufssFairnessMonotone enabled) */
@@ -471,4 +476,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY_UF_STRONG_SOLVER_H */
+#endif /* CVC4__THEORY_UF_STRONG_SOLVER_H */

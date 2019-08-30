@@ -2,9 +2,9 @@
 /*! \file sygus_explain.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, FabianWolff
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H
 
 #include <vector>
 
@@ -65,7 +65,7 @@ class TermRecBuild
   /** get the i^th child of the active term */
   Node getChild(unsigned i);
   /** build the (modified) version of the term
-   * we intialized via the call to init().
+   * we initialized via the call to init().
    */
   Node build(unsigned p = 0);
 
@@ -182,6 +182,15 @@ class SygusExplain
    * - (if applicable) exp => ( n != vnr ).
    *
    * This function updates sz to be the term size of [[exp]]_n.
+   *
+   * If strict is false, then we also test whether the invariance test holds
+   * independently of the entire value of vn.
+   *
+   * The argument var_count is used for tracking the variables that we introduce
+   * to generalize the shape of vn. This map is passed to
+   * TermDbSygus::getFreeVarInc. This argument should be used if we are
+   * calling this function multiple times and the generalization should not
+   * introduce variables that shadow the variables introduced on previous calls.
    */
   void getExplanationFor(Node n,
                          Node vn,
@@ -192,7 +201,21 @@ class SygusExplain
   void getExplanationFor(Node n,
                          Node vn,
                          std::vector<Node>& exp,
-                         SygusInvarianceTest& et);
+                         SygusInvarianceTest& et,
+                         Node vnr,
+                         std::map<TypeNode, int>& var_count,
+                         unsigned& sz);
+  void getExplanationFor(Node n,
+                         Node vn,
+                         std::vector<Node>& exp,
+                         SygusInvarianceTest& et,
+                         bool strict = true);
+  void getExplanationFor(Node n,
+                         Node vn,
+                         std::vector<Node>& exp,
+                         SygusInvarianceTest& et,
+                         std::map<TypeNode, int>& var_count,
+                         bool strict = true);
 
  private:
   /** sygus term database associated with this utility */
@@ -218,4 +241,4 @@ class SygusExplain
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_EXPLAIN_H */

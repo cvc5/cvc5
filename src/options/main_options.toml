@@ -47,7 +47,7 @@ header = "options/main_options.h"
   name       = "seed"
   category   = "common"
   short      = "s"
-  long       = "seed"
+  long       = "seed=N"
   type       = "uint64_t"
   default    = "0"
   read_only  = true
@@ -161,16 +161,6 @@ header = "options/main_options.h"
   default    = "true"
   read_only  = true
   help       = "interactive prompting while in interactive mode"
-
-[[option]]
-  name       = "continuedExecution"
-  category   = "regular"
-  long       = "continued-execution"
-  type       = "bool"
-  default    = "false"
-  links      = ["--interactive", "--no-interactive-prompt"]
-  read_only  = true
-  help       = "continue executing commands, even on error"
 
 [[option]]
   name       = "segvSpin"

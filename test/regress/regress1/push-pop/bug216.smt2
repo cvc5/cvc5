@@ -1,3 +1,7 @@
+; COMMAND-LINE: --incremental
+; EXPECT: sat
+; EXPECT: unsat
+
 (set-logic QF_UF)
 (declare-fun x () Bool)
 (declare-fun y () Bool)

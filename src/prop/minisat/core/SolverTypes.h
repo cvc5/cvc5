@@ -33,6 +33,14 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace CVC4 {
 namespace Minisat {
+class Solver;
+}
+template <class Solver>
+class TSatProof;
+}  // namespace CVC4
+
+namespace CVC4 {
+namespace Minisat {
 
 //=================================================================================================
 // Variables, literals, lifted booleans, clauses:
@@ -168,23 +176,9 @@ inline std::ostream& operator <<(std::ostream& out, Minisat::lbool val) {
   return out;
 }
 
-
-class Solver;
-
-class ProofProxyAbstract {
-public:
-  virtual ~ProofProxyAbstract() {}
-  virtual void updateCRef(Minisat::CRef oldref, Minisat::CRef newref) = 0; 
-};
-
 } /* namespace CVC4::Minisat */
 } /* namespace CVC4 */
 
-
-namespace CVC4 {
-template <class Solver> class ProofProxy;
-typedef ProofProxy<CVC4::Minisat::Solver> CoreProofProxy;
-} 
 
 namespace CVC4 {
 namespace Minisat{
@@ -307,8 +301,10 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
         RegionAllocator<uint32_t>::free(clauseWord32Size(c.size(), c.has_extra()));
     }
 
-  void reloc(CRef& cr, ClauseAllocator& to, CVC4::CoreProofProxy* proxy = NULL);
-  // Implementation moved to Solver.cc.
+    void reloc(CRef& cr,
+               ClauseAllocator& to,
+               CVC4::TSatProof<Solver>* proof = NULL);
+    // Implementation moved to Solver.cc.
 };
 
 

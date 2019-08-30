@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --nl-ext-tf-tplanes
 ; EXPECT: sat
-(set-logic QF_NRA)
+(set-logic QF_NRAT)
 (declare-fun time__AT0@0 () Real)
 (declare-fun instance.y__AT0@0 () Real)
 (declare-fun instance.x__AT0@0 () Real)

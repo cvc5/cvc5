@@ -88,7 +88,6 @@ for path in $paths; do
     if [ -n "$target" -a "$target" != "$package" ]; then continue; fi
     for inc in $incs; do
       case "$inc" in
-        base/tls.h) inc=base/tls.h.in ;;
         expr/expr.h) inc=expr/expr_template.h ;;
         expr/expr_manager.h) inc=expr/expr_manager_template.h ;;
         expr/kind.h) inc=expr/kind_template.h ;;

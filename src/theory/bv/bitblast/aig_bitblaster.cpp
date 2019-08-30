@@ -2,9 +2,9 @@
 /*! \file aig_bitblaster.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Tim King
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,6 +28,7 @@
 extern "C" {
 #include "base/abc/abc.h"
 #include "base/main/main.h"
+#include "prop/cnf_stream.h"
 #include "sat/cnf/cnf.h"
 
 extern Aig_Man_t* Abc_NtkToDar(Abc_Ntk_t* pNtk, int fExors, int fRegisters);
@@ -116,7 +117,7 @@ Abc_Obj_t* mkIte<Abc_Obj_t*>(Abc_Obj_t* cond, Abc_Obj_t* a, Abc_Obj_t* b) {
   return Abc_AigMux(AigBitblaster::currentAigM(), cond, a, b); 
 }
 
-CVC4_THREAD_LOCAL Abc_Ntk_t* AigBitblaster::s_abcAigNetwork = nullptr;
+thread_local Abc_Ntk_t* AigBitblaster::s_abcAigNetwork = nullptr;
 
 Abc_Ntk_t* AigBitblaster::currentAigNtk() {
   if (!AigBitblaster::s_abcAigNetwork) {
@@ -139,7 +140,8 @@ AigBitblaster::AigBitblaster()
       d_nullContext(new context::Context()),
       d_aigCache(),
       d_bbAtoms(),
-      d_aigOutputNode(NULL)
+      d_aigOutputNode(NULL),
+      d_notify()
 {
   prop::SatSolver* solver = nullptr;
   switch (options::bvSatSolver())
@@ -149,8 +151,8 @@ AigBitblaster::AigBitblaster()
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
               d_nullContext.get(), smtStatisticsRegistry(), "AigBitblaster");
-      MinisatEmptyNotify notify;
-      minisat->setNotify(&notify);
+      d_notify.reset(new MinisatEmptyNotify());
+      minisat->setNotify(d_notify.get());
       solver = minisat;
       break;
     }

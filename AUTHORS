@@ -24,6 +24,7 @@ The core designers and authors of CVC4 are:
   Mathias Preiner, Stanford University
   Andrew Reynolds, The University of Iowa, EPFL
   Cesare Tinelli, The University of Iowa
+  Yoni Zohar, Stanford University
 
 Other contributors to the CVC4 codebase are listed in the THANKS file.
 
@@ -36,14 +37,8 @@ CVC4 contains MiniSAT code by Niklas Een and Niklas Sorensson.
 The CVC4 parser incorporates some code from ANTLR3, by Jim Idle, Temporal
 Wave LLC.
 
-CVC4 contains the doxygen.m4 autoconf module by Oren Ben-Kiki.
-
-CVC4 contains the pkg.m4 autoconf module by Scott James Remnant.
-
-CVC4 contains the ax_tls.m4 autoconf module by Alan Woodland and Diego Elio
-Petteno`.
-
-CVC4 contains the boost.m4 autoconf module by Benoit Sigoure.
+CVC4 contains various autoconf modules in the config directory. Please refer to
+the individual files for more information on the authors.
 
 CVC4 maintainer versions contain the script autogen.sh by Christopher Sean
 Morrison, and copyright U.S. Army Research Laboratory.

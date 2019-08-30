@@ -1,5 +1,6 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --sygus-out=status --cegis-sample=use
 (set-logic LIA)
 
 (synth-fun f ((x1 Int) (x2 Int)) Int

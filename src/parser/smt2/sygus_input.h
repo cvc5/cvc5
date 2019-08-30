@@ -2,9 +2,9 @@
 /*! \file sygus_input.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
+ **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__SYGUS_INPUT_H
-#define __CVC4__PARSER__SYGUS_INPUT_H
+#ifndef CVC4__PARSER__SYGUS_INPUT_H
+#define CVC4__PARSER__SYGUS_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/smt2/Smt2Lexer.h"
@@ -61,12 +61,6 @@ class SygusInput : public AntlrInput {
   /** Destructor. Frees the lexer and the parser. */
   virtual ~SygusInput();
 
-  /** Get the language that this Input is reading. */
-  InputLanguage getLanguage() const override
-  {
-    return language::input::LANG_SYGUS;
-  }
-
  protected:
   /**
    * Parse a command from the input. Returns <code>NULL</code> if
@@ -89,4 +83,4 @@ class SygusInput : public AntlrInput {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SYGUS_INPUT_H */
+#endif /* CVC4__PARSER__SYGUS_INPUT_H */

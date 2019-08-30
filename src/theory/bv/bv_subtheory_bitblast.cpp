@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_bitblast.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
+ **   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,6 @@
 #include "decision/decision_attributes.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
-#include "proof/bitvector_proof.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
@@ -35,24 +34,25 @@ namespace theory {
 namespace bv {
 
 BitblastSolver::BitblastSolver(context::Context* c, TheoryBV* bv)
-  : SubtheorySolver(c, bv),
-    d_bitblaster(new TLazyBitblaster(c, bv, "theory::bv::lazy")),
-    d_bitblastQueue(c),
-    d_statistics(),
-    d_validModelCache(c, true),
-    d_lemmaAtomsQueue(c),
-    d_useSatPropagation(options::bitvectorPropagate()),
-    d_abstractionModule(NULL),
-    d_quickCheck(options::bitvectorQuickXplain() ? new BVQuickCheck("bb", bv) : NULL),
-    d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("bb", d_quickCheck) :  NULL)
+    : SubtheorySolver(c, bv),
+      d_bitblaster(new TLazyBitblaster(c, bv, "theory::bv::lazy")),
+      d_bitblastQueue(c),
+      d_statistics(),
+      d_validModelCache(c, true),
+      d_lemmaAtomsQueue(c),
+      d_useSatPropagation(options::bitvectorPropagate()),
+      d_abstractionModule(NULL),
+      d_quickCheck(),
+      d_quickXplain()
 {
+  if (options::bitvectorQuickXplain())
+  {
+    d_quickCheck.reset(new BVQuickCheck("bb", bv));
+    d_quickXplain.reset(new QuickXPlain("bb", d_quickCheck.get()));
+  }
 }
 
-BitblastSolver::~BitblastSolver() {
-  delete d_quickXplain;
-  delete d_quickCheck;
-  delete d_bitblaster;
-}
+BitblastSolver::~BitblastSolver() {}
 
 BitblastSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::BitblastSolver::NumCallsToCheck", 0)
@@ -276,9 +276,10 @@ void BitblastSolver::setConflict(TNode conflict) {
   d_bv->setConflict(final_conflict);
 }
 
-void BitblastSolver::setProofLog( BitVectorProof * bvp ) {
+void BitblastSolver::setProofLog(proof::BitVectorProof* bvp)
+{
   d_bitblaster->setProofLog( bvp );
-  bvp->setBitblaster(d_bitblaster);
+  bvp->setBitblaster(d_bitblaster.get());
 }
 
 }/* namespace CVC4::theory::bv */

@@ -1,0 +1,37 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status
+(set-logic SLIA)
+(synth-fun P ((x String)) Bool (
+(Start Bool (
+  (str.in.re StartStr StartRL)
+  ))
+(StartStr String (
+  x
+  (str.++ StartStr StartStr)
+  ))
+(StartStrC String (
+  "A" "B" ""
+  (str.++ StartStrC StartStrC)))
+(StartRL RegLan (
+(re.++ StartRLi StartRLi)
+(re.inter StartRL StartRL)
+(re.union StartRL StartRL)
+(re.* StartRLi)
+))
+(StartRLi RegLan (
+(str.to.re StartStrC)
+(re.inter StartRLi StartRLi)
+(re.union StartRLi StartRLi)
+(re.++ StartRLi StartRLi)
+(re.* StartRLi)
+))
+))
+
+(constraint (P "AAAAA"))
+(constraint (P "AAA"))
+(constraint (P "AA"))
+(constraint (not (P "AB")))
+(constraint (not (P "B")))
+
+; (str.in.re x (re.* (str.to.re "A"))) is a solution
+(check-synth)

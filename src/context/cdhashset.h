@@ -2,9 +2,9 @@
 /*! \file cdhashset.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Morgan Deters, Tim King, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDHASHSET_H
-#define __CVC4__CONTEXT__CDHASHSET_H
+#ifndef CVC4__CONTEXT__CDHASHSET_H
+#define CVC4__CONTEXT__CDHASHSET_H
 
 #include "base/cvc4_assert.h"
 #include "context/context.h"
@@ -32,8 +32,8 @@ class CDHashSet : protected CDInsertHashMap<V, bool, HashFcn> {
   typedef CDInsertHashMap<V, bool, HashFcn> super;
 
   // no copy or assignment
-  CDHashSet(const CDHashSet&) CVC4_UNDEFINED;
-  CDHashSet& operator=(const CDHashSet&) CVC4_UNDEFINED;
+  CDHashSet(const CDHashSet&) = delete;
+  CDHashSet& operator=(const CDHashSet&) = delete;
 
 public:
 
@@ -158,4 +158,4 @@ public:
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDHASHSET_H */
+#endif /* CVC4__CONTEXT__CDHASHSET_H */

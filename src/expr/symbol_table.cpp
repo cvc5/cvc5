@@ -2,9 +2,9 @@
 /*! \file symbol_table.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Francois Bobot
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -203,8 +203,31 @@ Expr OverloadedTypeTrie::getOverloadedFunctionForTypes(
       if (itc != tat->d_children.end()) {
         tat = &itc->second;
       } else {
-        // no functions match
-        return d_nullExpr;
+        Trace("parser-overloading")
+            << "Could not find overloaded function " << name << std::endl;
+        // it may be a parametric datatype
+        TypeNode tna = TypeNode::fromType(argTypes[i]);
+        if (tna.isParametricDatatype())
+        {
+          Trace("parser-overloading")
+              << "Parametric overloaded datatype selector " << name << " "
+              << tna << std::endl;
+          DatatypeType tnd = static_cast<DatatypeType>(argTypes[i]);
+          const Datatype& dt = tnd.getDatatype();
+          // tng is the "generalized" version of the instantiated parametric
+          // type tna
+          Type tng = dt.getDatatypeType();
+          itc = tat->d_children.find(tng);
+          if (itc != tat->d_children.end())
+          {
+            tat = &itc->second;
+          }
+        }
+        if (tat == nullptr)
+        {
+          // no functions match
+          return d_nullExpr;
+        }
       }
     }
     // we ensure that there is *only* one active symbol at this node
@@ -321,21 +344,18 @@ class SymbolTable::Implementation {
   Implementation()
       : d_context(),
         d_exprMap(new (true) CDHashMap<string, Expr>(&d_context)),
-        d_typeMap(new (true) TypeMap(&d_context)),
-        d_functions(new (true) CDHashSet<Expr, ExprHashFunction>(&d_context)) {
+        d_typeMap(new (true) TypeMap(&d_context))
+  {
     d_overload_trie = new OverloadedTypeTrie(&d_context);
   }
 
   ~Implementation() {
     d_exprMap->deleteSelf();
     d_typeMap->deleteSelf();
-    d_functions->deleteSelf();
     delete d_overload_trie;
   }
 
   bool bind(const string& name, Expr obj, bool levelZero, bool doOverload);
-  bool bindDefinedFunction(const string& name, Expr obj, bool levelZero,
-                           bool doOverload);
   void bindType(const string& name, Type t, bool levelZero = false);
   void bindType(const string& name, const vector<Type>& params, Type t,
                 bool levelZero = false);
@@ -373,9 +393,6 @@ class SymbolTable::Implementation {
   using TypeMap = CDHashMap<string, std::pair<vector<Type>, Type>>;
   TypeMap* d_typeMap;
 
-  /** A set of defined functions. */
-  CDHashSet<Expr, ExprHashFunction>* d_functions;
-
   //------------------------ operator overloading
   // the null expression
   Expr d_nullExpr;
@@ -407,38 +424,8 @@ bool SymbolTable::Implementation::bind(const string& name, Expr obj,
   return true;
 }
 
-bool SymbolTable::Implementation::bindDefinedFunction(const string& name,
-                                                      Expr obj, bool levelZero,
-                                                      bool doOverload) {
-  PrettyCheckArgument(!obj.isNull(), obj, "cannot bind to a null Expr");
-  ExprManagerScope ems(obj);
-  if (doOverload) {
-    if (!bindWithOverloading(name, obj)) {
-      return false;
-    }
-  }
-  if (levelZero) {
-    d_exprMap->insertAtContextLevelZero(name, obj);
-    d_functions->insertAtContextLevelZero(obj);
-  } else {
-    d_exprMap->insert(name, obj);
-    d_functions->insert(obj);
-  }
-  return true;
-}
-
 bool SymbolTable::Implementation::isBound(const string& name) const {
   return d_exprMap->find(name) != d_exprMap->end();
-}
-
-bool SymbolTable::Implementation::isBoundDefinedFunction(
-    const string& name) const {
-  CDHashMap<string, Expr>::iterator found = d_exprMap->find(name);
-  return found != d_exprMap->end() && d_functions->contains((*found).second);
-}
-
-bool SymbolTable::Implementation::isBoundDefinedFunction(Expr func) const {
-  return d_functions->contains(func);
 }
 
 Expr SymbolTable::Implementation::lookup(const string& name) const {
@@ -623,15 +610,6 @@ bool SymbolTable::bind(const string& name,
   return d_implementation->bind(name, obj, levelZero, doOverload);
 }
 
-bool SymbolTable::bindDefinedFunction(const string& name,
-                                      Expr obj,
-                                      bool levelZero,
-                                      bool doOverload)
-{
-  return d_implementation->bindDefinedFunction(name, obj, levelZero,
-                                               doOverload);
-}
-
 void SymbolTable::bindType(const string& name, Type t, bool levelZero)
 {
   d_implementation->bindType(name, t, levelZero);
@@ -648,16 +626,6 @@ void SymbolTable::bindType(const string& name,
 bool SymbolTable::isBound(const string& name) const
 {
   return d_implementation->isBound(name);
-}
-
-bool SymbolTable::isBoundDefinedFunction(const string& name) const
-{
-  return d_implementation->isBoundDefinedFunction(name);
-}
-
-bool SymbolTable::isBoundDefinedFunction(Expr func) const
-{
-  return d_implementation->isBoundDefinedFunction(func);
 }
 bool SymbolTable::isBoundType(const string& name) const
 {

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --rewrite-divk --no-check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --rewrite-divk
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)

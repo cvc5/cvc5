@@ -2,9 +2,9 @@
 /*! \file ceg_instantiator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,18 +15,18 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CEG_INSTANTIATOR_H
 
-#include "theory/quantifiers_engine.h"
+#include <vector>
+
+#include "expr/node.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 
-namespace arith {
-  class TheoryArith;
-}
+class QuantifiersEngine;
 
 namespace quantifiers {
 
@@ -75,15 +75,7 @@ public:
   }
   // compose property, should be such that: 
   //   p.getModifiedTerm( this.getModifiedTerm( x ) ) = this_updated.getModifiedTerm( x )
-  virtual void composeProperty( TermProperties& p ){
-    if( !p.d_coeff.isNull() ){
-      if( d_coeff.isNull() ){
-        d_coeff = p.d_coeff;
-      }else{
-        d_coeff = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::MULT, d_coeff, p.d_coeff ) );
-      }
-    }
-  }
+  virtual void composeProperty(TermProperties& p);
 };
 
 /** Solved form
@@ -102,34 +94,9 @@ public:
   //   an example is for linear arithmetic, we store "substitution with coefficients".
   std::vector<Node> d_non_basic;
   // push the substitution pv_prop.getModifiedTerm(pv) -> n
-  void push_back( Node pv, Node n, TermProperties& pv_prop ){
-    d_vars.push_back( pv );
-    d_subs.push_back( n );
-    d_props.push_back( pv_prop );
-    if( !pv_prop.isBasic() ){
-      d_non_basic.push_back( pv );
-      // update theta value
-      Node new_theta = getTheta();
-      if( new_theta.isNull() ){
-        new_theta = pv_prop.d_coeff;
-      }else{
-        new_theta = NodeManager::currentNM()->mkNode( kind::MULT, new_theta, pv_prop.d_coeff );
-        new_theta = Rewriter::rewrite( new_theta );
-      }
-      d_theta.push_back( new_theta );
-    }
-  }
+  void push_back(Node pv, Node n, TermProperties& pv_prop);
   // pop the substitution pv_prop.getModifiedTerm(pv) -> n
-  void pop_back( Node pv, Node n, TermProperties& pv_prop ){
-    d_vars.pop_back();
-    d_subs.pop_back();
-    d_props.pop_back();
-    if( !pv_prop.isBasic() ){
-      d_non_basic.pop_back();
-      // update theta value
-      d_theta.pop_back();
-    }
-  }
+  void pop_back(Node pv, Node n, TermProperties& pv_prop);
   // is this solved form empty?
   bool empty() { return d_vars.empty(); }
 public:
@@ -185,6 +152,24 @@ enum CegInstPhase
 };
 
 std::ostream& operator<<(std::ostream& os, CegInstPhase phase);
+
+/**
+ * The handled status of a sort/term/quantified formula, indicating whether
+ * counterexample-guided instantiation handles it.
+ */
+enum CegHandledStatus
+{
+  // the sort/term/quantified formula is unhandled by cegqi
+  CEG_UNHANDLED,
+  // the sort/term/quantified formula is partially handled by cegqi
+  CEG_PARTIALLY_HANDLED,
+  // the sort/term/quantified formula is handled by cegqi
+  CEG_HANDLED,
+  // the sort/term/quantified formula is handled by cegqi, regardless of
+  // additional factors
+  CEG_HANDLED_UNCONDITIONAL,
+};
+std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
 
 /** Ceg instantiator
  *
@@ -297,14 +282,56 @@ class CegInstantiator {
   bool useVtsInfinity() { return d_use_vts_inf; }
   /** are we processing a nested quantified formula? */
   bool hasNestedQuantification() { return d_is_nested_quant; }
+  //------------------------------------ static queries
   /** Is k a kind for which counterexample-guided instantiation is possible?
    *
-  * This typically corresponds to kinds that correspond to operators that
-  * have total interpretations and are a part of the signature of
-  * satisfaction complete theories (see Reynolds et al., CAV 2015).
-  */
-  static bool isCbqiKind(Kind k);
-
+   * If this method returns CEG_UNHANDLED, then we prohibit cegqi for terms
+   * involving this kind. If this method returns CEG_HANDLED, our approaches
+   * for cegqi fully handle the kind.
+   *
+   * This typically corresponds to kinds that correspond to operators that
+   * have total interpretations and are a part of the signature of
+   * satisfaction complete theories (see Reynolds et al., CAV 2015).
+   */
+  static CegHandledStatus isCbqiKind(Kind k);
+  /** is cbqi term?
+   *
+   * This method returns whether the term is handled by cegqi techniques, i.e.
+   * whether all subterms of n have kinds that can be handled by cegqi.
+   */
+  static CegHandledStatus isCbqiTerm(Node n);
+  /** is cbqi sort?
+   *
+   * This method returns whether the type tn is handled by cegqi techniques.
+   * If the result is CEG_HANDLED_UNCONDITIONAL, then this indicates that a
+   * variable of this type is handled regardless of the formula it appears in.
+   *
+   * The argument qe is used if handling sort tn is conditional on the
+   * strategies initialized in qe. For example, uninterpreted sorts are
+   * handled if dedicated support for EPR is enabled.
+   */
+  static CegHandledStatus isCbqiSort(TypeNode tn,
+                                     QuantifiersEngine* qe = nullptr);
+  /** is cbqi quantifier prefix
+   *
+   * This returns the minimum value of the above method for a bound variable
+   * in the prefix of quantified formula q.
+   */
+  static CegHandledStatus isCbqiQuantPrefix(Node q,
+                                            QuantifiersEngine* qe = nullptr);
+  /** is cbqi quantified formula
+   *
+   * This returns whether quantified formula q can and should be handled by
+   * counterexample-guided instantiation. If this function returns
+   * a status CEG_HANDLED or above, then q is fully handled by counterexample
+   * guided quantifier instantiation and need not be processed by any other
+   * strategy for quantifiers (e.g. E-matching). Otherwise, if this function
+   * returns CEG_PARTIALLY_HANDLED, then it may be worthwhile to handle the
+   * quantified formula using cegqi, however other strategies should also be
+   * tried.
+   */
+  static CegHandledStatus isCbqiQuant(Node q, QuantifiersEngine* qe = nullptr);
+  //------------------------------------ end static queries
  private:
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
@@ -493,6 +520,11 @@ class CegInstantiator {
    * for the quantified formula we are processing.
    */
   void deactivateInstantiationVariable(Node v);
+  /**
+   * Have we tried an instantiation for v after the last call to
+   * activateInstantiationVariable.
+   */
+  bool hasTriedInstantiation(Node v);
   //-------------------------------end current state
 
   //---------------------------------for applying substitutions
@@ -527,12 +559,24 @@ class CegInstantiator {
   std::map<Node, Instantiator*> d_instantiator;
 
   /** construct instantiation
-   * This method constructs the current instantiation, where we
-   * are currently processing the i^th variable in d_vars.
+   *
+   * This method attempts to find a term for the i^th variable in d_vars to
+   * include in the current instantiation, given by sf.
+   *
    * It returns true if a successful call to the output channel's
    * doAddInstantiation was made.
    */
   bool constructInstantiation(SolvedForm& sf, unsigned i);
+  /** construct instantiation
+   *
+   * Helper method for the above method. This method attempts to find a term for
+   * variable pv to include in the current instantiation, given by sf based
+   * on equality and theory-specific instantiation techniques. The latter is
+   * managed by the instantiator object vinst. Prior to calling this method,
+   * the variable pv has been activated by a call to
+   * activateInstantiationVariable.
+   */
+  bool constructInstantiation(SolvedForm& sf, Instantiator* vinst, Node pv);
   /** do add instantiation
    * This method is called by the above function after we finalize the
    * variables/substitution and auxiliary lemmas.
@@ -542,6 +586,18 @@ class CegInstantiator {
   bool doAddInstantiation(std::vector<Node>& vars,
                           std::vector<Node>& subs,
                           std::vector<Node>& lemmas);
+
+  //------------------------------------ static queries
+  /** is cbqi sort
+   *
+   * Helper function for isCbqiSort. This function recurses over the structure
+   * of the type tn, where visited stores the types we have visited.
+   */
+  static CegHandledStatus isCbqiSort(
+      TypeNode tn,
+      std::map<TypeNode, CegHandledStatus>& visited,
+      QuantifiersEngine* qe);
+  //------------------------------------ end  static queries
 };
 
 /** Instantiator class
@@ -571,6 +627,18 @@ public:
   {
   }
 
+  /** has process equal term
+   *
+   * Whether this instantiator implements processEqualTerm and
+   * processEqualTerms.
+   */
+  virtual bool hasProcessEqualTerm(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   CegInstEffort effort)
+  {
+    return false;
+  }
   /** process equal term
    *
    * This method is called when the entailment:

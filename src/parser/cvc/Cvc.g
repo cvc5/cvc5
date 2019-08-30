@@ -2,9 +2,9 @@
 /*! \file Cvc.g
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -222,6 +222,7 @@ tokens {
   STRING_CHARAT_TOK = 'CHARAT';
   STRING_INDEXOF_TOK = 'INDEXOF';
   STRING_REPLACE_TOK = 'REPLACE';
+  STRING_REPLACE_ALL_TOK = 'REPLACE_ALL';
   STRING_PREFIXOF_TOK = 'PREFIXOF';
   STRING_SUFFIXOF_TOK = 'SUFFIXOF';
   STRING_STOI_TOK = 'STRING_TO_INTEGER';
@@ -495,10 +496,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 @lexer::includes {
 
-// This should come immediately after #include <antlr3.h> in the generated
-// files. See the documentation in "parser/antlr_undefines.h" for more details.
-#include "parser/antlr_undefines.h"
-
 /** This suppresses warnings about the redefinition of token symbols between different
   * parsers. The redefinitions should be harmless as long as no client: (a) #include's
   * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
@@ -523,10 +520,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 @parser::includes {
 
-// This should come immediately after #include <antlr3.h> in the generated
-// files. See the documentation in "parser/antlr_undefines.h" for more details.
-#include "parser/antlr_undefines.h"
-
 #include <cassert>
 #include <memory>
 #include <stdint.h>
@@ -538,35 +531,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 namespace CVC4 {
   class Expr;
-
-  namespace parser {
-    namespace cvc {
-      /**
-       * This class is just here to get around an unfortunate bit of Antlr.
-       * We use strings below as return values from rules, which require
-       * them to be constructible by a void*.  So we derive the string
-       * class to provide just such a conversion.
-       */
-      class myString : public std::string {
-      public:
-        myString(const std::string& s) : std::string(s) {}
-        myString(void*) : std::string() {}
-        myString() : std::string() {}
-      };/* class myString */
-
-      /**
-       * Just exists to give us the void* construction that
-       * ANTLR requires.
-       */
-      struct myExpr : public CVC4::Expr {
-        myExpr() : CVC4::Expr() {}
-        myExpr(void*) : CVC4::Expr() {}
-        myExpr(const Expr& e) : CVC4::Expr(e) {}
-        myExpr(const myExpr& e) : CVC4::Expr(e) {}
-      };/* struct myExpr */
-
-    }/* CVC4::parser::cvc namespace */
-  }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
 }/* @parser::includes */
@@ -1160,7 +1124,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
           Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
           Expr func = EXPR_MANAGER->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
-          PARSER_STATE->defineFunction(*i, f);
+          PARSER_STATE->defineVar(*i, f);
           Command* decl = new DefineFunctionCommand(*i, func, f);
           seq->addCommand(decl);
         }
@@ -1559,9 +1523,6 @@ booleanBinop[unsigned& op]
   | OR_TOK
   | XOR_TOK
   | AND_TOK
-  | JOIN_TOK
-  | PRODUCT_TOK
-  | JOIN_IMAGE_TOK  
   ;
 
 comparison[CVC4::Expr& f]
@@ -1712,9 +1673,8 @@ uminusTerm[CVC4::Expr& f]
   unsigned minusCount = 0;
 }
     /* Unary minus */
-  : (MINUS_TOK { ++minusCount; })+ bvBinaryOpTerm[f]
+  : (MINUS_TOK { ++minusCount; })* bvBinaryOpTerm[f]
     { while(minusCount > 0) { --minusCount; f = MK_EXPR(CVC4::kind::UMINUS, f); } }
-  | bvBinaryOpTerm[f]
   ;
 
 /** Parses bitvectors.  Starts with binary operators @, &, and |. */
@@ -1741,28 +1701,27 @@ bvNegTerm[CVC4::Expr& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     { f = f.getType().isSet() ? MK_EXPR(CVC4::kind::COMPLEMENT, f) : MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
-  | relationTerm[f]
+  | relationBinopTerm[f]
   ;
 
-relationTerm[CVC4::Expr& f]
-    /* relation terms */
-  : TRANSPOSE_TOK relationTerm[f]
-    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
-  | TRANSCLOSURE_TOK relationTerm[f]
-    { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
-  | TUPLE_TOK LPAREN relationTerm[f] RPAREN
-    { std::vector<Type> types;
-      std::vector<Expr> args;
-      args.push_back(f);
-	    types.push_back(f.getType());
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert( args.begin(), dt[0].getConstructor() );
-      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
-    }
-  | IDEN_TOK relationTerm[f]
-    { f = MK_EXPR(CVC4::kind::IDEN, f); }                 
-  | postfixTerm[f]
+relationBinop[unsigned& op]
+@init {
+  op = LT(1)->getType(LT(1));
+}
+  : JOIN_TOK
+  | PRODUCT_TOK
+  | JOIN_IMAGE_TOK
+  ;
+
+relationBinopTerm[CVC4::Expr& f]
+@init {
+  std::vector<CVC4::Expr> expressions;
+  std::vector<unsigned> operators;
+  unsigned op;
+}
+  : postfixTerm[f] { expressions.push_back(f); }
+    ( relationBinop[op] postfixTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
+    { f = createPrecedenceTree(PARSER_STATE, EXPR_MANAGER, expressions, operators); }
   ;
 
 /**
@@ -1782,7 +1741,7 @@ postfixTerm[CVC4::Expr& f]
   std::string id;
   Type t;
 }
-  : ( bvTerm[f]
+  : ( relationTerm[f]
     ( /* array select / bitvector extract */
       LBRACKET
         ( formula[f2] { extract = false; }
@@ -1890,7 +1849,28 @@ postfixTerm[CVC4::Expr& f]
       }
     )?
   ;
-
+  
+relationTerm[CVC4::Expr& f]
+    /* relation terms */
+  : TRANSPOSE_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
+  | TRANSCLOSURE_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
+  | TUPLE_TOK LPAREN formula[f] RPAREN
+    { std::vector<Type> types;
+      std::vector<Expr> args;
+      args.push_back(f);
+      types.push_back(f.getType());
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert( args.begin(), dt[0].getConstructor() );
+      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
+  | IDEN_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::IDEN, f); }                 
+  | bvTerm[f]
+  ;
+  
 bvTerm[CVC4::Expr& f]
 @init {
   Expr f2;
@@ -2036,6 +2016,8 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::STRING_STRIDOF, f, f2, f3); }
   | STRING_REPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STRREPL, f, f2, f3); }
+  | STRING_REPLACE_ALL_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_STRREPLALL, f, f2, f3); }
   | STRING_PREFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_PREFIX, f, f2); }
   | STRING_SUFFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
@@ -2164,7 +2146,10 @@ simpleTerm[CVC4::Expr& f]
   | DECIMAL_LITERAL { 
       f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL));
       if(f.getType().isInteger()) {
-        f = MK_EXPR(kind::TO_REAL, f);
+        // Must cast to Real to ensure correct type is passed to parametric type constructors.
+        // We do this cast using division with 1.
+        // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
+        f = MK_EXPR(kind::DIVISION, f, MK_CONST(Rational(1)));
       } 
     }
   | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }

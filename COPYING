@@ -79,6 +79,11 @@ licenses/lgpl-3.0.txt for a copy of that license.  Note that according to the
 terms of the LGPL, both CVC4's source, and the combined work (CVC4 linked with
 GMP) may (and do) remain under the more permissive modified BSD license.
 
+The implementation of the floating point solver in CVC4 depends on symfpu
+(https://github.com/martin-cs/symfpu) written by Martin Brain.
+See https://raw.githubusercontent.com/martin-cs/symfpu/CVC4/LICENSE for
+copyright and licensing information.
+
 CVC4 optionally links against the following libraries:
 
   ABC                (https://bitbucket.org/alanmi/abc)

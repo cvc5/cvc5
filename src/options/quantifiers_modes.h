@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__BASE__QUANTIFIERS_MODES_H
-#define __CVC4__BASE__QUANTIFIERS_MODES_H
+#ifndef CVC4__BASE__QUANTIFIERS_MODES_H
+#define CVC4__BASE__QUANTIFIERS_MODES_H
 
 #include <iostream>
 
@@ -53,16 +53,10 @@ enum LiteralMatchMode {
 };
 
 enum MbqiMode {
-  /** mbqi from CADE 24 paper */
-  MBQI_GEN_EVAL,
   /** no mbqi */
   MBQI_NONE,
   /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
-  /** mbqi with integer intervals */
-  MBQI_FMC_INTERVAL,
-  /** abstract mbqi algorithm */
-  MBQI_ABS,
   /** mbqi trust (produce no instantiations) */
   MBQI_TRUST,
 };
@@ -210,10 +204,39 @@ enum CegqiSingleInvMode {
   CEGQI_SI_MODE_NONE,
   /** use single invocation techniques */
   CEGQI_SI_MODE_USE,
-  /** always use single invocation techniques, abort if solution reconstruction will fail */
-  CEGQI_SI_MODE_ALL_ABORT,
   /** always use single invocation techniques */
   CEGQI_SI_MODE_ALL,
+};
+
+/** Solution reconstruction modes for single invocation conjectures
+ *
+ * These modes indicate the policy when CVC4 solves a synthesis conjecture using
+ * single invocation techniques for a sygus problem with a user-specified
+ * grammar.
+ */
+enum CegqiSingleInvRconsMode
+{
+  /**
+   * Do not try to reconstruct solutions to single invocation conjectures. With
+   * this mode, solutions produced by CVC4 may violate grammar restrictions.
+   */
+  CEGQI_SI_RCONS_MODE_NONE,
+  /**
+   * Try to reconstruct solution to single invocation conjectures in an
+   * incomplete (fail fast) way.
+   */
+  CEGQI_SI_RCONS_MODE_TRY,
+  /**
+   * Reconstruct solutions to single invocation conjectures, but fail if we
+   * reach an upper limit on number of iterations in the enumeration
+   */
+  CEGQI_SI_RCONS_MODE_ALL_LIMIT,
+  /**
+   * Reconstruct solutions to single invocation conjectures. This method
+   * relies on an expensive enumeration technique which only terminates when
+   * we succesfully reconstruct the solution, although it may not terminate.
+   */
+  CEGQI_SI_RCONS_MODE_ALL,
 };
 
 enum CegisSampleMode
@@ -233,6 +256,40 @@ enum SygusInvTemplMode {
   SYGUS_INV_TEMPL_MODE_PRE,
   /** synthesize ( post( x ) ^ I( x ) ) */
   SYGUS_INV_TEMPL_MODE_POST,
+};
+
+enum SygusActiveGenMode
+{
+  /** do not use actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_NONE,
+  /** use basic enumeration for actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_ENUM_BASIC,
+  /** use optimized enumeration actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_ENUM,
+  /** use variable-agnostic enumerators */
+  SYGUS_ACTIVE_GEN_VAR_AGNOSTIC,
+  /** internally decide the best policy for each enumerator */
+  SYGUS_ACTIVE_GEN_AUTO,
+};
+
+enum SygusQueryDumpFilesMode
+{
+  /** do not dump query files */
+  SYGUS_QUERY_DUMP_NONE,
+  /** dump all query files */
+  SYGUS_QUERY_DUMP_ALL,
+  /** dump query files that were not solved by the subsolver */
+  SYGUS_QUERY_DUMP_UNSOLVED,
+};
+
+enum SygusFilterSolMode
+{
+  /** do not filter solutions */
+  SYGUS_FILTER_SOL_NONE,
+  /** filter logically stronger solutions */
+  SYGUS_FILTER_SOL_STRONG,
+  /** filter logically weaker solutions */
+  SYGUS_FILTER_SOL_WEAK,
 };
 
 enum MacrosQuantMode {
@@ -262,17 +319,6 @@ enum QuantRepMode {
   QUANT_REP_MODE_DEPTH,
 };
 
-enum FmfBoundMinMode {
-  /** do not minimize bounds */
-  FMF_BOUND_MIN_NONE,
-  /** default, minimize integer ranges */
-  FMF_BOUND_MIN_INT_RANGE,
-  /** minimize set cardinality ranges */
-  FMF_BOUND_MIN_SET_CARD,
-  /** minimize all bounds */
-  FMF_BOUND_MIN_ALL,
-};
-
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 
@@ -280,4 +326,4 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::InstWhenMode mo
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BASE__QUANTIFIERS_MODES_H */
+#endif /* CVC4__BASE__QUANTIFIERS_MODES_H */

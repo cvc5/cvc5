@@ -1,3 +1,5 @@
+; EXPECT: unknown
+; EXPECT: (:reason-unknown incomplete)
 (set-logic AUFLIA)
 (set-info :source | 
   Boogie/Spec# benchmarks.

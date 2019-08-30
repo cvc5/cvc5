@@ -2,9 +2,9 @@
 /*! \file tptp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Francois Bobot, Morgan Deters, Andrew Reynolds
+ **   Francois Bobot, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <set>
 
+#include "api/cvc4cpp.h"
 #include "expr/type.h"
 #include "parser/parser.h"
 
@@ -30,11 +31,9 @@
 namespace CVC4 {
 namespace parser {
 
-Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode,
-           bool parseOnly)
-    : Parser(exprManager, input, strictMode, parseOnly),
-      d_cnf(false),
-      d_fof(false) {
+Tptp::Tptp(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
+    : Parser(solver, input, strictMode, parseOnly), d_cnf(false), d_fof(false)
+{
   addTheory(Tptp::THEORY_CORE);
 
   /* Try to find TPTP dir */
@@ -122,7 +121,7 @@ bool newInputStream(std::string fileName, pANTLR3_LEXER lexer, std::vector< pANT
   // Same thing as the predefined PUSHSTREAM(in);
   lexer->pushCharStream(lexer,in);
   // restart it
-  //lexer->rec->state->tokenStartCharIndex	= -10;
+  //lexer->rec->state->tokenStartCharIndex  = -10;
   //lexer->emit(lexer);
 
   // Note that the input stream is not closed when it EOFs, I don't bother
@@ -215,6 +214,12 @@ void Tptp::checkLetBinding(const std::vector<Expr>& bvlist, Expr lhs, Expr rhs,
   }
 }
 
+void Tptp::forceLogic(const std::string& logic)
+{
+  Parser::forceLogic(logic);
+  preemptCommand(new SetBenchmarkLogicCommand(logic));
+}
+
 void Tptp::addFreeVar(Expr var) {
   assert(cnf());
   d_freeVar.push_back(var);
@@ -296,6 +301,27 @@ void Tptp::makeApplication(Expr& expr, std::string& name,
   }
 }
 
+void Tptp::mkLambdaWrapper(Expr& expr, Type argType)
+{
+  std::vector<Expr> lvars;
+  std::vector<Type> domainTypes =
+      (static_cast<FunctionType>(argType)).getArgTypes();
+  for (unsigned i = 0, size = domainTypes.size(); i < size; ++i)
+  {
+    // the introduced variable is internal (not parsable)
+    std::stringstream ss;
+    ss << "_lvar_" << i;
+    Expr v = getExprManager()->mkBoundVar(ss.str(), domainTypes[i]);
+    lvars.push_back(v);
+  }
+  // apply body of lambda to variables
+  Expr wrapper = getExprManager()->mkExpr(
+      kind::LAMBDA,
+      getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars),
+      getExprManager()->mkExpr(expr, lvars));
+
+  expr = wrapper;
+}
 
 Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {
   switch (fr) {

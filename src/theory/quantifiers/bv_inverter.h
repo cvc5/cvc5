@@ -2,9 +2,9 @@
 /*! \file bv_inverter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds, Aina Niemetz
+ **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BV_INVERTER_H
-#define __CVC4__BV_INVERTER_H
+#ifndef CVC4__BV_INVERTER_H
+#define CVC4__BV_INVERTER_H
 
 #include <map>
 #include <unordered_map>
@@ -59,9 +59,16 @@ class BvInverter
    * pvs (if pvs is non-null). If return value R is non-null, then :
    *   lit.path = pv R.path = sv
    *   R.path' = pvs for all lit.path' = pv, where path' != path
+   *
+   * If the flag projectNl is false, we return the null node if the
+   * literal lit is non-linear with respect to pv.
    */
-  Node getPathToPv(
-      Node lit, Node pv, Node sv, Node pvs, std::vector<unsigned>& path);
+  Node getPathToPv(Node lit,
+                   Node pv,
+                   Node sv,
+                   Node pvs,
+                   std::vector<unsigned>& path,
+                   bool projectNl);
 
   /**
    * Same as above, but does not linearize lit for pv.
@@ -69,7 +76,7 @@ class BvInverter
    */
   Node getPathToPv(Node lit, Node pv, std::vector<unsigned>& path)
   {
-    return getPathToPv(lit, pv, pv, Node::null(), path);
+    return getPathToPv(lit, pv, pv, Node::null(), path, false);
   }
 
   /** solveBvLit
@@ -123,4 +130,4 @@ class BvInverter
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__BV_INVERTER_H */
+#endif /* CVC4__BV_INVERTER_H */

@@ -2,9 +2,9 @@
 /*! \file node_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,7 +37,7 @@ using namespace CVC4::expr;
 
 namespace CVC4 {
 
-CVC4_THREAD_LOCAL NodeManager* NodeManager::s_current = NULL;
+thread_local NodeManager* NodeManager::s_current = NULL;
 
 namespace {
 
@@ -363,7 +363,10 @@ void NodeManager::reclaimZombies() {
 std::vector<NodeValue*> NodeManager::TopologicalSort(
     const std::vector<NodeValue*>& roots) {
   std::vector<NodeValue*> order;
+  // The stack of nodes to visit. The Boolean value is false when visiting the
+  // node in preorder and true when visiting it in postorder.
   std::vector<std::pair<bool, NodeValue*> > stack;
+  // Nodes that have been visited in both pre- and postorder
   NodeValueIDSet visited;
   const NodeValueIDSet root_set(roots.begin(), roots.end());
 
@@ -382,16 +385,19 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
           order.push_back(current);
         }
         stack.pop_back();
-      } else {
+      }
+      else if (visited.find(current) == visited.end())
+      {
         stack.back().first = true;
-        Assert(visited.count(current) == 0);
         visited.insert(current);
         for (unsigned i = 0; i < current->getNumChildren(); ++i) {
           expr::NodeValue* child = current->getChild(i);
-          if (visited.find(child) == visited.end()) {
-            stack.push_back(std::make_pair(false, child));
-          }
+          stack.push_back(std::make_pair(false, child));
         }
+      }
+      else
+      {
+        stack.pop_back();
       }
     }
   }
@@ -645,7 +651,9 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
 }
 
 TypeNode NodeManager::mkSortConstructor(const std::string& name,
-                                        size_t arity) {
+                                        size_t arity,
+                                        uint32_t flags)
+{
   Assert(arity > 0);
   NodeBuilder<> nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
@@ -654,7 +662,7 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSortConstructor(type);
+    (*i)->nmNotifyNewSortConstructor(type, flags);
   }
   return type;
 }

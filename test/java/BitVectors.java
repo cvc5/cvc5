@@ -1,3 +1,20 @@
+/*********************                                                        */
+/*! \file BitVectors.java
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Pat Hawks, Mathias Preiner
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
+
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +51,7 @@ public class BitVectors {
     //
     // Two more efficient yet equivalent methods are:
     //
-    //(1) x = a ⊕ b ⊕ x;
+    //(1) x = a xor b xor x;
     //
     //(2) x = a + b - x;
     //

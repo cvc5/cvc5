@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #
 # update-copyright.pl
-# Copyright (c) 2009-2018  The CVC4 Project
+# Copyright (c) 2009-2019  The CVC4 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -35,19 +35,19 @@
 
 my $excluded_directories = '^(CVS|generated)$';
 my $excluded_paths = '^(';
-$excluded_paths .= 'src/bindings/compat/.*';
+# note: first excluded path regexp must not start with a '|'
 # different license
-$excluded_paths .= '|src/util/channel.h';
+$excluded_paths .= 'src/util/channel.h';
 # minisat license
 $excluded_paths .= '|src/prop/(bv)?minisat/core/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/mtl/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/simp/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/utils/.*';
-$excluded_paths .= '$)';
+$excluded_paths .= ')$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2018';
+my $years = '2009-2019';
 
 my $standard_template = <<EOF;
  ** This file is part of the CVC4 project.
@@ -198,7 +198,8 @@ $line";
       print $OUT "/*! \\file $file\n";
     }
     print $OUT " ** \\verbatim\n";
-    print $OUT " ** Top authors (to current version): $authors\n";
+    print $OUT " ** Top contributors (to current version):\n";
+    print $OUT " **   $authors\n";
     print $OUT $standard_template;
     print $OUT " **\n";
     print $OUT " ** \\brief [[ Add one-line brief description here ]]\n";

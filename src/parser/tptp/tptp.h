@@ -2,9 +2,9 @@
 /*! \file tptp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Francois Bobot, Morgan Deters, Andrew Reynolds
+ **   Francois Bobot, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,8 +18,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__TPTP_H
-#define __CVC4__PARSER__TPTP_H
+#ifndef CVC4__PARSER__TPTP_H
+#define CVC4__PARSER__TPTP_H
 
 #include <cassert>
 #include <unordered_map>
@@ -30,6 +30,11 @@
 #include "util/hash.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+}
+
 namespace parser {
 
 class Tptp : public Parser {
@@ -41,6 +46,8 @@ class Tptp : public Parser {
 
   bool fof() const { return d_fof; }
   void setFof(bool fof) { d_fof = fof; }
+
+  void forceLogic(const std::string& logic) override;
 
   void addFreeVar(Expr var);
   std::vector< Expr > getFreeVar();
@@ -81,7 +88,9 @@ class Tptp : public Parser {
   bool hasConjecture() const { return d_hasConjecture; }
 
  protected:
-  Tptp(ExprManager* exprManager, Input* input, bool strictMode = false,
+  Tptp(api::Solver* solver,
+       Input* input,
+       bool strictMode = false,
        bool parseOnly = false);
 
  public:
@@ -95,6 +104,14 @@ class Tptp : public Parser {
 
   void makeApplication(Expr& expr, std::string& name, std::vector<Expr>& args,
                        bool term);
+
+  /** creates a lambda abstraction around expression
+   *
+   * Given an expression expr of type argType = t1...tn -> t, creates a lambda
+   * expression
+   *  (lambda x1:t1,...,xn:tn . (expr x)) : t
+   */
+  void mkLambdaWrapper(Expr& expr, Type argType);
 
   /** get assertion expression, based on the formula role.
   * expr should have Boolean type.
@@ -150,7 +167,7 @@ class Tptp : public Parser {
   // TPTP directory where to find includes;
   // empty if none could be determined
   std::string d_tptpDir;
-  
+
   // the null expression
   Expr d_nullExpr;
 
@@ -189,4 +206,4 @@ enum NonAssoc {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__TPTP_INPUT_H */
+#endif /* CVC4__PARSER__TPTP_INPUT_H */

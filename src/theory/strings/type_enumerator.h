@@ -2,9 +2,9 @@
 /*! \file type_enumerator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Paul Meng, Andres Noetzli
+ **   Tianyi Liang, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,15 +16,16 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
-#define __CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
+#ifndef CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
+#define CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H
 
 #include <sstream>
 
-#include "util/regexp.h"
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
 #include "expr/kind.h"
+#include "expr/type_node.h"
+#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/type_enumerator.h"
+#include "util/regexp.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,7 +46,7 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == STRING_TYPE);
-    d_cardinality = 256;
+    d_cardinality = TheoryStringsRewriter::getAlphabetCardinality();
     mkCurr();
   }
   Node operator*() override { return d_curr; }
@@ -127,4 +128,4 @@ class StringEnumeratorLength {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H */
+#endif /* CVC4__THEORY__STRINGS__TYPE_ENUMERATOR_H */

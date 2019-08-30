@@ -2,9 +2,9 @@
 /*! \file congruence_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng, Morgan Deters
+ **   Tim King, Mathias Preiner, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -77,10 +77,11 @@ private:
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
   };
   ArithCongruenceNotify d_notify;
-  
-  /** module for shostak normalization, d_eqi_counter is how many pending merges in d_eq_infer we have processed */
-  quantifiers::EqualityInference * d_eq_infer;
-  context::CDO< unsigned > d_eqi_counter;
+
+  /** module for shostak normalization, d_eqi_counter is how many pending merges
+   * in d_eq_infer we have processed */
+  std::unique_ptr<quantifiers::EqualityInference> d_eq_infer;
+  context::CDO<unsigned> d_eqi_counter;
   Node d_true;
 
   context::CDList<Node> d_keepAlive;

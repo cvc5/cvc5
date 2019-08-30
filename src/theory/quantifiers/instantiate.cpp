@@ -2,9 +2,9 @@
 /*! \file instantiate.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,13 +16,14 @@
 
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -221,7 +222,7 @@ bool Instantiate::addInstantiation(
   {
     for (Node& t : terms)
     {
-      if (!d_term_db->isTermEligibleForInstantiation(t, q, true))
+      if (!d_term_db->isTermEligibleForInstantiation(t, q))
       {
         return false;
       }
@@ -245,10 +246,10 @@ bool Instantiate::addInstantiation(
   Node orig_body = body;
   if (options::cbqiNestedQE())
   {
-    InstStrategyCbqi* icbqi = d_qe->getInstStrategyCbqi();
-    if (icbqi)
+    InstStrategyCegqi* icegqi = d_qe->getInstStrategyCegqi();
+    if (icegqi)
     {
-      body = icbqi->doNestedQE(q, terms, body, doVts);
+      body = icegqi->doNestedQE(q, terms, body, doVts);
     }
   }
   body = quantifiers::QuantifiersRewriter::preprocess(body, true);
@@ -491,7 +492,7 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
 
 Node Instantiate::getTermForType(TypeNode tn)
 {
-  if (d_qe->getTermEnumeration()->isClosedEnumerableType(tn))
+  if (tn.isClosedEnumerable())
   {
     return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
   }
@@ -644,42 +645,46 @@ void Instantiate::getExplanationForInstLemmas(
     std::map<Node, Node>& quant,
     std::map<Node, std::vector<Node> >& tvec)
 {
-  if (options::trackInstLemmas())
+  if (!options::trackInstLemmas())
   {
-    if (options::incrementalSolving())
-    {
-      for (std::pair<const Node, inst::CDInstMatchTrie*>& t :
-           d_c_inst_match_trie)
-      {
-        t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
-      }
-    }
-    else
-    {
-      for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
-      {
-        t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
-      }
-    }
-#ifdef CVC4_ASSERTIONS
-    for (unsigned j = 0; j < lems.size(); j++)
-    {
-      Assert(quant.find(lems[j]) != quant.end());
-      Assert(tvec.find(lems[j]) != tvec.end());
-    }
-#endif
+    std::stringstream msg;
+    msg << "Cannot get explanation for instantiations when --track-inst-lemmas "
+           "is false.";
+    throw OptionException(msg.str());
   }
-  Assert(false);
+  if (options::incrementalSolving())
+  {
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+    {
+      t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
+    }
+  }
+  else
+  {
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    {
+      t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
+    }
+  }
+#ifdef CVC4_ASSERTIONS
+  for (unsigned j = 0; j < lems.size(); j++)
+  {
+    Assert(quant.find(lems[j]) != quant.end());
+    Assert(tvec.find(lems[j]) != tvec.end());
+  }
+#endif
 }
 
 void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
 {
-  bool useUnsatCore = false;
-  std::vector<Node> active_lemmas;
-  if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
+  if (!options::trackInstLemmas())
   {
-    useUnsatCore = true;
+    std::stringstream msg;
+    msg << "Cannot get instantiations when --track-inst-lemmas is false.";
+    throw OptionException(msg.str());
   }
+  std::vector<Node> active_lemmas;
+  bool useUnsatCore = getUnsatCoreLemmas(active_lemmas);
 
   if (options::incrementalSolving())
   {

@@ -2,9 +2,9 @@
 /*! \file regexp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tianyi Liang, Andrew Reynolds
+ **   Tim King, Tianyi Liang, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,13 +32,51 @@ namespace CVC4 {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
+unsigned String::convertCharToUnsignedInt(unsigned char c)
+{
+  return convertCodeToUnsignedInt(static_cast<unsigned>(c));
+}
+unsigned char String::convertUnsignedIntToChar(unsigned i)
+{
+  Assert(i < num_codes());
+  return static_cast<unsigned char>(convertUnsignedIntToCode(i));
+}
+bool String::isPrintable(unsigned i)
+{
+  Assert(i < num_codes());
+  unsigned char c = convertUnsignedIntToChar(i);
+  return (c >= ' ' && c <= '~');
+}
+unsigned String::convertCodeToUnsignedInt(unsigned c)
+{
+  Assert(c < num_codes());
+  return (c < start_code() ? c + num_codes() : c) - start_code();
+}
+unsigned String::convertUnsignedIntToCode(unsigned i)
+{
+  Assert(i < num_codes());
+  return (i + start_code()) % num_codes();
+}
+
+String::String(const std::vector<unsigned> &s) : d_str(s)
+{
+#ifdef CVC4_ASSERTIONS
+  for (unsigned u : d_str)
+  {
+    Assert(convertUnsignedIntToCode(u) < num_codes());
+  }
+#endif
+}
+
 int String::cmp(const String &y) const {
   if (size() != y.size()) {
     return size() < y.size() ? -1 : 1;
   }
   for (unsigned int i = 0; i < size(); ++i) {
     if (d_str[i] != y.d_str[i]) {
-      return getUnsignedCharAt(i) < y.getUnsignedCharAt(i) ? -1 : 1;
+      unsigned cp = convertUnsignedIntToCode(d_str[i]);
+      unsigned cpy = convertUnsignedIntToCode(y.d_str[i]);
+      return cp < cpy ? -1 : 1;
     }
   }
   return 0;
@@ -181,12 +219,25 @@ std::vector<unsigned> String::toInternal(const std::string &s,
       i++;
     }
   }
+#ifdef CVC4_ASSERTIONS
+  for (unsigned u : str)
+  {
+    Assert(convertUnsignedIntToCode(u) < num_codes());
+  }
+#endif
   return str;
 }
 
-unsigned char String::getUnsignedCharAt(size_t pos) const {
-  Assert(pos < size());
-  return convertUnsignedIntToChar(d_str[pos]);
+unsigned String::front() const
+{
+  Assert(!d_str.empty());
+  return d_str.front();
+}
+
+unsigned String::back() const
+{
+  Assert(!d_str.empty());
+  return d_str.back();
 }
 
 std::size_t String::overlap(const String &y) const {
@@ -272,6 +323,26 @@ std::string String::toString(bool useEscSequences) const {
   return str;
 }
 
+bool String::isLeq(const String &y) const
+{
+  for (unsigned i = 0; i < size(); ++i)
+  {
+    if (i >= y.size())
+    {
+      return false;
+    }
+    if (d_str[i] > y.d_str[i])
+    {
+      return false;
+    }
+    if (d_str[i] < y.d_str[i])
+    {
+      return true;
+    }
+  }
+  return true;
+}
+
 bool String::isRepeated() const {
   if (size() > 1) {
     unsigned int f = d_str[0];
@@ -323,6 +394,43 @@ std::size_t String::rfind(const String &y, const std::size_t start) const {
   return std::string::npos;
 }
 
+bool String::hasPrefix(const String& y) const
+{
+  size_t s = size();
+  size_t ys = y.size();
+  if (ys > s)
+  {
+    return false;
+  }
+  for (size_t i = 0; i < ys; i++)
+  {
+    if (d_str[i] != y.d_str[i])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool String::hasSuffix(const String& y) const
+{
+  size_t s = size();
+  size_t ys = y.size();
+  if (ys > s)
+  {
+    return false;
+  }
+  size_t idiff = s - ys;
+  for (size_t i = 0; i < ys; i++)
+  {
+    if (d_str[i + idiff] != y.d_str[i])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 String String::replace(const String &s, const String &t) const {
   std::size_t ret = find(s);
   if (ret != std::string::npos) {
@@ -371,22 +479,13 @@ bool String::isDigit(unsigned character)
   return c >= '0' && c <= '9';
 }
 
-size_t String::maxSize()
-{
-  return std::numeric_limits<size_t>::max();
-}
+size_t String::maxSize() { return std::numeric_limits<uint32_t>::max(); }
 
-int String::toNumber() const {
-  if (isNumber()) {
-    int ret = 0;
-    for (unsigned int i = 0; i < size(); ++i) {
-      unsigned char c = convertUnsignedIntToChar(d_str[i]);
-      ret = ret * 10 + (int)c - (int)'0';
-    }
-    return ret;
-  } else {
-    return -1;
-  }
+Rational String::toNumber() const
+{
+  // when smt2 standard for strings is set, this may change, based on the
+  // semantics of str.from.int for leading zeros
+  return Rational(toString());
 }
 
 unsigned char String::hexToDec(unsigned char c) {

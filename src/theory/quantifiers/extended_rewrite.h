@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H
-#define __CVC4__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H
+#define CVC4__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H
 
 #include <unordered_map>
 
@@ -64,6 +64,9 @@ class ExtendedRewriter
    * may be applied as a preprocessing step.
    */
   bool d_aggr;
+  /** true/false nodes */
+  Node d_true;
+  Node d_false;
   /** cache that the extended rewritten form of n is ret */
   void setCache(Node n, Node ret);
   /** add to children
@@ -87,6 +90,12 @@ class ExtendedRewriter
    * strictly decrease the term size of n.
    */
   Node extendedRewriteIte(Kind itek, Node n, bool full = true);
+  /** Rewrite AND/OR
+   *
+   * This implements BCP, factoring, and equality resolution for the Boolean
+   * term n whose top symbolic is AND/OR.
+   */
+  Node extendedRewriteAndOr(Node n);
   /** Pull ITE, for example:
    *
    *   D=C2 ---> false
@@ -127,6 +136,15 @@ class ExtendedRewriter
    */
   Node extendedRewriteBcp(
       Kind andk, Kind ork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node n);
+  /** (type-independent) factoring, for example:
+   *
+   *   ( A V B ) ^ ( A V C ) ----> A V ( B ^ C )
+   *   ( A ^ B ) V ( A ^ C ) ----> A ^ ( B V C )
+   *
+   * This function takes as arguments the kinds that specify AND, OR, NOT.
+   * We assume that the children of n do not contain duplicates.
+   */
+  Node extendedRewriteFactoring(Kind andk, Kind ork, Kind notk, Node n);
   /** (type-independent) equality resolution, for example:
    *
    *   ( A V C ) & ( A = B ) ---> ( B V C ) & ( A = B )
@@ -198,10 +216,13 @@ class ExtendedRewriter
    * (2) a variable y such that x < y based on an ordering,
    * then this method adds x to vars and y to subs and return true, otherwise
    * it returns false.
+   * If usePred is true, we may additionally add n -> true, or n[0] -> false
+   * is n is a negation.
    */
   bool inferSubstitution(Node n,
                          std::vector<Node>& vars,
-                         std::vector<Node>& subs);
+                         std::vector<Node>& subs,
+                         bool usePred = false);
   /** extended rewrite
    *
    * Prints debug information, indicating the rewrite n ---> ret was found.
@@ -210,8 +231,18 @@ class ExtendedRewriter
   //--------------------------------------end generic utilities
 
   //--------------------------------------theory-specific top-level calls
-  /** extended rewrite arith */
-  Node extendedRewriteArith(Node ret, bool& pol);
+  /** extended rewrite arith
+   *
+   * If this method returns a non-null node ret', then ret is equivalent to
+   * ret'.
+   */
+  Node extendedRewriteArith(Node ret);
+  /** extended rewrite strings
+   *
+   * If this method returns a non-null node ret', then ret is equivalent to
+   * ret'.
+   */
+  Node extendedRewriteStrings(Node ret);
   //--------------------------------------end theory-specific top-level calls
 };
 
@@ -219,4 +250,4 @@ class ExtendedRewriter
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__EXTENDED_REWRITE_H */

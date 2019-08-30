@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -77,6 +77,11 @@ size_t Datatype::indexOf(Expr item) {
                 item.getType().isSelector(),
                 item,
                 "arg must be a datatype constructor, selector, or tester");
+  return indexOfInternal(item);
+}
+
+size_t Datatype::indexOfInternal(Expr item)
+{
   TNode n = Node::fromExpr(item);
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return indexOf( item[0] );
@@ -91,6 +96,10 @@ size_t Datatype::cindexOf(Expr item) {
   PrettyCheckArgument(item.getType().isSelector(),
                 item,
                 "arg must be a datatype selector");
+  return cindexOfInternal(item);
+}
+size_t Datatype::cindexOfInternal(Expr item)
+{
   TNode n = Node::fromExpr(item);
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return cindexOf( item[0] );
@@ -145,23 +154,6 @@ void Datatype::resolve(ExprManager* em,
     }
     d_record = new Record(fields);
   }
-  
-  //make the sygus evaluation function
-  if( isSygus() ){
-    PrettyCheckArgument(d_params.empty(), this, "sygus types cannot be parametric");
-    NodeManager* nm = NodeManager::fromExprManager(em);
-    std::string name = "eval_" + getName();
-    std::vector<TypeNode> evalType;
-    evalType.push_back(TypeNode::fromType(d_self));
-    if( !d_sygus_bvl.isNull() ){
-      for(size_t j = 0; j < d_sygus_bvl.getNumChildren(); ++j) {
-        evalType.push_back(TypeNode::fromType(d_sygus_bvl[j].getType()));
-      }
-    }
-    evalType.push_back(TypeNode::fromType(d_sygus_type));
-    TypeNode eval_func_type = nm->mkFunctionType(evalType);
-    d_sygus_eval = nm->mkSkolem(name, eval_func_type, "sygus evaluation function").toExpr();    
-  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -181,14 +173,17 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
 }
 
 void Datatype::addSygusConstructor(Expr op,
-                                   std::string& cname,
-                                   std::vector<Type>& cargs,
+                                   const std::string& cname,
+                                   const std::vector<Type>& cargs,
                                    std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   Debug("dt-sygus") << "    sygus op : " << op << std::endl;
-  std::string name = getName() + "_" + cname;
+  // avoid name clashes
+  std::stringstream ss;
+  ss << getName() << "_" << getNumConstructors() << "_" << cname;
+  std::string name = ss.str();
   std::string testerId("is-");
   testerId.append(name);
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
@@ -674,16 +669,17 @@ bool Datatype::getSygusAllowAll() const {
   return d_sygus_allow_all;
 }
 
-Expr Datatype::getSygusEvaluationFunc() const {
-  return d_sygus_eval;
-}
-
 bool Datatype::involvesExternalType() const{
   return d_involvesExt;
 }
 
 bool Datatype::involvesUninterpretedType() const{
   return d_involvesUt;
+}
+
+const std::vector<DatatypeConstructor>* Datatype::getConstructors() const
+{
+  return &d_constructors;
 }
 
 void DatatypeConstructor::resolve(ExprManager* em, DatatypeType self,
@@ -823,6 +819,12 @@ void DatatypeConstructor::setSygus(Expr op,
       !isResolved(), this, "cannot modify a finalized Datatype constructor");
   d_sygus_op = op;
   d_sygus_pc = spc;
+}
+
+const std::vector<DatatypeConstructorArg>* DatatypeConstructor::getArgs()
+    const
+{
+  return &d_args;
 }
 
 void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
@@ -1141,6 +1143,12 @@ Expr DatatypeConstructor::getSelector(std::string name) const {
   return (*this)[name].getSelector();
 }
 
+Type DatatypeConstructor::getArgType(unsigned index) const
+{
+  PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
+  return static_cast<SelectorType>((*this)[index].getType()).getRangeType();
+}
+
 bool DatatypeConstructor::involvesExternalType() const{
   for(const_iterator i = begin(); i != end(); ++i) {
     if(! SelectorType((*i).getSelector().getType()).getRangeType().isDatatype()) {
@@ -1231,108 +1239,94 @@ bool DatatypeConstructorArg::isUnresolvedSelf() const
   return d_selector.isNull() && d_name.size() == d_name.find('\0') + 1;
 }
 
-static const int s_printDatatypeNamesOnly = std::ios_base::xalloc();
-
-std::string DatatypeConstructorArg::getTypeName() const {
-  Type t;
-  if(isResolved()) {
-    t = SelectorType(d_selector.getType()).getRangeType();
-  } else {
-    if(d_selector.isNull()) {
-      string typeName = d_name.substr(d_name.find('\0') + 1);
-      return (typeName == "") ? "[self]" : typeName;
-    } else {
-      t = d_selector.getType();
-    }
-  }
-
-  // Unfortunately, in the case of complex selector types, we can
-  // enter nontrivial recursion here.  Make sure that doesn't happen.
-  stringstream ss;
-  ss << language::SetLanguage(language::output::LANG_CVC4);
-  ss.iword(s_printDatatypeNamesOnly) = 1;
-  t.toStream(ss);
-  return ss.str();
-}
-
-std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
-  // These datatype things are recursive!  Be very careful not to
-  // print an infinite chain of them.
-  long& printNameOnly = os.iword(s_printDatatypeNamesOnly);
-  Debug("datatypes-output") << "printNameOnly is " << printNameOnly << std::endl;
-  if(printNameOnly) {
-    return os << dt.getName();
-  }
-
-  class Scope {
-    long& d_ref;
-    long d_oldValue;
-  public:
-    Scope(long& ref, long value) : d_ref(ref), d_oldValue(ref) { d_ref = value; }
-    ~Scope() { d_ref = d_oldValue; }
-  } scope(printNameOnly, 1);
-  // when scope is destructed, the value pops back
-
-  Debug("datatypes-output") << "printNameOnly is now " << printNameOnly << std::endl;
-
+std::ostream& operator<<(std::ostream& os, const Datatype& dt)
+{
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
+  dt.toStream(os);
+  return os;
+}
 
-  os << "DATATYPE " << dt.getName();
-  if(dt.isParametric()) {
-    os << '[';
-    for(size_t i = 0; i < dt.getNumParameters(); ++i) {
+void Datatype::toStream(std::ostream& out) const
+{
+  out << "DATATYPE " << getName();
+  if (isParametric())
+  {
+    out << '[';
+    for (size_t i = 0; i < getNumParameters(); ++i)
+    {
       if(i > 0) {
-        os << ',';
+        out << ',';
       }
-      os << dt.getParameter(i);
+      out << getParameter(i);
     }
-    os << ']';
+    out << ']';
   }
-  os << " =" << endl;
-  Datatype::const_iterator i = dt.begin(), i_end = dt.end();
+  out << " =" << endl;
+  Datatype::const_iterator i = begin(), i_end = end();
   if(i != i_end) {
-    os << "  ";
+    out << "  ";
     do {
-      os << *i << endl;
+      out << *i << endl;
       if(++i != i_end) {
-        os << "| ";
+        out << "| ";
       }
     } while(i != i_end);
   }
-  os << "END;" << endl;
-
-  return os;
+  out << "END;" << endl;
 }
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
+  ctor.toStream(os);
+  return os;
+}
 
-  os << ctor.getName();
+void DatatypeConstructor::toStream(std::ostream& out) const
+{
+  out << getName();
 
-  DatatypeConstructor::const_iterator i = ctor.begin(), i_end = ctor.end();
+  DatatypeConstructor::const_iterator i = begin(), i_end = end();
   if(i != i_end) {
-    os << "(";
+    out << "(";
     do {
-      os << *i;
+      out << *i;
       if(++i != i_end) {
-        os << ", ";
+        out << ", ";
       }
     } while(i != i_end);
-    os << ")";
+    out << ")";
   }
-
-  return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
-
-  os << arg.getName() << ": " << arg.getTypeName();
-
+  arg.toStream(os);
   return os;
+}
+
+void DatatypeConstructorArg::toStream(std::ostream& out) const
+{
+  out << getName() << ": ";
+
+  Type t;
+  if (isResolved())
+  {
+    t = getRangeType();
+  }
+  else if (d_selector.isNull())
+  {
+    string typeName = d_name.substr(d_name.find('\0') + 1);
+    out << ((typeName == "") ? "[self]" : typeName);
+    return;
+  }
+  else
+  {
+    t = d_selector.getType();
+  }
+  out << t;
 }
 
 DatatypeIndexConstant::DatatypeIndexConstant(unsigned index) : d_index(index) {}

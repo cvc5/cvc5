@@ -2,9 +2,9 @@
 /*! \file didyoumean_test.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Paul Meng
+ **   Kshitij Bansal, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -734,7 +734,6 @@ set<string> getOptionStrings() {
       "incremental-parallel",
       "no-incremental-parallel",
       "no-interactive-prompt",
-      "continued-execution",
       "immediate-exit",
       "segv-spin",
       "no-segv-spin",

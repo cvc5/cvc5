@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,20 +23,14 @@
 #include <memory>
 #include <new>
 
-// This must come before PORTFOLIO_BUILD.
 #include "cvc4autoconfig.h"
 
-#include "base/tls.h"
+#include "api/cvc4cpp.h"
 #include "base/configuration.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/expr_manager.h"
 #include "main/command_executor.h"
-
-#ifdef PORTFOLIO_BUILD
-#  include "main/command_executor_portfolio.h"
-#endif
-
 #include "main/interactive_shell.h"
 #include "main/main.h"
 #include "options/options.h"
@@ -48,6 +42,13 @@
 #include "util/result.h"
 #include "util/statistics_registry.h"
 
+// The PORTFOLIO_BUILD is defined when compiling pcvc4 (the parallel version of
+// CVC4) and undefined otherwise. The macro can only be used in
+// driver_unified.cpp because we do not recompile all files for pcvc4.
+#ifdef PORTFOLIO_BUILD
+#  include "main/command_executor_portfolio.h"
+#endif
+
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -56,7 +57,7 @@ using namespace CVC4::main;
 namespace CVC4 {
   namespace main {
     /** Global options variable */
-    CVC4_THREAD_LOCAL Options* pOptions;
+    thread_local Options* pOptions;
 
     /** Full argv[0] */
     const char *progPath;
@@ -201,10 +202,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
 
   // Create the expression manager using appropriate options
-  ExprManager* exprMgr;
+  std::unique_ptr<api::Solver> solver;
 # ifndef PORTFOLIO_BUILD
-  exprMgr = new ExprManager(opts);
-  pExecutor = new CommandExecutor(*exprMgr, opts);
+  solver.reset(new api::Solver(&opts));
+  pExecutor = new CommandExecutor(solver.get(), opts);
 # else
   OptionsList threadOpts;
   parseThreadSpecificOptions(threadOpts, opts);
@@ -231,19 +232,23 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     }
   }
   // pick appropriate one
-  if(useParallelExecutor) {
-    exprMgr = new ExprManager(threadOpts[0]);
-    pExecutor = new CommandExecutorPortfolio(*exprMgr, opts, threadOpts);
-  } else {
-    exprMgr = new ExprManager(opts);
-    pExecutor = new CommandExecutor(*exprMgr, opts);
+  if (useParallelExecutor)
+  {
+    solver.reset(new api::Solver(&threadOpts[0]));
+    pExecutor = new CommandExecutorPortfolio(solver.get(), opts, threadOpts);
+  }
+  else
+  {
+    solver.reset(new api::Solver(&opts));
+    pExecutor = new CommandExecutor(solver.get(), opts);
   }
 # endif
 
   std::unique_ptr<Parser> replayParser;
-  if( opts.getReplayInputFilename() != "" ) {
+  if (opts.getReplayInputFilename() != "")
+  {
     std::string replayFilename = opts.getReplayInputFilename();
-    ParserBuilder replayParserBuilder(exprMgr, replayFilename, opts);
+    ParserBuilder replayParserBuilder(solver.get(), replayFilename, opts);
 
     if( replayFilename == "-") {
       if( inputFromStdin ) {
@@ -265,6 +270,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     ReferenceStat<std::string> s_statFilename("filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
+    // set filename in smt engine
+    pExecutor->getSmtEngine()->setFilename(filenameStr);
 
     // Parse and execute commands until we are done
     Command* cmd;
@@ -282,14 +289,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
       }
 #endif /* PORTFOLIO_BUILD */
-      InteractiveShell shell(*exprMgr, opts);
+      InteractiveShell shell(solver.get());
       if(opts.getInteractivePrompt()) {
         Message() << Configuration::getPackageName()
                   << " " << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
           Message() << " [" << Configuration::getGitId() << "]";
-        } else if(Configuration::isSubversionBuild()) {
-          Message() << " [" << Configuration::getSubversionId() << "]";
         }
         Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
                   << " assertions:"
@@ -337,7 +342,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // delete cmd;
       }
 
-      ParserBuilder parserBuilder(exprMgr, filename, opts);
+      ParserBuilder parserBuilder(solver.get(), filename, opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
@@ -357,7 +362,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       int needReset = 0;
       // true if one of the commands was interrupted
       bool interrupted = false;
-      while (status || opts.getContinuedExecution()) {
+      while (status)
+      {
         if (interrupted) {
           (*opts.getOut()) << CommandInterrupted();
           break;
@@ -494,7 +500,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         delete cmd;
       }
 
-      ParserBuilder parserBuilder(exprMgr, filename, opts);
+      ParserBuilder parserBuilder(solver.get(), filename, opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
@@ -510,7 +516,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         replayParser->useDeclarationsFrom(parser.get());
       }
       bool interrupted = false;
-      while(status || opts.getContinuedExecution()) {
+      while (status)
+      {
         if (interrupted) {
           (*opts.getOut()) << CommandInterrupted();
           pExecutor->reset();
@@ -581,7 +588,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // need to be around in that case for main() to print statistics.
   delete pTotalTime;
   delete pExecutor;
-  delete exprMgr;
 
   pTotalTime = NULL;
   pExecutor = NULL;

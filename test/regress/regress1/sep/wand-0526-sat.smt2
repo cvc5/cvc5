@@ -6,5 +6,5 @@
 (declare-fun u () Int)
 (declare-fun v () Int)
 (assert (wand (pto x u) (pto y v)))
-(assert (emp 0 0))
+(assert (_ emp Int Int))
 (check-sat)

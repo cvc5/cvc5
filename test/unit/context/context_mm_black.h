@@ -2,9 +2,9 @@
 /*! \file context_mm_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Paul Meng
+ **   Dejan Jovanovic, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,13 +33,11 @@ private:
 
   ContextMemoryManager* d_cmm;
 
-public:
+ public:
+  void setUp() override { d_cmm = new ContextMemoryManager(); }
 
-  void setUp() {
-    d_cmm = new ContextMemoryManager();
-  }
-
-  void testPushPop() {
+  void testPushPop()
+  {
 #ifdef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 #warning "Using the debug context memory manager, omitting unit tests"
 #else
@@ -92,11 +90,9 @@ public:
     }
 
     // Try popping out of scope
-    TS_ASSERT_THROWS(d_cmm->pop(), CVC4::AssertionException);
+    TS_ASSERT_THROWS(d_cmm->pop(), CVC4::AssertionException&);
 #endif /* __CVC4__CONTEXT__CONTEXT_MM_H */
   }
 
-  void tearDown() {
-    delete d_cmm;
-  }
+  void tearDown() override { delete d_cmm; }
 };

@@ -1,3 +1,20 @@
+/*********************                                                        */
+/*! \file kind_template.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andres Noetzli, Morgan Deters, Dejan Jovanovic
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
+
 #include "expr/kind.h"
 
 namespace CVC4 {
@@ -47,7 +64,7 @@ std::string kindToString(::CVC4::Kind k) {
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
   switch(typeConstant) {
 ${type_constant_descriptions}
-#line 51 "${template}"
+#line 68 "${template}"
   default:
     out << "UNKNOWN_TYPE_CONSTANT";
     break;
@@ -60,7 +77,7 @@ namespace theory {
 std::ostream& operator<<(std::ostream& out, TheoryId theoryId) {
   switch(theoryId) {
 ${theory_descriptions}
-#line 64 "${template}"
+#line 81 "${template}"
   default:
     out << "UNKNOWN_THEORY";
     break;
@@ -74,7 +91,7 @@ TheoryId kindToTheoryId(::CVC4::Kind k) {
   case kind::NULL_EXPR:
     break;
 ${kind_to_theory_id}
-#line 78 "${template}"
+#line 95 "${template}"
   case kind::LAST_KIND:
     break;
   }
@@ -84,7 +101,7 @@ ${kind_to_theory_id}
 TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) {
   switch(typeConstant) {
 ${type_constant_to_theory_id}
-#line 88 "${template}"
+#line 105 "${template}"
   case LAST_TYPE:
     break;
   }
@@ -94,7 +111,7 @@ ${type_constant_to_theory_id}
 std::string getStatsPrefix(TheoryId theoryId) {
   switch(theoryId) {
 ${theory_stats_prefixes}
-#line 98 "${template}"
+#line 115 "${template}"
   default:
     break;
   }

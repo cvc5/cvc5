@@ -2,9 +2,9 @@
 /*! \file aig_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Aina Niemetz
+ **   Liana Hadarean, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,12 +16,11 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
-#define __CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
+#ifndef CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
+#define CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
-
-#include "base/tls.h"
+#include "prop/sat_solver.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
@@ -57,7 +56,7 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   typedef std::unordered_map<TNode, Abc_Obj_t*, TNodeHashFunction> TNodeAigMap;
   typedef std::unordered_map<Node, Abc_Obj_t*, NodeHashFunction> NodeAigMap;
 
-  static CVC4_THREAD_LOCAL Abc_Ntk_t* s_abcAigNetwork;
+  static thread_local Abc_Ntk_t* s_abcAigNetwork;
   std::unique_ptr<context::Context> d_nullContext;
   std::unique_ptr<prop::SatSolver> d_satSolver;
   TNodeAigMap d_aigCache;
@@ -66,6 +65,8 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   NodeAigMap d_nodeToAigInput;
   // the thing we are checking for sat
   Abc_Obj_t* d_aigOutputNode;
+
+  std::unique_ptr<MinisatEmptyNotify> d_notify;
 
   void addAtom(TNode atom);
   void simplifyAig();
@@ -82,6 +83,14 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   Node getModelFromSatSolver(TNode a, bool fullModel) override
   {
     Unreachable();
+  }
+
+  prop::SatSolver* getSatSolver() override { return d_satSolver.get(); }
+
+  void setProofLog(proof::BitVectorProof* bvp) override
+  {
+    // Proofs are currently not supported with ABC
+    Unimplemented();
   }
 
   class Statistics
@@ -102,4 +111,4 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
 }  // namespace bv
 }  // namespace theory
 }  // namespace CVC4
-#endif  //  __CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
+#endif  //  CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H

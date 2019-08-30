@@ -1,0 +1,8 @@
+(set-info :smt-lib-version 2.5)
+(set-logic ALL)
+(set-info :status sat)
+(set-option :strings-exp true)
+(set-option :re-elim true)
+(declare-const x String)
+(assert (str.in.re x (re.++ (str.to.re "example-bucket/") (re.* re.allchar) (str.to.re "/") re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar (str.to.re "-") re.allchar re.allchar re.allchar re.allchar (str.to.re "-") re.allchar re.allchar re.allchar re.allchar (str.to.re "-") re.allchar re.allchar re.allchar re.allchar (str.to.re "-") re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar re.allchar (str.to.re "/foo"))))
+(check-sat)

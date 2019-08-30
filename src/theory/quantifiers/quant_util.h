@@ -2,9 +2,9 @@
 /*! \file quant_util.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANT_UTIL_H
-#define __CVC4__THEORY__QUANT_UTIL_H
+#ifndef CVC4__THEORY__QUANT_UTIL_H
+#define CVC4__THEORY__QUANT_UTIL_H
 
 #include <iostream>
 #include <map>
@@ -108,46 +108,49 @@ class QuantifiersModule {
    * we are incomplete for other reasons.
    */
   virtual bool checkCompleteFor( Node q ) { return false; }
-  /** Pre register quantifier.
+  /** Check ownership
    *
-   * Called once for new quantified formulas that are
-   * pre-registered by the quantifiers theory.
+   * Called once for new quantified formulas that are registered by the
+   * quantifiers theory. The primary purpose of this function is to establish
+   * if this module is the owner of quantified formula q.
    */
-  virtual void preRegisterQuantifier( Node q ) { }
+  virtual void checkOwnership(Node q) {}
   /** Register quantifier
+   *
+   * Called once for new quantified formulas q that are pre-registered by the
+   * quantifiers theory, after internal ownership of quantified formulas is
+   * finalized. This does context-dependent initialization of this module.
+   */
+  virtual void registerQuantifier(Node q) {}
+  /** Pre-register quantifier
    *
    * Called once for new quantified formulas that are
    * pre-registered by the quantifiers theory, after
    * internal ownership of quantified formulas is finalized.
    */
-  virtual void registerQuantifier( Node q ) = 0;
+  virtual void preRegisterQuantifier(Node q) {}
   /** Assert node.
    *
    * Called when a quantified formula q is asserted to the quantifiers theory
    */
   virtual void assertNode(Node q) {}
-  /* Get the next decision request.
-   *
-   * Identical to Theory::getNextDecisionRequest(...)
-   */
-  virtual Node getNextDecisionRequest( unsigned& priority ) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
   //----------------------------general queries
   /** get currently used the equality engine */
-  eq::EqualityEngine * getEqualityEngine();
+  eq::EqualityEngine* getEqualityEngine() const;
   /** are n1 and n2 equal in the current used equality engine? */
-  bool areEqual( TNode n1, TNode n2 );
+  bool areEqual(TNode n1, TNode n2) const;
   /** are n1 and n2 disequal in the current used equality engine? */
-  bool areDisequal(TNode n1, TNode n2);
+  bool areDisequal(TNode n1, TNode n2) const;
   /** get the representative of n in the current used equality engine */
-  TNode getRepresentative( TNode n );
+  TNode getRepresentative(TNode n) const;
   /** get quantifiers engine that owns this module */
-  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
+  QuantifiersEngine* getQuantifiersEngine() const;
   /** get currently used term database */
-  quantifiers::TermDb * getTermDatabase();
+  quantifiers::TermDb* getTermDatabase() const;
   /** get currently used term utility object */
-  quantifiers::TermUtil * getTermUtil();
+  quantifiers::TermUtil* getTermUtil() const;
   //----------------------------end general queries
  protected:
   /** pointer to the quantifiers engine that owns this module */
@@ -234,4 +237,4 @@ public:
 }
 }
 
-#endif /* __CVC4__THEORY__QUANT_UTIL_H */
+#endif /* CVC4__THEORY__QUANT_UTIL_H */

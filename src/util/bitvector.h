@@ -2,9 +2,9 @@
 /*! \file bitvector.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Liana Hadarean, Dejan Jovanovic
+ **   Aina Niemetz, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,9 +16,10 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__BITVECTOR_H
-#define __CVC4__BITVECTOR_H
+#ifndef CVC4__BITVECTOR_H
+#define CVC4__BITVECTOR_H
 
+#include <cstdint>
 #include <iosfwd>
 
 #include "base/exception.h"
@@ -36,12 +37,26 @@ class CVC4_PUBLIC BitVector
 
   BitVector(unsigned size = 0) : d_size(size), d_value(0) {}
 
-  BitVector(unsigned size, unsigned int z) : d_size(size), d_value(z)
+  /**
+   * BitVector constructor using a 32-bit unsigned integer for the value.
+   *
+   * Note: we use an explicit bit-width here to be consistent across
+   * platforms (long is 32-bit when compiling 64-bit binaries on
+   * Windows but 64-bit on Linux) and to prevent ambiguous overloads.
+   */
+  BitVector(unsigned size, uint32_t z) : d_size(size), d_value(z)
   {
     d_value = d_value.modByPow2(size);
   }
 
-  BitVector(unsigned size, unsigned long int z) : d_size(size), d_value(z)
+  /**
+   * BitVector constructor using a 64-bit unsigned integer for the value.
+   *
+   * Note: we use an explicit bit-width here to be consistent across
+   * platforms (long is 32-bit when compiling 64-bit binaries on
+   * Windows but 64-bit on Linux) and to prevent ambiguous overloads.
+   */
+  BitVector(unsigned size, uint64_t z) : d_size(size), d_value(z)
   {
     d_value = d_value.modByPow2(size);
   }
@@ -51,11 +66,29 @@ class CVC4_PUBLIC BitVector
   {
   }
 
+  /**
+   * BitVector constructor.
+   *
+   * The value of the bit-vector is passed in as string of base 2, 10 or 16.
+   * The size of resulting bit-vector is
+   * - base  2: the size of the binary string
+   * - base 10: the min. size required to represent the decimal as a bit-vector
+   * - base 16: the max. size required to represent the hexadecimal as a
+   *            bit-vector (4 * size of the given value string)
+   *
+   * @param num The value of the bit-vector in string representation.
+   * @param base The base of the string representation.
+   */
   BitVector(const std::string& num, unsigned base = 2)
   {
-    CheckArgument(base == 2 || base == 16, base);
-    d_size = base == 2 ? num.size() : num.size() * 4;
+    CheckArgument(base == 2 || base == 10 || base == 16, base);
     d_value = Integer(num, base);
+    switch (base)
+    {
+      case 10: d_size = d_value.length(); break;
+      case 16: d_size = num.size() * 4; break;
+      default: d_size = num.size();
+    }
   }
 
   ~BitVector() {}
@@ -401,4 +434,4 @@ inline std::ostream& operator<<(std::ostream& os, const IntToBitVector& bv)
 
 }  // namespace CVC4
 
-#endif /* __CVC4__BITVECTOR_H */
+#endif /* CVC4__BITVECTOR_H */

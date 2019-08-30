@@ -2,9 +2,9 @@
 /*! \file helloworld.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng, Kshitij Bansal
+ **   Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,11 +16,8 @@
 
 #include <iostream>
 
-#ifdef CVC4_MAKE_EXAMPLES
-#include "smt/smt_engine.h" // for use with make examples
-#else
-#include <cvc4/cvc4.h>      // To follow the wiki
-#endif /* CVC4_MAKE_EXAMPLES */
+//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
+#include "smt/smt_engine.h"
 
 using namespace CVC4;
 int main() {
