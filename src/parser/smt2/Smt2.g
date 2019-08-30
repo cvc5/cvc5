@@ -1990,6 +1990,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           {
             PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
           }
+          // make nullary constructor application
+          f = MK_EXPR(kind::APPLY_CONSTRUCTOR, f);
         }
         term[f3, f2] {
           Expr mc = MK_EXPR(kind::MATCH_CASE, f, f3);
