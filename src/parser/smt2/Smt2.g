@@ -1832,6 +1832,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   Expr f, f2, f3;
   std::string attr;
   Expr attexpr;
+  std::vector<Expr> patexprs;
   std::vector<Expr> matchcases;
   std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
@@ -1840,7 +1841,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   api::Term atomTerm;
   ParseOp p;
   std::vector<Type> argTypes;
-  std::vector<Expr> patexprs;
 }
   : LPAREN_TOK quantOp[kind]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK

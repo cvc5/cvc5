@@ -446,26 +446,32 @@ class MatchTypeRule
         throw TypeCheckingExceptionPrivate(n,
                                            "expecting datatype head in match");
       }
+      const Datatype& hdt = headType.getDatatype();
       // must match the patterns
       for (const Node& nc : n[1])
       {
         unsigned pindex = 0;
         Kind nck = nc.getKind();
-        if (nck == kind::MATCH_BIND_CASE)
+        if( nck == kind::MATCH_BIND_CASE )
         {
           pindex = 1;
         }
         else if (nck != kind::MATCH_CASE)
         {
-          // default case
+          //default case
           continue;
         }
         TypeNode patType = nc[pindex].getType();
-        if (patType != headType)
+        Assert( patType.isDatatype());
+        const Datatype& pdt = patType.getDatatype();
+        // compare datatypes to catch parametric case (where the pattern is parametric)
+        if (hdt!=pdt)
         {
+          std::stringstream ss;
+          ss << "pattern of a match case does not match the head type in match";
           throw TypeCheckingExceptionPrivate(
               n,
-              "pattern of a match case does not match the head type in match");
+              ss.str());
         }
       }
     }
