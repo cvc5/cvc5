@@ -1832,16 +1832,15 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   Expr f, f2, f3;
   std::string attr;
   Expr attexpr;
-  std::vector<Expr> patexprs;
-  std::vector<Expr> patconds;
+  std::vector<Expr> matchcases;
   std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
-  int match_vindex = -1;
-  std::vector<Type> match_ptypes;
   Type type;
   Type type2;
   api::Term atomTerm;
   ParseOp p;
+  std::vector<Type> argTypes;
+  std::vector<Expr> patexprs;
 }
   : LPAREN_TOK quantOp[kind]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
@@ -1935,107 +1934,77 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     }
     LPAREN_TOK
     (
-      /* match cases */
-       LPAREN_TOK INDEX_TOK term[f, f2] {
-          if( match_vindex==-1 ){
-            match_vindex = (int)patexprs.size();
+      // default case (_ f) 
+      LPAREN_TOK INDEX_TOK term[f, f2] {
+        // default cases are represented by themselves
+        matchcases.push_back(f);
+      }
+      RPAREN_TOK
+      // casargse with non-nullary pattern
+      | LPAREN_TOK LPAREN_TOK term[f, f2] {
+          args.clear();
+          PARSER_STATE->pushScope(true);
+          // f should be a constructor
+          type = f.getType();
+          Debug("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
+          if (!type.isConstructor())
+          {
+            PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
           }
-          patexprs.push_back( f );
-          patconds.push_back(MK_CONST(bool(true)));
+          if (Datatype::datatypeOf(f).isParametric())
+          {
+            type = Datatype::datatypeOf(f)[Datatype::indexOf(f)].getSpecializedConstructorType(expr.getType());
+          }
+          argTypes = static_cast<ConstructorType>(type).getArgTypes();
+        }
+        // arguments of the pattern
+        ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
+            if (args.size()>=argTypes.size())
+            {
+              PARSER_STATE->parseError("Too many arguments for pattern.");
+            }
+            //make of proper type
+            Expr arg = PARSER_STATE->mkBoundVar(name, argTypes[args.size()]);
+            args.push_back( arg );
+          }
+        )*
+        RPAREN_TOK term[f3, f2] {
+          // make the match case
+          std::vector<Expr> cargs;
+          cargs.push_back(f);
+          cargs.insert(cargs.end(),args.begin(),args.end());
+          Expr c = MK_EXPR(kind::APPLY_CONSTRUCTOR,cargs);
+          Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST,args);
+          Expr mc = MK_EXPR(kind::MATCH_BIND_CASE, bvl, c, f3);
+          matchcases.push_back(mc);
+          // now, pop the scope
+          PARSER_STATE->popScope();
         }
         RPAREN_TOK
-      | LPAREN_TOK LPAREN_TOK term[f, f2] {
-           args.clear();
-           PARSER_STATE->pushScope(true);
-           //f should be a constructor
-           type = f.getType();
-           Debug("parser-dt") << "Pattern head : " << f << " " << f.getType() << std::endl;
-           if( !type.isConstructor() ){
-             PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
-           }
-           if( Datatype::datatypeOf(f).isParametric() ){
-             type = Datatype::datatypeOf(f)[Datatype::indexOf(f)].getSpecializedConstructorType(expr.getType());
-           }
-           match_ptypes = ((ConstructorType)type).getArgTypes();
-         }
-         //arguments
-         ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
-             if( args.size()>=match_ptypes.size() ){
-               PARSER_STATE->parseError("Too many arguments for pattern.");
-             }
-             //make of proper type
-             Expr arg = PARSER_STATE->mkBoundVar(name, match_ptypes[args.size()]);
-             args.push_back( arg );
-           }
-         )*
-         RPAREN_TOK
-         term[f3, f2] {
-           const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
-           if( args.size()!=dtc.getNumArgs() ){
-             PARSER_STATE->parseError("Bad number of arguments for application of constructor in pattern.");
-           }
-           //FIXME: make MATCH a kind and make this a rewrite
-           // build a lambda
-           std::vector<Expr> largs;
-           largs.push_back( MK_EXPR( CVC4::kind::BOUND_VAR_LIST, args ) );
-           largs.push_back( f3 );
-           std::vector< Expr > aargs;
-           aargs.push_back( MK_EXPR( CVC4::kind::LAMBDA, largs ) );
-           for( unsigned i=0; i<dtc.getNumArgs(); i++ ){
-             //can apply total version since we will be guarded by ITE condition
-             // however, we need to apply partial version since we don't have the internal selector available
-             aargs.push_back( MK_EXPR( CVC4::kind::APPLY_SELECTOR, dtc[i].getSelector(), expr ) );
-           }
-           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY_UF, aargs ) );
-           patconds.push_back( MK_EXPR( CVC4::kind::APPLY_TESTER, dtc.getTester(), expr ) );
-         }
-         RPAREN_TOK
-         { PARSER_STATE->popScope(); }
-       | LPAREN_TOK symbol[name,CHECK_DECLARED,SYM_VARIABLE] {
-           f = PARSER_STATE->getVariable(name);
-           type = f.getType();
-           if( !type.isConstructor() || !((ConstructorType)type).getArgTypes().empty() ){
-             PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
-           }
-         }
-         term[f3, f2] {
-           const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
-           patexprs.push_back( f3 );
-           patconds.push_back( MK_EXPR( CVC4::kind::APPLY_TESTER, dtc.getTester(), expr ) );
-         }
-         RPAREN_TOK
+      // case with nullary pattern
+      | LPAREN_TOK symbol[name,CHECK_DECLARED,SYM_VARIABLE] {
+          f = PARSER_STATE->getVariable(name);
+          type = f.getType();
+          if (!type.isConstructor() || 
+              !((ConstructorType)type).getArgTypes().empty())
+          {
+            PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
+          }
+        }
+        term[f3, f2] {
+          Expr mc = MK_EXPR(kind::MATCH_CASE, f, f3);
+          matchcases.push_back(mc);
+        }
+        RPAREN_TOK
     )+
     RPAREN_TOK RPAREN_TOK  {
-      if( match_vindex==-1 ){
-        const Datatype& dt = ((DatatypeType)expr.getType()).getDatatype();
-        std::map< unsigned, bool > processed;
-        unsigned count = 0;
-        //ensure that all datatype constructors are matched (to ensure exhaustiveness)
-        for( unsigned i=0; i<patconds.size(); i++ ){
-          unsigned curr_index = Datatype::indexOf(patconds[i].getOperator());
-          if( curr_index<0 && curr_index>=dt.getNumConstructors() ){
-            PARSER_STATE->parseError("Pattern is not legal for the head of a match.");
-          }
-          if( processed.find( curr_index )==processed.end() ){
-            processed[curr_index] = true;
-            count++;
-          }
-        }
-        if( count!=dt.getNumConstructors() ){
-          PARSER_STATE->parseError("Patterns are not exhaustive in a match construct.");
-        }
+      //now, make the match
+      if (matchcases.empty())
+      {
+        PARSER_STATE->parseError("Must have at least one case in match.");
       }
-      //now, make the ITE
-      int end_index = match_vindex==-1 ? patexprs.size()-1 : match_vindex;
-      bool first_time = true;
-      for( int index = end_index; index>=0; index-- ){
-        if( first_time ){
-          expr = patexprs[index];
-          first_time = false;
-        }else{
-          expr = MK_EXPR( CVC4::kind::ITE, patconds[index], patexprs[index], expr );
-        }
-      }
+      Expr mcl = MK_EXPR(kind::MATCH_CASE_LIST, matchcases);
+      expr = MK_EXPR(kind::MATCH, expr, mcl);
     }
 
     /* attributed expressions */

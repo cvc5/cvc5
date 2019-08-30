@@ -449,12 +449,18 @@ class MatchTypeRule
       // must match the patterns
       for (const Node& nc : n[1])
       {
-        if (nc.getKind() != kind::MATCH_CASE)
+        unsigned pindex = 0;
+        Kind nck = nc.getKind();
+        if( nck == kind::MATCH_BIND_CASE )
         {
-          throw TypeCheckingExceptionPrivate(n,
-                                             "expected a match case in match");
+          pindex = 1;
         }
-        TypeNode patType = nc[0].getType();
+        else if (nck != kind::MATCH_CASE)
+        {
+          //default case
+          continue;
+        }
+        TypeNode patType = nc[pindex].getType();
         if (patType != headType)
         {
           throw TypeCheckingExceptionPrivate(
@@ -476,10 +482,12 @@ class MatchCaseListTypeRule
   {
     Assert(n.getKind() == kind::MATCH_CASE_LIST);
     TypeNode retType;
+    // the type of a match case list is the least common type of its cases
     for (unsigned i = 0, nchildren = n.getNumChildren(); i < nchildren; i++)
     {
       Node nc = n[i];
-      if (nc.getKind() != kind::MATCH_CASE)
+      Kind nck = nc.getKind();
+      if (nck != kind::MATCH_CASE && nck != kind::MATCH_BIND_CASE)
       {
         // allow the last child to be a non-match case (for the default case)
         if (i < nchildren - 1)
@@ -517,21 +525,42 @@ class MatchCaseTypeRule
     Assert(n.getKind() == kind::MATCH_CASE);
     if (check)
     {
-      if (n[0].getKind() != kind::BOUND_VAR_LIST)
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "expected a bound variable in match case");
-      }
-      TypeNode patType = n[1].getType(check);
+      TypeNode patType = n[0].getType(check);
       if (!patType.isDatatype())
       {
         throw TypeCheckingExceptionPrivate(
             n, "expecting datatype pattern in match case");
       }
     }
-    return n[2].getType(check);
+    return n[1].getType(check);
   }
 }; /* class MatchCaseTypeRule */
+
+class MatchBindCaseTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::MATCH_BIND_CASE);
+    if (check)
+    {
+      if (n[0].getKind() != kind::BOUND_VAR_LIST)
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expected a bound variable list in match bind case");
+      }
+      TypeNode patType = n[1].getType(check);
+      if (!patType.isDatatype())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting datatype pattern in match bind case");
+      }
+    }
+    return n[2].getType(check);
+  }
+}; /* class MatchBindCaseTypeRule */
 
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */
