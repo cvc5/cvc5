@@ -215,7 +215,7 @@ class CardinalityExtension
    private:
     /** the type this model is for */
     TypeNode d_type;
-    /** strong solver pointer */
+    /** Pointer to the cardinality extension that owns this. */
     CardinalityExtension* d_thss;
     /** regions used to d_region_index */
     context::CDO< unsigned > d_regions_index;
@@ -435,7 +435,7 @@ class CardinalityExtension
   /** ensure eqc for all subterms of n */
   void ensureEqcRec(Node n);
 
-  /** The output channel for the strong solver. */
+  /** The output channel used by this class. */
   OutputChannel* d_out;
   /** theory uf pointer */
   TheoryUF* d_th;

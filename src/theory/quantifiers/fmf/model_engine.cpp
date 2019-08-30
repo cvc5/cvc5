@@ -89,8 +89,9 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     }
 
     Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
-    //let the strong solver verify that the model is minimal
-    //for debugging, this will if there are terms in the model that the strong solver was not notified of
+    // Let the cardinality extension verify that the model is minimal.
+    // This will if there are terms in the model that the cardinality extension
+    // was not notified of.
     uf::CardinalityExtension* ufss =
         static_cast<uf::TheoryUF*>(
             d_quantEngine->getTheoryEngine()->theoryOf(THEORY_UF))

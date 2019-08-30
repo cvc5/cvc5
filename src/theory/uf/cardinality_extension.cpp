@@ -228,7 +228,8 @@ struct sortExternalDegree {
 int gmcCount = 0;
 
 bool Region::getMustCombine( int cardinality ){
-  if( options::ufssRegions() && d_total_diseq_external>=unsigned(cardinality) ){
+  if (d_total_diseq_external>=unsigned(cardinality))
+  {
     //The number of external disequalities is greater than or equal to
     //cardinality.  Thus, a clique of size cardinality+1 may exist
     //between nodes in d_regions[i] and other regions Check if this is
@@ -285,8 +286,9 @@ bool Region::check( Theory::Effort level, int cardinality,
       }else{
         return false;
       }
-    }else if( options::ufssRegions() || options::ufssEagerSplits() ||
-              level==Theory::EFFORT_FULL ) {
+    }
+    else if (level==Theory::EFFORT_FULL) 
+    {
       //build test clique, up to size cardinality+1
       if( d_testCliqueSize<=unsigned(cardinality) ){
         std::vector< Node > newClique;
@@ -528,11 +530,6 @@ void SortModel::newEqClass( Node n ){
           d_regions_map[n] = -1;
         }
       }else{
-        if( !options::ufssRegions() ){
-          // If not using regions, always add new equivalence classes
-          // to region index = 0.
-          d_regions_index = 0;
-        }
         d_regions_map[n] = d_regions_index;
         Debug("uf-ss") << "CardinalityExtension: New Eq Class " << n
                        << std::endl;
@@ -541,8 +538,7 @@ void SortModel::newEqClass( Node n ){
         if( d_regions_index<d_regions.size() ){
           d_regions[ d_regions_index ]->debugPrint("uf-ss-debug",true);
           d_regions[ d_regions_index ]->setValid(true);
-          Assert( !options::ufssRegions() ||
-                  d_regions[ d_regions_index ]->getNumReps()==0 );
+          Assert(d_regions[d_regions_index]->getNumReps()==0);
         }else{
           d_regions.push_back( new Region( this, d_thss->getSatContext() ) );
         }
@@ -712,7 +708,8 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
       if( !applyTotality( d_cardinality ) ){
         //do splitting on demand
         bool addedLemma = false;
-        if( level==Theory::EFFORT_FULL || options::ufssEagerSplits() ){
+        if (level==Theory::EFFORT_FULL)
+        {
           Trace("uf-ss-debug") << "Add splits?" << std::endl;
           //see if we have any recommended splits from large regions
           for( int i=0; i<(int)d_regions_index; i++ ){
