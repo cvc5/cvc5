@@ -128,7 +128,7 @@ std::vector<Expr> TheoryModel::getDomainElements(Type t) const
   {
     // This is called when t is a sort that does not occur in this model.
     // Sorts are always interpreted as non-empty, thus we add a single element.
-    elements.push_back(t.mkGroundTerm().toExpr());
+    elements.push_back(t.mkGroundTerm());
     return elements;
   }
   for (const Node& n : *type_refs)
