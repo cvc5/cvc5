@@ -1368,47 +1368,50 @@ void Smt2Printer::toStream(std::ostream& out,
           dynamic_cast<const DeclareTypeCommand*>(command))
   {
     // print out the DeclareTypeCommand
-    TypeNode tn = TypeNode::fromType((*dtc).getType());
-    const std::vector<Node>* type_refs =
-        theory_model->getRepSet()->getTypeRepsOrNull(tn);
-    if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
+    Type t = (*dtc).getType();
+    if( !t.isSort() )
     {
-      if (isVariant_2_6(d_variant))
-      {
-        out << "(declare-datatypes ((" << (*dtc).getSymbol() << " 0)) (";
-      }
-      else
-      {
-        out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
-      }
-      for (Node type_ref : *type_refs)
-      {
-        out << "(" << type_ref << ")";
-      }
-      out << ")))" << endl;
-    }
-    else if (tn.isSort() && type_refs != nullptr)
-    {
-      // print the cardinality
-      out << "; cardinality of " << tn << " is " << type_refs->size() << endl;
       out << (*dtc) << endl;
-      // print the representatives
-      for (Node type_ref : *type_refs)
-      {
-        if (type_ref.isVar())
-        {
-          out << "(declare-fun " << quoteSymbol(type_ref) << " () " << tn << ")"
-              << endl;
-        }
-        else
-        {
-          out << "; rep: " << type_ref << endl;
-        }
-      }
     }
     else
     {
-      out << (*dtc) << endl;
+      std::vector<Expr> elements = theory_model->getDomainElements(t);
+      if (options::modelUninterpDtEnum())
+      {
+        if (isVariant_2_6(d_variant))
+        {
+          out << "(declare-datatypes ((" << (*dtc).getSymbol() << " 0)) (";
+        }
+        else
+        {
+          out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
+        }
+        for (const Expr& type_ref : elements)
+        {
+          out << "(" << type_ref << ")";
+        }
+        out << ")))" << endl;
+      }
+      else
+      {
+        // print the cardinality
+        out << "; cardinality of " << t << " is " << elements.size() << endl;
+        out << (*dtc) << endl;
+        // print the representatives
+        for (const Expr& type_ref : elements)
+        {
+          Node trn = Node::fromExpr(type_ref);
+          if (trn.isVar())
+          {
+            out << "(declare-fun " << quoteSymbol(trn) << " () " << t << ")"
+                << endl;
+          }
+          else
+          {
+            out << "; rep: " << trn << endl;
+          }
+        }
+      }
     }
   }
   else if (const DeclareFunctionCommand* dfc =
