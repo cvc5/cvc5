@@ -29,9 +29,9 @@
 #include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
+#include "theory/uf/cardinality_extension.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/uf/cardinality_extension.h"
 
 using namespace std;
 
