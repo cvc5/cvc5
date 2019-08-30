@@ -3788,7 +3788,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
-      // TODO (#1693) check model when unknown result?
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
       {
         checkModel();
