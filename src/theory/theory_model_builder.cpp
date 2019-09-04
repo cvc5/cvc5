@@ -824,7 +824,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
 void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
 {
   // if we are incomplete, there is no guarantee on the model.
-  // thus, we do not check the model here. (related to #1693).
+  // thus, we do not check the model here.
   if (incomplete)
   {
     return;
