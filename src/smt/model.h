@@ -96,11 +96,11 @@ class Model {
    * is a predicate over t that indicates a property that t satisfies.
    */
   virtual std::vector<std::pair<Expr, Expr> > getApproximations() const = 0;
-  /** get the domain elements for uninterpreted sort s
+  /** get the domain elements for uninterpreted sort t
    *
-   * This method gets the interpretation of an uninterpreted sort s.
-   * All models interpret uninterpreted sorts s as finite sets
-   * of domain elements v_1, ..., v_n. This method returns this list for s in
+   * This method gets the interpretation of an uninterpreted sort t.
+   * All models interpret uninterpreted sorts t as finite sets
+   * of domain elements v_1, ..., v_n. This method returns this list for t in
    * this model.
    */
   virtual std::vector<Expr> getDomainElements(Type t) const = 0;
