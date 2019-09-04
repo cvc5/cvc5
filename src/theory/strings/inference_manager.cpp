@@ -274,6 +274,7 @@ bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
 
 void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
 {
+  lit = Rewriter::rewrite(lit);
   d_pendingReqPhase[lit] = pol;
 }
 
