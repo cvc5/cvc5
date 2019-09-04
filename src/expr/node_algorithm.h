@@ -126,7 +126,7 @@ void getOperatorsMap(
  * Substitution of Nodes in a capture avoiding way.
  * If x occurs free in n and it is substituted by a term t 
  * and t includes some variable y that is bound in n,
- * then using alpha conversion, y is replaced with a fresh bound variable
+ * then using alpha conversion y is replaced with a fresh bound variable
  * before the substitution.
  *
  */
