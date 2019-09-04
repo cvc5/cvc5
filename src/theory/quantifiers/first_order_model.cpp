@@ -2,9 +2,9 @@
 /*! \file first_order_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -31,19 +32,6 @@ using namespace CVC4::theory::quantifiers::fmcheck;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-struct sortQuantifierRelevance {
-  FirstOrderModel * d_fm;
-  bool operator() (Node i, Node j) {
-    int wi = d_fm->getRelevanceValue( i );
-    int wj = d_fm->getRelevanceValue( j );
-    if( wi==wj ){
-      return i<j;
-    }else{
-      return wi<wj;
-    }
-  }
-};
 
 RepSetIterator::RsiEnumType QRepBoundExt::setBound(Node owner,
                                                    unsigned i,
@@ -122,10 +110,13 @@ bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
   return false;
 }
 
-FirstOrderModel::FirstOrderModel(QuantifiersEngine * qe, context::Context* c, std::string name ) :
-TheoryModel( c, name, true ),
-d_qe( qe ), d_forall_asserts( c ){
-  d_rlv_count = 0;
+FirstOrderModel::FirstOrderModel(QuantifiersEngine* qe,
+                                 context::Context* c,
+                                 std::string name)
+    : TheoryModel(c, name, true),
+      d_qe(qe),
+      d_forall_asserts(c)
+{
 }
 
 void FirstOrderModel::assertQuantifier( Node n ){
@@ -232,32 +223,40 @@ bool FirstOrderModel::checkNeeded() {
 
 void FirstOrderModel::reset_round() {
   d_quant_active.clear();
-  
+
+  // compute which quantified formulas are asserted if necessary
+  std::map<Node, bool> qassert;
+  if (!d_forall_rlv_vec.empty())
+  {
+    Trace("fm-relevant-debug")
+        << "Mark asserted quantified formulas..." << std::endl;
+    for (const Node& q : d_forall_asserts)
+    {
+      qassert[q] = true;
+    }
+  }
   //order the quantified formulas
   d_forall_rlv_assert.clear();
   if( !d_forall_rlv_vec.empty() ){
     Trace("fm-relevant") << "Build sorted relevant list..." << std::endl;
-    Trace("fm-relevant-debug") << "Mark asserted quantified formulas..." << std::endl;
-    std::map< Node, bool > qassert;
-    for( unsigned i=0; i<d_forall_asserts.size(); i++ ){
-      qassert[d_forall_asserts[i]] = true;
-    }
-    Trace("fm-relevant-debug") << "Sort the relevant quantified formulas..." << std::endl;
-    sortQuantifierRelevance sqr;
-    sqr.d_fm = this;
-    std::sort( d_forall_rlv_vec.begin(), d_forall_rlv_vec.end(), sqr );
     Trace("fm-relevant-debug") << "Add relevant asserted formulas..." << std::endl;
+    std::map<Node, bool>::iterator ita;
     for( int i=(int)(d_forall_rlv_vec.size()-1); i>=0; i-- ){
       Node q = d_forall_rlv_vec[i];
-      if( qassert.find( q )!=qassert.end() ){
-        Trace("fm-relevant") << "   " << d_forall_rlv[q] << " : " << q << std::endl;
+      ita = qassert.find(q);
+      if (ita != qassert.end())
+      {
+        Trace("fm-relevant") << "   " << q << std::endl;
         d_forall_rlv_assert.push_back( q );
+        qassert.erase(ita);
       }
     }
     Trace("fm-relevant-debug") << "Add remaining asserted formulas..." << std::endl;
-    for( unsigned i=0; i<d_forall_asserts.size(); i++ ){
-      Node q = d_forall_asserts[i];
-      if( std::find( d_forall_rlv_assert.begin(), d_forall_rlv_assert.end(), q )==d_forall_rlv_assert.end() ){
+    for (const Node& q : d_forall_asserts)
+    {
+      // if we didn't include it above
+      if (qassert.find(q) != qassert.end())
+      {
         d_forall_rlv_assert.push_back( q );
       }else{
         Trace("fm-relevant-debug") << "...already included " << q << std::endl;
@@ -273,23 +272,18 @@ void FirstOrderModel::reset_round() {
 }
 
 void FirstOrderModel::markRelevant( Node q ) {
+  // Put q on the back of the vector d_forall_rlv_vec.
+  // If we were the last quantifier marked relevant, this is a no-op, return.
   if( q!=d_last_forall_rlv ){
     Trace("fm-relevant") << "Mark relevant : " << q << std::endl;
-    if( std::find( d_forall_rlv_vec.begin(), d_forall_rlv_vec.end(), q )==d_forall_rlv_vec.end() ){
-      d_forall_rlv_vec.push_back( q );
+    std::vector<Node>::iterator itr =
+        std::find(d_forall_rlv_vec.begin(), d_forall_rlv_vec.end(), q);
+    if (itr != d_forall_rlv_vec.end())
+    {
+      d_forall_rlv_vec.erase(itr, itr + 1);
     }
-    d_forall_rlv[ q ] = d_rlv_count;
-    d_rlv_count++;
+    d_forall_rlv_vec.push_back(q);
     d_last_forall_rlv = q;
-  }
-}
-
-int FirstOrderModel::getRelevanceValue( Node q ) {
-  std::map< Node, unsigned >::iterator it = d_forall_rlv.find( q );
-  if( it==d_forall_rlv.end() ){
-    return -1;
-  }else{
-    return it->second;
   }
 }
 
@@ -297,16 +291,17 @@ void FirstOrderModel::setQuantifierActive( TNode q, bool active ) {
   d_quant_active[q] = active;
 }
 
-bool FirstOrderModel::isQuantifierActive( TNode q ) {
-  std::map< TNode, bool >::iterator it = d_quant_active.find( q );
+bool FirstOrderModel::isQuantifierActive(TNode q) const
+{
+  std::map<TNode, bool>::const_iterator it = d_quant_active.find(q);
   if( it==d_quant_active.end() ){
     return true;
-  }else{
-    return it->second;
   }
+  return it->second;
 }
 
-bool FirstOrderModel::isQuantifierAsserted( TNode q ) {
+bool FirstOrderModel::isQuantifierAsserted(TNode q) const
+{
   Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
   return std::find( d_forall_rlv_assert.begin(), d_forall_rlv_assert.end(), q )!=d_forall_rlv_assert.end();
 }
@@ -328,7 +323,11 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
       }
       else
       {
-        mbt = d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
+        // The model basis term cannot be an interpreted function, or else we
+        // may produce an inconsistent model by choosing an arbitrary
+        // equivalence class for it. Hence, we require that it be an existing or
+        // fresh variable.
+        mbt = d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
       }
     }
     ModelBasisAttribute mba;

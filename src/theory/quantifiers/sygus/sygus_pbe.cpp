@@ -2,9 +2,9 @@
 /*! \file sygus_pbe.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ **   Andrew Reynolds, Haniel Barbosa, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -144,7 +144,8 @@ bool SygusPbe::collectExamples(Node n,
   return true;
 }
 
-bool SygusPbe::initialize(Node n,
+bool SygusPbe::initialize(Node conj,
+                          Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas)
 {

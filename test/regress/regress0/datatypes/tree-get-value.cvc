@@ -1,0 +1,10 @@
+% EXPECT: sat
+% EXPECT: ((left(x), leaf))
+OPTION "produce-models";
+DATATYPE
+  tree = node(left : tree, right : tree) | leaf
+END;
+x : tree;
+ASSERT is_leaf(left(x));
+CHECKSAT;
+GET_VALUE left(x);

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,16 +23,19 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__LRAT__LRAT_PROOF_H
-#define __CVC4__PROOF__LRAT__LRAT_PROOF_H
+#ifndef CVC4__PROOF__LRAT__LRAT_PROOF_H
+#define CVC4__PROOF__LRAT__LRAT_PROOF_H
 
+#include <iosfwd>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "proof/clause_id.h"
 // Included because we need operator<< for the SAT types
 #include "prop/sat_solver.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace proof {
@@ -41,22 +44,43 @@ namespace lrat {
 // Refers to clause position within an LRAT proof
 using ClauseIdx = size_t;
 
-enum LratInstructionKind
+// This is conceptually an Either<Addition,Deletion>
+class LratInstruction
 {
-  LRAT_DELETION,
-  LRAT_ADDITION,
+ public:
+  /**
+   * Write this LRAT instruction in textual format
+   *
+   * @param out the stream to write to
+   */
+  virtual void outputAsText(std::ostream& out) const = 0;
+  /**
+   * Write this LRAT instruction as an LFSC value
+   *
+   * @param out the stream to write to
+   * @param closeParen the stream to write any closing parentheses to
+   *
+   */
+  virtual void outputAsLfsc(std::ostream& o,
+                            std::ostream& closeParen) const = 0;
+  virtual ~LratInstruction() = default;
 };
 
-struct LratDeletionData
+class LratDeletion : public LratInstruction
 {
-  LratDeletionData(ClauseIdx idxOfClause, std::vector<ClauseIdx>&& clauses)
+ public:
+  LratDeletion(ClauseIdx idxOfClause, std::vector<ClauseIdx>&& clauses)
       : d_idxOfClause(idxOfClause), d_clauses(clauses)
   {
     // Nothing left to do
   }
 
-  ~LratDeletionData() = default;
+  LratDeletion() = default;
 
+  void outputAsText(std::ostream& out) const override;
+  void outputAsLfsc(std::ostream& o, std::ostream& closeParen) const override;
+
+ private:
   // This idx doesn't really matter, but it's in the format anyway, so we parse
   // it.
   ClauseIdx d_idxOfClause;
@@ -69,12 +93,13 @@ struct LratDeletionData
 // propegation
 using LratUPTrace = std::vector<ClauseIdx>;
 
-struct LratAdditionData
+class LratAddition : public LratInstruction
 {
-  LratAdditionData(ClauseIdx idxOfClause,
-                   prop::SatClause&& clause,
-                   LratUPTrace&& atTrace,
-                   std::vector<std::pair<ClauseIdx, LratUPTrace>> resolvants)
+ public:
+  LratAddition(ClauseIdx idxOfClause,
+               prop::SatClause&& clause,
+               LratUPTrace&& atTrace,
+               std::vector<std::pair<ClauseIdx, LratUPTrace>> resolvants)
       : d_idxOfClause(idxOfClause),
         d_clause(clause),
         d_atTrace(atTrace),
@@ -83,8 +108,10 @@ struct LratAdditionData
     // Nothing left to do
   }
 
-  ~LratAdditionData() = default;
+  void outputAsText(std::ostream& out) const override;
+  void outputAsLfsc(std::ostream& o, std::ostream& closeParen) const override;
 
+ private:
   // The idx for the new clause
   ClauseIdx d_idxOfClause;
   // The new clause
@@ -98,42 +125,23 @@ struct LratAdditionData
   std::vector<std::pair<ClauseIdx, LratUPTrace>> d_resolvants;
 };
 
-// This is conceptually an Either<Addition,Deletion>
-struct LratInstruction
-{
-  LratInstructionKind d_kind;
-  union LratInstructionData
-  {
-    LratAdditionData d_addition;
-    LratDeletionData d_deletion;
-    ~LratInstructionData(){/* Empty destructor */};
-    LratInstructionData(){/* Empty constructor */};
-  } d_data;
-
-  LratInstruction(LratInstruction&& instr);
-  LratInstruction(LratInstruction& instr);
-  LratInstruction(LratAdditionData&& addition);
-  LratInstruction(LratDeletionData&& deletion);
-  ~LratInstruction();
-};
-
 class LratProof
 {
  public:
   /**
    * @brief Construct an LRAT proof from a DRAT proof, using drat-trim
    *
-   * @param usedClauses The CNF formula that we're deriving bottom from.
-   *                    It's a map because other parts of the system represent
-   *                    it this way.
-   * @param clauseOrder A record of the order in which those clauses were
-   *                    given to the SAT solver.
+   * @param clauses A store of clauses that might be in our formula
+   * @param usedIds the ids of clauses that are actually in our formula
    * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream.
+   *
+   * @return an LRAT proof an a timer for how long it took to run drat-trim
    */
   static LratProof fromDratProof(
-      const std::unordered_map<ClauseId, prop::SatClause*>& usedClauses,
-      const std::vector<ClauseId>& clauseOrder,
-      const std::string& dratBinary);
+      const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+      const std::vector<ClauseId> usedIds,
+      const std::string& dratBinary,
+      TimerStat& toolTimer);
   /**
    * @brief Construct an LRAT proof from its textual representation
    *
@@ -142,18 +150,32 @@ class LratProof
    */
   LratProof(std::istream& textualProof);
 
-  const std::vector<LratInstruction>& getInstructions() const
+  /**
+   * Construct a LRAT proof from an explicit instruction list
+   *
+   * @param instructions
+   */
+  LratProof(std::vector<std::unique_ptr<LratInstruction>>&& instructions)
+      : d_instructions(std::move(instructions))
+  {
+    // Nothing else
+  }
+
+  const std::vector<std::unique_ptr<LratInstruction>>& getInstructions() const
   {
     return d_instructions;
   }
 
+  void outputAsLfsc(std::ostream& o) const;
+
  private:
   // The instructions in the proof. Each is a deletion or addition.
-  std::vector<LratInstruction> d_instructions;
+  std::vector<std::unique_ptr<LratInstruction>> d_instructions;
 };
 
 // Prints the LRAT proof in textual format
 std::ostream& operator<<(std::ostream& o, const LratProof& p);
+std::ostream& operator<<(std::ostream& o, const LratInstruction& i);
 
 }  // namespace lrat
 }  // namespace proof

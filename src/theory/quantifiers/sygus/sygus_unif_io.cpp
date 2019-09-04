@@ -2,9 +2,9 @@
 /*! \file sygus_unif_io.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -161,7 +161,12 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      Assert(vals[j].isConst());
+      if (!vals[j].isConst())
+      {
+        // the value is unknown, thus we cannot use it to increment the strings
+        // position
+        return false;
+      }
       String mystr = vals[j].getConst<String>();
       ival = mystr.size();
       if (mystr.size() <= ex_vals[j].size())
@@ -199,7 +204,11 @@ bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      Assert(vals[j].isConst());
+      if (!vals[j].isConst())
+      {
+        // value is unknown, thus it does not solve
+        return false;
+      }
       String mystr = vals[j].getConst<String>();
       if (ex_vals[j] != mystr)
       {
@@ -448,12 +457,23 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
          ++it)
     {
       int new_status = status;
-      // if the current value is true
+      bool success = true;
+      // If the current value is true, then this is a relevant point.
+      // We must consider the value of this child.
       if (curr_val_true)
       {
-        if (status != 0)
+        if (it->first.isNull())
         {
-          Assert(it->first.isConst() && it->first.getType().isBoolean());
+          // The value of this child is unknown on this point, hence we
+          // do not recurse
+          success = false;
+        }
+        else if (status != 0)
+        {
+          // if the status is not zero (indicating that we have a mix of T/F),
+          // then we must compute the new status.
+          Assert(it->first.getType().isBoolean());
+          Assert(it->first.isConst());
           new_status = (it->first.getConst<bool>() ? 1 : -1);
           if (status != -2 && new_status != status)
           {
@@ -461,7 +481,10 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
           }
         }
       }
-      it->second.getLeavesInternal(vals, pol, v, index + 1, new_status);
+      if (success)
+      {
+        it->second.getLeavesInternal(vals, pol, v, index + 1, new_status);
+      }
     }
   }
 }
@@ -641,23 +664,41 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       for (unsigned j = 0, size = itsr->second.size(); j < size; j++)
       {
         Node res = itsr->second[j];
-        Assert(res.isConst());
+        // The value of this term for this example, or the truth value of
+        // the I/O pair if the role of this enumerator is enum_io.
         Node resb;
         if (eiv.getRole() == enum_io)
         {
           Node out = d_examples_out[j];
           Assert(out.isConst());
-          resb = res == out ? d_true : d_false;
+          // If the result is not constant, then we assume that it does
+          // not satisfy the example. This is a safe underapproximation
+          // of the good behavior of the current term, that is, we only
+          // produce solutions whose values are fully evaluatable on all input
+          // points. Notice that terms may be used as leaves of decision
+          // trees that are fully evaluatable on points in that branch, but
+          // are not evaluatable on others, e.g. (head x) in the solution:
+          //   (ite ((_ is cons) x) (head x) 5)
+          resb = (res.isConst() && res == out) ? d_true : d_false;
         }
         else
         {
-          resb = res;
+          // We only set resb if it is constant, otherwise it remains null.
+          // This indicates its value cannot be determined.
+          if (res.isConst())
+          {
+            resb = res;
+          }
         }
         cond_vals[resb] = true;
         results.push_back(resb);
         if (Trace.isOn("sygus-sui-enum"))
         {
-          if (resb.getType().isBoolean())
+          if (resb.isNull())
+          {
+            Trace("sygus-sui-enum") << "_";
+          }
+          else if (resb.getType().isBoolean())
           {
             Trace("sygus-sui-enum") << (resb == d_true ? "1" : "0");
           }
@@ -677,6 +718,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
           std::vector<Node> subsume;
           if (cond_vals.find(d_false) == cond_vals.end())
           {
+            Assert(cond_vals.size() == 1);
             // it is the entire solution, we are done
             Trace("sygus-sui-enum")
                 << "  ...success, full solution added to PBE pool : "
@@ -917,23 +959,27 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     std::vector<unsigned> cmp_indices;
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
-      Assert(results[i].isConst());
-      Assert(d_examples_out[i].isConst());
-      Trace("sygus-sui-cterm-debug")
-          << "  " << results[i] << " <> " << d_examples_out[i];
-      Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
-      Node contr = Rewriter::rewrite(cont);
-      if (contr == d_false)
+      // If the result is not constant, then it is worthless. It does not
+      // impact whether the term is excluded.
+      if (results[i].isConst())
       {
-        cmp_indices.push_back(i);
-        Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
-      }
-      else
-      {
-        Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
-        if (isConditional)
+        Assert(d_examples_out[i].isConst());
+        Trace("sygus-sui-cterm-debug")
+            << "  " << results[i] << " <> " << d_examples_out[i];
+        Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
+        Node contr = Rewriter::rewrite(cont);
+        if (contr == d_false)
         {
-          return false;
+          cmp_indices.push_back(i);
+          Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
+        }
+        else
+        {
+          Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
+          if (isConditional)
+          {
+            return false;
+          }
         }
       }
     }

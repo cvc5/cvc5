@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,9 +26,8 @@
 #include "theory/theory_model.h"
 #include "util/result.h"
 
-#define AJR_IMPLEMENTATION
-
 using namespace std;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
@@ -54,8 +53,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
       d_conflict(c),
-      d_rels(
-          new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
+      d_rels(new TheorySetsRels(c, u, &d_equalityEngine, *this)),
       d_rels_enabled(false)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -83,9 +81,6 @@ void TheorySetsPrivate::eqNotifyNewClass(TNode t) {
   if( t.getKind()==kind::SINGLETON || t.getKind()==kind::EMPTYSET ){
     EqcInfo * e = getOrMakeEqcInfo( t, true );
     e->d_singleton = t;
-  }
-  if( options::setsRelEager() ){
-    d_rels->eqNotifyNewClass( t );
   }
 }
 
@@ -178,9 +173,6 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
         }
       }
       d_members[t1] = n_members;
-    }
-    if( options::setsRelEager() ){
-      d_rels->eqNotifyPostMerge( t1, t2 );
     }
   }
 }
@@ -535,11 +527,13 @@ void TheorySetsPrivate::fullEffortCheck(){
 
     std::vector< Node > lemmas;
     Trace("sets-eqc") << "Equality Engine:" << std::endl;
+    std::map<TypeNode, unsigned> eqcTypeCount;
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
     while( !eqcs_i.isFinished() ){
       Node eqc = (*eqcs_i);
       bool isSet = false;
       TypeNode tn = eqc.getType();
+      eqcTypeCount[tn]++;
       //common type node and term
       TypeNode tnc;
       Node tnct;
@@ -667,7 +661,17 @@ void TheorySetsPrivate::fullEffortCheck(){
       Trace("sets-eqc") << std::endl;
       ++eqcs_i;
     }
-    
+
+    if (Trace.isOn("sets-state"))
+    {
+      Trace("sets-state") << "Equivalence class counters:" << std::endl;
+      for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
+      {
+        Trace("sets-state")
+            << "  " << ec.first << " -> " << ec.second << std::endl;
+      }
+    }
+
     flushLemmas( lemmas );
     if( !hasProcessed() ){
       if( Trace.isOn("sets-mem") ){
@@ -700,9 +704,11 @@ void TheorySetsPrivate::fullEffortCheck(){
           checkUpwardsClosure( lemmas );
           flushLemmas( lemmas );
           if( !hasProcessed() ){
-            std::vector< Node > intro_sets;
-            //for cardinality
-            if( d_card_enabled ){
+            checkDisequalities(lemmas);
+            flushLemmas(lemmas);
+            if (!hasProcessed() && d_card_enabled)
+            {
+              // for cardinality
               checkCardBuildGraph( lemmas );
               flushLemmas( lemmas );
               if( !hasProcessed() ){
@@ -712,31 +718,32 @@ void TheorySetsPrivate::fullEffortCheck(){
                   checkCardCycles( lemmas );
                   flushLemmas( lemmas );
                   if( !hasProcessed() ){
+                    std::vector<Node> intro_sets;
                     checkNormalForms( lemmas, intro_sets );
                     flushLemmas( lemmas );
+                    if (!hasProcessed() && !intro_sets.empty())
+                    {
+                      Assert(intro_sets.size() == 1);
+                      Trace("sets-intro")
+                          << "Introduce term : " << intro_sets[0] << std::endl;
+                      Trace("sets-intro") << "  Actual Intro : ";
+                      debugPrintSet(intro_sets[0], "sets-nf");
+                      Trace("sets-nf") << std::endl;
+                      Node k = getProxy(intro_sets[0]);
+                      d_sentLemma = true;
+                    }
                   }
-                }
-              }
-            }
-            if( !hasProcessed() ){
-              checkDisequalities( lemmas );
-              flushLemmas( lemmas );
-              if( !hasProcessed() ){
-                //introduce splitting on venn regions (absolute last resort)
-                if( d_card_enabled && !hasProcessed() && !intro_sets.empty() ){
-                  Assert( intro_sets.size()==1 );
-                  Trace("sets-intro") << "Introduce term : " << intro_sets[0] << std::endl;
-                  Trace("sets-intro") << "  Actual Intro : ";
-                  debugPrintSet( intro_sets[0], "sets-nf" );
-                  Trace("sets-nf") << std::endl;
-                  Node k = getProxy( intro_sets[0] );
-                  d_sentLemma = true;
                 }
               }
             }
           }
         }
       }
+    }
+    if (!hasProcessed())
+    {
+      // invoke relations solver
+      d_rels->check(Theory::EFFORT_FULL);
     }
   }while( !d_sentLemma && !d_conflict && d_addedFact );
   Trace("sets") << "----- End full effort check, conflict=" << d_conflict << ", lemma=" << d_sentLemma << std::endl;
@@ -1380,8 +1387,8 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
 
     Assert( d_nf.find( eqc )==d_nf.end() );
     bool success = true;
+    Node emp_set = getEmptySet(tn);
     if( !base.isNull() ){
-      Node emp_set = getEmptySet( tn );
       for( unsigned j=0; j<comps.size(); j++ ){
         //compare if equal
         std::vector< Node > c;
@@ -1491,12 +1498,24 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
         Trace("sets-nf") << "----> N " << eqc << " => F " << base << std::endl;
       }else{
         Trace("sets-nf") << "failed to build N " << eqc << std::endl;
-        Assert( false );
       }
     }else{
-      //normal form is this equivalence class
-      d_nf[eqc].push_back( eqc );
-      Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }" << std::endl;
+      // must ensure disequal from empty
+      if (!eqc.isConst() && !ee_areDisequal(eqc, emp_set)
+          && (d_pol_mems[0].find(eqc) == d_pol_mems[0].end()
+              || d_pol_mems[0][eqc].empty()))
+      {
+        Trace("sets-nf-debug") << "Split on leaf " << eqc << std::endl;
+        split(eqc.eqNode(emp_set));
+        success = false;
+      }
+      else
+      {
+        // normal form is this equivalence class
+        d_nf[eqc].push_back(eqc);
+        Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }"
+                         << std::endl;
+      }
     }
     if( success ){
       //send to parents
@@ -1745,18 +1764,10 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     if( level == Theory::EFFORT_FULL ){
       if( !d_external.d_valuation.needCheck() ){
         fullEffortCheck();
-        if( !d_conflict && !d_sentLemma ){
-          //invoke relations solver
-          d_rels->check(level);
-        }
         if (!d_conflict && !d_sentLemma && d_full_check_incomplete)
         {
           d_external.d_out->setIncomplete();
         }
-      }
-    }else{
-      if( options::setsRelEager() ){
-        d_rels->check(level);  
       }
     }
   }
@@ -1878,8 +1889,8 @@ void TheorySetsPrivate::computeCareGraph() {
       //populate indices
       for( unsigned i=0; i<it->second.size(); i++ ){
         TNode f1 = it->second[i];
-        Assert(d_equalityEngine.hasTerm(f1));
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
+        Assert(d_equalityEngine.hasTerm(f1));
         //break into index based on operator, and type of first argument (since some operators are parametric)
         TypeNode tn = f1[0].getType();
         std::vector< TNode > reps;
@@ -2136,6 +2147,30 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   return ok;
 }/* TheorySetsPrivate::propagate(TNode) */
 
+void TheorySetsPrivate::processInference(Node lem,
+                                         const char* c,
+                                         std::vector<Node>& lemmas)
+{
+  Trace("sets-pinfer") << "Process inference: " << lem << std::endl;
+  if (lem.getKind() != IMPLIES || !isEntailed(lem[0], true))
+  {
+    Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
+    lemmas.push_back(lem);
+    return;
+  }
+  // try to assert it as a fact
+  Trace("sets-pinfer") << "Process conclusion: " << lem[1] << std::endl;
+  Trace("sets-pinfer") << "  assert as fact" << std::endl;
+  assertInference(lem[1], lem[0], lemmas, c);
+}
+
+bool TheorySetsPrivate::isInConflict() const { return d_conflict.get(); }
+bool TheorySetsPrivate::sentLemma() const { return d_sentLemma; }
+
+OutputChannel* TheorySetsPrivate::getOutputChannel()
+{
+  return d_external.d_out;
+}
 
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);

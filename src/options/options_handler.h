@@ -2,9 +2,9 @@
 /*! \file options_handler.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Liana Hadarean
+ **   Tim King, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__OPTIONS__OPTIONS_HANDLER_H
-#define __CVC4__OPTIONS__OPTIONS_HANDLER_H
+#ifndef CVC4__OPTIONS__OPTIONS_HANDLER_H
+#define CVC4__OPTIONS__OPTIONS_HANDLER_H
 
 #include <ostream>
 #include <string>
@@ -37,6 +37,7 @@
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
 #include "options/smt_modes.h"
+#include "options/strings_modes.h"
 #include "options/sygus_out_mode.h"
 #include "options/theoryof_mode.h"
 #include "options/ufss_mode.h"
@@ -113,6 +114,8 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::CegisSampleMode stringToCegisSampleMode(
       std::string option, std::string optarg);
+  theory::quantifiers::SygusQueryDumpFilesMode stringToSygusQueryDumpFilesMode(
+      std::string option, std::string optarg);
   theory::quantifiers::SygusFilterSolMode stringToSygusFilterSolMode(
       std::string option, std::string optarg);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(
@@ -145,6 +148,16 @@ public:
   theory::bv::SatSolverMode stringToSatSolver(std::string option,
                                               std::string optarg);
 
+  theory::bv::BvProofFormat stringToBvProofFormat(std::string option,
+                                                  std::string optarg);
+  theory::bv::BvOptimizeSatProof stringToBvOptimizeSatProof(std::string option,
+                                                            std::string optarg);
+
+  theory::strings::ProcessLoopMode stringToStringsProcessLoopMode(
+      std::string option, std::string optarg);
+  theory::strings::RegExpInterMode stringToRegExpInterMode(std::string option,
+                                                           std::string optarg);
+
   // theory/uf/options_handlers.h
   theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg);
 
@@ -165,9 +178,6 @@ public:
   decision::DecisionWeightInternal stringToDecisionWeightInternal(
       std::string option, std::string optarg);
 
-  /* smt/options_handlers.h */
-  void notifyForceLogic(const std::string& option);
-
   /**
    * Throws a ModalException if this option is being set after final
    * initialization.
@@ -177,6 +187,8 @@ public:
   SimplificationMode stringToSimplificationMode(std::string option,
                                                 std::string optarg);
   ModelCoresMode stringToModelCoresMode(std::string option, std::string optarg);
+  BlockModelsMode stringToBlockModelsMode(std::string option,
+                                          std::string optarg);
   SygusSolutionOutMode stringToSygusSolutionOutMode(std::string option,
                                                     std::string optarg);
   void setProduceAssertions(std::string option, bool value);
@@ -230,8 +242,12 @@ public:
   /* Help strings */
   static const std::string s_bitblastingModeHelp;
   static const std::string s_bvSatSolverHelp;
+  static const std::string s_bvProofFormatHelp;
+  static const std::string s_bvOptimizeSatProofHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
+  static const std::string s_stringsProcessLoopModeHelp;
+  static const std::string s_regExpInterModeHelp;
   static const std::string s_boolToBVModeHelp;
   static const std::string s_cegqiFairModeHelp;
   static const std::string s_decisionModeHelp;
@@ -249,11 +265,13 @@ public:
   static const std::string s_qcfWhenModeHelp;
   static const std::string s_simplificationHelp;
   static const std::string s_modelCoresHelp;
+  static const std::string s_blockModelsHelp;
   static const std::string s_sygusSolutionOutModeHelp;
   static const std::string s_cbqiBvIneqModeHelp;
   static const std::string s_cegqiSingleInvHelp;
   static const std::string s_cegqiSingleInvRconsHelp;
   static const std::string s_cegisSampleHelp;
+  static const std::string s_sygusQueryDumpFileHelp;
   static const std::string s_sygusFilterSolHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_sygusActiveGenHelp;
@@ -274,4 +292,4 @@ public:
 }/* CVC4::options namespace */
 }/* CVC4 namespace */
 
-#endif /*  __CVC4__OPTIONS__OPTIONS_HANDLER_H */
+#endif /*  CVC4__OPTIONS__OPTIONS_HANDLER_H */

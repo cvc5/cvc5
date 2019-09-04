@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers_engine.h"
+
+#include "options/quantifiers_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -140,7 +142,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
   bool ret = true;
   if (d_doRewSynth)
   {
-    ret = d_crd.addTerm(sol, out, rew_print);
+    ret = d_crd.addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
   }
 
   // a unique term, let's try the query generator

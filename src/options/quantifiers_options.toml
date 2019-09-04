@@ -456,6 +456,15 @@ header = "options/quantifiers_options.h"
   help       = "interleave full saturate instantiation with other techniques"
 
 [[option]]
+  name       = "fullSaturateStratify"
+  category   = "regular"
+  long       = "fs-stratify"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "stratify effort levels in enumerative instantiation, which favors speed over fairness"
+
+[[option]]
   name       = "literalMatchMode"
   category   = "regular"
   long       = "literal-matching=MODE"
@@ -932,24 +941,6 @@ header = "options/quantifiers_options.h"
   help       = "include constants when reconstruct solutions for single invocation conjectures in original grammar"
 
 [[option]]
-  name       = "cegqiSolMinCore"
-  category   = "regular"
-  long       = "cegqi-si-sol-min-core"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "minimize solutions for single invocation conjectures based on unsat core"
-
-[[option]]
-  name       = "cegqiSolMinInst"
-  category   = "regular"
-  long       = "cegqi-si-sol-min-inst"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "minimize individual instantiations for single invocation conjectures based on unsat core"
-
-[[option]]
   name       = "cegqiSingleInvAbort"
   category   = "regular"
   long       = "cegqi-si-abort"
@@ -1240,7 +1231,7 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "use sygus to enumerate and verify correctness of rewrite rules via sampling"
+  help       = "use sygus to enumerate and verify correctness of rewrite rules"
 
 [[option]]
   name       = "sygusRewSynth"
@@ -1248,7 +1239,7 @@ header = "options/quantifiers_options.h"
   long       = "sygus-rr-synth"
   type       = "bool"
   default    = "false"
-  help       = "use sygus to enumerate candidate rewrite rules via sampling"
+  help       = "use sygus to enumerate candidate rewrite rules"
 
 [[option]]
   name       = "sygusRewSynthFilterOrder"
@@ -1369,6 +1360,14 @@ header = "options/quantifiers_options.h"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
+  
+[[option]]
+  name       = "sygusRewSynthRec"
+  category   = "regular"
+  long       = "sygus-rr-synth-rec"
+  type       = "bool"
+  default    = "false"
+  help       = "synthesize rewrite rules over all sygus grammar types recursively"
 
 [[option]]
   name       = "sygusQueryGen"
@@ -1397,10 +1396,12 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "sygusQueryGenDumpFiles"
   category   = "regular"
-  long       = "sygus-query-gen-dump-files"
-  type       = "bool"
-  default    = "false"
-  help       = "dump external files corresponding to interesting satisfiability queries with sygus-query-gen"
+  long       = "sygus-query-gen-dump-files=MODE"
+  type       = "CVC4::theory::quantifiers::SygusQueryDumpFilesMode"
+  default    = "CVC4::theory::quantifiers::SYGUS_QUERY_DUMP_NONE"
+  handler    = "stringToSygusQueryDumpFilesMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "mode for dumping external files corresponding to interesting satisfiability queries with sygus-query-gen"
 
 [[option]]
   name       = "sygusFilterSolMode"
@@ -1420,6 +1421,7 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "compute backwards filtering to compute whether previous solutions are filtered based on later ones"
 
+  
 [[option]]
   name       = "sygusExprMinerCheckUseExport"
   category   = "expert"
@@ -1445,15 +1447,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
-
-[[option]]
-  name       = "recurseCbqi"
-  category   = "regular"
-  long       = "cbqi-recurse"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "turns on recursive counterexample-based quantifier instantiation"
 
 [[option]]
   name       = "cbqiSat"
@@ -1724,7 +1717,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "quant-dsplit-mode=MODE"
   type       = "CVC4::theory::quantifiers::QuantDSplitMode"
-  default    = "CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_NONE"
+  default    = "CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_DEFAULT"
   handler    = "stringToQuantDSplitMode"
   includes   = ["options/quantifiers_modes.h"]
   help       = "mode for dynamic quantifiers splitting"
@@ -1765,6 +1758,24 @@ header = "options/quantifiers_options.h"
   default    = "true"
   read_only  = true
   help       = "merge term indices modulo equality"
+
+[[option]]
+  name       = "hoElim"
+  category   = "regular"
+  long       = "ho-elim"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "eagerly eliminate higher-order constraints"
+
+[[option]]
+  name       = "hoElimStoreAx"
+  category   = "regular"
+  long       = "ho-elim-store-ax"
+  type       = "bool"
+  default    = "true"
+  read_only  = false
+  help       = "use store axiom during ho-elim"
 
 ### Proof options
 

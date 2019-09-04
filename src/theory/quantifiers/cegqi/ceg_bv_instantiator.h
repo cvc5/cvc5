@@ -2,9 +2,9 @@
 /*! \file ceg_bv_instantiator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
 
 #include <unordered_map>
 #include "theory/quantifiers/bv_inverter.h"
@@ -211,4 +211,4 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */

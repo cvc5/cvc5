@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.2)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -6,14 +6,14 @@ cmake_minimum_required(VERSION 3.1)
 project(cvc4)
 
 set(CVC4_MAJOR   1) # Major component of the version of CVC4.
-set(CVC4_MINOR   7) # Minor component of the version of CVC4.
+set(CVC4_MINOR   8) # Minor component of the version of CVC4.
 set(CVC4_RELEASE 0) # Release component of the version of CVC4.
 
 # Extraversion component of the version of CVC4.
 set(CVC4_EXTRAVERSION "-prerelease")
 
 # Shared library versioning. Increment SOVERSION for every new CVC4 release.
-set(CVC4_SOVERSION 5)
+set(CVC4_SOVERSION 6)
 
 # Full release string for CVC4.
 if(CVC4_RELEASE)
@@ -225,7 +225,7 @@ if(ENABLE_SHARED)
     message(WARNING "Disabling static binary since shared build is enabled.")
   endif()
 else()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a ${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
   # This is required to force find_package(Boost) to use static libraries.
   set(Boost_USE_STATIC_LIBS ON)
@@ -306,7 +306,7 @@ if(ENABLE_COVERAGE)
     NAME coverage
     EXECUTABLE
       ctest -j${CTEST_NTHREADS} -LE "example"
-        --output-on-failure $(ARGS) || exit 0
+        --output-on-failure $$ARGS || exit 0
     DEPENDS
       build-tests)
 endif()
@@ -480,6 +480,37 @@ add_subdirectory(test)
 if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
   add_subdirectory(src/bindings)
 endif()
+
+#-----------------------------------------------------------------------------#
+# Package configuration
+#
+# Export CVC4 targets to support find_package(CVC4) in other cmake projects.
+
+include(CMakePackageConfigHelpers)
+
+install(EXPORT cvc4-targets
+  FILE CVC4Targets.cmake
+  NAMESPACE CVC4::
+  DESTINATION lib/cmake/CVC4)
+
+configure_package_config_file(
+  ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
+  INSTALL_DESTINATION lib/cmake/CVC4
+)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/CVC4ConfigVersion.cmake
+  VERSION ${CVC4_RELEASE_STRING}
+  COMPATIBILITY ExactVersion
+)
+
+install(FILES
+  ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
+  ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
+  DESTINATION lib/cmake/CVC4
+)
+
 
 #-----------------------------------------------------------------------------#
 # Print build configuration

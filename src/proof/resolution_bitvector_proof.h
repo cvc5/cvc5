@@ -2,9 +2,9 @@
 /*! \file resolution_bitvector_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Guy Katz
+ **   Alex Ozdemir, Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,40 +16,24 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__RESOLUTION_BITVECTOR_PROOF_H
-#define __CVC4__PROOF__RESOLUTION_BITVECTOR_PROOF_H
+#ifndef CVC4__PROOF__RESOLUTION_BITVECTOR_PROOF_H
+#define CVC4__PROOF__RESOLUTION_BITVECTOR_PROOF_H
 
 #include <iosfwd>
 
 #include "context/context.h"
 #include "expr/expr.h"
 #include "proof/bitvector_proof.h"
+#include "proof/sat_proof.h"
 #include "proof/theory_proof.h"
 #include "prop/bvminisat/core/Solver.h"
+#include "prop/cnf_stream.h"
+#include "prop/sat_solver_types.h"
+#include "theory/bv/bitblast/bitblaster.h"
+#include "theory/bv/theory_bv.h"
 
 namespace CVC4 {
 
-namespace theory {
-namespace bv {
-class TheoryBV;
-template <class T>
-class TBitblaster;
-}  // namespace bv
-}  // namespace theory
-
-// TODO(aozdemir) break the sat_solver - resolution_bitvectorproof - cnf_stream
-// header cycle and remove this.
-namespace prop {
-class CnfStream;
-}
-
-} /* namespace CVC4 */
-
-
-namespace CVC4 {
-
-template <class Solver>
-class TSatProof;
 typedef TSatProof<CVC4::BVMinisat::Solver> BVSatProof;
 
 namespace proof {
@@ -76,13 +60,7 @@ class ResolutionBitVectorProof : public BitVectorProof
 
   BVSatProof* getSatProof();
 
-  /**
-   * Kind of a mess.
-   * In eager mode this must be invoked before printing a proof of the empty
-   * clause. In lazy mode the behavior is ???
-   * TODO(aozdemir) clean this up.
-   */
-  void finalizeConflicts(std::vector<Expr>& conflicts);
+  void finalizeConflicts(std::vector<Expr>& conflicts) override;
 
   void startBVConflict(CVC4::BVMinisat::Solver::TCRef cr);
   void startBVConflict(CVC4::BVMinisat::Solver::TLit lit);
@@ -91,13 +69,14 @@ class ResolutionBitVectorProof : public BitVectorProof
   void markAssumptionConflict() { d_isAssumptionConflict = true; }
   bool isAssumptionConflict() const { return d_isAssumptionConflict; }
 
-  virtual void printResolutionProof(std::ostream& os,
-                                    std::ostream& paren,
-                                    ProofLetMap& letMap) = 0;
-
-  void initCnfProof(prop::CnfStream* cnfStream, context::Context* cnf) override;
+  void initCnfProof(prop::CnfStream* cnfStream,
+                    context::Context* cnf,
+                    prop::SatVariable trueVar,
+                    prop::SatVariable falseVar) override;
 
  protected:
+  void attachToSatSolver(prop::SatSolver& sat_solver) override;
+
   context::Context d_fakeContext;
 
   // The CNF formula that results from bit-blasting will need a proof.
@@ -106,13 +85,13 @@ class ResolutionBitVectorProof : public BitVectorProof
 
   bool d_isAssumptionConflict;
 
-  theory::TheoryId getTheoryId() override;
 };
 
-class LFSCBitVectorProof : public ResolutionBitVectorProof
+class LfscResolutionBitVectorProof : public ResolutionBitVectorProof
 {
  public:
-  LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
+  LfscResolutionBitVectorProof(theory::bv::TheoryBV* bv,
+                               TheoryProofEngine* proofEngine)
       : ResolutionBitVectorProof(bv, proofEngine)
   {
   }
@@ -120,9 +99,10 @@ class LFSCBitVectorProof : public ResolutionBitVectorProof
                              std::ostream& os,
                              std::ostream& paren,
                              const ProofLetMap& map) override;
-  void printResolutionProof(std::ostream& os,
-                            std::ostream& paren,
-                            ProofLetMap& letMap) override;
+  void printBBDeclarationAndCnf(std::ostream& os,
+                                std::ostream& paren,
+                                ProofLetMap& letMap) override;
+  void printEmptyClauseProof(std::ostream& os, std::ostream& paren) override;
   void calculateAtomsInBitblastingProof() override;
 };
 
@@ -130,4 +110,4 @@ class LFSCBitVectorProof : public ResolutionBitVectorProof
 
 }  // namespace CVC4
 
-#endif /* __CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H */
+#endif /* CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H */

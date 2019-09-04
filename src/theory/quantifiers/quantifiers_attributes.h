@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
-#define __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
+#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
+#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 
 #include "expr/attribute.h"
 #include "expr/node.h"
@@ -83,6 +83,18 @@ struct SygusSideConditionAttributeId
 };
 typedef expr::Attribute<SygusSideConditionAttributeId, Node>
     SygusSideConditionAttribute;
+
+/** Attribute for indicating that a sygus variable encodes a term
+ *
+ * This is used, e.g., for abduction where the formal argument list of the
+ * abduct-to-synthesize corresponds to the free variables of the sygus
+ * problem.
+ */
+struct SygusVarToTermAttributeId
+{
+};
+typedef expr::Attribute<SygusVarToTermAttributeId, Node>
+    SygusVarToTermAttribute;
 
 namespace quantifiers {
 

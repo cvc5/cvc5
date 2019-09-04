@@ -2,9 +2,9 @@
 /*! \file inst_match_trie.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -210,8 +210,12 @@ void InstMatchTrie::getInstantiations(std::vector<Node>& insts,
       {
         insts.push_back(getInstLemma());
       }
-      else
+      else if (!options::trackInstLemmas())
       {
+        // If we are tracking instantiation lemmas, then hasInstLemma()
+        // corresponds exactly to when the lemma was successfully added.
+        // Hence the above condition guards the case where the instantiation
+        // was recorded but not sent out as a lemma.
         insts.push_back(qe->getInstantiate()->getInstantiation(q, terms, true));
       }
     }
@@ -469,8 +473,11 @@ void CDInstMatchTrie::getInstantiations(std::vector<Node>& insts,
         {
           insts.push_back(getInstLemma());
         }
-        else
+        else if (!options::trackInstLemmas())
         {
+          // Like in the context-independent case, hasInstLemma()
+          // corresponds exactly to when the lemma was successfully added when
+          // trackInstLemmas() is true.
           insts.push_back(
               qe->getInstantiate()->getInstantiation(q, terms, true));
         }

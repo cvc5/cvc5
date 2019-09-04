@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Yoni Zohar
+ **   Andres Noetzli, Justin Xu, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,6 +34,7 @@
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/global_negate.h"
+#include "preprocessing/passes/ho_elim.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/ite_simp.h"
@@ -148,6 +149,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("quantifier-macros", callCtor<QuantifierMacros>);
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
+  registerPassInfo("ho-elim", callCtor<HoElim>);
 }
 
 }  // namespace preprocessing

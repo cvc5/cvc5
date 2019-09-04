@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -280,9 +280,6 @@ void CvcPrinter::toStream(
       out << ")";
       return;
       break;
-    case kind::APPLY:
-      toStream(op, n.getOperator(), depth, types, true);
-      break;
     case kind::CHAIN:
     case kind::DISTINCT: // chain and distinct not supported directly in CVC4, blast them away with the rewriter
       toStream(out, theory::Rewriter::rewrite(n), depth, types, true);
@@ -407,12 +404,30 @@ void CvcPrinter::toStream(
     case kind::APPLY_SELECTOR_TOTAL: {
         TypeNode t = n[0].getType();
         Node opn = n.getOperator();
-        if( t.isTuple() ){
+        if (t.isTuple() || t.isRecord())
+        {
           toStream(out, n[0], depth, types, true);
+          out << '.';
           const Datatype& dt = ((DatatypeType)t.toType()).getDatatype();
-          int sindex = dt[0].getSelectorIndexInternal( opn.toExpr() );
-          Assert( sindex>=0 );
-          out << '.' << sindex;
+          if (t.isTuple())
+          {
+            int sindex;
+            if (n.getKind() == kind::APPLY_SELECTOR)
+            {
+              sindex = Datatype::indexOf(opn.toExpr());
+            }
+            else
+            {
+              sindex = dt[0].getSelectorIndexInternal(opn.toExpr());
+            }
+            Assert(sindex >= 0);
+            out << sindex;
+          }
+          else
+          {
+            toStream(out, opn, depth, types, false);
+          }
+          return;
         }else{
           toStream(op, opn, depth, types, false);
         }
