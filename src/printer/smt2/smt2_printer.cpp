@@ -865,18 +865,18 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::INST_PATTERN: break;
   case kind::INST_PATTERN_LIST:
   {
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    for (const Node& nc : n)
     {
-      if (n[i].getKind() == kind::INST_ATTRIBUTE)
+      if (nc.getKind() == kind::INST_ATTRIBUTE)
       {
-        if (n[i][0].getAttribute(theory::FunDefAttribute()))
+        if (nc[0].getAttribute(theory::FunDefAttribute()))
         {
           out << ":fun-def";
         }
       }
       else
       {
-        out << ":pattern " << n[i];
+        out << ":pattern " << nc;
       }
     }
     return;
