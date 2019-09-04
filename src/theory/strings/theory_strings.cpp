@@ -2077,6 +2077,20 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
             do_infer = pol ? !areEqual(lit[0], lit[1])
                            : !areDisequal(lit[0], lit[1]);
           }
+          else if (lit.getKind()==OR)
+          {
+            do_infer = pol;
+            for (const Node& litc : lit )
+            {
+              bool apol = litc.getKind()!=NOT;
+              Node atomc = apol ? litc : litc[0];
+              if (areEqual(atomc, apol ? d_true : d_false))
+              {
+                do_infer = !do_infer;
+                break;
+              }
+            }
+          }
           else
           {
             do_infer = !areEqual(lit, pol ? d_true : d_false);
