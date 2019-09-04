@@ -19,6 +19,7 @@
 
 #include <vector>
 
+#include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
@@ -50,8 +51,6 @@ public:
   virtual int process( Node f, Theory::Effort effort, int e ) = 0;
   /** identify */
   virtual std::string identify() const { return std::string("Unknown"); }
-  /** register quantifier */
-  //virtual void registerQuantifier( Node q ) {}
 };/* class InstStrategy */
 
 class InstantiationEngine : public QuantifiersModule {
@@ -87,6 +86,10 @@ class InstantiationEngine : public QuantifiersModule {
   void addUserNoPattern(Node q, Node pat);
   /** Identify this module */
   std::string identify() const override { return "InstEngine"; }
+
+ private:
+  /** for computing relevance of quantifiers */
+  std::unique_ptr<QuantRelevance> d_quant_rel;
 }; /* class InstantiationEngine */
 
 }/* CVC4::theory::quantifiers namespace */

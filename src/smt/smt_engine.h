@@ -154,6 +154,9 @@ class CVC4_PUBLIC SmtEngine
    */
   bool isFullyInited() { return d_fullyInited; }
 
+  /** Return true if a query() or checkSat() has already been made.  */
+  bool isQueryMade() { return d_queryMade; }
+
   /** Return the user context level.  */
   size_t getNumUserLevels() { return d_userLevels.size(); }
 

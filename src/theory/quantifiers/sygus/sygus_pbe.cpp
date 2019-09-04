@@ -144,7 +144,8 @@ bool SygusPbe::collectExamples(Node n,
   return true;
 }
 
-bool SygusPbe::initialize(Node n,
+bool SygusPbe::initialize(Node conj,
+                          Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas)
 {
