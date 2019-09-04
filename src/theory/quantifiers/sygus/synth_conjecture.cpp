@@ -1158,6 +1158,8 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
     Node bvl = Node::fromExpr(dt.getSygusVarList());
     if (!bvl.isNull())
     {
+      // since we don't have function subtyping, this assertion should only
+      // check the return type
       Assert(fvar.getType().isFunction());
       Assert(fvar.getType().getRangeType().isComparableTo(bsol.getType()));
       bsol = nm->mkNode(LAMBDA, bvl, bsol);
