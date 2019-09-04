@@ -1687,15 +1687,15 @@ bool RegExpOpr::regExpIncludes(Node r1, Node r2)
   for (const Node& n2 : v2)
   {
     // Transfer elements from `newIdxs` to `idxs`. Out-of-bound indices are
-    // removed and for (re.* re.allchar), we additionally include the
-    // option of skipping it.
+    // removed and for (re.* re.allchar), we additionally include the option of
+    // skipping it. Indices must be smaller than the size of `v1`.
     idxs.clear();
     for (size_t idx : newIdxs)
     {
       if (idx < v1.size())
       {
         idxs.insert(idx);
-        if (v1[idx] == d_sigma_star)
+        if (idx + 1 < v1.size() && v1[idx] == d_sigma_star)
         {
           Assert(idx + 1 == v1.size() || v1[idx + 1] != d_sigma_star);
           idxs.insert(idx + 1);
