@@ -1154,14 +1154,19 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
     // convert to lambda
     TypeNode tn = d_embed_quant[0][i].getType();
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    Node fvar = d_quant[0][i];
     Node bvl = Node::fromExpr(dt.getSygusVarList());
     if (!bvl.isNull())
     {
+      Assert( fvar.getType().isFunction() );
+      Assert( fvar.getType().getRangeType().isComparableTo(bsol.getType()) );
       bsol = nm->mkNode(LAMBDA, bvl, bsol);
     }
+    else
+    {
+      Assert(fvar.getType().isComparableTo(bsol.getType()));
+    }
     // store in map
-    Node fvar = d_quant[0][i];
-    Assert(fvar.getType().isComparableTo(bsol.getType()));
     sol_map[fvar] = bsol;
   }
 }
