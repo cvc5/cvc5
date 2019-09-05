@@ -541,13 +541,13 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::LAMBDA:
     out << smtKindString(k, d_variant) << " ";
     break;
-  case kind::MATCH: 
-    out << smtKindString(k, d_variant) << " "; 
+  case kind::MATCH:
+    out << smtKindString(k, d_variant) << " ";
     toStream(out, n[0], toDepth, types, TypeNode::null());
     out << " (";
-    for (unsigned i=1, nchild=n.getNumChildren(); i<nchild; i++ )
+    for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
     {
-      if( i>1 )
+      if (i > 1)
       {
         out << " ";
       }
