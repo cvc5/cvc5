@@ -42,7 +42,7 @@ namespace quantifiers {
 class ArithInstantiator : public Instantiator
 {
  public:
-  ArithInstantiator(QuantifiersEngine* qe, TypeNode tn);
+  ArithInstantiator(TypeNode tn);
   virtual ~ArithInstantiator() {}
   /** reset */
   void reset(CegInstantiator* ci,
