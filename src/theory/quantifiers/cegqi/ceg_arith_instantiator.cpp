@@ -940,6 +940,10 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       Trace("cegqi-arith-debug") << "result : " << val << std::endl;
       Assert(val.getType().isInteger());
     }
+    else
+    {
+      return CEG_TT_INVALID;
+    }
   }
   vts_coeff_inf = vts_coeff[0];
   vts_coeff_delta = vts_coeff[1];
@@ -947,6 +951,11 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"
       << std::endl;
+  Assert( ires!=0 );
+  if( atom.getKind()==EQUAL )
+  {
+    return CEG_TT_EQUAL;
+  }
   return ires == 1 ? CEG_TT_UPPER : CEG_TT_LOWER;
 }
 
