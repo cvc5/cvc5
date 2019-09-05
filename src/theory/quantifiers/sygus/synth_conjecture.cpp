@@ -364,13 +364,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         Trace("cegqi-engine") << std::endl;
       }
       d_repair_index++;
-      if (doRepairConst)
+      if (d_sygus_rconst->repairSolution(
+              d_candidates, fail_cvs, candidate_values, true))
       {
-        if (d_sygus_rconst->repairSolution(
-                d_candidates, fail_cvs, candidate_values, true))
-        {
-          constructed_cand = true;
-        }
+        constructed_cand = true;
       }
     }
   }
