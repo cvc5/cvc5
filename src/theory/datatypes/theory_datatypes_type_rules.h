@@ -437,17 +437,16 @@ class MatchTypeRule
                                      bool check)
   {
     Assert(n.getKind() == kind::MATCH);
-      
+
     TypeNode retType;
 
     TypeNode headType = n[0].getType(check);
     if (!headType.isDatatype())
     {
-      throw TypeCheckingExceptionPrivate(n,
-                                          "expecting datatype head in match");
+      throw TypeCheckingExceptionPrivate(n, "expecting datatype head in match");
     }
     const Datatype& hdt = headType.getDatatype();
-    
+
     // the type of a match case list is the least common type of its cases
     for (unsigned i = 1, nchildren = n.getNumChildren(); i < nchildren; i++)
     {
@@ -455,10 +454,11 @@ class MatchTypeRule
       Kind nck = nc.getKind();
       if (nck != kind::MATCH_CASE && nck != kind::MATCH_BIND_CASE)
       {
-        throw TypeCheckingExceptionPrivate(n, "expected a match case in match expression");
+        throw TypeCheckingExceptionPrivate(
+            n, "expected a match case in match expression");
       }
       // get the pattern type
-      unsigned pindex = nck==kind::MATCH_CASE ? 0 : 1;
+      unsigned pindex = nck == kind::MATCH_CASE ? 0 : 1;
       TypeNode patType = nc[pindex].getType();
       // should be caught in the above call
       Assert(patType.isDatatype());

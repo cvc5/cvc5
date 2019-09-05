@@ -156,19 +156,19 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     std::vector<Node> rets;
     TypeNode t = h.getType();
     const Datatype& dt = t.getDatatype();
-    for (unsigned k=1, nchild = in.getNumChildren(); k<nchild; k++)
+    for (unsigned k = 1, nchild = in.getNumChildren(); k < nchild; k++)
     {
       Node c = in[k];
       Node cons;
       Kind ck = c.getKind();
       if (ck == MATCH_CASE)
       {
-        Assert (c[0].getKind()==APPLY_CONSTRUCTOR);
+        Assert(c[0].getKind() == APPLY_CONSTRUCTOR);
         cons = c[0].getOperator();
       }
       else if (ck == MATCH_BIND_CASE)
       {
-        if( c[1].getKind()==APPLY_CONSTRUCTOR )
+        if (c[1].getKind() == APPLY_CONSTRUCTOR)
         {
           cons = c[1].getOperator();
         }
@@ -181,7 +181,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       unsigned cindex = 0;
       // cons is null in the default case
-      if( !cons.isNull() )
+      if (!cons.isNull())
       {
         cindex = Datatype::indexOf(cons.toExpr());
       }
@@ -194,9 +194,9 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       {
         std::vector<Node> vars;
         std::vector<Node> subs;
-        if( cons.isNull() )
+        if (cons.isNull())
         {
-          Assert( c[1].getKind()==BOUND_VARIABLE );
+          Assert(c[1].getKind() == BOUND_VARIABLE);
           vars.push_back(c[1]);
           subs.push_back(h);
         }
@@ -215,7 +215,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         body =
             c[2].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       }
-      if( !cons.isNull() )
+      if (!cons.isNull())
       {
         cases.push_back(mkTester(h, cindex, dt));
       }
