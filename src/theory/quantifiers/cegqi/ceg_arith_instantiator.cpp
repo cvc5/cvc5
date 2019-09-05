@@ -270,7 +270,8 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
     {
       if (options::cbqiModel())
       {
-        Node delta_coeff = nm->mkConst(Rational(isUpperBoundCTT(uires) ? 1 : -1));
+        Node delta_coeff =
+            nm->mkConst(Rational(isUpperBoundCTT(uires) ? 1 : -1));
         if (vts_coeff_delta.isNull())
         {
           vts_coeff_delta = delta_coeff;
@@ -284,7 +285,8 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       else
       {
         Node delta = ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta();
-        uval = nm->mkNode(uires == CEG_TT_UPPER_STRICT ? PLUS : MINUS, uval, delta);
+        uval = nm->mkNode(
+            uires == CEG_TT_UPPER_STRICT ? PLUS : MINUS, uval, delta);
         uval = Rewriter::rewrite(uval);
       }
     }
@@ -745,7 +747,8 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
     Trace("cegqi-arith-debug")
         << "...bound type is : " << sf.d_props[index].d_type << std::endl;
     // intger division rounding up if from a lower bound
-    if (sf.d_props[index].d_type == CEG_TT_UPPER && options::cbqiRoundUpLowerLia())
+    if (sf.d_props[index].d_type == CEG_TT_UPPER
+        && options::cbqiRoundUpLowerLia())
     {
       sf.d_subs[index] = nm->mkNode(
           PLUS,
@@ -764,12 +767,12 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
 }
 
 CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
-                                   Node pv,
-                                   Node atom,
-                                   Node& veq_c,
-                                   Node& val,
-                                   Node& vts_coeff_inf,
-                                   Node& vts_coeff_delta)
+                                           Node pv,
+                                           Node atom,
+                                           Node& veq_c,
+                                           Node& val,
+                                           Node& vts_coeff_inf,
+                                           Node& vts_coeff_delta)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("cegqi-arith-debug")
@@ -944,7 +947,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"
       << std::endl;
-  return ires==1 ? CEG_TT_UPPER : CEG_TT_LOWER;
+  return ires == 1 ? CEG_TT_UPPER : CEG_TT_LOWER;
 }
 
 Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,

@@ -41,7 +41,7 @@ enum CegTermType
 {
   // invalid
   CEG_TT_INVALID,
-  // term was the result of solving an equality 
+  // term was the result of solving an equality
   CEG_TT_EQUAL,
   // term was the result of solving a non-strict lower bound x >= t
   CEG_TT_LOWER,
@@ -76,7 +76,7 @@ class TermProperties {
   TermProperties() : d_type(CEG_TT_EQUAL) {}
   virtual ~TermProperties() {}
 
-  /** 
+  /**
    * Type for the solution term. For arithmetic this corresponds to bound type
    * of the constraint that the constraint the term was solved for in.
    */

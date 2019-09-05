@@ -43,12 +43,12 @@ namespace quantifiers {
 
 CegTermType mkStrictCTT(CegTermType c)
 {
-  Assert( !isStrictCTT(c) );
-  if (c==CEG_TT_LOWER)
+  Assert(!isStrictCTT(c));
+  if (c == CEG_TT_LOWER)
   {
     return CEG_TT_LOWER_STRICT;
   }
-  else if( c==CEG_TT_UPPER )
+  else if (c == CEG_TT_UPPER)
   {
     return CEG_TT_UPPER_STRICT;
   }
@@ -57,19 +57,19 @@ CegTermType mkStrictCTT(CegTermType c)
 
 CegTermType mkNegateCTT(CegTermType c)
 {
-  if (c==CEG_TT_LOWER)
+  if (c == CEG_TT_LOWER)
   {
     return CEG_TT_UPPER;
   }
-  else if( c==CEG_TT_UPPER )
+  else if (c == CEG_TT_UPPER)
   {
     return CEG_TT_LOWER;
   }
-  else if (c==CEG_TT_LOWER_STRICT)
+  else if (c == CEG_TT_LOWER_STRICT)
   {
     return CEG_TT_UPPER_STRICT;
   }
-  else if( c==CEG_TT_UPPER_STRICT )
+  else if (c == CEG_TT_UPPER_STRICT)
   {
     return CEG_TT_LOWER_STRICT;
   }
@@ -77,15 +77,15 @@ CegTermType mkNegateCTT(CegTermType c)
 }
 bool isStrictCTT(CegTermType c)
 {
-  return c==CEG_TT_LOWER_STRICT && c==CEG_TT_UPPER_STRICT;
+  return c == CEG_TT_LOWER_STRICT && c == CEG_TT_UPPER_STRICT;
 }
 bool isLowerBoundCTT(CegTermType c)
 {
-  return c==CEG_TT_LOWER || c==CEG_TT_LOWER_STRICT;
+  return c == CEG_TT_LOWER || c == CEG_TT_LOWER_STRICT;
 }
 bool isUpperBoundCTT(CegTermType c)
 {
-  return c==CEG_TT_UPPER || c==CEG_TT_UPPER_STRICT;
+  return c == CEG_TT_UPPER || c == CEG_TT_UPPER_STRICT;
 }
 
 std::ostream& operator<<(std::ostream& os, CegInstEffort e)
