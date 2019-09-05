@@ -156,17 +156,22 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     std::vector<Node> rets;
     TypeNode t = h.getType();
     const Datatype& dt = t.getDatatype();
-    for (const Node& c : in[1])
+    for (unsigned k=1, nchild = in.getNumChildren(); k<nchild; k++)
     {
+      Node c = in[k];
       Node cons;
       Kind ck = c.getKind();
       if (ck == MATCH_CASE)
       {
+        Assert (c[0].getKind()==APPLY_CONSTRUCTOR);
         cons = c[0].getOperator();
       }
       else if (ck == MATCH_BIND_CASE)
       {
-        cons = c[1].getOperator();
+        if( c[1].getKind()==APPLY_CONSTRUCTOR )
+        {
+          cons = c[1].getOperator();
+        }
       }
       else
       {
@@ -174,7 +179,12 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         rets.push_back(c);
         continue;
       }
-      unsigned cindex = Datatype::indexOf(cons.toExpr());
+      unsigned cindex = 0;
+      // cons is null in the default case
+      if( !cons.isNull() )
+      {
+        cindex = Datatype::indexOf(cons.toExpr());
+      }
       Node body;
       if (ck == MATCH_CASE)
       {
@@ -184,19 +194,35 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       {
         std::vector<Node> vars;
         std::vector<Node> subs;
-        for (unsigned i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
+        if( cons.isNull() )
         {
-          vars.push_back(c[0][i]);
-          Node sc = nm->mkNode(
-              APPLY_SELECTOR_TOTAL,
-              Node::fromExpr(dt[cindex].getSelectorInternal(t.toType(), i)),
-              h);
-          subs.push_back(sc);
+          Assert( c[1].getKind()==BOUND_VARIABLE );
+          vars.push_back(c[1]);
+          subs.push_back(h);
+        }
+        else
+        {
+          for (unsigned i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
+          {
+            vars.push_back(c[0][i]);
+            Node sc = nm->mkNode(
+                APPLY_SELECTOR_TOTAL,
+                Node::fromExpr(dt[cindex].getSelectorInternal(t.toType(), i)),
+                h);
+            subs.push_back(sc);
+          }
         }
         body =
             c[2].substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       }
-      cases.push_back(mkTester(h, cindex, dt));
+      if( !cons.isNull() )
+      {
+        cases.push_back(mkTester(h, cindex, dt));
+      }
+      else
+      {
+        cases.push_back(Node::null());
+      }
       rets.push_back(body);
     }
     Assert(!cases.empty());

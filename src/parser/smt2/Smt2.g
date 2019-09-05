@@ -1934,14 +1934,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     }
     LPAREN_TOK
     (
-      // default case (_ f) 
-      LPAREN_TOK INDEX_TOK term[f, f2] {
-        // default cases are represented by themselves
-        matchcases.push_back(f);
-      }
-      RPAREN_TOK
       // case with non-nullary pattern
-      | LPAREN_TOK LPAREN_TOK term[f, f2] {
+      LPAREN_TOK LPAREN_TOK term[f, f2] {
           args.clear();
           PARSER_STATE->pushScope(true);
           // f should be a constructor
@@ -1981,20 +1975,37 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           PARSER_STATE->popScope();
         }
         RPAREN_TOK
-      // case with nullary pattern
-      | LPAREN_TOK symbol[name,CHECK_DECLARED,SYM_VARIABLE] {
-          f = PARSER_STATE->getVariable(name);
-          type = f.getType();
-          if (!type.isConstructor() || 
-              !((ConstructorType)type).getArgTypes().empty())
+      // case with nullary or variable pattern
+      | LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE] {
+          if (PARSER_STATE->isDeclared(name,SYM_VARIABLE))
           {
-            PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
+            f = PARSER_STATE->getVariable(name);
+            type = f.getType();
+            if (!type.isConstructor() || 
+                !((ConstructorType)type).getArgTypes().empty())
+            {
+              PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
+            }
+            // make nullary constructor application
+            f = MK_EXPR(kind::APPLY_CONSTRUCTOR, f);
           }
-          // make nullary constructor application
-          f = MK_EXPR(kind::APPLY_CONSTRUCTOR, f);
+          else
+          {
+            // it has the type of the head expr
+            f = PARSER_STATE->mkBoundVar(name, expr.getType());
+          }
         }
         term[f3, f2] {
-          Expr mc = MK_EXPR(kind::MATCH_CASE, f, f3);
+          Expr mc;
+          if (f.getKind()==kind::BOUND_VARIABLE)
+          {
+            Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, f);
+            mc = MK_EXPR(kind::MATCH_BIND_CASE, bvl, f, f3);
+          }
+          else
+          {
+            mc = MK_EXPR(kind::MATCH_CASE, f, f3);
+          }
           matchcases.push_back(mc);
         }
         RPAREN_TOK
@@ -2005,8 +2016,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       {
         PARSER_STATE->parseError("Must have at least one case in match.");
       }
-      Expr mcl = MK_EXPR(kind::MATCH_CASE_LIST, matchcases);
-      expr = MK_EXPR(kind::MATCH, expr, mcl);
+      std::vector<Expr> mchildren;
+      mchildren.push_back(expr);
+      mchildren.insert(mchildren.end(), matchcases.begin(), matchcases.end());
+      expr = MK_EXPR(kind::MATCH, mchildren);
     }
 
     /* attributed expressions */

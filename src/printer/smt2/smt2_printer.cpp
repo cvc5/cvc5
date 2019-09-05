@@ -542,7 +542,6 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::MATCH: out << smtKindString(k, d_variant) << " "; break;
-  case kind::MATCH_CASE_LIST:
   case kind::MATCH_CASE:
   case kind::MATCH_BIND_CASE:
     // do nothing

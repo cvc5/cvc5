@@ -437,72 +437,42 @@ class MatchTypeRule
                                      bool check)
   {
     Assert(n.getKind() == kind::MATCH);
-    TypeNode retType = n[1].getType(check);
-    if (check)
-    {
-      TypeNode headType = n[0].getType(check);
-      if (!headType.isDatatype())
-      {
-        throw TypeCheckingExceptionPrivate(n,
-                                           "expecting datatype head in match");
-      }
-      const Datatype& hdt = headType.getDatatype();
-      // must match the patterns
-      for (const Node& nc : n[1])
-      {
-        unsigned pindex = 0;
-        Kind nck = nc.getKind();
-        if (nck == kind::MATCH_BIND_CASE)
-        {
-          pindex = 1;
-        }
-        else if (nck != kind::MATCH_CASE)
-        {
-          // default case
-          continue;
-        }
-        TypeNode patType = nc[pindex].getType();
-        Assert(patType.isDatatype());
-        const Datatype& pdt = patType.getDatatype();
-        // compare datatypes to catch parametric case (where the pattern is
-        // parametric)
-        if (hdt != pdt)
-        {
-          std::stringstream ss;
-          ss << "pattern of a match case does not match the head type in match";
-          throw TypeCheckingExceptionPrivate(n, ss.str());
-        }
-      }
-    }
-    return retType;
-  }
-}; /* class MatchTypeRule */
-
-class MatchCaseListTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::MATCH_CASE_LIST);
+      
     TypeNode retType;
+
+    TypeNode headType = n[0].getType(check);
+    if (!headType.isDatatype())
+    {
+      throw TypeCheckingExceptionPrivate(n,
+                                          "expecting datatype head in match");
+    }
+    const Datatype& hdt = headType.getDatatype();
+    
     // the type of a match case list is the least common type of its cases
-    for (unsigned i = 0, nchildren = n.getNumChildren(); i < nchildren; i++)
+    for (unsigned i = 1, nchildren = n.getNumChildren(); i < nchildren; i++)
     {
       Node nc = n[i];
       Kind nck = nc.getKind();
       if (nck != kind::MATCH_CASE && nck != kind::MATCH_BIND_CASE)
       {
-        // allow the last child to be a non-match case (for the default case)
-        if (i < nchildren - 1)
-        {
-          throw TypeCheckingExceptionPrivate(
-              n, "expected a match case in match case list");
-        }
+        throw TypeCheckingExceptionPrivate(n, "expected a match case in match expression");
+      }
+      // get the pattern type
+      unsigned pindex = nck==kind::MATCH_CASE ? 0 : 1;
+      TypeNode patType = nc[pindex].getType();
+      // should be caught in the above call
+      Assert(patType.isDatatype());
+      const Datatype& pdt = patType.getDatatype();
+      // compare datatypes instead of the types to catch parametric case, where
+      // the pattern has parametric type.
+      if (hdt != pdt)
+      {
+        std::stringstream ss;
+        ss << "pattern of a match case does not match the head type in match";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
       }
       TypeNode currType = nc.getType(check);
-      if (i == 0)
+      if (i == 1)
       {
         retType = currType;
       }
@@ -518,7 +488,7 @@ class MatchCaseListTypeRule
     }
     return retType;
   }
-}; /* class MatchCaseListTypeRule */
+}; /* class MatchTypeRule */
 
 class MatchCaseTypeRule
 {
