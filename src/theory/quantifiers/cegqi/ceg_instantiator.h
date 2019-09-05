@@ -72,7 +72,7 @@ bool isUpperBoundCTT(CegTermType c);
  * for the variable.
  */
 class TermProperties {
-public:
+ public:
   TermProperties() : d_type(CEG_TT_EQUAL) {}
   virtual ~TermProperties() {}
 
