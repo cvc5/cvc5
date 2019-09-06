@@ -106,7 +106,12 @@ void DagificationVisitor::visit(TNode current, TNode parent) {
 
     TNode& uniqueParent = d_uniqueParent[current];
 
-    if(!uniqueParent.isNull() && uniqueParent != parent) {
+    // We restrict this optimization to nodes with arity 1 since otherwise we
+    // may run into issues with tree traverals. Without this restriction
+    // dumping regress3/pp-regfile increases the file size by a factor of 5000.
+    if (!uniqueParent.isNull()
+        && (uniqueParent != parent || parent.getNumChildren() > 1))
+    {
       // there is not a unique parent for this expr, mark it
       uniqueParent = TNode::null();
     }
