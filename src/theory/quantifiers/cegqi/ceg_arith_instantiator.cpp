@@ -951,8 +951,8 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"
       << std::endl;
-  Assert( ires!=0 );
-  if( atom.getKind()==EQUAL )
+  Assert(ires != 0);
+  if (atom.getKind() == EQUAL)
   {
     return CEG_TT_EQUAL;
   }
