@@ -411,10 +411,10 @@ Node Instantiate::getInstantiation(Node q,
   Node body;
   Assert(vars.size() == terms.size());
   Assert(q[0].getNumChildren() == vars.size());
-  // Notice that this could be optimized, but no significant performances
-  // improvements were observed with alternative (see #1386).
+  // Notice that this could be optimized, but no significant performance
+  // improvements were observed with alternative implementations (see #1386).
   body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
-  // Now, notify rewriters, which rewrite the instantiation in sequence.
+  // run rewriters to rewrite the instantiation in sequence.
   for (InstantiationRewriter*& ir : d_instRewrite)
   {
     body = ir->rewriteInstantiation(q, terms, body, doVts);
