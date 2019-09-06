@@ -2,7 +2,7 @@
 /*! \file quant_rep_bound_ext.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Morgan Deters
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -42,7 +42,7 @@ class QRepBoundExt : public RepBoundExt
   QRepBoundExt(QuantifiersEngine * qe);
   virtual ~QRepBoundExt() {}
   /** set bound */
-  RepSetIterator::RsiEnumType setBound(Node owner,
+  RsiEnumType setBound(Node owner,
                                        unsigned i,
                                        std::vector<Node>& elements) override;
   /** reset index */

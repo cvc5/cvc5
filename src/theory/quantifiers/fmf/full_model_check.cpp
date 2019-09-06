@@ -747,14 +747,14 @@ class RepBoundFmcEntry : public QRepBoundExt
   }
   ~RepBoundFmcEntry() {}
   /** set bound */
-  virtual RepSetIterator::RsiEnumType setBound(
+  virtual RsiEnumType setBound(
       Node owner, unsigned i, std::vector<Node>& elements) override
   {
     if (!d_fm->isStar(d_entry[i]))
     {
       // only need to consider the single point
       elements.push_back(d_entry[i]);
-      return RepSetIterator::ENUM_DEFAULT;
+      return ENUM_DEFAULT;
     }
     return QRepBoundExt::setBound(owner, i, elements);
   }
@@ -821,8 +821,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       int index = riter.increment();
       Trace("fmc-exh-debug") << "Incremented index " << index << std::endl;
       if( !riter.isFinished() ){
-        if (index>=0 && riter.d_index[index]>0 && addedLemmas>0 && riter.d_enum_type[index]==RepSetIterator::ENUM_BOUND_INT ) {
-          Trace("fmc-exh-debug") << "Since this is a range enumeration, skip to the next..." << std::endl;
+        if (index>=0 && riter.d_index[index]>0 && addedLemmas>0 && riter.d_enum_type[index]==ENUM_CUSTOM ) {
+          Trace("fmc-exh-debug") << "Since this is a custom enumeration, skip to the next..." << std::endl;
           riter.incrementAtIndex(index - 1);
         }
       }

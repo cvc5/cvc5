@@ -300,7 +300,7 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
   }
   Trace("bint-engine") << "   addedLemma = " << addedLemma << std::endl;
 }
-void BoundedIntegers::setBoundedVar( Node q, Node v, unsigned bound_type ) {
+void BoundedIntegers::setBoundedVar( Node q, Node v, BoundVarType bound_type ) {
   d_bound_type[q][v] = bound_type;
   d_set_nums[q][v] = d_set[q].size();
   d_set[q].push_back( v );
@@ -506,13 +506,28 @@ void BoundedIntegers::checkOwnership(Node f)
   }
 }
 
-unsigned BoundedIntegers::getBoundVarType( Node q, Node v ) {
-  std::map< Node, unsigned >::iterator it = d_bound_type[q].find( v );
-  if( it==d_bound_type[q].end() ){
-    return BOUND_NONE;
-  }else{
-    return it->second;
+bool BoundedIntegers::isBoundVar( Node q, Node v ) const
+{
+  std::map< Node, std::vector< Node > >::const_iterator its = d_set.find(q);
+  if( its==d_set.end() )
+  {
+    return false;
   }
+  return std::find( its->second.begin(), its->second.end(), v )!=its->second.end();
+}
+
+BoundVarType BoundedIntegers::getBoundVarType( Node q, Node v ) const {
+  std::map< Node, std::map< Node, BoundVarType > >::const_iterator itb = d_bound_type.find(q);
+  if( itb==d_bound_type.end())
+  {
+    return BOUND_NONE;
+  }
+  std::map< Node, BoundVarType >::const_iterator it = itb->second.find( v );
+  if( it==itb->second.end() )
+  {
+    return BOUND_NONE;
+  }
+  return it->second;
 }
 
 void BoundedIntegers::getBounds( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u ) {
@@ -728,7 +743,7 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
 bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements ) {
   if( initial || !isGroundRange( q, v ) ){
     elements.clear();
-    unsigned bvt = getBoundVarType( q, v );
+    BoundVarType bvt = getBoundVarType( q, v );
     if( bvt==BOUND_INT_RANGE ){
       Node l, u;
       getBoundValues( q, v, rsi, l, u );
