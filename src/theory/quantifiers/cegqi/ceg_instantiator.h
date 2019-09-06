@@ -34,6 +34,35 @@ class Instantiator;
 class InstantiatorPreprocess;
 class InstStrategyCegqi;
 
+/**
+ * Descriptions of the types of constraints that a term was solved for in.
+ */
+enum CegTermType
+{
+  // invalid
+  CEG_TT_INVALID,
+  // term was the result of solving an equality
+  CEG_TT_EQUAL,
+  // term was the result of solving a non-strict lower bound x >= t
+  CEG_TT_LOWER,
+  // term was the result of solving a strict lower bound x > t
+  CEG_TT_LOWER_STRICT,
+  // term was the result of solving a non-strict upper bound x <= t
+  CEG_TT_UPPER,
+  // term was the result of solving a strict upper bound x < t
+  CEG_TT_UPPER_STRICT,
+};
+/** make (non-strict term type) c a strict term type */
+CegTermType mkStrictCTT(CegTermType c);
+/** negate c (lower/upper bounds are swapped) */
+CegTermType mkNegateCTT(CegTermType c);
+/** is c a strict term type? */
+bool isStrictCTT(CegTermType c);
+/** is c a lower bound? */
+bool isLowerBoundCTT(CegTermType c);
+/** is c an upper bound? */
+bool isUpperBoundCTT(CegTermType c);
+
 /** Term Properties
  *
  * Stores properties for a variable to solve for in counterexample-guided
@@ -43,13 +72,15 @@ class InstStrategyCegqi;
  * for the variable.
  */
 class TermProperties {
-public:
-  TermProperties() : d_type(0) {}
+ public:
+  TermProperties() : d_type(CEG_TT_EQUAL) {}
   virtual ~TermProperties() {}
 
-  // type of property for a term
-  //  for arithmetic this corresponds to bound type (0:equal, 1:upper bound, -1:lower bound)
-  int d_type;
+  /**
+   * Type for the solution term. For arithmetic this corresponds to bound type
+   * of the constraint that the constraint the term was solved for in.
+   */
+  CegTermType d_type;
   // for arithmetic
   Node d_coeff;
   // get cache node
