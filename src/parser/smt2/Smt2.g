@@ -542,8 +542,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { std::string id = AntlrInput::tokenText($SIMPLE_SYMBOL);
       if(id == "benchmark") {
         PARSER_STATE->parseError(
-            "In SMT-LIBv2 mode, but got something that looks like SMT-LIBv1. "
-            "Use --lang smt1 for SMT-LIBv1.");
+            "In SMT-LIBv2 mode, but got something that looks like SMT-LIBv1, "
+            "which is not supported anymore.");
       } else {
         PARSER_STATE->parseError("expected SMT-LIBv2 command, got `" + id +
                                  "'.");

@@ -71,7 +71,7 @@ endif()
 #-----------------------------------------------------------------------------#
 # Generate language tokens header files.
 
-foreach(lang Cvc Smt1 Smt2 Tptp)
+foreach(lang Cvc Smt2 Tptp)
   string(TOLOWER ${lang} lang_lc)
   add_custom_command(
     OUTPUT ${lang_lc}_tokens.h
@@ -87,7 +87,6 @@ endforeach()
 add_custom_target(gen-tokens
   DEPENDS
     cvc_tokens.h
-    smt1_tokens.h
     smt2_tokens.h
     tptp_tokens.h
 )

@@ -42,7 +42,7 @@ namespace quantifiers {
 class ArithInstantiator : public Instantiator
 {
  public:
-  ArithInstantiator(QuantifiersEngine* qe, TypeNode tn);
+  ArithInstantiator(TypeNode tn);
   virtual ~ArithInstantiator() {}
   /** reset */
   void reset(CegInstantiator* ci,
@@ -150,14 +150,20 @@ class ArithInstantiator : public Instantiator
    *    veq_c * pv <> val + vts_coeff_delta * delta + vts_coeff_inf * inf
    * where we ensure val has Int type if pv has Int type, and val does not
    * contain vts symbols.
+   *
+   * It returns a CegTermType:
+   *   CEG_TT_INVALID if it was not possible to put atom into a solved form,
+   *   CEG_TT_LOWER if <> in the above equation is >=,
+   *   CEG_TT_UPPER if <> in the above equation is <=, or
+   *   CEG_TT_EQUAL if <> in the above equation is =.
    */
-  int solve_arith(CegInstantiator* ci,
-                  Node v,
-                  Node atom,
-                  Node& veq_c,
-                  Node& val,
-                  Node& vts_coeff_inf,
-                  Node& vts_coeff_delta);
+  CegTermType solve_arith(CegInstantiator* ci,
+                          Node v,
+                          Node atom,
+                          Node& veq_c,
+                          Node& val,
+                          Node& vts_coeff_inf,
+                          Node& vts_coeff_delta);
   /** get model based projection value
    *
    * Given a implied (non-strict) bound:

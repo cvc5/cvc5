@@ -200,26 +200,6 @@ Node TermUtil::getInstConstantBody( Node q ){
   }
 }
 
-Node TermUtil::getCounterexampleLiteral( Node q ){
-  if( d_ce_lit.find( q )==d_ce_lit.end() ){
-    /*
-    Node ceBody = getInstConstantBody( f );
-    //check if any variable are of bad types, and fail if so
-    for( size_t i=0; i<d_inst_constants[f].size(); i++ ){
-      if( d_inst_constants[f][i].getType().isBoolean() ){
-        d_ce_lit[ f ] = Node::null();
-        return Node::null();
-      }
-    }
-    */
-    Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
-    //otherwise, ensure literal
-    Node ceLit = d_quantEngine->getValuation().ensureLiteral( g );
-    d_ce_lit[ q ] = ceLit;
-  }
-  return d_ce_lit[ q ];
-}
-
 Node TermUtil::substituteBoundVariablesToInstConstants(Node n, Node q)
 {
   registerQuantifier( q );

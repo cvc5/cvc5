@@ -91,11 +91,11 @@ protected:
    * the cut is stored in exact precision in d_exactPrecision.
    * If the cut has not yet been proven, this is null.
    */
-  DenseVector* d_exactPrecision;
+  std::unique_ptr<DenseVector> d_exactPrecision;
 
-  ConstraintCPVec* d_explanation;
+  std::unique_ptr<ConstraintCPVec> d_explanation;
 
-public:
+ public:
   CutInfo(CutInfoKlass kl, int cutid, int ordinal);
 
   virtual ~CutInfo();

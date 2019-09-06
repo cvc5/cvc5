@@ -149,10 +149,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       unsigned len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
         opts.setInputLanguage(language::input::LANG_SMTLIB_V2_6);
-      } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-        opts.setInputLanguage(language::input::LANG_SMTLIB_V1);
-      } else if(len >= 5 && !strcmp(".smt1", filename + len - 5)) {
-        opts.setInputLanguage(language::input::LANG_SMTLIB_V1);
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
         opts.setInputLanguage(language::input::LANG_TPTP);
