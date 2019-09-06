@@ -22,30 +22,27 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QRepBoundExt::QRepBoundExt(QuantifiersEngine* qe) : d_qe(qe) {}
-
+QRepBoundExt::QRepBoundExt(QuantifiersEngine * qe)
+: d_qe(qe)
+{
+}
+  
 RsiEnumType QRepBoundExt::setBound(Node owner,
-                                   unsigned i,
-                                   std::vector<Node>& elements)
+                                                   unsigned i,
+                                                   std::vector<Node>& elements)
 {
   // builtin: check if it is bound by bounded integer module
   if (owner.getKind() == FORALL)
   {
-    if (d_qe->isBoundVar(owner, owner[0][i]))
+    BoundVarType bvt = d_qe->getBoundVarType(owner,owner[0][i]);
+    if (bvt != BOUND_FINITE)
     {
-      unsigned bvt = d_qe->getBoundVarType(owner, owner[0][i]);
-      if (bvt != BoundedIntegers::BOUND_FINITE)
-      {
-        d_bound_int[i] = true;
-        return ENUM_CUSTOM;
-      }
-      else
-      {
-        // indicates the variable is finitely bound due to
-        // the (small) cardinality of its type,
-        // will treat in default way
-      }
+      d_bound_int[i] = true;
+      return ENUM_CUSTOM;
     }
+    // indicates the variable is finitely bound due to
+    // the (small) cardinality of its type,
+    // will treat in default way
   }
   return ENUM_INVALID;
 }
@@ -56,13 +53,16 @@ bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
                               bool initial,
                               std::vector<Node>& elements)
 {
-  if (d_bound_int.find(i) != d_bound_int.end())
+  if (d_bound_int.find(i) == d_bound_int.end())
   {
-    Assert(owner.getKind() == FORALL);
-    if (!d_qe->getBoundElements(rsi, initial, owner, owner[0][i], elements))
-    {
-      return false;
-    }
+    // not bound
+    return true;
+  }
+  Assert(owner.getKind() == FORALL);
+  if (!d_qe->getBoundElements(
+          rsi, initial, owner, owner[0][i], elements))
+  {
+    return false;
   }
   return true;
 }
@@ -80,24 +80,11 @@ bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
     return false;
   }
   Trace("bound-int-rsi") << "Calculating variable order..." << std::endl;
-  // we take the bounded variables first
-  for (unsigned i = 0, nbvs = d_qe->getNumBoundVars(owner); i < nbvs; i++)
-  {
-    Node v = d_qe->getBoundVar(owner, i);
-    Trace("bound-int-rsi") << "  bound var #" << i << " is " << v << std::endl;
-    varOrder.push_back(d_qe->getTermUtil()->getVariableNum(owner, v));
-  }
-  // then the unbounded ones
-  for (const Node& v : owner[0])
-  {
-    if (!d_qe->isBoundVar(owner, v))
-    {
-      varOrder.push_back(i);
-    }
-  }
+  d_qe->getBoundVarIndices(owner, varOrder);
   return true;
 }
 
-}  // namespace quantifiers
-}  // namespace theory
-}  // namespace CVC4
+
+} /* CVC4::theory::quantifiers namespace */
+} /* CVC4::theory namespace */
+} /* CVC4 namespace */

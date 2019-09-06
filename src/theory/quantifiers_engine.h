@@ -29,7 +29,6 @@
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_epr.h"
@@ -115,8 +114,6 @@ public:
   quantifiers::RelevantDomain* getRelevantDomain() const;
   //---------------------- end utilities
   //---------------------- modules (TODO remove these #1163)
-  /** get bounded integers utility */
-  quantifiers::BoundedIntegers* getBoundedIntegers() const;
   /** ceg instantiation */
   quantifiers::SynthEngine* getSynthEngine() const;
   /** get inst strategy cbqi */
@@ -147,8 +144,25 @@ public:
   void setOwner(Node q, quantifiers::QAttributes& qa);
   /** considers */
   bool hasOwnership( Node q, QuantifiersModule * m = NULL );
-  /** is finite bound */
-  bool isFiniteBound( Node q, Node v );
+  /** does variable v of quantified formula q have a finite bound? */
+  bool isFiniteBound( Node q, Node v ) const;
+  /** get bound var type 
+   * 
+   * This returns the type of bound that was inferred for variable v of
+   * quantified formula q.
+   */
+  BoundVarType getBoundVarType(Node q, Node v) const;
+  /** 
+   * Get the indices of bound variables, in the order they should be processed
+   * in a RepSetIterator.
+   *
+   * For details, see BoundedIntegers::getBoundVarIndices.
+   */
+  void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
+  /** 
+   * Get bound elements 
+   */
+  bool getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements );
 public:
   /** presolve */
   void presolve();
