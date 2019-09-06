@@ -392,10 +392,6 @@ quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
 {
   return d_private->d_synth_e.get();
 }
-quantifiers::InstStrategyCegqi* QuantifiersEngine::getInstStrategyCegqi() const
-{
-  return d_private->d_i_cbqi.get();
-}
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
   std::map< Node, QuantifiersModule * >::iterator it = d_owner.find( q );

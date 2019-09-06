@@ -38,7 +38,7 @@ namespace theory {
 namespace quantifiers {
 
 InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi* p)
-    : d_parent(p), InstantiationRewriter()
+    : InstantiationRewriter(), d_parent(p)
 {
 }
 

@@ -247,14 +247,8 @@ bool Instantiate::addInstantiation(
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_term_util->d_vars[q].size() == terms.size());
   // get the instantiation
-  // FIXME
-  Node body = getInstantiation(q, d_term_util->d_vars[q], terms, false);
+  Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
   Node orig_body = body;
-  // notify rewriters
-  for (InstantiationRewriter*& ir : d_instRewrite)
-  {
-    body = ir->rewriteInstantiation(q, terms, body, doVts);
-  }
   // now preprocess
   body = quantifiers::QuantifiersRewriter::preprocess(body, true);
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
@@ -411,23 +405,18 @@ bool Instantiate::existsInstantiation(Node q,
 
 Node Instantiate::getInstantiation(Node q,
                                    std::vector<Node>& vars,
-                                   std::vector<Node>& terms,
-                                   bool doVts)
+                                   std::vector<Node>& terms, bool doVts)
 {
   Node body;
   Assert(vars.size() == terms.size());
   Assert(q[0].getNumChildren() == vars.size());
-  // TODO (#1386) : optimize this
-  body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
-  if (doVts)
+  // Notice that this could be optimized, but no significant performances
+  // improvements were observed with alternative (see #1386).
+  body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end()); 
+  // Now, notify rewriters, which rewrite the instantiation in sequence.
+  for (InstantiationRewriter*& ir : d_instRewrite)
   {
-    // do virtual term substitution
-    body = Rewriter::rewrite(body);
-    Trace("quant-vts-debug") << "Rewrite vts symbols in " << body << std::endl;
-    Node body_r = d_term_util->rewriteVtsSymbols(body);
-    Trace("quant-vts-debug") << "            ...result: " << body_r
-                             << std::endl;
-    body = body_r;
+    body = ir->rewriteInstantiation(q, terms, body, doVts);
   }
   return body;
 }
