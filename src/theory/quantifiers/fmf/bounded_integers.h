@@ -168,14 +168,26 @@ public:
   /**
    * Get the indices of bound variables, in the order they should be processed
    * in a RepSetIterator. For example, for q:
-   *   forall xyz. 0 <= x < 5 ^ 0 <= z <= x => P(x,y,z)
+   *   forall xyz. 0 <= x < 5 ^ 0 <= z <= x+7 => P(x,y,z)
    * this would add {1,3} to the vector indices, indicating that x has a finite
    * bound, z has a finite bound assuming x has a finite bound, and y does not
    * have a finite bound.
    */
   void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
-  /** Get bound elements
+  /** 
+   * Get bound elements
    *
+   * This gets the (finite) enumeration of the range of variable v of quantified 
+   * formula q and adds it into the vector elements in the context of the
+   * iteration being performed by rsi. It returns true if it could successfully
+   * determine this range.
+   * 
+   * This method determines the range of a variable depending on the current
+   * state of the iterator rsi and flag initial (which is true when rsi is
+   * being initialized). For example, if q is:
+   *   forall xy. 0 <= x < 5 ^ 0 <= y <= x+7 => P(x,y)
+   * v is y, and rsi currently maps x to 4, then we add the elements 0...11 to
+   * the vector elements.
    */
   bool getBoundElements(RepSetIterator* rsi,
                         bool initial,

@@ -19,6 +19,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
@@ -497,7 +498,7 @@ bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
                                          bool initial,
                                          Node q,
                                          Node v,
-                                         std::vector<Node>& elements)
+                                         std::vector<Node>& elements) const
 {
   quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
   if (bi)

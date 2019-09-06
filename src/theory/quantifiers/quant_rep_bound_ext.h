@@ -34,7 +34,8 @@ namespace quantifiers {
 /** Quantifiers representative bound
  *
  * This class is used for computing (finite) bounds for the domain of a
- * quantifier in the context of a RepSetIterator (see theory/rep_set.h).
+ * quantifier in the context of a RepSetIterator (see theory/rep_set.h)
+ * based on modules from the quantifiers engine.
  */
 class QRepBoundExt : public RepBoundExt
 {
