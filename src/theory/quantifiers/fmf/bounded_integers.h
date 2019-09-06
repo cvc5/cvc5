@@ -174,14 +174,14 @@ public:
    * have a finite bound.
    */
   void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
-  /** 
+  /**
    * Get bound elements
    *
-   * This gets the (finite) enumeration of the range of variable v of quantified 
+   * This gets the (finite) enumeration of the range of variable v of quantified
    * formula q and adds it into the vector elements in the context of the
    * iteration being performed by rsi. It returns true if it could successfully
    * determine this range.
-   * 
+   *
    * This method determines the range of a variable depending on the current
    * state of the iterator rsi and flag initial (which is true when rsi is
    * being initialized). For example, if q is:

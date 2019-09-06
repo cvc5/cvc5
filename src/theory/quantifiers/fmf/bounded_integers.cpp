@@ -301,7 +301,8 @@ void BoundedIntegers::setBoundedVar(Node q, Node v, BoundVarType bound_type)
   d_bound_type[q][v] = bound_type;
   d_set_nums[q][v] = d_set[q].size();
   d_set[q].push_back( v );
-  Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v << std::endl;
+  Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v
+                         << std::endl;
 }
 
 void BoundedIntegers::checkOwnership(Node f)
