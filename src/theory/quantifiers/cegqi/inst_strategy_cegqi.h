@@ -46,7 +46,8 @@ class InstRewriterCegqi : public InstantiationRewriter
    */
   Node rewriteInstantiation(Node q,
                             std::vector<Node>& terms,
-                            Node inst) override;
+                            Node inst,
+                            bool doVts) override;
 
  private:
   /** pointer to the parent of this class */
@@ -94,8 +95,6 @@ class InstStrategyCegqi : public QuantifiersModule
   void preRegisterQuantifier(Node q) override;
   // presolve
   void presolve() override;
-  /** Do nested quantifier elimination. */
-  Node doNestedQE(Node q, std::vector<Node>& inst_terms, Node lem, bool doVts);
 
   /**
    * Rewrite the instantiation inst of quantified formula q for terms; return
@@ -105,7 +104,8 @@ class InstStrategyCegqi : public QuantifiersModule
    * elimination. For details, see "Solving Quantified Linear Arithmetic via
    * Counterexample-Guided Instantiation" FMSD 2017, Reynolds et al.
    */
-  Node rewriteInstantiation(Node q, std::vector<Node>& terms, Node inst);
+  Node rewriteInstantiation(Node q, std::vector<Node>& terms, Node inst,
+                                    bool doVts);
   /** get the instantiation rewriter object */
   InstantiationRewriter* getInstRewriter() const;
 
@@ -220,6 +220,14 @@ class InstStrategyCegqi : public QuantifiersModule
   NodeIntMap d_nested_qe_waitlist_proc;
   std::map< Node, std::vector< Node > > d_nested_qe_waitlist;
 
+  /** Do nested quantifier elimination.
+   * 
+   * This rewrites the quantified formulas in inst based on nested quantifier
+   * elimination. In this method, lem is the instantiation of quantified formula
+   * q for the vector terms. The flag doVts is if we must apply virtual term
+   * substitution (if terms contains virtual terms).
+   */
+  Node doNestedQE(Node q, std::vector<Node>& terms, Node inst, bool doVts);
 };
 
 

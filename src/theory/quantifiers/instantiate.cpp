@@ -247,21 +247,15 @@ bool Instantiate::addInstantiation(
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_term_util->d_vars[q].size() == terms.size());
   // get the instantiation
-  Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
+  // FIXME
+  Node body = getInstantiation(q, d_term_util->d_vars[q], terms, false);
   Node orig_body = body;
   // notify rewriters
   for (InstantiationRewriter*& ir : d_instRewrite)
   {
-    body = ir->rewriteInstantiation(q, terms, body);
+    body = ir->rewriteInstantiation(q, terms, body, doVts);
   }
-  if (options::cbqiNestedQE())
-  {
-    InstStrategyCegqi* icegqi = d_qe->getInstStrategyCegqi();
-    if (icegqi)
-    {
-      body = icegqi->doNestedQE(q, terms, body, doVts);
-    }
-  }
+  // now preprocess
   body = quantifiers::QuantifiersRewriter::preprocess(body, true);
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 

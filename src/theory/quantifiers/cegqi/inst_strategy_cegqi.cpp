@@ -44,9 +44,10 @@ InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi* p)
 
 Node InstRewriterCegqi::rewriteInstantiation(Node q,
                                              std::vector<Node>& terms,
-                                             Node inst)
+                                             Node inst,
+                                             bool doVts)
 {
-  return d_parent->rewriteInstantiation(q, terms, inst);
+  return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
 
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
@@ -451,18 +452,23 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
 }
 Node InstStrategyCegqi::rewriteInstantiation(Node q,
                                              std::vector<Node>& terms,
-                                             Node inst)
+                                             Node inst,
+                                             bool doVts
+                                            )
 {
-  // do virtual term substitution
-  inst = Rewriter::rewrite(inst);
-  Trace("quant-vts-debug") << "Rewrite vts symbols in " << inst << std::endl;
-  Node instr = d_quantEngine->getTermUtil()->rewriteVtsSymbols(inst);
-  Trace("quant-vts-debug") << "...got " << instr << std::endl;
+  if( doVts )
+  {
+    // do virtual term substitution
+    inst = Rewriter::rewrite(inst);
+    Trace("quant-vts-debug") << "Rewrite vts symbols in " << inst << std::endl;
+    inst = d_quantEngine->getTermUtil()->rewriteVtsSymbols(inst);
+    Trace("quant-vts-debug") << "...got " << inst << std::endl;
+  }
   if (options::cbqiNestedQE())
   {
-    instr = doNestedQE(q, terms, instr, true);
+    inst = doNestedQE(q, terms, inst, doVts);
   }
-  return instr;
+  return inst;
 }
 
 InstantiationRewriter* InstStrategyCegqi::getInstRewriter() const

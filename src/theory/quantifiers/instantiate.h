@@ -85,10 +85,15 @@ class InstantiationRewriter
    *
    * The node inst is the instantiation of quantified formula q for terms.
    * This method returns the rewritten form of the instantiation.
+   * 
+   * The flag doVts is whether we must apply virtual term substitution to the
+   * instantiation.
    */
   virtual Node rewriteInstantiation(Node q,
                                     std::vector<Node>& terms,
-                                    Node inst) = 0;
+                                    Node inst,
+                                    bool doVts
+                                   ) = 0;
 };
 
 /** Instantiate
