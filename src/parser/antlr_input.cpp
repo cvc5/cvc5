@@ -30,7 +30,6 @@
 #include "parser/memory_mapped_input_buffer.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/smt1/smt1_input.h"
 #include "parser/smt2/smt2_input.h"
 #include "parser/smt2/sygus_input.h"
 #include "parser/tptp/tptp_input.h"
@@ -247,9 +246,6 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     input = new CvcInput(inputStream);
     break;
   }
-  case LANG_SMTLIB_V1:
-    input = new Smt1Input(inputStream);
-    break;
 
   case LANG_SYGUS:
   case LANG_SYGUS_V2: input = new SygusInput(inputStream); break;

@@ -82,10 +82,6 @@ static void readFile(const char* filename, InputLanguage fromLang, OutputLanguag
     unsigned len = strlen(filename);
     if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
       fromLang = language::input::LANG_SMTLIB_V2;
-    } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-      fromLang = language::input::LANG_SMTLIB_V1;
-    } else if(len >= 5 && !strcmp(".smt1", filename + len - 5)) {
-      fromLang = language::input::LANG_SMTLIB_V1;
     } else if((len >= 2 && !strcmp(".p", filename + len - 2)) ||
               (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
       fromLang = language::input::LANG_TPTP;
