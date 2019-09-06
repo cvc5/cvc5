@@ -300,11 +300,12 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
   }
   Trace("bint-engine") << "   addedLemma = " << addedLemma << std::endl;
 }
-void BoundedIntegers::setBoundedVar( Node q, Node v, BoundVarType bound_type ) {
+void BoundedIntegers::setBoundedVar(Node q, Node v, BoundVarType bound_type)
+{
   d_bound_type[q][v] = bound_type;
   d_set_nums[q][v] = d_set[q].size();
   d_set[q].push_back( v );
-  Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v << std::endl; 
+  Trace("bound-int-var") << "Bound variable #" << d_set_nums[q][v] << " : " << v << std::endl;
 }
 
 void BoundedIntegers::checkOwnership(Node f)
@@ -506,24 +507,27 @@ void BoundedIntegers::checkOwnership(Node f)
   }
 }
 
-bool BoundedIntegers::isBoundVar( Node q, Node v ) const
+bool BoundedIntegers::isBoundVar(Node q, Node v) const
 {
-  std::map< Node, std::vector< Node > >::const_iterator its = d_set.find(q);
-  if( its==d_set.end() )
+  std::map<Node, std::vector<Node> >::const_iterator its = d_set.find(q);
+  if (its == d_set.end())
   {
     return false;
   }
-  return std::find( its->second.begin(), its->second.end(), v )!=its->second.end();
+  return std::find(its->second.begin(), its->second.end(), v)
+         != its->second.end();
 }
 
-BoundVarType BoundedIntegers::getBoundVarType( Node q, Node v ) const {
-  std::map< Node, std::map< Node, BoundVarType > >::const_iterator itb = d_bound_type.find(q);
-  if( itb==d_bound_type.end())
+BoundVarType BoundedIntegers::getBoundVarType(Node q, Node v) const
+{
+  std::map<Node, std::map<Node, BoundVarType> >::const_iterator itb =
+      d_bound_type.find(q);
+  if (itb == d_bound_type.end())
   {
     return BOUND_NONE;
   }
-  std::map< Node, BoundVarType >::const_iterator it = itb->second.find( v );
-  if( it==itb->second.end() )
+  std::map<Node, BoundVarType>::const_iterator it = itb->second.find(v);
+  if (it == itb->second.end())
   {
     return BOUND_NONE;
   }
@@ -743,7 +747,7 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
 bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements ) {
   if( initial || !isGroundRange( q, v ) ){
     elements.clear();
-    BoundVarType bvt = getBoundVarType( q, v );
+    BoundVarType bvt = getBoundVarType(q, v);
     if( bvt==BOUND_INT_RANGE ){
       Node l, u;
       getBoundValues( q, v, rsi, l, u );

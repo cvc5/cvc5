@@ -234,9 +234,9 @@ public:
   virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 
-
 /** Types of bounds that can be inferred for quantified formulas */
-enum BoundVarType {
+enum BoundVarType
+{
   // a variable has a finite bound because it has finite cardinality
   BOUND_FINITE,
   // a variable has a finite bound because it is in an integer range, e.g.
@@ -252,7 +252,6 @@ enum BoundVarType {
   // a bound has not been inferred for the variable
   BOUND_NONE
 };
-
 }
 }
 

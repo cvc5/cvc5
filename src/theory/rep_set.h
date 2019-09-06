@@ -121,10 +121,10 @@ typedef std::vector< int > RepDomain;
 
 class RepBoundExt;
 
-/** 
-  * Representative set iterator enumeration type, which indicates how the
-  * bound on a variable was determined.
-  */
+/**
+ * Representative set iterator enumeration type, which indicates how the
+ * bound on a variable was determined.
+ */
 enum RsiEnumType
 {
   // the bound on the variable is invalid
@@ -273,8 +273,8 @@ class RepBoundExt
    *     of its i^th bound variable.
    */
   virtual RsiEnumType setBound(Node owner,
-                                               unsigned i,
-                                               std::vector<Node>& elements) = 0;
+                               unsigned i,
+                               std::vector<Node>& elements) = 0;
   /** reset index
    *
    * This method initializes iteration for the i^th

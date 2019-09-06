@@ -22,22 +22,18 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QRepBoundExt::QRepBoundExt(QuantifiersEngine * qe)
-: d_qe(qe)
-{
-}
-  
+QRepBoundExt::QRepBoundExt(QuantifiersEngine* qe) : d_qe(qe) {}
+
 RsiEnumType QRepBoundExt::setBound(Node owner,
-                                                   unsigned i,
-                                                   std::vector<Node>& elements)
+                                   unsigned i,
+                                   std::vector<Node>& elements)
 {
   // builtin: check if it is bound by bounded integer module
   if (owner.getKind() == FORALL)
   {
     if (d_qe->isBoundVar(owner, owner[0][i]))
     {
-      unsigned bvt =
-          d_qe->getBoundVarType(owner, owner[0][i]);
+      unsigned bvt = d_qe->getBoundVarType(owner, owner[0][i]);
       if (bvt != BoundedIntegers::BOUND_FINITE)
       {
         d_bound_int[i] = true;
@@ -63,8 +59,7 @@ bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
   if (d_bound_int.find(i) != d_bound_int.end())
   {
     Assert(owner.getKind() == FORALL);
-    if (!d_qe->getBoundElements(
-            rsi, initial, owner, owner[0][i], elements))
+    if (!d_qe->getBoundElements(rsi, initial, owner, owner[0][i], elements))
     {
       return false;
     }
@@ -86,12 +81,10 @@ bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
   }
   Trace("bound-int-rsi") << "Calculating variable order..." << std::endl;
   // we take the bounded variables first
-  for (unsigned i = 0, nbvs = d_qe->getNumBoundVars(owner); i < nbvs;
-        i++)
+  for (unsigned i = 0, nbvs = d_qe->getNumBoundVars(owner); i < nbvs; i++)
   {
     Node v = d_qe->getBoundVar(owner, i);
-    Trace("bound-int-rsi") << "  bound var #" << i << " is " << v
-                            << std::endl;
+    Trace("bound-int-rsi") << "  bound var #" << i << " is " << v << std::endl;
     varOrder.push_back(d_qe->getTermUtil()->getVariableNum(owner, v));
   }
   // then the unbounded ones
@@ -105,7 +98,6 @@ bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
   return true;
 }
 
-
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

@@ -20,13 +20,13 @@
 #include <map>
 
 #include "expr/node.h"
-#include "theory/theory_model.h"
-#include "theory/rep_set.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
+#include "theory/rep_set.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {
-  
+
 class QuantifiersEngine;
 
 namespace quantifiers {
@@ -39,12 +39,12 @@ namespace quantifiers {
 class QRepBoundExt : public RepBoundExt
 {
  public:
-  QRepBoundExt(QuantifiersEngine * qe);
+  QRepBoundExt(QuantifiersEngine* qe);
   virtual ~QRepBoundExt() {}
   /** set bound */
   RsiEnumType setBound(Node owner,
-                                       unsigned i,
-                                       std::vector<Node>& elements) override;
+                       unsigned i,
+                       std::vector<Node>& elements) override;
   /** reset index */
   bool resetIndex(RepSetIterator* rsi,
                   Node owner,
@@ -63,8 +63,8 @@ class QRepBoundExt : public RepBoundExt
   std::map<unsigned, bool> d_bound_int;
 };
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__FIRST_ORDER_MODEL_H */
