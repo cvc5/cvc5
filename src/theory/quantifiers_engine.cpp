@@ -444,13 +444,16 @@ bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
   return mo==m || mo==NULL;
 }
 
-bool QuantifiersEngine::isFiniteBound( Node q, Node v ) const {
-  quantifiers::BoundedIntegers * bi = d_private->d_bint.get();
-  if( bi && bi->isBound( q, v ) ){
+bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
+{
+  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  if (bi && bi->isBound(q, v))
+  {
     return true;
   }
   TypeNode tn = v.getType();
-  if( tn.isSort() && options::finiteModelFind() ){
+  if (tn.isSort() && options::finiteModelFind())
+  {
     return true;
   }
   else if (d_term_enum->mayComplete(tn))
@@ -462,39 +465,44 @@ bool QuantifiersEngine::isFiniteBound( Node q, Node v ) const {
 
 BoundVarType QuantifiersEngine::getBoundVarType(Node q, Node v) const
 {
-  quantifiers::BoundedIntegers * bi = d_private->d_bint.get();
-  if( bi )
+  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  if (bi)
   {
-    return bi->getBoundVarType(q,v);
+    return bi->getBoundVarType(q, v);
   }
-  return isFiniteBound(q,v) ? BOUND_FINITE : BOUND_NONE;
+  return isFiniteBound(q, v) ? BOUND_FINITE : BOUND_NONE;
 }
 
-void QuantifiersEngine::getBoundVarIndices(Node q, std::vector<unsigned>& indices) const
+void QuantifiersEngine::getBoundVarIndices(Node q,
+                                           std::vector<unsigned>& indices) const
 {
-  Assert( indices.empty() );
+  Assert(indices.empty());
   // we take the bounded variables first
-  quantifiers::BoundedIntegers * bi = d_private->d_bint.get();
-  if( bi )
+  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  if (bi)
   {
-    bi->getBoundVarIndices(q,indices);
+    bi->getBoundVarIndices(q, indices);
   }
   // then get the remaining ones
-  for (unsigned i=0, nvars=q[0].getNumChildren(); i<nvars; i++)
+  for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
-    if (std::find(indices.begin(),indices.end(),i)==indices.end())
+    if (std::find(indices.begin(), indices.end(), i) == indices.end())
     {
       indices.push_back(i);
     }
   }
 }
 
-bool QuantifiersEngine::getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements )
+bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
+                                         bool initial,
+                                         Node q,
+                                         Node v,
+                                         std::vector<Node>& elements)
 {
-  quantifiers::BoundedIntegers * bi = d_private->d_bint.get();
-  if( bi )
+  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  if (bi)
   {
-    return bi->getBoundElements(rsi,initial, q, v, elements );
+    return bi->getBoundElements(rsi, initial, q, v, elements);
   }
   return false;
 }

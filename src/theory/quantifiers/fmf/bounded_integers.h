@@ -41,8 +41,8 @@ private:
   bool hasNonBoundVar( Node f, Node b, std::map< Node, bool >& visited );
   bool hasNonBoundVar( Node f, Node b );
   /** The bound type for each quantified formula, variable pair */
-  std::map< Node, std::map< Node, BoundVarType > > d_bound_type;
-  /** 
+  std::map<Node, std::map<Node, BoundVarType>> d_bound_type;
+  /**
    * The ordered list of variables that are finitely bound, for each quantified
    * formulas. Variables that occur later in this list may depend on having
    * finite bounds for variables earlier in this list.
@@ -155,17 +155,17 @@ public:
   bool needsCheck(Theory::Effort e) override;
   void check(Theory::Effort e, QEffort quant_e) override;
   void checkOwnership(Node q) override;
-  /** 
+  /**
    * Is v a variable of quantified formula q that this class has inferred to
    * have a finite bound?
    */
-  bool isBound( Node q, Node v ) const;
-  /** 
+  bool isBound(Node q, Node v) const;
+  /**
    * Get the type of bound that was inferred for variable v of quantified
    * formula q, or BOUND_NONE if no bound was inferred.
    */
-  BoundVarType getBoundVarType( Node q, Node v ) const;
-  /** 
+  BoundVarType getBoundVarType(Node q, Node v) const;
+  /**
    * Get the indices of bound variables, in the order they should be processed
    * in a RepSetIterator. For example, for q:
    *   forall xyz. 0 <= x < 5 ^ 0 <= z <= x => P(x,y,z)
@@ -175,17 +175,22 @@ public:
    */
   void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
   /** Get bound elements
-   * 
+   *
    */
-  bool getBoundElements( RepSetIterator * rsi, bool initial, Node q, Node v, std::vector< Node >& elements );
+  bool getBoundElements(RepSetIterator* rsi,
+                        bool initial,
+                        Node q,
+                        Node v,
+                        std::vector<Node>& elements);
   /** Identify this module */
   std::string identify() const override { return "BoundedIntegers"; }
-private:
-  /** 
+
+ private:
+  /**
    * Set that variable v of quantified formula q has a finite bound, where
    * bound_type indicates how that bound was inferred.
-   */ 
-  void setBoundedVar( Node f, Node v, BoundVarType bound_type );
+   */
+  void setBoundedVar(Node f, Node v, BoundVarType bound_type);
   //for integer range
   Node getLowerBound( Node q, Node v ){ return d_bounds[0][q][v]; }
   Node getUpperBound( Node q, Node v ){ return d_bounds[1][q][v]; }

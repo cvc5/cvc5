@@ -22,19 +22,16 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QRepBoundExt::QRepBoundExt(QuantifiersEngine * qe)
-: d_qe(qe)
-{
-}
-  
+QRepBoundExt::QRepBoundExt(QuantifiersEngine* qe) : d_qe(qe) {}
+
 RsiEnumType QRepBoundExt::setBound(Node owner,
-                                                   unsigned i,
-                                                   std::vector<Node>& elements)
+                                   unsigned i,
+                                   std::vector<Node>& elements)
 {
   // builtin: check if it is bound by bounded integer module
   if (owner.getKind() == FORALL)
   {
-    BoundVarType bvt = d_qe->getBoundVarType(owner,owner[0][i]);
+    BoundVarType bvt = d_qe->getBoundVarType(owner, owner[0][i]);
     if (bvt != BOUND_FINITE)
     {
       d_bound_int[i] = true;
@@ -59,8 +56,7 @@ bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
     return true;
   }
   Assert(owner.getKind() == FORALL);
-  if (!d_qe->getBoundElements(
-          rsi, initial, owner, owner[0][i], elements))
+  if (!d_qe->getBoundElements(rsi, initial, owner, owner[0][i], elements))
   {
     return false;
   }
@@ -84,7 +80,6 @@ bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
   return true;
 }
 
-
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
