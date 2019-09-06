@@ -31,19 +31,26 @@ namespace quantifiers {
 
 class InstStrategyCegqi;
   
-/** An instantiation rewriter based on counterexample-guided instantiation */
+/** 
+ * An instantiation rewriter based on the counterexample-guided instantiation
+ * quantifiers module below.
+ */
 class InstRewriterCegqi : public InstantiationRewriter
 {
 public:
   InstRewriterCegqi(InstStrategyCegqi * p);
-  /** Rewrite the instantiation */
+  ~InstRewriterCegqi(){}
+  /** 
+   * Rewrite the instantiation via d_parent, based on virtual term substitution
+   * and nested quantifier elimination.
+   */
   Node rewriteInstantiation(
                                    Node q,
                                    std::vector<Node>& terms,
                                     Node inst) override;
 private:
   /** pointer to the parent of this class */
-  InstRewriterCegqi* d_parent;
+  InstStrategyCegqi* d_parent;
 };
   
 /**
@@ -90,11 +97,20 @@ class InstStrategyCegqi : public QuantifiersModule
   /** Do nested quantifier elimination. */
   Node doNestedQE(Node q, std::vector<Node>& inst_terms, Node lem, bool doVts);
   
-  /** Rewrite the instantiation inst of quantified formula q for terms. */
+  /** 
+   * Rewrite the instantiation inst of quantified formula q for terms; return
+   * the result.
+   * 
+   * We rewrite inst based on virtual term substitution and nested quantifier
+   * elimination. For details, see "Solving Quantified Linear Arithmetic via
+   * Counterexample-Guided Instantiation" FMSD 2017, Reynolds et al.
+   */
   Node rewriteInstantiation(
                                    Node q,
                                    std::vector<Node>& terms,
                                     Node inst);
+  /** get the instantiation rewriter object */
+  InstantiationRewriter * getInstRewriter() const;
   
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
@@ -102,7 +118,7 @@ class InstStrategyCegqi : public QuantifiersModule
   /** Add lemma lem via the output channel of this class. */
   bool addLemma(Node lem);
   //------------------- end interface for CegqiOutputInstStrategy
-
+  
  protected:
    /** The instantiation rewriter object */
    std::unique_ptr<InstRewriterCegqi> d_irew;

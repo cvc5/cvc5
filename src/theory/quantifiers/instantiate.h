@@ -79,6 +79,7 @@ class InstantiationRewriter
 {
  public:
   InstantiationRewriter(){}
+  virtual ~InstantiationRewriter(){}
   
   /** rewrite instantiation 
    * 

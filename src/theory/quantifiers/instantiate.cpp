@@ -249,10 +249,10 @@ bool Instantiate::addInstantiation(
   // get the instantiation
   Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
   Node orig_body = body;
-  // notify listeners
+  // notify rewriters
   for (InstantiationRewriter*& ir : d_instRewrite)
   {
-    body = ir->rewrite(q, terms, body);
+    body = ir->rewriteInstantiation(q, terms, body);
   }
   if (options::cbqiNestedQE())
   {
