@@ -432,7 +432,6 @@ static const std::string languageDescription =
 Languages currently supported as arguments to the -L / --lang option:\n\
   auto                           attempt to automatically determine language\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
-  smt1 | smtlib1                 SMT-LIB format 1.2\n\
   smt | smtlib | smt2 |\n\
   smt2.0 | smtlib2 | smtlib2.0   SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\

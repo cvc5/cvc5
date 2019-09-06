@@ -58,7 +58,7 @@
 (declare-fun ssPv2_19r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1 ($$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted) Bool)
 (declare-fun ssPv11_10r1r1r1r1r1r1r1r1r1r1 ($$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted) Bool)
 (declare-fun ssPv1_20r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1r1 ($$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted $$unsorted) Bool)
-(meta-info :filename "SYN874-1")
+(set-info :filename "SYN874-1")
 (assert true)
 (assert (forall ((U $$unsorted)) (ssNder1_1r1 U) ))
 (assert (forall ((U $$unsorted) (V $$unsorted)) (or (not (ssNder1_1r1 U)) (ssNder1_2r1r1 U V)) ))

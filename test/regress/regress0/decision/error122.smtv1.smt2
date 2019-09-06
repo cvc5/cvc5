@@ -1,0 +1,7 @@
+(set-option :incremental false)
+(set-info :status unsat)
+(set-logic QF_AUFBV)
+(declare-fun v0 () (_ BitVec 16))
+(declare-fun a1 () (Array (_ BitVec 16) (_ BitVec 4)))
+(declare-fun a2 () (Array (_ BitVec 16) (_ BitVec 7)))
+(check-sat-assuming ( (let ((_let_0 ((_ zero_extend 2) (_ bv8911 14)))) (let ((_let_1 (select (store a2 v0 ((_ extract 13 7) v0)) _let_0))) (let ((_let_2 (bvadd ((_ zero_extend 6) (ite (bvsgt _let_0 v0) (_ bv1 1) (_ bv0 1))) _let_1))) (let ((_let_3 (ite (bvult _let_2 _let_1) (_ bv1 1) (_ bv0 1)))) (let ((_let_4 (ite (bvult ((_ zero_extend 3) _let_3) (select a1 v0)) (_ bv1 1) (_ bv0 1)))) (let ((_let_5 (ite (= (_ bv1 1) ((_ extract 12 12) (_ bv8911 14))) (bvlshr ((_ sign_extend 12) (select a1 v0)) v0) (bvlshr ((_ sign_extend 12) (select a1 v0)) v0)))) (let ((_let_6 ((_ sign_extend 15) _let_3))) (let ((_let_7 (bvult v0 _let_6))) (and (or (= (and (distinct (_ bv8911 14) ((_ sign_extend 13) _let_3)) (bvugt _let_2 _let_2)) (bvslt _let_5 v0)) (= (or (bvslt _let_1 ((_ sign_extend 6) (ite (bvsgt _let_0 v0) (_ bv1 1) (_ bv0 1)))) (distinct ((_ zero_extend 6) _let_3) _let_1)) (bvule _let_4 _let_4))) (not (=> (and (xor (bvslt ((_ zero_extend 9) _let_2) v0) (and _let_7 _let_7)) (not (distinct _let_6 v0))) (and (= (xor (bvuge _let_4 _let_4) (bvult ((_ sign_extend 15) (ite (bvsgt _let_0 v0) (_ bv1 1) (_ bv0 1))) (bvlshr ((_ sign_extend 12) (select a1 v0)) v0))) (and (= _let_6 _let_5) (bvslt _let_5 ((_ sign_extend 9) _let_2)))) (bvule ((_ zero_extend 12) (select a1 v0)) _let_5))))))))))))) ))

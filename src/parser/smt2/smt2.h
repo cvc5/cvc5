@@ -27,7 +27,6 @@
 
 #include "api/cvc4cpp.h"
 #include "parser/parser.h"
-#include "parser/smt1/smt1.h"
 #include "parser/smt2/parse_op.h"
 #include "smt/command.h"
 #include "theory/logic_info.h"
