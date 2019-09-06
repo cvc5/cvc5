@@ -420,7 +420,6 @@ set(regress_0_tests
   regress0/define-fun-model.smt2
   regress0/distinct.smtv1.smt2
   regress0/expect/scrub.01.smtv1.smt2
-  regress0/expect/scrub.02.smtv1.smt2
   regress0/expect/scrub.03.smt2
   regress0/expect/scrub.06.cvc
   regress0/expect/scrub.08.sy

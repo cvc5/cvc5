@@ -7,3 +7,6 @@
 (set-info :status unknown)
 (set-logic QF_LRA)
 (declare-fun n () Real)
+(assert (= (/ n n) 1))
+(check-sat)
+(exit)
