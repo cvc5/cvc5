@@ -200,26 +200,6 @@ Node TermUtil::getInstConstantBody( Node q ){
   }
 }
 
-Node TermUtil::getCounterexampleLiteral( Node q ){
-  if( d_ce_lit.find( q )==d_ce_lit.end() ){
-    /*
-    Node ceBody = getInstConstantBody( f );
-    //check if any variable are of bad types, and fail if so
-    for( size_t i=0; i<d_inst_constants[f].size(); i++ ){
-      if( d_inst_constants[f][i].getType().isBoolean() ){
-        d_ce_lit[ f ] = Node::null();
-        return Node::null();
-      }
-    }
-    */
-    Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
-    //otherwise, ensure literal
-    Node ceLit = d_quantEngine->getValuation().ensureLiteral( g );
-    d_ce_lit[ q ] = ceLit;
-  }
-  return d_ce_lit[ q ];
-}
-
 Node TermUtil::substituteBoundVariablesToInstConstants(Node n, Node q)
 {
   registerQuantifier( q );
@@ -612,14 +592,21 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
   return n.getAttribute(ContainsUConstAttribute())!=0;
 }
 
-Node TermUtil::simpleNegate( Node n ){
+Node TermUtil::simpleNegate(Node n)
+{
+  Assert(n.getType().isBoolean());
+  NodeManager* nm = NodeManager::currentNM();
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
     for (const Node& cn : n)
     {
       children.push_back(simpleNegate(cn));
     }
-    return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
+    return nm->mkNode(n.getKind() == OR ? AND : OR, children);
+  }
+  else if (n.isConst())
+  {
+    return nm->mkConst(!n.getConst<bool>());
   }
   return n.negate();
 }

@@ -336,7 +336,6 @@ set(regress_0_tests
   regress0/datatypes/boolean-equality.cvc
   regress0/datatypes/boolean-terms-datatype.cvc
   regress0/datatypes/boolean-terms-parametric-datatype-1.cvc
-  regress0/datatypes/boolean-terms-parametric-datatype-2.cvc
   regress0/datatypes/boolean-terms-record.cvc
   regress0/datatypes/boolean-terms-rewrite.cvc
   regress0/datatypes/boolean-terms-tuple.cvc
@@ -423,7 +422,6 @@ set(regress_0_tests
   regress0/expect/scrub.01.smt
   regress0/expect/scrub.02.smt
   regress0/expect/scrub.03.smt2
-  regress0/expect/scrub.04.smt2
   regress0/expect/scrub.06.cvc
   regress0/expect/scrub.08.sy
   regress0/expect/scrub.09.p
@@ -497,9 +495,7 @@ set(regress_0_tests
   regress0/ho/simple-matching.smt2
   regress0/ho/trans.smt2
   regress0/hung10_itesdk_output1.smt2
-  regress0/hung10_itesdk_output2.smt2
   regress0/hung13sdk_output1.smt2
-  regress0/hung13sdk_output2.smt2
   regress0/ineq_basic.smt
   regress0/ineq_slack.smt
   regress0/issue1063-overloading-dt-cons.smt2
@@ -696,7 +692,6 @@ set(regress_0_tests
   regress0/quantifiers/rew-to-scala.smt2
   regress0/quantifiers/simp-len.smt2
   regress0/quantifiers/simp-typ-test.smt2
-  regress0/queries0.cvc
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc
   regress0/rels/atom_univ2.cvc
@@ -844,6 +839,7 @@ set(regress_0_tests
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
   regress0/strings/bug613.smt2
+  regress0/strings/code-perf.smt2
   regress0/strings/code-sat-neg-one.smt2
   regress0/strings/escchar.smt2
   regress0/strings/escchar_25.smt2
@@ -862,6 +858,8 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/re.all.smt2
+  regress0/strings/regexp_inclusion.smt2
+  regress0/strings/regexp_inclusion_reduction.smt2
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-const.smt2
   regress0/strings/replaceall-eval.smt2
@@ -1102,7 +1100,6 @@ set(regress_1_tests
   regress1/auflia/bug330.smt2
   regress1/boolean-terms-kernel2.smt2
   regress1/boolean.cvc
-  regress1/bug216.smt2
   regress1/bug296.smt2
   regress1/bug425.cvc
   regress1/bug507.smt2
@@ -1358,6 +1355,7 @@ set(regress_1_tests
   regress1/quantifiers/dump-inst.smt2
   regress1/quantifiers/ext-ex-deq-trigger.smt2
   regress1/quantifiers/extract-nproc.smt2
+  regress1/quantifiers/f993-loss-easy.smt2
   regress1/quantifiers/florian-case-ax.smt2
   regress1/quantifiers/fp-cegqi-unsat.smt2
   regress1/quantifiers/gauss_init_0030.fof.smt2
@@ -1369,6 +1367,7 @@ set(regress_1_tests
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
+  regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
   regress1/quantifiers/mix-coeff.smt2
@@ -1435,7 +1434,6 @@ set(regress_1_tests
   regress1/rels/iden_1_1.cvc
   regress1/rels/join-eq-structure-and.cvc
   regress1/rels/join-eq-structure.cvc
-  regress1/rels/join-eq-structure_0_1.cvc
   regress1/rels/joinImg_0_1.cvc
   regress1/rels/joinImg_0_2.cvc
   regress1/rels/joinImg_1.cvc
@@ -1459,7 +1457,6 @@ set(regress_1_tests
   regress1/rels/rel_tp_join_2_1.cvc
   regress1/rels/set-strat.cvc
   regress1/rels/strat.cvc
-  regress1/rels/strat_0_1.cvc
   regress1/rewriterules/datatypes_sat.smt2
   regress1/rewriterules/length_gen.smt2
   regress1/rewriterules/length_gen_020.smt2
@@ -1570,6 +1567,7 @@ set(regress_1_tests
   regress1/strings/issue2981.smt2
   regress1/strings/issue2982.smt2
   regress1/strings/issue3090.smt2
+  regress1/strings/issue3217.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1676,6 +1674,10 @@ set(regress_1_tests
   regress1/sygus/inv-unused.sy
   regress1/sygus/issue2914.sy
   regress1/sygus/issue2935.sy
+  regress1/sygus/issue3199.smt2
+  regress1/sygus/issue3200.smt2
+  regress1/sygus/issue3201.smt2
+  regress1/sygus/issue3205.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -1759,7 +1761,6 @@ set(regress_2_tests
   regress2/arith/prp-13-24.smt2
   regress2/arith/pursuit-safety-11.smt
   regress2/arith/pursuit-safety-12.smt
-  regress2/arith/qlock-4-10-9.base.cvc.smt2
   regress2/arith/real2int-test.smt2
   regress2/arith/sc-7.base.cvc.smt
   regress2/arith/uart-8.base.cvc.smt
@@ -1801,7 +1802,6 @@ set(regress_2_tests
   regress2/quantifiers/javafe.ast.WhileStmt.447.smt2
   regress2/quantifiers/javafe.tc.CheckCompilationUnit.001.smt2
   regress2/quantifiers/javafe.tc.FlowInsensitiveChecks.682.smt2
-  regress2/quantifiers/mutualrec2.cvc
   regress2/quantifiers/net-policy-no-time.smt2
   regress2/quantifiers/nunchaku2309663.nun.min.smt2
   regress2/quantifiers/specsharp-WindowsCard.15.RTE.Terminate_System.Int32.smt2
@@ -1811,9 +1811,11 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/issue3203.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
+  regress2/strings/range-perf.smt2
   regress2/strings/repl-repl.smt2
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
@@ -1840,7 +1842,6 @@ set(regress_2_tests
   regress2/sygus/vcb.sy
   regress2/typed_v1l50016-simp.cvc
   regress2/uflia-error0.smt2
-  regress2/xs-09-16-3-4-1-5.decn.smt
   regress2/xs-09-16-3-4-1-5.smt
 )
 
@@ -1856,7 +1857,6 @@ set(regress_3_tests
   regress3/friedman_n6_i4.smt
   regress3/hole9.cvc
   regress3/incorrect1.smt
-  regress3/incorrect2.smt
   regress3/issue2429.smt2
   regress3/pp-regfile.smt
   regress3/qwh.35.405.shuffled-as.sat03-1651.smt
@@ -1907,7 +1907,6 @@ set(regression_disabled_tests
   regress0/aufbv/wchains010ue.smt
   regress0/auflia/fuzz01.smt
   regress0/bug2.smt
-  regress0/bug374.delta01.smt
   regress0/bug374.smt
   regress0/bv/bug345.smt
   regress0/bv/bvcomp.cvc
