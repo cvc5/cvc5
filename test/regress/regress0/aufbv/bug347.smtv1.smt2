@@ -1,6 +1,6 @@
 (set-option :incremental false)
-(meta-info :status sat)
-(meta-info :category "unknown")
+(set-info :status sat)
+(set-info :category "unknown")
 (set-logic QF_AUFBV)
 (declare-fun delete_0_val_1 () (_ BitVec 32))
 (declare-fun delete_0_curr_6 () (_ BitVec 32))

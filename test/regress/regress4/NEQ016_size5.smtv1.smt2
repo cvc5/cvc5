@@ -1,12 +1,12 @@
 (set-option :incremental false)
-(meta-info :source "CADE ATP System competition. See http://www.cs.miami.edu/~tptp/CASC
+(set-info :source "CADE ATP System competition. See http://www.cs.miami.edu/~tptp/CASC
  for more information. 
 
 This benchmark was obtained by trying to find a finite model of a first-order 
 formula (Albert Oliveras).")
-(meta-info :status unsat)
-(meta-info :category "crafted")
-(meta-info :difficulty "0")
+(set-info :status unsat)
+(set-info :category "crafted")
+(set-info :difficulty "0")
 (set-logic QF_UF)
 (declare-sort U 0)
 (declare-fun p2 (U) Bool)

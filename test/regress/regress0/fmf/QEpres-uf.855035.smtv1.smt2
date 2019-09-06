@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
 (set-option :incremental false)
-(meta-info :status sat)
+(set-info :status sat)
 (set-logic AUFLIA)
 (declare-sort S1 0)
 (declare-sort S2 0)

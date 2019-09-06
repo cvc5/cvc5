@@ -1,14 +1,14 @@
 ; COMMAND-LINE: --no-check-proofs
 (set-option :incremental false)
-(meta-info :source "SAL benchmark suite.  Created at SRI by Bruno Dutertre, John Rushby, Maria
+(set-info :source "SAL benchmark suite.  Created at SRI by Bruno Dutertre, John Rushby, Maria
 Sorea, and Leonardo de Moura.  Contact demoura@csl.sri.com for more
 information.
 
 This benchmark was automatically translated into SMT-LIB format from
 CVC format using CVC Lite")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "0")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "0")
 (set-logic QF_LRA)
 (declare-fun x_0 () Bool)
 (declare-fun x_1 () Bool)

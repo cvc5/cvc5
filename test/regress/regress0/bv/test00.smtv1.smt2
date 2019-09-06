@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :source "We verify the correctness of an unsigned multiplication
+(set-info :source "We verify the correctness of an unsigned multiplication
 overflow detection unit, which is described in
 \"Combined Unsigned and Two's Complement Saturating Multipliers\"
 by M. Schulte et al.
@@ -7,9 +7,9 @@ by M. Schulte et al.
 Bit-width: 4
 
 Contributed by Robert Brummayer (robert.brummayer@gmail.com).")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "0")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "0")
 (set-logic QF_BV)
 (declare-fun v1 () (_ BitVec 4))
 (declare-fun v2 () (_ BitVec 4))

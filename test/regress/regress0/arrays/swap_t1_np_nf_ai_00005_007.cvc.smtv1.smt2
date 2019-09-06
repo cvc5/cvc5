@@ -1,12 +1,12 @@
 (set-option :incremental false)
-(meta-info :source "Benchmarks used in the followin paper:
+(set-info :source "Benchmarks used in the followin paper:
 Big proof engines as little proof engines: new results on rewrite-based satisfiability procedure
 Alessandro Armando, Maria Paola Bonacina, Silvio Ranise, Stephan Schulz. 
 PDPAR'05
 http://www.ai.dist.unige.it/pdpar05/")
-(meta-info :status unsat)
-(meta-info :difficulty "0")
-(meta-info :category "crafted")
+(set-info :status unsat)
+(set-info :difficulty "0")
+(set-info :category "crafted")
 (set-logic QF_AUF)
 (declare-sort Index 0)
 (declare-sort Element 0)

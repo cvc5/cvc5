@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status unknown)
+(set-info :status unknown)
 (set-logic QF_AUFBV)
 (declare-fun full_fq_2 () (_ BitVec 1))
 (declare-fun full_fs_2 () (_ BitVec 1))

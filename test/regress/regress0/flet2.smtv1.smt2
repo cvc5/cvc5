@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status sat)
+(set-info :status sat)
 (set-logic QF_UF)
 (declare-sort U 0)
 (declare-fun a () Bool)

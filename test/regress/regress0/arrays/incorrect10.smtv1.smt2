@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --no-check-proofs
 ; EXPECT: unsat
 (set-option :incremental false)
-(meta-info :status unsat)
+(set-info :status unsat)
 (set-logic QF_AUF)
 (declare-sort Index 0)
 (declare-sort Element 0)

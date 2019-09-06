@@ -1,10 +1,10 @@
 ; COMMAND-LINE: --decision=justification
 ; EXPECT: unsat
 (set-option :incremental false)
-(meta-info :source "MathSat group")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "2")
+(set-info :source "MathSat group")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "2")
 (set-logic QF_UFLIA)
 (declare-fun fmt1 () Int)
 (declare-fun fmt0 () Int)

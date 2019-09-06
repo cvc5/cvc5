@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --decision=justification
 ; EXPECT: unsat
 (set-option :incremental false)
-(meta-info :status unknown)
+(set-info :status unknown)
 (set-logic QF_AUFLIA)
 (declare-fun REGFILE_INIT () (Array Int Int))
 (declare-fun BDEST_S2E_INIT () Int)

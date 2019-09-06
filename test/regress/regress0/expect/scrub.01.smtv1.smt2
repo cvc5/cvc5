@@ -4,6 +4,6 @@
 ; EXPECT: ")
 ; EXIT: 1
 (set-option :incremental false)
-(meta-info :status unknown)
+(set-info :status unknown)
 (set-logic QF_LRA)
 (declare-fun n () Real)

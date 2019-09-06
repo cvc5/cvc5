@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status unsat)
+(set-info :status unsat)
 (set-logic QF_LRA)
 (declare-fun x_34 () Real)
 (declare-fun x_13 () Real)

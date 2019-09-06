@@ -1,12 +1,12 @@
 ; COMMAND-LINE: --miplib-trick
 ; EXPECT: unsat
 (set-option :incremental false)
-(meta-info :source "Relaxation of the Mixed-Integer Programming
+(set-info :source "Relaxation of the Mixed-Integer Programming
 optimization problem pp08a from the MIPLIB (http://miplib.zib.de/)
 by Enric Rodriguez-Carbonell (erodri@lsi.upc.edu)")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "2")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "2")
 (set-logic QF_LRA)
 (declare-fun tmp75 () Real)
 (declare-fun tmp74 () Real)

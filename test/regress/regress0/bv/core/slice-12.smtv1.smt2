@@ -5,7 +5,7 @@
 ; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=er --check-proofs --no-check-unsat-cores
 ; EXPECT: unsat
 (set-option :incremental false)
-(meta-info :status unsat)
+(set-info :status unsat)
 (set-logic QF_BV)
 (declare-fun x () (_ BitVec 8))
 (declare-fun y () (_ BitVec 8))

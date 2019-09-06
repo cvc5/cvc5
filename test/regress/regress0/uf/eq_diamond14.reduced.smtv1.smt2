@@ -1,6 +1,6 @@
 (set-option :incremental false)
-(meta-info :source "Reduced by delta debugger from eq_diamond14 to fix a UF bug.")
-(meta-info :status unsat)
+(set-info :source "Reduced by delta debugger from eq_diamond14 to fix a UF bug.")
+(set-info :status unsat)
 (set-logic QF_UF)
 (declare-sort U 0)
 (declare-sort V 0)

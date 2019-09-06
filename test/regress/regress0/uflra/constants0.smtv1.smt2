@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --no-check-proofs
 (set-option :incremental false)
-(meta-info :status unsat)
-(meta-info :category "crafted")
+(set-info :status unsat)
+(set-info :category "crafted")
 (set-logic QF_UFLRA)
 (declare-fun f (Real) Real)
 (declare-fun x () Real)

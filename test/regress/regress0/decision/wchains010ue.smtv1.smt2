@@ -1,13 +1,13 @@
 ; COMMAND-LINE: --decision=justification
 ; EXPECT: unsat
 (set-option :incremental false)
-(meta-info :source "This benchmark generates write chain permutations and tries to show
+(set-info :source "This benchmark generates write chain permutations and tries to show
 via extensionality that they are equal.
 
 Contributed by Armin Biere (armin.biere@jku.at).")
-(meta-info :status unsat)
-(meta-info :category "crafted")
-(meta-info :difficulty "2")
+(set-info :status unsat)
+(set-info :category "crafted")
+(set-info :difficulty "2")
 (set-logic QF_AUFBV)
 (declare-fun a1 () (Array (_ BitVec 32) (_ BitVec 8)))
 (declare-fun v6 () (_ BitVec 32))

@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :source "Fully parameterized specification and verification of a synchronizer   
+(set-info :source "Fully parameterized specification and verification of a synchronizer   
 circuit modeling metastability at various levels of refinement.     
 A paper describing this specification, to be published in Designing     
 Correct Circuits (DCC), 2006, is available from the authors.            
@@ -11,9 +11,9 @@ Translated into CVC format by Leonardo de Moura.
 
 This benchmark was automatically translated into SMT-LIB format from
 CVC format using CVC Lite")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "0")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "0")
 (set-logic QF_LRA)
 (declare-fun x_0 () Bool)
 (declare-fun x_1 () Bool)

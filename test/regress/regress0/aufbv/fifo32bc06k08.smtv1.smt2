@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :source "This benchmark comes from bounded model checking of two fifo implementations.
+(set-info :source "This benchmark comes from bounded model checking of two fifo implementations.
 The fifos are resetted once at the beginning. We show that the
 implementations are behaviorally equivalent up to a bound of 8 clock cycles.
 Fifo inputs: 'enqueue', 'dequeue', 'reset' (active low) and 'data_in'.
@@ -8,9 +8,9 @@ Bit-width: 32
 The fifos have an internal memory of size 64, respectively modelled as array.
 
 Contributed by Robert Brummayer (robert.brummayer@gmail.com).")
-(meta-info :status unsat)
-(meta-info :category "crafted")
-(meta-info :difficulty "2")
+(set-info :status unsat)
+(set-info :category "crafted")
+(set-info :difficulty "2")
 (set-logic QF_AUFBV)
 (declare-fun head_fs_0 () (_ BitVec 6))
 (declare-fun tail_fs_0 () (_ BitVec 6))

@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status unsat)
+(set-info :status unsat)
 (set-logic QF_UFLIA)
 (declare-fun s_count (Int) Int)
 (declare-fun fmt1 () Int)

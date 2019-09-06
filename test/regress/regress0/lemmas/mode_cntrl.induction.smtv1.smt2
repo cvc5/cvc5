@@ -1,11 +1,11 @@
 (set-option :incremental false)
-(meta-info :source "The Formal Verification of a Reintegration Protocol. Author: Lee Pike. Website: http://www.cs.indiana.edu/~lepike/pub_pages/emsoft.html.
+(set-info :source "The Formal Verification of a Reintegration Protocol. Author: Lee Pike. Website: http://www.cs.indiana.edu/~lepike/pub_pages/emsoft.html.
 
 This benchmark was automatically translated into SMT-LIB format from
 CVC format using CVC Lite")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "0")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "0")
 (set-logic QF_LRA)
 (declare-fun x_0 () Real)
 (declare-fun x_1 () Bool)

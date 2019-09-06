@@ -1,12 +1,12 @@
 (set-option :incremental false)
-(meta-info :source "Generating minimum transitivity constraints in P-time for deciding Equality Logic,
+(set-info :source "Generating minimum transitivity constraints in P-time for deciding Equality Logic,
 Ofer Strichman and Mirron Rozanov,
 SMT Workshop 2005.
 
 Translator: Leonardo de Moura.")
-(meta-info :status unsat)
-(meta-info :category "crafted")
-(meta-info :difficulty "0")
+(set-info :status unsat)
+(set-info :category "crafted")
+(set-info :difficulty "0")
 (set-logic QF_BV)
 (declare-fun x0 () (_ BitVec 32))
 (declare-fun y0 () (_ BitVec 32))

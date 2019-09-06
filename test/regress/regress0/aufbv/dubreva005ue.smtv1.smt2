@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :source "We reverse an array of length 5 twice in memory at 5 positions.
+(set-info :source "We reverse an array of length 5 twice in memory at 5 positions.
 We show via extensionality that memory has to be equal.
 
 In one case swapping elements is done via XOR in the following way:
@@ -9,9 +9,9 @@ x ^= y;
 In the other case the elements are just swapped.
 
 Contributed by Robert Brummayer (robert.brummayer@gmail.com).")
-(meta-info :status unsat)
-(meta-info :category "crafted")
-(meta-info :difficulty "2")
+(set-info :status unsat)
+(set-info :category "crafted")
+(set-info :difficulty "2")
 (set-logic QF_AUFBV)
 (declare-fun a1 () (Array (_ BitVec 32) (_ BitVec 8)))
 (declare-fun start1 () (_ BitVec 32))

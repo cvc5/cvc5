@@ -13,5 +13,5 @@
 (assert (forall ((Xx nat) (Xy nat)) (=> (= (suc Xx) (suc Xy)) (= Xx Xy)) ))
 (assert (forall ((Xx nat)) (=> (not (= Xx n_1)) (some (lambda ((Xu nat)) (= Xx (suc Xu))))) ))
 (assert (not (not (=> (forall ((Xx_0 nat) (Xy nat)) (=> (= x (suc Xx_0)) (=> (= x (suc Xy)) (= Xx_0 Xy))) ) (not (some (lambda ((Xu nat)) (= x (suc Xu)))))))))
-(meta-info :filename "NUM638^1")
+(set-info :filename "NUM638^1")
 (check-sat-assuming ( (not false) ))

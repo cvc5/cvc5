@@ -1,6 +1,6 @@
 (set-option :incremental false)
-(meta-info :status sat)
-(meta-info :category "unknown")
+(set-info :status sat)
+(set-info :category "unknown")
 (set-logic QF_BV)
 (declare-fun x781 () (_ BitVec 32))
 (declare-fun x803 () (_ BitVec 8))

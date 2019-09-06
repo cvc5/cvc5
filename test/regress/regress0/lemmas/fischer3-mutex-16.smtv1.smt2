@@ -1,10 +1,10 @@
 (set-option :incremental false)
-(meta-info :source "Source unknown
+(set-info :source "Source unknown
 This benchmark was automatically translated into SMT-LIB format from
 CVC format using CVC Lite")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "0")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "0")
 (set-logic QF_RDL)
 (declare-fun cvclZero () Real)
 (declare-fun x_0 () Bool)

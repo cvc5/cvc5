@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status sat)
+(set-info :status sat)
 (set-logic QF_UFLIA)
 (declare-fun fmt_length () Int)
 (declare-fun fmt1 () Int)

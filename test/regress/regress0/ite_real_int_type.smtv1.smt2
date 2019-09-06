@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status sat)
+(set-info :status sat)
 (set-logic QF_LRA)
 (declare-fun x () Real)
 (declare-fun y () Real)

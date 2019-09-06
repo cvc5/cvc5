@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --decision=justification
 ; EXPECT: unsat
 (set-option :incremental false)
-(meta-info :status unknown)
+(set-info :status unknown)
 (set-logic AUFLIA)
 (declare-fun f0 (Int Int) Int)
 (declare-fun f1 ((Array Int Int) (Array Int Int) (Array Int Int)) (Array Int Int))

@@ -1,6 +1,6 @@
 (set-option :incremental false)
-(meta-info :status sat)
-(meta-info :status unknown)
+(set-info :status sat)
+(set-info :status unknown)
 (set-logic QF_AUF)
 (declare-sort Index 0)
 (declare-sort Element 0)

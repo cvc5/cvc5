@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status unknown)
+(set-info :status unknown)
 (set-logic QF_UFLIA)
 (declare-fun select_format (Int) Int)
 (declare-fun adr_lo () Int)

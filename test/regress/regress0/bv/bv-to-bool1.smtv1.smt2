@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --bv-to-bool
 ; EXPECT: sat
 (set-option :incremental false)
-(meta-info :status sat)
+(set-info :status sat)
 (set-logic QF_BV)
 (declare-fun v0 () (_ BitVec 16))
 (declare-fun v1 () (_ BitVec 2))

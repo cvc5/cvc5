@@ -1,9 +1,9 @@
 (set-option :incremental false)
-(meta-info :source "The benchmarks come from Bounded Model Checking of software.
+(set-info :source "The benchmarks come from Bounded Model Checking of software.
 Contributed by Lorenzo Platania (c1009@unige.it).")
-(meta-info :status unknown)
-(meta-info :difficulty "unknown")
-(meta-info :category "industrial")
+(set-info :status unknown)
+(set-info :difficulty "unknown")
+(set-info :category "industrial")
 (set-logic QF_AUFBV)
 (declare-fun main_0_head_0 () (_ BitVec 32))
 (declare-fun main_0_head_1 () (_ BitVec 32))

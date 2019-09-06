@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status sat)
+(set-info :status sat)
 (set-logic QF_UFLIA)
 (declare-fun arg1 () Int)
 (declare-fun adr_lo () Int)

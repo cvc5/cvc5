@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status unsat)
+(set-info :status unsat)
 (set-logic QF_BV)
 (declare-fun x () (_ BitVec 8))
 (declare-fun y () (_ BitVec 8))

@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status sat)
+(set-info :status sat)
 (set-logic QF_AUFBV)
 (declare-fun R_ESP_1_58 () (_ BitVec 32))
 (declare-fun mem_35_224 () (Array (_ BitVec 32) (_ BitVec 8)))

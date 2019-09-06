@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :source "This benchmark comes from bounded model checking of two fifo implementations.
+(set-info :source "This benchmark comes from bounded model checking of two fifo implementations.
 The fifos are resetted once at the beginning.
 We try to verify behavioral equivalence with k-induction.
 All different constraints are disabled.
@@ -10,9 +10,9 @@ k: 8
 The fifos have an internal memory of size 64, respectively modelled as array.
 
 Contributed by Robert Brummayer (robert.brummayer@gmail.com).")
-(meta-info :status sat)
-(meta-info :category "crafted")
-(meta-info :difficulty "5")
+(set-info :status sat)
+(set-info :category "crafted")
+(set-info :difficulty "5")
 (set-logic QF_AUFBV)
 (declare-fun head_fs_0 () (_ BitVec 6))
 (declare-fun tail_fs_0 () (_ BitVec 6))

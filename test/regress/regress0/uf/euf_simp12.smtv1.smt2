@@ -1,6 +1,6 @@
 (set-option :incremental false)
-(meta-info :status unsat)
-(meta-info :category "crafted")
+(set-info :status unsat)
+(set-info :category "crafted")
 (set-logic QF_UF)
 (declare-sort U 0)
 (declare-sort A 0)

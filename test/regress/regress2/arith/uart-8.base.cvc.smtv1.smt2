@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :source "Specification and verification of a 8N1 decoder.
+(set-info :source "Specification and verification of a 8N1 decoder.
 Geoffrey Brown, Indiana University <geobrown@cs.indiana.edu>
 Lee Pike, Galois Connections, Inc. <leepike@galois.com> 
 
@@ -7,9 +7,9 @@ Translated into CVC format by Leonardo de Moura.
 
 This benchmark was automatically translated into SMT-LIB format from
 CVC format using CVC Lite")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "0")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "0")
 (set-logic QF_LRA)
 (declare-fun x_0 () Real)
 (declare-fun x_1 () Real)

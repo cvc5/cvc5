@@ -1,5 +1,5 @@
 (set-option :incremental false)
-(meta-info :status sat)
+(set-info :status sat)
 (set-logic QF_BV)
 (declare-fun UCL_p16 () Bool)
 (declare-fun UCL_p34 () Bool)

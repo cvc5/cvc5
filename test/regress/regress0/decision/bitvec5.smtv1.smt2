@@ -1,12 +1,12 @@
 ; COMMAND-LINE: --decision=justification
 ; EXPECT: unsat
 (set-option :incremental false)
-(meta-info :source "Hand-crafted bit-vector benchmarks.  Some are from the SVC benchmark suite.
+(set-info :source "Hand-crafted bit-vector benchmarks.  Some are from the SVC benchmark suite.
 Contributed by Vijay Ganesh (vganesh@stanford.edu).  Translated into SMT-LIB
 format by Clark Barrett using CVC3.")
-(meta-info :status unsat)
-(meta-info :difficulty "0")
-(meta-info :category "crafted")
+(set-info :status unsat)
+(set-info :difficulty "0")
+(set-info :category "crafted")
 (set-logic QF_BV)
 (declare-fun a () (_ BitVec 32))
 (declare-fun b () (_ BitVec 32))

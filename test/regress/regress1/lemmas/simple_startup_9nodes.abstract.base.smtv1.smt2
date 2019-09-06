@@ -1,9 +1,9 @@
 ; COMMAND-LINE: --no-check-proofs
 (set-option :incremental false)
-(meta-info :source "TTA Startup. Bruno Dutertre (bruno@csl.sri.com)")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "0")
+(set-info :source "TTA Startup. Bruno Dutertre (bruno@csl.sri.com)")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "0")
 (set-logic QF_LRA)
 (declare-fun x_0 () Real)
 (declare-fun x_1 () Real)

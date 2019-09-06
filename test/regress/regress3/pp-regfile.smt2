@@ -1,12 +1,12 @@
 (set-option :incremental false)
-(meta-info :source "Translated from old SVC processor verification benchmarks.  Contact Clark
+(set-info :source "Translated from old SVC processor verification benchmarks.  Contact Clark
 Barrett at barrett@cs.stanford.edu for more information.
 
 This benchmark was automatically translated into SMT-LIB format from
 CVC format using CVC Lite")
-(meta-info :status unsat)
-(meta-info :category "industrial")
-(meta-info :difficulty "0")
+(set-info :status unsat)
+(set-info :category "industrial")
+(set-info :difficulty "0")
 (set-logic QF_AUFLIA)
 (declare-fun CLOCK_INIT () Bool)
 (declare-fun INSTRISLOAD_S2E_INIT () Bool)

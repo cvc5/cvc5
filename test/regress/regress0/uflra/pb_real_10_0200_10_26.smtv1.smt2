@@ -1,9 +1,9 @@
 ; COMMAND-LINE: --no-check-proofs
 (set-option :incremental false)
-(meta-info :source "MathSat group")
-(meta-info :status unsat)
-(meta-info :category "random")
-(meta-info :difficulty "3")
+(set-info :source "MathSat group")
+(set-info :status unsat)
+(set-info :category "random")
+(set-info :difficulty "3")
 (set-logic QF_UFLRA)
 (declare-fun f0_1 (Real) Real)
 (declare-fun f0_2 (Real Real) Real)

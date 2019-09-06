@@ -1,14 +1,14 @@
 (set-option :incremental false)
-(meta-info :source "These benchmarks are used by the job-shop scheduling community and were
+(set-info :source "These benchmarks are used by the job-shop scheduling community and were
 originaly from Andre Henning.  They were translated into CVC format by Bruno
 Dutertre and Leonardo de Moura.  Contact demoura@csl.sri.com for more
 information.
 
 This benchmark was automatically translated into SMT-LIB format from
 CVC format using CVC Lite")
-(meta-info :status sat)
-(meta-info :category "crafted")
-(meta-info :difficulty "0")
+(set-info :status sat)
+(set-info :category "crafted")
+(set-info :difficulty "0")
 (set-logic QF_RDL)
 (declare-fun cvclZero () Real)
 (declare-fun Z () Real)
