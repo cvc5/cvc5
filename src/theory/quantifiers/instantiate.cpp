@@ -85,6 +85,11 @@ void Instantiate::addNotify(InstantiationNotify* in)
   d_inst_notify.push_back(in);
 }
 
+void Instantiate::addRewriter(InstantiationRewriter * ir )
+{
+  d_instRewrite.push_back(ir);
+}
+
 void Instantiate::notifyFlushLemmas()
 {
   for (InstantiationNotify*& in : d_inst_notify)
@@ -244,6 +249,11 @@ bool Instantiate::addInstantiation(
   // get the instantiation
   Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
   Node orig_body = body;
+  // notify listeners
+  for (InstantiationRewriter*& ir : d_instRewrite)
+  {
+    body = ir->rewrite(q, terms, body);
+  }
   if (options::cbqiNestedQE())
   {
     InstStrategyCegqi* icegqi = d_qe->getInstStrategyCegqi();

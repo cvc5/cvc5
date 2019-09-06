@@ -23,11 +23,29 @@
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
+#include "theory/quantifiers/instantiate.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class InstStrategyCegqi;
+  
+/** An instantiation rewriter based on counterexample-guided instantiation */
+class InstRewriterCegqi : public InstantiationRewriter
+{
+public:
+  InstRewriterCegqi(InstStrategyCegqi * p);
+  /** Rewrite the instantiation */
+  Node rewriteInstantiation(
+                                   Node q,
+                                   std::vector<Node>& terms,
+                                    Node inst) override;
+private:
+  /** pointer to the parent of this class */
+  InstRewriterCegqi* d_parent;
+};
+  
 /**
  * Counterexample-guided quantifier instantiation module.
  *
@@ -71,7 +89,13 @@ class InstStrategyCegqi : public QuantifiersModule
   void presolve() override;
   /** Do nested quantifier elimination. */
   Node doNestedQE(Node q, std::vector<Node>& inst_terms, Node lem, bool doVts);
-
+  
+  /** Rewrite the instantiation inst of quantified formula q for terms. */
+  Node rewriteInstantiation(
+                                   Node q,
+                                   std::vector<Node>& terms,
+                                    Node inst);
+  
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
@@ -80,6 +104,8 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- end interface for CegqiOutputInstStrategy
 
  protected:
+   /** The instantiation rewriter object */
+   std::unique_ptr<InstRewriterCegqi> d_irew;
   /** set quantified formula inactive
    *
    * This flag is set to true during a full effort check if at least one

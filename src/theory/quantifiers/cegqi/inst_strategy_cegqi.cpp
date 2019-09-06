@@ -36,9 +36,20 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+  
+InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi * p) : d_parent(p), InstantiationRewriter(){}
 
+Node InstRewriterCegqi::rewriteInstantiation(
+                                  Node q,
+                                  std::vector<Node>& terms,
+                                  Node inst) 
+{
+  return d_parent->rewriteInstantiation(q,terms,inst);
+}
+                                  
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
     : QuantifiersModule(qe),
+    d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(qe->getUserContext()),
@@ -436,7 +447,15 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
     }
   }
 }
-
+Node rewriteInstantiation(
+                            Node q,
+                            std::vector<Node>& terms,
+                            Node inst)
+{
+  // TODO
+  return inst;
+}
+  
 Node InstStrategyCegqi::doNestedQENode(
     Node q, Node ceq, Node n, std::vector<Node>& inst_terms, bool doVts)
 {
