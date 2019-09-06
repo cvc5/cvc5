@@ -128,7 +128,7 @@ class QuantifiersEnginePrivate
     {
       d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
       modules.push_back(d_i_cbqi.get());
-      //qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
+      // qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
     }
     if (options::ceGuidedInst())
     {

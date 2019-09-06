@@ -85,7 +85,7 @@ void Instantiate::addNotify(InstantiationNotify* in)
   d_inst_notify.push_back(in);
 }
 
-void Instantiate::addRewriter(InstantiationRewriter * ir )
+void Instantiate::addRewriter(InstantiationRewriter* ir)
 {
   d_instRewrite.push_back(ir);
 }

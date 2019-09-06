@@ -70,7 +70,7 @@ class InstantiationNotify
 };
 
 /** Instantiation rewriter
- * 
+ *
  * This class is used for cases where instantiation lemmas can be rewritten by
  * external utilities. Examples of this include virtual term substitution and
  * nested quantifier elimination techniques.
@@ -78,17 +78,16 @@ class InstantiationNotify
 class InstantiationRewriter
 {
  public:
-  InstantiationRewriter(){}
-  virtual ~InstantiationRewriter(){}
-  
-  /** rewrite instantiation 
-   * 
+  InstantiationRewriter() {}
+  virtual ~InstantiationRewriter() {}
+
+  /** rewrite instantiation
+   *
    * The node inst is the instantiation of quantified formula q for terms.
    * This method returns the rewritten form of the instantiation.
    */
-  virtual Node rewriteInstantiation(
-                                   Node q,
-                                   std::vector<Node>& terms,
+  virtual Node rewriteInstantiation(Node q,
+                                    std::vector<Node>& terms,
                                     Node inst) = 0;
 };
 
@@ -136,7 +135,7 @@ class Instantiate : public QuantifiersUtil
   /** get number of instantiation notify added to this class */
   bool hasNotify() const { return !d_inst_notify.empty(); }
   /** add instantiation rewriter */
-  void addRewriter(InstantiationRewriter * ir );
+  void addRewriter(InstantiationRewriter* ir);
   /** notify flush lemmas
    *
    * This is called just before the quantifiers engine flushes its lemmas to
