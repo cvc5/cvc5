@@ -25,11 +25,11 @@
 #include "expr/expr_manager_scope.h"
 #include "expr/matcher.h"
 #include "expr/node.h"
-#include "expr/node_manager.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_manager.h"
 #include "expr/type.h"
-#include "options/set_language.h"
 #include "options/datatypes_options.h"
+#include "options/set_language.h"
 
 using namespace std;
 
@@ -155,29 +155,33 @@ void Datatype::resolve(ExprManager* em,
     }
     d_record = new Record(fields);
   }
-  
-  if( isSygus() )
+
+  if (isSygus())
   {
     // all datatype constructors should be sygus and have sygus operators whose
     // free variables are subsets of sygus bound var list.
     Node sbvln = Node::fromExpr(d_sygus_bvl);
     std::unordered_set<Node, NodeHashFunction> svs;
-    for (const Node& sv : sbvln )
+    for (const Node& sv : sbvln)
     {
       svs.insert(sv);
     }
-    for( unsigned i=0, ncons = d_constructors.size(); i<ncons; i++ )
+    for (unsigned i = 0, ncons = d_constructors.size(); i < ncons; i++)
     {
       Expr sop = d_constructors[i].getSygusOp();
-      PrettyCheckArgument(!sop.isNull(), this,
-                    "Sygus datatype contains a non-sygus constructor");
+      PrettyCheckArgument(!sop.isNull(),
+                          this,
+                          "Sygus datatype contains a non-sygus constructor");
       Node sopn = Node::fromExpr(sop);
       std::unordered_set<Node, NodeHashFunction> fvs;
-      expr::getFreeVariables(sopn,fvs);
-      for( const Node& v : fvs )
+      expr::getFreeVariables(sopn, fvs);
+      for (const Node& v : fvs)
       {
-        PrettyCheckArgument(svs.find(v)!=svs.end(), this,
-                      "Sygus constructor has an operator with a free variable that is not in the formal argument list of the function-to-synthesize");
+        PrettyCheckArgument(
+            svs.find(v) != svs.end(),
+            this,
+            "Sygus constructor has an operator with a free variable that is "
+            "not in the formal argument list of the function-to-synthesize");
       }
     }
   }
