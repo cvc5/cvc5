@@ -153,8 +153,9 @@ class ArithInstantiator : public Instantiator
    *
    * It returns a CegTermType:
    *   CEG_TT_INVALID if it was not possible to put atom into a solved form,
-   *   CEG_TT_LOWER if <> in the above equation is >=, or
-   *   CEG_TT_UPPER if <> in the above equation is <=.
+   *   CEG_TT_LOWER if <> in the above equation is >=,
+   *   CEG_TT_UPPER if <> in the above equation is <=, or
+   *   CEG_TT_EQUAL if <> in the above equation is =.
    */
   CegTermType solve_arith(CegInstantiator* ci,
                           Node v,
