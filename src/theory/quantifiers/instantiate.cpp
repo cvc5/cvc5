@@ -405,14 +405,15 @@ bool Instantiate::existsInstantiation(Node q,
 
 Node Instantiate::getInstantiation(Node q,
                                    std::vector<Node>& vars,
-                                   std::vector<Node>& terms, bool doVts)
+                                   std::vector<Node>& terms,
+                                   bool doVts)
 {
   Node body;
   Assert(vars.size() == terms.size());
   Assert(q[0].getNumChildren() == vars.size());
   // Notice that this could be optimized, but no significant performances
   // improvements were observed with alternative (see #1386).
-  body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end()); 
+  body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
   // Now, notify rewriters, which rewrite the instantiation in sequence.
   for (InstantiationRewriter*& ir : d_instRewrite)
   {

@@ -453,10 +453,9 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
 Node InstStrategyCegqi::rewriteInstantiation(Node q,
                                              std::vector<Node>& terms,
                                              Node inst,
-                                             bool doVts
-                                            )
+                                             bool doVts)
 {
-  if( doVts )
+  if (doVts)
   {
     // do virtual term substitution
     inst = Rewriter::rewrite(inst);
