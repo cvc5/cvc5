@@ -1835,11 +1835,7 @@ static void toStream(std::ostream& out,
                      const SetBenchmarkStatusCommand* c,
                      Variant v)
 {
-  if(v == z3str_variant || v == smt2_0_variant) {
-    out << "(set-info :status " << c->getStatus() << ")";
-  } else {
-    out << "(meta-info :status " << c->getStatus() << ")";
-  }
+  out << "(set-info :status " << c->getStatus() << ")";
 }
 
 static void toStream(std::ostream& out,
@@ -1856,12 +1852,7 @@ static void toStream(std::ostream& out,
 
 static void toStream(std::ostream& out, const SetInfoCommand* c, Variant v)
 {
-  if(v == z3str_variant || v == smt2_0_variant) {
-    out << "(set-info :" << c->getFlag() << " ";
-  } else {
-    out << "(meta-info :" << c->getFlag() << " ";
-  }
-
+  out << "(set-info :" << c->getFlag() << " ";
   SExpr::toStream(out, c->getSExpr(), variantToLanguage(v));
   out << ")";
 }
