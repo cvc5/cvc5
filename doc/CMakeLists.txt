@@ -36,10 +36,6 @@ configure_file(
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cvc4.1 DESTINATION share/man/man1)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cvc4.5 DESTINATION share/man/man5)
-if(ENABLE_PORTFOLIO)
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cvc4.1 DESTINATION share/man/man1
-          RENAME pcvc4.1)
-endif()
 install(FILES
         ${CMAKE_CURRENT_BINARY_DIR}/libcvc4.3
         ${CMAKE_CURRENT_BINARY_DIR}/libcvc4parser.3
