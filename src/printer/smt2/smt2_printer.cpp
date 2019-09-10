@@ -24,6 +24,7 @@
 #include "expr/node_manager_attributes.h"
 #include "options/bv_options.h"
 #include "options/language.h"
+#include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
 #include "smt/smt_engine.h"
@@ -509,7 +510,34 @@ void Smt2Printer::toStream(std::ostream& out,
   // uf theory
   case kind::APPLY_UF: typeChildren = true; break;
   // higher-order
-  case kind::HO_APPLY: break;
+  case kind::HO_APPLY:
+    if (!options::flattenHOChains())
+    {
+      break;
+    }
+    // collapse "@" chains, i.e.
+    //
+    // ((a b) c) --> (a b c)
+    //
+    // (((a b) ((c d) e)) f) --> (a b (c d e) f)
+    {
+      Node head = n;
+      std::vector<Node> args;
+      while (head.getKind() == kind::HO_APPLY)
+      {
+        args.insert(args.begin(), head[1]);
+        head = head[0];
+      }
+      toStream(out, head, toDepth, types, TypeNode::null());
+      for (unsigned i = 0, size = args.size(); i < size; ++i)
+      {
+        out << " ";
+        toStream(out, args[i], toDepth, types, TypeNode::null());
+      }
+      out << ")";
+    }
+    return;
+
   case kind::LAMBDA:
     out << smtKindString(k, d_variant) << " ";
     break;
@@ -1340,47 +1368,50 @@ void Smt2Printer::toStream(std::ostream& out,
           dynamic_cast<const DeclareTypeCommand*>(command))
   {
     // print out the DeclareTypeCommand
-    TypeNode tn = TypeNode::fromType((*dtc).getType());
-    const std::vector<Node>* type_refs =
-        theory_model->getRepSet()->getTypeRepsOrNull(tn);
-    if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
+    Type t = (*dtc).getType();
+    if (!t.isSort())
     {
-      if (isVariant_2_6(d_variant))
-      {
-        out << "(declare-datatypes ((" << (*dtc).getSymbol() << " 0)) (";
-      }
-      else
-      {
-        out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
-      }
-      for (Node type_ref : *type_refs)
-      {
-        out << "(" << type_ref << ")";
-      }
-      out << ")))" << endl;
-    }
-    else if (tn.isSort() && type_refs != nullptr)
-    {
-      // print the cardinality
-      out << "; cardinality of " << tn << " is " << type_refs->size() << endl;
       out << (*dtc) << endl;
-      // print the representatives
-      for (Node type_ref : *type_refs)
-      {
-        if (type_ref.isVar())
-        {
-          out << "(declare-fun " << quoteSymbol(type_ref) << " () " << tn << ")"
-              << endl;
-        }
-        else
-        {
-          out << "; rep: " << type_ref << endl;
-        }
-      }
     }
     else
     {
-      out << (*dtc) << endl;
+      std::vector<Expr> elements = theory_model->getDomainElements(t);
+      if (options::modelUninterpDtEnum())
+      {
+        if (isVariant_2_6(d_variant))
+        {
+          out << "(declare-datatypes ((" << (*dtc).getSymbol() << " 0)) (";
+        }
+        else
+        {
+          out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
+        }
+        for (const Expr& type_ref : elements)
+        {
+          out << "(" << type_ref << ")";
+        }
+        out << ")))" << endl;
+      }
+      else
+      {
+        // print the cardinality
+        out << "; cardinality of " << t << " is " << elements.size() << endl;
+        out << (*dtc) << endl;
+        // print the representatives
+        for (const Expr& type_ref : elements)
+        {
+          Node trn = Node::fromExpr(type_ref);
+          if (trn.isVar())
+          {
+            out << "(declare-fun " << quoteSymbol(trn) << " () " << t << ")"
+                << endl;
+          }
+          else
+          {
+            out << "; rep: " << trn << endl;
+          }
+        }
+      }
     }
   }
   else if (const DeclareFunctionCommand* dfc =
@@ -1732,7 +1763,8 @@ static void toStreamRational(std::ostream& out,
 
 static void toStream(std::ostream& out, const DeclareTypeCommand* c)
 {
-  out << "(declare-sort " << c->getSymbol() << " " << c->getArity() << ")";
+  out << "(declare-sort " << maybeQuoteSymbol(c->getSymbol()) << " "
+      << c->getArity() << ")";
 }
 
 static void toStream(std::ostream& out, const DefineTypeCommand* c)
@@ -1803,11 +1835,7 @@ static void toStream(std::ostream& out,
                      const SetBenchmarkStatusCommand* c,
                      Variant v)
 {
-  if(v == z3str_variant || v == smt2_0_variant) {
-    out << "(set-info :status " << c->getStatus() << ")";
-  } else {
-    out << "(meta-info :status " << c->getStatus() << ")";
-  }
+  out << "(set-info :status " << c->getStatus() << ")";
 }
 
 static void toStream(std::ostream& out,
@@ -1824,12 +1852,7 @@ static void toStream(std::ostream& out,
 
 static void toStream(std::ostream& out, const SetInfoCommand* c, Variant v)
 {
-  if(v == z3str_variant || v == smt2_0_variant) {
-    out << "(set-info :" << c->getFlag() << " ";
-  } else {
-    out << "(meta-info :" << c->getFlag() << " ";
-  }
-
+  out << "(set-info :" << c->getFlag() << " ";
   SExpr::toStream(out, c->getSExpr(), variantToLanguage(v));
   out << ")";
 }

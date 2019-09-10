@@ -19,10 +19,12 @@
 
 #include <map>
 #include "expr/node.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 /** roles for enumerators

@@ -1,3 +1,4 @@
+cvc4_add_unit_test_black(regexp_operation_black theory)
 cvc4_add_unit_test_black(theory_black theory)
 cvc4_add_unit_test_white(evaluator_white theory)
 cvc4_add_unit_test_white(logic_info_white theory)

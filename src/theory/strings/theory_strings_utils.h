@@ -58,6 +58,59 @@ void getConcat(Node n, std::vector<Node>& c);
  */
 Node mkConcat(Kind k, std::vector<Node>& c);
 
+/**
+ * Get constant component. Returns the string constant represented by the
+ * string or regular expression t. For example:
+ *   "ABC" -> "ABC", (str.to.re "ABC") -> "ABC", (str.++ x "ABC") -> null
+ */
+Node getConstantComponent(Node t);
+
+/**
+ * Get constant prefix / suffix from expression. For example, if isSuf=false:
+ *   "ABC" -> "ABC"
+ *   (str.++ "ABC" x) -> "ABC"
+ *   (str.to.re "ABC") -> "ABC"
+ *   (re.++ (str.to.re "ABC") ...) -> "ABC"
+ *   (re.in x (str.to.re "ABC")) -> "ABC"
+ *   (re.in x (re.++ (str.to.re "ABC") ...)) -> "ABC"
+ *   (str.++ x "ABC") -> null
+ *   (re.in x (re.++ (re.* "D") (str.to.re "ABC"))) -> null
+ */
+Node getConstantEndpoint(Node e, bool isSuf);
+
+/**
+ * Given a vector of regular expression nodes and a start index that points to
+ * a wildcard, returns true if the wildcard is unbounded (i.e. it is followed
+ * by an arbitrary number of `re.allchar`s and then an `re.*(re.allchar)`. If
+ * the start index is not a wilcard or the wildcards are not followed by
+ * `re.*(re.allchar)`, the function returns false.
+ *
+ * @param rs The vector of regular expression nodes
+ * @param start The start index to consider
+ * @return True if the wilcard pointed to by `start` is unbounded, false
+ *         otherwise
+ */
+bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start);
+
+/**
+ * Returns true iff the given regular expression only consists of re.++,
+ * re.allchar, (re.* re.allchar), and str.to.re of string literals.
+ *
+ * @param r The regular expression to check
+ * @return True if the regular expression is simple
+ */
+bool isSimpleRegExp(Node r);
+
+/**
+ * Helper function that takes a regular expression concatenation and
+ * returns the components of the concatenation. Letters of string literals
+ * are treated as individual components.
+ *
+ * @param r The regular expression
+ * @param result The resulting components
+ */
+void getRegexpComponents(Node r, std::vector<Node>& result);
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

@@ -2003,7 +2003,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         for (const Node& ac : a)
         {
           Node r =
-              d_containing.getValuation().getModel()->getRepresentative(a[0]);
+              d_containing.getValuation().getModel()->getRepresentative(ac);
           repList.push_back(r);
         }
         Node aa = argTrie[ak].add(a, repList);

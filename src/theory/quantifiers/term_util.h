@@ -125,8 +125,6 @@ public:
   std::map< Node, std::map< Node, unsigned > > d_var_num;
   /** map from universal quantifiers to their inst constant body */
   std::map< Node, Node > d_inst_const_body;
-  /** map from universal quantifiers to their counterexample literals */
-  std::map< Node, Node > d_ce_lit;
   /** instantiation constants to universal quantifiers */
   std::map< Node, Node > d_inst_constants_map;
 public:
@@ -140,8 +138,6 @@ public:
   unsigned getNumInstantiationConstants( Node q ) const;
   /** get the ce body q[e/x] */
   Node getInstConstantBody( Node q );
-  /** get counterexample literal (for cbqi) */
-  Node getCounterexampleLiteral( Node q );
   /** returns node n with bound vars of q replaced by instantiation constants of q
       node n : is the future pattern
       node q : is the quantifier containing which bind the variable
@@ -164,12 +160,8 @@ public:
   
 private:
   /** get bound vars */
-  static void getBoundVars2( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited );
-  /** get bound vars */
   static Node getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited );
 public:
-  //get the bound variables in this node
-  static void getBoundVars( Node n, std::vector< Node >& vars );
   //remove quantifiers
   static Node getRemoveQuantifiers( Node n );
   //quantified simplify (treat free variables in n as quantified and run rewriter)
