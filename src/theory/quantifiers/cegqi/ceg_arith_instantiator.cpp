@@ -184,7 +184,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         uires = mkNegateCTT(ires);
         if (d_type.isInteger())
         {
-          uval = nm->mkNode(PLUS, val, nm->mkConst(Rational(uires)));
+          uval = nm->mkNode(PLUS, val, nm->mkConst(Rational(isUpperBoundCTT(uires) ? 1 : -1)));
           uval = Rewriter::rewrite(uval);
         }
         else
@@ -249,7 +249,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       if (d_type.isInteger())
       {
         uires = is_upper ? CEG_TT_LOWER : CEG_TT_UPPER;
-        uval = nm->mkNode(PLUS, val, nm->mkConst(Rational(uires)));
+        uval = nm->mkNode(PLUS, val, nm->mkConst(Rational(isUpperBoundCTT(uires) ? 1 : -1)));
         uval = Rewriter::rewrite(uval);
       }
       else
