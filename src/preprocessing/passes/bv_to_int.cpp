@@ -235,7 +235,7 @@ Node BVToInt::bvToInt(Node n)
                                     "Variable introduced in bvToInt pass instead of original variable " + current.toString());
 
               d_bvToIntCache[current] = newVar;
-              d_rangeAssertions.push_back(mkRangeConstraint(newVar, current.getType().getBitVectorSize()));
+              d_rangeAssertions.insert(mkRangeConstraint(newVar, current.getType().getBitVectorSize()));
             }
             else
             {
@@ -304,8 +304,8 @@ Node BVToInt::bvToInt(Node n)
 		Node plus = d_nm->mkNode(kind::PLUS, intized_children);
 		Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
 		d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS,plus, multSig);
-		d_rangeAssertions.push_back(mkRangeConstraint(sigma, 0));
-		d_rangeAssertions.push_back(mkRangeConstraint(d_bvToIntCache[current], bvsize));
+		d_rangeAssertions.insert(mkRangeConstraint(sigma, 0));
+		d_rangeAssertions.insert(mkRangeConstraint(d_bvToIntCache[current], bvsize));
 	      }
               break;
             }
@@ -330,12 +330,12 @@ Node BVToInt::bvToInt(Node n)
 		Node sig_lower = d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), sigma);
 		if (intized_children[0].isConst()) {
 		  Node sig_upper = d_nm->mkNode(kind::LT, sigma, intized_children[0]);
-		  d_rangeAssertions.push_back(d_nm->mkNode(kind::AND, sig_lower, sig_upper));
+		  d_rangeAssertions.insert(d_nm->mkNode(kind::AND, sig_lower, sig_upper));
 		} else if (intized_children[1].isConst()) {
 		  Node sig_upper = d_nm->mkNode(kind::LT, sigma, intized_children[1]);
-		  d_rangeAssertions.push_back(d_nm->mkNode(kind::AND, sig_lower, sig_upper));
+		  d_rangeAssertions.insert(d_nm->mkNode(kind::AND, sig_lower, sig_upper));
 		} else {
-		  d_rangeAssertions.push_back(mkRangeConstraint(d_bvToIntCache[current], bvsize));
+		  d_rangeAssertions.insert(mkRangeConstraint(d_bvToIntCache[current], bvsize));
 		}
 	      }
 	      break;
@@ -702,8 +702,8 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
 {
   d_nm = NodeManager::currentNM();
   //TODO the following line is a hack because the mkNode may complain
-  d_rangeAssertions.push_back(d_nm->mkConst<bool>(true));
-  d_rangeAssertions.push_back(d_nm->mkConst<bool>(true));
+  d_rangeAssertions.insert(d_nm->mkConst<bool>(true));
+  d_rangeAssertions.insert(d_nm->mkConst<bool>(true));
 };
 
 PreprocessingPassResult BVToInt::applyInternal(
@@ -715,7 +715,9 @@ PreprocessingPassResult BVToInt::applyInternal(
     assertionsToPreprocess->replace(
         i, Rewriter::rewrite(bvToInt((*assertionsToPreprocess)[i])));
   }
-  Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, d_rangeAssertions));
+  vector<Node> vec_range;
+  vec_range.assign(d_rangeAssertions.begin(), d_rangeAssertions.end());
+  Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
   assertionsToPreprocess->push_back(rangeAssertions);
   return PreprocessingPassResult::NO_CONFLICT;
 }

@@ -59,7 +59,7 @@ class BVToInt : public PreprocessingPass
     NodeMap d_eliminationCache;
     NodeMap d_bvToIntCache;
     NodeManager* d_nm;
-    vector<Node> d_rangeAssertions;
+    unordered_set<Node, NodeHashFunction> d_rangeAssertions;
 };
 
 }  // namespace passes

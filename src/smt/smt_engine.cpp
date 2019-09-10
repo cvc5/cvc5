@@ -3301,6 +3301,8 @@ void SmtEnginePrivate::processAssertions() {
   if (options::solveBVAsInt() > 0) { 
         if (options::incrementalSolving()) {
           throw ModalException("solving bitvectors as integers is currently not supported incrementally.");
+        } else if (options::solveBVAsInt() > 8) {
+          throw ModalException("solve-bv-as-int accepts values from 0 to 8.");
         } else {
           d_passes["bv-to-int"]->apply(&d_assertions);
         }
