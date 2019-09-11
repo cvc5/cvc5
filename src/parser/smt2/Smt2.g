@@ -886,28 +886,12 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   Type t;
   std::string sname;
   std::vector< Expr > let_vars;
-  bool readingLet = false;
   std::string s;
   CVC4::api::Term atomTerm;
 }
   : LPAREN_TOK
     //read operator
-    ( SYGUS_LET_TOK LPAREN_TOK {
-         sgt.d_name = std::string("let");
-         sgt.d_gterm_type = SygusGTerm::gterm_let;
-         PARSER_STATE->pushScope(true);
-         readingLet = true;
-       }
-       ( LPAREN_TOK
-        symbol[sname,CHECK_NONE,SYM_VARIABLE]
-        sortSymbol[t,CHECK_DECLARED] {
-          Expr v = PARSER_STATE->mkBoundVar(sname,t);
-          sgt.d_let_vars.push_back( v );
-          sgt.addChild();
-        }
-        sygusGTerm[sgt.d_children.back(), fun]
-        RPAREN_TOK )+ RPAREN_TOK
-    | SYGUS_CONSTANT_TOK sortSymbol[t,CHECK_DECLARED]
+    ( SYGUS_CONSTANT_TOK sortSymbol[t,CHECK_DECLARED]
       { sgt.d_gterm_type = SygusGTerm::gterm_constant;
         sgt.d_type = t;
         Debug("parser-sygus") << "Sygus grammar constant." << std::endl;
@@ -971,9 +955,6 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
     RPAREN_TOK {
       //pop last child index
       sgt.d_children.pop_back();
-      if( readingLet ){
-        PARSER_STATE->popScope();
-      }
     }
     | termAtomic[atomTerm]
       {
