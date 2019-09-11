@@ -34,6 +34,7 @@ bool hasSubterm(TNode n, TNode t, bool strict)
 
   toProcess.push_back(n);
 
+  // incrementally iterate and add to toProcess
   for (unsigned i = 0; i < toProcess.size(); ++i)
   {
     TNode current = toProcess[i];
@@ -143,6 +144,7 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
 
   toProcess.push_back(n);
 
+  // incrementally iterate and add to toProcess
   for (unsigned i = 0; i < toProcess.size(); ++i)
   {
     TNode current = toProcess[i];
