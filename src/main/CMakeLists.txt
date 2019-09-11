@@ -62,54 +62,16 @@ if(ENABLE_STATIC_BINARY)
   set_target_properties(cvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
 endif()
 
-if(ENABLE_PORTFOLIO)
-  set(pcvc4_src_files
-    command_executor_portfolio.cpp
-    command_executor_portfolio.h
-    driver_unified.cpp
-    main.cpp
-    portfolio.cpp
-    portfolio.h
-    portfolio_util.cpp
-    portfolio_util.h
-  )
-
-  add_executable(pcvc4-bin ${pcvc4_src_files} $<TARGET_OBJECTS:main>)
-  target_compile_definitions(pcvc4-bin PRIVATE -D__BUILDING_CVC4DRIVER)
-  target_compile_definitions(pcvc4-bin PRIVATE -DPORTFOLIO_BUILD)
-  set_target_properties(pcvc4-bin
-    PROPERTIES
-      OUTPUT_NAME pcvc4
-      RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-  target_link_libraries(pcvc4-bin cvc4 cvc4parser ${Boost_LIBRARIES})
-  target_include_directories(pcvc4-bin PRIVATE ${Boost_INCLUDE_DIRS})
-  if(PROGRAM_PREFIX)
-    install(PROGRAMS
-      $<TARGET_FILE:pcvc4-bin> DESTINATION bin RENAME ${PROGRAM_PREFIX}pcvc4)
-  else()
-    install(TARGETS pcvc4-bin DESTINATION bin)
-  endif()
-
-  if(ENABLE_STATIC_BINARY)
-    set_target_properties(pcvc4-bin PROPERTIES LINK_FLAGS -static)
-    set_target_properties(pcvc4-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
-    set_target_properties(pcvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
-  endif()
-endif()
-
 if(USE_READLINE)
   target_link_libraries(cvc4-bin ${Readline_LIBRARIES})
   target_link_libraries(main-test ${Readline_LIBRARIES})
   target_include_directories(main PRIVATE ${Readline_INCLUDE_DIR})
-  if(ENABLE_PORTFOLIO)
-    target_link_libraries(pcvc4-bin ${Readline_LIBRARIES})
-  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
 # Generate language tokens header files.
 
-foreach(lang Cvc Smt1 Smt2 Tptp)
+foreach(lang Cvc Smt2 Tptp)
   string(TOLOWER ${lang} lang_lc)
   add_custom_command(
     OUTPUT ${lang_lc}_tokens.h
@@ -125,7 +87,6 @@ endforeach()
 add_custom_target(gen-tokens
   DEPENDS
     cvc_tokens.h
-    smt1_tokens.h
     smt2_tokens.h
     tptp_tokens.h
 )
