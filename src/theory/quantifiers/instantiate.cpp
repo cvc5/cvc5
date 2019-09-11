@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/instantiate.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
@@ -24,7 +25,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
