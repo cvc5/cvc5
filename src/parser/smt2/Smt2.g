@@ -239,7 +239,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       cmd->reset(PARSER_STATE->setLogic(name));
     }
   | /* set-info */
-    SET_INFO_TOK metaInfoInternal[cmd]
+    SET_INFO_TOK setInfoInternal[cmd]
   | /* get-info */
     GET_INFO_TOK KEYWORD
     { cmd->reset(new GetInfoCommand(
@@ -542,8 +542,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { std::string id = AntlrInput::tokenText($SIMPLE_SYMBOL);
       if(id == "benchmark") {
         PARSER_STATE->parseError(
-            "In SMT-LIBv2 mode, but got something that looks like SMT-LIBv1. "
-            "Use --lang smt1 for SMT-LIBv1.");
+            "In SMT-LIBv2 mode, but got something that looks like SMT-LIBv1, "
+            "which is not supported anymore.");
       } else {
         PARSER_STATE->parseError("expected SMT-LIBv2 command, got `" + id +
                                  "'.");
@@ -1153,8 +1153,7 @@ sygusGrammar[CVC4::Type & ret,
   }
 ;
 
-// Separate this into its own rule (can be invoked by set-info or meta-info)
-metaInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
+setInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::string name;
   SExpr sexpr;
@@ -1203,11 +1202,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<Type> sorts;
   std::vector<Expr> flattenVars;
 }
-    /* meta-info */
-  : META_INFO_TOK metaInfoInternal[cmd]
-
     /* declare-const */
-  | DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+  : DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
@@ -2814,7 +2810,6 @@ RPAREN_TOK : ')';
 INDEX_TOK : '_';
 SET_LOGIC_TOK : 'set-logic';
 SET_INFO_TOK : 'set-info';
-META_INFO_TOK : 'meta-info';
 GET_INFO_TOK : 'get-info';
 SET_OPTION_TOK : 'set-option';
 GET_OPTION_TOK : 'get-option';

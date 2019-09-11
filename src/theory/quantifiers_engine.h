@@ -24,8 +24,6 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
-#include "theory/quantifiers/bv_inverter.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
@@ -114,16 +112,12 @@ public:
   quantifiers::EqualityInference* getEqualityInference() const;
   /** get relevant domain */
   quantifiers::RelevantDomain* getRelevantDomain() const;
-  /** get the BV inverter utility */
-  quantifiers::BvInverter* getBvInverter() const;
   //---------------------- end utilities
   //---------------------- modules (TODO remove these #1163)
   /** get bounded integers utility */
   quantifiers::BoundedIntegers* getBoundedIntegers() const;
   /** ceg instantiation */
   quantifiers::SynthEngine* getSynthEngine() const;
-  /** get inst strategy cbqi */
-  quantifiers::InstStrategyCegqi* getInstStrategyCegqi() const;
   //---------------------- end modules
  private:
   /**
@@ -309,8 +303,6 @@ public:
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** relevant domain */
   std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
-  /** inversion utility for BV instantiation */
-  std::unique_ptr<quantifiers::BvInverter> d_bv_invert;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** utility for effectively propositional logic */
