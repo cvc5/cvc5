@@ -14,26 +14,23 @@
 
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 
-#include "expr/datatype.h"
 #include "expr/node_algorithm.h"
-#include "options/base_options.h"
-#include "options/datatypes_options.h"
-#include "options/quantifiers_options.h"
-#include "options/uf_options.h"
-#include "theory/arith/arith_msum.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
+#include "theory/arith/arith_msum.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+  
 
-VtsTermCache::VtsTermCache()
+bool containsTermsTmp( Node n, std::vector< Node >& t )
+{
+  return false;
+}
+
+VtsTermCache::VtsTermCache(QuantifiersEngine * qe) : d_qe(qe)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
@@ -45,21 +42,23 @@ void VtsTermCache::getVtsTerms( std::vector< Node >& t, bool isFree, bool create
       t.push_back( delta );
     }
   }
+  NodeManager * nm =NodeManager::currentNM();
   for( unsigned r=0; r<2; r++ ){
-    Node inf = getVtsInfinityIndex( r, isFree, create );
+    TypeNode tn = r==0 ? nm->realType() : nm->integerType();
+    Node inf = getVtsInfinity( tn, isFree, create );
     if( !inf.isNull() ){
       t.push_back( inf );
     }
   }
 }
 
-Node VtsTermCache::getVtsDelta( std::vector< Node >& lemmas, bool isFree, bool create ) {
+Node VtsTermCache::getVtsDelta( bool isFree, bool create ) {
   if( create ){
     NodeManager * nm = NodeManager::currentNM();
     if( d_vts_delta_free.isNull() ){
       d_vts_delta_free = nm->mkSkolem( "delta_free", nm->realType(), "free delta for virtual term substitution" );
       Node delta_lem = nm->mkNode( GT, d_vts_delta_free, d_zero );
-      lemmas.push_back( delta_lem );
+      d_qe->getOutputChannel().lemma( delta_lem );
     }
     if( d_vts_delta.isNull() ){
       d_vts_delta = nm->mkSkolem( "delta", nm->realType(), "delta for virtual term substitution" );
@@ -87,17 +86,6 @@ Node VtsTermCache::getVtsInfinity( TypeNode tn, bool isFree, bool create ) {
   return isFree ? d_vts_inf_free[tn] : d_vts_inf[tn];
 }
 
-Node VtsTermCache::getVtsInfinityIndex( int i, bool isFree, bool create ) {
-  NodeManager * nm = NodeManager::currentNM();
-  if( i==0 ){
-    return getVtsInfinity( nm->realType(), isFree, create );
-  }else if( i==1 ){
-    return getVtsInfinity( nm->integerType(), isFree, create );
-  }
-  Assert( false );
-  return Node::null();
-}
-
 Node VtsTermCache::substituteVtsFreeTerms( Node n ) {
   std::vector< Node > vars;
   getVtsTerms( vars, false, false );
@@ -118,7 +106,8 @@ Node VtsTermCache::rewriteVtsSymbols( Node n ) {
     bool rew_delta = false;
     //rewriting infinity always takes precedence over rewriting delta
     for( unsigned r=0; r<2; r++ ){
-      Node inf = getVtsInfinityIndex( r, false, false );
+      TypeNode tn = r==0 ? nm->realType() : nm->integerType();
+      Node inf = getVtsInfinity( tn, false, false );
       if (!inf.isNull() && expr::hasSubterm(n, inf))
       {
         if( rew_vts_inf.isNull() ){
@@ -177,7 +166,7 @@ Node VtsTermCache::rewriteVtsSymbols( Node n ) {
             }else{
               Assert( iso_n[res==1 ? 0 : 1]==d_vts_delta );
               if( n.getKind()==EQUAL ){
-                nlit = d_false;
+                nlit = nm->mkConst(false);
               }else if( res==1 ){
                 nlit = nm->mkNode( GEQ, d_zero, slv );
               }else{
@@ -223,7 +212,7 @@ Node VtsTermCache::rewriteVtsSymbols( Node n ) {
 bool VtsTermCache::containsVtsTerm( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false );
-  return containsTerms( n, t );
+  return containsTermsTmp( n, t );
 }
 
 bool VtsTermCache::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
@@ -231,7 +220,8 @@ bool VtsTermCache::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
   getVtsTerms( t, isFree, false );
   if( !t.empty() ){
     for (const Node& nc : n)
-      if( containsTerms( nc, t ) ){
+    {
+      if( containsTermsTmp( nc, t ) ){
         return true;
       }
     }
@@ -242,7 +232,7 @@ bool VtsTermCache::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
 bool VtsTermCache::containsVtsInfinity( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false, false );
-  return containsTerms( n, t );
+  return containsTermsTmp( n, t );
 }
 
 }/* CVC4::theory::quantifiers namespace */

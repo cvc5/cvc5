@@ -22,6 +22,9 @@
 
 namespace CVC4 {
 namespace theory {
+  
+class QuantifiersEngine;
+  
 namespace quantifiers {
 
 /** Virtual term substitution term cache 
@@ -32,10 +35,10 @@ namespace quantifiers {
 class VtsTermCache
 {
 public:
-  VtsTermCache();
+  VtsTermCache(QuantifiersEngine * qe);
   ~VtsTermCache(){}
   /** get vts delta */
-  Node getVtsDelta( std::vector< Node >& lemmas, bool isFree = false, bool create = true );
+  Node getVtsDelta( bool isFree = false, bool create = true );
   /** get vts infinity */
   Node getVtsInfinity( TypeNode tn, bool isFree = false, bool create = true );
   /** get all vts terms */
@@ -49,14 +52,18 @@ public:
   /** simple check for contains term */
   bool containsVtsInfinity( Node n, bool isFree = false );
 private:
+  /** pointer to the quantifiers engine */
+  QuantifiersEngine * d_qe;
   /** constants */
   Node d_zero;
+  /** The virtual term substitution delta */
   Node d_vts_delta;
-  std::map< TypeNode, Node > d_vts_inf;
+  /** The virtual term substitution "free delta" */
   Node d_vts_delta_free;
+  /** The virtual term substitution infinities for int/real types */
+  std::map< TypeNode, Node > d_vts_inf;
+  /** The virtual term substitution "free infinities" for int/real types */
   std::map< TypeNode, Node > d_vts_inf_free;
-  /** get vts infinity index */
-  Node getVtsInfinityIndex( int i, bool isFree = false, bool create = true  );
   /** substitute vts free terms */
   Node substituteVtsFreeTerms( Node n );
 };/* class TermUtil */

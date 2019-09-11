@@ -57,6 +57,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
       d_incomplete_check(false),
       d_added_cbqi_lemma(qe->getUserContext()),
       d_elim_quants(qe->getSatContext()),
+      d_vtsCache(qe),
       d_bv_invert(nullptr),
       d_nested_qe_waitlist_size(qe->getUserContext()),
       d_nested_qe_waitlist_proc(qe->getUserContext())
