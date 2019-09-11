@@ -879,7 +879,8 @@ void Smt2::processSygusGTerm( CVC4::SygusGTerm& sgt, int index,
                               std::vector<CVC4::Expr>& sygus_vars,
                               std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin, std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr,
                               CVC4::Type& ret, bool isNested ){
-  if( sgt.d_gterm_type==SygusGTerm::gterm_op ){
+  if (sgt.d_gterm_type == SygusGTerm::gterm_op)
+  {
     Debug("parser-sygus") << "Add " << sgt.d_expr << " to datatype " << index
                           << std::endl;
     Kind oldKind;
@@ -920,7 +921,9 @@ void Smt2::processSygusGTerm( CVC4::SygusGTerm& sgt, int index,
                                          sygus_to_builtin, sygus_to_builtin_expr, sub_ret );
       cargs[index].back().push_back(tt);
     }
-  }else if( sgt.d_gterm_type==SygusGTerm::gterm_constant ){
+  }
+  else if (sgt.d_gterm_type == SygusGTerm::gterm_constant)
+  {
     if( sgt.getNumChildren()!=0 ){
       parseError("Bad syntax for Sygus Constant.");
     }
@@ -936,7 +939,10 @@ void Smt2::processSygusGTerm( CVC4::SygusGTerm& sgt, int index,
       cargs[index].push_back( std::vector< CVC4::Type >() );
     }
     allow_const[index] = true;
-  }else if( sgt.d_gterm_type==SygusGTerm::gterm_variable || sgt.d_gterm_type==SygusGTerm::gterm_input_variable ){
+  }
+  else if (sgt.d_gterm_type == SygusGTerm::gterm_variable
+           || sgt.d_gterm_type == SygusGTerm::gterm_input_variable)
+  {
     if( sgt.getNumChildren()!=0 ){
       parseError("Bad syntax for Sygus Variable.");
     }
@@ -951,9 +957,13 @@ void Smt2::processSygusGTerm( CVC4::SygusGTerm& sgt, int index,
         cargs[index].push_back( std::vector< CVC4::Type >() );
       }
     }
-  }else if( sgt.d_gterm_type==SygusGTerm::gterm_nested_sort ){
+  }
+  else if (sgt.d_gterm_type == SygusGTerm::gterm_nested_sort)
+  {
     ret = sgt.d_type;
-  }else if( sgt.d_gterm_type==SygusGTerm::gterm_unresolved ){
+  }
+  else if (sgt.d_gterm_type == SygusGTerm::gterm_unresolved)
+  {
     if( isNested ){
       if( isUnresolvedType(sgt.d_name) ){
         ret = getSort(sgt.d_name);
@@ -967,8 +977,10 @@ void Smt2::processSygusGTerm( CVC4::SygusGTerm& sgt, int index,
       //will resolve when adding constructors
       unresolved_gterm_sym[index].push_back(sgt.d_name);
     }
-  }else if( sgt.d_gterm_type==SygusGTerm::gterm_ignore ){
-
+  }
+  else if (sgt.d_gterm_type == SygusGTerm::gterm_ignore)
+  {
+    // do nothing
   }
 }
 
@@ -1282,7 +1294,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           ops.push_back( id_op );
         }
       }else{
-        Debug("parser-sygus") << "    ignore. (likely a free let variable)" << std::endl;
+        Assert(false);
       }
     }
   }
