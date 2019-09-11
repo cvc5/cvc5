@@ -37,13 +37,22 @@ bool hasSubterm(TNode n, TNode t, bool strict)
   for (unsigned i = 0; i < toProcess.size(); ++i)
   {
     TNode current = toProcess[i];
-    if (current.hasOperator() && current.getOperator() == t)
+    for (unsigned j = 0, j_end = current.getNumChildren(); j <= j_end; ++j)
     {
-      return true;
-    }
-    for (unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++j)
-    {
-      TNode child = current[j];
+      TNode child;
+      // try children then operator
+      if( j<j_end )
+      {
+        child = current[j];
+      }
+      else if (current.hasOperator())
+      {
+        child = current.getOperator();
+      }
+      else
+      {
+        break;
+      }
       if (child == t)
       {
         return true;
@@ -137,16 +146,22 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
   for (unsigned i = 0; i < toProcess.size(); ++i)
   {
     TNode current = toProcess[i];
-    if (current.hasOperator())
+    for (unsigned j = 0, j_end = current.getNumChildren(); j <= j_end; ++j)
     {
-      if (std::find(t.begin(), t.end(), current.getOperator()) != t.end())
+      TNode child;
+      // try children then operator
+      if( j<j_end)
       {
-        return true;
+        child = current[j];
       }
-    }
-    for (unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++j)
-    {
-      TNode child = current[j];
+      else if (current.hasOperator())
+      {
+        child = current.getOperator();
+      }
+      else
+      {
+        break;
+      }
       if (std::find(t.begin(), t.end(), child) != t.end())
       {
         return true;
