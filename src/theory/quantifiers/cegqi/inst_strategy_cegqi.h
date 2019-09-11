@@ -225,9 +225,9 @@ class InstStrategyCegqi : public QuantifiersModule
   /** Do nested quantifier elimination.
    *
    * This rewrites the quantified formulas in inst based on nested quantifier
-   * elimination. In this method, inst is the instantiation of quantified formula
-   * q for the vector terms. The flag doVts indicates whether we must apply virtual term
-   * substitution (if terms contains virtual terms).
+   * elimination. In this method, inst is the instantiation of quantified
+   * formula q for the vector terms. The flag doVts indicates whether we must
+   * apply virtual term substitution (if terms contains virtual terms).
    */
   Node doNestedQE(Node q, std::vector<Node>& terms, Node inst, bool doVts);
 };
