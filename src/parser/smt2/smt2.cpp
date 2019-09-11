@@ -1294,7 +1294,9 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
           ops.push_back( id_op );
         }
       }else{
-        Assert(false);
+        std::stringstream ss;
+        ss << "Unhandled sygus constructor " << unresolved_gterm_sym[i];
+        throw ParserException(ss.str());
       }
     }
   }
