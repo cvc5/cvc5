@@ -1,0 +1,250 @@
+/*********************                                                        */
+/*! \file term_util.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Implementation of term utilities class
+ **/
+
+#include "theory/quantifiers/cegqi/vts_term_cache.h"
+
+#include "expr/datatype.h"
+#include "expr/node_algorithm.h"
+#include "options/base_options.h"
+#include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
+#include "options/uf_options.h"
+#include "theory/arith/arith_msum.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/theory_engine.h"
+
+using namespace CVC4::kind;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+
+VtsTermCache::VtsTermCache()
+{
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+}
+
+void VtsTermCache::getVtsTerms( std::vector< Node >& t, bool isFree, bool create, bool inc_delta ) {
+  if( inc_delta ){
+    Node delta = getVtsDelta( isFree, create );
+    if( !delta.isNull() ){
+      t.push_back( delta );
+    }
+  }
+  for( unsigned r=0; r<2; r++ ){
+    Node inf = getVtsInfinityIndex( r, isFree, create );
+    if( !inf.isNull() ){
+      t.push_back( inf );
+    }
+  }
+}
+
+Node VtsTermCache::getVtsDelta( std::vector< Node >& lemmas, bool isFree, bool create ) {
+  if( create ){
+    NodeManager * nm = NodeManager::currentNM();
+    if( d_vts_delta_free.isNull() ){
+      d_vts_delta_free = nm->mkSkolem( "delta_free", nm->realType(), "free delta for virtual term substitution" );
+      Node delta_lem = nm->mkNode( GT, d_vts_delta_free, d_zero );
+      lemmas.push_back( delta_lem );
+    }
+    if( d_vts_delta.isNull() ){
+      d_vts_delta = nm->mkSkolem( "delta", nm->realType(), "delta for virtual term substitution" );
+      //mark as a virtual term
+      VirtualTermSkolemAttribute vtsa;
+      d_vts_delta.setAttribute(vtsa,true);
+    }
+  }
+  return isFree ? d_vts_delta_free : d_vts_delta;
+}
+
+Node VtsTermCache::getVtsInfinity( TypeNode tn, bool isFree, bool create ) {
+  if( create ){
+    NodeManager * nm = NodeManager::currentNM();
+    if( d_vts_inf_free[tn].isNull() ){
+      d_vts_inf_free[tn] = nm->mkSkolem( "inf_free", tn, "free infinity for virtual term substitution" );
+    }
+    if( d_vts_inf[tn].isNull() ){
+      d_vts_inf[tn] = nm->mkSkolem( "inf", tn, "infinity for virtual term substitution" );
+      //mark as a virtual term
+      VirtualTermSkolemAttribute vtsa;
+      d_vts_inf[tn].setAttribute(vtsa,true);
+    }
+  }
+  return isFree ? d_vts_inf_free[tn] : d_vts_inf[tn];
+}
+
+Node VtsTermCache::getVtsInfinityIndex( int i, bool isFree, bool create ) {
+  NodeManager * nm = NodeManager::currentNM();
+  if( i==0 ){
+    return getVtsInfinity( nm->realType(), isFree, create );
+  }else if( i==1 ){
+    return getVtsInfinity( nm->integerType(), isFree, create );
+  }
+  Assert( false );
+  return Node::null();
+}
+
+Node VtsTermCache::substituteVtsFreeTerms( Node n ) {
+  std::vector< Node > vars;
+  getVtsTerms( vars, false, false );
+  std::vector< Node > vars_free;
+  getVtsTerms( vars_free, true, false );
+  Assert( vars.size()==vars_free.size() );
+  if( vars.empty() ){
+    return n;
+  }
+  return n.substitute( vars.begin(), vars.end(), vars_free.begin(), vars_free.end() );
+}
+
+Node VtsTermCache::rewriteVtsSymbols( Node n ) {
+  NodeManager * nm =NodeManager::currentNM();
+  if( ( n.getKind()==EQUAL || n.getKind()==GEQ ) ){
+    Trace("quant-vts-debug") << "VTS : process " << n << std::endl;
+    Node rew_vts_inf;
+    bool rew_delta = false;
+    //rewriting infinity always takes precedence over rewriting delta
+    for( unsigned r=0; r<2; r++ ){
+      Node inf = getVtsInfinityIndex( r, false, false );
+      if (!inf.isNull() && expr::hasSubterm(n, inf))
+      {
+        if( rew_vts_inf.isNull() ){
+          rew_vts_inf = inf;
+        }else{
+          //for mixed int/real with multiple infinities
+          Trace("quant-vts-debug") << "Multiple infinities...equate " << inf << " = " << rew_vts_inf << std::endl;
+          std::vector< Node > subs_lhs;
+          subs_lhs.push_back( inf );
+          std::vector< Node > subs_rhs;
+          subs_lhs.push_back( rew_vts_inf );
+          n = n.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
+          n = Rewriter::rewrite( n );
+          // may have cancelled
+          if (!expr::hasSubterm(n, rew_vts_inf))
+          {
+            rew_vts_inf = Node::null();
+          }
+        }
+      }
+    }
+    if (rew_vts_inf.isNull())
+    {
+      if (!d_vts_delta.isNull() && expr::hasSubterm(n, d_vts_delta))
+      {
+        rew_delta = true;
+      }
+    }
+    if( !rew_vts_inf.isNull()  || rew_delta ){
+      std::map< Node, Node > msum;
+      if (ArithMSum::getMonomialSumLit(n, msum))
+      {
+        if( Trace.isOn("quant-vts-debug") ){
+          Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
+          ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");
+        }
+        Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
+        Assert( !vts_sym.isNull() );
+        Node iso_n;
+        Node nlit;
+        int res = ArithMSum::isolate(vts_sym, msum, iso_n, n.getKind(), true);
+        if( res!=0 ){
+          Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
+          Node slv = iso_n[res==1 ? 1 : 0];
+          //ensure the vts terms have been eliminated
+          if( containsVtsTerm( slv ) ){
+            Trace("quant-vts-warn") << "Bad vts literal : " << n << ", contains " << vts_sym << " but bad solved form " << slv << "." << std::endl;
+            nlit = substituteVtsFreeTerms( n );
+            Trace("quant-vts-debug") << "...return " << nlit << std::endl;
+            //Assert( false );
+            //safe case: just convert to free symbols
+            return nlit;
+          }else{
+            if( !rew_vts_inf.isNull() ){
+              nlit = nm->mkConst( n.getKind()==GEQ && res==1 );
+            }else{
+              Assert( iso_n[res==1 ? 0 : 1]==d_vts_delta );
+              if( n.getKind()==EQUAL ){
+                nlit = d_false;
+              }else if( res==1 ){
+                nlit = nm->mkNode( GEQ, d_zero, slv );
+              }else{
+                nlit = nm->mkNode( GT, slv, d_zero );
+              }
+            }
+          }
+          Trace("quant-vts-debug") << "Return " << nlit << std::endl;
+          return nlit;
+        }else{
+          Trace("quant-vts-warn") << "Bad vts literal : " << n << ", contains " << vts_sym << " but could not isolate." << std::endl;
+          //safe case: just convert to free symbols
+          nlit = substituteVtsFreeTerms( n );
+          Trace("quant-vts-debug") << "...return " << nlit << std::endl;
+          //Assert( false );
+          return nlit;
+        }
+      }
+    }
+    return n;
+  }else if( n.getKind()==FORALL ){
+    //cannot traverse beneath quantifiers
+    return substituteVtsFreeTerms( n );
+  }
+  bool childChanged = false;
+  std::vector< Node > children;
+  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+    Node nn = rewriteVtsSymbols( n[i] );
+    children.push_back( nn );
+    childChanged = childChanged || nn!=n[i];
+  }
+  if( childChanged ){
+    if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
+      children.insert( children.begin(), n.getOperator() );
+    }
+    Node ret = nm->mkNode( n.getKind(), children );
+    Trace("quant-vts-debug") << "...make node " << ret << std::endl;
+    return ret;
+  }
+  return n;
+}
+
+bool VtsTermCache::containsVtsTerm( Node n, bool isFree ) {
+  std::vector< Node > t;
+  getVtsTerms( t, isFree, false );
+  return containsTerms( n, t );
+}
+
+bool VtsTermCache::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
+  std::vector< Node > t;
+  getVtsTerms( t, isFree, false );
+  if( !t.empty() ){
+    for (const Node& nc : n)
+      if( containsTerms( nc, t ) ){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool VtsTermCache::containsVtsInfinity( Node n, bool isFree ) {
+  std::vector< Node > t;
+  getVtsTerms( t, isFree, false, false );
+  return containsTerms( n, t );
+}
+
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
