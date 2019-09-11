@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_BV)
+(declare-fun a () (_ BitVec 32))
+(check-sat-assuming ( (= ((_ extract 6 2) a) (concat (_ bv0 3) ((_ extract 6 5) a))) ))

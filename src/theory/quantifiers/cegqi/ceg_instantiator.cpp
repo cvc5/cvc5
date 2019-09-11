@@ -41,6 +41,53 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+CegTermType mkStrictCTT(CegTermType c)
+{
+  Assert(!isStrictCTT(c));
+  if (c == CEG_TT_LOWER)
+  {
+    return CEG_TT_LOWER_STRICT;
+  }
+  else if (c == CEG_TT_UPPER)
+  {
+    return CEG_TT_UPPER_STRICT;
+  }
+  return c;
+}
+
+CegTermType mkNegateCTT(CegTermType c)
+{
+  if (c == CEG_TT_LOWER)
+  {
+    return CEG_TT_UPPER;
+  }
+  else if (c == CEG_TT_UPPER)
+  {
+    return CEG_TT_LOWER;
+  }
+  else if (c == CEG_TT_LOWER_STRICT)
+  {
+    return CEG_TT_UPPER_STRICT;
+  }
+  else if (c == CEG_TT_UPPER_STRICT)
+  {
+    return CEG_TT_LOWER_STRICT;
+  }
+  return c;
+}
+bool isStrictCTT(CegTermType c)
+{
+  return c == CEG_TT_LOWER_STRICT || c == CEG_TT_UPPER_STRICT;
+}
+bool isLowerBoundCTT(CegTermType c)
+{
+  return c == CEG_TT_LOWER || c == CEG_TT_LOWER_STRICT;
+}
+bool isUpperBoundCTT(CegTermType c)
+{
+  return c == CEG_TT_UPPER || c == CEG_TT_UPPER_STRICT;
+}
+
 std::ostream& operator<<(std::ostream& os, CegInstEffort e)
 {
   switch (e)
@@ -1739,7 +1786,7 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
                                     Node n,
                                     CegInstEffort effort)
 {
-  pv_prop.d_type = 0;
+  pv_prop.d_type = CEG_TT_EQUAL;
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
