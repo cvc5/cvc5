@@ -118,6 +118,54 @@ bool hasSubtermMulti(TNode n, TNode t)
   return false;
 }
 
+bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
+{
+  if (t.empty())
+  {
+    return false;
+  }
+  if (!strict && std::find(t.begin(),t.end(),n)!=t.end())
+  {
+    return true;
+  }
+
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> toProcess;
+
+  toProcess.push_back(n);
+
+  for (unsigned i = 0; i < toProcess.size(); ++i)
+  {
+    TNode current = toProcess[i];
+    if (current.hasOperator())
+    {
+      if( std::find(t.begin(),t.end(),current.getOperator())!=t.end())
+      {
+        return true;
+      }
+    }
+    for (unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++j)
+    {
+      TNode child = current[j];
+      if( std::find(t.begin(),t.end(),child)!=t.end())
+      {
+        return true;
+      }
+      if (visited.find(child) != visited.end())
+      {
+        continue;
+      }
+      else
+      {
+        visited.insert(child);
+        toProcess.push_back(child);
+      }
+    }
+  }
+
+  return false;
+}
+
 struct HasBoundVarTag
 {
 };
