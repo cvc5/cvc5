@@ -21,12 +21,38 @@
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+
+class InstStrategyCegqi;
+
+/**
+ * An instantiation rewriter based on the counterexample-guided instantiation
+ * quantifiers module below.
+ */
+class InstRewriterCegqi : public InstantiationRewriter
+{
+ public:
+  InstRewriterCegqi(InstStrategyCegqi* p);
+  ~InstRewriterCegqi() {}
+  /**
+   * Rewrite the instantiation via d_parent, based on virtual term substitution
+   * and nested quantifier elimination.
+   */
+  Node rewriteInstantiation(Node q,
+                            std::vector<Node>& terms,
+                            Node inst,
+                            bool doVts) override;
+
+ private:
+  /** pointer to the parent of this class */
+  InstStrategyCegqi* d_parent;
+};
 
 /**
  * Counterexample-guided quantifier instantiation module.
@@ -69,8 +95,21 @@ class InstStrategyCegqi : public QuantifiersModule
   void preRegisterQuantifier(Node q) override;
   // presolve
   void presolve() override;
-  /** Do nested quantifier elimination. */
-  Node doNestedQE(Node q, std::vector<Node>& inst_terms, Node lem, bool doVts);
+
+  /**
+   * Rewrite the instantiation inst of quantified formula q for terms; return
+   * the result.
+   *
+   * We rewrite inst based on virtual term substitution and nested quantifier
+   * elimination. For details, see "Solving Quantified Linear Arithmetic via
+   * Counterexample-Guided Instantiation" FMSD 2017, Reynolds et al.
+   */
+  Node rewriteInstantiation(Node q,
+                            std::vector<Node>& terms,
+                            Node inst,
+                            bool doVts);
+  /** get the instantiation rewriter object */
+  InstantiationRewriter* getInstRewriter() const;
 
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
@@ -80,6 +119,8 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- end interface for CegqiOutputInstStrategy
 
  protected:
+  /** The instantiation rewriter object */
+  std::unique_ptr<InstRewriterCegqi> d_irew;
   /** set quantified formula inactive
    *
    * This flag is set to true during a full effort check if at least one
@@ -181,6 +222,14 @@ class InstStrategyCegqi : public QuantifiersModule
   NodeIntMap d_nested_qe_waitlist_proc;
   std::map< Node, std::vector< Node > > d_nested_qe_waitlist;
 
+  /** Do nested quantifier elimination.
+   *
+   * This rewrites the quantified formulas in inst based on nested quantifier
+   * elimination. In this method, inst is the instantiation of quantified
+   * formula q for the vector terms. The flag doVts indicates whether we must
+   * apply virtual term substitution (if terms contains virtual terms).
+   */
+  Node doNestedQE(Node q, std::vector<Node>& terms, Node inst, bool doVts);
 };
 
 

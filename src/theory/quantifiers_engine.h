@@ -24,7 +24,6 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
@@ -116,8 +115,6 @@ public:
   //---------------------- modules (TODO remove these #1163)
   /** ceg instantiation */
   quantifiers::SynthEngine* getSynthEngine() const;
-  /** get inst strategy cbqi */
-  quantifiers::InstStrategyCegqi* getInstStrategyCegqi() const;
   //---------------------- end modules
  private:
   /**

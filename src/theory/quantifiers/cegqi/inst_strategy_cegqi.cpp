@@ -37,8 +37,22 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi* p)
+    : InstantiationRewriter(), d_parent(p)
+{
+}
+
+Node InstRewriterCegqi::rewriteInstantiation(Node q,
+                                             std::vector<Node>& terms,
+                                             Node inst,
+                                             bool doVts)
+{
+  return d_parent->rewriteInstantiation(q, terms, inst, doVts);
+}
+
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
     : QuantifiersModule(qe),
+      d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(qe->getUserContext()),
@@ -435,6 +449,30 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
       Trace("cbqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
     }
   }
+}
+Node InstStrategyCegqi::rewriteInstantiation(Node q,
+                                             std::vector<Node>& terms,
+                                             Node inst,
+                                             bool doVts)
+{
+  if (doVts)
+  {
+    // do virtual term substitution
+    inst = Rewriter::rewrite(inst);
+    Trace("quant-vts-debug") << "Rewrite vts symbols in " << inst << std::endl;
+    inst = d_quantEngine->getTermUtil()->rewriteVtsSymbols(inst);
+    Trace("quant-vts-debug") << "...got " << inst << std::endl;
+  }
+  if (options::cbqiNestedQE())
+  {
+    inst = doNestedQE(q, terms, inst, doVts);
+  }
+  return inst;
+}
+
+InstantiationRewriter* InstStrategyCegqi::getInstRewriter() const
+{
+  return d_irew.get();
 }
 
 Node InstStrategyCegqi::doNestedQENode(

@@ -77,7 +77,7 @@ CegTermType mkNegateCTT(CegTermType c)
 }
 bool isStrictCTT(CegTermType c)
 {
-  return c == CEG_TT_LOWER_STRICT && c == CEG_TT_UPPER_STRICT;
+  return c == CEG_TT_LOWER_STRICT || c == CEG_TT_UPPER_STRICT;
 }
 bool isLowerBoundCTT(CegTermType c)
 {
