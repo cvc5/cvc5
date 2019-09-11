@@ -1,15 +1,15 @@
 /*********************                                                        */
-/*! \file term_util.cpp
+/*! \file vts_term_cache.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of term utilities class
+ ** \brief Implementation of virtual term substitution term cache.
  **/
 
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
