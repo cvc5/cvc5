@@ -272,7 +272,6 @@ void SExpr::toStreamRec(std::ostream& out, const SExpr& sexpr,
 
 bool SExpr::languageQuotesKeywords(OutputLanguage language) {
   switch (language) {
-    case language::output::LANG_SMTLIB_V1:
     case language::output::LANG_SYGUS:
     case language::output::LANG_TPTP:
       return true;

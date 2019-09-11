@@ -95,12 +95,8 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
   d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::TseitinCnfStream
-    (d_satSolver, d_registrar, userContext,
-     // fullLitToNode Map =
-     options::threads() > 1 ||
-     options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY ||
-     ( CVC4_USE_REPLAY && replayLog != NULL ));
+  d_cnfStream = new CVC4::prop::TseitinCnfStream(
+      d_satSolver, d_registrar, userContext, true);
 
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream, replayLog,
