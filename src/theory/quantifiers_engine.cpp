@@ -128,6 +128,7 @@ class QuantifiersEnginePrivate
     {
       d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
       modules.push_back(d_i_cbqi.get());
+      qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
     }
     if (options::ceGuidedInst())
     {
@@ -190,7 +191,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_rel_dom(nullptr),
-      d_bv_invert(nullptr),
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
@@ -255,12 +255,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   if( options::quantEpr() ){
     Assert( !options::incrementalSolving() );
     d_qepr.reset(new quantifiers::QuantEPR);
-  }
-
-  if (options::cbqi() && options::cbqiBv())
-  {
-    // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new quantifiers::BvInverter);
   }
   //---- end utilities
 
@@ -341,10 +335,6 @@ quantifiers::RelevantDomain* QuantifiersEngine::getRelevantDomain() const
 {
   return d_rel_dom.get();
 }
-quantifiers::BvInverter* QuantifiersEngine::getBvInverter() const
-{
-  return d_bv_invert.get();
-}
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
@@ -401,10 +391,6 @@ quantifiers::BoundedIntegers* QuantifiersEngine::getBoundedIntegers() const
 quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
 {
   return d_private->d_synth_e.get();
-}
-quantifiers::InstStrategyCegqi* QuantifiersEngine::getInstStrategyCegqi() const
-{
-  return d_private->d_i_cbqi.get();
 }
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {

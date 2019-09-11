@@ -858,7 +858,6 @@ install(FILES
           expr/emptyset.h
           expr/expr_iomanip.h
           expr/expr_stream.h
-          expr/pickler.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h
@@ -922,7 +921,6 @@ install(FILES
           util/bitvector.h
           util/bool.h
           util/cardinality.h
-          util/channel.h
           util/divisible.h
           util/gmp_util.h
           util/hash.h
