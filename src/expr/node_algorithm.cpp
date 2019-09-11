@@ -41,7 +41,7 @@ bool hasSubterm(TNode n, TNode t, bool strict)
     {
       TNode child;
       // try children then operator
-      if( j<j_end )
+      if (j < j_end)
       {
         child = current[j];
       }
@@ -150,7 +150,7 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
     {
       TNode child;
       // try children then operator
-      if( j<j_end)
+      if (j < j_end)
       {
         child = current[j];
       }
