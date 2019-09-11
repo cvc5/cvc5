@@ -128,6 +128,7 @@ class QuantifiersEnginePrivate
     {
       d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
       modules.push_back(d_i_cbqi.get());
+      qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
     }
     if (options::ceGuidedInst())
     {
@@ -390,10 +391,6 @@ quantifiers::BoundedIntegers* QuantifiersEngine::getBoundedIntegers() const
 quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
 {
   return d_private->d_synth_e.get();
-}
-quantifiers::InstStrategyCegqi* QuantifiersEngine::getInstStrategyCegqi() const
-{
-  return d_private->d_i_cbqi.get();
 }
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
