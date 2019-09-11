@@ -489,15 +489,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
 bool TermUtil::containsVtsTerm( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false );
-  return expr::hasSubterm( n, t );
+  return expr::hasSubterm(n, t);
 }
 
 bool TermUtil::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false );
   if( !t.empty() ){
-    for (const Node& nc : n){
-      if( expr::hasSubterm( nc, t ) ){
+    for (const Node& nc : n)
+    {
+      if (expr::hasSubterm(nc, t))
+      {
         return true;
       }
     }
@@ -508,7 +510,7 @@ bool TermUtil::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
 bool TermUtil::containsVtsInfinity( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false, false );
-  return expr::hasSubterm( n, t );
+  return expr::hasSubterm(n, t);
 }
 
 Node TermUtil::ensureType( Node n, TypeNode tn ) {

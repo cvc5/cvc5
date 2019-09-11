@@ -124,7 +124,7 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
   {
     return false;
   }
-  if (!strict && std::find(t.begin(),t.end(),n)!=t.end())
+  if (!strict && std::find(t.begin(), t.end(), n) != t.end())
   {
     return true;
   }
@@ -139,7 +139,7 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
     TNode current = toProcess[i];
     if (current.hasOperator())
     {
-      if( std::find(t.begin(),t.end(),current.getOperator())!=t.end())
+      if (std::find(t.begin(), t.end(), current.getOperator()) != t.end())
       {
         return true;
       }
@@ -147,7 +147,7 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
     for (unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++j)
     {
       TNode child = current[j];
-      if( std::find(t.begin(),t.end(),child)!=t.end())
+      if (std::find(t.begin(), t.end(), child) != t.end())
       {
         return true;
       }
