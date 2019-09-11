@@ -226,7 +226,7 @@ class InstStrategyCegqi : public QuantifiersModule
    *
    * This rewrites the quantified formulas in inst based on nested quantifier
    * elimination. In this method, lem is the instantiation of quantified formula
-   * q for the vector terms. The flag doVts is if we must apply virtual term
+   * q for the vector terms. The flag doVts indicates whether we must apply virtual term
    * substitution (if terms contains virtual terms).
    */
   Node doNestedQE(Node q, std::vector<Node>& terms, Node inst, bool doVts);
