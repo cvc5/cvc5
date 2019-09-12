@@ -536,7 +536,7 @@ void QuantifiersEngine::ppNotifyAssertions(
       d_qepr->registerAssertion(a);
     }
     // must handle sources of other new constants e.g. separation logic
-    // FIXME: cleanup
+    // FIXME (as part of project 3) : cleanup
     sep::TheorySep* theory_sep =
         static_cast<sep::TheorySep*>(getTheoryEngine()->theoryOf(THEORY_SEP));
     theory_sep->initializeBounds();
