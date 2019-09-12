@@ -385,11 +385,6 @@ inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
   return d_tr_trie.get();
 }
 
-quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
-{
-  return d_private->d_synth_e.get();
-}
-
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
   std::map< Node, QuantifiersModule * >::iterator it = d_owner.find( q );
   if( it==d_owner.end() ){
@@ -527,24 +522,27 @@ void QuantifiersEngine::ppNotifyAssertions(
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
       << " check epr = " << (d_qepr != NULL) << std::endl;
-  if ((options::instLevelInputOnly() && options::instMaxLevel() != -1) ||
-      d_qepr != NULL) {
-    for (unsigned i = 0; i < assertions.size(); i++) {
-      if (options::instLevelInputOnly() && options::instMaxLevel() != -1) {
-        quantifiers::QuantAttributes::setInstantiationLevelAttr(assertions[i],
-                                                                0);
-      }
-      if (d_qepr != NULL) {
-        d_qepr->registerAssertion(assertions[i]);
-      }
+  if (options::instLevelInputOnly() && options::instMaxLevel() != -1) {
+    for (const Node& a : assertions){
+      quantifiers::QuantAttributes::setInstantiationLevelAttr(a,0);
     }
-    if (d_qepr != NULL) {
-      // must handle sources of other new constants e.g. separation logic
-      // FIXME: cleanup
-      sep::TheorySep* theory_sep =
-          static_cast<sep::TheorySep*>(getTheoryEngine()->theoryOf(THEORY_SEP));
-      theory_sep->initializeBounds();
-      d_qepr->finishInit();
+  }
+  if (d_qepr != NULL) {
+    for (const Node& a : assertions){
+      d_qepr->registerAssertion(a);
+    }
+    // must handle sources of other new constants e.g. separation logic
+    // FIXME: cleanup
+    sep::TheorySep* theory_sep =
+        static_cast<sep::TheorySep*>(getTheoryEngine()->theoryOf(THEORY_SEP));
+    theory_sep->initializeBounds();
+    d_qepr->finishInit();
+  }
+  if( options::ceGuidedInst() )
+  {
+    quantifiers::SynthEngine * sye = d_private->d_synth_e.get();
+    for (const Node& a : assertions){
+      sye->preregisterAssertion(a);
     }
   }
 }

@@ -35,7 +35,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -112,10 +111,6 @@ public:
   /** get relevant domain */
   quantifiers::RelevantDomain* getRelevantDomain() const;
   //---------------------- end utilities
-  //---------------------- modules (TODO remove these #1163)
-  /** ceg instantiation */
-  quantifiers::SynthEngine* getSynthEngine() const;
-  //---------------------- end modules
  private:
   /**
    * Maps quantified formulas to the module that owns them, if any module has
