@@ -53,15 +53,14 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
   CegInstantiator* d_ci;
 };
 
-BvInstantiator::BvInstantiator(QuantifiersEngine* qe, TypeNode tn)
-    : Instantiator(qe, tn), d_inst_id_counter(0)
+BvInstantiator::BvInstantiator(TypeNode tn, BvInverter* inv)
+    : Instantiator(tn), d_inverter(inv), d_inst_id_counter(0)
 {
-  // get the global inverter utility
-  // this must be global since we need to:
+  // The inverter utility d_inverter is global to all BvInstantiator classes.
+  // This must be global since we need to:
   // * process Skolem functions properly across multiple variables within the
   // same quantifier
   // * cache Skolem variables uniformly across multiple quantified formulas
-  d_inverter = qe->getBvInverter();
 }
 
 BvInstantiator::~BvInstantiator() {}

@@ -30,42 +30,46 @@
 #include "theory/theory_engine.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
 
-bool CegqiOutputInstStrategy::doAddInstantiation(std::vector<Node>& subs)
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+
+InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi* p)
+    : InstantiationRewriter(), d_parent(p)
 {
-  return d_out->doAddInstantiation(subs);
 }
 
-bool CegqiOutputInstStrategy::isEligibleForInstantiation(Node n)
+Node InstRewriterCegqi::rewriteInstantiation(Node q,
+                                             std::vector<Node>& terms,
+                                             Node inst,
+                                             bool doVts)
 {
-  return d_out->isEligibleForInstantiation(n);
-}
-
-bool CegqiOutputInstStrategy::addLemma(Node lem)
-{
-  return d_out->addLemma(lem);
+  return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
 
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
     : QuantifiersModule(qe),
+      d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(qe->getUserContext()),
       d_elim_quants(qe->getSatContext()),
-      d_out(new CegqiOutputInstStrategy(this)),
+      d_bv_invert(nullptr),
       d_nested_qe_waitlist_size(qe->getUserContext()),
       d_nested_qe_waitlist_proc(qe->getUserContext())
-//, d_added_inst( qe->getUserContext() )
 {
   d_qid_count = 0;
   d_small_const =
       NodeManager::currentNM()->mkConst(Rational(1) / Rational(1000000));
   d_check_vts_lemma_lc = false;
+  if (options::cbqiBv())
+  {
+    // if doing instantiation for BV, need the inverter class
+    d_bv_invert.reset(new quantifiers::BvInverter);
+  }
 }
 
 InstStrategyCegqi::~InstStrategyCegqi() {}
@@ -93,7 +97,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     Trace("cbqi-debug") << "Do cbqi for " << q << std::endl;
     //add cbqi lemma
     //get the counterexample literal
-    Node ceLit = d_quantEngine->getTermUtil()->getCounterexampleLiteral( q );
+    Node ceLit = getCounterexampleLiteral(q);
     Node ceBody = d_quantEngine->getTermUtil()->getInstConstantBody( q );
     if( !ceBody.isNull() ){
       //add counterexample lemma
@@ -148,7 +152,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
             d_parent_quant[q].push_back( qi );
             d_children_quant[qi].push_back( q );
             Assert( hasAddedCbqiLemma( qi ) );
-            Node qicel = d_quantEngine->getTermUtil()->getCounterexampleLiteral( qi );
+            Node qicel = getCounterexampleLiteral(qi);
             dep.push_back( qi );
             dep.push_back( qicel );
           }
@@ -220,7 +224,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
       if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
         d_active_quant[q] = true;
         Debug("cbqi-debug") << "Check quantified formula " << q << "..." << std::endl;
-        Node cel = d_quantEngine->getTermUtil()->getCounterexampleLiteral( q );
+        Node cel = getCounterexampleLiteral(q);
         bool value;
         if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
           Debug("cbqi-debug") << "...CE Literal has value " << value << std::endl;
@@ -446,6 +450,30 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
     }
   }
 }
+Node InstStrategyCegqi::rewriteInstantiation(Node q,
+                                             std::vector<Node>& terms,
+                                             Node inst,
+                                             bool doVts)
+{
+  if (doVts)
+  {
+    // do virtual term substitution
+    inst = Rewriter::rewrite(inst);
+    Trace("quant-vts-debug") << "Rewrite vts symbols in " << inst << std::endl;
+    inst = d_quantEngine->getTermUtil()->rewriteVtsSymbols(inst);
+    Trace("quant-vts-debug") << "...got " << inst << std::endl;
+  }
+  if (options::cbqiNestedQE())
+  {
+    inst = doNestedQE(q, terms, inst, doVts);
+  }
+  return inst;
+}
+
+InstantiationRewriter* InstStrategyCegqi::getInstRewriter() const
+{
+  return d_irew.get();
+}
 
 Node InstStrategyCegqi::doNestedQENode(
     Node q, Node ceq, Node n, std::vector<Node>& inst_terms, bool doVts)
@@ -620,6 +648,21 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   }
 }
 
+Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
+{
+  std::map<Node, Node>::iterator it = d_ce_lit.find(q);
+  if (it != d_ce_lit.end())
+  {
+    return it->second;
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  Node g = nm->mkSkolem("g", nm->booleanType());
+  // ensure that it is a SAT literal
+  Node ceLit = d_quantEngine->getValuation().ensureLiteral(g);
+  d_ce_lit[q] = ceLit;
+  return ceLit;
+}
+
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert( !d_curr_quant.isNull() );
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
@@ -650,39 +693,20 @@ bool InstStrategyCegqi::addLemma( Node lem ) {
   return d_quantEngine->addLemma( lem );
 }
 
-bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
-  if( n.getKind()==INST_CONSTANT || n.getKind()==SKOLEM ){
-    if( n.getAttribute(VirtualTermSkolemAttribute()) ){
-      // virtual terms are allowed
-      return true;
-    }else{
-      TypeNode tn = n.getType();
-      if( tn.isSort() ){
-        QuantEPR * qepr = d_quantEngine->getQuantEPR();
-        if( qepr!=NULL ){
-          //legal if in the finite set of constants of type tn
-          if( qepr->isEPRConstant( tn, n ) ){
-            return true;
-          }
-        }
-      }
-      //only legal if current quantified formula contains n
-      return expr::hasSubterm(d_curr_quant, n);
-    }
-  }else{
-    return true;
-  }
-}
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(
-        new CegInstantiator(d_quantEngine, d_out.get(), true, true));
+    d_cinst[q].reset(new CegInstantiator(q, this));
     return d_cinst[q].get();
   }
   return it->second.get();
+}
+
+BvInverter* InstStrategyCegqi::getBvInverter() const
+{
+  return d_bv_invert.get();
 }
 
 void InstStrategyCegqi::presolve() {
@@ -697,3 +721,6 @@ void InstStrategyCegqi::presolve() {
   }
 }
 
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
