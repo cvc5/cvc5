@@ -45,6 +45,15 @@ bool hasSubterm(TNode n, TNode t, bool strict = false);
 bool hasSubtermMulti(TNode n, TNode t);
 
 /**
+ * Check if the node n has a subterm that occurs in t.
+ * @param n The node to search in
+ * @param t The set of subterms to search for
+ * @param strict If true, a term is not considered to be a subterm of itself
+ * @return true iff there is a term in t that is a subterm in n
+ */
+bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict = false);
+
+/**
  * Returns true iff the node n contains a bound variable, that is a node of
  * kind BOUND_VARIABLE. This bound variable may or may not be free.
  * @param n The node under investigation

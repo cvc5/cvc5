@@ -489,15 +489,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
 bool TermUtil::containsVtsTerm( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false );
-  return containsTerms( n, t );
+  return expr::hasSubterm(n, t);
 }
 
 bool TermUtil::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false );
   if( !t.empty() ){
-    for( unsigned i=0; i<n.size(); i++ ){
-      if( containsTerms( n[i], t ) ){
+    for (const Node& nc : n)
+    {
+      if (expr::hasSubterm(nc, t))
+      {
         return true;
       }
     }
@@ -508,7 +510,7 @@ bool TermUtil::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
 bool TermUtil::containsVtsInfinity( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false, false );
-  return containsTerms( n, t );
+  return expr::hasSubterm(n, t);
 }
 
 Node TermUtil::ensureType( Node n, TypeNode tn ) {
@@ -521,40 +523,6 @@ Node TermUtil::ensureType( Node n, TypeNode tn ) {
       return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
     }
     return Node::null();
-  }
-}
-
-bool TermUtil::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited ) {
-  if (visited.find(n) == visited.end())
-  {
-    if( std::find( t.begin(), t.end(), n )!=t.end() ){
-      return true;
-    }
-    visited[n] = true;
-    if (n.hasOperator())
-    {
-      if (containsTerms2(n.getOperator(), t, visited))
-      {
-        return true;
-      }
-    }
-    for (const Node& nc : n)
-    {
-      if (containsTerms2(nc, t, visited))
-      {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermUtil::containsTerms( Node n, std::vector< Node >& t ) {
-  if( t.empty() ){
-    return false;
-  }else{
-    std::map< Node, bool > visited;
-    return containsTerms2( n, t, visited );
   }
 }
 
