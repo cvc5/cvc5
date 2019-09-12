@@ -3215,10 +3215,9 @@ void SmtEnginePrivate::processAssertions() {
 
   if( options::ceGuidedInst() ){
     //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_smt.d_theoryEngine->getQuantifiersEngine()
-          ->getSynthEngine()
-          ->preregisterAssertion(d_assertions[i]);
+    QuantifiersEngine * qe = d_smt.d_theoryEngine->getQuantifiersEngine();
+    for (unsigned i = 0, asize = d_assertions.size(); i < asize; ++ i) {
+      qe->getSynthEngine()->preregisterAssertion(d_assertions[i]);
     }
   }
 

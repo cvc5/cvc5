@@ -36,7 +36,7 @@ SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe)
 {
   d_conjs.push_back(
-      std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+      std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine, this)));
   d_conj = d_conjs.back().get();
 }
 
@@ -256,7 +256,7 @@ void SynthEngine::assignConjecture(Node q)
   if (d_conjs.back()->isAssigned())
   {
     d_conjs.push_back(
-        std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+        std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine, this)));
   }
   d_conjs.back()->assign(q);
 }

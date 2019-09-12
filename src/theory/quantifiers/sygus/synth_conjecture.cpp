@@ -43,8 +43,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SynthConjecture::SynthConjecture(QuantifiersEngine* qe)
+SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine * p)
     : d_qe(qe),
+      d_parent(p),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false, qe->getUserContext()),
       d_ceg_si(new CegSingleInv(qe, this)),
@@ -1045,8 +1046,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
       ss << prog;
       std::string f(ss.str());
       f.erase(f.begin());
-      SynthEngine* cei = d_qe->getSynthEngine();
-      ++(cei->d_statistics.d_solutions);
+      ++(d_parent->d_statistics.d_solutions);
 
       bool is_unique_term = true;
 
@@ -1086,11 +1086,11 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         is_unique_term = d_exprm[prog].addTerm(sol, out, rew_print);
         if (rew_print)
         {
-          ++(cei->d_statistics.d_candidate_rewrites_print);
+          ++(d_parent->d_statistics.d_candidate_rewrites_print);
         }
         if (!is_unique_term)
         {
-          ++(cei->d_statistics.d_filtered_solutions);
+          ++(d_parent->d_statistics.d_filtered_solutions);
         }
       }
       if (is_unique_term)
