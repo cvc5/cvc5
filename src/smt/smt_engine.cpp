@@ -517,15 +517,10 @@ class SmtEnginePrivate : public NodeManagerListener {
   std::vector<Node> d_sygusConstraints;
   /** functions-to-synthesize */
   std::vector<Node> d_sygusFunSymbols;
-  /** maps functions-to-synthesize to their respective input variables lists */
-  std::map<Node, std::vector<Node>> d_sygusFunVars;
-  /** maps functions-to-synthesize to their respective syntactic restrictions
-   *
-   * If function has syntactic restrictions, these are encoded as a SyGuS
-   * datatype type
+  /**
+   * Whether we need to reconstruct the sygus conjecture.
    */
-  std::map<Node, TypeNode> d_sygusFunSyntax;
-
+  CDO<bool> d_sygusConjectureStale;
   /*------------------- end of sygus utils ------------------*/
 
  private:
@@ -575,7 +570,8 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_simplifyAssertionsDepth(0),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.d_userContext),
-        d_iteRemover(smt.d_userContext)
+        d_iteRemover(smt.d_userContext),
+        d_sygusConjectureStale(smt.d_userContext, true)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
@@ -1980,10 +1976,10 @@ void SmtEngine::setDefaults() {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
     }
-    if (options::sygusStream())
+    if (options::sygusStream() || options::incrementalSolving())
     {
-      // Streaming is incompatible with techniques that focus the search towards
-      // finding a single solution.
+      // Streaming and incremental mode are incompatible with techniques that
+      // focus the search towards finding a single solution.
       reqBasicSygus = true;
     }
     // Now, disable options for non-basic sygus algorithms, if necessary.
@@ -3217,15 +3213,6 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["nl-ext-purify"]->apply(&d_assertions);
   }
 
-  if( options::ceGuidedInst() ){
-    //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_smt.d_theoryEngine->getQuantifiersEngine()
-          ->getSynthEngine()
-          ->preregisterAssertion(d_assertions[i]);
-    }
-  }
-
   if (options::solveRealAsInt()) {
     d_passes["real-to-int"]->apply(&d_assertions);
   }
@@ -3782,7 +3769,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
-      // TODO (#1693) check model when unknown result?
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
       {
         checkModel();
@@ -3881,6 +3867,7 @@ void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
 {
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
+  // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
@@ -3889,6 +3876,7 @@ void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
   d_private->d_sygusPrimedVarTypes.push_back(type);
 #endif
   Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
+  // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSygusFunctionVar(const std::string& id,
@@ -3897,6 +3885,7 @@ void SmtEngine::declareSygusFunctionVar(const std::string& id,
 {
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
+  // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSynthFun(const std::string& id,
@@ -3905,28 +3894,41 @@ void SmtEngine::declareSynthFun(const std::string& id,
                                 bool isInv,
                                 const std::vector<Expr>& vars)
 {
+  SmtScope smts(this);
+  finalOptionsAreSet();
+  doPendingPops();
   Node fn = Node::fromExpr(func);
   d_private->d_sygusFunSymbols.push_back(fn);
-  std::vector<Node> var_nodes;
-  for (const Expr& v : vars)
+  if (!vars.empty())
   {
-    var_nodes.push_back(Node::fromExpr(v));
+    Expr bvl = d_exprManager->mkExpr(kind::BOUND_VAR_LIST, vars);
+    std::vector<Expr> attr_val_bvl;
+    attr_val_bvl.push_back(bvl);
+    setUserAttribute("sygus-synth-fun-var-list", func, attr_val_bvl, "");
   }
-  d_private->d_sygusFunVars[fn] = var_nodes;
   // whether sygus type encodes syntax restrictions
   if (sygusType.isDatatype()
       && static_cast<DatatypeType>(sygusType).getDatatype().isSygus())
   {
-    d_private->d_sygusFunSyntax[fn] = TypeNode::fromType(sygusType);
+    TypeNode stn = TypeNode::fromType(sygusType);
+    Node sym = d_nodeManager->mkBoundVar("sfproxy", stn);
+    std::vector<Expr> attr_value;
+    attr_value.push_back(sym.toExpr());
+    setUserAttribute("sygus-synth-grammar", func, attr_value, "");
   }
   Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
+  // sygus conjecture is now stale
+  setSygusConjectureStale();
 }
 
 void SmtEngine::assertSygusConstraint(Expr constraint)
 {
+  SmtScope smts(this);
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
+  // sygus conjecture is now stale
+  setSygusConjectureStale();
 }
 
 void SmtEngine::assertSygusInvConstraint(const Expr& inv,
@@ -4017,11 +4019,27 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusInvConstrant: " << constraint << "\n";
+  // sygus conjecture is now stale
+  setSygusConjectureStale();
 }
 
 Result SmtEngine::checkSynth()
 {
   SmtScope smts(this);
+
+  if (options::incrementalSolving())
+  {
+    // TODO (project #7)
+    throw ModalException(
+        "Cannot make check-synth commands when incremental solving is enabled");
+  }
+
+  if (!d_private->d_sygusConjectureStale)
+  {
+    // do not need to reconstruct, we're done
+    return checkSatisfiability(Expr(), true, false);
+  }
+
   // build synthesis conjecture from asserted constraints and declared
   // variables/functions
   Node sygusVar =
@@ -4057,38 +4075,18 @@ Result SmtEngine::checkSynth()
   // set attribute for synthesis conjecture
   setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
 
-  // set attributes for functions-to-synthesize
-  for (const Node& synth_fun : d_private->d_sygusFunSymbols)
-  {
-    // associate var list with function-to-synthesize
-    Assert(d_private->d_sygusFunVars.find(synth_fun)
-           != d_private->d_sygusFunVars.end());
-    const std::vector<Node>& vars = d_private->d_sygusFunVars[synth_fun];
-    Node bvl;
-    if (!vars.empty())
-    {
-      bvl = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, vars);
-    }
-    std::vector<Expr> attr_val_bvl;
-    attr_val_bvl.push_back(bvl.toExpr());
-    setUserAttribute(
-        "sygus-synth-fun-var-list", synth_fun.toExpr(), attr_val_bvl, "");
-    // If the function has syntax restrition, bulid a variable "sfproxy" which
-    // carries the type, a SyGuS datatype that corresponding to the syntactic
-    // restrictions.
-    std::map<Node, TypeNode>::const_iterator it =
-        d_private->d_sygusFunSyntax.find(synth_fun);
-    if (it != d_private->d_sygusFunSyntax.end())
-    {
-      Node sym = d_nodeManager->mkBoundVar("sfproxy", it->second);
-      std::vector<Expr> attr_value;
-      attr_value.push_back(sym.toExpr());
-      setUserAttribute(
-          "sygus-synth-grammar", synth_fun.toExpr(), attr_value, "");
-    }
-  }
-
   Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
+
+  d_private->d_sygusConjectureStale = false;
+
+  if (options::incrementalSolving())
+  {
+    // we push a context so that this conjecture is removed if we modify it
+    // later
+    internalPush();
+    assertFormula(body.toExpr(), true);
+    return checkSatisfiability(body.toExpr(), true, false);
+  }
 
   return checkSatisfiability(body.toExpr(), true, false);
 }
@@ -5127,7 +5125,7 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   }
   Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj
                         << std::endl;
-  std::vector<Expr> easserts = getAssertions();
+  std::vector<Expr> easserts = getExpandedAssertions();
   std::vector<Node> axioms;
   for (unsigned i = 0, size = easserts.size(); i < size; i++)
   {
@@ -5135,7 +5133,12 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // negate the conjecture
-  Node conjn = Node::fromExpr(conj).negate();
+  Node conjn = Node::fromExpr(conj);
+  // must expand definitions
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  conjn = d_private->expandDefinitions(conjn, cache);
+  // now negate
+  conjn = conjn.negate();
   d_abdConj = conjn.toExpr();
   asserts.push_back(conjn);
   std::string name("A");
@@ -5643,6 +5646,20 @@ bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
 void SmtEngine::setExpressionName(Expr e, const std::string& name) {
   Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
   d_private->setExpressionName(e,name);
+}
+
+void SmtEngine::setSygusConjectureStale()
+{
+  if (d_private->d_sygusConjectureStale)
+  {
+    // already stale
+    return;
+  }
+  d_private->d_sygusConjectureStale = true;
+  if (options::incrementalSolving())
+  {
+    internalPop();
+  }
 }
 
 }/* CVC4 namespace */

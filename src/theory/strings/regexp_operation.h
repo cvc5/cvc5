@@ -85,6 +85,7 @@ class RegExpOpr {
   std::map<Node, Node> d_rm_inter_cache;
   std::map<Node, bool> d_norv_cache;
   std::map<Node, std::vector<PairNodes> > d_split_cache;
+  std::map<PairNodes, bool> d_inclusionCache;
   void simplifyPRegExp(Node s, Node r, std::vector<Node> &new_nodes);
   void simplifyNRegExp(Node s, Node r, std::vector<Node> &new_nodes);
   /**
@@ -129,6 +130,21 @@ class RegExpOpr {
   Node intersect(Node r1, Node r2, bool &spflag);
   /** Get the pretty printed version of the regular expression r */
   static std::string mkString(Node r);
+
+  /**
+   * Returns true if we can show that the regular expression `r1` includes
+   * the regular expression `r2` (i.e. `r1` matches a superset of sequences
+   * that `r2` matches). This method only works on a fragment of regular
+   * expressions, specifically regular expressions that pass the
+   * `isSimpleRegExp` check.
+   *
+   * @param r1 The regular expression that may include `r2` (must be in
+   *           rewritten form)
+   * @param r2 The regular expression that may be included by `r1` (must be
+   *           in rewritten form)
+   * @return True if the inclusion can be shown, false otherwise
+   */
+  bool regExpIncludes(Node r1, Node r2);
 };
 
 }/* CVC4::theory::strings namespace */

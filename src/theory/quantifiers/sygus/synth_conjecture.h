@@ -34,6 +34,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class SynthEngine;
+
 /**
  * A base class for generating values for actively-generated enumerators.
  * At a high level, the job of this class is to accept a stream of "abstract
@@ -68,7 +70,7 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe);
+  SynthConjecture(QuantifiersEngine* qe, SynthEngine* p);
   ~SynthConjecture();
   /** presolve */
   void presolve();
@@ -154,10 +156,19 @@ class SynthConjecture
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
   void debugPrint(const char* c);
+  /** check side condition
+   *
+   * This returns false if the solution { d_candidates -> cvals } does not
+   * satisfy the side condition of the conjecture maintained by this class,
+   * if it exists, and true otherwise.
+   */
+  bool checkSideCondition(const std::vector<Node>& cvals) const;
 
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** pointer to the synth engine that owns this */
+  SynthEngine* d_parent;
   /** term database sygus of d_qe */
   TermDbSygus* d_tds;
   /** The feasible guard. */
@@ -367,10 +378,15 @@ class SynthConjecture
    * Prints the current synthesis solution to the output stream indicated by
    * the Options object, send a lemma blocking the current solution to the
    * output channel, which we refer to as a "stream exclusion lemma".
+   *
+   * The argument enums is the set of enumerators that comprise the current
+   * solution, and values is their current values.
    */
-  void printAndContinueStream();
-  /** exclude the current solution */
-  void excludeCurrentSolution();
+  void printAndContinueStream(const std::vector<Node>& enums,
+                              const std::vector<Node>& values);
+  /** exclude the current solution { enums -> values } */
+  void excludeCurrentSolution(const std::vector<Node>& enums,
+                              const std::vector<Node>& values);
   /**
    * Whether we have guarded a stream exclusion lemma when using sygusStream.
    * This is an optimization that allows us to guard only the first stream
