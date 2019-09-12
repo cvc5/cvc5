@@ -2376,7 +2376,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
     inelig.push_back(eqc[start]);
   }
   Node a = eqc[start];
-  Trace("strings-ff-debug") << "Check flat form for a = " << a << ", whose flat form is " << d_flat_form[a] << ")" << std::endl;
+  Trace("strings-ff-debug")
+      << "Check flat form for a = " << a << ", whose flat form is "
+      << d_flat_form[a] << ")" << std::endl;
   Node b;
   do
   {
@@ -2395,7 +2397,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
           unsigned bsize = d_flat_form[b].size();
           if (count < bsize)
           {
-            Trace("strings-ff-debug") << "Found endpoint (in a) with non-empty b = " << b << ", whose flat form is " << d_flat_form[b] << std::endl;
+            Trace("strings-ff-debug")
+                << "Found endpoint (in a) with non-empty b = " << b
+                << ", whose flat form is " << d_flat_form[b] << std::endl;
             // endpoint
             std::vector<Node> conc_c;
             for (unsigned j = count; j < bsize; j++)
@@ -2431,7 +2435,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
           if (count == d_flat_form[b].size())
           {
             inelig.push_back(b);
-            Trace("strings-ff-debug") << "Found endpoint in b = " << b << ", whose flat form is " << d_flat_form[b] << std::endl;
+            Trace("strings-ff-debug")
+                << "Found endpoint in b = " << b << ", whose flat form is "
+                << d_flat_form[b] << std::endl;
             // endpoint
             std::vector<Node> conc_c;
             for (unsigned j = count; j < asize; j++)
