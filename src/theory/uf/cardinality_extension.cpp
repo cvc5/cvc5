@@ -228,7 +228,7 @@ struct sortExternalDegree {
 int gmcCount = 0;
 
 bool Region::getMustCombine( int cardinality ){
-  if (d_total_diseq_external>=unsigned(cardinality))
+  if (d_total_diseq_external >= static_cast<unsigned>(cardinality))
   {
     //The number of external disequalities is greater than or equal to
     //cardinality.  Thus, a clique of size cardinality+1 may exist
