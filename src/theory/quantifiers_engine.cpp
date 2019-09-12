@@ -522,13 +522,17 @@ void QuantifiersEngine::ppNotifyAssertions(
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
       << " check epr = " << (d_qepr != NULL) << std::endl;
-  if (options::instLevelInputOnly() && options::instMaxLevel() != -1) {
-    for (const Node& a : assertions){
-      quantifiers::QuantAttributes::setInstantiationLevelAttr(a,0);
+  if (options::instLevelInputOnly() && options::instMaxLevel() != -1)
+  {
+    for (const Node& a : assertions)
+    {
+      quantifiers::QuantAttributes::setInstantiationLevelAttr(a, 0);
     }
   }
-  if (d_qepr != NULL) {
-    for (const Node& a : assertions){
+  if (d_qepr != NULL)
+  {
+    for (const Node& a : assertions)
+    {
       d_qepr->registerAssertion(a);
     }
     // must handle sources of other new constants e.g. separation logic
@@ -538,10 +542,11 @@ void QuantifiersEngine::ppNotifyAssertions(
     theory_sep->initializeBounds();
     d_qepr->finishInit();
   }
-  if( options::ceGuidedInst() )
+  if (options::ceGuidedInst())
   {
-    quantifiers::SynthEngine * sye = d_private->d_synth_e.get();
-    for (const Node& a : assertions){
+    quantifiers::SynthEngine* sye = d_private->d_synth_e.get();
+    for (const Node& a : assertions)
+    {
       sye->preregisterAssertion(a);
     }
   }
