@@ -3213,15 +3213,6 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["nl-ext-purify"]->apply(&d_assertions);
   }
 
-  if( options::ceGuidedInst() ){
-    //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_smt.d_theoryEngine->getQuantifiersEngine()
-          ->getSynthEngine()
-          ->preregisterAssertion(d_assertions[i]);
-    }
-  }
-
   if (options::solveRealAsInt()) {
     d_passes["real-to-int"]->apply(&d_assertions);
   }

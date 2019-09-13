@@ -317,40 +317,6 @@ Node TermUtil::ensureType( Node n, TypeNode tn ) {
   }
 }
 
-bool TermUtil::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited ) {
-  if (visited.find(n) == visited.end())
-  {
-    if( std::find( t.begin(), t.end(), n )!=t.end() ){
-      return true;
-    }
-    visited[n] = true;
-    if (n.hasOperator())
-    {
-      if (containsTerms2(n.getOperator(), t, visited))
-      {
-        return true;
-      }
-    }
-    for (const Node& nc : n)
-    {
-      if (containsTerms2(nc, t, visited))
-      {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermUtil::containsTerms( Node n, std::vector< Node >& t ) {
-  if( t.empty() ){
-    return false;
-  }else{
-    std::map< Node, bool > visited;
-    return containsTerms2( n, t, visited );
-  }
-}
-
 int TermUtil::getTermDepth( Node n ) {
   if (!n.hasAttribute(TermDepthAttribute()) ){
     int maxDepth = -1;

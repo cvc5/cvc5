@@ -523,6 +523,8 @@ libcvc4_add_sources(
   theory/quantifiers/quant_epr.h
   theory/quantifiers/quant_relevance.cpp
   theory/quantifiers/quant_relevance.h
+  theory/quantifiers/quant_rep_bound_ext.cpp
+  theory/quantifiers/quant_rep_bound_ext.h
   theory/quantifiers/quant_split.cpp
   theory/quantifiers/quant_split.h
   theory/quantifiers/quant_util.cpp
@@ -679,6 +681,8 @@ libcvc4_add_sources(
   theory/type_enumerator.h
   theory/type_set.cpp
   theory/type_set.h
+  theory/uf/cardinality_extension.cpp
+  theory/uf/cardinality_extension.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
@@ -691,8 +695,6 @@ libcvc4_add_sources(
   theory/uf/theory_uf_model.cpp
   theory/uf/theory_uf_model.h
   theory/uf/theory_uf_rewriter.h
-  theory/uf/theory_uf_strong_solver.cpp
-  theory/uf/theory_uf_strong_solver.h
   theory/uf/theory_uf_type_rules.h
   theory/valuation.cpp
   theory/valuation.h

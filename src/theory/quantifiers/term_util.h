@@ -191,8 +191,6 @@ public:
 //general utilities
   // TODO #1216 : promote these?
  private:
-  //helper for contains term
-  static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
   /** cache for getTypeValue */
   std::unordered_map<TypeNode,
                      std::unordered_map<int, Node>,
@@ -216,8 +214,6 @@ public:
       d_type_value_offset_status;
 
  public:
-  /** simple check for contains term, true if contains at least one term in t */
-  static bool containsTerms( Node n, std::vector< Node >& t );
   /** contains uninterpreted constant */
   static bool containsUninterpretedConstant( Node n );
   /** get the term depth of n */

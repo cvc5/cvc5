@@ -34,6 +34,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class SynthEngine;
+
 /**
  * A base class for generating values for actively-generated enumerators.
  * At a high level, the job of this class is to accept a stream of "abstract
@@ -68,7 +70,7 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe);
+  SynthConjecture(QuantifiersEngine* qe, SynthEngine* p);
   ~SynthConjecture();
   /** presolve */
   void presolve();
@@ -165,6 +167,8 @@ class SynthConjecture
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** pointer to the synth engine that owns this */
+  SynthEngine* d_parent;
   /** term database sygus of d_qe */
   TermDbSygus* d_tds;
   /** The feasible guard. */
