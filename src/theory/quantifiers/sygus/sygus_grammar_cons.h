@@ -22,11 +22,27 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
+
+/**
+ * Attribute for associating a function-to-synthesize with a first order
+ * variable whose type is a sygus datatype type that encodes its grammar.
+ */
+struct SygusSynthGrammarAttributeId {};
+typedef expr::Attribute<SygusSynthGrammarAttributeId, Node>
+    SygusSynthGrammarAttribute;
+
+/**
+ * Attribute for associating a function-to-synthesize with its formal argument
+ * list.
+ */
+struct SygusSynthFunVarListAttributeId {};
+typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node> SygusSynthFunVarListAttribute;
 
 namespace quantifiers {
 

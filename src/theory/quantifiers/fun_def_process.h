@@ -17,15 +17,22 @@
 #ifndef CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
 #define CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
 
-#include <iostream>
-#include <string>
 #include <vector>
 #include <map>
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
+  
+/**
+ * Attribute marked true for types that are used as abstraction types in
+ * the algorithm below.
+ */
+struct AbsTypeFunDefAttributeId {};
+typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
+
 namespace quantifiers {
 
 //Preprocessing pass to allow finite model finding for admissible recursive function definitions

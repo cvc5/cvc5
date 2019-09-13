@@ -20,9 +20,15 @@
 #include "context/cdo.h"
 #include "expr/node_trie.h"
 #include "theory/quantifiers/quant_util.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
+  
+/** Attribute true for quantifiers that do not need to be partially instantiated */
+struct LtePartialInstAttributeId {};
+typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
+
 namespace quantifiers {
 
 class LtePartialInst : public QuantifiersModule {

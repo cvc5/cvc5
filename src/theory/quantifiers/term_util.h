@@ -43,34 +43,9 @@ typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
 struct ContainsUConstAttributeId {};
 typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
 
-//for bounded integers
-struct BoundIntLitAttributeId {};
-typedef expr::Attribute<BoundIntLitAttributeId, uint64_t> BoundIntLitAttribute;
-
 //for quantifier instantiation level
 struct QuantInstLevelAttributeId {};
 typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t> QuantInstLevelAttribute;
-
-//rewrite-rule priority
-struct RrPriorityAttributeId {};
-typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
-
-/** Attribute true for quantifiers that do not need to be partially instantiated */
-struct LtePartialInstAttributeId {};
-typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
-
-// attribute for associating a synthesis function with a first order variable
-struct SygusSynthGrammarAttributeId {};
-typedef expr::Attribute<SygusSynthGrammarAttributeId, Node>
-    SygusSynthGrammarAttribute;
-
-// attribute for associating a variable list with a synth fun
-struct SygusSynthFunVarListAttributeId {};
-typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node> SygusSynthFunVarListAttribute;
-
-//attribute for fun-def abstraction type
-struct AbsTypeFunDefAttributeId {};
-typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
 
 /** Attribute for id number */
 struct QuantIdNumAttributeId {};
