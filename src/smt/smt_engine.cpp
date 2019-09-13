@@ -3061,7 +3061,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
        << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw RecoverableModalException(ss.str().c_str());
   }
-
+  
   if (!options::produceModels())
   {
     std::stringstream ss;
@@ -3071,15 +3071,14 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
 
   TheoryModel* m = d_theoryEngine->getBuiltModel();
 
-  if (m == nullptr)
+  if (m==nullptr)
   {
     std::stringstream ss;
     ss << "Cannot " << c
-       << " since model is not available. Perhaps the most recent call to "
-          "check-sat was interupted?";
+       << " since model is not available. Perhaps the most recent call to check-sat was interupted?";
     throw RecoverableModalException(ss.str().c_str());
   }
-
+  
   return m;
 }
 
@@ -4287,9 +4286,10 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       "produce-assignments option is off.";
     throw ModalException(msg);
   }
-
+  
   // Get the model here, regardless of whether d_assignments is null, since
-  // we should throw an error regardless.
+  // we should throw errors related to model availability whether or not
+  // assignments is null.
   TheoryModel* m = getAvailableModel("get assignment");
 
   vector<pair<Expr,Expr>> res;
