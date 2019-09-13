@@ -191,10 +191,9 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
             Trace("quant-vts-warn")
                 << "Bad vts literal : " << n << ", contains " << vts_sym
                 << " but bad solved form " << slv << "." << std::endl;
+            // safe case: just convert to free symbols
             nlit = substituteVtsFreeTerms(n);
             Trace("quant-vts-debug") << "...return " << nlit << std::endl;
-            // Assert( false );
-            // safe case: just convert to free symbols
             return nlit;
           }
           else
@@ -231,7 +230,6 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
           // safe case: just convert to free symbols
           nlit = substituteVtsFreeTerms(n);
           Trace("quant-vts-debug") << "...return " << nlit << std::endl;
-          // Assert( false );
           return nlit;
         }
       }
@@ -245,11 +243,11 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
   }
   bool childChanged = false;
   std::vector<Node> children;
-  for (unsigned i = 0; i < n.getNumChildren(); i++)
+  for (const Node& nc : n)
   {
-    Node nn = rewriteVtsSymbols(n[i]);
+    Node nn = rewriteVtsSymbols(nc);
     children.push_back(nn);
-    childChanged = childChanged || nn != n[i];
+    childChanged = childChanged || nn != nc;
   }
   if (childChanged)
   {
