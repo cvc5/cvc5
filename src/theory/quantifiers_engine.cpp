@@ -46,8 +46,8 @@ class QuantifiersEnginePrivate
 {
  public:
   QuantifiersEnginePrivate()
-      : 
-      d_eq_inference(nullptr), d_inst_prop(nullptr),
+      : d_eq_inference(nullptr),
+        d_inst_prop(nullptr),
         d_alpha_equiv(nullptr),
         d_inst_engine(nullptr),
         d_model_engine(nullptr),
@@ -223,10 +223,13 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_private.reset(new QuantifiersEnginePrivate);
 
   //---- utilities
-  if( options::inferArithTriggerEq() ){
-    d_private->d_eq_inference.reset(new quantifiers::EqualityInference(c, false));
+  if (options::inferArithTriggerEq())
+  {
+    d_private->d_eq_inference.reset(
+        new quantifiers::EqualityInference(c, false));
   }
-  d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(c, this, d_private->d_eq_inference.get()));
+  d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
+      c, this, d_private->d_eq_inference.get()));
   d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
   d_util.push_back(d_term_util.get());
@@ -1039,14 +1042,16 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
 void QuantifiersEngine::eqNotifyNewClass(TNode t) {
   addTermToDatabase( t );
-  if( d_private->d_eq_inference ){
-    d_private->d_eq_inference->eqNotifyNewClass( t );
+  if (d_private->d_eq_inference)
+  {
+    d_private->d_eq_inference->eqNotifyNewClass(t);
   }
 }
 
 void QuantifiersEngine::eqNotifyPreMerge(TNode t1, TNode t2) {
-  if( d_private->d_eq_inference ){
-    d_private->d_eq_inference->eqNotifyMerge( t1, t2 );
+  if (d_private->d_eq_inference)
+  {
+    d_private->d_eq_inference->eqNotifyMerge(t1, t2);
   }
 }
 

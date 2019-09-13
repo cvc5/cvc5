@@ -32,8 +32,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe, EqualityInference * ei ) : d_qe( qe ), d_ei(ei), d_eqi_counter( c ), d_reset_count( 0 ){
-
+EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
+    context::Context* c, QuantifiersEngine* qe, EqualityInference* ei)
+    : d_qe(qe), d_ei(ei), d_eqi_counter(c), d_reset_count(0)
+{
 }
 
 EqualityQueryQuantifiersEngine::~EqualityQueryQuantifiersEngine(){
@@ -46,11 +48,13 @@ bool EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
 }
 
 bool EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
-  if( d_ei!=nullptr ){
+  if (d_ei != nullptr)
+  {
     eq::EqualityEngine* ee = getEngine();
-    while( d_eqi_counter.get()<d_ei->getNumPendingMerges() ){
-      Node eq = d_ei->getPendingMerge( d_eqi_counter.get() );
-      Node eq_exp = d_ei->getPendingMergeExplanation( d_eqi_counter.get() );
+    while (d_eqi_counter.get() < d_ei->getNumPendingMerges())
+    {
+      Node eq = d_ei->getPendingMerge(d_eqi_counter.get());
+      Node eq_exp = d_ei->getPendingMergeExplanation(d_eqi_counter.get());
       Trace("quant-engine-ee-proc") << "processInferences : Infer : " << eq << std::endl;
       Trace("quant-engine-ee-proc") << "      explanation : " << eq_exp << std::endl;
       Assert( ee->hasTerm( eq[0] ) );
