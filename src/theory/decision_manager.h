@@ -100,6 +100,12 @@ class DecisionManager
    * Registers the strategy ds with this manager. The id specifies when the
    * strategy should be run. If the arg isUserCd is true, then the strategy is
    * user-context-dependent, otherwise it is context independent.
+   *
+   * Typically, strategies that are user-context-dependent are those that are
+   * in response to an assertion (e.g. a strategy that decides that a sygus
+   * conjecture is feasible). An example of a strategy that is context
+   * independent is the combined cardinality decision strategy for finite model
+   * finding for UF, which is not specific to any formula/type.
    */
   void registerStrategy(StrategyId id,
                         DecisionStrategy* ds,

@@ -570,8 +570,9 @@ void TheoryStrings::presolve() {
       inputVars.push_back(*itr);
     }
     d_sslds->initialize(inputVars);
+    // it is context-independent
     getDecisionManager()->registerStrategy(
-        DecisionManager::STRAT_STRINGS_SUM_LENGTHS, d_sslds.get());
+        DecisionManager::STRAT_STRINGS_SUM_LENGTHS, d_sslds.get(), true);
   }
 }
 
