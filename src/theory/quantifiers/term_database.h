@@ -291,6 +291,14 @@ class TermDb : public QuantifiersUtil {
    * Bansal et al., CAV 2015.
    */
   bool isInstClosure(Node r);
+  /** get higher-order type match predicate
+   *
+   * This predicate is used to force certain functions f of type tn to appear as
+   * first-class representatives in the quantifier-free UF solver. For a typical
+   * use case, we call getHoTypeMatchPredicate which returns a fresh predicate
+   * P of type (tn -> Bool). Then, we add P( f ) as a lemma.
+   */
+  Node getHoTypeMatchPredicate(TypeNode tn);
 
  private:
   /** reference to the quantifiers engine */
@@ -328,7 +336,12 @@ class TermDb : public QuantifiersUtil {
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
-  std::map< Node, Node > d_term_elig_eqc;  
+  std::map<Node, Node> d_term_elig_eqc;
+  /**
+   * Dummy predicate that states terms should be considered first-class members
+   * of equality engine (for higher-order).
+   */
+  std::map<TypeNode, Node> d_ho_type_match_pred;
   /** set has term */
   void setHasTerm( Node n );
   /** helper for evaluate term */

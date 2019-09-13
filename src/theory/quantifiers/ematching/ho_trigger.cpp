@@ -469,12 +469,12 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
   Trace("ho-quant-trigger") << "addHoTypeMatchPredicateLemmas..." << std::endl;
   unsigned numLemmas = 0;
   // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
-  unsigned size = d_quantEngine->getTermDatabase()->getNumOperators();
-  quantifiers::TermUtil* tutil = d_quantEngine->getTermUtil();
+  quantifiers::TermDb* tdb = d_quantEngine->getTermDatabase();
+  unsigned size = tdb->getNumOperators();
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < size; j++)
   {
-    Node f = d_quantEngine->getTermDatabase()->getOperator(j);
+    Node f = tdb->getOperator(j);
     if (f.isVar())
     {
       TypeNode tn = f.getType();
@@ -497,7 +497,7 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
           // if a variable of this type occurs in this trigger
           if (d_ho_var_types.find(stn) != d_ho_var_types.end())
           {
-            Node u = tutil->getHoTypeMatchPredicate(tn);
+            Node u = tdb->getHoTypeMatchPredicate(tn);
             Node au = nm->mkNode(kind::APPLY_UF, u, f);
             if (d_quantEngine->addLemma(au))
             {
