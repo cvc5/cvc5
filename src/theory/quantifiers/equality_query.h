@@ -47,8 +47,7 @@ namespace quantifiers {
 class EqualityQueryQuantifiersEngine : public EqualityQuery
 {
  public:
-  EqualityQueryQuantifiersEngine(context::Context* c,
-                                 QuantifiersEngine* qe);
+  EqualityQueryQuantifiersEngine(context::Context* c, QuantifiersEngine* qe);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
   bool reset(Theory::Effort e) override;
