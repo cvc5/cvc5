@@ -477,7 +477,7 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     TypeNode tn = v.getType();
     Instantiator * vinst;
     if( tn.isReal() ){
-      vinst = new ArithInstantiator(tn);
+      vinst = new ArithInstantiator(tn, d_parent->getVtsTermCache());
     }else if( tn.isSort() ){
       Assert( options::quantEpr() );
       vinst = new EprInstantiator(tn);

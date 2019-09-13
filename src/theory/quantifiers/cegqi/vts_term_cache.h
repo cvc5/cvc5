@@ -19,14 +19,19 @@
 
 #include <map>
 #include "expr/node.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
 
-namespace quantifiers {
+/** Attribute to mark Skolems as virtual terms */
+struct VirtualTermSkolemAttributeId {};
+typedef expr::Attribute< VirtualTermSkolemAttributeId, bool > VirtualTermSkolemAttribute;
 
+namespace quantifiers {
+  
 /** Virtual term substitution term cache
  *
  * This class stores skolems corresponding to virtual terms (e.g. delta and

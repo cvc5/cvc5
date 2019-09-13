@@ -153,7 +153,7 @@ class InstStrategyCegqi : public QuantifiersModule
    */
   std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
   /** virtual term substitution term cache for arithmetic instantiation */
-  VtsTermCache d_vtsCache;
+  std::unique_ptr<VtsTermCache> d_vtsCache;
   /** inversion utility for BV instantiation */
   std::unique_ptr<BvInverter> d_bv_invert;
   /**

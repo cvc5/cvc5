@@ -24,8 +24,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-bool containsTermsTmp(Node n, std::vector<Node>& t) { return false; }
-
 VtsTermCache::VtsTermCache(QuantifiersEngine* qe) : d_qe(qe)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
@@ -270,7 +268,7 @@ bool VtsTermCache::containsVtsTerm(Node n, bool isFree)
 {
   std::vector<Node> t;
   getVtsTerms(t, isFree, false);
-  return containsTermsTmp(n, t);
+  return expr::hasSubterm(n, t);
 }
 
 bool VtsTermCache::containsVtsTerm(std::vector<Node>& n, bool isFree)
@@ -281,7 +279,7 @@ bool VtsTermCache::containsVtsTerm(std::vector<Node>& n, bool isFree)
   {
     for (const Node& nc : n)
     {
-      if (containsTermsTmp(nc, t))
+      if (expr::hasSubterm(nc, t))
       {
         return true;
       }
@@ -294,7 +292,7 @@ bool VtsTermCache::containsVtsInfinity(Node n, bool isFree)
 {
   std::vector<Node> t;
   getVtsTerms(t, isFree, false, false);
-  return containsTermsTmp(n, t);
+  return expr::hasSubterm(n, t);
 }
 
 }  // namespace quantifiers
