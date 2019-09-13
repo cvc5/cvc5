@@ -18,8 +18,8 @@
 #define CVC4__THEORY__QUANTIFIERS__CEGQI__VTS_TERM_CACHE_H
 
 #include <map>
-#include "expr/node.h"
 #include "expr/attribute.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -27,11 +27,14 @@ namespace theory {
 class QuantifiersEngine;
 
 /** Attribute to mark Skolems as virtual terms */
-struct VirtualTermSkolemAttributeId {};
-typedef expr::Attribute< VirtualTermSkolemAttributeId, bool > VirtualTermSkolemAttribute;
+struct VirtualTermSkolemAttributeId
+{
+};
+typedef expr::Attribute<VirtualTermSkolemAttributeId, bool>
+    VirtualTermSkolemAttribute;
 
 namespace quantifiers {
-  
+
 /** Virtual term substitution term cache
  *
  * This class stores skolems corresponding to virtual terms (e.g. delta and
