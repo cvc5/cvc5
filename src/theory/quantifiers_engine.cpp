@@ -46,8 +46,7 @@ class QuantifiersEnginePrivate
 {
  public:
   QuantifiersEnginePrivate()
-      : d_eq_inference(nullptr),
-        d_inst_prop(nullptr),
+      : d_inst_prop(nullptr),
         d_alpha_equiv(nullptr),
         d_inst_engine(nullptr),
         d_model_engine(nullptr),
@@ -65,8 +64,6 @@ class QuantifiersEnginePrivate
   }
   ~QuantifiersEnginePrivate() {}
   //------------------------------ private quantifier utilities
-  /** equality inference class */
-  std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
   /** quantifiers instantiation propagator */
   std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
   //------------------------------ end private quantifier utilities
@@ -190,7 +187,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      context::UserContext* u,
                                      TheoryEngine* te)
     : d_te(te),
-      d_eq_query(nullptr),
+      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_rel_dom(nullptr),
@@ -223,13 +220,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_private.reset(new QuantifiersEnginePrivate);
 
   //---- utilities
-  if (options::inferArithTriggerEq())
-  {
-    d_private->d_eq_inference.reset(
-        new quantifiers::EqualityInference(c, false));
-  }
-  d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
-      c, this, d_private->d_eq_inference.get()));
   d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
   d_util.push_back(d_term_util.get());
@@ -1042,27 +1032,6 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
 void QuantifiersEngine::eqNotifyNewClass(TNode t) {
   addTermToDatabase( t );
-  if (d_private->d_eq_inference)
-  {
-    d_private->d_eq_inference->eqNotifyNewClass(t);
-  }
-}
-
-void QuantifiersEngine::eqNotifyPreMerge(TNode t1, TNode t2) {
-  if (d_private->d_eq_inference)
-  {
-    d_private->d_eq_inference->eqNotifyMerge(t1, t2);
-  }
-}
-
-void QuantifiersEngine::eqNotifyPostMerge(TNode t1, TNode t2) {
-
-}
-
-void QuantifiersEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  //if( d_qcf ){
-  //  d_qcf->assertDisequal( t1, t2 );
-  //}
 }
 
 bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){

@@ -260,24 +260,6 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
   }
 }
 
-void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
-  if (d_logicInfo.isQuantified()) {
-    d_quantEngine->eqNotifyPreMerge( t1, t2 );
-  }
-}
-
-void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){
-  if (d_logicInfo.isQuantified()) {
-    d_quantEngine->eqNotifyPostMerge( t1, t2 );
-  }
-}
-
-void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
-  if (d_logicInfo.isQuantified()) {
-    d_quantEngine->eqNotifyDisequal( t1, t2, reason );
-  }
-}
-
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,

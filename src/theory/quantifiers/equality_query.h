@@ -20,7 +20,6 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
@@ -49,8 +48,7 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
 {
  public:
   EqualityQueryQuantifiersEngine(context::Context* c,
-                                 QuantifiersEngine* qe,
-                                 EqualityInference* ei = nullptr);
+                                 QuantifiersEngine* qe);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
   bool reset(Theory::Effort e) override;
@@ -103,8 +101,6 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
  private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
-  /** pointer to the equality inference of the quantifiers engine */
-  EqualityInference* d_ei;
   /** quantifiers equality inference */
   context::CDO< unsigned > d_eqi_counter;
   /** internal representatives */

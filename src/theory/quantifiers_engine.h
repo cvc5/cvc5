@@ -225,9 +225,6 @@ public:
   void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */
   void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** use model equality engine */
   bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
