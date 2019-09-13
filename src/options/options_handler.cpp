@@ -1587,16 +1587,18 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
 
 // theory/uf/options_handlers.h
 const std::string OptionsHandler::s_ufssModeHelp = "\
-UF strong solver options currently supported by the --uf-ss option:\n\
+UF with cardinality options currently supported by the --uf-ss option when\n\
+combined with finite model finding:\n\
 \n\
 full \n\
-+ Default, use uf strong solver to find minimal models for uninterpreted sorts.\n\
++ Default, use UF with cardinality to find minimal models for uninterpreted\n\
+sorts.\n\
 \n\
 no-minimal \n\
-+ Use uf strong solver to shrink model sizes, but do no enforce minimality.\n\
++ Use UF with cardinality to shrink models, but do no enforce minimality.\n\
 \n\
 none \n\
-+ Do not use uf strong solver to shrink model sizes. \n\
++ Do not use UF with cardinality to shrink model sizes. \n\
 \n\
 ";
 

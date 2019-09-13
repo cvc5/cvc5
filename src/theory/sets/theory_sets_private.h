@@ -172,7 +172,6 @@ class TheorySetsPrivate {
    * If the sets-ext option is not set and we have an extended operator, 
    * we throw an exception. This function is a no-op otherwise.
    *
-   * This is related to github issue #1076
    * TheorySets uses expandDefinition as an entry point to see if the input
    * contains extended operators.
    *

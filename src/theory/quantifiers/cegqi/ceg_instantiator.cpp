@@ -23,6 +23,7 @@
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -39,6 +40,53 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+
+CegTermType mkStrictCTT(CegTermType c)
+{
+  Assert(!isStrictCTT(c));
+  if (c == CEG_TT_LOWER)
+  {
+    return CEG_TT_LOWER_STRICT;
+  }
+  else if (c == CEG_TT_UPPER)
+  {
+    return CEG_TT_UPPER_STRICT;
+  }
+  return c;
+}
+
+CegTermType mkNegateCTT(CegTermType c)
+{
+  if (c == CEG_TT_LOWER)
+  {
+    return CEG_TT_UPPER;
+  }
+  else if (c == CEG_TT_UPPER)
+  {
+    return CEG_TT_LOWER;
+  }
+  else if (c == CEG_TT_LOWER_STRICT)
+  {
+    return CEG_TT_UPPER_STRICT;
+  }
+  else if (c == CEG_TT_UPPER_STRICT)
+  {
+    return CEG_TT_LOWER_STRICT;
+  }
+  return c;
+}
+bool isStrictCTT(CegTermType c)
+{
+  return c == CEG_TT_LOWER_STRICT || c == CEG_TT_UPPER_STRICT;
+}
+bool isLowerBoundCTT(CegTermType c)
+{
+  return c == CEG_TT_LOWER || c == CEG_TT_LOWER_STRICT;
+}
+bool isUpperBoundCTT(CegTermType c)
+{
+  return c == CEG_TT_UPPER || c == CEG_TT_UPPER_STRICT;
+}
 
 std::ostream& operator<<(std::ostream& os, CegInstEffort e)
 {
@@ -136,14 +184,10 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
   d_theta.pop_back();
 }
 
-CegInstantiator::CegInstantiator(QuantifiersEngine* qe,
-                                 CegqiOutput* out,
-                                 bool use_vts_delta,
-                                 bool use_vts_inf)
-    : d_qe(qe),
-      d_out(out),
-      d_use_vts_delta(use_vts_delta),
-      d_use_vts_inf(use_vts_inf),
+CegInstantiator::CegInstantiator(Node q, InstStrategyCegqi* parent)
+    : d_quant(q),
+      d_parent(parent),
+      d_qe(parent->getQuantifiersEngine()),
       d_is_nested_quant(false),
       d_effort(CEG_INST_EFFORT_NONE)
 {
@@ -171,7 +215,9 @@ void CegInstantiator::computeProgVars( Node n ){
     if (d_vars_set.find(n) != d_vars_set.end())
     {
       d_prog_var[n].insert(n);
-    }else if( !d_out->isEligibleForInstantiation( n ) ){
+    }
+    else if (!isEligibleForInstantiation(n))
+    {
       d_inelig.insert(n);
       return;
     }
@@ -431,19 +477,19 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     TypeNode tn = v.getType();
     Instantiator * vinst;
     if( tn.isReal() ){
-      vinst = new ArithInstantiator( d_qe, tn );
+      vinst = new ArithInstantiator(tn);
     }else if( tn.isSort() ){
       Assert( options::quantEpr() );
-      vinst = new EprInstantiator( d_qe, tn );
+      vinst = new EprInstantiator(tn);
     }else if( tn.isDatatype() ){
-      vinst = new DtInstantiator( d_qe, tn );
+      vinst = new DtInstantiator(tn);
     }else if( tn.isBitVector() ){
-      vinst = new BvInstantiator( d_qe, tn );
+      vinst = new BvInstantiator(tn, d_parent->getBvInverter());
     }else if( tn.isBoolean() ){
-      vinst = new ModelValueInstantiator( d_qe, tn );
+      vinst = new ModelValueInstantiator(tn);
     }else{
       //default
-      vinst = new Instantiator( d_qe, tn );
+      vinst = new Instantiator(tn);
     }
     d_instantiator[v] = vinst;
   }
@@ -1056,11 +1102,39 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
     }
   }
   Trace("cbqi-inst-debug") << "Do the instantiation...." << std::endl;
-  bool ret = d_out->doAddInstantiation( subs );
+  bool ret = d_parent->doAddInstantiation(subs);
   for( unsigned i=0; i<lemmas.size(); i++ ){
-    d_out->addLemma( lemmas[i] );
+    d_parent->addLemma(lemmas[i]);
   }
   return ret;
+}
+
+bool CegInstantiator::isEligibleForInstantiation(Node n) const
+{
+  if (n.getKind() != INST_CONSTANT && n.getKind() != SKOLEM)
+  {
+    return true;
+  }
+  if (n.getAttribute(VirtualTermSkolemAttribute()))
+  {
+    // virtual terms are allowed
+    return true;
+  }
+  TypeNode tn = n.getType();
+  if (tn.isSort())
+  {
+    QuantEPR* qepr = d_qe->getQuantEPR();
+    if (qepr != NULL)
+    {
+      // legal if in the finite set of constants of type tn
+      if (qepr->isEPRConstant(tn, n))
+      {
+        return true;
+      }
+    }
+  }
+  // only legal if current quantified formula contains n
+  return expr::hasSubterm(d_quant, n);
 }
 
 bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic ){
@@ -1171,7 +1245,8 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
           nretc = Rewriter::rewrite( nretc );
           //ensure that nret does not contain vars
-          if( !TermUtil::containsTerms( nretc, vars ) ){
+          if (!expr::hasSubterm(nretc, vars))
+          {
             //result is ( nret / pv_prop.d_coeff )
             nret = nretc;
           }else{
@@ -1700,8 +1775,8 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
   }
 }
 
-
-Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
+Instantiator::Instantiator(TypeNode tn) : d_type(tn)
+{
   d_closed_enum_type = tn.isClosedEnumerable();
 }
 
@@ -1712,7 +1787,7 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
                                     Node n,
                                     CegInstEffort effort)
 {
-  pv_prop.d_type = 0;
+  pv_prop.d_type = CEG_TT_EQUAL;
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
