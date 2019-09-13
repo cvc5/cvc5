@@ -24,12 +24,10 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_epr.h"
@@ -37,7 +35,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -114,14 +111,6 @@ public:
   /** get relevant domain */
   quantifiers::RelevantDomain* getRelevantDomain() const;
   //---------------------- end utilities
-  //---------------------- modules (TODO remove these #1163)
-  /** get bounded integers utility */
-  quantifiers::BoundedIntegers* getBoundedIntegers() const;
-  /** ceg instantiation */
-  quantifiers::SynthEngine* getSynthEngine() const;
-  /** get inst strategy cbqi */
-  quantifiers::InstStrategyCegqi* getInstStrategyCegqi() const;
-  //---------------------- end modules
  private:
   /**
    * Maps quantified formulas to the module that owns them, if any module has
@@ -147,9 +136,38 @@ public:
   void setOwner(Node q, quantifiers::QAttributes& qa);
   /** considers */
   bool hasOwnership( Node q, QuantifiersModule * m = NULL );
-  /** is finite bound */
-  bool isFiniteBound( Node q, Node v );
-public:
+  /** does variable v of quantified formula q have a finite bound? */
+  bool isFiniteBound(Node q, Node v) const;
+  /** get bound var type
+   *
+   * This returns the type of bound that was inferred for variable v of
+   * quantified formula q.
+   */
+  BoundVarType getBoundVarType(Node q, Node v) const;
+  /**
+   * Get the indices of bound variables, in the order they should be processed
+   * in a RepSetIterator.
+   *
+   * For details, see BoundedIntegers::getBoundVarIndices.
+   */
+  void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
+  /**
+   * Get bound elements
+   *
+   * This gets the (finite) enumeration of the range of variable v of quantified
+   * formula q and adds it into the vector elements in the context of the
+   * iteration being performed by rsi. It returns true if it could successfully
+   * determine this range.
+   *
+   * For details, see BoundedIntegers::getBoundElements.
+   */
+  bool getBoundElements(RepSetIterator* rsi,
+                        bool initial,
+                        Node q,
+                        Node v,
+                        std::vector<Node>& elements) const;
+
+ public:
   /** presolve */
   void presolve();
   /** notify preprocessed assertion */

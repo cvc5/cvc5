@@ -18,14 +18,15 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
+#include "theory/uf/cardinality_extension.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
 using namespace CVC4;
@@ -89,9 +90,13 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     }
 
     Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
-    //let the strong solver verify that the model is minimal
-    //for debugging, this will if there are terms in the model that the strong solver was not notified of
-    uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
+    // Let the cardinality extension verify that the model is minimal.
+    // This will if there are terms in the model that the cardinality extension
+    // was not notified of.
+    uf::CardinalityExtension* ufss =
+        static_cast<uf::TheoryUF*>(
+            d_quantEngine->getTheoryEngine()->theoryOf(THEORY_UF))
+            ->getCardinalityExtension();
     if( !ufss || ufss->debugModel( fm ) ){
       Trace("model-engine-debug") << "Check model..." << std::endl;
       d_incomplete_check = false;
