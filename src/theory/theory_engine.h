@@ -752,6 +752,9 @@ public:
    *
    * If the model is not already built, this will cause this theory engine
    * to build to the model.
+   * 
+   * If the model is not available (for instance, if the last call to check-sat
+   * was interrupted), then this returns the null pointer.
    */
   theory::TheoryModel* getBuiltModel();
   /** set eager model building
