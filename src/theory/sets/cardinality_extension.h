@@ -344,4 +344,4 @@ class CardinalityExtension
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */
+#endif
