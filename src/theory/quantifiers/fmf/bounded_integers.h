@@ -20,8 +20,8 @@
 
 #include "theory/quantifiers/quant_util.h"
 
-#include "context/context.h"
 #include "context/cdhashmap.h"
+#include "context/context.h"
 #include "expr/attribute.h"
 
 namespace CVC4 {
@@ -35,7 +35,9 @@ class RepSetIterator;
  *   forall x. ( 0 <= x ^ x <= n ) => P( x )
  * the literals 0 <= x and x <= n are marked 1.
  */
-struct BoundIntLitAttributeId {};
+struct BoundIntLitAttributeId
+{
+};
 typedef expr::Attribute<BoundIntLitAttributeId, uint64_t> BoundIntLitAttribute;
 
 namespace quantifiers {

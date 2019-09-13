@@ -17,11 +17,11 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
+#include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/quantifiers/fun_def_process.h"
 
 using namespace std;
 using namespace CVC4;

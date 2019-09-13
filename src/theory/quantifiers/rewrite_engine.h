@@ -21,19 +21,21 @@
 #include <map>
 #include <vector>
 
+#include "expr/attribute.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_util.h"
-#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
-  
+
 /**
  * An attribute for marking a priority value for rewrite rules.
  */
-struct RrPriorityAttributeId {};
-typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;  
+struct RrPriorityAttributeId
+{
+};
+typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
 
 namespace quantifiers {
 

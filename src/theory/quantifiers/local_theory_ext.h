@@ -18,16 +18,20 @@
 #define CVC4__THEORY__LOCAL_THEORY_EXT_H
 
 #include "context/cdo.h"
+#include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/quantifiers/quant_util.h"
-#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
-  
-/** Attribute true for quantifiers that do not need to be partially instantiated */
-struct LtePartialInstAttributeId {};
-typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
+
+/** Attribute true for quantifiers that do not need to be partially instantiated
+ */
+struct LtePartialInstAttributeId
+{
+};
+typedef expr::Attribute<LtePartialInstAttributeId, bool>
+    LtePartialInstAttribute;
 
 namespace quantifiers {
 
