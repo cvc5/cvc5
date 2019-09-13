@@ -21,32 +21,34 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/equality_infer.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 /** EqualityQueryQuantifiersEngine class
+ * 
 * This is a wrapper class around an equality engine that is used for
-* queries required by algorithms in the quantifiers theory.
-* It uses an equality engine, as determined by the quantifiers engine it points
-* to.
+* queries required by algorithms in the quantifiers theory. It uses an equality
+* engine, as determined by the quantifiers engine it points to.
 *
 * The main extension of this class wrt EqualityQuery is the function
 * getInternalRepresentative, which is used by instantiation-based methods
 * that are agnostic with respect to choosing terms within an equivalence class.
 * Examples of such methods are finite model finding and enumerative
-* instantiation.
-* Method getInternalRepresentative returns the "best" representative based on
-* the internal heuristic,
-* which is currently based on choosing the term that was previously chosen as a
-* representative
-* earliest.
+* instantiation. Method getInternalRepresentative returns the "best"
+* representative based on the internal heuristic, which is currently based on
+* choosing the term that was previously chosen as a representative earliest.
+* 
+* It additionally can be configured to infer additional equalities during a
+* call to reset(...) if options::inferArithTriggerEq() is enabled. This is
+* managed by the EqualityInference module.
 */
 class EqualityQueryQuantifiersEngine : public EqualityQuery
 {
  public:
-  EqualityQueryQuantifiersEngine(context::Context* c, QuantifiersEngine* qe);
+  EqualityQueryQuantifiersEngine(context::Context* c, QuantifiersEngine* qe, EqualityInference * ei=nullptr);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
   bool reset(Theory::Effort e) override;
@@ -99,6 +101,8 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
  private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
+  /** pointer to the equality inference of the quantifiers engine */
+  EqualityInference* d_ei;
   /** quantifiers equality inference */
   context::CDO< unsigned > d_eqi_counter;
   /** internal representatives */
