@@ -39,10 +39,6 @@ namespace quantifiers {
  * instantiation. Method getInternalRepresentative returns the "best"
  * representative based on the internal heuristic, which is currently based on
  * choosing the term that was previously chosen as a representative earliest.
- *
- * It additionally can be configured to infer additional equalities during a
- * call to reset(...) if options::inferArithTriggerEq() is enabled. This is
- * managed by the EqualityInference module.
  */
 class EqualityQueryQuantifiersEngine : public EqualityQuery
 {
