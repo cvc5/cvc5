@@ -134,6 +134,73 @@ Node getConstantEndpoint(Node e, bool isSuf)
   return getConstantComponent(e);
 }
 
+bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
+{
+  size_t i = start;
+  while (i < rs.size() && rs[i].getKind() == REGEXP_SIGMA)
+  {
+    i++;
+  }
+
+  if (i >= rs.size())
+  {
+    return false;
+  }
+
+  return rs[i].getKind() == REGEXP_STAR && rs[i][0].getKind() == REGEXP_SIGMA;
+}
+
+bool isSimpleRegExp(Node r)
+{
+  Assert(r.getType().isRegExp());
+
+  std::vector<Node> v;
+  utils::getConcat(r, v);
+  for (const Node& n : v)
+  {
+    if (n.getKind() == STRING_TO_REGEXP)
+    {
+      if (!n[0].isConst())
+      {
+        return false;
+      }
+    }
+    else if (n.getKind() != REGEXP_SIGMA
+             && (n.getKind() != REGEXP_STAR || n[0].getKind() != REGEXP_SIGMA))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+void getRegexpComponents(Node r, std::vector<Node>& result)
+{
+  Assert(r.getType().isRegExp());
+
+  NodeManager* nm = NodeManager::currentNM();
+  if (r.getKind() == REGEXP_CONCAT)
+  {
+    for (const Node& n : r)
+    {
+      getRegexpComponents(n, result);
+    }
+  }
+  else if (r.getKind() == STRING_TO_REGEXP && r[0].isConst())
+  {
+    String s = r[0].getConst<String>();
+    for (size_t i = 0, size = s.size(); i < size; i++)
+    {
+      result.push_back(
+          nm->mkNode(STRING_TO_REGEXP, nm->mkConst(s.substr(i, 1))));
+    }
+  }
+  else
+  {
+    result.push_back(r);
+  }
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

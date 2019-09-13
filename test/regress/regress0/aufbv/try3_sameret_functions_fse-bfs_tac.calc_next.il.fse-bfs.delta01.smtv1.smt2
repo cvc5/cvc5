@@ -1,0 +1,6 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_AUFBV)
+(declare-fun R_ESP_1_58 () (_ BitVec 32))
+(declare-fun mem_35_224 () (Array (_ BitVec 32) (_ BitVec 8)))
+(check-sat-assuming ( (let ((_let_0 (store mem_35_224 (_ bv0 32) (_ bv0 8)))) (let ((_let_1 (bvadd (_ bv16 32) (concat (_ bv0 24) (select _let_0 (bvsub R_ESP_1_58 (_ bv1 32))))))) (let ((_let_2 (bvadd (_ bv16 32) (concat (_ bv0 24) (select _let_0 (_ bv1 32)))))) (let ((_let_3 (store (store (store _let_0 (_ bv0 32) ((_ extract 7 0) (concat (_ bv0 24) (select _let_0 _let_1)))) (bvadd (_ bv1 32) _let_2) (_ bv0 8)) _let_2 (_ bv0 8)))) (= (_ bv0 32) (concat (_ bv0 24) (select (store (store _let_3 (bvor (concat (_ bv0 24) (select _let_3 (_ bv1 32))) (concat (_ bv0 24) (select _let_3 (bvadd (_ bv8 32) (concat (_ bv0 24) (select _let_0 (bvsub R_ESP_1_58 (_ bv1 32)))))))) (_ bv0 8)) (_ bv0 32) ((_ extract 7 0) (bvor (concat (_ bv0 24) (select _let_3 _let_1)) (concat (_ bv0 24) (select _let_3 (bvadd (_ bv2 32) _let_1)))))) R_ESP_1_58))))))) ))

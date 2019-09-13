@@ -200,26 +200,6 @@ Node TermUtil::getInstConstantBody( Node q ){
   }
 }
 
-Node TermUtil::getCounterexampleLiteral( Node q ){
-  if( d_ce_lit.find( q )==d_ce_lit.end() ){
-    /*
-    Node ceBody = getInstConstantBody( f );
-    //check if any variable are of bad types, and fail if so
-    for( size_t i=0; i<d_inst_constants[f].size(); i++ ){
-      if( d_inst_constants[f][i].getType().isBoolean() ){
-        d_ce_lit[ f ] = Node::null();
-        return Node::null();
-      }
-    }
-    */
-    Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
-    //otherwise, ensure literal
-    Node ceLit = d_quantEngine->getValuation().ensureLiteral( g );
-    d_ce_lit[ q ] = ceLit;
-  }
-  return d_ce_lit[ q ];
-}
-
 Node TermUtil::substituteBoundVariablesToInstConstants(Node n, Node q)
 {
   registerQuantifier( q );
@@ -509,15 +489,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
 bool TermUtil::containsVtsTerm( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false );
-  return containsTerms( n, t );
+  return expr::hasSubterm(n, t);
 }
 
 bool TermUtil::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false );
   if( !t.empty() ){
-    for( unsigned i=0; i<n.size(); i++ ){
-      if( containsTerms( n[i], t ) ){
+    for (const Node& nc : n)
+    {
+      if (expr::hasSubterm(nc, t))
+      {
         return true;
       }
     }
@@ -528,7 +510,7 @@ bool TermUtil::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
 bool TermUtil::containsVtsInfinity( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false, false );
-  return containsTerms( n, t );
+  return expr::hasSubterm(n, t);
 }
 
 Node TermUtil::ensureType( Node n, TypeNode tn ) {
@@ -541,40 +523,6 @@ Node TermUtil::ensureType( Node n, TypeNode tn ) {
       return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
     }
     return Node::null();
-  }
-}
-
-bool TermUtil::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited ) {
-  if (visited.find(n) == visited.end())
-  {
-    if( std::find( t.begin(), t.end(), n )!=t.end() ){
-      return true;
-    }
-    visited[n] = true;
-    if (n.hasOperator())
-    {
-      if (containsTerms2(n.getOperator(), t, visited))
-      {
-        return true;
-      }
-    }
-    for (const Node& nc : n)
-    {
-      if (containsTerms2(nc, t, visited))
-      {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermUtil::containsTerms( Node n, std::vector< Node >& t ) {
-  if( t.empty() ){
-    return false;
-  }else{
-    std::map< Node, bool > visited;
-    return containsTerms2( n, t, visited );
   }
 }
 
@@ -1005,19 +953,6 @@ bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
   }
   return false;
 }
-
-Node TermUtil::getHoTypeMatchPredicate( TypeNode tn ) {
-  std::map< TypeNode, Node >::iterator ithp = d_ho_type_match_pred.find( tn );
-  if( ithp==d_ho_type_match_pred.end() ){
-    TypeNode ptn = NodeManager::currentNM()->mkFunctionType( tn, NodeManager::currentNM()->booleanType() );
-    Node k = NodeManager::currentNM()->mkSkolem( "U", ptn, "predicate to force higher-order types" );
-    d_ho_type_match_pred[tn] = k;
-    return k;
-  }else{
-    return ithp->second;  
-  }
-}
-
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
