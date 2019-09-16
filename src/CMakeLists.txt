@@ -463,6 +463,8 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_instantiator.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
   theory/quantifiers/cegqi/inst_strategy_cegqi.h
+  theory/quantifiers/cegqi/vts_term_cache.cpp
+  theory/quantifiers/cegqi/vts_term_cache.h
   theory/quantifiers/conjecture_generator.cpp
   theory/quantifiers/conjecture_generator.h
   theory/quantifiers/dynamic_rewrite.cpp
@@ -521,6 +523,8 @@ libcvc4_add_sources(
   theory/quantifiers/quant_epr.h
   theory/quantifiers/quant_relevance.cpp
   theory/quantifiers/quant_relevance.h
+  theory/quantifiers/quant_rep_bound_ext.cpp
+  theory/quantifiers/quant_rep_bound_ext.h
   theory/quantifiers/quant_split.cpp
   theory/quantifiers/quant_split.h
   theory/quantifiers/quant_util.cpp
@@ -591,6 +595,10 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/synth_engine.h
   theory/quantifiers/sygus/term_database_sygus.cpp
   theory/quantifiers/sygus/term_database_sygus.h
+  theory/quantifiers/sygus/type_info.cpp
+  theory/quantifiers/sygus/type_info.h
+  theory/quantifiers/sygus/type_node_id_trie.cpp
+  theory/quantifiers/sygus/type_node_id_trie.h
   theory/quantifiers/sygus/transition_inference.cpp
   theory/quantifiers/sygus/transition_inference.h
   theory/quantifiers/sygus_sampler.cpp
@@ -616,10 +624,16 @@ libcvc4_add_sources(
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
   theory/sep/theory_sep_type_rules.h
+  theory/sets/cardinality_extension.cpp
+  theory/sets/cardinality_extension.h
+  theory/sets/inference_manager.cpp
+  theory/sets/inference_manager.h
   theory/sets/normal_form.h
   theory/sets/rels_utils.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
+  theory/sets/solver_state.cpp
+  theory/sets/solver_state.h
   theory/sets/theory_sets.cpp
   theory/sets/theory_sets.h
   theory/sets/theory_sets_private.cpp
@@ -677,6 +691,8 @@ libcvc4_add_sources(
   theory/type_enumerator.h
   theory/type_set.cpp
   theory/type_set.h
+  theory/uf/cardinality_extension.cpp
+  theory/uf/cardinality_extension.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
@@ -689,8 +705,6 @@ libcvc4_add_sources(
   theory/uf/theory_uf_model.cpp
   theory/uf/theory_uf_model.h
   theory/uf/theory_uf_rewriter.h
-  theory/uf/theory_uf_strong_solver.cpp
-  theory/uf/theory_uf_strong_solver.h
   theory/uf/theory_uf_type_rules.h
   theory/valuation.cpp
   theory/valuation.h

@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/instantiate.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
@@ -83,6 +84,11 @@ bool Instantiate::checkComplete()
 void Instantiate::addNotify(InstantiationNotify* in)
 {
   d_inst_notify.push_back(in);
+}
+
+void Instantiate::addRewriter(InstantiationRewriter* ir)
+{
+  d_instRewrite.push_back(ir);
 }
 
 void Instantiate::notifyFlushLemmas()
@@ -165,8 +171,7 @@ bool Instantiate::addInstantiation(
                         << terms[i] << std::endl;
           bad_inst = true;
         }
-        else if (quantifiers::TermUtil::containsTerms(
-                     terms[i], d_term_util->d_inst_constants[q]))
+        else if (expr::hasSubterm(terms[i], d_term_util->d_inst_constants[q]))
         {
           Trace("inst") << "***& inst contains inst constants : " << terms[i]
                         << std::endl;
@@ -244,14 +249,7 @@ bool Instantiate::addInstantiation(
   // get the instantiation
   Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
   Node orig_body = body;
-  if (options::cbqiNestedQE())
-  {
-    InstStrategyCegqi* icegqi = d_qe->getInstStrategyCegqi();
-    if (icegqi)
-    {
-      body = icegqi->doNestedQE(q, terms, body, doVts);
-    }
-  }
+  // now preprocess
   body = quantifiers::QuantifiersRewriter::preprocess(body, true);
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 
@@ -413,17 +411,13 @@ Node Instantiate::getInstantiation(Node q,
   Node body;
   Assert(vars.size() == terms.size());
   Assert(q[0].getNumChildren() == vars.size());
-  // TODO (#1386) : optimize this
+  // Notice that this could be optimized, but no significant performance
+  // improvements were observed with alternative implementations (see #1386).
   body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
-  if (doVts)
+  // run rewriters to rewrite the instantiation in sequence.
+  for (InstantiationRewriter*& ir : d_instRewrite)
   {
-    // do virtual term substitution
-    body = Rewriter::rewrite(body);
-    Trace("quant-vts-debug") << "Rewrite vts symbols in " << body << std::endl;
-    Node body_r = d_term_util->rewriteVtsSymbols(body);
-    Trace("quant-vts-debug") << "            ...result: " << body_r
-                             << std::endl;
-    body = body_r;
+    body = ir->rewriteInstantiation(q, terms, body, doVts);
   }
   return body;
 }
