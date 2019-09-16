@@ -70,19 +70,22 @@ Cardinality TypeNode::getCardinality() const {
 struct IsFiniteTag
 {
 };
+typedef expr::Attribute<IsFiniteTag, bool> IsFiniteAttr;
+/** Attribute true for types which we have computed the above attribute */
 struct IsFiniteComputedTag
 {
 };
-typedef expr::Attribute<IsFiniteTag, bool> IsFiniteAttr;
 typedef expr::Attribute<IsFiniteComputedTag, bool> IsFiniteComputedAttr;
+
 /** Attribute true for types that are interpreted as finite */
 struct IsInterpretedFiniteTag
 {
 };
+typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
+/** Attribute true for types which we have computed the above attribute */
 struct IsInterpretedFiniteComputedTag
 {
 };
-typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
 typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
     IsInterpretedFiniteComputedAttr;
 
