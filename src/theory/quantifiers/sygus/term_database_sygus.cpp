@@ -1111,7 +1111,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   {
     Assert(res
            == Rewriter::rewrite(bn.substitute(
-                  varlist.begin(), varlist.end(), args.begin(), args.end())));
+               varlist.begin(), varlist.end(), args.begin(), args.end())));
     return res;
   }
   res = bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());
