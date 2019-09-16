@@ -974,16 +974,6 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
          kind::metakind::getUpperBoundForKind(getKind()),
          getNumChildren());
 
-#if 0
-  // if the kind is PARAMETERIZED, check that the operator is correctly-kinded
-  Assert(kind::metaKindOf(getKind()) != kind::metakind::PARAMETERIZED ||
-         NodeManager::operatorToKind(getOperator()) == getKind(),
-         "Attempted to construct a parameterized kind `%s' with "
-         "incorrectly-kinded operator `%s'",
-         kind::kindToString(getKind()).c_str(),
-         kind::kindToString(getOperator().getKind()).c_str());
-#endif /* 0 */
-
   // Implementation differs depending on whether the NodeValue was
   // malloc'ed or not and whether or not it's in the already-been-seen
   // NodeManager pool of Nodes.  See implementation notes at the top
