@@ -65,7 +65,7 @@
                   (holds cln)))))
 
 ; Represents multiple conjoined clauses.
-; There is a list, `heads` of literals, each of which should is suffixed by the
+; There is a list, `heads` of literals, each of which is suffixed by the
 ; same `tail`.
 (declare common_tail_cnf_t type)
 (declare common_tail_cnf
@@ -114,7 +114,7 @@
 ; Given
 ;    1. a proof of some `common_tail_cnf`
 ; Then
-;    1. the first axiom give you a proof of the first `clause` therein and
+;    1. the first axiom gives you a proof of the first `clause` therein and
 ;    2. the second gives you a proof of the rest of the `common_tail_cnf`.
 (declare common_tail_cnf_prove_head
          (! first lit
