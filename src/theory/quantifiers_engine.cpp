@@ -188,7 +188,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      TheoryEngine* te)
     : d_te(te),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
-      d_eq_inference(nullptr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_rel_dom(nullptr),
@@ -237,9 +236,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     d_instantiate->addNotify(d_private->d_inst_prop->getInstantiationNotify());
   }
   
-  if( options::inferArithTriggerEq() ){
-    d_eq_inference.reset(new quantifiers::EqualityInference(c, false));
-  }
 
   d_util.push_back(d_instantiate.get());
 
@@ -327,10 +323,6 @@ const LogicInfo& QuantifiersEngine::getLogicInfo() const
 EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 {
   return d_eq_query.get();
-}
-quantifiers::EqualityInference* QuantifiersEngine::getEqualityInference() const
-{
-  return d_eq_inference.get();
 }
 quantifiers::RelevantDomain* QuantifiersEngine::getRelevantDomain() const
 {
@@ -1040,25 +1032,6 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
 void QuantifiersEngine::eqNotifyNewClass(TNode t) {
   addTermToDatabase( t );
-  if( d_eq_inference ){
-    d_eq_inference->eqNotifyNewClass( t );
-  }
-}
-
-void QuantifiersEngine::eqNotifyPreMerge(TNode t1, TNode t2) {
-  if( d_eq_inference ){
-    d_eq_inference->eqNotifyMerge( t1, t2 );
-  }
-}
-
-void QuantifiersEngine::eqNotifyPostMerge(TNode t1, TNode t2) {
-
-}
-
-void QuantifiersEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  //if( d_qcf ){
-  //  d_qcf->assertDisequal( t1, t2 );
-  //}
 }
 
 bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
