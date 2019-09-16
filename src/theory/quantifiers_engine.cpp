@@ -269,10 +269,11 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   bool needsBuilder = false;
   d_private->initialize(this, c, d_modules, needsBuilder);
 
-  if( d_private->d_rel_dom.get() ){
+  if (d_private->d_rel_dom.get())
+  {
     d_util.push_back(d_private->d_rel_dom.get());
   }
-  
+
   // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;

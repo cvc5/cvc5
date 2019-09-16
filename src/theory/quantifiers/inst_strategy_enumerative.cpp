@@ -32,7 +32,7 @@ using namespace inst;
 
 namespace quantifiers {
 
-InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain * rd)
+InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd)
     : QuantifiersModule(qe), d_rd(rd)
 {
 }
