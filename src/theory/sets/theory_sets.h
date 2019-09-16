@@ -44,7 +44,6 @@ class TheorySets : public Theory
 
   void addSharedTerm(TNode) override;
   void check(Effort) override;
-  bool needsCheckLastEffort() override;
   bool collectModelInfo(TheoryModel* m) override;
   void computeCareGraph() override;
   Node explain(TNode) override;

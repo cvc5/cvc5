@@ -841,7 +841,7 @@ thfAtomTyping[CVC4::Command*& cmd]
           CVC4::Expr freshExpr;
           if (type.isFunction())
           {
-            freshExpr = PARSER_STATE->mkFunction(name, type);
+            freshExpr = PARSER_STATE->mkVar(name, type);
           }
           else
           {
@@ -1077,12 +1077,7 @@ tffTypedAtom[CVC4::Command*& cmd]
           }
         } else {
           // as yet, it's undeclared
-          CVC4::Expr expr;
-          if(type.isFunction()) {
-            expr = PARSER_STATE->mkFunction(name, type);
-          } else {
-            expr = PARSER_STATE->mkVar(name, type);
-          }
+          CVC4::Expr expr = PARSER_STATE->mkVar(name, type);
           cmd = new DeclareFunctionCommand(name, expr, type);
         }
       }

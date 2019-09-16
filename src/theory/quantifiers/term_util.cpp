@@ -68,20 +68,6 @@ void TermUtil::registerQuantifier( Node q ){
   }
 }
 
-void TermUtil::getBoundVars2( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( n.getKind()==BOUND_VARIABLE ){
-      if( std::find( vars.begin(), vars.end(), n )==vars.end() ) {
-        vars.push_back( n );
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      getBoundVars2( n[i], vars, visited );
-    }
-  }
-}
-
 Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) {
   std::map< Node, Node >::iterator it = visited.find( n );
   if( it!=visited.end() ){
@@ -161,11 +147,6 @@ bool TermUtil::hasBoundVarAttr( Node n ) {
   return !getBoundVarAttr(n).isNull();
 }
 
-void TermUtil::getBoundVars( Node n, std::vector< Node >& vars ) {
-  std::map< Node, bool > visited;
-  return getBoundVars2( n, vars, visited );
-}
-
 //remove quantifiers
 Node TermUtil::getRemoveQuantifiers( Node n ) {
   std::map< Node, Node > visited;
@@ -174,15 +155,18 @@ Node TermUtil::getRemoveQuantifiers( Node n ) {
 
 //quantified simplify
 Node TermUtil::getQuantSimplify( Node n ) {
-  std::vector< Node > bvs;
-  getBoundVars( n, bvs );
-  if( bvs.empty() ) {
+  std::unordered_set<Node, NodeHashFunction> fvs;
+  expr::getFreeVariables(n, fvs);
+  if (fvs.empty())
+  {
     return Rewriter::rewrite( n );
-  }else{
-    Node q = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs ), n );
-    q = Rewriter::rewrite( q );
-    return getRemoveQuantifiers( q );
   }
+  std::vector<Node> bvs;
+  bvs.insert(bvs.end(), fvs.begin(), fvs.end());
+  NodeManager* nm = NodeManager::currentNM();
+  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
+  q = Rewriter::rewrite(q);
+  return getRemoveQuantifiers(q);
 }
 
 /** get the i^th instantiation constant of q */
@@ -214,26 +198,6 @@ Node TermUtil::getInstConstantBody( Node q ){
   }else{
     return it->second;
   }
-}
-
-Node TermUtil::getCounterexampleLiteral( Node q ){
-  if( d_ce_lit.find( q )==d_ce_lit.end() ){
-    /*
-    Node ceBody = getInstConstantBody( f );
-    //check if any variable are of bad types, and fail if so
-    for( size_t i=0; i<d_inst_constants[f].size(); i++ ){
-      if( d_inst_constants[f][i].getType().isBoolean() ){
-        d_ce_lit[ f ] = Node::null();
-        return Node::null();
-      }
-    }
-    */
-    Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
-    //otherwise, ensure literal
-    Node ceLit = d_quantEngine->getValuation().ensureLiteral( g );
-    d_ce_lit[ q ] = ceLit;
-  }
-  return d_ce_lit[ q ];
 }
 
 Node TermUtil::substituteBoundVariablesToInstConstants(Node n, Node q)
@@ -525,15 +489,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
 bool TermUtil::containsVtsTerm( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false );
-  return containsTerms( n, t );
+  return expr::hasSubterm(n, t);
 }
 
 bool TermUtil::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false );
   if( !t.empty() ){
-    for( unsigned i=0; i<n.size(); i++ ){
-      if( containsTerms( n[i], t ) ){
+    for (const Node& nc : n)
+    {
+      if (expr::hasSubterm(nc, t))
+      {
         return true;
       }
     }
@@ -544,7 +510,7 @@ bool TermUtil::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
 bool TermUtil::containsVtsInfinity( Node n, bool isFree ) {
   std::vector< Node > t;
   getVtsTerms( t, isFree, false, false );
-  return containsTerms( n, t );
+  return expr::hasSubterm(n, t);
 }
 
 Node TermUtil::ensureType( Node n, TypeNode tn ) {
@@ -557,40 +523,6 @@ Node TermUtil::ensureType( Node n, TypeNode tn ) {
       return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
     }
     return Node::null();
-  }
-}
-
-bool TermUtil::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited ) {
-  if (visited.find(n) == visited.end())
-  {
-    if( std::find( t.begin(), t.end(), n )!=t.end() ){
-      return true;
-    }
-    visited[n] = true;
-    if (n.hasOperator())
-    {
-      if (containsTerms2(n.getOperator(), t, visited))
-      {
-        return true;
-      }
-    }
-    for (const Node& nc : n)
-    {
-      if (containsTerms2(nc, t, visited))
-      {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermUtil::containsTerms( Node n, std::vector< Node >& t ) {
-  if( t.empty() ){
-    return false;
-  }else{
-    std::map< Node, bool > visited;
-    return containsTerms2( n, t, visited );
   }
 }
 
@@ -628,14 +560,21 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
   return n.getAttribute(ContainsUConstAttribute())!=0;
 }
 
-Node TermUtil::simpleNegate( Node n ){
+Node TermUtil::simpleNegate(Node n)
+{
+  Assert(n.getType().isBoolean());
+  NodeManager* nm = NodeManager::currentNM();
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
     for (const Node& cn : n)
     {
       children.push_back(simpleNegate(cn));
     }
-    return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
+    return nm->mkNode(n.getKind() == OR ? AND : OR, children);
+  }
+  else if (n.isConst())
+  {
+    return nm->mkConst(!n.getConst<bool>());
   }
   return n.negate();
 }
@@ -1014,19 +953,6 @@ bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
   }
   return false;
 }
-
-Node TermUtil::getHoTypeMatchPredicate( TypeNode tn ) {
-  std::map< TypeNode, Node >::iterator ithp = d_ho_type_match_pred.find( tn );
-  if( ithp==d_ho_type_match_pred.end() ){
-    TypeNode ptn = NodeManager::currentNM()->mkFunctionType( tn, NodeManager::currentNM()->booleanType() );
-    Node k = NodeManager::currentNM()->mkSkolem( "U", ptn, "predicate to force higher-order types" );
-    d_ho_type_match_pred[tn] = k;
-    return k;
-  }else{
-    return ithp->second;  
-  }
-}
-
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

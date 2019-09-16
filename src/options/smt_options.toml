@@ -634,3 +634,12 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "support the get-abduct command"
+
+[[option]]
+  name       = "checkAbducts"
+  category   = "regular"
+  long       = "check-abducts"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "checks whether produced solutions to get-abduct are correct"

@@ -270,7 +270,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
-
+    
     case kind::UNINTERPRETED_CONSTANT: {
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
       std::stringstream ss;
@@ -473,12 +473,14 @@ void Smt2Printer::toStream(std::ostream& out,
   bool parametricTypeChildren = false;   // parametric operators that are (op t1 ... tn) where t1...tn must have same type
   bool typeChildren = false;  // operators (op t1...tn) where at least one of t1...tn may require a type cast e.g. Int -> Real
   // operator
+  Kind k = n.getKind();
   if(n.getNumChildren() != 0 &&
-     n.getKind() != kind::INST_PATTERN_LIST &&
-     n.getKind() != kind::APPLY_TYPE_ASCRIPTION) {
+     k != kind::INST_PATTERN_LIST &&
+     k != kind::APPLY_TYPE_ASCRIPTION &&
+     k != kind::CONSTRUCTOR_TYPE) {
     out << '(';
   }
-  switch(Kind k = n.getKind()) {
+  switch(k) {
     // builtin theory
   case kind::EQUAL:
   case kind::DISTINCT:
@@ -781,102 +783,110 @@ void Smt2Printer::toStream(std::ostream& out,
     stillNeedToPrintParams = false;
     break;
 
-    case kind::APPLY_CONSTRUCTOR:
+  case kind::APPLY_CONSTRUCTOR:
+  {
+    typeChildren = true;
+    const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
+    if (dt.isTuple())
     {
-      typeChildren = true;
-      const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-      if (dt.isTuple())
+      stillNeedToPrintParams = false;
+      out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
+    }
+    break;
+  }
+  case kind::CONSTRUCTOR_TYPE:
+  {
+    out << n[n.getNumChildren()-1];
+    return;
+    break;
+  }
+  case kind::APPLY_TESTER:
+  case kind::APPLY_SELECTOR:
+  case kind::APPLY_SELECTOR_TOTAL:
+  case kind::PARAMETRIC_DATATYPE: break;
+
+  // separation logic
+  case kind::SEP_EMP:
+  case kind::SEP_PTO:
+  case kind::SEP_STAR:
+  case kind::SEP_WAND: out << smtKindString(k, d_variant) << " "; break;
+
+  case kind::SEP_NIL:
+    out << "(as sep.nil " << n.getType() << ")";
+    break;
+
+    // quantifiers
+  case kind::FORALL:
+  case kind::EXISTS:
+  {
+    if (k == kind::FORALL)
+    {
+      out << "forall ";
+    }
+    else
+    {
+      out << "exists ";
+    }
+    for (unsigned i = 0; i < 2; i++)
+    {
+      out << n[i] << " ";
+      if (i == 0 && n.getNumChildren() == 3)
       {
-        stillNeedToPrintParams = false;
-        out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
+        out << "(! ";
       }
     }
-
-    case kind::APPLY_TESTER:
-    case kind::APPLY_SELECTOR:
-    case kind::APPLY_SELECTOR_TOTAL:
-    case kind::PARAMETRIC_DATATYPE: break;
-
-    // separation logic
-    case kind::SEP_EMP:
-    case kind::SEP_PTO:
-    case kind::SEP_STAR:
-    case kind::SEP_WAND: out << smtKindString(k, d_variant) << " "; break;
-
-    case kind::SEP_NIL:
-      out << "(as sep.nil " << n.getType() << ")";
-      break;
-
-      // quantifiers
-    case kind::FORALL:
-    case kind::EXISTS:
-      if (k == kind::FORALL)
+    if (n.getNumChildren() == 3)
+    {
+      out << n[2];
+      out << ")";
+    }
+    out << ")";
+    return;
+    break;
+  }
+  case kind::BOUND_VAR_LIST:
+  {
+    // the left parenthesis is already printed (before the switch)
+    for (TNode::iterator i = n.begin(), iend = n.end(); i != iend;)
+    {
+      out << '(';
+      toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types, 0);
+      out << ' ';
+      out << (*i).getType();
+      out << ')';
+      if (++i != iend)
       {
-        out << "forall ";
+        out << ' ';
+      }
+    }
+    out << ')';
+    return;
+  }
+  case kind::INST_PATTERN: break;
+  case kind::INST_PATTERN_LIST:
+  {
+    for (const Node& nc : n)
+    {
+      if (nc.getKind() == kind::INST_ATTRIBUTE)
+      {
+        if (nc[0].getAttribute(theory::FunDefAttribute()))
+        {
+          out << ":fun-def";
+        }
       }
       else
       {
-        out << "exists ";
+        out << ":pattern " << nc;
       }
-      for (unsigned i = 0; i < 2; i++)
-      {
-        out << n[i] << " ";
-        if (i == 0 && n.getNumChildren() == 3)
-        {
-          out << "(! ";
-        }
-      }
-      if (n.getNumChildren() == 3)
-      {
-        out << n[2];
-        out << ")";
-      }
-      out << ")";
-      return;
-      break;
-    case kind::BOUND_VAR_LIST:
-      // the left parenthesis is already printed (before the switch)
-      for (TNode::iterator i = n.begin(), iend = n.end(); i != iend;)
-      {
-        out << '(';
-        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, types, 0);
-        out << ' ';
-        out << (*i).getType();
-        // The following code do stange things
-        // (*i).getType().toStream(out, toDepth < 0 ? toDepth : toDepth - 1,
-        //                         false, language::output::LANG_SMTLIB_V2_5);
-        out << ')';
-        if (++i != iend)
-        {
-          out << ' ';
-        }
-      }
-      out << ')';
-      return;
-    case kind::INST_PATTERN: break;
-    case kind::INST_PATTERN_LIST:
-      for (unsigned i = 0; i < n.getNumChildren(); i++)
-      {
-        if (n[i].getKind() == kind::INST_ATTRIBUTE)
-        {
-          if (n[i][0].getAttribute(theory::FunDefAttribute()))
-          {
-            out << ":fun-def";
-          }
-        }
-        else
-        {
-          out << ":pattern " << n[i];
-        }
-      }
-      return;
-      break;
-
-    default:
-      // fall back on however the kind prints itself; this probably
-      // won't be SMT-LIB v2 compliant, but it will be clear from the
-      // output that support for the kind needs to be added here.
-      out << n.getKind() << ' ';
+    }
+    return;
+    break;
+  }
+  default:
+    // fall back on however the kind prints itself; this probably
+    // won't be SMT-LIB v2 compliant, but it will be clear from the
+    // output that support for the kind needs to be added here.
+    out << n.getKind() << ' ';
   }
   if( n.getMetaKind() == kind::metakind::PARAMETERIZED &&
       stillNeedToPrintParams ) {
@@ -1368,47 +1378,50 @@ void Smt2Printer::toStream(std::ostream& out,
           dynamic_cast<const DeclareTypeCommand*>(command))
   {
     // print out the DeclareTypeCommand
-    TypeNode tn = TypeNode::fromType((*dtc).getType());
-    const std::vector<Node>* type_refs =
-        theory_model->getRepSet()->getTypeRepsOrNull(tn);
-    if (options::modelUninterpDtEnum() && tn.isSort() && type_refs != nullptr)
+    Type t = (*dtc).getType();
+    if (!t.isSort())
     {
-      if (isVariant_2_6(d_variant))
-      {
-        out << "(declare-datatypes ((" << (*dtc).getSymbol() << " 0)) (";
-      }
-      else
-      {
-        out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
-      }
-      for (Node type_ref : *type_refs)
-      {
-        out << "(" << type_ref << ")";
-      }
-      out << ")))" << endl;
-    }
-    else if (tn.isSort() && type_refs != nullptr)
-    {
-      // print the cardinality
-      out << "; cardinality of " << tn << " is " << type_refs->size() << endl;
       out << (*dtc) << endl;
-      // print the representatives
-      for (Node type_ref : *type_refs)
-      {
-        if (type_ref.isVar())
-        {
-          out << "(declare-fun " << quoteSymbol(type_ref) << " () " << tn << ")"
-              << endl;
-        }
-        else
-        {
-          out << "; rep: " << type_ref << endl;
-        }
-      }
     }
     else
     {
-      out << (*dtc) << endl;
+      std::vector<Expr> elements = theory_model->getDomainElements(t);
+      if (options::modelUninterpDtEnum())
+      {
+        if (isVariant_2_6(d_variant))
+        {
+          out << "(declare-datatypes ((" << (*dtc).getSymbol() << " 0)) (";
+        }
+        else
+        {
+          out << "(declare-datatypes () ((" << (*dtc).getSymbol() << " ";
+        }
+        for (const Expr& type_ref : elements)
+        {
+          out << "(" << type_ref << ")";
+        }
+        out << ")))" << endl;
+      }
+      else
+      {
+        // print the cardinality
+        out << "; cardinality of " << t << " is " << elements.size() << endl;
+        out << (*dtc) << endl;
+        // print the representatives
+        for (const Expr& type_ref : elements)
+        {
+          Node trn = Node::fromExpr(type_ref);
+          if (trn.isVar())
+          {
+            out << "(declare-fun " << quoteSymbol(trn) << " () " << t << ")"
+                << endl;
+          }
+          else
+          {
+            out << "; rep: " << trn << endl;
+          }
+        }
+      }
     }
   }
   else if (const DeclareFunctionCommand* dfc =
@@ -1832,11 +1845,7 @@ static void toStream(std::ostream& out,
                      const SetBenchmarkStatusCommand* c,
                      Variant v)
 {
-  if(v == z3str_variant || v == smt2_0_variant) {
-    out << "(set-info :status " << c->getStatus() << ")";
-  } else {
-    out << "(meta-info :status " << c->getStatus() << ")";
-  }
+  out << "(set-info :status " << c->getStatus() << ")";
 }
 
 static void toStream(std::ostream& out,
@@ -1853,12 +1862,7 @@ static void toStream(std::ostream& out,
 
 static void toStream(std::ostream& out, const SetInfoCommand* c, Variant v)
 {
-  if(v == z3str_variant || v == smt2_0_variant) {
-    out << "(set-info :" << c->getFlag() << " ";
-  } else {
-    out << "(meta-info :" << c->getFlag() << " ";
-  }
-
+  out << "(set-info :" << c->getFlag() << " ";
   SExpr::toStream(out, c->getSExpr(), variantToLanguage(v));
   out << ")";
 }
