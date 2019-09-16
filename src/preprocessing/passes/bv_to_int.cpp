@@ -59,22 +59,10 @@ Node BVToInt::maxInt(uint64_t k)
   return max;
 }
 
-//Node BVToInt::pow2(Node n) {
-//	  Node two_const = d_nm->mkConst<Rational>(2);
-//    Node result = d_nm->mkNode(kind::POW, two_const, n);
-//    return result;
-//}
-
 Node BVToInt::pow2(uint64_t k)
 {
 	  return d_nm->mkConst<Rational>((uint64_t) pow(2,k));
 }
-
-//Node BVToInt::modpow2(Node n, Node exponent) {
-//    Node p2 = pow2(exponent);
-//    Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
-//    return modNode;
-//}
 
 Node BVToInt::modpow2(Node n, uint64_t exponent) {
   Node p2 = d_nm->mkConst<Rational>((uint64_t) pow(2, exponent));
