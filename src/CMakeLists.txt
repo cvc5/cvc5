@@ -620,10 +620,16 @@ libcvc4_add_sources(
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
   theory/sep/theory_sep_type_rules.h
+  theory/sets/cardinality_extension.cpp
+  theory/sets/cardinality_extension.h
+  theory/sets/inference_manager.cpp
+  theory/sets/inference_manager.h
   theory/sets/normal_form.h
   theory/sets/rels_utils.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
+  theory/sets/solver_state.cpp
+  theory/sets/solver_state.h
   theory/sets/theory_sets.cpp
   theory/sets/theory_sets.h
   theory/sets/theory_sets_private.cpp

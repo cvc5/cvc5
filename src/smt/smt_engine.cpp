@@ -3061,6 +3061,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
        << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw RecoverableModalException(ss.str().c_str());
   }
+
   if (!options::produceModels())
   {
     std::stringstream ss;
@@ -3069,6 +3070,15 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   }
 
   TheoryModel* m = d_theoryEngine->getBuiltModel();
+
+  if (m == nullptr)
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c
+       << " since model is not available. Perhaps the most recent call to "
+          "check-sat was interupted?";
+    throw RecoverableModalException(ss.str().c_str());
+  }
 
   return m;
 }
@@ -4162,18 +4172,6 @@ Expr SmtEngine::getValue(const Expr& ex) const
     Dump("benchmark") << GetValueCommand(ex);
   }
 
-  if(!options::produceModels()) {
-    const char* msg =
-      "Cannot get value when produce-models options is off.";
-    throw ModalException(msg);
-  }
-  if (d_smtMode != SMT_MODE_SAT)
-  {
-    const char* msg =
-      "Cannot get value unless immediately preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
-  }
-
   // Substitute out any abstract values in ex.
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
 
@@ -4202,7 +4200,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = d_theoryEngine->getBuiltModel();
+  TheoryModel* m = getAvailableModel("get-value");
   Node resultNode;
   if(m != NULL) {
     resultNode = m->getValue(n);
@@ -4289,19 +4287,16 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       "produce-assignments option is off.";
     throw ModalException(msg);
   }
-  if (d_smtMode != SMT_MODE_SAT)
-  {
-    const char* msg =
-      "Cannot get the current assignment unless immediately "
-      "preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
-  }
+
+  // Get the model here, regardless of whether d_assignments is null, since
+  // we should throw errors related to model availability whether or not
+  // assignments is null.
+  TheoryModel* m = getAvailableModel("get assignment");
 
   vector<pair<Expr,Expr>> res;
   if (d_assignments != nullptr)
   {
     TypeNode boolType = d_nodeManager->booleanType();
-    TheoryModel* m = d_theoryEngine->getBuiltModel();
     for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
                                      iend = d_assignments->key_end();
          i != iend;
@@ -4460,7 +4455,7 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
   Expr nil;
-  Model* m = d_theoryEngine->getBuiltModel();
+  Model* m = getAvailableModel("get separation logic heap and nil");
   if (m->getHeapModel(heap, nil))
   {
     return std::make_pair(heap, nil);
@@ -4612,7 +4607,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   // and if Notice() is on, the user gave --verbose (or equivalent).
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  TheoryModel* m = d_theoryEngine->getBuiltModel();
+  TheoryModel* m = getAvailableModel("check model");
 
   // check-model is not guaranteed to succeed if approximate values were used
   if (m->hasApproximations())

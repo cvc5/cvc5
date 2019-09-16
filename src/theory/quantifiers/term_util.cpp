@@ -745,19 +745,6 @@ bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
   return false;
 }
 
-Node TermUtil::getHoTypeMatchPredicate( TypeNode tn ) {
-  std::map< TypeNode, Node >::iterator ithp = d_ho_type_match_pred.find( tn );
-  if( ithp==d_ho_type_match_pred.end() ){
-    TypeNode ptn = NodeManager::currentNM()->mkFunctionType( tn, NodeManager::currentNM()->booleanType() );
-    Node k = NodeManager::currentNM()->mkSkolem( "U", ptn, "predicate to force higher-order types" );
-    d_ho_type_match_pred[tn] = k;
-    return k;
-  }else{
-    return ithp->second;  
-  }
-}
-
-
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

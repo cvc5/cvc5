@@ -320,19 +320,6 @@ public:
    * minimum and maximum elements, for example tn is Bool or BitVector.
    */
   static Node mkTypeConst(TypeNode tn, bool pol);
-
-  // for higher-order
- private:
-  /** dummy predicate that states terms should be considered first-class members of equality engine */
-  std::map< TypeNode, Node > d_ho_type_match_pred;
-public:
-  /** get higher-order type match predicate
-   * This predicate is used to force certain functions f of type tn to appear as first-class representatives in the
-   * quantifier-free UF solver. For a typical use case, we call getHoTypeMatchPredicate which returns a fresh 
-   * predicate P of type (tn -> Bool). Then, we add P( f ) as a lemma.  
-   * TODO: we may eliminate this depending on how github issue #1115 is resolved.
-   */
-  Node getHoTypeMatchPredicate( TypeNode tn );
 };/* class TermUtil */
 
 }/* CVC4::theory::quantifiers namespace */
