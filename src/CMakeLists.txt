@@ -595,6 +595,10 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/synth_engine.h
   theory/quantifiers/sygus/term_database_sygus.cpp
   theory/quantifiers/sygus/term_database_sygus.h
+  theory/quantifiers/sygus/type_info.cpp
+  theory/quantifiers/sygus/type_info.h
+  theory/quantifiers/sygus/type_node_id_trie.cpp
+  theory/quantifiers/sygus/type_node_id_trie.h
   theory/quantifiers/sygus/transition_inference.cpp
   theory/quantifiers/sygus/transition_inference.h
   theory/quantifiers/sygus_sampler.cpp
