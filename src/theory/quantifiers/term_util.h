@@ -125,8 +125,6 @@ public:
   std::map< Node, std::map< Node, unsigned > > d_var_num;
   /** map from universal quantifiers to their inst constant body */
   std::map< Node, Node > d_inst_const_body;
-  /** map from universal quantifiers to their counterexample literals */
-  std::map< Node, Node > d_ce_lit;
   /** instantiation constants to universal quantifiers */
   std::map< Node, Node > d_inst_constants_map;
 public:
@@ -140,8 +138,6 @@ public:
   unsigned getNumInstantiationConstants( Node q ) const;
   /** get the ce body q[e/x] */
   Node getInstConstantBody( Node q );
-  /** get counterexample literal (for cbqi) */
-  Node getCounterexampleLiteral( Node q );
   /** returns node n with bound vars of q replaced by instantiation constants of q
       node n : is the future pattern
       node q : is the quantifier containing which bind the variable
@@ -223,8 +219,6 @@ public:
 //general utilities
   // TODO #1216 : promote these?
  private:
-  //helper for contains term
-  static bool containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited );
   /** cache for getTypeValue */
   std::unordered_map<TypeNode,
                      std::unordered_map<int, Node>,
@@ -248,8 +242,6 @@ public:
       d_type_value_offset_status;
 
  public:
-  /** simple check for contains term, true if contains at least one term in t */
-  static bool containsTerms( Node n, std::vector< Node >& t );
   /** contains uninterpreted constant */
   static bool containsUninterpretedConstant( Node n );
   /** get the term depth of n */
@@ -356,19 +348,6 @@ public:
    * minimum and maximum elements, for example tn is Bool or BitVector.
    */
   static Node mkTypeConst(TypeNode tn, bool pol);
-
-  // for higher-order
- private:
-  /** dummy predicate that states terms should be considered first-class members of equality engine */
-  std::map< TypeNode, Node > d_ho_type_match_pred;
-public:
-  /** get higher-order type match predicate
-   * This predicate is used to force certain functions f of type tn to appear as first-class representatives in the
-   * quantifier-free UF solver. For a typical use case, we call getHoTypeMatchPredicate which returns a fresh 
-   * predicate P of type (tn -> Bool). Then, we add P( f ) as a lemma.  
-   * TODO: we may eliminate this depending on how github issue #1115 is resolved.
-   */
-  Node getHoTypeMatchPredicate( TypeNode tn );
 };/* class TermUtil */
 
 }/* CVC4::theory::quantifiers namespace */

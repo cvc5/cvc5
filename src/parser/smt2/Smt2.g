@@ -239,7 +239,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       cmd->reset(PARSER_STATE->setLogic(name));
     }
   | /* set-info */
-    SET_INFO_TOK metaInfoInternal[cmd]
+    SET_INFO_TOK setInfoInternal[cmd]
   | /* get-info */
     GET_INFO_TOK KEYWORD
     { cmd->reset(new GetInfoCommand(
@@ -346,12 +346,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         t = PARSER_STATE->mkFlatFunctionType(sorts, t, flattenVars);
       }
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      terms = PARSER_STATE->mkBoundVars(sortedVarNames);
     }
     term[expr, expr2]
     {
@@ -547,8 +542,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { std::string id = AntlrInput::tokenText($SIMPLE_SYMBOL);
       if(id == "benchmark") {
         PARSER_STATE->parseError(
-            "In SMT-LIBv2 mode, but got something that looks like SMT-LIBv1. "
-            "Use --lang smt1 for SMT-LIBv1.");
+            "In SMT-LIBv2 mode, but got something that looks like SMT-LIBv1, "
+            "which is not supported anymore.");
       } else {
         PARSER_STATE->parseError("expected SMT-LIBv2 command, got `" + id +
                                  "'.");
@@ -624,10 +619,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       sygus_type = range;
       // create new scope for parsing the grammar, if any
       PARSER_STATE->pushScope(true);
-      for (const std::pair<std::string, CVC4::Type>& p : sortedVarNames)
-      {
-        sygus_vars.push_back(PARSER_STATE->mkBoundVar(p.first, p.second));
-      }
+      sygus_vars = PARSER_STATE->mkBoundVars(sortedVarNames);
     }
     (
       // optionally, read the sygus grammar
@@ -676,10 +668,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       sygus_type = range;
       // create new scope for parsing the grammar, if any
       PARSER_STATE->pushScope(true);
-      for (const std::pair<std::string, CVC4::Type>& p : sortedVarNames)
-      {
-        sygus_vars.push_back(PARSER_STATE->mkBoundVar(p.first, p.second));
-      }
+      sygus_vars = PARSER_STATE->mkBoundVars(sortedVarNames);
     }
     (
       // optionally, read the sygus grammar
@@ -897,28 +886,12 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   Type t;
   std::string sname;
   std::vector< Expr > let_vars;
-  bool readingLet = false;
   std::string s;
   CVC4::api::Term atomTerm;
 }
   : LPAREN_TOK
     //read operator
-    ( SYGUS_LET_TOK LPAREN_TOK {
-         sgt.d_name = std::string("let");
-         sgt.d_gterm_type = SygusGTerm::gterm_let;
-         PARSER_STATE->pushScope(true);
-         readingLet = true;
-       }
-       ( LPAREN_TOK
-        symbol[sname,CHECK_NONE,SYM_VARIABLE]
-        sortSymbol[t,CHECK_DECLARED] {
-          Expr v = PARSER_STATE->mkBoundVar(sname,t);
-          sgt.d_let_vars.push_back( v );
-          sgt.addChild();
-        }
-        sygusGTerm[sgt.d_children.back(), fun]
-        RPAREN_TOK )+ RPAREN_TOK
-    | SYGUS_CONSTANT_TOK sortSymbol[t,CHECK_DECLARED]
+    ( SYGUS_CONSTANT_TOK sortSymbol[t,CHECK_DECLARED]
       { sgt.d_gterm_type = SygusGTerm::gterm_constant;
         sgt.d_type = t;
         Debug("parser-sygus") << "Sygus grammar constant." << std::endl;
@@ -982,9 +955,6 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
     RPAREN_TOK {
       //pop last child index
       sgt.d_children.pop_back();
-      if( readingLet ){
-        PARSER_STATE->popScope();
-      }
     }
     | termAtomic[atomTerm]
       {
@@ -1164,8 +1134,7 @@ sygusGrammar[CVC4::Type & ret,
   }
 ;
 
-// Separate this into its own rule (can be invoked by set-info or meta-info)
-metaInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
+setInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::string name;
   SExpr sexpr;
@@ -1214,11 +1183,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<Type> sorts;
   std::vector<Expr> flattenVars;
 }
-    /* meta-info */
-  : META_INFO_TOK metaInfoInternal[cmd]
-
     /* declare-const */
-  | DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+  : DECLARE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_NONE,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
@@ -1436,11 +1402,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { /* add variables to parser state before parsing term */
         Debug("parser") << "define fun: '" << name << "'" << std::endl;
         PARSER_STATE->pushScope(true);
-        for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-              sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
-            ++i) {
-          terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-        }
+        terms = PARSER_STATE->mkBoundVars(sortedVarNames);
       }
       term[e,e2]
       { PARSER_STATE->popScope();
@@ -1470,11 +1432,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     { /* add variables to parser state before parsing term */
       Debug("parser") << "define const: '" << name << "'" << std::endl;
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end(); i != iend;
-          ++i) {
-        terms.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      terms = PARSER_STATE->mkBoundVars(sortedVarNames);
     }
     term[e, e2]
     { PARSER_STATE->popScope();
@@ -1654,12 +1612,7 @@ rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
     {
       kind = CVC4::kind::RR_REWRITE;
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      args = PARSER_STATE->mkBoundVars(sortedVarNames);
       bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
     }
     LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
@@ -1695,12 +1648,7 @@ rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      args = PARSER_STATE->mkBoundVars(sortedVarNames);
       bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
     }
     LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
@@ -1876,12 +1824,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
       PARSER_STATE->pushScope(true);
-      for(std::vector<std::pair<std::string, CVC4::Type> >::const_iterator i =
-            sortedVarNames.begin(), iend = sortedVarNames.end();
-          i != iend;
-          ++i) {
-        args.push_back(PARSER_STATE->mkBoundVar((*i).first, (*i).second));
-      }
+      args = PARSER_STATE->mkBoundVars(sortedVarNames);
       Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
       args.clear();
       args.push_back(bvl);
@@ -2130,9 +2073,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     {
       PARSER_STATE->pushScope(true);
-      for(const std::pair<std::string, CVC4::Type>& svn : sortedVarNames){
-        args.push_back(PARSER_STATE->mkBoundVar(svn.first, svn.second));
-      }
+      args = PARSER_STATE->mkBoundVars(sortedVarNames);
       Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
       args.clear();
       args.push_back(bvl);
@@ -2850,7 +2791,6 @@ RPAREN_TOK : ')';
 INDEX_TOK : '_';
 SET_LOGIC_TOK : 'set-logic';
 SET_INFO_TOK : 'set-info';
-META_INFO_TOK : 'meta-info';
 GET_INFO_TOK : 'get-info';
 SET_OPTION_TOK : 'set-option';
 GET_OPTION_TOK : 'get-option';

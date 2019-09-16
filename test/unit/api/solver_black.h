@@ -89,7 +89,12 @@ class SolverBlack : public CxxTest::TestSuite
   void testPop1();
   void testPop2();
   void testPop3();
+
   void testSimplify();
+  void testCheckValid1();
+  void testCheckValid2();
+  void testCheckValidAssuming1();
+  void testCheckValidAssuming2();
 
   void testSetInfo();
   void testSetLogic();
@@ -1025,6 +1030,99 @@ void SolverBlack::testSimplify()
   d_solver->defineFunsRec({f1, f2}, {{b1, b2}, {b3}}, {v1, v2});
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(f1));
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(f2));
+}
+
+void SolverBlack::testCheckValid1()
+{
+  d_solver->setOption("incremental", "false");
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkValid());
+  TS_ASSERT_THROWS(d_solver->checkValid(), CVC4ApiException&);
+}
+
+void SolverBlack::testCheckValid2()
+{
+  d_solver->setOption("incremental", "true");
+
+  Sort realSort = d_solver->getRealSort();
+  Sort intSort = d_solver->getIntegerSort();
+
+  // Constants
+  Term x = d_solver->mkConst(intSort, "x");
+  Term y = d_solver->mkConst(realSort, "y");
+  // Values
+  Term three = d_solver->mkReal(3);
+  Term neg2 = d_solver->mkReal(-2);
+  Term two_thirds = d_solver->mkReal(2, 3);
+  // Terms
+  Term three_y = d_solver->mkTerm(MULT, three, y);
+  Term diff = d_solver->mkTerm(MINUS, y, x);
+  // Formulas
+  Term x_geq_3y = d_solver->mkTerm(GEQ, x, three_y);
+  Term x_leq_y = d_solver->mkTerm(LEQ, x, y);
+  Term neg2_lt_x = d_solver->mkTerm(LT, neg2, x);
+  // Assertions
+  Term assertions = d_solver->mkTerm(AND, x_geq_3y, x_leq_y, neg2_lt_x);
+
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkValid());
+  d_solver->assertFormula(assertions);
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkValid());
+}
+
+void SolverBlack::testCheckValidAssuming1()
+{
+  d_solver->setOption("incremental", "false");
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkValidAssuming(d_solver->mkTrue()));
+  TS_ASSERT_THROWS(d_solver->checkValidAssuming(d_solver->mkTrue()),
+                   CVC4ApiException&);
+}
+
+void SolverBlack::testCheckValidAssuming2()
+{
+  d_solver->setOption("incremental", "true");
+
+  Sort uSort = d_solver->mkUninterpretedSort("u");
+  Sort intSort = d_solver->getIntegerSort();
+  Sort boolSort = d_solver->getBooleanSort();
+  Sort uToIntSort = d_solver->mkFunctionSort(uSort, intSort);
+  Sort intPredSort = d_solver->mkFunctionSort(intSort, boolSort);
+
+  Term n = Term();
+  // Constants
+  Term x = d_solver->mkConst(uSort, "x");
+  Term y = d_solver->mkConst(uSort, "y");
+  // Functions
+  Term f = d_solver->mkConst(uToIntSort, "f");
+  Term p = d_solver->mkConst(intPredSort, "p");
+  // Values
+  Term zero = d_solver->mkReal(0);
+  Term one = d_solver->mkReal(1);
+  // Terms
+  Term f_x = d_solver->mkTerm(APPLY_UF, f, x);
+  Term f_y = d_solver->mkTerm(APPLY_UF, f, y);
+  Term sum = d_solver->mkTerm(PLUS, f_x, f_y);
+  Term p_0 = d_solver->mkTerm(APPLY_UF, p, zero);
+  Term p_f_y = d_solver->mkTerm(APPLY_UF, p, f_y);
+  // Assertions
+  Term assertions =
+      d_solver->mkTerm(AND,
+                       std::vector<Term>{
+                           d_solver->mkTerm(LEQ, zero, f_x),  // 0 <= f(x)
+                           d_solver->mkTerm(LEQ, zero, f_y),  // 0 <= f(y)
+                           d_solver->mkTerm(LEQ, sum, one),  // f(x) + f(y) <= 1
+                           p_0.notTerm(),                    // not p(0)
+                           p_f_y                             // p(f(y))
+                       });
+
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkValidAssuming(d_solver->mkTrue()));
+  d_solver->assertFormula(assertions);
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver->checkValidAssuming(d_solver->mkTerm(DISTINCT, x, y)));
+  TS_ASSERT_THROWS_NOTHING(d_solver->checkValidAssuming(
+      {d_solver->mkFalse(), d_solver->mkTerm(DISTINCT, x, y)}));
+  TS_ASSERT_THROWS(d_solver->checkValidAssuming(n), CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver->checkValidAssuming({n, d_solver->mkTerm(DISTINCT, x, y)}),
+      CVC4ApiException&);
 }
 
 void SolverBlack::testSetLogic()
