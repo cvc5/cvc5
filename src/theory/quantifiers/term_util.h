@@ -51,10 +51,6 @@ typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t> QuantInstLevelAttri
 struct QuantIdNumAttributeId {};
 typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
 
-/** Attribute to mark Skolems as virtual terms */
-struct VirtualTermSkolemAttributeId {};
-typedef expr::Attribute< VirtualTermSkolemAttributeId, bool > VirtualTermSkolemAttribute;
-
 class QuantifiersEngine;
 
 namespace inst{
@@ -163,31 +159,7 @@ public:
                                                Node n,
                                                std::vector<Node>& vars);
 
-//for virtual term substitution
-private:
-  Node d_vts_delta;
-  std::map< TypeNode, Node > d_vts_inf;
-  Node d_vts_delta_free;
-  std::map< TypeNode, Node > d_vts_inf_free;
-  /** get vts infinity index */
-  Node getVtsInfinityIndex( int i, bool isFree = false, bool create = true  );
-  /** substitute vts free terms */
-  Node substituteVtsFreeTerms( Node n );
 public:
-  /** get vts delta */
-  Node getVtsDelta( bool isFree = false, bool create = true );
-  /** get vts infinity */
-  Node getVtsInfinity( TypeNode tn, bool isFree = false, bool create = true );
-  /** get all vts terms */
-  void getVtsTerms( std::vector< Node >& t, bool isFree = false, bool create = true, bool inc_delta = true );
-  /** rewrite delta */
-  Node rewriteVtsSymbols( Node n );
-  /** simple check for contains term */
-  bool containsVtsTerm( Node n, bool isFree = false );
-  /** simple check for contains term */
-  bool containsVtsTerm( std::vector< Node >& n, bool isFree = false );
-  /** simple check for contains term */
-  bool containsVtsInfinity( Node n, bool isFree = false );
   /** ensure type */
   static Node ensureType( Node n, TypeNode tn );
   
@@ -323,19 +295,6 @@ public:
    * minimum and maximum elements, for example tn is Bool or BitVector.
    */
   static Node mkTypeConst(TypeNode tn, bool pol);
-
-  // for higher-order
- private:
-  /** dummy predicate that states terms should be considered first-class members of equality engine */
-  std::map< TypeNode, Node > d_ho_type_match_pred;
-public:
-  /** get higher-order type match predicate
-   * This predicate is used to force certain functions f of type tn to appear as first-class representatives in the
-   * quantifier-free UF solver. For a typical use case, we call getHoTypeMatchPredicate which returns a fresh 
-   * predicate P of type (tn -> Bool). Then, we add P( f ) as a lemma.  
-   * TODO: we may eliminate this depending on how github issue #1115 is resolved.
-   */
-  Node getHoTypeMatchPredicate( TypeNode tn );
 };/* class TermUtil */
 
 }/* CVC4::theory::quantifiers namespace */

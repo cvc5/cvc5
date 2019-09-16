@@ -95,7 +95,8 @@ class ReqTrie
   {
     if (!d_req_const.isNull())
     {
-      if (!tdb->hasConst(tn, d_req_const))
+      quantifiers::SygusTypeInfo& sti = tdb->getTypeInfo(tn);
+      if (!sti.hasConst(d_req_const))
       {
         return false;
       }
@@ -154,13 +155,15 @@ bool SygusSimpleSymBreak::considerArgKind(
 {
   const Datatype& pdt = ((DatatypeType)(tnp).toType()).getDatatype();
   const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-  Assert(d_tds->hasKind(tn, k));
-  Assert(d_tds->hasKind(tnp, pk));
+  quantifiers::SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
+  quantifiers::SygusTypeInfo& pti = d_tds->getTypeInfo(tnp);
+  Assert(ti.hasKind(k));
+  Assert(pti.hasKind(pk));
   Trace("sygus-sb-debug") << "Consider sygus arg kind " << k << ", pk = " << pk
                           << ", arg = " << arg << " in " << tnp << "?"
                           << std::endl;
-  int c = d_tds->getKindConsNum(tn, k);
-  int pc = d_tds->getKindConsNum(tnp, pk);
+  int c = ti.getKindConsNum(k);
+  int pc = pti.getKindConsNum(pk);
   // check for associativity
   if (k == pk && quantifiers::TermUtil::isAssoc(k))
   {
@@ -294,7 +297,7 @@ bool SygusSimpleSymBreak::considerArgKind(
       }
       if (!rt.empty() && (reqk != UNDEFINED_KIND || !reqkc.empty()))
       {
-        int pcr = d_tds->getKindConsNum(tnp, rt.d_req_kind);
+        int pcr = pti.getKindConsNum(rt.d_req_kind);
         if (pcr != -1)
         {
           Assert(pcr < static_cast<int>(pdt.getNumConstructors()));
@@ -429,7 +432,9 @@ bool SygusSimpleSymBreak::considerConst(
     return false;
   }
   // this can probably be made child grammar independent
-  int pc = d_tds->getKindConsNum(tnp, pk);
+  quantifiers::SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
+  quantifiers::SygusTypeInfo& pti = d_tds->getTypeInfo(tnp);
+  int pc = pti.getKindConsNum(pk);
   if (pdt[pc].getNumArgs() == 2)
   {
     Kind ok;
@@ -438,7 +443,7 @@ bool SygusSimpleSymBreak::considerConst(
     {
       Trace("sygus-sb-simple-debug")
           << pk << " has offset arg " << ok << " " << offset << std::endl;
-      int ok_arg = d_tds->getKindConsNum(tnp, ok);
+      int ok_arg = pti.getKindConsNum(ok);
       if (ok_arg != -1)
       {
         Trace("sygus-sb-simple-debug")
@@ -453,7 +458,7 @@ bool SygusSimpleSymBreak::considerConst(
               << ", status=" << status << std::endl;
           if (status == 0 && !co.isNull())
           {
-            if (d_tds->hasConst(tn, co))
+            if (ti.hasConst(co))
             {
               Trace("sygus-sb-simple")
                   << "  sb-simple : by offset reasoning, do not consider const "
@@ -474,8 +479,9 @@ bool SygusSimpleSymBreak::considerConst(
 bool SygusSimpleSymBreak::considerConst(
     const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg)
 {
-  Assert(d_tds->hasKind(tnp, pk));
-  int pc = d_tds->getKindConsNum(tnp, pk);
+  quantifiers::SygusTypeInfo& pti = d_tds->getTypeInfo(tnp);
+  Assert(pti.hasKind(pk));
+  int pc = pti.getKindConsNum(pk);
   bool ret = true;
   Trace("sygus-sb-debug") << "Consider sygus const " << c << ", parent = " << pk
                           << ", arg = " << arg << "?" << std::endl;
@@ -499,7 +505,7 @@ bool SygusSimpleSymBreak::considerConst(
     Node sc = d_tutil->isSingularArg(c, pk, arg);
     if (!sc.isNull())
     {
-      if (d_tds->hasConst(tnp, sc))
+      if (pti.hasConst(sc))
       {
         Trace("sygus-sb-simple")
             << "  sb-simple : " << c << " is singular arg " << arg << " of "

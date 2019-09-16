@@ -49,7 +49,6 @@ class CVC4_PUBLIC SygusGTerm {
 public:
   enum{
     gterm_op,
-    gterm_let,
     gterm_constant,
     gterm_variable,
     gterm_input_variable,
