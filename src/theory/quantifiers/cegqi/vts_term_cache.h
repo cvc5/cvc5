@@ -41,7 +41,7 @@ namespace quantifiers {
  * infinity) and has methods for performing virtual term substitution.
  *
  * In detail, there are three kinds of virtual terms:
- * (1) delta, of Real type, representing a infinitessimally small real value,
+ * (1) delta, of Real type, representing a infinitesimally small real value,
  * (2) infinity, of Real type, representing an infinitely large real value,
  * (3) infinity, of Int type, representing an infinitely large integer value.
  *
