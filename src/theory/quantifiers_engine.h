@@ -33,7 +33,6 @@
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
@@ -108,8 +107,6 @@ public:
   //---------------------- utilities (TODO move these utilities #1163)
   /** get the equality inference */
   quantifiers::EqualityInference* getEqualityInference() const;
-  /** get relevant domain */
-  quantifiers::RelevantDomain* getRelevantDomain() const;
   //---------------------- end utilities
  private:
   /**
@@ -322,8 +319,6 @@ public:
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
-  /** relevant domain */
-  std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** utility for effectively propositional logic */
