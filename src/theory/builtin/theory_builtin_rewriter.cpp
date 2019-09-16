@@ -300,22 +300,28 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
         }
       }
     }
-    if( curr_index.isNull() ){
-      Trace("builtin-rewrite-debug2") << "  ...could not infer index value." << std::endl;
+    if (curr_index.isNull())
+    {
+      Trace("builtin-rewrite-debug2")
+          << "  ...could not infer index value." << std::endl;
       return Node::null();
     }
 
     // [4] Recurse to ensure that "curr_val" has been normalized w.r.t. the
     // remaining arguments (rec_bvl).
-    if( !rec_bvl.isNull() ){
-      curr_val = nm->mkNode( kind::LAMBDA, rec_bvl, curr_val );
+    if (!rec_bvl.isNull())
+    {
+      curr_val = nm->mkNode(kind::LAMBDA, rec_bvl, curr_val);
       curr_val = getArrayRepresentationForLambdaRec(curr_val, retType);
-      if( curr_val.isNull() ){
-        Trace("builtin-rewrite-debug2") << "  ...failed to recursively find value." << std::endl;
+      if (curr_val.isNull())
+      {
+        Trace("builtin-rewrite-debug2")
+            << "  ...failed to recursively find value." << std::endl;
         return Node::null();
       }
-    }      
-    Trace("builtin-rewrite-debug2") << "  ...condition is index " << curr_val << std::endl;
+    }
+    Trace("builtin-rewrite-debug2")
+        << "  ...condition is index " << curr_val << std::endl;
 
     // [5] Add the entry
     conds.push_back( curr_index );
