@@ -197,6 +197,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
                                                                TypeNode retType)
 {
   Assert( n.getKind()==kind::LAMBDA );
+  NodeManager* nm = NodeManager::currentNM();
   Trace("builtin-rewrite-debug") << "Get array representation for : " << n << std::endl;
 
   Node first_arg = n[0][0];
@@ -206,7 +207,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     for( unsigned i=1; i<n[0].getNumChildren(); i++ ){
       args.push_back( n[0][i] );
     }
-    rec_bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, args );
+    rec_bvl = nm->mkNode( kind::BOUND_VAR_LIST, args );
   }
 
   Trace("builtin-rewrite-debug2") << "  process body..." << std::endl;
@@ -214,13 +215,18 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
   std::vector< Node > vals;
   Node curr = n[1];
   Kind ck = curr.getKind();
-  NodeManager* nm = NodeManager::currentNM();
   while (ck == kind::ITE || ck == kind::EQUAL || ck == kind::NOT
          || ck == kind::BOUND_VARIABLE)
   {
     Node index_eq;
     Node curr_val;
     Node next;
+    // Each iteration of this loop infers an entry in the function, e.g. it
+    // has a value under some condition.
+
+    // [1] We infer that the entry has value "curr_val" under condition
+    // "index_eq". We set "next" to the node that is the remainder of the
+    // function to process.
     if (ck == kind::ITE)
     {
       Trace("builtin-rewrite-debug2")
@@ -239,6 +245,8 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       curr_val = nm->mkConst(true);
       next = nm->mkConst(false);
     }
+
+    // [2] We ensure that "index_eq" is an equality, if possible.
     if (index_eq.getKind() != kind::EQUAL)
     {
       bool pol = index_eq.getKind() != kind::NOT;
@@ -272,6 +280,9 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       return Node::null();
     }
 
+    // [3] We ensure that "index_eq" is an equality that is equivalent to
+    // "first_arg" = "curr_index", where curr_index is a constant, and
+    // "first_arg" is the current argument we are processing, if possible.
     Node curr_index;
     for( unsigned r=0; r<2; r++ ){
       Node arg = index_eq[r];
@@ -289,6 +300,9 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
         }
       }
     }
+    
+    // [4] Recurse to ensure that "curr_val" has been normalized w.r.t. the
+    // remaining arguments (rec_bvl).
     if( !curr_index.isNull() ){
       if( !rec_bvl.isNull() ){
         curr_val = NodeManager::currentNM()->mkNode( kind::LAMBDA, rec_bvl, curr_val );
@@ -303,10 +317,13 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       Trace("builtin-rewrite-debug2") << "  ...non-constant value." << std::endl;
       return Node::null();
     }
+    
+    // [5] Add the entry
     conds.push_back( curr_index );
     vals.push_back( curr_val );
     TypeNode vtype = curr_val.getType();
-    //recurse
+    
+    // we will now process the remainder
     curr = next;
     ck = curr.getKind();
   }
