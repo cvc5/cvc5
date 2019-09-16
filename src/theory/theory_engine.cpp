@@ -882,7 +882,12 @@ TheoryModel* TheoryEngine::getBuiltModel()
   {
     // If this method was called, we should be in SAT mode, and produceModels
     // should be true.
-    AlwaysAssert(d_inSatMode && options::produceModels());
+    AlwaysAssert(options::produceModels());
+    if (!d_inSatMode)
+    {
+      // not available, perhaps due to interuption.
+      return nullptr;
+    }
     // must build model at this point
     d_curr_model_builder->buildModel(d_curr_model);
   }
