@@ -207,7 +207,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     for( unsigned i=1; i<n[0].getNumChildren(); i++ ){
       args.push_back( n[0][i] );
     }
-    rec_bvl = nm->mkNode( kind::BOUND_VAR_LIST, args );
+    rec_bvl = nm->mkNode(kind::BOUND_VAR_LIST, args);
   }
 
   Trace("builtin-rewrite-debug2") << "  process body..." << std::endl;
@@ -300,7 +300,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
         }
       }
     }
-    
+
     // [4] Recurse to ensure that "curr_val" has been normalized w.r.t. the
     // remaining arguments (rec_bvl).
     if( !curr_index.isNull() ){
@@ -317,12 +317,12 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       Trace("builtin-rewrite-debug2") << "  ...non-constant value." << std::endl;
       return Node::null();
     }
-    
+
     // [5] Add the entry
     conds.push_back( curr_index );
     vals.push_back( curr_val );
     TypeNode vtype = curr_val.getType();
-    
+
     // we will now process the remainder
     curr = next;
     ck = curr.getKind();
