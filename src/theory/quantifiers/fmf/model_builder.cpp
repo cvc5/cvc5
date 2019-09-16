@@ -15,19 +15,13 @@
 #include "theory/quantifiers/fmf/model_builder.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
+#include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/theory_uf.h"
-#include "theory/uf/theory_uf_model.h"
 
 using namespace std;
 using namespace CVC4;
@@ -122,7 +116,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
           }
           Node n = d_qe->getInstantiate()->getInstantiation(f, vars, terms);
           Node val = fm->getValue( n );
-          if (val != d_qe->getTermUtil()->d_true)
+          if (!val.isConst() || !val.getConst<bool>())
           {
             Trace("quant-check-model") << "*******  Instantiation " << n << " for " << std::endl;
             Trace("quant-check-model") << "         " << f << std::endl;
