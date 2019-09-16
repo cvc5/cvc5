@@ -57,6 +57,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
       d_incomplete_check(false),
       d_added_cbqi_lemma(qe->getUserContext()),
       d_elim_quants(qe->getSatContext()),
+      d_vtsCache(new VtsTermCache(qe)),
       d_bv_invert(nullptr),
       d_nested_qe_waitlist_size(qe->getUserContext()),
       d_nested_qe_waitlist_proc(qe->getUserContext())
@@ -460,7 +461,7 @@ Node InstStrategyCegqi::rewriteInstantiation(Node q,
     // do virtual term substitution
     inst = Rewriter::rewrite(inst);
     Trace("quant-vts-debug") << "Rewrite vts symbols in " << inst << std::endl;
-    inst = d_quantEngine->getTermUtil()->rewriteVtsSymbols(inst);
+    inst = d_vtsCache->rewriteVtsSymbols(inst);
     Trace("quant-vts-debug") << "...got " << inst << std::endl;
   }
   if (options::cbqiNestedQE())
@@ -499,7 +500,7 @@ Node InstStrategyCegqi::doNestedQENode(
   if( doVts ){
     //do virtual term substitution
     ret = Rewriter::rewrite( ret );
-    ret = d_quantEngine->getTermUtil()->rewriteVtsSymbols( ret );
+    ret = d_vtsCache->rewriteVtsSymbols(ret);
   }
   Trace("cbqi-nqe") << "Nested quantifier elimination: " << std::endl;
   Trace("cbqi-nqe") << "  " << n << std::endl; 
@@ -631,14 +632,14 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       d_small_const = NodeManager::currentNM()->mkNode( MULT, d_small_const, d_small_const );
       d_small_const = Rewriter::rewrite( d_small_const );
       //heuristic for now, until we know how to do nested quantification
-      Node delta = d_quantEngine->getTermUtil()->getVtsDelta( true, false );
+      Node delta = d_vtsCache->getVtsDelta(true, false);
       if( !delta.isNull() ){
         Trace("quant-vts-debug") << "Delta lemma for " << d_small_const << std::endl;
         Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, delta, d_small_const );
         d_quantEngine->getOutputChannel().lemma( delta_lem_ub );
       }
       std::vector< Node > inf;
-      d_quantEngine->getTermUtil()->getVtsTerms( inf, true, false, false );
+      d_vtsCache->getVtsTerms(inf, true, false, false);
       for( unsigned i=0; i<inf.size(); i++ ){
         Trace("quant-vts-debug") << "Infinity lemma for " << inf[i] << " " << d_small_const << std::endl;
         Node inf_lem_lb = NodeManager::currentNM()->mkNode( GT, inf[i], NodeManager::currentNM()->mkConst( Rational(1)/d_small_const.getConst<Rational>() ) );
@@ -674,7 +675,7 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
     return true;
   }else{
     //check if we need virtual term substitution (if used delta or infinity)
-    bool used_vts = d_quantEngine->getTermUtil()->containsVtsTerm( subs, false );
+    bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
     if (d_quantEngine->getInstantiate()->addInstantiation(
             d_curr_quant, subs, false, false, used_vts))
     {
@@ -702,6 +703,11 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
     return d_cinst[q].get();
   }
   return it->second.get();
+}
+
+VtsTermCache* InstStrategyCegqi::getVtsTermCache() const
+{
+  return d_vtsCache.get();
 }
 
 BvInverter* InstStrategyCegqi::getBvInverter() const

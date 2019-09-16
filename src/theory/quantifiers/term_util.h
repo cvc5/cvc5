@@ -76,10 +76,6 @@ typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
 struct QuantIdNumAttributeId {};
 typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
 
-/** Attribute to mark Skolems as virtual terms */
-struct VirtualTermSkolemAttributeId {};
-typedef expr::Attribute< VirtualTermSkolemAttributeId, bool > VirtualTermSkolemAttribute;
-
 class QuantifiersEngine;
 
 namespace inst{
@@ -188,31 +184,7 @@ public:
                                                Node n,
                                                std::vector<Node>& vars);
 
-//for virtual term substitution
-private:
-  Node d_vts_delta;
-  std::map< TypeNode, Node > d_vts_inf;
-  Node d_vts_delta_free;
-  std::map< TypeNode, Node > d_vts_inf_free;
-  /** get vts infinity index */
-  Node getVtsInfinityIndex( int i, bool isFree = false, bool create = true  );
-  /** substitute vts free terms */
-  Node substituteVtsFreeTerms( Node n );
 public:
-  /** get vts delta */
-  Node getVtsDelta( bool isFree = false, bool create = true );
-  /** get vts infinity */
-  Node getVtsInfinity( TypeNode tn, bool isFree = false, bool create = true );
-  /** get all vts terms */
-  void getVtsTerms( std::vector< Node >& t, bool isFree = false, bool create = true, bool inc_delta = true );
-  /** rewrite delta */
-  Node rewriteVtsSymbols( Node n );
-  /** simple check for contains term */
-  bool containsVtsTerm( Node n, bool isFree = false );
-  /** simple check for contains term */
-  bool containsVtsTerm( std::vector< Node >& n, bool isFree = false );
-  /** simple check for contains term */
-  bool containsVtsInfinity( Node n, bool isFree = false );
   /** ensure type */
   static Node ensureType( Node n, TypeNode tn );
   
