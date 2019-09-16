@@ -174,15 +174,12 @@ class TheoryEngine {
     void eqNotifyNewClass(TNode t) override { d_te.eqNotifyNewClass(t); }
     void eqNotifyPreMerge(TNode t1, TNode t2) override
     {
-      d_te.eqNotifyPreMerge(t1, t2);
     }
     void eqNotifyPostMerge(TNode t1, TNode t2) override
     {
-      d_te.eqNotifyPostMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      d_te.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class TheoryEngine::NotifyClass */
   NotifyClass d_masterEENotify;
