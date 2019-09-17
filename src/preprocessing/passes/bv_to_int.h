@@ -39,11 +39,10 @@ class BVToInt : public PreprocessingPass
  protected:
     PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-    Node createBitwiseNode(vector<Node> children, uint64_t bvsize, uint64_t granularity, uint64_t (*f)(uint64_t, uint64_t));
+    Node createBitwiseNode(Node x, Node y, uint64_t bvsize, uint64_t granularity, bool (*f)(bool, bool));
     Node createITEFromTable(Node x, Node y, uint64_t granularity, std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
     Node createShiftNode(vector<Node> children, uint64_t bvsize, bool isLeftShift);
     Node createBVNotNode(Node n, uint64_t bvsize);
-
 
     Node bvToInt(Node n);
     Node mkRangeConstraint(Node newVar, uint64_t k);
@@ -52,11 +51,17 @@ class BVToInt : public PreprocessingPass
     Node pow2(uint64_t k);
     Node maxInt(uint64_t k);
     Node modpow2(Node n, uint64_t exponent);
+    void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
     NodeMap d_binarizeCache;
     NodeMap d_eliminationCache;
     NodeMap d_bvToIntCache;
     NodeManager* d_nm;
+    /**
+     * If there are no range constraints, do nothing.
+     * If there is a single range constraint, add it to the assrtions.
+     * Otherwise, add all of them as a single conjunction
+     */
     unordered_set<Node, NodeHashFunction> d_rangeAssertions;
 };
 

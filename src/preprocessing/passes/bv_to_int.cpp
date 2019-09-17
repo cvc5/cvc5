@@ -34,6 +34,30 @@ namespace passes {
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
+bool oneBitAnd(bool a, bool b) {
+  return (a && b);
+}
+
+bool oneBitOr(bool a, bool b) {
+  return (a || b);
+}
+
+bool oneBitXor(bool a, bool b) {
+  return ((a && (!b)) || ((!a) && b));
+}
+
+
+bool oneBitXnor(bool a, bool b) {
+  return !(oneBitXor(a, b));
+}
+
+bool oneBitNand(bool a, bool b) {
+  return !(a && b);
+}
+
+bool oneBitNor(bool a, bool b) {
+  return !(a || b);
+}
 
 void printCache(NodeMap m) {
       for (auto const& pair: m) {
@@ -242,7 +266,6 @@ Node BVToInt::bvToInt(Node n)
               }
               case kind::CONST_BITVECTOR:
               {
-                //TODO will i get overflows here? anywhere else?
                 BitVector constant(current.getConst<BitVector>());
 	              Integer c = constant.toInteger();
                 d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
@@ -388,20 +411,13 @@ Node BVToInt::bvToInt(Node n)
             {
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               uint64_t granularity = options::solveBVAsInt();
+              Assert(intized_children.size() == 2);
               Node newNode = createBitwiseNode(
-                  intized_children, 
+                  intized_children[0], 
+                  intized_children[1], 
                   bvsize, 
                   granularity, 
-                  [](uint64_t x, uint64_t y) {
-                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
-                    if (x == 0 && y == 0) return (uint64_t)0;
-                    if (x == 0 && y == 1) return (uint64_t)0;
-                    if (x == 1 && y == 0) return (uint64_t)0;
-                    if (x == 1 && y == 1) return (uint64_t)1;
-                    Assert(false);
-                    //TODO to the compiler it looks like an incomplete function. what to do?
-                  }
-                  );
+                  &oneBitAnd);
               d_bvToIntCache[current] = newNode;
               break;
             }
@@ -410,18 +426,11 @@ Node BVToInt::bvToInt(Node n)
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               uint64_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
-                  intized_children, 
+                  intized_children[0], 
+                  intized_children[1], 
                   bvsize, 
                   granularity, 
-                  [](uint64_t x, uint64_t y) {
-                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
-                    if (x == 0 && y == 0) return (uint64_t) 0;
-                    if (x == 0 && y == 1) return (uint64_t) 1;
-                    if (x == 1 && y == 0) return (uint64_t) 1;
-                    if (x == 1 && y == 1) return (uint64_t) 1;
-                    Assert(false);
-                  }
-                  );
+                  &oneBitOr);
               d_bvToIntCache[current] = newNode;
               break;
             }
@@ -430,18 +439,11 @@ Node BVToInt::bvToInt(Node n)
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               uint64_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
-                  intized_children, 
+                  intized_children[0], 
+                  intized_children[1], 
                   bvsize, 
                   granularity, 
-                  [](uint64_t x, uint64_t y) {
-                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
-                    if (x == 0 && y == 0) return (uint64_t) 0;
-                    if (x == 0 && y == 1) return (uint64_t) 1;
-                    if (x == 1 && y == 0) return (uint64_t) 1;
-                    if (x == 1 && y == 1) return (uint64_t) 0;
-                    Assert(false);
-                  }
-                  );
+                  &oneBitXor);
               d_bvToIntCache[current] = newNode;
               break;
             }
@@ -450,18 +452,11 @@ Node BVToInt::bvToInt(Node n)
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               uint64_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
-                  intized_children, 
+                  intized_children[0], 
+                  intized_children[1], 
                   bvsize, 
                   granularity, 
-                  [](uint64_t x, uint64_t y) {
-                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
-                    if (x == 0 && y == 0) return (uint64_t) 1;
-                    if (x == 0 && y == 1) return (uint64_t) 0;
-                    if (x == 1 && y == 0) return (uint64_t) 0;
-                    if (x == 1 && y == 1) return (uint64_t) 1;
-                    Assert(false);
-                  }
-                  );
+                  &oneBitXnor);
               d_bvToIntCache[current] = newNode;
               break;
             }
@@ -470,18 +465,11 @@ Node BVToInt::bvToInt(Node n)
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               uint64_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
-                  intized_children, 
+                  intized_children[0], 
+                  intized_children[1], 
                   bvsize, 
                   granularity, 
-                  [](uint64_t x, uint64_t y) {
-                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
-                    if (x == 0 && y == 0) return (uint64_t) 1;
-                    if (x == 0 && y == 1) return (uint64_t) 1;
-                    if (x == 1 && y == 0) return (uint64_t) 1;
-                    if (x == 1 && y == 1) return (uint64_t) 0;
-                    Assert(false);
-                  }
-                  );
+                  &oneBitNand);
               d_bvToIntCache[current] = newNode;
               break;
             }
@@ -490,18 +478,11 @@ Node BVToInt::bvToInt(Node n)
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               uint64_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
-                  intized_children, 
+                  intized_children[0], 
+                  intized_children[1], 
                   bvsize, 
                   granularity, 
-                  [](uint64_t x, uint64_t y) {
-                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
-                    if (x == 0 && y == 0) return (uint64_t) 1;
-                    if (x == 0 && y == 1) return (uint64_t) 0;
-                    if (x == 1 && y == 0) return (uint64_t) 0;
-                    if (x == 1 && y == 1) return (uint64_t) 0;
-                    Assert(false);
-                  }
-                  );
+                  &oneBitNor);
               d_bvToIntCache[current] = newNode;
               break;
             }
@@ -689,9 +670,6 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
       d_rangeAssertions()
 {
   d_nm = NodeManager::currentNM();
-  //TODO the following line is a hack because the mkNode may complain
-  d_rangeAssertions.insert(d_nm->mkConst<bool>(true));
-  d_rangeAssertions.insert(d_nm->mkConst<bool>(true));
 };
 
 PreprocessingPassResult BVToInt::applyInternal(
@@ -703,11 +681,18 @@ PreprocessingPassResult BVToInt::applyInternal(
     assertionsToPreprocess->replace(
         i, Rewriter::rewrite(bvToInt((*assertionsToPreprocess)[i])));
   }
+  addFinalizeRangeAssertions(assertionsToPreprocess);
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
+void BVToInt::addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess) {
   vector<Node> vec_range;
   vec_range.assign(d_rangeAssertions.begin(), d_rangeAssertions.end());
-  Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
-  assertionsToPreprocess->push_back(rangeAssertions);
-  return PreprocessingPassResult::NO_CONFLICT;
+  if (vec_range.size() == 1) {
+    assertionsToPreprocess->push_back(vec_range[0]);
+  } else if (vec_range.size() >= 2) {
+    Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
+  }
 }
 
 Node BVToInt::createShiftNode(vector<Node> children, uint64_t bvsize, bool isLeftShift) {
@@ -751,7 +736,7 @@ Node BVToInt::createITEFromTable(Node x, Node y, uint64_t bitwidth, std::map<std
   return ite;
 }
 
-Node BVToInt::createBitwiseNode(vector<Node> children, uint64_t bvsize, uint64_t granularity, uint64_t (*f)(uint64_t, uint64_t)) {
+Node BVToInt::createBitwiseNode(Node x, Node y, uint64_t bvsize, uint64_t granularity, bool (*f)(bool, bool)) {
   Assert(granularity > 0);
   if (granularity > bvsize) {
     granularity = bvsize;
@@ -760,10 +745,6 @@ Node BVToInt::createBitwiseNode(vector<Node> children, uint64_t bvsize, uint64_t
       granularity = granularity - 1;
     }
   }
-  Assert(children.size() == 2);
-  Node x = children[0];
-  Node y = children[1];
- 
   //transform f into a table
   //f is defined over 1 bit, while the table is defined over `granularity` bits
   std::map<std::pair<uint64_t, uint64_t>, uint64_t> table;
@@ -806,7 +787,6 @@ Node BVToInt::createBVNotNode(Node n, uint64_t bvsize) {
   vector<Node> children = {maxInt(bvsize), n};
   return d_nm->mkNode(kind::MINUS, children);
 }
-
 
 
 }  // namespace passes
