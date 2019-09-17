@@ -242,7 +242,6 @@ Node BVToInt::bvToInt(Node n)
               }
               case kind::CONST_BITVECTOR:
               {
-                //TODO will i get overflows here? anywhere else?
                 BitVector constant(current.getConst<BitVector>());
 	              Integer c = constant.toInteger();
                 d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
@@ -689,9 +688,6 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
       d_rangeAssertions()
 {
   d_nm = NodeManager::currentNM();
-  //TODO the following line is a hack because the mkNode may complain
-  d_rangeAssertions.insert(d_nm->mkConst<bool>(true));
-  d_rangeAssertions.insert(d_nm->mkConst<bool>(true));
 };
 
 PreprocessingPassResult BVToInt::applyInternal(
@@ -703,11 +699,18 @@ PreprocessingPassResult BVToInt::applyInternal(
     assertionsToPreprocess->replace(
         i, Rewriter::rewrite(bvToInt((*assertionsToPreprocess)[i])));
   }
+  addFinalizeRangeAssertions(assertionsToPreprocess);
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
+void BVToInt::addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess) {
   vector<Node> vec_range;
   vec_range.assign(d_rangeAssertions.begin(), d_rangeAssertions.end());
-  Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
-  assertionsToPreprocess->push_back(rangeAssertions);
-  return PreprocessingPassResult::NO_CONFLICT;
+  if (vec_range.size() == 1) {
+    assertionsToPreprocess->push_back(vec_range[0]);
+  } else if (vec_range.size() >= 2) {
+    Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
+  }
 }
 
 Node BVToInt::createShiftNode(vector<Node> children, uint64_t bvsize, bool isLeftShift) {

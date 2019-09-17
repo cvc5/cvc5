@@ -51,11 +51,17 @@ class BVToInt : public PreprocessingPass
     Node pow2(uint64_t k);
     Node maxInt(uint64_t k);
     Node modpow2(Node n, uint64_t exponent);
+    void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
     NodeMap d_binarizeCache;
     NodeMap d_eliminationCache;
     NodeMap d_bvToIntCache;
     NodeManager* d_nm;
+    /**
+     * If there are no range constraints, do nothing.
+     * If there is a single range constraint, add it to the assrtions.
+     * Otherwise, add all of them as a single conjunction
+     */
     unordered_set<Node, NodeHashFunction> d_rangeAssertions;
 };
 
