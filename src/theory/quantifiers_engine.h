@@ -25,7 +25,6 @@
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
 #include "theory/quantifiers/ematching/trigger.h"
-#include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
@@ -33,7 +32,6 @@
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
@@ -104,12 +102,6 @@ public:
   quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
-  //---------------------- end utilities
-  //---------------------- utilities (TODO move these utilities #1163)
-  /** get the equality inference */
-  quantifiers::EqualityInference* getEqualityInference() const;
-  /** get relevant domain */
-  quantifiers::RelevantDomain* getRelevantDomain() const;
   //---------------------- end utilities
  private:
   /**
@@ -228,9 +220,6 @@ public:
   void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */
   void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** use model equality engine */
   bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
@@ -316,14 +305,10 @@ public:
   //------------- quantifiers utilities
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
-  /** equality inference class */
-  std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
-  /** relevant domain */
-  std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** utility for effectively propositional logic */

@@ -262,8 +262,7 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     else
     {
       std::stringstream ss;
-      ss << "internal error: unhandled language " << lang
-         << " in AntlrInput::newInput";
+      ss << "unable to detect input file format, try --lang ";
       throw InputStreamException(ss.str());
     }
   }

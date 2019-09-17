@@ -622,7 +622,6 @@ void Options::parseOptionsRecursive(Options* options,
 
   // Having this synonym simplifies the generation code in mkoptions.
   options::OptionsHandler* handler = options->d_handler;
-  options::OptionsHolder* holder = options->d_holder;
 
   // Reset getopt(), in the case of multiple calls to parseOptions().
   // This can be = 1 in newer GNU getopt, but older (< 2007) require = 0.

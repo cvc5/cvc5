@@ -30,7 +30,13 @@ InferenceManager::InferenceManager(TheorySetsPrivate& p,
                                    eq::EqualityEngine& e,
                                    context::Context* c,
                                    context::UserContext* u)
-    : d_parent(p), d_state(s), d_ee(e), d_lemmas_produced(u), d_keep(c)
+    : d_parent(p),
+      d_state(s),
+      d_ee(e),
+      d_sentLemma(false),
+      d_addedFact(false),
+      d_lemmas_produced(u),
+      d_keep(c)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

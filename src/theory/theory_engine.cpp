@@ -260,24 +260,6 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
   }
 }
 
-void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
-  if (d_logicInfo.isQuantified()) {
-    d_quantEngine->eqNotifyPreMerge( t1, t2 );
-  }
-}
-
-void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){
-  if (d_logicInfo.isQuantified()) {
-    d_quantEngine->eqNotifyPostMerge( t1, t2 );
-  }
-}
-
-void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
-  if (d_logicInfo.isQuantified()) {
-    d_quantEngine->eqNotifyDisequal( t1, t2, reason );
-  }
-}
-
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,
@@ -900,7 +882,12 @@ TheoryModel* TheoryEngine::getBuiltModel()
   {
     // If this method was called, we should be in SAT mode, and produceModels
     // should be true.
-    AlwaysAssert(d_inSatMode && options::produceModels());
+    AlwaysAssert(options::produceModels());
+    if (!d_inSatMode)
+    {
+      // not available, perhaps due to interuption.
+      return nullptr;
+    }
     // must build model at this point
     d_curr_model_builder->buildModel(d_curr_model);
   }

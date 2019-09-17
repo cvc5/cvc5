@@ -47,6 +47,7 @@ class QuantifiersEnginePrivate
  public:
   QuantifiersEnginePrivate()
       : d_inst_prop(nullptr),
+        d_rel_dom(nullptr),
         d_alpha_equiv(nullptr),
         d_inst_engine(nullptr),
         d_model_engine(nullptr),
@@ -66,6 +67,8 @@ class QuantifiersEnginePrivate
   //------------------------------ private quantifier utilities
   /** quantifiers instantiation propagator */
   std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
+  /** relevant domain */
+  std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
   //------------------------------ end private quantifier utilities
   //------------------------------ quantifiers modules
   /** alpha equivalence */
@@ -100,14 +103,12 @@ class QuantifiersEnginePrivate
    * This constructs the above modules based on the current options. It adds
    * a pointer to each module it constructs to modules. This method sets
    * needsBuilder to true if we require a strategy-specific model builder
-   * utility, and needsRelDom to true if we require the relevant domain
    * utility.
    */
   void initialize(QuantifiersEngine* qe,
                   context::Context* c,
                   std::vector<QuantifiersModule*>& modules,
-                  bool& needsBuilder,
-                  bool& needsRelDom)
+                  bool& needsBuilder)
   {
     // add quantifiers modules
     if (options::quantConflictFind() || options::quantRewriteRules())
@@ -176,9 +177,9 @@ class QuantifiersEnginePrivate
     // full saturation : instantiate from relevant domain, then arbitrary terms
     if (options::fullSaturateQuant() || options::fullSaturateInterleave())
     {
-      d_fs.reset(new quantifiers::InstStrategyEnum(qe));
+      d_rel_dom.reset(new quantifiers::RelevantDomain(qe));
+      d_fs.reset(new quantifiers::InstStrategyEnum(qe, d_rel_dom.get()));
       modules.push_back(d_fs.get());
-      needsRelDom = true;
     }
   }
 };
@@ -188,10 +189,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      TheoryEngine* te)
     : d_te(te),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
-      d_eq_inference(nullptr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
-      d_rel_dom(nullptr),
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
@@ -237,9 +236,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     d_instantiate->addNotify(d_private->d_inst_prop->getInstantiationNotify());
   }
   
-  if( options::inferArithTriggerEq() ){
-    d_eq_inference.reset(new quantifiers::EqualityInference(c, false));
-  }
 
   d_util.push_back(d_instantiate.get());
 
@@ -267,14 +263,13 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
   bool needsBuilder = false;
-  bool needsRelDom = false;
-  d_private->initialize(this, c, d_modules, needsBuilder, needsRelDom);
+  d_private->initialize(this, c, d_modules, needsBuilder);
 
-  if( needsRelDom ){
-    d_rel_dom.reset(new quantifiers::RelevantDomain(this));
-    d_util.push_back(d_rel_dom.get());
+  if (d_private->d_rel_dom.get())
+  {
+    d_util.push_back(d_private->d_rel_dom.get());
   }
-  
+
   // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
@@ -327,14 +322,6 @@ const LogicInfo& QuantifiersEngine::getLogicInfo() const
 EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 {
   return d_eq_query.get();
-}
-quantifiers::EqualityInference* QuantifiersEngine::getEqualityInference() const
-{
-  return d_eq_inference.get();
-}
-quantifiers::RelevantDomain* QuantifiersEngine::getRelevantDomain() const
-{
-  return d_rel_dom.get();
 }
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
@@ -1040,25 +1027,6 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
 void QuantifiersEngine::eqNotifyNewClass(TNode t) {
   addTermToDatabase( t );
-  if( d_eq_inference ){
-    d_eq_inference->eqNotifyNewClass( t );
-  }
-}
-
-void QuantifiersEngine::eqNotifyPreMerge(TNode t1, TNode t2) {
-  if( d_eq_inference ){
-    d_eq_inference->eqNotifyMerge( t1, t2 );
-  }
-}
-
-void QuantifiersEngine::eqNotifyPostMerge(TNode t1, TNode t2) {
-
-}
-
-void QuantifiersEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  //if( d_qcf ){
-  //  d_qcf->assertDisequal( t1, t2 );
-  //}
 }
 
 bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
