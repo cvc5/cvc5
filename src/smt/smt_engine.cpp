@@ -1216,9 +1216,9 @@ void SmtEngine::setDefaults() {
   }
 
   // set default options associated with strings-exp
-  if(options::stringExp()) 
+  if (options::stringExp())
   {
-    if( !d_logic.isQuantified() ) 
+    if (!d_logic.isQuantified())
     {
       // We require quantifiers since extended functions reduce using them
       d_logic = d_logic.getUnlockedCopy();
@@ -1227,7 +1227,7 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    if(! options::fmfBound.wasSetByUser()) 
+    if (!options::fmfBound.wasSetByUser())
     {
       // We require bounded quantifier handling.
       options::fmfBound.set( true );
@@ -1235,16 +1235,18 @@ void SmtEngine::setDefaults() {
     }
     // Turn off E-matching, since some bounded quantifiers introduced by strings
     // (e.g. for replaceall) admit matching loops.
-    if (! options::eMatching.wasSetByUser())
+    if (!options::eMatching.wasSetByUser())
     {
-      options::eMatching.set( false );
+      options::eMatching.set(false);
       Trace("smt") << "turning off E-matching, for strings-exp" << std::endl;
     }
     // Do not eliminate extended arithmetic symbols from quantified formulas,
     // since some strategies, e.g. --re-elim-agg, introduce them.
-    if( !options::elimExtArithQuant.wasSetByUser() ){
-      options::elimExtArithQuant.set( false );
-      Trace("smt") << "turning off elim-ext-arith-quant, for strings-exp" << std::endl;
+    if (!options::elimExtArithQuant.wasSetByUser())
+    {
+      options::elimExtArithQuant.set(false);
+      Trace("smt") << "turning off elim-ext-arith-quant, for strings-exp"
+                   << std::endl;
     }
   }
 
