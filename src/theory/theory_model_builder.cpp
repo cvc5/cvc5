@@ -683,9 +683,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           Assert(!t.isBoolean() || (*i2).isVar()
                  || (*i2).getKind() == kind::APPLY_UF);
           Node n;
-          if (t.getCardinality().isInfinite())
+          if (!t.isFinite())
           {
-            // if (!t.isInterpretedFinite()) {
             bool success;
             do
             {
