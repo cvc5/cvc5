@@ -2,7 +2,7 @@
 /*! \file bv_to_int.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar
+ **   Yoni Zohar and Ahmed Irfan
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -700,6 +700,7 @@ void BVToInt::addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreproce
   }
 }
 
+//TODO we removed the ITE but we were too naive. we can only remove it if we have a real definition of exp, which we don't.
 Node BVToInt::createShiftNode(vector<Node> children, uint64_t bvsize, bool isLeftShift) {
   Node x = children[0];
   Node y = children[1];
@@ -712,12 +713,15 @@ Node BVToInt::createShiftNode(vector<Node> children, uint64_t bvsize, bool isLef
   //[[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
   // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
   Node result;
-  if (isLeftShift) {
+   if (isLeftShift) {
+    result = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)), d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, ite) 
+, pow2(bvsize)), d_nm->mkConst<Rational>(0));
     result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, ite) , pow2(bvsize));
-  } else {
-    //logical right shift
+   } else {
+     //logical right shift
+    result = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)), d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite) , pow2(bvsize)), d_nm->mkConst<Rational>(0));
     result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite) , pow2(bvsize));
-  }
+   }
   return result;
 }
 
