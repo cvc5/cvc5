@@ -39,7 +39,7 @@ class BVToInt : public PreprocessingPass
  protected:
     PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-    Node createBitwiseNode(vector<Node> children, uint64_t bvsize, uint64_t granularity, uint64_t (*f)(uint64_t, uint64_t));
+    Node createBitwiseNode(Node x, Node y, uint64_t bvsize, uint64_t granularity, bool (*f)(bool, bool));
     Node createITEFromTable(Node x, Node y, uint64_t granularity, std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
     Node createShiftNode(vector<Node> children, uint64_t bvsize, bool isLeftShift);
     Node createBVNotNode(Node n, uint64_t bvsize);
