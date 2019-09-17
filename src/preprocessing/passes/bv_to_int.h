@@ -44,7 +44,6 @@ class BVToInt : public PreprocessingPass
     Node createShiftNode(vector<Node> children, uint64_t bvsize, bool isLeftShift);
     Node createBVNotNode(Node n, uint64_t bvsize);
 
-
     Node bvToInt(Node n);
     Node mkRangeConstraint(Node newVar, uint64_t k);
     Node eliminationPass(Node n);
