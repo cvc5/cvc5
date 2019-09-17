@@ -504,10 +504,10 @@ void SortModel::initialize( OutputChannel* out ){
   if (d_c_dec_strat.get() != nullptr && !d_initialized)
   {
     d_initialized = true;
-    // Strategy is context-independent, since SortModel is constructed in a
-    // context-independent way.
+    // Strategy is user-context-dependent, since it is in sync with
+    // user-context-dependent flag d_initialized.
     d_thss->getTheory()->getDecisionManager()->registerStrategy(
-        DecisionManager::STRAT_UF_CARD, d_c_dec_strat.get(), true);
+        DecisionManager::STRAT_UF_CARD, d_c_dec_strat.get());
   }
 }
 

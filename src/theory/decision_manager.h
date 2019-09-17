@@ -86,6 +86,18 @@ class DecisionManager
 
     STRAT_LAST
   };
+  /** The scope of a strategy, used in registerStrategy below */
+  enum StrategyScope
+  {
+    // The strategy is user-context dependent, that is, it is cleared when
+    // the user context is popped.
+    STRAT_SCOPE_USER_CTX_DEPENDENT,
+    // The strategy is local to a check-sat call, that is, it is cleared on
+    // a call to presolve.
+    STRAT_SCOPE_LOCAL_SOLVE,
+    // The strategy is context-independent.
+    STRAT_SCOPE_CTX_INDEPENDENT,
+  };
   DecisionManager(context::Context* userContext);
   ~DecisionManager() {}
   /** presolve
@@ -98,8 +110,8 @@ class DecisionManager
   void presolve();
   /**
    * Registers the strategy ds with this manager. The id specifies when the
-   * strategy should be run. If the arg isUserCd is true, then the strategy is
-   * user-context-dependent, otherwise it is context independent.
+   * strategy should be run. The argument sscope indicates the scope of the
+   * strategy, i.e. how long it persists.
    *
    * Typically, strategies that are user-context-dependent are those that are
    * in response to an assertion (e.g. a strategy that decides that a sygus
@@ -109,7 +121,7 @@ class DecisionManager
    */
   void registerStrategy(StrategyId id,
                         DecisionStrategy* ds,
-                        bool isUserCd = true);
+                        StrategyScope sscope = STRAT_SCOPE_USER_CTX_DEPENDENT);
   /** Get the next decision request
    *
    * If this method returns a non-null node n, then n is a literal corresponding

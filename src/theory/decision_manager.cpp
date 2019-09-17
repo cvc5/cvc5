@@ -56,21 +56,26 @@ void DecisionManager::presolve()
 
 void DecisionManager::registerStrategy(StrategyId id,
                                        DecisionStrategy* ds,
-                                       bool isUserCd)
+                                       StrategyScope sscope)
 {
   Trace("dec-manager") << "DecisionManager: Register strategy : "
                        << ds->identify() << ", id = " << id << std::endl;
   ds->initialize();
   d_reg_strategy[id].push_back(ds);
-  if (isUserCd)
+  if (sscope==STRAT_SCOPE_USER_CTX_DEPENDENT)
   {
     // store it in the user-context-dependent list
     d_strategyCacheC.push_back(ds);
   }
-  else
+  else if(sscope==STRAT_SCOPE_CTX_INDEPENDENT)
   {
     // it is context independent
     d_strategyCache.insert(ds);
+  }
+  else
+  {
+    // it is local to this call, we don't cache it
+    Assert(sscope==STRAT_SCOPE_LOCAL_SOLVE);
   }
 }
 
