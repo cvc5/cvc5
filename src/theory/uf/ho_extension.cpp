@@ -316,7 +316,8 @@ unsigned HoExtension::checkAppCompletion()
             // add to pending list
             apply_uf[rop].push_back(n);
           }
-          // arguments are also relevant operators  FIXME (github issue #1115)
+          // Arguments are also relevant operators.
+          // It might be possible include fewer terms here, see #1115.
           for (unsigned k = 0; k < n.getNumChildren(); k++)
           {
             if (n[k].getType().isFunction())

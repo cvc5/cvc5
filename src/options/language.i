@@ -19,7 +19,6 @@ namespace CVC4 {
 %rename(OutputLanguage) CVC4::language::output::Language;
 
 %rename(INPUT_LANG_AUTO) CVC4::language::input::LANG_AUTO;
-%rename(INPUT_LANG_SMTLIB_V1) CVC4::language::input::LANG_SMTLIB_V1;
 %rename(INPUT_LANG_SMTLIB_V2) CVC4::language::input::LANG_SMTLIB_V2;
 %rename(INPUT_LANG_SMTLIB_V2_0) CVC4::language::input::LANG_SMTLIB_V2_0;
 %rename(INPUT_LANG_SMTLIB_V2_5) CVC4::language::input::LANG_SMTLIB_V2_5;
@@ -33,7 +32,6 @@ namespace CVC4 {
 %rename(INPUT_LANG_SYGUS_V2) CVC4::language::input::LANG_SYGUS_V2;
 
 %rename(OUTPUT_LANG_AUTO) CVC4::language::output::LANG_AUTO;
-%rename(OUTPUT_LANG_SMTLIB_V1) CVC4::language::output::LANG_SMTLIB_V1;
 %rename(OUTPUT_LANG_SMTLIB_V2) CVC4::language::output::LANG_SMTLIB_V2;
 %rename(OUTPUT_LANG_SMTLIB_V2_0) CVC4::language::output::LANG_SMTLIB_V2_0;
 %rename(OUTPUT_LANG_SMTLIB_V2_5) CVC4::language::output::LANG_SMTLIB_V2_5;

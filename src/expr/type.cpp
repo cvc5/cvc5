@@ -67,6 +67,18 @@ Cardinality Type::getCardinality() const {
   return d_typeNode->getCardinality();
 }
 
+bool Type::isFinite() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isFinite();
+}
+
+bool Type::isInterpretedFinite() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isInterpretedFinite();
+}
+
 bool Type::isWellFounded() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isWellFounded();

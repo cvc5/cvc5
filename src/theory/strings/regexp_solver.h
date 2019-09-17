@@ -64,6 +64,23 @@ class RegExpSolver
 
  private:
   /**
+   * Check memberships in equivalence class for regular expression
+   * inclusion.
+   *
+   * This method returns false if it discovered a conflict for this set of
+   * assertions, and true otherwise. It discovers a conflict e.g. if mems
+   * contains str.in.re(xi, Ri) and ~str.in.re(xj, Rj) and Rj includes Ri.
+   *
+   * @param mems Vector of memberships of the form: (~)str.in.re(x1, R1)
+   *             ... (~)str.in.re(xn, Rn) where x1 = ... = xn in the
+   *             current context. The function removes elements from this
+   *             vector that were marked as reduced.
+   * @param expForRe Additional explanations for regular expressions.
+   * @return False if a conflict was detected, true otherwise
+   */
+  bool checkEqcInclusion(std::vector<Node>& mems);
+
+  /**
    * Check memberships for equivalence class.
    * The vector mems is a vector of memberships of the form:
    *   (~) (x1 in R1 ) ... (~) (xn in Rn)

@@ -70,7 +70,6 @@ bool isOutputLang_smt2_6(OutputLanguage lang, bool exact)
 
 InputLanguage toInputLanguage(OutputLanguage language) {
   switch(language) {
-  case output::LANG_SMTLIB_V1:
   case output::LANG_SMTLIB_V2_0:
   case output::LANG_SMTLIB_V2_5:
   case output::LANG_SMTLIB_V2_6:
@@ -94,8 +93,6 @@ InputLanguage toInputLanguage(OutputLanguage language) {
 
 OutputLanguage toOutputLanguage(InputLanguage language) {
   switch(language) {
-  case input::LANG_SMTLIB_V1:
-    return OutputLanguage(output::LANG_SMTLIB_V2_0);
   case input::LANG_SMTLIB_V2_0:
   case input::LANG_SMTLIB_V2_5:
   case input::LANG_SMTLIB_V2_6:
@@ -179,9 +176,6 @@ InputLanguage toInputLanguage(std::string language) {
      language == "presentation" || language == "native" ||
      language == "LANG_CVC4") {
     return input::LANG_CVC4;
-  } else if(language == "smtlib1" || language == "smt1" ||
-            language == "LANG_SMTLIB_V1") {
-    return input::LANG_SMTLIB_V1;
   } else if(language == "smtlib2.0" || language == "smt2.0" ||
             language == "LANG_SMTLIB_V2_0") {
     return input::LANG_SMTLIB_V2_0;

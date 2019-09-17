@@ -283,6 +283,11 @@ std::string LogicInfo::getLogicString() const {
       if(!isQuantified()) {
         ss << "QF_";
       }
+      if (d_theories[THEORY_SEP])
+      {
+        ss << "SEP_";
+        ++seen;
+      }
       if(d_theories[THEORY_ARRAYS]) {
         ss << (d_sharingTheories == 1 ? "AX" : "A");
         ++seen;
@@ -328,10 +333,6 @@ std::string LogicInfo::getLogicString() const {
         ss << "FS";
         ++seen;
       }
-      if(d_theories[THEORY_SEP]) {
-        ss << "SEP";
-        ++seen;
-      }     
       if(seen != d_sharingTheories) {
         Unhandled("can't extract a logic string from LogicInfo; at least one "
                   "active theory is unknown to LogicInfo::getLogicString() !");
@@ -411,6 +412,11 @@ void LogicInfo::setLogicString(std::string logicString)
       p += 3;
     } else {
       enableQuantifiers();
+    }
+    if (!strncmp(p, "SEP_", 4))
+    {
+      enableSeparationLogic();
+      p += 4;
     }
     if(!strncmp(p, "AX", 2)) {
       enableTheory(THEORY_ARRAYS);
@@ -511,10 +517,6 @@ void LogicInfo::setLogicString(std::string logicString)
         enableTheory(THEORY_SETS);
         p += 2;
       }
-      if(!strncmp(p, "SEP", 3)) {
-        enableTheory(THEORY_SEP);
-        p += 3;
-      }
     }
   }
 
@@ -586,6 +588,13 @@ void LogicInfo::enableSygus()
   enableTheory(THEORY_DATATYPES);
   enableIntegers();
   enableHigherOrder();
+}
+
+void LogicInfo::enableSeparationLogic()
+{
+  enableTheory(THEORY_SEP);
+  enableTheory(THEORY_UF);
+  enableTheory(THEORY_SETS);
 }
 
 void LogicInfo::enableIntegers() {

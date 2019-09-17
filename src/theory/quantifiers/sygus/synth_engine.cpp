@@ -35,8 +35,8 @@ namespace quantifiers {
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe)
 {
-  d_conjs.push_back(
-      std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+  d_conjs.push_back(std::unique_ptr<SynthConjecture>(
+      new SynthConjecture(d_quantEngine, this)));
   d_conj = d_conjs.back().get();
 }
 
@@ -255,8 +255,8 @@ void SynthEngine::assignConjecture(Node q)
   // allocate a new synthesis conjecture if not assigned
   if (d_conjs.back()->isAssigned())
   {
-    d_conjs.push_back(
-        std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+    d_conjs.push_back(std::unique_ptr<SynthConjecture>(
+        new SynthConjecture(d_quantEngine, this)));
   }
   d_conjs.back()->assign(q);
 }
@@ -295,34 +295,6 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
   if (!conj->needsRefinement())
   {
     Trace("cegqi-engine-debug") << "Do conjecture check..." << std::endl;
-    if (conj->isSingleInvocation())
-    {
-      std::vector<Node> clems;
-      conj->doSingleInvCheck(clems);
-      if (!clems.empty())
-      {
-        for (const Node& lem : clems)
-        {
-          Trace("cegqi-lemma")
-              << "Cegqi::Lemma : single invocation instantiation : " << lem
-              << std::endl;
-          d_quantEngine->addLemma(lem);
-        }
-        d_statistics.d_cegqi_si_lemmas += clems.size();
-        Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
-      }
-      else
-      {
-        // This can happen for non-monotonic instantiation strategies. We
-        // set --cbqi-full to ensure that for most strategies (e.g. BV), we
-        // are using a monotonic strategy.
-        Trace("cegqi-warn")
-            << "  ...FAILED to add cbqi instantiation for single invocation!"
-            << std::endl;
-      }
-      return true;
-    }
-
     Trace("cegqi-engine-debug")
         << "  *** Check candidate phase..." << std::endl;
     std::vector<Node> cclems;

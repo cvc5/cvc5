@@ -49,40 +49,6 @@ namespace fmcheck {
 struct IsStarAttributeId {};
 typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
-/** Quantifiers representative bound
- *
- * This class is used for computing (finite)
- * bounds for the domain of a quantifier
- * in the context of a RepSetIterator
- * (see theory/rep_set.h).
- */
-class QRepBoundExt : public RepBoundExt
-{
- public:
-  QRepBoundExt(QuantifiersEngine* qe) : d_qe(qe) {}
-  virtual ~QRepBoundExt() {}
-  /** set bound */
-  RepSetIterator::RsiEnumType setBound(Node owner,
-                                       unsigned i,
-                                       std::vector<Node>& elements) override;
-  /** reset index */
-  bool resetIndex(RepSetIterator* rsi,
-                  Node owner,
-                  unsigned i,
-                  bool initial,
-                  std::vector<Node>& elements) override;
-  /** initialize representative set for type */
-  bool initializeRepresentativesForType(TypeNode tn) override;
-  /** get variable order */
-  bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder) override;
-
- private:
-  /** quantifiers engine associated with this bound */
-  QuantifiersEngine* d_qe;
-  /** indices that are bound integer enumeration */
-  std::map<unsigned, bool> d_bound_int;
-};
-
 // TODO (#1301) : document and refactor this class
 class FirstOrderModel : public TheoryModel
 {

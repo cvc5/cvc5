@@ -1039,7 +1039,21 @@ bool TermDb::reset( Theory::Effort effort ){
         }
         Trace("quant-ho") << "- assert purify equality : " << eq << std::endl;
         ee->assertEquality(eq, true, eq);
-        Assert(ee->consistent());
+        if (!ee->consistent())
+        {
+          // In some rare cases, purification functions (in the domain of
+          // d_ho_purify_to_term) may escape the term database. For example,
+          // matching algorithms may construct instantiations involving these
+          // functions. As a result, asserting these equalities internally may
+          // cause a conflict. In this case, we insist that the purification
+          // equality is sent out as a lemma here.
+          Trace("term-db-lemma")
+              << "Purify equality lemma: " << eq << std::endl;
+          d_quantEngine->addLemma(eq);
+          d_quantEngine->setConflict();
+          d_consistent_ee = false;
+          return false;
+        }
       }
     }
   }
@@ -1213,6 +1227,20 @@ TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
   }
   computeUfTerms( f );
   return d_func_map_trie[f].existsTerm( args );
+}
+
+Node TermDb::getHoTypeMatchPredicate(TypeNode tn)
+{
+  std::map<TypeNode, Node>::iterator ithp = d_ho_type_match_pred.find(tn);
+  if (ithp != d_ho_type_match_pred.end())
+  {
+    return ithp->second;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
+  Node k = nm->mkSkolem("U", ptn, "predicate to force higher-order types");
+  d_ho_type_match_pred[tn] = k;
+  return k;
 }
 
 }/* CVC4::theory::quantifiers namespace */
