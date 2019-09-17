@@ -86,28 +86,89 @@ class BVToInt : public PreprocessingPass
      * a << b gets translated to a * 2^b mod 2^k, where k is the bit-width. 
      * a >> b gets translated to a div 2^b mod 2^k, where k is the bit-width
      * The exponentiation operation is translated to an ite for possible values of the exponent, from 0 to k-1.
+     * If a shift of a bigger value is needed, the result is anyway 0.
      *
      */
     Node createShiftNode(vector<Node> children, uint64_t bvsize, bool isLeftShift);
+
+    /**
+     * Returns a node that represents the bit-wise negation of n.
+     */
     Node createBVNotNode(Node n, uint64_t bvsize);
 
-    Node bvToInt(Node n);
-    Node mkRangeConstraint(Node newVar, uint64_t k);
-    Node eliminationPass(Node n);
-    Node makeBinary(Node n);
-    Node pow2(uint64_t k);
-    Node maxInt(uint64_t k);
-    Node modpow2(Node n, uint64_t exponent);
-    void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
-    NodeMap d_binarizeCache;
-    NodeMap d_eliminationCache;
-    NodeMap d_bvToIntCache;
-    NodeManager* d_nm;
     /**
+     * This is the main function.
+     * The input n is a bit-vector term or formula.
+     * The result is an integer term.
+     */
+    Node bvToInt(Node n);
+
+    /**
+     * Whenever we introduce an integer varaible that represents a bit-vector variable,
+     * we need to guard the range of the newly introduced variable.
+     * For bit-width k, the constraint is 0 <= newVar < 2^k.
+     */
+    Node mkRangeConstraint(Node newVar, uint64_t k);
+
+    /**
+     * In the translation to integers, it is convenient to assume that certain bit-vector operators do not occur in the original formula (e.g., repeat).
+     * This function eliminates all these operators.
+     */
+    Node eliminationPass(Node n);
+
+    /**
+     * Some bit-vector operator (e.g., bvadd, bvand) are binary, but allow more than two arguments as a syntactic sugar.
+     * For example, we can have a node for (bvand x y z), that represents (bvadd (x (bvadd y z))). 
+     * This function makes all such operators strictly binary.
+     *
+     */
+    Node makeBinary(Node n);
+
+    /**
+     * input: A non-negative integer k
+     * output: A node that represents 2^k
+     */
+    Node pow2(uint64_t k);
+
+    /**
+     * input: A positive integer k
+     * output: A node that represent the maximal integer value of a bit-vector of bit-width k
+     * For example. if k is 4, the result is a node representing the constant 15.
+     */
+    Node maxInt(uint64_t k);
+    
+    /**
+     * input: A node n, representing an integer term
+     * output: A node representing (n mod (2^exponent))
+     */
+    Node modpow2(Node n, uint64_t exponent);
+
+    /**
+     * Add the range assertions collected in d_rangeAssertions (using mkRangeConstraint)
+     * to the assertion pipeline.
      * If there are no range constraints, do nothing.
      * If there is a single range constraint, add it to the assrtions.
      * Otherwise, add all of them as a single conjunction
+     */
+     */
+    void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
+
+    /**
+     * Caches for the different functions
+     */
+    NodeMap d_binarizeCache;
+    NodeMap d_eliminationCache;
+    NodeMap d_bvToIntCache;
+
+    /**
+     * Node mangager that is used throughtout the pass
+     */
+    NodeManager* d_nm;
+
+    /**
+     * A set of contraints of the form 0 <= x < 2^k
+     * These are added for every new integer variable that we introduce.
      */
     unordered_set<Node, NodeHashFunction> d_rangeAssertions;
 };

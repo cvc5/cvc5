@@ -81,15 +81,15 @@ Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k) {
 
 Node BVToInt::maxInt(uint64_t k)
 {
-  Node pow2BvSize = pow2(k);
-  Node one_const = d_nm->mkConst<Rational>(1);
-  vector<Node> children = {pow2BvSize, one_const};
-  Node max = d_nm->mkNode(kind::MINUS, children);
-  return max;
+  Assert(k > 0);
+  uint64_t max_value = intpow(2, k)-1;
+  Node result = d_nm->mkConst<Rational>(max_value);
+  return result;
 }
 
 Node BVToInt::pow2(uint64_t k)
 {
+    Assert(k > 0);
 	  return d_nm->mkConst<Rational>(intpow(2,k));
 }
 
