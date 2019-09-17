@@ -3,7 +3,6 @@
 (set-info :status sat)
 (set-option :strings-exp true)
 (set-option :strings-fmf true)
-(set-option :finite-model-find true)
 (declare-fun x () String)
 (assert (= (str.len (str.replaceall "ABBABAAB" x "C")) 5))
 (check-sat)

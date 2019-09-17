@@ -3,7 +3,6 @@
 (set-info :status sat)
 (set-option :strings-exp true)
 (set-option :strings-fmf true)
-(set-option :finite-model-find true)
 (set-option :produce-models true)
 (declare-fun x () String)
 (declare-fun y () String)
