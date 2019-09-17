@@ -62,12 +62,12 @@ void DecisionManager::registerStrategy(StrategyId id,
                        << ds->identify() << ", id = " << id << std::endl;
   ds->initialize();
   d_reg_strategy[id].push_back(ds);
-  if (sscope==STRAT_SCOPE_USER_CTX_DEPENDENT)
+  if (sscope == STRAT_SCOPE_USER_CTX_DEPENDENT)
   {
     // store it in the user-context-dependent list
     d_strategyCacheC.push_back(ds);
   }
-  else if(sscope==STRAT_SCOPE_CTX_INDEPENDENT)
+  else if (sscope == STRAT_SCOPE_CTX_INDEPENDENT)
   {
     // it is context independent
     d_strategyCache.insert(ds);
@@ -75,7 +75,7 @@ void DecisionManager::registerStrategy(StrategyId id,
   else
   {
     // it is local to this call, we don't cache it
-    Assert(sscope==STRAT_SCOPE_LOCAL_SOLVE);
+    Assert(sscope == STRAT_SCOPE_LOCAL_SOLVE);
   }
 }
 
