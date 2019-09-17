@@ -285,5 +285,4 @@
 (assert (instance_THFTYPE_IIiiIioI lWhenFn_THFTYPE_IiiI lTemporalRelation_THFTYPE_i))
 (assert (instance_THFTYPE_IIiioIioI rangeSubclass_THFTYPE_IiioI lBinaryPredicate_THFTYPE_i))
 (assert (not (exists ((X $$unsorted) (Y $$unsorted)) (holdsDuring_THFTYPE_IiooI (lYearFn_THFTYPE_IiiI Y) (likes_THFTYPE_IiioI lSue_THFTYPE_i X)) )))
-(meta-info :filename "CSR148^2")
 (check-sat-assuming ( (not false) ))
