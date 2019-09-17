@@ -34,6 +34,11 @@ namespace passes {
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
+//wrapper function to have an integer result (and not float)
+uint64_t intpow(uint64_t a, uint64_t b) {
+  return ((uint64_t) pow(a, b));
+}
+
 bool oneBitAnd(bool a, bool b) {
   return (a && b);
 }
@@ -85,11 +90,11 @@ Node BVToInt::maxInt(uint64_t k)
 
 Node BVToInt::pow2(uint64_t k)
 {
-	  return d_nm->mkConst<Rational>((uint64_t) pow(2,k));
+	  return d_nm->mkConst<Rational>(intpow(2,k));
 }
 
 Node BVToInt::modpow2(Node n, uint64_t exponent) {
-  Node p2 = d_nm->mkConst<Rational>((uint64_t) pow(2, exponent));
+  Node p2 = d_nm->mkConst<Rational>(intpow(2, exponent));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
@@ -706,21 +711,20 @@ Node BVToInt::createShiftNode(vector<Node> children, uint64_t bvsize, bool isLef
   //from smtlib:
   //[[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
   // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
-  // TODO The ITE with LT is not ncessary, can be replaced with mod. Experiment with this,
   Node result;
   if (isLeftShift) {
-    result = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)), d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, ite) , pow2(bvsize)), d_nm->mkConst<Rational>(0));
+    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, ite) , pow2(bvsize));
   } else {
     //logical right shift
-    result = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)), d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite) , pow2(bvsize)), d_nm->mkConst<Rational>(0));
+    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite) , pow2(bvsize));
   }
   return result;
 }
 
 Node BVToInt::createITEFromTable(Node x, Node y, uint64_t bitwidth, std::map<std::pair<uint64_t, uint64_t>, uint64_t> table) {
   Node ite = d_nm->mkConst<Rational>(table[std::make_pair(0, 0)]);
-  for (uint64_t i=0; i < pow(2, bitwidth); i++) {
-    for (uint64_t j=0; j < pow(2, bitwidth); j++) {
+  for (uint64_t i=0; i < intpow(2, bitwidth); i++) {
+    for (uint64_t j=0; j < intpow(2, bitwidth); j++) {
       if ((i == 0) && (j == 0)) {
         continue;
       }
@@ -748,11 +752,16 @@ Node BVToInt::createBitwiseNode(Node x, Node y, uint64_t bvsize, uint64_t granul
   //transform f into a table
   //f is defined over 1 bit, while the table is defined over `granularity` bits
   std::map<std::pair<uint64_t, uint64_t>, uint64_t> table;
-  for (uint64_t i=0; i < pow(2, granularity); i++) {
-    for (uint64_t j=0; j < pow(2, granularity); j++) {
+  for (uint64_t i=0; i < intpow(2, granularity); i++) {
+    for (uint64_t j=0; j < intpow(2, granularity); j++) {
       uint64_t sum = 0;
       for (uint64_t n=0; n < granularity; n++) {
-        sum += f(((uint64_t) (i / pow(2, n))) % 2 , ((uint64_t) ( j / pow(2, n))) % 2) * pow(2,n);
+        //b is the result of f on the current bit
+        bool b = f((((i / intpow(2, n)) % 2) == 1) ,  (((j / intpow(2, n)) % 2) == 1));
+        //add the corresponding power of 2 only if the result is 1
+        if (b) {
+          sum += intpow(2,n);
+        } 
       }
       table[std::make_pair(i, j)] = sum;      
     }
