@@ -117,6 +117,27 @@ std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
   return approx;
 }
 
+std::vector<Expr> TheoryModel::getDomainElements(Type t) const
+{
+  // must be an uninterpreted sort
+  Assert(t.isSort());
+  std::vector<Expr> elements;
+  TypeNode tn = TypeNode::fromType(t);
+  const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
+  if (type_refs == nullptr || type_refs->empty())
+  {
+    // This is called when t is a sort that does not occur in this model.
+    // Sorts are always interpreted as non-empty, thus we add a single element.
+    elements.push_back(t.mkGroundTerm());
+    return elements;
+  }
+  for (const Node& n : *type_refs)
+  {
+    elements.push_back(n.toExpr());
+  }
+  return elements;
+}
+
 Node TheoryModel::getValue(TNode n) const
 {
   //apply substitutions
@@ -571,6 +592,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
   if( options::ufHo() ){
     //we must rewrite the function value since the definition needs to be a constant value
     f_def = Rewriter::rewrite( f_def );
+    Trace("model-builder-debug")
+        << "Model value (post-rewrite) : " << f_def << std::endl;
     Assert( f_def.isConst() );
   }
  

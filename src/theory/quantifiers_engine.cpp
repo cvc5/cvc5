@@ -21,6 +21,7 @@
 #include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_propagator.h"
@@ -46,6 +47,7 @@ class QuantifiersEnginePrivate
  public:
   QuantifiersEnginePrivate()
       : d_inst_prop(nullptr),
+        d_rel_dom(nullptr),
         d_alpha_equiv(nullptr),
         d_inst_engine(nullptr),
         d_model_engine(nullptr),
@@ -65,6 +67,8 @@ class QuantifiersEnginePrivate
   //------------------------------ private quantifier utilities
   /** quantifiers instantiation propagator */
   std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
+  /** relevant domain */
+  std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
   //------------------------------ end private quantifier utilities
   //------------------------------ quantifiers modules
   /** alpha equivalence */
@@ -99,14 +103,12 @@ class QuantifiersEnginePrivate
    * This constructs the above modules based on the current options. It adds
    * a pointer to each module it constructs to modules. This method sets
    * needsBuilder to true if we require a strategy-specific model builder
-   * utility, and needsRelDom to true if we require the relevant domain
    * utility.
    */
   void initialize(QuantifiersEngine* qe,
                   context::Context* c,
                   std::vector<QuantifiersModule*>& modules,
-                  bool& needsBuilder,
-                  bool& needsRelDom)
+                  bool& needsBuilder)
   {
     // add quantifiers modules
     if (options::quantConflictFind() || options::quantRewriteRules())
@@ -128,6 +130,7 @@ class QuantifiersEnginePrivate
     {
       d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
       modules.push_back(d_i_cbqi.get());
+      qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
     }
     if (options::ceGuidedInst())
     {
@@ -149,7 +152,7 @@ class QuantifiersEnginePrivate
     }
     if (options::quantRewriteRules())
     {
-      d_rr_engine.reset(new quantifiers::RewriteEngine(c, qe));
+      d_rr_engine.reset(new quantifiers::RewriteEngine(c, qe, d_qcf.get()));
       modules.push_back(d_rr_engine.get());
     }
     if (options::ltePartialInst())
@@ -174,9 +177,9 @@ class QuantifiersEnginePrivate
     // full saturation : instantiate from relevant domain, then arbitrary terms
     if (options::fullSaturateQuant() || options::fullSaturateInterleave())
     {
-      d_fs.reset(new quantifiers::InstStrategyEnum(qe));
+      d_rel_dom.reset(new quantifiers::RelevantDomain(qe));
+      d_fs.reset(new quantifiers::InstStrategyEnum(qe, d_rel_dom.get()));
       modules.push_back(d_fs.get());
-      needsRelDom = true;
     }
   }
 };
@@ -186,12 +189,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      TheoryEngine* te)
     : d_te(te),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
-      d_eq_inference(nullptr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
-      d_quant_rel(nullptr),
-      d_rel_dom(nullptr),
-      d_bv_invert(nullptr),
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
@@ -237,9 +236,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     d_instantiate->addNotify(d_private->d_inst_prop->getInstantiationNotify());
   }
   
-  if( options::inferArithTriggerEq() ){
-    d_eq_inference.reset(new quantifiers::EqualityInference(c, false));
-  }
 
   d_util.push_back(d_instantiate.get());
 
@@ -253,20 +249,9 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
-  if( options::relevantTriggers() ){
-    d_quant_rel.reset(new quantifiers::QuantRelevance);
-    d_util.push_back(d_quant_rel.get());
-  }
-
   if( options::quantEpr() ){
     Assert( !options::incrementalSolving() );
     d_qepr.reset(new quantifiers::QuantEPR);
-  }
-
-  if (options::cbqi() && options::cbqiBv())
-  {
-    // if doing instantiation for BV, need the inverter class
-    d_bv_invert.reset(new quantifiers::BvInverter);
   }
   //---- end utilities
 
@@ -278,14 +263,13 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
   bool needsBuilder = false;
-  bool needsRelDom = false;
-  d_private->initialize(this, c, d_modules, needsBuilder, needsRelDom);
+  d_private->initialize(this, c, d_modules, needsBuilder);
 
-  if( needsRelDom ){
-    d_rel_dom.reset(new quantifiers::RelevantDomain(this));
-    d_util.push_back(d_rel_dom.get());
+  if (d_private->d_rel_dom.get())
+  {
+    d_util.push_back(d_private->d_rel_dom.get());
   }
-  
+
   // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
@@ -339,22 +323,6 @@ EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 {
   return d_eq_query.get();
 }
-quantifiers::EqualityInference* QuantifiersEngine::getEqualityInference() const
-{
-  return d_eq_inference.get();
-}
-quantifiers::RelevantDomain* QuantifiersEngine::getRelevantDomain() const
-{
-  return d_rel_dom.get();
-}
-quantifiers::BvInverter* QuantifiersEngine::getBvInverter() const
-{
-  return d_bv_invert.get();
-}
-quantifiers::QuantRelevance* QuantifiersEngine::getQuantifierRelevance() const
-{
-  return d_quant_rel.get();
-}
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
@@ -402,23 +370,6 @@ quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
 inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
-}
-
-quantifiers::BoundedIntegers* QuantifiersEngine::getBoundedIntegers() const
-{
-  return d_private->d_bint.get();
-}
-quantifiers::QuantConflictFind* QuantifiersEngine::getConflictFind() const
-{
-  return d_private->d_qcf.get();
-}
-quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
-{
-  return d_private->d_synth_e.get();
-}
-quantifiers::InstStrategyCegqi* QuantifiersEngine::getInstStrategyCegqi() const
-{
-  return d_private->d_i_cbqi.get();
 }
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
@@ -473,18 +424,65 @@ bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
   return mo==m || mo==NULL;
 }
 
-bool QuantifiersEngine::isFiniteBound( Node q, Node v ) {
-  if( getBoundedIntegers() && getBoundedIntegers()->isBoundVar( q, v ) ){
+bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
+{
+  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  if (bi && bi->isBound(q, v))
+  {
     return true;
-  }else{
-    TypeNode tn = v.getType();
-    if( tn.isSort() && options::finiteModelFind() ){
-      return true;
-    }
-    else if (d_term_enum->mayComplete(tn))
+  }
+  TypeNode tn = v.getType();
+  if (tn.isSort() && options::finiteModelFind())
+  {
+    return true;
+  }
+  else if (d_term_enum->mayComplete(tn))
+  {
+    return true;
+  }
+  return false;
+}
+
+BoundVarType QuantifiersEngine::getBoundVarType(Node q, Node v) const
+{
+  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  if (bi)
+  {
+    return bi->getBoundVarType(q, v);
+  }
+  return isFiniteBound(q, v) ? BOUND_FINITE : BOUND_NONE;
+}
+
+void QuantifiersEngine::getBoundVarIndices(Node q,
+                                           std::vector<unsigned>& indices) const
+{
+  Assert(indices.empty());
+  // we take the bounded variables first
+  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  if (bi)
+  {
+    bi->getBoundVarIndices(q, indices);
+  }
+  // then get the remaining ones
+  for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
+    if (std::find(indices.begin(), indices.end(), i) == indices.end())
     {
-      return true;
+      indices.push_back(i);
     }
+  }
+}
+
+bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
+                                         bool initial,
+                                         Node q,
+                                         Node v,
+                                         std::vector<Node>& elements) const
+{
+  quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
+  if (bi)
+  {
+    return bi->getBoundElements(rsi, initial, q, v, elements);
   }
   return false;
 }
@@ -511,24 +509,32 @@ void QuantifiersEngine::ppNotifyAssertions(
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
       << " check epr = " << (d_qepr != NULL) << std::endl;
-  if ((options::instLevelInputOnly() && options::instMaxLevel() != -1) ||
-      d_qepr != NULL) {
-    for (unsigned i = 0; i < assertions.size(); i++) {
-      if (options::instLevelInputOnly() && options::instMaxLevel() != -1) {
-        quantifiers::QuantAttributes::setInstantiationLevelAttr(assertions[i],
-                                                                0);
-      }
-      if (d_qepr != NULL) {
-        d_qepr->registerAssertion(assertions[i]);
-      }
+  if (options::instLevelInputOnly() && options::instMaxLevel() != -1)
+  {
+    for (const Node& a : assertions)
+    {
+      quantifiers::QuantAttributes::setInstantiationLevelAttr(a, 0);
     }
-    if (d_qepr != NULL) {
-      // must handle sources of other new constants e.g. separation logic
-      // FIXME: cleanup
-      sep::TheorySep* theory_sep =
-          static_cast<sep::TheorySep*>(getTheoryEngine()->theoryOf(THEORY_SEP));
-      theory_sep->initializeBounds();
-      d_qepr->finishInit();
+  }
+  if (d_qepr != NULL)
+  {
+    for (const Node& a : assertions)
+    {
+      d_qepr->registerAssertion(a);
+    }
+    // must handle sources of other new constants e.g. separation logic
+    // FIXME (as part of project 3) : cleanup
+    sep::TheorySep* theory_sep =
+        static_cast<sep::TheorySep*>(getTheoryEngine()->theoryOf(THEORY_SEP));
+    theory_sep->initializeBounds();
+    d_qepr->finishInit();
+  }
+  if (options::ceGuidedInst())
+  {
+    quantifiers::SynthEngine* sye = d_private->d_synth_e.get();
+    for (const Node& a : assertions)
+    {
+      sye->preregisterAssertion(a);
     }
   }
 }
@@ -1021,25 +1027,6 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
 
 void QuantifiersEngine::eqNotifyNewClass(TNode t) {
   addTermToDatabase( t );
-  if( d_eq_inference ){
-    d_eq_inference->eqNotifyNewClass( t );
-  }
-}
-
-void QuantifiersEngine::eqNotifyPreMerge(TNode t1, TNode t2) {
-  if( d_eq_inference ){
-    d_eq_inference->eqNotifyMerge( t1, t2 );
-  }
-}
-
-void QuantifiersEngine::eqNotifyPostMerge(TNode t1, TNode t2) {
-
-}
-
-void QuantifiersEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  //if( d_qcf ){
-  //  d_qcf->assertDisequal( t1, t2 );
-  //}
 }
 
 bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){

@@ -20,6 +20,7 @@
 #include "printer/sygus_print_callback.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
@@ -35,9 +36,7 @@ SygusAbduct::SygusAbduct() {}
 Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
-                                        TypeNode abdGType,
-                                        std::vector<Node>& varlist,
-                                        std::vector<Node>& syms)
+                                        TypeNode abdGType)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_set<Node, NodeHashFunction> symset;
@@ -49,7 +48,9 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
       << "...finish, got " << symset.size() << " symbols." << std::endl;
 
   Trace("sygus-abduct-debug") << "Setup symbols..." << std::endl;
+  std::vector<Node> syms;
   std::vector<Node> vars;
+  std::vector<Node> varlist;
   std::vector<TypeNode> varlistTypes;
   for (const Node& s : symset)
   {
@@ -64,6 +65,9 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
       Node vlv = nm->mkBoundVar(ss.str(), tn);
       varlist.push_back(vlv);
       varlistTypes.push_back(tn);
+      // set that this variable encodes the term s
+      SygusVarToTermAttribute sta;
+      vlv.setAttribute(sta, s);
     }
   }
   // make the sygus variable list
@@ -275,24 +279,22 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
   std::vector<Node> iplc;
   iplc.push_back(instAttr);
-  if (!axioms.empty())
-  {
-    Node aconj = axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms);
-    aconj =
-        aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
-    Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
-    Node sc = nm->mkNode(AND, aconj, abdApp);
-    Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
-    sc = nm->mkNode(EXISTS, vbvl, sc);
-    Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
-    sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
-    instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
-    // build in the side condition
-    //   exists x. A( x ) ^ input_axioms( x )
-    // as an additional annotation on the sygus conjecture. In other words,
-    // the abducts A we procedure must be consistent with our axioms.
-    iplc.push_back(instAttr);
-  }
+  Node aconj = axioms.size() == 0
+                   ? nm->mkConst(true)
+                   : (axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms));
+  aconj = aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
+  Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
+  Node sc = nm->mkNode(AND, aconj, abdApp);
+  Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
+  sc = nm->mkNode(EXISTS, vbvl, sc);
+  Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
+  sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
+  instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
+  // build in the side condition
+  //   exists x. A( x ) ^ input_axioms( x )
+  // as an additional annotation on the sygus conjecture. In other words,
+  // the abducts A we procedure must be consistent with our axioms.
+  iplc.push_back(instAttr);
   Node instAttrList = nm->mkNode(INST_PATTERN_LIST, iplc);
 
   Node fbvl = nm->mkNode(BOUND_VAR_LIST, abd);

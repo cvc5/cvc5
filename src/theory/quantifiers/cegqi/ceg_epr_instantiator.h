@@ -33,7 +33,7 @@ namespace quantifiers {
 class EprInstantiator : public Instantiator
 {
  public:
-  EprInstantiator(QuantifiersEngine* qe, TypeNode tn) : Instantiator(qe, tn) {}
+  EprInstantiator(TypeNode tn) : Instantiator(tn) {}
   virtual ~EprInstantiator() {}
   /** reset */
   void reset(CegInstantiator* ci,

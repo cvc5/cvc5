@@ -45,6 +45,15 @@ bool hasSubterm(TNode n, TNode t, bool strict = false);
 bool hasSubtermMulti(TNode n, TNode t);
 
 /**
+ * Check if the node n has a subterm that occurs in t.
+ * @param n The node to search in
+ * @param t The set of subterms to search for
+ * @param strict If true, a term is not considered to be a subterm of itself
+ * @return true iff there is a term in t that is a subterm in n
+ */
+bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict = false);
+
+/**
  * Returns true iff the node n contains a bound variable, that is a node of
  * kind BOUND_VARIABLE. This bound variable may or may not be free.
  * @param n The node under investigation
@@ -122,15 +131,21 @@ void getOperatorsMap(
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
     std::unordered_set<TNode, TNodeHashFunction>& visited);
 
-/**
+/*
  * Substitution of Nodes in a capture avoiding way.
+ * If x occurs free in n and it is substituted by a term t 
+ * and t includes some variable y that is bound in n,
+ * then using alpha conversion y is replaced with a fresh bound variable
+ * before the substitution.
+ *
  */
 Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
 
 /**
- * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
- * source will be replaced by their corresponding element in dest.  Both
- * vectors should have the same size.
+ * Same as substituteCaptureAvoiding above, but with a 
+ * simultaneous substitution of a vector of variables.  
+ * Elements in source will be replaced by their corresponding element in dest. 
+ * Both vectors should have the same size.
  */
 Node substituteCaptureAvoiding(TNode n,
                                std::vector<Node>& src,

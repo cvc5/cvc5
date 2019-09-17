@@ -242,7 +242,7 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
 
   Debug("equality") << d_name << "::eq::newNode(" << node << ") => " << newId << std::endl;
 
-  // notify e.g. the UF theory strong solver
+  // notify e.g. the theory that owns this equality engine.
   if (d_performNotify) {
     d_notify.eqNotifyNewClass(node);
   }

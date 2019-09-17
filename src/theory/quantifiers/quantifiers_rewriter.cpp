@@ -1076,6 +1076,23 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       }
     }
   }
+  else if (lit.getKind() == APPLY_TESTER && pol
+           && lit[0].getKind() == BOUND_VARIABLE && options::dtVarExpandQuant())
+  {
+    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit
+                         << std::endl;
+    Expr testerExpr = lit.getOperator().toExpr();
+    unsigned index = Datatype::indexOf(testerExpr);
+    Node s = datatypeExpand(index, lit[0], args);
+    if (!s.isNull())
+    {
+      vars.push_back(lit[0]);
+      subs.push_back(s);
+      Trace("var-elim-dt") << "...apply substitution " << s << "/" << lit[0]
+                           << std::endl;
+      return true;
+    }
+  }
   if (lit.getKind() == BOUND_VARIABLE)
   {
     std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit );
@@ -1147,6 +1164,38 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
     }
   }
   return false;
+}
+
+Node QuantifiersRewriter::datatypeExpand(unsigned index,
+                                         Node v,
+                                         std::vector<Node>& args)
+{
+  if (!v.getType().isDatatype())
+  {
+    return Node::null();
+  }
+  std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);
+  if (ita == args.end())
+  {
+    return Node::null();
+  }
+  const Datatype& dt =
+      static_cast<DatatypeType>(v.getType().toType()).getDatatype();
+  Assert(index < dt.getNumConstructors());
+  const DatatypeConstructor& c = dt[index];
+  std::vector<Node> newChildren;
+  newChildren.push_back(Node::fromExpr(c.getConstructor()));
+  std::vector<Node> newVars;
+  for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
+  {
+    TypeNode tn = TypeNode::fromType(c.getArgType(j));
+    Node vn = NodeManager::currentNM()->mkBoundVar(tn);
+    newChildren.push_back(vn);
+    newVars.push_back(vn);
+  }
+  args.erase(ita);
+  args.insert(args.end(), newVars.begin(), newVars.end());
+  return NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, newChildren);
 }
 
 bool QuantifiersRewriter::getVarElim(Node n,
@@ -1245,9 +1294,9 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
         {
           // compute variables in itm->first, these are not eligible for
           // elimination
-          std::vector<Node> bvs;
-          TermUtil::getBoundVars(m.first, bvs);
-          for (TNode v : bvs)
+          std::unordered_set<Node, NodeHashFunction> fvs;
+          expr::getFreeVariables(m.first, fvs);
+          for (const Node& v : fvs)
           {
             Trace("var-elim-ineq-debug")
                 << "...ineligible " << v
@@ -1759,9 +1808,10 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
       Node newBody = body;
       NodeBuilder<> body_split(kind::OR);
       NodeBuilder<> tb(kind::OR);
-      for( unsigned i=0; i<body.getNumChildren(); i++ ){
-        Node trm = body[i];
-        if( TermUtil::containsTerms( body[i], args ) ){
+      for (const Node& trm : body)
+      {
+        if (expr::hasSubterm(trm, args))
+        {
           tb << trm;
         }else{
           body_split << trm;

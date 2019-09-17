@@ -63,7 +63,6 @@ cvc4_option(ENABLE_DEBUG_SYMBOLS "Enable debug symbols")
 cvc4_option(ENABLE_DUMPING       "Enable dumping")
 cvc4_option(ENABLE_MUZZLE        "Suppress ALL non-result output")
 cvc4_option(ENABLE_OPTIMIZED     "Enable optimization")
-cvc4_option(ENABLE_PORTFOLIO     "Enable portfolio support")
 cvc4_option(ENABLE_PROOFS        "Enable proof support")
 cvc4_option(ENABLE_REPLAY        "Enable the replay feature")
 cvc4_option(ENABLE_STATISTICS    "Enable statistics")
@@ -323,28 +322,6 @@ if(ENABLE_MUZZLE)
   add_definitions(-DCVC4_MUZZLE)
 endif()
 
-# This check needs to come before the USE_CLN check.
-if(ENABLE_PORTFOLIO)
-  find_package(Boost 1.50.0 REQUIRED COMPONENTS thread)
-  if (ENABLE_DUMPING)
-    message(FATAL_ERROR "Dumping not supported with a portfolio build.")
-  endif()
-  # Disable CLN for portfolio builds since it is not thread safe (uses an
-  # unlocked hash table internally).
-  if(USE_CLN)
-    message(WARNING "Disabling CLN support since portfolio is enabled.")
-    set(USE_CLN OFF)
-  endif()
-  set(THREADS_PREFER_PTHREAD_FLAG ON)
-  find_package(Threads REQUIRED)
-  if(THREADS_HAVE_PTHREAD_ARG)
-    add_c_cxx_flag(-pthread)
-  endif()
-  add_definitions(-DCVC4_PORTFOLIO)
-  set(BOOST_HAS_THREAD_ATTR 1)
-endif()
-
-# This has to be processed after ENABLE_PORTFOLIO (disables dumping support).
 if(ENABLE_DUMPING)
   add_definitions(-DCVC4_DUMPING)
 endif()
@@ -482,6 +459,37 @@ if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Package configuration
+#
+# Export CVC4 targets to support find_package(CVC4) in other cmake projects.
+
+include(CMakePackageConfigHelpers)
+
+install(EXPORT cvc4-targets
+  FILE CVC4Targets.cmake
+  NAMESPACE CVC4::
+  DESTINATION lib/cmake/CVC4)
+
+configure_package_config_file(
+  ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
+  ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
+  INSTALL_DESTINATION lib/cmake/CVC4
+)
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/CVC4ConfigVersion.cmake
+  VERSION ${CVC4_RELEASE_STRING}
+  COMPATIBILITY ExactVersion
+)
+
+install(FILES
+  ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
+  ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
+  DESTINATION lib/cmake/CVC4
+)
+
+
+#-----------------------------------------------------------------------------#
 # Print build configuration
 
 # Convert build type to lower case.
@@ -523,8 +531,6 @@ print_config("Java bindings        :" BUILD_BINDINGS_JAVA)
 print_config("Python bindings      :" BUILD_BINDINGS_PYTHON)
 print_config("Python2              :" USE_PYTHON2)
 print_config("Python3              :" USE_PYTHON3)
-message("")
-print_config("Portfolio            :" ENABLE_PORTFOLIO)
 message("")
 print_config("ABC                  :" USE_ABC)
 print_config("CaDiCaL              :" USE_CADICAL)

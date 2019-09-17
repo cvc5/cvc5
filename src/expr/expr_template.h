@@ -64,12 +64,6 @@ namespace api {
 class Solver;
 }
 
-namespace expr {
-  namespace pickle {
-    class Pickler;
-  }/* CVC4::expr::pickle namespace */
-}/* CVC4::expr namespace */
-
 namespace prop {
   class TheoryProxy;
 }/* CVC4::prop namespace */
@@ -218,7 +212,6 @@ class CVC4_PUBLIC Expr {
   friend class TypeCheckingException;
   friend class api::Solver;
   friend class expr::ExportPrivate;
-  friend class expr::pickle::Pickler;
   friend class prop::TheoryProxy;
   friend class smt::SmtEnginePrivate;
   friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);

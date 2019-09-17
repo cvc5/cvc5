@@ -531,35 +531,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 namespace CVC4 {
   class Expr;
-
-  namespace parser {
-    namespace cvc {
-      /**
-       * This class is just here to get around an unfortunate bit of Antlr.
-       * We use strings below as return values from rules, which require
-       * them to be constructible by a void*.  So we derive the string
-       * class to provide just such a conversion.
-       */
-      class myString : public std::string {
-      public:
-        myString(const std::string& s) : std::string(s) {}
-        myString(void*) : std::string() {}
-        myString() : std::string() {}
-      };/* class myString */
-
-      /**
-       * Just exists to give us the void* construction that
-       * ANTLR requires.
-       */
-      struct myExpr : public CVC4::Expr {
-        myExpr() : CVC4::Expr() {}
-        myExpr(void*) : CVC4::Expr() {}
-        myExpr(const Expr& e) : CVC4::Expr(e) {}
-        myExpr(const myExpr& e) : CVC4::Expr(e) {}
-      };/* struct myExpr */
-
-    }/* CVC4::parser::cvc namespace */
-  }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
 }/* @parser::includes */
@@ -645,7 +616,7 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
     if(s == "benchmark") {
         PARSER_STATE->parseError(
             "In CVC4 presentation language mode, but SMT-LIBv1 format "
-            "detected.  Use --lang smt1 for SMT-LIBv1 support.");
+            "detected, which is not supported anymore.");
       } else if(s == "set" || s == "get" || s == "declare" ||
                 s == "define" || s == "assert") {
         PARSER_STATE->parseError(
@@ -1153,7 +1124,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
           Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
           Expr func = EXPR_MANAGER->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
-          PARSER_STATE->defineFunction(*i, f);
+          PARSER_STATE->defineVar(*i, f);
           Command* decl = new DefineFunctionCommand(*i, func, f);
           seq->addCommand(decl);
         }

@@ -15,9 +15,9 @@ if ! [ -e src/parser/cvc/Cvc.g ]; then
 fi
 
 function webget {
-  if which wget &>/dev/null; then
+  if [ -x "$(command -v wget)" ]; then
     wget -c -O "$2" "$1"
-  elif which curl &>/dev/null; then
+  elif [ -x "$(command -v curl)" ]; then
     curl -L "$1" >"$2"
   else
     echo "Can't figure out how to download from web.  Please install wget or curl." >&2
