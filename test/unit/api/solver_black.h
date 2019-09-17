@@ -764,8 +764,8 @@ void SolverBlack::testMkConstArray()
   Term constArr = d_solver->mkConstArray(arrSort, zero);
 
   TS_ASSERT_THROWS_NOTHING(d_solver->mkConstArray(arrSort, zero));
-  TS_ASSERT_THROWS(d_solver->mkConstArray(arrSort, d_solver->mkBitVector(1, 1)));
-  TS_ASSERT_THROWS(d_solver->mkConstArray(intSort, zero));
+  TS_ASSERT_THROWS(d_solver->mkConstArray(arrSort, d_solver->mkBitVector(1, 1)), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkConstArray(intSort, zero), CVC4ApiException&);
 }
 
 void SolverBlack::testDeclareDatatype()
