@@ -20,6 +20,7 @@ General options;
   --best                   turn on dependencies known to give best performance
   --gpl                    permit GPL dependencies, if available
   --win64                  cross-compile for Windows 64 bit
+  --ninja                  use Ninja build system
 
 
 Features:
@@ -117,6 +118,7 @@ drat2er=default
 dumping=default
 gpl=default
 win64=default
+ninja=default
 glpk=default
 lfsc=default
 muzzle=default
@@ -216,6 +218,8 @@ do
 
     --win64) win64=ON;;
     --no-win64) win64=OFF;;
+
+    --ninja) ninja=ON;;
 
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
@@ -357,12 +361,11 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+[ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $optimized != default ] \
   && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized"
-[ $portfolio != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_PORTFOLIO=$portfolio"
 [ $proofs != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
 [ $replay != default ] \

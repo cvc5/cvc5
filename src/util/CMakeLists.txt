@@ -11,7 +11,6 @@ libcvc4_add_sources(
   bool.h
   cardinality.cpp
   cardinality.h
-  channel.h
   debug.h
   dense_map.h
   divisible.cpp

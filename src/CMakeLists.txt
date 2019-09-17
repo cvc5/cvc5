@@ -92,8 +92,6 @@ libcvc4_add_sources(
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
   preprocessing/passes/static_learning.h
-  preprocessing/passes/sygus_abduct.cpp
-  preprocessing/passes/sygus_abduct.h
   preprocessing/passes/sygus_inference.cpp
   preprocessing/passes/sygus_inference.h
   preprocessing/passes/symmetry_breaker.cpp
@@ -242,6 +240,8 @@ libcvc4_add_sources(
   smt/model.h
   smt/model_core_builder.cpp
   smt/model_core_builder.h
+  smt/model_blocker.cpp
+  smt/model_blocker.h
   smt/smt_engine.cpp
   smt/smt_engine.h
   smt/smt_engine_scope.cpp
@@ -553,8 +553,12 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_unif.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/sygus_abduct.cpp
+  theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
   theory/quantifiers/sygus/sygus_enumerator.h
+  theory/quantifiers/sygus/sygus_enumerator_basic.cpp
+  theory/quantifiers/sygus/sygus_enumerator_basic.h
   theory/quantifiers/sygus/sygus_eval_unfold.cpp
   theory/quantifiers/sygus/sygus_eval_unfold.h
   theory/quantifiers/sygus/sygus_explain.cpp
@@ -589,10 +593,10 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/synth_engine.h
   theory/quantifiers/sygus/term_database_sygus.cpp
   theory/quantifiers/sygus/term_database_sygus.h
+  theory/quantifiers/sygus/transition_inference.cpp
+  theory/quantifiers/sygus/transition_inference.h
   theory/quantifiers/sygus_sampler.cpp
   theory/quantifiers/sygus_sampler.h
-  theory/quantifiers/term_canonize.cpp
-  theory/quantifiers/term_canonize.h
   theory/quantifiers/term_database.cpp
   theory/quantifiers/term_database.h
   theory/quantifiers/term_enumeration.cpp
@@ -632,6 +636,8 @@ libcvc4_add_sources(
   theory/shared_terms_database.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/strings/infer_info.cpp
+  theory/strings/infer_info.h
   theory/strings/inference_manager.cpp
   theory/strings/inference_manager.h
   theory/strings/normal_form.cpp
@@ -735,7 +741,16 @@ add_subdirectory(util)
 
 set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
 add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS})
-install(TARGETS cvc4 DESTINATION lib)
+target_include_directories(cvc4
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
+
+install(TARGETS cvc4
+  EXPORT cvc4-targets
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib)
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4
@@ -749,44 +764,45 @@ add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 
 # Add library/include dependencies
 if(ENABLE_VALGRIND)
-  target_include_directories(cvc4 PUBLIC ${Valgrind_INCLUDE_DIR})
+  target_include_directories(cvc4 PRIVATE ${Valgrind_INCLUDE_DIR})
 endif()
 if(USE_ABC)
   target_link_libraries(cvc4 ${ABC_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC ${ABC_INCLUDE_DIR})
+  target_include_directories(cvc4 PRIVATE ${ABC_INCLUDE_DIR})
 endif()
 if(USE_CADICAL)
   target_link_libraries(cvc4 ${CaDiCaL_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC ${CaDiCaL_INCLUDE_DIR})
+  target_include_directories(cvc4 PRIVATE ${CaDiCaL_INCLUDE_DIR})
 endif()
 if(USE_CLN)
   target_link_libraries(cvc4 ${CLN_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC ${CLN_INCLUDE_DIR})
+  target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${CLN_INCLUDE_DIR}>)
 endif()
 if(USE_CRYPTOMINISAT)
   target_link_libraries(cvc4 ${CryptoMiniSat_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC ${CryptoMiniSat_INCLUDE_DIR})
+  target_include_directories(cvc4 PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
 endif()
 if(USE_DRAT2ER)
   target_link_libraries(cvc4 ${Drat2Er_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC ${Drat2Er_INCLUDE_DIR})
+  target_include_directories(cvc4 PRIVATE ${Drat2Er_INCLUDE_DIR})
 endif()
 if(USE_GLPK)
   target_link_libraries(cvc4 ${GLPK_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC ${GLPK_INCLUDE_DIR})
+  target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
 endif()
 if(USE_LFSC)
   target_link_libraries(cvc4 ${LFSC_LIBRARIES})
-  target_include_directories(cvc4 PUBLIC ${LFSC_INCLUDE_DIR})
+  target_include_directories(cvc4 PRIVATE ${LFSC_INCLUDE_DIR})
 endif()
 if(USE_SYMFPU)
-  target_include_directories(cvc4 PUBLIC ${SymFPU_INCLUDE_DIR})
+  target_include_directories(cvc4
+    PUBLIC $<BUILD_INTERFACE:${SymFPU_INCLUDE_DIR}>)
 endif()
 
 # Note: When linked statically GMP needs to be linked after CLN since CLN
 # depends on GMP.
 target_link_libraries(cvc4 ${GMP_LIBRARIES})
-target_include_directories(cvc4 PUBLIC ${GMP_INCLUDE_DIR})
+target_include_directories(cvc4 PUBLIC $<BUILD_INTERFACE:${GMP_INCLUDE_DIR}>)
 
 # Add rt library
 # Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
@@ -844,7 +860,6 @@ install(FILES
           expr/emptyset.h
           expr/expr_iomanip.h
           expr/expr_stream.h
-          expr/pickler.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h
@@ -908,7 +923,6 @@ install(FILES
           util/bitvector.h
           util/bool.h
           util/cardinality.h
-          util/channel.h
           util/divisible.h
           util/gmp_util.h
           util/hash.h

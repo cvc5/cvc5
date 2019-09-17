@@ -99,17 +99,13 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
   return true;
 }
 
-void InferenceManager::sendInference(std::vector<Node>& exp,
-                                     std::vector<Node>& exp_n,
+void InferenceManager::sendInference(const std::vector<Node>& exp,
+                                     const std::vector<Node>& exp_n,
                                      Node eq,
                                      const char* c,
                                      bool asLemma)
 {
   eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
-  if (eq == d_true)
-  {
-    return;
-  }
   if (Trace.isOn("strings-infer-debug"))
   {
     Trace("strings-infer-debug")
@@ -122,6 +118,10 @@ void InferenceManager::sendInference(std::vector<Node>& exp,
     {
       Trace("strings-infer-debug") << "  N:" << exp_n[i] << std::endl;
     }
+  }
+  if (eq == d_true)
+  {
+    return;
   }
   // check if we should send a lemma or an inference
   if (asLemma || eq == d_false || eq.getKind() == OR || !exp_n.empty()
@@ -164,13 +164,20 @@ void InferenceManager::sendInference(std::vector<Node>& exp,
   }
 }
 
-void InferenceManager::sendInference(std::vector<Node>& exp,
+void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
                                      const char* c,
                                      bool asLemma)
 {
   std::vector<Node> exp_n;
   sendInference(exp, exp_n, eq, c, asLemma);
+}
+
+void InferenceManager::sendInference(const InferInfo& i)
+{
+  std::stringstream ssi;
+  ssi << i.d_id;
+  sendInference(i.d_ant, i.d_antn, i.d_conc, ssi.str().c_str(), true);
 }
 
 void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
@@ -267,6 +274,7 @@ bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
 
 void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
 {
+  lit = Rewriter::rewrite(lit);
   d_pendingReqPhase[lit] = pol;
 }
 

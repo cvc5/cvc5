@@ -51,15 +51,13 @@ class BVToInt : public PreprocessingPass
     Node makeBinary(Node n);
     Node pow2(uint64_t k);
     Node maxInt(uint64_t k);
-//    Node pow2(Node n);
-//    Node modpow2(Node n, Node exponent);
     Node modpow2(Node n, uint64_t exponent);
 
     NodeMap d_binarizeCache;
     NodeMap d_eliminationCache;
     NodeMap d_bvToIntCache;
     NodeManager* d_nm;
-    vector<Node> d_rangeAssertions;
+    unordered_set<Node, NodeHashFunction> d_rangeAssertions;
 };
 
 }  // namespace passes

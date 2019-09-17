@@ -504,6 +504,21 @@ trust  \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusQueryDumpFileHelp =
+    "\
+Query file options supported by --sygus-query-gen-dump-files:\n\
+\n\
+none (default) \n\
++ Do not dump query files when using --sygus-query-gen.\n\
+\n\
+all \n\
++ Dump all query files.\n\
+\n\
+unsolved \n\
++ Dump query files that the subsolver did not solve.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_sygusFilterSolHelp =
     "\
 Modes for filtering sygus solutions supported by --sygus-filter-sol:\n\
@@ -959,6 +974,34 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
   }
 }
 
+theory::quantifiers::SygusQueryDumpFilesMode
+OptionsHandler::stringToSygusQueryDumpFilesMode(std::string option,
+                                                std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_NONE;
+  }
+  else if (optarg == "all")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_ALL;
+  }
+  else if (optarg == "unsolved")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_UNSOLVED;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusQueryDumpFileHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --sygus-query-gen-dump-files: `")
+        + optarg + "'.  Try --sygus-query-gen-dump-files help.");
+  }
+}
 theory::quantifiers::SygusFilterSolMode
 OptionsHandler::stringToSygusFilterSolMode(std::string option,
                                            std::string optarg)
@@ -977,7 +1020,7 @@ OptionsHandler::stringToSygusFilterSolMode(std::string option,
   }
   else if (optarg == "help")
   {
-    puts(s_cegisSampleHelp.c_str());
+    puts(s_sygusFilterSolHelp.c_str());
     exit(1);
   }
   else
@@ -1174,17 +1217,6 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
   else if (optarg == "cadical")
   {
-#ifndef CVC4_INCREMENTAL_CADICAL
-    if (options::incrementalSolving()
-        && options::incrementalSolving.wasSetByUser())
-    {
-      throw OptionException(std::string(
-          "CaDiCaL version used does not support incremental mode. \n\
-                       Update CaDiCal or Try --bv-sat-solver=cryptominisat or "
-          "--bv-sat-solver=minisat"));
-    }
-#endif
-
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
         && options::bitblastMode.wasSetByUser())
     {
@@ -1386,7 +1418,7 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   }
 }
 
-const std::string OptionsHandler::s_stringToStringsProcessLoopModeHelp =
+const std::string OptionsHandler::s_stringsProcessLoopModeHelp =
     "Loop processing modes supported by the --strings-process-loop-mode "
     "option:\n"
     "\n"
@@ -1430,7 +1462,7 @@ theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
   }
   else if (optarg == "help")
   {
-    puts(s_stringToStringsProcessLoopModeHelp.c_str());
+    puts(s_stringsProcessLoopModeHelp.c_str());
     exit(1);
   }
   else
@@ -1438,6 +1470,57 @@ theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
     throw OptionException(
         std::string("unknown option for --strings-process-loop-mode: `")
         + optarg + "'.  Try --strings-process-loop-mode=help.");
+  }
+}
+
+const std::string OptionsHandler::s_regExpInterModeHelp =
+    "\
+Regular expression intersection modes supported by the --re-inter-mode option\
+\n\
+\n\
+all \n\
++ Compute intersections for all regular expressions.\n\
+\n\
+constant (default)\n\
++ Compute intersections only between regular expressions that do not contain\
+re.allchar or re.range\n\
+\n\
+one-constant\n\
++ Compute intersections only between regular expressions such that at least one\
+side does not contain re.allchar or re.range\n\
+\n\
+none\n\
++ Do not compute intersections for regular expressions\n\
+";
+
+theory::strings::RegExpInterMode OptionsHandler::stringToRegExpInterMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "all")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_ALL;
+  }
+  else if (optarg == "constant")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_CONSTANT;
+  }
+  else if (optarg == "one-constant")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_ONE_CONSTANT;
+  }
+  else if (optarg == "none")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_NONE;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_regExpInterModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --re-inter-mode: `")
+                          + optarg + "'.  Try --re-inter-mode=help.");
   }
 }
 
@@ -1754,6 +1837,49 @@ ModelCoresMode OptionsHandler::stringToModelCoresMode(std::string option,
   {
     throw OptionException(std::string("unknown option for --model-cores: `")
                           + optarg + "'.  Try --model-cores help.");
+  }
+}
+
+const std::string OptionsHandler::s_blockModelsHelp =
+    "\
+Blocking models modes are currently supported by the --block-models option:\n\
+\n\
+none (default) \n\
++ do not block models\n\
+\n\
+literals\n\
++ block models based on the SAT skeleton\n\
+\n\
+values\n\
++ block models based on the concrete model values for the free variables.\n\
+\n\
+";
+
+BlockModelsMode OptionsHandler::stringToBlockModelsMode(std::string option,
+                                                        std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return BLOCK_MODELS_NONE;
+  }
+  else if (optarg == "literals")
+  {
+    return BLOCK_MODELS_LITERALS;
+  }
+  else if (optarg == "values")
+  {
+    return BLOCK_MODELS_VALUES;
+    ;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_blockModelsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --block-models: `")
+                          + optarg + "'.  Try --block-models help.");
   }
 }
 

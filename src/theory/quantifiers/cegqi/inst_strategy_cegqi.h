@@ -19,32 +19,14 @@
 #define CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
 #include "theory/decision_manager.h"
+#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-class InstStrategyCegqi;
-
-/**
- * An output channel class, used by instantiator objects below. The methods
- * of this class call the corresponding functions of InstStrategyCegqi below.
- */
-class CegqiOutputInstStrategy : public CegqiOutput
-{
- public:
-  CegqiOutputInstStrategy(InstStrategyCegqi* out) : d_out(out) {}
-  /** The module whose functions we call. */
-  InstStrategyCegqi* d_out;
-  /** add instantiation */
-  bool doAddInstantiation(std::vector<Node>& subs) override;
-  /** is eligible for instantiation */
-  bool isEligibleForInstantiation(Node n) override;
-  /** add lemma */
-  bool addLemma(Node lem) override;
-};
 
 /**
  * Counterexample-guided quantifier instantiation module.
@@ -81,6 +63,8 @@ class InstStrategyCegqi : public QuantifiersModule
   std::string identify() const override { return std::string("Cegqi"); }
   /** get instantiator for quantifier */
   CegInstantiator* getInstantiator(Node q);
+  /** get the BV inverter utility */
+  BvInverter* getBvInverter() const;
   /** pre-register quantifier */
   void preRegisterQuantifier(Node q) override;
   // presolve
@@ -91,12 +75,6 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
-  /**
-   * Are we allowed to instantiate the current quantified formula with n? This
-   * includes restrictions such as if n is a variable, it must occur free in
-   * the current quantified formula.
-   */
-  bool isEligibleForInstantiation(Node n);
   /** Add lemma lem via the output channel of this class. */
   bool addLemma(Node lem);
   //------------------- end interface for CegqiOutputInstStrategy
@@ -126,15 +104,12 @@ class InstStrategyCegqi : public QuantifiersModule
   /** Whether cegqi handles each quantified formula. */
   std::map<Node, CegHandledStatus> d_do_cbqi;
   /**
-   * An output channel used by instantiators for communicating with this
-   * class.
-   */
-  std::unique_ptr<CegqiOutputInstStrategy> d_out;
-  /**
    * The instantiator for each quantified formula q registered to this class.
    * This object is responsible for finding instantiatons for q.
    */
   std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
+  /** inversion utility for BV instantiation */
+  std::unique_ptr<BvInverter> d_bv_invert;
   /**
    * The decision strategy for each quantified formula q registered to this
    * class.
@@ -170,6 +145,15 @@ class InstStrategyCegqi : public QuantifiersModule
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
+  /**
+   * Get counterexample literal. This is the fresh Boolean variable whose
+   * semantics is "there exists a set of values for which the body of
+   * quantified formula q does not hold". These literals are cached by this
+   * class.
+   */
+  Node getCounterexampleLiteral(Node q);
+  /** map from universal quantifiers to their counterexample literals */
+  std::map<Node, Node> d_ce_lit;
 
   //for identification
   uint64_t d_qid_count;

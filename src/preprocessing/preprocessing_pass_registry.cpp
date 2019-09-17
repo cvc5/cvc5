@@ -35,6 +35,7 @@
 #include "preprocessing/passes/bv_to_int.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/global_negate.h"
+#include "preprocessing/passes/ho_elim.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/ite_simp.h"
@@ -49,7 +50,6 @@
 #include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
-#include "preprocessing/passes/sygus_abduct.h"
 #include "preprocessing/passes/sygus_inference.h"
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
@@ -129,7 +129,6 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("synth-rr", callCtor<SynthRewRulesPass>);
   registerPassInfo("real-to-int", callCtor<RealToInt>);
   registerPassInfo("sygus-infer", callCtor<SygusInference>);
-  registerPassInfo("sygus-abduct", callCtor<SygusAbduct>);
   registerPassInfo("bv-to-bool", callCtor<BVToBool>);
   registerPassInfo("bv-intro-pow2", callCtor<BvIntroPow2>);
   registerPassInfo("sort-inference", callCtor<SortInferencePass>);
@@ -152,6 +151,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("quantifier-macros", callCtor<QuantifierMacros>);
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
+  registerPassInfo("ho-elim", callCtor<HoElim>);
 }
 
 }  // namespace preprocessing
