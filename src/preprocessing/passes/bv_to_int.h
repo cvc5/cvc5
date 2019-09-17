@@ -11,7 +11,26 @@
  **
  ** \brief The BVToInt preprocessing pass
  **
- ** Converts bitvector operations into integer operations. 
+ ** Converts bit-vector formulas to integer formulas.
+ ** The conversion is implemented using a translation function Tr, roughly described as follows:
+ ** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh integer variable.
+ ** Tr(c) = the integer value of c, for any bit-vector constant c.
+ ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit-width of s and t.
+ ** Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg, bvnot, bvconcat, bvextract
+ 
+ ** Tr((bvand s t)) depends on the granularity, which is provided by the user when enabeling this preprocessing pass.
+ ** More details and examples for this case are described next to createBitwiseNode.
+ ** Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
+ ** 
+ ** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bitwidth of a and b, and ITE represents exponentiation up to k, that is 
+ ** ITE = ite(Tr(b)=0, 1, ite(Tr(b)=1), 2, ite(Tr(b)=2, 4, ...))
+ ** Similar transformations are done for bvlshr.
+ ** 
+ ** Tr(a=b)= Tr(a)=Tr(b)
+ ** Tr((bvult a b)) = Tr(a) < Tr(b)
+ ** Simialr transformations are done for bvule, bvugt, bvuge.
+ **
+ ** Bit-vector operators that are not listed above are either eliminated using the function eliminationPass, or are unimplemented yet.
  ** 
  **/
 
