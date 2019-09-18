@@ -2097,7 +2097,8 @@ class CVC4_PUBLIC Solver
   Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
 
   /**
-   * Create a constant array with the provided constant value stored at every index
+   * Create a constant array with the provided constant value stored at every
+   * index
    * @param sort the sort of the constant array (must be an array sort)
    * @param val the constant value to store (must match the sort's element sort)
    * @return the constant array term
