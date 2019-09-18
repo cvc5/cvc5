@@ -2558,6 +2558,7 @@ Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const
 Term Solver::mkConstArray(Sort sort, Term val) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULL(val);
   CVC4_API_CHECK(sort.isArray())  << "Not an array sort.";
   CVC4_API_CHECK(sort.getArrayElementSort() == val.getSort())  << "Value does not match element sort.";
   Term res = mkValHelper<CVC4::ArrayStoreAll>(CVC4::ArrayStoreAll(*sort.d_type, *val.d_expr));
