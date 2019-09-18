@@ -1218,18 +1218,18 @@ void SmtEngine::setDefaults() {
   // set default options associated with strings-exp
   if (options::stringExp())
   {
+    // We require quantifiers since extended functions reduce using them
     if (!d_logic.isQuantified())
     {
-      // We require quantifiers since extended functions reduce using them
       d_logic = d_logic.getUnlockedCopy();
       d_logic.enableQuantifiers();
       d_logic.lock();
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
+    // We require bounded quantifier handling.
     if (!options::fmfBound.wasSetByUser())
     {
-      // We require bounded quantifier handling.
       options::fmfBound.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
