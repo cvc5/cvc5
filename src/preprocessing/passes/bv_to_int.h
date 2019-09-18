@@ -125,11 +125,16 @@ class BVToInt : public PreprocessingPass
 
   /** 
    * A helper function for createBitwiseNode
+   * x and y are integer nodes that correspond to the original bit-vector nodes.
+   * bitwidth represents the bitwidth of the original bit-vector nodes.
+   * table represents a function from pairs of integers to integers.
+   * The domain of this function consists of pairs of integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
+   * The returned node is an ite term that represents this table.
    */
   Node createITEFromTable(
       Node x,
       Node y,
-      uint64_t granularity,
+      uint64_t bitwidth,
       std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
 
   /**

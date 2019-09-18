@@ -87,7 +87,8 @@ Node BVToInt::modpow2(Node n, uint64_t exponent)
  * On the way up, we do the actual binarization.
  * If a node is not in the cache, that means we are on the way down.
  * If a node is in the cache and is assigned a null node, we are now visiting it
- * on the way back up. If a node is in the caache and is assigned a non-null
+ * on the way back up, and already binarized its children.
+ * If a node is in the caache and is assigned a non-null
  * node, we already binarized it.
  */
 Node BVToInt::makeBinary(Node n)
@@ -100,7 +101,7 @@ Node BVToInt::makeBinary(Node n)
     uint64_t numChildren = current.getNumChildren();
     if (d_binarizeCache.find(current) == d_binarizeCache.end())
     {
-      // We stil haven't visited the sub-dag rooted at current
+      // We stil haven't visited the sub-dag rooted at the current node.
       // In this case, we:
       // mark that we have visited this node by assigning a null node to it in
       // the cache, and add its children to toVisit.
@@ -112,8 +113,8 @@ Node BVToInt::makeBinary(Node n)
     }
     else if (d_binarizeCache[current].isNull())
     {
-      // We already visited the sub-dag rooted at current, and binarized all its
-      // children. Now we binarize current itself.
+      // We already visited the sub-dag rooted at the current node, and binarized all its
+      // children. Now we binarize the current node itself.
       toVisit.pop_back();
       kind::Kind_t k = current.getKind();
       if ((numChildren > 2)
@@ -155,7 +156,7 @@ Node BVToInt::makeBinary(Node n)
     }
     else
     {
-      // We already binarize current and it is in the cache.
+      // We already binarized current and it is in the cache.
       toVisit.pop_back();
       continue;
     }
@@ -164,7 +165,9 @@ Node BVToInt::makeBinary(Node n)
 }
 
 /**
- * We traverse n.
+ * We traverse n and perform rewrites both on the way down and on the way up.
+ * On the way down we rewrite the node but not it's children. 
+ * On the way up, we update the node's children to the rewritten ones.
  * For each sub-node, we perform rewrites to eliminate operators.
  * Then, the original children are added to toVisit stack so that we rewrite
  * them as well. Whenever we rewrite a node, we add it and its eliminated
@@ -249,6 +252,7 @@ Node BVToInt::eliminationPass(Node n)
         toVisit.push_back(current);
         toVisit.push_back(currentEliminated);
         toVisit.push_back(Node());
+        //Then, add the children to the stack for future processing.
         uint64_t numChildren = currentEliminated.getNumChildren();
         for (uint64_t i = 0; i < numChildren; i++)
         {
@@ -260,6 +264,11 @@ Node BVToInt::eliminationPass(Node n)
   return d_eliminationCache[n];
 }
 
+/**
+ * We traverse n.
+ * On the way down, we add the children to the stack.
+ * On the way up we do the actual translation to integers.
+ */
 Node BVToInt::bvToInt(Node n)
 {
   n = eliminationPass(n);
@@ -312,6 +321,7 @@ Node BVToInt::bvToInt(Node n)
             }
             else
             {
+              //Boolean variables are left unchanges.
               AlwaysAssert(current.getType() == d_nm->booleanType());
               d_bvToIntCache[current] = current;
             }
@@ -355,6 +365,8 @@ Node BVToInt::bvToInt(Node n)
         else
         {
           // The current node has children.
+          // Since we are on the way back up, these children were already translated.
+          // We save their translation for future use.
           vector<Node> intized_children;
           for (uint64_t i = 0; i < currentNumChildren; i++)
           {
@@ -369,7 +381,8 @@ Node BVToInt::bvToInt(Node n)
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
                 //  we avoid modular arithmetics by the addition of an indicator variable sigma.
-                // a+b is transformed to Tr(a)+Tr(b)-(sigma*2^k), with k being the bitwidth.
+                // a+b is transformed to Tr(a)+Tr(b)-(sigma*2^k), with k being the bitwidth,
+                // and sigma being either 0 or 1.
                 Node sigma = d_nm->mkSkolem(
                     "__bvToInt_sigma_var",
                     d_nm->integerType(),
@@ -453,7 +466,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_NEG:
             {
-                //  we use an ITE for the case where the second operand is 0.
+                //  we use an ITE for the case where the operand is 0.
                 uint64_t bvsize = current[0].getType().getBitVectorSize();
                 Node pow2BvSize = pow2(bvsize);
                 vector<Node> children = {pow2BvSize, intized_children[0]};
@@ -820,8 +833,6 @@ void BVToInt::addFinalizeRangeAssertions(
   }
 }
 
-// TODO we removed the ITE but we were too naive. we can only remove it if we
-// have a real definition of exp, which we don't.
 Node BVToInt::createShiftNode(vector<Node> children,
                               uint64_t bvsize,
                               bool isLeftShift)
@@ -829,6 +840,7 @@ Node BVToInt::createShiftNode(vector<Node> children,
   Node x = children[0];
   Node y = children[1];
   Assert(!y.isConst());
+  //ite represents 2^x for every integer x from 0 to bvsize-1.
   Node ite = pow2(0);
   for (uint64_t i = 1; i < bvsize; i++)
   {
@@ -840,6 +852,7 @@ Node BVToInt::createShiftNode(vector<Node> children,
   // from smtlib:
   //[[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
   // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
+  // Since we don't have exponentiation, we use the ite declared above.
   Node result;
   if (isLeftShift)
   {
@@ -905,6 +918,7 @@ Node BVToInt::createBitwiseNode(Node x,
                                 uint64_t granularity,
                                 bool (*f)(bool, bool))
 {
+  //Standardize granularity.
   Assert(granularity > 0);
   if (granularity > bvsize)
   {
@@ -939,12 +953,11 @@ Node BVToInt::createBitwiseNode(Node x,
       table[std::make_pair(i, j)] = sum;
     }
   }
-  // transform the table into an ite
 
   // create the big sum
   uint64_t sumSize = bvsize / granularity;
   Node sumNode = d_nm->mkConst<Rational>(0);
-  // extract definition
+  // extract definition in integers is:
   //(define-fun intextract ((k Int) (i Int) (j Int) (a Int)) Int
   //  (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
   for (uint64_t i = 0; i < sumSize; i++)
