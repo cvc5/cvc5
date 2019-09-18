@@ -14,6 +14,7 @@
  ** Converts bit-vector formulas to integer formulas.
  ** The conversion is implemented using a translation function Tr, roughly
  described as follows:
+ **
  ** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
  integer variable.
  ** Tr(c) = the integer value of c, for any bit-vector constant c.
@@ -23,22 +24,32 @@
  bvnot, bvconcat, bvextract
 
  ** Tr((bvand s t)) depends on the granularity, which is provided by the user
- when enabeling this preprocessing pass.
+ when enabling this preprocessing pass.
+ ** We divide s and t to blocks. 
+ ** The size of each block is the granularity, and so there are
+ ** bitwidth/granularity blocks (rounded down).
+ ** We create an ITE that rebresents an arbitrary block, and then create a sum by mutiplying each block by the appropriate power of two.
+ ** More formally:
+ ** Let g denote the granularity.
+ ** Let k denote the bitwidth of s and t.
+ ** Let b denote floor(k/g) if k >= g, or just k otherwise.
+ ** Tr((bvand s t)) = Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
+
  ** More details and examples for this case are described next to
  createBitwiseNode.
  ** Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
  **
  ** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bitwidth of
- a and b, and ITE represents exponentiation up to k, that is
+ a and b, and ITE represents exponentiation up to k, that is:
  ** ITE = ite(Tr(b)=0, 1, ite(Tr(b)=1), 2, ite(Tr(b)=2, 4, ...))
  ** Similar transformations are done for bvlshr.
  **
- ** Tr(a=b)= Tr(a)=Tr(b)
+ ** Tr(a=b) = Tr(a)=Tr(b)
  ** Tr((bvult a b)) = Tr(a) < Tr(b)
  ** Simialr transformations are done for bvule, bvugt, bvuge.
  **
  ** Bit-vector operators that are not listed above are either eliminated using
- the function eliminationPass, or are unimplemented yet.
+ the function eliminationPass, or are not supported.
  **
  **/
 
@@ -67,10 +78,12 @@ class BVToInt : public PreprocessingPass
 
   /**
    * A generic function that creates a node that represents a bit-wise
-   * operation. x and y are integer operands that correspond to the original
-   * bit-vector operands bvsize is the bitwidth of x and y granularity is
-   * specified in the options for this preprocessing pass (TODO specify!) f is a
-   * pointer to a boolean function that corresponds to the original bit-wise
+   * operation. 
+   * x and y are integer operands that correspond to the original
+   * bit-vector operands. 
+   * bvsize is the bitwidth of the original bit-vector variables. 
+   * granularity is specified in the options for this preprocessing pass.
+   * f is a pointer to a boolean function that corresponds to the original bit-wise
    * operation.
    *
    * For example: Suppose bvsize is 4, granularity is 1, and f(x,y) = x && y
@@ -78,8 +91,8 @@ class BVToInt : public PreprocessingPass
    * The result of this function would be:
    * ITE(x[0], y[0])*2^0 + ... + ITE(x[3], y[3])*2^3
    *
-   * For another example: Suppose bvsize is 4, granularity is 2, and f(x,y) = x
-   * && y Denote by ITE(a,b) the term that corresponds to the following table:
+   * For another example: Suppose bvsize is 4, granularity is 2, and f(x,y) = x && y. 
+   * Denote by ITE(a,b) the term that corresponds to the following table:
    * a | b |  ITE(a,b)
    * ----------------
    * 0 | 0 | 0
@@ -100,8 +113,9 @@ class BVToInt : public PreprocessingPass
    * 3 | 3 | 3
    *
    * (for example, 2 in binary is 10 and 1 in binary is 01, and so doing
-   * "bitwise f" on them fives 00) The result of this function would be:
-   * ITE(x[1:0], y[1:0])*2^0 + ITE(x[3:2], y[3:2])*2^1
+   * "bitwise f" on them gives 00).
+   * The result of this function would be:
+   * ITE(x[1:0], y[1:0])*2^0 + ITE(x[3:2], y[3:2])*2^2
    */
   Node createBitwiseNode(Node x,
                          Node y,
@@ -109,7 +123,9 @@ class BVToInt : public PreprocessingPass
                          uint64_t granularity,
                          bool (*f)(bool, bool));
 
-  // A helper function for createBitwiseNode
+  /** 
+   * A helper function for createBitwiseNode
+   */
   Node createITEFromTable(
       Node x,
       Node y,
@@ -118,11 +134,15 @@ class BVToInt : public PreprocessingPass
 
   /**
    * A generic function that creates a logical shift node (either left or
-   * right). a << b gets translated to a * 2^b mod 2^k, where k is the
-   * bit-width. a >> b gets translated to a div 2^b mod 2^k, where k is the
-   * bit-width The exponentiation operation is translated to an ite for possible
-   * values of the exponent, from 0 to k-1. If a shift of a bigger value is
-   * needed, the result is anyway 0.
+   * right). 
+   * a << b gets translated to a * 2^b mod 2^k, where k is the
+   * bit-width. 
+   * a >> b gets translated to a div 2^b mod 2^k, where k is the
+   * bit-width. 
+   * The exponentiation operation is translated to an ite for possible
+   * values of the exponent, from 0 to k-1. 
+   * If the right operand of the shift is greater than k-1,
+   * the result is 0.
    *
    */
   Node createShiftNode(vector<Node> children,
@@ -135,9 +155,8 @@ class BVToInt : public PreprocessingPass
   Node createBVNotNode(Node n, uint64_t bvsize);
 
   /**
-   * This is the main function.
-   * The input n is a bit-vector term or formula.
-   * The result is an integer term.
+   * n is a bit-vector term or formula.
+   * The result is an integer term and is computed according to the translation specified above.
    */
   Node bvToInt(Node n);
 
@@ -145,6 +164,9 @@ class BVToInt : public PreprocessingPass
    * Whenever we introduce an integer varaible that represents a bit-vector
    * variable, we need to guard the range of the newly introduced variable. For
    * bit-width k, the constraint is 0 <= newVar < 2^k.
+   * newVar is the newly introduced integer variable
+   * k is the bitwidth of the original bit-vector variable.
+   * The result is a node representing the range constraint.
    */
   Node mkRangeConstraint(Node newVar, uint64_t k);
 
@@ -156,9 +178,11 @@ class BVToInt : public PreprocessingPass
   Node eliminationPass(Node n);
 
   /**
-   * Some bit-vector operator (e.g., bvadd, bvand) are binary, but allow more
-   * than two arguments as a syntactic sugar. For example, we can have a node
-   * for (bvand x y z), that represents (bvadd (x (bvadd y z))). This function
+   * Some bit-vector operators (e.g., bvadd, bvand) are binary, but allow more
+   * than two arguments as a syntactic sugar. 
+   * For example, we can have a node
+   * for (bvand x y z), that represents (bvand (x (bvand y z))). 
+   * This function
    * makes all such operators strictly binary.
    *
    */
@@ -173,7 +197,8 @@ class BVToInt : public PreprocessingPass
   /**
    * input: A positive integer k
    * output: A node that represent the maximal integer value of a bit-vector of
-   * bit-width k For example. if k is 4, the result is a node representing the
+   * bit-width k.
+   * For example, if k is 4, the result is a node representing the
    * constant 15.
    */
   Node maxInt(uint64_t k);
@@ -186,9 +211,11 @@ class BVToInt : public PreprocessingPass
 
   /**
    * Add the range assertions collected in d_rangeAssertions (using
-   * mkRangeConstraint) to the assertion pipeline. If there are no range
-   * constraints, do nothing. If there is a single range constraint, add it to
-   * the assrtions. Otherwise, add all of them as a single conjunction
+   * mkRangeConstraint) to the assertion pipeline. 
+   * If there are no range constraints, do nothing. 
+   * If there is a single range constraint, add it to
+   * the pipeline. 
+   * Otherwise, add all of them as a single conjunction
    */
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
