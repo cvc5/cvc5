@@ -71,7 +71,7 @@ Node BVToInt::maxInt(uint64_t k)
 
 Node BVToInt::pow2(uint64_t k)
 {
-  Assert(k > 0);
+  Assert(k >= 0);
   return d_nm->mkConst<Rational>(intpow(2, k));
 }
 
@@ -766,10 +766,6 @@ Node BVToInt::bvToInt(Node n)
               }
             }
           }
-          Trace("bv-to-int-debug")
-              << "Node: " << current.toString() << std::endl
-              << "Translation: " << d_bvToIntCache[current].toString()
-              << std::endl;
         }
         toVisit.pop_back();
       }
@@ -794,8 +790,12 @@ PreprocessingPassResult BVToInt::applyInternal(
   AlwaysAssert(!options::incrementalSolving());
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
+    Node bvNode = (*assertionsToPreprocess)[i];
+    Node intNode = Rewriter::rewrite(bvToInt(bvNode));
+    Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
+    Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
     assertionsToPreprocess->replace(
-        i, Rewriter::rewrite(bvToInt((*assertionsToPreprocess)[i])));
+        i, intNode);
   }
   addFinalizeRangeAssertions(assertionsToPreprocess);
   return PreprocessingPassResult::NO_CONFLICT;
@@ -809,11 +809,14 @@ void BVToInt::addFinalizeRangeAssertions(
   if (vec_range.size() == 1)
   {
     assertionsToPreprocess->push_back(vec_range[0]);
+    Trace("bv-to-int-debug") << "range constraints: " << vec_range[0].toString() << std::endl;
   }
   else if (vec_range.size() >= 2)
   {
     Node rangeAssertions =
         Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
+    assertionsToPreprocess->push_back(rangeAssertions);
+    Trace("bv-to-int-debug") << "range constraints: " << rangeAssertions.toString() << std::endl;
   }
 }
 
