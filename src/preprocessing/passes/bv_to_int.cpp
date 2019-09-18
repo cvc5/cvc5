@@ -368,115 +368,117 @@ Node BVToInt::bvToInt(Node n)
             case kind::BITVECTOR_PLUS:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-                //  we avoid modular arithmetics by the addition of an indicator variable sigma.
-                // a+b is transformed to Tr(a)+Tr(b)-(sigma*2^k), with k being the bitwidth.
-                Node sigma = d_nm->mkSkolem(
-                    "__bvToInt_sigma_var",
-                    d_nm->integerType(),
-                    "Variable introduced in bvToInt pass to avoid integer mod");
-                Node plus = d_nm->mkNode(kind::PLUS, intized_children);
-                Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
-                d_bvToIntCache[current] =
-                    d_nm->mkNode(kind::MINUS, plus, multSig);
-                d_rangeAssertions.insert(mkRangeConstraint(sigma, 0));
-                d_rangeAssertions.insert(
-                    mkRangeConstraint(d_bvToIntCache[current], bvsize));
+              //  we avoid modular arithmetics by the addition of an indicator
+              //  variable sigma.
+              // a+b is transformed to Tr(a)+Tr(b)-(sigma*2^k), with k being the
+              // bitwidth.
+              Node sigma = d_nm->mkSkolem(
+                  "__bvToInt_sigma_var",
+                  d_nm->integerType(),
+                  "Variable introduced in bvToInt pass to avoid integer mod");
+              Node plus = d_nm->mkNode(kind::PLUS, intized_children);
+              Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
+              d_bvToIntCache[current] =
+                  d_nm->mkNode(kind::MINUS, plus, multSig);
+              d_rangeAssertions.insert(mkRangeConstraint(sigma, 0));
+              d_rangeAssertions.insert(
+                  mkRangeConstraint(d_bvToIntCache[current], bvsize));
               break;
             }
             case kind::BITVECTOR_MULT:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-                // we use a similar trick to the one used for addition.
-                Node sigma = d_nm->mkSkolem(
-                    "__bvToInt_sigma_var",
-                    d_nm->integerType(),
-                    "Variable introduced in bvToInt pass to avoid integer mod");
-                Node mult = d_nm->mkNode(kind::MULT, intized_children);
-                Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
-                d_bvToIntCache[current] =
-                    d_nm->mkNode(kind::MINUS, mult, multSig);
+              // we use a similar trick to the one used for addition.
+              Node sigma = d_nm->mkSkolem(
+                  "__bvToInt_sigma_var",
+                  d_nm->integerType(),
+                  "Variable introduced in bvToInt pass to avoid integer mod");
+              Node mult = d_nm->mkNode(kind::MULT, intized_children);
+              Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
+              d_bvToIntCache[current] =
+                  d_nm->mkNode(kind::MINUS, mult, multSig);
 
-                Node sig_lower =
-                    d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), sigma);
-                if (intized_children[0].isConst())
-                {
-                  Node sig_upper =
-                      d_nm->mkNode(kind::LT, sigma, intized_children[0]);
-                  d_rangeAssertions.insert(
-                      d_nm->mkNode(kind::AND, sig_lower, sig_upper));
-                }
-                else if (intized_children[1].isConst())
-                {
-                  Node sig_upper =
-                      d_nm->mkNode(kind::LT, sigma, intized_children[1]);
-                  d_rangeAssertions.insert(
-                      d_nm->mkNode(kind::AND, sig_lower, sig_upper));
-                }
-                else
-                {
-                  d_rangeAssertions.insert(
-                      mkRangeConstraint(d_bvToIntCache[current], bvsize));
-                }
+              Node sig_lower =
+                  d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), sigma);
+              if (intized_children[0].isConst())
+              {
+                Node sig_upper =
+                    d_nm->mkNode(kind::LT, sigma, intized_children[0]);
+                d_rangeAssertions.insert(
+                    d_nm->mkNode(kind::AND, sig_lower, sig_upper));
+              }
+              else if (intized_children[1].isConst())
+              {
+                Node sig_upper =
+                    d_nm->mkNode(kind::LT, sigma, intized_children[1]);
+                d_rangeAssertions.insert(
+                    d_nm->mkNode(kind::AND, sig_lower, sig_upper));
+              }
+              else
+              {
+                d_rangeAssertions.insert(
+                    mkRangeConstraint(d_bvToIntCache[current], bvsize));
+              }
               break;
             }
             case kind::BITVECTOR_UDIV_TOTAL:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-                //  we use an ITE for the case where the second operand is 0.
-                Node pow2BvSize = pow2(bvsize);
-                Node divNode =
-                    d_nm->mkNode(kind::INTS_DIVISION_TOTAL, intized_children);
-                Node ite = d_nm->mkNode(
-                    kind::ITE,
-                    d_nm->mkNode(kind::EQUAL,
-                                 intized_children[1],
-                                 d_nm->mkConst<Rational>(0)),
-                    d_nm->mkNode(
-                        kind::MINUS, pow2BvSize, d_nm->mkConst<Rational>(1)),
-                    divNode);
-                d_bvToIntCache[current] = ite;
+              //  we use an ITE for the case where the second operand is 0.
+              Node pow2BvSize = pow2(bvsize);
+              Node divNode =
+                  d_nm->mkNode(kind::INTS_DIVISION_TOTAL, intized_children);
+              Node ite = d_nm->mkNode(
+                  kind::ITE,
+                  d_nm->mkNode(kind::EQUAL,
+                               intized_children[1],
+                               d_nm->mkConst<Rational>(0)),
+                  d_nm->mkNode(
+                      kind::MINUS, pow2BvSize, d_nm->mkConst<Rational>(1)),
+                  divNode);
+              d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_UREM_TOTAL:
             {
-                //  we use an ITE for the case where the second operand is 0.
-                Node modNode =
-                    d_nm->mkNode(kind::INTS_MODULUS_TOTAL, intized_children);
-                Node ite = d_nm->mkNode(kind::ITE,
-                                        d_nm->mkNode(kind::EQUAL,
-                                                     intized_children[1],
-                                                     d_nm->mkConst<Rational>(0)),
-                                        intized_children[0],
-                                        modNode);
-                d_bvToIntCache[current] = ite;
+              //  we use an ITE for the case where the second operand is 0.
+              Node modNode =
+                  d_nm->mkNode(kind::INTS_MODULUS_TOTAL, intized_children);
+              Node ite = d_nm->mkNode(kind::ITE,
+                                      d_nm->mkNode(kind::EQUAL,
+                                                   intized_children[1],
+                                                   d_nm->mkConst<Rational>(0)),
+                                      intized_children[0],
+                                      modNode);
+              d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_NEG:
             {
-                //  we use an ITE for the case where the second operand is 0.
-                uint64_t bvsize = current[0].getType().getBitVectorSize();
-                Node pow2BvSize = pow2(bvsize);
-                vector<Node> children = {pow2BvSize, intized_children[0]};
-                Node neg = d_nm->mkNode(kind::MINUS, children);
-                Node zero = d_nm->mkConst<Rational>(0);
-                Node isZero =
-                    d_nm->mkNode(kind::EQUAL, intized_children[0], zero);
-                d_bvToIntCache[current] =
-                    d_nm->mkNode(kind::ITE, isZero, zero, neg);
+              //  we use an ITE for the case where the second operand is 0.
+              uint64_t bvsize = current[0].getType().getBitVectorSize();
+              Node pow2BvSize = pow2(bvsize);
+              vector<Node> children = {pow2BvSize, intized_children[0]};
+              Node neg = d_nm->mkNode(kind::MINUS, children);
+              Node zero = d_nm->mkConst<Rational>(0);
+              Node isZero =
+                  d_nm->mkNode(kind::EQUAL, intized_children[0], zero);
+              d_bvToIntCache[current] =
+                  d_nm->mkNode(kind::ITE, isZero, zero, neg);
               break;
             }
             case kind::BITVECTOR_NOT:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-                //  we use a specified function to generate the node.
-                d_bvToIntCache[current] =
+              //  we use a specified function to generate the node.
+              d_bvToIntCache[current] =
                   createBVNotNode(intized_children[0], bvsize);
               break;
             }
             case kind::BITVECTOR_TO_NAT:
             {
-              //In this case, we already translated the child to integer.
-              //So the result is the translated child.
+              // In this case, we already translated the child to integer.
+              // So the result is the translated child.
               d_bvToIntCache[current] = intized_children[0];
               break;
             }
