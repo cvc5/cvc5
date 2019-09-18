@@ -32,7 +32,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ArithInstantiator::ArithInstantiator(TypeNode tn) : Instantiator(tn)
+ArithInstantiator::ArithInstantiator(TypeNode tn, VtsTermCache* vtc)
+    : Instantiator(tn), d_vtc(vtc)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -43,10 +44,8 @@ void ArithInstantiator::reset(CegInstantiator* ci,
                               Node pv,
                               CegInstEffort effort)
 {
-  d_vts_sym[0] = ci->getQuantifiersEngine()->getTermUtil()->getVtsInfinity(
-      d_type, false, false);
-  d_vts_sym[1] =
-      ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta(false, false);
+  d_vts_sym[0] = d_vtc->getVtsInfinity(d_type, false, false);
+  d_vts_sym[1] = d_vtc->getVtsDelta(false, false);
   for (unsigned i = 0; i < 2; i++)
   {
     d_mbp_bounds[i].clear();
@@ -184,7 +183,10 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         uires = mkNegateCTT(ires);
         if (d_type.isInteger())
         {
-          uval = nm->mkNode(PLUS, val, nm->mkConst(Rational(uires)));
+          uval = nm->mkNode(
+              PLUS,
+              val,
+              nm->mkConst(Rational(isUpperBoundCTT(uires) ? 1 : -1)));
           uval = Rewriter::rewrite(uval);
         }
         else
@@ -249,7 +251,8 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       if (d_type.isInteger())
       {
         uires = is_upper ? CEG_TT_LOWER : CEG_TT_UPPER;
-        uval = nm->mkNode(PLUS, val, nm->mkConst(Rational(uires)));
+        uval = nm->mkNode(
+            PLUS, val, nm->mkConst(Rational(isUpperBoundCTT(uires) ? 1 : -1)));
         uval = Rewriter::rewrite(uval);
       }
       else
@@ -284,7 +287,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       }
       else
       {
-        Node delta = ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta();
+        Node delta = d_vtc->getVtsDelta();
         uval = nm->mkNode(
             uires == CEG_TT_UPPER_STRICT ? PLUS : MINUS, uval, delta);
         uval = Rewriter::rewrite(uval);
@@ -353,8 +356,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             << "No " << (rr == 0 ? "lower" : "upper") << " bounds for " << pv
             << " (type=" << d_type << ")" << std::endl;
         // no bounds, we do +- infinity
-        Node val =
-            ci->getQuantifiersEngine()->getTermUtil()->getVtsInfinity(d_type);
+        Node val = d_vtc->getVtsInfinity(d_type);
         // could get rho value for infinity here
         if (rr == 0)
         {
@@ -1030,11 +1032,7 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
   {
     // create delta here if necessary
     val = nm->mkNode(
-        PLUS,
-        val,
-        nm->mkNode(MULT,
-                   delta_coeff,
-                   ci->getQuantifiersEngine()->getTermUtil()->getVtsDelta()));
+        PLUS, val, nm->mkNode(MULT, delta_coeff, d_vtc->getVtsDelta()));
     val = Rewriter::rewrite(val);
   }
   return val;

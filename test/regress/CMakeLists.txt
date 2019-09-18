@@ -363,6 +363,7 @@ set(regress_0_tests
   regress0/datatypes/dt-2.6.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
   regress0/datatypes/dt-param-2.6.smt2
+  regress0/datatypes/dt-param-2.6-print.smt2
   regress0/datatypes/dt-param-card4-bool-sat.smt2
   regress0/datatypes/dt-sel-2.6.smt2
   regress0/datatypes/empty_tuprec.cvc
@@ -1139,6 +1140,7 @@ set(regress_1_tests
   regress1/datatypes/dt-color-2.6.smt2
   regress1/datatypes/dt-param-card4-unsat.smt2
   regress1/datatypes/error.cvc
+  regress1/datatypes/issue3266-small.smt2
   regress1/datatypes/manos-model.smt2
   regress1/decision/error3.smtv1.smt2
   regress1/decision/quant-Arrays_Q1-noinfer.smt2
@@ -1194,6 +1196,7 @@ set(regress_1_tests
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
   regress1/ho/fta0328.lfho.p
+  regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2
@@ -1700,6 +1703,7 @@ set(regress_1_tests
   regress1/sygus/planning-unif.sy
   regress1/sygus/process-10-vars.sy
   regress1/sygus/qe.sy
+  regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy

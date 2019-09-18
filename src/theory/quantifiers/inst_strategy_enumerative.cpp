@@ -32,8 +32,8 @@ using namespace inst;
 
 namespace quantifiers {
 
-InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe)
-    : QuantifiersModule(qe)
+InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd)
+    : QuantifiersModule(qe), d_rd(rd)
 {
 }
 
@@ -93,18 +93,17 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   // this stratification since effort level r=1 may be highly expensive in the
   // case where we have a quantified formula with many entailed instances.
   FirstOrderModel* fm = d_quantEngine->getModel();
-  RelevantDomain* rd = d_quantEngine->getRelevantDomain();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   std::map<Node, bool> alreadyProc;
   for (unsigned r = rstart; r <= rend; r++)
   {
-    if (rd || r > 0)
+    if (d_rd || r > 0)
     {
       if (r == 0)
       {
         Trace("inst-alg") << "-> Relevant domain instantiate..." << std::endl;
         Trace("inst-alg-debug") << "Compute relevant domain..." << std::endl;
-        rd->compute();
+        d_rd->compute();
         Trace("inst-alg-debug") << "...finished" << std::endl;
       }
       else
@@ -161,7 +160,6 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
   {
     return false;
   }
-  RelevantDomain* rd = d_quantEngine->getRelevantDomain();
   unsigned final_max_i = 0;
   std::vector<unsigned> maxs;
   std::vector<bool> max_zero;
@@ -178,7 +176,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
     unsigned ts;
     if (isRd)
     {
-      ts = rd->getRDomain(f, i)->d_terms.size();
+      ts = d_rd->getRDomain(f, i)->d_terms.size();
     }
     else
     {
@@ -284,9 +282,9 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
             }
             else if (isRd)
             {
-              terms.push_back(rd->getRDomain(f, i)->d_terms[childIndex[i]]);
+              terms.push_back(d_rd->getRDomain(f, i)->d_terms[childIndex[i]]);
               Trace("inst-alg-rd")
-                  << "  " << rd->getRDomain(f, i)->d_terms[childIndex[i]]
+                  << "  " << d_rd->getRDomain(f, i)->d_terms[childIndex[i]]
                   << std::endl;
             }
             else

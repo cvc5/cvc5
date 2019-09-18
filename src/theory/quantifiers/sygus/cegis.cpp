@@ -85,7 +85,8 @@ bool Cegis::processInitialize(Node conj,
     {
       TypeNode ctn = candidates[i].getType();
       d_tds->registerSygusType(ctn);
-      if (d_tds->hasSubtermSymbolicCons(ctn))
+      SygusTypeInfo& cti = d_tds->getTypeInfo(ctn);
+      if (cti.hasSubtermSymbolicCons())
       {
         do_repair_const = true;
         // remember that we are doing grammar-based repair

@@ -34,16 +34,26 @@ bool hasSubterm(TNode n, TNode t, bool strict)
 
   toProcess.push_back(n);
 
+  // incrementally iterate and add to toProcess
   for (unsigned i = 0; i < toProcess.size(); ++i)
   {
     TNode current = toProcess[i];
-    if (current.hasOperator() && current.getOperator() == t)
+    for (unsigned j = 0, j_end = current.getNumChildren(); j <= j_end; ++j)
     {
-      return true;
-    }
-    for (unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++j)
-    {
-      TNode child = current[j];
+      TNode child;
+      // try children then operator
+      if (j < j_end)
+      {
+        child = current[j];
+      }
+      else if (current.hasOperator())
+      {
+        child = current.getOperator();
+      }
+      else
+      {
+        break;
+      }
       if (child == t)
       {
         return true;
@@ -115,6 +125,61 @@ bool hasSubtermMulti(TNode n, TNode t)
       visited[cur] = true;
     }
   } while (!visit.empty());
+  return false;
+}
+
+bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
+{
+  if (t.empty())
+  {
+    return false;
+  }
+  if (!strict && std::find(t.begin(), t.end(), n) != t.end())
+  {
+    return true;
+  }
+
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> toProcess;
+
+  toProcess.push_back(n);
+
+  // incrementally iterate and add to toProcess
+  for (unsigned i = 0; i < toProcess.size(); ++i)
+  {
+    TNode current = toProcess[i];
+    for (unsigned j = 0, j_end = current.getNumChildren(); j <= j_end; ++j)
+    {
+      TNode child;
+      // try children then operator
+      if (j < j_end)
+      {
+        child = current[j];
+      }
+      else if (current.hasOperator())
+      {
+        child = current.getOperator();
+      }
+      else
+      {
+        break;
+      }
+      if (std::find(t.begin(), t.end(), child) != t.end())
+      {
+        return true;
+      }
+      if (visited.find(child) != visited.end())
+      {
+        continue;
+      }
+      else
+      {
+        visited.insert(child);
+        toProcess.push_back(child);
+      }
+    }
+  }
+
   return false;
 }
 

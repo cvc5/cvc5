@@ -1229,6 +1229,20 @@ TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
   return d_func_map_trie[f].existsTerm( args );
 }
 
+Node TermDb::getHoTypeMatchPredicate(TypeNode tn)
+{
+  std::map<TypeNode, Node>::iterator ithp = d_ho_type_match_pred.find(tn);
+  if (ithp != d_ho_type_match_pred.end())
+  {
+    return ithp->second;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
+  Node k = nm->mkSkolem("U", ptn, "predicate to force higher-order types");
+  d_ho_type_match_pred[tn] = k;
+  return k;
+}
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
