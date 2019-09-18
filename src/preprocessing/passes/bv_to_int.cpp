@@ -34,11 +34,16 @@ namespace passes {
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
-//wrapper function to have an integer result (and not float)
+//wrapper function to cmath's pow function.
+//Casts the result to an integer. 
 uint64_t intpow(uint64_t a, uint64_t b) {
   return ((uint64_t) pow(a, b));
 }
 
+
+/**
+ * Helper functions for createBitwiseNode
+ */
 bool oneBitAnd(bool a, bool b) {
   return (a && b);
 }
@@ -64,14 +69,6 @@ bool oneBitNor(bool a, bool b) {
   return !(a || b);
 }
 
-void printCache(NodeMap m) {
-      for (auto const& pair: m) {
-        std::cout << "********************" << std::endl; 
-        std::cout << pair.first.toString() << std::endl;
-        std::cout << pair.second.toString() << std::endl;
-    }
-}
-
 Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k) {
   Node lower = d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), newVar);
   Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
@@ -82,7 +79,7 @@ Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k) {
 Node BVToInt::maxInt(uint64_t k)
 {
   Assert(k > 0);
-  uint64_t max_value = intpow(2, k)-1;
+  uint64_t max_value = pow(2, k)-1;
   Node result = d_nm->mkConst<Rational>(max_value);
   return result;
 }
@@ -98,16 +95,26 @@ Node BVToInt::modpow2(Node n, uint64_t exponent) {
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
+/**
+ * We traverse the node n top-town and then down up.
+ * On the way down, we push all sub-nodes to the stack.
+ * On the way up, we do the actual binarization.
+ * If a node is not in the cache, that means we are on the way down.
+ * If a node is in the cache and is assigned a null node, we are now visiting it on the way back up.
+ * If a node is in the caache and is assigned a non-null node, we already binarized it.
+ */
 Node BVToInt::makeBinary(Node n)
 {
   vector<Node> toVisit;
   toVisit.push_back(n);
   while (!toVisit.empty())
   {
-    // The current node we are processing
     Node current = toVisit.back();
     uint64_t numChildren = current.getNumChildren();
     if (d_binarizeCache.find(current) == d_binarizeCache.end()) {
+      //We stil haven't visited the sub-dag rooted at current
+      //In this case, we:
+      //mark that we have visited this node by assigning a null node to it in the cache, and add its children to toVisit.
       d_binarizeCache[current] = Node();
       for (uint64_t i=0; i<numChildren; i++) 
       {
@@ -116,6 +123,8 @@ Node BVToInt::makeBinary(Node n)
     }
     else if (d_binarizeCache[current].isNull())
     {
+      //We already visited the sub-dag rooted at current, and binarized all its children.
+      //Now we binarize current itself.
       toVisit.pop_back();
       kind::Kind_t k = current.getKind();
       if ((numChildren > 2)  && (k == kind::BITVECTOR_PLUS ||
@@ -125,6 +134,7 @@ Node BVToInt::makeBinary(Node n)
             k == kind::BITVECTOR_XOR ||
             k == kind::BITVECTOR_CONCAT
             )) {
+        //We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
         Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
         Node result = d_binarizeCache[current[0]];
         for (uint64_t i = 1; i < numChildren; i++)
@@ -135,6 +145,7 @@ Node BVToInt::makeBinary(Node n)
         }
         d_binarizeCache[current] = result;
       } else if (numChildren > 0) {
+        //current has children, but we do not binarize it
           vector<Node> binarized_children;
           if (current.getKind() == kind::BITVECTOR_EXTRACT || current.getKind() == kind::APPLY_UF) { 
             binarized_children.push_back(current.getOperator());
@@ -144,11 +155,13 @@ Node BVToInt::makeBinary(Node n)
           }
           d_binarizeCache[current] = d_nm->mkNode(k, binarized_children);
       } else {
-          d_binarizeCache[current] = current;
+        //current has no children
+        d_binarizeCache[current] = current;
       }
     }
     else
     {
+      We already binarize current and it is in the cache.
       toVisit.pop_back();
       continue;
     }
@@ -156,7 +169,13 @@ Node BVToInt::makeBinary(Node n)
   return d_binarizeCache[n];
 }
 
-//eliminate many bit-vector operators before the translation to integers.
+/**
+ * We traverse n.
+ * For each sub-node, we perform rewrites to eliminate operators.
+ * Then, the original children are added to toVisit stack so that we rewrite them as well.
+ * Whenever we rewrite a node, we add it and its eliminated version to the stack. 
+ * This is marked in the stack by the addition of a null node.
+ */
 Node BVToInt::eliminationPass(Node n) {
   std::vector<Node> toVisit;
   toVisit.push_back(n);
@@ -166,14 +185,19 @@ Node BVToInt::eliminationPass(Node n) {
     current = toVisit.back();
     toVisit.pop_back();
     if (current.isNull()) {
+      //We computed the node obtained from current after elimination.
+      //The next elements in the stack are the eliminated node and the original node.
       currentEliminated = toVisit.back();
       toVisit.pop_back();
       current = toVisit.back();
       toVisit.pop_back();
       uint64_t numChildren = currentEliminated.getNumChildren();
       if (numChildren == 0) {
+        //We only eliminate operators that are not nullary.
         d_eliminationCache[current] = currentEliminated;
       } else {
+        //The main operator is replaced, and the children
+        //are replaced with their eliminated counterparts.
         vector<Node> children;
         if (currentEliminated.getKind() == kind::BITVECTOR_EXTRACT || currentEliminated.getKind() == kind::APPLY_UF) {
           children.push_back(currentEliminated.getOperator());
@@ -185,35 +209,38 @@ Node BVToInt::eliminationPass(Node n) {
         d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getKind(), children); 
       }
     } else {
-        if (d_eliminationCache.find(current) != d_eliminationCache.end()) {
-          continue;
-        } else {
-            currentEliminated = FixpointRewriteStrategy<
-               RewriteRule<UdivZero>,
-            	 RewriteRule<SdivEliminate>,
-            	 RewriteRule<SremEliminate>,
-            	 RewriteRule<SmodEliminate>,
-            	 RewriteRule<RepeatEliminate>,
-               RewriteRule<ZeroExtendEliminate>,
-            	 RewriteRule<SignExtendEliminate>,
-            	 RewriteRule<RotateRightEliminate>,
-            	 RewriteRule<RotateLeftEliminate>,
-            	 RewriteRule<CompEliminate>,
-            	 RewriteRule<SleEliminate>,
-            	 RewriteRule<SltEliminate>,
-            	 RewriteRule<SgtEliminate>,
-            	 RewriteRule<SgeEliminate>,
-               RewriteRule<ShlByConst>,
-               RewriteRule<LshrByConst>
-	            >::apply(current);
-            toVisit.push_back(current);
-            toVisit.push_back(currentEliminated);
-            toVisit.push_back(Node());
-            uint64_t numChildren = currentEliminated.getNumChildren();
-            for (uint64_t i = 0; i < numChildren; i++) {
-              toVisit.push_back(currentEliminated[i]);
-            }
-        }
+      if (d_eliminationCache.find(current) != d_eliminationCache.end()) {
+        continue;
+      } else {
+          //We still haven't computed the result of the elimination for the current node.
+          //This is computed by performing elimination rewrites.
+          currentEliminated = FixpointRewriteStrategy<
+             RewriteRule<UdivZero>,
+          	 RewriteRule<SdivEliminate>,
+          	 RewriteRule<SremEliminate>,
+          	 RewriteRule<SmodEliminate>,
+          	 RewriteRule<RepeatEliminate>,
+             RewriteRule<ZeroExtendEliminate>,
+          	 RewriteRule<SignExtendEliminate>,
+          	 RewriteRule<RotateRightEliminate>,
+          	 RewriteRule<RotateLeftEliminate>,
+          	 RewriteRule<CompEliminate>,
+          	 RewriteRule<SleEliminate>,
+          	 RewriteRule<SltEliminate>,
+          	 RewriteRule<SgtEliminate>,
+          	 RewriteRule<SgeEliminate>,
+             RewriteRule<ShlByConst>,
+             RewriteRule<LshrByConst>
+            >::apply(current);
+          //push the node, the resulting node after elimination, and a null node, to mark that the top two elements of the stack should be added to the cache.
+          toVisit.push_back(current);
+          toVisit.push_back(currentEliminated);
+          toVisit.push_back(Node());
+          uint64_t numChildren = currentEliminated.getNumChildren();
+          for (uint64_t i = 0; i < numChildren; i++) {
+            toVisit.push_back(currentEliminated[i]);
+          }
+      }
     }
   }
   return d_eliminationCache[n];
@@ -225,28 +252,31 @@ Node BVToInt::bvToInt(Node n)
   n = makeBinary(n);
   vector<Node> toVisit;
   toVisit.push_back(n);
-  Node one_const = d_nm->mkConst<Rational>(1);
-
-
+  
   while (!toVisit.empty())
   {
     Node current = toVisit.back();
     uint64_t currentNumChildren = current.getNumChildren();
     if (d_bvToIntCache.find(current) == d_bvToIntCache.end()) {
+      //This is the first time we visit this node and it is not in the cache.
       d_bvToIntCache[current] = Node();
       for (uint64_t i=0; i < currentNumChildren; i++) {
 	      toVisit.push_back(current[i]);
       }
     } else {
+      //We already visited this node
       if (!d_bvToIntCache[current].isNull()) {
+        //We are done computing the translation for current
 	      toVisit.pop_back();
       } else {
-        kind::Kind_t oldKind = current.getKind();
+        //We are now visiting current on the way back up.
+        //This is when we do the actual translation.
         if (currentNumChildren == 0) {
           if (current.isVar())
           {
             if (current.getType().isBitVector())
             {
+              //For bit-vector variables, we create integer variables and add a range constraint.
               Node newVar = d_nm->mkSkolem("__bvToInt_var",
                                     d_nm->integerType(),
                                     "Variable introduced in bvToInt pass instead of original variable " + current.toString());
@@ -271,6 +301,7 @@ Node BVToInt::bvToInt(Node n)
               }
               case kind::CONST_BITVECTOR:
               {
+                //Bit-vector cnostants are transformed into their integer value.
                 BitVector constant(current.getConst<BitVector>());
 	              Integer c = constant.toInteger();
                 d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
@@ -296,12 +327,14 @@ Node BVToInt::bvToInt(Node n)
           }
 	  
 	} else {
+    //The current node has children.
 	  vector<Node> intized_children;
 	  for (uint64_t i=0; i<currentNumChildren; i++) {
 	    intized_children.push_back(d_bvToIntCache[current[i]]);
 	  }
-    
-	  switch (oldKind)
+	  //The translation of the current node is determined by the kind of the node.
+    kind::Kind_t oldKind = current.getKind();
+    switch (oldKind)
           {
             case kind::BITVECTOR_PLUS: 
             {
