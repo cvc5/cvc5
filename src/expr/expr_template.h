@@ -456,7 +456,13 @@ public:
    * @return true if this expression is parameterized.
    * 
    * In detail, a node that is parameterized is one that has an operator that
-   * must be provided in addition to its kind to construct it.
+   * must be provided in addition to its kind to construct it. For example,
+   * say we want to re-construct an Expr e where its children a1, ..., an are 
+   * replaced by b1 ... bn. Then there are two cases:
+   * (1) If e is parametric, call:
+   *   ExprManager::mkExpr(e.getKind(), e.getOperator(), b1, ..., bn )
+   * (2) If e is not parametric, call:
+   *   ExprManager::mkExpr(e.getKind(), b1, ..., bn )
    */
   bool isParameterized() const;
   
