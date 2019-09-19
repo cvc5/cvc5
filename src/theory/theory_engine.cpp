@@ -274,7 +274,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_masterEqualityEngine(nullptr),
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
-      d_decManager(new DecisionManager(context)),
+      d_decManager(new DecisionManager(userContext)),
       d_curr_model(nullptr),
       d_aloc_curr_model(false),
       d_curr_model_builder(nullptr),
@@ -910,6 +910,10 @@ bool TheoryEngine::presolve() {
   // Reset the interrupt flag
   d_interrupted = false;
 
+  // Reset the decision manager. This clears its decision strategies that are
+  // no longer valid in this user context.
+  d_decManager->presolve();
+
   try {
     // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
@@ -933,9 +937,6 @@ bool TheoryEngine::presolve() {
 }/* TheoryEngine::presolve() */
 
 void TheoryEngine::postsolve() {
-  // Reset the decision manager. This clears its decision strategies, which are
-  // user-context-dependent.
-  d_decManager->reset();
   // no longer in SAT mode
   d_inSatMode = false;
   // Reset the interrupt flag
