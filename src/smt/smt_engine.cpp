@@ -1215,43 +1215,39 @@ void SmtEngine::setDefaults() {
     d_logic = LogicInfo("QF_BV");
   }
 
-  // set strings-exp
-  /* - disabled for 1.4 release [MGD 2014.06.25]
-  if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
-    if(! options::stringExp.wasSetByUser()) {
-      options::stringExp.set( true );
-      Trace("smt") << "turning on strings-exp, for the theory of strings" << std::endl;
-    }
-  }
-  */
-  // for strings
-  if(options::stringExp()) {
-    if( !d_logic.isQuantified() ) {
+  // set default options associated with strings-exp
+  if (options::stringExp())
+  {
+    // We require quantifiers since extended functions reduce using them
+    if (!d_logic.isQuantified())
+    {
       d_logic = d_logic.getUnlockedCopy();
       d_logic.enableQuantifiers();
       d_logic.lock();
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    if(! options::fmfBound.wasSetByUser()) {
+    // We require bounded quantifier handling.
+    if (!options::fmfBound.wasSetByUser())
+    {
       options::fmfBound.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
-    if(! options::fmfInstEngine.wasSetByUser()) {
-      options::fmfInstEngine.set( true );
-      Trace("smt") << "turning on fmf-inst-engine, for strings-exp" << std::endl;
+    // Turn off E-matching, since some bounded quantifiers introduced by strings
+    // (e.g. for replaceall) admit matching loops.
+    if (!options::eMatching.wasSetByUser())
+    {
+      options::eMatching.set(false);
+      Trace("smt") << "turning off E-matching, for strings-exp" << std::endl;
     }
-    /*
-    if(! options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
-      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
-    }*/
-    /*
-    if(! options::stringFMF.wasSetByUser()) {
-      options::stringFMF.set( true );
-      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
+    // Do not eliminate extended arithmetic symbols from quantified formulas,
+    // since some strategies, e.g. --re-elim-agg, introduce them.
+    if (!options::elimExtArithQuant.wasSetByUser())
+    {
+      options::elimExtArithQuant.set(false);
+      Trace("smt") << "turning off elim-ext-arith-quant, for strings-exp"
+                   << std::endl;
     }
-    */
   }
 
   // sygus inference may require datatypes
@@ -1808,8 +1804,6 @@ void SmtEngine::setDefaults() {
   //now have determined whether fmfBoundInt is on/off
   //apply fmfBoundInt options
   if( options::fmfBound() ){
-    //must have finite model finding on
-    options::finiteModelFind.set( true );
     if (!options::mbqiMode.wasSetByUser()
         || (options::mbqiMode() != quantifiers::MBQI_NONE
             && options::mbqiMode() != quantifiers::MBQI_FMC))
