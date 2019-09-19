@@ -58,6 +58,7 @@ Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k)
   Node lower = d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), newVar);
   Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
   Node result = d_nm->mkNode(kind::AND, lower, upper);
+  result = Rewriter::rewrite(result);
   return result;
 }
 
