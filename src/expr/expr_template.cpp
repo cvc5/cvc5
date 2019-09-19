@@ -414,7 +414,7 @@ bool Expr::isParameterized() const
 {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->getMetaKind()==kind::metakind::PARAMETERIZED;
+  return d_node->getMetaKind() == kind::metakind::PARAMETERIZED;
 }
 
 Type Expr::getType(bool check) const
