@@ -28,7 +28,7 @@
  ** The size of each block is the granularity, and so the number of
  ** blocks is:
  ** bitwidth/granularity (rounded down).
- ** We create an ITE that rebresents an arbitrary block, 
+ ** We create an ITE that resresents an arbitrary block, 
  ** and then create a sum by mutiplying each block by the 
  ** appropriate power of two.
  ** More formally:
