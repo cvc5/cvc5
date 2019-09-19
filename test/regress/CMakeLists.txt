@@ -1649,6 +1649,7 @@ set(regress_1_tests
   regress1/sygus/clock-inc-tuple.sy
   regress1/sygus/commutative-stream.sy
   regress1/sygus/commutative.sy
+  regress1/sygus/concat_extract_example.sy
   regress1/sygus/constant-bool-si-all.sy
   regress1/sygus/constant-dec-tree-bug.sy
   regress1/sygus/constant-ite-bv.sy
