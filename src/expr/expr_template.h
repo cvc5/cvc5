@@ -449,6 +449,17 @@ public:
    */
   Expr getOperator() const;
 
+
+  /**
+   * Check if this is an expression is parameterized.
+   *
+   * @return true if this expression is parameterized.
+   * 
+   * In detail, a node that is parameterized is one that has an operator that
+   * must be provided in addition to its kind to construct it.
+   */
+  bool isParameterized() const;
+  
   /**
    * Get the type for this Expr and optionally do type checking.
    *
