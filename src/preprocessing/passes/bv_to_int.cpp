@@ -113,8 +113,9 @@ Node BVToInt::makeBinary(Node n)
     }
     else if (d_binarizeCache[current].isNull())
     {
-      // We already visited the sub-dag rooted at the current node, and binarized all its
-      // children. Now we binarize the current node itself.
+      // We already visited the sub-dag rooted at the current node, 
+      // and binarized all its children. 
+      // Now we binarize the current node itself.
       toVisit.pop_back();
       kind::Kind_t k = current.getKind();
       if ((numChildren > 2)
@@ -170,9 +171,10 @@ Node BVToInt::makeBinary(Node n)
  * On the way up, we update the node's children to the rewritten ones.
  * For each sub-node, we perform rewrites to eliminate operators.
  * Then, the original children are added to toVisit stack so that we rewrite
- * them as well. Whenever we rewrite a node, we add it and its eliminated
- * version to the stack. This is marked in the stack by the addition of a null
- * node.
+ * them as well. 
+ * Whenever we rewrite a node, we add it and its eliminated
+ * version to the stack. 
+ * This is marked in the stack by the addition of a null node.
  */
 Node BVToInt::eliminationPass(Node n)
 {
@@ -187,8 +189,8 @@ Node BVToInt::eliminationPass(Node n)
     if (current.isNull())
     {
       // We computed the node obtained from current after elimination.
-      // The next elements in the stack are the eliminated node and the original
-      // node.
+      // The next elements in the stack are 
+      // the eliminated node and the original node.
       currentEliminated = toVisit.back();
       toVisit.pop_back();
       current = toVisit.back();
@@ -228,7 +230,8 @@ Node BVToInt::eliminationPass(Node n)
       else
       {
         // We still haven't computed the result of the elimination for the
-        // current node. This is computed by performing elimination rewrites.
+        // current node. 
+        // This is computed by performing elimination rewrites.
         currentEliminated =
             FixpointRewriteStrategy<RewriteRule<UdivZero>,
                                     RewriteRule<SdivEliminate>,
@@ -337,8 +340,7 @@ Node BVToInt::bvToInt(Node n)
               }
               case kind::CONST_BITVECTOR:
               {
-                // Bit-vector cnostants are transformed into their integer
-                // value.
+                // Bit-vector cnostants are transformed into their integer value.
                 BitVector constant(current.getConst<BitVector>());
                 Integer c = constant.toInteger();
                 d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
@@ -365,7 +367,8 @@ Node BVToInt::bvToInt(Node n)
         else
         {
           // The current node has children.
-          // Since we are on the way back up, these children were already translated.
+          // Since we are on the way back up, 
+          // these children were already translated.
           // We save their translation for future use.
           vector<Node> intized_children;
           for (uint64_t i = 0; i < currentNumChildren; i++)
@@ -380,8 +383,10 @@ Node BVToInt::bvToInt(Node n)
             case kind::BITVECTOR_PLUS:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-                //  we avoid modular arithmetics by the addition of an indicator variable sigma.
-                // a+b is transformed to Tr(a)+Tr(b)-(sigma*2^k), with k being the bitwidth,
+                // we avoid modular arithmetics by the addition of an 
+                // indicator variable sigma.
+                // a+b is transformed to Tr(a)+Tr(b)-(sigma*2^k), 
+                // with k being the bitwidth,
                 // and sigma being either 0 or 1.
                 Node sigma = d_nm->mkSkolem(
                     "__bvToInt_sigma_var",
@@ -734,7 +739,8 @@ Node BVToInt::bvToInt(Node n)
             {
               // we replace any BV uninterpreted function with 
               // an integer function. 
-              // The output of the integer function is done modulo 2 to the power of the bitwidth.
+              // The output of the integer function is 
+              // done modulo 2 to the power of the bitwidth.
               TypeNode tn = current.getOperator().getType();
               vector<TypeNode> bvDomain = tn.getArgTypes();
               TypeNode bvRange = tn.getRangeType();
@@ -822,14 +828,16 @@ void BVToInt::addFinalizeRangeAssertions(
   if (vec_range.size() == 1)
   {
     assertionsToPreprocess->push_back(vec_range[0]);
-    Trace("bv-to-int-debug") << "range constraints: " << vec_range[0].toString() << std::endl;
+    Trace("bv-to-int-debug") << "range constraints: " << 
+      vec_range[0].toString() << std::endl;
   }
   else if (vec_range.size() >= 2)
   {
     Node rangeAssertions =
         Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
     assertionsToPreprocess->push_back(rangeAssertions);
-    Trace("bv-to-int-debug") << "range constraints: " << rangeAssertions.toString() << std::endl;
+    Trace("bv-to-int-debug") << "range constraints: " << 
+      rangeAssertions.toString() << std::endl;
   }
 }
 
@@ -850,7 +858,7 @@ Node BVToInt::createShiftNode(vector<Node> children,
                        ite);
   }
   // from smtlib:
-  //[[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
+  // [[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
   // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
   // Since we don't have exponentiation, we use the ite declared above.
   Node result;
