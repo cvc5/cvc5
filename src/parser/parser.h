@@ -720,13 +720,23 @@ public:
    */
   inline size_t scopeLevel() const { return d_symtab->getLevel(); }
 
+  /**
+   * Pushes a scope.
+   */
   inline void pushScope(bool bindingLevel = false) {
     d_symtab->pushScope();
     if(!bindingLevel) {
       d_assertionLevel = scopeLevel();
     }
   }
-
+  /**
+   * Pushes a scope with new bound variables are bound to types based on the
+   * entries in sortedVarNames. This method returns a bound variable list
+   * containing each of these variables.
+   */
+  Expr pushScopeWithDefs(std::vector<std::pair<std::string, Type> >& sortedVarNames,
+                        bool bindingLevel = false);
+  
   inline void popScope() {
     d_symtab->popScope();
     if(scopeLevel() < d_assertionLevel) {

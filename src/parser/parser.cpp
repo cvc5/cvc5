@@ -665,5 +665,13 @@ void Parser::attributeNotSupported(const std::string& attr) {
   }
 }
 
+Expr Parser::pushScopeWithDefs(std::vector<std::pair<std::string, Type> >& sortedVarNames,
+                      bool bindingLevel) {
+  pushScope(bindingLevel);
+  std::vector<Expr> bvs = mkBoundVars(sortedVarNames);
+  return getExprManager()->mkExpr(kind::BOUND_VAR_LIST, bvs);
+}
+  
+  
 } /* CVC4::parser namespace */
 } /* CVC4 namespace */
