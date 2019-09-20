@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --sygus-out=status --lang=sygus2
 (set-logic BV)
 (synth-fun f (( x (_ BitVec 32))) (_ BitVec 32)
 	((BV32 (_ BitVec 32)) ( BV16 (_ BitVec 16)))
