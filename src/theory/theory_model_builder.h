@@ -117,9 +117,9 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * If n is assignable, this method returns true and adds the constants that
    * have been assigned to its assignment exclusion set to eset.
    */
-  bool isAssignable(TheoryModel* m, TNode n, std::vector< Node >& eset); 
+  bool isAssignable(TheoryModel* m, TNode n, std::vector<Node>& eset);
   /** same as above, but without eset */
-  bool isAssignable(TheoryModel* m, TNode n); 
+  bool isAssignable(TheoryModel* m, TNode n);
   /** is n an assignable expression?
    *
    * A term n is an assignable expression if its value is unconstrained by a
