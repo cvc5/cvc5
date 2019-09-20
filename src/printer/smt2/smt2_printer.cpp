@@ -861,7 +861,8 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ')';
     return;
   }
-  case kind::INST_PATTERN: break;
+  case kind::INST_PATTERN:
+  case kind::INST_NO_PATTERN: break;
   case kind::INST_PATTERN_LIST:
   {
     for (const Node& nc : n)
