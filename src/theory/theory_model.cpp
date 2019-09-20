@@ -257,14 +257,14 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     return ret;
   }
   // it might be approximate
-  std::map< Node, Node >::const_iterator ita = d_approximations.find(n);
-  if (ita!=d_approximations.end())
+  std::map<Node, Node>::const_iterator ita = d_approximations.find(n);
+  if (ita != d_approximations.end())
   {
     // If the value of n is approximate based on predicate P(n), we return
     // choice z. P(z).
     Node v = nm->mkBoundVar(n.getType());
-    Node bvl = nm->mkNode(BOUND_VAR_LIST,v);
-    Node ret = nm->mkNode(CHOICE,bvl,ita->second.substitute(n,v));
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
+    Node ret = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
     d_modelCache[n] = ret;
     return ret;
   }
