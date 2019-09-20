@@ -44,7 +44,14 @@ bool TheoryEngineModelBuilder::isAssignable(TheoryModel* m,
   }
   for (unsigned i = 0, size = eset.size(); i < size; i++)
   {
-    // set to value or otherwise return false FIXME
+    // members of exclusion set must have values, otherwise we are not yet assignable
+    Node en = normalize(m,eset[i],true);
+    if( !en.isConst())
+    {
+      eset.clear();
+      return false;
+    }
+    eset[i] = en;
   }
   return true;
 }
