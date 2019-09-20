@@ -4214,7 +4214,8 @@ Expr SmtEngine::getValue(const Expr& ex) const
 
   // Ensure it's a constant, or a lambda (for uninterpreted functions), or
   // a choice (for approximate values).
-  Assert(resultNode.getKind() == kind::LAMBDA || resultNode.getKind() == kind::CHOICE || resultNode.isConst());
+  Assert(resultNode.getKind() == kind::LAMBDA
+         || resultNode.getKind() == kind::CHOICE || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);
