@@ -140,10 +140,10 @@ public:
    */
   void assertSkeleton(TNode n);
   /** set assignment exclusion set
-   * 
+   *
    * TODO
    */
-  void setAssignmentExclusionSet(TNode n, const std::vector< Node >& eset );
+  void setAssignmentExclusionSet(TNode n, const std::vector<Node>& eset);
   /** record approximation
    *
    * This notifies this model that the value of n was approximated in this
@@ -304,13 +304,13 @@ public:
   std::unordered_set<Kind, kind::KindHashFunction> d_not_evaluated_kinds;
   /** a set of kinds that are semi-evaluated */
   std::unordered_set<Kind, kind::KindHashFunction> d_semi_evaluated_kinds;
-  /** 
+  /**
    * Map of representatives of equality engine to used representatives in
-   * representative set 
+   * representative set
    */
   std::map<Node, Node> d_reps;
   /** Map of terms to their assignment exclusion set. */
-  std::map< Node, std::vector< Node > > d_assignExcSet;
+  std::map<Node, std::vector<Node> > d_assignExcSet;
   /** stores set of representatives for each type */
   RepSet d_rep_set;
   /** true/false nodes */
