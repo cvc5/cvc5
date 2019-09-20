@@ -610,14 +610,16 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
   if (success)
   {
+    d_hasSolution = true;
     if (options::sygusStream())
     {
       // if we were successful, we immediately print the current solution.
       // this saves us from introducing a verification lemma and a new guard.
       printAndContinueStream(terms, candidate_values);
+      // streaming means now we immediately are looking for a new solution
+      d_hasSolution = false;
       return false;
     }
-    d_hasSolution = true;
   }
   lem = getStreamGuardedLemma(lem);
   lems.push_back(lem);
@@ -1189,6 +1191,10 @@ bool SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
 bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
                                                 std::vector<int>& statuses)
 {
+  if (!d_hasSolution)
+  {
+    return false;
+  }
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node prog = d_embed_quant[0][i];
