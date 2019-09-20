@@ -205,7 +205,7 @@ private:
   bool d_addedFact;
   /** The conflict node */
   Node d_conflictNode;
-  /** 
+  /**
    * SAT-context dependent cache for which terms we have called
    * collectTerms(...) on.
    */

@@ -460,8 +460,9 @@ bool TheoryDatatypes::doSendLemma( Node lem ) {
 }
 bool TheoryDatatypes::doSendLemmas( std::vector< Node >& lemmas ){
   bool ret = false;
-  for (const Node& lem : lemmas){
-    bool cret = doSendLemma( lem );
+  for (const Node& lem : lemmas)
+  {
+    bool cret = doSendLemma(lem);
     ret = ret || cret;
   }
   lemmas.clear();
@@ -1662,65 +1663,79 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
 }
 
 void TheoryDatatypes::collectTerms( Node n ) {
-  if( d_collectTermsCache.find( n )!=d_collectTermsCache.end() ){
+  if (d_collectTermsCache.find(n) != d_collectTermsCache.end())
+  {
     // already processed
     return;
   }
   d_collectTermsCache[n] = true;
   Kind nk = n.getKind();
-  if( nk == APPLY_CONSTRUCTOR ){
+  if (nk == APPLY_CONSTRUCTOR)
+  {
     Debug("datatypes") << "  Found constructor " << n << endl;
-    if( n.getNumChildren()>0 ){
-      d_functionTerms.push_back( n );
+    if (n.getNumChildren() > 0)
+    {
+      d_functionTerms.push_back(n);
     }
     return;
   }
-  if( nk == APPLY_SELECTOR_TOTAL || nk == DT_SIZE || nk == DT_HEIGHT_BOUND ){
-    d_functionTerms.push_back( n );
-    //we must also record which selectors exist
+  if (nk == APPLY_SELECTOR_TOTAL || nk == DT_SIZE || nk == DT_HEIGHT_BOUND)
+  {
+    d_functionTerms.push_back(n);
+    // we must also record which selectors exist
     Trace("dt-collapse-sel") << "  Found selector " << n << endl;
-    Node rep = getRepresentative( n[0] );
-    //record it in the selectors
-    EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
-    //add it to the eqc info
-    addSelector( n, eqc, rep );
+    Node rep = getRepresentative(n[0]);
+    // record it in the selectors
+    EqcInfo* eqc = getOrMakeEqcInfo(rep, true);
+    // add it to the eqc info
+    addSelector(n, eqc, rep);
   }
-  if ( nk != DT_SIZE && nk != DT_HEIGHT_BOUND)
+  if (nk != DT_SIZE && nk != DT_HEIGHT_BOUND)
   {
     return;
   }
-  
+
   // now, do user-context-dependent lemmas
-  if (d_collectTermsCacheU.find(n)!=d_collectTermsCacheU.end())
+  if (d_collectTermsCacheU.find(n) != d_collectTermsCacheU.end())
   {
     return;
   }
   d_collectTermsCacheU[n] = true;
-  
-  NodeManager * nm = NodeManager::currentNM();
-  
-  if( nk==DT_SIZE ){
-    Node lem = nm->mkNode( LEQ, d_zero, n );
-    Trace("datatypes-infer") << "DtInfer : size geq zero : " << lem << std::endl;
-    d_pending_lem.push_back( lem );
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  if (nk == DT_SIZE)
+  {
+    Node lem = nm->mkNode(LEQ, d_zero, n);
+    Trace("datatypes-infer")
+        << "DtInfer : size geq zero : " << lem << std::endl;
+    d_pending_lem.push_back(lem);
   }
-  else if( nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero()  ){
-    std::vector< Node > children;
-    const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();
-    for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ ){
-      if( DatatypesRewriter::isNullaryConstructor( dt[i] ) ){
-        Node test = DatatypesRewriter::mkTester( n[0], i, dt );
-        children.push_back( test );
+  else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
+  {
+    std::vector<Node> children;
+    const Datatype& dt =
+        ((DatatypeType)(n[0].getType()).toType()).getDatatype();
+    for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+    {
+      if (DatatypesRewriter::isNullaryConstructor(dt[i]))
+      {
+        Node test = DatatypesRewriter::mkTester(n[0], i, dt);
+        children.push_back(test);
       }
     }
     Node lem;
-    if( children.empty() ){
+    if (children.empty())
+    {
       lem = n.negate();
-    }else{
-      lem = n.eqNode(children.size()==1 ? children[0] : nm->mkNode( OR, children ) );
+    }
+    else
+    {
+      lem = n.eqNode(children.size() == 1 ? children[0]
+                                          : nm->mkNode(OR, children));
     }
     Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
-    d_pending_lem.push_back( lem );
+    d_pending_lem.push_back(lem);
   }
 }
 
