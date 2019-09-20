@@ -38,7 +38,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      context::UserContext* u)
     : d_members(c),
       d_deq(c),
-      d_deq_processed(u),
+      d_termProcessed(u),
       d_keep(c),
       d_full_check_incomplete(false),
       d_external(external),
@@ -356,6 +356,32 @@ void TheorySetsPrivate::fullEffortCheck(){
             Trace("sets-incomplete")
                 << "Sets : incomplete because of " << n << "." << std::endl;
             // TODO (#1124) handle this case
+          }
+        }
+        else if( n.getKind()==COMPREHENSION)
+        {
+          if( d_termProcessed.find(n)==d_termProcessed.end())
+          {
+            d_termProcessed.insert(n);
+            NodeManager * nm = NodeManager::currentNM();
+            Node v = nm->mkBoundVar(n[2].getType());
+            Node body = nm->mkNode(AND, n[1], v.eqNode(n[2]));
+            // must do substitution
+            std::vector< Node > vars;
+            std::vector< Node > subs;
+            for (const Node& cv : n[0] )
+            {
+              vars.push_back(cv);
+              Node cvs = nm->mkBoundVar(cv.getType());
+              subs.push_back(cvs);
+            }
+            body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+            Node bvl = nm->mkNode(BOUND_VAR_LIST,subs);
+            body = nm->mkNode(EXISTS,bvl,body);
+            Node mem = nm->mkNode(MEMBER,v,n);
+            Node lem = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST,v), body.eqNode(mem));
+            Trace("sets-comprehension") << "Comprehension reduction: " << lem << std::endl;
+            d_im.flushLemma(lem);
           }
         }
         else
@@ -756,9 +782,9 @@ void TheorySetsPrivate::checkDisequalities()
       d_deq[deq] = false;
       
       if( !is_sat ){
-        if( d_deq_processed.find( deq )==d_deq_processed.end() ){
-          d_deq_processed.insert( deq );
-          d_deq_processed.insert( deq[1].eqNode( deq[0] ) );
+        if( d_termProcessed.find( deq )==d_termProcessed.end() ){
+          d_termProcessed.insert( deq );
+          d_termProcessed.insert( deq[1].eqNode( deq[0] ) );
           Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
           TypeNode elementType = deq[0].getType().getSetElementType();
           Node x = NodeManager::currentNM()->mkSkolem("sde_", elementType);
@@ -1181,22 +1207,16 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
                 << std::endl;
   switch(node.getKind()) {
   case kind::EQUAL:
-    // TODO: what's the point of this
     d_equalityEngine.addTriggerEquality(node);
     break;
   case kind::MEMBER:
-    // TODO: what's the point of this
     d_equalityEngine.addTriggerPredicate(node);
     break;
   case kind::CARD:
     d_equalityEngine.addTriggerTerm(node, THEORY_SETS);
     break;
   default:
-    //if( node.getType().isSet() ){
-    //  d_equalityEngine.addTriggerTerm(node, THEORY_SETS);
-    //}else{
     d_equalityEngine.addTerm(node);
-    //}
     break;
   }
 }
