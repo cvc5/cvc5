@@ -778,6 +778,9 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               }
               //---
             } while (!success);
+            // Notice that in the infinite case, the constraints induced by the
+            // assignment exclusion set are trivially satisfied, since we
+            // always assign fresh constants.
           }
           else
           {
