@@ -30,7 +30,30 @@ TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
 {
 }
 
-bool TheoryEngineModelBuilder::isAssignable(TNode n)
+
+bool TheoryEngineModelBuilder::isAssignable(TheoryModel* m, TNode n, std::vector< Node >& eset)
+{
+  if(!isAssignableExpression(n))
+  {
+    return false;
+  }
+  if (!m->getAssignmentExclusionSet(n, eset))
+  {
+    return true;
+  }
+  for (unsigned i=0, size=eset.size(); i<size; i++)
+  {
+    // set to value or otherwise return false FIXME
+  }
+  return true;
+}
+bool TheoryEngineModelBuilder::isAssignable(TheoryModel* m, TNode n)
+{
+  std::vector< Node > eset;
+  return isAssignable(m,n,eset);
+}
+
+bool TheoryEngineModelBuilder::isAssignableExpression(TNode n)
 {
   if (n.getKind() == kind::SELECT || n.getKind() == kind::APPLY_SELECTOR_TOTAL)
   {
@@ -88,7 +111,7 @@ void TheoryEngineModelBuilder::addAssignableSubterms(TNode n,
   {
     return;
   }
-  if (isAssignable(n))
+  if (isAssignableExpression(n))
   {
     tm->d_equalityEngine->addTerm(n);
   }
@@ -475,6 +498,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           Trace("model-builder") << "  Eval phase, working on type: " << t
                                  << endl;
           bool assignable, evaluable, evaluated;
+          // The assignment exclusion set. If assignable is true, this set
+          // contains a set of constants that cannot be assigned to the
+          // equivalent class.
+          std::vector< Node > assignExcSet;
           d_normalizedCache.clear();
           for (i = noRepSet->begin(); i != noRepSet->end();)
           {
@@ -492,7 +519,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               Node n = *eqc_i;
               Trace("model-builder-debug") << "Look at term : " << n
                                            << std::endl;
-              if (isAssignable(n))
+              if (isAssignable(tm,n))
               {
                 assignable = true;
                 Trace("model-builder-debug") << "...assignable" << std::endl;
@@ -656,11 +683,14 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
             eq::EqClassIterator(*i2, tm->d_equalityEngine);
         assignable = false;
         evaluable = false;
+        std::vector< Node > assignExcSet;
         for (; !eqc_i.isFinished(); ++eqc_i)
         {
           Node n = *eqc_i;
-          if (isAssignable(n))
+          std::vector< Node > eset;
+          if (isAssignable(tm,n,eset))
           {
+            assignExcSet.insert(assignExcSet.end(),eset.begin(),eset.end());
             assignable = true;
           }
           else
@@ -738,7 +768,19 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           else
           {
             TypeEnumerator te(t);
-            n = *te;
+            bool success = false;
+            // must iterate until we find one that is not in the assignment exclusion set
+            do
+            {
+              n = *te;
+              success = std::find(assignExcSet.begin(),assignExcSet.end(),n)==assignExcSet.end();
+              if( !success )
+              {
+                ++te;
+                // we have run out of elements
+                Assert ( !te.isFinished());
+              }
+            }while (!success);
           }
           Assert(!n.isNull());
           assignConstantRep(tm, *i2, n);

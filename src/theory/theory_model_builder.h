@@ -112,18 +112,26 @@ class TheoryEngineModelBuilder : public ModelBuilder
 
   /** is n assignable?
    *
-   * A term n is assignable if its value
-   * is unconstrained by a standard model.
-   * Examples of assignable terms are:
+   * A term n is assignable if it is an assignable expression (see below) and
+   * its assignment exclusion set (if it has one) has already been assigned.
+   * If n is assignable, this method returns true and adds the constants that
+   * have been assigned to its assignment exclusion set to eset.
+   */
+  bool isAssignable(TheoryModel* m, TNode n, std::vector< Node >& eset); 
+  /** same as above, but without eset */
+  bool isAssignable(TheoryModel* m, TNode n); 
+  /** is n an assignable expression?
+   *
+   * A term n is an assignable expression if its value is unconstrained by a
+   * standard model. Examples of assignable terms are:
    * - variables,
    * - applications of array select,
    * - applications of datatype selectors,
    * - applications of uninterpreted functions.
-   * Assignable terms must be first-order, that is,
-   * all instances of the above terms are not
-   * assignable if they have a higher-order (function) type.
+   * Assignable terms must be first-order, that is, all instances of the above
+   * terms are not assignable if they have a higher-order (function) type.
    */
-  bool isAssignable(TNode n);
+  bool isAssignableExpression(TNode n);
   /** add assignable subterms
    * Adds all assignable subterms of n to tm's equality engine.
    */
