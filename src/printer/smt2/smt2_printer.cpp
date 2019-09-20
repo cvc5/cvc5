@@ -1124,6 +1124,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::INSERT: return "insert";
   case kind::COMPLEMENT: return "complement";
   case kind::CARD: return "card";
+  case kind::COMPREHENSION: return "comprehension";
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
