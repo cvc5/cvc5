@@ -1395,7 +1395,7 @@ Expr Smt2::purifySygusGTerm(Expr term,
   // whether this term is parameterized. This includes APPLY_UF terms and BV
   // extraction terms, but excludes applications of most interpreted symbols
   // like PLUS.
-  if (term.isParameterized()
+  if (term.isParameterized())
   {
     pchildren.push_back(term.getOperator());
   }
