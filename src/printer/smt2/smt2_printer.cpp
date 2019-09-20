@@ -881,7 +881,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       else if (nc.getKind() == kind::INST_NO_PATTERN)
       {
-        out << ":no-pattern " << nc;
+        out << ":no-pattern " << nc[0];
       }
     }
     return;
