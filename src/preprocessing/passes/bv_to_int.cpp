@@ -873,9 +873,6 @@ Node BVToInt::createShiftNode(vector<Node> children,
                                   d_nm->mkNode(kind::MULT, x, ite),
                                   pow2(bvsize)),
                      d_nm->mkConst<Rational>(0));
-    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                          d_nm->mkNode(kind::MULT, x, ite),
-                          pow2(bvsize));
   }
   else
   {
@@ -887,9 +884,6 @@ Node BVToInt::createShiftNode(vector<Node> children,
                      d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite),
                      pow2(bvsize)),
         d_nm->mkConst<Rational>(0));
-    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                          d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite),
-                          pow2(bvsize));
   }
   return result;
 }
