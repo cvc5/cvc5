@@ -734,9 +734,10 @@ public:
    * entries in sortedVarNames. This method returns a bound variable list
    * containing each of these variables.
    */
-  Expr pushScopeWithDefs(std::vector<std::pair<std::string, Type> >& sortedVarNames,
-                        bool bindingLevel = false);
-  
+  Expr pushScopeWithDefs(
+      std::vector<std::pair<std::string, Type> >& sortedVarNames,
+      bool bindingLevel = false);
+
   inline void popScope() {
     d_symtab->popScope();
     if(scopeLevel() < d_assertionLevel) {
