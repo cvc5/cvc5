@@ -631,27 +631,35 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
   Assert(node.getKind() == kind::STRING_CONCAT);
   Trace("strings-rewrite-debug")
       << "Strings::rewriteConcat start " << node << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node retNode = node;
   std::vector<Node> node_vec;
   Node preNode = Node::null();
-  for (const Node& nc : node){
+  for (const Node& nc : node)
+  {
     Node tmpNode = nc;
-    if(tmpNode.getKind() == STRING_CONCAT) {
-      unsigned j=0;
-      if(!preNode.isNull()) {
-        if(tmpNode[0].isConst()) {
-          preNode = nm->mkConst( preNode.getConst<String>().concat( tmpNode[0].getConst<String>() ) );
-          node_vec.push_back( preNode );
-        } else {
-          node_vec.push_back( preNode );
-          node_vec.push_back( tmpNode[0] );
+    if (tmpNode.getKind() == STRING_CONCAT)
+    {
+      unsigned j = 0;
+      if (!preNode.isNull())
+      {
+        if (tmpNode[0].isConst())
+        {
+          preNode = nm->mkConst(
+              preNode.getConst<String>().concat(tmpNode[0].getConst<String>()));
+          node_vec.push_back(preNode);
+        }
+        else
+        {
+          node_vec.push_back(preNode);
+          node_vec.push_back(tmpNode[0]);
         }
         preNode = Node::null();
         ++j;
       }
-      for(; j<tmpNode.getNumChildren() - 1; ++j) {
-        node_vec.push_back( tmpNode[j] );
+      for (; j < tmpNode.getNumChildren() - 1; ++j)
+      {
+        node_vec.push_back(tmpNode[j]);
       }
       tmpNode = tmpNode[j];
     }
