@@ -45,6 +45,7 @@ operator INSERT        2: "set obtained by inserting elements (first N-1 paramet
 operator CARD          1  "set cardinality operator"
 operator COMPLEMENT    1  "set COMPLEMENT (with respect to finite universe)"
 nullaryoperator UNIVERSE_SET "(finite) universe set, all set variables must be interpreted as subsets of it."
+operator COMPREHENSION 3 "set comprehension"
 
 operator JOIN 		   2  "set join"
 operator PRODUCT 	   2  "set cartesian product"
@@ -64,6 +65,7 @@ typerule INSERT         ::CVC4::theory::sets::InsertTypeRule
 typerule CARD           ::CVC4::theory::sets::CardTypeRule
 typerule COMPLEMENT     ::CVC4::theory::sets::ComplementTypeRule
 typerule UNIVERSE_SET   ::CVC4::theory::sets::UniverseSetTypeRule
+typerule COMPREHENSION  ::CVC4::theory::sets::ComprehensionTypeRule
 
 typerule JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule

@@ -25,26 +25,6 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-class SetsTypeRule {
-public:
-
-  /**
-   * Compute the type for (and optionally typecheck) a term belonging
-   * to the theory of sets.
-   *
-   * @param check if true, the node's type should be checked as well
-   * as computed.
-   */
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check)
-  {
-    // TODO: implement me!
-    Unimplemented();
-
-  }
-
-};/* class SetsTypeRule */
-
 struct SetsBinaryOperatorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
@@ -217,6 +197,22 @@ struct UniverseSetTypeRule {
     return setType;
   }
 };/* struct ComplementTypeRule */
+
+struct ComprehensionTypeRule {
+  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+  {
+    Assert(n.getKind() == kind::COMPREHENSION);
+    if( check ){
+      if( n[ 0 ].getType(check)!=nodeManager->boundVarListType() ){
+        throw TypeCheckingExceptionPrivate(n, "first argument of set comprehension is not bound var list");
+      }
+      if( n[ 1 ].getType(check)!=nodeManager->booleanType() ){
+        throw TypeCheckingExceptionPrivate(n, "body of set comprehension is not boolean");
+      }
+    }
+    return nodeManager->mkSetType(n[2].getType(check));
+  }
+};/* struct ComprehensionTypeRule */
 
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
