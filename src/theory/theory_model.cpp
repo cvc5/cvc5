@@ -518,6 +518,17 @@ void TheoryModel::setAssignmentExclusionSet(TNode n,
   aes.insert(aes.end(), eset.begin(), eset.end());
 }
 
+bool TheoryModel::getAssignmentExclusionSet(TNode n, std::vector< Node >& eset)
+{
+  std::map<Node, std::vector<Node> >::iterator ita = d_assignExcSet.find(n);
+  if (ita==d_assignExcSet.end())
+  {
+    return false;
+  }
+  eset.insert(eset.end(), ita->second.begin(), ita->second.end());
+  return true;
+}
+
 void TheoryModel::recordApproximation(TNode n, TNode pred)
 {
   Trace("model-builder-debug")
