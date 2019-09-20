@@ -36,7 +36,13 @@ using namespace CVC4::theory::bv;
 
 // wrapper function to cmath's pow function.
 // Casts the result to an integer.
-uint64_t intpow(uint64_t a, uint64_t b) { return ((uint64_t)pow(a, b)); }
+Rational intpow2(uint64_t b) { 
+  Integer one = Integer(1);
+  Integer p = one.multiplyByPow2(b);
+  Rational r = Rational(p, one);
+  return r;
+
+}
 
 /**
  * Helper functions for createBitwiseNode
@@ -73,12 +79,12 @@ Node BVToInt::maxInt(uint64_t k)
 Node BVToInt::pow2(uint64_t k)
 {
   Assert(k >= 0);
-  return d_nm->mkConst<Rational>(intpow(2, k));
+  return d_nm->mkConst<Rational>(intpow2(k));
 }
 
 Node BVToInt::modpow2(Node n, uint64_t exponent)
 {
-  Node p2 = d_nm->mkConst<Rational>(intpow(2, exponent));
+  Node p2 = d_nm->mkConst<Rational>(intpow2(exponent));
   return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
@@ -898,9 +904,9 @@ Node BVToInt::createITEFromTable(
     std::map<std::pair<uint64_t, uint64_t>, uint64_t> table)
 {
   Node ite = d_nm->mkConst<Rational>(table[std::make_pair(0, 0)]);
-  for (uint64_t i = 0; i < intpow(2, bitwidth); i++)
+  for (uint64_t i = 0; i < ((uint64_t) pow(2, bitwidth)); i++)
   {
-    for (uint64_t j = 0; j < intpow(2, bitwidth); j++)
+    for (uint64_t j = 0; j < ((uint64_t) pow(2, bitwidth)); j++)
     {
       if ((i == 0) && (j == 0))
       {
@@ -941,20 +947,20 @@ Node BVToInt::createBitwiseNode(Node x,
   // transform f into a table
   // f is defined over 1 bit, while the table is defined over `granularity` bits
   std::map<std::pair<uint64_t, uint64_t>, uint64_t> table;
-  for (uint64_t i = 0; i < intpow(2, granularity); i++)
+  for (uint64_t i = 0; i < intpow2(granularity); i++)
   {
-    for (uint64_t j = 0; j < intpow(2, granularity); j++)
+    for (uint64_t j = 0; j < intpow2(granularity); j++)
     {
       uint64_t sum = 0;
       for (uint64_t n = 0; n < granularity; n++)
       {
         // b is the result of f on the current bit
         bool b =
-            f((((i / intpow(2, n)) % 2) == 1), (((j / intpow(2, n)) % 2) == 1));
+            f((((i / intpow2(n)) % 2) == 1), (((j / intpow2(n)) % 2) == 1));
         // add the corresponding power of 2 only if the result is 1
         if (b)
         {
-          sum += intpow(2, n);
+          sum += intpow2(n);
         }
       }
       table[std::make_pair(i, j)] = sum;
