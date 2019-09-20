@@ -326,7 +326,8 @@ Node BVToInt::bvToInt(Node n)
             else
             {
               //Boolean variables are left unchanges.
-              AlwaysAssert(current.getType() == d_nm->booleanType());
+              AlwaysAssert(current.getType() == d_nm->booleanType() || 
+                  current.getType().isSort());
               d_bvToIntCache[current] = current;
             }
           }
