@@ -112,7 +112,7 @@ class TheorySetsPrivate {
   Node d_false;
   Node d_zero;
   NodeBoolMap d_deq;
-  /** 
+  /**
    * The set of terms that we have reduced via a lemma in the current user
    * context.
    */
