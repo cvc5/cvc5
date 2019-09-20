@@ -947,20 +947,20 @@ Node BVToInt::createBitwiseNode(Node x,
   // transform f into a table
   // f is defined over 1 bit, while the table is defined over `granularity` bits
   std::map<std::pair<uint64_t, uint64_t>, uint64_t> table;
-  for (uint64_t i = 0; i < intpow2(granularity); i++)
+  for (uint64_t i = 0; i < ((uint64_t) pow(2, granularity)); i++)
   {
-    for (uint64_t j = 0; j < intpow2(granularity); j++)
+    for (uint64_t j = 0; j < ((uint64_t) pow(2, granularity)); j++)
     {
       uint64_t sum = 0;
       for (uint64_t n = 0; n < granularity; n++)
       {
         // b is the result of f on the current bit
         bool b =
-            f((((i / intpow2(n)) % 2) == 1), (((j / intpow2(n)) % 2) == 1));
+            f(((((uint64_t)(i / pow(2, n))) % 2) == 1), (((j / ((uint64_t) pow(2, n))) % 2) == 1));
         // add the corresponding power of 2 only if the result is 1
         if (b)
         {
-          sum += intpow2(n);
+          sum += pow(2, n);
         }
       }
       table[std::make_pair(i, j)] = sum;

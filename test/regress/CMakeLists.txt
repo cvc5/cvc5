@@ -185,6 +185,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_bug1.smt2
   regress0/bv/bv_to_int_bug2.smt2
   regress0/bv/bv_to_int_bug3.smt2
+  regress0/bv/bv_to_int_bug4.smt2
   regress0/bv/bvuf_to_intuf.smt2
   regress0/bv/bvuf_to_intuf_sorts.smt2
   regress0/bv/bv2nat-ground-c.smt2
