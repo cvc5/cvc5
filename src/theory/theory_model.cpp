@@ -518,10 +518,10 @@ void TheoryModel::setAssignmentExclusionSet(TNode n,
   aes.insert(aes.end(), eset.begin(), eset.end());
 }
 
-bool TheoryModel::getAssignmentExclusionSet(TNode n, std::vector< Node >& eset)
+bool TheoryModel::getAssignmentExclusionSet(TNode n, std::vector<Node>& eset)
 {
   std::map<Node, std::vector<Node> >::iterator ita = d_assignExcSet.find(n);
-  if (ita==d_assignExcSet.end())
+  if (ita == d_assignExcSet.end())
   {
     return false;
   }

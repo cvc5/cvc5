@@ -145,10 +145,10 @@ public:
    */
   void setAssignmentExclusionSet(TNode n, const std::vector<Node>& eset);
   /** get assignment exclusion set
-   * 
+   *
    * TODO
    */
-  bool getAssignmentExclusionSet(TNode n, std::vector< Node >& eset);
+  bool getAssignmentExclusionSet(TNode n, std::vector<Node>& eset);
   /** record approximation
    *
    * This notifies this model that the value of n was approximated in this
