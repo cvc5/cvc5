@@ -875,9 +875,13 @@ void Smt2Printer::toStream(std::ostream& out,
           out << ":fun-def";
         }
       }
-      else
+      else if (nc.getKind()== kind::INST_PATTERN)
       {
         out << ":pattern " << nc;
+      }
+      else if (nc.getKind() == kind::INST_NO_PATTERN )
+      {
+        out << ":no-pattern " << nc;
       }
     }
     return;
