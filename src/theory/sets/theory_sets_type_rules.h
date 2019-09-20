@@ -198,21 +198,29 @@ struct UniverseSetTypeRule {
   }
 };/* struct ComplementTypeRule */
 
-struct ComprehensionTypeRule {
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+struct ComprehensionTypeRule
+{
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     Assert(n.getKind() == kind::COMPREHENSION);
-    if( check ){
-      if( n[ 0 ].getType(check)!=nodeManager->boundVarListType() ){
-        throw TypeCheckingExceptionPrivate(n, "first argument of set comprehension is not bound var list");
+    if (check)
+    {
+      if (n[0].getType(check) != nodeManager->boundVarListType())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "first argument of set comprehension is not bound var list");
       }
-      if( n[ 1 ].getType(check)!=nodeManager->booleanType() ){
-        throw TypeCheckingExceptionPrivate(n, "body of set comprehension is not boolean");
+      if (n[1].getType(check) != nodeManager->booleanType())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "body of set comprehension is not boolean");
       }
     }
     return nodeManager->mkSetType(n[2].getType(check));
   }
-};/* struct ComprehensionTypeRule */
+}; /* struct ComprehensionTypeRule */
 
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
