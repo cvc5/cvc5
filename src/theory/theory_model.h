@@ -143,7 +143,7 @@ public:
    *
    * This method sets the "assignment exclusion set" for term n. This is a
    * set of terms whose value n must be distinct from in the model.
-   * 
+   *
    * This method should be used sparingly, and in a way such that model
    * building is still guaranteed to succeed. Typically, n is intended to be an
    * assignable term of finite type. Thus, for example, this method should not
