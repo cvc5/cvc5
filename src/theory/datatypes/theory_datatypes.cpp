@@ -57,6 +57,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
       d_addedLemma(false),
       d_addedFact(false),
       d_collectTermsCache(c),
+      d_collectTermsCacheU(u),
       d_functionTerms(c),
       d_singleton_eq(u),
       d_lemmas_produced_c(u)
@@ -526,9 +527,6 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
     d_equalityEngine.addTriggerPredicate(n);
     break;
   default:
-    if( n.getKind()==kind::DT_SIZE ){
-      d_out->lemma( NodeManager::currentNM()->mkNode( LEQ, d_zero, n ) );
-    }
     // Function applications/predicates
     d_equalityEngine.addTerm(n);
     if( d_sygus_sym_break ){
@@ -1669,14 +1667,15 @@ void TheoryDatatypes::collectTerms( Node n ) {
     return;
   }
   d_collectTermsCache[n] = true;
-  if( n.getKind() == APPLY_CONSTRUCTOR ){
+  Kind nk = n.getKind();
+  if( nk == APPLY_CONSTRUCTOR ){
     Debug("datatypes") << "  Found constructor " << n << endl;
     if( n.getNumChildren()>0 ){
       d_functionTerms.push_back( n );
     }
     return;
   }
-  if( n.getKind() == APPLY_SELECTOR_TOTAL || n.getKind() == DT_SIZE || n.getKind() == DT_HEIGHT_BOUND ){
+  if( nk == APPLY_SELECTOR_TOTAL || nk == DT_SIZE || nk == DT_HEIGHT_BOUND ){
     d_functionTerms.push_back( n );
     //we must also record which selectors exist
     Trace("dt-collapse-sel") << "  Found selector " << n << endl;
@@ -1686,26 +1685,42 @@ void TheoryDatatypes::collectTerms( Node n ) {
     //add it to the eqc info
     addSelector( n, eqc, rep );
   }
+  if ( nk != DT_SIZE && nk != DT_HEIGHT_BOUND)
+  {
+    return;
+  }
+  
+  // now, do user-context-dependent lemmas
+  if (d_collectTermsCacheU.find(n)!=d_collectTermsCacheU.end())
+  {
+    return;
+  }
+  d_collectTermsCacheU[n] = true;
+  
   NodeManager * nm = NodeManager::currentNM();
-  if( n.getKind() == DT_HEIGHT_BOUND ){
-    if( n[1].getConst<Rational>().isZero() ){
-      std::vector< Node > children;
-      const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        if( DatatypesRewriter::isNullaryConstructor( dt[i] ) ){
-          Node test = DatatypesRewriter::mkTester( n[0], i, dt );
-          children.push_back( test );
-        }
+  
+  if( nk==DT_SIZE ){
+    Node lem = nm->mkNode( LEQ, d_zero, n );
+    Trace("datatypes-infer") << "DtInfer : size geq zero : " << lem << std::endl;
+    d_pending_lem.push_back( lem );
+  }
+  else if( nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero()  ){
+    std::vector< Node > children;
+    const Datatype& dt = ((DatatypeType)(n[0].getType()).toType()).getDatatype();
+    for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ ){
+      if( DatatypesRewriter::isNullaryConstructor( dt[i] ) ){
+        Node test = DatatypesRewriter::mkTester( n[0], i, dt );
+        children.push_back( test );
       }
-      Node lem;
-      if( children.empty() ){
-        lem = n.negate();
-      }else{
-        lem = n.eqNode(children.size()==1 ? children[0] : nm->mkNode( OR, children ) );
-      }
-      Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
-      d_pending_lem.push_back( lem );
     }
+    Node lem;
+    if( children.empty() ){
+      lem = n.negate();
+    }else{
+      lem = n.eqNode(children.size()==1 ? children[0] : nm->mkNode( OR, children ) );
+    }
+    Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
+    d_pending_lem.push_back( lem );
   }
 }
 
