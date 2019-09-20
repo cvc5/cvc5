@@ -398,7 +398,10 @@ Node BVToInt::bvToInt(Node n)
                 Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
                 d_bvToIntCache[current] =
                     d_nm->mkNode(kind::MINUS, plus, multSig);
-                d_rangeAssertions.insert(mkRangeConstraint(sigma, 0));
+                Node zero = d_nm->mkConst<Rational>(0);
+                Node one = d_nm->mkConst<Rational>(1);
+                d_rangeAssertions.insert(d_nm->mkNode(kind::LEQ, zero, sigma));
+                d_rangeAssertions.insert(d_nm->mkNode(kind::LEQ, sigma, one));
                 d_rangeAssertions.insert(
                     mkRangeConstraint(d_bvToIntCache[current], bvsize));
               break;
