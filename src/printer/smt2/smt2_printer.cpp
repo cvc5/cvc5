@@ -1345,15 +1345,8 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   }
   //print the model
   out << "(model" << endl;
-  // print approximations
-  if (m.hasApproximations())
-  {
-    std::vector<std::pair<Expr, Expr> > approx = m.getApproximations();
-    for (unsigned i = 0, size = approx.size(); i < size; i++)
-    {
-      out << "(approximation " << approx[i].second << ")" << std::endl;
-    }
-  }
+  // don't need to print approximations since they are built into choice
+  // functions in the values of variables.
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists
