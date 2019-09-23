@@ -46,8 +46,8 @@ libcvc4_add_sources(
   preprocessing/passes/bool_to_bv.h
   preprocessing/passes/bv_abstraction.cpp
   preprocessing/passes/bv_abstraction.h
-  preprocessing/passes/bv_ackermann.cpp
-  preprocessing/passes/bv_ackermann.h
+  preprocessing/passes/ackermann.cpp
+  preprocessing/passes/ackermann.h
   preprocessing/passes/bv_eager_atoms.cpp
   preprocessing/passes/bv_eager_atoms.h
   preprocessing/passes/bv_gauss.cpp

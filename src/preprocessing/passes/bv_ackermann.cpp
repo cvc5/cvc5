@@ -180,6 +180,63 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
+void updateUSortsCardinality(USortCardinality& usort_cardinality, TNode term)
+{
+  TypeNode type = term.getType();
+  if (type.isSort())
+  {
+	if (usort_cardinality.find(type) == usort_cardinality.end())
+	{
+	  usort_cardinality.insert(make_pair(type, 0));
+	}
+	usort_cardinality[type] = usort_cardinality[type] + 1;
+  }
+}
+
+void collectUSortsToBV(USortCardinality& usort_cardinality, vector<TNode>* vec, SubstitutionMap& sorts_to_skolem)
+{
+  for (TNode term : vec)
+  {
+	TypeNode type = term.getType();
+	if (!type.isSort()) continue;
+	TypeNode newType = bitvector(log(usort_cardinality[type] - 1) + 1);
+	Node skolem = nm->mkSkolem("BVSKOLEM$$",
+                               newType,
+                               "is a variable created by the ackermannization "
+                               "preprocessing pass for theory BV");
+	sorts_to_skolem.addSubstitution(term, skolem);
+  }
+}
+
+
+void usortsToBitVectors(USortCardinality& usort_cardinality, SubstitutionMap& sorts_to_skolem, AssertionPipeline* assertions)
+{
+  std::cerr << "========== debug ===========" << endl;
+
+  std::vector<TNode> to_process;
+  for (Node& a : assertions->ref())
+  {
+	to_process.push_back(a);
+  }
+  TNode term;
+  for (unsigned i = 0; i < to_process.size(); ++i)
+  {
+	term = to_process[i];
+	cerr << term.toString() << ":" << term.getType().toString() << "\t";
+	Assert(term.getKind() == kind::APPLY_UF || term.getKind() == kind::SELECT || term.getKind() == kind::STORE);
+
+	//updateUSortsCardinality(usort_cardinality, term);
+
+	to_process.insert(to_process.end(), term.begin(), term.end());
+  }
+
+  collectUSortsToBV(usort_cardinality, to_process, sorts_to_skolem);
+  
+  std::cerr << endl << "======== debug end =========" << endl;
+}
+
+/* -------------------------------------------------------------------------- */
+
 BVAckermann::BVAckermann(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-ackermann"),
       d_funcToSkolem(preprocContext->getUserContext())
@@ -204,10 +261,23 @@ PreprocessingPassResult BVAckermann::applyInternal(
 
   /* replace applications of UF by skolems */
   // FIXME for model building, github issue #1901
+  std::cerr << "========== debug ==============" << endl;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
+	std::cerr << (*assertionsToPreprocess)[i].toString() << ":";
     assertionsToPreprocess->replace(
         i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
+	std::cerr << (*assertionsToPreprocess)[i].toString() << "\t";
+  }
+  std::cerr << endl << "========== debug end ==========" << endl;
+
+  /* replace uninterpreted sorts to bitvector */
+  usortsToBitVectors(d_usortCardinality, d_sortsToSkolem, assertionsToPreprocess);
+
+  for (unsigned i = 0, size = assertions->size(); i < size; ++i)
+  {
+    assertionsToPreprocess->replace(
+        i, d_sortsToSkolem.apply((*assertionsToPreprocess)[i]));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
