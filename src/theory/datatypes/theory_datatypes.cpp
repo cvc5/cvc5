@@ -1690,12 +1690,13 @@ void TheoryDatatypes::collectTerms( Node n ) {
     // add it to the eqc info
     addSelector(n, eqc, rep);
   }
-  if (nk != DT_SIZE && nk != DT_HEIGHT_BOUND)
-  {
-    return;
-  }
 
   // now, do user-context-dependent lemmas
+  if (nk != DT_SIZE && nk != DT_HEIGHT_BOUND)
+  {
+    // if not one of these kinds, there are no lemmas
+    return;
+  }
   if (d_collectTermsCacheU.find(n) != d_collectTermsCacheU.end())
   {
     return;
@@ -1714,8 +1715,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
   else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
   {
     std::vector<Node> children;
-    const Datatype& dt =
-        ((DatatypeType)(n[0].getType()).toType()).getDatatype();
+    const Datatype& dt = n[0].getType().getDatatype();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       if (DatatypesRewriter::isNullaryConstructor(dt[i]))
