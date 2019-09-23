@@ -387,38 +387,43 @@ Node NonlinearExtension::computeModelValue(Node n, unsigned index) {
     return ret;
   }
 }
-Node NonlinearExtension::arithSubstitute(Node n, std::vector< Node >& vars, std::vector< Node >& subs )
+Node NonlinearExtension::arithSubstitute(Node n,
+                                         std::vector<Node>& vars,
+                                         std::vector<Node>& subs)
 {
-  Assert( vars.size()==subs.size() );
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(vars.size() == subs.size());
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::vector< Node >::iterator itv;
+  std::vector<Node>::iterator itv;
   std::vector<TNode> visit;
   TNode cur;
   Kind ck;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       visited[cur] = Node::null();
       ck = cur.getKind();
-      itv = std::find(vars.begin(),vars.end(),cur);
-      if (itv!=vars.end())
+      itv = std::find(vars.begin(), vars.end(), cur);
+      if (itv != vars.end())
       {
         visited[cur] = subs[std::distance(vars.begin(), itv)];
       }
-      else if (cur.getNumChildren()==0)
+      else if (cur.getNumChildren() == 0)
       {
         visited[cur] = cur;
       }
       else
       {
         TheoryId ctid = theory::kindToTheoryId(ck);
-        if ( ctid!=THEORY_ARITH && ctid!=THEORY_BOOL && ctid!=THEORY_BUILTIN )
+        if (ctid != THEORY_ARITH && ctid != THEORY_BOOL
+            && ctid != THEORY_BUILTIN)
         {
           // do not traverse beneath applications that belong to another theory
           visited[cur] = cur;
@@ -426,26 +431,32 @@ Node NonlinearExtension::arithSubstitute(Node n, std::vector< Node >& vars, std:
         else
         {
           visit.push_back(cur);
-          for (const Node& cn : cur) {
+          for (const Node& cn : cur)
+          {
             visit.push_back(cn);
           }
         }
       }
-    } else if (it->second.isNull()) {
+    }
+    else if (it->second.isNull())
+    {
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
         children.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur) {
+      for (const Node& cn : cur)
+      {
         it = visited.find(cn);
         Assert(it != visited.end());
         Assert(!it->second.isNull());
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) {
+      if (childChanged)
+      {
         ret = nm->mkNode(cur.getKind(), children);
       }
       visited[cur] = ret;
@@ -937,7 +948,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     Node pa = a;
     if (!pvars.empty())
     {
-      pa = arithSubstitute(pa,pvars,psubs);
+      pa = arithSubstitute(pa, pvars, psubs);
       pa = Rewriter::rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())
@@ -1060,8 +1071,10 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       // apply the substitution to a
       if (!d_check_model_vars.empty())
       {
-        Trace("nl-ext-cm-debug") << "Substitute " << d_check_model_vars << " -> " << d_check_model_subs << " * " << av << std::endl;
-        av = arithSubstitute(av,d_check_model_vars, d_check_model_subs);
+        Trace("nl-ext-cm-debug")
+            << "Substitute " << d_check_model_vars << " -> "
+            << d_check_model_subs << " * " << av << std::endl;
+        av = arithSubstitute(av, d_check_model_vars, d_check_model_subs);
         Trace("nl-ext-cm-debug") << "Got " << av << std::endl;
         av = Rewriter::rewrite(av);
       }
@@ -1145,14 +1158,14 @@ bool NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
       return false;
     }
   }
-  std::vector< Node > varsTmp;
+  std::vector<Node> varsTmp;
   varsTmp.push_back(v);
-  std::vector< Node > subsTmp;
+  std::vector<Node> subsTmp;
   subsTmp.push_back(s);
   for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
   {
     Node ms = d_check_model_subs[i];
-    Node mss = arithSubstitute(ms,varsTmp,subsTmp);
+    Node mss = arithSubstitute(ms, varsTmp, subsTmp);
     if (mss != ms)
     {
       mss = Rewriter::rewrite(mss);
@@ -1205,7 +1218,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
   if (!d_check_model_vars.empty())
   {
-    seq = arithSubstitute(eq,d_check_model_vars,d_check_model_subs);
+    seq = arithSubstitute(eq, d_check_model_vars, d_check_model_subs);
     seq = Rewriter::rewrite(seq);
     if (seq.isConst())
     {

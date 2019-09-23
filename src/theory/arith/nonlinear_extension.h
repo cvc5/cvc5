@@ -236,7 +236,9 @@ class NonlinearExtension {
    * treated as atomic variables. For example:
    *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
    */
-  Node arithSubstitute(Node n, std::vector< Node >& vars, std::vector< Node >& subs );
+  Node arithSubstitute(Node n,
+                       std::vector<Node>& vars,
+                       std::vector<Node>& subs);
   /** returns the Node corresponding to the value of i in the
    * type of order orderType, which is one of values
    * described above ::compare(...).
