@@ -228,7 +228,14 @@ class NonlinearExtension {
    *   computeModelValue( a*b, 1 ) = 5
    */
   Node computeModelValue(Node n, unsigned index = 0);
-  /** Arithmetic substitute */
+  /** Arithmetic substitute
+   *
+   * This computes the substitution n { vars -> subs }, but with the caveat
+   * that subterms of n that belong to a theory other than arithmetic are
+   * not traversed. In other words, terms that belong to other theories are
+   * treated as atomic variables. For example:
+   *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
+   */
   Node arithSubstitute(Node n, std::vector< Node >& vars, std::vector< Node >& subs );
   /** returns the Node corresponding to the value of i in the
    * type of order orderType, which is one of values
