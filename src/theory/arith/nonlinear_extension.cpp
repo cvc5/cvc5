@@ -1074,6 +1074,14 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
         Trace("nl-ext-cm-debug")
             << "...check-model : failed assertion, value : " << av << std::endl;
       }
+      else
+      {
+        Trace("nl-ext-cm-debug") << "Was SAT: " << av << std::endl;
+      }
+    }
+    else
+    {
+      Trace("nl-ext-cm-debug") << "Was solved: " << a << std::endl;
     }
   }
 
@@ -1194,6 +1202,7 @@ bool NonlinearExtension::hasCheckModelAssignment(Node v) const
 bool NonlinearExtension::solveEqualitySimple(Node eq)
 {
   Node seq = eq;
+  Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
   if (!d_check_model_vars.empty())
   {
     seq = arithSubstitute(eq,d_check_model_vars,d_check_model_subs);
@@ -1202,13 +1211,13 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     {
       if (seq.getConst<bool>())
       {
+        Trace("nl-ext-cms") << "...success, solved evaluation." << std::endl;
         d_check_model_solved[eq] = Node::null();
         return true;
       }
       return false;
     }
   }
-  Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
   Assert(seq.getKind() == EQUAL);
   std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(seq, msum))
