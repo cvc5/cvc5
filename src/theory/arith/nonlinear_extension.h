@@ -228,6 +228,8 @@ class NonlinearExtension {
    *   computeModelValue( a*b, 1 ) = 5
    */
   Node computeModelValue(Node n, unsigned index = 0);
+  /** Arithmetic substitute */
+  Node arithSubstitute(Node n, std::vector< Node >& vars, std::vector< Node >& subs );
   /** returns the Node corresponding to the value of i in the
    * type of order orderType, which is one of values
    * described above ::compare(...).
