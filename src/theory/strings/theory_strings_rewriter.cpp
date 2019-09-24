@@ -23,11 +23,11 @@
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory.h"
 #include "util/integer.h"
 #include "util/rational.h"
-#include "theory/strings/regexp_operation.h"
 
 using namespace std;
 using namespace CVC4;
