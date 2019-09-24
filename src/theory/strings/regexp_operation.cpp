@@ -91,7 +91,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       {
         d_constCache[cur] = RE_C_UNKNOWN;
         visit.push_back(cur);
-        if (ck==REGEXP_LOOP)
+        if (ck == REGEXP_LOOP)
         {
           // only add the first child of loop
           visit.push_back(cur[0]);
@@ -1221,8 +1221,8 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
     }
     if (!conc.isNull())
     {
-      conc = Rewriter::rewrite( conc );
-      new_nodes.push_back( conc );
+      conc = Rewriter::rewrite(conc);
+      new_nodes.push_back(conc);
       d_simpl_cache[p] = conc;
     }
   }
