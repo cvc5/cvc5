@@ -1521,6 +1521,7 @@ set(regress_1_tests
   regress1/sets/card-6.smt2
   regress1/sets/card-7.smt2
   regress1/sets/card-vc6-minimized.smt2
+  regress1/sets/comp-odd.smt2
   regress1/sets/comp-positive.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
