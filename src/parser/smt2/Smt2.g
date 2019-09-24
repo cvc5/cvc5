@@ -1806,7 +1806,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::string name;
   std::vector<Expr> args;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
-  Expr f, f2, f3, f4;
+  Expr f, f2, f3;
   std::string attr;
   Expr attexpr;
   std::vector<Expr> patexprs;

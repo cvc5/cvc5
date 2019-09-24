@@ -721,7 +721,12 @@ public:
   inline size_t scopeLevel() const { return d_symtab->getLevel(); }
 
   /**
-   * Pushes a scope.
+   * Pushes a scope. All subsequent symbol declarations made are only valid in
+   * this scope, i.e. they are deleted on the next call to popScope.
+   * 
+   * The argument bindingLevel is true, the assertion level is set to the
+   * current scope level. This determines which scope assertions are declared
+   * at.
    */
   inline void pushScope(bool bindingLevel = false) {
     d_symtab->pushScope();

@@ -45,7 +45,15 @@ operator INSERT        2: "set obtained by inserting elements (first N-1 paramet
 operator CARD          1  "set cardinality operator"
 operator COMPLEMENT    1  "set COMPLEMENT (with respect to finite universe)"
 nullaryoperator UNIVERSE_SET "(finite) universe set, all set variables must be interpreted as subsets of it."
-operator COMPREHENSION 3 "set comprehension"
+
+# A set comprehension is specified by:
+# (1) a bound variable list x1 ... xn,
+# (2) a predicate P[x1...xn], and
+# (3) a term t[x1...xn].
+# A comprehension C with the above form has members given by the following
+# semantics:
+# forall y. ( exists x1...xn. P[x1...xn] ^ t[x1...xn] = y ) <=> (member y C)
+operator COMPREHENSION 3 "set comprehension specified by a bound variable list, a predicate, and a term."
 
 operator JOIN 		   2  "set join"
 operator PRODUCT 	   2  "set cartesian product"
