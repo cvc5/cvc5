@@ -821,11 +821,13 @@ PreprocessingPassResult BVToInt::applyInternal(
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     Node bvNode = (*assertionsToPreprocess)[i];
-    Node intNode = Rewriter::rewrite(bvToInt(bvNode));
+    Node intNode = bvToInt(bvNode);
+    Node rwNode = Rewriter::rewrite(intNode);
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
     Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
+    Trace("bv-to-int-debug") << "rw node: " << rwNode << std::endl;
     assertionsToPreprocess->replace(
-        i, intNode);
+        i, rwNode);
   }
   addFinalizeRangeAssertions(assertionsToPreprocess);
   return PreprocessingPassResult::NO_CONFLICT;
