@@ -723,7 +723,7 @@ public:
   /**
    * Pushes a scope. All subsequent symbol declarations made are only valid in
    * this scope, i.e. they are deleted on the next call to popScope.
-   * 
+   *
    * The argument bindingLevel is true, the assertion level is set to the
    * current scope level. This determines which scope assertions are declared
    * at.
