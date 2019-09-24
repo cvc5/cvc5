@@ -1700,6 +1700,7 @@ set(regress_1_tests
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
+  regress1/sygus/re-concat.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
   regress1/sygus/strings-no-syntax.sy

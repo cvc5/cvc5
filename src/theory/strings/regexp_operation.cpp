@@ -1216,13 +1216,15 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
       }
       default: {
         Assert(!isRegExpKind(k));
-        conc = r;
         break;
       }
     }
-    conc = Rewriter::rewrite( conc );
-    new_nodes.push_back( conc );
-    d_simpl_cache[p] = conc;
+    if (!conc.isNull())
+    {
+      conc = Rewriter::rewrite( conc );
+      new_nodes.push_back( conc );
+      d_simpl_cache[p] = conc;
+    }
   }
 }
 
