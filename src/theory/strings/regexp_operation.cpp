@@ -127,7 +127,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
     ret = d_delta_cache[r].first;
     exp = d_delta_cache[r].second;
   } else {
-    int k = r.getKind();
+    Kind k = r.getKind();
     switch( k ) {
       case kind::REGEXP_EMPTY: {
         ret = 2;
@@ -255,8 +255,8 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       default: {
-        //Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in delta of RegExp." << std::endl;
-        Unreachable();
+        Assert( !isRegExpKind(k));
+        break;
       }
     }
     if(!exp.isNull()) {
@@ -495,9 +495,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       default: {
-        Trace("strings-error") << "Unsupported term: " << mkString(r)
-                               << " in derivative of RegExp." << std::endl;
-        Unreachable();
+        Assert( !isRegExpKind(r.getKind()));
+        break;
       }
     }
     if(retNode != d_emptyRegexp) {
@@ -530,7 +529,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
       retNode = d_emptyRegexp;
     }
   } else {
-    int k = r.getKind();
+    Kind k = r.getKind();
     switch( k ) {
       case kind::REGEXP_EMPTY: {
         retNode = d_emptyRegexp;
@@ -670,8 +669,8 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
         break;
       }
       default: {
-        Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in derivative of RegExp." << std::endl;
-        Unreachable();
+        Assert( !isRegExpKind(k));
+        break;
       }
     }
     if(retNode != d_emptyRegexp) {
@@ -695,7 +694,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
     // cset is code points
     std::set<unsigned> cset;
     SetNodes vset;
-    int k = r.getKind();
+    Kind k = r.getKind();
     switch( k ) {
       case kind::REGEXP_EMPTY: {
         break;
@@ -783,8 +782,8 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         break;
       }
       default: {
-        Trace("regexp-error") << "Unsupported term: " << r << " in firstChars." << std::endl;
-        Unreachable();
+        Assert( !isRegExpKind(k));
+        break;
       }
     }
     pcset.insert(cset.begin(), cset.end());
@@ -832,7 +831,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
   if(itr != d_simpl_neg_cache.end()) {
     new_nodes.push_back( itr->second );
   } else {
-    int k = r.getKind();
+    Kind k = r.getKind();
     Node conc;
     switch( k ) {
       case kind::REGEXP_EMPTY: {
@@ -1033,8 +1032,8 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Trace("strings-error") << "Unsupported term: " << r << " in simplifyNRegExp." << std::endl;
-        Assert( false, "Unsupported Term" );
+        Assert( !isRegExpKind(k));
+        break;
       }
     }
     conc = Rewriter::rewrite( conc );
@@ -1049,7 +1048,7 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
   if(itr != d_simpl_cache.end()) {
     new_nodes.push_back( itr->second );
   } else {
-    int k = r.getKind();
+    Kind k = r.getKind();
     Node conc;
     switch( k ) {
       case kind::REGEXP_EMPTY: {
@@ -1206,8 +1205,9 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Trace("strings-error") << "Unsupported term: " << r << " in simplifyPRegExp." << std::endl;
-        Assert( false, "Unsupported Term" );
+        Assert( !isRegExpKind(k));
+        conc = r;
+        break;
       }
     }
     conc = Rewriter::rewrite( conc );
@@ -1659,9 +1659,13 @@ std::string RegExpOpr::mkString( Node r ) {
         break;
       }
       default:
-        Trace("strings-error") << "Unsupported term: " << r << " in RegExp." << std::endl;
-        //Assert( false );
-        //return Node::null();
+      {
+        std::stringstream ss;
+        ss << r;
+        retStr = ss.str();
+        Assert(!isRegExpKind(r.getKind()));
+        break;
+      }
     }
   }
 

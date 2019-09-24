@@ -227,7 +227,9 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
           std::vector<Node> nvec;
           if (nvec.empty())
           {
+            Trace("strings-regexp") << "Simplify on " << atom << std::endl;
             d_regexp_opr.simplify(atom, nvec, polarity);
+            Trace("strings-regexp") << "...finished" << std::endl;
           }
           std::vector<Node> exp_n;
           exp_n.push_back(assertion);
@@ -627,7 +629,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
     {
       Trace("strings-error") << "Unsupported term: " << r
                              << " in normalization SymRegExp." << std::endl;
-      Assert(false);
+      Assert(!RegExpOpr::isRegExpKind(r.getKind()));
     }
   }
   return ret;

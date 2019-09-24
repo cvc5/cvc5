@@ -1076,7 +1076,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
   Assert( index_start <= s.size() );
   Trace("regexp-debug") << "Checking " << s << " in " << r << ", starting at " << index_start << std::endl;
   Assert(!r.isVar());
-  int k = r.getKind();
+  Kind k = r.getKind();
   switch( k ) {
     case kind::STRING_TO_REGEXP: {
       CVC4::String s2 = s.substr( index_start, s.size() - index_start );
@@ -1228,8 +1228,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
       }
     }
     default: {
-      Trace("strings-error") << "Unsupported term: " << r << " in testConstStringInRegExp." << std::endl;
-      Unreachable();
+      Assert(!RegExpOpr::isRegExpKind(k));
       return false;
     }
   }
