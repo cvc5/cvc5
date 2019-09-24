@@ -1,4 +1,4 @@
-; COMMAND_LINE: --sets-ext
+; COMMAND-LINE: --sets-ext
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
