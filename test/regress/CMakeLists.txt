@@ -780,6 +780,7 @@ set(regress_0_tests
   regress0/sets/complement.cvc
   regress0/sets/complement2.cvc
   regress0/sets/complement3.cvc
+  regress0/sets/comp-qf-error.smt2
   regress0/sets/cvc-sample.cvc
   regress0/sets/dt-simp-mem.smt2
   regress0/sets/emptyset.smt2
@@ -1524,6 +1525,7 @@ set(regress_1_tests
   regress1/sets/comp-intersect.smt2
   regress1/sets/comp-odd.smt2
   regress1/sets/comp-positive.smt2
+  regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
   regress1/sets/fuzz14418.smt2
