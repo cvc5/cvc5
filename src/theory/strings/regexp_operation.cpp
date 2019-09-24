@@ -255,7 +255,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       default: {
-        Assert( !isRegExpKind(k));
+        Assert(!isRegExpKind(k));
         break;
       }
     }
@@ -495,7 +495,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       default: {
-        Assert( !isRegExpKind(r.getKind()));
+        Assert(!isRegExpKind(r.getKind()));
         break;
       }
     }
@@ -669,7 +669,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
         break;
       }
       default: {
-        Assert( !isRegExpKind(k));
+        Assert(!isRegExpKind(k));
         break;
       }
     }
@@ -782,7 +782,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         break;
       }
       default: {
-        Assert( !isRegExpKind(k));
+        Assert(!isRegExpKind(k));
         break;
       }
     }
@@ -1032,7 +1032,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Assert( !isRegExpKind(k));
+        Assert(!isRegExpKind(k));
         break;
       }
     }
@@ -1205,7 +1205,7 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        Assert( !isRegExpKind(k));
+        Assert(!isRegExpKind(k));
         conc = r;
         break;
       }
