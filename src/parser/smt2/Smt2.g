@@ -1860,6 +1860,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       args.push_back(f); 
       expr = MK_EXPR(CVC4::kind::COMPREHENSION, args);
     }
+    RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
     termList[args,expr] RPAREN_TOK
     { 

@@ -5,7 +5,7 @@
 
 (declare-fun x () (Set Int))
 
-(assert (subset x (comprehension ((z Int)) true (* 2 z)))
+(assert (subset x (comprehension ((z Int)) true (* 2 z))))
 
 (declare-fun a () Int)
 (declare-fun b () Int)
