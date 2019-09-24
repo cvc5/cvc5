@@ -17,6 +17,7 @@
 #include "theory/sets/theory_sets.h"
 #include "options/sets_options.h"
 #include "theory/sets/theory_sets_private.h"
+#include "theory/theory_model.h"
 
 using namespace CVC4::kind;
 
@@ -41,6 +42,13 @@ TheorySets::TheorySets(context::Context* c,
 TheorySets::~TheorySets()
 {
   // Do not move me to the header. See explanation in the constructor.
+}
+
+void TheorySets::finishInit()
+{
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  tm->setUnevaluatedKind(COMPREHENSION);
 }
 
 void TheorySets::addSharedTerm(TNode n) {

@@ -720,12 +720,14 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::SETMINUS:
   case kind::SUBSET:
   case kind::CARD:
-  case kind::COMPREHENSION:
   case kind::JOIN:
   case kind::PRODUCT:
   case kind::TRANSPOSE:
   case kind::TCLOSURE:
     parametricTypeChildren = true;
+    out << smtKindString(k, d_variant) << " ";
+    break;
+  case kind::COMPREHENSION:
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::MEMBER: typeChildren = true;
