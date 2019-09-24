@@ -48,6 +48,7 @@ RegExpOpr::RegExpOpr()
 RegExpOpr::~RegExpOpr() {}
 
 bool RegExpOpr::checkConstRegExp( Node r ) {
+  Assert(r.getType().isRegExp());
   Trace("strings-regexp-cstre")
       << "RegExpOpr::checkConstRegExp /" << mkString(r) << "/" << std::endl;
   RegExpConstType rct = getRegExpConstType(r);
@@ -56,6 +57,7 @@ bool RegExpOpr::checkConstRegExp( Node r ) {
 
 RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 {
+  Assert(r.getType().isRegExp());
   std::unordered_map<Node, RegExpConstType, NodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;

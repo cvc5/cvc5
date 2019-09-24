@@ -27,6 +27,7 @@
 #include "theory/theory.h"
 #include "util/integer.h"
 #include "util/rational.h"
+#include "theory/strings/regexp_operation.h"
 
 using namespace std;
 using namespace CVC4;

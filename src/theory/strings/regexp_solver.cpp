@@ -387,7 +387,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       Assert(m.getKind() == NOT && m[0].getKind() == STRING_IN_REGEXP);
       continue;
     }
-    RegExpConstType rct = d_regexp_opr.getRegExpConstType(m);
+    RegExpConstType rct = d_regexp_opr.getRegExpConstType(m[1]);
     if (rct == RE_C_VARIABLE
         || (options::stringRegExpInterMode() == RE_INTER_CONSTANT
             && rct != RE_C_CONRETE_CONSTANT))
