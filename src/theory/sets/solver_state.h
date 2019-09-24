@@ -164,7 +164,7 @@ class SolverState
    */
   const std::map<Kind, std::vector<Node> >& getOperatorList() const;
   /** Get the list of all comprehension sets in the current context */
-  const std::vector< Node >& getComprehensionSets() const;
+  const std::vector<Node>& getComprehensionSets() const;
 
   // --------------------------------------- commonly used terms
   /** Get type constraint skolem
@@ -269,7 +269,7 @@ class SolverState
   /** Indices for the binary kinds INTERSECT, SETMINUS and UNION. */
   std::map<Kind, std::map<Node, std::map<Node, Node> > > d_bop_index;
   /** A list of comprehension sets */
-  std::vector< Node > d_allCompSets;
+  std::vector<Node> d_allCompSets;
   // -------------------------------- end term indices
   std::map<Kind, std::vector<Node> > d_op_list;
   /** the skolem cache */

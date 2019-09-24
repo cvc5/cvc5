@@ -433,7 +433,7 @@ void TheorySetsPrivate::fullEffortCheck(){
             {
               checkReduceComprehensions();
               d_im.flushPendingLemmas();
-                
+
               if (!d_im.hasProcessed() && d_card_enabled)
               {
                 // call the check method of the cardinality solver
@@ -788,8 +788,8 @@ void TheorySetsPrivate::checkDisequalities()
 void TheorySetsPrivate::checkReduceComprehensions()
 {
   NodeManager* nm = NodeManager::currentNM();
-  const std::vector< Node >& comps = d_state.getComprehensionSets();
-  for (const Node& n : comps )
+  const std::vector<Node>& comps = d_state.getComprehensionSets();
+  for (const Node& n : comps)
   {
     if (d_termProcessed.find(n) != d_termProcessed.end())
     {
@@ -808,13 +808,12 @@ void TheorySetsPrivate::checkReduceComprehensions()
       Node cvs = nm->mkBoundVar(cv.getType());
       subs.push_back(cvs);
     }
-    body = body.substitute(
-        vars.begin(), vars.end(), subs.begin(), subs.end());
+    body = body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, subs);
     body = nm->mkNode(EXISTS, bvl, body);
     Node mem = nm->mkNode(MEMBER, v, n);
-    Node lem = nm->mkNode(
-        FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
+    Node lem =
+        nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
     d_im.flushLemma(lem);

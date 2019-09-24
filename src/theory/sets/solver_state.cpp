@@ -573,7 +573,7 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
   return d_op_list;
 }
 
-const std::vector< Node >& SolverState::getComprehensionSets() const
+const std::vector<Node>& SolverState::getComprehensionSets() const
 {
   return d_allCompSets;
 }
