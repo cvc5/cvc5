@@ -3247,7 +3247,7 @@ void SmtEnginePrivate::processAssertions() {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
       && !options::incrementalSolving())
   {
-	options::ackermann.sat(true);
+	options::ackermann.set(true);
   }
 
   if (options::ackermann())

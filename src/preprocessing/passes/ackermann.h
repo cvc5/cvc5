@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <cmath>
+#include <cstring>
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -66,7 +67,7 @@ class BVAckermann : public PreprocessingPass
   FunctionToArgsMap d_funcToArgs;
   theory::SubstitutionMap d_funcToSkolem;
   theory::SubstitutionMap d_sortsToSkolem;
-  USortCardinality d_usortCardinality;
+  USortToBVSizeMap d_usortCardinality;
 };
 
 }  // namespace passes
