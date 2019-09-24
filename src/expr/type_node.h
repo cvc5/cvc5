@@ -421,10 +421,16 @@ public:
    * @return a finite or infinite cardinality
    */
   Cardinality getCardinality() const;
-  
+
   /**
-   * Is this type interpreted as being finite.
-   * If finite model finding is enabled, this assumes all uninterpreted sorts 
+   * Is this type finite? This assumes uninterpreted sorts have infinite
+   * cardinality.
+   */
+  bool isFinite();
+
+  /**
+   * Is this type interpreted as finite.
+   * If finite model finding is enabled, this assumes all uninterpreted sorts
    *   are interpreted as finite.
    */
   bool isInterpretedFinite();
@@ -665,7 +671,14 @@ public:
   static Node getEnsureTypeCondition( Node n, TypeNode tn );
 private:
   static TypeNode commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast);
-  
+
+  /**
+   * Is this type interpreted as finite.
+   * If the flag usortFinite is true, this assumes all uninterpreted sorts
+   *   are interpreted as finite.
+   */
+  bool isFiniteInternal(bool usortFinite);
+
   /**
    * Indents the given stream a given amount of spaces.
    *

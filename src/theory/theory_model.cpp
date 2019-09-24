@@ -592,6 +592,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
   if( options::ufHo() ){
     //we must rewrite the function value since the definition needs to be a constant value
     f_def = Rewriter::rewrite( f_def );
+    Trace("model-builder-debug")
+        << "Model value (post-rewrite) : " << f_def << std::endl;
     Assert( f_def.isConst() );
   }
  

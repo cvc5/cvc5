@@ -477,7 +477,7 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     TypeNode tn = v.getType();
     Instantiator * vinst;
     if( tn.isReal() ){
-      vinst = new ArithInstantiator(tn);
+      vinst = new ArithInstantiator(tn, d_parent->getVtsTermCache());
     }else if( tn.isSort() ){
       Assert( options::quantEpr() );
       vinst = new EprInstantiator(tn);
@@ -1245,7 +1245,8 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
           nretc = Rewriter::rewrite( nretc );
           //ensure that nret does not contain vars
-          if( !TermUtil::containsTerms( nretc, vars ) ){
+          if (!expr::hasSubterm(nretc, vars))
+          {
             //result is ( nret / pv_prop.d_coeff )
             nret = nretc;
           }else{

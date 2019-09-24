@@ -181,6 +181,13 @@ set(regress_0_tests
   regress0/bv/bv_to_int1.smt2
   regress0/bv/bv_to_int2.smt2
   regress0/bv/bv_to_int_ashr.smt2
+  regress0/bv/bv_to_int_bvmul.smt2
+  regress0/bv/bv_to_int_bug1.smt2
+  regress0/bv/bv_to_int_bug2.smt2
+  regress0/bv/bv_to_int_bug3.smt2
+  regress0/bv/bv_to_int_bug4.smt2
+  regress0/bv/bvuf_to_intuf.smt2
+  regress0/bv/bvuf_to_intuf_sorts.smt2
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bvmul-pow2-only.smt2
@@ -363,6 +370,7 @@ set(regress_0_tests
   regress0/datatypes/dt-2.6.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
   regress0/datatypes/dt-param-2.6.smt2
+  regress0/datatypes/dt-param-2.6-print.smt2
   regress0/datatypes/dt-param-card4-bool-sat.smt2
   regress0/datatypes/dt-sel-2.6.smt2
   regress0/datatypes/empty_tuprec.cvc
@@ -1119,9 +1127,8 @@ set(regress_1_tests
   regress1/bv/bug787.smt2
   regress1/bv/bug_extract_mult_leading_bit.smt2
   regress1/bv/bv-int-collapse2-sat.smt2
-  regress1/bv/bv-proof00.smt
-  regress1/bv/bv_to_int0.smt2
   regress1/bv/bv-proof00.smtv1.smt2
+  regress1/bv/bv_to_int0.smt2
   regress1/bv/bv2nat-ground.smt2
   regress1/bv/bv2nat-simp-range-sat.smt2
   regress1/bv/bv2nat-types.smt2
@@ -1139,6 +1146,7 @@ set(regress_1_tests
   regress1/datatypes/dt-color-2.6.smt2
   regress1/datatypes/dt-param-card4-unsat.smt2
   regress1/datatypes/error.cvc
+  regress1/datatypes/issue3266-small.smt2
   regress1/datatypes/manos-model.smt2
   regress1/decision/error3.smtv1.smt2
   regress1/decision/quant-Arrays_Q1-noinfer.smt2
@@ -1194,6 +1202,7 @@ set(regress_1_tests
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
   regress1/ho/fta0328.lfho.p
+  regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2
@@ -1700,6 +1709,7 @@ set(regress_1_tests
   regress1/sygus/planning-unif.sy
   regress1/sygus/process-10-vars.sy
   regress1/sygus/qe.sy
+  regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
@@ -1853,17 +1863,11 @@ set(regress_2_tests
 # Regression level 3 tests
 
 set(regress_3_tests
-  regress3/bmc-ibm-1.smt
-  regress3/bmc-ibm-2.smt
-  regress3/bmc-ibm-5.smt
-  regress3/bmc-ibm-7.smt
-  regress3/bv_to_int_and_or.smt2
-  regress3/eq_diamond14.smt
-  regress3/friedman_n6_i4.smt
   regress3/bmc-ibm-1.smtv1.smt2
   regress3/bmc-ibm-2.smtv1.smt2
   regress3/bmc-ibm-5.smtv1.smt2
   regress3/bmc-ibm-7.smtv1.smt2
+  regress3/bv_to_int_and_or.smt2
   regress3/eq_diamond14.smtv1.smt2
   regress3/friedman_n6_i4.smtv1.smt2
   regress3/hole9.cvc

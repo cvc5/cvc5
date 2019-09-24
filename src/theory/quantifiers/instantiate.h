@@ -69,6 +69,32 @@ class InstantiationNotify
   virtual void filterInstantiations() = 0;
 };
 
+/** Instantiation rewriter
+ *
+ * This class is used for cases where instantiation lemmas can be rewritten by
+ * external utilities. Examples of this include virtual term substitution and
+ * nested quantifier elimination techniques.
+ */
+class InstantiationRewriter
+{
+ public:
+  InstantiationRewriter() {}
+  virtual ~InstantiationRewriter() {}
+
+  /** rewrite instantiation
+   *
+   * The node inst is the instantiation of quantified formula q for terms.
+   * This method returns the rewritten form of the instantiation.
+   *
+   * The flag doVts is whether we must apply virtual term substitution to the
+   * instantiation.
+   */
+  virtual Node rewriteInstantiation(Node q,
+                                    std::vector<Node>& terms,
+                                    Node inst,
+                                    bool doVts) = 0;
+};
+
 /** Instantiate
  *
  * This class is used for generating instantiation lemmas.  It maintains an
@@ -103,7 +129,7 @@ class Instantiate : public QuantifiersUtil
   /** check incomplete */
   bool checkComplete() override;
 
-  //--------------------------------------notify objects
+  //--------------------------------------notify/rewrite objects
   /** add instantiation notify
    *
    * Adds an instantiation notify class to listen to the instantiations reported
@@ -112,6 +138,8 @@ class Instantiate : public QuantifiersUtil
   void addNotify(InstantiationNotify* in);
   /** get number of instantiation notify added to this class */
   bool hasNotify() const { return !d_inst_notify.empty(); }
+  /** add instantiation rewriter */
+  void addRewriter(InstantiationRewriter* ir);
   /** notify flush lemmas
    *
    * This is called just before the quantifiers engine flushes its lemmas to
@@ -342,6 +370,8 @@ class Instantiate : public QuantifiersUtil
   TermUtil* d_term_util;
   /** instantiation notify classes */
   std::vector<InstantiationNotify*> d_inst_notify;
+  /** instantiation rewriter classes */
+  std::vector<InstantiationRewriter*> d_instRewrite;
 
   /** statistics for debugging total instantiation */
   int d_total_inst_count_debug;
