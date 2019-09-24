@@ -1,0 +1,93 @@
+Performing C++ SOURCE FILE Test HAVE_FLAG_Wsuggest_override failed with the following output:
+Change Dir: /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_5db6e/fast 
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_5db6e.dir/build.make CMakeFiles/cmTC_5db6e.dir/build
+Building CXX object CMakeFiles/cmTC_5db6e.dir/src.cxx.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -fno-inline -Og -O0 -Wall -Wno-deprecated -DHAVE_FLAG_Wsuggest_override -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk   -Wsuggest-override -o CMakeFiles/cmTC_5db6e.dir/src.cxx.o -c /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp/src.cxx
+warning: unknown warning option '-Wsuggest-override'; did you mean '-Wshift-overflow'? [-Wunknown-warning-option]
+1 warning generated.
+Linking CXX executable cmTC_5db6e
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5db6e.dir/link.txt --verbose=1
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -fno-inline -Og -O0 -Wall -Wno-deprecated -DHAVE_FLAG_Wsuggest_override -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_5db6e.dir/src.cxx.o  -o cmTC_5db6e 
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAVE_FLAG_Wno_class_memaccess failed with the following output:
+Change Dir: /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_dd2b3/fast 
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_dd2b3.dir/build.make CMakeFiles/cmTC_dd2b3.dir/build
+Building CXX object CMakeFiles/cmTC_dd2b3.dir/src.cxx.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -fno-inline -Og -O0 -Wall -Wno-deprecated -Wnon-virtual-dtor -DHAVE_FLAG_Wno_class_memaccess -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk   -Wno-class-memaccess -o CMakeFiles/cmTC_dd2b3.dir/src.cxx.o -c /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp/src.cxx
+warning: unknown warning option '-Wno-class-memaccess'; did you mean '-Wno-class-varargs'? [-Wunknown-warning-option]
+1 warning generated.
+Linking CXX executable cmTC_dd2b3
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E cmake_link_script CMakeFiles/cmTC_dd2b3.dir/link.txt --verbose=1
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  -fno-inline -Og -O0 -Wall -Wno-deprecated -Wnon-virtual-dtor -DHAVE_FLAG_Wno_class_memaccess -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_dd2b3.dir/src.cxx.o  -o cmTC_dd2b3 
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test CVC4_NEED_HASH_UINT64_T_OVERLOAD failed with the following output:
+Change Dir: /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_ab298/fast 
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_ab298.dir/build.make CMakeFiles/cmTC_ab298.dir/build
+Building CXX object CMakeFiles/cmTC_ab298.dir/src.cxx.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -fno-inline -Og -O0 -Wall -Wno-deprecated -Wnon-virtual-dtor -ggdb3 -DCVC4_NEED_HASH_UINT64_T_OVERLOAD -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk   -o CMakeFiles/cmTC_ab298.dir/src.cxx.o -c /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp/src.cxx
+/Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp/src.cxx:4:37: error: redefinition of 'hash<unsigned long long>'
+  namespace std { template<> struct hash<uint64_t> {}; }
+                                    ^~~~~~~~~~~~~~
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/utility:1447:29: note: previous definition is here
+struct _LIBCPP_TEMPLATE_VIS hash<unsigned long long>
+                            ^
+1 error generated.
+make[1]: *** [CMakeFiles/cmTC_ab298.dir/src.cxx.o] Error 1
+make: *** [cmTC_ab298/fast] Error 2
+
+Source file was:
+
+  #include <cstdint>
+  #include <functional>
+  namespace std { template<> struct hash<uint64_t> {}; }
+  int main() { return 0; }
+  
+Determining if the include file ext/stdio_filebuf.h exists failed with the following output:
+Change Dir: /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_fcd4c/fast 
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_fcd4c.dir/build.make CMakeFiles/cmTC_fcd4c.dir/build
+Building CXX object CMakeFiles/cmTC_fcd4c.dir/CheckIncludeFile.cxx.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -fno-inline -Og -O0 -Wall -Wno-deprecated -Wnon-virtual-dtor -ggdb3  -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk   -o CMakeFiles/cmTC_fcd4c.dir/CheckIncludeFile.cxx.o -c /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx
+/Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx:1:10: fatal error: 'ext/stdio_filebuf.h' file not found
+#include <ext/stdio_filebuf.h>
+         ^~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+make[1]: *** [CMakeFiles/cmTC_fcd4c.dir/CheckIncludeFile.cxx.o] Error 1
+make: *** [cmTC_fcd4c/fast] Error 2
+
+
+Performing C SOURCE FILE Test STRERROR_R_CHAR_P failed with the following output:
+Change Dir: /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_03dfb/fast 
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_03dfb.dir/build.make CMakeFiles/cmTC_03dfb.dir/build
+Building C object CMakeFiles/cmTC_03dfb.dir/src.c.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -fno-inline -Og -O0 -Wall -fexceptions -Wno-deprecated -ggdb3 -DSTRERROR_R_CHAR_P -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk   -o CMakeFiles/cmTC_03dfb.dir/src.c.o   -c /Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp/src.c
+/Users/Ying/Study/Stanford/ClarkLab/CVC4/cmake-build-debug/CMakeFiles/CMakeTmp/src.c:6:14: error: indirection requires pointer operand ('int' invalid)
+    char c = *strerror_r(0, buf, 0);
+             ^~~~~~~~~~~~~~~~~~~~~~
+1 error generated.
+make[1]: *** [CMakeFiles/cmTC_03dfb.dir/src.c.o] Error 1
+make: *** [cmTC_03dfb/fast] Error 2
+
+Source file was:
+
+  #include <string.h>
+  int main(void)
+  {
+    char buf[1];
+    char c = *strerror_r(0, buf, 0);
+    return 0;
+  }
+  
