@@ -91,7 +91,15 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       {
         d_constCache[cur] = RE_C_UNKNOWN;
         visit.push_back(cur);
-        visit.insert(visit.end(), cur.begin(), cur.end());
+        if (ck==REGEXP_LOOP)
+        {
+          // only add the first child of loop
+          visit.push_back(cur[0]);
+        }
+        else
+        {
+          visit.insert(visit.end(), cur.begin(), cur.end());
+        }
       }
     }
     else if (it->second == RE_C_UNKNOWN)
