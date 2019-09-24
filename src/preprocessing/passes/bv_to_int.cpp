@@ -425,6 +425,8 @@ Node BVToInt::bvToInt(Node n)
                 d_bvToIntCache[current] =
                     d_nm->mkNode(kind::MINUS, mult, multSig);
 
+		d_rangeAssertions.insert(
+		    mkRangeConstraint(d_bvToIntCache[current], bvsize));
                 Node sig_lower =
                     d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), sigma);
                 if (intized_children[0].isConst())
@@ -443,8 +445,7 @@ Node BVToInt::bvToInt(Node n)
                 }
                 else
                 {
-                  d_rangeAssertions.insert(
-                      mkRangeConstraint(d_bvToIntCache[current], bvsize));
+		  d_rangeAssertions.insert(mkRangeConstraint(sigma, bvsize));
                 }
               break;
             }
