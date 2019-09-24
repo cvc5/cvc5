@@ -101,6 +101,11 @@ class TheorySetsPrivate {
    * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
    */
   void checkDisequalities();
+  /**
+   * Check comprehsions. This adds reduction lemmas for all set comprehensions
+   * in the current context.
+   */
+  void checkReduceComprehensions();
 
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,

@@ -358,35 +358,6 @@ void TheorySetsPrivate::fullEffortCheck(){
             // TODO (#1124) handle this case
           }
         }
-        else if (n.getKind() == COMPREHENSION)
-        {
-          if (d_termProcessed.find(n) == d_termProcessed.end())
-          {
-            d_termProcessed.insert(n);
-            NodeManager* nm = NodeManager::currentNM();
-            Node v = nm->mkBoundVar(n[2].getType());
-            Node body = nm->mkNode(AND, n[1], v.eqNode(n[2]));
-            // must do substitution
-            std::vector<Node> vars;
-            std::vector<Node> subs;
-            for (const Node& cv : n[0])
-            {
-              vars.push_back(cv);
-              Node cvs = nm->mkBoundVar(cv.getType());
-              subs.push_back(cvs);
-            }
-            body = body.substitute(
-                vars.begin(), vars.end(), subs.begin(), subs.end());
-            Node bvl = nm->mkNode(BOUND_VAR_LIST, subs);
-            body = nm->mkNode(EXISTS, bvl, body);
-            Node mem = nm->mkNode(MEMBER, v, n);
-            Node lem = nm->mkNode(
-                FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
-            Trace("sets-comprehension")
-                << "Comprehension reduction: " << lem << std::endl;
-            d_im.flushLemma(lem);
-          }
-        }
         else
         {
           if( d_rels->isRelationKind( n.getKind() ) ){
@@ -458,10 +429,16 @@ void TheorySetsPrivate::fullEffortCheck(){
           {
             checkDisequalities();
             d_im.flushPendingLemmas();
-            if (!d_im.hasProcessed() && d_card_enabled)
+            if (!d_im.hasProcessed())
             {
-              // call the check method of the cardinality solver
-              d_cardSolver->check();
+              checkReduceComprehensions();
+              d_im.flushPendingLemmas();
+                
+              if (!d_im.hasProcessed() && d_card_enabled)
+              {
+                // call the check method of the cardinality solver
+                d_cardSolver->check();
+              }
             }
           }
         }
@@ -805,6 +782,42 @@ void TheorySetsPrivate::checkDisequalities()
         }
       }
     }
+  }
+}
+
+void TheorySetsPrivate::checkReduceComprehensions()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  const std::vector< Node >& comps = d_state.getComprehensionSets();
+  for (const Node& n : comps )
+  {
+    if (d_termProcessed.find(n) != d_termProcessed.end())
+    {
+      // already reduced it
+      continue;
+    }
+    d_termProcessed.insert(n);
+    Node v = nm->mkBoundVar(n[2].getType());
+    Node body = nm->mkNode(AND, n[1], v.eqNode(n[2]));
+    // must do substitution
+    std::vector<Node> vars;
+    std::vector<Node> subs;
+    for (const Node& cv : n[0])
+    {
+      vars.push_back(cv);
+      Node cvs = nm->mkBoundVar(cv.getType());
+      subs.push_back(cvs);
+    }
+    body = body.substitute(
+        vars.begin(), vars.end(), subs.begin(), subs.end());
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, subs);
+    body = nm->mkNode(EXISTS, bvl, body);
+    Node mem = nm->mkNode(MEMBER, v, n);
+    Node lem = nm->mkNode(
+        FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
+    Trace("sets-comprehension")
+        << "Comprehension reduction: " << lem << std::endl;
+    d_im.flushLemma(lem);
   }
 }
 
@@ -1227,13 +1240,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 
 Node TheorySetsPrivate::expandDefinition(LogicRequest &logicRequest, Node n) {
   Debug("sets-proc") << "expandDefinition : " << n << std::endl;
-  if( n.getKind()==kind::UNIVERSE_SET || n.getKind()==kind::COMPLEMENT || n.getKind()==kind::JOIN_IMAGE ){
-    if( !options::setsExt() ){
-      std::stringstream ss;
-      ss << "Extended set operators are not supported in default mode, try --sets-ext.";
-      throw LogicException(ss.str());
-    }
-  }
   return n;
 }
 
