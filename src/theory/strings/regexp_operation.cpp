@@ -111,9 +111,12 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
   return d_constCache[r];
 }
 
-bool RegExpOpr::isRegExpKind( Kind k )
+bool RegExpOpr::isRegExpKind(Kind k)
 {
-  return k==REGEXP_EMPTY || k==REGEXP_SIGMA || k == STRING_TO_REGEXP || k ==REGEXP_CONCAT || k==REGEXP_UNION || k==REGEXP_INTER || k ==REGEXP_STAR || k ==REGEXP_PLUS || k == REGEXP_OPT || k ==REGEXP_RANGE || k ==REGEXP_LOOP;
+  return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
+         || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
+         || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
+         || k == REGEXP_RANGE || k == REGEXP_LOOP;
 }
 
 // 0-unknown, 1-yes, 2-no
@@ -492,7 +495,8 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       default: {
-        Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in derivative of RegExp." << std::endl;
+        Trace("strings-error") << "Unsupported term: " << mkString(r)
+                               << " in derivative of RegExp." << std::endl;
         Unreachable();
       }
     }

@@ -120,7 +120,7 @@ class RegExpOpr {
   /** get the constant type for regular expression r */
   RegExpConstType getRegExpConstType(Node r);
   /** is k a native operator whose return type is a regular expression? */
-  static bool isRegExpKind( Kind k );
+  static bool isRegExpKind(Kind k);
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
   int delta( Node r, Node &exp );
   int derivativeS( Node r, CVC4::String c, Node &retNode );
