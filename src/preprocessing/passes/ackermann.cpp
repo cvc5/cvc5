@@ -193,11 +193,8 @@ void updateUSortsCardinality(USortToBVSizeMap& usort_cardinality, TNode term)
   }
 }
 
-void collectUSortsToBV(USortToBVSizeMap& usort_cardinality, vector<TNode>& vec, SubstitutionMap& sorts_to_skolem)
+void collectUSortsToBV(std::unordered_set<unsigned>& used, USortToBVSizeMap& usort_cardinality, vector<TNode>& vec, SubstitutionMap& sorts_to_skolem)
 {
-  // make sure the new sorts are unique
-  std::unordered_set<unsigned> used;
-  used.clear();
   NodeManager* nm = NodeManager::currentNM();
  
   for (TNode term : vec)
@@ -208,7 +205,6 @@ void collectUSortsToBV(USortToBVSizeMap& usort_cardinality, vector<TNode>& vec, 
 	  unsigned size = usort_cardinality[type].second;
 	  if (size == 0)
 	  {
-		std::cerr << term.toString() << ":" << type.toString() << ":" << usort_cardinality[type].first << "\t";
 		size = log2(usort_cardinality[type].first) + 1;
 		while (used.find(size) != used.end())
 		{
@@ -221,8 +217,6 @@ void collectUSortsToBV(USortToBVSizeMap& usort_cardinality, vector<TNode>& vec, 
 								 nm->mkBitVectorType(size),
 								 "a variable created by the ackermannization "
 								 "preprocessing pass for theory BV");
-	  std::cerr << "size:" << size << "\t";
-	  std::cerr << skolem.toString() << ":" << skolem.getType().toString() << "\t";
 	  sorts_to_skolem.addSubstitution(term, skolem);
 	}
   }
@@ -230,7 +224,8 @@ void collectUSortsToBV(USortToBVSizeMap& usort_cardinality, vector<TNode>& vec, 
 
 void usortsToBitVectors(USortToBVSizeMap& usort_cardinality, SubstitutionMap& sorts_to_skolem, AssertionPipeline* assertions)
 {
-  std::cerr << "========== debug ===========" << endl;
+  std::unordered_set<unsigned> used;
+  used.clear();
   TNodeSet seen;
   seen.clear();
   std::vector<TNode> to_process;
@@ -246,7 +241,6 @@ void usortsToBitVectors(USortToBVSizeMap& usort_cardinality, SubstitutionMap& so
   for (unsigned i = 0; i < to_process.size(); ++i)
   {
 	term = to_process[i];
-	//std::cerr << term.toString() << ":" << term.getType().toString() << "\t";
 	Assert(term.getKind() == kind::APPLY_UF || term.getKind() == kind::SELECT || term.getKind() == kind::STORE);
 
 	updateUSortsCardinality(usort_cardinality, term);
@@ -261,9 +255,16 @@ void usortsToBitVectors(USortToBVSizeMap& usort_cardinality, SubstitutionMap& so
 	}
   }
 
-  collectUSortsToBV(usort_cardinality, to_process, sorts_to_skolem);
-  
-  std::cerr << endl << "======== debug end =========" << endl;
+  for (TNode a : to_process)
+  {
+	TypeNode type = a.getType();
+	if (type.isBitVector())
+	{
+	  used.insert(type.getBitVectorSize());
+	}
+  }
+
+  collectUSortsToBV(used, usort_cardinality, to_process, sorts_to_skolem);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -271,7 +272,8 @@ void usortsToBitVectors(USortToBVSizeMap& usort_cardinality, SubstitutionMap& so
 BVAckermann::BVAckermann(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ackermann"),
       d_funcToSkolem(preprocContext->getUserContext()),
-	  d_sortsToSkolem(preprocContext->getUserContext())
+	  d_sortsToSkolem(preprocContext->getUserContext()),
+	  d_logic(preprocContext->getLogicInfo())
 // TODO is it the correct way to initialize d_sortsToSkolem???
 {
 }
@@ -279,7 +281,6 @@ BVAckermann::BVAckermann(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BVAckermann::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   AlwaysAssert(!options::incrementalSolving());
 
   /* collect all function applications and generate consistency lemmas
@@ -294,30 +295,22 @@ PreprocessingPassResult BVAckermann::applyInternal(
 
   /* replace applications of UF by skolems */
   // FIXME for model building, github issue #1901
-  std::cerr << "========== before func remove ==============" << endl;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-	std::cerr << (*assertionsToPreprocess)[i].toString() << ":";
     assertionsToPreprocess->replace(
         i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
-	std::cerr << (*assertionsToPreprocess)[i].toString() << "\t";
   }
-  std::cerr << endl << "========== after func remove ==========" << endl;
 
-  // TODO do replace only under theory bit vector
-  //ProofManager* pm = ProofManager::currentPM(); 
-  //if (pm->getLogicInfo().getLogicString().find("BitVector") != string::npos)
+  if (d_logic.isTheoryEnabled(theory::THEORY_BV))
   {
     /* replace uninterpreted sorts to bitvector */
     usortsToBitVectors(d_usortCardinality, d_sortsToSkolem, assertionsToPreprocess);
 
-    std::cerr << "======== before sorts remove =========" << endl;
     for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
       assertionsToPreprocess->replace(
           i, d_sortsToSkolem.apply((*assertionsToPreprocess)[i]));
     }
-    std::cerr << endl << "========== after sorts remove =========" << endl;
   }
 
   return PreprocessingPassResult::NO_CONFLICT;

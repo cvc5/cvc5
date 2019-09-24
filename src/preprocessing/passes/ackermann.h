@@ -68,6 +68,7 @@ class BVAckermann : public PreprocessingPass
   theory::SubstitutionMap d_funcToSkolem;
   theory::SubstitutionMap d_sortsToSkolem;
   USortToBVSizeMap d_usortCardinality;
+  LogicInfo d_logic;
 };
 
 }  // namespace passes
