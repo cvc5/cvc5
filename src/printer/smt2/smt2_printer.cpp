@@ -727,9 +727,7 @@ void Smt2Printer::toStream(std::ostream& out,
     parametricTypeChildren = true;
     out << smtKindString(k, d_variant) << " ";
     break;
-  case kind::COMPREHENSION:
-    out << smtKindString(k, d_variant) << " ";
-    break;
+  case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
   case kind::MEMBER: typeChildren = true;
   case kind::INSERT:
   case kind::SET_TYPE:
