@@ -1216,7 +1216,7 @@ void SmtEngine::setDefaults() {
   }
   else if (d_logic.getLogicString() == "QF_UFBV" && options::ackermann())
   {
-	d_logic = LogicInfo("QF_BV");
+    d_logic = LogicInfo("QF_BV");
   }
 
   // set strings-exp
