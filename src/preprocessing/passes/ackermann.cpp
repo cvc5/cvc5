@@ -179,118 +179,9 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
-/* Update the statistics for each uninterpreted sort */
-void updateUSortsCardinality(USortToBVSizeMap& usort_cardinality, TNode term)
-{
-  TypeNode type = term.getType();
-  if (type.isSort())
-  {
-    if (usort_cardinality.find(type) == usort_cardinality.end())
-    {
-      usort_cardinality.insert(make_pair(type, make_pair(0, 0)));
-    }
-    usort_cardinality[type].first = usort_cardinality[type].first + 1;
-  }
-}
-
-/* Given the lowest capacity requirements for each uninterpreted sorts, assign
- * unique bit vector size. Get the converting map */
-void collectUSortsToBV(std::unordered_set<unsigned>& used,
-                       USortToBVSizeMap& usort_cardinality,
-                       vector<TNode>& vec,
-                       SubstitutionMap& sorts_to_skolem)
-{
-  NodeManager* nm = NodeManager::currentNM();
-
-  for (TNode term : vec)
-  {
-    TypeNode type = term.getType();
-    if (type.isSort())
-    {
-      unsigned size = usort_cardinality[type].second;
-      if (size == 0)
-      {
-        size = log2(usort_cardinality[type].first) + 1;
-        while (used.find(size) != used.end())
-        {
-          ++size;
-        }
-        usort_cardinality[type].second = size;
-        used.insert(size);
-      }
-      Node skolem = nm->mkSkolem("BVSKOLEM$$",
-                                 nm->mkBitVectorType(size),
-                                 "a variable created by the ackermannization "
-                                 "preprocessing pass for theory BV");
-      sorts_to_skolem.addSubstitution(term, skolem);
-    }
-  }
-}
-
-/* This is the top level of converting uninterpreted sorts to bit vectors.
- * We use bfs to get all terms without duplications, and count the number of
- * different terms for each uninterpreted sort. Then for each sort, we will
- * assign a new bit vector type with a unique size. The unique size ensures
- * that, after the replacement, the different sorts will be converted into bit
- * vectors with different size.
- * The size is calculated to have enough capacity, that can accommodate the
- * terms occured in the original formula. */
-void usortsToBitVectors(USortToBVSizeMap& usort_cardinality,
-                        SubstitutionMap& sorts_to_skolem,
-                        AssertionPipeline* assertions)
-{
-  std::unordered_set<unsigned> used;
-  used.clear();
-  TNodeSet seen;
-  seen.clear();
-  std::vector<TNode> to_process;
-  for (Node& a : assertions->ref())
-  {
-    if (seen.find(a) == seen.end())
-    {
-      to_process.push_back(a);
-      seen.insert(a);
-    }
-  }
-  TNode term;
-  for (unsigned i = 0; i < to_process.size(); ++i)
-  {
-    term = to_process[i];
-    AlwaysAssert(term.getKind() != kind::STORE,
-                 "Cannot use eager bitblasting on QF_ABV formula with stores");
-
-    updateUSortsCardinality(usort_cardinality, term);
-
-    for (TNode a : term)
-    {
-      if (seen.find(a) == seen.end())
-      {
-        to_process.push_back(a);
-        seen.insert(a);
-      }
-    }
-  }
-
-  for (TNode a : to_process)
-  {
-    TypeNode type = a.getType();
-    if (type.isBitVector())
-    {
-      used.insert(type.getBitVectorSize());
-    }
-  }
-
-  collectUSortsToBV(used, usort_cardinality, to_process, sorts_to_skolem);
-}
-
-/* -------------------------------------------------------------------------- */
-
 BVAckermann::BVAckermann(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ackermann"),
-      d_funcToSkolem(preprocContext->getUserContext()),
-      d_sortsToSkolem(preprocContext->getUserContext()),
-      d_logic(preprocContext->getLogicInfo())
-// TODO is it the correct way to initialize d_sortsToSkolem???
+      d_funcToSkolem(preprocContext->getUserContext())
 {
 }
 
@@ -315,23 +206,6 @@ PreprocessingPassResult BVAckermann::applyInternal(
   {
     assertionsToPreprocess->replace(
         i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
-  }
-
-  /* the current version only support BV for removing uninterpreted sorts */
-  if (d_logic.isTheoryEnabled(theory::THEORY_BV))
-  {
-    /* replace uninterpreted sorts to bitvector */
-    usortsToBitVectors(
-        d_usortCardinality, d_sortsToSkolem, assertionsToPreprocess);
-
-    for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-    {
-      Node old = (*assertionsToPreprocess)[i];
-      assertionsToPreprocess->replace(
-          i, d_sortsToSkolem.apply((*assertionsToPreprocess)[i]));
-      Trace("uninterpretedSorts-to-bv")
-          << "  " << old << " => " << (*assertionsToPreprocess)[i] << "\n";
-    }
   }
 
   return PreprocessingPassResult::NO_CONFLICT;

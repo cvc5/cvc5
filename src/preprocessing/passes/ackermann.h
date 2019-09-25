@@ -26,10 +26,7 @@
 #ifndef CVC4__PREPROCESSING__PASSES__ACKERMANN_H
 #define CVC4__PREPROCESSING__PASSES__ACKERMANN_H
 
-#include <cmath>
-#include <cstring>
 #include <unordered_map>
-#include <unordered_set>
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -41,8 +38,6 @@ namespace passes {
 using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
 using FunctionToArgsMap =
     std::unordered_map<TNode, TNodeSet, TNodeHashFunction>;
-using USortToBVSizeMap = std::
-    unordered_map<TypeNode, pair<unsigned, unsigned>, TypeNode::HashFunction>;
 
 class BVAckermann : public PreprocessingPass
 {
@@ -69,14 +64,6 @@ class BVAckermann : public PreprocessingPass
   /* Map each function term to the new Skolem variable created by
    * ackermannization */
   theory::SubstitutionMap d_funcToSkolem;
-  /* Map each uninterpreted sort to the new Skolem variable created by
-   * ackermannization */
-  theory::SubstitutionMap d_sortsToSkolem;
-  /* Map each Uninterpreted sort to a pair of integers.
-   * The first value is the lowest capacity that the targeting BV should have
-   * The second value is the size of the BV which will convert into */
-  USortToBVSizeMap d_usortCardinality;
-  LogicInfo d_logic;
 };
 
 }  // namespace passes
