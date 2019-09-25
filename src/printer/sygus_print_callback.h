@@ -68,45 +68,6 @@ class CVC4_PUBLIC SygusExprPrintCallback : public SygusPrintCallback
                     const std::string& newStr) const;
 };
 
-/** sygus let expression constructor printer
- *
- * This class is used for printing sygus
- * datatype constructor terms whose top symbol
- * is a let expression.
- * For example, for grammar:
- *   A -> (let ((x B)) (+ A 1)) | x | (+ A A) | 0
- *   B -> 0 | 1
- * the first constructor for A takes as arguments
- * (B,A) and has sygus operator
- *   (lambda ((y Int) (z Int)) (+ z 1))
- * CVC4's support for let expressions in grammars
- * is highly limited, since notice that the
- * argument y : B is unused.
- *
- * For the above constructor, we have that
- *   d_let_body is (+ z 1),
- *   d_sygus_let_args is { y, z },
- *   d_sygus_num_let_input_args is 1, since
- *     y is an original input argument of the
- *     let expression, but z is not.
- */
-class CVC4_PUBLIC SygusLetExprPrintCallback : public SygusExprPrintCallback
-{
- public:
-  SygusLetExprPrintCallback(Expr let_body,
-                            std::vector<Expr>& let_args,
-                            unsigned ninput_args);
-  ~SygusLetExprPrintCallback() {}
-  /** print sygus term e on output out using printer p */
-  virtual void toStreamSygus(const Printer* p,
-                             std::ostream& out,
-                             Expr e) const override;
-
- private:
-  /** number of arguments that are interpreted as input arguments */
-  unsigned d_num_let_input_args;
-};
-
 /** sygus named constructor printer
  *
  * This callback is used for explicitly naming

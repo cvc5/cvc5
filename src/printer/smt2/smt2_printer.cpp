@@ -541,8 +541,7 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
 
   case kind::LAMBDA:
-    out << smtKindString(k, d_variant) << " ";
-    break;
+  case kind::CHOICE: out << smtKindString(k, d_variant) << " "; break;
 
   // arith theory
   case kind::PLUS:
@@ -862,7 +861,8 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ')';
     return;
   }
-  case kind::INST_PATTERN: break;
+  case kind::INST_PATTERN:
+  case kind::INST_NO_PATTERN: break;
   case kind::INST_PATTERN_LIST:
   {
     for (const Node& nc : n)
@@ -874,9 +874,13 @@ void Smt2Printer::toStream(std::ostream& out,
           out << ":fun-def";
         }
       }
-      else
+      else if (nc.getKind() == kind::INST_PATTERN)
       {
         out << ":pattern " << nc;
+      }
+      else if (nc.getKind() == kind::INST_NO_PATTERN)
+      {
+        out << ":no-pattern " << nc[0];
       }
     }
     return;
@@ -1026,6 +1030,7 @@ static string smtKindString(Kind k, Variant v)
 
   case kind::LAMBDA:
     return "lambda";
+  case kind::CHOICE: return "choice";
 
   // arith theory
   case kind::PLUS: return "+";
@@ -1345,15 +1350,8 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   }
   //print the model
   out << "(model" << endl;
-  // print approximations
-  if (m.hasApproximations())
-  {
-    std::vector<std::pair<Expr, Expr> > approx = m.getApproximations();
-    for (unsigned i = 0, size = approx.size(); i < size; i++)
-    {
-      out << "(approximation " << approx[i].second << ")" << std::endl;
-    }
-  }
+  // don't need to print approximations since they are built into choice
+  // functions in the values of variables.
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists

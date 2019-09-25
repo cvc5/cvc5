@@ -21,6 +21,7 @@
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
@@ -89,6 +90,8 @@ class InstStrategyCegqi : public QuantifiersModule
   std::string identify() const override { return std::string("Cegqi"); }
   /** get instantiator for quantifier */
   CegInstantiator* getInstantiator(Node q);
+  /** get the virtual term substitution term cache utility */
+  VtsTermCache* getVtsTermCache() const;
   /** get the BV inverter utility */
   BvInverter* getBvInverter() const;
   /** pre-register quantifier */
@@ -149,6 +152,8 @@ class InstStrategyCegqi : public QuantifiersModule
    * This object is responsible for finding instantiatons for q.
    */
   std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
+  /** virtual term substitution term cache for arithmetic instantiation */
+  std::unique_ptr<VtsTermCache> d_vtsCache;
   /** inversion utility for BV instantiation */
   std::unique_ptr<BvInverter> d_bv_invert;
   /**

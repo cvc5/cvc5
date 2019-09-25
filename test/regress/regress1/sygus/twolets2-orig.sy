@@ -1,10 +1,11 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --cegqi-si=all --sygus-out=status
 (set-logic LIA)
+(define-fun letf ((x Int) (y Int) (z Int)) Int (+ (+ y x) z))
 (synth-fun f1 ((x Int)) Int
      (
      (Start Int (
-            (let ((y Int CInt) (z Int CInt)) (+ (+ y x) z))
+            (letf x CInt CInt)
             )
      )
      (CInt Int (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))
@@ -14,7 +15,7 @@
 (synth-fun f2 ((x Int)) Int
      (
      (Start Int (x
-            (let ((y Int Start) (z Int CInt)) (+ (+ y x) z))
+            (letf x Start CInt)
             )
      )
      (CInt Int (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15))

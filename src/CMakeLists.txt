@@ -463,6 +463,8 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_instantiator.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
   theory/quantifiers/cegqi/inst_strategy_cegqi.h
+  theory/quantifiers/cegqi/vts_term_cache.cpp
+  theory/quantifiers/cegqi/vts_term_cache.h
   theory/quantifiers/conjecture_generator.cpp
   theory/quantifiers/conjecture_generator.h
   theory/quantifiers/dynamic_rewrite.cpp
@@ -593,6 +595,10 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/synth_engine.h
   theory/quantifiers/sygus/term_database_sygus.cpp
   theory/quantifiers/sygus/term_database_sygus.h
+  theory/quantifiers/sygus/type_info.cpp
+  theory/quantifiers/sygus/type_info.h
+  theory/quantifiers/sygus/type_node_id_trie.cpp
+  theory/quantifiers/sygus/type_node_id_trie.h
   theory/quantifiers/sygus/transition_inference.cpp
   theory/quantifiers/sygus/transition_inference.h
   theory/quantifiers/sygus_sampler.cpp
@@ -618,10 +624,16 @@ libcvc4_add_sources(
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
   theory/sep/theory_sep_type_rules.h
+  theory/sets/cardinality_extension.cpp
+  theory/sets/cardinality_extension.h
+  theory/sets/inference_manager.cpp
+  theory/sets/inference_manager.h
   theory/sets/normal_form.h
   theory/sets/rels_utils.h
   theory/sets/skolem_cache.cpp
   theory/sets/skolem_cache.h
+  theory/sets/solver_state.cpp
+  theory/sets/solver_state.h
   theory/sets/theory_sets.cpp
   theory/sets/theory_sets.h
   theory/sets/theory_sets_private.cpp
@@ -679,6 +691,8 @@ libcvc4_add_sources(
   theory/type_enumerator.h
   theory/type_set.cpp
   theory/type_set.h
+  theory/uf/cardinality_extension.cpp
+  theory/uf/cardinality_extension.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
@@ -691,8 +705,6 @@ libcvc4_add_sources(
   theory/uf/theory_uf_model.cpp
   theory/uf/theory_uf_model.h
   theory/uf/theory_uf_rewriter.h
-  theory/uf/theory_uf_strong_solver.cpp
-  theory/uf/theory_uf_strong_solver.h
   theory/uf/theory_uf_type_rules.h
   theory/valuation.cpp
   theory/valuation.h
@@ -749,8 +761,8 @@ target_include_directories(cvc4
 
 install(TARGETS cvc4
   EXPORT cvc4-targets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
+  LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
+  ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4
@@ -830,27 +842,27 @@ install(FILES
           api/cvc4cpp.h
           api/cvc4cppkind.h
         DESTINATION
-          include/cvc4/api)
+          ${INCLUDE_INSTALL_DIR}/cvc4/api)
 install(FILES
           base/configuration.h
           base/exception.h
           base/listener.h
           base/modal_exception.h
         DESTINATION
-          include/cvc4/base)
+          ${INCLUDE_INSTALL_DIR}/cvc4/base)
 install(FILES
           context/cdhashmap_forward.h
           context/cdhashset_forward.h
           context/cdinsert_hashmap_forward.h
           context/cdlist_forward.h
         DESTINATION
-          include/cvc4/context)
+          ${INCLUDE_INSTALL_DIR}/cvc4/context)
 install(FILES
           include/cvc4.h
           include/cvc4_public.h
           include/cvc4parser_public.h
         DESTINATION
-          include/cvc4)
+          ${INCLUDE_INSTALL_DIR}/cvc4)
 install(FILES
           expr/array.h
           expr/array_store_all.h
@@ -869,7 +881,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/expr/kind.h
           ${CMAKE_CURRENT_BINARY_DIR}/expr/expr_manager.h
         DESTINATION
-          include/cvc4/expr)
+          ${INCLUDE_INSTALL_DIR}/cvc4/expr)
 install(FILES
           options/argument_extender.h
           options/arith_heuristic_pivot_rule.h
@@ -886,38 +898,38 @@ install(FILES
           options/sygus_out_mode.h
           options/theoryof_mode.h
         DESTINATION
-          include/cvc4/options)
+          ${INCLUDE_INSTALL_DIR}/cvc4/options)
 install(FILES
           parser/input.h
           parser/parser.h
           parser/parser_builder.h
           parser/parser_exception.h
         DESTINATION
-          include/cvc4/parser)
+          ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES
           printer/sygus_print_callback.h
         DESTINATION
-          include/cvc4/printer)
+          ${INCLUDE_INSTALL_DIR}/cvc4/printer)
 install(FILES
           proof/unsat_core.h
         DESTINATION
-          include/cvc4/proof)
+          ${INCLUDE_INSTALL_DIR}/cvc4/proof)
 install(FILES
           smt/command.h
           smt/logic_exception.h
           smt/smt_engine.h
         DESTINATION
-          include/cvc4/smt)
+          ${INCLUDE_INSTALL_DIR}/cvc4/smt)
 install(FILES
           smt_util/lemma_channels.h
           smt_util/lemma_input_channel.h
           smt_util/lemma_output_channel.h
         DESTINATION
-          include/cvc4/smt_util)
+          ${INCLUDE_INSTALL_DIR}/cvc4/smt_util)
 install(FILES
           theory/logic_info.h
         DESTINATION
-          include/cvc4/theory)
+          ${INCLUDE_INSTALL_DIR}/cvc4/theory)
 install(FILES
           util/abstract_value.h
           util/bitvector.h
@@ -943,7 +955,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
         DESTINATION
-          include/cvc4/util)
+          ${INCLUDE_INSTALL_DIR}/cvc4/util)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.

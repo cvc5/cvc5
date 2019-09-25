@@ -715,9 +715,6 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
         (*i)->getName().c_str());
     nameResolutions.insert(std::make_pair((*i)->getName(), dtt));
     dtts.push_back(dtt);
-    //d_keep_dtt.push_back(dtt);
-    //d_keep_dt.push_back(*i);
-    //Assert( dtt.getDatatype()==(*i) );
   }
 
   // Second, set up the type substitution map for complex type

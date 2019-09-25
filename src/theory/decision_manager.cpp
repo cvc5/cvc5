@@ -22,27 +22,68 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-DecisionManager::DecisionManager(context::Context* satContext) {}
-
-void DecisionManager::reset()
+DecisionManager::DecisionManager(context::Context* userContext)
+    : d_strategyCacheC(userContext)
 {
-  Trace("dec-manager") << "DecisionManager: reset." << std::endl;
-  d_reg_strategy.clear();
 }
 
-void DecisionManager::registerStrategy(StrategyId id, DecisionStrategy* ds)
+void DecisionManager::presolve()
+{
+  Trace("dec-manager") << "DecisionManager: presolve." << std::endl;
+  // remove the strategies that are not in this user context
+  std::unordered_set<DecisionStrategy*> active;
+  for (DecisionStrategyList::const_iterator i = d_strategyCacheC.begin();
+       i != d_strategyCacheC.end();
+       ++i)
+  {
+    active.insert(*i);
+  }
+  active.insert(d_strategyCache.begin(), d_strategyCache.end());
+  std::map<StrategyId, std::vector<DecisionStrategy*> > tmp = d_reg_strategy;
+  d_reg_strategy.clear();
+  for (std::pair<const StrategyId, std::vector<DecisionStrategy*> >& rs : tmp)
+  {
+    for (DecisionStrategy* ds : rs.second)
+    {
+      if (active.find(ds) != active.end())
+      {
+        // if its active, we keep it
+        d_reg_strategy[rs.first].push_back(ds);
+      }
+    }
+  }
+}
+
+void DecisionManager::registerStrategy(StrategyId id,
+                                       DecisionStrategy* ds,
+                                       StrategyScope sscope)
 {
   Trace("dec-manager") << "DecisionManager: Register strategy : "
                        << ds->identify() << ", id = " << id << std::endl;
   ds->initialize();
   d_reg_strategy[id].push_back(ds);
+  if (sscope == STRAT_SCOPE_USER_CTX_DEPENDENT)
+  {
+    // store it in the user-context-dependent list
+    d_strategyCacheC.push_back(ds);
+  }
+  else if (sscope == STRAT_SCOPE_CTX_INDEPENDENT)
+  {
+    // it is context independent
+    d_strategyCache.insert(ds);
+  }
+  else
+  {
+    // it is local to this call, we don't cache it
+    Assert(sscope == STRAT_SCOPE_LOCAL_SOLVE);
+  }
 }
 
 Node DecisionManager::getNextDecisionRequest()
 {
   Trace("dec-manager-debug")
       << "DecisionManager: Get next decision..." << std::endl;
-  for (const std::pair<StrategyId, std::vector<DecisionStrategy*> >& rs :
+  for (const std::pair<const StrategyId, std::vector<DecisionStrategy*> >& rs :
        d_reg_strategy)
   {
     for (unsigned i = 0, size = rs.second.size(); i < size; i++)

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_uf_strong_solver.h
+/*! \file cardinality_extension.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Theory uf strong solver
+ ** \brief Theory of UF with cardinality.
  **/
 
 #include "cvc4_private.h"
@@ -19,49 +19,52 @@
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
-#include "context/context_mm.h"
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
 
 #include "theory/decision_manager.h"
 
 namespace CVC4 {
+
 class SortInference;
+
 namespace theory {
 namespace uf {
+
 class TheoryUF;
-} /* namespace CVC4::theory::uf */
-} /* namespace CVC4::theory */
-} /* namespace CVC4 */
 
-namespace CVC4 {
-namespace theory {
-namespace uf {
-
-class StrongSolverTheoryUF{
-protected:
+/**
+ * This module implements a theory solver for UF with cardinality constraints.
+ * For high level details, see Reynolds et al "Finite Model Finding in SMT",
+ * CAV 2013, or Reynolds dissertation "Finite Model Finding in Satisfiability
+ * Modulo Theories".
+ */
+class CardinalityExtension
+{
+ protected:
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
-  typedef context::CDHashMap<TypeNode, bool, TypeNodeHashFunction> TypeNodeBoolMap;
-public:
+
+ public:
   /**
    * Information for incremental conflict/clique finding for a
    * particular sort.
    */
-  class SortModel {
-  private:
+  class SortModel
+  {
+   private:
     std::map< Node, std::vector< int > > d_totality_lems;
     std::map< TypeNode, std::map< int, std::vector< Node > > > d_sym_break_terms;
     std::map< Node, int > d_sym_break_index;
-  public:
 
+   public:
     /**
      * A partition of the current equality graph for which cliques
      * can occur internally.
      */
-    class Region {
-    public:
+    class Region
+    {
+     public:
       /** information stored about each node in region */
       class RegionNodeInfo {
       public:
@@ -95,7 +98,7 @@ public:
           context::CDO< int > d_size;
           NodeBoolMap d_disequalities;
         }; /* class DiseqList */
-      public:
+       public:
         /** constructor */
         RegionNodeInfo( context::Context* c )
           : d_internal(c), d_external(c), d_valid(c, true) {
@@ -119,7 +122,7 @@ public:
 
         DiseqList* get(unsigned i) { return d_disequalities[i]; }
 
-      private:
+       private:
         DiseqList d_internal;
         DiseqList d_external;
         context::CDO< bool > d_valid;
@@ -149,7 +152,7 @@ public:
       //whether region is valid
       context::CDO< bool > d_valid;
 
-    public:
+     public:
       //constructor
       Region( SortModel* cf, context::Context* c );
       virtual ~Region();
@@ -209,11 +212,11 @@ public:
       Node frontKey() const { return d_nodes.begin()->first; }
     }; /* class Region */
 
-  private:
+   private:
     /** the type this model is for */
     TypeNode d_type;
-    /** strong solver pointer */
-    StrongSolverTheoryUF* d_thss;
+    /** Pointer to the cardinality extension that owns this. */
+    CardinalityExtension* d_thss;
     /** regions used to d_region_index */
     context::CDO< unsigned > d_regions_index;
     /** vector of regions */
@@ -292,9 +295,11 @@ public:
 
     bool doSendLemma( Node lem );
 
-  public:
-    SortModel( Node n, context::Context* c, context::UserContext* u,
-               StrongSolverTheoryUF* thss );
+   public:
+    SortModel(Node n,
+              context::Context* c,
+              context::UserContext* u,
+              CardinalityExtension* thss);
     virtual ~SortModel();
     /** initialize */
     void initialize( OutputChannel* out );
@@ -359,10 +364,12 @@ public:
     std::unique_ptr<CardinalityDecisionStrategy> d_c_dec_strat;
   }; /** class SortModel */
 
-public:
-  StrongSolverTheoryUF(context::Context* c, context::UserContext* u,
-                       OutputChannel& out, TheoryUF* th);
-  ~StrongSolverTheoryUF();
+ public:
+  CardinalityExtension(context::Context* c,
+                       context::UserContext* u,
+                       OutputChannel& out,
+                       TheoryUF* th);
+  ~CardinalityExtension();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
   /** get sort inference module */
@@ -388,7 +395,7 @@ public:
   /** preregister a term */
   void preRegisterTerm( TNode n );
   /** identify */
-  std::string identify() const { return std::string("StrongSolverTheoryUF"); }
+  std::string identify() const { return std::string("CardinalityExtension"); }
   //print debug
   void debugPrint( const char* c );
   /** debug a model */
@@ -428,7 +435,7 @@ public:
   /** ensure eqc for all subterms of n */
   void ensureEqcRec(Node n);
 
-  /** The output channel for the strong solver. */
+  /** The output channel used by this class. */
   OutputChannel* d_out;
   /** theory uf pointer */
   TheoryUF* d_th;
@@ -469,8 +476,7 @@ public:
   context::CDO<int> d_min_pos_tn_master_card;
   /** relevant eqc */
   NodeBoolMap d_rel_eqc;
-}; /* class StrongSolverTheoryUF */
-
+}; /* class CardinalityExtension */
 
 }/* CVC4::theory namespace::uf */
 }/* CVC4::theory namespace */
