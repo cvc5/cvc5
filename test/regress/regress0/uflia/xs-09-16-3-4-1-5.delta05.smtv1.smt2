@@ -1,0 +1,7 @@
+(set-option :incremental false)
+(set-info :status unknown)
+(set-logic QF_UFLIA)
+(declare-fun select_format (Int) Int)
+(declare-fun adr_lo () Int)
+(declare-fun arg1 () Int)
+(check-sat-assuming ( (and (= (select_format arg1) adr_lo) (or (= adr_lo 0) (= adr_lo (select_format 1)))) ))

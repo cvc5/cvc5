@@ -9,8 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Driver for CVC4 executable (cvc4) unified for both
- ** sequential and portfolio versions
+ ** \brief Driver for CVC4 executable (cvc4)
  **/
 
 #include <stdio.h>
@@ -41,13 +40,6 @@
 #include "smt/command.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
-
-// The PORTFOLIO_BUILD is defined when compiling pcvc4 (the parallel version of
-// CVC4) and undefined otherwise. The macro can only be used in
-// driver_unified.cpp because we do not recompile all files for pcvc4.
-#ifdef PORTFOLIO_BUILD
-#  include "main/command_executor_portfolio.h"
-#endif
 
 using namespace std;
 using namespace CVC4;
@@ -106,14 +98,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // Parse the options
   vector<string> filenames = Options::parseOptions(&opts, argc, argv);
 
-# ifndef PORTFOLIO_BUILD
-  if( opts.wasSetByUserThreads() ||
-      opts.wasSetByUserThreadStackSize() ||
-      (! opts.getThreadArgv().empty()) ) {
-    throw OptionException("Thread options cannot be used with sequential CVC4.  Please build and use the portfolio binary `pcvc4'.");
-  }
-# endif
-
   string progNameStr = opts.getBinaryName();
   progName = &progNameStr;
 
@@ -165,10 +149,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       unsigned len = filenameStr.size();
       if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
         opts.setInputLanguage(language::input::LANG_SMTLIB_V2_6);
-      } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-        opts.setInputLanguage(language::input::LANG_SMTLIB_V1);
-      } else if(len >= 5 && !strcmp(".smt1", filename + len - 5)) {
-        opts.setInputLanguage(language::input::LANG_SMTLIB_V1);
       } else if((len >= 2 && !strcmp(".p", filename + len - 2))
                 || (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
         opts.setInputLanguage(language::input::LANG_TPTP);
@@ -203,46 +183,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Create the expression manager using appropriate options
   std::unique_ptr<api::Solver> solver;
-# ifndef PORTFOLIO_BUILD
   solver.reset(new api::Solver(&opts));
   pExecutor = new CommandExecutor(solver.get(), opts);
-# else
-  OptionsList threadOpts;
-  parseThreadSpecificOptions(threadOpts, opts);
-
-  bool useParallelExecutor = true;
-  // incremental?
-  if(opts.wasSetByUserIncrementalSolving() &&
-     opts.getIncrementalSolving() &&
-     (! opts.getIncrementalParallel()) ) {
-    Notice() << "Notice: In --incremental mode, using the sequential solver"
-             << " unless forced by...\n"
-             << "Notice: ...the experimental --incremental-parallel option.\n";
-    useParallelExecutor = false;
-  }
-  // proofs?
-  if(opts.getCheckProofs()) {
-    if(opts.getFallbackSequential()) {
-      Warning() << "Warning: Falling back to sequential mode, as cannot run"
-                << " portfolio in check-proofs mode.\n";
-      useParallelExecutor = false;
-    }
-    else {
-      throw OptionException("Cannot run portfolio in check-proofs mode.");
-    }
-  }
-  // pick appropriate one
-  if (useParallelExecutor)
-  {
-    solver.reset(new api::Solver(&threadOpts[0]));
-    pExecutor = new CommandExecutorPortfolio(solver.get(), opts, threadOpts);
-  }
-  else
-  {
-    solver.reset(new api::Solver(&opts));
-    pExecutor = new CommandExecutor(solver.get(), opts);
-  }
-# endif
 
   std::unique_ptr<Parser> replayParser;
   if (opts.getReplayInputFilename() != "")
@@ -281,14 +223,12 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         throw OptionException(
             "--tear-down-incremental doesn't work in interactive mode");
       }
-#ifndef PORTFOLIO_BUILD
       if(!opts.wasSetByUserIncrementalSolving()) {
         cmd = new SetOptionCommand("incremental", SExpr(true));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;
       }
-#endif /* PORTFOLIO_BUILD */
       InteractiveShell shell(solver.get());
       if(opts.getInteractivePrompt()) {
         Message() << Configuration::getPackageName()

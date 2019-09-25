@@ -65,9 +65,15 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   Trace("regexp-process") << "Checking Memberships ... " << std::endl;
   for (const std::pair<const Node, std::vector<Node> >& mr : mems)
   {
+    std::vector<Node> mems = mr.second;
     Trace("regexp-process")
         << "Memberships(" << mr.first << ") = " << mr.second << std::endl;
-    if (!checkEqcIntersect(mr.second))
+    if (!checkEqcInclusion(mems))
+    {
+      // conflict discovered, return
+      return;
+    }
+    if (!checkEqcIntersect(mems))
     {
       // conflict discovered, return
       return;
@@ -269,6 +275,90 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
       }
     }
   }
+}
+
+bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
+{
+  std::unordered_set<Node, NodeHashFunction> remove;
+
+  for (const Node& m1 : mems)
+  {
+    bool m1Neg = m1.getKind() == NOT;
+    Node m1Lit = m1Neg ? m1[0] : m1;
+
+    if (remove.find(m1) != remove.end())
+    {
+      // Skip memberships marked for removal
+      continue;
+    }
+
+    for (const Node& m2 : mems)
+    {
+      if (m1 == m2)
+      {
+        continue;
+      }
+
+      bool m2Neg = m2.getKind() == NOT;
+      Node m2Lit = m2Neg ? m2[0] : m2;
+
+      // Both regular expression memberships have the same polarity
+      if (m1Neg == m2Neg)
+      {
+        if (d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))
+        {
+          if (m1Neg)
+          {
+            // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
+            //   mark ~str.in.re(x, R2) as reduced
+            d_parent.getExtTheory()->markReduced(m2Lit);
+            remove.insert(m2);
+          }
+          else
+          {
+            // str.in.re(x, R1) includes str.in.re(x, R2) --->
+            //   mark str.in.re(x, R1) as reduced
+            d_parent.getExtTheory()->markReduced(m1Lit);
+            remove.insert(m1);
+
+            // We don't need to process m1 anymore
+            break;
+          }
+        }
+      }
+      else
+      {
+        Node pos = m1Neg ? m2Lit : m1Lit;
+        Node neg = m1Neg ? m1Lit : m2Lit;
+        if (d_regexp_opr.regExpIncludes(neg[1], pos[1]))
+        {
+          // We have a conflict because we have a case where str.in.re(x, R1)
+          // and ~str.in.re(x, R2) but R2 includes R1, so there is no
+          // possible value for x that satisfies both memberships.
+          std::vector<Node> vec_nodes;
+          vec_nodes.push_back(pos);
+          vec_nodes.push_back(neg.negate());
+
+          if (pos[0] != neg[0])
+          {
+            vec_nodes.push_back(pos[0].eqNode(neg[0]));
+          }
+
+          Node conc;
+          d_im.sendInference(vec_nodes, conc, "Intersect inclusion", true);
+          return false;
+        }
+      }
+    }
+  }
+
+  mems.erase(std::remove_if(
+                 mems.begin(),
+                 mems.end(),
+                 [&remove](Node& n) { return remove.find(n) != remove.end(); }),
+             mems.end());
+
+  return true;
 }
 
 bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)

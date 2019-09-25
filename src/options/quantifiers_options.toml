@@ -216,15 +216,6 @@ header = "options/quantifiers_options.h"
   help       = "consider ground terms within bodies of quantified formulas for matching"
 
 [[option]]
-  name       = "inferArithTriggerEq"
-  category   = "regular"
-  long       = "infer-arith-trigger-eq"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "infer equalities for trigger terms based on solving arithmetic equalities"
-
-[[option]]
   name       = "strictTriggers"
   category   = "regular"
   long       = "strict-triggers"
@@ -1717,7 +1708,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "quant-dsplit-mode=MODE"
   type       = "CVC4::theory::quantifiers::QuantDSplitMode"
-  default    = "CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_NONE"
+  default    = "CVC4::theory::quantifiers::QUANT_DSPLIT_MODE_DEFAULT"
   handler    = "stringToQuantDSplitMode"
   includes   = ["options/quantifiers_modes.h"]
   help       = "mode for dynamic quantifiers splitting"

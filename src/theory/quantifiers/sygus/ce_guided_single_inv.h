@@ -18,131 +18,17 @@
 #define CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 
 #include "context/cdlist.h"
-#include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
-#include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
+#include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
+#include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
+#include "theory/quantifiers/sygus/transition_inference.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 class SynthConjecture;
-
-class DetTrace {
-private:
-  class DetTraceTrie {
-  public:
-    std::map< Node, DetTraceTrie > d_children;
-    bool add( Node loc, std::vector< Node >& val, unsigned index = 0 );
-    void clear() { d_children.clear(); }
-    Node constructFormula( std::vector< Node >& vars, unsigned index = 0 );
-  };
-  DetTraceTrie d_trie;
-public:
-  std::vector< Node > d_curr;
-  bool increment( Node loc, std::vector< Node >& vals );
-  Node constructFormula( std::vector< Node >& vars );
-  void print( const char* c );
-};
-
-/**
- * This class is used for inferring that an arbitrary synthesis conjecture
- * corresponds to an invariant synthesis problem for some predicate (d_func).
- *
- * The invariant-to-synthesize can either be explicitly given, via a call
- * to initialize( f, vars ), or otherwise inferred if this method is not called.
- */
-class TransitionInference {
- private:
-  /** process disjunct
-   *
-   * The purpose of this function is to infer pre/post/transition conditions
-   * for a (possibly unknown) invariant-to-synthesis, given a conjunct from
-   * an arbitrary synthesis conjecture.
-   *
-   * Assume our negated synthesis conjecture is of the form:
-   *    forall f. exists x. (and (or F11 ... F1{m_1}) ... (or Fn1 ... Fn{m_n}))
-   * This method is called on each (or Fi1 ... Fi{m_i}), where topLevel is true
-   * for each of Fi1...F1{m_i} and false otherwise. It adds each of Fi1..Fi{m_i}
-   * to disjuncts.
-   *
-   * If this method returns true, then (1) all applications of free function
-   * symbols have operator d_func. Note this function may set d_func to a
-   * function symbol in n if d_func was null prior to this call. In other words,
-   * this method may infer the subject of the invariant synthesis problem;
-   * (2) all occurrences of d_func are "top-level", that is, each Fij may be
-   * of the form (not) <d_func>( tj ), but otherwise d_func does not occur in
-   * (or Fi1 ... Fi{m_i}); (3) there exists at most one occurrence of
-   * <d_func>( tj ), and (not <d_func>( tk )).
-   *
-   * If the above conditions are met, then terms[true] is set to <d_func>( tj )
-   * if Fij is <d_func>( tj ) for some j, and likewise terms[false]
-   * is set to <d_func>( tk ) if Fik is (not <d_func>( tk )) for some k.
-   *
-   * The argument visited caches the results of this function for (topLevel, n).
-   */
-  bool processDisjunct(Node n,
-                       std::map<bool, Node>& terms,
-                       std::vector<Node>& disjuncts,
-                       std::map<bool, std::map<Node, bool> >& visited,
-                       bool topLevel);
-  void getConstantSubstitution( std::vector< Node >& vars, std::vector< Node >& disjuncts, std::vector< Node >& const_var, std::vector< Node >& const_subs, bool reqPol );
-  bool d_complete;
-  /** get normalized substitution
-   *
-   * This method takes as input a node curr of the form I( t1, ..., tn ) and
-   * a vector of variables pvars, where pvars.size()=n. For each ti that is
-   * a variable, it adds ti to vars, and pvars[i] to subs. For each ti that is
-   * not a variable, it adds the disequality ti != pvars[i] to disjuncts.
-   *
-   * This function is used for instance to normalize an arbitrary application of
-   * I so that is over arguments pvars. For instance if curr is I(3,5,y) and
-   * pvars = { x1,x2,x3 }, then the formula:
-   *   I(3,5,y) ^ P(y)
-   * is equivalent to:
-   *   x1 != 3 V x2 != 5 V I(x1,x2,x3) V P( y ) { y -> x3 }
-   * Here, we add y and x3 to vars and subs respectively, and x1!=3 and x2!=5
-   * to disjuncts.
-   */
-  void getNormalizedSubstitution(Node curr,
-                                 const std::vector<Node>& pvars,
-                                 std::vector<Node>& vars,
-                                 std::vector<Node>& subs,
-                                 std::vector<Node>& disjuncts);
-
- public:
-  TransitionInference() : d_complete( false ) {}
-  std::vector< Node > d_vars;
-  std::vector< Node > d_prime_vars;
-  /**
-   * The function (predicate) that is the subject of the invariant synthesis
-   * problem we are inferring.
-   */
-  Node d_func;
-  
-  class Component {
-  public:
-    Component(){}
-    Node d_this;
-    std::vector< Node > d_conjuncts;
-    std::map< Node, std::map< Node, Node > > d_const_eq;
-    bool has( Node c ) { return std::find( d_conjuncts.begin(), d_conjuncts.end(), c )!=d_conjuncts.end(); }
-  };
-  std::map< int, Component > d_com;
-  
-  void initialize( Node f, std::vector< Node >& vars );
-  void process( Node n );
-  Node getComponent( int i );
-  bool isComplete() { return d_complete; }
-  
-  // 0 : success, 1 : terminated, 2 : counterexample, -1 : invalid
-  int initializeTrace( DetTrace& dt, Node loc, bool fwd = true );
-  int incrementTrace( DetTrace& dt, Node loc, bool fwd = true );
-  int initializeTrace( DetTrace& dt, bool fwd = true );
-  int incrementTrace( DetTrace& dt, bool fwd = true );
-  Node constructFormulaTrace( DetTrace& dt );
-};
 
 // this class infers whether a conjecture is single invocation (Reynolds et al CAV 2015), and sets up the
 // counterexample-guided quantifier instantiation utility (d_cinst), and methods for solution

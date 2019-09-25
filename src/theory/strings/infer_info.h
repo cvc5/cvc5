@@ -33,10 +33,17 @@ namespace strings {
 enum Inference
 {
   INFER_NONE = 0,
+  // infer empty, for example:
+  //     (~) x = ""
+  // This is inferred when we encounter an x such that x = "" rewrites to a
+  // constant. This inference is used for instance when we otherwise would have
+  // split on the emptiness of x but the rewriter tells us the emptiness of x
+  // can be inferred.
+  INFER_INFER_EMP = 1,
   // string split constant propagation, for example:
   //     x = y, x = "abc", y = y1 ++ "b" ++ y2
   //       implies y1 = "a" ++ y1'
-  INFER_SSPLIT_CST_PROP = 1,
+  INFER_SSPLIT_CST_PROP,
   // string split variable propagation, for example:
   //     x = y, x = x1 ++ x2, y = y1 ++ y2, len( x1 ) >= len( y1 )
   //       implies x1 = y1 ++ x1'
