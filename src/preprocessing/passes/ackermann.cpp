@@ -308,8 +308,10 @@ PreprocessingPassResult BVAckermann::applyInternal(
 
     for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
+	  Node old = (*assertionsToPreprocess)[i];
       assertionsToPreprocess->replace(
           i, d_sortsToSkolem.apply((*assertionsToPreprocess)[i]));
+	  Trace("uninterpretedSorts-to-bv") << "  " << old << " => " << (*assertionsToPreprocess)[i] << "\n";
     }
   }
 
