@@ -26,6 +26,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "printer/sygus_print_callback.h"
 
 using namespace CVC4::kind;
 
@@ -550,6 +551,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           std::vector<TypeNode> argTypes = svt.getArgTypes();
           std::vector<Type> stypes;
           std::vector<Node> largs;
+          std::vector<Expr> largsExpr;
           for (unsigned k = 0, ntypes = argTypes.size(); k < ntypes; k++)
           {
             unsigned index = std::distance(
@@ -558,10 +560,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
             stypes.push_back(unres_types[index]);
             Node lv = nm->mkBoundVar(argTypes[k]);
             largs.push_back(lv);
+            largsExpr.push_back(lv.toExpr());
           }
           Node lbvl = nm->mkNode(BOUND_VAR_LIST, largs);
-          largs.insert(largs.begin(), sv);
-          Node lbody = nm->mkNode(APPLY_UF, largs);
+          std::vector<Node> bargs;
+          bargs.push_back(sv);
+          bargs.insert(bargs.end(),largs.begin(),largs.end());
+          Node lbody = nm->mkNode(APPLY_UF, bargs);
           Node op = nm->mkNode(LAMBDA, lbvl, lbody);
 
           std::stringstream ss;
@@ -569,7 +574,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           ops[i].push_back(op.toExpr());
           cnames[i].push_back(ss.str());
           cargs[i].push_back(stypes);
-          pcs[i].push_back(nullptr);
+          pcs[i].push_back(std::make_shared<printer::SygusExprPrintCallback>(lbody.toExpr(), largsExpr));
           weights[i].push_back(-1);
         }
     }
