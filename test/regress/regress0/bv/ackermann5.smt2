@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --ackermann
+; EXPECT: sat
 (set-logic QF_UFBV)
 (declare-sort S 0)
 (declare-sort T 0)
@@ -22,4 +23,5 @@
 (assert (= (g s1) (h t1)))
 (assert (= (i t1) (i t2)))
 (check-sat)
+(exit)
 
