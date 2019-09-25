@@ -256,8 +256,8 @@ void usortsToBitVectors(USortToBVSizeMap& usort_cardinality,
   for (unsigned i = 0; i < to_process.size(); ++i)
   {
     term = to_process[i];
-    Assert(term.getKind() == kind::APPLY_UF || term.getKind() == kind::SELECT
-           || term.getKind() == kind::STORE);
+    AlwaysAssert(term.getKind() != kind::STORE,
+                 "Cannot use eager bitblasting on QF_ABV formula with stores");
 
     updateUSortsCardinality(usort_cardinality, term);
 

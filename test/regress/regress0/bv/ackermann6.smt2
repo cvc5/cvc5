@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ackermann
+; COMMAND-LINE: --bitblast=eager --no-check-models  --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_UFBV)
 
