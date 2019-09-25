@@ -44,10 +44,12 @@ bool TheoryEngineModelBuilder::isAssignableEqc(TheoryModel* m,
                                                std::vector<Node>& eset,
                                                bool& evaluable)
 {
+  Assert (eset.empty());
   bool assignable = false;
   processEqcInternal(m, r, assignable, evaluable, eset, false, true);
   if (!assignable)
   {
+    Assert (eset.empty());
     return false;
   }
   for (unsigned i = 0, size = eset.size(); i < size; i++)
@@ -65,7 +67,7 @@ bool TheoryEngineModelBuilder::isAssignableEqc(TheoryModel* m,
     if (!en.isConst())
     {
       Trace("model-build-aes") << "Cannot assign " << r << " due to " << eset[i]
-                               << " (normalize " << en << ")" << std::endl;
+                               << " (normalized is " << en << ")" << std::endl;
       eset.clear();
       return false;
     }
@@ -193,6 +195,15 @@ void TheoryEngineModelBuilder::assignConstantRep(TheoryModel* tm,
   Trace("model-builder") << "    Assign: Setting constant rep of " << eqc
                          << " to " << const_rep << endl;
   tm->d_rep_set.setTermForRepresentative(const_rep, eqc);
+  // if assertions enabled
+  if (Configuration::isAssertionBuild())
+  {
+    std::vector<Node> eset;
+    bool evaluable = false;
+    isAssignableEqc(tm,eqc,eset,evaluable);
+    // check that it is not in the assignment exclusion set
+    Assert (std::find(eset.begin(),eset.end(),const_rep)==eset.end());
+  }
 }
 
 bool TheoryEngineModelBuilder::isExcludedCdtValue(
