@@ -34,8 +34,6 @@ namespace passes {
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
-// wrapper function to cmath's pow function.
-// Casts the result to an integer.
 Rational intpow2(uint64_t b) { 
   Integer one = Integer(1);
   Integer p = one.multiplyByPow2(b);
@@ -71,7 +69,7 @@ Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k)
 Node BVToInt::maxInt(uint64_t k)
 {
   Assert(k > 0);
-  uint64_t max_value = pow(2, k) - 1;
+  Rational max_value = intpow2(k) - 1;
   Node result = d_nm->mkConst<Rational>(max_value);
   return result;
 }
@@ -79,7 +77,8 @@ Node BVToInt::maxInt(uint64_t k)
 Node BVToInt::pow2(uint64_t k)
 {
   Assert(k >= 0);
-  return d_nm->mkConst<Rational>(intpow2(k));
+  Node result = d_nm->mkConst<Rational>(intpow2(k));
+  return result;
 }
 
 Node BVToInt::modpow2(Node n, uint64_t exponent)
@@ -631,12 +630,12 @@ Node BVToInt::bvToInt(Node n)
               Node signed_min = pow2(bvsize - 1);
               Node condition =
                   d_nm->mkNode(kind::LT, intized_children[0], signed_min);
-              Node thenNode = createShiftNode(intized_children, bvsize, true);
+              Node thenNode = createShiftNode(intized_children, bvsize, false);
               vector<Node> children = {
                   createBVNotNode(intized_children[0], bvsize),
                   intized_children[1]};
               Node elseNode = createBVNotNode(
-                  createShiftNode(children, bvsize, true), bvsize);
+                  createShiftNode(children, bvsize, false), bvsize);
               Node ite = d_nm->mkNode(kind::ITE, condition, thenNode, elseNode);
               d_bvToIntCache[current] = ite;
               break;
@@ -903,13 +902,14 @@ Node BVToInt::createShiftNode(vector<Node> children,
 Node BVToInt::createITEFromTable(
     Node x,
     Node y,
-    uint64_t bitwidth,
+    uint64_t granularity,
     std::map<std::pair<uint64_t, uint64_t>, uint64_t> table)
 {
+  Assert(granularity <= 8);
   Node ite = d_nm->mkConst<Rational>(table[std::make_pair(0, 0)]);
-  for (uint64_t i = 0; i < ((uint64_t) pow(2, bitwidth)); i++)
+  for (uint64_t i = 0; i < ((uint64_t) pow(2, granularity)); i++)
   {
-    for (uint64_t j = 0; j < ((uint64_t) pow(2, bitwidth)); j++)
+    for (uint64_t j = 0; j < ((uint64_t) pow(2, granularity)); j++)
     {
       if ((i == 0) && (j == 0))
       {

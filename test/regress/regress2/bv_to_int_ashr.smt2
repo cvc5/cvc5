@@ -2,8 +2,8 @@
 ; COMMAND-LINE: --solve-bv-as-int=8 --no-check-models  --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_BV)
-(declare-fun a () (_ BitVec 128))
-(declare-fun b () (_ BitVec 128))
+(declare-fun a () (_ BitVec 8))
+(declare-fun b () (_ BitVec 8))
 (assert (bvult (bvashr a b) (bvlshr a b)))
 
 (check-sat)

@@ -180,12 +180,10 @@ set(regress_0_tests
   regress0/bv/bv-to-bool2.smt2
   regress0/bv/bv_to_int1.smt2
   regress0/bv/bv_to_int2.smt2
-  regress0/bv/bv_to_int_ashr.smt2
-  regress0/bv/bv_to_int_bvmul.smt2
-  regress0/bv/bv_to_int_bug1.smt2
-  regress0/bv/bv_to_int_bug2.smt2
-  regress0/bv/bv_to_int_bug3.smt2
-  regress0/bv/bv_to_int_bug4.smt2
+  regress0/bv/bv_to_int_bvmul1.smt2
+  regress0/bv/bv_to_int_bvmul2.smt2
+  regress0/bv/bv_to_int_zext.smt2
+  regress0/bv/bv_to_int_bitwise.smt2
   regress0/bv/bvuf_to_intuf.smt2
   regress0/bv/bvuf_to_intuf_sorts.smt2
   regress0/bv/bv2nat-ground-c.smt2
@@ -1128,7 +1126,6 @@ set(regress_1_tests
   regress1/bv/bug_extract_mult_leading_bit.smt2
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smtv1.smt2
-  regress1/bv/bv_to_int0.smt2
   regress1/bv/bv2nat-ground.smt2
   regress1/bv/bv2nat-simp-range-sat.smt2
   regress1/bv/bv2nat-types.smt2
@@ -1785,6 +1782,8 @@ set(regress_2_tests
   regress2/bug674.smt2
   regress2/bug765.smt2
   regress2/bug812.smt2
+  regress2/bv_to_int_ashr.smt2
+  regress2/bv_to_int_shifts.smt2
   regress2/error0.smt2
   regress2/error1.smtv1.smt2
   regress2/friedman_n4_i5.smtv1.smt2
