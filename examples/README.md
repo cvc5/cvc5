@@ -9,15 +9,15 @@ available at http://cvc4.cs.stanford.edu/wiki/Tutorials
 The examples provided in this directory are not built by default.
 
 ```
-  mkdir build
-  cd build
+  mkdir <build_dir>
+  cd <build_dir>
   cmake ..
-  make
+  make               # use -jN for parallel build with N threads
 
   ctest              # run all examples
   ctest -R <example> # run specific example '<example>'
 
-  # Or just run the binaries in directory build/bin/, for example:
+  # Or just run the binaries in directory <build_dir>/bin/, for example:
   bin/api/bitvectors
 ```
 

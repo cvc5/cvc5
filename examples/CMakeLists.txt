@@ -42,7 +42,7 @@ macro(cvc4_add_example name src_files output_dir)
   # The test target is prefixed with the path,
   # e.g., for '<output_dir>/myexample.cpp'
   #   we create test target '<output_dir>/myexample'
-  #   and run it with 'ctest -R "<output_dir>/myunittest"'.
+  #   and run it with 'ctest -R "<output_dir>/myexample"'.
   set(example_bin_dir ${EXAMPLES_BIN_DIR}/${output_dir})
   if("${output_dir}" STREQUAL "")
     set(example_test ${name})

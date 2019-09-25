@@ -27,7 +27,6 @@
 #include <vector>
 
 #include <cvc4/cvc4.h>
-#include <cvc4/expr/expr.h>
 #include <cvc4/expr/expr_iomanip.h>
 #include <cvc4/options/language.h>
 #include <cvc4/options/options.h>
