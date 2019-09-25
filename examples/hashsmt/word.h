@@ -28,9 +28,7 @@
 #include <string>
 #include <iostream>
 
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
-#include "options/options.h"
+#include <cvc4/cvc4.h>
 
 namespace hashsmt {
 

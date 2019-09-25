@@ -540,6 +540,7 @@ set(regress_0_tests
   regress0/nl/nta/tan-rewrite.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
+  regress0/nl/sqrt2-value.smt2
   regress0/nl/subs0-unsat-confirm.smt2
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
@@ -1649,6 +1650,7 @@ set(regress_1_tests
   regress1/sygus/clock-inc-tuple.sy
   regress1/sygus/commutative-stream.sy
   regress1/sygus/commutative.sy
+  regress1/sygus/concat_extract_example.sy
   regress1/sygus/constant-bool-si-all.sy
   regress1/sygus/constant-dec-tree-bug.sy
   regress1/sygus/constant-ite-bv.sy
