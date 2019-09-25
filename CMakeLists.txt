@@ -31,6 +31,14 @@ set(CMAKE_CXX_STANDARD 11)
 # plugins.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+#-----------------------------------------------------------------------------#
+
+set(INCLUDE_INSTALL_DIR include)
+set(LIBRARY_INSTALL_DIR lib)
+set(RUNTIME_INSTALL_DIR bin)
+
+#-----------------------------------------------------------------------------#
+
 # Embed the installation prefix as an RPATH in the executable such that the
 # linker can find our libraries (such as libcvc4parser) when executing the cvc4
 # binary. This is for example useful when installing CVC4 with a custom prefix
@@ -40,7 +48,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #
 # More information on RPATH in CMake:
 # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
 
 #-----------------------------------------------------------------------------#
 
@@ -450,7 +458,6 @@ if(ENABLE_PROOFS)
 endif()
 
 add_subdirectory(doc)
-add_subdirectory(examples EXCLUDE_FROM_ALL)  # excluded from all target
 add_subdirectory(src)
 add_subdirectory(test)
 
@@ -468,12 +475,13 @@ include(CMakePackageConfigHelpers)
 install(EXPORT cvc4-targets
   FILE CVC4Targets.cmake
   NAMESPACE CVC4::
-  DESTINATION lib/cmake/CVC4)
+  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4)
 
 configure_package_config_file(
   ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
-  INSTALL_DESTINATION lib/cmake/CVC4
+  INSTALL_DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
+  PATH_VARS LIBRARY_INSTALL_DIR
 )
 
 write_basic_package_version_file(
@@ -485,7 +493,7 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
   ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
-  DESTINATION lib/cmake/CVC4
+  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
 )
 
 
