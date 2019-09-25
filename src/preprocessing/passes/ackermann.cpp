@@ -2,7 +2,7 @@
 /*! \file ackermann.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar, Aina Niemetz, Clark Barrett
+ **   Yoni Zohar, Aina Niemetz, Clark Barrett, Ying Sheng
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -180,6 +180,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
+/* Update the statistics for each uninterpreted sort */
 void updateUSortsCardinality(USortToBVSizeMap& usort_cardinality, TNode term)
 {
   TypeNode type = term.getType();
@@ -193,6 +194,8 @@ void updateUSortsCardinality(USortToBVSizeMap& usort_cardinality, TNode term)
   }
 }
 
+/* Given the lowest capacity requirements for each uninterpreted sorts, assign unique bit vector size.
+ * Get the converting map */
 void collectUSortsToBV(std::unordered_set<unsigned>& used, USortToBVSizeMap& usort_cardinality, vector<TNode>& vec, SubstitutionMap& sorts_to_skolem)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -222,6 +225,11 @@ void collectUSortsToBV(std::unordered_set<unsigned>& used, USortToBVSizeMap& uso
   }
 }
 
+/* This is the top level of converting uninterpreted sorts to bit vectors.
+ * We use bfs to get all terms without duplications, and count the number of different terms for each uninterpreted sort.
+ * Then for each sort, we will assign a new bit vector type with a unique size.
+ * The unique size ensures that, after the replacement, the different sorts will be converted into bit vectors with different size.
+ * The size is calculated to have enough capacity, that can accommodate the terms occured in the original formula. */
 void usortsToBitVectors(USortToBVSizeMap& usort_cardinality, SubstitutionMap& sorts_to_skolem, AssertionPipeline* assertions)
 {
   std::unordered_set<unsigned> used;
@@ -301,6 +309,7 @@ PreprocessingPassResult BVAckermann::applyInternal(
         i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
   }
 
+  /* the current version only support BV for removing uninterpreted sorts */
   if (d_logic.isTheoryEnabled(theory::THEORY_BV))
   {
     /* replace uninterpreted sorts to bitvector */

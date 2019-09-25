@@ -64,11 +64,17 @@ class BVAckermann : public PreprocessingPass
        AssertionPipeline* assertionsToPreprocess) override;
 
  private:
-  FunctionToArgsMap d_funcToArgs;
-  theory::SubstitutionMap d_funcToSkolem;
-  theory::SubstitutionMap d_sortsToSkolem;
-  USortToBVSizeMap d_usortCardinality;
-  LogicInfo d_logic;
+   /* Map each function to a set of terms associated with it */
+   FunctionToArgsMap d_funcToArgs;
+   /* Map each function term to the new Skolem variable created by ackermannization */
+   theory::SubstitutionMap d_funcToSkolem;
+   /* Map each uninterpreted sort to the new Skolem variable created by ackermannization */
+   theory::SubstitutionMap d_sortsToSkolem;
+   /* Map each Uninterpreted sort to a pair of integers.
+    * The first value is the lowest capacity that the targeting BV should have
+    * The second value is the size of the BV which will convert into */
+   USortToBVSizeMap d_usortCardinality;
+   LogicInfo d_logic;
 };
 
 }  // namespace passes
