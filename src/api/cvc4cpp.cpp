@@ -1050,6 +1050,12 @@ Kind Term::getKind() const
   return intToExtKind(d_expr->getKind());
 }
 
+bool Term::isParameterized() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->isParameterized();
+}
+
 Sort Term::getSort() const
 {
   CVC4_API_CHECK_NOT_NULL;
