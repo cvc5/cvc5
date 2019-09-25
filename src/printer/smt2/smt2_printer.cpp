@@ -861,7 +861,8 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ')';
     return;
   }
-  case kind::INST_PATTERN: break;
+  case kind::INST_PATTERN:
+  case kind::INST_NO_PATTERN: break;
   case kind::INST_PATTERN_LIST:
   {
     for (const Node& nc : n)
@@ -873,9 +874,13 @@ void Smt2Printer::toStream(std::ostream& out,
           out << ":fun-def";
         }
       }
-      else
+      else if (nc.getKind() == kind::INST_PATTERN)
       {
         out << ":pattern " << nc;
+      }
+      else if (nc.getKind() == kind::INST_NO_PATTERN)
+      {
+        out << ":no-pattern " << nc[0];
       }
     }
     return;
