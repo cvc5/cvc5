@@ -64,7 +64,8 @@ bool TheoryEngineModelBuilder::isAssignableEqc(TheoryModel* m,
     Node en = normalize(m, er, true);
     if (!en.isConst())
     {
-      Trace("model-build-aes") << "Cannot assign " << r << " due to " << eset[i] << " (normalize " << en << ")" << std::endl;
+      Trace("model-build-aes") << "Cannot assign " << r << " due to " << eset[i]
+                               << " (normalize " << en << ")" << std::endl;
       eset.clear();
       return false;
     }
@@ -140,7 +141,8 @@ Node TheoryEngineModelBuilder::processEqcInternal(TheoryModel* m,
       {
         // append its assignment exclusion set to eset
         m->getAssignmentExclusionSet(n, eset);
-        Trace("model-build-aes") << "Assignment exclusion set (from " << n << ") is now: " << eset << std::endl;
+        Trace("model-build-aes") << "Assignment exclusion set (from " << n
+                                 << ") is now: " << eset << std::endl;
       }
     }
     else
@@ -793,7 +795,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           }
           else
           {
-            Trace("model-build-aes") << "Assignment exclusion set for " << *i2 << " is " << assignExcSet << std::endl;
+            Trace("model-build-aes") << "Assignment exclusion set for " << *i2
+                                     << " is " << assignExcSet << std::endl;
             TypeEnumerator te(t);
             bool success = false;
             // must iterate until we find one that is not in the assignment

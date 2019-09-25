@@ -156,7 +156,7 @@ public:
    */
   void setAssignmentExclusionSet(TNode n, const std::vector<Node>& eset);
   /** set assignment exclusion set
-   * 
+   *
    * Given nvec = { x_1, ..., x_n }, this is semantically equivalent to calling
    * the above method on:
    *   x1, eset
@@ -168,7 +168,8 @@ public:
    * efficiency, the implementation of how the above information is stored
    * may avoid constructing n copies of eset.
    */
-  void setAssignmentExclusionSet(const std::vector< TNode >& nvec, const std::vector<Node>& eset); 
+  void setAssignmentExclusionSet(const std::vector<TNode>& nvec,
+                                 const std::vector<Node>& eset);
   /** get assignment exclusion set for term n
    *
    * This method returns true if n has been given an assignment exclusion set,

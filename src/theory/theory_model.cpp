@@ -530,14 +530,15 @@ void TheoryModel::setAssignmentExclusionSet(TNode n,
   aes.insert(aes.end(), eset.begin(), eset.end());
 }
 
-void setAssignmentExclusionSet(const std::vector< TNode >& nvec, const std::vector<Node>& eset)
+void setAssignmentExclusionSet(const std::vector<TNode>& nvec,
+                               const std::vector<Node>& eset)
 {
-  if( nvec.empty() )
+  if (nvec.empty())
   {
     return;
   }
-  setAssignmentExclusionSet(nvec[0],eset);
-  // for efficiency, 
+  setAssignmentExclusionSet(nvec[0], eset);
+  // for efficiency,
   // TODO
 }
 
