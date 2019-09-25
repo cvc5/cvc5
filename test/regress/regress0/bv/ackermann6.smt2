@@ -1,6 +1,7 @@
-; COMMAND-LINE: --bitblast=eager --no-check-models  --no-check-unsat-cores
-; EXPECT: sat
+; COMMAND-LINE: --ackermann
+; EXPECT: unsat
 (set-logic QF_UFBV)
+
 (declare-sort S 0)
 (declare-sort T 0)
 
@@ -19,9 +20,12 @@
 
 (assert (= (f s1) (bvand a b)))
 (assert (= (f s2) (bvand a b)))
-(assert (= (g s1) (g s2)))
-(assert (= (g s1) (h t1)))
-(assert (= (i t1) (i t2)))
+
+(assert (= (f (g s1)) (f (h (i t1)))))
+(assert (not (= (f (g (h (i t2)))) (f (h (i t2))))))
+(assert (= t1 t2))
+(assert (= s1 (h (i t2))))
+
 (check-sat)
 (exit)
 
