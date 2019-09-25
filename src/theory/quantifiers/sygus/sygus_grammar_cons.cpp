@@ -431,11 +431,11 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
       else if (range.isFunction())
       {
         std::vector<TypeNode> atypes = range.getArgTypes();
-        for (unsigned i=0, ntypes = atypes.size(); i<ntypes; i++ )
+        for (unsigned i = 0, ntypes = atypes.size(); i < ntypes; i++)
         {
-          collectSygusGrammarTypesFor(atypes[i],types);
+          collectSygusGrammarTypesFor(atypes[i], types);
         }
-        collectSygusGrammarTypesFor(range.getRangeType(),types);
+        collectSygusGrammarTypesFor(range.getRangeType(), types);
       }
     }
   }
@@ -529,49 +529,49 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     Type unres_t = unres_types[i];
     //add variables
     for (unsigned j = 0, size_j = sygus_vars.size(); j < size_j; ++j)
-    for (const Node& sv : sygus_vars)
-    {
-      TypeNode svt = sv.getType();
-      if( svt==types[i] ){
-        std::stringstream ss;
-        ss << sv;
-        Trace("sygus-grammar-def") << "...add for variable " << ss.str() << std::endl;
-        ops[i].push_back( sv.toExpr() );
-        cnames[i].push_back(ss.str());
-        cargs[i].push_back(std::vector<Type>());
-        pcs[i].push_back(nullptr);
-        weights[i].push_back(-1);
-      }
-      else if (svt.isFunction() && svt.getRangeType()==types[i])
+      for (const Node& sv : sygus_vars)
       {
-        // APPLY_UF
-        std::vector<TypeNode> argTypes = svt.getArgTypes();
-        std::vector<Type> stypes;
-        std::vector<Node> largs;
-        for( unsigned k=0, ntypes=argTypes.size(); k<ntypes; k++)
+        TypeNode svt = sv.getType();
+        if (svt == types[i])
         {
-          unsigned index = std::distance(
-              types.begin(),
-              std::find(types.begin(),
-                        types.end(),
-                        argTypes[k]));
-          stypes.push_back(unres_types[index]);
-          Node lv = nm->mkBoundVar(argTypes[k]);
-          largs.push_back(lv);
+          std::stringstream ss;
+          ss << sv;
+          Trace("sygus-grammar-def")
+              << "...add for variable " << ss.str() << std::endl;
+          ops[i].push_back(sv.toExpr());
+          cnames[i].push_back(ss.str());
+          cargs[i].push_back(std::vector<Type>());
+          pcs[i].push_back(nullptr);
+          weights[i].push_back(-1);
         }
-        Node lbvl = nm->mkNode(BOUND_VAR_LIST,largs);
-        largs.insert(largs.begin(),sv);
-        Node lbody = nm->mkNode(APPLY_UF,largs);
-        Node op = nm->mkNode(LAMBDA,lbvl,lbody);
-        
-        std::stringstream ss;
-        ss << "apply_" << sv;
-        ops[i].push_back(op.toExpr());
-        cnames[i].push_back(ss.str());
-        cargs[i].push_back(stypes);
-        pcs[i].push_back(nullptr);
-        weights[i].push_back(-1);
-      }
+        else if (svt.isFunction() && svt.getRangeType() == types[i])
+        {
+          // APPLY_UF
+          std::vector<TypeNode> argTypes = svt.getArgTypes();
+          std::vector<Type> stypes;
+          std::vector<Node> largs;
+          for (unsigned k = 0, ntypes = argTypes.size(); k < ntypes; k++)
+          {
+            unsigned index = std::distance(
+                types.begin(),
+                std::find(types.begin(), types.end(), argTypes[k]));
+            stypes.push_back(unres_types[index]);
+            Node lv = nm->mkBoundVar(argTypes[k]);
+            largs.push_back(lv);
+          }
+          Node lbvl = nm->mkNode(BOUND_VAR_LIST, largs);
+          largs.insert(largs.begin(), sv);
+          Node lbody = nm->mkNode(APPLY_UF, largs);
+          Node op = nm->mkNode(LAMBDA, lbvl, lbody);
+
+          std::stringstream ss;
+          ss << "apply_" << sv;
+          ops[i].push_back(op.toExpr());
+          cnames[i].push_back(ss.str());
+          cargs[i].push_back(stypes);
+          pcs[i].push_back(nullptr);
+          weights[i].push_back(-1);
+        }
     }
     //add constants
     std::vector< Node > consts;
