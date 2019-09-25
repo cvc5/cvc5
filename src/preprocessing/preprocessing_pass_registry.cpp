@@ -142,7 +142,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("ite-removal", callCtor<IteRemoval>);
   registerPassInfo("miplib-trick", callCtor<MipLibTrick>);
   registerPassInfo("non-clausal-simp", callCtor<NonClausalSimp>);
-  registerPassInfo("ackermann", callCtor<BVAckermann>);
+  registerPassInfo("ackermann", callCtor<Ackermann>);
   registerPassInfo("sym-break", callCtor<SymBreakerPass>);
   registerPassInfo("ext-rew-pre", callCtor<ExtRewPre>);
   registerPassInfo("theory-preprocess", callCtor<TheoryPreprocess>);
