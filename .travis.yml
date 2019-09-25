@@ -59,7 +59,13 @@ script:
    makeCheck() {
      cd build
      make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
-     ctest -j2 -L example || error "RUNNING EXAMPLES FAILED"
+   }
+   makeExamples() {
+     cd examples
+     mkdir build
+     cd build
+     cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
+     ctest -j2 --output-on-failure || error "RUNNING EXAMPLES FAILED"
    }
    makeInstallCheck() {
      cd build
@@ -78,7 +84,7 @@ script:
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_WITH_LFSC" ] && run contrib/get-lfsc-checker
    [ -n "$TRAVIS_CVC4" ] && run configureCVC4
    [ -n "$TRAVIS_CVC4" ] && run makeCheck
-   [ -z "$CVC4_SYMFPU_BUILD" ] && run makeInstallCheck
+   [ -z "$CVC4_SYMFPU_BUILD" ] && run makeInstallCheck && run makeExamples
    [ -z "$TRAVIS_CVC4" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
