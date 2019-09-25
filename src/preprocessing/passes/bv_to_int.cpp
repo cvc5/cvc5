@@ -756,6 +756,9 @@ Node BVToInt::bvToInt(Node n)
               vector<TypeNode> bvDomain = tn.getArgTypes();
               TypeNode bvRange = tn.getRangeType();
               vector<TypeNode> intDomain;
+              //if the original range is a bit-vector sort, 
+              //the new range should be an integer sort.
+              //Otherwise, we keep the original range.
               TypeNode intRange =
                   bvRange.isBitVector() ? d_nm->integerType() : bvRange;
               vector<Node> intArguments;
