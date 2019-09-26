@@ -1668,6 +1668,7 @@ set(regress_1_tests
   regress1/sygus/hd-01-d1-prog.sy
   regress1/sygus/hd-19-d1-prog-dup-op.sy
   regress1/sygus/hd-sdiv.sy
+  regress1/sygus/ho-sygus.sy
   regress1/sygus/icfp_14.12-flip-args.sy
   regress1/sygus/icfp_14.12.sy
   regress1/sygus/icfp_14_12_diff_types.sy
