@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file bv_ackermann.cpp
+/*! \file ackermann.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar, Aina Niemetz, Clark Barrett
+ **   Yoni Zohar, Aina Niemetz, Clark Barrett, Ying Sheng
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -21,7 +21,7 @@
 ￼**   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
  **/
 
-#include "preprocessing/passes/bv_ackermann.h"
+#include "preprocessing/passes/ackermann.h"
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -35,8 +35,7 @@ namespace passes {
 
 /* -------------------------------------------------------------------------- */
 
-namespace
-{
+namespace {
 
 void addLemmaForPair(TNode args1,
                      TNode args2,
@@ -180,16 +179,15 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
-BVAckermann::BVAckermann(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-ackermann"),
+Ackermann::Ackermann(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "ackermann"),
       d_funcToSkolem(preprocContext->getUserContext())
 {
 }
 
-PreprocessingPassResult BVAckermann::applyInternal(
+PreprocessingPassResult Ackermann::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   AlwaysAssert(!options::incrementalSolving());
 
   /* collect all function applications and generate consistency lemmas
@@ -212,7 +210,6 @@ PreprocessingPassResult BVAckermann::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 /* -------------------------------------------------------------------------- */
 

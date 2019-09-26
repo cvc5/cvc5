@@ -1214,6 +1214,10 @@ void SmtEngine::setDefaults() {
   {
     d_logic = LogicInfo("QF_BV");
   }
+  else if (d_logic.getLogicString() == "QF_UFBV" && options::ackermann())
+  {
+    d_logic = LogicInfo("QF_BV");
+  }
 
   // set strings-exp
   /* - disabled for 1.4 release [MGD 2014.06.25]
@@ -3243,7 +3247,12 @@ void SmtEnginePrivate::processAssertions() {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
       && !options::incrementalSolving())
   {
-    d_passes["bv-ackermann"]->apply(&d_assertions);
+    options::ackermann.set(true);
+  }
+
+  if (options::ackermann())
+  {
+    d_passes["ackermann"]->apply(&d_assertions);
   }
 
   if (options::bvAbstraction() && !options::incrementalSolving())
