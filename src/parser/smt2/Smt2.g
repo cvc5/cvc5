@@ -1997,7 +1997,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
         term[f3, f2] {
           Expr mc;
-          if (f.getKind()==kind::BOUND_VARIABLE)
+          if (f.getKind() == kind::BOUND_VARIABLE)
           {
             Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, f);
             mc = MK_EXPR(kind::MATCH_BIND_CASE, bvl, f, f3);
