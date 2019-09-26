@@ -156,7 +156,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     std::vector<Node> rets;
     TypeNode t = h.getType();
     const Datatype& dt = t.getDatatype();
-    for (unsigned k = 1, nchild = in.getNumChildren(); k < nchild; k++)
+    for (size_t k = 1, nchild = in.getNumChildren(); k < nchild; k++)
     {
       Node c = in[k];
       Node cons;
