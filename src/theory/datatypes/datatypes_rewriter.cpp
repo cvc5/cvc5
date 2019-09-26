@@ -202,7 +202,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         }
         else
         {
-          for (unsigned i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
+          for (size_t i = 0, vsize = c[0].getNumChildren(); i < vsize; i++)
           {
             vars.push_back(c[0][i]);
             Node sc = nm->mkNode(
