@@ -57,7 +57,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     TypeNode tn = s.getType();
     // Notice that we allow for non-first class (e.g. function) variables here.
     // This is applicable to the case where we are doing get-abduct in a logic
-    // with UF. 
+    // with UF.
     std::stringstream ss;
     ss << s;
     Node var = nm->mkBoundVar(tn);

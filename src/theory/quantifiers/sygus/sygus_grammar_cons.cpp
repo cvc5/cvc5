@@ -18,6 +18,7 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "printer/sygus_print_callback.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
@@ -26,7 +27,6 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "printer/sygus_print_callback.h"
 
 using namespace CVC4::kind;
 
@@ -565,7 +565,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           pcs[i].push_back(nullptr);
           weights[i].push_back(-1);
         }
-    }
+      }
     //add constants
     std::vector< Node > consts;
     mkSygusConstantsForType( types[i], consts );
@@ -832,9 +832,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs[i].push_back(nullptr);
         weights[i].push_back(-1);
       }
-    }else if( types[i].isSort() || types[i].isFunction() ){
+    }
+    else if (types[i].isSort() || types[i].isFunction())
+    {
       // do nothing
-    }else{
+    }
+    else
+    {
       Warning()
           << "Warning: No implementation for default Sygus grammar of type "
           << types[i] << std::endl;
