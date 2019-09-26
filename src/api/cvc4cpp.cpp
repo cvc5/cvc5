@@ -1050,6 +1050,12 @@ Kind Term::getKind() const
   return intToExtKind(d_expr->getKind());
 }
 
+bool Term::isParameterized() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->isParameterized();
+}
+
 Sort Term::getSort() const
 {
   CVC4_API_CHECK_NOT_NULL;
@@ -2552,6 +2558,19 @@ Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkBVFromStrHelper(size, s, base);
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkConstArray(Sort sort, Term val) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULL(val);
+  CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
+  CVC4_API_CHECK(sort.getArrayElementSort() == val.getSort())
+      << "Value does not match element sort.";
+  Term res = mkValHelper<CVC4::ArrayStoreAll>(
+      CVC4::ArrayStoreAll(*sort.d_type, *val.d_expr));
+  return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

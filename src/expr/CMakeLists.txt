@@ -33,10 +33,6 @@ libcvc4_add_sources(
   node_trie.h
   node_value.cpp
   node_value.h
-  pickle_data.cpp
-  pickle_data.h
-  pickler.cpp
-  pickler.h
   symbol_table.cpp
   symbol_table.h
   term_canonize.cpp

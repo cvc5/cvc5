@@ -23,6 +23,7 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
@@ -30,23 +31,6 @@ namespace theory {
 namespace quantifiers {
 
 class SynthConjecture;
-
-/** A trie indexed by types that assigns unique identifiers to nodes. */
-class TypeNodeIdTrie
-{
- public:
-  /** children of this node */
-  std::map<TypeNode, TypeNodeIdTrie> d_children;
-  /** the data stored at this node */
-  std::vector<Node> d_data;
-  /** add v to this trie, indexed by types */
-  void add(Node v, std::vector<TypeNode>& types);
-  /**
-   * Assign each node in this trie an identifier such that
-   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
-   */
-  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount);
-};
 
 /** role for registering an enumerator */
 enum EnumeratorRole
@@ -78,10 +62,13 @@ class TermDbSygus {
    *
    * This initializes this database for sygus datatype type tn. This may
    * throw an assertion failure if the sygus grammar has type errors. Otherwise,
-   * after registering a sygus type, the query functions in this class (such
-   * as sygusToBuiltinType, getKindConsNum, etc.) can be called for tn.
+   * after registering a sygus type, the query function getTypeInfo can be
+   * called for tn.
+   *
+   * This method returns true if tn is a sygus datatype type and false
+   * otherwise.
    */
-  void registerSygusType(TypeNode tn);
+  bool registerSygusType(TypeNode tn);
 
   //------------------------------utilities
   /** get the explanation utility */
@@ -304,6 +291,11 @@ class TermDbSygus {
    */
   TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
+  /**
+   * Get type information about sygus datatype type tn. The type tn should be
+   * (a subfield type of) a type that has been registered to this class.
+   */
+  SygusTypeInfo& getTypeInfo(TypeNode tn);
 
   /** print to sygus stream n on trace c */
   static void toStreamSygus(const char* c, Node n);
@@ -375,9 +367,7 @@ class TermDbSygus {
   /** cache of getProxyVariable */
   std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
   //-----------------------------end conversion from sygus to builtin
-
   // TODO :issue #1235 : below here needs refactor
-
  public:
   Node d_true;
   Node d_false;
@@ -388,150 +378,28 @@ class TermDbSygus {
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
  private:
-  // information for sygus types
-  std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
-  std::map<TypeNode, std::vector<Node> > d_var_list;
-  std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
-  std::map<TypeNode, std::map<Kind, int> > d_kinds;
   /**
-   * Whether this sygus type has a constructors whose sygus operator is ITE,
-   * or is a lambda whose body is ITE.
+   * Maps types that we have called registerSygusType to a flag indicating
+   * whether that type is a sygus datatype type. Sygus datatype types that
+   * are in this map have initialized type information stored in the map below.
    */
-  std::map<TypeNode, bool> d_hasIte;
-  std::map<TypeNode, std::map<int, Node> > d_arg_const;
-  std::map<TypeNode, std::map<Node, int> > d_consts;
-  std::map<TypeNode, std::map<Node, int> > d_ops;
-  std::map<TypeNode, std::map<int, Node> > d_arg_ops;
-  std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
-  // grammar information
-  // root -> type -> _
+  std::map<TypeNode, bool> d_registerStatus;
   /**
-   * For each sygus type t1, this maps datatype types t2 to the smallest size of
-   * a term of type t1 that includes t2 as a subterm. For example, for grammar:
-   *   A -> B+B | 0 | B-D
-   *   B -> C+C
-   *   ...
-   * we have that d_min_type_depth[A] = { A -> 0, B -> 1, C -> 2, D -> 1 }.
+   * The type information for each sygus datatype type that has been registered
+   * to this class.
    */
-  std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
-  // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
-  // d_consider_const;
-  // type -> cons -> _
-  std::map<TypeNode, unsigned> d_min_term_size;
-  std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
+  std::map<TypeNode, SygusTypeInfo> d_tinfo;
   /** a cache for getSelectorWeight */
   std::map<TypeNode, std::map<Node, unsigned> > d_sel_weight;
-  /**
-   * For each sygus type, the index of the "any constant" constructor, if it
-   * has one.
-   */
-  std::map<TypeNode, unsigned> d_sym_cons_any_constant;
-  /**
-   * Whether any subterm of this type contains a symbolic constructor. This
-   * corresponds to whether sygus repair techniques will ever have any effect
-   * for this type.
-   */
-  std::map<TypeNode, bool> d_has_subterm_sym_cons;
-  /**
-   * Map from sygus types and bound variables to their type subclass id. Note
-   * type class identifiers are computed for each type of registered sygus
-   * enumerators, but not all sygus types. For details, see getSubclassIdForVar.
-   */
-  std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_id;
-  /** the list of variables with given subclass */
-  std::map<TypeNode, std::map<unsigned, std::vector<Node> > >
-      d_var_subclass_list;
-  /** the index of each variable in the above list */
-  std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_list_index;
 
  public:  // general sygus utilities
   bool isRegistered(TypeNode tn) const;
-  // get the minimum depth of type in its parent grammar
-  unsigned getMinTypeDepth( TypeNode root_tn, TypeNode tn );
-  // get the minimum size for a constructor term
-  unsigned getMinTermSize( TypeNode tn );
-  unsigned getMinConsTermSize( TypeNode tn, unsigned cindex );
   /** get the weight of the selector, where tn is the domain of sel */
   unsigned getSelectorWeight(TypeNode tn, Node sel);
-  /** get subfield types
-   *
-   * This adds all "subfield types" of tn to sf_types. A type tnc is a subfield
-   * type of tn if there exists a selector chain S1( ... Sn( x )...) that has
-   * type tnc, where x has type tn. In other words, tnc is the type of some
-   * subfield of terms of type tn, at any depth.
-   */
-  void getSubfieldTypes(TypeNode tn, std::vector<TypeNode>& sf_types);
-
- public:
-  int getKindConsNum( TypeNode tn, Kind k );
-  int getConstConsNum( TypeNode tn, Node n );
-  int getOpConsNum( TypeNode tn, Node n );
-  bool hasKind( TypeNode tn, Kind k );
-  /**
-   * Returns true if this sygus type has a constructors whose sygus operator is
-   * ITE, or is a lambda whose body is ITE.
-   */
-  bool hasIte(TypeNode tn) const;
-  bool hasConst( TypeNode tn, Node n );
-  bool hasOp( TypeNode tn, Node n );
-  Node getConsNumConst( TypeNode tn, int i );
-  Node getConsNumOp( TypeNode tn, int i );
-  Kind getConsNumKind( TypeNode tn, int i );
-  bool isKindArg( TypeNode tn, int i );
-  bool isConstArg( TypeNode tn, int i );
   /** get arg type */
   TypeNode getArgType(const DatatypeConstructor& c, unsigned i) const;
-  /** is type match */
+  /** Do constructors c1 and c2 have the same type? */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
-  /**
-   * Get the index of the "any constant" constructor of type tn if it has one,
-   * or returns -1 otherwise.
-   */
-  int getAnyConstantConsNum(TypeNode tn) const;
-  /** has subterm symbolic constructor
-   *
-   * Returns true if any subterm of type tn can be a symbolic constructor.
-   */
-  bool hasSubtermSymbolicCons(TypeNode tn) const;
-  //--------------------------------- variable subclasses
-  /** Get subclass id for variable
-   *
-   * This returns the "subclass" identifier for variable v in sygus
-   * type tn. A subclass identifier groups variables based on the sygus
-   * types they occur in:
-   *   A -> A + B | C + C | x | y | z | w | u
-   *   B -> y | z
-   *   C -> u
-   * The variables in this grammar can be grouped according to the sygus types
-   * they appear in:
-   *   { x,w } occur in A
-   *   { y,z } occur in A,B
-   *   { u } occurs in A,C
-   * We say that e.g. x, w are in the same subclass.
-   *
-   * If this method returns 0, then v is not a variable in sygus type tn.
-   * Otherwise, this method returns a positive value n, such that
-   * getSubclassIdForVar[v1] = getSubclassIdForVar[v2] iff v1 and v2 are in the
-   * same subclass.
-   *
-   * The type tn should be the type of an enumerator registered to this
-   * database, where notice that we do not compute this information for the
-   * subfield types of the enumerator.
-   */
-  unsigned getSubclassForVar(TypeNode tn, Node v) const;
-  /**
-   * Get the number of variable in the subclass with identifier sc for type tn.
-   */
-  unsigned getNumSubclassVars(TypeNode tn, unsigned sc) const;
-  /** Get the i^th variable in the subclass with identifier sc for type tn */
-  Node getVarSubclassIndex(TypeNode tn, unsigned sc, unsigned i) const;
-  /**
-   * Get the a variable's index in its subclass list. This method returns true
-   * iff variable v has been assigned a subclass in tn. It updates index to
-   * be v's index iff the method returns true.
-   */
-  bool getIndexInSubclassForVar(TypeNode tn, Node v, unsigned& index) const;
-  //--------------------------------- end variable subclasses
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** can construct kind
@@ -560,7 +428,6 @@ class TermDbSygus {
                         bool aggr = false);
 
   TypeNode getSygusTypeForVar( Node v );
-  Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );

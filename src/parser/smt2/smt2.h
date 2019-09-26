@@ -27,7 +27,6 @@
 
 #include "api/cvc4cpp.h"
 #include "parser/parser.h"
-#include "parser/smt1/smt1.h"
 #include "parser/smt2/parse_op.h"
 #include "smt/command.h"
 #include "theory/logic_info.h"
@@ -509,13 +508,6 @@ class Smt2 : public Parser
   //------------------------- end processing parse operators
  private:
   std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
-  std::map< CVC4::Expr, std::vector< CVC4::Expr > > d_sygus_let_func_to_vars;
-  std::map< CVC4::Expr, CVC4::Expr > d_sygus_let_func_to_body;
-  std::map< CVC4::Expr, unsigned > d_sygus_let_func_to_num_input_vars;
-  //auxiliary define-fun functions introduced for production rules
-  std::vector< CVC4::Expr > d_sygus_defined_funs;
-
-  void collectSygusLetArgs( CVC4::Expr e, std::vector< CVC4::Type >& sygusArgs, std::vector< CVC4::Expr >& builtinArgs );
 
   Type processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
                                 std::vector< CVC4::Type>& sorts,
@@ -526,16 +518,6 @@ class Smt2 : public Parser
                                 std::vector< std::vector< std::string > >& unresolved_gterm_sym,
                                 std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin,
                                 std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr, Type sub_ret );
-
-  void processSygusLetConstructor( std::vector< CVC4::Expr >& let_vars, int index,
-                                   std::vector< CVC4::Datatype >& datatypes,
-                                   std::vector< CVC4::Type>& sorts,
-                                   std::vector< std::vector<CVC4::Expr> >& ops,
-                                   std::vector< std::vector<std::string> >& cnames,
-                                   std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
-                                   std::vector<CVC4::Expr>& sygus_vars,
-                                   std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin,
-                                   std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr );
 
   /** make sygus bound var list
    *

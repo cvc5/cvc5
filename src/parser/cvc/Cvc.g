@@ -616,7 +616,7 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
     if(s == "benchmark") {
         PARSER_STATE->parseError(
             "In CVC4 presentation language mode, but SMT-LIBv1 format "
-            "detected.  Use --lang smt1 for SMT-LIBv1 support.");
+            "detected, which is not supported anymore.");
       } else if(s == "set" || s == "get" || s == "declare" ||
                 s == "define" || s == "assert") {
         PARSER_STATE->parseError(

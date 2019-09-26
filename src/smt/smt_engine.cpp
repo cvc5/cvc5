@@ -1215,43 +1215,39 @@ void SmtEngine::setDefaults() {
     d_logic = LogicInfo("QF_BV");
   }
 
-  // set strings-exp
-  /* - disabled for 1.4 release [MGD 2014.06.25]
-  if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
-    if(! options::stringExp.wasSetByUser()) {
-      options::stringExp.set( true );
-      Trace("smt") << "turning on strings-exp, for the theory of strings" << std::endl;
-    }
-  }
-  */
-  // for strings
-  if(options::stringExp()) {
-    if( !d_logic.isQuantified() ) {
+  // set default options associated with strings-exp
+  if (options::stringExp())
+  {
+    // We require quantifiers since extended functions reduce using them
+    if (!d_logic.isQuantified())
+    {
       d_logic = d_logic.getUnlockedCopy();
       d_logic.enableQuantifiers();
       d_logic.lock();
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    if(! options::fmfBound.wasSetByUser()) {
+    // We require bounded quantifier handling.
+    if (!options::fmfBound.wasSetByUser())
+    {
       options::fmfBound.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
-    if(! options::fmfInstEngine.wasSetByUser()) {
-      options::fmfInstEngine.set( true );
-      Trace("smt") << "turning on fmf-inst-engine, for strings-exp" << std::endl;
+    // Turn off E-matching, since some bounded quantifiers introduced by strings
+    // (e.g. for replaceall) admit matching loops.
+    if (!options::eMatching.wasSetByUser())
+    {
+      options::eMatching.set(false);
+      Trace("smt") << "turning off E-matching, for strings-exp" << std::endl;
     }
-    /*
-    if(! options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
-      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
-    }*/
-    /*
-    if(! options::stringFMF.wasSetByUser()) {
-      options::stringFMF.set( true );
-      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
+    // Do not eliminate extended arithmetic symbols from quantified formulas,
+    // since some strategies, e.g. --re-elim-agg, introduce them.
+    if (!options::elimExtArithQuant.wasSetByUser())
+    {
+      options::elimExtArithQuant.set(false);
+      Trace("smt") << "turning off elim-ext-arith-quant, for strings-exp"
+                   << std::endl;
     }
-    */
   }
 
   // sygus inference may require datatypes
@@ -1808,8 +1804,6 @@ void SmtEngine::setDefaults() {
   //now have determined whether fmfBoundInt is on/off
   //apply fmfBoundInt options
   if( options::fmfBound() ){
-    //must have finite model finding on
-    options::finiteModelFind.set( true );
     if (!options::mbqiMode.wasSetByUser()
         || (options::mbqiMode() != quantifiers::MBQI_NONE
             && options::mbqiMode() != quantifiers::MBQI_FMC))
@@ -3061,6 +3055,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
        << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw RecoverableModalException(ss.str().c_str());
   }
+
   if (!options::produceModels())
   {
     std::stringstream ss;
@@ -3069,6 +3064,15 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   }
 
   TheoryModel* m = d_theoryEngine->getBuiltModel();
+
+  if (m == nullptr)
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c
+       << " since model is not available. Perhaps the most recent call to "
+          "check-sat was interupted?";
+    throw RecoverableModalException(ss.str().c_str());
+  }
 
   return m;
 }
@@ -3211,15 +3215,6 @@ void SmtEnginePrivate::processAssertions() {
 
   if( options::nlExtPurify() ){
     d_passes["nl-ext-purify"]->apply(&d_assertions);
-  }
-
-  if( options::ceGuidedInst() ){
-    //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_smt.d_theoryEngine->getQuantifiersEngine()
-          ->getSynthEngine()
-          ->preregisterAssertion(d_assertions[i]);
-    }
   }
 
   if (options::solveRealAsInt()) {
@@ -4171,18 +4166,6 @@ Expr SmtEngine::getValue(const Expr& ex) const
     Dump("benchmark") << GetValueCommand(ex);
   }
 
-  if(!options::produceModels()) {
-    const char* msg =
-      "Cannot get value when produce-models options is off.";
-    throw ModalException(msg);
-  }
-  if (d_smtMode != SMT_MODE_SAT)
-  {
-    const char* msg =
-      "Cannot get value unless immediately preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
-  }
-
   // Substitute out any abstract values in ex.
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
 
@@ -4211,7 +4194,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = d_theoryEngine->getBuiltModel();
+  TheoryModel* m = getAvailableModel("get-value");
   Node resultNode;
   if(m != NULL) {
     resultNode = m->getValue(n);
@@ -4229,8 +4212,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
              || resultNode.getType().isSubtypeOf(expectedType),
          "Run with -t smt for details.");
 
-  // ensure it's a constant
-  Assert(resultNode.getKind() == kind::LAMBDA || resultNode.isConst());
+  // Ensure it's a constant, or a lambda (for uninterpreted functions), or
+  // a choice (for approximate values).
+  Assert(resultNode.getKind() == kind::LAMBDA
+         || resultNode.getKind() == kind::CHOICE || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);
@@ -4298,19 +4283,16 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       "produce-assignments option is off.";
     throw ModalException(msg);
   }
-  if (d_smtMode != SMT_MODE_SAT)
-  {
-    const char* msg =
-      "Cannot get the current assignment unless immediately "
-      "preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
-  }
+
+  // Get the model here, regardless of whether d_assignments is null, since
+  // we should throw errors related to model availability whether or not
+  // assignments is null.
+  TheoryModel* m = getAvailableModel("get assignment");
 
   vector<pair<Expr,Expr>> res;
   if (d_assignments != nullptr)
   {
     TypeNode boolType = d_nodeManager->booleanType();
-    TheoryModel* m = d_theoryEngine->getBuiltModel();
     for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
                                      iend = d_assignments->key_end();
          i != iend;
@@ -4469,7 +4451,7 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
   Expr nil;
-  Model* m = d_theoryEngine->getBuiltModel();
+  Model* m = getAvailableModel("get separation logic heap and nil");
   if (m->getHeapModel(heap, nil))
   {
     return std::make_pair(heap, nil);
@@ -4621,7 +4603,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   // and if Notice() is on, the user gave --verbose (or equivalent).
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  TheoryModel* m = d_theoryEngine->getBuiltModel();
+  TheoryModel* m = getAvailableModel("check model");
 
   // check-model is not guaranteed to succeed if approximate values were used
   if (m->hasApproximations())
