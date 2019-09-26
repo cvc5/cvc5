@@ -1825,7 +1825,7 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
               << "  failed due to unknown bound for " << vc << std::endl;
           // should either assign a model bound or eliminate the variable
           // via substitution
-          AlwaysAssert(false);
+          Assert(false);
           return false;
         }
       }
