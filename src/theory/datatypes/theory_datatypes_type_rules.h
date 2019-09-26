@@ -454,12 +454,12 @@ class MatchTypeRule
       if (check)
       {
         Kind nck = nc.getKind();
-        std::unordered_set< Node, NodeHashFunction > bvs;
+        std::unordered_set<Node, NodeHashFunction> bvs;
         if (nck == kind::MATCH_BIND_CASE)
         {
-          for (const Node& v : nc[0] )
+          for (const Node& v : nc[0])
           {
-            Assert(v.getKind()==kind::BOUND_VARIABLE);
+            Assert(v.getKind() == kind::BOUND_VARIABLE);
             bvs.insert(v);
           }
         }
@@ -482,17 +482,19 @@ class MatchTypeRule
         {
           for (const Node& arg : nc[pindex])
           {
-            if (bvs.find(arg)==bvs.end())
+            if (bvs.find(arg) == bvs.end())
             {
               throw TypeCheckingExceptionPrivate(
-                  n, "expecting distinct bound variable as argument to constructor in pattern of match");
+                  n,
+                  "expecting distinct bound variable as argument to "
+                  "constructor in pattern of match");
             }
             bvs.erase(arg);
           }
           unsigned ci = Datatype::indexOf(nc[pindex].getOperator().toExpr());
           patIndices.insert(ci);
         }
-        else if(ncpk == kind::BOUND_VARIABLE)
+        else if (ncpk == kind::BOUND_VARIABLE)
         {
           patHasVariable = true;
         }
@@ -528,11 +530,10 @@ class MatchTypeRule
     }
     if (check)
     {
-      if (!patHasVariable && patIndices.size()<hdt.getNumConstructors())
+      if (!patHasVariable && patIndices.size() < hdt.getNumConstructors())
       {
-
-          throw TypeCheckingExceptionPrivate(
-              n, "cases for match term are not exhaustive");
+        throw TypeCheckingExceptionPrivate(
+            n, "cases for match term are not exhaustive");
       }
     }
     return retType;
