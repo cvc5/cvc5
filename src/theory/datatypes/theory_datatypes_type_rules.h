@@ -432,7 +432,7 @@ class DtSyguEvalTypeRule
 class MatchTypeRule
 {
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
+  static TypeNode computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check)
   {
@@ -451,25 +451,40 @@ class MatchTypeRule
     for (unsigned i = 1, nchildren = n.getNumChildren(); i < nchildren; i++)
     {
       Node nc = n[i];
-      Kind nck = nc.getKind();
-      if (nck != kind::MATCH_CASE && nck != kind::MATCH_BIND_CASE)
+      if (check)
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "expected a match case in match expression");
-      }
-      // get the pattern type
-      unsigned pindex = nck == kind::MATCH_CASE ? 0 : 1;
-      TypeNode patType = nc[pindex].getType();
-      // should be caught in the above call
-      Assert(patType.isDatatype());
-      const Datatype& pdt = patType.getDatatype();
-      // compare datatypes instead of the types to catch parametric case, where
-      // the pattern has parametric type.
-      if (hdt != pdt)
-      {
-        std::stringstream ss;
-        ss << "pattern of a match case does not match the head type in match";
-        throw TypeCheckingExceptionPrivate(n, ss.str());
+        Kind nck = nc.getKind();
+        if (nck== kind::MATCH_BIND_CASE)
+        {
+          // check free variable contains?
+        }
+        else if (nck != kind::MATCH_CASE)
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "expected a match case in match expression");
+        }
+        // get the pattern type
+        unsigned pindex = nck == kind::MATCH_CASE ? 0 : 1;
+        TypeNode patType = nc[pindex].getType();
+        // should be caught in the above call
+        if(!patType.isDatatype())
+        {
+          throw TypeCheckingExceptionPrivate(n, "expecting datatype pattern in match");
+        }
+        Kind ncpk = nc[pindex].getKind();
+        if (ncpk!=kind::APPLY_CONSTRUCTOR && ncpk != kind::BOUND_VARIABLE)
+        {
+          throw TypeCheckingExceptionPrivate(n, "unexpected kind of term in pattern in match");
+        }
+        const Datatype& pdt = patType.getDatatype();
+        // compare datatypes instead of the types to catch parametric case, where
+        // the pattern has parametric type.
+        if (hdt != pdt)
+        {
+          std::stringstream ss;
+          ss << "pattern of a match case does not match the head type in match";
+          throw TypeCheckingExceptionPrivate(n, ss.str());
+        }
       }
       TypeNode currType = nc.getType(check);
       if (i == 1)

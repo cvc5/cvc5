@@ -175,9 +175,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       else
       {
-        cases.push_back(Node::null());
-        rets.push_back(c);
-        continue;
+        AlwaysAssert(false);
       }
       size_t cindex = 0;
       // cons is null in the default case
@@ -221,7 +219,8 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       else
       {
-        cases.push_back(Node::null());
+        Assert(k==in.getNumChildren()-1);
+        cases.push_back(nm->mkConst(true));
       }
       rets.push_back(body);
     }
@@ -230,11 +229,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     std::reverse(cases.begin(), cases.end());
     std::reverse(rets.begin(), rets.end());
     Node ret = rets[0];
-    if (!cases[0].isNull() && cases.size() < dt.getNumConstructors())
-    {
-      // did not fully specify the match
-      AlwaysAssert(false);
-    }
+    AlwaysAssert (cases[0].isConst() || cases.size() == dt.getNumConstructors());
     for (unsigned i = 1, ncases = cases.size(); i < ncases; i++)
     {
       ret = nm->mkNode(ITE, cases[i], rets[i], ret);
