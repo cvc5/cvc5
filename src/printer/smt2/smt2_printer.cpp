@@ -545,7 +545,7 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     toStream(out, n[0], toDepth, types, TypeNode::null());
     out << " (";
-    for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+    for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
     {
       if (i > 1)
       {
