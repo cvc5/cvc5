@@ -179,7 +179,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         rets.push_back(c);
         continue;
       }
-      unsigned cindex = 0;
+      size_t cindex = 0;
       // cons is null in the default case
       if (!cons.isNull())
       {
