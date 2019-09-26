@@ -445,6 +445,8 @@ class MatchTypeRule
     }
     const Datatype& hdt = headType.getDatatype();
 
+    std::unordered_set<unsigned> patIndices;
+    bool patHasVariable = false;
     // the type of a match case list is the least common type of its cases
     for (unsigned i = 1, nchildren = n.getNumChildren(); i < nchildren; i++)
     {
@@ -452,9 +454,14 @@ class MatchTypeRule
       if (check)
       {
         Kind nck = nc.getKind();
+        std::unordered_set< Node, NodeHashFunction > bvs;
         if (nck == kind::MATCH_BIND_CASE)
         {
-          // check free variable contains?
+          for (const Node& v : nc[0] )
+          {
+            Assert(v.getKind()==kind::BOUND_VARIABLE);
+            bvs.insert(v);
+          }
         }
         else if (nck != kind::MATCH_CASE)
         {
@@ -471,7 +478,25 @@ class MatchTypeRule
               n, "expecting datatype pattern in match");
         }
         Kind ncpk = nc[pindex].getKind();
-        if (ncpk != kind::APPLY_CONSTRUCTOR && ncpk != kind::BOUND_VARIABLE)
+        if (ncpk == kind::APPLY_CONSTRUCTOR)
+        {
+          for (const Node& arg : nc[pindex])
+          {
+            if (bvs.find(arg)==bvs.end())
+            {
+              throw TypeCheckingExceptionPrivate(
+                  n, "expecting distinct bound variable as argument to constructor in pattern of match");
+            }
+            bvs.erase(arg);
+          }
+          unsigned ci = Datatype::indexOf(nc[pindex].getOperator().toExpr());
+          patIndices.insert(ci);
+        }
+        else if(ncpk == kind::BOUND_VARIABLE)
+        {
+          patHasVariable = true;
+        }
+        else
         {
           throw TypeCheckingExceptionPrivate(
               n, "unexpected kind of term in pattern in match");
@@ -499,6 +524,15 @@ class MatchTypeRule
           throw TypeCheckingExceptionPrivate(
               n, "incomparable types in match case list");
         }
+      }
+    }
+    if (check)
+    {
+      if (!patHasVariable && patIndices.size()<hdt.getNumConstructors())
+      {
+
+          throw TypeCheckingExceptionPrivate(
+              n, "cases for match term are not exhaustive");
       }
     }
     return retType;

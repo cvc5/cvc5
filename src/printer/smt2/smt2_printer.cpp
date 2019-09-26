@@ -1054,11 +1054,8 @@ static string smtKindString(Kind k, Variant v)
 
   case kind::LAMBDA:
     return "lambda";
-<<<<<<< HEAD
   case kind::MATCH: return "match";
-=======
   case kind::CHOICE: return "choice";
->>>>>>> 923abd7000a2ab6e3c0776c59d159bdc3a4d9a52
 
   // arith theory
   case kind::PLUS: return "+";
