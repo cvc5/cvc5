@@ -261,7 +261,8 @@ class SortProperties {
     Assert(type.getKind() == kind::SORT_TYPE);
     TypeEnumerator te(type);
     return *te;
-    //return NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground term created for type " + type.toString());
+    // return NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground
+    // term created for type " + type.toString());
   }
 };/* class SortProperties */
 

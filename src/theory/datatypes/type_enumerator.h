@@ -106,15 +106,15 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
     d_child_enum = childEnum;
     init();
   }
-  DatatypesEnumerator(const DatatypesEnumerator& de) :
-    TypeEnumeratorBase<DatatypesEnumerator>(de.getType()),
-    d_tep(de.d_tep),
-    d_datatype(de.d_datatype),
-    d_type(de.d_type),
-    d_ctor(de.d_ctor),
-    d_zeroTerm(de.d_zeroTerm),
-    d_zeroTermActive(de.d_zeroTermActive){
-
+  DatatypesEnumerator(const DatatypesEnumerator& de)
+      : TypeEnumeratorBase<DatatypesEnumerator>(de.getType()),
+        d_tep(de.d_tep),
+        d_datatype(de.d_datatype),
+        d_type(de.d_type),
+        d_ctor(de.d_ctor),
+        d_zeroTerm(de.d_zeroTerm),
+        d_zeroTermActive(de.d_zeroTermActive)
+  {
     for( std::map< TypeNode, unsigned >::const_iterator it = de.d_te_index.begin(); it != de.d_te_index.end(); ++it ){
       d_te_index[it->first] = it->second;
     }
@@ -144,7 +144,8 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
     {
       return d_zeroTerm;
     }
-    else if(d_ctor < d_has_debruijn + d_datatype.getNumConstructors()) {
+    else if (d_ctor < d_has_debruijn + d_datatype.getNumConstructors())
+    {
       return getCurrentTerm( d_ctor );
     }
     throw NoMoreValuesException(getType());
