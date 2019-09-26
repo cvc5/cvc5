@@ -219,7 +219,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       else
       {
-        Assert(k==in.getNumChildren()-1);
+        Assert(k == in.getNumChildren() - 1);
         cases.push_back(nm->mkConst(true));
       }
       rets.push_back(body);
@@ -229,7 +229,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     std::reverse(cases.begin(), cases.end());
     std::reverse(rets.begin(), rets.end());
     Node ret = rets[0];
-    AlwaysAssert (cases[0].isConst() || cases.size() == dt.getNumConstructors());
+    AlwaysAssert(cases[0].isConst() || cases.size() == dt.getNumConstructors());
     for (unsigned i = 1, ncases = cases.size(); i < ncases; i++)
     {
       ret = nm->mkNode(ITE, cases[i], rets[i], ret);

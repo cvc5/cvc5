@@ -432,9 +432,7 @@ class DtSyguEvalTypeRule
 class MatchTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::MATCH);
 
@@ -454,7 +452,7 @@ class MatchTypeRule
       if (check)
       {
         Kind nck = nc.getKind();
-        if (nck== kind::MATCH_BIND_CASE)
+        if (nck == kind::MATCH_BIND_CASE)
         {
           // check free variable contains?
         }
@@ -467,18 +465,20 @@ class MatchTypeRule
         unsigned pindex = nck == kind::MATCH_CASE ? 0 : 1;
         TypeNode patType = nc[pindex].getType();
         // should be caught in the above call
-        if(!patType.isDatatype())
+        if (!patType.isDatatype())
         {
-          throw TypeCheckingExceptionPrivate(n, "expecting datatype pattern in match");
+          throw TypeCheckingExceptionPrivate(
+              n, "expecting datatype pattern in match");
         }
         Kind ncpk = nc[pindex].getKind();
-        if (ncpk!=kind::APPLY_CONSTRUCTOR && ncpk != kind::BOUND_VARIABLE)
+        if (ncpk != kind::APPLY_CONSTRUCTOR && ncpk != kind::BOUND_VARIABLE)
         {
-          throw TypeCheckingExceptionPrivate(n, "unexpected kind of term in pattern in match");
+          throw TypeCheckingExceptionPrivate(
+              n, "unexpected kind of term in pattern in match");
         }
         const Datatype& pdt = patType.getDatatype();
-        // compare datatypes instead of the types to catch parametric case, where
-        // the pattern has parametric type.
+        // compare datatypes instead of the types to catch parametric case,
+        // where the pattern has parametric type.
         if (hdt != pdt)
         {
           std::stringstream ss;
