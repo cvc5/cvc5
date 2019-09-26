@@ -121,7 +121,7 @@ typerule DT_SYGUS_EVAL ::CVC4::theory::datatypes::DtSyguEvalTypeRule
 
 
 # Kinds for match terms. For example, the match term
-#   (match l ((cons h t) h) (nil 0)) 
+#   (match l (((cons h t) h) (nil 0))) 
 # is represented by the AST
 #   (MATCH l 
 #      (MATCH_BIND_CASE (BOUND_VAR_LIST h t) (cons h t) h)
