@@ -52,10 +52,6 @@ void TheorySets::check(Effort e) {
   d_internal->check(e);
 }
 
-bool TheorySets::needsCheckLastEffort() {
-  return d_internal->needsCheckLastEffort();
-}
-
 bool TheorySets::collectModelInfo(TheoryModel* m)
 {
   return d_internal->collectModelInfo(m);

@@ -570,8 +570,12 @@ void TheoryStrings::presolve() {
       inputVars.push_back(*itr);
     }
     d_sslds->initialize(inputVars);
+    // This strategy is local to a check-sat call, since we refresh the strategy
+    // on every call to presolve.
     getDecisionManager()->registerStrategy(
-        DecisionManager::STRAT_STRINGS_SUM_LENGTHS, d_sslds.get());
+        DecisionManager::STRAT_STRINGS_SUM_LENGTHS,
+        d_sslds.get(),
+        DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);
   }
 }
 
@@ -2376,6 +2380,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
     inelig.push_back(eqc[start]);
   }
   Node a = eqc[start];
+  Trace("strings-ff-debug")
+      << "Check flat form for a = " << a << ", whose flat form is "
+      << d_flat_form[a] << ")" << std::endl;
   Node b;
   do
   {
@@ -2394,6 +2401,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
           unsigned bsize = d_flat_form[b].size();
           if (count < bsize)
           {
+            Trace("strings-ff-debug")
+                << "Found endpoint (in a) with non-empty b = " << b
+                << ", whose flat form is " << d_flat_form[b] << std::endl;
             // endpoint
             std::vector<Node> conc_c;
             for (unsigned j = count; j < bsize; j++)
@@ -2408,7 +2418,6 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
             // swap, will enforce is empty past current
             a = eqc[i];
             b = eqc[start];
-            count--;
             break;
           }
           inelig.push_back(eqc[i]);
@@ -2430,6 +2439,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
           if (count == d_flat_form[b].size())
           {
             inelig.push_back(b);
+            Trace("strings-ff-debug")
+                << "Found endpoint in b = " << b << ", whose flat form is "
+                << d_flat_form[b] << std::endl;
             // endpoint
             std::vector<Node> conc_c;
             for (unsigned j = count; j < asize; j++)
@@ -2441,7 +2453,6 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
             conc = utils::mkAnd(conc_c);
             inf_type = 2;
             Assert(count > 0);
-            count--;
             break;
           }
           else
@@ -2554,10 +2565,11 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
           }
         }
       }
-      // notice that F_EndpointEmp is not typically applied, since
+      // Notice that F_EndpointEmp is not typically applied, since
       // strict prefix equality ( a.b = a ) where a,b non-empty
-      //  is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
-      //  when len(b)!=0.
+      // is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
+      // when len(b)!=0. Although if we do not infer this conflict eagerly,
+      // it may be applied (see #3272).
       d_im.sendInference(
           exp,
           conc,

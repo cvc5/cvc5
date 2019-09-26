@@ -53,6 +53,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkBitVector();
   void testMkBoolean();
   void testMkConst();
+  void testMkConstArray();
   void testMkEmptySet();
   void testMkFalse();
   void testMkFloatingPoint();
@@ -753,6 +754,20 @@ void SolverBlack::testMkConst()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkConst(funSort, ""));
   TS_ASSERT_THROWS(d_solver->mkConst(Sort()), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkConst(Sort(), "a"), CVC4ApiException&);
+}
+
+void SolverBlack::testMkConstArray()
+{
+  Sort intSort = d_solver->getIntegerSort();
+  Sort arrSort = d_solver->mkArraySort(intSort, intSort);
+  Term zero = d_solver->mkReal(0);
+  Term constArr = d_solver->mkConstArray(arrSort, zero);
+
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkConstArray(arrSort, zero));
+  TS_ASSERT_THROWS(d_solver->mkConstArray(arrSort, Term()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkConstArray(arrSort, d_solver->mkBitVector(1, 1)),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkConstArray(intSort, zero), CVC4ApiException&);
 }
 
 void SolverBlack::testDeclareDatatype()

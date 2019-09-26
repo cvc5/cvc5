@@ -41,6 +41,53 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+CegTermType mkStrictCTT(CegTermType c)
+{
+  Assert(!isStrictCTT(c));
+  if (c == CEG_TT_LOWER)
+  {
+    return CEG_TT_LOWER_STRICT;
+  }
+  else if (c == CEG_TT_UPPER)
+  {
+    return CEG_TT_UPPER_STRICT;
+  }
+  return c;
+}
+
+CegTermType mkNegateCTT(CegTermType c)
+{
+  if (c == CEG_TT_LOWER)
+  {
+    return CEG_TT_UPPER;
+  }
+  else if (c == CEG_TT_UPPER)
+  {
+    return CEG_TT_LOWER;
+  }
+  else if (c == CEG_TT_LOWER_STRICT)
+  {
+    return CEG_TT_UPPER_STRICT;
+  }
+  else if (c == CEG_TT_UPPER_STRICT)
+  {
+    return CEG_TT_LOWER_STRICT;
+  }
+  return c;
+}
+bool isStrictCTT(CegTermType c)
+{
+  return c == CEG_TT_LOWER_STRICT || c == CEG_TT_UPPER_STRICT;
+}
+bool isLowerBoundCTT(CegTermType c)
+{
+  return c == CEG_TT_LOWER || c == CEG_TT_LOWER_STRICT;
+}
+bool isUpperBoundCTT(CegTermType c)
+{
+  return c == CEG_TT_UPPER || c == CEG_TT_UPPER_STRICT;
+}
+
 std::ostream& operator<<(std::ostream& os, CegInstEffort e)
 {
   switch (e)
@@ -430,7 +477,7 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     TypeNode tn = v.getType();
     Instantiator * vinst;
     if( tn.isReal() ){
-      vinst = new ArithInstantiator(tn);
+      vinst = new ArithInstantiator(tn, d_parent->getVtsTermCache());
     }else if( tn.isSort() ){
       Assert( options::quantEpr() );
       vinst = new EprInstantiator(tn);
@@ -1198,7 +1245,8 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
           Node nretc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( PLUS, children );
           nretc = Rewriter::rewrite( nretc );
           //ensure that nret does not contain vars
-          if( !TermUtil::containsTerms( nretc, vars ) ){
+          if (!expr::hasSubterm(nretc, vars))
+          {
             //result is ( nret / pv_prop.d_coeff )
             nret = nretc;
           }else{
@@ -1739,7 +1787,7 @@ bool Instantiator::processEqualTerm(CegInstantiator* ci,
                                     Node n,
                                     CegInstEffort effort)
 {
-  pv_prop.d_type = 0;
+  pv_prop.d_type = CEG_TT_EQUAL;
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 

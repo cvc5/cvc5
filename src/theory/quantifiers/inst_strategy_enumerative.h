@@ -20,6 +20,7 @@
 #include "context/context.h"
 #include "context/context_mm.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -61,7 +62,7 @@ namespace quantifiers {
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersEngine* qe);
+  InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd);
   ~InstStrategyEnum() {}
   /** Needs check. */
   bool needsCheck(Theory::Effort e) override;
@@ -79,6 +80,8 @@ class InstStrategyEnum : public QuantifiersModule
   }
 
  private:
+  /** Pointer to the relevant domain utility of quantifiers engine */
+  RelevantDomain* d_rd;
   /** process quantified formula
    *
    * q is the quantified formula we are constructing instances for.
