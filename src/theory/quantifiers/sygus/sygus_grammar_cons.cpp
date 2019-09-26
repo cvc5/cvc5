@@ -550,31 +550,19 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           // APPLY_UF
           std::vector<TypeNode> argTypes = svt.getArgTypes();
           std::vector<Type> stypes;
-          std::vector<Node> largs;
-          std::vector<Expr> largsExpr;
           for (unsigned k = 0, ntypes = argTypes.size(); k < ntypes; k++)
           {
             unsigned index = std::distance(
                 types.begin(),
                 std::find(types.begin(), types.end(), argTypes[k]));
             stypes.push_back(unres_types[index]);
-            Node lv = nm->mkBoundVar(argTypes[k]);
-            largs.push_back(lv);
-            largsExpr.push_back(lv.toExpr());
           }
-          Node lbvl = nm->mkNode(BOUND_VAR_LIST, largs);
-          std::vector<Node> bargs;
-          bargs.push_back(sv);
-          bargs.insert(bargs.end(),largs.begin(),largs.end());
-          Node lbody = nm->mkNode(APPLY_UF, bargs);
-          Node op = nm->mkNode(LAMBDA, lbvl, lbody);
-
           std::stringstream ss;
           ss << "apply_" << sv;
-          ops[i].push_back(op.toExpr());
+          ops[i].push_back(sv.toExpr());
           cnames[i].push_back(ss.str());
           cargs[i].push_back(stypes);
-          pcs[i].push_back(std::make_shared<printer::SygusExprPrintCallback>(lbody.toExpr(), largsExpr));
+          pcs[i].push_back(nullptr);
           weights[i].push_back(-1);
         }
     }
@@ -844,6 +832,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs[i].push_back(nullptr);
         weights[i].push_back(-1);
       }
+    }else if( types[i].isSort() || types[i].isFunction() ){
+      // do nothing
     }else{
       Warning()
           << "Warning: No implementation for default Sygus grammar of type "
@@ -935,6 +925,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   // add predicates for types
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
+    if (!types[i].isFirstClass())
+    {
+      continue;
+    }
     Trace("sygus-grammar-def") << "...add predicates for " << types[i] << std::endl;
     //add equality per type
     Kind k = EQUAL;

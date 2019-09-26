@@ -1727,6 +1727,7 @@ set(regress_1_tests
   regress1/sygus/trivial-stream.sy
   regress1/sygus/twolets1.sy
   regress1/sygus/twolets2-orig.sy
+  regress1/sygus/uf-abduct.smt2
   regress1/sygus/unbdd_inv_gen_ex7.sy
   regress1/sygus/unbdd_inv_gen_winf1.sy
   regress1/sygus/univ_2-long-repeat.sy
