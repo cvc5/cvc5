@@ -25,6 +25,8 @@
 #include "theory/rewriter.h"
 #include "theory/builtin/theory_builtin_rewriter.h" // for array and lambda representation
 
+#include "theory/type_enumerator.h"
+
 #include <sstream>
 
 namespace CVC4 {
@@ -257,7 +259,9 @@ class SortProperties {
   }
   inline static Node mkGroundTerm(TypeNode type) {
     Assert(type.getKind() == kind::SORT_TYPE);
-    return NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground term created for type " + type.toString());
+    TypeEnumerator te(type);
+    return *te;
+    //return NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground term created for type " + type.toString());
   }
 };/* class SortProperties */
 
