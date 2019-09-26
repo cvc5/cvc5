@@ -1,3 +1,5 @@
+;EXIT: 1
+;EXPECT: (error "Error in option parsing: Proofs are only supported for sub-logics of QF_AUFBVLIA.")
 (set-logic ALL)
 (set-option :produce-proofs true)
 
@@ -6,7 +8,7 @@
 (assert (and 
           (=
             a
-            (+ a a)
+            (* a a)
           )
           (not (= a 0))
           (not (= a 1))
@@ -16,4 +18,4 @@
 (check-sat)
 
 
-(exit)
+
