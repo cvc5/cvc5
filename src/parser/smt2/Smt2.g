@@ -1953,7 +1953,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
         // arguments of the pattern
         ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
-            if (args.size()>=argTypes.size())
+            if (args.size() >= argTypes.size())
             {
               PARSER_STATE->parseError("Too many arguments for pattern.");
             }
