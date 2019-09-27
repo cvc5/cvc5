@@ -579,7 +579,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               break;
             }
           }
-          // expressions that are not assignable should be given assignment
+          // expressions that are not assignable should not be given assignment
           // exclusion sets
           Assert(!tm->getAssignmentExclusionSet(n, group, eset));
           continue;
