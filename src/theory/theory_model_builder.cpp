@@ -26,6 +26,51 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 
+/** As assigner class
+ * 
+ * This manages the assignment of values to a terms of a given type.
+ */
+class Assigner
+{
+public:
+  Assigner() : d_te(nullptr){}
+  /** initialize */
+  void initialize(TypeNode tn, TypeEnumeratorProperties * tep, const std::vector< Node >& aes)
+  {
+    d_te.reset(new TypeEnumerator(tn, tep));
+    d_assignExcSet.insert(d_assignExcSet.end(),aes.begin(),aes.end());
+  }
+  /** get next assignment */
+  Node getNextAssignment()
+  {
+    Assert (d_te!=nullptr);
+    Node n;
+    bool success = false;
+    TypeEnumerator& te = *d_te;
+    // must iterate until we find one that is not in the assignment
+    // exclusion set
+    do
+    {
+      n = *te;
+      success = std::find(d_assignExcSet.begin(), d_assignExcSet.end(), n)
+                == d_assignExcSet.end();
+      if (!success)
+      {
+        ++te;
+        // we have run out of elements
+        Assert(!te.isFinished());
+      }
+    } while (!success);
+    return n;
+  }
+private:
+  /** The type enumerator */
+  std::unique_ptr<TypeEnumerator> d_te;
+  /** The assignment exclusion set of this */
+  std::vector<Node> d_assignExcSet;
+};
+  
+
 TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
 {
 }
