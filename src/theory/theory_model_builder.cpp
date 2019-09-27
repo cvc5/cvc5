@@ -469,7 +469,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
 {
   Trace("model-builder") << "TheoryEngineModelBuilder: buildModel" << std::endl;
   TheoryModel* tm = (TheoryModel*)m;
-  eq::EqualityEngine * ee = tm->d_equalityEngine;
+  eq::EqualityEngine* ee = tm->d_equalityEngine;
 
   // buildModel should only be called once per check
   Assert(!tm->isBuilt());
@@ -504,8 +504,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     NodeSet cache;
     for (; !eqcs_i.isFinished(); ++eqcs_i)
     {
-      eq::EqClassIterator eqc_i =
-          eq::EqClassIterator((*eqcs_i), ee);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator((*eqcs_i), ee);
       for (; !eqc_i.isFinished(); ++eqc_i)
       {
         addAssignableSubterms(*eqc_i, tm, cache);
@@ -556,7 +555,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   std::map<Node, Node> assignerMasterEqc;
   {
     bool computeAssigners = tm->hasAssignmentExclusionSets();
-    std::unordered_set< Node, NodeHashFunction > processed;
+    std::unordered_set<Node, NodeHashFunction> processed;
     Trace("model-builder") << "Setup assigner objects..." << std::endl;
     eqcs_i = eq::EqClassesIterator(ee);
     bool assignable = false;
@@ -584,12 +583,12 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         }
         // process the assignment exclusion set for term n
         // was it processed as a slave of a group?
-        if (processed.find(n)!=processed.end())
+        if (processed.find(n) != processed.end())
         {
           // Should not have two assignment exclusion sets for the same
           // equivalence class
           AlwaysAssert(!hasESet);
-          Assert(assignerMasterEqc.find(eqc)!=assignerMasterEqc.end());
+          Assert(assignerMasterEqc.find(eqc) != assignerMasterEqc.end());
           // already processed as a slave term
           hasESet = true;
           continue;
@@ -614,20 +613,20 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         Assigner& a = eqcToAssigners[eqc];
         // Take the representatives of each term in the assignment exclusion
         // set, which ensures we can look up their value in d_constReps later.
-        std::vector< Node > aes;
+        std::vector<Node> aes;
         for (const Node& e : eset)
         {
           Node er = tm->getRepresentative(e);
           aes.push_back(er);
         }
         // initialize
-        a.initialize(eqc.getType(),&tep, aes);
+        a.initialize(eqc.getType(), &tep, aes);
         // all others in the group are slaves of this
         for (const Node& g : group)
         {
-          Assert (isAssignableExpression(g));
+          Assert(isAssignableExpression(g));
           Node gr = tm->getRepresentative(g);
-          if (gr!=eqc)
+          if (gr != eqc)
           {
             assignerMasterEqc[gr] = eqc;
             // remember that this term has been processed
