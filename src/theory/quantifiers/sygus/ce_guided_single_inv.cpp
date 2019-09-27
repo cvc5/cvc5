@@ -20,12 +20,12 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -623,7 +623,7 @@ bool CegSingleInv::solveTrivial(Node q)
 {
   Assert(!d_isSolved);
   Assert(d_inst.empty());
-  Assert(q.getKind()==FORALL);
+  Assert(q.getKind() == FORALL);
   // If the conjecture is forall x1...xn. ~(x1 = t1 ^ ... xn = tn), it is
   // trivially solvable.
   std::vector<Node> args;
@@ -633,13 +633,15 @@ bool CegSingleInv::solveTrivial(Node q)
   }
   std::vector<Node> vars;
   std::vector<Node> subs;
-  if (QuantifiersRewriter::getVarElim(q[1],false,args,vars,subs))
+  if (QuantifiersRewriter::getVarElim(q[1], false, args, vars, subs))
   {
     if (args.empty())
     {
-      Trace("cegqi-si-trivial-solve") << q << " is trivially solvable by substitution " << vars << " -> " << subs << std::endl;
-      std::map<Node,Node> imap;
-      for (unsigned j=0, vsize = vars.size(); j<vsize; j++)
+      Trace("cegqi-si-trivial-solve")
+          << q << " is trivially solvable by substitution " << vars << " -> "
+          << subs << std::endl;
+      std::map<Node, Node> imap;
+      for (unsigned j = 0, vsize = vars.size(); j < vsize; j++)
       {
         imap[vars[j]] = subs[j];
       }
@@ -654,7 +656,8 @@ bool CegSingleInv::solveTrivial(Node q)
       return true;
     }
   }
-  Trace("cegqi-si-trivial-solve") << q << " is not trivially solvable." << std::endl;
+  Trace("cegqi-si-trivial-solve")
+      << q << " is not trivially solvable." << std::endl;
   return false;
 }
 
