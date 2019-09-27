@@ -117,23 +117,6 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * state of the model m.
    */
   Node evaluateEqc(TheoryModel* m, TNode r);
-  /** is equivalence class r assignable?
-   *
-   * An equivalence class r is assignable if:
-   * (1) It contains at least one assignable expression (see below) and
-   * (2) for each term t in r, all terms in the assignment exclusion set of t
-   * (if it has one) have already been assigned values.
-   *
-   * If r is assignable, this method returns true and appends the constants that
-   * have been assigned to the assignment exclusion set of all terms t in r to
-   * eset.
-   *
-   * It sets evaluable to true if there is a term in r that is not assignable.
-   */
-  bool isAssignableEqc(TheoryModel* m,
-                       TNode r,
-                       std::vector<Node>& eset,
-                       bool& evaluable);
   /** is n an assignable expression?
    *
    * A term n is an assignable expression if its value is unconstrained by a
@@ -145,27 +128,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * Assignable terms must be first-order, that is, all instances of the above
    * terms are not assignable if they have a higher-order (function) type.
    */
-  bool isAssignableExpression(TNode n);
-  /** Process equivalence class internal
-   *
-   * This is a helper function for evaluateEqc and isAssignableEqc.
-   *
-   * If doEval is true, it returns a non-null node c if some term t in r
-   * evaluates to c based on the current state of m.
-   *
-   * If doComputeEset is true, it adds terms to eset that are in the assignment
-   * exclusion set of some term t in r.
-   *
-   * It sets assignable to true if there is an assignable term in r, it sets
-   * evaluable to true if there is a term in r that is not assignable.
-   */
-  Node processEqcInternal(TheoryModel* m,
-                          TNode r,
-                          bool& assignable,
-                          bool& evaluable,
-                          std::vector<Node>& eset,
-                          bool doEval,
-                          bool doComputeEset);
+  bool isAssignable(TNode n);
   /** add assignable subterms
    * Adds all assignable subterms of n to tm's equality engine.
    */

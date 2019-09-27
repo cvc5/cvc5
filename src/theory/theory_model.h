@@ -357,10 +357,10 @@ public:
   /** Map of terms to their assignment exclusion set. */
   std::map<Node, std::vector<Node> > d_assignExcSet;
   /**
-   * Map of terms to their "assignment exclusion set master". This is set
-   * for all terms passed as the first argument group of
-   * setAssignmentExclusionSetGroup (except group[0]) to group[0]. In other
-   * words,
+   * Map of terms to their "assignment exclusion set master". After a call to
+   * setAssignmentExclusionSetGroup, the master of each term in group
+   * (except group[0]) is set to group[0], which stores the assignment
+   * exclusion set for that group in the above map.
    */
   std::map<Node, Node> d_aesMaster;
   /** Reverse of the above map */
