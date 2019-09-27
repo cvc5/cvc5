@@ -26,19 +26,18 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-using namespace std;
 
 namespace CVC4 {
+  namespace theory {
+    namespace quantifiers {
 
 CegSingleInv::CegSingleInv(QuantifiersEngine* qe, SynthConjecture* p)
     : d_qe(qe),
       d_parent(p),
       d_sip(new SingleInvocationPartition),
       d_sol(new CegSingleInvSol(qe)),
+      d_isSolved(false),
       d_single_invocation(false)
 {
 
@@ -317,7 +316,11 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   CegHandledStatus status = CEG_HANDLED;
   if (d_single_inv.getKind() == FORALL)
   {
-    status = CegInstantiator::isCbqiQuant(d_single_inv);
+    // if the conjecture is not trivially solvable
+    if (!solveTrivial(d_single_inv))
+    {
+      status = CegInstantiator::isCbqiQuant(d_single_inv);
+    }
   }
   Trace("cegqi-si") << "CegHandledStatus is " << status << std::endl;
   if (status < CEG_HANDLED)
@@ -329,9 +332,26 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     d_single_invocation = false;
     d_single_inv = Node::null();
   }
-  // If we succeeded, mark the quantified formula with the quantifier
-  // elimination attribute to ensure its structure is preserved
-  if (!d_single_inv.isNull() && d_single_inv.getKind() == FORALL)
+}
+
+bool CegSingleInv::solve()
+{
+  if (d_single_inv.isNull())
+  {
+    // not using single invocation techniques
+    return false;
+  }
+  if (d_isSolved)
+  {
+    // already solved, probably via a call to solveTrivial.
+    return true;
+  }
+  Trace("cegqi-si") << "Solve using single invocation..." << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  // Mark the quantified formula with the quantifier elimination attribute to
+  // ensure its structure is preserved in the query below.
+  Node siq = d_single_inv;
+  if (siq.getKind() == FORALL)
   {
     Node n_attr =
         nm->mkSkolem("qe_si",
@@ -341,22 +361,12 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     n_attr.setAttribute(qea, true);
     n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
     n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
-    d_single_inv = nm->mkNode(FORALL, d_single_inv[0], d_single_inv[1], n_attr);
+    siq = nm->mkNode(FORALL, siq[0], siq[1], n_attr);
   }
-}
-bool CegSingleInv::solve()
-{
-  if (d_single_inv.isNull())
-  {
-    // not using single invocation techniques
-    return false;
-  }
-  Trace("cegqi-si") << "Solve using single invocation..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   // solve the single invocation conjecture using a fresh copy of SMT engine
   SmtEngine siSmt(nm->toExprManager());
   siSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-  siSmt.assertFormula(d_single_inv.toExpr());
+  siSmt.assertFormula(siq.toExpr());
   Result r = siSmt.checkSat();
   Trace("cegqi-si") << "Result: " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
@@ -405,6 +415,7 @@ bool CegSingleInv::solve()
       Trace("cegqi-si") << "  Instantiation Lemma: " << ilem << std::endl;
     }
   }
+  d_isSolved = true;
   return true;
 }
 
@@ -607,4 +618,16 @@ Node CegSingleInv::reconstructToSyntax(Node s,
 
 void CegSingleInv::preregisterConjecture(Node q) { d_orig_conjecture = q; }
   
-} //namespace CVC4
+bool CegSingleInv::solveTrivial(Node q)
+{
+  Assert (!d_isSolved);
+  Assert (d_inst.empty());
+  // If the conjecture is forall x1...xn. ~(x1 = t1 ^ ... xn = tn), it is
+  // trivially solvable.
+  return false;
+}
+  
+    }
+    
+  }
+}
