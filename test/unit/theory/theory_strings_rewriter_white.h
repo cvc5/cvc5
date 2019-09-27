@@ -1327,10 +1327,10 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
       // Same normal form for:
       //
       // (= (str.++ "B" (str.replace x "A" "B") z y w)
-      //    (str.++ z (str.replace x "A" "B") "BA" z))
+      //    (str.++ z x "BA" z))
       //
       // (and (= (str.++ "B" (str.replace x "A" "B") z)
-      //         (str.++ z (str.replace x "A" "B") "B"))
+      //         (str.++ z x "B"))
       //      (= (str.++ y w) (str.++ "A" z)))
       Node lhs =
           d_nm->mkNode(kind::EQUAL,
