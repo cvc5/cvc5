@@ -262,7 +262,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
   class Assigner
   {
    public:
-    Assigner() : d_te(nullptr),d_isActive(false) {}
+    Assigner() : d_te(nullptr), d_isActive(false) {}
     /**
      * Initialize this assigner to generate values of type tn, with properties
      * tep and assignment exclusion set aes.
@@ -276,7 +276,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
     std::unique_ptr<TypeEnumerator> d_te;
     /** The assignment exclusion set of this */
     std::vector<Node> d_assignExcSet;
-    /** 
+    /**
      * Is active, flag set to true when all values in d_assignExcSet are
      * constant.
      */

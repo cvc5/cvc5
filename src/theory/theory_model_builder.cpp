@@ -64,8 +64,7 @@ TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
 {
 }
 
-Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m,
-                                           TNode r)
+Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
 {
   eq::EqClassIterator eqc_i = eq::EqClassIterator(r, m->d_equalityEngine);
   for (; !eqc_i.isFinished(); ++eqc_i)
@@ -608,8 +607,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       addToTypeList(eqct, type_list, visiting);
     }
   }
-  
-  
+
   Trace("model-builder") << "Compute assignable information..." << std::endl;
   // The set of equivalence classes that are "assignable", i.e. those that
   // have an assignable expression in them (see isAssignableExpression), and
@@ -639,7 +637,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     for (; !eqcs_i.isFinished(); ++eqcs_i)
     {
       Node eqc = *eqcs_i;
-      if (d_constantReps.find(eqc)!=d_constantReps.end())
+      if (d_constantReps.find(eqc) != d_constantReps.end())
       {
         // already assigned above, skip
         continue;
@@ -655,7 +653,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           evaluable = true;
           if (!computeAssigners)
           {
-            if( assignable )
+            if (assignable)
             {
               // both flags set, we are done
               break;
@@ -663,7 +661,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           }
           // expressions that are not assignable should be given assignment
           // exclusion sets
-          Assert (!tm->getAssignmentExclusionSet(n, group, eset));
+          Assert(!tm->getAssignmentExclusionSet(n, group, eset));
           continue;
         }
         else
@@ -671,7 +669,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           assignable = true;
           if (!computeAssigners)
           {
-            if( evaluable )
+            if (evaluable)
             {
               // both flags set, we are done
               break;
@@ -787,7 +785,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
                                          << std::endl;
             Node normalized;
             // only possible to normalize if we are evaluable
-            if (evaluableEqc.find(*i2)!=evaluableEqc.end())
+            if (evaluableEqc.find(*i2) != evaluableEqc.end())
             {
               normalized = evaluateEqc(tm, *i2);
             }
@@ -806,7 +804,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               evaluableSet.insert(tb);
               // If assignable, remember there is an equivalence class that is
               // not assigned and assignable.
-              if (assignableEqc.find(*i2)!=assignableEqc.end())
+              if (assignableEqc.find(*i2) != assignableEqc.end())
               {
                 unassignedAssignable = true;
               }
@@ -931,7 +929,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       Trace("model-builder") << "  Assign phase, working on type: " << t
                              << endl;
       bool assignable, evaluable CVC4_UNUSED;
-      std::map<Node,Assigner>::iterator itAssigner;
+      std::map<Node, Assigner>::iterator itAssigner;
       std::map<Node, Node>::iterator itAssignerM;
       for (i = noRepSet.begin(); i != noRepSet.end();)
       {
@@ -942,7 +940,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         // equivalent class.
         std::vector<Node> assignExcSet;
         itAssignerM = eqcToAssignerMaster.find(*i2);
-        if (itAssignerM!=eqcToAssignerMaster.end())
+        if (itAssignerM != eqcToAssignerMaster.end())
         {
           itAssigner = eqcToAssigner.find(itAssignerM->second);
         }
@@ -950,15 +948,15 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           itAssigner = eqcToAssigner.find(*i2);
         }
-        if (itAssigner!=eqcToAssigner.end())
+        if (itAssigner != eqcToAssigner.end())
         {
           assignable = isAssignerActive(tm, itAssigner->second);
         }
         else
         {
-          assignable = assignableEqc.find(*i2)!=assignableEqc.end();
+          assignable = assignableEqc.find(*i2) != assignableEqc.end();
         }
-        evaluable = evaluableEqc.find(*i2)!=evaluableEqc.end();
+        evaluable = evaluableEqc.find(*i2) != evaluableEqc.end();
         Trace("model-builder-debug")
             << "    eqc " << *i2 << " is assignable=" << assignable
             << ", evaluable=" << evaluable << std::endl;
@@ -1032,16 +1030,18 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           }
           else
           {
-            if (itAssigner!=eqcToAssigner.end())
+            if (itAssigner != eqcToAssigner.end())
             {
-              Trace("model-builder-debug") << "Get value from assigner for finite type..." << std::endl;
+              Trace("model-builder-debug")
+                  << "Get value from assigner for finite type..." << std::endl;
               // if it has an assigner, get it from the assigner
               n = itAssigner->second.getNextAssignment();
               Assert(!n.isNull());
             }
             else
             {
-              Trace("model-builder-debug") << "Get first value from finite type..." << std::endl;
+              Trace("model-builder-debug")
+                  << "Get first value from finite type..." << std::endl;
               // otherwise, take the first element
               TypeEnumerator te(t);
               n = *te;
