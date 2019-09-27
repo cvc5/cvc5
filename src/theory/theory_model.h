@@ -145,18 +145,21 @@ public:
    * set of terms whose value n must be distinct from in the model.
    *
    * This method should be used sparingly, and in a way such that model
-   * building is still guaranteed to succeed. Typically, n is intended to be an
-   * assignable term of finite type. Thus, for example, this method should not
-   * be called with a vector eset that is greater than the cardinality of the
-   * type of n. Additionally, this method should not be called in a way that
-   * introduces cyclic dependencies on the assignment order of terms in the
-   * model. For example, providing { y } as the assignment exclusion set of x
-   * and { x } as the assignment exclusion set of y will cause model building
-   * to fail.
+   * building is still guaranteed to succeed. Term n is intended to be an
+   * assignable term, typically of finite type. Thus, for example, this method
+   * should not be called with a vector eset that is greater than the
+   * cardinality of the type of n. Additionally, this method should not be
+   * called in a way that introduces cyclic dependencies on the assignment order
+   * of terms in the model. For example, providing { y } as the assignment
+   * exclusion set of x and { x } as the assignment exclusion set of y will
+   * cause model building to fail.
+   *
+   * The vector eset should contain only terms that occur in the model, or
+   * are constants.
    *
    * Additionally, we (currently) require that an assignment exclusion set
    * should not be set for two terms in the same equivalence class, or an
-   * assertion will be thrown.
+   * assertion will be thrown by TheoryEngineModelBuilder during model building.
    */
   void setAssignmentExclusionSet(TNode n, const std::vector<Node>& eset);
   /** set assignment exclusion set group

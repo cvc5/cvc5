@@ -637,7 +637,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         std::vector<Node> aes;
         for (const Node& e : eset)
         {
-          Node er = tm->getRepresentative(e);
+          // Should only supply terms that occur in the model or constants
+          // in assignment exclusion sets.
+          Assert (tm->hasTerm(e) || e.isConst());
+          Node er = tm->hasTerm(e) ? tm->getRepresentative(e) : e;
           aes.push_back(er);
         }
         // initialize
@@ -646,6 +649,13 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         for (const Node& g : group)
         {
           Assert(isAssignable(g));
+          if (!tm->hasTerm(g))
+          {
+            // Ignore those that aren't in the model, in the case the user
+            // has supplied an assignment exclusion set to a variable not in
+            // the model.
+            continue;
+          }
           Node gr = tm->getRepresentative(g);
           if (gr != eqc)
           {
@@ -696,6 +706,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           Trace("model-builder") << "  Eval phase, working on type: " << t
                                  << endl;
+          bool evaluable;
           d_normalizedCache.clear();
           for (i = noRepSet->begin(); i != noRepSet->end();)
           {
@@ -705,7 +716,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
                                          << std::endl;
             Node normalized;
             // only possible to normalize if we are evaluable
-            if (evaluableEqc.find(*i2) != evaluableEqc.end())
+            evaluable = evaluableEqc.find(*i2) != evaluableEqc.end();
+            if (evaluable)
             {
               normalized = evaluateEqc(tm, *i2);
             }
@@ -721,7 +733,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
             }
             else
             {
-              evaluableSet.insert(tb);
+              if (evaluable)
+              {
+                evaluableSet.insert(tb);
+              }
               // If assignable, remember there is an equivalence class that is
               // not assigned and assignable.
               if (assignableEqc.find(*i2) != assignableEqc.end())
@@ -855,10 +870,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       {
         i2 = i;
         ++i;
-        // The assignment exclusion set. If assignable is true, this set
-        // contains a set of constants that cannot be assigned to the
-        // equivalent class.
-        std::vector<Node> assignExcSet;
+        // check whether it has an assigner object
         itAssignerM = eqcToAssignerMaster.find(*i2);
         if (itAssignerM != eqcToAssignerMaster.end())
         {
@@ -892,8 +904,18 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           Assert(!t.isBoolean() || (*i2).isVar()
                  || (*i2).getKind() == kind::APPLY_UF);
           Node n;
-          if (!t.isFinite())
+          if (itAssigner != eqcToAssigner.end())
           {
+            Trace("model-builder-debug")
+                << "Get value from assigner for finite type..." << std::endl;
+            // if it has an assigner, get the value from the assigner.
+            n = itAssigner->second.getNextAssignment();
+            Assert(!n.isNull());
+          }
+          else if (!t.isFinite())
+          {
+            // if its infinite, we get a fresh value that does not occur in
+            // the model.
             bool success;
             do
             {
@@ -943,29 +965,15 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               }
               //---
             } while (!success);
-            // Notice that in the infinite case, the constraints induced by the
-            // assignment exclusion set are trivially satisfied, since we
-            // always assign fresh constants.
             Assert(!n.isNull());
           }
           else
           {
-            if (itAssigner != eqcToAssigner.end())
-            {
-              Trace("model-builder-debug")
-                  << "Get value from assigner for finite type..." << std::endl;
-              // if it has an assigner, get it from the assigner
-              n = itAssigner->second.getNextAssignment();
-              Assert(!n.isNull());
-            }
-            else
-            {
-              Trace("model-builder-debug")
-                  << "Get first value from finite type..." << std::endl;
-              // otherwise, take the first element
-              TypeEnumerator te(t);
-              n = *te;
-            }
+            Trace("model-builder-debug")
+                << "Get first value from finite type..." << std::endl;
+            // Otherwise, we get the first value from the type enumerator.
+            TypeEnumerator te(t);
+            n = *te;
           }
           Trace("model-builder-debug") << "...got " << n << std::endl;
           assignConstantRep(tm, *i2, n);
