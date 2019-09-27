@@ -531,7 +531,7 @@ void TheoryModel::setAssignmentExclusionSet(TNode n,
 }
 
 void TheoryModel::setAssignmentExclusionSet(const std::vector<TNode>& nvec,
-                               const std::vector<Node>& eset)
+                                            const std::vector<Node>& eset)
 {
   if (nvec.empty())
   {

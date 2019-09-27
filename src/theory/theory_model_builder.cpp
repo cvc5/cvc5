@@ -27,23 +27,25 @@ namespace CVC4 {
 namespace theory {
 
 /** As assigner class
- * 
+ *
  * This manages the assignment of values to a terms of a given type.
  */
 class Assigner
 {
-public:
-  Assigner() : d_te(nullptr){}
+ public:
+  Assigner() : d_te(nullptr) {}
   /** initialize */
-  void initialize(TypeNode tn, TypeEnumeratorProperties * tep, const std::vector< Node >& aes)
+  void initialize(TypeNode tn,
+                  TypeEnumeratorProperties* tep,
+                  const std::vector<Node>& aes)
   {
     d_te.reset(new TypeEnumerator(tn, tep));
-    d_assignExcSet.insert(d_assignExcSet.end(),aes.begin(),aes.end());
+    d_assignExcSet.insert(d_assignExcSet.end(), aes.begin(), aes.end());
   }
   /** get next assignment */
   Node getNextAssignment()
   {
-    Assert (d_te!=nullptr);
+    Assert(d_te != nullptr);
     Node n;
     bool success = false;
     TypeEnumerator& te = *d_te;
@@ -63,13 +65,13 @@ public:
     } while (!success);
     return n;
   }
-private:
+
+ private:
   /** The type enumerator */
   std::unique_ptr<TypeEnumerator> d_te;
   /** The assignment exclusion set of this */
   std::vector<Node> d_assignExcSet;
 };
-  
 
 TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
 {
@@ -89,12 +91,12 @@ bool TheoryEngineModelBuilder::isAssignableEqc(TheoryModel* m,
                                                std::vector<Node>& eset,
                                                bool& evaluable)
 {
-  Assert (eset.empty());
+  Assert(eset.empty());
   bool assignable = false;
   processEqcInternal(m, r, assignable, evaluable, eset, false, true);
   if (!assignable)
   {
-    Assert (eset.empty());
+    Assert(eset.empty());
     return false;
   }
   for (unsigned i = 0, size = eset.size(); i < size; i++)
@@ -245,9 +247,9 @@ void TheoryEngineModelBuilder::assignConstantRep(TheoryModel* tm,
   {
     std::vector<Node> eset;
     bool evaluable = false;
-    isAssignableEqc(tm,eqc,eset,evaluable);
+    isAssignableEqc(tm, eqc, eset, evaluable);
     // check that it is not in the assignment exclusion set
-    Assert (std::find(eset.begin(),eset.end(),const_rep)==eset.end());
+    Assert(std::find(eset.begin(), eset.end(), const_rep) == eset.end());
   }
 }
 
