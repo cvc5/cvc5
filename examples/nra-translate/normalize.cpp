@@ -22,16 +22,10 @@
 #include <typeinfo>
 #include <vector>
 
-#include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "expr/expr_iomanip.h"
-#include "options/language.h"
-#include "options/options.h"
-#include "options/set_language.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "smt/command.h"
-#include "smt/smt_engine.h"
+#include <cvc4/api/cvc4cpp.h>
+#include <cvc4/cvc4.h>
+#include <cvc4/expr/expr_iomanip.h>
+#include <cvc4/options/set_language.h>
 
 using namespace std;
 using namespace CVC4;

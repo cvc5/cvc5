@@ -340,6 +340,7 @@ set(regress_0_tests
   regress0/cvc3.userdoc.04.cvc
   regress0/cvc3.userdoc.05.cvc
   regress0/cvc3.userdoc.06.cvc
+  regress0/cvc-rerror-print.cvc
   regress0/datatypes/Test1-tup-mp.cvc
   regress0/datatypes/boolean-equality.cvc
   regress0/datatypes/boolean-terms-datatype.cvc
@@ -548,6 +549,7 @@ set(regress_0_tests
   regress0/nl/nta/tan-rewrite.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
+  regress0/nl/sqrt2-value.smt2
   regress0/nl/subs0-unsat-confirm.smt2
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
@@ -1578,6 +1580,7 @@ set(regress_1_tests
   regress1/strings/issue2982.smt2
   regress1/strings/issue3090.smt2
   regress1/strings/issue3217.smt2
+  regress1/strings/issue3272.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1657,6 +1660,7 @@ set(regress_1_tests
   regress1/sygus/clock-inc-tuple.sy
   regress1/sygus/commutative-stream.sy
   regress1/sygus/commutative.sy
+  regress1/sygus/concat_extract_example.sy
   regress1/sygus/constant-bool-si-all.sy
   regress1/sygus/constant-dec-tree-bug.sy
   regress1/sygus/constant-ite-bv.sy
@@ -1688,6 +1692,7 @@ set(regress_1_tests
   regress1/sygus/issue3200.smt2
   regress1/sygus/issue3201.smt2
   regress1/sygus/issue3205.smt2
+  regress1/sygus/issue3247.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -1830,6 +1835,7 @@ set(regress_2_tests
   regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/range-perf.smt2
   regress2/strings/repl-repl.smt2
+  regress2/strings/repl-repl-i-no-push.smt2
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2

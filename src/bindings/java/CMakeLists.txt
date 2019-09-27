@@ -276,4 +276,13 @@ add_jar(cvc4jar
 add_dependencies(cvc4jar cvc4jni)
 install_jar(cvc4jar DESTINATION share/java/cvc4)
 install_jni_symlink(cvc4jar DESTINATION share/java/cvc4)
-install(TARGETS cvc4jni DESTINATION lib)
+install(TARGETS cvc4jni
+  EXPORT cvc4-targets
+  DESTINATION ${LIBRARY_INSTALL_DIR})
+
+install_jar_exports(
+  TARGETS cvc4jar
+  NAMESPACE CVC4::
+  FILE CVC4JavaTargets.cmake
+  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
+)

@@ -3171,9 +3171,11 @@ void SmtEnginePrivate::processAssertions() {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
 
-    // Placeholder for storing substitutions
-    d_preprocessingPassContext->setSubstitutionsIndex(d_assertions.size());
-    d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
+    d_assertions.enableStoreSubstsInAsserts();
+  }
+  else
+  {
+    d_assertions.disableStoreSubstsInAsserts();
   }
 
   // Add dummy assertion in last position - to be used as a
@@ -4225,8 +4227,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
              || resultNode.getType().isSubtypeOf(expectedType),
          "Run with -t smt for details.");
 
-  // ensure it's a constant
-  Assert(resultNode.getKind() == kind::LAMBDA || resultNode.isConst());
+  // Ensure it's a constant, or a lambda (for uninterpreted functions), or
+  // a choice (for approximate values).
+  Assert(resultNode.getKind() == kind::LAMBDA
+         || resultNode.getKind() == kind::CHOICE || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);
