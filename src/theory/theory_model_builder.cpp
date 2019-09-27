@@ -132,6 +132,10 @@ bool TheoryEngineModelBuilder::isAssignableEqc(TheoryModel* m,
 
 bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 {
+  if (a.d_isActive)
+  {
+    return true;
+  }
   std::vector<Node>& eset = a.d_assignExcSet;
   std::map<Node, Node>::iterator it;
   for (unsigned i = 0, size = eset.size(); i < size; i++)
@@ -159,6 +163,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
     eset[i] = it->second;
   }
   Trace("model-build-aes") << "isAssignerActive: active!" << std::endl;
+  a.d_isActive = true;
   return true;
 }
 
@@ -545,98 +550,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     typeConstSet.setTypeEnumeratorProperties(&tep);
   }
 
-  // The set of equivalence classes that are "assignable", e.g. those that
-  // have an assignable expression in them (see isAssignableExpression).
-  std::unordered_set<Node, NodeHashFunction> assignableEqc;
-  // Assigner objects for relevant equivalence classes
-  std::map<Node, Assigner> eqcToAssigners;
-  // Maps equivalence classes to the equivalence class that maps to its assigner
-  // object in the above map.
-  std::map<Node, Node> assignerMasterEqc;
-  {
-    bool computeAssigners = tm->hasAssignmentExclusionSets();
-    std::unordered_set<Node, NodeHashFunction> processed;
-    Trace("model-builder") << "Setup assigner objects..." << std::endl;
-    eqcs_i = eq::EqClassesIterator(ee);
-    bool assignable = false;
-    std::vector<Node> group;
-    std::vector<Node> eset;
-    bool hasESet = false;
-    bool foundESet = false;
-    for (; !eqcs_i.isFinished(); ++eqcs_i)
-    {
-      Node eqc = *eqcs_i;
-      assignable = false;
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
-      for (; !eqc_i.isFinished(); ++eqc_i)
-      {
-        Node n = *eqc_i;
-        if (!isAssignableExpression(n))
-        {
-          continue;
-        }
-        assignable = true;
-        if (!computeAssigners)
-        {
-          // we are done
-          break;
-        }
-        // process the assignment exclusion set for term n
-        // was it processed as a slave of a group?
-        if (processed.find(n) != processed.end())
-        {
-          // Should not have two assignment exclusion sets for the same
-          // equivalence class
-          AlwaysAssert(!hasESet);
-          Assert(assignerMasterEqc.find(eqc) != assignerMasterEqc.end());
-          // already processed as a slave term
-          hasESet = true;
-          continue;
-        }
-        // was it assigned one?
-        if (tm->getAssignmentExclusionSet(n, group, eset))
-        {
-          // Should not have two assignment exclusion sets for the same
-          // equivalence class
-          AlwaysAssert(!hasESet);
-          foundESet = true;
-          hasESet = true;
-        }
-      }
-      if (assignable)
-      {
-        assignableEqc.insert(eqc);
-      }
-      if (foundESet)
-      {
-        // construct the assigner
-        Assigner& a = eqcToAssigners[eqc];
-        // Take the representatives of each term in the assignment exclusion
-        // set, which ensures we can look up their value in d_constReps later.
-        std::vector<Node> aes;
-        for (const Node& e : eset)
-        {
-          Node er = tm->getRepresentative(e);
-          aes.push_back(er);
-        }
-        // initialize
-        a.initialize(eqc.getType(), &tep, aes);
-        // all others in the group are slaves of this
-        for (const Node& g : group)
-        {
-          Assert(isAssignableExpression(g));
-          Node gr = tm->getRepresentative(g);
-          if (gr != eqc)
-          {
-            assignerMasterEqc[gr] = eqc;
-            // remember that this term has been processed
-            processed.insert(g);
-          }
-        }
-      }
-    }
-  }
-
   // AJR: build ordered list of types that ensures that base types are
   // enumerated first.
   // (I think) this is only strictly necessary for finite model finding +
@@ -710,6 +623,102 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       typeNoRepSet.add(eqct, eqc);
       std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
       addToTypeList(eqct, type_list, visiting);
+    }
+  }
+  
+  // The set of equivalence classes that are "assignable", i.e. those that
+  // have an assignable expression in them (see isAssignableExpression).
+  std::unordered_set<Node, NodeHashFunction> assignableEqc;
+  // Assigner objects for relevant equivalence classes
+  std::map<Node, Assigner> eqcToAssigner;
+  // Maps equivalence classes to the equivalence class that maps to its assigner
+  // object in the above map.
+  std::map<Node, Node> eqcToAssignerMaster;
+  // compute the above information
+  {
+    bool computeAssigners = tm->hasAssignmentExclusionSets();
+    std::unordered_set<Node, NodeHashFunction> processed;
+    Trace("model-builder") << "Setup assigner objects..." << std::endl;
+    eqcs_i = eq::EqClassesIterator(ee);
+    bool assignable = false;
+    bool evaluable = false;
+    // for assignment exclusion sets
+    std::vector<Node> group;
+    std::vector<Node> eset;
+    bool hasESet = false;
+    bool foundESet = false;
+    for (; !eqcs_i.isFinished(); ++eqcs_i)
+    {
+      Node eqc = *eqcs_i;
+      assignable = false;
+      evaluable = false;
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
+      for (; !eqc_i.isFinished(); ++eqc_i)
+      {
+        Node n = *eqc_i;
+        if (!isAssignableExpression(n))
+        {
+          continue;
+        }
+        assignable = true;
+        if (!computeAssigners)
+        {
+          // we don't compute assigners, we are done
+          break;
+        }
+        // process the assignment exclusion set for term n
+        // was it processed as a slave of a group?
+        if (processed.find(n) != processed.end())
+        {
+          // Should not have two assignment exclusion sets for the same
+          // equivalence class
+          AlwaysAssert(!hasESet);
+          Assert(eqcToAssignerMaster.find(eqc) != eqcToAssignerMaster.end());
+          // already processed as a slave term
+          hasESet = true;
+          continue;
+        }
+        // was it assigned one?
+        if (tm->getAssignmentExclusionSet(n, group, eset))
+        {
+          // Should not have two assignment exclusion sets for the same
+          // equivalence class
+          AlwaysAssert(!hasESet);
+          foundESet = true;
+          hasESet = true;
+        }
+      }
+      if (assignable)
+      {
+        assignableEqc.insert(eqc);
+      }
+      if (foundESet)
+      {
+        // construct the assigner
+        Assigner& a = eqcToAssigner[eqc];
+        // Take the representatives of each term in the assignment exclusion
+        // set, which ensures we can look up their value in d_constReps later.
+        std::vector<Node> aes;
+        for (const Node& e : eset)
+        {
+          Node er = tm->getRepresentative(e);
+          aes.push_back(er);
+        }
+        // initialize
+        a.initialize(eqc.getType(), &tep, aes);
+        // all others in the group are slaves of this
+        for (const Node& g : group)
+        {
+          Assert(isAssignableExpression(g));
+          Node gr = tm->getRepresentative(g);
+          if (gr != eqc)
+          {
+            eqcToAssignerMaster[gr] = eqc;
+            // remember that this term has been processed
+            processed.insert(g);
+          }
+        }
+      }
     }
   }
 
@@ -903,6 +912,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       Trace("model-builder") << "  Assign phase, working on type: " << t
                              << endl;
       bool assignable, evaluable CVC4_UNUSED;
+      std::map<Node,Assigner>::iterator itAssigner;
+      std::map<Node, Node>::iterator itAssignerM;
       for (i = noRepSet.begin(); i != noRepSet.end();)
       {
         i2 = i;
@@ -911,6 +922,23 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         // contains a set of constants that cannot be assigned to the
         // equivalent class.
         std::vector<Node> assignExcSet;
+        itAssignerM = eqcToAssignerMaster.find(*i2);
+        if (itAssignerM!=eqcToAssignerMaster.end())
+        {
+          itAssigner = eqcToAssigner.find(itAssignerM->second);
+        }
+        else
+        {
+          itAssigner = eqcToAssigner.find(*i2);
+        }
+        if (itAssigner!=eqcToAssigner.end())
+        {
+          assignable = isAssignerActive(tm, itAssigner->second);
+        }
+        else
+        {
+          assignable = isAssignableEqc(tm, *i2, assignExcSet, evaluable);
+        }
         // Compute if this is an assignable equivalence class
         evaluable = false;
         assignable = isAssignableEqc(tm, *i2, assignExcSet, evaluable);
@@ -986,26 +1014,21 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           }
           else
           {
-            Trace("model-build-aes") << "Assignment exclusion set for " << *i2
-                                     << " is " << assignExcSet << std::endl;
-            TypeEnumerator te(t);
-            bool success = false;
-            // must iterate until we find one that is not in the assignment
-            // exclusion set
-            do
+            if (itAssigner!=eqcToAssigner.end())
             {
+              Trace("model-builder-debug") << "Get value from assigner for finite type..." << std::endl;
+              // if it has an assigner, get it from the assigner
+              n = itAssigner->second.getNextAssignment();
+            }
+            else
+            {
+              Trace("model-builder-debug") << "Get first value from finite type..." << std::endl;
+              // otherwise, take the first element
+              TypeEnumerator te(t);
               n = *te;
-              success = std::find(assignExcSet.begin(), assignExcSet.end(), n)
-                        == assignExcSet.end();
-              if (!success)
-              {
-                ++te;
-                // we have run out of elements
-                Assert(!te.isFinished());
-              }
-            } while (!success);
-            Trace("model-build-aes") << "Return " << n << std::endl;
+            }
           }
+          Trace("model-builder-debug") << "...got " << n << std::endl;
           Assert(!n.isNull());
           assignConstantRep(tm, *i2, n);
           changed = true;
