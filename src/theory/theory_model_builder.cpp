@@ -641,7 +641,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           // Should only supply terms that occur in the model or constants
           // in assignment exclusion sets.
-          Assert (tm->hasTerm(e) || e.isConst());
+          Assert(tm->hasTerm(e) || e.isConst());
           Node er = tm->hasTerm(e) ? tm->getRepresentative(e) : e;
           aes.push_back(er);
         }
