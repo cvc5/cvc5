@@ -26,52 +26,41 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 
-/** As assigner class
- *
- * This manages the assignment of values to a terms of a given type.
- */
-class Assigner
-{
- public:
-  Assigner() : d_te(nullptr) {}
-  /** initialize */
-  void initialize(TypeNode tn,
-                  TypeEnumeratorProperties* tep,
-                  const std::vector<Node>& aes)
-  {
-    d_te.reset(new TypeEnumerator(tn, tep));
-    d_assignExcSet.insert(d_assignExcSet.end(), aes.begin(), aes.end());
-  }
-  /** get next assignment */
-  Node getNextAssignment()
-  {
-    Assert(d_te != nullptr);
-    Node n;
-    bool success = false;
-    TypeEnumerator& te = *d_te;
-    // must iterate until we find one that is not in the assignment
-    // exclusion set
-    do
-    {
-      n = *te;
-      success = std::find(d_assignExcSet.begin(), d_assignExcSet.end(), n)
-                == d_assignExcSet.end();
-      if (!success)
-      {
-        ++te;
-        // we have run out of elements
-        Assert(!te.isFinished());
-      }
-    } while (!success);
-    return n;
-  }
 
- private:
-  /** The type enumerator */
-  std::unique_ptr<TypeEnumerator> d_te;
-  /** The assignment exclusion set of this */
-  std::vector<Node> d_assignExcSet;
-};
+void TheoryEngineModelBuilder::Assigner::initialize(TypeNode tn,
+                TypeEnumeratorProperties* tep,
+                const std::vector<Node>& aes)
+{
+  d_te.reset(new TypeEnumerator(tn, tep));
+  d_assignExcSet.insert(d_assignExcSet.end(), aes.begin(), aes.end());
+}
+
+Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
+{
+  Assert(d_te != nullptr);
+  Node n;
+  bool success = false;
+  TypeEnumerator& te = *d_te;
+  // must iterate until we find one that is not in the assignment
+  // exclusion set
+  do
+  {
+    n = *te;
+    success = std::find(d_assignExcSet.begin(), d_assignExcSet.end(), n)
+              == d_assignExcSet.end();
+    if (!success)
+    {
+      ++te;
+      // we have run out of elements
+      if(te.isFinished())
+      {
+        Assert(false);
+        return Node::null();
+      }
+    }
+  } while (!success);
+  return n;
+}
 
 TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
 {
@@ -140,6 +129,37 @@ bool TheoryEngineModelBuilder::isAssignableEqc(TheoryModel* m,
     }
     eset[i] = en;
   }
+  return true;
+}
+
+bool TheoryEngineModelBuilder::isAssignerActive( TheoryModel * tm, Assigner& a )
+{
+  std::vector< Node >& eset = a.d_assignExcSet;
+  for (unsigned i = 0, size = eset.size(); i < size; i++)
+  {
+    // Members of exclusion set must have values, otherwise we are not yet
+    // assignable.
+    Node er = eset[i];
+    if (er.isConst())
+    {
+      // already processed
+      continue;
+    }
+    // Assignable members of assignment exclusion set should be representatives
+    // of their equivalence clases. This ensures we look up the constant
+    // representatives for assignable members of assignment exclusion sets.
+    Assert (er == tm->getRepresentative(er));
+    Node en = normalize(tm, er, true);
+    if (!en.isConst())
+    {
+      Trace("model-build-aes") << "isAssignerActive: not active due to " << eset[i]
+                               << " (normalized is " << en << ")" << std::endl;
+      return false;
+    }
+    // update
+    eset[i] = en;
+  }
+  Trace("model-build-aes") << "isAssignerActive: active!" << std::endl;
   return true;
 }
 
@@ -525,6 +545,13 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     }
     typeConstSet.setTypeEnumeratorProperties(&tep);
   }
+  
+  // Setup assigner objects for all relevant equivalence classes
+  std::map< Node, Assigner > assigners;
+  
+  
+  
+  
   // AJR: build ordered list of types that ensures that base types are
   // enumerated first.
   // (I think) this is only strictly necessary for finite model finding +

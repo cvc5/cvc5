@@ -158,7 +158,7 @@ public:
   /** set assignment exclusion set group
    *
    * Given group = { x_1, ..., x_n }, this is semantically equivalent to calling
-   * the above method on:
+   * the above method on the following pairs of arguments:
    *   x1, eset
    *   x2, eset + { x_1 }
    *   ...
@@ -183,7 +183,7 @@ public:
   bool getAssignmentExclusionSet(TNode n,
                                  std::vector<Node>& group,
                                  std::vector<Node>& eset);
-  /** have any assignment exclusion sets been assigned? */
+  /** have any assignment exclusion sets been created? */
   bool hasAssignmentExclusionSets() const;
   /** record approximation
    *
