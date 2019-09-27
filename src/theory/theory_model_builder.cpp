@@ -65,23 +65,15 @@ TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
 }
 
 Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m,
-                                           TNode r,
-                                           bool& assignable,
-                                           bool& evaluable)
+                                           TNode r)
 {
   eq::EqClassIterator eqc_i = eq::EqClassIterator(r, m->d_equalityEngine);
   for (; !eqc_i.isFinished(); ++eqc_i)
   {
     Node n = *eqc_i;
     Trace("model-builder-debug") << "Look at term : " << n << std::endl;
-    if (isAssignableExpression(n))
+    if (!isAssignableExpression(n))
     {
-      assignable = true;
-      Trace("model-builder-debug") << "...assignable" << std::endl;
-    }
-    else
-    {
-      evaluable = true;
       Trace("model-builder-debug") << "...try to normalize" << std::endl;
       Node normalized = normalize(m, n, true);
       if (normalized.isConst())
@@ -287,15 +279,6 @@ void TheoryEngineModelBuilder::assignConstantRep(TheoryModel* tm,
   Trace("model-builder") << "    Assign: Setting constant rep of " << eqc
                          << " to " << const_rep << endl;
   tm->d_rep_set.setTermForRepresentative(const_rep, eqc);
-  // if assertions enabled
-  if (Configuration::isAssertionBuild())
-  {
-    std::vector<Node> eset;
-    bool evaluable = false;
-    isAssignableEqc(tm, eqc, eset, evaluable);
-    // check that it is not in the assignment exclusion set
-    Assert(std::find(eset.begin(), eset.end(), const_rep) == eset.end());
-  }
 }
 
 bool TheoryEngineModelBuilder::isExcludedCdtValue(
@@ -626,10 +609,16 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     }
   }
   
+  
+  Trace("model-builder") << "Compute assignable information..." << std::endl;
   // The set of equivalence classes that are "assignable", i.e. those that
   // have an assignable expression in them (see isAssignableExpression), and
   // have not already been assigned.
   std::unordered_set<Node, NodeHashFunction> assignableEqc;
+  // The set of equivalence classes that are "evaluable", i.e. those that
+  // have an expression in them that is not assignable, and have not already
+  // been assigned.
+  std::unordered_set<Node, NodeHashFunction> evaluableEqc;
   // Assigner objects for relevant equivalence classes
   std::map<Node, Assigner> eqcToAssigner;
   // Maps equivalence classes to the equivalence class that maps to its assigner
@@ -639,7 +628,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   {
     bool computeAssigners = tm->hasAssignmentExclusionSets();
     std::unordered_set<Node, NodeHashFunction> processed;
-    Trace("model-builder") << "Setup assigner objects..." << std::endl;
     eqcs_i = eq::EqClassesIterator(ee);
     bool assignable = false;
     bool evaluable = false;
@@ -664,13 +652,33 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         Node n = *eqc_i;
         if (!isAssignableExpression(n))
         {
+          evaluable = true;
+          if (!computeAssigners)
+          {
+            if( assignable )
+            {
+              // both flags set, we are done
+              break;
+            }
+          }
+          // expressions that are not assignable should be given assignment
+          // exclusion sets
+          Assert (!tm->getAssignmentExclusionSet(n, group, eset));
           continue;
         }
-        assignable = true;
-        if (!computeAssigners)
+        else
         {
-          // we don't compute assigners, we are done
-          break;
+          assignable = true;
+          if (!computeAssigners)
+          {
+            if( evaluable )
+            {
+              // both flags set, we are done
+              break;
+            }
+            // we don't compute assigners, we are done
+            continue;
+          }
         }
         // process the assignment exclusion set for term n
         // was it processed as a slave of a group?
@@ -697,6 +705,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       if (assignable)
       {
         assignableEqc.insert(eqc);
+      }
+      if (evaluable)
+      {
+        evaluableEqc.insert(eqc);
       }
       if (foundESet)
       {
@@ -766,17 +778,19 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           Trace("model-builder") << "  Eval phase, working on type: " << t
                                  << endl;
-          bool assignable, evaluable;
           d_normalizedCache.clear();
           for (i = noRepSet->begin(); i != noRepSet->end();)
           {
             i2 = i;
             ++i;
-            assignable = false;
-            evaluable = false;
             Trace("model-builder-debug") << "Look at eqc : " << (*i2)
                                          << std::endl;
-            Node normalized = evaluateEqc(tm, *i2, assignable, evaluable);
+            Node normalized;
+            // only possible to normalize if we are evaluable
+            if (evaluableEqc.find(*i2)!=evaluableEqc.end())
+            {
+              normalized = evaluateEqc(tm, *i2);
+            }
             if (!normalized.isNull())
             {
               Assert(normalized.isConst());
@@ -789,11 +803,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
             }
             else
             {
-              if (evaluable)
-              {
-                evaluableSet.insert(tb);
-              }
-              if (assignable)
+              evaluableSet.insert(tb);
+              // If assignable, remember there is an equivalence class that is
+              // not assigned and assignable.
+              if (assignableEqc.find(*i2)!=assignableEqc.end())
               {
                 unassignedAssignable = true;
               }
@@ -945,7 +958,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           assignable = assignableEqc.find(*i2)!=assignableEqc.end();
         }
-        evaluable = false; //FIXME
+        evaluable = evaluableEqc.find(*i2)!=evaluableEqc.end();
         Trace("model-builder-debug")
             << "    eqc " << *i2 << " is assignable=" << assignable
             << ", evaluable=" << evaluable << std::endl;
@@ -1015,6 +1028,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
             // Notice that in the infinite case, the constraints induced by the
             // assignment exclusion set are trivially satisfied, since we
             // always assign fresh constants.
+            Assert(!n.isNull());
           }
           else
           {
@@ -1023,6 +1037,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               Trace("model-builder-debug") << "Get value from assigner for finite type..." << std::endl;
               // if it has an assigner, get it from the assigner
               n = itAssigner->second.getNextAssignment();
+              Assert(!n.isNull());
             }
             else
             {
@@ -1033,7 +1048,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
             }
           }
           Trace("model-builder-debug") << "...got " << n << std::endl;
-          Assert(!n.isNull());
           assignConstantRep(tm, *i2, n);
           changed = true;
           noRepSet.erase(i2);

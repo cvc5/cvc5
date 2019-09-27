@@ -115,11 +115,8 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * If this method returns a non-null node c, then c is a constant and some
    * term in the equivalence class of t evaluates to c based on the current
    * state of the model m.
-   *
-   * It sets assignable to true if there is an assignable term in r, it sets
-   * evaluable to true if there is a term in r that is not assignable.
    */
-  Node evaluateEqc(TheoryModel* m, TNode r, bool& assignable, bool& evaluable);
+  Node evaluateEqc(TheoryModel* m, TNode r);
   /** is equivalence class r assignable?
    *
    * An equivalence class r is assignable if:
