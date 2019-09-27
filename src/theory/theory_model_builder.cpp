@@ -82,8 +82,28 @@ Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m,
                                            bool& assignable,
                                            bool& evaluable)
 {
-  std::vector<Node> eset;
-  return processEqcInternal(m, r, assignable, evaluable, eset, true, false);
+  eq::EqClassIterator eqc_i = eq::EqClassIterator(r, m->d_equalityEngine);
+  for (; !eqc_i.isFinished(); ++eqc_i)
+  {
+    Node n = *eqc_i;
+    Trace("model-builder-debug") << "Look at term : " << n << std::endl;
+    if (isAssignableExpression(n))
+    {
+      assignable = true;
+      Trace("model-builder-debug") << "...assignable" << std::endl;
+    }
+    else
+    {
+      evaluable = true;
+      Trace("model-builder-debug") << "...try to normalize" << std::endl;
+      Node normalized = normalize(m, n, true);
+      if (normalized.isConst())
+      {
+        return normalized;
+      }
+    }
+  }
+  return Node::null();
 }
 
 bool TheoryEngineModelBuilder::isAssignableEqc(TheoryModel* m,
@@ -189,7 +209,8 @@ Node TheoryEngineModelBuilder::processEqcInternal(TheoryModel* m,
       if (doComputeEset)
       {
         // append its assignment exclusion set to eset
-        m->getAssignmentExclusionSet(n, eset);
+        // FIXME
+        //m->getAssignmentExclusionSet(n, eset);
         Trace("model-build-aes") << "Assignment exclusion set (from " << n
                                  << ") is now: " << eset << std::endl;
       }

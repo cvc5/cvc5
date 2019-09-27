@@ -155,9 +155,9 @@ public:
    * to fail.
    */
   void setAssignmentExclusionSet(TNode n, const std::vector<Node>& eset);
-  /** set assignment exclusion set
+  /** set assignment exclusion set group
    *
-   * Given nvec = { x_1, ..., x_n }, this is semantically equivalent to calling
+   * Given group = { x_1, ..., x_n }, this is semantically equivalent to calling
    * the above method on:
    *   x1, eset
    *   x2, eset + { x_1 }
@@ -168,14 +168,21 @@ public:
    * efficiency, the implementation of how the above information is stored
    * may avoid constructing n copies of eset.
    */
-  void setAssignmentExclusionSet(const std::vector<TNode>& nvec,
+  void setAssignmentExclusionSetGroup(const std::vector<TNode>& group,
                                  const std::vector<Node>& eset);
   /** get assignment exclusion set for term n
    *
    * This method returns true if n has been given an assignment exclusion set,
    * and appends it to eset. Otherwise it returns false.
+   *
+   * If n was assigned an assignment exclusion set via a call to
+   * setAssignmentExclusionSetGroup, it adds all members that were passed
+   * in the first argument of that call to the vector group. Otherwise, it
+   * adds n itself to group.
    */
-  bool getAssignmentExclusionSet(TNode n, std::vector<Node>& eset);
+  bool getAssignmentExclusionSet(TNode n, std::vector<Node>& group, std::vector<Node>& eset);
+  /** have any assignment exclusion sets been assigned? */
+  bool hasAssignmentExclusionSets() const;
   /** record approximation
    *
    * This notifies this model that the value of n was approximated in this
@@ -343,6 +350,10 @@ public:
   std::map<Node, Node> d_reps;
   /** Map of terms to their assignment exclusion set. */
   std::map<Node, std::vector<Node> > d_assignExcSet;
+  /** Map of terms to their "assignment exclusion set master" */
+  std::map<Node,Node> d_aesMaster;
+  /** Reverse of the above map */
+  std::map<Node, std::vector<Node> > d_aesSlaves;
   /** stores set of representatives for each type */
   RepSet d_rep_set;
   /** true/false nodes */
