@@ -627,7 +627,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   }
   
   // The set of equivalence classes that are "assignable", i.e. those that
-  // have an assignable expression in them (see isAssignableExpression).
+  // have an assignable expression in them (see isAssignableExpression), and
+  // have not already been assigned.
   std::unordered_set<Node, NodeHashFunction> assignableEqc;
   // Assigner objects for relevant equivalence classes
   std::map<Node, Assigner> eqcToAssigner;
@@ -650,6 +651,11 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     for (; !eqcs_i.isFinished(); ++eqcs_i)
     {
       Node eqc = *eqcs_i;
+      if (d_constantReps.find(eqc)!=d_constantReps.end())
+      {
+        // already assigned above, skip
+        continue;
+      }
       assignable = false;
       evaluable = false;
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
@@ -937,11 +943,9 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         }
         else
         {
-          assignable = isAssignableEqc(tm, *i2, assignExcSet, evaluable);
+          assignable = assignableEqc.find(*i2)!=assignableEqc.end();
         }
-        // Compute if this is an assignable equivalence class
-        evaluable = false;
-        assignable = isAssignableEqc(tm, *i2, assignExcSet, evaluable);
+        evaluable = false; //FIXME
         Trace("model-builder-debug")
             << "    eqc " << *i2 << " is assignable=" << assignable
             << ", evaluable=" << evaluable << std::endl;
