@@ -887,6 +887,7 @@ set(regress_0_tests
   regress0/sygus/array-grammar-store.sy
   regress0/sygus/c100.sy
   regress0/sygus/ccp16.lus.sy
+  regress0/sygus/cegqi-si-string-triv.sy
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy

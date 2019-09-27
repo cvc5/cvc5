@@ -57,6 +57,7 @@ private:
    * args and adds x1...xn to args.
    */
   static Node datatypeExpand(unsigned index, Node v, std::vector<Node>& args);
+public:
   //-------------------------------------variable elimination
   /** is variable elimination
    *
@@ -139,6 +140,7 @@ private:
                                     std::vector<Node>& args,
                                     QAttributes& qa);
   //-------------------------------------end variable elimination
+private:
   //-------------------------------------conditional splitting
   /** compute conditional splitting
    *

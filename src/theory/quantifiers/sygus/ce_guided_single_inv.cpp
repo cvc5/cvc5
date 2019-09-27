@@ -25,6 +25,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -622,8 +623,38 @@ bool CegSingleInv::solveTrivial(Node q)
 {
   Assert(!d_isSolved);
   Assert(d_inst.empty());
+  Assert(q.getKind()==FORALL);
   // If the conjecture is forall x1...xn. ~(x1 = t1 ^ ... xn = tn), it is
   // trivially solvable.
+  std::vector<Node> args;
+  for (const Node& v : q[0])
+  {
+    args.push_back(v);
+  }
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  if (QuantifiersRewriter::getVarElim(q[1],false,args,vars,subs))
+  {
+    if (args.empty())
+    {
+      Trace("cegqi-si-trivial-solve") << q << " is trivially solvable by substitution " << vars << " -> " << subs << std::endl;
+      std::map<Node,Node> imap;
+      for (unsigned j=0, vsize = vars.size(); j<vsize; j++)
+      {
+        imap[vars[j]] = subs[j];
+      }
+      std::vector<Node> inst;
+      for (const Node& v : q[0])
+      {
+        inst.push_back(imap[v]);
+      }
+      d_inst.push_back(inst);
+      d_instConds.push_back(NodeManager::currentNM()->mkConst(true));
+      d_isSolved = true;
+      return true;
+    }
+  }
+  Trace("cegqi-si-trivial-solve") << q << " is not trivially solvable." << std::endl;
   return false;
 }
 
