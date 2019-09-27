@@ -594,7 +594,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
               // both flags set, we are done
               break;
             }
-            // we don't compute assigners, we are done
+            // we don't compute assigners, skip
             continue;
           }
         }
