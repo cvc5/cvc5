@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This script should only be used if your distribution does not ship with the
 # GMP configuration you need. For example, contrib/get-win-dependencies

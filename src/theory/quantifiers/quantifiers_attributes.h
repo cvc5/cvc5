@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
-#define __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
+#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
+#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 
 #include "expr/attribute.h"
 #include "expr/node.h"
@@ -83,6 +83,18 @@ struct SygusSideConditionAttributeId
 };
 typedef expr::Attribute<SygusSideConditionAttributeId, Node>
     SygusSideConditionAttribute;
+
+/** Attribute for indicating that a sygus variable encodes a term
+ *
+ * This is used, e.g., for abduction where the formal argument list of the
+ * abduct-to-synthesize corresponds to the free variables of the sygus
+ * problem.
+ */
+struct SygusVarToTermAttributeId
+{
+};
+typedef expr::Attribute<SygusVarToTermAttributeId, Node>
+    SygusVarToTermAttribute;
 
 namespace quantifiers {
 

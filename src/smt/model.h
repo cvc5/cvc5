@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__MODEL_H
-#define __CVC4__MODEL_H
+#ifndef CVC4__MODEL_H
+#define CVC4__MODEL_H
 
 #include <iosfwd>
 #include <vector>
@@ -96,6 +96,14 @@ class Model {
    * is a predicate over t that indicates a property that t satisfies.
    */
   virtual std::vector<std::pair<Expr, Expr> > getApproximations() const = 0;
+  /** get the domain elements for uninterpreted sort t
+   *
+   * This method gets the interpretation of an uninterpreted sort t.
+   * All models interpret uninterpreted sorts t as finite sets
+   * of domain elements v_1, ..., v_n. This method returns this list for t in
+   * this model.
+   */
+  virtual std::vector<Expr> getDomainElements(Type t) const = 0;
 };/* class Model */
 
 class ModelBuilder {
@@ -107,4 +115,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif  /* __CVC4__MODEL_H */
+#endif  /* CVC4__MODEL_H */

@@ -14,15 +14,17 @@
 
 #include "theory/quantifiers/instantiate.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -82,6 +84,11 @@ bool Instantiate::checkComplete()
 void Instantiate::addNotify(InstantiationNotify* in)
 {
   d_inst_notify.push_back(in);
+}
+
+void Instantiate::addRewriter(InstantiationRewriter* ir)
+{
+  d_instRewrite.push_back(ir);
 }
 
 void Instantiate::notifyFlushLemmas()
@@ -164,8 +171,7 @@ bool Instantiate::addInstantiation(
                         << terms[i] << std::endl;
           bad_inst = true;
         }
-        else if (quantifiers::TermUtil::containsTerms(
-                     terms[i], d_term_util->d_inst_constants[q]))
+        else if (expr::hasSubterm(terms[i], d_term_util->d_inst_constants[q]))
         {
           Trace("inst") << "***& inst contains inst constants : " << terms[i]
                         << std::endl;
@@ -221,7 +227,7 @@ bool Instantiate::addInstantiation(
   {
     for (Node& t : terms)
     {
-      if (!d_term_db->isTermEligibleForInstantiation(t, q, true))
+      if (!d_term_db->isTermEligibleForInstantiation(t, q))
       {
         return false;
       }
@@ -243,14 +249,7 @@ bool Instantiate::addInstantiation(
   // get the instantiation
   Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
   Node orig_body = body;
-  if (options::cbqiNestedQE())
-  {
-    InstStrategyCegqi* icegqi = d_qe->getInstStrategyCegqi();
-    if (icegqi)
-    {
-      body = icegqi->doNestedQE(q, terms, body, doVts);
-    }
-  }
+  // now preprocess
   body = quantifiers::QuantifiersRewriter::preprocess(body, true);
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 
@@ -412,17 +411,13 @@ Node Instantiate::getInstantiation(Node q,
   Node body;
   Assert(vars.size() == terms.size());
   Assert(q[0].getNumChildren() == vars.size());
-  // TODO (#1386) : optimize this
+  // Notice that this could be optimized, but no significant performance
+  // improvements were observed with alternative implementations (see #1386).
   body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
-  if (doVts)
+  // run rewriters to rewrite the instantiation in sequence.
+  for (InstantiationRewriter*& ir : d_instRewrite)
   {
-    // do virtual term substitution
-    body = Rewriter::rewrite(body);
-    Trace("quant-vts-debug") << "Rewrite vts symbols in " << body << std::endl;
-    Node body_r = d_term_util->rewriteVtsSymbols(body);
-    Trace("quant-vts-debug") << "            ...result: " << body_r
-                             << std::endl;
-    body = body_r;
+    body = ir->rewriteInstantiation(q, terms, body, doVts);
   }
   return body;
 }
@@ -644,42 +639,46 @@ void Instantiate::getExplanationForInstLemmas(
     std::map<Node, Node>& quant,
     std::map<Node, std::vector<Node> >& tvec)
 {
-  if (options::trackInstLemmas())
+  if (!options::trackInstLemmas())
   {
-    if (options::incrementalSolving())
-    {
-      for (std::pair<const Node, inst::CDInstMatchTrie*>& t :
-           d_c_inst_match_trie)
-      {
-        t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
-      }
-    }
-    else
-    {
-      for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
-      {
-        t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
-      }
-    }
-#ifdef CVC4_ASSERTIONS
-    for (unsigned j = 0; j < lems.size(); j++)
-    {
-      Assert(quant.find(lems[j]) != quant.end());
-      Assert(tvec.find(lems[j]) != tvec.end());
-    }
-#endif
+    std::stringstream msg;
+    msg << "Cannot get explanation for instantiations when --track-inst-lemmas "
+           "is false.";
+    throw OptionException(msg.str());
   }
-  Assert(false);
+  if (options::incrementalSolving())
+  {
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+    {
+      t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
+    }
+  }
+  else
+  {
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    {
+      t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
+    }
+  }
+#ifdef CVC4_ASSERTIONS
+  for (unsigned j = 0; j < lems.size(); j++)
+  {
+    Assert(quant.find(lems[j]) != quant.end());
+    Assert(tvec.find(lems[j]) != tvec.end());
+  }
+#endif
 }
 
 void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
 {
-  bool useUnsatCore = false;
-  std::vector<Node> active_lemmas;
-  if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
+  if (!options::trackInstLemmas())
   {
-    useUnsatCore = true;
+    std::stringstream msg;
+    msg << "Cannot get instantiations when --track-inst-lemmas is false.";
+    throw OptionException(msg.str());
   }
+  std::vector<Node> active_lemmas;
+  bool useUnsatCore = getUnsatCoreLemmas(active_lemmas);
 
   if (options::incrementalSolving())
   {

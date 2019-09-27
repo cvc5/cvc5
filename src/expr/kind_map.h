@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__KIND_MAP_H
-#define __CVC4__KIND_MAP_H
+#ifndef CVC4__KIND_MAP_H
+#define CVC4__KIND_MAP_H
 
 #include <stdint.h>
 #include <iterator>
@@ -271,4 +271,4 @@ inline KindMap operator^(Kind k1, KindMap m2) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__KIND_MAP_H */
+#endif /* CVC4__KIND_MAP_H */

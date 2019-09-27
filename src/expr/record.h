@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__RECORD_H
-#define __CVC4__RECORD_H
+#ifndef CVC4__RECORD_H
+#define CVC4__RECORD_H
 
 #include <functional>
 #include <iostream>
@@ -90,4 +90,4 @@ std::ostream& operator<<(std::ostream& os, const Record& r) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__RECORD_H */
+#endif /* CVC4__RECORD_H */

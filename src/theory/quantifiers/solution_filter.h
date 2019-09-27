@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
-#define __CVC4__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
+#define CVC4__THEORY__QUANTIFIERS__SOLUTION_FILTER_H
 
 #include <map>
 #include <unordered_set>
@@ -72,4 +72,4 @@ class SolutionFilterStrength : public ExprMiner
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SOLUTION_FILTER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SOLUTION_FILTER_H */

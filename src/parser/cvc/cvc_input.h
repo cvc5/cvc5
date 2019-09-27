@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__CVC_INPUT_H
-#define __CVC4__PARSER__CVC_INPUT_H
+#ifndef CVC4__PARSER__CVC_INPUT_H
+#define CVC4__PARSER__CVC_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/cvc/CvcLexer.h"
@@ -74,4 +74,4 @@ class CvcInput : public AntlrInput {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__CVC_INPUT_H */
+#endif /* CVC4__PARSER__CVC_INPUT_H */

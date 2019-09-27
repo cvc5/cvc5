@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
-#define __CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#ifndef CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
+#define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
 #include <functional>
 #include <unordered_map>
@@ -313,4 +313,4 @@ class CircuitPropagator
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */
+#endif /* CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H */

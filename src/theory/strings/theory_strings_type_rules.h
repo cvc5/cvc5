@@ -17,8 +17,8 @@
 #include "cvc4_private.h"
 #include "options/strings_options.h"
 
-#ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
-#define __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
+#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
+#define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 
 namespace CVC4 {
 namespace theory {
@@ -237,6 +237,27 @@ public:
       }
     }
     return nodeManager->integerType();
+  }
+};
+
+class StringStrToStrTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (check)
+    {
+      TypeNode t = n[0].getType(check);
+      if (!t.isString())
+      {
+        std::stringstream ss;
+        ss << "expecting a string term in argument of " << n.getKind();
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+    }
+    return nodeManager->stringType();
   }
 };
 
@@ -490,4 +511,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H */
+#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__INPUT_H
-#define __CVC4__PARSER__INPUT_H
+#ifndef CVC4__PARSER__INPUT_H
+#define CVC4__PARSER__INPUT_H
 
 #include <iostream>
 #include <stdio.h>
@@ -178,4 +178,4 @@ class CVC4_PUBLIC Input {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__ANTLR_INPUT_H */
+#endif /* CVC4__PARSER__ANTLR_INPUT_H */

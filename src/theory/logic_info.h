@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__LOGIC_INFO_H
-#define __CVC4__LOGIC_INFO_H
+#ifndef CVC4__LOGIC_INFO_H
+#define CVC4__LOGIC_INFO_H
 
 #include <string>
 #include <vector>
@@ -201,6 +201,17 @@ public:
     disableTheory(theory::THEORY_QUANTIFIERS);
   }
 
+  /**
+   * Enable everything that is needed for sygus with respect to this logic info.
+   * This means enabling quantifiers, datatypes, UF, integers, and higher order.
+   */
+  void enableSygus();
+  /**
+   * Enable everything that is needed for separation logic. This means enabling
+   * the theories of separation logic, UF and sets.
+   */
+  void enableSeparationLogic();
+
   // these are for arithmetic
 
   /** Enable the use of integers in this logic. */
@@ -279,4 +290,4 @@ std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__LOGIC_INFO_H */
+#endif /* CVC4__LOGIC_INFO_H */

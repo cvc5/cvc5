@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__ABSTRACTION_H
-#define __CVC4__THEORY__BV__ABSTRACTION_H
+#ifndef CVC4__THEORY__BV__ABSTRACTION_H
+#define CVC4__THEORY__BV__ABSTRACTION_H
 
 #include <unordered_map>
 #include <unordered_set>

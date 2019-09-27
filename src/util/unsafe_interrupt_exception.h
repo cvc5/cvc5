@@ -15,8 +15,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__UNSAFE_INTERRUPT_EXCEPTION_H
-#define __CVC4__UNSAFE_INTERRUPT_EXCEPTION_H
+#ifndef CVC4__UNSAFE_INTERRUPT_EXCEPTION_H
+#define CVC4__UNSAFE_INTERRUPT_EXCEPTION_H
 
 #include "base/exception.h"
 
@@ -40,4 +40,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__UNSAFE_INTERRUPT_EXCEPTION_H */
+#endif /* CVC4__UNSAFE_INTERRUPT_EXCEPTION_H */

@@ -11,7 +11,6 @@ libcvc4_add_sources(
   bool.h
   cardinality.cpp
   cardinality.h
-  channel.h
   debug.h
   dense_map.h
   divisible.cpp
@@ -47,6 +46,7 @@ libcvc4_add_sources(
   statistics_registry.h
   tuple.h
   unsafe_interrupt_exception.h
+  utility.cpp
   utility.h
 )
 

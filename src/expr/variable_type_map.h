@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__VARIABLE_TYPE_MAP_H
-#define __CVC4__VARIABLE_TYPE_MAP_H
+#ifndef CVC4__VARIABLE_TYPE_MAP_H
+#define CVC4__VARIABLE_TYPE_MAP_H
 
 #include <unordered_map>
 
@@ -60,4 +60,4 @@ struct CVC4_PUBLIC ExprManagerMapCollection {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__VARIABLE_MAP_H */
+#endif /* CVC4__VARIABLE_MAP_H */

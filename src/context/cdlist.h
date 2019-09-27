@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDLIST_H
-#define __CVC4__CONTEXT__CDLIST_H
+#ifndef CVC4__CONTEXT__CDLIST_H
+#define CVC4__CONTEXT__CDLIST_H
 
 #include <iterator>
 #include <memory>
@@ -436,4 +436,4 @@ class CDList<T, CleanUp, ContextMemoryAllocator<T> > : public ContextObj {
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDLIST_H */
+#endif /* CVC4__CONTEXT__CDLIST_H */

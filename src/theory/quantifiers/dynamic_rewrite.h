@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H
-#define __CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H
+#define CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H
 
 #include <map>
 
@@ -121,4 +121,4 @@ class DynamicRewriter
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__DYNAMIC_REWRITER_H */

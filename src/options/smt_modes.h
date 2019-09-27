@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT__MODES_H
-#define __CVC4__SMT__MODES_H
+#ifndef CVC4__SMT__MODES_H
+#define CVC4__SMT__MODES_H
 
 #include <iosfwd>
 
@@ -53,6 +53,21 @@ enum ModelCoresMode
   MODEL_CORES_NON_IMPLIED
 };
 
+/** Block models modes. */
+enum BlockModelsMode
+{
+  /** Do not block models */
+  BLOCK_MODELS_NONE,
+  /**
+   * block models based on literals truth values.
+   */
+  BLOCK_MODELS_LITERALS,
+  /**
+   * block models based on concrete variable values in the model.
+   */
+  BLOCK_MODELS_VALUES,
+};
+
 }  // namespace CVC4
 
-#endif /* __CVC4__SMT__MODES_H */
+#endif /* CVC4__SMT__MODES_H */

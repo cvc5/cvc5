@@ -31,7 +31,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/map_util.h"
-#include "proof/dimacs_printer.h"
+#include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
 #include "proof/proof_manager.h"
 
@@ -80,73 +80,73 @@ TraceCheckProof TraceCheckProof::fromText(std::istream& in)
   return pf;
 }
 
-ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
-                                     const std::string& dratBinary)
+ErProof ErProof::fromBinaryDratProof(
+    const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+    const std::vector<ClauseId>& usedIds,
+    const std::string& dratBinary,
+    TimerStat& toolTimer)
 {
-  std::ostringstream cmd;
-  char formulaFilename[] = "/tmp/cvc4-dimacs-XXXXXX";
-  char dratFilename[] = "/tmp/cvc4-drat-XXXXXX";
-  char tracecheckFilename[] = "/tmp/cvc4-tracecheck-er-XXXXXX";
-
-  int r;
-  r = mkstemp(formulaFilename);
-  AlwaysAssert(r > 0);
-  close(r);
-  r = mkstemp(dratFilename);
-  AlwaysAssert(r > 0);
-  close(r);
-  r = mkstemp(tracecheckFilename);
-  AlwaysAssert(r > 0);
-  close(r);
+  std::string formulaFilename("cvc4-dimacs-XXXXXX");
+  std::string dratFilename("cvc4-drat-XXXXXX");
+  std::string tracecheckFilename("cvc4-tracecheck-er-XXXXXX");
 
   // Write the formula
-  std::ofstream formStream(formulaFilename);
-  printDimacs(formStream, usedClauses);
-  formStream.close();
+  std::unique_ptr<std::fstream> formStream = openTmpFile(&formulaFilename);
+  printDimacs(*formStream, clauses, usedIds);
+  formStream->close();
 
   // Write the (binary) DRAT proof
-  std::ofstream dratStream(dratFilename);
-  dratStream << dratBinary;
-  dratStream.close();
+  std::unique_ptr<std::fstream> dratStream = openTmpFile(&dratFilename);
+  (*dratStream) << dratBinary;
+  dratStream->close();
+
+  std::unique_ptr<std::fstream> tracecheckStream =
+      openTmpFile(&tracecheckFilename);
 
   // Invoke drat2er
+  {
+    CodeTimer blockTimer{toolTimer};
 #if CVC4_USE_DRAT2ER
-  drat2er::TransformDRATToExtendedResolution(formulaFilename,
-                                             dratFilename,
-                                             tracecheckFilename,
-                                             false,
-                                             drat2er::options::QUIET,
-                                             false);
-
+    drat2er::TransformDRATToExtendedResolution(formulaFilename,
+                                               dratFilename,
+                                               tracecheckFilename,
+                                               false,
+                                               drat2er::options::QUIET,
+                                               false);
 #else
-  Unimplemented(
-      "ER proof production requires drat2er.\n"
-      "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented(
+        "ER proof production requires drat2er.\n"
+        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
+  }
 
   // Parse the resulting TRACECHECK proof into an ER proof.
-  std::ifstream tracecheckStream(tracecheckFilename);
-  ErProof proof(usedClauses, TraceCheckProof::fromText(tracecheckStream));
-  tracecheckStream.close();
+  TraceCheckProof pf = TraceCheckProof::fromText(*tracecheckStream);
+  ErProof proof(clauses, usedIds, std::move(pf));
+  tracecheckStream->close();
 
-  remove(formulaFilename);
-  remove(dratFilename);
-  remove(tracecheckFilename);
+  remove(formulaFilename.c_str());
+  remove(dratFilename.c_str());
+  remove(tracecheckFilename.c_str());
 
   return proof;
 }
 
-ErProof::ErProof(const ClauseUseRecord& usedClauses,
+ErProof::ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+                 const std::vector<ClauseId>& usedIds,
                  TraceCheckProof&& tracecheck)
     : d_inputClauseIds(), d_definitions(), d_tracecheck(tracecheck)
 {
   // Step zero, save input clause Ids for future printing
-  std::transform(usedClauses.begin(),
-                 usedClauses.end(),
-                 std::back_inserter(d_inputClauseIds),
-                 [](const std::pair<ClauseId, prop::SatClause>& pair) {
-                   return pair.first;
-                 });
+  d_inputClauseIds = usedIds;
+
+  // Make a list of (idx, clause pairs), the used ones.
+  std::vector<std::pair<ClauseId, prop::SatClause>> usedClauses;
+  std::transform(
+      usedIds.begin(),
+      usedIds.end(),
+      std::back_inserter(usedClauses),
+      [&](const ClauseId& i) { return make_pair(i, clauses.at(i)); });
 
   // Step one, verify the formula starts the proof
   if (Configuration::isAssertionBuild())
@@ -162,14 +162,6 @@ ErProof::ErProof(const ClauseUseRecord& usedClauses,
           originalClause{usedClauses[i].second.begin(),
                          usedClauses[i].second.end()};
       Assert(traceCheckClause == originalClause);
-      Assert(d_tracecheck.d_lines[i].d_idx = i + 1);
-      Assert(d_tracecheck.d_lines[i].d_chain.size() == 0);
-      Assert(d_tracecheck.d_lines[i].d_clause.size()
-             == usedClauses[i].second.size());
-      for (size_t j = 0, m = usedClauses[i].second.size(); j < m; ++j)
-      {
-        Assert(usedClauses[i].second[j] == d_tracecheck.d_lines[i].d_clause[j]);
-      }
     }
   }
 
@@ -334,7 +326,7 @@ prop::SatLiteral resolveModify(
     std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>& dest,
     const prop::SatClause& src)
 {
-  bool foundPivot = false;
+  CVC4_UNUSED bool foundPivot = false;
   prop::SatLiteral pivot(0, false);
 
   for (prop::SatLiteral lit : src)
@@ -342,8 +334,10 @@ prop::SatLiteral resolveModify(
     auto negationLocation = dest.find(~lit);
     if (negationLocation != dest.end())
     {
+#ifdef CVC4_ASSERTIONS
       Assert(!foundPivot);
       foundPivot = true;
+#endif
       dest.erase(negationLocation);
       pivot = ~lit;
     }

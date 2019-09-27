@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANT_ANTI_SKOLEM_H
-#define __CVC4__THEORY__QUANT_ANTI_SKOLEM_H
+#ifndef CVC4__THEORY__QUANT_ANTI_SKOLEM_H
+#define CVC4__THEORY__QUANT_ANTI_SKOLEM_H
 
 #include <map>
 #include <vector>
@@ -24,8 +24,8 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {

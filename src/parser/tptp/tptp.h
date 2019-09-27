@@ -18,8 +18,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__TPTP_H
-#define __CVC4__PARSER__TPTP_H
+#ifndef CVC4__PARSER__TPTP_H
+#define CVC4__PARSER__TPTP_H
 
 #include <cassert>
 #include <unordered_map>
@@ -46,6 +46,8 @@ class Tptp : public Parser {
 
   bool fof() const { return d_fof; }
   void setFof(bool fof) { d_fof = fof; }
+
+  void forceLogic(const std::string& logic) override;
 
   void addFreeVar(Expr var);
   std::vector< Expr > getFreeVar();
@@ -103,6 +105,14 @@ class Tptp : public Parser {
   void makeApplication(Expr& expr, std::string& name, std::vector<Expr>& args,
                        bool term);
 
+  /** creates a lambda abstraction around expression
+   *
+   * Given an expression expr of type argType = t1...tn -> t, creates a lambda
+   * expression
+   *  (lambda x1:t1,...,xn:tn . (expr x)) : t
+   */
+  void mkLambdaWrapper(Expr& expr, Type argType);
+
   /** get assertion expression, based on the formula role.
   * expr should have Boolean type.
   * This returns the expression that should be asserted, given the formula role fr.
@@ -157,7 +167,7 @@ class Tptp : public Parser {
   // TPTP directory where to find includes;
   // empty if none could be determined
   std::string d_tptpDir;
-  
+
   // the null expression
   Expr d_nullExpr;
 
@@ -196,4 +206,4 @@ enum NonAssoc {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__TPTP_INPUT_H */
+#endif /* CVC4__PARSER__TPTP_INPUT_H */

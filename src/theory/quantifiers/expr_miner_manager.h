@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
-#define __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
+#define CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
@@ -23,10 +23,12 @@
 #include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 /** ExpressionMinerManager
@@ -120,4 +122,4 @@ class ExpressionMinerManager
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H */

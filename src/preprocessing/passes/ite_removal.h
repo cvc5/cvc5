@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__ITE_REMOVAL_H
-#define __CVC4__PREPROCESSING__PASSES__ITE_REMOVAL_H
+#ifndef CVC4__PREPROCESSING__PASSES__ITE_REMOVAL_H
+#define CVC4__PREPROCESSING__PASSES__ITE_REMOVAL_H
 
 #include <unordered_set>
 #include <vector>
@@ -43,4 +43,4 @@ class IteRemoval : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif  // __CVC4__PREPROCESSING__PASSES__ITE_REMOVAL_H
+#endif  // CVC4__PREPROCESSING__PASSES__ITE_REMOVAL_H

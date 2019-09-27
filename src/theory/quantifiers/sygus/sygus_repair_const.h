@@ -14,19 +14,22 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H
 
 #include <unordered_set>
 #include "expr/node.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 class CegConjecture;
+class TermDbSygus;
 
 /** SygusRepairConst
  *
@@ -215,4 +218,4 @@ class SygusRepairConst
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_REPAIR_CONST_H */

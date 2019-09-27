@@ -12,7 +12,7 @@ ASSERT z = (x PRODUCT y);
 ASSERT (1, 2, 3, 4) IS_IN z;
 ASSERT NOT ((5, 9) IS_IN x);
 ASSERT (3, 8) IS_IN y;
-ASSERT y = (TCLOSURE x);
+ASSERT y = TCLOSURE(x);
 ASSERT NOT ((1, 2) IS_IN y);
 
 CHECKSAT;

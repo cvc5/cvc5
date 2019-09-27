@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
-#define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
+#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
+#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
 #include <tuple>
 #include <unordered_map>
@@ -474,6 +474,8 @@ class TheoryArrays : public Theory {
   };
   /** an instance of the above decision strategy */
   std::unique_ptr<TheoryArraysDecisionStrategy> d_dstrat;
+  /** Have we registered the above strategy? (context-independent) */
+  bool d_dstratInit;
   /** get the next decision request
    *
    * If the "arrays-eager-index" option is enabled, then whenever a
@@ -491,4 +493,4 @@ class TheoryArrays : public Theory {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */
+#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */

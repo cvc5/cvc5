@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
-#define __CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
+#ifndef CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
+#define CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
 
 #include <unordered_set>
 #include <vector>
@@ -114,4 +114,4 @@ class PseudoBooleanProcessor : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif  // __CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
+#endif  // CVC4__PREPROCESSING__PASSES__PSEUDO_BOOLEAN_PROCESSOR_H
