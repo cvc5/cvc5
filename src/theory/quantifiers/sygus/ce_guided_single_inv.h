@@ -76,7 +76,8 @@ class CegSingleInv
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
-public:
+
+ public:
   //---------------------------------representation of the solution
   /**
    * The list of instantiations that suffice to show the first-order equivalent
@@ -172,9 +173,10 @@ public:
       return Node::null();
     }
   }
-private:
-  /** solve trivial 
-   * 
+
+ private:
+  /** solve trivial
+   *
    * If this method returns true, it sets d_isSolved to true and add
    * t1 ... tn to d_inst if it can be shown that (forall x1 ... xn. P) is
    * unsatisfiable for instantiation {x1 -> t1 ... xn -> tn}.

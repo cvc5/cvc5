@@ -29,8 +29,8 @@
 using namespace CVC4::kind;
 
 namespace CVC4 {
-  namespace theory {
-    namespace quantifiers {
+namespace theory {
+namespace quantifiers {
 
 CegSingleInv::CegSingleInv(QuantifiersEngine* qe, SynthConjecture* p)
     : d_qe(qe),
@@ -617,17 +617,17 @@ Node CegSingleInv::reconstructToSyntax(Node s,
 }
 
 void CegSingleInv::preregisterConjecture(Node q) { d_orig_conjecture = q; }
-  
+
 bool CegSingleInv::solveTrivial(Node q)
 {
-  Assert (!d_isSolved);
-  Assert (d_inst.empty());
+  Assert(!d_isSolved);
+  Assert(d_inst.empty());
   // If the conjecture is forall x1...xn. ~(x1 = t1 ^ ... xn = tn), it is
   // trivially solvable.
   return false;
 }
-  
-    }
-    
-  }
-}
+
+}  // namespace quantifiers
+
+}  // namespace theory
+}  // namespace CVC4
