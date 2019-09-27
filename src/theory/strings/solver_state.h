@@ -163,6 +163,7 @@ class SolverState
    * for some eqc that is currently equal to z.
    */
   void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
+
  private:
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;
