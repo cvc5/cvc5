@@ -648,13 +648,13 @@ bool CegSingleInv::solveTrivial(Node q)
     {
       Assert(varsTmp.size() == subsTmp.size());
       // remake with eliminated nodes
-      body =
-          body.substitute(varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
+      body = body.substitute(
+          varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
       body = Rewriter::rewrite(body);
-      vars.insert(vars.end(),varsTmp.begin(),varsTmp.end());
-      subs.insert(subs.end(),subsTmp.begin(),subsTmp.end());
+      vars.insert(vars.end(), varsTmp.begin(), varsTmp.end());
+      subs.insert(subs.end(), subsTmp.begin(), subsTmp.end());
     }
-  }  
+  }
   // if we solved all arguments
   if (args.empty())
   {
@@ -669,7 +669,7 @@ bool CegSingleInv::solveTrivial(Node q)
     std::vector<Node> inst;
     for (const Node& v : q[0])
     {
-      Assert (imap.find(v)!=imap.end());
+      Assert(imap.find(v) != imap.end());
       inst.push_back(imap[v]);
     }
     d_inst.push_back(inst);

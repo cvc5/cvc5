@@ -130,7 +130,7 @@ private:
                              std::vector<Node>& subs,
                              QAttributes& qa);
   //-------------------------------------end variable elimination utilities
-private:
+ private:
   //-------------------------------------variable elimination
   /** compute variable elimination
    *
