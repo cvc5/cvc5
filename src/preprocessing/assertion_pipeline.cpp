@@ -24,7 +24,11 @@ namespace CVC4 {
 namespace preprocessing {
 
 AssertionPipeline::AssertionPipeline()
-    : d_realAssertionsEnd(0), d_storeSubstsInAsserts(false), d_substsIndex(0), d_assumptionsStart(0), d_numAssumptions(0)
+    : d_realAssertionsEnd(0),
+      d_storeSubstsInAsserts(false),
+      d_substsIndex(0),
+      d_assumptionsStart(0),
+      d_numAssumptions(0)
 {
 }
 
