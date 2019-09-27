@@ -22,16 +22,10 @@
 #include <getopt.h>
 #include <iostream>
 
-#include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "expr/expr_iomanip.h"
-#include "options/language.h"
-#include "options/options.h"
-#include "options/set_language.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "smt/command.h"
-#include "smt/smt_engine.h"
+#include <cvc4/api/cvc4cpp.h>
+#include <cvc4/cvc4.h>
+#include <cvc4/expr/expr_iomanip.h>
+#include <cvc4/options/set_language.h>
 
 using namespace std;
 using namespace CVC4;
@@ -82,10 +76,6 @@ static void readFile(const char* filename, InputLanguage fromLang, OutputLanguag
     unsigned len = strlen(filename);
     if(len >= 5 && !strcmp(".smt2", filename + len - 5)) {
       fromLang = language::input::LANG_SMTLIB_V2;
-    } else if(len >= 4 && !strcmp(".smt", filename + len - 4)) {
-      fromLang = language::input::LANG_SMTLIB_V1;
-    } else if(len >= 5 && !strcmp(".smt1", filename + len - 5)) {
-      fromLang = language::input::LANG_SMTLIB_V1;
     } else if((len >= 2 && !strcmp(".p", filename + len - 2)) ||
               (len >= 5 && !strcmp(".tptp", filename + len - 5))) {
       fromLang = language::input::LANG_TPTP;

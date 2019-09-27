@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 source "$(dirname "$0")/get-script-header.sh"
 
@@ -6,7 +6,7 @@ lfscrepo="https://github.com/CVC4/LFSC.git"
 dirname="lfsc-checker"
 
 function gitclone {
-  if which git &> /dev/null
+  if [ -x "$(command -v git)" ]
   then
     git clone "$1" "$2"
   else

@@ -3,12 +3,14 @@
 ; COMMAND-LINE: --cegqi-si=all --sygus-unif --sygus-out=status
 (set-logic LIA)
 (define-fun g ((x Int)) Int (ite (= x 1) 15 19))
+(define-fun letf ((z Int) (w Int) (s Int) (x Int)) Int (+ z (+ x (+ x (+ s (+ 1 (+ (g w) z)))))))
+
 (synth-fun f ((x Int)) Int
     ((Start Int (x
                  0
                  1
                  (- Start Start)
-                 (let ((z Int Start) (w Int Start)) (+ z (+ x (+ x (+ Start (+ 1 (+ (g w) z)))))))))))
+                 (letf Start Start Start x)))))
                  
 (declare-var x Int)
 (constraint (= (f x) (+ (* 4 x) 15)))

@@ -106,10 +106,6 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      bool asLemma)
 {
   eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
-  if (eq == d_true)
-  {
-    return;
-  }
   if (Trace.isOn("strings-infer-debug"))
   {
     Trace("strings-infer-debug")
@@ -123,8 +119,13 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
       Trace("strings-infer-debug") << "  N:" << exp_n[i] << std::endl;
     }
   }
+  if (eq == d_true)
+  {
+    return;
+  }
+  Node atom = eq.getKind() == NOT ? eq[0] : eq;
   // check if we should send a lemma or an inference
-  if (asLemma || eq == d_false || eq.getKind() == OR || !exp_n.empty()
+  if (asLemma || atom == d_false || atom.getKind() == OR || !exp_n.empty()
       || options::stringInferAsLemmas())
   {
     Node eq_exp;
@@ -274,6 +275,7 @@ bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
 
 void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
 {
+  lit = Rewriter::rewrite(lit);
   d_pendingReqPhase[lit] = pol;
 }
 

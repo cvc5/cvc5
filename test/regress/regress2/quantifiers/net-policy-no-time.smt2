@@ -1,5 +1,6 @@
 (set-logic UFDTLIRA)
 (set-option :fmf-bound true)
+(set-option :finite-model-find true)
 (set-option :produce-models true)
 (set-info :status sat)
 
