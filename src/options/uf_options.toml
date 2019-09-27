@@ -12,24 +12,6 @@ header = "options/uf_options.h"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
-  name       = "ufssRegions"
-  category   = "regular"
-  long       = "uf-ss-regions"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "disable region-based method for discovering cliques and splits in uf strong solver"
-
-[[option]]
-  name       = "ufssEagerSplits"
-  category   = "regular"
-  long       = "uf-ss-eager-split"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "add splits eagerly for uf strong solver"
-
-[[option]]
   name       = "ufssTotality"
   category   = "regular"
   long       = "uf-ss-totality"
@@ -63,7 +45,7 @@ header = "options/uf_options.h"
   type       = "int"
   default    = "-1"
   read_only  = true
-  help       = "tells the uf strong solver to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)"
+  help       = "tells the uf with cardinality to only consider models that interpret uninterpreted sorts of cardinality at most N (-1 == no limit, default)"
 
 [[option]]
   name       = "ufssMode"
@@ -74,7 +56,7 @@ header = "options/uf_options.h"
   handler    = "stringToUfssMode"
   includes   = ["options/ufss_mode.h"]
   read_only  = true
-  help       = "mode of operation for uf strong solver."
+  help       = "mode of operation for uf with cardinality solver."
 
 [[option]]
   name       = "ufssFairness"

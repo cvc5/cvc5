@@ -1808,9 +1808,10 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
       Node newBody = body;
       NodeBuilder<> body_split(kind::OR);
       NodeBuilder<> tb(kind::OR);
-      for( unsigned i=0; i<body.getNumChildren(); i++ ){
-        Node trm = body[i];
-        if( TermUtil::containsTerms( body[i], args ) ){
+      for (const Node& trm : body)
+      {
+        if (expr::hasSubterm(trm, args))
+        {
           tb << trm;
         }else{
           body_split << trm;

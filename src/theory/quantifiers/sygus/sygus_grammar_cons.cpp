@@ -385,8 +385,9 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   }
   else if (type.isArray())
   {
-    // TODO #2694 : generate constant array over the first element of the
-    // constituent type
+    // generate constant array over the first element of the constituent type
+    Node c = type.mkGroundTerm();
+    ops.push_back(c);
   }
   // TODO #1178 : add other missing types
 }
@@ -1032,6 +1033,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
           datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+  Trace("sygus-grammar-def") << "...finished" << std::endl;
   Assert( types.size()==datatypes.size() );
   return TypeNode::fromType( types[0] );
 }

@@ -228,8 +228,6 @@ public:
   bool getWaitToJoin() const;
   const std::string& getForceLogicString() const;
   const std::vector<std::string>& getThreadArgv() const;
-  int getSharingFilterByLength() const;
-  int getThreadId() const;
   int getVerbosity() const;
   std::istream* getIn() const;
   std::ostream* getErr();
@@ -238,16 +236,12 @@ public:
   std::string getBinaryName() const;
   std::string getReplayInputFilename() const;
   unsigned getParseStep() const;
-  unsigned getThreadStackSize() const;
-  unsigned getThreads() const;
 
   // TODO: Document these.
   void setInputLanguage(InputLanguage);
   void setInteractive(bool);
   void setOut(std::ostream*);
   void setOutputLanguage(OutputLanguage);
-  void setSharingFilterByLength(int length);
-  void setThreadId(int);
 
   bool wasSetByUserCeGuidedInst() const;
   bool wasSetByUserDumpSynth() const;
@@ -255,13 +249,9 @@ public:
   bool wasSetByUserForceLogicString() const;
   bool wasSetByUserIncrementalSolving() const;
   bool wasSetByUserInteractive() const;
-  bool wasSetByUserThreadStackSize() const;
-  bool wasSetByUserThreads() const;
 
   // Static accessor functions.
   // TODO: Document these.
-  static int currentGetSharingFilterByLength();
-  static int currentGetThreadId();
   static std::ostream* currentGetOut();
 
   /**
