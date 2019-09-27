@@ -57,7 +57,7 @@ void AssertionPipeline::push_back(Node n, bool isAssumption)
     d_numAssumptions++;
   }
 }
-  
+
 void AssertionPipeline::replace(size_t i, Node n)
 {
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
