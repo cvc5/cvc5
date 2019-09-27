@@ -1318,10 +1318,6 @@ void SmtEngine::setDefaults() {
   // error if enabled explicitly
   if (options::unsatCores() || options::proof())
   {
-    if (d_logic > LogicInfo("QF_AUFBVLRA")) {
-        throw OptionException(
-            "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
-    }
     if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
     {
       if (options::simplificationMode.wasSetByUser())
@@ -2242,6 +2238,10 @@ void SmtEngine::setDefaults() {
 
   if (options::proof())
   {
+    if (d_logic > LogicInfo("QF_AUFBVLRA")) {
+        throw OptionException(
+            "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
+    }
     if (options::bitvectorAlgebraicSolver())
     {
       if (options::bitvectorAlgebraicSolver.wasSetByUser())

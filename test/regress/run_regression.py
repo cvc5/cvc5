@@ -25,6 +25,7 @@ EXPECT_ERROR = 'EXPECT-ERROR: '
 EXIT = 'EXIT: '
 COMMAND_LINE = 'COMMAND-LINE: '
 REQUIRES = 'REQUIRES: '
+LOGIC = '(set-logic '
 
 EXIT_OK = 0
 EXIT_FAILURE = 1
@@ -78,6 +79,32 @@ def get_cvc4_features(cvc4_binary):
 
     return features
 
+
+def logic_supported_with_proofs(logic):
+    result = False
+    if logic in [
+            #single theories
+            "QF_BV",
+            "QF_UF",
+            "QF_A",
+            "QF_LRA",
+            #two theoreis
+            "QF_UFBV",
+            "QF_UFLRA",
+            "QF_AUF",
+            "QF_ALRA",
+            "QF_ABV",
+            "QF_BVLRA"
+            #Three theories
+            "QF_AUFBV",
+            "QF_ABVLRA",
+            "QF_UFBVLRA",
+            "QF_AUFLRA",
+            #four theories
+            "QF_AUFBVLRA"
+            ]:
+        result = True
+    return result
 
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
                   command_line, benchmark_dir, benchmark_filename, timeout):
@@ -185,6 +212,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     expected_exit_status = None
     command_lines = []
     requires = []
+    logic = None
     for line in benchmark_lines:
         # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
@@ -205,6 +233,8 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
             command_lines.append(line[len(COMMAND_LINE):])
         elif line.startswith(REQUIRES):
             requires.append(line[len(REQUIRES):].strip())
+        elif line.startswith(LOGIC):
+            logic = line[len(LOGIC):-1].strip()
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
 
@@ -284,6 +314,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
                '--check-proofs' not in all_args and \
                '--incremental' not in all_args and \
                '--unconstrained-simp' not in all_args and \
+               logic_supported_with_proofs(logic) and \
                not cvc4_binary.endswith('pcvc4'):
                 extra_command_line_args = ['--check-proofs']
         if unsat_cores and re.search(r'^(unsat|valid)$', expected_output):
