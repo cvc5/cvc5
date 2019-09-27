@@ -1,7 +1,7 @@
+;COMMAND-LINE: --check-proofs
 ;EXIT: 1
 ;EXPECT: (error "Error in option parsing: Proofs are only supported for sub-logics of QF_AUFBVLIA.")
 (set-logic ALL)
-(set-option :produce-proofs true)
 
 (declare-const a Int)
 
