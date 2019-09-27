@@ -129,6 +129,9 @@ private:
                              std::vector<Node>& bounds,
                              std::vector<Node>& subs,
                              QAttributes& qa);
+  //-------------------------------------end variable elimination utilities
+private:
+  //-------------------------------------variable elimination
   /** compute variable elimination
    *
    * This computes variable elimination rewrites for a body of a quantified
@@ -141,7 +144,6 @@ private:
                                     std::vector<Node>& args,
                                     QAttributes& qa);
   //-------------------------------------end variable elimination
- private:
   //-------------------------------------conditional splitting
   /** compute conditional splitting
    *

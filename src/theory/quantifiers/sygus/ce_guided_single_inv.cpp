@@ -631,30 +631,51 @@ bool CegSingleInv::solveTrivial(Node q)
   {
     args.push_back(v);
   }
+  // keep solving for variables until a fixed point is reached
   std::vector<Node> vars;
   std::vector<Node> subs;
-  if (QuantifiersRewriter::getVarElim(q[1], false, args, vars, subs))
+  Node body = q[1];
+  Node prev;
+  while (prev != body && !args.empty())
   {
-    if (args.empty())
+    prev = body;
+
+    std::vector<Node> varsTmp;
+    std::vector<Node> subsTmp;
+    QuantifiersRewriter::getVarElim(body, false, args, varsTmp, subsTmp);
+    // if we eliminated a variable, update body and reprocess
+    if (!varsTmp.empty())
     {
-      Trace("cegqi-si-trivial-solve")
-          << q << " is trivially solvable by substitution " << vars << " -> "
-          << subs << std::endl;
-      std::map<Node, Node> imap;
-      for (unsigned j = 0, vsize = vars.size(); j < vsize; j++)
-      {
-        imap[vars[j]] = subs[j];
-      }
-      std::vector<Node> inst;
-      for (const Node& v : q[0])
-      {
-        inst.push_back(imap[v]);
-      }
-      d_inst.push_back(inst);
-      d_instConds.push_back(NodeManager::currentNM()->mkConst(true));
-      d_isSolved = true;
-      return true;
+      Assert(varsTmp.size() == subsTmp.size());
+      // remake with eliminated nodes
+      body =
+          body.substitute(varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
+      body = Rewriter::rewrite(body);
+      vars.insert(vars.end(),varsTmp.begin(),varsTmp.end());
+      subs.insert(subs.end(),subsTmp.begin(),subsTmp.end());
     }
+  }  
+  // if we solved all arguments
+  if (args.empty())
+  {
+    Trace("cegqi-si-trivial-solve")
+        << q << " is trivially solvable by substitution " << vars << " -> "
+        << subs << std::endl;
+    std::map<Node, Node> imap;
+    for (unsigned j = 0, vsize = vars.size(); j < vsize; j++)
+    {
+      imap[vars[j]] = subs[j];
+    }
+    std::vector<Node> inst;
+    for (const Node& v : q[0])
+    {
+      Assert (imap.find(v)!=imap.end());
+      inst.push_back(imap[v]);
+    }
+    d_inst.push_back(inst);
+    d_instConds.push_back(NodeManager::currentNM()->mkConst(true));
+    d_isSolved = true;
+    return true;
   }
   Trace("cegqi-si-trivial-solve")
       << q << " is not trivially solvable." << std::endl;
