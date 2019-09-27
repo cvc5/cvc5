@@ -153,6 +153,10 @@ public:
    * model. For example, providing { y } as the assignment exclusion set of x
    * and { x } as the assignment exclusion set of y will cause model building
    * to fail.
+   * 
+   * Additionally, we (currently) require that an assignment exclusion set
+   * should not be set for two terms in the same equivalence class, or an
+   * assertion will be thrown.
    */
   void setAssignmentExclusionSet(TNode n, const std::vector<Node>& eset);
   /** set assignment exclusion set group

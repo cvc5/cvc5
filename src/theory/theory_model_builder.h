@@ -283,9 +283,9 @@ class TheoryEngineModelBuilder : public ModelBuilder
   /** Is the given Assigner ready to assign values?
    *
    * This returns true if all values in the assignment exclusion set of a have
-   * known value according to the state of this model builder (via normalize).
-   * It updates the assignment exclusion vector of a to these values whenever
-   * possible.
+   * known value according to the state of this model builder (via a lookup
+   * in d_constReps). It updates the assignment exclusion vector of a to these
+   * values whenever possible.
    */
   bool isAssignerActive(TheoryModel* tm, Assigner& a);
 
