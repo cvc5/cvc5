@@ -2074,7 +2074,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           Node conc = Rewriter::rewrite(concOrig);
           // For termination concerns, we only do the inference if the contains
           // does not rewrite (and thus does not introduce new terms).
-          if( conc==concOrig )
+          if (conc == concOrig)
           {
             bool do_infer = false;
             conc = conc.negate();
@@ -2083,7 +2083,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
             if (lit.getKind() == EQUAL)
             {
               do_infer = pol ? !areEqual(lit[0], lit[1])
-                            : !areDisequal(lit[0], lit[1]);
+                             : !areDisequal(lit[0], lit[1]);
             }
             else
             {
@@ -2096,8 +2096,8 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
               Node ofrom = d_extf_info_tmp[nr[0]].d_ctn_from[opol][i];
               Assert(d_extf_info_tmp.find(ofrom) != d_extf_info_tmp.end());
               exp_c.insert(exp_c.end(),
-                          d_extf_info_tmp[ofrom].d_exp.begin(),
-                          d_extf_info_tmp[ofrom].d_exp.end());
+                           d_extf_info_tmp[ofrom].d_exp.begin(),
+                           d_extf_info_tmp[ofrom].d_exp.end());
               d_im.sendInference(exp_c, conc, "CTN_Trans");
             }
           }
