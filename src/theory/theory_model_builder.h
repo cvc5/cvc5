@@ -256,17 +256,17 @@ class TheoryEngineModelBuilder : public ModelBuilder
   std::map<Node, Node> d_constantReps;
 
   /** Theory engine model builder assigner class
-  *
-  * This manages the assignment of values to a terms of a given type.
-  * In particular, it is a wrapper over a type enumerator that is restricted
-  * by a set of values that it cannot generate, called an "assignment exclusion
-  * set".
-  */
+   *
+   * This manages the assignment of values to a terms of a given type.
+   * In particular, it is a wrapper over a type enumerator that is restricted
+   * by a set of values that it cannot generate, called an "assignment exclusion
+   * set".
+   */
   class Assigner
   {
-  public:
+   public:
     Assigner() : d_te(nullptr) {}
-    /** 
+    /**
      * Initialize this assigner to generate values of type tn, with properties
      * tep and assignment exclusion set aes.
      */
@@ -281,14 +281,14 @@ class TheoryEngineModelBuilder : public ModelBuilder
     std::vector<Node> d_assignExcSet;
   };
   /** Is the given Assigner ready to assign values?
-   * 
+   *
    * This returns true if all values in the assignment exclusion set of a have
    * known value according to the state of this model builder (via normalize).
    * It updates the assignment exclusion vector of a to these values whenever
    * possible.
    */
-  bool isAssignerActive( TheoryModel * tm, Assigner& a );
-  
+  bool isAssignerActive(TheoryModel* tm, Assigner& a);
+
   //------------------------------------for codatatypes
   /** is v an excluded codatatype value?
    *

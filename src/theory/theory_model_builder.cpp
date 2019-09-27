@@ -26,10 +26,8 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 
-
-void TheoryEngineModelBuilder::Assigner::initialize(TypeNode tn,
-                TypeEnumeratorProperties* tep,
-                const std::vector<Node>& aes)
+void TheoryEngineModelBuilder::Assigner::initialize(
+    TypeNode tn, TypeEnumeratorProperties* tep, const std::vector<Node>& aes)
 {
   d_te.reset(new TypeEnumerator(tn, tep));
   d_assignExcSet.insert(d_assignExcSet.end(), aes.begin(), aes.end());
@@ -52,7 +50,7 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
     {
       ++te;
       // we have run out of elements
-      if(te.isFinished())
+      if (te.isFinished())
       {
         Assert(false);
         return Node::null();
@@ -132,9 +130,9 @@ bool TheoryEngineModelBuilder::isAssignableEqc(TheoryModel* m,
   return true;
 }
 
-bool TheoryEngineModelBuilder::isAssignerActive( TheoryModel * tm, Assigner& a )
+bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 {
-  std::vector< Node >& eset = a.d_assignExcSet;
+  std::vector<Node>& eset = a.d_assignExcSet;
   for (unsigned i = 0, size = eset.size(); i < size; i++)
   {
     // Members of exclusion set must have values, otherwise we are not yet
@@ -148,12 +146,13 @@ bool TheoryEngineModelBuilder::isAssignerActive( TheoryModel * tm, Assigner& a )
     // Assignable members of assignment exclusion set should be representatives
     // of their equivalence clases. This ensures we look up the constant
     // representatives for assignable members of assignment exclusion sets.
-    Assert (er == tm->getRepresentative(er));
+    Assert(er == tm->getRepresentative(er));
     Node en = normalize(tm, er, true);
     if (!en.isConst())
     {
-      Trace("model-build-aes") << "isAssignerActive: not active due to " << eset[i]
-                               << " (normalized is " << en << ")" << std::endl;
+      Trace("model-build-aes")
+          << "isAssignerActive: not active due to " << eset[i]
+          << " (normalized is " << en << ")" << std::endl;
       return false;
     }
     // update
@@ -545,13 +544,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     }
     typeConstSet.setTypeEnumeratorProperties(&tep);
   }
-  
+
   // Setup assigner objects for all relevant equivalence classes
-  std::map< Node, Assigner > assigners;
-  
-  
-  
-  
+  std::map<Node, Assigner> assigners;
+
   // AJR: build ordered list of types that ensures that base types are
   // enumerated first.
   // (I think) this is only strictly necessary for finite model finding +
