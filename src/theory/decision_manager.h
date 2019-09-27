@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,10 +15,11 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DECISION_MANAGER__H
-#define __CVC4__THEORY__DECISION_MANAGER__H
+#ifndef CVC4__THEORY__DECISION_MANAGER__H
+#define CVC4__THEORY__DECISION_MANAGER__H
 
 #include <map>
+#include "context/cdlist.h"
 #include "theory/decision_strategy.h"
 
 namespace CVC4 {
@@ -46,6 +47,8 @@ namespace theory {
  */
 class DecisionManager
 {
+  typedef context::CDList<DecisionStrategy*> DecisionStrategyList;
+
  public:
   enum StrategyId
   {
@@ -71,9 +74,9 @@ class DecisionManager
     STRAT_UF_CARD,
     STRAT_DT_SYGUS_ENUM_ACTIVE,
     STRAT_DT_SYGUS_ENUM_SIZE,
+    STRAT_STRINGS_SUM_LENGTHS,
     STRAT_QUANT_BOUND_INT_SIZE,
     STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS,
-    STRAT_STRINGS_SUM_LENGTHS,
     STRAT_SEP_NEG_GUARD,
     // placeholder for last finite-model-complete required strategy
     STRAT_LAST_FM_COMPLETE,
@@ -83,21 +86,42 @@ class DecisionManager
 
     STRAT_LAST
   };
-  DecisionManager(context::Context* satContext);
+  /** The scope of a strategy, used in registerStrategy below */
+  enum StrategyScope
+  {
+    // The strategy is user-context dependent, that is, it is cleared when
+    // the user context is popped.
+    STRAT_SCOPE_USER_CTX_DEPENDENT,
+    // The strategy is local to a check-sat call, that is, it is cleared on
+    // a call to presolve.
+    STRAT_SCOPE_LOCAL_SOLVE,
+    // The strategy is context-independent.
+    STRAT_SCOPE_CTX_INDEPENDENT,
+  };
+  DecisionManager(context::Context* userContext);
   ~DecisionManager() {}
-  /** reset the strategy
+  /** presolve
    *
-   * This clears all decision strategies that are registered to this manager.
+   * This clears all decision strategies that are registered to this manager
+   * that no longer exist in the current user context.
    * We require that each satisfiability check beyond the first calls this
-   * function exactly once. Currently, it is called during
-   * TheoryEngine::postSolve.
+   * function exactly once. It is called during TheoryEngine::presolve.
    */
-  void reset();
+  void presolve();
   /**
    * Registers the strategy ds with this manager. The id specifies when the
-   * strategy should be run.
+   * strategy should be run. The argument sscope indicates the scope of the
+   * strategy, i.e. how long it persists.
+   *
+   * Typically, strategies that are user-context-dependent are those that are
+   * in response to an assertion (e.g. a strategy that decides that a sygus
+   * conjecture is feasible). An example of a strategy that is context
+   * independent is the combined cardinality decision strategy for finite model
+   * finding for UF, which is not specific to any formula/type.
    */
-  void registerStrategy(StrategyId id, DecisionStrategy* ds);
+  void registerStrategy(StrategyId id,
+                        DecisionStrategy* ds,
+                        StrategyScope sscope = STRAT_SCOPE_USER_CTX_DEPENDENT);
   /** Get the next decision request
    *
    * If this method returns a non-null node n, then n is a literal corresponding
@@ -105,18 +129,19 @@ class DecisionManager
    * returns null, then no decisions are required by a decision strategy
    * registered to this class. In the latter case, the SAT solver will choose
    * a decision based on its given heuristic.
-   *
-   * The argument priority has the same role as in
-   * Theory::getNextDecisionRequest.
    */
-  Node getNextDecisionRequest(unsigned& priorty);
+  Node getNextDecisionRequest();
 
  private:
   /** Map containing all strategies registered to this manager */
   std::map<StrategyId, std::vector<DecisionStrategy*> > d_reg_strategy;
+  /** Set of decision strategies in this user context */
+  DecisionStrategyList d_strategyCacheC;
+  /** Set of decision strategies that are context independent */
+  std::unordered_set<DecisionStrategy*> d_strategyCache;
 };
 
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__DECISION_MANAGER__H */
+#endif /* CVC4__THEORY__DECISION_MANAGER__H */

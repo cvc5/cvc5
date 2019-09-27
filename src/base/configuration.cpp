@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,7 +39,7 @@ using namespace std;
 namespace CVC4 {
 
 string Configuration::getName() {
-  return PACKAGE_NAME;
+  return CVC4_PACKAGE_NAME;
 }
 
 bool Configuration::isDebugBuild() {
@@ -59,7 +59,7 @@ bool Configuration::isTracingBuild() {
 }
 
 bool Configuration::isDumpingBuild() {
-  return IS_DUMPING_BUILD;
+  return IS_DUMPING_BUILD && !IS_MUZZLED_BUILD;
 }
 
 bool Configuration::isMuzzledBuild() {
@@ -82,12 +82,14 @@ bool Configuration::isProfilingBuild() {
   return IS_PROFILING_BUILD;
 }
 
+bool Configuration::isAsanBuild() { return IS_ASAN_BUILD; }
+
 bool Configuration::isCompetitionBuild() {
   return IS_COMPETITION_BUILD;
 }
 
 string Configuration::getPackageName() {
-  return PACKAGE_NAME;
+  return CVC4_PACKAGE_NAME;
 }
 
 string Configuration::getVersionString() {
@@ -112,7 +114,7 @@ std::string Configuration::getVersionExtra() {
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2018 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2019 by the authors and their institutional\n"
      << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
 
   if (Configuration::licenseIsGpl()) {
@@ -128,7 +130,7 @@ std::string Configuration::copyright() {
 
   ss << "THIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\n"
      << "USE AT YOUR OWN RISK.\n\n";
- 
+
   ss << "CVC4 incorporates code from ANTLR3 (http://www.antlr.org).\n"
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
@@ -247,6 +249,8 @@ bool Configuration::isBuiltWithCadical() { return IS_CADICAL_BUILD; }
 bool Configuration::isBuiltWithCryptominisat() {
   return IS_CRYPTOMINISAT_BUILD;
 }
+
+bool Configuration::isBuiltWithDrat2Er() { return IS_DRAT2ER_BUILD; }
 
 bool Configuration::isBuiltWithReadline() {
   return IS_READLINE_BUILD;

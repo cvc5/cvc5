@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -115,6 +115,27 @@ std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
         std::pair<Expr, Expr>(ap.first.toExpr(), ap.second.toExpr()));
   }
   return approx;
+}
+
+std::vector<Expr> TheoryModel::getDomainElements(Type t) const
+{
+  // must be an uninterpreted sort
+  Assert(t.isSort());
+  std::vector<Expr> elements;
+  TypeNode tn = TypeNode::fromType(t);
+  const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
+  if (type_refs == nullptr || type_refs->empty())
+  {
+    // This is called when t is a sort that does not occur in this model.
+    // Sorts are always interpreted as non-empty, thus we add a single element.
+    elements.push_back(t.mkGroundTerm());
+    return elements;
+  }
+  for (const Node& n : *type_refs)
+  {
+    elements.push_back(n.toExpr());
+  }
+  return elements;
 }
 
 Node TheoryModel::getValue(TNode n) const
@@ -232,6 +253,18 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
       ret = nm->mkConst(Rational(
           getCardinality(ret[0].getType().toType()).getFiniteCardinality()));
     }
+    d_modelCache[n] = ret;
+    return ret;
+  }
+  // it might be approximate
+  std::map<Node, Node>::const_iterator ita = d_approximations.find(n);
+  if (ita != d_approximations.end())
+  {
+    // If the value of n is approximate based on predicate P(n), we return
+    // choice z. P(z).
+    Node v = nm->mkBoundVar(n.getType());
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
+    Node ret = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
     d_modelCache[n] = ret;
     return ret;
   }
@@ -571,6 +604,8 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
   if( options::ufHo() ){
     //we must rewrite the function value since the definition needs to be a constant value
     f_def = Rewriter::rewrite( f_def );
+    Trace("model-builder-debug")
+        << "Model value (post-rewrite) : " << f_def << std::endl;
     Assert( f_def.isConst() );
   }
  

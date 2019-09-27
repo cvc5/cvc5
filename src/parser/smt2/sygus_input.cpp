@@ -2,9 +2,9 @@
 /*! \file sygus_input.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,13 +14,9 @@
  ** [[ Add file-specific comments here ]]
  **/
 
-// These headers should be the first two included.
-// See the documentation in "parser/antlr_undefines.h" for more details.
-#include <antlr3.h>
-#include "parser/antlr_undefines.h"
-
-
 #include "parser/smt2/sygus_input.h"
+
+#include <antlr3.h>
 
 #include "expr/expr_manager.h"
 #include "parser/input.h"

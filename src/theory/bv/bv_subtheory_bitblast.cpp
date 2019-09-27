@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_bitblast.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
+ **   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,6 @@
 #include "decision/decision_attributes.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
-#include "proof/bitvector_proof.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
@@ -277,7 +276,8 @@ void BitblastSolver::setConflict(TNode conflict) {
   d_bv->setConflict(final_conflict);
 }
 
-void BitblastSolver::setProofLog( BitVectorProof * bvp ) {
+void BitblastSolver::setProofLog(proof::BitVectorProof* bvp)
+{
   d_bitblaster->setProofLog( bvp );
   bvp->setBitblaster(d_bitblaster.get());
 }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace CVC4::kind;
@@ -87,7 +87,7 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 }
 
 void EquivSygusInvarianceTest::init(
-    TermDbSygus* tds, TypeNode tn, CegConjecture* aconj, Node e, Node bvr)
+    TermDbSygus* tds, TypeNode tn, SynthConjecture* aconj, Node e, Node bvr)
 {
   // compute the current examples
   d_bvr = bvr;
@@ -218,15 +218,22 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
           NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, out, nbvre);
       Trace("sygus-pbe-cterm-debug") << "Check: " << cont << std::endl;
       Node contr = Rewriter::rewrite(cont);
-      if (contr == tds->d_false)
+      if (!contr.isConst())
+      {
+        if (d_isUniversal)
+        {
+          return false;
+        }
+      }
+      else if (contr.getConst<bool>() == d_isUniversal)
       {
         if (Trace.isOn("sygus-pbe-cterm"))
         {
           Trace("sygus-pbe-cterm")
               << "PBE-cterm : enumerator : do not consider ";
-          Trace("sygus-pbe-cterm") << nbv << " for any "
-                                   << tds->sygusToBuiltin(x) << " since "
-                                   << std::endl;
+          Trace("sygus-pbe-cterm")
+              << nbv << " for any " << tds->sygusToBuiltin(x) << " since "
+              << std::endl;
           Trace("sygus-pbe-cterm") << "   PBE-cterm :    for input example : ";
           for (unsigned j = 0, size = d_ex[ii].size(); j < size; j++)
           {
@@ -238,13 +245,13 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
           Trace("sygus-pbe-cterm")
               << "   PBE-cterm : and is not in output : " << out << std::endl;
         }
-        return true;
+        return !d_isUniversal;
       }
       Trace("sygus-pbe-cterm-debug2")
           << "...check failed, rewrites to : " << contr << std::endl;
     }
   }
-  return false;
+  return d_isUniversal;
 }
 
 } /* CVC4::theory::quantifiers namespace */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -300,7 +300,7 @@ class NodeManagerBlack : public CxxTest::TestSuite {
   void testMkNodeTooFew() {
 #ifdef CVC4_ASSERTIONS
     Node x = d_nodeManager->mkSkolem( "x", d_nodeManager->booleanType() );
-    TS_ASSERT_THROWS( d_nodeManager->mkNode(AND, x), AssertionException );
+    TS_ASSERT_THROWS(d_nodeManager->mkNode(AND, x), AssertionException&);
 #endif
   }
 
@@ -319,7 +319,7 @@ class NodeManagerBlack : public CxxTest::TestSuite {
       vars.push_back(skolem_j);
       vars.push_back(orNode);
     }
-    TS_ASSERT_THROWS(d_nodeManager->mkNode(AND, vars), AssertionException);
+    TS_ASSERT_THROWS(d_nodeManager->mkNode(AND, vars), AssertionException&);
 #endif
   }
 };

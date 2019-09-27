@@ -15,5 +15,12 @@ BraceWrapping:
   BeforeCatch: true
   BeforeElse: true
 BreakBeforeBraces: Custom
+DerivePointerAlignment: false
+---
+Language: Java
+BasedOnStyle:  Google
+ColumnLimit: 80
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: NonAssignment
 ...
-

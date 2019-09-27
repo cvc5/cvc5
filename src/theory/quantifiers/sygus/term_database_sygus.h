@@ -2,9 +2,9 @@
 /*! \file term_database_sygus.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
 #include <unordered_set>
 
@@ -23,13 +23,31 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
+
+/** role for registering an enumerator */
+enum EnumeratorRole
+{
+  /** The enumerator populates a pool of terms (e.g. for PBE). */
+  ROLE_ENUM_POOL,
+  /** The enumerator is the single solution of the problem. */
+  ROLE_ENUM_SINGLE_SOLUTION,
+  /**
+   * The enumerator is part of the solution of the problem (e.g. multiple
+   * functions to synthesize).
+   */
+  ROLE_ENUM_MULTI_SOLUTION,
+  /** The enumerator must satisfy some set of constraints */
+  ROLE_ENUM_CONSTRAINED,
+};
+std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
@@ -44,10 +62,13 @@ class TermDbSygus {
    *
    * This initializes this database for sygus datatype type tn. This may
    * throw an assertion failure if the sygus grammar has type errors. Otherwise,
-   * after registering a sygus type, the query functions in this class (such
-   * as sygusToBuiltinType, getKindConsNum, etc.) can be called for tn.
+   * after registering a sygus type, the query function getTypeInfo can be
+   * called for tn.
+   *
+   * This method returns true if tn is a sygus datatype type and false
+   * otherwise.
    */
-  void registerSygusType(TypeNode tn);
+  bool registerSygusType(TypeNode tn);
 
   //------------------------------utilities
   /** get the explanation utility */
@@ -63,32 +84,69 @@ class TermDbSygus {
   //------------------------------enumerators
   /**
    * Register a variable e that we will do enumerative search on.
+   *
    * conj : the conjecture that the enumeration of e is for.
-   * f : the synth-fun that the enumeration of e is for.
-   * mkActiveGuard : whether we want to make an active guard for e
-   * (see d_enum_to_active_guard),
+   *
+   * f : the synth-fun that the enumeration of e is for.Notice that enumerator
+   * e may not be one-to-one with f in synthesis-through-unification approaches
+   * (e.g. decision tree construction for PBE synthesis).
+   *
+   * erole : the role of this enumerator (see definition of EnumeratorRole).
+   * Depending on this and the policy for actively-generated enumerators
+   * (--sygus-active-gen), the enumerator may be "actively-generated".
+   * For example, if --sygus-active-gen=var-agnostic, then the enumerator will
+   * only generate values whose variables are in canonical order (only x1-x2
+   * and not x2-x1 will be generated, assuming x1 and x2 are in the same
+   * "subclass", see getSubclassForVar).
+   *
    * useSymbolicCons : whether we want model values for e to include symbolic
    * constructors like the "any constant" variable.
    *
-   * Notice that enumerator e may not be one-to-one with f in
-   * synthesis-through-unification approaches (e.g. decision tree construction
-   * for PBE synthesis).
+   * An "active guard" may be allocated by this method for e based on erole
+   * and the policies for active generation.
    */
   void registerEnumerator(Node e,
                           Node f,
-                          CegConjecture* conj,
-                          bool mkActiveGuard = false,
+                          SynthConjecture* conj,
+                          EnumeratorRole erole,
                           bool useSymbolicCons = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
-  CegConjecture* getConjectureForEnumerator(Node e) const;
+  SynthConjecture* getConjectureForEnumerator(Node e) const;
   /** return the function-to-synthesize e is associated with */
   Node getSynthFunForEnumerator(Node e) const;
   /** get active guard for e */
   Node getActiveGuardForEnumerator(Node e) const;
   /** are we using symbolic constructors for enumerator e? */
   bool usingSymbolicConsForEnumerator(Node e) const;
+  /** is this enumerator agnostic to variables? */
+  bool isVariableAgnosticEnumerator(Node e) const;
+  /** is this enumerator a "basic" enumerator.
+   *
+   * A basic enumerator is one that does not rely on the sygus extension of the
+   * datatypes solver. Basic enumerators enumerate all concrete terms for their
+   * type for a single abstract value.
+   */
+  bool isBasicEnumerator(Node e) const;
+  /** is this a "passively-generated" enumerator?
+   *
+   * A "passively-generated" enumerator is one for which the terms it enumerates
+   * are obtained by looking at its model value only. For passively-generated
+   * enumerators, it is the responsibility of the user of that enumerator (say
+   * a SygusModule) to block the current model value of it before asking for
+   * another value. By default, the Cegis module uses passively-generated
+   * enumerators and "conjecture-specific refinement" to rule out models
+   * for passively-generated enumerators.
+   *
+   * On the other hand, an "actively-generated" enumerator is one for which the
+   * terms it enumerates are not necessarily a subset of the model values the
+   * enumerator takes. Actively-generated enumerators are centrally managed by
+   * SynthConjecture. The user of actively-generated enumerators are prohibited
+   * from influencing its model value. For example, conjecture-specific
+   * refinement in Cegis is not applied to actively-generated enumerators.
+   */
+  bool isPassiveEnumerator(Node e) const;
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
   /** Register symmetry breaking lemma
@@ -99,12 +157,13 @@ class TermDbSygus {
    *
    * tn : the (sygus datatype) type that lem applies to, i.e. the
    * type of terms that lem blocks models for,
-   * sz : the minimum size of terms that the lem blocks.
-   *
-   * Notice that the symmetry breaking lemma template should be relative to x,
-   * where x is returned by the call to getFreeVar( tn, 0 ) in this class.
+   * sz : the minimum size of terms that the lem blocks,
+   * isTempl : if this flag is false, then lem is a (concrete) lemma.
+   * If this flag is true, then lem is a symmetry breaking lemma template
+   * over x, where x is returned by the call to getFreeVar( tn, 0 ).
    */
-  void registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz);
+  void registerSymBreakLemma(
+      Node e, Node lem, TypeNode tn, unsigned sz, bool isTempl = true);
   /** Has symmetry breaking lemmas been added for any enumerator? */
   bool hasSymBreakLemmas(std::vector<Node>& enums) const;
   /** Get symmetry breaking lemmas
@@ -117,6 +176,8 @@ class TermDbSygus {
   TypeNode getTypeForSymBreakLemma(Node lem) const;
   /** Get the minimum size of terms symmetry breaking lemma lem applies to */
   unsigned getSizeForSymBreakLemma(Node lem) const;
+  /** Returns true if lem is a lemma template, false if lem is a lemma */
+  bool isSymBreakLemmaTemplate(Node lem) const;
   /** Clear information about symmetry breaking lemmas for enumerator e */
   void clearSymBreakLemmas(Node e);
   //------------------------------end enumerators
@@ -230,6 +291,11 @@ class TermDbSygus {
    */
   TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
+  /**
+   * Get type information about sygus datatype type tn. The type tn should be
+   * (a subfield type of) a type that has been registered to this class.
+   */
+  SygusTypeInfo& getTypeInfo(TypeNode tn);
 
   /** print to sygus stream n on trace c */
   static void toStreamSygus(const char* c, Node n);
@@ -252,7 +318,7 @@ class TermDbSygus {
   //------------------------------enumerators
   /** mapping from enumerator terms to the conjecture they are associated with
    */
-  std::map<Node, CegConjecture*> d_enum_to_conjecture;
+  std::map<Node, SynthConjecture*> d_enum_to_conjecture;
   /** mapping from enumerator terms to the function-to-synthesize they are
    * associated with 
    */
@@ -273,6 +339,14 @@ class TermDbSygus {
   std::map<Node, TypeNode> d_sb_lemma_to_type;
   /** mapping from symmetry breaking lemmas to size */
   std::map<Node, unsigned> d_sb_lemma_to_size;
+  /** mapping from symmetry breaking lemmas to whether they are templates */
+  std::map<Node, bool> d_sb_lemma_to_isTempl;
+  /** enumerators to whether they are actively-generated */
+  std::map<Node, bool> d_enum_active_gen;
+  /** enumerators to whether they are variable agnostic */
+  std::map<Node, bool> d_enum_var_agnostic;
+  /** enumerators to whether they are basic */
+  std::map<Node, bool> d_enum_basic;
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
@@ -293,9 +367,7 @@ class TermDbSygus {
   /** cache of getProxyVariable */
   std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
   //-----------------------------end conversion from sygus to builtin
-
   // TODO :issue #1235 : below here needs refactor
-
  public:
   Node d_true;
   Node d_false;
@@ -306,90 +378,28 @@ class TermDbSygus {
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
  private:
-  // information for sygus types
-  std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
-  std::map<TypeNode, std::vector<Node> > d_var_list;
-  std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
-  std::map<TypeNode, std::map<Kind, int> > d_kinds;
-  std::map<TypeNode, std::map<int, Node> > d_arg_const;
-  std::map<TypeNode, std::map<Node, int> > d_consts;
-  std::map<TypeNode, std::map<Node, int> > d_ops;
-  std::map<TypeNode, std::map<int, Node> > d_arg_ops;
-  std::map<TypeNode, std::map<Node, Node> > d_semantic_skolem;
-  // grammar information
-  // root -> type -> _
   /**
-   * For each sygus type t1, this maps datatype types t2 to the smallest size of
-   * a term of type t1 that includes t2 as a subterm. For example, for grammar:
-   *   A -> B+B | 0 | B-D
-   *   B -> C+C
-   *   ...
-   * we have that d_min_type_depth[A] = { A -> 0, B -> 1, C -> 2, D -> 1 }.
+   * Maps types that we have called registerSygusType to a flag indicating
+   * whether that type is a sygus datatype type. Sygus datatype types that
+   * are in this map have initialized type information stored in the map below.
    */
-  std::map<TypeNode, std::map<TypeNode, unsigned> > d_min_type_depth;
-  // std::map< TypeNode, std::map< Node, std::map< std::map< int, bool > > >
-  // d_consider_const;
-  // type -> cons -> _
-  std::map<TypeNode, unsigned> d_min_term_size;
-  std::map<TypeNode, std::map<unsigned, unsigned> > d_min_cons_term_size;
+  std::map<TypeNode, bool> d_registerStatus;
+  /**
+   * The type information for each sygus datatype type that has been registered
+   * to this class.
+   */
+  std::map<TypeNode, SygusTypeInfo> d_tinfo;
   /** a cache for getSelectorWeight */
   std::map<TypeNode, std::map<Node, unsigned> > d_sel_weight;
-  /**
-   * For each sygus type, the index of the "any constant" constructor, if it
-   * has one.
-   */
-  std::map<TypeNode, unsigned> d_sym_cons_any_constant;
-  /**
-   * Whether any subterm of this type contains a symbolic constructor. This
-   * corresponds to whether sygus repair techniques will ever have any effect
-   * for this type.
-   */
-  std::map<TypeNode, bool> d_has_subterm_sym_cons;
 
  public:  // general sygus utilities
   bool isRegistered(TypeNode tn) const;
-  // get the minimum depth of type in its parent grammar
-  unsigned getMinTypeDepth( TypeNode root_tn, TypeNode tn );
-  // get the minimum size for a constructor term
-  unsigned getMinTermSize( TypeNode tn );
-  unsigned getMinConsTermSize( TypeNode tn, unsigned cindex );
   /** get the weight of the selector, where tn is the domain of sel */
   unsigned getSelectorWeight(TypeNode tn, Node sel);
-  /** get subfield types
-   *
-   * This adds all "subfield types" of tn to sf_types. A type tnc is a subfield
-   * type of tn if there exists a selector chain S1( ... Sn( x )...) that has
-   * type tnc, where x has type tn. In other words, tnc is the type of some
-   * subfield of terms of type tn, at any depth.
-   */
-  void getSubfieldTypes(TypeNode tn, std::vector<TypeNode>& sf_types);
-
- public:
-  int getKindConsNum( TypeNode tn, Kind k );
-  int getConstConsNum( TypeNode tn, Node n );
-  int getOpConsNum( TypeNode tn, Node n );
-  bool hasKind( TypeNode tn, Kind k );
-  bool hasConst( TypeNode tn, Node n );
-  bool hasOp( TypeNode tn, Node n );
-  Node getConsNumConst( TypeNode tn, int i );
-  Node getConsNumOp( TypeNode tn, int i );
-  Kind getConsNumKind( TypeNode tn, int i );
-  bool isKindArg( TypeNode tn, int i );
-  bool isConstArg( TypeNode tn, int i );
   /** get arg type */
   TypeNode getArgType(const DatatypeConstructor& c, unsigned i) const;
-  /** is type match */
+  /** Do constructors c1 and c2 have the same type? */
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
-  /**
-   * Get the index of the "any constant" constructor of type tn if it has one,
-   * or returns -1 otherwise.
-   */
-  int getAnyConstantConsNum(TypeNode tn) const;
-  /** has subterm symbolic constructor
-   *
-   * Returns true if any subterm of type tn can be a symbolic constructor.
-   */
-  bool hasSubtermSymbolicCons(TypeNode tn) const;
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** can construct kind
@@ -418,17 +428,9 @@ class TermDbSygus {
                         bool aggr = false);
 
   TypeNode getSygusTypeForVar( Node v );
-  Node sygusSubstituted( TypeNode tn, Node n, std::vector< Node >& args );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );
-  /** given a term, construct an equivalent smaller one that respects syntax */
-  Node minimizeBuiltinTerm( Node n );
-  /** given a term, expand it into more basic components */
-  Node expandBuiltinTerm( Node n );
-  /** get comparison kind */
-  Kind getComparisonKind( TypeNode tn );
-  Kind getPlusKind( TypeNode tn, bool is_neg = false );
   /** involves div-by-zero */
   bool involvesDivByZero( Node n );
   /** get anchor */
@@ -467,4 +469,4 @@ class TermDbSygus {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

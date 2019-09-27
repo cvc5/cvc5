@@ -2,9 +2,9 @@
 /*! \file theory_arrays.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Tim King
+ **   Morgan Deters, Clark Barrett, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
-#define __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
+#ifndef CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
+#define CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H
 
 #include <tuple>
 #include <unordered_map>
@@ -249,8 +249,6 @@ class TheoryArrays : public Theory {
   // NOTIFICATIONS
   /////////////////////////////////////////////////////////////////////////////
 
- public:
-  Node getNextDecisionRequest(unsigned& priority) override;
 
   void presolve() override;
   void shutdown() override {}
@@ -455,6 +453,37 @@ class TheoryArrays : public Theory {
   /** An equality-engine callback for proof reconstruction */
   ArrayProofReconstruction d_proofReconstruction;
 
+  /**
+   * The decision strategy for the theory of arrays, which calls the
+   * getNextDecisionEngineRequest function below.
+   */
+  class TheoryArraysDecisionStrategy : public DecisionStrategy
+  {
+   public:
+    TheoryArraysDecisionStrategy(TheoryArrays* ta);
+    /** initialize */
+    void initialize() override;
+    /** get next decision request */
+    Node getNextDecisionRequest() override;
+    /** identify */
+    std::string identify() const override;
+
+   private:
+    /** pointer to the theory of arrays */
+    TheoryArrays* d_ta;
+  };
+  /** an instance of the above decision strategy */
+  std::unique_ptr<TheoryArraysDecisionStrategy> d_dstrat;
+  /** Have we registered the above strategy? (context-independent) */
+  bool d_dstratInit;
+  /** get the next decision request
+   *
+   * If the "arrays-eager-index" option is enabled, then whenever a
+   * read-over-write lemma is generated, a decision request is also generated
+   * for the comparison between the indexes that appears in the lemma.
+   */
+  Node getNextDecisionRequest();
+
  public:
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
@@ -464,4 +493,4 @@ class TheoryArrays : public Theory {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */
+#endif /* CVC4__THEORY__ARRAYS__THEORY_ARRAYS_H */

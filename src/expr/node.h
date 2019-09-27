@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,8 @@
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef __CVC4__NODE_H
-#define __CVC4__NODE_H
+#ifndef CVC4__NODE_H
+#define CVC4__NODE_H
 
 #include <stdint.h>
 
@@ -51,12 +51,6 @@ namespace CVC4 {
 
 class TypeNode;
 class NodeManager;
-
-namespace expr {
-  namespace pickle {
-    class PicklerPrivate;
-  }/* CVC4::expr::pickle namespace */
-}/* CVC4::expr namespace */
 
 template <bool ref_count>
 class NodeTemplate;
@@ -139,7 +133,7 @@ typedef NodeTemplate<true> Node;
  *
  * More guidelines on when to use TNodes is available in the CVC4
  * Developer's Guide:
- * http://goedel.cims.nyu.edu/wiki/Developer%27s_Guide#Dealing_with_expressions_.28Nodes_and_TNodes.29
+ * http://cvc4.cs.stanford.edu/wiki/Developer%27s_Guide#Dealing_with_expressions_.28Nodes_and_TNodes.29
  */
 typedef NodeTemplate<false> TNode;
 
@@ -182,7 +176,6 @@ class NodeTemplate {
    */
   friend class expr::NodeValue;
 
-  friend class expr::pickle::PicklerPrivate;
   friend class expr::ExportPrivate;
 
   /** A convenient null-valued encapsulated pointer */
@@ -423,7 +416,7 @@ public:
    * only be used once.  For more details see the 4/27/2010 CVC4
    * developer's meeting notes at:
    *
-   * http://goedel.cims.nyu.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
+   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
    */
   // bool containsDecision(); // is "atomic"
   // bool properlyContainsDecision(); // maybe not atomic but all children are
@@ -459,7 +452,7 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
-  
+
   /**
    * Returns true if this node represents a nullary operator
    */
@@ -467,13 +460,15 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
   }
-  
+
+  /**
+   * Returns true if this node represents a closure, that is an expression
+   * that binds variables.
+   */
   inline bool isClosure() const {
     assertTNodeNotExpired();
-    return getKind() == kind::LAMBDA ||
-           getKind() == kind::FORALL ||
-           getKind() == kind::EXISTS ||
-           getKind() == kind::REWRITE_RULE;
+    return getKind() == kind::LAMBDA || getKind() == kind::FORALL
+           || getKind() == kind::EXISTS || getKind() == kind::CHOICE;
   }
 
   /**
@@ -487,7 +482,7 @@ public:
 
   /**
    * Returns a node representing the operator of this expression.
-   * If this is an APPLY, then the operator will be a functional term.
+   * If this is an APPLY_UF, then the operator will be a functional term.
    * Otherwise, it will be a node with kind BUILTIN.
    */
   NodeTemplate<true> getOperator() const;
@@ -1271,7 +1266,7 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
 
 /**
  * Returns a node representing the operator of this expression.
- * If this is an APPLY, then the operator will be a functional term.
+ * If this is an APPLY_UF, then the operator will be a functional term.
  * Otherwise, it will be a node with kind BUILTIN.
  */
 template <bool ref_count>
@@ -1568,4 +1563,4 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_H */
+#endif /* CVC4__NODE_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__BASE__QUANTIFIERS_MODES_H
-#define __CVC4__BASE__QUANTIFIERS_MODES_H
+#ifndef CVC4__BASE__QUANTIFIERS_MODES_H
+#define CVC4__BASE__QUANTIFIERS_MODES_H
 
 #include <iostream>
 
@@ -53,14 +53,10 @@ enum LiteralMatchMode {
 };
 
 enum MbqiMode {
-  /** mbqi from CADE 24 paper */
-  MBQI_GEN_EVAL,
   /** no mbqi */
   MBQI_NONE,
   /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
-  /** abstract mbqi algorithm */
-  MBQI_ABS,
   /** mbqi trust (produce no instantiations) */
   MBQI_TRUST,
 };
@@ -262,6 +258,40 @@ enum SygusInvTemplMode {
   SYGUS_INV_TEMPL_MODE_POST,
 };
 
+enum SygusActiveGenMode
+{
+  /** do not use actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_NONE,
+  /** use basic enumeration for actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_ENUM_BASIC,
+  /** use optimized enumeration actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_ENUM,
+  /** use variable-agnostic enumerators */
+  SYGUS_ACTIVE_GEN_VAR_AGNOSTIC,
+  /** internally decide the best policy for each enumerator */
+  SYGUS_ACTIVE_GEN_AUTO,
+};
+
+enum SygusQueryDumpFilesMode
+{
+  /** do not dump query files */
+  SYGUS_QUERY_DUMP_NONE,
+  /** dump all query files */
+  SYGUS_QUERY_DUMP_ALL,
+  /** dump query files that were not solved by the subsolver */
+  SYGUS_QUERY_DUMP_UNSOLVED,
+};
+
+enum SygusFilterSolMode
+{
+  /** do not filter solutions */
+  SYGUS_FILTER_SOL_NONE,
+  /** filter logically stronger solutions */
+  SYGUS_FILTER_SOL_STRONG,
+  /** filter logically weaker solutions */
+  SYGUS_FILTER_SOL_WEAK,
+};
+
 enum MacrosQuantMode {
   /** infer all definitions */
   MACROS_QUANT_MODE_ALL,
@@ -296,4 +326,4 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::InstWhenMode mo
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BASE__QUANTIFIERS_MODES_H */
+#endif /* CVC4__BASE__QUANTIFIERS_MODES_H */

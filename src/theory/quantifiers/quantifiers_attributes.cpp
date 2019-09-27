@@ -2,9 +2,9 @@
 /*! \file quantifiers_attributes.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Tim King
+ **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/rewrite_engine.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
@@ -213,27 +213,18 @@ bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
 
 void QuantAttributes::computeAttributes( Node q ) {
   computeQuantAttributes( q, d_qattr[q] );
-  if( !d_qattr[q].d_rr.isNull() ){
-    if( d_quantEngine->getRewriteEngine()==NULL ){
-      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
-    }
-    //set rewrite engine as owner
-    d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine(), 2 );
-  }
-  if( d_qattr[q].isFunDef() ){
-    Node f = d_qattr[q].d_fundef_f;
+  QAttributes& qa = d_qattr[q];
+  if (qa.isFunDef())
+  {
+    Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
       Message() << "Cannot define function " << f << " more than once." << std::endl;
       AlwaysAssert(false);
     }
     d_fun_defs[f] = true;
   }
-  if( d_qattr[q].d_sygus ){
-    if( d_quantEngine->getCegInstantiation()==NULL ){
-      Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
-    }
-    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
-  }
+  // set ownership of quantified formula q based on the computed attributes
+  d_quantEngine->setOwner(q, qa);
 }
 
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
@@ -265,6 +256,14 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           //Assert( q[1][0].getKind()==FORALL );
           Trace("quant-attr") << "Attribute : sygus : " << q << std::endl;
           qa.d_sygus = true;
+        }
+        if (avar.hasAttribute(SygusSideConditionAttribute()))
+        {
+          qa.d_sygusSideCondition =
+              avar.getAttribute(SygusSideConditionAttribute());
+          Trace("quant-attr")
+              << "Attribute : sygus side condition : "
+              << qa.d_sygusSideCondition << " : " << q << std::endl;
         }
         if (avar.getAttribute(QuantNameAttribute()))
         {

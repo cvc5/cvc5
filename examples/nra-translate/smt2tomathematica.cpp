@@ -2,9 +2,9 @@
 /*! \file smt2tomathematica.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Andrew Reynolds
+ **   Dejan Jovanovic, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,12 +22,8 @@
 #include <typeinfo>
 #include <vector>
 
-#include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "options/options.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "smt/command.h"
+#include <cvc4/api/cvc4cpp.h>
+#include <cvc4/cvc4.h>
 
 using namespace std;
 using namespace CVC4;

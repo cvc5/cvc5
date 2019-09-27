@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -64,7 +65,11 @@ void QuantifiersRewriter::addNodeToOrBuilder( Node n, NodeBuilder<>& t ){
   }
 }
 
-void QuantifiersRewriter::computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited ){
+void QuantifiersRewriter::computeArgs(const std::vector<Node>& args,
+                                      std::map<Node, bool>& activeMap,
+                                      Node n,
+                                      std::map<Node, bool>& visited)
+{
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     if( n.getKind()==BOUND_VARIABLE ){
@@ -83,7 +88,10 @@ void QuantifiersRewriter::computeArgs( std::vector< Node >& args, std::map< Node
   }
 }
 
-void QuantifiersRewriter::computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n ) {
+void QuantifiersRewriter::computeArgVec(const std::vector<Node>& args,
+                                        std::vector<Node>& activeArgs,
+                                        Node n)
+{
   Assert( activeArgs.empty() );
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
@@ -97,7 +105,11 @@ void QuantifiersRewriter::computeArgVec( std::vector< Node >& args, std::vector<
   }
 }
 
-void QuantifiersRewriter::computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl ) {
+void QuantifiersRewriter::computeArgVec2(const std::vector<Node>& args,
+                                         std::vector<Node>& activeArgs,
+                                         Node n,
+                                         Node ipl)
+{
   Assert( activeArgs.empty() );
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
@@ -667,7 +679,28 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
           }
         }
       }
-    }else if( elimExtArith ){
+    }
+    else if (ret.getKind() == SELECT && ret[0].getKind() == STORE)
+    {
+      Node st = ret[0];
+      Node index = ret[1];
+      std::vector<Node> iconds;
+      std::vector<Node> elements;
+      while (st.getKind() == STORE)
+      {
+        iconds.push_back(index.eqNode(st[1]));
+        elements.push_back(st[2]);
+        st = st[0];
+      }
+      ret = nm->mkNode(SELECT, st, index);
+      // conditions
+      for (int i = (iconds.size() - 1); i >= 0; i--)
+      {
+        ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
+      }
+    }
+    else if( elimExtArith )
+    {
       if( ret.getKind()==INTS_DIVISION_TOTAL || ret.getKind()==INTS_MODULUS_TOTAL ){
         Node num = ret[0];
         Node den = ret[1];
@@ -709,25 +742,6 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
         }else{
           ret = ret[0].eqNode( intVar );
         }
-      }
-    }
-    else if (ret.getKind() == SELECT && ret[0].getKind() == STORE)
-    {
-      Node st = ret[0];
-      Node index = ret[1];
-      std::vector<Node> iconds;
-      std::vector<Node> elements;
-      while (st.getKind() == STORE)
-      {
-        iconds.push_back(index.eqNode(st[1]));
-        elements.push_back(st[2]);
-        st = st[0];
-      }
-      ret = nm->mkNode(SELECT, st, index);
-      // conditions
-      for (int i = (iconds.size() - 1); i >= 0; i--)
-      {
-        ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
       }
     }
     icache[prev] = ret;
@@ -878,7 +892,7 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
 }
 
 Node QuantifiersRewriter::getVarElimLitBv(Node lit,
-                                          std::vector<Node>& args,
+                                          const std::vector<Node>& args,
                                           Node& var)
 {
   if (Trace.isOn("quant-velim-bv"))
@@ -922,6 +936,52 @@ Node QuantifiersRewriter::getVarElimLitBv(Node lit,
     else
     {
       Trace("quant-velim-bv") << "...non-invertible path." << std::endl;
+    }
+  }
+
+  return Node::null();
+}
+
+Node QuantifiersRewriter::getVarElimLitString(Node lit,
+                                              const std::vector<Node>& args,
+                                              Node& var)
+{
+  Assert(lit.getKind() == EQUAL);
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0; i < 2; i++)
+  {
+    if (lit[i].getKind() == STRING_CONCAT)
+    {
+      for (unsigned j = 0, nchildren = lit[i].getNumChildren(); j < nchildren;
+           j++)
+      {
+        if (std::find(args.begin(), args.end(), lit[i][j]) != args.end())
+        {
+          var = lit[i][j];
+          Node slv = lit[1 - i];
+          std::vector<Node> preL(lit[i].begin(), lit[i].begin() + j);
+          std::vector<Node> postL(lit[i].begin() + j + 1, lit[i].end());
+          Node tpre = strings::utils::mkConcat(STRING_CONCAT, preL);
+          Node tpost = strings::utils::mkConcat(STRING_CONCAT, postL);
+          Node slvL = nm->mkNode(STRING_LENGTH, slv);
+          Node tpreL = nm->mkNode(STRING_LENGTH, tpre);
+          Node tpostL = nm->mkNode(STRING_LENGTH, tpost);
+          slv = nm->mkNode(
+              STRING_SUBSTR,
+              slv,
+              tpreL,
+              nm->mkNode(MINUS, slvL, nm->mkNode(PLUS, tpreL, tpostL)));
+          // forall x. r ++ x ++ t = s => P( x )
+          //   is equivalent to
+          // r ++ s' ++ t = s => P( s' ) where
+          // s' = substr( s, |r|, |s|-(|t|+|r|) ).
+          // We apply this only if r,t,s do not contain free variables.
+          if (!expr::hasFreeVar(slv))
+          {
+            return slv;
+          }
+        }
+      }
     }
   }
 
@@ -1016,6 +1076,23 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       }
     }
   }
+  else if (lit.getKind() == APPLY_TESTER && pol
+           && lit[0].getKind() == BOUND_VARIABLE && options::dtVarExpandQuant())
+  {
+    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit
+                         << std::endl;
+    Expr testerExpr = lit.getOperator().toExpr();
+    unsigned index = Datatype::indexOf(testerExpr);
+    Node s = datatypeExpand(index, lit[0], args);
+    if (!s.isNull())
+    {
+      vars.push_back(lit[0]);
+      subs.push_back(s);
+      Trace("var-elim-dt") << "...apply substitution " << s << "/" << lit[0]
+                           << std::endl;
+      return true;
+    }
+  }
   if (lit.getKind() == BOUND_VARIABLE)
   {
     std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit );
@@ -1056,10 +1133,19 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       }
     }
   }
-  if (lit.getKind() == EQUAL && lit[0].getType().isBitVector() && pol)
+  if (lit.getKind() == EQUAL && pol)
   {
     Node var;
-    Node slv = getVarElimLitBv(lit, args, var);
+    Node slv;
+    TypeNode tt = lit[0].getType();
+    if (tt.isBitVector())
+    {
+      slv = getVarElimLitBv(lit, args, var);
+    }
+    else if (tt.isString())
+    {
+      slv = getVarElimLitString(lit, args, var);
+    }
     if (!slv.isNull())
     {
       Assert(!var.isNull());
@@ -1067,7 +1153,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
           std::find(args.begin(), args.end(), var);
       Assert(ita != args.end());
       Trace("var-elim-quant")
-          << "Variable eliminate based on bit-vector inversion : " << var
+          << "Variable eliminate based on theory-specific solving : " << var
           << " -> " << slv << std::endl;
       Assert(!expr::hasSubterm(slv, var));
       Assert(slv.getType().isSubtypeOf(var.getType()));
@@ -1078,6 +1164,38 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
     }
   }
   return false;
+}
+
+Node QuantifiersRewriter::datatypeExpand(unsigned index,
+                                         Node v,
+                                         std::vector<Node>& args)
+{
+  if (!v.getType().isDatatype())
+  {
+    return Node::null();
+  }
+  std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);
+  if (ita == args.end())
+  {
+    return Node::null();
+  }
+  const Datatype& dt =
+      static_cast<DatatypeType>(v.getType().toType()).getDatatype();
+  Assert(index < dt.getNumConstructors());
+  const DatatypeConstructor& c = dt[index];
+  std::vector<Node> newChildren;
+  newChildren.push_back(Node::fromExpr(c.getConstructor()));
+  std::vector<Node> newVars;
+  for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
+  {
+    TypeNode tn = TypeNode::fromType(c.getArgType(j));
+    Node vn = NodeManager::currentNM()->mkBoundVar(tn);
+    newChildren.push_back(vn);
+    newVars.push_back(vn);
+  }
+  args.erase(ita);
+  args.insert(args.end(), newVars.begin(), newVars.end());
+  return NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, newChildren);
 }
 
 bool QuantifiersRewriter::getVarElim(Node n,
@@ -1176,9 +1294,9 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
         {
           // compute variables in itm->first, these are not eligible for
           // elimination
-          std::vector<Node> bvs;
-          TermUtil::getBoundVars(m.first, bvs);
-          for (TNode v : bvs)
+          std::unordered_set<Node, NodeHashFunction> fvs;
+          expr::getFreeVariables(m.first, fvs);
+          for (const Node& v : fvs)
           {
             Trace("var-elim-ineq-debug")
                 << "...ineligible " << v
@@ -1690,9 +1808,10 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
       Node newBody = body;
       NodeBuilder<> body_split(kind::OR);
       NodeBuilder<> tb(kind::OR);
-      for( unsigned i=0; i<body.getNumChildren(); i++ ){
-        Node trm = body[i];
-        if( TermUtil::containsTerms( body[i], args ) ){
+      for (const Node& trm : body)
+      {
+        if (expr::hasSubterm(trm, args))
+        {
           tb << trm;
         }else{
           body_split << trm;

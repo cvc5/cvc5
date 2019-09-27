@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__DATATYPE_H
-#define __CVC4__DATATYPE_H
+#ifndef CVC4__DATATYPE_H
+#define CVC4__DATATYPE_H
 
 #include <functional>
 #include <iostream>
@@ -151,17 +151,12 @@ class CVC4_PUBLIC DatatypeConstructorArg {
   Type getRangeType() const;
 
   /**
-   * Get the name of the type of this constructor argument
-   * (Datatype field).  Can be used for not-yet-resolved Datatypes
-   * (in which case the name of the unresolved type, or "[self]"
-   * for a self-referential type is returned).
-   */
-  std::string getTypeName() const;
-
-  /**
    * Returns true iff this constructor argument has been resolved.
    */
   bool isResolved() const;
+
+  /** prints this datatype constructor argument to stream */
+  void toStream(std::ostream& out) const;
 
  private:
   /** the name of this selector */
@@ -455,6 +450,9 @@ class CVC4_PUBLIC DatatypeConstructor {
    */
   const std::vector<DatatypeConstructorArg>* getArgs() const;
 
+  /** prints this datatype constructor to stream */
+  void toStream(std::ostream& out) const;
+
  private:
   /** the name of the constructor */
   std::string d_name;
@@ -693,8 +691,8 @@ public:
    * constructors.
    */
   void addSygusConstructor(Expr op,
-                           std::string& cname,
-                           std::vector<Type>& cargs,
+                           const std::string& cname,
+                           const std::vector<Type>& cargs,
                            std::shared_ptr<SygusPrintCallback> spc = nullptr,
                            int weight = -1);
 
@@ -937,6 +935,9 @@ public:
    */
   const std::vector<DatatypeConstructor>* getConstructors() const;
 
+  /** prints this datatype to stream */
+  void toStream(std::ostream& out) const;
+
  private:
   /** name of this datatype */
   std::string d_name;
@@ -1083,7 +1084,7 @@ class CVC4_PUBLIC DatatypeIndexConstant {
  public:
   DatatypeIndexConstant(unsigned index);
 
-  const unsigned getIndex() const { return d_index; }
+  unsigned getIndex() const { return d_index; }
   bool operator==(const DatatypeIndexConstant& uc) const
   {
     return d_index == uc.d_index;
@@ -1287,4 +1288,4 @@ inline DatatypeConstructor::const_iterator DatatypeConstructor::end() const
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__DATATYPE_H */
+#endif /* CVC4__DATATYPE_H */

@@ -1,0 +1,568 @@
+; LRAT Proof signature
+; LRAT format detailed in "Efficient Certified RAT Verification"
+; Link: https://www.cs.utexas.edu/~marijn/publications/lrat.pdf
+; Author: aozdemir
+; Depends On: sat.plf, smt.plf
+
+
+; A general note about the design of the side conditions:
+;  Some side-conditions make use of a _global assignment_ encoded in
+;  0 (true) / 1 (false) marks on variables.
+
+; Unit (https://en.wikipedia.org/wiki/Unit_type)
+; For functions that don't return anything
+(declare Unit type) ; The type with only one value (like `void` in C)
+(declare unit Unit) ; That value
+
+; Boolean operator (not short-circuiting)
+(program bool_or ((l bool) (r bool)) bool (match l (ff r) (tt tt)))
+(program bool_and ((l bool) (r bool)) bool (match l (tt r) (ff ff)))
+(program bool_not ((b bool)) bool (match b (tt ff) (ff tt)))
+(program bool_eq ((l bool) (r bool)) bool
+         (match l
+                (tt (match r
+                           (tt tt)
+                           (ff ff)))
+                (ff (match r
+                           (tt ff)
+                           (ff tt)))))
+
+; =================== ;
+; Working CNF formula ;
+; =================== ;
+
+; Represents a CNF formula as a map from clause indices to clauses
+; Should be sorted ascending, always!
+; Here, and for all collections, the suffix "n" denotes the empty collection and
+; the suffix "c" denotes the constructor for the collection in the style of lisp's
+; "cons cells"
+(declare CMap type)
+(declare CMapn CMap)
+(declare CMapc (! i mpz (! c clause (! r CMap CMap))))
+
+; ================= ;
+; LRAT Proof Format ;
+; ================= ;
+
+; CI lists are lists of clause indices.
+; They represent clauses to delete.
+; They must be sorted.
+(declare CIList type)
+(declare CIListn CIList)
+(declare CIListc (! z mpz (! zs CIList CIList)))
+
+; Traces are a list of clause indices into the working CNF formula
+; They represent the clauses that will be unit in a unit propegation to bottom
+; Thus their elements are *not* in value order.
+(declare Trace type)
+(declare Tracen Trace)
+(declare Tracec (! z mpz (! zs Trace Trace)))
+
+; RAT Hint list
+; Each hint is
+;   * An index indicating a clause in the working CNF formula to resolve with
+;   * A trace indicating how UP should be done after that resolution
+(declare RATHints type)
+(declare RATHintsn RATHints)
+(declare RATHintsc
+         (! target mpz
+            (! trace Trace
+               (! rest RATHints
+                  RATHints))))
+
+; LRAT proof
+(declare LRATProof type)
+(declare LRATProofn LRATProof)
+; Deletion (includes a list of clause indices to delete)
+(declare LRATProofd (! cis CIList (! rest LRATProof LRATProof)))
+; Addition: a clause index, a clause, RUP trace for that clause, and hints for
+; what resolutions should happen then, and how those resolutions imply bottom
+; via UP.
+; If the list of hints is empty, then bottom is already implied.
+(declare LRATProofa
+         (! ci mpz
+            (! c clause
+               (! t Trace
+                  (! h RATHints
+                     (! rest LRATProof
+                        LRATProof))))))
+
+; ========================================== ;
+; Functional programs for manipulating types ;
+; ========================================== ;
+
+; Are two literal equal?
+(program lit_eq ((l1 lit) (l2 lit)) bool
+         (match l1
+                ((pos v1) (match l2
+                                 ((pos v2) (ifequal v1 v2 tt ff))
+                                 ((neg v2) ff)))
+                ((neg v1) (match l2
+                                 ((pos v2) ff)
+                                 ((neg v2) (ifequal v1 v2 tt ff))))))
+
+; Remove **all** occurences of a literal from clause
+(program clause_remove_all ((l lit) (c clause)) clause
+         (match c
+                (cln cln)
+                ((clc l' c')
+                 (let rest_res (clause_remove_all l c')
+                   (match (lit_eq l l')
+                          (tt rest_res)
+                          (ff (clc l' rest_res)))))))
+
+; Return the clause's first  literal
+; fails on an empty clause
+(program clause_head ((c clause)) lit
+         (match c
+                (cln (fail lit))
+                ((clc l c') l)))
+
+; Does a clause contain some literal?
+(program clause_contains_lit ((c clause) (l lit)) bool
+         (match c
+                ((clc l' c') (match (lit_eq l l')
+                                    (tt tt)
+                                    (ff (clause_contains_lit c' l))))
+                (cln ff)))
+
+; Append two traces
+(program Trace_concat ((t1 Trace) (t2 Trace)) Trace
+         (match t1
+                (Tracen t2)
+                ((Tracec h1 r1) (Tracec h1 (Trace_concat r1 t2)))))
+
+; Return whether a list of RAT hits is empty
+(program RATHints_is_empty ((h RATHints)) bool
+         (match h
+                (RATHintsn tt)
+                ((RATHintsc a b c) ff)))
+
+; Insert into a CMap, preserving order
+(program CMap_insert ((i mpz) (c clause) (cs CMap)) CMap
+         (match cs
+                (CMapn (CMapc i c CMapn))
+                ((CMapc i' c' r)
+                 (mp_ifneg (mpz_sub i i')
+                        (CMapc i c cs)
+                        (CMapc i' c' (CMap_insert i c r))))))
+
+; Get from a CMap
+(program CMap_get ((i mpz) (cs CMap)) clause
+         (match cs
+                (CMapn (fail clause))
+                ((CMapc i' c r)
+                 (mp_ifzero (mpz_sub i i')
+                        c
+                        (CMap_get i r)))))
+
+; Remove from CMap. Only removes one element.
+(program CMap_remove ((i mpz) (cs CMap)) CMap
+         (match cs
+                (CMapn CMapn)
+                ((CMapc i' c r)
+                 (mp_ifzero (mpz_sub i i')
+                        r
+                        (CMapc i' c (CMap_remove i r))))))
+
+; Remove many indices from a CMap. Asuumes the input list is sorted.
+(program CMap_remove_many ((is CIList) (cs CMap)) CMap
+         (match
+           is
+           (CIListn cs)
+           ((CIListc i is')
+            (match
+              cs
+              (CMapn (fail CMap)) ; All deletion indices must be valid!
+              ((CMapc ci c cs')
+               (mp_ifzero (mpz_sub i ci)
+                       (CMap_remove_many is' cs')
+                       (CMapc ci c (CMap_remove_many is cs'))))))))
+
+; Given a map of clauses and a literal, return all indices in the map
+; corresponsing to clauses that could resolve against that literal. i.e. for x,
+; return the indices of all clauses containing x.
+(program collect_resolution_targets_w_lit ((cs CMap) (l lit)) CIList
+         (match cs
+                (CMapn CIListn)
+                ((CMapc i c cs')
+                 (let rest_solution (collect_resolution_targets_w_lit cs' l)
+                   (match (clause_contains_lit c l)
+                        (tt (CIListc i rest_solution))
+                        (ff rest_solution))))))
+
+; Given a clause and a maps of clauses, return all indices in the map
+; corresponding to clauses which could resolve with this one on its first
+; literal
+(program collect_resolution_targets ((cs CMap) (c clause)) CIList
+         (collect_resolution_targets_w_lit cs (lit_flip (clause_head c))))
+
+; Is this clause a tautology?
+; Internally uses mark 5 to flag variables that occur (+)
+; and mark 6 to flag variables that occur (-)
+(program is_t ((c clause)) bool
+         (match
+           c
+           (cln ff)
+           ((clc l c') (match
+                         l
+                         ((pos v)
+                          (ifmarked5
+                            v
+                            (is_t c')
+                            (ifmarked6
+                              v
+                              tt
+                              (do
+                                (markvar5 v)
+                                (let r (is_t c') (do (markvar5 v) r))))))
+                         ((neg v)
+                          (ifmarked6
+                            v
+                            (is_t c')
+                            (ifmarked5
+                              v
+                              tt
+                              (do
+                                (markvar6 v)
+                                (let r (is_t c') (do (markvar6 v) r))))))))))
+
+; ===================================================================== ;
+; Programs for manipulating and querying the global variable assignment ;
+; ===================================================================== ;
+
+; This assignment marks values of type `var`.
+; It marks a variable with 1 if that variable is true
+; It marks a variable with 2 if that variable is false
+; A variable should not be marked with both!
+; A variable may be marked with neither, indicating that variable is presently
+; unassigned, which we call "floating".
+
+; Mark the variable within to satisfy this literal.
+; fails if the literal is already UNSAT
+(program lit_mk_sat ((l lit)) Unit
+         (match l
+                ((pos v) (ifmarked2 v
+                                    (fail Unit)
+                                    (ifmarked1 v unit (do (markvar1 v) unit))))
+                ((neg v) (ifmarked1 v
+                                    (fail Unit)
+                                    (ifmarked2 v unit (do (markvar2 v) unit))))))
+
+; Mark the variable within to falsify this literal.
+; fails is the literal is already SAT
+(program lit_mk_unsat ((l lit)) Unit
+         (match l
+                ((neg v) (ifmarked2 v
+                                    (fail Unit)
+                                    (ifmarked1 v unit (do (markvar1 v) unit))))
+                ((pos v) (ifmarked1 v
+                                    (fail Unit)
+                                    (ifmarked2 v unit (do (markvar2 v) unit))))))
+
+; Unmarks the variable within a satified literal to render it neither satified nor falsified
+; fails if the literal is not already satisfied
+(program lit_un_mk_sat ((l lit)) Unit
+         (match l
+                ((pos v) (ifmarked1 v (do (markvar1 v) unit) (fail Unit)))
+                ((neg v) (ifmarked2 v (do (markvar2 v) unit) (fail Unit)))))
+
+; Unmarks the variable within a falsified literal to render it neither satified nor falsified
+; fails if the literal is not already falsified
+(program lit_un_mk_unsat ((l lit)) Unit
+         (match l
+                ((pos v) (ifmarked2 v (do (markvar2 v) unit) (fail Unit)))
+                ((neg v) (ifmarked1 v (do (markvar1 v) unit) (fail Unit)))))
+
+;  Is a literal presently satisfied?
+(program lit_is_sat ((l lit)) bool
+         (match l
+                ((pos v) (ifmarked1 v tt ff))
+                ((neg v) (ifmarked2 v tt ff))))
+
+;  Is a literal presently falsified?
+(program lit_is_unsat ((l lit)) bool
+         (match l
+                ((pos v) (ifmarked2 v tt ff))
+                ((neg v) (ifmarked1 v tt ff))))
+
+;  Is a  literal presently neither satisfied nor falsified?
+(program lit_is_floating ((l lit)) bool
+         (bool_not (bool_or (lit_is_sat l) (lit_is_unsat l))))
+
+; Does this clause contain a floating literal?
+(program clause_has_floating ((c clause)) bool
+         (match c
+                (cln ff)
+                ((clc l c') (match (lit_is_floating l)
+                                   (tt tt)
+                                   (ff (clause_has_floating c'))))))
+
+; Is this clause falsified? i.e. are all its clauses falsified?
+(program clause_is_unsat ((c clause)) bool
+         (match c
+                (cln tt)
+                ((clc l c') (match (lit_is_unsat l)
+                                   (tt (clause_is_unsat c'))
+                                   (ff ff)))))
+
+; Is this clause presently satisfied?
+(program clause_is_sat ((c clause)) bool
+         (match c
+                (cln ff)
+                ((clc l c') (match (lit_is_sat l)
+                                   (tt tt)
+                                   (ff (clause_is_sat c'))))))
+
+; Falsify **all** contained literals.
+; Fails on a tautological clause
+(program clause_mk_all_unsat ((c clause)) Unit
+         (match c
+                (cln unit)
+                ((clc l c') (do
+                              (lit_mk_unsat l)
+                              (clause_mk_all_unsat c')))))
+
+; Unfalsifies **all** contained literals
+; Fails on a clause with duplicate literals
+(program clause_un_mk_all_unsat ((c clause)) Unit
+         (match c
+                (cln unit)
+                ((clc l c') (do
+                              (lit_un_mk_unsat l)
+                              (clause_un_mk_all_unsat c')))))
+
+; Get the first floating literal out of this clause.
+; fails if there are no floating literals
+(program clause_first_floating ((c clause)) lit
+         (match c
+                (cln (fail lit))
+                ((clc l c') (match (lit_is_floating l)
+                                   (tt l)
+                                   (ff (clause_first_floating c'))))))
+
+; ===================================== ;
+; High-Level Programs for LRAT Checking ;
+; ===================================== ;
+
+; The return type for verifying that a clause is unit and modifying the global
+; assignment to satisfy it
+(declare MarkResult type)
+; The clause is unit, and this is the (previoiusly floating) literal that is now satified.
+(declare MRUnit (! l lit MarkResult))
+; The clause was unsat!
+(declare MRUnsat MarkResult)
+; The clauss was already satisfied.
+(declare MRSat MarkResult)
+; The clause had multiple floating literals.
+(declare MRNotUnit MarkResult)
+
+; Determine wether this clause is sat, unsat, unit, or not unit, and if it is
+; unit, it modifies the global assignment to satisfy the clause, and returns
+; the literal that was made SAT by the new mark.
+;
+; If `c` is a tautology, reports `MRSat`, since it is (trivially) satisfied.
+(program clause_check_unit_and_maybe_mark ((c clause)) MarkResult
+         (match (clause_is_sat c)
+                (tt MRSat)
+                (ff (match (clause_is_unsat c)
+                           (tt MRUnsat)
+                           (ff (match (is_t c)
+                                      (tt MRSat)
+                                      (ff ; Dedent
+         (match (clause_has_floating c)
+                (tt (let first (clause_first_floating c)
+                      (do (lit_mk_sat first)
+                        (match (clause_has_floating c)
+                               (tt (do (lit_un_mk_sat first) MRNotUnit))
+                                      (ff (MRUnit first))))))
+                ; Unreachable. If clause is not floating it must have been SAT or UNSAT.
+                (ff (fail MarkResult))
+                ))))))))
+
+; The return type for the process of Trace-guided unit propegation
+(declare UPResult type)
+; The trace guided unit propegation correctly, but that unit propegation did not end in an empty clause
+(declare UPR_Ok UPResult)
+; The trace guided unit propegation correctly to an empty clause
+(declare UPR_Bottom UPResult)
+; The trace was malformed,
+;; i.e. at some point indicates that a non-unit, non-empty clause should be examined
+(declare UPR_Broken UPResult)
+
+; Execute the unit propegation indicated by the trace. Report whether that
+; unit propegation succeeds and produces bottom, fails, or succeeds but does
+; not produce bottom.
+;
+; If the trace tries to propegate through a TAUT clause, fails.
+(program do_up ((cs CMap) (t Trace)) UPResult
+         (match
+           t
+           (Tracen UPR_Ok)
+           ((Tracec i r) (match (clause_check_unit_and_maybe_mark (CMap_get i cs))
+                                ((MRUnit l)
+                                 (let res (do_up cs r)
+                                   (do (lit_un_mk_sat l) res)))
+                                (MRUnsat UPR_Bottom)
+                                (MRSat UPR_Broken)
+                                (MRNotUnit UPR_Broken)))))
+
+
+; Determine whether a list of indices agrees with the list of indices latent in
+; a list of hints. Both lists should be sorted.
+(program resolution_targets_match (
+                                   (computed CIList)
+                                   (given RATHints)) bool
+         (match given
+                (RATHintsn
+                  (match computed
+                         (CIListn tt)
+                         ((CIListc a b) ff)))
+                ((RATHintsc hint_idx t given')
+                 (match computed
+                        ((CIListc comp_idx computed')
+                         (mp_ifzero (mpz_sub hint_idx comp_idx)
+                                    (resolution_targets_match computed' given')
+                                    (ff)))
+                        (CIListn ff)))))
+
+
+; Determines whether `t` is a witness that `c` is an Assymetric Tautology in `cs`.
+;
+; Does unit propegation in the formula `cs`, beginning by falsifying
+; all literals in `c`, and then looking at the clauses indicated by `t`.
+; Assumes no marks, and cleans up marks afterwards.
+;
+; Fails if `c` has duplicates
+(program is_at_trace ((cs CMap) (c clause) (t Trace)) UPResult
+         (match (is_t c)
+                (ff
+                  (do
+                    (clause_mk_all_unsat c)
+                    (let result (do_up cs t)
+                      (do (clause_un_mk_all_unsat c) result))))
+                (tt
+                  UPR_Bottom)))
+
+
+
+; List of (clause, trace) pairs
+(declare CTPairs type)
+(declare CTPn CTPairs)
+(declare CTPc (! c clause (! t Trace (! rest CTPairs CTPairs))))
+
+; For each RAT hint, construct the pseudo-resolvant for that hint, and the net
+; trace for that hint. Return a list of these.
+;
+; Pseudo resolvant: if l v C is the clause, and D is another clause containing
+; ~l, then l v C v (D \ ~l) is the pseudo-resolvant, which is the actual
+; resolant, plut l, which would be implied by UP.
+;
+; The net trace is the global trace (`t`), plut the trace for that specific
+; resolvant.
+(program construct_ct_pairs (
+                             (cs CMap)
+                             (c clause)
+                             (t Trace)
+                             (hints RATHints)
+                            ) CTPairs
+         (match hints
+                (RATHintsn CTPn)
+                ((RATHintsc i ht hints')
+                 (CTPc
+                   (clause_dedup (clause_append c
+                                  (clause_remove_all (lit_flip (clause_head c))
+                                                     (CMap_get i cs))))
+                   (Trace_concat t ht)
+                   (construct_ct_pairs cs c t hints')))))
+
+; Goes through a list of clause, trace pairs and verifies that each clause is
+; an AT via that trace.
+; Fails if any putative AT is a TAUT or contains duplicates
+(program are_all_at_trace (
+                     (cs CMap)
+                     (l CTPairs)
+                    ) UPResult
+         (match l
+                (CTPn UPR_Bottom)
+                ((CTPc c t l')
+                 (match (is_at_trace cs c t)
+                        (UPR_Ok UPR_Ok)
+                        (UPR_Broken UPR_Broken)
+                        (UPR_Bottom (are_all_at_trace cs l'))))))
+
+; Is this trace, and list of hints, proof that `c` is an Resolution Assymeytic
+; Tautology?
+; Fails is the hints are empty (which means `c` should  be AT) and `c` contains
+; duplicates)
+(program is_rat_trace ((cs CMap) (c clause) (t Trace) (hints RATHints)) UPResult
+         (match
+           (RATHints_is_empty hints)
+           (tt ; Empty RAT hints -- the clause must be AT
+             (is_at_trace cs c t))
+           (ff ; Ew -- we must verify this is a RAT
+             (match (resolution_targets_match
+                      (collect_resolution_targets cs c)
+                      hints)
+                    (ff ; Resolution targets disagree with hints.
+                      UPR_Broken)
+                    (tt
+                      (are_all_at_trace cs (construct_ct_pairs cs c t hints)))))))
+
+; Is this proof an LRAT proof of bottom?
+; Fails if any added AT is a TAUT or contains duplicates OR if any added RAT
+; produces pseudo-resolvants which are TAUT or contain duplicates
+(program is_lrat_proof_of_bottom ((f CMap) (proof LRATProof)) bool
+         (match proof
+                ((LRATProofd indices rest)
+                 (is_lrat_proof_of_bottom
+                   (CMap_remove_many indices f)
+                   rest))
+                ((LRATProofa idx c trace hints rest)
+                 (match (is_rat_trace f c trace hints)
+                    (UPR_Bottom
+                      (match
+                        c
+                        (cln tt)
+                        ((clc a b)
+                         (is_lrat_proof_of_bottom (CMap_insert idx c f) rest))))
+                    (UPR_Ok ff)
+                    (UPR_Broken ff)))
+                (LRATProofn ff))
+         )
+
+
+; Proof of a CMap from clause proofs.
+; The idx is unelidable b/c it is unspecified.
+;  Robust against clauses with duplicat literals, but not against tautological
+;  clauses.
+(declare CMap_holds (! c CMap type))
+(declare CMapn_proof (CMap_holds CMapn))
+(declare CMapc_proof
+         (! idx mpz ; Not elidable!
+            (! c clause
+               (! deduped_c clause
+                  (! rest CMap
+                     (! proof_c (holds c)
+                        (! proof_rest (CMap_holds rest)
+                            (! sc (^ (clause_dedup c) deduped_c)
+                               (CMap_holds (CMapc idx deduped_c rest))))))))))
+
+(define bottom (holds cln))
+(declare lrat_proof_of_bottom
+         (! cm CMap
+            (! proof_cm (CMap_holds cm)
+               (! proof LRATProof
+                  (! sc (^ (is_lrat_proof_of_bottom cm proof) tt)
+                     bottom)))))
+
+
+; TODO(aozdemir) Reducing the amount of checking that resides in side-conditions.
+; Steps
+;  1. Unroll the traversal of is_lrat_proof_of_bottom into a serialized
+;     sequence of axiom applications.
+;     The axioms would likely correspond to DELETE, IS T, IS AT, IS RAT.
+;     They would manipulate a CMap by way of side-conditions.
+;  2. Unroll AT checks by manifesting the assignment in data rather than marks,
+;     and having axioms like IS_UNSAT, IS_UNIT_ON_LITERAL.
+;  3. Unroll RAT checks in a similar fashion, although more painfully.

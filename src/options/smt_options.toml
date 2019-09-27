@@ -23,16 +23,6 @@ header = "options/smt_options.h"
   help       = "all dumping goes to FILE (instead of stdout)"
 
 [[option]]
-  name       = "forceLogicString"
-  smt_name   = "force-logic"
-  category   = "expert"
-  long       = "force-logic=LOGIC"
-  type       = "std::string"
-  notifies   = ["notifyForceLogic"]
-  read_only  = true
-  help       = "set the logic, and override all further user attempts to change it"
-
-[[option]]
   name       = "simplificationMode"
   smt_name   = "simplification-mode"
   category   = "regular"
@@ -40,7 +30,7 @@ header = "options/smt_options.h"
   type       = "SimplificationMode"
   default    = "SIMPLIFICATION_MODE_BATCH"
   handler    = "stringToSimplificationMode"
-  includes   = ["options/simplification_mode.h"]
+  includes   = ["options/smt_modes.h"]
   help       = "choose simplification mode, see --simplification=help"
 
 [[alias]]
@@ -99,13 +89,25 @@ header = "options/smt_options.h"
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
-  name       = "produceModelCores"
+  name       = "modelCoresMode"
   category   = "regular"
-  long       = "produce-model-cores"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "when printing models, compute a minimal core of relevant definitions"
+  long       = "model-cores=MODE"
+  type       = "ModelCoresMode"
+  default    = "MODEL_CORES_NONE"
+  handler    = "stringToModelCoresMode"
+  includes   = ["options/smt_modes.h"]
+  help       = "mode for producing model cores"
+
+
+[[option]]
+  name       = "blockModelsMode"
+  category   = "regular"
+  long       = "block-models=MODE"
+  type       = "BlockModelsMode"
+  default    = "BLOCK_MODELS_NONE"
+  handler    = "stringToBlockModelsMode"
+  includes   = ["options/smt_modes.h"]
+  help       = "mode for producing several models"
 
 [[option]]
   name       = "proof"
@@ -294,22 +296,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "use aggressive extended rewriter as a preprocessing pass"
-
-[[option]]
-  name       = "synthRrPrep"
-  category   = "regular"
-  long       = "synth-rr-prep"
-  type       = "bool"
-  default    = "false"
-  help       = "synthesize and output rewrite rules during preprocessing"
-
-[[option]]
-  name       = "synthRrPrepExtRew"
-  category   = "regular"
-  long       = "synth-rr-prep-ext-rew"
-  type       = "bool"
-  default    = "false"
-  help       = "use the extended rewriter for synthRrPrep"
 
 [[option]]
   name       = "simplifyWithCareEnabled"
@@ -639,3 +625,21 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
+
+[[option]]
+  name       = "produceAbducts"
+  category   = "undocumented"
+  long       = "produce-abducts"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "support the get-abduct command"
+
+[[option]]
+  name       = "checkAbducts"
+  category   = "regular"
+  long       = "check-abducts"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "checks whether produced solutions to get-abduct are correct"

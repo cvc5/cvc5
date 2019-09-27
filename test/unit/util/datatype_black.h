@@ -2,9 +2,9 @@
 /*! \file datatype_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Morgan Deters, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -70,8 +70,9 @@ class DatatypeBlack : public CxxTest::TestSuite {
     const Datatype& colorsDT = colorsType.getDatatype();
     TS_ASSERT(colorsDT.getConstructor("blue") == ctor);
     TS_ASSERT(colorsDT["blue"].getConstructor() == ctor);
-    TS_ASSERT_THROWS(colorsDT["blue"].getSelector("foo"), IllegalArgumentException);
-    TS_ASSERT_THROWS(colorsDT["blue"]["foo"], IllegalArgumentException);
+    TS_ASSERT_THROWS(colorsDT["blue"].getSelector("foo"),
+                     IllegalArgumentException&);
+    TS_ASSERT_THROWS(colorsDT["blue"]["foo"], IllegalArgumentException&);
 
     TS_ASSERT(! colorsType.getDatatype().isParametric());
     TS_ASSERT(colorsType.getDatatype().isFinite());
@@ -130,7 +131,8 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Expr ctor = treeType.getDatatype()[1].getConstructor();
     TS_ASSERT(treeType.getConstructor("leaf") == ctor);
     TS_ASSERT(treeType.getConstructor("leaf") == ctor);
-    TS_ASSERT_THROWS(treeType.getConstructor("leff"), IllegalArgumentException);
+    TS_ASSERT_THROWS(treeType.getConstructor("leff"),
+                     IllegalArgumentException&);
 
     TS_ASSERT(! treeType.getDatatype().isParametric());
     TS_ASSERT(! treeType.getDatatype().isFinite());

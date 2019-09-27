@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORY_MODEL_H
-#define __CVC4__THEORY__THEORY_MODEL_H
+#ifndef CVC4__THEORY__THEORY_MODEL_H
+#define CVC4__THEORY__THEORY_MODEL_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -239,6 +239,8 @@ public:
   bool hasApproximations() const override;
   /** get approximations */
   std::vector<std::pair<Expr, Expr> > getApproximations() const override;
+  /** get domain elements for uninterpreted sort t */
+  std::vector<Expr> getDomainElements(Type t) const override;
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
@@ -351,4 +353,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_MODEL_H */
+#endif /* CVC4__THEORY__THEORY_MODEL_H */

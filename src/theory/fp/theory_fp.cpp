@@ -2,9 +2,9 @@
 /*! \file theory_fp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Andrew Reynolds, Tim King
+ **   Martin Brain, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,9 +15,12 @@
  ** \todo document this file
  **/
 
-#include "theory/fp/theory_fp.h"
+
+#include "options/fp_options.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/fp/theory_fp.h"
+
 
 #include <set>
 #include <stack>
@@ -306,7 +309,7 @@ Node TheoryFp::toRealUF(Node node) {
     std::vector<TypeNode> args(1);
     args[0] = t;
     fun = nm->mkSkolem("floatingpoint_to_real_infinity_and_NaN_case",
-		       nm->mkFunctionType(args, nm->realType()),
+                       nm->mkFunctionType(args, nm->realType()),
                        "floatingpoint_to_real_infinity_and_NaN_case",
                        NodeManager::SKOLEM_EXACT_NAME);
     d_toRealMap.insert(t, fun);
@@ -876,7 +879,27 @@ bool TheoryFp::isRegistered(TNode node) {
   return !(d_registeredTerms.find(node) == d_registeredTerms.end());
 }
 
-void TheoryFp::preRegisterTerm(TNode node) {
+void TheoryFp::preRegisterTerm(TNode node)
+{
+  if (Configuration::isBuiltWithSymFPU() && !options::fpExp())
+  {
+    TypeNode tn = node.getType();
+    if (tn.isFloatingPoint())
+    {
+      unsigned exp_sz = tn.getFloatingPointExponentSize();
+      unsigned sig_sz = tn.getFloatingPointSignificandSize();
+      if (!((exp_sz == 8 && sig_sz == 24) || (exp_sz == 11 && sig_sz == 53)))
+      {
+        std::stringstream ss;
+        ss << "FP term " << node << " with type whose size is " << exp_sz << "/"
+           << sig_sz
+           << " is not supported, only Float32 (8/24) or Float64 (11/53) types "
+              "are supported in default mode. Try the experimental solver via "
+              "--fp-exp";
+        throw LogicException(ss.str());
+      }
+    }
+  }
   Trace("fp-preRegisterTerm")
       << "TheoryFp::preRegisterTerm(): " << node << std::endl;
   registerTerm(node);
@@ -1083,6 +1106,41 @@ bool TheoryFp::collectModelInfo(TheoryModel *m)
     if (!m->assertEquality(node, d_conv.getValue(d_valuation, node), true))
     {
       return false;
+    }
+
+    if (Configuration::isAssertionBuild() && isLeaf(node) && !node.isConst()
+        && node.getType().isFloatingPoint())
+    {
+      // Check that the equality engine has asssigned values to all the
+      // components of `node` except `(sign node)` (the sign component is
+      // assignable, meaning that the model builder can pick an arbitrary value
+      // for it if it hasn't been assigned in the equality engine).
+      NodeManager* nm = NodeManager::currentNM();
+      Node compNaN = nm->mkNode(kind::FLOATINGPOINT_COMPONENT_NAN, node);
+      Node compInf = nm->mkNode(kind::FLOATINGPOINT_COMPONENT_INF, node);
+      Node compZero = nm->mkNode(kind::FLOATINGPOINT_COMPONENT_ZERO, node);
+      Node compExponent =
+          nm->mkNode(kind::FLOATINGPOINT_COMPONENT_EXPONENT, node);
+      Node compSignificand =
+          nm->mkNode(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, node);
+
+      eq::EqualityEngine* ee = m->getEqualityEngine();
+      Assert(ee->hasTerm(compNaN) && ee->getRepresentative(compNaN).isConst());
+      Assert(ee->hasTerm(compInf) && ee->getRepresentative(compInf).isConst());
+      Assert(ee->hasTerm(compZero)
+             && ee->getRepresentative(compZero).isConst());
+      Assert(ee->hasTerm(compExponent)
+             && ee->getRepresentative(compExponent).isConst());
+      Assert(ee->hasTerm(compSignificand));
+      Assert(ee->getRepresentative(compSignificand).isConst());
+
+      // At most one of the flags (NaN, inf, zero) can be set
+      Node one = nm->mkConst(BitVector(1U, 1U));
+      size_t numFlags = 0;
+      numFlags += ee->getRepresentative(compNaN) == one ? 1 : 0;
+      numFlags += ee->getRepresentative(compInf) == one ? 1 : 0;
+      numFlags += ee->getRepresentative(compZero) == one ? 1 : 0;
+      Assert(numFlags <= 1);
     }
   }
 

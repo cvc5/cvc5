@@ -8,9 +8,21 @@
 (declare pos (! x var lit))
 (declare neg (! x var lit))
 
+; Flip the polarity of the literal
+(program lit_flip ((l lit)) lit
+         (match l
+                ((pos v) (neg v))
+                ((neg v) (pos v))))
+
 (declare clause type)
 (declare cln clause)
 (declare clc (! x lit (! c clause clause)))
+
+; A list of clauses, CNF if interpretted as a formula,
+; but also sometimes just a list
+(declare cnf type)
+(declare cnfn cnf)
+(declare cnfc (! h clause (! t cnf cnf)))
 
 ; constructs for general clauses for R, Q, satlem
 
@@ -19,8 +31,8 @@
 
 ; code to check resolutions
 
-(program append ((c1 clause) (c2 clause)) clause
-  (match c1 (cln c2) ((clc l c1') (clc l (append c1' c2)))))
+(program clause_append ((c1 clause) (c2 clause)) clause
+  (match c1 (cln c2) ((clc l c1') (clc l (clause_append c1' c2)))))
 
 ; we use marks as follows:
 ; -- mark 1 to record if we are supposed to remove a positive occurrence of the variable.
@@ -49,7 +61,7 @@
             (match m
               (tt (do (ifmarked4 v v (markvar4 v)) c'))
               (ff (do (ifmarked4 v (markvar4 v) v) (markvar2 v) (clc l c')))))))))
-    ((concat_cl c1 c2) (append (simplify_clause c1) (simplify_clause c2)))
+    ((concat_cl c1 c2) (clause_append (simplify_clause c1) (simplify_clause c2)))
     ((clr l c1)
       (match l
         ; set mark 1 to indicate we should remove v, and fail if
@@ -106,6 +118,40 @@
   (! u (holds c)
   (! u2 (! v (holds c) (holds c2))
     (holds c2))))))
+
+
+; Returns a copy of `c` with any duplicate literals removed.
+; Never fails.
+; Uses marks 3 & 4. Expects them to be clear before hand, and leaves them clear
+; afterwards.
+(program clause_dedup ((c clause)) clause
+         (match c
+                (cln cln)
+                ((clc l rest)
+                 (match l
+                        ((pos v) (ifmarked3
+                                   v
+                                   (clause_dedup rest)
+                                   (do (markvar3 v)
+                                     (let result (clc (pos v) (clause_dedup rest))
+                                       (do (markvar3 v) result)))))
+                        ((neg v) (ifmarked4
+                                   v
+                                   (clause_dedup rest)
+                                   (do (markvar4 v)
+                                     (let result (clc (neg v) (clause_dedup rest))
+                                       (do (markvar4 v) result)))))))))
+
+(declare cnf_holds (! c cnf type))
+(declare cnfn_proof (cnf_holds cnfn))
+(declare cnfc_proof
+         (! c clause
+         (! deduped_c clause
+            (! rest cnf
+               (! proof_c (holds c)
+                  (! proof_rest (cnf_holds rest)
+                     (! sc (^ (clause_dedup c) deduped_c)
+                        (cnf_holds (cnfc c rest)))))))))
 
 ; A little example to demonstrate simplify_clause.
 ; It can handle nested clr's of both polarities,

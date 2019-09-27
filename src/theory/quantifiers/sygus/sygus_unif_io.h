@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H
 
 #include <map>
 #include "theory/quantifiers/sygus/sygus_unif.h"
@@ -124,33 +124,6 @@ class UnifContextIo : public UnifContext
   */
   std::map<Node, std::map<NodeRole, bool>> d_visit_role;
 
-  /** unif context enumerator information */
-  class UEnumInfo
-  {
-   public:
-    UEnumInfo() {}
-    /** map from conditions and branch positions to a solved node
-    *
-    * For example, if we have:
-    *   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1
-    * Then, valid entries in this map is:
-    *   d_look_ahead_sols[x>0][1] = x+1
-    *   d_look_ahead_sols[x>0][2] = 1
-    * For the first entry, notice that  for all input examples such that x>0
-    * evaluates to true, which are (1) and (3), we have that their output
-    * values for x+1 under the substitution that maps x to the input value,
-    * resulting in 2 and 4, are equal to the output value for the respective
-    * pairs.
-    */
-    std::map<Node, std::map<unsigned, Node>> d_look_ahead_sols;
-    /** clear */
-    void clear() { d_look_ahead_sols.clear(); }
-    /** is empty */
-    bool empty() { return d_look_ahead_sols.empty(); }
-  };
-  /** map from enumerators to the above info class */
-  std::map<Node, UEnumInfo> d_uinfo;
-
  private:
   /** true and false nodes */
   Node d_true;
@@ -210,12 +183,14 @@ class SubsumeTrie
                      bool pol,
                      std::vector<Node>& subsumed_by);
   /**
-  * Get the leaves of the trie, which we store in the map v.
-  * v[-1] stores the children that always evaluate to !pol,
-  * v[1] stores the children that always evaluate to pol,
-  * v[0] stores the children that both evaluate to true and false for at least
-  * one example.
-  */
+   * Get the leaves of the trie, which we store in the map v. We consider their
+   * evaluation on points such that (pol ? vals : !vals) is true.
+   *
+   * v[-1] stores the children that always evaluate to !pol,
+   * v[1] stores the children that always evaluate to pol,
+   * v[0] stores the children that both evaluate to true and false for at least
+   * one example.
+   */
   void getLeaves(const std::vector<Node>& vals,
                  bool pol,
                  std::map<int, std::vector<Node>>& v);
@@ -243,7 +218,24 @@ class SubsumeTrie
                        int status,
                        bool checkExistsOnly,
                        bool checkSubsume);
-  /** helper function for above functions */
+  /** helper function for above functions
+   *
+   * This adds to v[-1], v[0], v[1] the children of the trie that occur
+   * along paths that contain only false (v[-1]), a mix of true/false (v[0]),
+   * and only true (v[1]) values for respectively for relevant points.
+   *
+   * vals/pol is used to determine the relevant points, which impacts which
+   * paths of the trie to traverse on this call.
+   * In particular, all points such that (pol ? vals[index] : !vals[index])
+   * are relevant.
+   *
+   * Paths that contain an unknown value for any relevant point are not
+   * traversed. In the larger picture, this ensures that terms are not used in a
+   * way such that their unknown value is relevant to the overall behavior of
+   * a synthesis solution.
+   *
+   * status holds the current value of v (0,1,-1) that we will be adding to.
+   */
   void getLeavesInternal(const std::vector<Node>& vals,
                          bool pol,
                          std::map<int, std::vector<Node>>& v,
@@ -301,6 +293,17 @@ class SygusUnifIo : public SygusUnif
    */
   void addExample(const std::vector<Node>& input, Node output);
 
+  /** compute examples
+   *
+   * This adds the result of evaluating bv on the set of input examples managed
+   * by this class. Term bv is the builtin version of a term generated for
+   * enumerator e. It stores the resulting output for each example in exOut.
+   */
+  void computeExamples(Node e, Node bv, std::vector<Node>& exOut);
+
+  /** clear example cache */
+  void clearExampleCache(Node e, Node bv);
+
  protected:
   /** the candidate */
   Node d_candidate;
@@ -314,6 +317,18 @@ class SygusUnifIo : public SygusUnif
   unsigned d_cond_count;
   /** The solution for the function of this class, if one has been found */
   Node d_solution;
+  /** the term size of the above solution */
+  unsigned d_sol_term_size;
+  /** partial solutions
+   *
+   * Maps indices for I/O points to a list of solutions for that point, for each
+   * type. We may have more than one type for solutions, e.g. for grammar:
+   *   A -> ite( A, B, C ) | ...
+   * where terms of type B and C can both act as solutions.
+   */
+  std::map<size_t,
+           std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>>
+      d_psolutions;
   /**
    * This flag is set to true if the solution construction was
    * non-deterministic with respect to failure/success.
@@ -335,6 +350,11 @@ class SygusUnifIo : public SygusUnif
    * which can be closed with "B", giving us (x ++ "B") as a solution.
    */
   bool d_sol_cons_nondet;
+  /**
+   * Whether we are using information gain heuristic during solution
+   * construction.
+   */
+  bool d_solConsUsingInfoGain;
   /** true and false nodes */
   Node d_true;
   Node d_false;
@@ -342,6 +362,9 @@ class SygusUnifIo : public SygusUnif
   std::vector<std::vector<Node>> d_examples;
   /** output of I/O examples */
   std::vector<Node> d_examples_out;
+
+  /** cache for computeExamples */
+  std::map<Node, std::map<Node, std::vector<Node>>> d_exOutCache;
 
   /**
   * This class stores information regarding an enumerator, including:
@@ -433,6 +456,12 @@ class SygusUnifIo : public SygusUnif
   bool useStrContainsEnumeratorExclude(Node e);
   /** cache for the above function */
   std::map<Node, bool> d_use_str_contains_eexc;
+  /**
+   * cache for the above function, stores whether enumerators e are in
+   * a conditional context, e.g. used for enumerating the return values for
+   * leaves of ITE trees.
+   */
+  std::map<Node, bool> d_use_str_contains_eexc_conditional;
 
   /** the unification context used within constructSolution */
   UnifContextIo d_context;
@@ -446,10 +475,18 @@ class SygusUnifIo : public SygusUnif
                     NodeRole nrole,
                     int ind,
                     std::vector<Node>& lemmas) override;
+  /** construct best conditional
+   *
+   * This returns the condition in conds that maximizes information gain with
+   * respect to the current active points in d_context. For example, see
+   * Alur et al. TACAS 2017 for an example of information gain.
+   */
+  Node constructBestConditional(Node ce,
+                                const std::vector<Node>& conds) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_IO_H */

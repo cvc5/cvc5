@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,8 +23,8 @@
 // "expr.h" safely, then go on to completely declare their own stuff.
 ${includes}
 
-#ifndef __CVC4__EXPR_H
-#define __CVC4__EXPR_H
+#ifndef CVC4__EXPR_H
+#define CVC4__EXPR_H
 
 #include <stdint.h>
 #include <iosfwd>
@@ -60,11 +60,9 @@ class Type;
 class TypeCheckingException;
 class TypeCheckingExceptionPrivate;
 
-namespace expr {
-  namespace pickle {
-    class Pickler;
-  }/* CVC4::expr::pickle namespace */
-}/* CVC4::expr namespace */
+namespace api {
+class Solver;
+}
 
 namespace prop {
   class TheoryProxy;
@@ -208,6 +206,15 @@ struct ExprHashFunction {
  * expressions.
  */
 class CVC4_PUBLIC Expr {
+  friend class ExprManager;
+  friend class NodeManager;
+  friend class SmtEngine;
+  friend class TypeCheckingException;
+  friend class api::Solver;
+  friend class expr::ExportPrivate;
+  friend class prop::TheoryProxy;
+  friend class smt::SmtEnginePrivate;
+  friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);
 
   /** The internal expression representation */
   NodeTemplate<true>* d_node;
@@ -377,7 +384,7 @@ public:
    * Returns the Boolean equivalence of this expression and
    * the given expression.
    */
-  Expr iffExpr(const Expr& e) const;
+  Expr eqExpr(const Expr& e) const;
 
   /**
    * Returns the implication of this expression and
@@ -441,6 +448,22 @@ public:
    * @return the operator of this expression
    */
   Expr getOperator() const;
+
+  /**
+   * Check if this is an expression is parameterized.
+   *
+   * @return true if this expression is parameterized.
+   *
+   * In detail, an expression that is parameterized is one that has an operator
+   * that must be provided in addition to its kind to construct it. For example,
+   * say we want to re-construct an Expr e where its children a1, ..., an are
+   * replaced by b1 ... bn. Then there are two cases:
+   * (1) If e is parametric, call:
+   *   ExprManager::mkExpr(e.getKind(), e.getOperator(), b1, ..., bn )
+   * (2) If e is not parametric, call:
+   *   ExprManager::mkExpr(e.getKind(), b1, ..., bn )
+   */
+  bool isParameterized() const;
 
   /**
    * Get the type for this Expr and optionally do type checking.
@@ -542,7 +565,7 @@ public:
    * only be used once.  For more details see the 4/27/2010 CVC4
    * developer's meeting notes at:
    *
-   * http://goedel.cims.nyu.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
+   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
    */
   // bool containsDecision(); // is "atomic"
   // bool properlyContainsDecision(); // maybe not atomic but all children are
@@ -592,24 +615,13 @@ private:
    * @return the internal node
    */
   NodeTemplate<false> getTNode() const;
-
-  // Friend to access the actual internal expr information and private methods
-  friend class SmtEngine;
-  friend class smt::SmtEnginePrivate;
-  friend class ExprManager;
-  friend class NodeManager;
-  friend class TypeCheckingException;
-  friend class expr::pickle::Pickler;
-  friend class prop::TheoryProxy;
-  friend class expr::ExportPrivate;
-  friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);
   template <bool ref_count> friend class NodeTemplate;
 
 };/* class Expr */
 
 ${getConst_instantiations}
 
-#line 613 "${template}"
+#line 616 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();
@@ -617,4 +629,4 @@ inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_H */
+#endif /* CVC4__EXPR_H */

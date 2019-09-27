@@ -2,9 +2,9 @@
 /*! \file lazy_trie.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -12,8 +12,8 @@
  ** \brief lazy trie
  **/
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
-#define __CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
+#define CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
 
 #include "expr/node.h"
 
@@ -170,4 +170,4 @@ class LazyTrieMulti
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H */

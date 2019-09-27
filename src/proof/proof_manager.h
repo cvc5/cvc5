@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Guy Katz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,17 +16,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF_MANAGER_H
-#define __CVC4__PROOF_MANAGER_H
+#ifndef CVC4__PROOF_MANAGER_H
+#define CVC4__PROOF_MANAGER_H
 
 #include <iosfwd>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
-#include "expr/node.h"
-#include "context/cdhashset.h"
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
+#include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof.h"
 #include "proof/proof_utils.h"
@@ -34,7 +34,7 @@
 #include "theory/logic_info.h"
 #include "theory/substitutions.h"
 #include "util/proof.h"
-
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -69,7 +69,10 @@ class TheoryProof;
 class UFProof;
 class ArithProof;
 class ArrayProof;
-class BitVectorProof;
+
+namespace proof {
+class ResolutionBitVectorProof;
+}
 
 template <class Solver> class LFSCSatProof;
 typedef TSatProof<CVC4::Minisat::Solver> CoreSatProof;
@@ -77,7 +80,6 @@ typedef TSatProof<CVC4::Minisat::Solver> CoreSatProof;
 class LFSCCnfProof;
 class LFSCTheoryProofEngine;
 class LFSCUFProof;
-class LFSCBitVectorProof;
 class LFSCRewriterProof;
 
 namespace prop {
@@ -189,7 +191,7 @@ public:
   static TheoryProofEngine* getTheoryProofEngine();
   static TheoryProof* getTheoryProof( theory::TheoryId id );
   static UFProof* getUfProof();
-  static BitVectorProof* getBitVectorProof();
+  static proof::ResolutionBitVectorProof* getBitVectorProof();
   static ArrayProof* getArrayProof();
   static ArithProof* getArithProof();
 
@@ -238,6 +240,12 @@ public:
 
   // for SMT variable names that have spaces and other things
   static std::string sanitize(TNode var);
+
+  // wrap term with (p_app ... ) if the term is printed as a boolean, and print
+  // used for "trust" assertions
+  static void printTrustedTerm(Node term,
+                               std::ostream& os,
+                               ProofLetMap& globalLetMap);
 
   /** Add proof assertion - unlike addCoreAssertion this is post definition expansion **/
   void addAssertion(Expr formula);
@@ -290,9 +298,53 @@ public:
                          std::ostream& out,
                          std::ostringstream& paren);
 
-private:
+  struct ProofManagerStatistics
+  {
+    ProofManagerStatistics();
+    ~ProofManagerStatistics();
+
+    /**
+     * Time spent producing proofs (i.e. generating the proof from the logging
+     * information)
+     */
+    TimerStat d_proofProductionTime;
+
+    /**
+     * Time spent printing proofs of theory lemmas
+     */
+    TimerStat d_theoryLemmaTime;
+
+    /**
+     * Time spent tracing the proof of the boolean skeleton
+     * (e.g. figuring out which assertions are needed, etc.)
+     */
+    TimerStat d_skeletonProofTraceTime;
+
+    /**
+     * Time spent processing and printing declarations in the proof
+     */
+    TimerStat d_proofDeclarationsTime;
+
+    /**
+     * Time spent printing the CNF proof
+     */
+    TimerStat d_cnfProofTime;
+
+    /**
+     * Time spent printing the final proof of UNSAT
+     */
+    TimerStat d_finalProofTime;
+
+  }; /* struct ProofManagerStatistics */
+
+  ProofManagerStatistics& getStats() { return d_stats; }
+
+ private:
   void constructSatProof();
   std::set<Node> satClauseToNodeSet(prop::SatClause* clause);
+
+  ProofManagerStatistics d_stats;
+
 };/* class ProofManager */
 
 class LFSCProof : public Proof
@@ -326,4 +378,4 @@ std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k);
 
 
 
-#endif /* __CVC4__PROOF_MANAGER_H */
+#endif /* CVC4__PROOF_MANAGER_H */

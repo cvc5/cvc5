@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,10 +25,11 @@
 #include "expr/expr_manager_scope.h"
 #include "expr/matcher.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/type.h"
-#include "options/set_language.h"
 #include "options/datatypes_options.h"
+#include "options/set_language.h"
 
 using namespace std;
 
@@ -154,6 +155,36 @@ void Datatype::resolve(ExprManager* em,
     }
     d_record = new Record(fields);
   }
+
+  if (isSygus())
+  {
+    // all datatype constructors should be sygus and have sygus operators whose
+    // free variables are subsets of sygus bound var list.
+    Node sbvln = Node::fromExpr(d_sygus_bvl);
+    std::unordered_set<Node, NodeHashFunction> svs;
+    for (const Node& sv : sbvln)
+    {
+      svs.insert(sv);
+    }
+    for (unsigned i = 0, ncons = d_constructors.size(); i < ncons; i++)
+    {
+      Expr sop = d_constructors[i].getSygusOp();
+      PrettyCheckArgument(!sop.isNull(),
+                          this,
+                          "Sygus datatype contains a non-sygus constructor");
+      Node sopn = Node::fromExpr(sop);
+      std::unordered_set<Node, NodeHashFunction> fvs;
+      expr::getFreeVariables(sopn, fvs);
+      for (const Node& v : fvs)
+      {
+        PrettyCheckArgument(
+            svs.find(v) != svs.end(),
+            this,
+            "Sygus constructor has an operator with a free variable that is "
+            "not in the formal argument list of the function-to-synthesize");
+      }
+    }
+  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -173,14 +204,17 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
 }
 
 void Datatype::addSygusConstructor(Expr op,
-                                   std::string& cname,
-                                   std::vector<Type>& cargs,
+                                   const std::string& cname,
+                                   const std::vector<Type>& cargs,
                                    std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   Debug("dt-sygus") << "    sygus op : " << op << std::endl;
-  std::string name = getName() + "_" + cname;
+  // avoid name clashes
+  std::stringstream ss;
+  ss << getName() << "_" << getNumConstructors() << "_" << cname;
+  std::string name = ss.str();
   std::string testerId("is-");
   testerId.append(name);
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
@@ -997,7 +1031,8 @@ bool DatatypeConstructor::isFinite(Type t) const
     if( DatatypeType(t).isParametric() ){
       tc = tc.substitute( paramTypes, instTypes );
     }
-    if(! tc.getCardinality().isFinite()) {
+    if (!tc.isFinite())
+    {
       self.setAttribute(DatatypeFiniteComputedAttr(), true);
       self.setAttribute(DatatypeFiniteAttr(), false);
       return false;
@@ -1236,108 +1271,94 @@ bool DatatypeConstructorArg::isUnresolvedSelf() const
   return d_selector.isNull() && d_name.size() == d_name.find('\0') + 1;
 }
 
-static const int s_printDatatypeNamesOnly = std::ios_base::xalloc();
-
-std::string DatatypeConstructorArg::getTypeName() const {
-  Type t;
-  if(isResolved()) {
-    t = SelectorType(d_selector.getType()).getRangeType();
-  } else {
-    if(d_selector.isNull()) {
-      string typeName = d_name.substr(d_name.find('\0') + 1);
-      return (typeName == "") ? "[self]" : typeName;
-    } else {
-      t = d_selector.getType();
-    }
-  }
-
-  // Unfortunately, in the case of complex selector types, we can
-  // enter nontrivial recursion here.  Make sure that doesn't happen.
-  stringstream ss;
-  ss << language::SetLanguage(language::output::LANG_CVC4);
-  ss.iword(s_printDatatypeNamesOnly) = 1;
-  t.toStream(ss);
-  return ss.str();
-}
-
-std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
-  // These datatype things are recursive!  Be very careful not to
-  // print an infinite chain of them.
-  long& printNameOnly = os.iword(s_printDatatypeNamesOnly);
-  Debug("datatypes-output") << "printNameOnly is " << printNameOnly << std::endl;
-  if(printNameOnly) {
-    return os << dt.getName();
-  }
-
-  class Scope {
-    long& d_ref;
-    long d_oldValue;
-  public:
-    Scope(long& ref, long value) : d_ref(ref), d_oldValue(ref) { d_ref = value; }
-    ~Scope() { d_ref = d_oldValue; }
-  } scope(printNameOnly, 1);
-  // when scope is destructed, the value pops back
-
-  Debug("datatypes-output") << "printNameOnly is now " << printNameOnly << std::endl;
-
+std::ostream& operator<<(std::ostream& os, const Datatype& dt)
+{
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
+  dt.toStream(os);
+  return os;
+}
 
-  os << "DATATYPE " << dt.getName();
-  if(dt.isParametric()) {
-    os << '[';
-    for(size_t i = 0; i < dt.getNumParameters(); ++i) {
+void Datatype::toStream(std::ostream& out) const
+{
+  out << "DATATYPE " << getName();
+  if (isParametric())
+  {
+    out << '[';
+    for (size_t i = 0; i < getNumParameters(); ++i)
+    {
       if(i > 0) {
-        os << ',';
+        out << ',';
       }
-      os << dt.getParameter(i);
+      out << getParameter(i);
     }
-    os << ']';
+    out << ']';
   }
-  os << " =" << endl;
-  Datatype::const_iterator i = dt.begin(), i_end = dt.end();
+  out << " =" << endl;
+  Datatype::const_iterator i = begin(), i_end = end();
   if(i != i_end) {
-    os << "  ";
+    out << "  ";
     do {
-      os << *i << endl;
+      out << *i << endl;
       if(++i != i_end) {
-        os << "| ";
+        out << "| ";
       }
     } while(i != i_end);
   }
-  os << "END;" << endl;
-
-  return os;
+  out << "END;" << endl;
 }
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
+  ctor.toStream(os);
+  return os;
+}
 
-  os << ctor.getName();
+void DatatypeConstructor::toStream(std::ostream& out) const
+{
+  out << getName();
 
-  DatatypeConstructor::const_iterator i = ctor.begin(), i_end = ctor.end();
+  DatatypeConstructor::const_iterator i = begin(), i_end = end();
   if(i != i_end) {
-    os << "(";
+    out << "(";
     do {
-      os << *i;
+      out << *i;
       if(++i != i_end) {
-        os << ", ";
+        out << ", ";
       }
     } while(i != i_end);
-    os << ")";
+    out << ")";
   }
-
-  return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
-
-  os << arg.getName() << ": " << arg.getTypeName();
-
+  arg.toStream(os);
   return os;
+}
+
+void DatatypeConstructorArg::toStream(std::ostream& out) const
+{
+  out << getName() << ": ";
+
+  Type t;
+  if (isResolved())
+  {
+    t = getRangeType();
+  }
+  else if (d_selector.isNull())
+  {
+    string typeName = d_name.substr(d_name.find('\0') + 1);
+    out << ((typeName == "") ? "[self]" : typeName);
+    return;
+  }
+  else
+  {
+    t = d_selector.getType();
+  }
+  out << t;
 }
 
 DatatypeIndexConstant::DatatypeIndexConstant(unsigned index) : d_index(index) {}

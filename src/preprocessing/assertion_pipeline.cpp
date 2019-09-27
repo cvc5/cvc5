@@ -2,9 +2,9 @@
 /*! \file assertion_pipeline.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Justin Xu, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,10 +24,36 @@ namespace CVC4 {
 namespace preprocessing {
 
 AssertionPipeline::AssertionPipeline()
-    : d_realAssertionsEnd(0), d_storeSubstsInAsserts(false)
+    : d_realAssertionsEnd(0), d_storeSubstsInAsserts(false), d_substsIndex(0), d_assumptionsStart(0), d_numAssumptions(0)
 {
 }
 
+void AssertionPipeline::clear()
+{
+  d_nodes.clear();
+  d_realAssertionsEnd = 0;
+  d_assumptionsStart = 0;
+  d_numAssumptions = 0;
+}
+
+void AssertionPipeline::push_back(Node n, bool isAssumption)
+{
+  d_nodes.push_back(n);
+  if (isAssumption)
+  {
+    if (d_numAssumptions == 0)
+    {
+      d_assumptionsStart = d_nodes.size() - 1;
+    }
+    // Currently, we assume that assumptions are all added one after another
+    // and that we store them in the same vector as the assertions. Once we
+    // split the assertions up into multiple vectors (see issue #2473), we will
+    // not have this limitation anymore.
+    Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
+    d_numAssumptions++;
+  }
+}
+  
 void AssertionPipeline::replace(size_t i, Node n)
 {
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););

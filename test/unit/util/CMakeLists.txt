@@ -1,0 +1,20 @@
+#-----------------------------------------------------------------------------#
+# Add unit tests
+
+cvc4_add_unit_test_black(array_store_all_black util)
+cvc4_add_unit_test_white(assert_white util)
+cvc4_add_unit_test_black(binary_heap_black util)
+cvc4_add_unit_test_black(bitvector_black util)
+cvc4_add_unit_test_black(boolean_simplification_black util)
+cvc4_add_unit_test_black(cardinality_public util)
+cvc4_add_unit_test_white(check_white util)
+cvc4_add_unit_test_black(configuration_black util)
+cvc4_add_unit_test_black(datatype_black util)
+cvc4_add_unit_test_black(exception_black util)
+cvc4_add_unit_test_black(integer_black util)
+cvc4_add_unit_test_white(integer_white util)
+cvc4_add_unit_test_black(listener_black util)
+cvc4_add_unit_test_black(output_black util)
+cvc4_add_unit_test_black(rational_black util)
+cvc4_add_unit_test_white(rational_white util)
+cvc4_add_unit_test_black(stats_black util)

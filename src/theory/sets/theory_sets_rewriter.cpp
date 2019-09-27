@@ -2,9 +2,9 @@
 /*! \file theory_sets_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Paul Meng
+ **   Andrew Reynolds, Kshitij Bansal, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,7 +47,7 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
 RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   NodeManager* nm = NodeManager::currentNM();
   Kind kind = node.getKind();
-
+  Trace("sets-postrewrite") << "Process: " << node << std::endl;
 
   if(node.isConst()) {
     // Dare you touch the const and mangle it to something else.
@@ -204,6 +204,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       if( rew!=node ){
         Trace("sets-rewrite") << "Sets::rewrite " << node << " -> " << rew << std::endl;
       }
+      Trace("sets-rewrite") << "...no rewrite." << std::endl;
       return RewriteResponse(REWRITE_DONE, rew);
     }
     break;

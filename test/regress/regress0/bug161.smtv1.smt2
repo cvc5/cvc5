@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status unsat)
+(set-logic QF_LRA)
+(declare-fun x_1 () Real)
+(check-sat-assuming ( (and (= x_1 10.0) (< x_1 1.0)) ))

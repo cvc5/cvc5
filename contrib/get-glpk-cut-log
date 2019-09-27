@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 source "$(dirname "$0")/get-script-header.sh"
 
@@ -31,4 +31,4 @@ cd ..
 
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --enable-gpl --with-glpk --with-glpk-dir=`pwd`
+echo ./configure.sh --gpl --glpk

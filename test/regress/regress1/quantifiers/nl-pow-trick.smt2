@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-all
+; COMMAND-LINE: --cbqi-all --no-relational-triggers
 ; EXPECT: unsat
 (set-logic NIA)
 (declare-fun a () Int)

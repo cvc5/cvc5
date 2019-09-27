@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewrite_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Clark Barrett
+ **   Liana Hadarean, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -119,6 +119,7 @@ enum RewriteRuleId
   BitwiseIdemp,
   AndZero,
   AndOne,
+  AndOrXorConcatPullUp,
   OrZero,
   OrOne,
   XorDuplicate,
@@ -200,6 +201,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ConcatFlatten:       out << "ConcatFlatten";       return out;
   case ConcatExtractMerge:  out << "ConcatExtractMerge";  return out;
   case ConcatConstantMerge: out << "ConcatConstantMerge"; return out;
+  case AndOrXorConcatPullUp:out << "AndOrXorConcatPullUp";return out;
   case ExtractExtract:      out << "ExtractExtract";      return out;
   case ExtractWhole:        out << "ExtractWhole";        return out;
   case ExtractConcat:       out << "ExtractConcat";       return out;
@@ -579,6 +581,7 @@ struct AllRewriteRules {
   RewriteRule<BvIteMergeElseIf>               rule136;
   RewriteRule<BvIteMergeThenElse>             rule137;
   RewriteRule<BvIteMergeElseElse>             rule138;
+  RewriteRule<AndOrXorConcatPullUp>           rule139;
 };
 
 template<> inline

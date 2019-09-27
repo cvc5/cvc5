@@ -2,9 +2,9 @@
 /*! \file sat_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
+ **   Dejan Jovanovic, Liana Hadarean, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__SAT_SOLVER_H
-#define __CVC4__PROP__SAT_SOLVER_H
+#ifndef CVC4__PROP__SAT_SOLVER_H
+#define CVC4__PROP__SAT_SOLVER_H
 
 #include <stdint.h>
 
@@ -28,11 +28,15 @@
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-  
-class BitVectorProof;
+
+namespace proof {
+class ClausalBitVectorProof;
+class ResolutionBitVectorProof;
+}  // namespace proof
 
 namespace prop {
 
@@ -96,9 +100,11 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
-  
-  virtual void setProofLog( BitVectorProof * bvp ) {}
-  
+
+  virtual void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp) {}
+
+  virtual void setClausalProofLog(proof::ClausalBitVectorProof* drat_proof) {}
+
 };/* class SatSolver */
 
 
@@ -107,27 +113,8 @@ public:
 
   virtual ~BVSatSolverInterface() {}
   /** Interface for notifications */
-  class Notify {
-  public:
 
-    virtual ~Notify() {};
-
-    /**
-     * If the notify returns false, the solver will break out of whatever it's currently doing
-     * with an "unknown" answer.
-     */
-    virtual bool notify(SatLiteral lit) = 0;
-
-    /**
-     * Notify about a learnt clause.
-     */
-    virtual void notify(SatClause& clause) = 0;
-    virtual void spendResource(unsigned amount) = 0;
-    virtual void safePoint(unsigned amount) = 0;
-
-  };/* class BVSatSolverInterface::Notify */
-
-  virtual void setNotify(Notify* notify) = 0;
+  virtual void setNotify(BVSatSolverNotify* notify) = 0;
 
   virtual void markUnremovable(SatLiteral lit) = 0;
 
@@ -205,4 +192,4 @@ inline std::ostream& operator <<(std::ostream& out, prop::SatValue val) {
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PROP__SAT_MODULE_H */
+#endif /* CVC4__PROP__SAT_MODULE_H */

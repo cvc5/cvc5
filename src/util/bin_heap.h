@@ -2,9 +2,9 @@
 /*! \file bin_heap.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters
+ **   Tim King, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BIN_HEAP_H
-#define __CVC4__BIN_HEAP_H
+#ifndef CVC4__BIN_HEAP_H
+#define CVC4__BIN_HEAP_H
 
 #include <limits>
 #include <functional>
@@ -365,4 +365,4 @@ const size_t BinaryHeap<Elem,CmpFcn>::MAX_SIZE = (std::numeric_limits<size_t>::m
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BIN_HEAP_H */
+#endif /* CVC4__BIN_HEAP_H */

@@ -2,9 +2,9 @@
 /*! \file expr_manager_public.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Tim King, Morgan Deters
+ **   Christopher L. Conway, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -70,7 +70,7 @@ private:
     {
       delete d_exprManager;
     }
-    catch (Exception e)
+    catch (Exception& e)
     {
       cerr << "Exception during tearDown():" << endl << e;
       throw;
@@ -118,12 +118,14 @@ private:
 
   void testMkAssociativeTooFew() {
     std::vector<Expr> vars = mkVars(d_exprManager->booleanType(), 1);
-    TS_ASSERT_THROWS( d_exprManager->mkAssociative(AND,vars), IllegalArgumentException);
+    TS_ASSERT_THROWS(d_exprManager->mkAssociative(AND, vars),
+                     IllegalArgumentException&);
   }
 
   void testMkAssociativeBadKind() {
     std::vector<Expr> vars = mkVars(d_exprManager->integerType(), 10);
-    TS_ASSERT_THROWS( d_exprManager->mkAssociative(LEQ,vars), IllegalArgumentException);
+    TS_ASSERT_THROWS(d_exprManager->mkAssociative(LEQ, vars),
+                     IllegalArgumentException&);
   }
 
 };

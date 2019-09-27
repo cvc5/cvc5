@@ -2,9 +2,9 @@
 /*! \file sort_infer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -12,17 +12,16 @@
  ** \brief Sort inference preprocessing pass
  **/
 
-#ifndef __CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
-#define __CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
+#ifndef CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
+#define CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
 
 #include <map>
 #include <string>
 #include <vector>
-#include "expr/node.h"
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "theory/sort_inference.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -36,23 +35,15 @@ namespace passes {
 class SortInferencePass : public PreprocessingPass
 {
  public:
-  SortInferencePass(PreprocessingPassContext* preprocContext,
-                    SortInference* si);
+  SortInferencePass(PreprocessingPassContext* preprocContext);
 
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-
- private:
-  /**
-   * Pointer to the sort inference module. This should be the sort inference
-   * belonging to the theory engine of the current SMT engine.
-   */
-  SortInference* d_si;
 };
 
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_ */
+#endif /* CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_ */

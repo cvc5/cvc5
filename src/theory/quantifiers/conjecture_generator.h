@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,14 +18,13 @@
 #define CONJECTURE_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "theory/quantifiers_engine.h"
+#include "expr/node_trie.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-class TermArgTrie;
 
 //algorithm for computing candidate subgoals
 
@@ -105,8 +104,8 @@ class TermGenerator
   //2 : variables must map to non-ground terms
   unsigned d_match_mode;
   //children
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children;
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children_end;
+  std::vector<std::map<TNode, TNodeTrie>::iterator> d_match_children;
+  std::vector<std::map<TNode, TNodeTrie>::iterator> d_match_children_end;
 
   void reset( TermGenEnv * s, TypeNode tn );
   bool getNextTerm( TermGenEnv * s, unsigned depth );

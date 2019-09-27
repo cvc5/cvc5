@@ -2,9 +2,9 @@
 /*! \file quantifier_macros.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Yoni Zohar, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
-#define __CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
+#ifndef CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
+#define CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
 
 #include <map>
 #include <string>
@@ -86,4 +86,4 @@ class QuantifierMacros : public PreprocessingPass
 }  // preprocessing
 }  // CVC4
 
-#endif /*__CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H */
+#endif /*CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H */

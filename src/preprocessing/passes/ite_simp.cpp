@@ -2,9 +2,9 @@
 /*! \file ite_simp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,12 +14,12 @@
 
 #include "preprocessing/passes/ite_simp.h"
 
+#include <vector>
+
 #include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
-
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -255,6 +255,7 @@ PreprocessingPassResult ITESimp::applyInternal(
   return done ? PreprocessingPassResult::NO_CONFLICT
               : PreprocessingPassResult::CONFLICT;
 }
+
 
 /* -------------------------------------------------------------------------- */
 

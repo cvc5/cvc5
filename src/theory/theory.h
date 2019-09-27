@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORY_H
-#define __CVC4__THEORY__THEORY_H
+#ifndef CVC4__THEORY__THEORY_H
+#define CVC4__THEORY__THEORY_H
 
 #include <iosfwd>
 #include <map>
@@ -430,8 +430,7 @@ public:
    * possible, for example in handling under-specified operations
    * using partially defined functions.
    *
-   * TODO (github issue #1076): 
-   * some theories like sets use expandDefinition as a "context
+   * Some theories like sets use expandDefinition as a "context
    * independent preRegisterTerm".  This is required for cases where
    * a theory wants to be notified about a term before preprocessing
    * and simplification but doesn't necessarily want to rewrite it.
@@ -532,16 +531,6 @@ public:
   virtual bool collectModelInfo(TheoryModel* m) { return true; }
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
-  /**
-   * Return a decision request, if the theory has one, or the NULL node
-   * otherwise.
-   * If returning non-null node, should set priority to
-   *                        0 if decision is necessary for model-soundness,
-   *                        1 if decision is necessary for completeness,
-   *                        >1 otherwise.
-   */
-  virtual Node getNextDecisionRequest( unsigned& priority ) { return Node(); }
-
   /**
    * Statically learn from assertion "in," which has been asserted
    * true at the top level.  The theory should only add (via
@@ -925,4 +914,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_H */
+#endif /* CVC4__THEORY__THEORY_H */

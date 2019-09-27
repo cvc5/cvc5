@@ -1,4 +1,4 @@
-(set-logic QF_ALL_SUPPORTED)
+(set-logic QF_SEP_LIA)
 (set-info :status unsat)
 
 (declare-const x1 Int)

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__API__CVC4CPPKIND_H
-#define __CVC4__API__CVC4CPPKIND_H
+#ifndef CVC4__API__CVC4CPPKIND_H
+#define CVC4__API__CVC4CPPKIND_H
 
 #include <ostream>
 
@@ -33,7 +33,7 @@ namespace api {
  *
  * Note that the underlying type of Kind must be signed (to enable range
  * checks for validity). The size of this type depends on the size of
- * CVC4::Kind (__CVC4__EXPR__NODE_VALUE__NBITS__KIND, currently 10 bits,
+ * CVC4::Kind (CVC4__EXPR__NODE_VALUE__NBITS__KIND, currently 10 bits,
  * see expr/metakind_template.h).
  */
 enum CVC4_PUBLIC Kind : int32_t
@@ -62,7 +62,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Sort of the constant
    *   -[2]: Index of the constant
    * Create with:
-   *   mkConst(Kind, Sort, int32_t)
+   *   mkUninterpretedConst(Sort sort, int32_t index)
    */
   UNINTERPRETED_CONSTANT,
   /**
@@ -70,43 +70,14 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 1
    *   -[1]: Index of the abstract value
    * Create with:
-   *   mkConst(Kind kind, const char* s, uint32_t base = 10)
-   *   mkConst(Kind kind, const std::string& s, uint32_t base = 10)
-   *   mkConst(Kind kind, uint32_t arg)
-   *   mkConst(Kind kind, int32_t arg)
-   *   mkConst(Kind kind, int64_t arg)
-   *   mkConst(Kind kind, uint64_t arg)
+   *   mkAbstractValue(const std::string& index);
+   *   mkAbstractValue(uint64_t index);
    */
   ABSTRACT_VALUE,
 #if 0
   /* Built-in operator */
   BUILTIN,
 #endif
-  /**
-   * Defined function.
-   * Parameters: 3 (4)
-   *   See defineFun().
-   * Create with:
-   *   defineFun(const std::string& symbol,
-   *             const std::vector<Term>& bound_vars,
-   *             Sort sort,
-   *             Term term)
-   *   defineFun(Term fun,
-   *             const std::vector<Term>& bound_vars,
-   *             Term term)
-   */
-  FUNCTION,
-  /**
-   * Application of a defined function.
-   * Parameters: n > 1
-   *   -[1]..[n]: Function argument instantiation Terms
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  APPLY,
   /**
    * Equality.
    * Parameters: 2
@@ -127,8 +98,18 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   DISTINCT,
   /**
-   * Variable.
+   * First-order constant.
    * Not permitted in bindings (forall, exists, ...).
+   * Parameters:
+   *   See mkConst().
+   * Create with:
+   *   mkConst(const std::string& symbol, Sort sort)
+   *   mkConst(Sort sort)
+   */
+  CONSTANT,
+  /**
+   * (Bound) variable.
+   * Permitted in bindings and in the lambda and quantifier bodies only.
    * Parameters:
    *   See mkVar().
    * Create with:
@@ -136,16 +117,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkVar(Sort sort)
    */
   VARIABLE,
-  /**
-   * Bound variable.
-   * Permitted in bindings and in the lambda and quantifier bodies only.
-   * Parameters:
-   *   See mkBoundVar().
-   * Create with:
-   *   mkBoundVar(const std::string& symbol, Sort sort)
-   *   mkBoundVar(Sort sort)
-   */
-  BOUND_VARIABLE,
 #if 0
   /* Skolem variable (internal only) */
   SKOLEM,
@@ -204,7 +175,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTrue()
    *   mkFalse()
    *   mkBoolean(bool val)
-   *   mkConst(Kind kind, bool arg)
    */
   CONST_BOOLEAN,
   /* Logical not.
@@ -568,20 +538,10 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkReal(int64_t val)
    *   mkReal(uint32_t val)
    *   mkReal(uint64_t val)
-   *   mkRational(int32_t num, int32_t den)
-   *   mkRational(int64_t num, int64_t den)
-   *   mkRational(uint32_t num, uint32_t den)
-   *   mkRational(uint64_t num, uint64_t den)
-   *   mkConst(Kind kind, const char* s, uint32_t base = 10)
-   *   mkConst(Kind kind, const std::string& s, uint32_t base = 10)
-   *   mkConst(Kind kind, uint32_t arg)
-   *   mkConst(Kind kind, int64_t arg)
-   *   mkConst(Kind kind, uint64_t arg)
-   *   mkConst(Kind kind, int32_t arg)
-   *   mkConst(Kind kind, int32_t arg1, int32_t arg2)
-   *   mkConst(Kind kind, int64_t arg1, int64_t arg2)
-   *   mkConst(Kind kind, uint32_t arg1, uint32_t arg2)
-   *   mkConst(Kind kind, uint64_t arg1, uint64_t arg2)
+   *   mkReal(int32_t num, int32_t den)
+   *   mkReal(int64_t num, int64_t den)
+   *   mkReal(uint32_t num, uint32_t den)
+   *   mkReal(uint64_t num, uint64_t den)
    */
   CONST_RATIONAL,
   /**
@@ -658,15 +618,9 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters:
    *   See mkBitVector().
    * Create with:
-   *   mkBitVector(uint32_t size)
-   *   mkBitVector(uint32_t size, uint32_t val)
    *   mkBitVector(uint32_t size, uint64_t val)
    *   mkBitVector(const char* s, uint32_t base = 2)
    *   mkBitVector(std::string& s, uint32_t base = 2)
-   *   mkConst(Kind kind, const char* s, uint32_t base = 10)
-   *   mkConst(Kind kind, const std::string& s, uint32_t base = 10)
-   *   mkConst(Kind kind, uint32_t arg)
-   *   mkConst(Kind kind, uint32_t arg1, uint64_t arg2)
    */
   CONST_BITVECTOR,
   /**
@@ -1169,13 +1123,13 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[2]: Size of the significand
    *   -[3]: Value of the floating-point constant as a bit-vector term
    * Create with:
-   *   mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3)
+   *   mkFloatingPoint(uint32_t sig, uint32_t exp, Term val)
    */
   CONST_FLOATINGPOINT,
   /**
    * Floating-point rounding mode term.
    * Create with:
-   *   mkConst(RoundingMode rm)
+   *   mkRoundingMode(RoundingMode rm)
    */
   CONST_ROUNDINGMODE,
   /**
@@ -1670,30 +1624,32 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Constructor application.
    * Paramters: n > 0
-   *   -[1]: Constructor
+   *   -[1]: Constructor (operator term)
    *   -[2]..[n]: Parameters to the constructor
    * Create with:
-   *   mkTerm(Kind kind)
-   *   mkTerm(Kind kind, Term child)
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  APPLY_SELECTOR,
-  /**
-   * Datatype selector application.
-   * Parameters: 1
-   *   -[1]: Datatype term (undefined if mis-applied)
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, OpTerm opTerm)
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child)
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2)
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, OpTerm opTerm, const std::vector<Term>& children)
    */
   APPLY_CONSTRUCTOR,
   /**
    * Datatype selector application.
    * Parameters: 1
-   *   -[1]: Datatype term (defined rigidly if mis-applied)
+   *   -[1]: Selector (operator term)
+   *   -[2]: Datatype term (undefined if mis-applied)
    * Create with:
-   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child)
+   */
+  APPLY_SELECTOR,
+  /**
+   * Datatype selector application.
+   * Parameters: 1
+   *   -[1]: Selector (operator term)
+   *   -[2]: Datatype term (defined rigidly if mis-applied)
+   * Create with:
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child)
    */
   APPLY_SELECTOR_TOTAL,
   /**
@@ -1774,7 +1730,6 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 0
    * Create with:
    *   mkSepNil(Sort sort)
-   *   mkTerm(Kind kind, Sort sort)
    */
   SEP_NIL,
   /**
@@ -1833,7 +1788,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Sort of the set elements
    * Create with:
    *   mkEmptySet(Sort sort)
-   *   mkConst(Sort sort)
    */
   EMPTYSET,
   /**
@@ -1922,7 +1876,6 @@ enum CVC4_PUBLIC Kind : int32_t
    * All set variables must be interpreted as subsets of it.
    * Create with:
    *   mkUniverseSet(Sort sort)
-   *   mkTerm(Kind kind, Sort sort)
    */
   UNIVERSE_SET,
   /**
@@ -2125,8 +2078,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkString(const std::string& s)
    *   mkString(const unsigned char c)
    *   mkString(const std::vector<unsigned>& s)
-   *   mkConst(Kind kind, const char* s)
-   *   mkConst(Kind kind, const std::string& s)
    */
   CONST_STRING,
   /**

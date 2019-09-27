@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Aina Niemetz
+ **   Justin Xu, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,7 +36,8 @@ PreprocessingPassResult PreprocessingPass::apply(
 
 void PreprocessingPass::dumpAssertions(const char* key,
                                        const AssertionPipeline& assertionList) {
-  if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions::") + key)) {
+  if (Dump.isOn("assertions") && Dump.isOn(std::string("assertions:") + key))
+  {
     // Push the simplified assertions to the dump output stream
     for (const auto& n : assertionList) {
       Dump("assertions") << AssertCommand(Expr(n.toExpr()));

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,18 +17,10 @@
  ** following:
  **
  **   java \
- **     -classpath path/to/CVC4.jar \
- **     -Djava.library.path=/dir/containing/java/CVC4.so \
+ **     -cp path/to/CVC4.jar:SimpleVC.jar \
+ **     -Djava.library.path=/dir/containing/libcvc4jni.so \
  **     SimpleVC
  **
- ** For example, if you are building CVC4 without specifying your own
- ** build directory, the build process puts everything in builds/, and
- ** you can run this example (after building it with "make") like this:
- **
- **   java \
- **     -classpath builds/examples:builds/src/bindings/CVC4.jar \
- **     -Djava.library.path=builds/src/bindings/java/.libs \
- **     SimpleVC
  **/
 
 import edu.nyu.acsys.CVC4.*;

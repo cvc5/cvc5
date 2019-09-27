@@ -2,9 +2,9 @@
 /*! \file alpha_equivalence.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,8 @@
  **/
 
 #include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/term_canonize.h"
+
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4;
 using namespace std;
@@ -23,7 +24,7 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
 struct sortTypeOrder {
-  TermCanonize* d_tu;
+  expr::TermCanonize* d_tu;
   bool operator() (TypeNode i, TypeNode j) {
     return d_tu->getIdForType( i )<d_tu->getIdForType( j );
   }

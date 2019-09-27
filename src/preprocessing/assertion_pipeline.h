@@ -2,9 +2,9 @@
 /*! \file assertion_pipeline.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Justin Xu, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
-#define __CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
+#ifndef CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
+#define CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
 
 #include <vector>
 
@@ -40,15 +40,22 @@ class AssertionPipeline
 
   void resize(size_t n) { d_nodes.resize(n); }
 
-  void clear()
-  {
-    d_nodes.clear();
-    d_realAssertionsEnd = 0;
-  }
+  /**
+   * Clear the list of assertions and assumptions.
+   */
+  void clear();
 
   Node& operator[](size_t i) { return d_nodes[i]; }
   const Node& operator[](size_t i) const { return d_nodes[i]; }
-  void push_back(Node n) { d_nodes.push_back(n); }
+
+  /**
+   * Adds an assertion/assumption to be preprocessed.
+   *
+   * @param n The assertion/assumption
+   * @param isAssumption If true, records that \p n is an assumption. Note that
+   * all assumptions have to be added contiguously.
+   */
+  void push_back(Node n, bool isAssumption = false);
 
   std::vector<Node>& ref() { return d_nodes; }
   const std::vector<Node>& ref() const { return d_nodes; }
@@ -79,6 +86,12 @@ class AssertionPipeline
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
 
   size_t getRealAssertionsEnd() const { return d_realAssertionsEnd; }
+
+  /** @return The index of the first assumption */
+  size_t getAssumptionsStart() const { return d_assumptionsStart; }
+
+  /** @return The number of assumptions */
+  size_t getNumAssumptions() const { return d_numAssumptions; }
 
   void updateRealAssertionsEnd() { d_realAssertionsEnd = d_nodes.size(); }
 
@@ -114,6 +127,7 @@ class AssertionPipeline
   }
 
  private:
+  /** The list of current assertions */
   std::vector<Node> d_nodes;
 
   /**
@@ -138,9 +152,14 @@ class AssertionPipeline
    * TODO(#2473): replace by separate vector of substitution assertions.
    */
   size_t d_substsIndex;
+
+  /** Index of the first assumption */
+  size_t d_assumptionsStart;
+  /** The number of assumptions */
+  size_t d_numAssumptions;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__ASSERTION_PIPELINE_H */
+#endif /* CVC4__PREPROCESSING__ASSERTION_PIPELINE_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -52,10 +52,6 @@ OutputLanguage Options::getOutputLanguage() const {
 
 bool Options::getCheckProofs() const{
   return (*this)[options::checkProofs];
-}
-
-bool Options::getContinuedExecution() const{
-  return (*this)[options::continuedExecution];
 }
 
 bool Options::getDumpInstantiations() const{
@@ -174,18 +170,6 @@ const std::string& Options::getForceLogicString() const{
   return (*this)[options::forceLogicString];
 }
 
-const std::vector<std::string>& Options::getThreadArgv() const{
-  return (*this)[options::threadArgv];
-}
-
-int Options::getSharingFilterByLength() const{
-  return (*this)[options::sharingFilterByLength];
-}
-
-int Options::getThreadId() const{
-  return (*this)[options::thread_id];
-}
-
 int Options::getVerbosity() const{
   return (*this)[options::verbosity];
 }
@@ -219,22 +203,6 @@ unsigned Options::getParseStep() const{
   return (*this)[options::parseStep];
 }
 
-unsigned Options::getThreadStackSize() const{
-  return (*this)[options::threadStackSize];
-}
-
-unsigned Options::getThreads() const{
-  return (*this)[options::threads];
-}
-
-int Options::currentGetSharingFilterByLength() {
-  return current()->getSharingFilterByLength();
-}
-
-int Options::currentGetThreadId() {
-  return current()->getThreadId();
-}
-
 std::ostream* Options::currentGetOut() {
   return current()->getOut();
 }
@@ -256,14 +224,6 @@ void Options::setOut(std::ostream* value) {
 
 void Options::setOutputLanguage(OutputLanguage value) {
   set(options::outputLanguage, value);
-}
-
-void Options::setSharingFilterByLength(int length) {
-  set(options::sharingFilterByLength, length);
-}
-
-void Options::setThreadId(int value) {
-  set(options::thread_id, value);
 }
 
 bool Options::wasSetByUserCeGuidedInst() const {
@@ -288,14 +248,6 @@ bool Options::wasSetByUserIncrementalSolving() const {
 
 bool Options::wasSetByUserInteractive() const {
   return wasSetByUser(options::interactive);
-}
-
-bool Options::wasSetByUserThreadStackSize() const {
-  return wasSetByUser(options::threadStackSize);
-}
-
-bool Options::wasSetByUserThreads() const {
-  return wasSetByUser(options::threads);
 }
 
 

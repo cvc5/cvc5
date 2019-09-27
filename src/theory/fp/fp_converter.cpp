@@ -2,9 +2,9 @@
 /*! \file fp_converter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain
+ **   Martin Brain, Andres Noetzli, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -157,17 +157,17 @@ symbolicRoundingMode traits::RTN(void) { return symbolicRoundingMode(0x08); };
 symbolicRoundingMode traits::RTZ(void) { return symbolicRoundingMode(0x10); };
 void traits::precondition(const bool b)
 {
-  Assert(b);
+  AlwaysAssert(b);
   return;
 }
 void traits::postcondition(const bool b)
 {
-  Assert(b);
+  AlwaysAssert(b);
   return;
 }
 void traits::invariant(const bool b)
 {
-  Assert(b);
+  AlwaysAssert(b);
   return;
 }
 
@@ -253,7 +253,7 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(
           BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
 {
-  PRECONDITION((v & v - 1) == 0 && v != 0);  // Exactly one bit set
+  PRECONDITION((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
   PRECONDITION(checkNodeType(*this));
 }
 #else

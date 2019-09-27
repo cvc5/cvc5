@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -740,7 +740,7 @@ Node TheoryBV::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n";
   Node res = t;
-  if (RewriteRule<BitwiseEq>::applies(t)) {
+  if (options::bitwiseEq() && RewriteRule<BitwiseEq>::applies(t)) {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     res = Rewriter::rewrite(result);
   } else if (d_isCoreTheory && t.getKind() == kind::EQUAL) {
@@ -986,9 +986,10 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
   return changed;
 }
 
-void TheoryBV::setProofLog( BitVectorProof * bvp ) {
+void TheoryBV::setProofLog(proof::BitVectorProof* bvp)
+{
   if( options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER ){
-    d_eagerSolver->setProofLog( bvp );
+    d_eagerSolver->setProofLog(bvp);
   }else{
     for( unsigned i=0; i< d_subtheories.size(); i++ ){
       d_subtheories[i]->setProofLog( bvp );
