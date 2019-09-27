@@ -169,7 +169,7 @@ public:
    * may avoid constructing n copies of eset.
    */
   void setAssignmentExclusionSetGroup(const std::vector<TNode>& group,
-                                 const std::vector<Node>& eset);
+                                      const std::vector<Node>& eset);
   /** get assignment exclusion set for term n
    *
    * This method returns true if n has been given an assignment exclusion set,
@@ -180,7 +180,9 @@ public:
    * in the first argument of that call to the vector group. Otherwise, it
    * adds n itself to group.
    */
-  bool getAssignmentExclusionSet(TNode n, std::vector<Node>& group, std::vector<Node>& eset);
+  bool getAssignmentExclusionSet(TNode n,
+                                 std::vector<Node>& group,
+                                 std::vector<Node>& eset);
   /** have any assignment exclusion sets been assigned? */
   bool hasAssignmentExclusionSets() const;
   /** record approximation
@@ -351,7 +353,7 @@ public:
   /** Map of terms to their assignment exclusion set. */
   std::map<Node, std::vector<Node> > d_assignExcSet;
   /** Map of terms to their "assignment exclusion set master" */
-  std::map<Node,Node> d_aesMaster;
+  std::map<Node, Node> d_aesMaster;
   /** Reverse of the above map */
   std::map<Node, std::vector<Node> > d_aesSlaves;
   /** stores set of representatives for each type */

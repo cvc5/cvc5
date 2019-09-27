@@ -533,17 +533,18 @@ void TheoryModel::setAssignmentExclusionSet(TNode n,
   aes.insert(aes.end(), eset.begin(), eset.end());
 }
 
-void TheoryModel::setAssignmentExclusionSetGroup(const std::vector<TNode>& group,
-                                            const std::vector<Node>& eset)
+void TheoryModel::setAssignmentExclusionSetGroup(
+    const std::vector<TNode>& group, const std::vector<Node>& eset)
 {
   if (group.empty())
   {
     return;
   }
-  // for efficiency, we store a single copy of eset and set a slave/master relationship
+  // for efficiency, we store a single copy of eset and set a slave/master
+  // relationship
   setAssignmentExclusionSet(group[0], eset);
   std::vector<Node>& gslaves = d_aesSlaves[group[0]];
-  for (unsigned i=1, gsize = group.size(); i<gsize; i++)
+  for (unsigned i = 1, gsize = group.size(); i < gsize; i++)
   {
     Node gs = group[i];
     // set master
@@ -553,13 +554,15 @@ void TheoryModel::setAssignmentExclusionSetGroup(const std::vector<TNode>& group
   }
 }
 
-bool TheoryModel::getAssignmentExclusionSet(TNode n, std::vector<Node>& group, std::vector<Node>& eset)
+bool TheoryModel::getAssignmentExclusionSet(TNode n,
+                                            std::vector<Node>& group,
+                                            std::vector<Node>& eset)
 {
   // does it have a master?
-  std::map<Node,Node>::iterator itm = d_aesMaster.find(n);
-  if (itm!=d_aesMaster.end())
+  std::map<Node, Node>::iterator itm = d_aesMaster.find(n);
+  if (itm != d_aesMaster.end())
   {
-    return getAssignmentExclusionSet(itm->second,group,eset);
+    return getAssignmentExclusionSet(itm->second, group, eset);
   }
   std::map<Node, std::vector<Node> >::iterator ita = d_assignExcSet.find(n);
   if (ita == d_assignExcSet.end())
@@ -570,9 +573,9 @@ bool TheoryModel::getAssignmentExclusionSet(TNode n, std::vector<Node>& group, s
   group.push_back(n);
   // does it have slaves?
   ita = d_aesSlaves.find(n);
-  if (ita!=d_aesSlaves.end())
+  if (ita != d_aesSlaves.end())
   {
-    group.insert(group.end(),ita->second.begin(),ita->second.end());
+    group.insert(group.end(), ita->second.begin(), ita->second.end());
   }
   return true;
 }

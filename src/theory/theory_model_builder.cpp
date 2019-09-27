@@ -210,7 +210,7 @@ Node TheoryEngineModelBuilder::processEqcInternal(TheoryModel* m,
       {
         // append its assignment exclusion set to eset
         // FIXME
-        //m->getAssignmentExclusionSet(n, eset);
+        // m->getAssignmentExclusionSet(n, eset);
         Trace("model-build-aes") << "Assignment exclusion set (from " << n
                                  << ") is now: " << eset << std::endl;
       }
