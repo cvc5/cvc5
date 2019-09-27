@@ -158,7 +158,8 @@ public:
    * are constants.
    *
    * Additionally, we (currently) require that an assignment exclusion set
-   * should not be set for two terms in the same equivalence class, or an
+   * should not be set for two terms in the same equivalence class, or to
+   * equivalence classes with an assignable term. Otherwise an
    * assertion will be thrown by TheoryEngineModelBuilder during model building.
    */
   void setAssignmentExclusionSet(TNode n, const std::vector<Node>& eset);

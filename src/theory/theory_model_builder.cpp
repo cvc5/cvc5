@@ -604,7 +604,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           // Should not have two assignment exclusion sets for the same
           // equivalence class
-          AlwaysAssert(!hasESet);
+          Assert(!hasESet);
           Assert(eqcToAssignerMaster.find(eqc) != eqcToAssignerMaster.end());
           // already processed as a slave term
           hasESet = true;
@@ -615,7 +615,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           // Should not have two assignment exclusion sets for the same
           // equivalence class
-          AlwaysAssert(!hasESet);
+          Assert(!hasESet);
           foundESet = true;
           hasESet = true;
         }
@@ -630,6 +630,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       }
       if (foundESet)
       {
+        // we don't accept assignment exclusion sets for evaluable eqc
+        Assert(!evaluable);
         // construct the assigner
         Assigner& a = eqcToAssigner[eqc];
         // Take the representatives of each term in the assignment exclusion
