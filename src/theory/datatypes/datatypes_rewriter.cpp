@@ -219,7 +219,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       else
       {
-        Assert(k == in.getNumChildren() - 1);
+        // variables have no constraints
         cases.push_back(nm->mkConst(true));
       }
       rets.push_back(body);
