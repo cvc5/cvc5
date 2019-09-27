@@ -874,6 +874,9 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         itAssignerM = eqcToAssignerMaster.find(*i2);
         if (itAssignerM != eqcToAssignerMaster.end())
         {
+          // Take the master's assigner. Notice we don't care which order
+          // of equivalence classes are assigned. That is, the master can
+          // be assigned after one of its slaves.
           itAssigner = eqcToAssigner.find(itAssignerM->second);
         }
         else
