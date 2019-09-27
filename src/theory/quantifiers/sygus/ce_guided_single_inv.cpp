@@ -651,6 +651,14 @@ bool CegSingleInv::solveTrivial(Node q)
       body = body.substitute(
           varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
       body = Rewriter::rewrite(body);
+      // apply to subs
+      // this ensures we behave correctly if we solve x before y in
+      // x = y+1 ^ y = 2.
+      for (unsigned i=0, ssize = subs.size(); i<ssize; i++)
+      {
+        subs[i] = subs[i].substitute(varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
+        subs[i] = Rewriter::rewrite(subs[i]);
+      }
       vars.insert(vars.end(), varsTmp.begin(), varsTmp.end());
       subs.insert(subs.end(), subsTmp.begin(), subsTmp.end());
     }
