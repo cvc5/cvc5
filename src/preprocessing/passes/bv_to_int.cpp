@@ -748,6 +748,9 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::APPLY_UF:
             {
+              //We replace all BV-sorts of the domain with INT
+              //If the range is a BV sort, we replace it with INT
+              //We cache both the term itself (e.g., f(a)) and the function symbol f.
               Node bvUF = current.getOperator();
               Node intUF;
               TypeNode tn = current.getOperator().getType();
@@ -782,6 +785,9 @@ Node BVToInt::bvToInt(Node n)
               //Insert the term to the cache
               d_bvToIntCache[current] =
                        d_nm->mkNode(kind::APPLY_UF, intized_children);
+              //Add range constraints if necessary.
+              //If the original range was a BV sort, the current application of the fucntion
+              //Must be within the range determined by the bitwidth.
               if (bvRange.isBitVector()) {
                 d_rangeAssertions.insert(mkRangeConstraint(d_bvToIntCache[current], current.getType().getBitVectorSize()));
               }
