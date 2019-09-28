@@ -95,7 +95,7 @@ def logic_supported_with_proofs(logic):
             "QF_ALRA",
             "QF_ABV",
             "QF_BVLRA"
-            #Three theories
+            #three theories
             "QF_AUFBV",
             "QF_ABVLRA",
             "QF_UFBVLRA",
