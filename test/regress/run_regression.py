@@ -88,7 +88,7 @@ def logic_supported_with_proofs(logic):
             "QF_UF",
             "QF_A",
             "QF_LRA",
-            #two theoreis
+            #two theories
             "QF_UFBV",
             "QF_UFLRA",
             "QF_AUF",
