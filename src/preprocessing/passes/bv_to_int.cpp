@@ -777,10 +777,10 @@ Node BVToInt::bvToInt(Node n)
                                  NodeManager::SKOLEM_EXACT_NAME);
               intized_children.insert(intized_children.begin(), intUF);
               d_bvToIntCache[current] =
-                  bvRange.isBitVector()
-                      ? modpow2(d_nm->mkNode(kind::APPLY_UF, intized_children),
-                                bvRange.getBitVectorSize())
-                      : d_nm->mkNode(kind::APPLY_UF, intized_children);
+                       d_nm->mkNode(kind::APPLY_UF, intized_children);
+              if (bvRange.isBitVector()) {
+                d_rangeAssertions.insert(mkRangeConstraint(d_bvToIntCache[current], current.getType().getBitVectorSize()));
+              }
               break;
             }
             default:
