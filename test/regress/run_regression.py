@@ -174,12 +174,14 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     benchmark_dir = os.path.dirname(benchmark_path)
     comment_char = '%'
     status_regex = None
+    logic_regex = None
     status_to_output = lambda s: s
     if benchmark_ext == '.smt':
         status_regex = r':status\s*(sat|unsat)'
         comment_char = ';'
     elif benchmark_ext == '.smt2':
         status_regex = r'set-info\s*:status\s*(sat|unsat)'
+        logic_regex = r'\(\s*set-logic\s*(.*)\)'
         comment_char = ';'
     elif benchmark_ext == '.cvc':
         pass
@@ -195,9 +197,6 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         sys.exit('"{}" must be *.cvc or *.smt or *.smt2 or *.p or *.sy'.format(
             benchmark_basename))
 
-    logic_regex = None
-    if benchmark_ext == '.smt2':
-        logic_regex = r'\(\s*set-logic\s*(.*)\)'
     benchmark_lines = None
     with open(benchmark_path, 'r') as benchmark_file:
         benchmark_lines = benchmark_file.readlines()
