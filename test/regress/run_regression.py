@@ -80,6 +80,7 @@ def get_cvc4_features(cvc4_binary):
 
 
 def logic_supported_with_proofs(logic):
+    assert isinstance(logic, str)
     return logic in [
             #single theories
             "QF_BV",
