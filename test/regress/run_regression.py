@@ -81,8 +81,7 @@ def get_cvc4_features(cvc4_binary):
 
 
 def logic_supported_with_proofs(logic):
-    result = False
-    if logic in [
+    return logic in [
             #single theories
             "QF_BV",
             "QF_UF",
@@ -102,9 +101,7 @@ def logic_supported_with_proofs(logic):
             "QF_AUFLRA",
             #four theories
             "QF_AUFBVLRA"
-            ]:
-        result = True
-    return result
+            ]
 
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
                   command_line, benchmark_dir, benchmark_filename, timeout):
