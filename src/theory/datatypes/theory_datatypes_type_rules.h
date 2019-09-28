@@ -427,7 +427,165 @@ class DtSyguEvalTypeRule
     }
     return TypeNode::fromType(dt.getSygusType());
   }
-}; /* class DtSygusBoundTypeRule */
+}; /* class DtSyguEvalTypeRule */
+
+class MatchTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+  {
+    Assert(n.getKind() == kind::MATCH);
+
+    TypeNode retType;
+
+    TypeNode headType = n[0].getType(check);
+    if (!headType.isDatatype())
+    {
+      throw TypeCheckingExceptionPrivate(n, "expecting datatype head in match");
+    }
+    const Datatype& hdt = headType.getDatatype();
+
+    std::unordered_set<unsigned> patIndices;
+    bool patHasVariable = false;
+    // the type of a match case list is the least common type of its cases
+    for (unsigned i = 1, nchildren = n.getNumChildren(); i < nchildren; i++)
+    {
+      Node nc = n[i];
+      if (check)
+      {
+        Kind nck = nc.getKind();
+        std::unordered_set<Node, NodeHashFunction> bvs;
+        if (nck == kind::MATCH_BIND_CASE)
+        {
+          for (const Node& v : nc[0])
+          {
+            Assert(v.getKind() == kind::BOUND_VARIABLE);
+            bvs.insert(v);
+          }
+        }
+        else if (nck != kind::MATCH_CASE)
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "expected a match case in match expression");
+        }
+        // get the pattern type
+        unsigned pindex = nck == kind::MATCH_CASE ? 0 : 1;
+        TypeNode patType = nc[pindex].getType();
+        // should be caught in the above call
+        if (!patType.isDatatype())
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "expecting datatype pattern in match");
+        }
+        Kind ncpk = nc[pindex].getKind();
+        if (ncpk == kind::APPLY_CONSTRUCTOR)
+        {
+          for (const Node& arg : nc[pindex])
+          {
+            if (bvs.find(arg) == bvs.end())
+            {
+              throw TypeCheckingExceptionPrivate(
+                  n,
+                  "expecting distinct bound variable as argument to "
+                  "constructor in pattern of match");
+            }
+            bvs.erase(arg);
+          }
+          unsigned ci = Datatype::indexOf(nc[pindex].getOperator().toExpr());
+          patIndices.insert(ci);
+        }
+        else if (ncpk == kind::BOUND_VARIABLE)
+        {
+          patHasVariable = true;
+        }
+        else
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "unexpected kind of term in pattern in match");
+        }
+        const Datatype& pdt = patType.getDatatype();
+        // compare datatypes instead of the types to catch parametric case,
+        // where the pattern has parametric type.
+        if (hdt != pdt)
+        {
+          std::stringstream ss;
+          ss << "pattern of a match case does not match the head type in match";
+          throw TypeCheckingExceptionPrivate(n, ss.str());
+        }
+      }
+      TypeNode currType = nc.getType(check);
+      if (i == 1)
+      {
+        retType = currType;
+      }
+      else
+      {
+        retType = TypeNode::leastCommonTypeNode(retType, currType);
+        if (retType.isNull())
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "incomparable types in match case list");
+        }
+      }
+    }
+    if (check)
+    {
+      if (!patHasVariable && patIndices.size() < hdt.getNumConstructors())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "cases for match term are not exhaustive");
+      }
+    }
+    return retType;
+  }
+}; /* class MatchTypeRule */
+
+class MatchCaseTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::MATCH_CASE);
+    if (check)
+    {
+      TypeNode patType = n[0].getType(check);
+      if (!patType.isDatatype())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting datatype pattern in match case");
+      }
+    }
+    return n[1].getType(check);
+  }
+}; /* class MatchCaseTypeRule */
+
+class MatchBindCaseTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::MATCH_BIND_CASE);
+    if (check)
+    {
+      if (n[0].getKind() != kind::BOUND_VAR_LIST)
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expected a bound variable list in match bind case");
+      }
+      TypeNode patType = n[1].getType(check);
+      if (!patType.isDatatype())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting datatype pattern in match bind case");
+      }
+    }
+    return n[2].getType(check);
+  }
+}; /* class MatchBindCaseTypeRule */
 
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */
