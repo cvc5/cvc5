@@ -748,34 +748,38 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::APPLY_UF:
             {
-              // we replace any BV uninterpreted function with 
-              // an integer function. 
-              // The output of the integer function is 
-              // done modulo 2 to the power of the bitwidth.
+              Node bvUF = current.getOperator();
+              Node intUF;
               TypeNode tn = current.getOperator().getType();
-              vector<TypeNode> bvDomain = tn.getArgTypes();
               TypeNode bvRange = tn.getRangeType();
-              vector<TypeNode> intDomain;
-              //if the original range is a bit-vector sort, 
-              //the new range should be an integer sort.
-              //Otherwise, we keep the original range.
-              TypeNode intRange =
-                  bvRange.isBitVector() ? d_nm->integerType() : bvRange;
-              vector<Node> intArguments;
-              for (uint64_t i = 0; i < bvDomain.size(); i++)
-              {
-                intDomain.push_back(bvDomain[i].isBitVector()
-                                        ? d_nm->integerType()
-                                        : bvDomain[i]);
+              if (d_bvToIntCache.find(bvUF) != d_bvToIntCache.end()) {
+                intUF = d_bvToIntCache[bvUF];
+              } else {
+                vector<TypeNode> bvDomain = tn.getArgTypes();
+                vector<TypeNode> intDomain;
+                //if the original range is a bit-vector sort, 
+                //the new range should be an integer sort.
+                //Otherwise, we keep the original range.
+                TypeNode intRange =
+                    bvRange.isBitVector() ? d_nm->integerType() : bvRange;
+                vector<Node> intArguments;
+                for (uint64_t i = 0; i < bvDomain.size(); i++)
+                {
+                  intDomain.push_back(bvDomain[i].isBitVector()
+                                          ? d_nm->integerType()
+                                          : bvDomain[i]);
+                }
+                ostringstream os;
+                os << "__bvToInt_fun_" << bvUF << "_int";
+                intUF =
+                    d_nm->mkSkolem(os.str(),
+                                   d_nm->mkFunctionType(intDomain, intRange),
+                                   "bv2int function");
+                //Insert the function symbol itself to the cache
+                d_bvToIntCache[bvUF] = intUF;
               }
-              ostringstream os;
-              os << current.getOperator() << "_int";
-              Node intUF =
-                  d_nm->mkSkolem(os.str(),
-                                 d_nm->mkFunctionType(intDomain, intRange),
-                                 "bv2int function",
-                                 NodeManager::SKOLEM_EXACT_NAME);
               intized_children.insert(intized_children.begin(), intUF);
+              //Insert the term to the cache
               d_bvToIntCache[current] =
                        d_nm->mkNode(kind::APPLY_UF, intized_children);
               if (bvRange.isBitVector()) {

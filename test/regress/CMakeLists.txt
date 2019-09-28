@@ -185,6 +185,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bv_to_int_bitwise.smt2
   regress0/bv/bvuf_to_intuf.smt2
+  regress0/bv/bvuf_to_intuf_smtlib.smt2
   regress0/bv/bvuf_to_intuf_sorts.smt2
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
