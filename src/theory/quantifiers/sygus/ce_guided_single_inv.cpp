@@ -671,7 +671,7 @@ bool CegSingleInv::solveTrivial(Node q)
         << q << " is trivially solvable by substitution " << vars << " -> "
         << subs << std::endl;
     std::map<Node, Node> imap;
-    for (unsigned j = 0, vsize = vars.size(); j < vsize; j++)
+    for (size_t j = 0, vsize = vars.size(); j < vsize; j++)
     {
       imap[vars[j]] = subs[j];
     }
