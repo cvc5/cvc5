@@ -2069,32 +2069,37 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
              i++)
         {
           Node onr = d_extf_info_tmp[nr[0]].d_ctn[opol][i];
-          Node conc =
+          Node concOrig =
               nm->mkNode(STRING_STRCTN, pol ? nr[1] : onr, pol ? onr : nr[1]);
-          conc = Rewriter::rewrite(conc);
-          conc = conc.negate();
-          bool do_infer = false;
-          bool pol = conc.getKind() != NOT;
-          Node lit = pol ? conc : conc[0];
-          if (lit.getKind() == EQUAL)
+          Node conc = Rewriter::rewrite(concOrig);
+          // For termination concerns, we only do the inference if the contains
+          // does not rewrite (and thus does not introduce new terms).
+          if (conc == concOrig)
           {
-            do_infer = pol ? !areEqual(lit[0], lit[1])
-                           : !areDisequal(lit[0], lit[1]);
-          }
-          else
-          {
-            do_infer = !areEqual(lit, pol ? d_true : d_false);
-          }
-          if (do_infer)
-          {
-            std::vector<Node> exp_c;
-            exp_c.insert(exp_c.end(), in.d_exp.begin(), in.d_exp.end());
-            Node ofrom = d_extf_info_tmp[nr[0]].d_ctn_from[opol][i];
-            Assert(d_extf_info_tmp.find(ofrom) != d_extf_info_tmp.end());
-            exp_c.insert(exp_c.end(),
-                         d_extf_info_tmp[ofrom].d_exp.begin(),
-                         d_extf_info_tmp[ofrom].d_exp.end());
-            d_im.sendInference(exp_c, conc, "CTN_Trans");
+            bool do_infer = false;
+            conc = conc.negate();
+            bool pol = conc.getKind() != NOT;
+            Node lit = pol ? conc : conc[0];
+            if (lit.getKind() == EQUAL)
+            {
+              do_infer = pol ? !areEqual(lit[0], lit[1])
+                             : !areDisequal(lit[0], lit[1]);
+            }
+            else
+            {
+              do_infer = !areEqual(lit, pol ? d_true : d_false);
+            }
+            if (do_infer)
+            {
+              std::vector<Node> exp_c;
+              exp_c.insert(exp_c.end(), in.d_exp.begin(), in.d_exp.end());
+              Node ofrom = d_extf_info_tmp[nr[0]].d_ctn_from[opol][i];
+              Assert(d_extf_info_tmp.find(ofrom) != d_extf_info_tmp.end());
+              exp_c.insert(exp_c.end(),
+                           d_extf_info_tmp[ofrom].d_exp.begin(),
+                           d_extf_info_tmp[ofrom].d_exp.end());
+              d_im.sendInference(exp_c, conc, "CTN_Trans");
+            }
           }
         }
       }
