@@ -654,7 +654,7 @@ bool CegSingleInv::solveTrivial(Node q)
       // apply to subs
       // this ensures we behave correctly if we solve x before y in
       // x = y+1 ^ y = 2.
-      for (unsigned i = 0, ssize = subs.size(); i < ssize; i++)
+      for (size_t i = 0, ssize = subs.size(); i < ssize; i++)
       {
         subs[i] = subs[i].substitute(
             varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
