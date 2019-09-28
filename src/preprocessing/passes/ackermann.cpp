@@ -23,8 +23,7 @@
 
 #include "preprocessing/passes/ackermann.h"
 
-#include "options/bv_options.h"
-#include "theory/bv/theory_bv_utils.h"
+#include "options/options.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -57,7 +56,7 @@ void addLemmaForPair(TNode args1,
     {
       eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
     }
-    args_eq = bv::utils::mkAnd(eqs);
+    args_eq = nm->mkNode(kind::AND, eqs);
   }
   else
   {
@@ -88,10 +87,10 @@ void storeFunctionAndAddLemmas(TNode func,
   if (set.find(term) == set.end())
   {
     TypeNode tn = term.getType();
-    Node skolem = nm->mkSkolem("BVSKOLEM$$",
+    Node skolem = nm->mkSkolem("SKOLEM$$",
                                tn,
                                "is a variable created by the ackermannization "
-                               "preprocessing pass for theory BV");
+                               "preprocessing pass");
     for (const auto& t : set)
     {
       addLemmaForPair(t, term, func, assertions, nm);
@@ -163,7 +162,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       {
         AlwaysAssert(
             term.getKind() != kind::STORE,
-            "Cannot use eager bitblasting on QF_ABV formula with stores");
+            "Cannot use ackermannization on QF_ABV formula with stores");
         /* add children to the vector, so that they are processed later */
         for (TNode n : term)
         {
