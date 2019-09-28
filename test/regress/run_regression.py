@@ -196,6 +196,9 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         sys.exit('"{}" must be *.cvc or *.smt or *.smt2 or *.p or *.sy'.format(
             benchmark_basename))
 
+    logic_regex = None
+    if benchmark_ext == '.smt2':
+        logic_regex = r'\(\s*set-logic\s*(.*)\)'
     benchmark_lines = None
     with open(benchmark_path, 'r') as benchmark_file:
         benchmark_lines = benchmark_file.readlines()
@@ -230,8 +233,6 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
             command_lines.append(line[len(COMMAND_LINE):])
         elif line.startswith(REQUIRES):
             requires.append(line[len(REQUIRES):].strip())
-        elif line.startswith(LOGIC):
-            logic = line[len(LOGIC):-1].strip()
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
 
@@ -250,6 +251,8 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
             sys.exit('Cannot determine status of "{}"'.format(benchmark_path))
     if expected_exit_status is None:
         expected_exit_status = 0
+    if logic_regex:
+        logic = re.findall(logic_regex, benchmark_content)
 
     if 'CVC4_REGRESSION_ARGS' in os.environ:
         basic_command_line_args += shlex.split(
