@@ -1392,9 +1392,10 @@ Expr Smt2::purifySygusGTerm(Expr term,
   }
   std::vector<Expr> pchildren;
   // To test whether the operator should be passed to mkExpr below, we check
-  // whether this term has an operator which is not constant. This includes
-  // APPLY_UF terms, but excludes applications of interpreted symbols.
-  if (term.hasOperator() && !term.getOperator().isConst())
+  // whether this term is parameterized. This includes APPLY_UF terms and BV
+  // extraction terms, but excludes applications of most interpreted symbols
+  // like PLUS.
+  if (term.isParameterized())
   {
     pchildren.push_back(term.getOperator());
   }

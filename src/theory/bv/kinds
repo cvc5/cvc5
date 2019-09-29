@@ -222,19 +222,19 @@ typerule BITVECTOR_EAGER_ATOM ::CVC4::theory::bv::BitVectorEagerAtomTypeRule
 
 ### type rules for parameterized operator kinds -------------------------------
 
-typerule BITVECTOR_BITOF_OP ::CVC4::theory::bv::BitVectorBitOfOpTypeRule
+typerule BITVECTOR_BITOF_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_BITOF ::CVC4::theory::bv::BitVectorBitOfTypeRule
-typerule BITVECTOR_EXTRACT_OP ::CVC4::theory::bv::BitVectorExtractOpTypeRule
+typerule BITVECTOR_EXTRACT_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_EXTRACT ::CVC4::theory::bv::BitVectorExtractTypeRule
-typerule BITVECTOR_REPEAT_OP ::CVC4::theory::bv::BitVectorRepeatOpTypeRule
+typerule BITVECTOR_REPEAT_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_REPEAT ::CVC4::theory::bv::BitVectorRepeatTypeRule
-typerule BITVECTOR_ROTATE_LEFT_OP ::CVC4::theory::bv::BitVectorRotateLeftOpTypeRule
+typerule BITVECTOR_ROTATE_LEFT_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_ROTATE_LEFT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_ROTATE_RIGHT_OP ::CVC4::theory::bv::BitVectorRotateRightOpTypeRule
+typerule BITVECTOR_ROTATE_RIGHT_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_ROTATE_RIGHT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_SIGN_EXTEND_OP ::CVC4::theory::bv::BitVectorSignExtendOpTypeRule
+typerule BITVECTOR_SIGN_EXTEND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_SIGN_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
-typerule BITVECTOR_ZERO_EXTEND_OP ::CVC4::theory::bv::BitVectorZeroExtendOpTypeRule
+typerule BITVECTOR_ZERO_EXTEND_OP "SimpleTypeRule<RBuiltinOperator>"
 typerule BITVECTOR_ZERO_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
 typerule INT_TO_BITVECTOR_OP ::CVC4::theory::bv::IntToBitVectorOpTypeRule
 typerule INT_TO_BITVECTOR ::CVC4::theory::bv::BitVectorConversionTypeRule
