@@ -1185,6 +1185,10 @@ void SmtEngine::setDefaults() {
                << "generation" << endl;
       setOption("bitblastMode", SExpr("lazy"));
     }
+	else if (!options::incrementalSolving())
+	{
+		options::ackermann.set(true);
+	}
 
     if (options::incrementalSolving() && !d_logic.isPure(THEORY_BV))
     {
@@ -1208,15 +1212,30 @@ void SmtEngine::setDefaults() {
   {
     d_logic = LogicInfo("QF_NIA");
   }
-  else if ((d_logic.getLogicString() == "QF_UFBV"
-            || d_logic.getLogicString() == "QF_ABV")
-           && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+
+  // set options about ackermannization
+  if (options::ackermann())
   {
-    d_logic = LogicInfo("QF_BV");
-  }
-  else if (d_logic.getLogicString() == "QF_UFBV" && options::ackermann())
-  {
-    d_logic = LogicInfo("QF_BV");
+	  if (options::produceModels()
+			  && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+				  || d_logic.isTheoryEnabled(THEORY_UF)))
+	  {
+		  if (options::produceModels.wasSetByUser())
+		  {
+			  throw OptionException(std::string(
+						  "Ackermannization currently does not support model generation."));
+		  }
+		  Notice() << "SmtEngine: turn off ackermannization to support model"
+			  << "generation" << endl;
+		  options::ackermann.set(false);
+	  }
+
+	  if (d_logic.isTheoryEnabled(THEORY_UF) && options::ackermann())
+	  {
+		  d_logic = d_logic.getUnlockedCopy();
+		  d_logic.disableTheory(THEORY_UF);
+		  d_logic.lock();
+	  }
   }
 
   // set default options associated with strings-exp
@@ -3237,12 +3256,6 @@ void SmtEnginePrivate::processAssertions() {
     throw ModalException("Eager bit-blasting does not currently support theory combination. "
                          "Note that in a QF_BV problem UF symbols can be introduced for division. "
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
-  }
-
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-      && !options::incrementalSolving())
-  {
-    options::ackermann.set(true);
   }
 
   if (options::ackermann())
