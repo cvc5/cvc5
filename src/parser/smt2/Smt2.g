@@ -1131,7 +1131,7 @@ sygusGrammar[CVC4::Type & ret,
       // We can also be in a case where the only rule specified was
       // (Constant T), in which case we have not yet added a constructor. We
       // ensure an arbitrary constant is added in this case.
-      if (datatypes[i].getNumConstructors()==0)
+      if (datatypes[i].getNumConstructors() == 0)
       {
         if (aci)
         {
