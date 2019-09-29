@@ -23,7 +23,7 @@
 
 ${typechecker_includes}
 
-#line 26 "${template}"
+#line 27 "${template}"
 
 namespace CVC4 {
 namespace expr {
@@ -44,7 +44,7 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager, TNode n, bool check)
 
 ${typerules}
 
-#line 47 "${template}"
+#line 48 "${template}"
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
@@ -66,7 +66,7 @@ bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${construles}
 
-#line 69 "${template}"
+#line 70 "${template}"
 
   default:;
   }
@@ -82,7 +82,7 @@ bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
   switch(n.getKind()) {
 ${neverconstrules}
 
-#line 85 "${template}"
+#line 86 "${template}"
 
   default:;
   }
