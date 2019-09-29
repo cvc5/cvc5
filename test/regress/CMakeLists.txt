@@ -332,6 +332,7 @@ set(regress_0_tests
   regress0/cvc3.userdoc.04.cvc
   regress0/cvc3.userdoc.05.cvc
   regress0/cvc3.userdoc.06.cvc
+  regress0/cvc-rerror-print.cvc
   regress0/datatypes/Test1-tup-mp.cvc
   regress0/datatypes/boolean-equality.cvc
   regress0/datatypes/boolean-terms-datatype.cvc
@@ -1571,6 +1572,7 @@ set(regress_1_tests
   regress1/strings/issue2982.smt2
   regress1/strings/issue3090.smt2
   regress1/strings/issue3217.smt2
+  regress1/strings/issue3272.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1682,6 +1684,7 @@ set(regress_1_tests
   regress1/sygus/issue3200.smt2
   regress1/sygus/issue3201.smt2
   regress1/sygus/issue3205.smt2
+  regress1/sygus/issue3247.smt2
   regress1/sygus/issue3320-quant.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy

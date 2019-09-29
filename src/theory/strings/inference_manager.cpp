@@ -123,8 +123,9 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   {
     return;
   }
+  Node atom = eq.getKind() == NOT ? eq[0] : eq;
   // check if we should send a lemma or an inference
-  if (asLemma || eq == d_false || eq.getKind() == OR || !exp_n.empty()
+  if (asLemma || atom == d_false || atom.getKind() == OR || !exp_n.empty()
       || options::stringInferAsLemmas())
   {
     Node eq_exp;
