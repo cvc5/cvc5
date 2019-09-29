@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,15 +14,25 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__LOCAL_THEORY_EXT_H
-#define __CVC4__THEORY__LOCAL_THEORY_EXT_H
+#ifndef CVC4__THEORY__LOCAL_THEORY_EXT_H
+#define CVC4__THEORY__LOCAL_THEORY_EXT_H
 
 #include "context/cdo.h"
+#include "expr/attribute.h"
 #include "expr/node_trie.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
+
+/** Attribute true for quantifiers that do not need to be partially instantiated
+ */
+struct LtePartialInstAttributeId
+{
+};
+typedef expr::Attribute<LtePartialInstAttributeId, bool>
+    LtePartialInstAttribute;
+
 namespace quantifiers {
 
 class LtePartialInst : public QuantifiersModule {

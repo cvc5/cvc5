@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,13 +18,15 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
+#include "theory/uf/cardinality_extension.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
 using namespace CVC4;
@@ -88,9 +90,13 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     }
 
     Trace("model-engine-debug") << "Verify uf ss is minimal..." << std::endl;
-    //let the strong solver verify that the model is minimal
-    //for debugging, this will if there are terms in the model that the strong solver was not notified of
-    uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)d_quantEngine->getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
+    // Let the cardinality extension verify that the model is minimal.
+    // This will if there are terms in the model that the cardinality extension
+    // was not notified of.
+    uf::CardinalityExtension* ufss =
+        static_cast<uf::TheoryUF*>(
+            d_quantEngine->getTheoryEngine()->theoryOf(THEORY_UF))
+            ->getCardinalityExtension();
     if( !ufss || ufss->debugModel( fm ) ){
       Trace("model-engine-debug") << "Check model..." << std::endl;
       d_incomplete_check = false;
@@ -266,7 +272,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }
     d_triedLemmas += mb->getNumTriedLemmas()-prev_tlem;
     d_addedLemmas += mb->getNumAddedLemmas()-prev_alem;
-    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi += mb->getNumAddedLemmas();
+    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi +=
+        (mb->getNumAddedLemmas() - prev_alem);
   }else{
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";

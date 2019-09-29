@@ -2,9 +2,9 @@
 /*! \file sygus_grammar_red.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -43,7 +44,6 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     std::map<int, Node> pre;
     Node g = tds->mkGeneric(dt, i, pre);
     Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
-    Assert(g.getNumChildren() == dt[i].getNumArgs());
     d_gen_terms[i] = g;
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {

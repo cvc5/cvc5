@@ -2,9 +2,9 @@
 /*! \file antlr_input.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Kshitij Bansal, Tim King
+ **   Christopher L. Conway, Kshitij Bansal, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,7 +30,6 @@
 #include "parser/memory_mapped_input_buffer.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/smt1/smt1_input.h"
 #include "parser/smt2/smt2_input.h"
 #include "parser/smt2/sygus_input.h"
 #include "parser/tptp/tptp_input.h"
@@ -247,13 +246,9 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     input = new CvcInput(inputStream);
     break;
   }
-  case LANG_SMTLIB_V1:
-    input = new Smt1Input(inputStream);
-    break;
 
   case LANG_SYGUS:
-    input = new SygusInput(inputStream);
-    break;
+  case LANG_SYGUS_V2: input = new SygusInput(inputStream); break;
 
   case LANG_TPTP:
     input = new TptpInput(inputStream);
@@ -267,8 +262,7 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     else
     {
       std::stringstream ss;
-      ss << "internal error: unhandled language " << lang
-         << " in AntlrInput::newInput";
+      ss << "unable to detect input file format, try --lang ";
       throw InputStreamException(ss.str());
     }
   }

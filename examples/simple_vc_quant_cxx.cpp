@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,7 @@
 
 #include <iostream>
 
-//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
-#include "smt/smt_engine.h"
+#include <cvc4/cvc4.h>
 
 using namespace std;
 using namespace CVC4;

@@ -1,37 +1,58 @@
 #!/bin/sh
 #
 # get-authors
-# Copyright (c) 2009-2018  The CVC4 Project
+# Copyright (c) 2009-2019  The CVC4 Project
 #
 # usage: get-authors [ files... ]
 #
-# This script uses git to get the original author
+# This script uses git blame -w -N -C to get the original author
 #
 
 gituser="`git config user.name` <`git config user.email`>"
 
-if [ "$1" = "--email" ]; then
-  strip_email=cat
-  shift
-else
-  strip_email="sed 's, *<[^>]*@[^>]*>,,g'"
-fi
-
 while [ $# -gt 0 ]; do
   f=$1
   shift
-  contributors=
-  if [ -z "`grep " \*\* Top contributors" $f`" ]
+  if ! grep -q " \*\* Top contributors" "$f"
   then
     header_lines=0
   else
-    header_lines=`grep "\*\*\/" $f -m 1 -n | cut -d ':' -f 1`
+    header_lines=$(grep "\*\*\/" "$f" -m 1 -n | cut -d ':' -f 1)
     if [ -z $header_lines ]; then header_lines=0; fi
   fi
   ((header_lines++))
-  total_lines=`wc -l "$f" | awk '{print$1}'`
-  git blame -w -M --incremental -L $header_lines,$total_lines "$f" | \
-    gawk '/^[0-9a-f]+ [0-9]+ [0-9]+ [0-9]+$/ {nl=$4;} /^summary .*copyright/ {nl=0} /^author / {$1=""; author=$0;} /^author-mail / {mail=$2} /^filename / {while(nl--) {print author,mail}}' | \
+  total_lines=$(wc -l "$f" | awk '{print$1}')
+
+  # Note: Instead of using the porcelain format, we extract the author name
+  # information from the humand readable format since it prints the source code
+  # and we want to exclude specific lines of code.
+
+  # Each line looks a follows:
+  #
+  # sha1 filename (Author Name       2019-03-25 13:36:07 -0800   42) code ...
+
+  git blame -w -M -C -L $header_lines,$total_lines "$f" | \
+
+    # Discard everthing left to first '('
+    awk -F '(' '{print $2}' | \
+
+    # Discard the source code left to first ')' and omit lines that begin
+    # with:
+    # (1) #include
+    # (2) namespace
+    # (3) } ... namespace ...
+    # (4) empty lines
+    #
+    awk -F ')' \
+      '$2 !~ /^[ \t]*(#include|namespace|}.*namespace.*|[ \t]*$)/ {print $1}' | \
+
+    # Keep author names only, remove the last 4 columns in ( ... )
+    awk 'NF{NF-=4};1' | \
+
+    # Determine top three contributors
+    sort | uniq -c | sort -rn | head -n3 | \
+
+    # Fix author names
     sed "s,Not Committed Yet <not.committed.yet>,$gituser," | \
     sed 's/PaulMeng/Paul Meng/' | \
     sed 's/barrettcw/Clark Barrett/' | \
@@ -45,10 +66,12 @@ while [ $# -gt 0 ]; do
     sed 's/Martin/Martin Brain/' | \
     sed 's/justinxu421/Justin Xu/' | \
     sed 's/yoni206/Yoni Zohar/' | \
-    eval "$strip_email" | \
-    sort | uniq -c | sort -nr | head -n 3 | \
-    ( while read lines author; do
-        contributors="${contributors:+$contributors, }$author"
-      done; \
-      echo "$contributors")
+    sed 's/ayveejay/Andrew V. Jones/' | \
+
+    # Remove first columns from uniq -c (number of lines)
+    awk '{$1=""; print}' | \
+
+    # Comma separated list of author names, remove leading whitespaces, and
+    # remove trailing comma
+    tr '\n' ', ' | sed 's/^[ \t]*//' | sed 's/,$/\n/'
 done

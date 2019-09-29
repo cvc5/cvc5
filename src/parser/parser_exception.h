@@ -2,9 +2,9 @@
 /*! \file parser_exception.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Christopher L. Conway
+ **   Tim King, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__PARSER_EXCEPTION_H
-#define __CVC4__PARSER__PARSER_EXCEPTION_H
+#ifndef CVC4__PARSER__PARSER_EXCEPTION_H
+#define CVC4__PARSER__PARSER_EXCEPTION_H
 
 #include <iostream>
 #include <string>
@@ -99,4 +99,4 @@ class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__PARSER_EXCEPTION_H */
+#endif /* CVC4__PARSER__PARSER_EXCEPTION_H */

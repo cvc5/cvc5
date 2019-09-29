@@ -2,9 +2,9 @@
 /*! \file sygus_repair_const.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,6 +24,7 @@
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 
@@ -115,6 +116,7 @@ void SygusRepairConst::initializeChecker(std::unique_ptr<SmtEngine>& checker,
     try
     {
       checker.reset(new SmtEngine(&em));
+      checker->setIsInternalSubsolver();
       checker->setTimeLimit(options::sygusRepairConstTimeout(), true);
       checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
       // renable options disabled by sygus

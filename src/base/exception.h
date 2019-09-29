@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__EXCEPTION_H
-#define __CVC4__EXCEPTION_H
+#ifndef CVC4__EXCEPTION_H
+#define CVC4__EXCEPTION_H
 
 #include <cstdarg>
 #include <cstdlib>
@@ -125,15 +125,15 @@ inline std::ostream& operator<<(std::ostream& os, const Exception& e)
 
 template <class T> inline void CheckArgument(bool cond, const T& arg,
                                              const char* tail) CVC4_PUBLIC;
-template <class T> inline void CheckArgument(bool cond, const T& arg,
-                                             const char* tail) {
+template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED,
+                                             const char* tail CVC4_UNUSED) {
   if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
 }
 template <class T> inline void CheckArgument(bool cond, const T& arg)
   CVC4_PUBLIC;
-template <class T> inline void CheckArgument(bool cond, const T& arg) {
+template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED) {
   if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
@@ -166,4 +166,4 @@ private:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXCEPTION_H */
+#endif /* CVC4__EXCEPTION_H */

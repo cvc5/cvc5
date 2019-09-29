@@ -1,0 +1,36 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status
+(set-logic SLIA)
+(declare-datatype JSIdentifier ((JSInt (jsInt Int)) (JSString (jsString String)) ))
+
+(synth-fun f ((x1_ JSIdentifier)(x2_ String)) JSIdentifier
+	((Start JSIdentifier (ntJSIdentifier))
+		(ntInt Int
+			(1
+				(+ ntInt ntInt)
+				(jsInt ntJSIdentifier)
+			)
+		)
+		(ntString String
+			(x2_
+				(str.substr ntString ntInt ntInt)
+				(jsString ntJSIdentifier)
+			)
+		)
+		(ntBool Bool
+			( 
+				(= ntString ntString)
+			)
+		)
+		(ntJSIdentifier JSIdentifier
+			( x1_  
+			(ite ntBool ntJSIdentifier ntJSIdentifier)
+			(JSString ntString)
+			)
+		)
+	)
+)
+(constraint (= (f (JSString "") "") (JSString "")))
+(constraint (= (f (JSString "M") "W") (JSString "M")))
+(constraint (= (f (JSString "Moon") "") (JSString "on")))
+(check-synth)

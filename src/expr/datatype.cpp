@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,10 +25,11 @@
 #include "expr/expr_manager_scope.h"
 #include "expr/matcher.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/type.h"
-#include "options/set_language.h"
 #include "options/datatypes_options.h"
+#include "options/set_language.h"
 
 using namespace std;
 
@@ -154,6 +155,36 @@ void Datatype::resolve(ExprManager* em,
     }
     d_record = new Record(fields);
   }
+
+  if (isSygus())
+  {
+    // all datatype constructors should be sygus and have sygus operators whose
+    // free variables are subsets of sygus bound var list.
+    Node sbvln = Node::fromExpr(d_sygus_bvl);
+    std::unordered_set<Node, NodeHashFunction> svs;
+    for (const Node& sv : sbvln)
+    {
+      svs.insert(sv);
+    }
+    for (unsigned i = 0, ncons = d_constructors.size(); i < ncons; i++)
+    {
+      Expr sop = d_constructors[i].getSygusOp();
+      PrettyCheckArgument(!sop.isNull(),
+                          this,
+                          "Sygus datatype contains a non-sygus constructor");
+      Node sopn = Node::fromExpr(sop);
+      std::unordered_set<Node, NodeHashFunction> fvs;
+      expr::getFreeVariables(sopn, fvs);
+      for (const Node& v : fvs)
+      {
+        PrettyCheckArgument(
+            svs.find(v) != svs.end(),
+            this,
+            "Sygus constructor has an operator with a free variable that is "
+            "not in the formal argument list of the function-to-synthesize");
+      }
+    }
+  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -180,7 +211,10 @@ void Datatype::addSygusConstructor(Expr op,
 {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   Debug("dt-sygus") << "    sygus op : " << op << std::endl;
-  std::string name = getName() + "_" + cname;
+  // avoid name clashes
+  std::stringstream ss;
+  ss << getName() << "_" << getNumConstructors() << "_" << cname;
+  std::string name = ss.str();
   std::string testerId("is-");
   testerId.append(name);
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
@@ -997,7 +1031,8 @@ bool DatatypeConstructor::isFinite(Type t) const
     if( DatatypeType(t).isParametric() ){
       tc = tc.substitute( paramTypes, instTypes );
     }
-    if(! tc.getCardinality().isFinite()) {
+    if (!tc.isFinite())
+    {
       self.setAttribute(DatatypeFiniteComputedAttr(), true);
       self.setAttribute(DatatypeFiniteAttr(), false);
       return false;

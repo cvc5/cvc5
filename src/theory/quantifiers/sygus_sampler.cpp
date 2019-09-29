@@ -2,9 +2,9 @@
 /*! \file sygus_sampler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,7 +40,6 @@ void SygusSampler::initialize(TypeNode tn,
   d_tds = nullptr;
   d_use_sygus_type = false;
   d_is_valid = true;
-  d_tn = tn;
   d_ftn = TypeNode::null();
   d_type_vars.clear();
   d_vars.clear();
@@ -95,7 +94,6 @@ void SygusSampler::initializeSygus(TermDbSygus* tds,
   Assert(d_ftn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(d_ftn.toType()).getDatatype();
   Assert(dt.isSygus());
-  d_tn = TypeNode::fromType(dt.getSygusType());
 
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
@@ -264,28 +262,30 @@ bool SygusSampler::PtTrie::add(std::vector<Node>& pt)
 
 Node SygusSampler::registerTerm(Node n, bool forceKeep)
 {
-  if (d_is_valid)
+  if (!d_is_valid)
   {
-    Node bn = n;
-    // if this is a sygus type, get its builtin analog
-    if (d_use_sygus_type)
-    {
-      Assert(!d_ftn.isNull());
-      bn = d_tds->sygusToBuiltin(n);
-      Assert(d_builtin_to_sygus.find(bn) == d_builtin_to_sygus.end()
-             || d_builtin_to_sygus[bn] == n);
-      d_builtin_to_sygus[bn] = n;
-    }
-    Assert(bn.getType() == d_tn);
-    Node res = d_trie.add(bn, this, 0, d_samples.size(), forceKeep);
-    if (d_use_sygus_type)
-    {
-      Assert(d_builtin_to_sygus.find(res) != d_builtin_to_sygus.end());
-      res = res != bn ? d_builtin_to_sygus[res] : n;
-    }
-    return res;
+    // do nothing
+    return n;
   }
-  return n;
+  Node bn = n;
+  TypeNode tn = n.getType();
+  // If we are using sygus types, get the builtin analog of n.
+  if (d_use_sygus_type)
+  {
+    bn = d_tds->sygusToBuiltin(n);
+    d_builtin_to_sygus[tn][bn] = n;
+  }
+  // cache based on the (original) type of n
+  Node res = d_trie[tn].add(bn, this, 0, d_samples.size(), forceKeep);
+  // If we are using sygus types, map back to an original.
+  // Notice that d_builtin_to_sygus is not necessarily bijective.
+  if (d_use_sygus_type)
+  {
+    std::map<Node, Node>& bts = d_builtin_to_sygus[tn];
+    Assert(bts.find(res) != bts.end());
+    res = res != bn ? bts[res] : n;
+  }
+  return res;
 }
 
 bool SygusSampler::isContiguous(Node n)
@@ -765,6 +765,56 @@ void SygusSampler::registerSygusType(TypeNode tn)
         TypeNode tnc = d_tds->getArgType(dtc, j);
         registerSygusType(tnc);
       }
+    }
+  }
+}
+
+void SygusSampler::checkEquivalent(Node bv, Node bvr)
+{
+  Trace("sygus-rr-verify") << "Testing rewrite rule " << bv << " ---> " << bvr
+                           << std::endl;
+
+  // see if they evaluate to same thing on all sample points
+  bool ptDisequal = false;
+  unsigned pt_index = 0;
+  Node bve, bvre;
+  for (unsigned i = 0, npoints = getNumSamplePoints(); i < npoints; i++)
+  {
+    bve = evaluate(bv, i);
+    bvre = evaluate(bvr, i);
+    if (bve != bvre)
+    {
+      ptDisequal = true;
+      pt_index = i;
+      break;
+    }
+  }
+  // bv and bvr should be equivalent under examples
+  if (ptDisequal)
+  {
+    // we have detected unsoundness in the rewriter
+    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+    std::ostream* out = nodeManagerOptions.getOut();
+    (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
+    // debugging information
+    (*out) << "; unsound: are not equivalent for : " << std::endl;
+    std::vector<Node> vars;
+    getVariables(vars);
+    std::vector<Node> pt;
+    getSamplePoint(pt_index, pt);
+    Assert(vars.size() == pt.size());
+    for (unsigned i = 0, size = pt.size(); i < size; i++)
+    {
+      (*out) << "; unsound:    " << vars[i] << " -> " << pt[i] << std::endl;
+    }
+    Assert(bve != bvre);
+    (*out) << "; unsound: where they evaluate to " << bve << " and " << bvre
+           << std::endl;
+
+    if (options::sygusRewVerifyAbort())
+    {
+      AlwaysAssert(false,
+                   "--sygus-rr-verify detected unsoundness in the rewriter!");
     }
   }
 }

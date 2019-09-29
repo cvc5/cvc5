@@ -2,9 +2,9 @@
 /*! \file apply_substs.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -41,17 +41,12 @@ PreprocessingPassResult ApplySubsts::applyInternal(
     // TODO(#1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
 
-    // When solving incrementally, all substitutions are piled into the
-    // assertion at d_substitutionsIndex: we don't want to apply substitutions
-    // to this assertion or information will be lost.
-    unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
     theory::SubstitutionMap& substMap =
         d_preprocContext->getTopLevelSubstitutions();
     unsigned size = assertionsToPreprocess->size();
-    unsigned substitutionAssertion = substs_index > 0 ? substs_index : size;
     for (unsigned i = 0; i < size; ++i)
     {
-      if (i == substitutionAssertion)
+      if (assertionsToPreprocess->isSubstsIndex(i))
       {
         continue;
       }

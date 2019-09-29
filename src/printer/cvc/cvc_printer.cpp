@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -279,9 +279,6 @@ void CvcPrinter::toStream(
       toStream(out, n[1], depth, types, true);
       out << ")";
       return;
-      break;
-    case kind::APPLY:
-      toStream(op, n.getOperator(), depth, types, true);
       break;
     case kind::CHAIN:
     case kind::DISTINCT: // chain and distinct not supported directly in CVC4, blast them away with the rewriter
@@ -1051,10 +1048,12 @@ static bool tryToStream(std::ostream& out,
 
 void CvcPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 {
-  if(tryToStream<CommandSuccess>(out, s, d_cvc3Mode) ||
-     tryToStream<CommandFailure>(out, s, d_cvc3Mode) ||
-     tryToStream<CommandUnsupported>(out, s, d_cvc3Mode) ||
-     tryToStream<CommandInterrupted>(out, s, d_cvc3Mode)) {
+  if (tryToStream<CommandSuccess>(out, s, d_cvc3Mode)
+      || tryToStream<CommandFailure>(out, s, d_cvc3Mode)
+      || tryToStream<CommandRecoverableFailure>(out, s, d_cvc3Mode)
+      || tryToStream<CommandUnsupported>(out, s, d_cvc3Mode)
+      || tryToStream<CommandInterrupted>(out, s, d_cvc3Mode))
+  {
     return;
   }
 
@@ -1553,6 +1552,13 @@ static void toStream(std::ostream& out,
 }
 
 static void toStream(std::ostream& out, const CommandFailure* s, bool cvc3Mode)
+{
+  out << s->getMessage() << endl;
+}
+
+static void toStream(std::ostream& out,
+                     const CommandRecoverableFailure* s,
+                     bool cvc3Mode)
 {
   out << s->getMessage() << endl;
 }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -715,9 +715,6 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
         (*i)->getName().c_str());
     nameResolutions.insert(std::make_pair((*i)->getName(), dtt));
     dtts.push_back(dtt);
-    //d_keep_dtt.push_back(dtt);
-    //d_keep_dt.push_back(*i);
-    //Assert( dtt.getDatatype()==(*i) );
   }
 
   // Second, set up the type substitution map for complex type

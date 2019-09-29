@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -259,12 +259,12 @@ void DratProof::outputAsLfsc(std::ostream& os, uint8_t indentation) const
     {
       case ADDITION:
       {
-        os << "DRATProofa";
+        os << "DRATProofa ";
         break;
       }
       case DELETION:
       {
-        os << "DRATProofd";
+        os << "DRATProofd ";
         break;
       }
       default: { Unreachable("Unrecognized DRAT instruction kind");
@@ -273,7 +273,7 @@ void DratProof::outputAsLfsc(std::ostream& os, uint8_t indentation) const
     for (const SatLiteral& l : i.d_clause)
     {
       os << "(clc (" << (l.isNegated() ? "neg " : "pos ")
-         << ProofManager::getVarName(l.getSatVariable()) << ") ";
+         << ProofManager::getVarName(l.getSatVariable(), "bb") << ") ";
     }
     os << "cln";
     std::fill_n(std::ostream_iterator<char>(os), i.d_clause.size(), ')');

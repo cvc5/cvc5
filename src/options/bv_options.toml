@@ -7,11 +7,22 @@ header = "options/bv_options.h"
   category   = "expert"
   long       = "bv-proof-format=MODE"
   type       = "CVC4::theory::bv::BvProofFormat"
-  default    = "CVC4::theory::bv::BITVECTOR_PROOF_LRAT"
+  default    = "CVC4::theory::bv::BITVECTOR_PROOF_ER"
   handler    = "stringToBvProofFormat"
   predicates = ["satSolverEnabledBuild"]
   includes   = ["options/bv_bitblast_mode.h"]
   help       = "choose which UNSAT proof format to use, see --bv-sat-solver=help"
+
+[[option]]
+  name       = "bvOptimizeSatProof"
+  category   = "expert"
+  long       = "bv-optimize-sat-proof=MODE"
+  type       = "CVC4::theory::bv::BvOptimizeSatProof"
+  default    = "CVC4::theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA"
+  handler    = "stringToBvOptimizeSatProof"
+  predicates = ["satSolverEnabledBuild"]
+  includes   = ["options/bv_bitblast_mode.h"]
+  help       = "enable SAT proof optimizations, see --bv-optimize-sat-proof=help"
 
 [[option]]
   name       = "bvSatSolver"

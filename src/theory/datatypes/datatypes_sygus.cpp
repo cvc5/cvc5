@@ -2,9 +2,9 @@
 /*! \file datatypes_sygus.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,7 @@
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4;
@@ -243,9 +244,10 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   
   if( options::sygusFair()==SYGUS_FAIR_DIRECT ){
     if( dt[tindex].getNumArgs()>0 ){
+      quantifiers::SygusTypeInfo& nti = d_tds->getTypeInfo(ntn);
       // consider lower bounds for size of types
-      unsigned lb_add = d_tds->getMinConsTermSize( ntn, tindex );
-      unsigned lb_rem = n==a ? 0 : d_tds->getMinTermSize( ntn );
+      unsigned lb_add = nti.getMinConsTermSize(tindex);
+      unsigned lb_rem = n == a ? 0 : nti.getMinTermSize();
       Assert( lb_add>=lb_rem );
       d_currTermSize[a].set( d_currTermSize[a].get() + ( lb_add - lb_rem ) );
     }
@@ -557,10 +559,11 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       << "Simple symmetry breaking for " << dt.getName() << ", constructor "
       << dt[tindex].getName() << ", at depth " << depth << std::endl;
 
+  quantifiers::SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   // get the sygus operator
   Node sop = Node::fromExpr(dt[tindex].getSygusOp());
   // get the kind of the constructor operator
-  Kind nk = d_tds->getConsNumKind(tn, tindex);
+  Kind nk = ti.getConsNumKind(tindex);
   // is this the any-constant constructor?
   bool isAnyConstant = sop.getAttribute(SygusAnyConstAttribute());
 
@@ -620,8 +623,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       // for each variable in the sygus type
       for (const Node& var : svl)
       {
-        unsigned sc = d_tds->getSubclassForVar(etn, var);
-        if (d_tds->getNumSubclassVars(etn, sc) == 1)
+        quantifiers::SygusTypeInfo& eti = d_tds->getTypeInfo(etn);
+        unsigned sc = eti.getSubclassForVar(var);
+        if (eti.getNumSubclassVars(sc) == 1)
         {
           // unique variable in singleton subclass, skip
           continue;
@@ -629,11 +633,11 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         // Compute the "predecessor" variable in the subclass of var.
         Node predVar;
         unsigned scindex = 0;
-        if (d_tds->getIndexInSubclassForVar(etn, var, scindex))
+        if (eti.getIndexInSubclassForVar(var, scindex))
         {
           if (scindex > 0)
           {
-            predVar = d_tds->getVarSubclassIndex(etn, sc, scindex - 1);
+            predVar = eti.getVarSubclassIndex(sc, scindex - 1);
           }
         }
         Node preParentOp = getTraversalPredicate(tn, var, true);
@@ -655,7 +659,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         Node finish = nm->mkNode(APPLY_UF, postParent, n);
         // check if we are constructing the symmetry breaking predicate for the
         // variable in question. If so, is-{x_i}( z ) is true.
-        int varCn = d_tds->getOpConsNum(tn, var);
+        int varCn = ti.getOpConsNum(var);
         if (varCn == static_cast<int>(tindex))
         {
           // the post value is true
@@ -748,7 +752,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             // cannot do division since we have to consider when both are zero
             if (!req_const.isNull())
             {
-              if (d_tds->hasConst(tn, req_const))
+              if (ti.hasConst(req_const))
               {
                 argDeq = true;
               }
@@ -805,7 +809,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         bool exp_not_all_const_valid = dt_index_nargs > 0;
         // does the parent have an any constant constructor?
         bool usingAnyConstCons =
-            usingSymCons && (d_tds->getAnyConstantConsNum(tn) != -1);
+            usingSymCons && (ti.getAnyConstantConsNum() != -1);
         for (unsigned j = 0; j < dt_index_nargs; j++)
         {
           Node nc = children[j];
@@ -815,13 +819,14 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             continue;
           }
           TypeNode tnc = nc.getType();
-          int anyc_cons_num = d_tds->getAnyConstantConsNum(tnc);
+          quantifiers::SygusTypeInfo& cti = d_tds->getTypeInfo(tnc);
+          int anyc_cons_num = cti.getAnyConstantConsNum();
           const Datatype& cdt =
               static_cast<DatatypeType>(tnc.toType()).getDatatype();
           std::vector<Node> exp_const;
           for (unsigned k = 0, ncons = cdt.getNumConstructors(); k < ncons; k++)
           {
-            Kind nck = d_tds->getConsNumKind(tnc, k);
+            Kind nck = cti.getConsNumKind(k);
             bool red = false;
             Node tester = DatatypesRewriter::mkTester(nc, k, cdt);
             // check if the argument is redundant
@@ -837,7 +842,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             }
             else
             {
-              Node cc = d_tds->getConsNumConst(tnc, k);
+              Node cc = cti.getConsNumConst(k);
               if (!cc.isNull())
               {
                 Trace("sygus-sb-simple-debug")
@@ -1090,8 +1095,6 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
       {
         if (bv != bvr)
         {
-          Trace("sygus-rr-verify")
-              << "Testing rewrite rule " << bv << " ---> " << bvr << std::endl;
           // add to the sampler database object
           std::map<TypeNode, quantifiers::SygusSampler>::iterator its =
               d_sampler[a].find(tn);
@@ -1101,55 +1104,8 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
                 d_tds, nv, options::sygusSamples(), false);
             its = d_sampler[a].find(tn);
           }
-          // see if they evaluate to same thing on all sample points
-          bool ptDisequal = false;
-          unsigned pt_index = 0;
-          Node bve, bvre;
-          for (unsigned i = 0, npoints = its->second.getNumSamplePoints();
-               i < npoints;
-               i++)
-          {
-            bve = its->second.evaluate(bv, i);
-            bvre = its->second.evaluate(bvr, i);
-            if (bve != bvre)
-            {
-              ptDisequal = true;
-              pt_index = i;
-              break;
-            }
-          }
-          // bv and bvr should be equivalent under examples
-          if (ptDisequal)
-          {
-            // we have detected unsoundness in the rewriter
-            Options& nodeManagerOptions =
-                NodeManager::currentNM()->getOptions();
-            std::ostream* out = nodeManagerOptions.getOut();
-            (*out) << "(unsound-rewrite " << bv << " " << bvr << ")"
-                   << std::endl;
-            // debugging information
-            (*out) << "; unsound: are not equivalent for : " << std::endl;
-            std::vector<Node> vars;
-            its->second.getVariables(vars);
-            std::vector<Node> pt;
-            its->second.getSamplePoint(pt_index, pt);
-            Assert(vars.size() == pt.size());
-            for (unsigned i = 0, size = pt.size(); i < size; i++)
-            {
-              (*out) << "; unsound:    " << vars[i] << " -> " << pt[i]
-                     << std::endl;
-            }
-            Assert(bve != bvre);
-            (*out) << "; unsound: where they evaluate to " << bve << " and "
-                   << bvre << std::endl;
-
-            if (options::sygusRewVerifyAbort())
-            {
-              AlwaysAssert(
-                  false,
-                  "--sygus-rr-verify detected unsoundness in the rewriter!");
-            }
-          }
+          // check equivalent
+          its->second.checkEquivalent(bv, bvr);
         }
       }
 
@@ -1403,11 +1359,12 @@ void SygusSymBreakNew::registerSizeTerm(Node e, std::vector<Node>& lemmas)
     // variables occur pre-traversal at top-level
     Node varList = Node::fromExpr(dt.getSygusVarList());
     std::vector<Node> constraints;
+    quantifiers::SygusTypeInfo& eti = d_tds->getTypeInfo(etn);
     for (const Node& v : varList)
     {
-      unsigned sc = d_tds->getSubclassForVar(etn, v);
+      unsigned sc = eti.getSubclassForVar(v);
       // no symmetry breaking occurs for variables in singleton subclasses
-      if (d_tds->getNumSubclassVars(etn, sc) > 1)
+      if (eti.getNumSubclassVars(sc) > 1)
       {
         Node preRootOp = getTraversalPredicate(etn, v, true);
         Node preRoot = nm->mkNode(APPLY_UF, preRootOp, e);

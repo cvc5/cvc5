@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Liana Hadarean, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -85,8 +85,27 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
         if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
             && options::bvSatSolver() == theory::bv::SAT_SOLVER_CRYPTOMINISAT)
         {
-          proof::BitVectorProof* bvp =
-              new proof::LfscClausalBitVectorProof(thBv, this);
+          proof::BitVectorProof* bvp = nullptr;
+          switch (options::bvProofFormat())
+          {
+            case theory::bv::BvProofFormat::BITVECTOR_PROOF_DRAT:
+            {
+              bvp = new proof::LfscDratBitVectorProof(thBv, this);
+              break;
+            }
+            case theory::bv::BvProofFormat::BITVECTOR_PROOF_LRAT:
+            {
+              bvp = new proof::LfscLratBitVectorProof(thBv, this);
+              break;
+            }
+            case theory::bv::BvProofFormat::BITVECTOR_PROOF_ER:
+            {
+              bvp = new proof::LfscErBitVectorProof(thBv, this);
+              break;
+            }
+            default: { Unreachable("Invalid BvProofFormat");
+            }
+          };
           d_theoryProofTable[id] = bvp;
         }
         else

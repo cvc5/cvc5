@@ -16,18 +16,17 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include <algorithm>
-#include <cctype>
 #include <iostream>
-#include <iterator>
 
 #include "proof/lrat/lrat_proof.h"
 #include "prop/sat_solver_types.h"
+#include "utils.h"
 
+using namespace CVC4;
 using namespace CVC4::proof::lrat;
 using namespace CVC4::prop;
 
-class LfscProofBlack : public CxxTest::TestSuite
+class LratProofBlack : public CxxTest::TestSuite
 {
  public:
   void setUp() override {}
@@ -36,23 +35,7 @@ class LfscProofBlack : public CxxTest::TestSuite
   void testOutputAsLfsc();
 };
 
-/**
- * Creates a new stream with whitespace removed.
- *
- * @param s the source string
- *
- * @return a string without whitespace
- */
-std::string filterWhitespace(const std::string& s)
-{
-  std::string out;
-  std::copy_if(s.cbegin(), s.cend(), std::inserter(out, out.end()), [](char c) {
-    return !std::isspace(c);
-  });
-  return out;
-}
-
-void LfscProofBlack::testOutputAsLfsc()
+void LratProofBlack::testOutputAsLfsc()
 {
   std::vector<std::unique_ptr<LratInstruction>> instructions;
 
@@ -109,5 +92,6 @@ void LfscProofBlack::testOutputAsLfsc()
       "    RATHintsn)) "
       "LRATProofn)))";
 
-  TS_ASSERT_EQUALS(filterWhitespace(lfsc.str()), filterWhitespace(expectedLfsc));
+  TS_ASSERT_EQUALS(filterWhitespace(lfsc.str()),
+                   filterWhitespace(expectedLfsc));
 }

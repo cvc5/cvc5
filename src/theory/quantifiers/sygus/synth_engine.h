@@ -2,9 +2,9 @@
 /*! \file synth_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,12 +15,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
-#define __CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
+#define CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
 
 #include "context/cdhashmap.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -86,9 +86,9 @@ class SynthEngine : public QuantifiersModule
    *
    * The purpose of this method is to inform the solution reconstruction
    * techniques within the single invocation module that n is an original
-   * assertion, prior to rewriting. This is used as a heuristic to remember
-   * terms that are likely to help when trying to reconstruct a solution
-   * that fits a given input syntax.
+   * assertion. This is used as a heuristic to remember terms that are likely
+   * to help when trying to reconstruct a solution that fits a given input
+   * syntax.
    */
   void preregisterAssertion(Node n);
 

@@ -2,9 +2,9 @@
 /*! \file theory_bv_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Dejan Jovanovic, Morgan Deters
+ **   Aina Niemetz, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,8 +18,8 @@
 
 #include <algorithm>
 
-#ifndef __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
-#define __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
+#ifndef CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
+#define CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
 
 namespace CVC4 {
 namespace theory {
@@ -441,4 +441,4 @@ class BitVectorAckermanizationUremTypeRule
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H */
+#endif /* CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H */

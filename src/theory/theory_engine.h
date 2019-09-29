@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_ENGINE_H
-#define __CVC4__THEORY_ENGINE_H
+#ifndef CVC4__THEORY_ENGINE_H
+#define CVC4__THEORY_ENGINE_H
 
 #include <deque>
 #include <memory>
@@ -174,15 +174,12 @@ class TheoryEngine {
     void eqNotifyNewClass(TNode t) override { d_te.eqNotifyNewClass(t); }
     void eqNotifyPreMerge(TNode t1, TNode t2) override
     {
-      d_te.eqNotifyPreMerge(t1, t2);
     }
     void eqNotifyPostMerge(TNode t1, TNode t2) override
     {
-      d_te.eqNotifyPostMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      d_te.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class TheoryEngine::NotifyClass */
   NotifyClass d_masterEENotify;
@@ -751,7 +748,10 @@ public:
    * response to a check-sat call, and only if produceModels is true.
    *
    * If the model is not already built, this will cause this theory engine
-   * to build to the model.
+   * to build the model.
+   *
+   * If the model is not available (for instance, if the last call to check-sat
+   * was interrupted), then this returns the null pointer.
    */
   theory::TheoryModel* getBuiltModel();
   /** set eager model building
@@ -932,4 +932,4 @@ private:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY_ENGINE_H */
+#endif /* CVC4__THEORY_ENGINE_H */

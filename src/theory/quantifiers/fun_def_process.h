@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,18 +14,27 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
-#define __CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
+#ifndef CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
+#define CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
 
-#include <iostream>
-#include <string>
-#include <vector>
 #include <map>
+#include <vector>
+#include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 
 namespace CVC4 {
 namespace theory {
+
+/**
+ * Attribute marked true for types that are used as abstraction types in
+ * the algorithm below.
+ */
+struct AbsTypeFunDefAttributeId
+{
+};
+typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
+
 namespace quantifiers {
 
 //Preprocessing pass to allow finite model finding for admissible recursive function definitions

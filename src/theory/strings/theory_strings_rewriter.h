@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
-#define __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
+#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
+#define CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 
 #include <utility>
 #include <vector>
@@ -45,8 +45,10 @@ class TheoryStringsRewriter {
    * membership. The argument dir indicates the direction to consider, where
    * 0 means strip off the front, 1 off the back, and < 0 off of both.
    *
-   * If this method returns the false node, then we have inferred that the input
-   * membership is equivalent to false. Otherwise, it returns the null node.
+   * If this method returns the false node, then we have inferred that no
+   * string in the language of r1 ++ ... ++ rm is a prefix (when dir!=1) or
+   * suffix (when dir!=0) of s1 ++ ... ++ sn. Otherwise, it returns the null
+   * node.
    *
    * For example, given input
    *   mchildren = { "ab", x }, children = { [["a"]], ([["cd"]])* } and dir = 0,
@@ -59,6 +61,31 @@ class TheoryStringsRewriter {
    * this method updates:
    *   { "b" }, { [[y]] }
    * where [[.]] denotes str.to.re, and returns null.
+   *
+   * Notice that the above requirement for returning false is stronger than
+   * determining that s1 ++ ... ++ sn in r1 ++ ... ++ rm is equivalent to false.
+   * For example, for input "bb" in "b" ++ ( "a" )*, we do not return false
+   * since "b" is in the language of "b" ++ ( "a" )* and is a prefix of "bb".
+   * We do not return false even though the above membership is equivalent
+   * to false. We do this because the function is used e.g. to test whether a
+   * possible unrolling leads to a conflict. This is demonstrated by the
+   * following examples:
+   *
+   * For example, given input
+   *   { "bb", x }, { "b", ("a")* } and dir=-1,
+   * this method updates:
+   *   { "b" }, { ("a")* }
+   * and returns null.
+   *
+   * For example, given input
+   *   { "cb", x }, { "b", ("a")* } and dir=-1,
+   * this method leaves children and mchildren unchanged and returns false.
+   *
+   * Notice that based on this, we can determine that:
+   *   "cb" ++ x  in ( "b" ++ ("a")* )*
+   * is equivalent to false, whereas we cannot determine that:
+   *   "bb" ++ x  in ( "b" ++ ("a")* )*
+   * is equivalent to false.
    */
   static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
   static bool isConstRegExp( TNode t );
@@ -199,6 +226,13 @@ class TheoryStringsRewriter {
    * str.replaceall. If it returns a non-null ret, then node rewrites to ret.
    */
   static Node rewriteReplaceInternal(Node node);
+  /** rewrite string convert
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.tolower( s ) and str.toupper( s )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStrConvert(Node node);
   /** rewrite string less than or equal
   * This is the entry point for post-rewriting terms n of the form
   *   str.<=( t, s )
@@ -218,16 +252,6 @@ class TheoryStringsRewriter {
    */
   static Node rewriteStringCode(Node node);
 
-  /** gets the "vector form" of term n, adds it to c.
-  * For example:
-  * when n = str.++( x, y ), c is { x, y }
-  * when n = str.++( x, str.++( y, z ), w ), c is { x, str.++( y, z ), w )
-  * when n = x, c is { x }
-  *
-  * Also applies to regular expressions (re.++ above).
-  */
-  static void getConcat( Node n, std::vector< Node >& c );
-  static Node mkConcat( Kind k, std::vector< Node >& c );
   static Node splitConstant( Node a, Node b, int& index, bool isRev );
   /** can constant contain list
    * return true if constant c can contain the list l in order
@@ -472,7 +496,7 @@ class TheoryStringsRewriter {
    * @return true node if it can be shown that `a` contains `b`, false node if
    * it can be shown that `a` does not contain `b`, null node otherwise
    */
-  static Node checkEntailContains(Node a, Node b, bool fullRewriter = false);
+  static Node checkEntailContains(Node a, Node b, bool fullRewriter = true);
 
   /** entail non-empty
    *
@@ -751,4 +775,4 @@ class TheoryStringsRewriter {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H */
+#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H */

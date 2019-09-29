@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -516,11 +516,24 @@ private:
   bool d_inPropagate;
 
   /**
-   * Get an explanation of the equality t1 = t2. Returns the asserted equalities that
-   * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
-   * else.
+   * Get an explanation of the equality t1 = t2. Returns the asserted equalities
+   * that imply t1 = t2. Returns TNodes as the assertion equalities should be
+   * hashed somewhere else.
+   *
+   * This call refers to terms t1 and t2 by their ids t1Id and t2Id.
+   *
+   * If eqp is non-null, then this method populates eqp's information and
+   * children such that it is a proof of t1 = t2.
+   *
+   * We cache results of this call in cache, where cache[t1Id][t2Id] stores
+   * a proof of t1 = t2.
    */
-  void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities, EqProof* eqp) const;
+  void getExplanation(
+      EqualityEdgeId t1Id,
+      EqualityNodeId t2Id,
+      std::vector<TNode>& equalities,
+      std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*>& cache,
+      EqProof* eqp) const;
 
   /**
    * Print the equality graph.
@@ -941,7 +954,18 @@ public:
   unsigned d_id;
   Node d_node;
   std::vector<std::shared_ptr<EqProof>> d_children;
+  /**
+   * Debug print this proof on debug trace c with tabulation tb and pretty
+   * printer prettyPrinter.
+   */
   void debug_print(const char* c, unsigned tb = 0,
+                   PrettyPrinter* prettyPrinter = nullptr) const;
+  /**
+   * Debug print this proof on output stream os with tabulation tb and pretty
+   * printer prettyPrinter.
+   */
+  void debug_print(std::ostream& os,
+                   unsigned tb = 0,
                    PrettyPrinter* prettyPrinter = nullptr) const;
 };/* class EqProof */
 

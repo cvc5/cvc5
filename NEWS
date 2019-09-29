@@ -1,12 +1,39 @@
-This file contains a summary of important user-visible changes. 
+This file contains a summary of important user-visible changes.
 
 Changes since 1.6
 =================
 
 New Features:
-* Strings: Support for `str.replaceall` operator.
+* Proofs:
+  * Support for bit-vector proofs with eager bitblasting (older versions only
+    supported proofs with lazy bitblasting).
+* Strings:
+  * Support for `str.replaceall` operator.
+  * New option `--re-elim` to reduce regular expressions to extended string
+    operators, resulting in better performance on regular expression benchmarks
+    (enabled by default).
+* SyGuS:
+  * Support for abduction (`--sygus-abduct`). Given a formula, this option uses
+    CVC4's SyGuS solver to find a sufficient condition such that the
+    conjunction of the condition and the formula is unsatisfiable.
+  * Support for two new term enumerator strategies: variable agnostic
+    (`--sygus-active-gen=var-agnostic`) and fast (`--sygus-active-gen=enum`).
+    By default, CVC4 tries to choose the best term enumerator strategy
+    automatically based on the input (`--sygus-active-gen=auto`).
+  * Support for streaming solutions of increasingly smaller size when using the
+    PBE solver (`--sygus-stream --sygus-pbe`). After the first solution is found
+    and printed, the solver will continue to look for new solutions and print
+    those, if any, that are smaller than previously printed solutions.
+  * Support for unification-based techniques in non-separable specifications
+    (`--sygus-unif`). For solving invariant problems a dedicate mode
+    (`--sygus-unif-boolean-heuristic-dt`) is available that builds candidate
+    solutions using heuristic decision tree learning.
 
 Improvements:
+* Strings:
+  * Significantly better performance on string benchmarks over the core theory
+    and those with extended string functions like substring, contains, and
+    replace.
 
 Changes:
 * API change: Expr::iffExpr() is renamed to Expr::eqExpr() to reflect its
@@ -14,7 +41,7 @@ Changes:
 * Compiling the language bindings now requires SWIG 3 instead of SWIG 2.
 * The CVC3 compatibility layer has been removed.
 * The build system now uses CMake instead of Autotools. Please refer to
-* [INSTALL.md](https://github.com/CVC4/CVC4/blob/master/INSTALL.md) for
+  [INSTALL.md](https://github.com/CVC4/CVC4/blob/master/INSTALL.md) for
   up-to-date instructions on how to build CVC4.
 
 Changes since 1.5
@@ -171,4 +198,3 @@ Changes since 1.0
   use -q.  Previously, this would silence all output (including "sat" or
   "unsat") as well.  Now, single -q silences messages and warnings, and
   double -qq silences all output (except on exception or signal).
-

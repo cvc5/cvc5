@@ -2,9 +2,9 @@
 /*! \file lfsc_proof_printer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__LFSC_PROOF_PRINTER_H
-#define __CVC4__PROOF__LFSC_PROOF_PRINTER_H
+#ifndef CVC4__PROOF__LFSC_PROOF_PRINTER_H
+#define CVC4__PROOF__LFSC_PROOF_PRINTER_H
 
 #include <iosfwd>
 #include <string>
@@ -151,4 +151,4 @@ class LFSCProofPrinter
 }  // namespace proof
 }  // namespace CVC4
 
-#endif /* __CVC4__PROOF__LFSC_PROOF_PRINTER_H */
+#endif /* CVC4__PROOF__LFSC_PROOF_PRINTER_H */

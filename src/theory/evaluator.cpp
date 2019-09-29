@@ -2,9 +2,9 @@
 /*! \file evaluator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -259,6 +259,12 @@ EvalResult Evaluator::evalInternal(TNode n,
           break;
         }
 
+        case kind::UMINUS:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(-x);
+          break;
+        }
         case kind::MULT:
         {
           Rational res = results[currNode[0]].d_rat;
@@ -275,6 +281,27 @@ EvalResult Evaluator::evalInternal(TNode n,
           const Rational& x = results[currNode[0]].d_rat;
           const Rational& y = results[currNode[1]].d_rat;
           results[currNode] = EvalResult(x >= y);
+          break;
+        }
+        case kind::LEQ:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          const Rational& y = results[currNode[1]].d_rat;
+          results[currNode] = EvalResult(x <= y);
+          break;
+        }
+        case kind::GT:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          const Rational& y = results[currNode[1]].d_rat;
+          results[currNode] = EvalResult(x > y);
+          break;
+        }
+        case kind::LT:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          const Rational& y = results[currNode[1]].d_rat;
+          results[currNode] = EvalResult(x < y);
           break;
         }
 

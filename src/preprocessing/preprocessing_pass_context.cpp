@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass_context.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Mathias Preiner, Aina Niemetz
+ **   Aina Niemetz, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,7 +29,6 @@ PreprocessingPassContext::PreprocessingPassContext(
     : d_smt(smt),
       d_resourceManager(resourceManager),
       d_iteRemover(iteRemover),
-      d_substitutionsIndex(smt->d_userContext, 0),
       d_topLevelSubstitutions(smt->d_userContext),
       d_circuitPropagator(circuitPropagator),
       d_symsInAssertions(smt->d_userContext)

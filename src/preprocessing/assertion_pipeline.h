@@ -2,9 +2,9 @@
 /*! \file assertion_pipeline.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Justin Xu, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
-#define __CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
+#ifndef CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
+#define CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
 
 #include <vector>
 
@@ -95,6 +95,37 @@ class AssertionPipeline
 
   void updateRealAssertionsEnd() { d_realAssertionsEnd = d_nodes.size(); }
 
+  /**
+   * Returns true if substitutions must be stored as assertions. This is for
+   * example the case when we do incremental solving.
+   */
+  bool storeSubstsInAsserts() { return d_storeSubstsInAsserts; }
+
+  /**
+   * Enables storing substitutions as assertions.
+   */
+  void enableStoreSubstsInAsserts();
+
+  /**
+   * Disables storing substitutions as assertions.
+   */
+  void disableStoreSubstsInAsserts();
+
+  /**
+   * Adds a substitution node of the form (= lhs rhs) to the assertions.
+   */
+  void addSubstitutionNode(Node n);
+
+  /**
+   * Checks whether the assertion at a given index represents substitutions.
+   *
+   * @param i The index in question
+   */
+  bool isSubstsIndex(size_t i)
+  {
+    return d_storeSubstsInAsserts && i == d_substsIndex;
+  }
+
  private:
   /** The list of current assertions */
   std::vector<Node> d_nodes;
@@ -108,6 +139,20 @@ class AssertionPipeline
   /** Size of d_nodes when preprocessing starts */
   size_t d_realAssertionsEnd;
 
+  /**
+   * If true, we store the substitutions as assertions. This is necessary when
+   * doing incremental solving because we cannot apply them to existing
+   * assertions while preprocessing new assertions.
+   */
+  bool d_storeSubstsInAsserts;
+
+  /**
+   * The index of the assertions that holds the substitutions.
+   *
+   * TODO(#2473): replace by separate vector of substitution assertions.
+   */
+  size_t d_substsIndex;
+
   /** Index of the first assumption */
   size_t d_assumptionsStart;
   /** The number of assumptions */
@@ -117,4 +162,4 @@ class AssertionPipeline
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__ASSERTION_PIPELINE_H */
+#endif /* CVC4__PREPROCESSING__ASSERTION_PIPELINE_H */
