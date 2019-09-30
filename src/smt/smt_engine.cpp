@@ -3267,7 +3267,7 @@ void SmtEnginePrivate::processAssertions() {
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  if (options::ackermann())
+  if (options::ackermann() && !options::incrementalSolving())
   {
     d_passes["ackermann"]->apply(&d_assertions);
   }
