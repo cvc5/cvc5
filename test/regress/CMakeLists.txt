@@ -2,7 +2,12 @@
 # Regression level 0 tests
 
 set(regress_0_tests
-  regress0/arith/ackermann1.smt2
+        regress0/arith/integers/ackermann1.smt2
+        regress0/arith/integers/ackermann2.smt2
+        regress0/arith/integers/ackermann3.smt2
+        regress0/arith/integers/ackermann4.smt2
+        regress0/arith/integers/ackermann5.smt2
+        regress0/arith/integers/ackermann6.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc

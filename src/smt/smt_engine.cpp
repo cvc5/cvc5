@@ -1238,10 +1238,12 @@ void SmtEngine::setDefaults() {
         d_logic.disableTheory(THEORY_UF);
         d_logic.lock();
       }
-      if (d_logic.getLogicString() == "QF_ABV")
-      {
-        d_logic = LogicInfo("QF_BV");
-      }
+	  if (d_logic.isTheoryEnabled(THEORY_ARRAYS))
+	  {
+		d_logic = d_logic.getUnlockedCopy();
+		d_logic.disableTheory(THEORY_ARRAYS);
+		d_logic.lock();
+	  }
     }
   }
 

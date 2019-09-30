@@ -1,15 +1,15 @@
-; COMMAND-LINE: --bitblast=eager --no-check-models --no-check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --ackermann --no-check-models --no-check-proofs --no-check-unsat-cores
 ; EXPECT: unsat
-(set-logic QF_ABV)
+(set-logic QF_ALIA)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
 (set-info :status unsat)
 
-(define-sort bv () (_ BitVec 4))
+(define-sort bv () Int)
 (define-sort abv () (Array bv bv))
 
-(declare-fun v0 () (_ BitVec 4))
-(declare-fun v1 () (_ BitVec 4))
+(declare-fun v0 () Int)
+(declare-fun v1 () Int)
 (declare-fun a () abv)
 (declare-fun b () abv)
 (declare-fun c () abv)
