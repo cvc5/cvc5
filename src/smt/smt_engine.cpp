@@ -2231,13 +2231,20 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if(options::incrementalSolving() && options::proof()) {
-    Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
-    setOption("incremental", SExpr("false"));
-  }
-
   if (options::proof())
   {
+    if (options::incrementalSolving())
+    {
+      if (options::incrementalSolving.wasSetByUser())
+      {
+        throw OptionException("--incremental is not supported with proofs");
+      }
+      Warning()
+          << "SmtEngine: turning off incremental solving mode (not yet "
+             "supported with --proof, try --tear-down-incremental instead)"
+          << endl;
+      setOption("incremental", SExpr("false"));
+    }
     if (options::bitvectorAlgebraicSolver())
     {
       if (options::bitvectorAlgebraicSolver.wasSetByUser())
