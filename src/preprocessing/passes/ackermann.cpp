@@ -49,6 +49,7 @@ void addLemmaForPair(TNode args1,
     Assert(args1.getOperator() == func);
     Assert(args2.getKind() == kind::APPLY_UF && args2.getOperator() == func);
     Assert(args1.getNumChildren() == args2.getNumChildren());
+	Assert(args1.getNumChildren() >= 1);
 
     std::vector<Node> eqs(args1.getNumChildren());
 
@@ -56,7 +57,14 @@ void addLemmaForPair(TNode args1,
     {
       eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
     }
-    args_eq = nm->mkNode(kind::AND, eqs);
+	if (eqs.size() >= 2)
+	{
+	  args_eq = nm->mkNode(kind::AND, eqs);
+	}
+	else
+	{
+	  args_eq = eqs[0];
+	}
   }
   else
   {
