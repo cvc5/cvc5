@@ -1230,12 +1230,19 @@ void SmtEngine::setDefaults() {
       options::ackermann.set(false);
     }
 
-    if (d_logic.isTheoryEnabled(THEORY_UF) && options::ackermann())
-    {
-      d_logic = d_logic.getUnlockedCopy();
-      d_logic.disableTheory(THEORY_UF);
-      d_logic.lock();
-    }
+	if (options::ackermann())
+	{
+		if (d_logic.isTheoryEnabled(THEORY_UF))
+		{
+			d_logic = d_logic.getUnlockedCopy();
+			d_logic.disableTheory(THEORY_UF);
+			d_logic.lock();
+		}
+		if (d_logic.getLogicString() == "QF_ABV")
+		{
+			d_logic = LogicInfo("QF_BV");
+		}
+	}
   }
 
   // set default options associated with strings-exp
