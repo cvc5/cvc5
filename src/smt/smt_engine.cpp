@@ -1228,6 +1228,12 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turn off ackermannization to support model"
                << "generation" << endl;
       options::ackermann.set(false);
+	}
+
+	if (options::incrementalSolving())
+	{
+      throw OptionException(
+          "Incremental Ackermannization is currently not supported.");
     }
 
     if (options::ackermann())
