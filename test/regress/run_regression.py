@@ -252,8 +252,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         expected_exit_status = 0
     if logic_regex:
         logic_match = re.findall(logic_regex, benchmark_content)
-        if logic_match:
-            assert(len(logic_match) == 1)
+        if logic_match and len(logic_match) == 1:
             logic = logic_match[0]
 
     if 'CVC4_REGRESSION_ARGS' in os.environ:
