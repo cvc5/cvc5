@@ -170,7 +170,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       {
         AlwaysAssert(
             term.getKind() != kind::STORE,
-            "Cannot use Ackermannization on QF_ABV formula with stores");
+            "Cannot use Ackermannization on formula with stores to arrays");
         /* add children to the vector, so that they are processed later */
         for (TNode n : term)
         {
