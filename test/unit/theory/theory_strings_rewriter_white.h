@@ -1093,8 +1093,11 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node a = d_nm->mkConst(::CVC4::String("A"));
     Node aaa = d_nm->mkConst(::CVC4::String("AAA"));
     Node b = d_nm->mkConst(::CVC4::String("B"));
+    Node ba = d_nm->mkConst(::CVC4::String("BA"));
+    Node w = d_nm->mkVar("w", strType);
     Node x = d_nm->mkVar("x", strType);
     Node y = d_nm->mkVar("y", strType);
+    Node z = d_nm->mkVar("z", strType);
     Node xxa = d_nm->mkNode(kind::STRING_CONCAT, x, x, a);
     Node f = d_nm->mkConst(false);
     Node n = d_nm->mkVar("n", intType);
@@ -1299,6 +1302,49 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
               kind::STRING_CONCAT, a, d_nm->mkNode(kind::STRING_ITOS, n)),
           a);
       differentNormalForms(eq, f);
+    }
+
+    {
+      // (= (str.++ "A" x y) (str.++ x "B" z)) --> false
+      Node eq = d_nm->mkNode(
+          kind::EQUAL,
+          d_nm->mkNode(kind::STRING_CONCAT, a, x, y),
+          d_nm->mkNode(kind::STRING_CONCAT, x, b, z));
+      sameNormalForm(eq, f);
+    }
+
+    {
+      // (= (str.++ "B" x y) (str.++ x "AAA" z)) --> false
+      Node eq = d_nm->mkNode(kind::EQUAL,
+                             d_nm->mkNode(kind::STRING_CONCAT, b, x, y),
+                             d_nm->mkNode(kind::STRING_CONCAT, x, aaa, z));
+      sameNormalForm(eq, f);
+    }
+
+    {
+      Node xrepl = d_nm->mkNode(kind::STRING_STRREPL, x, a, b);
+
+      // Same normal form for:
+      //
+      // (= (str.++ "B" (str.replace x "A" "B") z y w)
+      //    (str.++ z x "BA" z))
+      //
+      // (and (= (str.++ "B" (str.replace x "A" "B") z)
+      //         (str.++ z x "B"))
+      //      (= (str.++ y w) (str.++ "A" z)))
+      Node lhs =
+          d_nm->mkNode(kind::EQUAL,
+                       d_nm->mkNode(kind::STRING_CONCAT, b, xrepl, z, y, w),
+                       d_nm->mkNode(kind::STRING_CONCAT, z, x, ba, z));
+      Node rhs = d_nm->mkNode(
+          kind::AND,
+          d_nm->mkNode(kind::EQUAL,
+                       d_nm->mkNode(kind::STRING_CONCAT, b, xrepl, z),
+                       d_nm->mkNode(kind::STRING_CONCAT, z, x, b)),
+          d_nm->mkNode(kind::EQUAL,
+                       d_nm->mkNode(kind::STRING_CONCAT, y, w),
+                       d_nm->mkNode(kind::STRING_CONCAT, a, z)));
+      sameNormalForm(lhs, rhs);
     }
   }
 

@@ -119,4 +119,23 @@ typerule DT_SYGUS_BOUND ::CVC4::theory::datatypes::DtSygusBoundTypeRule
 operator DT_SYGUS_EVAL 1: "datatypes sygus evaluation function"
 typerule DT_SYGUS_EVAL ::CVC4::theory::datatypes::DtSyguEvalTypeRule
 
+
+# Kinds for match terms. For example, the match term
+#   (match l (((cons h t) h) (nil 0))) 
+# is represented by the AST
+#   (MATCH l 
+#      (MATCH_BIND_CASE (BOUND_VAR_LIST h t) (cons h t) h)
+#      (MATCH_CASE nil 0)
+#   )
+# where notice that patterns with free variables use MATCH_BIND_CASE whereas
+# patterns with no free variables use MATCH_CASE.
+
+operator MATCH 2: "match construct"
+operator MATCH_CASE 2 "a match case"
+operator MATCH_BIND_CASE 3 "a match case with bound variables"
+
+typerule MATCH ::CVC4::theory::datatypes::MatchTypeRule
+typerule MATCH_CASE ::CVC4::theory::datatypes::MatchCaseTypeRule
+typerule MATCH_BIND_CASE ::CVC4::theory::datatypes::MatchBindCaseTypeRule
+
 endtheory
