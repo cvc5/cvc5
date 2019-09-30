@@ -789,7 +789,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
       default: {
         // should not call this function on regular expressions that aren't a
         // standard regular expression kind.
-        Assert (k==REGEXP_SIGMA);
+        Assert(k == REGEXP_SIGMA);
         // can start with any character
         Assert(d_lastchar < std::numeric_limits<unsigned>::max());
         for (unsigned i = 0; i <= d_lastchar; i++)
@@ -1051,8 +1051,8 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
     }
     if (!conc.isNull())
     {
-      conc = Rewriter::rewrite( conc );
-      new_nodes.push_back( conc );
+      conc = Rewriter::rewrite(conc);
+      new_nodes.push_back(conc);
       d_simpl_neg_cache[p] = conc;
     }
   }
