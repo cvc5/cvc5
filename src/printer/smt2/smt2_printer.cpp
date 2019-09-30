@@ -540,9 +540,32 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
 
-  case kind::LAMBDA:
+  case kind::LAMBDA: out << smtKindString(k, d_variant) << " "; break;
+  case kind::MATCH:
     out << smtKindString(k, d_variant) << " ";
+    toStream(out, n[0], toDepth, types, TypeNode::null());
+    out << " (";
+    for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+    {
+      if (i > 1)
+      {
+        out << " ";
+      }
+      toStream(out, n[i], toDepth, types, TypeNode::null());
+    }
+    out << "))";
+    return;
+  case kind::MATCH_BIND_CASE:
+    // ignore the binder
+    toStream(out, n[1], toDepth, types, TypeNode::null());
+    out << " ";
+    toStream(out, n[2], toDepth, types, TypeNode::null());
+    out << ")";
+    return;
+  case kind::MATCH_CASE:
+    // do nothing
     break;
+  case kind::CHOICE: out << smtKindString(k, d_variant) << " "; break;
 
   // arith theory
   case kind::PLUS:
@@ -862,7 +885,8 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ')';
     return;
   }
-  case kind::INST_PATTERN: break;
+  case kind::INST_PATTERN:
+  case kind::INST_NO_PATTERN: break;
   case kind::INST_PATTERN_LIST:
   {
     for (const Node& nc : n)
@@ -874,9 +898,13 @@ void Smt2Printer::toStream(std::ostream& out,
           out << ":fun-def";
         }
       }
-      else
+      else if (nc.getKind() == kind::INST_PATTERN)
       {
         out << ":pattern " << nc;
+      }
+      else if (nc.getKind() == kind::INST_NO_PATTERN)
+      {
+        out << ":no-pattern " << nc[0];
       }
     }
     return;
@@ -1026,6 +1054,8 @@ static string smtKindString(Kind k, Variant v)
 
   case kind::LAMBDA:
     return "lambda";
+  case kind::MATCH: return "match";
+  case kind::CHOICE: return "choice";
 
   // arith theory
   case kind::PLUS: return "+";
@@ -1345,15 +1375,8 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   }
   //print the model
   out << "(model" << endl;
-  // print approximations
-  if (m.hasApproximations())
-  {
-    std::vector<std::pair<Expr, Expr> > approx = m.getApproximations();
-    for (unsigned i = 0, size = approx.size(); i < size; i++)
-    {
-      out << "(approximation " << approx[i].second << ")" << std::endl;
-    }
-  }
+  // don't need to print approximations since they are built into choice
+  // functions in the values of variables.
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists

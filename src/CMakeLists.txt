@@ -761,8 +761,8 @@ target_include_directories(cvc4
 
 install(TARGETS cvc4
   EXPORT cvc4-targets
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
+  LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
+  ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4
@@ -842,27 +842,27 @@ install(FILES
           api/cvc4cpp.h
           api/cvc4cppkind.h
         DESTINATION
-          include/cvc4/api)
+          ${INCLUDE_INSTALL_DIR}/cvc4/api)
 install(FILES
           base/configuration.h
           base/exception.h
           base/listener.h
           base/modal_exception.h
         DESTINATION
-          include/cvc4/base)
+          ${INCLUDE_INSTALL_DIR}/cvc4/base)
 install(FILES
           context/cdhashmap_forward.h
           context/cdhashset_forward.h
           context/cdinsert_hashmap_forward.h
           context/cdlist_forward.h
         DESTINATION
-          include/cvc4/context)
+          ${INCLUDE_INSTALL_DIR}/cvc4/context)
 install(FILES
           include/cvc4.h
           include/cvc4_public.h
           include/cvc4parser_public.h
         DESTINATION
-          include/cvc4)
+          ${INCLUDE_INSTALL_DIR}/cvc4)
 install(FILES
           expr/array.h
           expr/array_store_all.h
@@ -881,7 +881,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/expr/kind.h
           ${CMAKE_CURRENT_BINARY_DIR}/expr/expr_manager.h
         DESTINATION
-          include/cvc4/expr)
+          ${INCLUDE_INSTALL_DIR}/cvc4/expr)
 install(FILES
           options/argument_extender.h
           options/arith_heuristic_pivot_rule.h
@@ -898,38 +898,38 @@ install(FILES
           options/sygus_out_mode.h
           options/theoryof_mode.h
         DESTINATION
-          include/cvc4/options)
+          ${INCLUDE_INSTALL_DIR}/cvc4/options)
 install(FILES
           parser/input.h
           parser/parser.h
           parser/parser_builder.h
           parser/parser_exception.h
         DESTINATION
-          include/cvc4/parser)
+          ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES
           printer/sygus_print_callback.h
         DESTINATION
-          include/cvc4/printer)
+          ${INCLUDE_INSTALL_DIR}/cvc4/printer)
 install(FILES
           proof/unsat_core.h
         DESTINATION
-          include/cvc4/proof)
+          ${INCLUDE_INSTALL_DIR}/cvc4/proof)
 install(FILES
           smt/command.h
           smt/logic_exception.h
           smt/smt_engine.h
         DESTINATION
-          include/cvc4/smt)
+          ${INCLUDE_INSTALL_DIR}/cvc4/smt)
 install(FILES
           smt_util/lemma_channels.h
           smt_util/lemma_input_channel.h
           smt_util/lemma_output_channel.h
         DESTINATION
-          include/cvc4/smt_util)
+          ${INCLUDE_INSTALL_DIR}/cvc4/smt_util)
 install(FILES
           theory/logic_info.h
         DESTINATION
-          include/cvc4/theory)
+          ${INCLUDE_INSTALL_DIR}/cvc4/theory)
 install(FILES
           util/abstract_value.h
           util/bitvector.h
@@ -955,7 +955,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
         DESTINATION
-          include/cvc4/util)
+          ${INCLUDE_INSTALL_DIR}/cvc4/util)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.
