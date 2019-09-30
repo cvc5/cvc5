@@ -1096,13 +1096,13 @@ sygusGrammar[CVC4::Type & ret,
         PARSER_STATE->addSygusConstructorVariables(
             datatypes[dtProcessed], sygusVars, t);
       }
-    )*
+    )+
     RPAREN_TOK
     RPAREN_TOK
     {
       dtProcessed++;
     }
-  )*
+  )+
   RPAREN_TOK
   {
     if (dtProcessed != sortedVarNames.size())
@@ -1122,6 +1122,30 @@ sygusGrammar[CVC4::Type & ret,
       bool aci = allowConst.find(i)!=allowConst.end();
       Type btt = sortedVarNames[i].second;
       datatypes[i].setSygus(btt, bvl, aci, false);
+      Trace("parser-sygus2") << "- " << datatypes[i].getName()
+                             << ", #cons= " << datatypes[i].getNumConstructors()
+                             << ", aci= " << aci << std::endl;
+      // We can be in a case where the only rule specified was (Variable T)
+      // and there are no variables of type T, in which case this is a bogus
+      // grammar. This results in the error below.
+      // We can also be in a case where the only rule specified was
+      // (Constant T), in which case we have not yet added a constructor. We
+      // ensure an arbitrary constant is added in this case.
+      if (datatypes[i].getNumConstructors() == 0)
+      {
+        if (aci)
+        {
+          Expr c = btt.mkGroundTerm();
+          PARSER_STATE->addSygusConstructorTerm(datatypes[i], c, ntsToUnres);
+        }
+        else
+        {
+          std::stringstream se;
+          se << "Grouped rule listing for " << datatypes[i].getName()
+             << " produced an empty rule list.";
+          PARSER_STATE->parseError(se.str());
+        }
+      }
     }
     // pop scope from the pre-declaration
     PARSER_STATE->popScope();
