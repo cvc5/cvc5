@@ -626,11 +626,7 @@ bool CegSingleInv::solveTrivial(Node q)
   Assert(q.getKind() == FORALL);
   // If the conjecture is forall x1...xn. ~(x1 = t1 ^ ... xn = tn), it is
   // trivially solvable.
-  std::vector<Node> args;
-  for (const Node& v : q[0])
-  {
-    args.push_back(v);
-  }
+  std::vector<Node> args(q[0].begin(), q[0].end());
   // keep solving for variables until a fixed point is reached
   std::vector<Node> vars;
   std::vector<Node> subs;
@@ -692,6 +688,5 @@ bool CegSingleInv::solveTrivial(Node q)
 }
 
 }  // namespace quantifiers
-
 }  // namespace theory
 }  // namespace CVC4
