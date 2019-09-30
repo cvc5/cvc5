@@ -55,7 +55,7 @@ constant CONST_STRING \
     "util/regexp.h" \
     "a string of characters"
 
-typerule CONST_STRING ::CVC4::theory::strings::StringConstantTypeRule
+typerule CONST_STRING "SimpleTypeRule<RString>"
 
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
@@ -73,41 +73,41 @@ operator REGEXP_SIGMA 0 "regexp all characters"
 
 #internal
 operator REGEXP_RV 1 "regexp rv (internal use only)"
-typerule REGEXP_RV ::CVC4::theory::strings::RegExpRVTypeRule
+typerule REGEXP_RV "SimpleTypeRule<RRegExp, AInteger>"
 
 #typerules
-typerule REGEXP_CONCAT ::CVC4::theory::strings::RegExpConcatTypeRule
-typerule REGEXP_UNION ::CVC4::theory::strings::RegExpUnionTypeRule
-typerule REGEXP_INTER ::CVC4::theory::strings::RegExpInterTypeRule
-typerule REGEXP_STAR ::CVC4::theory::strings::RegExpStarTypeRule
-typerule REGEXP_PLUS ::CVC4::theory::strings::RegExpPlusTypeRule
-typerule REGEXP_OPT ::CVC4::theory::strings::RegExpOptTypeRule
+typerule REGEXP_CONCAT "SimpleTypeRuleVar<RRegExp, ARegExp>"
+typerule REGEXP_UNION "SimpleTypeRuleVar<RRegExp, ARegExp>"
+typerule REGEXP_INTER "SimpleTypeRuleVar<RRegExp, ARegExp>"
+typerule REGEXP_STAR "SimpleTypeRule<RRegExp, ARegExp>"
+typerule REGEXP_PLUS "SimpleTypeRule<RRegExp, ARegExp>"
+typerule REGEXP_OPT "SimpleTypeRule<RRegExp, ARegExp>"
 typerule REGEXP_RANGE ::CVC4::theory::strings::RegExpRangeTypeRule
-typerule REGEXP_LOOP ::CVC4::theory::strings::RegExpLoopTypeRule
+typerule REGEXP_LOOP "SimpleTypeRule<RRegExp, ARegExp, AInteger, AOptional<AInteger>>"
 
-typerule STRING_TO_REGEXP ::CVC4::theory::strings::StringToRegExpTypeRule
+typerule STRING_TO_REGEXP "SimpleTypeRule<RRegExp, AString>"
 
-typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
-typerule STRING_LENGTH ::CVC4::theory::strings::StringLengthTypeRule
-typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
-typerule STRING_CHARAT ::CVC4::theory::strings::StringCharAtTypeRule
-typerule STRING_STRCTN ::CVC4::theory::strings::StringRelationTypeRule
-typerule STRING_LT ::CVC4::theory::strings::StringRelationTypeRule
-typerule STRING_LEQ ::CVC4::theory::strings::StringRelationTypeRule
-typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
-typerule STRING_STRREPL ::CVC4::theory::strings::StringReplaceTypeRule
-typerule STRING_STRREPLALL ::CVC4::theory::strings::StringReplaceTypeRule
-typerule STRING_PREFIX ::CVC4::theory::strings::StringPrefixOfTypeRule
-typerule STRING_SUFFIX ::CVC4::theory::strings::StringSuffixOfTypeRule
-typerule STRING_ITOS ::CVC4::theory::strings::StringIntToStrTypeRule
-typerule STRING_STOI ::CVC4::theory::strings::StringStrToIntTypeRule
-typerule STRING_CODE ::CVC4::theory::strings::StringStrToIntTypeRule
-typerule STRING_TOUPPER ::CVC4::theory::strings::StringStrToStrTypeRule
-typerule STRING_TOLOWER ::CVC4::theory::strings::StringStrToStrTypeRule
+typerule STRING_CONCAT "SimpleTypeRuleVar<RString, AString>"
+typerule STRING_LENGTH "SimpleTypeRule<RInteger, AString>"
+typerule STRING_SUBSTR "SimpleTypeRule<RString, AString, AInteger, AInteger>"
+typerule STRING_CHARAT "SimpleTypeRule<RString, AString, AInteger>"
+typerule STRING_STRCTN "SimpleTypeRule<RBool, AString, AString>"
+typerule STRING_LT "SimpleTypeRule<RBool, AString, AString>"
+typerule STRING_LEQ "SimpleTypeRule<RBool, AString, AString>"
+typerule STRING_STRIDOF "SimpleTypeRule<RInteger, AString, AString, AInteger>"
+typerule STRING_STRREPL "SimpleTypeRule<RString, AString, AString, AString>"
+typerule STRING_STRREPLALL "SimpleTypeRule<RString, AString, AString, AString>"
+typerule STRING_PREFIX "SimpleTypeRule<RBool, AString, AString>"
+typerule STRING_SUFFIX "SimpleTypeRule<RBool, AString, AString>"
+typerule STRING_ITOS "SimpleTypeRule<RString, AInteger>"
+typerule STRING_STOI "SimpleTypeRule<RInteger, AString>"
+typerule STRING_CODE "SimpleTypeRule<RInteger, AString>"
+typerule STRING_TOUPPER "SimpleTypeRule<RString, AString>"
+typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
 
-typerule STRING_IN_REGEXP ::CVC4::theory::strings::StringInRegExpTypeRule
+typerule STRING_IN_REGEXP "SimpleTypeRule<RBool, AString, ARegExp>"
 
-typerule REGEXP_EMPTY ::CVC4::theory::strings::EmptyRegExpTypeRule
-typerule REGEXP_SIGMA ::CVC4::theory::strings::SigmaRegExpTypeRule
+typerule REGEXP_EMPTY "SimpleTypeRule<RRegExp>"
+typerule REGEXP_SIGMA "SimpleTypeRule<RRegExp>"
 
 endtheory
