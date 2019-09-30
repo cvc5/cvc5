@@ -126,7 +126,7 @@ bool RegExpOpr::isRegExpKind(Kind k)
   return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
          || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
          || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
-         || k == REGEXP_RANGE || k == REGEXP_LOOP;
+         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV;
 }
 
 // 0-unknown, 1-yes, 2-no
@@ -506,6 +506,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
       }
       default: {
         Assert(!isRegExpKind(r.getKind()));
+        return 0;
         break;
       }
     }
@@ -679,7 +680,8 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
         break;
       }
       default: {
-        Assert(!isRegExpKind(k));
+        Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in derivative of RegExp." << std::endl;
+        Unreachable();
         break;
       }
     }
@@ -707,14 +709,6 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
     Kind k = r.getKind();
     switch( k ) {
       case kind::REGEXP_EMPTY: {
-        break;
-      }
-      case kind::REGEXP_SIGMA: {
-        Assert(d_lastchar < std::numeric_limits<unsigned>::max());
-        for (unsigned i = 0; i <= d_lastchar; i++)
-        {
-          cset.insert(i);
-        }
         break;
       }
       case kind::REGEXP_RANGE: {
@@ -791,8 +785,17 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         firstChars(r[0], cset, vset);
         break;
       }
+      case kind::REGEXP_SIGMA:
       default: {
-        Assert(!isRegExpKind(k));
+        // should not call this function on regular expressions that aren't a
+        // standard regular expression kind.
+        Assert (k==REGEXP_SIGMA);
+        // can start with any character
+        Assert(d_lastchar < std::numeric_limits<unsigned>::max());
+        for (unsigned i = 0; i <= d_lastchar; i++)
+        {
+          cset.insert(i);
+        }
         break;
       }
     }
@@ -1046,9 +1049,12 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
     }
-    conc = Rewriter::rewrite( conc );
-    new_nodes.push_back( conc );
-    d_simpl_neg_cache[p] = conc;
+    if (!conc.isNull())
+    {
+      conc = Rewriter::rewrite( conc );
+      new_nodes.push_back( conc );
+      d_simpl_neg_cache[p] = conc;
+    }
   }
 }
 void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes ) {
