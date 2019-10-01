@@ -1625,94 +1625,32 @@ datatypesDef[bool isCo,
 
 rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
-  std::vector<std::pair<std::string, Type> > sortedVarNames;
-  std::vector<Expr> args, guards, heads, triggers;
-  Expr head, body, expr, expr2, bvl;
+  std::vector<Expr> guards, heads, triggers;
+  Expr head, body, bvl, expr, expr2;
   Kind kind;
 }
   : /* rewrite rules */
-    REWRITE_RULE_TOK
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    {
-      kind = CVC4::kind::RR_REWRITE;
-      PARSER_STATE->pushScope(true);
-      args = PARSER_STATE->mkBoundVars(sortedVarNames);
-      bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
-    }
+    REWRITE_RULE_TOK { kind = CVC4::kind::RR_REWRITE; }
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
     LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
     LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
-    term[head, expr2] term[body, expr2]
+    term[head, expr2]
+    term[body, expr2]
     {
-      args.clear();
-      args.push_back(head);
-      args.push_back(body);
-      /* triggers */
-      if( !triggers.empty() ){
-        expr2 = MK_EXPR(kind::INST_PATTERN_LIST, triggers);
-        args.push_back(expr2);
-      };
-      expr = MK_EXPR(kind, args);
-      args.clear();
-      args.push_back(bvl);
-      /* guards */
-      switch( guards.size() ){
-      case 0:
-        args.push_back(MK_CONST(bool(true))); break;
-      case 1:
-        args.push_back(guards[0]); break;
-      default:
-        expr2 = MK_EXPR(kind::AND, guards);
-        args.push_back(expr2); break;
-      };
-      args.push_back(expr);
-      expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-      cmd->reset(new AssertCommand(expr, false)); }
+      *cmd =
+          PARSER_STATE->assertRule(kind, bvl, triggers, guards, {head}, body);
+    }
     /* propagation rule */
   | rewritePropaKind[kind]
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    {
-      PARSER_STATE->pushScope(true);
-      args = PARSER_STATE->mkBoundVars(sortedVarNames);
-      bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
-    }
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
     LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
     LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
     LPAREN_TOK (termList[heads,expr])? RPAREN_TOK
     term[body, expr2]
     {
-      args.clear();
-      /* heads */
-      switch( heads.size() ){
-      case 0:
-        args.push_back(MK_CONST(bool(true))); break;
-      case 1:
-        args.push_back(heads[0]); break;
-      default:
-        expr2 = MK_EXPR(kind::AND, heads);
-        args.push_back(expr2); break;
-      };
-      args.push_back(body);
-      /* triggers */
-      if( !triggers.empty() ){
-        expr2 = MK_EXPR(kind::INST_PATTERN_LIST, triggers);
-        args.push_back(expr2);
-      };
-      expr = MK_EXPR(kind, args);
-      args.clear();
-      args.push_back(bvl);
-      /* guards */
-      switch( guards.size() ){
-      case 0:
-        args.push_back(MK_CONST(bool(true))); break;
-      case 1:
-        args.push_back(guards[0]); break;
-      default:
-        expr2 = MK_EXPR(kind::AND, guards);
-        args.push_back(expr2); break;
-      };
-      args.push_back(expr);
-      expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-      cmd->reset(new AssertCommand(expr, false));
+      *cmd = PARSER_STATE->assertRule(kind, bvl, triggers, guards, heads, body);
     }
   ;
 
@@ -1830,6 +1768,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::string name;
   std::vector<Expr> args;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
+  Expr bvl;
   Expr f, f2, f3;
   std::string attr;
   Expr attexpr;
@@ -1844,16 +1783,12 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Type> argTypes;
 }
   : LPAREN_TOK quantOp[kind]
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    {
-      PARSER_STATE->pushScope(true);
-      args = PARSER_STATE->mkBoundVars(sortedVarNames);
-      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
-      args.clear();
-      args.push_back(bvl);
-    }
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
     term[f, f2] RPAREN_TOK
     {
+      args.push_back(bvl);
+
       PARSER_STATE->popScope();
       switch(f.getKind()) {
       case CVC4::kind::RR_REWRITE:
@@ -2078,19 +2013,14 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     }
   | /* lambda */
     LPAREN_TOK HO_LAMBDA_TOK
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    {
-      PARSER_STATE->pushScope(true);
-      args = PARSER_STATE->mkBoundVars(sortedVarNames);
-      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
-      args.clear();
-      args.push_back(bvl);
-    }
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
     term[f, f2] RPAREN_TOK
     {
-      args.push_back( f );
+      args.push_back(bvl);
+      args.push_back(f);
       PARSER_STATE->popScope();
-      expr = MK_EXPR( CVC4::kind::LAMBDA, args );
+      expr = MK_EXPR(CVC4::kind::LAMBDA, args);
     }
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
   {
@@ -2535,6 +2465,21 @@ sortedVarList[std::vector<std::pair<std::string, CVC4::Type> >& sortedVars]
       { sortedVars.push_back(make_pair(name, t)); }
     )*
   ;
+
+/**
+ * Matches a sequence of (variable, sort) symbol pairs, registers them as bound
+ * variables, and returns a term corresponding to the list of pairs.
+ */
+boundVarList[CVC4::Expr& expr]
+@declarations {
+  std::vector<std::pair<std::string, CVC4::Type>> sortedVarNames;
+}
+ : LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+   {
+     std::vector<CVC4::Expr> args = PARSER_STATE->mkBoundVars(sortedVarNames);
+     expr = MK_EXPR(kind::BOUND_VAR_LIST, args);
+   }
+ ;
 
 /**
  * Matches the sort symbol, which can be an arbitrary symbol.

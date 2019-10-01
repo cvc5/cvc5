@@ -627,6 +627,32 @@ void Smt2::resetAssertions() {
   }
 }
 
+std::unique_ptr<Command> Smt2::assertRule(Kind kind,
+                                          Expr bvl,
+                                          const std::vector<Expr>& triggers,
+                                          const std::vector<Expr>& guards,
+                                          const std::vector<Expr>& heads,
+                                          Expr body)
+{
+  assert(kind == kind::RR_REWRITE || kind == kind::RR_REDUCTION
+         || kind == kind::RR_DEDUCTION);
+
+  ExprManager* em = getExprManager();
+
+  std::vector<Expr> args;
+  args.push_back(mkAnd(heads));
+  args.push_back(body);
+
+  if (!triggers.empty())
+  {
+    args.push_back(em->mkExpr(kind::INST_PATTERN_LIST, triggers));
+  }
+
+  Expr rhs = em->mkExpr(kind, args);
+  Expr rule = em->mkExpr(kind::REWRITE_RULE, bvl, mkAnd(guards), rhs);
+  return std::unique_ptr<Command>(new AssertCommand(rule, false));
+}
+
 Command* Smt2::setLogic(std::string name, bool fromCommand)
 {
   if (fromCommand)
@@ -1814,6 +1840,24 @@ Expr Smt2::setNamedAttribute(Expr& expr, const SExpr& sexpr)
   // remember the last term to have been given a :named attribute
   setLastNamedTerm(expr, name);
   return func;
+}
+
+Expr Smt2::mkAnd(const std::vector<Expr>& es)
+{
+  ExprManager* em = getExprManager();
+
+  if (es.size() == 0)
+  {
+    return em->mkConst(true);
+  }
+  else if (es.size() == 1)
+  {
+    return es[0];
+  }
+  else
+  {
+    return em->mkExpr(kind::AND, es);
+  }
 }
 
 }  // namespace parser
