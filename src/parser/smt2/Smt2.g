@@ -553,17 +553,14 @@ command [std::unique_ptr<CVC4::Command>* cmd]
 
 sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
-  std::string name, fun;
-  std::vector<std::string> names;
   Expr expr, expr2;
   Type t, range;
-  std::vector<Expr> terms;
-  std::vector<Expr> sygus_vars;
+  std::vector<std::string> names;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
-  Type sygus_ret;
-  Expr synth_fun;
-  Type sygus_type;
+  std::unique_ptr<Smt2::SynthFunFactory> synthFunFactory;
+  std::string name, fun;
   bool isInv;
+  Type grammar;
 }
   : /* declare-var */
     DECLARE_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -589,99 +586,43 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     ( SYNTH_FUN_V1_TOK { isInv = false; }
       | SYNTH_INV_V1_TOK { isInv = true; range = EXPR_MANAGER->booleanType(); }
     )
-    { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
     {
-      if (range.isNull())
-      {
-        PARSER_STATE->parseError("Must supply return type for synth-fun.");
-      }
-      if (range.isFunction())
-      {
-        PARSER_STATE->parseError(
-            "Cannot use synth-fun with function return type.");
-      }
-      std::vector<Type> var_sorts;
-      for (const std::pair<std::string, CVC4::Type>& p : sortedVarNames)
-      {
-        var_sorts.push_back(p.second);
-      }
-      Debug("parser-sygus") << "Define synth fun : " << fun << std::endl;
-      Type synth_fun_type = var_sorts.size() > 0
-                                ? EXPR_MANAGER->mkFunctionType(var_sorts, range)
-                                : range;
-      // we do not allow overloading for synth fun
-      synth_fun = PARSER_STATE->mkBoundVar(fun, synth_fun_type);
-      // set the sygus type to be range by default, which is overwritten below
-      // if a grammar is provided
-      sygus_type = range;
-      // create new scope for parsing the grammar, if any
-      PARSER_STATE->pushScope(true);
-      sygus_vars = PARSER_STATE->mkBoundVars(sortedVarNames);
+      synthFunFactory.reset(new Smt2::SynthFunFactory(
+          PARSER_STATE, fun, isInv, range, sortedVarNames));
     }
     (
       // optionally, read the sygus grammar
       //
-      // the sygus type specifies the required grammar for synth_fun, expressed
-      // as a type
-      sygusGrammarV1[sygus_type, sygus_vars, fun]
+      // `grammar` specifies the required grammar for the function to
+      // synthesize, expressed as a type
+      sygusGrammarV1[grammar, synthFunFactory->getSygusVars(), fun]
     )?
     {
-      PARSER_STATE->popScope();
-      Debug("parser-sygus") << "...read synth fun " << fun << std::endl;
-      cmd->reset(
-          new SynthFunCommand(fun, synth_fun, sygus_type, isInv, sygus_vars));
+      *cmd = synthFunFactory->mkCommand(grammar);
     }
   | /* synth-fun */
     ( SYNTH_FUN_TOK { isInv = false; }
       | SYNTH_INV_TOK { isInv = true; range = EXPR_MANAGER->booleanType(); }
     )
-    { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
     {
-      if (range.isNull())
-      {
-        PARSER_STATE->parseError("Must supply return type for synth-fun.");
-      }
-      if (range.isFunction())
-      {
-        PARSER_STATE->parseError(
-            "Cannot use synth-fun with function return type.");
-      }
-      std::vector<Type> var_sorts;
-      for (const std::pair<std::string, CVC4::Type>& p : sortedVarNames)
-      {
-        var_sorts.push_back(p.second);
-      }
-      Debug("parser-sygus") << "Define synth fun : " << fun << std::endl;
-      Type synth_fun_type = var_sorts.size() > 0
-                                ? EXPR_MANAGER->mkFunctionType(var_sorts, range)
-                                : range;
-      // we do not allow overloading for synth fun
-      synth_fun = PARSER_STATE->mkBoundVar(fun, synth_fun_type);
-      // set the sygus type to be range by default, which is overwritten below
-      // if a grammar is provided
-      sygus_type = range;
-      // create new scope for parsing the grammar, if any
-      PARSER_STATE->pushScope(true);
-      sygus_vars = PARSER_STATE->mkBoundVars(sortedVarNames);
+      synthFunFactory.reset(new Smt2::SynthFunFactory(
+          PARSER_STATE, fun, isInv, range, sortedVarNames));
     }
     (
       // optionally, read the sygus grammar
       //
-      // the sygus type specifies the required grammar for synth_fun, expressed
-      // as a type
-      sygusGrammar[sygus_type, sygus_vars, fun]
+      // `grammar` specifies the required grammar for the function to
+      // synthesize, expressed as a type
+      sygusGrammar[grammar, synthFunFactory->getSygusVars(), fun]
     )?
     {
-      PARSER_STATE->popScope();
-      Debug("parser-sygus") << "...read synth fun " << fun << std::endl;
-      cmd->reset(
-          new SynthFunCommand(fun, synth_fun, sygus_type, isInv, sygus_vars));
+      *cmd = synthFunFactory->mkCommand(grammar);
     }
   | /* constraint */
     CONSTRAINT_TOK {
@@ -693,29 +634,11 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
       cmd->reset(new SygusConstraintCommand(expr));
     }
-  | INV_CONSTRAINT_TOK {
-      PARSER_STATE->checkThatLogicIsSet();
-      Debug("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
-      Debug("parser-sygus") << "Sygus : read inv-constraint..." << std::endl;
-    }
-    ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
-        if( !terms.empty() ){
-          if (!PARSER_STATE->isDeclared(name))
-          {
-            std::stringstream ss;
-            ss << "Function " << name << " in inv-constraint is not defined.";
-            PARSER_STATE->parseError(ss.str());
-          }
-        }
-        terms.push_back( PARSER_STATE->getVariable(name) );
-      }
-    )+ {
-      if( terms.size()!=4 ){
-        PARSER_STATE->parseError("Bad syntax for inv-constraint: expected 4 "
-                                 "arguments.");
-      }
-
-      cmd->reset(new SygusInvConstraintCommand(terms));
+  | /* inv-constraint */
+    INV_CONSTRAINT_TOK
+    ( symbol[name,CHECK_NONE,SYM_VARIABLE] { names.push_back(name); } )+
+    {
+      *cmd = PARSER_STATE->invConstraint(names);
     }
   | /* check-synth */
     CHECK_SYNTH_TOK
@@ -736,8 +659,8 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
  * datatypes constructed by this call.
  */
 sygusGrammarV1[CVC4::Type & ret,
-             std::vector<CVC4::Expr>& sygus_vars,
-             std::string& fun]
+               const std::vector<CVC4::Expr>& sygus_vars,
+               const std::string& fun]
 @declarations
 {
   Type t;
@@ -879,7 +802,7 @@ sygusGrammarV1[CVC4::Type & ret,
 // type argument vectors to cargs[index] (where typically N=1)
 // This method may also add new elements pairwise into
 // datatypes/sorts/ops/cnames/cargs in the case of non-flat gterms.
-sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
+sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
 @declarations {
   std::string name, name2;
   Kind k;
@@ -1013,8 +936,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
  * datatypes constructed by this call.
  */
 sygusGrammar[CVC4::Type & ret,
-             std::vector<CVC4::Expr>& sygusVars,
-             std::string& fun]
+             const std::vector<CVC4::Expr>& sygusVars,
+             const std::string& fun]
 @declarations
 {
   // the pre-declaration
