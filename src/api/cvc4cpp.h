@@ -1793,45 +1793,40 @@ class CVC4_PUBLIC Solver
   /**
    * Create nullary term of given kind from a given operator term.
    * Create operator terms with mkOpTerm().
-   * @param kind the kind of the term
    * @param the operator term
    * @return the Term
    */
-  Term mkTerm(Kind kind, OpTerm opTerm) const;
+  Term mkTerm(OpTerm opTerm) const;
 
   /**
    * Create unary term of given kind from a given operator term.
    * Create operator terms with mkOpTerm().
-   * @param kind the kind of the term
    * @param the operator term
    * @child the child of the term
    * @return the Term
    */
-  Term mkTerm(Kind kind, OpTerm opTerm, Term child) const;
+  Term mkTerm(OpTerm opTerm, Term child) const;
 
   /**
    * Create binary term of given kind from a given operator term.
-   * @param kind the kind of the term
    * Create operator terms with mkOpTerm().
    * @param the operator term
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @return the Term
    */
-  Term mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const;
+  Term mkTerm(OpTerm opTerm, Term child1, Term child2) const;
 
   /**
    * Create ternary term of given kind from a given operator term.
    * Create operator terms with mkOpTerm().
-   * @param kind the kind of the term
    * @param the operator term
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @child3 the third child of the term
    * @return the Term
    */
-  Term mkTerm(
-      Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3) const;
+  Term mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const;
 
   /**
    * Create n-ary term of given kind from a given operator term.
@@ -1841,9 +1836,7 @@ class CVC4_PUBLIC Solver
    * @children the children of the term
    * @return the Term
    */
-  Term mkTerm(Kind kind,
-              OpTerm opTerm,
-              const std::vector<Term>& children) const;
+  Term mkTerm(OpTerm opTerm, const std::vector<Term>& children) const;
 
   /**
    * Create a tuple term. Terms are automatically converted if sorts are

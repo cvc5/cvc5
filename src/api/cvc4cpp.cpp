@@ -2867,69 +2867,102 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTerm(Kind kind, OpTerm opTerm) const
+Term Solver::mkTerm(OpTerm opTerm) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  checkMkOpTerm(kind, opTerm, 0);
 
-  const CVC4::Kind int_kind = extToIntKind(kind);
-  Term res = d_exprMgr->mkExpr(int_kind, *opTerm.d_expr);
+  Term res;
+  if (opTerm.indexed)
+  {
+    const CVC4::Kind int_kind = extToIntKind(opTerm.d_kind);
+    res = d_exprMgr->mkExpr(int_kind, *opTerm.d_expr);
+  }
+  else
+  {
+    res = mkTerm(opTerm.d_kind);
+  }
+
   (void)res.d_expr->getType(true); /* kick off type checking */
   return res;
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child) const
+Term Solver::mkTerm(OpTerm opTerm, Term child) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
-  checkMkOpTerm(kind, opTerm, 1);
 
-  const CVC4::Kind int_kind = extToIntKind(kind);
-  Term res = d_exprMgr->mkExpr(int_kind, *opTerm.d_expr, *child.d_expr);
+  const CVC4::Kind int_kind = extToIntKind(opTerm.d_kind);
+  Term res;
+  if (opTerm.indexed)
+  {
+    res = d_exprMgr->mkExpr(int_kind, *opTerm.d_expr, *child.d_expr);
+  }
+  else
+  {
+    res = d_exprMgr->mkExpr(int_kind, *child.d_expr);
+  }
+
   (void)res.d_expr->getType(true); /* kick off type checking */
   return res;
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const
+Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
   CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
-  checkMkOpTerm(kind, opTerm, 2);
 
-  const CVC4::Kind int_kind = extToIntKind(kind);
-  Term res = d_exprMgr->mkExpr(
-      int_kind, *opTerm.d_expr, *child1.d_expr, *child2.d_expr);
+  const CVC4::Kind int_kind = extToIntKind(opTerm.d_kind);
+  Term res;
+  if (opTerm.indexed)
+  {
+    res = d_exprMgr->mkExpr(
+        int_kind, *opTerm.d_expr, *child1.d_expr, *child2.d_expr);
+  }
+  else
+  {
+    res = d_exprMgr->mkExpr(int_kind, *child1.d_expr, *child2.d_expr);
+  }
+
   (void)res.d_expr->getType(true); /* kick off type checking */
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTerm(
-    Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3) const
+Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
   CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
   CVC4_API_ARG_CHECK_EXPECTED(!child3.isNull(), child3) << "non-null term";
-  checkMkOpTerm(kind, opTerm, 3);
 
-  const CVC4::Kind int_kind = extToIntKind(kind);
-  Term res = d_exprMgr->mkExpr(
-      int_kind, *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
+  const CVC4::Kind int_kind = extToIntKind(opTerm.d_kind);
+  Term res;
+  if (opTerm.indexed)
+  {
+    res = d_exprMgr->mkExpr(int_kind,
+                            *opTerm.d_expr,
+                            *child1.d_expr,
+                            *child2.d_expr,
+                            *child3.d_expr);
+  }
+  else
+  {
+    res = d_exprMgr->mkExpr(
+        int_kind, *child1.d_expr, *child2.d_expr, *child3.d_expr);
+  }
+
   (void)res.d_expr->getType(true); /* kick off type checking */
   return res;
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkTerm(Kind kind,
-                    OpTerm opTerm,
-                    const std::vector<Term>& children) const
+Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   for (size_t i = 0, size = children.size(); i < size; ++i)
@@ -2938,11 +2971,19 @@ Term Solver::mkTerm(Kind kind,
         !children[i].isNull(), "parameter term", children[i], i)
         << "non-null term";
   }
-  checkMkOpTerm(kind, opTerm, children.size());
 
-  const CVC4::Kind int_kind = extToIntKind(kind);
+  const CVC4::Kind int_kind = extToIntKind(opTerm.d_kind);
   std::vector<Expr> echildren = termVectorToExprs(children);
-  Term res = d_exprMgr->mkExpr(int_kind, *opTerm.d_expr, echildren);
+  Term res;
+  if (opTerm.indexed)
+  {
+    res = d_exprMgr->mkExpr(int_kind, *opTerm.d_expr, echildren);
+  }
+  else
+  {
+    res = d_exprMgr->mkExpr(int_kind, echildren);
+  }
+
   (void)res.d_expr->getType(true); /* kick off type checking */
   return res;
 
