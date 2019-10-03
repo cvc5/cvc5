@@ -332,6 +332,7 @@ set(regress_0_tests
   regress0/cvc3.userdoc.04.cvc
   regress0/cvc3.userdoc.05.cvc
   regress0/cvc3.userdoc.06.cvc
+  regress0/cvc-rerror-print.cvc
   regress0/datatypes/Test1-tup-mp.cvc
   regress0/datatypes/boolean-equality.cvc
   regress0/datatypes/boolean-terms-datatype.cvc
@@ -886,6 +887,8 @@ set(regress_0_tests
   regress0/sygus/array-grammar-store.sy
   regress0/sygus/c100.sy
   regress0/sygus/ccp16.lus.sy
+  regress0/sygus/cegqi-si-string-triv.sy
+  regress0/sygus/cegqi-si-string-triv-2fun.sy
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
@@ -1683,6 +1686,8 @@ set(regress_1_tests
   regress1/sygus/issue3200.smt2
   regress1/sygus/issue3201.smt2
   regress1/sygus/issue3205.smt2
+  regress1/sygus/issue3247.smt2
+  regress1/sygus/issue3320-quant.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -1695,6 +1700,7 @@ set(regress_1_tests
   regress1/sygus/nia-max-square-ns.sy
   regress1/sygus/no-flat-simp.sy
   regress1/sygus/no-mention.sy
+  regress1/sygus/only-const-grammar.sy
   regress1/sygus/parity-si-rcons.sy
   regress1/sygus/pbe_multi.sy
   regress1/sygus/phone-1-long.sy

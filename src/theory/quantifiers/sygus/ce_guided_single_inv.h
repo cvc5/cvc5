@@ -76,7 +76,9 @@ class CegSingleInv
   Node d_orig_solution;
   Node d_solution;
   Node d_sygus_solution;
+
  public:
+  //---------------------------------representation of the solution
   /**
    * The list of instantiations that suffice to show the first-order equivalent
    * of the negated synthesis conjecture is unsatisfiable.
@@ -87,6 +89,9 @@ class CegSingleInv
    * first order conjecture for the term vectors above.
    */
   std::vector<Node> d_instConds;
+  /** is solved */
+  bool d_isSolved;
+  //---------------------------------end representation of the solution
 
  private:
   // conjecture
@@ -168,6 +173,15 @@ class CegSingleInv
       return Node::null();
     }
   }
+
+ private:
+  /** solve trivial
+   *
+   * If this method returns true, it sets d_isSolved to true and adds
+   * t1 ... tn to d_inst if it can be shown that (forall x1 ... xn. P) is
+   * unsatisfiable for instantiation {x1 -> t1 ... xn -> tn}.
+   */
+  bool solveTrivial(Node q);
 };
 
 }/* namespace CVC4::theory::quantifiers */

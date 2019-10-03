@@ -94,40 +94,40 @@ typerule POW ::CVC4::theory::arith::ArithOperatorTypeRule
 
 typerule CONST_RATIONAL ::CVC4::theory::arith::ArithConstantTypeRule
 
-typerule LT ::CVC4::theory::arith::ArithPredicateTypeRule
-typerule LEQ ::CVC4::theory::arith::ArithPredicateTypeRule
-typerule GT ::CVC4::theory::arith::ArithPredicateTypeRule
-typerule GEQ ::CVC4::theory::arith::ArithPredicateTypeRule
+typerule LT "SimpleTypeRule<RBool, AReal, AReal>"
+typerule LEQ "SimpleTypeRule<RBool, AReal, AReal>"
+typerule GT "SimpleTypeRule<RBool, AReal, AReal>"
+typerule GEQ "SimpleTypeRule<RBool, AReal, AReal>"
 
 typerule TO_REAL ::CVC4::theory::arith::ArithOperatorTypeRule
 typerule TO_INTEGER ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule IS_INTEGER ::CVC4::theory::arith::ArithUnaryPredicateTypeRule
+typerule IS_INTEGER "SimpleTypeRule<RBool, AReal>"
 
-typerule ABS ::CVC4::theory::arith::IntOperatorTypeRule
-typerule INTS_DIVISION ::CVC4::theory::arith::IntOperatorTypeRule
-typerule INTS_MODULUS ::CVC4::theory::arith::IntOperatorTypeRule
-typerule DIVISIBLE ::CVC4::theory::arith::IntUnaryPredicateTypeRule
-typerule DIVISIBLE_OP ::CVC4::theory::arith::DivisibleOpTypeRule
+typerule ABS "SimpleTypeRule<RInteger, AInteger>"
+typerule INTS_DIVISION "SimpleTypeRule<RInteger, AInteger, AInteger>"
+typerule INTS_MODULUS "SimpleTypeRule<RInteger, AInteger, AInteger>"
+typerule DIVISIBLE "SimpleTypeRule<RBool, AInteger>"
+typerule DIVISIBLE_OP "SimpleTypeRule<RBuiltinOperator>"
 
 typerule DIVISION_TOTAL ::CVC4::theory::arith::ArithOperatorTypeRule
-typerule INTS_DIVISION_TOTAL ::CVC4::theory::arith::IntOperatorTypeRule
-typerule INTS_MODULUS_TOTAL ::CVC4::theory::arith::IntOperatorTypeRule
+typerule INTS_DIVISION_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
+typerule INTS_MODULUS_TOTAL "SimpleTypeRule<RInteger, AInteger, AInteger>"
 
-typerule EXPONENTIAL ::CVC4::theory::arith::RealOperatorTypeRule
-typerule SINE ::CVC4::theory::arith::RealOperatorTypeRule
-typerule COSINE ::CVC4::theory::arith::RealOperatorTypeRule
-typerule TANGENT ::CVC4::theory::arith::RealOperatorTypeRule
-typerule COSECANT ::CVC4::theory::arith::RealOperatorTypeRule
-typerule SECANT ::CVC4::theory::arith::RealOperatorTypeRule
-typerule COTANGENT ::CVC4::theory::arith::RealOperatorTypeRule
-typerule ARCSINE ::CVC4::theory::arith::RealOperatorTypeRule
-typerule ARCCOSINE ::CVC4::theory::arith::RealOperatorTypeRule
-typerule ARCTANGENT ::CVC4::theory::arith::RealOperatorTypeRule
-typerule ARCCOSECANT ::CVC4::theory::arith::RealOperatorTypeRule
-typerule ARCSECANT ::CVC4::theory::arith::RealOperatorTypeRule
-typerule ARCCOTANGENT ::CVC4::theory::arith::RealOperatorTypeRule
+typerule EXPONENTIAL "SimpleTypeRule<RReal, AReal>"
+typerule SINE "SimpleTypeRule<RReal, AReal>"
+typerule COSINE "SimpleTypeRule<RReal, AReal>"
+typerule TANGENT "SimpleTypeRule<RReal, AReal>"
+typerule COSECANT "SimpleTypeRule<RReal, AReal>"
+typerule SECANT "SimpleTypeRule<RReal, AReal>"
+typerule COTANGENT "SimpleTypeRule<RReal, AReal>"
+typerule ARCSINE "SimpleTypeRule<RReal, AReal>"
+typerule ARCCOSINE "SimpleTypeRule<RReal, AReal>"
+typerule ARCTANGENT "SimpleTypeRule<RReal, AReal>"
+typerule ARCCOSECANT "SimpleTypeRule<RReal, AReal>"
+typerule ARCSECANT "SimpleTypeRule<RReal, AReal>"
+typerule ARCCOTANGENT "SimpleTypeRule<RReal, AReal>"
 
-typerule SQRT ::CVC4::theory::arith::RealOperatorTypeRule
+typerule SQRT "SimpleTypeRule<RReal, AReal>"
 
 nullaryoperator PI "pi"
 
