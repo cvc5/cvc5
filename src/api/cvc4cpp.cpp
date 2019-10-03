@@ -1166,11 +1166,6 @@ std::string Term::toString() const { return d_expr->toString(); }
 
 Term::const_iterator::const_iterator() : orig_expr(nullptr), pos(0) {}
 
-Term::const_iterator::const_iterator(const std::shared_ptr<CVC4::Expr>& e)
-    : orig_expr(e), pos(0), children(e->getChildren())
-{
-}
-
 Term::const_iterator::const_iterator(const std::shared_ptr<CVC4::Expr>& e,
                                      int p)
     : orig_expr(e), pos(p), children(e->getChildren())
@@ -1246,7 +1241,7 @@ Term Term::const_iterator::operator*() const
 
 Term::const_iterator Term::begin() const
 {
-  return Term::const_iterator(d_expr);
+  return Term::const_iterator(d_expr, 0);
 }
 
 Term::const_iterator Term::end() const

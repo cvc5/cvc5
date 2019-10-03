@@ -675,8 +675,9 @@ class CVC4_PUBLIC Term
      */
     const_iterator();
 
-    const_iterator(const std::shared_ptr<CVC4::Expr>& e);
-
+    /**
+     * Constructor
+     */
     const_iterator(const std::shared_ptr<CVC4::Expr>& e, int p);
 
     /**
