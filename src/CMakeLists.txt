@@ -682,6 +682,8 @@ libcvc4_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_id.cpp
+  theory/theory_id.h
   theory/theory_model.cpp
   theory/theory_model.h
   theory/theory_model_builder.cpp
@@ -717,25 +719,21 @@ include_directories(include)
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
-# IMPORTANT: The order of the theories is important. It affects the order in
-# which theory solvers are called/initialized internally. For example, strings
-# depends on arith, quantifiers needs to come as the very last.
-# See issue https://github.com/CVC4/CVC4/issues/2517 for more details.
 
 set(KINDS_FILES
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/idl/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/idl/kinds)
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds)
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories
