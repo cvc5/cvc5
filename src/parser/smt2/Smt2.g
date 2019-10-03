@@ -208,13 +208,12 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
  */
 parseSygus returns [CVC4::Command* cmd_return = NULL]
 @declarations {
-  std::unique_ptr<CVC4::Command> cmd;
   std::string name;
 }
 @after {
   cmd_return = cmd.release();
 }
-  : LPAREN_TOK sygusCommand[&cmd] RPAREN_TOK
+  : LPAREN_TOK cmd=sygusCommand RPAREN_TOK
   | EOF
   ;
 
@@ -551,7 +550,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     }
   ;
 
-sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
+sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
 @declarations {
   Expr expr, expr2;
   Type t, range;
@@ -569,7 +568,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[t,CHECK_DECLARED]
     {
       Expr var = PARSER_STATE->mkBoundVar(name, t);
-      cmd->reset(new DeclareSygusVarCommand(name, var, t));
+      cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* declare-primed-var */
     DECLARE_PRIMED_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -579,7 +578,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     {
       // spurious command, we do not need to create a variable. We only keep
       // track of the command for sanity checking / dumping
-      cmd->reset(new DeclareSygusPrimedVarCommand(name, t));
+      cmd.reset(new DeclareSygusPrimedVarCommand(name, t));
     }
 
   | /* synth-fun */
@@ -601,7 +600,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammarV1[grammar, synthFunFactory->getSygusVars(), fun]
     )?
     {
-      *cmd = synthFunFactory->mkCommand(grammar);
+      cmd = synthFunFactory->mkCommand(grammar);
     }
   | /* synth-fun */
     ( SYNTH_FUN_TOK { isInv = false; }
@@ -622,7 +621,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammar[grammar, synthFunFactory->getSygusVars(), fun]
     )?
     {
-      *cmd = synthFunFactory->mkCommand(grammar);
+      cmd = synthFunFactory->mkCommand(grammar);
     }
   | /* constraint */
     CONSTRAINT_TOK {
@@ -632,21 +631,21 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     }
     term[expr, expr2]
     { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
-      cmd->reset(new SygusConstraintCommand(expr));
+      cmd.reset(new SygusConstraintCommand(expr));
     }
   | /* inv-constraint */
     INV_CONSTRAINT_TOK
     ( symbol[name,CHECK_NONE,SYM_VARIABLE] { names.push_back(name); } )+
     {
-      *cmd = PARSER_STATE->invConstraint(names);
+      cmd = PARSER_STATE->invConstraint(names);
     }
   | /* check-synth */
     CHECK_SYNTH_TOK
     { PARSER_STATE->checkThatLogicIsSet(); }
     {
-      cmd->reset(new CheckSynthCommand());
+      cmd.reset(new CheckSynthCommand());
     }
-  | command[cmd]
+  | command[&cmd]
   ;
 
 /** Reads a sygus grammar
