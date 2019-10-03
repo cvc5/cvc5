@@ -621,7 +621,7 @@ private:
 
 ${getConst_instantiations}
 
-#line 616 "${template}"
+#line 609 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();
