@@ -663,6 +663,9 @@ class CVC4_PUBLIC Term
 
   /**
    * Iterator for the children of a Term.
+   * Note: This treats uninterpreted functions as Term just like any other term
+   *       for example, the term f(x, y) will have Kind APPLY_UF and three
+   *       children: f, x, and y
    */
   class const_iterator : public std::iterator<std::input_iterator_tag, Term>
   {
