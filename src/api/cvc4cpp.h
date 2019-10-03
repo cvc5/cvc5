@@ -579,7 +579,24 @@ class CVC4_PUBLIC Term
    * @return the kind of this term
    */
   Kind getKind() const;
-
+  
+  /**
+   * @return true if this expression is parameterized.
+   *
+   * !!! The below documentation is not accurate until we have a way of getting
+   * operators from terms.
+   *
+   * In detail, a term that is parameterized is one that has an operator that
+   * must be provided in addition to its kind to construct it. For example,
+   * say we want to re-construct a Term t where its children a1, ..., an are
+   * replaced by b1 ... bn. Then there are two cases:
+   * (1) If t is parametric, call:
+   *   mkTerm(t.getKind(), t.getOperator(), b1, ..., bn )
+   * (2) If t is not parametric, call:
+   *   mkTerm(t.getKind(), b1, ..., bn )
+   */
+  bool isParameterized() const;
+  
   /**
    * @return the sort of this term
    */

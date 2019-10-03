@@ -1050,6 +1050,12 @@ Kind Term::getKind() const
   return intToExtKind(d_expr->getKind());
 }
 
+bool Term::isParameterized() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->isParameterized();
+}
+
 Sort Term::getSort() const
 {
   CVC4_API_CHECK_NOT_NULL;
@@ -1350,7 +1356,7 @@ template <>
 uint32_t OpTerm::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  uint32_t i;
+  uint32_t i = 0;
   Kind k = intToExtKind(d_expr->getKind());
   switch (k)
   {

@@ -438,7 +438,7 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
   smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf, fof and tff)\n\
-  sygus                          SyGuS format\n\
+  sygus | sygus2                 SyGuS version 1.0 and 2.0 formats\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
   auto                           match output language to input language\n\

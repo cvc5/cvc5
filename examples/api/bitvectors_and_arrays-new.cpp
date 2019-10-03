@@ -17,8 +17,7 @@
 #include <iostream>
 #include <cmath>
 
-// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
-#include "api/cvc4cpp.h"
+#include <cvc4/api/cvc4cpp.h>
 
 using namespace std;
 using namespace CVC4::api;

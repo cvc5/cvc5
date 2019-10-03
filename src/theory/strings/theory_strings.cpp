@@ -2069,32 +2069,37 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
              i++)
         {
           Node onr = d_extf_info_tmp[nr[0]].d_ctn[opol][i];
-          Node conc =
+          Node concOrig =
               nm->mkNode(STRING_STRCTN, pol ? nr[1] : onr, pol ? onr : nr[1]);
-          conc = Rewriter::rewrite(conc);
-          conc = conc.negate();
-          bool do_infer = false;
-          bool pol = conc.getKind() != NOT;
-          Node lit = pol ? conc : conc[0];
-          if (lit.getKind() == EQUAL)
+          Node conc = Rewriter::rewrite(concOrig);
+          // For termination concerns, we only do the inference if the contains
+          // does not rewrite (and thus does not introduce new terms).
+          if (conc == concOrig)
           {
-            do_infer = pol ? !areEqual(lit[0], lit[1])
-                           : !areDisequal(lit[0], lit[1]);
-          }
-          else
-          {
-            do_infer = !areEqual(lit, pol ? d_true : d_false);
-          }
-          if (do_infer)
-          {
-            std::vector<Node> exp_c;
-            exp_c.insert(exp_c.end(), in.d_exp.begin(), in.d_exp.end());
-            Node ofrom = d_extf_info_tmp[nr[0]].d_ctn_from[opol][i];
-            Assert(d_extf_info_tmp.find(ofrom) != d_extf_info_tmp.end());
-            exp_c.insert(exp_c.end(),
-                         d_extf_info_tmp[ofrom].d_exp.begin(),
-                         d_extf_info_tmp[ofrom].d_exp.end());
-            d_im.sendInference(exp_c, conc, "CTN_Trans");
+            bool do_infer = false;
+            conc = conc.negate();
+            bool pol = conc.getKind() != NOT;
+            Node lit = pol ? conc : conc[0];
+            if (lit.getKind() == EQUAL)
+            {
+              do_infer = pol ? !areEqual(lit[0], lit[1])
+                             : !areDisequal(lit[0], lit[1]);
+            }
+            else
+            {
+              do_infer = !areEqual(lit, pol ? d_true : d_false);
+            }
+            if (do_infer)
+            {
+              std::vector<Node> exp_c;
+              exp_c.insert(exp_c.end(), in.d_exp.begin(), in.d_exp.end());
+              Node ofrom = d_extf_info_tmp[nr[0]].d_ctn_from[opol][i];
+              Assert(d_extf_info_tmp.find(ofrom) != d_extf_info_tmp.end());
+              exp_c.insert(exp_c.end(),
+                           d_extf_info_tmp[ofrom].d_exp.begin(),
+                           d_extf_info_tmp[ofrom].d_exp.end());
+              d_im.sendInference(exp_c, conc, "CTN_Trans");
+            }
           }
         }
       }
@@ -2380,6 +2385,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
     inelig.push_back(eqc[start]);
   }
   Node a = eqc[start];
+  Trace("strings-ff-debug")
+      << "Check flat form for a = " << a << ", whose flat form is "
+      << d_flat_form[a] << ")" << std::endl;
   Node b;
   do
   {
@@ -2398,6 +2406,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
           unsigned bsize = d_flat_form[b].size();
           if (count < bsize)
           {
+            Trace("strings-ff-debug")
+                << "Found endpoint (in a) with non-empty b = " << b
+                << ", whose flat form is " << d_flat_form[b] << std::endl;
             // endpoint
             std::vector<Node> conc_c;
             for (unsigned j = count; j < bsize; j++)
@@ -2412,7 +2423,6 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
             // swap, will enforce is empty past current
             a = eqc[i];
             b = eqc[start];
-            count--;
             break;
           }
           inelig.push_back(eqc[i]);
@@ -2434,6 +2444,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
           if (count == d_flat_form[b].size())
           {
             inelig.push_back(b);
+            Trace("strings-ff-debug")
+                << "Found endpoint in b = " << b << ", whose flat form is "
+                << d_flat_form[b] << std::endl;
             // endpoint
             std::vector<Node> conc_c;
             for (unsigned j = count; j < asize; j++)
@@ -2445,7 +2458,6 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
             conc = utils::mkAnd(conc_c);
             inf_type = 2;
             Assert(count > 0);
-            count--;
             break;
           }
           else
@@ -2558,10 +2570,11 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
           }
         }
       }
-      // notice that F_EndpointEmp is not typically applied, since
+      // Notice that F_EndpointEmp is not typically applied, since
       // strict prefix equality ( a.b = a ) where a,b non-empty
-      //  is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
-      //  when len(b)!=0.
+      // is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
+      // when len(b)!=0. Although if we do not infer this conflict eagerly,
+      // it may be applied (see #3272).
       d_im.sendInference(
           exp,
           conc,

@@ -17,18 +17,10 @@
  ** following:
  **
  **   java \
- **     -classpath path/to/CVC4.jar \
- **     -Djava.library.path=/dir/containing/java/CVC4.so \
+ **     -cp path/to/CVC4.jar:SimpleVC.jar \
+ **     -Djava.library.path=/dir/containing/libcvc4jni.so \
  **     SimpleVC
  **
- ** For example, if you are building CVC4 without specifying your own
- ** build directory, the build process puts everything in builds/, and
- ** you can run this example (after building it with "make") like this:
- **
- **   java \
- **     -classpath builds/examples:builds/src/bindings/CVC4.jar \
- **     -Djava.library.path=builds/src/bindings/java/.libs \
- **     SimpleVC
  **/
 
 import edu.nyu.acsys.CVC4.*;
