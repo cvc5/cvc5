@@ -1164,41 +1164,45 @@ Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 
 std::string Term::toString() const { return d_expr->toString(); }
 
-Term::const_iterator::const_iterator() : d_iterator(nullptr) {}
+Term::const_iterator::const_iterator() : orig_expr(nullptr), pos(0) {}
 
-Term::const_iterator::const_iterator(void* it) : d_iterator(it) {}
+Term::const_iterator::const_iterator(const std::shared_ptr<CVC4::Expr>& e)
+    : orig_expr(e), pos(0), children(e->getChildren())
+{
+}
+
+Term::const_iterator::const_iterator(const std::shared_ptr<CVC4::Expr>& e,
+                                     int p)
+    : orig_expr(e), pos(p), children(e->getChildren())
+{
+}
 
 Term::const_iterator::const_iterator(const const_iterator& it)
-    : d_iterator(nullptr)
+    : orig_expr(nullptr)
 {
-  if (it.d_iterator != nullptr)
+  if (it.orig_expr != nullptr)
   {
-    d_iterator = new CVC4::Expr::const_iterator(
-        *static_cast<CVC4::Expr::const_iterator*>(it.d_iterator));
+    orig_expr = it.orig_expr;
+    pos = it.pos;
+    children = it.orig_expr->getChildren();
   }
 }
 
 Term::const_iterator& Term::const_iterator::operator=(const const_iterator& it)
 {
-  delete static_cast<CVC4::Expr::const_iterator*>(d_iterator);
-  d_iterator = new CVC4::Expr::const_iterator(
-      *static_cast<CVC4::Expr::const_iterator*>(it.d_iterator));
+  orig_expr = it.orig_expr;
+  pos = it.pos;
+  children = it.orig_expr->getChildren();
   return *this;
-}
-
-Term::const_iterator::~const_iterator()
-{
-  delete static_cast<CVC4::Expr::const_iterator*>(d_iterator);
 }
 
 bool Term::const_iterator::operator==(const const_iterator& it) const
 {
-  if (d_iterator == nullptr || it.d_iterator == nullptr)
+  if (orig_expr == nullptr || it.orig_expr == nullptr)
   {
     return false;
   }
-  return *static_cast<CVC4::Expr::const_iterator*>(d_iterator)
-         == *static_cast<CVC4::Expr::const_iterator*>(it.d_iterator);
+  return (*orig_expr == *it.orig_expr) && (pos == it.pos);
 }
 
 bool Term::const_iterator::operator!=(const const_iterator& it) const
@@ -1208,33 +1212,52 @@ bool Term::const_iterator::operator!=(const const_iterator& it) const
 
 Term::const_iterator& Term::const_iterator::operator++()
 {
-  Assert(d_iterator != nullptr);
-  ++*static_cast<CVC4::Expr::const_iterator*>(d_iterator);
+  Assert(orig_expr != nullptr);
+  ++pos;
   return *this;
 }
 
 Term::const_iterator Term::const_iterator::operator++(int)
 {
-  Assert(d_iterator != nullptr);
+  Assert(orig_expr != nullptr);
   const_iterator it = *this;
-  ++*static_cast<CVC4::Expr::const_iterator*>(d_iterator);
+  ++pos;
   return it;
 }
 
 Term Term::const_iterator::operator*() const
 {
-  Assert(d_iterator != nullptr);
-  return Term(**static_cast<CVC4::Expr::const_iterator*>(d_iterator));
+  Assert(orig_expr != nullptr);
+  if (!pos && (orig_expr->getKind() == CVC4::Kind::APPLY_UF))
+  {
+    return Term(orig_expr->getOperator());
+  }
+  else
+  {
+    int idx = pos;
+    if (orig_expr->getKind() == CVC4::Kind::APPLY_UF)
+    {
+      --idx;
+    }
+    Assert(idx >= 0);
+    return Term(children[idx]);
+  }
 }
 
 Term::const_iterator Term::begin() const
 {
-  return Term::const_iterator(new CVC4::Expr::const_iterator(d_expr->begin()));
+  return Term::const_iterator(d_expr);
 }
 
 Term::const_iterator Term::end() const
 {
-  return Term::const_iterator(new CVC4::Expr::const_iterator(d_expr->end()));
+  int endpos = d_expr->getNumChildren();
+  if (d_expr->getKind() == CVC4::Kind::APPLY_UF)
+  {
+    // one more child if this is a UF application (count the UF as a child)
+    ++endpos;
+  }
+  return Term::const_iterator(d_expr, endpos);
 }
 
 // !!! This is only temporarily available until the parser is fully migrated

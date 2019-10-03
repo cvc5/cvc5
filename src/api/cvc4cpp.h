@@ -21,6 +21,8 @@
 
 #include "api/cvc4cppkind.h"
 
+#include "expr/expr.h"
+
 #include <map>
 #include <memory>
 #include <set>
@@ -32,7 +34,6 @@
 
 namespace CVC4 {
 
-class Expr;
 class Datatype;
 class DatatypeConstructor;
 class DatatypeConstructorArg;
@@ -670,19 +671,18 @@ class CVC4_PUBLIC Term
 
    public:
     /**
-     * Constructor.
+     * Null Constructor.
      */
     const_iterator();
+
+    const_iterator(const std::shared_ptr<CVC4::Expr>& e);
+
+    const_iterator(const std::shared_ptr<CVC4::Expr>& e, int p);
 
     /**
      * Copy constructor.
      */
     const_iterator(const const_iterator& it);
-
-    /**
-     * Destructor.
-     */
-    ~const_iterator();
 
     /**
      * Assignment operator.
@@ -725,7 +725,12 @@ class CVC4_PUBLIC Term
 
    private:
     /* The internal expression iterator wrapped by this iterator. */
-    void* d_iterator;
+    // void* d_iterator;
+    std::shared_ptr<CVC4::Expr> orig_expr;
+    /* Keeps track of the iteration position */
+    int pos;
+    /* Expr children */
+    std::vector<CVC4::Expr> children;
     /* Constructor. */
     explicit const_iterator(void*);
   };
