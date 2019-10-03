@@ -85,8 +85,8 @@ std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {
 
-TheoryId kindToTheoryId(::CVC4::Kind k) CVC4_PUBLIC;
-TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) CVC4_PUBLIC;
+::CVC4::theory::TheoryId kindToTheoryId(::CVC4::Kind k) CVC4_PUBLIC;
+::CVC4::theory::TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) CVC4_PUBLIC;
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
