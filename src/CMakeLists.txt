@@ -926,6 +926,7 @@ install(FILES
           ${INCLUDE_INSTALL_DIR}/cvc4/smt_util)
 install(FILES
           theory/logic_info.h
+          theory/theory_id.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/theory)
 install(FILES
