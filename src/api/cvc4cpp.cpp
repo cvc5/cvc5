@@ -1167,7 +1167,7 @@ std::string Term::toString() const { return d_expr->toString(); }
 Term::const_iterator::const_iterator() : orig_expr(nullptr), pos(0) {}
 
 Term::const_iterator::const_iterator(const std::shared_ptr<CVC4::Expr>& e,
-                                     int p)
+                                     uint32_t p)
     : orig_expr(e), pos(p)
 {
 }
@@ -1227,9 +1227,10 @@ Term Term::const_iterator::operator*() const
   }
   else
   {
-    int idx = pos;
+    uint32_t idx = pos;
     if (orig_expr->getKind() == CVC4::Kind::APPLY_UF)
     {
+      Assert(idx > 0);
       --idx;
     }
     Assert(idx >= 0);

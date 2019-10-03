@@ -679,7 +679,7 @@ class CVC4_PUBLIC Term
      * @param e a shared pointer to the expression that we're iterating over
      * @param p the position of the iterator (e.g. which child it's on)
      */
-    const_iterator(const std::shared_ptr<CVC4::Expr>& e, int p);
+    const_iterator(const std::shared_ptr<CVC4::Expr>& e, uint32_t p);
 
     /**
      * Copy constructor.
@@ -730,7 +730,7 @@ class CVC4_PUBLIC Term
     // void* d_iterator;
     std::shared_ptr<CVC4::Expr> orig_expr;
     /* Keeps track of the iteration position */
-    int pos;
+    uint32_t pos;
   };
 
   /**
