@@ -1854,7 +1854,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create operator term of kind:
-   *   - CHAIN_OP
+   *   - CHAIN
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param k the kind argument to this operator
@@ -1863,8 +1863,8 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create operator of kind:
-   *   - RECORD_UPDATE_OP
-   *   - DIVISIBLE_OP (to support arbitrary precision integers)
+   *   - RECORD_UPDATE
+   *   - DIVISIBLE (to support arbitrary precision integers)
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
@@ -1873,18 +1873,18 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create operator of kind:
-   *   - DIVISIBLE_OP
-   *   - BITVECTOR_REPEAT_OP
-   *   - BITVECTOR_ZERO_EXTEND_OP
-   *   - BITVECTOR_SIGN_EXTEND_OP
-   *   - BITVECTOR_ROTATE_LEFT_OP
-   *   - BITVECTOR_ROTATE_RIGHT_OP
-   *   - INT_TO_BITVECTOR_OP
-   *   - FLOATINGPOINT_TO_UBV_OP
-   *   - FLOATINGPOINT_TO_UBV_TOTAL_OP
-   *   - FLOATINGPOINT_TO_SBV_OP
-   *   - FLOATINGPOINT_TO_SBV_TOTAL_OP
-   *   - TUPLE_UPDATE_OP
+   *   - DIVISIBLE
+   *   - BITVECTOR_REPEAT
+   *   - BITVECTOR_ZERO_EXTEND
+   *   - BITVECTOR_SIGN_EXTEND
+   *   - BITVECTOR_ROTATE_LEFT
+   *   - BITVECTOR_ROTATE_RIGHT
+   *   - INT_TO_BITVECTOR
+   *   - FLOATINGPOINT_TO_UBV
+   *   - FLOATINGPOINT_TO_UBV_TOTAL
+   *   - FLOATINGPOINT_TO_SBV
+   *   - FLOATINGPOINT_TO_SBV_TOTAL
+   *   - TUPLE_UPDATE
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the uint32_t argument to this operator
@@ -1893,13 +1893,13 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create operator of Kind:
-   *   - BITVECTOR_EXTRACT_OP
-   *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP
-   *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP
-   *   - FLOATINGPOINT_TO_FP_REAL_OP
-   *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP
-   *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP
-   *   - FLOATINGPOINT_TO_FP_GENERIC_OP
+   *   - BITVECTOR_EXTRACT
+   *   - FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_FLOATINGPOINT
+   *   - FLOATINGPOINT_TO_FP_REAL
+   *   - FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
+   *   - FLOATINGPOINT_TO_FP_GENERIC
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg1 the first uint32_t argument to this operator
