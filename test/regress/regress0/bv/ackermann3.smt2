@@ -18,5 +18,6 @@
 
 (assert (= v0 v1))
 
+
 (check-sat)
 (exit)
