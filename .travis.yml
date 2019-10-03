@@ -47,18 +47,14 @@ script:
    echo "travis_fold:start:load_script"
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
    configureCVC4() {
-     (
-       echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
-       ./configure.sh --name=build --prefix=$(pwd)/build/install --unit-testing $TRAVIS_CVC4_CONFIG
-     )
+     echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
+     ./configure.sh --name=build --prefix=$(pwd)/build/install --unit-testing $TRAVIS_CVC4_CONFIG
    }
    error() {
-     (
-       echo;
-       echo "${red}${1}${normal}";
-       echo;
-       exit 1;
-     )
+     echo;
+     echo "${red}${1}${normal}";
+     echo;
+     exit 1;
    }
    makeCheck() {
      (
@@ -85,12 +81,10 @@ script:
      )
    }
    run() {
-     (
-       echo "travis_fold:start:$1"
-       echo "Running $1"
-       $1 || exit 1
-       echo "travis_fold:end:$1"
-     )
+     echo "travis_fold:start:$1"
+     echo "Running $1"
+     $1 || exit 1
+     echo "travis_fold:end:$1"
    }
    [[ "$TRAVIS_CVC4_CONFIG" == *"symfpu"* ]] && CVC4_SYMFPU_BUILD="yes"
    [ -n "$CVC4_SYMFPU_BUILD" ] && run contrib/get-symfpu
