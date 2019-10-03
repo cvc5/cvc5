@@ -59,6 +59,7 @@ script:
    makeCheck() {
      cd build
      make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
+     cd -
    }
    makeExamples() {
      cd examples
@@ -67,6 +68,7 @@ script:
      cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
      make -j2
      ctest -j2 --output-on-failure || error "RUNNING EXAMPLES FAILED"
+     cd -
    }
    makeInstallCheck() {
      cd build
