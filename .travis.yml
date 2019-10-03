@@ -65,6 +65,7 @@ script:
      mkdir build
      cd build
      cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
+     make -j2
      ctest -j2 --output-on-failure || error "RUNNING EXAMPLES FAILED"
    }
    makeInstallCheck() {
