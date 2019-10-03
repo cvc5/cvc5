@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.2)
 
 project(cvc4-examples)
 
+set(CMAKE_CXX_STANDARD 11)
+
 enable_testing()
 
 # Find CVC4 package. If CVC4 is not installed into the default system location
