@@ -851,11 +851,20 @@ class CVC4_PUBLIC OpTerm
   // !!! This constructor is only temporarily public until the parser is fully
   // migrated to the new API. !!!
   /**
+   * Constructor for a single kind (non-indexed operator).
+   * @param k the kind of this OpTerm
+   */
+  OpTerm(const Kind k);
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
    * Constructor.
+   * @param k the kind of this OpTerm
    * @param e the internal expression that is to be wrapped by this term
    * @return the Term
    */
-  OpTerm(const CVC4::Expr& e);
+  OpTerm(const Kind k, const CVC4::Expr& e);
 
   /**
    * Destructor.
@@ -918,6 +927,14 @@ class CVC4_PUBLIC OpTerm
   CVC4::Expr getExpr(void) const;
 
  private:
+  /* The kind of this operator term. */
+  Kind d_kind;
+
+  /** True iff this OpTerm is indexed
+   *  An indexed operator has a non-null internal expr, d_expr
+   */
+  bool indexed;
+
   /**
    * The internal expression wrapped by this operator term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
