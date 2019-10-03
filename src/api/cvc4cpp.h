@@ -677,6 +677,8 @@ class CVC4_PUBLIC Term
 
     /**
      * Constructor
+     * @param e a shared pointer to the expression that we're iterating over
+     * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const std::shared_ptr<CVC4::Expr>& e, int p);
 
