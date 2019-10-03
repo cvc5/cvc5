@@ -2097,36 +2097,6 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       << " children (the one under construction has " << nchildren << ")";
 }
 
-void Solver::checkMkOpTerm(Kind kind, OpTerm opTerm, uint32_t nchildren) const
-{
-  Assert(isDefinedIntKind(extToIntKind(kind)));
-  const CVC4::Kind int_kind = extToIntKind(kind);
-  const CVC4::Kind int_op_kind = opTerm.d_expr->getKind();
-  const CVC4::Kind int_op_to_kind =
-      NodeManager::operatorToKind(opTerm.d_expr->getNode());
-  CVC4_API_ARG_CHECK_EXPECTED(
-      int_kind == int_op_to_kind
-          || (kind == APPLY_CONSTRUCTOR
-              && int_op_to_kind == CVC4::Kind::UNDEFINED_KIND)
-          || (kind == APPLY_SELECTOR
-              && int_op_to_kind == CVC4::Kind::UNDEFINED_KIND)
-          || (kind == APPLY_UF && int_op_to_kind == CVC4::Kind::UNDEFINED_KIND),
-      kind)
-      << "kind that matches kind associated with given operator term";
-  CVC4_API_ARG_CHECK_EXPECTED(
-      int_op_kind == CVC4::kind::BUILTIN
-          || CVC4::kind::metaKindOf(int_kind) == kind::metakind::PARAMETERIZED,
-      opTerm)
-      << "This term constructor is for parameterized kinds only";
-  uint32_t min_arity = ExprManager::minArity(int_kind);
-  uint32_t max_arity = ExprManager::maxArity(int_kind);
-  CVC4_API_KIND_CHECK_EXPECTED(nchildren >= min_arity && nchildren <= max_arity,
-                               kind)
-      << "Terms with kind " << kindToString(kind) << " must have at least "
-      << min_arity << " children and at most " << max_arity
-      << " children (the one under construction has " << nchildren << ")";
-}
-
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
