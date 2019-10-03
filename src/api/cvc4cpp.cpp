@@ -1168,7 +1168,7 @@ Term::const_iterator::const_iterator() : orig_expr(nullptr), pos(0) {}
 
 Term::const_iterator::const_iterator(const std::shared_ptr<CVC4::Expr>& e,
                                      int p)
-    : orig_expr(e), pos(p), children(e->getChildren())
+    : orig_expr(e), pos(p)
 {
 }
 
@@ -1179,7 +1179,6 @@ Term::const_iterator::const_iterator(const const_iterator& it)
   {
     orig_expr = it.orig_expr;
     pos = it.pos;
-    children = it.orig_expr->getChildren();
   }
 }
 
@@ -1187,7 +1186,6 @@ Term::const_iterator& Term::const_iterator::operator=(const const_iterator& it)
 {
   orig_expr = it.orig_expr;
   pos = it.pos;
-  children = it.orig_expr->getChildren();
   return *this;
 }
 
@@ -1235,7 +1233,7 @@ Term Term::const_iterator::operator*() const
       --idx;
     }
     Assert(idx >= 0);
-    return Term(children[idx]);
+    return Term((*orig_expr)[idx]);
   }
 }
 

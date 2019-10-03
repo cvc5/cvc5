@@ -21,8 +21,6 @@
 
 #include "api/cvc4cppkind.h"
 
-#include "expr/expr.h"
-
 #include <map>
 #include <memory>
 #include <set>
@@ -34,6 +32,7 @@
 
 namespace CVC4 {
 
+class Expr;
 class Datatype;
 class DatatypeConstructor;
 class DatatypeConstructorArg;
@@ -732,10 +731,6 @@ class CVC4_PUBLIC Term
     std::shared_ptr<CVC4::Expr> orig_expr;
     /* Keeps track of the iteration position */
     int pos;
-    /* Expr children */
-    std::vector<CVC4::Expr> children;
-    /* Constructor. */
-    explicit const_iterator(void*);
   };
 
   /**
