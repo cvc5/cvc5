@@ -86,6 +86,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testDefineFunsRec();
 
   void testUFIteration();
+  void testGetOpTerm();
 
   void testPush1();
   void testPush2();
@@ -906,6 +907,53 @@ void SolverBlack::testUFIteration()
     TS_ASSERT(c == expected_children[idx]);
     idx++;
   }
+}
+
+void SolverBlack::testGetOpTerm()
+{
+  Sort bv32 = d_solver->mkBitVectorSort(32);
+  Term a = d_solver->mkConst(bv32, "a");
+  OpTerm ext = d_solver->mkOpTerm(BITVECTOR_EXTRACT, 2, 1);
+  Term exta = d_solver->mkTerm(ext, a);
+
+  TS_ASSERT(!a.hasOpTerm());
+  TS_ASSERT_THROWS(a.getOpTerm(), CVC4ApiException&);
+  TS_ASSERT(exta.hasOpTerm());
+  TS_ASSERT_EQUALS(exta.getOpTerm(), ext);
+
+  // Test Datatypes -- more complicated
+  DatatypeDecl consListSpec("list");
+  DatatypeConstructorDecl cons("cons");
+  DatatypeSelectorDecl head("head", d_solver->getIntegerSort());
+  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
+  cons.addSelector(head);
+  cons.addSelector(tail);
+  consListSpec.addConstructor(cons);
+  DatatypeConstructorDecl nil("nil");
+  consListSpec.addConstructor(nil);
+  Sort consListSort = d_solver->mkDatatypeSort(consListSpec);
+  Datatype consList = consListSort.getDatatype();
+
+  OpTerm consTerm = consList.getConstructorTerm("cons");
+  OpTerm nilTerm = consList.getConstructorTerm("nil");
+  OpTerm headTerm = consList["cons"].getSelectorTerm("head");
+
+  TS_ASSERT(consTerm.getKind() == APPLY_CONSTRUCTOR);
+  TS_ASSERT(nilTerm.getKind() == APPLY_CONSTRUCTOR);
+  TS_ASSERT(headTerm.getKind() == APPLY_SELECTOR);
+
+  Term listnil = d_solver->mkTerm(nilTerm);
+  Term listcons1 = d_solver->mkTerm(consTerm, d_solver->mkReal(1), listnil);
+  Term listhead = d_solver->mkTerm(headTerm, listcons1);
+
+  TS_ASSERT(listnil.hasOpTerm());
+  TS_ASSERT_EQUALS(listnil.getOpTerm(), nilTerm);
+
+  TS_ASSERT(listcons1.hasOpTerm());
+  TS_ASSERT_EQUALS(listcons1.getOpTerm(), consTerm);
+
+  TS_ASSERT(listhead.hasOpTerm());
+  TS_ASSERT_EQUALS(listhead.getOpTerm(), headTerm);
 }
 
 void SolverBlack::testPush1()
