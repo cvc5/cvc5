@@ -452,26 +452,25 @@ void SolverBlack::testMkPosZero()
 void SolverBlack::testMkOpTerm()
 {
   // mkOpTerm(Kind kind, Kind k)
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(CHAIN_OP, EQUAL));
-  TS_ASSERT_THROWS(d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, EQUAL),
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(CHAIN, EQUAL));
+  TS_ASSERT_THROWS(d_solver->mkOpTerm(BITVECTOR_EXTRACT, EQUAL),
                    CVC4ApiException&);
 
   // mkOpTerm(Kind kind, const std::string& arg)
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(RECORD_UPDATE_OP, "asdf"));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(DIVISIBLE_OP, "2147483648"));
-  TS_ASSERT_THROWS(d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, "asdf"),
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(RECORD_UPDATE, "asdf"));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(DIVISIBLE, "2147483648"));
+  TS_ASSERT_THROWS(d_solver->mkOpTerm(BITVECTOR_EXTRACT, "asdf"),
                    CVC4ApiException&);
 
   // mkOpTerm(Kind kind, uint32_t arg)
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(DIVISIBLE_OP, 1));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(BITVECTOR_ROTATE_LEFT_OP, 1));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(BITVECTOR_ROTATE_RIGHT_OP, 1));
-  TS_ASSERT_THROWS(d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, 1),
-                   CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(DIVISIBLE, 1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(BITVECTOR_ROTATE_LEFT, 1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(BITVECTOR_ROTATE_RIGHT, 1));
+  TS_ASSERT_THROWS(d_solver->mkOpTerm(BITVECTOR_EXTRACT, 1), CVC4ApiException&);
 
   // mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, 1, 1));
-  TS_ASSERT_THROWS(d_solver->mkOpTerm(DIVISIBLE_OP, 1, 2), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(BITVECTOR_EXTRACT, 1, 1));
+  TS_ASSERT_THROWS(d_solver->mkOpTerm(DIVISIBLE, 1, 2), CVC4ApiException&);
 }
 
 void SolverBlack::testMkPi() { TS_ASSERT_THROWS_NOTHING(d_solver->mkPi()); }
@@ -616,9 +615,9 @@ void SolverBlack::testMkTermFromOpTerm()
   std::vector<Term> v2 = {d_solver->mkReal(1), Term()};
   std::vector<Term> v3 = {};
   // simple operator terms
-  OpTerm opterm1 = d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, 2, 1);
-  OpTerm opterm2 = d_solver->mkOpTerm(DIVISIBLE_OP, 1);
-  OpTerm opterm3 = d_solver->mkOpTerm(CHAIN_OP, EQUAL);
+  OpTerm opterm1 = d_solver->mkOpTerm(BITVECTOR_EXTRACT, 2, 1);
+  OpTerm opterm2 = d_solver->mkOpTerm(DIVISIBLE, 1);
+  OpTerm opterm3 = d_solver->mkOpTerm(CHAIN, EQUAL);
   // list datatype
   Sort sort = d_solver->mkParamSort("T");
   DatatypeDecl listDecl("paramlist", sort);
@@ -658,58 +657,46 @@ void SolverBlack::testMkTermFromOpTerm()
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(APPLY_SELECTOR, tailTerm2),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1),
-                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm1), CVC4ApiException&);
 
   // mkTerm(Kind kind, OpTerm opTerm, Term child) const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1, a));
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver->mkTerm(DIVISIBLE, opterm2, d_solver->mkReal(1)));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_SELECTOR, headTerm1, c));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_SELECTOR, tailTerm2, c));
-  TS_ASSERT_THROWS(d_solver->mkTerm(DIVISIBLE, opterm1, a), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(DIVISIBLE, opterm2, a), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1, Term()),
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm1, a));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm2, d_solver->mkReal(1)));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(headTerm1, c));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(tailTerm2, c));
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, a), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, Term()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(consTerm1, d_solver->mkReal(0)),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(
-      d_solver->mkTerm(APPLY_CONSTRUCTOR, consTerm1, d_solver->mkReal(0)),
-      CVC4ApiException&);
 
   // mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(
-      CHAIN, opterm3, d_solver->mkReal(1), d_solver->mkReal(2)));
   TS_ASSERT_THROWS_NOTHING(
-      d_solver->mkTerm(APPLY_CONSTRUCTOR,
-                       consTerm1,
+      d_solver->mkTerm(opterm3, d_solver->mkReal(1), d_solver->mkReal(2)));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver->mkTerm(consTerm1,
                        d_solver->mkReal(0),
                        d_solver->mkTerm(APPLY_CONSTRUCTOR, nilTerm1)));
-  TS_ASSERT_THROWS(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1, a, b),
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, d_solver->mkReal(1), Term()),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(
-      d_solver->mkTerm(CHAIN, opterm3, d_solver->mkReal(1), Term()),
-      CVC4ApiException&);
-  TS_ASSERT_THROWS(
-      d_solver->mkTerm(CHAIN, opterm3, Term(), d_solver->mkReal(1)),
-      CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, Term(), d_solver->mkReal(1)),
+                   CVC4ApiException&);
 
   // mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3)
   // const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(CHAIN,
-                                            opterm3,
-                                            d_solver->mkReal(1),
-                                            d_solver->mkReal(1),
-                                            d_solver->mkReal(2)));
-  TS_ASSERT_THROWS(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1, a, b, a),
-                   CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(
+      opterm3, d_solver->mkReal(1), d_solver->mkReal(1), d_solver->mkReal(2)));
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b, a), CVC4ApiException&);
   TS_ASSERT_THROWS(
       d_solver->mkTerm(
-          CHAIN, opterm3, d_solver->mkReal(1), d_solver->mkReal(1), Term()),
+          opterm3, d_solver->mkReal(1), d_solver->mkReal(1), Term()),
       CVC4ApiException&);
 
   // mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(CHAIN, opterm3, v1));
-  TS_ASSERT_THROWS(d_solver->mkTerm(CHAIN, opterm3, v2), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(CHAIN, opterm3, v3), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm3, v1));
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, v2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, v3), CVC4ApiException&);
 }
 
 void SolverBlack::testMkTrue()
