@@ -34,8 +34,7 @@ namespace passes {
 
 /* -------------------------------------------------------------------------- */
 
-namespace
-{
+namespace {
 
 void addLemmaForPair(TNode args1,
                      TNode args2,
