@@ -75,7 +75,7 @@ class Smt2 : public Parser
   std::unordered_map<std::string, Kind> operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
-   * BITVECTOR_EXTRACT_OP).
+   * BITVECTOR_EXTRACT).
    */
   std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
@@ -106,7 +106,7 @@ class Smt2 : public Parser
    *              BITVECTOR_EXTRACT). NOTE: this is an internal kind for now
    *              because that is what we use to create expressions. Eventually
    *              it will be an api::Kind.
-   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT_OP)
+   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT)
    * @param name The name of the symbol (e.g. "extract")
    */
   void addIndexedOperator(Kind tKind,
