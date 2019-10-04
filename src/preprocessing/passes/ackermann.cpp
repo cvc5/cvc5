@@ -216,6 +216,7 @@ PreprocessingPassResult Ackermann::applyInternal(
         i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
   }
 
+
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
