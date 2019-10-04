@@ -1001,6 +1001,206 @@ size_t SortHashFunction::operator()(const Sort& s) const
 }
 
 /* -------------------------------------------------------------------------- */
+/* OpTerm                                                                     */
+/* -------------------------------------------------------------------------- */
+
+OpTerm::OpTerm() : d_kind(NULL_EXPR), indexed(false), d_expr(new CVC4::Expr())
+{
+}
+
+OpTerm::OpTerm(const Kind k, const CVC4::Expr& e)
+    : d_kind(k), indexed(true), d_expr(new CVC4::Expr(e))
+{
+}
+
+OpTerm::~OpTerm() {}
+
+bool OpTerm::operator==(const OpTerm& t) const
+{
+  if (d_expr->isNull() || t.d_expr->isNull())
+  {
+    return false;
+  }
+  return (d_kind == t.d_kind) && (*d_expr == *t.d_expr);
+}
+
+bool OpTerm::operator!=(const OpTerm& t) const { return !(*this == t); }
+
+Kind OpTerm::getKind() const
+{
+  CVC4_API_CHECK(d_kind != NULL_EXPR) << "Expecting a non-null Kind";
+  return d_kind;
+}
+
+Sort OpTerm::getSort() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return Sort(d_expr->getType());
+}
+
+bool OpTerm::isNull() const { return d_expr->isNull(); }
+
+template <>
+std::string OpTerm::getIndices() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  std::string i;
+  Kind k = intToExtKind(d_expr->getKind());
+
+  if (k == DIVISIBLE)
+  {
+    // DIVISIBLE returns a string index to support
+    // arbitrary precision integers
+    CVC4::Integer _int = d_expr->getConst<Divisible>().k;
+    i = _int.toString();
+  }
+  else if (k == RECORD_UPDATE)
+  {
+    i = d_expr->getConst<RecordUpdate>().getField();
+  }
+  else
+  {
+    CVC4_API_CHECK(false) << "Can't get string index from"
+                          << " kind " << kindToString(k);
+  }
+
+  return i;
+}
+
+template <>
+Kind OpTerm::getIndices() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  Kind kind = intToExtKind(d_expr->getKind());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN, kind) << "CHAIN";
+  return intToExtKind(d_expr->getConst<Chain>().getOperator());
+}
+
+template <>
+uint32_t OpTerm::getIndices() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  uint32_t i = 0;
+  Kind k = intToExtKind(d_expr->getKind());
+  switch (k)
+  {
+    case BITVECTOR_REPEAT:
+      i = d_expr->getConst<BitVectorRepeat>().repeatAmount;
+      break;
+    case BITVECTOR_ZERO_EXTEND:
+      i = d_expr->getConst<BitVectorZeroExtend>().zeroExtendAmount;
+      break;
+    case BITVECTOR_SIGN_EXTEND:
+      i = d_expr->getConst<BitVectorSignExtend>().signExtendAmount;
+      break;
+    case BITVECTOR_ROTATE_LEFT:
+      i = d_expr->getConst<BitVectorRotateLeft>().rotateLeftAmount;
+      break;
+    case BITVECTOR_ROTATE_RIGHT:
+      i = d_expr->getConst<BitVectorRotateRight>().rotateRightAmount;
+      break;
+    case INT_TO_BITVECTOR: i = d_expr->getConst<IntToBitVector>().size; break;
+    case FLOATINGPOINT_TO_UBV:
+      i = d_expr->getConst<FloatingPointToUBV>().bvs.size;
+      break;
+    case FLOATINGPOINT_TO_UBV_TOTAL:
+      i = d_expr->getConst<FloatingPointToUBVTotal>().bvs.size;
+      break;
+    case FLOATINGPOINT_TO_SBV:
+      i = d_expr->getConst<FloatingPointToSBV>().bvs.size;
+      break;
+    case FLOATINGPOINT_TO_SBV_TOTAL:
+      i = d_expr->getConst<FloatingPointToSBVTotal>().bvs.size;
+      break;
+    case TUPLE_UPDATE: i = d_expr->getConst<TupleUpdate>().getIndex(); break;
+    default:
+      CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
+                                         << " kind " << kindToString(k);
+  }
+  return i;
+}
+
+template <>
+std::pair<uint32_t, uint32_t> OpTerm::getIndices() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  std::pair<uint32_t, uint32_t> indices;
+  Kind k = intToExtKind(d_expr->getKind());
+
+  // using if/else instead of case statement because want local variables
+  if (k == BITVECTOR_EXTRACT)
+  {
+    CVC4::BitVectorExtract ext = d_expr->getConst<BitVectorExtract>();
+    indices = std::make_pair(ext.high, ext.low);
+  }
+  else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
+  {
+    CVC4::FloatingPointToFPIEEEBitVector ext =
+        d_expr->getConst<FloatingPointToFPIEEEBitVector>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
+  {
+    CVC4::FloatingPointToFPFloatingPoint ext =
+        d_expr->getConst<FloatingPointToFPFloatingPoint>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_REAL)
+  {
+    CVC4::FloatingPointToFPReal ext = d_expr->getConst<FloatingPointToFPReal>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
+  {
+    CVC4::FloatingPointToFPSignedBitVector ext =
+        d_expr->getConst<FloatingPointToFPSignedBitVector>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR)
+  {
+    CVC4::FloatingPointToFPUnsignedBitVector ext =
+        d_expr->getConst<FloatingPointToFPUnsignedBitVector>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_GENERIC)
+  {
+    CVC4::FloatingPointToFPGeneric ext =
+        d_expr->getConst<FloatingPointToFPGeneric>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else
+  {
+    CVC4_API_CHECK(false) << "Can't get pair<uint32_t, uint32_t> indices from"
+                          << " kind " << kindToString(k);
+  }
+  return indices;
+}
+
+std::string OpTerm::toString() const { return d_expr->toString(); }
+
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::Expr OpTerm::getExpr(void) const { return *d_expr; }
+
+std::ostream& operator<<(std::ostream& out, const OpTerm& t)
+{
+  out << t.toString();
+  return out;
+}
+
+size_t OpTermHashFunction::operator()(const OpTerm& t) const
+{
+  if (t.indexed)
+  {
+    return ExprHashFunction()(*t.d_expr);
+  }
+  else
+  {
+    return KindHashFunction()(t.d_kind);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -1304,205 +1504,6 @@ size_t TermHashFunction::operator()(const Term& t) const
   return ExprHashFunction()(*t.d_expr);
 }
 
-/* -------------------------------------------------------------------------- */
-/* OpTerm                                                                     */
-/* -------------------------------------------------------------------------- */
-
-OpTerm::OpTerm() : d_kind(NULL_EXPR), indexed(false), d_expr(new CVC4::Expr())
-{
-}
-
-OpTerm::OpTerm(const Kind k, const CVC4::Expr& e)
-    : d_kind(k), indexed(true), d_expr(new CVC4::Expr(e))
-{
-}
-
-OpTerm::~OpTerm() {}
-
-bool OpTerm::operator==(const OpTerm& t) const
-{
-  if (d_expr->isNull() || t.d_expr->isNull())
-  {
-    return false;
-  }
-  return (d_kind == t.d_kind) && (*d_expr == *t.d_expr);
-}
-
-bool OpTerm::operator!=(const OpTerm& t) const { return !(*this == t); }
-
-Kind OpTerm::getKind() const
-{
-  CVC4_API_CHECK(d_kind != NULL_EXPR) << "Expecting a non-null Kind";
-  return d_kind;
-}
-
-Sort OpTerm::getSort() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return Sort(d_expr->getType());
-}
-
-bool OpTerm::isNull() const { return d_expr->isNull(); }
-
-template <>
-std::string OpTerm::getIndices() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  std::string i;
-  Kind k = intToExtKind(d_expr->getKind());
-
-  if (k == DIVISIBLE)
-  {
-    // DIVISIBLE returns a string index to support
-    // arbitrary precision integers
-    CVC4::Integer _int = d_expr->getConst<Divisible>().k;
-    i = _int.toString();
-  }
-  else if (k == RECORD_UPDATE)
-  {
-    i = d_expr->getConst<RecordUpdate>().getField();
-  }
-  else
-  {
-    CVC4_API_CHECK(false) << "Can't get string index from"
-                          << " kind " << kindToString(k);
-  }
-
-  return i;
-}
-
-template <>
-Kind OpTerm::getIndices() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  Kind kind = intToExtKind(d_expr->getKind());
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN, kind) << "CHAIN";
-  return intToExtKind(d_expr->getConst<Chain>().getOperator());
-}
-
-template <>
-uint32_t OpTerm::getIndices() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  uint32_t i = 0;
-  Kind k = intToExtKind(d_expr->getKind());
-  switch (k)
-  {
-    case BITVECTOR_REPEAT:
-      i = d_expr->getConst<BitVectorRepeat>().repeatAmount;
-      break;
-    case BITVECTOR_ZERO_EXTEND:
-      i = d_expr->getConst<BitVectorZeroExtend>().zeroExtendAmount;
-      break;
-    case BITVECTOR_SIGN_EXTEND:
-      i = d_expr->getConst<BitVectorSignExtend>().signExtendAmount;
-      break;
-    case BITVECTOR_ROTATE_LEFT:
-      i = d_expr->getConst<BitVectorRotateLeft>().rotateLeftAmount;
-      break;
-    case BITVECTOR_ROTATE_RIGHT:
-      i = d_expr->getConst<BitVectorRotateRight>().rotateRightAmount;
-      break;
-    case INT_TO_BITVECTOR: i = d_expr->getConst<IntToBitVector>().size; break;
-    case FLOATINGPOINT_TO_UBV:
-      i = d_expr->getConst<FloatingPointToUBV>().bvs.size;
-      break;
-    case FLOATINGPOINT_TO_UBV_TOTAL:
-      i = d_expr->getConst<FloatingPointToUBVTotal>().bvs.size;
-      break;
-    case FLOATINGPOINT_TO_SBV:
-      i = d_expr->getConst<FloatingPointToSBV>().bvs.size;
-      break;
-    case FLOATINGPOINT_TO_SBV_TOTAL:
-      i = d_expr->getConst<FloatingPointToSBVTotal>().bvs.size;
-      break;
-    case TUPLE_UPDATE: i = d_expr->getConst<TupleUpdate>().getIndex(); break;
-    default:
-      CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
-                                         << " kind " << kindToString(k);
-  }
-  return i;
-}
-
-template <>
-std::pair<uint32_t, uint32_t> OpTerm::getIndices() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  std::pair<uint32_t, uint32_t> indices;
-  Kind k = intToExtKind(d_expr->getKind());
-
-  // using if/else instead of case statement because want local variables
-  if (k == BITVECTOR_EXTRACT)
-  {
-    CVC4::BitVectorExtract ext = d_expr->getConst<BitVectorExtract>();
-    indices = std::make_pair(ext.high, ext.low);
-  }
-  else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
-  {
-    CVC4::FloatingPointToFPIEEEBitVector ext =
-        d_expr->getConst<FloatingPointToFPIEEEBitVector>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
-  }
-  else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
-  {
-    CVC4::FloatingPointToFPFloatingPoint ext =
-        d_expr->getConst<FloatingPointToFPFloatingPoint>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
-  }
-  else if (k == FLOATINGPOINT_TO_FP_REAL)
-  {
-    CVC4::FloatingPointToFPReal ext = d_expr->getConst<FloatingPointToFPReal>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
-  }
-  else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
-  {
-    CVC4::FloatingPointToFPSignedBitVector ext =
-        d_expr->getConst<FloatingPointToFPSignedBitVector>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
-  }
-  else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR)
-  {
-    CVC4::FloatingPointToFPUnsignedBitVector ext =
-        d_expr->getConst<FloatingPointToFPUnsignedBitVector>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
-  }
-  else if (k == FLOATINGPOINT_TO_FP_GENERIC)
-  {
-    CVC4::FloatingPointToFPGeneric ext =
-        d_expr->getConst<FloatingPointToFPGeneric>();
-    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
-  }
-  else
-  {
-    CVC4_API_CHECK(false) << "Can't get pair<uint32_t, uint32_t> indices from"
-                          << " kind " << kindToString(k);
-  }
-  return indices;
-}
-
-std::string OpTerm::toString() const { return d_expr->toString(); }
-
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-CVC4::Expr OpTerm::getExpr(void) const { return *d_expr; }
-
-std::ostream& operator<<(std::ostream& out, const OpTerm& t)
-{
-  out << t.toString();
-  return out;
-}
-
-size_t OpTermHashFunction::operator()(const OpTerm& t) const
-{
-  if (t.indexed)
-  {
-    return ExprHashFunction()(*t.d_expr);
-  }
-  else
-  {
-    return KindHashFunction()(t.d_kind);
-  }
-}
 
 /* -------------------------------------------------------------------------- */
 /* Datatypes                                                                  */
