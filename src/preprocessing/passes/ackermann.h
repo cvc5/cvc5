@@ -55,8 +55,8 @@ class Ackermann : public PreprocessingPass
    *   occurring in the input formula, add the following lemma:
    *     (x_1 = y_1 /\ ... /\ x_n = y_n) => f_X = f_Y
    */
-  PreprocessingPassResult applyInternal(
-      AssertionPipeline* assertionsToPreprocess) override;
+   PreprocessingPassResult applyInternal(
+       AssertionPipeline* assertionsToPreprocess) override;
 
  private:
   /* Map each function to a set of terms associated with it */
