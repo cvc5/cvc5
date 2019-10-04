@@ -1032,6 +1032,35 @@ Sort Term::getSort() const
   return Sort(d_expr->getType());
 }
 
+bool Term::hasOpTerm() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->hasOperator();
+}
+
+OpTerm Term::getOpTerm() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK(d_expr->hasOperator())
+      << "Expecting Term to have an OpTerm when calling getOpTerm()";
+  CVC4::Expr op = d_expr->getOperator();
+  CVC4::Type t = op.getType();
+
+  // special cases for Datatype operators
+  if (t.isSelector())
+  {
+    return OpTerm(APPLY_SELECTOR, op);
+  }
+  else if (t.isConstructor())
+  {
+    return OpTerm(APPLY_CONSTRUCTOR, op);
+  }
+  else
+  {
+    return OpTerm(intToExtKind(op.getKind()), op);
+  }
+}
+
 bool Term::isNull() const { return d_expr->isNull(); }
 
 Term Term::notTerm() const

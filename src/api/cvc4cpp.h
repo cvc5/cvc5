@@ -524,6 +524,122 @@ struct CVC4_PUBLIC SortHashFunction
 };
 
 /* -------------------------------------------------------------------------- */
+/* OpTerm                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A CVC4 operator term.
+ * An operator term is a term that represents certain operators, instantiated
+ * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
+ */
+class CVC4_PUBLIC OpTerm
+{
+  friend class Solver;
+  friend struct OpTermHashFunction;
+
+ public:
+  /**
+   * Constructor.
+   */
+  OpTerm();
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor for a single kind (non-indexed operator).
+   * @param k the kind of this OpTerm
+   */
+  OpTerm(const Kind k);
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param k the kind of this OpTerm
+   * @param e the internal expression that is to be wrapped by this term
+   * @return the Term
+   */
+  OpTerm(const Kind k, const CVC4::Expr& e);
+
+  /**
+   * Destructor.
+   */
+  ~OpTerm();
+
+  /**
+   * Syntactic equality operator.
+   * Return true if both operator terms are syntactically identical.
+   * Both operator terms must belong to the same solver object.
+   * @param t the operator term to compare to for equality
+   * @return true if the operator terms are equal
+   */
+  bool operator==(const OpTerm& t) const;
+
+  /**
+   * Syntactic disequality operator.
+   * Return true if both operator terms differ syntactically.
+   * Both terms must belong to the same solver object.
+   * @param t the operator term to compare to for disequality
+   * @return true if operator terms are disequal
+   */
+  bool operator!=(const OpTerm& t) const;
+
+  /**
+   * @return the kind of this operator term
+   */
+  Kind getKind() const;
+
+  /**
+   * @return the sort of this operator term
+   */
+  Sort getSort() const;
+
+  /**
+   * @return true if this operator term is a null term
+   */
+  bool isNull() const;
+
+  /**
+   * Get the indices used to create this OpTerm.
+   * Supports the following template arguments:
+   *   - string
+   *   - Kind
+   *   - uint32_t
+   *   - pair<uint32_t, uint32_t>
+   * Check the OpTerm Kind with getKind() to determine which argument to use.
+   * @return the indices used to create this OpTerm
+   */
+  template <typename T>
+  T getIndices() const;
+
+  /**
+   * @return a string representation of this operator term
+   */
+  std::string toString() const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::Expr getExpr(void) const;
+
+ private:
+  /* The kind of this operator term. */
+  Kind d_kind;
+
+  /** True iff this OpTerm is indexed
+   *  An indexed operator has a non-null internal expr, d_expr
+   */
+  bool indexed;
+
+  /**
+   * The internal expression wrapped by this operator term.
+   * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
+   * memory allocation (CVC4::Expr is already ref counted, so this could be
+   * a unique_ptr instead).
+   */
+  std::shared_ptr<CVC4::Expr> d_expr;
+};
+
+/* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -601,6 +717,17 @@ class CVC4_PUBLIC Term
    * @return the sort of this term
    */
   Sort getSort() const;
+
+  /**
+   * @return true iff this term has an operator
+   */
+  bool hasOpTerm() const;
+
+  /**
+   * @return the OpTerm used to create this term
+   * safe to call when hasOpTerm() returns true
+   */
+  OpTerm getOpTerm() const;
 
   /**
    * @return true if this Term is a null term
@@ -828,121 +955,6 @@ std::ostream& operator<<(std::ostream& out,
                          const std::unordered_map<Term, V, TermHashFunction>&
                              unordered_map) CVC4_PUBLIC;
 
-/* -------------------------------------------------------------------------- */
-/* OpTerm                                                                     */
-/* -------------------------------------------------------------------------- */
-
-/**
- * A CVC4 operator term.
- * An operator term is a term that represents certain operators, instantiated
- * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
- */
-class CVC4_PUBLIC OpTerm
-{
-  friend class Solver;
-  friend struct OpTermHashFunction;
-
- public:
-  /**
-   * Constructor.
-   */
-  OpTerm();
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor for a single kind (non-indexed operator).
-   * @param k the kind of this OpTerm
-   */
-  OpTerm(const Kind k);
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param k the kind of this OpTerm
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  OpTerm(const Kind k, const CVC4::Expr& e);
-
-  /**
-   * Destructor.
-   */
-  ~OpTerm();
-
-  /**
-   * Syntactic equality operator.
-   * Return true if both operator terms are syntactically identical.
-   * Both operator terms must belong to the same solver object.
-   * @param t the operator term to compare to for equality
-   * @return true if the operator terms are equal
-   */
-  bool operator==(const OpTerm& t) const;
-
-  /**
-   * Syntactic disequality operator.
-   * Return true if both operator terms differ syntactically.
-   * Both terms must belong to the same solver object.
-   * @param t the operator term to compare to for disequality
-   * @return true if operator terms are disequal
-   */
-  bool operator!=(const OpTerm& t) const;
-
-  /**
-   * @return the kind of this operator term
-   */
-  Kind getKind() const;
-
-  /**
-   * @return the sort of this operator term
-   */
-  Sort getSort() const;
-
-  /**
-   * @return true if this operator term is a null term
-   */
-  bool isNull() const;
-
-  /**
-   * Get the indices used to create this OpTerm.
-   * Supports the following template arguments:
-   *   - string
-   *   - Kind
-   *   - uint32_t
-   *   - pair<uint32_t, uint32_t>
-   * Check the OpTerm Kind with getKind() to determine which argument to use.
-   * @return the indices used to create this OpTerm
-   */
-  template <typename T>
-  T getIndices() const;
-
-  /**
-   * @return a string representation of this operator term
-   */
-  std::string toString() const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::Expr getExpr(void) const;
-
- private:
-  /* The kind of this operator term. */
-  Kind d_kind;
-
-  /** True iff this OpTerm is indexed
-   *  An indexed operator has a non-null internal expr, d_expr
-   */
-  bool indexed;
-
-  /**
-   * The internal expression wrapped by this operator term.
-   * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
-   * memory allocation (CVC4::Expr is already ref counted, so this could be
-   * a unique_ptr instead).
-   */
-  std::shared_ptr<CVC4::Expr> d_expr;
-};
 
 /**
  * Serialize an operator term to given stream.
