@@ -78,7 +78,6 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {LAMBDA, CVC4::Kind::LAMBDA},
     {CHOICE, CVC4::Kind::CHOICE},
     {CHAIN, CVC4::Kind::CHAIN},
-    {CHAIN_OP, CVC4::Kind::CHAIN_OP},
     /* Boolean ------------------------------------------------------------- */
     {CONST_BOOLEAN, CVC4::Kind::CONST_BOOLEAN},
     {NOT, CVC4::Kind::NOT},
@@ -119,7 +118,6 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {ARCSECANT, CVC4::Kind::ARCSECANT},
     {ARCCOTANGENT, CVC4::Kind::ARCCOTANGENT},
     {SQRT, CVC4::Kind::SQRT},
-    {DIVISIBLE_OP, CVC4::Kind::DIVISIBLE_OP},
     {CONST_RATIONAL, CVC4::Kind::CONST_RATIONAL},
     {LT, CVC4::Kind::LT},
     {LEQ, CVC4::Kind::LEQ},
@@ -167,19 +165,12 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {BITVECTOR_ITE, CVC4::Kind::BITVECTOR_ITE},
     {BITVECTOR_REDOR, CVC4::Kind::BITVECTOR_REDOR},
     {BITVECTOR_REDAND, CVC4::Kind::BITVECTOR_REDAND},
-    {BITVECTOR_EXTRACT_OP, CVC4::Kind::BITVECTOR_EXTRACT_OP},
-    {BITVECTOR_REPEAT_OP, CVC4::Kind::BITVECTOR_REPEAT_OP},
-    {BITVECTOR_ZERO_EXTEND_OP, CVC4::Kind::BITVECTOR_ZERO_EXTEND_OP},
-    {BITVECTOR_SIGN_EXTEND_OP, CVC4::Kind::BITVECTOR_SIGN_EXTEND_OP},
-    {BITVECTOR_ROTATE_LEFT_OP, CVC4::Kind::BITVECTOR_ROTATE_LEFT_OP},
-    {BITVECTOR_ROTATE_RIGHT_OP, CVC4::Kind::BITVECTOR_ROTATE_RIGHT_OP},
     {BITVECTOR_EXTRACT, CVC4::Kind::BITVECTOR_EXTRACT},
     {BITVECTOR_REPEAT, CVC4::Kind::BITVECTOR_REPEAT},
     {BITVECTOR_ZERO_EXTEND, CVC4::Kind::BITVECTOR_ZERO_EXTEND},
     {BITVECTOR_SIGN_EXTEND, CVC4::Kind::BITVECTOR_SIGN_EXTEND},
     {BITVECTOR_ROTATE_LEFT, CVC4::Kind::BITVECTOR_ROTATE_LEFT},
     {BITVECTOR_ROTATE_RIGHT, CVC4::Kind::BITVECTOR_ROTATE_RIGHT},
-    {INT_TO_BITVECTOR_OP, CVC4::Kind::INT_TO_BITVECTOR_OP},
     {INT_TO_BITVECTOR, CVC4::Kind::INT_TO_BITVECTOR},
     {BITVECTOR_TO_NAT, CVC4::Kind::BITVECTOR_TO_NAT},
     /* FP ------------------------------------------------------------------ */
@@ -210,34 +201,17 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {FLOATINGPOINT_ISNAN, CVC4::Kind::FLOATINGPOINT_ISNAN},
     {FLOATINGPOINT_ISNEG, CVC4::Kind::FLOATINGPOINT_ISNEG},
     {FLOATINGPOINT_ISPOS, CVC4::Kind::FLOATINGPOINT_ISPOS},
-    {FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
-     CVC4::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP},
-    {FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
-     CVC4::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
-    {FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP,
-     CVC4::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP},
     {FLOATINGPOINT_TO_FP_FLOATINGPOINT,
      CVC4::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
-    {FLOATINGPOINT_TO_FP_REAL_OP, CVC4::Kind::FLOATINGPOINT_TO_FP_REAL_OP},
     {FLOATINGPOINT_TO_FP_REAL, CVC4::Kind::FLOATINGPOINT_TO_FP_REAL},
-    {FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP,
-     CVC4::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP},
     {FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
      CVC4::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
-    {FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP,
-     CVC4::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP},
     {FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
      CVC4::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
-    {FLOATINGPOINT_TO_FP_GENERIC_OP,
-     CVC4::Kind::FLOATINGPOINT_TO_FP_GENERIC_OP},
     {FLOATINGPOINT_TO_FP_GENERIC, CVC4::Kind::FLOATINGPOINT_TO_FP_GENERIC},
-    {FLOATINGPOINT_TO_UBV_OP, CVC4::Kind::FLOATINGPOINT_TO_UBV_OP},
     {FLOATINGPOINT_TO_UBV, CVC4::Kind::FLOATINGPOINT_TO_UBV},
-    {FLOATINGPOINT_TO_UBV_TOTAL_OP, CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP},
     {FLOATINGPOINT_TO_UBV_TOTAL, CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL},
-    {FLOATINGPOINT_TO_SBV_OP, CVC4::Kind::FLOATINGPOINT_TO_SBV_OP},
     {FLOATINGPOINT_TO_SBV, CVC4::Kind::FLOATINGPOINT_TO_SBV},
-    {FLOATINGPOINT_TO_SBV_TOTAL_OP, CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP},
     {FLOATINGPOINT_TO_SBV_TOTAL, CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL},
     {FLOATINGPOINT_TO_REAL, CVC4::Kind::FLOATINGPOINT_TO_REAL},
     {FLOATINGPOINT_TO_REAL_TOTAL, CVC4::Kind::FLOATINGPOINT_TO_REAL_TOTAL},
@@ -250,9 +224,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {APPLY_CONSTRUCTOR, CVC4::Kind::APPLY_CONSTRUCTOR},
     {APPLY_SELECTOR_TOTAL, CVC4::Kind::APPLY_SELECTOR_TOTAL},
     {APPLY_TESTER, CVC4::Kind::APPLY_TESTER},
-    {TUPLE_UPDATE_OP, CVC4::Kind::TUPLE_UPDATE_OP},
     {TUPLE_UPDATE, CVC4::Kind::TUPLE_UPDATE},
-    {RECORD_UPDATE_OP, CVC4::Kind::RECORD_UPDATE_OP},
     {RECORD_UPDATE, CVC4::Kind::RECORD_UPDATE},
     /* Separation Logic ---------------------------------------------------- */
     {SEP_NIL, CVC4::Kind::SEP_NIL},
@@ -324,7 +296,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::LAMBDA, LAMBDA},
         {CVC4::Kind::CHOICE, CHOICE},
         {CVC4::Kind::CHAIN, CHAIN},
-        {CVC4::Kind::CHAIN_OP, CHAIN_OP},
+        {CVC4::Kind::CHAIN_OP, CHAIN},
         /* Boolean --------------------------------------------------------- */
         {CVC4::Kind::CONST_BOOLEAN, CONST_BOOLEAN},
         {CVC4::Kind::NOT, NOT},
@@ -365,7 +337,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::ARCSECANT, ARCSECANT},
         {CVC4::Kind::ARCCOTANGENT, ARCCOTANGENT},
         {CVC4::Kind::SQRT, SQRT},
-        {CVC4::Kind::DIVISIBLE_OP, DIVISIBLE_OP},
+        {CVC4::Kind::DIVISIBLE_OP, DIVISIBLE},
         {CVC4::Kind::CONST_RATIONAL, CONST_RATIONAL},
         {CVC4::Kind::LT, LT},
         {CVC4::Kind::LEQ, LEQ},
@@ -413,19 +385,19 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::BITVECTOR_ITE, BITVECTOR_ITE},
         {CVC4::Kind::BITVECTOR_REDOR, BITVECTOR_REDOR},
         {CVC4::Kind::BITVECTOR_REDAND, BITVECTOR_REDAND},
-        {CVC4::Kind::BITVECTOR_EXTRACT_OP, BITVECTOR_EXTRACT_OP},
-        {CVC4::Kind::BITVECTOR_REPEAT_OP, BITVECTOR_REPEAT_OP},
-        {CVC4::Kind::BITVECTOR_ZERO_EXTEND_OP, BITVECTOR_ZERO_EXTEND_OP},
-        {CVC4::Kind::BITVECTOR_SIGN_EXTEND_OP, BITVECTOR_SIGN_EXTEND_OP},
-        {CVC4::Kind::BITVECTOR_ROTATE_LEFT_OP, BITVECTOR_ROTATE_LEFT_OP},
-        {CVC4::Kind::BITVECTOR_ROTATE_RIGHT_OP, BITVECTOR_ROTATE_RIGHT_OP},
+        {CVC4::Kind::BITVECTOR_EXTRACT_OP, BITVECTOR_EXTRACT},
+        {CVC4::Kind::BITVECTOR_REPEAT_OP, BITVECTOR_REPEAT},
+        {CVC4::Kind::BITVECTOR_ZERO_EXTEND_OP, BITVECTOR_ZERO_EXTEND},
+        {CVC4::Kind::BITVECTOR_SIGN_EXTEND_OP, BITVECTOR_SIGN_EXTEND},
+        {CVC4::Kind::BITVECTOR_ROTATE_LEFT_OP, BITVECTOR_ROTATE_LEFT},
+        {CVC4::Kind::BITVECTOR_ROTATE_RIGHT_OP, BITVECTOR_ROTATE_RIGHT},
         {CVC4::Kind::BITVECTOR_EXTRACT, BITVECTOR_EXTRACT},
         {CVC4::Kind::BITVECTOR_REPEAT, BITVECTOR_REPEAT},
         {CVC4::Kind::BITVECTOR_ZERO_EXTEND, BITVECTOR_ZERO_EXTEND},
         {CVC4::Kind::BITVECTOR_SIGN_EXTEND, BITVECTOR_SIGN_EXTEND},
         {CVC4::Kind::BITVECTOR_ROTATE_LEFT, BITVECTOR_ROTATE_LEFT},
         {CVC4::Kind::BITVECTOR_ROTATE_RIGHT, BITVECTOR_ROTATE_RIGHT},
-        {CVC4::Kind::INT_TO_BITVECTOR_OP, INT_TO_BITVECTOR_OP},
+        {CVC4::Kind::INT_TO_BITVECTOR_OP, INT_TO_BITVECTOR},
         {CVC4::Kind::INT_TO_BITVECTOR, INT_TO_BITVECTOR},
         {CVC4::Kind::BITVECTOR_TO_NAT, BITVECTOR_TO_NAT},
         /* FP -------------------------------------------------------------- */
@@ -457,35 +429,33 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::FLOATINGPOINT_ISNEG, FLOATINGPOINT_ISNEG},
         {CVC4::Kind::FLOATINGPOINT_ISPOS, FLOATINGPOINT_ISPOS},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
-         FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP},
+         FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
          FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP,
-         FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP},
+         FLOATINGPOINT_TO_FP_FLOATINGPOINT},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
          FLOATINGPOINT_TO_FP_FLOATINGPOINT},
-        {CVC4::Kind::FLOATINGPOINT_TO_FP_REAL_OP, FLOATINGPOINT_TO_FP_REAL_OP},
+        {CVC4::Kind::FLOATINGPOINT_TO_FP_REAL_OP, FLOATINGPOINT_TO_FP_REAL},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_REAL, FLOATINGPOINT_TO_FP_REAL},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP,
-         FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP},
+         FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
          FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP,
-         FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP},
+         FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
          FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_GENERIC_OP,
-         FLOATINGPOINT_TO_FP_GENERIC_OP},
+         FLOATINGPOINT_TO_FP_GENERIC},
         {CVC4::Kind::FLOATINGPOINT_TO_FP_GENERIC, FLOATINGPOINT_TO_FP_GENERIC},
-        {CVC4::Kind::FLOATINGPOINT_TO_UBV_OP, FLOATINGPOINT_TO_UBV_OP},
+        {CVC4::Kind::FLOATINGPOINT_TO_UBV_OP, FLOATINGPOINT_TO_UBV},
         {CVC4::Kind::FLOATINGPOINT_TO_UBV, FLOATINGPOINT_TO_UBV},
-        {CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP,
-         FLOATINGPOINT_TO_UBV_TOTAL_OP},
+        {CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL_OP, FLOATINGPOINT_TO_UBV_TOTAL},
         {CVC4::Kind::FLOATINGPOINT_TO_UBV_TOTAL, FLOATINGPOINT_TO_UBV_TOTAL},
-        {CVC4::Kind::FLOATINGPOINT_TO_SBV_OP, FLOATINGPOINT_TO_SBV_OP},
+        {CVC4::Kind::FLOATINGPOINT_TO_SBV_OP, FLOATINGPOINT_TO_SBV},
         {CVC4::Kind::FLOATINGPOINT_TO_SBV, FLOATINGPOINT_TO_SBV},
-        {CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP,
-         FLOATINGPOINT_TO_SBV_TOTAL_OP},
+        {CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL_OP, FLOATINGPOINT_TO_SBV_TOTAL},
         {CVC4::Kind::FLOATINGPOINT_TO_SBV_TOTAL, FLOATINGPOINT_TO_SBV_TOTAL},
         {CVC4::Kind::FLOATINGPOINT_TO_REAL, FLOATINGPOINT_TO_REAL},
         {CVC4::Kind::FLOATINGPOINT_TO_REAL_TOTAL, FLOATINGPOINT_TO_REAL_TOTAL},
@@ -498,9 +468,9 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::APPLY_CONSTRUCTOR, APPLY_CONSTRUCTOR},
         {CVC4::Kind::APPLY_SELECTOR_TOTAL, APPLY_SELECTOR_TOTAL},
         {CVC4::Kind::APPLY_TESTER, APPLY_TESTER},
-        {CVC4::Kind::TUPLE_UPDATE_OP, TUPLE_UPDATE_OP},
+        {CVC4::Kind::TUPLE_UPDATE_OP, TUPLE_UPDATE},
         {CVC4::Kind::TUPLE_UPDATE, TUPLE_UPDATE},
-        {CVC4::Kind::RECORD_UPDATE_OP, RECORD_UPDATE_OP},
+        {CVC4::Kind::RECORD_UPDATE_OP, RECORD_UPDATE},
         {CVC4::Kind::RECORD_UPDATE, RECORD_UPDATE},
         /* Separation Logic ------------------------------------------------ */
         {CVC4::Kind::SEP_NIL, SEP_NIL},
@@ -1352,14 +1322,14 @@ std::string OpTerm::getIndices() const
   std::string i;
   Kind k = intToExtKind(d_expr->getKind());
 
-  if (k == DIVISIBLE_OP)
+  if (k == DIVISIBLE)
   {
-    // DIVISIBLE_OP returns a string index to support
+    // DIVISIBLE returns a string index to support
     // arbitrary precision integers
     CVC4::Integer _int = d_expr->getConst<Divisible>().k;
     i = _int.toString();
   }
-  else if (k == RECORD_UPDATE_OP)
+  else if (k == RECORD_UPDATE)
   {
     i = d_expr->getConst<RecordUpdate>().getField();
   }
@@ -1377,7 +1347,7 @@ Kind OpTerm::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
   Kind kind = intToExtKind(d_expr->getKind());
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN, kind) << "CHAIN";
   return intToExtKind(d_expr->getConst<Chain>().getOperator());
 }
 
@@ -1389,37 +1359,35 @@ uint32_t OpTerm::getIndices() const
   Kind k = intToExtKind(d_expr->getKind());
   switch (k)
   {
-    case BITVECTOR_REPEAT_OP:
+    case BITVECTOR_REPEAT:
       i = d_expr->getConst<BitVectorRepeat>().repeatAmount;
       break;
-    case BITVECTOR_ZERO_EXTEND_OP:
+    case BITVECTOR_ZERO_EXTEND:
       i = d_expr->getConst<BitVectorZeroExtend>().zeroExtendAmount;
       break;
-    case BITVECTOR_SIGN_EXTEND_OP:
+    case BITVECTOR_SIGN_EXTEND:
       i = d_expr->getConst<BitVectorSignExtend>().signExtendAmount;
       break;
-    case BITVECTOR_ROTATE_LEFT_OP:
+    case BITVECTOR_ROTATE_LEFT:
       i = d_expr->getConst<BitVectorRotateLeft>().rotateLeftAmount;
       break;
-    case BITVECTOR_ROTATE_RIGHT_OP:
+    case BITVECTOR_ROTATE_RIGHT:
       i = d_expr->getConst<BitVectorRotateRight>().rotateRightAmount;
       break;
-    case INT_TO_BITVECTOR_OP:
-      i = d_expr->getConst<IntToBitVector>().size;
-      break;
-    case FLOATINGPOINT_TO_UBV_OP:
+    case INT_TO_BITVECTOR: i = d_expr->getConst<IntToBitVector>().size; break;
+    case FLOATINGPOINT_TO_UBV:
       i = d_expr->getConst<FloatingPointToUBV>().bvs.size;
       break;
-    case FLOATINGPOINT_TO_UBV_TOTAL_OP:
+    case FLOATINGPOINT_TO_UBV_TOTAL:
       i = d_expr->getConst<FloatingPointToUBVTotal>().bvs.size;
       break;
-    case FLOATINGPOINT_TO_SBV_OP:
+    case FLOATINGPOINT_TO_SBV:
       i = d_expr->getConst<FloatingPointToSBV>().bvs.size;
       break;
-    case FLOATINGPOINT_TO_SBV_TOTAL_OP:
+    case FLOATINGPOINT_TO_SBV_TOTAL:
       i = d_expr->getConst<FloatingPointToSBVTotal>().bvs.size;
       break;
-    case TUPLE_UPDATE_OP: i = d_expr->getConst<TupleUpdate>().getIndex(); break;
+    case TUPLE_UPDATE: i = d_expr->getConst<TupleUpdate>().getIndex(); break;
     default:
       CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
                                          << " kind " << kindToString(k);
@@ -1435,41 +1403,41 @@ std::pair<uint32_t, uint32_t> OpTerm::getIndices() const
   Kind k = intToExtKind(d_expr->getKind());
 
   // using if/else instead of case statement because want local variables
-  if (k == BITVECTOR_EXTRACT_OP)
+  if (k == BITVECTOR_EXTRACT)
   {
     CVC4::BitVectorExtract ext = d_expr->getConst<BitVectorExtract>();
     indices = std::make_pair(ext.high, ext.low);
   }
-  else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP)
+  else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR)
   {
     CVC4::FloatingPointToFPIEEEBitVector ext =
         d_expr->getConst<FloatingPointToFPIEEEBitVector>();
     indices = std::make_pair(ext.t.exponent(), ext.t.significand());
   }
-  else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP)
+  else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT)
   {
     CVC4::FloatingPointToFPFloatingPoint ext =
         d_expr->getConst<FloatingPointToFPFloatingPoint>();
     indices = std::make_pair(ext.t.exponent(), ext.t.significand());
   }
-  else if (k == FLOATINGPOINT_TO_FP_REAL_OP)
+  else if (k == FLOATINGPOINT_TO_FP_REAL)
   {
     CVC4::FloatingPointToFPReal ext = d_expr->getConst<FloatingPointToFPReal>();
     indices = std::make_pair(ext.t.exponent(), ext.t.significand());
   }
-  else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP)
+  else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR)
   {
     CVC4::FloatingPointToFPSignedBitVector ext =
         d_expr->getConst<FloatingPointToFPSignedBitVector>();
     indices = std::make_pair(ext.t.exponent(), ext.t.significand());
   }
-  else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP)
+  else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR)
   {
     CVC4::FloatingPointToFPUnsignedBitVector ext =
         d_expr->getConst<FloatingPointToFPUnsignedBitVector>();
     indices = std::make_pair(ext.t.exponent(), ext.t.significand());
   }
-  else if (k == FLOATINGPOINT_TO_FP_GENERIC_OP)
+  else if (k == FLOATINGPOINT_TO_FP_GENERIC)
   {
     CVC4::FloatingPointToFPGeneric ext =
         d_expr->getConst<FloatingPointToFPGeneric>();
