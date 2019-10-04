@@ -85,6 +85,8 @@ class SolverBlack : public CxxTest::TestSuite
   void testDefineFunRec();
   void testDefineFunsRec();
 
+  void testUFIteration();
+
   void testPush1();
   void testPush2();
   void testPop1();
@@ -884,6 +886,26 @@ void SolverBlack::testDefineFunsRec()
   TS_ASSERT_THROWS(
       d_solver->defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v4}),
       CVC4ApiException&);
+}
+
+void SolverBlack::testUFIteration()
+{
+  Sort intSort = d_solver->getIntegerSort();
+  Sort funSort = d_solver->mkFunctionSort({intSort, intSort}, intSort);
+  Term x = d_solver->mkConst(intSort, "x");
+  Term y = d_solver->mkConst(intSort, "y");
+  Term f = d_solver->mkConst(funSort, "f");
+  Term fxy = d_solver->mkTerm(APPLY_UF, f, x, y);
+
+  // Expecting the uninterpreted function to be one of the children
+  Term expected_children[3] = {f, x, y};
+  uint32_t idx = 0;
+  for (auto c : fxy)
+  {
+    TS_ASSERT(idx < 3);
+    TS_ASSERT(c == expected_children[idx]);
+    idx++;
+  }
 }
 
 void SolverBlack::testPush1()
