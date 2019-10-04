@@ -1237,21 +1237,21 @@ void SmtEngine::setDefaults() {
     }
   }
 
-    if (options::ackermann())
-    {
-        if (d_logic.isTheoryEnabled(THEORY_UF))
-        {
-            d_logic = d_logic.getUnlockedCopy();
-            d_logic.disableTheory(THEORY_UF);
-            d_logic.lock();
-        }
-        if (d_logic.isTheoryEnabled(THEORY_ARRAYS))
-        {
-            d_logic = d_logic.getUnlockedCopy();
-            d_logic.disableTheory(THEORY_ARRAYS);
-            d_logic.lock();
-        }
-    }
+  if (options::ackermann())
+  {
+      if (d_logic.isTheoryEnabled(THEORY_UF))
+      {
+        d_logic = d_logic.getUnlockedCopy();
+        d_logic.disableTheory(THEORY_UF);
+        d_logic.lock();
+      }
+      if (d_logic.isTheoryEnabled(THEORY_ARRAYS))
+      {
+        d_logic = d_logic.getUnlockedCopy();
+        d_logic.disableTheory(THEORY_ARRAYS);
+        d_logic.lock();
+      }
+  }
 
   // set default options associated with strings-exp
   if (options::stringExp())
