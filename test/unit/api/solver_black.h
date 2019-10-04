@@ -659,7 +659,6 @@ void SolverBlack::testMkTermFromOpTerm()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm2, d_solver->mkReal(1)));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(headTerm1, c));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(tailTerm2, c));
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, a), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, Term()), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(consTerm1, d_solver->mkReal(0)),
