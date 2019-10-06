@@ -30,6 +30,7 @@
 #include "expr/type.h"
 #include "options/datatypes_options.h"
 #include "options/set_language.h"
+#include "theory/type_enumerator.h"
 
 using namespace std;
 
@@ -1128,14 +1129,10 @@ Expr DatatypeConstructor::computeGroundTerm(Type t,
         arg = dt.computeGroundTerm(selType, processing, isValue);
       }
     }
-    else if (isValue)
+    else
     {
-      // if we want values, take the first term in a type enumeration
-      TypeEnumerator te(selType);
-      arg = *te;
-    }else{
-      // otherwise, call the mkGroundTerm function
-      arg = selType.mkGroundTerm();
+      // call mkGroundValue or mkGroundTerm based on isValue
+      arg = isValue ? selType.mkGroundValue() : selType.mkGroundTerm();
     }
     if( arg.isNull() ){
       Debug("datatypes") << "...unable to construct arg of " << (*i).getName() << std::endl;

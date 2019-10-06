@@ -292,6 +292,12 @@ Node TypeNode::mkGroundTerm() const {
   return kind::mkGroundTerm(*this);
 }
 
+Node TypeNode::mkGroundValue() const
+{
+  TypeEnumerator te(*this);
+  return *te;
+}
+
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
     return true;

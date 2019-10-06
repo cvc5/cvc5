@@ -473,6 +473,14 @@ public:
    * @return a ground term of the type
    */
   Node mkGroundTerm() const;
+  
+  /**
+   * Construct and return a ground value of this type.  If the type is
+   * not well founded, this function throws an exception.
+   *
+   * @return a ground value of the type
+   */
+  Node mkGroundValue() const;
 
   /**
    * Is this type a subtype of the given type?
