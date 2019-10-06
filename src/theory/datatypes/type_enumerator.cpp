@@ -212,7 +212,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    }
    else
    {
-     // find the "zero" constructor via mkGroundTerm
+     // find the "zero" term via mkGroundTerm
      Debug("dt-enum-debug") << "make ground term..." << std::endl;
      // Start with the ground term constructed via mkGroundTerm, which does
      // a traversal over the structure of the datatype to find a finite term.
@@ -279,7 +279,14 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        Node n = getCurrentTerm(d_ctor);
        if (!n.isNull())
        {
-         return *this;
+         if (n==d_zeroTerm)
+         {
+           d_zeroTerm = Node::null();
+         }
+         else
+         {
+           return *this;
+         }
        }
      }
      // Here, we need to step from the current constructor to the next one
