@@ -279,7 +279,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        Node n = getCurrentTerm(d_ctor);
        if (!n.isNull())
        {
-         if (n==d_zeroTerm)
+         if (n == d_zeroTerm)
          {
            d_zeroTerm = Node::null();
          }
