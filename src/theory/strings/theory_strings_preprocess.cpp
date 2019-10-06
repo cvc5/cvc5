@@ -346,7 +346,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // ELSE:
     //   stoit = U( len( s ) ) ^ U( 0 ) = 0 ^
     //   "" = Us( len( s ) ) ^ s = Us( 0 ) ^
-    //   str.len( s ) > 0
+    //   str.len( s ) > 0 ^
     //   forall x. (x>=0 ^ x < str.len(s)) =>
     //     Us( x ) = Ud( x ) ++ Us( x+1 ) ^
     //     U( x+1 ) = ( str.code( Ud( x ) ) - 48 ) + 10*U( x )
