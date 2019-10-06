@@ -23,6 +23,7 @@
 #include "options/expr_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "theory/type_enumerator.h"
 
 using namespace std;
 
@@ -294,7 +295,7 @@ Node TypeNode::mkGroundTerm() const {
 
 Node TypeNode::mkGroundValue() const
 {
-  TypeEnumerator te(*this);
+  theory::TypeEnumerator te(*this);
   return *te;
 }
 
