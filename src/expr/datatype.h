@@ -530,11 +530,11 @@ class CVC4_PUBLIC DatatypeConstructor {
   bool computeWellFounded(std::vector<Type>& processing) const;
   /** compute ground term
    * 
-   * This method checks if there is a constructable term that is an application
+   * This method is used for constructing a term that is an application
    * of this constructor whose type is t.
    * 
    * The argument processing is the set of datatype types we are currently
-   * traversing. 
+   * traversing. This is used to avoid infinite loops.
    * 
    * The argument gt caches the ground terms we have computed so far.
    * 
@@ -1161,7 +1161,7 @@ struct CVC4_PUBLIC DatatypeIndexConstantHashFunction {
   inline size_t operator()(const DatatypeIndexConstant& dic) const {
     return IntegerHashFunction()(dic.getIndex());
   }
-};/* struct DatatypeIndexConstantHa/shFunction */
+};/* struct DatatypeIndexConstantHashFunction */
 
 
 
