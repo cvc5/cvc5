@@ -479,32 +479,40 @@ bool Datatype::computeWellFounded(std::vector<Type>& processing) const
 Expr Datatype::mkGroundTerm(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  return mkGroundTermInternal(t,false);
+}
+
+Expr Datatype::mkGroundValue(Type t) const
+{
+  PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  return mkGroundTermInternal(t,true);
+}
+
+Expr Datatype::mkGroundTermInternal(Type t, bool isValue) const
+{
   ExprManagerScope ems(d_self);
-  Debug("datatypes") << "mkGroundTerm of type " << t << std::endl;
+  Debug("datatypes") << "mkGroundTerm of type " << t << ", isValue = " << isValue << std::endl;
   // is this already in the cache ?
-  std::map< Type, Expr >::iterator it = d_ground_term.find( t );
-  if( it != d_ground_term.end() ){
+  std::map< Type, Expr >& cache = isValue ? d_ground_value : d_ground_term;
+  std::map< Type, Expr >::iterator it = cache.find( t );
+  if( it != cache.end() ){
     Debug("datatypes") << "\nin cache: " << d_self << " => " << it->second << std::endl;
     return it->second;
-  } else {
-    std::vector< Type > processing;
-    Expr groundTerm = computeGroundTerm( t, processing );
-    if(!groundTerm.isNull() ) {
-      // we found a ground-term-constructing constructor!
-      d_ground_term[t] = groundTerm;
-      Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
-    }
-    if( groundTerm.isNull() ){
-      if( !d_isCo ){
-        // if we get all the way here, we aren't well-founded
-        IllegalArgument(*this, "datatype is not well-founded, cannot construct a ground term!");
-      }else{
-        return groundTerm;
-      }
-    }else{
-      return groundTerm;
+  }
+  std::vector< Type > processing;
+  Expr groundTerm = computeGroundTerm( t, processing, isValue );
+  if(!groundTerm.isNull() ) {
+    // we found a ground-term-constructing constructor!
+    cache[t] = groundTerm;
+    Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
+  }
+  if( groundTerm.isNull() ){
+    if( !d_isCo ){
+      // if we get all the way here, we aren't well-founded
+      IllegalArgument(*this, "datatype is not well-founded, cannot construct a ground term!");
     }
   }
+  return groundTerm;
 }
 
 Expr getSubtermWithType( Expr e, Type t, bool isTop ){
@@ -521,7 +529,7 @@ Expr getSubtermWithType( Expr e, Type t, bool isTop ){
   }
 }
 
-Expr Datatype::computeGroundTerm(Type t, std::vector<Type>& processing) const
+Expr Datatype::computeGroundTerm(Type t, std::vector<Type>& processing, bool isValue) const
 {
   if( std::find( processing.begin(), processing.end(), t )==processing.end() ){
     processing.push_back( t );
@@ -530,7 +538,7 @@ Expr Datatype::computeGroundTerm(Type t, std::vector<Type>& processing) const
         //do nullary constructors first
         if( ((*i).getNumArgs()==0)==(r==0)){
           Debug("datatypes") << "Try constructing for " << (*i).getName() << ", processing = " << processing.size() << std::endl;
-          Expr e = (*i).computeGroundTerm( t, processing, d_ground_term );
+          Expr e = (*i).computeGroundTerm( t, processing, d_ground_term, isValue );
           if( !e.isNull() ){
             //must check subterms for the same type to avoid infinite loops in type enumeration
             Expr se = getSubtermWithType( e, t, true );
@@ -1078,7 +1086,9 @@ bool DatatypeConstructor::isInterpretedFinite(Type t) const
 
 Expr DatatypeConstructor::computeGroundTerm(Type t,
                                             std::vector<Type>& processing,
-                                            std::map<Type, Expr>& gt) const
+                                            std::map<Type, Expr>& gt,
+                                            bool isValue
+                                           ) const
 {
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_constructor);
@@ -1105,9 +1115,14 @@ Expr DatatypeConstructor::computeGroundTerm(Type t,
         arg = itgt->second;
       }else{
         const Datatype & dt = DatatypeType(selType).getDatatype();
-        arg = dt.computeGroundTerm( selType, processing );
+        arg = dt.computeGroundTerm( selType, processing, isValue );
       }
+    }else if( isValue){
+      // if we want values, take the first term in a type enumeration
+      TypeEnumerator te(selType);
+      arg = *te;
     }else{
+      // otherwise, call the mkGroundTerm function
       arg = selType.mkGroundTerm();
     }
     if( arg.isNull() ){

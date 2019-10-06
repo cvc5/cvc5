@@ -216,7 +216,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      Debug("dt-enum-debug") << "make ground term..." << std::endl;
      // Start with the ground term constructed via mkGroundTerm, which does
      // a traversal over the structure of the datatype to find a finite term.
-     d_zeroTerm = d_type.mkGroundTerm();
+     d_zeroTerm = d_datatype.mkGroundValue();
      d_zeroTermActive = true;
      Debug("dt-enum-debug") << "done : " << d_zeroTerm << std::endl;
      Assert(d_zeroTerm.getKind() == kind::APPLY_CONSTRUCTOR);
