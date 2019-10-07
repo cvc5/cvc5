@@ -57,21 +57,28 @@ script:
      exit 1;
    }
    makeCheck() {
-     cd build
-     make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
+     (
+       cd build
+       make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
+     )
    }
    makeExamples() {
-     cd examples
-     mkdir build
-     cd build
-     cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
-     ctest -j2 --output-on-failure || error "RUNNING EXAMPLES FAILED"
+     (
+       cd examples
+       mkdir build
+       cd build
+       cmake .. -DCMAKE_PREFIX_PATH=$(pwd)/../../build/install/lib/cmake
+       make -j2
+       ctest -j2 --output-on-failure || error "RUNNING EXAMPLES FAILED"
+     )
    }
    makeInstallCheck() {
-     cd build
-     make install -j2
-     echo -e "#include <cvc4/cvc4.h>\nint main() { CVC4::ExprManager em; return 0; }" > /tmp/test.cpp
-     $CXX -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4 -lcln || exit 1
+     (
+       cd build
+       make install -j2
+       echo -e "#include <cvc4/cvc4.h>\nint main() { CVC4::ExprManager em; return 0; }" > /tmp/test.cpp
+       $CXX -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4 -lcln || exit 1
+     )
    }
    run() {
      echo "travis_fold:start:$1"
