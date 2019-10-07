@@ -25,9 +25,11 @@ class TermBlack : public CxxTest::TestSuite
   void tearDown() override {}
 
   void testEq();
+  void testGetId();
   void testGetKind();
   void testGetSort();
   void testIsNull();
+  void testIsParameterized();
   void testNotTerm();
   void testAndTerm();
   void testOrTerm();
@@ -55,6 +57,14 @@ void TermBlack::testEq()
   TS_ASSERT(x != y);
   TS_ASSERT(!(x == z));
   TS_ASSERT(x != z);
+}
+
+void TermBlack::testGetId()
+{
+  Term n;
+  TS_ASSERT_THROWS(n.getId(), CVC4ApiException&);
+  Term x = d_solver.mkVar(d_solver.getIntegerSort(), "x");
+  TS_ASSERT_THROWS_NOTHING(x.getId());
 }
 
 void TermBlack::testGetKind()
@@ -171,6 +181,14 @@ void TermBlack::testNotTerm()
   TS_ASSERT_THROWS_NOTHING(p_0.notTerm());
   Term p_f_x = d_solver.mkTerm(APPLY_UF, p, f_x);
   TS_ASSERT_THROWS_NOTHING(p_f_x.notTerm());
+}
+
+void TermBlack::testIsParameterized()
+{
+  Term n;
+  TS_ASSERT_THROWS(n.isParameterized(), CVC4ApiException&);
+  Term x = d_solver.mkVar(d_solver.getIntegerSort(), "x");
+  TS_ASSERT_THROWS_NOTHING(x.isParameterized());
 }
 
 void TermBlack::testAndTerm()
