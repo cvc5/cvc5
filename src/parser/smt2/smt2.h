@@ -208,12 +208,12 @@ class Smt2 : public Parser
    * @param body The body of the rule
    * @return The command that asserts the rewrite rule
    */
-  std::unique_ptr<Command> assertRule(Kind kind,
-                                      Expr bvl,
-                                      const std::vector<Expr>& triggers,
-                                      const std::vector<Expr>& guards,
-                                      const std::vector<Expr>& heads,
-                                      Expr body);
+  std::unique_ptr<Command> assertRewriteRule(Kind kind,
+                                             Expr bvl,
+                                             const std::vector<Expr>& triggers,
+                                             const std::vector<Expr>& guards,
+                                             const std::vector<Expr>& heads,
+                                             Expr body);
 
   /**
    * Sets the logic for the current benchmark. Declares any logic and

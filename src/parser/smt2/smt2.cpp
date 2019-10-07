@@ -627,12 +627,13 @@ void Smt2::resetAssertions() {
   }
 }
 
-std::unique_ptr<Command> Smt2::assertRule(Kind kind,
-                                          Expr bvl,
-                                          const std::vector<Expr>& triggers,
-                                          const std::vector<Expr>& guards,
-                                          const std::vector<Expr>& heads,
-                                          Expr body)
+std::unique_ptr<Command> Smt2::assertRewriteRule(
+    Kind kind,
+    Expr bvl,
+    const std::vector<Expr>& triggers,
+    const std::vector<Expr>& guards,
+    const std::vector<Expr>& heads,
+    Expr body)
 {
   assert(kind == kind::RR_REWRITE || kind == kind::RR_REDUCTION
          || kind == kind::RR_DEDUCTION);
