@@ -1216,41 +1216,41 @@ void SmtEngine::setDefaults() {
   // set options about ackermannization
   if (options::produceModels())
   {
-	  if (options::ackermann()
-			  && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
-				  || d_logic.isTheoryEnabled(THEORY_UF)))
-	  {
-		  if (options::produceModels.wasSetByUser())
-		  {
-			  throw OptionException(std::string(
-						  "Ackermannization currently does not support model generation."));
-		  }
-		  Notice() << "SmtEngine: turn off ackermannization to support model"
-			  << "generation" << endl;
-		  options::ackermann.set(false);
-	  }
+    if (options::ackermann()
+        && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+            || d_logic.isTheoryEnabled(THEORY_UF)))
+    {
+      if (options::produceModels.wasSetByUser())
+      {
+        throw OptionException(std::string(
+            "Ackermannization currently does not support model generation."));
+      }
+      Notice() << "SmtEngine: turn off ackermannization to support model"
+               << "generation" << endl;
+      options::ackermann.set(false);
+    }
   }
 
   if (options::ackermann())
   {
-	  if (options::incrementalSolving())
-	  {
-		  throw OptionException(
-				  "Incremental Ackermannization is currently not supported.");
-	  }
+    if (options::incrementalSolving())
+    {
+      throw OptionException(
+          "Incremental Ackermannization is currently not supported.");
+    }
 
-	  if (d_logic.isTheoryEnabled(THEORY_UF))
-	  {
-		  d_logic = d_logic.getUnlockedCopy();
-		  d_logic.disableTheory(THEORY_UF);
-		  d_logic.lock();
-	  }
-	  if (d_logic.isTheoryEnabled(THEORY_ARRAYS))
-	  {
-		  d_logic = d_logic.getUnlockedCopy();
-		  d_logic.disableTheory(THEORY_ARRAYS);
-		  d_logic.lock();
-	  }
+    if (d_logic.isTheoryEnabled(THEORY_UF))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_UF);
+      d_logic.lock();
+    }
+    if (d_logic.isTheoryEnabled(THEORY_ARRAYS))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_ARRAYS);
+      d_logic.lock();
+    }
   }
 
   // set default options associated with strings-exp
