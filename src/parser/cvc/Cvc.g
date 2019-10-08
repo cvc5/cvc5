@@ -372,7 +372,7 @@ Kind getOperatorKind(int type, bool& negate) {
   case GEQ_TOK: return kind::GEQ;
   case LT_TOK: return kind::LT;
   case LEQ_TOK: return kind::LEQ;
-  case MEMBER_TOK: return kind::STRING_IN_REGEXP;
+  case MEMBER_TOK: return kind::MEMBER;
   case SETS_CARD_TOK: return kind::CARD;
   case FMF_CARD_TOK: return kind::CARDINALITY_CONSTRAINT;
 
@@ -447,7 +447,14 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
       case kind::MINUS: k = kind::SETMINUS; break;
       case kind::BITVECTOR_AND: k = kind::INTERSECTION; break;
       case kind::BITVECTOR_OR: k = kind::UNION; break;
-      case kind::STRING_IN_REGEXP: k = kind::MEMBER; break;
+      default: break;
+    }
+  }
+  else if (lhs.getType().isString())
+  {
+    switch (k)
+    {
+      case kind::MEMBER: k = kind::STRING_IN_REGEXP; break;
       default: break;
     }
   }
