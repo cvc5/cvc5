@@ -1044,16 +1044,16 @@ bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
 
+uint64_t Term::getId() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->getId();
+}
+
 Kind Term::getKind() const
 {
   CVC4_API_CHECK_NOT_NULL;
   return intToExtKind(d_expr->getKind());
-}
-
-bool Term::isParameterized() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return d_expr->isParameterized();
 }
 
 Sort Term::getSort() const
@@ -1063,6 +1063,12 @@ Sort Term::getSort() const
 }
 
 bool Term::isNull() const { return d_expr->isNull(); }
+
+bool Term::isParameterized() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->isParameterized();
+}
 
 Term Term::notTerm() const
 {
