@@ -1,6 +1,5 @@
-; COMMAND-LINE: --sygus-inference
-; EXPECT: unsat
 (set-logic ALL)
+(set-info :status unsat)
 (declare-fun a () Real)   
 (assert 
     (and  
