@@ -782,7 +782,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
     Trace("regexp-fset") << "END FSET(" << mkString(r) << ") = {";
     for (std::set<unsigned>::const_iterator itr = pcset.begin();
          itr != pcset.end();
-         itr++)
+         ++itr)
     {
       if (itr != pcset.begin())
       {
@@ -1406,7 +1406,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
           Trace("regexp-int-debug") << "Try CSET(" << cset.size() << ") = {";
           for (std::vector<unsigned>::const_iterator itr = cset.begin();
                itr != cset.end();
-               itr++)
+               ++itr)
           {
             //CVC4::String c( *itr );
             if(itr != cset.begin()) {
@@ -1419,7 +1419,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
         std::map< PairNodes, Node > cacheX;
         for (std::vector<unsigned>::const_iterator itr = cset.begin();
              itr != cset.end();
-             itr++)
+             ++itr)
         {
           std::vector<unsigned> cvec;
           cvec.push_back(String::convertCodeToUnsignedInt(*itr));

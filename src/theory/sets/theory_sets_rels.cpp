@@ -119,7 +119,7 @@ void TheorySetsRels::check(Theory::Effort level)
           }
         }
       }
-      m_it++;
+      ++m_it;
     }
 
     TERM_IT t_it = d_terms_cache.begin();
@@ -133,37 +133,37 @@ void TheorySetsRels::check(Theory::Effort level)
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while(term_it != k_t_it->second.end()) {
               computeMembersForBinOpRel( *term_it );
-              term_it++;
+              ++term_it;
             }
           } else if( k_t_it->first == kind::TRANSPOSE ) {
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               computeMembersForUnaryOpRel( *term_it );
-              term_it++;
+              ++term_it;
             }
           } else if ( k_t_it->first == kind::TCLOSURE ) {
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               buildTCGraphForRel( *term_it );
-              term_it++;
+              ++term_it;
             }
           } else if( k_t_it->first == kind::JOIN_IMAGE ) {
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               computeMembersForJoinImageTerm( *term_it );
-              term_it++;
+              ++term_it;
             }
           } else if( k_t_it->first == kind::IDEN ) {
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               computeMembersForIdenTerm( *term_it );
-              term_it++;
+              ++term_it;
             }
           }
-          k_t_it++;
+          ++k_t_it;
         }
       }
-      t_it++;
+      ++t_it;
     }
     doTCInference();
 
@@ -604,7 +604,7 @@ void TheorySetsRels::check(Theory::Effort level)
           if( hasSeen.find(*set_it) == hasSeen.end() ) {
             isTCReachable( *set_it, dest, hasSeen, tc_graph, isReachable );
           }
-          set_it++;
+          ++set_it;
         }
       }
     }
@@ -645,9 +645,15 @@ void TheorySetsRels::check(Theory::Effort level)
 
   void TheorySetsRels::doTCInference( std::map< Node, std::unordered_set<Node, NodeHashFunction> > rel_tc_graph, std::map< Node, Node > rel_tc_graph_exps, Node tc_rel ) {
     Trace("rels-debug") << "[Theory::Rels] ****** doTCInference !" << std::endl;
-    for( TC_GRAPH_IT tc_graph_it = rel_tc_graph.begin(); tc_graph_it != rel_tc_graph.end(); tc_graph_it++ ) {
-      for( std::unordered_set< Node, NodeHashFunction >::iterator snd_elements_it = tc_graph_it->second.begin();
-           snd_elements_it != tc_graph_it->second.end(); snd_elements_it++ ) {
+    for (TC_GRAPH_IT tc_graph_it = rel_tc_graph.begin();
+         tc_graph_it != rel_tc_graph.end();
+         ++tc_graph_it)
+    {
+      for (std::unordered_set<Node, NodeHashFunction>::iterator
+               snd_elements_it = tc_graph_it->second.begin();
+           snd_elements_it != tc_graph_it->second.end();
+           ++snd_elements_it)
+      {
         std::vector< Node > reasons;
         std::unordered_set<Node, NodeHashFunction> seen;
         Node tuple = RelsUtils::constructPair( tc_rel, getRepresentative( tc_graph_it->first ), getRepresentative( *snd_elements_it) );
@@ -698,8 +704,11 @@ void TheorySetsRels::check(Theory::Effort level)
     seen.insert( cur_node_rep );
     TC_GRAPH_IT  cur_set = tc_graph.find( cur_node_rep );
     if( cur_set != tc_graph.end() ) {
-      for( std::unordered_set< Node, NodeHashFunction >::iterator set_it = cur_set->second.begin();
-           set_it != cur_set->second.end(); set_it++ ) {
+      for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
+               cur_set->second.begin();
+           set_it != cur_set->second.end();
+           ++set_it)
+      {
         Node new_pair = RelsUtils::constructPair( tc_rel, cur_node_rep, *set_it );
         std::vector< Node > new_reasons( reasons );
         new_reasons.push_back( rel_tc_graph_exps.find( new_pair )->second );
@@ -889,7 +898,7 @@ void TheorySetsRels::check(Theory::Effort level)
     while( tc_graph_it != d_tcr_tcGraph.end() ) {
       Assert ( d_tcr_tcGraph_exps.find(tc_graph_it->first) != d_tcr_tcGraph_exps.end() );
       doTCInference( tc_graph_it->second, d_tcr_tcGraph_exps.find(tc_graph_it->first)->second, tc_graph_it->first );
-      tc_graph_it++;
+      ++tc_graph_it;
     }
     Trace("rels-debug") << "[Theory::Rels] ****** Done with finalizing transitive closure inferences!" << std::endl;
   }
@@ -1114,7 +1123,6 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   bool TheorySetsRels::hasTerm(Node a) { return d_ee.hasTerm(a); }
-
   bool TheorySetsRels::areEqual( Node a, Node b ){
     Assert(a.getType() == b.getType());
     Trace("rels-eq") << "[sets-rels]**** checking equality between " << a << " and " << b << std::endl;
@@ -1151,7 +1159,7 @@ void TheorySetsRels::check(Theory::Effort level)
         if(areEqual(*mems, member)) {
           return false;
         }
-        mems++;
+        ++mems;
       }
       map[rel_rep].push_back(member);
       return true;
@@ -1216,7 +1224,7 @@ void TheorySetsRels::check(Theory::Effort level)
         it = d_data.begin();
         while(it != d_data.end()) {
           nodes.push_back(it->first);
-          it++;
+          ++it;
         }
       }
       return nodes;
@@ -1238,7 +1246,7 @@ void TheorySetsRels::check(Theory::Effort level)
       it = d_data.begin();
       while(it != d_data.end()) {
         nodes.push_back(it->first);
-        it++;
+        ++it;
       }
       return nodes;
     }else{

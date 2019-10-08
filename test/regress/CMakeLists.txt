@@ -2,6 +2,7 @@
 # Regression level 0 tests
 
 set(regress_0_tests
+  regress0/arith/ackermann.real.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc
@@ -16,6 +17,12 @@ set(regress_0_tests
   regress0/arith/div.05.smt2
   regress0/arith/div.07.smt2
   regress0/arith/fuzz_3-eq.smtv1.smt2
+  regress0/arith/integers/ackermann1.smt2
+  regress0/arith/integers/ackermann2.smt2
+  regress0/arith/integers/ackermann3.smt2
+  regress0/arith/integers/ackermann4.smt2
+  regress0/arith/integers/ackermann5.smt2
+  regress0/arith/integers/ackermann6.smt2
   regress0/arith/integers/arith-int-042.cvc
   regress0/arith/integers/arith-int-042.min.cvc
   regress0/arith/leq.01.smtv1.smt2
@@ -332,6 +339,7 @@ set(regress_0_tests
   regress0/cvc3.userdoc.04.cvc
   regress0/cvc3.userdoc.05.cvc
   regress0/cvc3.userdoc.06.cvc
+  regress0/cvc-rerror-print.cvc
   regress0/datatypes/Test1-tup-mp.cvc
   regress0/datatypes/boolean-equality.cvc
   regress0/datatypes/boolean-terms-datatype.cvc
@@ -545,6 +553,7 @@ set(regress_0_tests
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
   regress0/options/invalid_dump.smt2
+  regress0/options/invalid_option_inc_proofs.smt2
   regress0/opt-abd-no-use.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
@@ -597,6 +606,7 @@ set(regress_0_tests
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/tuples_and_records.cvc
+  regress0/proof_no_support.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -859,6 +869,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/re.all.smt2
+  regress0/strings/regexp-native-simple.cvc
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
   regress0/strings/repl-rewrites2.smt2
@@ -886,6 +897,8 @@ set(regress_0_tests
   regress0/sygus/array-grammar-store.sy
   regress0/sygus/c100.sy
   regress0/sygus/ccp16.lus.sy
+  regress0/sygus/cegqi-si-string-triv.sy
+  regress0/sygus/cegqi-si-string-triv-2fun.sy
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
@@ -1370,6 +1383,7 @@ set(regress_1_tests
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
+  regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1571,6 +1585,8 @@ set(regress_1_tests
   regress1/strings/issue2982.smt2
   regress1/strings/issue3090.smt2
   regress1/strings/issue3217.smt2
+  regress1/strings/issue3272.smt2
+  regress1/strings/issue3357.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1683,6 +1699,8 @@ set(regress_1_tests
   regress1/sygus/issue3200.smt2
   regress1/sygus/issue3201.smt2
   regress1/sygus/issue3205.smt2
+  regress1/sygus/issue3247.smt2
+  regress1/sygus/issue3320-quant.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -1695,6 +1713,7 @@ set(regress_1_tests
   regress1/sygus/nia-max-square-ns.sy
   regress1/sygus/no-flat-simp.sy
   regress1/sygus/no-mention.sy
+  regress1/sygus/only-const-grammar.sy
   regress1/sygus/parity-si-rcons.sy
   regress1/sygus/pbe_multi.sy
   regress1/sygus/phone-1-long.sy

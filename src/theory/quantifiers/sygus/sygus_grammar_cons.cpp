@@ -575,7 +575,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
                itec->second.begin();
            set_it != itec->second.end();
-           set_it++)
+           ++set_it)
       {
         if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
         {
