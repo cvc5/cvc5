@@ -316,6 +316,7 @@ void TermBlack::testXorTerm()
 
   Term b = d_solver.mkTrue();
   TS_ASSERT_THROWS(Term().xorTerm(b), CVC4ApiException&);
+  TS_ASSERT_THROWS(b.xorTerm(Term()), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.xorTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.xorTerm(b), CVC4ApiException&);
