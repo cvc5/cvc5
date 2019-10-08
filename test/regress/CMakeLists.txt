@@ -553,6 +553,7 @@ set(regress_0_tests
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
   regress0/options/invalid_dump.smt2
+  regress0/options/invalid_option_inc_proofs.smt2
   regress0/opt-abd-no-use.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
@@ -868,6 +869,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/re.all.smt2
+  regress0/strings/regexp-native-simple.cvc
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
   regress0/strings/repl-rewrites2.smt2

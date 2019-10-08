@@ -170,10 +170,9 @@ class DefinedFunction {
   Node d_formula;
 public:
   DefinedFunction() {}
-  DefinedFunction(Node func, vector<Node> formals, Node formula) :
-    d_func(func),
-    d_formals(formals),
-    d_formula(formula) {
+  DefinedFunction(Node func, vector<Node>& formals, Node formula)
+      : d_func(func), d_formals(formals), d_formula(formula)
+  {
   }
   Node getFunction() const { return d_func; }
   vector<Node> getFormals() const { return d_formals; }
@@ -2269,13 +2268,20 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if(options::incrementalSolving() && options::proof()) {
-    Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
-    setOption("incremental", SExpr("false"));
-  }
-
   if (options::proof())
   {
+    if (options::incrementalSolving())
+    {
+      if (options::incrementalSolving.wasSetByUser())
+      {
+        throw OptionException("--incremental is not supported with proofs");
+      }
+      Warning()
+          << "SmtEngine: turning off incremental solving mode (not yet "
+             "supported with --proof, try --tear-down-incremental instead)"
+          << endl;
+      setOption("incremental", SExpr("false"));
+    }
     if (d_logic > LogicInfo("QF_AUFBVLRA")) {
         throw OptionException(
             "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
