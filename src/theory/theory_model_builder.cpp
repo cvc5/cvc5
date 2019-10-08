@@ -549,11 +549,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     eqcs_i = eq::EqClassesIterator(ee);
     bool assignable = false;
     bool evaluable = false;
-    // for assignment exclusion sets
-    std::vector<Node> group;
-    std::vector<Node> eset;
-    bool hasESet = false;
-    bool foundESet = false;
     for (; !eqcs_i.isFinished(); ++eqcs_i)
     {
       Node eqc = *eqcs_i;
@@ -564,6 +559,11 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       }
       assignable = false;
       evaluable = false;
+      // for assignment exclusion sets
+      std::vector<Node> group;
+      std::vector<Node> eset;
+      bool hasESet = false;
+      bool foundESet = false;
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
       for (; !eqc_i.isFinished(); ++eqc_i)
       {
