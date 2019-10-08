@@ -326,7 +326,7 @@ public:
    * @return an identifier uniquely identifying the value this
    * expression holds.
    */
-  unsigned long getId() const;
+  uint64_t getId() const;
 
   /**
    * Returns the kind of the expression (AND, PLUS ...).

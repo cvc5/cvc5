@@ -18,12 +18,17 @@
 #include "expr/node_manager.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace preprocessing {
 
 AssertionPipeline::AssertionPipeline()
-    : d_realAssertionsEnd(0), d_assumptionsStart(0), d_numAssumptions(0)
+    : d_realAssertionsEnd(0),
+      d_storeSubstsInAsserts(false),
+      d_substsIndex(0),
+      d_assumptionsStart(0),
+      d_numAssumptions(0)
 {
 }
 
@@ -82,6 +87,28 @@ void AssertionPipeline::replace(size_t i, const std::vector<Node>& ns)
   {
     d_nodes.push_back(n);
   }
+}
+
+void AssertionPipeline::enableStoreSubstsInAsserts()
+{
+  d_storeSubstsInAsserts = true;
+  d_substsIndex = d_nodes.size();
+  d_nodes.push_back(NodeManager::currentNM()->mkConst<bool>(true));
+}
+
+void AssertionPipeline::disableStoreSubstsInAsserts()
+{
+  d_storeSubstsInAsserts = false;
+}
+
+void AssertionPipeline::addSubstitutionNode(Node n)
+{
+  Assert(d_storeSubstsInAsserts);
+  Assert(n.getKind() == kind::EQUAL);
+  d_nodes[d_substsIndex] = theory::Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[d_substsIndex]));
+  Assert(theory::Rewriter::rewrite(d_nodes[d_substsIndex])
+         == d_nodes[d_substsIndex]);
 }
 
 }  // namespace preprocessing
