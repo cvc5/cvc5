@@ -164,7 +164,7 @@ Node QuantAttributes::getFunDefBody( Node q ) {
           if (res != 0)
           {
             Assert(veq.getKind() == EQUAL);
-            return res == 1 ? veq[0] : veq[1];
+            return res == 1 ? veq[1] : veq[0];
           }
         }
       }
