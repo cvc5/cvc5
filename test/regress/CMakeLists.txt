@@ -598,6 +598,7 @@ set(regress_0_tests
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/tuples_and_records.cvc
+  regress0/proof_no_support.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -887,6 +888,8 @@ set(regress_0_tests
   regress0/sygus/array-grammar-store.sy
   regress0/sygus/c100.sy
   regress0/sygus/ccp16.lus.sy
+  regress0/sygus/cegqi-si-string-triv.sy
+  regress0/sygus/cegqi-si-string-triv-2fun.sy
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
@@ -1573,6 +1576,7 @@ set(regress_1_tests
   regress1/strings/issue3090.smt2
   regress1/strings/issue3217.smt2
   regress1/strings/issue3272.smt2
+  regress1/strings/issue3357.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
