@@ -242,7 +242,7 @@ void collectUSortsToBV(std::unordered_set<unsigned>& used,
  * that, after the replacement, the different sorts will be converted into bit
  * vectors with different size.
  * The size is calculated to have enough capacity, that can accommodate the
- * terms occured in the original formula. */
+ * variables occured in the original formula. */
 void usortsToBitVectors(USortToBVSizeMap& usort_cardinality,
                         SubstitutionMap& sorts_to_skolem,
                         AssertionPipeline* assertions)
