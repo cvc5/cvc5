@@ -184,6 +184,7 @@ void TermBlack::testAndTerm()
 
   Term b = d_solver.mkTrue();
   TS_ASSERT_THROWS(Term().andTerm(b), CVC4ApiException&);
+  TS_ASSERT_THROWS(b.andTerm(Term()), CVC4ApiException&);  
   TS_ASSERT_THROWS_NOTHING(b.andTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.andTerm(b), CVC4ApiException&);
