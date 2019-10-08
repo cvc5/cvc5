@@ -1110,13 +1110,14 @@ Expr DatatypeConstructor::computeGroundTerm(Type t,
   // for each selector, get a ground term
   std::vector< Type > instTypes;
   std::vector< Type > paramTypes;
-  if( DatatypeType(t).isParametric() ){
+  bool isParam = static_cast<DatatypeType>(t).isParametric();
+  if( isParam ){
     paramTypes = DatatypeType(t).getDatatype().getParameters();
     instTypes = DatatypeType(t).getParamTypes();
   }
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
     Type selType = SelectorType((*i).getSelector().getType()).getRangeType();
-    if( DatatypeType(t).isParametric() ){
+    if( isParam ){
       selType = selType.substitute( paramTypes, instTypes );
     }
     Expr arg;
@@ -1144,9 +1145,9 @@ Expr DatatypeConstructor::computeGroundTerm(Type t,
   }
 
   Expr groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);
-  if( groundTerm.getType()!=t ){
+  if( isParam ){
     Assert( Datatype::datatypeOf( d_constructor ).isParametric() );
-    //type is ambiguous, must apply type ascription
+    //type is parametric, must apply type ascription
     Debug("datatypes-gt") << "ambiguous type for " << groundTerm << ", ascribe to " << t << std::endl;
     groundTerms[0] = getConstructor().getExprManager()->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
                        getConstructor().getExprManager()->mkConst(AscriptionType(getSpecializedConstructorType(t))),

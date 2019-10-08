@@ -517,6 +517,23 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
 
 void TheoryDatatypes::preRegisterTerm(TNode n) {
   Debug("datatypes-prereg") << "TheoryDatatypes::preRegisterTerm() " << n << endl;
+  /*
+  TypeNode tn = n.getType();
+  if (d_tmp.find(tn)==d_tmp.end())
+  {
+    d_tmp[tn] = true;
+    TypeEnumerator te(tn);
+    unsigned counter = 0;
+    Trace("ajr-temp")  << "Enumerate " << tn << ":" << std::endl;
+    while (!te.isFinished() && counter<10)
+    {
+      Trace("ajr-temp") << counter << ": " << *te << std::endl;
+      ++te;
+      counter++;
+    }
+    Trace("ajr-temp") << "Enumerate finish." << std::endl;
+  }
+  */
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
