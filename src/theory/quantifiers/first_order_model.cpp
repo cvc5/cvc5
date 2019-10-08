@@ -236,9 +236,7 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
     Node mbt;
     if (tn.isClosedEnumerable())
     {
-      Trace("model-basis-term") << "Get term enum 0..." << std::endl;
       mbt = d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
-      Trace("model-basis-term") << "...return " << mbt << std::endl;
     }
     else
     {
