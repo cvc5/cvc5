@@ -23,6 +23,14 @@ header = "options/smt_options.h"
   help       = "all dumping goes to FILE (instead of stdout)"
 
 [[option]]
+  name       = "ackermann"
+  category   = "regular"
+  long       = "ackermann"
+  type       = "bool"
+  default    = "false"
+  help       = "eliminate functions by ackermannization"
+
+[[option]]
   name       = "simplificationMode"
   smt_name   = "simplification-mode"
   category   = "regular"
