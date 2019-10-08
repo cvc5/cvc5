@@ -374,7 +374,8 @@ Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const{
     // (not y) => (not x)
     // (not z) => x
     std::set<Node>::const_iterator ci = negtimp.begin(), cend = negtimp.end();
-    for(; ci != cend; ci++){
+    for (; ci != cend; ++ci)
+    {
       Node impliedByNotTB = *ci;
       Node impliedByNotTBNeg = impliedByNotTB.negate();
       if(negfimp.find(impliedByNotTBNeg) != negfimp.end()){
