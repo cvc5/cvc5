@@ -41,8 +41,9 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   TypeNode d_type;
   /** The datatype constructor we're currently enumerating */
   unsigned d_ctor;
-  /** The "first" term to consider */
+  /** The first term to consider in the enumeration */
   Node d_zeroTerm;
+  /** Whether we are currently considering the above term */
   bool d_zeroTermActive;
   /** list of type enumerators (one for each type in a selector argument) */
   std::map< TypeNode, unsigned > d_te_index;

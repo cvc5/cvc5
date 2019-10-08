@@ -368,12 +368,9 @@ private:
   bool areDisequal( TNode a, TNode b );
   bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
-
-  std::map<TypeNode, bool> d_tmp;
-
- private:
-  /** sygus symmetry breaking utility */
-  SygusSymBreakNew* d_sygus_sym_break;
+private:
+ /** sygus symmetry breaking utility */
+ SygusSymBreakNew* d_sygus_sym_break;
 
 };/* class TheoryDatatypes */
 
