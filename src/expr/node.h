@@ -480,7 +480,8 @@ public:
    * Returns the unique id of this node
    * @return the ud
    */
-  unsigned long getId() const {
+  uint64_t getId() const
+  {
     assertTNodeNotExpired();
     return d_nv->getId();
   }
