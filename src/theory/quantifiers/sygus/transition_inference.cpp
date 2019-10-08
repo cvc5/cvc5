@@ -413,7 +413,8 @@ bool TransitionInference::processDisjunct(
   Node lit = n.getKind() == NOT ? n[0] : n;
   // is it an application of the function-to-synthesize? Yes if we haven't
   // encountered a function or if it matches the existing d_func.
-  if (lit.getKind() == APPLY_UF && ( d_func.isNull() || lit.getOperator()==d_func))
+  if (lit.getKind() == APPLY_UF
+      && (d_func.isNull() || lit.getOperator() == d_func))
   {
     Node op = lit.getOperator();
     // initialize the variables
@@ -430,7 +431,7 @@ bool TransitionInference::processDisjunct(
       }
       Trace("cegqi-inv-debug") << std::endl;
     }
-    Assert (!d_func.isNull());
+    Assert(!d_func.isNull());
     if (topLevel)
     {
       if (terms.find(lit_pol) == terms.end())

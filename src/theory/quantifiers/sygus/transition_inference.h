@@ -127,7 +127,7 @@ class TransitionInference
    * function f above.
    */
   void process(Node n, Node f);
-  /** 
+  /**
    * Same as above, without specifying f. This will try to infer a function f
    * based on the body of n.
    */
