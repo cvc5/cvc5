@@ -1082,6 +1082,7 @@ Term Term::notTerm() const
 Term Term::andTerm(const Term& t) const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->andExpr(*t.d_expr);
@@ -1097,6 +1098,7 @@ Term Term::andTerm(const Term& t) const
 Term Term::orTerm(const Term& t) const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->orExpr(*t.d_expr);
@@ -1112,6 +1114,7 @@ Term Term::orTerm(const Term& t) const
 Term Term::xorTerm(const Term& t) const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->xorExpr(*t.d_expr);
@@ -1127,6 +1130,7 @@ Term Term::xorTerm(const Term& t) const
 Term Term::eqTerm(const Term& t) const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->eqExpr(*t.d_expr);
@@ -1142,6 +1146,7 @@ Term Term::eqTerm(const Term& t) const
 Term Term::impTerm(const Term& t) const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->impExpr(*t.d_expr);
@@ -1157,6 +1162,8 @@ Term Term::impTerm(const Term& t) const
 Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(then_t);
+  CVC4_API_ARG_CHECK_NOT_NULL(else_t);
   try
   {
     Term res = d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
