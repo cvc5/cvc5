@@ -448,6 +448,7 @@ void TermBlack::testImpTerm()
 
   Term b = d_solver.mkTrue();
   TS_ASSERT_THROWS(Term().impTerm(b), CVC4ApiException&);
+  TS_ASSERT_THROWS(b.impTerm(Term()), CVC4ApiException&);  
   TS_ASSERT_THROWS_NOTHING(b.impTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.impTerm(b), CVC4ApiException&);
