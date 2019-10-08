@@ -720,20 +720,35 @@ include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
 
+#set(KINDS_FILES
+#  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/idl/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
+#  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds)
+
 set(KINDS_FILES
-  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/idl/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
   ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
-  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds)
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/idl/kinds)
 
 #-----------------------------------------------------------------------------#
 # Add subdirectories
