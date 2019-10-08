@@ -205,8 +205,16 @@ private:
   bool d_addedFact;
   /** The conflict node */
   Node d_conflictNode;
-  /** cache for which terms we have called collectTerms(...) on */
+  /**
+   * SAT-context dependent cache for which terms we have called
+   * collectTerms(...) on.
+   */
   BoolMap d_collectTermsCache;
+  /**
+   * User-context dependent cache for which terms we have called
+   * collectTerms(...) on.
+   */
+  BoolMap d_collectTermsCacheU;
   /** pending assertions/merges */
   std::vector< Node > d_pending_lem;
   std::vector< Node > d_pending;

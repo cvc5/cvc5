@@ -11,7 +11,7 @@
 
 (assert (or (distinct a b c d)
  (< (match a ((red 5) (green 3) (blue 2))) 0)
- (< (match b ((red 2) (_ 1))) 0)
+ (< (match b ((red 2) (x 1))) 0)
  ))
 
 (check-sat)
