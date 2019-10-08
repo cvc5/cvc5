@@ -298,7 +298,6 @@ Ackermann::Ackermann(PreprocessingPassContext* preprocContext)
       d_funcToSkolem(preprocContext->getUserContext()),
       d_sortsToSkolem(preprocContext->getUserContext()),
       d_logic(preprocContext->getLogicInfo())
-// TODO is it the correct way to initialize d_sortsToSkolem???
 {
 }
 
