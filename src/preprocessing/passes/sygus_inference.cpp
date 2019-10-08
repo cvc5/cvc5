@@ -223,7 +223,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     Trace("sygus-infer") << "...fail: no free function symbols." << std::endl;
     return false;
   }
-  
+
   // ensure they don't involve uninterpreted sorts
   bool typeSuccess = true;
   for (const Node& f : free_functions)
