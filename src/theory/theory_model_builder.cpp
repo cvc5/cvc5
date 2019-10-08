@@ -39,23 +39,21 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
   Node n;
   bool success = false;
   TypeEnumerator& te = *d_te;
-  // must iterate until we find one that is not in the assignment
+  // check if we have run out of elements
+  if (te.isFinished())
+  {
+    Assert(false);
+    return Node::null();
+  }
+  // must increment until we find one that is not in the assignment
   // exclusion set
   do
   {
     n = *te;
     success = std::find(d_assignExcSet.begin(), d_assignExcSet.end(), n)
               == d_assignExcSet.end();
-    if (!success)
-    {
-      ++te;
-      // we have run out of elements
-      if (te.isFinished())
-      {
-        Assert(false);
-        return Node::null();
-      }
-    }
+    // increment regardless of fail or succeed, to set up the next value
+    ++te;
   } while (!success);
   return n;
 }
