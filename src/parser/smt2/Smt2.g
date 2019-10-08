@@ -1638,8 +1638,8 @@ rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
     term[head, expr2]
     term[body, expr2]
     {
-      *cmd =
-          PARSER_STATE->assertRule(kind, bvl, triggers, guards, {head}, body);
+      *cmd = PARSER_STATE->assertRewriteRule(
+          kind, bvl, triggers, guards, {head}, body);
     }
     /* propagation rule */
   | rewritePropaKind[kind]
@@ -1650,7 +1650,8 @@ rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
     LPAREN_TOK (termList[heads,expr])? RPAREN_TOK
     term[body, expr2]
     {
-      *cmd = PARSER_STATE->assertRule(kind, bvl, triggers, guards, heads, body);
+      *cmd = PARSER_STATE->assertRewriteRule(
+          kind, bvl, triggers, guards, heads, body);
     }
   ;
 
