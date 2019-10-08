@@ -404,7 +404,7 @@ bool TransitionInference::processDisjunct(
   // if another part mentions UF or a free variable, then fail
   bool lit_pol = n.getKind() != NOT;
   Node lit = n.getKind() == NOT ? n[0] : n;
-  if (lit.getKind() == APPLY_UF && lit.getOperator().getKind()!=BOUND_VARIABLE)
+  if (lit.getKind() == APPLY_UF)
   {
     Node op = lit.getOperator();
     if (d_func.isNull())
