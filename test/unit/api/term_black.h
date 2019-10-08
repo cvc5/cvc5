@@ -382,6 +382,7 @@ void TermBlack::testEqTerm()
 
   Term b = d_solver.mkTrue();
   TS_ASSERT_THROWS(Term().eqTerm(b), CVC4ApiException&);
+  TS_ASSERT_THROWS(b.eqTerm(Term()), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.eqTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.eqTerm(b), CVC4ApiException&);
