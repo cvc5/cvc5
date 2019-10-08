@@ -79,10 +79,10 @@ class NodeValue {
 
   /** Maximum reference count possible.  Used for sticky
    *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
-  static const uint32_t MAX_RC = (1u << NBITS_REFCOUNT) - 1;
+  static const uint32_t MAX_RC = (((uint32_t) 1) << NBITS_REFCOUNT) - 1;
 
   /** A mask for d_kind */
-  static const uint32_t kindMask = (1u << NBITS_KIND) - 1;
+  static const uint32_t kindMask = (((uint32_t) 1) << NBITS_KIND) - 1;
 
   // This header fits into 96 bits
 
