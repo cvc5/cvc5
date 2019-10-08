@@ -576,10 +576,25 @@ class CVC4_PUBLIC Term
   bool operator!=(const Term& t) const;
 
   /**
+   * @return the id of this term
+   */
+  uint64_t getId() const;
+
+  /**
    * @return the kind of this term
    */
   Kind getKind() const;
-  
+
+  /**
+   * @return the sort of this term
+   */
+  Sort getSort() const;
+
+  /**
+   * @return true if this Term is a null term
+   */
+  bool isNull() const;
+
   /**
    * @return true if this expression is parameterized.
    *
@@ -596,16 +611,6 @@ class CVC4_PUBLIC Term
    *   mkTerm(t.getKind(), b1, ..., bn )
    */
   bool isParameterized() const;
-  
-  /**
-   * @return the sort of this term
-   */
-  Sort getSort() const;
-
-  /**
-   * @return true if this Term is a null term
-   */
-  bool isNull() const;
 
   /**
    * Boolean negation.

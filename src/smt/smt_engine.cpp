@@ -2276,6 +2276,10 @@ void SmtEngine::setDefaults() {
 
   if (options::proof())
   {
+    if (d_logic > LogicInfo("QF_AUFBVLRA")) {
+        throw OptionException(
+            "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
+    }
     if (options::bitvectorAlgebraicSolver())
     {
       if (options::bitvectorAlgebraicSolver.wasSetByUser())
@@ -3206,9 +3210,11 @@ void SmtEnginePrivate::processAssertions() {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
 
-    // Placeholder for storing substitutions
-    d_preprocessingPassContext->setSubstitutionsIndex(d_assertions.size());
-    d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
+    d_assertions.enableStoreSubstsInAsserts();
+  }
+  else
+  {
+    d_assertions.disableStoreSubstsInAsserts();
   }
 
   // Add dummy assertion in last position - to be used as a
@@ -4528,14 +4534,6 @@ void SmtEngine::checkProof()
   Chat() << "checking proof..." << endl;
 
   std::string logicString = d_logic.getLogicString();
-
-  if (!(d_logic <= LogicInfo("QF_AUFBVLRA")))
-  {
-    // This logic is not yet supported
-    Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"
-             << endl;
-    return;
-  }
 
   std::stringstream pfStream;
 
