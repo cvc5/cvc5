@@ -226,7 +226,6 @@ tokens {
   STRING_SUFFIXOF_TOK = 'SUFFIXOF';
   STRING_STOI_TOK = 'STRING_TO_INTEGER';
   STRING_ITOS_TOK = 'INTEGER_TO_STRING';
-  STRING_IN_REGEXP_TOK = 'STRING_IN_REGEXP';
   STRING_TO_REGEXP_TOK = 'STRING_TO_REGEXP';
   REGEXP_CONCAT_TOK = 'RE_CONCAT';
   REGEXP_UNION_TOK = 'RE_UNION';
@@ -373,7 +372,7 @@ Kind getOperatorKind(int type, bool& negate) {
   case GEQ_TOK: return kind::GEQ;
   case LT_TOK: return kind::LT;
   case LEQ_TOK: return kind::LEQ;
-  case MEMBER_TOK: return kind::MEMBER;
+  case MEMBER_TOK: return kind::STRING_IN_REGEXP;
   case SETS_CARD_TOK: return kind::CARD;
   case FMF_CARD_TOK: return kind::CARDINALITY_CONSTRAINT;
 
@@ -440,13 +439,19 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
   Expr lhs = createPrecedenceTree(parser, em, expressions, operators, startIndex, pivot);
   Expr rhs = createPrecedenceTree(parser, em, expressions, operators, pivot + 1, stopIndex);
 
-  switch(k) {
-  case kind::LEQ          : if(lhs.getType().isSet()) { k = kind::SUBSET; } break;
-  case kind::MINUS        : if(lhs.getType().isSet()) { k = kind::SETMINUS; } break;
-  case kind::BITVECTOR_AND: if(lhs.getType().isSet()) { k = kind::INTERSECTION; } break;
-  case kind::BITVECTOR_OR : if(lhs.getType().isSet()) { k = kind::UNION; } break;
-  default: break;
+  if (lhs.getType().isSet())
+  {
+    switch (k)
+    {
+      case kind::LEQ: k = kind::SUBSET; break;
+      case kind::MINUS: k = kind::SETMINUS; break;
+      case kind::BITVECTOR_AND: k = kind::INTERSECTION; break;
+      case kind::BITVECTOR_OR: k = kind::UNION; break;
+      case kind::STRING_IN_REGEXP: k = kind::MEMBER; break;
+      default: break;
+    }
   }
+
   Expr e = em->mkExpr(k, lhs, rhs);
   return negate ? em->mkExpr(kind::NOT, e) : e;
 }/* createPrecedenceTree() recursive variant */
@@ -2024,8 +2029,6 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::STRING_STOI, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }   
-  | STRING_IN_REGEXP_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_EXPR(CVC4::kind::STRING_IN_REGEXP, f, f2); }
   | STRING_TO_REGEXP_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_TO_REGEXP, f); }
   | REGEXP_CONCAT_TOK LPAREN formula[f] { args.push_back(f); }
