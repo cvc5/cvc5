@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bv_ackermann.h
+/*! \file ackermann.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Yoni Zohar
@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__BV_ACKERMANN_H
-#define CVC4__PREPROCESSING__PASSES__BV_ACKERMANN_H
+#ifndef CVC4__PREPROCESSING__PASSES__ACKERMANN_H
+#define CVC4__PREPROCESSING__PASSES__ACKERMANN_H
 
 #include <unordered_map>
 #include "expr/node.h"
@@ -39,10 +39,10 @@ using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
 using FunctionToArgsMap =
     std::unordered_map<TNode, TNodeSet, TNodeHashFunction>;
 
-class BVAckermann : public PreprocessingPass
+class Ackermann : public PreprocessingPass
 {
  public:
-   BVAckermann(PreprocessingPassContext* preprocContext);
+  Ackermann(PreprocessingPassContext* preprocContext);
 
  protected:
   /**
@@ -59,7 +59,10 @@ class BVAckermann : public PreprocessingPass
        AssertionPipeline* assertionsToPreprocess) override;
 
  private:
+  /* Map each function to a set of terms associated with it */
   FunctionToArgsMap d_funcToArgs;
+  /* Map each function term to the new Skolem variable created by
+   * ackermannization */
   theory::SubstitutionMap d_funcToSkolem;
 };
 
@@ -67,4 +70,4 @@ class BVAckermann : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif
+#endif /* CVC4__PREPROCESSING__PASSES__ACKERMANN_H */

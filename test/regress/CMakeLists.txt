@@ -2,6 +2,7 @@
 # Regression level 0 tests
 
 set(regress_0_tests
+  regress0/arith/ackermann.real.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc
@@ -16,6 +17,12 @@ set(regress_0_tests
   regress0/arith/div.05.smt2
   regress0/arith/div.07.smt2
   regress0/arith/fuzz_3-eq.smtv1.smt2
+  regress0/arith/integers/ackermann1.smt2
+  regress0/arith/integers/ackermann2.smt2
+  regress0/arith/integers/ackermann3.smt2
+  regress0/arith/integers/ackermann4.smt2
+  regress0/arith/integers/ackermann5.smt2
+  regress0/arith/integers/ackermann6.smt2
   regress0/arith/integers/arith-int-042.cvc
   regress0/arith/integers/arith-int-042.min.cvc
   regress0/arith/leq.01.smtv1.smt2
@@ -546,6 +553,7 @@ set(regress_0_tests
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
   regress0/options/invalid_dump.smt2
+  regress0/options/invalid_option_inc_proofs.smt2
   regress0/opt-abd-no-use.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
@@ -598,6 +606,7 @@ set(regress_0_tests
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/tuples_and_records.cvc
+  regress0/proof_no_support.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -1576,6 +1585,7 @@ set(regress_1_tests
   regress1/strings/issue3090.smt2
   regress1/strings/issue3217.smt2
   regress1/strings/issue3272.smt2
+  regress1/strings/issue3357.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
