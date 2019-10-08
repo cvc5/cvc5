@@ -123,8 +123,8 @@ namespace metakind {
 #define CVC4__EXPR__NODE_VALUE__NBITS__ID 40
 #define CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN 26
 
-static const unsigned MAX_CHILDREN =
-  (1u << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
+static const uint32_t MAX_CHILDREN =
+    (((uint32_t)1) << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
 
 }/* CVC4::kind::metakind namespace */
 }/* CVC4::kind namespace */
