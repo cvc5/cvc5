@@ -183,6 +183,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
   // precondition and OR.
   Assert(gt.isDatatype());
   const Datatype& gdt = gt.getDatatype();
+  SygusTypeInfo& gti = d_tds->getTypeInfo(gt);
   for (unsigned r = 0; r < 2; r++)
   {
     Node f = prePost[r];
@@ -193,7 +194,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
     }
     Component& c = r == 0 ? d_pre : d_post;
     Kind rk = r == 0 ? OR : AND;
-    int i = d_tds->getKindConsNum(gt, rk);
+    int i = gti.getKindConsNum(rk);
     if (i != -1 && gdt[i].getNumArgs() == 2
         && TypeNode::fromType(gdt[i].getArgType(0)) == gt
         && TypeNode::fromType(gdt[i].getArgType(1)) == gt)
