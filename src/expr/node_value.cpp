@@ -78,5 +78,19 @@ void NodeValue::printAst(std::ostream& out, int ind) const {
   out << ')';
 }
 
+NodeValue::iterator<NodeTemplate<true> > operator+(
+    NodeValue::iterator<NodeTemplate<true> >::difference_type p,
+    NodeValue::iterator<NodeTemplate<true> > i)
+{
+  return i + p;
+}
+
+NodeValue::iterator<NodeTemplate<false> > operator+(
+    NodeValue::iterator<NodeTemplate<false> >::difference_type p,
+    NodeValue::iterator<NodeTemplate<false> > i)
+{
+  return i + p;
+}
+
 } /* CVC4::expr namespace */
 } /* CVC4 namespace */
