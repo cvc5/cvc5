@@ -198,6 +198,24 @@ class Smt2 : public Parser
   void resetAssertions();
 
   /**
+   * Creates a command that asserts a rule.
+   *
+   * @param kind The kind of rule (RR_REWRITE, RR_REDUCTION, RR_DEDUCTION)
+   * @param bvl Bound variable list
+   * @param triggers List of triggers
+   * @param guards List of guards
+   * @param heads List of heads
+   * @param body The body of the rule
+   * @return The command that asserts the rewrite rule
+   */
+  std::unique_ptr<Command> assertRewriteRule(Kind kind,
+                                             Expr bvl,
+                                             const std::vector<Expr>& triggers,
+                                             const std::vector<Expr>& guards,
+                                             const std::vector<Expr>& heads,
+                                             Expr body);
+                                             
+  /**
    * Class for creating instances of `SynthFunCommand`s. Creating an instance
    * of this class pushes the scope, destroying it pops the scope.
    */
@@ -624,6 +642,15 @@ class Smt2 : public Parser
   void addSepOperators();
 
   InputLanguage getLanguage() const;
+
+  /**
+   * Utility function to create a conjunction of expressions.
+   *
+   * @param es Expressions in the conjunction
+   * @return True if `es` is empty, `e` if `es` consists of a single element
+   *         `e`, the conjunction of expressions otherwise.
+   */
+  Expr mkAnd(const std::vector<Expr>& es);
 }; /* class Smt2 */
 
 }/* CVC4::parser namespace */
