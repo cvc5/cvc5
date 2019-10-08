@@ -810,14 +810,9 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addTheory(THEORY_SEP);
   }
 
-  if (sygus())
-  {
-    return new SetBenchmarkLogicCommand(d_logic.getLogicString());
-  }
-  else
-  {
-    return new SetBenchmarkLogicCommand(name);
-  }
+  Command* cmd = new SetBenchmarkLogicCommand(sygus() ? d_logic.getLogicString() : name);
+  cmd->setMuted(!fromCommand);
+  return cmd;
 } /* Smt2::setLogic() */
 
 bool Smt2::sygus() const
