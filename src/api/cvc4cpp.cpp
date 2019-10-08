@@ -1044,6 +1044,12 @@ bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
 
+uint64_t Term::getId() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->getId();
+}
+
 Kind Term::getKind() const
 {
   CVC4_API_CHECK_NOT_NULL;
@@ -1057,6 +1063,12 @@ Sort Term::getSort() const
 }
 
 bool Term::isNull() const { return d_expr->isNull(); }
+
+bool Term::isParameterized() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->isParameterized();
+}
 
 Term Term::notTerm() const
 {
@@ -1350,7 +1362,7 @@ template <>
 uint32_t OpTerm::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  uint32_t i;
+  uint32_t i = 0;
   Kind k = intToExtKind(d_expr->getKind());
   switch (k)
   {
@@ -2552,6 +2564,19 @@ Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkBVFromStrHelper(size, s, base);
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkConstArray(Sort sort, Term val) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULL(val);
+  CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
+  CVC4_API_CHECK(sort.getArrayElementSort() == val.getSort())
+      << "Value does not match element sort.";
+  Term res = mkValHelper<CVC4::ArrayStoreAll>(
+      CVC4::ArrayStoreAll(*sort.d_type, *val.d_expr));
+  return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

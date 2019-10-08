@@ -10,6 +10,7 @@ Build types:
   debug
   testing
   competition
+  competition-inc
 
 
 General options;
@@ -110,6 +111,7 @@ assertions=default
 best=default
 cadical=default
 cln=default
+comp_inc=default
 coverage=default
 cryptominisat=default
 debug_symbols=default
@@ -325,11 +327,12 @@ do
     -*) die "invalid option '$1' (try -h)";;
 
     *) case $1 in
-         production)  buildtype=Production;;
-         debug)       buildtype=Debug;;
-         testing)     buildtype=Testing;;
-         competition) buildtype=Competition;;
-         *)           die "invalid build type (try -h)";;
+         production)      buildtype=Production;;
+         debug)           buildtype=Debug;;
+         testing)         buildtype=Testing;;
+         competition)     buildtype=Competition;;
+         competition-inc) buildtype=Competition; comp_inc=ON;;
+         *)               die "invalid build type (try -h)";;
        esac
        ;;
   esac
@@ -344,11 +347,13 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
 
 [ $asan != default ] \
- && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
+  && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $best != default ] \
   && cmake_opts="$cmake_opts -DENABLE_BEST=$best"
+[ $comp_inc != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_COMP_INC_TRACK=$comp_inc"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
 [ $debug_symbols != default ] \
@@ -366,8 +371,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $optimized != default ] \
   && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized"
-[ $portfolio != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_PORTFOLIO=$portfolio"
 [ $proofs != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
 [ $replay != default ] \

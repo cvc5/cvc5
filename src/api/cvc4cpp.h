@@ -576,6 +576,11 @@ class CVC4_PUBLIC Term
   bool operator!=(const Term& t) const;
 
   /**
+   * @return the id of this term
+   */
+  uint64_t getId() const;
+
+  /**
    * @return the kind of this term
    */
   Kind getKind() const;
@@ -589,6 +594,23 @@ class CVC4_PUBLIC Term
    * @return true if this Term is a null term
    */
   bool isNull() const;
+
+  /**
+   * @return true if this expression is parameterized.
+   *
+   * !!! The below documentation is not accurate until we have a way of getting
+   * operators from terms.
+   *
+   * In detail, a term that is parameterized is one that has an operator that
+   * must be provided in addition to its kind to construct it. For example,
+   * say we want to re-construct a Term t where its children a1, ..., an are
+   * replaced by b1 ... bn. Then there are two cases:
+   * (1) If t is parametric, call:
+   *   mkTerm(t.getKind(), t.getOperator(), b1, ..., bn )
+   * (2) If t is not parametric, call:
+   *   mkTerm(t.getKind(), b1, ..., bn )
+   */
+  bool isParameterized() const;
 
   /**
    * Boolean negation.
@@ -2095,6 +2117,15 @@ class CVC4_PUBLIC Solver
    * @return the bit-vector constant
    */
   Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
+
+  /**
+   * Create a constant array with the provided constant value stored at every
+   * index
+   * @param sort the sort of the constant array (must be an array sort)
+   * @param val the constant value to store (must match the sort's element sort)
+   * @return the constant array term
+   */
+  Term mkConstArray(Sort sort, Term val) const;
 
   /**
    * Create a positive infinity floating-point constant. Requires CVC4 to be

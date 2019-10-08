@@ -16,8 +16,8 @@
 
 #include <iostream>
 #include <cmath>
-// #include <cvc4/cvc4.h> // use this after CVC4 is properly installed
-#include "smt/smt_engine.h"
+
+#include <cvc4/cvc4.h>
 
 using namespace std;
 using namespace CVC4;
