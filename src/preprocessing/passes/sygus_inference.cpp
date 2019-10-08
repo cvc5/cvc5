@@ -224,7 +224,8 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     return false;
   }
 
-  // ensure they don't involve uninterpreted sorts
+  // Ensure the type of all free functions is handled by the sygus grammar
+  // constructor utility.
   bool typeSuccess = true;
   for (const Node& f : free_functions)
   {
