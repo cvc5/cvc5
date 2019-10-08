@@ -153,6 +153,7 @@ void TermBlack::testNotTerm()
   Sort funSort1 = d_solver.mkFunctionSort(bvSort, intSort);
   Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
+  TS_ASSERT_THROWS(Term().notTerm(), CVC4ApiException&);
   Term b = d_solver.mkTrue();
   TS_ASSERT_THROWS_NOTHING(b.notTerm());
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
@@ -182,6 +183,7 @@ void TermBlack::testAndTerm()
   Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
   Term b = d_solver.mkTrue();
+  TS_ASSERT_THROWS(Term().andTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.andTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.andTerm(b), CVC4ApiException&);
@@ -246,6 +248,7 @@ void TermBlack::testOrTerm()
   Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
   Term b = d_solver.mkTrue();
+  TS_ASSERT_THROWS(Term().orTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.orTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.orTerm(b), CVC4ApiException&);
@@ -310,6 +313,7 @@ void TermBlack::testXorTerm()
   Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
   Term b = d_solver.mkTrue();
+  TS_ASSERT_THROWS(Term().xorTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.xorTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.xorTerm(b), CVC4ApiException&);
@@ -374,6 +378,7 @@ void TermBlack::testEqTerm()
   Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
   Term b = d_solver.mkTrue();
+  TS_ASSERT_THROWS(Term().eqTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.eqTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.eqTerm(b), CVC4ApiException&);
@@ -438,6 +443,7 @@ void TermBlack::testImpTerm()
   Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
   Term b = d_solver.mkTrue();
+  TS_ASSERT_THROWS(Term().impTerm(b), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.impTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.impTerm(b), CVC4ApiException&);
@@ -502,6 +508,7 @@ void TermBlack::testIteTerm()
   Sort funSort2 = d_solver.mkFunctionSort(intSort, boolSort);
 
   Term b = d_solver.mkTrue();
+  TS_ASSERT_THROWS(Term().iteTerm(b, b), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.iteTerm(b, b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS_NOTHING(b.iteTerm(x, x));
