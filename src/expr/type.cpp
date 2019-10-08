@@ -101,7 +101,8 @@ Expr Type::mkGroundTerm() const {
   return d_typeNode->mkGroundTerm().toExpr();
 }
 
-Expr Type::mkGroundValue() const {
+Expr Type::mkGroundValue() const
+{
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->mkGroundValue().toExpr();
 }
