@@ -65,6 +65,11 @@ void TermBlack::testGetId()
   TS_ASSERT_THROWS(n.getId(), CVC4ApiException&);
   Term x = d_solver.mkVar(d_solver.getIntegerSort(), "x");
   TS_ASSERT_THROWS_NOTHING(x.getId());
+Term y = x;
+TS_ASSERT_EQUALS(x.getId(), y.getId());
+
+Term z = d_solver.mkVar(d_solver.getIntegerSort(), "z");
+TS_ASSERT_DIFFERS(x.getId(), z.getId());
 }
 
 void TermBlack::testGetKind()
