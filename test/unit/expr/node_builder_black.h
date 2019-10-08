@@ -330,7 +330,7 @@ private:
   void testOperatorSquare() {
     /*
       Node operator[](int i) const {
-      Assert(i >= 0 && i < d_ev->getNumChildren());
+      TS_ASSERT(i >= 0 && i < d_ev->getNumChildren());
       return Node(d_ev->d_children[i]);
       }
     */
