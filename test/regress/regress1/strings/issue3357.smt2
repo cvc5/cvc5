@@ -15,4 +15,4 @@
                 (= 0 (str.to.int (str.replace (str.replace a c "") "T" "")))))
 )
 (assert (= b (str.++ d f)))
-(check-sat
+(check-sat)
