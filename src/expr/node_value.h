@@ -171,7 +171,7 @@ class NodeValue
                                                             : d_nchildren;
   }
 
-  unsigned getRefCount() const { return d_rc; }
+  uint32_t getRefCount() const { return d_rc; }
 
   NodeValue* getOperator() const;
   NodeValue* getChild(int i) const;
