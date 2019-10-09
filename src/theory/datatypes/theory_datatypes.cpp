@@ -979,7 +979,7 @@ int TheoryDatatypes::getLabelIndex( EqcInfo* eqc, Node n ){
       return -1;
     }else{
       int tindex = utils::isTester(lbl);
-      CVC4_DCHECK( tindex!=-1 );
+      CVC4_DCHECK(tindex != -1);
       return tindex;
     }
   }
@@ -1125,7 +1125,7 @@ void TheoryDatatypes::addTester(
         for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
         {
           if( i!=ttindex && neg_testers.find( i )==neg_testers.end() ){
-            CVC4_DCHECK( n.getKind()!=APPLY_CONSTRUCTOR );
+            CVC4_DCHECK(n.getKind() != APPLY_CONSTRUCTOR);
             Node infer = utils::mkTester(n, i, dt).negate();
             Trace("datatypes-infer") << "DtInfer : neg label : " << infer << " by " << t << std::endl;
             d_infer.push_back( infer );

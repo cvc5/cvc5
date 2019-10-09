@@ -410,7 +410,7 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
         }
       }else{
         int sindex = Datatype::cindexOf( selExpr );
-        CVC4_DCHECK( sindex!=-1 );
+        CVC4_DCHECK(sindex != -1);
         cond = utils::mkTester(n[0], sindex, dt).negate();
       }
       Node c1 = getRelevancyCondition( n[0] );

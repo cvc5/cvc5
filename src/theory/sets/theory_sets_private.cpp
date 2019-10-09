@@ -749,7 +749,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node deq = (*it).first;
     // check if it is already satisfied
     CVC4_DCHECK(d_equalityEngine.hasTerm(deq[0])
-           && d_equalityEngine.hasTerm(deq[1]));
+                && d_equalityEngine.hasTerm(deq[1]));
     Node r1 = d_equalityEngine.getRepresentative(deq[0]);
     Node r2 = d_equalityEngine.getRepresentative(deq[1]);
     bool is_sat = d_state.isSetDisequalityEntailed(r1, r2);

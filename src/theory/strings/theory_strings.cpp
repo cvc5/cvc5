@@ -73,7 +73,7 @@ Node TheoryStrings::TermIndex::add(TNode n,
     }
     return d_data;
   }else{
-    CVC4_DCHECK( index<n.getNumChildren() );
+    CVC4_DCHECK(index < n.getNumChildren());
     TNode nir = s.getRepresentative(n[index]);
     //if it is empty, and doing CONCAT, ignore
     if( nir==er && n.getKind()==kind::STRING_CONCAT ){
@@ -766,11 +766,11 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       for (const Node& n : nf.d_nf)
       {
         Node r = d_state.getRepresentative(n);
-        CVC4_DCHECK( r.isConst() || processed.find( r )!=processed.end() );
+        CVC4_DCHECK(r.isConst() || processed.find(r) != processed.end());
         nc.push_back(r.isConst() ? r : processed[r]);
       }
       Node cc = utils::mkNConcat(nc);
-      CVC4_DCHECK( cc.getKind()==kind::CONST_STRING );
+      CVC4_DCHECK(cc.getKind() == kind::CONST_STRING);
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
       if (!m->assertEquality(nodes[i], cc, true))
@@ -1410,7 +1410,7 @@ void TheoryStrings::checkInit() {
                     }
                     else
                     {
-                      CVC4_DCHECK( !foundNEmpty );
+                      CVC4_DCHECK(!foundNEmpty);
                       ns = n[i];
                       foundNEmpty = true;
                     }
@@ -1493,7 +1493,7 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
           if (!d_state.areEqual(n[count], vecc[countc]))
           {
             Node nrr = d_state.getRepresentative(n[count]);
-            CVC4_DCHECK( !d_eqc_to_const_exp[nrr].isNull() );
+            CVC4_DCHECK(!d_eqc_to_const_exp[nrr].isNull());
             d_im.addToExplanation(n[count], d_eqc_to_const_base[nrr], exp);
             exp.push_back( d_eqc_to_const_exp[nrr] );
           }
@@ -1506,7 +1506,7 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
         }
       }
       //exp contains an explanation of n==c
-      CVC4_DCHECK( countc==vecc.size() );
+      CVC4_DCHECK(countc == vecc.size());
       if (d_state.hasTerm(c))
       {
         d_im.sendInference(exp, n.eqNode(c), "I_CONST_MERGE");
@@ -2120,9 +2120,11 @@ void TheoryStrings::checkFlatForms()
             // conflict, explanation is n = base ^ base = c ^ relevant portion
             // of ( n = f[n] )
             std::vector<Node> exp;
-            CVC4_DCHECK(d_eqc_to_const_base.find(eqc) != d_eqc_to_const_base.end());
+            CVC4_DCHECK(d_eqc_to_const_base.find(eqc)
+                        != d_eqc_to_const_base.end());
             d_im.addToExplanation(n, d_eqc_to_const_base[eqc], exp);
-            CVC4_DCHECK(d_eqc_to_const_exp.find(eqc) != d_eqc_to_const_exp.end());
+            CVC4_DCHECK(d_eqc_to_const_exp.find(eqc)
+                        != d_eqc_to_const_exp.end());
             if (!d_eqc_to_const_exp[eqc].isNull())
             {
               exp.push_back(d_eqc_to_const_exp[eqc]);
@@ -2133,7 +2135,8 @@ void TheoryStrings::checkFlatForms()
               {
                 CVC4_DCHECK(e >= 0 && e < (int)d_flat_form_index[n].size());
                 CVC4_DCHECK(d_flat_form_index[n][e] >= 0
-                       && d_flat_form_index[n][e] < (int)n.getNumChildren());
+                            && d_flat_form_index[n][e]
+                                   < (int)n.getNumChildren());
                 d_im.addToExplanation(
                     d_flat_form[n][e], n[d_flat_form_index[n][e]], exp);
               }
@@ -2902,9 +2905,10 @@ void TheoryStrings::getNormalForms(Node eqc,
           Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
           //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = N[n] )
           std::vector< Node > exp;
-          CVC4_DCHECK( d_eqc_to_const_base.find( eqc )!=d_eqc_to_const_base.end() );
+          CVC4_DCHECK(d_eqc_to_const_base.find(eqc)
+                      != d_eqc_to_const_base.end());
           d_im.addToExplanation(n, d_eqc_to_const_base[eqc], exp);
-          CVC4_DCHECK( d_eqc_to_const_exp.find( eqc )!=d_eqc_to_const_exp.end() );
+          CVC4_DCHECK(d_eqc_to_const_exp.find(eqc) != d_eqc_to_const_exp.end());
           if( !d_eqc_to_const_exp[eqc].isNull() ){
             exp.push_back( d_eqc_to_const_exp[eqc] );
           }
@@ -3713,7 +3717,8 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
         Trace("strings-solve-debug")  << "...Processing(DEQ) " << i << " " << j << std::endl;
         if (!d_state.areEqual(i, j))
         {
-          CVC4_DCHECK( i.getKind()!=kind::CONST_STRING || j.getKind()!=kind::CONST_STRING );
+          CVC4_DCHECK(i.getKind() != kind::CONST_STRING
+                      || j.getKind() != kind::CONST_STRING);
           std::vector< Node > lexp;
           Node li = d_state.getLength(i, lexp);
           Node lj = d_state.getLength(j, lexp);
@@ -4494,7 +4499,7 @@ void TheoryStrings::separateByLength(std::vector< Node >& n,
   std::map< unsigned, std::vector< Node > > eqc_to_strings;
   for( unsigned i=0; i<n.size(); i++ ) {
     Node eqc = n[i];
-    CVC4_DCHECK( d_equalityEngine.getRepresentative(eqc)==eqc );
+    CVC4_DCHECK(d_equalityEngine.getRepresentative(eqc) == eqc);
     EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if( !lt.isNull() ){

@@ -48,7 +48,8 @@ void addLemmaForPair(TNode args1,
   if (args1.getKind() == kind::APPLY_UF)
   {
     CVC4_DCHECK(args1.getOperator() == func);
-    CVC4_DCHECK(args2.getKind() == kind::APPLY_UF && args2.getOperator() == func);
+    CVC4_DCHECK(args2.getKind() == kind::APPLY_UF
+                && args2.getOperator() == func);
     CVC4_DCHECK(args1.getNumChildren() == args2.getNumChildren());
     CVC4_DCHECK(args1.getNumChildren() >= 1);
 
