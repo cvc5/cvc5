@@ -430,8 +430,7 @@ public:
    * possible, for example in handling under-specified operations
    * using partially defined functions.
    *
-   * TODO (github issue #1076): 
-   * some theories like sets use expandDefinition as a "context
+   * Some theories like sets use expandDefinition as a "context
    * independent preRegisterTerm".  This is required for cases where
    * a theory wants to be notified about a term before preprocessing
    * and simplification but doesn't necessarily want to rewrite it.

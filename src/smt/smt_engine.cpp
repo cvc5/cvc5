@@ -170,10 +170,9 @@ class DefinedFunction {
   Node d_formula;
 public:
   DefinedFunction() {}
-  DefinedFunction(Node func, vector<Node> formals, Node formula) :
-    d_func(func),
-    d_formals(formals),
-    d_formula(formula) {
+  DefinedFunction(Node func, vector<Node>& formals, Node formula)
+      : d_func(func), d_formals(formals), d_formula(formula)
+  {
   }
   Node getFunction() const { return d_func; }
   vector<Node> getFormals() const { return d_formals; }
@@ -517,15 +516,10 @@ class SmtEnginePrivate : public NodeManagerListener {
   std::vector<Node> d_sygusConstraints;
   /** functions-to-synthesize */
   std::vector<Node> d_sygusFunSymbols;
-  /** maps functions-to-synthesize to their respective input variables lists */
-  std::map<Node, std::vector<Node>> d_sygusFunVars;
-  /** maps functions-to-synthesize to their respective syntactic restrictions
-   *
-   * If function has syntactic restrictions, these are encoded as a SyGuS
-   * datatype type
+  /**
+   * Whether we need to reconstruct the sygus conjecture.
    */
-  std::map<Node, TypeNode> d_sygusFunSyntax;
-
+  CDO<bool> d_sygusConjectureStale;
   /*------------------- end of sygus utils ------------------*/
 
  private:
@@ -575,7 +569,8 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_simplifyAssertionsDepth(0),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.d_userContext),
-        d_iteRemover(smt.d_userContext)
+        d_iteRemover(smt.d_userContext),
+        d_sygusConjectureStale(smt.d_userContext, true)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
@@ -849,8 +844,8 @@ class SmtEnginePrivate : public NodeManagerListener {
 
 SmtEngine::SmtEngine(ExprManager* em)
     : d_context(new Context()),
-      d_userLevels(),
       d_userContext(new UserContext()),
+      d_userLevels(),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_decisionEngine(NULL),
@@ -1189,6 +1184,10 @@ void SmtEngine::setDefaults() {
                << "generation" << endl;
       setOption("bitblastMode", SExpr("lazy"));
     }
+    else if (!options::incrementalSolving())
+    {
+      options::ackermann.set(true);
+    }
 
     if (options::incrementalSolving() && !d_logic.isPure(THEORY_BV))
     {
@@ -1212,50 +1211,80 @@ void SmtEngine::setDefaults() {
   {
     d_logic = LogicInfo("QF_NIA");
   }
-  else if ((d_logic.getLogicString() == "QF_UFBV"
-            || d_logic.getLogicString() == "QF_ABV")
-           && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
-  {
-    d_logic = LogicInfo("QF_BV");
-  }
 
-  // set strings-exp
-  /* - disabled for 1.4 release [MGD 2014.06.25]
-  if(!d_logic.hasEverything() && d_logic.isTheoryEnabled(THEORY_STRINGS) ) {
-    if(! options::stringExp.wasSetByUser()) {
-      options::stringExp.set( true );
-      Trace("smt") << "turning on strings-exp, for the theory of strings" << std::endl;
+  // set options about ackermannization
+  if (options::produceModels())
+  {
+    if (options::ackermann()
+        && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+            || d_logic.isTheoryEnabled(THEORY_UF)))
+    {
+      if (options::produceModels.wasSetByUser())
+      {
+        throw OptionException(std::string(
+            "Ackermannization currently does not support model generation."));
+      }
+      Notice() << "SmtEngine: turn off ackermannization to support model"
+               << "generation" << endl;
+      options::ackermann.set(false);
     }
   }
-  */
-  // for strings
-  if(options::stringExp()) {
-    if( !d_logic.isQuantified() ) {
+
+  if (options::ackermann())
+  {
+    if (options::incrementalSolving())
+    {
+      throw OptionException(
+          "Incremental Ackermannization is currently not supported.");
+    }
+
+    if (d_logic.isTheoryEnabled(THEORY_UF))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_UF);
+      d_logic.lock();
+    }
+    if (d_logic.isTheoryEnabled(THEORY_ARRAYS))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_ARRAYS);
+      d_logic.lock();
+    }
+  }
+
+  // set default options associated with strings-exp
+  if (options::stringExp())
+  {
+    // We require quantifiers since extended functions reduce using them
+    if (!d_logic.isQuantified())
+    {
       d_logic = d_logic.getUnlockedCopy();
       d_logic.enableQuantifiers();
       d_logic.lock();
       Trace("smt") << "turning on quantifier logic, for strings-exp"
                    << std::endl;
     }
-    if(! options::fmfBound.wasSetByUser()) {
+    // We require bounded quantifier handling.
+    if (!options::fmfBound.wasSetByUser())
+    {
       options::fmfBound.set( true );
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
-    if(! options::fmfInstEngine.wasSetByUser()) {
-      options::fmfInstEngine.set( true );
-      Trace("smt") << "turning on fmf-inst-engine, for strings-exp" << std::endl;
+    // Turn off E-matching, since some bounded quantifiers introduced by strings
+    // (e.g. for replaceall) admit matching loops.
+    if (!options::eMatching.wasSetByUser())
+    {
+      options::eMatching.set(false);
+      Trace("smt") << "turning off E-matching, for strings-exp" << std::endl;
     }
-    /*
-    if(! options::rewriteDivk.wasSetByUser()) {
-      options::rewriteDivk.set( true );
-      Trace("smt") << "turning on rewrite-divk, for strings-exp" << std::endl;
-    }*/
-    /*
-    if(! options::stringFMF.wasSetByUser()) {
-      options::stringFMF.set( true );
-      Trace("smt") << "turning on strings-fmf, for strings-exp" << std::endl;
+    // Do not eliminate extended arithmetic symbols from quantified formulas,
+    // since some strategies, e.g. --re-elim-agg, introduce them.
+    if (!options::elimExtArithQuant.wasSetByUser())
+    {
+      options::elimExtArithQuant.set(false);
+      Trace("smt") << "turning off elim-ext-arith-quant, for strings-exp"
+                   << std::endl;
     }
-    */
   }
 
   // sygus inference may require datatypes
@@ -1319,14 +1348,6 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << endl;
       options::unconstrainedSimp.set(uncSimp);
-    }
-  }
-  if (!options::proof())
-  {
-    // minimizing solutions from single invocation requires proofs
-    if (options::cegqiSolMinCore() && options::cegqiSolMinCore.wasSetByUser())
-    {
-      throw OptionException("cegqi-si-sol-min-core requires --proof");
     }
   }
 
@@ -1804,8 +1825,12 @@ void SmtEngine::setDefaults() {
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
     options::cbqi.set(false);
   }
-  //track instantiations?
-  if( options::cbqiNestedQE() || ( options::proof() && !options::trackInstLemmas.wasSetByUser() ) ){
+  // Do we need to track instantiations?
+  // Needed for sygus due to single invocation techniques.
+  if (options::cbqiNestedQE()
+      || (options::proof() && !options::trackInstLemmas.wasSetByUser())
+      || is_sygus)
+  {
     options::trackInstLemmas.set( true );
   }
 
@@ -1816,8 +1841,6 @@ void SmtEngine::setDefaults() {
   //now have determined whether fmfBoundInt is on/off
   //apply fmfBoundInt options
   if( options::fmfBound() ){
-    //must have finite model finding on
-    options::finiteModelFind.set( true );
     if (!options::mbqiMode.wasSetByUser()
         || (options::mbqiMode() != quantifiers::MBQI_NONE
             && options::mbqiMode() != quantifiers::MBQI_FMC))
@@ -1984,10 +2007,10 @@ void SmtEngine::setDefaults() {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
     }
-    if (options::sygusStream())
+    if (options::sygusStream() || options::incrementalSolving())
     {
-      // Streaming is incompatible with techniques that focus the search towards
-      // finding a single solution.
+      // Streaming and incremental mode are incompatible with techniques that
+      // focus the search towards finding a single solution.
       reqBasicSygus = true;
     }
     // Now, disable options for non-basic sygus algorithms, if necessary.
@@ -2245,13 +2268,24 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if(options::incrementalSolving() && options::proof()) {
-    Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
-    setOption("incremental", SExpr("false"));
-  }
-
   if (options::proof())
   {
+    if (options::incrementalSolving())
+    {
+      if (options::incrementalSolving.wasSetByUser())
+      {
+        throw OptionException("--incremental is not supported with proofs");
+      }
+      Warning()
+          << "SmtEngine: turning off incremental solving mode (not yet "
+             "supported with --proof, try --tear-down-incremental instead)"
+          << endl;
+      setOption("incremental", SExpr("false"));
+    }
+    if (d_logic > LogicInfo("QF_AUFBVLRA")) {
+        throw OptionException(
+            "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
+    }
     if (options::bitvectorAlgebraicSolver())
     {
       if (options::bitvectorAlgebraicSolver.wasSetByUser())
@@ -2442,12 +2476,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
     }
     return SExpr(stats);
   } else if(key == "error-behavior") {
-    // immediate-exit | continued-execution
-    if( options::continuedExecution() || options::interactive() ) {
-      return SExpr(SExpr::Keyword("continued-execution"));
-    } else {
-      return SExpr(SExpr::Keyword("immediate-exit"));
-    }
+    return SExpr(SExpr::Keyword("immediate-exit"));
   } else if(key == "name") {
     return SExpr(Configuration::getName());
   } else if(key == "version") {
@@ -3074,6 +3103,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
        << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw RecoverableModalException(ss.str().c_str());
   }
+
   if (!options::produceModels())
   {
     std::stringstream ss;
@@ -3082,6 +3112,15 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   }
 
   TheoryModel* m = d_theoryEngine->getBuiltModel();
+
+  if (m == nullptr)
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c
+       << " since model is not available. Perhaps the most recent call to "
+          "check-sat was interupted?";
+    throw RecoverableModalException(ss.str().c_str());
+  }
 
   return m;
 }
@@ -3177,9 +3216,11 @@ void SmtEnginePrivate::processAssertions() {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
 
-    // Placeholder for storing substitutions
-    d_preprocessingPassContext->setSubstitutionsIndex(d_assertions.size());
-    d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
+    d_assertions.enableStoreSubstsInAsserts();
+  }
+  else
+  {
+    d_assertions.disableStoreSubstsInAsserts();
   }
 
   // Add dummy assertion in last position - to be used as a
@@ -3226,15 +3267,6 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["nl-ext-purify"]->apply(&d_assertions);
   }
 
-  if( options::ceGuidedInst() ){
-    //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_smt.d_theoryEngine->getQuantifiersEngine()
-          ->getSynthEngine()
-          ->preregisterAssertion(d_assertions[i]);
-    }
-  }
-
   if (options::solveRealAsInt()) {
     d_passes["real-to-int"]->apply(&d_assertions);
   }
@@ -3253,10 +3285,9 @@ void SmtEnginePrivate::processAssertions() {
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-      && !options::incrementalSolving())
+  if (options::ackermann())
   {
-    d_passes["bv-ackermann"]->apply(&d_assertions);
+    d_passes["ackermann"]->apply(&d_assertions);
   }
 
   if (options::bvAbstraction() && !options::incrementalSolving())
@@ -3791,7 +3822,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
-      // TODO (#1693) check model when unknown result?
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
       {
         checkModel();
@@ -3890,6 +3920,7 @@ void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
 {
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
+  // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
@@ -3898,6 +3929,7 @@ void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
   d_private->d_sygusPrimedVarTypes.push_back(type);
 #endif
   Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
+  // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSygusFunctionVar(const std::string& id,
@@ -3906,6 +3938,7 @@ void SmtEngine::declareSygusFunctionVar(const std::string& id,
 {
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
+  // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSynthFun(const std::string& id,
@@ -3914,28 +3947,41 @@ void SmtEngine::declareSynthFun(const std::string& id,
                                 bool isInv,
                                 const std::vector<Expr>& vars)
 {
+  SmtScope smts(this);
+  finalOptionsAreSet();
+  doPendingPops();
   Node fn = Node::fromExpr(func);
   d_private->d_sygusFunSymbols.push_back(fn);
-  std::vector<Node> var_nodes;
-  for (const Expr& v : vars)
+  if (!vars.empty())
   {
-    var_nodes.push_back(Node::fromExpr(v));
+    Expr bvl = d_exprManager->mkExpr(kind::BOUND_VAR_LIST, vars);
+    std::vector<Expr> attr_val_bvl;
+    attr_val_bvl.push_back(bvl);
+    setUserAttribute("sygus-synth-fun-var-list", func, attr_val_bvl, "");
   }
-  d_private->d_sygusFunVars[fn] = var_nodes;
   // whether sygus type encodes syntax restrictions
   if (sygusType.isDatatype()
       && static_cast<DatatypeType>(sygusType).getDatatype().isSygus())
   {
-    d_private->d_sygusFunSyntax[fn] = TypeNode::fromType(sygusType);
+    TypeNode stn = TypeNode::fromType(sygusType);
+    Node sym = d_nodeManager->mkBoundVar("sfproxy", stn);
+    std::vector<Expr> attr_value;
+    attr_value.push_back(sym.toExpr());
+    setUserAttribute("sygus-synth-grammar", func, attr_value, "");
   }
   Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
+  // sygus conjecture is now stale
+  setSygusConjectureStale();
 }
 
 void SmtEngine::assertSygusConstraint(Expr constraint)
 {
+  SmtScope smts(this);
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
+  // sygus conjecture is now stale
+  setSygusConjectureStale();
 }
 
 void SmtEngine::assertSygusInvConstraint(const Expr& inv,
@@ -4026,11 +4072,27 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusInvConstrant: " << constraint << "\n";
+  // sygus conjecture is now stale
+  setSygusConjectureStale();
 }
 
 Result SmtEngine::checkSynth()
 {
   SmtScope smts(this);
+
+  if (options::incrementalSolving())
+  {
+    // TODO (project #7)
+    throw ModalException(
+        "Cannot make check-synth commands when incremental solving is enabled");
+  }
+
+  if (!d_private->d_sygusConjectureStale)
+  {
+    // do not need to reconstruct, we're done
+    return checkSatisfiability(Expr(), true, false);
+  }
+
   // build synthesis conjecture from asserted constraints and declared
   // variables/functions
   Node sygusVar =
@@ -4066,38 +4128,18 @@ Result SmtEngine::checkSynth()
   // set attribute for synthesis conjecture
   setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
 
-  // set attributes for functions-to-synthesize
-  for (const Node& synth_fun : d_private->d_sygusFunSymbols)
-  {
-    // associate var list with function-to-synthesize
-    Assert(d_private->d_sygusFunVars.find(synth_fun)
-           != d_private->d_sygusFunVars.end());
-    const std::vector<Node>& vars = d_private->d_sygusFunVars[synth_fun];
-    Node bvl;
-    if (!vars.empty())
-    {
-      bvl = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, vars);
-    }
-    std::vector<Expr> attr_val_bvl;
-    attr_val_bvl.push_back(bvl.toExpr());
-    setUserAttribute(
-        "sygus-synth-fun-var-list", synth_fun.toExpr(), attr_val_bvl, "");
-    // If the function has syntax restrition, bulid a variable "sfproxy" which
-    // carries the type, a SyGuS datatype that corresponding to the syntactic
-    // restrictions.
-    std::map<Node, TypeNode>::const_iterator it =
-        d_private->d_sygusFunSyntax.find(synth_fun);
-    if (it != d_private->d_sygusFunSyntax.end())
-    {
-      Node sym = d_nodeManager->mkBoundVar("sfproxy", it->second);
-      std::vector<Expr> attr_value;
-      attr_value.push_back(sym.toExpr());
-      setUserAttribute(
-          "sygus-synth-grammar", synth_fun.toExpr(), attr_value, "");
-    }
-  }
-
   Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
+
+  d_private->d_sygusConjectureStale = false;
+
+  if (options::incrementalSolving())
+  {
+    // we push a context so that this conjecture is removed if we modify it
+    // later
+    internalPush();
+    assertFormula(body.toExpr(), true);
+    return checkSatisfiability(body.toExpr(), true, false);
+  }
 
   return checkSatisfiability(body.toExpr(), true, false);
 }
@@ -4173,18 +4215,6 @@ Expr SmtEngine::getValue(const Expr& ex) const
     Dump("benchmark") << GetValueCommand(ex);
   }
 
-  if(!options::produceModels()) {
-    const char* msg =
-      "Cannot get value when produce-models options is off.";
-    throw ModalException(msg);
-  }
-  if (d_smtMode != SMT_MODE_SAT)
-  {
-    const char* msg =
-      "Cannot get value unless immediately preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
-  }
-
   // Substitute out any abstract values in ex.
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
 
@@ -4213,7 +4243,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = d_theoryEngine->getBuiltModel();
+  TheoryModel* m = getAvailableModel("get-value");
   Node resultNode;
   if(m != NULL) {
     resultNode = m->getValue(n);
@@ -4231,8 +4261,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
              || resultNode.getType().isSubtypeOf(expectedType),
          "Run with -t smt for details.");
 
-  // ensure it's a constant
-  Assert(resultNode.getKind() == kind::LAMBDA || resultNode.isConst());
+  // Ensure it's a constant, or a lambda (for uninterpreted functions), or
+  // a choice (for approximate values).
+  Assert(resultNode.getKind() == kind::LAMBDA
+         || resultNode.getKind() == kind::CHOICE || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);
@@ -4300,19 +4332,16 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       "produce-assignments option is off.";
     throw ModalException(msg);
   }
-  if (d_smtMode != SMT_MODE_SAT)
-  {
-    const char* msg =
-      "Cannot get the current assignment unless immediately "
-      "preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
-  }
+
+  // Get the model here, regardless of whether d_assignments is null, since
+  // we should throw errors related to model availability whether or not
+  // assignments is null.
+  TheoryModel* m = getAvailableModel("get assignment");
 
   vector<pair<Expr,Expr>> res;
   if (d_assignments != nullptr)
   {
     TypeNode boolType = d_nodeManager->booleanType();
-    TheoryModel* m = d_theoryEngine->getBuiltModel();
     for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
                                      iend = d_assignments->key_end();
          i != iend;
@@ -4471,7 +4500,7 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
   Expr nil;
-  Model* m = d_theoryEngine->getBuiltModel();
+  Model* m = getAvailableModel("get separation logic heap and nil");
   if (m->getHeapModel(heap, nil))
   {
     return std::make_pair(heap, nil);
@@ -4511,14 +4540,6 @@ void SmtEngine::checkProof()
   Chat() << "checking proof..." << endl;
 
   std::string logicString = d_logic.getLogicString();
-
-  if (!(d_logic <= LogicInfo("QF_AUFBVLRA")))
-  {
-    // This logic is not yet supported
-    Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"
-             << endl;
-    return;
-  }
 
   std::stringstream pfStream;
 
@@ -4623,7 +4644,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   // and if Notice() is on, the user gave --verbose (or equivalent).
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  TheoryModel* m = d_theoryEngine->getBuiltModel();
+  TheoryModel* m = getAvailableModel("check model");
 
   // check-model is not guaranteed to succeed if approximate values were used
   if (m->hasApproximations())
@@ -4919,6 +4940,70 @@ void SmtEngine::checkSynthSolution()
   }
 }
 
+void SmtEngine::checkAbduct(Expr a)
+{
+  Assert(a.getType().isBoolean());
+  Trace("check-abduct") << "SmtEngine::checkAbduct: get expanded assertions"
+                        << std::endl;
+
+  std::vector<Expr> asserts = getExpandedAssertions();
+  asserts.push_back(a);
+
+  // two checks: first, consistent with assertions, second, implies negated goal
+  // is unsatisfiable.
+  for (unsigned j = 0; j < 2; j++)
+  {
+    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+                          << ": make new SMT engine" << std::endl;
+    // Start new SMT engine to check solution
+    SmtEngine abdChecker(d_exprManager);
+    abdChecker.setLogic(getLogicInfo());
+    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+                          << ": asserting formulas" << std::endl;
+    for (const Expr& e : asserts)
+    {
+      abdChecker.assertFormula(e);
+    }
+    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+                          << ": check the assertions" << std::endl;
+    Result r = abdChecker.checkSat();
+    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
+                          << ": result is " << r << endl;
+    std::stringstream serr;
+    bool isError = false;
+    if (j == 0)
+    {
+      if (r.asSatisfiabilityResult().isSat() != Result::SAT)
+      {
+        isError = true;
+        serr << "SmtEngine::checkAbduct(): produced solution cannot be shown "
+                "to be consisconsistenttent with assertions, result was "
+             << r;
+      }
+      Trace("check-abduct")
+          << "SmtEngine::checkAbduct: goal is " << d_abdConj << std::endl;
+      // add the goal to the set of assertions
+      Assert(!d_abdConj.isNull());
+      asserts.push_back(d_abdConj);
+    }
+    else
+    {
+      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+      {
+        isError = true;
+        serr << "SmtEngine::checkAbduct(): negated goal cannot be shown "
+                "unsatisfiable with produced solution, result was "
+             << r;
+      }
+    }
+    // did we get an unexpected result?
+    if (isError)
+    {
+      InternalError(serr.str().c_str());
+    }
+  }
+}
+
 // TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
@@ -5072,7 +5157,7 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   }
   Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj
                         << std::endl;
-  std::vector<Expr> easserts = getAssertions();
+  std::vector<Expr> easserts = getExpandedAssertions();
   std::vector<Node> axioms;
   for (unsigned i = 0, size = easserts.size(); i < size; i++)
   {
@@ -5080,18 +5165,17 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // negate the conjecture
-  Node conjn = Node::fromExpr(conj).negate();
+  Node conjn = Node::fromExpr(conj);
+  // must expand definitions
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  conjn = d_private->expandDefinitions(conjn, cache);
+  // now negate
+  conjn = conjn.negate();
+  d_abdConj = conjn.toExpr();
   asserts.push_back(conjn);
-  d_sssfVarlist.clear();
-  d_sssfSyms.clear();
   std::string name("A");
   Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
-      name,
-      asserts,
-      axioms,
-      TypeNode::fromType(grammarType),
-      d_sssfVarlist,
-      d_sssfSyms);
+      name, asserts, axioms, TypeNode::fromType(grammarType));
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
@@ -5142,17 +5226,33 @@ bool SmtEngine::getAbductInternal(Expr& abd)
       {
         abdn = abdn[1];
       }
-      Assert(d_sssfVarlist.size() == d_sssfSyms.size());
+      // get the grammar type for the abduct
+      Node af = Node::fromExpr(d_sssf);
+      Node agdtbv = af.getAttribute(theory::SygusSynthFunVarListAttribute());
+      Assert(!agdtbv.isNull());
+      Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
       // convert back to original
       // must replace formal arguments of abd with the free variables in the
       // input problem that they correspond to.
-      abdn = abdn.substitute(d_sssfVarlist.begin(),
-                             d_sssfVarlist.end(),
-                             d_sssfSyms.begin(),
-                             d_sssfSyms.end());
+      std::vector<Node> vars;
+      std::vector<Node> syms;
+      SygusVarToTermAttribute sta;
+      for (const Node& bv : agdtbv)
+      {
+        vars.push_back(bv);
+        syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
+      }
+      abdn =
+          abdn.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
 
       // convert to expression
       abd = abdn.toExpr();
+
+      // if check abducts option is set, we check the correctness
+      if (options::checkAbducts())
+      {
+        checkAbduct(abd);
+      }
       return true;
     }
     Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
@@ -5578,6 +5678,20 @@ bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
 void SmtEngine::setExpressionName(Expr e, const std::string& name) {
   Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
   d_private->setExpressionName(e,name);
+}
+
+void SmtEngine::setSygusConjectureStale()
+{
+  if (d_private->d_sygusConjectureStale)
+  {
+    // already stale
+    return;
+  }
+  d_private->d_sygusConjectureStale = true;
+  if (options::incrementalSolving())
+  {
+    internalPop();
+  }
 }
 
 }/* CVC4 namespace */

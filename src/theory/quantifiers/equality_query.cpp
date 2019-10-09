@@ -32,8 +32,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine( context::Context* c, QuantifiersEngine* qe ) : d_qe( qe ), d_eqi_counter( c ), d_reset_count( 0 ){
-
+EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
+    context::Context* c, QuantifiersEngine* qe)
+    : d_qe(qe), d_eqi_counter(c), d_reset_count(0)
+{
 }
 
 EqualityQueryQuantifiersEngine::~EqualityQueryQuantifiersEngine(){
@@ -42,43 +44,6 @@ EqualityQueryQuantifiersEngine::~EqualityQueryQuantifiersEngine(){
 bool EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
   d_int_rep.clear();
   d_reset_count++;
-  return processInferences( e );
-}
-
-bool EqualityQueryQuantifiersEngine::processInferences( Theory::Effort e ) {
-  if( options::inferArithTriggerEq() ){
-    eq::EqualityEngine* ee = getEngine();
-    //updated implementation
-    EqualityInference * ei = d_qe->getEqualityInference();
-    while( d_eqi_counter.get()<ei->getNumPendingMerges() ){
-      Node eq = ei->getPendingMerge( d_eqi_counter.get() );
-      Node eq_exp = ei->getPendingMergeExplanation( d_eqi_counter.get() );
-      Trace("quant-engine-ee-proc") << "processInferences : Infer : " << eq << std::endl;
-      Trace("quant-engine-ee-proc") << "      explanation : " << eq_exp << std::endl;
-      Assert( ee->hasTerm( eq[0] ) );
-      Assert( ee->hasTerm( eq[1] ) );
-      if( areDisequal( eq[0], eq[1] ) ){
-        Trace("quant-engine-ee-proc") << "processInferences : Conflict : " << eq << std::endl;
-        if( Trace.isOn("term-db-lemma") ){
-          Trace("term-db-lemma") << "Disequal terms, equal by normalization : " << eq[0] << " " << eq[1] << "!!!!" << std::endl;
-          if( !d_qe->getTheoryEngine()->needCheck() ){
-            Trace("term-db-lemma") << "  all theories passed with no lemmas." << std::endl;
-            //this should really never happen (implies arithmetic is incomplete when sharing is enabled)
-            Assert( false );
-          }
-          Trace("term-db-lemma") << "  add split on : " << eq << std::endl;
-        }
-        eq = Rewriter::rewrite(eq);
-        Node split = NodeManager::currentNM()->mkNode(OR, eq, eq.negate());
-        d_qe->addLemma(split);
-        return false;
-      }else{
-        ee->assertEquality( eq, true, eq_exp );
-        d_eqi_counter = d_eqi_counter.get() + 1;
-      }
-    }
-    Assert( ee->consistent() );
-  }
   return true;
 }
 

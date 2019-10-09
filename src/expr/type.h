@@ -140,6 +140,19 @@ protected:
   Cardinality getCardinality() const;
 
   /**
+   * Is this type finite? This assumes uninterpreted sorts have infinite
+   * cardinality.
+   */
+  bool isFinite() const;
+
+  /**
+   * Is this type interpreted as being finite.
+   * If finite model finding is enabled, this assumes all uninterpreted sorts
+   *   are interpreted as finite.
+   */
+  bool isInterpretedFinite() const;
+
+  /**
    * Is this a well-founded type?
    */
   bool isWellFounded() const;

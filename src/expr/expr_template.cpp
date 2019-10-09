@@ -371,7 +371,8 @@ bool Expr::operator>(const Expr& e) const {
   return *d_node > *e.d_node;
 }
 
-unsigned long Expr::getId() const {
+uint64_t Expr::getId() const
+{
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
   return d_node->getId();
@@ -408,6 +409,13 @@ Expr Expr::getOperator() const {
   PrettyCheckArgument(d_node->hasOperator(), *this,
                       "Expr::getOperator() called on an Expr with no operator");
   return Expr(d_exprManager, new Node(d_node->getOperator()));
+}
+
+bool Expr::isParameterized() const
+{
+  ExprManagerScope ems(*this);
+  Assert(d_node != NULL, "Unexpected NULL expression pointer!");
+  return d_node->getMetaKind() == kind::metakind::PARAMETERIZED;
 }
 
 Type Expr::getType(bool check) const

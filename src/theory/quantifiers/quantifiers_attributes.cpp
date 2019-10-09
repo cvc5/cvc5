@@ -157,14 +157,14 @@ Node QuantAttributes::getFunDefBody( Node q ) {
       {
         // solve for h in the equality
         std::map<Node, Node> msum;
-        if (ArithMSum::getMonomialSum(q[1], msum))
+        if (ArithMSum::getMonomialSumLit(q[1], msum))
         {
           Node veq;
           int res = ArithMSum::isolate(h, msum, veq, EQUAL);
           if (res != 0)
           {
             Assert(veq.getKind() == EQUAL);
-            return res == 1 ? veq[0] : veq[1];
+            return res == 1 ? veq[1] : veq[0];
           }
         }
       }
@@ -213,28 +213,18 @@ bool QuantAttributes::checkQuantElimAnnotation( Node ipl ) {
 
 void QuantAttributes::computeAttributes( Node q ) {
   computeQuantAttributes( q, d_qattr[q] );
-  if( !d_qattr[q].d_rr.isNull() ){
-    if( d_quantEngine->getRewriteEngine()==NULL ){
-      Trace("quant-warn") << "WARNING : rewrite engine is null, and we have : " << q << std::endl;
-    }
-    //set rewrite engine as owner
-    d_quantEngine->setOwner( q, d_quantEngine->getRewriteEngine(), 2 );
-  }
-  if( d_qattr[q].isFunDef() ){
-    Node f = d_qattr[q].d_fundef_f;
+  QAttributes& qa = d_qattr[q];
+  if (qa.isFunDef())
+  {
+    Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
       Message() << "Cannot define function " << f << " more than once." << std::endl;
       AlwaysAssert(false);
     }
     d_fun_defs[f] = true;
   }
-  if( d_qattr[q].d_sygus ){
-    if (d_quantEngine->getSynthEngine() == nullptr)
-    {
-      Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
-    }
-    d_quantEngine->setOwner(q, d_quantEngine->getSynthEngine(), 2);
-  }
+  // set ownership of quantified formula q based on the computed attributes
+  d_quantEngine->setOwner(q, qa);
 }
 
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
