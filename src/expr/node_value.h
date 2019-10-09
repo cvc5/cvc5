@@ -92,18 +92,18 @@ class NodeValue
  public:
   /* ------------------------------------------------------------------------ */
 
-  typedef NodeValue** nv_iterator;
-  typedef NodeValue const* const* const_nv_iterator;
+  using nv_iterator = NodeValue**;
+  using const_nv_iterator = NodeValue const* const*;
 
   template <class T>
   class iterator
   {
    public:
-    typedef std::random_access_iterator_tag iterator_category;
-    typedef T value_type;
-    typedef std::ptrdiff_t difference_type;
-    typedef T* pointer;
-    typedef T& reference;
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type = T;
+    using difference_type = std::ptrdiff_t;
+    using pointer = T*;
+    using reference = T&;
 
     iterator() : d_i(NULL) {}
     explicit iterator(const_nv_iterator i) : d_i(i) {}
