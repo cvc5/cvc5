@@ -14,7 +14,8 @@
  **/
 
 #include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/term_canonize.h"
+
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4;
 using namespace std;
@@ -23,7 +24,7 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
 struct sortTypeOrder {
-  TermCanonize* d_tu;
+  expr::TermCanonize* d_tu;
   bool operator() (TypeNode i, TypeNode j) {
     return d_tu->getIdForType( i )<d_tu->getIdForType( j );
   }

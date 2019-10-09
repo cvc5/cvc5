@@ -79,9 +79,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDHASHMAP_H
-#define __CVC4__CONTEXT__CDHASHMAP_H
+#ifndef CVC4__CONTEXT__CDHASHMAP_H
+#define CVC4__CONTEXT__CDHASHMAP_H
 
+#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <unordered_map>
@@ -394,7 +395,12 @@ public:
   class iterator {
     const Element* d_it;
 
-  public:
+   public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = typename CDOhash_map<Key, Data, HashFcn>::value_type;
+    using difference_type = ptrdiff_t;
+    using pointer = typename CDOhash_map<Key, Data, HashFcn>::value_type*;
+    using reference = typename CDOhash_map<Key, Data, HashFcn>::value_type&;
 
     iterator(const Element* p) : d_it(p) {}
     iterator(const iterator& i) : d_it(i.d_it) {}
@@ -403,18 +409,15 @@ public:
     iterator() : d_it(nullptr) {}
 
     // (Dis)equality
-    bool operator==(const iterator& i) const {
-      return d_it == i.d_it;
-    }
-    bool operator!=(const iterator& i) const {
-      return d_it != i.d_it;
-    }
+    bool operator==(const iterator& i) const { return d_it == i.d_it; }
+    bool operator!=(const iterator& i) const { return d_it != i.d_it; }
 
     // Dereference operators.
     const value_type& operator*() const { return d_it->getValue(); }
 
     // Prefix increment
-    iterator& operator++() {
+    iterator& operator++()
+    {
       d_it = d_it->next();
       return *this;
     }
@@ -448,4 +451,4 @@ public:
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDHASHMAP_H */
+#endif /* CVC4__CONTEXT__CDHASHMAP_H */

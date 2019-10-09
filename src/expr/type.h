@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__TYPE_H
-#define __CVC4__TYPE_H
+#ifndef CVC4__TYPE_H
+#define CVC4__TYPE_H
 
 #include <climits>
 #include <cstdint>
@@ -138,6 +138,19 @@ protected:
    * Return the cardinality of this type.
    */
   Cardinality getCardinality() const;
+
+  /**
+   * Is this type finite? This assumes uninterpreted sorts have infinite
+   * cardinality.
+   */
+  bool isFinite() const;
+
+  /**
+   * Is this type interpreted as being finite.
+   * If finite model finding is enabled, this assumes all uninterpreted sorts
+   *   are interpreted as finite.
+   */
+  bool isInterpretedFinite() const;
 
   /**
    * Is this a well-founded type?
@@ -665,4 +678,4 @@ class CVC4_PUBLIC TesterType : public Type {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__TYPE_H */
+#endif /* CVC4__TYPE_H */

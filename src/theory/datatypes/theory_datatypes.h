@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
-#define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
+#ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
+#define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 
 #include <iostream>
 #include <map>
@@ -205,8 +205,16 @@ private:
   bool d_addedFact;
   /** The conflict node */
   Node d_conflictNode;
-  /** cache for which terms we have called collectTerms(...) on */
+  /**
+   * SAT-context dependent cache for which terms we have called
+   * collectTerms(...) on.
+   */
   BoolMap d_collectTermsCache;
+  /**
+   * User-context dependent cache for which terms we have called
+   * collectTerms(...) on.
+   */
+  BoolMap d_collectTermsCacheU;
   /** pending assertions/merges */
   std::vector< Node > d_pending_lem;
   std::vector< Node > d_pending;
@@ -370,4 +378,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */
+#endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */

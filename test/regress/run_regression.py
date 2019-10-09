@@ -79,6 +79,30 @@ def get_cvc4_features(cvc4_binary):
     return features
 
 
+def logic_supported_with_proofs(logic):
+    assert logic is None or isinstance(logic, str)
+    return logic in [
+            #single theories
+            "QF_BV",
+            "QF_UF",
+            "QF_A",
+            "QF_LRA",
+            #two theories
+            "QF_UFBV",
+            "QF_UFLRA",
+            "QF_AUF",
+            "QF_ALRA",
+            "QF_ABV",
+            "QF_BVLRA"
+            #three theories
+            "QF_AUFBV",
+            "QF_ABVLRA",
+            "QF_UFBVLRA",
+            "QF_AUFLRA",
+            #four theories
+            "QF_AUFBVLRA"
+            ]
+
 def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
                   command_line, benchmark_dir, benchmark_filename, timeout):
     """Runs CVC4 on the file `benchmark_filename` in the directory
@@ -151,17 +175,18 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     benchmark_dir = os.path.dirname(benchmark_path)
     comment_char = '%'
     status_regex = None
+    logic_regex = None
     status_to_output = lambda s: s
     if benchmark_ext == '.smt':
         status_regex = r':status\s*(sat|unsat)'
         comment_char = ';'
     elif benchmark_ext == '.smt2':
         status_regex = r'set-info\s*:status\s*(sat|unsat)'
+        logic_regex = r'\(\s*set-logic\s*(.*)\)'
         comment_char = ';'
     elif benchmark_ext == '.cvc':
         pass
     elif benchmark_ext == '.p':
-        basic_command_line_args.append('--finite-model-find')
         status_regex = r'% Status\s*:\s*(Theorem|Unsatisfiable|CounterSatisfiable|Satisfiable)'
         status_to_output = lambda s: '% SZS status {} for {}'.format(s, benchmark_filename)
     elif benchmark_ext == '.sy':
@@ -186,6 +211,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     expected_exit_status = None
     command_lines = []
     requires = []
+    logic = None
     for line in benchmark_lines:
         # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
@@ -214,16 +240,20 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
     if expected_output == '' and expected_error == '':
         match = None
         if status_regex:
-            match = re.search(status_regex, benchmark_content)
+            match = re.findall(status_regex, benchmark_content)
 
         if match:
-            expected_output = status_to_output(match.group(1))
+            expected_output = status_to_output('\n'.join(match))
         elif expected_exit_status is None:
             # If there is no expected output/error and the exit status has not
             # been set explicitly, the benchmark is invalid.
             sys.exit('Cannot determine status of "{}"'.format(benchmark_path))
     if expected_exit_status is None:
         expected_exit_status = 0
+    if logic_regex:
+        logic_match = re.findall(logic_regex, benchmark_content)
+        if logic_match and len(logic_match) == 1:
+            logic = logic_match[0]
 
     if 'CVC4_REGRESSION_ARGS' in os.environ:
         basic_command_line_args += shlex.split(
@@ -285,6 +315,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
                '--check-proofs' not in all_args and \
                '--incremental' not in all_args and \
                '--unconstrained-simp' not in all_args and \
+               logic_supported_with_proofs(logic) and \
                not cvc4_binary.endswith('pcvc4'):
                 extra_command_line_args = ['--check-proofs']
         if unsat_cores and re.search(r'^(unsat|valid)$', expected_output):
@@ -294,6 +325,10 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
                '--unconstrained-simp' not in all_args and \
                not cvc4_binary.endswith('pcvc4'):
                 extra_command_line_args += ['--check-unsat-cores']
+        if '--no-check-abducts' not in all_args and \
+            '--check-abducts' not in all_args and \
+            not cvc4_binary.endswith('pcvc4'):
+            extra_command_line_args += ['--check-abducts']
         if extra_command_line_args:
             command_line_args_configs.append(all_args +
                                              extra_command_line_args)

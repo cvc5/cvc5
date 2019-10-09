@@ -14,12 +14,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_STRATEGY_ENUMERATIVE_H
-#define __CVC4__INST_STRATEGY_ENUMERATIVE_H
+#ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
+#define CVC4__INST_STRATEGY_ENUMERATIVE_H
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -61,7 +62,7 @@ namespace quantifiers {
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersEngine* qe);
+  InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd);
   ~InstStrategyEnum() {}
   /** Needs check. */
   bool needsCheck(Theory::Effort e) override;
@@ -79,6 +80,8 @@ class InstStrategyEnum : public QuantifiersModule
   }
 
  private:
+  /** Pointer to the relevant domain utility of quantifiers engine */
+  RelevantDomain* d_rd;
   /** process quantified formula
    *
    * q is the quantified formula we are constructing instances for.
@@ -92,8 +95,12 @@ class InstStrategyEnum : public QuantifiersModule
    * well-typed term *not* occurring in the current context.
    * This handles corner cases where there are no well-typed
    * ground terms in the current context to instantiate with.
+   *
+   * The flag isRd indicates whether we are trying relevant domain
+   * instantiations. If this flag is false, we are trying arbitrary ground
+   * term instantiations.
    */
-  bool process(Node q, bool fullEffort);
+  bool process(Node q, bool fullEffort, bool isRd);
 }; /* class InstStrategyEnum */
 
 } /* CVC4::theory::quantifiers namespace */

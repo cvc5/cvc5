@@ -14,15 +14,23 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
 
 #include <map>
-#include "theory/quantifiers_engine.h"
+#include <vector>
+
+#include "expr/datatype.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** SygusRedundantCons
  *
@@ -116,4 +124,4 @@ class SygusRedundantCons
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H */

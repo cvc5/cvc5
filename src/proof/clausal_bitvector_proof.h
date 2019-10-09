@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
-#define __CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
+#ifndef CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
+#define CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
 
 #include <iostream>
 #include <sstream>
@@ -33,6 +33,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_types.h"
 #include "theory/bv/theory_bv.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -61,9 +62,59 @@ class ClausalBitVectorProof : public BitVectorProof
 
  protected:
   // A list of all clauses and their ids which are passed into the SAT solver
-  std::vector<std::pair<ClauseId, prop::SatClause>> d_usedClauses;
+  std::unordered_map<ClauseId, prop::SatClause> d_clauses{};
+  std::vector<ClauseId> d_originalClauseIndices{};
   // Stores the proof recieved from the SAT solver.
-  std::ostringstream d_binaryDratProof;
+  std::ostringstream d_binaryDratProof{};
+  std::vector<ClauseId> d_coreClauseIndices{};
+
+  struct DratTranslationStatistics
+  {
+    DratTranslationStatistics();
+    ~DratTranslationStatistics();
+
+    // Total time spent doing translation (optimized binary DRAT -> in memory
+    // target format including IO, postprocessing, etc.)
+    TimerStat d_totalTime;
+    // Time that the external tool actually spent
+    TimerStat d_toolTime;
+  };
+
+  DratTranslationStatistics d_dratTranslationStatistics;
+
+ private:
+  // Optimizes the DRAT proof stored in `d_binaryDratProof` and returns a list
+  // of clause actually needed to check that proof (a smaller UNSAT core)
+  void optimizeDratProof();
+
+  // Given reference to a SAT clause encoded as a vector of literals, puts the
+  // literals into a canonical order
+  static void canonicalizeClause(prop::SatClause& clause);
+
+  struct DratOptimizationStatistics
+  {
+    DratOptimizationStatistics();
+    ~DratOptimizationStatistics();
+
+    // Total time spent using drat-trim to optimize the DRAT proof/formula
+    // (including IO, etc.)
+    TimerStat d_totalTime;
+    // Time that drat-trim actually spent optimizing the DRAT proof/formula
+    TimerStat d_toolTime;
+    // Time that was spent matching clauses in drat-trim's output to clauses in
+    // its input
+    TimerStat d_clauseMatchingTime;
+    // Bytes in binary DRAT proof before optimization
+    IntStat d_initialDratSize;
+    // Bytes in binary DRAT proof after optimization
+    IntStat d_optimizedDratSize;
+    // Bytes in textual DIMACS bitblasted formula before optimization
+    IntStat d_initialFormulaSize;
+    // Bytes in textual DIMACS bitblasted formula after optimization
+    IntStat d_optimizedFormulaSize;
+  };
+
+  DratOptimizationStatistics d_dratOptimizationStatistics;
 };
 
 /**
@@ -135,4 +186,4 @@ class LfscErBitVectorProof : public LfscClausalBitVectorProof
 
 }  // namespace CVC4
 
-#endif /* __CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H */
+#endif /* CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H */

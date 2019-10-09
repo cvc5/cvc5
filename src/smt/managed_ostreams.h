@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__MANAGED_OSTREAMS_H
-#define __CVC4__MANAGED_OSTREAMS_H
+#ifndef CVC4__MANAGED_OSTREAMS_H
+#define CVC4__MANAGED_OSTREAMS_H
 
 #include <ostream>
 
@@ -179,4 +179,4 @@ class ManagedReplayLogOstream : public ManagedOstream {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__MANAGED_OSTREAMS_H */
+#endif /* CVC4__MANAGED_OSTREAMS_H */

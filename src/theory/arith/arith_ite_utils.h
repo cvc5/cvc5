@@ -19,8 +19,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
-#define __CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
+#ifndef CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
+#define CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H
 
 #include <unordered_map>
 
@@ -115,4 +115,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H */
+#endif /* CVC4__THEORY__ARITH__ARITH_ITE_UTILS_H */

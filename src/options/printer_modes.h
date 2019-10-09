@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__PRINTER__MODES_H
-#define __CVC4__PRINTER__MODES_H
+#ifndef CVC4__PRINTER__MODES_H
+#define CVC4__PRINTER__MODES_H
 
 #include <iostream>
 
@@ -45,4 +45,4 @@ std::ostream& operator<<(std::ostream& out, InstFormatMode mode) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PRINTER__MODEL_FORMAT_H */
+#endif /* CVC4__PRINTER__MODEL_FORMAT_H */

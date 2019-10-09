@@ -20,6 +20,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -34,7 +35,8 @@ CegisUnif::CegisUnif(QuantifiersEngine* qe, SynthConjecture* p)
 }
 
 CegisUnif::~CegisUnif() {}
-bool CegisUnif::processInitialize(Node n,
+bool CegisUnif::processInitialize(Node conj,
+                                  Node n,
                                   const std::vector<Node>& candidates,
                                   std::vector<Node>& lemmas)
 {
@@ -455,16 +457,20 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       std::stringstream ss;
       ss << "_virtual_enum_grammar";
       std::string virtualEnumName(ss.str());
-      std::map<TypeNode, std::vector<Node>> extra_cons;
-      std::map<TypeNode, std::vector<Node>> exclude_cons;
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
+          exclude_cons;
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
+          include_cons;
       // do not include "-", which is included by default for integers
-      exclude_cons[intTn].push_back(nm->operatorOf(MINUS));
+      exclude_cons[intTn].insert(nm->operatorOf(MINUS));
       std::unordered_set<Node, NodeHashFunction> term_irrelevant;
       TypeNode vtn = CegGrammarConstructor::mkSygusDefaultType(intTn,
                                                                bvl,
                                                                virtualEnumName,
                                                                extra_cons,
                                                                exclude_cons,
+                                                               include_cons,
                                                                term_irrelevant);
       d_virtual_enum = nm->mkSkolem("_ve", vtn);
       d_tds->registerEnumerator(

@@ -21,15 +21,6 @@ header = "options/sets_options.h"
   help       = "send inferences as lemmas"
 
 [[option]]
-  name       = "setsRelEager"
-  category   = "regular"
-  long       = "sets-rel-eager"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "standard effort checks for relations"
-
-[[option]]
   name       = "setsExt"
   category   = "regular"
   long       = "sets-ext"

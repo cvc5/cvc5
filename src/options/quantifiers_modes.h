@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__BASE__QUANTIFIERS_MODES_H
-#define __CVC4__BASE__QUANTIFIERS_MODES_H
+#ifndef CVC4__BASE__QUANTIFIERS_MODES_H
+#define CVC4__BASE__QUANTIFIERS_MODES_H
 
 #include <iostream>
 
@@ -272,6 +272,16 @@ enum SygusActiveGenMode
   SYGUS_ACTIVE_GEN_AUTO,
 };
 
+enum SygusQueryDumpFilesMode
+{
+  /** do not dump query files */
+  SYGUS_QUERY_DUMP_NONE,
+  /** dump all query files */
+  SYGUS_QUERY_DUMP_ALL,
+  /** dump query files that were not solved by the subsolver */
+  SYGUS_QUERY_DUMP_UNSOLVED,
+};
+
 enum SygusFilterSolMode
 {
   /** do not filter solutions */
@@ -316,4 +326,4 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::InstWhenMode mo
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BASE__QUANTIFIERS_MODES_H */
+#endif /* CVC4__BASE__QUANTIFIERS_MODES_H */

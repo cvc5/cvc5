@@ -13,8 +13,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS__CEGIS_UNIF_H
 
 #include <map>
 #include <vector>
@@ -233,7 +233,8 @@ class CegisUnif : public Cegis
 
  private:
   /** do cegis-implementation-specific initialization for this class */
-  bool processInitialize(Node n,
+  bool processInitialize(Node conj,
+                         Node n,
                          const std::vector<Node>& candidates,
                          std::vector<Node>& lemmas) override;
   /** Tries to build new candidate solutions with new enumerated expressions

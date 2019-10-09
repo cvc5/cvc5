@@ -18,8 +18,8 @@
 
 #include <algorithm>
 
-#ifndef __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
-#define __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
+#ifndef CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
+#define CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H
 
 namespace CVC4 {
 namespace theory {
@@ -224,18 +224,6 @@ class BitVectorITETypeRule
 /* parameterized operator kinds                                               */
 /* -------------------------------------------------------------------------- */
 
-class BitVectorBitOfOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_BITOF_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorBitOfOpTypeRule */
-
 class BitVectorBitOfTypeRule
 {
  public:
@@ -261,18 +249,6 @@ class BitVectorBitOfTypeRule
     return nodeManager->booleanType();
   }
 }; /* class BitVectorBitOfTypeRule */
-
-class BitVectorExtractOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_EXTRACT_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorExtractOpTypeRule */
 
 class BitVectorExtractTypeRule
 {
@@ -309,18 +285,6 @@ class BitVectorExtractTypeRule
   }
 }; /* class BitVectorExtractTypeRule */
 
-class BitVectorRepeatOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_REPEAT_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorRepeatOpTypeRule */
-
 class BitVectorRepeatTypeRule
 {
  public:
@@ -340,54 +304,6 @@ class BitVectorRepeatTypeRule
     return nodeManager->mkBitVectorType(repeatAmount * t.getBitVectorSize());
   }
 }; /* class BitVectorRepeatTypeRule */
-
-class BitVectorRotateLeftOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_ROTATE_LEFT_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorRotateLeftOpTypeRule */
-
-class BitVectorRotateRightOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_ROTATE_RIGHT_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorRotateRightOpTypeRule */
-
-class BitVectorSignExtendOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_SIGN_EXTEND_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorSignExtendOpTypeRule */
-
-class BitVectorZeroExtendOpTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    Assert(n.getKind() == kind::BITVECTOR_ZERO_EXTEND_OP);
-    return nodeManager->builtinOperatorType();
-  }
-}; /* class BitVectorZeroExtendOpTypeRule */
 
 class BitVectorExtendTypeRule
 {
@@ -525,4 +441,4 @@ class BitVectorAckermanizationUremTypeRule
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H */
+#endif /* CVC4__THEORY__BV__THEORY_BV_TYPE_RULES_H */

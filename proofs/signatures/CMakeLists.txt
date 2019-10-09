@@ -16,6 +16,7 @@ set(core_signature_files
     th_bv_rewrites.plf
     th_real.plf
     th_int.plf
+    th_lra.plf
 )
 
 set(CORE_SIGNATURES "")

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H
 
 #include <map>
 #include <vector>
@@ -33,7 +33,7 @@ namespace quantifiers {
 class EprInstantiator : public Instantiator
 {
  public:
-  EprInstantiator(QuantifiersEngine* qe, TypeNode tn) : Instantiator(qe, tn) {}
+  EprInstantiator(TypeNode tn) : Instantiator(tn) {}
   virtual ~EprInstantiator() {}
   /** reset */
   void reset(CegInstantiator* ci,
@@ -106,4 +106,4 @@ class EprInstantiator : public Instantiator
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEG_EPR_INSTANTIATOR_H */

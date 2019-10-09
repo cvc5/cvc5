@@ -14,17 +14,21 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
 
 #include <map>
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** Sygus unification utility
  *
@@ -196,4 +200,4 @@ class SygusUnif
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */

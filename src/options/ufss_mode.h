@@ -16,19 +16,30 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BASE__UFSS_MODE_H
-#define __CVC4__BASE__UFSS_MODE_H
+#ifndef CVC4__BASE__UFSS_MODE_H
+#define CVC4__BASE__UFSS_MODE_H
 
 namespace CVC4 {
 namespace theory {
 namespace uf {
 
-enum UfssMode{
-  /** default, use uf strong solver to find minimal models for uninterpreted sorts */
+/**
+ * These modes determine the role of UF with cardinality when using finite model
+ * finding (--finite-model-find).
+ */
+enum UfssMode
+{
+  /**
+   * Default, use UF with cardinality to find minimal models for uninterpreted
+   * sorts.
+   */
   UF_SS_FULL,
-  /** use uf strong solver to shrink model sizes, but do no enforce minimality */
+  /**
+   * Use UF with cardinality to shrink model sizes, but do no enforce
+   * minimality.
+   */
   UF_SS_NO_MINIMAL,
-  /** do not use uf strong solver */
+  /** do not use UF with cardinality */
   UF_SS_NONE,
 };
 
@@ -36,4 +47,4 @@ enum UfssMode{
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BASE__UFSS_MODE_H */
+#endif /* CVC4__BASE__UFSS_MODE_H */

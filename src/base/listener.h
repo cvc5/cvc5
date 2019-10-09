@@ -20,8 +20,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__LISTENER_H
-#define __CVC4__LISTENER_H
+#ifndef CVC4__LISTENER_H
+#define CVC4__LISTENER_H
 
 #include <list>
 
@@ -161,4 +161,4 @@ class ListenerRegistrationList {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__LISTENER_H */
+#endif /* CVC4__LISTENER_H */

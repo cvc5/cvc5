@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__THEORY_PREPROCESS_H
-#define __CVC4__PREPROCESSING__PASSES__THEORY_PREPROCESS_H
+#ifndef CVC4__PREPROCESSING__PASSES__THEORY_PREPROCESS_H
+#define CVC4__PREPROCESSING__PASSES__THEORY_PREPROCESS_H
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -40,4 +40,4 @@ class TheoryPreprocess : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__THEORY_PREPROCESS_H */
+#endif /* CVC4__PREPROCESSING__PASSES__THEORY_PREPROCESS_H */

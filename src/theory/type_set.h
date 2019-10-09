@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__TYPE_SET_H
-#define __CVC4__THEORY__TYPE_SET_H
+#ifndef CVC4__THEORY__TYPE_SET_H
+#define CVC4__THEORY__TYPE_SET_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -87,4 +87,4 @@ class TypeSet
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__TYPE_SET_H */
+#endif /* CVC4__THEORY__TYPE_SET_H */

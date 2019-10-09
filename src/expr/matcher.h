@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__MATCHER_H
-#define __CVC4__MATCHER_H
+#ifndef CVC4__MATCHER_H
+#define CVC4__MATCHER_H
 
 #include <iosfwd>
 #include <string>
@@ -116,4 +116,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__MATCHER_H */
+#endif /* CVC4__MATCHER_H */

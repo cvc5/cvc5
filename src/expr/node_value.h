@@ -23,8 +23,8 @@
 // circular dependency
 #include "expr/metakind.h"
 
-#ifndef __CVC4__EXPR__NODE_VALUE_H
-#define __CVC4__EXPR__NODE_VALUE_H
+#ifndef CVC4__EXPR__NODE_VALUE_H
+#define CVC4__EXPR__NODE_VALUE_H
 
 #include <stdint.h>
 
@@ -59,10 +59,10 @@ namespace kind {
 
 namespace expr {
 
-#if __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT + \
-    __CVC4__EXPR__NODE_VALUE__NBITS__KIND + \
-    __CVC4__EXPR__NODE_VALUE__NBITS__ID + \
-    __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN != 96
+#if CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT + \
+    CVC4__EXPR__NODE_VALUE__NBITS__KIND + \
+    CVC4__EXPR__NODE_VALUE__NBITS__ID + \
+    CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN != 96
 #  error NodeValue header bit assignment does not sum to 96 !
 #endif /* sum != 96 */
 
@@ -70,18 +70,19 @@ namespace expr {
  * This is a NodeValue.
  */
 class NodeValue {
-
-  static const unsigned NBITS_REFCOUNT = __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT;
-  static const unsigned NBITS_KIND = __CVC4__EXPR__NODE_VALUE__NBITS__KIND;
-  static const unsigned NBITS_ID = __CVC4__EXPR__NODE_VALUE__NBITS__ID;
-  static const unsigned NBITS_NCHILDREN = __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
+  static const uint32_t NBITS_REFCOUNT =
+      CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT;
+  static const uint32_t NBITS_KIND = CVC4__EXPR__NODE_VALUE__NBITS__KIND;
+  static const uint32_t NBITS_ID = CVC4__EXPR__NODE_VALUE__NBITS__ID;
+  static const uint32_t NBITS_NCHILDREN =
+      CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
 
   /** Maximum reference count possible.  Used for sticky
    *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
-  static const unsigned MAX_RC = (1u << NBITS_REFCOUNT) - 1;
+  static const uint32_t MAX_RC = (((uint32_t)1) << NBITS_REFCOUNT) - 1;
 
   /** A mask for d_kind */
-  static const unsigned kindMask = (1u << NBITS_KIND) - 1;
+  static const uint32_t kindMask = (((uint32_t)1) << NBITS_KIND) - 1;
 
   // This header fits into 96 bits
 
@@ -89,13 +90,13 @@ class NodeValue {
   uint64_t d_id        : NBITS_ID;
 
   /** The expression's reference count.  @see cvc4::Node. */
-  uint64_t d_rc        : NBITS_REFCOUNT;
+  uint32_t d_rc : NBITS_REFCOUNT;
 
   /** Kind of the expression */
-  uint64_t d_kind      : NBITS_KIND;
+  uint32_t d_kind : NBITS_KIND;
 
   /** Number of children */
-  uint64_t d_nchildren : NBITS_NCHILDREN;
+  uint32_t d_nchildren : NBITS_NCHILDREN;
 
   /** Variable number of child nodes */
   NodeValue* d_children[0];
@@ -252,13 +253,16 @@ public:
     return hash;
   }
 
-  unsigned long getId() const { return d_id; }
+  uint64_t getId() const { return d_id; }
+
   Kind getKind() const { return dKindToKind(d_kind); }
+
   kind::MetaKind getMetaKind() const { return kind::metaKindOf(getKind()); }
-  unsigned getNumChildren() const {
-    return (getMetaKind() == kind::metakind::PARAMETERIZED)
-      ? d_nchildren - 1
-      : d_nchildren;
+
+  uint32_t getNumChildren() const
+  {
+    return (getMetaKind() == kind::metakind::PARAMETERIZED) ? d_nchildren - 1
+                                                            : d_nchildren;
   }
 
   unsigned getRefCount() const { return d_rc; }
@@ -267,11 +271,13 @@ public:
   void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
                 OutputLanguage = language::output::LANG_AUTO) const;
 
-  static inline unsigned kindToDKind(Kind k) {
-    return ((unsigned) k) & kindMask;
+  static inline uint32_t kindToDKind(Kind k)
+  {
+    return ((uint32_t)k) & kindMask;
   }
 
-  static inline Kind dKindToKind(unsigned d) {
+  static inline Kind dKindToKind(uint32_t d)
+  {
     return (d == kindMask) ? kind::UNDEFINED_KIND : Kind(d);
   }
 
@@ -549,4 +555,4 @@ static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* 
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__NODE_VALUE_H */
+#endif /* CVC4__EXPR__NODE_VALUE_H */

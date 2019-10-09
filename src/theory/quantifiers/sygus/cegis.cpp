@@ -19,6 +19,7 @@
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace std;
@@ -38,7 +39,8 @@ Cegis::Cegis(QuantifiersEngine* qe, SynthConjecture* p)
   }
 }
 
-bool Cegis::initialize(Node n,
+bool Cegis::initialize(Node conj,
+                       Node n,
                        const std::vector<Node>& candidates,
                        std::vector<Node>& lemmas)
 {
@@ -60,10 +62,11 @@ bool Cegis::initialize(Node n,
     TypeNode bt = d_base_body.getType();
     d_cegis_sampler.initialize(bt, d_base_vars, options::sygusSamples());
   }
-  return processInitialize(n, candidates, lemmas);
+  return processInitialize(conj, n, candidates, lemmas);
 }
 
-bool Cegis::processInitialize(Node n,
+bool Cegis::processInitialize(Node conj,
+                              Node n,
                               const std::vector<Node>& candidates,
                               std::vector<Node>& lemmas)
 {
@@ -82,7 +85,8 @@ bool Cegis::processInitialize(Node n,
     {
       TypeNode ctn = candidates[i].getType();
       d_tds->registerSygusType(ctn);
-      if (d_tds->hasSubtermSymbolicCons(ctn))
+      SygusTypeInfo& cti = d_tds->getTypeInfo(ctn);
+      if (cti.hasSubtermSymbolicCons())
       {
         do_repair_const = true;
         // remember that we are doing grammar-based repair

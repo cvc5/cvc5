@@ -755,9 +755,10 @@ Node AbstractionModule::simplifyConflict(TNode conflict) {
   return new_conflict;
 }
 
-
-void DebugPrintInstantiations(const std::vector< std::vector<ArgsVec> >& instantiations,
-                              const std::vector<TNode> functions) {
+void DebugPrintInstantiations(
+    const std::vector<std::vector<ArgsVec> >& instantiations,
+    const std::vector<TNode>& functions)
+{
   // print header
   Debug("bv-abstraction-dbg") <<"[ ";
   for (unsigned i = 0; i < functions.size(); ++i) {

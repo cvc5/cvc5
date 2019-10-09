@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_PROCESS_CONJ_H
 
 #include <map>
 #include <unordered_map>
@@ -25,10 +25,12 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 /** This file contains techniques that compute

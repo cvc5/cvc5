@@ -16,15 +16,15 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__DUMP_H
-#define __CVC4__DUMP_H
+#ifndef CVC4__DUMP_H
+#define CVC4__DUMP_H
 
 #include "base/output.h"
 #include "smt/command.h"
 
 namespace CVC4 {
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE) && !defined(CVC4_PORTFOLIO)
+#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
 
 class CVC4_PUBLIC CVC4dumpstream
 {
@@ -110,4 +110,4 @@ extern DumpC DumpChannel CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__DUMP_H */
+#endif /* CVC4__DUMP_H */

@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__DIVISIBLE_H
-#define __CVC4__DIVISIBLE_H
+#ifndef CVC4__DIVISIBLE_H
+#define CVC4__DIVISIBLE_H
 
 #include <iosfwd>
 
@@ -60,4 +60,4 @@ inline std::ostream& operator <<(std::ostream& os, const Divisible& d) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__DIVISIBLE_H */
+#endif /* CVC4__DIVISIBLE_H */

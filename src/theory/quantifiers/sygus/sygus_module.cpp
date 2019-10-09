@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/sygus/sygus_module.h"
 
+#include "theory/quantifiers_engine.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {

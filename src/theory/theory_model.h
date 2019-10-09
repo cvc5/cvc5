@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORY_MODEL_H
-#define __CVC4__THEORY__THEORY_MODEL_H
+#ifndef CVC4__THEORY__THEORY_MODEL_H
+#define CVC4__THEORY__THEORY_MODEL_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -239,6 +239,8 @@ public:
   bool hasApproximations() const override;
   /** get approximations */
   std::vector<std::pair<Expr, Expr> > getApproximations() const override;
+  /** get domain elements for uninterpreted sort t */
+  std::vector<Expr> getDomainElements(Type t) const override;
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
@@ -351,4 +353,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_MODEL_H */
+#endif /* CVC4__THEORY__THEORY_MODEL_H */
