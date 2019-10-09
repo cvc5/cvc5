@@ -19,9 +19,10 @@
 #include <map>
 
 #include "base/cvc4_assert.h"
-#include "context/context.h"
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
+#include "context/context.h"
+#include "test_utils.h"
 
 using CVC4::AssertionException;
 using CVC4::context::Context;
@@ -163,10 +164,8 @@ class CDMapBlack : public CxxTest::TestSuite {
         TS_ASSERT(
             ElementsAre(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}, {23, 317}}));
 
-        TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 317),
-                         AssertionException&);
-        TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 472),
-                         AssertionException&);
+        TS_UTILS_EXPECT_ABORT(map.insertAtContextLevelZero(23, 317));
+        TS_UTILS_EXPECT_ABORT(map.insertAtContextLevelZero(23, 472));
         map.insert(23, 472);
 
         TS_ASSERT(
@@ -177,8 +176,7 @@ class CDMapBlack : public CxxTest::TestSuite {
           TS_ASSERT(
             ElementsAre(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}, {23, 472}}));
 
-          TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0),
-                           AssertionException&);
+          TS_UTILS_EXPECT_ABORT(map.insertAtContextLevelZero(23, 0));
           map.insert(23, 1024);
 
           TS_ASSERT(
@@ -194,8 +192,7 @@ class CDMapBlack : public CxxTest::TestSuite {
       TS_ASSERT(
           ElementsAre(map, {{3, 4}, {5, 6}, {9, 8}, {23, 317}}));
 
-      TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0),
-                       AssertionException&);
+      TS_UTILS_EXPECT_ABORT(map.insertAtContextLevelZero(23, 0));
       map.insert(23, 477);
 
       TS_ASSERT(
@@ -203,7 +200,7 @@ class CDMapBlack : public CxxTest::TestSuite {
       d_context->pop();
     }
 
-    TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(map.insertAtContextLevelZero(23, 0));
 
     TS_ASSERT(
         ElementsAre(map, {{3, 4}, {23, 317}}));
