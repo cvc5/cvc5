@@ -299,7 +299,7 @@ bool CegisCoreConnective::constructSolution(
     }
     Component& cfilter = d == 0 ? d_post : d_pre;
     Node fpred = cfilter.getFormula();
-    if (!fpred.isConst())
+    if (!fpred.isNull() && !fpred.isConst())
     {
       // check refinement points
       Node etsrn = d == 0 ? etsr : etsr.negate();
