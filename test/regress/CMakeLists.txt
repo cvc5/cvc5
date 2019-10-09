@@ -2,6 +2,7 @@
 # Regression level 0 tests
 
 set(regress_0_tests
+  regress0/arith/ackermann.real.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc
@@ -16,6 +17,12 @@ set(regress_0_tests
   regress0/arith/div.05.smt2
   regress0/arith/div.07.smt2
   regress0/arith/fuzz_3-eq.smtv1.smt2
+  regress0/arith/integers/ackermann1.smt2
+  regress0/arith/integers/ackermann2.smt2
+  regress0/arith/integers/ackermann3.smt2
+  regress0/arith/integers/ackermann4.smt2
+  regress0/arith/integers/ackermann5.smt2
+  regress0/arith/integers/ackermann6.smt2
   regress0/arith/integers/arith-int-042.cvc
   regress0/arith/integers/arith-int-042.min.cvc
   regress0/arith/leq.01.smtv1.smt2
@@ -546,6 +553,7 @@ set(regress_0_tests
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
   regress0/options/invalid_dump.smt2
+  regress0/options/invalid_option_inc_proofs.smt2
   regress0/opt-abd-no-use.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
@@ -553,6 +561,7 @@ set(regress_0_tests
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2
+  regress0/parser/force_logic_success.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -861,6 +870,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/re.all.smt2
+  regress0/strings/regexp-native-simple.cvc
   regress0/strings/regexp_inclusion.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
   regress0/strings/repl-rewrites2.smt2
@@ -896,6 +906,7 @@ set(regress_0_tests
   regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/inv-different-var-order.sy
+  regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-syntax-test-bool.sy
@@ -1374,6 +1385,8 @@ set(regress_1_tests
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
+  regress1/quantifiers/issue3250-syg-inf-q.smt2
+  regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2

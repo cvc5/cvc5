@@ -1053,10 +1053,16 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
     }else{
       Trace("cbqi-inst-debug2") << "Revert substitutions..." << std::endl;
       //revert substitution information
-      for( std::map< int, Node >::iterator it = prev_subs.begin(); it != prev_subs.end(); it++ ){
+      for (std::map<int, Node>::iterator it = prev_subs.begin();
+           it != prev_subs.end();
+           ++it)
+      {
         sf.d_subs[it->first] = it->second;
       }
-      for( std::map< int, TermProperties >::iterator it = prev_prop.begin(); it != prev_prop.end(); it++ ){
+      for (std::map<int, TermProperties>::iterator it = prev_prop.begin();
+           it != prev_prop.end();
+           ++it)
+      {
         sf.d_props[it->first] = it->second;
       }
       for( unsigned i=0; i<new_non_basic.size(); i++ ){
