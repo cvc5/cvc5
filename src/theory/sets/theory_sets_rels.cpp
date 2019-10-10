@@ -1190,11 +1190,11 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   void TheorySetsRels::makeSharedTerm( Node n ) {
-    if(d_shared_terms.find(n) != d_shared_terms.end()) {
+    if (d_shared_terms.find(n) != d_shared_terms.end())
+    {
       return;
     }
-    Trace("rels-share") << " [sets-rels] making shared term " << n
-                        << std::endl;
+    Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     // force a proxy lemma to be sent for the singleton containing n
     Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
     d_state.getProxy(ss);
