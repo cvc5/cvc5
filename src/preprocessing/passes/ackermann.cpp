@@ -327,7 +327,7 @@ PreprocessingPassResult Ackermann::applyInternal(
   /* the current version only supports BV for removing uninterpreted sorts */
   if (d_logic.isTheoryEnabled(theory::THEORY_BV))
   {
-    /* replace uninterpreted sorts to bitvector */
+    /* replace uninterpreted sorts with bit-vectors */
     usortsToBitVectors(
         d_usortCardinality, d_sortsToSkolem, assertionsToPreprocess);
 
