@@ -43,6 +43,8 @@ class SkolemCache
    */
   enum SkolemId
   {
+    // exists k. k = a
+    SK_PURIFY,
     // (a,b) in join(A,B) => exists k. (a,k) in A ^ (k,b) in B
     // This is cached by the nodes corresponding to (a,b) and join(A,B).
     SK_JOIN,
@@ -54,6 +56,9 @@ class SkolemCache
    */
   Node mkTypedSkolemCached(
       TypeNode tn, Node a, Node b, SkolemId id, const char* c);
+  /** same as above, cached based on key (a,null,id) */
+  Node mkTypedSkolemCached(
+      TypeNode tn, Node a, SkolemId id, const char* c);
   /** Same as above, but without caching. */
   Node mkTypedSkolem(TypeNode tn, const char* c);
   /** Returns true if n is a skolem allocated by this class */
