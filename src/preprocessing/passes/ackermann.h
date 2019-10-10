@@ -67,10 +67,10 @@ class Ackermann : public PreprocessingPass
   /* Map each function term to the new Skolem variable created by
    * ackermannization */
   theory::SubstitutionMap d_funcToSkolem;
-  /* Map each uninterpreted sort to the new Skolem variable created by
+  /* Map each uninterpreted sort term to the new Skolem variable created by
    * ackermannization */
   theory::SubstitutionMap d_sortsToSkolem;
-  /* Map each Uninterpreted sort to a pair of integers.
+  /* Map each uninterpreted sort term to a pair of integers.
    * The first value is the lowest capacity that the targeting BV should have
    * The second value is the size of the BV to which the sort will actually be converted into */
   USortToBVSizeMap d_usortCardinality;
