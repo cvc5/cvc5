@@ -654,9 +654,7 @@ Node TermDb::evaluateTerm2(TNode n,
           args.insert(args.begin(), n.getOperator());
         }
         ret = NodeManager::currentNM()->mkNode(n.getKind(), args);
-        Trace("term-db-eval") << "return rewrite (pre) " << ret << std::endl;
         ret = Rewriter::rewrite(ret);
-        Trace("term-db-eval") << "return rewrite (post) " << ret << std::endl;
         if (ret.getKind() == EQUAL)
         {
           if (qy->areDisequal(ret[0], ret[1]))

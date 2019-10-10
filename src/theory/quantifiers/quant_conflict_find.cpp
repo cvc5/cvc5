@@ -602,7 +602,22 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
         Trace("qcf-instance-check") << "...spurious." << std::endl;
         return true;
       }else{
-        AlwaysAssert(p->isPropagatingInstance(inst_eval));
+        if (Configuration::isDebugBuild())
+        {
+          if(!p->isPropagatingInstance(inst_eval))
+          {
+            // Notice that this can happen in cases where:
+            // (1) x = -1*y is rewritten to y = -1*x, and
+            // (2) -1*y is a term in the master equality engine but -1*x is not.
+            // In other words, we determined that x = -1*y is a relevant
+            // equality to propagate since it involves two known terms, but
+            // after rewriting, the equality y = -1*x involves an unknown term
+            // -1*y. In this case, the equality is still relevant to propagate,
+            // despite the above function not being precise enough to realize
+            // this. We output a warning in debug for this. See #2993.
+            Trace("qcf-instance-check") << "WARNING: not propagating." << std::endl;
+          }
+        }
         Trace("qcf-instance-check") << "...not spurious." << std::endl;
       }
     }
