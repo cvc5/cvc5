@@ -510,6 +510,8 @@ void TheorySetsRels::check(Theory::Effort level)
                               << " or can be infered by TC_Graph of tc_rel[0]! " << std::endl;
       return;
     }
+    NodeManager * nm = NodeManager::currentNM();
+    
     // add mem_rep to d_tcrRep_tcGraph
     TC_IT tc_it = d_tcr_tcGraph.find( tc_rel );
     Node mem_rep_fst = getRepresentative( RelsUtils::nthElementOfTuple( mem_rep, 0 ) );
@@ -544,25 +546,24 @@ void TheorySetsRels::check(Theory::Effort level)
       exp_map[mem_rep_tup] = exp;
       d_tcr_tcGraph_exps[tc_rel] = exp_map;
     }
-
     Node fst_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_element = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    Node sk_1     = NodeManager::currentNM()->mkSkolem("stc", fst_element.getType());
-    Node sk_2     = NodeManager::currentNM()->mkSkolem("stc", snd_element.getType());
-    Node mem_of_r = NodeManager::currentNM()->mkNode(kind::MEMBER, exp[0], tc_rel[0]);
-    Node sk_eq    = NodeManager::currentNM()->mkNode(kind::EQUAL, sk_1, sk_2);
+    Node sk_1     = nm->mkSkolem("stc", fst_element.getType());
+    Node sk_2     = nm->mkSkolem("stc", snd_element.getType());
+    Node mem_of_r = nm->mkNode(MEMBER, exp[0], tc_rel[0]);
+    Node sk_eq    = nm->mkNode(EQUAL, sk_1, sk_2);
     Node reason   = exp;
 
     if( tc_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, tc_rel, exp[1]));
+      reason = nm->mkNode(AND, reason, nm->mkNode(EQUAL, tc_rel, exp[1]));
     }
 
-    Node conclusion = NodeManager::currentNM()->mkNode(kind::OR, mem_of_r,
-                                                     (NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, fst_element, sk_1), tc_rel[0]),
-                                                     (NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, sk_2, snd_element), tc_rel[0]),
-                                                     (NodeManager::currentNM()->mkNode(kind::OR, sk_eq, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, sk_1, sk_2), tc_rel))))))));
+    Node conc = nm->mkNode(OR, mem_of_r,
+                                                     nm->mkNode(AND, nm->mkNode(MEMBER, RelsUtils::constructPair(tc_rel, fst_element, sk_1), tc_rel[0]),
+                                                     nm->mkNode(AND, nm->mkNode(MEMBER, RelsUtils::constructPair(tc_rel, sk_2, snd_element), tc_rel[0]),
+                                                     nm->mkNode(OR, sk_eq, nm->mkNode(MEMBER, RelsUtils::constructPair(tc_rel, sk_1, sk_2), tc_rel)))));
 
-    Node tc_lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason, conclusion );
+    Node tc_lemma = nm->mkNode(IMPLIES, reason, conc );
     d_pending.push_back(tc_lemma);
   }
 
