@@ -190,25 +190,25 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 /* -------------------------------------------------------------------------- */
 
 /* Update the statistics for each uninterpreted sort */
-void updateUSortsCardinality(USortToBVSizeMap& usort_cardinality, TNode term)
+void updateUSortsCardinality(USortToBVSizeMap& usortCardinality, TNode term)
 {
   TypeNode type = term.getType();
   if (type.isSort())
   {
-    if (usort_cardinality.find(type) == usort_cardinality.end())
+    if (usortCardinality.find(type) == usortCardinality.end())
     {
-      usort_cardinality.insert(make_pair(type, make_pair(0, 0)));
+      usortCardinality.insert(make_pair(type, make_pair(0, 0)));
     }
-    usort_cardinality[type].first = usort_cardinality[type].first + 1;
+    usortCardinality[type].first = usortCardinality[type].first + 1;
   }
 }
 
 /* Given the lowest capacity requirements for each uninterpreted sorts, assign
  * unique bit vector size. Get the converting map */
 void collectUSortsToBV(std::unordered_set<unsigned>& used,
-                       USortToBVSizeMap& usort_cardinality,
+                       USortToBVSizeMap& usortCardinality,
                        vector<TNode>& vec,
-                       SubstitutionMap& sorts_to_skolem)
+                       SubstitutionMap& sortsToSkolem)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -217,22 +217,22 @@ void collectUSortsToBV(std::unordered_set<unsigned>& used,
     TypeNode type = term.getType();
     if (type.isSort())
     {
-      unsigned size = usort_cardinality[type].second;
+      unsigned size = usortCardinality[type].second;
       if (size == 0)
       {
-        size = log2(usort_cardinality[type].first) + 1;
+        size = log2(usortCardinality[type].first) + 1;
         while (used.find(size) != used.end())
         {
           ++size;
         }
-        usort_cardinality[type].second = size;
+        usortCardinality[type].second = size;
         used.insert(size);
       }
       Node skolem = nm->mkSkolem("BVSKOLEM$$",
                                  nm->mkBitVectorType(size),
                                  "a variable created by the ackermannization "
                                  "preprocessing pass for theory BV");
-      sorts_to_skolem.addSubstitution(term, skolem);
+      sortsToSkolem.addSubstitution(term, skolem);
     }
   }
 }
@@ -245,43 +245,43 @@ void collectUSortsToBV(std::unordered_set<unsigned>& used,
  * vectors with different size.
  * The size is calculated to have enough capacity, that can accommodate the
  * variables occured in the original formula. */
-void usortsToBitVectors(USortToBVSizeMap& usort_cardinality,
-                        SubstitutionMap& sorts_to_skolem,
+void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
+                        SubstitutionMap& sortsToSkolem,
                         AssertionPipeline* assertions)
 {
   std::unordered_set<unsigned> used;
   used.clear();
   TNodeSet seen;
   seen.clear();
-  std::vector<TNode> to_process;
+  std::vector<TNode> toProcess;
   for (Node& a : assertions->ref())
   {
     if (seen.find(a) == seen.end())
     {
-      to_process.push_back(a);
+      toProcess.push_back(a);
       seen.insert(a);
     }
   }
   TNode term;
-  for (unsigned i = 0; i < to_process.size(); ++i)
+  for (unsigned i = 0; i < toProcess.size(); ++i)
   {
-    term = to_process[i];
+    term = toProcess[i];
     AlwaysAssert(term.getKind() != kind::STORE,
                  "Cannot use ackermannization on QF_ABV formula with stores");
 
-    updateUSortsCardinality(usort_cardinality, term);
+    updateUSortsCardinality(usortCardinality, term);
 
     for (TNode a : term)
     {
       if (seen.find(a) == seen.end())
       {
-        to_process.push_back(a);
+        toProcess.push_back(a);
         seen.insert(a);
       }
     }
   }
 
-  for (TNode a : to_process)
+  for (TNode a : toProcess)
   {
     TypeNode type = a.getType();
     if (type.isBitVector())
@@ -290,7 +290,7 @@ void usortsToBitVectors(USortToBVSizeMap& usort_cardinality,
     }
   }
 
-  collectUSortsToBV(used, usort_cardinality, to_process, sorts_to_skolem);
+  collectUSortsToBV(used, usortCardinality, toProcess, sortsToSkolem);
 }
 
 /* -------------------------------------------------------------------------- */
