@@ -195,10 +195,7 @@ void updateUSortsCardinality(USortToBVSizeMap& usortCardinality, TNode term)
   TypeNode type = term.getType();
   if (type.isSort())
   {
-    if (usortCardinality.find(type) == usortCardinality.end())
-    {
-      usortCardinality.insert(make_pair(type, make_pair(0, 0)));
-    }
+	// For non-existing key, C++ will create a new element for it, which has the value initialized with a pair of two zeros.
     usortCardinality[type].first = usortCardinality[type].first + 1;
   }
 }
