@@ -47,6 +47,10 @@ class SkolemCache
     SK_PURIFY,
     // a != b => exists k. ( k in a != k in b )
     SK_DISEQUAL,
+    // a in tclosure(b) => exists k1 k2. ( a.1, k1 ) in b ^ ( k2, a.2 ) in b ^ 
+    //                                   ( k1 = k2 V ( k1, k2 ) in tclosure(b) )
+    SK_TCLOSURE_DOWN1,
+    SK_TCLOSURE_DOWN2,
     // (a,b) in join(A,B) => exists k. (a,k) in A ^ (k,b) in B
     // This is cached by the nodes corresponding to (a,b) and join(A,B).
     SK_JOIN,

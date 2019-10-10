@@ -548,8 +548,9 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     Node fst_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_element = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    Node sk_1 = nm->mkSkolem("stc", fst_element.getType());
-    Node sk_2 = nm->mkSkolem("stc", snd_element.getType());
+    SkolemCache& sc = d_state.getSkolemCache();
+    Node sk_1 = sc.mkTypedSkolemCached(fst_element.getType(),exp[0],tc_rel[0],SkolemCache::SK_TCLOSURE_DOWN1,"stc1");
+    Node sk_2 = sc.mkTypedSkolemCached(fst_element.getType(),exp[0],tc_rel[0],SkolemCache::SK_TCLOSURE_DOWN2,"stc2");
     Node mem_of_r = nm->mkNode(MEMBER, exp[0], tc_rel[0]);
     Node sk_eq = nm->mkNode(EQUAL, sk_1, sk_2);
     Node reason   = exp;
@@ -566,8 +567,6 @@ void TheorySetsRels::check(Theory::Effort level)
             nm->mkNode(MEMBER,
                        RelsUtils::constructPair(tc_rel, fst_element, sk_1),
                        tc_rel[0]),
-            nm->mkNode(
-                AND,
                 nm->mkNode(MEMBER,
                            RelsUtils::constructPair(tc_rel, sk_2, snd_element),
                            tc_rel[0]),
@@ -576,7 +575,7 @@ void TheorySetsRels::check(Theory::Effort level)
                     sk_eq,
                     nm->mkNode(MEMBER,
                                RelsUtils::constructPair(tc_rel, sk_1, sk_2),
-                               tc_rel)))));
+                               tc_rel))));
 
     Node tc_lemma = nm->mkNode(IMPLIES, reason, conc);
     d_pending.push_back(tc_lemma);
