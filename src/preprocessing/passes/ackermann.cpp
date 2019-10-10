@@ -204,7 +204,7 @@ void updateUSortsCardinality(USortToBVSizeMap& usortCardinality, TNode term)
 }
 
 /* Given the lowest capacity requirements for each uninterpreted sorts, assign
- * unique bit vector size. Get the converting map */
+ * unique bit-vector size. Get the converting map */
 void collectUSortsToBV(std::unordered_set<unsigned>& used,
                        USortToBVSizeMap& usortCardinality,
                        vector<TNode>& vec,
