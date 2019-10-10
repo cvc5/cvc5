@@ -57,8 +57,7 @@ class SkolemCache
   Node mkTypedSkolemCached(
       TypeNode tn, Node a, Node b, SkolemId id, const char* c);
   /** same as above, cached based on key (a,null,id) */
-  Node mkTypedSkolemCached(
-      TypeNode tn, Node a, SkolemId id, const char* c);
+  Node mkTypedSkolemCached(TypeNode tn, Node a, SkolemId id, const char* c);
   /** Same as above, but without caching. */
   Node mkTypedSkolem(TypeNode tn, const char* c);
   /** Returns true if n is a skolem allocated by this class */

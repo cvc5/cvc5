@@ -401,7 +401,8 @@ Node SolverState::getProxy(Node n)
     return (*it).second;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node k = d_skCache.mkTypedSkolemCached(n.getType(), n, SkolemCache::SK_PURIFY,"sp");
+  Node k = d_skCache.mkTypedSkolemCached(
+      n.getType(), n, SkolemCache::SK_PURIFY, "sp");
   d_proxy[n] = k;
   d_proxy_to_term[k] = n;
   Node eq = k.eqNode(n);
