@@ -736,44 +736,44 @@ void TheorySetsPrivate::checkDisequalities()
 {
   //disequalities
   Trace("sets") << "TheorySetsPrivate: check disequalities..." << std::endl;
+  NodeManager * nm = NodeManager::currentNM();
   for(NodeBoolMap::const_iterator it=d_deq.begin(); it !=d_deq.end(); ++it) {
-    if( (*it).second ){
-      Node deq = (*it).first;
-      //check if it is already satisfied
-      Assert( d_equalityEngine.hasTerm( deq[0] ) && d_equalityEngine.hasTerm( deq[1] ) );
-      Node r1 = d_equalityEngine.getRepresentative( deq[0] );
-      Node r2 = d_equalityEngine.getRepresentative( deq[1] );
-      bool is_sat = d_state.isSetDisequalityEntailed(r1, r2);
-      /*
-      if( !is_sat ){
-        //try to make one of them empty
-        for( unsigned e=0; e<2; e++ ){
-        }
-      }
-      */
-      Trace("sets-debug") << "Check disequality " << deq << ", is_sat = " << is_sat << std::endl;
-      //will process regardless of sat/processed/unprocessed
-      d_deq[deq] = false;
-      
-      if( !is_sat ){
-        if( d_deq_processed.find( deq )==d_deq_processed.end() ){
-          d_deq_processed.insert( deq );
-          d_deq_processed.insert( deq[1].eqNode( deq[0] ) );
-          Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
-          TypeNode elementType = deq[0].getType().getSetElementType();
-          Node x = NodeManager::currentNM()->mkSkolem("sde_", elementType);
-          Node mem1 = NodeManager::currentNM()->mkNode( kind::MEMBER, x, deq[0] );
-          Node mem2 = NodeManager::currentNM()->mkNode( kind::MEMBER, x, deq[1] );
-          Node lem = NodeManager::currentNM()->mkNode( kind::OR, deq, NodeManager::currentNM()->mkNode( kind::EQUAL, mem1, mem2 ).negate() );
-          lem = Rewriter::rewrite( lem );
-          d_im.assertInference(lem, d_emp_exp, "diseq", 1);
-          d_im.flushPendingLemmas();
-          if (d_im.hasProcessed())
-          {
-            return;
-          }
-        }
-      }
+    if( !(*it).second ){
+      // not active
+      continue;
+    }
+    Node deq = (*it).first;
+    //check if it is already satisfied
+    Assert( d_equalityEngine.hasTerm( deq[0] ) && d_equalityEngine.hasTerm( deq[1] ) );
+    Node r1 = d_equalityEngine.getRepresentative( deq[0] );
+    Node r2 = d_equalityEngine.getRepresentative( deq[1] );
+    bool is_sat = d_state.isSetDisequalityEntailed(r1, r2);
+    Trace("sets-debug") << "Check disequality " << deq << ", is_sat = " << is_sat << std::endl;
+    //will process regardless of sat/processed/unprocessed
+    d_deq[deq] = false;
+    
+    if( is_sat ){
+      // already satisfied
+      continue;
+    }
+    if( d_deq_processed.find( deq )!=d_deq_processed.end() ){
+      // already added lemma
+      continue;
+    }
+    d_deq_processed.insert( deq );
+    d_deq_processed.insert( deq[1].eqNode( deq[0] ) );
+    Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
+    TypeNode elementType = deq[0].getType().getSetElementType();
+    Node x = d_state.getSkolemCache().mkTypedSkolemCached(elementType,deq[0],deq[1],SkolemCache::SK_DISEQUAL, "sde");
+    Node mem1 = nm->mkNode( MEMBER, x, deq[0] );
+    Node mem2 = nm->mkNode( MEMBER, x, deq[1] );
+    Node lem = nm->mkNode( OR, deq, nm->mkNode( EQUAL, mem1, mem2 ).negate() );
+    lem = Rewriter::rewrite( lem );
+    d_im.assertInference(lem, d_emp_exp, "diseq", 1);
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      return;
     }
   }
 }

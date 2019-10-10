@@ -45,6 +45,8 @@ class SkolemCache
   {
     // exists k. k = a
     SK_PURIFY,
+    // a != b => exists k. ( k in a != k in b )
+    SK_DISEQUAL,
     // (a,b) in join(A,B) => exists k. (a,k) in A ^ (k,b) in B
     // This is cached by the nodes corresponding to (a,b) and join(A,B).
     SK_JOIN,
