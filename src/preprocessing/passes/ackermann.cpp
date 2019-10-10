@@ -238,10 +238,10 @@ void collectUSortsToBV(std::unordered_set<unsigned>& used,
 }
 
 /* This is the top level of converting uninterpreted sorts to bit vectors.
- * We use bfs to get all terms without duplications, and count the number of
+ * We use BFS to get all terms without duplications, and count the number of
  * different terms for each uninterpreted sort. Then for each sort, we will
- * assign a new bit vector type with a unique size. The unique size ensures
- * that, after the replacement, the different sorts will be converted into bit
+ * assign a new bit-vector type with a unique size. The unique size ensures
+ * that, after the replacement, the different sorts will be converted into bit-
  * vectors with different size.
  * The size is calculated to have enough capacity, that can accommodate the
  * variables occured in the original formula. */
