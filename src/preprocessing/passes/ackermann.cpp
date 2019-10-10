@@ -331,7 +331,7 @@ PreprocessingPassResult Ackermann::applyInternal(
     usortsToBitVectors(
         d_usortCardinality, d_sortsToSkolem, assertionsToPreprocess);
 
-    for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+    for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
       Node old = (*assertionsToPreprocess)[i];
       assertionsToPreprocess->replace(
