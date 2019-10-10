@@ -250,9 +250,7 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
                         AssertionPipeline* assertions)
 {
   std::unordered_set<unsigned> used;
-  used.clear();
   TNodeSet seen;
-  seen.clear();
   std::vector<TNode> toProcess;
   for (Node& a : assertions->ref())
   {
