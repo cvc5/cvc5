@@ -604,7 +604,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
       }else{
         if (Configuration::isDebugBuild())
         {
-          if(!p->isPropagatingInstance(inst_eval))
+          if (!p->isPropagatingInstance(inst_eval))
           {
             // Notice that this can happen in cases where:
             // (1) x = -1*y is rewritten to y = -1*x, and
@@ -615,7 +615,8 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
             // -1*x. In this case, the equality is still relevant to propagate,
             // despite the above function not being precise enough to realize
             // it. We output a warning in debug for this. See #2993.
-            Trace("qcf-instance-check") << "WARNING: not propagating." << std::endl;
+            Trace("qcf-instance-check")
+                << "WARNING: not propagating." << std::endl;
           }
         }
         Trace("qcf-instance-check") << "...not spurious." << std::endl;
@@ -2316,7 +2317,8 @@ bool QuantConflictFind::isPropagatingInstance(Node n) const
       else if (!getEqualityEngine()->hasTerm(cur))
       {
         Trace("qcf-instance-check-debug")
-            << "...not propagating instance because of " << cur << " " << ck << std::endl;
+            << "...not propagating instance because of " << cur << " " << ck
+            << std::endl;
         return false;
       }
     }
