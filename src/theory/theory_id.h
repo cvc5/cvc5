@@ -1,7 +1,7 @@
 #include "cvc4_public.h"
 
-#ifndef CVC4__THEORY_ID_H
-#define CVC4__THEORY_ID_H
+#ifndef CVC4__THEORY__THEORY_ID_H
+#define CVC4__THEORY__THEORY_ID_H
 
 #include <iostream>
 
