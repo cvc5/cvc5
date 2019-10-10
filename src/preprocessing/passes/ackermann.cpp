@@ -21,6 +21,8 @@
 ￼**   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
  **/
 
+#include <cmath>
+
 #include "preprocessing/passes/ackermann.h"
 
 #include "options/options.h"
