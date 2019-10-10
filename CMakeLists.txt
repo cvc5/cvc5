@@ -66,6 +66,7 @@ option(ENABLE_GPL "Enable GPL dependencies")
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for build types
 cvc4_option(ENABLE_ASAN           "Enable ASAN build")
+cvc4_option(ENABLE_UBSAN          "Enable UBSan build")
 cvc4_option(ENABLE_ASSERTIONS     "Enable assertions")
 cvc4_option(ENABLE_COMP_INC_TRACK
             "Enable optimizations for incremental SMT-COMP tracks")
@@ -154,7 +155,7 @@ endif()
 #       to cmake standards (first letter uppercase).
 set(BUILD_TYPES Production Debug Testing Competition)
 
-if(ENABLE_ASAN)
+if(ENABLE_ASAN OR ENABLE_UBSAN)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
@@ -295,6 +296,10 @@ if(ENABLE_ASAN)
   unset(CMAKE_REQUIRED_FLAGS)
   add_required_c_cxx_flag("-fno-omit-frame-pointer")
   add_check_c_cxx_flag("-fsanitize-recover=address")
+endif()
+
+if(ENABLE_UBSAN)
+  add_required_c_cxx_flag("-fsanitize=undefined")
 endif()
 
 if(ENABLE_ASSERTIONS)
