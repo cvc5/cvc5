@@ -39,8 +39,8 @@ namespace passes {
 using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
 using FunctionToArgsMap =
     std::unordered_map<TNode, TNodeSet, TNodeHashFunction>;
-using USortToBVSizeMap = std::
-    unordered_map<TypeNode, pair<size_t, size_t>, TypeNode::HashFunction>;
+using USortToBVSizeMap =
+    std::unordered_map<TypeNode, pair<size_t, size_t>, TypeNode::HashFunction>;
 
 class Ackermann : public PreprocessingPass
 {
