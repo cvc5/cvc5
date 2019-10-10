@@ -1190,17 +1190,15 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   void TheorySetsRels::makeSharedTerm( Node n ) {
-    if(d_shared_terms.find(n) == d_shared_terms.end()) {
-      Trace("rels-share") << " [sets-rels] making shared term " << n
-                          << std::endl;
-      Node skolem = NodeManager::currentNM()->mkSkolem( "sts", NodeManager::currentNM()->mkSetType( n.getType() ) );
-      Node skEq =
-          skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON, n));
-      // force lemma to be sent immediately
-      d_im.assertInference(skEq, d_trueNode, "shared-term");
-      d_im.flushPendingLemmas();
-      d_shared_terms.insert(n);
+    if(d_shared_terms.find(n) != d_shared_terms.end()) {
+      return;
     }
+    Trace("rels-share") << " [sets-rels] making shared term " << n
+                        << std::endl;
+    // force a proxy lemma to be sent for the singleton containing n
+    Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
+    d_state.getProxy(ss);
+    d_shared_terms.insert(n);
   }
 
   /*
