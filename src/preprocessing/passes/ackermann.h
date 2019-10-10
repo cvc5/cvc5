@@ -72,7 +72,8 @@ class Ackermann : public PreprocessingPass
   theory::SubstitutionMap d_sortsToSkolem;
   /* Map each uninterpreted sort term to a pair of integers.
    * The first value is the lowest capacity that the targeting BV should have
-   * The second value is the size of the BV to which the sort will actually be converted into */
+   * The second value is the size of the BV to which the sort will actually be
+   * converted into */
   USortToBVSizeMap d_usortCardinality;
   LogicInfo d_logic;
 };
