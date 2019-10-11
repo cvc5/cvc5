@@ -1667,6 +1667,7 @@ set(regress_1_tests
   regress1/sygus/cegisunif-depth1.sy
   regress1/sygus/cggmp.sy
   regress1/sygus/clock-inc-tuple.sy
+  regress1/sygus/coeff-solve-inv.sy
   regress1/sygus/commutative-stream.sy
   regress1/sygus/commutative.sy
   regress1/sygus/concat_extract_example.sy
