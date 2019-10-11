@@ -73,9 +73,6 @@ type_properties_includes=
 seen_theory=false
 seen_theory_builtin=false
 
-theory_enum=
-theory_descriptions=
-theory_stats_prefixes=
 
 function theory {
   # theory ID T header
@@ -88,7 +85,7 @@ function theory {
   fi
 
   # this script doesn't care about the theory class information, but
-  # makes does make sure it's there
+  # makes sure it's there
   seen_theory=true
   if [ "$1" = THEORY_BUILTIN ]; then
     if $seen_theory_builtin; then
@@ -106,13 +103,7 @@ function theory {
   fi
 
   theory_id="$1"
-  theory_enum="${theory_enum}  $1,
-"
-  theory_descriptions="${theory_descriptions}  case ${theory_id}: out << \"${theory_id}\"; break;
-"
   prefix=$(echo "$theory_id" | tr '[:upper:]' '[:lower:]')
-  theory_stats_prefixes="${theory_stats_prefixes}  case ${theory_id}: return \"theory::${prefix#theory_}\"; break;
-"
 }
 
 function alternate {
@@ -408,7 +399,6 @@ for var in \
     kind_decls \
     kind_printers \
     kind_to_theory_id \
-    theory_enum \
     type_constant_list \
     type_constant_descriptions \
     type_constant_to_theory_id \
@@ -419,8 +409,6 @@ for var in \
     type_groundterms \
     type_constant_groundterms \
     type_properties_includes \
-    theory_descriptions \
-    theory_stats_prefixes \
     template \
     ; do
   eval text="\${text//\\\$\\{$var\\}/\${$var}}"

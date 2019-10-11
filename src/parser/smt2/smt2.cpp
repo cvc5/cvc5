@@ -837,7 +837,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addTheory(THEORY_SEP);
   }
 
-  Command* cmd = new SetBenchmarkLogicCommand(sygus() ? d_logic.getLogicString() : name);
+  Command* cmd =
+      new SetBenchmarkLogicCommand(sygus() ? d_logic.getLogicString() : name);
   cmd->setMuted(!fromCommand);
   return cmd;
 } /* Smt2::setLogic() */
