@@ -263,7 +263,14 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     {
       std::vector<Node> fail_cvs = enum_values;
       Assert(candidates.size() == fail_cvs.size());
+      // try to solve entire problem?
       if (src->repairSolution(candidates, fail_cvs, candidate_values))
+      {
+        return true;
+      }
+      Node rl = getRefinementLemmaFormula();
+      // try to solve for the refinement lemmas only
+      if (src->repairSolution(rl,candidates, fail_cvs, candidate_values))
       {
         return true;
       }
