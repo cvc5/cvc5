@@ -189,18 +189,6 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
-/* Update the statistics for each uninterpreted sort */
-void updateUSortsCardinality(USortToBVSizeMap& usortCardinality, TNode term)
-{
-  TypeNode type = term.getType();
-  if (type.isSort())
-  {
-    // For non-existing key, C++ will create a new element for it, which has the
-    // value initialized with a pair of two zeros.
-    usortCardinality[type].first = usortCardinality[type].first + 1;
-  }
-}
-
 /* Given the lowest capacity requirements for each uninterpreted sorts, assign
  * unique bit-vector size. Get the converting map */
 void collectUSortsToBV(std::unordered_set<unsigned>& used,
@@ -259,11 +247,21 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
     }
   }
   TNode term;
-  for (unsigned i = 0; i < toProcess.size(); ++i)
+  for (size_t i = 0; i < toProcess.size(); ++i)
   {
     term = toProcess[i];
-
-    updateUSortsCardinality(usortCardinality, term);
+	TypeNode type = term.getType();
+    if (type.isSort())
+    {
+      /* Update the statistics for each uninterpreted sort */
+      // For non-existing key, C++ will create a new element for it, which has the
+      // value initialized with a pair of two zeros.
+      usortCardinality[type].first = usortCardinality[type].first + 1;
+    }
+	else if (type.isBitVector())
+	{
+	  used.insert(type.getBitVectorSize());
+	}
 
     for (TNode a : term)
     {
@@ -272,15 +270,6 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
         toProcess.push_back(a);
         seen.insert(a);
       }
-    }
-  }
-
-  for (TNode a : toProcess)
-  {
-    TypeNode type = a.getType();
-    if (type.isBitVector())
-    {
-      used.insert(type.getBitVectorSize());
     }
   }
 
