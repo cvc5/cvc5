@@ -22,6 +22,7 @@
 #include <iosfwd>
 
 #include "base/exception.h"
+#include "theory/theory_id.h"
 
 namespace CVC4 {
 namespace kind {
@@ -44,7 +45,7 @@ namespace kind {
 
 std::ostream& operator<<(std::ostream&, CVC4::Kind) CVC4_PUBLIC;
 
-#line 48 "${template}"
+#line 49 "${template}"
 
 /** Returns true if the given kind is associative. This is used by ExprManager to
  * decide whether it's safe to modify big expressions by changing the grouping of
@@ -64,11 +65,12 @@ struct KindHashFunction {
 /**
  * The enumeration for the built-in atomic types.
  */
-enum CVC4_PUBLIC TypeConstant {
-${type_constant_list}
-#line 70 "${template}"
+enum CVC4_PUBLIC TypeConstant
+{
+  ${type_constant_list}
+#line 71 "${template}"
   LAST_TYPE
-};/* enum TypeConstant */
+}; /* enum TypeConstant */
 
 /**
  * We hash the constants with their values.
@@ -83,23 +85,9 @@ std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant);
 
 namespace theory {
 
-enum TheoryId {
-${theory_enum}
-#line 89 "${template}"
-  THEORY_LAST
-};/* enum TheoryId */
-
-const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
-const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
-
-CVC4_PUBLIC inline TheoryId& operator++(TheoryId& id) {
-  return id = static_cast<TheoryId>(static_cast<int>(id) + 1);
-}
-
-std::ostream& operator<<(std::ostream& out, TheoryId theoryId);
-TheoryId kindToTheoryId(::CVC4::Kind k) CVC4_PUBLIC;
-TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) CVC4_PUBLIC;
-std::string getStatsPrefix(TheoryId theoryId) CVC4_PUBLIC;
+::CVC4::theory::TheoryId kindToTheoryId(::CVC4::Kind k) CVC4_PUBLIC;
+::CVC4::theory::TheoryId typeConstantToTheoryId(
+    ::CVC4::TypeConstant typeConstant) CVC4_PUBLIC;
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
