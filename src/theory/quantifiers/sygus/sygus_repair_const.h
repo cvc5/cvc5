@@ -153,7 +153,8 @@ class SygusRepairConst
    * is a first-order (quantified) formula in the background logic, without UF,
    * of the form [***] above.
    */
-  Node getFoQuery(const std::vector<Node>& candidates,
+  Node getFoQuery(Node body,
+                  const std::vector<Node>& candidates,
                   const std::vector<Node>& candidate_skeletons,
                   const std::vector<Node>& sk_vars);
   /** fit to logic
@@ -174,7 +175,8 @@ class SygusRepairConst
    * It uses the function below to choose which variables to remove from
    * sk_vars.
    */
-  Node fitToLogic(LogicInfo& logic,
+  Node fitToLogic(Node body,
+                  LogicInfo& logic,
                   Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& candidate_skeletons,

@@ -198,6 +198,30 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   return addedEvalLemmas;
 }
 
+Node Cegis::getRefinementLemmaFormula()
+{
+  std::vector< Node > conj;
+  conj.insert(conj.end(),d_refinement_lemmas.begin(),d_refinement_lemmas.end());
+  // get the propagated values
+  
+  
+  NodeManager * nm = NodeManager::currentNM();
+  Node ret;  
+  if (conj.empty())
+  {
+    ret = nm->mkConst(true);
+  }
+  else if (conj.size()==1)
+  {
+    ret = conj[0];
+  }
+  else
+  {
+    ret = nm->mkNode(AND,conj);
+  }
+  return ret;
+}
+
 bool Cegis::constructCandidates(const std::vector<Node>& enums,
                                 const std::vector<Node>& enum_values,
                                 const std::vector<Node>& candidates,
