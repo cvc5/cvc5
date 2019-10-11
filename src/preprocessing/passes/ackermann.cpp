@@ -262,8 +262,6 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
   for (unsigned i = 0; i < toProcess.size(); ++i)
   {
     term = toProcess[i];
-    AlwaysAssert(term.getKind() != kind::STORE,
-                 "Cannot use ackermannization on QF_ABV formula with stores");
 
     updateUSortsCardinality(usortCardinality, term);
 
