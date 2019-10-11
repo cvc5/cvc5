@@ -247,11 +247,10 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
             enums[i], enum_values[i], exp);
       }
       Assert(!exp.empty());
-      NodeManager * nm = NodeManager::currentNM();
-      Node expn =
-          exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+      NodeManager* nm = NodeManager::currentNM();
+      Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
       // must guard it
-      expn = nm->mkNode(OR,d_parent->getGuard().negate(),expn.negate());
+      expn = nm->mkNode(OR, d_parent->getGuard().negate(), expn.negate());
       lems.push_back(expn);
       return false;
     }
