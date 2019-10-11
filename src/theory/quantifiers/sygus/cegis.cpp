@@ -269,10 +269,13 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
         return true;
       }
       Node rl = getRefinementLemmaFormula();
+      bool ret = false;
       // try to solve for the refinement lemmas only
       if (src->repairSolution(rl,candidates, fail_cvs, candidate_values))
       {
-        return true;
+        // We will exclude the skeleton as well; this means that we have one
+        // chance to repair the solution.
+        ret = true;
       }
       // repair solution didn't work, exclude this solution
       std::vector<Node> exp;
@@ -285,7 +288,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       Node expn =
           exp.size() == 1 ? exp[0] : NodeManager::currentNM()->mkNode(AND, exp);
       lems.push_back(expn.negate());
-      return false;
+      return ret;
     }
   }
 
