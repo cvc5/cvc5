@@ -189,9 +189,17 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
+
+bool needsReplace(TNode term)
+{
+	if (term.getType().isSort() && !(term.getKind() == kind::BOUND_VARIABLE))
+		return true;
+	return false;
+}
+
 /* Given the lowest capacity requirements for each uninterpreted sorts, assign
  * unique bit-vector size. Get the converting map */
-void collectUSortsToBV(std::unordered_set<unsigned>& used,
+void collectUSortsToBV(std::unordered_set<size_t>& used,
                        USortToBVSizeMap& usortCardinality,
                        vector<TNode>& vec,
                        SubstitutionMap& sortsToSkolem)
@@ -200,10 +208,10 @@ void collectUSortsToBV(std::unordered_set<unsigned>& used,
 
   for (TNode term : vec)
   {
-    TypeNode type = term.getType();
-    if (type.isSort())
+    if (needsReplace(term))
     {
-      unsigned size = usortCardinality[type].second;
+      TypeNode type = term.getType();
+      size_t size = usortCardinality[type].second;
       if (size == 0)
       {
         size = log2(usortCardinality[type].first) + 1;
@@ -235,7 +243,7 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
                         SubstitutionMap& sortsToSkolem,
                         AssertionPipeline* assertions)
 {
-  std::unordered_set<unsigned> used;
+  std::unordered_set<size_t> used;
   TNodeSet seen;
   std::vector<TNode> toProcess;
   for (Node& a : assertions->ref())
@@ -251,7 +259,7 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
   {
     term = toProcess[i];
     TypeNode type = term.getType();
-    if (type.isSort())
+    if (needsReplace(term))
     {
       /* Update the statistics for each uninterpreted sort */
       // For non-existing key, C++ will create a new element for it, which has
