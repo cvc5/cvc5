@@ -2107,6 +2107,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("coverage", Configuration::isCoverageBuild());
   print_config_cond("profiling", Configuration::isProfilingBuild());
   print_config_cond("asan", Configuration::isAsanBuild());
+  print_config_cond("ubsan", Configuration::isUbsanBuild());
   print_config_cond("competition", Configuration::isCompetitionBuild());
   
   std::cout << std::endl;

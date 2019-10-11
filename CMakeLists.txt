@@ -300,6 +300,7 @@ endif()
 
 if(ENABLE_UBSAN)
   add_required_c_cxx_flag("-fsanitize=undefined")
+  add_definitions(-DCVC4_USE_UBSAN)
 endif()
 
 if(ENABLE_ASSERTIONS)
