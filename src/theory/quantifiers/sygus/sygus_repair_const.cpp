@@ -149,6 +149,15 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       std::vector<Node>& repair_cv,
                                       bool useConstantsAsHoles)
 {
+  return repairSolution(d_base_inst,candidates,candidate_values,repair_cv,useConstantsAsHoles);
+}
+  
+bool SygusRepairConst::repairSolution(Node sygusBody,
+                                      const std::vector<Node>& candidates,
+                                      const std::vector<Node>& candidate_values,
+                                      std::vector<Node>& repair_cv,
+                                      bool useConstantsAsHoles)
+{
   Assert(candidates.size() == candidate_values.size());
 
   // if no grammar type allows constants, no repair is possible
@@ -208,7 +217,6 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  Node sygusBody = d_base_inst;
   Trace("sygus-repair-const") << "Get first-order query..." << std::endl;
   Node fo_body =
       getFoQuery(sygusBody, candidates, candidate_skeletons, sk_vars);

@@ -204,7 +204,11 @@ Node Cegis::getRefinementLemmaFormula()
   conj.insert(
       conj.end(), d_refinement_lemmas.begin(), d_refinement_lemmas.end());
   // get the propagated values
-
+  for (unsigned i=0, nprops=d_rl_eval_hds.size(); i<nprops; i++)
+  {
+    conj.push_back(d_rl_eval_hds[i].eqNode(d_rl_vals[i]));
+  }
+  // make the formula
   NodeManager* nm = NodeManager::currentNM();
   Node ret;
   if (conj.empty())
