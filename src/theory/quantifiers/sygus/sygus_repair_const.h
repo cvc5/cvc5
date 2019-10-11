@@ -83,7 +83,7 @@ class SygusRepairConst
                       const std::vector<Node>& candidate_values,
                       std::vector<Node>& repair_cv,
                       bool useConstantsAsHoles = false);
-  /** 
+  /**
    * Same as above, but where sygusBody is the body (base_inst) provided to the
    * call to initialize of this class.
    */
@@ -176,7 +176,7 @@ class SygusRepairConst
    * variables may introduce e.g. non-linearity. If non-linear arithmetic is
    * not enabled, we must undo some of the variables we introduced when
    * inferring candidate skeletons.
-   * 
+   *
    * body is the (sygus) form of the original synthesis conjecture we are
    * considering in this call.
    *

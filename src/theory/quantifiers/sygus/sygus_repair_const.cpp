@@ -149,9 +149,13 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       std::vector<Node>& repair_cv,
                                       bool useConstantsAsHoles)
 {
-  return repairSolution(d_base_inst,candidates,candidate_values,repair_cv,useConstantsAsHoles);
+  return repairSolution(d_base_inst,
+                        candidates,
+                        candidate_values,
+                        repair_cv,
+                        useConstantsAsHoles);
 }
-  
+
 bool SygusRepairConst::repairSolution(Node sygusBody,
                                       const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
