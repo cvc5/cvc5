@@ -208,9 +208,10 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  Node sygusBody =d_base_inst;
+  Node sygusBody = d_base_inst;
   Trace("sygus-repair-const") << "Get first-order query..." << std::endl;
-  Node fo_body = getFoQuery(sygusBody, candidates, candidate_skeletons, sk_vars);
+  Node fo_body =
+      getFoQuery(sygusBody, candidates, candidate_skeletons, sk_vars);
 
   Trace("sygus-repair-const-debug") << "...got : " << fo_body << std::endl;
 
@@ -593,7 +594,7 @@ Node SygusRepairConst::fitToLogic(Node body,
     Assert(it != sk_vars.end());
     sk_vars.erase(it);
     // reconstruct the query
-    n = getFoQuery(body,candidates, candidate_skeletons, sk_vars);
+    n = getFoQuery(body, candidates, candidate_skeletons, sk_vars);
     // reset the exclusion variable
     exc_var = Node::null();
   }
