@@ -189,12 +189,11 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
-
 bool needsReplace(TNode term)
 {
-	if (term.getType().isSort() && !(term.getKind() == kind::BOUND_VARIABLE))
-		return true;
-	return false;
+  if (term.getType().isSort() && !(term.getKind() == kind::BOUND_VARIABLE))
+    return true;
+  return false;
 }
 
 /* Given the lowest capacity requirements for each uninterpreted sorts, assign
