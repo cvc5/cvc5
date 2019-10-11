@@ -250,18 +250,18 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
   for (size_t i = 0; i < toProcess.size(); ++i)
   {
     term = toProcess[i];
-	TypeNode type = term.getType();
+    TypeNode type = term.getType();
     if (type.isSort())
     {
       /* Update the statistics for each uninterpreted sort */
-      // For non-existing key, C++ will create a new element for it, which has the
-      // value initialized with a pair of two zeros.
+      // For non-existing key, C++ will create a new element for it, which has
+      // the value initialized with a pair of two zeros.
       usortCardinality[type].first = usortCardinality[type].first + 1;
     }
-	else if (type.isBitVector())
-	{
-	  used.insert(type.getBitVectorSize());
-	}
+    else if (type.isBitVector())
+    {
+      used.insert(type.getBitVectorSize());
+    }
 
     for (TNode a : term)
     {
