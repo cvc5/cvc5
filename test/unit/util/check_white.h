@@ -20,6 +20,7 @@
 #include <string>
 
 #include "base/cvc4_check.h"
+#include "test_utils.h"
 
 using namespace std;
 using namespace CVC4;
@@ -52,6 +53,12 @@ class CheckWhite : public CxxTest::TestSuite
   {
     const int* one_pointer = &kOne;
     CVC4_CHECK(one_pointer);
+  }
+
+  void testExpectAbort()
+  {
+    TS_UTILS_EXPECT_ABORT(CVC4_CHECK(false));
+    TS_UTILS_EXPECT_ABORT(CVC4_DCHECK(false));
   }
 };
 
