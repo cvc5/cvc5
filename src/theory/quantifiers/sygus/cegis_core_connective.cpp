@@ -91,6 +91,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
   }
   d_candidate = candidates[0];
   Assert(conj.getKind() == FORALL);
+  Assert(conj[0].getNumChildren() == 1);
   Node body = conj[1];
   if (body.getKind() == NOT && body[0].getKind() == FORALL)
   {
@@ -103,7 +104,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
   Trace("sygus-ccore-init") << "  body : " << body << std::endl;
 
   TransitionInference ti;
-  ti.process(body);
+  ti.process(body, conj[0][0]);
 
   if (!ti.isComplete())
   {
@@ -155,7 +156,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
     }
     Node scb = TermUtil::simpleNegate(sc);
     TransitionInference tisc;
-    tisc.process(scb);
+    tisc.process(scb, conj[0][0]);
     Node scTrans = ti.getTransitionRelation();
     Trace("sygus-ccore-init")
         << "  transition relation of SC: " << scTrans << std::endl;
