@@ -529,43 +529,43 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     Type unres_t = unres_types[i];
     //add variables
-    for (unsigned j = 0, size_j = sygus_vars.size(); j < size_j; ++j)
-      for (const Node& sv : sygus_vars)
+    for (const Node& sv : sygus_vars)
+    {
+      TypeNode svt = sv.getType();
+      if (svt == types[i])
       {
-        TypeNode svt = sv.getType();
-        if (svt == types[i])
-        {
-          std::stringstream ss;
-          ss << sv;
-          Trace("sygus-grammar-def")
-              << "...add for variable " << ss.str() << std::endl;
-          ops[i].push_back(sv.toExpr());
-          cnames[i].push_back(ss.str());
-          cargs[i].push_back(std::vector<Type>());
-          pcs[i].push_back(nullptr);
-          weights[i].push_back(-1);
-        }
-        else if (svt.isFunction() && svt.getRangeType() == types[i])
-        {
-          // APPLY_UF
-          std::vector<TypeNode> argTypes = svt.getArgTypes();
-          std::vector<Type> stypes;
-          for (unsigned k = 0, ntypes = argTypes.size(); k < ntypes; k++)
-          {
-            unsigned index = std::distance(
-                types.begin(),
-                std::find(types.begin(), types.end(), argTypes[k]));
-            stypes.push_back(unres_types[index]);
-          }
-          std::stringstream ss;
-          ss << "apply_" << sv;
-          ops[i].push_back(sv.toExpr());
-          cnames[i].push_back(ss.str());
-          cargs[i].push_back(stypes);
-          pcs[i].push_back(nullptr);
-          weights[i].push_back(-1);
-        }
+        std::stringstream ss;
+        ss << sv;
+        Trace("sygus-grammar-def")
+            << "...add for variable " << ss.str() << std::endl;
+        ops[i].push_back(sv.toExpr());
+        cnames[i].push_back(ss.str());
+        cargs[i].push_back(std::vector<Type>());
+        pcs[i].push_back(nullptr);
+        weights[i].push_back(-1);
       }
+      else if (svt.isFunction() && svt.getRangeType() == types[i])
+      {
+        // We add an APPLY_UF for all function whose return type is this type
+        // whose argument types are the other sygus types we are constructing.
+        std::vector<TypeNode> argTypes = svt.getArgTypes();
+        std::vector<Type> stypes;
+        for (unsigned k = 0, ntypes = argTypes.size(); k < ntypes; k++)
+        {
+          unsigned index = std::distance(
+              types.begin(),
+              std::find(types.begin(), types.end(), argTypes[k]));
+          stypes.push_back(unres_types[index]);
+        }
+        std::stringstream ss;
+        ss << "apply_" << sv;
+        ops[i].push_back(sv.toExpr());
+        cnames[i].push_back(ss.str());
+        cargs[i].push_back(stypes);
+        pcs[i].push_back(nullptr);
+        weights[i].push_back(-1);
+      }
+    }
     //add constants
     std::vector< Node > consts;
     mkSygusConstantsForType( types[i], consts );
