@@ -225,17 +225,18 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
               << std::endl;
           // if so, do simple unrolling
           std::vector<Node> nvec;
-          if (nvec.empty())
+          Trace("strings-regexp") << "Simplify on " << atom << std::endl;
+          d_regexp_opr.simplify(atom, nvec, polarity);
+          Trace("strings-regexp") << "...finished" << std::endl;
+          // if simplifying successfully generated a lemma
+          if (!nvec.empty())
           {
-            Trace("strings-regexp") << "Simplify on " << atom << std::endl;
-            d_regexp_opr.simplify(atom, nvec, polarity);
-            Trace("strings-regexp") << "...finished" << std::endl;
+            std::vector<Node> exp_n;
+            exp_n.push_back(assertion);
+            Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
+            d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
+            addedLemma = true;
           }
-          std::vector<Node> exp_n;
-          exp_n.push_back(assertion);
-          Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
-          d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
-          addedLemma = true;
           if (changed)
           {
             cprocessed.push_back(assertion);
