@@ -1,5 +1,5 @@
 ; EXPECT: unknown
-; COMMAND-LINE: --sygus-out=status --sygus-repair-const --lang=sygus2 --no-sygus-pbe
+; COMMAND-LINE: --sygus-out=status --sygus-repair-const --lang=sygus2
 (set-logic LIA)
 (synth-fun f ((x Int) (y Int)) Int
   ((Start Int) (CInt Int))
