@@ -640,6 +640,7 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
     if (tmpNode.getKind() == STRING_CONCAT)
     {
       unsigned j = 0;
+      // combine the first term with the previous constant if applicable
       if (!preNode.isNull())
       {
         if (tmpNode[0].isConst())
@@ -656,11 +657,13 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
         preNode = Node::null();
         ++j;
       }
-      for (; j < tmpNode.getNumChildren() - 1; ++j)
+      // insert the middle terms to node_vec
+      if (j<=tmpNode.getNumChildren() - 1)
       {
-        node_vec.push_back(tmpNode[j]);
+        node_vec.insert(node_vec.end(), tmpNode.begin() + j, tmpNode.end() - 1);
       }
-      tmpNode = tmpNode[j];
+      // take the last term as the current
+      tmpNode = tmpNode[tmpNode.getNumChildren()-1];
     }
     if(!tmpNode.isConst()) {
       if(!preNode.isNull()) {
