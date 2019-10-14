@@ -34,9 +34,7 @@ struct TheoryTraits;
 
 ${theory_traits}
 
-${theory_for_each_macro}
-
-#line 40 "${template}"
+#line 38 "${template}"
 
 struct TheoryConstructor {
   static void addTheory(TheoryEngine* engine, TheoryId id) {
