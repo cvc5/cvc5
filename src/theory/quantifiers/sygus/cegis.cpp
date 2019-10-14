@@ -215,13 +215,9 @@ Node Cegis::getRefinementLemmaFormula()
   {
     ret = nm->mkConst(true);
   }
-  else if (conj.size() == 1)
-  {
-    ret = conj[0];
-  }
   else
   {
-    ret = nm->mkNode(AND, conj);
+    ret = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
   }
   return ret;
 }
@@ -269,15 +265,11 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
         return true;
       }
       Node rl = getRefinementLemmaFormula();
-      bool ret = false;
       // try to solve for the refinement lemmas only
-      if (src->repairSolution(rl, candidates, fail_cvs, candidate_values))
-      {
-        // We will exclude the skeleton as well; this means that we have one
-        // chance to repair the solution.
-        ret = true;
-      }
-      // repair solution didn't work, exclude this solution
+      bool ret = src->repairSolution(rl, candidates, fail_cvs, candidate_values);
+      // Even if ret is true, we will exclude the skeleton as well; this means
+      // that we have one chance to repair each skeleton. It is possible however
+      // that we might want to repair the same skeleton multiple times.
       std::vector<Node> exp;
       for (unsigned i = 0, size = enums.size(); i < size; i++)
       {
