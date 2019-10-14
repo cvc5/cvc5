@@ -510,8 +510,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * universally quantified in the constraints.
    */
   std::vector<Node> d_sygusVars;
-  /** types of sygus primed variables (for debugging) */
-  std::vector<Type> d_sygusPrimedVarTypes;
   /** sygus constraints */
   std::vector<Node> d_sygusConstraints;
   /** functions-to-synthesize */
@@ -3925,9 +3923,7 @@ void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
 
 void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
 {
-#ifdef CVC4_ASSERTIONS
-  d_private->d_sygusPrimedVarTypes.push_back(type);
-#endif
+  // do nothing (the command is spurious)
   Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
   // don't need to set that the conjecture is stale
 }
@@ -4010,27 +4006,6 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
     ss << vars.back() << "'";
     primed_vars.push_back(d_nodeManager->mkBoundVar(ss.str(), tn));
     d_private->d_sygusVars.push_back(primed_vars.back());
-#ifdef CVC4_ASSERTIONS
-    bool find_new_declared_var = false;
-    for (const Type& t : d_private->d_sygusPrimedVarTypes)
-    {
-      if (t == ti)
-      {
-        d_private->d_sygusPrimedVarTypes.erase(
-            std::find(d_private->d_sygusPrimedVarTypes.begin(),
-                      d_private->d_sygusPrimedVarTypes.end(),
-                      t));
-        find_new_declared_var = true;
-        break;
-      }
-    }
-    if (!find_new_declared_var)
-    {
-      Warning()
-          << "warning: declared primed variables do not match invariant's "
-             "type\n";
-    }
-#endif
   }
 
   // make relevant terms; 0 -> Inv, 1 -> Pre, 2 -> Trans, 3 -> Post
