@@ -25,6 +25,7 @@ set(regress_0_tests
   regress0/arith/integers/ackermann6.smt2
   regress0/arith/integers/arith-int-042.cvc
   regress0/arith/integers/arith-int-042.min.cvc
+  regress0/arith/issue1399.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
   regress0/arith/miplib2.cvc
@@ -561,6 +562,7 @@ set(regress_0_tests
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2
+  regress0/parser/force_logic_success.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -905,8 +907,10 @@ set(regress_0_tests
   regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/inv-different-var-order.sy
+  regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
+  regress0/sygus/no-logic.sy
   regress0/sygus/no-syntax-test-bool.sy
   regress0/sygus/no-syntax-test.sy
   regress0/sygus/parity-AIG-d0.sy
@@ -1383,6 +1387,7 @@ set(regress_1_tests
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
+  regress1/quantifiers/issue3250-syg-inf-q.smt2
   regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
@@ -1722,6 +1727,7 @@ set(regress_1_tests
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
+  regress1/sygus/repair-const-unk.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
   regress1/sygus/strings-no-syntax.sy
