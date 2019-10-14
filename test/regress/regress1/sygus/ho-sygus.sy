@@ -1,0 +1,8 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status --uf-ho
+(set-logic ALL)
+(synth-fun f ((y (-> Int Int)) (z Int)) Int)
+(declare-var z (-> Int Int))
+(constraint (= (f z 0) (z 1)))
+(constraint (= (f z 1) (z 2)))
+(check-synth)
