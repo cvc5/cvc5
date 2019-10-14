@@ -635,9 +635,8 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
   Node retNode = node;
   std::vector<Node> node_vec;
   Node preNode = Node::null();
-  for (const Node& nc : node)
+  for (Node tmpNode : node)
   {
-    Node tmpNode = nc;
     if (tmpNode.getKind() == STRING_CONCAT)
     {
       unsigned j = 0;
