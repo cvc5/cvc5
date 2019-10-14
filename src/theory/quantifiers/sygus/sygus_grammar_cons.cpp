@@ -432,6 +432,20 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
   }
 }
 
+bool CegGrammarConstructor::isHandledType(TypeNode t)
+{
+  std::vector<TypeNode> types;
+  collectSygusGrammarTypesFor(t, types);
+  for (const TypeNode& tn : types)
+  {
+    if (tn.isSort() || tn.isFloatingPoint())
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 void CegGrammarConstructor::mkSygusDefaultGrammar(
     TypeNode range,
     Node bvl,
@@ -541,7 +555,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
                itec->second.begin();
            set_it != itec->second.end();
-           set_it++)
+           ++set_it)
       {
         if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
         {

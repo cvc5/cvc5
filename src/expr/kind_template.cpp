@@ -74,48 +74,29 @@ ${type_constant_descriptions}
 
 namespace theory {
 
-std::ostream& operator<<(std::ostream& out, TheoryId theoryId) {
-  switch(theoryId) {
-${theory_descriptions}
-#line 81 "${template}"
-  default:
-    out << "UNKNOWN_THEORY";
-    break;
-  }
-  return out;
-}
-
 TheoryId kindToTheoryId(::CVC4::Kind k) {
   switch(k) {
   case kind::UNDEFINED_KIND:
   case kind::NULL_EXPR:
     break;
 ${kind_to_theory_id}
-#line 95 "${template}"
+#line 84 "${template}"
   case kind::LAST_KIND:
     break;
   }
   throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad kind");
 }
 
-TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) {
-  switch(typeConstant) {
+TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant)
+{
+  switch (typeConstant)
+  {
 ${type_constant_to_theory_id}
-#line 105 "${template}"
-  case LAST_TYPE:
-    break;
+#line 94 "${template}"
+    case LAST_TYPE: break;
   }
-  throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad type constant");
-}
-
-std::string getStatsPrefix(TheoryId theoryId) {
-  switch(theoryId) {
-${theory_stats_prefixes}
-#line 115 "${template}"
-  default:
-    break;
-  }
-  return "unknown";
+  throw IllegalArgumentException(
+      "", "k", __PRETTY_FUNCTION__, "bad type constant");
 }
 
 }/* CVC4::theory namespace */
