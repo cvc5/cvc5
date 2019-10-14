@@ -170,10 +170,9 @@ class DefinedFunction {
   Node d_formula;
 public:
   DefinedFunction() {}
-  DefinedFunction(Node func, vector<Node> formals, Node formula) :
-    d_func(func),
-    d_formals(formals),
-    d_formula(formula) {
+  DefinedFunction(Node func, vector<Node>& formals, Node formula)
+      : d_func(func), d_formals(formals), d_formula(formula)
+  {
   }
   Node getFunction() const { return d_func; }
   vector<Node> getFormals() const { return d_formals; }
@@ -1185,6 +1184,10 @@ void SmtEngine::setDefaults() {
                << "generation" << endl;
       setOption("bitblastMode", SExpr("lazy"));
     }
+    else if (!options::incrementalSolving())
+    {
+      options::ackermann.set(true);
+    }
 
     if (options::incrementalSolving() && !d_logic.isPure(THEORY_BV))
     {
@@ -1208,11 +1211,45 @@ void SmtEngine::setDefaults() {
   {
     d_logic = LogicInfo("QF_NIA");
   }
-  else if ((d_logic.getLogicString() == "QF_UFBV"
-            || d_logic.getLogicString() == "QF_ABV")
-           && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+
+  // set options about ackermannization
+  if (options::produceModels())
   {
-    d_logic = LogicInfo("QF_BV");
+    if (options::ackermann()
+        && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+            || d_logic.isTheoryEnabled(THEORY_UF)))
+    {
+      if (options::produceModels.wasSetByUser())
+      {
+        throw OptionException(std::string(
+            "Ackermannization currently does not support model generation."));
+      }
+      Notice() << "SmtEngine: turn off ackermannization to support model"
+               << "generation" << endl;
+      options::ackermann.set(false);
+    }
+  }
+
+  if (options::ackermann())
+  {
+    if (options::incrementalSolving())
+    {
+      throw OptionException(
+          "Incremental Ackermannization is currently not supported.");
+    }
+
+    if (d_logic.isTheoryEnabled(THEORY_UF))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_UF);
+      d_logic.lock();
+    }
+    if (d_logic.isTheoryEnabled(THEORY_ARRAYS))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_ARRAYS);
+      d_logic.lock();
+    }
   }
 
   // set default options associated with strings-exp
@@ -2231,13 +2268,24 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if(options::incrementalSolving() && options::proof()) {
-    Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
-    setOption("incremental", SExpr("false"));
-  }
-
   if (options::proof())
   {
+    if (options::incrementalSolving())
+    {
+      if (options::incrementalSolving.wasSetByUser())
+      {
+        throw OptionException("--incremental is not supported with proofs");
+      }
+      Warning()
+          << "SmtEngine: turning off incremental solving mode (not yet "
+             "supported with --proof, try --tear-down-incremental instead)"
+          << endl;
+      setOption("incremental", SExpr("false"));
+    }
+    if (d_logic > LogicInfo("QF_AUFBVLRA")) {
+        throw OptionException(
+            "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
+    }
     if (options::bitvectorAlgebraicSolver())
     {
       if (options::bitvectorAlgebraicSolver.wasSetByUser())
@@ -3168,9 +3216,11 @@ void SmtEnginePrivate::processAssertions() {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
 
-    // Placeholder for storing substitutions
-    d_preprocessingPassContext->setSubstitutionsIndex(d_assertions.size());
-    d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
+    d_assertions.enableStoreSubstsInAsserts();
+  }
+  else
+  {
+    d_assertions.disableStoreSubstsInAsserts();
   }
 
   // Add dummy assertion in last position - to be used as a
@@ -3235,10 +3285,9 @@ void SmtEnginePrivate::processAssertions() {
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-      && !options::incrementalSolving())
+  if (options::ackermann())
   {
-    d_passes["bv-ackermann"]->apply(&d_assertions);
+    d_passes["ackermann"]->apply(&d_assertions);
   }
 
   if (options::bvAbstraction() && !options::incrementalSolving())
@@ -4212,8 +4261,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
              || resultNode.getType().isSubtypeOf(expectedType),
          "Run with -t smt for details.");
 
-  // ensure it's a constant
-  Assert(resultNode.getKind() == kind::LAMBDA || resultNode.isConst());
+  // Ensure it's a constant, or a lambda (for uninterpreted functions), or
+  // a choice (for approximate values).
+  Assert(resultNode.getKind() == kind::LAMBDA
+         || resultNode.getKind() == kind::CHOICE || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);
@@ -4489,14 +4540,6 @@ void SmtEngine::checkProof()
   Chat() << "checking proof..." << endl;
 
   std::string logicString = d_logic.getLogicString();
-
-  if (!(d_logic <= LogicInfo("QF_AUFBVLRA")))
-  {
-    // This logic is not yet supported
-    Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"
-             << endl;
-    return;
-  }
 
   std::stringstream pfStream;
 

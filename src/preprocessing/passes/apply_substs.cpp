@@ -41,17 +41,12 @@ PreprocessingPassResult ApplySubsts::applyInternal(
     // TODO(#1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
 
-    // When solving incrementally, all substitutions are piled into the
-    // assertion at d_substitutionsIndex: we don't want to apply substitutions
-    // to this assertion or information will be lost.
-    unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
     theory::SubstitutionMap& substMap =
         d_preprocContext->getTopLevelSubstitutions();
     unsigned size = assertionsToPreprocess->size();
-    unsigned substitutionAssertion = substs_index > 0 ? substs_index : size;
     for (unsigned i = 0; i < size; ++i)
     {
-      if (i == substitutionAssertion)
+      if (assertionsToPreprocess->isSubstsIndex(i))
       {
         continue;
       }

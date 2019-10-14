@@ -154,6 +154,8 @@ public:
    * sygus grammar, add them to vector ops.
    */
   static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
+  /** Is it possible to construct a default grammar for type t? */
+  static bool isHandledType(TypeNode t);
   /**
    * Convert node n based on deep embedding, see Section 4 of Reynolds et al
    * CAV 2015.
