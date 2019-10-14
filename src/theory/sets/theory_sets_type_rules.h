@@ -200,7 +200,7 @@ struct UniverseSetTypeRule {
 
 struct ComprehensionTypeRule
 {
-  inline static TypeNode computeType(NodeManager* nodeManager,
+  static TypeNode computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check)
   {

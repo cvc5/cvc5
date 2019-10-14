@@ -1736,9 +1736,9 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       }
     }
   | LPAREN_TOK COMPREHENSION_TOK
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
     {
-      Expr bvl = PARSER_STATE->pushScopeWithDefs(sortedVarNames, true);
       args.push_back(bvl);
     }
     term[f, f2] { args.push_back(f); }

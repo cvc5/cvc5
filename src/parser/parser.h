@@ -734,14 +734,6 @@ public:
       d_assertionLevel = scopeLevel();
     }
   }
-  /**
-   * Pushes a scope with new bound variables are bound to types based on the
-   * entries in sortedVarNames. This method returns a bound variable list
-   * containing each of these variables.
-   */
-  Expr pushScopeWithDefs(
-      std::vector<std::pair<std::string, Type> >& sortedVarNames,
-      bool bindingLevel = false);
 
   inline void popScope() {
     d_symtab->popScope();
