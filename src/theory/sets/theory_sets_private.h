@@ -102,7 +102,7 @@ class TheorySetsPrivate {
    */
   void checkDisequalities();
   /**
-   * Check comprehsions. This adds reduction lemmas for all set comprehensions
+   * Check comprehensions. This adds reduction lemmas for all set comprehensions
    * in the current context.
    */
   void checkReduceComprehensions();
