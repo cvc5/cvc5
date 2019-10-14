@@ -61,8 +61,11 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
   return out;
 }
 
-Node TheoryStrings::TermIndex::add(
-    TNode n, unsigned index, const SolverState& s, Node er, std::vector<Node>& c)
+Node TheoryStrings::TermIndex::add(TNode n,
+                                   unsigned index,
+                                   const SolverState& s,
+                                   Node er,
+                                   std::vector<Node>& c)
 {
   if( index==n.getNumChildren() ){
     if( d_data.isNull() ){
@@ -942,9 +945,14 @@ void TheoryStrings::check(Effort e) {
             Trace("strings-eqc") << " } " << std::endl;
             EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
             if( ei ){
-              Trace("strings-eqc-debug") << "* Length term : " << ei->d_lengthTerm.get() << std::endl;
-              Trace("strings-eqc-debug") << "* Cardinality lemma k : " << ei->d_cardinalityLemK.get() << std::endl;
-              Trace("strings-eqc-debug") << "* Normalization length lemma : " << ei->d_normalizedLength.get() << std::endl;
+              Trace("strings-eqc-debug")
+                  << "* Length term : " << ei->d_lengthTerm.get() << std::endl;
+              Trace("strings-eqc-debug")
+                  << "* Cardinality lemma k : " << ei->d_cardinalityLemK.get()
+                  << std::endl;
+              Trace("strings-eqc-debug")
+                  << "* Normalization length lemma : "
+                  << ei->d_normalizedLength.get() << std::endl;
             }
           }
           ++eqcs2_i;
@@ -1099,8 +1107,9 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
   if( e2 ){
     EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
     //add information from e2 to e1
-    if( !e2->d_lengthTerm.get().isNull() ){
-      e1->d_lengthTerm.set( e2->d_lengthTerm );
+    if (!e2->d_lengthTerm.get().isNull())
+    {
+      e1->d_lengthTerm.set(e2->d_lengthTerm);
     }
     if (!e2->d_codeTerm.get().isNull())
     {
@@ -1116,11 +1125,13 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
       d_state.setPendingConflictWhen(
           e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
     }
-    if( e2->d_cardinalityLemK.get()>e1->d_cardinalityLemK.get() ) {
-      e1->d_cardinalityLemK.set( e2->d_cardinalityLemK );
+    if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
+    {
+      e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
     }
-    if( !e2->d_normalizedLength.get().isNull() ){
-      e1->d_normalizedLength.set( e2->d_normalizedLength );
+    if (!e2->d_normalizedLength.get().isNull())
+    {
+      e1->d_normalizedLength.set(e2->d_normalizedLength);
     }
   }
 }
@@ -4324,7 +4335,8 @@ void TheoryStrings::checkLengthsEqc() {
       if( !lt.isNull() ) {
         Node llt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt );
         //now, check if length normalization has occurred
-        if( ei->d_normalizedLength.get().isNull() ) {
+        if (ei->d_normalizedLength.get().isNull())
+        {
           Node nf = utils::mkConcat(nfi.d_nf);
           if( Trace.isOn("strings-process-debug") ){
             Trace("strings-process-debug")
@@ -4347,7 +4359,7 @@ void TheoryStrings::checkLengthsEqc() {
           if (!d_state.areEqual(llt, lcr))
           {
             Node eq = llt.eqNode(lcr);
-            ei->d_normalizedLength.set( eq );
+            ei->d_normalizedLength.set(eq);
             d_im.sendInference(ant, eq, "LEN-NORM", true);
           }
         }
@@ -4434,8 +4446,11 @@ void TheoryStrings::checkCardinality() {
           }
         }
         EqcInfo* ei = d_state.getOrMakeEqcInfo(lr, true);
-        Trace("strings-card") << "Previous cardinality used for " << lr << " is " << ((int)ei->d_cardinalityLemK.get()-1) << std::endl;
-        if( int_k+1 > ei->d_cardinalityLemK.get() ){
+        Trace("strings-card")
+            << "Previous cardinality used for " << lr << " is "
+            << ((int)ei->d_cardinalityLemK.get() - 1) << std::endl;
+        if (int_k + 1 > ei->d_cardinalityLemK.get())
+        {
           Node k_node = NodeManager::currentNM()->mkConst( ::CVC4::Rational( int_k ) );
           //add cardinality lemma
           Node dist = NodeManager::currentNM()->mkNode( kind::DISTINCT, cols[i] );
@@ -4452,7 +4467,7 @@ void TheoryStrings::checkCardinality() {
           Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, cols[i][0] );
           Node cons = NodeManager::currentNM()->mkNode( kind::GEQ, len, k_node );
           cons = Rewriter::rewrite( cons );
-          ei->d_cardinalityLemK.set( int_k+1 );
+          ei->d_cardinalityLemK.set(int_k + 1);
           if( cons!=d_true ){
             d_im.sendInference(
                 d_empty_vec, vec_node, cons, "CARDINALITY", true);

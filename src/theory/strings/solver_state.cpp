@@ -250,8 +250,8 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
     // typically shouldnt be necessary
     lengthTerm = t;
   }
-  Debug("strings") << "SolverState::getLengthTerm " << t << " is "
-                   << lengthTerm << std::endl;
+  Debug("strings") << "SolverState::getLengthTerm " << t << " is " << lengthTerm
+                   << std::endl;
   if (te != lengthTerm)
   {
     exp.push_back(te.eqNode(lengthTerm));
