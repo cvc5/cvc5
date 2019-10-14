@@ -236,21 +236,26 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
             d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
             addedLemma = true;
-          }
-          if (changed)
-          {
-            cprocessed.push_back(assertion);
+            if (changed)
+            {
+              cprocessed.push_back(assertion);
+            }
+            else
+            {
+              processed.push_back(assertion);
+            }
+            if (e == 0)
+            {
+              // Remember that we have unfolded a membership for x
+              // notice that we only do this here, after we have definitely
+              // added a lemma.
+              repUnfold.insert(rep);
+            }
           }
           else
           {
-            processed.push_back(assertion);
-          }
-          if (e == 0)
-          {
-            // Remember that we have unfolded a membership for x
-            // notice that we only do this here, after we have definitely
-            // added a lemma.
-            repUnfold.insert(rep);
+            // otherwise we are incomplete
+            d_parent.getOutputChannel().setIncomplete();
           }
         }
         if (d_im.hasConflict())
