@@ -3297,9 +3297,9 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                             "c_spt");
                         Trace("strings-csp") << "Const Split: " << prea << " is removed from " << stra << " due to " << strb << ", p=" << p << std::endl;        
                         //set info
-                        info.d_conc =
-                            other_str.eqNode(isRev ? utils::mkNConcat(sk, prea)
-                                                   : utils::mkNConcat(prea, sk));
+                        info.d_conc = other_str.eqNode(
+                            isRev ? utils::mkNConcat(sk, prea)
+                                  : utils::mkNConcat(prea, sk));
                         info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                         info.d_id = INFER_SSPLIT_CST_PROP;
                         info_valid = true;
