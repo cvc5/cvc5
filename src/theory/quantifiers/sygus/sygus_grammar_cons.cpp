@@ -566,9 +566,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         std::vector<Type> stypes;
         for (unsigned k = 0, ntypes = argTypes.size(); k < ntypes; k++)
         {
-          unsigned index = std::distance(
-              types.begin(),
-              std::find(types.begin(), types.end(), argTypes[k]));
+          unsigned index =
+              std::distance(types.begin(),
+                            std::find(types.begin(), types.end(), argTypes[k]));
           stypes.push_back(unres_types[index]);
         }
         std::stringstream ss;
