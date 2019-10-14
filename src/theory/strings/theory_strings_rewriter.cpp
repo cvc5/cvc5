@@ -759,12 +759,12 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
         ++j;
       }
       // insert the middle terms to node_vec
-      if (j<=tmpNode.getNumChildren() - 1)
+      if (j <= tmpNode.getNumChildren() - 1)
       {
         node_vec.insert(node_vec.end(), tmpNode.begin() + j, tmpNode.end() - 1);
       }
       // take the last term as the current
-      tmpNode = tmpNode[tmpNode.getNumChildren()-1];
+      tmpNode = tmpNode[tmpNode.getNumChildren() - 1];
     }
     if(!tmpNode.isConst()) {
       if(!preNode.isNull()) {
