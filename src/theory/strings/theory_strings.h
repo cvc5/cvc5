@@ -293,7 +293,7 @@ private:
     Node d_data;
     std::map< TNode, TermIndex > d_children;
     Node add(
-        TNode n, unsigned index, SolverState& s, Node er, std::vector<Node>& c);
+        TNode n, unsigned index, const SolverState& s, Node er, std::vector<Node>& c);
     void clear(){ d_children.clear(); }
   };
   std::map< Kind, TermIndex > d_term_index;

@@ -25,10 +25,10 @@ namespace theory {
 namespace strings {
 
 EqcInfo::EqcInfo(context::Context* c)
-    : d_length_term(c),
-      d_code_term(c),
-      d_cardinality_lem_k(c),
-      d_normalized_length(c),
+    : d_lengthTerm(c),
+      d_codeTerm(c),
+      d_cardinalityLemK(c),
+      d_normalizedLength(c),
       d_prefixC(c),
       d_suffixC(c)
 {
@@ -144,13 +144,13 @@ SolverState::SolverState(context::Context* c, eq::EqualityEngine& ee)
 }
 SolverState::~SolverState()
 {
-  for (std::pair<const Node, EqcInfo*>& it : d_eqc_info)
+  for (std::pair<const Node, EqcInfo*>& it : d_eqcInfo)
   {
     delete it.second;
   }
 }
 
-Node SolverState::getRepresentative(Node t)
+Node SolverState::getRepresentative(Node t) const
 {
   if (d_ee.hasTerm(t))
   {
@@ -159,9 +159,9 @@ Node SolverState::getRepresentative(Node t)
   return t;
 }
 
-bool SolverState::hasTerm(Node a) { return d_ee.hasTerm(a); }
+bool SolverState::hasTerm(Node a) const { return d_ee.hasTerm(a); }
 
-bool SolverState::areEqual(Node a, Node b)
+bool SolverState::areEqual(Node a, Node b) const
 {
   if (a == b)
   {
@@ -174,7 +174,7 @@ bool SolverState::areEqual(Node a, Node b)
   return false;
 }
 
-bool SolverState::areDisequal(Node a, Node b)
+bool SolverState::areDisequal(Node a, Node b) const
 {
   if (a == b)
   {
@@ -196,15 +196,15 @@ eq::EqualityEngine* SolverState::getEqualityEngine() const { return &d_ee; }
 
 EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
 {
-  std::map<Node, EqcInfo*>::iterator eqc_i = d_eqc_info.find(eqc);
-  if (eqc_i != d_eqc_info.end())
+  std::map<Node, EqcInfo*>::iterator eqc_i = d_eqcInfo.find(eqc);
+  if (eqc_i != d_eqcInfo.end())
   {
     return eqc_i->second;
   }
   if (doMake)
   {
     EqcInfo* ei = new EqcInfo(d_context);
-    d_eqc_info[eqc] = ei;
+    d_eqcInfo[eqc] = ei;
     return ei;
   }
   return nullptr;
@@ -244,20 +244,20 @@ Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
     return lt;
   }
   EqcInfo* ei = getOrMakeEqcInfo(t, false);
-  Node length_term = ei ? ei->d_length_term : Node::null();
-  if (length_term.isNull())
+  Node lengthTerm = ei ? ei->d_lengthTerm : Node::null();
+  if (lengthTerm.isNull())
   {
     // typically shouldnt be necessary
-    length_term = t;
+    lengthTerm = t;
   }
   Debug("strings") << "SolverState::getLengthTerm " << t << " is "
-                   << length_term << std::endl;
-  if (te != length_term)
+                   << lengthTerm << std::endl;
+  if (te != lengthTerm)
   {
-    exp.push_back(te.eqNode(length_term));
+    exp.push_back(te.eqNode(lengthTerm));
   }
   return Rewriter::rewrite(
-      NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, length_term));
+      NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
 }
 
 Node SolverState::getLength(Node t, std::vector<Node>& exp)
