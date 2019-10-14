@@ -38,6 +38,8 @@ libcvc4_add_sources(
   lib/strtok_r.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
+  preprocessing/passes/ackermann.cpp
+  preprocessing/passes/ackermann.h
   preprocessing/passes/apply_substs.cpp
   preprocessing/passes/apply_substs.h
   preprocessing/passes/apply_to_const.cpp
@@ -46,8 +48,6 @@ libcvc4_add_sources(
   preprocessing/passes/bool_to_bv.h
   preprocessing/passes/bv_abstraction.cpp
   preprocessing/passes/bv_abstraction.h
-  preprocessing/passes/bv_ackermann.cpp
-  preprocessing/passes/bv_ackermann.h
   preprocessing/passes/bv_eager_atoms.cpp
   preprocessing/passes/bv_eager_atoms.h
   preprocessing/passes/bv_gauss.cpp
@@ -682,6 +682,8 @@ libcvc4_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_id.cpp
+  theory/theory_id.h
   theory/theory_model.cpp
   theory/theory_model.h
   theory/theory_model_builder.cpp
@@ -717,10 +719,6 @@ include_directories(include)
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
-# IMPORTANT: The order of the theories is important. It affects the order in
-# which theory solvers are called/initialized internally. For example, strings
-# depends on arith, quantifiers needs to come as the very last.
-# See issue https://github.com/CVC4/CVC4/issues/2517 for more details.
 
 set(KINDS_FILES
   ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
@@ -928,6 +926,7 @@ install(FILES
           ${INCLUDE_INSTALL_DIR}/cvc4/smt_util)
 install(FILES
           theory/logic_info.h
+          theory/theory_id.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/theory)
 install(FILES
