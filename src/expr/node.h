@@ -469,11 +469,8 @@ public:
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA || getKind() == kind::FORALL
            || getKind() == kind::EXISTS || getKind() == kind::CHOICE
-<<<<<<< HEAD
-           || getKind() == kind::COMPREHENSION;
-=======
+           || getKind() == kind::COMPREHENSION
            || getKind() == kind::MATCH_BIND_CASE;
->>>>>>> Support smt2 language "match" term  (#3258)
   }
 
   /**
