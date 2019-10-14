@@ -27,11 +27,10 @@
 #include <sstream>
 #include <string>
 
-#include "expr/expr_iomanip.h"
-#include "options/language.h"
-#include "options/set_language.h"
+#include <cvc4/cvc4.h>
+#include <cvc4/expr/expr_iomanip.h>
+#include <cvc4/options/set_language.h>
 #include "sha1.hpp"
-#include "smt/command.h"
 #include "word.h"
 
 using namespace std;

@@ -248,7 +248,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
       while(tuple_it != tuple_set.end()) {
         new_tuple_set.insert(RelsUtils::reverseTuple(*tuple_it));
-        tuple_it++;
+        ++tuple_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
       Assert(new_node.isConst());
@@ -296,9 +296,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           new_tuple.insert(new_tuple.end(), right_tuple.begin(), right_tuple.end());
           Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
           new_tuple_set.insert(composed_tuple);
-          right_it++;
+          ++right_it;
         }
-        left_it++;
+        ++left_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
       Assert(new_node.isConst());
@@ -340,9 +340,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
             Node composed_tuple = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, new_tuple);
             new_tuple_set.insert(composed_tuple);
           }
-          right_it++;
+          ++right_it;
         }
-        left_it++;
+        ++left_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
       Assert(new_node.isConst());

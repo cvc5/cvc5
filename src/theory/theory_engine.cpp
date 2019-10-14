@@ -59,6 +59,34 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
+/* -------------------------------------------------------------------------- */
+
+namespace theory {
+
+/**
+ * IMPORTANT: The order of the theories is important. For example, strings
+ *            depends on arith, quantifiers needs to come as the very last.
+ *            Do not change this order.
+ */
+
+#define CVC4_FOR_EACH_THEORY                                     \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BUILTIN)   \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BOOL)      \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_UF)        \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_ARITH)     \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BV)        \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_FP)        \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_ARRAYS)    \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_DATATYPES) \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_SEP)       \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_SETS)      \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_STRINGS)   \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_QUANTIFIERS)
+
+}  // namespace theory
+
+/* -------------------------------------------------------------------------- */
+
 inline void flattenAnd(Node n, std::vector<TNode>& out){
   Assert(n.getKind() == kind::AND);
   for(Node::iterator i=n.begin(), i_end=n.end(); i != i_end; ++i){

@@ -19,6 +19,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -194,7 +195,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
             free_functions.push_back(op);
           }
         }
-        else if (cur.getKind() == VARIABLE)
+        else if (cur.isVar() && cur.getKind() != BOUND_VARIABLE)
         {
           // a free variable is a 0-argument function to synthesize
           Assert(std::find(free_functions.begin(), free_functions.end(), cur)
@@ -220,6 +221,24 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
   if (free_functions.empty())
   {
     Trace("sygus-infer") << "...fail: no free function symbols." << std::endl;
+    return false;
+  }
+
+  // Ensure the type of all free functions is handled by the sygus grammar
+  // constructor utility.
+  bool typeSuccess = true;
+  for (const Node& f : free_functions)
+  {
+    TypeNode tn = f.getType();
+    if (!theory::quantifiers::CegGrammarConstructor::isHandledType(tn))
+    {
+      Trace("sygus-infer") << "...fail: unhandled type " << tn << std::endl;
+      typeSuccess = false;
+      break;
+    }
+  }
+  if (!typeSuccess)
+  {
     return false;
   }
 

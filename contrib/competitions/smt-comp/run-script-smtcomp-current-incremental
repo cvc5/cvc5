@@ -47,7 +47,7 @@ QF_BV)
   runcvc4 --incremental --bitblast=eager --bv-sat-solver=cadical
   ;;
 QF_LIA)
-  runcvc4 --tear-down-incremental=1 --unconstrained-simp
+  runcvc4 --tear-down-incremental=1
   ;;
 QF_UFBV)
   runcvc4 --incremental
