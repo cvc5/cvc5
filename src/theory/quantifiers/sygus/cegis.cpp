@@ -266,7 +266,8 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       }
       Node rl = getRefinementLemmaFormula();
       // try to solve for the refinement lemmas only
-      bool ret = src->repairSolution(rl, candidates, fail_cvs, candidate_values);
+      bool ret =
+          src->repairSolution(rl, candidates, fail_cvs, candidate_values);
       // Even if ret is true, we will exclude the skeleton as well; this means
       // that we have one chance to repair each skeleton. It is possible however
       // that we might want to repair the same skeleton multiple times.
