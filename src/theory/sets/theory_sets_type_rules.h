@@ -200,9 +200,7 @@ struct UniverseSetTypeRule {
 
 struct ComprehensionTypeRule
 {
-  static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Assert(n.getKind() == kind::COMPREHENSION);
     if (check)
