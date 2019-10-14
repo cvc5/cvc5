@@ -237,7 +237,7 @@ void SolverState::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
 {
   Assert(areEqual(t, te));
-  Node lt = utils::mkLength(te);
+  Node lt = utils::mkNLength(te);
   if (hasTerm(lt))
   {
     // use own length if it exists, leads to shorter explanation

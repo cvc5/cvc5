@@ -111,24 +111,24 @@ Node mkConcat(Kind k, const std::vector<Node>& c)
                       : (c.size() == 1 ? c[0] : nm->mkConst(String("")));
 }
 
-Node mkConcat(Node n1, Node n2)
+Node mkNConcat(Node n1, Node n2)
 {
   return Rewriter::rewrite(
       NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
 }
 
-Node mkConcat(Node n1, Node n2, Node n3)
+Node mkNConcat(Node n1, Node n2, Node n3)
 {
   return Rewriter::rewrite(
       NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
 }
 
-Node mkConcat(const std::vector<Node>& c)
+Node mkNConcat(const std::vector<Node>& c)
 {
   return Rewriter::rewrite(mkConcat(STRING_CONCAT, c));
 }
 
-Node mkLength(Node t)
+Node mkNLength(Node t)
 {
   return Rewriter::rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, t));
 }
