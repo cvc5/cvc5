@@ -662,7 +662,6 @@ Smt2::SynthFunFactory::SynthFunFactory(
     std::vector<std::pair<std::string, CVC4::Type>>& sortedVarNames)
     : d_smt2(smt2), d_fun(fun), d_isInv(isInv)
 {
-  smt2->checkThatLogicIsSet();
   if (range.isNull())
   {
     smt2->parseError("Must supply return type for synth-fun.");
@@ -837,14 +836,10 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addTheory(THEORY_SEP);
   }
 
-  if (sygus())
-  {
-    return new SetBenchmarkLogicCommand(d_logic.getLogicString());
-  }
-  else
-  {
-    return new SetBenchmarkLogicCommand(name);
-  }
+  Command* cmd =
+      new SetBenchmarkLogicCommand(sygus() ? d_logic.getLogicString() : name);
+  cmd->setMuted(!fromCommand);
+  return cmd;
 } /* Smt2::setLogic() */
 
 bool Smt2::sygus() const

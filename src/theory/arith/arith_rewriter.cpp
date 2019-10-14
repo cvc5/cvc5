@@ -734,13 +734,16 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
       Assert(k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL);
       return RewriteResponse(REWRITE_AGAIN, n);
     }
-  }else if(dIsConstant && d.getConst<Rational>().isNegativeOne()){
-    if(k == kind::INTS_MODULUS || k == kind::INTS_MODULUS_TOTAL){
-      return RewriteResponse(REWRITE_DONE, mkRationalNode(0));
-    }else{
-      Assert(k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL);
-      return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkNode(kind::UMINUS, n));
-    }
+  }
+  else if (dIsConstant && d.getConst<Rational>().sgn() < 0)
+  {
+    // pull negation
+    //   (div x (- c)) ---> (- (div x c))
+    //   (mod x (- c)) ---> (mod x c)
+    NodeManager* nm = NodeManager::currentNM();
+    Node nn = nm->mkNode(k, t[0], nm->mkConst(-t[1].getConst<Rational>()));
+    Node ret = k == kind::INTS_DIVISION ? nm->mkNode(kind::UMINUS, nn) : nn;
+    return RewriteResponse(REWRITE_AGAIN, nn);
   }else if(dIsConstant && n.getKind() == kind::CONST_RATIONAL){
     Assert(d.getConst<Rational>().isIntegral());
     Assert(n.getConst<Rational>().isIntegral());
