@@ -68,7 +68,7 @@ struct KindHashFunction {
 enum CVC4_PUBLIC TypeConstant
 {
   ${type_constant_list}
-#line 71 "${template}"
+#line 72 "${template}"
   LAST_TYPE
 }; /* enum TypeConstant */
 
