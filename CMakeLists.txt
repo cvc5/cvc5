@@ -237,8 +237,6 @@ if(ENABLE_SHARED)
 else()
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
-  # This is required to force find_package(Boost) to use static libraries.
-  set(Boost_USE_STATIC_LIBS ON)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
 
   # Never build unit tests as static binaries, otherwise we'll end up with
