@@ -1044,16 +1044,16 @@ bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
 
+uint64_t Term::getId() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->getId();
+}
+
 Kind Term::getKind() const
 {
   CVC4_API_CHECK_NOT_NULL;
   return intToExtKind(d_expr->getKind());
-}
-
-bool Term::isParameterized() const
-{
-  CVC4_API_CHECK_NOT_NULL;
-  return d_expr->isParameterized();
 }
 
 Sort Term::getSort() const
@@ -1064,8 +1064,15 @@ Sort Term::getSort() const
 
 bool Term::isNull() const { return d_expr->isNull(); }
 
+bool Term::isParameterized() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->isParameterized();
+}
+
 Term Term::notTerm() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   try
   {
     Term res = d_expr->notExpr();
@@ -1080,6 +1087,8 @@ Term Term::notTerm() const
 
 Term Term::andTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->andExpr(*t.d_expr);
@@ -1094,6 +1103,8 @@ Term Term::andTerm(const Term& t) const
 
 Term Term::orTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->orExpr(*t.d_expr);
@@ -1108,6 +1119,8 @@ Term Term::orTerm(const Term& t) const
 
 Term Term::xorTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->xorExpr(*t.d_expr);
@@ -1122,6 +1135,8 @@ Term Term::xorTerm(const Term& t) const
 
 Term Term::eqTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->eqExpr(*t.d_expr);
@@ -1136,6 +1151,8 @@ Term Term::eqTerm(const Term& t) const
 
 Term Term::impTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->impExpr(*t.d_expr);
@@ -1150,6 +1167,9 @@ Term Term::impTerm(const Term& t) const
 
 Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(then_t);
+  CVC4_API_ARG_CHECK_NOT_NULL(else_t);
   try
   {
     Term res = d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
@@ -1356,7 +1376,7 @@ template <>
 uint32_t OpTerm::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  uint32_t i;
+  uint32_t i = 0;
   Kind k = intToExtKind(d_expr->getKind());
   switch (k)
   {

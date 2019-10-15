@@ -18,6 +18,7 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "printer/sygus_print_callback.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
@@ -428,8 +429,31 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         TypeNode intType = NodeManager::currentNM()->integerType();
         collectSygusGrammarTypesFor(intType,types);
       }
+      else if (range.isFunction())
+      {
+        std::vector<TypeNode> atypes = range.getArgTypes();
+        for (unsigned i = 0, ntypes = atypes.size(); i < ntypes; i++)
+        {
+          collectSygusGrammarTypesFor(atypes[i], types);
+        }
+        collectSygusGrammarTypesFor(range.getRangeType(), types);
+      }
     }
   }
+}
+
+bool CegGrammarConstructor::isHandledType(TypeNode t)
+{
+  std::vector<TypeNode> types;
+  collectSygusGrammarTypesFor(t, types);
+  for (const TypeNode& tn : types)
+  {
+    if (tn.isSort() || tn.isFloatingPoint())
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 void CegGrammarConstructor::mkSygusDefaultGrammar(
@@ -519,15 +543,39 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     Type unres_t = unres_types[i];
     //add variables
-    for (unsigned j = 0, size_j = sygus_vars.size(); j < size_j; ++j)
+    for (const Node& sv : sygus_vars)
     {
-      if( sygus_vars[j].getType()==types[i] ){
+      TypeNode svt = sv.getType();
+      if (svt == types[i])
+      {
         std::stringstream ss;
-        ss << sygus_vars[j];
-        Trace("sygus-grammar-def") << "...add for variable " << ss.str() << std::endl;
-        ops[i].push_back( sygus_vars[j].toExpr() );
+        ss << sv;
+        Trace("sygus-grammar-def")
+            << "...add for variable " << ss.str() << std::endl;
+        ops[i].push_back(sv.toExpr());
         cnames[i].push_back(ss.str());
         cargs[i].push_back(std::vector<Type>());
+        pcs[i].push_back(nullptr);
+        weights[i].push_back(-1);
+      }
+      else if (svt.isFunction() && svt.getRangeType() == types[i])
+      {
+        // We add an APPLY_UF for all function whose return type is this type
+        // whose argument types are the other sygus types we are constructing.
+        std::vector<TypeNode> argTypes = svt.getArgTypes();
+        std::vector<Type> stypes;
+        for (unsigned k = 0, ntypes = argTypes.size(); k < ntypes; k++)
+        {
+          unsigned index =
+              std::distance(types.begin(),
+                            std::find(types.begin(), types.end(), argTypes[k]));
+          stypes.push_back(unres_types[index]);
+        }
+        std::stringstream ss;
+        ss << "apply_" << sv;
+        ops[i].push_back(sv.toExpr());
+        cnames[i].push_back(ss.str());
+        cargs[i].push_back(stypes);
         pcs[i].push_back(nullptr);
         weights[i].push_back(-1);
       }
@@ -541,7 +589,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
                itec->second.begin();
            set_it != itec->second.end();
-           set_it++)
+           ++set_it)
       {
         if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
         {
@@ -798,7 +846,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs[i].push_back(nullptr);
         weights[i].push_back(-1);
       }
-    }else{
+    }
+    else if (types[i].isSort() || types[i].isFunction())
+    {
+      // do nothing
+    }
+    else
+    {
       Warning()
           << "Warning: No implementation for default Sygus grammar of type "
           << types[i] << std::endl;
@@ -889,6 +943,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   // add predicates for types
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
+    if (!types[i].isFirstClass())
+    {
+      continue;
+    }
     Trace("sygus-grammar-def") << "...add predicates for " << types[i] << std::endl;
     //add equality per type
     Kind k = EQUAL;

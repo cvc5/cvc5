@@ -326,7 +326,7 @@ public:
    * @return an identifier uniquely identifying the value this
    * expression holds.
    */
-  unsigned long getId() const;
+  uint64_t getId() const;
 
   /**
    * Returns the kind of the expression (AND, PLUS ...).
@@ -621,7 +621,7 @@ private:
 
 ${getConst_instantiations}
 
-#line 616 "${template}"
+#line 609 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();

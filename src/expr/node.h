@@ -468,14 +468,16 @@ public:
   inline bool isClosure() const {
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA || getKind() == kind::FORALL
-           || getKind() == kind::EXISTS || getKind() == kind::CHOICE;
+           || getKind() == kind::EXISTS || getKind() == kind::CHOICE
+           || getKind() == kind::MATCH_BIND_CASE;
   }
 
   /**
    * Returns the unique id of this node
    * @return the ud
    */
-  unsigned long getId() const {
+  uint64_t getId() const
+  {
     assertTNodeNotExpired();
     return d_nv->getId();
   }
