@@ -105,6 +105,28 @@ inline Node flattenAnd(Node n){
   return NodeManager::currentNM()->mkNode(kind::AND, out);
 }
 
+/**
+ * Compute the string for a given theory id. In this module, we use
+ * THEORY_SAT_SOLVER as an id, which is not a normal id but maps to
+ * THEORY_LAST. Thus, we need our own string conversion here.
+ *
+ * @param id The theory id
+ * @return The string corresponding to the theory id
+ */
+std::string getTheoryString(theory::TheoryId id)
+{
+  if (id == theory::THEORY_SAT_SOLVER)
+  {
+    return "THEORY_SAT_SOLVER";
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << id;
+    return ss.str();
+  }
+}
+
 theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
                                                              ProofRule rule,
                                                              bool removable,
@@ -2065,8 +2087,9 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     // See if it was sent to the theory by another theory
     PropagationMap::const_iterator find = d_propagationMap.find(toExplain);
     if (find != d_propagationMap.end()) {
-      Debug("theory::explain") << "\tTerm was propagated by another theory (theory = "
-                               << theoryOf((*find).second.theory)->getId() << ")" << std::endl;
+      Debug("theory::explain")
+          << "\tTerm was propagated by another theory (theory = "
+          << getTheoryString((*find).second.theory) << ")" << std::endl;
       // There is some propagation, check if its a timely one
       if ((*find).second.timestamp < toExplain.timestamp) {
         Debug("theory::explain") << "\tRelevant timetsamp, pushing "
