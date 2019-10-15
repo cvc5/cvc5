@@ -1248,9 +1248,7 @@ void SmtEngine::setDefaults() {
       d_logic.disableTheory(THEORY_ARRAYS);
       d_logic.lock();
     }
->>>>>>> master
   }
-
   // set default options associated with strings-exp
   if (options::stringExp())
   {
