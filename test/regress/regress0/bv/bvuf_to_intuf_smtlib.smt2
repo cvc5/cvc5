@@ -1,4 +1,4 @@
-;COMMAND-LINE: --solve-bv-as-int=1 --no-produce-models --no-produce-unsat-cores
+;COMMAND-LINE: --solve-bv-as-int=1 --no-produce-models --no-produce-unsat-cores --no-check-proofs
 ;EXPECT: unsat
 
 (set-info :smt-lib-version 2.6)
