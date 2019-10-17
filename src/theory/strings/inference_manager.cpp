@@ -34,10 +34,14 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::UserContext* u,
                                    SolverState& s,
                                    OutputChannel& out)
-    : d_parent(p), d_state(s), d_out(out), d_keep(c)
+    : d_parent(p), d_state(s), d_out(out), d_keep(c), 
+      d_lengthLemmaTermsCache(u)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
+  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
+  d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
+  d_true = NodeManager::currentNM()->mkConst( true );
+  d_false = NodeManager::currentNM()->mkConst( false );
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
@@ -277,6 +281,94 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
 {
   lit = Rewriter::rewrite(lit);
   d_pendingReqPhase[lit] = pol;
+}
+
+
+void InferenceManager::registerLength(Node n, LengthStatus s)
+{
+  if (d_lengthLemmaTermsCache.find(n) != d_lengthLemmaTermsCache.end())
+  {
+    return;
+  }
+  d_lengthLemmaTermsCache.insert(n);
+  
+  if (s==LENGTH_IGNORE)
+  {
+    // ignore it
+    return;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
+
+  if (s == LENGTH_GEQ_ONE)
+  {
+    Node neq_empty = n.eqNode(d_emptyString).negate();
+    Node len_n_gt_z = nm->mkNode(GT, n_len, d_zero);
+    Node len_geq_one = nm->mkNode(AND, neq_empty, len_n_gt_z);
+    Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
+                           << std::endl;
+    Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
+    d_out.lemma(len_geq_one);
+    return;
+  }
+
+  if (s == LENGTH_ONE)
+  {
+    Node len_one = n_len.eqNode(d_one);
+    Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
+                           << std::endl;
+    Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
+    d_out.lemma(len_one);
+    return;
+  }
+  Assert(s == LENGTH_SPLIT);
+
+  if( options::stringSplitEmp() || !options::stringLenGeqZ() ){
+    Node n_len_eq_z = n_len.eqNode( d_zero );
+    Node n_len_eq_z_2 = n.eqNode( d_emptyString );
+    Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
+    case_empty = Rewriter::rewrite(case_empty);
+    Node case_nempty = nm->mkNode(GT, n_len, d_zero);
+    if (!case_empty.isConst())
+    {
+      Node lem = nm->mkNode(OR, case_empty, case_nempty);
+      d_out.lemma(lem);
+      Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << lem
+                             << std::endl;
+      // prefer trying the empty case first
+      // notice that requirePhase must only be called on rewritten literals that
+      // occur in the CNF stream.
+      n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
+      Assert(!n_len_eq_z.isConst());
+      d_out.requirePhase(n_len_eq_z, true);
+      n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
+      Assert(!n_len_eq_z_2.isConst());
+      d_out.requirePhase(n_len_eq_z_2, true);
+    }
+    else if (!case_empty.getConst<bool>())
+    {
+      // the rewriter knows that n is non-empty
+      Trace("strings-lemma")
+          << "Strings::Lemma LENGTH > 0 (non-empty): " << case_nempty
+          << std::endl;
+      d_out.lemma(case_nempty);
+    }
+    else
+    {
+      // If n = "" ---> true or len( n ) = 0 ----> true, then we expect that
+      // n ---> "". Since this method is only called on non-constants n, it must
+      // be that n = "" ^ len( n ) = 0 does not rewrite to true.
+      Assert(false);
+    }
+  }
+
+  // additionally add len( x ) >= 0 ?
+  if( options::stringLenGeqZ() ){
+    Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
+    n_len_geq = Rewriter::rewrite( n_len_geq );
+    d_out.lemma( n_len_geq );
+  }
 }
 
 void InferenceManager::addToExplanation(Node a,

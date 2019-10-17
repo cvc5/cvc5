@@ -234,7 +234,6 @@ class TheoryStrings : public Theory {
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
-  NodeSet d_length_lemma_terms_cache;
   /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
   // extended functions inferences cache
@@ -355,23 +354,6 @@ private:
   };
 
  private:
-
-  /** register length
-   *
-   * This method is called on non-constant string terms n. It sends a lemma
-   * on the output channel that ensures that the length n satisfies its assigned
-   * status (given by argument s).
-   *
-   * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
-   *
-   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) > 0.
-   *
-   * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
-   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
-   * This method also ensures that, when applicable, the left branch is taken
-   * first via calls to requirePhase.
-   */
-  void registerLength(Node n, LengthStatus s);
 
   /** cache of all skolems */
   SkolemCache d_sk_cache;

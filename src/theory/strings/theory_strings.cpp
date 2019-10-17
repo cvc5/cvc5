@@ -98,7 +98,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_nf_pairs(c),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
-      d_length_lemma_terms_cache(u),
       d_preproc(&d_sk_cache, u),
       d_extf_infer_cache(c),
       d_ee_disequalities(c),
@@ -2986,7 +2985,7 @@ void TheoryStrings::doInferInfo(const InferInfo& ii)
   {
     for (const Node& n : sks.second)
     {
-      registerLength(n, sks.first);
+      d_im.registerLength(n, sks.first);
     }
   }
 }
@@ -3616,7 +3615,7 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
     // right
     Node sk_w = d_sk_cache.mkSkolem("w_loop");
     Node sk_y = d_sk_cache.mkSkolem("y_loop");
-    registerLength(sk_y, LENGTH_GEQ_ONE);
+    d_im.registerLength(sk_y, LENGTH_GEQ_ONE);
     Node sk_z = d_sk_cache.mkSkolem("z_loop");
     // t1 * ... * tn = y * z
     Node conc1 = t_yz.eqNode(utils::mkNConcat(sk_y, sk_z));
@@ -3723,7 +3722,7 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                 {
                   Node sk = d_sk_cache.mkSkolemCached(
                       nconst_k, SkolemCache::SK_ID_DC_SPT, "dc_spt");
-                  registerLength(sk, LENGTH_ONE);
+                  d_im.registerLength(sk, LENGTH_ONE);
                   Node skr =
                       d_sk_cache.mkSkolemCached(nconst_k,
                                                 SkolemCache::SK_ID_DC_SPT_REM,
@@ -3772,7 +3771,7 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                   i, j, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
               Node sk3 = d_sk_cache.mkSkolemCached(
                   i, j, SkolemCache::SK_ID_DEQ_Z, "z_dsplit");
-              registerLength(sk3, LENGTH_GEQ_ONE);
+              d_im.registerLength(sk3, LENGTH_GEQ_ONE);
               //Node nemp = sk3.eqNode(d_emptyString).negate();
               //conc.push_back(nemp);
               Node lsk1 = utils::mkNLength(sk1);
@@ -4005,7 +4004,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
       // can register length term if it does not rewrite
       if (lsum == lsumb)
       {
-        registerLength(n, LENGTH_SPLIT);
+        d_im.registerLength(n, LENGTH_SPLIT);
         return;
       }
     }
@@ -4021,8 +4020,8 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     // implied.
     if (n.isConst() || n.getKind() == STRING_CONCAT)
     {
-      // add to length lemma cache, i.e. do not send length lemma for sk.
-      d_length_lemma_terms_cache.insert(sk);
+      // do not send length lemma for sk.
+      d_im.registerLength(sk,LENGTH_IGNORE);
     }
     Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
     d_out->lemma(eq);
@@ -4082,87 +4081,6 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
                           nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
                           nm->mkNode(LT, n, len));
     d_out->lemma(lem);
-  }
-}
-
-void TheoryStrings::registerLength(Node n, LengthStatus s)
-{
-  if (d_length_lemma_terms_cache.find(n) != d_length_lemma_terms_cache.end())
-  {
-    return;
-  }
-  d_length_lemma_terms_cache.insert(n);
-
-  NodeManager* nm = NodeManager::currentNM();
-  Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
-
-  if (s == LENGTH_GEQ_ONE)
-  {
-    Node neq_empty = n.eqNode(d_emptyString).negate();
-    Node len_n_gt_z = nm->mkNode(GT, n_len, d_zero);
-    Node len_geq_one = nm->mkNode(AND, neq_empty, len_n_gt_z);
-    Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
-                           << std::endl;
-    Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
-    d_out->lemma(len_geq_one);
-    return;
-  }
-
-  if (s == LENGTH_ONE)
-  {
-    Node len_one = n_len.eqNode(d_one);
-    Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
-                           << std::endl;
-    Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
-    d_out->lemma(len_one);
-    return;
-  }
-  Assert(s == LENGTH_SPLIT);
-
-  if( options::stringSplitEmp() || !options::stringLenGeqZ() ){
-    Node n_len_eq_z = n_len.eqNode( d_zero );
-    Node n_len_eq_z_2 = n.eqNode( d_emptyString );
-    Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
-    case_empty = Rewriter::rewrite(case_empty);
-    Node case_nempty = nm->mkNode(GT, n_len, d_zero);
-    if (!case_empty.isConst())
-    {
-      Node lem = nm->mkNode(OR, case_empty, case_nempty);
-      d_out->lemma(lem);
-      Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << lem
-                             << std::endl;
-      // prefer trying the empty case first
-      // notice that requirePhase must only be called on rewritten literals that
-      // occur in the CNF stream.
-      n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
-      Assert(!n_len_eq_z.isConst());
-      d_out->requirePhase(n_len_eq_z, true);
-      n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
-      Assert(!n_len_eq_z_2.isConst());
-      d_out->requirePhase(n_len_eq_z_2, true);
-    }
-    else if (!case_empty.getConst<bool>())
-    {
-      // the rewriter knows that n is non-empty
-      Trace("strings-lemma")
-          << "Strings::Lemma LENGTH > 0 (non-empty): " << case_nempty
-          << std::endl;
-      d_out->lemma(case_nempty);
-    }
-    else
-    {
-      // If n = "" ---> true or len( n ) = 0 ----> true, then we expect that
-      // n ---> "". Since this method is only called on non-constants n, it must
-      // be that n = "" ^ len( n ) = 0 does not rewrite to true.
-      Assert(false);
-    }
-  }
-
-  // additionally add len( x ) >= 0 ?
-  if( options::stringLenGeqZ() ){
-    Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
-    n_len_geq = Rewriter::rewrite( n_len_geq );
-    d_out->lemma( n_len_geq );
   }
 }
 
