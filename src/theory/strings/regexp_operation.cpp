@@ -787,8 +787,10 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
       }
       case kind::REGEXP_SIGMA:
       default: {
-        // should not call this function on regular expressions that aren't a
-        // standard regular expression kind.
+        // we do not expect to call this function on regular expressions that
+        // aren't a standard regular expression kind. However, it we do, then
+        // the following code is conservative and says that the current
+        // regular expression can begin with any character.
         Assert(k == REGEXP_SIGMA);
         // can start with any character
         Assert(d_lastchar < std::numeric_limits<unsigned>::max());
