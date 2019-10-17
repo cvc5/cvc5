@@ -932,8 +932,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         << "Simple predicate for " << tn << " index " << tindex << " (" << nk
         << ") at depth " << depth << " : " << std::endl;
     Trace("sygus-sb-simple") << "   " << sb_pred << std::endl;
-    sb_pred =
-        nm->mkNode(OR, utils::mkTester(n, tindex, dt).negate(), sb_pred);
+    sb_pred = nm->mkNode(OR, utils::mkTester(n, tindex, dt).negate(), sb_pred);
   }
   d_simple_sb_pred[e][tn][tindex][optHashVal][depth] = sb_pred;
   return sb_pred;
