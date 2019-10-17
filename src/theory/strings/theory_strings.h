@@ -222,8 +222,6 @@ class TheoryStrings : public Theory {
   SolverState d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager d_im;
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /** get normal form */

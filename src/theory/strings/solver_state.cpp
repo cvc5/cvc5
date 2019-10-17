@@ -138,8 +138,8 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
   return Node::null();
 }
 
-SolverState::SolverState(context::Context* c, eq::EqualityEngine& ee)
-    : d_context(c), d_ee(ee), d_conflict(c, false), d_pendingConflict(c)
+SolverState::SolverState(context::Context* c, eq::EqualityEngine& ee, Valuation& v)
+    : d_context(c), d_ee(ee), d_valuation(v), d_conflict(c, false), d_pendingConflict(c)
 {
 }
 SolverState::~SolverState()
@@ -277,6 +277,11 @@ void SolverState::setPendingConflictWhen(Node conf)
 }
 
 Node SolverState::getPendingConflict() const { return d_pendingConflict; }
+
+std::pair<bool, Node> SolverState::entailmentCheck(TheoryOfMode mode, TNode lit)
+{
+  return d_valuation.entailmentCheck(mode,lit);
+}
 
 }  // namespace strings
 }  // namespace theory
