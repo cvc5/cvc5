@@ -252,7 +252,7 @@ int isTester(Node n)
 {
   if (n.getKind() == APPLY_TESTER)
   {
-    return indexOf(n.getOperator().toExpr());
+    return indexOf(n.getOperator());
   }
   return -1;
 }
@@ -296,9 +296,9 @@ Node mkSplit(Node n, const Datatype& dt)
 bool isNullaryApplyConstructor(Node n)
 {
   Assert(n.getKind() == APPLY_CONSTRUCTOR);
-  for (unsigned i = 0; i < n.getNumChildren(); i++)
+  for (const Node& nc : n)
   {
-    if (n[i].getType().isDatatype())
+    if (nc.getType().isDatatype())
     {
       return false;
     }

@@ -148,11 +148,11 @@ Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
       }
       if (!case_conj.empty())
       {
-        Node corder = nm->mkNode(kind::OR,
+        Node corder = nm->mkNode(OR,
                                  utils::mkTester(n1, j, cdt).negate(),
                                  case_conj.size() == 1
                                      ? case_conj[0]
-                                     : nm->mkNode(kind::AND, case_conj));
+                                     : nm->mkNode(AND, case_conj));
         sz_eq_cases.push_back(corder);
       }
     }
