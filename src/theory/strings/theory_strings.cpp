@@ -524,7 +524,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   std::map< Node, Node > processed;
   std::vector< std::vector< Node > > col;
   std::vector< Node > lts;
-  separateByLength( nodes, col, lts );
+  d_state.separateByLength( nodes, col, lts );
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
   std::map<unsigned, Node> values_used;
@@ -4193,7 +4193,7 @@ void TheoryStrings::checkNormalFormsDeq()
 
   if (!d_im.hasProcessed())
   {
-    separateByLength( d_strings_eqc, cols, lts );
+    d_state.separateByLength( d_strings_eqc, cols, lts );
     for( unsigned i=0; i<cols.size(); i++ ){
       if (cols[i].size() > 1 && !d_im.hasPendingLemma())
       {
@@ -4303,7 +4303,7 @@ void TheoryStrings::checkCardinality() {
   //  TODO: revisit this?
   std::vector< std::vector< Node > > cols;
   std::vector< Node > lts;
-  separateByLength( d_strings_eqc, cols, lts );
+  d_state.separateByLength( d_strings_eqc, cols, lts );
 
   Trace("strings-card") << "Check cardinality...." << std::endl;
   for( unsigned i = 0; i<cols.size(); ++i ) {
@@ -4395,39 +4395,6 @@ void TheoryStrings::checkCardinality() {
     }
   }
   Trace("strings-card") << "...end check cardinality" << std::endl;
-}
-
-void TheoryStrings::separateByLength(std::vector< Node >& n,
-  std::vector< std::vector< Node > >& cols,
-  std::vector< Node >& lts ) {
-  unsigned leqc_counter = 0;
-  std::map< Node, unsigned > eqc_to_leqc;
-  std::map< unsigned, Node > leqc_to_eqc;
-  std::map< unsigned, std::vector< Node > > eqc_to_strings;
-  for( unsigned i=0; i<n.size(); i++ ) {
-    Node eqc = n[i];
-    Assert( d_equalityEngine.getRepresentative(eqc)==eqc );
-    EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
-    Node lt = ei ? ei->d_lengthTerm : Node::null();
-    if( !lt.isNull() ){
-      lt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt );
-      Node r = d_equalityEngine.getRepresentative( lt );
-      if( eqc_to_leqc.find( r )==eqc_to_leqc.end() ){
-        eqc_to_leqc[r] = leqc_counter;
-        leqc_to_eqc[leqc_counter] = r;
-        leqc_counter++;
-      }
-      eqc_to_strings[ eqc_to_leqc[r] ].push_back( eqc );
-    }else{
-      eqc_to_strings[leqc_counter].push_back( eqc );
-      leqc_counter++;
-    }
-  }
-  for( std::map< unsigned, std::vector< Node > >::iterator it = eqc_to_strings.begin(); it != eqc_to_strings.end(); ++it ){
-    cols.push_back( std::vector< Node >() );
-    cols.back().insert( cols.back().end(), it->second.begin(), it->second.end() );
-    lts.push_back( leqc_to_eqc[it->first] );
-  }
 }
 
 void TheoryStrings::printConcat( std::vector< Node >& n, const char * c ) {

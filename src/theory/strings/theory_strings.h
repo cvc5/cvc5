@@ -634,11 +634,6 @@ private:
 
  protected:
 
-
-  // separate into collections with equal length
-  void separateByLength(std::vector<Node>& n,
-                        std::vector<std::vector<Node> >& col,
-                        std::vector<Node>& lts);
   void printConcat(std::vector<Node>& n, const char* c);
 
   // Symbolic Regular Expression
