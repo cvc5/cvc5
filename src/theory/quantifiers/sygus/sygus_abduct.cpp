@@ -55,20 +55,20 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   for (const Node& s : symset)
   {
     TypeNode tn = s.getType();
-    if (tn.isFirstClass())
-    {
-      std::stringstream ss;
-      ss << s;
-      Node var = nm->mkBoundVar(tn);
-      syms.push_back(s);
-      vars.push_back(var);
-      Node vlv = nm->mkBoundVar(ss.str(), tn);
-      varlist.push_back(vlv);
-      varlistTypes.push_back(tn);
-      // set that this variable encodes the term s
-      SygusVarToTermAttribute sta;
-      vlv.setAttribute(sta, s);
-    }
+    // Notice that we allow for non-first class (e.g. function) variables here.
+    // This is applicable to the case where we are doing get-abduct in a logic
+    // with UF.
+    std::stringstream ss;
+    ss << s;
+    Node var = nm->mkBoundVar(tn);
+    syms.push_back(s);
+    vars.push_back(var);
+    Node vlv = nm->mkBoundVar(ss.str(), tn);
+    varlist.push_back(vlv);
+    varlistTypes.push_back(tn);
+    // set that this variable encodes the term s
+    SygusVarToTermAttribute sta;
+    vlv.setAttribute(sta, s);
   }
   // make the sygus variable list
   Node abvl = nm->mkNode(BOUND_VAR_LIST, varlist);
