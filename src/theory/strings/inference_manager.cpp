@@ -437,21 +437,21 @@ void InferenceManager::inferSubstitutionProxyVars(
 
 Node InferenceManager::mkExplain(const std::vector<Node>& a) const
 {
-  std::vector< Node > an;
-  return mkExplain( a, an );
+  std::vector<Node> an;
+  return mkExplain(a, an);
 }
 
 Node InferenceManager::mkExplain(const std::vector<Node>& a,
-                              const std::vector<Node>& an) const
+                                 const std::vector<Node>& an) const
 {
-  std::vector< TNode > antec_exp;
+  std::vector<TNode> antec_exp;
   // copy to processing vector
   std::vector<Node> aconj;
   for (const Node& ac : a)
   {
     utils::flattenOp(AND, ac, aconj);
   }
-  eq::EqualityEngine * ee = d_state.getEqualityEngine();
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   for (const Node& apc : aconj)
   {
     Assert(apc.getKind() != AND);
@@ -477,41 +477,57 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
     }
   }
   Node ant;
-  if( antec_exp.empty() ) {
+  if (antec_exp.empty())
+  {
     ant = d_true;
-  } else if( antec_exp.size()==1 ) {
+  }
+  else if (antec_exp.size() == 1)
+  {
     ant = antec_exp[0];
-  } else {
-    ant = NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
+  }
+  else
+  {
+    ant = NodeManager::currentNM()->mkNode(kind::AND, antec_exp);
   }
   return ant;
 }
 
-void InferenceManager::explain(TNode literal, std::vector<TNode>& assumptions) const {
-  Debug("strings-explain") << "Explain " << literal << " " << d_state.isInConflict() << std::endl;
-  eq::EqualityEngine * ee = d_state.getEqualityEngine();
+void InferenceManager::explain(TNode literal,
+                               std::vector<TNode>& assumptions) const
+{
+  Debug("strings-explain") << "Explain " << literal << " "
+                           << d_state.isInConflict() << std::endl;
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   bool polarity = literal.getKind() != NOT;
   TNode atom = polarity ? literal : literal[0];
-  std::vector< TNode > tassumptions;
-  if (atom.getKind() == EQUAL) {
-    if( atom[0]!=atom[1] ){
+  std::vector<TNode> tassumptions;
+  if (atom.getKind() == EQUAL)
+  {
+    if (atom[0] != atom[1])
+    {
       Assert(ee->hasTerm(atom[0]));
       Assert(ee->hasTerm(atom[1]));
       ee->explainEquality(atom[0], atom[1], polarity, tassumptions);
     }
-  } else {
+  }
+  else
+  {
     ee->explainPredicate(atom, polarity, tassumptions);
   }
-  for (const TNode a : tassumptions){
-    if( std::find( assumptions.begin(), assumptions.end(), a )==assumptions.end() ){
-      assumptions.push_back( a );
+  for (const TNode a : tassumptions)
+  {
+    if (std::find(assumptions.begin(), assumptions.end(), a)
+        == assumptions.end())
+    {
+      assumptions.push_back(a);
     }
   }
   if (Debug.isOn("strings-explain-debug"))
   {
-    Debug("strings-explain-debug") << "Explanation for " << literal << " was "
-                                   << std::endl;
-    for (const TNode a : tassumptions){
+    Debug("strings-explain-debug")
+        << "Explanation for " << literal << " was " << std::endl;
+    for (const TNode a : tassumptions)
+    {
       Debug("strings-explain-debug") << "   " << a << std::endl;
     }
   }

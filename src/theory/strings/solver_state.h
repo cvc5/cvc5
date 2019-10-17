@@ -168,12 +168,12 @@ class SolverState
    */
   void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
   /** Entailment check
-   * 
+   *
    * This calls entailmentCheck on the Valuation object of theory of strings.
    */
   std::pair<bool, Node> entailmentCheck(TheoryOfMode mode, TNode lit);
   /** Separate by length
-   * 
+   *
    * Separate the string representatives in argument n into a partition cols
    * whose collections have equal length. The i^th vector in cols has length
    * lts[i] for all elements in col.
@@ -181,6 +181,7 @@ class SolverState
   void separateByLength(const std::vector<Node>& n,
                         std::vector<std::vector<Node> >& col,
                         std::vector<Node>& lts);
+
  private:
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;

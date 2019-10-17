@@ -245,7 +245,8 @@ void TheoryStrings::propagate(Effort e) {
 bool TheoryStrings::propagate(TNode literal) {
   Debug("strings-propagate") << "TheoryStrings::propagate(" << literal  << ")" << std::endl;
   // If already in conflict, no more propagation
-  if (d_state.isInConflict()) {
+  if (d_state.isInConflict())
+  {
     Debug("strings-propagate") << "TheoryStrings::propagate(" << literal << "): already in conflict" << std::endl;
     return false;
   }
@@ -261,7 +262,7 @@ bool TheoryStrings::propagate(TNode literal) {
 Node TheoryStrings::explain( TNode literal ){
   Debug("strings-explain") << "explain called on " << literal << std::endl;
   std::vector< TNode > assumptions;
-  d_im.explain( literal, assumptions );
+  d_im.explain(literal, assumptions);
   if( assumptions.empty() ){
     return d_true;
   }else if( assumptions.size()==1 ){
@@ -524,7 +525,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   std::map< Node, Node > processed;
   std::vector< std::vector< Node > > col;
   std::vector< Node > lts;
-  d_state.separateByLength( nodes, col, lts );
+  d_state.separateByLength(nodes, col, lts);
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
   std::map<unsigned, Node> values_used;
@@ -873,7 +874,8 @@ void TheoryStrings::check(Effort e) {
   // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
   Trace("strings-check-debug")
       << "Theory of strings, check : " << e << std::endl;
-  while ( !done() && !d_state.isInConflict() ) {
+  while (!done() && !d_state.isInConflict())
+  {
     // Get all the assertions
     Assertion assertion = get();
     TNode fact = assertion.assertion;
@@ -890,7 +892,8 @@ void TheoryStrings::check(Effort e) {
   Assert(d_strategy_init);
   std::map<Effort, std::pair<unsigned, unsigned> >::iterator itsr =
       d_strat_steps.find(e);
-  if (!d_state.isInConflict() && !d_valuation.needCheck() && itsr != d_strat_steps.end())
+  if (!d_state.isInConflict() && !d_valuation.needCheck()
+      && itsr != d_strat_steps.end())
   {
     Trace("strings-check-debug")
         << "Theory of strings " << e << " effort check " << std::endl;
@@ -955,7 +958,7 @@ void TheoryStrings::check(Effort e) {
         Trace("strings-check") << std::endl;
       }
       // repeat if we did not add a lemma or conflict
-    }while( !d_state.isInConflict() && !addedLemma && addedFact );
+    } while (!d_state.isInConflict() && !addedLemma && addedFact);
   }
   Trace("strings-check") << "Theory of strings, done check : " << e << std::endl;
   Assert(!d_im.hasPendingFact());
@@ -1026,7 +1029,8 @@ void TheoryStrings::checkMemberships()
 
 /** Conflict when merging two constants */
 void TheoryStrings::conflict(TNode a, TNode b){
-  if( !d_state.isInConflict() ){
+  if (!d_state.isInConflict())
+  {
     Debug("strings-conflict") << "Making conflict..." << std::endl;
     d_state.setConflict();
     Node conflictNode;
@@ -1646,7 +1650,8 @@ void TheoryStrings::checkExtfEval( int effort ) {
             Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc << std::endl;
             d_im.sendInference(
                 einfo.d_exp, conc, effort == 0 ? "EXTF" : "EXTF-N", true);
-            if( !d_state.isInConflict() ){
+            if (!d_state.isInConflict())
+            {
               Trace("strings-extf-debug") << "  conflict, return." << std::endl;
               return;
             }
@@ -3335,7 +3340,8 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                       Node lt1 = e==0 ? length_term_i : length_term_j;
                       Node lt2 = e==0 ? length_term_j : length_term_i;
                       Node ent_lit = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT, lt1, lt2 ) );
-                      std::pair<bool, Node> et = d_state.entailmentCheck( THEORY_OF_TYPE_BASED, ent_lit );
+                      std::pair<bool, Node> et = d_state.entailmentCheck(
+                          THEORY_OF_TYPE_BASED, ent_lit);
                       if( et.first ){
                         Trace("strings-entail") << "Strings entailment : " << ent_lit << " is entailed in the current context." << std::endl;
                         Trace("strings-entail") << "  explanation was : " << et.second << std::endl;
@@ -4193,7 +4199,7 @@ void TheoryStrings::checkNormalFormsDeq()
 
   if (!d_im.hasProcessed())
   {
-    d_state.separateByLength( d_strings_eqc, cols, lts );
+    d_state.separateByLength(d_strings_eqc, cols, lts);
     for( unsigned i=0; i<cols.size(); i++ ){
       if (cols[i].size() > 1 && !d_im.hasPendingLemma())
       {
@@ -4303,7 +4309,7 @@ void TheoryStrings::checkCardinality() {
   //  TODO: revisit this?
   std::vector< std::vector< Node > > cols;
   std::vector< Node > lts;
-  d_state.separateByLength( d_strings_eqc, cols, lts );
+  d_state.separateByLength(d_strings_eqc, cols, lts);
 
   Trace("strings-card") << "Check cardinality...." << std::endl;
   for( unsigned i = 0; i<cols.size(); ++i ) {
@@ -4531,7 +4537,8 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
   Trace("strings-process") << "Done " << s
                            << ", addedFact = " << d_im.hasPendingFact()
                            << ", addedLemma = " << d_im.hasPendingLemma()
-                           << ", conflict = " << d_state.isInConflict() << std::endl;
+                           << ", conflict = " << d_state.isInConflict()
+                           << std::endl;
 }
 
 bool TheoryStrings::hasStrategyEffort(Effort e) const

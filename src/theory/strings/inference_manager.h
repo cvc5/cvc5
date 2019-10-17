@@ -221,11 +221,12 @@ class InferenceManager
   Node mkExplain(const std::vector<Node>& a) const;
   /** Same as above, but the new literals an are append to the result */
   Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an) const;
-  /** 
+  /**
    * Explain literal l, add conjuncts to assumptions vector instead of making
    * the node corresponding to their conjunction.
    */
-  void explain( TNode literal, std::vector<TNode>& assumptions ) const;
+  void explain(TNode literal, std::vector<TNode>& assumptions) const;
+
  private:
   /**
    * Indicates that ant => conc should be sent on the output channel of this
