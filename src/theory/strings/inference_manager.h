@@ -177,12 +177,12 @@ class InferenceManager
    *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
    * This method also ensures that, when applicable, the left branch is taken
    * first via calls to requirePhase.
-   * 
+   *
    * In contrast to the above functions, it makes immediate calls to the output
    * channel instead of adding them to pending lists.
    */
   void registerLength(Node n, LengthStatus s);
-  
+
   //----------------------------constructing antecedants
   /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It

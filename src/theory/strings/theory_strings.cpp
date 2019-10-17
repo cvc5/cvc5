@@ -4021,7 +4021,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     if (n.isConst() || n.getKind() == STRING_CONCAT)
     {
       // do not send length lemma for sk.
-      d_im.registerLength(sk,LENGTH_IGNORE);
+      d_im.registerLength(sk, LENGTH_IGNORE);
     }
     Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
     d_out->lemma(eq);

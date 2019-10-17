@@ -34,14 +34,13 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    context::UserContext* u,
                                    SolverState& s,
                                    OutputChannel& out)
-    : d_parent(p), d_state(s), d_out(out), d_keep(c), 
-      d_lengthLemmaTermsCache(u)
+    : d_parent(p), d_state(s), d_out(out), d_keep(c), d_lengthLemmaTermsCache(u)
 {
-  d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
-  d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
-  d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  d_one = NodeManager::currentNM()->mkConst(Rational(1));
+  d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
@@ -283,7 +282,6 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
   d_pendingReqPhase[lit] = pol;
 }
 
-
 void InferenceManager::registerLength(Node n, LengthStatus s)
 {
   if (d_lengthLemmaTermsCache.find(n) != d_lengthLemmaTermsCache.end())
@@ -291,8 +289,8 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
     return;
   }
   d_lengthLemmaTermsCache.insert(n);
-  
-  if (s==LENGTH_IGNORE)
+
+  if (s == LENGTH_IGNORE)
   {
     // ignore it
     return;
@@ -324,9 +322,10 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
   }
   Assert(s == LENGTH_SPLIT);
 
-  if( options::stringSplitEmp() || !options::stringLenGeqZ() ){
-    Node n_len_eq_z = n_len.eqNode( d_zero );
-    Node n_len_eq_z_2 = n.eqNode( d_emptyString );
+  if (options::stringSplitEmp() || !options::stringLenGeqZ())
+  {
+    Node n_len_eq_z = n_len.eqNode(d_zero);
+    Node n_len_eq_z_2 = n.eqNode(d_emptyString);
     Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
     case_empty = Rewriter::rewrite(case_empty);
     Node case_nempty = nm->mkNode(GT, n_len, d_zero);
@@ -334,8 +333,8 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
     {
       Node lem = nm->mkNode(OR, case_empty, case_nempty);
       d_out.lemma(lem);
-      Trace("strings-lemma") << "Strings::Lemma LENGTH >= 0 : " << lem
-                             << std::endl;
+      Trace("strings-lemma")
+          << "Strings::Lemma LENGTH >= 0 : " << lem << std::endl;
       // prefer trying the empty case first
       // notice that requirePhase must only be called on rewritten literals that
       // occur in the CNF stream.
@@ -364,10 +363,11 @@ void InferenceManager::registerLength(Node n, LengthStatus s)
   }
 
   // additionally add len( x ) >= 0 ?
-  if( options::stringLenGeqZ() ){
+  if (options::stringLenGeqZ())
+  {
     Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
-    n_len_geq = Rewriter::rewrite( n_len_geq );
-    d_out.lemma( n_len_geq );
+    n_len_geq = Rewriter::rewrite(n_len_geq);
+    d_out.lemma(n_len_geq);
   }
 }
 
