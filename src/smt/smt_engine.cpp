@@ -4070,9 +4070,9 @@ Result SmtEngine::checkSynth()
     Node body = n_constraints == 0
                     ? d_nodeManager->mkConst(true)
                     : (n_constraints == 1
-                          ? d_private->d_sygusConstraints[0]
-                          : d_nodeManager->mkNode(
-                                kind::AND, d_private->d_sygusConstraints));
+                           ? d_private->d_sygusConstraints[0]
+                           : d_nodeManager->mkNode(
+                               kind::AND, d_private->d_sygusConstraints));
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_private->d_sygusVars.empty())
@@ -4085,7 +4085,7 @@ Result SmtEngine::checkSynth()
     if (!d_private->d_sygusFunSymbols.empty())
     {
       Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
-                                            d_private->d_sygusFunSymbols);
+                                             d_private->d_sygusFunSymbols);
       body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
     }
     Trace("smt") << "...constructed forall " << body << std::endl;
@@ -4111,7 +4111,7 @@ Result SmtEngine::checkSynth()
   }
 
   Result r = checkSatisfiability(query, true, false);
-  
+
   // Check that synthesis solutions satisfy the conjecture
   if (options::checkSynthSol()
       && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -4817,14 +4817,12 @@ void SmtEngine::checkSynthSolution()
   /* Get solutions and build auxiliary vectors for substituting */
   if (!d_theoryEngine->getSynthSolutions(sol_map))
   {
-    InternalError(
-        "SmtEngine::checkSynthSolution(): No solution to check!");
+    InternalError("SmtEngine::checkSynthSolution(): No solution to check!");
     return;
   }
   if (sol_map.empty())
   {
-    InternalError(
-        "SmtEngine::checkSynthSolution(): Got empty solution!");
+    InternalError("SmtEngine::checkSynthSolution(): Got empty solution!");
     return;
   }
   Trace("check-synth-sol") << "Got solution map:\n";
