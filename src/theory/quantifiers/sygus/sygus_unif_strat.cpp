@@ -735,8 +735,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       Assert(nc.first < dt.getNumConstructors());
       if (!nc.second)
       {
-        Node tst =
-            datatypes::utils::mkTester(em, nc.first, dt).negate();
+        Node tst = datatypes::utils::mkTester(em, nc.first, dt).negate();
 
         if (std::find(lemmas.begin(), lemmas.end(), tst) == lemmas.end())
         {

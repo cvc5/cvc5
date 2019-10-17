@@ -18,11 +18,11 @@
 
 #include "expr/node_manager.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/datatypes/theory_datatypes.h"
-#include "options/datatypes_options.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -148,11 +148,11 @@ Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
       }
       if (!case_conj.empty())
       {
-        Node corder = nm->mkNode(
-            kind::OR,
-            utils::mkTester(n1, j, cdt).negate(),
-            case_conj.size() == 1 ? case_conj[0]
-                                  : nm->mkNode(kind::AND, case_conj));
+        Node corder = nm->mkNode(kind::OR,
+                                 utils::mkTester(n1, j, cdt).negate(),
+                                 case_conj.size() == 1
+                                     ? case_conj[0]
+                                     : nm->mkNode(kind::AND, case_conj));
         sz_eq_cases.push_back(corder);
       }
     }
@@ -597,8 +597,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
     if (options::sygusFair() == SYGUS_FAIR_DT_SIZE && !isAnyConstant)
     {
       Node szl = nm->mkNode(DT_SIZE, n);
-      Node szr =
-          nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
+      Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
       szr = Rewriter::rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }
@@ -916,10 +915,10 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), 1)),
             children[0]);
         Assert(child11.getType() == children[1].getType());
-        Node order_pred_trans = nm->mkNode(
-            OR,
-            utils::mkTester(children[0], tindex, dt).negate(),
-            getTermOrderPredicate(child11, children[1]));
+        Node order_pred_trans =
+            nm->mkNode(OR,
+                       utils::mkTester(children[0], tindex, dt).negate(),
+                       getTermOrderPredicate(child11, children[1]));
         sbp_conj.push_back(order_pred_trans);
       }
     }
@@ -934,8 +933,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         << "Simple predicate for " << tn << " index " << tindex << " (" << nk
         << ") at depth " << depth << " : " << std::endl;
     Trace("sygus-sb-simple") << "   " << sb_pred << std::endl;
-    sb_pred = nm->mkNode(
-        kind::OR, utils::mkTester(n, tindex, dt).negate(), sb_pred);
+    sb_pred =
+        nm->mkNode(kind::OR, utils::mkTester(n, tindex, dt).negate(), sb_pred);
   }
   d_simple_sb_pred[e][tn][tindex][optHashVal][depth] = sb_pred;
   return sb_pred;
@@ -1679,7 +1678,7 @@ bool SygusSymBreakNew::checkValue(Node n,
 
   // ensure that the expected size bound is met
   int cindex = utils::indexOf(vn.getOperator());
-  Node tst = utils::mkTester( n, cindex, dt );
+  Node tst = utils::mkTester(n, cindex, dt);
   bool hastst = d_td->getEqualityEngine()->hasTerm(tst);
   Node tstrep;
   if (hastst)

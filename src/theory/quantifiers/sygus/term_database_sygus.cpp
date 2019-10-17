@@ -16,8 +16,8 @@
 
 #include "base/cvc4_check.h"
 #include "options/base_options.h"
-#include "options/quantifiers_options.h"
 #include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"

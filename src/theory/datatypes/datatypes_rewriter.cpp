@@ -17,8 +17,8 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 
 #include "expr/node_algorithm.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 #include "options/datatypes_options.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -454,7 +454,8 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
 {
   if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
   {
-    bool result = utils::indexOf(in.getOperator()) == utils::indexOf(in[0].getOperator());
+    bool result =
+        utils::indexOf(in.getOperator()) == utils::indexOf(in[0].getOperator());
     Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: "
                                << "Rewrite trivial tester " << in << " "
                                << result << std::endl;

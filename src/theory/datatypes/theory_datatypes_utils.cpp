@@ -27,9 +27,9 @@ namespace datatypes {
 namespace utils {
 
 Node applySygusArgs(const Datatype& dt,
-                                       Node op,
-                                       Node n,
-                                       const std::vector<Node>& args)
+                    Node op,
+                    Node n,
+                    const std::vector<Node>& args)
 {
   if (n.getKind() == BOUND_VARIABLE)
   {
@@ -115,8 +115,8 @@ Kind getOperatorKindForSygusBuiltin(Node op)
 }
 
 Node mkSygusTerm(const Datatype& dt,
-                                    unsigned i,
-                                    const std::vector<Node>& children)
+                 unsigned i,
+                 const std::vector<Node>& children)
 {
   Trace("dt-sygus-util") << "Make sygus term " << dt.getName() << "[" << i
                          << "] with children: " << children << std::endl;
@@ -196,15 +196,15 @@ Node getInstCons(Node n, const Datatype& dt, int index)
     // add type ascription for ambiguous constructor types
     if (!n_ic.getType().isComparableTo(tn))
     {
-      Debug("datatypes-parametric") << "DtInstantiate: ambiguous type for "
-                                    << n_ic << ", ascribe to " << n.getType()
-                                    << std::endl;
-      Debug("datatypes-parametric") << "Constructor is " << dt[index]
-                                    << std::endl;
+      Debug("datatypes-parametric")
+          << "DtInstantiate: ambiguous type for " << n_ic << ", ascribe to "
+          << n.getType() << std::endl;
+      Debug("datatypes-parametric")
+          << "Constructor is " << dt[index] << std::endl;
       Type tspec =
           dt[index].getSpecializedConstructorType(n.getType().toType());
-      Debug("datatypes-parametric") << "Type specification is " << tspec
-                                    << std::endl;
+      Debug("datatypes-parametric")
+          << "Type specification is " << tspec << std::endl;
       children[0] = nm->mkNode(APPLY_TYPE_ASCRIPTION,
                                nm->mkConst(AscriptionType(tspec)),
                                children[0]);
@@ -320,16 +320,15 @@ bool isNullaryConstructor(const DatatypeConstructor& c)
 
 bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
 {
-  Trace("datatypes-rewrite-debug") << "Check clash : " << n1 << " " << n2
-                                   << std::endl;
-  if (n1.getKind() == APPLY_CONSTRUCTOR
-      && n2.getKind() == APPLY_CONSTRUCTOR)
+  Trace("datatypes-rewrite-debug")
+      << "Check clash : " << n1 << " " << n2 << std::endl;
+  if (n1.getKind() == APPLY_CONSTRUCTOR && n2.getKind() == APPLY_CONSTRUCTOR)
   {
     if (n1.getOperator() != n2.getOperator())
     {
-      Trace("datatypes-rewrite-debug") << "Clash operators : " << n1 << " "
-                                       << n2 << " " << n1.getOperator() << " "
-                                       << n2.getOperator() << std::endl;
+      Trace("datatypes-rewrite-debug")
+          << "Clash operators : " << n1 << " " << n2 << " " << n1.getOperator()
+          << " " << n2.getOperator() << std::endl;
       return true;
     }
     Assert(n1.getNumChildren() == n2.getNumChildren());
@@ -345,8 +344,8 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
   {
     if (n1.isConst() && n2.isConst())
     {
-      Trace("datatypes-rewrite-debug") << "Clash constants : " << n1 << " "
-                                       << n2 << std::endl;
+      Trace("datatypes-rewrite-debug")
+          << "Clash constants : " << n1 << " " << n2 << std::endl;
       return true;
     }
     else
@@ -358,7 +357,7 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
   return false;
 }
 
-} /* CVC4::theory::datatypes::utils namespace */
-} /* CVC4::theory::datatypes namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace utils
+}  // namespace datatypes
+}  // namespace theory
+}  // namespace CVC4

@@ -26,7 +26,7 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 // ----------------------- sygus datatype attributes
 /** sygus var num */
 struct SygusVarNumAttributeId
@@ -74,119 +74,119 @@ struct SygusVarFreeAttributeId
 };
 typedef expr::Attribute<SygusVarFreeAttributeId, Node> SygusVarFreeAttribute;
 // ----------------------- end sygus datatype attributes
-  
+
 namespace datatypes {
 namespace utils {
-  
+
 /** get instantiate cons
-*
-* This returns the term C( sel^{C,1}( n ), ..., sel^{C,m}( n ) ),
-* where C is the index^{th} constructor of datatype dt.
-*/
+ *
+ * This returns the term C( sel^{C,1}( n ), ..., sel^{C,m}( n ) ),
+ * where C is the index^{th} constructor of datatype dt.
+ */
 Node getInstCons(Node n, const Datatype& dt, int index);
 /** is instantiation cons
-*
-* If this method returns a value >=0, then that value, call it index,
-* is such that n = C( sel^{C,1}( t ), ..., sel^{C,m}( t ) ),
-* where C is the index^{th} constructor of dt.
-*/
+ *
+ * If this method returns a value >=0, then that value, call it index,
+ * is such that n = C( sel^{C,1}( t ), ..., sel^{C,m}( t ) ),
+ * where C is the index^{th} constructor of dt.
+ */
 int isInstCons(Node t, Node n, const Datatype& dt);
 /** is tester
-*
-* This method returns a value >=0 if n is a tester predicate. The return
-* value indicates the constructor index that the tester n is for. If this
-* method returns a value >=0, then it updates a to the argument that the
-* tester n applies to.
-*/
+ *
+ * This method returns a value >=0 if n is a tester predicate. The return
+ * value indicates the constructor index that the tester n is for. If this
+ * method returns a value >=0, then it updates a to the argument that the
+ * tester n applies to.
+ */
 int isTester(Node n, Node& a);
 /** is tester, same as above but does not update an argument */
 int isTester(Node n);
 /**
-* Get the index of a constructor or tester in its datatype, or the
-* index of a selector in its constructor.  (Zero is always the
-* first index.)
-*/
+ * Get the index of a constructor or tester in its datatype, or the
+ * index of a selector in its constructor.  (Zero is always the
+ * first index.)
+ */
 unsigned indexOf(Node n);
 /** make tester is-C( n ), where C is the i^{th} constructor of dt */
 Node mkTester(Node n, int i, const Datatype& dt);
 /** make tester split
-*
-* Returns the formula (OR is-C1( n ) ... is-Ck( n ) ), where C1...Ck
-* are the constructors of n's type (dt).
-*/
+ *
+ * Returns the formula (OR is-C1( n ) ... is-Ck( n ) ), where C1...Ck
+ * are the constructors of n's type (dt).
+ */
 Node mkSplit(Node n, const Datatype& dt);
 /** returns true iff n is a constructor term with no datatype children */
 bool isNullaryApplyConstructor(Node n);
 /** returns true iff c is a constructor with no datatype children */
 bool isNullaryConstructor(const DatatypeConstructor& c);
 /** check clash
-*
-* This method returns true if and only if n1 and n2 have a skeleton that has
-* conflicting constructors at some term position.
-* Examples of terms that clash are:
-*   C( x, y ) and D( z )
-*   C( D( x ), y ) and C( E( x ), y )
-* Examples of terms that do not clash are:
-*   C( x, y ) and C( D( x ), y )
-*   C( D( x ), y ) and C( x, E( z ) )
-*   C( x, y ) and z
-*/
+ *
+ * This method returns true if and only if n1 and n2 have a skeleton that has
+ * conflicting constructors at some term position.
+ * Examples of terms that clash are:
+ *   C( x, y ) and D( z )
+ *   C( D( x ), y ) and C( E( x ), y )
+ * Examples of terms that do not clash are:
+ *   C( x, y ) and C( D( x ), y )
+ *   C( D( x ), y ) and C( x, E( z ) )
+ *   C( x, y ) and z
+ */
 bool checkClash(Node n1, Node n2, std::vector<Node>& rew);
 
 // ------------------------ sygus utils
 
 /** get operator kind for sygus builtin
-*
-* This returns the Kind corresponding to applications of the operator op
-* when building the builtin version of sygus terms. This is used by the
-* function mkSygusTerm.
-*/
+ *
+ * This returns the Kind corresponding to applications of the operator op
+ * when building the builtin version of sygus terms. This is used by the
+ * function mkSygusTerm.
+ */
 Kind getOperatorKindForSygusBuiltin(Node op);
 /** make sygus term
-*
-* This function returns a builtin term f( children[0], ..., children[n] )
-* where f is the builtin op that the i^th constructor of sygus datatype dt
-* encodes.
-*/
+ *
+ * This function returns a builtin term f( children[0], ..., children[n] )
+ * where f is the builtin op that the i^th constructor of sygus datatype dt
+ * encodes.
+ */
 Node mkSygusTerm(const Datatype& dt,
-                        unsigned i,
-                        const std::vector<Node>& children);
+                 unsigned i,
+                 const std::vector<Node>& children);
 /**
-* n is a builtin term that is an application of operator op.
-*
-* This returns an n' such that (eval n args) is n', where n' is a instance of
-* n for the appropriate substitution.
-*
-* For example, given a function-to-synthesize with formal argument list (x,y),
-* say we have grammar:
-*   A -> A+A | A+x | A+(x+y) | y
-* These lead to constructors with sygus ops:
-*   C1 / (lambda w1 w2. w1+w2)
-*   C2 / (lambda w1. w1+x)
-*   C3 / (lambda w1. w1+(x+y))
-*   C4 / y
-* Examples of calling this function:
-*   applySygusArgs( dt, C1, (APPLY_UF (lambda w1 w2. w1+w2) t1 t2), { 3, 5 } )
-*     ... returns (APPLY_UF (lambda w1 w2. w1+w2) t1 t2).
-*   applySygusArgs( dt, C2, (APPLY_UF (lambda w1. w1+x) t1), { 3, 5 } )
-*     ... returns (APPLY_UF (lambda w1. w1+3) t1).
-*   applySygusArgs( dt, C3, (APPLY_UF (lambda w1. w1+(x+y)) t1), { 3, 5 } )
-*     ... returns (APPLY_UF (lambda w1. w1+(3+5)) t1).
-*   applySygusArgs( dt, C4, y, { 3, 5 } )
-*     ... returns 5.
-* Notice the attribute SygusVarFreeAttribute is applied to C1, C2, C3, C4,
-* to cache the results of whether the evaluation of this constructor needs
-* a substitution over the formal argument list of the function-to-synthesize.
-*/
+ * n is a builtin term that is an application of operator op.
+ *
+ * This returns an n' such that (eval n args) is n', where n' is a instance of
+ * n for the appropriate substitution.
+ *
+ * For example, given a function-to-synthesize with formal argument list (x,y),
+ * say we have grammar:
+ *   A -> A+A | A+x | A+(x+y) | y
+ * These lead to constructors with sygus ops:
+ *   C1 / (lambda w1 w2. w1+w2)
+ *   C2 / (lambda w1. w1+x)
+ *   C3 / (lambda w1. w1+(x+y))
+ *   C4 / y
+ * Examples of calling this function:
+ *   applySygusArgs( dt, C1, (APPLY_UF (lambda w1 w2. w1+w2) t1 t2), { 3, 5 } )
+ *     ... returns (APPLY_UF (lambda w1 w2. w1+w2) t1 t2).
+ *   applySygusArgs( dt, C2, (APPLY_UF (lambda w1. w1+x) t1), { 3, 5 } )
+ *     ... returns (APPLY_UF (lambda w1. w1+3) t1).
+ *   applySygusArgs( dt, C3, (APPLY_UF (lambda w1. w1+(x+y)) t1), { 3, 5 } )
+ *     ... returns (APPLY_UF (lambda w1. w1+(3+5)) t1).
+ *   applySygusArgs( dt, C4, y, { 3, 5 } )
+ *     ... returns 5.
+ * Notice the attribute SygusVarFreeAttribute is applied to C1, C2, C3, C4,
+ * to cache the results of whether the evaluation of this constructor needs
+ * a substitution over the formal argument list of the function-to-synthesize.
+ */
 Node applySygusArgs(const Datatype& dt,
-                          Node op,
-                          Node n,
-                          const std::vector<Node>& args);
+                    Node op,
+                    Node n,
+                    const std::vector<Node>& args);
 /**
-* Get the builtin sygus operator for constructor term n of sygus datatype
-* type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
-* constructor whose sygus op is the builtin operator +, this method returns +.
-*/
+ * Get the builtin sygus operator for constructor term n of sygus datatype
+ * type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
+ * constructor whose sygus op is the builtin operator +, this method returns +.
+ */
 Node getSygusOpForCTerm(Node n);
 
 // ------------------------ end sygus utils
