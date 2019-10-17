@@ -487,6 +487,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       lem = getStreamGuardedLemma(lem);
       lems.push_back(lem);
       recordInstantiation(candidate_values);
+      d_hasSolution = true;
       return true;
     }
     Assert(!d_set_ce_sk_vars);
