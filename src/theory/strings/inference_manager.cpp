@@ -131,7 +131,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
     Node eq_exp;
     if (options::stringRExplainLemmas())
     {
-      eq_exp = d_parent.mkExplain(exp, exp_n);
+      eq_exp = mkExplain(exp, exp_n);
     }
     else
     {
@@ -432,6 +432,88 @@ void InferenceManager::inferSubstitutionProxyVars(
   if (n != d_true)
   {
     unproc.push_back(n);
+  }
+}
+
+Node InferenceManager::mkExplain(const std::vector<Node>& a) const
+{
+  std::vector< Node > an;
+  return mkExplain( a, an );
+}
+
+Node InferenceManager::mkExplain(const std::vector<Node>& a,
+                              const std::vector<Node>& an) const
+{
+  std::vector< TNode > antec_exp;
+  // copy to processing vector
+  std::vector<Node> aconj;
+  for (const Node& ac : a)
+  {
+    utils::flattenOp(AND, ac, aconj);
+  }
+  eq::EqualityEngine * ee = d_state.getEqualityEngine();
+  for (const Node& apc : aconj)
+  {
+    Assert(apc.getKind() != AND);
+    Debug("strings-explain") << "Add to explanation " << apc << std::endl;
+    if (apc.getKind() == NOT && apc[0].getKind() == EQUAL)
+    {
+      Assert(ee->hasTerm(apc[0][0]));
+      Assert(ee->hasTerm(apc[0][1]));
+      // ensure that we are ready to explain the disequality
+      AlwaysAssert(ee->areDisequal(apc[0][0], apc[0][1], true));
+    }
+    Assert(apc.getKind() != EQUAL || ee->areEqual(apc[0], apc[1]));
+    // now, explain
+    explain(apc, antec_exp);
+  }
+  for (const Node& anc : an)
+  {
+    if (std::find(antec_exp.begin(), antec_exp.end(), anc) == antec_exp.end())
+    {
+      Debug("strings-explain")
+          << "Add to explanation (new literal) " << anc << std::endl;
+      antec_exp.push_back(anc);
+    }
+  }
+  Node ant;
+  if( antec_exp.empty() ) {
+    ant = d_true;
+  } else if( antec_exp.size()==1 ) {
+    ant = antec_exp[0];
+  } else {
+    ant = NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
+  }
+  return ant;
+}
+
+void InferenceManager::explain(TNode literal, std::vector<TNode>& assumptions) const {
+  Debug("strings-explain") << "Explain " << literal << " " << d_state.isInConflict() << std::endl;
+  eq::EqualityEngine * ee = d_state.getEqualityEngine();
+  bool polarity = literal.getKind() != NOT;
+  TNode atom = polarity ? literal : literal[0];
+  std::vector< TNode > tassumptions;
+  if (atom.getKind() == EQUAL) {
+    if( atom[0]!=atom[1] ){
+      Assert(ee->hasTerm(atom[0]));
+      Assert(ee->hasTerm(atom[1]));
+      ee->explainEquality(atom[0], atom[1], polarity, tassumptions);
+    }
+  } else {
+    ee->explainPredicate(atom, polarity, tassumptions);
+  }
+  for (const TNode a : tassumptions){
+    if( std::find( assumptions.begin(), assumptions.end(), a )==assumptions.end() ){
+      assumptions.push_back( a );
+    }
+  }
+  if (Debug.isOn("strings-explain-debug"))
+  {
+    Debug("strings-explain-debug") << "Explanation for " << literal << " was "
+                                   << std::endl;
+    for (const TNode a : tassumptions){
+      Debug("strings-explain-debug") << "   " << a << std::endl;
+    }
   }
 }
 

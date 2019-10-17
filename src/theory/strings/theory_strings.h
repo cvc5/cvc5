@@ -109,7 +109,6 @@ class TheoryStrings : public Theory {
  public:
   void propagate(Effort e) override;
   bool propagate(TNode literal);
-  void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain(TNode literal) override;
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
   bool getCurrentSubstitution(int effort,
@@ -632,16 +631,6 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
-
-  /** make explanation
-   *
-   * This returns a node corresponding to the explanation of formulas in a,
-   * interpreted conjunctively. The returned node is a conjunction of literals
-   * that have been asserted to the equality engine.
-   */
-  Node mkExplain(const std::vector<Node>& a);
-  /** Same as above, but the new literals an are append to the result */
-  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an);
 
  protected:
 

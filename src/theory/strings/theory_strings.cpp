@@ -257,42 +257,11 @@ bool TheoryStrings::propagate(TNode literal) {
   return ok;
 }
 
-/** explain */
-void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
-  Debug("strings-explain") << "Explain " << literal << " " << d_state.isInConflict() << std::endl;
-  bool polarity = literal.getKind() != kind::NOT;
-  TNode atom = polarity ? literal : literal[0];
-  unsigned ps = assumptions.size();
-  std::vector< TNode > tassumptions;
-  if (atom.getKind() == kind::EQUAL) {
-    if( atom[0]!=atom[1] ){
-      Assert(d_equalityEngine.hasTerm(atom[0]));
-      Assert(d_equalityEngine.hasTerm(atom[1]));
-      d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
-    }
-  } else {
-    d_equalityEngine.explainPredicate(atom, polarity, tassumptions);
-  }
-  for( unsigned i=0; i<tassumptions.size(); i++ ){
-    if( std::find( assumptions.begin(), assumptions.end(), tassumptions[i] )==assumptions.end() ){
-      assumptions.push_back( tassumptions[i] );
-    }
-  }
-  if (Debug.isOn("strings-explain-debug"))
-  {
-    Debug("strings-explain-debug") << "Explanation for " << literal << " was "
-                                   << std::endl;
-    for (unsigned i = ps; i < assumptions.size(); i++)
-    {
-      Debug("strings-explain-debug") << "   " << assumptions[i] << std::endl;
-    }
-  }
-}
 
 Node TheoryStrings::explain( TNode literal ){
   Debug("strings-explain") << "explain called on " << literal << std::endl;
   std::vector< TNode > assumptions;
-  explain( literal, assumptions );
+  d_im.explain( literal, assumptions );
   if( assumptions.empty() ){
     return d_true;
   }else if( assumptions.size()==1 ){
@@ -1290,7 +1259,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       a.push_back(pc);
       Trace("strings-pending")
           << "Process pending conflict " << pc << std::endl;
-      Node conflictNode = mkExplain(a);
+      Node conflictNode = d_im.mkExplain(a);
       d_state.setConflict();
       Trace("strings-conflict")
           << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
@@ -3562,7 +3531,7 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
     }
   }
 
-  Node ant = mkExplain(info.d_ant);
+  Node ant = d_im.mkExplain(info.d_ant);
   info.d_ant.clear();
   info.d_antn.push_back(ant);
 
@@ -4189,57 +4158,6 @@ void TheoryStrings::registerLength(Node n, LengthStatus s)
     n_len_geq = Rewriter::rewrite( n_len_geq );
     d_out->lemma( n_len_geq );
   }
-}
-
-Node TheoryStrings::mkExplain(const std::vector<Node>& a)
-{
-  std::vector< Node > an;
-  return mkExplain( a, an );
-}
-
-Node TheoryStrings::mkExplain(const std::vector<Node>& a,
-                              const std::vector<Node>& an)
-{
-  std::vector< TNode > antec_exp;
-  // copy to processing vector
-  std::vector<Node> aconj;
-  for (const Node& ac : a)
-  {
-    utils::flattenOp(AND, ac, aconj);
-  }
-  for (const Node& apc : aconj)
-  {
-    Assert(apc.getKind() != AND);
-    Debug("strings-explain") << "Add to explanation " << apc << std::endl;
-    if (apc.getKind() == NOT && apc[0].getKind() == EQUAL)
-    {
-      Assert(d_equalityEngine.hasTerm(apc[0][0]));
-      Assert(d_equalityEngine.hasTerm(apc[0][1]));
-      // ensure that we are ready to explain the disequality
-      AlwaysAssert(d_equalityEngine.areDisequal(apc[0][0], apc[0][1], true));
-    }
-    Assert(apc.getKind() != EQUAL || d_equalityEngine.areEqual(apc[0], apc[1]));
-    // now, explain
-    explain(apc, antec_exp);
-  }
-  for (const Node& anc : an)
-  {
-    if (std::find(antec_exp.begin(), antec_exp.end(), anc) == antec_exp.end())
-    {
-      Debug("strings-explain")
-          << "Add to explanation (new literal) " << anc << std::endl;
-      antec_exp.push_back(anc);
-    }
-  }
-  Node ant;
-  if( antec_exp.empty() ) {
-    ant = d_true;
-  } else if( antec_exp.size()==1 ) {
-    ant = antec_exp[0];
-  } else {
-    ant = NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
-  }
-  return ant;
 }
 
 void TheoryStrings::checkNormalFormsDeq()
