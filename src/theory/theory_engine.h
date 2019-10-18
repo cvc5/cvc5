@@ -797,6 +797,7 @@ public:
    * @returns the theory
    */
   inline theory::Theory* theoryOf(theory::TheoryId theoryId) const {
+    Assert(theoryId < theory::THEORY_LAST);
     return d_theoryTable[theoryId];
   }
 

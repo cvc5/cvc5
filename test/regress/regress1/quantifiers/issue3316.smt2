@@ -1,3 +1,5 @@
+; COMMAND-LINE: --fmf-fun-rlv --no-check-models
+; EXPECT: sat
 (set-info :smt-lib-version 2.5)
 (set-option :produce-models true)
 (set-logic ALL)

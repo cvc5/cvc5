@@ -14,8 +14,9 @@
  ** Enumerators for datatypes.
  **/
 
- #include "theory/datatypes/type_enumerator.h"
- #include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/type_enumerator.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4;
 using namespace theory;

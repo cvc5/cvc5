@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/solver_state.h"
 #include "util/regexp.h"
 
 namespace CVC4 {
@@ -44,6 +45,7 @@ class RegExpSolver
 
  public:
   RegExpSolver(TheoryStrings& p,
+               SolverState& s,
                InferenceManager& im,
                context::Context* c,
                context::UserContext* u);
@@ -100,6 +102,8 @@ class RegExpSolver
   Node d_false;
   /** the parent of this object */
   TheoryStrings& d_parent;
+  /** The solver state of the parent of this object */
+  SolverState& d_state;
   /** the output channel of the parent of this object */
   InferenceManager& d_im;
   // check membership constraints
