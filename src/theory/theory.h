@@ -42,6 +42,7 @@
 #include "theory/decision_manager.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
+#include "theory/theory_id.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 

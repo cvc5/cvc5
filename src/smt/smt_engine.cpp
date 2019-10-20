@@ -170,10 +170,9 @@ class DefinedFunction {
   Node d_formula;
 public:
   DefinedFunction() {}
-  DefinedFunction(Node func, vector<Node> formals, Node formula) :
-    d_func(func),
-    d_formals(formals),
-    d_formula(formula) {
+  DefinedFunction(Node func, vector<Node>& formals, Node formula)
+      : d_func(func), d_formals(formals), d_formula(formula)
+  {
   }
   Node getFunction() const { return d_func; }
   vector<Node> getFormals() const { return d_formals; }
@@ -511,8 +510,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * universally quantified in the constraints.
    */
   std::vector<Node> d_sygusVars;
-  /** types of sygus primed variables (for debugging) */
-  std::vector<Type> d_sygusPrimedVarTypes;
   /** sygus constraints */
   std::vector<Node> d_sygusConstraints;
   /** functions-to-synthesize */
@@ -1185,6 +1182,10 @@ void SmtEngine::setDefaults() {
                << "generation" << endl;
       setOption("bitblastMode", SExpr("lazy"));
     }
+    else if (!options::incrementalSolving())
+    {
+      options::ackermann.set(true);
+    }
 
     if (options::incrementalSolving() && !d_logic.isPure(THEORY_BV))
     {
@@ -1208,11 +1209,45 @@ void SmtEngine::setDefaults() {
   {
     d_logic = LogicInfo("QF_NIA");
   }
-  else if ((d_logic.getLogicString() == "QF_UFBV"
-            || d_logic.getLogicString() == "QF_ABV")
-           && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+
+  // set options about ackermannization
+  if (options::produceModels())
   {
-    d_logic = LogicInfo("QF_BV");
+    if (options::ackermann()
+        && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+            || d_logic.isTheoryEnabled(THEORY_UF)))
+    {
+      if (options::produceModels.wasSetByUser())
+      {
+        throw OptionException(std::string(
+            "Ackermannization currently does not support model generation."));
+      }
+      Notice() << "SmtEngine: turn off ackermannization to support model"
+               << "generation" << endl;
+      options::ackermann.set(false);
+    }
+  }
+
+  if (options::ackermann())
+  {
+    if (options::incrementalSolving())
+    {
+      throw OptionException(
+          "Incremental Ackermannization is currently not supported.");
+    }
+
+    if (d_logic.isTheoryEnabled(THEORY_UF))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_UF);
+      d_logic.lock();
+    }
+    if (d_logic.isTheoryEnabled(THEORY_ARRAYS))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_ARRAYS);
+      d_logic.lock();
+    }
   }
 
   // set default options associated with strings-exp
@@ -2231,13 +2266,24 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if(options::incrementalSolving() && options::proof()) {
-    Warning() << "SmtEngine: turning off incremental solving mode (not yet supported with --proof, try --tear-down-incremental instead)" << endl;
-    setOption("incremental", SExpr("false"));
-  }
-
   if (options::proof())
   {
+    if (options::incrementalSolving())
+    {
+      if (options::incrementalSolving.wasSetByUser())
+      {
+        throw OptionException("--incremental is not supported with proofs");
+      }
+      Warning()
+          << "SmtEngine: turning off incremental solving mode (not yet "
+             "supported with --proof, try --tear-down-incremental instead)"
+          << endl;
+      setOption("incremental", SExpr("false"));
+    }
+    if (d_logic > LogicInfo("QF_AUFBVLRA")) {
+        throw OptionException(
+            "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
+    }
     if (options::bitvectorAlgebraicSolver())
     {
       if (options::bitvectorAlgebraicSolver.wasSetByUser())
@@ -3168,9 +3214,11 @@ void SmtEnginePrivate::processAssertions() {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
 
-    // Placeholder for storing substitutions
-    d_preprocessingPassContext->setSubstitutionsIndex(d_assertions.size());
-    d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
+    d_assertions.enableStoreSubstsInAsserts();
+  }
+  else
+  {
+    d_assertions.disableStoreSubstsInAsserts();
   }
 
   // Add dummy assertion in last position - to be used as a
@@ -3235,10 +3283,9 @@ void SmtEnginePrivate::processAssertions() {
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-      && !options::incrementalSolving())
+  if (options::ackermann())
   {
-    d_passes["bv-ackermann"]->apply(&d_assertions);
+    d_passes["ackermann"]->apply(&d_assertions);
   }
 
   if (options::bvAbstraction() && !options::incrementalSolving())
@@ -3876,9 +3923,7 @@ void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
 
 void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
 {
-#ifdef CVC4_ASSERTIONS
-  d_private->d_sygusPrimedVarTypes.push_back(type);
-#endif
+  // do nothing (the command is spurious)
   Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
   // don't need to set that the conjecture is stale
 }
@@ -3961,27 +4006,6 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
     ss << vars.back() << "'";
     primed_vars.push_back(d_nodeManager->mkBoundVar(ss.str(), tn));
     d_private->d_sygusVars.push_back(primed_vars.back());
-#ifdef CVC4_ASSERTIONS
-    bool find_new_declared_var = false;
-    for (const Type& t : d_private->d_sygusPrimedVarTypes)
-    {
-      if (t == ti)
-      {
-        d_private->d_sygusPrimedVarTypes.erase(
-            std::find(d_private->d_sygusPrimedVarTypes.begin(),
-                      d_private->d_sygusPrimedVarTypes.end(),
-                      t));
-        find_new_declared_var = true;
-        break;
-      }
-    }
-    if (!find_new_declared_var)
-    {
-      Warning()
-          << "warning: declared primed variables do not match invariant's "
-             "type\n";
-    }
-#endif
   }
 
   // make relevant terms; 0 -> Inv, 1 -> Pre, 2 -> Trans, 3 -> Post
@@ -4491,14 +4515,6 @@ void SmtEngine::checkProof()
   Chat() << "checking proof..." << endl;
 
   std::string logicString = d_logic.getLogicString();
-
-  if (!(d_logic <= LogicInfo("QF_AUFBVLRA")))
-  {
-    // This logic is not yet supported
-    Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"
-             << endl;
-    return;
-  }
 
   std::stringstream pfStream;
 

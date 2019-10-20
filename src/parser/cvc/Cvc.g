@@ -213,7 +213,6 @@ tokens {
   JOIN_IMAGE_TOK = 'JOIN_IMAGE';  
 
   // Strings
-
   STRING_TOK = 'STRING';
   STRING_CONCAT_TOK = 'CONCAT';
   STRING_LENGTH_TOK = 'LENGTH';
@@ -227,19 +226,17 @@ tokens {
   STRING_SUFFIXOF_TOK = 'SUFFIXOF';
   STRING_STOI_TOK = 'STRING_TO_INTEGER';
   STRING_ITOS_TOK = 'INTEGER_TO_STRING';
-  //Regular expressions (TODO)
-  //STRING_IN_REGEXP_TOK
-  //STRING_TO_REGEXP_TOK
-  //REGEXP_CONCAT_TOK 
-  //REGEXP_UNION_TOK 
-  //REGEXP_INTER_TOK 
-  //REGEXP_STAR_TOK 
-  //REGEXP_PLUS_TOK 
-  //REGEXP_OPT_TOK 
-  //REGEXP_RANGE_TOK 
-  //REGEXP_LOOP_TOK 
-  //REGEXP_EMPTY_TOK
-  //REGEXP_SIGMA_TOK
+  STRING_TO_REGEXP_TOK = 'STRING_TO_REGEXP';
+  REGEXP_CONCAT_TOK = 'RE_CONCAT';
+  REGEXP_UNION_TOK = 'RE_UNION';
+  REGEXP_INTER_TOK = 'RE_INTER';
+  REGEXP_STAR_TOK = 'RE_STAR';
+  REGEXP_PLUS_TOK = 'RE_PLUS';
+  REGEXP_OPT_TOK = 'RE_OPT';
+  REGEXP_RANGE_TOK = 'RE_RANGE';
+  REGEXP_LOOP_TOK = 'RE_LOOP';
+  REGEXP_EMPTY_TOK = 'RE_EMPTY';
+  REGEXP_SIGMA_TOK = 'RE_SIGMA';
   
   SETS_CARD_TOK = 'CARD';
   
@@ -442,13 +439,26 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
   Expr lhs = createPrecedenceTree(parser, em, expressions, operators, startIndex, pivot);
   Expr rhs = createPrecedenceTree(parser, em, expressions, operators, pivot + 1, stopIndex);
 
-  switch(k) {
-  case kind::LEQ          : if(lhs.getType().isSet()) { k = kind::SUBSET; } break;
-  case kind::MINUS        : if(lhs.getType().isSet()) { k = kind::SETMINUS; } break;
-  case kind::BITVECTOR_AND: if(lhs.getType().isSet()) { k = kind::INTERSECTION; } break;
-  case kind::BITVECTOR_OR : if(lhs.getType().isSet()) { k = kind::UNION; } break;
-  default: break;
+  if (lhs.getType().isSet())
+  {
+    switch (k)
+    {
+      case kind::LEQ: k = kind::SUBSET; break;
+      case kind::MINUS: k = kind::SETMINUS; break;
+      case kind::BITVECTOR_AND: k = kind::INTERSECTION; break;
+      case kind::BITVECTOR_OR: k = kind::UNION; break;
+      default: break;
+    }
   }
+  else if (lhs.getType().isString())
+  {
+    switch (k)
+    {
+      case kind::MEMBER: k = kind::STRING_IN_REGEXP; break;
+      default: break;
+    }
+  }
+
   Expr e = em->mkExpr(k, lhs, rhs);
   return negate ? em->mkExpr(kind::NOT, e) : e;
 }/* createPrecedenceTree() recursive variant */
@@ -2026,6 +2036,31 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::STRING_STOI, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }   
+  | STRING_TO_REGEXP_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_TO_REGEXP, f); }
+  | REGEXP_CONCAT_TOK LPAREN formula[f] { args.push_back(f); }
+    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_CONCAT, args); }
+  | REGEXP_UNION_TOK LPAREN formula[f] { args.push_back(f); }
+    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_UNION, args); }
+  | REGEXP_INTER_TOK LPAREN formula[f] { args.push_back(f); }
+    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_INTER, args); }
+  | REGEXP_STAR_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_STAR, f); }
+  | REGEXP_PLUS_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_PLUS, f); }
+  | REGEXP_OPT_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_OPT, f); }
+  | REGEXP_RANGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_RANGE, f, f2); }
+  | REGEXP_LOOP_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_LOOP, f, f2, f3); }
+  | REGEXP_EMPTY_TOK
+    { f = MK_EXPR(CVC4::kind::REGEXP_EMPTY, std::vector<Expr>()); }
+  | REGEXP_SIGMA_TOK
+    { f = MK_EXPR(CVC4::kind::REGEXP_SIGMA, std::vector<Expr>()); }
 
     /* string literal */
   | str[s]

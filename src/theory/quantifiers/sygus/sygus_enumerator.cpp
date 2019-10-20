@@ -16,7 +16,7 @@
 
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4::kind;
 
@@ -81,7 +81,7 @@ void SygusEnumerator::initialize(Node e)
         if (sbl.getKind() == NOT)
         {
           Node a;
-          int tst = datatypes::DatatypesRewriter::isTester(sbl[0], a);
+          int tst = datatypes::utils::isTester(sbl[0], a);
           if (tst >= 0)
           {
             if (a == e)

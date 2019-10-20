@@ -15,7 +15,6 @@
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace std;

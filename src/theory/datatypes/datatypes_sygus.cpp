@@ -18,10 +18,11 @@
 
 #include "expr/node_manager.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -143,15 +144,14 @@ Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
       std::vector<Node> case_conj;
       for (unsigned k = 0; k < j; k++)
       {
-        case_conj.push_back(DatatypesRewriter::mkTester(n2, k, cdt).negate());
+        case_conj.push_back(utils::mkTester(n2, k, cdt).negate());
       }
       if (!case_conj.empty())
       {
         Node corder = nm->mkNode(
-            kind::OR,
-            DatatypesRewriter::mkTester(n1, j, cdt).negate(),
-            case_conj.size() == 1 ? case_conj[0]
-                                  : nm->mkNode(kind::AND, case_conj));
+            OR,
+            utils::mkTester(n1, j, cdt).negate(),
+            case_conj.size() == 1 ? case_conj[0] : nm->mkNode(AND, case_conj));
         sz_eq_cases.push_back(corder);
       }
     }
@@ -394,7 +394,7 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
           int sindexi = dt[i].getSelectorIndexInternal(selExpr);
           if (sindexi != -1)
           {
-            disj.push_back(DatatypesRewriter::mkTester(n[0], i, dt).negate());
+            disj.push_back(utils::mkTester(n[0], i, dt).negate());
           }
           else
           {
@@ -409,7 +409,7 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
       }else{
         int sindex = Datatype::cindexOf( selExpr );
         Assert( sindex!=-1 );
-        cond = DatatypesRewriter::mkTester(n[0], sindex, dt).negate();
+        cond = utils::mkTester(n[0], sindex, dt).negate();
       }
       Node c1 = getRelevancyCondition( n[0] );
       if( cond.isNull() ){
@@ -596,8 +596,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
     if (options::sygusFair() == SYGUS_FAIR_DT_SIZE && !isAnyConstant)
     {
       Node szl = nm->mkNode(DT_SIZE, n);
-      Node szr =
-          nm->mkNode(DT_SIZE, DatatypesRewriter::getInstCons(n, dt, tindex));
+      Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
       szr = Rewriter::rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }
@@ -703,7 +702,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         const Datatype& cdt =
             static_cast<DatatypeType>(ctn.toType()).getDatatype();
         Assert(i < static_cast<int>(cdt.getNumConstructors()));
-        sbp_conj.push_back(DatatypesRewriter::mkTester(children[j], i, cdt));
+        sbp_conj.push_back(utils::mkTester(children[j], i, cdt));
       }
     }
 
@@ -828,7 +827,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
           {
             Kind nck = cti.getConsNumKind(k);
             bool red = false;
-            Node tester = DatatypesRewriter::mkTester(nc, k, cdt);
+            Node tester = utils::mkTester(nc, k, cdt);
             // check if the argument is redundant
             if (static_cast<int>(k) == anyc_cons_num)
             {
@@ -915,10 +914,10 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), 1)),
             children[0]);
         Assert(child11.getType() == children[1].getType());
-        Node order_pred_trans = nm->mkNode(
-            OR,
-            DatatypesRewriter::mkTester(children[0], tindex, dt).negate(),
-            getTermOrderPredicate(child11, children[1]));
+        Node order_pred_trans =
+            nm->mkNode(OR,
+                       utils::mkTester(children[0], tindex, dt).negate(),
+                       getTermOrderPredicate(child11, children[1]));
         sbp_conj.push_back(order_pred_trans);
       }
     }
@@ -933,8 +932,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         << "Simple predicate for " << tn << " index " << tindex << " (" << nk
         << ") at depth " << depth << " : " << std::endl;
     Trace("sygus-sb-simple") << "   " << sb_pred << std::endl;
-    sb_pred = nm->mkNode(
-        kind::OR, DatatypesRewriter::mkTester(n, tindex, dt).negate(), sb_pred);
+    sb_pred = nm->mkNode(OR, utils::mkTester(n, tindex, dt).negate(), sb_pred);
   }
   d_simple_sb_pred[e][tn][tindex][optHashVal][depth] = sb_pred;
   return sb_pred;
@@ -987,7 +985,7 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
   // we call the body of this function in a bottom-up fashion
   // this ensures that the "abstraction" of the model value is available
   if( nv.getNumChildren()>0 ){
-    unsigned cindex = DatatypesRewriter::indexOf(nv.getOperator());
+    unsigned cindex = utils::indexOf(nv.getOperator());
     std::vector<Node> rcons_children;
     rcons_children.push_back(nv.getOperator());
     bool childrenChanged = false;
@@ -1677,8 +1675,8 @@ bool SygusSymBreakNew::checkValue(Node n,
   Assert(dt.isSygus());
 
   // ensure that the expected size bound is met
-  int cindex = DatatypesRewriter::indexOf(vn.getOperator());
-  Node tst = DatatypesRewriter::mkTester( n, cindex, dt );
+  int cindex = utils::indexOf(vn.getOperator());
+  Node tst = utils::mkTester(n, cindex, dt);
   bool hastst = d_td->getEqualityEngine()->hasTerm(tst);
   Node tstrep;
   if (hastst)
@@ -1693,7 +1691,7 @@ bool SygusSymBreakNew::checkValue(Node n,
     if( !hastst ){
       // This should not happen generally, it is caused by a sygus term not
       // being assigned a tester.
-      Node split = DatatypesRewriter::mkSplit(n, dt);
+      Node split = utils::mkSplit(n, dt);
       Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered "
                            "missing split for "
                         << n << "." << std::endl;

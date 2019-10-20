@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file bv_ackermann.cpp
+/*! \file ackermann.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar, Aina Niemetz, Clark Barrett
+ **   Yoni Zohar, Aina Niemetz, Clark Barrett, Ying Sheng
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -21,10 +21,9 @@
 ￼**   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
  **/
 
-#include "preprocessing/passes/bv_ackermann.h"
+#include "preprocessing/passes/ackermann.h"
 
-#include "options/bv_options.h"
-#include "theory/bv/theory_bv_utils.h"
+#include "options/options.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -51,6 +50,7 @@ void addLemmaForPair(TNode args1,
     Assert(args1.getOperator() == func);
     Assert(args2.getKind() == kind::APPLY_UF && args2.getOperator() == func);
     Assert(args1.getNumChildren() == args2.getNumChildren());
+    Assert(args1.getNumChildren() >= 1);
 
     std::vector<Node> eqs(args1.getNumChildren());
 
@@ -58,7 +58,14 @@ void addLemmaForPair(TNode args1,
     {
       eqs[i] = nm->mkNode(kind::EQUAL, args1[i], args2[i]);
     }
-    args_eq = bv::utils::mkAnd(eqs);
+    if (eqs.size() >= 2)
+    {
+      args_eq = nm->mkNode(kind::AND, eqs);
+    }
+    else
+    {
+      args_eq = eqs[0];
+    }
   }
   else
   {
@@ -89,10 +96,10 @@ void storeFunctionAndAddLemmas(TNode func,
   if (set.find(term) == set.end())
   {
     TypeNode tn = term.getType();
-    Node skolem = nm->mkSkolem("BVSKOLEM$$",
+    Node skolem = nm->mkSkolem("SKOLEM$$",
                                tn,
                                "is a variable created by the ackermannization "
-                               "preprocessing pass for theory BV");
+                               "preprocessing pass");
     for (const auto& t : set)
     {
       addLemmaForPair(t, term, func, assertions, nm);
@@ -164,7 +171,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       {
         AlwaysAssert(
             term.getKind() != kind::STORE,
-            "Cannot use eager bitblasting on QF_ABV formula with stores");
+            "Cannot use Ackermannization on formula with stores to arrays");
         /* add children to the vector, so that they are processed later */
         for (TNode n : term)
         {
@@ -180,16 +187,15 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
-BVAckermann::BVAckermann(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-ackermann"),
+Ackermann::Ackermann(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "ackermann"),
       d_funcToSkolem(preprocContext->getUserContext())
 {
 }
 
-PreprocessingPassResult BVAckermann::applyInternal(
+PreprocessingPassResult Ackermann::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   AlwaysAssert(!options::incrementalSolving());
 
   /* collect all function applications and generate consistency lemmas

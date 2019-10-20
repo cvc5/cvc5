@@ -20,25 +20,25 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-using namespace std;
 
 namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 CegSingleInv::CegSingleInv(QuantifiersEngine* qe, SynthConjecture* p)
     : d_qe(qe),
       d_parent(p),
       d_sip(new SingleInvocationPartition),
       d_sol(new CegSingleInvSol(qe)),
+      d_isSolved(false),
       d_single_invocation(false)
 {
 
@@ -143,14 +143,15 @@ void CegSingleInv::initialize(Node q)
   }
   // if we are doing invariant templates, then construct the template
   Trace("cegqi-si") << "- Do transition inference..." << std::endl;
-  d_ti[q].process(qq);
+  d_ti[q].process(qq, q[0][0]);
   Trace("cegqi-inv") << std::endl;
   Node prog = d_ti[q].getFunction();
-  if (prog.isNull())
+  if (!d_ti[q].isComplete())
   {
     // the invariant could not be inferred
     return;
   }
+  Assert(prog == q[0][0]);
   NodeManager* nm = NodeManager::currentNM();
   // map the program back via non-single invocation map
   std::vector<Node> prog_templ_vars;
@@ -317,7 +318,11 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   CegHandledStatus status = CEG_HANDLED;
   if (d_single_inv.getKind() == FORALL)
   {
-    status = CegInstantiator::isCbqiQuant(d_single_inv);
+    // if the conjecture is not trivially solvable
+    if (!solveTrivial(d_single_inv))
+    {
+      status = CegInstantiator::isCbqiQuant(d_single_inv);
+    }
   }
   Trace("cegqi-si") << "CegHandledStatus is " << status << std::endl;
   if (status < CEG_HANDLED)
@@ -329,9 +334,26 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     d_single_invocation = false;
     d_single_inv = Node::null();
   }
-  // If we succeeded, mark the quantified formula with the quantifier
-  // elimination attribute to ensure its structure is preserved
-  if (!d_single_inv.isNull() && d_single_inv.getKind() == FORALL)
+}
+
+bool CegSingleInv::solve()
+{
+  if (d_single_inv.isNull())
+  {
+    // not using single invocation techniques
+    return false;
+  }
+  if (d_isSolved)
+  {
+    // already solved, probably via a call to solveTrivial.
+    return true;
+  }
+  Trace("cegqi-si") << "Solve using single invocation..." << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  // Mark the quantified formula with the quantifier elimination attribute to
+  // ensure its structure is preserved in the query below.
+  Node siq = d_single_inv;
+  if (siq.getKind() == FORALL)
   {
     Node n_attr =
         nm->mkSkolem("qe_si",
@@ -341,22 +363,12 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     n_attr.setAttribute(qea, true);
     n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
     n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
-    d_single_inv = nm->mkNode(FORALL, d_single_inv[0], d_single_inv[1], n_attr);
+    siq = nm->mkNode(FORALL, siq[0], siq[1], n_attr);
   }
-}
-bool CegSingleInv::solve()
-{
-  if (d_single_inv.isNull())
-  {
-    // not using single invocation techniques
-    return false;
-  }
-  Trace("cegqi-si") << "Solve using single invocation..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   // solve the single invocation conjecture using a fresh copy of SMT engine
   SmtEngine siSmt(nm->toExprManager());
   siSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-  siSmt.assertFormula(d_single_inv.toExpr());
+  siSmt.assertFormula(siq.toExpr());
   Result r = siSmt.checkSat();
   Trace("cegqi-si") << "Result: " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
@@ -405,6 +417,7 @@ bool CegSingleInv::solve()
       Trace("cegqi-si") << "  Instantiation Lemma: " << ilem << std::endl;
     }
   }
+  d_isSolved = true;
   return true;
 }
 
@@ -606,5 +619,75 @@ Node CegSingleInv::reconstructToSyntax(Node s,
 }
 
 void CegSingleInv::preregisterConjecture(Node q) { d_orig_conjecture = q; }
-  
-} //namespace CVC4
+
+bool CegSingleInv::solveTrivial(Node q)
+{
+  Assert(!d_isSolved);
+  Assert(d_inst.empty());
+  Assert(q.getKind() == FORALL);
+  // If the conjecture is forall x1...xn. ~(x1 = t1 ^ ... xn = tn), it is
+  // trivially solvable.
+  std::vector<Node> args(q[0].begin(), q[0].end());
+  // keep solving for variables until a fixed point is reached
+  std::vector<Node> vars;
+  std::vector<Node> subs;
+  Node body = q[1];
+  Node prev;
+  while (prev != body && !args.empty())
+  {
+    prev = body;
+
+    std::vector<Node> varsTmp;
+    std::vector<Node> subsTmp;
+    QuantifiersRewriter::getVarElim(body, false, args, varsTmp, subsTmp);
+    // if we eliminated a variable, update body and reprocess
+    if (!varsTmp.empty())
+    {
+      Assert(varsTmp.size() == subsTmp.size());
+      // remake with eliminated nodes
+      body = body.substitute(
+          varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
+      body = Rewriter::rewrite(body);
+      // apply to subs
+      // this ensures we behave correctly if we solve x before y in
+      // x = y+1 ^ y = 2.
+      for (size_t i = 0, ssize = subs.size(); i < ssize; i++)
+      {
+        subs[i] = subs[i].substitute(
+            varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
+        subs[i] = Rewriter::rewrite(subs[i]);
+      }
+      vars.insert(vars.end(), varsTmp.begin(), varsTmp.end());
+      subs.insert(subs.end(), subsTmp.begin(), subsTmp.end());
+    }
+  }
+  // if we solved all arguments
+  if (args.empty())
+  {
+    Trace("cegqi-si-trivial-solve")
+        << q << " is trivially solvable by substitution " << vars << " -> "
+        << subs << std::endl;
+    std::map<Node, Node> imap;
+    for (size_t j = 0, vsize = vars.size(); j < vsize; j++)
+    {
+      imap[vars[j]] = subs[j];
+    }
+    std::vector<Node> inst;
+    for (const Node& v : q[0])
+    {
+      Assert(imap.find(v) != imap.end());
+      inst.push_back(imap[v]);
+    }
+    d_inst.push_back(inst);
+    d_instConds.push_back(NodeManager::currentNM()->mkConst(true));
+    d_isSolved = true;
+    return true;
+  }
+  Trace("cegqi-si-trivial-solve")
+      << q << " is not trivially solvable." << std::endl;
+  return false;
+}
+
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
