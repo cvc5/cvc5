@@ -59,13 +59,6 @@ namespace kind {
 
 namespace expr {
 
-#if CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT + \
-    CVC4__EXPR__NODE_VALUE__NBITS__KIND + \
-    CVC4__EXPR__NODE_VALUE__NBITS__ID + \
-    CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN != 96
-#  error NodeValue header bit assignment does not sum to 96 !
-#endif /* sum != 96 */
-
 /**
  * This is a NodeValue.
  */
@@ -171,6 +164,23 @@ class NodeValue
                                                             : d_nchildren;
   }
 
+  /* ------------------------------ Header ---------------------------------- */
+  /** Number of bits reserved for reference counting. */
+  static constexpr uint32_t NBITS_REFCOUNT = 20;
+  /** Number of bits reserved for node kind. */
+  static constexpr uint32_t NBITS_KIND = 10;
+  /** Number of bits reserved for node id. */
+  static constexpr uint32_t NBITS_ID = 40;
+  /** Number of bits reserved for number of children. */
+  static const uint32_t NBITS_NCHILDREN = 26;
+  static_assert(NBITS_REFCOUNT + NBITS_KIND + NBITS_ID + NBITS_NCHILDREN == 96,
+                "NodeValue header bit assignment does not sum to 96 !");
+  /* ------------------- This header fits into 96 bits ---------------------- */
+
+  /** Maximum number of children possible. */
+  static constexpr uint32_t MAX_CHILDREN =
+      (((uint32_t)1) << NBITS_NCHILDREN) - 1;
+
   uint32_t getRefCount() const { return d_rc; }
 
   NodeValue* getOperator() const;
@@ -275,21 +285,12 @@ class NodeValue
     bool d_increased;
   }; /* NodeValue::RefCountGuard */
 
-  /* ------------------------------ Header ---------------------------------- */
-  static const uint32_t NBITS_REFCOUNT =
-      CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT;
-  static const uint32_t NBITS_KIND = CVC4__EXPR__NODE_VALUE__NBITS__KIND;
-  static const uint32_t NBITS_ID = CVC4__EXPR__NODE_VALUE__NBITS__ID;
-  static const uint32_t NBITS_NCHILDREN =
-      CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
-
   /** Maximum reference count possible.  Used for sticky
    *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
-  static const uint32_t MAX_RC = (((uint32_t)1) << NBITS_REFCOUNT) - 1;
+  static constexpr uint32_t MAX_RC = (((uint32_t)1) << NBITS_REFCOUNT) - 1;
 
   /** A mask for d_kind */
-  static const uint32_t kindMask = (((uint32_t)1) << NBITS_KIND) - 1;
-  /* ------------------- This header fits into 96 bits ---------------------- */
+  static constexpr uint32_t kindMask = (((uint32_t)1) << NBITS_KIND) - 1;
 
   /** Uninitializing constructor for NodeBuilder's use.  */
   NodeValue()
