@@ -25,6 +25,7 @@ set(regress_0_tests
   regress0/arith/integers/ackermann6.smt2
   regress0/arith/integers/arith-int-042.cvc
   regress0/arith/integers/arith-int-042.min.cvc
+  regress0/arith/issue1399.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
   regress0/arith/miplib2.cvc
@@ -909,6 +910,7 @@ set(regress_0_tests
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
+  regress0/sygus/no-logic.sy
   regress0/sygus/no-syntax-test-bool.sy
   regress0/sygus/no-syntax-test.sy
   regress0/sygus/parity-AIG-d0.sy
@@ -1667,6 +1669,7 @@ set(regress_1_tests
   regress1/sygus/cegisunif-depth1.sy
   regress1/sygus/cggmp.sy
   regress1/sygus/clock-inc-tuple.sy
+  regress1/sygus/coeff-solve-inv.sy
   regress1/sygus/commutative-stream.sy
   regress1/sygus/commutative.sy
   regress1/sygus/concat_extract_example.sy
@@ -1687,6 +1690,7 @@ set(regress_1_tests
   regress1/sygus/hd-01-d1-prog.sy
   regress1/sygus/hd-19-d1-prog-dup-op.sy
   regress1/sygus/hd-sdiv.sy
+  regress1/sygus/ho-sygus.sy
   regress1/sygus/icfp_14.12-flip-args.sy
   regress1/sygus/icfp_14.12.sy
   regress1/sygus/icfp_14_12_diff_types.sy
@@ -1724,6 +1728,7 @@ set(regress_1_tests
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
+  regress1/sygus/repair-const-rl.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
   regress1/sygus/strings-no-syntax.sy
@@ -1748,6 +1753,7 @@ set(regress_1_tests
   regress1/sygus/trivial-stream.sy
   regress1/sygus/twolets1.sy
   regress1/sygus/twolets2-orig.sy
+  regress1/sygus/uf-abduct.smt2
   regress1/sygus/unbdd_inv_gen_ex7.sy
   regress1/sygus/unbdd_inv_gen_winf1.sy
   regress1/sygus/univ_2-long-repeat.sy

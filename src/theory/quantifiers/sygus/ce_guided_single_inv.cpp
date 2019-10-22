@@ -143,14 +143,15 @@ void CegSingleInv::initialize(Node q)
   }
   // if we are doing invariant templates, then construct the template
   Trace("cegqi-si") << "- Do transition inference..." << std::endl;
-  d_ti[q].process(qq);
+  d_ti[q].process(qq, q[0][0]);
   Trace("cegqi-inv") << std::endl;
   Node prog = d_ti[q].getFunction();
-  if (prog.isNull())
+  if (!d_ti[q].isComplete())
   {
     // the invariant could not be inferred
     return;
   }
+  Assert(prog == q[0][0]);
   NodeManager* nm = NodeManager::currentNM();
   // map the program back via non-single invocation map
   std::vector<Node> prog_templ_vars;

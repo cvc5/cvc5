@@ -2023,9 +2023,19 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
       << "base 2, 10, or 16";
 
   Integer val(s, base);
-  CVC4_API_CHECK(val.modByPow2(size) == val)
-      << "Overflow in bitvector construction (specified bitvector size " << size
-      << " too small to hold value " << s << ")";
+
+  if (val.strictlyNegative())
+  {
+    CVC4_API_CHECK(val >= -Integer("2", 10).pow(size - 1))
+        << "Overflow in bitvector construction (specified bitvector size "
+        << size << " too small to hold value " << s << ")";
+  }
+  else
+  {
+    CVC4_API_CHECK(val.modByPow2(size) == val)
+        << "Overflow in bitvector construction (specified bitvector size "
+        << size << " too small to hold value " << s << ")";
+  }
 
   return mkValHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
 }

@@ -15,7 +15,7 @@
 #include "theory/quantifiers/sygus/type_info.h"
 
 #include "base/cvc4_check.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace CVC4::kind;

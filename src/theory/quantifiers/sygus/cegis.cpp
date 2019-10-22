@@ -198,6 +198,30 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   return addedEvalLemmas;
 }
 
+Node Cegis::getRefinementLemmaFormula()
+{
+  std::vector<Node> conj;
+  conj.insert(
+      conj.end(), d_refinement_lemmas.begin(), d_refinement_lemmas.end());
+  // get the propagated values
+  for (unsigned i = 0, nprops = d_rl_eval_hds.size(); i < nprops; i++)
+  {
+    conj.push_back(d_rl_eval_hds[i].eqNode(d_rl_vals[i]));
+  }
+  // make the formula
+  NodeManager* nm = NodeManager::currentNM();
+  Node ret;
+  if (conj.empty())
+  {
+    ret = nm->mkConst(true);
+  }
+  else
+  {
+    ret = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
+  }
+  return ret;
+}
+
 bool Cegis::constructCandidates(const std::vector<Node>& enums,
                                 const std::vector<Node>& enum_values,
                                 const std::vector<Node>& candidates,
@@ -235,11 +259,18 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     {
       std::vector<Node> fail_cvs = enum_values;
       Assert(candidates.size() == fail_cvs.size());
+      // try to solve entire problem?
       if (src->repairSolution(candidates, fail_cvs, candidate_values))
       {
         return true;
       }
-      // repair solution didn't work, exclude this solution
+      Node rl = getRefinementLemmaFormula();
+      // try to solve for the refinement lemmas only
+      bool ret =
+          src->repairSolution(rl, candidates, fail_cvs, candidate_values);
+      // Even if ret is true, we will exclude the skeleton as well; this means
+      // that we have one chance to repair each skeleton. It is possible however
+      // that we might want to repair the same skeleton multiple times.
       std::vector<Node> exp;
       for (unsigned i = 0, size = enums.size(); i < size; i++)
       {
@@ -247,10 +278,12 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
             enums[i], enum_values[i], exp);
       }
       Assert(!exp.empty());
-      Node expn =
-          exp.size() == 1 ? exp[0] : NodeManager::currentNM()->mkNode(AND, exp);
-      lems.push_back(expn.negate());
-      return false;
+      NodeManager* nm = NodeManager::currentNM();
+      Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
+      // must guard it
+      expn = nm->mkNode(OR, d_parent->getGuard().negate(), expn.negate());
+      lems.push_back(expn);
+      return ret;
     }
   }
 
@@ -300,6 +333,7 @@ bool Cegis::processConstructCandidates(const std::vector<Node>& enums,
 
 void Cegis::addRefinementLemma(Node lem)
 {
+  Trace("cegis-rl") << "Cegis::addRefinementLemma: " << lem << std::endl;
   d_refinement_lemmas.push_back(lem);
   // apply existing substitution
   Node slem = lem;

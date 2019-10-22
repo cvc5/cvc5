@@ -585,6 +585,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     ( SYNTH_FUN_V1_TOK { isInv = false; }
       | SYNTH_INV_V1_TOK { isInv = true; range = EXPR_MANAGER->booleanType(); }
     )
+    { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
@@ -606,6 +607,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     ( SYNTH_FUN_TOK { isInv = false; }
       | SYNTH_INV_TOK { isInv = true; range = EXPR_MANAGER->booleanType(); }
     )
+    { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
