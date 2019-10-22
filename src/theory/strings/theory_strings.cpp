@@ -2296,7 +2296,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
           {
             Node bc = b[d_flat_form_index[b][count]];
             inelig.push_back(b);
-            Assert(!areEqual(curr, cc));
+            Assert(!d_state.areEqual(curr, cc));
             Node cc_c = getConstantEqc(cc);
             if (!curr_c.isNull() && !cc_c.isNull())
             {
@@ -2326,8 +2326,8 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
             {
               // if lengths are the same, apply LengthEq
               std::vector<Node> lexp2;
-              Node lcc = getLength(bc, lexp2);
-              if (areEqual(lcurr, lcc))
+              Node lcc = d_state.getLength(bc, lexp2);
+              if (d_state.areEqual(lcurr, lcc))
               {
                 if (Trace.isOn("strings-ff-debug"))
                 {
@@ -2350,7 +2350,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
 
                 exp.insert(exp.end(), lexp.begin(), lexp.end());
                 exp.insert(exp.end(), lexp2.begin(), lexp2.end());
-                addToExplanation(lcurr, lcc, exp);
+                d_im.addToExplanation(lcurr, lcc, exp);
                 conc = ac.eqNode(bc);
                 infType = FlatFormInfer::UNIFY;
                 break;
@@ -2365,7 +2365,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
       Trace("strings-ff-debug") << "Found inference (" << infType
                                 << "): " << conc << " based on equality " << a
                                 << " == " << b << ", " << isRev << std::endl;
-      d_imaddToExplanation(a, b, exp);
+      d_im.addToExplanation(a, b, exp);
       // explain why prefixes up to now were the same
       for (size_t j = 0; j < count; j++)
       {
