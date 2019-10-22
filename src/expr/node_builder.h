@@ -776,11 +776,12 @@ template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
   AlwaysAssert(toSize > d_nvMaxChildren,
                "attempt to realloc() a NodeBuilder to a smaller/equal size!");
-  Assert(toSize < (((size_t)1u) << expr::NodeValue::NBITS_NCHILDREN),
-         "attempt to realloc() a NodeBuilder to size %lu (beyond hard limit of "
-         "%u)",
-         toSize,
-         expr::NodeValue::MAX_CHILDREN);
+  Assert(
+      toSize < ((static_cast<size_t>(1)) << expr::NodeValue::NBITS_NCHILDREN),
+      "attempt to realloc() a NodeBuilder to size %lu (beyond hard limit of "
+      "%u)",
+      toSize,
+      expr::NodeValue::MAX_CHILDREN);
 
   if(__builtin_expect( ( nvIsAllocated() ), false )) {
     // Ensure d_nv is not modified on allocation failure

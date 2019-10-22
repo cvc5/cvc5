@@ -179,7 +179,7 @@ class NodeValue
 
   /** Maximum number of children possible. */
   static constexpr uint32_t MAX_CHILDREN =
-      (((uint32_t)1) << NBITS_NCHILDREN) - 1;
+      ((static_cast<uint32_t>(1)) << NBITS_NCHILDREN) - 1;
 
   uint32_t getRefCount() const { return d_rc; }
 
@@ -287,10 +287,12 @@ class NodeValue
 
   /** Maximum reference count possible.  Used for sticky
    *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
-  static constexpr uint32_t MAX_RC = (((uint32_t)1) << NBITS_REFCOUNT) - 1;
+  static constexpr uint32_t MAX_RC =
+      ((static_cast<uint32_t>(1)) << NBITS_REFCOUNT) - 1;
 
   /** A mask for d_kind */
-  static constexpr uint32_t kindMask = (((uint32_t)1) << NBITS_KIND) - 1;
+  static constexpr uint32_t kindMask =
+      ((static_cast<uint32_t>(1)) << NBITS_KIND) - 1;
 
   /** Uninitializing constructor for NodeBuilder's use.  */
   NodeValue()
