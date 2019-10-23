@@ -527,11 +527,15 @@ public:
                  bool levelZero = false, bool doOverload = false);
 
   /** Create a new type definition. */
-  void defineType(const std::string& name, const Type& type);
+  void defineType(const std::string& name,
+                  const Type& type,
+                  bool levelZero = false);
 
   /** Create a new (parameterized) type definition. */
   void defineType(const std::string& name,
-                  const std::vector<Type>& params, const Type& type);
+                  const std::vector<Type>& params,
+                  const Type& type,
+                  bool levelZero = false);
 
   /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
   void defineParameterizedType(const std::string& name,
