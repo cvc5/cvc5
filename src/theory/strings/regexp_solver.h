@@ -108,6 +108,16 @@ class RegExpSolver
   InferenceManager& d_im;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
+  /**
+   * Check partial derivative
+   *
+   * Returns false if a lemma pertaining to checking the partial derivative
+   * of x in r was added. In this case, addedLemma is updated to true.
+   *
+   * The argument atom is the assertion that explains x in r, which is the
+   * normalized form of atom that may be modified using a substitution whose
+   * explanation is nf_exp.
+   */
   bool checkPDerivative(
       Node x, Node r, Node atom, bool& addedLemma, std::vector<Node>& nf_exp);
   Node getMembership(Node n, bool isPos, unsigned i);

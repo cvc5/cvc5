@@ -227,29 +227,37 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
               << std::endl;
           // if so, do simple unrolling
           std::vector<Node> nvec;
-          if (nvec.empty())
+          Trace("strings-regexp") << "Simplify on " << atom << std::endl;
+          d_regexp_opr.simplify(atom, nvec, polarity);
+          Trace("strings-regexp") << "...finished" << std::endl;
+          // if simplifying successfully generated a lemma
+          if (!nvec.empty())
           {
-            d_regexp_opr.simplify(atom, nvec, polarity);
-          }
-          std::vector<Node> exp_n;
-          exp_n.push_back(assertion);
-          Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
-          d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
-          addedLemma = true;
-          if (changed)
-          {
-            cprocessed.push_back(assertion);
+            std::vector<Node> exp_n;
+            exp_n.push_back(assertion);
+            Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
+            d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
+            addedLemma = true;
+            if (changed)
+            {
+              cprocessed.push_back(assertion);
+            }
+            else
+            {
+              processed.push_back(assertion);
+            }
+            if (e == 0)
+            {
+              // Remember that we have unfolded a membership for x
+              // notice that we only do this here, after we have definitely
+              // added a lemma.
+              repUnfold.insert(rep);
+            }
           }
           else
           {
-            processed.push_back(assertion);
-          }
-          if (e == 0)
-          {
-            // Remember that we have unfolded a membership for x
-            // notice that we only do this here, after we have definitely
-            // added a lemma.
-            repUnfold.insert(rep);
+            // otherwise we are incomplete
+            d_parent.getOutputChannel().setIncomplete();
           }
         }
         if (d_state.isInConflict())
@@ -387,7 +395,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       Assert(m.getKind() == NOT && m[0].getKind() == STRING_IN_REGEXP);
       continue;
     }
-    RegExpConstType rct = d_regexp_opr.getRegExpConstType(m);
+    RegExpConstType rct = d_regexp_opr.getRegExpConstType(m[1]);
     if (rct == RE_C_VARIABLE
         || (options::stringRegExpInterMode() == RE_INTER_CONSTANT
             && rct != RE_C_CONRETE_CONSTANT))
@@ -629,7 +637,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
     {
       Trace("strings-error") << "Unsupported term: " << r
                              << " in normalization SymRegExp." << std::endl;
-      Assert(false);
+      Assert(!RegExpOpr::isRegExpKind(r.getKind()));
     }
   }
   return ret;
