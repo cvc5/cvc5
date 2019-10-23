@@ -1,10 +1,11 @@
 ; COMMAND-LINE: --incremental
 (set-option :global-declarations true)
-(set-logic QF_UFDT)
+(set-logic QF_UFDTLIA)
 
 (push 1)
 (declare-datatype Struct1 (par (T0) ((mk-struct1 (struct1-proj0 T0)))))
 (declare-datatypes ((Unit 0)) (((u))))
+(declare-datatypes ((Tree 0)) (((node (data Int) (color Bool) (left Tree) (right Tree)) (nil))))
 (declare-fun x () (Struct1 Bool))
 (declare-sort U1 0)
 (declare-sort U2 1)

@@ -308,12 +308,12 @@ void Parser::defineParameterizedType(const std::string& name,
 }
 
 SortType Parser::mkSort(const std::string& name, uint32_t flags) {
-  if (d_globalDeclarations) {
-    flags |= ExprManager::VAR_FLAG_GLOBAL;
-  }
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Type type = getExprManager()->mkSort(name, flags);
-  defineType(name, type, flags & ExprManager::VAR_FLAG_GLOBAL);
+  defineType(
+      name,
+      type,
+      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -321,16 +321,15 @@ SortConstructorType Parser::mkSortConstructor(const std::string& name,
                                               size_t arity,
                                               uint32_t flags)
 {
-  if (d_globalDeclarations)
-  {
-    flags |= ExprManager::VAR_FLAG_GLOBAL;
-  }
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
   SortConstructorType type =
       getExprManager()->mkSortConstructor(name, arity, flags);
   defineType(
-      name, vector<Type>(arity), type, flags & ExprManager::VAR_FLAG_GLOBAL);
+      name,
+      vector<Type>(arity),
+      type,
+      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
