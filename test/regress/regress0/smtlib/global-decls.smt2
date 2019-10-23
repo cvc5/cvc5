@@ -19,6 +19,9 @@
 (assert (is-mk-struct1 y))
 (assert (is-u z))
 
+(declare-fun size (Tree) Int)
+(assert (= (size nil) 0))
+
 (declare-const w1 U1)
 (declare-const w2 (U2 Bool))
 
