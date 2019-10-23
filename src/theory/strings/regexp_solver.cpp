@@ -34,10 +34,12 @@ namespace theory {
 namespace strings {
 
 RegExpSolver::RegExpSolver(TheoryStrings& p,
+                           SolverState& s,
                            InferenceManager& im,
                            context::Context* c,
                            context::UserContext* u)
     : d_parent(p),
+      d_state(s),
       d_im(im),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
@@ -134,7 +136,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         bool flag = true;
         Node x = atom[0];
         Node r = atom[1];
-        Assert(rep == d_parent.getRepresentative(x));
+        Assert(rep == d_state.getRepresentative(x));
         // The following code takes normal forms into account for the purposes
         // of simplifying a regular expression membership x in R. For example,
         // if x = "A" in the current context, then we may be interested in
@@ -258,7 +260,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             d_parent.getOutputChannel().setIncomplete();
           }
         }
-        if (d_im.hasConflict())
+        if (d_state.isInConflict())
         {
           break;
         }
@@ -267,7 +269,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   }
   if (addedLemma)
   {
-    if (!d_im.hasConflict())
+    if (!d_state.isInConflict())
     {
       for (unsigned i = 0; i < processed.size(); i++)
       {
@@ -476,7 +478,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
 bool RegExpSolver::checkPDerivative(
     Node x, Node r, Node atom, bool& addedLemma, std::vector<Node>& nf_exp)
 {
-  if (d_parent.areEqual(x, d_emptyString))
+  if (d_state.areEqual(x, d_emptyString))
   {
     Node exp;
     switch (d_regexp_opr.delta(r, exp))

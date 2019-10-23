@@ -733,30 +733,39 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
   Assert(node.getKind() == kind::STRING_CONCAT);
   Trace("strings-rewrite-debug")
       << "Strings::rewriteConcat start " << node << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   Node retNode = node;
   std::vector<Node> node_vec;
   Node preNode = Node::null();
-  for(unsigned int i=0; i<node.getNumChildren(); ++i) {
-    Node tmpNode = node[i];
-    if(node[i].getKind() == kind::STRING_CONCAT) {
-      if(tmpNode.getKind() == kind::STRING_CONCAT) {
-        unsigned j=0;
-        if(!preNode.isNull()) {
-          if(tmpNode[0].isConst()) {
-            preNode = NodeManager::currentNM()->mkConst( preNode.getConst<String>().concat( tmpNode[0].getConst<String>() ) );
-            node_vec.push_back( preNode );
-          } else {
-            node_vec.push_back( preNode );
-            node_vec.push_back( tmpNode[0] );
-          }
-          preNode = Node::null();
-          ++j;
+  for (Node tmpNode : node)
+  {
+    if (tmpNode.getKind() == STRING_CONCAT)
+    {
+      unsigned j = 0;
+      // combine the first term with the previous constant if applicable
+      if (!preNode.isNull())
+      {
+        if (tmpNode[0].isConst())
+        {
+          preNode = nm->mkConst(
+              preNode.getConst<String>().concat(tmpNode[0].getConst<String>()));
+          node_vec.push_back(preNode);
         }
-        for(; j<tmpNode.getNumChildren() - 1; ++j) {
-          node_vec.push_back( tmpNode[j] );
+        else
+        {
+          node_vec.push_back(preNode);
+          node_vec.push_back(tmpNode[0]);
         }
-        tmpNode = tmpNode[j];
+        preNode = Node::null();
+        ++j;
       }
+      // insert the middle terms to node_vec
+      if (j <= tmpNode.getNumChildren() - 1)
+      {
+        node_vec.insert(node_vec.end(), tmpNode.begin() + j, tmpNode.end() - 1);
+      }
+      // take the last term as the current
+      tmpNode = tmpNode[tmpNode.getNumChildren() - 1];
     }
     if(!tmpNode.isConst()) {
       if(!preNode.isNull()) {
@@ -785,7 +794,7 @@ Node TheoryStringsRewriter::rewriteConcat(Node node)
   // (str.++ ... [sort those 3 arguments] ... )
   size_t lastIdx = 0;
   Node lastX;
-  for (size_t i = 0; i < node_vec.size(); i++)
+  for (size_t i = 0, nsize = node_vec.size(); i < nsize; i++)
   {
     Node s = getStringOrEmpty(node_vec[i]);
     bool nextX = false;

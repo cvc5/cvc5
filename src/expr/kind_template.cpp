@@ -92,7 +92,7 @@ TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant)
   switch (typeConstant)
   {
 ${type_constant_to_theory_id}
-#line 94 "${template}"
+#line 96 "${template}"
     case LAST_TYPE: break;
   }
   throw IllegalArgumentException(

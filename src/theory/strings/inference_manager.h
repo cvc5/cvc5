@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -70,7 +71,7 @@ class InferenceManager
   InferenceManager(TheoryStrings& p,
                    context::Context* c,
                    context::UserContext* u,
-                   eq::EqualityEngine& ee,
+                   SolverState& s,
                    OutputChannel& out);
   ~InferenceManager() {}
 
@@ -162,6 +163,15 @@ class InferenceManager
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
+  //----------------------------constructing antecedants
+  /**
+   * Adds equality a = b to the vector exp if a and b are distinct terms. It
+   * must be the case that areEqual( a, b ) holds in this context.
+   */
+  void addToExplanation(Node a, Node b, std::vector<Node>& exp) const;
+  /** Adds lit to the vector exp if it is non-null */
+  void addToExplanation(Node lit, std::vector<Node>& exp) const;
+  //----------------------------end constructing antecedants
   /** Do pending facts
    *
    * This method asserts pending facts (d_pending) with explanations
@@ -196,16 +206,11 @@ class InferenceManager
    * this returns true if we have a pending fact or lemma, or have encountered
    * a conflict.
    */
-  bool hasProcessed() const
-  {
-    return hasConflict() || !d_pendingLem.empty() || !d_pending.empty();
-  }
+  bool hasProcessed() const;
   /** Do we have a pending fact to add to the equality engine? */
   bool hasPendingFact() const { return !d_pending.empty(); }
   /** Do we have a pending lemma to send on the output channel? */
   bool hasPendingLemma() const { return !d_pendingLem.empty(); }
-  /** Are we in conflict? */
-  bool hasConflict() const;
 
  private:
   /**
@@ -229,11 +234,10 @@ class InferenceManager
 
   /** the parent theory of strings object */
   TheoryStrings& d_parent;
-  /** the equality engine
-   *
-   * This is a reference to the equality engine of the theory of strings.
+  /**
+   * This is a reference to the solver state of the theory of strings.
    */
-  eq::EqualityEngine& d_ee;
+  SolverState& d_state;
   /** the output channel
    *
    * This is a reference to the output channel of the theory of strings.
