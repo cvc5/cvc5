@@ -209,16 +209,17 @@ void collectUSortsToBV(USortToBVSizeMap& usortCardinality,
     if (needsReplace(term))
     {
       TypeNode type = term.getType();
-	  size_t size = usortCardinality[type].second;
-	  if (size == 0)
-	  {
-	    size = log2(usortCardinality[type].first) + 1;
-	    usortCardinality[type].second = size;
-	  }
-	  Node skolem = nm->mkSkolem("BVSKOLEM$$",
-                                 nm->mkBitVectorType(size),
-                                 "a variable created by the ackermannization "
-                                 "preprocessing pass, representing term with uninterpreted sorts.");
+      size_t size = usortCardinality[type].second;
+      if (size == 0)
+      {
+        size = log2(usortCardinality[type].first) + 1;
+        usortCardinality[type].second = size;
+      }
+      Node skolem = nm->mkSkolem(
+          "BVSKOLEM$$",
+          nm->mkBitVectorType(size),
+          "a variable created by the ackermannization "
+          "preprocessing pass, representing term with uninterpreted sorts.");
       sortsToSkolem.addSubstitution(term, skolem);
     }
   }
@@ -246,7 +247,8 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
   }
   TNode term;
   size_t i = 0;
-  while (i < toProcess.size()) {
+  while (i < toProcess.size())
+  {
     term = toProcess[i];
     TypeNode type = term.getType();
     if (needsReplace(term))
@@ -265,7 +267,7 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
         seen.insert(a);
       }
     }
-	++i;
+    ++i;
   }
 
   collectUSortsToBV(usortCardinality, toProcess, sortsToSkolem);
