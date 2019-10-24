@@ -197,9 +197,8 @@ bool needsReplace(TNode term)
 }
 
 /* Given the lowest capacity requirements for each uninterpreted sorts, assign
- * unique bit-vector size. Get the converting map */
-void collectUSortsToBV(std::unordered_set<size_t>& used,
-                       USortToBVSizeMap& usortCardinality,
+ * a sufficient bit-vector size. Get the converting map */
+void collectUSortsToBV(USortToBVSizeMap& usortCardinality,
                        vector<TNode>& vec,
                        SubstitutionMap& sortsToSkolem)
 {
@@ -210,21 +209,16 @@ void collectUSortsToBV(std::unordered_set<size_t>& used,
     if (needsReplace(term))
     {
       TypeNode type = term.getType();
-      size_t size = usortCardinality[type].second;
-      if (size == 0)
-      {
-        size = log2(usortCardinality[type].first) + 1;
-        while (used.find(size) != used.end())
-        {
-          ++size;
-        }
-        usortCardinality[type].second = size;
-        used.insert(size);
-      }
-      Node skolem = nm->mkSkolem("BVSKOLEM$$",
+	  size_t size = usortCardinality[type].second;
+	  if (size == 0)
+	  {
+	    size = log2(usortCardinality[type].first) + 1;
+	    usortCardinality[type].second = size;
+	  }
+	  Node skolem = nm->mkSkolem("BVSKOLEM$$",
                                  nm->mkBitVectorType(size),
                                  "a variable created by the ackermannization "
-                                 "preprocessing pass for theory BV");
+                                 "preprocessing pass, representing term with uninterpreted sorts.");
       sortsToSkolem.addSubstitution(term, skolem);
     }
   }
@@ -233,16 +227,13 @@ void collectUSortsToBV(std::unordered_set<size_t>& used,
 /* This is the top level of converting uninterpreted sorts to bit vectors.
  * We use BFS to get all terms without duplications, and count the number of
  * different terms for each uninterpreted sort. Then for each sort, we will
- * assign a new bit-vector type with a unique size. The unique size ensures
- * that, after the replacement, the different sorts will be converted into bit-
- * vectors with different size.
+ * assign a new bit-vector type with a sufficient size.
  * The size is calculated to have enough capacity, that can accommodate the
  * variables occured in the original formula. */
 void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
                         SubstitutionMap& sortsToSkolem,
                         AssertionPipeline* assertions)
 {
-  std::unordered_set<size_t> used;
   TNodeSet seen;
   std::vector<TNode> toProcess;
   for (Node& a : assertions->ref())
@@ -254,8 +245,8 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
     }
   }
   TNode term;
-  for (size_t i = 0; i < toProcess.size(); ++i)
-  {
+  size_t i = 0;
+  while (i < toProcess.size()) {
     term = toProcess[i];
     TypeNode type = term.getType();
     if (needsReplace(term))
@@ -264,10 +255,6 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
       // For non-existing key, C++ will create a new element for it, which has
       // the value initialized with a pair of two zeros.
       usortCardinality[type].first = usortCardinality[type].first + 1;
-    }
-    else if (type.isBitVector())
-    {
-      used.insert(type.getBitVectorSize());
     }
 
     for (TNode a : term)
@@ -278,9 +265,10 @@ void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
         seen.insert(a);
       }
     }
+	++i;
   }
 
-  collectUSortsToBV(used, usortCardinality, toProcess, sortsToSkolem);
+  collectUSortsToBV(usortCardinality, toProcess, sortsToSkolem);
 }
 
 /* -------------------------------------------------------------------------- */
