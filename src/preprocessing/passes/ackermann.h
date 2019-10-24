@@ -27,7 +27,6 @@
 #define CVC4__PREPROCESSING__PASSES__ACKERMANN_H
 
 #include <unordered_map>
-#include <unordered_set>
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
