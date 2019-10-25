@@ -23,14 +23,12 @@ header = "options/smt_options.h"
   help       = "all dumping goes to FILE (instead of stdout)"
 
 [[option]]
-  name       = "forceLogicString"
-  smt_name   = "force-logic"
-  category   = "expert"
-  long       = "force-logic=LOGIC"
-  type       = "std::string"
-  notifies   = ["notifyForceLogic"]
-  read_only  = true
-  help       = "set the logic, and override all further user attempts to change it"
+  name       = "ackermann"
+  category   = "regular"
+  long       = "ackermann"
+  type       = "bool"
+  default    = "false"
+  help       = "eliminate functions by ackermannization"
 
 [[option]]
   name       = "simplificationMode"
@@ -107,6 +105,17 @@ header = "options/smt_options.h"
   handler    = "stringToModelCoresMode"
   includes   = ["options/smt_modes.h"]
   help       = "mode for producing model cores"
+
+
+[[option]]
+  name       = "blockModelsMode"
+  category   = "regular"
+  long       = "block-models=MODE"
+  type       = "BlockModelsMode"
+  default    = "BLOCK_MODELS_NONE"
+  handler    = "stringToBlockModelsMode"
+  includes   = ["options/smt_modes.h"]
+  help       = "mode for producing several models"
 
 [[option]]
   name       = "proof"
@@ -624,3 +633,21 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
+
+[[option]]
+  name       = "produceAbducts"
+  category   = "undocumented"
+  long       = "produce-abducts"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "support the get-abduct command"
+
+[[option]]
+  name       = "checkAbducts"
+  category   = "regular"
+  long       = "check-abducts"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "checks whether produced solutions to get-abduct are correct"

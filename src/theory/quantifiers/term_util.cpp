@@ -68,20 +68,6 @@ void TermUtil::registerQuantifier( Node q ){
   }
 }
 
-void TermUtil::getBoundVars2( Node n, std::vector< Node >& vars, std::map< Node, bool >& visited ) {
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( n.getKind()==BOUND_VARIABLE ){
-      if( std::find( vars.begin(), vars.end(), n )==vars.end() ) {
-        vars.push_back( n );
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      getBoundVars2( n[i], vars, visited );
-    }
-  }
-}
-
 Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) {
   std::map< Node, Node >::iterator it = visited.find( n );
   if( it!=visited.end() ){
@@ -161,11 +147,6 @@ bool TermUtil::hasBoundVarAttr( Node n ) {
   return !getBoundVarAttr(n).isNull();
 }
 
-void TermUtil::getBoundVars( Node n, std::vector< Node >& vars ) {
-  std::map< Node, bool > visited;
-  return getBoundVars2( n, vars, visited );
-}
-
 //remove quantifiers
 Node TermUtil::getRemoveQuantifiers( Node n ) {
   std::map< Node, Node > visited;
@@ -174,15 +155,18 @@ Node TermUtil::getRemoveQuantifiers( Node n ) {
 
 //quantified simplify
 Node TermUtil::getQuantSimplify( Node n ) {
-  std::vector< Node > bvs;
-  getBoundVars( n, bvs );
-  if( bvs.empty() ) {
+  std::unordered_set<Node, NodeHashFunction> fvs;
+  expr::getFreeVariables(n, fvs);
+  if (fvs.empty())
+  {
     return Rewriter::rewrite( n );
-  }else{
-    Node q = NodeManager::currentNM()->mkNode( FORALL, NodeManager::currentNM()->mkNode( BOUND_VAR_LIST, bvs ), n );
-    q = Rewriter::rewrite( q );
-    return getRemoveQuantifiers( q );
   }
+  std::vector<Node> bvs;
+  bvs.insert(bvs.end(), fvs.begin(), fvs.end());
+  NodeManager* nm = NodeManager::currentNM();
+  Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
+  q = Rewriter::rewrite(q);
+  return getRemoveQuantifiers(q);
 }
 
 /** get the i^th instantiation constant of q */
@@ -214,26 +198,6 @@ Node TermUtil::getInstConstantBody( Node q ){
   }else{
     return it->second;
   }
-}
-
-Node TermUtil::getCounterexampleLiteral( Node q ){
-  if( d_ce_lit.find( q )==d_ce_lit.end() ){
-    /*
-    Node ceBody = getInstConstantBody( f );
-    //check if any variable are of bad types, and fail if so
-    for( size_t i=0; i<d_inst_constants[f].size(); i++ ){
-      if( d_inst_constants[f][i].getType().isBoolean() ){
-        d_ce_lit[ f ] = Node::null();
-        return Node::null();
-      }
-    }
-    */
-    Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
-    //otherwise, ensure literal
-    Node ceLit = d_quantEngine->getValuation().ensureLiteral( g );
-    d_ce_lit[ q ] = ceLit;
-  }
-  return d_ce_lit[ q ];
 }
 
 Node TermUtil::substituteBoundVariablesToInstConstants(Node n, Node q)
@@ -340,213 +304,6 @@ void TermUtil::computeInstConstContainsForQuant(Node q,
   }
 }
 
-void TermUtil::getVtsTerms( std::vector< Node >& t, bool isFree, bool create, bool inc_delta ) {
-  if( inc_delta ){
-    Node delta = getVtsDelta( isFree, create );
-    if( !delta.isNull() ){
-      t.push_back( delta );
-    }
-  }
-  for( unsigned r=0; r<2; r++ ){
-    Node inf = getVtsInfinityIndex( r, isFree, create );
-    if( !inf.isNull() ){
-      t.push_back( inf );
-    }
-  }
-}
-
-Node TermUtil::getVtsDelta( bool isFree, bool create ) {
-  if( create ){
-    if( d_vts_delta_free.isNull() ){
-      d_vts_delta_free = NodeManager::currentNM()->mkSkolem( "delta_free", NodeManager::currentNM()->realType(), "free delta for virtual term substitution" );
-      Node delta_lem = NodeManager::currentNM()->mkNode( GT, d_vts_delta_free, d_zero );
-      d_quantEngine->getOutputChannel().lemma( delta_lem );
-    }
-    if( d_vts_delta.isNull() ){
-      d_vts_delta = NodeManager::currentNM()->mkSkolem( "delta", NodeManager::currentNM()->realType(), "delta for virtual term substitution" );
-      //mark as a virtual term
-      VirtualTermSkolemAttribute vtsa;
-      d_vts_delta.setAttribute(vtsa,true);
-    }
-  }
-  return isFree ? d_vts_delta_free : d_vts_delta;
-}
-
-Node TermUtil::getVtsInfinity( TypeNode tn, bool isFree, bool create ) {
-  if( create ){
-    if( d_vts_inf_free[tn].isNull() ){
-      d_vts_inf_free[tn] = NodeManager::currentNM()->mkSkolem( "inf_free", tn, "free infinity for virtual term substitution" );
-    }
-    if( d_vts_inf[tn].isNull() ){
-      d_vts_inf[tn] = NodeManager::currentNM()->mkSkolem( "inf", tn, "infinity for virtual term substitution" );
-      //mark as a virtual term
-      VirtualTermSkolemAttribute vtsa;
-      d_vts_inf[tn].setAttribute(vtsa,true);
-    }
-  }
-  return isFree ? d_vts_inf_free[tn] : d_vts_inf[tn];
-}
-
-Node TermUtil::getVtsInfinityIndex( int i, bool isFree, bool create ) {
-  if( i==0 ){
-    return getVtsInfinity( NodeManager::currentNM()->realType(), isFree, create );
-  }else if( i==1 ){
-    return getVtsInfinity( NodeManager::currentNM()->integerType(), isFree, create );
-  }else{
-    Assert( false );
-    return Node::null();
-  }
-}
-
-Node TermUtil::substituteVtsFreeTerms( Node n ) {
-  std::vector< Node > vars;
-  getVtsTerms( vars, false, false );
-  std::vector< Node > vars_free;
-  getVtsTerms( vars_free, true, false );
-  Assert( vars.size()==vars_free.size() );
-  if( !vars.empty() ){
-    return n.substitute( vars.begin(), vars.end(), vars_free.begin(), vars_free.end() );
-  }else{
-    return n;
-  }
-}
-
-Node TermUtil::rewriteVtsSymbols( Node n ) {
-  if( ( n.getKind()==EQUAL || n.getKind()==GEQ ) ){
-    Trace("quant-vts-debug") << "VTS : process " << n << std::endl;
-    Node rew_vts_inf;
-    bool rew_delta = false;
-    //rewriting infinity always takes precedence over rewriting delta
-    for( unsigned r=0; r<2; r++ ){
-      Node inf = getVtsInfinityIndex( r, false, false );
-      if (!inf.isNull() && expr::hasSubterm(n, inf))
-      {
-        if( rew_vts_inf.isNull() ){
-          rew_vts_inf = inf;
-        }else{
-          //for mixed int/real with multiple infinities
-          Trace("quant-vts-debug") << "Multiple infinities...equate " << inf << " = " << rew_vts_inf << std::endl;
-          std::vector< Node > subs_lhs;
-          subs_lhs.push_back( inf );
-          std::vector< Node > subs_rhs;
-          subs_lhs.push_back( rew_vts_inf );
-          n = n.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
-          n = Rewriter::rewrite( n );
-          // may have cancelled
-          if (!expr::hasSubterm(n, rew_vts_inf))
-          {
-            rew_vts_inf = Node::null();
-          }
-        }
-      }
-    }
-    if (rew_vts_inf.isNull())
-    {
-      if (!d_vts_delta.isNull() && expr::hasSubterm(n, d_vts_delta))
-      {
-        rew_delta = true;
-      }
-    }
-    if( !rew_vts_inf.isNull()  || rew_delta ){
-      std::map< Node, Node > msum;
-      if (ArithMSum::getMonomialSumLit(n, msum))
-      {
-        if( Trace.isOn("quant-vts-debug") ){
-          Trace("quant-vts-debug") << "VTS got monomial sum : " << std::endl;
-          ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");
-        }
-        Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
-        Assert( !vts_sym.isNull() );
-        Node iso_n;
-        Node nlit;
-        int res = ArithMSum::isolate(vts_sym, msum, iso_n, n.getKind(), true);
-        if( res!=0 ){
-          Trace("quant-vts-debug") << "VTS isolated :  -> " << iso_n << ", res = " << res << std::endl;
-          Node slv = iso_n[res==1 ? 1 : 0];
-          //ensure the vts terms have been eliminated
-          if( containsVtsTerm( slv ) ){
-            Trace("quant-vts-warn") << "Bad vts literal : " << n << ", contains " << vts_sym << " but bad solved form " << slv << "." << std::endl;
-            nlit = substituteVtsFreeTerms( n );
-            Trace("quant-vts-debug") << "...return " << nlit << std::endl;
-            //Assert( false );
-            //safe case: just convert to free symbols
-            return nlit;
-          }else{
-            if( !rew_vts_inf.isNull() ){
-              nlit = ( n.getKind()==GEQ && res==1 ) ? d_true : d_false;
-            }else{
-              Assert( iso_n[res==1 ? 0 : 1]==d_vts_delta );
-              if( n.getKind()==EQUAL ){
-                nlit = d_false;
-              }else if( res==1 ){
-                nlit = NodeManager::currentNM()->mkNode( GEQ, d_zero, slv );
-              }else{
-                nlit = NodeManager::currentNM()->mkNode( GT, slv, d_zero );
-              }
-            }
-          }
-          Trace("quant-vts-debug") << "Return " << nlit << std::endl;
-          return nlit;
-        }else{
-          Trace("quant-vts-warn") << "Bad vts literal : " << n << ", contains " << vts_sym << " but could not isolate." << std::endl;
-          //safe case: just convert to free symbols
-          nlit = substituteVtsFreeTerms( n );
-          Trace("quant-vts-debug") << "...return " << nlit << std::endl;
-          //Assert( false );
-          return nlit;
-        }
-      }
-    }
-    return n;
-  }else if( n.getKind()==FORALL ){
-    //cannot traverse beneath quantifiers
-    return substituteVtsFreeTerms( n );
-  }else{
-    bool childChanged = false;
-    std::vector< Node > children;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      Node nn = rewriteVtsSymbols( n[i] );
-      children.push_back( nn );
-      childChanged = childChanged || nn!=n[i];
-    }
-    if( childChanged ){
-      if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-        children.insert( children.begin(), n.getOperator() );
-      }
-      Node ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      Trace("quant-vts-debug") << "...make node " << ret << std::endl;
-      return ret;
-    }else{
-      return n;
-    }
-  }
-}
-
-bool TermUtil::containsVtsTerm( Node n, bool isFree ) {
-  std::vector< Node > t;
-  getVtsTerms( t, isFree, false );
-  return containsTerms( n, t );
-}
-
-bool TermUtil::containsVtsTerm( std::vector< Node >& n, bool isFree ) {
-  std::vector< Node > t;
-  getVtsTerms( t, isFree, false );
-  if( !t.empty() ){
-    for( unsigned i=0; i<n.size(); i++ ){
-      if( containsTerms( n[i], t ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermUtil::containsVtsInfinity( Node n, bool isFree ) {
-  std::vector< Node > t;
-  getVtsTerms( t, isFree, false, false );
-  return containsTerms( n, t );
-}
-
 Node TermUtil::ensureType( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
   Assert( ntn.isComparableTo( tn ) );
@@ -557,40 +314,6 @@ Node TermUtil::ensureType( Node n, TypeNode tn ) {
       return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
     }
     return Node::null();
-  }
-}
-
-bool TermUtil::containsTerms2( Node n, std::vector< Node >& t, std::map< Node, bool >& visited ) {
-  if (visited.find(n) == visited.end())
-  {
-    if( std::find( t.begin(), t.end(), n )!=t.end() ){
-      return true;
-    }
-    visited[n] = true;
-    if (n.hasOperator())
-    {
-      if (containsTerms2(n.getOperator(), t, visited))
-      {
-        return true;
-      }
-    }
-    for (const Node& nc : n)
-    {
-      if (containsTerms2(nc, t, visited))
-      {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermUtil::containsTerms( Node n, std::vector< Node >& t ) {
-  if( t.empty() ){
-    return false;
-  }else{
-    std::map< Node, bool > visited;
-    return containsTerms2( n, t, visited );
   }
 }
 
@@ -628,14 +351,21 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
   return n.getAttribute(ContainsUConstAttribute())!=0;
 }
 
-Node TermUtil::simpleNegate( Node n ){
+Node TermUtil::simpleNegate(Node n)
+{
+  Assert(n.getType().isBoolean());
+  NodeManager* nm = NodeManager::currentNM();
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
     for (const Node& cn : n)
     {
       children.push_back(simpleNegate(cn));
     }
-    return NodeManager::currentNM()->mkNode( n.getKind()==OR ? AND : OR, children );
+    return nm->mkNode(n.getKind() == OR ? AND : OR, children);
+  }
+  else if (n.isConst())
+  {
+    return nm->mkConst(!n.getConst<bool>());
   }
   return n.negate();
 }
@@ -1014,19 +744,6 @@ bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
   }
   return false;
 }
-
-Node TermUtil::getHoTypeMatchPredicate( TypeNode tn ) {
-  std::map< TypeNode, Node >::iterator ithp = d_ho_type_match_pred.find( tn );
-  if( ithp==d_ho_type_match_pred.end() ){
-    TypeNode ptn = NodeManager::currentNM()->mkFunctionType( tn, NodeManager::currentNM()->booleanType() );
-    Node k = NodeManager::currentNM()->mkSkolem( "U", ptn, "predicate to force higher-order types" );
-    d_ho_type_match_pred[tn] = k;
-    return k;
-  }else{
-    return ithp->second;  
-  }
-}
-
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

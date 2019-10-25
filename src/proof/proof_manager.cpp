@@ -561,184 +561,243 @@ void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
 void LFSCProof::toStream(std::ostream& out) const
 {
   TimerStat::CodeTimer proofProductionTimer(
-      *ProofManager::currentPM()->getProofProductionTime());
+      ProofManager::currentPM()->getStats().d_proofProductionTime);
 
-  Assert(!d_satProof->proofConstructed());
-  d_satProof->constructProof();
-
-  // collecting leaf clauses in resolution proof
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
-  d_satProof->collectClausesUsed(used_inputs,
-                                 used_lemmas);
+  std::set<Node> atoms;
+  NodePairSet rewrites;
+  NodeSet used_assertions;
 
-  IdToSatClause::iterator it2;
-  Debug("pf::pm") << std::endl << "Used inputs: " << std::endl;
-  for (it2 = used_inputs.begin(); it2 != used_inputs.end(); ++it2) {
-    Debug("pf::pm") << "\t input = " << *(it2->second) << std::endl;
-  }
-  Debug("pf::pm") << std::endl;
+  {
+    CodeTimer skeletonProofTimer{
+        ProofManager::currentPM()->getStats().d_skeletonProofTraceTime};
+    Assert(!d_satProof->proofConstructed());
+    d_satProof->constructProof();
 
-  // Debug("pf::pm") << std::endl << "Used lemmas: " << std::endl;
-  // for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
-  //   Debug("pf::pm") << "\t lemma = " << *(it2->second) << std::endl;
-  // }
-  // Debug("pf::pm") << std::endl;
-  Debug("pf::pm") << std::endl << "Used lemmas: " << std::endl;
-  for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
+    // collecting leaf clauses in resolution proof
+    d_satProof->collectClausesUsed(used_inputs, used_lemmas);
 
-    std::vector<Expr> clause_expr;
-    for(unsigned i = 0; i < it2->second->size(); ++i) {
-      prop::SatLiteral lit = (*(it2->second))[i];
-      Expr atom = d_cnfProof->getAtom(lit.getSatVariable()).toExpr();
-      if (atom.isConst()) {
-        Assert (atom == utils::mkTrue());
-        continue;
-      }
-      Expr expr_lit = lit.isNegated() ? atom.notExpr(): atom;
-      clause_expr.push_back(expr_lit);
-    }
-
-    Debug("pf::pm") << "\t lemma " << it2->first << " = " << *(it2->second) << std::endl;
-    Debug("pf::pm") << "\t";
-    for (unsigned i = 0; i < clause_expr.size(); ++i) {
-      Debug("pf::pm") << clause_expr[i] << " ";
+    IdToSatClause::iterator it2;
+    Debug("pf::pm") << std::endl << "Used inputs: " << std::endl;
+    for (it2 = used_inputs.begin(); it2 != used_inputs.end(); ++it2)
+    {
+      Debug("pf::pm") << "\t input = " << *(it2->second) << std::endl;
     }
     Debug("pf::pm") << std::endl;
-  }
-  Debug("pf::pm") << std::endl;
 
-  // collecting assertions that lead to the clauses being asserted
-  NodeSet used_assertions;
-  d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
+    Debug("pf::pm") << std::endl << "Used lemmas: " << std::endl;
+    for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2)
+    {
+      std::vector<Expr> clause_expr;
+      for (unsigned i = 0; i < it2->second->size(); ++i)
+      {
+        prop::SatLiteral lit = (*(it2->second))[i];
+        Expr atom = d_cnfProof->getAtom(lit.getSatVariable()).toExpr();
+        if (atom.isConst())
+        {
+          Assert(atom == utils::mkTrue());
+          continue;
+        }
+        Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;
+        clause_expr.push_back(expr_lit);
+      }
 
-  NodeSet::iterator it3;
-  Debug("pf::pm") << std::endl << "Used assertions: " << std::endl;
-  for (it3 = used_assertions.begin(); it3 != used_assertions.end(); ++it3)
-    Debug("pf::pm") << "\t assertion = " << *it3 << std::endl;
-
-  std::set<Node> atoms;
-
-  NodePairSet rewrites;
-  // collects the atoms in the clauses
-  d_cnfProof->collectAtomsAndRewritesForLemmas(used_lemmas, atoms, rewrites);
-
-  if (!rewrites.empty()) {
-    Debug("pf::pm") << std::endl << "Rewrites used in lemmas: " << std::endl;
-    NodePairSet::const_iterator rewriteIt;
-    for (rewriteIt = rewrites.begin(); rewriteIt != rewrites.end(); ++rewriteIt) {
-      Debug("pf::pm") << "\t" << rewriteIt->first << " --> " << rewriteIt->second << std::endl;
+      Debug("pf::pm") << "\t lemma " << it2->first << " = " << *(it2->second)
+                      << std::endl;
+      Debug("pf::pm") << "\t";
+      for (unsigned i = 0; i < clause_expr.size(); ++i)
+      {
+        Debug("pf::pm") << clause_expr[i] << " ";
+      }
+      Debug("pf::pm") << std::endl;
     }
-    Debug("pf::pm") << std::endl << "Rewrite printing done" << std::endl;
-  } else {
-    Debug("pf::pm") << "No rewrites in lemmas found" << std::endl;
-  }
+    Debug("pf::pm") << std::endl;
 
-  // The derived/unrewritten atoms may not have CNF literals required later on.
-  // If they don't, add them.
-  std::set<Node>::const_iterator it;
-  for (it = atoms.begin(); it != atoms.end(); ++it) {
-    Debug("pf::pm") << "Ensure literal for atom: " << *it << std::endl;
-    if (!d_cnfProof->hasLiteral(*it)) {
-      // For arithmetic: these literals are not normalized, causing an error in Arith.
-      if (theory::Theory::theoryOf(*it) == theory::THEORY_ARITH) {
-        d_cnfProof->ensureLiteral(*it, true); // This disables preregistration with the theory solver.
-      } else {
-        d_cnfProof->ensureLiteral(*it); // Normal method, with theory solver preregisteration.
+    // collecting assertions that lead to the clauses being asserted
+    d_cnfProof->collectAssertionsForClauses(used_inputs, used_assertions);
+
+    NodeSet::iterator it3;
+    Debug("pf::pm") << std::endl << "Used assertions: " << std::endl;
+    for (it3 = used_assertions.begin(); it3 != used_assertions.end(); ++it3)
+      Debug("pf::pm") << "\t assertion = " << *it3 << std::endl;
+
+    // collects the atoms in the clauses
+    d_cnfProof->collectAtomsAndRewritesForLemmas(used_lemmas, atoms, rewrites);
+
+    if (!rewrites.empty())
+    {
+      Debug("pf::pm") << std::endl << "Rewrites used in lemmas: " << std::endl;
+      NodePairSet::const_iterator rewriteIt;
+      for (rewriteIt = rewrites.begin(); rewriteIt != rewrites.end();
+           ++rewriteIt)
+      {
+        Debug("pf::pm") << "\t" << rewriteIt->first << " --> "
+                        << rewriteIt->second << std::endl;
+      }
+      Debug("pf::pm") << std::endl << "Rewrite printing done" << std::endl;
+    }
+    else
+    {
+      Debug("pf::pm") << "No rewrites in lemmas found" << std::endl;
+    }
+
+    // The derived/unrewritten atoms may not have CNF literals required later
+    // on. If they don't, add them.
+    std::set<Node>::const_iterator it;
+    for (it = atoms.begin(); it != atoms.end(); ++it)
+    {
+      Debug("pf::pm") << "Ensure literal for atom: " << *it << std::endl;
+      if (!d_cnfProof->hasLiteral(*it))
+      {
+        // For arithmetic: these literals are not normalized, causing an error
+        // in Arith.
+        if (theory::Theory::theoryOf(*it) == theory::THEORY_ARITH)
+        {
+          d_cnfProof->ensureLiteral(
+              *it,
+              true);  // This disables preregistration with the theory solver.
+        }
+        else
+        {
+          d_cnfProof->ensureLiteral(
+              *it);  // Normal method, with theory solver preregisteration.
+        }
       }
     }
+
+    d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
+    d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
+
+    // collects the atoms in the assertions
+    for (NodeSet::const_iterator it = used_assertions.begin();
+         it != used_assertions.end();
+         ++it)
+    {
+      utils::collectAtoms(*it, atoms);
+    }
+
+    std::set<Node>::iterator atomIt;
+    Debug("pf::pm") << std::endl
+                    << "Dumping atoms from lemmas, inputs and assertions: "
+                    << std::endl
+                    << std::endl;
+    for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt)
+    {
+      Debug("pf::pm") << "\tAtom: " << *atomIt << std::endl;
+    }
   }
 
-  d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
-  d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
-
-  // collects the atoms in the assertions
-  for (NodeSet::const_iterator it = used_assertions.begin();
-       it != used_assertions.end(); ++it) {
-    utils::collectAtoms(*it, atoms);
-    // utils::collectAtoms(*it, newAtoms);
-  }
-
-  std::set<Node>::iterator atomIt;
-  Debug("pf::pm") << std::endl << "Dumping atoms from lemmas, inputs and assertions: "
-                  << std::endl << std::endl;
-  for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
-    Debug("pf::pm") << "\tAtom: " << *atomIt << std::endl;
-  }
   smt::SmtScope scope(d_smtEngine);
-  std::ostringstream paren;
-  out << "(check\n";
-  paren << ")";
-  out << " ;; Declarations\n";
-
-  // declare the theory atoms
-  Debug("pf::pm") << "LFSCProof::toStream: registering terms:" << std::endl;
-  for(it = atoms.begin(); it != atoms.end(); ++it) {
-    Debug("pf::pm") << "\tTerm: " << (*it).toExpr() << std::endl;
-    d_theoryProof->registerTerm((*it).toExpr());
-  }
-
-  Debug("pf::pm") << std::endl << "Term registration done!" << std::endl << std::endl;
-
-  Debug("pf::pm") << std::endl << "LFSCProof::toStream: starting to print assertions" << std::endl;
-
-  // print out all the original assertions
-  d_theoryProof->registerTermsFromAssertions();
-  d_theoryProof->printSortDeclarations(out, paren);
-  d_theoryProof->printTermDeclarations(out, paren);
-  d_theoryProof->printAssertions(out, paren);
-
-  Debug("pf::pm") << std::endl << "LFSCProof::toStream: print assertions DONE" << std::endl;
-
-  out << "(: (holds cln)\n\n";
-  paren << ")";
-
-  // Have the theory proofs print deferred declarations, e.g. for skolem variables.
-  out << " ;; Printing deferred declarations \n\n";
-  d_theoryProof->printDeferredDeclarations(out, paren);
-
-  out << "\n ;; Printing the global let map";
-  d_theoryProof->finalizeBvConflicts(used_lemmas, out);
-  ProofManager::getBitVectorProof()->calculateAtomsInBitblastingProof();
   ProofLetMap globalLetMap;
-  if (options::lfscLetification()) {
-    ProofManager::currentPM()->printGlobalLetMap(atoms, globalLetMap, out, paren);
+  std::ostringstream paren;
+  {
+    CodeTimer declTimer{
+        ProofManager::currentPM()->getStats().d_proofDeclarationsTime};
+    out << "(check\n";
+    paren << ")";
+    out << " ;; Declarations\n";
+
+    // declare the theory atoms
+    Debug("pf::pm") << "LFSCProof::toStream: registering terms:" << std::endl;
+    for (std::set<Node>::const_iterator it = atoms.begin(); it != atoms.end(); ++it)
+    {
+      Debug("pf::pm") << "\tTerm: " << (*it).toExpr() << std::endl;
+      d_theoryProof->registerTerm((*it).toExpr());
+    }
+
+    Debug("pf::pm") << std::endl
+                    << "Term registration done!" << std::endl
+                    << std::endl;
+
+    Debug("pf::pm") << std::endl
+                    << "LFSCProof::toStream: starting to print assertions"
+                    << std::endl;
+
+    // print out all the original assertions
+    d_theoryProof->registerTermsFromAssertions();
+    d_theoryProof->printSortDeclarations(out, paren);
+    d_theoryProof->printTermDeclarations(out, paren);
+    d_theoryProof->printAssertions(out, paren);
+
+    Debug("pf::pm") << std::endl
+                    << "LFSCProof::toStream: print assertions DONE"
+                    << std::endl;
+
+    out << "(: (holds cln)\n\n";
+    paren << ")";
+
+    // Have the theory proofs print deferred declarations, e.g. for skolem
+    // variables.
+    out << " ;; Printing deferred declarations \n\n";
+    d_theoryProof->printDeferredDeclarations(out, paren);
+
+    out << "\n ;; Printing the global let map";
+    d_theoryProof->finalizeBvConflicts(used_lemmas, out);
+    ProofManager::getBitVectorProof()->calculateAtomsInBitblastingProof();
+    if (options::lfscLetification())
+    {
+      ProofManager::currentPM()->printGlobalLetMap(
+          atoms, globalLetMap, out, paren);
+    }
+
+    out << " ;; Printing aliasing declarations \n\n";
+    d_theoryProof->printAliasingDeclarations(out, paren, globalLetMap);
+
+    out << " ;; Rewrites for Lemmas \n";
+    d_theoryProof->printLemmaRewrites(rewrites, out, paren);
+
+    // print trust that input assertions are their preprocessed form
+    printPreprocessedAssertions(used_assertions, out, paren, globalLetMap);
   }
 
-  out << " ;; Printing aliasing declarations \n\n";
-  d_theoryProof->printAliasingDeclarations(out, paren, globalLetMap);
+  {
+    CodeTimer cnfProofTimer{
+        ProofManager::currentPM()->getStats().d_cnfProofTime};
+    // print mapping between theory atoms and internal SAT variables
+    out << ";; Printing mapping from preprocessed assertions into atoms \n";
+    d_cnfProof->printAtomMapping(atoms, out, paren, globalLetMap);
 
-  out << " ;; Rewrites for Lemmas \n";
-  d_theoryProof->printLemmaRewrites(rewrites, out, paren);
+    Debug("pf::pm") << std::endl
+                    << "Printing cnf proof for clauses" << std::endl;
 
-  // print trust that input assertions are their preprocessed form
-  printPreprocessedAssertions(used_assertions, out, paren, globalLetMap);
-
-  // print mapping between theory atoms and internal SAT variables
-  out << ";; Printing mapping from preprocessed assertions into atoms \n";
-  d_cnfProof->printAtomMapping(atoms, out, paren, globalLetMap);
-
-  Debug("pf::pm") << std::endl << "Printing cnf proof for clauses" << std::endl;
-
-  IdToSatClause::const_iterator cl_it = used_inputs.begin();
-  // print CNF conversion proof for each clause
-  for (; cl_it != used_inputs.end(); ++cl_it) {
-    d_cnfProof->printCnfProofForClause(cl_it->first, cl_it->second, out, paren);
+    IdToSatClause::const_iterator cl_it = used_inputs.begin();
+    // print CNF conversion proof for each clause
+    for (; cl_it != used_inputs.end(); ++cl_it)
+    {
+      d_cnfProof->printCnfProofForClause(
+          cl_it->first, cl_it->second, out, paren);
+    }
   }
 
-  Debug("pf::pm") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
+  {
+    CodeTimer theoryLemmaTimer{
+        ProofManager::currentPM()->getStats().d_theoryLemmaTime};
+    Debug("pf::pm") << std::endl
+                    << "Printing cnf proof for clauses DONE" << std::endl;
 
-  Debug("pf::pm") << "Proof manager: printing theory lemmas" << std::endl;
-  d_theoryProof->printTheoryLemmas(used_lemmas, out, paren, globalLetMap);
-  Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
+    Debug("pf::pm") << "Proof manager: printing theory lemmas" << std::endl;
+    d_theoryProof->printTheoryLemmas(used_lemmas, out, paren, globalLetMap);
+    Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!"
+                    << std::endl;
+  }
 
-  out << ";; Printing final unsat proof \n";
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
-    ProofManager::getBitVectorProof()->printEmptyClauseProof(out, paren);
-  } else {
-    // print actual resolution proof
-    proof::LFSCProofPrinter::printResolutions(d_satProof, out, paren);
-    proof::LFSCProofPrinter::printResolutionEmptyClause(d_satProof, out, paren);
+  {
+    CodeTimer finalProofTimer{
+        ProofManager::currentPM()->getStats().d_finalProofTime};
+    out << ";; Printing final unsat proof \n";
+    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+        && ProofManager::getBitVectorProof())
+    {
+      ProofManager::getBitVectorProof()->printEmptyClauseProof(out, paren);
+    }
+    else
+    {
+      // print actual resolution proof
+      proof::LFSCProofPrinter::printResolutions(d_satProof, out, paren);
+      proof::LFSCProofPrinter::printResolutionEmptyClause(
+          d_satProof, out, paren);
+    }
   }
 
   out << paren.str();
@@ -1074,14 +1133,32 @@ void ProofManager::printTrustedTerm(Node term,
 }
 
 ProofManager::ProofManagerStatistics::ProofManagerStatistics()
-    : d_proofProductionTime("proof::ProofManager::proofProductionTime")
+    : d_proofProductionTime("proof::ProofManager::proofProductionTime"),
+      d_theoryLemmaTime(
+          "proof::ProofManager::proofProduction::theoryLemmaTime"),
+      d_skeletonProofTraceTime(
+          "proof::ProofManager::proofProduction::skeletonProofTraceTime"),
+      d_proofDeclarationsTime(
+          "proof::ProofManager::proofProduction::proofDeclarationsTime"),
+      d_cnfProofTime("proof::ProofManager::proofProduction::cnfProofTime"),
+      d_finalProofTime("proof::ProofManager::proofProduction::finalProofTime")
 {
   smtStatisticsRegistry()->registerStat(&d_proofProductionTime);
+  smtStatisticsRegistry()->registerStat(&d_theoryLemmaTime);
+  smtStatisticsRegistry()->registerStat(&d_skeletonProofTraceTime);
+  smtStatisticsRegistry()->registerStat(&d_proofDeclarationsTime);
+  smtStatisticsRegistry()->registerStat(&d_cnfProofTime);
+  smtStatisticsRegistry()->registerStat(&d_finalProofTime);
 }
 
 ProofManager::ProofManagerStatistics::~ProofManagerStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_proofProductionTime);
+  smtStatisticsRegistry()->unregisterStat(&d_theoryLemmaTime);
+  smtStatisticsRegistry()->unregisterStat(&d_skeletonProofTraceTime);
+  smtStatisticsRegistry()->unregisterStat(&d_proofDeclarationsTime);
+  smtStatisticsRegistry()->unregisterStat(&d_cnfProofTime);
+  smtStatisticsRegistry()->unregisterStat(&d_finalProofTime);
 }
 
 } /* CVC4  namespace */

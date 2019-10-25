@@ -18,6 +18,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "util/random.h"
 
@@ -41,11 +42,11 @@ namespace quantifiers {
 // user-pat=interleave alternates between use and resort
 
 struct sortQuantifiersForSymbol {
-  QuantifiersEngine* d_qe;
+  QuantRelevance* d_quant_rel;
   std::map< Node, Node > d_op_map;
   bool operator() (Node i, Node j) {
-    int nqfsi = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( d_op_map[i] );
-    int nqfsj = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( d_op_map[j] );
+    int nqfsi = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[i]);
+    int nqfsj = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[j]);
     if( nqfsi<nqfsj ){
       return true;
     }else if( nqfsi>nqfsj ){
@@ -154,7 +155,10 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
   }
 }
 
-InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers( QuantifiersEngine* qe ) : InstStrategy( qe ){
+InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
+                                                         QuantRelevance* qr)
+    : InstStrategy(qe), d_quant_rel(qr)
+{
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
   //whether to select new triggers during the search
@@ -325,7 +329,10 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         }
       }
       int curr_w = Trigger::getTriggerWeight( patTermsF[i] );
-      if( ntrivTriggers && !newVar && last_weight!=-1 && curr_w>last_weight ){
+      // triggers whose value is maximum (2) are considered expendable.
+      if (ntrivTriggers && !newVar && last_weight != -1 && curr_w > last_weight
+          && curr_w >= 2)
+      {
         Trace("auto-gen-trigger-debug") << "...exclude expendible non-trivial trigger : " << patTermsF[i] << std::endl;
         rmPatTermsF[patTermsF[i]] = true;
       }else{
@@ -425,8 +432,9 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       Trace("auto-gen-trigger") << "Generate trigger for " << f << std::endl;
       //sort terms based on relevance
       if( options::relevantTriggers() ){
+        Assert(d_quant_rel);
         sortQuantifiersForSymbol sqfs;
-        sqfs.d_qe = d_quantEngine;
+        sqfs.d_quant_rel = d_quant_rel;
         for( unsigned i=0; i<patTerms.size(); i++ ){
           Assert( d_pat_to_mpat.find( patTerms[i] )!=d_pat_to_mpat.end() );
           Assert( d_pat_to_mpat[patTerms[i]].hasOperator() );
@@ -434,10 +442,19 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         }        
         //sort based on # occurrences (this will cause Trigger to select rarer symbols)
         std::sort( patTerms.begin(), patTerms.end(), sqfs );
-        Debug("relevant-trigger") << "Terms based on relevance: " << std::endl;
-        for( unsigned i=0; i<patTerms.size(); i++ ){
-          Debug("relevant-trigger") << "   " << patTerms[i] << " from " << d_pat_to_mpat[patTerms[i]] << " (";
-          Debug("relevant-trigger") << d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( d_pat_to_mpat[patTerms[i]].getOperator() ) << ")" << std::endl;
+        if (Debug.isOn("relevant-trigger"))
+        {
+          Debug("relevant-trigger")
+              << "Terms based on relevance: " << std::endl;
+          for (const Node& p : patTerms)
+          {
+            Debug("relevant-trigger")
+                << "   " << p << " from " << d_pat_to_mpat[p] << " (";
+            Debug("relevant-trigger")
+                << d_quant_rel->getNumQuantifiersForSymbol(
+                       d_pat_to_mpat[p].getOperator())
+                << ")" << std::endl;
+          }
         }
       }
       //now, generate the trigger...
@@ -478,14 +495,18 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
             //check if similar patterns exist, and if so, add them additionally
             unsigned nqfs_curr = 0;
             if( options::relevantTriggers() ){
-              nqfs_curr = d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[0].getOperator() );
+              nqfs_curr = d_quant_rel->getNumQuantifiersForSymbol(
+                  patTerms[0].getOperator());
             }
             index++;
             bool success = true;
             while( success && index<patTerms.size() && d_is_single_trigger[ patTerms[index] ] ){
               success = false;
-              if( !options::relevantTriggers() ||
-                  d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[index].getOperator() )<=nqfs_curr ){
+              if (!options::relevantTriggers()
+                  || d_quant_rel->getNumQuantifiersForSymbol(
+                         patTerms[index].getOperator())
+                         <= nqfs_curr)
+              {
                 d_single_trigger_gen[ patTerms[index] ] = true;
                 Trigger* tr2 = Trigger::mkTrigger( d_quantEngine, f, patTerms[index], false, Trigger::TR_RETURN_NULL, d_num_trigger_vars[f] );
                 addTrigger( tr2, f );

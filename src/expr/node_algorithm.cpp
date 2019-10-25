@@ -34,16 +34,26 @@ bool hasSubterm(TNode n, TNode t, bool strict)
 
   toProcess.push_back(n);
 
+  // incrementally iterate and add to toProcess
   for (unsigned i = 0; i < toProcess.size(); ++i)
   {
     TNode current = toProcess[i];
-    if (current.hasOperator() && current.getOperator() == t)
+    for (unsigned j = 0, j_end = current.getNumChildren(); j <= j_end; ++j)
     {
-      return true;
-    }
-    for (unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++j)
-    {
-      TNode child = current[j];
+      TNode child;
+      // try children then operator
+      if (j < j_end)
+      {
+        child = current[j];
+      }
+      else if (current.hasOperator())
+      {
+        child = current.getOperator();
+      }
+      else
+      {
+        break;
+      }
       if (child == t)
       {
         return true;
@@ -100,7 +110,7 @@ bool hasSubtermMulti(TNode n, TNode t)
       for (const Node& cn : cur)
       {
         it = contains.find(cn);
-        Assert(it != visited.end());
+        Assert(it != contains.end());
         if (it->second)
         {
           if (doesContain)
@@ -115,6 +125,61 @@ bool hasSubtermMulti(TNode n, TNode t)
       visited[cur] = true;
     }
   } while (!visit.empty());
+  return false;
+}
+
+bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
+{
+  if (t.empty())
+  {
+    return false;
+  }
+  if (!strict && std::find(t.begin(), t.end(), n) != t.end())
+  {
+    return true;
+  }
+
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> toProcess;
+
+  toProcess.push_back(n);
+
+  // incrementally iterate and add to toProcess
+  for (unsigned i = 0; i < toProcess.size(); ++i)
+  {
+    TNode current = toProcess[i];
+    for (unsigned j = 0, j_end = current.getNumChildren(); j <= j_end; ++j)
+    {
+      TNode child;
+      // try children then operator
+      if (j < j_end)
+      {
+        child = current[j];
+      }
+      else if (current.hasOperator())
+      {
+        child = current.getOperator();
+      }
+      else
+      {
+        break;
+      }
+      if (std::find(t.begin(), t.end(), child) != t.end())
+      {
+        return true;
+      }
+      if (visited.find(child) != visited.end())
+      {
+        continue;
+      }
+      else
+      {
+        visited.insert(child);
+        toProcess.push_back(child);
+      }
+    }
+  }
+
   return false;
 }
 
@@ -236,6 +301,38 @@ bool getFreeVariables(TNode n,
   return !fvs.empty();
 }
 
+bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    std::unordered_set<TNode, TNodeHashFunction>::iterator itv =
+        visited.find(cur);
+    if (itv == visited.end())
+    {
+      if (cur.isVar())
+      {
+        vs.insert(cur);
+      }
+      else
+      {
+        for (const TNode& cn : cur)
+        {
+          visit.push_back(cn);
+        }
+      }
+      visited.insert(cur);
+    }
+  } while (!visit.empty());
+
+  return !vs.empty();
+}
+
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
@@ -264,6 +361,47 @@ void getSymbols(TNode n,
       {
         visit.push_back(cur.getOperator());
       }
+      for (TNode cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+}
+
+void getOperatorsMap(
+    TNode n,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  getOperatorsMap(n, ops, visited);
+}
+
+void getOperatorsMap(
+    TNode n,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
+    std::unordered_set<TNode, TNodeHashFunction>& visited)
+{
+  // nodes that we still need to visit
+  std::vector<TNode> visit;
+  // current node
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    // if cur is in the cache, do nothing
+    if (visited.find(cur) == visited.end())
+    {
+      // fetch the correct type
+      TypeNode tn = cur.getType();
+      // add the current operator to the result
+      if (cur.hasOperator())
+      {
+        ops[tn].insert(NodeManager::currentNM()->operatorOf(cur.getKind()));
+      }
+      // add children to visit in the future
       for (TNode cn : cur)
       {
         visit.push_back(cn);

@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/type_node.h"
 
 namespace CVC4 {
 namespace expr {
@@ -42,6 +43,15 @@ bool hasSubterm(TNode n, TNode t, bool strict = false);
  * Check if the node n has >1 occurrences of a subterm t.
  */
 bool hasSubtermMulti(TNode n, TNode t);
+
+/**
+ * Check if the node n has a subterm that occurs in t.
+ * @param n The node to search in
+ * @param t The set of subterms to search for
+ * @param strict If true, a term is not considered to be a subterm of itself
+ * @return true iff there is a term in t that is a subterm in n
+ */
+bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict = false);
 
 /**
  * Returns true iff the node n contains a bound variable, that is a node of
@@ -73,25 +83,69 @@ bool getFreeVariables(TNode n,
                       bool computeFv = true);
 
 /**
+ * Get all variables in n.
+ * @param n The node under investigation
+ * @param vs The set which free variables are added to
+ * @return true iff this node contains a free variable.
+ */
+bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs);
+
+/**
  * For term n, this function collects the symbols that occur as a subterms
  * of n. A symbol is a variable that does not have kind BOUND_VARIABLE.
  * @param n The node under investigation
  * @param syms The set which the symbols of n are added to
  */
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
-/** Same as above, with a visited cache */
+
+/**
+ * For term n, this function collects the symbols that occur as a subterms
+ * of n. A symbol is a variable that does not have kind BOUND_VARIABLE.
+ * @param n The node under investigation
+ * @param syms The set which the symbols of n are added to
+ * @param visited A cache to be used for visited nodes.
+ */
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
+
 /**
+ * For term n, this function collects the operators that occur in n.
+ * @param n The node under investigation
+ * @param ops The map (from each type to operators of that type) which the
+ * operators of n are added to
+ */
+void getOperatorsMap(
+    TNode n,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops);
+
+/**
+ * For term n, this function collects the operators that occur in n.
+ * @param n The node under investigation
+ * @param ops The map (from each type to operators of that type) which the
+ * operators of n are added to
+ * @param visited A cache to be used for visited nodes.
+ */
+void getOperatorsMap(
+    TNode n,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
+    std::unordered_set<TNode, TNodeHashFunction>& visited);
+
+/*
  * Substitution of Nodes in a capture avoiding way.
+ * If x occurs free in n and it is substituted by a term t 
+ * and t includes some variable y that is bound in n,
+ * then using alpha conversion y is replaced with a fresh bound variable
+ * before the substitution.
+ *
  */
 Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
 
 /**
- * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
- * source will be replaced by their corresponding element in dest.  Both
- * vectors should have the same size.
+ * Same as substituteCaptureAvoiding above, but with a 
+ * simultaneous substitution of a vector of variables.  
+ * Elements in source will be replaced by their corresponding element in dest. 
+ * Both vectors should have the same size.
  */
 Node substituteCaptureAvoiding(TNode n,
                                std::vector<Node>& src,

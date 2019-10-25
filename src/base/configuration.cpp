@@ -59,7 +59,7 @@ bool Configuration::isTracingBuild() {
 }
 
 bool Configuration::isDumpingBuild() {
-  return IS_DUMPING_BUILD;
+  return IS_DUMPING_BUILD && !IS_MUZZLED_BUILD;
 }
 
 bool Configuration::isMuzzledBuild() {
@@ -83,6 +83,8 @@ bool Configuration::isProfilingBuild() {
 }
 
 bool Configuration::isAsanBuild() { return IS_ASAN_BUILD; }
+
+bool Configuration::isUbsanBuild() { return IS_UBSAN_BUILD; }
 
 bool Configuration::isCompetitionBuild() {
   return IS_COMPETITION_BUILD;

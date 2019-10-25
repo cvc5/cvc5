@@ -683,9 +683,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           Assert(!t.isBoolean() || (*i2).isVar()
                  || (*i2).getKind() == kind::APPLY_UF);
           Node n;
-          if (t.getCardinality().isInfinite())
+          if (!t.isFinite())
           {
-            // if (!t.isInterpretedFinite()) {
             bool success;
             do
             {
@@ -824,7 +823,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
 void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
 {
   // if we are incomplete, there is no guarantee on the model.
-  // thus, we do not check the model here. (related to #1693).
+  // thus, we do not check the model here.
   if (incomplete)
   {
     return;
@@ -1005,7 +1004,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     ufmt.simplify();
   }
   std::stringstream ss;
-  ss << "_arg_" << f << "_";
+  ss << "_arg_";
   Node val = ufmt.getFunctionValue(ss.str().c_str(), condenseFuncValues);
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );

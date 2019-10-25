@@ -19,6 +19,7 @@
 #define CVC4__THEORY__DECISION_MANAGER__H
 
 #include <map>
+#include "context/cdlist.h"
 #include "theory/decision_strategy.h"
 
 namespace CVC4 {
@@ -46,6 +47,8 @@ namespace theory {
  */
 class DecisionManager
 {
+  typedef context::CDList<DecisionStrategy*> DecisionStrategyList;
+
  public:
   enum StrategyId
   {
@@ -83,21 +86,42 @@ class DecisionManager
 
     STRAT_LAST
   };
-  DecisionManager(context::Context* satContext);
+  /** The scope of a strategy, used in registerStrategy below */
+  enum StrategyScope
+  {
+    // The strategy is user-context dependent, that is, it is cleared when
+    // the user context is popped.
+    STRAT_SCOPE_USER_CTX_DEPENDENT,
+    // The strategy is local to a check-sat call, that is, it is cleared on
+    // a call to presolve.
+    STRAT_SCOPE_LOCAL_SOLVE,
+    // The strategy is context-independent.
+    STRAT_SCOPE_CTX_INDEPENDENT,
+  };
+  DecisionManager(context::Context* userContext);
   ~DecisionManager() {}
-  /** reset the strategy
+  /** presolve
    *
-   * This clears all decision strategies that are registered to this manager.
+   * This clears all decision strategies that are registered to this manager
+   * that no longer exist in the current user context.
    * We require that each satisfiability check beyond the first calls this
-   * function exactly once. Currently, it is called during
-   * TheoryEngine::postSolve.
+   * function exactly once. It is called during TheoryEngine::presolve.
    */
-  void reset();
+  void presolve();
   /**
    * Registers the strategy ds with this manager. The id specifies when the
-   * strategy should be run.
+   * strategy should be run. The argument sscope indicates the scope of the
+   * strategy, i.e. how long it persists.
+   *
+   * Typically, strategies that are user-context-dependent are those that are
+   * in response to an assertion (e.g. a strategy that decides that a sygus
+   * conjecture is feasible). An example of a strategy that is context
+   * independent is the combined cardinality decision strategy for finite model
+   * finding for UF, which is not specific to any formula/type.
    */
-  void registerStrategy(StrategyId id, DecisionStrategy* ds);
+  void registerStrategy(StrategyId id,
+                        DecisionStrategy* ds,
+                        StrategyScope sscope = STRAT_SCOPE_USER_CTX_DEPENDENT);
   /** Get the next decision request
    *
    * If this method returns a non-null node n, then n is a literal corresponding
@@ -111,6 +135,10 @@ class DecisionManager
  private:
   /** Map containing all strategies registered to this manager */
   std::map<StrategyId, std::vector<DecisionStrategy*> > d_reg_strategy;
+  /** Set of decision strategies in this user context */
+  DecisionStrategyList d_strategyCacheC;
+  /** Set of decision strategies that are context independent */
+  std::unordered_set<DecisionStrategy*> d_strategyCache;
 };
 
 }  // namespace theory

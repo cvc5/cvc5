@@ -113,19 +113,26 @@ Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
   }
 }
 
-Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn)
+Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar)
 {
   std::map<TypeNode, std::vector<Node> >::const_iterator it =
       d_type_map.find(tn);
   if (it != d_type_map.end())
   {
     Assert(!it->second.empty());
-    return it->second[0];
+    if (!reqVar)
+    {
+      return it->second[0];
+    }
+    for (const Node& v : it->second)
+    {
+      if (v.isVar())
+      {
+        return v;
+      }
+    }
   }
-  else
-  {
-    return getOrMakeTypeFreshVariable(tn);
-  }
+  return getOrMakeTypeFreshVariable(tn);
 }
 
 Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
@@ -907,7 +914,8 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
   }
 }
 
-bool TermDb::isTermEligibleForInstantiation( TNode n, TNode f, bool print ) {
+bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
+{
   if( options::lteRestrictInstClosure() ){
     //has to be both in inst closure and in ground assertions
     if( !isInstClosure( n ) ){
@@ -937,7 +945,9 @@ bool TermDb::isTermEligibleForInstantiation( TNode n, TNode f, bool print ) {
       }
     }
   }
-  return true;
+  // it cannot have instantiation constants, which originate from
+  // counterexample-guided instantiation strategies.
+  return !TermUtil::hasInstConstAttr(n);
 }
 
 Node TermDb::getEligibleTermInEqc( TNode r ) {
@@ -949,11 +959,14 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
       Node h;
       eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
       eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-      while( h.isNull() && !eqc_i.isFinished() ){
+      while (!eqc_i.isFinished())
+      {
         TNode n = (*eqc_i);
         ++eqc_i;
-        if( hasTermCurrent( n ) ){
+        if (isTermEligibleForInstantiation(n, TNode::null()))
+        {
           h = n;
+          break;
         }
       }
       d_term_elig_eqc[r] = h;
@@ -1026,7 +1039,21 @@ bool TermDb::reset( Theory::Effort effort ){
         }
         Trace("quant-ho") << "- assert purify equality : " << eq << std::endl;
         ee->assertEquality(eq, true, eq);
-        Assert(ee->consistent());
+        if (!ee->consistent())
+        {
+          // In some rare cases, purification functions (in the domain of
+          // d_ho_purify_to_term) may escape the term database. For example,
+          // matching algorithms may construct instantiations involving these
+          // functions. As a result, asserting these equalities internally may
+          // cause a conflict. In this case, we insist that the purification
+          // equality is sent out as a lemma here.
+          Trace("term-db-lemma")
+              << "Purify equality lemma: " << eq << std::endl;
+          d_quantEngine->addLemma(eq);
+          d_quantEngine->setConflict();
+          d_consistent_ee = false;
+          return false;
+        }
       }
     }
   }
@@ -1200,6 +1227,20 @@ TNode TermDb::getCongruentTerm( Node f, std::vector< TNode >& args ) {
   }
   computeUfTerms( f );
   return d_func_map_trie[f].existsTerm( args );
+}
+
+Node TermDb::getHoTypeMatchPredicate(TypeNode tn)
+{
+  std::map<TypeNode, Node>::iterator ithp = d_ho_type_match_pred.find(tn);
+  if (ithp != d_ho_type_match_pred.end())
+  {
+    return ithp->second;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
+  Node k = nm->mkSkolem("U", ptn, "predicate to force higher-order types");
+  d_ho_type_match_pred[tn] = k;
+  return k;
 }
 
 }/* CVC4::theory::quantifiers namespace */

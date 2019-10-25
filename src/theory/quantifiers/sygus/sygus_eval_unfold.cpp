@@ -15,7 +15,6 @@
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace std;
@@ -133,7 +132,18 @@ void SygusEvalUnfold::registerModelValue(Node a,
         bool do_unfold = false;
         if (options::sygusEvalUnfoldBool())
         {
-          if (bTerm.getKind() == ITE || bTerm.getType().isBoolean())
+          Node bTermUse = bTerm;
+          if (bTerm.getKind() == APPLY_UF)
+          {
+            // if the builtin term is non-beta-reduced application of lambda,
+            // we look at the body of the lambda.
+            Node bTermOp = bTerm.getOperator();
+            if (bTermOp.getKind() == LAMBDA)
+            {
+              bTermUse = bTermOp[0];
+            }
+          }
+          if (bTermUse.getKind() == ITE || bTermUse.getType().isBoolean())
           {
             do_unfold = true;
           }

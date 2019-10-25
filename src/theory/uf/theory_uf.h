@@ -20,6 +20,7 @@
 #ifndef CVC4__THEORY__UF__THEORY_UF_H
 #define CVC4__THEORY__UF__THEORY_UF_H
 
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -32,12 +33,11 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-class UfTermDb;
-class StrongSolverTheoryUF;
+class CardinalityExtension;
+class HoExtension;
 
 class TheoryUF : public Theory {
 
-  friend class StrongSolverTheoryUF;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 public:
@@ -118,8 +118,10 @@ private:
   /** The notify class */
   NotifyClass d_notify;
 
-  /** The associated theory strong solver (or NULL if none) */
-  StrongSolverTheoryUF* d_thss;
+  /** The associated cardinality extension (or nullptr if it does not exist) */
+  std::unique_ptr<CardinalityExtension> d_thss;
+  /** the higher-order solver extension (or nullptr if it does not exist) */
+  std::unique_ptr<HoExtension> d_ho;
 
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
@@ -130,14 +132,6 @@ private:
   /** The conflict node */
   Node d_conflictNode;
 
-  /** extensionality has been applied to these disequalities */
-  NodeSet d_extensionality;
-
-  /** cache of getExtensionalityDeq below */
-  std::map<Node, Node> d_extensionality_deq;
-
-  /** map from non-standard operators to their skolems */
-  NodeNodeMap d_uf_std_skolem;
 
   /** node for true */
   Node d_true;
@@ -180,85 +174,7 @@ private:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
- private:  // for higher-order
-  /** get extensionality disequality
-   *
-   * Given disequality deq f != g, this returns the disequality:
-   *   (f k) != (g k) for fresh constant(s) k.
-   */
-  Node getExtensionalityDeq(TNode deq);
-
-  /** applyExtensionality
-   *
-   * Given disequality deq f != g, if not already cached, this sends a lemma of
-   * the form:
-   *   f = g V (f k) != (g k) for fresh constant k.
-   * on the output channel. This is an "extensionality lemma".
-   * Return value is the number of lemmas of this form sent on the output
-   * channel.
-   */
-  unsigned applyExtensionality(TNode deq);
-
-  /**
-   * Check whether extensionality should be applied for any pair of terms in the
-   * equality engine.
-   *
-   * If we pass a null model m to this function, then we add extensionality
-   * lemmas to the output channel and return the total number of lemmas added.
-   * We only add lemmas for functions whose type is finite, since pairs of
-   * functions whose types are infinite can be made disequal in a model by
-   * witnessing a point they are disequal.
-   *
-   * If we pass a non-null model m to this function, then we add disequalities
-   * that correspond to the conclusion of extensionality lemmas to the model's
-   * equality engine. We return 0 if the equality engine of m is consistent
-   * after this call, and 1 otherwise. We only add disequalities for functions
-   * whose type is infinite, since our decision procedure guarantees that
-   * extensionality lemmas are added for all pairs of functions whose types are
-   * finite.
-   */
-  unsigned checkExtensionality(TheoryModel* m = nullptr);
-
-  /** applyAppCompletion
-   * This infers a correspondence between APPLY_UF and HO_APPLY
-   * versions of terms for higher-order.
-   * Given APPLY_UF node e.g. (f a b c), this adds the equality to its
-   * HO_APPLY equivalent:
-   *   (f a b c) == (@ (@ (@ f a) b) c)
-   * to equality engine, if not already equal.
-   * Return value is the number of equalities added.
-   */
-  unsigned applyAppCompletion(TNode n);
-
-  /** check whether app-completion should be applied for any
-   * pair of terms in the equality engine.
-   */
-  unsigned checkAppCompletion();
-
-  /** check higher order
-   * This is called at full effort and infers facts and sends lemmas
-   * based on higher-order reasoning (specifically, extentionality and
-   * app completion above). It returns the number of lemmas plus facts
-   * added to the equality engine.
-  */
-  unsigned checkHigherOrder();
-
-  /** collect model info for higher-order term
-   *
-   * This adds required constraints to m for term n. In particular, if n is
-   * an APPLY_UF term, we add its HO_APPLY equivalent in this call. We return
-   * true if the model m is consistent after this call.
-   */
-  bool collectModelInfoHoTerm(Node n, TheoryModel* m);
-
-  /** get apply uf for ho apply
-   * This returns the APPLY_UF equivalent for the HO_APPLY term node, where
-   * node has non-functional return type (that is, it corresponds to a fully
-   * applied function term).
-   * This call may introduce a skolem for the head operator and send out a lemma
-   * specifying the definition.
-  */
-  Node getApplyUfForHoApply(Node node);
+ private:
   /** get the operator for this node (node should be either APPLY_UF or
    * HO_APPLY)
    */
@@ -300,10 +216,12 @@ private:
 
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
-  StrongSolverTheoryUF* getStrongSolver() {
-    return d_thss;
-  }
-private:
+  /** get a pointer to the uf with cardinality */
+  CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
+  /** are we in conflict? */
+  bool inConflict() const { return d_conflict; }
+
+ private:
   bool areCareDisequal(TNode x, TNode y);
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,

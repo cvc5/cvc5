@@ -22,6 +22,9 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
+#include "theory/sets/cardinality_extension.h"
+#include "theory/sets/inference_manager.h"
+#include "theory/sets/solver_state.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -31,53 +34,73 @@ namespace theory {
 namespace sets {
 
 /** Internal classes, forward declared here */
-class TheorySetsTermInfoManager;
 class TheorySets;
-class TheorySetsScrutinize;
 
 class TheorySetsPrivate {
-//new implementation
   typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-public:
+
+ public:
   void eqNotifyNewClass(TNode t);
   void eqNotifyPreMerge(TNode t1, TNode t2);
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-private:
-  bool ee_areEqual( Node a, Node b );
-  bool ee_areDisequal( Node a, Node b );
-  bool ee_areCareDisequal( Node a, Node b );
+  /** Assert fact holds in the current context with explanation exp.
+   *
+   * exp should be explainable by the equality engine of this class, and fact
+   * should be a literal.
+   */
+  bool assertFact(Node fact, Node exp);
+
+ private:
+  /** Are a and b trigger terms in the equality engine that may be disequal? */
+  bool areCareDisequal(Node a, Node b);
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
-  bool assertFact( Node fact, Node exp );
-  // inferType : 1 : must send out as lemma, -1 : do internal inferences if possible, 0 : default.
-  bool assertFactRec( Node fact, Node exp, std::vector< Node >& lemma, int inferType = 0 );
-  // add inferences corresponding to ( exp => fact ) to lemmas, equality engine
-  void assertInference( Node fact, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
-  void assertInference( Node fact, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
-  void assertInference( std::vector< Node >& conc, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
-  void assertInference( std::vector< Node >& conc, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
-  // send lemma ( n OR (NOT n) ) immediately
-  void split( Node n, int reqPol=0 );
+  /**
+   * Invoke the decision procedure for this theory, which is run at
+   * full effort. This will either send a lemma or conflict on the output
+   * channel of this class, or otherwise the current set of constraints is
+   * satisfiable w.r.t. the theory of sets.
+   */
   void fullEffortCheck();
-  void checkSubtypes( std::vector< Node >& lemmas );
-  void checkDownwardsClosure( std::vector< Node >& lemmas );
-  void checkUpwardsClosure( std::vector< Node >& lemmas );
-  void checkDisequalities( std::vector< Node >& lemmas );
-  bool isMember( Node x, Node s );
-  bool isSetDisequalityEntailed( Node s, Node t );
-  
-  void flushLemmas( std::vector< Node >& lemmas, bool preprocess = false );
-  void flushLemma( Node lem, bool preprocess = false );
-  Node getProxy( Node n );
-  Node getCongruent( Node n );
-  Node getEmptySet( TypeNode tn );
-  Node getUnivSet( TypeNode tn );
-  bool hasLemmaCached( Node lem );
-  bool hasProcessed();
+  /**
+   * Reset the information for a full effort check.
+   */
+  void fullEffortReset();
+  /**
+   * This ensures that subtype constraints are met for all set terms. In
+   * particular, for a set equivalence class E, let Set(T) be the most
+   * common type among the types of terms in that class. In other words,
+   * if E contains two terms of Set(Int) and Set(Real), then Set(Int) is the
+   * most common type. Then, for each membership x in S where S is a set in
+   * this equivalence class, we ensure x has type T by asserting:
+   *   x = k
+   * for a fresh constant k of type T. This is done only if the type of x is not
+   * a subtype of Int (e.g. if x is of type Real). We call k the "type
+   * constraint skolem for x of type Int".
+   */
+  void checkSubtypes();
+  /**
+   * This implements an inference schema based on the "downwards closure" of
+   * set membership. This roughly corresponds to the rules UNION DOWN I and II,
+   * INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for set
+   * difference.
+   */
+  void checkDownwardsClosure();
+  /**
+   * This implements an inference schema based on the "upwards closure" of
+   * set membership. This roughly corresponds to the rules UNION UP, INTER
+   * UP I and II from Bansal et al IJCAR 2016, as well as rules for set
+   * difference.
+   */
+  void checkUpwardsClosure();
+  /**
+   * This implements a strategy for splitting for set disequalities which
+   * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
+   */
+  void checkDisequalities();
 
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
@@ -106,23 +129,7 @@ private:
   std::map< Node, EqcInfo* > d_eqc_info;
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
-  
-  void addEqualityToExp( Node a, Node b, std::vector< Node >& exp );
-  
-  void debugPrintSet( Node s, const char * c );
 
-  /** sent lemma
-   *
-   * This flag is set to true during a full effort check if this theory
-   * called d_out->lemma(...).
-   */
-  bool d_sentLemma;
-  /** added fact
-   *
-   * This flag is set to true during a full effort check if this theory
-   * added an internal fact to its equality engine.
-   */
-  bool d_addedFact;
   /** full check incomplete
    *
    * This flag is set to true during a full effort check if this theory
@@ -130,69 +137,8 @@ private:
    * with a relation or extended function kind).
    */
   bool d_full_check_incomplete;
-  NodeMap d_proxy;  
-  NodeMap d_proxy_to_term;  
-  NodeSet d_lemmas_produced;
-  std::vector< Node > d_set_eqc;
-  std::map< Node, bool > d_set_eqc_relevant;
-  std::map< Node, std::vector< Node > > d_set_eqc_list;
-  std::map< TypeNode, Node > d_eqc_emptyset;
-  std::map< TypeNode, Node > d_eqc_univset;
-  std::map< Node, Node > d_eqc_singleton;
-  std::map< TypeNode, Node > d_emptyset;
-  std::map< TypeNode, Node > d_univset;
-  std::map< Node, Node > d_congruent;
-  std::map< Node, std::vector< Node > > d_nvar_sets;
-  std::map< Node, Node > d_var_set;
   std::map< Node, TypeNode > d_most_common_type;
   std::map< Node, Node > d_most_common_type_term;
-  std::map< Node, std::map< Node, Node > > d_pol_mems[2];
-  std::map< Node, std::map< Node, Node > > d_members_index;
-  std::map< Node, Node > d_singleton_index;
-  std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
-  std::map< Kind, std::vector< Node > > d_op_list;
-  //cardinality
- private:
-  /** is cardinality enabled?
-   *
-   * This flag is set to true during a full effort check if any constraint
-   * involving cardinality constraints is asserted to this theory.
-   */
-  bool d_card_enabled;
-  /** element types of sets for which cardinality is enabled */
-  std::map<TypeNode, bool> d_t_card_enabled;
-  std::map< Node, Node > d_eqc_to_card_term;
-  NodeSet d_card_processed;
-  std::map< Node, std::vector< Node > > d_card_parent;
-  std::map< Node, std::map< Node, std::vector< Node > > > d_ff;
-  std::map< Node, std::vector< Node > > d_nf;
-  std::map< Node, Node > d_card_base;
-  void checkCardBuildGraph( std::vector< Node >& lemmas );
-  void registerCardinalityTerm( Node n, std::vector< Node >& lemmas );
-  void checkCardCycles( std::vector< Node >& lemmas );
-  void checkCardCyclesRec( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp, std::vector< Node >& lemmas );
-  void checkNormalForms( std::vector< Node >& lemmas, std::vector< Node >& intro_sets );
-  void checkNormalForm( Node eqc, std::vector< Node >& intro_sets );
-  void checkMinCard( std::vector< Node >& lemmas );
-private: //for universe set
-  NodeBoolMap d_var_elim;
-  void lastCallEffortCheck();
-
- private:
-  /** type constraint skolems
-   *
-   * The sets theory solver outputs equality lemmas of the form:
-   *   n = d_tc_skolem[n][tn]
-   * where the type of d_tc_skolem[n][tn] is tn, and the type
-   * of n is not a subtype of tn. This is required to handle benchmarks like
-   *   test/regress/regress0/sets/sets-of-sets-subtypes.smt2
-   * where for s : (Set Int) and t : (Set Real), we have that
-   *   ( s = t ^ y in t ) implies ( exists k : Int. y = k )
-   * The type constraint Skolem for (y, Int) is the skolemization of k above.
-   */
-  std::map<Node, std::map<TypeNode, Node> > d_tc_skolem;
-  /** get type constraint skolem for n and tn */
-  Node getTypeConstraintSkolem(Node n, TypeNode tn);
 
  public:
 
@@ -211,8 +157,6 @@ private: //for universe set
   void addSharedTerm(TNode);
 
   void check(Theory::Effort);
-  
-  bool needsCheckLastEffort();
 
   bool collectModelInfo(TheoryModel* m);
 
@@ -228,7 +172,6 @@ private: //for universe set
    * If the sets-ext option is not set and we have an extended operator, 
    * we throw an exception. This function is a no-op otherwise.
    *
-   * This is related to github issue #1076
    * TheorySets uses expandDefinition as an entry point to see if the input
    * contains extended operators.
    *
@@ -262,26 +205,13 @@ private: //for universe set
 
   void propagate(Theory::Effort);
 
-private:
+  /** get default output channel */
+  OutputChannel* getOutputChannel();
+  /** get the valuation */
+  Valuation& getValuation();
+
+ private:
   TheorySets& d_external;
-
-  class Statistics {
-  public:
-    TimerStat d_getModelValueTime;
-    TimerStat d_mergeTime;
-    TimerStat d_processCard2Time;
-    IntStat d_memberLemmas;
-    IntStat d_disequalityLemmas;
-    IntStat d_numVertices;
-    IntStat d_numVerticesMax;
-    IntStat d_numMergeEq1or2;
-    IntStat d_numMergeEq3;
-    IntStat d_numLeaves;
-    IntStat d_numLeavesMax;
-
-    Statistics();
-    ~Statistics();
-  } d_statistics;
 
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -305,9 +235,6 @@ private:
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
 
-  context::CDO<bool> d_conflict;
-  Node d_conflictNode;
-
   /** Proagate out to output channel */
   bool propagate(TNode);
 
@@ -315,18 +242,34 @@ private:
   void conflict(TNode, TNode);
   
   bool isCareArg( Node n, unsigned a );
-public:
-  bool isEntailed( Node n, bool pol );
+
+ public:
+  /** Is formula n entailed to have polarity pol in the current context? */
+  bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
+  /** Is x entailed to be a member of set s in the current context? */
+  bool isMember(Node x, Node s);
 
  private:
+  /** The state of the sets solver at full effort */
+  SolverState d_state;
+  /** The inference manager of the sets solver */
+  InferenceManager d_im;
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
+  /** subtheory solver for the theory of sets with cardinality */
+  std::unique_ptr<CardinalityExtension> d_cardSolver;
   /** are relations enabled?
    *
    * This flag is set to true during a full effort check if any constraint
    * involving relational constraints is asserted to this theory.
    */
   bool d_rels_enabled;
+  /** is cardinality enabled?
+   *
+   * This flag is set to true during a full effort check if any constraint
+   * involving cardinality constraints is asserted to this theory.
+   */
+  bool d_card_enabled;
 };/* class TheorySetsPrivate */
 
 

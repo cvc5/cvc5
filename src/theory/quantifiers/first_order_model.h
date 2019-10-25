@@ -17,9 +17,9 @@
 #ifndef CVC4__FIRST_ORDER_MODEL_H
 #define CVC4__FIRST_ORDER_MODEL_H
 
+#include "expr/attribute.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
-#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
@@ -49,40 +49,6 @@ namespace fmcheck {
 struct IsStarAttributeId {};
 typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
-/** Quantifiers representative bound
- *
- * This class is used for computing (finite)
- * bounds for the domain of a quantifier
- * in the context of a RepSetIterator
- * (see theory/rep_set.h).
- */
-class QRepBoundExt : public RepBoundExt
-{
- public:
-  QRepBoundExt(QuantifiersEngine* qe) : d_qe(qe) {}
-  virtual ~QRepBoundExt() {}
-  /** set bound */
-  RepSetIterator::RsiEnumType setBound(Node owner,
-                                       unsigned i,
-                                       std::vector<Node>& elements) override;
-  /** reset index */
-  bool resetIndex(RepSetIterator* rsi,
-                  Node owner,
-                  unsigned i,
-                  bool initial,
-                  std::vector<Node>& elements) override;
-  /** initialize representative set for type */
-  bool initializeRepresentativesForType(TypeNode tn) override;
-  /** get variable order */
-  bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder) override;
-
- private:
-  /** quantifiers engine associated with this bound */
-  QuantifiersEngine* d_qe;
-  /** indices that are bound integer enumeration */
-  std::map<unsigned, bool> d_bound_int;
-};
-
 // TODO (#1301) : document and refactor this class
 class FirstOrderModel : public TheoryModel
 {
@@ -110,17 +76,28 @@ class FirstOrderModel : public TheoryModel
   void reset_round();
   /** mark quantified formula relevant */
   void markRelevant( Node q );
-  /** get relevance value */
-  int getRelevanceValue( Node q );
-  /** set quantified formula active/inactive 
-   * a quantified formula may be set inactive if for instance:
-   *   - it is entailed by other quantified formulas
+  /** set quantified formula active/inactive
+   *
+   * This indicates that quantified formula is "inactive", that is, it need
+   * not be considered during this instantiation round.
+   *
+   * A quantified formula may be set inactive if for instance:
+   *   - It is entailed by other quantified formulas, or
+   *   - All of its instances are known to be true in the current model.
+   *
+   * This method should be called after a call to FirstOrderModel::reset_round,
+   * and before calls to QuantifiersModule check calls. A common place to call
+   * this method is during QuantifiersModule reset_round calls.
    */
   void setQuantifierActive( TNode q, bool active );
-  /** is quantified formula active */
-  bool isQuantifierActive( TNode q );
+  /** is quantified formula active?
+   *
+   * Returns false if there has been a call to setQuantifierActive( q, false )
+   * during this instantiation round.
+   */
+  bool isQuantifierActive(TNode q) const;
   /** is quantified formula asserted */
-  bool isQuantifierAsserted( TNode q );
+  bool isQuantifierAsserted(TNode q) const;
   /** get model basis term */
   Node getModelBasisTerm(TypeNode tn);
   /** is model basis term */
@@ -156,8 +133,6 @@ class FirstOrderModel : public TheoryModel
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** quantified formulas marked as relevant */
-  unsigned d_rlv_count;
-  std::map<Node, unsigned> d_forall_rlv;
   std::vector<Node> d_forall_rlv_vec;
   Node d_last_forall_rlv;
   std::vector<Node> d_forall_rlv_assert;

@@ -576,6 +576,11 @@ class CVC4_PUBLIC Term
   bool operator!=(const Term& t) const;
 
   /**
+   * @return the id of this term
+   */
+  uint64_t getId() const;
+
+  /**
    * @return the kind of this term
    */
   Kind getKind() const;
@@ -589,6 +594,23 @@ class CVC4_PUBLIC Term
    * @return true if this Term is a null term
    */
   bool isNull() const;
+
+  /**
+   * @return true if this expression is parameterized.
+   *
+   * !!! The below documentation is not accurate until we have a way of getting
+   * operators from terms.
+   *
+   * In detail, a term that is parameterized is one that has an operator that
+   * must be provided in addition to its kind to construct it. For example,
+   * say we want to re-construct a Term t where its children a1, ..., an are
+   * replaced by b1 ... bn. Then there are two cases:
+   * (1) If t is parametric, call:
+   *   mkTerm(t.getKind(), t.getOperator(), b1, ..., bn )
+   * (2) If t is not parametric, call:
+   *   mkTerm(t.getKind(), b1, ..., bn )
+   */
+  bool isParameterized() const;
 
   /**
    * Boolean negation.
@@ -871,6 +893,19 @@ class CVC4_PUBLIC OpTerm
    * @return true if this operator term is a null term
    */
   bool isNull() const;
+
+  /**
+   * Get the indices used to create this OpTerm.
+   * Supports the following template arguments:
+   *   - string
+   *   - Kind
+   *   - uint32_t
+   *   - pair<uint32_t, uint32_t>
+   * Check the OpTerm Kind with getKind() to determine which argument to use.
+   * @return the indices used to create this OpTerm
+   */
+  template <typename T>
+  T getIndices() const;
 
   /**
    * @return a string representation of this operator term
@@ -1813,16 +1848,17 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param k the kind argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, Kind k);
+  OpTerm mkOpTerm(Kind kind, Kind k) const;
 
   /**
    * Create operator of kind:
    *   - RECORD_UPDATE_OP
+   *   - DIVISIBLE_OP (to support arbitrary precision integers)
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, const std::string& arg);
+  OpTerm mkOpTerm(Kind kind, const std::string& arg) const;
 
   /**
    * Create operator of kind:
@@ -1842,7 +1878,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param arg the uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg);
+  OpTerm mkOpTerm(Kind kind, uint32_t arg) const;
 
   /**
    * Create operator of Kind:
@@ -1858,7 +1894,7 @@ class CVC4_PUBLIC Solver
    * @param arg1 the first uint32_t argument to this operator
    * @param arg2 the second uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2);
+  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -2081,6 +2117,15 @@ class CVC4_PUBLIC Solver
    * @return the bit-vector constant
    */
   Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
+
+  /**
+   * Create a constant array with the provided constant value stored at every
+   * index
+   * @param sort the sort of the constant array (must be an array sort)
+   * @param val the constant value to store (must match the sort's element sort)
+   * @return the constant array term
+   */
+  Term mkConstArray(Sort sort, Term val) const;
 
   /**
    * Create a positive infinity floating-point constant. Requires CVC4 to be

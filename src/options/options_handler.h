@@ -37,7 +37,7 @@
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
 #include "options/smt_modes.h"
-#include "options/strings_process_loop_mode.h"
+#include "options/strings_modes.h"
 #include "options/sygus_out_mode.h"
 #include "options/theoryof_mode.h"
 #include "options/ufss_mode.h"
@@ -114,6 +114,8 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::CegisSampleMode stringToCegisSampleMode(
       std::string option, std::string optarg);
+  theory::quantifiers::SygusQueryDumpFilesMode stringToSygusQueryDumpFilesMode(
+      std::string option, std::string optarg);
   theory::quantifiers::SygusFilterSolMode stringToSygusFilterSolMode(
       std::string option, std::string optarg);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(
@@ -153,6 +155,8 @@ public:
 
   theory::strings::ProcessLoopMode stringToStringsProcessLoopMode(
       std::string option, std::string optarg);
+  theory::strings::RegExpInterMode stringToRegExpInterMode(std::string option,
+                                                           std::string optarg);
 
   // theory/uf/options_handlers.h
   theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg);
@@ -174,9 +178,6 @@ public:
   decision::DecisionWeightInternal stringToDecisionWeightInternal(
       std::string option, std::string optarg);
 
-  /* smt/options_handlers.h */
-  void notifyForceLogic(const std::string& option);
-
   /**
    * Throws a ModalException if this option is being set after final
    * initialization.
@@ -186,6 +187,8 @@ public:
   SimplificationMode stringToSimplificationMode(std::string option,
                                                 std::string optarg);
   ModelCoresMode stringToModelCoresMode(std::string option, std::string optarg);
+  BlockModelsMode stringToBlockModelsMode(std::string option,
+                                          std::string optarg);
   SygusSolutionOutMode stringToSygusSolutionOutMode(std::string option,
                                                     std::string optarg);
   void setProduceAssertions(std::string option, bool value);
@@ -243,7 +246,8 @@ public:
   static const std::string s_bvOptimizeSatProofHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
-  static const std::string s_stringToStringsProcessLoopModeHelp;
+  static const std::string s_stringsProcessLoopModeHelp;
+  static const std::string s_regExpInterModeHelp;
   static const std::string s_boolToBVModeHelp;
   static const std::string s_cegqiFairModeHelp;
   static const std::string s_decisionModeHelp;
@@ -261,11 +265,13 @@ public:
   static const std::string s_qcfWhenModeHelp;
   static const std::string s_simplificationHelp;
   static const std::string s_modelCoresHelp;
+  static const std::string s_blockModelsHelp;
   static const std::string s_sygusSolutionOutModeHelp;
   static const std::string s_cbqiBvIneqModeHelp;
   static const std::string s_cegqiSingleInvHelp;
   static const std::string s_cegqiSingleInvRconsHelp;
   static const std::string s_cegisSampleHelp;
+  static const std::string s_sygusQueryDumpFileHelp;
   static const std::string s_sygusFilterSolHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_sygusActiveGenHelp;

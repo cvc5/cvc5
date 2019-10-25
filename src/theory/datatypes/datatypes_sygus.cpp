@@ -18,13 +18,15 @@
 
 #include "expr/node_manager.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4;
@@ -142,15 +144,14 @@ Node SygusSymBreakNew::getTermOrderPredicate( Node n1, Node n2 ) {
       std::vector<Node> case_conj;
       for (unsigned k = 0; k < j; k++)
       {
-        case_conj.push_back(DatatypesRewriter::mkTester(n2, k, cdt).negate());
+        case_conj.push_back(utils::mkTester(n2, k, cdt).negate());
       }
       if (!case_conj.empty())
       {
         Node corder = nm->mkNode(
-            kind::OR,
-            DatatypesRewriter::mkTester(n1, j, cdt).negate(),
-            case_conj.size() == 1 ? case_conj[0]
-                                  : nm->mkNode(kind::AND, case_conj));
+            OR,
+            utils::mkTester(n1, j, cdt).negate(),
+            case_conj.size() == 1 ? case_conj[0] : nm->mkNode(AND, case_conj));
         sz_eq_cases.push_back(corder);
       }
     }
@@ -243,9 +244,10 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   
   if( options::sygusFair()==SYGUS_FAIR_DIRECT ){
     if( dt[tindex].getNumArgs()>0 ){
+      quantifiers::SygusTypeInfo& nti = d_tds->getTypeInfo(ntn);
       // consider lower bounds for size of types
-      unsigned lb_add = d_tds->getMinConsTermSize( ntn, tindex );
-      unsigned lb_rem = n==a ? 0 : d_tds->getMinTermSize( ntn );
+      unsigned lb_add = nti.getMinConsTermSize(tindex);
+      unsigned lb_rem = n == a ? 0 : nti.getMinTermSize();
       Assert( lb_add>=lb_rem );
       d_currTermSize[a].set( d_currTermSize[a].get() + ( lb_add - lb_rem ) );
     }
@@ -392,7 +394,7 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
           int sindexi = dt[i].getSelectorIndexInternal(selExpr);
           if (sindexi != -1)
           {
-            disj.push_back(DatatypesRewriter::mkTester(n[0], i, dt).negate());
+            disj.push_back(utils::mkTester(n[0], i, dt).negate());
           }
           else
           {
@@ -407,7 +409,7 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
       }else{
         int sindex = Datatype::cindexOf( selExpr );
         Assert( sindex!=-1 );
-        cond = DatatypesRewriter::mkTester(n[0], sindex, dt).negate();
+        cond = utils::mkTester(n[0], sindex, dt).negate();
       }
       Node c1 = getRelevancyCondition( n[0] );
       if( cond.isNull() ){
@@ -557,10 +559,11 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       << "Simple symmetry breaking for " << dt.getName() << ", constructor "
       << dt[tindex].getName() << ", at depth " << depth << std::endl;
 
+  quantifiers::SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   // get the sygus operator
   Node sop = Node::fromExpr(dt[tindex].getSygusOp());
   // get the kind of the constructor operator
-  Kind nk = d_tds->getConsNumKind(tn, tindex);
+  Kind nk = ti.getConsNumKind(tindex);
   // is this the any-constant constructor?
   bool isAnyConstant = sop.getAttribute(SygusAnyConstAttribute());
 
@@ -593,8 +596,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
     if (options::sygusFair() == SYGUS_FAIR_DT_SIZE && !isAnyConstant)
     {
       Node szl = nm->mkNode(DT_SIZE, n);
-      Node szr =
-          nm->mkNode(DT_SIZE, DatatypesRewriter::getInstCons(n, dt, tindex));
+      Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
       szr = Rewriter::rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }
@@ -620,8 +622,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       // for each variable in the sygus type
       for (const Node& var : svl)
       {
-        unsigned sc = d_tds->getSubclassForVar(etn, var);
-        if (d_tds->getNumSubclassVars(etn, sc) == 1)
+        quantifiers::SygusTypeInfo& eti = d_tds->getTypeInfo(etn);
+        unsigned sc = eti.getSubclassForVar(var);
+        if (eti.getNumSubclassVars(sc) == 1)
         {
           // unique variable in singleton subclass, skip
           continue;
@@ -629,11 +632,11 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         // Compute the "predecessor" variable in the subclass of var.
         Node predVar;
         unsigned scindex = 0;
-        if (d_tds->getIndexInSubclassForVar(etn, var, scindex))
+        if (eti.getIndexInSubclassForVar(var, scindex))
         {
           if (scindex > 0)
           {
-            predVar = d_tds->getVarSubclassIndex(etn, sc, scindex - 1);
+            predVar = eti.getVarSubclassIndex(sc, scindex - 1);
           }
         }
         Node preParentOp = getTraversalPredicate(tn, var, true);
@@ -655,7 +658,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         Node finish = nm->mkNode(APPLY_UF, postParent, n);
         // check if we are constructing the symmetry breaking predicate for the
         // variable in question. If so, is-{x_i}( z ) is true.
-        int varCn = d_tds->getOpConsNum(tn, var);
+        int varCn = ti.getOpConsNum(var);
         if (varCn == static_cast<int>(tindex))
         {
           // the post value is true
@@ -699,7 +702,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         const Datatype& cdt =
             static_cast<DatatypeType>(ctn.toType()).getDatatype();
         Assert(i < static_cast<int>(cdt.getNumConstructors()));
-        sbp_conj.push_back(DatatypesRewriter::mkTester(children[j], i, cdt));
+        sbp_conj.push_back(utils::mkTester(children[j], i, cdt));
       }
     }
 
@@ -748,7 +751,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             // cannot do division since we have to consider when both are zero
             if (!req_const.isNull())
             {
-              if (d_tds->hasConst(tn, req_const))
+              if (ti.hasConst(req_const))
               {
                 argDeq = true;
               }
@@ -805,7 +808,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         bool exp_not_all_const_valid = dt_index_nargs > 0;
         // does the parent have an any constant constructor?
         bool usingAnyConstCons =
-            usingSymCons && (d_tds->getAnyConstantConsNum(tn) != -1);
+            usingSymCons && (ti.getAnyConstantConsNum() != -1);
         for (unsigned j = 0; j < dt_index_nargs; j++)
         {
           Node nc = children[j];
@@ -815,15 +818,16 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             continue;
           }
           TypeNode tnc = nc.getType();
-          int anyc_cons_num = d_tds->getAnyConstantConsNum(tnc);
+          quantifiers::SygusTypeInfo& cti = d_tds->getTypeInfo(tnc);
+          int anyc_cons_num = cti.getAnyConstantConsNum();
           const Datatype& cdt =
               static_cast<DatatypeType>(tnc.toType()).getDatatype();
           std::vector<Node> exp_const;
           for (unsigned k = 0, ncons = cdt.getNumConstructors(); k < ncons; k++)
           {
-            Kind nck = d_tds->getConsNumKind(tnc, k);
+            Kind nck = cti.getConsNumKind(k);
             bool red = false;
-            Node tester = DatatypesRewriter::mkTester(nc, k, cdt);
+            Node tester = utils::mkTester(nc, k, cdt);
             // check if the argument is redundant
             if (static_cast<int>(k) == anyc_cons_num)
             {
@@ -837,7 +841,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             }
             else
             {
-              Node cc = d_tds->getConsNumConst(tnc, k);
+              Node cc = cti.getConsNumConst(k);
               if (!cc.isNull())
               {
                 Trace("sygus-sb-simple-debug")
@@ -910,10 +914,10 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), 1)),
             children[0]);
         Assert(child11.getType() == children[1].getType());
-        Node order_pred_trans = nm->mkNode(
-            OR,
-            DatatypesRewriter::mkTester(children[0], tindex, dt).negate(),
-            getTermOrderPredicate(child11, children[1]));
+        Node order_pred_trans =
+            nm->mkNode(OR,
+                       utils::mkTester(children[0], tindex, dt).negate(),
+                       getTermOrderPredicate(child11, children[1]));
         sbp_conj.push_back(order_pred_trans);
       }
     }
@@ -928,8 +932,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         << "Simple predicate for " << tn << " index " << tindex << " (" << nk
         << ") at depth " << depth << " : " << std::endl;
     Trace("sygus-sb-simple") << "   " << sb_pred << std::endl;
-    sb_pred = nm->mkNode(
-        kind::OR, DatatypesRewriter::mkTester(n, tindex, dt).negate(), sb_pred);
+    sb_pred = nm->mkNode(OR, utils::mkTester(n, tindex, dt).negate(), sb_pred);
   }
   d_simple_sb_pred[e][tn][tindex][optHashVal][depth] = sb_pred;
   return sb_pred;
@@ -982,7 +985,7 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
   // we call the body of this function in a bottom-up fashion
   // this ensures that the "abstraction" of the model value is available
   if( nv.getNumChildren()>0 ){
-    unsigned cindex = DatatypesRewriter::indexOf(nv.getOperator());
+    unsigned cindex = utils::indexOf(nv.getOperator());
     std::vector<Node> rcons_children;
     rcons_children.push_back(nv.getOperator());
     bool childrenChanged = false;
@@ -1354,11 +1357,12 @@ void SygusSymBreakNew::registerSizeTerm(Node e, std::vector<Node>& lemmas)
     // variables occur pre-traversal at top-level
     Node varList = Node::fromExpr(dt.getSygusVarList());
     std::vector<Node> constraints;
+    quantifiers::SygusTypeInfo& eti = d_tds->getTypeInfo(etn);
     for (const Node& v : varList)
     {
-      unsigned sc = d_tds->getSubclassForVar(etn, v);
+      unsigned sc = eti.getSubclassForVar(v);
       // no symmetry breaking occurs for variables in singleton subclasses
-      if (d_tds->getNumSubclassVars(etn, sc) > 1)
+      if (eti.getNumSubclassVars(sc) > 1)
       {
         Node preRootOp = getTraversalPredicate(etn, v, true);
         Node preRoot = nm->mkNode(APPLY_UF, preRootOp, e);
@@ -1671,8 +1675,8 @@ bool SygusSymBreakNew::checkValue(Node n,
   Assert(dt.isSygus());
 
   // ensure that the expected size bound is met
-  int cindex = DatatypesRewriter::indexOf(vn.getOperator());
-  Node tst = DatatypesRewriter::mkTester( n, cindex, dt );
+  int cindex = utils::indexOf(vn.getOperator());
+  Node tst = utils::mkTester(n, cindex, dt);
   bool hastst = d_td->getEqualityEngine()->hasTerm(tst);
   Node tstrep;
   if (hastst)
@@ -1687,7 +1691,7 @@ bool SygusSymBreakNew::checkValue(Node n,
     if( !hastst ){
       // This should not happen generally, it is caused by a sygus term not
       // being assigned a tester.
-      Node split = DatatypesRewriter::mkSplit(n, dt);
+      Node split = utils::mkSplit(n, dt);
       Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered "
                            "missing split for "
                         << n << "." << std::endl;

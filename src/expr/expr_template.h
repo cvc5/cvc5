@@ -64,12 +64,6 @@ namespace api {
 class Solver;
 }
 
-namespace expr {
-  namespace pickle {
-    class Pickler;
-  }/* CVC4::expr::pickle namespace */
-}/* CVC4::expr namespace */
-
 namespace prop {
   class TheoryProxy;
 }/* CVC4::prop namespace */
@@ -218,7 +212,6 @@ class CVC4_PUBLIC Expr {
   friend class TypeCheckingException;
   friend class api::Solver;
   friend class expr::ExportPrivate;
-  friend class expr::pickle::Pickler;
   friend class prop::TheoryProxy;
   friend class smt::SmtEnginePrivate;
   friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);
@@ -333,7 +326,7 @@ public:
    * @return an identifier uniquely identifying the value this
    * expression holds.
    */
-  unsigned long getId() const;
+  uint64_t getId() const;
 
   /**
    * Returns the kind of the expression (AND, PLUS ...).
@@ -455,6 +448,22 @@ public:
    * @return the operator of this expression
    */
   Expr getOperator() const;
+
+  /**
+   * Check if this is an expression is parameterized.
+   *
+   * @return true if this expression is parameterized.
+   *
+   * In detail, an expression that is parameterized is one that has an operator
+   * that must be provided in addition to its kind to construct it. For example,
+   * say we want to re-construct an Expr e where its children a1, ..., an are
+   * replaced by b1 ... bn. Then there are two cases:
+   * (1) If e is parametric, call:
+   *   ExprManager::mkExpr(e.getKind(), e.getOperator(), b1, ..., bn )
+   * (2) If e is not parametric, call:
+   *   ExprManager::mkExpr(e.getKind(), b1, ..., bn )
+   */
+  bool isParameterized() const;
 
   /**
    * Get the type for this Expr and optionally do type checking.
@@ -612,7 +621,7 @@ private:
 
 ${getConst_instantiations}
 
-#line 616 "${template}"
+#line 625 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();

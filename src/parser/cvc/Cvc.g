@@ -213,7 +213,6 @@ tokens {
   JOIN_IMAGE_TOK = 'JOIN_IMAGE';  
 
   // Strings
-
   STRING_TOK = 'STRING';
   STRING_CONCAT_TOK = 'CONCAT';
   STRING_LENGTH_TOK = 'LENGTH';
@@ -227,19 +226,17 @@ tokens {
   STRING_SUFFIXOF_TOK = 'SUFFIXOF';
   STRING_STOI_TOK = 'STRING_TO_INTEGER';
   STRING_ITOS_TOK = 'INTEGER_TO_STRING';
-  //Regular expressions (TODO)
-  //STRING_IN_REGEXP_TOK
-  //STRING_TO_REGEXP_TOK
-  //REGEXP_CONCAT_TOK 
-  //REGEXP_UNION_TOK 
-  //REGEXP_INTER_TOK 
-  //REGEXP_STAR_TOK 
-  //REGEXP_PLUS_TOK 
-  //REGEXP_OPT_TOK 
-  //REGEXP_RANGE_TOK 
-  //REGEXP_LOOP_TOK 
-  //REGEXP_EMPTY_TOK
-  //REGEXP_SIGMA_TOK
+  STRING_TO_REGEXP_TOK = 'STRING_TO_REGEXP';
+  REGEXP_CONCAT_TOK = 'RE_CONCAT';
+  REGEXP_UNION_TOK = 'RE_UNION';
+  REGEXP_INTER_TOK = 'RE_INTER';
+  REGEXP_STAR_TOK = 'RE_STAR';
+  REGEXP_PLUS_TOK = 'RE_PLUS';
+  REGEXP_OPT_TOK = 'RE_OPT';
+  REGEXP_RANGE_TOK = 'RE_RANGE';
+  REGEXP_LOOP_TOK = 'RE_LOOP';
+  REGEXP_EMPTY_TOK = 'RE_EMPTY';
+  REGEXP_SIGMA_TOK = 'RE_SIGMA';
   
   SETS_CARD_TOK = 'CARD';
   
@@ -442,13 +439,26 @@ Expr createPrecedenceTree(Parser* parser, ExprManager* em,
   Expr lhs = createPrecedenceTree(parser, em, expressions, operators, startIndex, pivot);
   Expr rhs = createPrecedenceTree(parser, em, expressions, operators, pivot + 1, stopIndex);
 
-  switch(k) {
-  case kind::LEQ          : if(lhs.getType().isSet()) { k = kind::SUBSET; } break;
-  case kind::MINUS        : if(lhs.getType().isSet()) { k = kind::SETMINUS; } break;
-  case kind::BITVECTOR_AND: if(lhs.getType().isSet()) { k = kind::INTERSECTION; } break;
-  case kind::BITVECTOR_OR : if(lhs.getType().isSet()) { k = kind::UNION; } break;
-  default: break;
+  if (lhs.getType().isSet())
+  {
+    switch (k)
+    {
+      case kind::LEQ: k = kind::SUBSET; break;
+      case kind::MINUS: k = kind::SETMINUS; break;
+      case kind::BITVECTOR_AND: k = kind::INTERSECTION; break;
+      case kind::BITVECTOR_OR: k = kind::UNION; break;
+      default: break;
+    }
   }
+  else if (lhs.getType().isString())
+  {
+    switch (k)
+    {
+      case kind::MEMBER: k = kind::STRING_IN_REGEXP; break;
+      default: break;
+    }
+  }
+
   Expr e = em->mkExpr(k, lhs, rhs);
   return negate ? em->mkExpr(kind::NOT, e) : e;
 }/* createPrecedenceTree() recursive variant */
@@ -531,35 +541,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 namespace CVC4 {
   class Expr;
-
-  namespace parser {
-    namespace cvc {
-      /**
-       * This class is just here to get around an unfortunate bit of Antlr.
-       * We use strings below as return values from rules, which require
-       * them to be constructible by a void*.  So we derive the string
-       * class to provide just such a conversion.
-       */
-      class myString : public std::string {
-      public:
-        myString(const std::string& s) : std::string(s) {}
-        myString(void*) : std::string() {}
-        myString() : std::string() {}
-      };/* class myString */
-
-      /**
-       * Just exists to give us the void* construction that
-       * ANTLR requires.
-       */
-      struct myExpr : public CVC4::Expr {
-        myExpr() : CVC4::Expr() {}
-        myExpr(void*) : CVC4::Expr() {}
-        myExpr(const Expr& e) : CVC4::Expr(e) {}
-        myExpr(const myExpr& e) : CVC4::Expr(e) {}
-      };/* struct myExpr */
-
-    }/* CVC4::parser::cvc namespace */
-  }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
 }/* @parser::includes */
@@ -645,7 +626,7 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
     if(s == "benchmark") {
         PARSER_STATE->parseError(
             "In CVC4 presentation language mode, but SMT-LIBv1 format "
-            "detected.  Use --lang smt1 for SMT-LIBv1 support.");
+            "detected, which is not supported anymore.");
       } else if(s == "set" || s == "get" || s == "declare" ||
                 s == "define" || s == "assert") {
         PARSER_STATE->parseError(
@@ -1153,7 +1134,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::Type& t,
           Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
           Expr func = EXPR_MANAGER->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
-          PARSER_STATE->defineFunction(*i, f);
+          PARSER_STATE->defineVar(*i, f);
           Command* decl = new DefineFunctionCommand(*i, func, f);
           seq->addCommand(decl);
         }
@@ -2055,6 +2036,31 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::STRING_STOI, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }   
+  | STRING_TO_REGEXP_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_TO_REGEXP, f); }
+  | REGEXP_CONCAT_TOK LPAREN formula[f] { args.push_back(f); }
+    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_CONCAT, args); }
+  | REGEXP_UNION_TOK LPAREN formula[f] { args.push_back(f); }
+    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_UNION, args); }
+  | REGEXP_INTER_TOK LPAREN formula[f] { args.push_back(f); }
+    ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_INTER, args); }
+  | REGEXP_STAR_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_STAR, f); }
+  | REGEXP_PLUS_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_PLUS, f); }
+  | REGEXP_OPT_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_OPT, f); }
+  | REGEXP_RANGE_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_RANGE, f, f2); }
+  | REGEXP_LOOP_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_LOOP, f, f2, f3); }
+  | REGEXP_EMPTY_TOK
+    { f = MK_EXPR(CVC4::kind::REGEXP_EMPTY, std::vector<Expr>()); }
+  | REGEXP_SIGMA_TOK
+    { f = MK_EXPR(CVC4::kind::REGEXP_SIGMA, std::vector<Expr>()); }
 
     /* string literal */
   | str[s]

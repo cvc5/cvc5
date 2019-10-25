@@ -49,7 +49,6 @@ class CVC4_PUBLIC SygusGTerm {
 public:
   enum{
     gterm_op,
-    gterm_let,
     gterm_constant,
     gterm_variable,
     gterm_input_variable,
@@ -137,9 +136,6 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
 private:
- /** The API Solver object. */
- api::Solver* d_solver;
-
  /** The resource manager associated with this expr manager */
  ResourceManager* d_resourceManager;
 
@@ -244,6 +240,9 @@ private:
  Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
+ /** The API Solver object. */
+ api::Solver* d_solver;
+
  /**
   * Create a parser state.
   *
@@ -322,7 +321,12 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  void forceLogic(const std::string& logic) { assert(!d_logicIsForced); d_logicIsForced = true; d_forcedLogic = logic; }
+  virtual void forceLogic(const std::string& logic)
+  {
+    assert(!d_logicIsForced);
+    d_logicIsForced = true;
+    d_forcedLogic = logic;
+  }
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 
@@ -477,8 +481,18 @@ public:
            uint32_t flags = ExprManager::VAR_FLAG_NONE, 
            bool doOverload = false);
 
-  /** Create a new CVC4 bound variable expression of the given type. */
+  /**
+   * Create a new CVC4 bound variable expression of the given type. This binds
+   * the symbol name to that variable in the current scope.
+   */
   Expr mkBoundVar(const std::string& name, const Type& type);
+  /**
+   * Create a new CVC4 bound variable expressions of the given names and types.
+   * Like the method above, this binds these names to those variables in the
+   * current scope.
+   */
+  std::vector<Expr> mkBoundVars(
+      std::vector<std::pair<std::string, Type> >& sortedVarNames);
 
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.
@@ -492,15 +506,10 @@ public:
    */
   std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type);
 
-  /** Create a new CVC4 function expression of the given type. */
-  Expr mkFunction(const std::string& name, const Type& type,
-                  uint32_t flags = ExprManager::VAR_FLAG_NONE, 
-                  bool doOverload=false);
-
   /**
    * Create a new CVC4 function expression of the given type,
    * appending a unique index to its name.  (That's the ONLY
-   * difference between mkAnonymousFunction() and mkFunction()).
+   * difference between mkAnonymousFunction() and mkVar()).
    *
    * flags specify information about the variable, e.g. whether it is global or defined
    *   (see enum in expr_manager_template.h).
@@ -516,15 +525,6 @@ public:
    */
   void defineVar(const std::string& name, const Expr& val,
                  bool levelZero = false, bool doOverload = false);
-
-  /** Create a new function definition (e.g., from a define-fun). 
-   * levelZero is set if the binding must be done at level 0.
-   * If a symbol with name already exists,
-   *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
-   */
-  void defineFunction(const std::string& name, const Expr& val,
-                      bool levelZero = false, bool doOverload = false);
 
   /** Create a new type definition. */
   void defineType(const std::string& name, const Type& type);
@@ -671,12 +671,6 @@ public:
   * Currently this means its type is either a function, constructor, tester, or selector.
   */
   bool isFunctionLike(Expr fun);
-
-  /** Is the symbol bound to a defined function? */
-  bool isDefinedFunction(const std::string& name);
-
-  /** Is the Expr a defined function? */
-  bool isDefinedFunction(Expr func);
 
   /** Is the symbol bound to a predicate? */
   bool isPredicate(const std::string& name);

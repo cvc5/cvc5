@@ -56,6 +56,7 @@ using namespace CVC4;
 #include "options/option_exception.h"
 #include "smt/command.h"
 #include "util/bitvector.h"
+#include "util/floatingpoint.h"
 #include "util/integer.h"
 #include "util/sexpr.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -313,6 +314,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/integer.i"
 %include "util/rational.i"
 %include "util/bitvector.i"
+%include "util/floatingpoint.i"
 
 // Tim: The remainder of util/.
 %include "util/bool.i"
@@ -355,6 +357,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "smt/command.i"
 %include "smt/logic_exception.i"
 %include "theory/logic_info.i"
+%include "theory/theory_id.i"
 
 // Tim: This should come after "theory/logic_info.i".
 %include "smt/smt_engine.i"

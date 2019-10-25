@@ -146,37 +146,9 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
 void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
 {
   // external query
-  if (options::sygusQueryGenDumpFiles())
+  if (options::sygusQueryGenDumpFiles() == SYGUS_QUERY_DUMP_ALL)
   {
-    // Print the query and the query + its model (commented) to queryN.smt2
-    std::vector<Node> pt;
-    d_sampler->getSamplePoint(spIndex, pt);
-    unsigned nvars = d_vars.size();
-    AlwaysAssert(pt.size() == d_vars.size());
-    std::stringstream fname;
-    fname << "query" << d_queryCount << ".smt2";
-    std::ofstream fs(fname.str(), std::ofstream::out);
-    fs << "(set-logic ALL)" << std::endl;
-    for (unsigned i = 0; i < 2; i++)
-    {
-      for (unsigned j = 0; j < nvars; j++)
-      {
-        Node x = d_vars[j];
-        if (i == 0)
-        {
-          fs << "(declare-fun " << x << " () " << x.getType() << ")";
-        }
-        else
-        {
-          fs << ";(define-fun " << x << " () " << x.getType() << " " << pt[j]
-             << ")";
-        }
-        fs << std::endl;
-      }
-    }
-    fs << "(assert " << qy << ")" << std::endl;
-    fs << "(check-sat)" << std::endl;
-    fs.close();
+    dumpQuery(qy, spIndex);
   }
 
   if (options::sygusQueryGenCheck())
@@ -207,9 +179,49 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
       ss << "but CVC4 answered unsat!" << std::endl;
       AlwaysAssert(false, ss.str().c_str());
     }
+    if (options::sygusQueryGenDumpFiles() == SYGUS_QUERY_DUMP_UNSOLVED)
+    {
+      if (r.asSatisfiabilityResult().isSat() != Result::SAT)
+      {
+        dumpQuery(qy, spIndex);
+      }
+    }
   }
 
   d_queryCount++;
+}
+
+void QueryGenerator::dumpQuery(Node qy, unsigned spIndex)
+{
+  // Print the query and the query + its model (commented) to queryN.smt2
+  std::vector<Node> pt;
+  d_sampler->getSamplePoint(spIndex, pt);
+  size_t nvars = d_vars.size();
+  AlwaysAssert(pt.size() == d_vars.size());
+  std::stringstream fname;
+  fname << "query" << d_queryCount << ".smt2";
+  std::ofstream fs(fname.str(), std::ofstream::out);
+  fs << "(set-logic ALL)" << std::endl;
+  for (unsigned i = 0; i < 2; i++)
+  {
+    for (size_t j = 0; j < nvars; j++)
+    {
+      Node x = d_vars[j];
+      if (i == 0)
+      {
+        fs << "(declare-fun " << x << " () " << x.getType() << ")";
+      }
+      else
+      {
+        fs << ";(define-fun " << x << " () " << x.getType() << " " << pt[j]
+           << ")";
+      }
+      fs << std::endl;
+    }
+  }
+  fs << "(assert " << qy << ")" << std::endl;
+  fs << "(check-sat)" << std::endl;
+  fs.close();
 }
 
 void QueryGenerator::findQueries(

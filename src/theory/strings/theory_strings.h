@@ -24,11 +24,14 @@
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
+#include "theory/strings/infer_info.h"
+#include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
+#include "theory/strings/solver_state.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -44,55 +47,6 @@ namespace strings {
  * Decision procedure for strings.
  *
  */
-
-/** Types of inferences used in the procedure
- *
- * These are variants of the inference rules in Figures 3-5 of Liang et al.
- * "A DPLL(T) Solver for a Theory of Strings and Regular Expressions", CAV 2014.
- */
-enum Inference
-{
-  INFER_NONE,
-  // string split constant propagation, for example:
-  //     x = y, x = "abc", y = y1 ++ "b" ++ y2
-  //       implies y1 = "a" ++ y1'
-  INFER_SSPLIT_CST_PROP,
-  // string split variable propagation, for example:
-  //     x = y, x = x1 ++ x2, y = y1 ++ y2, len( x1 ) >= len( y1 )
-  //       implies x1 = y1 ++ x1'
-  // This is inspired by Zheng et al CAV 2015.
-  INFER_SSPLIT_VAR_PROP,
-  // length split, for example:
-  //     len( x1 ) = len( y1 ) V len( x1 ) != len( y1 )
-  // This is inferred when e.g. x = y, x = x1 ++ x2, y = y1 ++ y2.
-  INFER_LEN_SPLIT,
-  // length split empty, for example:
-  //     z = "" V z != ""
-  // This is inferred when, e.g. x = y, x = z ++ x1, y = y1 ++ z
-  INFER_LEN_SPLIT_EMP,
-  // string split constant binary, for example:
-  //     x1 = "aaaa" ++ x1' V "aaaa" = x1 ++ x1'
-  // This is inferred when, e.g. x = y, x = x1 ++ x2, y = "aaaaaaaa" ++ y2.
-  // This inference is disabled by default and is enabled by stringBinaryCsp().
-  INFER_SSPLIT_CST_BINARY,
-  // string split constant
-  //    x = y, x = "c" ++ x2, y = y1 ++ y2, y1 != ""
-  //      implies y1 = "c" ++ y1'
-  // This is a special case of F-Split in Figure 5 of Liang et al CAV 2014.
-  INFER_SSPLIT_CST,
-  // string split variable, for example:
-  //    x = y, x = x1 ++ x2, y = y1 ++ y2
-  //      implies x1 = y1 ++ x1' V y1 = x1 ++ y1'
-  // This is rule F-Split in Figure 5 of Liang et al CAV 2014.
-  INFER_SSPLIT_VAR,
-  // flat form loop, for example:
-  //    x = y, x = x1 ++ z, y = z ++ y2
-  //      implies z = u2 ++ u1, u in ( u1 ++ u2 )*, x1 = u2 ++ u, y2 = u ++ u1
-  //        for fresh u, u1, u2.
-  // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
-  INFER_FLOOP,
-};
-std::ostream& operator<<(std::ostream& out, Inference i);
 
 /** inference steps
  *
@@ -135,6 +89,7 @@ struct StringsProxyVarAttributeId {};
 typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
 class TheoryStrings : public Theory {
+  friend class InferenceManager;
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
@@ -237,42 +192,7 @@ class TheoryStrings : public Theory {
     }
   };/* class TheoryStrings::NotifyClass */
 
-  //--------------------------- equality engine
-  /**
-   * Get the representative of t in the equality engine of this class, or t
-   * itself if it is not registered as a term.
-   */
-  Node getRepresentative(Node t);
-  /** Is t registered as a term in the equality engine of this class? */
-  bool hasTerm(Node a);
-  /**
-   * Are a and b equal according to the equality engine of this class? Also
-   * returns true if a and b are identical.
-   */
-  bool areEqual(Node a, Node b);
-  /**
-   * Are a and b disequal according to the equality engine of this class? Also
-   * returns true if the representative of a and b are distinct constants.
-   */
-  bool areDisequal(Node a, Node b);
-  //--------------------------- end equality engine
-
   //--------------------------- helper functions
-  /** get length with explanation
-   *
-   * If possible, this returns an arithmetic term that exists in the current
-   * context that is equal to the length of te, or otherwise returns the
-   * length of t. It adds to exp literals that hold in the current context that
-   * explain why that term is equal to the length of t. For example, if
-   * we have assertions:
-   *   len( x ) = 5 ^ z = x ^ x = y,
-   * then getLengthExp( z, exp, y ) returns len( x ) and adds { z = x } to
-   * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
-   * adds nothing to exp.
-   */
-  Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
-  /** shorthand for getLengthExp(t, exp, t) */
-  Node getLength(Node t, std::vector<Node>& exp);
   /** get normal string
    *
    * This method returns the node that is equivalent to the normal form of x,
@@ -298,16 +218,12 @@ class TheoryStrings : public Theory {
   NotifyClass d_notify;
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
+  /** The solver state object */
+  SolverState d_state;
+  /** The (custom) output channel of the theory of strings */
+  InferenceManager d_im;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
-  //list of pairs of nodes to merge
-  std::map< Node, Node > d_pending_exp;
-  std::vector< Node > d_pending;
-  std::vector< Node > d_lemma_cache;
-  std::map< Node, bool > d_pending_req_phase;
-  /** inferences: maintained to ensure ref count for internally introduced nodes */
-  NodeList d_infer;
-  NodeList d_infer_exp;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /** get normal form */
@@ -326,7 +242,6 @@ class TheoryStrings : public Theory {
   StringsPreprocess d_preproc;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
-  NodeSet d_extf_infer_cache_u;
   std::vector< Node > d_empty_vec;
   //
   NodeList d_ee_disequalities;
@@ -355,7 +270,21 @@ private:
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
   Node getConstantEqc( Node eqc );
-  
+  /**
+   * Get the current substitution for term n.
+   *
+   * This method returns a term that n is currently equal to in the current
+   * context. It updates exp to contain an explanation of why it is currently
+   * equal to that term.
+   *
+   * The argument effort determines what kind of term to return, either
+   * a constant in the equivalence class of n (effort=0), the normal form of
+   * n (effort=1,2) or the model value of n (effort>=3). The latter is only
+   * valid at LAST_CALL effort. If a term of the above form cannot be returned,
+   * then n itself is returned.
+   */
+  Node getCurrentSubstitutionFor(int effort, Node n, std::vector<Node>& exp);
+
   std::map< Node, Node > d_eqc_to_len_term;
   std::vector< Node > d_strings_eqc;
   Node d_emptyString_r;
@@ -363,7 +292,11 @@ private:
   public:
     Node d_data;
     std::map< TNode, TermIndex > d_children;
-    Node add( TNode n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c );
+    Node add(TNode n,
+             unsigned index,
+             const SolverState& s,
+             Node er,
+             std::vector<Node>& c);
     void clear(){ d_children.clear(); }
   };
   std::map< Kind, TermIndex > d_term_index;
@@ -373,7 +306,6 @@ private:
   std::map< Node, std::vector< int > > d_flat_form_index;
 
   void debugPrintFlatForms( const char * tc );
-  void debugPrintNormalForms( const char * tc );
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
@@ -395,34 +327,21 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
  private:
-  /** SAT-context-dependent information about an equivalence class */
-  class EqcInfo {
-  public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    /**
-     * If non-null, this is a term x from this eq class such that str.len( x )
-     * occurs as a term in this SAT context.
-     */
-    context::CDO< Node > d_length_term;
-    /**
-     * If non-null, this is a term x from this eq class such that str.code( x )
-     * occurs as a term in this SAT context.
-     */
-    context::CDO<Node> d_code_term;
-    context::CDO< unsigned > d_cardinality_lem_k;
-    context::CDO< Node > d_normalized_length;
-  };
-  /** map from representatives to information necessary for equivalence classes */
-  std::map< Node, EqcInfo* > d_eqc_info;
   /**
-   * Get the above information for equivalence class eqc. If doMake is true,
-   * we construct a new information class if one does not exist. The term eqc
-   * should currently be a representative of the equality engine of this class.
+   * Map string terms to their "proxy variables". Proxy variables are used are
+   * intermediate variables so that length information can be communicated for
+   * constants. For example, to communicate that "ABC" has length 3, we
+   * introduce a proxy variable v_{"ABC"} for "ABC", and assert:
+   *   v_{"ABC"} = "ABC" ^ len( v_{"ABC"} ) = 3
+   * Notice this is required since we cannot directly write len( "ABC" ) = 3,
+   * which rewrites to 3 = 3.
+   * In the above example, we store "ABC" -> v_{"ABC"} in this map.
    */
-  EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
-  //maintain which concat terms have the length lemma instantiated
   NodeNodeMap d_proxy_var;
+  /**
+   * Map from proxy variables to their normalized length. In the above example,
+   * we store "ABC" -> 3.
+   */
   NodeNodeMap d_proxy_var_to_length;
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
@@ -439,13 +358,6 @@ private:
   };
 
  private:
-  /** Length status, used for the registerLength function below */
-  enum LengthStatus
-  {
-    LENGTH_SPLIT,
-    LENGTH_ONE,
-    LENGTH_GEQ_ONE
-  };
 
   /** register length
    *
@@ -464,35 +376,27 @@ private:
    */
   void registerLength(Node n, LengthStatus s);
 
-  //------------------------- candidate inferences
-  class InferInfo
-  {
-   public:
-    /** for debugging
-     *
-     * The base pair of strings d_i/d_j that led to the inference, and whether
-     * (d_rev) we were processing the normal forms of these strings in reverse
-     * direction.
-     */
-    Node d_i;
-    Node d_j;
-    bool d_rev;
-    std::vector<Node> d_ant;
-    std::vector<Node> d_antn;
-    std::map<LengthStatus, std::vector<Node> > d_new_skolem;
-    Node d_conc;
-    Inference d_id;
-    std::map<Node, bool> d_pending_phase;
-    unsigned d_index;
-    Node d_nf_pair[2];
-    bool sendAsLemma();
-  };
-  //------------------------- end candidate inferences
   /** cache of all skolems */
   SkolemCache d_sk_cache;
 
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
+  /** Get proxy variable
+   *
+   * If this method returns the proxy variable for (string) term n if one
+   * exists, otherwise it returns null.
+   */
+  Node getProxyVariableFor(Node n) const;
+  /** Get symbolic definition
+   *
+   * This method returns the "symbolic definition" of n, call it n', and
+   * populates the vector exp with an explanation such that exp => n = n'.
+   *
+   * The symbolic definition of n is the term where (maximal) subterms of n
+   * are replaced by their proxy variables. For example, if we introduced
+   * proxy variable v for x ++ y, then given input x ++ y = w, this method
+   * returns v = w and adds v = x ++ y to exp.
+   */
+  Node getSymbolicDefinition(Node n, std::vector<Node>& exp) const;
 
   //--------------------------for checkExtfEval
   /**
@@ -658,15 +562,6 @@ private:
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
   //--------------------------end for checkNormalFormsDeq
 
-  //--------------------------------for checkMemberships
-  // check membership constraints
-  Node mkRegExpAntec(Node atom, Node ant);
-  bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
-  //check contains
-  void checkPosContains( std::vector< Node >& posContains );
-  void checkNegContains( std::vector< Node >& negContains );
-  //--------------------------------end for checkMemberships
-
  private:
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
@@ -704,18 +599,21 @@ private:
    */
   bool areCareDisequal(TNode x, TNode y);
 
-  // do pending merges
-  void assertPendingFact(Node atom, bool polarity, Node exp);
-  void doPendingFacts();
-  void doPendingLemmas();
-  bool hasProcessed();
-  /**
-   * Adds equality a = b to the vector exp if a and b are distinct terms. It
-   * must be the case that areEqual( a, b ) holds in this context.
+  /** assert pending fact
+   *
+   * This asserts atom with polarity to the equality engine of this class,
+   * where exp is the explanation of why (~) atom holds.
+   *
+   * This call may trigger further initialization steps involving the terms
+   * of atom, including calls to registerTerm.
    */
-  void addToExplanation(Node a, Node b, std::vector<Node>& exp);
-  /** Adds lit to the vector exp if it is non-null */
-  void addToExplanation(Node lit, std::vector<Node>& exp);
+  void assertPendingFact(Node atom, bool polarity, Node exp);
+  /**
+   * This processes the infer info ii as an inference. In more detail, it calls
+   * the inference manager to process the inference, it introduces Skolems, and
+   * updates the set of normal form pairs.
+   */
+  void doInferInfo(const InferInfo& ii);
 
   /** Register term
    *
@@ -736,135 +634,25 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
-  //-------------------------------------send inferences
- public:
-  /** send internal inferences
+
+  /** make explanation
    *
-   * This is called when we have inferred exp => conc, where exp is a set
-   * of equalities and disequalities that hold in the current equality engine.
-   * This method adds equalities and disequalities ~( s = t ) via
-   * sendInference such that both s and t are either constants or terms
-   * that already occur in the equality engine, and ~( s = t ) is a consequence
-   * of conc. This function can be seen as a "conservative" version of
-   * sendInference below in that it does not introduce any new non-constant
-   * terms to the state.
-   *
-   * The argument c is a string identifying the reason for the inference.
-   * This string is used for debugging purposes.
-   *
-   * Return true if the inference is complete, in the sense that we infer
-   * inferences that are equivalent to conc. This returns false e.g. if conc
-   * (or one of its conjuncts if it is a conjunction) was not inferred due
-   * to the criteria mentioned above.
+   * This returns a node corresponding to the explanation of formulas in a,
+   * interpreted conjunctively. The returned node is a conjunction of literals
+   * that have been asserted to the equality engine.
    */
-  bool sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
-  /** send inference
-   *
-   * This function should be called when ( exp ^ exp_n ) => eq. The set exp
-   * contains literals that are explainable by this class, i.e. those that
-   * hold in the equality engine of this class. On the other hand, the set
-   * exp_n ("explanations new") contain nodes that are not explainable by this
-   * class. This method may call sendInfer or sendLemma. Overall, the result
-   * of this method is one of the following:
-   *
-   * [1] (No-op) Do nothing if eq is true,
-   *
-   * [2] (Infer) Indicate that eq should be added to the equality engine of this
-   * class with explanation EXPLAIN(exp), where EXPLAIN returns the
-   * explanation of the node in exp in terms of the literals asserted to this
-   * class,
-   *
-   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
-   * be sent on the output channel of this class, or
-   *
-   * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
-   * channel of this class.
-   *
-   * Determining which case to apply depends on the form of eq and whether
-   * exp_n is empty. In particular, lemmas must be used whenever exp_n is
-   * non-empty, conflicts are used when exp_n is empty and eq is false.
-   *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
-   *
-   * If the flag asLemma is true, then this method will send a lemma instead
-   * of an inference whenever applicable.
-   */
-  void sendInference(std::vector<Node>& exp,
-                     std::vector<Node>& exp_n,
-                     Node eq,
-                     const char* c,
-                     bool asLemma = false);
-  /** same as above, but where exp_n is empty */
-  void sendInference(std::vector<Node>& exp,
-                     Node eq,
-                     const char* c,
-                     bool asLemma = false);
-  /**
-   * Are we in conflict? This returns true if this theory has called its output
-   * channel's conflict method in the current SAT context.
-   */
-  bool inConflict() const { return d_conflict; }
+  Node mkExplain(const std::vector<Node>& a);
+  /** Same as above, but the new literals an are append to the result */
+  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an);
 
  protected:
-  /**
-   * Indicates that ant => conc should be sent on the output channel of this
-   * class. This will either trigger an immediate call to the conflict
-   * method of the output channel of this class of conc is false, or adds the
-   * above lemma to the lemma cache d_lemma_cache, which may be flushed
-   * later within the current call to TheoryStrings::check.
-   *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
-   */
-  void sendLemma(Node ant, Node conc, const char* c);
-  /**
-   * Indicates that conc should be added to the equality engine of this class
-   * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
-   * of) literals that each are explainable, i.e. they already hold in the
-   * equality engine of this class.
-   */
-  void sendInfer(Node eq_exp, Node eq, const char* c);
-  bool sendSplit(Node a, Node b, const char* c, bool preq = true);
-  //-------------------------------------end send inferences
 
-  /** mkConcat **/
-  inline Node mkConcat(Node n1, Node n2);
-  inline Node mkConcat(Node n1, Node n2, Node n3);
-  inline Node mkConcat(const std::vector<Node>& c);
-  inline Node mkLength(Node n);
-
-  /** mkExplain **/
-  Node mkExplain(std::vector<Node>& a);
-  Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
-
- protected:
-  /** mkAnd **/
-  Node mkAnd(std::vector<Node>& a);
-
-  /** get equivalence classes
-   *
-   * This adds the representative of all equivalence classes to eqcs
-   */
-  void getEquivalenceClasses(std::vector<Node>& eqcs);
-  /** get relevant equivalence classes
-   *
-   * This adds the representative of all equivalence classes that contain at
-   * least one term in termSet.
-   */
-  void getRelevantEquivalenceClasses(std::vector<Node>& eqcs,
-                                     std::set<Node>& termSet);
 
   // separate into collections with equal length
   void separateByLength(std::vector<Node>& n,
                         std::vector<std::vector<Node> >& col,
                         std::vector<Node>& lts);
   void printConcat(std::vector<Node>& n, const char* c);
-
-  void inferSubstitutionProxyVars(Node n,
-                                  std::vector<Node>& vars,
-                                  std::vector<Node>& subs,
-                                  std::vector<Node>& unproc);
 
   // Symbolic Regular Expression
  private:

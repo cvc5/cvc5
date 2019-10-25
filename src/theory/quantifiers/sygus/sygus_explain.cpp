@@ -14,7 +14,7 @@
 
 #include "theory/quantifiers/sygus/sygus_explain.h"
 
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace CVC4::kind;
@@ -139,8 +139,8 @@ void SygusExplain::getExplanationForEquality(Node n,
   }
   Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-  int i = datatypes::DatatypesRewriter::indexOf(vn.getOperator());
-  Node tst = datatypes::DatatypesRewriter::mkTester(n, i, dt);
+  int i = datatypes::utils::indexOf(vn.getOperator());
+  Node tst = datatypes::utils::mkTester(n, i, dt);
   exp.push_back(tst);
   for (unsigned j = 0; j < vn.getNumChildren(); j++)
   {
@@ -223,9 +223,9 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     }
   }
   const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
-  int cindex = datatypes::DatatypesRewriter::indexOf(vn.getOperator());
+  int cindex = datatypes::utils::indexOf(vn.getOperator());
   Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
-  Node tst = datatypes::DatatypesRewriter::mkTester(n, cindex, dt);
+  Node tst = datatypes::utils::mkTester(n, cindex, dt);
   exp.push_back(tst);
   // if the operator of vn is different than vnr, then disunification obligation
   // is met

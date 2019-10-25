@@ -74,10 +74,6 @@ void throwLazyBBUnsupported(theory::bv::SatSolverMode m)
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::notifyForceLogic(const std::string& option){
-  d_options->d_forceLogicListeners.notify();
-}
-
 void OptionsHandler::notifyBeforeSearch(const std::string& option)
 {
   try{
@@ -223,7 +219,7 @@ ErrorSelectionRule OptionsHandler::stringToErrorSelectionRule(
 // theory/quantifiers/options_handlers.h
 
 const std::string OptionsHandler::s_instWhenHelp = "\
-Modes currently supported by the --inst-when option:\n\
+Instantiation modes currently supported by the --inst-when option:\n\
 \n\
 full-last-call (default)\n\
 + Alternate running instantiation rounds at full effort and last\n\
@@ -353,7 +349,8 @@ min-s-all \n\
 \n\
 ";
 const std::string OptionsHandler::s_triggerActiveSelModeHelp = "\
-Trigger active selection modes currently supported by the --trigger-sel option:\n\
+Trigger active selection modes currently supported by the \
+--trigger-active-sel option:\n\
 \n\
 all \n\
 + Make all triggers active. \n\
@@ -403,7 +400,8 @@ none \n\
 ";
 
 const std::string OptionsHandler::s_termDbModeHelp = "\
-Modes for term database, supported by --term-db-mode:\n\
+Modes for terms included in the quantifiers term database, supported by\
+--term-db-mode:\n\
 \n\
 all  \n\
 + Quantifiers module considers all ground terms.\n\
@@ -429,7 +427,8 @@ all \n\
 
 const std::string OptionsHandler::s_cbqiBvIneqModeHelp =
     "\
-Modes for single invocation techniques, supported by --cbqi-bv-ineq:\n\
+Modes for handling bit-vector inequalities in counterexample-guided\
+instantiation, supported by --cbqi-bv-ineq:\n\
 \n\
 eq-slack (default)  \n\
 + Solve for the inequality using the slack value in the model, e.g.,\
@@ -502,6 +501,21 @@ trust  \n\
 + Trust that when a solution for a conjecture is always true under sampling,\
   then it is indeed a solution. Note this option may print out spurious\
   solutions for synthesis conjectures.\n\
+\n\
+";
+
+const std::string OptionsHandler::s_sygusQueryDumpFileHelp =
+    "\
+Query file options supported by --sygus-query-gen-dump-files:\n\
+\n\
+none (default) \n\
++ Do not dump query files when using --sygus-query-gen.\n\
+\n\
+all \n\
++ Dump all query files.\n\
+\n\
+unsolved \n\
++ Dump query files that the subsolver did not solve.\n\
 \n\
 ";
 
@@ -960,6 +974,34 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
   }
 }
 
+theory::quantifiers::SygusQueryDumpFilesMode
+OptionsHandler::stringToSygusQueryDumpFilesMode(std::string option,
+                                                std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_NONE;
+  }
+  else if (optarg == "all")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_ALL;
+  }
+  else if (optarg == "unsolved")
+  {
+    return theory::quantifiers::SYGUS_QUERY_DUMP_UNSOLVED;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusQueryDumpFileHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --sygus-query-gen-dump-files: `")
+        + optarg + "'.  Try --sygus-query-gen-dump-files help.");
+  }
+}
 theory::quantifiers::SygusFilterSolMode
 OptionsHandler::stringToSygusFilterSolMode(std::string option,
                                            std::string optarg)
@@ -978,7 +1020,7 @@ OptionsHandler::stringToSygusFilterSolMode(std::string option,
   }
   else if (optarg == "help")
   {
-    puts(s_cegisSampleHelp.c_str());
+    puts(s_sygusFilterSolHelp.c_str());
     exit(1);
   }
   else
@@ -1175,15 +1217,6 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
   else if (optarg == "cadical")
   {
-    if (options::incrementalSolving()
-        && options::incrementalSolving.wasSetByUser())
-    {
-      throw OptionException(
-          std::string("CaDiCaL does not support incremental mode. \n\
-                         Try --bv-sat-solver=cryptominisat or "
-                      "--bv-sat-solver=minisat"));
-    }
-
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
         && options::bitblastMode.wasSetByUser())
     {
@@ -1298,26 +1331,34 @@ eager\n\
 theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "lazy") {
-    if (!options::bitvectorPropagate.wasSetByUser()) {
+  if (optarg == "lazy")
+  {
+    if (!options::bitvectorPropagate.wasSetByUser())
+    {
       options::bitvectorPropagate.set(true);
     }
-    if (!options::bitvectorEqualitySolver.wasSetByUser()) {
+    if (!options::bitvectorEqualitySolver.wasSetByUser())
+    {
       options::bitvectorEqualitySolver.set(true);
     }
-    if (!options::bitvectorEqualitySlicer.wasSetByUser()) {
-      if (options::incrementalSolving() ||
-          options::produceModels()) {
+    if (!options::bitvectorEqualitySlicer.wasSetByUser())
+    {
+      if (options::incrementalSolving() || options::produceModels())
+      {
         options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_OFF);
-      } else {
+      }
+      else
+      {
         options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_AUTO);
       }
     }
 
-    if (!options::bitvectorInequalitySolver.wasSetByUser()) {
+    if (!options::bitvectorInequalitySolver.wasSetByUser())
+    {
       options::bitvectorInequalitySolver.set(true);
     }
-    if (!options::bitvectorAlgebraicSolver.wasSetByUser()) {
+    if (!options::bitvectorAlgebraicSolver.wasSetByUser())
+    {
       options::bitvectorAlgebraicSolver.set(true);
     }
     if (options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
@@ -1325,23 +1366,24 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
       throwLazyBBUnsupported(options::bvSatSolver());
     }
     return theory::bv::BITBLAST_MODE_LAZY;
-  } else if(optarg == "eager") {
-    if (!options::bitvectorToBool.wasSetByUser()) {
+  }
+  else if (optarg == "eager")
+  {
+    if (!options::bitvectorToBool.wasSetByUser())
+    {
       options::bitvectorToBool.set(true);
     }
-
-    if (!options::bvAbstraction.wasSetByUser() &&
-        !options::skolemizeArguments.wasSetByUser()) {
-      options::bvAbstraction.set(true);
-      options::skolemizeArguments.set(true);
-    }
     return theory::bv::BITBLAST_MODE_EAGER;
-  } else if(optarg == "help") {
+  }
+  else if (optarg == "help")
+  {
     puts(s_bitblastingModeHelp.c_str());
     exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --bitblast: `") +
-                          optarg + "'.  Try --bitblast=help.");
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bitblast: `")
+                          + optarg + "'.  Try --bitblast=help.");
   }
 }
 
@@ -1376,7 +1418,7 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   }
 }
 
-const std::string OptionsHandler::s_stringToStringsProcessLoopModeHelp =
+const std::string OptionsHandler::s_stringsProcessLoopModeHelp =
     "Loop processing modes supported by the --strings-process-loop-mode "
     "option:\n"
     "\n"
@@ -1420,7 +1462,7 @@ theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
   }
   else if (optarg == "help")
   {
-    puts(s_stringToStringsProcessLoopModeHelp.c_str());
+    puts(s_stringsProcessLoopModeHelp.c_str());
     exit(1);
   }
   else
@@ -1428,6 +1470,57 @@ theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
     throw OptionException(
         std::string("unknown option for --strings-process-loop-mode: `")
         + optarg + "'.  Try --strings-process-loop-mode=help.");
+  }
+}
+
+const std::string OptionsHandler::s_regExpInterModeHelp =
+    "\
+Regular expression intersection modes supported by the --re-inter-mode option\
+\n\
+\n\
+all \n\
++ Compute intersections for all regular expressions.\n\
+\n\
+constant (default)\n\
++ Compute intersections only between regular expressions that do not contain\
+re.allchar or re.range\n\
+\n\
+one-constant\n\
++ Compute intersections only between regular expressions such that at least one\
+side does not contain re.allchar or re.range\n\
+\n\
+none\n\
++ Do not compute intersections for regular expressions\n\
+";
+
+theory::strings::RegExpInterMode OptionsHandler::stringToRegExpInterMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "all")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_ALL;
+  }
+  else if (optarg == "constant")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_CONSTANT;
+  }
+  else if (optarg == "one-constant")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_ONE_CONSTANT;
+  }
+  else if (optarg == "none")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_NONE;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_regExpInterModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --re-inter-mode: `")
+                          + optarg + "'.  Try --re-inter-mode=help.");
   }
 }
 
@@ -1494,16 +1587,18 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
 
 // theory/uf/options_handlers.h
 const std::string OptionsHandler::s_ufssModeHelp = "\
-UF strong solver options currently supported by the --uf-ss option:\n\
+UF with cardinality options currently supported by the --uf-ss option when\n\
+combined with finite model finding:\n\
 \n\
 full \n\
-+ Default, use uf strong solver to find minimal models for uninterpreted sorts.\n\
++ Default, use UF with cardinality to find minimal models for uninterpreted\n\
+sorts.\n\
 \n\
 no-minimal \n\
-+ Use uf strong solver to shrink model sizes, but do no enforce minimality.\n\
++ Use UF with cardinality to shrink models, but do no enforce minimality.\n\
 \n\
 none \n\
-+ Do not use uf strong solver to shrink model sizes. \n\
++ Do not use UF with cardinality to shrink model sizes. \n\
 \n\
 ";
 
@@ -1580,7 +1675,7 @@ table\n\
 ";
 
 const std::string OptionsHandler::s_instFormatHelp = "\
-Inst format modes currently supported by the --model-format option:\n\
+Inst format modes currently supported by the --inst-format option:\n\
 \n\
 default \n\
 + Print instantiations as a list in the output language format.\n\
@@ -1704,7 +1799,7 @@ SimplificationMode OptionsHandler::stringToSimplificationMode(
 
 const std::string OptionsHandler::s_modelCoresHelp =
     "\
-Model cores modes currently supported by the --simplification option:\n\
+Model cores modes currently supported by the --model-cores option:\n\
 \n\
 none (default) \n\
 + do not compute model cores\n\
@@ -1747,9 +1842,52 @@ ModelCoresMode OptionsHandler::stringToModelCoresMode(std::string option,
   }
 }
 
+const std::string OptionsHandler::s_blockModelsHelp =
+    "\
+Blocking models modes are currently supported by the --block-models option:\n\
+\n\
+none (default) \n\
++ do not block models\n\
+\n\
+literals\n\
++ block models based on the SAT skeleton\n\
+\n\
+values\n\
++ block models based on the concrete model values for the free variables.\n\
+\n\
+";
+
+BlockModelsMode OptionsHandler::stringToBlockModelsMode(std::string option,
+                                                        std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return BLOCK_MODELS_NONE;
+  }
+  else if (optarg == "literals")
+  {
+    return BLOCK_MODELS_LITERALS;
+  }
+  else if (optarg == "values")
+  {
+    return BLOCK_MODELS_VALUES;
+    ;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_blockModelsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --block-models: `")
+                          + optarg + "'.  Try --block-models help.");
+  }
+}
+
 const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
     "\
-Modes for finite model finding bound minimization, supported by --sygus-out:\n\
+Modes for sygus solution output, supported by --sygus-out:\n\
 \n\
 status \n\
 + Print only status for check-synth calls.\n\
@@ -1969,6 +2107,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("coverage", Configuration::isCoverageBuild());
   print_config_cond("profiling", Configuration::isProfilingBuild());
   print_config_cond("asan", Configuration::isAsanBuild());
+  print_config_cond("ubsan", Configuration::isUbsanBuild());
   print_config_cond("competition", Configuration::isCompetitionBuild());
   
   std::cout << std::endl;

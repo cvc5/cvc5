@@ -18,21 +18,29 @@
 #ifndef CVC4__REWRITE_ENGINE_H
 #define CVC4__REWRITE_ENGINE_H
 
-#include "context/context.h"
-#include "context/context_mm.h"
+#include <map>
+#include <vector>
+
+#include "expr/attribute.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_conflict_find.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
+
+/**
+ * An attribute for marking a priority value for rewrite rules.
+ */
+struct RrPriorityAttributeId
+{
+};
+typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
+
 namespace quantifiers {
 
 class RewriteEngine : public QuantifiersModule
 {
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   std::vector< Node > d_rr_quant;
   std::vector< Node > d_priority_order;
   std::map< Node, Node > d_rr;
@@ -45,10 +53,14 @@ class RewriteEngine : public QuantifiersModule
   bool d_needsSort;
   std::map< Node, std::map< Node, Node > > d_inst_const_node;
   Node getInstConstNode( Node n, Node q );
-private:
+
+ private:
   int checkRewriteRule( Node f, Theory::Effort e );
-public:
-  RewriteEngine( context::Context* c, QuantifiersEngine* qe );
+
+ public:
+  RewriteEngine(context::Context* c,
+                QuantifiersEngine* qe,
+                QuantConflictFind* qcf);
 
   bool needsCheck(Theory::Effort e) override;
   void check(Theory::Effort e, QEffort quant_e) override;
@@ -57,6 +69,14 @@ public:
   bool checkCompleteFor(Node q) override;
   /** Identify this module */
   std::string identify() const override { return "RewriteEngine"; }
+
+ private:
+  /**
+   * A pointer to the quantifiers conflict find module of the quantifiers
+   * engine. This is the module that computes instantiations for rewrite rule
+   * quantifiers.
+   */
+  QuantConflictFind* d_qcf;
 };
 
 }

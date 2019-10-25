@@ -47,8 +47,7 @@ Parser::Parser(api::Solver* solver,
                Input* input,
                bool strictMode,
                bool parseOnly)
-    : d_solver(solver),
-      d_resourceManager(d_solver->getExprManager()->getResourceManager()),
+    : d_resourceManager(solver->getExprManager()->getResourceManager()),
       d_input(input),
       d_symtabAllocated(),
       d_symtab(&d_symtabAllocated),
@@ -61,7 +60,8 @@ Parser::Parser(api::Solver* solver,
       d_parseOnly(parseOnly),
       d_canIncludeFile(true),
       d_logicIsForced(false),
-      d_forcedLogic()
+      d_forcedLogic(),
+      d_solver(solver)
 {
   d_input->setParser(*this);
 }
@@ -110,7 +110,7 @@ Expr Parser::getExpressionForName(const std::string& name) {
 }
 
 Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
-  assert( isDeclared(name) );
+  assert(isDeclared(name));
   // first check if the variable is declared and not overloaded
   Expr expr = getVariable(name);
   if(expr.isNull()) {
@@ -138,19 +138,25 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
 }
 
 Kind Parser::getKindForFunction(Expr fun) {
-  if(isDefinedFunction(fun)) {
+  Type t = fun.getType();
+  if (t.isFunction())
+  {
     return APPLY_UF;
   }
-  Type t = fun.getType();
-  if(t.isConstructor()) {
+  else if (t.isConstructor())
+  {
     return APPLY_CONSTRUCTOR;
-  } else if(t.isSelector()) {
+  }
+  else if (t.isSelector())
+  {
     return APPLY_SELECTOR;
-  } else if(t.isTester()) {
+  }
+  else if (t.isTester())
+  {
     return APPLY_TESTER;
-  } else if(t.isFunction()) {
-    return APPLY_UF;
-  }else{
+  }
+  else
+  {
     parseError("internal error: unhandled function application kind");
     return UNDEFINED_KIND;
   }
@@ -191,20 +197,6 @@ bool Parser::isFunctionLike(Expr fun) {
          type.isSelector();
 }
 
-/* Returns true if name is bound to a defined function. */
-bool Parser::isDefinedFunction(const std::string& name) {
-  // more permissive in type than isFunction(), because defined
-  // functions can be zero-ary and declared functions cannot.
-  return d_symtab->isBoundDefinedFunction(name);
-}
-
-/* Returns true if the Expr is a defined function. */
-bool Parser::isDefinedFunction(Expr func) {
-  // more permissive in type than isFunction(), because defined
-  // functions can be zero-ary and declared functions cannot.
-  return d_symtab->isBoundDefinedFunction(func);
-}
-
 /* Returns true if name is bound to a function returning boolean. */
 bool Parser::isPredicate(const std::string& name) {
   Expr expr = getVariable(name);
@@ -228,15 +220,15 @@ Expr Parser::mkBoundVar(const std::string& name, const Type& type) {
   return expr;
 }
 
-Expr Parser::mkFunction(const std::string& name, const Type& type,
-                        uint32_t flags, bool doOverload) {
-  if (d_globalDeclarations) {
-    flags |= ExprManager::VAR_FLAG_GLOBAL;
+std::vector<Expr> Parser::mkBoundVars(
+    std::vector<std::pair<std::string, Type> >& sortedVarNames)
+{
+  std::vector<Expr> vars;
+  for (std::pair<std::string, CVC4::Type>& i : sortedVarNames)
+  {
+    vars.push_back(mkBoundVar(i.first, i.second));
   }
-  Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = getExprManager()->mkVar(name, type, flags);
-  defineFunction(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
-  return expr;
+  return vars;
 }
 
 Expr Parser::mkAnonymousFunction(const std::string& prefix, const Type& type,
@@ -277,16 +269,6 @@ void Parser::defineVar(const std::string& name, const Expr& val,
     std::stringstream ss;
     ss << "Cannot bind " << name << " to symbol of type " << val.getType();
     ss << ", maybe the symbol has already been defined?";
-    parseError(ss.str()); 
-  }
-  assert(isDeclared(name));
-}
-
-void Parser::defineFunction(const std::string& name, const Expr& val,
-                            bool levelZero, bool doOverload) {
-  if (!d_symtab->bindDefinedFunction(name, val, levelZero, doOverload)) {
-    std::stringstream ss;
-    ss << "Failed to bind defined function " << name << " to symbol of type " << val.getType();
     parseError(ss.str()); 
   }
   assert(isDeclared(name));
@@ -491,6 +473,15 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
   {
     // no difference
     return range;
+  }
+  if (Debug.isOn("parser"))
+  {
+    Debug("parser") << "mkFlatFunctionType: range " << range << " and domains ";
+    for (Type t : sorts)
+    {
+      Debug("parser") << " " << t;
+    }
+    Debug("parser") << "\n";
   }
   while (range.isFunction())
   {

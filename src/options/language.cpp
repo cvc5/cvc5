@@ -70,7 +70,6 @@ bool isOutputLang_smt2_6(OutputLanguage lang, bool exact)
 
 InputLanguage toInputLanguage(OutputLanguage language) {
   switch(language) {
-  case output::LANG_SMTLIB_V1:
   case output::LANG_SMTLIB_V2_0:
   case output::LANG_SMTLIB_V2_5:
   case output::LANG_SMTLIB_V2_6:
@@ -79,6 +78,7 @@ InputLanguage toInputLanguage(OutputLanguage language) {
   case output::LANG_CVC4:
   case output::LANG_Z3STR:
   case output::LANG_SYGUS:
+  case output::LANG_SYGUS_V2:
     // these entries directly correspond (by design)
     return InputLanguage(int(language));
 
@@ -93,8 +93,6 @@ InputLanguage toInputLanguage(OutputLanguage language) {
 
 OutputLanguage toOutputLanguage(InputLanguage language) {
   switch(language) {
-  case input::LANG_SMTLIB_V1:
-    return OutputLanguage(output::LANG_SMTLIB_V2_0);
   case input::LANG_SMTLIB_V2_0:
   case input::LANG_SMTLIB_V2_5:
   case input::LANG_SMTLIB_V2_6:
@@ -103,6 +101,7 @@ OutputLanguage toOutputLanguage(InputLanguage language) {
   case input::LANG_CVC4:
   case input::LANG_Z3STR:
   case input::LANG_SYGUS:
+  case input::LANG_SYGUS_V2:
     // these entries directly correspond (by design)
     return OutputLanguage(int(language));
 
@@ -155,9 +154,17 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_Z3STR;
   } else if(language == "sygus" || language == "LANG_SYGUS") {
     return output::LANG_SYGUS;
-  } else if(language == "ast" || language == "LANG_AST") {
+  }
+  else if (language == "sygus2" || language == "LANG_SYGUS_V2")
+  {
+    return output::LANG_SYGUS_V2;
+  }
+  else if (language == "ast" || language == "LANG_AST")
+  {
     return output::LANG_AST;
-  } else if(language == "auto" || language == "LANG_AUTO") {
+  }
+  else if (language == "auto" || language == "LANG_AUTO")
+  {
     return output::LANG_AUTO;
   }
 
@@ -169,9 +176,6 @@ InputLanguage toInputLanguage(std::string language) {
      language == "presentation" || language == "native" ||
      language == "LANG_CVC4") {
     return input::LANG_CVC4;
-  } else if(language == "smtlib1" || language == "smt1" ||
-            language == "LANG_SMTLIB_V1") {
-    return input::LANG_SMTLIB_V1;
   } else if(language == "smtlib2.0" || language == "smt2.0" ||
             language == "LANG_SMTLIB_V2_0") {
     return input::LANG_SMTLIB_V2_0;
@@ -195,7 +199,13 @@ InputLanguage toInputLanguage(std::string language) {
     return input::LANG_Z3STR;
   } else if(language == "sygus" || language == "LANG_SYGUS") {
     return input::LANG_SYGUS;
-  } else if(language == "auto" || language == "LANG_AUTO") {
+  }
+  else if (language == "sygus2" || language == "LANG_SYGUS_V2")
+  {
+    return input::LANG_SYGUS_V2;
+  }
+  else if (language == "auto" || language == "LANG_AUTO")
+  {
     return input::LANG_AUTO;
   }
 
