@@ -18,7 +18,6 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
