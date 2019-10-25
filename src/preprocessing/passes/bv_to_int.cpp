@@ -392,7 +392,7 @@ Node BVToInt::bvToInt(Node n)
               uint64_t bvsize = current[0].getType().getBitVectorSize();
                 // we avoid modular arithmetics by the addition of an 
                 // indicator variable sigma.
-                // a+b is transformed to Tr(a)+Tr(b)-(sigma*2^k), 
+                // Tr(a+b) is Tr(a)+Tr(b)-(sigma*2^k), 
                 // with k being the bitwidth,
                 // and sigma being either 0 or 1.
                 Node sigma = d_nm->mkSkolem(
@@ -415,7 +415,10 @@ Node BVToInt::bvToInt(Node n)
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
                 // we use a similar trick to the one used for addition.
-                Node sigma = d_nm->mkSkolem(
+                // Tr(a*b) is Tr(a)*Tr(b)-(sigma*2^k), 
+                // with k being the bitwidth,
+                // and sigma is between [0, 2^k - 1).
+	        Node sigma = d_nm->mkSkolem(
                     "__bvToInt_sigma_var",
                     d_nm->integerType(),
                     "Variable introduced in bvToInt pass to avoid integer mod");
