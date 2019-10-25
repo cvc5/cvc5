@@ -49,7 +49,7 @@
  **
  ** Tr(a=b) = Tr(a)=Tr(b)
  ** Tr((bvult a b)) = Tr(a) < Tr(b)
- ** Simialr transformations are done for bvule, bvugt, bvuge.
+ ** Simialr transformations are done for bvule, bvugt, and bvuge.
  **
  ** Bit-vector operators that are not listed above are either eliminated using
  ** the function eliminationPass, or are not supported.
