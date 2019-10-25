@@ -429,26 +429,7 @@ Node BVToInt::bvToInt(Node n)
 
 		d_rangeAssertions.insert(
 		    mkRangeConstraint(d_bvToIntCache[current], bvsize));
-                Node sig_lower =
-                    d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), sigma);
-                if (intized_children[0].isConst())
-                {
-                  Node sig_upper =
-                      d_nm->mkNode(kind::LT, sigma, intized_children[0]);
-                  d_rangeAssertions.insert(
-                      d_nm->mkNode(kind::AND, sig_lower, sig_upper));
-                }
-                else if (intized_children[1].isConst())
-                {
-                  Node sig_upper =
-                      d_nm->mkNode(kind::LT, sigma, intized_children[1]);
-                  d_rangeAssertions.insert(
-                      d_nm->mkNode(kind::AND, sig_lower, sig_upper));
-                }
-                else
-                {
-		  d_rangeAssertions.insert(mkRangeConstraint(sigma, bvsize));
-                }
+		d_rangeAssertions.insert(mkRangeConstraint(sigma, bvsize));
               break;
             }
             case kind::BITVECTOR_UDIV_TOTAL:
