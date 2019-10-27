@@ -25,7 +25,7 @@ def prefixPrintGetValue(slv, t, level=0):
 if __name__ == "__main__":
     slv = pycvc4.Solver()
     slv.setOption("produce-models", "true")  # Produce Models
-    slv.setOption("output-language", "pycvc4") # Set the output-language to CVC's
+    slv.setOption("output-language", "cvc4") # Set the output-language to CVC's
     slv.setOption("default-dag-thresh", "0") # Disable dagifying the output
     slv.setOption("output-language", "smt2") # use smt-lib v2 as output language
     slv.setLogic("QF_UFLIRA")
@@ -38,12 +38,12 @@ if __name__ == "__main__":
     intPred = slv.mkFunctionSort(integer, boolean)
 
     # Variables
-    x = slv.mkVar(u, "x")
-    y = slv.mkVar(u, "y")
+    x = slv.mkConst(u, "x")
+    y = slv.mkConst(u, "y")
 
     # Functions
-    f = slv.mkVar(uToInt, "f")
-    p = slv.mkVar(intPred, "p")
+    f = slv.mkConst(uToInt, "f")
+    p = slv.mkConst(intPred, "p")
 
     # Constants
     zero = slv.mkReal(0)

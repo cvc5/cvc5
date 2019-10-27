@@ -29,8 +29,8 @@ if __name__ == "__main__":
     integer = slv.getIntegerSort()
 
     # Variables
-    x = slv.mkVar(integer, "x")
-    y = slv.mkVar(real, "y")
+    x = slv.mkConst(integer, "x")
+    y = slv.mkConst(real, "y")
 
     # Constants
     three = slv.mkReal(3)

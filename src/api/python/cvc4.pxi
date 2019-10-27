@@ -682,6 +682,15 @@ cdef class Solver:
         term.cterm = self.csolver.mkFloatingPoint(exp, sig, val.cterm)
         return term
 
+    def mkConst(self, Sort sort, symbol=None):
+        cdef Term term = Term()
+        if symbol is None:
+            term.cterm = self.csolver.mkConst(sort.csort)
+        else:
+            term.cterm = self.csolver.mkConst(sort.csort,
+                                            (<str?> symbol).encode())
+        return term
+
     def mkVar(self, Sort sort, symbol=None):
         cdef Term term = Term()
         if symbol is None:
@@ -689,15 +698,6 @@ cdef class Solver:
         else:
             term.cterm = self.csolver.mkVar(sort.csort,
                                             (<str?> symbol).encode())
-        return term
-
-    def mkBoundVar(self, Sort sort, symbol=None):
-        cdef Term term = Term()
-        if symbol is None:
-            term.cterm = self.csolver.mkBoundVar(sort.csort)
-        else:
-            term.cterm = self.csolver.mkBoundVar(sort.csort,
-                                                 (<str?> symbol).encode())
         return term
 
     def simplify(self, Term t):
@@ -765,11 +765,6 @@ cdef class Solver:
         if r.isValidUnknown():
             explanation = r.getUnknownExplanation().decode()
         return Result(name, explanation)
-
-    def declareConst(self, str symbol, Sort sort):
-        cdef Term term = Term()
-        term.cterm = self.csolver.declareConst(symbol.encode(), sort.csort)
-        return term
 
     @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):

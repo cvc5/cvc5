@@ -37,9 +37,9 @@ if __name__ == "__main__":
     ab  = slv.mkString(str_ab)
     abc = slv.mkString("abc")
     # String variables
-    x = slv.mkVar(string, "x")
-    y = slv.mkVar(string, "y")
-    z = slv.mkVar(string, "z")
+    x = slv.mkConst(string, "x")
+    y = slv.mkConst(string, "y")
+    z = slv.mkConst(string, "z")
 
     # String concatenation: x.ab.y
     lhs = slv.mkTerm(kinds.StringConcat, x, ab, y)
@@ -64,8 +64,8 @@ if __name__ == "__main__":
                  slv.mkTerm(kinds.StringToRegexp, slv.mkString("h")))
 
     # String variables
-    s1 = slv.mkVar(string, "s1")
-    s2 = slv.mkVar(string, "s2")
+    s1 = slv.mkConst(string, "s1")
+    s2 = slv.mkConst(string, "s2")
     # String concatenation: s1.s2
     s = slv.mkTerm(kinds.StringConcat, s1, s2)
 

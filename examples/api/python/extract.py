@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     bitvector32 = slv.mkBitVectorSort(32)
 
-    x = slv.mkVar(bitvector32, "a")
+    x = slv.mkConst(bitvector32, "a")
 
     ext_31_1 = slv.mkOpTerm(BVExtractOp, 31, 1)
     x_31_1 = slv.mkTerm(BVExtract, ext_31_1, x)

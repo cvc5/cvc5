@@ -43,9 +43,9 @@ if __name__ == "__main__":
     bitvector32 = slv.mkBitVectorSort(32)
 
     # Variables
-    x = slv.mkVar(bitvector32, "x")
-    a = slv.mkVar(bitvector32, "a")
-    b = slv.mkVar(bitvector32, "b")
+    x = slv.mkConst(bitvector32, "x")
+    a = slv.mkConst(bitvector32, "a")
+    b = slv.mkConst(bitvector32, "b")
 
     # First encode the assumption that x must be equal to a or b
     x_eq_a = slv.mkTerm(kinds.Equal, x, a)
@@ -57,9 +57,9 @@ if __name__ == "__main__":
 
     # Introduce a new variable for the new value of x after assignment.
     # x after executing code (0)
-    new_x = slv.mkVar(bitvector32, "new_x")
+    new_x = slv.mkConst(bitvector32, "new_x")
     # x after executing code (1) or (2)
-    new_x_ = slv.mkVar(bitvector32, "new_x_")
+    new_x_ = slv.mkConst(bitvector32, "new_x_")
 
     # Encoding code (0)
     # new_x = x == a ? b : a

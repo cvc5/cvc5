@@ -80,7 +80,7 @@ def test(slv, consListSort):
     paramConsIntListSort = paramConsListSort.instantiate([slv.getIntegerSort()])
     paramConsList = paramConsListSort.getDatatype()
 
-    a = slv.declareConst("a", paramConsIntListSort)
+    a = slv.mkConst(paramConsIntListSort, "a")
     print("term {} is of sort {}".format(a, a.getSort()))
 
     head_a = slv.mkTerm(kinds.ApplySelector, paramConsList["cons"].getSelectorTerm("head"), a)

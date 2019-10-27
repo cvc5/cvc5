@@ -47,7 +47,7 @@ if __name__ == "__main__":
     arraySort = slv.mkArraySort(indexSort, elementSort)
 
     # Variables
-    current_array = slv.mkVar(arraySort, "current_array")
+    current_array = slv.mkConst(arraySort, "current_array")
 
     # Making a bit-vector constant
     zero = slv.mkBitVector(index_size, 0)
