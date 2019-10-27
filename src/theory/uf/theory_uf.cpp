@@ -324,6 +324,7 @@ bool TheoryUF::collectModelInfo(TheoryModel* m)
 
   if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
   {
+    Trace("uf") << "Collect model info fail UF" << std::endl;
     return false;
   }
 
@@ -332,6 +333,7 @@ bool TheoryUF::collectModelInfo(TheoryModel* m)
     // function equivalence classes.
     if (!d_ho->collectModelInfoHo(termSet, m))
     {
+      Trace("uf") << "Collect model info fail HO" << std::endl;
       return false;
     }
   }
