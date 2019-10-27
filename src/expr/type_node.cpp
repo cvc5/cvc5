@@ -500,12 +500,14 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     std::vector< TypeNode > t1a = t1.getArgTypes();
     if (t0a.size()!=t1a.size())
     {
+      // different arities
       return TypeNode();
     }
     for (unsigned i=0, nargs=t0a.size(); i<nargs; i++)
     {
       if (t0a[i]!=t1a[i])
       {
+        // an argument is different
         return TypeNode();
       }
     }
