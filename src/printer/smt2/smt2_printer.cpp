@@ -1247,6 +1247,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_OPT: return "re.opt";
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
+  case kind::REGEXP_COMPLEMENT: return "re.complement";
 
   //sep theory
   case kind::SEP_STAR: return "sep";

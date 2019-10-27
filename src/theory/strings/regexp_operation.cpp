@@ -123,6 +123,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 
 bool RegExpOpr::isRegExpKind(Kind k)
 {
+  // we don't include REGEXP_COMPLEMENT here.
   return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
          || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
          || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
