@@ -2507,7 +2507,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     // values for variables that we solved for, using techniques specific to
     // this class.
     NodeManager* nm = NodeManager::currentNM();
-    TheoryModel * m = d_containing.getValuation().getModel();
+    TheoryModel* m = d_containing.getValuation().getModel();
     for (const std::pair<const Node, std::pair<Node, Node> >& cb :
          d_check_model_bounds)
     {
@@ -2519,7 +2519,7 @@ void NonlinearExtension::check(Theory::Effort e) {
       {
         pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       }
-      else if (!m->areEqual(v,l))
+      else if (!m->areEqual(v, l))
       {
         // only record if value was not equal already
         pred = v.eqNode(l);
@@ -2538,7 +2538,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     {
       Node v = d_check_model_vars[i];
       Node s = d_check_model_subs[i];
-      if (!m->areEqual(v,s))
+      if (!m->areEqual(v, s))
       {
         Node pred = v.eqNode(s);
         pred = Rewriter::rewrite(pred);
