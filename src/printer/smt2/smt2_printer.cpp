@@ -680,6 +680,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_OPT:
   case kind::REGEXP_RANGE:
   case kind::REGEXP_LOOP:
+  case kind::REGEXP_COMPLEMENT:
   case kind::REGEXP_EMPTY:
   case kind::REGEXP_SIGMA: out << smtKindString(k, d_variant) << " "; break;
 
