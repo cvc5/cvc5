@@ -246,6 +246,8 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
             {
               Node eq = edeq[0][0].eqNode(edeq[0][1]);
               Node lem = nm->mkNode(OR, deq.negate(), eq);
+              Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
+                            << std::endl;
               d_parent.getOutputChannel().lemma(lem);
               return 1;
             }
@@ -428,7 +430,7 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
     if (!m->assertEquality(n, hn, true))
     {
       Node eq = n.eqNode(hn);
-      Trace("uf-ho") << "HoExtension::collectModelInfoHoTerm: lemma " << eq
+      Trace("uf-ho") << "HoExtension: cmi app completion lemma " << eq
                      << std::endl;
       d_parent.getOutputChannel().lemma(eq);
       return false;
