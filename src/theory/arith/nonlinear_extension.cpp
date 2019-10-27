@@ -2288,12 +2288,13 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
 void NonlinearExtension::check(Theory::Effort e) {
   Trace("nl-ext") << std::endl;
-  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << ", built model = " << d_builtModel.get() << std::endl;
+  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
+                  << ", built model = " << d_builtModel.get() << std::endl;
   if (d_builtModel.get())
   {
     // already built model, nothing to do
   }
-  else if (e == Theory::EFFORT_FULL) 
+  else if (e == Theory::EFFORT_FULL)
   {
     d_containing.getExtTheory()->clearCache();
     d_needsLastCall = true;
@@ -2491,7 +2492,7 @@ void NonlinearExtension::check(Theory::Effort e) {
 
     } while (needsRecheck);
   }
-  
+
   // Did we internally determine a model exists? If so, we need to record some
   // information in the theory engine's model class.
   if (d_builtModel.get())
@@ -2501,7 +2502,7 @@ void NonlinearExtension::check(Theory::Effort e) {
       // don't need to build the model yet
       return;
     }
-    // Record the approximations we used. This code calls the 
+    // Record the approximations we used. This code calls the
     // recordApproximation method of the model, which overrides the model
     // values for variables that we solved for, using techniques specific to
     // this class.
@@ -2512,11 +2513,10 @@ void NonlinearExtension::check(Theory::Effort e) {
       Node l = cb.second.first;
       Node u = cb.second.second;
       Node pred;
-        Node v = cb.first;
+      Node v = cb.first;
       if (l != u)
       {
-        pred =
-            nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+        pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       }
       else
       {
@@ -2529,7 +2529,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     // special kind approximation of the form (choice x. x = exact_value).
     // Notice that the above term gets rewritten such that the choice function
     // is eliminated.
-    for (unsigned i=0, num=d_check_model_vars.size(); i<num; i++)
+    for (unsigned i = 0, num = d_check_model_vars.size(); i < num; i++)
     {
       Node v = d_check_model_vars[i];
       Node s = d_check_model_subs[i];
