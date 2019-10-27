@@ -307,7 +307,7 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(isSet() && t.isSet()) {
     return getSetElementType().isSubtypeOf(t.getSetElementType());
   }
-  if (isFuntion() && t.isFunction())
+  if (isFunction() && t.isFunction())
   {
     return getRangeType().isSubtypeOf(t.getRangeType());
   }
@@ -496,15 +496,15 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
       return TypeNode();
     }
     // must have equal arguments
-    std::vector< TypeNode >& t0a = t0.getArgTypes();
-    std::vector< TypeNode >& t1a = t1.getArgTypes();
+    std::vector< TypeNode > t0a = t0.getArgTypes();
+    std::vector< TypeNode > t1a = t1.getArgTypes();
     if (t0a.size()!=t1a.size())
     {
       return TypeNode();
     }
     for (unsigned i=0, nargs=t0a.size(); i<nargs; i++)
     {
-      if (t0a[i]!=t1[a])
+      if (t0a[i]!=t1a[i])
       {
         return TypeNode();
       }
