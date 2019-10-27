@@ -307,6 +307,10 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(isSet() && t.isSet()) {
     return getSetElementType().isSubtypeOf(t.getSetElementType());
   }
+  if (isFuntion() && t.isFunction())
+  {
+    return getRangeType().isSubtypeOf(t.getRangeType());
+  }
   // this should only return true for types T1, T2 where we handle equalities between T1 and T2
   // (more cases go here, if we want to support such cases)
   return false;
@@ -485,13 +489,41 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   // t0.getKind() == kind::TYPE_CONSTANT &&
   // t1.getKind() == kind::TYPE_CONSTANT
   switch(t0.getKind()) {
+  case kind::FUNCTION_TYPE:
+  {
+    if (t1.getKind()!=kind::FUNCTION_TYPE)
+    {
+      return TypeNode();
+    }
+    // must have equal arguments
+    std::vector< TypeNode >& t0a = t0.getArgTypes();
+    std::vector< TypeNode >& t1a = t1.getArgTypes();
+    if (t0a.size()!=t1a.size())
+    {
+      return TypeNode();
+    }
+    for (unsigned i=0, nargs=t0a.size(); i<nargs; i++)
+    {
+      if (t0a[i]!=t1[a])
+      {
+        return TypeNode();
+      }
+    }
+    TypeNode t0r = t0.getRangeType();
+    TypeNode t1r = t1.getRangeType();
+    TypeNode tr = commonTypeNode(t0r,t1r,isLeast);
+    std::vector< TypeNode > ftypes;
+    ftypes.insert(ftypes.end(),t0a.begin(),t0a.end());
+    ftypes.push_back(tr);
+    return NodeManager::currentNM()->mkFunctionType(ftypes);
+  }
+    break;
   case kind::BITVECTOR_TYPE:
   case kind::FLOATINGPOINT_TYPE:
   case kind::SORT_TYPE:
   case kind::CONSTRUCTOR_TYPE:
   case kind::SELECTOR_TYPE:
   case kind::TESTER_TYPE:
-  case kind::FUNCTION_TYPE:
   case kind::ARRAY_TYPE:
   case kind::DATATYPE_TYPE:
   case kind::PARAMETRIC_DATATYPE:
