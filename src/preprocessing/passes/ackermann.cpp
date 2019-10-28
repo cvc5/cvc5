@@ -229,30 +229,30 @@ void collectUSortsToBV(USortToBVSizeMap& usortCardinality,
  * We use a BFS to get all terms without duplications. */
 std::vector<TNode> getListOfTerms(AssertionPipeline* assertions)
 {
-	TNodeSet seen;
-	std::vector<TNode> res;
-	for (Node& a : assertions->ref())
-	{
-		if (seen.find(a) == seen.end())
-		{
-			res.push_back(a);
-			seen.insert(a);
-		}
-	}
-	size_t i = 0;
-	while (i < res.size())
-	{
-		for (TNode a : res[i])
-		{
-			if (seen.find(a) == seen.end())
-			{
-				res.push_back(a);
-				seen.insert(a);
-			}
-		}
-		++i;
-	}
-	return res;
+  TNodeSet seen;
+  std::vector<TNode> res;
+  for (Node& a : assertions->ref())
+  {
+    if (seen.find(a) == seen.end())
+    {
+      res.push_back(a);
+      seen.insert(a);
+    }
+  }
+  size_t i = 0;
+  while (i < res.size())
+  {
+    for (TNode a : res[i])
+    {
+      if (seen.find(a) == seen.end())
+      {
+        res.push_back(a);
+        seen.insert(a);
+      }
+    }
+    ++i;
+  }
+  return res;
 }
 
 /* This is the top level of converting uninterpreted sorts to bit vectors.
@@ -261,11 +261,10 @@ std::vector<TNode> getListOfTerms(AssertionPipeline* assertions)
  * assign a new bit-vector type with a sufficient size.
  * The size is calculated to have enough capacity, that can accommodate the
  * variables occured in the original formula. */
-void usortsToBitVectors(
-		const LogicInfo& d_logic,
-		AssertionPipeline* assertions,
-		USortToBVSizeMap& usortCardinality,
-		SubstitutionMap& sortsToSkolem)
+void usortsToBitVectors(const LogicInfo& d_logic,
+                        AssertionPipeline* assertions,
+                        USortToBVSizeMap& usortCardinality,
+                        SubstitutionMap& sortsToSkolem)
 {
   std::vector<TNode> toProcess = getListOfTerms(assertions);
   bool hasUninterpretedSorts = false;
@@ -273,8 +272,8 @@ void usortsToBitVectors(
   {
     if (needsReplace(term))
     {
-	  hasUninterpretedSorts = true;
-	  TypeNode type = term.getType();
+      hasUninterpretedSorts = true;
+      TypeNode type = term.getType();
       /* Update the statistics for each uninterpreted sort */
       // For non-existing key, C++ will create a new element for it, which has
       // the value initialized with a pair of two zeros.
@@ -282,22 +281,22 @@ void usortsToBitVectors(
     }
   }
 
-  if (hasUninterpretedSorts) {
-	  /* the current version only supports BV for removing uninterpreted sorts */
-	  AlwaysAssert(d_logic.isTheoryEnabled(theory::THEORY_BV),
-			  "Cannot use Ackermannization on formula with uninterpreted "
-			  "sorts without BV logic");
+  if (hasUninterpretedSorts)
+  {
+    /* the current version only supports BV for removing uninterpreted sorts */
+    AlwaysAssert(d_logic.isTheoryEnabled(theory::THEORY_BV),
+                 "Cannot use Ackermannization on formula with uninterpreted "
+                 "sorts without BV logic");
 
-	  collectUSortsToBV(usortCardinality, toProcess, sortsToSkolem);
+    collectUSortsToBV(usortCardinality, toProcess, sortsToSkolem);
 
-	  for (size_t i = 0, size = assertions->size(); i < size; ++i)
-	  {
-		  Node old = (*assertions)[i];
-		  assertions->replace(
-				  i, sortsToSkolem.apply((*assertions)[i]));
-		  Trace("uninterpretedSorts-to-bv")
-			  << "  " << old << " => " << (*assertions)[i] << "\n";
-	  }
+    for (size_t i = 0, size = assertions->size(); i < size; ++i)
+    {
+      Node old = (*assertions)[i];
+      assertions->replace(i, sortsToSkolem.apply((*assertions)[i]));
+      Trace("uninterpretedSorts-to-bv")
+          << "  " << old << " => " << (*assertions)[i] << "\n";
+    }
   }
 }
 
@@ -336,7 +335,7 @@ PreprocessingPassResult Ackermann::applyInternal(
 
   /* replace uninterpreted sorts with bit-vectors */
   usortsToBitVectors(
-		  d_logic, assertionsToPreprocess, d_usortCardinality, d_sortsToSkolem);
+      d_logic, assertionsToPreprocess, d_usortCardinality, d_sortsToSkolem);
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
