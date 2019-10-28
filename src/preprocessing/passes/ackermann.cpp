@@ -307,13 +307,14 @@ PreprocessingPassResult Ackermann::applyInternal(
   }
 
   /* the current version only supports BV for removing uninterpreted sorts */
-  if (hasUninterpretedSort()) {
-	  AlwaysAssert(
-			  d_logic.isTheoryEnabled(theory::THEORY_BV),
-			  "Cannot use Ackermannization on formula with uninterpreted sorts without BV logic");
-	  /* replace uninterpreted sorts with bit-vectors */
-	  usortsToBitVectors(
-			  d_usortCardinality, d_sortsToSkolem, assertionsToPreprocess);
+  if (hasUninterpretedSort())
+  {
+    AlwaysAssert(d_logic.isTheoryEnabled(theory::THEORY_BV),
+                 "Cannot use Ackermannization on formula with uninterpreted "
+                 "sorts without BV logic");
+    /* replace uninterpreted sorts with bit-vectors */
+    usortsToBitVectors(
+        d_usortCardinality, d_sortsToSkolem, assertionsToPreprocess);
 
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
