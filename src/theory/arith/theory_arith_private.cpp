@@ -4322,6 +4322,8 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   // TODO:
   // This is not very good for user push/pop....
   // Revisit when implementing push/pop
+  // Map of terms to values, constructed when non-linear arithmetic is active.
+  std::map< Node, Node > arithModel;
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar v = *vi;
 
@@ -4336,14 +4338,39 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
-
-        if (!m->assertEquality(term, qNode, true))
+        if (options::nlExt())
         {
-          return false;
+          // Let non-linear extension see/modify the values before they are sent 
+          // to the theory model.
+          arithModel[term] = qNode;
+        }
+        else
+        {
+          if (!m->assertEquality(term, qNode, true))
+          {
+            return false;
+          }
         }
       }else{
         Debug("arith::collectModelInfo") << "Skipping m->assertEquality(" << term << ", true)" << endl;
 
+      }
+    }
+  }
+  if (options::nlExt())
+  {
+    // non-linear may repair values to satisfy non-linear constraints
+    if (!d_nonlinearExtension->buildModel(arithModel))
+    {
+      // failed, we added a lemma
+      return false;
+    }
+    // otherwise, we are ready to assert the model
+    for (std::pair< const Node, Node >& p : arithModel)
+    {
+      if (!m->assertEquality(p.first, p.second, true))
+      {
+        return false;
       }
     }
   }

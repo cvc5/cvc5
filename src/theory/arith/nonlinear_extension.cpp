@@ -2549,6 +2549,12 @@ void NonlinearExtension::check(Theory::Effort e) {
   }
 }
 
+bool NonlinearExtension::buildModel(std::map<Node, Node>& arithModel)
+{
+  // TODO
+  return true;
+}
+
 void NonlinearExtension::presolve()
 {
   Trace("nl-ext") << "NonlinearExtension::presolve" << std::endl;
