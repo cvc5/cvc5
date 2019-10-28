@@ -27,6 +27,7 @@ set(regress_0_tests
   regress0/arith/integers/arith-int-042.min.cvc
   regress0/arith/issue1399.smt2
   regress0/arith/issue3412.smt2
+  regress0/arith/issue3413.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
   regress0/arith/miplib2.cvc
