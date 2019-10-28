@@ -120,7 +120,7 @@ class NonlinearExtension {
    */
   void check(Theory::Effort e);
   /** build model
-   * 
+   *
    * TODO
    */
   bool buildModel(std::map<Node, Node>& arithModel);
