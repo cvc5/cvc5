@@ -272,10 +272,12 @@ class NodeBuilder {
    * NodeValue is evacuated, make sure its children won't be
    * double-decremented later (on destruction/clear).
    */
-  inline void realloc() {
+  inline void realloc()
+  {
     size_t newSize = 2 * size_t(d_nvMaxChildren);
-    size_t hardLimit = (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
-    realloc(__builtin_expect( ( newSize > hardLimit ), false ) ? hardLimit : newSize);
+    size_t hardLimit = expr::NodeValue::MAX_CHILDREN;
+    realloc(__builtin_expect((newSize > hardLimit), false) ? hardLimit
+                                                           : newSize);
   }
 
   /**
@@ -774,9 +776,11 @@ template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
   AlwaysAssert(toSize > d_nvMaxChildren,
                "attempt to realloc() a NodeBuilder to a smaller/equal size!");
-  Assert( toSize < (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN),
-          "attempt to realloc() a NodeBuilder to size %u (beyond hard limit of %u)",
-          toSize, (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1 );
+  Assert(toSize < (static_cast<size_t>(1) << expr::NodeValue::NBITS_NCHILDREN),
+         "attempt to realloc() a NodeBuilder to size %lu (beyond hard limit of "
+         "%u)",
+         toSize,
+         expr::NodeValue::MAX_CHILDREN);
 
   if(__builtin_expect( ( nvIsAllocated() ), false )) {
     // Ensure d_nv is not modified on allocation failure
@@ -973,16 +977,6 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
          kind::kindToString(getKind()).c_str(),
          kind::metakind::getUpperBoundForKind(getKind()),
          getNumChildren());
-
-#if 0
-  // if the kind is PARAMETERIZED, check that the operator is correctly-kinded
-  Assert(kind::metaKindOf(getKind()) != kind::metakind::PARAMETERIZED ||
-         NodeManager::operatorToKind(getOperator()) == getKind(),
-         "Attempted to construct a parameterized kind `%s' with "
-         "incorrectly-kinded operator `%s'",
-         kind::kindToString(getKind()).c_str(),
-         kind::kindToString(getOperator().getKind()).c_str());
-#endif /* 0 */
 
   // Implementation differs depending on whether the NodeValue was
   // malloc'ed or not and whether or not it's in the already-been-seen

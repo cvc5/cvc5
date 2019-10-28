@@ -52,12 +52,6 @@ namespace CVC4 {
 class TypeNode;
 class NodeManager;
 
-namespace expr {
-  namespace pickle {
-    class PicklerPrivate;
-  }/* CVC4::expr::pickle namespace */
-}/* CVC4::expr namespace */
-
 template <bool ref_count>
 class NodeTemplate;
 
@@ -182,7 +176,6 @@ class NodeTemplate {
    */
   friend class expr::NodeValue;
 
-  friend class expr::pickle::PicklerPrivate;
   friend class expr::ExportPrivate;
 
   /** A convenient null-valued encapsulated pointer */
@@ -475,14 +468,16 @@ public:
   inline bool isClosure() const {
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA || getKind() == kind::FORALL
-           || getKind() == kind::EXISTS || getKind() == kind::CHOICE;
+           || getKind() == kind::EXISTS || getKind() == kind::CHOICE
+           || getKind() == kind::MATCH_BIND_CASE;
   }
 
   /**
    * Returns the unique id of this node
    * @return the ud
    */
-  unsigned long getId() const {
+  uint64_t getId() const
+  {
     assertTNodeNotExpired();
     return d_nv->getId();
   }

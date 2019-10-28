@@ -31,6 +31,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
+#include "theory/strings/solver_state.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -191,42 +192,7 @@ class TheoryStrings : public Theory {
     }
   };/* class TheoryStrings::NotifyClass */
 
-  //--------------------------- equality engine
-  /**
-   * Get the representative of t in the equality engine of this class, or t
-   * itself if it is not registered as a term.
-   */
-  Node getRepresentative(Node t);
-  /** Is t registered as a term in the equality engine of this class? */
-  bool hasTerm(Node a);
-  /**
-   * Are a and b equal according to the equality engine of this class? Also
-   * returns true if a and b are identical.
-   */
-  bool areEqual(Node a, Node b);
-  /**
-   * Are a and b disequal according to the equality engine of this class? Also
-   * returns true if the representative of a and b are distinct constants.
-   */
-  bool areDisequal(Node a, Node b);
-  //--------------------------- end equality engine
-
   //--------------------------- helper functions
-  /** get length with explanation
-   *
-   * If possible, this returns an arithmetic term that exists in the current
-   * context that is equal to the length of te, or otherwise returns the
-   * length of t. It adds to exp literals that hold in the current context that
-   * explain why that term is equal to the length of t. For example, if
-   * we have assertions:
-   *   len( x ) = 5 ^ z = x ^ x = y,
-   * then getLengthExp( z, exp, y ) returns len( x ) and adds { z = x } to
-   * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
-   * adds nothing to exp.
-   */
-  Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
-  /** shorthand for getLengthExp(t, exp, t) */
-  Node getLength(Node t, std::vector<Node>& exp);
   /** get normal string
    *
    * This method returns the node that is equivalent to the normal form of x,
@@ -252,6 +218,8 @@ class TheoryStrings : public Theory {
   NotifyClass d_notify;
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
+  /** The solver state object */
+  SolverState d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager d_im;
   /** Are we in conflict */
@@ -274,7 +242,6 @@ class TheoryStrings : public Theory {
   StringsPreprocess d_preproc;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
-  NodeSet d_extf_infer_cache_u;
   std::vector< Node > d_empty_vec;
   //
   NodeList d_ee_disequalities;
@@ -303,7 +270,21 @@ private:
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
   Node getConstantEqc( Node eqc );
-  
+  /**
+   * Get the current substitution for term n.
+   *
+   * This method returns a term that n is currently equal to in the current
+   * context. It updates exp to contain an explanation of why it is currently
+   * equal to that term.
+   *
+   * The argument effort determines what kind of term to return, either
+   * a constant in the equivalence class of n (effort=0), the normal form of
+   * n (effort=1,2) or the model value of n (effort>=3). The latter is only
+   * valid at LAST_CALL effort. If a term of the above form cannot be returned,
+   * then n itself is returned.
+   */
+  Node getCurrentSubstitutionFor(int effort, Node n, std::vector<Node>& exp);
+
   std::map< Node, Node > d_eqc_to_len_term;
   std::vector< Node > d_strings_eqc;
   Node d_emptyString_r;
@@ -311,7 +292,11 @@ private:
   public:
     Node d_data;
     std::map< TNode, TermIndex > d_children;
-    Node add( TNode n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c );
+    Node add(TNode n,
+             unsigned index,
+             const SolverState& s,
+             Node er,
+             std::vector<Node>& c);
     void clear(){ d_children.clear(); }
   };
   std::map< Kind, TermIndex > d_term_index;
@@ -321,7 +306,6 @@ private:
   std::map< Node, std::vector< int > > d_flat_form_index;
 
   void debugPrintFlatForms( const char * tc );
-  void debugPrintNormalForms( const char * tc );
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
@@ -343,32 +327,6 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
  private:
-  /** SAT-context-dependent information about an equivalence class */
-  class EqcInfo {
-  public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    /**
-     * If non-null, this is a term x from this eq class such that str.len( x )
-     * occurs as a term in this SAT context.
-     */
-    context::CDO< Node > d_length_term;
-    /**
-     * If non-null, this is a term x from this eq class such that str.code( x )
-     * occurs as a term in this SAT context.
-     */
-    context::CDO<Node> d_code_term;
-    context::CDO< unsigned > d_cardinality_lem_k;
-    context::CDO< Node > d_normalized_length;
-  };
-  /** map from representatives to information necessary for equivalence classes */
-  std::map< Node, EqcInfo* > d_eqc_info;
-  /**
-   * Get the above information for equivalence class eqc. If doMake is true,
-   * we construct a new information class if one does not exist. The term eqc
-   * should currently be a representative of the equality engine of this class.
-   */
-  EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
   /**
    * Map string terms to their "proxy variables". Proxy variables are used are
    * intermediate variables so that length information can be communicated for
@@ -604,15 +562,6 @@ private:
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
   //--------------------------end for checkNormalFormsDeq
 
-  //--------------------------------for checkMemberships
-  // check membership constraints
-  Node mkRegExpAntec(Node atom, Node ant);
-  bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
-  //check contains
-  void checkPosContains( std::vector< Node >& posContains );
-  void checkNegContains( std::vector< Node >& negContains );
-  //--------------------------------end for checkMemberships
-
  private:
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
@@ -665,13 +614,6 @@ private:
    * updates the set of normal form pairs.
    */
   void doInferInfo(const InferInfo& ii);
-  /**
-   * Adds equality a = b to the vector exp if a and b are distinct terms. It
-   * must be the case that areEqual( a, b ) holds in this context.
-   */
-  void addToExplanation(Node a, Node b, std::vector<Node>& exp);
-  /** Adds lit to the vector exp if it is non-null */
-  void addToExplanation(Node lit, std::vector<Node>& exp);
 
   /** Register term
    *
@@ -693,18 +635,6 @@ private:
    */
   void registerTerm(Node n, int effort);
 
-  /**
-   * Are we in conflict? This returns true if this theory has called its output
-   * channel's conflict method in the current SAT context.
-   */
-  bool inConflict() const { return d_conflict; }
-
-  /** mkConcat **/
-  inline Node mkConcat(Node n1, Node n2);
-  inline Node mkConcat(Node n1, Node n2, Node n3);
-  inline Node mkConcat(const std::vector<Node>& c);
-  inline Node mkLength(Node n);
-
   /** make explanation
    *
    * This returns a node corresponding to the explanation of formulas in a,
@@ -717,18 +647,6 @@ private:
 
  protected:
 
-  /** get equivalence classes
-   *
-   * This adds the representative of all equivalence classes to eqcs
-   */
-  void getEquivalenceClasses(std::vector<Node>& eqcs);
-  /** get relevant equivalence classes
-   *
-   * This adds the representative of all equivalence classes that contain at
-   * least one term in termSet.
-   */
-  void getRelevantEquivalenceClasses(std::vector<Node>& eqcs,
-                                     std::set<Node>& termSet);
 
   // separate into collections with equal length
   void separateByLength(std::vector<Node>& n,

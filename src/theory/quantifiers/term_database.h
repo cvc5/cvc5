@@ -271,11 +271,15 @@ class TermDb : public QuantifiersUtil {
   void setTermInactive(Node n);
   /** has term current
    *
-  * This function is used in cases where we restrict which terms appear in the
-  * database, such as for heuristics used in local theory extensions
-  * and for --term-db-mode=relevant.
-  * It returns whether the term n should be indexed in the current context.
-  */
+   * This function is used in cases where we restrict which terms appear in the
+   * database, such as for heuristics used in local theory extensions
+   * and for --term-db-mode=relevant.
+   * It returns whether the term n should be indexed in the current context.
+   *
+   * If the argument useMode is true, then this method returns a value based on
+   * the option options::termDbMode().
+   * Otherwise, it returns the lookup in the map d_has_map.
+   */
   bool hasTermCurrent(Node n, bool useMode = true);
   /** is term eligble for instantiation? */
   bool isTermEligibleForInstantiation(TNode n, TNode f);
@@ -287,6 +291,14 @@ class TermDb : public QuantifiersUtil {
    * Bansal et al., CAV 2015.
    */
   bool isInstClosure(Node r);
+  /** get higher-order type match predicate
+   *
+   * This predicate is used to force certain functions f of type tn to appear as
+   * first-class representatives in the quantifier-free UF solver. For a typical
+   * use case, we call getHoTypeMatchPredicate which returns a fresh predicate
+   * P of type (tn -> Bool). Then, we add P( f ) as a lemma.
+   */
+  Node getHoTypeMatchPredicate(TypeNode tn);
 
  private:
   /** reference to the quantifiers engine */
@@ -324,7 +336,12 @@ class TermDb : public QuantifiersUtil {
   /** has map */
   std::map< Node, bool > d_has_map;
   /** map from reps to a term in eqc in d_has_map */
-  std::map< Node, Node > d_term_elig_eqc;  
+  std::map<Node, Node> d_term_elig_eqc;
+  /**
+   * Dummy predicate that states terms should be considered first-class members
+   * of equality engine (for higher-order).
+   */
+  std::map<TypeNode, Node> d_ho_type_match_pred;
   /** set has term */
   void setHasTerm( Node n );
   /** helper for evaluate term */
@@ -387,7 +404,7 @@ class TermDb : public QuantifiersUtil {
    *   [1] -> (@ (@ f 0) 1)
    * is an entry in the term index of g. To do this, we maintain a term
    * index for a fresh variable pfun, the purification variable for
-   * (@ f 0). Thus, we register the term (psk 1) in the call to this function
+   * (@ f 0). Thus, we register the term (pfun 1) in the call to this function
    * for (@ (@ f 0) 1). This ensures that, when processing the equality
    * (@ f 0) = g, we merge the term indices of g and pfun. Hence, the entry
    *   [1] -> (@ (@ f 0) 1)
@@ -395,7 +412,7 @@ class TermDb : public QuantifiersUtil {
    * the equivalence class of g and pfun.
    *
    * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
-   * d_ho_purify_to_term[(@ (@ f 0) 1)] = (psk 1).
+   * d_ho_purify_to_term[(pfun 1)] = (@ (@ f 0) 1).
    */
   void addTermHo(Node n,
                  std::set<Node>& added,

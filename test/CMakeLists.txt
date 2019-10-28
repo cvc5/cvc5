@@ -5,9 +5,6 @@
 # > system tests
 
 add_custom_target(build-tests)
-# Since examples are also built and run for testing, we have to add examples
-# to the build test dependencies.
-add_dependencies(build-tests examples)
 
 # Note: Do not add custom targets for running tests (regress, systemtests,
 # units) as dependencies to other run targets. This will result in executing
@@ -17,7 +14,7 @@ add_dependencies(build-tests examples)
 # Dependencies of check are added in the corresponding subdirectories.
 add_custom_target(check
   COMMAND
-    ctest --output-on-failure -LE "regress[3-4]" -j${CTEST_NTHREADS} $(ARGS)
+    ctest --output-on-failure -LE "regress[3-4]" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS
     build-tests)
 

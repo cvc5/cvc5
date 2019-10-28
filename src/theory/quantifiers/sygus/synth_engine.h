@@ -19,8 +19,8 @@
 #define CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
 
 #include "context/cdhashmap.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -86,9 +86,9 @@ class SynthEngine : public QuantifiersModule
    *
    * The purpose of this method is to inform the solution reconstruction
    * techniques within the single invocation module that n is an original
-   * assertion, prior to rewriting. This is used as a heuristic to remember
-   * terms that are likely to help when trying to reconstruct a solution
-   * that fits a given input syntax.
+   * assertion. This is used as a heuristic to remember terms that are likely
+   * to help when trying to reconstruct a solution that fits a given input
+   * syntax.
    */
   void preregisterAssertion(Node n);
 

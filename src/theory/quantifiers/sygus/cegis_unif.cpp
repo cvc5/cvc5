@@ -20,6 +20,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -34,7 +35,8 @@ CegisUnif::CegisUnif(QuantifiersEngine* qe, SynthConjecture* p)
 }
 
 CegisUnif::~CegisUnif() {}
-bool CegisUnif::processInitialize(Node n,
+bool CegisUnif::processInitialize(Node conj,
+                                  Node n,
                                   const std::vector<Node>& candidates,
                                   std::vector<Node>& lemmas)
 {

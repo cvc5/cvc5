@@ -29,9 +29,9 @@
 #include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
+#include "theory/uf/cardinality_extension.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
 
@@ -81,7 +81,7 @@ void TheoryUF::finishInit() {
   if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind()
       && options::ufssMode() != UF_SS_NONE)
   {
-    d_thss.reset(new StrongSolverTheoryUF(
+    d_thss.reset(new CardinalityExtension(
         getSatContext(), getUserContext(), *d_out, this));
   }
   if (options::ufHo())
@@ -324,6 +324,7 @@ bool TheoryUF::collectModelInfo(TheoryModel* m)
 
   if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
   {
+    Trace("uf") << "Collect model info fail UF" << std::endl;
     return false;
   }
 
@@ -332,6 +333,7 @@ bool TheoryUF::collectModelInfo(TheoryModel* m)
     // function equivalence classes.
     if (!d_ho->collectModelInfoHo(termSet, m))
     {
+      Trace("uf") << "Collect model info fail HO" << std::endl;
       return false;
     }
   }

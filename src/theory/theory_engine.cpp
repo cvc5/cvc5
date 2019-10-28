@@ -59,6 +59,34 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
+/* -------------------------------------------------------------------------- */
+
+namespace theory {
+
+/**
+ * IMPORTANT: The order of the theories is important. For example, strings
+ *            depends on arith, quantifiers needs to come as the very last.
+ *            Do not change this order.
+ */
+
+#define CVC4_FOR_EACH_THEORY                                     \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BUILTIN)   \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BOOL)      \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_UF)        \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_ARITH)     \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_BV)        \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_FP)        \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_ARRAYS)    \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_DATATYPES) \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_SEP)       \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_SETS)      \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_STRINGS)   \
+  CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::THEORY_QUANTIFIERS)
+
+}  // namespace theory
+
+/* -------------------------------------------------------------------------- */
+
 inline void flattenAnd(Node n, std::vector<TNode>& out){
   Assert(n.getKind() == kind::AND);
   for(Node::iterator i=n.begin(), i_end=n.end(); i != i_end; ++i){
@@ -75,6 +103,28 @@ inline Node flattenAnd(Node n){
   std::vector<TNode> out;
   flattenAnd(n, out);
   return NodeManager::currentNM()->mkNode(kind::AND, out);
+}
+
+/**
+ * Compute the string for a given theory id. In this module, we use
+ * THEORY_SAT_SOLVER as an id, which is not a normal id but maps to
+ * THEORY_LAST. Thus, we need our own string conversion here.
+ *
+ * @param id The theory id
+ * @return The string corresponding to the theory id
+ */
+std::string getTheoryString(theory::TheoryId id)
+{
+  if (id == theory::THEORY_SAT_SOLVER)
+  {
+    return "THEORY_SAT_SOLVER";
+  }
+  else
+  {
+    std::stringstream ss;
+    ss << id;
+    return ss.str();
+  }
 }
 
 theory::LemmaStatus TheoryEngine::EngineOutputChannel::lemma(TNode lemma,
@@ -260,24 +310,6 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
   }
 }
 
-void TheoryEngine::eqNotifyPreMerge(TNode t1, TNode t2){
-  if (d_logicInfo.isQuantified()) {
-    d_quantEngine->eqNotifyPreMerge( t1, t2 );
-  }
-}
-
-void TheoryEngine::eqNotifyPostMerge(TNode t1, TNode t2){
-  if (d_logicInfo.isQuantified()) {
-    d_quantEngine->eqNotifyPostMerge( t1, t2 );
-  }
-}
-
-void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
-  if (d_logicInfo.isQuantified()) {
-    d_quantEngine->eqNotifyDisequal( t1, t2, reason );
-  }
-}
-
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,
@@ -292,7 +324,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_masterEqualityEngine(nullptr),
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
-      d_decManager(new DecisionManager(context)),
+      d_decManager(new DecisionManager(userContext)),
       d_curr_model(nullptr),
       d_aloc_curr_model(false),
       d_curr_model_builder(nullptr),
@@ -900,7 +932,12 @@ TheoryModel* TheoryEngine::getBuiltModel()
   {
     // If this method was called, we should be in SAT mode, and produceModels
     // should be true.
-    AlwaysAssert(d_inSatMode && options::produceModels());
+    AlwaysAssert(options::produceModels());
+    if (!d_inSatMode)
+    {
+      // not available, perhaps due to interuption.
+      return nullptr;
+    }
     // must build model at this point
     d_curr_model_builder->buildModel(d_curr_model);
   }
@@ -922,6 +959,10 @@ void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 bool TheoryEngine::presolve() {
   // Reset the interrupt flag
   d_interrupted = false;
+
+  // Reset the decision manager. This clears its decision strategies that are
+  // no longer valid in this user context.
+  d_decManager->presolve();
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -946,9 +987,6 @@ bool TheoryEngine::presolve() {
 }/* TheoryEngine::presolve() */
 
 void TheoryEngine::postsolve() {
-  // Reset the decision manager. This clears its decision strategies, which are
-  // user-context-dependent.
-  d_decManager->reset();
   // no longer in SAT mode
   d_inSatMode = false;
   // Reset the interrupt flag
@@ -2049,8 +2087,9 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     // See if it was sent to the theory by another theory
     PropagationMap::const_iterator find = d_propagationMap.find(toExplain);
     if (find != d_propagationMap.end()) {
-      Debug("theory::explain") << "\tTerm was propagated by another theory (theory = "
-                               << theoryOf((*find).second.theory)->getId() << ")" << std::endl;
+      Debug("theory::explain")
+          << "\tTerm was propagated by another theory (theory = "
+          << getTheoryString((*find).second.theory) << ")" << std::endl;
       // There is some propagation, check if its a timely one
       if ((*find).second.timestamp < toExplain.timestamp) {
         Debug("theory::explain") << "\tRelevant timetsamp, pushing "

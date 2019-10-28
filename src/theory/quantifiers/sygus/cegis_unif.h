@@ -233,7 +233,8 @@ class CegisUnif : public Cegis
 
  private:
   /** do cegis-implementation-specific initialization for this class */
-  bool processInitialize(Node n,
+  bool processInitialize(Node conj,
+                         Node n,
                          const std::vector<Node>& candidates,
                          std::vector<Node>& lemmas) override;
   /** Tries to build new candidate solutions with new enumerated expressions

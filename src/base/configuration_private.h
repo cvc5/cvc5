@@ -172,6 +172,12 @@ namespace CVC4 {
 #  endif /* __has_feature(address_sanitizer) */
 #endif /* defined(__has_feature) */
 
+#ifdef CVC4_USE_UBSAN
+#define IS_UBSAN_BUILD true
+#else /* CVC4_USE_UBSAN */
+#define IS_UBSAN_BUILD false
+#endif /* CVC4_USE_UBSAN */
+
 }/* CVC4 namespace */
 
 #endif /* CVC4__CONFIGURATION_PRIVATE_H */

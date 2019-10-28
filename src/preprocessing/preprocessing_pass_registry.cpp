@@ -23,11 +23,11 @@
 #include "base/cvc4_assert.h"
 #include "base/map_util.h"
 #include "base/output.h"
+#include "preprocessing/passes/ackermann.h"
 #include "preprocessing/passes/apply_substs.h"
 #include "preprocessing/passes/apply_to_const.h"
 #include "preprocessing/passes/bool_to_bv.h"
 #include "preprocessing/passes/bv_abstraction.h"
-#include "preprocessing/passes/bv_ackermann.h"
 #include "preprocessing/passes/bv_eager_atoms.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "preprocessing/passes/bv_intro_pow2.h"
@@ -142,7 +142,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("ite-removal", callCtor<IteRemoval>);
   registerPassInfo("miplib-trick", callCtor<MipLibTrick>);
   registerPassInfo("non-clausal-simp", callCtor<NonClausalSimp>);
-  registerPassInfo("bv-ackermann", callCtor<BVAckermann>);
+  registerPassInfo("ackermann", callCtor<Ackermann>);
   registerPassInfo("sym-break", callCtor<SymBreakerPass>);
   registerPassInfo("ext-rew-pre", callCtor<ExtRewPre>);
   registerPassInfo("theory-preprocess", callCtor<TheoryPreprocess>);

@@ -32,24 +32,21 @@ typedef std::map< Node, std::unordered_set< Node, NodeHashFunction > >::iterator
 typedef std::map< Node, std::map< kind::Kind_t, std::vector< Node > > >::iterator               TERM_IT;
 typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFunction > > >::iterator   TC_IT;
 
-TheorySetsRels::TheorySetsRels(context::Context* c,
-                               context::UserContext* u,
-                               eq::EqualityEngine* eq,
-                               TheorySetsPrivate& set)
-    : d_eqEngine(eq),
-      d_sets_theory(set),
-      d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
-      d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
-      d_shared_terms(u),
-      d_satContext(c)
+TheorySetsRels::TheorySetsRels(SolverState& s,
+                               InferenceManager& im,
+                               eq::EqualityEngine& e,
+                               context::UserContext* u)
+    : d_state(s), d_im(im), d_ee(e), d_shared_terms(u)
 {
-  d_eqEngine->addFunctionKind(PRODUCT);
-  d_eqEngine->addFunctionKind(JOIN);
-  d_eqEngine->addFunctionKind(TRANSPOSE);
-  d_eqEngine->addFunctionKind(TCLOSURE);
-  d_eqEngine->addFunctionKind(JOIN_IMAGE);
-  d_eqEngine->addFunctionKind(IDEN);
-  d_eqEngine->addFunctionKind(APPLY_CONSTRUCTOR);
+  d_trueNode = NodeManager::currentNM()->mkConst(true);
+  d_falseNode = NodeManager::currentNM()->mkConst(false);
+  d_ee.addFunctionKind(PRODUCT);
+  d_ee.addFunctionKind(JOIN);
+  d_ee.addFunctionKind(TRANSPOSE);
+  d_ee.addFunctionKind(TCLOSURE);
+  d_ee.addFunctionKind(JOIN_IMAGE);
+  d_ee.addFunctionKind(IDEN);
+  d_ee.addFunctionKind(APPLY_CONSTRUCTOR);
 }
 
 TheorySetsRels::~TheorySetsRels() {}
@@ -122,7 +119,7 @@ void TheorySetsRels::check(Theory::Effort level)
           }
         }
       }
-      m_it++;
+      ++m_it;
     }
 
     TERM_IT t_it = d_terms_cache.begin();
@@ -136,37 +133,37 @@ void TheorySetsRels::check(Theory::Effort level)
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while(term_it != k_t_it->second.end()) {
               computeMembersForBinOpRel( *term_it );
-              term_it++;
+              ++term_it;
             }
           } else if( k_t_it->first == kind::TRANSPOSE ) {
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               computeMembersForUnaryOpRel( *term_it );
-              term_it++;
+              ++term_it;
             }
           } else if ( k_t_it->first == kind::TCLOSURE ) {
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               buildTCGraphForRel( *term_it );
-              term_it++;
+              ++term_it;
             }
           } else if( k_t_it->first == kind::JOIN_IMAGE ) {
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               computeMembersForJoinImageTerm( *term_it );
-              term_it++;
+              ++term_it;
             }
           } else if( k_t_it->first == kind::IDEN ) {
             std::vector<Node>::iterator term_it = k_t_it->second.begin();
             while( term_it != k_t_it->second.end() ) {
               computeMembersForIdenTerm( *term_it );
-              term_it++;
+              ++term_it;
             }
           }
-          k_t_it++;
+          ++k_t_it;
         }
       }
-      t_it++;
+      ++t_it;
     }
     doTCInference();
 
@@ -188,10 +185,10 @@ void TheorySetsRels::check(Theory::Effort level)
 
   void TheorySetsRels::collectRelsInfo() {
     Trace("rels") << "[sets-rels] Start collecting relational terms..." << std::endl;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( d_eqEngine );
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_ee);
     while( !eqcs_i.isFinished() ){
       Node                      eqc_rep  = (*eqcs_i);
-      eq::EqClassIterator       eqc_i   = eq::EqClassIterator( eqc_rep, d_eqEngine );
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc_rep, &d_ee);
 
       TypeNode erType = eqc_rep.getType();
       Trace("rels-ee") << "[sets-rels-ee] Eqc term representative: " << eqc_rep << " with type " << eqc_rep.getType() << std::endl;
@@ -307,7 +304,7 @@ void TheorySetsRels::check(Theory::Effort level)
                                                              NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR,
                                                                                                Node::fromExpr(dt[0].getConstructor()), fst_mem_rep ),
                                                              join_image_term);
-      if (d_sets_theory.isEntailed(new_membership, true))
+      if (d_state.isEntailed(new_membership, true))
       {
         ++mem_rep_it;
         ++mem_rep_exp_it;
@@ -513,6 +510,8 @@ void TheorySetsRels::check(Theory::Effort level)
                               << " or can be infered by TC_Graph of tc_rel[0]! " << std::endl;
       return;
     }
+    NodeManager* nm = NodeManager::currentNM();
+
     // add mem_rep to d_tcrRep_tcGraph
     TC_IT tc_it = d_tcr_tcGraph.find( tc_rel );
     Node mem_rep_fst = getRepresentative( RelsUtils::nthElementOfTuple( mem_rep, 0 ) );
@@ -547,25 +546,45 @@ void TheorySetsRels::check(Theory::Effort level)
       exp_map[mem_rep_tup] = exp;
       d_tcr_tcGraph_exps[tc_rel] = exp_map;
     }
-
     Node fst_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_element = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    Node sk_1     = NodeManager::currentNM()->mkSkolem("stc", fst_element.getType());
-    Node sk_2     = NodeManager::currentNM()->mkSkolem("stc", snd_element.getType());
-    Node mem_of_r = NodeManager::currentNM()->mkNode(kind::MEMBER, exp[0], tc_rel[0]);
-    Node sk_eq    = NodeManager::currentNM()->mkNode(kind::EQUAL, sk_1, sk_2);
+    SkolemCache& sc = d_state.getSkolemCache();
+    Node sk_1 = sc.mkTypedSkolemCached(fst_element.getType(),
+                                       exp[0],
+                                       tc_rel[0],
+                                       SkolemCache::SK_TCLOSURE_DOWN1,
+                                       "stc1");
+    Node sk_2 = sc.mkTypedSkolemCached(fst_element.getType(),
+                                       exp[0],
+                                       tc_rel[0],
+                                       SkolemCache::SK_TCLOSURE_DOWN2,
+                                       "stc2");
+    Node mem_of_r = nm->mkNode(MEMBER, exp[0], tc_rel[0]);
+    Node sk_eq = nm->mkNode(EQUAL, sk_1, sk_2);
     Node reason   = exp;
 
     if( tc_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, tc_rel, exp[1]));
+      reason = nm->mkNode(AND, reason, nm->mkNode(EQUAL, tc_rel, exp[1]));
     }
 
-    Node conclusion = NodeManager::currentNM()->mkNode(kind::OR, mem_of_r,
-                                                     (NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, fst_element, sk_1), tc_rel[0]),
-                                                     (NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, sk_2, snd_element), tc_rel[0]),
-                                                     (NodeManager::currentNM()->mkNode(kind::OR, sk_eq, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, sk_1, sk_2), tc_rel))))))));
+    Node conc = nm->mkNode(
+        OR,
+        mem_of_r,
+        nm->mkNode(
+            AND,
+            nm->mkNode(MEMBER,
+                       RelsUtils::constructPair(tc_rel, fst_element, sk_1),
+                       tc_rel[0]),
+            nm->mkNode(MEMBER,
+                       RelsUtils::constructPair(tc_rel, sk_2, snd_element),
+                       tc_rel[0]),
+            nm->mkNode(OR,
+                       sk_eq,
+                       nm->mkNode(MEMBER,
+                                  RelsUtils::constructPair(tc_rel, sk_1, sk_2),
+                                  tc_rel))));
 
-    Node tc_lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason, conclusion );
+    Node tc_lemma = nm->mkNode(IMPLIES, reason, conc);
     d_pending.push_back(tc_lemma);
   }
 
@@ -607,7 +626,7 @@ void TheorySetsRels::check(Theory::Effort level)
           if( hasSeen.find(*set_it) == hasSeen.end() ) {
             isTCReachable( *set_it, dest, hasSeen, tc_graph, isReachable );
           }
-          set_it++;
+          ++set_it;
         }
       }
     }
@@ -648,9 +667,15 @@ void TheorySetsRels::check(Theory::Effort level)
 
   void TheorySetsRels::doTCInference( std::map< Node, std::unordered_set<Node, NodeHashFunction> > rel_tc_graph, std::map< Node, Node > rel_tc_graph_exps, Node tc_rel ) {
     Trace("rels-debug") << "[Theory::Rels] ****** doTCInference !" << std::endl;
-    for( TC_GRAPH_IT tc_graph_it = rel_tc_graph.begin(); tc_graph_it != rel_tc_graph.end(); tc_graph_it++ ) {
-      for( std::unordered_set< Node, NodeHashFunction >::iterator snd_elements_it = tc_graph_it->second.begin();
-           snd_elements_it != tc_graph_it->second.end(); snd_elements_it++ ) {
+    for (TC_GRAPH_IT tc_graph_it = rel_tc_graph.begin();
+         tc_graph_it != rel_tc_graph.end();
+         ++tc_graph_it)
+    {
+      for (std::unordered_set<Node, NodeHashFunction>::iterator
+               snd_elements_it = tc_graph_it->second.begin();
+           snd_elements_it != tc_graph_it->second.end();
+           ++snd_elements_it)
+      {
         std::vector< Node > reasons;
         std::unordered_set<Node, NodeHashFunction> seen;
         Node tuple = RelsUtils::constructPair( tc_rel, getRepresentative( tc_graph_it->first ), getRepresentative( *snd_elements_it) );
@@ -701,8 +726,11 @@ void TheorySetsRels::check(Theory::Effort level)
     seen.insert( cur_node_rep );
     TC_GRAPH_IT  cur_set = tc_graph.find( cur_node_rep );
     if( cur_set != tc_graph.end() ) {
-      for( std::unordered_set< Node, NodeHashFunction >::iterator set_it = cur_set->second.begin();
-           set_it != cur_set->second.end(); set_it++ ) {
+      for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
+               cur_set->second.begin();
+           set_it != cur_set->second.end();
+           ++set_it)
+      {
         Node new_pair = RelsUtils::constructPair( tc_rel, cur_node_rep, *set_it );
         std::vector< Node > new_reasons( reasons );
         new_reasons.push_back( rel_tc_graph_exps.find( new_pair )->second );
@@ -793,7 +821,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Node r1_rep = getRepresentative(join_rel[0]);
     Node r2_rep = getRepresentative(join_rel[1]);
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
-    Node shared_x = d_sets_theory.getSkolemCache().mkTypedSkolemCached(
+    Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
     Datatype     dt             = join_rel[0].getType().getSetElementType().getDatatype();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
@@ -892,7 +920,7 @@ void TheorySetsRels::check(Theory::Effort level)
     while( tc_graph_it != d_tcr_tcGraph.end() ) {
       Assert ( d_tcr_tcGraph_exps.find(tc_graph_it->first) != d_tcr_tcGraph_exps.end() );
       doTCInference( tc_graph_it->second, d_tcr_tcGraph_exps.find(tc_graph_it->first)->second, tc_graph_it->first );
-      tc_graph_it++;
+      ++tc_graph_it;
     }
     Trace("rels-debug") << "[Theory::Rels] ****** Done with finalizing transitive closure inferences!" << std::endl;
   }
@@ -1058,49 +1086,72 @@ void TheorySetsRels::check(Theory::Effort level)
   void TheorySetsRels::doPendingInfers()
   {
     // process the inferences in d_pending
-    if (!d_sets_theory.isInConflict())
+    if (!d_state.isInConflict())
     {
-      std::vector<Node> lemmas;
       for (const Node& p : d_pending)
       {
-        d_sets_theory.processInference(p, "rels", lemmas);
-        if (d_sets_theory.isInConflict())
+        if (p.getKind() == IMPLIES)
+        {
+          processInference(p[1], p[0], "rels");
+        }
+        else
+        {
+          processInference(p, d_trueNode, "rels");
+        }
+        if (d_state.isInConflict())
         {
           break;
         }
       }
       // if we are still not in conflict, send lemmas
-      if (!d_sets_theory.isInConflict())
+      if (!d_state.isInConflict())
       {
-        d_sets_theory.flushLemmas(lemmas);
+        d_im.flushPendingLemmas();
       }
     }
     d_pending.clear();
   }
 
+  void TheorySetsRels::processInference(Node conc, Node exp, const char* c)
+  {
+    Trace("sets-pinfer") << "Process inference: " << exp << " => " << conc
+                         << std::endl;
+    if (!d_state.isEntailed(exp, true))
+    {
+      Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
+      // we wrap the spurious explanation into a splitting lemma
+      Node lem = NodeManager::currentNM()->mkNode(OR, exp.negate(), conc);
+      d_im.assertInference(lem, d_trueNode, c, 1);
+      return;
+    }
+    // try to assert it as a fact
+    d_im.assertInference(conc, exp, c);
+  }
+
   bool TheorySetsRels::isRelationKind( Kind k ) {
-    return k == kind::TRANSPOSE || k == kind::PRODUCT || k == kind::JOIN || k == kind::TCLOSURE;
+    return k == TRANSPOSE || k == PRODUCT || k == JOIN || k == TCLOSURE
+           || k == IDEN || k == JOIN_IMAGE;
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {
-    if( d_eqEngine->hasTerm( t ) ){
-      return d_eqEngine->getRepresentative( t );
-    }else{
+    if (d_ee.hasTerm(t))
+    {
+      return d_ee.getRepresentative(t);
+    }
+    else
+    {
       return t;
     }
   }
 
-  bool TheorySetsRels::hasTerm( Node a ){
-    return d_eqEngine->hasTerm( a );
-  }
-
+  bool TheorySetsRels::hasTerm(Node a) { return d_ee.hasTerm(a); }
   bool TheorySetsRels::areEqual( Node a, Node b ){
     Assert(a.getType() == b.getType());
     Trace("rels-eq") << "[sets-rels]**** checking equality between " << a << " and " << b << std::endl;
     if(a == b) {
       return true;
     } else if( hasTerm( a ) && hasTerm( b ) ){
-      return d_eqEngine->areEqual( a, b );
+      return d_ee.areEqual(a, b);
     } else if(a.getType().isTuple()) {
       bool equal = true;
       for(unsigned int i = 0; i < a.getType().getTupleLength(); i++) {
@@ -1130,7 +1181,7 @@ void TheorySetsRels::check(Theory::Effort level)
         if(areEqual(*mems, member)) {
           return false;
         }
-        mems++;
+        ++mems;
       }
       map[rel_rep].push_back(member);
       return true;
@@ -1139,16 +1190,15 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   void TheorySetsRels::makeSharedTerm( Node n ) {
-    if(d_shared_terms.find(n) == d_shared_terms.end()) {
-      Trace("rels-share") << " [sets-rels] making shared term " << n
-                          << std::endl;
-      Node skolem = NodeManager::currentNM()->mkSkolem( "sts", NodeManager::currentNM()->mkSetType( n.getType() ) );
-      Node skEq =
-          skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON, n));
-      // force lemma to be sent immediately
-      d_sets_theory.getOutputChannel()->lemma(skEq);
-      d_shared_terms.insert(n);
+    if (d_shared_terms.find(n) != d_shared_terms.end())
+    {
+      return;
     }
+    Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
+    // force a proxy lemma to be sent for the singleton containing n
+    Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
+    d_state.getProxy(ss);
+    d_shared_terms.insert(n);
   }
 
   /*
@@ -1194,7 +1244,7 @@ void TheorySetsRels::check(Theory::Effort level)
         it = d_data.begin();
         while(it != d_data.end()) {
           nodes.push_back(it->first);
-          it++;
+          ++it;
         }
       }
       return nodes;
@@ -1216,7 +1266,7 @@ void TheorySetsRels::check(Theory::Effort level)
       it = d_data.begin();
       while(it != d_data.end()) {
         nodes.push_back(it->first);
-        it++;
+        ++it;
       }
       return nodes;
     }else{

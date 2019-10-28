@@ -14,10 +14,11 @@
 
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
 
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -734,8 +735,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       Assert(nc.first < dt.getNumConstructors());
       if (!nc.second)
       {
-        Node tst =
-            datatypes::DatatypesRewriter::mkTester(em, nc.first, dt).negate();
+        Node tst = datatypes::utils::mkTester(em, nc.first, dt).negate();
 
         if (std::find(lemmas.begin(), lemmas.end(), tst) == lemmas.end())
         {
@@ -801,7 +801,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
       continue;
     }
     EnumTypeInfoStrat* etis = snode.d_strats[j];
-    unsigned cindex = datatypes::DatatypesRewriter::indexOf(etis->d_cons);
+    unsigned cindex = datatypes::utils::indexOf(etis->d_cons);
     // constructors that correspond to strategies are not needed
     // the intuition is that the strategy itself is responsible for constructing
     // all terms that use the given constructor
