@@ -2497,7 +2497,7 @@ void NonlinearExtension::check(Theory::Effort e) {
   // information in the theory engine's model class.
   if (d_builtModel.get())
   {
-    if (e == Theory::EFFORT_FULL)
+    if (e < Theory::EFFORT_LAST_CALL)
     {
       // don't need to build the model yet
       return;
@@ -2534,7 +2534,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     // special kind approximation of the form (choice x. x = exact_value).
     // Notice that the above term gets rewritten such that the choice function
     // is eliminated.
-    for (unsigned i = 0, num = d_check_model_vars.size(); i < num; i++)
+    for (size_t i = 0, num = d_check_model_vars.size(); i < num; i++)
     {
       Node v = d_check_model_vars[i];
       Node s = d_check_model_subs[i];
