@@ -225,52 +225,80 @@ void collectUSortsToBV(USortToBVSizeMap& usortCardinality,
   }
 }
 
+/* This function returns the list of terms in formula represented by assertions.
+ * We use a BFS to get all terms without duplications. */
+std::vector<TNode> getListOfTerms(AssertionPipeline* assertions)
+{
+	TNodeSet seen;
+	std::vector<TNode> res;
+	for (Node& a : assertions->ref())
+	{
+		if (seen.find(a) == seen.end())
+		{
+			res.push_back(a);
+			seen.insert(a);
+		}
+	}
+	size_t i = 0;
+	while (i < res.size())
+	{
+		for (TNode a : res[i])
+		{
+			if (seen.find(a) == seen.end())
+			{
+				res.push_back(a);
+				seen.insert(a);
+			}
+		}
+		++i;
+	}
+	return res;
+}
+
 /* This is the top level of converting uninterpreted sorts to bit vectors.
  * We use BFS to get all terms without duplications, and count the number of
  * different terms for each uninterpreted sort. Then for each sort, we will
  * assign a new bit-vector type with a sufficient size.
  * The size is calculated to have enough capacity, that can accommodate the
  * variables occured in the original formula. */
-void usortsToBitVectors(USortToBVSizeMap& usortCardinality,
-                        SubstitutionMap& sortsToSkolem,
-                        AssertionPipeline* assertions)
+void usortsToBitVectors(
+		const LogicInfo& d_logic,
+		AssertionPipeline* assertions,
+		USortToBVSizeMap& usortCardinality,
+		SubstitutionMap& sortsToSkolem)
 {
-  TNodeSet seen;
-  std::vector<TNode> toProcess;
-  for (Node& a : assertions->ref())
+  std::vector<TNode> toProcess = getListOfTerms(assertions);
+  bool hasUninterpretedSorts = false;
+  for (TNode term : toProcess)
   {
-    if (seen.find(a) == seen.end())
-    {
-      toProcess.push_back(a);
-      seen.insert(a);
-    }
-  }
-  TNode term;
-  size_t i = 0;
-  while (i < toProcess.size())
-  {
-    term = toProcess[i];
-    TypeNode type = term.getType();
     if (needsReplace(term))
     {
+	  hasUninterpretedSorts = true;
+	  TypeNode type = term.getType();
       /* Update the statistics for each uninterpreted sort */
       // For non-existing key, C++ will create a new element for it, which has
       // the value initialized with a pair of two zeros.
       usortCardinality[type].first = usortCardinality[type].first + 1;
     }
-
-    for (TNode a : term)
-    {
-      if (seen.find(a) == seen.end())
-      {
-        toProcess.push_back(a);
-        seen.insert(a);
-      }
-    }
-    ++i;
   }
 
-  collectUSortsToBV(usortCardinality, toProcess, sortsToSkolem);
+  if (hasUninterpretedSorts) {
+	  /* the current version only supports BV for removing uninterpreted sorts */
+	  AlwaysAssert(d_logic.isTheoryEnabled(theory::THEORY_BV),
+			  "Cannot use Ackermannization on formula with uninterpreted "
+			  "sorts without BV logic");
+
+	  collectUSortsToBV(usortCardinality, toProcess, sortsToSkolem);
+
+	  for (size_t i = 0, size = assertions->size(); i < size; ++i)
+	  {
+		  Node old = (*assertions)[i];
+		  assertions->replace(
+				  i, sortsToSkolem.apply((*assertions)[i]));
+		  Trace("uninterpretedSorts-to-bv")
+			  << "  " << old << " => " << (*assertions)[i] << "\n";
+	  }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -306,25 +334,9 @@ PreprocessingPassResult Ackermann::applyInternal(
         i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
   }
 
-  /* the current version only supports BV for removing uninterpreted sorts */
-  if (hasUninterpretedSort())
-  {
-    AlwaysAssert(d_logic.isTheoryEnabled(theory::THEORY_BV),
-                 "Cannot use Ackermannization on formula with uninterpreted "
-                 "sorts without BV logic");
-    /* replace uninterpreted sorts with bit-vectors */
-    usortsToBitVectors(
-        d_usortCardinality, d_sortsToSkolem, assertionsToPreprocess);
-
-    for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-    {
-      Node old = (*assertionsToPreprocess)[i];
-      assertionsToPreprocess->replace(
-          i, d_sortsToSkolem.apply((*assertionsToPreprocess)[i]));
-      Trace("uninterpretedSorts-to-bv")
-          << "  " << old << " => " << (*assertionsToPreprocess)[i] << "\n";
-    }
-  }
+  /* replace uninterpreted sorts with bit-vectors */
+  usortsToBitVectors(
+		  d_logic, assertionsToPreprocess, d_usortCardinality, d_sortsToSkolem);
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
