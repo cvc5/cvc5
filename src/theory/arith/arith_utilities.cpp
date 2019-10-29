@@ -14,14 +14,12 @@
 
 #include "arith_utilities.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-/** Join kinds, where k1 and k2 are arithmetic relations returns an
- * arithmetic relation ret such that
- * if (a <k1> b) and (a <k2> b), then (a <ret> b).
- */
 Kind joinKinds(Kind k1, Kind k2)
 {
   if (k2 < k1)
@@ -34,41 +32,37 @@ Kind joinKinds(Kind k1, Kind k2)
   }
   Assert(isRelationOperator(k1));
   Assert(isRelationOperator(k2));
-  if (k1 == kind::EQUAL)
+  if (k1 == EQUAL)
   {
-    if (k2 == kind::LEQ || k2 == kind::GEQ)
+    if (k2 == LEQ || k2 == GEQ)
     {
       return k1;
     }
   }
-  else if (k1 == kind::LT)
+  else if (k1 == LT)
   {
-    if (k2 == kind::LEQ)
+    if (k2 == LEQ)
     {
       return k1;
     }
   }
-  else if (k1 == kind::LEQ)
+  else if (k1 == LEQ)
   {
-    if (k2 == kind::GEQ)
+    if (k2 == GEQ)
     {
-      return kind::EQUAL;
+      return EQUAL;
     }
   }
-  else if (k1 == kind::GT)
+  else if (k1 == GT)
   {
-    if (k2 == kind::GEQ)
+    if (k2 == GEQ)
     {
       return k1;
     }
   }
-  return kind::UNDEFINED_KIND;
+  return UNDEFINED_KIND;
 }
 
-/** Transitive kinds, where k1 and k2 are arithmetic relations returns an
- * arithmetic relation ret such that
- * if (a <k1> b) and (b <k2> c) then (a <ret> c).
- */
 Kind transKinds(Kind k1, Kind k2)
 {
   if (k2 < k1)
@@ -81,43 +75,35 @@ Kind transKinds(Kind k1, Kind k2)
   }
   Assert(isRelationOperator(k1));
   Assert(isRelationOperator(k2));
-  if (k1 == kind::EQUAL)
+  if (k1 == EQUAL)
   {
     return k2;
   }
-  else if (k1 == kind::LT)
+  else if (k1 == LT)
   {
-    if (k2 == kind::LEQ)
+    if (k2 == LEQ)
     {
       return k1;
     }
   }
-  else if (k1 == kind::GT)
+  else if (k1 == GT)
   {
-    if (k2 == kind::GEQ)
+    if (k2 == GEQ)
     {
       return k1;
     }
   }
-  return kind::UNDEFINED_KIND;
+  return UNDEFINED_KIND;
 }
 
-/** Is k a transcendental function kind? */
 bool isTranscendentalKind(Kind k)
 {
   // many operators are eliminated during rewriting
-  Assert(k != kind::TANGENT && k != kind::COSINE && k != kind::COSECANT
-         && k != kind::SECANT && k != kind::COTANGENT);
-  return k == kind::EXPONENTIAL || k == kind::SINE || k == kind::PI;
+  Assert(k != TANGENT && k != COSINE && k != COSECANT
+         && k != SECANT && k != COTANGENT);
+  return k == EXPONENTIAL || k == SINE || k == PI;
 }
 
-/**
- * Get a lower/upper approximation of the constant r within the given
- * level of precision. In other words, this returns a constant c' such that
- *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
- *   c' + 1/(10^prec) <= c <= c' if isLower is false.
- * where c' is a rational of the form n/d for some n and d <= 10^prec.
- */
 Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 {
   Assert(c.isConst());
@@ -190,7 +176,6 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   return cret;
 }
 
-/** print rational approximation of cr with precision prec on trace c */
 void printRationalApprox(const char* c, Node cr, unsigned prec)
 {
   Assert(cr.isConst());
