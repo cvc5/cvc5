@@ -256,6 +256,33 @@ cdef class OpTerm:
     def isNull(self):
         return self.copterm.isNull()
 
+    def getIndices(self):
+        indices = None
+        try:
+            indices = self.copterm.getIndices[string]()
+        except:
+            pass
+
+        try:
+            indices = kind(<int> self.copterm.getIndices[c_Kind]())
+        except:
+            pass
+
+        try:
+            indices = self.copterm.getIndices[uint32_t]()
+        except:
+            pass
+
+        try:
+            indices = self.copterm.getIndices[pair[uint32_t, uint32_t]]()
+        except:
+            pass
+
+        if indices is None:
+            raise RuntimeError("Unable to retrieve indices from {}".format(self))
+
+        return indices
+
 
 class Result:
     def __init__(self, name, explanation=""):

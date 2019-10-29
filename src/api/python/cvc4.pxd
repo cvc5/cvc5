@@ -93,6 +93,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Kind getKind() except +
         Sort getSort() except +
         bint isNull() except +
+        T getIndices[T]() except +
         string toString() except +
 
 
