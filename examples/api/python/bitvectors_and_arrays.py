@@ -52,6 +52,9 @@ if __name__ == "__main__":
     # Making a bit-vector constant
     zero = slv.mkBitVector(index_size, 0)
 
+    # Test making a constant array
+    constarr0 = slv.mkConstArray(arraySort, slv.mkBitVector(32, 0))
+
     # Asserting that current_array[0] > 0
     current_array0 = slv.mkTerm(kinds.Select, current_array, zero)
     current_array0_gt_0 = slv.mkTerm(kinds.BVSgt,

@@ -633,6 +633,11 @@ cdef class Solver:
                              " mkBitVector".format((size_or_str, val)))
         return term
 
+    def mkConstArray(self, Sort sort, Term val):
+        cdef Term term = Term()
+        term.cterm = self.csolver.mkConstArray(sort.csort, val.cterm)
+        return term
+
     def mkPosInf(self, int exp, int sig):
         cdef Term term = Term()
         term.cterm = self.csolver.mkPosInf(exp, sig)
