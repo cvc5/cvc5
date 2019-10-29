@@ -1,20 +1,18 @@
 /*********************                                                        */
-/*! \file datatypes_sygus.cpp
+/*! \file sygus_extension.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of sygus utilities for theory of datatypes
- **
- ** Implementation of sygus utilities for theory of datatypes
+ ** \brief Implementation of the sygus extension of the theory of datatypes.
  **/
 
-#include "theory/datatypes/datatypes_sygus.h"
+#include "theory/datatypes/sygus_extension.h"
 
 #include "expr/node_manager.h"
 #include "options/base_options.h"

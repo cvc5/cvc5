@@ -1,17 +1,15 @@
 /*********************                                                        */
-/*! \file datatypes_sygus.h
+/*! \file sygus_extension.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sygus utilities for theory of datatypes
- **
- ** Theory of datatypes.
+ ** \brief The sygus extension of the theory of datatypes.
  **/
 
 #include "cvc4_private.h"
