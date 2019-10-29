@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include "util/bin_heap.h"
+#include "test_utils.h"
 
 using namespace CVC4;
 using namespace std;
@@ -43,8 +44,8 @@ class BinaryHeapBlack : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(heap.size(), 0u);
     TS_ASSERT(heap.empty());
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS_ANYTHING(heap.top());
-    TS_ASSERT_THROWS_ANYTHING(heap.pop());
+    TS_UTILS_EXPECT_ABORT(heap.top());
+    TS_UTILS_EXPECT_ABORT(heap.pop());
 #endif /* CVC4_ASSERTIONS */
     TS_ASSERT_EQUALS(heap.begin(), heap.end());
 
@@ -60,8 +61,8 @@ class BinaryHeapBlack : public CxxTest::TestSuite {
     TS_ASSERT(heap.empty());
     TS_ASSERT_EQUALS(heap.size(), 0u);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS_ANYTHING(heap.top());
-    TS_ASSERT_THROWS_ANYTHING(heap.pop());
+    TS_UTILS_EXPECT_ABORT(heap.top());
+    TS_UTILS_EXPECT_ABORT(heap.pop());
 #endif /* CVC4_ASSERTIONS */
 
     // Next test a heap of 4 elements
@@ -118,8 +119,8 @@ class BinaryHeapBlack : public CxxTest::TestSuite {
     TS_ASSERT(heap.empty());
     TS_ASSERT_EQUALS(heap.size(), 0u);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS_ANYTHING(heap.top());
-    TS_ASSERT_THROWS_ANYTHING(heap.pop());
+    TS_UTILS_EXPECT_ABORT(heap.top());
+    TS_UTILS_EXPECT_ABORT(heap.pop());
 #endif /* CVC4_ASSERTIONS */
 
     // Now with a few updates

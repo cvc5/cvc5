@@ -23,6 +23,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
+#include "test_utils.h"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
@@ -114,14 +115,6 @@ static void testGaussElimX(Integer prime,
       TS_ASSERT(resrhs[i] == (*rrhs)[i]);
     }
   }
-}
-
-template <class T>
-static void testGaussElimT(Integer prime,
-                           std::vector<Integer> rhs,
-                           std::vector<std::vector<Integer>> lhs)
-{
-  TS_ASSERT_THROWS(BVGauss::gaussElim(prime, rhs, lhs), T);
 }
 
 class TheoryBVGaussWhite : public CxxTest::TestSuite
@@ -319,7 +312,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
            {Integer(2), Integer(3), Integer(5)},
            {Integer(4), Integer(0), Integer(5)}};
     std::cout << "matrix 0, modulo 0" << std::endl;  // throws
-    testGaussElimT<AssertionException>(Integer(0), rhs, lhs);
+    TS_UTILS_EXPECT_ABORT(BVGauss::gaussElim(Integer(0), rhs, lhs));
     std::cout << "matrix 0, modulo 1" << std::endl;
     testGaussElimX(Integer(1), rhs, lhs, BVGauss::Result::UNIQUE);
     std::cout << "matrix 0, modulo 2" << std::endl;
