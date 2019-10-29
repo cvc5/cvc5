@@ -77,7 +77,8 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
         d_constCache[cur] =
             tmp.isConst() ? RE_C_CONRETE_CONSTANT : RE_C_VARIABLE;
       }
-      else if (ck == REGEXP_SIGMA || ck == REGEXP_RANGE || ck == REGEXP_COMPLEMENT)
+      else if (ck == REGEXP_SIGMA || ck == REGEXP_RANGE
+               || ck == REGEXP_COMPLEMENT)
       {
         d_constCache[cur] = RE_C_CONSTANT;
       }
@@ -126,7 +127,8 @@ bool RegExpOpr::isRegExpKind(Kind k)
   return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
          || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
          || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
-         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV || k==REGEXP_COMPLEMENT;
+         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV
+         || k == REGEXP_COMPLEMENT;
 }
 
 // 0-unknown, 1-yes, 2-no
@@ -1059,11 +1061,12 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         }
         break;
       }
-      case kind::REGEXP_COMPLEMENT: {
+      case kind::REGEXP_COMPLEMENT:
+      {
         // ~( s in complement(R) ) ---> s in R
-        conc = nm->mkNode(STRING_IN_REGEXP,s, r[0]);
+        conc = nm->mkNode(STRING_IN_REGEXP, s, r[0]);
       }
-        break;
+      break;
       default: {
         Assert(!isRegExpKind(k));
         break;
@@ -1240,11 +1243,12 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         }
         break;
       }
-      case kind::REGEXP_COMPLEMENT: {
+      case kind::REGEXP_COMPLEMENT:
+      {
         // s in complement(R) ---> ~( s in R )
-        conc = nm->mkNode(STRING_IN_REGEXP,s, r[0]).negate();
+        conc = nm->mkNode(STRING_IN_REGEXP, s, r[0]).negate();
       }
-        break;
+      break;
       default: {
         Assert(!isRegExpKind(k));
         break;
@@ -1314,9 +1318,10 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
   } else if(n == d_emptySingleton) {
     r1 = d_emptySingleton;
     r2 = d_emptySingleton;
-  } 
+  }
   Kind nk = n.getKind();
-  if(nk == REGEXP_RV) {
+  if (nk == REGEXP_RV)
+  {
     Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
            "Exceeded UINT32_MAX in RegExpOpr::convert2");
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
@@ -1326,7 +1331,9 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     } else {
       r2 = n;
     }
-  } else if(nk ==REGEXP_CONCAT) {
+  }
+  else if (nk == REGEXP_CONCAT)
+  {
     bool flag = true;
     std::vector<Node> vr1, vr2;
     for( unsigned i=0; i<n.getNumChildren(); i++ ) {
@@ -1352,7 +1359,9 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
       r1 = d_emptySingleton;
       r2 = n;
     }
-  } else if(nk == REGEXP_UNION) {
+  }
+  else if (nk == REGEXP_UNION)
+  {
     std::vector<Node> vr1, vr2;
     for( unsigned i=0; i<n.getNumChildren(); i++ ) {
       Node t1, t2;
@@ -1362,15 +1371,20 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     }
     r1 = NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vr1);
     r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vr2);
-  } else if(nk == STRING_TO_REGEXP || nk == REGEXP_SIGMA || nk == REGEXP_RANGE) {
-      r1 = d_emptySingleton;
-      r2 = n;
-  } else if(nk == REGEXP_LOOP) {
+  }
+  else if (nk == STRING_TO_REGEXP || nk == REGEXP_SIGMA || nk == REGEXP_RANGE)
+  {
+    r1 = d_emptySingleton;
+    r2 = n;
+  }
+  else if (nk == REGEXP_LOOP)
+  {
     //TODO:LOOP
     r1 = d_emptySingleton;
     r2 = n;
     //Unreachable();
-  } else if (nk==REGEXP_COMPLEMENT)
+  }
+  else if (nk == REGEXP_COMPLEMENT)
   {
     // ???
     Unreachable();
@@ -1709,9 +1723,10 @@ std::string RegExpOpr::mkString( Node r ) {
         retStr += ">";
         break;
       }
-      case REGEXP_COMPLEMENT: {
+      case REGEXP_COMPLEMENT:
+      {
         retStr += "^(";
-        retStr += mkString( r[0] );
+        retStr += mkString(r[0]);
         retStr += ")";
         break;
       }
