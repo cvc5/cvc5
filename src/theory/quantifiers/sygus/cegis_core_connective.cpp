@@ -20,7 +20,7 @@
 #include "proof/unsat_core.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -207,7 +207,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
       // Register the symmetry breaking lemma: do not do top-level solutions
       // with this constructor (e.g. we want to enumerate literals, not
       // conjunctions).
-      Node tst = datatypes::DatatypesRewriter::mkTester(d_candidate, i, gdt);
+      Node tst = datatypes::utils::mkTester(d_candidate, i, gdt);
       Trace("sygus-ccore-init") << "Sym break lemma " << tst << std::endl;
       lemmas.push_back(tst.negate());
     }
