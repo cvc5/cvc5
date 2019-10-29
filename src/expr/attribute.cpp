@@ -43,7 +43,7 @@ void AttributeManager::debugHook(int debugFlag) {
 }
 
 void AttributeManager::deleteAllAttributes(NodeValue* nv) {
-  Assert(!inGarbageCollection());
+  CVC4_DCHECK(!inGarbageCollection());
   d_bools.erase(nv);
   deleteFromTable(d_ints, nv);
   deleteFromTable(d_tnodes, nv);
@@ -72,7 +72,7 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
   }
   AttrToVecMap::iterator it = perTableIds.begin(), it_end = perTableIds.end();
   for(; it != it_end; ++it) {
-    Assert(((*it).first) <= LastAttrTable);
+    CVC4_DCHECK(((*it).first) <= LastAttrTable);
     AttrTableId tableId = (AttrTableId) ((*it).first);
     std::vector< uint64_t>& ids = (*it).second;
     std::sort(ids.begin(), ids.end());

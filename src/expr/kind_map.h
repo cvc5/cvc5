@@ -24,6 +24,7 @@
 #include <iterator>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "expr/kind.h"
 
 namespace CVC4 {

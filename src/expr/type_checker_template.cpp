@@ -61,7 +61,9 @@ ${typerules}
 
 bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
+  CVC4_DCHECK(n.getMetaKind() == kind::metakind::OPERATOR
+              || n.getMetaKind() == kind::metakind::PARAMETERIZED
+              || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
   switch(n.getKind()) {
 ${construles}
@@ -77,7 +79,9 @@ ${construles}
 
 bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
+  CVC4_DCHECK(n.getMetaKind() == kind::metakind::OPERATOR
+              || n.getMetaKind() == kind::metakind::PARAMETERIZED
+              || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
   switch(n.getKind()) {
 ${neverconstrules}

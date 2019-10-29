@@ -152,8 +152,16 @@ public:
   inline ArithVar getVariable() const { return d_variable; }
 
   bool isRelaxed() const { return d_relaxed; }
-  void setRelaxed(){ Assert(!d_relaxed); d_relaxed = true; }
-  void setUnrelaxed(){ Assert(d_relaxed); d_relaxed = false; }
+  void setRelaxed()
+  {
+    CVC4_DCHECK(!d_relaxed);
+    d_relaxed = true;
+  }
+  void setUnrelaxed()
+  {
+    CVC4_DCHECK(d_relaxed);
+    d_relaxed = false;
+  }
 
   inline int sgn() const { return d_sgn; }
 
@@ -165,7 +173,7 @@ public:
   inline void setInFocus(bool inFocus) { d_inFocus = inFocus; }
 
   const DeltaRational& getAmount() const {
-    Assert(d_amount != NULL);
+    CVC4_DCHECK(d_amount != NULL);
     return *d_amount;
   }
 
@@ -174,7 +182,7 @@ public:
   uint32_t getMetric() const { return d_metric; }
 
   inline void setHandle(FocusSetHandle h) {
-    Assert(d_inFocus);
+    CVC4_DCHECK(d_inFocus);
     d_handle = h;
   }
   inline const FocusSetHandle& getHandle() const{ return d_handle; }
@@ -287,7 +295,7 @@ public:
   void setSelectionRule(ErrorSelectionRule rule);
 
   inline ArithVar topFocusVariable() const{
-    Assert(!focusEmpty());
+    CVC4_DCHECK(!focusEmpty());
     return d_focus.top();
   }
 
@@ -321,7 +329,7 @@ public:
   }
 
   inline int getSgn(ArithVar x) const {
-    Assert(inError(x));
+    CVC4_DCHECK(inError(x));
     return d_errInfo[x].sgn();
   }
   inline int focusSgn(ArithVar v) const {
@@ -347,7 +355,7 @@ public:
     return !noSignals();
   }
   ArithVar topSignal() const {
-    Assert(moreSignals());
+    CVC4_DCHECK(moreSignals());
     return d_signals.back();
   }
 
@@ -363,7 +371,7 @@ public:
   }
 
   uint32_t sumMetric(ArithVar a) const{
-    Assert(inError(a));
+    CVC4_DCHECK(inError(a));
     BoundCounts bcs = d_boundLookup.atBounds(a);
     uint32_t count = getSgn(a) > 0 ? bcs.upperBoundCount() : bcs.lowerBoundCount();
 

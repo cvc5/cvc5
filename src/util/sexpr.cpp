@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "options/set_language.h"
 #include "util/ostream_util.h"
 #include "util/smt2_quote_string.h"
@@ -47,7 +48,7 @@ SExpr::~SExpr() {
     delete d_children;
     d_children = NULL;
   }
-  Assert(d_children == NULL);
+  CVC4_DCHECK(d_children == NULL);
 }
 
 SExpr& SExpr::operator=(const SExpr& other) {
@@ -66,8 +67,8 @@ SExpr& SExpr::operator=(const SExpr& other) {
   } else {
     (*d_children) = other.getChildren();
   }
-  Assert(isAtom() == other.isAtom());
-  Assert((d_children == NULL) == isAtom());
+  CVC4_DCHECK(isAtom() == other.isAtom());
+  CVC4_DCHECK((d_children == NULL) == isAtom());
   return *this;
 }
 
@@ -87,7 +88,7 @@ SExpr::SExpr(const SExpr& other)
   d_children =
       (other.d_children == NULL) ? NULL : new SExprVector(*other.d_children);
   // d_children being NULL is equivalent to the node being an atom.
-  Assert((d_children == NULL) == isAtom());
+  CVC4_DCHECK((d_children == NULL) == isAtom());
 }
 
 SExpr::SExpr(const CVC4::Integer& value)
@@ -317,7 +318,7 @@ const CVC4::Rational& SExpr::getRationalValue() const {
 
 const std::vector<SExpr>& SExpr::getChildren() const {
   PrettyCheckArgument(!isAtom(), this);
-  Assert(d_children != NULL);
+  CVC4_DCHECK(d_children != NULL);
   return *d_children;
 }
 

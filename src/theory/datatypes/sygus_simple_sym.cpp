@@ -157,8 +157,8 @@ bool SygusSimpleSymBreak::considerArgKind(
   const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
   quantifiers::SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   quantifiers::SygusTypeInfo& pti = d_tds->getTypeInfo(tnp);
-  Assert(ti.hasKind(k));
-  Assert(pti.hasKind(pk));
+  CVC4_DCHECK(ti.hasKind(k));
+  CVC4_DCHECK(pti.hasKind(pk));
   Trace("sygus-sb-debug") << "Consider sygus arg kind " << k << ", pk = " << pk
                           << ", arg = " << arg << " in " << tnp << "?"
                           << std::endl;
@@ -170,7 +170,7 @@ bool SygusSimpleSymBreak::considerArgKind(
     // if the operator is associative, then a repeated occurrence should only
     // occur in the leftmost argument position
     int firstArg = getFirstArgOccurrence(pdt[pc], tn);
-    Assert(firstArg != -1);
+    CVC4_DCHECK(firstArg != -1);
     if (arg == firstArg)
     {
       return true;
@@ -194,7 +194,7 @@ bool SygusSimpleSymBreak::considerArgKind(
   // describes the shape of an alternate term to construct
   //  we check whether this term is in the sygus grammar below
   ReqTrie rt;
-  Assert(rt.empty());
+  CVC4_DCHECK(rt.empty());
 
   // construct rt by cases
   if (pk == NOT || pk == BITVECTOR_NOT || pk == UMINUS || pk == BITVECTOR_NEG)
@@ -300,7 +300,7 @@ bool SygusSimpleSymBreak::considerArgKind(
         int pcr = pti.getKindConsNum(rt.d_req_kind);
         if (pcr != -1)
         {
-          Assert(pcr < static_cast<int>(pdt.getNumConstructors()));
+          CVC4_DCHECK(pcr < static_cast<int>(pdt.getNumConstructors()));
           // must have same number of arguments
           if (pdt[pcr].getNumArgs() == dt[c].getNumArgs())
           {
@@ -480,7 +480,7 @@ bool SygusSimpleSymBreak::considerConst(
     const Datatype& pdt, TypeNode tnp, Node c, Kind pk, int arg)
 {
   quantifiers::SygusTypeInfo& pti = d_tds->getTypeInfo(tnp);
-  Assert(pti.hasKind(pk));
+  CVC4_DCHECK(pti.hasKind(pk));
   int pc = pti.getKindConsNum(pk);
   bool ret = true;
   Trace("sygus-sb-debug") << "Consider sygus const " << c << ", parent = " << pk
@@ -517,7 +517,7 @@ bool SygusSimpleSymBreak::considerConst(
   if (ret)
   {
     ReqTrie rt;
-    Assert(rt.empty());
+    CVC4_DCHECK(rt.empty());
     Node max_c = d_tutil->getTypeMaxValue(c.getType());
     Node zero_c = d_tutil->getTypeValue(c.getType(), 0);
     Node one_c = d_tutil->getTypeValue(c.getType(), 1);

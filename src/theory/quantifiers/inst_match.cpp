@@ -26,9 +26,9 @@ namespace inst {
 InstMatch::InstMatch(TNode q)
 {
   d_vals.resize(q[0].getNumChildren());
-  Assert(!d_vals.empty());
+  CVC4_DCHECK(!d_vals.empty());
   // resize must initialize with null nodes
-  Assert(d_vals[0].isNull());
+  CVC4_DCHECK(d_vals[0].isNull());
 }
 
 InstMatch::InstMatch( InstMatch* m ) {
@@ -46,7 +46,7 @@ void InstMatch::add(InstMatch& m)
 }
 
 bool InstMatch::merge( EqualityQuery* q, InstMatch& m ){
-  Assert(d_vals.size() == m.d_vals.size());
+  CVC4_DCHECK(d_vals.size() == m.d_vals.size());
   for (unsigned i = 0, size = d_vals.size(); i < size; i++)
   {
     if( !m.d_vals[i].isNull() ){
@@ -107,7 +107,7 @@ void InstMatch::setValue( int i, TNode n ) {
 }
 bool InstMatch::set(EqualityQuery* q, int i, TNode n)
 {
-  Assert( i>=0 );
+  CVC4_DCHECK(i >= 0);
   if( !d_vals[i].isNull() ){
     if (q->areEqual(d_vals[i], n))
     {

@@ -645,7 +645,7 @@ public:
 
   /** Returns the index size of a set of theories */
   static inline size_t setIndex(TheoryId id, Set set) {
-    Assert (setContains(id, set));
+    CVC4_DCHECK(setContains(id, set));
     size_t count = 0;
     while (setPop(set) != id) {
       ++ count;
@@ -858,7 +858,7 @@ std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
 
 
 inline theory::Assertion Theory::get() {
-  Assert( !done(), "Theory::get() called with assertion queue empty!" );
+  CVC4_DCHECK(!done()) << "Theory::get() called with assertion queue empty!";
 
   // Get the assertion
   Assertion fact = d_facts[d_factsHead];

@@ -66,7 +66,7 @@ ClauseId BVMinisatSatSolver::addClause(SatClause& clause,
   // }
   ClauseId clause_id = ClauseIdError;
   d_minisat->addClause(minisat_clause, clause_id);
-  THEORY_PROOF(Assert (clause_id != ClauseIdError););
+  THEORY_PROOF(CVC4_DCHECK(clause_id != ClauseIdError););
   return clause_id;
 }
 
@@ -213,7 +213,7 @@ SatLiteral BVMinisatSatSolver::toSatLiteral(BVMinisat::Lit lit) {
 SatValue BVMinisatSatSolver::toSatLiteralValue(BVMinisat::lbool res) {
   if(res == (BVMinisat::lbool((uint8_t)0))) return SAT_VALUE_TRUE;
   if(res == (BVMinisat::lbool((uint8_t)2))) return SAT_VALUE_UNKNOWN;
-  Assert(res == (BVMinisat::lbool((uint8_t)1)));
+  CVC4_DCHECK(res == (BVMinisat::lbool((uint8_t)1)));
   return SAT_VALUE_FALSE;
 }
 
@@ -222,7 +222,7 @@ void BVMinisatSatSolver::toMinisatClause(SatClause& clause,
   for (unsigned i = 0; i < clause.size(); ++i) {
     minisat_clause.push(toMinisatLit(clause[i]));
   }
-  Assert(clause.size() == (unsigned)minisat_clause.size());
+  CVC4_DCHECK(clause.size() == (unsigned)minisat_clause.size());
 }
 
 void BVMinisatSatSolver::toSatClause(const BVMinisat::Clause& clause,
@@ -230,7 +230,7 @@ void BVMinisatSatSolver::toSatClause(const BVMinisat::Clause& clause,
   for (int i = 0; i < clause.size(); ++i) {
     sat_clause.push_back(toSatLiteral(clause[i]));
   }
-  Assert((unsigned)clause.size() == sat_clause.size());
+  CVC4_DCHECK((unsigned)clause.size() == sat_clause.size());
 }
 
 

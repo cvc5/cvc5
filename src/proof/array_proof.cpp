@@ -130,7 +130,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     out << "(clausify_false (contra _ ";
     if (disequalityFound) {
       Node n2 = pf.d_children[neg]->d_node;
-      Assert(n2.getKind() == kind::NOT);
+      CVC4_DCHECK(n2.getKind() == kind::NOT);
       Debug("mgdx") << "\nhave proven: " << n1 << std::endl;
       Debug("mgdx") << "n2 is " << n2 << std::endl;
       Debug("mgdx") << "n2->d_id is " << pf.d_children[neg]->d_id << std::endl;
@@ -152,7 +152,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         out << ss.str();
         out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
       } else {
-        Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
+        CVC4_DCHECK((n1[0] == n2[0][0] && n1[1] == n2[0][1])
+                    || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
         if(n1[1] == n2[0][0]) {
           out << "(symm _ _ _ " << ss.str() << ")";
         } else {
@@ -165,8 +166,9 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       }
     } else {
       Node n2 = pf.d_node;
-      Assert(n2.getKind() == kind::EQUAL);
-      Assert((n1[0] == n2[0] && n1[1] == n2[1]) || (n1[1] == n2[0] && n1[0] == n2[1]));
+      CVC4_DCHECK(n2.getKind() == kind::EQUAL);
+      CVC4_DCHECK((n1[0] == n2[0] && n1[1] == n2[1])
+                  || (n1[1] == n2[0] && n1[0] == n2[1]));
 
       out << ss.str();
       out << " ";
@@ -193,28 +195,28 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       {
         Debug("mgd") << "Looking at pf2 with d_node: " << pf2->d_node
                      << std::endl;
-        Assert(!pf2->d_node.isNull());
-        Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF
-               || pf2->d_node.getKind() == kind::BUILTIN
-               || pf2->d_node.getKind() == kind::APPLY_UF
-               || pf2->d_node.getKind() == kind::SELECT
-               || pf2->d_node.getKind() == kind::PARTIAL_SELECT_0
-               || pf2->d_node.getKind() == kind::PARTIAL_SELECT_1
-               || pf2->d_node.getKind() == kind::STORE);
+        CVC4_DCHECK(!pf2->d_node.isNull());
+        CVC4_DCHECK(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF
+                    || pf2->d_node.getKind() == kind::BUILTIN
+                    || pf2->d_node.getKind() == kind::APPLY_UF
+                    || pf2->d_node.getKind() == kind::SELECT
+                    || pf2->d_node.getKind() == kind::PARTIAL_SELECT_0
+                    || pf2->d_node.getKind() == kind::PARTIAL_SELECT_1
+                    || pf2->d_node.getKind() == kind::STORE);
 
-        Assert(pf2->d_children.size() == 2);
+        CVC4_DCHECK(pf2->d_children.size() == 2);
         out << "(cong _ _ _ _ _ _ ";
         stk.push(pf2);
       }
-      Assert(stk.top()->d_children[0]->d_id
-             != theory::eq::MERGED_THROUGH_CONGRUENCE);
+      CVC4_DCHECK(stk.top()->d_children[0]->d_id
+                  != theory::eq::MERGED_THROUGH_CONGRUENCE);
       //    NodeBuilder<> b1(kind::PARTIAL_APPLY_UF),
       //    b2(kind::PARTIAL_APPLY_UF);
       NodeBuilder<> b1, b2;
 
       const theory::eq::EqProof* pf2 = stk.top();
       stk.pop();
-      Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
+      CVC4_DCHECK(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
       Node n1 = toStreamRecLFSC(out, tp, *(pf2->d_children[0]), tb + 1, map);
       out << " ";
       std::stringstream ss;
@@ -247,7 +249,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
           Debug("mgd") << "IN BAD CASE, our first subproof is\n";
           pf2->d_children[0]->debug_print("mgd", 0, &proofPrinter);
         }
-        Assert(tp->match(pf2->d_node, n1[1]));
+        CVC4_DCHECK(tp->match(pf2->d_node, n1[1]));
         side = 1;
       }
 
@@ -323,10 +325,15 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       b2 << n2[1-side];
       out << ss.str();
     } else {
-      Assert(pf2->d_node[b1.getNumChildren() +
-                         (n1[side].getKind() == kind::PARTIAL_SELECT_0 ? 1 : 0) +
-                         (n1[side].getKind() == kind::PARTIAL_SELECT_1 ? 1 : 0) -
-                         (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED ? 0 : 1)] == n2[1-side]);
+      CVC4_DCHECK(
+          pf2->d_node[b1.getNumChildren()
+                      + (n1[side].getKind() == kind::PARTIAL_SELECT_0 ? 1 : 0)
+                      + (n1[side].getKind() == kind::PARTIAL_SELECT_1 ? 1 : 0)
+                      - (pf2->d_node.getMetaKind()
+                                 == kind::metakind::PARAMETERIZED
+                             ? 0
+                             : 1)]
+          == n2[1 - side]);
       b1 << n2[1-side];
       b2 << n2[side];
       out << "(symm _ _ _ " << ss.str() << ")";
@@ -343,7 +350,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
       pf2 = stk.top();
       stk.pop();
-      Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
+      CVC4_DCHECK(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
       out << " ";
       ss.str("");
       n2 = toStreamRecLFSC(ss, tp, *(pf2->d_children[1]), tb + 1, map);
@@ -359,7 +366,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         b2 << n2[1-side];
         out << ss.str();
       } else {
-        Assert(pf2->d_node[b1.getNumChildren()] == n2[1-side]);
+        CVC4_DCHECK(pf2->d_node[b1.getNumChildren()] == n2[1 - side]);
         b1 << n2[1-side];
         b2 << n2[side];
         out << "(symm _ _ _ " << ss.str() << ")";
@@ -375,7 +382,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
                  << "n2 (assigned from b2) = " << n2 << std::endl;
 
     if(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF) {
-      Assert(n1 == pf2->d_node);
+      CVC4_DCHECK(n1 == pf2->d_node);
     }
 
     Debug("mgd") << "n1.getOperator().getType().getNumChildren() = "
@@ -383,7 +390,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     Debug("mgd") << "n1.getNumChildren() + 1 = "
                  << n1.getNumChildren() + 1 << std::endl;
 
-    Assert(!((n1.getKind() == kind::PARTIAL_SELECT_0 && n1.getNumChildren() == 2)));
+    CVC4_DCHECK(!(
+        (n1.getKind() == kind::PARTIAL_SELECT_0 && n1.getNumChildren() == 2)));
     if (n1.getKind() == kind::PARTIAL_SELECT_1 && n1.getNumChildren() == 2) {
       Debug("mgd") << "Finished a SELECT. Updating.." << std::endl;
       b1.clear(kind::SELECT);
@@ -401,7 +409,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       n1 = b1;
       Debug("mgd") << "at[2] end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
       if(pf2->d_node.getKind() == kind::APPLY_UF) {
-        Assert(n1 == pf2->d_node);
+        CVC4_DCHECK(n1 == pf2->d_node);
       }
     }
 
@@ -410,7 +418,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     Debug("mgd") << "n2.getNumChildren() + 1 = "
                  << n2.getNumChildren() + 1 << std::endl;
 
-    Assert(!((n2.getKind() == kind::PARTIAL_SELECT_0 && n2.getNumChildren() == 2)));
+    CVC4_DCHECK(!(
+        (n2.getKind() == kind::PARTIAL_SELECT_0 && n2.getNumChildren() == 2)));
     if (n2.getKind() == kind::PARTIAL_SELECT_1 && n2.getNumChildren() == 2) {
       Debug("mgd") << "Finished a SELECT. Updating.." << std::endl;
       b2.clear(kind::SELECT);
@@ -434,8 +443,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
   }
   case theory::eq::MERGED_THROUGH_REFLEXIVITY:
   {
-    Assert(!pf.d_node.isNull());
-    Assert(pf.d_children.empty());
+    CVC4_DCHECK(!pf.d_node.isNull());
+    CVC4_DCHECK(pf.d_children.empty());
     out << "(refl _ ";
     tp->printTerm(NodeManager::currentNM()->toExpr(pf.d_node), out, map);
     out << ")";
@@ -443,8 +452,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
   }
   case theory::eq::MERGED_THROUGH_EQUALITY:
   {
-    Assert(!pf.d_node.isNull());
-    Assert(pf.d_children.empty());
+    CVC4_DCHECK(!pf.d_node.isNull());
+    CVC4_DCHECK(pf.d_children.empty());
     Debug("pf::array") << "ArrayProof::toStream: getLitName( " << pf.d_node.negate() << " ) = " <<
       ProofManager::getLitName(pf.d_node.negate()) << std::endl;
     out << ProofManager::getLitName(pf.d_node.negate());
@@ -456,8 +465,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     bool firstNeg = false;
     bool secondNeg = false;
 
-    Assert(!pf.d_node.isNull());
-    Assert(pf.d_children.size() >= 2);
+    CVC4_DCHECK(!pf.d_node.isNull());
+    CVC4_DCHECK(pf.d_children.size() >= 2);
     std::stringstream ss;
     Debug("mgd") << "\ndoing trans proof[[\n";
     pf.debug_print("mgd", 0, &proofPrinter);
@@ -622,7 +631,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       }
 
       // We can hadnle one of the equalities being negative, but not both
-      Assert((n1.getKind() != kind::NOT) || (n2.getKind() != kind::NOT));
+      CVC4_DCHECK((n1.getKind() != kind::NOT) || (n2.getKind() != kind::NOT));
 
       firstNeg = false;
       secondNeg = false;
@@ -663,7 +672,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             n1 = n1[1].eqNode(n2[0]);
             ss << " (negsymm _ _ _ " << ss1.str() << ") (symm _ _ _ " << ss2.str() << ")";
           } else {
-            Assert(secondNeg);
+            CVC4_DCHECK(secondNeg);
             n1 = n1[1].eqNode(n2[0]);
             ss << " (symm _ _ _ " << ss1.str() << ") (negsymm _ _ _ " << ss2.str() << ")";
           }
@@ -727,11 +736,11 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
   case theory::eq::MERGED_THROUGH_CONSTANTS:
   {
     Debug("pf::array") << "Proof for: " << pf.d_node << std::endl;
-    Assert(pf.d_node.getKind() == kind::NOT);
+    CVC4_DCHECK(pf.d_node.getKind() == kind::NOT);
     Node n = pf.d_node[0];
-    Assert(n.getKind() == kind::EQUAL);
-    Assert(n.getNumChildren() == 2);
-    Assert(n[0].isConst() && n[1].isConst());
+    CVC4_DCHECK(n.getKind() == kind::EQUAL);
+    CVC4_DCHECK(n.getNumChildren() == 2);
+    CVC4_DCHECK(n[0].isConst() && n[1].isConst());
 
     ProofManager::getTheoryProofEngine()->printConstantDisequalityProof(
         out, n[0].toExpr(), n[1].toExpr(), map);
@@ -743,7 +752,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     if (pf.d_id == d_reasonRow)
     {
       Debug("mgd") << "row lemma: " << pf.d_node << std::endl;
-      Assert(pf.d_node.getKind() == kind::EQUAL);
+      CVC4_DCHECK(pf.d_node.getKind() == kind::EQUAL);
 
       if (pf.d_node[1].getKind() == kind::SELECT)
       {
@@ -767,11 +776,11 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         }
         else
         {
-          Assert(pf.d_node[0].getKind() == kind::SELECT
-                 && pf.d_node[0][0].getKind() == kind::STORE
-                 && pf.d_node[1].getKind() == kind::SELECT
-                 && pf.d_node[1][0] == pf.d_node[0][0][0]
-                 && pf.d_node[1][1] == pf.d_node[0][1]);
+          CVC4_DCHECK(pf.d_node[0].getKind() == kind::SELECT
+                      && pf.d_node[0][0].getKind() == kind::STORE
+                      && pf.d_node[1].getKind() == kind::SELECT
+                      && pf.d_node[1][0] == pf.d_node[0][0][0]
+                      && pf.d_node[1][1] == pf.d_node[0][1]);
           t2 = pf.d_node[0][0][1];
           t3 = pf.d_node[0][1];
           t1 = pf.d_node[1][0];
@@ -784,7 +793,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         // inner index != outer index
         // t3 is the outer index
 
-        Assert(pf.d_children.size() == 1);
+        CVC4_DCHECK(pf.d_children.size() == 1);
         std::stringstream ss;
         Node subproof =
             toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
@@ -827,10 +836,10 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         else
         {
           // Either t2 or t3 is a constant.
-          Assert(subproof.getKind() == kind::EQUAL);
-          Assert(subproof[0].isConst() || subproof[1].isConst());
-          Assert(t2.isConst() || t3.isConst());
-          Assert(!(t2.isConst() && t3.isConst()));
+          CVC4_DCHECK(subproof.getKind() == kind::EQUAL);
+          CVC4_DCHECK(subproof[0].isConst() || subproof[1].isConst());
+          CVC4_DCHECK(t2.isConst() || t3.isConst());
+          CVC4_DCHECK(!(t2.isConst() && t3.isConst()));
 
           bool t2IsConst = t2.isConst();
           if (subproof[0].isConst())
@@ -840,7 +849,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
               // (t3 == subproof[1]) == subproof[0] != t2
               // goal is t2 != t3
               // subproof already shows constant = t3
-              Assert(t3 == subproof[1]);
+              CVC4_DCHECK(t3 == subproof[1]);
               out << "(negtrans _ _ _ _ ";
               tp->printConstantDisequalityProof(
                   out, t2.toExpr(), subproof[0].toExpr(), map);
@@ -850,7 +859,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             }
             else
             {
-              Assert(t2 == subproof[1]);
+              CVC4_DCHECK(t2 == subproof[1]);
               out << "(negsymm _ _ _ ";
               out << "(negtrans _ _ _ _ ";
               tp->printConstantDisequalityProof(
@@ -867,7 +876,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
               // (t3 == subproof[0]) == subproof[1] != t2
               // goal is t2 != t3
               // subproof already shows constant = t3
-              Assert(t3 == subproof[0]);
+              CVC4_DCHECK(t3 == subproof[0]);
               out << "(negtrans _ _ _ _ ";
               tp->printConstantDisequalityProof(
                   out, t2.toExpr(), subproof[1].toExpr(), map);
@@ -877,7 +886,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
             }
             else
             {
-              Assert(t2 == subproof[0]);
+              CVC4_DCHECK(t2 == subproof[0]);
               out << "(negsymm _ _ _ ";
               out << "(negtrans _ _ _ _ ";
               tp->printConstantDisequalityProof(
@@ -951,7 +960,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         Debug("mgd") << "t1 " << t1 << "\nt2 " << t2 << "\nt3 " << t3 << "\nt4 "
                      << t4 << "\n";
 
-        Assert(pf.d_children.size() == 1);
+        CVC4_DCHECK(pf.d_children.size() == 1);
         std::stringstream ss;
         Node subproof =
             toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
@@ -995,7 +1004,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     else if (pf.d_id == d_reasonRow1)
     {
       Debug("mgd") << "row1 lemma: " << pf.d_node << std::endl;
-      Assert(pf.d_node.getKind() == kind::EQUAL);
+      CVC4_DCHECK(pf.d_node.getKind() == kind::EQUAL);
       TNode t1, t2, t3;
       Node ret;
       if (pf.d_node[1].getKind() == kind::SELECT
@@ -1011,10 +1020,10 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       }
       else
       {
-        Assert(pf.d_node[0].getKind() == kind::SELECT
-               && pf.d_node[0][0].getKind() == kind::STORE
-               && pf.d_node[0][0][1] == pf.d_node[0][1]
-               && pf.d_node[0][0][2] == pf.d_node[1]);
+        CVC4_DCHECK(pf.d_node[0].getKind() == kind::SELECT
+                    && pf.d_node[0][0].getKind() == kind::STORE
+                    && pf.d_node[0][0][1] == pf.d_node[0][1]
+                    && pf.d_node[0][0][2] == pf.d_node[1]);
         t1 = pf.d_node[0][0][0];
         t2 = pf.d_node[0][0][1];
         t3 = pf.d_node[1];
@@ -1031,12 +1040,12 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       return ret;
   }
   else if (pf.d_id == d_reasonExt) {
-    Assert(pf.d_node.getKind() == kind::NOT);
-    Assert(pf.d_node[0].getKind() == kind::EQUAL);
-    Assert(pf.d_children.size() == 1);
+    CVC4_DCHECK(pf.d_node.getKind() == kind::NOT);
+    CVC4_DCHECK(pf.d_node[0].getKind() == kind::EQUAL);
+    CVC4_DCHECK(pf.d_children.size() == 1);
     std::shared_ptr<theory::eq::EqProof> child_proof = pf.d_children[0];
-    Assert(child_proof->d_node.getKind() == kind::NOT);
-    Assert(child_proof->d_node[0].getKind() == kind::EQUAL);
+    CVC4_DCHECK(child_proof->d_node.getKind() == kind::NOT);
+    CVC4_DCHECK(child_proof->d_node[0].getKind() == kind::EQUAL);
 
     Debug("mgd") << "EXT lemma: " << pf.d_node << std::endl;
 
@@ -1057,10 +1066,10 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
   }
 
   else {
-    Assert(!pf.d_node.isNull());
-    Assert(pf.d_children.empty());
+    CVC4_DCHECK(!pf.d_node.isNull());
+    CVC4_DCHECK(pf.d_children.empty());
     Debug("mgd") << "theory proof: " << pf.d_node << " by rule " << int(pf.d_id) << std::endl;
-    AlwaysAssert(false);
+    CVC4_CHECK(false);
     return pf.d_node;
   }
 }
@@ -1110,12 +1119,12 @@ void ArrayProof::registerTerm(Expr term) {
 
 std::string ArrayProof::skolemToLiteral(Expr skolem) {
   Debug("pf::array") << "ArrayProof::skolemToLiteral( " << skolem << ")" << std::endl;
-  Assert(d_skolemToLiteral.find(skolem) != d_skolemToLiteral.end());
+  CVC4_DCHECK(d_skolemToLiteral.find(skolem) != d_skolemToLiteral.end());
   return d_skolemToLiteral[skolem];
 }
 
 void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARRAYS);
+  CVC4_DCHECK(theory::Theory::theoryOf(term) == theory::THEORY_ARRAYS);
 
   if (theory::Theory::theoryOf(term) != theory::THEORY_ARRAYS) {
     // We can get here, for instance, if there's a (select ite ...), e.g. a non-array term
@@ -1129,11 +1138,14 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
     return;
   }
 
-  Assert ((term.getKind() == kind::SELECT) || (term.getKind() == kind::PARTIAL_SELECT_0) || (term.getKind() == kind::PARTIAL_SELECT_1) || (term.getKind() == kind::STORE));
+  CVC4_DCHECK((term.getKind() == kind::SELECT)
+              || (term.getKind() == kind::PARTIAL_SELECT_0)
+              || (term.getKind() == kind::PARTIAL_SELECT_1)
+              || (term.getKind() == kind::STORE));
 
   switch (term.getKind()) {
   case kind::SELECT: {
-    Assert(term.getNumChildren() == 2);
+    CVC4_DCHECK(term.getNumChildren() == 2);
 
     bool convertToBool = (term[1].getType().isBoolean() && !d_proofEngine->printsAsBool(term[1]));
 
@@ -1152,7 +1164,7 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
   }
 
   case kind::PARTIAL_SELECT_0:
-    Assert(term.getNumChildren() == 1);
+    CVC4_DCHECK(term.getNumChildren() == 1);
     os << "(read ";
     printSort(ArrayType(term[0].getType()).getIndexType(), os);
     os << " ";
@@ -1164,7 +1176,7 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
     Debug("pf::array") << "This branch has not beed tested yet." << std::endl;
     Unreachable();
 
-    Assert(term.getNumChildren() == 1);
+    CVC4_DCHECK(term.getNumChildren() == 1);
     os << "(apply _ _ (read ";
     printSort(ArrayType(term[0].getType()).getIndexType(), os);
     os << " ";
@@ -1196,7 +1208,7 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
 
 void LFSCArrayProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printOwnedSort: type is: " << type << std::endl;
-  Assert (type.isArray() || type.isSort());
+  CVC4_DCHECK(type.isArray() || type.isSort());
   if (type.isArray()){
     ArrayType array_type(type);
 
@@ -1241,7 +1253,7 @@ void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren
   for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
     Expr term = *it;
 
-    Assert(term.getType().isArray() || term.isVariable());
+    CVC4_DCHECK(term.getType().isArray() || term.isVariable());
 
     Debug("pf::array") << "LFSCArrayProof::printDeclarations: term is: " << term
                        << ". It's type is: " << term.getType()
@@ -1265,7 +1277,7 @@ void LFSCArrayProof::printTermDeclarations(std::ostream& os, std::ostream& paren
       os << "))\n";
       paren << ")";
     } else {
-      Assert(term.isVariable());
+      CVC4_DCHECK(term.isVariable());
       if (ProofManager::getSkolemizationManager()->isSkolem(*it)) {
         Debug("pf::array") << "This term is a skoelm!" << std::endl;
         d_skolemDeclarations.insert(*it);
@@ -1300,8 +1312,8 @@ void LFSCArrayProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
 
     Debug("pf::array") << "LFSCArrayProof::printDeferredDeclarations: new skolem literal is: " << skolemLiteral << std::endl;
 
-    Assert(equality.getKind() == kind::NOT);
-    Assert(equality[0].getKind() == kind::EQUAL);
+    CVC4_DCHECK(equality.getKind() == kind::NOT);
+    CVC4_DCHECK(equality[0].getKind() == kind::EQUAL);
 
     Node array_one = equality[0][0];
     Node array_two = equality[0][1];

@@ -74,12 +74,12 @@ public:
 
   /** Moves the iterator for the queue forward. */
   void dequeue(){
-    Assert(!empty(), "Attempting to queue from an empty queue.");
+    CVC4_DCHECK(!empty()) << "Attempting to queue from an empty queue.";
     d_iter = d_iter + 1;
   }
 
   const T& operator[](size_t index) const{
-    Assert(index < d_list.size());
+    CVC4_DCHECK(index < d_list.size());
     return d_list[index];
   }
 

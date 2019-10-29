@@ -63,18 +63,18 @@ void SharedTermsDatabase::addSharedTerm(TNode atom, TNode term, Theory::Set theo
     d_addedSharedTermsSize = d_addedSharedTermsSize + 1;
     d_termsToTheories[search_pair] = theories;
   } else {
-    Assert(theories != (*find).second);
+    CVC4_DCHECK(theories != (*find).second);
     d_termsToTheories[search_pair] = Theory::setUnion(theories, (*find).second);
   }
 }
 
 SharedTermsDatabase::shared_terms_iterator SharedTermsDatabase::begin(TNode atom) const {
-  Assert(hasSharedTerms(atom));
+  CVC4_DCHECK(hasSharedTerms(atom));
   return d_atomsToTerms.find(atom)->second.begin();
 }
 
 SharedTermsDatabase::shared_terms_iterator SharedTermsDatabase::end(TNode atom) const {
-  Assert(hasSharedTerms(atom));
+  CVC4_DCHECK(hasSharedTerms(atom));
   return d_atomsToTerms.find(atom)->second.end();
 }
 
@@ -98,7 +98,7 @@ Theory::Set SharedTermsDatabase::getTheoriesToNotify(TNode atom, TNode term) con
   // Get the theories that share this term from this atom
   std::pair<TNode, TNode> search_pair(atom, term);
   SharedTermsTheoriesMap::iterator find = d_termsToTheories.find(search_pair);
-  Assert(find != d_termsToTheories.end());
+  CVC4_DCHECK(find != d_termsToTheories.end());
 
   // Get the theories that were already notified
   Theory::Set alreadyNotified = 0;
@@ -176,8 +176,8 @@ bool SharedTermsDatabase::areEqual(TNode a, TNode b) const {
   if (d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b)) {
     return d_equalityEngine.areEqual(a,b);
   } else {
-    Assert(d_equalityEngine.hasTerm(a) || a.isConst());
-    Assert(d_equalityEngine.hasTerm(b) || b.isConst());
+    CVC4_DCHECK(d_equalityEngine.hasTerm(a) || a.isConst());
+    CVC4_DCHECK(d_equalityEngine.hasTerm(b) || b.isConst());
     // since one (or both) of them is a constant, and the other is in the equality engine, they are not same
     return false;
   }
@@ -187,8 +187,8 @@ bool SharedTermsDatabase::areDisequal(TNode a, TNode b) const {
   if (d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b)) {
     return d_equalityEngine.areDisequal(a,b,false);
   } else {
-    Assert(d_equalityEngine.hasTerm(a) || a.isConst());
-    Assert(d_equalityEngine.hasTerm(b) || b.isConst());
+    CVC4_DCHECK(d_equalityEngine.hasTerm(a) || a.isConst());
+    CVC4_DCHECK(d_equalityEngine.hasTerm(b) || b.isConst());
     // one (or both) are in the equality engine
     return false;
   }
@@ -213,7 +213,7 @@ bool SharedTermsDatabase::propagateEquality(TNode equality, bool polarity) {
 }
 
 static Node mkAnd(const std::vector<TNode>& conjunctions) {
-  Assert(conjunctions.size() > 0);
+  CVC4_DCHECK(conjunctions.size() > 0);
 
   std::set<TNode> all;
   all.insert(conjunctions.begin(), conjunctions.end());
@@ -258,7 +258,7 @@ bool SharedTermsDatabase::isKnown(TNode literal) const {
 Node SharedTermsDatabase::explain(TNode literal) const {
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
-  Assert(atom.getKind() == kind::EQUAL);
+  CVC4_DCHECK(atom.getKind() == kind::EQUAL);
   std::vector<TNode> assumptions;
   d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
   return mkAnd(assumptions);

@@ -76,7 +76,7 @@ class CardinalityExtension
           ~DiseqList(){}
 
           void setDisequal( Node n, bool valid ){
-            Assert( (!isSet(n)) || getDisequalityValue(n) != valid );
+            CVC4_DCHECK((!isSet(n)) || getDisequalityValue(n) != valid);
             d_disequalities[ n ] = valid;
             d_size = d_size + ( valid ? 1 : -1 );
           }
@@ -84,7 +84,7 @@ class CardinalityExtension
             return d_disequalities.find(n) != d_disequalities.end();
           }
           bool getDisequalityValue(Node n) const {
-            Assert(isSet(n));
+            CVC4_DCHECK(isSet(n));
             return (*(d_disequalities.find(n))).second;
           }
 
@@ -167,7 +167,7 @@ class CardinalityExtension
 
       /** Returns a RegionInfo. */
       RegionNodeInfo* getRegionInfo(Node n) {
-        Assert(d_nodes.find(n) != d_nodes.end());
+        CVC4_DCHECK(d_nodes.find(n) != d_nodes.end());
         return (* (d_nodes.find(n))).second;
       }
 

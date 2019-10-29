@@ -217,14 +217,14 @@ Node TermUtil::substituteBoundVariables(Node n,
                                         std::vector<Node>& terms)
 {
   registerQuantifier(q);
-  Assert( d_vars[q].size()==terms.size() );
+  CVC4_DCHECK(d_vars[q].size() == terms.size());
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end() );
 }
 
 Node TermUtil::substituteInstConstants(Node n, Node q, std::vector<Node>& terms)
 {
   registerQuantifier(q);
-  Assert(d_inst_constants[q].size() == terms.size());
+  CVC4_DCHECK(d_inst_constants[q].size() == terms.size());
   return n.substitute(d_inst_constants[q].begin(),
                       d_inst_constants[q].end(),
                       terms.begin(),
@@ -306,7 +306,7 @@ void TermUtil::computeInstConstContainsForQuant(Node q,
 
 Node TermUtil::ensureType( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
-  Assert( ntn.isComparableTo( tn ) );
+  CVC4_DCHECK(ntn.isComparableTo(tn));
   if( ntn.isSubtypeOf( tn ) ){
     return n;
   }else{
@@ -353,7 +353,7 @@ bool TermUtil::containsUninterpretedConstant( Node n ) {
 
 Node TermUtil::simpleNegate(Node n)
 {
-  Assert(n.getType().isBoolean());
+  CVC4_DCHECK(n.getType().isBoolean());
   NodeManager* nm = NodeManager::currentNM();
   if( n.getKind()==OR || n.getKind()==AND ){
     std::vector< Node > children;
@@ -579,7 +579,7 @@ bool TermUtil::isAntisymmetric(Kind k, Kind& dk)
 bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
 {
   // these should all be binary operators
-  // Assert( ik!=DIVISION && ik!=INTS_DIVISION && ik!=INTS_MODULUS &&
+  // CVC4_DCHECK( ik!=DIVISION && ik!=INTS_DIVISION && ik!=INTS_MODULUS &&
   // ik!=BITVECTOR_UDIV );
   TypeNode tn = n.getType();
   if (n == getTypeValue(tn, 0))
@@ -711,7 +711,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
       }
       else if (ik == STRING_STRIDOF)
       {
-        Assert(arg == 2);
+        CVC4_DCHECK(arg == 2);
         return getTypeValue(NodeManager::currentNM()->integerType(), -1);
       }
     }
@@ -723,21 +723,21 @@ bool TermUtil::hasOffsetArg(Kind ik, int arg, int& offset, Kind& ok)
 {
   if (ik == LT)
   {
-    Assert(arg == 0 || arg == 1);
+    CVC4_DCHECK(arg == 0 || arg == 1);
     offset = arg == 0 ? 1 : -1;
     ok = LEQ;
     return true;
   }
   else if (ik == BITVECTOR_ULT)
   {
-    Assert(arg == 0 || arg == 1);
+    CVC4_DCHECK(arg == 0 || arg == 1);
     offset = arg == 0 ? 1 : -1;
     ok = BITVECTOR_ULE;
     return true;
   }
   else if (ik == BITVECTOR_SLT)
   {
-    Assert(arg == 0 || arg == 1);
+    CVC4_DCHECK(arg == 0 || arg == 1);
     offset = arg == 0 ? 1 : -1;
     ok = BITVECTOR_SLE;
     return true;

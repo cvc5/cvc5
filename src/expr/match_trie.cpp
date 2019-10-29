@@ -40,9 +40,9 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
     MatchTrie* curr = visit_trie.back();
     if (cvisit.empty())
     {
-      Assert(n
-             == curr->d_data.substitute(
-                 vars.begin(), vars.end(), subs.begin(), subs.end()));
+      CVC4_DCHECK(n
+                  == curr->d_data.substitute(
+                      vars.begin(), vars.end(), subs.begin(), subs.end()));
       Trace("match-debug") << "notify : " << curr->d_data << std::endl;
       if (!ntm->notify(n, curr->d_data, vars, subs))
       {
@@ -93,7 +93,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
         // clean up if we previously bound a variable
         if (visit_bound_var[index])
         {
-          Assert(!vars.empty());
+          CVC4_DCHECK(!vars.empty());
           smap.erase(vars.back());
           vars.pop_back();
           subs.pop_back();
@@ -115,7 +115,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
         {
           Trace("match-debug") << "check variable #" << vindex << " at depth "
                                << visit.size() << std::endl;
-          Assert(vindex < static_cast<int>(curr->d_vars.size()));
+          CVC4_DCHECK(vindex < static_cast<int>(curr->d_vars.size()));
           // recurse on variable?
           Node var = curr->d_vars[vindex];
           bool recurse = true;
@@ -158,7 +158,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
 
 void MatchTrie::addTerm(Node n)
 {
-  Assert(!n.isNull());
+  CVC4_DCHECK(!n.isNull());
   std::vector<Node> visit;
   visit.push_back(n);
   MatchTrie* curr = this;

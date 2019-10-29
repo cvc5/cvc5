@@ -28,14 +28,14 @@ namespace quantifiers {
 
 void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
 {
-  Assert(qe != nullptr);
+  CVC4_DCHECK(qe != nullptr);
   Trace("sygus-red") << "Compute redundant cons for " << tn << std::endl;
   d_type = tn;
-  Assert(tn.isDatatype());
+  CVC4_DCHECK(tn.isDatatype());
   TermDbSygus* tds = qe->getTermDatabaseSygus();
   tds->registerSygusType(tn);
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(dt.isSygus());
+  CVC4_DCHECK(dt.isSygus());
   TypeNode btn = TypeNode::fromType(dt.getSygusType());
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
@@ -89,7 +89,7 @@ void SygusRedundantCons::getRedundant(std::vector<unsigned>& indices)
 
 bool SygusRedundantCons::isRedundant(unsigned i)
 {
-  Assert(i < d_sygus_red_status.size());
+  CVC4_DCHECK(i < d_sygus_red_status.size());
   return d_sygus_red_status[i] == 1;
 }
 

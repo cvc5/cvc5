@@ -92,7 +92,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
 
 Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i)
 {
-  Assert(!tn.isNull());
+  CVC4_DCHECK(!tn.isNull());
   NodeManager* nm = NodeManager::currentNM();
   while (d_cn_free_var[tn].size() <= i)
   {

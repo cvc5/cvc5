@@ -92,7 +92,7 @@ void QuantifiersRewriter::computeArgVec(const std::vector<Node>& args,
                                         std::vector<Node>& activeArgs,
                                         Node n)
 {
-  Assert( activeArgs.empty() );
+  CVC4_DCHECK(activeArgs.empty());
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
   computeArgs( args, activeMap, n, visited );
@@ -110,7 +110,7 @@ void QuantifiersRewriter::computeArgVec2(const std::vector<Node>& args,
                                          Node n,
                                          Node ipl)
 {
-  Assert( activeArgs.empty() );
+  CVC4_DCHECK(activeArgs.empty());
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
   computeArgs( args, activeMap, n, visited );
@@ -286,7 +286,7 @@ Node QuantifiersRewriter::computeElimSymbols( Node body ) {
     }
     if( !success ){
       // tautology
-      Assert( k==OR || k==AND );
+      CVC4_DCHECK(k == OR || k == AND);
       return NodeManager::currentNM()->mkConst( k==OR );
     }
     childrenChanged = childrenChanged || c!=body[i];
@@ -405,7 +405,7 @@ int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
       }else if( j==start ){
         res1 = res;
       }else{
-        Assert( res!=0 );
+        CVC4_DCHECK(res != 0);
         if( n.getKind()==ITE ){
           return res1==res ? res : 0;
         }else if( n.getKind()==EQUAL ){
@@ -456,7 +456,7 @@ void setEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::v
     if( n.getKind()==APPLY_TESTER ){
       const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
       unsigned index = Datatype::indexOf(n.getOperator().toExpr());
-      Assert( dt.getNumConstructors()>1 );
+      CVC4_DCHECK(dt.getNumConstructors() > 1);
       if( pol ){
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
           if( i!=index ){
@@ -491,7 +491,7 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
   std::map< Node, Node > icache;
   if( qa.isFunDef() ){
     Node h = QuantAttributes::getFunDefHead( q );
-    Assert( !h.isNull() );
+    CVC4_DCHECK(!h.isNull());
     // if it is a function definition, rewrite the body independently
     Node fbody = QuantAttributes::getFunDefBody( q );
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
@@ -507,7 +507,7 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
                                     new_vars,
                                     new_conds,
                                     false);
-      Assert(new_vars.size() == h.getNumChildren());
+      CVC4_DCHECK(new_vars.size() == h.getNumChildren());
       return Rewriter::rewrite(NodeManager::currentNM()->mkNode(EQUAL, h, r));
     }
     // It can happen that we can't infer the shape of the function definition,
@@ -572,8 +572,8 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
               nCurrCond = nCurrCond + 1;
             }
             setEntailedCond( children[0], i==1, currCond, new_cond, conflict );
-            //should not conflict (entailment check failed) 
-            Assert( !conflict );
+            // should not conflict (entailment check failed)
+            CVC4_DCHECK(!conflict);
           }
           if( body.getKind()==OR || body.getKind()==AND ){
             bool use_pol = body.getKind()==AND;
@@ -706,7 +706,7 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
         Node den = ret[1];
         if(den.isConst()) {
           const Rational& rat = den.getConst<Rational>();
-          Assert(!num.isConst());
+          CVC4_DCHECK(!num.isConst());
           if(rat != 0) {
             Node intVar = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
             new_vars.push_back( intVar );
@@ -763,7 +763,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
     std::map< Node, std::map< int, Node > > ncons;
     std::vector< Node > conj;
     computeDtTesterIteSplit( body, pcons, ncons, conj );
-    Assert( !conj.empty() );
+    CVC4_DCHECK(!conj.empty());
     if( conj.size()>1 ){
       Trace("quantifiers-rewrite-ite") << "*** Split ITE (datatype tester) " << body << " into : " << std::endl;
       for( unsigned i=0; i<conj.size(); i++ ){
@@ -783,7 +783,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
       || (bk == EQUAL && body[0].getType().isBoolean()
           && options::condVarSplitQuantAgg()))
   {
-    Assert(!qa.isFunDef());
+    CVC4_DCHECK(!qa.isFunDef());
     bool do_split = false;
     unsigned index_max = bk == ITE ? 0 : 1;
     std::vector<Node> tmpArgs = args;
@@ -887,7 +887,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
 
 bool QuantifiersRewriter::isVarElim(Node v, Node s)
 {
-  Assert(v.getKind() == BOUND_VARIABLE);
+  CVC4_DCHECK(v.getKind() == BOUND_VARIABLE);
   return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
@@ -904,7 +904,7 @@ Node QuantifiersRewriter::getVarElimLitBv(Node lit,
     }
     Trace("quant-velim-bv") << "} ?" << std::endl;
   }
-  Assert(lit.getKind() == EQUAL);
+  CVC4_DCHECK(lit.getKind() == EQUAL);
   // TODO (#1494) : linearize the literal using utility
 
   // compute a subset active_args of the bound variables args that occur in lit
@@ -946,7 +946,7 @@ Node QuantifiersRewriter::getVarElimLitString(Node lit,
                                               const std::vector<Node>& args,
                                               Node& var)
 {
-  Assert(lit.getKind() == EQUAL);
+  CVC4_DCHECK(lit.getKind() == EQUAL);
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0; i < 2; i++)
   {
@@ -1061,7 +1061,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
             Node slv = lit[1 - i];
             if (!tpol)
             {
-              Assert(slv.getType().isBoolean());
+              CVC4_DCHECK(slv.getType().isBoolean());
               slv = slv.negate();
             }
             Trace("var-elim-quant")
@@ -1114,7 +1114,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
         if( !itm->first.isNull() ){
           std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), itm->first );
           if( ita!=args.end() ){
-            Assert(pol);
+            CVC4_DCHECK(pol);
             Node veq_c;
             Node val;
             int ires = ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
@@ -1148,15 +1148,15 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
     }
     if (!slv.isNull())
     {
-      Assert(!var.isNull());
+      CVC4_DCHECK(!var.isNull());
       std::vector<Node>::iterator ita =
           std::find(args.begin(), args.end(), var);
-      Assert(ita != args.end());
+      CVC4_DCHECK(ita != args.end());
       Trace("var-elim-quant")
           << "Variable eliminate based on theory-specific solving : " << var
           << " -> " << slv << std::endl;
-      Assert(!expr::hasSubterm(slv, var));
-      Assert(slv.getType().isSubtypeOf(var.getType()));
+      CVC4_DCHECK(!expr::hasSubterm(slv, var));
+      CVC4_DCHECK(slv.getType().isSubtypeOf(var.getType()));
       vars.push_back(var);
       subs.push_back(slv);
       args.erase(ita);
@@ -1181,7 +1181,7 @@ Node QuantifiersRewriter::datatypeExpand(unsigned index,
   }
   const Datatype& dt =
       static_cast<DatatypeType>(v.getType().toType()).getDatatype();
-  Assert(index < dt.getNumConstructors());
+  CVC4_DCHECK(index < dt.getNumConstructors());
   const DatatypeConstructor& c = dt[index];
   std::vector<Node> newChildren;
   newChildren.push_back(Node::fromExpr(c.getConstructor()));
@@ -1424,7 +1424,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
     }
     // eliminate from args
     std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);
-    Assert(ita != args.end());
+    CVC4_DCHECK(ita != args.end());
     args.erase(ita);
     ret = true;
   }
@@ -1459,7 +1459,7 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
     {
       Trace("var-elim-quant-debug")
           << "VE " << vars.size() << "/" << args.size() << std::endl;
-      Assert(vars.size() == subs.size());
+      CVC4_DCHECK(vars.size() == subs.size());
       // remake with eliminated nodes
       body =
           body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
@@ -1507,7 +1507,7 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
               NodeManager::currentNM()->mkNode( kind::OR, body[0], body[1].notNode() ) );
     return computePrenex( nn, args, nargs, pol, prenexAgg );
   }else if( body.getType().isBoolean() ){
-    Assert( body.getKind()!=EXISTS );
+    CVC4_DCHECK(body.getKind() != EXISTS);
     bool childrenChanged = false;
     std::vector< Node > newChildren;
     for( unsigned i=0; i<body.getNumChildren(); i++ ){
@@ -1629,8 +1629,8 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
         }
         ret = nnn;
       }else{
-        Assert( args.empty() );
-        Assert( nargs.empty() );
+        CVC4_DCHECK(args.empty());
+        CVC4_DCHECK(nargs.empty());
       }
     }
     visited[tindex][n] = ret;
@@ -1640,7 +1640,7 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
 }
 
 Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QAttributes& qa ) {
-  Assert( body.getKind()==OR );
+  CVC4_DCHECK(body.getKind() == OR);
   size_t var_found_count = 0;
   size_t eqc_count = 0;
   size_t eqc_active = 0;
@@ -1732,7 +1732,7 @@ Node QuantifiersRewriter::computeSplit( std::vector< Node >& args, Node body, QA
       Node fa = NodeManager::currentNM()->mkNode( FORALL, bvl, body );
       lits.push_back(fa);
     }
-    Assert( !lits.empty() );
+    CVC4_DCHECK(!lits.empty());
     Node nf = lits.size()==1 ? lits[0] : NodeManager::currentNM()->mkNode(OR,lits);
     Trace("clause-split-debug") << "Made node : " << nf << std::endl;
     return nf;
@@ -1828,7 +1828,7 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
       }
     }
   }else if( body.getKind()==NOT ){
-    Assert( isLiteral( body[0] ) );
+    CVC4_DCHECK(isLiteral(body[0]));
   }
   //remove variables that don't occur
   std::vector< Node > activeArgs;
@@ -1898,12 +1898,12 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
             qvl1.push_back( args[i] );
           }
         }else{
-          Assert(found2);
+          CVC4_DCHECK(found2);
           qvl2.push_back( args[i] );
         }
       }
-      Assert( !qvl1.empty() );
-      Assert( !qvl2.empty() || !qvsh.empty() );
+      CVC4_DCHECK(!qvl1.empty());
+      CVC4_DCHECK(!qvl2.empty() || !qvsh.empty());
       //check for literals that only contain shared variables
       std::vector<Node> qlitsh;
       std::vector<Node> qlit2;
@@ -2023,7 +2023,7 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption, QAttribut
     }else{
       std::vector< Node > nargs;
       n = computePrenex( n, args, nargs, true, false );
-      Assert( nargs.empty() );
+      CVC4_DCHECK(nargs.empty());
     }
   }else if( computeOption==COMPUTE_VAR_ELIMINATION ){
     n = computeVarElimination( n, args, qa );

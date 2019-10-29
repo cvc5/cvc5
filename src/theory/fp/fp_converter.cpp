@@ -141,7 +141,7 @@ void probabilityAnnotation<traits, traits::prop>(const traits::prop &p,
 #endif
 
 #ifndef CVC4_USE_SYMFPU
-#define PRECONDITION(X) Assert((X))
+#define PRECONDITION(X) CVC4_DCHECK((X))
 #define SYMFPU_NUMBER_OF_ROUNDING_MODES 5
 #endif
 
@@ -157,17 +157,17 @@ symbolicRoundingMode traits::RTN(void) { return symbolicRoundingMode(0x08); };
 symbolicRoundingMode traits::RTZ(void) { return symbolicRoundingMode(0x10); };
 void traits::precondition(const bool b)
 {
-  AlwaysAssert(b);
+  CVC4_CHECK(b);
   return;
 }
 void traits::postcondition(const bool b)
 {
-  AlwaysAssert(b);
+  CVC4_CHECK(b);
   return;
 }
 void traits::invariant(const bool b)
 {
-  AlwaysAssert(b);
+  CVC4_CHECK(b);
   return;
 }
 
@@ -302,7 +302,7 @@ symbolicProposition symbolicRoundingMode::operator==(
 template <bool isSigned>
 Node symbolicBitVector<isSigned>::boolNodeToBV(Node node) const
 {
-  Assert(node.getType().isBoolean());
+  CVC4_DCHECK(node.getType().isBoolean());
   NodeManager *nm = NodeManager::currentNM();
   return nm->mkNode(kind::ITE,
                     node,
@@ -313,8 +313,8 @@ Node symbolicBitVector<isSigned>::boolNodeToBV(Node node) const
 template <bool isSigned>
 Node symbolicBitVector<isSigned>::BVToBoolNode(Node node) const
 {
-  Assert(node.getType().isBitVector());
-  Assert(node.getType().getBitVectorSize() == 1);
+  CVC4_DCHECK(node.getType().isBitVector());
+  CVC4_DCHECK(node.getType().getBitVectorSize() == 1);
   NodeManager *nm = NodeManager::currentNM();
   return nm->mkNode(kind::EQUAL, node, nm->mkConst(BitVector(1U, 1U)));
 }
@@ -822,8 +822,8 @@ Node FpConverter::sbvToNode(const sbv &s) const { return s; }
 // Creates the components constraint
 FpConverter::uf FpConverter::buildComponents(TNode current)
 {
-  Assert(Theory::isLeafOf(current, THEORY_FP)
-         || current.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
+  CVC4_DCHECK(Theory::isLeafOf(current, THEORY_FP)
+              || current.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
 
   NodeManager *nm = NodeManager::currentNM();
   uf tmp(nm->mkNode(kind::FLOATINGPOINT_COMPONENT_NAN, current),
@@ -841,7 +841,7 @@ FpConverter::uf FpConverter::buildComponents(TNode current)
 
 // Non-convertible things should only be added to the stack at the very start,
 // thus...
-#define CVC4_FPCONV_PASSTHROUGH Assert(workStack.empty())
+#define CVC4_FPCONV_PASSTHROUGH CVC4_DCHECK(workStack.empty())
 
 Node FpConverter::convert(TNode node)
 {
@@ -1677,7 +1677,7 @@ Node FpConverter::convert(TNode node)
 
 Node FpConverter::getValue(Valuation &val, TNode var)
 {
-  Assert(Theory::isLeafOf(var, THEORY_FP));
+  CVC4_DCHECK(Theory::isLeafOf(var, THEORY_FP));
 
 #ifdef CVC4_USE_SYMFPU
   TypeNode t(var.getType());

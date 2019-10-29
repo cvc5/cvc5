@@ -416,7 +416,7 @@ public:
   static inline Node run(TNode node) {
     if (!checkApplies || applies(node)) {
       Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
-      Assert(checkApplies || applies(node));
+      CVC4_DCHECK(checkApplies || applies(node));
       //++ s_statistics->d_ruleApplications;
       Node result = apply(node);
       if (result != node) {

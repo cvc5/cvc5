@@ -82,7 +82,7 @@ void SygusExprPrintCallback::toStreamSygus(const Printer* p,
     body_out << sbody;
 
     // do string substitution
-    Assert(e.getNumChildren() == d_args.size());
+    CVC4_DCHECK(e.getNumChildren() == d_args.size());
     std::string str_body = body_out.str();
     for (unsigned i = 0, size = d_args.size(); i < size; i++)
     {
@@ -131,7 +131,7 @@ void SygusEmptyPrintCallback::toStreamSygus(const Printer* p,
   }
   else
   {
-    Assert(false);
+    CVC4_DCHECK(false);
   }
 }
 

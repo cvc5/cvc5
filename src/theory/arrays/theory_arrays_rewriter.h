@@ -88,7 +88,7 @@ public:
       depth += 1;
       store = store[0];
     }
-    Assert(store.getKind() == kind::STORE_ALL);
+    CVC4_DCHECK(store.getKind() == kind::STORE_ALL);
     ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
     Node defaultValue = Node::fromExpr(storeAll.getExpr());
     NodeManager* nm = NodeManager::currentNM();
@@ -144,7 +144,7 @@ public:
 
     // Need to make sure the default value count is larger, or the same and the default value is expression-order-less-than nextValue
     Cardinality::CardinalityComparison compare = indexCard.compare(mostFrequentValueCount + depth);
-    Assert(compare != Cardinality::UNKNOWN);
+    CVC4_DCHECK(compare != Cardinality::UNKNOWN);
     if (compare == Cardinality::GREATER ||
         (compare == Cardinality::EQUAL && (defaultValue < mostFrequentValue))) {
       return n;
@@ -180,12 +180,13 @@ public:
       store = store[0];
     }
 
-    Assert(depth == indices.size());
+    CVC4_DCHECK(depth == indices.size());
     compare = indexCard.compare(max + depth);
-    Assert(compare != Cardinality::UNKNOWN);
+    CVC4_DCHECK(compare != Cardinality::UNKNOWN);
     if (compare == Cardinality::GREATER ||
         (compare == Cardinality::EQUAL && (defaultValue < maxValue))) {
-      Assert(!replacedValue.isNull() && mostFrequentValue == replacedValue);
+      CVC4_DCHECK(!replacedValue.isNull()
+                  && mostFrequentValue == replacedValue);
       return n;
     }
 
@@ -206,7 +207,8 @@ public:
       ++numTe;
       ++te;
     }
-    Assert(indexCard.compare(newIndices.size() + depth) == Cardinality::EQUAL);
+    CVC4_DCHECK(indexCard.compare(newIndices.size() + depth)
+                == Cardinality::EQUAL);
     if (needToSort) {
       std::sort(newIndices.begin(), newIndices.end());
     }
@@ -266,7 +268,7 @@ public:
           ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
           n = Node::fromExpr(storeAll.getExpr());
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << n << std::endl;
-          Assert(n.isConst());
+          CVC4_DCHECK(n.isConst());
           return RewriteResponse(REWRITE_DONE, n);
         }
         else if (store != node[0]) {
@@ -290,7 +292,7 @@ public:
         if (store.isConst() && index.isConst() && value.isConst()) {
           // normalize constant
           Node n = normalizeConstant(node);
-          Assert(n.isConst());
+          CVC4_DCHECK(n.isConst());
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << n << std::endl;
           return RewriteResponse(REWRITE_DONE, n);
         }
@@ -373,7 +375,7 @@ public:
               indices.pop_back();
               elements.pop_back();
             }
-            Assert(n != node);
+            CVC4_DCHECK(n != node);
             Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << n << std::endl;
             return RewriteResponse(REWRITE_AGAIN, n);
           }
@@ -438,7 +440,7 @@ public:
           ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
           n = Node::fromExpr(storeAll.getExpr());
           Trace("arrays-prerewrite") << "Arrays::preRewrite returning " << n << std::endl;
-          Assert(n.isConst());
+          CVC4_DCHECK(n.isConst());
           return RewriteResponse(REWRITE_DONE, n);
         }
         else if (store != node[0]) {

@@ -195,7 +195,7 @@ inline Kind negateKind(Kind k){
 }
 
 inline Node negateConjunctionAsClause(TNode conjunction){
-  Assert(conjunction.getKind() == kind::AND);
+  CVC4_DCHECK(conjunction.getKind() == kind::AND);
   NodeBuilder<> orBuilder(kind::OR);
 
   for(TNode::iterator i = conjunction.begin(), end=conjunction.end(); i != end; ++i){
@@ -207,11 +207,10 @@ inline Node negateConjunctionAsClause(TNode conjunction){
 }
 
 inline Node maybeUnaryConvert(NodeBuilder<>& builder){
-  Assert(builder.getKind() == kind::OR ||
-         builder.getKind() == kind::AND ||
-         builder.getKind() == kind::PLUS ||
-         builder.getKind() == kind::MULT);
-  Assert(builder.getNumChildren() >= 1);
+  CVC4_DCHECK(builder.getKind() == kind::OR || builder.getKind() == kind::AND
+              || builder.getKind() == kind::PLUS
+              || builder.getKind() == kind::MULT);
+  CVC4_DCHECK(builder.getNumChildren() >= 1);
   if(builder.getNumChildren() == 1){
     return builder[0];
   }else{
@@ -220,7 +219,7 @@ inline Node maybeUnaryConvert(NodeBuilder<>& builder){
 }
 
 inline void flattenAnd(Node n, std::vector<TNode>& out){
-  Assert(n.getKind() == kind::AND);
+  CVC4_DCHECK(n.getKind() == kind::AND);
   for(Node::iterator i=n.begin(), i_end=n.end(); i != i_end; ++i){
     Node curr = *i;
     if(curr.getKind() == kind::AND){

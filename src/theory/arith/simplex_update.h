@@ -257,7 +257,7 @@ public:
 
   /** Sets the focusDirection. */
   void setFocusDirection(int fd){
-    Assert(-1 <= fd  && fd <= 1);
+    CVC4_DCHECK(-1 <= fd && fd <= 1);
     d_focusDirection = fd;
     updateWitness();
   }
@@ -275,8 +275,8 @@ public:
   /** Requires nonbasicDelta to be set through updateProposal(...). */
   const DeltaRational& nonbasicDelta() const { return d_nonbasicDelta.value(); }
   const Rational& getCoefficient() const {
-    Assert(describesPivot());
-    Assert(d_tableauCoefficient.value() != NULL);
+    CVC4_DCHECK(describesPivot());
+    CVC4_DCHECK(d_tableauCoefficient.value() != NULL);
     return *(d_tableauCoefficient.value());
   }
   int basicDirection() const {
@@ -289,7 +289,7 @@ public:
   }
 
   WitnessImprovement getWitness(bool useBlands = false) const{
-    Assert(d_witness == computeWitness());
+    CVC4_DCHECK(d_witness == computeWitness());
 
     if(d_witness == Degenerate){
       if(useBlands){
@@ -313,7 +313,7 @@ public:
 private:
   void updateWitness() {
     d_witness = computeWitness();
-    Assert(describesPivot() || improvement(d_witness));
+    CVC4_DCHECK(describesPivot() || improvement(d_witness));
   }
 
   /**

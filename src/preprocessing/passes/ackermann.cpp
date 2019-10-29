@@ -47,10 +47,10 @@ void addLemmaForPair(TNode args1,
 
   if (args1.getKind() == kind::APPLY_UF)
   {
-    Assert(args1.getOperator() == func);
-    Assert(args2.getKind() == kind::APPLY_UF && args2.getOperator() == func);
-    Assert(args1.getNumChildren() == args2.getNumChildren());
-    Assert(args1.getNumChildren() >= 1);
+    CVC4_DCHECK(args1.getOperator() == func);
+    CVC4_DCHECK(args2.getKind() == kind::APPLY_UF && args2.getOperator() == func);
+    CVC4_DCHECK(args1.getNumChildren() == args2.getNumChildren());
+    CVC4_DCHECK(args1.getNumChildren() >= 1);
 
     std::vector<Node> eqs(args1.getNumChildren());
 
@@ -69,10 +69,10 @@ void addLemmaForPair(TNode args1,
   }
   else
   {
-    Assert(args1.getKind() == kind::SELECT && args1[0] == func);
-    Assert(args2.getKind() == kind::SELECT && args2[0] == func);
-    Assert(args1.getNumChildren() == 2);
-    Assert(args2.getNumChildren() == 2);
+    CVC4_DCHECK(args1.getKind() == kind::SELECT && args1[0] == func);
+    CVC4_DCHECK(args2.getKind() == kind::SELECT && args2[0] == func);
+    CVC4_DCHECK(args1.getNumChildren() == 2);
+    CVC4_DCHECK(args2.getNumChildren() == 2);
     args_eq = nm->mkNode(kind::EQUAL, args1[1], args2[1]);
   }
   Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
@@ -169,7 +169,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       }
       else
       {
-        AlwaysAssert(
+        CVC4_CHECK(
             term.getKind() != kind::STORE,
             "Cannot use Ackermannization on formula with stores to arrays");
         /* add children to the vector, so that they are processed later */
@@ -196,7 +196,7 @@ Ackermann::Ackermann(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult Ackermann::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  AlwaysAssert(!options::incrementalSolving());
+  CVC4_CHECK(!options::incrementalSolving());
 
   /* collect all function applications and generate consistency lemmas
    * accordingly */

@@ -32,7 +32,7 @@ Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children){
     const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
     const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
 
-    Assert(min <= children.size());
+    CVC4_DCHECK(min <= children.size());
 
     unsigned int numChildren = children.size();
     NodeManager* nm = NodeManager::currentNM();
@@ -77,13 +77,13 @@ Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children){
 
     /* It's inconceivable we could have enough children for this to fail
      * (more than 2^32, in most cases?). */
-    AlwaysAssert( newChildren.size() <= max,
-                  "Too many new children in mkAssociative" );
+    CVC4_CHECK(newChildren.size() <= max)
+        << "Too many new children in mkAssociative";
 
     /* It would be really weird if this happened (it would require
      * min > 2, for one thing), but let's make sure. */
-    AlwaysAssert( newChildren.size() >= min,
-                  "Too few new children in mkAssociative" );
+    CVC4_CHECK(newChildren.size() >= min)
+        << "Too few new children in mkAssociative";
 
     return nm->mkNode(kind,newChildren);
   }
@@ -148,11 +148,10 @@ Node RePairAssocCommutativeOperators::rePairAssocCommutativeOperators(TNode n){
 
 Node RePairAssocCommutativeOperators::case_assoccomm(TNode n){
   Kind k = n.getKind();
-  Assert(isAssociateCommutative(k));
-  Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
+  CVC4_DCHECK(isAssociateCommutative(k));
+  CVC4_DCHECK(n.getMetaKind() != kind::metakind::PARAMETERIZED);
   unsigned N = n.getNumChildren();
-  Assert(N >= 2);
-
+  CVC4_DCHECK(N >= 2);
 
   Node last = rePairAssocCommutativeOperators( n[N-1]);
   Node nextToLast = rePairAssocCommutativeOperators(n[N-2]);
@@ -163,7 +162,7 @@ Node RePairAssocCommutativeOperators::case_assoccomm(TNode n){
   if(N <= 2){
     return last2;
   } else{
-    Assert(N > 2);
+    CVC4_DCHECK(N > 2);
     Node prevRound = last2;
     for(unsigned prevPos = N-2; prevPos > 0; --prevPos){
       unsigned currPos = prevPos-1;

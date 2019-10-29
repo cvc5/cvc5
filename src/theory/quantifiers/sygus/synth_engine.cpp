@@ -203,7 +203,7 @@ void SynthEngine::assignConjecture(Node q)
         Node f = funcs[i];
         Node fi = sip.getFunctionInvocationFor(f);
         Node fv = sip.getFirstOrderVariableForFunction(f);
-        Assert(!fi.isNull());
+        CVC4_DCHECK(!fi.isNull());
         orig.push_back(fi);
         Node k =
             nm->mkSkolem("k",
@@ -217,7 +217,7 @@ void SynthEngine::assignConjecture(Node q)
                          << std::endl;
       Node conj_se_ngsi_subs = conj_se_ngsi.substitute(
           orig.begin(), orig.end(), subs.begin(), subs.end());
-      Assert(!qe_vars.empty());
+      CVC4_DCHECK(!qe_vars.empty());
       conj_se_ngsi_subs = nm->mkNode(EXISTS,
                                      nm->mkNode(BOUND_VAR_LIST, qe_vars),
                                      conj_se_ngsi_subs.negate());
@@ -237,7 +237,7 @@ void SynthEngine::assignConjecture(Node q)
         qe_res_n =
             nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
       }
-      Assert(q.getNumChildren() == 3);
+      CVC4_DCHECK(q.getNumChildren() == 3);
       qe_res_n = nm->mkNode(FORALL, q[0], qe_res_n, q[2]);
       Trace("cegqi-qep") << "Converted conjecture after QE : " << qe_res_n
                          << std::endl;
@@ -366,7 +366,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
 
 void SynthEngine::printSynthSolution(std::ostream& out)
 {
-  Assert(!d_conjs.empty());
+  CVC4_DCHECK(!d_conjs.empty());
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
     if (d_conjs[i]->isAssigned())

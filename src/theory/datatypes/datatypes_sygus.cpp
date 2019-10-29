@@ -75,7 +75,7 @@ void SygusSymBreakNew::assertTester( int tindex, TNode n, Node exp, std::vector<
           }else{
             //this must be a proper selector
             IntMap::const_iterator itt = d_testers.find( n[0] );
-            Assert( itt!=d_testers.end() );
+            CVC4_DCHECK(itt != d_testers.end());
             int ptindex = (*itt).second;
             TypeNode ptn = n[0].getType();
             const Datatype& pdt = ((DatatypeType)ptn.toType()).getDatatype();
@@ -109,7 +109,7 @@ void SygusSymBreakNew::assertFact( Node n, bool polarity, std::vector< Node >& l
     if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
       std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
           d_szinfo.find(m);
-      Assert( its!=d_szinfo.end() );
+      CVC4_DCHECK(its != d_szinfo.end());
       Node mt = its->second->getOrMkMeasureValue(lemmas);
       //it relates the measure term to arithmetic
       Node blem = n.eqNode( NodeManager::currentNM()->mkNode( kind::LEQ, mt, n[1] ) );
@@ -188,7 +188,7 @@ void SygusSymBreakNew::registerTerm( Node n, std::vector< Node >& lemmas ) {
         d_term_to_anchor[n] = n;
         d_anchor_to_conj[n] = d_tds->getConjectureForEnumerator(n);
         // this assertion fails if we have a sygus term in the search that is unmeasured
-        Assert(d_anchor_to_conj[n] != NULL);
+        CVC4_DCHECK(d_anchor_to_conj[n] != NULL);
         d = 0;
         is_top_level = true;
         success = true;
@@ -233,13 +233,14 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
                            << std::endl;
 
   // get the search size for this
-  Assert( d_term_to_anchor.find( n )!=d_term_to_anchor.end() );
+  CVC4_DCHECK(d_term_to_anchor.find(n) != d_term_to_anchor.end());
   Node a = d_term_to_anchor[n];
-  Assert( d_anchor_to_measure_term.find( a )!=d_anchor_to_measure_term.end() );
+  CVC4_DCHECK(d_anchor_to_measure_term.find(a)
+              != d_anchor_to_measure_term.end());
   Node m = d_anchor_to_measure_term[a];
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator itsz =
       d_szinfo.find(m);
-  Assert( itsz!=d_szinfo.end() );
+  CVC4_DCHECK(itsz != d_szinfo.end());
   unsigned ssz = itsz->second->d_curr_search_size;
   
   if( options::sygusFair()==SYGUS_FAIR_DIRECT ){
@@ -248,7 +249,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
       // consider lower bounds for size of types
       unsigned lb_add = nti.getMinConsTermSize(tindex);
       unsigned lb_rem = n == a ? 0 : nti.getMinTermSize();
-      Assert( lb_add>=lb_rem );
+      CVC4_DCHECK(lb_add >= lb_rem);
       d_currTermSize[a].set( d_currTermSize[a].get() + ( lb_add - lb_rem ) );
     }
     if( (unsigned)d_currTermSize[a].get()>ssz ){
@@ -264,18 +265,19 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
         Node xa = d_term_to_anchor[x];
         if( xa==a ){
           IntMap::const_iterator ittv = d_testers.find( x );
-          Assert( ittv != d_testers.end() );
+          CVC4_DCHECK(ittv != d_testers.end());
           int tindex = (*ittv).second;
           const Datatype& dti = ((DatatypeType)x.getType().toType()).getDatatype();
           if( dti[tindex].getNumArgs()>0 ){
             NodeMap::const_iterator itt = d_testers_exp.find( x );
-            Assert( itt != d_testers_exp.end() );
+            CVC4_DCHECK(itt != d_testers_exp.end());
             conflict.push_back( (*itt).second );
           }
         }
       }
-      Assert( conflict.size()==(unsigned)d_currTermSize[a].get() );
-      Assert( itsz->second->d_search_size_exp.find( ssz )!=itsz->second->d_search_size_exp.end() );
+      CVC4_DCHECK(conflict.size() == (unsigned)d_currTermSize[a].get());
+      CVC4_DCHECK(itsz->second->d_search_size_exp.find(ssz)
+                  != itsz->second->d_search_size_exp.end());
       conflict.push_back( itsz->second->d_search_size_exp[ssz] );
       Node conf = NodeManager::currentNM()->mkNode( kind::AND, conflict );
       Trace("sygus-sb-fair") << "Conflict is : " << conf << std::endl;
@@ -285,7 +287,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   }
 
   // now, add all applicable symmetry breaking lemmas for this term
-  Assert( d_term_to_depth.find( n )!=d_term_to_depth.end() );
+  CVC4_DCHECK(d_term_to_depth.find(n) != d_term_to_depth.end());
   unsigned d = d_term_to_depth[n];
   Trace("sygus-sb-fair-debug") << "Tester " << exp << " is for depth " << d << " term in search size " << ssz << std::endl;
   //Assert( d<=ssz );
@@ -327,7 +329,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
       if (itc != d_anchor_to_conj.end())
       {
         quantifiers::SynthConjecture* conj = itc->second;
-        Assert(conj != NULL);
+        CVC4_DCHECK(conj != NULL);
         Node dpred = conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
         if (!dpred.isNull())
         {
@@ -367,10 +369,10 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
       Node sel = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( ntn.toType(), j ) ), n );
       Trace("sygus-sb-debug2") << "  activate child sel : " << sel << std::endl;
-      Assert( d_active_terms.find( sel )==d_active_terms.end() );
+      CVC4_DCHECK(d_active_terms.find(sel) == d_active_terms.end());
       IntMap::const_iterator itt = d_testers.find( sel );
       if( itt != d_testers.end() ){
-        Assert( d_testers_exp.find( sel ) != d_testers_exp.end() );
+        CVC4_DCHECK(d_testers_exp.find(sel) != d_testers_exp.end());
         assertTesterInternal( (*itt).second, sel, d_testers_exp[sel], lemmas );
       }
     }
@@ -401,14 +403,14 @@ Node SygusSymBreakNew::getRelevancyCondition( Node n ) {
             excl = true;
           }
         }
-        Assert( !disj.empty() );
+        CVC4_DCHECK(!disj.empty());
         if( excl ){
           cond = disj.size() == 1 ? disj[0] : NodeManager::currentNM()->mkNode(
                                                   kind::AND, disj);
         }
       }else{
         int sindex = Datatype::cindexOf( selExpr );
-        Assert( sindex!=-1 );
+        CVC4_DCHECK( sindex!=-1 );
         cond = utils::mkTester(n[0], sindex, dt).negate();
       }
       Node c1 = getRelevancyCondition( n[0] );
@@ -462,9 +464,10 @@ Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
     {
       if (cur.getKind() == APPLY_UF)
       {
-        Assert(cur.getType().isBoolean());
-        Assert(cur.getNumChildren() == 1
-               && (cur[0].isVar() || cur[0].getKind() == APPLY_SELECTOR_TOTAL));
+        CVC4_DCHECK(cur.getType().isBoolean());
+        CVC4_DCHECK(
+            cur.getNumChildren() == 1
+            && (cur[0].isVar() || cur[0].getKind() == APPLY_SELECTOR_TOTAL));
         ittb = d_traversal_bool.find(cur);
         Node ret;
         if (ittb == d_traversal_bool.end())
@@ -502,8 +505,8 @@ Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
       for (const Node& cn : cur)
       {
         it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
+        CVC4_DCHECK(it != visited.end());
+        CVC4_DCHECK(!it->second.isNull());
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
@@ -514,8 +517,8 @@ Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
+  CVC4_DCHECK(visited.find(n) != visited.end());
+  CVC4_DCHECK(!visited.find(n)->second.isNull());
   return visited[n];
 }
 
@@ -548,12 +551,13 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
     return it->second;
   }
   // this function is only called on sygus datatype types
-  Assert(tn.isDatatype());
+  CVC4_DCHECK(tn.isDatatype());
   NodeManager* nm = NodeManager::currentNM();
   Node n = getFreeVar(tn);
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(dt.isSygus());
-  Assert(tindex >= 0 && tindex < static_cast<int>(dt.getNumConstructors()));
+  CVC4_DCHECK(dt.isSygus());
+  CVC4_DCHECK(tindex >= 0
+              && tindex < static_cast<int>(dt.getNumConstructors()));
 
   Trace("sygus-sb-simple-debug")
       << "Simple symmetry breaking for " << dt.getName() << ", constructor "
@@ -585,7 +589,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         APPLY_SELECTOR_TOTAL,
         Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), j)),
         n);
-    Assert(sel.getType().isDatatype());
+    CVC4_DCHECK(sel.getType().isDatatype());
     children.push_back(sel);
   }
 
@@ -617,7 +621,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
 
       Node svl = Node::fromExpr(dt.getSygusVarList());
       // for each variable
-      Assert(!e.isNull());
+      CVC4_DCHECK(!e.isNull());
       TypeNode etn = e.getType();
       // for each variable in the sygus type
       for (const Node& var : svl)
@@ -701,7 +705,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         TypeNode ctn = children[j].getType();
         const Datatype& cdt =
             static_cast<DatatypeType>(ctn.toType()).getDatatype();
-        Assert(i < static_cast<int>(cdt.getNumConstructors()));
+        CVC4_DCHECK(i < static_cast<int>(cdt.getNumConstructors()));
         sbp_conj.push_back(utils::mkTester(children[j], i, cdt));
       }
     }
@@ -888,7 +892,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         // children must not be a constant or the "any constant" constructor
         if (dt.getSygusAllowConst() && exp_not_all_const_valid)
         {
-          Assert(!exp_not_all_const.empty());
+          CVC4_DCHECK(!exp_not_all_const.empty());
           Node expaan = exp_not_all_const.size() == 1
                             ? exp_not_all_const[0]
                             : nm->mkNode(OR, exp_not_all_const);
@@ -913,7 +917,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             APPLY_SELECTOR_TOTAL,
             Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), 1)),
             children[0]);
-        Assert(child11.getType() == children[1].getType());
+        CVC4_DCHECK(child11.getType() == children[1].getType());
         Node order_pred_trans =
             nm->mkNode(OR,
                        utils::mkTester(children[0], tindex, dt).negate(),
@@ -946,9 +950,9 @@ void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool
   //register this term
   std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
       d_term_to_anchor.find(n);
-  Assert( ita != d_term_to_anchor.end() );
+  CVC4_DCHECK(ita != d_term_to_anchor.end());
   Node a = ita->second;
-  Assert( !a.isNull() );
+  CVC4_DCHECK(!a.isNull());
   if( std::find( d_cache[a].d_search_terms[tn][d].begin(), d_cache[a].d_search_terms[tn][d].end(), n )==d_cache[a].d_search_terms[tn][d].end() ){
     Trace("sygus-sb-debug") << "  register search term : " << n << " at depth " << d << ", type=" << tn << ", tl=" << topLevel << std::endl;
     d_cache[a].d_search_terms[tn][d].push_back( n );
@@ -966,7 +970,7 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
                                            bool isVarAgnostic,
                                            bool doSym)
 {
-  Assert(n.getType().isComparableTo(nv.getType()));
+  CVC4_DCHECK(n.getType().isComparableTo(nv.getType()));
   TypeNode tn = n.getType();
   if (!tn.isDatatype())
   {
@@ -980,7 +984,7 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
     // don't register non-sygus-datatype terms
     return n;
   }
-  Assert(nv.getKind() == APPLY_CONSTRUCTOR);
+  CVC4_DCHECK(nv.getKind() == APPLY_CONSTRUCTOR);
   NodeManager* nm = NodeManager::currentNM();
   // we call the body of this function in a bottom-up fashion
   // this ensures that the "abstraction" of the model value is available
@@ -1029,9 +1033,9 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
   {
     d_cache[a].d_search_val_proc.insert(cnv);
     // get the root (for PBE symmetry breaking)
-    Assert(d_anchor_to_conj.find(a) != d_anchor_to_conj.end());
+    CVC4_DCHECK(d_anchor_to_conj.find(a) != d_anchor_to_conj.end());
     quantifiers::SynthConjecture* aconj = d_anchor_to_conj[a];
-    Assert(aconj != NULL);
+    CVC4_DCHECK(aconj != NULL);
     Trace("sygus-sb-debug") << "  ...register search value " << cnv
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
@@ -1068,7 +1072,8 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
         if( !bvr_equiv.isNull() ){
           if( bvr_equiv!=bvr ){
             Trace("sygus-sb-debug") << "......adding search val for " << bvr << " returned " << bvr_equiv << std::endl;
-            Assert( d_cache[a].d_search_val[tn].find( bvr_equiv )!=d_cache[a].d_search_val[tn].end() );
+            CVC4_DCHECK(d_cache[a].d_search_val[tn].find(bvr_equiv)
+                        != d_cache[a].d_search_val[tn].end());
             Trace("sygus-sb-debug") << "......search value was " << d_cache[a].d_search_val[tn][bvr_equiv] << std::endl;
             if( Trace.isOn("sygus-sb-exc") ){
               Node prev = d_tds->sygusToBuiltin( d_cache[a].d_search_val[tn][bvr_equiv], tn );
@@ -1110,7 +1115,8 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
       if( !bad_val_bvr.isNull() ){
         Node bad_val = nv;
         Node bad_val_o = d_cache[a].d_search_val[tn][bad_val_bvr];
-        Assert( d_cache[a].d_search_val_sz[tn].find( bad_val_bvr )!=d_cache[a].d_search_val_sz[tn].end() );
+        CVC4_DCHECK(d_cache[a].d_search_val_sz[tn].find(bad_val_bvr)
+                    != d_cache[a].d_search_val_sz[tn].end());
         unsigned prev_sz = d_cache[a].d_search_val_sz[tn][bad_val_bvr];
         bool doFlip = (prev_sz > sz);
         if (doFlip)
@@ -1137,8 +1143,8 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
             Trace("sygus-sb-exc") << " (by examples)";
           }
           Trace("sygus-sb-exc") << std::endl;
-        } 
-        Assert( d_tds->getSygusTermSize( bad_val )==sz );
+        }
+        CVC4_DCHECK(d_tds->getSygusTermSize(bad_val) == sz);
 
         // generalize the explanation for why the analog of bad_val
         // is equivalent to bvr
@@ -1192,7 +1198,7 @@ void SygusSymBreakNew::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz
   Trace("sygus-sb-debug") << "     anchor : " << a << std::endl;
   Trace("sygus-sb-debug") << "     type : " << tn << std::endl;
   Trace("sygus-sb-debug") << "     size : " << sz << std::endl;
-  Assert( !a.isNull() );
+  CVC4_DCHECK(!a.isNull());
   d_cache[a].d_sb_lemmas[tn][sz].push_back( lem );
   TNode x = getFreeVar( tn );
   unsigned csz = getSearchSizeForAnchor( a );
@@ -1219,14 +1225,14 @@ void SygusSymBreakNew::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz
   }
 }
 void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas ) {
-  Assert( d_term_to_anchor.find( t )!=d_term_to_anchor.end() );
+  CVC4_DCHECK(d_term_to_anchor.find(t) != d_term_to_anchor.end());
   Node a = d_term_to_anchor[t];
   addSymBreakLemmasFor( tn, t, d, a, lemmas );
 }
 
 void SygusSymBreakNew::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node a, std::vector< Node >& lemmas ) {
-  Assert( t.getType()==tn );
-  Assert( !a.isNull() );
+  CVC4_DCHECK(t.getType() == tn);
+  CVC4_DCHECK(!a.isNull());
   Trace("sygus-sb-debug2") << "add sym break lemmas for " << t << " " << d
                            << " " << a << std::endl;
   std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::iterator its = d_cache[a].d_sb_lemmas.find( tn );
@@ -1398,28 +1404,26 @@ void SygusSymBreakNew::registerMeasureTerm( Node m ) {
 void SygusSymBreakNew::notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas ) {
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
       d_szinfo.find(m);
-  Assert( its!=d_szinfo.end() );
+  CVC4_DCHECK(its != d_szinfo.end());
   if( its->second->d_search_size.find( s )==its->second->d_search_size.end() ){
     its->second->d_search_size[s] = true;
     its->second->d_search_size_exp[s] = exp;
-    Assert( s==0 || its->second->d_search_size.find( s-1 )!=its->second->d_search_size.end() );
+    CVC4_DCHECK(s == 0
+                || its->second->d_search_size.find(s - 1)
+                       != its->second->d_search_size.end());
     Trace("sygus-fair") << "SygusSymBreakNew:: now considering term measure : " << s << " for " << m << std::endl;
-    Assert( s>=its->second->d_curr_search_size );
+    CVC4_DCHECK(s >= its->second->d_curr_search_size);
     while( s>its->second->d_curr_search_size ){
       incrementCurrentSearchSize( m, lemmas );
     }
     Trace("sygus-fair") << "...finish increment for term measure : " << s << std::endl;
     /*
     //re-add all testers (some may now be relevant) TODO
-    for( IntMap::const_iterator it = d_testers.begin(); it != d_testers.end(); ++it ){
-      Node n = (*it).first;
-      NodeMap::const_iterator itx = d_testers_exp.find( n );
-      if( itx!=d_testers_exp.end() ){
-        int tindex = (*it).second;
-        Node exp = (*itx).second;
-        assertTester( tindex, n, exp, lemmas );
-      }else{
-        Assert( false );
+    for( IntMap::const_iterator it = d_testers.begin(); it != d_testers.end();
+    ++it ){ Node n = (*it).first; NodeMap::const_iterator itx =
+    d_testers_exp.find( n ); if( itx!=d_testers_exp.end() ){ int tindex =
+    (*it).second; Node exp = (*itx).second; assertTester( tindex, n, exp, lemmas
+    ); }else{ CVC4_DCHECK( false );
       }
     }
     */
@@ -1430,14 +1434,14 @@ unsigned SygusSymBreakNew::getSearchSizeFor( Node n ) {
   Trace("sygus-sb-debug2") << "get search size for term : " << n << std::endl;
   std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
       d_term_to_anchor.find(n);
-  Assert( ita != d_term_to_anchor.end() );
+  CVC4_DCHECK(ita != d_term_to_anchor.end());
   return getSearchSizeForAnchor( ita->second );
 }
 
 unsigned SygusSymBreakNew::getSearchSizeForAnchor( Node a ) {
   Trace("sygus-sb-debug2") << "get search size for anchor : " << a << std::endl;
   std::map< Node, Node >::iterator it = d_anchor_to_measure_term.find( a );
-  Assert( it!=d_anchor_to_measure_term.end() );
+  CVC4_DCHECK(it != d_anchor_to_measure_term.end());
   return getSearchSizeForMeasureTerm(it->second);
 }
 
@@ -1446,14 +1450,14 @@ unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm(Node m)
   Trace("sygus-sb-debug2") << "get search size for measure : " << m << std::endl;
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
       d_szinfo.find(m);
-  Assert( its!=d_szinfo.end() );
+  CVC4_DCHECK(its != d_szinfo.end());
   return its->second->d_curr_search_size;
 }
   
 void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas ) {
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator itsz =
       d_szinfo.find(m);
-  Assert( itsz!=d_szinfo.end() );
+  CVC4_DCHECK(itsz != d_szinfo.end());
   itsz->second->d_curr_search_size++;
   Trace("sygus-fair") << "  register search size " << itsz->second->d_curr_search_size << " for " << m << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -1461,7 +1465,8 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
     Node a = itc->first;
     Trace("sygus-fair-debug") << "  look at anchor " << a << "..." << std::endl;
     // check whether a is bounded by m
-    Assert( d_anchor_to_measure_term.find( a )!=d_anchor_to_measure_term.end() );
+    CVC4_DCHECK(d_anchor_to_measure_term.find(a)
+                != d_anchor_to_measure_term.end());
     if( d_anchor_to_measure_term[a]==m ){
       for( std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::iterator its = itc->second.d_sb_lemmas.begin();
            its != itc->second.d_sb_lemmas.end(); ++its ){
@@ -1508,7 +1513,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
       if (d_register_st.find(a) != d_register_st.end())
       {
         // symmetry breaking lemmas should only be for enumerators
-        Assert(d_register_st[a]);
+        CVC4_DCHECK(d_register_st[a]);
         // If this is a non-basic enumerator, process its symmetry breaking
         // clauses. Since this class is not responsible for basic enumerators,
         // their symmetry breaking clauses are ignored.
@@ -1560,7 +1565,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
     {
       Trace("dt-sygus-debug") << "Checking model value of " << prog << "..."
                               << std::endl;
-      Assert(prog.getType().isDatatype());
+      CVC4_DCHECK(prog.getType().isDatatype());
       Node progv = d_td->getValuation().getModel()->getValue( prog );
       if (Trace.isOn("dt-sygus"))
       {
@@ -1583,7 +1588,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
             
           Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv << ", size = " << prog_szv << std::endl;
           if( prog_szv.getConst<Rational>().getNumerator().toUnsignedInt() > getSearchSizeForAnchor( prog ) ){
-            AlwaysAssert( false );
+            CVC4_CHECK(false);
             Node szlem = NodeManager::currentNM()->mkNode( kind::OR, prog.eqNode( progv ).negate(),
                                                                      prog_sz.eqNode( progv_sz ) );
             Trace("sygus-sb-warn") << "SygusSymBreak : WARNING : adding size correction : " << szlem << std::endl;
@@ -1656,7 +1661,7 @@ bool SygusSymBreakNew::checkValue(Node n,
   if (vn.getKind() != kind::APPLY_CONSTRUCTOR)
   {
     // all datatype terms should be constant here
-    Assert(!vn.getType().isDatatype());
+    CVC4_DCHECK(!vn.getType().isDatatype());
     return true;
   }
   NodeManager* nm = NodeManager::currentNM();
@@ -1672,7 +1677,7 @@ bool SygusSymBreakNew::checkValue(Node n,
   }
   TypeNode tn = n.getType();
   const Datatype& dt = tn.getDatatype();
-  Assert(dt.isSygus());
+  CVC4_DCHECK(dt.isSygus());
 
   // ensure that the expected size bound is met
   int cindex = utils::indexOf(vn.getOperator());
@@ -1695,7 +1700,7 @@ bool SygusSymBreakNew::checkValue(Node n,
       Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered "
                            "missing split for "
                         << n << "." << std::endl;
-      Assert( !split.isNull() );
+      CVC4_DCHECK(!split.isNull());
       lemmas.push_back( split );
       return false;
     }
@@ -1717,11 +1722,11 @@ Node SygusSymBreakNew::getCurrentTemplate( Node n, std::map< TypeNode, int >& va
   if( d_active_terms.find( n )!=d_active_terms.end() ){
     TypeNode tn = n.getType();
     IntMap::const_iterator it = d_testers.find( n );
-    Assert( it != d_testers.end() );
+    CVC4_DCHECK(it != d_testers.end());
     const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
     int tindex = (*it).second;
-    Assert( tindex>=0 );
-    Assert( tindex<(int)dt.getNumConstructors() );
+    CVC4_DCHECK(tindex >= 0);
+    CVC4_DCHECK(tindex < (int)dt.getNumConstructors());
     std::vector< Node > children;
     children.push_back( Node::fromExpr( dt[tindex].getConstructor() ) );
     for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
@@ -1782,7 +1787,7 @@ Node SygusSymBreakNew::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
        << ") for enumerative SyGuS exceeded.";
     throw LogicException(ss.str());
   }
-  Assert(!d_this.isNull());
+  CVC4_DCHECK(!d_this.isNull());
   NodeManager* nm = NodeManager::currentNM();
   Trace("cegqi-engine") << "******* Sygus : allocate size literal " << s
                         << " for " << d_this << std::endl;

@@ -120,7 +120,7 @@ void BitblastSolver::bitblastQueue() {
 bool BitblastSolver::check(Theory::Effort e)
 {
   Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n";
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
+  CVC4_DCHECK(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
 
   ++(d_statistics.d_numCallstoCheck);
 
@@ -188,7 +188,7 @@ bool BitblastSolver::check(Theory::Effort e)
   Debug("bv-bitblast-debug") << "...do solving" << std::endl;
   if (e == Theory::EFFORT_FULL)
   {
-    Assert(!d_bv->inConflict());
+    CVC4_DCHECK(!d_bv->inConflict());
     Debug("bitvector::bitblaster")
         << "BitblastSolver::addAssertions solving. \n";
     bool ok = d_bitblaster->solve();
@@ -227,7 +227,7 @@ bool BitblastSolver::check(Theory::Effort e)
       }
     }
 
-    Assert(!d_bv->inConflict());
+    CVC4_DCHECK(!d_bv->inConflict());
     bool ok = d_bitblaster->solve();
     if (!ok)
     {

@@ -68,7 +68,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
     NodeMap::iterator find2 = d_substitutions.find(current);
     if (find2 != d_substitutions.end()) {
       Node rhs = (*find2).second;
-      Assert(rhs != current);
+      CVC4_DCHECK(rhs != current);
       internalSubstitute(rhs, cache);
       d_substitutions[current] = cache[rhs];
       cache[current] = cache[rhs];
@@ -84,7 +84,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
         builder << Node(cache[current.getOperator()]);
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++ i) {
-        Assert(cache.find(current[i]) != cache.end());
+        CVC4_DCHECK(cache.find(current[i]) != cache.end());
         builder << Node(cache[current[i]]);
       }
       // Mark the substitution and continue
@@ -98,7 +98,7 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
           find2 = d_substitutions.find(result);
           if (find2 != d_substitutions.end()) {
             Node rhs = (*find2).second;
-            Assert(rhs != result);
+            CVC4_DCHECK(rhs != result);
             internalSubstitute(rhs, cache);
             d_substitutions[result] = cache[rhs];
             cache[result] = cache[rhs];
@@ -176,11 +176,11 @@ void SubstitutionMap::simplifyRHS(TNode x, TNode t) {
 void SubstitutionMap::addSubstitution(TNode x, TNode t, bool invalidateCache)
 {
   Debug("substitution") << "SubstitutionMap::addSubstitution(" << x << ", " << t << ")" << endl;
-  Assert(d_substitutions.find(x) == d_substitutions.end());
+  CVC4_DCHECK(d_substitutions.find(x) == d_substitutions.end());
 
   // this causes a later assert-fail (the rhs != current one, above) anyway
   // putting it here is easier to diagnose
-  Assert(x != t, "cannot substitute a term for itself");
+  CVC4_DCHECK(x != t) << "cannot substitute a term for itself";
 
   d_substitutions[x] = t;
 
@@ -199,7 +199,7 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   SubstitutionMap::NodeMap::const_iterator it = subMap.begin();
   SubstitutionMap::NodeMap::const_iterator it_end = subMap.end();
   for (; it != it_end; ++ it) {
-    Assert(d_substitutions.find((*it).first) == d_substitutions.end());
+    CVC4_DCHECK(d_substitutions.find((*it).first) == d_substitutions.end());
     d_substitutions[(*it).first] = (*it).second;
     if (!invalidateCache) {
       d_substitutionCache[(*it).first] = d_substitutions[(*it).first];
@@ -245,7 +245,7 @@ Node SubstitutionMap::apply(TNode t) {
   Node result = internalSubstitute(t, d_substitutionCache);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
 
-  //  Assert(check(result, d_substitutions));
+  //  CVC4_DCHECK(check(result, d_substitutions));
 
   return result;
 }

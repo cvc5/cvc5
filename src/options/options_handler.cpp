@@ -25,6 +25,7 @@
 #include "base/configuration.h"
 #include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
@@ -35,9 +36,9 @@
 #include "options/base_options.h"
 #include "options/bv_bitblast_mode.h"
 #include "options/bv_options.h"
+#include "options/datatypes_modes.h"
 #include "options/decision_mode.h"
 #include "options/decision_options.h"
-#include "options/datatypes_modes.h"
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
@@ -62,7 +63,7 @@ void throwLazyBBUnsupported(theory::bv::SatSolverMode m)
   }
   else
   {
-    Assert(m == theory::bv::SAT_SOLVER_CRYPTOMINISAT);
+    CVC4_DCHECK(m == theory::bv::SAT_SOLVER_CRYPTOMINISAT);
     sat_solver = "CryptoMiniSat";
   }
   std::string indent(25, ' ');

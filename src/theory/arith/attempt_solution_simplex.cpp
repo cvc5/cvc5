@@ -73,7 +73,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
           << "updateMany:" << currentlyNb << " "
           << d_variables.getAssignment(currentlyNb) << " to "<< newValue << endl;
         d_linEq.update(currentlyNb, newValue);
-        Assert(d_variables.assignmentIsConsistent(currentlyNb));
+        CVC4_DCHECK(d_variables.assignmentIsConsistent(currentlyNb));
       }
     }
   }
@@ -102,7 +102,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
       Tableau::ColIterator colIter = d_tableau.colIterator(v);
       for(; !colIter.atEnd(); ++colIter){
         const Tableau::Entry& entry = *colIter;
-        Assert(entry.getColVar() == v);
+        CVC4_DCHECK(entry.getColVar() == v);
         ArithVar b = d_tableau.rowIndexToBasic(entry.getRowIndex());
         if(!newBasis.isMember(b)){
           toAdd = v;
@@ -118,8 +118,8 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
         }
       }
     }
-    Assert(toRemove != ARITHVAR_SENTINEL);
-    Assert(toAdd != ARITHVAR_SENTINEL);
+    CVC4_DCHECK(toRemove != ARITHVAR_SENTINEL);
+    CVC4_DCHECK(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
     //Message() << toRemove << " " << toAdd << endl;
@@ -138,7 +138,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
       return Result::UNSAT;
     }
   }
-  Assert( d_conflictVariables.empty() );
+  CVC4_DCHECK(d_conflictVariables.empty());
 
   if(d_errorSet.errorEmpty()){
     return Result::SAT;

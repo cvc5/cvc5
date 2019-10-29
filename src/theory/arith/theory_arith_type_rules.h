@@ -28,7 +28,7 @@ class ArithConstantTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::CONST_RATIONAL);
+    CVC4_DCHECK(n.getKind() == kind::CONST_RATIONAL);
     if(n.getConst<Rational>().isIntegral()){
       return nodeManager->integerType();
     }else{
@@ -78,7 +78,7 @@ public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     // for nullary operators, we only computeType for check=true, since they are given TypeAttr() on creation
-    Assert(check);
+    CVC4_DCHECK(check);
     TypeNode realType = n.getType();
     if(realType!=NodeManager::currentNM()->realType()) {
       throw TypeCheckingExceptionPrivate(n, "expecting real type");

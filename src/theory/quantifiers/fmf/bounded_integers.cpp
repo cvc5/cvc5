@@ -167,7 +167,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
         conj = TermUtil::simpleNegate( conj );
       }
       Trace("bound-int-debug") << "Process possible finite disequality conjunction : " << conj << std::endl;
-      Assert( conj.getKind()==AND );
+      CVC4_DCHECK(conj.getKind() == AND);
       Node v;
       std::vector< Node > v_cases;
       bool success = true;
@@ -199,7 +199,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
           bound_lit_type_map[v] = BOUND_FIXED_SET;
           bound_lit_map[3][v] = n;
           bound_lit_pol_map[3][v] = pol;
-          Assert( v_cases.size()==1 );
+          CVC4_DCHECK(v_cases.size() == 1);
           bound_fixed_set[v].clear();
           bound_fixed_set[v].push_back( v_cases[0] );
         }
@@ -266,7 +266,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
       }
     }
   }else{
-    Assert( n.getKind()!=LEQ && n.getKind()!=LT && n.getKind()!=GT );
+    CVC4_DCHECK(n.getKind() != LEQ && n.getKind() != LT && n.getKind() != GT);
   }
 }
 
@@ -335,7 +335,8 @@ void BoundedIntegers::checkOwnership(Node f)
             setBoundVar = true;
             for( unsigned b=0; b<2; b++ ){
               //set the bounds
-              Assert( bound_int_range_term[b].find( v )!=bound_int_range_term[b].end() );
+              CVC4_DCHECK(bound_int_range_term[b].find(v)
+                          != bound_int_range_term[b].end());
               d_bounds[b][f][v] = bound_int_range_term[b][v];
             }
             Node r = nm->mkNode(MINUS, d_bounds[1][f][v], d_bounds[0][f][v]);
@@ -390,13 +391,13 @@ void BoundedIntegers::checkOwnership(Node f)
               // production as it is considered safe for this to fail. We fail
               // the assertion in debug mode to have this instance raised to
               // our attention.
-              Assert(blmp.find(v) != blmp.end());
+              CVC4_DCHECK(blmp.find(v) != blmp.end());
               BoundIntLitAttribute bila;
               bound_lit_map[b][v].setAttribute(bila, blmp[v] ? 1 : 0);
             }
             else
             {
-              Assert( it->second!=BOUND_INT_RANGE );
+              CVC4_DCHECK(it->second != BOUND_INT_RANGE);
             }
           }
         }
@@ -424,7 +425,7 @@ void BoundedIntegers::checkOwnership(Node f)
     for( unsigned i=0; i<f[0].getNumChildren(); i++) {
       Node v = f[0][i];
       if( std::find( d_set[f].begin(), d_set[f].end(), v )!=d_set[f].end() ){
-        Assert( d_bound_type[f].find( v )!=d_bound_type[f].end() );
+        CVC4_DCHECK(d_bound_type[f].find(v) != d_bound_type[f].end());
         if( d_bound_type[f][v]==BOUND_INT_RANGE ){
           Trace("bound-int") << "  " << d_bounds[0][f][v] << " <= " << v << " <= " << d_bounds[1][f][v] << " (range is " << d_range[f][v] << ")" << std::endl;
         }else if( d_bound_type[f][v]==BOUND_SET_MEMBER ){
@@ -446,7 +447,7 @@ void BoundedIntegers::checkOwnership(Node f)
           Trace("bound-int") << "  " << v << " has small finite type." << std::endl;
         }else{
           Trace("bound-int") << "  " << v << " has unknown bound." << std::endl;
-          Assert( false );
+          CVC4_DCHECK(false);
         }
       }else{
         Trace("bound-int") << "  " << "*** " << v << " is unbounded." << std::endl;
@@ -470,7 +471,7 @@ void BoundedIntegers::checkOwnership(Node f)
       std::map< Node, Node >::iterator itr = d_range[f].find( v );
       if( itr != d_range[f].end() ){
         Node r = itr->second;
-        Assert( !r.isNull() );
+        CVC4_DCHECK(!r.isNull());
         bool isProxy = false;
         if (expr::hasBoundVar(r))
         {
@@ -621,7 +622,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     return sr;
   }
   Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
-  Assert(!expr::hasFreeVar(sr));
+  CVC4_DCHECK(!expr::hasFreeVar(sr));
   Node sro = sr;
   sr = d_quantEngine->getModel()->getValue(sr);
   // if non-constant, then sr does not occur in the model, we fail
@@ -645,7 +646,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     srCard++;
     sr = sr[0];
   }
-  Assert(sr.getKind() == SINGLETON);
+  CVC4_DCHECK(sr.getKind() == SINGLETON);
   srCard++;
   // choices[i] stores the canonical symbolic representation of the (i+1)^th
   // element of sro
@@ -669,7 +670,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
       choice_i = nm->mkNode(CHOICE, bvl, nm->mkNode(OR, cMinCard, cBody));
       d_setm_choice[sro].push_back(choice_i);
     }
-    Assert(i < d_setm_choice[sro].size());
+    CVC4_DCHECK(i < d_setm_choice[sro].size());
     choice_i = d_setm_choice[sro][i];
     choices.push_back(choice_i);
     Node sChoiceI = nm->mkNode(SINGLETON, choice_i);
@@ -695,16 +696,16 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
 bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi ) {
 
   Trace("bound-int-rsi") << "Get bound value in model of variable " << v << std::endl;
-  Assert( d_set_nums[q].find( v )!=d_set_nums[q].end() );
+  CVC4_DCHECK(d_set_nums[q].find(v) != d_set_nums[q].end());
   int vindex = d_set_nums[q][v];
-  Assert( d_set_nums[q][v]==vindex );
+  CVC4_DCHECK(d_set_nums[q][v] == vindex);
   Trace("bound-int-rsi-debug") << "  index order is " << vindex << std::endl;
   //must take substitution for all variables that are iterating at higher level
   for( int i=0; i<vindex; i++) {
-    Assert( d_set_nums[q][d_set[q][i]]==i );
+    CVC4_DCHECK(d_set_nums[q][d_set[q][i]] == i);
     Trace("bound-int-rsi") << "Look up the value for " << d_set[q][i] << " " << i << std::endl;
     int v = rsi->getVariableOrder( i );
-    Assert( q[0][v]==d_set[q][i] );
+    CVC4_DCHECK(q[0][v] == d_set[q][i]);
     Node t = rsi->getCurrentTerm(v, true);
     Trace("bound-int-rsi") << "term : " << t << std::endl;
     vars.push_back( d_set[q][i] );
@@ -772,7 +773,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node tl = l;
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
-        Assert( !tl.isNull() && !tu.isNull() );
+        CVC4_DCHECK(!tl.isNull() && !tu.isNull());
         if( ra==d_quantEngine->getTermUtil()->d_true ){
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
@@ -797,11 +798,11 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         if( srv.getKind()!=EMPTYSET ){
           //collect the elements
           while( srv.getKind()==UNION ){
-            Assert( srv[1].getKind()==kind::SINGLETON );
+            CVC4_DCHECK(srv[1].getKind() == kind::SINGLETON);
             elements.push_back( srv[1][0] );
             srv = srv[0];
           }
-          Assert( srv.getKind()==kind::SINGLETON );
+          CVC4_DCHECK(srv.getKind() == kind::SINGLETON);
           elements.push_back( srv[0] );
           //check if we need to do matching, for literals like ( tuple( v ) in S )
           Node t = d_setm_range_lit[q][v][0];

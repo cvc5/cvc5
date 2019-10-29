@@ -85,9 +85,9 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
   }
   else
   {
-    Assert(childList.size()
-           < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
-                 * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
+    CVC4_DCHECK(childList.size()
+                < static_cast<size_t>(expr::NodeValue::MAX_CHILDREN)
+                      * static_cast<size_t>(expr::NodeValue::MAX_CHILDREN));
     NodeBuilder<> nb(k);
     ChildList::iterator cur = childList.begin(), next, en = childList.end();
     while (cur != en)
@@ -297,7 +297,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         Debug("bool-ite") << "n[0] ==tt " << n << ": " << n[1] << std::endl;
         return RewriteResponse(REWRITE_AGAIN, n[1]);
       } else {
-        Assert(n[0] == ff);
+        CVC4_DCHECK(n[0] == ff);
         // ITE false x y
         Debug("bool-ite") << "n[0] ==ff " << n << ": " << n[1] << std::endl;
         return RewriteResponse(REWRITE_AGAIN, n[2]);

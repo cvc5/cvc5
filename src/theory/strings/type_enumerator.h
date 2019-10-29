@@ -44,8 +44,8 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<StringEnumerator>(type)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT &&
-           type.getConst<TypeConstant>() == STRING_TYPE);
+    CVC4_DCHECK(type.getKind() == kind::TYPE_CONSTANT
+                && type.getConst<TypeConstant>() == STRING_TYPE);
     d_cardinality = TheoryStringsRewriter::getAlphabetCardinality();
     mkCurr();
   }

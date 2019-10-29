@@ -143,7 +143,7 @@ void TLazyBitblaster::bbAtom(TNode node)
     }
     else
     {
-      Assert(expansion.getKind() == kind::AND);
+      CVC4_DCHECK(expansion.getKind() == kind::AND);
       std::vector<Node> atoms;
       for (unsigned i = 0; i < expansion.getNumChildren(); ++i)
       {
@@ -157,7 +157,7 @@ void TLazyBitblaster::bbAtom(TNode node)
       }
       atom_bb = utils::mkAnd(atoms);
     }
-    Assert(!atom_bb.isNull());
+    CVC4_DCHECK(!atom_bb.isNull());
     Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
     storeBBAtom(node, atom_bb);
     d_cnfStream->convertAndAssert(
@@ -204,7 +204,7 @@ bool TLazyBitblaster::hasBBAtom(TNode atom) const {
 
 
 void TLazyBitblaster::makeVariable(TNode var, Bits& bits) {
-  Assert(bits.size() == 0);
+  CVC4_DCHECK(bits.size() == 0);
   for (unsigned i = 0; i < utils::getSize(var); ++i) {
     bits.push_back(utils::mkBitOf(var, i));
   }
@@ -232,7 +232,7 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
     getBBTerm(node, bits);
     return;
   }
-  Assert( node.getType().isBitVector() );
+  CVC4_DCHECK(node.getType().isBitVector());
 
   d_bv->spendResource(options::bitblastStep());
   Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
@@ -240,7 +240,7 @@ void TLazyBitblaster::bbTerm(TNode node, Bits& bits) {
 
   d_termBBStrategies[node.getKind()] (node, bits,this);
 
-  Assert (bits.size() == utils::getSize(node));
+  CVC4_DCHECK(bits.size() == utils::getSize(node));
 
   storeBBTerm(node, bits);
 }
@@ -257,7 +257,7 @@ void TLazyBitblaster::explain(TNode atom, std::vector<TNode>& explanation) {
 
   ++(d_statistics.d_numExplainedPropagations);
   if (options::bvEagerExplanations()) {
-    Assert (d_explanations->find(lit) != d_explanations->end());
+    CVC4_DCHECK(d_explanations->find(lit) != d_explanations->end());
     const std::vector<prop::SatLiteral>& literal_explanation = (*d_explanations)[lit].get();
     for (unsigned i = 0; i < literal_explanation.size(); ++i) {
       explanation.push_back(d_cnfStream->getNode(literal_explanation[i]));
@@ -292,9 +292,9 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
   } else {
     atom = lit;
   }
-  Assert( utils::isBitblastAtom( atom ) );
+  CVC4_DCHECK(utils::isBitblastAtom(atom));
 
-  Assert (hasBBAtom(atom));
+  CVC4_DCHECK(hasBBAtom(atom));
 
   prop::SatLiteral markerLit = d_cnfStream->getLiteral(atom);
 
@@ -467,7 +467,7 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
   Node a_value = getTermModel(a, true);
   Node b_value = getTermModel(b, true);
 
-  Assert(a_value.isConst() && b_value.isConst());
+  CVC4_DCHECK(a_value.isConst() && b_value.isConst());
 
   if (a_value == b_value)
   {
@@ -483,7 +483,7 @@ bool TLazyBitblaster::isSharedTerm(TNode node) {
 }
 
 bool TLazyBitblaster::hasValue(TNode a) {
-  Assert (hasBBTerm(a));
+  CVC4_DCHECK(hasBBTerm(a));
   Bits bits;
   getBBTerm(a, bits);
   for (int i = bits.size() -1; i >= 0; --i) {
@@ -522,7 +522,7 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
     if (d_cnfStream->hasLiteral(bits[i])) {
       prop::SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
       bit_value = d_satSolver->value(bit);
-      Assert (bit_value != prop::SAT_VALUE_UNKNOWN);
+      CVC4_DCHECK(bit_value != prop::SAT_VALUE_UNKNOWN);
     } else {
       if (!fullModel) return Node();
       // unconstrained bits default to false
@@ -545,12 +545,13 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
     if (d_variables.find(var) == d_variables.end())
       continue;
 
-    Assert (Theory::theoryOf(var) == theory::THEORY_BV || isSharedTerm(var));
+    CVC4_DCHECK(Theory::theoryOf(var) == theory::THEORY_BV
+                || isSharedTerm(var));
     // only shared terms could not have been bit-blasted
-    Assert (hasBBTerm(var) || isSharedTerm(var));
+    CVC4_DCHECK(hasBBTerm(var) || isSharedTerm(var));
 
     Node const_value = getModelFromSatSolver(var, true);
-    Assert (const_value.isNull() || const_value.isConst());
+    CVC4_DCHECK(const_value.isNull() || const_value.isConst());
     if(const_value != Node()) {
       Debug("bitvector-model") << "TLazyBitblaster::collectModelInfo (assert (= "
                                << var << " "
@@ -565,7 +566,7 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
 }
 
 void TLazyBitblaster::clearSolver() {
-  Assert (d_ctx->getLevel() == 0);
+  CVC4_DCHECK(d_ctx->getLevel() == 0);
   d_assertedAtoms->deleteSelf();
   d_assertedAtoms = new(true) context::CDList<prop::SatLiteral>(d_ctx);
   d_explanations->deleteSelf();

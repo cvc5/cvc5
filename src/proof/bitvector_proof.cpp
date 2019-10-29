@@ -40,7 +40,7 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
 
 void BitVectorProof::setBitblaster(theory::bv::TBitblaster<Node>* bb)
 {
-  Assert(d_bitblaster == NULL);
+  CVC4_DCHECK(d_bitblaster == NULL);
   d_bitblaster = bb;
 }
 
@@ -130,7 +130,7 @@ void BitVectorProof::printOwnedTerm(Expr term,
                   << " ), theory is: " << theory::Theory::theoryOf(term)
                   << std::endl;
 
-  Assert(theory::Theory::theoryOf(term) == theory::THEORY_BV);
+  CVC4_DCHECK(theory::Theory::theoryOf(term) == theory::THEORY_BV);
 
   // peel off eager bit-blasting trick
   if (term.getKind() == kind::BITVECTOR_EAGER_ATOM) {
@@ -224,16 +224,16 @@ void BitVectorProof::printOwnedTerm(Expr term,
 void BitVectorProof::printEmptyClauseProof(std::ostream& os,
                                            std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  CVC4_DCHECK(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
 }
 
 void BitVectorProof::printBitOf(Expr term,
                                 std::ostream& os,
                                 const ProofLetMap& map)
 {
-  Assert (term.getKind() == kind::BITVECTOR_BITOF);
+  CVC4_DCHECK(term.getKind() == kind::BITVECTOR_BITOF);
   unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
   Expr var = term[0];
 
@@ -247,7 +247,7 @@ void BitVectorProof::printBitOf(Expr term,
 
 void BitVectorProof::printConstant(Expr term, std::ostream& os)
 {
-  Assert (term.isConst());
+  CVC4_DCHECK(term.isConst());
   os << "(a_bv " << utils::getSize(term) << " ";
 
   if (d_useConstantLetification) {
@@ -336,7 +336,7 @@ void BitVectorProof::printOperatorParametric(Expr term,
     os << high <<" " << low << " " << utils::getSize(term[0]);
   }
   os <<" ";
-  Assert (term.getNumChildren() == 1);
+  CVC4_DCHECK(term.getNumChildren() == 1);
   d_proofEngine->printBoundTerm(term[0], os, map);
   os <<")";
 }
@@ -346,7 +346,7 @@ void BitVectorProof::printOwnedSort(Type type, std::ostream& os)
   Debug("pf::bv") << std::endl
                   << "(pf::bv) BitVectorProof::printOwnedSort( " << type << " )"
                   << std::endl;
-  Assert (type.isBitVector());
+  CVC4_DCHECK(type.isBitVector());
   unsigned width = utils::getSize(type);
   os << "(BitVec " << width << ")";
 }
@@ -433,7 +433,7 @@ void BitVectorProof::printTermBitblasting(Expr term, std::ostream& os)
 {
   // TODO: once we have the operator elimination rules remove those that we
   // eliminated
-  Assert (term.getType().isBitVector());
+  CVC4_DCHECK(term.getType().isBitVector());
   Kind kind = term.getKind();
 
   if (theory::Theory::isLeafOf(term, theory::THEORY_BV) && !term.isConst())
@@ -607,7 +607,7 @@ void BitVectorProof::printAtomBitblasting(Expr atom,
 
 void BitVectorProof::printAtomBitblastingToFalse(Expr atom, std::ostream& os)
 {
-  Assert(atom.getKind() == kind::EQUAL);
+  CVC4_DCHECK(atom.getKind() == kind::EQUAL);
 
   os << "(bv_bbl_=_false";
   os << " _ _ _ _ _ _ ";
@@ -677,7 +677,7 @@ void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
       bool val = ait->first.getConst<bool>();
       os << "(iff_symm " << (val ? "true" : "false" ) << ")";
     } else {
-      Assert(ait->first == ait->second[0]);
+      CVC4_DCHECK(ait->first == ait->second[0]);
 
       bool swap = false;
       if (ait->first.getKind() == kind::EQUAL) {
@@ -722,7 +722,7 @@ const std::set<Node>* BitVectorProof::getAtomsInBitblastingProof()
 
 std::string BitVectorProof::assignAlias(Expr expr)
 {
-  Assert(d_exprToVariableName.find(expr) == d_exprToVariableName.end());
+  CVC4_DCHECK(d_exprToVariableName.find(expr) == d_exprToVariableName.end());
 
   std::stringstream ss;
   ss << "fbv" << d_assignedAliases.size();
@@ -739,9 +739,9 @@ bool BitVectorProof::hasAlias(Expr expr)
 void BitVectorProof::printConstantDisequalityProof(
     std::ostream& os, Expr c1, Expr c2, const ProofLetMap& globalLetMap)
 {
-  Assert (c1.isConst());
-  Assert (c2.isConst());
-  Assert (utils::getSize(c1) == utils::getSize(c2));
+  CVC4_DCHECK(c1.isConst());
+  CVC4_DCHECK(c2.isConst());
+  CVC4_DCHECK(utils::getSize(c1) == utils::getSize(c2));
 
   os << "(bv_disequal_constants " << utils::getSize(c1) << " ";
 

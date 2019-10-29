@@ -162,7 +162,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
                                       std::vector<Node>& repair_cv,
                                       bool useConstantsAsHoles)
 {
-  Assert(candidates.size() == candidate_values.size());
+  CVC4_DCHECK(candidates.size() == candidate_values.size());
 
   // if no grammar type allows constants, no repair is possible
   if (!isActive())
@@ -288,7 +288,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   std::vector<Node> sk_sygus_m;
   for (const Node& v : sk_vars)
   {
-    Assert(d_sk_to_fo.find(v) != d_sk_to_fo.end());
+    CVC4_DCHECK(d_sk_to_fo.find(v) != d_sk_to_fo.end());
     Node fov = d_sk_to_fo[v];
     Node fov_m;
     if (needExport)
@@ -343,7 +343,7 @@ bool SygusRepairConst::mustRepair(Node n)
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      Assert(cur.getKind() == APPLY_CONSTRUCTOR);
+      CVC4_DCHECK(cur.getKind() == APPLY_CONSTRUCTOR);
       if (isRepairable(cur, false))
       {
         return true;
@@ -365,7 +365,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
     return false;
   }
   TypeNode tn = n.getType();
-  Assert(tn.isDatatype());
+  CVC4_DCHECK(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   if (!dt.isSygus())
   {
@@ -456,8 +456,8 @@ Node SygusRepairConst::getSkeleton(Node n,
         else
         {
           it = visited.find(cn);
-          Assert(it != visited.end());
-          Assert(!it->second.isNull());
+          CVC4_DCHECK(it != visited.end());
+          CVC4_DCHECK(!it->second.isNull());
           child = it->second;
         }
         childChanged = childChanged || cn != child;
@@ -470,8 +470,8 @@ Node SygusRepairConst::getSkeleton(Node n,
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
+  CVC4_DCHECK(visited.find(n) != visited.end());
+  CVC4_DCHECK(!visited.find(n)->second.isNull());
   return visited[n];
 }
 
@@ -529,7 +529,7 @@ Node SygusRepairConst::getFoQuery(Node body,
         if (std::find(sk_vars.begin(), sk_vars.end(), v) != sk_vars.end())
         {
           std::map<Node, Node>::iterator itf = d_sk_to_fo.find(v);
-          Assert(itf != d_sk_to_fo.end());
+          CVC4_DCHECK(itf != d_sk_to_fo.end());
           visited[cur] = itf->second;
         }
       }
@@ -554,8 +554,8 @@ Node SygusRepairConst::getFoQuery(Node body,
       for (const Node& cn : cur)
       {
         it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
+        CVC4_DCHECK(it != visited.end());
+        CVC4_DCHECK(!it->second.isNull());
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
@@ -566,8 +566,8 @@ Node SygusRepairConst::getFoQuery(Node body,
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(visited.find(body) != visited.end());
-  Assert(!visited.find(body)->second.isNull());
+  CVC4_DCHECK(visited.find(body) != visited.end());
+  CVC4_DCHECK(!visited.find(body)->second.isNull());
   Node fo_body = visited[body];
   Trace("sygus-repair-const-debug") << "  ...got : " << fo_body << std::endl;
   return fo_body;
@@ -592,7 +592,7 @@ Node SygusRepairConst::fitToLogic(Node body,
     Trace("sygus-repair-const") << "...exclude " << exc_var
                                 << " due to logic restrictions." << std::endl;
     TNode tvar = exc_var;
-    Assert(sk_vars_to_subs.find(exc_var) != sk_vars_to_subs.end());
+    CVC4_DCHECK(sk_vars_to_subs.find(exc_var) != sk_vars_to_subs.end());
     TNode tsubs = sk_vars_to_subs[exc_var];
     // revert the substitution
     for (unsigned i = 0, size = candidate_skeletons.size(); i < size; i++)
@@ -603,7 +603,7 @@ Node SygusRepairConst::fitToLogic(Node body,
     sk_vars_to_subs.erase(exc_var);
     std::vector<Node>::iterator it =
         std::find(sk_vars.begin(), sk_vars.end(), exc_var);
-    Assert(it != sk_vars.end());
+    CVC4_DCHECK(it != sk_vars.end());
     sk_vars.erase(it);
     // reconstruct the query
     n = getFoQuery(body, candidates, candidate_skeletons, sk_vars);
@@ -620,7 +620,7 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
   bool restrictLA = logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear();
 
   // should have at least one restriction
-  Assert(restrictLA);
+  CVC4_DCHECK(restrictLA);
 
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
@@ -639,7 +639,7 @@ bool SygusRepairConst::getFitToLogicExcludeVar(LogicInfo& logic,
       Kind ck = cur.getKind();
       bool isArithDivKind = (ck == DIVISION_TOTAL || ck == INTS_DIVISION_TOTAL
                              || ck == INTS_MODULUS_TOTAL);
-      Assert(ck != DIVISION && ck != INTS_DIVISION && ck != INTS_MODULUS);
+      CVC4_DCHECK(ck != DIVISION && ck != INTS_DIVISION && ck != INTS_MODULUS);
       if (restrictLA && (ck == NONLINEAR_MULT || isArithDivKind))
       {
         for (unsigned j = 0, size = cur.getNumChildren(); j < size; j++)

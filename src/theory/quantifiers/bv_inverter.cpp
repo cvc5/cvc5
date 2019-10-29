@@ -196,8 +196,8 @@ Node BvInverter::getPathToPv(Node lit,
 static Node dropChild(Node n, unsigned index)
 {
   unsigned nchildren = n.getNumChildren();
-  Assert(nchildren > 0);
-  Assert(index < nchildren);
+  CVC4_DCHECK(nchildren > 0);
+  CVC4_DCHECK(index < nchildren);
 
   if (nchildren < 2) return Node::null();
 
@@ -208,7 +208,7 @@ static Node dropChild(Node n, unsigned index)
     if (i == index) continue;
     nb << n[i];
   }
-  Assert(nb.getNumChildren() > 0);
+  CVC4_DCHECK(nb.getNumChildren() > 0);
   return nb.getNumChildren() == 1 ? nb[0] : nb.constructNode();
 }
 
@@ -217,16 +217,16 @@ Node BvInverter::solveBvLit(Node sv,
                             std::vector<unsigned>& path,
                             BvInverterQuery* m)
 {
-  Assert(!path.empty());
+  CVC4_DCHECK(!path.empty());
 
   bool pol = true;
   unsigned index;
   NodeManager* nm = NodeManager::currentNM();
   Kind k, litk;
 
-  Assert(!path.empty());
+  CVC4_DCHECK(!path.empty());
   index = path.back();
-  Assert(index < lit.getNumChildren());
+  CVC4_DCHECK(index < lit.getNumChildren());
   path.pop_back();
   litk = k = lit.getKind();
 
@@ -241,14 +241,14 @@ Node BvInverter::solveBvLit(Node sv,
   {
     pol = !pol;
     lit = lit[index];
-    Assert(!path.empty());
+    CVC4_DCHECK(!path.empty());
     index = path.back();
-    Assert(index < lit.getNumChildren());
+    CVC4_DCHECK(index < lit.getNumChildren());
     path.pop_back();
     litk = k = lit.getKind();
   }
 
-  Assert(k == EQUAL || k == BITVECTOR_ULT || k == BITVECTOR_SLT);
+  CVC4_DCHECK(k == EQUAL || k == BITVECTOR_ULT || k == BITVECTOR_SLT);
 
   Node sv_t = lit[index];
   Node t = lit[1 - index];
@@ -266,9 +266,9 @@ Node BvInverter::solveBvLit(Node sv,
   while (!path.empty())
   {
     unsigned nchildren = sv_t.getNumChildren();
-    Assert(nchildren > 0);
+    CVC4_DCHECK(nchildren > 0);
     index = path.back();
-    Assert(index < nchildren);
+    CVC4_DCHECK(index < nchildren);
     path.pop_back();
     k = sv_t.getKind();
 
@@ -276,7 +276,8 @@ Node BvInverter::solveBvLit(Node sv,
      *       BITVECTOR_OR, MULT, PLUS) are commutative (no case split
      *       based on index). */
     Node s = dropChild(sv_t, index);
-    Assert((nchildren == 1 && s.isNull()) || (nchildren > 1 && !s.isNull()));
+    CVC4_DCHECK((nchildren == 1 && s.isNull())
+                || (nchildren > 1 && !s.isNull()));
     TypeNode solve_tn = sv_t[index].getType();
     Node x = getSolveVariable(solve_tn);
     Node ic;
@@ -383,7 +384,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (pol == false)
     {
-      Assert(litk == EQUAL);
+      CVC4_DCHECK(litk == EQUAL);
       ic = nm->mkNode(DISTINCT, x, t);
       Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
                          << std::endl;
@@ -415,7 +416,7 @@ Node BvInverter::solveBvLit(Node sv,
   }
 
   /* Base case  */
-  Assert(sv_t == sv);
+  CVC4_DCHECK(sv_t == sv);
   TypeNode solve_tn = sv.getType();
   Node x = getSolveVariable(solve_tn);
   Node ic;
@@ -429,7 +430,7 @@ Node BvInverter::solveBvLit(Node sv,
   }
   else if (pol == false)
   {
-    Assert(litk == EQUAL);
+    CVC4_DCHECK(litk == EQUAL);
     ic = nm->mkNode(DISTINCT, x, t);
     Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
                        << std::endl;

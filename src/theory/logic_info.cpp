@@ -23,6 +23,7 @@
 #include <string>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "expr/kind.h"
 
 
@@ -569,7 +570,7 @@ void LogicInfo::disableTheory(theory::TheoryId theory) {
   PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   if(d_theories[theory]) {
     if(isTrueTheory(theory)) {
-      Assert(d_sharingTheories > 0);
+      CVC4_DCHECK(d_sharingTheories > 0);
       --d_sharingTheories;
     }
     if(theory == THEORY_BUILTIN ||

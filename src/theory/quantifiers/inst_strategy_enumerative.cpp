@@ -244,7 +244,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           }
           else
           {
-            Assert(index == static_cast<int>(childIndex.size()) - 1);
+            CVC4_DCHECK(index == static_cast<int>(childIndex.size()) - 1);
             unsigned nv = childIndex[index] + 1;
             if (nv < maxs[index] && nv <= max_i)
             {
@@ -289,7 +289,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
             }
             else
             {
-              Assert(childIndex[i] < term_db_list[ftypes[i]].size());
+              CVC4_DCHECK(childIndex[i] < term_db_list[ftypes[i]].size());
               terms.push_back(term_db_list[ftypes[i]][childIndex[i]]);
               Trace("inst-alg-rd")
                   << "  " << term_db_list[ftypes[i]][childIndex[i]]

@@ -138,19 +138,19 @@ std::pair<bool, Node> TheoryArith::entailmentCheck (TNode lit,
     def->addLookupRowSumAlgorithms();
     aparams = def;
   }else{
-    AlwaysAssert(params->getTheoryId() == getId());
+    CVC4_CHECK(params->getTheoryId() == getId());
     aparams = dynamic_cast<const ArithEntailmentCheckParameters*>(params);
   }
-  Assert(aparams != NULL);
+  CVC4_DCHECK(aparams != NULL);
 
   ArithEntailmentCheckSideEffects* ase = NULL;
   if(out == NULL){
     ase = new ArithEntailmentCheckSideEffects();
   }else{
-    AlwaysAssert(out->getTheoryId() == getId());
+    CVC4_CHECK(out->getTheoryId() == getId());
     ase = dynamic_cast<ArithEntailmentCheckSideEffects*>(out);
   }
-  Assert(ase != NULL);
+  CVC4_DCHECK(ase != NULL);
 
   std::pair<bool, Node> res = d_internal->entailmentCheck(lit, *aparams, *ase);
 

@@ -25,7 +25,7 @@ FunctionEnumerator::FunctionEnumerator(TypeNode type,
     : TypeEnumeratorBase<FunctionEnumerator>(type),
       d_arrayEnum(TheoryBuiltinRewriter::getArrayTypeForFunctionType(type), tep)
 {
-  Assert(type.getKind() == kind::FUNCTION_TYPE);
+  CVC4_DCHECK(type.getKind() == kind::FUNCTION_TYPE);
   d_bvl = NodeManager::currentNM()->getBoundVarListForFunctionType(type);
 }
 

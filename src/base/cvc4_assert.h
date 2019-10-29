@@ -243,29 +243,33 @@ void debugAssertionFailed(const AssertionException& thisException,
 // If we're currently handling an exception, print a warning instead;
 // otherwise std::terminate() is called by the runtime and we lose
 // details of the exception
-#define AlwaysAssert(cond, msg...)                                     \
-  do {                                                                 \
-    if (__builtin_expect((!(cond)), false)) {                          \
-      /* save the last assertion failure */                            \
-      ::CVC4::LastExceptionBuffer* buffer =                            \
-          ::CVC4::LastExceptionBuffer::getCurrent();                   \
-      const char* lastException =                                      \
-          (buffer == NULL) ? NULL : buffer->getContents();             \
-      ::CVC4::AssertionException exception(#cond, __PRETTY_FUNCTION__, \
-                                           __FILE__, __LINE__, ##msg); \
-      ::CVC4::debugAssertionFailed(exception, lastException);          \
-    }                                                                  \
+#define AlwaysAssertDeprecated(cond, msg...)                      \
+  do                                                              \
+  {                                                               \
+    if (__builtin_expect((!(cond)), false))                       \
+    {                                                             \
+      /* save the last assertion failure */                       \
+      ::CVC4::LastExceptionBuffer* buffer =                       \
+          ::CVC4::LastExceptionBuffer::getCurrent();              \
+      const char* lastException =                                 \
+          (buffer == NULL) ? NULL : buffer->getContents();        \
+      ::CVC4::AssertionException exception(                       \
+          #cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ##msg); \
+      ::CVC4::debugAssertionFailed(exception, lastException);     \
+    }                                                             \
   } while (0)
 
 #else /* CVC4_DEBUG */
 // These simpler (but less useful) versions for non-debug builds fails
 // will terminate() if thrown during stack unwinding.
-#define AlwaysAssert(cond, msg...)                                           \
-  do {                                                                       \
-    if (__builtin_expect((!(cond)), false)) {                                \
-      throw ::CVC4::AssertionException(#cond, __PRETTY_FUNCTION__, __FILE__, \
-                                       __LINE__, ##msg);                     \
-    }                                                                        \
+#define AlwaysAssertDeprecated(cond, msg...)                      \
+  do                                                              \
+  {                                                               \
+    if (__builtin_expect((!(cond)), false))                       \
+    {                                                             \
+      throw ::CVC4::AssertionException(                           \
+          #cond, __PRETTY_FUNCTION__, __FILE__, __LINE__, ##msg); \
+    }                                                             \
   } while (0)
 #endif /* CVC4_DEBUG */
 
@@ -304,11 +308,11 @@ void debugAssertionFailed(const AssertionException& thisException,
   } while (0)
 
 #ifdef CVC4_ASSERTIONS
-#define Assert(cond, msg...) AlwaysAssert(cond, ##msg)
+#define AssertDeprecated(cond, msg...) AlwaysAssertDeprecated(cond, ##msg)
 #define AssertArgument(cond, arg, msg...) AlwaysAssertArgument(cond, arg, ##msg)
 #define DebugCheckArgument(cond, arg, msg...) CheckArgument(cond, arg, ##msg)
 #else                                     /* ! CVC4_ASSERTIONS */
-#define Assert(cond, msg...)              /*__builtin_expect( ( cond ), true )*/
+#define AssertDeprecated(cond, msg...)    /*__builtin_expect( ( cond ), true )*/
 #define AssertArgument(cond, arg, msg...) /*__builtin_expect( ( cond ), true \
                                              )*/
 #define DebugCheckArgument(cond, arg, \

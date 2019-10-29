@@ -201,7 +201,7 @@ inline Node RewriteRule<RepeatEliminate>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<RepeatEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
   unsigned amount = node.getOperator().getConst<BitVectorRepeat>().repeatAmount;
-  Assert(amount >= 1);
+  CVC4_DCHECK(amount >= 1);
   if(amount == 1) {
     return a; 
   }

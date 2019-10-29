@@ -72,7 +72,7 @@ bool Variable::isLeafMember(Node n){
 VarList::VarList(Node n)
   : NodeWrapper(n)
 {
-  Assert(isSorted(begin(), end()));
+  CVC4_DCHECK(isSorted(begin(), end()));
 }
 
 bool Variable::isDivMember(Node n){
@@ -150,8 +150,8 @@ int VarList::cmp(const VarList& vl) const {
       return 0;
     }
 
-    Assert(!empty());
-    Assert(!vl.empty());
+    CVC4_DCHECK(!empty());
+    CVC4_DCHECK(!vl.empty());
     if(this->size() == 1){
       return Variable::VariableNodeCmp::cmp(this->getNode(), vl.getNode());
     }
@@ -180,9 +180,9 @@ VarList VarList::parseVarList(Node n) {
   // if(Variable::isMember(n)) {
   //   return VarList(Variable(n));
   // } else {
-  //   Assert(n.getKind() == kind::MULT);
+  //   CVC4_DCHECK(n.getKind() == kind::MULT);
   //   for(Node::iterator i=n.begin(), end = n.end(); i!=end; ++i) {
-  //     Assert(Variable::isMember(*i));
+  //     CVC4_DCHECK(Variable::isMember(*i));
   //   }
   //   return VarList(n);
   // }
@@ -205,7 +205,7 @@ VarList VarList::operator*(const VarList& other) const {
     Variable::VariableNodeCmp cmp;
     std::merge(thisBegin, thisEnd, otherBegin, otherEnd, std::back_inserter(result), cmp);
 
-    Assert(result.size() >= 2);
+    CVC4_DCHECK(result.size() >= 2);
     Node mult = NodeManager::currentNM()->mkNode(kind::NONLINEAR_MULT, result);
     return VarList::parseVarList(mult);
   }
@@ -275,11 +275,13 @@ Monomial Monomial::operator*(const Monomial& mono) const {
   return Monomial::mkMonomial(newConstant, newVL);
 }
 
-// vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos) {
-//   Assert(isSorted(monos));
+// vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos)
+// {
+//   CVC4_DCHECK(isSorted(monos));
 //   vector<Monomial> outMonomials;
 //   typedef vector<Monomial>::const_iterator iterator;
-//   for(iterator rangeIter = monos.begin(), end=monos.end(); rangeIter != end;) {
+//   for(iterator rangeIter = monos.begin(), end=monos.end(); rangeIter != end;)
+//   {
 //     Rational constant = (*rangeIter).getConstant().getValue();
 //     VarList varList  = (*rangeIter).getVarList();
 //     ++rangeIter;
@@ -294,7 +296,7 @@ Monomial Monomial::operator*(const Monomial& mono) const {
 //     }
 //   }
 
-//   Assert(isStrictlySorted(outMonomials));
+//   CVC4_DCHECK(isStrictlySorted(outMonomials));
 //   return outMonomials;
 // }
 
@@ -305,7 +307,7 @@ void Monomial::sort(std::vector<Monomial>& m){
 }
 
 void Monomial::combineAdjacentMonomials(std::vector<Monomial>& monos) {
-  Assert(isSorted(monos));
+  CVC4_DCHECK(isSorted(monos));
   size_t writePos, readPos, N;
   for(writePos = 0, readPos = 0, N = monos.size(); readPos < N;){
     Monomial& atRead = monos[readPos];
@@ -334,17 +336,17 @@ void Monomial::combineAdjacentMonomials(std::vector<Monomial>& monos) {
         writePos++;
       }
     }
-    Assert(rangeEnd>readPos);
+    CVC4_DCHECK(rangeEnd > readPos);
     readPos = rangeEnd;
   }
   if(writePos > 0 ){
     Monomial cp = monos[0];
-    Assert(writePos <= N);
+    CVC4_DCHECK(writePos <= N);
     monos.resize(writePos, cp);
   }else{
     monos.clear();
   }
-  Assert(isStrictlySorted(monos));
+  CVC4_DCHECK(isStrictlySorted(monos));
 }
 
 void Monomial::print() const {
@@ -370,13 +372,13 @@ Polynomial Polynomial::operator+(const Polynomial& vl) const {
 }
 
 Polynomial Polynomial::exactDivide(const Integer& z) const {
-  Assert(isIntegral());
+  CVC4_DCHECK(isIntegral());
   if(z.isOne()){
     return (*this);
   }else {
     Constant invz = Constant::mkConstant(Rational(1,z));
     Polynomial prod = (*this) * Monomial::mkMonomial(invz);
-    Assert(prod.isIntegral());
+    CVC4_DCHECK(prod.isIntegral());
     return prod;
   }
 }
@@ -436,7 +438,7 @@ Polynomial Polynomial::operator*(const Rational& q) const{
       newMonos.push_back((*i)*q);
     }
 
-    Assert(Monomial::isStrictlySorted(newMonos));
+    CVC4_DCHECK(Monomial::isStrictlySorted(newMonos));
     return Polynomial::mkPolynomial(newMonos);
   }
 }
@@ -453,7 +455,7 @@ Polynomial Polynomial::operator*(const Constant& c) const{
   //     newMonos.push_back((*i)*c);
   //   }
 
-  //   Assert(Monomial::isStrictlySorted(newMonos));
+  //   CVC4_DCHECK(Monomial::isStrictlySorted(newMonos));
   //   return Polynomial::mkPolynomial(newMonos);
   // }
 }
@@ -489,7 +491,7 @@ Polynomial Polynomial::operator*(const Polynomial& poly) const {
 
 Monomial Polynomial::selectAbsMinimum() const {
   iterator iter = begin(), myend = end();
-  Assert(iter != myend);
+  CVC4_DCHECK(iter != myend);
 
   Monomial min = *iter;
   ++iter;
@@ -518,7 +520,7 @@ bool Polynomial::numeratorGCDIsOne() const {
 }
 
 Integer Polynomial::gcd() const {
-  Assert(isIntegral());
+  CVC4_DCHECK(isIntegral());
   return numeratorGCD();
 }
 
@@ -526,7 +528,7 @@ Integer Polynomial::numeratorGCD() const {
   //We'll use the standardization that gcd(0, 0) = 0
   //So that the gcd of the zero polynomial is gcd{0} = 0
   iterator i=begin(), e=end();
-  Assert(i!=e);
+  CVC4_DCHECK(i != e);
 
   Integer d = (*i).getConstant().getValue().getNumerator().abs();
   if(d.isOne()){
@@ -565,7 +567,7 @@ Constant Polynomial::getCoefficient(const VarList& vl) const{
 }
 
 Node Polynomial::computeQR(const Polynomial& p, const Integer& div){
-  Assert(p.isIntegral());
+  CVC4_DCHECK(p.isIntegral());
   std::vector<Monomial> q_vec, r_vec;
   Integer tmp_q, tmp_r;
   for(iterator iter = p.begin(), pend = p.end(); iter != pend; ++iter){
@@ -593,7 +595,7 @@ Node Polynomial::computeQR(const Polynomial& p, const Integer& div){
 
 
 Monomial Polynomial::minimumVariableMonomial() const{
-  Assert(!isConstant());
+  CVC4_DCHECK(!isConstant());
   if(singleton()){
     return getHead();
   }else{
@@ -601,7 +603,7 @@ Monomial Polynomial::minimumVariableMonomial() const{
     Monomial first = *i;
     if( first.isConstant() ){
       ++i;
-      Assert(i != end());
+      CVC4_DCHECK(i != end());
       return *i;
     }else{
       return first;
@@ -624,7 +626,7 @@ bool Polynomial::isMember(TNode n) {
   if(Monomial::isMember(n)){
     return true;
   }else if(n.getKind() == kind::PLUS){
-    Assert(n.getNumChildren() >= 2);
+    CVC4_DCHECK(n.getNumChildren() >= 2);
     Node::iterator currIter = n.begin(), end = n.end();
     Node prev = *currIter;
     if(!Monomial::isMember(prev)){
@@ -651,7 +653,7 @@ bool Polynomial::isMember(TNode n) {
 }
 
 Node SumPair::computeQR(const SumPair& sp, const Integer& div){
-  Assert(sp.isIntegral());
+  CVC4_DCHECK(sp.isIntegral());
 
   const Integer& constant = sp.getConstant().getValue().getNumerator();
 
@@ -659,8 +661,8 @@ Node SumPair::computeQR(const SumPair& sp, const Integer& div){
   Integer::floorQR(constant_q, constant_r, constant, div);
 
   Node p_qr = Polynomial::computeQR(sp.getPolynomial(), div);
-  Assert(p_qr.getKind() == kind::PLUS);
-  Assert(p_qr.getNumChildren() == 2);
+  CVC4_DCHECK(p_qr.getKind() == kind::PLUS);
+  CVC4_DCHECK(p_qr.getNumChildren() == 2);
 
   Polynomial p_q = Polynomial::parsePolynomial(p_qr[0]);
   Polynomial p_r = Polynomial::parsePolynomial(p_qr[1]);
@@ -676,7 +678,7 @@ SumPair SumPair::mkSumPair(const Polynomial& p){
     Constant leadingConstant = p.getHead().getConstant();
     return SumPair(Polynomial::mkZero(), leadingConstant);
   }else if(p.containsConstant()){
-    Assert(!p.singleton());
+    CVC4_DCHECK(!p.singleton());
     return SumPair(p.getTail(), p.getHead().getConstant());
   }else{
     return SumPair(p, Constant::mkZero());
@@ -686,7 +688,7 @@ SumPair SumPair::mkSumPair(const Polynomial& p){
 Comparison::Comparison(TNode n)
   : NodeWrapper(n)
 {
-  Assert(isNormalForm());
+  CVC4_DCHECK(isNormalForm());
 }
 
 
@@ -719,7 +721,7 @@ SumPair Comparison::toSumPair() const {
       if(right.isConstant()){
         return SumPair(left, -right.getHead().getConstant());
       }else if(right.containsConstant()){
-        Assert(!right.singleton());
+        CVC4_DCHECK(!right.singleton());
 
         Polynomial noConstant = right.getTail();
         return SumPair(left - noConstant, -right.getHead().getConstant());
@@ -824,12 +826,12 @@ DeltaRational Comparison::normalizedDeltaRational() const {
 Comparison Comparison::parseNormalForm(TNode n) {
   Debug("polynomial") << "Comparison::parseNormalForm(" << n << ")";
   Comparison result(n);
-  Assert(result.isNormalForm());
+  CVC4_DCHECK(result.isNormalForm());
   return result;
 }
 
 Node Comparison::toNode(Kind k, const Polynomial& l, const Constant& r) {
-  Assert(isRelationOperator(k));
+  CVC4_DCHECK(isRelationOperator(k));
   switch(k) {
   case kind::GEQ:
   case kind::GT:
@@ -840,7 +842,7 @@ Node Comparison::toNode(Kind k, const Polynomial& l, const Constant& r) {
 }
 
 Node Comparison::toNode(Kind k, const Polynomial& l, const Polynomial& r) {
-  Assert(isRelationOperator(k));
+  CVC4_DCHECK(isRelationOperator(k));
   switch(k) {
   case kind::GEQ:
   case kind::EQUAL:
@@ -960,7 +962,7 @@ bool Comparison::isNormalForm() const {
 /** This must be (> qpolynomial constant) */
 bool Comparison::isNormalGT() const {
   Node n = getNode();
-  Assert(n.getKind() == kind::GT);
+  CVC4_DCHECK(n.getKind() == kind::GT);
   if(!rightIsConstant()){
     return false;
   }else{
@@ -979,8 +981,8 @@ bool Comparison::isNormalGT() const {
 bool Comparison::isNormalLEQ() const {
   Node n = getNode();
   Debug("nf::tmp") << "isNormalLEQ " << n << endl;
-  Assert(n.getKind() == kind::NOT);
-  Assert(n[0].getKind() == kind::GT);
+  CVC4_DCHECK(n.getKind() == kind::NOT);
+  CVC4_DCHECK(n[0].getKind() == kind::GT);
   if(!rightIsConstant()){
     return false;
   }else{
@@ -999,7 +1001,7 @@ bool Comparison::isNormalLEQ() const {
 /** This must be (>= qpolynomial constant) or  (>= zpolynomial constant) */
 bool Comparison::isNormalGEQ() const {
   Node n = getNode();
-  Assert(n.getKind() == kind::GEQ);
+  CVC4_DCHECK(n.getKind() == kind::GEQ);
 
   Debug("nf::tmp") << "isNormalGEQ " << n << " " << rightIsConstant() << endl;
 
@@ -1022,8 +1024,8 @@ bool Comparison::isNormalGEQ() const {
 /** This must be (not (>= qpolynomial constant)) or (not (>= zpolynomial constant)) */
 bool Comparison::isNormalLT() const {
   Node n = getNode();
-  Assert(n.getKind() == kind::NOT);
-  Assert(n[0].getKind() == kind::GEQ);
+  CVC4_DCHECK(n.getKind() == kind::NOT);
+  CVC4_DCHECK(n[0].getKind() == kind::GEQ);
 
   if(!rightIsConstant()){
     return false;
@@ -1097,7 +1099,7 @@ bool Comparison::isNormalEqualityOrDisequality() const {
 
 /** This must be (= qvarlist qpolynomial) or (= zmonomial zpolynomial)*/
 bool Comparison::isNormalEquality() const {
-  Assert(getNode().getKind() == kind::EQUAL);
+  CVC4_DCHECK(getNode().getKind() == kind::EQUAL);
   return Theory::theoryOf(getNode()[0].getType()) == THEORY_ARITH &&
          isNormalEqualityOrDisequality();
 }
@@ -1107,16 +1109,16 @@ bool Comparison::isNormalEquality() const {
  * (not (= zmonomial zpolynomial)).
  */
 bool Comparison::isNormalDistinct() const {
-  Assert(getNode().getKind() == kind::NOT);
-  Assert(getNode()[0].getKind() == kind::EQUAL);
+  CVC4_DCHECK(getNode().getKind() == kind::NOT);
+  CVC4_DCHECK(getNode()[0].getKind() == kind::EQUAL);
 
   return Theory::theoryOf(getNode()[0][0].getType()) == THEORY_ARITH &&
          isNormalEqualityOrDisequality();
 }
 
 Node Comparison::mkRatEquality(const Polynomial& p){
-  Assert(!p.isConstant());
-  Assert(!p.allIntegralVariables());
+  CVC4_DCHECK(!p.isConstant());
+  CVC4_DCHECK(!p.allIntegralVariables());
 
   Monomial minimalVList = p.minimumVariableMonomial();
   Constant coeffInv = -(minimalVList.getConstant().inverse());
@@ -1128,16 +1130,16 @@ Node Comparison::mkRatEquality(const Polynomial& p){
 }
 
 Node Comparison::mkRatInequality(Kind k, const Polynomial& p){
-  Assert(k == kind::GEQ || k == kind::GT);
-  Assert(!p.isConstant());
-  Assert(!p.allIntegralVariables());
+  CVC4_DCHECK(k == kind::GEQ || k == kind::GT);
+  CVC4_DCHECK(!p.isConstant());
+  CVC4_DCHECK(!p.allIntegralVariables());
 
   SumPair sp = SumPair::mkSumPair(p);
   Polynomial left = sp.getPolynomial();
   Constant right = - sp.getConstant();
 
   Monomial minimalVList = left.getHead();
-  Assert(!minimalVList.isConstant());
+  CVC4_DCHECK(!minimalVList.isConstant());
 
   Constant coeffInv = minimalVList.getConstant().inverse().abs();
   Polynomial newLeft = left * coeffInv;
@@ -1147,9 +1149,9 @@ Node Comparison::mkRatInequality(Kind k, const Polynomial& p){
 }
 
 Node Comparison::mkIntInequality(Kind k, const Polynomial& p){
-  Assert(kind::GT == k || kind::GEQ == k);
-  Assert(!p.isConstant());
-  Assert(p.allIntegralVariables());
+  CVC4_DCHECK(kind::GT == k || kind::GEQ == k);
+  CVC4_DCHECK(!p.isConstant());
+  CVC4_DCHECK(p.allIntegralVariables());
 
   SumPair sp = SumPair::mkSumPair(p);
   Polynomial left = sp.getPolynomial();
@@ -1157,7 +1159,7 @@ Node Comparison::mkIntInequality(Kind k, const Polynomial& p){
 
 
   Monomial m = left.getHead();
-  Assert(!m.isConstant());
+  CVC4_DCHECK(!m.isConstant());
 
   Integer lcm = left.denominatorLCM();
   Integer g = left.numeratorGCD();
@@ -1200,7 +1202,7 @@ Node Comparison::mkIntInequality(Kind k, const Polynomial& p){
     Constant ceilRight = Constant::mkConstant(ceilr);
     result = toNode(kind::GEQ, newLeft, ceilRight);
   }
-  Assert(!result.isNull());
+  CVC4_DCHECK(!result.isNull());
   if(negateResult){
     return result.notNode();
   }else{
@@ -1209,8 +1211,8 @@ Node Comparison::mkIntInequality(Kind k, const Polynomial& p){
 }
 
 Node Comparison::mkIntEquality(const Polynomial& p){
-  Assert(!p.isConstant());
-  Assert(p.allIntegralVariables());
+  CVC4_DCHECK(!p.isConstant());
+  CVC4_DCHECK(p.allIntegralVariables());
 
   SumPair sp = SumPair::mkSumPair(p);
   Polynomial varPart = sp.getPolynomial();
@@ -1234,7 +1236,7 @@ Node Comparison::mkIntEquality(const Polynomial& p){
     Polynomial newRight = mIsPositive ? -noM : noM;
     Polynomial newLeft  = mIsPositive ? m  : -m;
 
-    Assert(newRight.isIntegral());
+    CVC4_DCHECK(newRight.isIntegral());
     return toNode(kind::EQUAL, newLeft, newRight);
   }else{
     return mkBoolNode(false);
@@ -1293,12 +1295,12 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomia
     default:
       Unhandled(k);
     }
-    Assert(!result.isNull());
+    CVC4_DCHECK(!result.isNull());
     if(result.getKind() == kind::NOT && result[0].getKind() == kind::CONST_BOOLEAN){
       return Comparison(!(result[0].getConst<bool>()));
     }else{
       Comparison cmp(result);
-      Assert(cmp.isNormalForm());
+      CVC4_DCHECK(cmp.isNormalForm());
       return cmp;
     }
   }

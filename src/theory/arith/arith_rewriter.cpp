@@ -37,20 +37,20 @@ bool ArithRewriter::isAtom(TNode n) {
 }
 
 RewriteResponse ArithRewriter::rewriteConstant(TNode t){
-  Assert(t.isConst());
-  Assert(t.getKind() == kind::CONST_RATIONAL);
+  CVC4_DCHECK(t.isConst());
+  CVC4_DCHECK(t.getKind() == kind::CONST_RATIONAL);
 
   return RewriteResponse(REWRITE_DONE, t);
 }
 
 RewriteResponse ArithRewriter::rewriteVariable(TNode t){
-  Assert(t.isVar());
+  CVC4_DCHECK(t.isVar());
 
   return RewriteResponse(REWRITE_DONE, t);
 }
 
 RewriteResponse ArithRewriter::rewriteMinus(TNode t, bool pre){
-  Assert(t.getKind()== kind::MINUS);
+  CVC4_DCHECK(t.getKind() == kind::MINUS);
 
   if(pre){
     if(t[0] == t[1]){
@@ -70,7 +70,7 @@ RewriteResponse ArithRewriter::rewriteMinus(TNode t, bool pre){
 }
 
 RewriteResponse ArithRewriter::rewriteUMinus(TNode t, bool pre){
-  Assert(t.getKind()== kind::UMINUS);
+  CVC4_DCHECK(t.getKind() == kind::UMINUS);
 
   if(t[0].getKind() == kind::CONST_RATIONAL){
     Rational neg = -(t[0].getConst<Rational>());
@@ -238,7 +238,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
                 for(unsigned i=0; i < num; ++i){
                   nb << base;
                 }
-                Assert(nb.getNumChildren() > 0);
+                CVC4_DCHECK(nb.getNumChildren() > 0);
                 Node mult = nb;
                 return RewriteResponse(REWRITE_AGAIN, mult);
               }
@@ -263,7 +263,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
 
 
 RewriteResponse ArithRewriter::preRewriteMult(TNode t){
-  Assert(t.getKind()== kind::MULT || t.getKind()== kind::NONLINEAR_MULT);
+  CVC4_DCHECK(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
 
   if(t.getNumChildren() == 2){
     if(t[0].getKind() == kind::CONST_RATIONAL
@@ -316,12 +316,12 @@ static void flatten(std::vector<TNode>& pb, Kind k, TNode t){
 static Node flatten(Kind k, TNode t){
   std::vector<TNode> pb;
   flatten(pb, k, t);
-  Assert(pb.size() >= 2);
+  CVC4_DCHECK(pb.size() >= 2);
   return NodeManager::currentNM()->mkNode(k, pb);
 }
 
 RewriteResponse ArithRewriter::preRewritePlus(TNode t){
-  Assert(t.getKind()== kind::PLUS);
+  CVC4_DCHECK(t.getKind() == kind::PLUS);
 
   if(canFlatten(kind::PLUS, t)){
     return RewriteResponse(REWRITE_DONE, flatten(kind::PLUS, t));
@@ -331,7 +331,7 @@ RewriteResponse ArithRewriter::preRewritePlus(TNode t){
 }
 
 RewriteResponse ArithRewriter::postRewritePlus(TNode t){
-  Assert(t.getKind()== kind::PLUS);
+  CVC4_DCHECK(t.getKind() == kind::PLUS);
 
   std::vector<Monomial> monomials;
   std::vector<Polynomial> polynomials;
@@ -357,7 +357,7 @@ RewriteResponse ArithRewriter::postRewritePlus(TNode t){
 }
 
 RewriteResponse ArithRewriter::postRewriteMult(TNode t){
-  Assert(t.getKind()== kind::MULT || t.getKind()==kind::NONLINEAR_MULT);
+  CVC4_DCHECK(t.getKind() == kind::MULT || t.getKind() == kind::NONLINEAR_MULT);
 
   Polynomial res = Polynomial::mkOne();
 
@@ -440,7 +440,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
       }
       else
       {
-        Assert(false);
+        CVC4_DCHECK(false);
       }
 
       // if there is a factor of PI
@@ -462,7 +462,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
                            pi_factor,
                            nm->mkNode(kind::MULT, ntwo, ra_div_two));
           }else{
-            Assert( r.sgn()==-1 );
+            CVC4_DCHECK(r.sgn() == -1);
             new_pi_factor =
                 nm->mkNode(kind::PLUS,
                            pi_factor,
@@ -500,7 +500,7 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
           Integer six = Integer(6);
           if (r_abs.getDenominator() == two)
           {
-            Assert(r_abs.getNumerator() == one);
+            CVC4_DCHECK(r_abs.getNumerator() == one);
             return RewriteResponse(REWRITE_DONE,
                                    mkRationalNode(Rational(r.sgn())));
           }
@@ -598,12 +598,12 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom){
   Debug("arith::rewriter") << "pright " << pright.getNode() << std::endl;
 
   Comparison cmp = Comparison::mkComparison(atom.getKind(), pleft, pright);
-  Assert(cmp.isNormalForm());
+  CVC4_DCHECK(cmp.isNormalForm());
   return RewriteResponse(REWRITE_DONE, cmp.getNode());
 }
 
 RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
-  Assert(isAtom(atom));
+  CVC4_DCHECK(isAtom(atom));
 
   NodeManager* currNM = NodeManager::currentNM();
 
@@ -671,7 +671,8 @@ Node ArithRewriter::makeSubtractionNode(TNode l, TNode r){
 }
 
 RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
-  Assert(t.getKind() == kind::DIVISION_TOTAL || t.getKind()== kind::DIVISION);
+  CVC4_DCHECK(t.getKind() == kind::DIVISION_TOTAL
+              || t.getKind() == kind::DIVISION);
 
   Node left = t[0];
   Node right = t[1];
@@ -686,7 +687,7 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
         return RewriteResponse(REWRITE_DONE, t);
       }
     }
-    Assert(den != Rational(0));
+    CVC4_DCHECK(den != Rational(0));
 
     if(left.getKind() == kind::CONST_RATIONAL){
       const Rational& num = left.getConst<Rational>();
@@ -712,12 +713,12 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre){
 
 RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
   Kind k = t.getKind();
-  // Assert(k == kind::INTS_MODULUS || k == kind::INTS_MODULUS_TOTAL ||
+  // CVC4_DCHECK(k == kind::INTS_MODULUS || k == kind::INTS_MODULUS_TOTAL ||
   //        k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL);
 
   //Leaving the function as before (INTS_MODULUS can be handled),
   // but restricting its use here
-  Assert(k == kind::INTS_MODULUS_TOTAL || k == kind::INTS_DIVISION_TOTAL);
+  CVC4_DCHECK(k == kind::INTS_MODULUS_TOTAL || k == kind::INTS_DIVISION_TOTAL);
   TNode n = t[0], d = t[1];
   bool dIsConstant = d.getKind() == kind::CONST_RATIONAL;
   if(dIsConstant && d.getConst<Rational>().isZero()){
@@ -731,7 +732,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
     if(k == kind::INTS_MODULUS || k == kind::INTS_MODULUS_TOTAL){
       return RewriteResponse(REWRITE_DONE, mkRationalNode(0));
     }else{
-      Assert(k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL);
+      CVC4_DCHECK(k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL);
       return RewriteResponse(REWRITE_AGAIN, n);
     }
   }
@@ -747,9 +748,9 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
                    : nn;
     return RewriteResponse(REWRITE_AGAIN, ret);
   }else if(dIsConstant && n.getKind() == kind::CONST_RATIONAL){
-    Assert(d.getConst<Rational>().isIntegral());
-    Assert(n.getConst<Rational>().isIntegral());
-    Assert(!d.getConst<Rational>().isZero());
+    CVC4_DCHECK(d.getConst<Rational>().isIntegral());
+    CVC4_DCHECK(n.getConst<Rational>().isIntegral());
+    CVC4_DCHECK(!d.getConst<Rational>().isZero());
     Integer di = d.getConst<Rational>().getNumerator();
     Integer ni = n.getConst<Rational>().getNumerator();
 

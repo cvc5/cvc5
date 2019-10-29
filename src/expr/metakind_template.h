@@ -22,6 +22,7 @@
 #include <iosfwd>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "expr/kind.h"
 
 namespace CVC4 {
@@ -149,16 +150,16 @@ inline bool NodeValueConstCompare<k, pool>::compare(const ::CVC4::expr::NodeValu
   typedef typename ConstantMapReverse<k>::T T;
   if(pool) {
     if(x->d_nchildren == 1) {
-      Assert(y->d_nchildren == 0);
+      CVC4_DCHECK(y->d_nchildren == 0);
       return compare(y, x);
     } else if(y->d_nchildren == 1) {
-      Assert(x->d_nchildren == 0);
+      CVC4_DCHECK(x->d_nchildren == 0);
       return x->getConst<T>() == *reinterpret_cast<T*>(y->d_children[0]);
     }
   }
 
-  Assert(x->d_nchildren == 0);
-  Assert(y->d_nchildren == 0);
+  CVC4_DCHECK(x->d_nchildren == 0);
+  CVC4_DCHECK(y->d_nchildren == 0);
   return x->getConst<T>() == y->getConst<T>();
 }
 

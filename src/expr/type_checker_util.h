@@ -68,7 +68,7 @@ struct ANone
 {
   static bool checkArg(TNode n, size_t arg)
   {
-    Assert(arg >= n.getNumChildren());
+    CVC4_DCHECK(arg >= n.getNumChildren());
     return true;
   }
   constexpr static const char* typeName = "<none>";

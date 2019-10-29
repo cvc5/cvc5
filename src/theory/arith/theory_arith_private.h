@@ -185,7 +185,7 @@ public:
     return d_setupNodes.find(n) != d_setupNodes.end();
   }
   void markSetup(Node n){
-    Assert(!isSetup(n));
+    CVC4_DCHECK(!isSetup(n));
     d_setupNodes.insert(n);
   }
 private:

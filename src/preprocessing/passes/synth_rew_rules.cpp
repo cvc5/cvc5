@@ -99,7 +99,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         bool childrenValid = true;
         for (const Node& cc : cur)
         {
-          Assert(visited.find(cc) != visited.end());
+          CVC4_DCHECK(visited.find(cc) != visited.end());
           if (!visited[cc])
           {
             childrenValid = false;
@@ -267,7 +267,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
     // add the variables for the type
     TypeNode ctt = ct.getType();
-    Assert(tvars.find(ctt) != tvars.end());
+    CVC4_DCHECK(tvars.find(ctt) != tvars.end());
     std::vector<Type> argList;
     // we add variable constructors if we are not Boolean, we are interested
     // in purely propositional rewrites (via the option), or this term is
@@ -285,15 +285,15 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // add the constructor for the operator if it is not a variable
     if (ct.getKind() != BOUND_VARIABLE)
     {
-      Assert(!ct.isVar());
+      CVC4_DCHECK(!ct.isVar());
       Node op = ct.hasOperator() ? ct.getOperator() : ct;
       // iterate over the original term
       for (const Node& tc : t)
       {
         // map its arguments back to canonical
-        Assert(term_to_cterm.find(tc) != term_to_cterm.end());
+        CVC4_DCHECK(term_to_cterm.find(tc) != term_to_cterm.end());
         Node ctc = term_to_cterm[tc];
-        Assert(cterm_to_utype.find(ctc) != cterm_to_utype.end());
+        CVC4_DCHECK(cterm_to_utype.find(ctc) != cterm_to_utype.end());
         // get the type
         argList.push_back(cterm_to_utype[ctc].toType());
       }
@@ -364,7 +364,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         datatypes[i].addSygusConstructor(op.toExpr(), ssc.str(), argList);
       }
     }
-    Assert(datatypes[i].getNumConstructors() > 0);
+    CVC4_DCHECK(datatypes[i].getNumConstructors() > 0);
     datatypes[i].setSygus(ctt.toType(), sygusVarListE, false, false);
   }
   Trace("srs-input") << "...finished." << std::endl;
@@ -374,7 +374,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   std::vector<DatatypeType> types = nm->toExprManager()->mkMutualDatatypeTypes(
       datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("srs-input") << "...finished." << std::endl;
-  Assert(types.size() == unres.size());
+  CVC4_DCHECK(types.size() == unres.size());
   std::map<Node, DatatypeType> subtermTypes;
   for (unsigned i = 0, ncterms = cterms.size(); i < ncterms; i++)
   {
@@ -401,7 +401,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       Node n = tcp.second[i];
       // add constructor that encodes abstractions of this subterm
       std::vector<Type> argList;
-      Assert(subtermTypes.find(n) != subtermTypes.end());
+      CVC4_DCHECK(subtermTypes.find(n) != subtermTypes.end());
       argList.push_back(subtermTypes[n]);
       std::stringstream ssc;
       ssc << "Ctl_" << i;

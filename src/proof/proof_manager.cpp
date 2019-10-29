@@ -18,6 +18,7 @@
 #include "proof/proof_manager.h"
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "context/context.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
@@ -86,7 +87,7 @@ const Proof& ProofManager::getProof(SmtEngine* smt)
 {
   if (!currentPM()->d_fullProof)
   {
-    Assert(currentPM()->d_format == LFSC);
+    CVC4_DCHECK(currentPM()->d_format == LFSC);
     currentPM()->d_fullProof.reset(new LFSCProof(
         smt,
         static_cast<CoreSatProof*>(getSatProof()),
@@ -97,62 +98,62 @@ const Proof& ProofManager::getProof(SmtEngine* smt)
 }
 
 CoreSatProof* ProofManager::getSatProof() {
-  Assert (currentPM()->d_satProof);
+  CVC4_DCHECK(currentPM()->d_satProof);
   return currentPM()->d_satProof;
 }
 
 CnfProof* ProofManager::getCnfProof() {
-  Assert (currentPM()->d_cnfProof);
+  CVC4_DCHECK(currentPM()->d_cnfProof);
   return currentPM()->d_cnfProof;
 }
 
 TheoryProofEngine* ProofManager::getTheoryProofEngine() {
-  Assert (currentPM()->d_theoryProof != NULL);
+  CVC4_DCHECK(currentPM()->d_theoryProof != NULL);
   return currentPM()->d_theoryProof;
 }
 
 UFProof* ProofManager::getUfProof() {
-  Assert (options::proof());
+  CVC4_DCHECK(options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_UF);
   return (UFProof*)pf;
 }
 
 proof::ResolutionBitVectorProof* ProofManager::getBitVectorProof()
 {
-  Assert (options::proof());
+  CVC4_DCHECK(options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_BV);
   return static_cast<proof::ResolutionBitVectorProof*>(pf);
 }
 
 ArrayProof* ProofManager::getArrayProof() {
-  Assert (options::proof());
+  CVC4_DCHECK(options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARRAYS);
   return (ArrayProof*)pf;
 }
 
 ArithProof* ProofManager::getArithProof() {
-  Assert (options::proof());
+  CVC4_DCHECK(options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARITH);
   return (ArithProof*)pf;
 }
 
 SkolemizationManager* ProofManager::getSkolemizationManager() {
-  Assert (options::proof() || options::unsatCores());
+  CVC4_DCHECK(options::proof() || options::unsatCores());
   return &(currentPM()->d_skolemizationManager);
 }
 
 void ProofManager::initSatProof(Minisat::Solver* solver) {
-  Assert (currentPM()->d_satProof == NULL);
-  Assert(currentPM()->d_format == LFSC);
+  CVC4_DCHECK(currentPM()->d_satProof == NULL);
+  CVC4_DCHECK(currentPM()->d_format == LFSC);
   currentPM()->d_satProof = new CoreSatProof(solver, d_context, "");
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
                                 context::Context* ctx) {
   ProofManager* pm = currentPM();
-  Assert(pm->d_satProof != NULL);
-  Assert (pm->d_cnfProof == NULL);
-  Assert (pm->d_format == LFSC);
+  CVC4_DCHECK(pm->d_satProof != NULL);
+  CVC4_DCHECK(pm->d_cnfProof == NULL);
+  CVC4_DCHECK(pm->d_format == LFSC);
   CnfProof* cnf = new LFSCCnfProof(cnfStream, ctx, "");
   pm->d_cnfProof = cnf;
 
@@ -175,8 +176,8 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
 }
 
 void ProofManager::initTheoryProofEngine() {
-  Assert (currentPM()->d_theoryProof == NULL);
-  Assert (currentPM()->d_format == LFSC);
+  CVC4_DCHECK(currentPM()->d_theoryProof == NULL);
+  CVC4_DCHECK(currentPM()->d_format == LFSC);
   currentPM()->d_theoryProof = new LFSCTheoryProofEngine();
 }
 
@@ -231,7 +232,7 @@ std::string ProofManager::getInputFormulaName(const Expr& expr) {
 std::string ProofManager::getAtomName(TNode atom,
                                       const std::string& prefix) {
   prop::SatLiteral lit = currentPM()->d_cnfProof->getLiteral(atom);
-  Assert(!lit.isNegated());
+  CVC4_DCHECK(!lit.isNegated());
   return getAtomName(lit.getSatVariable(), prefix);
 }
 
@@ -250,7 +251,7 @@ bool ProofManager::hasLitName(TNode lit) {
 }
 
 std::string ProofManager::sanitize(TNode node) {
-  Assert (node.isVar() || node.isConst());
+  CVC4_DCHECK(node.isVar() || node.isConst());
 
   std::string name = node.toString();
   if (node.isVar()) {
@@ -284,7 +285,7 @@ void ProofManager::traceDeps(TNode n, ExprSet* coreAssertions) {
       }
       InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
     }
-    Assert(d_deps.find(n) != d_deps.end());
+    CVC4_DCHECK(d_deps.find(n) != d_deps.end());
     std::vector<Node> deps = (*d_deps.find(n)).second;
     for(std::vector<Node>::const_iterator i = deps.begin(); i != deps.end(); ++i) {
       Debug("cores") << " + tracing deps: " << n << " -deps-on- " << *i << std::endl;
@@ -314,7 +315,7 @@ void ProofManager::traceDeps(TNode n, CDExprSet* coreAssertions) {
       }
       InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
     }
-    Assert(d_deps.find(n) != d_deps.end());
+    CVC4_DCHECK(d_deps.find(n) != d_deps.end());
     std::vector<Node> deps = (*d_deps.find(n)).second;
 
     for(std::vector<Node>::const_iterator i = deps.begin(); i != deps.end(); ++i) {
@@ -327,7 +328,7 @@ void ProofManager::traceDeps(TNode n, CDExprSet* coreAssertions) {
 }
 
 void ProofManager::traceUnsatCore() {
-  Assert (options::unsatCores());
+  CVC4_DCHECK(options::unsatCores());
   d_satProof->refreshProof();
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
@@ -335,7 +336,7 @@ void ProofManager::traceUnsatCore() {
                                  used_lemmas);
 
   // At this point, there should be no assertions without a clause id
-  Assert(d_cnfProof->isAssertionStackEmpty());
+  CVC4_DCHECK(d_cnfProof->isAssertionStackEmpty());
 
   IdToSatClause::const_iterator it = used_inputs.begin();
   for(; it != used_inputs.end(); ++it) {
@@ -375,8 +376,9 @@ void ProofManager::constructSatProof() {
 }
 
 void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas) {
-  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
-  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
+  CVC4_DCHECK(PROOF_ON()) << "Cannot compute unsat core when proofs are off";
+  CVC4_DCHECK(unsatCoreAvailable())
+      << "Cannot get unsat core at this time. Mabye the input is SAT?";
 
   constructSatProof();
 
@@ -425,8 +427,9 @@ std::set<Node> ProofManager::satClauseToNodeSet(prop::SatClause* clause) {
 }
 
 Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
-  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
-  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
+  CVC4_DCHECK(PROOF_ON()) << "Cannot compute unsat core when proofs are off";
+  CVC4_DCHECK(unsatCoreAvailable())
+      << "Cannot get unsat core at this time. Mabye the input is SAT?";
 
   // If we're doing aggressive minimization, work on all lemmas, not just conjunctions.
   if (!options::aggressiveCoreMin() && (lemma.getKind() != kind::AND))
@@ -496,7 +499,7 @@ Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
     }
   }
 
-  AlwaysAssert(builder.getNumChildren() != 0);
+  CVC4_CHECK(builder.getNumChildren() != 0);
 
   if (builder.getNumChildren() == 1)
     return builder[0];
@@ -531,7 +534,7 @@ void ProofManager::addDependence(TNode n, TNode dep) {
 }
 
 void ProofManager::addUnsatCore(Expr formula) {
-  Assert (d_inputCoreFormulas.find(formula) != d_inputCoreFormulas.end());
+  CVC4_DCHECK(d_inputCoreFormulas.find(formula) != d_inputCoreFormulas.end());
   d_outputCoreFormulas.insert(formula);
 }
 
@@ -572,7 +575,7 @@ void LFSCProof::toStream(std::ostream& out) const
   {
     CodeTimer skeletonProofTimer{
         ProofManager::currentPM()->getStats().d_skeletonProofTraceTime};
-    Assert(!d_satProof->proofConstructed());
+    CVC4_DCHECK(!d_satProof->proofConstructed());
     d_satProof->constructProof();
 
     // collecting leaf clauses in resolution proof
@@ -596,7 +599,7 @@ void LFSCProof::toStream(std::ostream& out) const
         Expr atom = d_cnfProof->getAtom(lit.getSatVariable()).toExpr();
         if (atom.isConst())
         {
-          Assert(atom == utils::mkTrue());
+          CVC4_DCHECK(atom == utils::mkTrue());
           continue;
         }
         Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;
@@ -912,7 +915,8 @@ void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) const
   for (rewrite = rewrites.begin(); rewrite != rewrites.end(); ++rewrite) {
     Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: handling " << *rewrite << std::endl;
     if (ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr())) {
-      Assert(ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr()));
+      CVC4_DCHECK(
+          ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr()));
       Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: this assertion was NOT rewritten!" << std::endl
                       << "\tAdding filter: "
                       << ProofManager::getPreprocessedAssertionName(*rewrite, "")
@@ -935,7 +939,7 @@ bool ProofManager::hasOp(TNode n) const {
 
 Node ProofManager::lookupOp(TNode n) const {
   std::map<Node, Node>::const_iterator i = d_bops.find(n);
-  Assert(i != d_bops.end());
+  CVC4_DCHECK(i != d_bops.end());
   return (*i).second;
 }
 
@@ -947,7 +951,8 @@ Node ProofManager::mkOp(TNode n) {
 
   Node& op = d_ops[n];
   if(op.isNull()) {
-    Assert((n.getConst<Kind>() == kind::SELECT) || (n.getConst<Kind>() == kind::STORE));
+    CVC4_DCHECK((n.getConst<Kind>() == kind::SELECT)
+                || (n.getConst<Kind>() == kind::STORE));
 
     Debug("mgd-pm-mkop") << "making an op for " << n << "\n";
 
@@ -1036,12 +1041,12 @@ std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
 }
 
 void ProofManager::registerRewrite(unsigned ruleId, Node original, Node result){
-  Assert (currentPM()->d_theoryProof != NULL);
+  CVC4_DCHECK(currentPM()->d_theoryProof != NULL);
   currentPM()->d_rewriteLog.push_back(RewriteLogEntry(ruleId, original, result));
 }
 
 void ProofManager::clearRewriteLog() {
-  Assert (currentPM()->d_theoryProof != NULL);
+  CVC4_DCHECK(currentPM()->d_theoryProof != NULL);
   currentPM()->d_rewriteLog.clear();
 }
 
@@ -1109,7 +1114,7 @@ void ProofManager::printGlobalLetMap(std::set<Node>& atoms,
     Expr currentExpr = letOrder[i].expr;
     unsigned letId = letOrder[i].id;
     ProofLetMap::iterator it = letMap.find(currentExpr);
-    Assert(it != letMap.end());
+    CVC4_DCHECK(it != letMap.end());
     out << "\n(@ let" << letId << " ";
     d_theoryProof->printBoundTerm(currentExpr, out, letMap);
     paren << ")";

@@ -41,12 +41,12 @@ EagerBitblastSolver::EagerBitblastSolver(context::Context* c, TheoryBV* bv)
 EagerBitblastSolver::~EagerBitblastSolver() {}
 
 void EagerBitblastSolver::turnOffAig() {
-  Assert(d_aigBitblaster == nullptr && d_bitblaster == nullptr);
+  CVC4_DCHECK(d_aigBitblaster == nullptr && d_bitblaster == nullptr);
   d_useAig = false;
 }
 
 void EagerBitblastSolver::initialize() {
-  Assert(!isInitialized());
+  CVC4_DCHECK(!isInitialized());
   if (d_useAig) {
 #ifdef CVC4_USE_ABC
     d_aigBitblaster.reset(new AigBitblaster());
@@ -64,14 +64,14 @@ void EagerBitblastSolver::initialize() {
 
 bool EagerBitblastSolver::isInitialized() {
   const bool init = d_aigBitblaster != nullptr || d_bitblaster != nullptr;
-  Assert(!init || !d_useAig || d_aigBitblaster);
-  Assert(!init || d_useAig || d_bitblaster);
+  CVC4_DCHECK(!init || !d_useAig || d_aigBitblaster);
+  CVC4_DCHECK(!init || d_useAig || d_bitblaster);
   return init;
 }
 
 void EagerBitblastSolver::assertFormula(TNode formula) {
   d_bv->spendResource(1);
-  Assert(isInitialized());
+  CVC4_DCHECK(isInitialized());
   Debug("bitvector-eager") << "EagerBitblastSolver::assertFormula " << formula
                            << "\n";
   if (options::incrementalSolving() && d_context->getLevel() > 1)
@@ -94,7 +94,7 @@ void EagerBitblastSolver::assertFormula(TNode formula) {
 }
 
 bool EagerBitblastSolver::checkSat() {
-  Assert(isInitialized());
+  CVC4_DCHECK(isInitialized());
   if (d_assertionSet.empty()) {
     return true;
   }
@@ -103,7 +103,7 @@ bool EagerBitblastSolver::checkSat() {
 #ifdef CVC4_USE_ABC
     const std::vector<Node> assertions = {d_assertionSet.key_begin(),
                                           d_assertionSet.key_end()};
-    Assert(!assertions.empty());
+    CVC4_DCHECK(!assertions.empty());
 
     Node query = utils::mkAnd(assertions);
     return d_aigBitblaster->solve(query);
@@ -123,7 +123,7 @@ bool EagerBitblastSolver::checkSat() {
 
 bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
 {
-  AlwaysAssert(!d_useAig && d_bitblaster);
+  CVC4_CHECK(!d_useAig && d_bitblaster);
   return d_bitblaster->collectModelInfo(m, fullModel);
 }
 

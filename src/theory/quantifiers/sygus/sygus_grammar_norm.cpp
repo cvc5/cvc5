@@ -136,8 +136,8 @@ Node SygusGrammarNorm::TypeObject::eliminatePartialOperators(Node n)
       for (const Node& cn : cur)
       {
         it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
+        CVC4_DCHECK(it != visited.end());
+        CVC4_DCHECK(!it->second.isNull());
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
@@ -150,8 +150,8 @@ Node SygusGrammarNorm::TypeObject::eliminatePartialOperators(Node n)
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
+  CVC4_DCHECK(visited.find(n) != visited.end());
+  CVC4_DCHECK(!visited.find(n)->second.isNull());
   return visited[n];
 }
 
@@ -360,7 +360,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
         << to.d_unres_tn << " and " << t << "\n";
   }
   /* In the initial case if not all operators claimed always creates a next */
-  Assert(nb_op_pos != d_elem_pos.size() + 1 || d_elem_pos.size() > 1);
+  CVC4_DCHECK(nb_op_pos != d_elem_pos.size() + 1 || d_elem_pos.size() > 1);
   /* TODO #1304: consider case in which CHAIN op has different types than
      to.d_tn */
   /* If no more elements to chain, finish */
@@ -420,7 +420,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
     {
       Trace("sygus-gnorm") << "...drop transf, " << rindices.size() << "/"
                            << op_pos.size() << " constructors." << std::endl;
-      Assert(rindices.size() < op_pos.size());
+      CVC4_DCHECK(rindices.size() < op_pos.size());
       return std::unique_ptr<Transf>(new TransfDrop(rindices));
     }
   }
@@ -438,13 +438,13 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
   std::vector<unsigned> elem_pos;
   for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
   {
-    Assert(op_pos[i] < dt.getNumConstructors());
+    CVC4_DCHECK(op_pos[i] < dt.getNumConstructors());
     Expr sop = dt[op_pos[i]].getSygusOp();
     /* Collects a chainable operator such as PLUS */
     if (sop.getKind() == BUILTIN
         && TransfChain::isChainable(sygus_tn, Node::fromExpr(sop)))
     {
-      Assert(nm->operatorToKind(Node::fromExpr(sop)) == PLUS);
+      CVC4_DCHECK(nm->operatorToKind(Node::fromExpr(sop)) == PLUS);
       /* TODO #1304: be robust for this case */
       /* For now only transforms applications whose arguments have the same type
        * as the root */
@@ -466,7 +466,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
             << " in position " << op_pos[i] << "\n";
         continue;
       }
-      Assert(chain_op_pos == dt.getNumConstructors());
+      CVC4_DCHECK(chain_op_pos == dt.getNumConstructors());
       Trace("sygus-grammar-normalize-infer")
           << "\tCollecting chainable OP " << sop << " in position " << op_pos[i]
           << "\n";
@@ -553,7 +553,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   /* Remaining operators are rebuilt as they are */
   for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
   {
-    Assert(op_pos[i] < dt.getNumConstructors());
+    CVC4_DCHECK(op_pos[i] < dt.getNumConstructors());
     to.addConsInfo(this, dt[op_pos[i]]);
   }
   if (dt.getSygusAllowConst())
@@ -620,7 +620,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   d_sygus_vars = sygus_vars;
   normalizeSygusRec(tn);
   /* Resolve created types */
-  Assert(!d_dt_all.empty() && !d_unres_t_all.empty());
+  CVC4_DCHECK(!d_dt_all.empty() && !d_unres_t_all.empty());
   if (Trace.isOn("sygus-grammar-normalize-build"))
   {
     Trace("sygus-grammar-normalize-build")
@@ -636,11 +636,11 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     }
     Trace("sygus-grammar-normalize-build") << "\n";
   }
-  Assert(d_dt_all.size() == d_unres_t_all.size());
+  CVC4_DCHECK(d_dt_all.size() == d_unres_t_all.size());
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
           d_dt_all, d_unres_t_all, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-  Assert(types.size() == d_dt_all.size());
+  CVC4_DCHECK(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();
   d_unres_t_all.clear();

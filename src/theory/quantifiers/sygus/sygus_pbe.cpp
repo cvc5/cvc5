@@ -121,7 +121,7 @@ bool SygusPbe::collectExamples(Node n,
           }
           else
           {
-            Assert(n_output.isConst());
+            CVC4_DCHECK(n_output.isConst());
           }
           // finished processing this node
           return true;
@@ -215,13 +215,13 @@ bool SygusPbe::initialize(Node conj,
   }
   for (const Node& c : candidates)
   {
-    Assert(d_examples.find(c) != d_examples.end());
+    CVC4_DCHECK(d_examples.find(c) != d_examples.end());
     Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
                        << std::endl;
     std::map<Node, std::vector<Node>> strategy_lemmas;
     d_sygus_unif[c].initializeCandidate(
         d_qe, c, d_candidate_to_enum[c], strategy_lemmas);
-    Assert(!d_candidate_to_enum[c].empty());
+    CVC4_DCHECK(!d_candidate_to_enum[c].empty());
     Trace("sygus-pbe") << "Initialize " << d_candidate_to_enum[c].size()
                        << " enumerators for " << c << "..." << std::endl;
     // collect list per type of strategy points with strategy lemmas
@@ -251,7 +251,7 @@ bool SygusPbe::initialize(Node conj,
         {
           std::map<Node, std::vector<Node>>::iterator itsl =
               strategy_lemmas.find(sp);
-          Assert(itsl != strategy_lemmas.end());
+          CVC4_DCHECK(itsl != strategy_lemmas.end());
           if (!itsl->second.empty())
           {
             TNode tsp = sp;
@@ -269,7 +269,7 @@ bool SygusPbe::initialize(Node conj,
         }
         // add its active guard
         Node ag = d_tds->getActiveGuardForEnumerator(e);
-        Assert(!ag.isNull());
+        CVC4_DCHECK(!ag.isNull());
         disj.push_back(ag.negate());
         Node lem = disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
         // Apply extended rewriting on the lemma. This helps utilities like
@@ -315,7 +315,7 @@ bool SygusPbe::hasExamples(Node e)
 {
   if (isPbe()) {
     e = d_tds->getSynthFunForEnumerator(e);
-    Assert(!e.isNull());
+    CVC4_DCHECK(!e.isNull());
     std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
     if (itx == d_examples_invalid.end()) {
       return d_examples.find(e) != d_examples.end();
@@ -327,7 +327,7 @@ bool SygusPbe::hasExamples(Node e)
 unsigned SygusPbe::getNumExamples(Node e)
 {
   e = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
+  CVC4_DCHECK(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
       d_examples.find(e);
   if (it != d_examples.end()) {
@@ -340,35 +340,35 @@ unsigned SygusPbe::getNumExamples(Node e)
 void SygusPbe::getExample(Node e, unsigned i, std::vector<Node>& ex)
 {
   e = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
+  CVC4_DCHECK(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
       d_examples.find(e);
   if (it != d_examples.end()) {
-    Assert(i < it->second.size());
+    CVC4_DCHECK(i < it->second.size());
     ex.insert(ex.end(), it->second[i].begin(), it->second[i].end());
   } else {
-    Assert(false);
+    CVC4_DCHECK(false);
   }
 }
 
 Node SygusPbe::getExampleOut(Node e, unsigned i)
 {
   e = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
+  CVC4_DCHECK(!e.isNull());
   std::map<Node, std::vector<Node> >::iterator it = d_examples_out.find(e);
   if (it != d_examples_out.end()) {
-    Assert(i < it->second.size());
+    CVC4_DCHECK(i < it->second.size());
     return it->second[i];
   } else {
-    Assert(false);
+    CVC4_DCHECK(false);
     return Node::null();
   }
 }
 
 Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
 {
-  Assert(isPbe());
-  Assert(!e.isNull());
+  CVC4_DCHECK(isPbe());
+  CVC4_DCHECK(!e.isNull());
   if (d_tds->isVariableAgnosticEnumerator(e))
   {
     // we cannot apply conjecture-specific symmetry breaking on variable
@@ -376,7 +376,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
     return Node::null();
   }
   Node ee = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
+  CVC4_DCHECK(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
   if (itx == d_examples_invalid.end()) {
     // compute example values with the I/O utility
@@ -384,7 +384,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
     Trace("sygus-pbe-debug")
         << "Compute examples " << bvr << "..." << std::endl;
     d_sygus_unif[ee].computeExamples(e, bvr, vals);
-    Assert(vals.size() == d_examples[ee].size());
+    CVC4_DCHECK(vals.size() == d_examples[ee].size());
     Trace("sygus-pbe-debug") << "...got " << vals << std::endl;
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
     Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
@@ -394,7 +394,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
       Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
       d_sygus_unif[ee].clearExampleCache(e, bvr);
     }
-    Assert(ret.getType() == bvr.getType());
+    CVC4_DCHECK(ret.getType() == bvr.getType());
     return ret;
   }
   return Node::null();
@@ -403,13 +403,13 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
 Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
 {
   e = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
+  CVC4_DCHECK(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
   if (itx == d_examples_invalid.end()) {
     std::map<Node, std::vector<std::vector<Node> > >::iterator it =
         d_examples.find(e);
     if (it != d_examples.end()) {
-      Assert(i < it->second.size());
+      CVC4_DCHECK(i < it->second.size());
       return d_tds->evaluateBuiltin(tn, bn, it->second[i]);
     }
   }
@@ -440,7 +440,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
                                    std::vector<Node>& candidate_values,
                                    std::vector<Node>& lems)
 {
-  Assert( enums.size()==enum_values.size() );
+  CVC4_DCHECK(enums.size() == enum_values.size());
   if( !enums.empty() ){
     unsigned min_term_size = 0;
     Trace("sygus-pbe-enum") << "Register new enumerated values : " << std::endl;
@@ -477,7 +477,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     {
       if (!enum_values[i].isNull())
       {
-        Assert(szs[i] >= min_term_size);
+        CVC4_DCHECK(szs[i] >= min_term_size);
         int diff = szs[i] - min_term_size;
         if (!options::sygusPbeMultiFair() || diff <= diffAllow)
         {
@@ -494,7 +494,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       unsigned j = enum_consider[i];
       Node e = enums[j];
       Node v = enum_values[j];
-      Assert(d_enum_to_candidate.find(e) != d_enum_to_candidate.end());
+      CVC4_DCHECK(d_enum_to_candidate.find(e) != d_enum_to_candidate.end());
       Node c = d_enum_to_candidate[e];
       std::vector<Node> enum_lems;
       d_sygus_unif[c].notifyEnumeration(e, v, enum_lems);
@@ -502,7 +502,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       {
         // the lemmas must be guarded by the active guard of the enumerator
         Node g = d_tds->getActiveGuardForEnumerator(e);
-        Assert(!g.isNull());
+        CVC4_DCHECK(!g.isNull());
         for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
         {
           enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
@@ -517,7 +517,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     std::vector<Node> sol;
     if (d_sygus_unif[c].constructSolution(sol, lems))
     {
-      Assert(sol.size() == 1);
+      CVC4_DCHECK(sol.size() == 1);
       candidate_values.push_back(sol[0]);
     }
     else

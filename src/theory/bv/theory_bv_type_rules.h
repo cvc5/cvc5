@@ -32,7 +32,7 @@ class CardinalityComputer
  public:
   inline static Cardinality computeCardinality(TypeNode type)
   {
-    Assert(type.getKind() == kind::BITVECTOR_TYPE);
+    CVC4_DCHECK(type.getKind() == kind::BITVECTOR_TYPE);
 
     unsigned size = type.getConst<BitVectorSize>();
     if (size == 0)
@@ -199,7 +199,7 @@ class BitVectorITETypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getNumChildren() == 3);
+    CVC4_DCHECK(n.getNumChildren() == 3);
     TypeNode thenpart = n[1].getType(check);
     if (check)
     {

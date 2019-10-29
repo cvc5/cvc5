@@ -200,7 +200,7 @@ bool TBitblaster<T>::hasBBTerm(TNode node) const
 template <class T>
 void TBitblaster<T>::getBBTerm(TNode node, Bits& bits) const
 {
-  Assert(hasBBTerm(node));
+  CVC4_DCHECK(hasBBTerm(node));
   bits = d_termCache.find(node)->second;
 }
 
@@ -244,7 +244,7 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
         << "TLazyBitblaster::getTermModel from SatSolver" << node << " => "
         << value << "\n";
     d_modelCache[node] = value;
-    Assert(value.isConst());
+    CVC4_DCHECK(value.isConst());
     return value;
   }
 
@@ -254,14 +254,15 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
     value = getModelFromSatSolver(node, true);
     Debug("bv-equality-status") << "TLazyBitblaster::getTermModel from VarValue"
                                 << node << " => " << value << "\n";
-    Assert((fullModel && !value.isNull() && value.isConst()) || !fullModel);
+    CVC4_DCHECK((fullModel && !value.isNull() && value.isConst())
+                || !fullModel);
     if (!value.isNull())
     {
       d_modelCache[node] = value;
     }
     return value;
   }
-  Assert(node.getType().isBitVector());
+  CVC4_DCHECK(node.getType().isBitVector());
 
   NodeBuilder<> nb(node.getKind());
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -275,7 +276,7 @@ Node TBitblaster<T>::getTermModel(TNode node, bool fullModel)
   }
   value = nb;
   value = Rewriter::rewrite(value);
-  Assert(value.isConst());
+  CVC4_DCHECK(value.isConst());
   d_modelCache[node] = value;
   Debug("bv-term-model") << "TLazyBitblaster::getTermModel Building Value"
                          << node << " => " << value << "\n";

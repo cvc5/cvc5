@@ -27,6 +27,7 @@
 #include <utility>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"
@@ -488,7 +489,8 @@ public:
    */
   template <class TheoryClass>
   inline void addTheory(theory::TheoryId theoryId) {
-    Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
+    CVC4_DCHECK(d_theoryTable[theoryId] == NULL
+                && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
     d_theoryTable[theoryId] =
         new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
@@ -496,12 +498,12 @@ public:
   }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {
-    Assert(d_propEngine == NULL);
+    CVC4_DCHECK(d_propEngine == NULL);
     d_propEngine = propEngine;
   }
 
   inline void setDecisionEngine(DecisionEngine* decisionEngine) {
-    Assert(d_decisionEngine == NULL);
+    CVC4_DCHECK(d_decisionEngine == NULL);
     d_decisionEngine = decisionEngine;
   }
 

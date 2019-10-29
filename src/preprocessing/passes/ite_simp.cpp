@@ -80,9 +80,9 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
   //  cannot be moved
   // added [before, cur_size)
   //  can be modified
-  Assert(0 < assertionsToPreprocess->getRealAssertionsEnd());
-  Assert(assertionsToPreprocess->getRealAssertionsEnd() <= before);
-  Assert(before < cur_size);
+  CVC4_DCHECK(0 < assertionsToPreprocess->getRealAssertionsEnd());
+  CVC4_DCHECK(assertionsToPreprocess->getRealAssertionsEnd() <= before);
+  CVC4_DCHECK(before < cur_size);
 
   std::vector<Node> intoConjunction;
   for (size_t i = before; i < cur_size; ++i)
@@ -94,7 +94,7 @@ void compressBeforeRealAssertions(AssertionPipeline* assertionsToPreprocess,
   intoConjunction.push_back((*assertionsToPreprocess)[lastBeforeItes]);
   Node newLast = CVC4::util::NaryBuilder::mkAssoc(kind::AND, intoConjunction);
   assertionsToPreprocess->replace(lastBeforeItes, newLast);
-  Assert(assertionsToPreprocess->size() == before);
+  CVC4_DCHECK(assertionsToPreprocess->size() == before);
 }
 
 }  // namespace

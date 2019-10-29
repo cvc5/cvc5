@@ -57,15 +57,15 @@ PreprocessingPassResult BVToBool::applyInternal(
 
 void BVToBool::addToLiftCache(TNode term, Node new_term)
 {
-  Assert(new_term != Node());
-  Assert(!hasLiftCache(term));
-  Assert(term.getType() == new_term.getType());
+  CVC4_DCHECK(new_term != Node());
+  CVC4_DCHECK(!hasLiftCache(term));
+  CVC4_DCHECK(term.getType() == new_term.getType());
   d_liftCache[term] = new_term;
 }
 
 Node BVToBool::getLiftCache(TNode term) const
 {
-  Assert(hasLiftCache(term));
+  CVC4_DCHECK(hasLiftCache(term));
   return d_liftCache.find(term)->second;
 }
 
@@ -76,16 +76,16 @@ bool BVToBool::hasLiftCache(TNode term) const
 
 void BVToBool::addToBoolCache(TNode term, Node new_term)
 {
-  Assert(new_term != Node());
-  Assert(!hasBoolCache(term));
-  Assert(bv::utils::getSize(term) == 1);
-  Assert(new_term.getType().isBoolean());
+  CVC4_DCHECK(new_term != Node());
+  CVC4_DCHECK(!hasBoolCache(term));
+  CVC4_DCHECK(bv::utils::getSize(term) == 1);
+  CVC4_DCHECK(new_term.getType().isBoolean());
   d_boolCache[term] = new_term;
 }
 
 Node BVToBool::getBoolCache(TNode term) const
 {
-  Assert(hasBoolCache(term));
+  CVC4_DCHECK(hasBoolCache(term));
   return d_boolCache.find(term)->second;
 }
 
@@ -126,9 +126,9 @@ bool BVToBool::isConvertibleBvTerm(TNode node)
 
 Node BVToBool::convertBvAtom(TNode node)
 {
-  Assert(node.getType().isBoolean() && node.getKind() == kind::EQUAL);
-  Assert(bv::utils::getSize(node[0]) == 1);
-  Assert(bv::utils::getSize(node[1]) == 1);
+  CVC4_DCHECK(node.getType().isBoolean() && node.getKind() == kind::EQUAL);
+  CVC4_DCHECK(bv::utils::getSize(node[0]) == 1);
+  CVC4_DCHECK(bv::utils::getSize(node[1]) == 1);
   Node a = convertBvTerm(node[0]);
   Node b = convertBvTerm(node[1]);
   Node result = NodeManager::currentNM()->mkNode(kind::EQUAL, a, b);
@@ -141,8 +141,8 @@ Node BVToBool::convertBvAtom(TNode node)
 
 Node BVToBool::convertBvTerm(TNode node)
 {
-  Assert(node.getType().isBitVector()
-         && node.getType().getBitVectorSize() == 1);
+  CVC4_DCHECK(node.getType().isBitVector()
+              && node.getType().getBitVectorSize() == 1);
 
   if (hasBoolCache(node)) return getBoolCache(node);
 
@@ -160,7 +160,7 @@ Node BVToBool::convertBvTerm(TNode node)
 
   if (node.getNumChildren() == 0)
   {
-    Assert(node.getKind() == kind::CONST_BITVECTOR);
+    CVC4_DCHECK(node.getKind() == kind::CONST_BITVECTOR);
     Node result = node == d_one ? bv::utils::mkTrue() : bv::utils::mkFalse();
     // addToCache(node, result);
     Debug("bv-to-bool") << "BVToBool::convertBvTerm " << node << " => "
@@ -259,15 +259,15 @@ Node BVToBool::liftNode(TNode current)
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
         Node converted = liftNode(current[i]);
-        Assert(converted.getType() == current[i].getType());
+        CVC4_DCHECK(converted.getType() == current[i].getType());
         builder << converted;
       }
       result = builder;
       addToLiftCache(current, result);
     }
   }
-  Assert(result != Node());
-  Assert(result.getType() == current.getType());
+  CVC4_DCHECK(result != Node());
+  CVC4_DCHECK(result.getType() == current.getType());
   Debug("bv-to-bool") << "BVToBool::liftNode " << current << " => \n"
                       << result << "\n";
   return result;

@@ -36,10 +36,10 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     TNode a = (*assertionsToPreprocess)[i];
-    Assert(Rewriter::rewrite(a) == a);
+    CVC4_DCHECK(Rewriter::rewrite(a) == a);
     assertionsToPreprocess->replace(i, te->preprocess(a));
     a = (*assertionsToPreprocess)[i];
-    Assert(Rewriter::rewrite(a) == a);
+    CVC4_DCHECK(Rewriter::rewrite(a) == a);
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

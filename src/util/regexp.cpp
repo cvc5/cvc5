@@ -24,6 +24,7 @@
 #include <sstream>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "base/exception.h"
 
 using namespace std;
@@ -38,23 +39,23 @@ unsigned String::convertCharToUnsignedInt(unsigned char c)
 }
 unsigned char String::convertUnsignedIntToChar(unsigned i)
 {
-  Assert(i < num_codes());
+  CVC4_DCHECK(i < num_codes());
   return static_cast<unsigned char>(convertUnsignedIntToCode(i));
 }
 bool String::isPrintable(unsigned i)
 {
-  Assert(i < num_codes());
+  CVC4_DCHECK(i < num_codes());
   unsigned char c = convertUnsignedIntToChar(i);
   return (c >= ' ' && c <= '~');
 }
 unsigned String::convertCodeToUnsignedInt(unsigned c)
 {
-  Assert(c < num_codes());
+  CVC4_DCHECK(c < num_codes());
   return (c < start_code() ? c + num_codes() : c) - start_code();
 }
 unsigned String::convertUnsignedIntToCode(unsigned i)
 {
-  Assert(i < num_codes());
+  CVC4_DCHECK(i < num_codes());
   return (i + start_code()) % num_codes();
 }
 
@@ -63,7 +64,7 @@ String::String(const std::vector<unsigned> &s) : d_str(s)
 #ifdef CVC4_ASSERTIONS
   for (unsigned u : d_str)
   {
-    Assert(convertUnsignedIntToCode(u) < num_codes());
+    CVC4_DCHECK(convertUnsignedIntToCode(u) < num_codes());
   }
 #endif
 }
@@ -222,7 +223,7 @@ std::vector<unsigned> String::toInternal(const std::string &s,
 #ifdef CVC4_ASSERTIONS
   for (unsigned u : str)
   {
-    Assert(convertUnsignedIntToCode(u) < num_codes());
+    CVC4_DCHECK(convertUnsignedIntToCode(u) < num_codes());
   }
 #endif
   return str;
@@ -230,13 +231,13 @@ std::vector<unsigned> String::toInternal(const std::string &s,
 
 unsigned String::front() const
 {
-  Assert(!d_str.empty());
+  CVC4_DCHECK(!d_str.empty());
   return d_str.front();
 }
 
 unsigned String::back() const
 {
-  Assert(!d_str.empty());
+  CVC4_DCHECK(!d_str.empty());
   return d_str.back();
 }
 
@@ -445,7 +446,7 @@ String String::replace(const String &s, const String &t) const {
 }
 
 String String::substr(std::size_t i) const {
-  Assert(i <= size());
+  CVC4_DCHECK(i <= size());
   std::vector<unsigned int> ret_vec;
   std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
   ret_vec.insert(ret_vec.end(), itr, d_str.end());
@@ -453,7 +454,7 @@ String String::substr(std::size_t i) const {
 }
 
 String String::substr(std::size_t i, std::size_t j) const {
-  Assert(i + j <= size());
+  CVC4_DCHECK(i + j <= size());
   std::vector<unsigned int> ret_vec;
   std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
   ret_vec.insert(ret_vec.end(), itr, itr + j);
@@ -494,7 +495,7 @@ unsigned char String::hexToDec(unsigned char c) {
   } else if (c >= 'a' && c <= 'f') {
     return c - 'a' + 10;
   } else {
-    Assert(c >= 'A' && c <= 'F');
+    CVC4_DCHECK(c >= 'A' && c <= 'F');
     return c - 'A' + 10;
   }
 }

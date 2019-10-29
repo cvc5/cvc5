@@ -39,7 +39,7 @@ namespace {
 size_t removeFromConjunction(Node& n,
                              const std::unordered_set<unsigned long>& toRemove)
 {
-  Assert(n.getKind() == kind::AND);
+  CVC4_DCHECK(n.getKind() == kind::AND);
   Node trueNode = NodeManager::currentNM()->mkConst(true);
   size_t removals = 0;
   for (Node::iterator j = n.begin(); j != n.end(); ++j)
@@ -104,7 +104,7 @@ size_t removeFromConjunction(Node& n,
     }
   }
 
-  Assert(removals == 0);
+  CVC4_DCHECK(removals == 0);
   return 0;
 }
 
@@ -123,7 +123,7 @@ void traceBackToAssertions(booleans::CircuitPropagator* propagator,
     booleans::CircuitPropagator::BackEdgesMap::const_iterator j =
         backEdges.find(*i);
     // term must appear in map, otherwise how did we get here?!
-    Assert(j != backEdges.end());
+    CVC4_DCHECK(j != backEdges.end());
     // if term maps to empty, that means it's a top-level assertion
     if (!(*j).second.empty())
     {
@@ -176,9 +176,9 @@ void MipLibTrick::nmNotifyNewSkolem(TNode n,
 PreprocessingPassResult MipLibTrick::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(assertionsToPreprocess->getRealAssertionsEnd()
-         == assertionsToPreprocess->size());
-  Assert(!options::incrementalSolving());
+  CVC4_DCHECK(assertionsToPreprocess->getRealAssertionsEnd()
+              == assertionsToPreprocess->size());
+  CVC4_DCHECK(!options::incrementalSolving());
 
   context::Context fakeContext;
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
@@ -353,7 +353,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         }
         else if (countneg == pos.getNumChildren() - 1)
         {
-          Assert(coef[pos_var].size() <= 6 && thepos < 6);
+          CVC4_DCHECK(coef[pos_var].size() <= 6 && thepos < 6);
           if (coef[pos_var].size() <= thepos)
           {
             coef[pos_var].resize(thepos + 1);
@@ -410,7 +410,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         }
         else
         {
-          Assert(coef[x_var].size() <= 6);
+          CVC4_DCHECK(coef[x_var].size() <= 6);
           coef[x_var].resize(6);
           coef[x_var][0] = constant;
         }
@@ -433,7 +433,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         expected = (expected == 0) ? -1 : expected;  // fix for overflow
         Debug("miplib") << "[" << pos << "] => " << hex << mark << " expect "
                         << expected << dec << endl;
-        Assert(pos.getKind() == kind::AND || pos.isVar());
+        CVC4_DCHECK(pos.getKind() == kind::AND || pos.isVar());
         if (mark != expected)
         {
           Debug("miplib") << "  -- INELIGIBLE " << pos
@@ -447,7 +447,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           {  // exclude single-var case; nothing to check there
             uint64_t sz = (uint64_t(1) << checks[pos_var].size()) - 1;
             sz = (sz == 0) ? -1 : sz;  // fix for overflow
-            Assert(sz == mark, "expected size %u == mark %u", sz, mark);
+            CVC4_DCHECK(sz == mark)
+                << "expected size " << sz << " == mark " << mark;
             for (size_t k = 0; k < checks[pos_var].size(); ++k)
             {
               if ((k & (k - 1)) != 0)
@@ -458,7 +459,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
                 {
                   if ((kk & 0x1) == 1)
                   {
-                    Assert(pos.getKind() == kind::AND);
+                    CVC4_DCHECK(pos.getKind() == kind::AND);
                     Debug("miplib") << "var " << v << " : " << pos[v - 1]
                                     << " coef:" << coef[pos_var][v - 1] << endl;
                     sum += coef[pos_var][v - 1];
@@ -476,14 +477,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               }
               else
               {
-                Assert(checks[pos_var][k] == 0,
-                       "checks[(%s,%s)][%u] should be 0, but it's %s",
-                       pos.toString().c_str(),
-                       var.toString().c_str(),
-                       k,
-                       checks[pos_var][k]
-                           .toString()
-                           .c_str());  // we never set for single-positive-var
+                CVC4_DCHECK(checks[pos_var][k] == 0)
+                    << "checks[(" << pos << "," << var << ")][" << k
+                    << "] should be 0, but it's "
+                    << checks[pos_var]
+                             [k];  // we never set for single-positive-var
               }
             }
           }
@@ -529,15 +527,15 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               SubstitutionMap nullMap(&fakeContext);
               Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
               status = te->solve(geq, nullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                     "unexpected solution from arith's ppAssert()");
-              Assert(nullMap.empty(),
-                     "unexpected substitution from arith's ppAssert()");
+              CVC4_DCHECK(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
+                  << "unexpected solution from arith's ppAssert()";
+              CVC4_DCHECK(nullMap.empty())
+                  << "unexpected substitution from arith's ppAssert()";
               status = te->solve(leq, nullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                     "unexpected solution from arith's ppAssert()");
-              Assert(nullMap.empty(),
-                     "unexpected substitution from arith's ppAssert()");
+              CVC4_DCHECK(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
+                  << "unexpected solution from arith's ppAssert()";
+              CVC4_DCHECK(nullMap.empty())
+                  << "unexpected substitution from arith's ppAssert()";
               te->getModel()->addSubstitution(*ii, newVar.eqNode(one));
               newVars.push_back(newVar);
               varRef = newVar;
@@ -573,8 +571,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             // Warning() << "REPLACE         " << newAssertion[1] << endl;
             // Warning() << "ORIG            " <<
             // top_level_substs.getSubstitution(newAssertion[0]) << endl;
-            Assert(top_level_substs.getSubstitution(newAssertion[0])
-                   == newAssertion[1]);
+            CVC4_DCHECK(top_level_substs.getSubstitution(newAssertion[0])
+                        == newAssertion[1]);
           }
           else if (pos.getNumChildren() <= options::arithMLTrickSubstitutions())
           {

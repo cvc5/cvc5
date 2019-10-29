@@ -42,7 +42,7 @@ public:
   }
 
   void raise(){
-    Assert(!isRaised());
+    CVC4_DCHECK(!isRaised());
     d_flag.set(true);
   }
 
@@ -63,12 +63,12 @@ public:
   }
 
   void set(const T& d){
-    Assert(!isSet());
+    CVC4_DCHECK(!isSet());
     d_data.set(std::make_pair(true, d));
   }
 
   const T& get() const{
-    Assert(isSet());
+    CVC4_DCHECK(isSet());
     return d_data.get().second;
   }
 };/* class CDMaybe<T> */

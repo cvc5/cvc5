@@ -29,7 +29,7 @@ struct QuantifierForallTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Debug("typecheck-q") << "type check for fa " << n << std::endl;
-    Assert(n.getKind() == kind::FORALL && n.getNumChildren()>0 );
+    CVC4_DCHECK(n.getKind() == kind::FORALL && n.getNumChildren() > 0);
     if( check ){
       if( n[ 0 ].getType(check)!=nodeManager->boundVarListType() ){
         throw TypeCheckingExceptionPrivate(n, "first argument of universal quantifier is not bound var list");
@@ -49,7 +49,7 @@ struct QuantifierExistsTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     Debug("typecheck-q") << "type check for ex " << n << std::endl;
-    Assert(n.getKind() == kind::EXISTS && n.getNumChildren()>0 );
+    CVC4_DCHECK(n.getKind() == kind::EXISTS && n.getNumChildren() > 0);
     if( check ){
       if( n[ 0 ].getType(check)!=nodeManager->boundVarListType() ){
         throw TypeCheckingExceptionPrivate(n, "first argument of existential quantifier is not bound var list");
@@ -68,7 +68,7 @@ struct QuantifierExistsTypeRule {
 struct QuantifierBoundVarListTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::BOUND_VAR_LIST );
+    CVC4_DCHECK(n.getKind() == kind::BOUND_VAR_LIST);
     if( check ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         if( n[i].getKind()!=kind::BOUND_VARIABLE ){
@@ -83,7 +83,7 @@ struct QuantifierBoundVarListTypeRule {
 struct QuantifierInstPatternTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::INST_PATTERN );
+    CVC4_DCHECK(n.getKind() == kind::INST_PATTERN);
     if( check ){
       TypeNode tn = n[0].getType(check);
       // this check catches the common mistake writing :pattern (f x) instead of :pattern ((f x))
@@ -98,7 +98,7 @@ struct QuantifierInstPatternTypeRule {
 struct QuantifierInstNoPatternTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::INST_NO_PATTERN );
+    CVC4_DCHECK(n.getKind() == kind::INST_NO_PATTERN);
     return nodeManager->instPatternType();
   }
 };/* struct QuantifierInstNoPatternTypeRule */
@@ -106,7 +106,7 @@ struct QuantifierInstNoPatternTypeRule {
 struct QuantifierInstAttributeTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::INST_ATTRIBUTE );
+    CVC4_DCHECK(n.getKind() == kind::INST_ATTRIBUTE);
     return nodeManager->instPatternType();
   }
 };/* struct QuantifierInstAttributeTypeRule */
@@ -114,7 +114,7 @@ struct QuantifierInstAttributeTypeRule {
 struct QuantifierInstPatternListTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::INST_PATTERN_LIST );
+    CVC4_DCHECK(n.getKind() == kind::INST_PATTERN_LIST);
     if( check ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         if( n[i].getKind()!=kind::INST_PATTERN && n[i].getKind()!=kind::INST_NO_PATTERN && n[i].getKind()!=kind::INST_ATTRIBUTE ){
@@ -129,7 +129,7 @@ struct QuantifierInstPatternListTypeRule {
 struct QuantifierInstClosureTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::INST_CLOSURE );
+    CVC4_DCHECK(n.getKind() == kind::INST_CLOSURE);
     if( check ){
       TypeNode tn = n[0].getType(check);
       if( tn.isBoolean() ){
@@ -157,7 +157,7 @@ public:
                                      bool check)
   {
     Debug("typecheck-r") << "type check for rr " << n << std::endl;
-    Assert(n.getKind() == kind::REWRITE_RULE && n.getNumChildren()==3 );
+    CVC4_DCHECK(n.getKind() == kind::REWRITE_RULE && n.getNumChildren() == 3);
     if( check ){
       if( n[ 0 ].getType(check)!=nodeManager->boundVarListType() ){
         throw TypeCheckingExceptionPrivate(n[0],
@@ -182,7 +182,7 @@ public:
 
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::RR_REWRITE );
+    CVC4_DCHECK(n.getKind() == kind::RR_REWRITE);
     if( check ){
       if( n[0].getType(check)!=n[1].getType(check) ){
         throw TypeCheckingExceptionPrivate(n,
@@ -204,8 +204,8 @@ public:
 
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::RR_REDUCTION ||
-           n.getKind() == kind::RR_DEDUCTION );
+    CVC4_DCHECK(n.getKind() == kind::RR_REDUCTION
+                || n.getKind() == kind::RR_DEDUCTION);
     if( check ){
       if( n[ 0 ].getType(check)!=nodeManager->booleanType() ){
         throw TypeCheckingExceptionPrivate(n, "head of reduction rule is not boolean");

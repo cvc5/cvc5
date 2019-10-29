@@ -80,7 +80,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
     }else{
       ss << "fv_" << tn << "_" << i;
     }
-    Assert( !vtn.isNull() );
+    CVC4_DCHECK(!vtn.isNull());
     Node v = NodeManager::currentNM()->mkSkolem( ss.str(), vtn, "for sygus normal form testing" );
     d_fv_stype[v] = tn;
     d_fv_num[v] = i;
@@ -123,9 +123,9 @@ bool TermDbSygus::hasFreeVar( Node n ) {
 
 Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 {
-  Assert(tn.isDatatype());
-  Assert(static_cast<DatatypeType>(tn.toType()).getDatatype().isSygus());
-  Assert(
+  CVC4_DCHECK(tn.isDatatype());
+  CVC4_DCHECK(static_cast<DatatypeType>(tn.toType()).getDatatype().isSygus());
+  CVC4_DCHECK(
       TypeNode::fromType(
           static_cast<DatatypeType>(tn.toType()).getDatatype().getSygusType())
           .isComparableTo(c.getType()));
@@ -155,7 +155,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 }
 
 TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
-  Assert( d_fv_stype.find( v )!=d_fv_stype.end() );
+  CVC4_DCHECK(d_fv_stype.find(v) != d_fv_stype.end());
   return d_fv_stype[v];
 }
 
@@ -164,9 +164,9 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
                             std::map<TypeNode, int>& var_count,
                             std::map<int, Node>& pre)
 {
-  Assert(c < dt.getNumConstructors());
-  Assert( dt.isSygus() );
-  Assert( !dt[c].getSygusOp().isNull() );
+  CVC4_DCHECK(c < dt.getNumConstructors());
+  CVC4_DCHECK(dt.isSygus());
+  CVC4_DCHECK(!dt[c].getSygusOp().isNull());
   std::vector< Node > children;
   Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << c << "..."
                           << std::endl;
@@ -182,7 +182,7 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
     }
     Trace("sygus-db-debug")
         << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
-    Assert( !a.isNull() );
+    CVC4_DCHECK(!a.isNull());
     children.push_back( a );
   }
   return datatypes::utils::mkSygusTerm(dt, c, children);
@@ -234,7 +234,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
   }
   else
   {
-    Assert(n.getKind() == APPLY_CONSTRUCTOR);
+    CVC4_DCHECK(n.getKind() == APPLY_CONSTRUCTOR);
     bool childChanged = false;
     std::vector<Node> children;
     children.push_back(n.getOperator());
@@ -256,7 +256,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
   }
   Trace("sygus-db-canon") << "  ...normalized " << n << " --> " << ret
                           << std::endl;
-  Assert(ret.getType().isComparableTo(n.getType()));
+  CVC4_DCHECK(ret.getType().isComparableTo(n.getType()));
   return ret;
 }
 
@@ -268,7 +268,7 @@ typedef expr::Attribute<SygusToBuiltinAttributeId, Node>
 
 Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
 {
-  Assert(n.getType().isComparableTo(tn));
+  CVC4_DCHECK(n.getType().isComparableTo(tn));
   if (!tn.isDatatype())
   {
     return n;
@@ -288,7 +288,7 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   if (n.getKind() == APPLY_CONSTRUCTOR)
   {
     unsigned i = datatypes::utils::indexOf(n.getOperator());
-    Assert(n.getNumChildren() == dt[i].getNumArgs());
+    CVC4_DCHECK(n.getNumChildren() == dt[i].getNumArgs());
     std::map<int, Node> pre;
     for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
     {
@@ -306,10 +306,10 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     // this variable was associated by an attribute to a builtin node
     return n.getAttribute(SygusPrintProxyAttribute());
   }
-  Assert(isFreeVar(n));
+  CVC4_DCHECK(isFreeVar(n));
   // map to builtin variable type
   int fv_num = getVarNum(n);
-  Assert(!dt.getSygusType().isNull());
+  CVC4_DCHECK(!dt.getSygusType().isNull());
   TypeNode vtn = TypeNode::fromType(dt.getSygusType());
   Node ret = getFreeVar(vtn, fv_num);
   return ret;
@@ -327,7 +327,7 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
   }
   const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
   int cindex = datatypes::utils::indexOf(n.getOperator());
-  Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
+  CVC4_DCHECK(cindex >= 0 && cindex < (int)dt.getNumConstructors());
   unsigned weight = dt[cindex].getWeight();
   return weight + sum;
 }
@@ -389,14 +389,14 @@ void TermDbSygus::registerEnumerator(Node e,
   {
     std::vector<unsigned> rm_indices;
     TypeNode stn = sf_types[i];
-    Assert(stn.isDatatype());
+    CVC4_DCHECK(stn.isDatatype());
     SygusTypeInfo& sti = getTypeInfo(stn);
     const Datatype& dt = stn.getDatatype();
     int anyC = sti.getAnyConstantConsNum();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       Expr sop = dt[i].getSygusOp();
-      Assert(!sop.isNull());
+      CVC4_DCHECK(!sop.isNull());
       bool isAnyC = static_cast<int>(i) == anyC;
       if (isAnyC && !useSymbolicCons)
       {
@@ -663,20 +663,20 @@ void TermDbSygus::getSymBreakLemmas(Node e, std::vector<Node>& lemmas) const
 TypeNode TermDbSygus::getTypeForSymBreakLemma(Node lem) const
 {
   std::map<Node, TypeNode>::const_iterator it = d_sb_lemma_to_type.find(lem);
-  Assert(it != d_sb_lemma_to_type.end());
+  CVC4_DCHECK(it != d_sb_lemma_to_type.end());
   return it->second;
 }
 unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
 {
   std::map<Node, unsigned>::const_iterator it = d_sb_lemma_to_size.find(lem);
-  Assert(it != d_sb_lemma_to_size.end());
+  CVC4_DCHECK(it != d_sb_lemma_to_size.end());
   return it->second;
 }
 
 bool TermDbSygus::isSymBreakLemmaTemplate(Node lem) const
 {
   std::map<Node, bool>::const_iterator it = d_sb_lemma_to_isTempl.find(lem);
-  Assert(it != d_sb_lemma_to_isTempl.end());
+  CVC4_DCHECK(it != d_sb_lemma_to_isTempl.end());
   return it->second;
 }
 
@@ -689,7 +689,7 @@ bool TermDbSygus::isRegistered(TypeNode tn) const
 
 TypeNode TermDbSygus::sygusToBuiltinType( TypeNode tn ) {
   std::map<TypeNode, SygusTypeInfo>::iterator it = d_tinfo.find(tn);
-  Assert(it != d_tinfo.end());
+  CVC4_DCHECK(it != d_tinfo.end());
   return it->second.getBuiltinType();
 }
 
@@ -712,7 +712,7 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 
 SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 {
-  AlwaysAssert(d_tinfo.find(tn) != d_tinfo.end());
+  CVC4_CHECK(d_tinfo.find(tn) != d_tinfo.end());
   return d_tinfo[tn];
 }
 
@@ -743,13 +743,13 @@ unsigned TermDbSygus::getSelectorWeight(TypeNode tn, Node sel)
       }
     }
   }
-  Assert(itsw->second.find(sel) != itsw->second.end());
+  CVC4_DCHECK(itsw->second.find(sel) != itsw->second.end());
   return itsw->second[sel];
 }
 
 TypeNode TermDbSygus::getArgType(const DatatypeConstructor& c, unsigned i) const
 {
-  Assert(i < c.getNumArgs());
+  CVC4_DCHECK(i < c.getNumArgs());
   return TypeNode::fromType(
       static_cast<SelectorType>(c[i].getType()).getRangeType());
 }
@@ -774,9 +774,9 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
     return false;
   }
   TypeNode tn = n.getType();
-  Assert(tn.isDatatype());
+  CVC4_DCHECK(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(dt.isSygus());
+  CVC4_DCHECK(dt.isSygus());
   unsigned cindex = datatypes::utils::indexOf(n.getOperator());
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
   // it is symbolic if it represents "any constant"
@@ -788,7 +788,7 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
                                    std::vector<TypeNode>& argts,
                                    bool aggr)
 {
-  Assert(isRegistered(tn));
+  CVC4_DCHECK(isRegistered(tn));
   SygusTypeInfo& ti = getTypeInfo(tn);
   int c = ti.getKindConsNum(k);
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
@@ -923,7 +923,7 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
   if (en.getKind() != DT_SYGUS_EVAL)
   {
-    Assert(en.isConst());
+    CVC4_DCHECK(en.isConst());
     return en;
   }
   Trace("sygus-db-debug") << "Unfold : " << en << std::endl;
@@ -931,15 +931,15 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   if (track_exp)
   {
     std::map<Node, Node>::iterator itv = vtm.find(en[0]);
-    Assert(itv != vtm.end());
+    CVC4_DCHECK(itv != vtm.end());
     if (itv != vtm.end())
     {
       ev = itv->second;
     }
-    Assert(en[0].getType() == ev.getType());
-    Assert(ev.isConst());
+    CVC4_DCHECK(en[0].getType() == ev.getType());
+    CVC4_DCHECK(ev.isConst());
   }
-  Assert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
+  CVC4_DCHECK(ev.getKind() == kind::APPLY_CONSTRUCTOR);
   std::vector<Node> args;
   for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
   {
@@ -966,7 +966,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   {
     Trace("sygus-db-debug") << "...it is an any-constant constructor"
                             << std::endl;
-    Assert(dt[i].getNumArgs() == 1);
+    CVC4_DCHECK(dt[i].getNumArgs() == 1);
     if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
       return en[0][0];
@@ -978,7 +978,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
     }
   }
 
-  Assert(!dt.isParametric());
+  CVC4_DCHECK(!dt.isParametric());
   std::map<int, Node> pre;
   for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
   {
@@ -1039,21 +1039,21 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
           std::vector< Node > vars;
           std::vector< Node > subs;
           Node var_list = Node::fromExpr( dt.getSygusVarList() );
-          Assert( var_list.getNumChildren()+1==n.getNumChildren() );
+          CVC4_DCHECK(var_list.getNumChildren() + 1 == n.getNumChildren());
           for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
             vars.push_back( var_list[j] );
           }
           for( unsigned j=1; j<n.getNumChildren(); j++ ){
             Node nc = getEagerUnfold( n[j], visited );
             subs.push_back( nc );
-            Assert(subs[j - 1].getType().isComparableTo(
+            CVC4_DCHECK(subs[j - 1].getType().isComparableTo(
                 var_list[j - 1].getType()));
           }
-          Assert( vars.size()==subs.size() );
+          CVC4_DCHECK(vars.size() == subs.size());
           bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
           Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
           Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;
-          Assert(n.getType().isComparableTo(bTerm.getType()));
+          CVC4_DCHECK(n.getType().isComparableTo(bTerm.getType()));
           ret = bTerm; 
         }
       }
@@ -1094,10 +1094,10 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   {
     return Rewriter::rewrite( bn );
   }
-  Assert(isRegistered(tn));
+  CVC4_DCHECK(isRegistered(tn));
   SygusTypeInfo& ti = getTypeInfo(tn);
   const std::vector<Node>& varlist = ti.getVarList();
-  Assert(varlist.size() == args.size());
+  CVC4_DCHECK(varlist.size() == args.size());
 
   Node res;
   if (tryEval && options::sygusEvalOpt())
@@ -1110,9 +1110,9 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   }
   if (!res.isNull())
   {
-    Assert(res
-           == Rewriter::rewrite(bn.substitute(
-               varlist.begin(), varlist.end(), args.begin(), args.end())));
+    CVC4_DCHECK(res
+                == Rewriter::rewrite(bn.substitute(
+                    varlist.begin(), varlist.end(), args.begin(), args.end())));
     return res;
   }
   res = bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());

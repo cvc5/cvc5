@@ -34,7 +34,7 @@ std::string DeltaRational::toString() const {
 }
 
 void DeltaRational::seperatingDelta(Rational& res, const DeltaRational& a, const DeltaRational& b){
-  Assert(res.sgn() > 0);
+  CVC4_DCHECK(res.sgn() > 0);
 
   int cmp = a.cmp(b);
   if(cmp != 0){
@@ -50,20 +50,20 @@ void DeltaRational::seperatingDelta(Rational& res, const DeltaRational& a, const
     const Rational& cmaj = max.getNoninfinitesimalPart();
 
     if(pmaj == cmaj){
-      Assert(pinf < cinf);
+      CVC4_DCHECK(pinf < cinf);
       // any value of delta preserves the order
     }else if(pinf == cinf){
-      Assert(pmaj < cmaj);
+      CVC4_DCHECK(pmaj < cmaj);
       // any value of delta preserves the order
     }else{
-      Assert(pinf != cinf && pmaj != cmaj);
+      CVC4_DCHECK(pinf != cinf && pmaj != cmaj);
       Rational denDiffAbs = (cinf - pinf).abs();
 
       Rational numDiff = (cmaj - pmaj);
-      Assert(numDiff.sgn() >= 0);
-      Assert(denDiffAbs.sgn() > 0);
+      CVC4_DCHECK(numDiff.sgn() >= 0);
+      CVC4_DCHECK(denDiffAbs.sgn() > 0);
       Rational ratio = numDiff / denDiffAbs;
-      Assert(ratio.sgn() > 0);
+      CVC4_DCHECK(ratio.sgn() > 0);
 
       if(ratio < res){
         res = ratio;

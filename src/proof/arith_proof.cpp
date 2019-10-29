@@ -104,9 +104,9 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
   Debug("pf::arith") << std::endl;
 
   if(tb == 0) {
-    Assert(pf.d_id == theory::eq::MERGED_THROUGH_TRANS);
-    Assert(!pf.d_node.isNull());
-    Assert(pf.d_children.size() >= 2);
+    CVC4_DCHECK(pf.d_id == theory::eq::MERGED_THROUGH_TRANS);
+    CVC4_DCHECK(!pf.d_node.isNull());
+    CVC4_DCHECK(pf.d_children.size() >= 2);
 
     int neg = -1;
     std::shared_ptr<theory::eq::EqProof> subTrans =
@@ -118,7 +118,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
     while (i < pf.d_children.size()) {
       // Look for the negative clause, with which we will form a contradiction.
       if(!pf.d_children[i]->d_node.isNull() && pf.d_children[i]->d_node.getKind() == kind::NOT) {
-        Assert(neg < 0);
+        CVC4_DCHECK(neg < 0);
         neg = i;
         ++i;
       }
@@ -160,7 +160,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
         }
 
         // Assert that we have precisely one target clause.
-        Assert(targetAppearsBefore != targetAppearsAfter);
+        CVC4_DCHECK(targetAppearsBefore != targetAppearsAfter);
 
         // Begin breaking up the congruences and ordering the equalities correctly.
         std::vector<std::shared_ptr<theory::eq::EqProof>> orderedEqualities;
@@ -208,7 +208,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
         ++i;
       }
     }
-    Assert(neg >= 0);
+    CVC4_DCHECK(neg >= 0);
 
     Node n1;
     std::stringstream ss;
@@ -222,7 +222,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
     }
 
     Node n2 = pf.d_children[neg]->d_node;
-    Assert(n2.getKind() == kind::NOT);
+    CVC4_DCHECK(n2.getKind() == kind::NOT);
     out << "(clausify_false (contra _ ";
     Debug("pf::arith") << "\nhave proven: " << n1 << std::endl;
     Debug("pf::arith") << "n2 is " << n2[0] << std::endl;
@@ -236,7 +236,8 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
       out << ss.str();
       out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
     } else {
-      Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
+      CVC4_DCHECK((n1[0] == n2[0][0] && n1[1] == n2[0][1])
+                  || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
       if(n1[1] == n2[0][0]) {
         out << "(symm _ _ _ " << ss.str() << ")";
       } else {
@@ -255,17 +256,22 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
     for (const theory::eq::EqProof* pf2 = &pf;
          pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE;
          pf2 = pf2->d_children[0].get()) {
-      Assert(!pf2->d_node.isNull());
-      Assert(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF || pf2->d_node.getKind() == kind::BUILTIN || pf2->d_node.getKind() == kind::APPLY_UF || pf2->d_node.getKind() == kind::SELECT || pf2->d_node.getKind() == kind::STORE);
-      Assert(pf2->d_children.size() == 2);
+      CVC4_DCHECK(!pf2->d_node.isNull());
+      CVC4_DCHECK(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF
+                  || pf2->d_node.getKind() == kind::BUILTIN
+                  || pf2->d_node.getKind() == kind::APPLY_UF
+                  || pf2->d_node.getKind() == kind::SELECT
+                  || pf2->d_node.getKind() == kind::STORE);
+      CVC4_DCHECK(pf2->d_children.size() == 2);
       out << "(cong _ _ _ _ _ _ ";
       stk.push(pf2);
     }
-    Assert(stk.top()->d_children[0]->d_id != theory::eq::MERGED_THROUGH_CONGRUENCE);
+    CVC4_DCHECK(stk.top()->d_children[0]->d_id
+                != theory::eq::MERGED_THROUGH_CONGRUENCE);
     NodeBuilder<> b1(kind::PARTIAL_APPLY_UF), b2(kind::PARTIAL_APPLY_UF);
     const theory::eq::EqProof* pf2 = stk.top();
     stk.pop();
-    Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
+    CVC4_DCHECK(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
     Node n1 = toStreamRecLFSC(out, tp, *(pf2->d_children[0]), tb + 1, map);
     out << " ";
     std::stringstream ss;
@@ -289,7 +295,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
       Debug("pf::arith") << "IN BAD CASE, our first subproof is\n";
       pf2->d_children[0]->debug_print("pf::arith");
       }
-      Assert(match(pf2->d_node, n1[1]));
+      CVC4_DCHECK(match(pf2->d_node, n1[1]));
       side = 1;
     }
     if(n1[side].getKind() == kind::APPLY_UF || n1[side].getKind() == kind::PARTIAL_APPLY_UF || n1[side].getKind() == kind::SELECT || n1[side].getKind() == kind::STORE) {
@@ -322,7 +328,12 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
       b2 << n2[1-side];
       out << ss.str();
     } else {
-      Assert(pf2->d_node[b1.getNumChildren() - (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED ? 0 : 1)] == n2[1-side]);
+      CVC4_DCHECK(pf2->d_node[b1.getNumChildren()
+                              - (pf2->d_node.getMetaKind()
+                                         == kind::metakind::PARAMETERIZED
+                                     ? 0
+                                     : 1)]
+                  == n2[1 - side]);
       b1 << n2[1-side];
       b2 << n2[side];
       out << "(symm _ _ _ " << ss.str() << ")";
@@ -334,7 +345,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
       }
       pf2 = stk.top();
       stk.pop();
-      Assert(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
+      CVC4_DCHECK(pf2->d_id == theory::eq::MERGED_THROUGH_CONGRUENCE);
       out << " ";
       ss.str("");
       n2 = toStreamRecLFSC(ss, tp, *(pf2->d_children[1]), tb + 1, map);
@@ -349,7 +360,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
         b2 << n2[1-side];
         out << ss.str();
       } else {
-        Assert(pf2->d_node[b1.getNumChildren()] == n2[1-side]);
+        CVC4_DCHECK(pf2->d_node[b1.getNumChildren()] == n2[1 - side]);
         b1 << n2[1-side];
         b2 << n2[side];
         out << "(symm _ _ _ " << ss.str() << ")";
@@ -360,7 +371,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
     n2 = b2;
     Debug("pf::arith") << "at end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
     if(pf2->d_node.getKind() == kind::PARTIAL_APPLY_UF) {
-      Assert(n1 == pf2->d_node);
+      CVC4_DCHECK(n1 == pf2->d_node);
     }
     if(n1.getOperator().getType().getNumChildren() == n1.getNumChildren() + 1) {
       if(ProofManager::currentPM()->hasOp(n1.getOperator())) {
@@ -373,7 +384,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
       n1 = b1;
       Debug("pf::arith") << "at[2] end assert, got " << pf2->d_node << "  and  " << n1 << std::endl;
       if(pf2->d_node.getKind() == kind::APPLY_UF) {
-        Assert(n1 == pf2->d_node);
+        CVC4_DCHECK(n1 == pf2->d_node);
       }
     }
     if(n2.getOperator().getType().getNumChildren() == n2.getNumChildren() + 1) {
@@ -394,22 +405,22 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
   }
 
   case theory::eq::MERGED_THROUGH_REFLEXIVITY:
-    Assert(!pf.d_node.isNull());
-    Assert(pf.d_children.empty());
+    CVC4_DCHECK(!pf.d_node.isNull());
+    CVC4_DCHECK(pf.d_children.empty());
     out << "(refl _ ";
     tp->printTerm(NodeManager::currentNM()->toExpr(pf.d_node), out, map);
     out << ")";
     return eqNode(pf.d_node, pf.d_node);
 
   case theory::eq::MERGED_THROUGH_EQUALITY:
-    Assert(!pf.d_node.isNull());
-    Assert(pf.d_children.empty());
+    CVC4_DCHECK(!pf.d_node.isNull());
+    CVC4_DCHECK(pf.d_children.empty());
     out << ProofManager::getLitName(pf.d_node.negate());
     return pf.d_node;
 
   case theory::eq::MERGED_THROUGH_TRANS: {
-    Assert(!pf.d_node.isNull());
-    Assert(pf.d_children.size() >= 2);
+    CVC4_DCHECK(!pf.d_node.isNull());
+    CVC4_DCHECK(pf.d_children.size() >= 2);
     std::stringstream ss;
     Debug("pf::arith") << "\ndoing trans proof[[\n";
     pf.debug_print("pf::arith");
@@ -504,12 +515,12 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
                 } else {
                   Debug("pf::arith") << "Error: identical equalities over, but hands don't match what we're proving."
                                      << std::endl;
-                  Assert(false);
+                  CVC4_DCHECK(false);
                 }
               } else {
                 // We have a "next node". Use it to guide us.
 
-                Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL);
+                CVC4_DCHECK(nodeAfterEqualitySequence.getKind() == kind::EQUAL);
 
                 if ((n1[0] == nodeAfterEqualitySequence[0]) || (n1[0] == nodeAfterEqualitySequence[1])) {
 
@@ -525,7 +536,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
 
                 } else {
                   Debug("pf::arith") << "Error: even length sequence, but I don't know which hand to keep!" << std::endl;
-                  Assert(false);
+                  CVC4_DCHECK(false);
                 }
               }
 
@@ -635,10 +646,10 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
   }
 
   default:
-    Assert(!pf.d_node.isNull());
-    Assert(pf.d_children.empty());
+    CVC4_DCHECK(!pf.d_node.isNull());
+    CVC4_DCHECK(pf.d_children.empty());
     Debug("pf::arith") << "theory proof: " << pf.d_node << " by rule " << int(pf.d_id) << std::endl;
-    AlwaysAssert(false);
+    CVC4_CHECK(false);
     return pf.d_node;
   }
 }
@@ -677,13 +688,13 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
 
   // !d_realMode <--> term.getType().isInteger()
 
-  Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARITH);
+  CVC4_DCHECK(theory::Theory::theoryOf(term) == theory::THEORY_ARITH);
   switch (term.getKind())
   {
     case kind::CONST_RATIONAL:
     {
-      Assert(term.getNumChildren() == 0);
-      Assert(term.getType().isInteger() || term.getType().isReal());
+      CVC4_DCHECK(term.getNumChildren() == 0);
+      CVC4_DCHECK(term.getType().isInteger() || term.getType().isReal());
 
       const Rational& r = term.getConst<Rational>();
       bool neg = (r < 0);
@@ -715,8 +726,8 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
 
     case kind::UMINUS:
     {
-      Assert(term.getNumChildren() == 1);
-      Assert(term.getType().isInteger() || term.getType().isReal());
+      CVC4_DCHECK(term.getNumChildren() == 1);
+      CVC4_DCHECK(term.getType().isInteger() || term.getType().isReal());
       os << (!d_realMode ? "(u-_Int " : "(u-_Real ");
       d_proofEngine->printBoundTerm(term[0], os, map);
       os << ") ";
@@ -725,7 +736,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
 
     case kind::PLUS:
     {
-      Assert(term.getNumChildren() >= 2);
+      CVC4_DCHECK(term.getNumChildren() >= 2);
 
       std::stringstream paren;
       for (unsigned i = 0; i < term.getNumChildren() - 1; ++i)
@@ -743,7 +754,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
 
     case kind::MINUS:
     {
-      Assert(term.getNumChildren() >= 2);
+      CVC4_DCHECK(term.getNumChildren() >= 2);
 
       std::stringstream paren;
       for (unsigned i = 0; i < term.getNumChildren() - 1; ++i)
@@ -761,7 +772,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
 
     case kind::MULT:
     {
-      Assert(term.getNumChildren() >= 2);
+      CVC4_DCHECK(term.getNumChildren() >= 2);
 
       std::stringstream paren;
       for (unsigned i = 0; i < term.getNumChildren() - 1; ++i)
@@ -780,7 +791,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
     case kind::DIVISION:
     case kind::DIVISION_TOTAL:
     {
-      Assert(term.getNumChildren() >= 2);
+      CVC4_DCHECK(term.getNumChildren() >= 2);
 
       std::stringstream paren;
       for (unsigned i = 0; i < term.getNumChildren() - 1; ++i)
@@ -797,7 +808,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
     }
 
     case kind::GT:
-      Assert(term.getNumChildren() == 2);
+      CVC4_DCHECK(term.getNumChildren() == 2);
       os << (!d_realMode ? "(>_Int " : "(>_Real ");
       d_proofEngine->printBoundTerm(term[0], os, map);
       os << " ";
@@ -806,7 +817,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
       return;
 
     case kind::GEQ:
-      Assert(term.getNumChildren() == 2);
+      CVC4_DCHECK(term.getNumChildren() == 2);
       os << (!d_realMode ? "(>=_Int " : "(>=_Real ");
       d_proofEngine->printBoundTerm(term[0], os, map);
       os << " ";
@@ -815,7 +826,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
       return;
 
     case kind::LT:
-      Assert(term.getNumChildren() == 2);
+      CVC4_DCHECK(term.getNumChildren() == 2);
       os << (!d_realMode ? "(<_Int " : "(<_Real ");
       d_proofEngine->printBoundTerm(term[0], os, map);
       os << " ";
@@ -824,7 +835,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
       return;
 
     case kind::LEQ:
-      Assert(term.getNumChildren() == 2);
+      CVC4_DCHECK(term.getNumChildren() == 2);
       os << (!d_realMode ? "(<=_Int " : "(<=_Real ");
       d_proofEngine->printBoundTerm(term[0], os, map);
       os << " ";
@@ -917,10 +928,10 @@ void LFSCArithProof::printLinearMonomialNormalizer(std::ostream& o,
       std::ostringstream s;
       s << "node " << n << " is not a linear monomial";
       s << " " << n[0].getKind() << " " << n[1].getKind();
-      Assert((n[0].getKind() == kind::CONST_RATIONAL
-              && (n[1].getKind() == kind::VARIABLE
-                  || n[1].getKind() == kind::SKOLEM)),
-             s.str().c_str());
+      CVC4_DCHECK((n[0].getKind() == kind::CONST_RATIONAL
+                   && (n[1].getKind() == kind::VARIABLE
+                       || n[1].getKind() == kind::SKOLEM)))
+          << s.str().c_str();
 #endif  // CVC4_ASSERTIONS
 
       o << "\n        (pn_mul_c_L _ _ _ ";
@@ -956,7 +967,7 @@ void LFSCArithProof::printLinearMonomialNormalizer(std::ostream& o,
 
 void LFSCArithProof::printConstRational(std::ostream& o, const Node& n)
 {
-  Assert(n.getKind() == kind::CONST_RATIONAL);
+  CVC4_DCHECK(n.getKind() == kind::CONST_RATIONAL);
   const Rational value = n.getConst<Rational>();
   printRational(o, value);
 }
@@ -965,17 +976,17 @@ void LFSCArithProof::printVariableNormalizer(std::ostream& o, const Node& n)
 {
   std::ostringstream msg;
   msg << "Invalid variable kind " << n.getKind() << " in linear monomial";
-  Assert(n.getKind() == kind::VARIABLE || n.getKind() == kind::SKOLEM,
-         msg.str().c_str());
+  CVC4_DCHECK(n.getKind() == kind::VARIABLE || n.getKind() == kind::SKOLEM)
+      << msg.str().c_str();
   o << "(pn_var " << n << ")";
 }
 
 void LFSCArithProof::printLinearPolynomialPredicateNormalizer(std::ostream& o,
                                                               const Node& n)
 {
-  Assert(n.getKind() == kind::GEQ,
-         "can only print normalization witnesses for (>=) nodes");
-  Assert(n[1].getKind() == kind::CONST_RATIONAL);
+  CVC4_DCHECK(n.getKind() == kind::GEQ)
+      << "can only print normalization witnesses for (>=) nodes";
+  CVC4_DCHECK(n[1].getKind() == kind::CONST_RATIONAL);
   o << "(poly_formula_norm_>= _ _ _ ";
   o << "\n    (pn_- _ _ _ _ _ ";
   printLinearPolynomialNormalizer(o, n[0]);
@@ -1012,8 +1023,8 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     const auto& farkasInfo = d_recorder.getFarkasCoefficients(conflictSet);
     const Node& conflict = farkasInfo.first;
     theory::arith::RationalVectorCP farkasCoefficients = farkasInfo.second;
-    Assert(farkasCoefficients != theory::arith::RationalVectorCPSentinel);
-    Assert(conflict.getNumChildren() == farkasCoefficients->size());
+    CVC4_DCHECK(farkasCoefficients != theory::arith::RationalVectorCPSentinel);
+    CVC4_DCHECK(conflict.getNumChildren() == farkasCoefficients->size());
     const size_t nAntecedents = conflict.getNumChildren();
 
     // Print proof
@@ -1049,7 +1060,7 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
       {
         case kind::NOT:
         {
-          Assert(conflict[i][0].getKind() == kind::GEQ);
+          CVC4_DCHECK(conflict[i][0].getKind() == kind::GEQ);
           os << "(poly_flip_not_>= _ _ "
              << "(poly_form_not _ _ "
              << ProofManager::getLitName(antecedent.negate(),
@@ -1170,7 +1181,7 @@ void LFSCArithProof::printTermDeclarations(std::ostream& os, std::ostream& paren
        ++it)
   {
     Expr term = *it;
-    Assert(term.isVariable());
+    CVC4_DCHECK(term.isVariable());
     os << "(% " << ProofManager::sanitize(term) << " var_real\n";
     os << "(@ " << CVC4_ARITH_VAR_TERM_PREFIX << ProofManager::sanitize(term)
        << " ";

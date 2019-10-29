@@ -27,6 +27,7 @@
 #endif /* CVC4_CLN_IMP */
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 
 using namespace std;
 
@@ -113,9 +114,9 @@ void Integer::readInt(const cln::cl_read_flags& flags,
 bool Integer::fitsSignedInt() const {
   // http://www.ginac.de/CLN/cln.html#Conversions
   // TODO improve performance
-  Assert(s_slowSignedIntMin <= s_fastSignedIntMin);
-  Assert(s_fastSignedIntMin <= s_fastSignedIntMax);
-  Assert(s_fastSignedIntMax <= s_slowSignedIntMax);
+  CVC4_DCHECK(s_slowSignedIntMin <= s_fastSignedIntMin);
+  CVC4_DCHECK(s_fastSignedIntMin <= s_fastSignedIntMax);
+  CVC4_DCHECK(s_fastSignedIntMax <= s_slowSignedIntMax);
 
   return (d_value <= s_fastSignedIntMax || d_value <= s_slowSignedIntMax) &&
     (d_value >= s_fastSignedIntMin || d_value >= s_slowSignedIntMax);
@@ -123,7 +124,7 @@ bool Integer::fitsSignedInt() const {
 
 bool Integer::fitsUnsignedInt() const {
   // TODO improve performance
-  Assert(s_fastUnsignedIntMax <= s_slowUnsignedIntMax);
+  CVC4_DCHECK(s_fastUnsignedIntMax <= s_slowUnsignedIntMax);
   return sgn() >= 0 &&
     (d_value <= s_fastUnsignedIntMax || d_value <= s_slowUnsignedIntMax);
 }
@@ -152,7 +153,7 @@ Integer Integer::pow(unsigned long int exp) const {
   if (exp == 0) {
     return Integer(1);
   } else {
-    Assert(exp > 0);
+    CVC4_DCHECK(exp > 0);
     cln::cl_I result = cln::expt_pos(d_value, exp);
     return Integer(result);
   }

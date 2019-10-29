@@ -42,7 +42,7 @@ struct sortConjectureScore {
 
 void OpArgIndex::addTerm( std::vector< TNode >& terms, TNode n, unsigned index ){
   if( index==n.getNumChildren() ){
-    Assert( n.hasOperator() );
+    CVC4_DCHECK(n.hasOperator());
     if( std::find( d_ops.begin(), d_ops.end(), n.getOperator() )==d_ops.end() ){
       d_ops.push_back( n.getOperator() );
       d_op_terms.push_back( n );
@@ -110,7 +110,7 @@ ConjectureGenerator::~ConjectureGenerator()
        ++i)
   {
     EqcInfo* current = (*i).second;
-    Assert(current != nullptr);
+    CVC4_DCHECK(current != nullptr);
     delete current;
   }
 }
@@ -188,12 +188,12 @@ void ConjectureGenerator::setUniversalRelevant( TNode n ) {
 
 bool ConjectureGenerator::isUniversalLessThan( TNode rt1, TNode rt2 ) {
   //prefer the one that is (normal, smaller) lexographically
-  Assert( d_pattern_is_relevant.find( rt1 )!=d_pattern_is_relevant.end() );
-  Assert( d_pattern_is_relevant.find( rt2 )!=d_pattern_is_relevant.end() );
-  Assert( d_pattern_is_normal.find( rt1 )!=d_pattern_is_normal.end() );
-  Assert( d_pattern_is_normal.find( rt2 )!=d_pattern_is_normal.end() );
-  Assert( d_pattern_fun_sum.find( rt1 )!=d_pattern_fun_sum.end() );
-  Assert( d_pattern_fun_sum.find( rt2 )!=d_pattern_fun_sum.end() );
+  CVC4_DCHECK(d_pattern_is_relevant.find(rt1) != d_pattern_is_relevant.end());
+  CVC4_DCHECK(d_pattern_is_relevant.find(rt2) != d_pattern_is_relevant.end());
+  CVC4_DCHECK(d_pattern_is_normal.find(rt1) != d_pattern_is_normal.end());
+  CVC4_DCHECK(d_pattern_is_normal.find(rt2) != d_pattern_is_normal.end());
+  CVC4_DCHECK(d_pattern_fun_sum.find(rt1) != d_pattern_fun_sum.end());
+  CVC4_DCHECK(d_pattern_fun_sum.find(rt2) != d_pattern_fun_sum.end());
 
   if( d_pattern_is_relevant[rt1] && !d_pattern_is_relevant[rt2] ){
     Trace("thm-ee-debug") << "UEE : LT due to relevant." << std::endl;
@@ -271,7 +271,7 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
               if( d_urelevant_terms.find( eq_terms[i] )!=d_urelevant_terms.end() ){
                 assertEq = true;
               }else{
-                Assert( eq_terms[i].getType()==tn );
+                CVC4_DCHECK(eq_terms[i].getType() == tn);
                 registerPattern( eq_terms[i], tn );
                 if( isUniversalLessThan( eq_terms[i], t ) || ( options::conjectureUeeIntro() && d_pattern_fun_sum[t]>=d_pattern_fun_sum[eq_terms[i]] ) ){
                   setUniversalRelevant( eq_terms[i] );
@@ -409,8 +409,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         }
         ++eqcs_i;
       }
-      Assert( !d_bool_eqc[0].isNull() );
-      Assert( !d_bool_eqc[1].isNull() );
+      CVC4_DCHECK(!d_bool_eqc[0].isNull());
+      CVC4_DCHECK(!d_bool_eqc[1].isNull());
       d_urelevant_terms.clear();
       Trace("sg-proc") << "...done get eq classes" << std::endl;
 
@@ -675,7 +675,10 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
 
             //add information about pattern
             Trace("sg-gen-tg-debug") << "Collect pattern information..." << std::endl;
-            Assert( std::find( d_rel_patterns[tnn].begin(), d_rel_patterns[tnn].end(), nn )==d_rel_patterns[tnn].end() );
+            CVC4_DCHECK(std::find(d_rel_patterns[tnn].begin(),
+                                  d_rel_patterns[tnn].end(),
+                                  nn)
+                        == d_rel_patterns[tnn].end());
             d_rel_patterns[tnn].push_back( nn );
             //build information concerning the variables in this pattern
             unsigned sum = 0;
@@ -695,7 +698,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
             d_rel_pattern_var_sum[nn] = sum;
             //register the pattern
             registerPattern( nn, tnn );
-            Assert( d_pattern_is_normal[nn] );
+            CVC4_DCHECK(d_pattern_is_normal[nn]);
             Trace("sg-gen-tg-debug") << "...done collect pattern information" << std::endl;
 
             //record information about types
@@ -739,7 +742,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                       Trace("sg-rel-term-debug") << "    ";
                     }
                     Trace("sg-rel-term-debug") << it->first << ":x" << it2->first << " -> " << it2->second;
-                    Assert( tindex+it2->first<gsubs_terms.size() );
+                    CVC4_DCHECK(tindex + it2->first < gsubs_terms.size());
                     gsubs_terms[tindex+it2->first] = it2->second;
                   }
                 }
@@ -787,7 +790,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( considerTermCanon( rhs, false ) ){
                 Trace("sg-rel-prop") << "Relevant RHS : " << rhs << std::endl;
                 //register pattern
-                Assert( rhs.getType()==rt_types[i] );
+                CVC4_DCHECK(rhs.getType() == rt_types[i]);
                 registerPattern( rhs, rt_types[i] );
                 if( rdepth<depth ){
                   //consider against all LHS at depth
@@ -969,7 +972,7 @@ unsigned ConjectureGenerator::collectFunctions( TNode opat, TNode pat, std::map<
     }
     return sum;
   }else{
-    Assert( pat.getNumChildren()==0 );
+    CVC4_DCHECK(pat.getNumChildren() == 0);
     funcs[pat]++;
     //for variables
     if( pat.getKind()==BOUND_VARIABLE ){
@@ -1009,8 +1012,8 @@ void ConjectureGenerator::registerPattern( Node pat, TypeNode tpat ) {
     d_patterns[TypeNode::null()].push_back( pat );
     d_patterns[tpat].push_back( pat );
 
-    Assert( d_pattern_fun_id.find( pat )==d_pattern_fun_id.end() );
-    Assert( d_pattern_var_id.find( pat )==d_pattern_var_id.end() );
+    CVC4_DCHECK(d_pattern_fun_id.find(pat) == d_pattern_fun_id.end());
+    CVC4_DCHECK(d_pattern_var_id.find(pat) == d_pattern_var_id.end());
 
     //collect functions
     std::map< TypeNode, unsigned > mnvn;
@@ -1034,11 +1037,11 @@ bool ConjectureGenerator::isGeneralization( TNode patg, TNode pat, std::map< TNo
       return true;
     }
   }else{
-    Assert( patg.hasOperator() );
+    CVC4_DCHECK(patg.hasOperator());
     if( !pat.hasOperator() || patg.getOperator()!=pat.getOperator() ){
       return false;
     }else{
-      Assert( patg.getNumChildren()==pat.getNumChildren() );
+      CVC4_DCHECK(patg.getNumChildren() == pat.getNumChildren());
       for( unsigned i=0; i<patg.getNumChildren(); i++ ){
         if( !isGeneralization( patg[i], pat[i], subs ) ){
           return false;
@@ -1115,7 +1118,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
       }
       else if (index < vec.size())
       {
-        Assert(index < types.size());
+        CVC4_DCHECK(index < types.size());
         //see if we can iterate current
         if (vec_sum < size_limit
             && !te->getEnumerateTerm(types[index], vec[index] + 1).isNull())
@@ -1151,8 +1154,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             children.push_back( n.getOperator() );
             for( unsigned i=0; i<(vec.size()-1); i++ ){
               Node nn = te->getEnumerateTerm(types[i], vec[i]);
-              Assert( !nn.isNull() );
-              Assert( nn.getType()==n[i].getType() );
+              CVC4_DCHECK(!nn.isNull());
+              CVC4_DCHECK(nn.getType() == n[i].getType());
               children.push_back( nn );
             }
             children.push_back( lc );
@@ -1233,7 +1236,7 @@ void ConjectureGenerator::processCandidateConjecture( TNode lhs, TNode rhs, unsi
 }
 
 int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
-  Assert( lhs.getType()==rhs.getType() );
+  CVC4_DCHECK(lhs.getType() == rhs.getType());
 
   Trace("sg-cconj-debug") << "Consider candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
   if( lhs==rhs ){
@@ -1288,7 +1291,8 @@ int ConjectureGenerator::considerCandidateConjecture( TNode lhs, TNode rhs ) {
     Trace("sg-cconj") << "Consider possible candidate conjecture : " << lhs << " == " << rhs << "?" << std::endl;
     //find witness for counterexample, if possible
     if( options::conjectureFilterModel() ){
-      Assert( d_rel_pattern_var_sum.find( lhs )!=d_rel_pattern_var_sum.end() );
+      CVC4_DCHECK(d_rel_pattern_var_sum.find(lhs)
+                  != d_rel_pattern_var_sum.end());
       Trace("sg-cconj-debug") << "Notify substitutions over " << d_rel_pattern_var_sum[lhs] << " variables." << std::endl;
       std::map< TNode, TNode > subs;
       d_subs_confirmCount = 0;
@@ -1329,7 +1333,7 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
   if( Trace.isOn("sg-cconj-debug") ){
     Trace("sg-cconj-debug") << "Ground eqc for LHS : " << glhs << ", based on substituion: " << std::endl;
     for( std::map< TNode, TNode >::iterator it = subs.begin(); it != subs.end(); ++it ){
-      Assert( getRepresentative( it->second )==it->second );
+      CVC4_DCHECK(getRepresentative(it->second) == it->second);
       Trace("sg-cconj-debug") << "  " << it->first << " -> " << it->second << std::endl;
     }
   }
@@ -1398,7 +1402,7 @@ bool ConjectureGenerator::notifySubstitution( TNode glhs, std::map< TNode, TNode
 
 
 void TermGenerator::reset( TermGenEnv * s, TypeNode tn ) {
-  Assert( d_children.empty() );
+  CVC4_DCHECK(d_children.empty());
   d_typ = tn;
   d_status = 0;
   d_status_num = 0;
@@ -1496,14 +1500,14 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
       return s->considerCurrentTermCanon( d_id ) ? true : getNextTerm( s, depth );
       //return true;
     }else{
-      Assert( d_status_child_num<(int)s->d_func_args[f].size() );
+      CVC4_DCHECK(d_status_child_num < (int)s->d_func_args[f].size());
       if( d_status_child_num==(int)d_children.size() ){
         d_children.push_back( s->d_tg_id );
-        Assert( s->d_tg_alloc.find( s->d_tg_id )==s->d_tg_alloc.end() );
+        CVC4_DCHECK(s->d_tg_alloc.find(s->d_tg_id) == s->d_tg_alloc.end());
         s->d_tg_alloc[d_children[d_status_child_num]].reset( s, s->d_func_args[f][d_status_child_num] );
         return getNextTerm( s, depth );
       }else{
-        Assert( d_status_child_num+1==(int)d_children.size() );
+        CVC4_DCHECK(d_status_child_num + 1 == (int)d_children.size());
         if( s->d_tg_alloc[d_children[d_status_child_num]].getNextTerm( s, depth-1 ) ){
           d_status_child_num++;
           return getNextTerm( s, depth );
@@ -1520,7 +1524,7 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
   }else if( d_status==1 || d_status==3 ){
     if( d_status==1 ){
       s->removeVar( d_typ );
-      Assert( d_status_num==(int)s->d_var_id[d_typ] );
+      CVC4_DCHECK(d_status_num == (int)s->d_var_id[d_typ]);
       //check if there is only one feasible equivalence class.  if so, don't make pattern any more specific.
       //unsigned i = s->d_ccand_eqc[0].size()-1;
       //if( s->d_ccand_eqc[0][i].size()==1 && s->d_ccand_eqc[1][i].empty() ){
@@ -1533,7 +1537,7 @@ bool TermGenerator::getNextTerm( TermGenEnv * s, unsigned depth ) {
     d_status_num = -1;
     return getNextTerm( s, depth );
   }else{
-    Assert( d_children.empty() );
+    CVC4_DCHECK(d_children.empty());
     return false;
   }
 }
@@ -1598,7 +1602,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
           return false;
         }
       }
-      Assert( subs[d_typ].find( d_status_num )==subs[d_typ].end() );
+      CVC4_DCHECK(subs[d_typ].find(d_status_num) == subs[d_typ].end());
       subs[d_typ][d_status_num] = eqc;
       return true;
     }else{
@@ -1612,9 +1616,9 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
   }else if( d_status==2 ){
     if( d_match_status==0 ){
       d_match_status++;
-      Assert( d_status_num<(int)s->getNumTgVars( d_typ ) );
+      CVC4_DCHECK(d_status_num < (int)s->getNumTgVars(d_typ));
       std::map< unsigned, TNode >::iterator it = subs[d_typ].find( d_status_num );
-      Assert( it!=subs[d_typ].end() );
+      CVC4_DCHECK(it != subs[d_typ].end());
       return it->second==eqc;
     }else{
       return false;
@@ -1630,7 +1634,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
         if( d_match_status_child_num==0 ){
           //initial binding
           TNode f = s->getTgFunc( d_typ, d_status_num );
-          Assert( !eqc.isNull() );
+          CVC4_DCHECK(!eqc.isNull());
           TNodeTrie* tat = s->getTermDatabase()->getTermArgTrie(eqc, f);
           if( tat ){
             d_match_children.push_back( tat->d_data.begin() );
@@ -1646,7 +1650,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
         }
       }
       d_match_status++;
-      Assert( d_match_status_child_num+1==(int)d_match_children.size() );
+      CVC4_DCHECK(d_match_status_child_num + 1 == (int)d_match_children.size());
       if( d_match_children[d_match_status_child_num]==d_match_children_end[d_match_status_child_num] ){
         //no more arguments to bind
         d_match_children.pop_back();
@@ -1667,9 +1671,10 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
         }
       }
     }else{
-      Assert( d_match_status==1 );
-      Assert( d_match_status_child_num+1==(int)d_match_children.size() );
-      Assert( d_match_children[d_match_status_child_num]!=d_match_children_end[d_match_status_child_num] );
+      CVC4_DCHECK(d_match_status == 1);
+      CVC4_DCHECK(d_match_status_child_num + 1 == (int)d_match_children.size());
+      CVC4_DCHECK(d_match_children[d_match_status_child_num]
+                  != d_match_children_end[d_match_status_child_num]);
       d_match_status--;
       if( s->d_tg_alloc[d_children[d_match_status_child_num]].getNextMatch( s, d_match_children[d_match_status_child_num]->first, subs, rev_subs ) ){
         d_match_status_child_num++;
@@ -1681,7 +1686,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
       }
     }
   }
-  Assert( false );
+  CVC4_DCHECK(false);
   return false;
 }
 
@@ -1708,7 +1713,7 @@ unsigned TermGenerator::calculateGeneralizationDepth( TermGenEnv * s, std::map< 
     }
     return sum;
   }else{
-    Assert( d_status==2 || d_status==1 );
+    CVC4_DCHECK(d_status == 2 || d_status == 1);
     std::map< TypeNode, std::vector< int > >::iterator it = fvs.find( d_typ );
     if( it!=fvs.end() ){
       if( std::find( it->second.begin(), it->second.end(), d_status_num )!=it->second.end() ){
@@ -1731,7 +1736,7 @@ unsigned TermGenerator::getGeneralizationDepth( TermGenEnv * s ) {
 
 Node TermGenerator::getTerm( TermGenEnv * s ) {
   if( d_status==1 || d_status==2 ){
-    Assert( !d_typ.isNull() );
+    CVC4_DCHECK(!d_typ.isNull());
     return s->getFreeVar( d_typ, d_status_num );
   }else if( d_status==5 ){
     Node f = s->getTgFunc( d_typ, d_status_num );
@@ -1752,7 +1757,7 @@ Node TermGenerator::getTerm( TermGenEnv * s ) {
       return NodeManager::currentNM()->mkNode( s->d_func_kind[f], children );
     }
   }else{
-    Assert( false );
+    CVC4_DCHECK(false);
   }
   return Node::null();
 }
@@ -1833,7 +1838,7 @@ void TermGenEnv::collectSignatureInformation() {
 }
 
 void TermGenEnv::reset( unsigned depth, bool genRelevant, TypeNode tn ) {
-  Assert( d_tg_alloc.empty() );
+  CVC4_DCHECK(d_tg_alloc.empty());
   d_tg_alloc.clear();
 
   if( genRelevant ){
@@ -1852,7 +1857,8 @@ void TermGenEnv::reset( unsigned depth, bool genRelevant, TypeNode tn ) {
 
 bool TermGenEnv::getNextTerm() {
   if( d_tg_alloc[0].getNextTerm( this, d_tg_gdepth_limit ) ){
-    Assert( (int)d_tg_alloc[0].getGeneralizationDepth( this )<=d_tg_gdepth_limit );
+    CVC4_DCHECK((int)d_tg_alloc[0].getGeneralizationDepth(this)
+                <= d_tg_gdepth_limit);
     if( (int)d_tg_alloc[0].getGeneralizationDepth( this )!=d_tg_gdepth_limit ){
       return getNextTerm();
     }else{
@@ -1919,7 +1925,7 @@ Node TermGenEnv::getFreeVar( TypeNode tn, unsigned i ) {
 }
 
 bool TermGenEnv::considerCurrentTerm() {
-  Assert( !d_tg_alloc.empty() );
+  CVC4_DCHECK(!d_tg_alloc.empty());
 
   //if generalization depth is too large, don't consider it
   unsigned i = d_tg_alloc.size();
@@ -1942,7 +1948,7 @@ bool TermGenEnv::considerCurrentTerm() {
   }else if( d_tg_alloc[i-1].d_status==5 ){
   }else{
     Trace("sg-gen-tg-debug") << "Bad tg: " << &d_tg_alloc[i-1] << std::endl;
-    Assert( false );
+    CVC4_DCHECK( false );
   }
   */
   //if equated two variables, first check if context-independent TODO
@@ -1954,10 +1960,10 @@ bool TermGenEnv::considerCurrentTerm() {
     Trace("sg-gen-tg-debug") << "Filter based on relevant ground EQC";
     Trace("sg-gen-tg-debug") << ", #eqc to try = " << d_ccand_eqc[0][i-1].size() << "/" << d_ccand_eqc[1][i-1].size() << std::endl;
 
-    Assert( d_ccand_eqc[0].size()>=2 );
-    Assert( d_ccand_eqc[0].size()==d_ccand_eqc[1].size() );
-    Assert( d_ccand_eqc[0].size()==d_tg_id+1 );
-    Assert( d_tg_id==d_tg_alloc.size() );
+    CVC4_DCHECK(d_ccand_eqc[0].size() >= 2);
+    CVC4_DCHECK(d_ccand_eqc[0].size() == d_ccand_eqc[1].size());
+    CVC4_DCHECK(d_ccand_eqc[0].size() == d_tg_id + 1);
+    CVC4_DCHECK(d_tg_id == d_tg_alloc.size());
     for( unsigned r=0; r<2; r++ ){
       d_ccand_eqc[r][i].clear();
     }
@@ -2018,13 +2024,13 @@ void TermGenEnv::changeContext( bool add ) {
       d_ccand_eqc[r].pop_back();
     }
     d_tg_id--;
-    Assert( d_tg_alloc.find( d_tg_id )!=d_tg_alloc.end() );
+    CVC4_DCHECK(d_tg_alloc.find(d_tg_id) != d_tg_alloc.end());
     d_tg_alloc.erase( d_tg_id );
   }
 }
 
 bool TermGenEnv::considerCurrentTermCanon( unsigned tg_id ){
-  Assert( tg_id<d_tg_alloc.size() );
+  CVC4_DCHECK(tg_id < d_tg_alloc.size());
   if( options::conjectureFilterCanonical() ){
     //check based on a canonicity of the term (if there is one)
     Trace("sg-gen-tg-debug") << "Consider term canon ";
@@ -2081,7 +2087,7 @@ void SubstitutionIndex::addSubstitution( TNode eqc, std::vector< TNode >& vars, 
   if( i==vars.size() ){
     d_var = eqc;
   }else{
-    Assert( d_var.isNull() || d_var==vars[i] );
+    CVC4_DCHECK(d_var.isNull() || d_var == vars[i]);
     d_var = vars[i];
     d_children[terms[i]].addSubstitution( eqc, vars, terms, i+1 );
   }
@@ -2089,10 +2095,10 @@ void SubstitutionIndex::addSubstitution( TNode eqc, std::vector< TNode >& vars, 
 
 bool SubstitutionIndex::notifySubstitutions( ConjectureGenerator * s, std::map< TNode, TNode >& subs, TNode rhs, unsigned numVars, unsigned i ) {
   if( i==numVars ){
-    Assert( d_children.empty() );
+    CVC4_DCHECK(d_children.empty());
     return s->notifySubstitution( d_var, subs, rhs );
   }else{
-    Assert( i==0 || !d_children.empty() );
+    CVC4_DCHECK(i == 0 || !d_children.empty());
     for( std::map< TNode, SubstitutionIndex >::iterator it = d_children.begin(); it != d_children.end(); ++it ){
       Trace("sg-cconj-debug2") << "Try " << d_var << " -> " << it->first << " (" << i << "/" << numVars << ")" << std::endl;
       subs[d_var] = it->first;
@@ -2130,9 +2136,9 @@ void TheoremIndex::addTheoremNode( TNode curr, std::vector< TNode >& lhs_v, std:
     lhs_arg.push_back( 0 );
     d_children[curr.getOperator()].addTheorem( lhs_v, lhs_arg, rhs );
   }else{
-    Assert( curr.getKind()==kind::BOUND_VARIABLE );
+    CVC4_DCHECK(curr.getKind() == kind::BOUND_VARIABLE);
     TypeNode tn = curr.getType();
-    Assert( d_var[tn].isNull() || d_var[tn]==curr );
+    CVC4_DCHECK(d_var[tn].isNull() || d_var[tn] == curr);
     d_var[tn] = curr;
     d_children[curr].addTheorem( lhs_v, lhs_arg, rhs );
   }
@@ -2180,7 +2186,7 @@ void TheoremIndex::getEquivalentTermsNode( Node curr, std::vector< TNode >& n_v,
   std::map< TypeNode, TNode >::iterator itt = d_var.find( tn );
   if( itt!=d_var.end() ){
     Trace("thm-db-debug") << "Check for substitution with " << itt->second << "..." << std::endl;
-    Assert( curr.getType()==itt->second.getType() );
+    CVC4_DCHECK(curr.getType() == itt->second.getType());
     //add to substitution if possible
     bool success = false;
     std::map< TNode, TNode >::iterator it = smap.find( itt->second );

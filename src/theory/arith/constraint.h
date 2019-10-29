@@ -336,7 +336,7 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-    Assert(PROOF_ON() || coeffs == RationalVectorCPSentinel);
+    CVC4_DCHECK(PROOF_ON() || coeffs == RationalVectorCPSentinel);
 #if IS_PROOFS_BUILD
     d_farkasCoefficients = coeffs;
 #endif /* IS_PROOFS_BUILD */
@@ -398,12 +398,12 @@ class Constraint {
     return d_type == UpperBound;
   }
   bool isStrictUpperBound() const{
-    Assert(isUpperBound());
+    CVC4_DCHECK(isUpperBound());
     return getValue().infinitesimalSgn() < 0;
   }
 
   bool isStrictLowerBound() const{
-    Assert(isLowerBound());
+    CVC4_DCHECK(isLowerBound());
     return getValue().infinitesimalSgn() > 0;
   }
 
@@ -433,11 +433,12 @@ class Constraint {
   }
 
   bool assertedToTheTheory() const {
-    Assert((d_assertionOrder < AssertionOrderSentinel) != d_witness.isNull());
+    CVC4_DCHECK((d_assertionOrder < AssertionOrderSentinel)
+                != d_witness.isNull());
     return d_assertionOrder < AssertionOrderSentinel;
   }
   TNode getWitness() const {
-    Assert(assertedToTheTheory());
+    CVC4_DCHECK(assertedToTheTheory());
     return d_witness;
   }
 
@@ -465,7 +466,7 @@ class Constraint {
   void setLiteral(Node n);
 
   Node getLiteral() const {
-    Assert(hasLiteral());
+    CVC4_DCHECK(hasLiteral());
     return d_literal;
   }
 
@@ -586,9 +587,9 @@ class Constraint {
    * s.t. every constraint is assertedToTheTheory() or hasEqualityEngineProof().
    */
   Node externalExplainForPropagation() const {
-    Assert(hasProof());
-    Assert(!isAssumption());
-    Assert(!isInternalAssumption());
+    CVC4_DCHECK(hasProof());
+    CVC4_DCHECK(!isAssumption());
+    CVC4_DCHECK(!isInternalAssumption());
     return externalExplain(d_assertionOrder);
   }
 
@@ -762,9 +763,9 @@ class Constraint {
    public:
     inline void operator()(ConstraintRule* crp)
     {
-      Assert(crp != NULL);
+      CVC4_DCHECK(crp != NULL);
       ConstraintP constraint = crp->d_constraint;
-      Assert(constraint->d_crid != ConstraintRuleIdSentinel);
+      CVC4_DCHECK(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
 
       PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
@@ -779,7 +780,7 @@ class Constraint {
     inline void operator()(ConstraintP* p)
     {
       ConstraintP constraint = *p;
-      Assert(constraint->d_canBePropagated);
+      CVC4_DCHECK(constraint->d_canBePropagated);
       constraint->d_canBePropagated = false;
     }
   };
@@ -790,10 +791,10 @@ class Constraint {
     inline void operator()(ConstraintP* p)
     {
       ConstraintP constraint = *p;
-      Assert(constraint->assertedToTheTheory());
+      CVC4_DCHECK(constraint->assertedToTheTheory());
       constraint->d_assertionOrder = AssertionOrderSentinel;
       constraint->d_witness = TNode::null();
-      Assert(!constraint->assertedToTheTheory());
+      CVC4_DCHECK(!constraint->assertedToTheTheory());
     }
   };
 
@@ -803,7 +804,7 @@ class Constraint {
     inline void operator()(ConstraintP* p)
     {
       ConstraintP constraint = *p;
-      Assert(constraint->d_split);
+      CVC4_DCHECK(constraint->d_split);
       constraint->d_split = false;
     }
   };
@@ -1111,7 +1112,7 @@ public:
   }
 
   ConstraintCP nextPropagation(){
-    Assert(hasMorePropagations());
+    CVC4_DCHECK(hasMorePropagations());
 
     ConstraintCP p = d_toPropagate.front();
     d_toPropagate.pop();

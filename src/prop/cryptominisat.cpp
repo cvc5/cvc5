@@ -44,7 +44,7 @@ SatValue toSatLiteralValue(CMSat::lbool res)
 {
   if (res == CMSat::l_True) return SAT_VALUE_TRUE;
   if (res == CMSat::l_Undef) return SAT_VALUE_UNKNOWN;
-  Assert(res == CMSat::l_False);
+  CVC4_DCHECK(res == CMSat::l_False);
   return SAT_VALUE_FALSE;
 }
 
@@ -55,7 +55,7 @@ void toInternalClause(SatClause& clause,
   {
     internal_clause.push_back(toInternalLit(clause[i]));
   }
-  Assert(clause.size() == internal_clause.size());
+  CVC4_DCHECK(clause.size() == internal_clause.size());
 }
 
 }  // helper functions
@@ -149,7 +149,7 @@ bool CryptoMinisatSolver::ok() const {
 SatVariable  CryptoMinisatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase){
   d_solver->new_var();
   ++d_numVariables;
-  Assert (d_numVariables == d_solver->nVars());
+  CVC4_DCHECK(d_numVariables == d_solver->nVars());
   return d_numVariables - 1;
 }
 
@@ -198,7 +198,7 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
 SatValue CryptoMinisatSolver::value(SatLiteral l){
   const std::vector<CMSat::lbool> model = d_solver->get_model();
   CMSatVar var = l.getSatVariable();
-  Assert (var < model.size());
+  CVC4_DCHECK(var < model.size());
   CMSat::lbool value = model[var];
   return toSatLiteralValue(value);
 }

@@ -127,7 +127,7 @@ void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyDisequal(TNode t1, T
 }
 
 void ArithCongruenceManager::raiseConflict(Node conflict){
-  Assert(!inConflict());
+  CVC4_DCHECK(!inConflict());
   Debug("arith::conflict") << "difference manager conflict   " << conflict << std::endl;
   d_inConflict.raise();
   d_raiseConflict.raiseEEConflict(conflict);
@@ -140,7 +140,7 @@ bool ArithCongruenceManager::hasMorePropagations() const {
   return !d_propagatations.empty();
 }
 const Node ArithCongruenceManager::getNextPropagation() {
-  Assert(hasMorePropagations());
+  CVC4_DCHECK(hasMorePropagations());
   Node prop = d_propagatations.front();
   d_propagatations.dequeue();
   return prop;
@@ -155,7 +155,7 @@ void ArithCongruenceManager::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 }
 
 Node ArithCongruenceManager::externalToInternal(TNode n) const{
-  Assert(canExplain(n));
+  CVC4_DCHECK(canExplain(n));
   ExplainMap::const_iterator iter = d_explanationMap.find(n);
   size_t pos = (*iter).second;
   return d_propagatations[pos];
@@ -184,11 +184,11 @@ void ArithCongruenceManager::pushBack(TNode n, TNode r, TNode w){
 }
 
 void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP ub){
-  Assert(lb->isLowerBound());
-  Assert(ub->isUpperBound());
-  Assert(lb->getVariable() == ub->getVariable());
-  Assert(lb->getValue().sgn() == 0);
-  Assert(ub->getValue().sgn() == 0);
+  CVC4_DCHECK(lb->isLowerBound());
+  CVC4_DCHECK(ub->isUpperBound());
+  CVC4_DCHECK(lb->getVariable() == ub->getVariable());
+  CVC4_DCHECK(lb->getValue().sgn() == 0);
+  CVC4_DCHECK(ub->getValue().sgn() == 0);
 
   ++(d_statistics.d_watchedVariableIsZero);
 
@@ -200,8 +200,8 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
 }
 
 void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
-  Assert(eq->isEquality());
-  Assert(eq->getValue().sgn() == 0);
+  CVC4_DCHECK(eq->isEquality());
+  CVC4_DCHECK(eq->getValue().sgn() == 0);
 
   ++(d_statistics.d_watchedVariableIsZero);
 
@@ -254,14 +254,14 @@ bool ArithCongruenceManager::propagate(TNode x){
     }
   }
 
-  Assert(rewritten.getKind() != kind::CONST_BOOLEAN);
+  CVC4_DCHECK(rewritten.getKind() != kind::CONST_BOOLEAN);
 
   ConstraintP c = d_constraintDatabase.lookup(rewritten);
   if(c == NullConstraint){
     //using setup as there may not be a corresponding congruence literal yet
     d_setupLiteral(rewritten);
     c = d_constraintDatabase.lookup(rewritten);
-    Assert(c != NullConstraint);
+    CVC4_DCHECK(c != NullConstraint);
   }
 
   Debug("arith::congruenceManager")<< "x is "
@@ -322,7 +322,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       pushBack(x);
     }
   }else{
-    Assert(c->hasProof() && x == rewritten);
+    CVC4_DCHECK(c->hasProof() && x == rewritten);
   }
   return true;
 }
@@ -392,7 +392,7 @@ void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){
 }
 
 void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
-  Assert(!isWatchedVariable(s));
+  CVC4_DCHECK(!isWatchedVariable(s));
 
   Debug("arith::congruenceManager")
     << "addWatchedPair(" << s << ", " << x << ", " << y << ")" << std::endl;
@@ -407,10 +407,10 @@ void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
 }
 
 void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar s, TNode reason){
-  Assert(isWatchedVariable(s));
+  CVC4_DCHECK(isWatchedVariable(s));
 
   TNode eq = d_watchedEqualities[s];
-  Assert(eq.getKind() == kind::EQUAL);
+  CVC4_DCHECK(eq.getKind() == kind::EQUAL);
 
   Trace("arith-ee") << "Assert " << eq << ", pol " << isEquality << ", reason " << reason << std::endl;
   if(isEquality){
@@ -421,7 +421,7 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
 }
 
 void ArithCongruenceManager::equalsConstant(ConstraintCP c){
-  Assert(c->isEquality());
+  CVC4_DCHECK(c->isEquality());
 
   ++(d_statistics.d_equalsConstantCalls);
   Debug("equalsConstant") << "equals constant " << c << std::endl;
@@ -443,9 +443,9 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
 }
 
 void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
-  Assert(lb->isLowerBound());
-  Assert(ub->isUpperBound());
-  Assert(lb->getVariable() == ub->getVariable());
+  CVC4_DCHECK(lb->isLowerBound());
+  CVC4_DCHECK(ub->isUpperBound());
+  CVC4_DCHECK(lb->getVariable() == ub->getVariable());
 
   ++(d_statistics.d_equalsConstantCalls);
   Debug("equalsConstant") << "equals constant " << lb << std::endl
@@ -489,7 +489,7 @@ bool ArithCongruenceManager::fixpointInfer() {
           explain( eq_exp, assumptions );
         }else{
           //eq_exp should be true
-          Assert( eq_exp==d_true );
+          CVC4_DCHECK(eq_exp == d_true);
         }
         Node req_exp;
         if( assumptions.empty() ){

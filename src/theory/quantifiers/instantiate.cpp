@@ -102,7 +102,7 @@ void Instantiate::notifyFlushLemmas()
 bool Instantiate::addInstantiation(
     Node q, InstMatch& m, bool mkRep, bool modEq, bool doVts)
 {
-  Assert(q[0].getNumChildren() == m.d_vals.size());
+  CVC4_DCHECK(q[0].getNumChildren() == m.d_vals.size());
   return addInstantiation(q, m.d_vals, mkRep, modEq, doVts);
 }
 
@@ -111,10 +111,10 @@ bool Instantiate::addInstantiation(
 {
   // For resource-limiting (also does a time check).
   d_qe->getOutputChannel().safePoint(options::quantifierStep());
-  Assert(!d_qe->inConflict());
-  Assert(terms.size() == q[0].getNumChildren());
-  Assert(d_term_db != nullptr);
-  Assert(d_term_util != nullptr);
+  CVC4_DCHECK(!d_qe->inConflict());
+  CVC4_DCHECK(terms.size() == q[0].getNumChildren());
+  CVC4_DCHECK(d_term_db != nullptr);
+  CVC4_DCHECK(d_term_util != nullptr);
   Trace("inst-add-debug") << "For quantified formula " << q
                           << ", add instantiation: " << std::endl;
   for (unsigned i = 0, size = terms.size(); i < size; i++)
@@ -187,7 +187,7 @@ bool Instantiate::addInstantiation(
       {
         Trace("inst") << "   " << terms[j] << std::endl;
       }
-      Assert(false);
+      CVC4_DCHECK(false);
     }
 #endif
   }
@@ -245,7 +245,7 @@ bool Instantiate::addInstantiation(
 
   // construct the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
-  Assert(d_term_util->d_vars[q].size() == terms.size());
+  CVC4_DCHECK(d_term_util->d_vars[q].size() == terms.size());
   // get the instantiation
   Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
   Node orig_body = body;
@@ -304,7 +304,7 @@ bool Instantiate::addInstantiation(
     {
       // virtual term substitution/instantiation level features are
       // incompatible
-      Assert(false);
+      CVC4_DCHECK(false);
     }
     else
     {
@@ -333,7 +333,7 @@ bool Instantiate::addInstantiation(
       {
         Trace("inst-add-debug") << "...we are in conflict." << std::endl;
         d_qe->setConflict();
-        Assert(d_qe->getNumLemmasWaiting() > 0);
+        CVC4_DCHECK(d_qe->getNumLemmasWaiting() > 0);
         break;
       }
     }
@@ -350,7 +350,7 @@ bool Instantiate::addInstantiation(
       recorded = d_inst_match_trie[q].recordInstLemma(q, terms, lem);
     }
     Trace("inst-add-debug") << "...was recorded : " << recorded << std::endl;
-    Assert(recorded);
+    CVC4_DCHECK(recorded);
   }
   Trace("inst-add-debug") << " --> Success." << std::endl;
   ++(d_statistics.d_instantiations);
@@ -409,8 +409,8 @@ Node Instantiate::getInstantiation(Node q,
                                    bool doVts)
 {
   Node body;
-  Assert(vars.size() == terms.size());
-  Assert(q[0].getNumChildren() == vars.size());
+  CVC4_DCHECK(vars.size() == terms.size());
+  CVC4_DCHECK(q[0].getNumChildren() == vars.size());
   // Notice that this could be optimized, but no significant performance
   // improvements were observed with alternative implementations (see #1386).
   body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
@@ -424,14 +424,14 @@ Node Instantiate::getInstantiation(Node q,
 
 Node Instantiate::getInstantiation(Node q, InstMatch& m, bool doVts)
 {
-  Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
-  Assert(m.d_vals.size() == q[0].getNumChildren());
+  CVC4_DCHECK(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
+  CVC4_DCHECK(m.d_vals.size() == q[0].getNumChildren());
   return getInstantiation(q, d_term_util->d_vars[q], m.d_vals, doVts);
 }
 
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 {
-  Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
+  CVC4_DCHECK(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
   return getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
 }
 
@@ -663,8 +663,8 @@ void Instantiate::getExplanationForInstLemmas(
 #ifdef CVC4_ASSERTIONS
   for (unsigned j = 0; j < lems.size(); j++)
   {
-    Assert(quant.find(lems[j]) != quant.end());
-    Assert(tvec.find(lems[j]) != tvec.end());
+    CVC4_DCHECK(quant.find(lems[j]) != quant.end());
+    CVC4_DCHECK(tvec.find(lems[j]) != tvec.end());
   }
 #endif
 }
@@ -726,7 +726,7 @@ void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
 
 Node Instantiate::getInstantiatedConjunction(Node q)
 {
-  Assert(q.getKind() == FORALL);
+  CVC4_DCHECK(q.getKind() == FORALL);
   std::vector<Node> insts;
   getInstantiations(q, insts);
   if (insts.empty())

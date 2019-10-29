@@ -91,9 +91,9 @@ void SygusSampler::initializeSygus(TermDbSygus* tds,
   d_use_sygus_type = useSygusType;
   d_is_valid = true;
   d_ftn = f.getType();
-  Assert(d_ftn.isDatatype());
+  CVC4_DCHECK(d_ftn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(d_ftn.toType()).getDatatype();
-  Assert(dt.isSygus());
+  CVC4_DCHECK(dt.isSygus());
 
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
 
@@ -282,7 +282,7 @@ Node SygusSampler::registerTerm(Node n, bool forceKeep)
   if (d_use_sygus_type)
   {
     std::map<Node, Node>& bts = d_builtin_to_sygus[tn];
-    Assert(bts.find(res) != bts.end());
+    CVC4_DCHECK(bts.find(res) != bts.end());
     res = res != bn ? bts[res] : n;
   }
   return res;
@@ -428,8 +428,8 @@ bool SygusSampler::containsFreeVariables(Node a, Node b, bool strict)
             return false;
           }
           // cur should only be visited once
-          Assert(std::find(fv_found.begin(), fv_found.end(), cur)
-                 == fv_found.end());
+          CVC4_DCHECK(std::find(fv_found.begin(), fv_found.end(), cur)
+                      == fv_found.end());
           fv_found.push_back(cur);
         }
       }
@@ -450,20 +450,20 @@ void SygusSampler::getVariables(std::vector<Node>& vars) const
 void SygusSampler::getSamplePoint(unsigned index,
                                   std::vector<Node>& pt)
 {
-  Assert(index < d_samples.size());
+  CVC4_DCHECK(index < d_samples.size());
   std::vector<Node>& spt = d_samples[index];
   pt.insert(pt.end(), spt.begin(), spt.end());
 }
 
 void SygusSampler::addSamplePoint(std::vector<Node>& pt)
 {
-  Assert(pt.size() == d_vars.size());
+  CVC4_DCHECK(pt.size() == d_vars.size());
   d_samples.push_back(pt);
 }
 
 Node SygusSampler::evaluate(Node n, unsigned index)
 {
-  Assert(index < d_samples.size());
+  CVC4_DCHECK(index < d_samples.size());
   // do beta-reductions in n first
   n = Rewriter::rewrite(n);
   // use efficient rewrite for substitution + rewrite
@@ -533,7 +533,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
         {
           Trace("sygus-sample-str-alpha")
               << "...have constant " << c.first << std::endl;
-          Assert(c.first.isConst());
+          CVC4_DCHECK(c.first.isConst());
           std::vector<unsigned> svec = c.first.getConst<String>().getVec();
           for (unsigned ch : svec)
           {
@@ -613,7 +613,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
         ret = nm->mkNode(kind::UMINUS, ret);
       }
       ret = Rewriter::rewrite(ret);
-      Assert(ret.isConst());
+      CVC4_DCHECK(ret.isConst());
       return ret;
     }
   }
@@ -664,7 +664,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
   {
     return getRandomValue(tn);
   }
-  Assert(d_rvalue_cindices.find(tn) != d_rvalue_cindices.end());
+  CVC4_DCHECK(d_rvalue_cindices.find(tn) != d_rvalue_cindices.end());
   Trace("sygus-sample-grammar")
       << "Sygus random value " << tn << ", depth = " << depth
       << ", rchance = " << rchance << std::endl;
@@ -684,7 +684,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
     Trace("sygus-sample-grammar")
         << "Recurse constructor index #" << index << std::endl;
     unsigned cindex = cindices[index];
-    Assert(cindex < dt.getNumConstructors());
+    CVC4_DCHECK(cindex < dt.getNumConstructors());
     const DatatypeConstructor& dtc = dt[cindex];
     // more likely to terminate in recursive calls
     double rchance_new = rchance + (1.0 - rchance) * rinc;
@@ -712,7 +712,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
       ret = Rewriter::rewrite(ret);
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
-      Assert(ret.isConst());
+      CVC4_DCHECK(ret.isConst());
       return ret;
     }
   }
@@ -802,19 +802,19 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
     getVariables(vars);
     std::vector<Node> pt;
     getSamplePoint(pt_index, pt);
-    Assert(vars.size() == pt.size());
+    CVC4_DCHECK(vars.size() == pt.size());
     for (unsigned i = 0, size = pt.size(); i < size; i++)
     {
       (*out) << "; unsound:    " << vars[i] << " -> " << pt[i] << std::endl;
     }
-    Assert(bve != bvre);
+    CVC4_DCHECK(bve != bvre);
     (*out) << "; unsound: where they evaluate to " << bve << " and " << bvre
            << std::endl;
 
     if (options::sygusRewVerifyAbort())
     {
-      AlwaysAssert(false,
-                   "--sygus-rr-verify detected unsoundness in the rewriter!");
+      CVC4_CHECK(false)
+          << "--sygus-rr-verify detected unsoundness in the rewriter!";
     }
   }
 }

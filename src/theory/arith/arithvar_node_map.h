@@ -54,25 +54,25 @@ public:
   }
 
   inline ArithVar asArithVar(TNode x) const{
-    Assert(hasArithVar(x));
-    Assert((d_nodeToArithVarMap.find(x))->second <= ARITHVAR_SENTINEL);
+    CVC4_DCHECK(hasArithVar(x));
+    CVC4_DCHECK((d_nodeToArithVarMap.find(x))->second <= ARITHVAR_SENTINEL);
     return (d_nodeToArithVarMap.find(x))->second;
   }
 
   inline Node asNode(ArithVar a) const{
-    Assert(hasNode(a));
+    CVC4_DCHECK(hasNode(a));
     return d_arithVarToNodeMap[a];
   }
 
   inline void setArithVar(TNode x, ArithVar a){
-    Assert(!hasArithVar(x));
-    Assert(!d_arithVarToNodeMap.isKey(a));
+    CVC4_DCHECK(!hasArithVar(x));
+    CVC4_DCHECK(!d_arithVarToNodeMap.isKey(a));
     d_arithVarToNodeMap.set(a, x);
     d_nodeToArithVarMap[x] = a;
   }
 
   inline void remove(ArithVar x){
-    Assert(hasNode(x));
+    CVC4_DCHECK(hasNode(x));
     Node node = asNode(x);
 
     d_nodeToArithVarMap.erase(d_nodeToArithVarMap.find(node));

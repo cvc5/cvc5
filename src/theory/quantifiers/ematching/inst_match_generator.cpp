@@ -43,7 +43,7 @@ InstMatchGenerator::InstMatchGenerator( Node pat ){
   d_cg = NULL;
   d_needsReset = true;
   d_active_add = true;
-  Assert( quantifiers::TermUtil::hasInstConstAttr(pat) );
+  CVC4_DCHECK(quantifiers::TermUtil::hasInstConstAttr(pat));
   d_pattern = pat;
   d_match_pattern = pat;
   d_match_pattern_type = pat.getType();
@@ -98,7 +98,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
   if( !d_pattern.isNull() ){
     Trace("inst-match-gen") << "Initialize, pattern term is " << d_pattern << std::endl;
     if( d_match_pattern.getKind()==NOT ){
-      Assert(d_pattern.getKind() == NOT);
+      CVC4_DCHECK(d_pattern.getKind() == NOT);
       //we want to add the children of the NOT
       d_match_pattern = d_match_pattern[0];
     }
@@ -258,7 +258,7 @@ int InstMatchGenerator::getMatch(
 {
   Trace("matching") << "Matching " << t << " against pattern " << d_match_pattern << " ("
                     << m << ")" << ", " << d_children.size() << ", pattern is " << d_pattern << std::endl;
-  Assert( !d_match_pattern.isNull() );
+  CVC4_DCHECK(!d_match_pattern.isNull());
   if (d_cg == nullptr)
   {
     Trace("matching-fail") << "Internal error for match generator." << std::endl;
@@ -270,10 +270,12 @@ int InstMatchGenerator::getMatch(
     //InstMatch prev( &m );
     std::vector< int > prev;
     //if t is null
-    Assert( !t.isNull() );
-    Assert( !quantifiers::TermUtil::hasInstConstAttr(t) );
-    Assert( d_match_pattern.getKind()==INST_CONSTANT || t.getKind()==d_match_pattern.getKind() );
-    Assert( !Trigger::isAtomicTrigger( d_match_pattern ) || t.getOperator()==d_match_pattern.getOperator() );
+    CVC4_DCHECK(!t.isNull());
+    CVC4_DCHECK(!quantifiers::TermUtil::hasInstConstAttr(t));
+    CVC4_DCHECK(d_match_pattern.getKind() == INST_CONSTANT
+                || t.getKind() == d_match_pattern.getKind());
+    CVC4_DCHECK(!Trigger::isAtomicTrigger(d_match_pattern)
+                || t.getOperator() == d_match_pattern.getOperator());
     //first, check if ground arguments are not equal, or a match is in conflict
     Trace("matching-debug2") << "Setting immediate matches..." << std::endl;
     for (unsigned i = 0, size = d_match_pattern.getNumChildren(); i < size; i++)
@@ -338,7 +340,7 @@ int InstMatchGenerator::getMatch(
           if( t.getType().isBoolean() ){
             t_match = NodeManager::currentNM()->mkConst( !q->areEqual( qe->getTermUtil()->d_true, t ) );
           }else{
-            Assert( t.getType().isReal() );
+            CVC4_DCHECK(t.getType().isReal());
             t_match = NodeManager::currentNM()->mkNode(PLUS, t, qe->getTermUtil()->d_one);
           }
         }else if( pat.getKind()==GEQ ){
@@ -463,15 +465,15 @@ int InstMatchGenerator::getNextMatch(Node f,
   Node t = d_curr_first_candidate;
   do{
     Trace("matching-debug2") << "Matching candidate : " << t << std::endl;
-    Assert(!qe->inConflict());
+    CVC4_DCHECK(!qe->inConflict());
     //if t not null, try to fit it into match m
     if( !t.isNull() ){
       if( d_curr_exclude_match.find( t )==d_curr_exclude_match.end() ){
-        Assert( t.getType().isComparableTo( d_match_pattern_type ) );
+        CVC4_DCHECK(t.getType().isComparableTo(d_match_pattern_type));
         Trace("matching-summary") << "Try " << d_match_pattern << " : " << t << std::endl;
         success = getMatch(f, t, m, qe, tparent);
         if( d_independent_gen && success<0 ){
-          Assert(d_eq_class.isNull() || !d_eq_class_rel.isNull());
+          CVC4_DCHECK(d_eq_class.isNull() || !d_eq_class_rel.isNull());
           d_curr_exclude_match[t] = true;
         }
       }
@@ -533,11 +535,11 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, Node pat, 
 }
 
 InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti( Node q, std::vector< Node >& pats, QuantifiersEngine* qe ) {
-  Assert( pats.size()>1 );
+  CVC4_DCHECK(pats.size() > 1);
   InstMatchGeneratorMultiLinear * imgm = new InstMatchGeneratorMultiLinear( q, pats, qe );
   std::vector< InstMatchGenerator* > gens;
   imgm->initialize(q, qe, gens);
-  Assert( gens.size()==pats.size() );
+  CVC4_DCHECK(gens.size() == pats.size());
   std::vector< Node > patsn;
   std::map< Node, InstMatchGenerator * > pat_map_init;
   for( unsigned i=0; i<gens.size(); i++ ){
@@ -690,7 +692,7 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
         }
       }
     }
-    Assert(set_score_index);
+    CVC4_DCHECK(set_score_index);
     //update the variable bounds
     Node mp = pats[score_index];
     for( unsigned i=0; i<var_contains[mp].size(); i++ ){
@@ -704,7 +706,7 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
   for( unsigned i=0; i<pats_ordered.size(); i++ ){
     Trace("multi-trigger-linear") << "...make for " << pats_ordered[i] << std::endl;
     InstMatchGenerator* cimg = getInstMatchGenerator(q, pats_ordered[i]);
-    Assert( cimg!=NULL );
+    CVC4_DCHECK(cimg != NULL);
     d_children.push_back( cimg );
     if( i==0 ){  //TODO : improve
       cimg->setIndependent();
@@ -722,7 +724,7 @@ int InstMatchGeneratorMultiLinear::resetChildren( QuantifiersEngine* qe ){
 }
 
 bool InstMatchGeneratorMultiLinear::reset( Node eqc, QuantifiersEngine* qe ) {
-  Assert( eqc.isNull() );
+  CVC4_DCHECK(eqc.isNull());
   if( options::multiTriggerLinear() ){
     return true;
   }else{
@@ -744,7 +746,7 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q,
     }
   }
   Trace("multi-trigger-linear-debug") << "InstMatchGeneratorMultiLinear::getNextMatch : continue match " << std::endl;
-  Assert( d_next!=NULL );
+  CVC4_DCHECK(d_next != NULL);
   int ret_val = continueNextMatch(q, m, qe, tparent);
   if( ret_val>0 ){
     Trace("multi-trigger-linear") << "Successful multi-trigger instantiation." << std::endl;
@@ -924,7 +926,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
                                                        int endChildIndex,
                                                        bool modEq)
 {
-  Assert( !qe->inConflict() );
+  CVC4_DCHECK(!qe->inConflict());
   if( childIndex==endChildIndex ){
     // m is an instantiation
     if (sendInstantiation(tparent, m))
@@ -1036,9 +1038,9 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
   if( d_match_pattern.getKind()==EQUAL ){
     d_eqc = d_match_pattern[1];
     d_match_pattern = d_match_pattern[0];
-    Assert( !quantifiers::TermUtil::hasInstConstAttr( d_eqc ) );
+    CVC4_DCHECK(!quantifiers::TermUtil::hasInstConstAttr(d_eqc));
   }
-  Assert( Trigger::isSimpleTrigger( d_match_pattern ) );
+  CVC4_DCHECK(Trigger::isSimpleTrigger(d_match_pattern));
   for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
     if( d_match_pattern[i].getKind()==INST_CONSTANT ){
       if( !options::cbqi() || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i])==q ){
@@ -1105,7 +1107,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
   Debug("simple-trigger-debug") << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
   if (argIndex == d_match_pattern.getNumChildren())
   {
-    Assert( !tat->d_data.empty() );
+    CVC4_DCHECK(!tat->d_data.empty());
     TNode t = tat->getData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     //convert to actual used terms
@@ -1114,7 +1116,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
          ++it)
     {
       if( it->second>=0 ){
-        Assert(it->first < t.getNumChildren());
+        CVC4_DCHECK(it->first < t.getNumChildren());
         Debug("simple-trigger") << "...set " << it->second << " " << t[it->first] << std::endl;
         m.setValue( it->second, t[it->first] );
       }
@@ -1135,7 +1137,8 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
           Node t = tt.first;
           Node prev = m.get( v );
           //using representatives, just check if equal
-          Assert( t.getType().isComparableTo( d_match_pattern_arg_types[argIndex] ) );
+          CVC4_DCHECK(
+              t.getType().isComparableTo(d_match_pattern_arg_types[argIndex]));
           if( prev.isNull() || prev==t ){
             m.setValue( v, t);
             addInstantiations(m, qe, addedLemmas, argIndex + 1, &(tt.second));

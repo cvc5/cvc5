@@ -64,7 +64,7 @@ void CircuitPropagator::computeBackEdges(TNode node) {
     // Node we need to visit
     TNode current = toVisit[i];
     Debug("circuit-prop") << "CircuitPropagator::computeBackEdges(): processing " << current << endl;
-    Assert(d_seen.find(current) != d_seen.end());
+    CVC4_DCHECK(d_seen.find(current) != d_seen.end());
 
     // If this not an atom visit all the children and compute the back edges
     if (Theory::theoryOf(current) == THEORY_BOOL) {
@@ -138,7 +138,7 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment) {
     }
     break;
   case kind::EQUAL:
-    Assert( parent[0].getType().isBoolean() );
+    CVC4_DCHECK(parent[0].getType().isBoolean());
     if (parentAssignment) {
       // IFF x y = TRUE: if x [resp y] is assigned, assign(y = x.assignment [resp x = y.assignment])
       if (isAssigned(parent[0])) {
@@ -210,7 +210,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
   for(; parent_it != parent_it_end && !d_conflict; ++ parent_it) {
     // The current parent of the child
     TNode parent = *parent_it;
-    Assert(expr::hasSubterm(parent, child));
+    CVC4_DCHECK(expr::hasSubterm(parent, child));
 
     // Forward rules
     switch(parent.getKind()) {
@@ -281,7 +281,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
         }
       }
       if (child == parent[2]) {
-        Assert(child == parent[2]);
+        CVC4_DCHECK(child == parent[2]);
         if (isAssignedTo(parent[0], false)) {
           // ITE c x (y=v): if c is assigned and FALSE, assign(ITE = v)
           assignAndEnqueue(parent, childAssignment);
@@ -289,7 +289,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
       }
       break;
     case kind::EQUAL:
-      Assert( parent[0].getType().isBoolean() );
+      CVC4_DCHECK(parent[0].getType().isBoolean());
       if (isAssigned(parent[0]) && isAssigned(parent[1])) {
         // IFF x y: if x or y is assigned, assign(IFF = (x.assignment <=> y.assignment))
         assignAndEnqueue(parent, getAssignment(parent[0]) == getAssignment(parent[1]));
@@ -304,7 +304,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
               assignAndEnqueue(parent[1], !childAssignment);
             }
           } else {
-            Assert(child == parent[1]);
+            CVC4_DCHECK(child == parent[1]);
             if (getAssignment(parent)) {
               // IFF x y = b: if IFF is assigned to TRUE, assign(x = b)
               assignAndEnqueue(parent[0], childAssignment);
@@ -340,7 +340,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
           // XOR (x=v) y [with XOR assigned], assign(y = (v ^ XOR)
           assignAndEnqueue(parent[1], childAssignment != getAssignment(parent));
         } else {
-          Assert(child == parent[1]);
+          CVC4_DCHECK(child == parent[1]);
           // XOR x (y=v) [with XOR assigned], assign(x = (v ^ XOR))
           assignAndEnqueue(parent[0], childAssignment != getAssignment(parent));
         }

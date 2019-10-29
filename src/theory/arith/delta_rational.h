@@ -21,8 +21,9 @@
 
 #include <ostream>
 
-#include "base/exception.h"
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
+#include "base/exception.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
@@ -221,7 +222,7 @@ public:
   }
 
   DeltaRational& operator/=(const Rational& a){
-    Assert(!a.isZero());
+    CVC4_DCHECK(!a.isZero());
     c /= a;
     k /= a;
     return *(this);

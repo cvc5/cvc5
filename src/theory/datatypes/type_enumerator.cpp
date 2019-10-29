@@ -114,8 +114,8 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      //we first check if the last argument (which is forced to make sum of iterated arguments equal to d_size_limit) is defined
      Node lc;
      if( ctor.getNumArgs()>0 ){
-       Assert( index<d_sel_types.size() );
-       Assert( ctor.getNumArgs()-1<d_sel_types[index].size() );
+       CVC4_DCHECK(index < d_sel_types.size());
+       CVC4_DCHECK(ctor.getNumArgs() - 1 < d_sel_types[index].size());
        lc = getTermEnum( d_sel_types[index][ctor.getNumArgs()-1], d_size_limit - d_sel_sum[index] );
        if( lc.isNull() ){
          Debug("dt-enum-debug") << "Current infeasible." << std::endl;
@@ -134,13 +134,13 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      }
      Debug("dt-enum-debug") << "Get arguments..." << std::endl;
      if( ctor.getNumArgs()>0 ){
-       Assert( index<d_sel_types.size() );
-       Assert( index<d_sel_index.size() );
-       Assert( d_sel_types[index].size()==ctor.getNumArgs() );
-       Assert( d_sel_index[index].size()==ctor.getNumArgs()-1 );
+       CVC4_DCHECK(index < d_sel_types.size());
+       CVC4_DCHECK(index < d_sel_index.size());
+       CVC4_DCHECK(d_sel_types[index].size() == ctor.getNumArgs());
+       CVC4_DCHECK(d_sel_index[index].size() == ctor.getNumArgs() - 1);
        for( int i=0; i<(int)(ctor.getNumArgs()-1); i++ ){
          Node c = getTermEnum( d_sel_types[index][i], d_sel_index[index][i] );
-         Assert( !c.isNull() );
+         CVC4_DCHECK(!c.isNull());
          b << c;
        }
        b << lc;
@@ -186,7 +186,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      Debug("dt-enum-debug") << "make ground term..." << std::endl;
      Node t = d_type.mkGroundTerm();
      Debug("dt-enum-debug") << "done : " << t << std::endl;
-     Assert( t.getKind()==kind::APPLY_CONSTRUCTOR );
+     CVC4_DCHECK(t.getKind() == kind::APPLY_CONSTRUCTOR);
      // start with the constructor for which a ground term is constructed
      d_zeroCtor = datatypes::utils::indexOf(t.getOperator());
      d_has_debruijn = 0;
@@ -219,6 +219,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    d_size_limit = 0;
    //set up initial conditions (should always succeed)
    ++*this; //increment( d_ctor );
-   AlwaysAssert( !isFinished() );
+   CVC4_CHECK(!isFinished());
 }
 

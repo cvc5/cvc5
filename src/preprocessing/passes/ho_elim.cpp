@@ -91,7 +91,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         Trace("ho-elim-ll")
             << "...introduce: " << nf << " of type " << nft << std::endl;
         newLambda[nf] = nlambda;
-        Assert(nf.getType() == nlambda.getType());
+        CVC4_DCHECK(nf.getType() == nlambda.getType());
         if (!vars.empty())
         {
           for (const Node& v : vars)
@@ -103,7 +103,7 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
         d_visited[cur] = nf;
         Trace("ho-elim-ll") << "...return types : " << nf.getType() << " "
                             << cur.getType() << std::endl;
-        Assert(nf.getType() == cur.getType());
+        CVC4_DCHECK(nf.getType() == cur.getType());
       }
       else
       {
@@ -127,8 +127,8 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
       for (const Node& cn : cur)
       {
         it = d_visited.find(cn);
-        Assert(it != d_visited.end());
-        Assert(!it->second.isNull());
+        CVC4_DCHECK(it != d_visited.end());
+        CVC4_DCHECK(!it->second.isNull());
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
@@ -139,8 +139,8 @@ Node HoElim::eliminateLambdaComplete(Node n, std::map<Node, Node>& newLambda)
       d_visited[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(d_visited.find(n) != d_visited.end());
-  Assert(!d_visited.find(n)->second.isNull());
+  CVC4_DCHECK(d_visited.find(n) != d_visited.end());
+  CVC4_DCHECK(!d_visited.find(n)->second.isNull());
   return d_visited[n];
 }
 
@@ -165,7 +165,7 @@ Node HoElim::eliminateHo(Node n)
     {
       TypeNode tn = cur.getType();
       // lambdas are already eliminated by now
-      Assert(cur.getKind() != LAMBDA);
+      CVC4_DCHECK(cur.getKind() != LAMBDA);
       if (tn.isFunction())
       {
         d_funTypes.insert(tn);
@@ -233,8 +233,8 @@ Node HoElim::eliminateHo(Node n)
         for (const Node& cn : ret)
         {
           it = d_visited.find(cn);
-          Assert(it != d_visited.end());
-          Assert(!it->second.isNull());
+          CVC4_DCHECK(it != d_visited.end());
+          CVC4_DCHECK(!it->second.isNull());
           childChanged = childChanged || cn != it->second;
           children.push_back(it->second);
           TypeNode ct = it->second.getType();
@@ -255,7 +255,7 @@ Node HoElim::eliminateHo(Node n)
                 d_visited_op.find(op);
             if (ito == d_visited_op.end())
             {
-              Assert(!childrent.empty());
+              CVC4_DCHECK(!childrent.empty());
               TypeNode newFType = nm->mkFunctionType(childrent, cur.getType());
               retOp = nm->mkSkolem("rf", newFType);
               d_visited_op[op] = retOp;
@@ -289,8 +289,8 @@ Node HoElim::eliminateHo(Node n)
       }
     }
   } while (!visit.empty());
-  Assert(d_visited.find(n) != d_visited.end());
-  Assert(!d_visited.find(n)->second.isNull());
+  CVC4_DCHECK(d_visited.find(n) != d_visited.end());
+  CVC4_DCHECK(!d_visited.find(n)->second.isNull());
   Trace("ho-elim-assert") << "...got : " << d_visited[n] << std::endl;
   return d_visited[n];
 }
@@ -309,7 +309,7 @@ PreprocessingPassResult HoElim::applyInternal(
     if (res != prev)
     {
       res = theory::Rewriter::rewrite(res);
-      Assert(!expr::hasFreeVar(res));
+      CVC4_DCHECK(!expr::hasFreeVar(res));
       assertionsToPreprocess->replace(i, res);
     }
   }
@@ -341,7 +341,7 @@ PreprocessingPassResult HoElim::applyInternal(
       Node llfax = nm->mkNode(FORALL, bvl, curr.eqNode(bd));
       Trace("ho-elim-ax") << "Lambda lifting axiom (pre-elim) " << llfax
                           << " for " << lambda << std::endl;
-      Assert(!expr::hasFreeVar(llfax));
+      CVC4_DCHECK(!expr::hasFreeVar(llfax));
       Node llfaxe = eliminateLambdaComplete(llfax, newLambda);
       Trace("ho-elim-ax") << "Lambda lifting axiom " << llfaxe << " for "
                           << lambda << std::endl;
@@ -357,7 +357,7 @@ PreprocessingPassResult HoElim::applyInternal(
     axioms.push_back(orig);
     Node conj = nm->mkNode(AND, axioms);
     conj = theory::Rewriter::rewrite(conj);
-    Assert(!expr::hasFreeVar(conj));
+    CVC4_DCHECK(!expr::hasFreeVar(conj));
     assertionsToPreprocess->replace(0, conj);
   }
   axioms.clear();
@@ -370,7 +370,7 @@ PreprocessingPassResult HoElim::applyInternal(
     if (res != prev)
     {
       res = theory::Rewriter::rewrite(res);
-      Assert(!expr::hasFreeVar(res));
+      CVC4_DCHECK(!expr::hasFreeVar(res));
       assertionsToPreprocess->replace(i, res);
     }
   }
@@ -454,7 +454,7 @@ PreprocessingPassResult HoElim::applyInternal(
     axioms.push_back(orig);
     Node conj = nm->mkNode(AND, axioms);
     conj = theory::Rewriter::rewrite(conj);
-    Assert(!expr::hasFreeVar(conj));
+    CVC4_DCHECK(!expr::hasFreeVar(conj));
     assertionsToPreprocess->replace(0, conj);
   }
 

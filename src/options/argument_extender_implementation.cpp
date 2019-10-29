@@ -21,6 +21,7 @@
 #include <list>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "base/output.h"
 #include "options/argument_extender.h"
 
@@ -50,10 +51,10 @@ size_t ArgumentExtenderImplementation::numArguments() const {
 }
 
 char* ArgumentExtenderImplementation::allocateCopy(const char* element) {
-  Assert(element != NULL);
+  CVC4_DCHECK(element != NULL);
 
   char* duplicate = strdup(element);
-  Assert(duplicate != NULL);
+  CVC4_DCHECK(duplicate != NULL);
   d_allocated.push_back(duplicate);
   return duplicate;
 }
@@ -71,7 +72,7 @@ void ArgumentExtenderImplementation::movePreemptionsToArguments() {
 }
 
 void ArgumentExtenderImplementation::popFrontArgument() {
-  Assert(!d_arguments.empty());
+  CVC4_DCHECK(!d_arguments.empty());
   Debug("options") << "ArgumentExtenderImplementation::popFrontArgument "
                    << d_arguments.front() << std::endl;
   d_arguments.pop_front();
@@ -87,8 +88,8 @@ void ArgumentExtenderImplementation::pushBackArgument(const char* element) {
 
 void ArgumentExtenderImplementation::getArguments(int* argc, char*** argv)
   const {
-  Assert(argc != NULL);
-  Assert(argv != NULL);
+  CVC4_DCHECK(argc != NULL);
+  CVC4_DCHECK(argv != NULL);
 
   *argc = numArguments();
   *argv = copyArguments();
@@ -96,10 +97,10 @@ void ArgumentExtenderImplementation::getArguments(int* argc, char*** argv)
 
 char** ArgumentExtenderImplementation::copyArguments() const {
   int size = numArguments();
-  Assert(size >= 0);
+  CVC4_DCHECK(size >= 0);
 
   char** array = (char**) malloc( sizeof(char*) * size );
-  Assert(array != NULL);
+  CVC4_DCHECK(array != NULL);
   int position = 0;
   for(std::list< char* >::const_iterator i = d_arguments.begin(),
         iend = d_arguments.end(); i != iend; ++i, ++position) {

@@ -28,8 +28,7 @@ namespace theory {
 namespace builtin {
 
 Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
-
-  Assert(in.getKind() == kind::DISTINCT);
+  CVC4_DCHECK(in.getKind() == kind::DISTINCT);
 
   if(in.getNumChildren() == 2) {
     // if this is the case exactly 1 != pair will be generated so the
@@ -54,8 +53,7 @@ Node TheoryBuiltinRewriter::blastDistinct(TNode in) {
 }
 
 Node TheoryBuiltinRewriter::blastChain(TNode in) {
-
-  Assert(in.getKind() == kind::CHAIN);
+  CVC4_DCHECK(in.getKind() == kind::CHAIN);
 
   Kind chainedOp = in.getOperator().getConst<Chain>().getOperator();
 
@@ -77,7 +75,7 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
     Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
     Node anode = getArrayRepresentationForLambda( node );
     if( !anode.isNull() ){
-      Assert( anode.getType().isArray() );
+      CVC4_DCHECK(anode.getType().isArray());
       //must get the standard bound variable list
       Node varList = NodeManager::currentNM()->getBoundVarListForFunctionType( node.getType() );
       Node retNode = getLambdaForArrayRepresentation( anode, varList );
@@ -86,9 +84,9 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
         Trace("builtin-rewrite") << "     input  : " << node << std::endl;
         Trace("builtin-rewrite") << "     output : " << retNode << ", constant = " << retNode.isConst() << std::endl;
         Trace("builtin-rewrite") << "  array rep : " << anode << ", constant = " << anode.isConst() << std::endl;
-        Assert( anode.isConst()==retNode.isConst() );
-        Assert( retNode.getType()==node.getType() );
-        Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
+        CVC4_DCHECK(anode.isConst() == retNode.isConst());
+        CVC4_DCHECK(retNode.getType() == node.getType());
+        CVC4_DCHECK(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
         return RewriteResponse(REWRITE_DONE, retNode);
       } 
     }else{
@@ -120,8 +118,8 @@ TypeNode TheoryBuiltinRewriter::getFunctionTypeForArrayType(TypeNode atn,
   std::vector<TypeNode> children;
   for (unsigned i = 0; i < bvl.getNumChildren(); i++)
   {
-    Assert(atn.isArray());
-    Assert(bvl[i].getType() == atn.getArrayIndexType());
+    CVC4_DCHECK(atn.isArray());
+    CVC4_DCHECK(bvl[i].getType() == atn.getArrayIndexType());
     children.push_back(atn.getArrayIndexType());
     atn = atn.getArrayConstituentType();
   }
@@ -131,7 +129,7 @@ TypeNode TheoryBuiltinRewriter::getFunctionTypeForArrayType(TypeNode atn,
 
 TypeNode TheoryBuiltinRewriter::getArrayTypeForFunctionType(TypeNode ftn)
 {
-  Assert(ftn.isFunction());
+  CVC4_DCHECK(ftn.isFunction());
   // construct the curried array type
   unsigned nchildren = ftn.getNumChildren();
   TypeNode ret = ftn[nchildren - 1];
@@ -148,7 +146,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
   if( it==visited.end() ){
     Node ret;
     if( bvlIndex<bvl.getNumChildren() ){
-      Assert( a.getType().isArray() );
+      CVC4_DCHECK(a.getType().isArray());
       if( a.getKind()==kind::STORE ){
         // convert the array recursively
         Node body = getLambdaForArrayRepresentationRec( a[0], bvl, bvlIndex, visited );
@@ -156,8 +154,12 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
           // convert the value recursively (bounded by the number of arguments in bvl)
           Node val = getLambdaForArrayRepresentationRec( a[2], bvl, bvlIndex+1, visited );
           if( !val.isNull() ){
-            Assert( !TypeNode::leastCommonTypeNode( a[1].getType(), bvl[bvlIndex].getType() ).isNull() );
-            Assert( !TypeNode::leastCommonTypeNode( val.getType(), body.getType() ).isNull() );
+            CVC4_DCHECK(!TypeNode::leastCommonTypeNode(a[1].getType(),
+                                                       bvl[bvlIndex].getType())
+                             .isNull());
+            CVC4_DCHECK(
+                !TypeNode::leastCommonTypeNode(val.getType(), body.getType())
+                     .isNull());
             Node cond = bvl[bvlIndex].eqNode( a[1] );
             ret = NodeManager::currentNM()->mkNode( kind::ITE, cond, val, body );
           }
@@ -179,7 +181,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
 }
 
 Node TheoryBuiltinRewriter::getLambdaForArrayRepresentation( TNode a, TNode bvl ){
-  Assert( a.getType().isArray() );
+  CVC4_DCHECK(a.getType().isArray());
   std::unordered_map< TNode, Node, TNodeHashFunction > visited;
   Trace("builtin-rewrite-debug") << "Get lambda for : " << a << ", with variables " << bvl << std::endl;
   Node body = getLambdaForArrayRepresentationRec( a, bvl, 0, visited );
@@ -196,7 +198,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentation( TNode a, TNode bvl 
 Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
                                                                TypeNode retType)
 {
-  Assert( n.getKind()==kind::LAMBDA );
+  CVC4_DCHECK(n.getKind() == kind::LAMBDA);
   NodeManager* nm = NodeManager::currentNM();
   Trace("builtin-rewrite-debug") << "Get array representation for : " << n << std::endl;
 
@@ -343,14 +345,15 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       array_type = NodeManager::currentNM()->mkArrayType( n[0][index].getType(), array_type );
     }
     Trace("builtin-rewrite-debug2") << "  make array store all " << curr.getType() << " annotated : " << array_type << std::endl;
-    Assert( curr.getType().isSubtypeOf( array_type.getArrayConstituentType() ) );
+    CVC4_DCHECK(
+        curr.getType().isSubtypeOf(array_type.getArrayConstituentType()));
     curr = NodeManager::currentNM()->mkConst(ArrayStoreAll(((ArrayType)array_type.toType()), curr.toExpr()));
     Trace("builtin-rewrite-debug2") << "  build array..." << std::endl;
     // can only build if default value is constant (since array store all must be constant)
     Trace("builtin-rewrite-debug2") << "  got constant base " << curr << std::endl;
     // construct store chain
     for( int i=((int)conds.size()-1); i>=0; i-- ){
-      Assert( conds[i].getType().isSubtypeOf( first_arg.getType() ) );
+      CVC4_DCHECK(conds[i].getType().isSubtypeOf(first_arg.getType()));
       curr = NodeManager::currentNM()->mkNode( kind::STORE, curr, conds[i], vals[i] );
     }
     Trace("builtin-rewrite-debug") << "...got array " << curr << " for " << n << std::endl;
@@ -363,7 +366,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
 
 Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
 {
-  Assert( n.getKind()==kind::LAMBDA );
+  CVC4_DCHECK(n.getKind() == kind::LAMBDA);
   // must carry the overall return type to deal with cases like (lambda ((x Int)(y Int)) (ite (= x _) 0.5 0.0)),
   //  where the inner construction for the else case about should be (arraystoreall (Array Int Real) 0.0)
   Node anode = getArrayRepresentationForLambdaRec(n, n[1].getType());

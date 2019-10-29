@@ -39,10 +39,10 @@ typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node>
 struct DatatypeConstructorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
-    Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
+    CVC4_DCHECK(n.getKind() == kind::APPLY_CONSTRUCTOR);
     TypeNode consType = n.getOperator().getType(check);
     Type t = consType.getConstructorRangeType().toType();
-    Assert(t.isDatatype());
+    CVC4_DCHECK(t.isDatatype());
     DatatypeType dt = DatatypeType(t);
     TNode::iterator child_it = n.begin();
     TNode::iterator child_it_end = n.end();
@@ -94,7 +94,7 @@ struct DatatypeConstructorTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
+    CVC4_DCHECK(n.getKind() == kind::APPLY_CONSTRUCTOR);
     NodeManagerScope nms(nodeManager);
     for (TNode::const_iterator i = n.begin(); i != n.end(); ++i) {
       if (!(*i).isConst()) {
@@ -124,11 +124,11 @@ struct DatatypeConstructorTypeRule {
 struct DatatypeSelectorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
-    Assert(n.getKind() == kind::APPLY_SELECTOR ||
-           n.getKind() == kind::APPLY_SELECTOR_TOTAL);
+    CVC4_DCHECK(n.getKind() == kind::APPLY_SELECTOR
+                || n.getKind() == kind::APPLY_SELECTOR_TOTAL);
     TypeNode selType = n.getOperator().getType(check);
     Type t = selType[0].toType();
-    Assert(t.isDatatype());
+    CVC4_DCHECK(t.isDatatype());
     DatatypeType dt = DatatypeType(t);
     if ((dt.isParametric() || check) && n.getNumChildren() != 1) {
       throw TypeCheckingExceptionPrivate(
@@ -175,7 +175,7 @@ struct DatatypeSelectorTypeRule {
 struct DatatypeTesterTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
-    Assert(n.getKind() == kind::APPLY_TESTER);
+    CVC4_DCHECK(n.getKind() == kind::APPLY_TESTER);
     if (check) {
       if (n.getNumChildren() != 1) {
         throw TypeCheckingExceptionPrivate(
@@ -184,7 +184,7 @@ struct DatatypeTesterTypeRule {
       TypeNode testType = n.getOperator().getType(check);
       TypeNode childType = n[0].getType(check);
       Type t = testType[0].toType();
-      Assert(t.isDatatype());
+      CVC4_DCHECK(t.isDatatype());
       DatatypeType dt = DatatypeType(t);
       if (dt.isParametric()) {
         Debug("typecheck-idt") << "typecheck parameterized tester: " << n
@@ -211,7 +211,7 @@ struct DatatypeAscriptionTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
     Debug("typecheck-idt") << "typechecking ascription: " << n << std::endl;
-    Assert(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
+    CVC4_DCHECK(n.getKind() == kind::APPLY_TYPE_ASCRIPTION);
     TypeNode t = TypeNode::fromType(
         n.getOperator().getConst<AscriptionType>().getType());
     if (check) {
@@ -252,7 +252,7 @@ struct ConstructorProperties {
 struct TupleUpdateTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
-    Assert(n.getKind() == kind::TUPLE_UPDATE);
+    CVC4_DCHECK(n.getKind() == kind::TUPLE_UPDATE);
     const TupleUpdate& tu = n.getOperator().getConst<TupleUpdate>();
     TypeNode tupleType = n[0].getType(check);
     TypeNode newValue = n[1].getType(check);
@@ -280,7 +280,7 @@ class TupleUpdateOpTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::TUPLE_UPDATE_OP);
+    CVC4_DCHECK(n.getKind() == kind::TUPLE_UPDATE_OP);
     return nodeManager->builtinOperatorType();
   }
 }; /* class TupleUpdateOpTypeRule */
@@ -288,7 +288,7 @@ class TupleUpdateOpTypeRule
 struct RecordUpdateTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
-    Assert(n.getKind() == kind::RECORD_UPDATE);
+    CVC4_DCHECK(n.getKind() == kind::RECORD_UPDATE);
     NodeManagerScope nms(nodeManager);
     const RecordUpdate& ru = n.getOperator().getConst<RecordUpdate>();
     TypeNode recordType = n[0].getType(check);
@@ -317,7 +317,7 @@ class RecordUpdateOpTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::RECORD_UPDATE_OP);
+    CVC4_DCHECK(n.getKind() == kind::RECORD_UPDATE_OP);
     return nodeManager->builtinOperatorType();
   }
 }; /* class RecordUpdateOpTypeRule */
@@ -434,7 +434,7 @@ class MatchTypeRule
  public:
   static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::MATCH);
+    CVC4_DCHECK(n.getKind() == kind::MATCH);
 
     TypeNode retType;
 
@@ -459,7 +459,7 @@ class MatchTypeRule
         {
           for (const Node& v : nc[0])
           {
-            Assert(v.getKind() == kind::BOUND_VARIABLE);
+            CVC4_DCHECK(v.getKind() == kind::BOUND_VARIABLE);
             bvs.insert(v);
           }
         }
@@ -547,7 +547,7 @@ class MatchCaseTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::MATCH_CASE);
+    CVC4_DCHECK(n.getKind() == kind::MATCH_CASE);
     if (check)
     {
       TypeNode patType = n[0].getType(check);
@@ -568,7 +568,7 @@ class MatchBindCaseTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::MATCH_BIND_CASE);
+    CVC4_DCHECK(n.getKind() == kind::MATCH_BIND_CASE);
     if (check)
     {
       if (n[0].getKind() != kind::BOUND_VAR_LIST)

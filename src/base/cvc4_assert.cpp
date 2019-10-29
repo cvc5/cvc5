@@ -19,6 +19,7 @@
 #include <cstdio>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "base/output.h"
 
 using namespace std;
@@ -131,7 +132,7 @@ void AssertionException::construct(const char* header, const char* extra,
 /**
  * Special assertion failure handling in debug mode; in non-debug
  * builds, the exception is thrown from the macro.  We factor out this
- * additional logic so as not to bloat the code at every Assert()
+ * additional logic so as not to bloat the code at every CVC4_DCHECK()
  * expansion.
  *
  * Note this name is prefixed with "debug" because it is included in

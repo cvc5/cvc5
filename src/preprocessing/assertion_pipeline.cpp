@@ -53,7 +53,7 @@ void AssertionPipeline::push_back(Node n, bool isAssumption)
     // and that we store them in the same vector as the assertions. Once we
     // split the assertions up into multiple vectors (see issue #2473), we will
     // not have this limitation anymore.
-    Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
+    CVC4_DCHECK(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
     d_numAssumptions++;
   }
 }
@@ -103,12 +103,12 @@ void AssertionPipeline::disableStoreSubstsInAsserts()
 
 void AssertionPipeline::addSubstitutionNode(Node n)
 {
-  Assert(d_storeSubstsInAsserts);
-  Assert(n.getKind() == kind::EQUAL);
+  CVC4_DCHECK(d_storeSubstsInAsserts);
+  CVC4_DCHECK(n.getKind() == kind::EQUAL);
   d_nodes[d_substsIndex] = theory::Rewriter::rewrite(
       NodeManager::currentNM()->mkNode(kind::AND, n, d_nodes[d_substsIndex]));
-  Assert(theory::Rewriter::rewrite(d_nodes[d_substsIndex])
-         == d_nodes[d_substsIndex]);
+  CVC4_DCHECK(theory::Rewriter::rewrite(d_nodes[d_substsIndex])
+              == d_nodes[d_substsIndex]);
 }
 
 }  // namespace preprocessing

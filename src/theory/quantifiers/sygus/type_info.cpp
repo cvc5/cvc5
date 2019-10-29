@@ -35,13 +35,13 @@ SygusTypeInfo::SygusTypeInfo()
 void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
 {
   d_this = tn;
-  Assert(tn.isDatatype());
+  CVC4_DCHECK(tn.isDatatype());
   const Datatype& dt = tn.getDatatype();
-  Assert(dt.isSygus());
+  CVC4_DCHECK(dt.isSygus());
   Trace("sygus-db") << "Register type " << dt.getName() << "..." << std::endl;
   TypeNode btn = TypeNode::fromType(dt.getSygusType());
   d_btype = btn;
-  Assert(!d_btype.isNull());
+  CVC4_DCHECK(!d_btype.isNull());
   // get the sygus variable list
   Node var_list = Node::fromExpr(dt.getSygusVarList());
   if (!var_list.isNull())
@@ -93,7 +93,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
   for (unsigned i = 0; i < dt.getNumConstructors(); i++)
   {
     Expr sop = dt[i].getSygusOp();
-    Assert(!sop.isNull());
+    CVC4_DCHECK(!sop.isNull());
     Node n = Node::fromExpr(sop);
     Trace("sygus-db") << "  Operator #" << i << " : " << sop;
     if (sop.getKind() == kind::BUILTIN)
@@ -117,7 +117,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     else if (sop.getKind() == LAMBDA)
     {
       // do type checking
-      Assert(sop[0].getNumChildren() == dt[i].getNumArgs());
+      CVC4_DCHECK(sop[0].getNumChildren() == dt[i].getNumArgs());
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
@@ -181,7 +181,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         }
         else
         {
-          Assert(!ct.isDatatype() || !ct.getDatatype().isSygus());
+          CVC4_DCHECK(!ct.isDatatype() || !ct.getDatatype().isSygus());
         }
       }
     }
@@ -215,12 +215,12 @@ void SygusTypeInfo::initializeVarSubclasses()
   {
     std::vector<unsigned> rm_indices;
     TypeNode stn = sf_types[i];
-    Assert(stn.isDatatype());
+    CVC4_DCHECK(stn.isDatatype());
     const Datatype& dt = stn.getDatatype();
     for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
     {
       Expr sop = dt[j].getSygusOp();
-      Assert(!sop.isNull());
+      CVC4_DCHECK(!sop.isNull());
       Node sopn = Node::fromExpr(sop);
       if (type_occurs.find(sopn) != type_occurs.end())
       {
@@ -292,7 +292,7 @@ unsigned SygusTypeInfo::getMinTypeDepth(TypeNode tn) const
   std::map<TypeNode, unsigned>::const_iterator it = d_min_type_depth.find(tn);
   if (it != d_min_type_depth.end())
   {
-    Assert(false);
+    CVC4_DCHECK(false);
     return 0;
   }
   return it->second;
@@ -307,7 +307,7 @@ unsigned SygusTypeInfo::getMinConsTermSize(unsigned cindex)
   {
     return it->second;
   }
-  Assert(false);
+  CVC4_DCHECK(false);
   return 0;
 }
 
@@ -409,7 +409,7 @@ unsigned SygusTypeInfo::getSubclassForVar(Node n) const
   std::map<Node, unsigned>::const_iterator itcc = d_var_subclass_id.find(n);
   if (itcc == d_var_subclass_id.end())
   {
-    Assert(false);
+    CVC4_DCHECK(false);
     return 0;
   }
   return itcc->second;
@@ -421,7 +421,7 @@ unsigned SygusTypeInfo::getNumSubclassVars(unsigned sc) const
       d_var_subclass_list.find(sc);
   if (itvv == d_var_subclass_list.end())
   {
-    Assert(false);
+    CVC4_DCHECK(false);
     return 0;
   }
   return itvv->second.size();
@@ -432,7 +432,7 @@ Node SygusTypeInfo::getVarSubclassIndex(unsigned sc, unsigned i) const
       d_var_subclass_list.find(sc);
   if (itvv == d_var_subclass_list.end() || i >= itvv->second.size())
   {
-    Assert(false);
+    CVC4_DCHECK(false);
     return Node::null();
   }
   return itvv->second[i];

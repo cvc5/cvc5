@@ -982,7 +982,7 @@ void Smt2Printer::toStream(std::ostream& out,
       force_child_type[1] = NodeManager::currentNM()->mkSetType( elemType );
     }else{
       // APPLY_UF, APPLY_CONSTRUCTOR, etc.
-      Assert( n.hasOperator() );
+      CVC4_DCHECK(n.hasOperator());
       TypeNode opt = n.getOperator().getType();
       if (n.getKind() == kind::APPLY_CONSTRUCTOR)
       {
@@ -996,7 +996,7 @@ void Smt2Printer::toStream(std::ostream& out,
           opt = TypeNode::fromType(dt[ci].getSpecializedConstructorType(tn));
         }
       }
-      Assert( opt.getNumChildren() == n.getNumChildren() + 1 );
+      CVC4_DCHECK(opt.getNumChildren() == n.getNumChildren() + 1);
       for(size_t i = 0; i < n.getNumChildren(); ++i ) {
         force_child_type[i] = opt[i];
       }
@@ -1018,7 +1018,7 @@ void Smt2Printer::toStream(std::ostream& out,
     if(++i < n.getNumChildren()) {
       if(forceBinary && i < n.getNumChildren() - 1) {
         // not going to work properly for parameterized kinds!
-        Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
+        CVC4_DCHECK(n.getMetaKind() != kind::metakind::PARAMETERIZED);
         out << " (" << smtKindString(n.getKind(), d_variant) << ' ';
         parens << ')';
         ++c;
@@ -1350,7 +1350,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   out << "(" << std::endl;
   SmtEngine * smt = core.getSmtEngine();
-  Assert( smt!=NULL );
+  CVC4_DCHECK(smt != NULL);
   for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
     std::string name;
     if (smt->getExpressionName(*i,name)) {
@@ -1396,7 +1396,7 @@ void Smt2Printer::toStream(std::ostream& out,
 {
   const theory::TheoryModel* theory_model =
       dynamic_cast<const theory::TheoryModel*>(&model);
-  AlwaysAssert(theory_model != nullptr);
+  CVC4_CHECK(theory_model != nullptr);
   if (const DeclareTypeCommand* dtc =
           dynamic_cast<const DeclareTypeCommand*>(command))
   {
@@ -1514,7 +1514,7 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
     if (dt.isSygus())
     {
       int cIndex = Datatype::indexOf(n.getOperator().toExpr());
-      Assert(!dt[cIndex].getSygusOp().isNull());
+      CVC4_DCHECK(!dt[cIndex].getSygusOp().isNull());
       SygusPrintCallback* spc = dt[cIndex].getSygusPrintCallback().get();
       if (spc != nullptr && options::sygusPrintCallbacks())
       {
@@ -1927,11 +1927,11 @@ static void toStream(std::ostream& out,
                      Variant v)
 {
   const vector<DatatypeType>& datatypes = c->getDatatypes();
-  Assert(!datatypes.empty());
+  CVC4_DCHECK(!datatypes.empty());
   if (datatypes[0].getDatatype().isTuple())
   {
     // not necessary to print tuples
-    Assert(datatypes.size() == 1);
+    CVC4_DCHECK(datatypes.size() == 1);
     return;
   }
   out << "(declare-";

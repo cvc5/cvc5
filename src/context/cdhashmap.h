@@ -89,8 +89,9 @@
 #include <vector>
 
 #include "base/cvc4_assert.h"
-#include "context/context.h"
+#include "base/cvc4_check.h"
 #include "context/cdhashmap_forward.h"
+#include "context/context.h"
 
 namespace CVC4 {
 namespace context {
@@ -139,8 +140,8 @@ class CDOhash_map : public ContextObj {
     CDOhash_map* p = static_cast<CDOhash_map*>(data);
     if(d_map != NULL) {
       if(p->d_map == NULL) {
-        Assert(d_map->d_map.find(getKey()) != d_map->d_map.end()
-               && (*d_map->d_map.find(getKey())).second == this);
+        CVC4_DCHECK(d_map->d_map.find(getKey()) != d_map->d_map.end()
+                    && (*d_map->d_map.find(getKey())).second == this);
         // no longer in map (popped beyond first level in which it was)
         d_map->d_map.erase(getKey());
         // If we call deleteSelf() here, it re-enters restore().  So,
@@ -150,7 +151,7 @@ class CDOhash_map : public ContextObj {
         if(d_map->d_first == this) {
           Debug("gc") << "remove first-elem " << this << " from map " << d_map << " with next-elem " << d_next << std::endl;
           if(d_next == this) {
-            Assert(d_prev == this);
+            CVC4_DCHECK(d_prev == this);
             d_map->d_first = NULL;
           } else {
             d_map->d_first = d_next;
@@ -377,11 +378,11 @@ public:
    * backjump; rather, it can take another (legal) value, or a special
    * value to indicate it needs to be recomputed.
    *
-   * It is an error (checked via AlwaysAssert()) to
+   * It is an error (checked via CVC4_CHECK()) to
    * insertAtContextLevelZero() a key that already is in the map.
    */
   void insertAtContextLevelZero(const Key& k, const Data& d) {
-    AlwaysAssert(d_map.find(k) == d_map.end());
+    CVC4_CHECK(d_map.find(k) == d_map.end());
 
     Element* obj = new(true) Element(d_context, this, k, d,
                                      true /* atLevelZero */);

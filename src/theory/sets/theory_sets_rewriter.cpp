@@ -35,8 +35,9 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
     return elementTerm == setTerm[0];
   }
 
-  Assert(setTerm.getKind() == kind::UNION && setTerm[1].getKind() == kind::SINGLETON,
-         "kind was %d, term: %s", setTerm.getKind(), setTerm.toString().c_str());
+  CVC4_DCHECK(setTerm.getKind() == kind::UNION
+              && setTerm[1].getKind() == kind::SINGLETON)
+      << "kind was " << setTerm.getKind() << ", term: " << setTerm;
 
   return
     elementTerm == setTerm[1][0] ||
@@ -81,7 +82,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }//kind::MEMBER
 
   case kind::SUBSET: {
-    Assert(false, "TheorySets::postRrewrite(): Subset is handled in preRewrite.");
+    CVC4_DCHECK(false)
+        << "TheorySets::postRrewrite(): Subset is handled in preRewrite.";
 
     // but in off-chance we do end up here, let us do our best
 
@@ -132,7 +134,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set_difference(left.begin(), left.end(), right.begin(), right.end(),
         std::inserter(newSet, newSet.begin()));
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
-      Assert(newNode.isConst());
+      CVC4_DCHECK(newNode.isConst());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     }
@@ -154,7 +156,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set_intersection(left.begin(), left.end(), right.begin(), right.end(),
                             std::inserter(newSet, newSet.begin()));
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
-      Assert(newNode.isConst());
+      CVC4_DCHECK(newNode.isConst());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     } else {
@@ -193,7 +195,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set_union(left.begin(), left.end(), right.begin(), right.end(),
                           std::inserter(newSet, newSet.begin()));
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
-      Assert(newNode.isConst());
+      CVC4_DCHECK(newNode.isConst());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     } else {
@@ -251,7 +253,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         ++tuple_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
-      Assert(new_node.isConst());
+      CVC4_DCHECK(new_node.isConst());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
       return RewriteResponse(REWRITE_DONE, new_node);
 
@@ -301,7 +303,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         ++left_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
-      Assert(new_node.isConst());
+      CVC4_DCHECK(new_node.isConst());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
       return RewriteResponse(REWRITE_DONE, new_node);
     }
@@ -345,7 +347,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         ++left_it;
       }
       Node new_node = NormalForm::elementsToSet(new_tuple_set, node.getType());
-      Assert(new_node.isConst());
+      CVC4_DCHECK(new_node.isConst());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
       return RewriteResponse(REWRITE_DONE, new_node);
     }
@@ -360,7 +362,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::set<Node> rel_mems = NormalForm::getElementsFromNormalConstant(node[0]);
       std::set<Node> tc_rel_mems = RelsUtils::computeTC(rel_mems, node);
       Node new_node = NormalForm::elementsToSet(tc_rel_mems, node.getType());
-      Assert(new_node.isConst());
+      CVC4_DCHECK(new_node.isConst());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << new_node << std::endl;
       return RewriteResponse(REWRITE_DONE, new_node);
       
@@ -388,7 +390,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       }
 
       Node new_node = NormalForm::elementsToSet(iden_rel_mems, node.getType());
-      Assert(new_node.isConst());
+      CVC4_DCHECK(new_node.isConst());
       Trace("rels-postrewrite") << "Rels::postRewrite returning " << new_node << std::endl;
       return RewriteResponse(REWRITE_DONE, new_node);
 
@@ -435,7 +437,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
         ++rel_mems_it;
       }
       Node new_node = NormalForm::elementsToSet(join_img_mems, node.getType());
-      Assert(new_node.isConst());
+      CVC4_DCHECK(new_node.isConst());
       Trace("rels-postrewrite") << "Rels::postRewrite returning " << new_node << std::endl;
       return RewriteResponse(REWRITE_DONE, new_node);
     } else {

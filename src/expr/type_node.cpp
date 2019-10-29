@@ -198,7 +198,7 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
     else
     {
       // all types should be handled above
-      Assert(false);
+      CVC4_DCHECK(false);
       // by default, compute the exact cardinality for the type and check
       // whether it is finite. This should be avoided in general, since
       // computing cardinalities for types can be highly expensive.
@@ -343,10 +343,10 @@ TypeNode TypeNode::getBaseType() const {
 std::vector<TypeNode> TypeNode::getArgTypes() const {
   vector<TypeNode> args;
   if(isTester()) {
-    Assert(getNumChildren() == 1);
+    CVC4_DCHECK(getNumChildren() == 1);
     args.push_back((*this)[0]);
   } else {
-    Assert(isFunction() || isConstructor() || isSelector());
+    CVC4_DCHECK(isFunction() || isConstructor() || isSelector());
     for(unsigned i = 0, i_end = getNumChildren() - 1; i < i_end; ++i) {
       args.push_back((*this)[i]);
     }
@@ -356,7 +356,7 @@ std::vector<TypeNode> TypeNode::getArgTypes() const {
 
 std::vector<TypeNode> TypeNode::getParamTypes() const {
   vector<TypeNode> params;
-  Assert(isParametricDatatype());
+  CVC4_DCHECK(isParametricDatatype());
   for(unsigned i = 1, i_end = getNumChildren(); i < i_end; ++i) {
     params.push_back((*this)[i]);
   }
@@ -375,16 +375,16 @@ bool TypeNode::isRecord() const {
 }
 
 size_t TypeNode::getTupleLength() const {
-  Assert(isTuple());
+  CVC4_DCHECK(isTuple());
   const Datatype& dt = getDatatype();
-  Assert(dt.getNumConstructors()==1);
+  CVC4_DCHECK(dt.getNumConstructors() == 1);
   return dt[0].getNumArgs();
 }
 
 vector<TypeNode> TypeNode::getTupleTypes() const {
-  Assert(isTuple());
+  CVC4_DCHECK(isTuple());
   const Datatype& dt = getDatatype();
-  Assert(dt.getNumConstructors()==1);
+  CVC4_DCHECK(dt.getNumConstructors() == 1);
   vector<TypeNode> types;
   for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
     types.push_back(TypeNode::fromType(dt[0][i].getRangeType()));
@@ -393,14 +393,14 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
 }
 
 const Record& TypeNode::getRecord() const {
-  Assert(isRecord());
+  CVC4_DCHECK(isRecord());
   const Datatype & dt = getDatatype();
   return *(dt.getRecord());
   //return getAttribute(expr::DatatypeRecordAttr()).getConst<Record>();
 }
 
 vector<TypeNode> TypeNode::getSExprTypes() const {
-  Assert(isSExpr());
+  CVC4_DCHECK(isSExpr());
   vector<TypeNode> types;
   for(unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
     types.push_back((*this)[i]);
@@ -418,7 +418,7 @@ bool TypeNode::isInstantiatedDatatype() const {
   }
   const Datatype& dt = (*this)[0].getDatatype();
   unsigned n = dt.getNumParameters();
-  Assert(n < getNumChildren());
+  CVC4_DCHECK(n < getNumChildren());
   for(unsigned i = 0; i < n; ++i) {
     if(TypeNode::fromType(dt.getParameter(i)) == (*this)[i + 1]) {
       return false;
@@ -444,12 +444,12 @@ TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
 }
 
 TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
-  Assert(!t0.isNull());
-  Assert(!t1.isNull());
+  CVC4_DCHECK(!t0.isNull());
+  CVC4_DCHECK(!t1.isNull());
 
   if(__builtin_expect( (t0 == t1), true )) {
     return t0;
@@ -514,7 +514,7 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
 
 Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
-  Assert( ntn.isComparableTo( tn ) );
+  CVC4_DCHECK(ntn.isComparableTo(tn));
   if( !ntn.isSubtypeOf( tn ) ){
     if( tn.isInteger() ){
       if( tn.isSubtypeOf( ntn ) ){

@@ -44,7 +44,7 @@ HigherOrderTrigger::HigherOrderTrigger(
     Node n = as.first;
     d_ho_var_list.push_back(n);
     TypeNode tn = n.getType();
-    Assert(tn.isFunction());
+    CVC4_DCHECK(tn.isFunction());
     if (Trace.isOn("ho-quant-trigger"))
     {
       Trace("ho-quant-trigger") << "  have " << as.second.size();
@@ -77,7 +77,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
   std::vector<Node> ns;
   ns.push_back(n);
   collectHoVarApplyTerms(q, ns, apps);
-  Assert(ns.size() == 1);
+  CVC4_DCHECK(ns.size() == 1);
   n = ns[0];
 }
 
@@ -132,8 +132,8 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
         for (const Node& nc : cur)
         {
           it = visited.find(nc);
-          Assert(it != visited.end());
-          Assert(!it->second.isNull());
+          CVC4_DCHECK(it != visited.end());
+          CVC4_DCHECK(!it->second.isNull());
           childChanged = childChanged || nc != it->second;
           children.push_back(it->second);
         }
@@ -162,7 +162,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
           {
             if (op.getKind() == kind::INST_CONSTANT)
             {
-              Assert(quantifiers::TermUtil::getInstConstAttr(ret) == q);
+              CVC4_DCHECK(quantifiers::TermUtil::getInstConstAttr(ret) == q);
               Trace("ho-quant-trigger-debug")
                   << "Ho variable apply term : " << ret << " with head " << op
                   << std::endl;
@@ -181,7 +181,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
     } while (!visit.empty());
 
     // store the conversion
-    Assert(visited.find(ns[i]) != visited.end());
+    CVC4_DCHECK(visited.find(ns[i]) != visited.end());
     ns[i] = visited[ns[i]];
   }
 }
@@ -245,7 +245,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
       d_lchildren[vnum].push_back(value);
       std::map<TNode, std::vector<Node> >::iterator ithb =
           d_ho_var_bvs.find(var);
-      Assert(ithb != d_ho_var_bvs.end());
+      CVC4_DCHECK(ithb != d_ho_var_bvs.end());
       d_lchildren[vnum].insert(
           d_lchildren[vnum].end(), ithb->second.begin(), ithb->second.end());
 
@@ -267,7 +267,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
         hmatch = hmatch.substitute(value, var);
         Trace("ho-unif-debug2") << "Pre-subs match is " << hmatch << std::endl;
         Node f = uf::TheoryUfRewriter::decomposeHoApply(hmatch, args);
-        // Assert( f==value );
+        // CVC4_DCHECK( f==value );
         for (unsigned k = 0, size = args.size(); k < size; k++)
         {
           // must now subsitute back, to handle cases like
@@ -389,10 +389,10 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
   {
     Node var = d_ho_var_list[var_index];
     unsigned vnum = var.getAttribute(InstVarNumAttribute());
-    Assert(vnum < m.d_vals.size());
+    CVC4_DCHECK(vnum < m.d_vals.size());
     Node value = m.d_vals[vnum];
-    Assert(d_lchildren[vnum][0] == value);
-    Assert(d_ho_var_bvl.find(var) != d_ho_var_bvl.end());
+    CVC4_DCHECK(d_lchildren[vnum][0] == value);
+    CVC4_DCHECK(d_ho_var_bvl.find(var) != d_ho_var_bvl.end());
 
     // now, recurse on arguments to enumerate equivalent matching lambda
     // expressions
@@ -439,7 +439,7 @@ bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
         itr != d_arg_to_arg_rep[vnum].end() ? itr->second : arg_index;
     std::map<unsigned, std::vector<Node> >::iterator itv =
         d_arg_vector[vnum].find(rindex);
-    Assert(itv != d_arg_vector[vnum].end());
+    CVC4_DCHECK(itv != d_arg_vector[vnum].end());
     Node prev = lbvl[arg_index];
     bool ret = false;
     // try each argument in the vector
@@ -481,7 +481,7 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
       if (tn.isFunction())
       {
         std::vector<TypeNode> argTypes = tn.getArgTypes();
-        Assert(argTypes.size() > 0);
+        CVC4_DCHECK(argTypes.size() > 0);
         TypeNode range = tn.getRangeType();
         // for each function type suffix of the type of f, for example if
         // f : (Int -> (Int -> Int))
@@ -490,7 +490,7 @@ int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
         {
           std::vector<TypeNode> sargts;
           sargts.insert(sargts.begin(), argTypes.begin() + a, argTypes.end());
-          Assert(sargts.size() > 0);
+          CVC4_DCHECK(sargts.size() > 0);
           TypeNode stn = nm->mkFunctionType(sargts, range);
           Trace("ho-quant-trigger-debug")
               << "For " << f << ", check " << stn << "..." << std::endl;

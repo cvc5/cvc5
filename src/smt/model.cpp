@@ -44,7 +44,7 @@ size_t Model::getNumCommands() const {
 }
 
 const Command* Model::getCommand(size_t i) const {
-  Assert(i < getNumCommands());
+  CVC4_DCHECK(i < getNumCommands());
   // index the global commands first, then the locals
   if(i < d_smt.d_modelGlobalCommands.size()) {
     return d_smt.d_modelGlobalCommands[i];

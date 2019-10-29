@@ -56,13 +56,13 @@ bool ArithVariables::hasNode(ArithVar a) const {
 }
 
 ArithVar ArithVariables::asArithVar(TNode x) const{
-  Assert(hasArithVar(x));
-  Assert((d_nodeToArithVarMap.find(x))->second <= ARITHVAR_SENTINEL);
+  CVC4_DCHECK(hasArithVar(x));
+  CVC4_DCHECK((d_nodeToArithVarMap.find(x))->second <= ARITHVAR_SENTINEL);
   return (d_nodeToArithVarMap.find(x))->second;
 }
 
 Node ArithVariables::asNode(ArithVar a) const{
-  Assert(hasNode(a));
+  CVC4_DCHECK(hasNode(a));
   return d_vars[a].d_node;
 }
 
@@ -140,11 +140,11 @@ bool ArithVariables::VarInfo::initialized() const {
 }
 
 void ArithVariables::VarInfo::initialize(ArithVar v, Node n, bool aux){
-  Assert(!initialized());
-  Assert(d_lb == NullConstraint);
-  Assert(d_ub == NullConstraint);
-  Assert(d_cmpAssignmentLB > 0);
-  Assert(d_cmpAssignmentUB < 0);
+  CVC4_DCHECK(!initialized());
+  CVC4_DCHECK(d_lb == NullConstraint);
+  CVC4_DCHECK(d_ub == NullConstraint);
+  CVC4_DCHECK(d_cmpAssignmentLB > 0);
+  CVC4_DCHECK(d_cmpAssignmentUB < 0);
   d_var = v;
   d_node = n;
   d_auxiliary = aux;
@@ -159,7 +159,7 @@ void ArithVariables::VarInfo::initialize(ArithVar v, Node n, bool aux){
     d_type = n.getType().isInteger() ? ArithType::Integer : ArithType::Real;
   }
 
-  Assert(initialized());
+  CVC4_DCHECK(initialized());
 }
 
 void ArithVariables::VarInfo::uninitialize(){
@@ -168,7 +168,7 @@ void ArithVariables::VarInfo::uninitialize(){
 }
 
 bool ArithVariables::VarInfo::setAssignment(const DeltaRational& a, BoundsInfo& prev){
-  Assert(initialized());
+  CVC4_DCHECK(initialized());
   d_assignment = a;
   int cmpUB = (d_ub == NullConstraint) ? -1 :
     d_assignment.cmp(d_ub->getValue());
@@ -194,7 +194,7 @@ void ArithVariables::releaseArithVar(ArithVar v){
   VarInfo& vi = d_vars.get(v);
 
   size_t removed CVC4_UNUSED = d_nodeToArithVarMap.erase(vi.d_node);
-  Assert(removed == 1);
+  CVC4_DCHECK(removed == 1);
 
   vi.uninitialize();
 
@@ -209,7 +209,7 @@ void ArithVariables::releaseArithVar(ArithVar v){
 }
 
 bool ArithVariables::VarInfo::setUpperBound(ConstraintP ub, BoundsInfo& prev){
-  Assert(initialized());
+  CVC4_DCHECK(initialized());
   bool wasNull = d_ub == NullConstraint;
   bool isNull = ub == NullConstraint;
 
@@ -225,7 +225,7 @@ bool ArithVariables::VarInfo::setUpperBound(ConstraintP ub, BoundsInfo& prev){
 }
 
 bool ArithVariables::VarInfo::setLowerBound(ConstraintP lb, BoundsInfo& prev){
-  Assert(initialized());
+  CVC4_DCHECK(initialized());
   bool wasNull = d_lb == NullConstraint;
   bool isNull = lb == NullConstraint;
 
@@ -303,7 +303,7 @@ const Rational& ArithVariables::getDelta(){
     Rational nextDelta = d_deltaComputingFunc();
     setDelta(nextDelta);
   }
-  Assert(d_deltaIsSafe);
+  CVC4_DCHECK(d_deltaIsSafe);
   return d_delta;
 }
 
@@ -317,7 +317,7 @@ bool ArithVariables::boundsAreEqual(ArithVar x) const{
 
 
 std::pair<ConstraintP, ConstraintP> ArithVariables::explainEqualBounds(ArithVar x) const{
-  Assert(boundsAreEqual(x));
+  CVC4_DCHECK(boundsAreEqual(x));
 
   ConstraintP lb = getLowerBoundConstraint(x);
   ConstraintP ub = getUpperBoundConstraint(x);
@@ -377,8 +377,8 @@ ArithVar ArithVariables::allocate(Node n, bool aux){
 }
 
 // void ArithVariables::initialize(ArithVar x, const DeltaRational& r){
-//   Assert(x == d_mapSize);
-//   Assert(equalSizes());
+//   CVC4_DCHECK(x == d_mapSize);
+//   CVC4_DCHECK(equalSizes());
 //   ++d_mapSize;
 
 //   // Is worth mentioning that this is not strictly necessary, but this maintains the internal invariant
@@ -394,21 +394,21 @@ ArithVar ArithVariables::allocate(Node n, bool aux){
 
 /** Must know that the bound exists both calling this! */
 const DeltaRational& ArithVariables::getUpperBound(ArithVar x) const {
-  Assert(inMaps(x));
-  Assert(hasUpperBound(x));
+  CVC4_DCHECK(inMaps(x));
+  CVC4_DCHECK(hasUpperBound(x));
 
   return getUpperBoundConstraint(x)->getValue();
 }
 
 const DeltaRational& ArithVariables::getLowerBound(ArithVar x) const {
-  Assert(inMaps(x));
-  Assert(hasLowerBound(x));
+  CVC4_DCHECK(inMaps(x));
+  CVC4_DCHECK(hasLowerBound(x));
 
   return getLowerBoundConstraint(x)->getValue();
 }
 
 const DeltaRational& ArithVariables::getSafeAssignment(ArithVar x) const{
-  Assert(inMaps(x));
+  CVC4_DCHECK(inMaps(x));
   if(d_safeAssignment.isKey(x)){
     return d_safeAssignment[x];
   }else{
@@ -417,7 +417,7 @@ const DeltaRational& ArithVariables::getSafeAssignment(ArithVar x) const{
 }
 
 const DeltaRational& ArithVariables::getAssignment(ArithVar x, bool safe) const{
-  Assert(inMaps(x));
+  CVC4_DCHECK(inMaps(x));
   if(safe && d_safeAssignment.isKey(x)){
     return d_safeAssignment[x];
   }else{
@@ -426,7 +426,7 @@ const DeltaRational& ArithVariables::getAssignment(ArithVar x, bool safe) const{
 }
 
 const DeltaRational& ArithVariables::getAssignment(ArithVar x) const{
-  Assert(inMaps(x));
+  CVC4_DCHECK(inMaps(x));
   return d_vars[x].d_assignment;
 }
 
@@ -437,8 +437,8 @@ void ArithVariables::setLowerBoundConstraint(ConstraintP c){
                  "Constraint type must be set to an equality or UpperBound.");
   ArithVar x = c->getVariable();
   Debug("partial_model") << "setLowerBoundConstraint(" << x << ":" << c << ")" << endl;
-  Assert(inMaps(x));
-  Assert(greaterThanLowerBound(x, c->getValue()));
+  CVC4_DCHECK(inMaps(x));
+  CVC4_DCHECK(greaterThanLowerBound(x, c->getValue()));
 
   invalidateDelta();
   VarInfo& vi = d_vars.get(x);
@@ -456,8 +456,8 @@ void ArithVariables::setUpperBoundConstraint(ConstraintP c){
 
   ArithVar x = c->getVariable();
   Debug("partial_model") << "setUpperBoundConstraint(" << x << ":" << c << ")" << endl;
-  Assert(inMaps(x));
-  Assert(lessThanUpperBound(x, c->getValue()));
+  CVC4_DCHECK(inMaps(x));
+  CVC4_DCHECK(lessThanUpperBound(x, c->getValue()));
 
   invalidateDelta();
   VarInfo& vi = d_vars.get(x);

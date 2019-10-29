@@ -19,6 +19,7 @@
 
 #include <ostream>
 
+#include "base/cvc4_check.h"
 #include "options/open_ostream.h"
 #include "options/smt_options.h"
 #include "smt/update_ostream.h"
@@ -29,7 +30,7 @@ ManagedOstream::ManagedOstream() : d_managed(NULL) {}
 
 ManagedOstream::~ManagedOstream() {
   manage(NULL);
-  Assert(d_managed == NULL);
+  CVC4_DCHECK(d_managed == NULL);
 }
 
 void ManagedOstream::set(const std::string& filename) {
@@ -49,7 +50,7 @@ void ManagedOstream::manage(std::ostream* new_managed_value) {
   if(d_managed == new_managed_value){
     // This is a no-op.
   } else {
-    Assert(d_managed != new_managed_value);
+    CVC4_DCHECK(d_managed != new_managed_value);
     std::ostream* old_managed_value = d_managed;
     d_managed = new_managed_value;
     if(old_managed_value != NULL){

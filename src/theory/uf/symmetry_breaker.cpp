@@ -82,12 +82,11 @@ bool SymmetryBreaker::Template::matchRecursive(TNode t, TNode n) {
 
   if(t.getNumChildren() == 0) {
     if(t.isConst()) {
-      Assert(n.isConst());
+      CVC4_DCHECK(n.isConst());
       Debug("ufsymm:match") << "UFSYMM we have constants, failing match" << endl;
       return false;
     }
-    Assert(t.isVar() &&
-           n.isVar());
+    CVC4_DCHECK(t.isVar() && n.isVar());
     t = find(t);
     n = find(n);
     Debug("ufsymm:match") << "UFSYMM variable match " << t << " , " << n << endl;
@@ -441,7 +440,7 @@ void SymmetryBreaker::assertFormula(TNode phi) {
     }
     d_template.reset();
     bool good CVC4_UNUSED = d_template.match(phi);
-    Assert(good);
+    CVC4_DCHECK(good);
   }
 }
 
@@ -575,7 +574,7 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p) {
   // use d_phi
   Debug("ufsymm") << "UFSYMM invariantByPermutations()? " << p << endl;
 
-  Assert(p.size() > 1);
+  CVC4_DCHECK(p.size() > 1);
 
   // check that the types match
   Permutation::iterator permIt = p.begin();
@@ -632,7 +631,7 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p) {
       }
     }
     repls.push_back(*p.begin());
-    Assert(subs.size() == repls.size());
+    CVC4_DCHECK(subs.size() == repls.size());
     for(vector<Node>::iterator i = d_phi.begin(); i != d_phi.end(); ++i) {
       Node s = (*i).substitute(subs.begin(), subs.end(), repls.begin(), repls.end());
       Node n = norm(s);
@@ -720,7 +719,8 @@ void SymmetryBreaker::selectTerms(const Permutation& p) {
               Debug("ufsymm:eq") << "UFSYMM              -- yep" << endl;
             }
           }
-          Assert(j != teq.end(), "failed to find a difference between p and teq ?!");
+          CVC4_DCHECK(j != teq.end())
+              << "failed to find a difference between p and teq ?!";
         }
       }
     } else {

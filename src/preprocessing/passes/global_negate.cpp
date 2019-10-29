@@ -29,7 +29,7 @@ namespace passes {
 
 Node GlobalNegate::simplify(std::vector<Node>& assertions, NodeManager* nm)
 {
-  Assert(!assertions.empty());
+  CVC4_DCHECK(!assertions.empty());
   Trace("cbqi-gn") << "Global negate : " << std::endl;
   // collect free variables in all assertions
   std::vector<Node> free_vars;

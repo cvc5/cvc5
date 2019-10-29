@@ -105,7 +105,7 @@ public:
 
   /** Returns true if the queue is empty in the current context. */
   bool empty() const{
-    Assert(d_iter <= ParentType::d_size);
+    CVC4_DCHECK(d_iter <= ParentType::d_size);
     return d_iter == ParentType::d_size;
   }
 
@@ -125,21 +125,21 @@ public:
    * function.
    */
   void pop(){
-    Assert(!empty(), "Attempting to pop from an empty queue.");
+    CVC4_DCHECK(!empty()) << "Attempting to pop from an empty queue.";
     ParentType::makeCurrent();
     d_iter = d_iter + 1;
     if (empty() && d_lastsave != ParentType::d_size) {
       // Some elements have been enqueued and dequeued in the same
       // context and now the queue is empty we can destruct them.
       ParentType::truncateList(d_lastsave);
-      Assert(ParentType::d_size ==  d_lastsave);
+      CVC4_DCHECK(ParentType::d_size == d_lastsave);
       d_iter = d_lastsave;
     }
   }
 
   /** Returns a reference to the next element on the queue. */
   const T& front() const{
-    Assert(!empty(), "No front in an empty queue.");
+    CVC4_DCHECK(!empty()) << "No front in an empty queue.";
     return ParentType::d_list[d_iter];
   }
 
@@ -147,7 +147,7 @@ public:
    * Returns the most recent item added to the queue.
    */
   const T& back() const {
-    Assert(!empty(), "CDQueue::back() called on empty list");
+    CVC4_DCHECK(!empty()) << "CDQueue::back() called on empty list";
     return ParentType::d_list[ParentType::d_size - 1];
   }
 

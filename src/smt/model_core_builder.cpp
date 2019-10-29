@@ -91,8 +91,8 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   {
     Unreachable("Unknown model cores mode");
   }
-  Assert(minimized,
-         "cannot compute model core, since model does not satisfy input!");
+  CVC4_DCHECK(minimized)
+      << "cannot compute model core, since model does not satisfy input!";
   if (minimized)
   {
     m->setUsingModelCore();

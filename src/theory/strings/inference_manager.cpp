@@ -80,7 +80,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
   {
     if (lit.getConst<bool>())
     {
-      Assert(pol);
+      CVC4_DCHECK(pol);
       // trivially holds
       return true;
     }

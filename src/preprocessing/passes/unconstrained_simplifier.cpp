@@ -128,7 +128,7 @@ void UnconstrainedSimplifier::processUnconstrained()
   workList.pop_back();
   for (;;)
   {
-    Assert(d_visitedOnce.find(current) != d_visitedOnce.end());
+    CVC4_DCHECK(d_visitedOnce.find(current) != d_visitedOnce.end());
     parent = d_visitedOnce[current];
     if (!parent.isNull())
     {
@@ -140,8 +140,8 @@ void UnconstrainedSimplifier::processUnconstrained()
         // parent unconstrained
         case kind::ITE:
         {
-          Assert(parent[0] == current || parent[1] == current
-                 || parent[2] == current);
+          CVC4_DCHECK(parent[0] == current || parent[1] == current
+                      || parent[2] == current);
           bool uCond =
               parent[0] == current
               || d_unconstrained.find(parent[0]) != d_unconstrained.end();
@@ -167,7 +167,7 @@ void UnconstrainedSimplifier::processUnconstrained()
                   }
                   else
                   {
-                    Assert(d_substitutions.hasSubstitution(parent[1]));
+                    CVC4_DCHECK(d_substitutions.hasSubstitution(parent[1]));
                     currentSub = d_substitutions.apply(parent[1]);
                   }
                 }
@@ -184,7 +184,7 @@ void UnconstrainedSimplifier::processUnconstrained()
                 }
                 else
                 {
-                  Assert(d_substitutions.hasSubstitution(parent[2]));
+                  CVC4_DCHECK(d_substitutions.hasSubstitution(parent[2]));
                   currentSub = d_substitutions.apply(parent[2]);
                 }
               }
@@ -261,8 +261,8 @@ void UnconstrainedSimplifier::processUnconstrained()
               && !d_substitutions.hasSubstitution(parent))
           {
             ++d_numUnconstrainedElim;
-            Assert(parent[0] != parent[1]
-                   && (parent[0] == current || parent[1] == current));
+            CVC4_DCHECK(parent[0] != parent[1]
+                        && (parent[0] == current || parent[1] == current));
             if (currentSub.isNull())
             {
               currentSub = current;
@@ -283,7 +283,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::BITVECTOR_NEG:
         case kind::UMINUS:
           ++d_numUnconstrainedElim;
-          Assert(parent[0] == current);
+          CVC4_DCHECK(parent[0] == current);
           if (currentSub.isNull())
           {
             currentSub = current;
@@ -295,7 +295,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         // different type
         case kind::BITVECTOR_EXTRACT:
           ++d_numUnconstrainedElim;
-          Assert(parent[0] == current);
+          CVC4_DCHECK(parent[0] == current);
           if (currentSub.isNull())
           {
             currentSub = current;
@@ -435,7 +435,7 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::MULT:
         case kind::DIVISION:
         {
-          Assert(parent.getNumChildren() == 2);
+          CVC4_DCHECK(parent.getNumChildren() == 2);
           TNode other;
           if (parent[0] == current)
           {
@@ -443,7 +443,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           }
           else
           {
-            Assert(parent[1] == current);
+            CVC4_DCHECK(parent[1] == current);
             other = parent[0];
           }
           if (d_unconstrained.find(other) != d_unconstrained.end())
@@ -453,8 +453,8 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               if (current.getType().isInteger() && other.getType().isInteger())
               {
-                Assert(parent.getKind() == kind::DIVISION
-                       || parent.getType().isInteger());
+                CVC4_DCHECK(parent.getKind() == kind::DIVISION
+                            || parent.getType().isInteger());
                 if (parent.getKind() == kind::DIVISION)
                 {
                   break;
@@ -485,7 +485,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             if (current.getType().isInteger())
             {
               // div/mult by 1 should have been simplified
-              Assert(other != nm->mkConst<Rational>(1));
+              CVC4_DCHECK(other != nm->mkConst<Rational>(1));
               // div by -1 should have been simplified
               if (other != nm->mkConst<Rational>(-1))
               {
@@ -493,8 +493,8 @@ void UnconstrainedSimplifier::processUnconstrained()
               }
               else
               {
-                Assert(parent.getKind() == kind::MULT);
-                Assert(parent.getType().isInteger());
+                CVC4_DCHECK(parent.getKind() == kind::MULT);
+                CVC4_DCHECK(parent.getType().isInteger());
               }
             }
             else
@@ -592,7 +592,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (parent[0] == current)
           {
             ++d_numUnconstrainedElim;
-            Assert(current.getType().isArray());
+            CVC4_DCHECK(current.getType().isArray());
             if (currentSub.isNull())
             {
               currentSub = current;
@@ -624,7 +624,7 @@ void UnconstrainedSimplifier::processUnconstrained()
                 }
                 else
                 {
-                  Assert(d_substitutions.hasSubstitution(parent[0]));
+                  CVC4_DCHECK(d_substitutions.hasSubstitution(parent[0]));
                   currentSub = d_substitutions.apply(parent[0]);
                 }
               }
@@ -688,7 +688,7 @@ void UnconstrainedSimplifier::processUnconstrained()
           }
           else
           {
-            Assert(parent[1] == current);
+            CVC4_DCHECK(parent[1] == current);
             other = parent[0];
           }
           if (d_unconstrained.find(other) != d_unconstrained.end())
@@ -777,7 +777,7 @@ void UnconstrainedSimplifier::processUnconstrained()
     }
     if (!currentSub.isNull())
     {
-      Assert(currentSub.isVar());
+      CVC4_DCHECK(currentSub.isVar());
       d_substitutions.addSubstitution(current, currentSub, false);
     }
     if (workList.empty())

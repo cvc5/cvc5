@@ -20,6 +20,7 @@
 
 #include <cfloat>
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 
 namespace CVC4 {
 
@@ -46,21 +47,21 @@ uint64_t Random::rand()
 
 uint64_t Random::pick(uint64_t from, uint64_t to)
 {
-  Assert(from <= to);
-  Assert(to < UINT64_MAX);
+  CVC4_DCHECK(from <= to);
+  CVC4_DCHECK(to < UINT64_MAX);
   return (Random::rand() % (to - from + 1)) + from;
 }
 
 double Random::pickDouble(double from, double to)
 {
-  Assert(from <= to);
-  Assert(to <= DBL_MAX);
+  CVC4_DCHECK(from <= to);
+  CVC4_DCHECK(to <= DBL_MAX);
   return Random::rand() * (to - from) + from;
 }
 
 bool Random::pickWithProb(double probability)
 {
-  Assert(probability <= 1);
+  CVC4_DCHECK(probability <= 1);
   uint64_t p = (uint64_t) (probability * 1000);
   uint64_t r = pick(0, 999);
   return r < p;

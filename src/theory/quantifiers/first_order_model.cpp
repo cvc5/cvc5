@@ -46,7 +46,7 @@ void FirstOrderModel::assertQuantifier( Node n ){
   if( n.getKind()==FORALL ){
     d_forall_asserts.push_back( n );
   }else if( n.getKind()==NOT ){
-    Assert( n[0].getKind()==FORALL );
+    CVC4_DCHECK(n[0].getKind() == FORALL);
   }
 }
 
@@ -58,7 +58,7 @@ Node FirstOrderModel::getAssertedQuantifier( unsigned i, bool ordered ) {
   if( !ordered ){
     return d_forall_asserts[i]; 
   }else{
-    Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
+    CVC4_DCHECK(d_forall_rlv_assert.size() == d_forall_asserts.size());
     return d_forall_rlv_assert[i];
   }
 }
@@ -131,7 +131,7 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
                         << tn.getCardinality() << ")..." << std::endl;
       d_rep_set.complete(tn);
       // must have succeeded
-      Assert(d_rep_set.hasType(tn));
+      CVC4_DCHECK(d_rep_set.hasType(tn));
       return true;
     }
     Trace("fm-debug") << "  variable cannot be bounded." << std::endl;
@@ -186,7 +186,7 @@ void FirstOrderModel::reset_round() {
       }
     }
     Trace("fm-relevant-debug") << "Sizes : " << d_forall_rlv_assert.size() << " " << d_forall_asserts.size() << std::endl;
-    Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
+    CVC4_DCHECK(d_forall_rlv_assert.size() == d_forall_asserts.size());
   }else{
     for( unsigned i=0; i<d_forall_asserts.size(); i++ ){
       d_forall_rlv_assert.push_back( d_forall_asserts[i] );
@@ -225,7 +225,7 @@ bool FirstOrderModel::isQuantifierActive(TNode q) const
 
 bool FirstOrderModel::isQuantifierAsserted(TNode q) const
 {
-  Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
+  CVC4_DCHECK(d_forall_rlv_assert.size() == d_forall_asserts.size());
   return std::find( d_forall_rlv_assert.begin(), d_forall_rlv_assert.end(), q )!=d_forall_rlv_assert.end();
 }
 
@@ -395,7 +395,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   for( int i=(d_models[op]->d_cond.size()-1); i>=0; i--) {
     Node v = d_models[op]->d_value[i];
     Trace("fmc-model-func") << "Value is : " << v << std::endl;
-    Assert( v.isConst() );
+    CVC4_DCHECK(v.isConst());
     /*
     if( !hasTerm( v ) ){
       //can happen when the model basis term does not exist in ground assignment
@@ -431,7 +431,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
         }
       }
-      Assert( !children.empty() );
+      CVC4_DCHECK(!children.empty());
       Node cc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( AND, children );
 
       Trace("fmc-model-func") << "condition : " << cc << ", value : " << v << std::endl;

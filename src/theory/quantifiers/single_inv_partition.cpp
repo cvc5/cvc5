@@ -173,9 +173,9 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
                                      Node n,
                                      bool has_funcs)
 {
-  Assert(d_arg_types.empty());
-  Assert(d_input_funcs.empty());
-  Assert(d_si_vars.empty());
+  CVC4_DCHECK(d_arg_types.empty());
+  CVC4_DCHECK(d_input_funcs.empty());
+  CVC4_DCHECK(d_si_vars.empty());
   NodeManager* nm = NodeManager::currentNM();
   d_has_input_funcs = has_funcs;
   d_arg_types.insert(d_arg_types.end(), typs.begin(), typs.end());
@@ -188,7 +188,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
     Node si_v = nm->mkBoundVar(ss.str(), d_arg_types[j]);
     d_si_vars.push_back(si_v);
   }
-  Assert(d_si_vars.size() == d_arg_types.size());
+  CVC4_DCHECK(d_si_vars.size() == d_arg_types.size());
   for (const Node& inf : d_input_funcs)
   {
     Node sk = nm->mkSkolem("_sik", inf.getType());
@@ -238,7 +238,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         {
           si_terms.push_back(subs[j]);
           Node op = subs[j].hasOperator() ? subs[j].getOperator() : subs[j];
-          Assert(d_func_fo_var.find(op) != d_func_fo_var.end());
+          CVC4_DCHECK(d_func_fo_var.find(op) != d_func_fo_var.end());
           si_subs.push_back(d_func_fo_var[op]);
         }
         std::map<Node, Node> subs_map;
@@ -247,7 +247,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         // normalize the invocations
         if (!terms.empty())
         {
-          Assert(terms.size() == subs.size());
+          CVC4_DCHECK(terms.size() == subs.size());
           cr = cr.substitute(
               terms.begin(), terms.end(), subs.begin(), subs.end());
         }
@@ -275,7 +275,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         cr = children.size() == 1
                  ? children[0]
                  : NodeManager::currentNM()->mkNode(OR, children);
-        Assert(terms.size() == subs.size());
+        CVC4_DCHECK(terms.size() == subs.size());
         cr =
             cr.substitute(terms.begin(), terms.end(), subs.begin(), subs.end());
         Trace("si-prt-debug") << "...normalized invocations to " << cr
@@ -337,7 +337,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
             }
           }
         }
-        Assert(terms.size() == subs.size());
+        CVC4_DCHECK(terms.size() == subs.size());
         cr =
             cr.substitute(terms.begin(), terms.end(), subs.begin(), subs.end());
       }
@@ -351,7 +351,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       if (singleInvocation)
       {
         // replace with single invocation formulation
-        Assert(si_terms.size() == si_subs.size());
+        CVC4_DCHECK(si_terms.size() == si_subs.size());
         cr = cr.substitute(
             si_terms.begin(), si_terms.end(), si_subs.begin(), si_subs.end());
         cr = Rewriter::rewrite(cr);

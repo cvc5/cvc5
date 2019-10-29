@@ -39,11 +39,11 @@
 #include <utility>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "base/output.h"
-#include "context/context.h"
 #include "context/cdinsert_hashmap_forward.h"
+#include "context/context.h"
 #include "expr/node.h"
-
 
 #pragma once
 
@@ -124,7 +124,7 @@ public:
    */
   const Data& operator[](const Key& k) const {
     const_iterator ci = find(k);
-    Assert(ci != end());
+    CVC4_DCHECK(ci != end());
     return (*ci).second;
   }
 
@@ -133,7 +133,7 @@ public:
    * of the stack. The key inserted must be not be currently mapped.
    */
   void push_front(const Key& k, const Data& d){
-    Assert(!contains(k));
+    CVC4_DCHECK(!contains(k));
     d_hashMap.insert(std::make_pair(k, d));
     d_keys.push_front(k);
   }
@@ -143,7 +143,7 @@ public:
    * back on the stack.  The key inserted must be not be currently mapped.
    */
   void push_back(const Key& k, const Data& d){
-    Assert(!contains(k));
+    CVC4_DCHECK(!contains(k));
     d_hashMap.insert(std::make_pair(k, d));
     d_keys.push_back(k);
   }
@@ -152,7 +152,7 @@ public:
    * Pops the key at the front of the list off and removes its key from the map.
    */
   void pop_front(){
-    Assert(!empty());
+    CVC4_DCHECK(!empty());
     const Key& front = d_keys.front();
     d_hashMap.erase(front);
 
@@ -164,7 +164,7 @@ public:
    * Pops the key at the back of the stack off and removes its key from the map.
    */
   void pop_back(){
-    Assert(!empty());
+    CVC4_DCHECK(!empty());
     const Key& back = d_keys.back();
     d_hashMap.erase(back);
 
@@ -249,13 +249,13 @@ protected:
    size_t oldSize = ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_size;
    size_t oldPushFronts =
        ((CDInsertHashMap<Key, Data, HashFcn>*)data)->d_pushFronts;
-   Assert(oldPushFronts <= d_pushFronts);
+   CVC4_DCHECK(oldPushFronts <= d_pushFronts);
 
    // The size to restore to.
    size_t restoreSize = oldSize + (d_pushFronts - oldPushFronts);
    d_insertMap->pop_to_size(restoreSize);
    d_size = restoreSize;
-   Assert(d_insertMap->size() == d_size);
+   CVC4_DCHECK(d_insertMap->size() == d_size);
    Debug("CDInsertHashMap")
        << "restore " << this << " level " << this->getContext()->getLevel()
        << " size back to " << this->d_size << std::endl;
@@ -270,7 +270,7 @@ public:
     d_insertMap(new IHM()),
     d_size(0),
     d_pushFronts(0){
-    Assert(d_insertMap->size() == d_size);
+    CVC4_DCHECK(d_insertMap->size() == d_size);
   }
 
   /**
@@ -313,7 +313,7 @@ public:
     makeCurrent();
     ++d_size;
     d_insertMap->push_back(k, d);
-    Assert(d_insertMap->size() == d_size);
+    CVC4_DCHECK(d_insertMap->size() == d_size);
   }
 
   /**

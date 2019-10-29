@@ -31,7 +31,7 @@ namespace quantifiers {
 void SynthConjectureProcessFun::init(Node f)
 {
   d_synth_fun = f;
-  Assert(f.getType().isFunction());
+  CVC4_DCHECK(f.getType().isFunction());
 
   // initialize the arguments
   std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
@@ -59,8 +59,8 @@ bool SynthConjectureProcessFun::checkMatch(
        it != n_arg_map.end();
        ++it)
   {
-    Assert(it->first < d_arg_vars.size());
-    Assert(
+    CVC4_DCHECK(it->first < d_arg_vars.size());
+    CVC4_DCHECK(
         it->second.getType().isComparableTo(d_arg_vars[it->first].getType()));
     vars.push_back(d_arg_vars[it->first]);
     subs.push_back(it->second);
@@ -68,7 +68,7 @@ bool SynthConjectureProcessFun::checkMatch(
   Node cn_subs =
       cn.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
   cn_subs = Rewriter::rewrite(cn_subs);
-  Assert(Rewriter::rewrite(n) == n);
+  CVC4_DCHECK(Rewriter::rewrite(n) == n);
   return cn_subs == n;
 }
 
@@ -148,8 +148,8 @@ Node SynthConjectureProcessFun::inferDefinition(
       for (unsigned i = 0; i < cur.getNumChildren(); i++)
       {
         it = visited.find(cur[i]);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
+        CVC4_DCHECK(it != visited.end());
+        CVC4_DCHECK(!it->second.isNull());
         childChanged = childChanged || cur[i] != it->second;
         children.push_back(it->second);
       }
@@ -160,8 +160,8 @@ Node SynthConjectureProcessFun::inferDefinition(
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
+  CVC4_DCHECK(visited.find(n) != visited.end());
+  CVC4_DCHECK(!visited.find(n)->second.isNull());
   return visited[n];
 }
 
@@ -258,7 +258,7 @@ void SynthConjectureProcessFun::processTerms(
                        std::unordered_set<Node, NodeHashFunction>,
                        NodeHashFunction>& free_vars)
 {
-  Assert(ns.size() == ks.size());
+  CVC4_DCHECK(ns.size() == ks.size());
   Trace("sygus-process-arg-deps") << "Process " << ns.size()
                                   << " applications of " << d_synth_fun << "..."
                                   << std::endl;
@@ -266,7 +266,7 @@ void SynthConjectureProcessFun::processTerms(
   // get the relevant variables
   // relevant variables are those that appear in the body of the conjunction
   std::unordered_set<Node, NodeHashFunction> rlv_vars;
-  Assert(free_vars.find(nf) != free_vars.end());
+  CVC4_DCHECK(free_vars.find(nf) != free_vars.end());
   rlv_vars = free_vars[nf];
 
   // get the single occurrence variables
@@ -298,7 +298,7 @@ void SynthConjectureProcessFun::processTerms(
         std::unordered_map<Node,
                            std::unordered_set<Node, NodeHashFunction>,
                            NodeHashFunction>::iterator itf = free_vars.find(nn);
-        Assert(itf != free_vars.end());
+        CVC4_DCHECK(itf != free_vars.end());
         for (std::unordered_set<Node, NodeHashFunction>::iterator itfv =
                  itf->second.begin();
              itfv != itf->second.end();
@@ -359,7 +359,8 @@ void SynthConjectureProcessFun::processTerms(
         // check if an irrelevant variable
         if (n[a].isVar() && synth_fv.find(n[a]) != synth_fv.end())
         {
-          Assert(single_occ_variables.find(n[a]) != single_occ_variables.end());
+          CVC4_DCHECK(single_occ_variables.find(n[a])
+                      != single_occ_variables.end());
           // may be able to make this more precise?
           // check if a single-occurrence variable
           if (single_occ_variables[n[a]])
@@ -531,7 +532,7 @@ Node SynthConjectureProcess::preSimplify(Node q)
 Node SynthConjectureProcess::postSimplify(Node q)
 {
   Trace("sygus-process") << "Post-simplify conjecture : " << q << std::endl;
-  Assert(q.getKind() == FORALL);
+  CVC4_DCHECK(q.getKind() == FORALL);
 
   if (options::sygusArgRelevant())
   {
@@ -600,7 +601,7 @@ bool SynthConjectureProcess::isArgRelevant(Node f, unsigned i)
   {
     return its->second.isArgRelevant(i);
   }
-  Assert(false);
+  CVC4_DCHECK(false);
   return true;
 }
 
@@ -700,8 +701,8 @@ Node SynthConjectureProcess::SynthConjectureProcess::flatten(
       for (unsigned i = 0; i < cur.getNumChildren(); i++)
       {
         it = visited.find(cur[i]);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
+        CVC4_DCHECK(it != visited.end());
+        CVC4_DCHECK(!it->second.isNull());
         childChanged = childChanged || cur[i] != it->second;
         children.push_back(it->second);
       }
@@ -722,8 +723,8 @@ Node SynthConjectureProcess::SynthConjectureProcess::flatten(
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
+  CVC4_DCHECK(visited.find(n) != visited.end());
+  CVC4_DCHECK(!visited.find(n)->second.isNull());
   return visited[n];
 }
 

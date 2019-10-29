@@ -51,7 +51,7 @@ ResolutionBitVectorProof::ResolutionBitVectorProof(
 
 void ResolutionBitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver)
 {
-  Assert(d_resolutionProof == NULL);
+  CVC4_DCHECK(d_resolutionProof == NULL);
   d_resolutionProof.reset(new BVSatProof(solver, &d_fakeContext, "bb", true));
 }
 
@@ -60,8 +60,8 @@ void ResolutionBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
                                             prop::SatVariable trueVar,
                                             prop::SatVariable falseVar)
 {
-  Assert(d_resolutionProof != NULL);
-  Assert(d_cnfProof == nullptr);
+  CVC4_DCHECK(d_resolutionProof != NULL);
+  CVC4_DCHECK(d_cnfProof == nullptr);
   d_cnfProof.reset(new LFSCCnfProof(cnfStream, cnf, "bb"));
 
   d_cnfProof->registerTrueUnitClause(d_resolutionProof->getTrueUnit());
@@ -75,7 +75,7 @@ void ResolutionBitVectorProof::attachToSatSolver(prop::SatSolver& sat_solver)
 
 BVSatProof* ResolutionBitVectorProof::getSatProof()
 {
-  Assert(d_resolutionProof != NULL);
+  CVC4_DCHECK(d_resolutionProof != NULL);
   return d_resolutionProof.get();
 }
 
@@ -290,7 +290,7 @@ void LfscResolutionBitVectorProof::printTheoryLemmaProof(
       lemma_paren << ")";
     }
     Expr lem = utils::mkOr(lemma);
-    Assert(d_bbConflictMap.find(lem) != d_bbConflictMap.end());
+    CVC4_DCHECK(d_bbConflictMap.find(lem) != d_bbConflictMap.end());
     ClauseId lemma_id = d_bbConflictMap[lem];
     proof::LFSCProofPrinter::printAssumptionsResolution(
         d_resolutionProof.get(), lemma_id, os, lemma_paren);
@@ -467,7 +467,7 @@ void LfscResolutionBitVectorProof::calculateAtomsInBitblastingProof()
   IdToSatClause used_inputs;
   d_resolutionProof->collectClausesUsed(used_inputs, used_lemmas);
   d_cnfProof->collectAtomsForClauses(used_inputs, d_atomsInBitblastingProof);
-  Assert(used_lemmas.empty());
+  CVC4_DCHECK(used_lemmas.empty());
 }
 
 void LfscResolutionBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
@@ -513,9 +513,9 @@ void LfscResolutionBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
 void LfscResolutionBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                          std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  CVC4_DCHECK(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
   proof::LFSCProofPrinter::printResolutionEmptyClause(
       d_resolutionProof.get(), os, paren);
 }

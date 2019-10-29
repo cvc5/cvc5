@@ -224,48 +224,44 @@ public:
 
 class Variable : public NodeWrapper {
 public:
-  Variable(Node n) : NodeWrapper(n) {
-    Assert(isMember(getNode()));
-  }
+ Variable(Node n) : NodeWrapper(n) { CVC4_DCHECK(isMember(getNode())); }
 
-  // TODO: check if it's a theory leaf also
-  static bool isMember(Node n) {
-    Kind k = n.getKind();
-    switch(k){
-    case kind::CONST_RATIONAL:
-      return false;
-    case kind::INTS_DIVISION:
-    case kind::INTS_MODULUS:
-    case kind::DIVISION:
-    case kind::INTS_DIVISION_TOTAL:
-    case kind::INTS_MODULUS_TOTAL:
-    case kind::DIVISION_TOTAL:
-      return isDivMember(n);
-    case kind::EXPONENTIAL:
-    case kind::SINE:
-    case kind::COSINE:
-    case kind::TANGENT:
-    case kind::COSECANT:
-    case kind::SECANT:
-    case kind::COTANGENT:
-    case kind::ARCSINE:
-    case kind::ARCCOSINE:
-    case kind::ARCTANGENT:
-    case kind::ARCCOSECANT:
-    case kind::ARCSECANT:
-    case kind::ARCCOTANGENT:
-    case kind::SQRT:
-    case kind::PI:
-      return isTranscendentalMember(n);      
-    case kind::ABS:
-    case kind::TO_INTEGER:
-      // Treat to_int as a variable; it is replaced in early preprocessing
-      // by a variable.
-      return true;
-    default:
-      return isLeafMember(n);
-    }
-  }
+ // TODO: check if it's a theory leaf also
+ static bool isMember(Node n)
+ {
+   Kind k = n.getKind();
+   switch (k)
+   {
+     case kind::CONST_RATIONAL: return false;
+     case kind::INTS_DIVISION:
+     case kind::INTS_MODULUS:
+     case kind::DIVISION:
+     case kind::INTS_DIVISION_TOTAL:
+     case kind::INTS_MODULUS_TOTAL:
+     case kind::DIVISION_TOTAL: return isDivMember(n);
+     case kind::EXPONENTIAL:
+     case kind::SINE:
+     case kind::COSINE:
+     case kind::TANGENT:
+     case kind::COSECANT:
+     case kind::SECANT:
+     case kind::COTANGENT:
+     case kind::ARCSINE:
+     case kind::ARCCOSINE:
+     case kind::ARCTANGENT:
+     case kind::ARCCOSECANT:
+     case kind::ARCSECANT:
+     case kind::ARCCOTANGENT:
+     case kind::SQRT:
+     case kind::PI: return isTranscendentalMember(n);
+     case kind::ABS:
+     case kind::TO_INTEGER:
+       // Treat to_int as a variable; it is replaced in early preprocessing
+       // by a variable.
+       return true;
+     default: return isLeafMember(n);
+   }
+ }
 
   static bool isLeafMember(Node n);
   static bool isDivMember(Node n);
@@ -306,7 +302,7 @@ public:
           if(n < m){
             return -1;
           }else{
-            Assert( n != m );
+            CVC4_DCHECK(n != m);
             return 1;
           }
         }else{
@@ -317,7 +313,7 @@ public:
           }
         }
       }else{
-        Assert(nIsInteger != mIsInteger);
+        CVC4_DCHECK(nIsInteger != mIsInteger);
         if(nIsInteger){
           return 1; // nIsInteger => !mIsInteger
         }else{
@@ -339,20 +335,17 @@ public:
 
 class Constant : public NodeWrapper {
 public:
-  Constant(Node n) : NodeWrapper(n) {
-    Assert(isMember(getNode()));
-  }
+ Constant(Node n) : NodeWrapper(n) { CVC4_DCHECK(isMember(getNode())); }
 
-  static bool isMember(Node n) {
-    return n.getKind() == kind::CONST_RATIONAL;
-  }
+ static bool isMember(Node n) { return n.getKind() == kind::CONST_RATIONAL; }
 
-  bool isNormalForm() { return isMember(getNode()); }
+ bool isNormalForm() { return isMember(getNode()); }
 
-  static Constant mkConstant(Node n) {
-    Assert(n.getKind() == kind::CONST_RATIONAL);
-    return Constant(n);
-  }
+ static Constant mkConstant(Node n)
+ {
+   CVC4_DCHECK(n.getKind() == kind::CONST_RATIONAL);
+   return Constant(n);
+ }
 
   static Constant mkConstant(const Rational& rat);
 
@@ -394,7 +387,7 @@ public:
   }
 
   Constant inverse() const{
-    Assert(!isZero());
+    CVC4_DCHECK(!isZero());
     return mkConstant(getValue().inverse());
   }
 
@@ -416,7 +409,7 @@ public:
   }
 
   uint32_t length() const{
-    Assert(isIntegral());
+    CVC4_DCHECK(isIntegral());
     return getValue().getNumerator().length();
   }
 
@@ -448,7 +441,7 @@ class VarList : public NodeWrapper {
 private:
 
   static Node multList(const std::vector<Variable>& list) {
-    Assert(list.size() >= 2);
+    CVC4_DCHECK(list.size() >= 2);
 
     return makeNode(kind::NONLINEAR_MULT, list.begin(), list.end());
   }
@@ -515,17 +508,17 @@ public:
   }
 
   Variable getHead() const {
-    Assert(!empty());
+    CVC4_DCHECK(!empty());
     return *(begin());
   }
 
   VarList(Variable v) : NodeWrapper(v.getNode()) {
-    Assert(isSorted(begin(), end()));
+    CVC4_DCHECK(isSorted(begin(), end()));
   }
 
   VarList(const std::vector<Variable>& l) : NodeWrapper(multList(l)) {
-    Assert(l.size() >= 2);
-    Assert(isSorted(begin(), end()));
+    CVC4_DCHECK(l.size() >= 2);
+    CVC4_DCHECK(isSorted(begin(), end()));
   }
 
   static bool isMember(Node n);
@@ -597,16 +590,16 @@ private:
   Monomial(Node n, const Constant& c, const VarList& vl):
     NodeWrapper(n), constant(c), varList(vl)
   {
-    Assert(!c.isZero() ||  vl.empty() );
-    Assert( c.isZero() || !vl.empty() );
+    CVC4_DCHECK(!c.isZero() || vl.empty());
+    CVC4_DCHECK(c.isZero() || !vl.empty());
 
-    Assert(!c.isOne() || !multStructured(n));
+    CVC4_DCHECK(!c.isOne() || !multStructured(n));
   }
 
   static Node makeMultNode(const Constant& c, const VarList& vl) {
-    Assert(!c.isZero());
-    Assert(!c.isOne());
-    Assert(!vl.empty());
+    CVC4_DCHECK(!c.isZero());
+    CVC4_DCHECK(!c.isOne());
+    CVC4_DCHECK(!vl.empty());
     return NodeManager::currentNM()->mkNode(kind::MULT, c.getNode(), vl.getNode());
   }
 
@@ -623,17 +616,17 @@ private:
   Monomial(const VarList& vl):
     NodeWrapper(vl.getNode()), constant(Constant::mkConstant(1)), varList(vl)
   {
-    Assert( !varList.empty() );
+    CVC4_DCHECK(!varList.empty());
   }
 
   Monomial(const Constant& c, const VarList& vl):
     NodeWrapper(makeMultNode(c,vl)), constant(c), varList(vl)
   {
-    Assert( !c.isZero() );
-    Assert( !c.isOne() );
-    Assert( !varList.empty() );
+    CVC4_DCHECK(!c.isZero());
+    CVC4_DCHECK(!c.isOne());
+    CVC4_DCHECK(!varList.empty());
 
-    Assert(multStructured(getNode()));
+    CVC4_DCHECK(multStructured(getNode()));
   }
 public:
   static bool isMember(TNode n);
@@ -772,11 +765,11 @@ private:
   bool d_singleton;
 
   Polynomial(TNode n) : NodeWrapper(n), d_singleton(Monomial::isMember(n)) {
-    Assert(isMember(getNode()));
+    CVC4_DCHECK(isMember(getNode()));
   }
 
   static Node makePlusNode(const std::vector<Monomial>& m) {
-    Assert(m.size() >= 2);
+    CVC4_DCHECK(m.size() >= 2);
 
     return makeNode(kind::PLUS, m.begin(), m.end());
   }
@@ -843,8 +836,8 @@ public:
   Polynomial(const std::vector<Monomial>& m):
     NodeWrapper(makePlusNode(m)), d_singleton(false)
   {
-    Assert( m.size() >= 2);
-    Assert( Monomial::isStrictlySorted(m) );
+    CVC4_DCHECK(m.size() >= 2);
+    CVC4_DCHECK(Monomial::isStrictlySorted(m));
   }
 
   static Polynomial mkPolynomial(const Constant& c){
@@ -891,7 +884,7 @@ public:
     if(singleton()){
       return 1;
     }else{
-      Assert(getNode().getKind() == kind::PLUS);
+      CVC4_DCHECK(getNode().getKind() == kind::PLUS);
       return getNode().getNumChildren();
     }
   }
@@ -901,7 +894,7 @@ public:
   }
 
   Polynomial getTail() const {
-    Assert(! singleton());
+    CVC4_DCHECK(!singleton());
 
     iterator tailStart = begin();
     ++tailStart;
@@ -1046,7 +1039,7 @@ public:
   }
 
   const Rational& asConstant() const{
-    Assert(isConstant());
+    CVC4_DCHECK(isConstant());
     return getNode().getConst<Rational>();
     //return getHead().getConstant().getValue();
   }
@@ -1060,7 +1053,7 @@ public:
   }
 
   VarList asVarList() const {
-    Assert(isVarList());
+    CVC4_DCHECK(isVarList());
     return getHead().getVarList();
   }
 
@@ -1097,24 +1090,19 @@ private:
     return NodeManager::currentNM()->mkNode(kind::PLUS, p.getNode(), c.getNode());
   }
 
-  SumPair(TNode n) :
-    NodeWrapper(n)
-  {
-    Assert(isNormalForm());
-  }
+  SumPair(TNode n) : NodeWrapper(n) { CVC4_DCHECK(isNormalForm()); }
 
-public:
-
+ public:
   SumPair(const Polynomial& p):
     NodeWrapper(toNode(p, Constant::mkConstant(0)))
   {
-    Assert(isNormalForm());
+    CVC4_DCHECK(isNormalForm());
   }
 
   SumPair(const Polynomial& p, const Constant& c):
     NodeWrapper(toNode(p, c))
   {
-    Assert(isNormalForm());
+    CVC4_DCHECK(isNormalForm());
   }
 
   static bool isMember(TNode n) {
@@ -1194,12 +1182,12 @@ public:
    * The SumPair must be integral.
    */
   Integer gcd() const {
-    Assert(isIntegral());
+    CVC4_DCHECK(isIntegral());
     return (getPolynomial().gcd()).gcd(getConstant().getValue().getNumerator());
   }
 
   uint32_t maxLength() const {
-    Assert(isIntegral());
+    CVC4_DCHECK(isIntegral());
     return std::max(getPolynomial().maxLength(), getConstant().length());
   }
 

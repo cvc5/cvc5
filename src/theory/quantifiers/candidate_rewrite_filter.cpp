@@ -188,7 +188,7 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
   if (options::sygusRewSynthFilterCong())
   {
     Trace("cr-filter-debug") << "Add rewrite pair..." << std::endl;
-    Assert(!d_drewrite->areEqual(bn, beq_n));
+    CVC4_DCHECK(!d_drewrite->areEqual(bn, beq_n));
     d_drewrite->addRewrite(bn, beq_n);
   }
   if (options::sygusRewSynthFilterMatch())
@@ -221,12 +221,12 @@ bool CandidateRewriteFilter::notify(Node s,
                                     std::vector<Node>& subs)
 {
   Trace("crf-match-debug") << "Got : " << s << " matches " << n << std::endl;
-  Assert(!d_curr_pair_rhs.isNull());
+  CVC4_DCHECK(!d_curr_pair_rhs.isNull());
   // convert back to original forms
   s = d_drewrite->toExternal(s);
-  Assert(!s.isNull());
+  CVC4_DCHECK(!s.isNull());
   n = d_drewrite->toExternal(n);
-  Assert(!n.isNull());
+  CVC4_DCHECK(!n.isNull());
   std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator it =
       d_pairs.find(n);
   if (Trace.isOn("crf-match"))
@@ -243,7 +243,7 @@ bool CandidateRewriteFilter::notify(Node s,
   {
     // By using internal representation of terms, we ensure polymorphism is
     // handled correctly.
-    Assert(vars[i].getType().isComparableTo(subs[i].getType()));
+    CVC4_DCHECK(vars[i].getType().isComparableTo(subs[i].getType()));
   }
 #endif
   // must convert the inferred substitution to original form
@@ -252,7 +252,7 @@ bool CandidateRewriteFilter::notify(Node s,
   {
     esubs.push_back(d_drewrite->toExternal(s));
   }
-  Assert(it != d_pairs.end());
+  CVC4_DCHECK(it != d_pairs.end());
   for (const Node& nr : it->second)
   {
     Node nrs =

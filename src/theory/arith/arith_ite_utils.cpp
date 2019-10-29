@@ -100,7 +100,7 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
       }else if(n.getNumChildren() > 0){
         newn = applyReduceVariablesInItes(n);
         newn = Rewriter::rewrite(newn);
-        Assert(Polynomial::isMember(newn));
+        CVC4_DCHECK(Polynomial::isMember(newn));
       }else{
         newn = n;
       }
@@ -197,11 +197,11 @@ const Integer& ArithIteUtils::gcdIte(Node n){
 
 Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
   if(n.isConst()){
-    Assert(n.getKind() == kind::CONST_RATIONAL);
+    CVC4_DCHECK(n.getKind() == kind::CONST_RATIONAL);
     return mkRationalNode(n.getConst<Rational>() * q);
   }else{
-    Assert(n.getKind() == kind::ITE);
-    Assert(n.getType().isInteger());
+    CVC4_DCHECK(n.getKind() == kind::ITE);
+    CVC4_DCHECK(n.getType().isInteger());
     Node rc = reduceConstantIteByGCD(n[0]);
     Node rt = reduceIteConstantIteByGCD_rec(n[1], q);
     Node re = reduceIteConstantIteByGCD_rec(n[2], q);
@@ -210,8 +210,8 @@ Node ArithIteUtils::reduceIteConstantIteByGCD_rec(Node n, const Rational& q){
 }
 
 Node ArithIteUtils::reduceIteConstantIteByGCD(Node n){
-  Assert(n.getKind() == kind::ITE);
-  Assert(n.getType().isReal());
+  CVC4_DCHECK(n.getKind() == kind::ITE);
+  CVC4_DCHECK(n.getType().isReal());
   const Integer& gcd = gcdIte(n);
   if(gcd.isOne()){
     Node newIte = reduceConstantIteByGCD(n[0]).iteNode(n[1],n[2]);
@@ -276,7 +276,7 @@ void ArithIteUtils::addSubstitution(TNode f, TNode t){
 }
 
 Node ArithIteUtils::applySubstitutions(TNode f){
-  AlwaysAssert(!options::incrementalSolving());
+  CVC4_CHECK(!options::incrementalSolving());
   return d_subs->apply(f);
 }
 
@@ -290,7 +290,7 @@ Node ArithIteUtils::selectForCmp(Node n) const{
 }
 
 void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
-  AlwaysAssert(!options::incrementalSolving());
+  CVC4_CHECK(!options::incrementalSolving());
   for(size_t i=0, N=assertions.size(); i < N; ++i){
     collectAssertions(assertions[i]);
   }
@@ -309,7 +309,7 @@ void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
         writePos++;
       }
     }
-    Assert(writePos <= N);
+    CVC4_DCHECK(writePos <= N);
     d_orBinEqs.resize(writePos);
   }while(solvedSomething);
 
@@ -388,10 +388,10 @@ Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const{
 }
 
 bool ArithIteUtils::solveBinOr(TNode binor){
-  Assert(binor.getKind() == kind::OR);
-  Assert(binor.getNumChildren() == 2);
-  Assert(binor[0].getKind() ==  kind::EQUAL);
-  Assert(binor[1].getKind() ==  kind::EQUAL);
+  CVC4_DCHECK(binor.getKind() == kind::OR);
+  CVC4_DCHECK(binor.getNumChildren() == 2);
+  CVC4_DCHECK(binor[0].getKind() == kind::EQUAL);
+  CVC4_DCHECK(binor[1].getKind() == kind::EQUAL);
 
   //Node n = 
   Node n = applySubstitutions(binor);
@@ -406,13 +406,13 @@ bool ArithIteUtils::solveBinOr(TNode binor){
     }
   }
 
-  Assert(n.getKind() == kind::OR);
-  Assert(n.getNumChildren() == 2);
+  CVC4_DCHECK(n.getKind() == kind::OR);
+  CVC4_DCHECK(n.getNumChildren() == 2);
   TNode l = n[0];
   TNode r = n[1];
 
-  Assert(l.getKind() ==  kind::EQUAL);
-  Assert(r.getKind() ==  kind::EQUAL);
+  CVC4_DCHECK(l.getKind() == kind::EQUAL);
+  CVC4_DCHECK(r.getKind() == kind::EQUAL);
 
   Debug("arith::ite") << "bin or " << n << endl;
 
@@ -439,9 +439,9 @@ bool ArithIteUtils::solveBinOr(TNode binor){
       Node useForCmpL = selectForCmp(otherL);
       Node useForCmpR = selectForCmp(otherR);
 
-      Assert(Polynomial::isMember(sel));
-      Assert(Polynomial::isMember(useForCmpL));
-      Assert(Polynomial::isMember(useForCmpR));
+      CVC4_DCHECK(Polynomial::isMember(sel));
+      CVC4_DCHECK(Polynomial::isMember(useForCmpL));
+      CVC4_DCHECK(Polynomial::isMember(useForCmpR));
       Polynomial lside = Polynomial::parsePolynomial( useForCmpL );
       Polynomial rside = Polynomial::parsePolynomial( useForCmpR );
       Polynomial diff = lside-rside;

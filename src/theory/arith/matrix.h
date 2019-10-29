@@ -151,7 +151,7 @@ public:
   }
 
   bool blank() const{
-    Assert(unusedConsistent());
+    CVC4_DCHECK(unusedConsistent());
 
     return d_rowIndex == ROW_INDEX_SENTINEL;
   }
@@ -174,18 +174,18 @@ public:
   {}
 
   const EntryType& operator[](EntryID id) const{
-    Assert(inBounds(id));
+    CVC4_DCHECK(inBounds(id));
     return d_entries[id];
   }
 
   EntryType& get(EntryID id){
-    Assert(inBounds(id));
+    CVC4_DCHECK(inBounds(id));
     return d_entries[id];
   }
 
   void freeEntry(EntryID id){
-    Assert(get(id).blank());
-    Assert(d_size > 0);
+    CVC4_DCHECK(get(id).blank());
+    CVC4_DCHECK(d_size > 0);
 
     d_freedEntries.push(id);
     --d_size;
@@ -239,12 +239,12 @@ private:
     }
 
     const MatrixEntry<T>& operator*() const{
-      Assert(!atEnd());
+      CVC4_DCHECK(!atEnd());
       return (*d_entries)[d_curr];
     }
 
     Iterator& operator++(){
-      Assert(!atEnd());
+      CVC4_DCHECK(!atEnd());
       const MatrixEntry<T>& entry = (*d_entries)[d_curr];
       d_curr = isRow ? entry.getNextRowEntryID() : entry.getNextColEntryID();
       return *this;
@@ -303,7 +303,7 @@ public:
     ++d_size;
   }
   void remove(EntryID id){
-    Assert(d_size > 0);
+    CVC4_DCHECK(d_size > 0);
     --d_size;
     if(isRow){
       EntryID prevRow = d_entries->get(id).getPrevRowEntryID();
@@ -468,16 +468,15 @@ protected:
   void addEntry(RowIndex row, ArithVar col, const T& coeff){
     Debug("tableau") << "addEntry(" << row << "," << col <<"," << coeff << ")" << std::endl;
 
-    Assert(coeff != 0);
-    Assert(row < d_rows.size());
-    Assert(col < d_columns.size());
+    CVC4_DCHECK(coeff != 0);
+    CVC4_DCHECK(row < d_rows.size());
+    CVC4_DCHECK(col < d_columns.size());
 
     EntryID newId = d_entries.newEntry();
     Entry& newEntry = d_entries.get(newId);
     newEntry = Entry(row, col, coeff);
 
-    Assert(newEntry.getCoefficient() != 0);
-
+    CVC4_DCHECK(newEntry.getCoefficient() != 0);
 
     ++d_entriesInUse;
 
@@ -486,7 +485,7 @@ protected:
   }
 
   void removeEntry(EntryID id){
-    Assert(d_entriesInUse > 0);
+    CVC4_DCHECK(d_entriesInUse > 0);
     --d_entriesInUse;
 
     Entry& entry = d_entries.get(id);
@@ -494,8 +493,8 @@ protected:
     RowIndex ridx = entry.getRowIndex();
     ArithVar col = entry.getColVar();
 
-    Assert(d_rows[ridx].getSize() > 0);
-    Assert(d_columns[col].getSize() > 0);
+    CVC4_DCHECK(d_rows[ridx].getSize() > 0);
+    CVC4_DCHECK(d_columns[col].getSize() > 0);
 
     d_rows[ridx].remove(id);
     d_columns[col].remove(id);
@@ -543,12 +542,12 @@ public:
   }
 
   const RowVector<T>& getRow(RowIndex r) const {
-    Assert(r < d_rows.size());
+    CVC4_DCHECK(r < d_rows.size());
     return d_rows[r];
   }
 
   const ColumnVector<T>& getColumn(ArithVar v) const {
-    Assert(v < d_columns.size());
+    CVC4_DCHECK(v < d_columns.size());
     return d_columns[v];
   }
 
@@ -580,7 +579,7 @@ public:
     for(; varsIter != varsEnd; ++coeffIter, ++varsIter){
       const T& coeff = *coeffIter;
       ArithVar var_i = *varsIter;
-      Assert(var_i < getNumColumns());
+      CVC4_DCHECK(var_i < getNumColumns());
       addEntry(ridx, var_i, coeff);
     }
 
@@ -589,8 +588,8 @@ public:
 
 
   void loadRowIntoBuffer(RowIndex rid){
-    Assert(d_mergeBuffer.empty());
-    Assert(d_rowInMergeBuffer == ROW_INDEX_SENTINEL);
+    CVC4_DCHECK(d_mergeBuffer.empty());
+    CVC4_DCHECK(d_rowInMergeBuffer == ROW_INDEX_SENTINEL);
 
     RowIterator i = getRow(rid).begin(), i_end = getRow(rid).end();
     for(; i != i_end; ++i){
@@ -604,7 +603,7 @@ public:
   }
 
   void clearBuffer() {
-    Assert(d_rowInMergeBuffer != ROW_INDEX_SENTINEL);
+    CVC4_DCHECK(d_rowInMergeBuffer != ROW_INDEX_SENTINEL);
 
     d_rowInMergeBuffer = ROW_INDEX_SENTINEL;
     d_mergeBuffer.purge();
@@ -627,7 +626,7 @@ public:
    * repeated use.
    */
   void rowPlusRowTimesConstant(RowIndex to, RowIndex from, const T& mult){
-    Assert(to != from);
+    CVC4_DCHECK(to != from);
     loadRowIntoBuffer(from);
     rowPlusBufferTimesConstant(to, mult);
     clearBuffer();
@@ -638,18 +637,17 @@ public:
    * (mult should never be a direct copy of a coefficient!)
    */
   void rowPlusBufferTimesConstant(RowIndex to, const T& mult){
-    Assert(d_rowInMergeBuffer != ROW_INDEX_SENTINEL);
-    Assert(to != ROW_INDEX_SENTINEL);
+    CVC4_DCHECK(d_rowInMergeBuffer != ROW_INDEX_SENTINEL);
+    CVC4_DCHECK(to != ROW_INDEX_SENTINEL);
 
     Debug("tableau") << "rowPlusRowTimesConstant("
                      << to << "," << mult << "," << d_rowInMergeBuffer << ")"
                      << std::endl;
 
-    Assert(debugNoZeroCoefficients(to));
-    Assert(debugNoZeroCoefficients(d_rowInMergeBuffer));
+    CVC4_DCHECK(debugNoZeroCoefficients(to));
+    CVC4_DCHECK(debugNoZeroCoefficients(d_rowInMergeBuffer));
 
-    Assert(mult != 0);
-
+    CVC4_DCHECK(mult != 0);
 
     RowIterator i = getRow(to).begin();
     RowIterator i_end = getRow(to).end();
@@ -662,7 +660,7 @@ public:
 
       if(d_mergeBuffer.isKey(colVar)){
         EntryID bufferEntry = d_mergeBuffer[colVar].first;
-        Assert(!d_mergeBuffer[colVar].second);
+        CVC4_DCHECK(!d_mergeBuffer[colVar].second);
         d_mergeBuffer.get(colVar).second = true;
 
         const Entry& other = d_entries.get(bufferEntry);
@@ -685,31 +683,30 @@ public:
       if(d_mergeBuffer[colVar].second){
         d_mergeBuffer.get(colVar).second = false;
       }else{
-        Assert(!(d_mergeBuffer[colVar]).second);
+        CVC4_DCHECK(!(d_mergeBuffer[colVar]).second);
         T newCoeff =  mult * entry.getCoefficient();
         addEntry(to, colVar, newCoeff);
       }
     }
 
-    Assert(mergeBufferIsClear());
+    CVC4_DCHECK(mergeBufferIsClear());
 
     if(Debug.isOn("matrix")) { printMatrix(); }
   }
 
   /**  to += mult * buffer. */
   void rowPlusBufferTimesConstant(RowIndex to, const T& mult, CoefficientChangeCallback& cb){
-    Assert(d_rowInMergeBuffer != ROW_INDEX_SENTINEL);
-    Assert(to != ROW_INDEX_SENTINEL);
+    CVC4_DCHECK(d_rowInMergeBuffer != ROW_INDEX_SENTINEL);
+    CVC4_DCHECK(to != ROW_INDEX_SENTINEL);
 
     Debug("tableau") << "rowPlusRowTimesConstant("
                      << to << "," << mult << "," << d_rowInMergeBuffer << ")"
                      << std::endl;
 
-    Assert(debugNoZeroCoefficients(to));
-    Assert(debugNoZeroCoefficients(d_rowInMergeBuffer));
+    CVC4_DCHECK(debugNoZeroCoefficients(to));
+    CVC4_DCHECK(debugNoZeroCoefficients(d_rowInMergeBuffer));
 
-    Assert(mult != 0);
-
+    CVC4_DCHECK(mult != 0);
 
     RowIterator i = getRow(to).begin();
     RowIterator i_end = getRow(to).end();
@@ -722,7 +719,7 @@ public:
 
       if(d_mergeBuffer.isKey(colVar)){
         EntryID bufferEntry = d_mergeBuffer[colVar].first;
-        Assert(!d_mergeBuffer[colVar].second);
+        CVC4_DCHECK(!d_mergeBuffer[colVar].second);
         d_mergeBuffer.get(colVar).second = true;
 
         const Entry& other = d_entries.get(bufferEntry);
@@ -751,7 +748,7 @@ public:
       if(d_mergeBuffer[colVar].second){
         d_mergeBuffer.get(colVar).second = false;
       }else{
-        Assert(!(d_mergeBuffer[colVar]).second);
+        CVC4_DCHECK(!(d_mergeBuffer[colVar]).second);
         T newCoeff =  mult * entry.getCoefficient();
         addEntry(to, colVar, newCoeff);
 
@@ -759,7 +756,7 @@ public:
       }
     }
 
-    Assert(mergeBufferIsClear());
+    CVC4_DCHECK(mergeBufferIsClear());
 
     if(Debug.isOn("matrix")) { printMatrix(); }
   }
@@ -906,8 +903,8 @@ public:
   }
 
   double densityMeasure() const{
-    Assert(numNonZeroEntriesByRow() == numNonZeroEntries());
-    Assert(numNonZeroEntriesByCol() == numNonZeroEntries());
+    CVC4_DCHECK(numNonZeroEntriesByRow() == numNonZeroEntries());
+    CVC4_DCHECK(numNonZeroEntriesByCol() == numNonZeroEntries());
 
     uint32_t n = getNumRows();
     if(n == 0){
@@ -917,10 +914,10 @@ public:
       uint32_t m = d_columns.size();
       uint32_t divisor = (n *(m - n + 1));
 
-      Assert(n >= 1);
-      Assert(m >= n);
-      Assert(divisor > 0);
-      Assert(divisor >= s);
+      CVC4_DCHECK(n >= 1);
+      CVC4_DCHECK(m >= n);
+      CVC4_DCHECK(divisor > 0);
+      CVC4_DCHECK(divisor >= s);
 
       return (double(s)) / divisor;
     }

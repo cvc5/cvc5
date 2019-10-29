@@ -18,6 +18,7 @@
 
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "expr/kind.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
@@ -58,7 +59,7 @@ void TheoryQuantifiers::finishInit()
 {
   // quantifiers are not evaluated in getModelValue
   TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
+  CVC4_DCHECK(tm != nullptr);
   tm->setUnevaluatedKind(EXISTS);
   tm->setUnevaluatedKind(FORALL);
 }

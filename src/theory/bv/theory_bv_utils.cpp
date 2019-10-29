@@ -34,7 +34,7 @@ unsigned getSize(TNode node)
 
 const bool getBit(TNode node, unsigned i)
 {
-  Assert(i < getSize(node) && node.getKind() == kind::CONST_BITVECTOR);
+  CVC4_DCHECK(i < getSize(node) && node.getKind() == kind::CONST_BITVECTOR);
   return node.getConst<BitVector>().extract(i, i).getValue() == 1u;
 }
 
@@ -160,7 +160,7 @@ static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
         == theory::THEORY_BV)
     {
       Kind k = n.getKind();
-      Assert(k != kind::CONST_BITVECTOR);
+      CVC4_DCHECK(k != kind::CONST_BITVECTOR);
       if (k != kind::EQUAL
           && (iseq || k != kind::BITVECTOR_CONCAT)
           && (iseq || k != kind::BITVECTOR_EXTRACT)
@@ -182,7 +182,7 @@ static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
       bool iseqt = true;
       for (const Node& c : n)
       {
-        Assert(cache.find(c) != cache.end());
+        CVC4_DCHECK(cache.find(c) != cache.end());
         if (!cache[c])
         {
           iseqt = false;
@@ -192,7 +192,7 @@ static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
       cache[n] = iseqt;
     }
   }
-  Assert(cache.find(t) != cache.end());
+  CVC4_DCHECK(cache.find(t) != cache.end());
   return cache[t];
 }
 
@@ -226,31 +226,31 @@ Node mkFalse()
 
 Node mkZero(unsigned size)
 {
-  Assert(size > 0);
+  CVC4_DCHECK(size > 0);
   return mkConst(size, 0u);
 }
 
 Node mkOne(unsigned size)
 {
-  Assert(size > 0);
+  CVC4_DCHECK(size > 0);
   return mkConst(size, 1u);
 }
 
 Node mkOnes(unsigned size)
 {
-  Assert(size > 0);
+  CVC4_DCHECK(size > 0);
   return mkConst(BitVector::mkOnes(size));
 }
 
 Node mkMinSigned(unsigned size)
 {
-  Assert(size > 0);
+  CVC4_DCHECK(size > 0);
   return mkConst(BitVector::mkMinSigned(size));
 }
 
 Node mkMaxSigned(unsigned size)
 {
-  Assert(size > 0);
+  CVC4_DCHECK(size > 0);
   return mkConst(BitVector::mkMaxSigned(size));
 }
 
@@ -287,9 +287,8 @@ Node mkVar(unsigned size)
 
 Node mkSortedNode(Kind kind, TNode child1, TNode child2)
 {
-  Assert(kind == kind::BITVECTOR_AND
-      || kind == kind::BITVECTOR_OR
-      || kind == kind::BITVECTOR_XOR);
+  CVC4_DCHECK(kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
+              || kind == kind::BITVECTOR_XOR);
 
   if (child1 < child2)
   {
@@ -303,9 +302,9 @@ Node mkSortedNode(Kind kind, TNode child1, TNode child2)
 
 Node mkSortedNode(Kind kind, std::vector<Node>& children)
 {
-  Assert(kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
-         || kind == kind::BITVECTOR_XOR);
-  Assert(children.size() > 0);
+  CVC4_DCHECK(kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
+              || kind == kind::BITVECTOR_XOR);
+  CVC4_DCHECK(children.size() > 0);
   if (children.size() == 1)
   {
     return children[0];
@@ -379,7 +378,7 @@ Node mkConcat(std::vector<Node>& children)
 
 Node mkConcat(TNode node, unsigned repeat)
 {
-  Assert(repeat);
+  CVC4_DCHECK(repeat);
   if (repeat == 1)
   {
     return node;

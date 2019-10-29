@@ -26,9 +26,10 @@
 #include <sstream>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
+#include "context/cdlist_forward.h"
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "context/cdlist_forward.h"
 
 namespace CVC4 {
 namespace context {
@@ -139,8 +140,8 @@ private:
       size_t newSize = GROWTH_FACTOR * d_sizeAlloc;
       if(newSize > d_allocator.max_size()) {
         newSize = d_allocator.max_size();
-        Assert(newSize > d_sizeAlloc,
-               "cannot request larger list due to allocator limits");
+        CVC4_DCHECK(newSize > d_sizeAlloc)
+            << "cannot request larger list due to allocator limits";
       }
       T* newList = d_allocator.allocate(newSize);
       Debug("cdlist") << "2x grow of cdlist " << this
@@ -206,7 +207,7 @@ protected:
    * at lower context levels are less than or equal to size.
    */
   void truncateList(const size_t size){
-    Assert(size <= d_size);
+    CVC4_DCHECK(size <= d_size);
     if(d_callDestructor) {
       while(d_size != size) {
         --d_size;
@@ -285,7 +286,7 @@ public:
                       << ": grow!" << std::endl;
       grow();
     }
-    Assert(d_size < d_sizeAlloc);
+    CVC4_DCHECK(d_size < d_sizeAlloc);
 
     Debug("cdlist") << "push_back " << this
                     << " " << getContext()->getLevel()
@@ -306,7 +307,7 @@ public:
    * Access to the ith item in the list.
    */
   const T& operator[](size_t i) const {
-    Assert(i < d_size, "index out of bounds in CDList::operator[]");
+    CVC4_DCHECK(i < d_size) << "index out of bounds in CDList::operator[]";
     return d_list[i];
   }
 
@@ -314,7 +315,7 @@ public:
    * Returns the most recent item added to the list.
    */
   const T& back() const {
-    Assert(d_size > 0, "CDList::back() called on empty list");
+    CVC4_DCHECK(d_size > 0) << "CDList::back() called on empty list";
     return d_list[d_size - 1];
   }
 

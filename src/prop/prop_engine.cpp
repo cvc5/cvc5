@@ -21,6 +21,7 @@
 #include <utility>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
 #include "expr/expr.h"
@@ -30,13 +31,12 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
-#include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
-#include "smt/smt_statistics_registry.h"
 #include "smt/command.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
 #include "util/resource_manager.h"
@@ -119,7 +119,7 @@ PropEngine::~PropEngine() {
 }
 
 void PropEngine::assertFormula(TNode node) {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  CVC4_DCHECK(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
   d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
@@ -139,13 +139,13 @@ void PropEngine::assertLemma(TNode node, bool negated,
 void PropEngine::requirePhase(TNode n, bool phase) {
   Debug("prop") << "requirePhase(" << n << ", " << phase << ")" << endl;
 
-  Assert(n.getType().isBoolean());
+  CVC4_DCHECK(n.getType().isBoolean());
   SatLiteral lit = d_cnfStream->getLiteral(n);
   d_satSolver->requirePhase(phase ? lit : ~lit);
 }
 
 bool PropEngine::isDecision(Node lit) const {
-  Assert(isSatLiteral(lit));
+  CVC4_DCHECK(isSatLiteral(lit));
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
 }
 
@@ -170,7 +170,7 @@ void PropEngine::printSatisfyingAssignment(){
 }
 
 Result PropEngine::checkSat() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  CVC4_DCHECK(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "PropEngine::checkSat()" << endl;
 
   // Mark that we are in the checkSat
@@ -213,8 +213,8 @@ Result PropEngine::checkSat() {
 }
 
 Node PropEngine::getValue(TNode node) const {
-  Assert(node.getType().isBoolean());
-  Assert(d_cnfStream->hasLiteral(node));
+  CVC4_DCHECK(node.getType().isBoolean());
+  CVC4_DCHECK(d_cnfStream->hasLiteral(node));
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
@@ -224,7 +224,7 @@ Node PropEngine::getValue(TNode node) const {
   } else if(v == SAT_VALUE_FALSE) {
     return NodeManager::currentNM()->mkConst(false);
   } else {
-    Assert(v == SAT_VALUE_UNKNOWN);
+    CVC4_DCHECK(v == SAT_VALUE_UNKNOWN);
     return Node::null();
   }
 }
@@ -234,8 +234,8 @@ bool PropEngine::isSatLiteral(TNode node) const {
 }
 
 bool PropEngine::hasValue(TNode node, bool& value) const {
-  Assert(node.getType().isBoolean());
-  Assert(d_cnfStream->hasLiteral(node));
+  CVC4_DCHECK(node.getType().isBoolean());
+  CVC4_DCHECK(d_cnfStream->hasLiteral(node));
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
@@ -247,7 +247,7 @@ bool PropEngine::hasValue(TNode node, bool& value) const {
     value = false;
     return true;
   } else {
-    Assert(v == SAT_VALUE_UNKNOWN);
+    CVC4_DCHECK(v == SAT_VALUE_UNKNOWN);
     return false;
   }
 }
@@ -261,13 +261,13 @@ void PropEngine::ensureLiteral(TNode n) {
 }
 
 void PropEngine::push() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  CVC4_DCHECK(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->push();
   Debug("prop") << "push()" << endl;
 }
 
 void PropEngine::pop() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  CVC4_DCHECK(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->pop();
   Debug("prop") << "pop()" << endl;
 }

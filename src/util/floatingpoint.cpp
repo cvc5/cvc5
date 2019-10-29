@@ -16,6 +16,7 @@
 
 #include "util/floatingpoint.h"
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "util/integer.h"
 
 #include <math.h>
@@ -62,7 +63,7 @@ CVC4_LIT_ITE_DFN(::CVC4::symfpuLiteral::traits::ubv);
 #endif
 
 #ifndef CVC4_USE_SYMFPU
-#define PRECONDITION(X) Assert((X))
+#define PRECONDITION(X) CVC4_DCHECK((X))
 #endif
 
 namespace CVC4 {
@@ -441,17 +442,17 @@ rm traits::RTZ(void) { return ::CVC4::roundTowardZero; };
 
 void traits::precondition(const prop &p)
 {
-  AlwaysAssert(p);
+  CVC4_CHECK(p);
   return;
 }
 void traits::postcondition(const prop &p)
 {
-  AlwaysAssert(p);
+  CVC4_CHECK(p);
   return;
 }
 void traits::invariant(const prop &p)
 {
-  AlwaysAssert(p);
+  CVC4_CHECK(p);
   return;
 }
 }
@@ -546,8 +547,8 @@ static FloatingPointLiteral constructorHelperBitVector(
 	working /= two;
       }
 
-      Assert(working <= r);
-      Assert(r < working * two);
+      CVC4_DCHECK(working <= r);
+      CVC4_DCHECK(r < working * two);
 
       // Work out the number of bits required to represent the exponent for a normal number
       unsigned expBits = 2; // No point starting with an invalid amount
@@ -592,7 +593,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 
       // Compute the sticky bit
       Rational remainder(r - workingSig);
-      Assert(Rational(0,1) <= remainder);
+      CVC4_DCHECK(Rational(0, 1) <= remainder);
 
       if (!remainder.isZero()) {
 	sig = sig | one;
@@ -674,7 +675,7 @@ static FloatingPointLiteral constructorHelperBitVector(
   
   FloatingPoint FloatingPoint::plus (const RoundingMode &rm, const FloatingPoint &arg) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
+    CVC4_DCHECK(this->t == arg.t);
     return FloatingPoint(
         t, symfpu::add<symfpuLiteral::traits>(t, rm, fpl, arg.fpl, true));
 #else
@@ -684,7 +685,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 
   FloatingPoint FloatingPoint::sub (const RoundingMode &rm, const FloatingPoint &arg) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
+    CVC4_DCHECK(this->t == arg.t);
     return FloatingPoint(
         t, symfpu::add<symfpuLiteral::traits>(t, rm, fpl, arg.fpl, false));
 #else
@@ -694,7 +695,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 
   FloatingPoint FloatingPoint::mult (const RoundingMode &rm, const FloatingPoint &arg) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
+    CVC4_DCHECK(this->t == arg.t);
     return FloatingPoint(
         t, symfpu::multiply<symfpuLiteral::traits>(t, rm, fpl, arg.fpl));
 #else
@@ -704,8 +705,8 @@ static FloatingPointLiteral constructorHelperBitVector(
 
   FloatingPoint FloatingPoint::fma (const RoundingMode &rm, const FloatingPoint &arg1, const FloatingPoint &arg2) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg1.t);
-    Assert(this->t == arg2.t);
+    CVC4_DCHECK(this->t == arg1.t);
+    CVC4_DCHECK(this->t == arg2.t);
     return FloatingPoint(
         t, symfpu::fma<symfpuLiteral::traits>(t, rm, fpl, arg1.fpl, arg2.fpl));
 #else
@@ -715,7 +716,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 
   FloatingPoint FloatingPoint::div (const RoundingMode &rm, const FloatingPoint &arg) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
+    CVC4_DCHECK(this->t == arg.t);
     return FloatingPoint(
         t, symfpu::divide<symfpuLiteral::traits>(t, rm, fpl, arg.fpl));
 #else
@@ -742,7 +743,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 
   FloatingPoint FloatingPoint::rem (const FloatingPoint &arg) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
+    CVC4_DCHECK(this->t == arg.t);
     return FloatingPoint(
         t, symfpu::remainder<symfpuLiteral::traits>(t, fpl, arg.fpl));
 #else
@@ -752,7 +753,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 
   FloatingPoint FloatingPoint::maxTotal (const FloatingPoint &arg, bool zeroCaseLeft) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
+    CVC4_DCHECK(this->t == arg.t);
     return FloatingPoint(
         t, symfpu::max<symfpuLiteral::traits>(t, fpl, arg.fpl, zeroCaseLeft));
 #else
@@ -762,7 +763,7 @@ static FloatingPointLiteral constructorHelperBitVector(
   
   FloatingPoint FloatingPoint::minTotal (const FloatingPoint &arg, bool zeroCaseLeft) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
+    CVC4_DCHECK(this->t == arg.t);
     return FloatingPoint(
         t, symfpu::min<symfpuLiteral::traits>(t, fpl, arg.fpl, zeroCaseLeft));
 #else
@@ -791,7 +792,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 
   bool FloatingPoint::operator <= (const FloatingPoint &arg) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
+    CVC4_DCHECK(this->t == arg.t);
     return symfpu::lessThanOrEqual<symfpuLiteral::traits>(t, fpl, arg.fpl);
 #else
     return false;
@@ -800,7 +801,7 @@ static FloatingPointLiteral constructorHelperBitVector(
 
   bool FloatingPoint::operator < (const FloatingPoint &arg) const {
 #ifdef CVC4_USE_SYMFPU
-    Assert(this->t == arg.t);
+    CVC4_DCHECK(this->t == arg.t);
     return symfpu::lessThan<symfpuLiteral::traits>(t, fpl, arg.fpl);
 #else
     return false;
@@ -922,8 +923,8 @@ static FloatingPointLiteral constructorHelperBitVector(
       Integer signedSignificand(sign * significand);
       
       // Only have pow(uint32_t) so we should check this.
-      Assert(this->t.significand() <= 32);
-      
+      CVC4_DCHECK(this->t.significand() <= 32);
+
       if (!(exp.strictlyNegative())) {
 	Integer r(signedSignificand.multiplyByPow2(exp.toUnsignedInt()));
 	return PartialRational(Rational(r), true);

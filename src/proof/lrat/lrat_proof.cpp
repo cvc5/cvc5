@@ -25,6 +25,7 @@
 #include <unordered_map>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "base/output.h"
 #include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
@@ -105,11 +106,11 @@ void printHints(std::ostream& o,
  */
 void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 {
-  Assert(indices.size() > 0);
+  CVC4_DCHECK(indices.size() > 0);
   // Verify that the indices are sorted!
   for (size_t i = 0, n = indices.size() - 1; i < n; ++i)
   {
-    Assert(indices[i] < indices[i + 1]);
+    CVC4_DCHECK(indices[i] < indices[i + 1]);
   }
 
   for (ClauseIdx idx : indices)
@@ -190,7 +191,7 @@ LratProof::LratProof(std::istream& textualProof)
     std::string first;
     textualProof >> first;
     Trace("pf::lrat") << "First word: " << first << std::endl;
-    Assert(textualProof.good());
+    CVC4_DCHECK(textualProof.good());
     if (first == "d")
     {
       std::vector<ClauseIdx> clauses;
@@ -198,7 +199,7 @@ LratProof::LratProof(std::istream& textualProof)
       {
         ClauseIdx di;
         textualProof >> di;
-        Assert(textualProof.good());
+        CVC4_DCHECK(textualProof.good());
         if (di == 0)
         {
           break;
@@ -221,12 +222,13 @@ LratProof::LratProof(std::istream& textualProof)
       SatLiteral lit;
       firstS >> lit;
       Trace("pf::lrat") << "First lit: " << lit << std::endl;
-      Assert(!firstS.fail(), "Couldn't parse first literal from addition line");
+      CVC4_DCHECK(!firstS.fail())
+          << "Couldn't parse first literal from addition line";
 
       SatClause clause;
       for (; lit != 0; textualProof >> lit)
       {
-        Assert(textualProof.good());
+        CVC4_DCHECK(textualProof.good());
         clause.emplace_back(lit.getSatVariable() - 1, lit.isNegated());
       }
 
@@ -236,7 +238,7 @@ LratProof::LratProof(std::istream& textualProof)
       textualProof >> i;
       for (; i > 0; textualProof >> i)
       {
-        Assert(textualProof.good());
+        CVC4_DCHECK(textualProof.good());
         atTrace.push_back(i);
       }
 
@@ -244,7 +246,7 @@ LratProof::LratProof(std::istream& textualProof)
       std::vector<std::pair<ClauseIdx, LratUPTrace>> resolvants;
       for (; i<0; textualProof>> i)
       {
-        Assert(textualProof.good());
+        CVC4_DCHECK(textualProof.good());
         // Create an entry in the RAT hint list
         resolvants.emplace_back(-i, std::vector<ClauseIdx>());
 

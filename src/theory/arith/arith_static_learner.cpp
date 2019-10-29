@@ -138,9 +138,9 @@ void ArithStaticLearner::process(TNode n, NodeBuilder<>& learned, const TNodeSet
 }
 
 void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
-  Assert(n.getKind() == kind::ITE);
-  Assert(n[0].getKind() != EQUAL);
-  Assert(isRelationOperator(n[0].getKind()));
+  CVC4_DCHECK(n.getKind() == kind::ITE);
+  CVC4_DCHECK(n[0].getKind() != EQUAL);
+  CVC4_DCHECK(isRelationOperator(n[0].getKind()));
 
   TNode c = n[0];
   Kind k = oldSimplifiedKind(c);
@@ -163,8 +163,8 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
 
   if(t == cleft && e == cright){
     // t == cleft && e == cright
-    Assert( t == cleft );
-    Assert( e == cright );
+    CVC4_DCHECK(t == cleft);
+    CVC4_DCHECK(e == cright);
     switch(k){
     case LT:   // (ite (< x y) x y)
     case LEQ: { // (ite (<= x y) x y)
@@ -190,7 +190,7 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
 }
 
 void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
-  Assert(n.getKind() == ITE);
+  CVC4_DCHECK(n.getKind() == ITE);
 
   Debug("arith::static") << "iteConstant(" << n << ")" << endl;
 
@@ -236,7 +236,7 @@ void ArithStaticLearner::iteConstant(TNode n, NodeBuilder<>& learned){
 std::set<Node> listToSet(TNode l){
   std::set<Node> ret;
   while(l.getKind() == OR){
-    Assert(l.getNumChildren() == 2);
+    CVC4_DCHECK(l.getNumChildren() == 2);
     ret.insert(l[0]);
     l = l[1];
   }

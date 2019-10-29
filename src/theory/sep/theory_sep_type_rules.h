@@ -27,7 +27,7 @@ class SepEmpTypeRule {
 public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::SEP_EMP);
+    CVC4_DCHECK(n.getKind() == kind::SEP_EMP);
     return nodeManager->booleanType();
   }
 };
@@ -35,7 +35,7 @@ public:
 struct SepPtoTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::SEP_PTO);
+    CVC4_DCHECK(n.getKind() == kind::SEP_PTO);
     if( check ) {
       TypeNode refType = n[0].getType(check);
       TypeNode ptType = n[1].getType(check);
@@ -48,7 +48,7 @@ struct SepStarTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     TypeNode btype = nodeManager->booleanType();
-    Assert(n.getKind() == kind::SEP_STAR);
+    CVC4_DCHECK(n.getKind() == kind::SEP_STAR);
     if( check ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         TypeNode ctype = n[i].getType( check );
@@ -65,7 +65,7 @@ struct SepWandTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     TypeNode btype = nodeManager->booleanType();
-    Assert(n.getKind() == kind::SEP_WAND);
+    CVC4_DCHECK(n.getKind() == kind::SEP_WAND);
     if( check ){
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
         TypeNode ctype = n[i].getType( check );
@@ -82,7 +82,7 @@ struct SepLabelTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     TypeNode btype = nodeManager->booleanType();
-    Assert(n.getKind() == kind::SEP_LABEL);
+    CVC4_DCHECK(n.getKind() == kind::SEP_LABEL);
     if( check ){
       TypeNode ctype = n[0].getType( check );
       if( ctype!=btype ){
@@ -100,8 +100,8 @@ struct SepLabelTypeRule {
 struct SepNilTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::SEP_NIL);
-    Assert(check);
+    CVC4_DCHECK(n.getKind() == kind::SEP_NIL);
+    CVC4_DCHECK(check);
     TypeNode type = n.getType();
     return type;
   }

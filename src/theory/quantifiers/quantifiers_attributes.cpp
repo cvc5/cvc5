@@ -64,24 +64,24 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     QuantNameAttribute qna;
     n.setAttribute(qna, true);
   } else if (attr == "sygus-synth-grammar") {
-    Assert( node_values.size()==1 );
+    CVC4_DCHECK(node_values.size() == 1);
     Trace("quant-attr-debug") << "Set sygus synth grammar " << n << " to "
                               << node_values[0] << std::endl;
     SygusSynthGrammarAttribute ssg;
     n.setAttribute(ssg, node_values[0]);
   }else if( attr=="sygus-synth-fun-var-list" ){
-    Assert( node_values.size()==1 );
+    CVC4_DCHECK(node_values.size() == 1);
     Trace("quant-attr-debug") << "Set sygus synth fun var list to " << n << " to "  << node_values[0] << std::endl;
     SygusSynthFunVarListAttribute ssfvla;
     n.setAttribute( ssfvla, node_values[0] );
   }else if( attr=="quant-inst-max-level" ){
-    Assert( node_values.size()==1 );
+    CVC4_DCHECK(node_values.size() == 1);
     uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
     Trace("quant-attr-debug") << "Set instantiation level " << n << " to " << lvl << std::endl;
     QuantInstLevelAttribute qila;
     n.setAttribute( qila, lvl );
   }else if( attr=="rr-priority" ){
-    Assert( node_values.size()==1 );
+    CVC4_DCHECK(node_values.size() == 1);
     uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
     Trace("quant-attr-debug") << "Set rewrite rule priority " << n << " to " << lvl << std::endl;
     RrPriorityAttribute rrpa;
@@ -163,7 +163,7 @@ Node QuantAttributes::getFunDefBody( Node q ) {
           int res = ArithMSum::isolate(h, msum, veq, EQUAL);
           if (res != 0)
           {
-            Assert(veq.getKind() == EQUAL);
+            CVC4_DCHECK(veq.getKind() == EQUAL);
             return res == 1 ? veq[1] : veq[0];
           }
         }
@@ -219,7 +219,7 @@ void QuantAttributes::computeAttributes( Node q ) {
     Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
       Message() << "Cannot define function " << f << " more than once." << std::endl;
-      AlwaysAssert(false);
+      CVC4_CHECK(false);
     }
     d_fun_defs[f] = true;
   }
@@ -296,7 +296,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         }
         if( avar.getKind()==REWRITE_RULE ){
           Trace("quant-attr") << "Attribute : rewrite rule : " << q << std::endl;
-          Assert( i==0 );
+          CVC4_DCHECK(i == 0);
           qa.d_rr = avar;
         }
       }
@@ -409,7 +409,7 @@ void QuantAttributes::setInstantiationLevelAttr(Node n, Node qn, uint64_t level)
       n.setAttribute(ila, level);
       Trace("inst-level-debug") << "Set instantiation level " << n << " to "
                                 << level << std::endl;
-      Assert(n.getNumChildren() == qn.getNumChildren());
+      CVC4_DCHECK(n.getNumChildren() == qn.getNumChildren());
       for (unsigned i = 0; i < n.getNumChildren(); i++)
       {
         setInstantiationLevelAttr(n[i], qn[i], level);

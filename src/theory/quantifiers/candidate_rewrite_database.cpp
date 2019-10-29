@@ -43,7 +43,7 @@ CandidateRewriteDatabase::CandidateRewriteDatabase()
 void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
                                           SygusSampler* ss)
 {
-  Assert(ss != nullptr);
+  CVC4_DCHECK(ss != nullptr);
   d_candidate = Node::null();
   d_using_sygus = false;
   d_qe = nullptr;
@@ -58,7 +58,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
                                                Node f,
                                                SygusSampler* ss)
 {
-  Assert(ss != nullptr);
+  CVC4_DCHECK(ss != nullptr);
   d_candidate = f;
   d_using_sygus = true;
   d_qe = qe;
@@ -106,7 +106,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
       Node eq_solb = eq_sol;
       if (d_using_sygus)
       {
-        Assert(d_tds != nullptr);
+        CVC4_DCHECK(d_tds != nullptr);
         solb = d_tds->sygusToBuiltin(sol);
         eq_solb = d_tds->sygusToBuiltin(eq_sol);
       }
@@ -172,7 +172,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             }
             if (val.isNull())
             {
-              Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
+              CVC4_DCHECK(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
               if (needExport)
               {
                 Expr erefv = refv.toExpr().exportTo(&em, varMap);
@@ -191,7 +191,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           // add the solution again
           // by construction of the above point, we should be unique now
           Node eq_sol_new = d_sampler->registerTerm(sol);
-          Assert(eq_sol_new == sol);
+          CVC4_DCHECK(eq_sol_new == sol);
         }
         else
         {
@@ -238,7 +238,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         }
         if (options::sygusRewSynthAccel() && d_using_sygus)
         {
-          Assert(d_tds != nullptr);
+          CVC4_DCHECK(d_tds != nullptr);
           // Add a symmetry breaking clause that excludes the larger
           // of sol and eq_sol. This effectively states that we no longer
           // wish to enumerate any term that contains sol (resp. eq_sol)

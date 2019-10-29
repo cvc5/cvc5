@@ -57,13 +57,12 @@ SimplexDecisionProcedure::~SimplexDecisionProcedure(){
 
 bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStat& conflicts) {
   TimerStat::CodeTimer codeTimer(timer);
-  Assert( d_conflictVariables.empty() );
-
+  CVC4_DCHECK(d_conflictVariables.empty());
 
   while(d_errorSet.moreSignals()){
     ArithVar curr = d_errorSet.topSignal();
     if(d_tableau.isBasic(curr) && !d_variables.assignmentIsConsistent(curr)){
-      Assert(d_linEq.basicIsTracked(curr));
+      CVC4_DCHECK(d_linEq.basicIsTracked(curr));
 
       if(!d_conflictVariables.isMember(curr) && checkBasicForConflict(curr)){
 
@@ -82,32 +81,31 @@ bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStat&
   }
   d_errorSize = d_errorSet.errorSize();
 
-  Assert(d_errorSet.noSignals());
+  CVC4_DCHECK(d_errorSet.noSignals());
   return !d_conflictVariables.empty();
 }
 
 /** Reports a conflict to on the output channel. */
 void SimplexDecisionProcedure::reportConflict(ArithVar basic){
-  Assert(!d_conflictVariables.isMember(basic));
-  Assert(checkBasicForConflict(basic));
+  CVC4_DCHECK(!d_conflictVariables.isMember(basic));
+  CVC4_DCHECK(checkBasicForConflict(basic));
 
   ConstraintCP conflicted = generateConflictForBasic(basic);
-  Assert(conflicted != NullConstraint);
+  CVC4_DCHECK(conflicted != NullConstraint);
   d_conflictChannel.raiseConflict(conflicted);
 
   d_conflictVariables.add(basic);
 }
 
 ConstraintCP SimplexDecisionProcedure::generateConflictForBasic(ArithVar basic) const {
-
-  Assert(d_tableau.isBasic(basic));
-  Assert(checkBasicForConflict(basic));
+  CVC4_DCHECK(d_tableau.isBasic(basic));
+  CVC4_DCHECK(checkBasicForConflict(basic));
 
   if(d_variables.cmpAssignmentLowerBound(basic) < 0){
-    Assert(d_linEq.nonbasicsAtUpperBounds(basic));
+    CVC4_DCHECK(d_linEq.nonbasicsAtUpperBounds(basic));
     return d_linEq.generateConflictBelowLowerBound(basic, *d_conflictBuilder);
   }else if(d_variables.cmpAssignmentUpperBound(basic) > 0){
-    Assert(d_linEq.nonbasicsAtLowerBounds(basic));
+    CVC4_DCHECK(d_linEq.nonbasicsAtLowerBounds(basic));
     return d_linEq.generateConflictAboveUpperBound(basic, *d_conflictBuilder);
   }else{
     Unreachable();
@@ -125,8 +123,8 @@ bool SimplexDecisionProcedure::maybeGenerateConflictForBasic(ArithVar basic) con
 }
 
 bool SimplexDecisionProcedure::checkBasicForConflict(ArithVar basic) const {
-  Assert(d_tableau.isBasic(basic));
-  Assert(d_linEq.basicIsTracked(basic));
+  CVC4_DCHECK(d_tableau.isBasic(basic));
+  CVC4_DCHECK(d_linEq.basicIsTracked(basic));
 
   if(d_variables.cmpAssignmentLowerBound(basic) < 0){
     if(d_linEq.nonbasicsAtUpperBounds(basic)){
@@ -142,8 +140,8 @@ bool SimplexDecisionProcedure::checkBasicForConflict(ArithVar basic) const {
 
 void SimplexDecisionProcedure::tearDownInfeasiblityFunction(TimerStat& timer, ArithVar tmp){
   TimerStat::CodeTimer codeTimer(timer);
-  Assert(tmp != ARITHVAR_SENTINEL);
-  Assert(d_tableau.isBasic(tmp));
+  CVC4_DCHECK(tmp != ARITHVAR_SENTINEL);
+  CVC4_DCHECK(d_tableau.isBasic(tmp));
 
   RowIndex ri = d_tableau.basicToRowIndex(tmp);
   d_linEq.stopTrackingRowIndex(ri);
@@ -196,11 +194,11 @@ ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& time
   Debug("constructInfeasiblityFunction") << "constructInfeasiblityFunction start" << endl;
 
   TimerStat::CodeTimer codeTimer(timer);
-  Assert(!d_errorSet.focusEmpty());
-  Assert(debugIsASet(set));
-  
+  CVC4_DCHECK(!d_errorSet.focusEmpty());
+  CVC4_DCHECK(debugIsASet(set));
+
   ArithVar inf = requestVariable();
-  Assert(inf != ARITHVAR_SENTINEL);
+  CVC4_DCHECK(inf != ARITHVAR_SENTINEL);
 
   std::vector<Rational> coeffs;
   std::vector<ArithVar> variables;
@@ -208,11 +206,11 @@ ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& time
   for(ArithVarVec::const_iterator iter = set.begin(), iend = set.end(); iter != iend; ++iter){
     ArithVar e = *iter;
 
-    Assert(d_tableau.isBasic(e));
-    Assert(!d_variables.assignmentIsConsistent(e));
+    CVC4_DCHECK(d_tableau.isBasic(e));
+    CVC4_DCHECK(!d_variables.assignmentIsConsistent(e));
 
     int sgn = d_errorSet.getSgn(e);
-    Assert(sgn == -1 || sgn == 1);
+    CVC4_DCHECK(sgn == -1 || sgn == 1);
     const Rational& violatedCoeff = sgn < 0 ? d_negOne : d_posOne;
     coeffs.push_back(violatedCoeff);
     variables.push_back(e);

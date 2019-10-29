@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "util/index.h"
 
 
@@ -82,7 +83,7 @@ public:
     d_list.clear();
     d_posVector.clear();
     d_image.clear();
-    Assert(empty());
+    CVC4_DCHECK(empty());
   }
 
   /**
@@ -93,7 +94,7 @@ public:
     while(!empty()){
       pop_back();
     }
-    Assert(empty());
+    CVC4_DCHECK(empty());
   }
 
   /** Returns true if k is a key of this datastructure. */
@@ -101,7 +102,7 @@ public:
     if( x >= allocated()){
       return false;
     }else{
-      Assert(x <  allocated());
+      CVC4_DCHECK(x < allocated());
       return d_posVector[x] != +POSITION_SENTINEL;
     }
   }
@@ -124,13 +125,13 @@ public:
 
   /** Returns a mutable reference to the element mapped by key. */
   T& get(Key key){
-    Assert(isKey(key));
+    CVC4_DCHECK(isKey(key));
     return d_image[key];
   }
 
   /** Returns a const reference to the element mapped by key.*/
   const T& operator[](Key key) const {
-    Assert(isKey(key));
+    CVC4_DCHECK(isKey(key));
     return d_image[key];
   }
 
@@ -149,9 +150,9 @@ public:
    * Invalidates iterators.
    */
   void remove(Key x){
-    Assert(isKey(x));
+    CVC4_DCHECK(isKey(x));
     swapToBack(x);
-    Assert(d_list.back() == x);
+    CVC4_DCHECK(d_list.back() == x);
     pop_back();
   }
 
@@ -162,7 +163,7 @@ public:
 
   /** Removes the element associated with the last Key from the map. */
   void pop_back() {
-    Assert(!empty());
+    CVC4_DCHECK(!empty());
     Key atBack = back();
     d_posVector[atBack] = +POSITION_SENTINEL;
     d_image[atBack] = T();
@@ -193,19 +194,19 @@ public:
  private:
 
   size_t allocated() const {
-    Assert(d_posVector.size() == d_image.size());
+    CVC4_DCHECK(d_posVector.size() == d_image.size());
     return d_posVector.size();
   }
 
   void increaseSize(Key max){
-    Assert(max >= allocated());
+    CVC4_DCHECK(max >= allocated());
     d_posVector.resize(max+1, +POSITION_SENTINEL);
     d_image.resize(max+1);
   }
 
   /** Swaps a member x to the back of d_list. */
   void swapToBack(Key x){
-    Assert(isKey(x));
+    CVC4_DCHECK(isKey(x));
 
     Position currentPos = d_posVector[x];
     Key atBack = back();
@@ -246,7 +247,7 @@ public:
    * Adds an element that is not a member of the set to the set.
    */
   void add(Element x){
-    Assert(!isMember(x));
+    CVC4_DCHECK(!isMember(x));
     d_map.set(x, true);
   }
 
@@ -292,7 +293,7 @@ public:
   bool isMember(Element x) const{ return d_map.isKey(x); }
 
   void add(Element x, CountType c = 1u){
-    Assert(c > 0);
+    CVC4_DCHECK(c > 0);
     if(d_map.isKey(x)){
       d_map.set(x, d_map.get(x)+c);
     }else{

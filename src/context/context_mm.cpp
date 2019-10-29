@@ -25,6 +25,7 @@
 #endif /* CVC4_VALGRIND */
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "base/output.h"
 #include "context/context_mm.h"
 
@@ -37,8 +38,8 @@ void ContextMemoryManager::newChunk() {
 
   // Increment index to chunk list
   ++d_indexChunkList;
-  Assert(d_chunkList.size() == d_indexChunkList,
-         "Index should be at the end of the list");
+  CVC4_DCHECK(d_chunkList.size() == d_indexChunkList)
+      << "Index should be at the end of the list";
 
   // Create new chunk if no free chunk available
   if(d_freeChunks.empty()) {
@@ -105,8 +106,8 @@ void* ContextMemoryManager::newData(size_t size) {
     newChunk();
     res = (void*)d_nextFree;
     d_nextFree += size;
-    AlwaysAssert(d_nextFree <= d_endChunk,
-                 "Request is bigger than memory chunk size");
+    CVC4_CHECK(d_nextFree <= d_endChunk)
+        << "Request is bigger than memory chunk size";
   }
   Debug("context") << "ContextMemoryManager::newData(" << size
                    << ") returning " << res << " at level "
@@ -142,7 +143,7 @@ void ContextMemoryManager::pop() {
   d_allocations.pop_back();
 #endif /* CVC4_VALGRIND */
 
-  Assert(d_nextFreeStack.size() > 0 && d_endChunkStack.size() > 0);
+  CVC4_DCHECK(d_nextFreeStack.size() > 0 && d_endChunkStack.size() > 0);
 
   // Restore state from stack
   d_nextFree = d_nextFreeStack.back();

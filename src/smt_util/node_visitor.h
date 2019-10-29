@@ -43,11 +43,11 @@ class NodeVisitor {
   public:
     GuardReentry(T& guard)
     : d_guard(guard) {
-      Assert(!d_guard);
+      CVC4_DCHECK(!d_guard);
       d_guard = true;
     }
     ~GuardReentry() {
-      Assert(d_guard);
+      CVC4_DCHECK(d_guard);
       d_guard = false;
     }
   };/* class NodeVisitor<>::GuardReentry */

@@ -29,7 +29,7 @@ SygusEvalUnfold::SygusEvalUnfold(TermDbSygus* tds) : d_tds(tds) {}
 
 void SygusEvalUnfold::registerEvalTerm(Node n)
 {
-  Assert(options::sygusEvalUnfold());
+  CVC4_DCHECK(options::sygusEvalUnfold());
   // is this a sygus evaluation function application?
   if (n.getKind() != DT_SYGUS_EVAL)
   {
@@ -44,13 +44,13 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   d_eval_processed.insert(n);
   TypeNode tn = n[0].getType();
   // since n[0] is an evaluation head, we know tn is a sygus datatype
-  Assert(tn.isDatatype());
+  CVC4_DCHECK(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(dt.isSygus());
+  CVC4_DCHECK(dt.isSygus());
   if (n[0].getKind() == APPLY_CONSTRUCTOR)
   {
     // constructors should be unfolded and reduced already
-    Assert(false);
+    CVC4_DCHECK(false);
     return;
   }
   // register this evaluation term with its head
@@ -102,9 +102,9 @@ void SygusEvalUnfold::registerModelValue(Node a,
       // Node antec = n.eqNode( vn );
       TypeNode tn = n.getType();
       // n occurs as an evaluation head, thus it has sygus datatype type
-      Assert(tn.isDatatype());
+      CVC4_DCHECK(tn.isDatatype());
       const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-      Assert(dt.isSygus());
+      CVC4_DCHECK(dt.isSygus());
       Trace("sygus-eval-unfold")
           << "SygusEvalUnfold: Register model value : " << vn << " for " << n
           << std::endl;
@@ -177,10 +177,10 @@ void SygusEvalUnfold::registerModelValue(Node a,
           // evaluate with minimal explanation
           std::vector<Node> mexp;
           sy_exp->getExplanationFor(n, vn, mexp, esit);
-          Assert(!mexp.empty());
+          CVC4_DCHECK(!mexp.empty());
           expn = mexp.size() == 1 ? mexp[0] : nm->mkNode(AND, mexp);
         }
-        Assert(!res.isNull());
+        CVC4_DCHECK(!res.isNull());
         terms.push_back(d_evals[n][i]);
         vals.push_back(res);
         exps.push_back(expn);

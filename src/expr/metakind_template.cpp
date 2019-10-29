@@ -33,7 +33,7 @@ ${metakind_kinds}
     metakind::INVALID /* LAST_KIND */
   };/* metaKinds[] */
 
-  Assert(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
+  CVC4_DCHECK(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
 
   // We've asserted that k >= NULL_EXPR (which is 0), but we still
   // handle the UNDEFINED_KIND (-1) case.  If we don't, the compiler
@@ -53,7 +53,7 @@ namespace kind {
 namespace metakind {
 
 size_t NodeValueCompare::constHash(const ::CVC4::expr::NodeValue* nv) {
-  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
+  CVC4_DCHECK(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch(nv->d_kind) {
 ${metakind_constHashes}
@@ -103,7 +103,7 @@ template bool NodeValueCompare::compare<false>(const ::CVC4::expr::NodeValue* nv
 
 void NodeValueConstPrinter::toStream(std::ostream& out,
                                             const ::CVC4::expr::NodeValue* nv) {
-  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
+  CVC4_DCHECK(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch(nv->d_kind) {
 ${metakind_constPrinters}
@@ -133,7 +133,7 @@ void NodeValueConstPrinter::toStream(std::ostream& out, TNode n) {
  * kind of cleanup.
  */
 void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv) {
-  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
+  CVC4_DCHECK(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch(nv->d_kind) {
 ${metakind_constDeleters}

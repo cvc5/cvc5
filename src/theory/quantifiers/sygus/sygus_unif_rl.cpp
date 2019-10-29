@@ -62,7 +62,7 @@ void SygusUnifRl::initializeCandidate(
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
   // we do not use notify enumeration
-  Assert(false);
+  CVC4_DCHECK(false);
 }
 
 Node SygusUnifRl::purifyLemma(Node n,
@@ -88,8 +88,8 @@ Node SygusUnifRl::purifyLemma(Node n,
   bool nu_fapp = false;
   if (fapp)
   {
-    Assert(std::find(d_candidates.begin(), d_candidates.end(), n[0])
-           != d_candidates.end());
+    CVC4_DCHECK(std::find(d_candidates.begin(), d_candidates.end(), n[0])
+                != d_candidates.end());
     // Whether application of a (non-)unification function-to-synthesize
     u_fapp = usingUnif(n[0]);
     nu_fapp = !usingUnif(n[0]);
@@ -100,7 +100,7 @@ Node SygusUnifRl::purifyLemma(Node n,
       std::map<Node, Node>::iterator it = d_cand_to_sol.find(n[0]);
       // if function-to-synthesize, retrieve its built solution to replace in
       // the application before computing the model value
-      AlwaysAssert(!u_fapp || it != d_cand_to_sol.end());
+      CVC4_CHECK(!u_fapp || it != d_cand_to_sol.end());
       if (it != d_cand_to_sol.end())
       {
         TNode cand = n[0];
@@ -115,7 +115,7 @@ Node SygusUnifRl::purifyLemma(Node n,
         Trace("sygus-unif-rl-purify")
             << "PurifyLemma : model value for " << n << " is " << nv << "\n";
       }
-      Assert(n != nv);
+      CVC4_DCHECK(n != nv);
     }
   }
   // Travese to purify
@@ -192,7 +192,7 @@ Node SygusUnifRl::purifyLemma(Node n,
         Trace("sygus-unif-rl-purify-debug") << ")\n";
       }
       // replace first child and rebulid node
-      Assert(children.size() > 0);
+      CVC4_DCHECK(children.size() > 0);
       children[0] = new_f;
       Trace("sygus-unif-rl-purify-debug")
           << "Make sygus eval app " << children << std::endl;
@@ -220,7 +220,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   nb = Rewriter::rewrite(nb);
   // every non-top level application of function-to-synthesize must be reduced
   // to a concrete constant
-  Assert(!ensureConst || nb.isConst());
+  CVC4_DCHECK(!ensureConst || nb.isConst());
   Trace("sygus-unif-rl-purify-debug")
       << "... caching [" << n << "] = " << nb << "\n";
   cache[BoolNodePair(ensureConst, n)] = nb;
@@ -265,13 +265,13 @@ Node SygusUnifRl::addRefLemma(Node lemma,
     {
       eval_hds[c].push_back(cp.second[j]);
       // Add new point to respective decision trees
-      Assert(d_cand_cenums.find(c) != d_cand_cenums.end());
+      CVC4_DCHECK(d_cand_cenums.find(c) != d_cand_cenums.end());
       for (const Node& cenum : d_cand_cenums[c])
       {
-        Assert(d_cenum_to_stratpt.find(cenum) != d_cenum_to_stratpt.end());
+        CVC4_DCHECK(d_cenum_to_stratpt.find(cenum) != d_cenum_to_stratpt.end());
         for (const Node& stratpt : d_cenum_to_stratpt[cenum])
         {
-          Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
+          CVC4_DCHECK(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
           Trace("sygus-unif-rl-dt")
               << "Register point with head " << cp.second[j]
               << " to strategy point " << stratpt << "\n";
@@ -347,8 +347,8 @@ Node SygusUnifRl::constructSol(
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
   Node sol = itd->second.buildSol(etis->d_cons, lemmas);
-  Assert(options::sygusUnifCondIndependent() || !sol.isNull()
-         || !lemmas.empty());
+  CVC4_DCHECK(options::sygusUnifCondIndependent() || !sol.isNull()
+              || !lemmas.empty());
   return sol;
 }
 
@@ -360,7 +360,7 @@ bool SygusUnifRl::usingUnif(Node f) const
 Node SygusUnifRl::getConditionForEvaluationPoint(Node e) const
 {
   std::map<Node, DecisionTreeInfo>::const_iterator it = d_stratpt_to_dt.find(e);
-  Assert(it != d_stratpt_to_dt.end());
+  CVC4_DCHECK(it != d_stratpt_to_dt.end());
   return it->second.getConditionEnumerator();
 }
 
@@ -370,7 +370,7 @@ void SygusUnifRl::setConditions(Node e,
                                 const std::vector<Node>& conds)
 {
   std::map<Node, DecisionTreeInfo>::iterator it = d_stratpt_to_dt.find(e);
-  Assert(it != d_stratpt_to_dt.end());
+  CVC4_DCHECK(it != d_stratpt_to_dt.end());
   // set the conditions for the appropriate tree
   it->second.setConditions(guard, enums, conds);
 }
@@ -440,7 +440,7 @@ void SygusUnifRl::registerStrategyNode(
       if (success)
       {
         Node cond = etis->d_cenum[0].first;
-        Assert(etis->d_cenum[0].second == role_ite_condition);
+        CVC4_DCHECK(etis->d_cenum[0].second == role_ite_condition);
         Trace("sygus-unif-rl-strat")
             << "  ...detected recursive ITE strategy, condition enumerator : "
             << cond << std::endl;
@@ -505,7 +505,7 @@ void SygusUnifRl::DecisionTreeInfo::initialize(Node cond_enum,
 void SygusUnifRl::DecisionTreeInfo::setConditions(
     Node guard, const std::vector<Node>& enums, const std::vector<Node>& conds)
 {
-  Assert(enums.size() == conds.size());
+  CVC4_DCHECK(enums.size() == conds.size());
   // set the guard
   d_guard = guard;
   // clear old condition values
@@ -591,7 +591,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
       // new separation class, no conflict
       continue;
     }
-    Assert(hd_mv.find(er) != hd_mv.end());
+    CVC4_DCHECK(hd_mv.find(er) != hd_mv.end());
     // merged into separation class with same model value, no conflict
     if (hd_mv[e] == hd_mv[er])
     {
@@ -715,7 +715,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
         // new separation class, no conflict
         continue;
       }
-      Assert(hd_mv.find(er) != hd_mv.end());
+      CVC4_DCHECK(hd_mv.find(er) != hd_mv.end());
       if (hd_mv[er] == hd_mv[e])
       {
         // merged into separation class with same model value, no conflict
@@ -740,15 +740,15 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
     if (c_counter >= d_conds.size())
     {
       // truncated separation lemma
-      Assert(!d_guard.isNull());
+      CVC4_DCHECK(!d_guard.isNull());
       exp.push_back(d_guard);
       exp_conflict = true;
       break;
     }
-    Assert(c_counter < d_conds.size());
+    CVC4_DCHECK(c_counter < d_conds.size());
     Node ce = d_enums[c_counter];
     Node cv = d_conds[c_counter];
-    Assert(ce.getType() == cv.getType());
+    CVC4_DCHECK(ce.getType() == cv.getType());
     if (Trace.isOn("sygus-unif-sol"))
     {
       std::stringstream ss;
@@ -779,7 +779,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
     }
     itr = d_pt_sep.d_trie.d_rep_to_class.find(er);
     // since er is first in its separation class, it remains a representative
-    Assert(itr != d_pt_sep.d_trie.d_rep_to_class.end());
+    CVC4_DCHECK(itr != d_pt_sep.d_trie.d_rep_to_class.end());
     // is e still in the separation class of er?
     if (std::find(itr->second.begin(), itr->second.end(), e)
         != itr->second.end())
@@ -818,7 +818,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       }
     }
     // should find exactly one
-    Assert(!new_er.isNull());
+    CVC4_DCHECK(!new_er.isNull());
     er = new_er;
     needs_sep_resolve = true;
   }
@@ -871,7 +871,7 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::extractSol(
       // leaf
       if (trie->d_children.empty())
       {
-        Assert(hd_mv.find(trie->d_lazy_child) != hd_mv.end());
+        CVC4_DCHECK(hd_mv.find(trie->d_lazy_child) != hd_mv.end());
         cache[cur] = hd_mv[trie->d_lazy_child];
         Trace("sygus-unif-sol-debug") << "......leaf, build "
                                       << d_dt->d_unif->d_tds->sygusToBuiltin(
@@ -888,8 +888,8 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::extractSol(
       continue;
     }
     // retrieve terms of children and build result
-    Assert(it->second.isNull());
-    Assert(trie->d_children.size() == 1 || trie->d_children.size() == 2);
+    CVC4_DCHECK(it->second.isNull());
+    CVC4_DCHECK(trie->d_children.size() == 1 || trie->d_children.size() == 2);
     std::vector<Node> children(4);
     children[0] = cons;
     children[1] = d_dt->d_conds[index];
@@ -897,9 +897,10 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::extractSol(
     for (std::pair<const Node, LazyTrie>& p_nt : trie->d_children)
     {
       i = p_nt.first.getConst<bool>() ? 2 : 3;
-      Assert(cache.find(IndTriePair(index + 1, &p_nt.second)) != cache.end());
+      CVC4_DCHECK(cache.find(IndTriePair(index + 1, &p_nt.second))
+                  != cache.end());
       children[i] = cache[IndTriePair(index + 1, &p_nt.second)];
-      Assert(!children[i].isNull());
+      CVC4_DCHECK(!children[i].isNull());
     }
     // condition is useless or result children are equal, no no need for ITE
     if (trie->d_children.size() == 1 || children[2] == children[3])
@@ -915,15 +916,15 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::extractSol(
           << "\n";
       continue;
     }
-    Assert(trie->d_children.size() == 2);
+    CVC4_DCHECK(trie->d_children.size() == 2);
     cache[cur] = nm->mkNode(APPLY_CONSTRUCTOR, children);
     Trace("sygus-unif-sol-debug")
         << "......build node "
         << d_dt->d_unif->d_tds->sygusToBuiltin(cache[cur], cache[cur].getType())
         << "\n";
   }
-  Assert(cache.find(root) != cache.end());
-  Assert(!cache.find(root)->second.isNull());
+  CVC4_DCHECK(cache.find(root) != cache.end());
+  CVC4_DCHECK(!cache.find(root)->second.isNull());
   return cache[root];
 }
 
@@ -1002,7 +1003,7 @@ void SygusUnifRl::DecisionTreeInfo::buildDtInfoGain(std::vector<Node>& hds,
     std::pair<std::vector<Node>, std::vector<Node>> split =
         evaluateCond(hds, conds[i]);
     splits.push_back(split);
-    Assert(hds.size() == split.first.size() + split.second.size());
+    CVC4_DCHECK(hds.size() == split.first.size() + split.second.size());
     double gain =
         current_set_entropy
         - (split.first.size() * getEntropy(split.first, hd_mv, ind)
@@ -1045,7 +1046,7 @@ SygusUnifRl::DecisionTreeInfo::evaluateCond(std::vector<Node>& pts, Node cond)
       good.push_back(pt);
       continue;
     }
-    Assert(d_pt_sep.computeCond(cond, pt) == d_false);
+    CVC4_DCHECK(d_pt_sep.computeCond(cond, pt) == d_false);
     bad.push_back(pt);
   }
   return std::pair<std::vector<Node>, std::vector<Node>>(good, bad);
@@ -1065,7 +1066,7 @@ double SygusUnifRl::DecisionTreeInfo::getEntropy(const std::vector<Node>& hds,
       p++;
       continue;
     }
-    Assert(tds->sygusToBuiltin(hd_mv[e]) == d_false);
+    CVC4_DCHECK(tds->sygusToBuiltin(hd_mv[e]) == d_false);
     n++;
   }
   // compute entropy
@@ -1083,7 +1084,7 @@ void SygusUnifRl::DecisionTreeInfo::PointSeparator::initialize(
 Node SygusUnifRl::DecisionTreeInfo::PointSeparator::evaluate(Node n,
                                                              unsigned index)
 {
-  Assert(index < d_dt->d_conds.size());
+  CVC4_DCHECK(index < d_dt->d_conds.size());
   // Retrieve respective built_in condition
   Node cond = d_dt->d_conds[index];
   return computeCond(cond, n);
@@ -1102,7 +1103,8 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
   TypeNode tn = cond.getType();
   Node builtin_cond = d_dt->d_unif->d_tds->sygusToBuiltin(cond, tn);
   // Retrieve evaluation point
-  Assert(d_dt->d_unif->d_hd_to_pt.find(hd) != d_dt->d_unif->d_hd_to_pt.end());
+  CVC4_DCHECK(d_dt->d_unif->d_hd_to_pt.find(hd)
+              != d_dt->d_unif->d_hd_to_pt.end());
   std::vector<Node> pt = d_dt->d_unif->d_hd_to_pt[hd];
   // compute the result
   if (Trace.isOn("sygus-unif-rl-sep"))
@@ -1127,7 +1129,7 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
     Trace("sygus-unif-rl-sep")
         << "...after template res = " << res << std::endl;
   }
-  Assert(res.isConst());
+  CVC4_DCHECK(res.isConst());
   d_eval_cond_hd[cond_hd] = res;
   return res;
 }

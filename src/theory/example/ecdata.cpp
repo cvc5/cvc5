@@ -37,7 +37,7 @@ bool ECData::isClassRep() {
 }
 
 void ECData::addPredecessor(TNode n) {
-  Assert(isClassRep());
+  CVC4_DCHECK(isClassRep());
 
   makeCurrent();
 
@@ -85,8 +85,8 @@ Link* ECData::getFirst() {
 }
 
 void ECData::takeOverDescendantWatchList(ECData* nslave, ECData* nmaster) {
-  Assert(nslave != nmaster);
-  Assert(nslave->getFind() == nmaster);
+  CVC4_DCHECK(nslave != nmaster);
+  CVC4_DCHECK(nslave->getFind() == nmaster);
 
   nmaster->makeCurrent();
 

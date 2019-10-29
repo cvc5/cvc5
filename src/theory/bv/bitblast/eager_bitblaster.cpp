@@ -120,7 +120,7 @@ void EagerBitblaster::bbAtom(TNode node)
   Node atom_definition =
       NodeManager::currentNM()->mkNode(kind::EQUAL, node, atom_bb);
 
-  AlwaysAssert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
+  CVC4_CHECK(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
   storeBBAtom(node, atom_bb);
   d_cnfStream->convertAndAssert(
       atom_definition, false, false, RULE_INVALID, TNode::null());
@@ -145,7 +145,7 @@ bool EagerBitblaster::hasBBAtom(TNode atom) const {
 }
 
 void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
-  Assert(node.getType().isBitVector());
+  CVC4_DCHECK(node.getType().isBitVector());
 
   if (hasBBTerm(node)) {
     getBBTerm(node, bits);
@@ -157,13 +157,13 @@ void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
 
   d_termBBStrategies[node.getKind()](node, bits, this);
 
-  Assert(bits.size() == utils::getSize(node));
+  CVC4_DCHECK(bits.size() == utils::getSize(node));
 
   storeBBTerm(node, bits);
 }
 
 void EagerBitblaster::makeVariable(TNode var, Bits& bits) {
-  Assert(bits.size() == 0);
+  CVC4_DCHECK(bits.size() == 0);
   for (unsigned i = 0; i < utils::getSize(var); ++i) {
     bits.push_back(utils::mkBitOf(var, i));
   }
@@ -197,7 +197,7 @@ bool EagerBitblaster::solve(const std::vector<Node>& assumptions)
   std::vector<prop::SatLiteral> assumpts;
   for (const Node& assumption : assumptions)
   {
-    Assert(d_cnfStream->hasLiteral(assumption));
+    CVC4_DCHECK(d_cnfStream->hasLiteral(assumption));
     assumpts.push_back(d_cnfStream->getLiteral(assumption));
   }
   return prop::SAT_VALUE_TRUE == d_satSolver->solve(assumpts);
@@ -226,7 +226,7 @@ Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
     if (d_cnfStream->hasLiteral(bits[i])) {
       prop::SatLiteral bit = d_cnfStream->getLiteral(bits[i]);
       bit_value = d_satSolver->value(bit);
-      Assert(bit_value != prop::SAT_VALUE_UNKNOWN);
+      CVC4_DCHECK(bit_value != prop::SAT_VALUE_UNKNOWN);
     } else {
       if (!fullModel) return Node();
       // unconstrained bits default to false
@@ -250,7 +250,7 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
     if (d_bv->isLeaf(var) || isSharedTerm(var) ||
         (var.isVar() && var.getType().isBoolean())) {
       // only shared terms could not have been bit-blasted
-      Assert(hasBBTerm(var) || isSharedTerm(var));
+      CVC4_DCHECK(hasBBTerm(var) || isSharedTerm(var));
 
       Node const_value = getModelFromSatSolver(var, true);
 
@@ -271,10 +271,10 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
   d_cnfStream->getBooleanVariables(vars);
   for (TNode var : vars)
   {
-    Assert(d_cnfStream->hasLiteral(var));
+    CVC4_DCHECK(d_cnfStream->hasLiteral(var));
     prop::SatLiteral bit = d_cnfStream->getLiteral(var);
     prop::SatValue value = d_satSolver->value(bit);
-    Assert(value != prop::SAT_VALUE_UNKNOWN);
+    CVC4_DCHECK(value != prop::SAT_VALUE_UNKNOWN);
     if (!m->assertEquality(
             var, nm->mkConst(value == prop::SAT_VALUE_TRUE), true))
     {

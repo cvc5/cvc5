@@ -105,7 +105,7 @@ void getConcat(Node n, std::vector<Node>& c)
 
 Node mkConcat(Kind k, const std::vector<Node>& c)
 {
-  Assert(!c.empty() || k == STRING_CONCAT);
+  CVC4_DCHECK(!c.empty() || k == STRING_CONCAT);
   NodeManager* nm = NodeManager::currentNM();
   return c.size() > 1 ? nm->mkNode(k, c)
                       : (c.size() == 1 ? c[0] : nm->mkConst(String("")));
@@ -176,7 +176,7 @@ bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 
 bool isSimpleRegExp(Node r)
 {
-  Assert(r.getType().isRegExp());
+  CVC4_DCHECK(r.getType().isRegExp());
 
   std::vector<Node> v;
   utils::getConcat(r, v);
@@ -200,7 +200,7 @@ bool isSimpleRegExp(Node r)
 
 void getRegexpComponents(Node r, std::vector<Node>& result)
 {
-  Assert(r.getType().isRegExp());
+  CVC4_DCHECK(r.getType().isRegExp());
 
   NodeManager* nm = NodeManager::currentNM();
   if (r.getKind() == REGEXP_CONCAT)

@@ -110,7 +110,7 @@ void QuantEPR::finishInit()
        it != d_consts.end();
        ++it)
   {
-    Assert(d_epr_axiom.find(it->first) == d_epr_axiom.end());
+    CVC4_DCHECK(d_epr_axiom.find(it->first) == d_epr_axiom.end());
     Trace("quant-epr-debug") << "process " << it->first << std::endl;
     if (d_non_epr.find(it->first) != d_non_epr.end())
     {
@@ -147,8 +147,8 @@ bool QuantEPR::isEPRConstant(TypeNode tn, Node k)
 
 void QuantEPR::addEPRConstant(TypeNode tn, Node k)
 {
-  Assert(isEPR(tn));
-  Assert(d_epr_axiom.find(tn) == d_epr_axiom.end());
+  CVC4_DCHECK(isEPR(tn));
+  CVC4_DCHECK(d_epr_axiom.find(tn) == d_epr_axiom.end());
   if (!isEPRConstant(tn, k))
   {
     d_consts[tn].push_back(k);
@@ -157,7 +157,7 @@ void QuantEPR::addEPRConstant(TypeNode tn, Node k)
 
 Node QuantEPR::mkEPRAxiom(TypeNode tn)
 {
-  Assert(isEPR(tn));
+  CVC4_DCHECK(isEPR(tn));
   std::map<TypeNode, Node>::iterator ita = d_epr_axiom.find(tn);
   if (ita == d_epr_axiom.end())
   {
@@ -168,7 +168,7 @@ Node QuantEPR::mkEPRAxiom(TypeNode tn)
       disj.push_back(
           NodeManager::currentNM()->mkNode(EQUAL, x, d_consts[tn][i]));
     }
-    Assert(!disj.empty());
+    CVC4_DCHECK(!disj.empty());
     d_epr_axiom[tn] = NodeManager::currentNM()->mkNode(
         FORALL,
         NodeManager::currentNM()->mkNode(BOUND_VAR_LIST, x),

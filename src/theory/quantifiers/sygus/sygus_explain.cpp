@@ -47,24 +47,24 @@ void TermRecBuild::addTerm(Node n)
 
 void TermRecBuild::init(Node n)
 {
-  Assert(d_term.empty());
+  CVC4_DCHECK(d_term.empty());
   addTerm(n);
 }
 
 void TermRecBuild::push(unsigned p)
 {
-  Assert(!d_term.empty());
+  CVC4_DCHECK(!d_term.empty());
   unsigned curr = d_term.size() - 1;
-  Assert(d_pos.size() == curr);
-  Assert(d_pos.size() + 1 == d_children.size());
-  Assert(p < d_term[curr].getNumChildren());
+  CVC4_DCHECK(d_pos.size() == curr);
+  CVC4_DCHECK(d_pos.size() + 1 == d_children.size());
+  CVC4_DCHECK(p < d_term[curr].getNumChildren());
   addTerm(d_term[curr][p]);
   d_pos.push_back(p);
 }
 
 void TermRecBuild::pop()
 {
-  Assert(!d_pos.empty());
+  CVC4_DCHECK(!d_pos.empty());
   d_pos.pop_back();
   d_kind.pop_back();
   d_has_op.pop_back();
@@ -74,7 +74,7 @@ void TermRecBuild::pop()
 
 void TermRecBuild::replaceChild(unsigned i, Node r)
 {
-  Assert(!d_term.empty());
+  CVC4_DCHECK(!d_term.empty());
   unsigned curr = d_term.size() - 1;
   unsigned o = d_has_op[curr] ? 1 : 0;
   d_children[curr][i + o] = r;
@@ -89,8 +89,8 @@ Node TermRecBuild::getChild(unsigned i)
 
 Node TermRecBuild::build(unsigned d)
 {
-  Assert(d_pos.size() + 1 == d_term.size());
-  Assert(d < d_term.size());
+  CVC4_DCHECK(d_pos.size() + 1 == d_term.size());
+  CVC4_DCHECK(d < d_term.size());
   int p = d < d_pos.size() ? d_pos[d] : -2;
   std::vector<Node> children;
   unsigned o = d_has_op[d] ? 1 : 0;
@@ -125,7 +125,7 @@ void SygusExplain::getExplanationForEquality(Node n,
 {
   // since builtin types occur in grammar, types are comparable but not
   // necessarily equal
-  Assert(n.getType().isComparableTo(n.getType()));
+  CVC4_DCHECK(n.getType().isComparableTo(n.getType()));
   if (n == vn)
   {
     return;
@@ -137,7 +137,7 @@ void SygusExplain::getExplanationForEquality(Node n,
     // abstractions only, hence we disregard this field
     return;
   }
-  Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
+  CVC4_DCHECK(vn.getKind() == kind::APPLY_CONSTRUCTOR);
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
   int i = datatypes::utils::indexOf(vn.getOperator());
   Node tst = datatypes::utils::mkTester(n, i, dt);
@@ -167,7 +167,7 @@ Node SygusExplain::getExplanationForEquality(Node n,
 {
   std::vector<Node> exp;
   getExplanationForEquality(n, vn, exp, cexc);
-  Assert(!exp.empty());
+  CVC4_DCHECK(!exp.empty());
   return exp.size() == 1 ? exp[0]
                          : NodeManager::currentNM()->mkNode(kind::AND, exp);
 }
@@ -184,8 +184,8 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
                                      Node& vnr_exp,
                                      int& sz)
 {
-  Assert(vnr.isNull() || vn != vnr);
-  Assert(n.getType().isComparableTo(vn.getType()));
+  CVC4_DCHECK(vnr.isNull() || vn != vnr);
+  CVC4_DCHECK(n.getType().isComparableTo(vn.getType()));
   TypeNode ntn = n.getType();
   if (!ntn.isDatatype())
   {
@@ -193,8 +193,8 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     // abstractions only, hence we disregard this field
     return;
   }
-  Assert(vn.getKind() == APPLY_CONSTRUCTOR);
-  Assert(vnr.isNull() || vnr.getKind() == APPLY_CONSTRUCTOR);
+  CVC4_DCHECK(vn.getKind() == APPLY_CONSTRUCTOR);
+  CVC4_DCHECK(vnr.isNull() || vnr.getKind() == APPLY_CONSTRUCTOR);
   std::map<unsigned, bool> cexc;
   // for each child, 
   // check whether replacing that child by a fresh variable
@@ -205,7 +205,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     Node x = d_tdb->getFreeVarInc(xtn, var_count);
     trb.replaceChild(i, x);
     Node nvn = trb.build();
-    Assert(nvn.getKind() == kind::APPLY_CONSTRUCTOR);
+    CVC4_DCHECK(nvn.getKind() == kind::APPLY_CONSTRUCTOR);
     if (et.is_invariant(d_tdb, nvn, x))
     {
       cexc[i] = true;
@@ -224,7 +224,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   }
   const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
   int cindex = datatypes::utils::indexOf(vn.getOperator());
-  Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
+  CVC4_DCHECK(cindex >= 0 && cindex < (int)dt.getNumConstructors());
   Node tst = datatypes::utils::mkTester(n, cindex, dt);
   exp.push_back(tst);
   // if the operator of vn is different than vnr, then disunification obligation
@@ -253,7 +253,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
       trb.pop();
       if (!vnr_c.isNull())
       {
-        Assert(!vnr_exp_c.isNull());
+        CVC4_DCHECK(!vnr_exp_c.isNull());
         if (vnr_exp_c.isConst() || vnr_exp.isNull())
         {
           // recursively satisfied the disunification obligation
@@ -305,9 +305,9 @@ void SygusExplain::getExplanationFor(Node n,
   Node vnr_exp;
   int sz_use = sz;
   getExplanationFor(trb, n, vn, exp, var_count, et, vnr, vnr_exp, sz_use);
-  Assert(sz_use >= 0);
+  CVC4_DCHECK(sz_use >= 0);
   sz = sz_use;
-  Assert(vnr.isNull() || !vnr_exp.isNull());
+  CVC4_DCHECK(vnr.isNull() || !vnr_exp.isNull());
   if (!vnr_exp.isNull() && !vnr_exp.isConst())
   {
     exp.push_back(vnr_exp.negate());

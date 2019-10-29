@@ -438,11 +438,11 @@ inline void AttributeManager::deleteFromTable(AttrHash<T>& table,
 /** Remove all attributes from the table. */
 template <class T>
 inline void AttributeManager::deleteAllFromTable(AttrHash<T>& table) {
-  Assert(!d_inGarbageCollection);
+  CVC4_DCHECK(!d_inGarbageCollection);
   d_inGarbageCollection = true;
   table.clear();
   d_inGarbageCollection = false;
-  Assert(!d_inGarbageCollection);
+  CVC4_DCHECK(!d_inGarbageCollection);
 }
 
 template <class AttrKind>

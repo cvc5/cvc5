@@ -32,8 +32,8 @@ void ArithProofRecorder::saveFarkasCoefficients(
 {
   // Verify that the conflict is a conjuction of (possibly negated) real bounds
   // Verify that the conflict is a conjunciton ...
-  Assert(conflict.getKind() == kind::AND);
-  Assert(conflict.getNumChildren() == farkasCoefficients->size());
+  CVC4_DCHECK(conflict.getKind() == kind::AND);
+  CVC4_DCHECK(conflict.getNumChildren() == farkasCoefficients->size());
   for (size_t i = 0, nchildren = conflict.getNumChildren(); i < nchildren; ++i)
   {
     const Node& child = conflict[i];
@@ -41,8 +41,8 @@ void ArithProofRecorder::saveFarkasCoefficients(
     const Node& nonNegativeChild =
         child.getKind() == kind::NOT ? child[0] : child;
     // ... real bounds
-    Assert(nonNegativeChild.getType().isBoolean()
-           && nonNegativeChild[0].getType().isReal());
+    CVC4_DCHECK(nonNegativeChild.getType().isBoolean()
+                && nonNegativeChild[0].getType().isReal());
   }
   Debug("pf::arith") << "Saved Farkas Coefficients:" << std::endl;
   if (Debug.isOn("pf::arith"))

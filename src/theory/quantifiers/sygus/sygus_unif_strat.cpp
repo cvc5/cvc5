@@ -83,7 +83,7 @@ void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
                                    Node f,
                                    std::vector<Node>& enums)
 {
-  Assert(d_candidate.isNull());
+  CVC4_DCHECK(d_candidate.isNull());
   d_candidate = f;
   d_root = f.getType();
   d_qe = qe;
@@ -106,24 +106,24 @@ void SygusUnifStrategy::initializeType(TypeNode tn)
 Node SygusUnifStrategy::getRootEnumerator() const
 {
   std::map<TypeNode, EnumTypeInfo>::const_iterator itt = d_tinfo.find(d_root);
-  Assert(itt != d_tinfo.end());
+  CVC4_DCHECK(itt != d_tinfo.end());
   std::map<EnumRole, Node>::const_iterator it =
       itt->second.d_enum.find(enum_io);
-  Assert(it != itt->second.d_enum.end());
+  CVC4_DCHECK(it != itt->second.d_enum.end());
   return it->second;
 }
 
 EnumInfo& SygusUnifStrategy::getEnumInfo(Node e)
 {
   std::map<Node, EnumInfo>::iterator it = d_einfo.find(e);
-  Assert(it != d_einfo.end());
+  CVC4_DCHECK(it != d_einfo.end());
   return it->second;
 }
 
 EnumTypeInfo& SygusUnifStrategy::getEnumTypeInfo(TypeNode tn)
 {
   std::map<TypeNode, EnumTypeInfo>::iterator it = d_tinfo.find(tn);
-  Assert(it != d_tinfo.end());
+  CVC4_DCHECK(it != d_tinfo.end());
   return it->second;
 }
 // ----------------------------- establishing enumeration types
@@ -211,9 +211,9 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
   // look at information on how we will construct solutions for this type
   // we know this is a sygus datatype since it is either the top-level type
   // in the strategy graph, or was recursed by a strategy we inferred.
-  Assert(tn.isDatatype());
+  CVC4_DCHECK(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-  Assert(dt.isSygus());
+  CVC4_DCHECK(dt.isSygus());
 
   std::map<Node, std::vector<StrategyType> > cop_to_strat;
   std::map<Node, unsigned> cop_to_cindex;
@@ -293,7 +293,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
       std::map<Node, unsigned> templ_var_index;
       for (unsigned k = 0, sksize = sks.size(); k < sksize; k++)
       {
-        Assert(sks[k].getType().isDatatype());
+        CVC4_DCHECK(sks[k].getType().isDatatype());
         echildren[0] = sks[k];
         Trace("sygus-unif-debug2") << "...set eval dt to " << sks[k]
                                    << std::endl;
@@ -426,7 +426,7 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
               if (isAssoc)
               {
                 std::vector<unsigned>& ac = assoc_combine[k];
-                Assert(!ac.empty());
+                CVC4_DCHECK(!ac.empty());
                 std::vector<Node> children;
                 for (unsigned ack = 0, size_ac = ac.size(); ack < size_ac;
                      ack++)
@@ -455,12 +455,12 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
               {
                 Trace("sygus-unif-debug") << "  Arg " << k << ", index "
                                           << sk_index << std::endl;
-                Assert(teut == ss[sk_index]);
+                CVC4_DCHECK(teut == ss[sk_index]);
               }
             }
             else
             {
-              Assert(isAssoc);
+              CVC4_DCHECK(isAssoc);
             }
           }
         }
@@ -521,9 +521,9 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
         Trace("sygus-unif-debug") << "Process strategy #" << s
                                   << " for operator : " << cop << " : " << strat
                                   << std::endl;
-        Assert(cop_to_child_types.find(cop) != cop_to_child_types.end());
+        CVC4_DCHECK(cop_to_child_types.find(cop) != cop_to_child_types.end());
         std::vector<TypeNode>& childTypes = cop_to_child_types[cop];
-        Assert(cop_to_carg_list.find(cop) != cop_to_carg_list.end());
+        CVC4_DCHECK(cop_to_carg_list.find(cop) != cop_to_carg_list.end());
         std::vector<unsigned>& cargList = cop_to_carg_list[cop];
 
         std::vector<Node> sol_templ_children;
@@ -581,8 +581,8 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
             registerStrategyPoint(et, ct, erole_c, true);
             d_einfo[et].d_template = cop_to_child_templ[cop][j];
             d_einfo[et].d_template_arg = cop_to_child_templ_arg[cop][j];
-            Assert(!d_einfo[et].d_template.isNull());
-            Assert(!d_einfo[et].d_template_arg.isNull());
+            CVC4_DCHECK(!d_einfo[et].d_template.isNull());
+            CVC4_DCHECK(!d_einfo[et].d_template_arg.isNull());
           }
           else
           {
@@ -592,14 +592,14 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
                 << ", node role = " << nrole_c << std::endl;
             buildStrategyGraph(ct, nrole_c);
             // otherwise use the previous
-            Assert(d_tinfo[ct].d_enum.find(erole_c)
-                   != d_tinfo[ct].d_enum.end());
+            CVC4_DCHECK(d_tinfo[ct].d_enum.find(erole_c)
+                        != d_tinfo[ct].d_enum.end());
             et = d_tinfo[ct].d_enum[erole_c];
           }
           Trace("sygus-unif-debug") << "Register child enumerator " << et
                                     << ", arg " << j << " of " << cop
                                     << ", role = " << erole_c << std::endl;
-          Assert(!et.isNull());
+          CVC4_DCHECK(!et.isNull());
           cons_strat->d_cenum.push_back(std::pair<Node, NodeRole>(et, nrole_c));
         }
         // children that are unused in the strategy can be arbitrary
@@ -698,7 +698,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
   {
     Node e = d_esym_list[i];
     std::map<Node, EnumInfo>::iterator itn = d_einfo.find(e);
-    Assert(itn != d_einfo.end());
+    CVC4_DCHECK(itn != d_einfo.end());
     // see if there is anything we can eliminate
     Trace("sygus-unif")
         << "* Search enumerator #" << i << " : type "
@@ -710,7 +710,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     {
       Node es = itn->second.d_enum_slave[j];
       std::map<Node, EnumInfo>::iterator itns = d_einfo.find(es);
-      Assert(itns != d_einfo.end());
+      CVC4_DCHECK(itns != d_einfo.end());
       Trace("sygus-unif") << "  " << es << ", role = " << itns->second.getRole()
                           << std::endl;
     }
@@ -732,7 +732,7 @@ void SygusUnifStrategy::staticLearnRedundantOps(
     std::vector<Node> lemmas;
     for (std::pair<const unsigned, bool>& nc : nce.second)
     {
-      Assert(nc.first < dt.getNumConstructors());
+      CVC4_DCHECK(nc.first < dt.getNumConstructors());
       if (!nc.second)
       {
         Node tst = datatypes::utils::mkTester(em, nc.first, dt).negate();
@@ -1022,7 +1022,7 @@ void EnumInfo::initialize(EnumRole role) { d_role = role; }
 StrategyNode& EnumTypeInfo::getStrategyNode(NodeRole nrole)
 {
   std::map<NodeRole, StrategyNode>::iterator it = d_snodes.find(nrole);
-  Assert(it != d_snodes.end());
+  CVC4_DCHECK(it != d_snodes.end());
   return it->second;
 }
 

@@ -17,6 +17,7 @@
 #include "proof/dimacs.h"
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 
 #include <iostream>
 
@@ -84,18 +85,18 @@ std::vector<prop::SatClause> parseDimacs(std::istream& in)
   uint64_t nClauses;
 
   in >> tag;
-  Assert(in.good());
-  Assert(tag == "p");
+  CVC4_DCHECK(in.good());
+  CVC4_DCHECK(tag == "p");
 
   in >> tag;
-  Assert(in.good());
-  Assert(tag == "cnf");
+  CVC4_DCHECK(in.good());
+  CVC4_DCHECK(tag == "cnf");
 
   in >> nVars;
-  Assert(nVars >= 0);
+  CVC4_DCHECK(nVars >= 0);
 
   in >> nClauses;
-  Assert(nClauses >= 0);
+  CVC4_DCHECK(nClauses >= 0);
 
   std::vector<prop::SatClause> cnf;
   for (uint64_t i = 0; i < nClauses; ++i)
@@ -103,13 +104,13 @@ std::vector<prop::SatClause> parseDimacs(std::istream& in)
     cnf.emplace_back();
     int64_t lit;
     in >> lit;
-    Assert(in.good());
+    CVC4_DCHECK(in.good());
     while (lit != 0)
     {
       cnf.back().emplace_back(std::abs(lit) - 1, lit < 0);
       in >> lit;
-      Assert(static_cast<uint64_t>(std::abs(lit)) <= nVars);
-      Assert(in.good());
+      CVC4_DCHECK(static_cast<uint64_t>(std::abs(lit)) <= nVars);
+      CVC4_DCHECK(in.good());
     }
   }
 

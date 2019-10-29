@@ -143,7 +143,7 @@ Node BoolToBV::lowerAssertion(const TNode& a)
   }
   else
   {
-    Assert(a == fromCache(a));
+    CVC4_DCHECK(a == fromCache(a));
     return a;
   }
 }

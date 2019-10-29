@@ -182,22 +182,20 @@ bool InequalitySolver::isInequalityOnly(TNode node) {
 }
 
 void InequalitySolver::explain(TNode literal, std::vector<TNode>& assumptions) {
-  Assert (d_explanations.find(literal) != d_explanations.end());
+  CVC4_DCHECK(d_explanations.find(literal) != d_explanations.end());
   TNode explanation = d_explanations[literal];
   assumptions.push_back(explanation);
   Debug("bv-inequality-explain") << "InequalitySolver::explain " << literal << " with " << explanation <<"\n";
 }
 
-void InequalitySolver::propagate(Theory::Effort e) {
-  Assert (false);
-}
+void InequalitySolver::propagate(Theory::Effort e) { CVC4_DCHECK(false); }
 bool InequalitySolver::collectModelInfo(TheoryModel* m, bool fullModel)
 {
   Debug("bitvector-model") << "InequalitySolver::collectModelInfo \n";
   std::vector<Node> model;
   d_inequalityGraph.getAllValuesInModel(model);
   for (unsigned i = 0; i < model.size(); ++i) {
-    Assert (model[i].getKind() == kind::EQUAL);
+    CVC4_DCHECK(model[i].getKind() == kind::EQUAL);
     if (!m->assertEquality(model[i][0], model[i][1], true))
     {
       return false;
@@ -207,12 +205,12 @@ bool InequalitySolver::collectModelInfo(TheoryModel* m, bool fullModel)
 }
 
 Node InequalitySolver::getModelValue(TNode var) {
-  Assert (isInequalityOnly(var));
+  CVC4_DCHECK(isInequalityOnly(var));
   Debug("bitvector-model") << "InequalitySolver::getModelValue (" << var <<")";
-  Assert (isComplete());
+  CVC4_DCHECK(isComplete());
   Node result = Node();
   if (!d_inequalityGraph.hasValueInModel(var)) {
-    Assert (d_bv->isSharedTerm(var));
+    CVC4_DCHECK(d_bv->isSharedTerm(var));
   } else {
     BitVector val = d_inequalityGraph.getValueInModel(var);
     result = utils::mkConst(val);

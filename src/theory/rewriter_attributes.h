@@ -56,7 +56,7 @@ struct RewriteAttibute {
   static void setPreRewriteCache(TNode node, TNode cache)
   {
     Trace("rewriter") << "setting pre-rewrite of " << node << " to " << cache << std::endl;
-    Assert(!cache.isNull());
+    CVC4_DCHECK(!cache.isNull());
     if (node == cache) {
       node.setAttribute(pre_rewrite(), Node::null());
     } else {
@@ -88,7 +88,7 @@ struct RewriteAttibute {
    */
   static void setPostRewriteCache(TNode node, TNode cache)
   {
-    Assert(!cache.isNull());
+    CVC4_DCHECK(!cache.isNull());
     Trace("rewriter") << "setting rewrite of " << node << " to " << cache << std::endl;
     if (node == cache) {
       node.setAttribute(post_rewrite(), Node::null());

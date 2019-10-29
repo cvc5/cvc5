@@ -43,7 +43,7 @@ void LemmaProofRecipe::addStep(ProofStep& proofStep) {
 }
 
 std::set<Node> LemmaProofRecipe::getMissingAssertionsForStep(unsigned index) const {
-  Assert(index < d_proofSteps.size());
+  CVC4_DCHECK(index < d_proofSteps.size());
 
   std::set<Node> existingAssertions = getBaseAssertions();
 
@@ -130,13 +130,13 @@ std::set<Node> LemmaProofRecipe::getBaseAssertions() const {
 }
 
 theory::TheoryId LemmaProofRecipe::getTheory() const {
-  Assert(d_proofSteps.size() > 0);
+  CVC4_DCHECK(d_proofSteps.size() > 0);
   return d_proofSteps.back().getTheory();
 }
 
 void LemmaProofRecipe::addRewriteRule(Node assertion, Node explanation) {
   if (d_assertionToExplanation.find(assertion) != d_assertionToExplanation.end()) {
-    Assert(d_assertionToExplanation[assertion] == explanation);
+    CVC4_DCHECK(d_assertionToExplanation[assertion] == explanation);
   }
 
   d_assertionToExplanation[assertion] = explanation;
@@ -147,7 +147,8 @@ bool LemmaProofRecipe::wasRewritten(Node assertion) const {
 }
 
 Node LemmaProofRecipe::getExplanation(Node assertion) const {
-  Assert(d_assertionToExplanation.find(assertion) != d_assertionToExplanation.end());
+  CVC4_DCHECK(d_assertionToExplanation.find(assertion)
+              != d_assertionToExplanation.end());
   return d_assertionToExplanation.find(assertion)->second;
 }
 
@@ -188,7 +189,7 @@ bool LemmaProofRecipe::compositeLemma() const {
 }
 
 const LemmaProofRecipe::ProofStep* LemmaProofRecipe::getStep(unsigned index) const {
-  Assert(index < d_proofSteps.size());
+  CVC4_DCHECK(index < d_proofSteps.size());
 
   size_t revIndex = d_proofSteps.size() - 1 - index;
 
@@ -196,7 +197,7 @@ const LemmaProofRecipe::ProofStep* LemmaProofRecipe::getStep(unsigned index) con
 }
 
 LemmaProofRecipe::ProofStep* LemmaProofRecipe::getStep(unsigned index) {
-  Assert(index < d_proofSteps.size());
+  CVC4_DCHECK(index < d_proofSteps.size());
 
   size_t revIndex = d_proofSteps.size() - 1 - index;
 

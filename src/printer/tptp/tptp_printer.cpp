@@ -73,7 +73,7 @@ void TptpPrinter::toStream(std::ostream& out, const UnsatCore& core) const
 {
   out << "% SZS output start UnsatCore " << std::endl;
   SmtEngine * smt = core.getSmtEngine();
-  Assert( smt!=NULL );
+  CVC4_DCHECK(smt != NULL);
   for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
     std::string name;
     if (smt->getExpressionName(*i, name)) {

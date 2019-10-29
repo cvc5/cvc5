@@ -74,22 +74,22 @@ public:
 
   // void setPropEngine(PropEngine* pe) {
   //   // setPropEngine should not be called more than once
-  //   Assert(d_propEngine == NULL);
-  //   Assert(pe != NULL);
+  //   CVC4_DCHECK(d_propEngine == NULL);
+  //   CVC4_DCHECK(pe != NULL);
   //   d_propEngine = pe;
   // }
 
   void setSatSolver(DPLLSatSolverInterface* ss) {
     // setPropEngine should not be called more than once
-    Assert(d_satSolver == NULL);
-    Assert(ss != NULL);
+    CVC4_DCHECK(d_satSolver == NULL);
+    CVC4_DCHECK(ss != NULL);
     d_satSolver = ss;
   }
 
   void setCnfStream(CnfStream* cs) {
     // setPropEngine should not be called more than once
-    Assert(d_cnfStream == NULL);
-    Assert(cs != NULL);
+    CVC4_DCHECK(d_cnfStream == NULL);
+    CVC4_DCHECK(cs != NULL);
     d_cnfStream = cs;
   }
 
@@ -106,7 +106,7 @@ public:
    * ordering issues between some parts of the system.
    */
   void shutdown() {
-    Assert(d_engineState == 1);
+    CVC4_DCHECK(d_engineState == 1);
     d_engineState = 2;
 
     Trace("decision") << "Shutting down decision engine" << std::endl;
@@ -118,10 +118,10 @@ public:
   /** Gets the next decision based on strategies that are enabled */
   SatLiteral getNext(bool &stopSearch) {
     NodeManager::currentResourceManager()->spendResource(options::decisionStep());
-    Assert(d_cnfStream != NULL,
-           "Forgot to set cnfStream for decision engine?");
-    Assert(d_satSolver != NULL,
-           "Forgot to set satSolver for decision engine?");
+    CVC4_DCHECK(d_cnfStream != NULL)
+        << "Forgot to set cnfStream for decision engine?";
+    CVC4_DCHECK(d_satSolver != NULL)
+        << "Forgot to set satSolver for decision engine?";
 
     SatLiteral ret = undefSatLiteral;
     for(unsigned i = 0;
@@ -157,7 +157,7 @@ public:
     case SAT_VALUE_TRUE: return Result(Result::SAT);
     case SAT_VALUE_FALSE: return Result(Result::UNSAT);
     case SAT_VALUE_UNKNOWN: return Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-    default: Assert(false, "d_result is garbage");
+    default: CVC4_DCHECK(false) << "d_result is garbage";
     }
     return Result();
   }
