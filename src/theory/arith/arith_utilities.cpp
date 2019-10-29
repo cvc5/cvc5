@@ -21,7 +21,7 @@ namespace arith {
 /** Join kinds, where k1 and k2 are arithmetic relations returns an
  * arithmetic relation ret such that
  * if (a <k1> b) and (a <k2> b), then (a <ret> b).
- */ 
+ */
 Kind joinKinds(Kind k1, Kind k2)
 {
   if (k2 < k1)
@@ -206,6 +206,6 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
   }
 }
 
-}/* CVC4::theory::arith namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC4

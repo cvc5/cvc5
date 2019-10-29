@@ -304,7 +304,7 @@ inline Node mkPi()
 /** Join kinds, where k1 and k2 are arithmetic relations returns an
  * arithmetic relation ret such that
  * if (a <k1> b) and (a <k2> b), then (a <ret> b).
- */ 
+ */
 Kind joinKinds(Kind k1, Kind k2);
 
 /** Transitive kinds, where k1 and k2 are arithmetic relations returns an
