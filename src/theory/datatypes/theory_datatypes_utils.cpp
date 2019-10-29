@@ -267,7 +267,7 @@ unsigned indexOf(Node n)
   if (!n.hasAttribute(DtIndexAttribute()))
   {
     CVC4_DCHECK(n.getType().isConstructor() || n.getType().isTester()
-           || n.getType().isSelector());
+                || n.getType().isSelector());
     unsigned index = Datatype::indexOfInternal(n.toExpr());
     n.setAttribute(DtIndexAttribute(), index);
     return index;

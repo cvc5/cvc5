@@ -28,7 +28,6 @@
 
 #include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
-#include "base/cvc4_check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"

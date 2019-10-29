@@ -171,8 +171,8 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       }
       else
       {
-        CVC4_CHECK(term.getKind() != kind::STORE) <<
-            "Cannot use Ackermannization on formula with stores to arrays";
+        CVC4_CHECK(term.getKind() != kind::STORE)
+            << "Cannot use Ackermannization on formula with stores to arrays";
         /* add children to the vector, so that they are processed later */
         for (TNode n : term)
         {

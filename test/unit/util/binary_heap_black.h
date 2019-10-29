@@ -19,8 +19,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "util/bin_heap.h"
 #include "test_utils.h"
+#include "util/bin_heap.h"
 
 using namespace CVC4;
 using namespace std;

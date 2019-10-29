@@ -20,10 +20,10 @@
 #include "preprocessing/passes/bv_gauss.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "test_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
-#include "test_utils.h"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>

@@ -213,7 +213,7 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
 void SolverState::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 {
   CVC4_DCHECK(concat.getKind() == STRING_CONCAT
-         || concat.getKind() == REGEXP_CONCAT);
+              || concat.getKind() == REGEXP_CONCAT);
   EqcInfo* ei = nullptr;
   // check each side
   for (unsigned r = 0; r < 2; r++)
