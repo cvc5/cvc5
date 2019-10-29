@@ -1,5 +1,3 @@
-# Use new version for IN_LIST operator
-cmake_policy(SET CMP0057 NEW)
 find_package(PythonExtensions REQUIRED)
 find_package(Cython REQUIRED)
 
