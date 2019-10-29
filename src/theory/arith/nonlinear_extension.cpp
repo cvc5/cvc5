@@ -2478,7 +2478,7 @@ void NonlinearExtension::check(Theory::Effort e) {
 bool NonlinearExtension::buildModel(std::map<Node, Node>& arithModel)
 {
   // TODO
-  //d_model.reset(arithModel);
+  // d_model.reset(arithModel);
   return true;
 }
 

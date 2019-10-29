@@ -545,10 +545,10 @@ class NonlinearExtension {
    */
   std::map<Node, Node> d_mv[2];
   /** The non-linear model object
-   * 
+   *
    * TODO
    */
-  //NlModel d_model;
+  // NlModel d_model;
 
   // ordering, stores variables and 0,1,-1
   std::map<Node, unsigned> d_order_vars;

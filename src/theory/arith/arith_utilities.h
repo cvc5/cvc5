@@ -19,10 +19,10 @@
 #ifndef CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 #define CVC4__THEORY__ARITH__ARITH_UTILITIES_H
 
+#include <math.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <math.h>
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
@@ -309,13 +309,18 @@ inline Node mkPi()
  */
 inline Kind joinKinds(Kind k1, Kind k2)
 {
-  if (k2 < k1) {
+  if (k2 < k1)
+  {
     return joinKinds(k2, k1);
-  } else if (k1 == k2) {
+  }
+  else if (k1 == k2)
+  {
     return k1;
   }
-  Assert(k1 == kind::EQUAL || k1 == kind::LT || k1 == kind::LEQ || k1 == kind::GT || k1 == kind::GEQ);
-  Assert(k2 == kind::EQUAL || k2 == kind::LT || k2 == kind::LEQ || k2 == kind::GT || k2 == kind::GEQ);
+  Assert(k1 == kind::EQUAL || k1 == kind::LT || k1 == kind::LEQ
+         || k1 == kind::GT || k1 == kind::GEQ);
+  Assert(k2 == kind::EQUAL || k2 == kind::LT || k2 == kind::LEQ
+         || k2 == kind::GT || k2 == kind::GEQ);
   if (k1 == kind::EQUAL)
   {
     if (k2 == kind::LEQ || k2 == kind::GEQ)
@@ -353,13 +358,18 @@ inline Kind joinKinds(Kind k1, Kind k2)
  */
 inline Kind transKinds(Kind k1, Kind k2)
 {
-  if (k2 < k1) {
+  if (k2 < k1)
+  {
     return transKinds(k2, k1);
-  } else if (k1 == k2) {
+  }
+  else if (k1 == k2)
+  {
     return k1;
   }
-  Assert(k1 == kind::EQUAL || k1 == kind::LT || k1 == kind::LEQ || k1 == kind::GT || k1 == kind::GEQ);
-  Assert(k2 == kind::EQUAL || k2 == kind::LT || k2 == kind::LEQ || k2 == kind::GT || k2 == kind::GEQ);
+  Assert(k1 == kind::EQUAL || k1 == kind::LT || k1 == kind::LEQ
+         || k1 == kind::GT || k1 == kind::GEQ);
+  Assert(k2 == kind::EQUAL || k2 == kind::LT || k2 == kind::LEQ
+         || k2 == kind::GT || k2 == kind::GEQ);
   if (k1 == kind::EQUAL)
   {
     return k2;
@@ -385,19 +395,18 @@ inline Kind transKinds(Kind k1, Kind k2)
 inline bool isTranscendentalKind(Kind k)
 {
   // many operators are eliminated during rewriting
-  Assert(k != kind::TANGENT && k != kind::COSINE && k != kind::COSECANT && k != kind::SECANT
-         && k != kind::COTANGENT);
+  Assert(k != kind::TANGENT && k != kind::COSINE && k != kind::COSECANT
+         && k != kind::SECANT && k != kind::COTANGENT);
   return k == kind::EXPONENTIAL || k == kind::SINE || k == kind::PI;
 }
 
-
 /**
-  * Get a lower/upper approximation of the constant r within the given
-  * level of precision. In other words, this returns a constant c' such that
-  *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
-  *   c' + 1/(10^prec) <= c <= c' if isLower is false.
-  * where c' is a rational of the form n/d for some n and d <= 10^prec.
-  */
+ * Get a lower/upper approximation of the constant r within the given
+ * level of precision. In other words, this returns a constant c' such that
+ *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
+ *   c' + 1/(10^prec) <= c <= c' if isLower is false.
+ * where c' is a rational of the form n/d for some n and d <= 10^prec.
+ */
 inline Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 {
   Assert(c.isConst());
@@ -434,7 +443,7 @@ inline Node getApproximateConstant(Node c, bool isLower, unsigned prec)
                          << prec << "..." << std::endl;
   // now do binary search
   Rational two = Rational(2);
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node cret;
   do
   {
@@ -474,7 +483,6 @@ inline Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   return cret;
 }
 
-
 /** print rational approximation of cr with precision prec on trace c */
 inline void printRationalApprox(const char* c, Node cr, unsigned prec = 5)
 {
@@ -490,7 +498,7 @@ inline void printRationalApprox(const char* c, Node cr, unsigned prec = 5)
     Trace(c) << " [0,10^" << prec << "])";
   }
 }
-  
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
