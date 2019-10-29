@@ -19,6 +19,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
+#include "base/cvc4_check.h"
 #include "expr/datatype.h"
 #include "expr/kind.h"
 #include "options/datatypes_options.h"

@@ -21,6 +21,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
+#include "base/cvc4_check.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/node.h"

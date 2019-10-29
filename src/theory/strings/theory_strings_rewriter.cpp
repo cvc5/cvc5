@@ -1341,7 +1341,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
       }
     }
     default: {
-      Assert(!RegExpOpr::isRegExpKind(k));
+      CVC4_DCHECK(!RegExpOpr::isRegExpKind(k));
       return false;
     }
   }

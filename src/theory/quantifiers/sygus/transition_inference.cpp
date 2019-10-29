@@ -431,7 +431,7 @@ bool TransitionInference::processDisjunct(
       }
       Trace("cegqi-inv-debug") << std::endl;
     }
-    Assert(!d_func.isNull());
+    CVC4_DCHECK(!d_func.isNull());
     if (topLevel)
     {
       if (terms.find(lit_pol) == terms.end())

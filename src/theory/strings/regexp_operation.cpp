@@ -48,7 +48,7 @@ RegExpOpr::RegExpOpr()
 RegExpOpr::~RegExpOpr() {}
 
 bool RegExpOpr::checkConstRegExp( Node r ) {
-  Assert(r.getType().isRegExp());
+  CVC4_DCHECK(r.getType().isRegExp());
   Trace("strings-regexp-cstre")
       << "RegExpOpr::checkConstRegExp /" << mkString(r) << "/" << std::endl;
   RegExpConstType rct = getRegExpConstType(r);
@@ -57,7 +57,7 @@ bool RegExpOpr::checkConstRegExp( Node r ) {
 
 RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 {
-  Assert(r.getType().isRegExp());
+  CVC4_DCHECK(r.getType().isRegExp());
   std::unordered_map<Node, RegExpConstType, NodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
@@ -265,7 +265,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       default: {
-        Assert(!isRegExpKind(k));
+        CVC4_DCHECK(!isRegExpKind(k));
         break;
       }
     }
@@ -505,7 +505,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       default: {
-        Assert(!isRegExpKind(r.getKind()));
+        CVC4_DCHECK(!isRegExpKind(r.getKind()));
         return 0;
         break;
       }
@@ -791,9 +791,9 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         // aren't a standard regular expression kind. However, if we do, then
         // the following code is conservative and says that the current
         // regular expression can begin with any character.
-        Assert(k == REGEXP_SIGMA);
+        CVC4_DCHECK(k == REGEXP_SIGMA);
         // can start with any character
-        Assert(d_lastchar < std::numeric_limits<unsigned>::max());
+        CVC4_DCHECK(d_lastchar < std::numeric_limits<unsigned>::max());
         for (unsigned i = 0; i <= d_lastchar; i++)
         {
           cset.insert(i);
@@ -1683,7 +1683,7 @@ std::string RegExpOpr::mkString( Node r ) {
         std::stringstream ss;
         ss << r;
         retStr = ss.str();
-        Assert(!isRegExpKind(r.getKind()));
+        CVC4_DCHECK(!isRegExpKind(r.getKind()));
         break;
       }
     }

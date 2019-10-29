@@ -22,6 +22,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
+#include "base/cvc4_check.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
 #include "expr/expr.h"

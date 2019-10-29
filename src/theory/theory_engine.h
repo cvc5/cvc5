@@ -28,6 +28,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
+#include "base/cvc4_check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"
@@ -799,7 +800,7 @@ public:
    * @returns the theory
    */
   inline theory::Theory* theoryOf(theory::TheoryId theoryId) const {
-    Assert(theoryId < theory::THEORY_LAST);
+    CVC4_DCHECK(theoryId < theory::THEORY_LAST);
     return d_theoryTable[theoryId];
   }
 

@@ -287,7 +287,7 @@ void InferenceManager::addToExplanation(Node a,
   {
     Debug("strings-explain")
         << "Add to explanation : " << a << " == " << b << std::endl;
-    Assert(d_state.areEqual(a, b));
+    CVC4_DCHECK(d_state.areEqual(a, b));
     exp.push_back(a.eqNode(b));
   }
 }

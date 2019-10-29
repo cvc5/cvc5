@@ -151,7 +151,7 @@ void CegSingleInv::initialize(Node q)
     // the invariant could not be inferred
     return;
   }
-  Assert(prog == q[0][0]);
+  CVC4_DCHECK(prog == q[0][0]);
   NodeManager* nm = NodeManager::currentNM();
   // map the program back via non-single invocation map
   std::vector<Node> prog_templ_vars;

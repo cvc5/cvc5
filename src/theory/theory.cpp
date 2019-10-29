@@ -23,6 +23,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
+#include "base/cvc4_check.h"
 #include "expr/node_algorithm.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
