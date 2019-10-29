@@ -1338,6 +1338,11 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
         }
       }
     }
+    case REGEXP_COMPLEMENT:
+    {
+      return !testConstStringInRegExp(s, index_start, r[0]);
+      break;
+    }
     default: {
       Assert(!RegExpOpr::isRegExpKind(k));
       return false;
