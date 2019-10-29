@@ -26,6 +26,8 @@ set(regress_0_tests
   regress0/arith/integers/arith-int-042.cvc
   regress0/arith/integers/arith-int-042.min.cvc
   regress0/arith/issue1399.smt2
+  regress0/arith/issue3412.smt2
+  regress0/arith/issue3413.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
   regress0/arith/miplib2.cvc
@@ -534,6 +536,7 @@ set(regress_0_tests
   regress0/model-core.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/ext-rew-aggr-test.smt2
+  regress0/nl/issue3407.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -846,6 +849,7 @@ set(regress_0_tests
   regress0/smallcnf.cvc
   regress0/smt2output.smt2
   regress0/smtlib/get-unsat-assumptions.smt2
+  regress0/smtlib/global-decls.smt2
   regress0/smtlib/reason-unknown.smt2
   regress0/smtlib/set-info-status.smt2
   regress0/strings/bug001.smt2
@@ -1729,6 +1733,7 @@ set(regress_1_tests
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
+  regress1/sygus/re-concat.sy
   regress1/sygus/repair-const-rl.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
