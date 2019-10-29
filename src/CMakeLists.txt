@@ -299,6 +299,8 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl_model.cpp
+  theory/arith/nl_model.h
   theory/arith/nonlinear_extension.cpp
   theory/arith/nonlinear_extension.h
   theory/arith/normal_form.cpp

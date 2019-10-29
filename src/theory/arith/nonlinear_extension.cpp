@@ -553,85 +553,6 @@ Node NonlinearExtension::mkBounded( Node l, Node a, Node u ) {
       NodeManager::currentNM()->mkNode(LEQ, a, u));
 }
 
-// by a <k1> b, a <k2> b, we know a <ret> b
-Kind NonlinearExtension::joinKinds(Kind k1, Kind k2) {
-  if (k2 < k1) {
-    return joinKinds(k2, k1);
-  } else if (k1 == k2) {
-    return k1;
-  } else {
-    Assert(k1 == EQUAL || k1 == LT || k1 == LEQ || k1 == GT || k1 == GEQ);
-    Assert(k2 == EQUAL || k2 == LT || k2 == LEQ || k2 == GT || k2 == GEQ);
-    if (k1 == EQUAL)
-    {
-      if (k2 == LEQ || k2 == GEQ)
-      {
-        return k1;
-      }
-    }
-    else if (k1 == LT)
-    {
-      if (k2 == LEQ)
-      {
-        return k1;
-      }
-    }
-    else if (k1 == LEQ)
-    {
-      if (k2 == GEQ)
-      {
-        return EQUAL;
-      }
-    }
-    else if (k1 == GT)
-    {
-      if (k2 == GEQ)
-      {
-        return k1;
-      }
-    }
-    return UNDEFINED_KIND;
-  }
-}
-
-// by a <k1> b, b <k2> c, we know a <ret> c
-Kind NonlinearExtension::transKinds(Kind k1, Kind k2) {
-  if (k2 < k1) {
-    return transKinds(k2, k1);
-  } else if (k1 == k2) {
-    return k1;
-  } else {
-    Assert(k1 == EQUAL || k1 == LT || k1 == LEQ || k1 == GT || k1 == GEQ);
-    Assert(k2 == EQUAL || k2 == LT || k2 == LEQ || k2 == GT || k2 == GEQ);
-    if (k1 == EQUAL)
-    {
-      return k2;
-    }
-    else if (k1 == LT)
-    {
-      if (k2 == LEQ)
-      {
-        return k1;
-      }
-    }
-    else if (k1 == GT)
-    {
-      if (k2 == GEQ)
-      {
-        return k1;
-      }
-    }
-    return UNDEFINED_KIND;
-  }
-}
-
-bool NonlinearExtension::isTranscendentalKind(Kind k) {
-  // many operators are eliminated during rewriting
-  Assert(k != TANGENT && k != COSINE && k != COSECANT && k != SECANT
-         && k != COTANGENT);
-  return k == EXPONENTIAL || k == SINE || k == PI;
-}
- 
 Node NonlinearExtension::mkMonomialRemFactor(
     Node n, const NodeMultiset& n_exp_rem) const {
   std::vector<Node> children;
@@ -854,6 +775,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   d_check_model_subs.clear();
 
   // get the presubstitution
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
   std::vector<Node> pvars;
   std::vector<Node> psubs;
@@ -923,6 +845,8 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       }
     }
   }
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // d_model.checkModel(passertions, false_asserts, d_taylor_degree);
 
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : false_asserts)
@@ -1020,6 +944,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
 
   // must assert and re-check if produce models is true
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if (options::produceModels())
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -1042,6 +967,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     }
     d_builtModel = true;
   }
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   return true;
 }
 
@@ -2552,6 +2478,7 @@ void NonlinearExtension::check(Theory::Effort e) {
 bool NonlinearExtension::buildModel(std::map<Node, Node>& arithModel)
 {
   // TODO
+  //d_model.reset(arithModel);
   return true;
 }
 
@@ -2681,84 +2608,6 @@ void NonlinearExtension::getCurrentPiBounds( std::vector< Node >& lemmas ) {
   lemmas.push_back( pi_lem );
 }
 
-Node NonlinearExtension::getApproximateConstant(Node c,
-                                                bool isLower,
-                                                unsigned prec) const
-{
-  Assert(c.isConst());
-  Rational cr = c.getConst<Rational>();
-
-  unsigned lower = 0;
-  unsigned upper = pow(10, prec);
-
-  Rational den = Rational(upper);
-  if (cr.getDenominator() < den.getNumerator())
-  {
-    // denominator is not more than precision, we return it
-    return c;
-  }
-
-  int csign = cr.sgn();
-  Assert(csign != 0);
-  if (csign == -1)
-  {
-    cr = -cr;
-  }
-  Rational one = Rational(1);
-  Rational ten = Rational(10);
-  Rational pow_ten = Rational(1);
-  // inefficient for large numbers
-  while (cr >= one)
-  {
-    cr = cr / ten;
-    pow_ten = pow_ten * ten;
-  }
-  Rational allow_err = one / den;
-
-  Trace("nl-ext-approx") << "Compute approximation for " << c << ", precision "
-                         << prec << "..." << std::endl;
-  // now do binary search
-  Rational two = Rational(2);
-  NodeManager * nm = NodeManager::currentNM();
-  Node cret;
-  do
-  {
-    unsigned curr = (lower + upper) / 2;
-    Rational curr_r = Rational(curr) / den;
-    Rational err = cr - curr_r;
-    int esign = err.sgn();
-    if (err.abs() <= allow_err)
-    {
-      if (esign == 1 && !isLower)
-      {
-        curr_r = Rational(curr + 1) / den;
-      }
-      else if (esign == -1 && isLower)
-      {
-        curr_r = Rational(curr - 1) / den;
-      }
-      curr_r = curr_r * pow_ten;
-      cret = nm->mkConst(csign == 1 ? curr_r : -curr_r);
-    }
-    else
-    {
-      Assert(esign != 0);
-      // update lower/upper
-      if (esign == -1)
-      {
-        upper = curr;
-      }
-      else if (esign == 1)
-      {
-        lower = curr;
-      }
-    }
-  } while (cret.isNull());
-  Trace("nl-ext-approx") << "Approximation for " << c << " for precision "
-                         << prec << " is " << cret << std::endl;
-  return cret;
-}
-
 bool NonlinearExtension::getApproximateSqrt(Node c,
                                             Node& l,
                                             Node& u,
@@ -2802,23 +2651,6 @@ bool NonlinearExtension::getApproximateSqrt(Node c,
   l = nm->mkConst(rl);
   u = nm->mkConst(ru);
   return true;
-}
-
-void NonlinearExtension::printRationalApprox(const char* c,
-                                             Node cr,
-                                             unsigned prec) const
-{
-  Assert(cr.isConst());
-  Node ca = getApproximateConstant(cr, true, prec);
-  if (ca != cr)
-  {
-    Trace(c) << "(+ ";
-  }
-  Trace(c) << ca;
-  if (ca != cr)
-  {
-    Trace(c) << " [0,10^" << prec << "])";
-  }
 }
 
 void NonlinearExtension::printModelValue(const char* c,
