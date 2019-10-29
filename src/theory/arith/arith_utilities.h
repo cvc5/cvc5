@@ -317,10 +317,8 @@ inline Kind joinKinds(Kind k1, Kind k2)
   {
     return k1;
   }
-  Assert(k1 == kind::EQUAL || k1 == kind::LT || k1 == kind::LEQ
-         || k1 == kind::GT || k1 == kind::GEQ);
-  Assert(k2 == kind::EQUAL || k2 == kind::LT || k2 == kind::LEQ
-         || k2 == kind::GT || k2 == kind::GEQ);
+  Assert(isRelationOperator(k1));
+  Assert(isRelationOperator(k2));
   if (k1 == kind::EQUAL)
   {
     if (k2 == kind::LEQ || k2 == kind::GEQ)
@@ -366,10 +364,8 @@ inline Kind transKinds(Kind k1, Kind k2)
   {
     return k1;
   }
-  Assert(k1 == kind::EQUAL || k1 == kind::LT || k1 == kind::LEQ
-         || k1 == kind::GT || k1 == kind::GEQ);
-  Assert(k2 == kind::EQUAL || k2 == kind::LT || k2 == kind::LEQ
-         || k2 == kind::GT || k2 == kind::GEQ);
+  Assert(isRelationOperator(k1));
+  Assert(isRelationOperator(k2));
   if (k1 == kind::EQUAL)
   {
     return k2;
@@ -439,8 +435,6 @@ inline Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   }
   Rational allow_err = one / den;
 
-  Trace("nl-ext-approx") << "Compute approximation for " << c << ", precision "
-                         << prec << "..." << std::endl;
   // now do binary search
   Rational two = Rational(2);
   NodeManager* nm = NodeManager::currentNM();
@@ -478,8 +472,6 @@ inline Node getApproximateConstant(Node c, bool isLower, unsigned prec)
       }
     }
   } while (cret.isNull());
-  Trace("nl-ext-approx") << "Approximation for " << c << " for precision "
-                         << prec << " is " << cret << std::endl;
   return cret;
 }
 
