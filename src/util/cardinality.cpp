@@ -176,8 +176,9 @@ Cardinality& Cardinality::operator^=(const Cardinality& c) {
     return *this;
   } else {
     CVC4_DCHECK(compare(2) != LESS && !c.isFinite())
-        << "fall-through case not as expected:\n%s\n%s",
-        this->toString().c_str(), c.toString().c_str();
+        << "fall-through case not as expected:\n"
+        << this << "\n"
+        << c;
     // (>= 2) ^ beth_k == beth_(k+1)
     // unless the base is already > the exponent
     if (compare(c) == GREATER) {
