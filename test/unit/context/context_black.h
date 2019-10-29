@@ -19,6 +19,7 @@
 #include <iostream>
 #include <vector>
 
+#include "base/exception.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
