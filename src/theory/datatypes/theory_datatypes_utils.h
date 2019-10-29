@@ -146,11 +146,13 @@ Kind getOperatorKindForSygusBuiltin(Node op);
  *
  * This function returns a builtin term f( children[0], ..., children[n] )
  * where f is the builtin op that the i^th constructor of sygus datatype dt
- * encodes.
+ * encodes. If doBetaReduction is true, then lambdas are eagerly eliminated
+ * via beta reduction.
  */
 Node mkSygusTerm(const Datatype& dt,
                  unsigned i,
-                 const std::vector<Node>& children);
+                 const std::vector<Node>& children,
+                 bool doBetaReduction=true);
 /**
  * n is a builtin term that is an application of operator op.
  *

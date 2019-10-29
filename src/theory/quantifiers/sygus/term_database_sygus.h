@@ -223,15 +223,20 @@ class TermDbSygus {
    *   If i is in the domain of pre, then ti = pre[i].
    *   If i is not in the domain of pre, then ti = d_fv[1][ var_count[Ti ] ],
    *     and var_count[Ti] is incremented.
+   * If doBetaRed is true, then lambda operators are eagerly eliminated via
+   * beta reduction.
    */
   Node mkGeneric(const Datatype& dt,
                  unsigned c,
                  std::map<TypeNode, int>& var_count,
-                 std::map<int, Node>& pre);
+                 std::map<int, Node>& pre,
+                 bool doBetaRed=true);
   /** same as above, but with empty var_count */
-  Node mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre);
+  Node mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre,
+                 bool doBetaRed=true);
   /** same as above, but with empty pre */
-  Node mkGeneric(const Datatype& dt, int c);
+  Node mkGeneric(const Datatype& dt, int c,
+                 bool doBetaRed=true);
   /** makes a symbolic term concrete
    *
    * Given a sygus datatype term n of type tn with holes (symbolic constructor
