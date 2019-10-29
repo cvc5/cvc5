@@ -25,7 +25,6 @@
 #include <string>
 #include <sstream>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "context/cdlist_forward.h"
 #include "context/context.h"

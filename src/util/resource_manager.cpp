@@ -16,7 +16,6 @@
 **/
 #include "util/resource_manager.h"
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "base/output.h"
 #include "options/smt_options.h"

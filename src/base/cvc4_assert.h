@@ -230,7 +230,7 @@ class InternalErrorException : public AssertionException {
 /**
  * Special assertion failure handling in debug mode; in non-debug
  * builds, the exception is thrown from the macro.  We factor out this
- * additional logic so as not to bloat the code at every CVC4_DCHECK()
+ * additional logic so as not to bloat the code at every AssertDeprecated()
  * expansion.
  *
  * Note this name is prefixed with "debug" because it is included in

@@ -18,7 +18,6 @@
 #include "smt/smt_engine_scope.h"
 
 #include "base/configuration_private.h"
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "base/output.h"
 #include "proof/proof.h"

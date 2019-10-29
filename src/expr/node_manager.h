@@ -32,6 +32,7 @@
 #include <string>
 #include <unordered_set>
 
+#include "base/cvc4_assert.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"

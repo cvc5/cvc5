@@ -27,7 +27,6 @@
 #include <typeinfo>
 #include <vector>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "base/output.h"
 #include "context/context_mm.h"

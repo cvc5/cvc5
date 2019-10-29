@@ -26,7 +26,6 @@
 #include <limits>
 #include <functional>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "base/exception.h"
 

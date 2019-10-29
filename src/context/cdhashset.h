@@ -19,7 +19,6 @@
 #ifndef CVC4__CONTEXT__CDHASHSET_H
 #define CVC4__CONTEXT__CDHASHSET_H
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"

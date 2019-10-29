@@ -19,7 +19,6 @@
 #include <string>
 #include <sstream>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "expr/attribute.h"
 #include "expr/expr_manager.h"

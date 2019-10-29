@@ -29,7 +29,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"

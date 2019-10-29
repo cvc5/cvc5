@@ -11,10 +11,9 @@
  **
  ** \brief Assertion utility classes, functions and macros.
  **
- ** The CVC4_CHECK utility classes, functions and macros are related to the
- ** CVC4_DCHECK() macros defined in base/cvc4_assert.h. The major distinguishing
- ** attribute is the CVC4_CHECK's abort() the process on failures while
- ** CVC4_DCHECK() statements throw C++ exceptions.
+ ** The CVC4_CHECK utility classes, functions and macros. The major
+ ** distinguishing attribute is the CVC4_CHECK's abort() the process on
+ ** failures while CVC4_DCHECK() statements throw C++ exceptions.
  **
  ** The main usage in the file is the CVC4_CHECK macros. The CVC4_CHECK macros
  ** assert a condition and aborts()'s the process if the condition is not

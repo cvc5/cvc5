@@ -18,7 +18,6 @@
 
 #include <list>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 
 namespace CVC4 {

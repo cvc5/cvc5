@@ -19,7 +19,6 @@
 #ifndef CVC4__THEORY__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__TYPE_ENUMERATOR_H
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "base/exception.h"
 #include "expr/node.h"

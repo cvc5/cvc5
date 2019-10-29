@@ -22,7 +22,6 @@
 #include <cstring>
 #include <string>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 
 using namespace std;

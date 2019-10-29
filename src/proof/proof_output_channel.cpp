@@ -17,7 +17,6 @@
 
 #include "proof/proof_output_channel.h"
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"

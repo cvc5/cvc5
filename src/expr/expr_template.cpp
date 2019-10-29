@@ -20,7 +20,6 @@
 #include <utility>
 #include <vector>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/node.h"

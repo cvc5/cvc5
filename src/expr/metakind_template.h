@@ -21,7 +21,6 @@
 
 #include <iosfwd>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "expr/kind.h"
 

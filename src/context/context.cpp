@@ -18,7 +18,6 @@
 #include <iostream>
 #include <vector>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "context/context.h"
 

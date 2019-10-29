@@ -29,7 +29,6 @@
 #include <iterator>
 #include <unordered_set>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "base/map_util.h"
 #include "proof/dimacs.h"

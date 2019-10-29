@@ -25,7 +25,6 @@
 #  error "This source should only ever be built if CVC4_GMP_IMP is on !"
 #endif /* CVC4_GMP_IMP */
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 
 namespace CVC4 {

@@ -20,7 +20,6 @@
 
 #include <stdint.h>
 
-#include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
