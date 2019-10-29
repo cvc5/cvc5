@@ -2176,6 +2176,14 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind)
    */
   REGEXP_SIGMA,
+  /**
+   * Regexp complement.
+   * Parameters: 1
+   *   -[1]: Term of sort RegExp
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   */
+  REGEXP_COMPLEMENT,
 #if 0
   /* regexp rv (internal use only) */
   REGEXP_RV,

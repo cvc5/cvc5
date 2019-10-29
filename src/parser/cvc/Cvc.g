@@ -237,6 +237,7 @@ tokens {
   REGEXP_LOOP_TOK = 'RE_LOOP';
   REGEXP_EMPTY_TOK = 'RE_EMPTY';
   REGEXP_SIGMA_TOK = 'RE_SIGMA';
+  REGEXP_COMPLEMENT_TOK = 'RE_COMPLEMENT';
   
   SETS_CARD_TOK = 'CARD';
   
@@ -2057,6 +2058,8 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::REGEXP_RANGE, f, f2); }
   | REGEXP_LOOP_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::REGEXP_LOOP, f, f2, f3); }
+  | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::REGEXP_COMPLEMENT, f); }
   | REGEXP_EMPTY_TOK
     { f = MK_EXPR(CVC4::kind::REGEXP_EMPTY, std::vector<Expr>()); }
   | REGEXP_SIGMA_TOK

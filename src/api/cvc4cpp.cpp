@@ -303,6 +303,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {REGEXP_LOOP, CVC4::Kind::REGEXP_LOOP},
     {REGEXP_EMPTY, CVC4::Kind::REGEXP_EMPTY},
     {REGEXP_SIGMA, CVC4::Kind::REGEXP_SIGMA},
+    {REGEXP_COMPLEMENT, CVC4::Kind::REGEXP_COMPLEMENT},
     /* Quantifiers --------------------------------------------------------- */
     {FORALL, CVC4::Kind::FORALL},
     {EXISTS, CVC4::Kind::EXISTS},

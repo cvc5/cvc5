@@ -77,7 +77,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
         d_constCache[cur] =
             tmp.isConst() ? RE_C_CONRETE_CONSTANT : RE_C_VARIABLE;
       }
-      else if (ck == REGEXP_SIGMA || ck == REGEXP_RANGE)
+      else if (ck == REGEXP_SIGMA || ck == REGEXP_RANGE || ck == REGEXP_COMPLEMENT)
       {
         d_constCache[cur] = RE_C_CONSTANT;
       }
@@ -123,11 +123,10 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 
 bool RegExpOpr::isRegExpKind(Kind k)
 {
-  // we don't include REGEXP_COMPLEMENT here.
   return k == REGEXP_EMPTY || k == REGEXP_SIGMA || k == STRING_TO_REGEXP
          || k == REGEXP_CONCAT || k == REGEXP_UNION || k == REGEXP_INTER
          || k == REGEXP_STAR || k == REGEXP_PLUS || k == REGEXP_OPT
-         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV;
+         || k == REGEXP_RANGE || k == REGEXP_LOOP || k == REGEXP_RV || k==REGEXP_COMPLEMENT;
 }
 
 // 0-unknown, 1-yes, 2-no
@@ -263,6 +262,11 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         } else {
           ret = delta(r[0], exp);
         }
+        break;
+      }
+      case kind::REGEXP_COMPLEMENT:
+      {
+        // ???
         break;
       }
       default: {
@@ -505,6 +509,12 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         }
         break;
       }
+      case kind::REGEXP_COMPLEMENT:
+      {
+        // don't know result
+        return 0;
+        break;
+      }
       default: {
         Assert(!isRegExpKind(r.getKind()));
         return 0;
@@ -680,6 +690,7 @@ Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
         //Trace("regexp-derive") << "RegExp-derive : REGEXP_LOOP returns /" << mkString(retNode) << "/" << std::endl;
         break;
       }
+      case kind::REGEXP_COMPLEMENT:
       default: {
         Trace("strings-error") << "Unsupported term: " << mkString( r ) << " in derivative of RegExp." << std::endl;
         Unreachable();
@@ -787,12 +798,13 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         break;
       }
       case kind::REGEXP_SIGMA:
+      case kind::REGEXP_COMPLEMENT:
       default: {
         // we do not expect to call this function on regular expressions that
         // aren't a standard regular expression kind. However, if we do, then
         // the following code is conservative and says that the current
         // regular expression can begin with any character.
-        Assert(k == REGEXP_SIGMA);
+        Assert(isRegExpKind(k));
         // can start with any character
         Assert(d_lastchar < std::numeric_limits<unsigned>::max());
         for (unsigned i = 0; i <= d_lastchar; i++)
@@ -1047,6 +1059,11 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         }
         break;
       }
+      case kind::REGEXP_COMPLEMENT: {
+        // ~( s in complement(R) ) ---> s in R
+        conc = nm->mkNode(STRING_IN_REGEXP,s, r[0]);
+      }
+        break;
       default: {
         Assert(!isRegExpKind(k));
         break;
@@ -1223,6 +1240,11 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         }
         break;
       }
+      case kind::REGEXP_COMPLEMENT: {
+        // s in complement(R) ---> ~( s in R )
+        conc = nm->mkNode(STRING_IN_REGEXP,s, r[0]).negate();
+      }
+        break;
       default: {
         Assert(!isRegExpKind(k));
         break;
@@ -1288,10 +1310,13 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
   if(n == d_emptyRegexp) {
     r1 = d_emptyRegexp;
     r2 = d_emptyRegexp;
+    return;
   } else if(n == d_emptySingleton) {
     r1 = d_emptySingleton;
     r2 = d_emptySingleton;
-  } else if(n.getKind() == kind::REGEXP_RV) {
+  } 
+  Kind nk = n.getKind();
+  if(nk == REGEXP_RV) {
     Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
            "Exceeded UINT32_MAX in RegExpOpr::convert2");
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
@@ -1301,7 +1326,7 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     } else {
       r2 = n;
     }
-  } else if(n.getKind() == kind::REGEXP_CONCAT) {
+  } else if(nk ==REGEXP_CONCAT) {
     bool flag = true;
     std::vector<Node> vr1, vr2;
     for( unsigned i=0; i<n.getNumChildren(); i++ ) {
@@ -1327,7 +1352,7 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
       r1 = d_emptySingleton;
       r2 = n;
     }
-  } else if(n.getKind() == kind::REGEXP_UNION) {
+  } else if(nk == REGEXP_UNION) {
     std::vector<Node> vr1, vr2;
     for( unsigned i=0; i<n.getNumChildren(); i++ ) {
       Node t1, t2;
@@ -1337,14 +1362,18 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     }
     r1 = NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vr1);
     r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vr2);
-  } else if(n.getKind() == kind::STRING_TO_REGEXP || n.getKind() == kind::REGEXP_SIGMA || n.getKind() == kind::REGEXP_RANGE) {
+  } else if(nk == STRING_TO_REGEXP || nk == REGEXP_SIGMA || nk == REGEXP_RANGE) {
       r1 = d_emptySingleton;
       r2 = n;
-  } else if(n.getKind() == kind::REGEXP_LOOP) {
+  } else if(nk == REGEXP_LOOP) {
     //TODO:LOOP
     r1 = d_emptySingleton;
     r2 = n;
     //Unreachable();
+  } else if (nk==REGEXP_COMPLEMENT)
+  {
+    // ???
+    Unreachable();
   } else {
     //is it possible?
     Unreachable();
@@ -1524,6 +1553,7 @@ Node RegExpOpr::removeIntersection(Node r) {
     case REGEXP_CONCAT:
     case REGEXP_UNION:
     case REGEXP_STAR:
+    case REGEXP_COMPLEMENT:
     {
       NodeBuilder<> nb(rk);
       for (const Node& rc : r)
@@ -1677,6 +1707,12 @@ std::string RegExpOpr::mkString( Node r ) {
         retStr += "<";
         retStr += r[0].getConst<Rational>().getNumerator().toString();
         retStr += ">";
+        break;
+      }
+      case REGEXP_COMPLEMENT: {
+        retStr += "^(";
+        retStr += mkString( r[0] );
+        retStr += ")";
         break;
       }
       default:
