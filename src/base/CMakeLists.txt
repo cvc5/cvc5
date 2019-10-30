@@ -10,11 +10,11 @@ add_custom_target(gen-gitinfo
 #-----------------------------------------------------------------------------#
 
 libcvc4_add_sources(
+  check.cpp
+  check.h
   configuration.cpp
   configuration.h
   configuration_private.h
-  check.cpp
-  check.h
   exception.cpp
   exception.h
   listener.cpp
