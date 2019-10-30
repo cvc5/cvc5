@@ -375,7 +375,7 @@ bool EqualityEngine::hasTerm(TNode t) const {
 }
 
 EqualityNodeId EqualityEngine::getNodeId(TNode node) const {
-  Assert(hasTerm(node)) << node.toString().c_str();
+  Assert(hasTerm(node)) << node;
   return (*d_nodeIds.find(node)).second;
 }
 
