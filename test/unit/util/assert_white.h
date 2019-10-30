@@ -20,27 +20,28 @@
 #include <cstring>
 
 #include "base/check.h"
+#include "test_utils.h"
 
 using namespace CVC4;
 using namespace std;
 
 class AssertWhite : public CxxTest::TestSuite {
 public:
- void testAssertDeprecated()
+ void testAssert()
  {
 #ifdef CVC4_ASSERTIONS
    TS_UTILS_EXPECT_ABORT(Assert(false));
    TS_ASSERT_THROWS(AssertArgument(false, "x"), AssertArgumentException&);
 #else /* CVC4_ASSERTIONS */
-   TS_ASSERT_THROWS_NOTHING(AssertDeprecated(false));
+   TS_ASSERT_THROWS_NOTHING(Assert(false));
    TS_ASSERT_THROWS_NOTHING(AssertArgument(false, "x"));
 #endif /* CVC4_ASSERTIONS */
 
-   TS_ASSERT_THROWS_NOTHING(AssertDeprecated(true));
+   TS_ASSERT_THROWS_NOTHING(Assert(true));
    TS_UTILS_EXPECT_ABORT(AlwaysAssert(false));
-   TS_ASSERT_THROWS(Unreachable(), UnreachableCodeException&);
-   TS_ASSERT_THROWS(Unhandled(), UnhandledCaseException&);
-   TS_ASSERT_THROWS(Unimplemented(), UnimplementedOperationException&);
+   TS_UTILS_EXPECT_ABORT(Unreachable());
+   TS_UTILS_EXPECT_ABORT(Unhandled());
+   TS_UTILS_EXPECT_ABORT(Unimplemented());
    TS_ASSERT_THROWS(IllegalArgument("x"), IllegalArgumentException&);
    TS_ASSERT_THROWS(CheckArgument(false, "x"), IllegalArgumentException&);
    TS_ASSERT_THROWS(AlwaysAssertArgument(false, "x"), AssertArgumentException&);
@@ -49,16 +50,18 @@ public:
  }
 
   void testUnreachable() {
-    TS_ASSERT_THROWS(Unreachable(), UnreachableCodeException&);
-    TS_ASSERT_THROWS(Unreachable("hello"), UnreachableCodeException&);
-    TS_ASSERT_THROWS(Unreachable("hello %s", "world"),
-                     UnreachableCodeException&);
+    TS_UTILS_EXPECT_ABORT(Unreachable());
+    TS_UTILS_EXPECT_ABORT(Unreachable() << "hello");
+    TS_UTILS_EXPECT_ABORT(Unreachable() << "hello "
+                                        << "world");
 
     int x = 5;
-    TS_ASSERT_THROWS(Unhandled(), UnhandledCaseException&);
-    TS_ASSERT_THROWS(Unhandled(x), UnhandledCaseException&);
-    TS_ASSERT_THROWS(Unhandled("foo"), UnhandledCaseException&);
-    TS_ASSERT_THROWS(Unhandled("foo %s baz", "bar"), UnhandledCaseException&);
+    TS_UTILS_EXPECT_ABORT(Unhandled());
+    TS_UTILS_EXPECT_ABORT(Unhandled() << x);
+    TS_UTILS_EXPECT_ABORT(Unhandled() << "foo");
+    TS_UTILS_EXPECT_ABORT(Unhandled() << "foo "
+                                      << "bar"
+                                      << " baz");
   }
 
 };
