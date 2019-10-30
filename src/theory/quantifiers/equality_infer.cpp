@@ -97,7 +97,7 @@ Node EqualityInference::getMaster( Node t, EqcInfo * eqc, bool& updated, Node ne
         return t;
       }
     }else{
-      Assert( d_eqci.find( eqc->d_master.get() )!=d_eqci.end() );
+      Assert(d_eqci.find(eqc->d_master.get()) != d_eqci.end());
       EqcInfo * eqc_m = d_eqci[eqc->d_master.get()];
       Node m = getMaster( eqc->d_master.get(), eqc_m, updated, new_m );
       eqc->d_master = m;
@@ -141,7 +141,7 @@ void EqualityInference::eqNotifyNewClass(TNode t) {
     }else{
       eqci = itec->second;
     }
-    Assert( !eqci->d_valid.get() );
+    Assert(!eqci->d_valid.get());
     if( !eqci->d_solved.get() ){
       //somewhat strange: t may not be in rewritten form    
       Node r = Rewriter::rewrite( t );
@@ -160,16 +160,16 @@ void EqualityInference::eqNotifyNewClass(TNode t) {
             BoolMap::const_iterator itv = d_elim_vars.find( n );
             if( itv!=d_elim_vars.end() ){
               changed = true;
-              Assert( d_eqci.find( n )!=d_eqci.end() );
-              Assert( n!=t );
-              Assert( d_eqci[n]->d_solved.get() );
+              Assert(d_eqci.find(n) != d_eqci.end());
+              Assert(n != t);
+              Assert(d_eqci[n]->d_solved.get());
               Trace("eq-infer-debug2") << "......its solved form is " << d_eqci[n]->d_rep.get() << std::endl;
               if( d_trackExplain ){
                 //track the explanation: justified by explanation for each substitution
                 addToExplanationEqc( exp, n );
               }
               n = d_eqci[n]->d_rep;
-              Assert( !n.isNull() );
+              Assert(!n.isNull());
             }
             if( it->second.isNull() ){
               children.push_back( n );
@@ -177,7 +177,7 @@ void EqualityInference::eqNotifyNewClass(TNode t) {
               children.push_back( NodeManager::currentNM()->mkNode( MULT, it->second, n ) );
             }
           }else{
-            Assert( !it->second.isNull() );
+            Assert(!it->second.isNull());
             children.push_back( it->second );
           }
         }
@@ -275,8 +275,8 @@ void EqualityInference::setEqcRep( Node t, Node r, std::vector< Node >& exp_to_a
 }
 
 void EqualityInference::eqNotifyMerge(TNode t1, TNode t2) {
-  Assert( !t1.isNull() );
-  Assert( !t2.isNull() );
+  Assert(!t1.isNull());
+  Assert(!t2.isNull());
   std::map< Node, EqcInfo * >::iterator itv1 = d_eqci.find( t1 );
   if( itv1!=d_eqci.end() ){
     std::map< Node, EqcInfo * >::iterator itv2 = d_eqci.find( t2 );
@@ -324,7 +324,7 @@ void EqualityInference::eqNotifyMerge(TNode t1, TNode t2) {
             {
               Node v_value = veq[1];
               Trace("eq-infer") << "...solved " << v_solve << " == " << v_value << std::endl;
-              Assert( d_elim_vars.find( v_solve )==d_elim_vars.end() );
+              Assert(d_elim_vars.find(v_solve) == d_elim_vars.end());
               d_elim_vars[v_solve] = true;
               //store value in eqc info
               EqcInfo * eqci_solved;

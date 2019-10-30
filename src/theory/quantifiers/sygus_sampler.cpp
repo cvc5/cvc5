@@ -813,8 +813,8 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
 
     if (options::sygusRewVerifyAbort())
     {
-      AlwaysAssert(false,
-                   "--sygus-rr-verify detected unsoundness in the rewriter!");
+      AlwaysAssert(false)
+          << "--sygus-rr-verify detected unsoundness in the rewriter!";
     }
   }
 }

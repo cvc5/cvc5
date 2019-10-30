@@ -384,14 +384,14 @@ bool TypeNode::isRecord() const {
 size_t TypeNode::getTupleLength() const {
   Assert(isTuple());
   const Datatype& dt = getDatatype();
-  Assert(dt.getNumConstructors()==1);
+  Assert(dt.getNumConstructors() == 1);
   return dt[0].getNumArgs();
 }
 
 vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(isTuple());
   const Datatype& dt = getDatatype();
-  Assert(dt.getNumConstructors()==1);
+  Assert(dt.getNumConstructors() == 1);
   vector<TypeNode> types;
   for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
     types.push_back(TypeNode::fromType(dt[0][i].getRangeType()));
@@ -451,9 +451,9 @@ TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
 }
 
 TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   Assert(!t0.isNull());
   Assert(!t1.isNull());
@@ -513,15 +513,17 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     }
   }
   case kind::SEXPR_TYPE:
-    Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
+    Unimplemented()
+        << "haven't implemented leastCommonType for symbolic expressions yet";
   default:
-    Unimplemented("don't have a commonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
+    Unimplemented() << "don't have a commonType for types `" << t0 << "' and `"
+                    << t1 << "'";
   }
 }
 
 Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
-  Assert( ntn.isComparableTo( tn ) );
+  Assert(ntn.isComparableTo(tn));
   if( !ntn.isSubtypeOf( tn ) ){
     if( tn.isInteger() ){
       if( tn.isSubtypeOf( ntn ) ){

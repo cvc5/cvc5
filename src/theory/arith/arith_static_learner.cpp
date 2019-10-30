@@ -163,8 +163,8 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
 
   if(t == cleft && e == cright){
     // t == cleft && e == cright
-    Assert( t == cleft );
-    Assert( e == cright );
+    Assert(t == cleft);
+    Assert(e == cright);
     switch(k){
     case LT:   // (ite (< x y) x y)
     case LEQ: { // (ite (<= x y) x y)
@@ -270,9 +270,7 @@ void ArithStaticLearner::addBound(TNode n) {
       Debug("arith::static") << "adding bound " << n << endl;
     }
     break;
-  default:
-    Unhandled(k);
-    break;
+  default: Unhandled() << k; break;
   }
 }
 

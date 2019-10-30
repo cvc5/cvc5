@@ -90,7 +90,7 @@ ClauseId CadicalSolver::addXorClause(SatClause& clause,
                                      bool rhs,
                                      bool removable)
 {
-  Unreachable("CaDiCaL does not support adding XOR clauses.");
+  Unreachable() << "CaDiCaL does not support adding XOR clauses.";
 }
 
 SatVariable CadicalSolver::newVar(bool isTheoryAtom,
@@ -148,7 +148,7 @@ SatValue CadicalSolver::modelValue(SatLiteral l)
 
 unsigned CadicalSolver::getAssertionLevel() const
 {
-  Unreachable("CaDiCal does not support assertion levels.");
+  Unreachable() << "CaDiCaL does not support assertion levels.";
 }
 
 bool CadicalSolver::ok() const { return d_okay; }
