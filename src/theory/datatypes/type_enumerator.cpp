@@ -124,7 +124,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      // we first check if the last argument (which is forced to make sum of
      // iterated arguments equal to d_size_limit) is defined
      Node lc;
-<<<<<<< HEAD
      if (ctor.getNumArgs() > 0)
      {
        Assert(index < d_sel_types.size());
@@ -133,13 +132,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
                         d_size_limit - d_sel_sum[index]);
        if (lc.isNull())
        {
-=======
-     if( ctor.getNumArgs()>0 ){
-       Assert(index < d_sel_types.size());
-       Assert(ctor.getNumArgs() - 1 < d_sel_types[index].size());
-       lc = getTermEnum( d_sel_types[index][ctor.getNumArgs()-1], d_size_limit - d_sel_sum[index] );
-       if( lc.isNull() ){
->>>>>>> 43ab3f4cd1aa5549cb1aa3c20a2d589614bcb8fc
          Debug("dt-enum-debug") << "Current infeasible." << std::endl;
          return Node::null();
        }
@@ -160,24 +152,15 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        b << ctor.getConstructor();
      }
      Debug("dt-enum-debug") << "Get arguments..." << std::endl;
-<<<<<<< HEAD
      if (ctor.getNumArgs() > 0)
      {
-=======
-     if( ctor.getNumArgs()>0 ){
->>>>>>> 43ab3f4cd1aa5549cb1aa3c20a2d589614bcb8fc
        Assert(index < d_sel_types.size());
        Assert(index < d_sel_index.size());
        Assert(d_sel_types[index].size() == ctor.getNumArgs());
        Assert(d_sel_index[index].size() == ctor.getNumArgs() - 1);
-<<<<<<< HEAD
        for (int i = 0; i < (int)(ctor.getNumArgs() - 1); i++)
        {
          Node c = getTermEnum(d_sel_types[index][i], d_sel_index[index][i]);
-=======
-       for( int i=0; i<(int)(ctor.getNumArgs()-1); i++ ){
-         Node c = getTermEnum( d_sel_types[index][i], d_sel_index[index][i] );
->>>>>>> 43ab3f4cd1aa5549cb1aa3c20a2d589614bcb8fc
          Assert(!c.isNull());
          b << c;
        }
@@ -273,7 +256,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      }
    }
    d_size_limit = 0;
-<<<<<<< HEAD
    if (!d_zeroTermActive)
    {
      // set up initial conditions (should always succeed)
@@ -309,12 +291,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        }
      }
      // Here, we need to step from the current constructor to the next one
-=======
-   //set up initial conditions (should always succeed)
-   ++*this; //increment( d_ctor );
-   AlwaysAssert(!isFinished());
-}
->>>>>>> 43ab3f4cd1aa5549cb1aa3c20a2d589614bcb8fc
 
      // Find the next constructor (only complicated by the notion of the "zero"
      // constructor
