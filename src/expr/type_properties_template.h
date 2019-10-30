@@ -42,13 +42,15 @@ namespace kind {
  * "kinds" files, so includes contributions from each theory regarding
  * that theory's types.
  */
-inline Cardinality getCardinality(TypeConstant tc) {
-  switch(tc) {
+inline Cardinality getCardinality(TypeConstant tc)
+{
+  switch (tc)
+  {
 ${type_constant_cardinalities}
-#line 50 "${template}"
-default: InternalError() << "No cardinality known for type constant " << tc;
+#line 51 "${template}"
+    default: InternalError() << "No cardinality known for type constant " << tc;
   }
-}/* getCardinality(TypeConstant) */
+} /* getCardinality(TypeConstant) */
 
 /**
  * Return the cardinality of the type represented by the TypeNode
@@ -62,7 +64,7 @@ inline Cardinality getCardinality(TypeNode typeNode) {
   case TYPE_CONSTANT:
     return getCardinality(typeNode.getConst<TypeConstant>());
 ${type_cardinalities}
-#line 67 "${template}"
+#line 68 "${template}"
   default:
     InternalError() << "A theory kinds file did not provide a cardinality "
                     << "or cardinality computer for type:\n"
@@ -73,7 +75,7 @@ ${type_cardinalities}
 inline bool isWellFounded(TypeConstant tc) {
   switch(tc) {
 ${type_constant_wellfoundednesses}
-#line 78 "${template}"
+#line 79 "${template}"
 default:
   InternalError() << "No well-foundedness status known for type constant: "
                   << tc;
@@ -86,7 +88,7 @@ inline bool isWellFounded(TypeNode typeNode) {
   case TYPE_CONSTANT:
     return isWellFounded(typeNode.getConst<TypeConstant>());
 ${type_wellfoundednesses}
-#line 91 "${template}"
+#line 92 "${template}"
   default:
     InternalError() << "A theory kinds file did not provide a well-foundedness "
                     << "or well-foundedness computer for type:\n"
@@ -94,27 +96,32 @@ ${type_wellfoundednesses}
   }
 }/* isWellFounded(TypeNode) */
 
-inline Node mkGroundTerm(TypeConstant tc) {
-  switch(tc) {
+inline Node mkGroundTerm(TypeConstant tc)
+{
+  switch (tc)
+  {
 ${type_constant_groundterms}
-#line 102 "${template}"
-default: InternalError() << "No ground term known for type constant: " << tc;
+#line 105 "${template}"
+    default:
+      InternalError() << "No ground term known for type constant: " << tc;
   }
-}/* mkGroundTerm(TypeConstant) */
+} /* mkGroundTerm(TypeConstant) */
 
-inline Node mkGroundTerm(TypeNode typeNode) {
+inline Node mkGroundTerm(TypeNode typeNode)
+{
   AssertArgument(!typeNode.isNull(), typeNode);
-  switch(Kind k = typeNode.getKind()) {
-  case TYPE_CONSTANT:
-    return mkGroundTerm(typeNode.getConst<TypeConstant>());
+  switch (Kind k = typeNode.getKind())
+  {
+    case TYPE_CONSTANT:
+      return mkGroundTerm(typeNode.getConst<TypeConstant>());
 ${type_groundterms}
-#line 113 "${template}"
-  default:
-    InternalError() << "A theory kinds file did not provide a ground term "
-                    << "or ground term computer for type:\n"
-                    << typeNode << "\nof kind " << k;
+#line 119 "${template}"
+    default:
+      InternalError() << "A theory kinds file did not provide a ground term "
+                      << "or ground term computer for type:\n"
+                      << typeNode << "\nof kind " << k;
   }
-}/* mkGroundTerm(TypeNode) */
+} /* mkGroundTerm(TypeNode) */
 
 }/* CVC4::kind namespace */
 }/* CVC4 namespace */

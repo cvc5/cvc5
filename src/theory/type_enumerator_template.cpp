@@ -32,16 +32,18 @@ namespace theory {
 TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
     TypeNode type, TypeEnumeratorProperties* tep)
 {
-  switch(type.getKind()) {
-  case kind::TYPE_CONSTANT:
-    switch(type.getConst<TypeConstant>()) {
-${mk_type_enumerator_type_constant_cases}
-default: Unhandled() << "No type enumerator for type `" << type << "'";
-    }
-    Unreachable();
-${mk_type_enumerator_cases}
+  switch (type.getKind())
+  {
+    case kind::TYPE_CONSTANT:
+      switch (type.getConst<TypeConstant>())
+      {
+        ${mk_type_enumerator_type_constant_cases}
+        default: Unhandled() << "No type enumerator for type `" << type << "'";
+      }
+      Unreachable();
+      ${mk_type_enumerator_cases}
 #line 44 "${template}"
-  default: Unhandled() << "No type enumerator for type `" << type << "'";
+    default: Unhandled() << "No type enumerator for type `" << type << "'";
   }
   Unreachable();
 }

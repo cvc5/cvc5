@@ -515,7 +515,7 @@ public:
     Assert(getMetaKind() == kind::metakind::PARAMETERIZED)
         << "NodeBuilder<> operator access is only permitted "
            "on parameterized kinds, not `"
-        << kind::kindToString(getKind()) << "'";
+        << getKind() << "'";
     return Node(d_nv->getOperator());
   }
 
@@ -959,14 +959,14 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
   Assert(getMetaKind() != kind::metakind::CONSTANT)
       << "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds";
   Assert(getNumChildren() >= kind::metakind::getLowerBoundForKind(getKind()))
-      << "Nodes with kind " << kind::kindToString(getKind())
+      << "Nodes with kind " << getKind()
       << " must have at least "
       << kind::metakind::getLowerBoundForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
   Assert(getNumChildren() <= kind::metakind::getUpperBoundForKind(getKind()))
-      << "Nodes with kind " << kind::kindToString(getKind())
+      << "Nodes with kind " << getKind()
       << " must have at most "
       << kind::metakind::getUpperBoundForKind(getKind())
       << " children (the one under "
@@ -1136,14 +1136,14 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
   Assert(getMetaKind() != kind::metakind::CONSTANT)
       << "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds";
   Assert(getNumChildren() >= kind::metakind::getLowerBoundForKind(getKind()))
-      << "Nodes with kind " << kind::kindToString(getKind())
+      << "Nodes with kind " << getKind()
       << " must have at least "
       << kind::metakind::getLowerBoundForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
   Assert(getNumChildren() <= kind::metakind::getUpperBoundForKind(getKind()))
-      << "Nodes with kind " << kind::kindToString(getKind())
+      << "Nodes with kind " << getKind()
       << " must have at most "
       << kind::metakind::getUpperBoundForKind(getKind())
       << " children (the one under "
@@ -1154,10 +1154,8 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
   // if the kind is PARAMETERIZED, check that the operator is correctly-kinded
   Assert(kind::metaKindOf(getKind()) != kind::metakind::PARAMETERIZED ||
          NodeManager::operatorToKind(getOperator()) == getKind()) << 
-         "Attempted to construct a parameterized kind `%s' with "
-         "incorrectly-kinded operator `%s'",
-         kind::kindToString(getKind()).c_str(),
-         kind::kindToString(getOperator().getKind()).c_str();
+         "Attempted to construct a parameterized kind `"<< getKind() <<"' with "
+         "incorrectly-kinded operator `"<< getOperator().getKind() <<"'";
 #endif /* 0 */
 
   // Implementation differs depending on whether the NodeValue was

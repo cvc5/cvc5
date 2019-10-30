@@ -34,9 +34,8 @@
 #ifndef CVC4__CHECK_H
 #define CVC4__CHECK_H
 
-#include <ostream>
-
 #include <cstdarg>
+#include <ostream>
 
 #include "base/exception.h"
 

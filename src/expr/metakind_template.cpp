@@ -52,12 +52,13 @@ ${metakind_constantMaps}
 namespace kind {
 namespace metakind {
 
-size_t NodeValueCompare::constHash(const ::CVC4::expr::NodeValue* nv) {
+size_t NodeValueCompare::constHash(const ::CVC4::expr::NodeValue* nv){
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
-  switch(nv->d_kind) {
+  switch (nv->d_kind)
+  {
 ${metakind_constHashes}
-default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
+    default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 
@@ -68,10 +69,12 @@ bool NodeValueCompare::compare(const ::CVC4::expr::NodeValue* nv1,
     return false;
   }
 
-  if(nv1->getMetaKind() == kind::metakind::CONSTANT) {
-    switch(nv1->d_kind) {
+  if (nv1->getMetaKind() == kind::metakind::CONSTANT)
+  {
+    switch (nv1->d_kind)
+    {
 ${metakind_compares}
-default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv1->d_kind);
+      default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv1->d_kind);
     }
   }
 
@@ -103,9 +106,10 @@ void NodeValueConstPrinter::toStream(std::ostream& out,
                                             const ::CVC4::expr::NodeValue* nv) {
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
-  switch(nv->d_kind) {
+  switch (nv->d_kind)
+  {
 ${metakind_constPrinters}
-default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
+    default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 
@@ -132,9 +136,10 @@ void NodeValueConstPrinter::toStream(std::ostream& out, TNode n) {
 void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv) {
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
-  switch(nv->d_kind) {
+  switch (nv->d_kind)
+  {
 ${metakind_constDeleters}
-default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
+    default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 

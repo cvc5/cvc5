@@ -70,7 +70,7 @@ ${construles}
 
 #line 72 "${template}"
 
-default:;
+    default:;
   }
 
   return false;
@@ -88,7 +88,7 @@ ${neverconstrules}
 
 #line 90 "${template}"
 
-default:;
+    default:;
   }
 
   return true;

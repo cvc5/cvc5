@@ -924,13 +924,11 @@ void LFSCArithProof::printLinearMonomialNormalizer(std::ostream& o,
   {
     case kind::MULT: {
 #ifdef CVC4_ASSERTIONS
-      std::ostringstream s;
-      s << "node " << n << " is not a linear monomial";
-      s << " " << n[0].getKind() << " " << n[1].getKind();
       Assert((n[0].getKind() == kind::CONST_RATIONAL
               && (n[1].getKind() == kind::VARIABLE
                   || n[1].getKind() == kind::SKOLEM)))
-          << s.str().c_str();
+          << "node " << n << " is not a linear monomial"
+          << " " << n[0].getKind() << " " << n[1].getKind();
 #endif  // CVC4_ASSERTIONS
 
       o << "\n        (pn_mul_c_L _ _ _ ";
@@ -972,10 +970,8 @@ void LFSCArithProof::printConstRational(std::ostream& o, const Node& n)
 
 void LFSCArithProof::printVariableNormalizer(std::ostream& o, const Node& n)
 {
-  std::ostringstream msg;
-  msg << "Invalid variable kind " << n.getKind() << " in linear monomial";
   Assert(n.getKind() == kind::VARIABLE || n.getKind() == kind::SKOLEM)
-      << msg.str().c_str();
+      << "Invalid variable kind " << n.getKind() << " in linear monomial";
   o << "(pn_var " << n << ")";
 }
 

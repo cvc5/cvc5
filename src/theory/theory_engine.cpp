@@ -1320,8 +1320,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
   // If sending to the shared terms database, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
     Assert(atom.getKind() == kind::EQUAL)
-        << "atom should be an EQUALity, not `%s'",
-        atom.toString().c_str();
+        << "atom should be an EQUALity, not `"<< atom << "'";
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
       d_sharedTerms.assertEquality(atom, polarity, assertion);
     }
