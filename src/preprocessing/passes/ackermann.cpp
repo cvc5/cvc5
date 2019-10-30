@@ -23,9 +23,9 @@
 
 #include <cmath>
 
-#include "preprocessing/passes/ackermann.h"
-
+#include "base/cvc4_check.h"
 #include "options/options.h"
+#include "preprocessing/passes/ackermann.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -284,9 +284,9 @@ void usortsToBitVectors(const LogicInfo& d_logic,
   if (hasUninterpretedSorts)
   {
     /* the current version only supports BV for removing uninterpreted sorts */
-    AlwaysAssert(d_logic.isTheoryEnabled(theory::THEORY_BV),
+	  CVC4_CHECK(d_logic.isTheoryEnabled(theory::THEORY_BV)) <<
                  "Cannot use Ackermannization on formula with uninterpreted "
-                 "sorts without BV logic");
+                 "sorts without BV logic";
 
     collectUSortsToBV(usortCardinality, toProcess, sortsToSkolem);
 
