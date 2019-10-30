@@ -234,11 +234,11 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
 
     clause_added = true;
 
-    CVC4_DCHECK(falseLiteralsCount == 0 || THEORY_PROOF_ON());
+    Assert(falseLiteralsCount == 0 || THEORY_PROOF_ON());
 
     if(falseLiteralsCount == 0) {
       if (ps.size() == 0) {
-        CVC4_DCHECK(!THEORY_PROOF_ON());
+        Assert(!THEORY_PROOF_ON());
         return ok = false;
       }
       else if (ps.size() == 1){
@@ -283,9 +283,9 @@ bool Solver::addClause_(vec<Lit>& ps, ClauseId& id)
       if (ps.size() == falseLiteralsCount + 1) {
         Clause& cl = ca[cr];
 
-        CVC4_DCHECK(value(cl[0]) == l_Undef);
+        Assert(value(cl[0]) == l_Undef);
         uncheckedEnqueue(cl[0], cr);
-        CVC4_DCHECK(cl.size() > 1);
+        Assert(cl.size() > 1);
         CRef confl = propagate();
         ok = (confl == CRef_Undef);
         if(!ok) {
@@ -658,7 +658,7 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 
     if(d_bvp){
       if (level(var(p)) == 0 && d_bvp->isAssumptionConflict()) {
-        CVC4_DCHECK(marker[var(p)] == 2);
+        Assert(marker[var(p)] == 2);
         if (reason(var(p)) == CRef_Undef) {
           d_bvp->startBVConflict(p);
         }
@@ -776,7 +776,7 @@ lbool Solver::assertAssumption(Lit p, bool propagate) {
 
 void Solver::addMarkerLiteral(Var var) {
   // make sure it wasn't already marked
-  CVC4_DCHECK(marker[var] == 0);
+  Assert(marker[var] == 0);
   marker[var] = 1;
   if(d_bvp){d_bvp->getSatProof()->registerAssumption(var);}
 }
@@ -1284,7 +1284,7 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
           assert(level(x) > 0);
           explanation.push_back(trail[i]);
         } else {
-          CVC4_DCHECK(level(x) == 0);
+          Assert(level(x) == 0);
           if(d_bvp){ d_bvp->getSatProof()->resolveOutUnit(~(trail[i])); }
          }
         
@@ -1484,7 +1484,7 @@ void ClauseAllocator::reloc(CRef& cr,
 void Solver::setNotify(Notify* toNotify) { d_notify = toNotify; }
 bool Solver::withinBudget(uint64_t amount) const
 {
-  CVC4_CHECK(d_notify);
+  AlwaysAssert(d_notify);
   d_notify->spendResource(amount);
   d_notify->safePoint(0);
 

@@ -218,7 +218,7 @@ public:
   }
 
   SubTheory getPropagatingSubtheory(TNode literal) const {
-    CVC4_DCHECK(wasPropagatedBySubtheory(literal));
+    Assert(wasPropagatedBySubtheory(literal));
     PropagatedMap::const_iterator find = d_propagatedBy.find(literal);
     return (*find).second;
   }

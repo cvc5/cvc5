@@ -25,16 +25,16 @@ namespace arith {
 
 
 void Tableau::pivot(ArithVar oldBasic, ArithVar newBasic, CoefficientChangeCallback& cb){
-  CVC4_DCHECK(isBasic(oldBasic));
-  CVC4_DCHECK(!isBasic(newBasic));
-  CVC4_DCHECK(d_mergeBuffer.empty());
+  Assert(isBasic(oldBasic));
+  Assert(!isBasic(newBasic));
+  Assert(d_mergeBuffer.empty());
 
   Debug("tableau") << "Tableau::pivot(" <<  oldBasic <<", " << newBasic <<")"  << endl;
 
   RowIndex ridx = basicToRowIndex(oldBasic);
 
   rowPivot(oldBasic, newBasic, cb);
-  CVC4_DCHECK(ridx == basicToRowIndex(newBasic));
+  Assert(ridx == basicToRowIndex(newBasic));
 
   loadRowIntoBuffer(ridx);
 
@@ -58,24 +58,24 @@ void Tableau::pivot(ArithVar oldBasic, ArithVar newBasic, CoefficientChangeCallb
 
   //Clear the column for used for this variable
 
-  CVC4_DCHECK(d_mergeBuffer.empty());
-  CVC4_DCHECK(!isBasic(oldBasic));
-  CVC4_DCHECK(isBasic(newBasic));
-  CVC4_DCHECK(getColLength(newBasic) == 1);
+  Assert(d_mergeBuffer.empty());
+  Assert(!isBasic(oldBasic));
+  Assert(isBasic(newBasic));
+  Assert(getColLength(newBasic) == 1);
 }
 
 /**
  * Changes basic to newbasic (a variable on the row).
  */
 void Tableau::rowPivot(ArithVar basicOld, ArithVar basicNew, CoefficientChangeCallback& cb){
-  CVC4_DCHECK(isBasic(basicOld));
-  CVC4_DCHECK(!isBasic(basicNew));
+  Assert(isBasic(basicOld));
+  Assert(!isBasic(basicNew));
 
   RowIndex rid = basicToRowIndex(basicOld);
 
   EntryID newBasicID = findOnRow(rid, basicNew);
 
-  CVC4_DCHECK(newBasicID != ENTRYID_SENTINEL);
+  Assert(newBasicID != ENTRYID_SENTINEL);
 
   Tableau::Entry& newBasicEntry = d_entries.get(newBasicID);
   const Rational& a_rs = newBasicEntry.getCoefficient();
@@ -100,16 +100,16 @@ void Tableau::addRow(ArithVar basic,
                      const std::vector<Rational>& coefficients,
                      const std::vector<ArithVar>& variables)
 {
-  CVC4_DCHECK(basic < getNumColumns());
-  CVC4_DCHECK(debugIsASet(variables));
-  CVC4_DCHECK(coefficients.size() == variables.size());
-  CVC4_DCHECK(!isBasic(basic));
+  Assert(basic < getNumColumns());
+  Assert(debugIsASet(variables));
+  Assert(coefficients.size() == variables.size());
+  Assert(!isBasic(basic));
 
   RowIndex newRow = Matrix<Rational>::addRow(coefficients, variables);
   addEntry(newRow, basic, Rational(-1));
 
-  CVC4_DCHECK(!d_basic2RowIndex.isKey(basic));
-  CVC4_DCHECK(!d_rowIndex2basic.isKey(newRow));
+  Assert(!d_basic2RowIndex.isKey(basic));
+  Assert(!d_rowIndex2basic.isKey(newRow));
 
   d_basic2RowIndex.set(basic, newRow);
   d_rowIndex2basic.set(newRow, basic);
@@ -140,9 +140,9 @@ void Tableau::addRow(ArithVar basic,
 
   if(Debug.isOn("matrix")) { printMatrix(); }
 
-  CVC4_DCHECK(debugNoZeroCoefficients(newRow));
-  CVC4_DCHECK(debugMatchingCountsForRow(newRow));
-  CVC4_DCHECK(getColLength(basic) == 1);
+  Assert(debugNoZeroCoefficients(newRow));
+  Assert(debugMatchingCountsForRow(newRow));
+  Assert(getColLength(basic) == 1);
 }
 
 void Tableau::removeBasicRow(ArithVar basic){

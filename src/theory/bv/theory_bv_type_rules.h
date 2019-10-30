@@ -32,7 +32,7 @@ class CardinalityComputer
  public:
   inline static Cardinality computeCardinality(TypeNode type)
   {
-    CVC4_DCHECK(type.getKind() == kind::BITVECTOR_TYPE);
+    Assert(type.getKind() == kind::BITVECTOR_TYPE);
 
     unsigned size = type.getConst<BitVectorSize>();
     if (size == 0)
@@ -199,7 +199,7 @@ class BitVectorITETypeRule
                                      TNode n,
                                      bool check)
   {
-    CVC4_DCHECK(n.getNumChildren() == 3);
+    Assert(n.getNumChildren() == 3);
     TypeNode thenpart = n[1].getType(check);
     if (check)
     {
@@ -342,7 +342,8 @@ class IntToBitVectorOpTypeRule
                                          nodeManager->mkBitVectorType(bvSize));
     }
 
-    InternalError("bv-conversion typerule invoked for non-bv-conversion kind");
+    InternalError()
+        << "bv-conversion typerule invoked for non-bv-conversion kind";
   }
 }; /* class IntToBitVectorOpTypeRule */
 
@@ -372,7 +373,8 @@ class BitVectorConversionTypeRule
       return nodeManager->mkBitVectorType(bvSize);
     }
 
-    InternalError("bv-conversion typerule invoked for non-bv-conversion kind");
+    InternalError()
+        << "bv-conversion typerule invoked for non-bv-conversion kind";
   }
 }; /* class BitVectorConversionTypeRule */
 

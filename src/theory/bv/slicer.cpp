@@ -58,7 +58,7 @@ Base::Base(uint32_t size)
   : d_size(size),
     d_repr(size/32 + (size % 32 == 0? 0 : 1), 0)
 {
-  CVC4_DCHECK(d_size > 0);
+  Assert(d_size > 0);
 }
 
 void Base::sliceAt(Index index)
@@ -73,7 +73,7 @@ void Base::sliceAt(Index index)
 }
 
 void Base::sliceWith(const Base& other) {
-  CVC4_DCHECK(d_size == other.d_size);
+  Assert(d_size == other.d_size);
   for (unsigned i = 0; i < d_repr.size(); ++i) {
     d_repr[i] = d_repr[i] | other.d_repr[i]; 
   }
@@ -86,7 +86,7 @@ bool Base::isCutPoint (Index index) const
     return true;
 
   Index vector_index = index / 32;
-  CVC4_DCHECK(vector_index < d_size);
+  Assert(vector_index < d_size);
   Index int_index = index % 32;
   uint32_t bit_mask = 1u << int_index;
 
@@ -94,9 +94,9 @@ bool Base::isCutPoint (Index index) const
 }
 
 void Base::diffCutPoints(const Base& other, Base& res) const {
-  CVC4_DCHECK(d_size == other.d_size && res.d_size == d_size);
+  Assert(d_size == other.d_size && res.d_size == d_size);
   for (unsigned i = 0; i < d_repr.size(); ++i) {
-    CVC4_DCHECK(res.d_repr[i] == 0);
+    Assert(res.d_repr[i] == 0);
     res.d_repr[i] = d_repr[i] ^ other.d_repr[i]; 
   }
 }
@@ -144,7 +144,7 @@ std::string ExtractTerm::debugPrint() const {
  */
 
 std::pair<TermId, Index> NormalForm::getTerm(Index index, const UnionFind& uf) const {
-  CVC4_DCHECK(index < base.getBitwidth());
+  Assert(index < base.getBitwidth());
   Index count = 0;
   for (unsigned i = 0; i < decomp.size(); ++i) {
     Index size = uf.getBitwidth(decomp[i]); 
@@ -207,7 +207,7 @@ TermId UnionFind::addTerm(Index bitwidth) {
 void UnionFind::unionTerms(const ExtractTerm& t1, const ExtractTerm& t2) {
   Debug("bv-slicer") << "UnionFind::unionTerms " << t1.debugPrint() << " and \n"
                      << "                      " << t2.debugPrint() << endl;
-  CVC4_DCHECK(t1.getBitwidth() == t2.getBitwidth());
+  Assert(t1.getBitwidth() == t2.getBitwidth());
 
   NormalForm nf1(t1.getBitwidth());
   NormalForm nf2(t2.getBitwidth());
@@ -215,8 +215,8 @@ void UnionFind::unionTerms(const ExtractTerm& t1, const ExtractTerm& t2) {
   getNormalForm(t1, nf1);
   getNormalForm(t2, nf2);
 
-  CVC4_DCHECK(nf1.decomp.size() == nf2.decomp.size());
-  CVC4_DCHECK(nf1.base == nf2.base);
+  Assert(nf1.decomp.size() == nf2.decomp.size());
+  Assert(nf1.base == nf2.base);
 
   for (unsigned i = 0; i < nf1.decomp.size(); ++i) {
     merge (nf1.decomp[i], nf2.decomp[i]); 
@@ -239,7 +239,7 @@ void UnionFind::merge(TermId t1, TermId t2) {
   if (t1 == t2)
     return;
 
-  CVC4_DCHECK(!hasChildren(t1) && !hasChildren(t2));
+  Assert(!hasChildren(t1) && !hasChildren(t2));
   setRepr(t1, t2); 
   d_representatives.erase(t1);
   d_statistics.d_numRepresentatives += -1; 
@@ -271,7 +271,7 @@ void UnionFind::split(TermId id, Index i) {
     // nothing to do 
     return;
   }
-  CVC4_DCHECK(i < getBitwidth(id));
+  Assert(i < getBitwidth(id));
   if (!hasChildren(id)) {
     // first time we split this term 
     TermId bottom_id = addTerm(i);
@@ -305,10 +305,10 @@ void UnionFind::getDecomposition(const ExtractTerm& term, Decomposition& decomp)
   // making sure the term is aligned
   TermId id = find(term.id);
 
-  CVC4_DCHECK(term.high < getBitwidth(id));
+  Assert(term.high < getBitwidth(id));
   // because we split the node, this must be the whole extract
   if (!hasChildren(id)) {
-    CVC4_DCHECK(term.high == getBitwidth(id) - 1 && term.low == 0);
+    Assert(term.high == getBitwidth(id) - 1 && term.low == 0);
     decomp.push_back(id);
     return; 
   }
@@ -379,9 +379,9 @@ void UnionFind::handleCommonSlice(const Decomposition& decomp1, const Decomposit
 
   if (start2 - start1 < common_size) {
     Index overlap = start1 + common_size - start2;
-    CVC4_DCHECK(overlap > 0);
+    Assert(overlap > 0);
     Index diff = common_size - overlap;
-    CVC4_DCHECK(diff >= 0);
+    Assert(diff >= 0);
     Index granularity = gcd(diff, overlap);
     // split the common part 
     for (unsigned i = 0; i < common_size; i+= granularity) {
@@ -400,7 +400,7 @@ void UnionFind::alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2
   getNormalForm(term1, nf1);
   getNormalForm(term2, nf2);
 
-  CVC4_DCHECK(nf1.base.getBitwidth() == nf2.base.getBitwidth());
+  Assert(nf1.base.getBitwidth() == nf2.base.getBitwidth());
 
   // first check if the two have any common slices
   std::vector<TermId> intersection;
@@ -480,7 +480,7 @@ ExtractTerm Slicer::registerTerm(TNode node) {
 void Slicer::processEquality(TNode eq) {
   Debug("bv-slicer") << "Slicer::processEquality: " << eq << endl;
 
-  CVC4_DCHECK(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == kind::EQUAL);
   TNode a = eq[0];
   TNode b = eq[1];
   ExtractTerm a_ex= registerTerm(a);
@@ -507,7 +507,7 @@ void Slicer::getBaseDecomposition(TNode node, std::vector<Node>& decomp) {
     low = utils::getExtractLow(node);
     top = node[0]; 
   }
-  CVC4_CHECK(d_nodeToId.find(top) != d_nodeToId.end());
+  AlwaysAssert(d_nodeToId.find(top) != d_nodeToId.end());
   TermId id = d_nodeToId[top];
   NormalForm nf(high-low+1); 
   d_unionFind.getNormalForm(ExtractTerm(id, high, low), nf);
@@ -566,7 +566,7 @@ unsigned Slicer::d_numAddedEqualities = 0;
 
 void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities)
 {
-  CVC4_DCHECK(node.getKind() == kind::EQUAL);
+  Assert(node.getKind() == kind::EQUAL);
   NodeManager* nm = NodeManager::currentNM();
   TNode t1 = node[0];
   TNode t2 = node[1];
@@ -608,7 +608,7 @@ void Slicer::splitEqualities(TNode node, std::vector<Node>& equalities)
         Node extract1 = utils::mkExtract(t1, i - 1, last);
         Node extract2 = utils::mkExtract(t2, i - 1, last);
         last = i;
-        CVC4_DCHECK(utils::getSize(extract1) == utils::getSize(extract2));
+        Assert(utils::getSize(extract1) == utils::getSize(extract2));
         equalities.push_back(nm->mkNode(kind::EQUAL, extract1, extract2));
       }
     }

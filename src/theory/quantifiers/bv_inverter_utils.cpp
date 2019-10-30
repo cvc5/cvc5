@@ -24,7 +24,7 @@ namespace utils {
 
 Node getICBvUltUgt(bool pol, Kind k, Node x, Node t)
 {
-  CVC4_DCHECK(k == BITVECTOR_ULT || k == BITVECTOR_UGT);
+  Assert(k == BITVECTOR_ULT || k == BITVECTOR_UGT);
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(t);
@@ -53,7 +53,7 @@ Node getICBvUltUgt(bool pol, Kind k, Node x, Node t)
   }
   else
   {
-    CVC4_DCHECK(k == BITVECTOR_UGT);
+    Assert(k == BITVECTOR_UGT);
     if (pol == true)
     {
       /* x > t
@@ -79,7 +79,7 @@ Node getICBvUltUgt(bool pol, Kind k, Node x, Node t)
 
 Node getICBvSltSgt(bool pol, Kind k, Node x, Node t)
 {
-  CVC4_DCHECK(k == BITVECTOR_SLT || k == BITVECTOR_SGT);
+  Assert(k == BITVECTOR_SLT || k == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(t);
@@ -109,7 +109,7 @@ Node getICBvSltSgt(bool pol, Kind k, Node x, Node t)
   }
   else
   {
-    CVC4_DCHECK(k == BITVECTOR_SGT);
+    Assert(k == BITVECTOR_SGT);
     if (pol == true)
     {
       /* x > t
@@ -137,14 +137,14 @@ Node getICBvSltSgt(bool pol, Kind k, Node x, Node t)
 Node getICBvMult(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  CVC4_DCHECK(k == BITVECTOR_MULT);
-  CVC4_DCHECK(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-              || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(k == BITVECTOR_MULT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
   unsigned w = bv::utils::getSize(s);
-  CVC4_DCHECK(w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
 
   if (litk == EQUAL)
   {
@@ -243,7 +243,7 @@ Node getICBvMult(
   }
   else
   {
-    CVC4_DCHECK(litk == BITVECTOR_SGT);
+    Assert(litk == BITVECTOR_SGT);
     if (pol)
     {
       /* x * s > t
@@ -278,14 +278,14 @@ Node getICBvMult(
 Node getICBvUrem(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  CVC4_DCHECK(k == BITVECTOR_UREM_TOTAL);
-  CVC4_DCHECK(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-              || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(k == BITVECTOR_UREM_TOTAL);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
   unsigned w = bv::utils::getSize(s);
-  CVC4_DCHECK(w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
 
   if (litk == EQUAL)
   {
@@ -496,7 +496,7 @@ Node getICBvUrem(
   }
   else
   {
-    CVC4_DCHECK(litk == BITVECTOR_SGT);
+    Assert(litk == BITVECTOR_SGT);
     if (idx == 0)
     {
       Node z = bv::utils::mkZero(w);
@@ -586,13 +586,13 @@ Node getICBvUrem(
 Node getICBvUdiv(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  CVC4_DCHECK(k == BITVECTOR_UDIV_TOTAL);
-  CVC4_DCHECK(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-              || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(k == BITVECTOR_UDIV_TOTAL);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(s);
-  CVC4_DCHECK(w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
   Node scl;
   Node z = bv::utils::mkZero(w);
 
@@ -862,7 +862,7 @@ Node getICBvUdiv(
   }
   else
   {
-    CVC4_DCHECK(litk == BITVECTOR_SGT);
+    Assert(litk == BITVECTOR_SGT);
     if (idx == 0)
     {
       if (pol)
@@ -962,13 +962,13 @@ Node getICBvUdiv(
 Node getICBvAndOr(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  CVC4_DCHECK(k == BITVECTOR_AND || k == BITVECTOR_OR);
-  CVC4_DCHECK(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-              || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(k == BITVECTOR_AND || k == BITVECTOR_OR);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(s);
-  CVC4_DCHECK(w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
   Node scl;
 
   if (litk == EQUAL)
@@ -1133,7 +1133,7 @@ Node getICBvAndOr(
   }
   else
   {
-    CVC4_DCHECK(litk == BITVECTOR_SGT);
+    Assert(litk == BITVECTOR_SGT);
     if (pol)
     {
       /* x & s > t
@@ -1186,7 +1186,7 @@ Node defaultShiftIC(Kind litk, Kind shk, Node s, Node t)
   nm = NodeManager::currentNM();
 
   w = bv::utils::getSize(s);
-  CVC4_DCHECK(w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
 
   nb << nm->mkNode(litk, s, t);
   for (unsigned i = 1; i <= w; i++)
@@ -1202,14 +1202,14 @@ Node defaultShiftIC(Kind litk, Kind shk, Node s, Node t)
 Node getICBvLshr(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  CVC4_DCHECK(k == BITVECTOR_LSHR);
-  CVC4_DCHECK(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-              || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(k == BITVECTOR_LSHR);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
   unsigned w = bv::utils::getSize(s);
-  CVC4_DCHECK(w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
   Node z = bv::utils::mkZero(w);
 
   if (litk == EQUAL)
@@ -1400,7 +1400,7 @@ Node getICBvLshr(
   }
   else
   {
-    CVC4_DCHECK(litk == BITVECTOR_SGT);
+    Assert(litk == BITVECTOR_SGT);
     if (idx == 0)
     {
       if (pol)
@@ -1465,14 +1465,14 @@ Node getICBvLshr(
 Node getICBvAshr(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  CVC4_DCHECK(k == BITVECTOR_ASHR);
-  CVC4_DCHECK(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-              || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(k == BITVECTOR_ASHR);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
   unsigned w = bv::utils::getSize(s);
-  CVC4_DCHECK(w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
   Node z = bv::utils::mkZero(w);
   Node n = bv::utils::mkOnes(w);
 
@@ -1680,7 +1680,7 @@ Node getICBvAshr(
   }
   else
   {
-    CVC4_DCHECK(litk == BITVECTOR_SGT);
+    Assert(litk == BITVECTOR_SGT);
     Node max = bv::utils::mkMaxSigned(w);
     if (idx == 0)
     {
@@ -1742,14 +1742,14 @@ Node getICBvAshr(
 Node getICBvShl(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  CVC4_DCHECK(k == BITVECTOR_SHL);
-  CVC4_DCHECK(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-              || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(k == BITVECTOR_SHL);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
   unsigned w = bv::utils::getSize(s);
-  CVC4_DCHECK(w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
   Node z = bv::utils::mkZero(w);
 
   if (litk == EQUAL)
@@ -1934,7 +1934,7 @@ Node getICBvShl(
   }
   else
   {
-    CVC4_DCHECK(litk == BITVECTOR_SGT);
+    Assert(litk == BITVECTOR_SGT);
     if (idx == 0)
     {
       if (pol)
@@ -1991,11 +1991,11 @@ Node getICBvShl(
 
 Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
 {
-  CVC4_DCHECK(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-              || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   Kind k = sv_t.getKind();
-  CVC4_DCHECK(k == BITVECTOR_CONCAT);
+  Assert(k == BITVECTOR_CONCAT);
   NodeManager* nm = NodeManager::currentNM();
   unsigned nchildren = sv_t.getNumChildren();
   unsigned w1 = 0, w2 = 0;
@@ -2040,15 +2040,15 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
       s2 = nbs2.constructNode();
     }
     w2 = bv::utils::getSize(s2);
-    CVC4_DCHECK(w2 == w - w1 - wx);
+    Assert(w2 == w - w1 - wx);
     t2 = bv::utils::mkExtract(t, w2 - 1, 0);
   }
 
-  CVC4_DCHECK(!s1.isNull() || t1.isNull());
-  CVC4_DCHECK(!s2.isNull() || t2.isNull());
-  CVC4_DCHECK(!s1.isNull() || !s2.isNull());
-  CVC4_DCHECK(s1.isNull() || w1 == bv::utils::getSize(t1));
-  CVC4_DCHECK(s2.isNull() || w2 == bv::utils::getSize(t2));
+  Assert(!s1.isNull() || t1.isNull());
+  Assert(!s2.isNull() || t2.isNull());
+  Assert(!s1.isNull() || !s2.isNull());
+  Assert(s1.isNull() || w1 == bv::utils::getSize(t1));
+  Assert(s2.isNull() || w2 == bv::utils::getSize(t2));
 
   if (litk == EQUAL)
   {
@@ -2350,7 +2350,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
   }
   else
   {
-    CVC4_DCHECK(litk == BITVECTOR_SGT);
+    Assert(litk == BITVECTOR_SGT);
     if (s1.isNull())
     {
       if (pol)
@@ -2442,12 +2442,12 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
 
 Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
 {
-  CVC4_DCHECK(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-              || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
-  CVC4_DCHECK(idx == 0);
+  Assert(idx == 0);
   (void)idx;
   unsigned ws = bv::utils::getSignExtendAmount(sv_t);
   unsigned w = bv::utils::getSize(t);
@@ -2555,7 +2555,7 @@ Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
   }
   else
   {
-    CVC4_DCHECK(litk == BITVECTOR_SGT);
+    Assert(litk == BITVECTOR_SGT);
     if (pol)
     {
       /* x sext ws > t

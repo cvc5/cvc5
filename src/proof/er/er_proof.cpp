@@ -29,7 +29,7 @@
 #include <iterator>
 #include <unordered_set>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "base/map_util.h"
 #include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
@@ -55,7 +55,7 @@ TraceCheckProof TraceCheckProof::fromText(std::istream& in)
   in >> idx;
   for (; !in.eof(); in >> idx)
   {
-    CVC4_DCHECK(in.good());
+    Assert(in.good());
 
     // Then parse the clause (it's 0-terminated)
     std::vector<prop::SatLiteral> clause;
@@ -70,7 +70,7 @@ TraceCheckProof TraceCheckProof::fromText(std::istream& in)
     in >> token;
     for (; token != 0; in >> token)
     {
-      CVC4_DCHECK(token > 0);
+      Assert(token > 0);
       chain.push_back(token);
     }
 
@@ -114,9 +114,9 @@ ErProof ErProof::fromBinaryDratProof(
                                                drat2er::options::QUIET,
                                                false);
 #else
-    Unimplemented(
-        "ER proof production requires drat2er.\n"
-        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented()
+        << "ER proof production requires drat2er.\n"
+        << "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild";
 #endif
   }
 
@@ -153,15 +153,15 @@ ErProof::ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,
   {
     for (size_t i = 0, n = usedClauses.size(); i < n; ++i)
     {
-      CVC4_DCHECK(d_tracecheck.d_lines[i].d_idx = i + 1);
-      CVC4_DCHECK(d_tracecheck.d_lines[i].d_chain.size() == 0);
+      Assert(d_tracecheck.d_lines[i].d_idx = i + 1);
+      Assert(d_tracecheck.d_lines[i].d_chain.size() == 0);
       std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
           traceCheckClause{d_tracecheck.d_lines[i].d_clause.begin(),
                            d_tracecheck.d_lines[i].d_clause.end()};
       std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
           originalClause{usedClauses[i].second.begin(),
                          usedClauses[i].second.end()};
-      CVC4_DCHECK(traceCheckClause == originalClause);
+      Assert(traceCheckClause == originalClause);
     }
   }
 
@@ -171,8 +171,8 @@ ErProof::ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,
        i < n && d_tracecheck.d_lines[i].d_chain.size() == 0;)
   {
     prop::SatClause c = d_tracecheck.d_lines[i].d_clause;
-    CVC4_DCHECK(c.size() > 0);
-    CVC4_DCHECK(!c[0].isNegated());
+    Assert(c.size() > 0);
+    Assert(!c[0].isNegated());
 
     // Get the new variable of the definition -- the first variable of the
     // first clause
@@ -184,7 +184,7 @@ ErProof::ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,
     size_t nLinesForThisDef = 2 + otherLiterals.size();
     // Look at the negation of the second literal in the second clause to get
     // the old literal
-    CVC4_CHECK(d_tracecheck.d_lines.size() > i + 1)
+    AlwaysAssert(d_tracecheck.d_lines.size() > i + 1)
         << "Malformed definition in TRACECHECK proof from drat2er";
     d_definitions.emplace_back(newVar,
                                ~d_tracecheck.d_lines[i + 1].d_clause[1],
@@ -259,8 +259,8 @@ void ErProof::outputAsLfsc(std::ostream& os) const
     const std::vector<TraceCheckIdx>& chain =
         d_tracecheck.d_lines[cId - 1].d_chain;
     const std::vector<prop::SatLiteral> pivots = computePivotsForChain(chain);
-    CVC4_DCHECK(chain.size() > 0);
-    CVC4_DCHECK(chain.size() == pivots.size() + 1);
+    Assert(chain.size() > 0);
+    Assert(chain.size() == pivots.size() + 1);
 
     os << "\n    (satlem_simplify _ _ _ ";
     parenCount += 1;
@@ -299,7 +299,7 @@ void ErProof::outputAsLfsc(std::ostream& os) const
   }
 
   // Write proof of bottom
-  CVC4_DCHECK(d_tracecheck.d_lines.back().d_clause.size() == 0)
+  Assert(d_tracecheck.d_lines.back().d_clause.size() == 0)
       << "The TRACECHECK proof from drat2er did not prove bottom.";
   os << "\n      er.c" << d_tracecheck.d_lines.back().d_idx
      << " ; (holds cln)\n";
@@ -335,7 +335,7 @@ prop::SatLiteral resolveModify(
     if (negationLocation != dest.end())
     {
 #ifdef CVC4_ASSERTIONS
-      CVC4_DCHECK(!foundPivot);
+      Assert(!foundPivot);
       foundPivot = true;
 #endif
       dest.erase(negationLocation);
@@ -344,7 +344,7 @@ prop::SatLiteral resolveModify(
     dest.insert(lit);
   }
 
-  CVC4_DCHECK(foundPivot);
+  Assert(foundPivot);
   return pivot;
 }
 }  // namespace

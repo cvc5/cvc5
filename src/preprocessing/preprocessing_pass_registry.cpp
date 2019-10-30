@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <utility>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "base/map_util.h"
 #include "base/output.h"
 #include "preprocessing/passes/ackermann.h"
@@ -72,7 +72,7 @@ void PreprocessingPassRegistry::registerPassInfo(
     const std::string& name,
     std::function<PreprocessingPass*(PreprocessingPassContext*)> ctor)
 {
-  CVC4_CHECK(!ContainsKey(d_ppInfo, name));
+  AlwaysAssert(!ContainsKey(d_ppInfo, name));
   d_ppInfo[name] = ctor;
 }
 

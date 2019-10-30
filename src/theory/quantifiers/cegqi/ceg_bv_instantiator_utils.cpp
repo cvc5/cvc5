@@ -42,8 +42,8 @@ Node getPvCoeff(TNode pv, TNode n)
   /* All multiplications are normalized to pv * (t1 * t2). */
   else if (n.getKind() == BITVECTOR_MULT && n.getAttribute(BvLinearAttribute()))
   {
-    CVC4_DCHECK(n.getNumChildren() == 2);
-    CVC4_DCHECK(n[0] == pv);
+    Assert(n.getNumChildren() == 2);
+    Assert(n[0] == pv);
     coeff = n[1];
   }
   else /* n is in no form to extract the coefficient for pv */
@@ -52,7 +52,7 @@ Node getPvCoeff(TNode pv, TNode n)
                          << n << std::endl;
     return Node::null();
   }
-  CVC4_DCHECK(!coeff.isNull());
+  Assert(!coeff.isNull());
 
   if (neg) return NodeManager::currentNM()->mkNode(BITVECTOR_NEG, coeff);
   return coeff;
@@ -94,9 +94,9 @@ Node normalizePvMult(
     else if (!found_pv && nc.getKind() == BITVECTOR_MULT
              && nc.getAttribute(is_linear))
     {
-      CVC4_DCHECK(nc.getNumChildren() == 2);
-      CVC4_DCHECK(nc[0] == pv);
-      CVC4_DCHECK(!contains_pv[nc[1]]);
+      Assert(nc.getNumChildren() == 2);
+      Assert(nc[0] == pv);
+      Assert(!contains_pv[nc[1]]);
       found_pv = true;
       neg_coeff = neg;
       nb << nc[1];
@@ -104,7 +104,7 @@ Node normalizePvMult(
     }
     return Node::null(); /* non-linear */
   }
-  CVC4_DCHECK(nb.getNumChildren() > 0);
+  Assert(nb.getNumChildren() > 0);
 
   Node coeff = (nb.getNumChildren() == 1) ? nb[0] : nb.constructNode();
   if (neg_coeff)
@@ -144,19 +144,19 @@ bool isLinearPlus(
     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
 {
   Node coeff;
-  CVC4_DCHECK(n.getAttribute(BvLinearAttribute()));
-  CVC4_DCHECK(n.getNumChildren() == 2);
+  Assert(n.getAttribute(BvLinearAttribute()));
+  Assert(n.getNumChildren() == 2);
   if (n[0] != pv)
   {
-    CVC4_DCHECK(n[0].getKind() == BITVECTOR_MULT);
-    CVC4_DCHECK(n[0].getNumChildren() == 2);
-    CVC4_DCHECK(n[0][0] == pv);
-    CVC4_DCHECK(!contains_pv[n[0][1]]);
+    Assert(n[0].getKind() == BITVECTOR_MULT);
+    Assert(n[0].getNumChildren() == 2);
+    Assert(n[0][0] == pv);
+    Assert(!contains_pv[n[0][1]]);
   }
-  CVC4_DCHECK(!contains_pv[n[1]]);
+  Assert(!contains_pv[n[1]]);
   coeff = utils::getPvCoeff(pv, n[0]);
-  CVC4_DCHECK(!coeff.isNull());
-  CVC4_DCHECK(!contains_pv[coeff]);
+  Assert(!coeff.isNull());
+  Assert(!contains_pv[coeff]);
   return true;
 }
 }  // namespace
@@ -193,7 +193,7 @@ Node normalizePvPlus(
         || (nc.getKind() == BITVECTOR_MULT && nc.getAttribute(is_linear)))
     {
       Node coeff = utils::getPvCoeff(pv, nc);
-      CVC4_DCHECK(!coeff.isNull());
+      Assert(!coeff.isNull());
       if (neg)
       {
         coeff = nm->mkNode(BITVECTOR_NEG, coeff);
@@ -203,9 +203,9 @@ Node normalizePvPlus(
     }
     else if (nc.getKind() == BITVECTOR_PLUS && nc.getAttribute(is_linear))
     {
-      CVC4_DCHECK(isLinearPlus(nc, pv, contains_pv));
+      Assert(isLinearPlus(nc, pv, contains_pv));
       Node coeff = utils::getPvCoeff(pv, nc[0]);
-      CVC4_DCHECK(!coeff.isNull());
+      Assert(!coeff.isNull());
       Node leaf = nc[1];
       if (neg)
       {
@@ -219,7 +219,7 @@ Node normalizePvPlus(
     /* can't collect coefficients of 'pv' in 'cur' -> non-linear */
     return Node::null();
   }
-  CVC4_DCHECK(nb_c.getNumChildren() > 0 || nb_l.getNumChildren() > 0);
+  Assert(nb_c.getNumChildren() > 0 || nb_l.getNumChildren() > 0);
 
   Node pv_mult_coeffs, result;
   if (nb_c.getNumChildren() > 0)
@@ -247,7 +247,7 @@ Node normalizePvPlus(
       result.setAttribute(is_linear, true);
     }
   }
-  CVC4_DCHECK(!result.isNull());
+  Assert(!result.isNull());
   return result;
 }
 
@@ -256,7 +256,7 @@ Node normalizePvEqual(
     const std::vector<Node>& children,
     std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
 {
-  CVC4_DCHECK(children.size() == 2);
+  Assert(children.size() == 2);
 
   NodeManager* nm = NodeManager::currentNM();
   BvLinearAttribute is_linear;
@@ -277,13 +277,13 @@ Node normalizePvEqual(
     {
       if (child.getKind() == BITVECTOR_PLUS)
       {
-        CVC4_DCHECK(isLinearPlus(child, pv, contains_pv));
+        Assert(isLinearPlus(child, pv, contains_pv));
         coeffs[i] = utils::getPvCoeff(pv, child[0]);
         leafs[i] = child[1];
       }
       else
       {
-        CVC4_DCHECK(child.getKind() == BITVECTOR_MULT || child == pv);
+        Assert(child.getKind() == BITVECTOR_MULT || child == pv);
         coeffs[i] = utils::getPvCoeff(pv, child);
       }
     }

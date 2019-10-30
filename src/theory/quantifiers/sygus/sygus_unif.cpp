@@ -74,7 +74,7 @@ Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
 
 Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
 {
-  CVC4_DCHECK(!solved.empty());
+  Assert(!solved.empty());
   if (d_enableMinimality)
   {
     return getMinimalTerm(solved);
@@ -85,7 +85,7 @@ Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
 Node SygusUnif::constructBestConditional(Node ce,
                                          const std::vector<Node>& conds)
 {
-  CVC4_DCHECK(!conds.empty());
+  Assert(!conds.empty());
   double r = Random::getRandom().pickDouble(0.0, 1.0);
   unsigned cindex = r * conds.size();
   if (cindex > conds.size())
@@ -100,7 +100,7 @@ Node SygusUnif::constructBestStringToConcat(
     const std::map<Node, unsigned>& total_inc,
     const std::map<Node, std::vector<unsigned>>& incr)
 {
-  CVC4_DCHECK(!strs.empty());
+  Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;
   std::shuffle(strs_tmp.begin(), strs_tmp.end(), Random::getRandom());
   // prefer one that has incremented by more than 0

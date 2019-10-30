@@ -33,7 +33,7 @@ SatValue toSatValue(int result)
 {
   if (result == 10) return SAT_VALUE_TRUE;
   if (result == 20) return SAT_VALUE_FALSE;
-  CVC4_DCHECK(result == 0);
+  Assert(result == 0);
   return SAT_VALUE_UNKNOWN;
 }
 
@@ -42,7 +42,7 @@ SatValue toSatValue(int result)
 SatValue toSatValueLit(int value)
 {
   if (value > 0) return SAT_VALUE_TRUE;
-  CVC4_DCHECK(value < 0);
+  Assert(value < 0);
   return SAT_VALUE_FALSE;
 }
 
@@ -90,7 +90,7 @@ ClauseId CadicalSolver::addXorClause(SatClause& clause,
                                      bool rhs,
                                      bool removable)
 {
-  Unreachable("CaDiCaL does not support adding XOR clauses.");
+  Unreachable() << "CaDiCaL does not support adding XOR clauses.";
 }
 
 SatVariable CadicalSolver::newVar(bool isTheoryAtom,
@@ -136,19 +136,19 @@ void CadicalSolver::interrupt() { d_solver->terminate(); }
 
 SatValue CadicalSolver::value(SatLiteral l)
 {
-  CVC4_DCHECK(d_okay);
+  Assert(d_okay);
   return toSatValueLit(d_solver->val(toCadicalLit(l)));
 }
 
 SatValue CadicalSolver::modelValue(SatLiteral l)
 {
-  CVC4_DCHECK(d_okay);
+  Assert(d_okay);
   return value(l);
 }
 
 unsigned CadicalSolver::getAssertionLevel() const
 {
-  Unreachable("CaDiCal does not support assertion levels.");
+  Unreachable() << "CaDiCaL does not support assertion levels.";
 }
 
 bool CadicalSolver::ok() const { return d_okay; }

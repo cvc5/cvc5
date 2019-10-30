@@ -84,7 +84,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   // if provided, we will associate it with the function-to-synthesize
   if (!abdGType.isNull())
   {
-    CVC4_DCHECK(abdGType.isDatatype() && abdGType.getDatatype().isSygus());
+    Assert(abdGType.isDatatype() && abdGType.getDatatype().isSygus());
     // must convert all constructors to version with bound variables in "vars"
     std::vector<Datatype> datatypes;
     std::set<Type> unres;
@@ -125,7 +125,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
       std::vector<TypeNode> dtNextToProcess;
       for (const TypeNode& curr : dtToProcess)
       {
-        CVC4_DCHECK(curr.isDatatype() && curr.getDatatype().isSygus());
+        Assert(curr.isDatatype() && curr.getDatatype().isSygus());
         const Datatype& dtc = curr.getDatatype();
         std::stringstream ssdtn;
         ssdtn << dtc.getName() << "_s";
@@ -228,7 +228,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
               Trace("sygus-abduct-debug")
                   << "Argument " << l << " of " << dtj[k]
                   << " is not datatype : " << dtj[k].getArgType(l) << std::endl;
-              CVC4_CHECK(false);
+              AlwaysAssert(false);
             }
           }
         }

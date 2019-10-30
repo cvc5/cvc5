@@ -16,7 +16,7 @@
 
 #include "proof/unsat_core.h"
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "expr/expr_iomanip.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
@@ -38,7 +38,7 @@ UnsatCore::const_iterator UnsatCore::end() const {
 }
 
 void UnsatCore::toStream(std::ostream& out) const {
-  CVC4_DCHECK(d_smt != NULL);
+  Assert(d_smt != NULL);
   smt::SmtScope smts(d_smt);
   expr::ExprDag::Scope scope(out, false);
   Printer::getPrinter(options::outputLanguage())->toStream(out, *this);

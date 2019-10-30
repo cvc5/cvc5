@@ -16,7 +16,7 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdhashmap.h"
 
 using namespace std;

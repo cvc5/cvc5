@@ -23,8 +23,7 @@
 
 #include <sstream>
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -32,7 +31,7 @@
 
 ${type_properties_includes}
 
-#line 35 "${template}"
+#line 36 "${template}"
 
 namespace CVC4 {
 namespace kind {
@@ -46,12 +45,8 @@ namespace kind {
 inline Cardinality getCardinality(TypeConstant tc) {
   switch(tc) {
 ${type_constant_cardinalities}
-#line 49 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "No cardinality known for type constant " << tc;
-    InternalError(ss.str());
-  }
+#line 50 "${template}"
+default: InternalError() << "No cardinality known for type constant " << tc;
   }
 }/* getCardinality(TypeConstant) */
 
@@ -67,26 +62,21 @@ inline Cardinality getCardinality(TypeNode typeNode) {
   case TYPE_CONSTANT:
     return getCardinality(typeNode.getConst<TypeConstant>());
 ${type_cardinalities}
-#line 70 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "A theory kinds file did not provide a cardinality "
-       << "or cardinality computer for type:\n" << typeNode
-       << "\nof kind " << k;
-    InternalError(ss.str());
-  }
+#line 67 "${template}"
+  default:
+    InternalError() << "A theory kinds file did not provide a cardinality "
+                    << "or cardinality computer for type:\n"
+                    << typeNode << "\nof kind " << k;
   }
 }/* getCardinality(TypeNode) */
 
 inline bool isWellFounded(TypeConstant tc) {
   switch(tc) {
 ${type_constant_wellfoundednesses}
-#line 84 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "No well-foundedness status known for type constant: " << tc;
-    InternalError(ss.str());
-  }
+#line 78 "${template}"
+default:
+  InternalError() << "No well-foundedness status known for type constant: "
+                  << tc;
   }
 }/* isWellFounded(TypeConstant) */
 
@@ -96,26 +86,19 @@ inline bool isWellFounded(TypeNode typeNode) {
   case TYPE_CONSTANT:
     return isWellFounded(typeNode.getConst<TypeConstant>());
 ${type_wellfoundednesses}
-#line 99 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "A theory kinds file did not provide a well-foundedness "
-       << "or well-foundedness computer for type:\n" << typeNode
-       << "\nof kind " << k;
-    InternalError(ss.str());
-  }
+#line 91 "${template}"
+  default:
+    InternalError() << "A theory kinds file did not provide a well-foundedness "
+                    << "or well-foundedness computer for type:\n"
+                    << typeNode << "\nof kind " << k;
   }
 }/* isWellFounded(TypeNode) */
 
 inline Node mkGroundTerm(TypeConstant tc) {
   switch(tc) {
 ${type_constant_groundterms}
-#line 113 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "No ground term known for type constant: " << tc;
-    InternalError(ss.str());
-  }
+#line 102 "${template}"
+default: InternalError() << "No ground term known for type constant: " << tc;
   }
 }/* mkGroundTerm(TypeConstant) */
 
@@ -125,14 +108,11 @@ inline Node mkGroundTerm(TypeNode typeNode) {
   case TYPE_CONSTANT:
     return mkGroundTerm(typeNode.getConst<TypeConstant>());
 ${type_groundterms}
-#line 128 "${template}"
-  default: {
-    std::stringstream ss;
-    ss << "A theory kinds file did not provide a ground term "
-       << "or ground term computer for type:\n" << typeNode
-       << "\nof kind " << k;
-    InternalError(ss.str());
-  }
+#line 113 "${template}"
+  default:
+    InternalError() << "A theory kinds file did not provide a ground term "
+                    << "or ground term computer for type:\n"
+                    << typeNode << "\nof kind " << k;
   }
 }/* mkGroundTerm(TypeNode) */
 

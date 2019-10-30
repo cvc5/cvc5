@@ -36,7 +36,7 @@ namespace fp {
 namespace removeToFPGeneric {
 
 Node removeToFPGeneric(TNode node) {
-  CVC4_DCHECK(node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC);
+  Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_GENERIC);
 
   FloatingPointToFPGeneric info =
       node.getOperator().getConst<FloatingPointToFPGeneric>();
@@ -51,8 +51,8 @@ Node removeToFPGeneric(TNode node) {
     return nm->mkNode(op, node[0]);
 
   } else {
-    CVC4_DCHECK(children == 2);
-    CVC4_DCHECK(node[0].getType().isRoundingMode());
+    Assert(children == 2);
+    Assert(node[0].getType().isRoundingMode());
 
     TypeNode t = node[1].getType();
 
@@ -72,7 +72,7 @@ Node removeToFPGeneric(TNode node) {
     return nm->mkNode(op, node[0], node[1]);
   }
 
-  Unreachable("to_fp generic not rewritten");
+  Unreachable() << "to_fp generic not rewritten";
 }
 }  // namespace removeToFPGeneric
 
@@ -178,9 +178,9 @@ TheoryFp::TheoryFp(context::Context *c,
 } /* TheoryFp::TheoryFp() */
 
 Node TheoryFp::minUF(Node node) {
-  CVC4_DCHECK(node.getKind() == kind::FLOATINGPOINT_MIN);
+  Assert(node.getKind() == kind::FLOATINGPOINT_MIN);
   TypeNode t(node.getType());
-  CVC4_DCHECK(t.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
   ComparisonUFMap::const_iterator i(d_minMap.find(t));
@@ -209,9 +209,9 @@ Node TheoryFp::minUF(Node node) {
 }
 
 Node TheoryFp::maxUF(Node node) {
-  CVC4_DCHECK(node.getKind() == kind::FLOATINGPOINT_MAX);
+  Assert(node.getKind() == kind::FLOATINGPOINT_MAX);
   TypeNode t(node.getType());
-  CVC4_DCHECK(t.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
   ComparisonUFMap::const_iterator i(d_maxMap.find(t));
@@ -239,13 +239,13 @@ Node TheoryFp::maxUF(Node node) {
 }
 
 Node TheoryFp::toUBVUF(Node node) {
-  CVC4_DCHECK(node.getKind() == kind::FLOATINGPOINT_TO_UBV);
+  Assert(node.getKind() == kind::FLOATINGPOINT_TO_UBV);
 
   TypeNode target(node.getType());
-  CVC4_DCHECK(target.getKind() == kind::BITVECTOR_TYPE);
+  Assert(target.getKind() == kind::BITVECTOR_TYPE);
 
   TypeNode source(node[1].getType());
-  CVC4_DCHECK(source.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(source.getKind() == kind::FLOATINGPOINT_TYPE);
 
   std::pair<TypeNode, TypeNode> p(source, target);
   NodeManager *nm = NodeManager::currentNM();
@@ -268,13 +268,13 @@ Node TheoryFp::toUBVUF(Node node) {
 }
 
 Node TheoryFp::toSBVUF(Node node) {
-  CVC4_DCHECK(node.getKind() == kind::FLOATINGPOINT_TO_SBV);
+  Assert(node.getKind() == kind::FLOATINGPOINT_TO_SBV);
 
   TypeNode target(node.getType());
-  CVC4_DCHECK(target.getKind() == kind::BITVECTOR_TYPE);
+  Assert(target.getKind() == kind::BITVECTOR_TYPE);
 
   TypeNode source(node[1].getType());
-  CVC4_DCHECK(source.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(source.getKind() == kind::FLOATINGPOINT_TYPE);
 
   std::pair<TypeNode, TypeNode> p(source, target);
   NodeManager *nm = NodeManager::currentNM();
@@ -297,9 +297,9 @@ Node TheoryFp::toSBVUF(Node node) {
 }
 
 Node TheoryFp::toRealUF(Node node) {
-  CVC4_DCHECK(node.getKind() == kind::FLOATINGPOINT_TO_REAL);
+  Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL);
   TypeNode t(node[0].getType());
-  CVC4_DCHECK(t.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
   ComparisonUFMap::const_iterator i(d_toRealMap.find(t));
@@ -332,9 +332,9 @@ void TheoryFp::enableUF(LogicRequest &lr)
 
 Node TheoryFp::abstractRealToFloat(Node node)
 {
-  CVC4_DCHECK(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
+  Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
   TypeNode t(node.getType());
-  CVC4_DCHECK(t.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
   ComparisonUFMap::const_iterator i(realToFloatMap.find(t));
@@ -364,9 +364,9 @@ Node TheoryFp::abstractRealToFloat(Node node)
 
 Node TheoryFp::abstractFloatToReal(Node node)
 {
-  CVC4_DCHECK(node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL);
+  Assert(node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL);
   TypeNode t(node[0].getType());
-  CVC4_DCHECK(t.getKind() == kind::FLOATINGPOINT_TYPE);
+  Assert(t.getKind() == kind::FLOATINGPOINT_TYPE);
 
   NodeManager *nm = NodeManager::currentNM();
   ComparisonUFMap::const_iterator i(floatToRealMap.find(t));
@@ -529,17 +529,17 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   if (k == kind::FLOATINGPOINT_TO_REAL_TOTAL)
   {
     // Get the values
-    CVC4_DCHECK(m->hasTerm(abstract));
-    CVC4_DCHECK(m->hasTerm(concrete[0]));
-    CVC4_DCHECK(m->hasTerm(concrete[1]));
+    Assert(m->hasTerm(abstract));
+    Assert(m->hasTerm(concrete[0]));
+    Assert(m->hasTerm(concrete[1]));
 
     Node abstractValue = m->getValue(abstract);
     Node floatValue = m->getValue(concrete[0]);
     Node undefValue = m->getValue(concrete[1]);
 
-    CVC4_DCHECK(abstractValue.isConst());
-    CVC4_DCHECK(floatValue.isConst());
-    CVC4_DCHECK(undefValue.isConst());
+    Assert(abstractValue.isConst());
+    Assert(floatValue.isConst());
+    Assert(undefValue.isConst());
 
     // Work out the actual value for those args
     NodeManager *nm = NodeManager::currentNM();
@@ -547,7 +547,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     Node evaluate =
         nm->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL, floatValue, undefValue);
     Node concreteValue = Rewriter::rewrite(evaluate);
-    CVC4_DCHECK(concreteValue.isConst());
+    Assert(concreteValue.isConst());
 
     Trace("fp-refineAbstraction")
         << "TheoryFp::refineAbstraction(): " << concrete[0] << " = "
@@ -563,8 +563,8 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
     {
       // Need refinement lemmas
       // only in the normal and subnormal case
-      CVC4_DCHECK(floatValue.getConst<FloatingPoint>().isNormal()
-                  || floatValue.getConst<FloatingPoint>().isSubnormal());
+      Assert(floatValue.getConst<FloatingPoint>().isNormal()
+             || floatValue.getConst<FloatingPoint>().isSubnormal());
 
       Node defined = nm->mkNode(
           kind::AND,
@@ -638,17 +638,17 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   else if (k == kind::FLOATINGPOINT_TO_FP_REAL)
   {
     // Get the values
-    CVC4_DCHECK(m->hasTerm(abstract));
-    CVC4_DCHECK(m->hasTerm(concrete[0]));
-    CVC4_DCHECK(m->hasTerm(concrete[1]));
+    Assert(m->hasTerm(abstract));
+    Assert(m->hasTerm(concrete[0]));
+    Assert(m->hasTerm(concrete[1]));
 
     Node abstractValue = m->getValue(abstract);
     Node rmValue = m->getValue(concrete[0]);
     Node realValue = m->getValue(concrete[1]);
 
-    CVC4_DCHECK(abstractValue.isConst());
-    CVC4_DCHECK(rmValue.isConst());
-    CVC4_DCHECK(realValue.isConst());
+    Assert(abstractValue.isConst());
+    Assert(rmValue.isConst());
+    Assert(realValue.isConst());
 
     // Work out the actual value for those args
     NodeManager *nm = NodeManager::currentNM();
@@ -660,7 +660,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
                    rmValue,
                    realValue);
     Node concreteValue = Rewriter::rewrite(evaluate);
-    CVC4_DCHECK(concreteValue.isConst());
+    Assert(concreteValue.isConst());
 
     Trace("fp-refineAbstraction")
         << "TheoryFp::refineAbstraction(): " << concrete[0] << " = " << rmValue
@@ -674,8 +674,8 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
 
     if (abstractValue != concreteValue)
     {
-      CVC4_DCHECK(!abstractValue.getConst<FloatingPoint>().isNaN());
-      CVC4_DCHECK(!concreteValue.getConst<FloatingPoint>().isNaN());
+      Assert(!abstractValue.getConst<FloatingPoint>().isNaN());
+      Assert(!concreteValue.getConst<FloatingPoint>().isNaN());
 
       Node correctRoundingMode = nm->mkNode(kind::EQUAL, concrete[0], rmValue);
       // TODO : Generalise to all rounding modes  #1914
@@ -736,7 +736,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   }
   else
   {
-    Unreachable("Unknown abstraction");
+    Unreachable() << "Unknown abstraction";
   }
 
   return false;
@@ -756,7 +756,7 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
   }
 
   size_t newAdditionalAssertions = d_conv.d_additionalAssertions.size();
-  CVC4_DCHECK(oldAdditionalAssertions <= newAdditionalAssertions);
+  Assert(oldAdditionalAssertions <= newAdditionalAssertions);
 
   while (oldAdditionalAssertions < newAdditionalAssertions) {
     Node addA = d_conv.d_additionalAssertions[oldAdditionalAssertions];
@@ -780,7 +780,7 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
   // Also adds the bit-vectors to the bit-vector solver.
   if (node.getType().isBoolean()) {
     if (converted != node) {
-      CVC4_DCHECK(converted.getType().isBitVector());
+      Assert(converted.getType().isBitVector());
 
       NodeManager *nm = NodeManager::currentNM();
 
@@ -794,12 +794,12 @@ void TheoryFp::convertAndEquateTerm(TNode node) {
 #endif
 
     } else {
-      CVC4_DCHECK((node.getKind() == kind::EQUAL));
+      Assert((node.getKind() == kind::EQUAL));
     }
 
   } else if (node.getType().isBitVector()) {
     if (converted != node) {
-      CVC4_DCHECK(converted.getType().isBitVector());
+      Assert(converted.getType().isBitVector());
 
       handleLemma(
           NodeManager::currentNM()->mkNode(kind::EQUAL, node, converted));
@@ -815,7 +815,7 @@ void TheoryFp::registerTerm(TNode node) {
   if (!isRegistered(node)) {
     bool success = d_registeredTerms.insert(node);
     (void)success;  // Only used for assertion
-    CVC4_DCHECK(success);
+    Assert(success);
 
     // Add to the equality engine
     if (node.getKind() == kind::EQUAL) {
@@ -863,7 +863,7 @@ void TheoryFp::registerTerm(TNode node) {
       }
       else
       {
-        Unreachable("Only isNaN, isInf and isZero have aliases");
+        Unreachable() << "Only isNaN, isInf and isZero have aliases";
       }
 
       handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias));
@@ -910,7 +910,7 @@ void TheoryFp::addSharedTerm(TNode node) {
   Trace("fp-addSharedTerm")
       << "TheoryFp::addSharedTerm(): " << node << std::endl;
   // A system-wide invariant; terms must be registered before they are shared
-  CVC4_DCHECK(isRegistered(node));
+  Assert(isRegistered(node));
   return;
 }
 
@@ -965,12 +965,12 @@ void TheoryFp::check(Effort level) {
     TNode predicate = negated ? fact[0] : fact;
 
     if (predicate.getKind() == kind::EQUAL) {
-      CVC4_DCHECK(!(predicate[0].getType().isFloatingPoint()
-                    || predicate[0].getType().isRoundingMode())
-                  || isRegistered(predicate[0]));
-      CVC4_DCHECK(!(predicate[1].getType().isFloatingPoint()
-                    || predicate[1].getType().isRoundingMode())
-                  || isRegistered(predicate[1]));
+      Assert(!(predicate[0].getType().isFloatingPoint()
+               || predicate[0].getType().isRoundingMode())
+             || isRegistered(predicate[0]));
+      Assert(!(predicate[1].getType().isFloatingPoint()
+               || predicate[1].getType().isRoundingMode())
+             || isRegistered(predicate[1]));
       registerTerm(predicate);  // Needed for float equalities
 
       if (negated) {
@@ -986,7 +986,7 @@ void TheoryFp::check(Effort level) {
     } else {
       // A system-wide invariant; predicates are registered before they are
       // asserted
-      CVC4_DCHECK(isRegistered(predicate));
+      Assert(isRegistered(predicate));
 
       if (d_equalityEngine.isFunctionKind(predicate.getKind())) {
         Debug("fp-eq") << "TheoryFp::check(): adding predicate " << predicate
@@ -1125,16 +1125,14 @@ bool TheoryFp::collectModelInfo(TheoryModel *m)
           nm->mkNode(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, node);
 
       eq::EqualityEngine* ee = m->getEqualityEngine();
-      CVC4_DCHECK(ee->hasTerm(compNaN)
-                  && ee->getRepresentative(compNaN).isConst());
-      CVC4_DCHECK(ee->hasTerm(compInf)
-                  && ee->getRepresentative(compInf).isConst());
-      CVC4_DCHECK(ee->hasTerm(compZero)
-                  && ee->getRepresentative(compZero).isConst());
-      CVC4_DCHECK(ee->hasTerm(compExponent)
-                  && ee->getRepresentative(compExponent).isConst());
-      CVC4_DCHECK(ee->hasTerm(compSignificand));
-      CVC4_DCHECK(ee->getRepresentative(compSignificand).isConst());
+      Assert(ee->hasTerm(compNaN) && ee->getRepresentative(compNaN).isConst());
+      Assert(ee->hasTerm(compInf) && ee->getRepresentative(compInf).isConst());
+      Assert(ee->hasTerm(compZero)
+             && ee->getRepresentative(compZero).isConst());
+      Assert(ee->hasTerm(compExponent)
+             && ee->getRepresentative(compExponent).isConst());
+      Assert(ee->hasTerm(compSignificand));
+      Assert(ee->getRepresentative(compSignificand).isConst());
 
       // At most one of the flags (NaN, inf, zero) can be set
       Node one = nm->mkConst(BitVector(1U, 1U));
@@ -1142,7 +1140,7 @@ bool TheoryFp::collectModelInfo(TheoryModel *m)
       numFlags += ee->getRepresentative(compNaN) == one ? 1 : 0;
       numFlags += ee->getRepresentative(compInf) == one ? 1 : 0;
       numFlags += ee->getRepresentative(compZero) == one ? 1 : 0;
-      CVC4_DCHECK(numFlags <= 1);
+      Assert(numFlags <= 1);
     }
   }
 

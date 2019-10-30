@@ -202,7 +202,7 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
       buf.push_back(pos[i]);
     }
   }
-  CVC4_DCHECK(posPos < pos.size());
+  Assert(posPos < pos.size());
   ConstraintP negc = c->getNegation();
   unsigned negPos CVC4_UNUSED = neg.size();
   for(unsigned i = 0, N = neg.size(); i < N; ++i){
@@ -212,13 +212,13 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
       buf.push_back(neg[i]);
     }
   }
-  CVC4_DCHECK(negPos < neg.size());
+  Assert(negPos < neg.size());
 
-  // CVC4_DCHECK(dnconf.getKind() == kind::AND);
-  // CVC4_DCHECK(upconf.getKind() == kind::AND);
-  // CVC4_DCHECK(dnpos < dnconf.getNumChildren());
-  // CVC4_DCHECK(uppos < upconf.getNumChildren());
-  // CVC4_DCHECK(equalUpToNegation(dnconf[dnpos], upconf[uppos]));
+  // Assert(dnconf.getKind() == kind::AND);
+  // Assert(upconf.getKind() == kind::AND);
+  // Assert(dnpos < dnconf.getNumChildren());
+  // Assert(uppos < upconf.getNumChildren());
+  // Assert(equalUpToNegation(dnconf[dnpos], upconf[uppos]));
 
   // NodeBuilder<> nb(kind::AND);
   // dropPosition(nb, dnconf, dnpos);
@@ -606,7 +606,7 @@ bool complexityBelow(const DenseMap<Rational>& row, uint32_t cap){
 }
 
 void TheoryArithPrivate::raiseConflict(ConstraintCP a){
-  CVC4_DCHECK(a->inConflict());
+  Assert(a->inConflict());
   d_conflicts.push_back(a);
 }
 
@@ -643,9 +643,9 @@ void TheoryArithPrivate::clearUpdates(){
 
 void TheoryArithPrivate::zeroDifferenceDetected(ArithVar x){
   if(d_cmEnabled){
-    CVC4_DCHECK(d_congruenceManager.isWatchedVariable(x));
-    CVC4_DCHECK(d_partialModel.upperBoundIsZero(x));
-    CVC4_DCHECK(d_partialModel.lowerBoundIsZero(x));
+    Assert(d_congruenceManager.isWatchedVariable(x));
+    Assert(d_partialModel.upperBoundIsZero(x));
+    Assert(d_partialModel.lowerBoundIsZero(x));
 
     ConstraintP lb = d_partialModel.getLowerBoundConstraint(x);
     ConstraintP ub = d_partialModel.getUpperBoundConstraint(x);
@@ -687,17 +687,17 @@ bool TheoryArithPrivate::getDioCuttingResource(){
 
 /* procedure AssertLower( x_i >= c_i ) */
 bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
-  CVC4_DCHECK(constraint != NullConstraint);
-  CVC4_DCHECK(constraint->isLowerBound());
-  CVC4_DCHECK(constraint->isTrue());
-  CVC4_DCHECK(!constraint->negationHasProof());
+  Assert(constraint != NullConstraint);
+  Assert(constraint->isLowerBound());
+  Assert(constraint->isTrue());
+  Assert(!constraint->negationHasProof());
 
   ArithVar x_i = constraint->getVariable();
   const DeltaRational& c_i = constraint->getValue();
 
   Debug("arith") << "AssertLower(" << x_i << " " << c_i << ")"<< std::endl;
 
-  CVC4_DCHECK(!isInteger(x_i) || c_i.isIntegral());
+  Assert(!isInteger(x_i) || c_i.isIntegral());
 
   //TODO Relax to less than?
   if(d_partialModel.lessThanLowerBound(x_i, c_i)){
@@ -732,7 +732,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
 
     const ValueCollection& vc = constraint->getValueCollection();
     if(vc.hasEquality()){
-      CVC4_DCHECK(vc.hasDisequality());
+      Assert(vc.hasDisequality());
       ConstraintP eq = vc.getEquality();
       ConstraintP diseq = vc.getDisequality();
       // x <= b, x >= b |= x = b
@@ -752,7 +752,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
     }
   }else{
     // l <= x <= u and l < u
-    CVC4_DCHECK(cmpToUB < 0);
+    Assert(cmpToUB < 0);
     const ValueCollection& vc = constraint->getValueCollection();
 
     if(vc.hasDisequality()){
@@ -822,10 +822,10 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
 
 /* procedure AssertUpper( x_i <= c_i) */
 bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
-  CVC4_DCHECK(constraint != NullConstraint);
-  CVC4_DCHECK(constraint->isUpperBound());
-  CVC4_DCHECK(constraint->isTrue());
-  CVC4_DCHECK(!constraint->negationHasProof());
+  Assert(constraint != NullConstraint);
+  Assert(constraint->isUpperBound());
+  Assert(constraint->isTrue());
+  Assert(!constraint->negationHasProof());
 
   ArithVar x_i = constraint->getVariable();
   const DeltaRational& c_i = constraint->getValue();
@@ -835,7 +835,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
 
   //Too strong because of rounding with integers
   //Assert(!constraint->hasLiteral() || original == constraint->getLiteral());
-  CVC4_DCHECK(!isInteger(x_i) || c_i.isIntegral());
+  Assert(!isInteger(x_i) || c_i.isIntegral());
 
   Debug("arith") << "AssertUpper(" << x_i << " " << c_i << ")"<< std::endl;
 
@@ -872,7 +872,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
     }
 
     if(vc.hasDisequality()){
-      CVC4_DCHECK(vc.hasDisequality());
+      Assert(vc.hasDisequality());
       ConstraintP eq = vc.getEquality();
       ConstraintP diseq = vc.getDisequality();
       // x <= b, x >= b |= x = b
@@ -891,7 +891,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
     }
   }else if(cmpToLB > 0){
     // l <= x <= u and l < u
-    CVC4_DCHECK(cmpToLB > 0);
+    Assert(cmpToLB > 0);
     const ValueCollection& vc = constraint->getValueCollection();
 
     if(vc.hasDisequality()){
@@ -963,10 +963,10 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
 
 /* procedure AssertEquality( x_i == c_i ) */
 bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
-  CVC4_DCHECK(constraint != NullConstraint);
-  CVC4_DCHECK(constraint->isEquality());
-  CVC4_DCHECK(constraint->isTrue());
-  CVC4_DCHECK(!constraint->negationHasProof());
+  Assert(constraint != NullConstraint);
+  Assert(constraint->isEquality());
+  Assert(constraint->isTrue());
+  Assert(!constraint->negationHasProof());
 
   ArithVar x_i = constraint->getVariable();
   const DeltaRational& c_i = constraint->getValue();
@@ -974,7 +974,7 @@ bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
   Debug("arith") << "AssertEquality(" << x_i << " " << c_i << ")"<< std::endl;
 
   //Should be fine in integers
-  CVC4_DCHECK(!isInteger(x_i) || c_i.isIntegral());
+  Assert(!isInteger(x_i) || c_i.isIntegral());
 
   int cmpToLB = d_partialModel.cmpToLowerBound(x_i, c_i);
   int cmpToUB = d_partialModel.cmpToUpperBound(x_i, c_i);
@@ -989,15 +989,15 @@ bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
     ConstraintP cb = (cmpToUB > 0) ?  d_partialModel.getUpperBoundConstraint(x_i) :
       d_partialModel.getLowerBoundConstraint(x_i);
     ConstraintP diseq = constraint->getNegation();
-    CVC4_DCHECK(!diseq->isTrue());
+    Assert(!diseq->isTrue());
     diseq->impliedByUnate(cb, true);
     raiseConflict(constraint);
     return true;
   }
 
-  CVC4_DCHECK(cmpToUB <= 0);
-  CVC4_DCHECK(cmpToLB >= 0);
-  CVC4_DCHECK(cmpToUB < 0 || cmpToLB > 0);
+  Assert(cmpToUB <= 0);
+  Assert(cmpToLB >= 0);
+  Assert(cmpToUB < 0 || cmpToLB > 0);
 
   if(isInteger(x_i)){
     d_constantIntegerVariables.push_back(x_i);
@@ -1055,17 +1055,17 @@ bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
 
 /* procedure AssertDisequality( x_i != c_i ) */
 bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
-  CVC4_DCHECK(constraint != NullConstraint);
-  CVC4_DCHECK(constraint->isDisequality());
-  CVC4_DCHECK(constraint->isTrue());
-  CVC4_DCHECK(!constraint->negationHasProof());
+  Assert(constraint != NullConstraint);
+  Assert(constraint->isDisequality());
+  Assert(constraint->isTrue());
+  Assert(!constraint->negationHasProof());
 
   ArithVar x_i = constraint->getVariable();
   const DeltaRational& c_i = constraint->getValue();
   Debug("arith") << "AssertDisequality(" << x_i << " " << c_i << ")"<< std::endl;
 
   //Should be fine in integers
-  CVC4_DCHECK(!isInteger(x_i) || c_i.isIntegral());
+  Assert(!isInteger(x_i) || c_i.isIntegral());
 
   if(d_cmEnabled){
     if(d_congruenceManager.isWatchedVariable(x_i)){
@@ -1093,7 +1093,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
     const ConstraintP lb = vc.getLowerBound();
     if(lb->isTrue()){
       const ConstraintP ub = d_constraintDatabase.ensureConstraint(const_cast<ValueCollection&>(vc), UpperBound);
-      CVC4_DCHECK(!ub->isTrue());
+      Assert(!ub->isTrue());
       Debug("arith::eq") << "propagate UpperBound " << constraint << lb << ub << endl;
       const ConstraintP negUb = ub->getNegation();
       if(!negUb->isTrue()){
@@ -1107,7 +1107,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
     const ConstraintP ub = vc.getUpperBound();
     if(ub->isTrue()){
       const ConstraintP lb = d_constraintDatabase.ensureConstraint(const_cast<ValueCollection&>(vc), LowerBound);
-      CVC4_DCHECK(!lb->isTrue());
+      Assert(!lb->isTrue());
 
       Debug("arith::eq") << "propagate LowerBound " << constraint << lb << ub << endl;
       const ConstraintP negLb = lb->getNegation();
@@ -1201,14 +1201,14 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     if(k == kind::IS_INTEGER) {
       return nm->mkNode(kind::EQUAL, n[0], toIntSkolem);
     }
-    CVC4_DCHECK(k == kind::TO_INTEGER);
+    Assert(k == kind::TO_INTEGER);
     return toIntSkolem;
   }
   case kind::INTS_DIVISION:
   case kind::INTS_MODULUS:
   case kind::DIVISION:
     // these should be removed during expand definitions
-    CVC4_DCHECK(false);
+    Assert(false);
     break;
   
   case kind::INTS_DIVISION_TOTAL: 
@@ -1227,7 +1227,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
       Node lem;
       if (den.isConst()) {
         const Rational& rat = den.getConst<Rational>();
-        CVC4_DCHECK(!num.isConst());
+        Assert(!num.isConst());
         if(rat != 0) {
           if(rat > 0) {
             lem = nm->mkNode(kind::AND, nm->mkNode(kind::LEQ, nm->mkNode(kind::MULT, den, intVar), num), 
@@ -1263,7 +1263,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   case kind::DIVISION_TOTAL: {
     Node num = Rewriter::rewrite(n[0]);
     Node den = Rewriter::rewrite(n[1]);
-    CVC4_DCHECK(!den.isConst());
+    Assert(!den.isConst());
     Node var;
     Node rw = nm->mkNode(k, num, den);
     NodeMap::const_iterator it = d_div_skolem.find( rw );
@@ -1350,7 +1350,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
       // ax + p = c -> (ax + p) -ax - c = -ax
       // x = (p - ax - c) * -1/a
       // Add the substitution if not recursive
-      CVC4_DCHECK(elim == Rewriter::rewrite(elim));
+      Assert(elim == Rewriter::rewrite(elim));
 
       if (right.size() > options::ppAssertMaxSubSize())
       {
@@ -1368,7 +1368,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& o
       }
       else if (!minVar.getType().isInteger() || right.isIntegral())
       {
-        CVC4_DCHECK(!expr::hasSubterm(elim, minVar));
+        Assert(!expr::hasSubterm(elim, minVar));
         // cannot eliminate integers here unless we know the resulting
         // substitution is integral
         Debug("simplify") << "TheoryArithPrivate::solve(): substitution "
@@ -1420,7 +1420,7 @@ ArithVar TheoryArithPrivate::findShortestBasicRow(ArithVar variable){
   Tableau::ColIterator basicIter = d_tableau.colIterator(variable);
   for(; !basicIter.atEnd(); ++basicIter){
     const Tableau::Entry& entry = *basicIter;
-    CVC4_DCHECK(entry.getColVar() == variable);
+    Assert(entry.getColVar() == variable);
     RowIndex ridx = entry.getRowIndex();
     ArithVar basic = d_tableau.rowIndexToBasic(ridx);
     uint32_t rowLength = d_tableau.getRowLength(ridx);
@@ -1430,15 +1430,15 @@ ArithVar TheoryArithPrivate::findShortestBasicRow(ArithVar variable){
       bestRowLength = rowLength;
     }
   }
-  CVC4_DCHECK(bestBasic == ARITHVAR_SENTINEL
-              || bestRowLength < std::numeric_limits<uint32_t>::max());
+  Assert(bestBasic == ARITHVAR_SENTINEL
+         || bestRowLength < std::numeric_limits<uint32_t>::max());
   return bestBasic;
 }
 
 void TheoryArithPrivate::setupVariable(const Variable& x){
   Node n = x.getNode();
 
-  CVC4_DCHECK(!isSetup(n));
+  Assert(!isSetup(n));
 
   ++(d_statistics.d_statUserVariables);
   requestArithVar(n, false,  false);
@@ -1454,11 +1454,11 @@ void TheoryArithPrivate::setupVariable(const Variable& x){
 }
 
 void TheoryArithPrivate::setupVariableList(const VarList& vl){
-  CVC4_DCHECK(!vl.empty());
+  Assert(!vl.empty());
 
   TNode vlNode = vl.getNode();
-  CVC4_DCHECK(!isSetup(vlNode));
-  CVC4_DCHECK(!d_partialModel.hasArithVar(vlNode));
+  Assert(!isSetup(vlNode));
+  Assert(!d_partialModel.hasArithVar(vlNode));
 
   for(VarList::iterator i = vl.begin(), end = vl.end(); i != end; ++i){
     Variable var = *i;
@@ -1514,7 +1514,7 @@ void TheoryArithPrivate::cautiousSetupPolynomial(const Polynomial& p){
 }
 
 void TheoryArithPrivate::setupDivLike(const Variable& v){
-  CVC4_DCHECK(v.isDivLike());
+  Assert(v.isDivLike());
 
   if(getLogicInfo().isLinear()){
     throw LogicException(
@@ -1525,7 +1525,7 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
   }
 
   Node vnode = v.getNode();
-  CVC4_DCHECK(
+  Assert(
       isSetup(vnode));  // Otherwise there is some invariant breaking recursion
   Polynomial m = Polynomial::parsePolynomial(vnode[0]);
   Polynomial n = Polynomial::parsePolynomial(vnode[1]);
@@ -1539,7 +1539,7 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
   case INTS_DIVISION:
   case INTS_MODULUS:
     // these should be removed during expand definitions
-    CVC4_DCHECK(false);
+    Assert(false);
     break;
   case DIVISION_TOTAL:
     lem = axiomIteForTotalDivision(vnode);
@@ -1560,7 +1560,7 @@ void TheoryArithPrivate::setupDivLike(const Variable& v){
 }
 
 Node TheoryArithPrivate::axiomIteForTotalDivision(Node div_tot){
-  CVC4_DCHECK(div_tot.getKind() == DIVISION_TOTAL);
+  Assert(div_tot.getKind() == DIVISION_TOTAL);
 
   // Inverse of multiplication axiom:
   //   (for all ((n Real) (d Real))
@@ -1583,7 +1583,7 @@ Node TheoryArithPrivate::axiomIteForTotalDivision(Node div_tot){
 
 Node TheoryArithPrivate::axiomIteForTotalIntDivision(Node int_div_like){
   Kind k = int_div_like.getKind();
-  CVC4_DCHECK(k == INTS_DIVISION_TOTAL || k == INTS_MODULUS_TOTAL);
+  Assert(k == INTS_DIVISION_TOTAL || k == INTS_MODULUS_TOTAL);
 
   // See the discussion of integer division axioms above.
 
@@ -1620,10 +1620,10 @@ Node TheoryArithPrivate::axiomIteForTotalIntDivision(Node int_div_like){
 
 
 void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
-  CVC4_DCHECK(!poly.containsConstant());
+  Assert(!poly.containsConstant());
   TNode polyNode = poly.getNode();
-  CVC4_DCHECK(!isSetup(polyNode));
-  CVC4_DCHECK(!d_partialModel.hasArithVar(polyNode));
+  Assert(!isSetup(polyNode));
+  Assert(!d_partialModel.hasArithVar(polyNode));
 
   for(Polynomial::iterator i = poly.begin(), end = poly.end(); i != end; ++i){
     Monomial mono = *i;
@@ -1678,14 +1678,14 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
 }
 
 void TheoryArithPrivate::setupAtom(TNode atom) {
-  CVC4_DCHECK(isRelationOperator(atom.getKind()));
-  CVC4_DCHECK(Comparison::isNormalAtom(atom));
-  CVC4_DCHECK(!isSetup(atom));
-  CVC4_DCHECK(!d_constraintDatabase.hasLiteral(atom));
+  Assert(isRelationOperator(atom.getKind()));
+  Assert(Comparison::isNormalAtom(atom));
+  Assert(!isSetup(atom));
+  Assert(!d_constraintDatabase.hasLiteral(atom));
 
   Comparison cmp = Comparison::parseNormalForm(atom);
   Polynomial nvp = cmp.normalizedVariablePart();
-  CVC4_DCHECK(!nvp.isZero());
+  Assert(!nvp.isZero());
 
   if(!isSetup(nvp.getNode())){
     setupPolynomial(nvp);
@@ -1709,10 +1709,10 @@ void TheoryArithPrivate::preRegisterTerm(TNode n) {
         setupAtom(n);
       }
       ConstraintP c = d_constraintDatabase.lookup(n);
-      CVC4_DCHECK(c != NullConstraint);
+      Assert(c != NullConstraint);
 
       Debug("arith::preregister") << "setup constraint" << c << endl;
-      CVC4_DCHECK(!c->canBePropagated());
+      Assert(!c->canBePropagated());
       c->setPreregistered();
     }
   } catch(LogicException& le) {
@@ -1733,16 +1733,15 @@ void TheoryArithPrivate::releaseArithVar(ArithVar v){
 
 ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
   //TODO : The VarList trick is good enough?
-  CVC4_DCHECK(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS
-              || internal);
+  Assert(isLeaf(x) || VarList::isMember(x) || x.getKind() == PLUS || internal);
   if(getLogicInfo().isLinear() && Variable::isDivMember(x)){
     stringstream ss;
     ss << "A non-linear fact (involving div/mod/divisibility) was asserted to arithmetic in a linear logic: " << x << endl
        << "if you only use division (or modulus) by a constant value, or if you only use the divisibility-by-k predicate, try using the --rewrite-divk option.";
     throw LogicException(ss.str());
   }
-  CVC4_DCHECK(!d_partialModel.hasArithVar(x));
-  CVC4_DCHECK(x.getType().isReal());  // real or integer
+  Assert(!d_partialModel.hasArithVar(x));
+  Assert(x.getType().isReal());  // real or integer
 
   ArithVar max = d_partialModel.getNumberOfVariables();
   ArithVar varX = d_partialModel.allocate(x, aux);
@@ -1761,8 +1760,8 @@ ArithVar TheoryArithPrivate::requestArithVar(TNode x, bool aux, bool internal){
                            << " " << x << " |-> " << varX
                            << "(relaiming " << reclaim << ")" << endl;
 
-  CVC4_DCHECK(!d_partialModel.hasUpperBound(varX));
-  CVC4_DCHECK(!d_partialModel.hasLowerBound(varX));
+  Assert(!d_partialModel.hasUpperBound(varX));
+  Assert(!d_partialModel.hasLowerBound(varX));
 
   return varX;
 }
@@ -1778,10 +1777,10 @@ void TheoryArithPrivate::asVectors(const Polynomial& p, std::vector<Rational>& c
     Debug("arith::asVectors") << "should be var: " << n << endl;
 
     // TODO: This VarList::isMember(n) can be stronger
-    CVC4_DCHECK(isLeaf(n) || VarList::isMember(n));
-    CVC4_DCHECK(theoryOf(n) != THEORY_ARITH || d_partialModel.hasArithVar(n));
+    Assert(isLeaf(n) || VarList::isMember(n));
+    Assert(theoryOf(n) != THEORY_ARITH || d_partialModel.hasArithVar(n));
 
-    CVC4_DCHECK(d_partialModel.hasArithVar(n));
+    Assert(d_partialModel.hasArithVar(n));
     ArithVar av = d_partialModel.asArithVar(n);
 
     coeffs.push_back(constant.getValue());
@@ -1793,7 +1792,7 @@ void TheoryArithPrivate::asVectors(const Polynomial& p, std::vector<Rational>& c
  * For basic variables the row must have been added to the tableau.
  */
 void TheoryArithPrivate::setupBasicValue(ArithVar x){
-  CVC4_DCHECK(d_tableau.isBasic(x));
+  Assert(d_tableau.isBasic(x));
   //If the variable is basic, assertions may have already happened and updates
   //may have occured before setting this variable up.
 
@@ -1807,8 +1806,8 @@ void TheoryArithPrivate::setupBasicValue(ArithVar x){
 }
 
 ArithVar TheoryArithPrivate::determineArithVar(const Polynomial& p) const{
-  CVC4_DCHECK(!p.containsConstant());
-  CVC4_DCHECK(p.getHead().constantIsPositive());
+  Assert(!p.containsConstant());
+  Assert(p.getHead().constantIsPositive());
   TNode n = p.getNode();
   Debug("determineArithVar") << "determineArithVar(" << n << ")" << endl;
   return d_partialModel.asArithVar(n);
@@ -1823,14 +1822,14 @@ ArithVar TheoryArithPrivate::determineArithVar(TNode assertion) const{
 
 
 bool TheoryArithPrivate::canSafelyAvoidEqualitySetup(TNode equality){
-  CVC4_DCHECK(equality.getKind() == EQUAL);
+  Assert(equality.getKind() == EQUAL);
   return d_partialModel.hasArithVar(equality[0]);
 }
 
 Comparison TheoryArithPrivate::mkIntegerEqualityFromAssignment(ArithVar v){
   const DeltaRational& beta = d_partialModel.getAssignment(v);
 
-  CVC4_DCHECK(beta.isIntegral());
+  Assert(beta.isIntegral());
   Polynomial betaAsPolynomial = Polynomial::mkPolynomial( Constant::mkConstant(beta.floor()) );
 
   TNode var = d_partialModel.asNode(v);
@@ -1852,7 +1851,7 @@ Node TheoryArithPrivate::dioCutting(){
           //Add v = dr as a speculation.
           Comparison eq = mkIntegerEqualityFromAssignment(v);
           Debug("dio::push") << "dio::push " << v << " " <<  eq.getNode() << endl;
-          CVC4_DCHECK(!eq.isBoolean());
+          Assert(!eq.isBoolean());
           d_diosolver.pushInputConstraint(eq, eq.getNode());
           // It does not matter what the explanation of eq is.
           // It cannot be used in a conflict
@@ -1868,10 +1867,10 @@ Node TheoryArithPrivate::dioCutting(){
     Polynomial p = plane.getPolynomial();
     Polynomial c = Polynomial::mkPolynomial(plane.getConstant() * Constant::mkConstant(-1));
     Integer gcd = p.gcd();
-    CVC4_DCHECK(p.isIntegral());
-    CVC4_DCHECK(c.isIntegral());
-    CVC4_DCHECK(gcd > 1);
-    CVC4_DCHECK(!gcd.divides(c.asConstant().getNumerator()));
+    Assert(p.isIntegral());
+    Assert(c.isIntegral());
+    Assert(gcd > 1);
+    Assert(!gcd.divides(c.asConstant().getNumerator()));
     Comparison leq = Comparison::mkComparison(LEQ, p, c);
     Comparison geq = Comparison::mkComparison(GEQ, p, c);
     Node lemma = NodeManager::currentNM()->mkNode(OR, leq.getNode(), geq.getNode());
@@ -1893,8 +1892,8 @@ Node TheoryArithPrivate::callDioSolver(){
 
     Debug("arith::dio")  << "callDioSolver " << v << endl;
 
-    CVC4_DCHECK(isInteger(v));
-    CVC4_DCHECK(d_partialModel.boundsAreEqual(v));
+    Assert(isInteger(v));
+    Assert(d_partialModel.boundsAreEqual(v));
 
     ConstraintP lb = d_partialModel.getLowerBoundConstraint(v);
     ConstraintP ub = d_partialModel.getUpperBoundConstraint(v);
@@ -1908,16 +1907,16 @@ Node TheoryArithPrivate::callDioSolver(){
       orig = Constraint::externalExplainByAssertions(ub, lb);
     }
 
-    CVC4_DCHECK(d_partialModel.assignmentIsConsistent(v));
+    Assert(d_partialModel.assignmentIsConsistent(v));
 
     Comparison eq = mkIntegerEqualityFromAssignment(v);
 
     if(eq.isBoolean()){
       //This can only be a conflict
-      CVC4_DCHECK(!eq.getNode().getConst<bool>());
+      Assert(!eq.getNode().getConst<bool>());
 
       //This should be handled by the normal form earlier in the case of equality
-      CVC4_DCHECK(orig.getKind() != EQUAL);
+      Assert(orig.getKind() != EQUAL);
       return orig;
     }else{
       Debug("dio::push") << "dio::push " << v << " " << eq.getNode() << " with reason " << orig << endl;
@@ -1929,27 +1928,27 @@ Node TheoryArithPrivate::callDioSolver(){
 }
 
 ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
-  CVC4_DCHECK(!done());
+  Assert(!done());
   TNode assertion = get();
 
   Kind simpleKind = Comparison::comparisonKind(assertion);
   ConstraintP constraint = d_constraintDatabase.lookup(assertion);
   if(constraint == NullConstraint){
-    CVC4_DCHECK(simpleKind == EQUAL || simpleKind == DISTINCT);
+    Assert(simpleKind == EQUAL || simpleKind == DISTINCT);
     bool isDistinct = simpleKind == DISTINCT;
     Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
-    CVC4_DCHECK(!isSetup(eq));
+    Assert(!isSetup(eq));
     Node reEq = Rewriter::rewrite(eq);
     if(reEq.getKind() == CONST_BOOLEAN){
       if(reEq.getConst<bool>() == isDistinct){
         // if is (not true), or false
-        CVC4_DCHECK((reEq.getConst<bool>() && isDistinct)
-                    || (!reEq.getConst<bool>() && !isDistinct));
+        Assert((reEq.getConst<bool>() && isDistinct)
+               || (!reEq.getConst<bool>() && !isDistinct));
         raiseBlackBoxConflict(assertion);
       }
       return NullConstraint;
     }
-    CVC4_DCHECK(reEq.getKind() != CONST_BOOLEAN);
+    Assert(reEq.getKind() != CONST_BOOLEAN);
     if(!isSetup(reEq)){
       setupAtom(reEq);
     }
@@ -1958,18 +1957,18 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
 
     if(assertion != reAssertion){
       Debug("arith::nf") << "getting non-nf assertion " << assertion << " |-> " <<  reAssertion << endl;
-      CVC4_DCHECK(constraint != NullConstraint);
+      Assert(constraint != NullConstraint);
       d_assertionsThatDoNotMatchTheirLiterals.insert(assertion, constraint);
     }
   }
 
-  CVC4_DCHECK(constraint != NullConstraint);
+  Assert(constraint != NullConstraint);
 
   if(constraint->assertedToTheTheory()){
     //Do nothing
     return NullConstraint;
   }
-  CVC4_DCHECK(!constraint->assertedToTheTheory());
+  Assert(!constraint->assertedToTheTheory());
   bool inConflict = constraint->negationHasProof();
   constraint->setAssertedToTheTheory(assertion, inConflict);
 
@@ -2007,8 +2006,8 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
 }
 
 bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
-  CVC4_DCHECK(constraint->hasProof());
-  CVC4_DCHECK(!constraint->negationHasProof());
+  Assert(constraint->hasProof());
+  Assert(!constraint->negationHasProof());
 
   ArithVar x_i = constraint->getVariable();
 
@@ -2127,7 +2126,7 @@ Node flattenAndSort(Node n){
       out.push_back(b);
     }
   }
-  CVC4_DCHECK(out.size() >= 2);
+  Assert(out.size() >= 2);
   std::sort(out.begin(), out.end());
   return NodeManager::currentNM()->mkNode(k, out);
 }
@@ -2137,15 +2136,15 @@ Node flattenAndSort(Node n){
 /** Outputs conflicts to the output channel. */
 void TheoryArithPrivate::outputConflicts(){
   Debug("arith::conflict") << "outputting conflicts" << std::endl;
-  CVC4_DCHECK(anyConflict());
+  Assert(anyConflict());
   static unsigned int conflicts = 0;
   
   if(!conflictQueueEmpty()){
-    CVC4_DCHECK(!d_conflicts.empty());
+    Assert(!d_conflicts.empty());
     for(size_t i = 0, i_end = d_conflicts.size(); i < i_end; ++i){
       ConstraintCP confConstraint = d_conflicts[i];
       bool hasProof = confConstraint->hasProof();
-      CVC4_DCHECK(confConstraint->inConflict());
+      Assert(confConstraint->inConflict());
       const ConstraintRule& pf = confConstraint->getConstraintRule();
       if (Debug.isOn("arith::conflict"))
       {
@@ -2173,8 +2172,7 @@ void TheoryArithPrivate::outputConflicts(){
               << conflict[conflict.getNumChildren() - i - 1];
         }
 
-        CVC4_DCHECK(conflict.getNumChildren()
-                    == pf.d_farkasCoefficients->size());
+        Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
         d_containing.d_proofRecorder->saveFarkasCoefficients(
             conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
       })
@@ -2211,7 +2209,7 @@ void TheoryArithPrivate::outputLemma(TNode lem) {
 //   for(vector<ArithVar>::const_iterator i = lemmas.begin(); i != lemmas.end();
 //   ++i){
 //     ArithVar v = *i;
-//     CVC4_DCHECK(!d_cutInContext.contains(v));
+//     Assert(!d_cutInContext.contains(v));
 //     d_cutInContext.insert(v);
 //     d_cutCount = d_cutCount + 1;
 //     Node lem = branchIntegerVariable(v);
@@ -2273,11 +2271,11 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
 
   ++d_statistics.d_mipProofsAttempted;
 
-  CVC4_DCHECK(d_replayVariables.empty());
-  CVC4_DCHECK(d_replayConstraints.empty());
+  Assert(d_replayVariables.empty());
+  Assert(d_replayConstraints.empty());
 
   size_t enteringPropN = d_currentPropagationList.size();
-  CVC4_DCHECK(conflictQueueEmpty());
+  Assert(conflictQueueEmpty());
   TreeLog& tl = getTreeLog();
   //tl.applySelected(); /* set row ids */
 
@@ -2295,10 +2293,10 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
     unsigned successes = 0;
     for(size_t i =0, N = res.size(); i < N; ++i){
       ConstraintCPVec& vec = res[i];
-      CVC4_DCHECK(vec.size() >= 2);
+      Assert(vec.size() >= 2);
       for(size_t j=0, M = vec.size(); j < M; ++j){
         ConstraintCP at_j = vec[j];
-        CVC4_DCHECK(at_j->isTrue());
+        Assert(at_j->isTrue());
         if(!at_j->negationHasProof()){
           successes++;
           vec[j] = vec.back();
@@ -2326,8 +2324,8 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
   /* It is not clear what the d_qflraStatus is at this point */
   d_qflraStatus = Result::SAT_UNKNOWN;
 
-  CVC4_DCHECK(d_replayVariables.empty());
-  CVC4_DCHECK(d_replayConstraints.empty());
+  Assert(d_replayVariables.empty());
+  Assert(d_replayConstraints.empty());
 
   return !conflictQueueEmpty();
 }
@@ -2343,7 +2341,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
                               << " " << rhs
                               << endl;
 
-  CVC4_DCHECK(k == kind::LEQ || k == kind::GEQ);
+  Assert(k == kind::LEQ || k == kind::GEQ);
 
   Node comparison = NodeManager::currentNM()->mkNode(k, sum, mkRationalNode(rhs));
   Node rewritten = Rewriter::rewrite(comparison);
@@ -2365,14 +2363,14 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
   Debug("approx::constraint") << "rewriting " << rewritten << endl
                               << " |-> " << norm << " " << t << " " << dr << endl;
 
-  CVC4_DCHECK(!branch || d_partialModel.hasArithVar(norm));
+  Assert(!branch || d_partialModel.hasArithVar(norm));
   ArithVar v = ARITHVAR_SENTINEL;
   if(d_partialModel.hasArithVar(norm)){
 
     v = d_partialModel.asArithVar(norm);
     Debug("approx::constraint") << "replayGetConstraint found "
                                 << norm << " |-> " << v << " @ " << getSatContext()->getLevel() << endl;
-    CVC4_DCHECK(!branch || d_partialModel.isIntegerInput(v));
+    Assert(!branch || d_partialModel.isIntegerInput(v));
   }else{
     v = requestArithVar(norm, true, true);
     d_replayVariables.push_back(v);
@@ -2390,14 +2388,14 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
     setupBasicValue(v);
     d_linEq.trackRowIndex(d_tableau.basicToRowIndex(v));
   }
-  CVC4_DCHECK(d_partialModel.hasArithVar(norm));
-  CVC4_DCHECK(d_partialModel.asArithVar(norm) == v);
-  CVC4_DCHECK(d_constraintDatabase.variableDatabaseIsSetup(v));
+  Assert(d_partialModel.hasArithVar(norm));
+  Assert(d_partialModel.asArithVar(norm) == v);
+  Assert(d_constraintDatabase.variableDatabaseIsSetup(v));
 
   ConstraintP imp = d_constraintDatabase.getBestImpliedBound(v, t, dr);
   if(imp != NullConstraint){
     if(imp->getValue() == dr){
-      CVC4_DCHECK(added == ARITHVAR_SENTINEL);
+      Assert(added == ARITHVAR_SENTINEL);
       return make_pair(imp, added);
     }
   }
@@ -2411,8 +2409,8 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
 std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(
     ApproximateSimplex* approx, const NodeLog& nl)
 {
-  CVC4_DCHECK(nl.isBranch());
-  CVC4_DCHECK(d_lhsTmp.empty());
+  Assert(nl.isBranch());
+  Assert(d_lhsTmp.empty());
 
   ArithVar v = approx->getBranchVar(nl);
   if(v != ARITHVAR_SENTINEL && d_partialModel.isIntegerInput(v)){
@@ -2435,7 +2433,7 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(
 }
 
 std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const CutInfo& ci) {
-  CVC4_DCHECK(ci.reconstructed());
+  Assert(ci.reconstructed());
   const DenseMap<Rational>& lhs = ci.getReconstruction().lhs;
   const Rational& rhs = ci.getReconstruction().rhs;
   Kind k = ci.getKind();
@@ -2471,10 +2469,10 @@ Node toSumNode(const ArithVariables& vars, const DenseMap<Rational>& sum){
 }
 
 ConstraintCP TheoryArithPrivate::vectorToIntHoleConflict(const ConstraintCPVec& conflict){
-  CVC4_DCHECK(conflict.size() >= 2);
+  Assert(conflict.size() >= 2);
   ConstraintCPVec exp(conflict.begin(), conflict.end()-1);
   ConstraintCP back = conflict.back();
-  CVC4_DCHECK(back->hasProof());
+  Assert(back->hasProof());
   ConstraintP negBack = back->getNegation();
   // This can select negBack multiple times so we need to test if negBack has a proof.
   if(negBack->hasProof()){
@@ -2488,8 +2486,8 @@ ConstraintCP TheoryArithPrivate::vectorToIntHoleConflict(const ConstraintCPVec& 
 
 void TheoryArithPrivate::intHoleConflictToVector(ConstraintCP conflicting, ConstraintCPVec& conflict){
   ConstraintCP negConflicting = conflicting->getNegation();
-  CVC4_DCHECK(conflicting->hasProof());
-  CVC4_DCHECK(negConflicting->hasProof());
+  Assert(conflicting->hasProof());
+  Assert(negConflicting->hasProof());
 
   conflict.push_back(conflicting);
   conflict.push_back(negConflicting);
@@ -2498,17 +2496,17 @@ void TheoryArithPrivate::intHoleConflictToVector(ConstraintCP conflicting, Const
 }
 
 void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, BranchCutInfo& bci){
-  CVC4_DCHECK(conflictQueueEmpty());
+  Assert(conflictQueueEmpty());
   std::vector< ConstraintCPVec > conflicts;
 
   approx->tryCut(nid, bci);
   Debug("approx::branch") << "tryBranchCut" << bci << endl;
-  CVC4_DCHECK(bci.reconstructed());
-  CVC4_DCHECK(!bci.proven());
+  Assert(bci.reconstructed());
+  Assert(!bci.proven());
   pair<ConstraintP, ArithVar> p = replayGetConstraint(bci);
-  CVC4_DCHECK(p.second == ARITHVAR_SENTINEL);
+  Assert(p.second == ARITHVAR_SENTINEL);
   ConstraintP bc = p.first;
-  CVC4_DCHECK(bc != NullConstraint);
+  Assert(bc != NullConstraint);
   if(bc->hasProof()){
     return;
   }
@@ -2541,8 +2539,8 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
 
       // ConstraintCP conflicting = d_conflicts[i];
       // ConstraintCP negConflicting = conflicting->getNegation();
-      // CVC4_DCHECK(conflicting->hasProof());
-      // CVC4_DCHECK(negConflicting->hasProof());
+      // Assert(conflicting->hasProof());
+      // Assert(negConflicting->hasProof());
 
       // conflicts.push_back(ConstraintCPVec());
       // ConstraintCPVec& back = conflicts.back();
@@ -2661,8 +2659,8 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
   { /* create a block for the purpose of pushing the sat context */
     context::Context::ScopedPush speculativePush(getSatContext());
-    CVC4_DCHECK(!anyConflict());
-    CVC4_DCHECK(conflictQueueEmpty());
+    Assert(!anyConflict());
+    Assert(conflictQueueEmpty());
     set<ConstraintCP> propagated;
 
     TreeLog& tl = getTreeLog();
@@ -2686,7 +2684,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
         ++d_statistics.d_applyRowsDeleted;
       }else if(ci->getKlass() == BranchCutKlass){
         BranchCutInfo* bci = dynamic_cast<BranchCutInfo*>(ci);
-        CVC4_DCHECK(bci != NULL);
+        Assert(bci != NULL);
         tryBranchCut(approx, nid, *bci);
 
         ++d_statistics.d_branchCutsAttempted;
@@ -2715,7 +2713,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
           pair<ConstraintP, ArithVar> p = replayGetConstraint(*ci);
           if(p.second != ARITHVAR_SENTINEL){
-            CVC4_DCHECK(ci->getRowId() >= 1);
+            Assert(ci->getRowId() >= 1);
             tl.mapRowId(nl.getNodeId(), ci->getRowId(), p.second);
           }
           ConstraintP con = p.first;
@@ -2751,7 +2749,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
     /* check if the system is feasible under with the cuts */
     if(conflictQueueEmpty()){
-      CVC4_DCHECK(options::replayEarlyCloseDepths() >= 1);
+      Assert(options::replayEarlyCloseDepths() >= 1);
       if(!nl.isBranch() || depth % options::replayEarlyCloseDepths() == 0 ){
         TimerStat::CodeTimer codeTimer(d_statistics.d_replaySimplexTimer);
         //test for linear feasibility
@@ -2781,7 +2779,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
     }else if(nl.isBranch()){
       /* if it is a branch try the branch */
       pair<ConstraintP, ArithVar> p = replayGetConstraint(approx, nl);
-      CVC4_DCHECK(p.second == ARITHVAR_SENTINEL);
+      Assert(p.second == ARITHVAR_SENTINEL);
       ConstraintP dnc = p.first;
       if(dnc != NullConstraint){
         ConstraintP upc = dnc->getNegation();
@@ -2861,7 +2859,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
     }else{
       ++d_statistics.d_replayLeafCloseFailures;
       Debug("approx::replayLogRec") << "failed on node " << nid << endl;
-      CVC4_DCHECK(res.empty());
+      Assert(res.empty());
     }
     resolveOutPropagated(res, propagated);
     Debug("approx::replayLogRec") << "replayLogRec() ending" << std::endl;
@@ -2871,9 +2869,9 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
       // must be done inside the sat context to get things
       // propagated at this level
       if(res.empty() && nid == getTreeLog().getRootId()){
-        CVC4_DCHECK(!d_replayedLemmas);
+        Assert(!d_replayedLemmas);
         d_replayedLemmas = replayLemmas(approx);
-        CVC4_DCHECK(d_acTmp.empty());
+        Assert(d_acTmp.empty());
         while(!d_approxCuts.empty()){
           Node lem = d_approxCuts.front();
           d_approxCuts.pop();
@@ -2889,7 +2887,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
     d_acTmp.pop_back();
     d_approxCuts.push_back(lem);
   }
-  CVC4_DCHECK(d_acTmp.empty());
+  Assert(d_acTmp.empty());
 
   /* Garbage collect the constraints from this call */
   while(d_replayConstraints.size() > rpcons_size){
@@ -2907,7 +2905,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
     while(d_replayVariables.size() > rpvars_size){
       ArithVar v = d_replayVariables.back();
       d_replayVariables.pop_back();
-      CVC4_DCHECK(d_partialModel.canBeReleased(v));
+      Assert(d_partialModel.canBeReleased(v));
       if(!d_tableau.isBasic(v)){
         /* if it is not basic make it basic. */
         ArithVar b = ARITHVAR_SENTINEL;
@@ -2916,7 +2914,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
           b = d_tableau.rowIndexToBasic(e.getRowIndex());
           break;
         }
-        CVC4_DCHECK(b != ARITHVAR_SENTINEL);
+        Assert(b != ARITHVAR_SENTINEL);
         DeltaRational cp = d_partialModel.getAssignment(b);
         if(d_partialModel.cmpAssignmentLowerBound(b) < 0){
           cp = d_partialModel.getLowerBound(b);
@@ -2925,7 +2923,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
         }
         d_linEq.pivotAndUpdate(b, v, cp);
       }
-      CVC4_DCHECK(d_tableau.isBasic(v));
+      Assert(d_tableau.isBasic(v));
       d_linEq.stopTrackingRowIndex(d_tableau.basicToRowIndex(v));
       d_tableau.removeBasicRow(v);
 
@@ -2956,7 +2954,7 @@ ApproximateStatistics& TheoryArithPrivate::getApproxStats(){
 Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
                                       const NodeLog& bn) const
 {
-  CVC4_DCHECK(bn.isBranch());
+  Assert(bn.isBranch());
   ArithVar v = approx->getBranchVar(bn);
   if(v != ARITHVAR_SENTINEL && d_partialModel.isIntegerInput(v)){
     if(d_partialModel.hasNode(v)){
@@ -2978,13 +2976,13 @@ Node TheoryArithPrivate::branchToNode(ApproximateSimplex* approx,
 }
 
 Node TheoryArithPrivate::cutToLiteral(ApproximateSimplex* approx, const CutInfo& ci) const{
-  CVC4_DCHECK(ci.reconstructed());
+  Assert(ci.reconstructed());
 
   const DenseMap<Rational>& lhs = ci.getReconstruction().lhs;
   Node sum = toSumNode(d_partialModel, lhs);
   if(!sum.isNull()){
     Kind k = ci.getKind();
-    CVC4_DCHECK(k == kind::LEQ || k == kind::GEQ);
+    Assert(k == kind::LEQ || k == kind::GEQ);
     Node rhs = mkRationalNode(ci.getReconstruction().rhs);
 
     NodeManager* nm = NodeManager::currentNM();
@@ -3005,8 +3003,8 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
     vector<const CutInfo*> cuts = approx->getValidCuts(root);
     for(size_t i =0, N =cuts.size(); i < N; ++i){
       const CutInfo* cut = cuts[i];
-      CVC4_DCHECK(cut->reconstructed());
-      CVC4_DCHECK(cut->proven());
+      Assert(cut->reconstructed());
+      Assert(cut->proven());
 
       const DenseMap<Rational>& row =  cut->getReconstruction().lhs;
       if(!complexityBelow(row, options::lemmaRejectCutSize())){
@@ -3076,7 +3074,7 @@ bool TheoryArithPrivate::safeToCallApprox() const{
 void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   if(!safeToCallApprox()) { return; }
 
-  CVC4_DCHECK(safeToCallApprox());
+  Assert(safeToCallApprox());
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveIntTimer);
 
   ++(d_statistics.d_solveIntCalls);
@@ -3088,8 +3086,8 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   }
 
   // if integers are attempted,
-  CVC4_DCHECK(options::useApprox());
-  CVC4_DCHECK(ApproximateSimplex::enabled());
+  Assert(options::useApprox());
+  Assert(ApproximateSimplex::enabled());
 
   int level = getSatContext()->getLevel();
   d_lastContextIntegerAttempted = level;
@@ -3164,7 +3162,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         if(mipRes == MipClosed){
           d_likelyIntegerInfeasible = true;
           replayLog(approx);
-          CVC4_CHECK(anyConflict() || d_qflraStatus != Result::SAT);
+          AlwaysAssert(anyConflict() || d_qflraStatus != Result::SAT);
 
           if (!anyConflict())
           {
@@ -3220,7 +3218,7 @@ SimplexDecisionProcedure& TheoryArithPrivate::selectSimplex(bool pass1){
         d_pass1SDP = (SimplexDecisionProcedure*)(&d_dualSimplex);
       }
     }
-    CVC4_DCHECK(d_pass1SDP != NULL);
+    Assert(d_pass1SDP != NULL);
     return *d_pass1SDP;
   }else{
      if(d_otherSDP == NULL){
@@ -3232,7 +3230,7 @@ SimplexDecisionProcedure& TheoryArithPrivate::selectSimplex(bool pass1){
         d_otherSDP = (SimplexDecisionProcedure*)(&d_soiSimplex);
       }
     }
-    CVC4_DCHECK(d_otherSDP != NULL);
+    Assert(d_otherSDP != NULL);
     return *d_otherSDP;
   }
 }
@@ -3277,7 +3275,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
     if(canBranch != ARITHVAR_SENTINEL){
       ++d_statistics.d_panicBranches;
       Node branch = branchIntegerVariable(canBranch);
-      CVC4_DCHECK(branch.getKind() == kind::OR);
+      Assert(branch.getKind() == kind::OR);
       Node rwbranch = Rewriter::rewrite(branch[0]);
       if(!isSatLiteral(rwbranch)){
         d_approxCuts.push_back(branch);
@@ -3291,7 +3289,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
 
 bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveRealRelaxTimer);
-  CVC4_DCHECK(d_qflraStatus != Result::SAT);
+  Assert(d_qflraStatus != Result::SAT);
 
   d_partialModel.stopQueueingBoundCounts();
   UpdateTrackingCallback utcb(&d_linEq);
@@ -3322,7 +3320,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
   if(d_qflraStatus == Result::SAT_UNKNOWN && useApprox && safeToCallApprox()){
     // pass2: fancy-final
     static const int32_t relaxationLimit = 10000;
-    CVC4_DCHECK(ApproximateSimplex::enabled());
+    Assert(ApproximateSimplex::enabled());
 
     TreeLog& tl = getTreeLog();
     ApproximateStatistics& stats = getApproxStats();
@@ -3544,7 +3542,7 @@ bool TheoryArithPrivate::hasFreshArithLiteral(Node n) const{
 }
 
 void TheoryArithPrivate::check(Theory::Effort effortLevel){
-  CVC4_DCHECK(d_currentPropagationList.empty());
+  Assert(d_currentPropagationList.empty());
 
   if(done() && effortLevel < Theory::EFFORT_FULL && ( d_qflraStatus == Result::SAT) ){
     return;
@@ -3563,7 +3561,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   Debug("arith") << "TheoryArithPrivate::check begun " << effortLevel << std::endl;
 
   if(Debug.isOn("arith::consistency")){
-    CVC4_DCHECK(unenqueuedVariablesAreConsistent());
+    Assert(unenqueuedVariablesAreConsistent());
   }
 
   bool newFacts = !done();
@@ -3579,7 +3577,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     ConstraintP curr = constraintFromFactQueue();
     if(curr != NullConstraint){
       bool res CVC4_UNUSED = assertionCases(curr);
-      CVC4_DCHECK(!res || anyConflict());
+      Assert(!res || anyConflict());
     }
     if(anyConflict()){ break; }
   }
@@ -3591,7 +3589,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
       Debug("arith::learned") << curr << endl;
 
       bool res CVC4_UNUSED = assertionCases(curr);
-      CVC4_DCHECK(!res || anyConflict());
+      Assert(!res || anyConflict());
 
       if(anyConflict()){ break; }
     }
@@ -3621,7 +3619,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
 
   bool emmittedConflictOrSplit = false;
-  CVC4_DCHECK(d_conflicts.empty());
+  Assert(d_conflicts.empty());
 
   bool useSimplex = d_qflraStatus != Result::SAT;
   Debug("arith::ems") << "ems: " << emmittedConflictOrSplit
@@ -3662,7 +3660,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     d_partialModel.commitAssignmentChanges();
     d_unknownsInARow = 0;
     if(Debug.isOn("arith::consistency")){
-      CVC4_DCHECK(entireStateIsConsistent("sat comit"));
+      Assert(entireStateIsConsistent("sat comit"));
     }
     if(useSimplex && options::collectPivots()){
       if(options::useFC()){
@@ -3675,7 +3673,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   case Result::SAT_UNKNOWN:
     ++d_unknownsInARow;
     ++(d_statistics.d_unknownChecks);
-    CVC4_DCHECK(!Theory::fullEffort(effortLevel));
+    Assert(!Theory::fullEffort(effortLevel));
     Debug("arith::bt") << "committing unknown"  << " " << newFacts << " " << previous << " " << d_qflraStatus  << endl;
     d_partialModel.commitAssignmentChanges();
     d_statistics.d_maxUnknownsInARow.maxAssign(d_unknownsInARow);
@@ -3742,14 +3740,14 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
      (options::arithPropagationMode() == UNATE_PROP ||
       options::arithPropagationMode() == BOTH_PROP)){
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
-    CVC4_DCHECK(d_qflraStatus != Result::UNSAT);
+    Assert(d_qflraStatus != Result::UNSAT);
 
     while(!d_currentPropagationList.empty()  && !anyConflict()){
       ConstraintP curr = d_currentPropagationList.front();
       d_currentPropagationList.pop_front();
 
       ConstraintType t = curr->getType();
-      CVC4_DCHECK(t != Disequality)
+      Assert(t != Disequality)
           << "Disequalities are not allowed in d_currentPropagation";
 
       switch(t){
@@ -3776,8 +3774,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
           d_constraintDatabase.unatePropEquality(curr, prevLB, prevUB);
           break;
         }
-      default:
-        Unhandled(curr->getType());
+        default: Unhandled() << curr->getType();
       }
     }
 
@@ -3796,7 +3793,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
     d_currentPropagationList.clear();
   }
-  CVC4_DCHECK(d_currentPropagationList.empty());
+  Assert(d_currentPropagationList.empty());
 
   Debug("arith::ems") << "ems: " << emmittedConflictOrSplit
                       << "post unate" << endl;
@@ -3898,13 +3895,13 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
 Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   const DeltaRational& d = d_partialModel.getAssignment(x);
-  CVC4_DCHECK(!d.isIntegral());
+  Assert(!d.isIntegral());
   const Rational& r = d.getNoninfinitesimalPart();
   const Rational& i = d.getInfinitesimalPart();
   Trace("integers") << "integers: assignment to [[" << d_partialModel.asNode(x) << "]] is " << r << "[" << i << "]" << endl;
 
-  CVC4_DCHECK(!(r.getDenominator() == 1 && i.getNumerator() == 0));
-  CVC4_DCHECK(!d.isIntegral());
+  Assert(!(r.getDenominator() == 1 && i.getNumerator() == 0));
+  Assert(!d.isIntegral());
   TNode var = d_partialModel.asNode(x);
   Integer floor_d = d.floor();
 
@@ -3958,8 +3955,8 @@ Node TheoryArithPrivate::roundRobinBranch(){
   }else{
     ArithVar v = d_nextIntegerCheckVar;
 
-    CVC4_DCHECK(isInteger(v));
-    CVC4_DCHECK(!isAuxiliaryVariable(v));
+    Assert(isInteger(v));
+    Assert(!isAuxiliaryVariable(v));
     return branchIntegerVariable(v);
   }
 }
@@ -4064,7 +4061,7 @@ Node TheoryArithPrivate::explain(TNode n) {
 
   ConstraintP c = d_constraintDatabase.lookup(n);
   if(c != NullConstraint){
-    CVC4_DCHECK(!c->isAssumption());
+    Assert(!c->isAssumption());
     Node exp = c->externalExplainForPropagation();
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
     return exp;
@@ -4076,12 +4073,12 @@ Node TheoryArithPrivate::explain(TNode n) {
       return exp;
     }else{
       Debug("arith::explain") << "this is a strange mismatch" << n << endl;
-      CVC4_DCHECK(d_congruenceManager.canExplain(n));
+      Assert(d_congruenceManager.canExplain(n));
       Debug("arith::explain") << "this is a strange mismatch" << n << endl;
       return d_congruenceManager.explain(n);
     }
   }else{
-    CVC4_DCHECK(d_congruenceManager.canExplain(n));
+    Assert(d_congruenceManager.canExplain(n));
     Debug("arith::explain") << "dm explanation" << n << endl;
     return d_congruenceManager.explain(n);
   }
@@ -4134,7 +4131,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
       Debug("arith::prop") << c->getNegation()->externalExplainByAssertions()
                            << endl;
     }
-    CVC4_DCHECK(!c->negationHasProof())
+    Assert(!c->negationHasProof())
         << "A constraint has been propagated on the constraint propagation "
            "queue, but the negation has been set to true.  Contact Tim now!";
 
@@ -4178,7 +4175,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
 DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
 {
-  CVC4_CHECK(d_qflraStatus != Result::SAT_UNKNOWN);
+  AlwaysAssert(d_qflraStatus != Result::SAT_UNKNOWN);
   Debug("arith::value") << term << std::endl;
 
   if (d_partialModel.hasArithVar(term)) {
@@ -4201,7 +4198,7 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
 
     case kind::NONLINEAR_MULT:
     case kind::MULT: {  // 2+ args
-      CVC4_DCHECK(!isSetup(term));
+      Assert(!isSetup(term));
       DeltaRational value(1);
       for (TNode::iterator i = term.begin(), iend = term.end(); i != iend;
            ++i) {
@@ -4217,13 +4214,13 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
     }
 
     case kind::DIVISION: {  // 2 args
-      CVC4_DCHECK(!isSetup(term));
+      Assert(!isSetup(term));
       return getDeltaValue(term[0]) / getDeltaValue(term[1]);
     }
     case kind::DIVISION_TOTAL:
     case kind::INTS_DIVISION_TOTAL:
     case kind::INTS_MODULUS_TOTAL: {  // 2 args
-      CVC4_DCHECK(!isSetup(term));
+      Assert(!isSetup(term));
       DeltaRational denominator = getDeltaValue(term[1]);
       if (denominator.isZero()) {
         return DeltaRational(0, 0);
@@ -4234,7 +4231,7 @@ DeltaRational TheoryArithPrivate::getDeltaValue(TNode term) const
       } else if (kind == kind::INTS_DIVISION_TOTAL) {
         return Rational(numerator.euclidianDivideQuotient(denominator));
       } else {
-        CVC4_DCHECK(kind == kind::INTS_MODULUS_TOTAL);
+        Assert(kind == kind::INTS_MODULUS_TOTAL);
         return Rational(numerator.euclidianDivideRemainder(denominator));
       }
     }
@@ -4290,21 +4287,21 @@ Rational TheoryArithPrivate::deltaValueForTotalOrder() const{
     for(; iter != iter_end; ++iter){
       const DeltaRational& curr = *iter;
 
-      CVC4_DCHECK(prev < curr);
+      Assert(prev < curr);
 
       DeltaRational::seperatingDelta(min, prev, curr);
       prev = curr;
     }
   }
 
-  CVC4_DCHECK(min.sgn() > 0);
+  Assert(min.sgn() > 0);
   Rational belowMin = min/Rational(2);
   return belowMin;
 }
 
 bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 {
-  CVC4_CHECK(d_qflraStatus == Result::SAT);
+  AlwaysAssert(d_qflraStatus == Result::SAT);
   //AlwaysAssert(!d_nlIncomplete, "Arithmetic solver cannot currently produce models for input with nonlinear arithmetic constraints");
 
   if(Debug.isOn("arith::collectModelInfo")){
@@ -4359,8 +4356,8 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 }
 
 bool TheoryArithPrivate::safeToReset() const {
-  CVC4_DCHECK(!d_tableauSizeHasBeenModified);
-  CVC4_DCHECK(d_errorSet.noSignals());
+  Assert(!d_tableauSizeHasBeenModified);
+  Assert(d_errorSet.noSignals());
 
   ErrorSet::error_iterator error_iter = d_errorSet.errorBegin();
   ErrorSet::error_iterator error_end = d_errorSet.errorEnd();
@@ -4465,8 +4462,7 @@ void TheoryArithPrivate::presolve(){
       d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
       d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
       break;
-    default:
-      Unhandled(options::arithUnateLemmaMode());
+    default: Unhandled() << options::arithUnateLemmaMode();
     }
   }
 
@@ -4526,19 +4522,19 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
 
     if(bestImplied != NullConstraint){
       //This should be stronger
-      CVC4_DCHECK(!upperBound || bound <= bestImplied->getValue());
-      CVC4_DCHECK(
+      Assert(!upperBound || bound <= bestImplied->getValue());
+      Assert(
           !upperBound
           || d_partialModel.lessThanUpperBound(basic, bestImplied->getValue()));
 
-      CVC4_DCHECK(upperBound || bound >= bestImplied->getValue());
-      CVC4_DCHECK(upperBound
-                  || d_partialModel.greaterThanLowerBound(
-                      basic, bestImplied->getValue()));
+      Assert(upperBound || bound >= bestImplied->getValue());
+      Assert(upperBound
+             || d_partialModel.greaterThanLowerBound(basic,
+                                                     bestImplied->getValue()));
       //slightly changed
 
       // ConstraintP c = d_constraintDatabase.lookup(bestImplied);
-      // CVC4_DCHECK(c != NullConstraint);
+      // Assert(c != NullConstraint);
 
       bool assertedToTheTheory = bestImplied->assertedToTheTheory();
       bool canBePropagated = bestImplied->canBePropagated();
@@ -4611,7 +4607,7 @@ void TheoryArithPrivate::propagateCandidates(){
 
   Debug("arith::prop") << "propagateCandidates begin" << endl;
 
-  CVC4_DCHECK(d_candidateBasics.empty());
+  Assert(d_candidateBasics.empty());
 
   if(d_updatedBounds.empty()){ return; }
 
@@ -4628,8 +4624,8 @@ void TheoryArithPrivate::propagateCandidates(){
         const Tableau::Entry& entry = *basicIter;
         RowIndex ridx = entry.getRowIndex();
         ArithVar rowVar = d_tableau.rowIndexToBasic(ridx);
-        CVC4_DCHECK(entry.getColVar() == var);
-        CVC4_DCHECK(d_tableau.isBasic(rowVar));
+        Assert(entry.getColVar() == var);
+        Assert(d_tableau.isBasic(rowVar));
         if(d_tableau.getRowLength(ridx) <= options::arithPropagateMaxLength()){
           d_candidateBasics.softAdd(rowVar);
         }
@@ -4641,7 +4637,7 @@ void TheoryArithPrivate::propagateCandidates(){
   while(!d_candidateBasics.empty()){
     ArithVar candidate = d_candidateBasics.back();
     d_candidateBasics.pop_back();
-    CVC4_DCHECK(d_tableau.isBasic(candidate));
+    Assert(d_tableau.isBasic(candidate));
     propagateCandidate(candidate);
   }
   Debug("arith::prop") << "propagateCandidates end" << endl << endl << endl;
@@ -4665,10 +4661,10 @@ void TheoryArithPrivate::propagateCandidatesNew(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
   Debug("arith::prop") << "propagateCandidatesNew begin" << endl;
 
-  CVC4_DCHECK(d_qflraStatus == Result::SAT);
+  Assert(d_qflraStatus == Result::SAT);
   if(d_updatedBounds.empty()){ return; }
   dumpUpdatedBoundsToRows();
-  CVC4_DCHECK(d_updatedBounds.empty());
+  Assert(d_updatedBounds.empty());
 
   if(!d_candidateRows.empty()){
     UpdateTrackingCallback utcb(&d_linEq);
@@ -4715,7 +4711,7 @@ bool TheoryArithPrivate::attemptSingleton(RowIndex ridx, bool rowUp){
 
   const Tableau::Entry* ep;
   ep = d_linEq.rowLacksBound(ridx, rowUp, ARITHVAR_SENTINEL);
-  CVC4_DCHECK(ep != NULL);
+  Assert(ep != NULL);
 
   ArithVar v = ep->getColVar();
   const Rational& coeff = ep->getCoefficient();
@@ -4825,7 +4821,7 @@ Node flattenImplication(Node imp){
 }
 
 bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, ConstraintP implied){
-  CVC4_DCHECK(implied != NullConstraint);
+  Assert(implied != NullConstraint);
   ArithVar v = implied->getVariable();
 
   bool assertedToTheTheory = implied->assertedToTheTheory();
@@ -4873,15 +4869,15 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
           conflictInFarkasCoefficientOrder << antecedent;
         }
 
-        CVC4_DCHECK(coeffs != RationalVectorPSentinel);
-        CVC4_DCHECK(conflictInFarkasCoefficientOrder.getNumChildren()
-                    == coeffs->size());
+        Assert(coeffs != RationalVectorPSentinel);
+        Assert(conflictInFarkasCoefficientOrder.getNumChildren()
+               == coeffs->size());
         d_containing.d_proofRecorder->saveFarkasCoefficients(
             conflictInFarkasCoefficientOrder, coeffs);
       })
       outputLemma(clause);
     }else{
-      CVC4_DCHECK(!implied->negationHasProof());
+      Assert(!implied->negationHasProof());
       implied->impliedByFarkas(explain, coeffs, false);
       implied->tryToPropagate();
     }
@@ -4930,7 +4926,7 @@ bool TheoryArithPrivate::propagateCandidateRow(RowIndex ridx){
 }
 
 void TheoryArithPrivate::dumpUpdatedBoundsToRows(){
-  CVC4_DCHECK(d_candidateRows.empty());
+  Assert(d_candidateRows.empty());
   DenseSet::const_iterator i = d_updatedBounds.begin();
   DenseSet::const_iterator end = d_updatedBounds.end();
   for(; i != end; ++i){
@@ -5080,7 +5076,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
           Node invTerm = nm->mkNode(rk, var);
           lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
         }
-        CVC4_DCHECK(!lem.isNull());
+        Assert(!lem.isNull());
         Node ret = nm->mkNode(CHOICE, nm->mkNode(BOUND_VAR_LIST, var), lem);
         d_nlin_inverse_skolem[node] = ret;
         return ret;
@@ -5161,7 +5157,7 @@ Node TheoryArithPrivate::getArithSkolemApp(LogicRequest& logicRequest,
 // InferBoundsResult TheoryArithPrivate::inferBound(TNode term, const
 // InferBoundsParameters& param){
 //   Node t = Rewriter::rewrite(term);
-//   CVC4_DCHECK(Polynomial::isMember(t));
+//   Assert(Polynomial::isMember(t));
 //   Polynomial p = Polynomial::parsePolynomial(t);
 //   if(p.containsConstant()){
 //     Constant c = p.getHead().getConstant();
@@ -5197,7 +5193,7 @@ Node TheoryArithPrivate::getArithSkolemApp(LogicRequest& logicRequest,
 //     }
 //     return res;
 //   }else{
-//     CVC4_DCHECK(param.findUpperBound());
+//     Assert(param.findUpperBound());
 //     // does not contain a constant
 //     switch(param.getEffort()){
 //     case InferBoundsParameters::Lookup:
@@ -5248,13 +5244,13 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
 
   if(dp.getKind() == CONST_RATIONAL){
     Node eval = Rewriter::rewrite(lit);
-    CVC4_DCHECK(eval.getKind() == kind::CONST_BOOLEAN);
+    Assert(eval.getKind() == kind::CONST_BOOLEAN);
     // if true, true is an acceptable explaination
     // if false, the node is uninterpreted and eval can be forgotten
     return make_pair(eval.getConst<bool>(), eval);
   }
-  CVC4_DCHECK(dm != Rational(0));
-  CVC4_DCHECK(primDir == 1 || primDir == -1);
+  Assert(dm != Rational(0));
+  Assert(primDir == 1 || primDir == -1);
 
   int negPrim = -primDir;
 
@@ -5359,8 +5355,8 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
                                       << " <= " << primDir << "*" << dm << "*" << bestPrimDiff.second
                                       << " <= " << primDir << "*" << sep << endl
                                       << " by " << bestPrimDiff.first << endl;
-          CVC4_DCHECK(bestPrimDiff.second * (Rational(primDir) * dm)
-                      <= (sep * Rational(primDir)));
+          Assert(bestPrimDiff.second * (Rational(primDir) * dm)
+                 <= (sep * Rational(primDir)));
           return make_pair(true, bestPrimDiff.first);
         }
       }
@@ -5405,7 +5401,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
           if(k == DISTINCT){
             return make_pair(true, bestPrimDiff.first);
           }else{
-            CVC4_DCHECK(k == EQUAL);
+            Assert(k == EQUAL);
             return make_pair(false, Node::null());
           }
         }
@@ -5420,7 +5416,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
           if(k == DISTINCT){
             return make_pair(true, bestSecDiff.first);
           }else{
-            CVC4_DCHECK(k == EQUAL);
+            Assert(k == EQUAL);
             return make_pair(false, Node::null());
           }
         }
@@ -5459,8 +5455,8 @@ bool TheoryArithPrivate::decomposeTerm(Node term, Rational& m, Node& p, Rational
   }else{
     c = Rational(0);
   }
-  CVC4_DCHECK(!poly.isConstant());
-  CVC4_DCHECK(!poly.containsConstant());
+  Assert(!poly.isConstant());
+  Assert(!poly.containsConstant());
 
   const bool intVars = poly.allIntegralVariables();
 
@@ -5474,13 +5470,13 @@ bool TheoryArithPrivate::decomposeTerm(Node term, Rational& m, Node& p, Rational
     Integer g = poly.gcd();
     m *= g;
     poly = poly * Rational(1,g);
-    CVC4_DCHECK(poly.isIntegral());
-    CVC4_DCHECK(poly.leadingCoefficientIsPositive());
+    Assert(poly.isIntegral());
+    Assert(poly.leadingCoefficientIsPositive());
   }else{
-    CVC4_DCHECK(!intVars);
+    Assert(!intVars);
     m = poly.getHead().getConstant().getValue();
     poly = poly * m.inverse();
-    CVC4_DCHECK(poly.leadingCoefficientIsAbsOne());
+    Assert(poly.leadingCoefficientIsAbsOne());
   }
   p = poly.getNode();
   return true;
@@ -5540,7 +5536,7 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   Node diff = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::MINUS, left, right));
   Rational dc;
   success = decomposeTerm(diff, dm, dp, dc);
-  CVC4_DCHECK(success);
+  Assert(success);
 
   // reduce the kind of the to not include literals
   // GT, NOT LEQ
@@ -5568,7 +5564,7 @@ bool TheoryArithPrivate::decomposeLiteral(Node lit, Kind& k, int& dir, Rational&
   // k in LT, LEQ, EQUAL, DISEQUAL
   // [dir*lm*( lp ) + dir*lc] k [dir*rm*( rp ) + dir*rc]
   Rational change = rc - lc;
-  CVC4_DCHECK(change == (-dc));
+  Assert(change == (-dc));
   // [dir*lm*( lp )] k [dir*rm*( rp ) + dir*(rc - lc)]
   if(normKind == LT){
     sep = DeltaRational(change, Rational(-1));
@@ -5594,14 +5590,14 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
   tmp.first = Node::null();
   if(sgn == 0){ return; }
 
-  CVC4_DCHECK(Polynomial::isMember(tp));
+  Assert(Polynomial::isMember(tp));
   if(tp.getKind() == CONST_RATIONAL){
     tmp.first = mkBoolNode(true);
     tmp.second = DeltaRational(tp.getConst<Rational>());
   }else if(d_partialModel.hasArithVar(tp)){
-    CVC4_DCHECK(tp.getKind() != CONST_RATIONAL);
+    Assert(tp.getKind() != CONST_RATIONAL);
     ArithVar v = d_partialModel.asArithVar(tp);
-    CVC4_DCHECK(v != ARITHVAR_SENTINEL);
+    Assert(v != ARITHVAR_SENTINEL);
     ConstraintP c = (sgn > 0)
       ? d_partialModel.getUpperBoundConstraint(v)
       : d_partialModel.getLowerBoundConstraint(v);
@@ -5616,7 +5612,7 @@ void TheoryArithPrivate::entailmentCheckRowSum(std::pair<Node, DeltaRational>& t
   tmp.first = Node::null();
   if(sgn == 0){ return; }
   if(tp.getKind() != PLUS){ return; }
-  CVC4_DCHECK(Polynomial::isMember(tp));
+  Assert(Polynomial::isMember(tp));
 
   tmp.second = DeltaRational(0);
   NodeBuilder<> nb(kind::AND);
@@ -5654,9 +5650,9 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
     return make_pair(Node::null(), DeltaRational());
   }
 
-  CVC4_DCHECK(d_qflraStatus == Result::SAT);
-  CVC4_DCHECK(d_errorSet.noSignals());
-  CVC4_DCHECK(param.getAlgorithm() == inferbounds::Simplex);
+  Assert(d_qflraStatus == Result::SAT);
+  Assert(d_errorSet.noSignals());
+  Assert(param.getAlgorithm() == inferbounds::Simplex);
 
   // TODO Move me into a new file
 
@@ -5713,7 +5709,7 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
       ArithVar v = entry.getColVar();
       if(v != optVar){
         int sgn = entry.getCoefficient().sgn();
-        CVC4_DCHECK(sgn != 0);
+        Assert(sgn != 0);
         bool candidate = (sgn > 0)
           ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
           : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
@@ -5727,11 +5723,11 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
       finalState = Inferred;
       break;
     }
-    CVC4_DCHECK(entering != ARITHVAR_SENTINEL);
-    CVC4_DCHECK(enteringEntry != NULL);
+    Assert(entering != ARITHVAR_SENTINEL);
+    Assert(enteringEntry != NULL);
 
     int esgn = enteringEntry->getCoefficient().sgn();
-    CVC4_DCHECK(esgn != 0);
+    Assert(esgn != 0);
 
     // select leaving and ratio
     ArithVar leaving = ARITHVAR_SENTINEL;
@@ -5786,7 +5782,7 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
       DeltaRational newLeaving = minRatio * (pivotEntry->getCoefficient());
       d_linEq.pivotAndUpdate(leaving, entering, newLeaving);
       // no conflicts clear signals
-      CVC4_DCHECK(d_errorSet.noSignals());
+      Assert(d_errorSet.noSignals());
     }
 
     if(threshold.just()){
@@ -5810,14 +5806,14 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
         ArithVar colVar = e.getColVar();
         if(colVar != optVar){
           const Rational& q = e.getCoefficient();
-          CVC4_DCHECK(q.sgn() != 0);
+          Assert(q.sgn() != 0);
           ConstraintP c = (q.sgn() > 0)
             ? d_partialModel.getUpperBoundConstraint(colVar)
             : d_partialModel.getLowerBoundConstraint(colVar);
           c->externalExplainByAssertions(nb);
         }
       }
-      CVC4_DCHECK(nb.getNumChildren() >= 1);
+      Assert(nb.getNumChildren() >= 1);
       Node exp = (nb.getNumChildren() >= 2) ? (Node) nb : nb[0];
       result.setBound(d_partialModel.getAssignment(optVar), exp);
       result.setIsOptimal();
@@ -5853,7 +5849,7 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
 
 // InferBoundsResult TheoryArithPrivate::inferUpperBoundSimplex(TNode t, const
 // inferbounds::InferBoundAlgorithm& param){
-//   CVC4_DCHECK(param.findUpperBound());
+//   Assert(param.findUpperBound());
 
 //   if(!(d_qflraStatus == Result::SAT && d_errorSet.noSignals())){
 //     InferBoundsResult inconsistent;
@@ -5861,8 +5857,8 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
 //     return inconsistent;
 //   }
 
-//   CVC4_DCHECK(d_qflraStatus == Result::SAT);
-//   CVC4_DCHECK(d_errorSet.noSignals());
+//   Assert(d_qflraStatus == Result::SAT);
+//   Assert(d_errorSet.noSignals());
 
 //   // TODO Move me into a new file
 
@@ -5923,7 +5919,7 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
 //       ArithVar v = entry.getColVar();
 //       if(v != optVar){
 //         int sgn = entry.getCoefficient().sgn();
-//         CVC4_DCHECK(sgn != 0);
+//         Assert(sgn != 0);
 //         bool candidate = (sgn > 0)
 //           ? (d_partialModel.cmpAssignmentUpperBound(v) != 0)
 //           : (d_partialModel.cmpAssignmentLowerBound(v) != 0);
@@ -5937,11 +5933,11 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
 //       finalState = Inferred;
 //       break;
 //     }
-//     CVC4_DCHECK(entering != ARITHVAR_SENTINEL);
-//     CVC4_DCHECK(enteringEntry != NULL);
+//     Assert(entering != ARITHVAR_SENTINEL);
+//     Assert(enteringEntry != NULL);
 
 //     int esgn = enteringEntry->getCoefficient().sgn();
-//     CVC4_DCHECK(esgn != 0);
+//     Assert(esgn != 0);
 
 //     // select leaving and ratio
 //     ArithVar leaving = ARITHVAR_SENTINEL;
@@ -5995,7 +5991,7 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
 //       DeltaRational newLeaving = minRatio * (pivotEntry->getCoefficient());
 //       d_linEq.pivotAndUpdate(leaving, entering, newLeaving);
 //       // no conflicts clear signals
-//       CVC4_DCHECK(d_errorSet.noSignals());
+//       Assert(d_errorSet.noSignals());
 //     }
 
 //     if(param.useThreshold()){
@@ -6019,14 +6015,14 @@ std::pair<Node, DeltaRational> TheoryArithPrivate::entailmentCheckSimplex(int sg
 //         ArithVar colVar = e.getColVar();
 //         if(colVar != optVar){
 //           const Rational& q = e.getCoefficient();
-//           CVC4_DCHECK(q.sgn() != 0);
+//           Assert(q.sgn() != 0);
 //           ConstraintP c = (q.sgn() > 0)
 //             ? d_partialModel.getUpperBoundConstraint(colVar)
 //             : d_partialModel.getLowerBoundConstraint(colVar);
 //           c->externalExplainByAssertions(nb);
 //         }
 //       }
-//       CVC4_DCHECK(nb.getNumChildren() >= 1);
+//       Assert(nb.getNumChildren() >= 1);
 //       Node exp = (nb.getNumChildren() >= 2) ? (Node) nb : nb[0];
 //       result.setBound(d_partialModel.getAssignment(optVar), exp);
 //       result.setIsOptimal();

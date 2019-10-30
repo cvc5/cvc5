@@ -95,8 +95,8 @@ class InequalityGraph : public context::ContextNotifyObj{
       : d_model(model)
     {}
     bool operator() (TermId left, TermId right) const {
-      CVC4_DCHECK(d_model->find(left) != d_model->end()
-                  && d_model->find(right) != d_model->end());
+      Assert(d_model->find(left) != d_model->end()
+             && d_model->find(right) != d_model->end());
 
       return (*(d_model->find(left))).second.value < (*(d_model->find(right))).second.value; 
     }
@@ -151,17 +151,17 @@ class InequalityGraph : public context::ContextNotifyObj{
 
   Edges& getEdges(TermId id)
   {
-    CVC4_DCHECK(id < d_ineqEdges.size());
+    Assert(id < d_ineqEdges.size());
     return d_ineqEdges[id];
   }
   InequalityNode& getInequalityNode(TermId id)
   {
-    CVC4_DCHECK(id < d_ineqNodes.size());
+    Assert(id < d_ineqNodes.size());
     return d_ineqNodes[id];
   }
   const InequalityNode& getInequalityNode(TermId id) const
   {
-    CVC4_DCHECK(id < d_ineqNodes.size());
+    Assert(id < d_ineqNodes.size());
     return d_ineqNodes[id];
   }
   unsigned getBitwidth(TermId id) const { return getInequalityNode(id).getBitwidth(); }

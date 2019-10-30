@@ -83,7 +83,7 @@ Node Valuation::getSatValue(TNode n) const {
     if(atomRes.getKind() == kind::CONST_BOOLEAN) {
       return NodeManager::currentNM()->mkConst(!atomRes.getConst<bool>());
     } else {
-      CVC4_DCHECK(atomRes.isNull());
+      Assert(atomRes.isNull());
       return atomRes;
     }
   } else {

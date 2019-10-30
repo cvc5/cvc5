@@ -33,7 +33,7 @@ RegExpElimination::RegExpElimination()
 
 Node RegExpElimination::eliminate(Node atom)
 {
-  CVC4_DCHECK(atom.getKind() == STRING_IN_REGEXP);
+  Assert(atom.getKind() == STRING_IN_REGEXP);
   if (atom[1].getKind() == REGEXP_CONCAT)
   {
     return eliminateConcat(atom);
@@ -94,7 +94,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
   }
   if (hasFixedLength)
   {
-    CVC4_DCHECK(re.getNumChildren() == children.size());
+    Assert(re.getNumChildren() == children.size());
     Node sum = nm->mkNode(PLUS, childLengths);
     std::vector<Node> conc;
     conc.push_back(nm->mkNode(hasPivotIndex ? GEQ : EQUAL, lenx, sum));
@@ -179,7 +179,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
   }
   // we should always rewrite concatenations that are purely re.allchar
   // and re.*( re.allchar ).
-  CVC4_DCHECK(!onlySigmasAndConsts || !sep_children.empty());
+  Assert(!onlySigmasAndConsts || !sep_children.empty());
   if (onlySigmasAndConsts && !sep_children.empty())
   {
     bool canProcess = true;
@@ -239,7 +239,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     if (canProcess)
     {
       // since sep_children is non-empty, conj is non-empty
-      CVC4_DCHECK(!conj.empty());
+      Assert(!conj.empty());
       // Process the last gap, if necessary.
       // Notice that if the last gap is not exact and its minsize is zero,
       // then the last indexof/substr constraint entails the following
@@ -248,7 +248,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       Node cEnd = nm->mkConst(Rational(gap_minsize_end));
       if (gap_exact_end)
       {
-        CVC4_DCHECK(!sep_children.empty());
+        Assert(!sep_children.empty());
         // if it is strict, it corresponds to a substr case.
         // For example:
         //     x in (re.++ "A" (re.* _) "B" _ _) --->
@@ -344,15 +344,14 @@ Node RegExpElimination::eliminateConcat(Node atom)
   std::vector<Node> sConstraints;
   std::vector<Node> rexpElimChildren;
   unsigned nchildren = children.size();
-  CVC4_DCHECK(nchildren > 1);
+  Assert(nchildren > 1);
   for (unsigned r = 0; r < 2; r++)
   {
     unsigned index = r == 0 ? 0 : nchildren - 1;
     Node c = children[index];
     if (c.getKind() == STRING_TO_REGEXP)
     {
-      CVC4_DCHECK(children[index + (r == 0 ? 1 : -1)].getKind()
-                  != STRING_TO_REGEXP);
+      Assert(children[index + (r == 0 ? 1 : -1)].getKind() != STRING_TO_REGEXP);
       Node s = c[0];
       Node lens = nm->mkNode(STRING_LENGTH, s);
       Node sss = r == 0 ? d_zero : nm->mkNode(MINUS, lenx, lens);
@@ -379,9 +378,9 @@ Node RegExpElimination::eliminateConcat(Node atom)
   }
   if (!sConstraints.empty())
   {
-    CVC4_DCHECK(rexpElimChildren.size() + sConstraints.size() == nchildren);
+    Assert(rexpElimChildren.size() + sConstraints.size() == nchildren);
     Node ss = nm->mkNode(STRING_SUBSTR, x, sStartIndex, sLength);
-    CVC4_DCHECK(!rexpElimChildren.empty());
+    Assert(!rexpElimChildren.empty());
     Node regElim = utils::mkConcat(REGEXP_CONCAT, rexpElimChildren);
     sConstraints.push_back(nm->mkNode(STRING_IN_REGEXP, ss, regElim));
     Node ret = nm->mkNode(AND, sConstraints);
@@ -389,7 +388,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     // x in re.++( "A", R ) ---> substr(x,0,1)="A" ^ substr(x,1,len(x)-1) in R
     return returnElim(atom, ret, "concat-splice");
   }
-  CVC4_DCHECK(nchildren > 1);
+  Assert(nchildren > 1);
   for (unsigned i = 0; i < nchildren; i++)
   {
     if (children[i].getKind() == STRING_TO_REGEXP)
@@ -492,8 +491,8 @@ Node RegExpElimination::eliminateStar(Node atom)
   // handle the case where it is purely characters
   for (const Node& r : disj)
   {
-    CVC4_DCHECK(r.getKind() != REGEXP_UNION);
-    CVC4_DCHECK(r.getKind() != REGEXP_SIGMA);
+    Assert(r.getKind() != REGEXP_UNION);
+    Assert(r.getKind() != REGEXP_SIGMA);
     lenOnePeriod = false;
     // lenOnePeriod is true if this regular expression is a single character
     // regular expression
@@ -517,13 +516,13 @@ Node RegExpElimination::eliminateStar(Node atom)
     {
       Node regexp_ch = nm->mkNode(STRING_IN_REGEXP, substr_ch, r);
       regexp_ch = Rewriter::rewrite(regexp_ch);
-      CVC4_DCHECK(regexp_ch.getKind() != STRING_IN_REGEXP);
+      Assert(regexp_ch.getKind() != STRING_IN_REGEXP);
       char_constraints.push_back(regexp_ch);
     }
   }
   if (lenOnePeriod)
   {
-    CVC4_DCHECK(!char_constraints.empty());
+    Assert(!char_constraints.empty());
     Node bound = nm->mkNode(
         AND, nm->mkNode(LEQ, d_zero, index), nm->mkNode(LT, index, lenx));
     Node conc = char_constraints.size() == 1 ? char_constraints[0]
@@ -547,8 +546,8 @@ Node RegExpElimination::eliminateStar(Node atom)
       {
         Node lens = nm->mkNode(STRING_LENGTH, s);
         lens = Rewriter::rewrite(lens);
-        CVC4_DCHECK(lens.isConst());
-        CVC4_DCHECK(lens.getConst<Rational>().sgn() > 0);
+        Assert(lens.isConst());
+        Assert(lens.getConst<Rational>().sgn() > 0);
         std::vector<Node> conj;
         // lens is a positive constant, so it is safe to use total div/mod here.
         Node bound = nm->mkNode(

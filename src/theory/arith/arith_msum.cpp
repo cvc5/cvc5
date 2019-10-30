@@ -135,7 +135,7 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
     }
     else
     {
-      CVC4_DCHECK(!it->second.isNull());
+      Assert(!it->second.isNull());
       m = it->second;
     }
     children.push_back(m);
@@ -148,7 +148,7 @@ Node ArithMSum::mkNode(const std::map<Node, Node>& msum)
 int ArithMSum::isolate(
     Node v, const std::map<Node, Node>& msum, Node& veq_c, Node& val, Kind k)
 {
-  CVC4_DCHECK(veq_c.isNull());
+  Assert(veq_c.isNull());
   std::map<Node, Node>::const_iterator itv = msum.find(v);
   if (itv != msum.end())
   {
@@ -231,7 +231,7 @@ int ArithMSum::isolate(
 
 Node ArithMSum::solveEqualityFor(Node lit, Node v)
 {
-  CVC4_DCHECK(lit.getKind() == EQUAL);
+  Assert(lit.getKind() == EQUAL);
   // first look directly at sides
   TypeNode tn = lit[0].getType();
   for (unsigned r = 0; r < 2; r++)

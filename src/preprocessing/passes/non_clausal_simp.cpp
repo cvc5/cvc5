@@ -54,7 +54,7 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  CVC4_DCHECK(!options::unsatCores() && !options::fewerPreprocessingHoles());
+  Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
 
   d_preprocContext->spendResource(options::preprocessStep());
 
@@ -78,8 +78,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    CVC4_DCHECK(Rewriter::rewrite((*assertionsToPreprocess)[i])
-                == (*assertionsToPreprocess)[i]);
+    Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
+           == (*assertionsToPreprocess)[i]);
     // Don't reprocess substitutions
     if (assertionsToPreprocess->isSubstsIndex(i))
     {
@@ -98,7 +98,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // If in conflict, just return false
     Trace("non-clausal-simplify")
         << "conflict in non-clausal propagation" << std::endl;
-    CVC4_DCHECK(!options::unsatCores() && !options::fewerPreprocessingHoles());
+    Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
     assertionsToPreprocess->clear();
     Node n = NodeManager::currentNM()->mkConst<bool>(false);
     assertionsToPreprocess->push_back(n);
@@ -122,8 +122,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   {
     // Simplify the literal we learned wrt previous substitutions
     Node learnedLiteral = learned_literals[i];
-    CVC4_DCHECK(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
-    CVC4_DCHECK(top_level_substs.apply(learnedLiteral) == learnedLiteral);
+    Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
+    Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
     Trace("non-clausal-simplify")
         << "Process learnedLiteral : " << learnedLiteral << std::endl;
     Node learnedLiteralNew = newSubstitutions.apply(learnedLiteral);
@@ -160,7 +160,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         // If the learned literal simplifies to false, we're in conflict
         Trace("non-clausal-simplify")
             << "conflict with " << learned_literals[i] << std::endl;
-        CVC4_DCHECK(!options::unsatCores());
+        Assert(!options::unsatCores());
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
@@ -185,14 +185,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         // The literal should rewrite to true
         Trace("non-clausal-simplify")
             << "solved " << learnedLiteral << std::endl;
-        CVC4_DCHECK(Rewriter::rewrite(newSubstitutions.apply(learnedLiteral))
-                        .isConst());
+        Assert(Rewriter::rewrite(newSubstitutions.apply(learnedLiteral))
+                   .isConst());
         //        vector<pair<Node, Node> > equations;
         //        constantPropagations.simplifyLHS(top_level_substs, equations,
         //        true); if (equations.empty()) {
         //          break;
         //        }
-        //        CVC4_DCHECK(equations[0].first.isConst() &&
+        //        Assert(equations[0].first.isConst() &&
         //        equations[0].second.isConst() && equations[0].first !=
         //        equations[0].second);
         // else fall through
@@ -203,7 +203,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         // If in conflict, we return false
         Trace("non-clausal-simplify")
             << "conflict while solving " << learnedLiteral << std::endl;
-        CVC4_DCHECK(!options::unsatCores());
+        Assert(!options::unsatCores());
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
@@ -228,15 +228,15 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             t = learnedLiteral[0];
             c = learnedLiteral[1];
           }
-          CVC4_DCHECK(!t.isConst());
-          CVC4_DCHECK(constantPropagations.apply(t) == t);
-          CVC4_DCHECK(top_level_substs.apply(t) == t);
-          CVC4_DCHECK(newSubstitutions.apply(t) == t);
+          Assert(!t.isConst());
+          Assert(constantPropagations.apply(t) == t);
+          Assert(top_level_substs.apply(t) == t);
+          Assert(newSubstitutions.apply(t) == t);
           constantPropagations.addSubstitution(t, c);
           // vector<pair<Node,Node> > equations;
           // constantPropagations.simplifyLHS(t, c, equations, true);
           // if (!equations.empty()) {
-          //   CVC4_DCHECK(equations[0].first.isConst() &&
+          //   Assert(equations[0].first.isConst() &&
           //   equations[0].second.isConst() && equations[0].first !=
           //   equations[0].second); assertionsToPreprocess->clear();
           //   Node n = NodeManager::currentNM()->mkConst<bool>(false);
@@ -270,32 +270,32 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // 4. each lhs of constantPropagations is different from each rhs
   for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos)
   {
-    CVC4_DCHECK((*pos).first.isVar());
-    CVC4_DCHECK(top_level_substs.apply((*pos).first) == (*pos).first);
-    CVC4_DCHECK(top_level_substs.apply((*pos).second) == (*pos).second);
-    CVC4_DCHECK(newSubstitutions.apply(newSubstitutions.apply((*pos).second))
-                == newSubstitutions.apply((*pos).second));
+    Assert((*pos).first.isVar());
+    Assert(top_level_substs.apply((*pos).first) == (*pos).first);
+    Assert(top_level_substs.apply((*pos).second) == (*pos).second);
+    Assert(newSubstitutions.apply(newSubstitutions.apply((*pos).second))
+           == newSubstitutions.apply((*pos).second));
   }
   for (pos = constantPropagations.begin(); pos != constantPropagations.end();
        ++pos)
   {
-    CVC4_DCHECK((*pos).second.isConst());
-    CVC4_DCHECK(Rewriter::rewrite((*pos).first) == (*pos).first);
+    Assert((*pos).second.isConst());
+    Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
     // Node newLeft = top_level_substs.apply((*pos).first);
     // if (newLeft != (*pos).first) {
     //   newLeft = Rewriter::rewrite(newLeft);
-    //   CVC4_DCHECK(newLeft == (*pos).second ||
+    //   Assert(newLeft == (*pos).second ||
     //          (constantPropagations.hasSubstitution(newLeft) &&
     //          constantPropagations.apply(newLeft) == (*pos).second));
     // }
     // newLeft = constantPropagations.apply((*pos).first);
     // if (newLeft != (*pos).first) {
     //   newLeft = Rewriter::rewrite(newLeft);
-    //   CVC4_DCHECK(newLeft == (*pos).second ||
+    //   Assert(newLeft == (*pos).second ||
     //          (constantPropagations.hasSubstitution(newLeft) &&
     //          constantPropagations.apply(newLeft) == (*pos).second));
     // }
-    CVC4_DCHECK(constantPropagations.apply((*pos).second) == (*pos).second);
+    Assert(constantPropagations.apply((*pos).second) == (*pos).second);
   }
 #endif /* CVC4_ASSERTIONS */
 
@@ -318,7 +318,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       Trace("non-clausal-simplify")
           << "rewrite(assertion) = " << assertion << std::endl;
     }
-    CVC4_DCHECK(Rewriter::rewrite(assertion) == assertion);
+    Assert(Rewriter::rewrite(assertion) == assertion);
     for (;;)
     {
       assertionNew = constantPropagations.apply(assertion);
@@ -341,7 +341,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   // add substitutions to model, or as assertions if needed (when incremental)
   TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
-  CVC4_DCHECK(m != nullptr);
+  Assert(m != nullptr);
   NodeManager* nm = NodeManager::currentNM();
   for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos)
   {
@@ -369,21 +369,21 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   NodeBuilder<> learnedBuilder(kind::AND);
-  CVC4_DCHECK(assertionsToPreprocess->getRealAssertionsEnd()
-              <= assertionsToPreprocess->size());
+  Assert(assertionsToPreprocess->getRealAssertionsEnd()
+         <= assertionsToPreprocess->size());
   learnedBuilder << (*assertionsToPreprocess)
           [assertionsToPreprocess->getRealAssertionsEnd() - 1];
 
   for (size_t i = 0; i < learned_literals.size(); ++i)
   {
     Node learned = learned_literals[i];
-    CVC4_DCHECK(top_level_substs.apply(learned) == learned);
+    Assert(top_level_substs.apply(learned) == learned);
     Node learnedNew = newSubstitutions.apply(learned);
     if (learned != learnedNew)
     {
       learned = Rewriter::rewrite(learnedNew);
     }
-    CVC4_DCHECK(Rewriter::rewrite(learned) == learned);
+    Assert(Rewriter::rewrite(learned) == learned);
     for (;;)
     {
       learnedNew = constantPropagations.apply(learned);
@@ -409,12 +409,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
        ++pos)
   {
     Node cProp = (*pos).first.eqNode((*pos).second);
-    CVC4_DCHECK(top_level_substs.apply(cProp) == cProp);
+    Assert(top_level_substs.apply(cProp) == cProp);
     Node cPropNew = newSubstitutions.apply(cProp);
     if (cProp != cPropNew)
     {
       cProp = Rewriter::rewrite(cPropNew);
-      CVC4_DCHECK(Rewriter::rewrite(cProp) == cProp);
+      Assert(Rewriter::rewrite(cProp) == cProp);
     }
     if (s.find(cProp) != s.end())
     {

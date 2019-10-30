@@ -127,14 +127,14 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
         n_members = (*mem_i1).second;
       }
       for( int i=0; i<(*mem_i2).second; i++ ){
-        CVC4_DCHECK(i < (int)d_members_data[t2].size()
-                    && d_members_data[t2][i].getKind() == kind::MEMBER);
+        Assert(i < (int)d_members_data[t2].size()
+               && d_members_data[t2][i].getKind() == kind::MEMBER);
         Node m2 = d_members_data[t2][i];
         //check if redundant
         bool add = true;
         for( int j=0; j<n_members; j++ ){
-          CVC4_DCHECK(j < (int)d_members_data[t1].size()
-                      && d_members_data[t1][j].getKind() == kind::MEMBER);
+          Assert(j < (int)d_members_data[t1].size()
+                 && d_members_data[t1][j].getKind() == kind::MEMBER);
           if (d_state.areEqual(m2[0], d_members_data[t1][j][0]))
           {
             add = false;
@@ -143,8 +143,8 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
         }
         if( add ){
           if( !s1.isNull() && s2.isNull() ){
-            CVC4_DCHECK(m2[1].getType().isComparableTo(s1.getType()));
-            CVC4_DCHECK(d_state.areEqual(m2[1], s1));
+            Assert(m2[1].getType().isComparableTo(s1.getType()));
+            Assert(d_state.areEqual(m2[1], s1));
             Node exp = NodeManager::currentNM()->mkNode( kind::AND, m2[1].eqNode( s1 ), m2 );
             if( s1.getKind()==kind::SINGLETON ){
               if( s1[0]!=m2[0] ){
@@ -215,8 +215,8 @@ bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
 }
 
 bool TheorySetsPrivate::isMember( Node x, Node s ) {
-  CVC4_DCHECK(d_equalityEngine.hasTerm(s)
-              && d_equalityEngine.getRepresentative(s) == s);
+  Assert(d_equalityEngine.hasTerm(s)
+         && d_equalityEngine.getRepresentative(s) == s);
   NodeIntMap::iterator mem_i = d_members.find( s );
   if( mem_i != d_members.end() ) {
     for( int i=0; i<(*mem_i).second; i++ ){
@@ -288,7 +288,7 @@ bool TheorySetsPrivate::assertFact( Node fact, Node exp ){
 
 void TheorySetsPrivate::fullEffortReset()
 {
-  CVC4_DCHECK(d_equalityEngine.consistent());
+  Assert(d_equalityEngine.consistent());
   d_full_check_incomplete = false;
   d_most_common_type.clear();
   d_most_common_type_term.clear();
@@ -334,10 +334,10 @@ void TheorySetsPrivate::fullEffortCheck(){
         }
         TypeNode tnn = n.getType();
         if( isSet ){
-          CVC4_DCHECK(tnn.isSet());
+          Assert(tnn.isSet());
           TypeNode tnnel = tnn.getSetElementType();
           tnc = TypeNode::mostCommonTypeNode( tnc, tnnel );
-          CVC4_DCHECK(!tnc.isNull());
+          Assert(!tnc.isNull());
           //update the common type term
           if( tnc==tnnel ){
             tnct = n;
@@ -370,7 +370,7 @@ void TheorySetsPrivate::fullEffortCheck(){
         ++eqc_i;
       }
       if( isSet ){
-        CVC4_DCHECK(tnct.getType().getSetElementType() == tnc);
+        Assert(tnct.getType().getSetElementType() == tnc);
         d_most_common_type[eqc] = tnc;
         d_most_common_type_term[eqc] = tnct;
       }
@@ -446,7 +446,7 @@ void TheorySetsPrivate::fullEffortCheck(){
       // invoke relations solver
       d_rels->check(Theory::EFFORT_FULL);
     }
-    CVC4_DCHECK(!d_im.hasPendingLemmas() || d_im.hasProcessed());
+    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
   } while (!d_im.hasSentLemma() && !d_state.isInConflict()
            && d_im.hasAddedFact());
   Trace("sets") << "----- End full effort check, conflict="
@@ -461,7 +461,7 @@ void TheorySetsPrivate::checkSubtypes()
   for (const Node& s : sec)
   {
     TypeNode mct = d_most_common_type[s];
-    CVC4_DCHECK(!mct.isNull());
+    Assert(!mct.isNull());
     const std::map<Node, Node>& smems = d_state.getMembers(s);
     if (!smems.empty())
     {
@@ -474,11 +474,11 @@ void TheorySetsPrivate::checkSubtypes()
         if (!it2.first.getType().isSubtypeOf(mct))
         {
           Node mctt = d_most_common_type_term[s];
-          CVC4_DCHECK(!mctt.isNull());
+          Assert(!mctt.isNull());
           Trace("sets") << "    most common type term is " << mctt << std::endl;
           std::vector< Node > exp;
           exp.push_back(it2.second);
-          CVC4_DCHECK(d_state.areEqual(mctt, it2.second[1]));
+          Assert(d_state.areEqual(mctt, it2.second[1]));
           exp.push_back(mctt.eqNode(it2.second[1]));
           Node tc_k = d_state.getTypeConstraintSkolem(it2.first, mct);
           if (!tc_k.isNull())
@@ -516,7 +516,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
           {
             Node mem = it2.second;
             Node eq_set = nv;
-            CVC4_DCHECK(d_equalityEngine.areEqual(mem[1], eq_set));
+            Assert(d_equalityEngine.areEqual(mem[1], eq_set));
             if( mem[1]!=eq_set ){
               Trace("sets-debug") << "Downwards closure based on " << mem << ", eq_set = " << eq_set << std::endl;
               if( !options::setsProxyLemmas() ){
@@ -624,7 +624,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     }
                   }
                 }else{
-                  CVC4_DCHECK(k == kind::SETMINUS);
+                  Assert(k == kind::SETMINUS);
                   std::map<Node, Node>::const_iterator itm = r2mem.find(xr);
                   if (itm == r2mem.end())
                   {
@@ -714,7 +714,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
               u = itu->second;
             }
             if( !u.isNull() ){
-              CVC4_DCHECK(it2.second.getKind() == kind::MEMBER);
+              Assert(it2.second.getKind() == kind::MEMBER);
               std::vector< Node > exp;
               exp.push_back(it2.second);
               if (v != it2.second[1])
@@ -748,8 +748,8 @@ void TheorySetsPrivate::checkDisequalities()
     }
     Node deq = (*it).first;
     // check if it is already satisfied
-    CVC4_DCHECK(d_equalityEngine.hasTerm(deq[0])
-                && d_equalityEngine.hasTerm(deq[1]));
+    Assert(d_equalityEngine.hasTerm(deq[0])
+           && d_equalityEngine.hasTerm(deq[1]));
     Node r1 = d_equalityEngine.getRepresentative(deq[0]);
     Node r2 = d_equalityEngine.getRepresentative(deq[1]);
     bool is_sat = d_state.isSetDisequalityEntailed(r1, r2);
@@ -850,10 +850,10 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
         for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
           TNode x = f1[k];
           TNode y = f2[k];
-          CVC4_DCHECK(d_equalityEngine.hasTerm(x));
-          CVC4_DCHECK(d_equalityEngine.hasTerm(y));
-          CVC4_DCHECK(!d_state.areDisequal(x, y));
-          CVC4_DCHECK(!areCareDisequal(x, y));
+          Assert(d_equalityEngine.hasTerm(x));
+          Assert(d_equalityEngine.hasTerm(y));
+          Assert(!d_state.areDisequal(x, y));
+          Assert(!areCareDisequal(x, y));
           if( !d_equalityEngine.areEqual( x, y ) ){
             Trace("sets-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
             if( d_equalityEngine.isTriggerTerm(x, THEORY_SETS) && d_equalityEngine.isTriggerTerm(y, THEORY_SETS) ){
@@ -863,7 +863,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
             }else if( isCareArg( f1, k ) && isCareArg( f2, k ) ){
               //splitting on sets (necessary for handling set of sets properly)
               if( x.getType().isSet() ){
-                CVC4_DCHECK(y.getType().isSet());
+                Assert(y.getType().isSet());
                 if (!d_state.areDisequal(x, y))
                 {
                   Trace("sets-cg-lemma") << "Should split on : " << x << "==" << y << std::endl;
@@ -940,9 +940,9 @@ void TheorySetsPrivate::computeCareGraph() {
       //populate indices
       for (TNode f1 : it.second)
       {
-        CVC4_DCHECK(d_equalityEngine.hasTerm(f1));
+        Assert(d_equalityEngine.hasTerm(f1));
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
-        CVC4_DCHECK(d_equalityEngine.hasTerm(f1));
+        Assert(d_equalityEngine.hasTerm(f1));
         //break into index based on operator, and type of first argument (since some operators are parametric)
         TypeNode tn = f1[0].getType();
         std::vector< TNode > reps;
@@ -986,7 +986,7 @@ bool TheorySetsPrivate::isCareArg( Node n, unsigned a ) {
 }
 
 EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
-  CVC4_DCHECK(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
+  Assert(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
   if (d_equalityEngine.areEqual(a, b)) {
     // The terms are implied to be equal
     return EQUALITY_TRUE;
@@ -1085,7 +1085,7 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
 /********************** Helper functions ***************************/
 
 Node mkAnd(const std::vector<TNode>& conjunctions) {
-  CVC4_DCHECK(conjunctions.size() > 0);
+  Assert(conjunctions.size() > 0);
 
   std::set<TNode> all;
   for (unsigned i = 0; i < conjunctions.size(); ++i) {
@@ -1093,7 +1093,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
     if (t.getKind() == kind::AND) {
       for(TNode::iterator child_it = t.begin();
           child_it != t.end(); ++child_it) {
-        CVC4_DCHECK((*child_it).getKind() != kind::AND);
+        Assert((*child_it).getKind() != kind::AND);
         all.insert(*child_it);
       }
     }
@@ -1102,7 +1102,7 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
     }
   }
 
-  CVC4_DCHECK(all.size() > 0);
+  Assert(all.size() > 0);
   if (all.size() == 1) {
     // All the same, or just one
     return conjunctions[0];

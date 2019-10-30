@@ -25,7 +25,7 @@
 #  error "This source should only ever be built if CVC4_GMP_IMP is on !"
 #endif /* CVC4_GMP_IMP */
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 
 namespace CVC4 {
 
@@ -66,7 +66,7 @@ int Rational::absCmp(const Rational& q) const{
   if(rsgn == 0){
     return (qsgn == 0) ? 0 : -1;
   }else if(qsgn == 0){
-    CVC4_DCHECK(rsgn != 0);
+    Assert(rsgn != 0);
     return 1;
   }else if((rsgn > 0) && (qsgn > 0)){
     return r.cmp(q);
@@ -79,7 +79,7 @@ int Rational::absCmp(const Rational& q) const{
     Rational rpos = -r;
     return rpos.cmp(q);
   }else {
-    CVC4_DCHECK(rsgn > 0 && (qsgn < 0));
+    Assert(rsgn > 0 && (qsgn < 0));
     Rational qpos = -q;
     return r.cmp(qpos);
   }

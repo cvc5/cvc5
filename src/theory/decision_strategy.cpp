@@ -99,7 +99,7 @@ Node DecisionStrategyFmf::getAssertedLiteral()
 {
   if (d_has_curr_literal.get())
   {
-    CVC4_DCHECK(d_curr_literal.get() < d_literals.size());
+    Assert(d_curr_literal.get() < d_literals.size());
     return getLiteral(d_curr_literal.get());
   }
   return Node::null();

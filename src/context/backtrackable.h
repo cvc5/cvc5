@@ -69,7 +69,7 @@ const T& List_iterator<T>::operator*() {
 
 template <class T>
 List_iterator<T>& List_iterator<T>::operator++() {
-  CVC4_DCHECK(pointee != NULL);
+  Assert(pointee != NULL);
   pointee = pointee->next;
   while(pointee != NULL && pointee->empty ) {
     pointee = pointee->next;
@@ -160,9 +160,9 @@ template <class T>
 void List<T>::concat (List<T>* other) {
   bck->checkConsistency();
   bck->notifyConcat(this, other);
-  CVC4_DCHECK(tail->next == NULL);
+  Assert(tail->next == NULL);
   tail->next = other->head;
-  CVC4_DCHECK(other->ptr_to_head == NULL);
+  Assert(other->ptr_to_head == NULL);
   other->ptr_to_head = tail;
   tail = other->tail;
 }
@@ -171,7 +171,7 @@ template <class T>
 void List<T>::unconcat(List<T>* other) {
   // we do not need to check consistency since this is only called by the
   // Backtracker when we are inconsistent
-  CVC4_DCHECK(other->ptr_to_head != NULL);
+  Assert(other->ptr_to_head != NULL);
   other->ptr_to_head->next = NULL;
   tail = other->ptr_to_head;
   other->ptr_to_head = NULL;
@@ -205,7 +205,7 @@ template <class T> void Backtracker<T>::checkConsistency() {
   if( curr_level == pop_level || pop_level == -1) {
     return;
   }
-  CVC4_DCHECK(curr_level > pop_level);
+  Assert(curr_level > pop_level);
 
   while (curr_level > pop_level) {
     curr_level--;
@@ -214,7 +214,7 @@ template <class T> void Backtracker<T>::checkConsistency() {
     l1->unconcat(l2);
     undo_stack.pop_back();
   }
-  CVC4_DCHECK(curr_level == pop_level);
+  Assert(curr_level == pop_level);
 }
 
 }/* CVC4 namespace */

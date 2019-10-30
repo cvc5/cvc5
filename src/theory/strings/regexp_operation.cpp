@@ -48,7 +48,7 @@ RegExpOpr::RegExpOpr()
 RegExpOpr::~RegExpOpr() {}
 
 bool RegExpOpr::checkConstRegExp( Node r ) {
-  CVC4_DCHECK(r.getType().isRegExp());
+  Assert(r.getType().isRegExp());
   Trace("strings-regexp-cstre")
       << "RegExpOpr::checkConstRegExp /" << mkString(r) << "/" << std::endl;
   RegExpConstType rct = getRegExpConstType(r);
@@ -57,7 +57,7 @@ bool RegExpOpr::checkConstRegExp( Node r ) {
 
 RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 {
-  CVC4_DCHECK(r.getType().isRegExp());
+  Assert(r.getType().isRegExp());
   std::unordered_map<Node, RegExpConstType, NodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
@@ -108,7 +108,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       for (const Node& cn : cur)
       {
         it = d_constCache.find(cn);
-        CVC4_DCHECK(it != d_constCache.end());
+        Assert(it != d_constCache.end());
         if (it->second > ret)
         {
           ret = it->second;
@@ -117,7 +117,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       d_constCache[cur] = ret;
     }
   } while (!visit.empty());
-  CVC4_DCHECK(d_constCache.find(r) != d_constCache.end());
+  Assert(d_constCache.find(r) != d_constCache.end());
   return d_constCache[r];
 }
 
@@ -265,7 +265,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         break;
       }
       default: {
-        CVC4_DCHECK(!isRegExpKind(k));
+        Assert(!isRegExpKind(k));
         break;
       }
     }
@@ -281,7 +281,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
 
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
-  CVC4_DCHECK(c.size() < 2);
+  Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
 
   int ret = 1;
@@ -505,7 +505,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
         break;
       }
       default: {
-        CVC4_DCHECK(!isRegExpKind(r.getKind()));
+        Assert(!isRegExpKind(r.getKind()));
         return 0;
         break;
       }
@@ -522,7 +522,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
 }
 
 Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
-  CVC4_DCHECK(c.size() < 2);
+  Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
   Node retNode = d_emptyRegexp;
   PairNodeStr dv = std::make_pair( r, c );
@@ -716,8 +716,8 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         a = String::convertUnsignedIntToCode(a);
         unsigned b = r[1].getConst<String>().front();
         b = String::convertUnsignedIntToCode(b);
-        CVC4_DCHECK(a < b);
-        CVC4_DCHECK(b < std::numeric_limits<unsigned>::max());
+        Assert(a < b);
+        Assert(b < std::numeric_limits<unsigned>::max());
         for (unsigned c = a; c <= b; c++)
         {
           cset.insert(c);
@@ -791,9 +791,9 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
         // aren't a standard regular expression kind. However, if we do, then
         // the following code is conservative and says that the current
         // regular expression can begin with any character.
-        CVC4_DCHECK(k == REGEXP_SIGMA);
+        Assert(k == REGEXP_SIGMA);
         // can start with any character
-        CVC4_DCHECK(d_lastchar < std::numeric_limits<unsigned>::max());
+        Assert(d_lastchar < std::numeric_limits<unsigned>::max());
         for (unsigned i = 0; i <= d_lastchar; i++)
         {
           cset.insert(i);
@@ -826,7 +826,7 @@ void RegExpOpr::firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset)
 //simplify
 void RegExpOpr::simplify(Node t, std::vector< Node > &new_nodes, bool polarity) {
   Trace("strings-regexp-simpl") << "RegExp-Simpl starts with " << t << ", polarity=" << polarity << std::endl;
-  CVC4_DCHECK(t.getKind() == kind::STRING_IN_REGEXP);
+  Assert(t.getKind() == kind::STRING_IN_REGEXP);
   Node str = Rewriter::rewrite(t[0]);
   Node re  = Rewriter::rewrite(t[1]);
   if(polarity) {
@@ -1013,7 +1013,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       case kind::REGEXP_LOOP: {
-        CVC4_DCHECK(r.getNumChildren() == 3);
+        Assert(r.getNumChildren() == 3);
         if(r[1] == r[2]) {
           if(r[1] == d_zero) {
             conc = s.eqNode(d_emptyString).negate();
@@ -1030,7 +1030,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
             conc = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s, r2).negate();
           }
         } else {
-          CVC4_DCHECK(r[1] == d_zero);
+          Assert(r[1] == d_zero);
           //unroll for now
           unsigned u = r[2].getConst<Rational>().getNumerator().toUnsignedInt();
           std::vector<Node> vec;
@@ -1047,7 +1047,7 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        CVC4_DCHECK(!isRegExpKind(k));
+        Assert(!isRegExpKind(k));
         break;
       }
     }
@@ -1184,7 +1184,7 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       case kind::REGEXP_LOOP: {
-        CVC4_DCHECK(r.getNumChildren() == 3);
+        Assert(r.getNumChildren() == 3);
         if(r[1] == d_zero) {
           if(r[2] == d_zero) {
             conc = s.eqNode( d_emptyString );
@@ -1223,7 +1223,7 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         break;
       }
       default: {
-        CVC4_DCHECK(!isRegExpKind(k));
+        Assert(!isRegExpKind(k));
         break;
       }
     }
@@ -1249,7 +1249,7 @@ bool RegExpOpr::isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2) {
 
 bool RegExpOpr::containC2(unsigned cnt, Node n) {
   if(n.getKind() == kind::REGEXP_RV) {
-    CVC4_DCHECK(n[0].getConst<Rational>() <= Rational(String::maxSize()))
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()))
         << "Exceeded UINT32_MAX in RegExpOpr::containC2";
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     return cnt == y;
@@ -1291,7 +1291,7 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     r1 = d_emptySingleton;
     r2 = d_emptySingleton;
   } else if(n.getKind() == kind::REGEXP_RV) {
-    CVC4_DCHECK(n[0].getConst<Rational>() <= Rational(String::maxSize()))
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()))
         << "Exceeded UINT32_MAX in RegExpOpr::convert2";
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     r1 = d_emptySingleton;
@@ -1503,7 +1503,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
 }
 
 Node RegExpOpr::removeIntersection(Node r) {
-  CVC4_DCHECK(checkConstRegExp(r));
+  Assert(checkConstRegExp(r));
   std::map < Node, Node >::const_iterator itr = d_rm_inter_cache.find(r);
   if(itr != d_rm_inter_cache.end()) {
     return itr->second;
@@ -1683,7 +1683,7 @@ std::string RegExpOpr::mkString( Node r ) {
         std::stringstream ss;
         ss << r;
         retStr = ss.str();
-        CVC4_DCHECK(!isRegExpKind(r.getKind()));
+        Assert(!isRegExpKind(r.getKind()));
         break;
       }
     }
@@ -1694,8 +1694,8 @@ std::string RegExpOpr::mkString( Node r ) {
 
 bool RegExpOpr::regExpIncludes(Node r1, Node r2)
 {
-  CVC4_DCHECK(Rewriter::rewrite(r1) == r1);
-  CVC4_DCHECK(Rewriter::rewrite(r2) == r2);
+  Assert(Rewriter::rewrite(r1) == r1);
+  Assert(Rewriter::rewrite(r2) == r2);
 
   if (r1 == r2)
   {
@@ -1736,7 +1736,7 @@ bool RegExpOpr::regExpIncludes(Node r1, Node r2)
         idxs.insert(idx);
         if (idx + 1 < v1.size() && v1[idx] == d_sigma_star)
         {
-          CVC4_DCHECK(idx + 1 == v1.size() || v1[idx + 1] != d_sigma_star);
+          Assert(idx + 1 == v1.size() || v1[idx + 1] != d_sigma_star);
           idxs.insert(idx + 1);
         }
       }
@@ -1745,8 +1745,8 @@ bool RegExpOpr::regExpIncludes(Node r1, Node r2)
 
     if (n2.getKind() == STRING_TO_REGEXP || n2 == d_sigma)
     {
-      CVC4_DCHECK(n2 == d_sigma
-                  || (n2[0].isConst() && n2[0].getConst<String>().size() == 1));
+      Assert(n2 == d_sigma
+             || (n2[0].isConst() && n2[0].getConst<String>().size() == 1));
       for (size_t idx : idxs)
       {
         if (v1[idx] == d_sigma || v1[idx] == n2)

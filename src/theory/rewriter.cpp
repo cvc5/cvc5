@@ -207,11 +207,10 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         TheoryId newTheoryId = theoryOf(response.node);
         if (newTheoryId != (TheoryId) rewriteStackTop.theoryId || response.status == REWRITE_AGAIN_FULL) {
           // In the post rewrite if we've changed theories, we must do a full rewrite
-          CVC4_DCHECK(response.node != rewriteStackTop.node);
+          Assert(response.node != rewriteStackTop.node);
           //TODO: this is not thread-safe - should make this assertion dependent on sequential build
 #ifdef CVC4_ASSERTIONS
-          CVC4_DCHECK(s_rewriteStack->find(response.node)
-                      == s_rewriteStack->end());
+          Assert(s_rewriteStack->find(response.node) == s_rewriteStack->end());
           s_rewriteStack->insert(response.node);
 #endif
           Node rewritten = rewriteTo(newTheoryId, response.node);
@@ -223,17 +222,17 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         } else if (response.status == REWRITE_DONE) {
 #ifdef CVC4_ASSERTIONS
 	  RewriteResponse r2 = Rewriter::callPostRewrite(newTheoryId, response.node);
-          CVC4_DCHECK(r2.node == response.node);
+          Assert(r2.node == response.node);
 #endif
 	  rewriteStackTop.node = response.node;
           break;
         }
         // Check for trivial rewrite loops of size 1 or 2
-        CVC4_DCHECK(response.node != rewriteStackTop.node);
-        CVC4_DCHECK(Rewriter::callPostRewrite(
-                        (TheoryId)rewriteStackTop.theoryId, response.node)
-                        .node
-                    != rewriteStackTop.node);
+        Assert(response.node != rewriteStackTop.node);
+        Assert(Rewriter::callPostRewrite((TheoryId)rewriteStackTop.theoryId,
+                                         response.node)
+                   .node
+               != rewriteStackTop.node);
         rewriteStackTop.node = response.node;
       }
       // We're done with the post rewrite, so we add to the cache
@@ -247,8 +246,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
     // If this is the last node, just return
     if (rewriteStack.size() == 1) {
-      CVC4_DCHECK(!isEquality || rewriteStackTop.node.getKind() == kind::EQUAL
-                  || rewriteStackTop.node.isConst());
+      Assert(!isEquality || rewriteStackTop.node.getKind() == kind::EQUAL
+             || rewriteStackTop.node.isConst());
       return rewriteStackTop.node;
     }
 

@@ -84,7 +84,7 @@ class CircuitPropagator
   bool getAssignment(TNode n) const
   {
     AssignmentMap::iterator i = d_state.find(n);
-    CVC4_DCHECK(i != d_state.end() && (*i).second != UNASSIGNED);
+    Assert(i != d_state.end() && (*i).second != UNASSIGNED);
     return (*i).second == ASSIGNED_TO_TRUE;
   }
 
@@ -119,7 +119,7 @@ class CircuitPropagator
   /** Invert a set value */
   static inline AssignmentStatus neg(AssignmentStatus value)
   {
-    CVC4_DCHECK(value != UNASSIGNED);
+    Assert(value != UNASSIGNED);
     if (value == ASSIGNED_TO_TRUE)
       return ASSIGNED_TO_FALSE;
     else

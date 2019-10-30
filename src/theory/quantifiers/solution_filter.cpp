@@ -43,7 +43,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
   if (!n.getType().isBoolean())
   {
     // currently, should not register non-Boolean terms here
-    CVC4_DCHECK(false);
+    Assert(false);
     return true;
   }
   Node basen = d_isStrong ? n : n.negate();

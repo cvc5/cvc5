@@ -56,7 +56,7 @@ private:
       d_cleanup(p);
 
       ArithVar x = *p;
-      CVC4_DCHECK(d_set[x]);
+      Assert(d_set[x]);
       d_set[x] = false;
     }
   };
@@ -83,7 +83,7 @@ public:
   }
 
   void insert(Element x){
-    CVC4_DCHECK(!contains(x));
+    Assert(!contains(x));
     if(x >= d_set.size()){
       d_set.resize(x+1, false);
     }

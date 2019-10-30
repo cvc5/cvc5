@@ -76,7 +76,7 @@ void CvcPrinter::toStream(
 
 void toStreamRational(std::ostream& out, Node n, bool forceRational)
 {
-  CVC4_DCHECK(n.getKind() == kind::CONST_RATIONAL);
+  Assert(n.getKind() == kind::CONST_RATIONAL);
   const Rational& rat = n.getConst<Rational>();
   if (rat.isIntegral() && !forceRational)
   {
@@ -420,7 +420,7 @@ void CvcPrinter::toStream(
             {
               sindex = dt[0].getSelectorIndexInternal(opn.toExpr());
             }
-            CVC4_DCHECK(sindex >= 0);
+            Assert(sindex >= 0);
             out << sindex;
           }
           else
@@ -434,7 +434,7 @@ void CvcPrinter::toStream(
       }
       break;
     case kind::APPLY_TESTER: {
-      CVC4_DCHECK(!n.getType().isTuple() && !n.getType().isRecord());
+      Assert(!n.getType().isTuple() && !n.getType().isRecord());
       op << "is_";
       unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
       const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
@@ -697,7 +697,7 @@ void CvcPrinter::toStream(
       break;
     case kind::BITVECTOR_PLUS: {
       // This interprets a BITVECTOR_PLUS as a bvadd in SMT-LIB
-      CVC4_DCHECK(n.getType().isBitVector());
+      Assert(n.getType().isBitVector());
       unsigned numc = n.getNumChildren()-2;
       unsigned child = 0;
       while (child < numc) {
@@ -724,7 +724,7 @@ void CvcPrinter::toStream(
     }
     case kind::BITVECTOR_SUB:
       out << "BVSUB(";
-      CVC4_DCHECK(n.getType().isBitVector());
+      Assert(n.getType().isBitVector());
       out << BitVectorType(n.getType().toType()).getSize();
       out << ',';
       toStream(out, n[0], depth, types, false);
@@ -734,7 +734,7 @@ void CvcPrinter::toStream(
       return;
       break;
     case kind::BITVECTOR_MULT: {
-      CVC4_DCHECK(n.getType().isBitVector());
+      Assert(n.getType().isBitVector());
       unsigned numc = n.getNumChildren()-2;
       unsigned child = 0;
       while (child < numc) {
@@ -1163,7 +1163,7 @@ void CvcPrinter::toStream(std::ostream& out,
                           const Command* command) const
 {
   const auto* theory_model = dynamic_cast<const theory::TheoryModel*>(&model);
-  CVC4_CHECK(theory_model != nullptr);
+  AlwaysAssert(theory_model != nullptr);
   if (const auto* declare_type_command =
           dynamic_cast<const DeclareTypeCommand*>(command))
   {
@@ -1364,7 +1364,7 @@ static void toStream(std::ostream& out, const SimplifyCommand* c, bool cvc3Mode)
 static void toStream(std::ostream& out, const GetValueCommand* c, bool cvc3Mode)
 {
   const vector<Expr>& terms = c->getTerms();
-  CVC4_DCHECK(!terms.empty());
+  Assert(!terms.empty());
   out << "GET_VALUE ";
   copy(terms.begin(), terms.end() - 1, ostream_iterator<Expr>(out, ";\nGET_VALUE "));
   out << terms.back() << ";";

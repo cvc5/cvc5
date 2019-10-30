@@ -43,20 +43,20 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
     Trace("strings-eager-pconf-debug") << "Check conflict " << prev << ", " << t
                                        << " post=" << isSuf << std::endl;
     Node prevC = utils::getConstantEndpoint(prev, isSuf);
-    CVC4_DCHECK(!prevC.isNull());
-    CVC4_DCHECK(prevC.getKind() == CONST_STRING);
+    Assert(!prevC.isNull());
+    Assert(prevC.getKind() == CONST_STRING);
     if (c.isNull())
     {
       c = utils::getConstantEndpoint(t, isSuf);
-      CVC4_DCHECK(!c.isNull());
+      Assert(!c.isNull());
     }
-    CVC4_DCHECK(c.getKind() == CONST_STRING);
+    Assert(c.getKind() == CONST_STRING);
     bool conflict = false;
     // if the constant prefixes are different
     if (c != prevC)
     {
       // conflicts between constants should be handled by equality engine
-      CVC4_DCHECK(!t.isConst() || !prev.isConst());
+      Assert(!t.isConst() || !prev.isConst());
       Trace("strings-eager-pconf-debug")
           << "Check conflict constants " << prevC << ", " << c << std::endl;
       const String& ps = prevC.getConst<String>();
@@ -119,7 +119,7 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
       {
         ccs.push_back(r[0].eqNode(r[1]));
       }
-      CVC4_DCHECK(!ccs.empty());
+      Assert(!ccs.empty());
       Node ret =
           ccs.size() == 1 ? ccs[0] : NodeManager::currentNM()->mkNode(AND, ccs);
       Trace("strings-eager-pconf")
@@ -212,8 +212,8 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
 
 void SolverState::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 {
-  CVC4_DCHECK(concat.getKind() == STRING_CONCAT
-              || concat.getKind() == REGEXP_CONCAT);
+  Assert(concat.getKind() == STRING_CONCAT
+         || concat.getKind() == REGEXP_CONCAT);
   EqcInfo* ei = nullptr;
   // check each side
   for (unsigned r = 0; r < 2; r++)
@@ -236,7 +236,7 @@ void SolverState::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 
 Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
 {
-  CVC4_DCHECK(areEqual(t, te));
+  Assert(areEqual(t, te));
   Node lt = utils::mkNLength(te);
   if (hasTerm(lt))
   {

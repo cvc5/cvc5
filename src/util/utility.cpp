@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 
 namespace CVC4 {
 

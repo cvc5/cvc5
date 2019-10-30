@@ -89,7 +89,7 @@ ITEUtilities::ITEUtilities()
       d_simplifier(NULL),
       d_careSimp(NULL)
 {
-  CVC4_DCHECK(d_containsVisitor != NULL);
+  Assert(d_containsVisitor != NULL);
 }
 
 ITEUtilities::~ITEUtilities()
@@ -293,7 +293,7 @@ void IncomingArcCounter::clear() { d_reachCount.clear(); }
 ITECompressor::ITECompressor(ContainsTermITEVisitor* contains)
     : d_contains(contains), d_assertions(NULL), d_incoming(true, true)
 {
-  CVC4_DCHECK(d_contains != NULL);
+  Assert(d_contains != NULL);
 
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -371,8 +371,8 @@ bool ITECompressor::multipleParents(TNode c)
 
 Node ITECompressor::compressBooleanITEs(Node toCompress)
 {
-  CVC4_DCHECK(toCompress.getKind() == kind::ITE);
-  CVC4_DCHECK(toCompress.getType().isBoolean());
+  Assert(toCompress.getKind() == kind::ITE);
+  Assert(toCompress.getType().isBoolean());
 
   if (!(toCompress[1] == d_false || toCompress[2] == d_false))
   {
@@ -426,7 +426,7 @@ Node ITECompressor::compressBooleanITEs(Node toCompress)
     }
     curr = negateCnd ? curr[2] : curr[1];
   }
-  CVC4_DCHECK(toCompress != curr);
+  Assert(toCompress != curr);
 
   nb << compressBoolean(curr);
   Node res = nb.getNumChildren() == 1 ? nb[0] : (Node)nb;
@@ -546,7 +546,7 @@ bool ITECompressor::compress(std::vector<Node>& assertions)
     Node compressed = compressBoolean(assertion);
     Node rewritten = theory::Rewriter::rewrite(compressed);
     assertions[i] = rewritten;
-    CVC4_DCHECK(!d_contains->containsTermITE(rewritten));
+    Assert(!d_contains->containsTermITE(rewritten));
 
     nofalses = (rewritten != d_false);
   }
@@ -656,7 +656,7 @@ ITESimplifier::ITESimplifier(ContainsTermITEVisitor* contains)
       d_simpContextCache(),
       d_simpITECache()
 {
-  CVC4_DCHECK(d_containsVisitor != NULL);
+  Assert(d_containsVisitor != NULL);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 }
@@ -664,8 +664,8 @@ ITESimplifier::ITESimplifier(ContainsTermITEVisitor* contains)
 ITESimplifier::~ITESimplifier()
 {
   clearSimpITECaches();
-  CVC4_DCHECK(d_constantLeaves.empty());
-  CVC4_DCHECK(d_allocatedConstantLeaves.empty());
+  Assert(d_constantLeaves.empty());
+  Assert(d_allocatedConstantLeaves.empty());
 }
 
 bool ITESimplifier::leavesAreConst(TNode e)
@@ -754,7 +754,7 @@ bool ITESimplifier::isConstantIte(TNode e)
 
 ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite)
 {
-  CVC4_DCHECK(ite::isTermITE(ite));
+  Assert(ite::isTermITE(ite));
   ConstantLeavesMap::const_iterator it = d_constantLeaves.find(ite);
   ConstantLeavesMap::const_iterator end = d_constantLeaves.end();
   if (it != end)
@@ -894,8 +894,8 @@ Node ITESimplifier::replaceOver(Node n, Node replaceWith, Node simpVar)
   {
     return n;
   }
-  CVC4_DCHECK(n.getNumChildren() > 0);
-  CVC4_DCHECK(!n.isVar());
+  Assert(n.getNumChildren() > 0);
+  Assert(!n.isVar());
 
   pair<Node, Node> p = make_pair(n, replaceWith);
   if (d_replaceOverCache.find(p) != d_replaceOverCache.end())
@@ -929,7 +929,7 @@ Node ITESimplifier::replaceOverTermIte(Node e, Node simpAtom, Node simpVar)
     {
       return d_replaceOverTermIteCache[p];
     }
-    CVC4_DCHECK(!e.getType().isBoolean());
+    Assert(!e.getType().isBoolean());
     Node cnd = e[0];
     Node newThen = replaceOverTermIte(e[1], simpAtom, simpVar);
     Node newElse = replaceOverTermIte(e[2], simpAtom, simpVar);
@@ -1117,7 +1117,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
   ++d_citeEqConstApplications;
 
   NodeVec* leaves = computeConstantLeaves(cite);
-  CVC4_DCHECK(leaves != NULL);
+  Assert(leaves != NULL);
   if (std::binary_search(leaves->begin(), leaves->end(), constant))
   {
     if (leaves->size() == 1)
@@ -1130,7 +1130,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
     }
     else
     {
-      CVC4_DCHECK(cite.getKind() == kind::ITE);
+      Assert(cite.getKind() == kind::ITE);
       TNode cnd = cite[0];
       TNode tB = cite[1];
       TNode fB = cite[2];
@@ -1181,8 +1181,8 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
                                   << " " << (itesMade - preItesMade) << endl;
     return bterm;
   }
-  CVC4_DCHECK(lcite.getKind() == kind::ITE);
-  CVC4_DCHECK(rcite.getKind() == kind::ITE);
+  Assert(lcite.getKind() == kind::ITE);
+  Assert(rcite.getKind() == kind::ITE);
 
   NodeVec* leftValues = computeConstantLeaves(lcite);
   NodeVec* rightValues = computeConstantLeaves(rcite);
@@ -1249,7 +1249,7 @@ Node ITESimplifier::attemptEagerRemoval(TNode atom)
       }
 
       NodeVec* leaves = computeConstantLeaves(cite);
-      CVC4_DCHECK(leaves != NULL);
+      Assert(leaves != NULL);
       if (!std::binary_search(leaves->begin(), leaves->end(), constant))
       {
         std::pair<Node, Node> pair = make_pair(cite, constant);
@@ -1277,8 +1277,8 @@ Node ITESimplifier::attemptConstantRemoval(TNode atom)
 
 bool ITESimplifier::leavesAreConst(TNode e, theory::TheoryId tid)
 {
-  CVC4_DCHECK((e.getKind() == kind::ITE && !e.getType().isBoolean())
-              || theory::Theory::theoryOf(e) != theory::THEORY_BOOL);
+  Assert((e.getKind() == kind::ITE && !e.getType().isBoolean())
+         || theory::Theory::theoryOf(e) != theory::THEORY_BOOL);
   if (e.isConst())
   {
     return true;
@@ -1297,7 +1297,7 @@ bool ITESimplifier::leavesAreConst(TNode e, theory::TheoryId tid)
     return false;
   }
 
-  CVC4_DCHECK(e.getNumChildren() > 0);
+  Assert(e.getNumChildren() > 0);
   size_t k = 0, sz = e.getNumChildren();
 
   if (e.getKind() == kind::ITE)
@@ -1363,7 +1363,7 @@ Node ITESimplifier::simpConstants(TNode simpContext,
   Node simpContext2 = createSimpContext(iteNode, iteNode2, simpVar2);
   if (!simpContext2.isNull())
   {
-    CVC4_DCHECK(!iteNode2.isNull());
+    Assert(!iteNode2.isNull());
     simpContext2 = simpContext.substitute(simpVar, simpContext2);
     Node n = simpConstants(simpContext2, iteNode2, simpVar2);
     if (n.isNull())
@@ -1500,8 +1500,7 @@ Node ITESimplifier::simpITEAtom(TNode atom)
     {
       if (iteNode.isNull())
       {
-        CVC4_DCHECK(leavesAreConst(simpContext)
-                    && !containsTermITE(simpContext));
+        Assert(leavesAreConst(simpContext) && !containsTermITE(simpContext));
         ++(d_statistics.d_unexpected);
         Debug("ite::simpite") << instance << " "
                               << "how about?" << atom << endl;
@@ -1588,7 +1587,7 @@ Node ITESimplifier::simpITE(TNode assertion)
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
-        CVC4_DCHECK(d_simpITECache.find(current[i]) != d_simpITECache.end());
+        Assert(d_simpITECache.find(current[i]) != d_simpITECache.end());
         Node child = current[i];
         Node childRes = d_simpITECache[current[i]];
         builder << childRes;
@@ -1652,14 +1651,14 @@ ITECareSimplifier::ITECareSimplifier() : d_careSetsOutstanding(0), d_usedSets()
 
 ITECareSimplifier::~ITECareSimplifier()
 {
-  CVC4_DCHECK(d_usedSets.empty());
-  CVC4_DCHECK(d_careSetsOutstanding == 0);
+  Assert(d_usedSets.empty());
+  Assert(d_careSetsOutstanding == 0);
 }
 
 void ITECareSimplifier::clear()
 {
-  CVC4_DCHECK(d_usedSets.empty());
-  CVC4_DCHECK(d_careSetsOutstanding == 0);
+  Assert(d_usedSets.empty());
+  Assert(d_careSetsOutstanding == 0);
 }
 
 ITECareSimplifier::CareSetPtr ITECareSimplifier::getNewSet()
@@ -1784,7 +1783,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
           iCare = css.find(v[0]);
           if (iCare != iCareEnd)
           {
-            CVC4_DCHECK(substTable.find(v) == substTable.end());
+            Assert(substTable.find(v) == substTable.end());
             substTable[v] = v[1];
             updateQueue(queue, v[1], cs);
             done = true;
@@ -1795,7 +1794,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
             iCare = css.find(v[0].negate());
             if (iCare != iCareEnd)
             {
-              CVC4_DCHECK(substTable.find(v) == substTable.end());
+              Assert(substTable.find(v) == substTable.end());
               substTable[v] = v[2];
               updateQueue(queue, v[2], cs);
               done = true;
@@ -1821,7 +1820,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
             iCare = css.find(v[i].negate());
             if (iCare != iCareEnd)
             {
-              CVC4_DCHECK(substTable.find(v) == substTable.end());
+              Assert(substTable.find(v) == substTable.end());
               substTable[v] = d_false;
               done = true;
               break;
@@ -1829,7 +1828,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
           }
           if (done) break;
 
-          CVC4_DCHECK(v.getNumChildren() > 1);
+          Assert(v.getNumChildren() > 1);
           updateQueue(queue, v[0], cs);
           cs2 = getNewSet();
           cs2.getCareSet() = css;
@@ -1848,7 +1847,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
             iCare = css.find(v[i]);
             if (iCare != iCareEnd)
             {
-              CVC4_DCHECK(substTable.find(v) == substTable.end());
+              Assert(substTable.find(v) == substTable.end());
               substTable[v] = d_true;
               done = true;
               break;
@@ -1856,7 +1855,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
           }
           if (done) break;
 
-          CVC4_DCHECK(v.getNumChildren() > 1);
+          Assert(v.getNumChildren() > 1);
           updateQueue(queue, v[0], cs);
           cs2 = getNewSet();
           cs2.getCareSet() = css;
@@ -1887,9 +1886,9 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
   {
     CareSetPtrVal* used = d_usedSets.back();
     d_usedSets.pop_back();
-    CVC4_DCHECK(used->safeToGarbageCollect());
+    Assert(used->safeToGarbageCollect());
     delete used;
-    CVC4_DCHECK(d_careSetsOutstanding > 0);
+    Assert(d_careSetsOutstanding > 0);
     d_careSetsOutstanding--;
   }
 

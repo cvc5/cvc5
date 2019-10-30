@@ -29,7 +29,7 @@ namespace arrays {
 struct ArraySelectTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::SELECT);
+    Assert(n.getKind() == kind::SELECT);
     TypeNode arrayType = n[0].getType(check);
     if( check ) {
       if(!arrayType.isArray()) {
@@ -67,7 +67,7 @@ struct ArrayStoreTypeRule {
       return arrayType;
     }
     else {
-      CVC4_DCHECK(n.getKind() == kind::STORE_ALL);
+      Assert(n.getKind() == kind::STORE_ALL);
       ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
       ArrayType arrayType = storeAll.getType();
       return TypeNode::fromType(arrayType);
@@ -76,7 +76,7 @@ struct ArrayStoreTypeRule {
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
   {
-    CVC4_DCHECK(n.getKind() == kind::STORE);
+    Assert(n.getKind() == kind::STORE);
     NodeManagerScope nms(nodeManager);
 
     TNode store = n[0];
@@ -104,7 +104,7 @@ struct ArrayStoreTypeRule {
       }
       store = store[0];
     }
-    CVC4_DCHECK(store.getKind() == kind::STORE_ALL);
+    Assert(store.getKind() == kind::STORE_ALL);
     ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
     Node defaultValue = Node::fromExpr(storeAll.getExpr());
     if (value == defaultValue) {
@@ -140,7 +140,7 @@ struct ArrayStoreTypeRule {
 
     // Need to make sure the default value count is larger, or the same and the default value is expression-order-less-than nextValue
     Cardinality::CardinalityComparison compare = indexCard.compare(mostFrequentValueCount + depth);
-    CVC4_DCHECK(compare != Cardinality::UNKNOWN);
+    Assert(compare != Cardinality::UNKNOWN);
     if (compare == Cardinality::LESS ||
         (compare == Cardinality::EQUAL && (!(defaultValue < mostFrequentValue)))) {
       return false;
@@ -155,7 +155,7 @@ struct ArrayStoreTypeRule {
 struct ArrayTableFunTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::ARR_TABLE_FUN);
+    Assert(n.getKind() == kind::ARR_TABLE_FUN);
     TypeNode arrayType = n[0].getType(check);
     if( check ) {
       if(!arrayType.isArray()) {
@@ -181,7 +181,7 @@ struct ArrayTableFunTypeRule {
 struct ArrayLambdaTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::ARRAY_LAMBDA);
+    Assert(n.getKind() == kind::ARRAY_LAMBDA);
     TypeNode lamType = n[0].getType(check);
     if( check ) {
       if(n[0].getKind() != kind::LAMBDA) {
@@ -197,7 +197,7 @@ struct ArrayLambdaTypeRule {
 
 struct ArraysProperties {
   inline static Cardinality computeCardinality(TypeNode type) {
-    CVC4_DCHECK(type.getKind() == kind::ARRAY_TYPE);
+    Assert(type.getKind() == kind::ARRAY_TYPE);
 
     Cardinality indexCard = type[0].getCardinality();
     Cardinality valueCard = type[1].getCardinality();
@@ -218,8 +218,8 @@ struct ArraysProperties {
 struct ArrayPartialSelectTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::PARTIAL_SELECT_0
-                || n.getKind() == kind::PARTIAL_SELECT_1);
+    Assert(n.getKind() == kind::PARTIAL_SELECT_0
+           || n.getKind() == kind::PARTIAL_SELECT_1);
     return nodeManager->integerType();
   }
 };/* struct ArrayPartialSelectTypeRule */

@@ -16,8 +16,7 @@
  **/
 #include "proof/theory_proof.h"
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "context/context.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
@@ -104,7 +103,9 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
               bvp = new proof::LfscErBitVectorProof(thBv, this);
               break;
             }
-            default: { Unreachable("Invalid BvProofFormat");
+            default:
+            {
+              Unreachable() << "Invalid BvProofFormat";
             }
           };
           d_theoryProofTable[id] = bvp;
@@ -138,7 +139,7 @@ void TheoryProofEngine::finishRegisterTheory(theory::Theory* th) {
     theory::TheoryId id = th->getId();
     if (id == theory::THEORY_BV) {
       theory::bv::TheoryBV* bv_th = static_cast<theory::bv::TheoryBV*>(th);
-      CVC4_DCHECK(d_theoryProofTable.find(id) != d_theoryProofTable.end());
+      Assert(d_theoryProofTable.find(id) != d_theoryProofTable.end());
       proof::BitVectorProof* bvp =
           static_cast<proof::BitVectorProof*>(d_theoryProofTable[id]);
       bv_th->setProofLog(bvp);
@@ -155,9 +156,9 @@ TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
   }
 
   if (d_theoryProofTable.find(id) == d_theoryProofTable.end()) {
-    std::stringstream ss;
-    ss << "Error! Proofs not yet supported for the following theory: " << id << std::endl;
-    InternalError(ss.str().c_str());
+    InternalError()
+        << "Error! Proofs not yet supported for the following theory: " << id
+        << std::endl;
   }
 
   return d_theoryProofTable[id];
@@ -168,10 +169,10 @@ void TheoryProofEngine::markTermForFutureRegistration(Expr term, theory::TheoryI
 }
 
 void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
-  CVC4_DCHECK(c1.isConst());
-  CVC4_DCHECK(c2.isConst());
+  Assert(c1.isConst());
+  Assert(c2.isConst());
 
-  CVC4_DCHECK(theory::Theory::theoryOf(c1) == theory::Theory::theoryOf(c2));
+  Assert(theory::Theory::theoryOf(c1) == theory::Theory::theoryOf(c2));
   getTheoryProof(theory::Theory::theoryOf(c1))->printConstantDisequalityProof(os, c1, c2, globalLetMap);
 }
 
@@ -222,7 +223,7 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(const prop::SatClause* cla
     Node node = pm->getCnfProof()->getAtom(lit.getSatVariable());
     Expr atom = node.toExpr();
     if (atom.isConst()) {
-      CVC4_DCHECK(atom == utils::mkTrue());
+      Assert(atom == utils::mkTrue());
       continue;
     }
 
@@ -230,7 +231,7 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(const prop::SatClause* cla
   }
 
   // Ensure that the lemma is in the database.
-  CVC4_DCHECK(pm->getCnfProof()->haveProofRecipe(nodes));
+  Assert(pm->getCnfProof()->haveProofRecipe(nodes));
   return pm->getCnfProof()->getProofRecipe(nodes).getTheory();
 }
 
@@ -258,9 +259,9 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
     Expr current_expr = let_order[i].expr;
     unsigned let_id = let_order[i].id;
     ProofLetMap::const_iterator it = map.find(current_expr);
-    CVC4_DCHECK(it != map.end());
+    Assert(it != map.end());
     unsigned let_count = it->second.count;
-    CVC4_DCHECK(let_count);
+    Assert(let_count);
     // skip terms that only appear once
     if (let_count <= LET_COUNT) {
       continue;
@@ -333,7 +334,7 @@ void LFSCTheoryProofEngine::performExtraRegistrations() {
       for (theoryIt = it->second.begin(); theoryIt != it->second.end(); ++theoryIt) {
         Debug("pf::tp") << "\tExtra registration of term " << it->first
                         << " with theory: " << *theoryIt << std::endl;
-        CVC4_DCHECK(supportedTheory(*theoryIt));
+        Assert(supportedTheory(*theoryIt));
         getTheoryProof(*theoryIt)->registerTerm(it->first);
       }
     }
@@ -388,9 +389,8 @@ void LFSCTheoryProofEngine::printLemmaRewrites(NodePairSet& rewrites,
 
     Node n1 = it->first;
     Node n2 = it->second;
-    CVC4_DCHECK(n1.toExpr() == utils::mkFalse()
-                || theory::Theory::theoryOf(n1)
-                       == theory::Theory::theoryOf(n2));
+    Assert(n1.toExpr() == utils::mkFalse()
+           || theory::Theory::theoryOf(n1) == theory::Theory::theoryOf(n2));
 
     std::ostringstream rewriteRule;
     rewriteRule << ".lrr" << d_assertionToRewrite.size();
@@ -464,7 +464,7 @@ void LFSCTheoryProofEngine::dumpTheoryLemmas(const IdToSatClause& lemmas) {
       prop::SatLiteral lit = (*clause)[i];
       Node node = pm->getCnfProof()->getAtom(lit.getSatVariable());
       if (node.isConst()) {
-        CVC4_DCHECK(node.toExpr() == utils::mkTrue());
+        Assert(node.toExpr() == utils::mkTrue());
         continue;
       }
       nodes.insert(lit.isNegated() ? node.notNode() : node);
@@ -495,8 +495,8 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
 
       // The literals (true) and (not false) are omitted from conflicts
       if (atom.isConst()) {
-        CVC4_DCHECK(atom == utils::mkTrue()
-                    || (atom == utils::mkFalse() && lit.isNegated()));
+        Assert(atom == utils::mkTrue()
+               || (atom == utils::mkFalse() && lit.isNegated()));
         continue;
       }
 
@@ -586,7 +586,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   ProofManager::getBitVectorProof()->printBBDeclarationAndCnf(os, paren, map);
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    CVC4_DCHECK(lemmas.size() == 1);
+    Assert(lemmas.size() == 1);
     // nothing more to do (no combination with eager so far)
     return;
   }
@@ -608,7 +608,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
       Node node = pm->getCnfProof()->getAtom(lit.getSatVariable());
       Expr atom = node.toExpr();
       if (atom.isConst()) {
-        CVC4_DCHECK(atom == utils::mkTrue());
+        Assert(atom == utils::mkTrue());
         continue;
       }
       Expr expr_lit = lit.isNegated() ? atom.notExpr(): atom;
@@ -639,7 +639,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
            ++missingAssertion) {
 
         Debug("pf::tp") << "Working on missing assertion: " << *missingAssertion << std::endl;
-        CVC4_DCHECK(recipe.wasRewritten(missingAssertion->negate()));
+        Assert(recipe.wasRewritten(missingAssertion->negate()));
         Node explanation = recipe.getExplanation(missingAssertion->negate()).negate();
         Debug("pf::tp") << "Found explanation: " << explanation << std::endl;
 
@@ -656,7 +656,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
           }
         }
 
-        CVC4_CHECK(found);
+        AlwaysAssert(found);
         Debug("pf::tp") << "Replacing theory assertion "
                         << clause_expr[k]
                         << " with "
@@ -759,7 +759,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
 
           Debug("pf::tp") << "Working on missing assertion: " << *missingAssertion << std::endl;
 
-          CVC4_DCHECK(recipe.wasRewritten(missingAssertion->negate()));
+          Assert(recipe.wasRewritten(missingAssertion->negate()));
           Node explanation = recipe.getExplanation(missingAssertion->negate()).negate();
 
           Debug("pf::tp") << "Found explanation: " << explanation << std::endl;
@@ -777,7 +777,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
             }
           }
 
-          CVC4_CHECK(found);
+          AlwaysAssert(found);
 
           Debug("pf::tp") << "Replacing theory assertion "
                           << currentClauseExpr[k]
@@ -825,7 +825,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
         paren << "))";
       }
 
-      CVC4_DCHECK(numberOfSteps >= 2);
+      Assert(numberOfSteps >= 2);
 
       os << "(satlem_simplify _ _ _ ";
       for (unsigned i = 0; i < numberOfSteps - 1; ++i) {
@@ -924,7 +924,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
 
   case kind::DISTINCT:
     // Distinct nodes can have any number of chidlren.
-    CVC4_DCHECK(term.getNumChildren() >= 2);
+    Assert(term.getNumChildren() >= 2);
 
     if (term.getNumChildren() == 2) {
       os << "(not (= ";
@@ -1001,8 +1001,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
     return;
   }
 
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
 
 }
@@ -1012,7 +1011,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                         std::ostream& paren,
                                         const ProofLetMap& map) {
   // Default method for replaying proofs: assert (negated) literals back to a fresh copy of the theory
-  CVC4_DCHECK(d_theory != NULL);
+  Assert(d_theory != NULL);
 
   context::UserContext fakeContext;
   ProofOutputChannel oc;
@@ -1034,7 +1033,8 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     os << " (clausify_false trust)";
     return;
   } else {
-    InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
+    InternalError() << "can't generate theory-proof for "
+                    << ProofManager::currentPM()->getLogic();
   }
 
   Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;
@@ -1060,7 +1060,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   if(!oc.hasConflict()) {
     Trace("pf::tp") << "; conflict is null" << std::endl;
     Node lastLemma  = oc.getLastLemma();
-    CVC4_DCHECK(!lastLemma.isNull());
+    Assert(!lastLemma.isNull());
     Trace("pf::tp") << "; ++ but got lemma: " << lastLemma << std::endl;
 
     if (lastLemma.getKind() == kind::OR) {
@@ -1078,7 +1078,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     } else {
       Unreachable();
 
-      CVC4_DCHECK(oc.getLastLemma().getKind() == kind::NOT);
+      Assert(oc.getLastLemma().getKind() == kind::NOT);
       Debug("pf::tp") << "NOT lemma" << std::endl;
       Trace("pf::tp") << ";     asserting fact: " << oc.getLastLemma()[0]
                       << std::endl;
@@ -1124,7 +1124,7 @@ BooleanProof::BooleanProof(TheoryProofEngine* proofEngine)
 {}
 
 void BooleanProof::registerTerm(Expr term) {
-  CVC4_DCHECK(term.getType().isBoolean());
+  Assert(term.getType().isBoolean());
 
   if (term.isVariable() && d_declarations.find(term) == d_declarations.end()) {
     d_declarations.insert(term);
@@ -1140,9 +1140,9 @@ void LFSCBooleanProof::printConstantDisequalityProof(std::ostream& os, Expr c1, 
   Node falseNode = NodeManager::currentNM()->mkConst(false);
   Node trueNode = NodeManager::currentNM()->mkConst(true);
 
-  CVC4_DCHECK(c1 == falseNode.toExpr() || c1 == trueNode.toExpr());
-  CVC4_DCHECK(c2 == falseNode.toExpr() || c2 == trueNode.toExpr());
-  CVC4_DCHECK(c1 != c2);
+  Assert(c1 == falseNode.toExpr() || c1 == trueNode.toExpr());
+  Assert(c2 == falseNode.toExpr() || c2 == trueNode.toExpr());
+  Assert(c1 != c2);
 
   if (c1 == trueNode.toExpr())
     os << "t_t_neq_f";
@@ -1151,7 +1151,7 @@ void LFSCBooleanProof::printConstantDisequalityProof(std::ostream& os, Expr c1, 
 }
 
 void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  CVC4_DCHECK(term.getType().isBoolean());
+  Assert(term.getType().isBoolean());
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);
     return;
@@ -1226,14 +1226,13 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
     os << (term.getConst<bool>() ? "true" : "false");
     return;
 
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
 
 }
 
 void LFSCBooleanProof::printOwnedSort(Type type, std::ostream& os) {
-  CVC4_DCHECK(type.isBoolean());
+  Assert(type.isBoolean());
   os << "Bool";
 }
 
@@ -1264,7 +1263,7 @@ void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                              std::ostream& os,
                                              std::ostream& paren,
                                              const ProofLetMap& map) {
-  Unreachable("No boolean lemmas yet!");
+  Unreachable() << "No boolean lemmas yet!";
 }
 
 bool LFSCBooleanProof::printsAsBool(const Node &n)
@@ -1390,16 +1389,15 @@ int TheoryProof::assertAndPrint(
 {
   theory::TheoryId theoryId = getTheoryId();
   int neg = -1;
-  CVC4_DCHECK(theoryId == theory::THEORY_UF
-              || theoryId == theory::THEORY_ARRAYS);
+  Assert(theoryId == theory::THEORY_UF || theoryId == theory::THEORY_ARRAYS);
   bool ufProof = (theoryId == theory::THEORY_UF);
   std::string theoryName = theory::getStatsPrefix(theoryId);
   pf.debug_print(("pf::" + theoryName).c_str(), 0, pPrettyPrinter);
   Debug("pf::" + theoryName) << std::endl;
 
-  CVC4_DCHECK(pf.d_id == theory::eq::MERGED_THROUGH_TRANS);
-  CVC4_DCHECK(!pf.d_node.isNull());
-  CVC4_DCHECK(pf.d_children.size() >= 2);
+  Assert(pf.d_id == theory::eq::MERGED_THROUGH_TRANS);
+  Assert(!pf.d_node.isNull());
+  Assert(pf.d_children.size() >= 2);
 
   subTrans->d_id = theory::eq::MERGED_THROUGH_TRANS;
   subTrans->d_node = pf.d_node;
@@ -1418,7 +1416,7 @@ int TheoryProof::assertAndPrint(
     if (!pf.d_children[i]->d_node.isNull()
         && pf.d_children[i]->d_node.getKind() == kind::NOT)
     {
-      CVC4_DCHECK(neg < 0);
+      Assert(neg < 0);
       (neg) = i;
       ++i;
     }
@@ -1477,7 +1475,7 @@ int TheoryProof::assertAndPrint(
       if (ufProof)
       {
         // Assert that we have precisely at least one possible clause.
-        CVC4_DCHECK(targetAppearsBefore || targetAppearsAfter);
+        Assert(targetAppearsBefore || targetAppearsAfter);
 
         // If both are valid, assume the one after the sequence is correct
         if (targetAppearsAfter && targetAppearsBefore)
@@ -1488,7 +1486,7 @@ int TheoryProof::assertAndPrint(
       else
       {  // not a uf proof
         // Assert that we have precisely one target clause.
-        CVC4_DCHECK(targetAppearsBefore != targetAppearsAfter);
+        Assert(targetAppearsBefore != targetAppearsAfter);
       }
 
       // Begin breaking up the congruences and ordering the equalities
@@ -1568,9 +1566,9 @@ int TheoryProof::assertAndPrint(
         << "A disequality was NOT found. UNSAT due to merged constants"
         << std::endl;
     Debug("pf::" + theoryName) << "Proof for: " << pf.d_node << std::endl;
-    CVC4_DCHECK(pf.d_node.getKind() == kind::EQUAL);
-    CVC4_DCHECK(pf.d_node.getNumChildren() == 2);
-    CVC4_DCHECK(pf.d_node[0].isConst() && pf.d_node[1].isConst());
+    Assert(pf.d_node.getKind() == kind::EQUAL);
+    Assert(pf.d_node.getNumChildren() == 2);
+    Assert(pf.d_node[0].isConst() && pf.d_node[1].isConst());
   }
   return neg;
 }
@@ -1586,8 +1584,7 @@ std::pair<Node, Node> TheoryProof::identicalEqualitiesPrinterHelper(
     Node nodeAfterEqualitySequence)
 {
   theory::TheoryId theoryId = getTheoryId();
-  CVC4_DCHECK(theoryId == theory::THEORY_UF
-              || theoryId == theory::THEORY_ARRAYS);
+  Assert(theoryId == theory::THEORY_UF || theoryId == theory::THEORY_ARRAYS);
   bool ufProof = (theoryId == theory::THEORY_UF);
   std::string theoryName = theory::getStatsPrefix(theoryId);
   if (evenLengthSequence)
@@ -1623,7 +1620,7 @@ std::pair<Node, Node> TheoryProof::identicalEqualitiesPrinterHelper(
         Debug("pf::" + theoryName) << "Error: identical equalities over, but "
                                       "hands don't match what we're proving."
                                    << std::endl;
-        CVC4_DCHECK(false);
+        Assert(false);
       }
     }
     else
@@ -1634,7 +1631,7 @@ std::pair<Node, Node> TheoryProof::identicalEqualitiesPrinterHelper(
         nodeAfterEqualitySequence = nodeAfterEqualitySequence[0];
       }
 
-      CVC4_DCHECK(nodeAfterEqualitySequence.getKind() == kind::EQUAL);
+      Assert(nodeAfterEqualitySequence.getKind() == kind::EQUAL);
 
       if ((n[0] == nodeAfterEqualitySequence[0])
           || (n[0] == nodeAfterEqualitySequence[1]))
@@ -1655,7 +1652,7 @@ std::pair<Node, Node> TheoryProof::identicalEqualitiesPrinterHelper(
         Debug("pf::" + theoryName) << "Error: even length sequence, but I "
                                       "don't know which hand to keep!"
                                    << std::endl;
-        CVC4_DCHECK(false);
+        Assert(false);
       }
     }
 

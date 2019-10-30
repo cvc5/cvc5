@@ -125,8 +125,8 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       // if it is the "any constant" constructor, return its argument
       if (op.getAttribute(SygusAnyConstAttribute()))
       {
-        CVC4_DCHECK(ev.getNumChildren() == 1);
-        CVC4_DCHECK(ev[0].getType().isComparableTo(in.getType()));
+        Assert(ev.getNumChildren() == 1);
+        Assert(ev[0].getType().isComparableTo(in.getType()));
         return RewriteResponse(REWRITE_AGAIN_FULL, ev[0]);
       }
       std::vector<Node> args;
@@ -134,7 +134,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       {
         args.push_back(in[j]);
       }
-      CVC4_DCHECK(!dt.isParametric());
+      Assert(!dt.isParametric());
       std::vector<Node> children;
       for (const Node& evc : ev)
       {
@@ -165,7 +165,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       Kind ck = c.getKind();
       if (ck == MATCH_CASE)
       {
-        CVC4_DCHECK(c[0].getKind() == APPLY_CONSTRUCTOR);
+        Assert(c[0].getKind() == APPLY_CONSTRUCTOR);
         cons = c[0].getOperator();
       }
       else if (ck == MATCH_BIND_CASE)
@@ -177,7 +177,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       else
       {
-        CVC4_CHECK(false);
+        AlwaysAssert(false);
       }
       size_t cindex = 0;
       // cons is null in the default case
@@ -196,7 +196,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         std::vector<Node> subs;
         if (cons.isNull())
         {
-          CVC4_DCHECK(c[1].getKind() == BOUND_VARIABLE);
+          Assert(c[1].getKind() == BOUND_VARIABLE);
           vars.push_back(c[1]);
           subs.push_back(h);
         }
@@ -226,12 +226,12 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       rets.push_back(body);
     }
-    CVC4_DCHECK(!cases.empty());
+    Assert(!cases.empty());
     // now make the ITE
     std::reverse(cases.begin(), cases.end());
     std::reverse(rets.begin(), rets.end());
     Node ret = rets[0];
-    CVC4_CHECK(cases[0].isConst() || cases.size() == dt.getNumConstructors());
+    AlwaysAssert(cases[0].isConst() || cases.size() == dt.getNumConstructors());
     for (unsigned i = 1, ncases = cases.size(); i < ncases; i++)
     {
       ret = nm->mkNode(ITE, cases[i], rets[i], ret);
@@ -326,7 +326,7 @@ RewriteResponse DatatypesRewriter::rewriteConstructor(TNode in)
     Node inn = normalizeConstant(in);
     // constant may be a subterm of another constant, so cannot assume that this
     // will succeed for codatatypes
-    // CVC4_DCHECK( !inn.isNull() );
+    // Assert( !inn.isNull() );
     if (!inn.isNull() && inn != in)
     {
       Trace("datatypes-rewrite") << "Normalized constant " << in << " -> "
@@ -387,7 +387,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
                                      << selectorIndex << std::endl;
     if (selectorIndex >= 0)
     {
-      CVC4_DCHECK(selectorIndex < (int)c.getNumArgs());
+      Assert(selectorIndex < (int)c.getNumArgs());
       if (dt.isCodatatype() && in[0][selectorIndex].isConst())
       {
         // must replace all debruijn indices with self
@@ -431,7 +431,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
       }
       if (!gt.isNull())
       {
-        // CVC4_DCHECK( gtt.isDatatype() || gtt.isParametricDatatype() );
+        // Assert( gtt.isDatatype() || gtt.isParametricDatatype() );
         if (tn.isDatatype() && !tn.isInstantiatedDatatype())
         {
           gt = NodeManager::currentNM()->mkNode(
@@ -509,7 +509,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstant(Node n)
       int e;
       if (cdts[t])
       {
-        CVC4_DCHECK(t.getKind() == kind::APPLY_CONSTRUCTOR);
+        Assert(t.getKind() == kind::APPLY_CONSTRUCTOR);
         Node op = t.getOperator();
         std::map<Node, int>::iterator it = eqc_op_map.find(op);
         if (it == eqc_op_map.end())
@@ -554,7 +554,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstant(Node n)
                  k++)
             {
               Node t = eqc_nodes[eqc_curr][k];
-              CVC4_DCHECK(t.getNumChildren() == nchildren);
+              Assert(t.getNumChildren() == nchildren);
               Node tc = t[j];
               // refer to loops
               std::map<Node, Node>::iterator itr = rf.find(tc);
@@ -562,7 +562,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstant(Node n)
               {
                 tc = itr->second;
               }
-              CVC4_DCHECK(eqc.find(tc) != eqc.end());
+              Assert(eqc.find(tc) != eqc.end());
               prt[eqc[tc]].push_back(t);
             }
             if (prt.size() > 1)
@@ -593,7 +593,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstant(Node n)
     {
       Trace("dt-nconst-debug") << "Mapping equivalence class of " << it->first
                                << " -> " << it->second << std::endl;
-      CVC4_DCHECK(eqc.find(it->second) != eqc.end());
+      Assert(eqc.find(it->second) != eqc.end());
       eqc[it->first] = eqc[it->second];
     }
     // we now have a partition of equivalent terms
@@ -647,7 +647,7 @@ Node DatatypesRewriter::collectRef(Node n,
                                    std::vector<Node>& terms,
                                    std::map<Node, bool>& cdts)
 {
-  CVC4_DCHECK(n.isConst());
+  Assert(n.isConst());
   TypeNode tn = n.getType();
   Node ret = n;
   bool isCdt = false;
@@ -691,7 +691,7 @@ Node DatatypesRewriter::collectRef(Node n,
         }
         else
         {
-          CVC4_DCHECK(rf_pending.back().isNull());
+          Assert(rf_pending.back().isNull());
         }
         rf_pending.pop_back();
       }
@@ -704,7 +704,7 @@ Node DatatypesRewriter::collectRef(Node n,
         {
           return Node::null();
         }
-        CVC4_DCHECK(sk.size() == rf_pending.size());
+        Assert(sk.size() == rf_pending.size());
         Node r = rf_pending[rf_pending.size() - 1 - index];
         if (r.isNull())
         {
@@ -721,7 +721,7 @@ Node DatatypesRewriter::collectRef(Node n,
   if (std::find(terms.begin(), terms.end(), ret) == terms.end())
   {
     terms.push_back(ret);
-    CVC4_DCHECK(ret.getType() == tn);
+    Assert(ret.getType() == tn);
     cdts[ret] = isCdt;
   }
   return ret;
@@ -754,7 +754,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     eqc_stack.erase(e);
     if (childChanged)
     {
-      CVC4_DCHECK(n.getKind() == kind::APPLY_CONSTRUCTOR);
+      Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
       children.insert(children.begin(), n.getOperator());
       return NodeManager::currentNM()->mkNode(n.getKind(), children);
     }

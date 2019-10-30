@@ -40,7 +40,7 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)
       d_mode(cand_term_none)
 {
   d_op = qe->getTermDatabase()->getMatchOperator( pat );
-  CVC4_DCHECK(!d_op.isNull());
+  Assert(!d_op.isNull());
 }
 
 void CandidateGeneratorQE::resetInstantiationRound(){
@@ -130,7 +130,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 
 CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat ) :
 CandidateGenerator( qe ), d_match_pattern( mpat ){
-  CVC4_DCHECK(d_match_pattern.getKind() == EQUAL);
+  Assert(d_match_pattern.getKind() == EQUAL);
   d_match_pattern_type = d_match_pattern[0].getType();
 }
 
@@ -160,7 +160,7 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
 CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat ) :
   CandidateGenerator( qe ), d_match_pattern( mpat ){
   d_match_pattern_type = mpat.getType();
-  CVC4_DCHECK(mpat.getKind() == INST_CONSTANT);
+  Assert(mpat.getKind() == INST_CONSTANT);
   d_f = quantifiers::TermUtil::getInstConstAttr( mpat );
   d_index = mpat.getAttribute(InstVarNumAttribute());
   d_firstTime = false;
@@ -207,7 +207,7 @@ CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(
     QuantifiersEngine* qe, Node mpat)
     : CandidateGeneratorQE(qe, mpat)
 {
-  CVC4_DCHECK(mpat.getKind() == APPLY_CONSTRUCTOR);
+  Assert(mpat.getKind() == APPLY_CONSTRUCTOR);
   d_mpat_type = static_cast<DatatypeType>(mpat.getType().toType());
 }
 
@@ -222,7 +222,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   {
     d_eqc = eqc;
     d_mode = cand_term_ident;
-    CVC4_DCHECK(d_eqc.getType().toType() == d_mpat_type);
+    Assert(d_eqc.getType().toType() == d_mpat_type);
   }
 }
 
@@ -238,7 +238,7 @@ Node CandidateGeneratorConsExpand::getNextCandidate()
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
   const Datatype& dt = d_mpat_type.getDatatype();
-  CVC4_DCHECK(dt.getNumConstructors() == 1);
+  Assert(dt.getNumConstructors() == 1);
   children.push_back(d_op);
   for (unsigned i = 0, nargs = dt[0].getNumArgs(); i < nargs; i++)
   {

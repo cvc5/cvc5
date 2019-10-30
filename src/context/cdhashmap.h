@@ -88,8 +88,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "context/cdhashmap_forward.h"
 #include "context/context.h"
 
@@ -140,8 +139,8 @@ class CDOhash_map : public ContextObj {
     CDOhash_map* p = static_cast<CDOhash_map*>(data);
     if(d_map != NULL) {
       if(p->d_map == NULL) {
-        CVC4_DCHECK(d_map->d_map.find(getKey()) != d_map->d_map.end()
-                    && (*d_map->d_map.find(getKey())).second == this);
+        Assert(d_map->d_map.find(getKey()) != d_map->d_map.end()
+               && (*d_map->d_map.find(getKey())).second == this);
         // no longer in map (popped beyond first level in which it was)
         d_map->d_map.erase(getKey());
         // If we call deleteSelf() here, it re-enters restore().  So,
@@ -151,7 +150,7 @@ class CDOhash_map : public ContextObj {
         if(d_map->d_first == this) {
           Debug("gc") << "remove first-elem " << this << " from map " << d_map << " with next-elem " << d_next << std::endl;
           if(d_next == this) {
-            CVC4_DCHECK(d_prev == this);
+            Assert(d_prev == this);
             d_map->d_first = NULL;
           } else {
             d_map->d_first = d_next;
@@ -279,7 +278,11 @@ class CDHashMap : public ContextObj {
   Context* d_context;
 
   // Nothing to save; the elements take care of themselves
-  ContextObj* save(ContextMemoryManager* pCMM) override { Unreachable(); }
+  ContextObj* save(ContextMemoryManager* pCMM) override
+  {
+    Unreachable();
+    SuppressWrongNoReturnWarning;
+  }
 
   // Similarly, nothing to restore
   void restore(ContextObj* data) override { Unreachable(); }
@@ -378,11 +381,11 @@ public:
    * backjump; rather, it can take another (legal) value, or a special
    * value to indicate it needs to be recomputed.
    *
-   * It is an error (checked via CVC4_CHECK()) to
+   * It is an error (checked via AlwaysAssert()) to
    * insertAtContextLevelZero() a key that already is in the map.
    */
   void insertAtContextLevelZero(const Key& k, const Data& d) {
-    CVC4_CHECK(d_map.find(k) == d_map.end());
+    AlwaysAssert(d_map.find(k) == d_map.end());
 
     Element* obj = new(true) Element(d_context, this, k, d,
                                      true /* atLevelZero */);

@@ -36,7 +36,7 @@ Integer IDLModel::getValue(TNode var) const {
 }
 
 void IDLModel::setValue(TNode var, Integer value, IDLReason reason) {
-  CVC4_DCHECK(!reason.constraint.isNull());
+  Assert(!reason.constraint.isNull());
   d_model[var] = value;
   d_reason[var] = reason;
 }
@@ -45,7 +45,7 @@ void IDLModel::getReasonCycle(TNode var, std::vector<TNode>& reasons) {
   TNode current = var;
   do {
     Debug("theory::idl::model") << "processing: " << var << std::endl;
-    CVC4_DCHECK(d_reason.find(current) != d_reason.end());
+    Assert(d_reason.find(current) != d_reason.end());
     IDLReason reason = d_reason[current];
     Debug("theory::idl::model") << "adding reason: " << reason.constraint << std::endl;
     reasons.push_back(reason.constraint);

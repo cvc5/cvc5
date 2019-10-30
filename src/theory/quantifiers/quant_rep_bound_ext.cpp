@@ -55,7 +55,7 @@ bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
     // not bound
     return true;
   }
-  CVC4_DCHECK(owner.getKind() == FORALL);
+  Assert(owner.getKind() == FORALL);
   if (!d_qe->getBoundElements(rsi, initial, owner, owner[0][i], elements))
   {
     return false;

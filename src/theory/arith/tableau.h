@@ -82,7 +82,7 @@ public:
   }
 
   ArithVar rowIndexToBasic(RowIndex rid) const {
-    CVC4_DCHECK(d_rowIndex2basic.isKey(rid));
+    Assert(d_rowIndex2basic.isKey(rid));
     return d_rowIndex2basic[rid];
   }
 

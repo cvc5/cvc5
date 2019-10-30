@@ -39,7 +39,7 @@ NodeLog::const_iterator NodeLog::end() const { return d_cuts.end(); }
 
 NodeLog& TreeLog::getNode(int nid) {
   ToNodeMap::iterator i = d_toNode.find(nid);
-  CVC4_DCHECK(i != d_toNode.end());
+  Assert(i != d_toNode.end());
   return (*i).second;
 }
 
@@ -78,13 +78,13 @@ void PrimitiveVec::clear() {
   }
 }
 void PrimitiveVec::setup(int l){
-  CVC4_DCHECK(!initialized());
+  Assert(!initialized());
   len = l;
   inds = new int[1+len];
   coeffs = new double[1+len];
 }
 void PrimitiveVec::print(std::ostream& out) const{
-  CVC4_DCHECK(initialized());
+  Assert(initialized());
   StreamFormatScope scope(out);
 
   out << len << " " << std::setprecision(15);
@@ -150,7 +150,7 @@ Kind CutInfo::getKind() const{
 }
 
 void CutInfo::setKind(Kind k){
-  CVC4_DCHECK(k == kind::LEQ || k == kind::GEQ);
+  Assert(k == kind::LEQ || k == kind::GEQ);
   d_cutType = k;
 }
 
@@ -194,12 +194,12 @@ bool CutInfo::operator<(const CutInfo& o) const{
 
 
 void CutInfo::setReconstruction(const DenseVector& ep){
-  CVC4_DCHECK(!reconstructed());
+  Assert(!reconstructed());
   d_exactPrecision.reset(new DenseVector(ep));
 }
 
 void CutInfo::setExplanation(const ConstraintCPVec& ex){
-  CVC4_DCHECK(reconstructed());
+  Assert(reconstructed());
   if (d_explanation == nullptr)
   {
     d_explanation.reset(new ConstraintCPVec(ex));
@@ -211,8 +211,8 @@ void CutInfo::setExplanation(const ConstraintCPVec& ex){
 }
 
 void CutInfo::swapExplanation(ConstraintCPVec& ex){
-  CVC4_DCHECK(reconstructed());
-  CVC4_DCHECK(!proven());
+  Assert(reconstructed());
+  Assert(!proven());
   if (d_explanation == nullptr)
   {
     d_explanation.reset(new ConstraintCPVec());
@@ -221,7 +221,7 @@ void CutInfo::swapExplanation(ConstraintCPVec& ex){
 }
 
 const DenseVector& CutInfo::getReconstruction() const {
-  CVC4_DCHECK(reconstructed());
+  Assert(reconstructed());
   return *d_exactPrecision;
 }
 
@@ -234,12 +234,12 @@ void CutInfo::clearReconstruction(){
     d_exactPrecision = nullptr;
   }
 
-  CVC4_DCHECK(!reconstructed());
-  CVC4_DCHECK(!proven());
+  Assert(!reconstructed());
+  Assert(!proven());
 }
 
 const ConstraintCPVec& CutInfo::getExplanation() const {
-  CVC4_DCHECK(proven());
+  Assert(proven());
   return *d_explanation;
 }
 
@@ -318,7 +318,7 @@ NodeLog::~NodeLog(){
     delete c;
   }
   d_cuts.clear();
-  CVC4_DCHECK(d_cuts.empty());
+  Assert(d_cuts.empty());
 }
 
 std::ostream& operator<<(std::ostream& os, const NodeLog& nl){
@@ -327,7 +327,7 @@ std::ostream& operator<<(std::ostream& os, const NodeLog& nl){
 }
 
 void NodeLog::copyParentRowIds() {
-  CVC4_DCHECK(d_parent != NULL);
+  Assert(d_parent != NULL);
   d_rowId2ArithVar = d_parent->d_rowId2ArithVar;
 }
 
@@ -347,7 +347,7 @@ int NodeLog::getUpId() const{
   return d_upId;
 }
 void NodeLog::addSelected(int ord, int sel){
-  CVC4_DCHECK(d_rowIdsSelected.find(ord) == d_rowIdsSelected.end());
+  Assert(d_rowIdsSelected.find(ord) == d_rowIdsSelected.end());
   d_rowIdsSelected[ord] = sel;
   Debug("approx::nodelog") << "addSelected("<< ord << ", "<< sel << ")" << endl;
 }
@@ -437,7 +437,7 @@ void NodeLog::applyRowsDeleted(const RowsDeleted& rd) {
       headRemovedOrd  = sortedRemoved[posInSorted];
     }
     // headRemoveOrd >= origOrd
-    CVC4_DCHECK(headRemovedOrd >= origOrd);
+    Assert(headRemovedOrd >= origOrd);
 
     CutInfo* ci = (*j).second;
     if(headRemovedOrd == origOrd){
@@ -453,10 +453,10 @@ void NodeLog::applyRowsDeleted(const RowsDeleted& rd) {
         ci->setRowId(-1);
       }
     }else{
-      CVC4_DCHECK(headRemovedOrd > origOrd);
+      Assert(headRemovedOrd > origOrd);
       // headRemoveOrd > origOrd
       int newOrd = origOrd - posInSorted;
-      CVC4_DCHECK(newOrd > 0);
+      Assert(newOrd > 0);
       if(ci == NULL){
         Debug("approx::nodelog") << "shifting above down due to " << rd << endl;
         Debug("approx::nodelog") << "had " << origOrd << " <-> " << v << endl;
@@ -521,7 +521,7 @@ ArithVar NodeLog::lookupRowId(int rowId) const{
 }
 
 void NodeLog::mapRowId(int rowId, ArithVar v){
-  CVC4_DCHECK(lookupRowId(rowId) == ARITHVAR_SENTINEL);
+  Assert(lookupRowId(rowId) == ARITHVAR_SENTINEL);
   Debug("approx::nodelog")
     << "On " << getNodeId()
     << " adding row id " << rowId << " <-> " << v << endl;
@@ -531,7 +531,7 @@ void NodeLog::mapRowId(int rowId, ArithVar v){
 
 
 void NodeLog::addCut(CutInfo* ci){
-  CVC4_DCHECK(ci != NULL);
+  Assert(ci != NULL);
   d_cuts.insert(ci);
 }
 
@@ -548,12 +548,12 @@ void NodeLog::print(ostream& o) const{
 }
 
 void NodeLog::closeNode(){
-  CVC4_DCHECK(d_stat == Open);
+  Assert(d_stat == Open);
   d_stat = Closed;
 }
 
 void NodeLog::setBranch(int br, double val, int d, int u){
-  CVC4_DCHECK(d_stat == Open);
+  Assert(d_stat == Open);
   d_brVar = br;
   d_brVal = val;
   d_downId = d;

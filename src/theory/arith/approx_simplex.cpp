@@ -86,7 +86,7 @@ struct VirtualBound {
     , y(bounding)
     , c(orig)
   {
-    CVC4_DCHECK(k == kind::LEQ || k == kind::GEQ);
+    Assert(k == kind::LEQ || k == kind::GEQ);
   }
 };
 
@@ -186,17 +186,17 @@ ApproximateSimplex::ApproximateSimplex(const ArithVariables& v, TreeLog& l,
 {}
 
 void ApproximateSimplex::setPivotLimit(int pl){
-  CVC4_DCHECK(pl >= 0);
+  Assert(pl >= 0);
   d_pivotLimit = pl;
 }
 
 void ApproximateSimplex::setBranchingDepth(int bd){
-  CVC4_DCHECK(bd >= 0);
+  Assert(bd >= 0);
   d_maxDepth = bd;
 }
 
 void ApproximateSimplex::setBranchOnVariableLimit(int bl){
-  CVC4_DCHECK(bl >= 0);
+  Assert(bl >= 0);
   d_branchLimit = bl;
 }
 
@@ -235,7 +235,7 @@ std::vector<Integer> ApproximateSimplex::rationalToCfe(const Rational& q, int de
   if(!q.isZero()){
     Rational carry = q;
     for(int i = 0; i <= depth; ++i){
-      CVC4_DCHECK(!carry.isZero());
+      Assert(!carry.isZero());
       mods.push_back(Integer());
       Integer& back = mods.back();
       back = carry.floor();
@@ -259,7 +259,7 @@ Rational ApproximateSimplex::estimateWithCFE(const Rational& r, const Integer& K
   // references
   // page 4: http://carlossicoli.free.fr/C/Cassels_J.W.S.-An_introduction_to_diophantine_approximation-University_Press(1965).pdf
   // http://en.wikipedia.org/wiki/Continued_fraction
-  CVC4_DCHECK(K >= Integer(1));
+  Assert(K >= Integer(1));
   if( r.getDenominator() <= K ){
     return r;
   }
@@ -620,8 +620,8 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistic
       Debug("approx") << "Col vars: " << v << "<->" << numCols << endl;
     }
   }
-  CVC4_DCHECK(numRows > 0);
-  CVC4_DCHECK(numCols > 0);
+  Assert(numRows > 0);
+  Assert(numCols > 0);
 
   glp_add_rows(d_inputProb, numRows);
   glp_add_cols(d_inputProb, numCols);
@@ -697,7 +697,7 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistic
 
       Node n = variable.getNode();
 
-      CVC4_DCHECK(d_vars.hasArithVar(n));
+      Assert(d_vars.hasArithVar(n));
       ArithVar av = d_vars.asArithVar(n);
       int colIndex = d_colIndices[av];
       double coeff = constant.getValue().getDouble();
@@ -917,7 +917,7 @@ void ApproxGLPK::setOptCoeffs(const ArithRatPairVec& ref){
 
         Node n = variable.getNode();
 
-        CVC4_DCHECK(d_vars.hasArithVar(n));
+        Assert(d_vars.hasArithVar(n));
         ArithVar av = d_vars.asArithVar(n);
         int colIndex = d_colIndices[av];
         double coeff = constant.getValue().getDouble();
@@ -993,8 +993,8 @@ ApproxGLPK::~ApproxGLPK(){
 
 ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
 {
-  CVC4_DCHECK(d_solvedRelaxation);
-  CVC4_DCHECK(!mip || d_solvedMIP);
+  Assert(d_solvedRelaxation);
+  Assert(!mip || d_solvedMIP);
 
   ApproximateSimplex::Solution sol;
   DenseSet& newBasis = sol.newBasis;
@@ -1156,7 +1156,7 @@ double ApproxGLPK::sumInfeasibilities(glp_prob* prob, bool mip) const{
 }
 
 LinResult ApproxGLPK::solveRelaxation(){
-  CVC4_DCHECK(!d_solvedRelaxation);
+  Assert(!d_solvedRelaxation);
 
   glp_smcp parm;
   glp_init_smcp(&parm);
@@ -1240,8 +1240,8 @@ struct MirInfo : public CutInfo {
     }
   }
   void initSet(){
-    CVC4_DCHECK(d_N >= 0);
-    CVC4_DCHECK(d_mAtCreation >= 0);
+    Assert(d_N >= 0);
+    Assert(d_mAtCreation >= 0);
     clearSets();
 
     int vars = 1 + d_N + d_mAtCreation;
@@ -1265,7 +1265,7 @@ struct GmiInfo : public CutInfo {
     , tab_row()
     , tab_statuses(NULL)
   {
-    CVC4_DCHECK(!initialized_tab());
+    Assert(!initialized_tab());
   }
 
   ~GmiInfo(){
@@ -1317,7 +1317,7 @@ static void loadCut(glp_tree *tree, CutInfo* cut){
 
   // Get the cut
   cut_len = glp_ios_get_cut(tree, ord, NULL, NULL, &cut_klass, NULL, NULL);
-  CVC4_DCHECK(fromGlpkClass(cut_klass) == cut->getKlass());
+  Assert(fromGlpkClass(cut_klass) == cut->getKlass());
 
   PrimitiveVec& cut_vec = cut->getCutVector();
   cut_vec.setup(cut_len);
@@ -1325,8 +1325,8 @@ static void loadCut(glp_tree *tree, CutInfo* cut){
   cut_coeffs = cut_vec.coeffs;
 
   cut_vec.len = glp_ios_get_cut(tree, ord, cut_inds, cut_coeffs, &cut_klass, &glpk_cut_type, &cut_rhs);
-  CVC4_DCHECK(fromGlpkClass(cut_klass) == cut->getKlass());
-  CVC4_DCHECK(cut_vec.len == cut_len);
+  Assert(fromGlpkClass(cut_klass) == cut->getKlass());
+  Assert(cut_vec.len == cut_len);
 
   cut->setRhs(cut_rhs);
 
@@ -1385,7 +1385,7 @@ static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
 
   // Get the tableau row
   int nrows CVC4_UNUSED = glp_ios_cut_get_aux_nrows(tree, gmi->poolOrdinal());
-  CVC4_DCHECK(nrows == 1);
+  Assert(nrows == 1);
   int rows[1+1];
   glp_ios_cut_get_aux_rows(tree, gmi->poolOrdinal(), rows, NULL);
   gmi_var = rows[1];
@@ -1415,7 +1415,7 @@ static GmiInfo* gmiCut(glp_tree *tree, int exec_ord, int cut_ord){
   }
   tab_row.len = write_pos-1;
   Debug("approx::gmiCut") << "write_pos " << write_pos << endl;
-  CVC4_DCHECK(tab_row.len > 0);
+  Assert(tab_row.len > 0);
 
   for(i = 1; i <= tab_row.len; ++i){
     ind = tab_row.inds[i];
@@ -1495,7 +1495,7 @@ static void glpkCallback(glp_tree *tree, void *info){
         int cut_ord = glp_ios_pool_size(tree);
         glpk_node_p = glp_ios_curr_node(tree);
         node_ord = glp_ios_node_ord(tree, glpk_node_p);
-        CVC4_DCHECK(cut_ord > 0);
+        Assert(cut_ord > 0);
         Debug("approx") << "curr node " << glpk_node_p
                         << " cut ordinal " << cut_ord
                         << " node depth " << glp_ios_node_level(tree, glpk_node_p)
@@ -1650,7 +1650,7 @@ std::vector<const CutInfo*> ApproxGLPK::getValidCuts(const NodeLog& con)
 
     if(cut->getKlass() != RowsDeletedKlass){
       if(!cut->reconstructed()){
-        CVC4_DCHECK(!cut->reconstructed());
+        Assert(!cut->reconstructed());
         tryCut(nid, *cut);
       }
     }
@@ -1669,7 +1669,7 @@ ArithVar ApproxGLPK::getBranchVar(const NodeLog& con) const{
 
 
 MipResult ApproxGLPK::solveMIP(bool activelyLog){
-  CVC4_DCHECK(d_solvedRelaxation);
+  Assert(d_solvedRelaxation);
   // Explicitly disable presolving
   // We need the basis thus the presolver must be off!
   // This is default, but this is just being cautious.
@@ -1738,12 +1738,12 @@ MipResult ApproxGLPK::solveMIP(bool activelyLog){
 }
 
 // Node explainSet(const set<ConstraintP>& inp){
-//   CVC4_DCHECK(!inp.empty());
+//   Assert(!inp.empty());
 //   NodeBuilder<> nb(kind::AND);
 //   set<ConstraintP>::const_iterator iter, end;
 //   for(iter = inp.begin(), end = inp.end(); iter != end; ++iter){
 //     const ConstraintP c = *iter;
-//     CVC4_DCHECK(c != NullConstraint);
+//     Assert(c != NullConstraint);
 //     c->explainForConflict(nb);
 //   }
 //   Node ret = safeConstructNary(nb);
@@ -1769,7 +1769,7 @@ DeltaRational sumConstraints(const DenseMap<Rational>& xs, const DenseMap<Constr
     ArithVar x = *iter;
     const Rational& psi = xs[x];
     ConstraintP c = cs[x];
-    CVC4_DCHECK(c != NullConstraint);
+    Assert(c != NullConstraint);
 
     const DeltaRational& bound = c->getValue();
     beta += bound * psi;
@@ -1800,9 +1800,9 @@ void removeFixed(const ArithVariables& vars, DenseVector& dv, set<ConstraintP>& 
   equal_iter = equal.begin(), equal_end = equal.end();
   for(; equal_iter != equal_end; ++equal_iter){
     ArithVar x = *equal_iter;
-    CVC4_DCHECK(vars.boundsAreEqual(x));
+    Assert(vars.boundsAreEqual(x));
     const DeltaRational& lb = vars.getLowerBound(x);
-    CVC4_DCHECK(lb.infinitesimalIsZero());
+    Assert(lb.infinitesimalIsZero());
     removed -= (vec[x]) * lb.getNoninfinitesimalPart();
 
     vec.remove(x);
@@ -1854,8 +1854,8 @@ void removeAuxillaryVariables(const ArithVariables& vars, DenseMap<Rational>& ve
   for(; aux_iter != aux_end; ++aux_iter){
     ArithVar s = *aux_iter;
     Rational& s_coeff = vec.get(s);
-    CVC4_DCHECK(vars.isAuxiliary(s));
-    CVC4_DCHECK(vars.hasNode(s));
+    Assert(vars.isAuxiliary(s));
+    Assert(vars.hasNode(s));
     Node sAsNode = vars.asNode(s);
     Polynomial p = Polynomial::parsePolynomial(sAsNode);
     for(Polynomial::iterator j = p.begin(), p_end=p.end(); j != p_end; ++j){
@@ -1926,7 +1926,7 @@ bool ApproxGLPK::loadToBound(int nid, int M, int len, int* inds, int* statuses, 
       Debug("approx::") << "couldn't find " << v << " @ " << nid << endl;
       return true;
     }
-    CVC4_DCHECK(c != NullConstraint);
+    Assert(c != NullConstraint);
     toBound.set(v, c);
   }
   return false;
@@ -2004,7 +2004,7 @@ bool ApproxGLPK::attemptBranchCut(int nid, const BranchCutInfo& br_cut){
 
   const PrimitiveVec& cut_vec = br_cut.getCutVector();
   int structural = cut_vec.inds[1];
-  CVC4_DCHECK(roughlyEqual(cut_vec.coeffs[1], +1.0));
+  Assert(roughlyEqual(cut_vec.coeffs[1], +1.0));
 
   ArithVar x = getArithVarFromStructural(structural);
   d_pad.d_failure = (x == ARITHVAR_SENTINEL);
@@ -2273,9 +2273,9 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   }
   ArithVar x1 = d_vars.asArithVar(nx1), x2 = d_vars.asArithVar(nx2);
 
-  CVC4_DCHECK(x1 != x2);
-  CVC4_DCHECK(!c1.isZero());
-  CVC4_DCHECK(!c2.isZero());
+  Assert(x1 != x2);
+  Assert(!c1.isZero());
+  Assert(!c2.isZero());
 
   Debug("glpk::loadVB")
     << " lb " << lb
@@ -2318,7 +2318,7 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
   //   cv <= -ic/cc * iv
   // elif cc > 0:
   //   cv >= -ic/cc * iv
-  CVC4_DCHECK(!cc.isZero());
+  Assert(!cc.isZero());
   Rational d = -ic/cc;
   Debug("glpk::loadVB") << d << " " << cc.sgn() << endl;
   bool nowUb = cc.sgn() < 0;
@@ -2337,8 +2337,8 @@ bool ApproxGLPK::loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound
 }
 
 bool ApproxGLPK::loadVirtualBoundsIntoPad(int nid, const MirInfo& mir){
-  CVC4_DCHECK(mir.vlbRows != NULL);
-  CVC4_DCHECK(mir.vubRows != NULL);
+  Assert(mir.vlbRows != NULL);
+  Assert(mir.vubRows != NULL);
 
   int N = mir.getN();
   int M = mir.getMAtCreation();
@@ -2363,8 +2363,8 @@ bool ApproxGLPK::loadVirtualBoundsIntoPad(int nid, const MirInfo& mir){
 }
 
 bool ApproxGLPK::loadSlacksIntoPad(int nid, const MirInfo& mir){
-  CVC4_DCHECK(mir.vlbRows != NULL);
-  CVC4_DCHECK(mir.vubRows != NULL);
+  Assert(mir.vlbRows != NULL);
+  Assert(mir.vubRows != NULL);
 
   int N = mir.getN();
   int M = mir.getMAtCreation();
@@ -2432,12 +2432,12 @@ bool ApproxGLPK::replaceSlacksOnCuts(){
     ArithVar x = *iter;
     SlackReplace rep = d_pad.d_slacks[x];
     if(d_vars.isIntegerInput(x)){
-      CVC4_DCHECK(rep == SlackLB || rep == SlackUB);
+      Assert(rep == SlackLB || rep == SlackUB);
       Rational& a = cut.get(x);
 
       const DeltaRational& bound = (rep == SlackLB) ?
         d_vars.getLowerBound(x) : d_vars.getUpperBound(x);
-      CVC4_DCHECK(bound.infinitesimalIsZero());
+      Assert(bound.infinitesimalIsZero());
       Rational prod = a * bound.getNoninfinitesimalPart();
       if(rep == SlackLB){
         cutRhs += prod;
@@ -2469,14 +2469,14 @@ bool ApproxGLPK::replaceSlacksOnCuts(){
       case SlackLB:
         {
           const DeltaRational& bound = d_vars.getLowerBound(x);
-          CVC4_DCHECK(bound.infinitesimalIsZero());
+          Assert(bound.infinitesimalIsZero());
           cutRhs += a * bound.getNoninfinitesimalPart();
         }
         break;
       case SlackUB:
         {
           const DeltaRational& bound = d_vars.getUpperBound(x);
-          CVC4_DCHECK(bound.infinitesimalIsZero());
+          Assert(bound.infinitesimalIsZero());
           cutRhs -= a * bound.getNoninfinitesimalPart();
           a = -a;
         }
@@ -2488,8 +2488,8 @@ bool ApproxGLPK::replaceSlacksOnCuts(){
           const VirtualBound& vb = lb ?
             d_pad.d_vlb[x] : d_pad.d_vub[x];
           ArithVar y = vb.y;
-          CVC4_DCHECK(vb.x == x);
-          CVC4_DCHECK(cut.isKey(y));
+          Assert(vb.x == x);
+          Assert(cut.isKey(y));
           Rational& ycoeff = cut.get(y);
           if(lb){
             ycoeff -= a * vb.d;
@@ -2549,13 +2549,13 @@ bool ApproxGLPK::loadRowSumIntoAgg(int nid, int M, const PrimitiveVec& row_sum){
     int aux_ind = row_sum.inds[i]; // auxillary index
     double coeff = row_sum.coeffs[i];
     ArithVar x = _getArithVar(nid, M, aux_ind);
-    CVC4_DCHECK(x != ARITHVAR_SENTINEL);
+    Assert(x != ARITHVAR_SENTINEL);
     Maybe<Rational> c = estimateWithCFE(coeff);
     if (!c)
     {
       return true;
     }
-    CVC4_DCHECK(!lhs.isKey(x));
+    Assert(!lhs.isKey(x));
     lhs.set(x, c.value());
   }
 
@@ -2599,11 +2599,11 @@ bool ApproxGLPK::buildModifiedRow(int nid, const MirInfo& mir){
     case SlackVLB: /* x[k] = lb[k] * x[kk] + x'[k] */
     case SlackVUB: /* x[k] = ub[k] * x[kk] - x'[k] */
       {
-        CVC4_DCHECK(!d_vars.isIntegerInput(x));
+        Assert(!d_vars.isIntegerInput(x));
         bool ub = (rep == SlackVUB);
         const VirtualBound& vb =
           ub ? d_pad.d_vub[x] : d_pad.d_vlb[x];
-        CVC4_DCHECK(vb.x == x);
+        Assert(vb.x == x);
         ArithVar y = vb.y;
         Rational prod = c * vb.d;
         if(mod.isKey(y)){
@@ -2614,7 +2614,7 @@ bool ApproxGLPK::buildModifiedRow(int nid, const MirInfo& mir){
         if(ub){
           mod.set(x, -c);
         }
-        CVC4_DCHECK(vb.c != NullConstraint);
+        Assert(vb.c != NullConstraint);
         d_pad.d_explanation.insert(vb.c);
       }
       break;
@@ -2636,8 +2636,8 @@ bool ApproxGLPK::buildModifiedRow(int nid, const MirInfo& mir){
         ConstraintP b = ub ?  d_vars.getUpperBoundConstraint(x):
           d_vars.getLowerBoundConstraint(x);
 
-        CVC4_DCHECK(b != NullConstraint);
-        CVC4_DCHECK(b->getValue().infinitesimalIsZero());
+        Assert(b != NullConstraint);
+        Assert(b->getValue().infinitesimalIsZero());
         const Rational& c = mod.get(x);
         modRhs -= c * b->getValue().getNoninfinitesimalPart();
         if(ub){
@@ -2671,8 +2671,8 @@ bool ApproxGLPK::makeRangeForComplemented(int nid, const MirInfo& mir){
       ArithVar x = _getArithVar(nid, M, j);
       if(!alpha.isKey(x)){ return true; }
       if(!d_vars.isIntegerInput(x)){ return true; }
-      CVC4_DCHECK(d_pad.d_slacks.isKey(x));
-      CVC4_DCHECK(d_pad.d_slacks[x] == SlackLB || d_pad.d_slacks[x] == SlackUB);
+      Assert(d_pad.d_slacks.isKey(x));
+      Assert(d_pad.d_slacks[x] == SlackLB || d_pad.d_slacks[x] == SlackUB);
 
       ConstraintP lb = d_vars.getLowerBoundConstraint(x);
       ConstraintP ub = d_vars.getUpperBoundConstraint(x);
@@ -2711,7 +2711,7 @@ bool ApproxGLPK::constructMixedKnapsack(){
   DenseMap<Rational>& alpha = d_pad.d_alpha.lhs;
   Rational& beta = d_pad.d_alpha.rhs;
 
-  CVC4_DCHECK(alpha.empty());
+  Assert(alpha.empty());
   beta = modRhs;
 
   unsigned intVars = 0;
@@ -2721,7 +2721,7 @@ bool ApproxGLPK::constructMixedKnapsack(){
   for(iter = mod.begin(), iend = mod.end(); iter != iend; ++iter){
     ArithVar v = *iter;
     const Rational& c = mod[v];
-    CVC4_DCHECK(!c.isZero());
+    Assert(!c.isZero());
     if(d_vars.isIntegerInput(v)){
       intVars++;
       alpha.set(v, c);
@@ -2759,9 +2759,9 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
   DenseMap<Rational>& tab = d_pad.d_tabRow.lhs;
   tab.purge();
   d_pad.d_tabRow.rhs = Rational(0);
-  CVC4_DCHECK(basic != ARITHVAR_SENTINEL);
-  CVC4_DCHECK(tab.empty());
-  CVC4_DCHECK(d_pad.d_tabRow.rhs.isZero());
+  Assert(basic != ARITHVAR_SENTINEL);
+  Assert(tab.empty());
+  Assert(d_pad.d_tabRow.rhs.isZero());
 
   if(d_vars.isAuxiliary(basic)) { return true; }
 
@@ -2793,7 +2793,7 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
   for(i=onrow.begin(), iend=onrow.end(); i!=iend; ++i){
     ArithVar v = *i;
     if(d_vars.isAuxiliary(v)){
-      CVC4_DCHECK(d_vars.hasNode(v));
+      Assert(d_vars.hasNode(v));
 
       vector<Rational> coeffs;
       vector<ArithVar> vars;
@@ -2821,20 +2821,20 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
 
   for(size_t i=0; i < rows.size(); ++i){
     RowIndex rid = rows[i].first;
-    CVC4_DCHECK(rows[i].second == ARITHVAR_SENTINEL);
+    Assert(rows[i].second == ARITHVAR_SENTINEL);
 
     // substitute previous rows
     for(size_t j=0; j < i; j++){
       RowIndex prevRow = rows[j].first;
       ArithVar other = rows[j].second;
-      CVC4_DCHECK(other != ARITHVAR_SENTINEL);
+      Assert(other != ARITHVAR_SENTINEL);
       const Matrix<Rational>::Entry& e = A.findEntry(rid, other);
       if(!e.blank()){
         // r_p : 0 = -1 * other + sum a_i x_i
         // rid : 0 =  e * other + sum b_i x_i
         // rid += e * r_p
         //     : 0 = 0 * other + ...
-        CVC4_DCHECK(!e.getCoefficient().isZero());
+        Assert(!e.getCoefficient().isZero());
 
         Rational cp = e.getCoefficient();
         Debug("gaussianElimConstructTableRow")
@@ -2893,7 +2893,7 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
     return true;
   }
 
-  CVC4_DCHECK(tab.empty());
+  Assert(tab.empty());
 
   Matrix<Rational>::RowIterator k = A.getRow(rid_last).begin();
   Matrix<Rational>::RowIterator k_end = A.getRow(rid_last).end();
@@ -2929,7 +2929,7 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
     int ind = vec.inds[i];
     double coeff = vec.coeffs[i];
     ArithVar var = _getArithVar(nid, M, ind);
-    CVC4_DCHECK(var != ARITHVAR_SENTINEL);
+    Assert(var != ARITHVAR_SENTINEL);
     if(!tab.isKey(var)){
       Debug("gaussianElimConstructTableRow") << "7 fail 1 gaussianElimConstructTableRow("<<nid <<", "<< basic<< ")"<<endl;
       return true;
@@ -2967,9 +2967,9 @@ bool ApproxGLPK::guessCoefficientsConstructTableRow(int nid, int M, const Primit
   DenseMap<Rational>& tab = d_pad.d_tabRow.lhs;
   tab.purge();
   d_pad.d_tabRow.rhs = Rational(0);
-  CVC4_DCHECK(basic != ARITHVAR_SENTINEL);
-  CVC4_DCHECK(tab.empty());
-  CVC4_DCHECK(d_pad.d_tabRow.rhs.isZero());
+  Assert(basic != ARITHVAR_SENTINEL);
+  Assert(tab.empty());
+  Assert(d_pad.d_tabRow.rhs.isZero());
 
   if(Debug.isOn("guessCoefficientsConstructTableRow")){
     Debug("guessCoefficientsConstructTableRow")  << "attemptConstructTableRow("<<nid <<", "<< basic<<",...," << D<< ")"<<endl;
@@ -3013,7 +3013,7 @@ bool ApproxGLPK::constructGmiCut(){
   Rational& rhs = d_pad.d_cut.rhs;
 
   DenseMap<Rational>::const_iterator iter, end;
-  CVC4_DCHECK(cut.empty());
+  Assert(cut.empty());
 
   // compute beta for a "fake" assignment
   bool anyInf;
@@ -3025,8 +3025,8 @@ bool ApproxGLPK::constructGmiCut(){
   Rational one = Rational(1);
   Rational fbeta = beta.floor_frac();
   rhs = fbeta;
-  CVC4_DCHECK(fbeta.sgn() > 0);
-  CVC4_DCHECK(fbeta < one);
+  Assert(fbeta.sgn() > 0);
+  Assert(fbeta < one);
   Rational one_sub_fbeta = one - fbeta;
   for(iter = tabRow.begin(), end = tabRow.end(); iter != end; ++iter){
     ArithVar x = *iter;
@@ -3052,18 +3052,18 @@ bool ApproxGLPK::constructGmiCut(){
 
       // x - ub <= 0 and lb - x <= 0
       if(d_vars.isIntegerInput(x)){
-        CVC4_DCHECK(!psi.isIntegral());
+        Assert(!psi.isIntegral());
         // alpha = slack_sgn * psi
         Rational falpha = alpha.floor_frac();
-        CVC4_DCHECK(falpha.sgn() > 0);
-        CVC4_DCHECK(falpha < one);
+        Assert(falpha.sgn() > 0);
+        Assert(falpha < one);
         phi = (falpha <= fbeta) ?
           falpha : ((fbeta / one_sub_fbeta) * (one - falpha));
       }else{
         phi = (alpha >= 0) ?
           alpha : ((fbeta / one_sub_fbeta) * (- alpha));
       }
-      CVC4_DCHECK(phi.sgn() != 0);
+      Assert(phi.sgn() != 0);
       if(c->isUpperBound()){
         cut.set(x, -phi);
         rhs -= phi * bound;
@@ -3097,8 +3097,8 @@ bool ApproxGLPK::constructGmiCut(){
 
 void ApproxGLPK::tryCut(int nid, CutInfo& cut)
 {
-  CVC4_DCHECK(!cut.reconstructed());
-  CVC4_DCHECK(cut.getKlass() != RowsDeletedKlass);
+  Assert(!cut.reconstructed());
+  Assert(cut.getKlass() != RowsDeletedKlass);
   bool failure = false;
   switch(cut.getKlass()){
   case GmiCutKlass:
@@ -3113,7 +3113,7 @@ void ApproxGLPK::tryCut(int nid, CutInfo& cut)
   default:
     break;
   }
-  CVC4_DCHECK(failure == d_pad.d_failure);
+  Assert(failure == d_pad.d_failure);
 
   if(!failure){
     // move the pad to the cut

@@ -48,7 +48,7 @@ extern int optreset;
 #include <sstream>
 #include <limits>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
 #include "options/argument_extender.h"
@@ -508,8 +508,8 @@ static struct option cmdlineOptions[] = {
 
 //   Debug("preemptGetopt") << "preempting getopt() with " << opt << std::endl;
 
-//   CVC4_CHECK(opt != NULL && *opt != '\0');
-//   CVC4_CHECK(strlen(opt) <= maxoptlen);
+//   AlwaysAssert(opt != NULL && *opt != '\0');
+//   AlwaysAssert(strlen(opt) <= maxoptlen);
 
 //   ++argc;
 //   unsigned i = 1;
@@ -560,8 +560,8 @@ std::vector<std::string> Options::parseOptions(Options* options,
                                                int argc,
                                                char* argv[])
 {
-  CVC4_DCHECK(options != NULL);
-  CVC4_DCHECK(argv != NULL);
+  Assert(options != NULL);
+  Assert(argv != NULL);
 
   options::OptionsGuard guard(&s_current, options);
 
@@ -615,7 +615,7 @@ void Options::parseOptionsRecursive(Options* options,
     Debug("options") << "starting a new parseOptionsRecursive with "
                      << argc << " arguments" << std::endl;
     for( int i = 0; i < argc ; i++ ){
-      CVC4_DCHECK(argv[i] != NULL);
+      Assert(argv[i] != NULL);
       Debug("options") << "  argv[" << i << "] = " << argv[i] << std::endl;
     }
   }
@@ -701,7 +701,7 @@ void Options::parseOptionsRecursive(Options* options,
     //  routine that rechecks POSIXLY_CORRECT and checks for GNU extensions
     //  in optstring.)
     if ( old_optind == 0  && c == -1 ) {
-      CVC4_DCHECK(main_optind > 0);
+      Assert(main_optind > 0);
       continue;
     }
 

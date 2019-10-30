@@ -29,7 +29,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "util/cardinality.h"
@@ -232,7 +232,7 @@ public:
    * are OPERATORs, not PARAMETERIZEDs.
    */
   inline Node getOperator() const {
-    CVC4_DCHECK(getMetaKind() == kind::metakind::PARAMETERIZED);
+    Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
     return Node(d_nv->getOperator());
   }
 
@@ -752,7 +752,7 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
   }
 
   // otherwise compute
-  CVC4_DCHECK(typesEnd - typesBegin == replacementsEnd - replacementsBegin)
+  Assert(typesEnd - typesBegin == replacementsEnd - replacementsBegin)
       << "Substitution iterator ranges must be equal size";
   Iterator1 j = find(typesBegin, typesEnd, *this);
   if(j != typesEnd) {
@@ -792,19 +792,18 @@ inline const T& TypeNode::getConst() const {
 
 inline TypeNode::TypeNode(const expr::NodeValue* ev) :
   d_nv(const_cast<expr::NodeValue*> (ev)) {
-  CVC4_DCHECK(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv->inc();
 }
 
 inline TypeNode::TypeNode(const TypeNode& typeNode) {
-  CVC4_DCHECK(typeNode.d_nv != NULL)
-      << "Expecting a non-NULL expression value!";
+  Assert(typeNode.d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv = typeNode.d_nv;
   d_nv->inc();
 }
 
 inline TypeNode::~TypeNode() {
-  CVC4_DCHECK(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv->dec();
 }
 
@@ -814,8 +813,8 @@ inline void TypeNode::assignNodeValue(expr::NodeValue* ev) {
 }
 
 inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
-  CVC4_DCHECK(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  CVC4_DCHECK(typeNode.d_nv != NULL)
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(typeNode.d_nv != NULL)
       << "Expecting a non-NULL expression value on RHS!";
   if(__builtin_expect( ( d_nv != typeNode.d_nv ), true )) {
     d_nv->dec();
@@ -828,7 +827,7 @@ inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
 template <class AttrKind>
 inline typename AttrKind::value_type TypeNode::
 getAttribute(const AttrKind&) const {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind());
@@ -837,7 +836,7 @@ getAttribute(const AttrKind&) const {
 template <class AttrKind>
 inline bool TypeNode::
 hasAttribute(const AttrKind&) const {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->hasAttribute(d_nv, AttrKind());
@@ -845,7 +844,7 @@ hasAttribute(const AttrKind&) const {
 
 template <class AttrKind>
 inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind(), ret);
@@ -854,7 +853,7 @@ inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_typ
 template <class AttrKind>
 inline void TypeNode::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
   NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
@@ -901,17 +900,17 @@ inline bool TypeNode::isArray() const {
 }
 
 inline TypeNode TypeNode::getArrayIndexType() const {
-  CVC4_DCHECK(isArray());
+  Assert(isArray());
   return (*this)[0];
 }
 
 inline TypeNode TypeNode::getArrayConstituentType() const {
-  CVC4_DCHECK(isArray());
+  Assert(isArray());
   return (*this)[1];
 }
 
 inline TypeNode TypeNode::getConstructorRangeType() const {
-  CVC4_DCHECK(isConstructor());
+  Assert(isConstructor());
   return (*this)[getNumChildren()-1];
 }
 
@@ -920,7 +919,7 @@ inline bool TypeNode::isSet() const {
 }
 
 inline TypeNode TypeNode::getSetElementType() const {
-  CVC4_DCHECK(isSet());
+  Assert(isSet());
   return (*this)[0];
 }
 
@@ -948,7 +947,7 @@ inline TypeNode TypeNode::getRangeType() const {
   if(isTester()) {
     return NodeManager::currentNM()->booleanType();
   }
-  CVC4_DCHECK(isFunction() || isConstructor() || isSelector());
+  Assert(isFunction() || isConstructor() || isSelector());
   return (*this)[getNumChildren() - 1];
 }
 
@@ -1018,31 +1017,31 @@ inline bool TypeNode::isBitVector(unsigned size) const {
 
 /** Get the datatype specification from a datatype type */
 inline const Datatype& TypeNode::getDatatype() const {
-  CVC4_DCHECK(isDatatype());
+  Assert(isDatatype());
   if( getKind() == kind::DATATYPE_TYPE ){
     DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
     return NodeManager::currentNM()->getDatatypeForIndex( dic.getIndex() );
   }else{
-    CVC4_DCHECK(getKind() == kind::PARAMETRIC_DATATYPE);
+    Assert(getKind() == kind::PARAMETRIC_DATATYPE);
     return (*this)[0].getDatatype();
   }
 }
 
 /** Get the exponent size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointExponentSize() const {
-  CVC4_DCHECK(isFloatingPoint());
+  Assert(isFloatingPoint());
   return getConst<FloatingPointSize>().exponent();
 }
 
 /** Get the significand size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointSignificandSize() const {
-  CVC4_DCHECK(isFloatingPoint());
+  Assert(isFloatingPoint());
   return getConst<FloatingPointSize>().significand();
 }
 
 /** Get the size of this bit-vector type */
 inline unsigned TypeNode::getBitVectorSize() const {
-  CVC4_DCHECK(isBitVector());
+  Assert(isBitVector());
   return getConst<BitVectorSize>();
 }
 

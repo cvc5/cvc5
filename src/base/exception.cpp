@@ -22,7 +22,7 @@
 #include <cstring>
 #include <string>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 
 using namespace std;
 
@@ -64,7 +64,7 @@ std::string IllegalArgumentException::formatVariadic(const char* format, ...) {
   char* buf = NULL;
 
   for (int i = 0; i < 2; ++i){
-    CVC4_DCHECK(n > 0);
+    Assert(n > 0);
     delete[] buf;
     buf = new char[n];
 
@@ -82,7 +82,7 @@ std::string IllegalArgumentException::formatVariadic(const char* format, ...) {
   }
   // buf is not NULL is an invariant.
   // buf is also 0 terminated.
-  CVC4_DCHECK(buf != NULL);
+  Assert(buf != NULL);
   std::string result(buf);
   delete [] buf;
   va_end(args);

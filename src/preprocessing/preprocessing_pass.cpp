@@ -53,7 +53,7 @@ PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
 }
 
 PreprocessingPass::~PreprocessingPass() {
-  CVC4_DCHECK(smt::smtEngineInScope());
+  Assert(smt::smtEngineInScope());
   if (smtStatisticsRegistry() != nullptr) {
     smtStatisticsRegistry()->unregisterStat(&d_timer);
   }

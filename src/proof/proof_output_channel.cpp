@@ -17,7 +17,7 @@
 
 #include "proof/proof_output_channel.h"
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
 
@@ -26,19 +26,19 @@ namespace CVC4 {
 ProofOutputChannel::ProofOutputChannel() : d_conflict(), d_proof(nullptr) {}
 const Proof& ProofOutputChannel::getConflictProof() const
 {
-  CVC4_DCHECK(hasConflict());
+  Assert(hasConflict());
   return *d_proof;
 }
 
 void ProofOutputChannel::conflict(TNode n, std::unique_ptr<Proof> pf)
 {
   Trace("pf::tp") << "ProofOutputChannel: CONFLICT: " << n << std::endl;
-  CVC4_DCHECK(!hasConflict());
-  CVC4_DCHECK(!d_proof);
+  Assert(!hasConflict());
+  Assert(!d_proof);
   d_conflict = n;
   d_proof = std::move(pf);
-  CVC4_DCHECK(hasConflict());
-  CVC4_DCHECK(d_proof);
+  Assert(hasConflict());
+  Assert(d_proof);
 }
 
 bool ProofOutputChannel::propagate(TNode x) {
@@ -54,7 +54,7 @@ theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool,
   // TODO(#1231): We should transition to supporting multiple lemmas. The
   // following assertion cannot be enabled due to
   // "test/regress/regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smt".
-  // CVC4_DCHECK(
+  // Assert(
   //     d_lemma.isNull()) <<
   //     "Multiple calls to ProofOutputChannel::lemma() are not supported.";
   d_lemma = n;
@@ -62,7 +62,7 @@ theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool,
 }
 
 theory::LemmaStatus ProofOutputChannel::splitLemma(TNode, bool) {
-  CVC4_CHECK(false);
+  AlwaysAssert(false);
   return theory::LemmaStatus(TNode::null(), 0);
 }
 
@@ -73,7 +73,7 @@ void ProofOutputChannel::requirePhase(TNode n, bool b) {
 
 void ProofOutputChannel::setIncomplete() {
   Debug("pf::tp") << "ProofOutputChannel::setIncomplete called" << std::endl;
-  CVC4_CHECK(false);
+  AlwaysAssert(false);
 }
 
 

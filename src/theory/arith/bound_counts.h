@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
 
@@ -66,7 +66,7 @@ public:
   }
 
   inline BoundCounts operator-(BoundCounts bc) const {
-    CVC4_DCHECK(*this >= bc);
+    Assert(*this >= bc);
     return BoundCounts(d_lowerBoundCount - bc.d_lowerBoundCount,
                        d_upperBoundCount - bc.d_upperBoundCount);
   }
@@ -79,8 +79,8 @@ public:
   }
 
   inline BoundCounts& operator-=(BoundCounts bc) {
-    CVC4_DCHECK(d_lowerBoundCount >= bc.d_lowerBoundCount);
-    CVC4_DCHECK(d_upperBoundCount >= bc.d_upperBoundCount);
+    Assert(d_lowerBoundCount >= bc.d_lowerBoundCount);
+    Assert(d_upperBoundCount >= bc.d_upperBoundCount);
     d_upperBoundCount -= bc.d_upperBoundCount;
     d_lowerBoundCount -= bc.d_lowerBoundCount;
 
@@ -105,21 +105,21 @@ public:
     if(before == after){
       return;
     }else if(sgn < 0){
-      CVC4_DCHECK(d_upperBoundCount >= before.d_lowerBoundCount);
-      CVC4_DCHECK(d_lowerBoundCount >= before.d_upperBoundCount);
+      Assert(d_upperBoundCount >= before.d_lowerBoundCount);
+      Assert(d_lowerBoundCount >= before.d_upperBoundCount);
       d_upperBoundCount += after.d_lowerBoundCount - before.d_lowerBoundCount;
       d_lowerBoundCount += after.d_upperBoundCount - before.d_upperBoundCount;
     }else if(sgn > 0){
-      CVC4_DCHECK(d_upperBoundCount >= before.d_upperBoundCount);
-      CVC4_DCHECK(d_lowerBoundCount >= before.d_lowerBoundCount);
+      Assert(d_upperBoundCount >= before.d_upperBoundCount);
+      Assert(d_lowerBoundCount >= before.d_lowerBoundCount);
       d_upperBoundCount += after.d_upperBoundCount - before.d_upperBoundCount;
       d_lowerBoundCount += after.d_lowerBoundCount - before.d_lowerBoundCount;
     }
   }
 
   inline void addInSgn(BoundCounts bc, int before, int after){
-    CVC4_DCHECK(before != after);
-    CVC4_DCHECK(!bc.isZero());
+    Assert(before != after);
+    Assert(!bc.isZero());
 
     if(before < 0){
       d_upperBoundCount -= bc.d_lowerBoundCount;
@@ -167,7 +167,7 @@ public:
   }
   /** This corresponds to removing a variable from the row. */
   inline BoundsInfo operator-(const BoundsInfo& bc) const {
-    CVC4_DCHECK(*this >= bc);
+    Assert(*this >= bc);
     return BoundsInfo(d_atBounds - bc.d_atBounds,
                       d_hasBounds - bc.d_hasBounds);
   }

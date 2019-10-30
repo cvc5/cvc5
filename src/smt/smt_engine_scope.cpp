@@ -17,8 +17,8 @@
 
 #include "smt/smt_engine_scope.h"
 
+#include "base/check.h"
 #include "base/configuration_private.h"
-#include "base/cvc4_check.h"
 #include "base/output.h"
 #include "proof/proof.h"
 #include "smt/smt_engine.h"
@@ -29,7 +29,7 @@ namespace smt {
 thread_local SmtEngine* s_smtEngine_current = NULL;
 
 SmtEngine* currentSmtEngine() {
-  CVC4_DCHECK(s_smtEngine_current != NULL);
+  Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current;
 }
 
@@ -37,10 +37,11 @@ bool smtEngineInScope() { return s_smtEngine_current != NULL; }
 
 ProofManager* currentProofManager() {
 #if IS_PROOFS_BUILD
-  CVC4_DCHECK(s_smtEngine_current != NULL);
+  Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current->d_proofManager;
 #else  /* IS_PROOFS_BUILD */
-  InternalError("proofs/unsat cores are not on, but ProofManager requested");
+  InternalError()
+      << "proofs/unsat cores are not on, but ProofManager requested";
   return NULL;
 #endif /* IS_PROOFS_BUILD */
 }
@@ -48,7 +49,7 @@ ProofManager* currentProofManager() {
 SmtScope::SmtScope(const SmtEngine* smt)
     : NodeManagerScope(smt->d_nodeManager),
       d_oldSmtEngine(s_smtEngine_current) {
-  CVC4_DCHECK(smt != NULL);
+  Assert(smt != NULL);
   s_smtEngine_current = const_cast<SmtEngine*>(smt);
   Debug("current") << "smt scope: " << s_smtEngine_current << std::endl;
 }
@@ -60,7 +61,7 @@ SmtScope::~SmtScope() {
 }
 
 StatisticsRegistry* SmtScope::currentStatisticsRegistry() {
-  CVC4_DCHECK(smtEngineInScope());
+  Assert(smtEngineInScope());
   return s_smtEngine_current->d_statisticsRegistry;
 }
 

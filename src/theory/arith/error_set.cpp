@@ -50,13 +50,13 @@ ErrorInformation::ErrorInformation(ArithVar var, ConstraintP vio, int sgn)
   , d_amount(NULL)
   , d_metric(0)
 {
-  CVC4_DCHECK(debugInitialized());
+  Assert(debugInitialized());
   Debug("arith::error::mem") << "constructor " << d_variable << " "  << d_amount << endl;
 }
 
 
 ErrorInformation::~ErrorInformation() {
-  CVC4_DCHECK(d_relaxed != true);
+  Assert(d_relaxed != true);
   if(d_amount != NULL){
     Debug("arith::error::mem") << d_amount << endl;
     Debug("arith::error::mem") << "destroy " << d_variable << " "  << d_amount << endl;
@@ -107,8 +107,8 @@ ErrorInformation& ErrorInformation::operator=(const ErrorInformation& ei){
 }
 
 void ErrorInformation::reset(ConstraintP c, int sgn){
-  CVC4_DCHECK(!isRelaxed());
-  CVC4_DCHECK(c != NullConstraint);
+  Assert(!isRelaxed());
+  Assert(c != NullConstraint);
   d_violated = c;
   d_sgn = sgn;
 
@@ -199,7 +199,7 @@ void ErrorSet::setSelectionRule(ErrorSelectionRule rule){
     d_focus.swap(into);
     d_selectionRule = rule;
   }
-  CVC4_DCHECK(getSelectionRule() == rule);
+  Assert(getSelectionRule() == rule);
 }
 
 ComparatorPivotRule::ComparatorPivotRule(const ErrorSet* es, ErrorSelectionRule r):
@@ -269,9 +269,9 @@ void ErrorSet::update(ErrorInformation& ei){
 
 /** A variable becomes satisfied. */
 void ErrorSet::transitionVariableOutOfError(ArithVar v) {
-  CVC4_DCHECK(!inconsistent(v));
+  Assert(!inconsistent(v));
   ErrorInformation& ei = d_errInfo.get(v);
-  CVC4_DCHECK(ei.debugInitialized());
+  Assert(ei.debugInitialized());
   if(ei.isRelaxed()){
     ConstraintP viol = ei.getViolated();
     if(ei.sgn() > 0){
@@ -279,7 +279,7 @@ void ErrorSet::transitionVariableOutOfError(ArithVar v) {
     }else{
       d_variables.setUpperBoundConstraint(viol);
     }
-    CVC4_DCHECK(!inconsistent(v));
+    Assert(!inconsistent(v));
     ei.setUnrelaxed();
   }
   if(ei.inFocus()){
@@ -291,7 +291,7 @@ void ErrorSet::transitionVariableOutOfError(ArithVar v) {
 
 
 void ErrorSet::transitionVariableIntoError(ArithVar v) {
-  CVC4_DCHECK(inconsistent(v));
+  Assert(inconsistent(v));
   bool vilb = d_variables.cmpAssignmentLowerBound(v) < 0;
   int sgn = vilb ? 1 : -1;
   ConstraintP c = vilb ?
@@ -317,18 +317,18 @@ void ErrorSet::transitionVariableIntoError(ArithVar v) {
 }
 
 void ErrorSet::dropFromFocus(ArithVar v) {
-  CVC4_DCHECK(inError(v));
+  Assert(inError(v));
   ErrorInformation& ei = d_errInfo.get(v);
-  CVC4_DCHECK(ei.inFocus());
+  Assert(ei.inFocus());
   d_focus.erase(ei.getHandle());
   ei.setInFocus(false);
   d_outOfFocus.push_back(v);
 }
 
 void ErrorSet::addBackIntoFocus(ArithVar v) {
-  CVC4_DCHECK(inError(v));
+  Assert(inError(v));
   ErrorInformation& ei = d_errInfo.get(v);
-  CVC4_DCHECK(!ei.inFocus());
+  Assert(!ei.inFocus());
   switch(getSelectionRule()){
   case MINIMUM_AMOUNT:
   case MAXIMUM_AMOUNT:
@@ -371,7 +371,7 @@ int ErrorSet::popSignal() {
     bool vilb = d_variables.cmpAssignmentLowerBound(back) < 0;
     bool viub = d_variables.cmpAssignmentUpperBound(back) > 0;
     if(vilb || viub){
-      CVC4_DCHECK(!vilb || !viub);
+      Assert(!vilb || !viub);
       int currSgn = vilb ? 1 : -1;
       if(currSgn != prevSgn){
         ConstraintP curr = vilb ?  d_variables.getLowerBoundConstraint(back)
@@ -418,13 +418,13 @@ void ErrorSet::reduceToSignals(){
 }
 
 DeltaRational ErrorSet::computeDiff(ArithVar v) const{
-  CVC4_DCHECK(inconsistent(v));
+  Assert(inconsistent(v));
   const DeltaRational& beta = d_variables.getAssignment(v);
   DeltaRational diff = d_variables.cmpAssignmentLowerBound(v) < 0 ?
     d_variables.getLowerBound(v) - beta:
     beta - d_variables.getUpperBound(v);
 
-  CVC4_DCHECK(diff.sgn() > 0);
+  Assert(diff.sgn() > 0);
   return diff;
 }
 

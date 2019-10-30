@@ -81,15 +81,14 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
       }
       continue;
     }
-    CVC4_DCHECK(trie->d_children.empty());
+    Assert(trie->d_children.empty());
     // if last level and no element at leaf, ignore
     if (trie->d_lazy_child.isNull())
     {
       continue;
     }
     // apply new classifier
-    CVC4_DCHECK(d_rep_to_class.find(trie->d_lazy_child)
-                != d_rep_to_class.end());
+    Assert(d_rep_to_class.find(trie->d_lazy_child) != d_rep_to_class.end());
     std::vector<Node> prev_sep_class = d_rep_to_class[trie->d_lazy_child];
     if (Trace.isOn("lazy-trie-multi"))
     {
@@ -119,7 +118,7 @@ void LazyTrieMulti::addClassifier(LazyTrieEvaluator* ev, unsigned ntotal)
       trie->d_children[eval].d_lazy_child = n;
       // create new map
       Trace("lazy-trie-multi") << "...create new class for : " << n << "\n";
-      CVC4_DCHECK(d_rep_to_class.find(n) == d_rep_to_class.end());
+      Assert(d_rep_to_class.find(n) == d_rep_to_class.end());
       d_rep_to_class[n].clear();
       d_rep_to_class[n].push_back(n);
     }
@@ -135,15 +134,15 @@ Node LazyTrieMulti::add(Node f, LazyTrieEvaluator* ev, unsigned ntotal)
   {
     Trace("lazy-trie-multi") << "... added " << f << " to the sepclass of "
                              << res << "\n";
-    CVC4_DCHECK(d_rep_to_class.find(res) != d_rep_to_class.end());
-    CVC4_DCHECK(!d_rep_to_class[res].empty());
+    Assert(d_rep_to_class.find(res) != d_rep_to_class.end());
+    Assert(!d_rep_to_class[res].empty());
     d_rep_to_class[res].push_back(f);
     return res;
   }
   // f is the representatitve of a singleton seperation class
   Trace("lazy-trie-multi") << "... added " << f
                            << " as the rep of the sepclass with itself\n";
-  CVC4_DCHECK(d_rep_to_class.find(res) == d_rep_to_class.end());
+  Assert(d_rep_to_class.find(res) == d_rep_to_class.end());
   d_rep_to_class[res].clear();
   d_rep_to_class[res].push_back(f);
   return res;

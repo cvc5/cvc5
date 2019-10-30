@@ -20,7 +20,7 @@
 #include <utility>
 #include <vector>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
@@ -259,8 +259,8 @@ public:
 
         // Make sure that the expressions are associated with the correct
         // `ExprManager`s.
-        CVC4_DCHECK(from_e.getExprManager() == from);
-        CVC4_DCHECK(to_e.getExprManager() == to);
+        Assert(from_e.getExprManager() == from);
+        Assert(to_e.getExprManager() == to);
         return Node::fromExpr(to_e);
       }
     } else {
@@ -306,15 +306,15 @@ public:
 
 Expr Expr::exportTo(ExprManager* exprManager, ExprManagerMapCollection& variableMap,
                     uint32_t flags /* = 0 */) const {
-  CVC4_DCHECK(d_exprManager != exprManager)
+  Assert(d_exprManager != exprManager)
       << "No sense in cloning an Expr in the same ExprManager";
   ExprManagerScope ems(*this);
   return Expr(exprManager, new Node(expr::ExportPrivate(d_exprManager, exprManager, variableMap, flags).exportInternal(*d_node)));
 }
 
 Expr& Expr::operator=(const Expr& e) {
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
-  CVC4_DCHECK(e.d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(e.d_node != NULL) << "Unexpected NULL expression pointer!";
 
   if(this != &e) {
     if(d_exprManager == e.d_exprManager) {
@@ -342,8 +342,8 @@ bool Expr::operator==(const Expr& e) const {
     return false;
   }
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
-  CVC4_DCHECK(e.d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(e.d_node != NULL) << "Unexpected NULL expression pointer!";
   return *d_node == *e.d_node;
 }
 
@@ -352,8 +352,8 @@ bool Expr::operator!=(const Expr& e) const {
 }
 
 bool Expr::operator<(const Expr& e) const {
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
-  CVC4_DCHECK(e.d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(e.d_node != NULL) << "Unexpected NULL expression pointer!";
   if(isNull() && !e.isNull()) {
     return true;
   }
@@ -362,8 +362,8 @@ bool Expr::operator<(const Expr& e) const {
 }
 
 bool Expr::operator>(const Expr& e) const {
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
-  CVC4_DCHECK(e.d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(e.d_node != NULL) << "Unexpected NULL expression pointer!";
   if(isNull() && !e.isNull()) {
     return true;
   }
@@ -374,39 +374,38 @@ bool Expr::operator>(const Expr& e) const {
 uint64_t Expr::getId() const
 {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return d_node->getId();
 }
 
 Kind Expr::getKind() const {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return d_node->getKind();
 }
 
 size_t Expr::getNumChildren() const {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return d_node->getNumChildren();
 }
 
 Expr Expr::operator[](unsigned i) const {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
-  CVC4_DCHECK(i >= 0 && i < d_node->getNumChildren())
-      << "Child index out of bounds";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(i >= 0 && i < d_node->getNumChildren()) << "Child index out of bounds";
   return Expr(d_exprManager, new Node((*d_node)[i]));
 }
 
 bool Expr::hasOperator() const {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return d_node->hasOperator();
 }
 
 Expr Expr::getOperator() const {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   PrettyCheckArgument(d_node->hasOperator(), *this,
                       "Expr::getOperator() called on an Expr with no operator");
   return Expr(d_exprManager, new Node(d_node->getOperator()));
@@ -415,14 +414,14 @@ Expr Expr::getOperator() const {
 bool Expr::isParameterized() const
 {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return d_node->getMetaKind() == kind::metakind::PARAMETERIZED;
 }
 
 Type Expr::getType(bool check) const
 {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   PrettyCheckArgument(!d_node->isNull(), this,
                       "Can't get type of null expression!");
   return d_exprManager->getType(*this, check);
@@ -524,20 +523,20 @@ bool Expr::const_iterator::operator==(const const_iterator& it) const {
     *reinterpret_cast<Node::iterator*>(it.d_iterator);
 }
 Expr::const_iterator& Expr::const_iterator::operator++() {
-  CVC4_DCHECK(d_iterator != NULL);
+  Assert(d_iterator != NULL);
   ExprManagerScope ems(*d_exprManager);
   ++*reinterpret_cast<Node::iterator*>(d_iterator);
   return *this;
 }
 Expr::const_iterator Expr::const_iterator::operator++(int) {
-  CVC4_DCHECK(d_iterator != NULL);
+  Assert(d_iterator != NULL);
   ExprManagerScope ems(*d_exprManager);
   const_iterator it = *this;
   ++*reinterpret_cast<Node::iterator*>(d_iterator);
   return it;
 }
 Expr Expr::const_iterator::operator*() const {
-  CVC4_DCHECK(d_iterator != NULL);
+  Assert(d_iterator != NULL);
   ExprManagerScope ems(*d_exprManager);
   return (**reinterpret_cast<Node::iterator*>(d_iterator)).toExpr();
 }
@@ -554,32 +553,32 @@ Expr::const_iterator Expr::end() const {
 
 std::string Expr::toString() const {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return d_node->toString();
 }
 
 bool Expr::isNull() const {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return d_node->isNull();
 }
 
 bool Expr::isVariable() const {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return d_node->getMetaKind() == kind::metakind::VARIABLE;
 }
 
 bool Expr::isConst() const {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return d_node->isConst();
 }
 
 bool Expr::hasFreeVariable() const
 {
   ExprManagerScope ems(*this);
-  CVC4_DCHECK(d_node != NULL) << "Unexpected NULL expression pointer!";
+  Assert(d_node != NULL) << "Unexpected NULL expression pointer!";
   return expr::hasFreeVar(*d_node);
 }
 
@@ -592,13 +591,13 @@ void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
 Node Expr::getNode() const { return *d_node; }
 TNode Expr::getTNode() const { return *d_node; }
 Expr Expr::notExpr() const {
-  CVC4_DCHECK(d_exprManager != NULL)
+  Assert(d_exprManager != NULL)
       << "Don't have an expression manager for this expression!";
   return d_exprManager->mkExpr(NOT, *this);
 }
 
 Expr Expr::andExpr(const Expr& e) const {
-  CVC4_DCHECK(d_exprManager != NULL)
+  Assert(d_exprManager != NULL)
       << "Don't have an expression manager for this expression!";
   PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
                       "Different expression managers!");
@@ -606,7 +605,7 @@ Expr Expr::andExpr(const Expr& e) const {
 }
 
 Expr Expr::orExpr(const Expr& e) const {
-  CVC4_DCHECK(d_exprManager != NULL)
+  Assert(d_exprManager != NULL)
       << "Don't have an expression manager for this expression!";
   PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
                       "Different expression managers!");
@@ -614,7 +613,7 @@ Expr Expr::orExpr(const Expr& e) const {
 }
 
 Expr Expr::xorExpr(const Expr& e) const {
-  CVC4_DCHECK(d_exprManager != NULL)
+  Assert(d_exprManager != NULL)
       << "Don't have an expression manager for this expression!";
   PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
                       "Different expression managers!");
@@ -623,7 +622,7 @@ Expr Expr::xorExpr(const Expr& e) const {
 
 Expr Expr::eqExpr(const Expr& e) const
 {
-  CVC4_DCHECK(d_exprManager != NULL)
+  Assert(d_exprManager != NULL)
       << "Don't have an expression manager for this expression!";
   PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
                       "Different expression managers!");
@@ -631,7 +630,7 @@ Expr Expr::eqExpr(const Expr& e) const
 }
 
 Expr Expr::impExpr(const Expr& e) const {
-  CVC4_DCHECK(d_exprManager != NULL)
+  Assert(d_exprManager != NULL)
       << "Don't have an expression manager for this expression!";
   PrettyCheckArgument(d_exprManager == e.d_exprManager, e,
                       "Different expression managers!");
@@ -640,7 +639,7 @@ Expr Expr::impExpr(const Expr& e) const {
 
 Expr Expr::iteExpr(const Expr& then_e,
                            const Expr& else_e) const {
-  CVC4_DCHECK(d_exprManager != NULL)
+  Assert(d_exprManager != NULL)
       << "Don't have an expression manager for this expression!";
   PrettyCheckArgument(d_exprManager == then_e.d_exprManager, then_e,
                       "Different expression managers!");
@@ -666,7 +665,7 @@ ${getConst_implementations}
 namespace expr {
 
 static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& vmap) {
-  CVC4_DCHECK(n.isConst());
+  Assert(n.isConst());
   Debug("export") << "constant: " << n << std::endl;
 
   if(n.getKind() == kind::STORE_ALL) {
@@ -685,7 +684,7 @@ static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& v
   switch(n.getKind()) {
 ${exportConstant_cases}
 
-  default: Unhandled(n.getKind());
+default: Unhandled() << n.getKind();
   }
 
 }/* exportConstant() */

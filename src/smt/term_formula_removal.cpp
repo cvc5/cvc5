@@ -155,7 +155,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
             "a skolem introduced due to term-level Hilbert choice removal");
         d_skolem_cache.insert(node, skolem);
 
-        CVC4_DCHECK(node[0].getNumChildren() == 1);
+        Assert(node[0].getNumChildren() == 1);
 
         // The new assertion is the assumption that the body
         // of the choice operator holds for the Skolem

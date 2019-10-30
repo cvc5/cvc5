@@ -32,7 +32,7 @@
 #include <string>
 #include <unordered_set>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -266,7 +266,7 @@ class NodeManager {
    * Register a NodeValue as a zombie.
    */
   inline void markForDeletion(expr::NodeValue* nv) {
-    CVC4_DCHECK(nv->d_rc == 0);
+    Assert(nv->d_rc == 0);
 
     // if d_reclaiming is set, make sure we don't call
     // reclaimZombies(), because it's already running.
@@ -286,8 +286,7 @@ class NodeManager {
     // on that node while a different `NodeManager` n2 is in scope. When that
     // `Expr` is deleted and the node reaches refcount zero in the `Expr`'s
     // destructor, then `markForDeletion()` will be called on n2.
-    CVC4_DCHECK(d_zombies.find(nv) == d_zombies.end()
-                || *d_zombies.find(nv) == nv);
+    Assert(d_zombies.find(nv) == d_zombies.end() || *d_zombies.find(nv) == nv);
 
     d_zombies.insert(nv);  // FIXME multithreading
 
@@ -303,7 +302,7 @@ class NodeManager {
    * will live as long as its containing NodeManager.
    */
   inline void markRefCountMaxedOut(expr::NodeValue* nv) {
-    CVC4_DCHECK(nv->HasMaximizedReferenceCount());
+    Assert(nv->HasMaximizedReferenceCount());
     if(Debug.isOn("gc")) {
       Debug("gc") << "marking node value " << nv
                   << " [" << nv->d_id << "]: as maxed out" << std::endl;
@@ -413,8 +412,8 @@ public:
 
   /** Subscribe to NodeManager events */
   void subscribeEvents(NodeManagerListener* listener) {
-    CVC4_DCHECK(std::find(d_listeners.begin(), d_listeners.end(), listener)
-                == d_listeners.end())
+    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener)
+           == d_listeners.end())
         << "listener already subscribed";
     d_listeners.push_back(listener);
   }
@@ -422,7 +421,7 @@ public:
   /** Unsubscribe from NodeManager events */
   void unsubscribeEvents(NodeManagerListener* listener) {
     std::vector<NodeManagerListener*>::iterator elt = std::find(d_listeners.begin(), d_listeners.end(), listener);
-    CVC4_DCHECK(elt != d_listeners.end()) << "listener not subscribed";
+    Assert(elt != d_listeners.end()) << "listener not subscribed";
     d_listeners.erase(elt);
   }
   
@@ -1080,7 +1079,7 @@ inline TypeNode NodeManager::mkFunctionType(const TypeNode& domain, const TypeNo
 }
 
 inline TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes, const TypeNode& range) {
-  CVC4_DCHECK(argTypes.size() >= 1);
+  Assert(argTypes.size() >= 1);
   std::vector<TypeNode> sorts(argTypes);
   sorts.push_back(range);
   return mkFunctionType(sorts);
@@ -1088,7 +1087,7 @@ inline TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argType
 
 inline TypeNode
 NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts) {
-  CVC4_DCHECK(sorts.size() >= 2);
+  Assert(sorts.size() >= 2);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
     CheckArgument(sorts[i].isFirstClass(), sorts,
@@ -1102,7 +1101,7 @@ NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts) {
 
 inline TypeNode
 NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
-  CVC4_DCHECK(sorts.size() >= 1);
+  Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
     CheckArgument(sorts[i].isFirstClass(), sorts,
@@ -1181,13 +1180,13 @@ inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
 }
 
 inline void NodeManager::poolInsert(expr::NodeValue* nv) {
-  CVC4_DCHECK(d_nodeValuePool.find(nv) == d_nodeValuePool.end())
+  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end())
       << "NodeValue already in the pool!";
   d_nodeValuePool.insert(nv);// FIXME multithreading
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
-  CVC4_DCHECK(d_nodeValuePool.find(nv) != d_nodeValuePool.end())
+  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end())
       << "NodeValue is not in the pool!";
 
   d_nodeValuePool.erase(nv);// FIXME multithreading
@@ -1244,8 +1243,7 @@ inline bool NodeManager::hasOperator(Kind k) {
   case kind::metakind::CONSTANT:
     return false;
 
-  default:
-    Unhandled(mk);
+  default: Unhandled() << mk;
   }
 }
 

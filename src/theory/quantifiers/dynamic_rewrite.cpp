@@ -53,7 +53,7 @@ void DynamicRewriter::addRewrite(Node a, Node b)
   Node eq = ai.eqNode(bi);
   d_rewrites.push_back(eq);
   d_equalityEngine.assertEquality(eq, true, eq);
-  CVC4_DCHECK(d_equalityEngine.consistent());
+  Assert(d_equalityEngine.consistent());
   Trace("dyn-rewrite-debug") << "Finished" << std::endl;
 }
 

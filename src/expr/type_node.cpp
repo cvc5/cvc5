@@ -198,7 +198,7 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
     else
     {
       // all types should be handled above
-      CVC4_DCHECK(false);
+      Assert(false);
       // by default, compute the exact cardinality for the type and check
       // whether it is finite. This should be avoided in general, since
       // computing cardinalities for types can be highly expensive.
@@ -343,10 +343,10 @@ TypeNode TypeNode::getBaseType() const {
 std::vector<TypeNode> TypeNode::getArgTypes() const {
   vector<TypeNode> args;
   if(isTester()) {
-    CVC4_DCHECK(getNumChildren() == 1);
+    Assert(getNumChildren() == 1);
     args.push_back((*this)[0]);
   } else {
-    CVC4_DCHECK(isFunction() || isConstructor() || isSelector());
+    Assert(isFunction() || isConstructor() || isSelector());
     for(unsigned i = 0, i_end = getNumChildren() - 1; i < i_end; ++i) {
       args.push_back((*this)[i]);
     }
@@ -356,7 +356,7 @@ std::vector<TypeNode> TypeNode::getArgTypes() const {
 
 std::vector<TypeNode> TypeNode::getParamTypes() const {
   vector<TypeNode> params;
-  CVC4_DCHECK(isParametricDatatype());
+  Assert(isParametricDatatype());
   for(unsigned i = 1, i_end = getNumChildren(); i < i_end; ++i) {
     params.push_back((*this)[i]);
   }
@@ -375,16 +375,16 @@ bool TypeNode::isRecord() const {
 }
 
 size_t TypeNode::getTupleLength() const {
-  CVC4_DCHECK(isTuple());
+  Assert(isTuple());
   const Datatype& dt = getDatatype();
-  CVC4_DCHECK(dt.getNumConstructors() == 1);
+  Assert(dt.getNumConstructors() == 1);
   return dt[0].getNumArgs();
 }
 
 vector<TypeNode> TypeNode::getTupleTypes() const {
-  CVC4_DCHECK(isTuple());
+  Assert(isTuple());
   const Datatype& dt = getDatatype();
-  CVC4_DCHECK(dt.getNumConstructors() == 1);
+  Assert(dt.getNumConstructors() == 1);
   vector<TypeNode> types;
   for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
     types.push_back(TypeNode::fromType(dt[0][i].getRangeType()));
@@ -393,14 +393,14 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
 }
 
 const Record& TypeNode::getRecord() const {
-  CVC4_DCHECK(isRecord());
+  Assert(isRecord());
   const Datatype & dt = getDatatype();
   return *(dt.getRecord());
   //return getAttribute(expr::DatatypeRecordAttr()).getConst<Record>();
 }
 
 vector<TypeNode> TypeNode::getSExprTypes() const {
-  CVC4_DCHECK(isSExpr());
+  Assert(isSExpr());
   vector<TypeNode> types;
   for(unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
     types.push_back((*this)[i]);
@@ -418,7 +418,7 @@ bool TypeNode::isInstantiatedDatatype() const {
   }
   const Datatype& dt = (*this)[0].getDatatype();
   unsigned n = dt.getNumParameters();
-  CVC4_DCHECK(n < getNumChildren());
+  Assert(n < getNumChildren());
   for(unsigned i = 0; i < n; ++i) {
     if(TypeNode::fromType(dt.getParameter(i)) == (*this)[i + 1]) {
       return false;
@@ -444,12 +444,12 @@ TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
 }
 
 TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
-  CVC4_DCHECK(!t0.isNull());
-  CVC4_DCHECK(!t1.isNull());
+  Assert(!t0.isNull());
+  Assert(!t1.isNull());
 
   if(__builtin_expect( (t0 == t1), true )) {
     return t0;
@@ -506,15 +506,17 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     }
   }
   case kind::SEXPR_TYPE:
-    Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
+    Unimplemented()
+        << "haven't implemented leastCommonType for symbolic expressions yet";
   default:
-    Unimplemented("don't have a commonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
+    Unimplemented() << "don't have a commonType for types `" << t0 << "' and `"
+                    << t1 << "'";
   }
 }
 
 Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
-  CVC4_DCHECK(ntn.isComparableTo(tn));
+  Assert(ntn.isComparableTo(tn));
   if( !ntn.isSubtypeOf( tn ) ){
     if( tn.isInteger() ){
       if( tn.isSubtypeOf( ntn ) ){

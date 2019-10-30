@@ -400,7 +400,7 @@ class ITECareSimplifier
     static CareSetPtr mkNew(ITECareSimplifier& simp);
     static CareSetPtr recycle(CareSetPtrVal* val)
     {
-      CVC4_DCHECK(val != NULL && val->d_refCount == 0);
+      Assert(val != NULL && val->d_refCount == 0);
       val->d_refCount = 1;
       return CareSetPtr(val);
     }

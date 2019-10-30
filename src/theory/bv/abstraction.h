@@ -62,7 +62,7 @@ class AbstractionModule {
     unsigned getNumEntries() { return d_data.size(); }
     ArgsVec& getEntry(unsigned i)
     {
-      CVC4_DCHECK(i < d_data.size());
+      Assert(i < d_data.size());
       return d_data[i];
     }
   };

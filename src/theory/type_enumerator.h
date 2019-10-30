@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__TYPE_ENUMERATOR_H
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "base/exception.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -129,7 +129,7 @@ class TypeEnumerator {
     if(d_te->isFinished()) {
       try {
         **d_te;
-        CVC4_DCHECK(false) << "expected an NoMoreValuesException to be thrown";
+        Assert(false) << "expected an NoMoreValuesException to be thrown";
       } catch(NoMoreValuesException&) {
         // ignore the exception, we're just asserting that it would be thrown
         //
@@ -142,8 +142,7 @@ class TypeEnumerator {
       try {
         **d_te;
       } catch(NoMoreValuesException&) {
-        CVC4_DCHECK(false)
-            << "didn't expect a NoMoreValuesException to be thrown";
+        Assert(false) << "didn't expect a NoMoreValuesException to be thrown";
       }
     }
 #endif /* CVC4_ASSERTIONS && !(APPLE || clang) */
@@ -157,11 +156,11 @@ class TypeEnumerator {
 #if defined(CVC4_ASSERTIONS) && !(defined(__APPLE__) && defined(__clang__))
     try {
       Node n = **d_te;
-      CVC4_DCHECK(n.isConst());
-      CVC4_DCHECK(!isFinished());
+      Assert(n.isConst());
+      Assert(!isFinished());
       return n;
     } catch(NoMoreValuesException&) {
-      CVC4_DCHECK(isFinished());
+      Assert(isFinished());
       throw;
     }
 #else /* CVC4_ASSERTIONS && !(APPLE || clang) */

@@ -94,9 +94,9 @@ bool DioSolver::queueConditions(TrailIndex t){
 }
 
 size_t DioSolver::allocateProofVariable() {
-  CVC4_DCHECK(d_lastUsedProofVariable <= d_proofVariablePool.size());
+  Assert(d_lastUsedProofVariable <= d_proofVariablePool.size());
   if(d_lastUsedProofVariable == d_proofVariablePool.size()){
-    CVC4_DCHECK(d_lastUsedProofVariable == d_proofVariablePool.size());
+    Assert(d_lastUsedProofVariable == d_proofVariablePool.size());
     Node intVar = makeIntegerVariable();
     d_proofVariablePool.push_back(Variable(intVar));
   }
@@ -107,11 +107,11 @@ size_t DioSolver::allocateProofVariable() {
 
 
 Node DioSolver::nextPureSubstitution(){
-  CVC4_DCHECK(hasMorePureSubstitutions());
+  Assert(hasMorePureSubstitutions());
   SubIndex curr = d_pureSubstitionIter;
   d_pureSubstitionIter = d_pureSubstitionIter + 1;
 
-  CVC4_DCHECK(d_subs[curr].d_fresh.isNull());
+  Assert(d_subs[curr].d_fresh.isNull());
   Variable v = d_subs[curr].d_eliminated;
 
   SumPair sp = d_trail[d_subs[curr].d_constraint].d_eq;
@@ -137,9 +137,9 @@ bool DioSolver::debugEqualityInInputEquations(Node eq){
 
 
 void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
-  CVC4_DCHECK(!debugEqualityInInputEquations(reason));
-  CVC4_DCHECK(eq.debugIsIntegral());
-  CVC4_DCHECK(eq.getNode().getKind() == kind::EQUAL);
+  Assert(!debugEqualityInInputEquations(reason));
+  Assert(eq.debugIsIntegral());
+  Assert(eq.getNode().getKind() == kind::EQUAL);
 
   SumPair sp = eq.toSumPair();
   if(sp.isNonlinear()){
@@ -171,7 +171,7 @@ void DioSolver::pushInputConstraint(const Comparison& eq, Node reason){
 
 
 DioSolver::TrailIndex DioSolver::scaleEqAtIndex(DioSolver::TrailIndex i, const Integer& g){
-  CVC4_DCHECK(g != 0);
+  Assert(g != 0);
   Constant invg = Constant::mkConstant(Rational(Integer(1),g));
   const SumPair& sp = d_trail[i].d_eq;
   const Polynomial& proof = d_trail[i].d_proof;
@@ -179,8 +179,8 @@ DioSolver::TrailIndex DioSolver::scaleEqAtIndex(DioSolver::TrailIndex i, const I
   SumPair newSP = sp * invg;
   Polynomial newProof = proof * invg;
 
-  CVC4_DCHECK(newSP.isIntegral());
-  CVC4_DCHECK(newSP.gcd() == 1);
+  Assert(newSP.isIntegral());
+  Assert(newSP.gcd() == 1);
 
   TrailIndex j = d_trail.size();
 
@@ -193,16 +193,16 @@ DioSolver::TrailIndex DioSolver::scaleEqAtIndex(DioSolver::TrailIndex i, const I
 }
 
 Node DioSolver::proveIndex(TrailIndex i){
-  CVC4_DCHECK(inRange(i));
+  Assert(inRange(i));
   const Polynomial& proof = d_trail[i].d_proof;
-  CVC4_DCHECK(!proof.isConstant());
+  Assert(!proof.isConstant());
 
   NodeBuilder<> nb(kind::AND);
   for(Polynomial::iterator iter = proof.begin(), end = proof.end(); iter!= end; ++iter){
     Monomial m = (*iter);
-    CVC4_DCHECK(!m.isConstant());
+    Assert(!m.isConstant());
     VarList vl = m.getVarList();
-    CVC4_DCHECK(vl.singleton());
+    Assert(vl.singleton());
     Variable v = vl.getHead();
 
     Node input = proofVariableToReason(v);
@@ -239,7 +239,7 @@ bool DioSolver::anyCoefficientExceedsMaximum(TrailIndex j) const{
 }
 
 void DioSolver::enqueueInputConstraints(){
-  CVC4_DCHECK(d_currentF.empty());
+  Assert(d_currentF.empty());
   while(d_savedQueueIndex < d_savedQueue.size()){
     d_currentF.push_back(d_savedQueue[d_savedQueueIndex]);
     d_savedQueueIndex = d_savedQueueIndex + 1;
@@ -277,7 +277,7 @@ void DioSolver::enqueueInputConstraints(){
  *effect the key values of everything in the queue.
  */
 void DioSolver::moveMinimumByAbsToQueueFront(){
-  CVC4_DCHECK(!queueEmpty());
+  Assert(!queueEmpty());
 
   //Select the minimum element.
   size_t indexInQueue = 0;
@@ -319,8 +319,8 @@ Node DioSolver::columnGcdIsOne() const{
       if(gcdMap.find(vlNode) == gcdMap.end()){
         // have not seen vl yet.
         // gcd is c
-        CVC4_DCHECK(c.isIntegral());
-        CVC4_DCHECK(!m.absCoefficientIsOne());
+        Assert(c.isIntegral());
+        Assert(!m.absCoefficientIsOne());
         gcdMap.insert(make_pair(vlNode, zc.abs()));
       }else{
         const Integer& currentGcd = gcdMap[vlNode];
@@ -357,7 +357,7 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
     //Set current and currentCoefficient
     std::deque<TrailIndex>::const_iterator iter, end;
     for(iter = d_currentF.begin(), end = d_currentF.end(); true; ++iter){
-      CVC4_DCHECK(iter != end);
+      Assert(iter != end);
       current = *iter;
       Constant coeff = d_trail[current].d_eq.getPolynomial().getCoefficient(vl);
       if(!coeff.isZero()){
@@ -385,11 +385,11 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
         Debug("arith::dio") << "extendedReduction : " << endl;
         Debug("arith::dio") << g << " = " << s <<"*"<< currentCoeff << " + " << t <<"*"<< inQueueCoeff << endl;
 
-        CVC4_DCHECK(g <= currentGcd);
+        Assert(g <= currentGcd);
         if(g < currentGcd){
           if(s.sgn() == 0){
             Debug("arith::dio") << "extendedReduction drop" << endl;
-            CVC4_DCHECK(inQueueCoeff.divides(currentGcd));
+            Assert(inQueueCoeff.divides(currentGcd));
             current = *iter;
             currentCoeff = inQueueCoeff;
             currentGcd = inQueueCoeff.abs();
@@ -398,12 +398,12 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
             Debug("arith::dio") << "extendedReduction combine" << endl;
             TrailIndex next = combineEqAtIndexes(current, s, inQueue, t);
 
-            CVC4_DCHECK(d_trail[next]
-                            .d_eq.getPolynomial()
-                            .getCoefficient(vl)
-                            .getValue()
-                            .getNumerator()
-                        == g);
+            Assert(d_trail[next]
+                       .d_eq.getPolynomial()
+                       .getCoefficient(vl)
+                       .getValue()
+                       .getNumerator()
+                   == g);
 
             current = next;
             currentCoeff = g;
@@ -421,7 +421,7 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
 }
 
 bool DioSolver::processEquations(bool allowDecomposition){
-  CVC4_DCHECK(!inConflict());
+  Assert(!inConflict());
 
   enqueueInputConstraints();
   while(! queueEmpty() && !inConflict()){
@@ -430,12 +430,12 @@ bool DioSolver::processEquations(bool allowDecomposition){
     TrailIndex minimum = d_currentF.front();
     TrailIndex reduceIndex;
 
-    CVC4_DCHECK(inRange(minimum));
-    CVC4_DCHECK(!inConflict());
+    Assert(inRange(minimum));
+    Assert(!inConflict());
 
     Debug("arith::dio") << "processEquations " << minimum << " : " << d_trail[minimum].d_eq.getNode() << endl;
 
-    CVC4_DCHECK(queueConditions(minimum));
+    Assert(queueConditions(minimum));
 
     bool canDirectlySolve = d_trail[minimum].d_minimalMonomial.absCoefficientIsOne();
 
@@ -482,7 +482,7 @@ Node DioSolver::processEquationsForConflict(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_conflictTimer);
   ++(d_statistics.d_conflictCalls);
 
-  CVC4_DCHECK(!inConflict());
+  Assert(!inConflict());
   if(processEquations(true)){
     ++(d_statistics.d_conflicts);
     return proveIndex(getConflictIndex());
@@ -495,7 +495,7 @@ SumPair DioSolver::processEquationsForCut(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_cutTimer);
   ++(d_statistics.d_cutCalls);
 
-  CVC4_DCHECK(!inConflict());
+  Assert(!inConflict());
   if(processEquations(true)){
     ++(d_statistics.d_cuts);
     return purifyIndex(getConflictIndex());
@@ -524,10 +524,9 @@ SumPair DioSolver::purifyIndex(TrailIndex i){
       Constant a = vsum.getCoefficient(VarList(var));
       if(!a.isZero()){
         const SumPair& sj = d_trail[d_subs[i].d_constraint].d_eq;
-        CVC4_DCHECK(sj.getPolynomial().getCoefficient(VarList(var)).isOne());
+        Assert(sj.getPolynomial().getCoefficient(VarList(var)).isOne());
         SumPair newSi = (curr * negOne) + (sj * a);
-        CVC4_DCHECK(
-            newSi.getPolynomial().getCoefficient(VarList(var)).isZero());
+        Assert(newSi.getPolynomial().getCoefficient(VarList(var)).isZero());
         curr = newSi;
       }
     }
@@ -619,18 +618,18 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
   const Polynomial& p = si.getPolynomial();
 #endif
 
-  CVC4_DCHECK(p.isIntegral());
+  Assert(p.isIntegral());
 
-  CVC4_DCHECK(p.selectAbsMinimum() == d_trail[i].d_minimalMonomial);
+  Assert(p.selectAbsMinimum() == d_trail[i].d_minimalMonomial);
   const Monomial av = d_trail[i].d_minimalMonomial;
 
   VarList vl = av.getVarList();
-  CVC4_DCHECK(vl.singleton());
+  Assert(vl.singleton());
   Variable var = vl.getHead();
   Constant a = av.getConstant();
   Integer a_abs = a.getValue().getNumerator().abs();
 
-  CVC4_DCHECK(a_abs == 1);
+  Assert(a_abs == 1);
 
   TrailIndex ci = !a.isNegative() ? scaleEqAtIndex(i, Integer(-1)) : i;
 
@@ -638,8 +637,8 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
   d_subs.push_back(Substitution(Node::null(), var, ci));
 
   Debug("arith::dio") << "after solveIndex " <<  d_trail[ci].d_eq.getNode() << " for " << av.getNode() << endl;
-  CVC4_DCHECK(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
-              == Constant::mkConstant(-1));
+  Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
+         == Constant::mkConstant(-1));
 
   return make_pair(subBy, i);
 }
@@ -655,31 +654,31 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
   const Polynomial& p = si.getPolynomial();
 #endif
 
-  CVC4_DCHECK(p.isIntegral());
+  Assert(p.isIntegral());
 
-  CVC4_DCHECK(p.selectAbsMinimum() == d_trail[i].d_minimalMonomial);
+  Assert(p.selectAbsMinimum() == d_trail[i].d_minimalMonomial);
   const Monomial& av = d_trail[i].d_minimalMonomial;
 
   VarList vl = av.getVarList();
-  CVC4_DCHECK(vl.singleton());
+  Assert(vl.singleton());
   Variable var = vl.getHead();
   Constant a = av.getConstant();
   Integer a_abs = a.getValue().getNumerator().abs();
 
-  CVC4_DCHECK(a_abs > 1);
+  Assert(a_abs > 1);
 
   //It is not sufficient to reduce the case where abs(a) == 1 to abs(a) > 1.
   //We need to handle both cases seperately to ensure termination.
   Node qr = SumPair::computeQR(si, a.getValue().getNumerator());
 
-  CVC4_DCHECK(qr.getKind() == kind::PLUS);
-  CVC4_DCHECK(qr.getNumChildren() == 2);
+  Assert(qr.getKind() == kind::PLUS);
+  Assert(qr.getNumChildren() == 2);
   SumPair q = SumPair::parseSumPair(qr[0]);
   SumPair r = SumPair::parseSumPair(qr[1]);
 
-  CVC4_DCHECK(q.getPolynomial().getCoefficient(vl) == Constant::mkConstant(1));
+  Assert(q.getPolynomial().getCoefficient(vl) == Constant::mkConstant(1));
 
-  CVC4_DCHECK(!r.isZero());
+  Assert(!r.isZero());
   Node freshNode = makeIntegerVariable();
   Variable fresh(freshNode);
   SumPair fresh_one=SumPair::mkSumPair(fresh);
@@ -696,8 +695,8 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   Debug("arith::dio") << "Decompose ci(" << ci <<":" <<  d_trail[ci].d_eq.getNode()
                       << ") for " << d_trail[i].d_minimalMonomial.getNode() << endl;
-  CVC4_DCHECK(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
-              == Constant::mkConstant(-1));
+  Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
+         == Constant::mkConstant(-1));
 
   SumPair newFact = r + fresh_a;
 
@@ -720,14 +719,14 @@ DioSolver::TrailIndex DioSolver::applySubstitution(DioSolver::SubIndex si, DioSo
   Polynomial vsum = curr.getPolynomial();
 
   Constant a = vsum.getCoefficient(VarList(var));
-  CVC4_DCHECK(a.isIntegral());
+  Assert(a.isIntegral());
   if(!a.isZero()){
     Integer one(1);
     TrailIndex afterSub = combineEqAtIndexes(ti, one, subIndex, a.getValue().getNumerator());
-    CVC4_DCHECK(d_trail[afterSub]
-                    .d_eq.getPolynomial()
-                    .getCoefficient(VarList(var))
-                    .isZero());
+    Assert(d_trail[afterSub]
+               .d_eq.getPolynomial()
+               .getCoefficient(VarList(var))
+               .isZero());
     return afterSub;
   }else{
     return ti;
@@ -741,9 +740,9 @@ DioSolver::TrailIndex DioSolver::reduceByGCD(DioSolver::TrailIndex ti){
   Constant c = sp.getConstant();
 
   Debug("arith::dio") << "reduceByGCD " << vsum.getNode() << endl;
-  CVC4_DCHECK(!vsum.isConstant());
+  Assert(!vsum.isConstant());
   Integer g = vsum.gcd();
-  CVC4_DCHECK(g >= 1);
+  Assert(g >= 1);
   Debug("arith::dio") << "gcd("<< vsum.getNode() <<")=" << g << " " << c.getValue() << endl;
   if(g.divides(c.getValue().getNumerator())){
     if(g > 1){
@@ -800,7 +799,7 @@ void DioSolver::subAndReduceCurrentFByIndex(DioSolver::SubIndex subIndex){
       d_currentF[writeIter] = curr;
       ++writeIter;
     }else{
-      CVC4_DCHECK(nextTI != curr);
+      Assert(nextTI != curr);
 
       if(triviallyUnsat(nextTI)){
         raiseConflict(nextTI);
@@ -808,7 +807,7 @@ void DioSolver::subAndReduceCurrentFByIndex(DioSolver::SubIndex subIndex){
         TrailIndex nextNextTI = reduceByGCD(nextTI);
 
         if(!(inConflict() || anyCoefficientExceedsMaximum(nextNextTI))){
-          CVC4_DCHECK(queueConditions(nextNextTI));
+          Assert(queueConditions(nextNextTI));
           d_currentF[writeIter] = nextNextTI;
           ++writeIter;
         }

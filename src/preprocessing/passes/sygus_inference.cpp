@@ -40,7 +40,7 @@ PreprocessingPassResult SygusInference::applyInternal(
   // see if we can succesfully solve the input as a sygus problem
   if (solveSygus(assertionsToPreprocess->ref(), funs, sols))
   {
-    CVC4_DCHECK(funs.size() == sols.size());
+    Assert(funs.size() == sols.size());
     // if so, sygus gives us function definitions
     SmtEngine* master_smte = smt::currentSmtEngine();
     for (unsigned i = 0, size = funs.size(); i < size; i++)
@@ -161,7 +161,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
         }
         else
         {
-          CVC4_DCHECK(vnum == qtvars[tnv].size());
+          Assert(vnum == qtvars[tnv].size());
           qtvars[tnv].push_back(v);
           qvars.push_back(v);
         }
@@ -198,9 +198,8 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
         else if (cur.isVar() && cur.getKind() != BOUND_VARIABLE)
         {
           // a free variable is a 0-argument function to synthesize
-          CVC4_DCHECK(
-              std::find(free_functions.begin(), free_functions.end(), cur)
-              == free_functions.end());
+          Assert(std::find(free_functions.begin(), free_functions.end(), cur)
+                 == free_functions.end());
           free_functions.push_back(cur);
         }
         else if (cur.getKind() == FORALL)
@@ -243,7 +242,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     return false;
   }
 
-  CVC4_DCHECK(!processed_assertions.empty());
+  Assert(!processed_assertions.empty());
   // conjunction of the assertions
   Trace("sygus-infer") << "Construct body..." << std::endl;
   Node body;
@@ -324,7 +323,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     Node ffv = Node::fromExpr(it->first);
     std::map<Node, Node>::iterator itffv = ff_var_to_ff.find(ffv);
     // all synthesis solutions should correspond to a variable we introduced
-    CVC4_DCHECK(itffv != ff_var_to_ff.end());
+    Assert(itffv != ff_var_to_ff.end());
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;

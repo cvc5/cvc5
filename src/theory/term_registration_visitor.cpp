@@ -161,8 +161,8 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   }
   Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): now registered with " << Theory::setToString(visitedTheories) << std::endl;
 
-  CVC4_DCHECK(d_visited.find(current) != d_visited.end());
-  CVC4_DCHECK(alreadyVisited(current, parent));
+  Assert(d_visited.find(current) != d_visited.end());
+  Assert(alreadyVisited(current, parent));
 }
 
 std::string SharedTermsVisitor::toString() const {
@@ -312,8 +312,8 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
     d_sharedTerms.addSharedTerm(d_atom, current, visitedTheories);
   }
 
-  CVC4_DCHECK(d_visited.find(current) != d_visited.end());
-  CVC4_DCHECK(alreadyVisited(current, parent));
+  Assert(d_visited.find(current) != d_visited.end());
+  Assert(alreadyVisited(current, parent));
 }
 
 void SharedTermsVisitor::start(TNode node) {

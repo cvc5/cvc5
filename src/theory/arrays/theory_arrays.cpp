@@ -189,8 +189,8 @@ void TheoryArrays::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 bool TheoryArrays::ppDisequal(TNode a, TNode b) {
   bool termsExist = d_ppEqualityEngine.hasTerm(a) && d_ppEqualityEngine.hasTerm(b);
-  CVC4_DCHECK(!termsExist || !a.isConst() || !b.isConst() || a == b
-              || d_ppEqualityEngine.areDisequal(a, b, false));
+  Assert(!termsExist || !a.isConst() || !b.isConst() || a == b
+         || d_ppEqualityEngine.areDisequal(a, b, false));
   return ((termsExist && d_ppEqualityEngine.areDisequal(a, b, false)) ||
           Rewriter::rewrite(a.eqNode(b)) == d_false);
 }
@@ -285,7 +285,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
         write_i = write_i[0];
       }
     }
-    CVC4_DCHECK(result.getNumChildren() > 0);
+    Assert(result.getNumChildren() > 0);
     if (result.getNumChildren() == 1) {
       return result.getChild(0);
     }
@@ -448,7 +448,7 @@ TNode TheoryArrays::weakEquivGetRep(TNode node) {
 }
 
 TNode TheoryArrays::weakEquivGetRepIndex(TNode node, TNode index) {
-  CVC4_DCHECK(!index.isNull());
+  Assert(!index.isNull());
   TNode pointer, index2;
   while (true) {
     pointer = d_infoMap.getWeakEquivPointer(node);
@@ -472,7 +472,7 @@ TNode TheoryArrays::weakEquivGetRepIndex(TNode node, TNode index) {
 void TheoryArrays::visitAllLeaves(TNode reason, vector<TNode>& conjunctions) {
   switch (reason.getKind()) {
     case kind::AND:
-      CVC4_DCHECK(reason.getNumChildren() == 2);
+      Assert(reason.getNumChildren() == 2);
       visitAllLeaves(reason[0], conjunctions);
       visitAllLeaves(reason[1], conjunctions);
       break;
@@ -488,7 +488,7 @@ void TheoryArrays::visitAllLeaves(TNode reason, vector<TNode>& conjunctions) {
 }
 
 void TheoryArrays::weakEquivBuildCond(TNode node, TNode index, vector<TNode>& conjunctions) {
-  CVC4_DCHECK(!index.isNull());
+  Assert(!index.isNull());
   TNode pointer, index2;
   while (true) {
     pointer = d_infoMap.getWeakEquivPointer(node);
@@ -514,7 +514,7 @@ void TheoryArrays::weakEquivBuildCond(TNode node, TNode index, vector<TNode>& co
         return;
       }
       TNode reason = d_infoMap.getWeakEquivSecondaryReason(node);
-      CVC4_DCHECK(!reason.isNull());
+      Assert(!reason.isNull());
       visitAllLeaves(reason, conjunctions);
       node = secondary;
     }
@@ -539,7 +539,7 @@ void TheoryArrays::weakEquivMakeRepIndex(TNode node) {
     return;
   }
   TNode index = d_infoMap.getWeakEquivIndex(node);
-  CVC4_DCHECK(!index.isNull());
+  Assert(!index.isNull());
   TNode index2 = d_infoMap.getWeakEquivIndex(secondary);
   Node reason;
   TNode next;
@@ -615,21 +615,21 @@ void TheoryArrays::checkWeakEquiv(bool arraysMerged) {
     TNode weakEquivRep = weakEquivGetRep(rep);
     for (; !eqc_i.isFinished(); ++eqc_i) {
       TNode n = *eqc_i;
-      CVC4_DCHECK(!arraysMerged || weakEquivGetRep(n) == weakEquivRep);
+      Assert(!arraysMerged || weakEquivGetRep(n) == weakEquivRep);
       TNode pointer = d_infoMap.getWeakEquivPointer(n);
       TNode index = d_infoMap.getWeakEquivIndex(n);
       TNode secondary = d_infoMap.getWeakEquivSecondary(n);
-      CVC4_DCHECK(pointer.isNull() == (weakEquivGetRep(n) == n));
-      CVC4_DCHECK(!pointer.isNull() || secondary.isNull());
-      CVC4_DCHECK(!index.isNull() || secondary.isNull());
-      CVC4_DCHECK(d_infoMap.getWeakEquivSecondaryReason(n).isNull()
-                  || !secondary.isNull());
+      Assert(pointer.isNull() == (weakEquivGetRep(n) == n));
+      Assert(!pointer.isNull() || secondary.isNull());
+      Assert(!index.isNull() || secondary.isNull());
+      Assert(d_infoMap.getWeakEquivSecondaryReason(n).isNull()
+             || !secondary.isNull());
       if (!pointer.isNull()) {
         if (index.isNull()) {
-          CVC4_DCHECK(d_equalityEngine.areEqual(n, pointer));
+          Assert(d_equalityEngine.areEqual(n, pointer));
         }
         else {
-          CVC4_DCHECK(
+          Assert(
               (n.getKind() == kind::STORE && n[0] == pointer && n[1] == index)
               || (pointer.getKind() == kind::STORE && pointer[0] == n
                   && pointer[1] == index));
@@ -669,7 +669,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   case kind::SELECT: {
     // Invariant: array terms should be preregistered before being added to the equality engine
     if (d_equalityEngine.hasTerm(node)) {
-      CVC4_DCHECK(d_isPreRegistered.find(node) != d_isPreRegistered.end());
+      Assert(d_isPreRegistered.find(node) != d_isPreRegistered.end());
       return;
     }
     // Reads
@@ -687,7 +687,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     {
       d_equalityEngine.addTerm(node);
     }
-    CVC4_DCHECK((d_isPreRegistered.insert(node), true));
+    Assert((d_isPreRegistered.insert(node), true));
 
     if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
       // Apply RIntro1 rule to any stores equal to store if not done already
@@ -698,22 +698,22 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
         TNode s = *it;
         if (!d_infoMap.rIntro1Applied(s)) {
           d_infoMap.setRIntro1Applied(s);
-          CVC4_DCHECK(s.getKind() == kind::STORE);
+          Assert(s.getKind() == kind::STORE);
           Node ni = nm->mkNode(kind::SELECT, s, s[1]);
           if (ni != node) {
             preRegisterTermInternal(ni);
           }
           d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, d_reasonRow1);
-          CVC4_DCHECK(++it == stores->end());
+          Assert(++it == stores->end());
         }
       }
     }
 
-    CVC4_DCHECK(d_equalityEngine.getRepresentative(store) == store);
+    Assert(d_equalityEngine.getRepresentative(store) == store);
     d_infoMap.addIndex(store, node[1]);
 
     // Synchronize d_constReadsContext with SAT context
-    CVC4_DCHECK(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
+    Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
     while (d_constReadsContext->getLevel() < getSatContext()->getLevel()) {
       d_constReadsContext->push();
     }
@@ -751,17 +751,17 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     if (node.isConst()) {
       // Can't use d_mayEqualEqualityEngine to merge node with a because they are both constants,
       // so just set the default value manually for node.
-      CVC4_DCHECK(a == node[0]);
+      Assert(a == node[0]);
       d_mayEqualEqualityEngine.addTerm(node);
-      CVC4_DCHECK(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-      CVC4_DCHECK(d_mayEqualEqualityEngine.getRepresentative(a) == a);
+      Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
+      Assert(d_mayEqualEqualityEngine.getRepresentative(a) == a);
       DefValMap::iterator it = d_defValues.find(a);
-      CVC4_DCHECK(it != d_defValues.end());
+      Assert(it != d_defValues.end());
       d_defValues[node] = (*it).second;
     }
     else {
       d_mayEqualEqualityEngine.assertEquality(node.eqNode(a), true, d_true);
-      CVC4_DCHECK(d_mayEqualEqualityEngine.consistent());
+      Assert(d_mayEqualEqualityEngine.consistent());
     }
 
     if (!options::arraysLazyRIntro1() || options::arraysWeakEquivalence()) {
@@ -783,8 +783,8 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
 
     //Add-Store for Weak Equivalence
     if (options::arraysWeakEquivalence()) {
-      CVC4_DCHECK(weakEquivGetRep(node[0]) == weakEquivGetRep(a));
-      CVC4_DCHECK(weakEquivGetRep(node) == node);
+      Assert(weakEquivGetRep(node[0]) == weakEquivGetRep(a));
+      Assert(weakEquivGetRep(node) == node);
       d_infoMap.setWeakEquivPointer(node, node[0]);
       d_infoMap.setWeakEquivIndex(node, node[1]);
 #ifdef CVC4_ASSERTIONS
@@ -806,7 +806,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     }
     d_infoMap.setConstArr(node, node);
     d_mayEqualEqualityEngine.addTerm(node);
-    CVC4_DCHECK(d_mayEqualEqualityEngine.getRepresentative(node) == node);
+    Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
     d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
     d_defValues[node] = defaultValue;
     break;
@@ -817,7 +817,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       // The may equal needs the node
       d_mayEqualEqualityEngine.addTerm(node);
       d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
-      CVC4_DCHECK(d_equalityEngine.getSize(node) == 1);
+      Assert(d_equalityEngine.getSize(node) == 1);
     }
     else {
       d_equalityEngine.addTerm(node);
@@ -827,7 +827,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   }
   // Invariant: preregistered terms are exactly the terms in the equality engine
   // Disabled, see comment above for kind::EQUAL
-  // CVC4_DCHECK(d_equalityEngine.hasTerm(node) ||
+  // Assert(d_equalityEngine.hasTerm(node) ||
   // !d_equalityEngine.consistent());
 }
 
@@ -885,7 +885,7 @@ void TheoryArrays::addSharedTerm(TNode t) {
 
 
 EqualityStatus TheoryArrays::getEqualityStatus(TNode a, TNode b) {
-  CVC4_DCHECK(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
+  Assert(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
   if (d_equalityEngine.areEqual(a, b)) {
     // The terms are implied to be equal
     return EQUALITY_TRUE;
@@ -904,7 +904,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
 
   TNode x = r1[1];
   TNode y = r2[1];
-  CVC4_DCHECK(d_equalityEngine.isTriggerTerm(x, THEORY_ARRAYS));
+  Assert(d_equalityEngine.isTriggerTerm(x, THEORY_ARRAYS));
 
   if (d_equalityEngine.hasTerm(x) && d_equalityEngine.hasTerm(y) &&
       (d_equalityEngine.areEqual(x,y) || d_equalityEngine.areDisequal(x,y,false))) {
@@ -920,8 +920,8 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
 
   if (r1[0] != r2[0]) {
     // If arrays are known to be disequal, or cannot become equal, we can continue
-    CVC4_DCHECK(d_mayEqualEqualityEngine.hasTerm(r1[0])
-                && d_mayEqualEqualityEngine.hasTerm(r2[0]));
+    Assert(d_mayEqualEqualityEngine.hasTerm(r1[0])
+           && d_mayEqualEqualityEngine.hasTerm(r2[0]));
     if (r1[0].getType() != r2[0].getType() ||
         d_equalityEngine.areDisequal(r1[0], r2[0], false)) {
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): arrays can't be equal, skipping" << std::endl;
@@ -944,7 +944,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
   switch (eqStatusDomain) {
     case EQUALITY_TRUE_AND_PROPAGATED:
       // Should have been propagated to us
-      CVC4_DCHECK(false);
+      Assert(false);
       break;
     case EQUALITY_TRUE:
       // Missed propagation - need to add the pair so that theory engine can force propagation
@@ -952,7 +952,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
       break;
     case EQUALITY_FALSE_AND_PROPAGATED:
       // Should have been propagated to us
-      CVC4_DCHECK(false);
+      Assert(false);
     case EQUALITY_FALSE:
     case EQUALITY_FALSE_IN_MODEL:
       // This is unlikely, but I think it could happen
@@ -982,8 +982,8 @@ void TheoryArrays::computeCareGraph()
         if (eqStatusArr != EQUALITY_UNKNOWN) {
           continue;
         }
-        CVC4_DCHECK(d_valuation.getEqualityStatus((*it1), (*it2))
-                    == EQUALITY_UNKNOWN);
+        Assert(d_valuation.getEqualityStatus((*it1), (*it2))
+               == EQUALITY_UNKNOWN);
         addCarePair((*it1), (*it2));
         ++d_numSharedArrayVarSplits;
         return;
@@ -992,7 +992,7 @@ void TheoryArrays::computeCareGraph()
   }
   if (d_sharedTerms) {
     // Synchronize d_constReadsContext with SAT context
-    CVC4_DCHECK(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
+    Assert(d_constReadsContext->getLevel() <= getSatContext()->getLevel());
     while (d_constReadsContext->getLevel() < getSatContext()->getLevel()) {
       d_constReadsContext->push();
     }
@@ -1008,7 +1008,7 @@ void TheoryArrays::computeCareGraph()
       TNode r1 = d_reads[i];
 
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checking read " << r1 << std::endl;
-      CVC4_DCHECK(d_equalityEngine.hasTerm(r1));
+      Assert(d_equalityEngine.hasTerm(r1));
       TNode x = r1[1];
 
       if (!d_equalityEngine.isTriggerTerm(x, THEORY_ARRAYS)) {
@@ -1043,12 +1043,12 @@ void TheoryArrays::computeCareGraph()
         // We don't know the model value for x.  Just do brute force examination of all pairs of reads
         for (unsigned j = 0; j < size; ++j) {
           TNode r2 = d_reads[j];
-          CVC4_DCHECK(d_equalityEngine.hasTerm(r2));
+          Assert(d_equalityEngine.hasTerm(r2));
           checkPair(r1,r2);
         }
         for (unsigned j = 0; j < d_constReadsList.size(); ++j) {
           TNode r2 = d_constReadsList[j];
-          CVC4_DCHECK(d_equalityEngine.hasTerm(r2));
+          Assert(d_equalityEngine.hasTerm(r2));
           checkPair(r1,r2);
         }
       }
@@ -1140,7 +1140,7 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
           size_t it = 0;
           for(; it < instores->size(); ++it) {
             TNode instore = (*instores)[it];
-            CVC4_DCHECK(instore.getKind() == kind::STORE);
+            Assert(instore.getKind() == kind::STORE);
             if (termSet.find(instore) != termSet.end() &&
                 !d_equalityEngine.areEqual(instore[1],n[1])) {
               Node r = nm->mkNode(kind::SELECT, instore, n[1]);
@@ -1210,8 +1210,8 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
         TypeNode valueType = nrep.getType().getArrayConstituentType();
         rep = defaultValuesSet.nextTypeEnum(valueType);
         if (rep.isNull()) {
-          CVC4_DCHECK(defaultValuesSet.getSet(valueType)->begin()
-                      != defaultValuesSet.getSet(valueType)->end());
+          Assert(defaultValuesSet.getSet(valueType)->begin()
+                 != defaultValuesSet.getSet(valueType)->end());
           rep = *(defaultValuesSet.getSet(valueType)->begin());
         }
         Trace("arrays-models") << "New default value = " << rep << endl;
@@ -1304,7 +1304,7 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
     Node d = skolem.eqNode(ref);
     Debug("arrays-model-based") << "Asserting skolem equality " << d << endl;
     d_equalityEngine.assertEquality(d, true, d_true);
-    CVC4_DCHECK(!d_conflict);
+    Assert(!d_conflict);
     d_skolemAssertions.push_back(d);
     d_skolemIndex = d_skolemIndex + 1;
   }
@@ -1337,11 +1337,11 @@ void TheoryArrays::check(Effort e) {
     if (!assertion.isPreregistered) {
       if (atom.getKind() == kind::EQUAL) {
         if (!d_equalityEngine.hasTerm(atom[0])) {
-          CVC4_DCHECK(atom[0].isConst());
+          Assert(atom[0].isConst());
           d_equalityEngine.addTerm(atom[0]);
         }
         if (!d_equalityEngine.hasTerm(atom[1])) {
-          CVC4_DCHECK(atom[1].isConst());
+          Assert(atom[1].isConst());
           d_equalityEngine.addTerm(atom[1]);
         }
       }
@@ -1487,18 +1487,17 @@ void TheoryArrays::check(Effort e) {
       CTNodeList::const_iterator it2 = bucketList->begin(), iend = bucketList->end();
       for (; it2 != iend; ++it2) {
         const TNode& r2 = *it2;
-        CVC4_DCHECK(r2.getKind() == kind::SELECT);
-        CVC4_DCHECK(mayRep
-                    == d_mayEqualEqualityEngine.getRepresentative(r2[0]));
-        CVC4_DCHECK(iRep == d_equalityEngine.getRepresentative(r2[1]));
+        Assert(r2.getKind() == kind::SELECT);
+        Assert(mayRep == d_mayEqualEqualityEngine.getRepresentative(r2[0]));
+        Assert(iRep == d_equalityEngine.getRepresentative(r2[1]));
         if (d_equalityEngine.areEqual(r, r2)) {
           continue;
         }
         if (weakEquivGetRepIndex(r[0], r[1]) == weakEquivGetRepIndex(r2[0], r[1])) {
           // add lemma: r[1] = r2[1] /\ cond(r[0],r2[0]) => r = r2
           vector<TNode> conjunctions;
-          CVC4_DCHECK(d_equalityEngine.areEqual(r, Rewriter::rewrite(r)));
-          CVC4_DCHECK(d_equalityEngine.areEqual(r2, Rewriter::rewrite(r2)));
+          Assert(d_equalityEngine.areEqual(r, Rewriter::rewrite(r)));
+          Assert(d_equalityEngine.areEqual(r2, Rewriter::rewrite(r2)));
           Node lemma = Rewriter::rewrite(r).eqNode(Rewriter::rewrite(r2)).negate();
           d_permRef.push_back(lemma);
           conjunctions.push_back(lemma);
@@ -1538,7 +1537,7 @@ void TheoryArrays::check(Effort e) {
 
 Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned startIndex)
 {
-  CVC4_DCHECK(conjunctions.size() > 0);
+  Assert(conjunctions.size() > 0);
 
   std::set<TNode> all;
   std::set<TNode> explained;
@@ -1567,9 +1566,9 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
           explained.insert(t);
         } else {
           // EXT lemma
-          CVC4_DCHECK(t[1].getKind() == kind::NOT
-                      && t[1][0].getKind() == kind::EQUAL);
-          CVC4_DCHECK(t[0].getKind() == kind::EQUAL);
+          Assert(t[1].getKind() == kind::NOT
+                 && t[1][0].getKind() == kind::EQUAL);
+          Assert(t[0].getKind() == kind::EQUAL);
           all.insert(t[0].notNode());
           explained.insert(t);
         }
@@ -1628,7 +1627,7 @@ void TheoryArrays::setNonLinear(TNode a)
   // Propagate non-linearity down chain of stores
   for( ; it < st_a->size(); ++it) {
     TNode store = (*st_a)[it];
-    CVC4_DCHECK(store.getKind() == kind::STORE);
+    Assert(store.getKind() == kind::STORE);
     setNonLinear(store[0]);
   }
 
@@ -1640,7 +1639,7 @@ void TheoryArrays::setNonLinear(TNode a)
     it = 0;
     for ( ; it < inst_a->size(); ++it) {
       TNode store = (*inst_a)[it];
-      CVC4_DCHECK(store.getKind() == kind::STORE);
+      Assert(store.getKind() == kind::STORE);
       TNode j = store[1];
       TNode c = store[0];
       lem = std::make_tuple(store, c, j, i);
@@ -1673,23 +1672,22 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
   ++it;
   if (it != astores->end()) {
     // More than one store: should have already been applied
-    CVC4_DCHECK(d_infoMap.rIntro1Applied(*it));
-    CVC4_DCHECK(d_infoMap.rIntro1Applied(*(--it)));
+    Assert(d_infoMap.rIntro1Applied(*it));
+    Assert(d_infoMap.rIntro1Applied(*(--it)));
     return;
   }
 
   // Exactly one store - see if we need to apply RIntro1
   --it;
   TNode s = *it;
-  CVC4_DCHECK(s.getKind() == kind::STORE);
+  Assert(s.getKind() == kind::STORE);
   if (d_infoMap.rIntro1Applied(s)) {
     // RIntro1 already applied to s
     return;
   }
 
   // Should be no reads from this EC
-  CVC4_DCHECK(d_infoMap.getIndices(a)->begin()
-              == d_infoMap.getIndices(a)->end());
+  Assert(d_infoMap.getIndices(a)->begin() == d_infoMap.getIndices(a)->end());
 
   bool apply = false;
   if (d_infoMap.getStores(b)->size() > 0) {
@@ -1708,8 +1706,8 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
       while (e1.getKind() == kind::STORE) {
         e1 = e1[0];
       }
-      CVC4_DCHECK(d_equalityEngine.hasTerm(e1));
-      CVC4_DCHECK(d_equalityEngine.hasTerm(b));
+      Assert(d_equalityEngine.hasTerm(e1));
+      Assert(d_equalityEngine.hasTerm(b));
       if (d_equalityEngine.areEqual(e1, b)) {
         apply = true;
       }
@@ -1731,7 +1729,7 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
 void TheoryArrays::mergeArrays(TNode a, TNode b)
 {
   // Note: a is the new representative
-  CVC4_DCHECK(a.getType().isArray() && b.getType().isArray());
+  Assert(a.getType().isArray() && b.getType().isArray());
 
   if (d_mergeInProgress) {
     // Nested call to mergeArrays, just push on the queue and return
@@ -1747,7 +1745,7 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
     // been merged with another array after it got queued up by the equality engine,
     // so we take its representative to be safe.
     a = d_equalityEngine.getRepresentative(a);
-    CVC4_DCHECK(d_equalityEngine.getRepresentative(b) == a);
+    Assert(d_equalityEngine.getRepresentative(b) == a);
     Trace("arrays-merge") << spaces(getSatContext()->getLevel()) << "Arrays::merge: (" << a << ", " << b << ")\n";
 
     if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
@@ -1776,7 +1774,7 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
           // Check for new non-linear arrays
           const CTNodeList* astores = d_infoMap.getStores(a);
           const CTNodeList* bstores = d_infoMap.getStores(b);
-          CVC4_DCHECK(astores->size() <= 1 && bstores->size() <= 1);
+          Assert(astores->size() <= 1 && bstores->size() <= 1);
           if (astores->size() > 0 && bstores->size() > 0) {
             setNonLinear(a);
             setNonLinear(b);
@@ -1819,7 +1817,7 @@ void TheoryArrays::mergeArrays(TNode a, TNode b)
       defValue = (*it2).second;
     }
     d_mayEqualEqualityEngine.assertEquality(a.eqNode(b), true, d_true);
-    CVC4_DCHECK(d_mayEqualEqualityEngine.consistent());
+    Assert(d_mayEqualEqualityEngine.consistent());
     if (!defValue.isNull()) {
       mayRepA = d_mayEqualEqualityEngine.getRepresentative(a);
       d_defValues[mayRepA] = defValue;
@@ -1857,8 +1855,8 @@ void TheoryArrays::checkStore(TNode a) {
   if(Trace.isOn("arrays-cri")) {
     d_infoMap.getInfo(a)->print();
   }
-  CVC4_DCHECK(a.getType().isArray());
-  CVC4_DCHECK(a.getKind() == kind::STORE);
+  Assert(a.getType().isArray());
+  Assert(a.getKind() == kind::STORE);
   TNode b = a[0];
   TNode i = a[1];
 
@@ -1888,8 +1886,8 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
   if(Trace.isOn("arrays-cri")) {
     d_infoMap.getInfo(a)->print();
   }
-  CVC4_DCHECK(a.getType().isArray());
-  CVC4_DCHECK(d_equalityEngine.getRepresentative(a) == a);
+  Assert(a.getType().isArray());
+  Assert(d_equalityEngine.getRepresentative(a) == a);
 
   TNode constArr = d_infoMap.getConstArr(a);
   if (!constArr.isNull()) {
@@ -1909,7 +1907,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
 
   for(; it < stores->size(); ++it) {
     TNode store = (*stores)[it];
-    CVC4_DCHECK(store.getKind() == kind::STORE);
+    Assert(store.getKind() == kind::STORE);
     TNode j = store[1];
     if (i == j) continue;
     lem = std::make_tuple(store, store[0], j, i);
@@ -1921,7 +1919,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     it = 0;
     for(; it < instores->size(); ++it) {
       TNode instore = (*instores)[it];
-      CVC4_DCHECK(instore.getKind() == kind::STORE);
+      Assert(instore.getKind() == kind::STORE);
       TNode j = instore[1];
       if (i == j) continue;
       lem = std::make_tuple(instore, instore[0], j, i);
@@ -1968,7 +1966,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
     its = 0;
     for ( ; its < st_b->size(); ++its) {
       TNode store = (*st_b)[its];
-      CVC4_DCHECK(store.getKind() == kind::STORE);
+      Assert(store.getKind() == kind::STORE);
       TNode j = store[1];
       TNode c = store[0];
       lem = std::make_tuple(store, c, j, i);
@@ -1983,7 +1981,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
       its = 0;
       for ( ; its < inst_b->size(); ++its) {
         TNode store = (*inst_b)[its];
-        CVC4_DCHECK(store.getKind() == kind::STORE);
+        Assert(store.getKind() == kind::STORE);
         TNode j = store[1];
         TNode c = store[0];
         lem = std::make_tuple(store, c, j, i);
@@ -2003,7 +2001,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
   TNode a, b, i, j;
   std::tie(a, b, i, j) = lem;
 
-  CVC4_DCHECK(a.getType().isArray() && b.getType().isArray());
+  Assert(a.getType().isArray() && b.getType().isArray());
   if (d_equalityEngine.areEqual(a,b) ||
       d_equalityEngine.areEqual(i,j)) {
     return;
@@ -2060,7 +2058,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   TNode a, b, i, j;
   std::tie(a, b, i, j) = lem;
 
-  CVC4_DCHECK(a.getType().isArray() && b.getType().isArray());
+  Assert(a.getType().isArray() && b.getType().isArray());
   if (d_equalityEngine.areEqual(a,b) ||
       d_equalityEngine.areEqual(i,j)) {
     return;
@@ -2187,7 +2185,7 @@ bool TheoryArrays::dischargeLemmas()
 
     TNode a, b, i, j;
     std::tie(a, b, i, j) = l;
-    CVC4_DCHECK(a.getType().isArray() && b.getType().isArray());
+    Assert(a.getType().isArray() && b.getType().isArray());
 
     NodeManager* nm = NodeManager::currentNM();
     Node aj = nm->mkNode(kind::SELECT, a, j);

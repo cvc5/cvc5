@@ -62,7 +62,7 @@ Node DetTrace::DetTraceTrie::constructFormula(const std::vector<Node>& vars,
       disj.push_back(eq);
     }
   }
-  CVC4_DCHECK(!disj.empty());
+  Assert(!disj.empty());
   return disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
 }
 
@@ -263,7 +263,7 @@ void TransitionInference::process(Node n)
     if (comp_num == 0)
     {
       // transition
-      CVC4_DCHECK(terms.find(true) != terms.end());
+      Assert(terms.find(true) != terms.end());
       Node next = terms[true];
       next = Rewriter::rewrite(next.substitute(
           vars.begin(), vars.end(), svars.begin(), svars.end()));
@@ -284,7 +284,7 @@ void TransitionInference::process(Node n)
       std::vector<Node> rvars;
       std::vector<Node> rsvars;
       getNormalizedSubstitution(next, d_prime_vars, rvars, rsvars, disjuncts);
-      CVC4_DCHECK(rvars.size() == rsvars.size());
+      Assert(rvars.size() == rsvars.size());
       for (unsigned j = 0, dsize = disjuncts.size(); j < dsize; j++)
       {
         Trace("cegqi-inv-debug2") << "  apply " << disjuncts[j] << std::endl;
@@ -431,7 +431,7 @@ bool TransitionInference::processDisjunct(
       }
       Trace("cegqi-inv-debug") << std::endl;
     }
-    CVC4_DCHECK(!d_func.isNull());
+    Assert(!d_func.isNull());
     if (topLevel)
     {
       if (terms.find(lit_pol) == terms.end())
@@ -469,20 +469,20 @@ TraceIncStatus TransitionInference::initializeTrace(DetTrace& dt,
                                                     bool fwd)
 {
   Component& c = fwd ? d_pre : d_post;
-  CVC4_DCHECK(c.has(loc));
+  Assert(c.has(loc));
   std::map<Node, std::map<Node, Node> >::iterator it = c.d_const_eq.find(loc);
   if (it != c.d_const_eq.end())
   {
     std::vector<Node> next;
     for (const Node& v : d_vars)
     {
-      CVC4_DCHECK(it->second.find(v) != it->second.end());
+      Assert(it->second.find(v) != it->second.end());
       next.push_back(it->second[v]);
       dt.d_curr.push_back(it->second[v]);
     }
     Trace("cegqi-inv-debug2") << "dtrace : initial increment" << std::endl;
     bool ret = dt.increment(loc, next);
-    CVC4_CHECK(ret);
+    AlwaysAssert(ret);
     return TRACE_INC_SUCCESS;
   }
   return TRACE_INC_INVALID;
@@ -492,10 +492,10 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
                                                    Node loc,
                                                    bool fwd)
 {
-  CVC4_DCHECK(d_trans.has(loc));
+  Assert(d_trans.has(loc));
   // check if it satisfies the pre/post condition
   Node cc = fwd ? getPostCondition() : getPreCondition();
-  CVC4_DCHECK(!cc.isNull());
+  Assert(!cc.isNull());
   Node ccr = Rewriter::rewrite(cc.substitute(
       d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
   if (ccr.isConst())
@@ -509,9 +509,9 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
 
   // terminates?
   Node c = getTransitionRelation();
-  CVC4_DCHECK(!c.isNull());
+  Assert(!c.isNull());
 
-  CVC4_DCHECK(d_vars.size() == dt.d_curr.size());
+  Assert(d_vars.size() == dt.d_curr.size());
   Node cr = Rewriter::rewrite(c.substitute(
       d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
   if (cr.isConst())
@@ -526,7 +526,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   if (!fwd)
   {
     // only implemented in forward direction
-    CVC4_DCHECK(false);
+    Assert(false);
     return TRACE_INC_INVALID;
   }
   Component& cm = d_trans;
@@ -538,9 +538,9 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   std::vector<Node> next;
   for (const Node& pv : d_prime_vars)
   {
-    CVC4_DCHECK(it->second.find(pv) != it->second.end());
+    Assert(it->second.find(pv) != it->second.end());
     Node pvs = it->second[pv];
-    CVC4_DCHECK(d_vars.size() == dt.d_curr.size());
+    Assert(d_vars.size() == dt.d_curr.size());
     Node pvsr = Rewriter::rewrite(pvs.substitute(
         d_vars.begin(), d_vars.end(), dt.d_curr.begin(), dt.d_curr.end()));
     next.push_back(pvsr);

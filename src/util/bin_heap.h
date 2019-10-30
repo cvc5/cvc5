@@ -26,7 +26,7 @@
 #include <limits>
 #include <functional>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "base/exception.h"
 
 namespace CVC4 {
@@ -81,7 +81,7 @@ public:
   public:
     handle() : d_pointer(NULL) {}
     const T& operator*() const {
-      CVC4_DCHECK(d_pointer != NULL);
+      Assert(d_pointer != NULL);
       return d_pointer->d_elem;
     }
 
@@ -154,7 +154,7 @@ public:
   }
 
   handle push(const T& toAdded){
-    CVC4_DCHECK(size() < MAX_SIZE);
+    Assert(size() < MAX_SIZE);
     HElement* he = new HElement(size(), toAdded);
     d_heap.push_back(he);
     up_heap(he);
@@ -162,8 +162,8 @@ public:
   }
 
   void erase(handle h){
-    CVC4_DCHECK(!empty());
-    CVC4_DCHECK(debugHandle(h));
+    Assert(!empty());
+    Assert(debugHandle(h));
 
     HElement* he = h.d_pointer;
     size_t pos = he->d_pos;
@@ -187,7 +187,7 @@ public:
   }
 
   void pop(){
-    CVC4_DCHECK(!empty());
+    Assert(!empty());
     swapIndices(root(), last());
     HElement* b = d_heap.back();
     d_heap.pop_back();
@@ -199,20 +199,20 @@ public:
   }
 
   const T& top() const {
-    CVC4_DCHECK(!empty());
+    Assert(!empty());
     return (d_heap.front())->d_elem;
   }
 
 private:
   void update(handle h){
-    CVC4_DCHECK(!empty());
-    CVC4_DCHECK(debugHandle(h));
+    Assert(!empty());
+    Assert(debugHandle(h));
 
     // The relationship between h and its parent, left and right has become unknown.
     // But it is assumed that parent <= left, and parent <= right still hold.
     // Figure out whether to up_heap or down_heap.
 
-    CVC4_DCHECK(!empty());
+    Assert(!empty());
     HElement* he = h.d_pointer;
 
     size_t pos = he->d_pos;
@@ -233,8 +233,8 @@ private:
 
 public:
   void update(handle h, const T& val){
-    CVC4_DCHECK(!empty());
-    CVC4_DCHECK(debugHandle(h));
+    Assert(!empty());
+    Assert(debugHandle(h));
     h.d_pointer->d_elem = val;
     update(h);
   }
@@ -253,14 +253,14 @@ private:
   }
 
   inline static size_t parent(size_t p){
-    CVC4_DCHECK(p != root());
+    Assert(p != root());
     return (p-1)/2;
   }
   inline static size_t right(size_t p){ return 2*p+2; }
   inline static size_t left(size_t p){ return 2*p+1; }
   inline static size_t root(){ return 0; }
   inline size_t last() const{
-    CVC4_DCHECK(!empty());
+    Assert(!empty());
     return size() - 1;
   }
 
@@ -279,8 +279,8 @@ private:
 
   inline void swap(size_t i, size_t j, HElement* at_i, HElement* at_j){
     // still works if i == j
-    CVC4_DCHECK(i == at_i->d_pos);
-    CVC4_DCHECK(j == at_j->d_pos);
+    Assert(i == at_i->d_pos);
+    Assert(j == at_j->d_pos);
     d_heap[i] = at_j;
     d_heap[j] = at_i;
     at_i->d_pos = j;

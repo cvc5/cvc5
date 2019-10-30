@@ -85,7 +85,7 @@ Node AlphaEquivalenceTypeNode::registerNode(Node q,
   while (index < typs.size())
   {
     TypeNode curr = typs[index];
-    CVC4_DCHECK(typ_count.find(curr) != typ_count.end());
+    Assert(typ_count.find(curr) != typ_count.end());
     Trace("aeq-debug") << "[" << curr << " " << typ_count[curr] << "] ";
     aetn = &(aetn->d_children[curr][typ_count[curr]]);
     index = index + 1;
@@ -96,7 +96,7 @@ Node AlphaEquivalenceTypeNode::registerNode(Node q,
 
 Node AlphaEquivalenceDb::addTerm(Node q)
 {
-  CVC4_DCHECK(q.getKind() == FORALL);
+  Assert(q.getKind() == FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   //construct canonical quantified formula
   Node t = d_tc->getCanonicalTerm(q[1], true);
@@ -127,7 +127,7 @@ AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe)
 
 Node AlphaEquivalence::reduceQuantifier(Node q)
 {
-  CVC4_DCHECK(q.getKind() == FORALL);
+  Assert(q.getKind() == FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   Node ret = d_aedb.addTerm(q);
   Node lem;

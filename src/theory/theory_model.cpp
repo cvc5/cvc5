@@ -120,7 +120,7 @@ std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
 std::vector<Expr> TheoryModel::getDomainElements(Type t) const
 {
   // must be an uninterpreted sort
-  CVC4_DCHECK(t.isSort());
+  Assert(t.isSort());
   std::vector<Expr> elements;
   TypeNode tn = TypeNode::fromType(t);
   const std::vector<Node>* type_refs = d_rep_set.getTypeRepsOrNull(tn);
@@ -162,7 +162,7 @@ bool TheoryModel::isModelCoreSymbol(Expr sym) const
     return true;
   }
   Node s = Node::fromExpr(sym);
-  CVC4_DCHECK(s.isVar() && s.getKind() != BOUND_VARIABLE);
+  Assert(s.isVar() && s.getKind() != BOUND_VARIABLE);
   return d_model_core.find(s) != d_model_core.end();
 }
 
@@ -292,7 +292,7 @@ Node TheoryModel::getModelValue(TNode n, bool hasBoundVars) const
     Debug("model-getvalue-debug")
         << "get value from representative " << ret << "..." << std::endl;
     ret = d_equalityEngine->getRepresentative(ret);
-    CVC4_DCHECK(d_reps.find(ret) != d_reps.end());
+    Assert(d_reps.find(ret) != d_reps.end());
     std::map<Node, Node>::const_iterator it2 = d_reps.find(ret);
     if (it2 != d_reps.end())
     {
@@ -369,12 +369,11 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
     Node oldX = d_substitutions.getSubstitution(x);
     // check that either the old substitution is the same, or it now maps to the new substitution
     if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
-      stringstream ss;
-      ss << "Two incompatible substitutions added to TheoryModel:\n"
-         << "the term:    " << x << "\n"
-         << "old mapping: " << d_substitutions.apply(oldX) << "\n"
-         << "new mapping: " << d_substitutions.apply(t);
-      InternalError(ss.str());
+      InternalError()
+          << "Two incompatible substitutions added to TheoryModel:\n"
+          << "the term:    " << x << "\n"
+          << "old mapping: " << d_substitutions.apply(oldX) << "\n"
+          << "new mapping: " << d_substitutions.apply(t);
     }
 #endif /* CVC4_ASSERTIONS */
   }
@@ -383,7 +382,7 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
 /** add term */
 void TheoryModel::addTermInternal(TNode n)
 {
-  CVC4_DCHECK(d_equalityEngine->hasTerm(n));
+  Assert(d_equalityEngine->hasTerm(n));
   Trace("model-builder-debug2") << "TheoryModel::addTerm : " << n << std::endl;
   //must collect UF terms
   if (n.getKind()==APPLY_UF) {
@@ -414,7 +413,7 @@ void TheoryModel::addTermInternal(TNode n)
 /** assert equality */
 bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity)
 {
-  CVC4_DCHECK(d_equalityEngine->consistent());
+  Assert(d_equalityEngine->consistent());
   if (a == b && polarity) {
     return true;
   }
@@ -426,7 +425,7 @@ bool TheoryModel::assertEquality(TNode a, TNode b, bool polarity)
 /** assert predicate */
 bool TheoryModel::assertPredicate(TNode a, bool polarity)
 {
-  CVC4_DCHECK(d_equalityEngine->consistent());
+  Assert(d_equalityEngine->consistent());
   if ((a == d_true && polarity) ||
       (a == d_false && (!polarity))) {
     return true;
@@ -445,7 +444,7 @@ bool TheoryModel::assertPredicate(TNode a, bool polarity)
 bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
                                        set<Node>* termSet)
 {
-  CVC4_DCHECK(d_equalityEngine->consistent());
+  Assert(d_equalityEngine->consistent());
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   for (; !eqcs_i.isFinished(); ++eqcs_i) {
     Node eqc = (*eqcs_i);
@@ -526,8 +525,8 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   Trace("model-builder-debug")
       << "Record approximation : " << n << " satisfies the predicate " << pred
       << std::endl;
-  CVC4_DCHECK(d_approximations.find(n) == d_approximations.end());
-  CVC4_DCHECK(pred.getType().isBoolean());
+  Assert(d_approximations.find(n) == d_approximations.end());
+  Assert(pred.getType().isBoolean());
   d_approximations[n] = pred;
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
   // model cache is invalid
@@ -600,7 +599,7 @@ bool TheoryModel::areFunctionValuesEnabled() const
 }
 
 void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
-  CVC4_DCHECK(d_uf_models.find(f) == d_uf_models.end());
+  Assert(d_uf_models.find(f) == d_uf_models.end());
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
 
   if( options::ufHo() ){
@@ -608,7 +607,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     f_def = Rewriter::rewrite( f_def );
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
-    CVC4_DCHECK(f_def.isConst());
+    Assert(f_def.isConst());
   }
  
   // d_uf_models only stores models for variables
@@ -618,7 +617,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
 
   if( options::ufHo() ){
     Trace("model-builder-debug") << "  ...function is first-class member of equality engine" << std::endl;
-    CVC4_DCHECK(d_equalityEngine->hasTerm(f));
+    Assert(d_equalityEngine->hasTerm(f));
     // assign to representative if higher-order
     Node r = d_equalityEngine->getRepresentative( f );
     //always replace the representative, since it is initially assigned to itself
@@ -646,7 +645,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   // collect functions
   for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
     Node n = it->first;
-    CVC4_DCHECK(!n.isNull());
+    Assert(!n.isNull());
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
       if( options::ufHo() ){

@@ -67,7 +67,7 @@ SatLiteral MinisatSatSolver::toSatLiteral(Minisat::Lit lit) {
 SatValue MinisatSatSolver::toSatLiteralValue(Minisat::lbool res) {
   if(res == (Minisat::lbool((uint8_t)0))) return SAT_VALUE_TRUE;
   if(res == (Minisat::lbool((uint8_t)2))) return SAT_VALUE_UNKNOWN;
-  CVC4_DCHECK(res == (Minisat::lbool((uint8_t)1)));
+  Assert(res == (Minisat::lbool((uint8_t)1)));
   return SAT_VALUE_FALSE;
 }
 
@@ -75,14 +75,14 @@ Minisat::lbool MinisatSatSolver::toMinisatlbool(SatValue val)
 {
   if(val == SAT_VALUE_TRUE) return Minisat::lbool((uint8_t)0);
   if(val == SAT_VALUE_UNKNOWN) return Minisat::lbool((uint8_t)2);
-  CVC4_DCHECK(val == SAT_VALUE_FALSE);
+  Assert(val == SAT_VALUE_FALSE);
   return Minisat::lbool((uint8_t)1);
 }
 
 /*bool MinisatSatSolver::tobool(SatValue val)
 {
   if(val == SAT_VALUE_TRUE) return true;
-  CVC4_DCHECK(val == SAT_VALUE_FALSE);
+  Assert(val == SAT_VALUE_FALSE);
   return false;
   }*/
 
@@ -91,7 +91,7 @@ void MinisatSatSolver::toMinisatClause(SatClause& clause,
   for (unsigned i = 0; i < clause.size(); ++i) {
     minisat_clause.push(toMinisatLit(clause[i]));
   }
-  CVC4_DCHECK(clause.size() == (unsigned)minisat_clause.size());
+  Assert(clause.size() == (unsigned)minisat_clause.size());
 }
 
 void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
@@ -99,7 +99,7 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   for (int i = 0; i < clause.size(); ++i) {
     sat_clause.push_back(toSatLiteral(clause[i]));
   }
-  CVC4_DCHECK((unsigned)clause.size() == sat_clause.size());
+  Assert((unsigned)clause.size() == sat_clause.size());
 }
 
 void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theoryProxy) {
@@ -151,7 +151,7 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
     return ClauseIdUndef;
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
-  PROOF(CVC4_DCHECK(clause_id != ClauseIdError););
+  PROOF(Assert(clause_id != ClauseIdError););
   return clause_id;
 }
 
@@ -203,7 +203,7 @@ bool MinisatSatSolver::properExplanation(SatLiteral lit, SatLiteral expl) const 
 }
 
 void MinisatSatSolver::requirePhase(SatLiteral lit) {
-  CVC4_DCHECK(!d_minisat->rnd_pol);
+  Assert(!d_minisat->rnd_pol);
   Debug("minisat") << "requirePhase(" << lit << ")" << " " <<  lit.getSatVariable() << " " << lit.isNegated() << std::endl;
   SatVariable v = lit.getSatVariable();
   d_minisat->freezePolarity(v, lit.isNegated());

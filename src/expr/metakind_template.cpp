@@ -33,7 +33,7 @@ ${metakind_kinds}
     metakind::INVALID /* LAST_KIND */
   };/* metaKinds[] */
 
-  CVC4_DCHECK(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
+  Assert(k >= kind::NULL_EXPR && k < kind::LAST_KIND);
 
   // We've asserted that k >= NULL_EXPR (which is 0), but we still
   // handle the UNDEFINED_KIND (-1) case.  If we don't, the compiler
@@ -53,12 +53,11 @@ namespace kind {
 namespace metakind {
 
 size_t NodeValueCompare::constHash(const ::CVC4::expr::NodeValue* nv) {
-  CVC4_DCHECK(nv->getMetaKind() == kind::metakind::CONSTANT);
+  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch(nv->d_kind) {
 ${metakind_constHashes}
-  default:
-    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
+default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 
@@ -72,8 +71,7 @@ bool NodeValueCompare::compare(const ::CVC4::expr::NodeValue* nv1,
   if(nv1->getMetaKind() == kind::metakind::CONSTANT) {
     switch(nv1->d_kind) {
 ${metakind_compares}
-    default:
-      Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv1->d_kind));
+default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv1->d_kind);
     }
   }
 
@@ -103,12 +101,11 @@ template bool NodeValueCompare::compare<false>(const ::CVC4::expr::NodeValue* nv
 
 void NodeValueConstPrinter::toStream(std::ostream& out,
                                             const ::CVC4::expr::NodeValue* nv) {
-  CVC4_DCHECK(nv->getMetaKind() == kind::metakind::CONSTANT);
+  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch(nv->d_kind) {
 ${metakind_constPrinters}
-  default:
-    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
+default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 
@@ -133,12 +130,11 @@ void NodeValueConstPrinter::toStream(std::ostream& out, TNode n) {
  * kind of cleanup.
  */
 void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv) {
-  CVC4_DCHECK(nv->getMetaKind() == kind::metakind::CONSTANT);
+  Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch(nv->d_kind) {
 ${metakind_constDeleters}
-  default:
-    Unhandled(::CVC4::expr::NodeValue::dKindToKind(nv->d_kind));
+default: Unhandled() << ::CVC4::expr::NodeValue::dKindToKind(nv->d_kind);
   }
 }
 

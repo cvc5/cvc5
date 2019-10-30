@@ -86,7 +86,7 @@ void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 }
 
 void CoreSolver::enableSlicer() {
-  CVC4_CHECK(!d_preregisterCalled);
+  AlwaysAssert(!d_preregisterCalled);
   d_useSlicer = true;
   d_statistics.d_slicerEnabled.setData(true);
 }
@@ -97,7 +97,7 @@ void CoreSolver::preRegister(TNode node) {
       d_equalityEngine.addTriggerEquality(node);
       if (d_useSlicer) {
         d_slicer->processEquality(node);
-        CVC4_CHECK(!d_checkCalled);
+        AlwaysAssert(!d_checkCalled);
       }
   } else {
     d_equalityEngine.addTerm(node);
@@ -137,8 +137,8 @@ bool CoreSolver::decomposeFact(TNode fact) {
   Node new_a = getBaseDecomposition(a);
   Node new_b = getBaseDecomposition(b);
 
-  CVC4_DCHECK(utils::getSize(new_a) == utils::getSize(new_b)
-              && utils::getSize(new_a) == utils::getSize(a));
+  Assert(utils::getSize(new_a) == utils::getSize(new_b)
+         && utils::getSize(new_a) == utils::getSize(a));
 
   NodeManager* nm = NodeManager::currentNM();
   Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
@@ -157,7 +157,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
     //    a_i == b_i
     if (new_a.getKind() == kind::BITVECTOR_CONCAT &&
         new_b.getKind() == kind::BITVECTOR_CONCAT) {
-      CVC4_DCHECK(new_a.getNumChildren() == new_b.getNumChildren());
+      Assert(new_a.getNumChildren() == new_b.getNumChildren());
       for (unsigned i = 0; i < new_a.getNumChildren(); ++i) {
         Node eq_i = nm->mkNode(kind::EQUAL, new_a[i], new_b[i]);
         ok = assertFactToEqualityEngine(eq_i, fact);
@@ -174,7 +174,7 @@ bool CoreSolver::check(Theory::Effort e) {
   d_bv->spendResource(options::theoryCheckStep());
 
   d_checkCalled = true;
-  CVC4_DCHECK(!d_bv->inConflict());
+  Assert(!d_bv->inConflict());
   ++(d_statistics.d_numCallstoCheck);
   bool ok = true;
   std::vector<Node> core_eqs;
@@ -299,7 +299,7 @@ void CoreSolver::buildModel()
             if (a.getKind() == kind::CONST_BITVECTOR
                 && b.getKind() == kind::CONST_BITVECTOR)
             {
-              CVC4_DCHECK(a != b);
+              Assert(a != b);
               continue;
             }
             if (utils::getSize(a) == utils::getSize(b))
@@ -412,7 +412,7 @@ void CoreSolver::conflict(TNode a, TNode b) {
 }
 
 void CoreSolver::eqNotifyNewClass(TNode t) {
-  CVC4_DCHECK(d_bv->getExtTheory() != NULL);
+  Assert(d_bv->getExtTheory() != NULL);
   d_bv->getExtTheory()->registerTerm( t );
 }
 
@@ -459,7 +459,7 @@ bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel)
 
 Node CoreSolver::getModelValue(TNode var) {
   Debug("bitvector-model") << "CoreSolver::getModelValue (" << var <<")";
-  CVC4_DCHECK(isComplete());
+  Assert(isComplete());
   TNode repr = d_equalityEngine.getRepresentative(var);
   Node result = Node();
   if (repr.getKind() == kind::CONST_BITVECTOR) {
@@ -467,7 +467,7 @@ Node CoreSolver::getModelValue(TNode var) {
   } else if (d_modelValues.find(repr) == d_modelValues.end()) {
     // it may be a shared term that never gets asserted
     // result is just Null
-    CVC4_DCHECK(d_bv->isSharedTerm(var));
+    Assert(d_bv->isSharedTerm(var));
   } else {
     result = d_modelValues[repr];
   }

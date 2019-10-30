@@ -103,8 +103,8 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator> {
     Node n = NormalForm::elementsToSet(std::set<TNode>(elements.begin(), elements.end()),
                                        getType());
 
-    CVC4_DCHECK(n.isConst());
-    CVC4_DCHECK(n == Rewriter::rewrite(n));
+    Assert(n.isConst());
+    Assert(n == Rewriter::rewrite(n));
 
     return n;
   }
@@ -123,7 +123,7 @@ class SetEnumerator : public TypeEnumeratorBase<SetEnumerator> {
     // -- no repetitions -- thus some trickery to know what to pop and
     // what not to.)
     if(d_index > 0) {
-      CVC4_DCHECK(d_index == d_constituentVec.size());
+      Assert(d_index == d_constituentVec.size());
 
       Node last_pre_increment;
       last_pre_increment = *(*d_constituentVec.back());

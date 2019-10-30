@@ -133,8 +133,8 @@ void ArrayInfo::mergeLists(CTNodeList* la, const CTNodeList* lb) const{
 }
 
 void ArrayInfo::addIndex(const Node a, const TNode i) {
-  CVC4_DCHECK(a.getType().isArray());
-  CVC4_DCHECK(!i.getType().isArray());  // temporary for flat arrays
+  Assert(a.getType().isArray());
+  Assert(!i.getType().isArray());  // temporary for flat arrays
 
   Trace("arrays-ind")<<"Arrays::addIndex "<<a<<"["<<i<<"]\n";
   CTNodeList* temp_indices;
@@ -159,8 +159,8 @@ void ArrayInfo::addIndex(const Node a, const TNode i) {
 }
 
 void ArrayInfo::addStore(const Node a, const TNode st){
-  CVC4_DCHECK(a.getType().isArray());
-  CVC4_DCHECK(st.getKind() == kind::STORE);  // temporary for flat arrays
+  Assert(a.getType().isArray());
+  Assert(st.getKind() == kind::STORE);  // temporary for flat arrays
 
   CTNodeList* temp_store;
   Info* temp_info;
@@ -182,8 +182,8 @@ void ArrayInfo::addStore(const Node a, const TNode st){
 
 void ArrayInfo::addInStore(const TNode a, const TNode b){
   Trace("arrays-addinstore")<<"Arrays::addInStore "<<a<<" ~ "<<b<<"\n";
-  CVC4_DCHECK(a.getType().isArray());
-  CVC4_DCHECK(b.getType().isArray());
+  Assert(a.getType().isArray());
+  Assert(b.getType().isArray());
 
   CTNodeList* temp_inst;
   Info* temp_info;
@@ -204,7 +204,7 @@ void ArrayInfo::addInStore(const TNode a, const TNode b){
 
 
 void ArrayInfo::setNonLinear(const TNode a) {
-  CVC4_DCHECK(a.getType().isArray());
+  Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
@@ -218,7 +218,7 @@ void ArrayInfo::setNonLinear(const TNode a) {
 }
 
 void ArrayInfo::setRIntro1Applied(const TNode a) {
-  CVC4_DCHECK(a.getType().isArray());
+  Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
@@ -232,7 +232,7 @@ void ArrayInfo::setRIntro1Applied(const TNode a) {
 }
 
 void ArrayInfo::setModelRep(const TNode a, const TNode b) {
-  CVC4_DCHECK(a.getType().isArray());
+  Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
@@ -246,7 +246,7 @@ void ArrayInfo::setModelRep(const TNode a, const TNode b) {
 }
 
 void ArrayInfo::setConstArr(const TNode a, const TNode constArr) {
-  CVC4_DCHECK(a.getType().isArray());
+  Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
@@ -259,7 +259,7 @@ void ArrayInfo::setConstArr(const TNode a, const TNode constArr) {
 }
 
 void ArrayInfo::setWeakEquivPointer(const TNode a, const TNode pointer) {
-  CVC4_DCHECK(a.getType().isArray());
+  Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
@@ -272,7 +272,7 @@ void ArrayInfo::setWeakEquivPointer(const TNode a, const TNode pointer) {
 }
 
 void ArrayInfo::setWeakEquivIndex(const TNode a, const TNode index) {
-  CVC4_DCHECK(a.getType().isArray());
+  Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
@@ -285,7 +285,7 @@ void ArrayInfo::setWeakEquivIndex(const TNode a, const TNode index) {
 }
 
 void ArrayInfo::setWeakEquivSecondary(const TNode a, const TNode secondary) {
-  CVC4_DCHECK(a.getType().isArray());
+  Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {
@@ -298,7 +298,7 @@ void ArrayInfo::setWeakEquivSecondary(const TNode a, const TNode secondary) {
 }
 
 void ArrayInfo::setWeakEquivSecondaryReason(const TNode a, const TNode reason) {
-  CVC4_DCHECK(a.getType().isArray());
+  Assert(a.getType().isArray());
   Info* temp_info;
   CNodeInfoMap::iterator it = info_map.find(a);
   if(it == info_map.end()) {

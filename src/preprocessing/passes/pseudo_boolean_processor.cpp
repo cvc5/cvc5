@@ -56,7 +56,7 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
   {
     return false;
   }
-  CVC4_DCHECK(assertion.getKind() == kind::GEQ);
+  Assert(assertion.getKind() == kind::GEQ);
 
   Debug("pbs::rewrites") << "decomposeAssertion" << assertion << std::endl;
 
@@ -106,7 +106,7 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
     d_off = r.getConst<Rational>();
     d_off = Rational(d_off.value().ceiling());
   }
-  CVC4_DCHECK(d_off.value().isIntegral());
+  Assert(d_off.value().isIntegral());
 
   int adj = negated ? -1 : 1;
   for (Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i)
@@ -117,7 +117,7 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
     {
       return false;
     }
-    CVC4_DCHECK(coeff.sgn() != 0);
+    Assert(coeff.sgn() != 0);
 
     const VarList& vl = m.getVarList();
     Node v = vl.getNode();
@@ -154,8 +154,8 @@ bool PseudoBooleanProcessor::isPseudoBoolean(Node v) const
 
 void PseudoBooleanProcessor::addGeqZero(Node v, Node exp)
 {
-  CVC4_DCHECK(isIntVar(v));
-  CVC4_DCHECK(!exp.isNull());
+  Assert(isIntVar(v));
+  Assert(!exp.isNull());
   CDNode2PairMap::const_iterator ci = d_pbBounds.find(v);
 
   Debug("pbs::rewrites") << "addGeqZero " << v << std::endl;
@@ -169,10 +169,10 @@ void PseudoBooleanProcessor::addGeqZero(Node v, Node exp)
     const std::pair<Node, Node>& p = (*ci).second;
     if (p.first.isNull())
     {
-      CVC4_DCHECK(!p.second.isNull());
+      Assert(!p.second.isNull());
       d_pbBounds.insert(v, std::make_pair(exp, p.second));
       Debug("pbs::rewrites") << "add pbs " << v << std::endl;
-      CVC4_DCHECK(isPseudoBoolean(v));
+      Assert(isPseudoBoolean(v));
       d_pbs = d_pbs + 1;
     }
   }
@@ -180,8 +180,8 @@ void PseudoBooleanProcessor::addGeqZero(Node v, Node exp)
 
 void PseudoBooleanProcessor::addLeqOne(Node v, Node exp)
 {
-  CVC4_DCHECK(isIntVar(v));
-  CVC4_DCHECK(!exp.isNull());
+  Assert(isIntVar(v));
+  Assert(!exp.isNull());
   Debug("pbs::rewrites") << "addLeqOne " << v << std::endl;
   CDNode2PairMap::const_iterator ci = d_pbBounds.find(v);
   if (ci == d_pbBounds.end())
@@ -193,10 +193,10 @@ void PseudoBooleanProcessor::addLeqOne(Node v, Node exp)
     const std::pair<Node, Node>& p = (*ci).second;
     if (p.second.isNull())
     {
-      CVC4_DCHECK(!p.first.isNull());
+      Assert(!p.first.isNull());
       d_pbBounds.insert(v, std::make_pair(p.first, exp));
       Debug("pbs::rewrites") << "add pbs " << v << std::endl;
-      CVC4_DCHECK(isPseudoBoolean(v));
+      Assert(isPseudoBoolean(v));
       d_pbs = d_pbs + 1;
     }
   }
@@ -206,8 +206,8 @@ void PseudoBooleanProcessor::learnRewrittenGeq(Node assertion,
                                                bool negated,
                                                Node orig)
 {
-  CVC4_DCHECK(assertion.getKind() == kind::GEQ);
-  CVC4_DCHECK(assertion == Rewriter::rewrite(assertion));
+  Assert(assertion.getKind() == kind::GEQ);
+  Assert(assertion == Rewriter::rewrite(assertion));
 
   // assume assertion is rewritten
   Node l = assertion[0];
@@ -324,7 +324,7 @@ void PseudoBooleanProcessor::addSub(Node from, Node to)
 
 void PseudoBooleanProcessor::learnGeqSub(Node geq)
 {
-  CVC4_DCHECK(geq.getKind() == kind::GEQ);
+  Assert(geq.getKind() == kind::GEQ);
   const bool negated = false;
   bool success = decomposeAssertion(geq, negated);
   if (!success)
@@ -332,7 +332,7 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Debug("pbs::rewrites") << "failed " << std::endl;
     return;
   }
-  CVC4_DCHECK(d_off.value().isIntegral());
+  Assert(d_off.value().isIntegral());
   Integer off = d_off.value().ceiling();
 
   // \sum pos >= \sum neg + off

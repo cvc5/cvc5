@@ -89,8 +89,8 @@ bool InstMatchTrie::removeInstMatch(Node q,
                                     ImtIndexOrder* imtio,
                                     unsigned index)
 {
-  CVC4_DCHECK(index < q[0].getNumChildren());
-  CVC4_DCHECK(!imtio || index < imtio->d_order.size());
+  Assert(index < q[0].getNumChildren());
+  Assert(!imtio || index < imtio->d_order.size());
   unsigned i_index = imtio ? imtio->d_order[index] : index;
   Node n = m[i_index];
   std::map<Node, InstMatchTrie>::iterator it = d_data.find(n);
@@ -339,7 +339,7 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
   {
     // std::map< Node, CDInstMatchTrie* >::iterator it = d_data.find( n );
     CDInstMatchTrie* imt = new CDInstMatchTrie(c);
-    CVC4_DCHECK(d_data.find(n) == d_data.end());
+    Assert(d_data.find(n) == d_data.end());
     d_data[n] = imt;
     imt->addInstMatch(qe, f, m, c, modEq, index + 1, false);
   }

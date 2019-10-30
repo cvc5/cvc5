@@ -86,7 +86,7 @@ void Skolemize::getSelfSel(const Datatype& dt,
         dc.getSpecializedConstructorType(n.getType().toType()));
     Trace("sk-ind-debug") << "Specialized constructor type : " << tspec
                           << std::endl;
-    CVC4_DCHECK(tspec.getNumChildren() == dc.getNumArgs());
+    Assert(tspec.getNumChildren() == dc.getNumArgs());
   }
   Trace("sk-ind-debug") << "Check self sel " << dc.getName() << " "
                         << dt.getName() << std::endl;
@@ -146,7 +146,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
                                  Node& sub,
                                  std::vector<unsigned>& sub_vars)
 {
-  CVC4_DCHECK(sk.empty() || sk.size() == f[0].getNumChildren());
+  Assert(sk.empty() || sk.size() == f[0].getNumChildren());
   // calculate the variables and substitution
   std::vector<TNode> ind_vars;
   std::vector<unsigned> ind_var_indicies;
@@ -190,7 +190,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
     }
     else
     {
-      CVC4_DCHECK(sk[i].getType() == f[0][i].getType());
+      Assert(sk[i].getType() == f[0][i].getType());
     }
   }
   Node ret;
@@ -205,7 +205,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
     {
       var_sk.push_back(sk[var_indicies[i]]);
     }
-    CVC4_DCHECK(vars.size() == var_sk.size());
+    Assert(vars.size() == var_sk.size());
     ret = n.substitute(vars.begin(), vars.end(), var_sk.begin(), var_sk.end());
   }
   if (!ind_vars.empty())
@@ -239,7 +239,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
                            ? conj[0]
                            : NodeManager::currentNM()->mkNode(OR, conj));
       }
-      CVC4_DCHECK(!disj.empty());
+      Assert(!disj.empty());
       n_str_ind = disj.size() == 1
                       ? disj[0]
                       : NodeManager::currentNM()->mkNode(AND, disj);
@@ -261,7 +261,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
     {
       Trace("sk-ind") << "Unknown induction for term : " << ind_vars[0]
                       << ", type = " << tn << std::endl;
-      CVC4_DCHECK(false);
+      Assert(false);
     }
     Trace("sk-ind") << "Strengthening is : " << n_str_ind << std::endl;
 
@@ -307,7 +307,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
 
 Node Skolemize::getSkolemizedBody(Node f)
 {
-  CVC4_DCHECK(f.getKind() == FORALL);
+  Assert(f.getKind() == FORALL);
   if (d_skolem_body.find(f) == d_skolem_body.end())
   {
     std::vector<TypeNode> fvTypes;
@@ -321,13 +321,13 @@ Node Skolemize::getSkolemizedBody(Node f)
     {
       // if we are skolemizing one at a time, we already know the skolem
       // constants of the sub-quantified formula, store them
-      CVC4_DCHECK(d_skolem_constants[sub].empty());
+      Assert(d_skolem_constants[sub].empty());
       for (unsigned i = 0; i < sub_vars.size(); i++)
       {
         d_skolem_constants[sub].push_back(d_skolem_constants[f][sub_vars[i]]);
       }
     }
-    CVC4_DCHECK(d_skolem_constants[f].size() == f[0].getNumChildren());
+    Assert(d_skolem_constants[f].size() == f[0].getNumChildren());
     if (options::sortInference())
     {
       for (unsigned i = 0; i < d_skolem_constants[f].size(); i++)

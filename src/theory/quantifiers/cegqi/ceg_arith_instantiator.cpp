@@ -149,8 +149,8 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
   bool pol = lit.getKind() != NOT;
   // arithmetic inequalities and disequalities
-  CVC4_DCHECK(atom.getKind() == GEQ
-              || (atom.getKind() == EQUAL && atom[0].getType().isReal()));
+  Assert(atom.getKind() == GEQ
+         || (atom.getKind() == EQUAL && atom[0].getType().isReal()));
   // get model value for pv
   Node pv_value = ci->getModelValue(pv);
   // cannot contain infinity?
@@ -191,7 +191,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         }
         else
         {
-          CVC4_DCHECK(d_type.isReal());
+          Assert(d_type.isReal());
           // now is strict inequality
           uires = mkStrictCTT(uires);
         }
@@ -216,7 +216,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           // coefficient or val won't make a difference, just compare with zero
           Trace("cegqi-arith-debug") << "Disequality : check infinity polarity "
                                      << vts_coeff_inf << std::endl;
-          CVC4_DCHECK(vts_coeff_inf.isConst());
+          Assert(vts_coeff_inf.isConst());
           is_upper = (vts_coeff_inf.getConst<Rational>().sgn() == 1);
         }
         else
@@ -238,7 +238,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           // model. By convention, we use GEQ to compare the values here.
           Node cmp = nm->mkNode(GEQ, lhs_value, rhs_value);
           cmp = Rewriter::rewrite(cmp);
-          CVC4_DCHECK(cmp.isConst());
+          Assert(cmp.isConst());
           is_upper = !cmp.isConst() || !cmp.getConst<bool>();
         }
       }
@@ -247,7 +247,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         // since we are not using the model, we try both.
         is_upper = (r == 0);
       }
-      CVC4_DCHECK(atom.getKind() == EQUAL && !pol);
+      Assert(atom.getKind() == EQUAL && !pol);
       if (d_type.isInteger())
       {
         uires = is_upper ? CEG_TT_LOWER : CEG_TT_UPPER;
@@ -257,7 +257,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
       }
       else
       {
-        CVC4_DCHECK(d_type.isReal());
+        Assert(d_type.isReal());
         uires = is_upper ? CEG_TT_LOWER_STRICT : CEG_TT_UPPER_STRICT;
       }
     }
@@ -386,7 +386,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         Node value[3];
         if (Trace.isOn("cegqi-arith-bound"))
         {
-          CVC4_DCHECK(!d_mbp_bounds[rr][j].isNull());
+          Assert(!d_mbp_bounds[rr][j].isNull());
           Trace("cegqi-arith-bound")
               << "  " << j << ": " << d_mbp_bounds[rr][j];
           if (!d_mbp_vts_coeff[rr][0][j].isNull())
@@ -447,7 +447,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
           // multiply by coefficient
           if (value[t] != d_zero && !d_mbp_coeff[rr][j].isNull())
           {
-            CVC4_DCHECK(d_mbp_coeff[rr][j].isConst());
+            Assert(d_mbp_coeff[rr][j].isConst());
             value[t] = nm->mkNode(
                 MULT,
                 nm->mkConst(Rational(1)
@@ -458,7 +458,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
           // check if new best, if we have not already set it.
           if (best != -1 && !new_best_set)
           {
-            CVC4_DCHECK(!value[t].isNull() && !best_bound_value[t].isNull());
+            Assert(!value[t].isNull() && !best_bound_value[t].isNull());
             if (value[t] != best_bound_value[t])
             {
               Kind k = rr == 0 ? GEQ : LEQ;
@@ -467,7 +467,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               // Should be comparing two constant values which should rewrite
               // to a constant. If a step failed, we assume that this is not
               // the new best bound.
-              CVC4_DCHECK(cmp_bound.isConst());
+              Assert(cmp_bound.isConst());
               if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
               {
                 new_best = false;
@@ -597,7 +597,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
     Node val;
     if (bothBounds)
     {
-      CVC4_DCHECK(!vals[0].isNull() && !vals[1].isNull());
+      Assert(!vals[0].isNull() && !vals[1].isNull());
       if (vals[0] == vals[1])
       {
         val = vals[0];
@@ -699,13 +699,12 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
     CegInstEffort effort,
     std::vector<Node>& lemmas)
 {
-  CVC4_DCHECK(std::find(sf.d_non_basic.begin(), sf.d_non_basic.end(), pv)
-              != sf.d_non_basic.end());
-  CVC4_DCHECK(std::find(sf.d_vars.begin(), sf.d_vars.end(), pv)
-              != sf.d_vars.end());
+  Assert(std::find(sf.d_non_basic.begin(), sf.d_non_basic.end(), pv)
+         != sf.d_non_basic.end());
+  Assert(std::find(sf.d_vars.begin(), sf.d_vars.end(), pv) != sf.d_vars.end());
   unsigned index =
       std::find(sf.d_vars.begin(), sf.d_vars.end(), pv) - sf.d_vars.begin();
-  CVC4_DCHECK(!sf.d_props[index].isBasic());
+  Assert(!sf.d_props[index].isBasic());
   Node eq_lhs = sf.d_props[index].getModifiedTerm(sf.d_vars[index]);
   if (Trace.isOn("cegqi-arith-debug"))
   {
@@ -713,7 +712,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
     Trace("cegqi-arith-debug")
         << eq_lhs << " = " << sf.d_subs[index] << std::endl;
   }
-  CVC4_DCHECK(sf.d_vars[index].getType().isInteger());
+  Assert(sf.d_vars[index].getType().isInteger());
   // must ensure that divisibility constraints are met
   // solve updated rewritten equality for vars[index], if coefficient is one,
   // then we are successful
@@ -739,7 +738,7 @@ bool ArithInstantiator::postProcessInstantiationForVariable(
     Node veq_v;
     if (ArithMSum::getMonomial(veq[0], veq_c, veq_v))
     {
-      CVC4_DCHECK(veq_v == sf.d_vars[index]);
+      Assert(veq_v == sf.d_vars[index]);
     }
   }
   sf.d_subs[index] = veq[1];
@@ -920,7 +919,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
                         ? d_zero
                         : (real_part.size() == 1 ? real_part[0]
                                                  : nm->mkNode(PLUS, real_part));
-    CVC4_DCHECK(ci->isEligibleForInstantiation(realPart));
+    Assert(ci->isEligibleForInstantiation(realPart));
     // re-isolate
     Trace("cegqi-arith-debug") << "Re-isolate..." << std::endl;
     veq_c = Node::null();
@@ -941,7 +940,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
                      nm->mkNode(TO_INTEGER, realPart)));
       // could round up for upper bounds here
       Trace("cegqi-arith-debug") << "result : " << val << std::endl;
-      CVC4_DCHECK(val.getType().isInteger());
+      Assert(val.getType().isInteger());
     }
     else
     {
@@ -954,7 +953,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
       << "Return " << veq_c << " * " << pv << " " << atom.getKind() << " "
       << val << ", vts = (" << vts_coeff_inf << ", " << vts_coeff_delta << ")"
       << std::endl;
-  CVC4_DCHECK(ires != 0);
+  Assert(ires != 0);
   if (atom.getKind() == EQUAL)
   {
     return CEG_TT_EQUAL;
@@ -976,15 +975,15 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
   NodeManager* nm = NodeManager::currentNM();
   Node val = t;
   Trace("cegqi-arith-bound2") << "Value : " << val << std::endl;
-  CVC4_DCHECK(!e.getType().isInteger() || t.getType().isInteger());
-  CVC4_DCHECK(!e.getType().isInteger() || mt.getType().isInteger());
+  Assert(!e.getType().isInteger() || t.getType().isInteger());
+  Assert(!e.getType().isInteger() || mt.getType().isInteger());
   // add rho value
   // get the value of c*e
   Node ceValue = me;
   Node new_theta = theta;
   if (!c.isNull())
   {
-    CVC4_DCHECK(c.getType().isInteger());
+    Assert(c.getType().isInteger());
     ceValue = nm->mkNode(MULT, ceValue, c);
     ceValue = Rewriter::rewrite(ceValue);
     if (new_theta.isNull())
@@ -1025,7 +1024,7 @@ Node ArithInstantiator::getModelBasedProjectionValue(CegInstantiator* ci,
   }
   if (!inf_coeff.isNull())
   {
-    CVC4_DCHECK(!d_vts_sym[0].isNull());
+    Assert(!d_vts_sym[0].isNull());
     val = nm->mkNode(PLUS, val, nm->mkNode(MULT, inf_coeff, d_vts_sym[0]));
     val = Rewriter::rewrite(val);
   }

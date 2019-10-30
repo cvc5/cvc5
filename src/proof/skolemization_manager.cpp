@@ -23,7 +23,7 @@ void SkolemizationManager::registerSkolem(Node disequality, Node skolem) {
   Debug("pf::pm") << "SkolemizationManager: registerSkolem: disequality = " << disequality << ", skolem = " << skolem << std::endl;
 
   if (isSkolem(skolem)) {
-    CVC4_DCHECK(d_skolemToDisequality[skolem] == disequality);
+    Assert(d_skolemToDisequality[skolem] == disequality);
     return;
   }
 
@@ -37,15 +37,14 @@ bool SkolemizationManager::hasSkolem(Node disequality) {
 
 Node SkolemizationManager::getSkolem(Node disequality) {
   Debug("pf::pm") << "SkolemizationManager: getSkolem( ";
-  CVC4_DCHECK(d_disequalityToSkolem.find(disequality)
-              != d_disequalityToSkolem.end());
+  Assert(d_disequalityToSkolem.find(disequality)
+         != d_disequalityToSkolem.end());
   Debug("pf::pm") << disequality << " ) = " << d_disequalityToSkolem[disequality] << std::endl;
   return d_disequalityToSkolem[disequality];
 }
 
 Node SkolemizationManager::getDisequality(Node skolem) {
-  CVC4_DCHECK(d_skolemToDisequality.find(skolem)
-              != d_skolemToDisequality.end());
+  Assert(d_skolemToDisequality.find(skolem) != d_skolemToDisequality.end());
   return d_skolemToDisequality[skolem];
 }
 

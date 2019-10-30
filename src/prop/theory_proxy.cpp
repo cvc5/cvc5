@@ -133,7 +133,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Node literalNode = d_cnfStream->getNode(l);
   Debug("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
-  CVC4_DCHECK(!literalNode.isNull());
+  Assert(!literalNode.isNull());
   d_queue.push(literalNode);
 }
 
@@ -143,8 +143,8 @@ SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
 }
 
 SatLiteral TheoryProxy::getNextDecisionEngineRequest(bool &stopSearch) {
-  CVC4_DCHECK(d_decisionEngine != NULL);
-  CVC4_DCHECK(stopSearch != true);
+  Assert(d_decisionEngine != NULL);
+  Assert(stopSearch != true);
   SatLiteral ret = d_decisionEngine->getNext(stopSearch);
   if(stopSearch) {
     Trace("decision") << "  ***  Decision Engine stopped search *** " << std::endl;
@@ -193,7 +193,7 @@ void TheoryProxy::notifyRestart() {
 }
 
 void TheoryProxy::notifyNewLemma(SatClause& lemma) {
-  CVC4_DCHECK(lemma.size() > 0);
+  Assert(lemma.size() > 0);
   if(outputChannel() != NULL) {
     if(lemma.size() == 1) {
       // cannot share units yet
@@ -232,7 +232,7 @@ SatLiteral TheoryProxy::getNextReplayDecision() {
 void TheoryProxy::logDecision(SatLiteral lit) {
 #ifdef CVC4_REPLAY
   if(d_replayLog != NULL) {
-    CVC4_DCHECK(lit != undefSatLiteral) << "logging an `undef' decision ?!";
+    Assert(lit != undefSatLiteral) << "logging an `undef' decision ?!";
     (*d_replayLog) << d_cnfStream->getNode(lit) << std::endl;
   }
 #endif /* CVC4_REPLAY */

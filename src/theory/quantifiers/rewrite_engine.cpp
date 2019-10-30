@@ -68,7 +68,7 @@ void RewriteEngine::check(Theory::Effort e, QEffort quant_e)
 {
   if (quant_e == QEFFORT_STANDARD)
   {
-    CVC4_DCHECK(!d_quantEngine->inConflict());
+    Assert(!d_quantEngine->inConflict());
     Trace("rewrite-engine") << "---Rewrite Engine Round, effort = " << e << "---" << std::endl;
     //if( e==Theory::EFFORT_LAST_CALL ){
     //  if( !d_quantEngine->getModel()->isModelSet() ){
@@ -169,7 +169,7 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
               {
                 Trace("rewrite-engine-inst-debug")
                     << "OUT_OF_RANGE" << std::endl;
-                CVC4_DCHECK(false);
+                Assert(false);
               }
             }
           }

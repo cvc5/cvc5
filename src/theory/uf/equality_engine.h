@@ -604,13 +604,13 @@ private:
 
   /** Get the trigger set give a reference */
   TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) {
-    CVC4_DCHECK(ref < d_triggerDatabaseSize);
+    Assert(ref < d_triggerDatabaseSize);
     return *(reinterpret_cast<TriggerTermSet*>(d_triggerDatabase + ref));
   }
 
   /** Get the trigger set give a reference */
   const TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) const {
-    CVC4_DCHECK(ref < d_triggerDatabaseSize);
+    Assert(ref < d_triggerDatabaseSize);
     return *(reinterpret_cast<const TriggerTermSet*>(d_triggerDatabase + ref));
   }
 

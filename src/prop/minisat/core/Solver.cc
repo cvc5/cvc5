@@ -210,7 +210,7 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 void Solver::resizeVars(int newSize) {
   assert(enable_incremental);
   assert(decisionLevel() == 0);
-  CVC4_DCHECK(newSize >= 2) << "always keep true/false";
+  Assert(newSize >= 2) << "always keep true/false";
   if (newSize < nVars()) {
     int shrinkSize = nVars() - newSize;
 
@@ -257,7 +257,7 @@ CRef Solver::reason(Var x) {
   // Sort the literals by trail index level
   lemma_lt lt(*this);
   sort(explanation, lt);
-  CVC4_DCHECK(explanation[0] == l);
+  Assert(explanation[0] == l);
 
   // Compute the assertion level for this clause
   int explLevel = 0;
@@ -275,10 +275,10 @@ CRef Solver::reason(Var x) {
         // the top literal
         explLevel = std::max(explLevel, intro_level(var(explanation[i])));
 
-        CVC4_DCHECK(value(explanation[i]) != l_Undef);
-        CVC4_DCHECK(i == 0
-                    || trail_index(var(explanation[0]))
-                           > trail_index(var(explanation[i])));
+        Assert(value(explanation[i]) != l_Undef);
+        Assert(i == 0
+               || trail_index(var(explanation[0]))
+                      > trail_index(var(explanation[i])));
 
         // Always keep the first literal
         if (i == 0)
@@ -497,7 +497,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 void Solver::attachClause(CRef cr) {
     const Clause& c = ca[cr];
     Debug("minisat") << "Solver::attachClause(" << c << "): level " << c.level() << std::endl;
-    CVC4_DCHECK(c.size() > 1);
+    Assert(c.size() > 1);
     watches[~c[0]].push(Watcher(cr, c[1]));
     watches[~c[1]].push(Watcher(cr, c[0]));
     if (c.removable()) learnts_literals += c.size();
@@ -626,7 +626,7 @@ Lit Solver::pickBranchLit()
       return lit_Undef;
     }
     if(nextLit != lit_Undef) {
-      CVC4_DCHECK(value(var(nextLit)) == l_Undef)
+      Assert(value(var(nextLit)) == l_Undef)
           << "literal to decide already has value";
       decisions++;
       Var next = var(nextLit);
@@ -669,7 +669,7 @@ Lit Solver::pickBranchLit()
       lbool dec_pol = MinisatSatSolver::toMinisatlbool
         (proxy->getDecisionPolarity(MinisatSatSolver::toSatVariable(next)));
       if(dec_pol != l_Undef) {
-        CVC4_DCHECK(dec_pol == l_True || dec_pol == l_False);
+        Assert(dec_pol == l_True || dec_pol == l_False);
         return mkLit(next, (dec_pol == l_True) );
       }
       // If it can't use internal heuristic to do that
@@ -1102,7 +1102,7 @@ CRef Solver::propagateBool()
                 *j++ = w; continue; }
 
             // Look for new watch:
-            CVC4_DCHECK(c.size() >= 2);
+            Assert(c.size() >= 2);
             for (int k = 2; k < c.size(); k++)
                 if (value(c[k]) != l_False){
                     c[1] = c[k]; c[k] = false_lit;
@@ -1266,7 +1266,7 @@ lbool Solver::search(int nof_conflicts)
 
         // Propagate and call the theory solvers
         CRef confl = propagate(check_type);
-        CVC4_DCHECK(lemmas.size() == 0);
+        Assert(lemmas.size() == 0);
 
         if (confl != CRef_Undef) {
 
@@ -1737,7 +1737,7 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        CVC4_DCHECK(!PROOF_ON());
+        Assert(!PROOF_ON());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -1767,7 +1767,7 @@ CRef Solver::updateLemmas() {
   // Last index in the trail
   int backtrack_index = trail.size();
 
-  PROOF(CVC4_DCHECK(lemmas.size() == (int)lemmas_cnf_assertion.size()););
+  PROOF(Assert(lemmas.size() == (int)lemmas_cnf_assertion.size()););
 
   // Attach all the clauses and enqueue all the propagations
   for (int i = 0; i < lemmas.size(); ++ i)
@@ -1840,7 +1840,7 @@ CRef Solver::updateLemmas() {
     }
   }
 
-  PROOF(CVC4_DCHECK(lemmas.size() == (int)lemmas_cnf_assertion.size()););
+  PROOF(Assert(lemmas.size() == (int)lemmas_cnf_assertion.size()););
   // Clear the lemmas
   lemmas.clear();
   lemmas_cnf_assertion.clear();
@@ -1882,7 +1882,7 @@ void ClauseAllocator::reloc(CRef& cr,
 
 inline bool Solver::withinBudget(uint64_t amount) const
 {
-  CVC4_DCHECK(proxy);
+  Assert(proxy);
   // spendResource sets async_interrupt or throws UnsafeInterruptException
   // depending on whether hard-limit is enabled
   proxy->spendResource(amount);

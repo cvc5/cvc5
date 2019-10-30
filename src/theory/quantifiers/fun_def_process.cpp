@@ -36,13 +36,13 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   for( unsigned i=0; i<assertions.size(); i++ ){
     Node n = QuantAttributes::getFunDefHead( assertions[i] );
     if( !n.isNull() ){
-      CVC4_DCHECK(n.getKind() == APPLY_UF);
+      Assert(n.getKind() == APPLY_UF);
       Node f = n.getOperator();
 
       //check if already defined, if so, throw error
       if( d_sorts.find( f )!=d_sorts.end() ){
         Message() << "Cannot define function " << f << " more than once." << std::endl;
-        CVC4_CHECK(false);
+        AlwaysAssert(false);
       }
 
       Node bd = QuantAttributes::getFunDefBody( assertions[i] );
@@ -110,7 +110,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
                              is_fd,
                              visited,
                              visited_cons);
-    CVC4_DCHECK(constraints.empty());
+    Assert(constraints.empty());
     if (n != assertions[i])
     {
       n = Rewriter::rewrite(n);
@@ -127,7 +127,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
 Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, bool is_fun_def,
                                  std::map< int, std::map< Node, Node > >& visited,
                                  std::map< int, std::map< Node, Node > >& visited_cons ) {
-  CVC4_DCHECK(constraints.empty());
+  Assert(constraints.empty());
   int index = ( is_fun_def ? 1 : 0 ) + 2*( hasPol ? ( pol ? 1 : -1 ) : 0 );
   std::map< Node, Node >::iterator itv = visited[index].find( n );
   if( itv!=visited[index].end() ){
@@ -240,7 +240,7 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
         cons = constraints[0];
       }
       visited_cons[index][n] = cons;
-      CVC4_DCHECK(constraints.size() == 1 && constraints[0] == cons);
+      Assert(constraints.size() == 1 && constraints[0] == cons);
     }
     visited[index][n] = ret;
     return ret;

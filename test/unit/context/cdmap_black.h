@@ -18,13 +18,12 @@
 
 #include <map>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "test_utils.h"
 
-using CVC4::AssertionException;
 using CVC4::context::Context;
 using CVC4::context::CDHashMap;
 

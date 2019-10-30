@@ -90,7 +90,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
                                                                Node q,
                                                                int index)
 {
-  CVC4_DCHECK(q.isNull() || q.getKind() == FORALL);
+  Assert(q.isNull() || q.getKind() == FORALL);
   Node r = getRepresentative( a );
   if( options::finiteModelFind() ){
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
@@ -105,7 +105,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
           if( r.getType().isSort() ){
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
             //should never happen : UF constants should never escape model
-            CVC4_DCHECK(false);
+            Assert(false);
           }
         }
       }
@@ -165,7 +165,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
         d_rep_score[ r_best ] = d_reset_count;
       }
       Trace("internal-rep-select") << "...Choose " << r_best << " with score " << r_best_score << std::endl;
-      CVC4_DCHECK(r_best.getType().isSubtypeOf(v_tn));
+      Assert(r_best.getType().isSubtypeOf(v_tn));
       v_int_rep[r] = r_best;
       if( r_best!=a ){
         Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
@@ -193,7 +193,7 @@ void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< N
     eqc.push_back( a );
   }
   //a should be in its equivalence class
-  CVC4_DCHECK(std::find(eqc.begin(), eqc.end(), a) != eqc.end());
+  Assert(std::find(eqc.begin(), eqc.end(), a) != eqc.end());
 }
 
 TNode EqualityQueryQuantifiersEngine::getCongruentTerm( Node f, std::vector< TNode >& args ) {
@@ -243,7 +243,7 @@ int EqualityQueryQuantifiersEngine::getRepScore(Node n,
       //score prefers earliest use of this term as a representative
       return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
     }else{
-      CVC4_DCHECK(options::quantRepMode() == quantifiers::QUANT_REP_MODE_DEPTH);
+      Assert(options::quantRepMode() == quantifiers::QUANT_REP_MODE_DEPTH);
       return quantifiers::TermUtil::getTermDepth( n );
     }
   }

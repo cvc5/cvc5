@@ -44,7 +44,7 @@ DecisionEngine::DecisionEngine(context::Context *sc,
 
 void DecisionEngine::init()
 {
-  CVC4_DCHECK(d_engineState == 0);
+  Assert(d_engineState == 0);
   d_engineState = 1;
 
   Trace("decision-init") << "DecisionEngine::init()" << std::endl;
@@ -91,7 +91,7 @@ SatValue DecisionEngine::getPolarity(SatVariable var)
 {
   Debug("decision") << "getPolarity(" << var <<")" << std::endl;
   if(d_relevancyStrategy != NULL) {
-    CVC4_DCHECK(isRelevant(var));
+    Assert(isRelevant(var));
     return d_relevancyStrategy->getPolarity( d_cnfStream->getNode(SatLiteral(var)) );
   } else {
     return SAT_VALUE_UNKNOWN;

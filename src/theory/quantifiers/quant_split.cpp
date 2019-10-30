@@ -128,7 +128,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       disj.push_back(q.negate());
       TNode svar = q[0][it->second];
       TypeNode tn = svar.getType();
-      CVC4_DCHECK(tn.isDatatype());
+      Assert(tn.isDatatype());
       std::vector<Node> cons;
       const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
       for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)

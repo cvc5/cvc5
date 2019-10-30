@@ -170,13 +170,11 @@ namespace CVC4 {
   class NodeManager;
 }/* CVC4 namespace */
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-
 
 namespace CVC4 {
 
@@ -232,9 +230,8 @@ class NodeBuilder {
    * Set this NodeBuilder to the `used' state.
    */
   inline void setUsed() {
-    CVC4_DCHECK(!isUsed())
-        << "Internal error: bad `used' state in NodeBuilder!";
-    CVC4_DCHECK(d_inlineNv.d_nchildren == 0 && d_nvMaxChildren == nchild_thresh)
+    Assert(!isUsed()) << "Internal error: bad `used' state in NodeBuilder!";
+    Assert(d_inlineNv.d_nchildren == 0 && d_nvMaxChildren == nchild_thresh)
         << "Internal error: bad `inline' state in NodeBuilder!";
     d_nv = NULL;
   }
@@ -244,8 +241,8 @@ class NodeBuilder {
    * from clear().
    */
   inline void setUnused() {
-    CVC4_DCHECK(isUsed()) << "Internal error: bad `used' state in NodeBuilder!";
-    CVC4_DCHECK(d_inlineNv.d_nchildren == 0 && d_nvMaxChildren == nchild_thresh)
+    Assert(isUsed()) << "Internal error: bad `used' state in NodeBuilder!";
+    Assert(d_inlineNv.d_nchildren == 0 && d_nvMaxChildren == nchild_thresh)
         << "Internal error: bad `inline' state in NodeBuilder!";
     d_nv = &d_inlineNv;
   }
@@ -381,7 +378,7 @@ public:
     d_nv(&d_inlineNv),
     d_nm(NodeManager::currentNM()),
     d_nvMaxChildren(nchild_thresh) {
-    CVC4_DCHECK(k != kind::NULL_EXPR && k != kind::UNDEFINED_KIND)
+    Assert(k != kind::NULL_EXPR && k != kind::UNDEFINED_KIND)
         << "illegal Node-building kind";
 
     d_inlineNv.d_id = 1; // have a kind already
@@ -405,7 +402,7 @@ public:
     d_nv(&d_inlineNv),
     d_nm(nm),
     d_nvMaxChildren(nchild_thresh) {
-    CVC4_DCHECK(k != kind::NULL_EXPR && k != kind::UNDEFINED_KIND)
+    Assert(k != kind::NULL_EXPR && k != kind::UNDEFINED_KIND)
         << "illegal Node-building kind";
 
     d_inlineNv.d_id = 1; // have a kind already
@@ -459,9 +456,9 @@ public:
 
   /** Get the begin-const-iterator of this Node-under-construction. */
   inline const_iterator begin() const {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
-    CVC4_DCHECK(getKind() != kind::UNDEFINED_KIND)
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
+    Assert(getKind() != kind::UNDEFINED_KIND)
         << "Iterators over NodeBuilder<> are undefined "
            "until a Kind is set";
     return d_nv->begin< NodeTemplate<true> >();
@@ -469,9 +466,9 @@ public:
 
   /** Get the end-const-iterator of this Node-under-construction. */
   inline const_iterator end() const {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
-    CVC4_DCHECK(getKind() != kind::UNDEFINED_KIND)
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
+    Assert(getKind() != kind::UNDEFINED_KIND)
         << "Iterators over NodeBuilder<> are undefined "
            "until a Kind is set";
     return d_nv->end< NodeTemplate<true> >();
@@ -479,16 +476,16 @@ public:
 
   /** Get the kind of this Node-under-construction. */
   inline Kind getKind() const {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
     return d_nv->getKind();
   }
 
   /** Get the kind of this Node-under-construction. */
   inline kind::MetaKind getMetaKind() const {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
-    CVC4_DCHECK(getKind() != kind::UNDEFINED_KIND)
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
+    Assert(getKind() != kind::UNDEFINED_KIND)
         << "The metakind of a NodeBuilder<> is undefined "
            "until a Kind is set";
     return d_nv->getMetaKind();
@@ -496,9 +493,9 @@ public:
 
   /** Get the current number of children of this Node-under-construction. */
   inline unsigned getNumChildren() const {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
-    CVC4_DCHECK(getKind() != kind::UNDEFINED_KIND)
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
+    Assert(getKind() != kind::UNDEFINED_KIND)
         << "The number of children of a NodeBuilder<> is undefined "
            "until a Kind is set";
     return d_nv->getNumChildren();
@@ -510,12 +507,12 @@ public:
    * that is of PARAMETERIZED metakind.
    */
   inline Node getOperator() const {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
-    CVC4_DCHECK(getKind() != kind::UNDEFINED_KIND)
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
+    Assert(getKind() != kind::UNDEFINED_KIND)
         << "NodeBuilder<> operator access is not permitted "
            "until a Kind is set";
-    CVC4_DCHECK(getMetaKind() == kind::metakind::PARAMETERIZED)
+    Assert(getMetaKind() == kind::metakind::PARAMETERIZED)
         << "NodeBuilder<> operator access is only permitted "
            "on parameterized kinds, not `"
         << kind::kindToString(getKind()) << "'";
@@ -527,12 +524,12 @@ public:
    * if this NodeBuilder is unused and has a defined kind.
    */
   inline Node getChild(int i) const {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
-    CVC4_DCHECK(getKind() != kind::UNDEFINED_KIND)
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
+    Assert(getKind() != kind::UNDEFINED_KIND)
         << "NodeBuilder<> child access is not permitted "
            "until a Kind is set";
-    CVC4_DCHECK(i >= 0 && unsigned(i) < d_nv->getNumChildren())
+    Assert(i >= 0 && unsigned(i) < d_nv->getNumChildren())
         << "index out of range for NodeBuilder::getChild()";
     return Node(d_nv->getChild(i));
   }
@@ -560,11 +557,11 @@ public:
 
   /** Set the Kind of this Node-under-construction. */
   inline NodeBuilder<nchild_thresh>& operator<<(const Kind& k) {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
-    CVC4_DCHECK(getKind() == kind::UNDEFINED_KIND || d_nv->d_id == 0)
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
+    Assert(getKind() == kind::UNDEFINED_KIND || d_nv->d_id == 0)
         << "can't redefine the Kind of a NodeBuilder";
-    CVC4_DCHECK(d_nv->d_id == 0)
+    Assert(d_nv->d_id == 0)
         << "internal inconsistency with NodeBuilder: d_id != 0";
     AssertArgument(k != kind::UNDEFINED_KIND &&
                    k != kind::NULL_EXPR &&
@@ -590,8 +587,8 @@ public:
    * append the given Node as a child.  Otherwise, simply append.
    */
   NodeBuilder<nchild_thresh>& operator<<(TNode n) {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
     // This test means: we didn't have a Kind at the beginning (on
     // NodeBuilder construction or at the last clear()), but we do
     // now.  That means we appended a Kind with operator<<(Kind),
@@ -609,8 +606,8 @@ public:
    * append the given Node as a child.  Otherwise, simply append.
    */
   NodeBuilder<nchild_thresh>& operator<<(TypeNode n) {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
     // This test means: we didn't have a Kind at the beginning (on
     // NodeBuilder construction or at the last clear()), but we do
     // now.  That means we appended a Kind with operator<<(Kind),
@@ -626,8 +623,8 @@ public:
   /** Append a sequence of children to this TypeNode-under-construction. */
   inline NodeBuilder<nchild_thresh>&
   append(const std::vector<TypeNode>& children) {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
     return append(children.begin(), children.end());
   }
 
@@ -635,16 +632,16 @@ public:
   template <bool ref_count>
   inline NodeBuilder<nchild_thresh>&
   append(const std::vector<NodeTemplate<ref_count> >& children) {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
     return append(children.begin(), children.end());
   }
 
   /** Append a sequence of children to this Node-under-construction. */
   template <class Iterator>
   NodeBuilder<nchild_thresh>& append(const Iterator& begin, const Iterator& end) {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
     for(Iterator i = begin; i != end; ++i) {
       append(*i);
     }
@@ -653,9 +650,9 @@ public:
 
   /** Append a child to this Node-under-construction. */
   NodeBuilder<nchild_thresh>& append(TNode n) {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
-    CVC4_DCHECK(!n.isNull()) << "Cannot use NULL Node as a child of a Node";
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
+    Assert(!n.isNull()) << "Cannot use NULL Node as a child of a Node";
     if(n.getKind() == kind::BUILTIN) {
       return *this << NodeManager::operatorToKind(n);
     }
@@ -663,21 +660,20 @@ public:
     expr::NodeValue* nv = n.d_nv;
     nv->inc();
     d_nv->d_children[d_nv->d_nchildren++] = nv;
-    CVC4_DCHECK(d_nv->d_nchildren <= d_nvMaxChildren);
+    Assert(d_nv->d_nchildren <= d_nvMaxChildren);
     return *this;
   }
 
   /** Append a child to this Node-under-construction. */
   NodeBuilder<nchild_thresh>& append(const TypeNode& typeNode) {
-    CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                              "attempt to access it after conversion";
-    CVC4_DCHECK(!typeNode.isNull())
-        << "Cannot use NULL Node as a child of a Node";
+    Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                         "attempt to access it after conversion";
+    Assert(!typeNode.isNull()) << "Cannot use NULL Node as a child of a Node";
     allocateNvIfNecessaryForAppend();
     expr::NodeValue* nv = typeNode.d_nv;
     nv->inc();
     d_nv->d_children[d_nv->d_nchildren++] = nv;
-    CVC4_DCHECK(d_nv->d_nchildren <= d_nvMaxChildren);
+    Assert(d_nv->d_nchildren <= d_nvMaxChildren);
     return *this;
   }
 
@@ -750,7 +746,7 @@ namespace CVC4 {
 
 template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::clear(Kind k) {
-  CVC4_DCHECK(k != kind::NULL_EXPR) << "illegal Node-building clear kind";
+  Assert(k != kind::NULL_EXPR) << "illegal Node-building clear kind";
 
   if(__builtin_expect( ( nvIsAllocated() ), false )) {
     dealloc();
@@ -773,10 +769,9 @@ void NodeBuilder<nchild_thresh>::clear(Kind k) {
 
 template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
-  CVC4_CHECK(toSize > d_nvMaxChildren)
+  AlwaysAssert(toSize > d_nvMaxChildren)
       << "attempt to realloc() a NodeBuilder to a smaller/equal size!";
-  CVC4_DCHECK(toSize
-              < (static_cast<size_t>(1) << expr::NodeValue::NBITS_NCHILDREN))
+  Assert(toSize < (static_cast<size_t>(1) << expr::NodeValue::NBITS_NCHILDREN))
       << "attempt to realloc() a NodeBuilder to size " << toSize
       << " (beyond hard limit of " << expr::NodeValue::MAX_CHILDREN << ")";
 
@@ -791,7 +786,7 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
       throw std::bad_alloc();
     }
     d_nvMaxChildren = toSize;
-    CVC4_DCHECK(d_nvMaxChildren == toSize);  // overflow check
+    Assert(d_nvMaxChildren == toSize);  // overflow check
     // Here, the copy (between two heap-allocated buffers) has already
     // been done for us by the std::realloc().
     d_nv = newBlock;
@@ -804,7 +799,7 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
       throw std::bad_alloc();
     }
     d_nvMaxChildren = toSize;
-    CVC4_DCHECK(d_nvMaxChildren == toSize);  // overflow check
+    Assert(d_nvMaxChildren == toSize);  // overflow check
 
     d_nv = newBlock;
     d_nv->d_id = d_inlineNv.d_id;
@@ -823,7 +818,7 @@ void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
 
 template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::dealloc() {
-  CVC4_DCHECK(nvIsAllocated())
+  Assert(nvIsAllocated())
       << "Internal error: NodeBuilder: dealloc() called without a "
          "private NodeBuilder-allocated buffer";
 
@@ -840,7 +835,7 @@ void NodeBuilder<nchild_thresh>::dealloc() {
 
 template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::decrRefCounts() {
-  CVC4_DCHECK(!nvIsAllocated())
+  Assert(!nvIsAllocated())
       << "Internal error: NodeBuilder: decrRefCounts() called with a "
          "private NodeBuilder-allocated buffer";
 
@@ -916,9 +911,9 @@ NodeBuilder<nchild_thresh>::operator TypeNode() const {
 
 template <unsigned nchild_thresh>
 expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
-  CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                            "attempt to access it after conversion";
-  CVC4_DCHECK(getKind() != kind::UNDEFINED_KIND)
+  Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                       "attempt to access it after conversion";
+  Assert(getKind() != kind::UNDEFINED_KIND)
       << "Can't make an expression of an undefined kind!";
 
   // NOTE: The comments in this function refer to the cases in the
@@ -931,10 +926,10 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
      * and we don't keep VARIABLE-kinded Nodes in the NodeManager
      * pool. */
 
-    CVC4_DCHECK(!nvIsAllocated())
+    Assert(!nvIsAllocated())
         << "internal NodeBuilder error: "
            "VARIABLE-kinded NodeBuilder is heap-allocated !?";
-    CVC4_DCHECK(d_inlineNv.d_nchildren == 0)
+    Assert(d_inlineNv.d_nchildren == 0)
         << "improperly-formed VARIABLE-kinded NodeBuilder: "
            "no children permitted";
 
@@ -961,18 +956,16 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
   }
 
   // check that there are the right # of children for this kind
-  CVC4_DCHECK(getMetaKind() != kind::metakind::CONSTANT)
+  Assert(getMetaKind() != kind::metakind::CONSTANT)
       << "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds";
-  CVC4_DCHECK(getNumChildren()
-              >= kind::metakind::getLowerBoundForKind(getKind()))
+  Assert(getNumChildren() >= kind::metakind::getLowerBoundForKind(getKind()))
       << "Nodes with kind " << kind::kindToString(getKind())
       << " must have at least "
       << kind::metakind::getLowerBoundForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
-  CVC4_DCHECK(getNumChildren()
-              <= kind::metakind::getUpperBoundForKind(getKind()))
+  Assert(getNumChildren() <= kind::metakind::getUpperBoundForKind(getKind()))
       << "Nodes with kind " << kind::kindToString(getKind())
       << " must have at most "
       << kind::metakind::getUpperBoundForKind(getKind())
@@ -1100,9 +1093,9 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
 // CONST VERSION OF NODE EXTRACTOR
 template <unsigned nchild_thresh>
 expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
-  CVC4_DCHECK(!isUsed()) << "NodeBuilder is one-shot only; "
-                            "attempt to access it after conversion";
-  CVC4_DCHECK(getKind() != kind::UNDEFINED_KIND)
+  Assert(!isUsed()) << "NodeBuilder is one-shot only; "
+                       "attempt to access it after conversion";
+  Assert(getKind() != kind::UNDEFINED_KIND)
       << "Can't make an expression of an undefined kind!";
 
   // NOTE: The comments in this function refer to the cases in the
@@ -1115,10 +1108,10 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
      * and we don't keep VARIABLE-kinded Nodes in the NodeManager
      * pool. */
 
-    CVC4_DCHECK(!nvIsAllocated())
+    Assert(!nvIsAllocated())
         << "internal NodeBuilder error: "
            "VARIABLE-kinded NodeBuilder is heap-allocated !?";
-    CVC4_DCHECK(d_inlineNv.d_nchildren == 0)
+    Assert(d_inlineNv.d_nchildren == 0)
         << "improperly-formed VARIABLE-kinded NodeBuilder: "
            "no children permitted";
 
@@ -1140,18 +1133,16 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
   }
 
   // check that there are the right # of children for this kind
-  CVC4_DCHECK(getMetaKind() != kind::metakind::CONSTANT)
+  Assert(getMetaKind() != kind::metakind::CONSTANT)
       << "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds";
-  CVC4_DCHECK(getNumChildren()
-              >= kind::metakind::getLowerBoundForKind(getKind()))
+  Assert(getNumChildren() >= kind::metakind::getLowerBoundForKind(getKind()))
       << "Nodes with kind " << kind::kindToString(getKind())
       << " must have at least "
       << kind::metakind::getLowerBoundForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
-  CVC4_DCHECK(getNumChildren()
-              <= kind::metakind::getUpperBoundForKind(getKind()))
+  Assert(getNumChildren() <= kind::metakind::getUpperBoundForKind(getKind()))
       << "Nodes with kind " << kind::kindToString(getKind())
       << " must have at most "
       << kind::metakind::getUpperBoundForKind(getKind())
@@ -1161,7 +1152,7 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
 
 #if 0
   // if the kind is PARAMETERIZED, check that the operator is correctly-kinded
-  CVC4_DCHECK(kind::metaKindOf(getKind()) != kind::metakind::PARAMETERIZED ||
+  Assert(kind::metaKindOf(getKind()) != kind::metakind::PARAMETERIZED ||
          NodeManager::operatorToKind(getOperator()) == getKind()) << 
          "Attempted to construct a parameterized kind `%s' with "
          "incorrectly-kinded operator `%s'",
@@ -1302,10 +1293,9 @@ void NodeBuilder<nchild_thresh>::internalCopy(const NodeBuilder<N>& nb) {
     realloc(nb.d_nvMaxChildren);
   }
 
-  CVC4_DCHECK(nb.d_nvMaxChildren <= d_nvMaxChildren);
-  CVC4_DCHECK(nb.d_nv->nv_end() >= nb.d_nv->nv_begin());
-  CVC4_DCHECK((size_t)(nb.d_nv->nv_end() - nb.d_nv->nv_begin())
-              <= d_nvMaxChildren)
+  Assert(nb.d_nvMaxChildren <= d_nvMaxChildren);
+  Assert(nb.d_nv->nv_end() >= nb.d_nv->nv_begin());
+  Assert((size_t)(nb.d_nv->nv_end() - nb.d_nv->nv_begin()) <= d_nvMaxChildren)
       << "realloced:" << (realloced ? "true" : "false")
       << ", d_nvMax:" << d_nvMaxChildren
       << ", size:" << nb.d_nv->nv_end() - nb.d_nv->nv_begin()

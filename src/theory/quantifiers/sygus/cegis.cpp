@@ -242,7 +242,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   if (d_using_gr_repair)
   {
     SygusRepairConst* src = d_parent->getRepairConst();
-    CVC4_DCHECK(src != nullptr);
+    Assert(src != nullptr);
     // check if any enum_values have symbolic terms that must be repaired
     bool mustRepair = false;
     for (const Node& c : enum_values)
@@ -258,7 +258,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     if (mustRepair)
     {
       std::vector<Node> fail_cvs = enum_values;
-      CVC4_DCHECK(candidates.size() == fail_cvs.size());
+      Assert(candidates.size() == fail_cvs.size());
       // try to solve entire problem?
       if (src->repairSolution(candidates, fail_cvs, candidate_values))
       {
@@ -277,7 +277,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
         d_tds->getExplain()->getExplanationForEquality(
             enums[i], enum_values[i], exp);
       }
-      CVC4_DCHECK(!exp.empty());
+      Assert(!exp.empty());
       NodeManager* nm = NodeManager::currentNM();
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
       // must guard it
@@ -485,7 +485,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                            << d_refinement_lemma_conj.size()
                            << " non-unit refinement lemma conjunctions."
                            << std::endl;
-  CVC4_DCHECK(vs.size() == ms.size());
+  Assert(vs.size() == ms.size());
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -498,7 +498,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
     for (const Node& lem : rlemmas)
     {
-      CVC4_DCHECK(!lem.isNull());
+      Assert(!lem.isNull());
       std::map<Node, Node> visited;
       std::map<Node, std::vector<Node> > exp;
       EvalSygusInvarianceTest vsit;
@@ -585,7 +585,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                             << std::endl;
     }
   }
-  CVC4_DCHECK(vals.size() == candidates.size());
+  Assert(vals.size() == candidates.size());
   Node sbody = d_base_body.substitute(
       candidates.begin(), candidates.end(), vals.begin(), vals.end());
   Trace("cegis-sample-debug2") << "Sample " << sbody << std::endl;
@@ -603,8 +603,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
       Node ev = d_cegis_sampler.evaluate(sbody, i);
       Trace("cegis-sample-debug") << "...evaluate point #" << i << " to " << ev
                                   << std::endl;
-      CVC4_DCHECK(ev.isConst());
-      CVC4_DCHECK(ev.getType().isBoolean());
+      Assert(ev.isConst());
+      Assert(ev.getType().isBoolean());
       if (!ev.getConst<bool>())
       {
         Trace("cegis-sample-debug") << "...false for point #" << i << std::endl;
@@ -612,7 +612,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
         d_cegis_sample_refine.insert(i);
         std::vector<Node> pt;
         d_cegis_sampler.getSamplePoint(i, pt);
-        CVC4_DCHECK(d_base_vars.size() == pt.size());
+        Assert(d_base_vars.size() == pt.size());
         Node rlem = d_base_body.substitute(
             d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end());
         rlem = Rewriter::rewrite(rlem);

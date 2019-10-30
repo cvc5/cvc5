@@ -129,7 +129,7 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
       if (xtn == tn)
       {
         Node bx = tds->sygusToBuiltin(x, xtn);
-        CVC4_DCHECK(bx.getType() == nbvr.getType());
+        Assert(bx.getType() == nbvr.getType());
         if (nbvr == bx)
         {
           Trace("sygus-sb-mexp") << "sb-min-exp : " << tds->sygusToBuiltin(nvn)
@@ -191,7 +191,7 @@ void NegContainsSygusInvarianceTest::init(Node e,
                                           std::vector<Node>& exo,
                                           std::vector<unsigned>& ncind)
 {
-  CVC4_DCHECK(ex.size() == exo.size());
+  Assert(ex.size() == exo.size());
   d_enum = e;
   d_ex.insert(d_ex.end(), ex.begin(), ex.end());
   d_exo.insert(d_exo.end(), exo.begin(), exo.end());
@@ -211,7 +211,7 @@ bool NegContainsSygusInvarianceTest::invariant(TermDbSygus* tds,
     for (unsigned i = 0; i < d_neg_con_indices.size(); i++)
     {
       unsigned ii = d_neg_con_indices[i];
-      CVC4_DCHECK(ii < d_exo.size());
+      Assert(ii < d_exo.size());
       Node nbvre = tds->evaluateBuiltin(tn, nbvr, d_ex[ii]);
       Node out = d_exo[ii];
       Node cont =

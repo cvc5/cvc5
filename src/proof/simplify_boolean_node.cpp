@@ -53,8 +53,8 @@ Node simplifyBooleanNode(const Node &n) {
     Node rhs = n[0][1];
 
     if (lhs == falseNode) {
-      CVC4_DCHECK(rhs != falseNode);
-      CVC4_DCHECK(rhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
+      Assert(rhs != falseNode);
+      Assert(rhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
       // (not (= false b)) --> true = b
 
       simplified = eqNode(trueNode, rhs);
@@ -65,8 +65,8 @@ Node simplifyBooleanNode(const Node &n) {
       ProofManager::currentPM()->addRewriteFilter(simplifiedLitName, newLitName.str());
 
     } else if (rhs == falseNode) {
-      CVC4_DCHECK(lhs != falseNode);
-      CVC4_DCHECK(lhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
+      Assert(lhs != falseNode);
+      Assert(lhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
       // (not (= b false)) --> b = true
 
       simplified = eqNode(lhs, trueNode);
@@ -76,8 +76,8 @@ Node simplifyBooleanNode(const Node &n) {
       ProofManager::currentPM()->addRewriteFilter(simplifiedLitName, newLitName.str());
 
     } else if (lhs == trueNode) {
-      CVC4_DCHECK(rhs != trueNode);
-      CVC4_DCHECK(rhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
+      Assert(rhs != trueNode);
+      Assert(rhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
       // (not (= true b)) --> b = false
 
       simplified = eqNode(falseNode, rhs);
@@ -87,8 +87,8 @@ Node simplifyBooleanNode(const Node &n) {
       ProofManager::currentPM()->addRewriteFilter(simplifiedLitName, newLitName.str());
 
     } else if (rhs == trueNode) {
-      CVC4_DCHECK(lhs != trueNode);
-      CVC4_DCHECK(lhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
+      Assert(lhs != trueNode);
+      Assert(lhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
       // (not (= b true)) --> b = false
 
       simplified = eqNode(lhs, falseNode);
@@ -104,8 +104,8 @@ Node simplifyBooleanNode(const Node &n) {
     Node rhs = n[1];
 
     if (lhs == falseNode) {
-      CVC4_DCHECK(rhs != falseNode);
-      CVC4_DCHECK(rhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
+      Assert(rhs != falseNode);
+      Assert(rhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
       // (= false b)
 
       std::stringstream newLitName;
@@ -113,8 +113,8 @@ Node simplifyBooleanNode(const Node &n) {
       ProofManager::currentPM()->addRewriteFilter(litName, newLitName.str());
 
     } else if (rhs == falseNode) {
-      CVC4_DCHECK(lhs != falseNode);
-      CVC4_DCHECK(lhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
+      Assert(lhs != falseNode);
+      Assert(lhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
       // (= b false))
 
       std::stringstream newLitName;
@@ -122,8 +122,8 @@ Node simplifyBooleanNode(const Node &n) {
       ProofManager::currentPM()->addRewriteFilter(litName, newLitName.str());
 
     } else if (lhs == trueNode) {
-      CVC4_DCHECK(rhs != trueNode);
-      CVC4_DCHECK(rhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
+      Assert(rhs != trueNode);
+      Assert(rhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
       // (= true b)
 
       std::stringstream newLitName;
@@ -131,8 +131,8 @@ Node simplifyBooleanNode(const Node &n) {
       ProofManager::currentPM()->addRewriteFilter(litName, newLitName.str());
 
     } else if (rhs == trueNode) {
-      CVC4_DCHECK(lhs != trueNode);
-      CVC4_DCHECK(lhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
+      Assert(lhs != trueNode);
+      Assert(lhs.getKind() == kind::BOOLEAN_TERM_VARIABLE);
       // (= b true)
 
 

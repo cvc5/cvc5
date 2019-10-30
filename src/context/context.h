@@ -27,7 +27,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "context/context_mm.h"
 
@@ -135,7 +135,7 @@ public:
     }
     ~ScopedPush() noexcept(false) {
       d_context->pop();
-      CVC4_CHECK(d_context->getTopScope() == d_scope)
+      AlwaysAssert(d_context->getTopScope() == d_scope)
           << "Context::ScopedPush observed an uneven Context (at pop, "
              "top scope doesn't match what it was at the time the "
              "ScopedPush was applied)";
@@ -569,7 +569,7 @@ class ContextObj {
    * calling deleteSelf().
    */
   static void operator delete(void* pMem) {
-    CVC4_CHECK(false) << "It is not allowed to delete a ContextObj this way!";
+    AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
   /**

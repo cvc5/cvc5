@@ -65,7 +65,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               Node c = itm->second;
               if (!c.isNull())
               {
-                CVC4_DCHECK(c.isConst());
+                Assert(c.isConst());
                 coeffs.push_back(NodeManager::currentNM()->mkConst(
                     Rational(c.getConst<Rational>().getDenominator())));
               }
@@ -98,7 +98,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                       NodeManager::currentNM()->mkNode(kind::MULT, c, cc));
                 }
               }
-              CVC4_DCHECK(c.getType().isInteger());
+              Assert(c.getType().isInteger());
               if (v.isNull())
               {
                 sum.push_back(c);

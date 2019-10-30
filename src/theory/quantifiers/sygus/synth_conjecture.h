@@ -322,7 +322,7 @@ class SynthConjecture
   /** record instantiation (this is used to construct solutions later) */
   void recordInstantiation(std::vector<Node>& vs)
   {
-    CVC4_DCHECK(vs.size() == d_candidates.size());
+    Assert(vs.size() == d_candidates.size());
     for (unsigned i = 0; i < vs.size(); i++)
     {
       d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);

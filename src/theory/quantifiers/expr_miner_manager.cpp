@@ -76,7 +76,7 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
   // initialize the candidate rewrite database
   if (!d_sygus_fun.isNull())
   {
-    CVC4_DCHECK(d_qe != nullptr);
+    Assert(d_qe != nullptr);
     d_crd.initializeSygus(vars, d_qe, d_sygus_fun, &d_sampler);
   }
   else

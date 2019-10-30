@@ -53,7 +53,7 @@ bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
 {
   if (options::quantEprMatching())
   {
-    CVC4_DCHECK(pv_prop.isBasic());
+    Assert(pv_prop.isBasic());
     d_equal_terms.push_back(n);
     return false;
   }
@@ -114,7 +114,7 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
 {
   if (index == catom.getNumChildren())
   {
-    CVC4_DCHECK(tat->hasData());
+    Assert(tat->hasData());
     Node gcatom = tat->getData();
     Trace("cegqi-epr") << "Matched : " << catom << " and " << gcatom
                        << std::endl;

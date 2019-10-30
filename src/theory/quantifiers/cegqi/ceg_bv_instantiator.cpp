@@ -84,7 +84,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
                                     Node alit,
                                     CegInstEffort effort)
 {
-  CVC4_DCHECK(d_inverter != NULL);
+  Assert(d_inverter != NULL);
   // find path to pv
   std::vector<unsigned> path;
   Node sv = d_inverter->getSolveVariable(pv.getType());
@@ -164,8 +164,8 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
 
   Node sm = ci->getModelValue(s);
   Node tm = ci->getModelValue(t);
-  CVC4_DCHECK(!sm.isNull() && sm.isConst());
-  CVC4_DCHECK(!tm.isNull() && tm.isConst());
+  Assert(!sm.isNull() && sm.isConst());
+  Assert(!tm.isNull() && tm.isConst());
   Trace("cegqi-bv") << "Model value: " << std::endl;
   Trace("cegqi-bv") << "   " << s << " " << k << " " << t << " is "
                     << std::endl;
@@ -180,7 +180,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
     if (sm != tm)
     {
       Node slack = Rewriter::rewrite(nm->mkNode(BITVECTOR_SUB, sm, tm));
-      CVC4_DCHECK(slack.isConst());
+      Assert(slack.isConst());
       // remember the slack value for the asserted literal
       d_alit_to_model_slack[lit] = slack;
       ret = nm->mkNode(EQUAL, s, nm->mkNode(BITVECTOR_PLUS, t, slack));
@@ -309,9 +309,9 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
     for (unsigned j = 0, size = iti->second.size(); j < size; j++)
     {
       unsigned inst_id = iti->second[j];
-      CVC4_DCHECK(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
+      Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
       Node inst_term = d_inst_id_to_term[inst_id];
-      CVC4_DCHECK(d_inst_id_to_alit.find(inst_id) != d_inst_id_to_alit.end());
+      Assert(d_inst_id_to_alit.find(inst_id) != d_inst_id_to_alit.end());
       Node alit = d_inst_id_to_alit[inst_id];
 
       // get the slack value introduced for the asserted literal
@@ -346,7 +346,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   for (unsigned j = 0, size = iti->second.size(); j < size; j++)
   {
     unsigned inst_id = iti->second[j];
-    CVC4_DCHECK(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
+    Assert(d_inst_id_to_term.find(inst_id) != d_inst_id_to_term.end());
     Node inst_term = d_inst_id_to_term[inst_id];
     Node alit = d_inst_id_to_alit[inst_id];
     // try instantiation pv -> inst_term
@@ -415,7 +415,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
           // with multiple literals.
           Node bv = ci->getBoundVariable(cur[0][0].getType());
           // should not have captured variables
-          CVC4_DCHECK(curr_subs.find(cur[0][0]) == curr_subs.end());
+          Assert(curr_subs.find(cur[0][0]) == curr_subs.end());
           curr_subs[cur[0][0]] = bv;
           // we cannot cache the results of subterms
           // of this choice expression since we are
@@ -445,8 +445,8 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       for (unsigned i = 0; i < cur.getNumChildren(); i++)
       {
         it = visited.top().find(cur[i]);
-        CVC4_DCHECK(it != visited.top().end());
-        CVC4_DCHECK(!it->second.isNull());
+        Assert(it != visited.top().end());
+        Assert(!it->second.isNull());
         childChanged = childChanged || cur[i] != it->second;
         children.push_back(it->second);
         contains_pv = contains_pv || visited_contains_pv[cur[i]];
@@ -486,20 +486,20 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
       // if was choice, pop context
       if (cur.getKind() == CHOICE)
       {
-        CVC4_DCHECK(curr_subs.find(cur[0][0]) != curr_subs.end());
+        Assert(curr_subs.find(cur[0][0]) != curr_subs.end());
         curr_subs.erase(cur[0][0]);
         visited.pop();
         visit.pop();
-        CVC4_DCHECK(visited.size() == visit.size());
-        CVC4_DCHECK(!visit.empty());
+        Assert(visited.size() == visit.size());
+        Assert(!visit.empty());
       }
 
       visited.top()[cur] = ret;
     }
   } while (!visit.top().empty());
-  CVC4_DCHECK(visited.size() == 1);
-  CVC4_DCHECK(visited.top().find(lit) != visited.top().end());
-  CVC4_DCHECK(!visited.top().find(lit)->second.isNull());
+  Assert(visited.size() == 1);
+  Assert(visited.top().find(lit) != visited.top().end());
+  Assert(!visited.top().find(lit)->second.isNull());
 
   Node result = visited.top()[lit];
 
@@ -615,8 +615,8 @@ struct SortBvExtractInterval
 {
   bool operator()(Node i, Node j)
   {
-    CVC4_DCHECK(i.getKind() == BITVECTOR_EXTRACT);
-    CVC4_DCHECK(j.getKind() == BITVECTOR_EXTRACT);
+    Assert(i.getKind() == BITVECTOR_EXTRACT);
+    Assert(j.getKind() == BITVECTOR_EXTRACT);
     BitVectorExtract ie = i.getOperator().getConst<BitVectorExtract>();
     BitVectorExtract je = j.getOperator().getConst<BitVectorExtract>();
     if (ie.high > je.high)
@@ -625,7 +625,7 @@ struct SortBvExtractInterval
     }
     else if (ie.high == je.high)
     {
-      CVC4_DCHECK(ie.low != je.low);
+      Assert(ie.low != je.low);
       return ie.low > je.low;
     }
     return false;
@@ -692,7 +692,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
       std::vector<Node> children;
       for (unsigned i = 1; i < boundaries.size(); i++)
       {
-        CVC4_DCHECK(boundaries[i - 1] > 0);
+        Assert(boundaries[i - 1] > 0);
         Node ex = bv::utils::mkExtract(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
         Node var =
@@ -704,7 +704,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
       }
 
       Node conc = nm->mkNode(kind::BITVECTOR_CONCAT, children);
-      CVC4_DCHECK(conc.getType() == es.first.getType());
+      Assert(conc.getType() == es.first.getType());
       Node eq_lem = conc.eqNode(es.first);
       Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
       new_lems.push_back(eq_lem);

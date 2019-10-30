@@ -187,7 +187,7 @@ void TheoryBV::finishInit()
   // these kinds are semi-evaluated in getModelValue (applications of this
   // kind are treated as variables)
   TheoryModel* tm = d_valuation.getModel();
-  CVC4_DCHECK(tm != nullptr);
+  Assert(tm != nullptr);
   tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
   tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }
@@ -263,7 +263,7 @@ void TheoryBV::preRegisterTerm(TNode node) {
 }
 
 void TheoryBV::sendConflict() {
-  CVC4_DCHECK(d_conflict);
+  Assert(d_conflict);
   if (d_conflictNode.isNull()) {
     return;
   } else {
@@ -336,7 +336,7 @@ void TheoryBV::check(Effort e)
     std::vector<TNode> assertions;
     while (!done()) {
       TNode fact = get().assertion;
-      CVC4_DCHECK(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
+      Assert(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
       assertions.push_back(fact);
       d_eagerSolver->assertFormula(fact[0]);
     }
@@ -379,13 +379,13 @@ void TheoryBV::check(Effort e)
   bool ok = true;
   bool complete = false;
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
-    CVC4_DCHECK(!inConflict());
+    Assert(!inConflict());
     ok = d_subtheories[i]->check(e);
     complete = d_subtheories[i]->isComplete();
 
     if (!ok) {
       // if we are in a conflict no need to check with other theories
-      CVC4_DCHECK(inConflict());
+      Assert(inConflict());
       sendConflict();
       return;
     }
@@ -430,8 +430,8 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
   for (unsigned j = 0; j < terms.size(); j++)
   {
     TNode n = terms[j];
-    CVC4_DCHECK(n.getKind() == kind::BITVECTOR_TO_NAT
-                || n.getKind() == kind::INT_TO_BITVECTOR);
+    Assert(n.getKind() == kind::BITVECTOR_TO_NAT
+           || n.getKind() == kind::INT_TO_BITVECTOR);
     if (n.getKind() == kind::BITVECTOR_TO_NAT)
     {
       // range lemmas
@@ -475,7 +475,7 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
         {
           if (n.getKind() == kind::INT_TO_BITVECTOR)
           {
-            CVC4_DCHECK(t.getType().isInteger());
+            Assert(t.getType().isInteger());
             // congruent modulo 2^( bv width )
             unsigned bvs = n.getType().getBitVectorSize();
             Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
@@ -487,7 +487,7 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
 
           if (parent[0] != n)
           {
-            CVC4_DCHECK(ee->areEqual(parent[0], n));
+            Assert(ee->areEqual(parent[0], n));
             lem = nm->mkNode(kind::IMPLIES, parent[0].eqNode(n), lem);
           }
           // this handles inferences of the form, e.g.:
@@ -511,7 +511,7 @@ bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
   if( getExtTheory()->doReductions( 0, terms, nredr ) ){
     return true;
   }
-  CVC4_DCHECK(nredr.empty());
+  Assert(nredr.empty());
   return false;
 }
 
@@ -520,7 +520,7 @@ bool TheoryBV::needsCheckLastEffort() {
 }
 bool TheoryBV::collectModelInfo(TheoryModel* m)
 {
-  CVC4_DCHECK(!inConflict());
+  Assert(!inConflict());
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     if (!d_eagerSolver->collectModelInfo(m, true))
     {
@@ -536,7 +536,7 @@ bool TheoryBV::collectModelInfo(TheoryModel* m)
 }
 
 Node TheoryBV::getModelValue(TNode var) {
-  CVC4_DCHECK(!inConflict());
+  Assert(!inConflict());
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     if (d_subtheories[i]->isComplete()) {
       return d_subtheories[i]->getModelValue(var);
@@ -693,7 +693,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
 
           if (low == 0)
           {
-            CVC4_DCHECK(high != var_bitwidth - 1);
+            Assert(high != var_bitwidth - 1);
             unsigned skolem_size = var_bitwidth - high - 1;
             Node skolem = utils::mkVar(skolem_size);
             children.push_back(skolem);
@@ -717,7 +717,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
             children.push_back(skolem1);
           }
           Node concat = utils::mkConcat(children);
-          CVC4_DCHECK(utils::getSize(concat) == utils::getSize(extract[0]));
+          Assert(utils::getSize(concat) == utils::getSize(extract[0]));
           outSubstitutions.addSubstitution(extract[0], concat);
           return PP_ASSERT_STATUS_SOLVED;
         }
@@ -797,7 +797,7 @@ Node TheoryBV::ppRewrite(TNode t)
   //     if (d_subtheoryMap.find(SUB_BITBLAST) != d_subtheoryMap.end()) {
   //       BitblastSolver* bv = (BitblastSolver*)d_subtheoryMap[SUB_BITBLAST];
   //       uint64_t old_size = bv->computeAtomWeight(t);
-  //       CVC4_DCHECK (old_size);
+  //       Assert (old_size);
   //       uint64_t new_size = bv->computeAtomWeight(new_eq);
   //       double ratio = ((double)new_size)/old_size;
   //       if (ratio <= 0.4) {
@@ -873,7 +873,7 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 
 
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
-  CVC4_DCHECK(wasPropagatedBySubtheory(literal));
+  Assert(wasPropagatedBySubtheory(literal));
   SubTheory sub = getPropagatingSubtheory(literal);
   d_subtheoryMap[sub]->explain(literal, assumptions);
 }
@@ -912,7 +912,7 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
     return EQUALITY_UNKNOWN;
-  CVC4_DCHECK(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);
     if (status != EQUALITY_UNKNOWN) {
@@ -924,7 +924,7 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 
 
 void TheoryBV::enableCoreTheorySlicer() {
-  CVC4_DCHECK(!d_calledPreregister);
+  Assert(!d_calledPreregister);
   d_isCoreTheory = true;
   if (d_subtheoryMap.find(SUB_CORE) != d_subtheoryMap.end()) {
     CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
@@ -979,7 +979,7 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
       options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
       options::bitvectorAig()) {
     // disable AIG mode
-    CVC4_CHECK(!d_eagerSolver->isInitialized());
+    AlwaysAssert(!d_eagerSolver->isInitialized());
     d_eagerSolver->turnOffAig();
     d_eagerSolver->initialize();
   }

@@ -81,7 +81,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
     reqVarToIndex[v] = reqSubs.size();
     const std::vector<Node>::const_iterator& it =
         std::find(vars.begin(), vars.end(), v);
-    CVC4_DCHECK(it != vars.end());
+    Assert(it != vars.end());
     ptrdiff_t pos = std::distance(vars.begin(), it);
     reqSubs.push_back(subs[pos]);
   }
@@ -131,7 +131,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
               Node res = tcc[1 - r];
               if (res.isConst())
               {
-                CVC4_DCHECK(res == prev);
+                Assert(res == prev);
                 madeImplied = true;
                 break;
               }
@@ -239,8 +239,8 @@ bool SubstitutionMinimize::findInternal(Node n,
         for (const Node& cn : children)
         {
           it = value.find(cn);
-          CVC4_DCHECK(it != value.end());
-          CVC4_DCHECK(!it->second.isNull());
+          Assert(it != value.end());
+          Assert(!it->second.isNull());
           nb << it->second;
         }
         ret = nb.constructNode();
@@ -249,8 +249,8 @@ bool SubstitutionMinimize::findInternal(Node n,
       value[cur] = ret;
     }
   } while (!visit.empty());
-  CVC4_DCHECK(value.find(n) != value.end());
-  CVC4_DCHECK(!value.find(n)->second.isNull());
+  Assert(value.find(n) != value.end());
+  Assert(!value.find(n)->second.isNull());
 
   Trace("subs-min") << "... got " << value[n] << std::endl;
   if (value[n] != target)
@@ -288,7 +288,7 @@ bool SubstitutionMinimize::findInternal(Node n,
       {
         // only recurse on relevant branch
         Node bval = value[cur[0]];
-        CVC4_DCHECK(!bval.isNull() && bval.isConst());
+        Assert(!bval.isNull() && bval.isConst());
         unsigned cindex = bval.getConst<bool>() ? 1 : 2;
         visit.push_back(cur[0]);
         visit.push_back(cur[cindex]);
@@ -303,7 +303,7 @@ bool SubstitutionMinimize::findInternal(Node n,
         {
           Node op = cur.getOperator();
           it = value.find(op);
-          CVC4_DCHECK(it != value.end());
+          Assert(it != value.end());
           TNode vop = it->second;
           if (vop.getKind() == LAMBDA)
           {
@@ -313,7 +313,7 @@ bool SubstitutionMinimize::findInternal(Node n,
             for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++)
             {
               it = value.find(cur[i]);
-              CVC4_DCHECK(it != value.end());
+              Assert(it != value.end());
               Node scurr = curr.substitute(vop[0][i], it->second);
               // if the valuation of the i^th argument changes the
               // interpretation of the body of the lambda, then the i^th
@@ -338,8 +338,8 @@ bool SubstitutionMinimize::findInternal(Node n,
             {
               Node cn = cur[i];
               it = value.find(cn);
-              CVC4_DCHECK(it != value.end());
-              CVC4_DCHECK(!it->second.isNull());
+              Assert(it != value.end());
+              Assert(!it->second.isNull());
               if (isSingularArg(it->second, ck, i))
               {
                 // have we seen this argument already? if so, we are done
@@ -379,7 +379,7 @@ bool SubstitutionMinimize::findInternal(Node n,
 
   for (const Node& v : rlvFv)
   {
-    CVC4_DCHECK(std::find(vars.begin(), vars.end(), v) != vars.end());
+    Assert(std::find(vars.begin(), vars.end(), v) != vars.end());
     reqVars.push_back(v);
   }
 

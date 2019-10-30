@@ -21,8 +21,7 @@
 #include <iostream>
 #include <string>
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "expr/node_algorithm.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
@@ -329,7 +328,7 @@ std::pair<bool, Node> Theory::entailmentCheck(
 }
 
 ExtTheory* Theory::getExtTheory() {
-  CVC4_DCHECK(d_extTheory != NULL);
+  Assert(d_extTheory != NULL);
   return d_extTheory;
 }
 
@@ -340,7 +339,7 @@ void Theory::addCarePair(TNode t1, TNode t2) {
 }
 
 void Theory::getCareGraph(CareGraph* careGraph) {
-  CVC4_DCHECK(careGraph != NULL);
+  Assert(careGraph != NULL);
 
   Trace("sharing") << "Theory<" << getId() << ">::getCareGraph()" << std::endl;
   TimerStat::CodeTimer computeCareGraphTime(d_computeCareGraphTime);
@@ -350,20 +349,20 @@ void Theory::getCareGraph(CareGraph* careGraph) {
 }
 
 void Theory::setQuantifiersEngine(QuantifiersEngine* qe) {
-  CVC4_DCHECK(d_quantEngine == NULL);
-  CVC4_DCHECK(qe != NULL);
+  Assert(d_quantEngine == NULL);
+  Assert(qe != NULL);
   d_quantEngine = qe;
 }
 
 void Theory::setDecisionManager(DecisionManager* dm)
 {
-  CVC4_DCHECK(d_decManager == nullptr);
-  CVC4_DCHECK(dm != nullptr);
+  Assert(d_decManager == nullptr);
+  Assert(dm != nullptr);
   d_decManager = dm;
 }
 
 void Theory::setupExtTheory() {
-  CVC4_DCHECK(d_extTheory == NULL);
+  Assert(d_extTheory == NULL);
   d_extTheory = new ExtTheory(this);
 }
 

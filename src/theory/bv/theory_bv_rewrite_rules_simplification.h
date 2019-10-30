@@ -94,7 +94,7 @@ inline Node RewriteRule<BvIteConstChildren>::apply(TNode node)
   {
     return node[0];
   }
-  CVC4_DCHECK(utils::isZero(node[1]) && utils::isOne(node[2]));
+  Assert(utils::isZero(node[1]) && utils::isOne(node[2]));
   return NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, node[0]);
 }
 
@@ -155,7 +155,7 @@ inline Node RewriteRule<BvIteMergeThenIf>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<BvIteMergeThenIf>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  CVC4_DCHECK(node[1].getKind() == kind::BITVECTOR_ITE);
+  Assert(node[1].getKind() == kind::BITVECTOR_ITE);
   Node cond = nm->mkNode(kind::BITVECTOR_AND,
                          node[0],
                          nm->mkNode(kind::BITVECTOR_NOT, node[1][0]));
@@ -184,7 +184,7 @@ inline Node RewriteRule<BvIteMergeElseIf>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<BvIteMergeElseIf>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  CVC4_DCHECK(node[1].getKind() == kind::BITVECTOR_ITE);
+  Assert(node[1].getKind() == kind::BITVECTOR_ITE);
   Node cond = nm->mkNode(kind::BITVECTOR_AND, node[0], node[1][0]);
   return nm->mkNode(kind::BITVECTOR_ITE, cond, node[1][1], node[2]);
 }
@@ -211,7 +211,7 @@ inline Node RewriteRule<BvIteMergeThenElse>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<BvIteMergeThenElse>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  CVC4_DCHECK(node[2].getKind() == kind::BITVECTOR_ITE);
+  Assert(node[2].getKind() == kind::BITVECTOR_ITE);
   Node cond = nm->mkNode(kind::BITVECTOR_AND,
                          nm->mkNode(kind::BITVECTOR_NOT, node[0]),
                          nm->mkNode(kind::BITVECTOR_NOT, node[2][0]));
@@ -240,7 +240,7 @@ inline Node RewriteRule<BvIteMergeElseElse>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<BvIteMergeElseElse>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  CVC4_DCHECK(node[2].getKind() == kind::BITVECTOR_ITE);
+  Assert(node[2].getKind() == kind::BITVECTOR_ITE);
   Node cond = nm->mkNode(kind::BITVECTOR_AND,
                          nm->mkNode(kind::BITVECTOR_NOT, node[0]),
                          node[2][0]);
@@ -307,7 +307,7 @@ Node RewriteRule<ShlByConst>::apply(TNode node) {
   }
   
   // make sure we do not lose information casting
-  CVC4_DCHECK(amount < Integer(1).multiplyByPow2(32));
+  Assert(amount < Integer(1).multiplyByPow2(32));
 
   uint32_t uint32_amount = amount.toUnsignedInt();
 
@@ -349,7 +349,7 @@ Node RewriteRule<LshrByConst>::apply(TNode node) {
   }
   
   // make sure we do not lose information casting
-  CVC4_DCHECK(amount < Integer(1).multiplyByPow2(32));
+  Assert(amount < Integer(1).multiplyByPow2(32));
 
   uint32_t uint32_amount = amount.toUnsignedInt();
   Node right = utils::mkExtract(a, size - 1, uint32_amount);
@@ -391,7 +391,7 @@ Node RewriteRule<AshrByConst>::apply(TNode node) {
   }
   
   // make sure we do not lose information casting
-  CVC4_DCHECK(amount < Integer(1).multiplyByPow2(32));
+  Assert(amount < Integer(1).multiplyByPow2(32));
 
   uint32_t uint32_amount = amount.toUnsignedInt();
   if (uint32_amount == 0) {
@@ -481,7 +481,7 @@ Node RewriteRule<AndOne>::apply(TNode node) {
   if (node[0] == utils::mkOnes(size)) {
     return node[1]; 
   } else {
-    CVC4_DCHECK(node[1] == utils::mkOnes(size));
+    Assert(node[1] == utils::mkOnes(size));
     return node[0]; 
   }
 }
@@ -577,8 +577,8 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
       zb << child;
     }
   }
-  CVC4_DCHECK(!c.isNull());
-  CVC4_DCHECK(yb.getNumChildren() || zb.getNumChildren());
+  Assert(!c.isNull());
+  Assert(yb.getNumChildren() || zb.getNumChildren());
 
   if ((nc = yb.getNumChildren()) > 0)
   {
@@ -594,8 +594,8 @@ inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
 #endif
   my = y.isNull() ? 0 : utils::getSize(y);
   mz = z.isNull() ? 0 : utils::getSize(z);
-  CVC4_DCHECK(mz == m - my - n);
-  CVC4_DCHECK(my || mz);
+  Assert(mz == m - my - n);
+  Assert(my || mz);
 
   if (my)
   {
@@ -639,7 +639,7 @@ Node RewriteRule<OrZero>::apply(TNode node) {
   if (node[0] == utils::mkConst(size, 0)) {
     return node[1]; 
   } else {
-    CVC4_DCHECK(node[1] == utils::mkConst(size, 0));
+    Assert(node[1] == utils::mkConst(size, 0));
     return node[0]; 
   }
 }
@@ -1598,7 +1598,7 @@ inline Node RewriteRule<BBPlusNeg>::apply(TNode node)
       children.push_back(node[i]);
     }
   }
-  CVC4_DCHECK(neg_count != 0);
+  Assert(neg_count != 0);
   children.push_back(utils::mkConst(utils::getSize(node), neg_count));
 
   return utils::mkNaryNode(kind::BITVECTOR_PLUS, children);
@@ -1640,7 +1640,7 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
     Node res = nb;
     return res;
   }
-  CVC4_DCHECK(node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND);
+  Assert(node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND);
   unsigned amount2 =
       node[0].getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
   return utils::mkSignExtend(node[0][0], amount1 + amount2);
@@ -1889,7 +1889,7 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
       return nm->mkNode(kind::EQUAL, msb_x, utils::mkZero(1));
     }
     // x < c[n-1:0]
-    CVC4_DCHECK(bv_c <= bv_msb_x || bv_c >= bv_upper_bits);
+    Assert(bv_c <= bv_msb_x || bv_c >= bv_upper_bits);
     return nm->mkNode(kind::BITVECTOR_ULT, x, c_lo);
   }
 
@@ -1900,7 +1900,7 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
     return nm->mkNode(kind::EQUAL, msb_x, utils::mkOne(1));
   }
   // c[n-1:0] < x
-  CVC4_DCHECK(bv_c < bv_msb_x || bv_c >= ~bv_msb_x);
+  Assert(bv_c < bv_msb_x || bv_c >= ~bv_msb_x);
   return nm->mkNode(kind::BITVECTOR_ULT, c_lo, x);
 }
 
@@ -2040,7 +2040,7 @@ inline Node RewriteRule<IsPowerOfTwo>::apply(TNode node)
   TNode b = term[1];
   unsigned size = utils::getSize(term);
   Node diff = Rewriter::rewrite(nm->mkNode(kind::BITVECTOR_SUB, a, b));
-  CVC4_DCHECK(diff.isConst());
+  Assert(diff.isConst());
   TNode x = diff == utils::mkConst(size, 1u) ? a : b;
   Node one = utils::mkConst(size, 1u);
   Node sk = utils::mkVar(size);
@@ -2179,7 +2179,7 @@ Node RewriteRule<MultSltMult>::apply(TNode node)
   }
   else
   {
-    CVC4_DCHECK(ml[1].getKind() == kind::BITVECTOR_PLUS);
+    Assert(ml[1].getKind() == kind::BITVECTOR_PLUS);
     addxt = ml[1];
     a = ml[0];
   }

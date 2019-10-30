@@ -108,7 +108,7 @@ Node VtsTermCache::substituteVtsFreeTerms(Node n)
   getVtsTerms(vars, false, false);
   std::vector<Node> vars_free;
   getVtsTerms(vars_free, true, false);
-  CVC4_DCHECK(vars.size() == vars_free.size());
+  Assert(vars.size() == vars_free.size());
   if (vars.empty())
   {
     return n;
@@ -176,7 +176,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
           ArithMSum::debugPrintMonomialSum(msum, "quant-vts-debug");
         }
         Node vts_sym = !rew_vts_inf.isNull() ? rew_vts_inf : d_vts_delta;
-        CVC4_DCHECK(!vts_sym.isNull());
+        Assert(!vts_sym.isNull());
         Node iso_n;
         Node nlit;
         int res = ArithMSum::isolate(vts_sym, msum, iso_n, n.getKind(), true);
@@ -204,7 +204,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
             }
             else
             {
-              CVC4_DCHECK(iso_n[res == 1 ? 0 : 1] == d_vts_delta);
+              Assert(iso_n[res == 1 ? 0 : 1] == d_vts_delta);
               if (n.getKind() == EQUAL)
               {
                 nlit = nm->mkConst(false);

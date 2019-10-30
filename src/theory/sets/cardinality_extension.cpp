@@ -48,7 +48,7 @@ void CardinalityExtension::reset()
 void CardinalityExtension::registerTerm(Node n)
 {
   Trace("sets-card-debug") << "Register term : " << n << std::endl;
-  CVC4_DCHECK(n.getKind() == CARD);
+  Assert(n.getKind() == CARD);
   TypeNode tnc = n[0].getType().getSetElementType();
   d_t_card_enabled[tnc] = true;
   Node r = d_ee.getRepresentative(n[0]);
@@ -94,13 +94,13 @@ void CardinalityExtension::check()
   {
     return;
   }
-  CVC4_DCHECK(intro_sets.size() == 1);
+  Assert(intro_sets.size() == 1);
   Trace("sets-intro") << "Introduce term : " << intro_sets[0] << std::endl;
   Trace("sets-intro") << "  Actual Intro : ";
   d_state.debugPrintSet(intro_sets[0], "sets-nf");
   Trace("sets-nf") << std::endl;
   Node k = d_state.getProxy(intro_sets[0]);
-  CVC4_CHECK(!k.isNull());
+  AlwaysAssert(!k.isNull());
 }
 
 void CardinalityExtension::checkRegister()
@@ -220,7 +220,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     else
     {
       // should be guaranteed based on not exploring equal parents
-      CVC4_DCHECK(false);
+      Assert(false);
     }
     return;
   }
@@ -279,7 +279,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     // if this set is empty
     if (is_empty)
     {
-      CVC4_DCHECK(d_state.areEqual(n, emp_set));
+      Assert(d_state.areEqual(n, emp_set));
       Trace("sets-debug") << "  empty, parents equal siblings" << std::endl;
       std::vector<Node> conc;
       // parent equal siblings
@@ -321,7 +321,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       if (d_state.areEqual(p, emp_set))
       {
         Trace("sets-debug") << "  it is empty..." << std::endl;
-        CVC4_DCHECK(!d_state.areEqual(n, emp_set));
+        Assert(!d_state.areEqual(n, emp_set));
         d_im.assertInference(n.eqNode(emp_set), p.eqNode(emp_set), "cg_emppar");
         d_im.flushPendingLemmas();
         if (d_im.hasProcessed())
@@ -384,7 +384,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         card_parent_ids.push_back(is_union ? 2 : e);
       }
     }
-    CVC4_DCHECK(d_card_parent[n].empty());
+    Assert(d_card_parent[n].empty());
     Trace("sets-debug") << "get parent representatives..." << std::endl;
     // for each parent, take their representatives
     for (unsigned k = 0, numcp = card_parents.size(); k < numcp; k++)
@@ -430,7 +430,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           Trace("sets-nf") << "Split empty : " << n << std::endl;
           d_im.split(n.eqNode(emp_set), 1);
         }
-        CVC4_DCHECK(d_im.hasProcessed());
+        Assert(d_im.hasProcessed());
         return;
       }
       else
@@ -451,7 +451,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           {
             continue;
           }
-          CVC4_DCHECK(card_parent_ids[l] != 2);
+          Assert(card_parent_ids[l] != 2);
           std::vector<Node> conc;
           if (card_parent_ids[k] == 2)
           {
@@ -568,7 +568,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
     Trace("sets-nf") << "(no flat forms)" << std::endl;
   }
   std::map<Node, std::vector<Node> >& ffeqc = d_ff[eqc];
-  CVC4_DCHECK(d_nf.find(eqc) == d_nf.end());
+  Assert(d_nf.find(eqc) == d_nf.end());
   std::vector<Node>& nfeqc = d_nf[eqc];
   NodeManager* nm = NodeManager::currentNM();
   bool success = true;
@@ -650,7 +650,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             Trace("sets-nf-debug") << "         actual : ";
             d_state.debugPrintSet(r, "sets-nf-debug");
             Trace("sets-nf-debug") << std::endl;
-            CVC4_DCHECK(!d_state.areEqual(r, emp_set));
+            Assert(!d_state.areEqual(r, emp_set));
             if (!d_state.areDisequal(r, emp_set) && !d_state.hasMembers(r))
             {
               // guess that its equal empty if it has no explicit members
@@ -659,7 +659,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               d_state.debugPrintSet(r, "sets-nf");
               Trace("sets-nf") << std::endl;
               d_im.split(r.eqNode(emp_set), 1);
-              CVC4_DCHECK(d_im.hasProcessed());
+              Assert(d_im.hasProcessed());
               return;
             }
           }
@@ -687,7 +687,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
                 // their intersection is empty (probably?)
                 // e.g. these are two disjoint venn regions, proceed to next
                 // pair
-                CVC4_DCHECK(d_state.areEqual(emp_set, r1r2i));
+                Assert(d_state.areEqual(emp_set, r1r2i));
                 disjoint = true;
                 break;
               }
@@ -695,7 +695,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             if (!disjoint)
             {
               // simply introduce their intersection
-              CVC4_DCHECK(o0 != o1);
+              Assert(o0 != o1);
               Node kca = d_state.getProxy(o0);
               Node kcb = d_state.getProxy(o1);
               Node intro =
@@ -703,7 +703,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
                                << ", term is " << intro << std::endl;
               intro_sets.push_back(intro);
-              CVC4_DCHECK(!d_ee.hasTerm(intro));
+              Assert(!d_ee.hasTerm(intro));
               return;
             }
           }
@@ -743,7 +743,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   if (!success)
   {
-    CVC4_DCHECK(d_im.hasProcessed());
+    Assert(d_im.hasProcessed());
     return;
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
@@ -763,7 +763,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       // nothing to do
       continue;
     }
-    CVC4_DCHECK(d_localBase.find(n) != d_localBase.end());
+    Assert(d_localBase.find(n) != d_localBase.end());
     Node cbase = d_localBase[n];
     Trace("sets-nf-debug") << "Card base is " << cbase << std::endl;
     for (const Node& p : d_card_parent[n])
@@ -870,10 +870,10 @@ void CardinalityExtension::mkModelValueElementsFor(
       Node v = val.getModelValue(it->second);
       Trace("sets-model") << "Cardinality of " << eqc << " is " << v
                           << std::endl;
-      CVC4_DCHECK(v.getConst<Rational>() <= LONG_MAX)
+      Assert(v.getConst<Rational>() <= LONG_MAX)
           << "Exceeded LONG_MAX in sets model";
       unsigned vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
-      CVC4_DCHECK(els.size() <= vu);
+      Assert(els.size() <= vu);
       NodeManager* nm = NodeManager::currentNM();
       while (els.size() < vu)
       {
@@ -900,7 +900,7 @@ void CardinalityExtension::mkModelValueElementsFor(
       }
       else
       {
-        CVC4_DCHECK(false);
+        Assert(false);
       }
     }
   }

@@ -45,13 +45,13 @@ bool is_bv_const(Node n)
 
 Node get_bv_const(Node n)
 {
-  CVC4_DCHECK(is_bv_const(n));
+  Assert(is_bv_const(n));
   return Rewriter::rewrite(n);
 }
 
 Integer get_bv_const_value(Node n)
 {
-  CVC4_DCHECK(is_bv_const(n));
+  Assert(is_bv_const(n));
   return get_bv_const(n).getConst<BitVector>().getValue();
 }
 
@@ -103,8 +103,8 @@ unsigned BVGauss::getMinBwExpr(Node expr)
     else if (it->second == 0)
     {
       Kind k = n.getKind();
-      CVC4_DCHECK(k != kind::CONST_BITVECTOR);
-      CVC4_DCHECK(!is_bv_const(n));
+      Assert(k != kind::CONST_BITVECTOR);
+      Assert(!is_bv_const(n));
       switch (k)
       {
         case kind::BITVECTOR_EXTRACT:
@@ -114,7 +114,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
           const unsigned child_min_width = visited[n[0]];
           visited[n] = std::min(
               size, child_min_width >= low ? child_min_width - low : 0u);
-          CVC4_DCHECK(visited[n] <= visited[n[0]]);
+          Assert(visited[n] <= visited[n[0]]);
           break;
         }
 
@@ -221,7 +221,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
       }
     }
   }
-  CVC4_DCHECK(visited.find(expr) != visited.end());
+  Assert(visited.find(expr) != visited.end());
   return visited[expr];
 }
 
@@ -245,10 +245,10 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
                                    std::vector<Integer>& rhs,
                                    std::vector<std::vector<Integer>>& lhs)
 {
-  CVC4_DCHECK(prime > 0);
-  CVC4_DCHECK(lhs.size());
-  CVC4_DCHECK(lhs.size() == rhs.size());
-  CVC4_DCHECK(lhs.size() <= lhs[0].size());
+  Assert(prime > 0);
+  Assert(lhs.size());
+  Assert(lhs.size() == rhs.size());
+  Assert(lhs.size() <= lhs[0].size());
 
   /* special case: zero ring */
   if (prime == 1)
@@ -263,7 +263,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
   size_t ncols = lhs[0].size();
 
   #ifdef CVC4_ASSERTIONS
-  for (size_t i = 1; i < nrows; ++i) CVC4_DCHECK(lhs[i].size() == ncols);
+  for (size_t i = 1; i < nrows; ++i) Assert(lhs[i].size() == ncols);
 #endif
   /* (1) if element in pivot column is non-zero and != 1, divide row elements
    *     by element in pivot column modulo prime, i.e., multiply row with
@@ -286,7 +286,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
 #ifdef CVC4_ASSERTIONS
       for (size_t k = 0; k < pcol; ++k)
       {
-        CVC4_DCHECK(lhs[j][k] == 0);
+        Assert(lhs[j][k] == 0);
       }
 #endif
       /* normalize element in pivot column to modulo prime */
@@ -422,7 +422,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     const std::vector<Node>& equations,
     std::unordered_map<Node, Node, NodeHashFunction>& res)
 {
-  CVC4_DCHECK(res.empty());
+  Assert(res.empty());
 
   Node prime;
   Integer iprime;
@@ -437,20 +437,20 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
   for (size_t i = 0; i < neqs; ++i)
   {
     Node eq = equations[i];
-    CVC4_DCHECK(eq.getKind() == kind::EQUAL);
+    Assert(eq.getKind() == kind::EQUAL);
     Node urem, eqrhs;
 
     if (eq[0].getKind() == kind::BITVECTOR_UREM)
     {
       urem = eq[0];
-      CVC4_DCHECK(is_bv_const(eq[1]));
+      Assert(is_bv_const(eq[1]));
       eqrhs = eq[1];
     }
     else
     {
-      CVC4_DCHECK(eq[1].getKind() == kind::BITVECTOR_UREM);
+      Assert(eq[1].getKind() == kind::BITVECTOR_UREM);
       urem = eq[1];
-      CVC4_DCHECK(is_bv_const(eq[0]));
+      Assert(is_bv_const(eq[0]));
       eqrhs = eq[0];
     }
     if (getMinBwExpr(Rewriter::rewrite(urem[0])) == 0)
@@ -463,8 +463,8 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     }
     rhs.push_back(get_bv_const_value(eqrhs));
 
-    CVC4_DCHECK(is_bv_const(urem[1]));
-    CVC4_DCHECK(i == 0 || get_bv_const_value(urem[1]) == iprime);
+    Assert(is_bv_const(urem[1]));
+    Assert(i == 0 || get_bv_const_value(urem[1]) == iprime);
     if (i == 0)
     {
       prime = urem[1];
@@ -513,7 +513,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
             nb_nonconsts << nnrw;
           }
         }
-        CVC4_DCHECK(nb_nonconsts.getNumChildren() > 0);
+        Assert(nb_nonconsts.getNumChildren() > 0);
         /* n0 is const */
         unsigned nc = nb_consts.getNumChildren();
         if (nc > 1)
@@ -537,8 +537,8 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
         {
           n1 = nb_nonconsts[0];
         }
-        CVC4_DCHECK(is_bv_const(n0));
-        CVC4_DCHECK(!is_bv_const(n1));
+        Assert(is_bv_const(n0));
+        Assert(!is_bv_const(n1));
         tmp[n1] += get_bv_const_value(n0);
       }
       else
@@ -571,12 +571,12 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
   }
 
   size_t nvars = vars.size();
-  CVC4_DCHECK(nvars);
+  Assert(nvars);
   size_t nrows = vars.begin()->second.size();
 #ifdef CVC4_ASSERTIONS
   for (const auto& p : vars)
   {
-    CVC4_DCHECK(p.second.size() == nrows);
+    Assert(p.second.size() == nrows);
   }
 #endif
 
@@ -596,9 +596,9 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
 #ifdef CVC4_ASSERTIONS
   for (const auto& row : lhs)
   {
-    CVC4_DCHECK(row.size() == nvars);
+    Assert(row.size() == nvars);
   }
-  CVC4_DCHECK(lhs.size() == rhs.size());
+  Assert(lhs.size() == rhs.size());
 #endif
 
   if (lhs.size() > lhs[0].size())
@@ -613,9 +613,9 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
   {
     std::vector<Node> vvars;
     for (const auto& p : vars) { vvars.push_back(p.first); }
-    CVC4_DCHECK(nvars == vvars.size());
-    CVC4_DCHECK(nrows == lhs.size());
-    CVC4_DCHECK(nrows == rhs.size());
+    Assert(nvars == vvars.size());
+    Assert(nrows == lhs.size());
+    Assert(nrows == rhs.size());
     NodeManager *nm = NodeManager::currentNM();
     if (ret == BVGauss::Result::UNIQUE)
     {
@@ -627,24 +627,24 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
     }
     else
     {
-      CVC4_DCHECK(ret == BVGauss::Result::PARTIAL);
+      Assert(ret == BVGauss::Result::PARTIAL);
 
       for (size_t pcol = 0, prow = 0; pcol < nvars && prow < nrows;
            ++pcol, ++prow)
       {
-        CVC4_DCHECK(lhs[prow][pcol] == 0 || lhs[prow][pcol] == 1);
+        Assert(lhs[prow][pcol] == 0 || lhs[prow][pcol] == 1);
         while (pcol < nvars && lhs[prow][pcol] == 0) pcol += 1;
         if (pcol >= nvars)
         {
-          CVC4_DCHECK(rhs[prow] == 0);
+          Assert(rhs[prow] == 0);
           break;
         }
         if (lhs[prow][pcol] == 0)
         {
-          CVC4_DCHECK(rhs[prow] == 0);
+          Assert(rhs[prow] == 0);
           continue;
         }
-        CVC4_DCHECK(lhs[prow][pcol] == 1);
+        Assert(lhs[prow][pcol] == 1);
         std::vector<Node> stack;
         for (size_t i = pcol + 1; i < nvars; ++i)
         {
@@ -675,7 +675,7 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
                                  bv::utils::getSize(vvars[pcol]), rhs[prow]),
                              tmp);
           }
-          CVC4_DCHECK(!is_bv_const(tmp));
+          Assert(!is_bv_const(tmp));
           res[vvars[pcol]] = nm->mkNode(kind::BITVECTOR_UREM, tmp, prime);
         }
       }

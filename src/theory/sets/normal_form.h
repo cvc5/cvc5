@@ -92,17 +92,17 @@ class NormalForm {
   }
 
   static std::set<Node> getElementsFromNormalConstant(TNode n) {
-    CVC4_DCHECK(n.isConst());
+    Assert(n.isConst());
     std::set<Node> ret;
     if (n.getKind() == kind::EMPTYSET) {
       return ret;
     }
     while (n.getKind() == kind::UNION) {
-      CVC4_DCHECK(n[1].getKind() == kind::SINGLETON);
+      Assert(n[1].getKind() == kind::SINGLETON);
       ret.insert(ret.begin(), n[1][0]);
       n = n[0];
     }
-    CVC4_DCHECK(n.getKind() == kind::SINGLETON);
+    Assert(n.getKind() == kind::SINGLETON);
     ret.insert(n[0]);
     return ret;
   }

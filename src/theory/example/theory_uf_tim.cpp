@@ -82,7 +82,7 @@ void TheoryUFTim::registerTerm(TNode n) {
      *
      * The above assumes that the code is working correctly.
      */
-    CVC4_DCHECK(ecN->getFirst() == NULL)
+    Assert(ecN->getFirst() == NULL)
         << "Equivalence class data exists for the node being registered.  "
            "Expected getFirst() == NULL.  "
            "This data is either already in use or was not properly maintained "
@@ -92,12 +92,12 @@ void TheoryUFTim::registerTerm(TNode n) {
            "Expected getLast() == NULL.  "
            "This data is either already in use or was not properly maintained "
            "during backtracking.");*/
-    CVC4_DCHECK(ecN->isClassRep())
+    Assert(ecN->isClassRep())
         << "Equivalence class data exists for the node being registered.  "
            "Expected isClassRep() to be true.  "
            "This data is either already in use or was not properly maintained "
            "during backtracking";
-    CVC4_DCHECK(ecN->getWatchListSize() == 0)
+    Assert(ecN->getWatchListSize() == 0)
         << "Equivalence class data exists for the node being registered.  "
            "Expected getWatchListSize() == 0.  "
            "This data is either already in use or was not properly maintained "
@@ -146,8 +146,8 @@ bool TheoryUFTim::sameCongruenceClass(TNode x, TNode y) {
 }
 
 bool TheoryUFTim::equiv(TNode x, TNode y) {
-  CVC4_DCHECK(x.getKind() == kind::APPLY_UF);
-  CVC4_DCHECK(y.getKind() == kind::APPLY_UF);
+  Assert(x.getKind() == kind::APPLY_UF);
+  Assert(y.getKind() == kind::APPLY_UF);
 
   if(x.getNumChildren() != y.getNumChildren()) {
     return false;
@@ -260,7 +260,7 @@ Node TheoryUFTim::constructConflict(TNode diseq) {
     nb << d_assertions[i];
   }
 
-  CVC4_DCHECK(nb.getNumChildren() > 0);
+  Assert(nb.getNumChildren() > 0);
   Node conflict = nb.getNumChildren() == 1 ? nb[0] : nb;
 
   Debug("uf") << "conflict constructed : " << conflict << std::endl;
@@ -290,14 +290,13 @@ void TheoryUFTim::check(Effort level) {
       merge();
       break;
     case NOT:
-      CVC4_DCHECK(assertion[0].getKind() == EQUAL)
+      Assert(assertion[0].getKind() == EQUAL)
           << "predicates not supported in this UF implementation";
       d_disequality.push_back(assertion[0]);
       break;
     case APPLY_UF:
-      Unhandled("predicates not supported in this UF implementation");
-    default:
-      Unhandled(assertion.getKind());
+      Unhandled() << "predicates not supported in this UF implementation";
+    default: Unhandled() << assertion.getKind();
     }
 
     Debug("uf") << "TheoryUFTim::check(): done = " << (done() ? "true" : "false") << std::endl;

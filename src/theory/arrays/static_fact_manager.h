@@ -53,7 +53,7 @@ public:
 
   /**
    * Return a Node's union-find representative, NOT doing path compression.
-   * This is useful for CVC4_DCHECK() statements, debug checking, and similar
+   * This is useful for Assert() statements, debug checking, and similar
    * things that you do NOT want to mutate the structure.
    */
   inline TNode debugFind(TNode n) const;
@@ -102,8 +102,8 @@ inline TNode StaticFactManager::find(TNode n) {
 }
 
 inline void StaticFactManager::setCanon(TNode n, TNode newParent) {
-  CVC4_DCHECK(d_map.find(n) == d_map.end());
-  CVC4_DCHECK(d_map.find(newParent) == d_map.end());
+  Assert(d_map.find(n) == d_map.end());
+  Assert(d_map.find(newParent) == d_map.end());
   if(n != newParent) {
     d_map[n] = newParent;
   }

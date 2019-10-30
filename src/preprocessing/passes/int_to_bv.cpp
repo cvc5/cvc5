@@ -71,11 +71,11 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
           && (current.getKind() == kind::PLUS
               || current.getKind() == kind::MULT))
       {
-        CVC4_DCHECK(cache.find(current[0]) != cache.end());
+        Assert(cache.find(current[0]) != cache.end());
         result = cache[current[0]];
         for (unsigned i = 1; i < current.getNumChildren(); ++i)
         {
-          CVC4_DCHECK(cache.find(current[i]) != cache.end());
+          Assert(cache.find(current[i]) != cache.end());
           Node child = current[i];
           Node childRes = cache[current[i]];
           result = nm->mkNode(current.getKind(), result, childRes);
@@ -86,7 +86,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
         NodeBuilder<> builder(current.getKind());
         for (unsigned i = 0; i < current.getNumChildren(); ++i)
         {
-          CVC4_DCHECK(cache.find(current[i]) != cache.end());
+          Assert(cache.find(current[i]) != cache.end());
           builder << cache[current[i]];
         }
         result = builder;
@@ -126,8 +126,8 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
 Node intToBV(TNode n, NodeMap& cache)
 {
   int size = options::solveIntAsBV();
-  CVC4_CHECK(size > 0);
-  CVC4_CHECK(!options::incrementalSolving());
+  AlwaysAssert(size > 0);
+  AlwaysAssert(!options::incrementalSolving());
 
   vector<intToBV_stack_element> toVisit;
   NodeMap binaryCache;
@@ -157,7 +157,7 @@ Node intToBV(TNode n, NodeMap& cache)
       unsigned max = 0;
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
-        CVC4_DCHECK(cache.find(current[i]) != cache.end());
+        Assert(cache.find(current[i]) != cache.end());
         TNode childRes = cache[current[i]];
         TypeNode type = childRes.getType();
         if (type.isBitVector())
@@ -177,22 +177,22 @@ Node intToBV(TNode n, NodeMap& cache)
         switch (newKind)
         {
           case kind::PLUS:
-            CVC4_DCHECK(children.size() == 2);
+            Assert(children.size() == 2);
             newKind = kind::BITVECTOR_PLUS;
             max = max + 1;
             break;
           case kind::MULT:
-            CVC4_DCHECK(children.size() == 2);
+            Assert(children.size() == 2);
             newKind = kind::BITVECTOR_MULT;
             max = max * 2;
             break;
           case kind::MINUS:
-            CVC4_DCHECK(children.size() == 2);
+            Assert(children.size() == 2);
             newKind = kind::BITVECTOR_SUB;
             max = max + 1;
             break;
           case kind::UMINUS:
-            CVC4_DCHECK(children.size() == 1);
+            Assert(children.size() == 1);
             newKind = kind::BITVECTOR_NEG;
             max = max + 1;
             break;
@@ -273,7 +273,7 @@ Node intToBV(TNode n, NodeMap& cache)
           }
           else
           {
-            CVC4_CHECK(current.getType() == nm->booleanType());
+            AlwaysAssert(current.getType() == nm->booleanType());
           }
         }
         else if (current.isConst())
@@ -283,8 +283,8 @@ Node intToBV(TNode n, NodeMap& cache)
             case kind::CONST_RATIONAL:
             {
               Rational constant = current.getConst<Rational>();
-              CVC4_CHECK(constant.isIntegral());
-              CVC4_CHECK(constant >= 0);
+              AlwaysAssert(constant.isIntegral());
+              AlwaysAssert(constant >= 0);
               BitVector bv(size, constant.getNumerator());
               if (bv.toSignedInteger() != constant.getNumerator())
               {

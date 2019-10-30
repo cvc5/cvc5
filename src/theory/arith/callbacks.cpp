@@ -62,7 +62,7 @@ RaiseConflict::RaiseConflict(TheoryArithPrivate& ta)
 {}
 
 void RaiseConflict::raiseConflict(ConstraintCP c) const{
-  CVC4_DCHECK(c->inConflict());
+  Assert(c->inConflict());
   d_ta.raiseConflict(c);
 }
 
@@ -88,17 +88,17 @@ void FarkasConflictBuilder::reset(){
   d_constraints.clear();
   d_consequentSet = false;
   PROOF(d_farkas.clear());
-  CVC4_DCHECK(!underConstruction());
+  Assert(!underConstruction());
 }
 
 /* Adds a constraint to the constraint under construction. */
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
-  CVC4_DCHECK(
+  Assert(
       !PROOF_ON()
       || (!underConstruction() && d_constraints.empty() && d_farkas.empty())
       || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
-  CVC4_DCHECK(PROOF_ON() || d_farkas.empty());
-  CVC4_DCHECK(c->isTrue());
+  Assert(PROOF_ON() || d_farkas.empty());
+  Assert(c->isTrue());
 
   if(d_consequent == NullConstraint){
     d_consequent = c;
@@ -106,12 +106,12 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
     d_constraints.push_back(c);
   }
   PROOF(d_farkas.push_back(fc););
-  CVC4_DCHECK(!PROOF_ON() || d_constraints.size() + 1 == d_farkas.size());
-  CVC4_DCHECK(PROOF_ON() || d_farkas.empty());
+  Assert(!PROOF_ON() || d_constraints.size() + 1 == d_farkas.size());
+  Assert(PROOF_ON() || d_farkas.empty());
 }
 
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc, const Rational& mult){
-  CVC4_DCHECK(!mult.isZero());
+  Assert(!mult.isZero());
   if(PROOF_ON() && !mult.isOne()){
     Rational prod = fc * mult;
     addConstraint(c, prod);
@@ -121,14 +121,14 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc, co
 }
 
 void FarkasConflictBuilder::makeLastConsequent(){
-  CVC4_DCHECK(!d_consequentSet);
-  CVC4_DCHECK(underConstruction());
+  Assert(!d_consequentSet);
+  Assert(underConstruction());
 
   if(d_constraints.empty()){
     // no-op
     d_consequentSet = true;
   } else {
-    CVC4_DCHECK(d_consequent != NullConstraint);
+    Assert(d_consequent != NullConstraint);
     ConstraintCP last = d_constraints.back();
     d_constraints.back() = d_consequent;
     d_consequent = last;
@@ -136,29 +136,29 @@ void FarkasConflictBuilder::makeLastConsequent(){
     d_consequentSet = true;
   }
 
-  CVC4_DCHECK(!d_consequent->negationHasProof());
-  CVC4_DCHECK(d_consequentSet);
+  Assert(!d_consequent->negationHasProof());
+  Assert(d_consequentSet);
 }
 
 /* Turns the vector under construction into a conflict */
 ConstraintCP FarkasConflictBuilder::commitConflict(){
-  CVC4_DCHECK(underConstruction());
-  CVC4_DCHECK(!d_constraints.empty());
-  CVC4_DCHECK(
+  Assert(underConstruction());
+  Assert(!d_constraints.empty());
+  Assert(
       !PROOF_ON()
       || (!underConstruction() && d_constraints.empty() && d_farkas.empty())
       || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
-  CVC4_DCHECK(PROOF_ON() || d_farkas.empty());
-  CVC4_DCHECK(d_consequentSet);
+  Assert(PROOF_ON() || d_farkas.empty());
+  Assert(d_consequentSet);
 
   ConstraintP not_c = d_consequent->getNegation();
   RationalVectorCP coeffs = NULLPROOF(&d_farkas);
   not_c->impliedByFarkas(d_constraints, coeffs, true );
 
   reset();
-  CVC4_DCHECK(!underConstruction());
-  CVC4_DCHECK(not_c->inConflict());
-  CVC4_DCHECK(!d_consequentSet);
+  Assert(!underConstruction());
+  Assert(not_c->inConflict());
+  Assert(!d_consequentSet);
   return not_c;
 }
 

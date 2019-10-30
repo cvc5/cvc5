@@ -61,7 +61,7 @@ bool IsInVector(const std::vector<T>& c, const T& t) {
 // Returns the a[key] and assertion fails in debug mode.
 inline unsigned getCount(const NodeMultiset& a, Node key) {
   NodeMultiset::const_iterator it = a.find(key);
-  CVC4_DCHECK(it != a.end());
+  Assert(it != a.end());
   return it->second;
 }
 
@@ -202,7 +202,7 @@ const Value& FindWithDefault(const MapType& map, const Key& key,
 const NodeMultiset& NonlinearExtension::getMonomialExponentMap(
     Node monomial) const {
   MonomialExponentMap::const_iterator it = d_m_exp.find(monomial);
-  CVC4_DCHECK(it != d_m_exp.end());
+  Assert(it != d_m_exp.end());
   return it->second;
 }
 
@@ -214,14 +214,14 @@ bool NonlinearExtension::isMonomialSubset(Node a, Node b) const {
 }
 
 void NonlinearExtension::registerMonomialSubset(Node a, Node b) {
-  CVC4_DCHECK(isMonomialSubset(a, b));
+  Assert(isMonomialSubset(a, b));
 
   const NodeMultiset& a_exponent_map = getMonomialExponentMap(a);
   const NodeMultiset& b_exponent_map = getMonomialExponentMap(b);
 
   std::vector<Node> diff_children =
       ExpandMultiset(diffMultiset(b_exponent_map, a_exponent_map));
-  CVC4_DCHECK(!diff_children.empty());
+  Assert(!diff_children.empty());
 
   d_m_contain_parent[a].push_back(b);
   d_m_contain_children[b].push_back(a);
@@ -273,7 +273,7 @@ std::pair<bool, Node> NonlinearExtension::isExtfReduced(
     return std::make_pair(k != NONLINEAR_MULT && !isTranscendentalKind(k),
                           Node::null());
   }
-  CVC4_DCHECK(n == d_zero);
+  Assert(n == d_zero);
   if (on.getKind() == NONLINEAR_MULT)
   {
     Trace("nl-ext-zero-exp") << "Infer zero : " << on << " == " << n
@@ -407,7 +407,7 @@ void NonlinearExtension::registerMonomial(Node n) {
       d_m_vlist[n].clear();
       d_m_degree[n] = 0;
     } else {
-      CVC4_DCHECK(!isArithKind(n.getKind()));
+      Assert(!isArithKind(n.getKind()));
       d_m_exp[n][n] = 1;
       d_m_vlist[n].push_back(n);
       d_m_degree[n] = 1;
@@ -451,7 +451,7 @@ void NonlinearExtension::registerConstraint(Node atom) {
           registerMonomial(itm->first);
           Trace("nl-ext-debug2")
               << "...process monomial " << itm->first << std::endl;
-          CVC4_DCHECK(d_m_degree.find(itm->first) != d_m_degree.end());
+          Assert(d_m_degree.find(itm->first) != d_m_degree.end());
           unsigned d = d_m_degree[itm->first];
           if (d > max_degree) {
             max_degree = d;
@@ -510,7 +510,7 @@ Node NonlinearExtension::mkLit(Node a, Node b, int status, int orderType) {
   } else if (status < 0) {
     return mkLit(b, a, -status);
   } else {
-    CVC4_DCHECK(status == 1 || status == 2);
+    Assert(status == 1 || status == 2);
     NodeManager* nm = NodeManager::currentNM();
     Kind greater_op = status == 1 ? GEQ : GT;
     if (orderType == 0) {
@@ -564,7 +564,7 @@ Node NonlinearExtension::mkMonomialRemFactor(
     Trace("nl-ext-mono-factor")
         << "..." << inc << " factors of " << v << std::endl;
     unsigned count_in_n_exp_rem = getCountWithDefault(n_exp_rem, v, 0);
-    CVC4_DCHECK(count_in_n_exp_rem <= inc);
+    Assert(count_in_n_exp_rem <= inc);
     inc -= count_in_n_exp_rem;
     Trace("nl-ext-mono-factor")
         << "......rem, now " << inc << " factors of " << v << std::endl;
@@ -584,7 +584,7 @@ int NonlinearExtension::flushLemma(Node lem) {
     Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
     // should not generate duplicates
-    // CVC4_DCHECK( false );
+    // Assert( false );
     return 0;
   }
   d_lemmas.insert(lem);
@@ -671,7 +671,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       if (atom.getKind() == GEQ || (!pol && atom.getKind() == GT))
       {
         Node p = atom[0];
-        CVC4_DCHECK(atom[1].isConst());
+        Assert(atom[1].isConst());
         Rational bound = atom[1].getConst<Rational>();
         if (!pol)
         {
@@ -725,7 +725,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
           Node eq = p.eqNode(nm->mkConst(ib.second));
           eq = Rewriter::rewrite(eq);
           Node lit2 = init_bounds_lit[1][p];
-          CVC4_DCHECK(lit2.getKind() != EQUAL);
+          Assert(lit2.getKind() != EQUAL);
           // use the equality instead, thus these are redundant
           init_assertions.erase(lit1);
           init_assertions.erase(lit2);
@@ -892,7 +892,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
               printRationalApprox("nl-ext-cm", curv);
               Trace("nl-ext-cm") << std::endl;
               bool ret = addCheckModelSubstitution(cur, curv);
-              CVC4_CHECK(ret);
+              AlwaysAssert(ret);
             }
           }
         }
@@ -975,7 +975,7 @@ bool NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
   {
     Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
     // this should never happen since substitutions should be applied eagerly
-    CVC4_DCHECK(false);
+    Assert(false);
     return false;
   }
   // if we previously had an approximate bound, the exact bound should be in its
@@ -1022,12 +1022,12 @@ bool NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u)
     Trace("nl-ext-model")
         << "...ERROR: setting bound for variable that already has exact value."
         << std::endl;
-    CVC4_DCHECK(false);
+    Assert(false);
     return false;
   }
-  CVC4_DCHECK(l.isConst());
-  CVC4_DCHECK(u.isConst());
-  CVC4_DCHECK(l.getConst<Rational>() <= u.getConst<Rational>());
+  Assert(l.isConst());
+  Assert(u.isConst());
+  Assert(l.getConst<Rational>() <= u.getConst<Rational>());
   d_check_model_bounds[v] = std::pair<Node, Node>(l, u);
   return true;
 }
@@ -1063,7 +1063,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     }
   }
   Trace("nl-ext-cms") << "simple solve equality " << seq << "..." << std::endl;
-  CVC4_DCHECK(seq.getKind() == EQUAL);
+  Assert(seq.getKind() == EQUAL);
   std::map<Node, Node> msum;
   if (!ArithMSum::getMonomialSumLit(seq, msum))
   {
@@ -1152,7 +1152,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
         Node veqc;
         if (ArithMSum::isolate(uv, msum, veqc, slv, EQUAL) != 0)
         {
-          CVC4_DCHECK(!slv.isNull());
+          Assert(!slv.isNull());
           // currently do not support substitution-with-coefficients
           if (veqc.isNull() && !expr::hasSubterm(slv, uv))
           {
@@ -1203,7 +1203,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     if (b == d_zero)
     {
       Trace("nl-ext-cms") << "...fail due to zero a/b." << std::endl;
-      CVC4_DCHECK(false);
+      Assert(false);
       return false;
     }
     Node val = nm->mkConst(-c.getConst<Rational>() / b.getConst<Rational>());
@@ -1228,7 +1228,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
       MINUS, nm->mkNode(MULT, b, b), nm->mkNode(MULT, d_two, two_a, c));
   sqrt_val = Rewriter::rewrite(sqrt_val);
   Trace("nl-ext-quad") << "Will approximate sqrt " << sqrt_val << std::endl;
-  CVC4_DCHECK(sqrt_val.isConst());
+  Assert(sqrt_val.isConst());
   // if it is negative, then we are in conflict
   if (sqrt_val.getConst<Rational>().sgn() == -1)
   {
@@ -1262,7 +1262,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   Node bounds[2][2];
   Node diff_bound[2];
   Node m_var = computeModelValue(var, 0);
-  CVC4_DCHECK(m_var.isConst());
+  Assert(m_var.isConst());
   for (unsigned r = 0; r < 2; r++)
   {
     for (unsigned b = 0; b < 2; b++)
@@ -1273,7 +1273,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
           MULT, coeffa, nm->mkNode(r == 0 ? MINUS : PLUS, negb, val));
       approx = Rewriter::rewrite(approx);
       bounds[r][b] = approx;
-      CVC4_DCHECK(approx.isConst());
+      Assert(approx.isConst());
     }
     if (bounds[r][0].getConst<Rational>() > bounds[r][1].getConst<Rational>())
     {
@@ -1294,7 +1294,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     printRationalApprox("nl-ext-cm-debug", bounds[r][1]);
     Trace("nl-ext-cm-debug") << std::endl;
     diff = Rewriter::rewrite(diff);
-    CVC4_DCHECK(diff.isConst());
+    Assert(diff.isConst());
     diff = nm->mkConst(diff.getConst<Rational>().abs());
     diff_bound[r] = diff;
     Trace("nl-ext-cm-debug") << "...diff from model value (";
@@ -1306,7 +1306,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   // take the one that var is closer to in the model
   Node cmp = nm->mkNode(GEQ, diff_bound[0], diff_bound[1]);
   cmp = Rewriter::rewrite(cmp);
-  CVC4_DCHECK(cmp.isConst());
+  Assert(cmp.isConst());
   unsigned r_use_index = cmp == d_true ? 1 : 0;
   Trace("nl-ext-cm") << "check-model-bound : approximate (sqrt) : ";
   printRationalApprox("nl-ext-cm", bounds[r_use_index][0]);
@@ -1425,9 +1425,9 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
       if (it != v_a.end())
       {
         Node a = it->second;
-        CVC4_DCHECK(a.isConst());
+        Assert(a.isConst());
         int asgn = a.getConst<Rational>().sgn();
-        CVC4_DCHECK(asgn != 0);
+        Assert(asgn != 0);
         Node t = nm->mkNode(MULT, a, v, v);
         Node b = d_zero;
         it = v_b.find(v);
@@ -1445,7 +1445,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
         Node apex = nm->mkNode(
             DIVISION, nm->mkNode(UMINUS, b), nm->mkNode(MULT, d_two, a));
         apex = Rewriter::rewrite(apex);
-        CVC4_DCHECK(apex.isConst());
+        Assert(apex.isConst());
         // for lower, upper, whether we are greater than the apex
         bool cmp[2];
         Node boundn[2];
@@ -1454,7 +1454,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
           boundn[r] = r == 0 ? bit->second.first : bit->second.second;
           Node cmpn = nm->mkNode(GT, boundn[r], apex);
           cmpn = Rewriter::rewrite(cmpn);
-          CVC4_DCHECK(cmpn.isConst());
+          Assert(cmpn.isConst());
           cmp[r] = cmpn.getConst<bool>();
         }
         Trace("nl-ext-cms-debug") << "  apex " << apex << std::endl;
@@ -1462,13 +1462,13 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
             << "  lower " << boundn[0] << ", cmp: " << cmp[0] << std::endl;
         Trace("nl-ext-cms-debug")
             << "  upper " << boundn[1] << ", cmp: " << cmp[1] << std::endl;
-        CVC4_DCHECK(boundn[0].getConst<Rational>()
-                    <= boundn[1].getConst<Rational>());
+        Assert(boundn[0].getConst<Rational>()
+               <= boundn[1].getConst<Rational>());
         Node s;
         qvars.push_back(v);
         if (cmp[0] != cmp[1])
         {
-          CVC4_DCHECK(!cmp[0] && cmp[1]);
+          Assert(!cmp[0] && cmp[1]);
           // does the sign match the bound?
           if ((asgn == 1) == pol)
           {
@@ -1492,7 +1492,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
             Trace("nl-ext-cms-debug")
                 << "  ...both sides of apex, compare " << tcmp << std::endl;
             tcmp = Rewriter::rewrite(tcmp);
-            CVC4_DCHECK(tcmp.isConst());
+            Assert(tcmp.isConst());
             unsigned bindex_use = (tcmp.getConst<bool>() == pol) ? 1 : 0;
             Trace("nl-ext-cms-debug")
                 << "  ...set to " << (bindex_use == 1 ? "upper" : "lower")
@@ -1515,7 +1515,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
               << std::endl;
           s = boundn[bindex_use];
         }
-        CVC4_DCHECK(!s.isNull());
+        Assert(!s.isNull());
         qsubs.push_back(s);
         Trace("nl-ext-cms") << "* set bound based on quadratic : " << v
                             << " -> " << s << std::endl;
@@ -1524,7 +1524,7 @@ bool NonlinearExtension::simpleCheckModelLit(Node lit)
   }
   if (!qvars.empty())
   {
-    CVC4_DCHECK(qvars.size() == qsubs.size());
+    Assert(qvars.size() == qsubs.size());
     Node slit =
         lit.substitute(qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end());
     slit = Rewriter::rewrite(slit);
@@ -1659,7 +1659,7 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
               << "  failed due to unknown bound for " << vc << std::endl;
           // should either assign a model bound or eliminate the variable
           // via substitution
-          CVC4_DCHECK(false);
+          Assert(false);
           return false;
         }
       }
@@ -1771,7 +1771,7 @@ bool NonlinearExtension::simpleCheckModelMsum(const std::map<Node, Node>& msum,
   }
   Trace("nl-ext-cms") << "  comparison is : " << comp << std::endl;
   comp = Rewriter::rewrite(comp);
-  CVC4_DCHECK(comp.isConst());
+  Assert(comp.isConst());
   Trace("nl-ext-cms") << "  returned : " << comp << std::endl;
   return comp == d_true;
 }
@@ -1863,7 +1863,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       registerMonomial(a);
 
       std::map<Node, std::vector<Node> >::iterator itvl = d_m_vlist.find(a);
-      CVC4_DCHECK(itvl != d_m_vlist.end());
+      Assert(itvl != d_m_vlist.end());
       for (unsigned k = 0; k < itvl->second.size(); k++) {
         if (!IsInVector(d_ms_vars, itvl->second[k])) {
           d_ms_vars.push_back(itvl->second[k]);
@@ -1876,9 +1876,9 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       /*
       //mark processed if has a "one" factor (will look at reduced monomial)
       std::map< Node, std::map< Node, unsigned > >::iterator itme =
-      d_m_exp.find( a ); CVC4_DCHECK( itme!=d_m_exp.end() ); for( std::map<
+      d_m_exp.find( a ); Assert( itme!=d_m_exp.end() ); for( std::map<
       Node, unsigned >::iterator itme2 = itme->second.begin(); itme2 !=
-      itme->second.end(); ++itme2 ){ Node v = itme->first; CVC4_DCHECK(
+      itme->second.end(); ++itme2 ){ Node v = itme->first; Assert(
       d_mv[0].find( v )!=d_mv[0].end() ); Node mvv = d_mv[0][ v ]; if(
       mvv==d_one || mvv==d_neg_one ){ ms_proc[ a ] = true;
       Trace("nl-ext-mv")
@@ -1931,7 +1931,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         if (aa != a)
         {
           // apply congruence to pairs of terms that are disequal and congruent
-          CVC4_DCHECK(aa.getNumChildren() == a.getNumChildren());
+          Assert(aa.getNumChildren() == a.getNumChildren());
           if (d_mv[1][a] != d_mv[1][aa])
           {
             std::vector<Node> exp;
@@ -1957,7 +1957,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
     else
     {
-      CVC4_DCHECK(false);
+      Assert(false);
     }
   }
   // initialize pi if necessary
@@ -1988,7 +1988,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       {
         Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a
                            << std::endl;
-        CVC4_DCHECK(!d_pi.isNull());
+        Assert(!d_pi.isNull());
         Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
         // FIXME : do not introduce shift here, instead needs model-based
         // refinement for constant shifts (#1284)
@@ -2313,7 +2313,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     {
       d_used_approx = false;
       needsRecheck = false;
-      CVC4_DCHECK(e == Theory::EFFORT_LAST_CALL);
+      Assert(e == Theory::EFFORT_LAST_CALL);
       // complete_status:
       //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
       int complete_status = 1;
@@ -2537,7 +2537,7 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
 }
 
 int NonlinearExtension::compare(Node i, Node j, unsigned orderType) const {
-  CVC4_DCHECK(orderType >= 0);
+  Assert(orderType >= 0);
   if (orderType <= 3) {
     Node ci = get_compare_value(i, orderType);
     Node cj = get_compare_value(j, orderType);
@@ -2601,7 +2601,7 @@ bool NonlinearExtension::getApproximateSqrt(Node c,
                                             Node& u,
                                             unsigned iter) const
 {
-  CVC4_DCHECK(c.isConst());
+  Assert(c.isConst());
   if (c == d_one || c == d_zero)
   {
     l = c;
@@ -2651,7 +2651,7 @@ void NonlinearExtension::printModelValue(const char* c,
     for (unsigned i = 0; i < 2; i++)
     {
       std::map<Node, Node>::const_iterator it = d_mv[1 - i].find(n);
-      CVC4_DCHECK(it != d_mv[1 - i].end());
+      Assert(it != d_mv[1 - i].end());
       if (it->second.isConst())
       {
         printRationalApprox(c, it->second, prec);
@@ -2668,8 +2668,8 @@ void NonlinearExtension::printModelValue(const char* c,
 
 int NonlinearExtension::compare_value(Node i, Node j,
                                       unsigned orderType) const {
-  CVC4_DCHECK(orderType >= 0 && orderType <= 3);
-  CVC4_DCHECK(i.isConst() && j.isConst());
+  Assert(orderType >= 0 && orderType <= 3);
+  Assert(i.isConst() && j.isConst());
   Trace("nl-ext-debug") << "compare value " << i << " " << j
                         << ", o = " << orderType << std::endl;
   int ret;
@@ -2699,10 +2699,10 @@ Node NonlinearExtension::get_compare_value(Node i, unsigned orderType) const {
   }
   Trace("nl-ext-debug") << "Compare variable " << i << " " << orderType
                         << std::endl;
-  CVC4_DCHECK(orderType >= 0 && orderType <= 3);
+  Assert(orderType >= 0 && orderType <= 3);
   unsigned mindex = orderType <= 1 ? 0 : 1;
   std::map<Node, Node>::const_iterator iti = d_mv[mindex].find(i);
-  CVC4_DCHECK(iti != d_mv[mindex].end());
+  Assert(iti != d_mv[mindex].end());
   return iti->second;
 }
 
@@ -2712,7 +2712,7 @@ int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
                                     std::vector<Node>& lem) {
   Trace("nl-ext-debug") << "Process " << a << " at index " << a_index
                         << ", status is " << status << std::endl;
-  CVC4_DCHECK(d_mv[1].find(oa) != d_mv[1].end());
+  Assert(d_mv[1].find(oa) != d_mv[1].end());
   if (a_index == d_m_vlist[a].size()) {
     if (d_mv[1][oa].getConst<Rational>().sgn() != status) {
       Node lemma =
@@ -2721,12 +2721,12 @@ int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
     }
     return status;
   } else {
-    CVC4_DCHECK(a_index < d_m_vlist[a].size());
+    Assert(a_index < d_m_vlist[a].size());
     Node av = d_m_vlist[a][a_index];
     unsigned aexp = d_m_exp[a][av];
     // take current sign in model
-    CVC4_DCHECK(d_mv[1].find(av) != d_mv[0].end());
-    CVC4_DCHECK(d_mv[1][av].isConst());
+    Assert(d_mv[1].find(av) != d_mv[0].end());
+    Assert(d_mv[1][av].isConst());
     int sgn = d_mv[1][av].getConst<Rational>().sgn();
     Trace("nl-ext-debug") << "Process var " << av << "^" << aexp
                           << ", model sign = " << sgn << std::endl;
@@ -2804,7 +2804,7 @@ bool NonlinearExtension::compareMonomial(
   Trace("nl-ext-comp-debug")
       << "compareMonomial " << oa << " and " << ob << ", indices = " << a_index
       << " " << b_index << std::endl;
-  CVC4_DCHECK(status == 0 || status == 2);
+  Assert(status == 0 || status == 2);
   if (a_index == d_m_vlist[a].size() && b_index == d_m_vlist[b].size()) {
     // finished, compare abstract values
     int modelStatus = compare(oa, ob, 3) * -2;
@@ -2834,13 +2834,13 @@ bool NonlinearExtension::compareMonomial(
     unsigned avo = 0;
     if (a_index < d_m_vlist[a].size()) {
       av = d_m_vlist[a][a_index];
-      CVC4_DCHECK(a_exp_proc[av] <= d_m_exp[a][av]);
+      Assert(a_exp_proc[av] <= d_m_exp[a][av]);
       aexp = d_m_exp[a][av] - a_exp_proc[av];
       if (aexp == 0) {
         return compareMonomial(oa, a, a_index + 1, a_exp_proc, ob, b, b_index,
                                b_exp_proc, status, exp, lem, cmp_infers);
       }
-      CVC4_DCHECK(d_order_vars.find(av) != d_order_vars.end());
+      Assert(d_order_vars.find(av) != d_order_vars.end());
       avo = d_order_vars[av];
     }
     Node bv;
@@ -2848,17 +2848,17 @@ bool NonlinearExtension::compareMonomial(
     unsigned bvo = 0;
     if (b_index < d_m_vlist[b].size()) {
       bv = d_m_vlist[b][b_index];
-      CVC4_DCHECK(b_exp_proc[bv] <= d_m_exp[b][bv]);
+      Assert(b_exp_proc[bv] <= d_m_exp[b][bv]);
       bexp = d_m_exp[b][bv] - b_exp_proc[bv];
       if (bexp == 0) {
         return compareMonomial(oa, a, a_index, a_exp_proc, ob, b, b_index + 1,
                                b_exp_proc, status, exp, lem, cmp_infers);
       }
-      CVC4_DCHECK(d_order_vars.find(bv) != d_order_vars.end());
+      Assert(d_order_vars.find(bv) != d_order_vars.end());
       bvo = d_order_vars[bv];
     }
     // get "one" information
-    CVC4_DCHECK(d_order_vars.find(d_one) != d_order_vars.end());
+    Assert(d_order_vars.find(d_one) != d_order_vars.end());
     unsigned ovo = d_order_vars[d_one];
     Trace("nl-ext-comp-debug") << "....vars : " << av << "^" << aexp << " "
                                << bv << "^" << bexp << std::endl;
@@ -2891,7 +2891,7 @@ bool NonlinearExtension::compareMonomial(
         return false;
       }
     } else {
-      CVC4_DCHECK(!av.isNull() && !bv.isNull());
+      Assert(!av.isNull() && !bv.isNull());
       if (avo >= bvo) {
         if (bvo < ovo && avo >= ovo) {
           Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
@@ -3026,13 +3026,13 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
                         lemmas, cmp_infers);
       } else {
         std::map<Node, NodeMultiset>::iterator itmea = d_m_exp.find(a);
-        CVC4_DCHECK(itmea != d_m_exp.end());
+        Assert(itmea != d_m_exp.end());
         if (c == 1) {
           // TODO : not just against containing variables?
           // compare magnitude against variables
           for (unsigned k = 0; k < d_ms_vars.size(); k++) {
             Node v = d_ms_vars[k];
-            CVC4_DCHECK(d_mv[0].find(v) != d_mv[0].end());
+            Assert(d_mv[0].find(v) != d_mv[0].end());
             if( d_mv[0][v].isConst() ){
               std::vector<Node> exp;
               NodeMultiset a_exp_proc;
@@ -3056,7 +3056,7 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
                 d_m_nconst_factor.find( b )==d_m_nconst_factor.end()) {
               std::map<Node, NodeMultiset>::iterator itmeb =
                   d_m_exp.find(b);
-              CVC4_DCHECK(itmeb != d_m_exp.end());
+              Assert(itmeb != d_m_exp.end());
 
               std::vector<Node> exp;
               // take common factors of monomials, set minimum of
@@ -3165,7 +3165,7 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
           Node tc = it->second[j];
           if (tc != d_one) {
             Node tc_diff = d_m_contain_umult[tc][t];
-            CVC4_DCHECK(!tc_diff.isNull());
+            Assert(!tc_diff.isNull());
             Node a = tc < tc_diff ? tc : tc_diff;
             Node b = tc < tc_diff ? tc_diff : tc;
             if (dproc[a].find(b) == dproc[a].end()) {
@@ -3185,7 +3185,7 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
                 Node curr_v = p<=1 ? a_v_c : b_v_c;
                 if( prevRefine ){
                   Node pt_v = d_tangent_val_bound[p][a][b];
-                  CVC4_DCHECK(!pt_v.isNull());
+                  Assert(!pt_v.isNull());
                   if( curr_v!=pt_v ){
                     Node do_extend =
                         nm->mkNode((p == 1 || p == 3) ? GT : LT, curr_v, pt_v);
@@ -3304,7 +3304,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
     std::map<Node, std::map<Node, bool> >::iterator itcm =
         d_c_info_maxm.find(atom);
     if (itc != d_c_info.end()) {
-      CVC4_DCHECK(itcm != d_c_info_maxm.end());
+      Assert(itcm != d_c_info_maxm.end());
       for (std::map<Node, ConstraintInfo>::iterator itcc = itc->second.begin();
            itcc != itc->second.end(); ++itcc) {
         Node x = itcc->first;
@@ -3325,7 +3325,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
               exp = query;
               type = GT;
             } else {
-              CVC4_DCHECK(query_mv == d_false);
+              Assert(query_mv == d_false);
               exp = NodeManager::currentNM()->mkNode(LT, lhs, rhs);
               type = LT;
             }
@@ -3424,8 +3424,8 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
               Kind type = itcr->second;
               for (unsigned j = 0; j < itm->second.size(); j++) {
                 Node y = itm->second[j];
-                CVC4_DCHECK(d_m_contain_mult[x].find(y)
-                            != d_m_contain_mult[x].end());
+                Assert(d_m_contain_mult[x].find(y)
+                       != d_m_contain_mult[x].end());
                 Node mult = d_m_contain_mult[x][y];
                 // x <k> t => m*x <k'> t  where y = m*x
                 // get the sign of mult
@@ -3583,7 +3583,7 @@ std::vector<Node> NonlinearExtension::checkFactoring(
             poly.push_back(NodeManager::currentNM()->mkNode(MULT, x, kf));
             std::map<Node, std::vector<Node> >::iterator itfo =
                 factor_to_mono_orig.find(x);
-            CVC4_DCHECK(itfo != factor_to_mono_orig.end());
+            Assert(itfo != factor_to_mono_orig.end());
             for( std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
               if( std::find( itfo->second.begin(), itfo->second.end(), itm->first )==itfo->second.end() ){
                 poly.push_back(ArithMSum::mkCoeffTerm(
@@ -3648,15 +3648,15 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
           std::map<Node, Node>::iterator ita = d_mono_diff[a].find(b);
           if (ita != d_mono_diff[a].end()) {
             std::map<Node, Node>::iterator itb = d_mono_diff[b].find(a);
-            CVC4_DCHECK(itb != d_mono_diff[b].end());
+            Assert(itb != d_mono_diff[b].end());
             Node mv_a = computeModelValue(ita->second, 1);
-            CVC4_DCHECK(mv_a.isConst());
+            Assert(mv_a.isConst());
             int mv_a_sgn = mv_a.getConst<Rational>().sgn();
-            CVC4_DCHECK(mv_a_sgn != 0);
+            Assert(mv_a_sgn != 0);
             Node mv_b = computeModelValue(itb->second, 1);
-            CVC4_DCHECK(mv_b.isConst());
+            Assert(mv_b.isConst());
             int mv_b_sgn = mv_b.getConst<Rational>().sgn();
-            CVC4_DCHECK(mv_b_sgn != 0);
+            Assert(mv_b_sgn != 0);
             Trace("nl-ext-rbound") << "Get resolution inferences for [a] "
                                    << a << " vs [b] " << b << std::endl;
             Trace("nl-ext-rbound")
@@ -3781,7 +3781,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
     Kind k = tfl.first;
     for (const Node& t : tfl.second)
     {
-      CVC4_DCHECK(d_mv[1].find(t) != d_mv[1].end());
+      Assert(d_mv[1].find(t) != d_mv[1].end());
       //initial refinements
       if( d_tf_initial_refine.find( t )==d_tf_initial_refine.end() ){
         d_tf_initial_refine[t] = true;
@@ -3793,7 +3793,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
           symn = Rewriter::rewrite( symn );
           //can assume its basis since phase is split over 0
           d_tr_is_base[symn] = true;
-          CVC4_DCHECK(d_tr_is_base.find(t) != d_tr_is_base.end());
+          Assert(d_tr_is_base.find(t) != d_tr_is_base.end());
           std::vector< Node > children;
 
           lem = NodeManager::currentNM()->mkNode(
@@ -3896,7 +3896,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       {
         Node a = tf[0];
         computeModelValue(a, 1);
-        CVC4_DCHECK(d_mv[1].find(a) != d_mv[1].end());
+        Assert(d_mv[1].find(a) != d_mv[1].end());
         if (d_mv[1][a].isConst())
         {
           Trace("nl-ext-tf-mono-debug") << "...tf term : " << a << std::endl;
@@ -3921,10 +3921,10 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       for (unsigned i = 0; i < sorted_tf_args[k].size(); i++)
       {
         Node targ = sorted_tf_args[k][i];
-        CVC4_DCHECK(d_mv[1].find(targ) != d_mv[1].end());
+        Assert(d_mv[1].find(targ) != d_mv[1].end());
         Trace("nl-ext-tf-mono") << "  " << targ << " -> " << d_mv[1][targ] << std::endl;
         Node t = tf_arg_to_term[k][targ];
-        CVC4_DCHECK(d_mv[1].find(t) != d_mv[1].end());
+        Assert(d_mv[1].find(t) != d_mv[1].end());
         Trace("nl-ext-tf-mono") << "     f-val : " << d_mv[1][t] << std::endl;
       }
       std::vector< Node > mpoints;
@@ -3947,7 +3947,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
           Node mpv;
           if( !mpoints[i].isNull() ){
             mpv = computeModelValue( mpoints[i], 1 );
-            CVC4_DCHECK(mpv.isConst());
+            Assert(mpv.isConst());
           }
           mpoints_vals.push_back( mpv );
         }
@@ -3959,13 +3959,13 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
         for (unsigned i = 0, size = sorted_tf_args[k].size(); i < size; i++)
         {
           Node sarg = sorted_tf_args[k][i];
-          CVC4_DCHECK(d_mv[1].find(sarg) != d_mv[1].end());
+          Assert(d_mv[1].find(sarg) != d_mv[1].end());
           Node sargval = d_mv[1][sarg];
-          CVC4_DCHECK(sargval.isConst());
+          Assert(sargval.isConst());
           Node s = tf_arg_to_term[k][ sarg ];
-          CVC4_DCHECK(d_mv[1].find(s) != d_mv[1].end());
+          Assert(d_mv[1].find(s) != d_mv[1].end());
           Node sval = d_mv[1][s];
-          CVC4_DCHECK(sval.isConst());
+          Assert(sval.isConst());
 
           //increment to the proper monotonicity region
           bool increment = true;
@@ -3976,7 +3976,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
               increment = true;
             }else{
               Node pval = mpoints_vals[mdir_index];
-              CVC4_DCHECK(pval.isConst());
+              Assert(pval.isConst());
               if( sargval.getConst<Rational>() < pval.getConst<Rational>() ){
                 increment = true;
                 Trace("nl-ext-tf-mono") << "...increment at " << sarg << " since model value is less than " << mpoints[mdir_index] << std::endl;
@@ -4017,7 +4017,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
             }
             if( !mono_lem.isNull() ){        
               if( !mono_bounds[0].isNull() ){
-                CVC4_DCHECK(!mono_bounds[1].isNull());
+                Assert(!mono_bounds[1].isNull());
                 mono_lem = NodeManager::currentNM()->mkNode(
                     IMPLIES,
                     NodeManager::currentNM()->mkNode(
@@ -4102,7 +4102,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
 
 bool NonlinearExtension::isRefineableTfFun(Node tf)
 {
-  CVC4_DCHECK(tf.getKind() == SINE || tf.getKind() == EXPONENTIAL);
+  Assert(tf.getKind() == SINE || tf.getKind() == EXPONENTIAL);
   if (tf.getKind() == SINE)
   {
     // we do not consider e.g. sin( -1*x ), since considering sin( x ) will
@@ -4114,7 +4114,7 @@ bool NonlinearExtension::isRefineableTfFun(Node tf)
   }
   // Figure 3 : c
   Node c = computeModelValue(tf[0], 1);
-  CVC4_DCHECK(c.isConst());
+  Assert(c.isConst());
   int csign = c.getConst<Rational>().sgn();
   if (csign == 0)
   {
@@ -4127,7 +4127,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
                                                  unsigned d,
                                                  std::vector<Node>& lemmas)
 {
-  CVC4_DCHECK(isRefineableTfFun(tf));
+  Assert(isRefineableTfFun(tf));
 
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
@@ -4144,7 +4144,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   // Figure 3 : c
   Node c = computeModelValue(tf[0], 1);
   int csign = c.getConst<Rational>().sgn();
-  CVC4_DCHECK(csign == 1 || csign == -1);
+  Assert(csign == 1 || csign == -1);
 
   // Figure 3 : v
   Node v = computeModelValue(tf, 1);
@@ -4180,9 +4180,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   if (k == SINE)
   {
     bounds[0] = regionToLowerBound(k, region);
-    CVC4_DCHECK(!bounds[0].isNull());
+    Assert(!bounds[0].isNull());
     bounds[1] = regionToUpperBound(k, region);
-    CVC4_DCHECK(!bounds[1].isNull());
+    Assert(!bounds[1].isNull());
   }
 
   // Figure 3: P
@@ -4201,7 +4201,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
       Trace("nl-ext-tftp-debug2") << "...model value of " << pab << " is "
                                   << v_pab << std::endl;
 
-      CVC4_DCHECK(v_pab.isConst());
+      Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
       Trace("nl-ext-tftp-debug2") << "...compare : " << comp << std::endl;
       Node compr = Rewriter::rewrite(comp);
@@ -4249,10 +4249,10 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   Node poly_approx_c;
   if (is_tangent || is_secant)
   {
-    CVC4_DCHECK(!poly_approx.isNull());
+    Assert(!poly_approx.isNull());
     std::vector<Node> taylor_subs;
     taylor_subs.push_back(c);
-    CVC4_DCHECK(taylor_vars.size() == taylor_subs.size());
+    Assert(taylor_vars.size() == taylor_subs.size());
     poly_approx_c = poly_approx.substitute(taylor_vars.begin(),
                                            taylor_vars.end(),
                                            taylor_subs.begin(),
@@ -4298,7 +4298,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     lem = Rewriter::rewrite(lem);
     Trace("nl-ext-tftp-lemma") << "*** Tangent plane lemma : " << lem
                                << std::endl;
-    CVC4_DCHECK(computeModelValue(lem, 1) == d_false);
+    Assert(computeModelValue(lem, 1) == d_false);
     // Figure 3 : line 9
     lemmas.push_back(lem);
   }
@@ -4307,10 +4307,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     // bounds are the minimum and maximum previous secant points
     // should not repeat secant points: secant lemmas should suffice to
     // rule out previous assignment
-    CVC4_DCHECK(std::find(d_secant_points[tf][d].begin(),
-                          d_secant_points[tf][d].end(),
-                          c)
-                == d_secant_points[tf][d].end());
+    Assert(std::find(
+               d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), c)
+           == d_secant_points[tf][d].end());
     // insert into the vector
     d_secant_points[tf][d].push_back(c);
     // sort
@@ -4335,7 +4334,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
       // region
       if (k == SINE)
       {
-        CVC4_DCHECK(!bounds[0].isNull());
+        Assert(!bounds[0].isNull());
       }
       else if (k == EXPONENTIAL)
       {
@@ -4353,7 +4352,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
       // region
       if (k == SINE)
       {
-        CVC4_DCHECK(!bounds[1].isNull());
+        Assert(!bounds[1].isNull());
       }
       else if (k == EXPONENTIAL)
       {
@@ -4367,20 +4366,20 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     for (unsigned s = 0; s < 2; s++)
     {
       // compute secant plane
-      CVC4_DCHECK(!poly_approx.isNull());
-      CVC4_DCHECK(!bounds[s].isNull());
+      Assert(!poly_approx.isNull());
+      Assert(!bounds[s].isNull());
       // take the model value of l or u (since may contain PI)
       Node b = computeModelValue(bounds[s], 1);
       Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds[s]
                                   << " is " << b << std::endl;
-      CVC4_DCHECK(b.isConst());
+      Assert(b.isConst());
       if (c != b)
       {
         // Figure 3 : P(l), P(u), for s = 0,1
         Node poly_approx_b;
         std::vector<Node> taylor_subs;
         taylor_subs.push_back(b);
-        CVC4_DCHECK(taylor_vars.size() == taylor_subs.size());
+        Assert(taylor_vars.size() == taylor_subs.size());
         poly_approx_b = poly_approx.substitute(taylor_vars.begin(),
                                                taylor_vars.end(),
                                                taylor_subs.begin(),
@@ -4388,9 +4387,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
         // Figure 3: S_l( x ), S_u( x ) for s = 0,1
         Node splane;
         Node rcoeff_n = Rewriter::rewrite(nm->mkNode(MINUS, b, c));
-        CVC4_DCHECK(rcoeff_n.isConst());
+        Assert(rcoeff_n.isConst());
         Rational rcoeff = rcoeff_n.getConst<Rational>();
-        CVC4_DCHECK(rcoeff.sgn() != 0);
+        Assert(rcoeff.sgn() != 0);
         poly_approx_b = Rewriter::rewrite(poly_approx_b);
         poly_approx_c = Rewriter::rewrite(poly_approx_c);
         splane = nm->mkNode(
@@ -4426,7 +4425,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
                                    << std::endl;
         // Figure 3 : line 22
         lemmas.push_back(lem);
-        CVC4_DCHECK(computeModelValue(lem, 1) == d_false);
+        Assert(computeModelValue(lem, 1) == d_false);
       }
     }
   }
@@ -4529,7 +4528,7 @@ Node NonlinearExtension::regionToUpperBound(Kind k, int region)
 
 Node NonlinearExtension::getDerivative(Node n, Node x)
 {
-  CVC4_DCHECK(x.isVar());
+  Assert(x.isVar());
   // only handle the cases of the taylor expansion of d
   if (n.getKind() == EXPONENTIAL)
   {
@@ -4566,7 +4565,7 @@ Node NonlinearExtension::getDerivative(Node n, Node x)
   }
   else if (n.getKind() == MULT)
   {
-    CVC4_DCHECK(n[0].isConst());
+    Assert(n[0].isConst());
     Node dc = getDerivative(n[1], x);
     if (!dc.isNull())
     {
@@ -4612,7 +4611,7 @@ Node NonlinearExtension::getDerivative(Node n, Node x)
 
 std::pair<Node, Node> NonlinearExtension::getTaylor(Node fa, unsigned n)
 {
-  CVC4_DCHECK(n > 0);
+  Assert(n > 0);
   Node fac;  // what term we cache for fa
   if (fa[0] == d_zero)
   {
@@ -4712,7 +4711,7 @@ std::pair<Node, Node> NonlinearExtension::getTaylor(Node fa, unsigned n)
   else
   {
     taylor_sum = itt->second;
-    CVC4_DCHECK(d_taylor_rem[fac].find(n) != d_taylor_rem[fac].end());
+    Assert(d_taylor_rem[fac].find(n) != d_taylor_rem[fac].end());
     taylor_rem = d_taylor_rem[fac][n];
   }
 
@@ -4742,9 +4741,9 @@ void NonlinearExtension::getPolynomialApproximationBounds(
     Trace("nl-ext-tftp-debug2") << "Taylor for " << k
                                 << " is (post-rewrite) : " << taylor_sum
                                 << std::endl;
-    CVC4_DCHECK(taylor.second.getKind() == MULT);
-    CVC4_DCHECK(taylor.second.getNumChildren() == 2);
-    CVC4_DCHECK(taylor.second[0].getKind() == DIVISION);
+    Assert(taylor.second.getKind() == MULT);
+    Assert(taylor.second.getNumChildren() == 2);
+    Assert(taylor.second[0].getKind() == DIVISION);
     Trace("nl-ext-tftp-debug2") << "Taylor remainder for " << k << " is "
                                 << taylor.second << std::endl;
     // ru is x^{n+1}/(n+1)!
@@ -4762,7 +4761,7 @@ void NonlinearExtension::getPolynomialApproximationBounds(
     }
     else
     {
-      CVC4_DCHECK(k == SINE);
+      Assert(k == SINE);
       Node l = Rewriter::rewrite(nm->mkNode(MINUS, taylor_sum, ru));
       Node u = Rewriter::rewrite(nm->mkNode(PLUS, taylor_sum, ru));
       pbounds.push_back(l);
@@ -4790,7 +4789,7 @@ void NonlinearExtension::getPolynomialApproximationBoundForArg(
     Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
 {
   getPolynomialApproximationBounds(k, d, pbounds);
-  CVC4_DCHECK(c.isConst());
+  Assert(c.isConst());
   if (k == EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
   {
     NodeManager* nm = NodeManager::currentNM();
@@ -4808,7 +4807,7 @@ void NonlinearExtension::getPolynomialApproximationBoundForArg(
       Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
       Node rus = ru.substitute(ttrf, tc);
       rus = Rewriter::rewrite(rus);
-      CVC4_DCHECK(rus.isConst());
+      Assert(rus.isConst());
       if (rus.getConst<Rational>() > d_one.getConst<Rational>())
       {
         success = false;
@@ -4832,9 +4831,9 @@ std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
 {
   // compute the model value of the argument
   Node c = computeModelValue(tf[0], 1);
-  CVC4_DCHECK(c.isConst());
+  Assert(c.isConst());
   int csign = c.getConst<Rational>().sgn();
-  CVC4_DCHECK(csign != 0);
+  Assert(csign != 0);
   bool isNeg = csign == -1;
 
   std::vector<Node> pbounds;

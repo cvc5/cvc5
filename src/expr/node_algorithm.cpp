@@ -110,7 +110,7 @@ bool hasSubtermMulti(TNode n, TNode t)
       for (const Node& cn : cur)
       {
         it = contains.find(cn);
-        CVC4_DCHECK(it != contains.end());
+        Assert(it != contains.end());
         if (it->second)
         {
           if (doesContain)
@@ -271,7 +271,7 @@ bool getFreeVariables(TNode n,
         for (const TNode& cn : cur[0])
         {
           // should not shadow
-          CVC4_DCHECK(bound_var.find(cn) == bound_var.end());
+          Assert(bound_var.find(cn) == bound_var.end());
           bound_var.insert(cn);
         }
         visit.push_back(cur);
@@ -289,7 +289,7 @@ bool getFreeVariables(TNode n,
     }
     else if (!itv->second)
     {
-      CVC4_DCHECK(isQuant);
+      Assert(isQuant);
       for (const TNode& cn : cur[0])
       {
         bound_var.erase(cn);
@@ -436,7 +436,7 @@ Node substituteCaptureAvoiding(TNode n,
   std::vector<TNode> visit;
   TNode curr;
   visit.push_back(n);
-  CVC4_DCHECK(src.size() == dest.size())
+  Assert(src.size() == dest.size())
       << "Substitution domain and range must be equal size";
   do
   {
@@ -449,7 +449,7 @@ Node substituteCaptureAvoiding(TNode n,
       auto itt = std::find(src.rbegin(), src.rend(), curr);
       if (itt != src.rend())
       {
-        CVC4_DCHECK(
+        Assert(
             (std::distance(src.begin(), itt.base()) - 1) >= 0
             && static_cast<unsigned>(std::distance(src.begin(), itt.base()) - 1)
                    < dest.size());
@@ -495,13 +495,13 @@ Node substituteCaptureAvoiding(TNode n,
       if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         // push the operator
-        CVC4_DCHECK(visited.find(curr.getOperator()) != visited.end());
+        Assert(visited.find(curr.getOperator()) != visited.end());
         nb << visited[curr.getOperator()];
       }
       // collect substituted children
       for (unsigned i = 0, size = curr.getNumChildren(); i < size; ++i)
       {
-        CVC4_DCHECK(visited.find(curr[i]) != visited.end());
+        Assert(visited.find(curr[i]) != visited.end());
         nb << visited[curr[i]];
       }
       Node n = nb;
@@ -518,7 +518,7 @@ Node substituteCaptureAvoiding(TNode n,
       }
     }
   } while (!visit.empty());
-  CVC4_DCHECK(visited.find(n) != visited.end());
+  Assert(visited.find(n) != visited.end());
   return visited[n];
 }
 

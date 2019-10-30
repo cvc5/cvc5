@@ -130,11 +130,11 @@ class LambdaTypeRule {
   // computes whether a lambda is a constant value, via conversion to array representation
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n)
   {
-    CVC4_DCHECK(n.getKind() == kind::LAMBDA);
+    Assert(n.getKind() == kind::LAMBDA);
     //get array representation of this function, if possible
     Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda(n);
     if( !na.isNull() ){
-      CVC4_DCHECK(na.getType().isArray());
+      Assert(na.getType().isArray());
       Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
       // must have the standard bound variable list
       Node bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( n.getType() );
@@ -197,7 +197,7 @@ class ChoiceTypeRule
 class ChainTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    CVC4_DCHECK(n.getKind() == kind::CHAIN);
+    Assert(n.getKind() == kind::CHAIN);
 
     if(!check) {
       return nodeManager->booleanType();
@@ -245,7 +245,7 @@ class ChainTypeRule {
 class ChainedOperatorTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    CVC4_DCHECK(n.getKind() == kind::CHAIN_OP);
+    Assert(n.getKind() == kind::CHAIN_OP);
     return nodeManager->getType(nodeManager->operatorOf(n.getConst<Chain>().getOperator()), check);
   }
 };/* class ChainedOperatorTypeRule */
@@ -256,7 +256,7 @@ class SortProperties {
     return true;
   }
   inline static Node mkGroundTerm(TypeNode type) {
-    CVC4_DCHECK(type.getKind() == kind::SORT_TYPE);
+    Assert(type.getKind() == kind::SORT_TYPE);
     return NodeManager::currentNM()->mkSkolem("groundTerm", type, "a ground term created for type " + type.toString());
   }
 };/* class SortProperties */
@@ -267,7 +267,7 @@ class FunctionProperties {
     // Don't assert this; allow other theories to use this cardinality
     // computation.
     //
-    // CVC4_DCHECK(type.getKind() == kind::FUNCTION_TYPE);
+    // Assert(type.getKind() == kind::FUNCTION_TYPE);
 
     Cardinality argsCard(1);
     // get the largest cardinality of function arguments/return type
@@ -287,7 +287,7 @@ class SExprProperties {
     // Don't assert this; allow other theories to use this cardinality
     // computation.
     //
-    // CVC4_DCHECK(type.getKind() == kind::SEXPR_TYPE);
+    // Assert(type.getKind() == kind::SEXPR_TYPE);
 
     Cardinality card(1);
     for(TypeNode::iterator i = type.begin(),
@@ -304,7 +304,7 @@ class SExprProperties {
     // Don't assert this; allow other theories to use this
     // wellfoundedness computation.
     //
-    // CVC4_DCHECK(type.getKind() == kind::SEXPR_TYPE);
+    // Assert(type.getKind() == kind::SEXPR_TYPE);
 
     for(TypeNode::iterator i = type.begin(),
           i_end = type.end();
@@ -319,7 +319,7 @@ class SExprProperties {
   }
 
   inline static Node mkGroundTerm(TypeNode type) {
-    CVC4_DCHECK(type.getKind() == kind::SEXPR_TYPE);
+    Assert(type.getKind() == kind::SEXPR_TYPE);
 
     std::vector<Node> children;
     for(TypeNode::iterator i = type.begin(),

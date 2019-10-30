@@ -365,7 +365,7 @@ Node RewriteRule<EvalITEBv>::apply(TNode node) {
   if (node[0] == utils::mkConst(1, 1)) {
     return node[1];
   } else {
-    CVC4_DCHECK(node[0] == utils::mkConst(1, 0));
+    Assert(node[0] == utils::mkConst(1, 0));
     return node[2];
   }
 }

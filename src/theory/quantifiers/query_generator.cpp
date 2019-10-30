@@ -31,7 +31,7 @@ namespace quantifiers {
 QueryGenerator::QueryGenerator() : d_queryCount(0) {}
 void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
-  CVC4_DCHECK(ss != nullptr);
+  Assert(ss != nullptr);
   d_queryCount = 0;
   ExprMiner::initialize(vars, ss);
 }
@@ -87,7 +87,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
         {
           indices.insert(etp.second.begin(), etp.second.end());
           Node qy = nn;
-          CVC4_DCHECK(etp.first.isConst());
+          Assert(etp.first.isConst());
           if (!etp.first.getConst<bool>())
           {
             qy = qy.negate();
@@ -101,7 +101,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
 
   // collect equality queries
   findQueries(nn, queries, queriesPtTrue);
-  CVC4_DCHECK(queries.size() == queriesPtTrue.size());
+  Assert(queries.size() == queriesPtTrue.size());
   if (queries.empty())
   {
     return true;
@@ -116,7 +116,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     // we have an interesting query
     out << "(query " << qy << ")  ; " << tIndices.size() << "/" << npts
         << std::endl;
-    CVC4_CHECK(!tIndices.empty());
+    AlwaysAssert(!tIndices.empty());
     checkQuery(qy, tIndices[0]);
     // add information
     for (unsigned& ti : tIndices)
@@ -171,13 +171,13 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
       ss << "This query has a model : " << std::endl;
       std::vector<Node> pt;
       d_sampler->getSamplePoint(spIndex, pt);
-      CVC4_DCHECK(pt.size() == d_vars.size());
+      Assert(pt.size() == d_vars.size());
       for (unsigned i = 0, size = pt.size(); i < size; i++)
       {
         ss << "  " << d_vars[i] << " -> " << pt[i] << std::endl;
       }
       ss << "but CVC4 answered unsat!" << std::endl;
-      CVC4_CHECK(false) << ss.str().c_str();
+      AlwaysAssert(false) << ss.str().c_str();
     }
     if (options::sygusQueryGenDumpFiles() == SYGUS_QUERY_DUMP_UNSOLVED)
     {
@@ -197,7 +197,7 @@ void QueryGenerator::dumpQuery(Node qy, unsigned spIndex)
   std::vector<Node> pt;
   d_sampler->getSamplePoint(spIndex, pt);
   size_t nvars = d_vars.size();
-  CVC4_CHECK(pt.size() == d_vars.size());
+  AlwaysAssert(pt.size() == d_vars.size());
   std::stringstream fname;
   fname << "query" << d_queryCount << ".smt2";
   std::ofstream fs(fname.str(), std::ofstream::out);
@@ -320,7 +320,7 @@ void QueryGenerator::findQueries(
           Node nAlmostEq = lt->d_lazy_child;
           // if made it here, we still should have either a equality or
           // a disequality that is allowed.
-          CVC4_DCHECK(deqAllow >= 0 || eqAllow >= 0);
+          Assert(deqAllow >= 0 || eqAllow >= 0);
           Node query = n.eqNode(nAlmostEq);
           std::vector<unsigned> tIndices;
           if (eqAllow >= 0)
@@ -334,7 +334,7 @@ void QueryGenerator::findQueries(
             tIndices.insert(
                 tIndices.end(), eqIndex[1].begin(), eqIndex[1].end());
           }
-          CVC4_CHECK(tIndices.size() <= d_deqThresh);
+          AlwaysAssert(tIndices.size() <= d_deqThresh);
           if (!tIndices.empty())
           {
             queries.push_back(query);

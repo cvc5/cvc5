@@ -21,8 +21,7 @@
 #include <stack>
 #include <utility>
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "base/listener.h"
 #include "expr/attribute.h"
 #include "expr/node_manager_attributes.h"
@@ -196,7 +195,7 @@ NodeManager::~NodeManager() {
   }
   d_ownedDatatypes.clear();
 
-  CVC4_DCHECK(!d_attrManager->inGarbageCollection());
+  Assert(!d_attrManager->inGarbageCollection());
 
   std::vector<NodeValue*> order = TopologicalSort(d_maxedOut);
   d_maxedOut.clear();
@@ -205,11 +204,11 @@ NodeManager::~NodeManager() {
     if (d_zombies.empty()) {
       // Delete the maxed out nodes in toplogical order once we know
       // there are no additional zombies, or other nodes to worry about.
-      CVC4_DCHECK(!order.empty());
+      Assert(!order.empty());
       // We process these in reverse to reverse the topological order.
       NodeValue* greatest_maxed_out = order.back();
       order.pop_back();
-      CVC4_DCHECK(greatest_maxed_out->HasMaximizedReferenceCount());
+      Assert(greatest_maxed_out->HasMaximizedReferenceCount());
       Debug("gc") << "Force zombify " << greatest_maxed_out << std::endl;
       greatest_maxed_out->d_rc = 0;
       markForDeletion(greatest_maxed_out);
@@ -254,18 +253,18 @@ unsigned NodeManager::registerDatatype(Datatype* dt) {
 }
 
 const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
-  CVC4_DCHECK(index < d_ownedDatatypes.size());
+  Assert(index < d_ownedDatatypes.size());
   return *d_ownedDatatypes[index];
 }
 
 void NodeManager::reclaimZombies() {
   // FIXME multithreading
-  CVC4_DCHECK(!d_attrManager->inGarbageCollection());
+  Assert(!d_attrManager->inGarbageCollection());
 
   Debug("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
 
   // during reclamation, reclaimZombies() is never supposed to be called
-  CVC4_DCHECK(!d_inReclaimZombies)
+  Assert(!d_inReclaimZombies)
       << "NodeManager::reclaimZombies() not re-entrant!";
 
   // whether exit is normal or exceptional, the Reclaim dtor is called
@@ -340,7 +339,7 @@ void NodeManager::reclaimZombies() {
         }
         // this would mean that one of the listeners stowed away
         // a reference to this node!
-        CVC4_DCHECK(nv->d_rc == 1);
+        Assert(nv->d_rc == 1);
       }
       nv->d_rc = 0;
       d_attrManager->deleteAllAttributes(nv);
@@ -403,7 +402,7 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
       }
     }
   }
-  CVC4_DCHECK(order.size() == roots.size());
+  Assert(order.size() == roots.size());
   return order;
 } /* NodeManager::TopologicalSort() */
 
@@ -448,8 +447,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
       }
 
       if( readyToCompute ) {
-        CVC4_DCHECK(check
-                    || m.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
+        Assert(check || m.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
         /* All the children have types, time to compute */
         typeNode = TypeChecker::computeType(this, m, check);
         worklist.pop();
@@ -457,18 +455,18 @@ TypeNode NodeManager::getType(TNode n, bool check)
     } // end while
 
     /* Last type computed in loop should be the type of n */
-    CVC4_DCHECK(typeNode == getAttribute(n, TypeAttr()));
+    Assert(typeNode == getAttribute(n, TypeAttr()));
   } else if( !hasType || needsCheck ) {
     /* We can compute the type top-down, without worrying about
        deep recursion. */
-    CVC4_DCHECK(check || n.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
+    Assert(check || n.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
     typeNode = TypeChecker::computeType(this, n, check);
   }
 
   /* The type should be have been computed and stored. */
-  CVC4_DCHECK(hasAttribute(n, TypeAttr()));
+  Assert(hasAttribute(n, TypeAttr()));
   /* The check should have happened, if we asked for it. */
-  CVC4_DCHECK(!check || getAttribute(n, TypeCheckedAttr()));
+  Assert(!check || getAttribute(n, TypeCheckedAttr()));
 
   Debug("getType") << "type of " << &n << " " <<  n << " is " << typeNode << endl;
   return typeNode;
@@ -505,7 +503,7 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
     TypeNode sort = selectorType[1];
 
     // should be guaranteed here already, but just in case
-    CVC4_DCHECK(!sort.isFunctionLike());
+    Assert(!sort.isFunctionLike());
 
     Debug("datatypes") << "ctor sort: " << sort << endl;
     sorts.push_back(sort);
@@ -631,16 +629,16 @@ TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
 TypeNode NodeManager::mkSort(TypeNode constructor,
                                     const std::vector<TypeNode>& children,
                                     uint32_t flags) {
-  CVC4_DCHECK(constructor.getKind() == kind::SORT_TYPE
-              && constructor.getNumChildren() == 0)
+  Assert(constructor.getKind() == kind::SORT_TYPE
+         && constructor.getNumChildren() == 0)
       << "expected a sort constructor";
-  CVC4_DCHECK(children.size() > 0) << "expected non-zero # of children";
-  CVC4_DCHECK(hasAttribute(constructor.d_nv, expr::SortArityAttr())
-              && hasAttribute(constructor.d_nv, expr::VarNameAttr()))
+  Assert(children.size() > 0) << "expected non-zero # of children";
+  Assert(hasAttribute(constructor.d_nv, expr::SortArityAttr())
+         && hasAttribute(constructor.d_nv, expr::VarNameAttr()))
       << "expected a sort constructor";
   std::string name = getAttribute(constructor.d_nv, expr::VarNameAttr());
-  CVC4_DCHECK(getAttribute(constructor.d_nv, expr::SortArityAttr())
-              == children.size())
+  Assert(getAttribute(constructor.d_nv, expr::SortArityAttr())
+         == children.size())
       << "arity mismatch in application of sort constructor";
   NodeBuilder<> nb(this, kind::SORT_TYPE);
   Node sortTag = Node(constructor.d_nv->d_children[0]);
@@ -658,7 +656,7 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
                                         size_t arity,
                                         uint32_t flags)
 {
-  CVC4_DCHECK(arity > 0);
+  Assert(arity > 0);
   NodeBuilder<> nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
   nb << sortTag;
@@ -710,7 +708,7 @@ Node* NodeManager::mkBoundVarPtr(const std::string& name,
 }
 
 Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
-  CVC4_DCHECK(tn.isFunction());
+  Assert(tn.isFunction());
   Node bvl = tn.getAttribute(LambdaBoundVarListAttr());
   if( bvl.isNull() ){
     std::vector< Node > vars;
@@ -781,7 +779,7 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
     setAttribute(n, TypeAttr(), type);
     //setAttribute(n, TypeCheckedAttr(), true);
     d_unique_vars[k][type] = n;
-    CVC4_DCHECK(n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
+    Assert(n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
     return n;
   }else{
     return it->second;

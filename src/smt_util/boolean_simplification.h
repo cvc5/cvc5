@@ -22,8 +22,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/node.h"
 
@@ -105,7 +104,7 @@ class BooleanSimplification {
 
     removeDuplicates(buffer);
 
-    CVC4_DCHECK(buffer.size() > 0);
+    Assert(buffer.size() > 0);
     if(buffer.size() == 1) {
       return buffer[0];
     }

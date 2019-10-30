@@ -31,7 +31,7 @@ InferBoundAlgorithm::InferBoundAlgorithm()
 InferBoundAlgorithm::InferBoundAlgorithm(Algorithms a)
   : d_alg(a)
 {
-  CVC4_DCHECK(a != Simplex);
+  Assert(a != Simplex);
 }
 
 InferBoundAlgorithm::InferBoundAlgorithm(const Maybe<int>& simplexRounds)
@@ -43,7 +43,7 @@ Algorithms InferBoundAlgorithm::getAlgorithm() const{
 }
 
 const Maybe<int>& InferBoundAlgorithm::getSimplexRounds() const{
-  CVC4_DCHECK(getAlgorithm() == Simplex);
+  Assert(getAlgorithm() == Simplex);
   return d_simplexRounds;
 }
 
@@ -173,11 +173,11 @@ bool InferBoundsResult::boundIsRational() const {
 }
 
 Integer InferBoundsResult::valueAsInteger() const{
-  CVC4_DCHECK(boundIsInteger());
+  Assert(boundIsInteger());
   return getValue().floor();
 }
 const Rational& InferBoundsResult::valueAsRational() const{
-  CVC4_DCHECK(boundIsRational());
+  Assert(boundIsRational());
   return getValue().getNoninfinitesimalPart();
 }
 
@@ -195,11 +195,11 @@ Node InferBoundsResult::getLiteral() const{
   Kind k;
   if(d_upperBound){
     // x <= q + c*delta
-    CVC4_DCHECK(getValue().infinitesimalSgn() <= 0);
+    Assert(getValue().infinitesimalSgn() <= 0);
     k = boundIsRational() ? kind::LEQ : kind::LT;
   }else{
     // x >= q + c*delta
-    CVC4_DCHECK(getValue().infinitesimalSgn() >= 0);
+    Assert(getValue().infinitesimalSgn() >= 0);
     k = boundIsRational() ? kind::GEQ : kind::GT;
   }
   Node atom = nm->mkNode(k, getTerm(), qnode);

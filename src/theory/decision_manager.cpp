@@ -75,7 +75,7 @@ void DecisionManager::registerStrategy(StrategyId id,
   else
   {
     // it is local to this call, we don't cache it
-    CVC4_DCHECK(sscope == STRAT_SCOPE_LOCAL_SOLVE);
+    Assert(sscope == STRAT_SCOPE_LOCAL_SOLVE);
   }
 }
 

@@ -43,7 +43,7 @@ void AttributeManager::debugHook(int debugFlag) {
 }
 
 void AttributeManager::deleteAllAttributes(NodeValue* nv) {
-  CVC4_DCHECK(!inGarbageCollection());
+  Assert(!inGarbageCollection());
   d_bools.erase(nv);
   deleteFromTable(d_ints, nv);
   deleteFromTable(d_tnodes, nv);
@@ -72,14 +72,14 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
   }
   AttrToVecMap::iterator it = perTableIds.begin(), it_end = perTableIds.end();
   for(; it != it_end; ++it) {
-    CVC4_DCHECK(((*it).first) <= LastAttrTable);
+    Assert(((*it).first) <= LastAttrTable);
     AttrTableId tableId = (AttrTableId) ((*it).first);
     std::vector< uint64_t>& ids = (*it).second;
     std::sort(ids.begin(), ids.end());
 
     switch(tableId) {
     case AttrTableBool:
-      Unimplemented("delete attributes is unimplemented for bools");
+      Unimplemented() << "delete attributes is unimplemented for bools";
       break;
     case AttrTableUInt64:
       deleteAttributesFromTable(d_ints, ids);
@@ -103,7 +103,8 @@ void AttributeManager::deleteAttributes(const AttrIdVec& atids) {
     case AttrTableCDNode:
     case AttrTableCDString:
     case AttrTableCDPointer:
-      Unimplemented("CDAttributes cannot be deleted. Contact Tim/Morgan if this behavior is desired.");
+      Unimplemented() << "CDAttributes cannot be deleted. Contact Tim/Morgan "
+                         "if this behavior is desired.";
       break;
 
     case LastAttrTable:

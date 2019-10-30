@@ -91,7 +91,7 @@ void LFSCProofPrinter::printAssumptionsResolution(TSatProof<Solver>* satProof,
                                                   std::ostream& out,
                                                   std::ostream& paren)
 {
-  CVC4_DCHECK(satProof->isAssumptionConflict(id));
+  Assert(satProof->isAssumptionConflict(id));
   // print the resolution proving the assumption conflict
   printResolution(satProof, id, out, paren);
   // resolve out assumptions to prove empty clause
@@ -99,7 +99,7 @@ void LFSCProofPrinter::printAssumptionsResolution(TSatProof<Solver>* satProof,
   const std::vector<typename Solver::TLit>& confl =
       *(satProof->getAssumptionConflicts().at(id));
 
-  CVC4_DCHECK(confl.size());
+  Assert(confl.size());
 
   for (unsigned i = 0; i < confl.size(); ++i)
   {

@@ -61,7 +61,7 @@ IDLAssertion::IDLAssertion(const IDLAssertion& other)
 
 bool IDLAssertion::propagate(IDLModel& model) const {
   Debug("theory::idl::model") << model << std::endl;
-  CVC4_DCHECK(ok());
+  Assert(ok());
   // Should be d_x - d_y <= d_c, or d_x - d_c <= d_y
   Integer x_value = model.getValue(d_x);
   Integer y_value = model.getValue(d_y);

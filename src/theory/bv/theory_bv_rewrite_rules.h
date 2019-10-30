@@ -389,6 +389,7 @@ class RewriteRule {
   /** Actually apply the rewrite rule */
   static inline Node apply(TNode node) {
     Unreachable();
+    abort();
   }
 
 public:
@@ -408,15 +409,17 @@ public:
     
   }
 
-  static inline bool applies(TNode node) {
+  static inline bool applies(TNode node)
+  {
     Unreachable();
+    SuppressWrongNoReturnWarning;
   }
 
   template<bool checkApplies>
   static inline Node run(TNode node) {
     if (!checkApplies || applies(node)) {
       Debug("theory::bv::rewrite") << "RewriteRule<" << rule << ">(" << node << ")" << std::endl;
-      CVC4_DCHECK(checkApplies || applies(node));
+      Assert(checkApplies || applies(node));
       //++ s_statistics->d_ruleApplications;
       Node result = apply(node);
       if (result != node) {

@@ -51,7 +51,7 @@ unsigned nChoosek(unsigned n, unsigned k)
  */
 Node mkAssociativeNode(Kind k, std::vector<Node>& children)
 {
-  CVC4_DCHECK(!children.empty());
+  Assert(!children.empty());
   NodeManager* nm = NodeManager::currentNM();
   // sort and make right-associative chain
   bool isComm = theory::quantifiers::TermUtil::isComm(k);
@@ -62,14 +62,14 @@ Node mkAssociativeNode(Kind k, std::vector<Node>& children)
   Node sn;
   for (const Node& sc : children)
   {
-    CVC4_DCHECK(!sc.isNull());
+    Assert(!sc.isNull());
     if (sn.isNull())
     {
       sn = sc;
     }
     else
     {
-      CVC4_DCHECK(!isComm || sc.getType().isComparableTo(sn.getType()));
+      Assert(!isComm || sc.getType().isComparableTo(sn.getType()));
       sn = nm->mkNode(k, sc, sn);
     }
   }
@@ -98,17 +98,17 @@ void Partition::printPartition(const char* c, Partition p)
 void Partition::addVariable(Node sv, Node v)
 {
   d_subvar_to_vars[sv].push_back(v);
-  CVC4_DCHECK(d_var_to_subvar.find(v) == d_var_to_subvar.end());
+  Assert(d_var_to_subvar.find(v) == d_var_to_subvar.end());
   d_var_to_subvar[v] = sv;
 }
 
 void Partition::removeVariable(Node sv)
 {
   std::map<Node, std::vector<Node> >::iterator its = d_subvar_to_vars.find(sv);
-  CVC4_DCHECK(its != d_subvar_to_vars.end());
+  Assert(its != d_subvar_to_vars.end());
   for (const Node& v : its->second)
   {
-    CVC4_DCHECK(d_var_to_subvar.find(v) != d_var_to_subvar.end());
+    Assert(d_var_to_subvar.find(v) != d_var_to_subvar.end());
     d_var_to_subvar.erase(v);
   }
   d_subvar_to_vars.erase(sv);
@@ -180,13 +180,13 @@ bool PartitionMerger::merge(std::vector<Partition>& partitions,
                             std::unordered_set<unsigned>& active_indices,
                             std::vector<unsigned>& merged_indices)
 {
-  CVC4_DCHECK(base_index < partitions.size());
+  Assert(base_index < partitions.size());
   d_master_base_index = base_index;
   Partition& p = partitions[base_index];
   Trace("sym-dt-debug") << "   try basis index " << base_index
                         << " (#vars = " << p.d_subvar_to_vars.size() << ")"
                         << std::endl;
-  CVC4_DCHECK(p.d_subvar_to_vars.size() == 1);
+  Assert(p.d_subvar_to_vars.size() == 1);
   std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
   Trace("sym-dt-debug") << "   try basis: " << svs << std::endl;
   // try to merge variables one-by-one
@@ -239,7 +239,7 @@ bool PartitionMerger::merge(std::vector<Partition>& partitions,
       }
       merged_indices.insert(
           merged_indices.end(), new_indices.begin(), new_indices.end());
-      CVC4_DCHECK(!merge_var.isNull());
+      Assert(!merge_var.isNull());
       merged = true;
       success = true;
       // update the number of new indicies needed
@@ -266,7 +266,7 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
                                   std::vector<Partition>& partitions,
                                   std::unordered_set<unsigned>& active_indices)
 {
-  CVC4_DCHECK(new_indices.size() < d_num_new_indices_needed);
+  Assert(new_indices.size() < d_num_new_indices_needed);
   if (curr_index == d_indices.size())
   {
     return false;
@@ -281,11 +281,11 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
   // if not already included
   if (d_base_indices.find(index) == d_base_indices.end())
   {
-    CVC4_DCHECK(active_indices.find(index) != active_indices.end());
+    Assert(active_indices.find(index) != active_indices.end());
     // check whether it can merge
     Partition& p = partitions[index];
     Trace("sym-dt-debug2") << "current term is " << p.d_term << std::endl;
-    CVC4_DCHECK(p.d_subvar_to_vars.size() == 1);
+    Assert(p.d_subvar_to_vars.size() == 1);
     std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
     bool include_success = true;
     Node curr_merge_var;
@@ -310,9 +310,9 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
     if (!curr_merge_var.isNull())
     {
       // compute the maximum number of indices we can include for v
-      CVC4_DCHECK(d_occurs_by[index].find(curr_merge_var)
-                  != d_occurs_by[index].end());
-      CVC4_DCHECK(d_occurs_count.find(curr_merge_var) != d_occurs_count.end());
+      Assert(d_occurs_by[index].find(curr_merge_var)
+             != d_occurs_by[index].end());
+      Assert(d_occurs_count.find(curr_merge_var) != d_occurs_count.end());
       unsigned num_v_max =
           d_occurs_count[curr_merge_var] - d_occurs_by[index][curr_merge_var];
       if (num_v_max >= d_num_new_indices_needed)
@@ -371,13 +371,13 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
         Trace("sym-dt-debug") << "found symmetry : { ";
         for (unsigned i : new_indices)
         {
-          CVC4_DCHECK(d_base_indices.find(i) == d_base_indices.end());
+          Assert(d_base_indices.find(i) == d_base_indices.end());
           d_base_indices.insert(i);
           Trace("sym-dt-debug") << i << " ";
           const Partition& p = partitions[i];
           children.push_back(p.d_term);
           schildren.push_back(p.d_sterm);
-          CVC4_DCHECK(active_indices.find(i) != active_indices.end());
+          Assert(active_indices.find(i) != active_indices.end());
           active_indices.erase(i);
         }
         Trace("sym-dt-debug") << "}" << std::endl;
@@ -387,7 +387,7 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
         // reconstruct the master partition
         p.d_term = mkAssociativeNode(d_kind, children);
         p.d_sterm = mkAssociativeNode(d_kind, schildren);
-        CVC4_DCHECK(p.d_subvar_to_vars.size() == 1);
+        Assert(p.d_subvar_to_vars.size() == 1);
         Node sb_v = p.d_subvar_to_vars.begin()->first;
         Trace("sym-dt-debug") << "- set var to svar: " << merge_var << " -> "
                               << sb_v << std::endl;
@@ -798,7 +798,7 @@ Partition SymmetryDetect::findPartitions(Node node)
       }
     }
     // all variables should occur in at least one child
-    CVC4_DCHECK(!useVar.isNull());
+    Assert(!useVar.isNull());
     Trace("sym-dt-debug")
         << "[sym-dt] Symmetry breaking variables for the variable " << n << ": "
         << subvars << endl;
@@ -860,7 +860,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   std::vector<Node> schildren;
   if (!isAssocComm)
   {
-    CVC4_DCHECK(active_indices.size() == children.size());
+    Assert(active_indices.size() == children.size());
     // order matters, and there is no chance we merged children
     schildren.resize(children.size());
   }
@@ -868,7 +868,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   {
     Partition& pa = partitions[i];
     Node sterm = pa.d_sterm;
-    CVC4_DCHECK(!sterm.isNull());
+    Assert(!sterm.isNull());
     if (rcons_indices.find(i) != rcons_indices.end())
     {
       // must reconstruct via a substitution
@@ -882,7 +882,7 @@ Partition SymmetryDetect::findPartitions(Node node)
     }
     else
     {
-      CVC4_DCHECK(i < schildren.size());
+      Assert(i < schildren.size());
       schildren[i] = sterm;
     }
   }
@@ -905,7 +905,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   Trace("sym-dt-debug") << "...return sterm: " << p.d_sterm << std::endl;
   Trace("sym-dt-debug") << ".....types: " << p.d_sterm.getType() << " "
                         << node.getType() << std::endl;
-  CVC4_DCHECK(p.d_sterm.getType() == node.getType());
+  Assert(p.d_sterm.getType() == node.getType());
 
   // normalize: ensures that variable lists are sorted
   p.normalize();
@@ -917,8 +917,8 @@ Partition SymmetryDetect::findPartitions(Node node)
 void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
 {
   Kind k = node.getKind();
-  CVC4_DCHECK((k == kind::EQUAL || theory::quantifiers::TermUtil::isAssoc(k))
-              && theory::quantifiers::TermUtil::isComm(k));
+  Assert((k == kind::EQUAL || theory::quantifiers::TermUtil::isAssoc(k))
+         && theory::quantifiers::TermUtil::isComm(k));
 
   // must track the type of the children we are collecting
   // this is to avoid having vectors of children with different type, like
@@ -958,13 +958,13 @@ void SymmetryDetect::computeAlphaEqTerms(
     const std::vector<Node>& sterms,
     std::map<Node, std::vector<unsigned> >& sterm_to_indices)
 {
-  CVC4_DCHECK(indices.size() == sterms.size());
+  Assert(indices.size() == sterms.size());
   // also store quantified formulas, since these may be alpha-equivalent
   std::vector<unsigned> quant_sterms;
   for (unsigned j = 0, size = indices.size(); j < size; j++)
   {
     Node st = sterms[j];
-    CVC4_DCHECK(!st.isNull());
+    Assert(!st.isNull());
     if (st.getKind() == FORALL)
     {
       quant_sterms.push_back(j);
@@ -1030,7 +1030,7 @@ void SymmetryDetect::processPartitions(
     std::vector<Node>& fixedSVar,
     std::vector<Node>& fixedVar)
 {
-  CVC4_DCHECK(!indices.empty());
+  Assert(!indices.empty());
   unsigned first_index = indices[0];
   if (Trace.isOn("sym-dt-debug"))
   {
@@ -1114,7 +1114,7 @@ void SymmetryDetect::processPartitions(
     for (const std::pair<unsigned, std::vector<unsigned> >& svee :
          svarEqc[svarMin])
     {
-      CVC4_DCHECK(!svee.second.empty());
+      Assert(!svee.second.empty());
       unsigned firstIndex = svee.second[0];
       unsigned nfvars = 0;
       Trace("sym-dt-debug") << "Recurse, fixing " << svarMin << " -> { ";
@@ -1154,7 +1154,7 @@ void SymmetryDetect::processPartitions(
   for (unsigned j = 0, size = indices.size(); j < size; j++)
   {
     unsigned index = indices[j];
-    CVC4_DCHECK(partitions[index].d_subvar_to_vars.size() == 1);
+    Assert(partitions[index].d_subvar_to_vars.size() == 1);
     unsigned num_vars = partitions[index].d_var_to_subvar.size();
     nv_indices[num_vars].push_back(index);
   }
@@ -1196,7 +1196,7 @@ void SymmetryDetect::processPartitions(
       {
         Trace("sym-dt-debug")
             << "Drop duplicate child : " << index << std::endl;
-        CVC4_DCHECK(active_indices.find(index) != active_indices.end());
+        Assert(active_indices.find(index) != active_indices.end());
         active_indices.erase(index);
       }
       else
@@ -1248,7 +1248,7 @@ void SymmetryDetect::mergePartitions(
     }
     Trace("sym-dt-debug") << std::endl;
   }
-  CVC4_DCHECK(!indices.empty());
+  Assert(!indices.empty());
 
   // initialize partition merger class
   PartitionMerger pm;

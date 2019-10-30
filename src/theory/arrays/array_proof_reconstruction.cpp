@@ -69,16 +69,16 @@ void ArrayProofReconstruction::notify(
         // false in the first case and true in the second case.
         bool currentNodeIsUnchangedArray;
 
-        CVC4_DCHECK(a.getNumChildren() == 2);
-        CVC4_DCHECK(b.getNumChildren() == 2);
+        Assert(a.getNumChildren() == 2);
+        Assert(b.getNumChildren() == 2);
 
         if (a[0].getKind() == kind::VARIABLE || a[0].getKind() == kind::SKOLEM) {
           currentNodeIsUnchangedArray = true;
         } else if (b[0].getKind() == kind::VARIABLE || b[0].getKind() == kind::SKOLEM) {
           currentNodeIsUnchangedArray = false;
         } else {
-          CVC4_DCHECK(a[0].getKind() == kind::STORE);
-          CVC4_DCHECK(b[0].getKind() == kind::STORE);
+          Assert(a[0].getKind() == kind::STORE);
+          Assert(b[0].getKind() == kind::STORE);
 
           if (a[0][0] == b[0]) {
             currentNodeIsUnchangedArray = false;
@@ -93,11 +93,11 @@ void ArrayProofReconstruction::notify(
         Node indexTwo = currentNodeIsUnchangedArray ? b[0][1] : b[1];
 
         // Some assertions to ensure that the theory of arrays behaves as expected
-        CVC4_DCHECK(a[1] == b[1]);
+        Assert(a[1] == b[1]);
         if (currentNodeIsUnchangedArray) {
-          CVC4_DCHECK(a[0] == b[0][0]);
+          Assert(a[0] == b[0][0]);
         } else {
-          CVC4_DCHECK(a[0][0] == b[0]);
+          Assert(a[0][0] == b[0]);
         }
 
         Debug("pf::ee") << "Getting explanation for ROW guard: "
@@ -119,7 +119,7 @@ void ArrayProofReconstruction::notify(
         if ((childProof->d_children.size() != 0) &&
             (childProof->d_id == theory::eq::MERGED_THROUGH_CONSTANTS || !haveNegChild)) {
           // The proof has two children, explaining why each index is a (different) constant.
-          CVC4_DCHECK(childProof->d_children.size() == 2);
+          Assert(childProof->d_children.size() == 2);
 
           Node constantOne, constantTwo;
           // Each subproof explains why one of the indices is constant.
@@ -127,8 +127,7 @@ void ArrayProofReconstruction::notify(
           if (childProof->d_children[0]->d_id == theory::eq::MERGED_THROUGH_REFLEXIVITY) {
             constantOne = childProof->d_children[0]->d_node;
           } else {
-            CVC4_DCHECK(childProof->d_children[0]->d_node.getKind()
-                        == kind::EQUAL);
+            Assert(childProof->d_children[0]->d_node.getKind() == kind::EQUAL);
             if ((childProof->d_children[0]->d_node[0] == indexOne) ||
                 (childProof->d_children[0]->d_node[0] == indexTwo)) {
               constantOne = childProof->d_children[0]->d_node[1];
@@ -140,8 +139,7 @@ void ArrayProofReconstruction::notify(
           if (childProof->d_children[1]->d_id == theory::eq::MERGED_THROUGH_REFLEXIVITY) {
             constantTwo = childProof->d_children[1]->d_node;
           } else {
-            CVC4_DCHECK(childProof->d_children[1]->d_node.getKind()
-                        == kind::EQUAL);
+            Assert(childProof->d_children[1]->d_node.getKind() == kind::EQUAL);
             if ((childProof->d_children[1]->d_node[0] == indexOne) ||
                 (childProof->d_children[1]->d_node[0] == indexTwo)) {
               constantTwo = childProof->d_children[1]->d_node[1];
@@ -178,7 +176,7 @@ void ArrayProofReconstruction::notify(
         Debug("pf::ee") << "The two indices are: " << indexOne << ", " << indexTwo << std::endl
                         << "The reason for the edge is: " << reason << std::endl;
 
-        CVC4_DCHECK(reason.getNumChildren() == 2);
+        Assert(reason.getNumChildren() == 2);
         Debug("pf::ee") << "Getting explanation for ROW guard: " << reason[1] << std::endl;
 
         std::shared_ptr<eq::EqProof> childProof =

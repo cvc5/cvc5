@@ -16,8 +16,7 @@
 
 #include "util/cardinality.h"
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 
 namespace CVC4 {
 
@@ -175,7 +174,7 @@ Cardinality& Cardinality::operator^=(const Cardinality& c) {
     // inf ^ finite == inf
     return *this;
   } else {
-    CVC4_DCHECK(compare(2) != LESS && !c.isFinite())
+    Assert(compare(2) != LESS && !c.isFinite())
         << "fall-through case not as expected:\n"
         << this << "\n"
         << c;
@@ -201,7 +200,7 @@ Cardinality::CardinalityComparison Cardinality::compare(
     } else if (c.isFinite()) {
       return GREATER;
     } else {
-      CVC4_DCHECK(c.isInfinite());
+      Assert(c.isInfinite());
       return LESS;
     }
   } else if (c.isLargeFinite()) {
@@ -210,7 +209,7 @@ Cardinality::CardinalityComparison Cardinality::compare(
     } else if (isFinite()) {
       return LESS;
     } else {
-      CVC4_DCHECK(isInfinite());
+      Assert(isInfinite());
       return GREATER;
     }
   } else if (isInfinite()) {
@@ -220,11 +219,11 @@ Cardinality::CardinalityComparison Cardinality::compare(
       return d_card < c.d_card ? GREATER : (d_card == c.d_card ? EQUAL : LESS);
     }
   } else if (c.isInfinite()) {
-    CVC4_DCHECK(isFinite());
+    Assert(isFinite());
     return LESS;
   } else {
-    CVC4_DCHECK(isFinite() && !isLargeFinite());
-    CVC4_DCHECK(c.isFinite() && !c.isLargeFinite());
+    Assert(isFinite() && !isLargeFinite());
+    Assert(c.isFinite() && !c.isLargeFinite());
     return d_card < c.d_card ? LESS : (d_card == c.d_card ? EQUAL : GREATER);
   }
 

@@ -82,7 +82,7 @@ struct Border{
   static bool nonZero(const Border& b) { return !b.isZero(); }
 
   const Rational& getCoefficient() const {
-    CVC4_DCHECK(!ownBorder());
+    Assert(!ownBorder());
     return d_entry->getCoefficient();
   }
   void output(std::ostream& out) const;
@@ -163,11 +163,11 @@ public:
   }
 
   const Border& top() const {
-    CVC4_DCHECK(more());
+    Assert(more());
     return *d_begin;
   }
   void pop_heap(){
-    CVC4_DCHECK(more());
+    Assert(more());
 
     std::pop_heap(d_begin, d_end, d_cmp);
     --d_end;
@@ -345,9 +345,9 @@ public:
   }
 
   bool modifiedBlands(const UpdateInfo& a, const UpdateInfo& b) const {
-    CVC4_DCHECK(a.focusDirection() == 0 && b.focusDirection() == 0);
-    CVC4_DCHECK(a.describesPivot());
-    CVC4_DCHECK(b.describesPivot());
+    Assert(a.focusDirection() == 0 && b.focusDirection() == 0);
+    Assert(a.describesPivot());
+    Assert(b.describesPivot());
     if(a.nonbasic() == b.nonbasic()){
       bool aIsZero = a.nonbasicDelta().sgn() == 0;
       bool bIsZero = b.nonbasicDelta().sgn() == 0;
@@ -380,14 +380,14 @@ public:
       case FocusImproved:
         return preferNeitherBound(a,b);
       case BlandsDegenerate:
-        CVC4_DCHECK(a.describesPivot());
-        CVC4_DCHECK(b.describesPivot());
-        CVC4_DCHECK(a.focusDirection() == 0 && b.focusDirection() == 0);
+        Assert(a.describesPivot());
+        Assert(b.describesPivot());
+        Assert(a.focusDirection() == 0 && b.focusDirection() == 0);
         return modifiedBlands(a,b);
       case HeuristicDegenerate:
-        CVC4_DCHECK(a.describesPivot());
-        CVC4_DCHECK(b.describesPivot());
-        CVC4_DCHECK(a.focusDirection() == 0 && b.focusDirection() == 0);
+        Assert(a.describesPivot());
+        Assert(b.describesPivot());
+        Assert(a.focusDirection() == 0 && b.focusDirection() == 0);
         return preferNeitherBound(a,b);
       case AntiProductive:
         return minNonBasicVarOrder(a, b);
@@ -531,7 +531,7 @@ public:
   }
   void trackRowIndex(RowIndex ridx);
   void stopTrackingRowIndex(RowIndex ridx){
-    CVC4_DCHECK(rowIndexIsTracked(ridx));
+    Assert(rowIndexIsTracked(ridx));
     d_btracking.remove(ridx);
   }
 
@@ -564,7 +564,7 @@ public:
 
   /** Count for how many on a row have *an* upper/lower bounds. */
   BoundCounts hasBoundCount(RowIndex ri) const {
-    CVC4_DCHECK(d_variables.boundsQueueEmpty());
+    Assert(d_variables.boundsQueueEmpty());
     return d_btracking[ri].hasBounds();
   }
 

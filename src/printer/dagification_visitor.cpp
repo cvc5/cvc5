@@ -125,19 +125,19 @@ void DagificationVisitor::visit(TNode current, TNode parent) {
     }
   } else {
     // we haven't seen this expr before
-    CVC4_DCHECK(d_nodeCount[current] == 0);
+    Assert(d_nodeCount[current] == 0);
     d_nodeCount[current] = 1;
     d_uniqueParent[current] = parent;
   }
 }
 
 void DagificationVisitor::start(TNode node) {
-  CVC4_CHECK(!d_done) << "DagificationVisitor cannot be re-used";
+  AlwaysAssert(!d_done) << "DagificationVisitor cannot be re-used";
   d_top = node;
 }
 
 void DagificationVisitor::done(TNode node) {
-  CVC4_CHECK(!d_done);
+  AlwaysAssert(!d_done);
 
   d_done = true;
 
@@ -156,7 +156,7 @@ void DagificationVisitor::done(TNode node) {
   for(std::vector<TNode>::iterator i = d_substNodes.begin();
       i != d_substNodes.end();
       ++i) {
-    CVC4_DCHECK(d_nodeCount[*i] > d_threshold);
+    Assert(d_nodeCount[*i] > d_threshold);
     TNode parent = d_uniqueParent[*i];
     if(!parent.isNull() && d_nodeCount[parent] > d_threshold) {
       // no need to letify this expr, because it only occurs in
@@ -175,20 +175,22 @@ void DagificationVisitor::done(TNode node) {
 
     // apply previous substitutions to the rhs, enabling cascading LETs
     Node n = d_substitutions->apply(*i);
-    CVC4_DCHECK(!d_substitutions->hasSubstitution(n));
+    Assert(!d_substitutions->hasSubstitution(n));
     d_substitutions->addSubstitution(n, letvar);
   }
 }
 
 const theory::SubstitutionMap& DagificationVisitor::getLets() {
-  CVC4_CHECK(d_done) << "DagificationVisitor must be used as a visitor before "
-                        "getting the dagified version out!";
+  AlwaysAssert(d_done)
+      << "DagificationVisitor must be used as a visitor before "
+         "getting the dagified version out!";
   return *d_substitutions;
 }
 
 Node DagificationVisitor::getDagifiedBody() {
-  CVC4_CHECK(d_done) << "DagificationVisitor must be used as a visitor before "
-                        "getting the dagified version out!";
+  AlwaysAssert(d_done)
+      << "DagificationVisitor must be used as a visitor before "
+         "getting the dagified version out!";
 
 #ifdef CVC4_TRACING
 #  ifdef CVC4_DEBUG

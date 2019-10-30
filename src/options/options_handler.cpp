@@ -22,10 +22,9 @@
 
 #include "cvc4autoconfig.h"
 
+#include "base/check.h"
 #include "base/configuration.h"
 #include "base/configuration_private.h"
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
@@ -63,7 +62,7 @@ void throwLazyBBUnsupported(theory::bv::SatSolverMode m)
   }
   else
   {
-    CVC4_DCHECK(m == theory::bv::SAT_SOLVER_CRYPTOMINISAT);
+    Assert(m == theory::bv::SAT_SOLVER_CRYPTOMINISAT);
     sat_solver = "CryptoMiniSat";
   }
   std::string indent(25, ' ');

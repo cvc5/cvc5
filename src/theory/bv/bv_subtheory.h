@@ -87,7 +87,7 @@ class SubtheorySolver {
   virtual void addSharedTerm(TNode node) {}
   bool done() { return d_assertionQueue.size() == d_assertionIndex; }
   TNode get() {
-    CVC4_DCHECK(!done());
+    Assert(!done());
     TNode res = d_assertionQueue[d_assertionIndex];
     d_assertionIndex = d_assertionIndex + 1;
     return res;

@@ -43,7 +43,7 @@ namespace quantifiers {
 
 CegTermType mkStrictCTT(CegTermType c)
 {
-  CVC4_DCHECK(!isStrictCTT(c));
+  Assert(!isStrictCTT(c));
   if (c == CEG_TT_LOWER)
   {
     return CEG_TT_LOWER_STRICT;
@@ -209,7 +209,7 @@ void CegInstantiator::computeProgVars( Node n ){
     d_prog_var[n].clear();
     if (n.getKind() == kind::CHOICE)
     {
-      CVC4_DCHECK(d_prog_var.find(n[0][0]) == d_prog_var.end());
+      Assert(d_prog_var.find(n[0][0]) == d_prog_var.end());
       d_prog_var[n[0][0]].clear();
     }
     if (d_vars_set.find(n) != d_vars_set.end())
@@ -399,7 +399,7 @@ CegHandledStatus CegInstantiator::isCbqiQuantPrefix(Node q,
 
 CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
 {
-  CVC4_DCHECK(q.getKind() == FORALL);
+  Assert(q.getKind() == FORALL);
   // compute attributes
   QAttributes qa;
   QuantAttributes::computeQuantAttributes(q, qa);
@@ -411,7 +411,7 @@ CegHandledStatus CegInstantiator::isCbqiQuant(Node q, QuantifiersEngine* qe)
   {
     return CEG_UNHANDLED;
   }
-  CVC4_DCHECK(!qa.d_quant_elim_partial);
+  Assert(!qa.d_quant_elim_partial);
   // if has an instantiation pattern, don't do it
   if (q.getNumChildren() == 3)
   {
@@ -479,7 +479,7 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     if( tn.isReal() ){
       vinst = new ArithInstantiator(tn, d_parent->getVtsTermCache());
     }else if( tn.isSort() ){
-      CVC4_DCHECK(options::quantEpr());
+      Assert(options::quantEpr());
       vinst = new EprInstantiator(tn);
     }else if( tn.isDatatype() ){
       vinst = new DtInstantiator(tn);
@@ -550,9 +550,9 @@ void CegInstantiator::registerTheoryId(TheoryId tid)
 
 void CegInstantiator::registerVariable(Node v, bool is_aux)
 {
-  CVC4_DCHECK(std::find(d_vars.begin(), d_vars.end(), v) == d_vars.end());
-  CVC4_DCHECK(std::find(d_aux_vars.begin(), d_aux_vars.end(), v)
-              == d_aux_vars.end());
+  Assert(std::find(d_vars.begin(), d_vars.end(), v) == d_vars.end());
+  Assert(std::find(d_aux_vars.begin(), d_aux_vars.end(), v)
+         == d_aux_vars.end());
   if (!is_aux)
   {
     d_vars.push_back(v);
@@ -620,9 +620,9 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     activateInstantiationVariable(pv, i);
 
     //get the instantiator object
-    CVC4_DCHECK(d_instantiator.find(pv) != d_instantiator.end());
+    Assert(d_instantiator.find(pv) != d_instantiator.end());
     Instantiator* vinst = d_instantiator[pv];
-    CVC4_DCHECK(vinst != NULL);
+    Assert(vinst != NULL);
     d_active_instantiators[pv] = vinst;
     vinst->reset(this, sf, pv, d_effort);
     // if d_effort is full, we must choose at least one model value
@@ -656,7 +656,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
           && d_qe->getLogicInfo().isLinear())
       {
         Trace("cbqi-warn") << "Had to resort to model value." << std::endl;
-        CVC4_DCHECK(false);
+        Assert(false);
       }
 #endif
       Node mv = getModelValue( pv );
@@ -798,7 +798,7 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
       std::vector<Node> lhs;
       std::vector<bool> lhs_v;
       std::vector<TermProperties> lhs_prop;
-      CVC4_DCHECK(it_reqc != d_curr_eqc.end());
+      Assert(it_reqc != d_curr_eqc.end());
       for (const Node& n : it_reqc->second)
       {
         Trace("cbqi-inst-debug2") << "...look at term " << n << std::endl;
@@ -940,7 +940,7 @@ void CegInstantiator::pushStackVariable( Node v ) {
 }
 
 void CegInstantiator::popStackVariable() {
-  CVC4_DCHECK(!d_stack_vars.empty());
+  Assert(!d_stack_vars.empty());
   d_stack_vars.pop_back();
 }
 
@@ -961,11 +961,11 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
                          << ") ";
       Node mod_pv = pv_prop.getModifiedTerm( pv );
       Trace("cbqi-inst-debug") << mod_pv << " -> " << n << std::endl;
-      CVC4_DCHECK(n.getType().isSubtypeOf(pv.getType()));
+      Assert(n.getType().isSubtypeOf(pv.getType()));
     }
     //must ensure variables have been computed for n
     computeProgVars( n );
-    CVC4_DCHECK(d_inelig.find(n) == d_inelig.end());
+    Assert(d_inelig.find(n) == d_inelig.end());
 
     //substitute into previous substitutions, when applicable
     std::vector< Node > a_var;
@@ -986,7 +986,7 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
     Trace("cbqi-inst-debug2") << "Applying substitutions to previous substitution terms..." << std::endl;
     for( unsigned j=0; j<sf.d_subs.size(); j++ ){
       Trace("cbqi-inst-debug2") << "  Apply for " << sf.d_subs[j]  << std::endl;
-      CVC4_DCHECK(d_prog_var.find(sf.d_subs[j]) != d_prog_var.end());
+      Assert(d_prog_var.find(sf.d_subs[j]) != d_prog_var.end());
       if( d_prog_var[sf.d_subs[j]].find( pv )!=d_prog_var[sf.d_subs[j]].end() ){
         prev_subs[j] = sf.d_subs[j];
         TNode tv = pv;
@@ -1016,17 +1016,17 @@ bool CegInstantiator::constructInstantiationInc(Node pv,
             
             // if previously was basic, becomes non-basic
             if( prev_basic && !sf.d_props[j].isBasic() ){
-              CVC4_DCHECK(std::find(sf.d_non_basic.begin(),
-                                    sf.d_non_basic.end(),
-                                    sf.d_vars[j])
-                          == sf.d_non_basic.end());
+              Assert(std::find(sf.d_non_basic.begin(),
+                               sf.d_non_basic.end(),
+                               sf.d_vars[j])
+                     == sf.d_non_basic.end());
               new_non_basic.push_back( sf.d_vars[j] );
               sf.d_non_basic.push_back( sf.d_vars[j] );
             }
           }
           if( sf.d_subs[j]!=prev_subs[j] ){
             computeProgVars( sf.d_subs[j] );
-            CVC4_DCHECK(d_inelig.find(sf.d_subs[j]) == d_inelig.end());
+            Assert(d_inelig.find(sf.d_subs[j]) == d_inelig.end());
           }
           Trace("cbqi-inst-debug2") << "Subs " << j << " " << sf.d_subs[j] << std::endl;
         }else{
@@ -1091,11 +1091,11 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
     for (unsigned i = 0, size = d_input_vars.size(); i < size; ++i)
     {
       std::map<Node, Node>::iterator it = subs_map.find(d_input_vars[i]);
-      CVC4_DCHECK(it != subs_map.end());
+      Assert(it != subs_map.end());
       Node n = it->second;
       Trace("cbqi-inst-debug") << "  " << d_input_vars[i] << " -> " << n
                                << std::endl;
-      CVC4_DCHECK(n.getType().isSubtypeOf(d_input_vars[i].getType()));
+      Assert(n.getType().isSubtypeOf(d_input_vars[i].getType()));
       subs.push_back( n );
     }
   }
@@ -1107,7 +1107,7 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
       Node v = d_input_vars[i];
       Trace("cbqi-inst") << i << " (" << d_curr_iphase[v] << ") : " 
                          << v << " -> " << subs[i] << std::endl;
-      CVC4_DCHECK(subs[i].getType().isSubtypeOf(v.getType()));
+      Assert(subs[i].getType().isSubtypeOf(v.getType()));
     }
   }
   Trace("cbqi-inst-debug") << "Do the instantiation...." << std::endl;
@@ -1147,7 +1147,7 @@ bool CegInstantiator::isEligibleForInstantiation(Node n) const
 }
 
 bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic ){
-  CVC4_DCHECK(d_prog_var.find(n) != d_prog_var.end());
+  Assert(d_prog_var.find(n) != d_prog_var.end());
   if( !non_basic.empty() ){
     for (std::unordered_set<Node, NodeHashFunction>::iterator it =
              d_prog_var[n].begin();
@@ -1166,13 +1166,13 @@ bool CegInstantiator::canApplyBasicSubstitution( Node n, std::vector< Node >& no
 Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
                                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff ) {
   computeProgVars( n );
-  CVC4_DCHECK(n == Rewriter::rewrite(n));
+  Assert(n == Rewriter::rewrite(n));
   bool is_basic = canApplyBasicSubstitution( n, non_basic );
   if( Trace.isOn("cegqi-si-apply-subs-debug") ){
     Trace("cegqi-si-apply-subs-debug") << "is_basic = " << is_basic << "  " << tn << std::endl;
     for( unsigned i=0; i<subs.size(); i++ ){
       Trace("cegqi-si-apply-subs-debug") << "  " << vars[i] << " -> " << subs[i] << "   types : " << vars[i].getType() << " -> " << subs[i].getType() << std::endl;
-      CVC4_DCHECK(subs[i].getType().isSubtypeOf(vars[i].getType()));
+      Assert(subs[i].getType().isSubtypeOf(vars[i].getType()));
     }
   }
   Node nret;
@@ -1185,8 +1185,8 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
       std::vector< Node > nsubs;
       for( unsigned i=0; i<vars.size(); i++ ){
         if( !prop[i].d_coeff.isNull() ){
-          CVC4_DCHECK(vars[i].getType().isInteger());
-          CVC4_DCHECK(prop[i].d_coeff.isConst());
+          Assert(vars[i].getType().isInteger());
+          Assert(prop[i].d_coeff.isConst());
           Node nn = NodeManager::currentNM()->mkNode( MULT, subs[i], NodeManager::currentNM()->mkConst( Rational(1)/prop[i].d_coeff.getConst<Rational>() ) );
           nn = NodeManager::currentNM()->mkNode( kind::TO_INTEGER, nn );
           nn =  Rewriter::rewrite( nn );
@@ -1241,7 +1241,7 @@ Node CegInstantiator::applySubstitution( TypeNode tn, Node n, std::vector< Node 
             if( !it->second.isNull() ){
               c_coeff = NodeManager::currentNM()->mkNode( MULT, c_coeff, it->second );
             }
-            CVC4_DCHECK(!c_coeff.isNull());
+            Assert(!c_coeff.isNull());
             Node c;
             if( msum_term[it->first].isNull() ){
               c = c_coeff;
@@ -1288,7 +1288,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
     bool pol = lit.getKind()!=NOT;
     //arithmetic inequalities and disequalities
     if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
-      CVC4_DCHECK(atom.getKind() != GEQ || atom[1].isConst());
+      Assert(atom.getKind() != GEQ || atom[1].isConst());
       Node atom_lhs;
       Node atom_rhs;
       if( atom.getKind()==GEQ ){
@@ -1407,7 +1407,7 @@ void CegInstantiator::presolve( Node q ) {
       Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
       lem = NodeManager::currentNM()->mkNode( OR, g, lem );
       Trace("cbqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
-      CVC4_DCHECK(!expr::hasFreeVar(lem));
+      Assert(!expr::hasFreeVar(lem));
       d_qe->getOutputChannel().lemma( lem, false, true );
     }
   }
@@ -1515,7 +1515,7 @@ void CegInstantiator::processAssertions() {
       addToAuxVarSubstitution( subs_lhs, subs_rhs, r, it->second );
     }else{
       Trace("cbqi-proc") << "....no substitution found for auxiliary variable " << r << "!!! type is " << r.getType() << std::endl;
-      CVC4_DCHECK(false);
+      Assert(false);
     }
   }
 

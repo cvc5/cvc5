@@ -52,8 +52,8 @@ Node HoExtension::expandDefinition(Node node)
 
 Node HoExtension::getExtensionalityDeq(TNode deq)
 {
-  CVC4_DCHECK(deq.getKind() == NOT && deq[0].getKind() == EQUAL);
-  CVC4_DCHECK(deq[0][0].getType().isFunction());
+  Assert(deq.getKind() == NOT && deq[0].getKind() == EQUAL);
+  Assert(deq[0][0].getType().isFunction());
   std::map<Node, Node>::iterator it = d_extensionality_deq.find(deq);
   if (it == d_extensionality_deq.end())
   {
@@ -91,8 +91,8 @@ Node HoExtension::getExtensionalityDeq(TNode deq)
 
 unsigned HoExtension::applyExtensionality(TNode deq)
 {
-  CVC4_DCHECK(deq.getKind() == NOT && deq[0].getKind() == EQUAL);
-  CVC4_DCHECK(deq[0][0].getType().isFunction());
+  Assert(deq.getKind() == NOT && deq[0].getKind() == EQUAL);
+  Assert(deq[0][0].getType().isFunction());
   // apply extensionality
   if (d_extensionality.find(deq) == d_extensionality.end())
   {
@@ -109,7 +109,7 @@ unsigned HoExtension::applyExtensionality(TNode deq)
 
 Node HoExtension::getApplyUfForHoApply(Node node)
 {
-  CVC4_DCHECK(node[0].getType().getNumChildren() == 2);
+  Assert(node[0].getType().getNumChildren() == 2);
   std::vector<TNode> args;
   Node f = TheoryUfRewriter::decomposeHoApply(node, args, true);
   Node new_f = f;
@@ -146,7 +146,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
         {
           new_f = nm->mkNode(HO_APPLY, new_f, v);
         }
-        CVC4_DCHECK(new_f.getType() == f.getType());
+        Assert(new_f.getType() == f.getType());
         Node eq = new_f.eqNode(f);
         Node seq = eq.substitute(vs.begin(), vs.end(), nvs.begin(), nvs.end());
         lem = nm->mkNode(
@@ -176,10 +176,10 @@ Node HoExtension::getApplyUfForHoApply(Node node)
       new_f = new_f[0];
     }
   }
-  CVC4_DCHECK(TheoryUfRewriter::canUseAsApplyUfOperator(new_f));
+  Assert(TheoryUfRewriter::canUseAsApplyUfOperator(new_f));
   args[0] = new_f;
   Node ret = nm->mkNode(APPLY_UF, args);
-  CVC4_DCHECK(ret.getType() == node.getType());
+  Assert(ret.getType() == node.getType());
   return ret;
 }
 
@@ -230,7 +230,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
           {
             // add extentionality disequality to the model
             Node edeq = getExtensionalityDeq(deq);
-            CVC4_DCHECK(edeq.getKind() == NOT && edeq[0].getKind() == EQUAL);
+            Assert(edeq.getKind() == NOT && edeq[0].getKind() == EQUAL);
             // introducing terms, must add required constraints, e.g. to
             // force equalities between APPLY_UF and HO_APPLY terms
             for (unsigned r = 0; r < 2; r++)
@@ -266,7 +266,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
 
 unsigned HoExtension::applyAppCompletion(TNode n)
 {
-  CVC4_DCHECK(n.getKind() == APPLY_UF);
+  Assert(n.getKind() == APPLY_UF);
 
   eq::EqualityEngine* ee = d_parent.getEqualityEngine();
   // must expand into APPLY_HO version if not there already
@@ -335,7 +335,7 @@ unsigned HoExtension::checkAppCompletion()
         }
         else
         {
-          CVC4_DCHECK(n.getKind() == HO_APPLY);
+          Assert(n.getKind() == HO_APPLY);
           TNode rop = ee->getRepresentative(n[0]);
           curr_rops[rop] = true;
         }

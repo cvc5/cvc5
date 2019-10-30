@@ -60,7 +60,7 @@ DualSimplexDecisionProcedure::Statistics::~Statistics(){
 }
 
 Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
-  CVC4_DCHECK(d_conflictVariables.empty());
+  Assert(d_conflictVariables.empty());
 
   static thread_local unsigned int instance = 0;
   instance = instance + 1;
@@ -82,7 +82,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
     Debug("arith::findModel") << "dualFindModel("<< instance <<") fixed itself" << endl;
-    CVC4_DCHECK(!d_errorSet.moreSignals());
+    Assert(!d_errorSet.moreSignals());
     return Result::SAT;
   }
 
@@ -117,13 +117,13 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
       }
     }
   }
-  CVC4_DCHECK(!d_errorSet.moreSignals());
+  Assert(!d_errorSet.moreSignals());
 
   if(!d_errorSet.errorEmpty() && result != Result::UNSAT){
     if(exactResult){
       d_errorSet.setSelectionRule(VAR_ORDER);
       while(!d_errorSet.errorEmpty() && result != Result::UNSAT){
-        CVC4_DCHECK(checkPeriod > 0);
+        Assert(checkPeriod > 0);
         if(searchForFeasibleSolution(checkPeriod)){
           result = Result::UNSAT;
         }
@@ -145,7 +145,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
     }
   }
 
-  CVC4_DCHECK(!d_errorSet.moreSignals());
+  Assert(!d_errorSet.moreSignals());
   if(result == Result::SAT_UNKNOWN && d_errorSet.errorEmpty()){
     result = Result::SAT;
   }
@@ -165,11 +165,11 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
   TimerStat::CodeTimer codeTimer(d_statistics.d_searchTime);
 
   Debug("arith") << "searchForFeasibleSolution" << endl;
-  CVC4_DCHECK(remainingIterations > 0);
+  Assert(remainingIterations > 0);
 
   while(remainingIterations > 0 && !d_errorSet.focusEmpty()){
     if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
-    CVC4_DCHECK(d_conflictVariables.empty());
+    Assert(d_conflictVariables.empty());
     ArithVar x_i = d_errorSet.topFocusVariable();
 
     Debug("arith::update::select") << "selectSmallestInconsistentVar()=" << x_i << endl;
@@ -231,7 +231,7 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
         d_linEq.pivotAndUpdate(x_i, x_j, u_i);
       }
     }
-    CVC4_DCHECK(x_j != ARITHVAR_SENTINEL);
+    Assert(x_j != ARITHVAR_SENTINEL);
 
     bool conflict = processSignals();
     int32_t currErrorSize CVC4_UNUSED = d_errorSet.errorSize();
@@ -252,9 +252,9 @@ bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingI
       return true;
     }
   }
-  CVC4_DCHECK(!d_errorSet.focusEmpty() || d_errorSet.errorEmpty());
-  CVC4_DCHECK(remainingIterations == 0 || d_errorSet.focusEmpty());
-  CVC4_DCHECK(d_errorSet.noSignals());
+  Assert(!d_errorSet.focusEmpty() || d_errorSet.errorEmpty());
+  Assert(remainingIterations == 0 || d_errorSet.focusEmpty());
+  Assert(d_errorSet.noSignals());
 
   return false;
 }

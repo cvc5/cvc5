@@ -136,7 +136,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         bool flag = true;
         Node x = atom[0];
         Node r = atom[1];
-        CVC4_DCHECK(rep == d_state.getRepresentative(x));
+        Assert(rep == d_state.getRepresentative(x));
         // The following code takes normal forms into account for the purposes
         // of simplifying a regular expression membership x in R. For example,
         // if x = "A" in the current context, then we may be interested in
@@ -392,7 +392,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     if (m.getKind() != STRING_IN_REGEXP)
     {
       // do not do negative
-      CVC4_DCHECK(m.getKind() == NOT && m[0].getKind() == STRING_IN_REGEXP);
+      Assert(m.getKind() == NOT && m[0].getKind() == STRING_IN_REGEXP);
       continue;
     }
     RegExpConstType rct = d_regexp_opr.getRegExpConstType(m[1]);
@@ -423,8 +423,8 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     bool spflag = false;
     Node resR = d_regexp_opr.intersect(mi[1], m[1], spflag);
     // intersection should be computable
-    CVC4_DCHECK(!resR.isNull());
-    CVC4_DCHECK(!spflag);
+    Assert(!resR.isNull());
+    Assert(!spflag);
     if (resR == d_emptyRegexp)
     {
       // conflict, explain
@@ -547,7 +547,7 @@ bool RegExpSolver::deriveRegExp(Node x,
                                 Node atom,
                                 std::vector<Node>& ant)
 {
-  CVC4_DCHECK(x != d_emptyString);
+  Assert(x != d_emptyString);
   Trace("regexp-derive") << "RegExpSolver::deriveRegExp: x=" << x
                          << ", r= " << r << std::endl;
   CVC4::String s = getHeadConst(x);
@@ -574,14 +574,14 @@ bool RegExpSolver::deriveRegExp(Node x,
     {
       if (x.isConst())
       {
-        CVC4_DCHECK(false)
+        Assert(false)
             << "Impossible: RegExpSolver::deriveRegExp: const string in const "
                "regular expression.";
         return false;
       }
       else
       {
-        CVC4_DCHECK(x.getKind() == STRING_CONCAT);
+        Assert(x.getKind() == STRING_CONCAT);
         std::vector<Node> vec_nodes;
         for (unsigned int i = 1; i < x.getNumChildren(); ++i)
         {
@@ -637,7 +637,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
     {
       Trace("strings-error") << "Unsupported term: " << r
                              << " in normalization SymRegExp." << std::endl;
-      CVC4_DCHECK(!RegExpOpr::isRegExpKind(r.getKind()));
+      Assert(!RegExpOpr::isRegExpKind(r.getKind()));
     }
   }
   return ret;

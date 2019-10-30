@@ -26,7 +26,7 @@
 #include <vector>
 #include <utility>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"
@@ -488,8 +488,7 @@ public:
    */
   template <class TheoryClass>
   inline void addTheory(theory::TheoryId theoryId) {
-    CVC4_DCHECK(d_theoryTable[theoryId] == NULL
-                && d_theoryOut[theoryId] == NULL);
+    Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
     d_theoryTable[theoryId] =
         new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
@@ -497,12 +496,12 @@ public:
   }
 
   inline void setPropEngine(prop::PropEngine* propEngine) {
-    CVC4_DCHECK(d_propEngine == NULL);
+    Assert(d_propEngine == NULL);
     d_propEngine = propEngine;
   }
 
   inline void setDecisionEngine(DecisionEngine* decisionEngine) {
-    CVC4_DCHECK(d_decisionEngine == NULL);
+    Assert(d_decisionEngine == NULL);
     d_decisionEngine = decisionEngine;
   }
 
@@ -798,7 +797,7 @@ public:
    * @returns the theory
    */
   inline theory::Theory* theoryOf(theory::TheoryId theoryId) const {
-    CVC4_DCHECK(theoryId < theory::THEORY_LAST);
+    Assert(theoryId < theory::THEORY_LAST);
     return d_theoryTable[theoryId];
   }
 

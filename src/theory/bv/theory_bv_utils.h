@@ -118,10 +118,10 @@ Node mkSortedNode(Kind kind, std::vector<Node>& children);
 template<bool ref_count>
 Node mkNaryNode(Kind k, const std::vector<NodeTemplate<ref_count>>& nodes)
 {
-  CVC4_DCHECK(k == kind::AND || k == kind::OR || k == kind::XOR
-              || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
-              || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_PLUS
-              || k == kind::BITVECTOR_SUB || k == kind::BITVECTOR_MULT);
+  Assert(k == kind::AND || k == kind::OR || k == kind::XOR
+         || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+         || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_PLUS
+         || k == kind::BITVECTOR_SUB || k == kind::BITVECTOR_MULT);
 
   if (nodes.size() == 1) { return nodes[0]; }
   return NodeManager::currentNM()->mkNode(k, nodes);
@@ -136,7 +136,7 @@ template<bool ref_count>
 Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
 {
   std::set<TNode> all(conjunctions.begin(), conjunctions.end());
-  CVC4_DCHECK(all.size() > 0);
+  Assert(all.size() > 0);
 
   /* All the same, or just one  */
   if (all.size() == 1) { return conjunctions[0]; }
@@ -155,7 +155,7 @@ template<bool ref_count>
 Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
 {
   std::set<TNode> all(nodes.begin(), nodes.end());
-  CVC4_DCHECK(all.size() > 0);
+  Assert(all.size() > 0);
 
   /* All the same, or just one  */
   if (all.size() == 1) { return nodes[0]; }

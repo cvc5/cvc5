@@ -20,7 +20,7 @@
 #include <limits.h>
 #include <sstream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"

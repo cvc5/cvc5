@@ -41,7 +41,7 @@ CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
 
 bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
 {
-  CVC4_DCHECK(q.getKind() == FORALL);
+  Assert(q.getKind() == FORALL);
   for (const Node& f : q[0])
   {
     Node gv = f.getAttribute(SygusSynthGrammarAttribute());
@@ -150,7 +150,7 @@ Node CegGrammarConstructor::process(Node q,
       // convert to term
       for (const unsigned& arg : arg_irrelevant)
       {
-        CVC4_DCHECK(arg < sfvl.getNumChildren());
+        Assert(arg < sfvl.getNumChildren());
         term_irlv.insert(sfvl[arg]);
       }
 
@@ -175,9 +175,9 @@ Node CegGrammarConstructor::process(Node q,
     if( itt!=templates.end() ){
       Node templ = itt->second;
       std::map<Node, Node>::const_iterator itta = templates_arg.find(sf);
-      CVC4_DCHECK(itta != templates_arg.end());
+      Assert(itta != templates_arg.end());
       TNode templ_arg = itta->second;
-      CVC4_DCHECK(!templ_arg.isNull());
+      Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of it
       if( options::sygusTemplEmbedGrammar() ){
         Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
@@ -203,8 +203,8 @@ Node CegGrammarConstructor::process(Node q,
                                     const std::map<Node, Node>& templates_arg,
                                     const std::vector<Node>& ebvl)
 {
-  CVC4_DCHECK(q[0].getNumChildren() == ebvl.size());
-  CVC4_DCHECK(d_synth_fun_vars.empty());
+  Assert(q[0].getNumChildren() == ebvl.size());
+  Assert(d_synth_fun_vars.empty());
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -223,9 +223,9 @@ Node CegGrammarConstructor::process(Node q,
     {
       Node templ = itt->second;
       std::map<Node, Node>::const_iterator itta = templates_arg.find(sf);
-      CVC4_DCHECK(itta != templates_arg.end());
+      Assert(itta != templates_arg.end());
       TNode templ_arg = itta->second;
-      CVC4_DCHECK(!templ_arg.isNull());
+      Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of
       // it
       if (!options::sygusTemplEmbedGrammar())
@@ -259,9 +259,9 @@ Node CegGrammarConstructor::process(Node q,
       }
     }
     tds->registerSygusType(tn);
-    CVC4_DCHECK(tn.isDatatype());
+    Assert(tn.isDatatype());
     const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    CVC4_DCHECK(dt.isSygus());
+    Assert(dt.isSygus());
     if( !dt.getSygusAllowAll() ){
       d_is_syntax_restricted = true;
     }
@@ -330,8 +330,8 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
       }
       for (unsigned i = 0; i < cur.getNumChildren(); i++) {
         it = visited.find(cur[i]);
-        CVC4_DCHECK(it != visited.end());
-        CVC4_DCHECK(!it->second.isNull());
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
         childChanged = childChanged || cur[i] != it->second;
         children.push_back(it->second);
       }
@@ -347,8 +347,8 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  CVC4_DCHECK(visited.find(n) != visited.end());
-  CVC4_DCHECK(!visited.find(n)->second.isNull());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
   return visited[n];
 }
 
@@ -737,8 +737,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       weights[i].push_back(-1);
       // length
       TypeNode intType = nm->integerType();
-      CVC4_DCHECK(std::find(types.begin(), types.end(), intType)
-                  != types.end());
+      Assert(std::find(types.begin(), types.end(), intType) != types.end());
       unsigned i_intType = std::distance(
           types.begin(),
           std::find(types.begin(),
@@ -761,20 +760,20 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           << arrayType.getIndexType() << " with typenode "
           << TypeNode::fromType(arrayType.getIndexType()) << "\n";
       // retrieve index and constituent unresolved types
-      CVC4_DCHECK(std::find(types.begin(),
-                            types.end(),
-                            TypeNode::fromType(arrayType.getIndexType()))
-                  != types.end());
+      Assert(std::find(types.begin(),
+                       types.end(),
+                       TypeNode::fromType(arrayType.getIndexType()))
+             != types.end());
       unsigned i_indexType = std::distance(
           types.begin(),
           std::find(types.begin(),
                     types.end(),
                     TypeNode::fromType(arrayType.getIndexType())));
       Type unres_indexType = unres_types[i_indexType];
-      CVC4_DCHECK(std::find(types.begin(),
-                            types.end(),
-                            TypeNode::fromType(arrayType.getConstituentType()))
-                  != types.end());
+      Assert(std::find(types.begin(),
+                       types.end(),
+                       TypeNode::fromType(arrayType.getConstituentType()))
+             != types.end());
       unsigned i_constituentType = std::distance(
           types.begin(),
           std::find(types.begin(),
@@ -826,12 +825,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
               << "...for " << dt[k][j].getName() << std::endl;
           TypeNode crange = TypeNode::fromType(
               static_cast<SelectorType>(dt[k][j].getType()).getRangeType());
-          CVC4_DCHECK(type_to_unres.find(crange) != type_to_unres.end());
+          Assert(type_to_unres.find(crange) != type_to_unres.end());
           cargs[i].back().push_back(type_to_unres[crange]);
           // add to the selector type the selector operator
 
-          CVC4_DCHECK(std::find(types.begin(), types.end(), crange)
-                      != types.end());
+          Assert(std::find(types.begin(), types.end(), crange) != types.end());
           unsigned i_selType = std::distance(
               types.begin(), std::find(types.begin(), types.end(), crange));
           TypeNode arg_type = TypeNode::fromType(
@@ -839,7 +837,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           ops[i_selType].push_back(dt[k][j].getSelector());
           cnames[i_selType].push_back(dt[k][j].getName());
           cargs[i_selType].push_back(std::vector<Type>());
-          CVC4_DCHECK(type_to_unres.find(arg_type) != type_to_unres.end());
+          Assert(type_to_unres.find(arg_type) != type_to_unres.end());
           cargs[i_selType].back().push_back(type_to_unres[arg_type]);
           pcs[i_selType].push_back(nullptr);
           weights[i_selType].push_back(-1);
@@ -1088,12 +1086,12 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         datatypes,
                         unres);
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
-  CVC4_DCHECK(!datatypes.empty());
+  Assert(!datatypes.empty());
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
           datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
-  CVC4_DCHECK(types.size() == datatypes.size());
+  Assert(types.size() == datatypes.size());
   return TypeNode::fromType( types[0] );
 }
 
@@ -1116,7 +1114,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
       // TODO : can short circuit to this case when !TermUtil::containsTerm( templ, templ_arg )
       op = templ;
     }else{
-      CVC4_DCHECK(templ.hasOperator());
+      Assert(templ.hasOperator());
       op = templ.getOperator();
       // make constructor taking arguments types from children
       for( unsigned i=0; i<templ.getNumChildren(); i++ ){
@@ -1134,7 +1132,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     std::vector<DatatypeType> types =
         NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
             datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-    CVC4_DCHECK(types.size() == 1);
+    Assert(types.size() == 1);
     return TypeNode::fromType( types[0] );
   }
 }

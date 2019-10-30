@@ -250,7 +250,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   if( options::quantEpr() ){
-    CVC4_DCHECK(!options::incrementalSolving());
+    Assert(!options::incrementalSolving());
     d_qepr.reset(new quantifiers::QuantEPR);
   }
   //---- end utilities
@@ -456,7 +456,7 @@ BoundVarType QuantifiersEngine::getBoundVarType(Node q, Node v) const
 void QuantifiersEngine::getBoundVarIndices(Node q,
                                            std::vector<unsigned>& indices) const
 {
-  CVC4_DCHECK(indices.empty());
+  Assert(indices.empty());
   // we take the bounded variables first
   quantifiers::BoundedIntegers* bi = d_private->d_bint.get();
   if (bi)
@@ -583,7 +583,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     // gotten a check at LAST_CALL effort, indicating that the lemma we reported
     // was not conflicting. This should never happen, but in production mode, we
     // proceed with the check.
-    CVC4_DCHECK(false);
+    Assert(false);
   }
   bool needsCheck = !d_lemmas_waiting.empty();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
@@ -660,7 +660,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           return;
         }else{
           //should only fail reset if added a lemma
-          CVC4_DCHECK(false);
+          Assert(false);
         }
       }
     }
@@ -709,8 +709,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
         {
           // theory engine's model builder is quantifier engine's builder if it
           // has one
-          CVC4_DCHECK(!getModelBuilder()
-                      || getModelBuilder() == d_te->getModelBuilder());
+          Assert(!getModelBuilder()
+                 || getModelBuilder() == d_te->getModelBuilder());
           Trace("quant-engine-debug") << "Build model..." << std::endl;
           if (!d_te->getModelBuilder()->buildModel(d_model.get()))
           {
@@ -742,7 +742,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_hasAddedLemma ){
         break;
       }else{
-        CVC4_DCHECK(!d_conflict);
+        Assert(!d_conflict);
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
           if( e==Theory::EFFORT_FULL ){
@@ -812,7 +812,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                     setIncomplete = true;
                     break;
                   }else{
-                    CVC4_DCHECK(qmd != NULL);
+                    Assert(qmd != NULL);
                     Trace("quant-engine-debug2") << "Complete for " << q << " due to " << qmd->identify().c_str() << std::endl;
                   }
                 }
@@ -899,7 +899,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
     Trace("quant") << " : " << f << std::endl;
     unsigned prev_lemma_waiting = d_lemmas_waiting.size();
     ++(d_statistics.d_num_quant);
-    CVC4_DCHECK(f.getKind() == FORALL);
+    Assert(f.getKind() == FORALL);
     // register with utilities
     for (unsigned i = 0; i < d_util.size(); i++)
     {
@@ -925,11 +925,11 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
       mdl->registerQuantifier(f);
       // since this is context-independent, we should not add any lemmas during
       // this call
-      CVC4_DCHECK(d_lemmas_waiting.size() == prev_lemma_waiting);
+      Assert(d_lemmas_waiting.size() == prev_lemma_waiting);
     }
     Trace("quant-debug") << "...finish." << std::endl;
     d_quants[f] = true;
-    CVC4_CHECK(d_lemmas_waiting.size() == prev_lemma_waiting);
+    AlwaysAssert(d_lemmas_waiting.size() == prev_lemma_waiting);
   }
 }
 

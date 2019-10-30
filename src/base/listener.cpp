@@ -18,7 +18,7 @@
 
 #include <list>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 
 namespace CVC4 {
 
@@ -26,7 +26,7 @@ Listener::Listener(){}
 Listener::~Listener(){}
 
 ListenerCollection::ListenerCollection() : d_listeners() {}
-ListenerCollection::~ListenerCollection() { CVC4_DCHECK(empty()); }
+ListenerCollection::~ListenerCollection() { Assert(empty()); }
 
 ListenerCollection::iterator ListenerCollection::addListener(Listener* listener)
 {

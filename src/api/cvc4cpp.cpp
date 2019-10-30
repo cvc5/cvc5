@@ -33,8 +33,8 @@
 
 #include "api/cvc4cpp.h"
 
+#include "base/check.h"
 #include "base/configuration.h"
-#include "base/cvc4_check.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -590,15 +590,15 @@ CVC4::Kind extToIntKind(Kind k)
 
 uint32_t minArity(Kind k)
 {
-  CVC4_DCHECK(isDefinedKind(k));
-  CVC4_DCHECK(isDefinedIntKind(extToIntKind(k)));
+  Assert(isDefinedKind(k));
+  Assert(isDefinedIntKind(extToIntKind(k)));
   return CVC4::ExprManager::minArity(extToIntKind(k));
 }
 
 uint32_t maxArity(Kind k)
 {
-  CVC4_DCHECK(isDefinedKind(k));
-  CVC4_DCHECK(isDefinedIntKind(extToIntKind(k)));
+  Assert(isDefinedKind(k));
+  Assert(isDefinedIntKind(extToIntKind(k)));
   return CVC4::ExprManager::maxArity(extToIntKind(k));
 }
 }  // namespace
@@ -859,7 +859,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
     DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
     return type->instantiate(tparams);
   }
-  CVC4_DCHECK(d_type->isSortConstructor());
+  Assert(d_type->isSortConstructor());
   return static_cast<SortConstructorType*>(d_type.get())->instantiate(tparams);
 }
 
@@ -1227,14 +1227,14 @@ bool Term::const_iterator::operator!=(const const_iterator& it) const
 
 Term::const_iterator& Term::const_iterator::operator++()
 {
-  CVC4_DCHECK(d_iterator != nullptr);
+  Assert(d_iterator != nullptr);
   ++*static_cast<CVC4::Expr::const_iterator*>(d_iterator);
   return *this;
 }
 
 Term::const_iterator Term::const_iterator::operator++(int)
 {
-  CVC4_DCHECK(d_iterator != nullptr);
+  Assert(d_iterator != nullptr);
   const_iterator it = *this;
   ++*static_cast<CVC4::Expr::const_iterator*>(d_iterator);
   return it;
@@ -1242,7 +1242,7 @@ Term::const_iterator Term::const_iterator::operator++(int)
 
 Term Term::const_iterator::operator*() const
 {
-  CVC4_DCHECK(d_iterator != nullptr);
+  Assert(d_iterator != nullptr);
   return Term(**static_cast<CVC4::Expr::const_iterator*>(d_iterator));
 }
 
@@ -2070,7 +2070,7 @@ std::vector<Expr> Solver::termVectorToExprs(
 void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 {
   CVC4_API_KIND_CHECK(kind);
-  CVC4_DCHECK(isDefinedIntKind(extToIntKind(kind)));
+  Assert(isDefinedIntKind(extToIntKind(kind)));
   const CVC4::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
   CVC4_API_KIND_CHECK_EXPECTED(
       mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
@@ -2088,7 +2088,7 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 
 void Solver::checkMkOpTerm(Kind kind, OpTerm opTerm, uint32_t nchildren) const
 {
-  CVC4_DCHECK(isDefinedIntKind(extToIntKind(kind)));
+  Assert(isDefinedIntKind(extToIntKind(kind)));
   const CVC4::Kind int_kind = extToIntKind(kind);
   const CVC4::Kind int_op_kind = opTerm.d_expr->getKind();
   const CVC4::Kind int_op_to_kind =
@@ -2224,7 +2224,7 @@ Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
       << "first-class sort as domain sort for function sort";
   CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
       << "first-class sort as codomain sort for function sort";
-  CVC4_DCHECK(!codomain.isFunction()); /* A function sort is not first-class. */
+  Assert(!codomain.isFunction()); /* A function sort is not first-class. */
 
   return d_exprMgr->mkFunctionType(*domain.d_type, *codomain.d_type);
 
@@ -2249,7 +2249,7 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
       << "non-null codomain sort";
   CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
       << "first-class sort as codomain sort for function sort";
-  CVC4_DCHECK(!codomain.isFunction()); /* A function sort is not first-class. */
+  Assert(!codomain.isFunction()); /* A function sort is not first-class. */
 
   std::vector<Type> argTypes = sortVectorToTypes(sorts);
   return d_exprMgr->mkFunctionType(argTypes, *codomain.d_type);
@@ -2773,12 +2773,12 @@ Term Solver::mkTerm(Kind kind) const
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
     CVC4::Kind k = extToIntKind(kind);
-    CVC4_DCHECK(isDefinedIntKind(k));
+    Assert(isDefinedIntKind(k));
     res = d_exprMgr->mkExpr(k, std::vector<Expr>());
   }
   else
   {
-    CVC4_DCHECK(kind == PI);
+    Assert(kind == PI);
     res = d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
   }
   (void)res.d_expr->getType(true); /* kick off type checking */
@@ -2825,7 +2825,7 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 
   std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
   CVC4::Kind k = extToIntKind(kind);
-  CVC4_DCHECK(isDefinedIntKind(k));
+  Assert(isDefinedIntKind(k));
   Term res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
                                     : d_exprMgr->mkExpr(k, echildren);
   (void)res.d_expr->getType(true); /* kick off type checking */
@@ -2847,7 +2847,7 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
-  CVC4_DCHECK(isDefinedIntKind(k));
+  Assert(isDefinedIntKind(k));
   Term res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
                                     : d_exprMgr->mkExpr(k, echildren);
   (void)res.d_expr->getType(true); /* kick off type checking */
@@ -3068,7 +3068,7 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg) const
       CVC4_API_KIND_CHECK_EXPECTED(false, kind)
           << "operator kind with uint32_t argument";
   }
-  CVC4_DCHECK(!res.isNull());
+  Assert(!res.isNull());
   return res;
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3121,7 +3121,7 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const
       CVC4_API_KIND_CHECK_EXPECTED(false, kind)
           << "operator kind with two uint32_t arguments";
   }
-  CVC4_DCHECK(!res.isNull());
+  Assert(!res.isNull());
   return res;
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3271,7 +3271,7 @@ Term Solver::declareFun(const std::string& symbol,
   }
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
       << "first-class sort as function codomain sort";
-  CVC4_DCHECK(!sort.isFunction()); /* A function sort is not first-class. */
+  Assert(!sort.isFunction()); /* A function sort is not first-class. */
   Type type = *sort.d_type;
   if (!sorts.empty())
   {
@@ -3384,7 +3384,7 @@ Term Solver::defineFunRec(const std::string& symbol,
   // == NodeManager::fromExprManager(expr.getExprManager())
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
       << "first-class sort as function codomain sort";
-  CVC4_DCHECK(!sort.isFunction()); /* A function sort is not first-class. */
+  Assert(!sort.isFunction()); /* A function sort is not first-class. */
   // CHECK:
   // for v in bound_vars: is bound var
   std::vector<Type> domain_types;
@@ -3760,7 +3760,7 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
   }
 
   // Integers are reals, too
-  CVC4_DCHECK(t.isReal());
+  Assert(t.isReal());
   Term res = term;
   if (t.isInteger())
   {
@@ -3772,7 +3772,7 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
                                  *res.d_expr,
                                  d_exprMgr->mkConst(CVC4::Rational(1))));
   }
-  CVC4_DCHECK(res.getSort() == sort);
+  Assert(res.getSort() == sort);
   return res;
 }
 

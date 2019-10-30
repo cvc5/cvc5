@@ -33,9 +33,9 @@ Node applySygusArgs(const Datatype& dt,
 {
   if (n.getKind() == BOUND_VARIABLE)
   {
-    CVC4_DCHECK(n.hasAttribute(SygusVarNumAttribute()));
+    Assert(n.hasAttribute(SygusVarNumAttribute()));
     int vn = n.getAttribute(SygusVarNumAttribute());
-    CVC4_DCHECK(Node::fromExpr(dt.getSygusVarList())[vn] == n);
+    Assert(Node::fromExpr(dt.getSygusVarList())[vn] == n);
     return args[vn];
   }
   // n is an application of operator op.
@@ -89,7 +89,7 @@ Node applySygusArgs(const Datatype& dt,
 
 Kind getOperatorKindForSygusBuiltin(Node op)
 {
-  CVC4_DCHECK(op.getKind() != BUILTIN);
+  Assert(op.getKind() != BUILTIN);
   if (op.getKind() == LAMBDA)
   {
     return APPLY_UF;
@@ -120,9 +120,9 @@ Node mkSygusTerm(const Datatype& dt,
 {
   Trace("dt-sygus-util") << "Make sygus term " << dt.getName() << "[" << i
                          << "] with children: " << children << std::endl;
-  CVC4_DCHECK(i < dt.getNumConstructors());
-  CVC4_DCHECK(dt.isSygus());
-  CVC4_DCHECK(!dt[i].getSygusOp().isNull());
+  Assert(i < dt.getNumConstructors());
+  Assert(dt.isSygus());
+  Assert(!dt[i].getSygusOp().isNull());
   std::vector<Node> schildren;
   Node op = Node::fromExpr(dt[i].getSygusOp());
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
@@ -135,7 +135,7 @@ Node mkSygusTerm(const Datatype& dt,
   // if it is the any constant, we simply return the child
   if (op.getAttribute(SygusAnyConstAttribute()))
   {
-    CVC4_DCHECK(children.size() == 1);
+    Assert(children.size() == 1);
     return children[0];
   }
   if (op.getKind() != BUILTIN)
@@ -156,7 +156,7 @@ Node mkSygusTerm(const Datatype& dt,
   {
     // If it is an APPLY_UF operator, we should have at least an operator and
     // a child.
-    CVC4_DCHECK(ok != APPLY_UF || schildren.size() != 1);
+    Assert(ok != APPLY_UF || schildren.size() != 1);
     ret = NodeManager::currentNM()->mkNode(ok, schildren);
     Trace("dt-sygus-util") << "...return (op) " << ret << std::endl;
     return ret;
@@ -177,7 +177,7 @@ Node mkSygusTerm(const Datatype& dt,
 /** get instantiate cons */
 Node getInstCons(Node n, const Datatype& dt, int index)
 {
-  CVC4_DCHECK(index >= 0 && index < (int)dt.getNumConstructors());
+  Assert(index >= 0 && index < (int)dt.getNumConstructors());
   std::vector<Node> children;
   NodeManager* nm = NodeManager::currentNM();
   children.push_back(Node::fromExpr(dt[index].getConstructor()));
@@ -209,10 +209,10 @@ Node getInstCons(Node n, const Datatype& dt, int index)
                                nm->mkConst(AscriptionType(tspec)),
                                children[0]);
       n_ic = nm->mkNode(APPLY_CONSTRUCTOR, children);
-      CVC4_DCHECK(n_ic.getType() == tn);
+      Assert(n_ic.getType() == tn);
     }
   }
-  CVC4_DCHECK(isInstCons(n, n_ic, dt) == index);
+  Assert(isInstCons(n, n_ic, dt) == index);
   // n_ic = Rewriter::rewrite( n_ic );
   return n_ic;
 }
@@ -266,8 +266,8 @@ unsigned indexOf(Node n)
 {
   if (!n.hasAttribute(DtIndexAttribute()))
   {
-    CVC4_DCHECK(n.getType().isConstructor() || n.getType().isTester()
-                || n.getType().isSelector());
+    Assert(n.getType().isConstructor() || n.getType().isTester()
+           || n.getType().isSelector());
     unsigned index = Datatype::indexOfInternal(n.toExpr());
     n.setAttribute(DtIndexAttribute(), index);
     return index;
@@ -295,7 +295,7 @@ Node mkSplit(Node n, const Datatype& dt)
 
 bool isNullaryApplyConstructor(Node n)
 {
-  CVC4_DCHECK(n.getKind() == APPLY_CONSTRUCTOR);
+  Assert(n.getKind() == APPLY_CONSTRUCTOR);
   for (const Node& nc : n)
   {
     if (nc.getType().isDatatype())
@@ -331,7 +331,7 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
           << " " << n2.getOperator() << std::endl;
       return true;
     }
-    CVC4_DCHECK(n1.getNumChildren() == n2.getNumChildren());
+    Assert(n1.getNumChildren() == n2.getNumChildren());
     for (unsigned i = 0, size = n1.getNumChildren(); i < size; i++)
     {
       if (checkClash(n1[i], n2[i], rew))

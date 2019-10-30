@@ -63,8 +63,7 @@ ConstraintType Constraint::constraintTypeOfComparison(const Comparison& cmp){
     return Equality;
   case DISTINCT:
     return Disequality;
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
 }
 
@@ -82,7 +81,7 @@ Constraint::Constraint(ArithVar x,  ConstraintType t, const DeltaRational& v)
     d_split(false),
     d_variablePosition()
 {
-  CVC4_DCHECK(!initialized());
+  Assert(!initialized());
 }
 
 
@@ -209,22 +208,22 @@ bool ValueCollection::hasDisequality() const {
 }
 
 ConstraintP ValueCollection::getLowerBound() const {
-  CVC4_DCHECK(hasLowerBound());
+  Assert(hasLowerBound());
   return d_lowerBound;
 }
 
 ConstraintP ValueCollection::getUpperBound() const {
-  CVC4_DCHECK(hasUpperBound());
+  Assert(hasUpperBound());
   return d_upperBound;
 }
 
 ConstraintP ValueCollection::getEquality() const {
-  CVC4_DCHECK(hasEquality());
+  Assert(hasEquality());
   return d_equality;
 }
 
 ConstraintP ValueCollection::getDisequality() const {
-  CVC4_DCHECK(hasDisequality());
+  Assert(hasDisequality());
   return d_disequality;
 }
 
@@ -247,7 +246,7 @@ void ValueCollection::push_into(std::vector<ConstraintP>& vec) const {
 
 ValueCollection ValueCollection::mkFromConstraint(ConstraintP c){
   ValueCollection ret;
-  CVC4_DCHECK(ret.empty());
+  Assert(ret.empty());
   switch(c->getType()){
   case LowerBound:
     ret.d_lowerBound = c;
@@ -283,36 +282,36 @@ bool ValueCollection::hasConstraintOfType(ConstraintType t) const{
 }
 
 ArithVar ValueCollection::getVariable() const{
-  CVC4_DCHECK(!empty());
+  Assert(!empty());
   return nonNull()->getVariable();
 }
 
 const DeltaRational& ValueCollection::getValue() const{
-  CVC4_DCHECK(!empty());
+  Assert(!empty());
   return nonNull()->getValue();
 }
 
 void ValueCollection::add(ConstraintP c){
-  CVC4_DCHECK(c != NullConstraint);
+  Assert(c != NullConstraint);
 
-  CVC4_DCHECK(empty() || getVariable() == c->getVariable());
-  CVC4_DCHECK(empty() || getValue() == c->getValue());
+  Assert(empty() || getVariable() == c->getVariable());
+  Assert(empty() || getValue() == c->getValue());
 
   switch(c->getType()){
   case LowerBound:
-    CVC4_DCHECK(!hasLowerBound());
+    Assert(!hasLowerBound());
     d_lowerBound = c;
     break;
   case Equality:
-    CVC4_DCHECK(!hasEquality());
+    Assert(!hasEquality());
     d_equality = c;
     break;
   case UpperBound:
-    CVC4_DCHECK(!hasUpperBound());
+    Assert(!hasUpperBound());
     d_upperBound = c;
     break;
   case Disequality:
-    CVC4_DCHECK(!hasDisequality());
+    Assert(!hasDisequality());
     d_disequality = c;
     break;
   default:
@@ -322,10 +321,10 @@ void ValueCollection::add(ConstraintP c){
 
 ConstraintP ValueCollection::getConstraintOfType(ConstraintType t) const{
   switch(t){
-    case LowerBound: CVC4_DCHECK(hasLowerBound()); return d_lowerBound;
-    case Equality: CVC4_DCHECK(hasEquality()); return d_equality;
-    case UpperBound: CVC4_DCHECK(hasUpperBound()); return d_upperBound;
-    case Disequality: CVC4_DCHECK(hasDisequality()); return d_disequality;
+    case LowerBound: Assert(hasLowerBound()); return d_lowerBound;
+    case Equality: Assert(hasEquality()); return d_equality;
+    case UpperBound: Assert(hasUpperBound()); return d_upperBound;
+    case Disequality: Assert(hasDisequality()); return d_disequality;
     default: Unreachable();
   }
 }
@@ -333,19 +332,19 @@ ConstraintP ValueCollection::getConstraintOfType(ConstraintType t) const{
 void ValueCollection::remove(ConstraintType t){
   switch(t){
   case LowerBound:
-    CVC4_DCHECK(hasLowerBound());
+    Assert(hasLowerBound());
     d_lowerBound = NullConstraint;
     break;
   case Equality:
-    CVC4_DCHECK(hasEquality());
+    Assert(hasEquality());
     d_equality = NullConstraint;
     break;
   case UpperBound:
-    CVC4_DCHECK(hasUpperBound());
+    Assert(hasUpperBound());
     d_upperBound = NullConstraint;
     break;
   case Disequality:
-    CVC4_DCHECK(hasDisequality());
+    Assert(hasDisequality());
     d_disequality = NullConstraint;
     break;
   default:
@@ -382,12 +381,12 @@ bool Constraint::initialized() const {
 }
 
 const ConstraintDatabase& Constraint::getDatabase() const{
-  CVC4_DCHECK(initialized());
+  Assert(initialized());
   return *d_database;
 }
 
 void Constraint::initialize(ConstraintDatabase* db, SortedConstraintMapIterator v, ConstraintP negation){
-  CVC4_DCHECK(!initialized());
+  Assert(!initialized());
   d_database = db;
   d_variablePosition = v;
   d_negation = negation;
@@ -395,7 +394,7 @@ void Constraint::initialize(ConstraintDatabase* db, SortedConstraintMapIterator 
 
 Constraint::~Constraint() {
   // Call this instead of safeToGarbageCollect()
-  CVC4_DCHECK(!contextDependentDataIsSet());
+  Assert(!contextDependentDataIsSet());
 
   if(initialized()){
     ValueCollection& vc =  d_variablePosition->second;
@@ -416,7 +415,7 @@ Constraint::~Constraint() {
 }
 
 const ConstraintRule& Constraint::getConstraintRule() const {
-  CVC4_DCHECK(hasProof());
+  Assert(hasProof());
   return d_database->d_watches->d_constraintProofs[d_crid];
 }
 
@@ -427,28 +426,28 @@ const ValueCollection& Constraint::getValueCollection() const{
 
 ConstraintP Constraint::getCeiling() {
   Debug("getCeiling") << "Constraint_::getCeiling on " << *this << endl;
-  CVC4_DCHECK(getValue().getInfinitesimalPart().sgn() > 0);
+  Assert(getValue().getInfinitesimalPart().sgn() > 0);
 
   const DeltaRational ceiling(getValue().ceiling());
   return d_database->getConstraint(getVariable(), getType(), ceiling);
 }
 
 ConstraintP Constraint::getFloor() {
-  CVC4_DCHECK(getValue().getInfinitesimalPart().sgn() < 0);
+  Assert(getValue().getInfinitesimalPart().sgn() < 0);
 
   const DeltaRational floor(Rational(getValue().floor()));
   return d_database->getConstraint(getVariable(), getType(), floor);
 }
 
 void Constraint::setCanBePropagated() {
-  CVC4_DCHECK(!canBePropagated());
+  Assert(!canBePropagated());
   d_database->pushCanBePropagatedWatch(this);
 }
 
 void Constraint::setAssertedToTheTheory(TNode witness, bool nowInConflict) {
-  CVC4_DCHECK(hasLiteral());
-  CVC4_DCHECK(!assertedToTheTheory());
-  CVC4_DCHECK(negationHasProof() == nowInConflict);
+  Assert(hasLiteral());
+  Assert(!assertedToTheTheory());
+  Assert(negationHasProof() == nowInConflict);
   d_database->pushAssertionOrderWatch(this, witness);
 
   if(Debug.isOn("constraint::conflictCommit") && nowInConflict ){
@@ -531,10 +530,9 @@ bool Constraint::sanityChecking(Node n) const {
   Comparison cmp = Comparison::parseNormalForm(n);
   Kind k = cmp.comparisonKind();
   Polynomial pleft = cmp.normalizedVariablePart();
-  CVC4_DCHECK(k == EQUAL || k == DISTINCT
-              || pleft.leadingCoefficientIsPositive());
-  CVC4_DCHECK(k != EQUAL || Monomial::isMember(n[0]));
-  CVC4_DCHECK(k != DISTINCT || Monomial::isMember(n[0][0]));
+  Assert(k == EQUAL || k == DISTINCT || pleft.leadingCoefficientIsPositive());
+  Assert(k != EQUAL || Monomial::isMember(n[0]));
+  Assert(k != DISTINCT || Monomial::isMember(n[0][0]));
 
   TNode left = pleft.getNode();
   DeltaRational right = cmp.normalizedDeltaRational();
@@ -577,7 +575,7 @@ void ConstraintRule::debugPrint() const {
 }
 
 ConstraintCP ConstraintDatabase::getAntecedent (AntecedentId p) const {
-  CVC4_DCHECK(p < d_antecedents.size());
+  Assert(p < d_antecedents.size());
   return d_antecedents[p];
 }
 
@@ -606,7 +604,7 @@ void ConstraintRule::print(std::ostream& out) const {
       }
       out << " * (" << *antecedent << ")" << std::endl;
 
-      CVC4_DCHECK((coeffs == RationalVectorCPSentinel) || coeffIterator > 0);
+      Assert((coeffs == RationalVectorCPSentinel) || coeffIterator > 0);
       --p;
       coeffIterator = (coeffs != RationalVectorCPSentinel) ? coeffIterator-1 : 0;
       antecedent = database.getAntecedent(p);
@@ -623,7 +621,7 @@ void ConstraintRule::print(std::ostream& out) const {
 }
 
 bool Constraint::wellFormedFarkasProof() const {
-  CVC4_DCHECK(hasProof());
+  Assert(hasProof());
 
   const ConstraintRule& cr = getConstraintRule();
   if(cr.d_constraint != this){ return false; }
@@ -637,7 +635,7 @@ bool Constraint::wellFormedFarkasProof() const {
 
 #if IS_PROOFS_BUILD
   if(!PROOF_ON()){ return cr.d_farkasCoefficients == RationalVectorCPSentinel; }
-  CVC4_DCHECK(PROOF_ON());
+  Assert(PROOF_ON());
 
   if(cr.d_farkasCoefficients == RationalVectorCPSentinel){ return false; }
   if(cr.d_farkasCoefficients->size() < 2){ return false; }
@@ -651,7 +649,7 @@ bool Constraint::wellFormedFarkasProof() const {
   RationalVector::const_iterator coeffBegin = cr.d_farkasCoefficients->begin();
 
   while(antecedent != NullConstraint){
-    CVC4_DCHECK(lhs.isNull() || Polynomial::isMember(lhs));
+    Assert(lhs.isNull() || Polynomial::isMember(lhs));
 
     const Rational& coeff = *coeffIterator;
     int coeffSgn = coeff.sgn();
@@ -745,14 +743,14 @@ ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRa
   switch(t){
   case LowerBound:
     {
-      CVC4_DCHECK(r.infinitesimalSgn() >= 0);
+      Assert(r.infinitesimalSgn() >= 0);
       if(r.infinitesimalSgn() > 0){
-        CVC4_DCHECK(r.getInfinitesimalPart() == 1);
+        Assert(r.getInfinitesimalPart() == 1);
         // make (not (v > r)), which is (v <= r)
         DeltaRational dropInf(r.getNoninfinitesimalPart(), 0);
         return new Constraint(v, UpperBound, dropInf);
       }else{
-        CVC4_DCHECK(r.infinitesimalSgn() == 0);
+        Assert(r.infinitesimalSgn() == 0);
         // make (not (v >= r)), which is (v < r)
         DeltaRational addInf(r.getNoninfinitesimalPart(), -1);
         return new Constraint(v, UpperBound, addInf);
@@ -760,14 +758,14 @@ ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRa
     }
   case UpperBound:
     {
-      CVC4_DCHECK(r.infinitesimalSgn() <= 0);
+      Assert(r.infinitesimalSgn() <= 0);
       if(r.infinitesimalSgn() < 0){
-        CVC4_DCHECK(r.getInfinitesimalPart() == -1);
+        Assert(r.getInfinitesimalPart() == -1);
         // make (not (v < r)), which is (v >= r)
         DeltaRational dropInf(r.getNoninfinitesimalPart(), 0);
         return new Constraint(v, LowerBound, dropInf);
       }else{
-        CVC4_DCHECK(r.infinitesimalSgn() == 0);
+        Assert(r.infinitesimalSgn() == 0);
         // make (not (v <= r)), which is (v > r)
         DeltaRational addInf(r.getNoninfinitesimalPart(), 1);
         return new Constraint(v, LowerBound, addInf);
@@ -799,25 +797,25 @@ ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Co
 }
 
 SortedConstraintMap& ConstraintDatabase::getVariableSCM(ArithVar v) const{
-  CVC4_DCHECK(variableDatabaseIsSetup(v));
+  Assert(variableDatabaseIsSetup(v));
   return d_varDatabases[v]->d_constraints;
 }
 
 void ConstraintDatabase::pushSplitWatch(ConstraintP c){
-  CVC4_DCHECK(!c->d_split);
+  Assert(!c->d_split);
   c->d_split = true;
   d_watches->d_splitWatches.push_back(c);
 }
 
 
 void ConstraintDatabase::pushCanBePropagatedWatch(ConstraintP c){
-  CVC4_DCHECK(!c->d_canBePropagated);
+  Assert(!c->d_canBePropagated);
   c->d_canBePropagated = true;
   d_watches->d_canBePropagatedWatches.push_back(c);
 }
 
 void ConstraintDatabase::pushAssertionOrderWatch(ConstraintP c, TNode witness){
-  CVC4_DCHECK(!c->assertedToTheTheory());
+  Assert(!c->assertedToTheTheory());
   c->d_assertionOrder = d_watches->d_assertionOrderWatches.size();
   c->d_witness = witness;
   d_watches->d_assertionOrderWatches.push_back(c);
@@ -826,8 +824,8 @@ void ConstraintDatabase::pushAssertionOrderWatch(ConstraintP c, TNode witness){
 
 void ConstraintDatabase::pushConstraintRule(const ConstraintRule& crp){
   ConstraintP c = crp.d_constraint;
-  CVC4_DCHECK(c->d_crid == ConstraintRuleIdSentinel);
-  CVC4_DCHECK(!c->hasProof());
+  Assert(c->d_crid == ConstraintRuleIdSentinel);
+  Assert(!c->hasProof());
   c->d_crid = d_watches->d_constraintProofs.size();
   d_watches->d_constraintProofs.push_back(crp);
 }
@@ -853,9 +851,9 @@ ConstraintP ConstraintDatabase::getConstraint(ArithVar v, ConstraintType t, cons
     }else{
       pair<SortedConstraintMapIterator, bool> negInsertAttempt;
       negInsertAttempt = scm.insert(make_pair(negC->getValue(), ValueCollection()));
-      CVC4_DCHECK(negInsertAttempt.second
-                  || !negInsertAttempt.first->second.hasConstraintOfType(
-                      negC->getType()));
+      Assert(negInsertAttempt.second
+             || !negInsertAttempt.first->second.hasConstraintOfType(
+                 negC->getType()));
       negPos = negInsertAttempt.first;
     }
 
@@ -901,12 +899,12 @@ ConstraintDatabase::~ConstraintDatabase(){
       constraintList.pop_back();
       delete c;
     }
-    CVC4_DCHECK(scm.empty());
+    Assert(scm.empty());
     d_varDatabases.pop_back();
     delete back;
   }
 
-  CVC4_DCHECK(d_nodetoConstraintMap.empty());
+  Assert(d_nodetoConstraintMap.empty());
 }
 
 ConstraintDatabase::Statistics::Statistics():
@@ -924,9 +922,9 @@ ConstraintDatabase::Statistics::~Statistics(){
 }
 
 void ConstraintDatabase::deleteConstraintAndNegation(ConstraintP c){
-  CVC4_DCHECK(c->safeToGarbageCollect());
+  Assert(c->safeToGarbageCollect());
   ConstraintP neg = c->getNegation();
-  CVC4_DCHECK(neg->safeToGarbageCollect());
+  Assert(neg->safeToGarbageCollect());
   delete c;
   delete neg;
 }
@@ -943,27 +941,27 @@ void ConstraintDatabase::addVariable(ArithVar v){
     while(!constraintList.empty()){
       ConstraintP c = constraintList.back();
       constraintList.pop_back();
-      CVC4_DCHECK(c->safeToGarbageCollect());
+      Assert(c->safeToGarbageCollect());
       delete c;
     }
-    CVC4_DCHECK(scm.empty());
+    Assert(scm.empty());
 
     d_reclaimable.remove(v);
   }else{
     Debug("arith::constraint") << "about to fail" << v << " " << d_varDatabases.size() << endl;
-    CVC4_DCHECK(v == d_varDatabases.size());
+    Assert(v == d_varDatabases.size());
     d_varDatabases.push_back(new PerVariableDatabase(v));
   }
 }
 
 void ConstraintDatabase::removeVariable(ArithVar v){
-  CVC4_DCHECK(!d_reclaimable.isMember(v));
+  Assert(!d_reclaimable.isMember(v));
   d_reclaimable.add(v);
 }
 
 bool Constraint::safeToGarbageCollect() const{
   // Do not call during destructor as getNegation() may be Null by this point
-  CVC4_DCHECK(getNegation() != NullConstraint);
+  Assert(getNegation() != NullConstraint);
   return !contextDependentDataIsSet() && ! getNegation()->contextDependentDataIsSet();
 }
 
@@ -972,7 +970,7 @@ bool Constraint::contextDependentDataIsSet() const{
 }
 
 Node Constraint::split(){
-  CVC4_DCHECK(isEquality() || isDisequality());
+  Assert(isEquality() || isDisequality());
 
   bool isEq = isEquality();
 
@@ -980,7 +978,7 @@ Node Constraint::split(){
   ConstraintP diseq = isEq ? d_negation : this;
 
   TNode eqNode = eq->getLiteral();
-  CVC4_DCHECK(eqNode.getKind() == kind::EQUAL);
+  Assert(eqNode.getKind() == kind::EQUAL);
   TNode lhs = eqNode[0];
   TNode rhs = eqNode[1];
 
@@ -1001,13 +999,13 @@ bool ConstraintDatabase::hasLiteral(TNode literal) const {
 }
 
 ConstraintP ConstraintDatabase::addLiteral(TNode literal){
-  CVC4_DCHECK(!hasLiteral(literal));
+  Assert(!hasLiteral(literal));
   bool isNot = (literal.getKind() == NOT);
   Node atomNode = (isNot ? literal[0] : literal);
   Node negationNode  = atomNode.notNode();
 
-  CVC4_DCHECK(!hasLiteral(atomNode));
-  CVC4_DCHECK(!hasLiteral(negationNode));
+  Assert(!hasLiteral(atomNode));
+  Assert(!hasLiteral(negationNode));
   Comparison posCmp = Comparison::parseNormalForm(atomNode);
 
   ConstraintType posType = Constraint::constraintTypeOfComparison(posCmp);
@@ -1055,7 +1053,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
     if(posC->isEquality()){
       negI = posI;
     }else{
-      CVC4_DCHECK(posC->isLowerBound() || posC->isUpperBound());
+      Assert(posC->isLowerBound() || posC->isUpperBound());
 
       pair<SortedConstraintMapIterator, bool> negInsertAttempt;
       negInsertAttempt = scm.insert(make_pair(negC->getValue(), ValueCollection()));
@@ -1065,7 +1063,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
       Debug("nf::tmp") << negC->getValue() << endl;
 
       //This should always succeed as the DeltaRational for the negation is unique!
-      CVC4_DCHECK(negInsertAttempt.second);
+      Assert(negInsertAttempt.second);
 
       negI = negInsertAttempt.first;
     }
@@ -1095,23 +1093,23 @@ ConstraintP ConstraintDatabase::lookup(TNode literal) const{
 
 void Constraint::setAssumption(bool nowInConflict){
   Debug("constraints::pf") << "setAssumption(" << this << ")" << std::endl;
-  CVC4_DCHECK(!hasProof());
-  CVC4_DCHECK(negationHasProof() == nowInConflict);
-  CVC4_DCHECK(hasLiteral());
-  CVC4_DCHECK(assertedToTheTheory());
+  Assert(!hasProof());
+  Assert(negationHasProof() == nowInConflict);
+  Assert(hasLiteral());
+  Assert(assertedToTheTheory());
 
   d_database->pushConstraintRule(ConstraintRule(this, AssumeAP));
 
-  CVC4_DCHECK(inConflict() == nowInConflict);
+  Assert(inConflict() == nowInConflict);
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@setAssumption " << this << std::endl;
   }
 }
 
 void Constraint::tryToPropagate(){
-  CVC4_DCHECK(hasProof());
-  CVC4_DCHECK(!isAssumption());
-  CVC4_DCHECK(!isInternalAssumption());
+  Assert(hasProof());
+  Assert(!isAssumption());
+  Assert(!isInternalAssumption());
 
   if(canBePropagated() && !assertedToTheTheory() && !isAssumption() && !isInternalAssumption()){
     propagate();
@@ -1119,11 +1117,11 @@ void Constraint::tryToPropagate(){
 }
 
 void Constraint::propagate(){
-  CVC4_DCHECK(hasProof());
-  CVC4_DCHECK(canBePropagated());
-  CVC4_DCHECK(!assertedToTheTheory());
-  CVC4_DCHECK(!isAssumption());
-  CVC4_DCHECK(!isInternalAssumption());
+  Assert(hasProof());
+  Assert(canBePropagated());
+  Assert(!assertedToTheTheory());
+  Assert(!isAssumption());
+  Assert(!isInternalAssumption());
 
   d_database->d_toPropagate.push(this);
 }
@@ -1138,9 +1136,9 @@ void Constraint::propagate(){
  */
 void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   Debug("constraints::pf") << "impliedByUnate(" << this << ", " << *imp << ")" << std::endl;
-  CVC4_DCHECK(!hasProof());
-  CVC4_DCHECK(imp->hasProof());
-  CVC4_DCHECK(negationHasProof() == nowInConflict);
+  Assert(!hasProof());
+  Assert(imp->hasProof());
+  Assert(negationHasProof() == nowInConflict);
 
   d_database->d_antecedents.push_back(NullConstraint);
   d_database->d_antecedents.push_back(imp);
@@ -1164,7 +1162,7 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   // no need to delete coeffs the memory is owned by ConstraintRule
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffs));
 
-  CVC4_DCHECK(inConflict() == nowInConflict);
+  Assert(inConflict() == nowInConflict);
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@impliedByUnate " << this << std::endl;
   }
@@ -1172,16 +1170,16 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   if(Debug.isOn("constraints::wffp") && !wellFormedFarkasProof()){
     getConstraintRule().print(Debug("constraints::wffp"));
   }
-  CVC4_DCHECK(wellFormedFarkasProof());
+  Assert(wellFormedFarkasProof());
 }
 
 void Constraint::impliedByTrichotomy(ConstraintCP a, ConstraintCP b, bool nowInConflict){
   Debug("constraints::pf") << "impliedByTrichotomy(" << this << ", " << *a << ", ";
   Debug("constraints::pf") << *b << ")" << std::endl;
-  CVC4_DCHECK(!hasProof());
-  CVC4_DCHECK(negationHasProof() == nowInConflict);
-  CVC4_DCHECK(a->hasProof());
-  CVC4_DCHECK(b->hasProof());
+  Assert(!hasProof());
+  Assert(negationHasProof() == nowInConflict);
+  Assert(a->hasProof());
+  Assert(b->hasProof());
 
   d_database->d_antecedents.push_back(NullConstraint);
   d_database->d_antecedents.push_back(a);
@@ -1190,7 +1188,7 @@ void Constraint::impliedByTrichotomy(ConstraintCP a, ConstraintCP b, bool nowInC
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
   d_database->pushConstraintRule(ConstraintRule(this, TrichotomyAP, antecedentEnd));
 
-  CVC4_DCHECK(inConflict() == nowInConflict);
+  Assert(inConflict() == nowInConflict);
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@impliedByTrichotomy " << this << std::endl;
   }
@@ -1207,9 +1205,9 @@ bool Constraint::allHaveProof(const ConstraintCPVec& b){
 
 void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
   Debug("constraints::pf") << "impliedByIntHole(" << this << ", " << *a << ")" << std::endl;
-  CVC4_DCHECK(!hasProof());
-  CVC4_DCHECK(negationHasProof() == nowInConflict);
-  CVC4_DCHECK(a->hasProof());
+  Assert(!hasProof());
+  Assert(negationHasProof() == nowInConflict);
+  Assert(a->hasProof());
   Debug("pf::arith") << "impliedByIntHole(" << this << ", " << a << ")"
                      << std::endl;
 
@@ -1218,7 +1216,7 @@ void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
   d_database->pushConstraintRule(ConstraintRule(this, IntHoleAP, antecedentEnd));
 
-  CVC4_DCHECK(inConflict() == nowInConflict);
+  Assert(inConflict() == nowInConflict);
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict impliedByIntHole" << this << std::endl;
   }
@@ -1234,9 +1232,9 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
   }
   Debug("constraints::pf") << ")" << std::endl;
 
-  CVC4_DCHECK(!hasProof());
-  CVC4_DCHECK(negationHasProof() == nowInConflict);
-  CVC4_DCHECK(allHaveProof(b));
+  Assert(!hasProof());
+  Assert(negationHasProof() == nowInConflict);
+  Assert(allHaveProof(b));
 
   CDConstraintList& antecedents = d_database->d_antecedents;
   antecedents.push_back(NullConstraint);
@@ -1247,7 +1245,7 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
 
   d_database->pushConstraintRule(ConstraintRule(this, IntHoleAP, antecedentEnd));
 
-  CVC4_DCHECK(inConflict() == nowInConflict);
+  Assert(inConflict() == nowInConflict);
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@impliedByIntHole[vec] " << this << std::endl;
   }
@@ -1271,54 +1269,54 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   }
   Debug("constraints::pf") << ", <coeffs>";
   Debug("constraints::pf") << ")" << std::endl;
-  CVC4_DCHECK(!hasProof());
-  CVC4_DCHECK(negationHasProof() == nowInConflict);
-  CVC4_DCHECK(allHaveProof(a));
+  Assert(!hasProof());
+  Assert(negationHasProof() == nowInConflict);
+  Assert(allHaveProof(a));
 
-  CVC4_DCHECK(PROOF_ON() == (coeffs != RationalVectorCPSentinel));
+  Assert(PROOF_ON() == (coeffs != RationalVectorCPSentinel));
   // !PROOF_ON() => coeffs == RationalVectorCPSentinel
   //  PROOF_ON() => coeffs->size() == a.size() + 1
-  CVC4_DCHECK(!PROOF_ON() || coeffs->size() == a.size() + 1);
-  CVC4_DCHECK(a.size() >= 1);
+  Assert(!PROOF_ON() || coeffs->size() == a.size() + 1);
+  Assert(a.size() >= 1);
 
   d_database->d_antecedents.push_back(NullConstraint);
   for(ConstraintCPVec::const_iterator i = a.begin(), end = a.end(); i != end; ++i){
     ConstraintCP c_i = *i;
-    CVC4_DCHECK(c_i->hasProof());
+    Assert(c_i->hasProof());
     d_database->d_antecedents.push_back(c_i);
   }
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
 
   RationalVectorCP coeffsCopy;
   if(PROOF_ON()){
-    CVC4_DCHECK(coeffs != RationalVectorCPSentinel);
+    Assert(coeffs != RationalVectorCPSentinel);
     coeffsCopy = new RationalVector(*coeffs);
   } else {
     coeffsCopy = RationalVectorCPSentinel;
   }
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffsCopy));
 
-  CVC4_DCHECK(inConflict() == nowInConflict);
+  Assert(inConflict() == nowInConflict);
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@impliedByFarkas " << this << std::endl;
   }
   if(Debug.isOn("constraints::wffp") && !wellFormedFarkasProof()){
     getConstraintRule().print(Debug("constraints::wffp"));
   }
-  CVC4_DCHECK(wellFormedFarkasProof());
+  Assert(wellFormedFarkasProof());
 }
 
 
 void Constraint::setInternalAssumption(bool nowInConflict){
   Debug("constraints::pf") << "setInternalAssumption(" << this;
   Debug("constraints::pf") << ")" << std::endl;
-  CVC4_DCHECK(!hasProof());
-  CVC4_DCHECK(negationHasProof() == nowInConflict);
-  CVC4_DCHECK(!assertedToTheTheory());
+  Assert(!hasProof());
+  Assert(negationHasProof() == nowInConflict);
+  Assert(!assertedToTheTheory());
 
   d_database->pushConstraintRule(ConstraintRule(this, InternalAssumeAP));
 
-  CVC4_DCHECK(inConflict() == nowInConflict);
+  Assert(inConflict() == nowInConflict);
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@setInternalAssumption " << this << std::endl;
   }
@@ -1328,30 +1326,30 @@ void Constraint::setInternalAssumption(bool nowInConflict){
 void Constraint::setEqualityEngineProof(){
   Debug("constraints::pf") << "setEqualityEngineProof(" << this;
   Debug("constraints::pf") << ")" << std::endl;
-  CVC4_DCHECK(truthIsUnknown());
-  CVC4_DCHECK(hasLiteral());
+  Assert(truthIsUnknown());
+  Assert(hasLiteral());
   d_database->pushConstraintRule(ConstraintRule(this, EqualityEngineAP));
 }
 
 
 SortedConstraintMap& Constraint::constraintSet() const{
-  CVC4_DCHECK(d_database->variableDatabaseIsSetup(d_variable));
+  Assert(d_database->variableDatabaseIsSetup(d_variable));
   return (d_database->d_varDatabases[d_variable])->d_constraints;
 }
 
 bool Constraint::antecentListIsEmpty() const{
-  CVC4_DCHECK(hasProof());
+  Assert(hasProof());
   return d_database->d_antecedents[getEndAntecedent()] == NullConstraint;
 }
 
 bool Constraint::antecedentListLengthIsOne() const {
-  CVC4_DCHECK(hasProof());
+  Assert(hasProof());
   return !antecentListIsEmpty() &&
     d_database->d_antecedents[getEndAntecedent()-1] == NullConstraint;
 }
 
 Node Constraint::externalImplication(const ConstraintCPVec& b) const{
-  CVC4_DCHECK(hasLiteral());
+  Assert(hasLiteral());
   Node antecedent = externalExplainByAssertions(b);
   Node implied = getLiteral();
   return antecedent.impNode(implied);
@@ -1364,7 +1362,7 @@ Node Constraint::externalExplainByAssertions(const ConstraintCPVec& b){
 
 Node Constraint::externalExplainConflict() const{
   Debug("pf::arith") << this << std::endl;
-  CVC4_DCHECK(inConflict());
+  Assert(inConflict());
   NodeBuilder<> nb(kind::AND);
   externalExplainByAssertions(nb);
   getNegation()->externalExplainByAssertions(nb);
@@ -1375,7 +1373,7 @@ Node Constraint::externalExplainConflict() const{
 struct ConstraintCPHash {
   /* Todo replace with an id */
   size_t operator()(ConstraintCP c) const{
-    CVC4_DCHECK(sizeof(ConstraintCP) > 0);
+    Assert(sizeof(ConstraintCP) > 0);
     return ((size_t)c)/sizeof(ConstraintCP);
   }
 };
@@ -1390,14 +1388,14 @@ void Constraint::assertionFringe(ConstraintCPVec& v){
     for(size_t i = 0; i < v.size(); ++i){
       ConstraintCP vi = v[i];
       if(visited.find(vi) == visited.end()){
-        CVC4_DCHECK(vi->hasProof());
+        Assert(vi->hasProof());
         visited.insert(vi);
         if(vi->onFringe()){
           v[writePos] = vi;
           writePos++;
         }else{
-          CVC4_DCHECK(vi->hasTrichotomyProof() || vi->hasFarkasProof()
-                      || vi->hasIntHoleProof());
+          Assert(vi->hasTrichotomyProof() || vi->hasFarkasProof()
+                 || vi->hasIntHoleProof());
           AntecedentId p = vi->getEndAntecedent();
 
           ConstraintCP antecedent = antecedents[p];
@@ -1429,9 +1427,9 @@ Node Constraint::externalExplain(const ConstraintCPVec& v, AssertionOrder order)
 }
 
 void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
-  CVC4_DCHECK(hasProof());
-  CVC4_DCHECK(!isAssumption() || assertedToTheTheory());
-  CVC4_DCHECK(!isInternalAssumption());
+  Assert(hasProof());
+  Assert(!isAssumption() || assertedToTheTheory());
+  Assert(!isInternalAssumption());
 
   if (Debug.isOn("pf::arith"))
   {
@@ -1445,7 +1443,7 @@ void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
   }else if(hasEqualityEngineProof()){
     d_database->eeExplain(this, nb);
   }else{
-    CVC4_DCHECK(!isAssumption());
+    Assert(!isAssumption());
     AntecedentId p = getEndAntecedent();
     ConstraintCP antecedent = d_database->d_antecedents[p];
 
@@ -1459,16 +1457,16 @@ void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
 }
 
 Node Constraint::externalExplain(AssertionOrder order) const{
-  CVC4_DCHECK(hasProof());
-  CVC4_DCHECK(!isAssumption() || assertedBefore(order));
-  CVC4_DCHECK(!isInternalAssumption());
+  Assert(hasProof());
+  Assert(!isAssumption() || assertedBefore(order));
+  Assert(!isInternalAssumption());
   if(assertedBefore(order)){
     return getWitness();
   }else if(hasEqualityEngineProof()){
     return d_database->eeExplain(this);
   }else{
-    CVC4_DCHECK(hasFarkasProof() || hasIntHoleProof() || hasTrichotomyProof());
-    CVC4_DCHECK(!antecentListIsEmpty());
+    Assert(hasFarkasProof() || hasIntHoleProof() || hasTrichotomyProof());
+    Assert(!antecentListIsEmpty());
     //Force the selection of the layer above if the node is
     // assertedToTheTheory()!
 
@@ -1478,7 +1476,7 @@ Node Constraint::externalExplain(AssertionOrder order) const{
       return antecedent->externalExplain(order);
     }else{
       NodeBuilder<> nb(kind::AND);
-      CVC4_DCHECK(!isAssumption());
+      Assert(!isAssumption());
 
       AntecedentId p = listEnd;
       ConstraintCP antecedent = d_database->d_antecedents[p];
@@ -1508,8 +1506,8 @@ Node Constraint::externalExplainByAssertions(ConstraintCP a, ConstraintCP b, Con
 }
 
 ConstraintP Constraint::getStrictlyWeakerLowerBound(bool hasLiteral, bool asserted) const {
-  CVC4_DCHECK(initialized());
-  CVC4_DCHECK(!asserted || hasLiteral);
+  Assert(initialized());
+  Assert(!asserted || hasLiteral);
 
   SortedConstraintMapConstIterator i = d_variablePosition;
   const SortedConstraintMap& scm = constraintSet();
@@ -1553,16 +1551,16 @@ ConstraintP Constraint::getStrictlyWeakerUpperBound(bool hasLiteral, bool assert
 }
 
 ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t, const DeltaRational& r) const {
-  CVC4_DCHECK(variableDatabaseIsSetup(v));
-  CVC4_DCHECK(t == UpperBound || t == LowerBound);
+  Assert(variableDatabaseIsSetup(v));
+  Assert(t == UpperBound || t == LowerBound);
 
   SortedConstraintMap& scm = getVariableSCM(v);
   if(t == UpperBound){
     SortedConstraintMapConstIterator i = scm.lower_bound(r);
     SortedConstraintMapConstIterator i_end = scm.end();
-    CVC4_DCHECK(i == i_end || r <= i->first);
+    Assert(i == i_end || r <= i->first);
     for(; i != i_end; i++){
-      CVC4_DCHECK(r <= i->first);
+      Assert(r <= i->first);
       const ValueCollection& vc = i->second;
       if(vc.hasUpperBound()){
         return vc.getUpperBound();
@@ -1570,14 +1568,14 @@ ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t
     }
     return NullConstraint;
   }else{
-    CVC4_DCHECK(t == LowerBound);
+    Assert(t == LowerBound);
     if(scm.empty()){
       return NullConstraint;
     }else{
       SortedConstraintMapConstIterator i = scm.lower_bound(r);
       SortedConstraintMapConstIterator i_begin = scm.begin();
       SortedConstraintMapConstIterator i_end = scm.end();
-      CVC4_DCHECK(i == i_end || r <= i->first);
+      Assert(i == i_end || r <= i->first);
 
       int fdj = 0;
 
@@ -1595,7 +1593,7 @@ ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t
 
       do{
         Debug("getBestImpliedBound") << fdj++ << " " << r << " " << i->first << endl;
-        CVC4_DCHECK(r >= i->first);
+        Assert(r >= i->first);
         const ValueCollection& vc = i->second;
 
         if(vc.hasLowerBound()){
@@ -1613,12 +1611,12 @@ ConstraintP ConstraintDatabase::getBestImpliedBound(ArithVar v, ConstraintType t
   }
 }
 Node ConstraintDatabase::eeExplain(const Constraint* const c) const{
-  CVC4_DCHECK(c->hasLiteral());
+  Assert(c->hasLiteral());
   return d_congruenceManager.explain(c->getLiteral());
 }
 
 void ConstraintDatabase::eeExplain(const Constraint* const c, NodeBuilder<>& nb) const{
-  CVC4_DCHECK(c->hasLiteral());
+  Assert(c->hasLiteral());
   d_congruenceManager.explain(c->getLiteral(), nb);
 }
 
@@ -1636,11 +1634,11 @@ ConstraintDatabase::Watches::Watches(context::Context* satContext, context::Cont
 
 
 void Constraint::setLiteral(Node n) {
-  CVC4_DCHECK(!hasLiteral());
-  CVC4_DCHECK(sanityChecking(n));
+  Assert(!hasLiteral());
+  Assert(sanityChecking(n));
   d_literal = n;
   NodetoConstraintMap& map = d_database->d_nodetoConstraintMap;
-  CVC4_DCHECK(map.find(n) == map.end());
+  Assert(map.find(n) == map.end());
   map.insert(make_pair(d_literal, this));
 }
 
@@ -1650,7 +1648,7 @@ void implies(std::vector<Node>& out, ConstraintP a, ConstraintP b){
 
   Node neg_la = (la.getKind() == kind::NOT)? la[0] : la.notNode();
 
-  CVC4_DCHECK(lb != neg_la);
+  Assert(lb != neg_la);
   Node orderOr = (lb < neg_la) ? lb.orNode(neg_la) : neg_la.orNode(lb);
   out.push_back(orderOr);
 }
@@ -1662,7 +1660,7 @@ void mutuallyExclusive(std::vector<Node>& out, ConstraintP a, ConstraintP b){
   Node neg_la = (la.getKind() == kind::NOT)? la[0] : la.notNode();
   Node neg_lb = (lb.getKind() == kind::NOT)? lb[0] : lb.notNode();
 
-  CVC4_DCHECK(neg_la != neg_lb);
+  Assert(neg_la != neg_lb);
   Node orderOr = (neg_la < neg_lb) ? neg_la.orNode(neg_lb) : neg_lb.orNode(neg_la);
   out.push_back(orderOr);
 }
@@ -1719,7 +1717,7 @@ void ConstraintDatabase::outputUnateEqualityLemmas(std::vector<Node>& out, Arith
   for(i = equalities.begin(); i != eq_end; ++i){
     ConstraintP eq = *i;
     const ValueCollection& vc = eq->getValueCollection();
-    CVC4_DCHECK(vc.hasEquality() && vc.getEquality()->hasLiteral());
+    Assert(vc.hasEquality() && vc.getEquality()->hasLiteral());
 
     bool hasLB = vc.hasLowerBound() && vc.getLowerBound()->hasLiteral();
     bool hasUB = vc.hasUpperBound() && vc.getUpperBound()->hasLiteral();
@@ -1772,10 +1770,10 @@ bool ConstraintDatabase::handleUnateProp(ConstraintP ant, ConstraintP cons){
 
 void ConstraintDatabase::unatePropLowerBound(ConstraintP curr, ConstraintP prev){
   Debug("arith::unate") << "unatePropLowerBound " << curr << " " << prev << endl;
-  CVC4_DCHECK(curr != prev);
-  CVC4_DCHECK(curr != NullConstraint);
+  Assert(curr != prev);
+  Assert(curr != NullConstraint);
   bool hasPrev = ! (prev == NullConstraint);
-  CVC4_DCHECK(!hasPrev || curr->getValue() > prev->getValue());
+  Assert(!hasPrev || curr->getValue() > prev->getValue());
 
   ++d_statistics.d_unatePropagateCalls;
 
@@ -1814,10 +1812,10 @@ void ConstraintDatabase::unatePropLowerBound(ConstraintP curr, ConstraintP prev)
 
 void ConstraintDatabase::unatePropUpperBound(ConstraintP curr, ConstraintP prev){
   Debug("arith::unate") << "unatePropUpperBound " << curr << " " << prev << endl;
-  CVC4_DCHECK(curr != prev);
-  CVC4_DCHECK(curr != NullConstraint);
+  Assert(curr != prev);
+  Assert(curr != NullConstraint);
   bool hasPrev = ! (prev == NullConstraint);
-  CVC4_DCHECK(!hasPrev || curr->getValue() < prev->getValue());
+  Assert(!hasPrev || curr->getValue() < prev->getValue());
 
   ++d_statistics.d_unatePropagateCalls;
 
@@ -1849,13 +1847,13 @@ void ConstraintDatabase::unatePropUpperBound(ConstraintP curr, ConstraintP prev)
 
 void ConstraintDatabase::unatePropEquality(ConstraintP curr, ConstraintP prevLB, ConstraintP prevUB){
   Debug("arith::unate") << "unatePropEquality " << curr << " " << prevLB << " " << prevUB << endl;
-  CVC4_DCHECK(curr != prevLB);
-  CVC4_DCHECK(curr != prevUB);
-  CVC4_DCHECK(curr != NullConstraint);
+  Assert(curr != prevLB);
+  Assert(curr != prevUB);
+  Assert(curr != NullConstraint);
   bool hasPrevLB = ! (prevLB == NullConstraint);
   bool hasPrevUB = ! (prevUB == NullConstraint);
-  CVC4_DCHECK(!hasPrevLB || curr->getValue() >= prevLB->getValue());
-  CVC4_DCHECK(!hasPrevUB || curr->getValue() <= prevUB->getValue());
+  Assert(!hasPrevLB || curr->getValue() >= prevLB->getValue());
+  Assert(!hasPrevUB || curr->getValue() <= prevUB->getValue());
 
   ++d_statistics.d_unatePropagateCalls;
 
@@ -1887,7 +1885,7 @@ void ConstraintDatabase::unatePropEquality(ConstraintP curr, ConstraintP prevLB,
       if(handleUnateProp(curr, dis)){ return; }
     }
   }
-  CVC4_DCHECK(scm_i == scm_curr);
+  Assert(scm_i == scm_curr);
   if(!hasPrevUB || scm_i != scm_last){
     ++scm_i;
   } // hasPrevUB implies scm_i != scm_last
@@ -1913,16 +1911,16 @@ std::pair<int, int> Constraint::unateFarkasSigns(ConstraintCP ca, ConstraintCP c
   ConstraintType a = ca->getType();
   ConstraintType b = cb->getType();
 
-  CVC4_DCHECK(a != Disequality);
-  CVC4_DCHECK(b != Disequality);
+  Assert(a != Disequality);
+  Assert(b != Disequality);
 
   int a_sgn = (a == LowerBound) ? -1 : ((a == UpperBound) ? 1 : 0);
   int b_sgn = (b == LowerBound) ? -1 : ((b == UpperBound) ? 1 : 0);
 
   if(a_sgn == 0 && b_sgn == 0){
-    CVC4_DCHECK(a == Equality);
-    CVC4_DCHECK(b == Equality);
-    CVC4_DCHECK(ca->getValue() != cb->getValue());
+    Assert(a == Equality);
+    Assert(b == Equality);
+    Assert(ca->getValue() != cb->getValue());
     if(ca->getValue() < cb->getValue()){
       a_sgn = 1;
       b_sgn = -1;
@@ -1931,16 +1929,16 @@ std::pair<int, int> Constraint::unateFarkasSigns(ConstraintCP ca, ConstraintCP c
       b_sgn = 1;
     }
   }else if(a_sgn == 0){
-    CVC4_DCHECK(b_sgn != 0);
-    CVC4_DCHECK(a == Equality);
+    Assert(b_sgn != 0);
+    Assert(a == Equality);
     a_sgn = -b_sgn;
   }else if(b_sgn == 0){
-    CVC4_DCHECK(a_sgn != 0);
-    CVC4_DCHECK(b == Equality);
+    Assert(a_sgn != 0);
+    Assert(b == Equality);
     b_sgn = -a_sgn;
   }
-  CVC4_DCHECK(a_sgn != 0);
-  CVC4_DCHECK(b_sgn != 0);
+  Assert(a_sgn != 0);
+  Assert(b_sgn != 0);
 
   Debug("arith::unateFarkasSigns") << "Constraint::unateFarkasSigns("<<a <<", " << b << ") -> "
                                    << "("<<a_sgn<<", "<< b_sgn <<")"<< endl;

@@ -153,7 +153,7 @@ EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* c
 }
 
 void EqualityEngine::setMasterEqualityEngine(EqualityEngine* master) {
-  CVC4_DCHECK(d_masterEqualityEngine == 0);
+  Assert(d_masterEqualityEngine == 0);
   d_masterEqualityEngine = master;
 }
 
@@ -266,8 +266,8 @@ void EqualityEngine::addFunctionKind(Kind fun, bool interpreted, bool extOperato
 
 void EqualityEngine::subtermEvaluates(EqualityNodeId id)  {
   Debug("equality::evaluation") << d_name << "::eq::subtermEvaluates(" << d_nodes[id] << "): " << d_subtermsToEvaluate[id] << std::endl;
-  CVC4_DCHECK(!d_isInternal[id]);
-  CVC4_DCHECK(d_subtermsToEvaluate[id] > 0);
+  Assert(!d_isInternal[id]);
+  Assert(d_subtermsToEvaluate[id] > 0);
   if ((-- d_subtermsToEvaluate[id]) == 0) {
     d_evaluationQueue.push(id);
   }
@@ -365,7 +365,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
   // Empty the queue
   propagate();
 
-  CVC4_DCHECK(hasTerm(t));
+  Assert(hasTerm(t));
 
   Debug("equality") << d_name << "::eq::addTermInternal(" << t << ") => " << result << std::endl;
 }
@@ -375,7 +375,7 @@ bool EqualityEngine::hasTerm(TNode t) const {
 }
 
 EqualityNodeId EqualityEngine::getNodeId(TNode node) const {
-  CVC4_DCHECK(hasTerm(node)) << node.toString().c_str();
+  Assert(hasTerm(node)) << node.toString().c_str();
   return (*d_nodeIds.find(node)).second;
 }
 
@@ -384,7 +384,7 @@ EqualityNode& EqualityEngine::getEqualityNode(TNode t) {
 }
 
 EqualityNode& EqualityEngine::getEqualityNode(EqualityNodeId nodeId) {
-  CVC4_DCHECK(nodeId < d_equalityNodes.size());
+  Assert(nodeId < d_equalityNodes.size());
   return d_equalityNodes[nodeId];
 }
 
@@ -393,7 +393,7 @@ const EqualityNode& EqualityEngine::getEqualityNode(TNode t) const {
 }
 
 const EqualityNode& EqualityEngine::getEqualityNode(EqualityNodeId nodeId) const {
-  CVC4_DCHECK(nodeId < d_equalityNodes.size());
+  Assert(nodeId < d_equalityNodes.size());
   return d_equalityNodes[nodeId];
 }
 
@@ -417,7 +417,7 @@ void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, un
 
 void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason, unsigned pid) {
   Debug("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
-  CVC4_DCHECK(t.getKind() != kind::EQUAL) << "Use assertEquality instead";
+  Assert(t.getKind() != kind::EQUAL) << "Use assertEquality instead";
   assertEqualityInternal(t, polarity ? d_true : d_false, reason, pid);
   propagate();
 }
@@ -520,9 +520,9 @@ void EqualityEngine::assertEquality(TNode eq, bool polarity, TNode reason, unsig
 
 TNode EqualityEngine::getRepresentative(TNode t) const {
   Debug("equality::internal") << d_name << "::eq::getRepresentative(" << t << ")" << std::endl;
-  CVC4_DCHECK(hasTerm(t));
+  Assert(hasTerm(t));
   EqualityNodeId representativeId = getEqualityNode(t).getFind();
-  CVC4_DCHECK(!d_isInternal[representativeId]);
+  Assert(!d_isInternal[representativeId]);
   Debug("equality::internal") << d_name << "::eq::getRepresentative(" << t << ") => " << d_nodes[representativeId] << std::endl;
   return d_nodes[representativeId];
 }
@@ -531,7 +531,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   Debug("equality") << d_name << "::eq::merge(" << class1.getFind() << "," << class2.getFind() << ")" << std::endl;
 
-  CVC4_DCHECK(triggersFired.empty());
+  Assert(triggersFired.empty());
 
   ++ d_stats.mergesCount;
 
@@ -556,10 +556,9 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   // Check for constant merges
   bool class1isConstant = d_isConstant[class1Id];
   bool class2isConstant = d_isConstant[class2Id];
-  CVC4_DCHECK(class1isConstant || !class2isConstant)
+  Assert(class1isConstant || !class2isConstant)
       << "Should always merge into constants";
-  CVC4_DCHECK(!class1isConstant || !class2isConstant)
-      << "Don't merge constants";
+  Assert(!class1isConstant || !class2isConstant) << "Don't merge constants";
 
   // Trigger set of class 1
   TriggerTermSetRef class1triggerRef = d_nodeIndividualTrigger[class1Id];
@@ -886,8 +885,8 @@ void EqualityEngine::backtrack() {
   if (d_deducedDisequalities.size() > d_deducedDisequalitiesSize) {
     for(int i = d_deducedDisequalities.size() - 1, i_end = (int)d_deducedDisequalitiesSize; i >= i_end; -- i) {
       EqualityPair pair = d_deducedDisequalities[i];
-      CVC4_DCHECK(d_disequalityReasonsMap.find(pair)
-                  != d_disequalityReasonsMap.end());
+      Assert(d_disequalityReasonsMap.find(pair)
+             != d_disequalityReasonsMap.end());
       // Remove from the map
       d_disequalityReasonsMap.erase(pair);
       std::swap(pair.first, pair.second);
@@ -937,7 +936,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
                   << ", proof = " << (eqp ? "ON" : "OFF") << std::endl;
 
   // The terms must be there already
-  CVC4_DCHECK(hasTerm(t1) && hasTerm(t2));
+  Assert(hasTerm(t1) && hasTerm(t2));
   ;
 
   // Get the ids
@@ -956,8 +955,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
 
     // Get the reason for this disequality
     EqualityPair pair(t1Id, t2Id);
-    CVC4_DCHECK(d_disequalityReasonsMap.find(pair)
-                != d_disequalityReasonsMap.end())
+    Assert(d_disequalityReasonsMap.find(pair) != d_disequalityReasonsMap.end())
         << "Don't ask for stuff I didn't notify you about";
     DisequalityReasonRef reasonRef = d_disequalityReasonsMap.find(pair)->second;
 
@@ -1016,8 +1014,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         // Corner case where this is actually a disequality between two constants
         Debug("pf::ee") << "Encountered a constant disequality (not a transitivity proof): "
                         << eqp->d_node << std::endl;
-        CVC4_DCHECK(eqp->d_node[0][0].isConst());
-        CVC4_DCHECK(eqp->d_node[0][1].isConst());
+        Assert(eqp->d_node[0][0].isConst());
+        Assert(eqp->d_node[0][1].isConst());
         eqp->d_id = MERGED_THROUGH_CONSTANTS;
       } else if (eqp->d_children.size() == 1) {
         // The transitivity proof has just one child. Simplify.
@@ -1041,7 +1039,7 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
   Debug("equality") << d_name << "::eq::explainPredicate(" << p << ")"
                     << std::endl;
   // Must have the term
-  CVC4_DCHECK(hasTerm(p));
+  Assert(hasTerm(p));
   std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*> cache;
   // Get the explanation
   getExplanation(
@@ -1093,8 +1091,8 @@ void EqualityEngine::getExplanation(
       else
       {
         // We may have cached null in its place, create the trivial proof now.
-        CVC4_DCHECK(d_nodes[t1Id] == d_nodes[t2Id]);
-        CVC4_DCHECK(eqp->d_id == MERGED_THROUGH_REFLEXIVITY);
+        Assert(d_nodes[t1Id] == d_nodes[t2Id]);
+        Assert(eqp->d_id == MERGED_THROUGH_REFLEXIVITY);
         eqp->d_node = d_nodes[t1Id];
       }
       return;
@@ -1112,7 +1110,7 @@ void EqualityEngine::getExplanation(
     Warning() << d_nodes[t1Id] << " with find " << d_nodes[getEqualityNode(t1Id).getFind()] << std::endl;
     Warning() << d_nodes[t2Id] << " with find " << d_nodes[getEqualityNode(t2Id).getFind()] << std::endl;
   }
-  CVC4_DCHECK(canExplain);
+  Assert(canExplain);
 #endif
 
   // If the nodes are the same, we're done
@@ -1141,7 +1139,7 @@ void EqualityEngine::getExplanation(
   size_t currentIndex = 0;
   while (true) {
     // There should always be a path, and every node can be visited only once (tree)
-    CVC4_DCHECK(currentIndex < bfsQueue.size());
+    Assert(currentIndex < bfsQueue.size());
 
     // The next node to visit
     BfsData current = bfsQueue[currentIndex];
@@ -1225,9 +1223,9 @@ void EqualityEngine::getExplanation(
                       eqpc->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_1, d_nodes[f1.b]);
                       // The first child is a PARTIAL_SELECT_0.
                       // Give it a child so that we know what kind of (read) it is, when we dump to LFSC.
-                      CVC4_DCHECK(eqpc->d_children[0]->d_node.getKind()
-                                  == kind::PARTIAL_SELECT_0);
-                      CVC4_DCHECK(eqpc->d_children[0]->d_children.size() == 0);
+                      Assert(eqpc->d_children[0]->d_node.getKind()
+                             == kind::PARTIAL_SELECT_0);
+                      Assert(eqpc->d_children[0]->d_children.size() == 0);
 
                       eqpc->d_children[0]->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_0,
                                                                                      d_nodes[f1.b]);
@@ -1248,7 +1246,7 @@ void EqualityEngine::getExplanation(
               Debug("equality") << d_name << "::eq::getExplanation(): due to reflexivity, going deeper" << std::endl;
               EqualityNodeId eqId = currentNode == d_trueId ? edgeNode : currentNode;
               const FunctionApplication& eq = d_applications[eqId].original;
-              CVC4_DCHECK(eq.isEquality()) << "Must be an equality";
+              Assert(eq.isEquality()) << "Must be an equality";
 
               // Explain why a = b constant
               Debug("equality") << push;
@@ -1277,7 +1275,7 @@ void EqualityEngine::getExplanation(
               // Explain why a is a constant by explaining each argument
               for (unsigned i = 0; i < interpreted.getNumChildren(); ++ i) {
                 EqualityNodeId childId = getNodeId(interpreted[i]);
-                CVC4_DCHECK(isConstant(childId));
+                Assert(isConstant(childId));
                 std::shared_ptr<EqProof> eqpcc =
                     eqpc ? std::make_shared<EqProof>() : nullptr;
                 getExplanation(childId,
@@ -1343,11 +1341,11 @@ void EqualityEngine::getExplanation(
             //---from Morgan---
             if (eqpc != NULL && eqpc->d_id == MERGED_THROUGH_REFLEXIVITY) {
               if(eqpc->d_node.isNull()) {
-                CVC4_DCHECK(eqpc->d_children.size() == 1);
+                Assert(eqpc->d_children.size() == 1);
                 std::shared_ptr<EqProof> p = eqpc;
                 eqpc = p->d_children[0];
               } else {
-                CVC4_DCHECK(eqpc->d_children.empty());
+                Assert(eqpc->d_children.empty());
               }
             }
             //---end from Morgan---
@@ -1387,7 +1385,7 @@ void EqualityEngine::getExplanation(
 }
 
 void EqualityEngine::addTriggerEquality(TNode eq) {
-  CVC4_DCHECK(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == kind::EQUAL);
 
   if (d_done) {
     return;
@@ -1423,9 +1421,9 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
 }
 
 void EqualityEngine::addTriggerPredicate(TNode predicate) {
-  CVC4_DCHECK(predicate.getKind() != kind::NOT
-              && predicate.getKind() != kind::EQUAL);
-  CVC4_DCHECK(d_congruenceKinds.tst(predicate.getKind()))
+  Assert(predicate.getKind() != kind::NOT
+         && predicate.getKind() != kind::EQUAL);
+  Assert(d_congruenceKinds.tst(predicate.getKind()))
       << "No point in adding non-congruence predicates";
 
   if (d_done) {
@@ -1461,8 +1459,8 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
 
   Debug("equality") << d_name << "::eq::addTrigger(" << t1 << ", " << t2 << ", " << trigger << ")" << std::endl;
 
-  CVC4_DCHECK(hasTerm(t1));
-  CVC4_DCHECK(hasTerm(t2));
+  Assert(hasTerm(t1));
+  Assert(hasTerm(t2));
 
   if (d_done) {
     return;
@@ -1492,8 +1490,8 @@ void EqualityEngine::addTriggerEqualityInternal(TNode t1, TNode t2, TNode trigge
 
   // Update the counters
   d_equalityTriggersCount = d_equalityTriggers.size();
-  CVC4_DCHECK(d_equalityTriggers.size() == d_equalityTriggersOriginal.size());
-  CVC4_DCHECK(d_equalityTriggers.size() % 2 == 0);
+  Assert(d_equalityTriggers.size() == d_equalityTriggersOriginal.size());
+  Assert(d_equalityTriggers.size() % 2 == 0);
 
   // Add the trigger to the trigger graph
   d_nodeTriggers[t1classId] = t1NewTriggerId;
@@ -1517,7 +1515,7 @@ Node EqualityEngine::evaluateTerm(TNode node) {
     TNode child = node[i];
     TNode childRep = getRepresentative(child);
     Debug("equality::evaluation") << d_name << "::eq::evaluateTerm: " << child << " -> " << childRep << std::endl;
-    CVC4_DCHECK(childRep.isConst());
+    Assert(childRep.isConst());
     builder << childRep;
   }
   Node newNode = builder;
@@ -1536,7 +1534,7 @@ void EqualityEngine::processEvaluationQueue() {
     // Replace the children with their representatives (must be constants)
     Node nodeEvaluated = evaluateTerm(d_nodes[id]);
     Debug("equality::evaluation") << d_name << "::eq::processEvaluationQueue(): " << d_nodes[id] << " evaluates to " << nodeEvaluated << std::endl;
-    CVC4_DCHECK(nodeEvaluated.isConst());
+    Assert(nodeEvaluated.isConst());
     addTermInternal(nodeEvaluated);
     EqualityNodeId nodeEvaluatedId = getNodeId(nodeEvaluated);
 
@@ -1594,8 +1592,8 @@ void EqualityEngine::propagate() {
     EqualityNode& node1 = getEqualityNode(t1classId);
     EqualityNode& node2 = getEqualityNode(t2classId);
 
-    CVC4_DCHECK(node1.getFind() == t1classId);
-    CVC4_DCHECK(node2.getFind() == t2classId);
+    Assert(node1.getFind() == t1classId);
+    Assert(node2.getFind() == t2classId);
 
     // Add the actual equality to the equality graph
     addGraphEdge(current.t1Id, current.t2Id, current.type, current.reason);
@@ -1728,8 +1726,8 @@ void EqualityEngine::debugPrintGraph() const {
 bool EqualityEngine::areEqual(TNode t1, TNode t2) const {
   Debug("equality") << d_name << "::eq::areEqual(" << t1 << "," << t2 << ")";
 
-  CVC4_DCHECK(hasTerm(t1));
-  CVC4_DCHECK(hasTerm(t2));
+  Assert(hasTerm(t1));
+  Assert(hasTerm(t2));
 
   bool result = getEqualityNode(t1).getFind() == getEqualityNode(t2).getFind();
   Debug("equality") << (result ? "\t(YES)" : "\t(NO)") << std::endl;
@@ -1741,8 +1739,8 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
   Debug("equality") << d_name << "::eq::areDisequal(" << t1 << "," << t2 << ")";
 
   // Add the terms
-  CVC4_DCHECK(hasTerm(t1));
-  CVC4_DCHECK(hasTerm(t2));
+  Assert(hasTerm(t1));
+  Assert(hasTerm(t2));
 
   // Get ids
   EqualityNodeId t1Id = getNodeId(t1);
@@ -1820,8 +1818,8 @@ size_t EqualityEngine::getSize(TNode t) {
 
 void EqualityEngine::addPathReconstructionTrigger(unsigned trigger, const PathReconstructionNotify* notify) {
   // Currently we can only inform one callback per trigger
-  CVC4_DCHECK(d_pathReconstructionTriggers.find(trigger)
-              == d_pathReconstructionTriggers.end());
+  Assert(d_pathReconstructionTriggers.find(trigger)
+         == d_pathReconstructionTriggers.end());
   d_pathReconstructionTriggers[trigger] = notify;
 }
 
@@ -1833,7 +1831,7 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
 {
   Debug("equality::trigger") << d_name << "::eq::addTriggerTerm(" << t << ", " << tag << ")" << std::endl;
 
-  CVC4_DCHECK(tag != THEORY_LAST);
+  Assert(tag != THEORY_LAST);
 
   if (d_done) {
     return;
@@ -1918,7 +1916,7 @@ bool EqualityEngine::isTriggerTerm(TNode t, TheoryId tag) const {
 
 
 TNode EqualityEngine::getTriggerTermRepresentative(TNode t, TheoryId tag) const {
-  CVC4_DCHECK(isTriggerTerm(t, tag));
+  Assert(isTriggerTerm(t, tag));
   EqualityNodeId classId = getEqualityNode(t).getFind();
   const TriggerTermSet& triggerSet = getTriggerTermSet(d_nodeIndividualTrigger[classId]);
   unsigned i = 0;
@@ -1930,14 +1928,13 @@ TNode EqualityEngine::getTriggerTermRepresentative(TNode t, TheoryId tag) const 
 }
 
 void EqualityEngine::storeApplicationLookup(FunctionApplication& funNormalized, EqualityNodeId funId) {
-  CVC4_DCHECK(d_applicationLookup.find(funNormalized)
-              == d_applicationLookup.end());
+  Assert(d_applicationLookup.find(funNormalized) == d_applicationLookup.end());
   d_applicationLookup[funNormalized] = funId;
   d_applicationLookups.push_back(funNormalized);
   d_applicationLookupsCount = d_applicationLookupsCount + 1;
   Debug("equality::backtrack") << "d_applicationLookupsCount = " << d_applicationLookupsCount << std::endl;
   Debug("equality::backtrack") << "d_applicationLookups.size() = " << d_applicationLookups.size() << std::endl;
-  CVC4_DCHECK(d_applicationLookupsCount == d_applicationLookups.size());
+  Assert(d_applicationLookupsCount == d_applicationLookups.size());
 
   // If an equality over constants we merge to false
   if (funNormalized.isEquality()) {
@@ -2004,7 +2001,7 @@ bool EqualityEngine::hasPropagatedDisequality(EqualityNodeId lhsId, EqualityNode
   bool propagated = d_propagatedDisequalities.find(eq) != d_propagatedDisequalities.end();
 #ifdef CVC4_ASSERTIONS
   bool stored = d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end();
-  CVC4_DCHECK(propagated == stored) << "These two should be in sync";
+  Assert(propagated == stored) << "These two should be in sync";
 #endif
   Debug("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => " << (propagated ? "true" : "false") << std::endl;
   return propagated;
@@ -2016,13 +2013,12 @@ bool EqualityEngine::hasPropagatedDisequality(TheoryId tag, EqualityNodeId lhsId
 
   PropagatedDisequalitiesMap::const_iterator it = d_propagatedDisequalities.find(eq);
   if (it == d_propagatedDisequalities.end()) {
-    CVC4_DCHECK(d_disequalityReasonsMap.find(eq)
-                == d_disequalityReasonsMap.end())
+    Assert(d_disequalityReasonsMap.find(eq) == d_disequalityReasonsMap.end())
         << "Why do we have a proof if not propagated";
     Debug("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => false" << std::endl;
     return false;
   }
-  CVC4_DCHECK(d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end())
+  Assert(d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end())
       << "We propagated but there is no proof";
   bool result = Theory::setContains(tag, (*it).second);
   Debug("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => " << (result ? "true" : "false") << std::endl;
@@ -2031,9 +2027,9 @@ bool EqualityEngine::hasPropagatedDisequality(TheoryId tag, EqualityNodeId lhsId
 
 
 void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhsId, EqualityNodeId rhsId) {
-  CVC4_DCHECK(!hasPropagatedDisequality(tag, lhsId, rhsId))
+  Assert(!hasPropagatedDisequality(tag, lhsId, rhsId))
       << "Check before you store it";
-  CVC4_DCHECK(lhsId != rhsId) << "Wow, wtf!";
+  Assert(lhsId != rhsId) << "Wow, wtf!";
 
   Debug("equality::disequality") << d_name << "::eq::storePropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ")" << std::endl;
 
@@ -2054,14 +2050,13 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
   // Store the proof if provided
   if (d_deducedDisequalityReasons.size() > d_deducedDisequalityReasonsSize) {
     Debug("equality::disequality") << d_name << "::eq::storePropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << "): storing proof" << std::endl;
-    CVC4_DCHECK(d_disequalityReasonsMap.find(pair1)
-                == d_disequalityReasonsMap.end())
+    Assert(d_disequalityReasonsMap.find(pair1) == d_disequalityReasonsMap.end())
         << "There can't be a proof if you're adding a new one";
     DisequalityReasonRef ref(d_deducedDisequalityReasonsSize, d_deducedDisequalityReasons.size());
 #ifdef CVC4_ASSERTIONS
     // Check that the reasons are valid
     for (unsigned i = ref.mergesStart; i < ref.mergesEnd; ++ i) {
-      CVC4_DCHECK(
+      Assert(
           getEqualityNode(d_deducedDisequalityReasons[i].first).getFind()
           == getEqualityNode(d_deducedDisequalityReasons[i].second).getFind());
     }
@@ -2083,21 +2078,20 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
     d_disequalityReasonsMap[pair1] = ref;
     d_disequalityReasonsMap[pair2] = ref;
   } else {
-    CVC4_DCHECK(d_disequalityReasonsMap.find(pair1)
-                != d_disequalityReasonsMap.end())
+    Assert(d_disequalityReasonsMap.find(pair1) != d_disequalityReasonsMap.end())
         << "You must provide a proof initially";
   }
 }
 
 void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classId, Theory::Set inputTags, TaggedEqualitiesSet& out) {
   // Must be empty on input
-  CVC4_DCHECK(out.size() == 0);
+  Assert(out.size() == 0);
   // The class we are looking for, shouldn't have any of the tags we are looking for already set
-  CVC4_DCHECK(d_nodeIndividualTrigger[classId] == null_set_id
-              || Theory::setIntersection(
-                     getTriggerTermSet(d_nodeIndividualTrigger[classId]).tags,
-                     inputTags)
-                     == 0);
+  Assert(d_nodeIndividualTrigger[classId] == null_set_id
+         || Theory::setIntersection(
+                getTriggerTermSet(d_nodeIndividualTrigger[classId]).tags,
+                inputTags)
+                == 0);
 
   if (inputTags == 0) {
     return;
@@ -2174,7 +2168,7 @@ bool EqualityEngine::propagateTriggerTermDisequalities(Theory::Set tags, Trigger
     return !d_done;
   }
 
-  CVC4_DCHECK(triggerSetRef != null_set_id);
+  Assert(triggerSetRef != null_set_id);
 
   // This is the class trigger set
   const TriggerTermSet& triggerSet = getTriggerTermSet(triggerSetRef);
@@ -2186,7 +2180,7 @@ bool EqualityEngine::propagateTriggerTermDisequalities(Theory::Set tags, Trigger
     const TaggedEquality& disequalityInfo = *it;
     const TriggerTermSet& disequalityTriggerSet = getTriggerTermSet(disequalityInfo.triggerSetRef);
     Theory::Set commonTags = Theory::setIntersection(disequalityTriggerSet.tags, tags);
-    CVC4_DCHECK(commonTags);
+    Assert(commonTags);
     // This is the actual function
     const FunctionApplication& fun = d_applications[disequalityInfo.equalityId].original;
     // Figure out who we are comparing to in the original equality
@@ -2233,7 +2227,7 @@ EqClassesIterator::EqClassesIterator() :
 EqClassesIterator::EqClassesIterator(const eq::EqualityEngine* ee)
 : d_ee(ee)
 {
-  CVC4_DCHECK(d_ee->consistent());
+  Assert(d_ee->consistent());
   d_it = 0;
   // Go to the first non-internal node that is it's own representative
   if(d_it < d_ee->d_nodesCount && (d_ee->d_isInternal[d_it] || d_ee->getEqualityNode(d_it).getFind() != d_it)) {
@@ -2280,10 +2274,10 @@ EqClassIterator::EqClassIterator()
 EqClassIterator::EqClassIterator(Node eqc, const eq::EqualityEngine* ee)
 : d_ee(ee)
 {
-  CVC4_DCHECK(d_ee->consistent());
+  Assert(d_ee->consistent());
   d_current = d_start = d_ee->getNodeId(eqc);
-  CVC4_DCHECK(d_start == d_ee->getEqualityNode(d_start).getFind());
-  CVC4_DCHECK(!d_ee->d_isInternal[d_start]);
+  Assert(d_start == d_ee->getEqualityNode(d_start).getFind());
+  Assert(!d_ee->d_isInternal[d_start]);
 }
 
 Node EqClassIterator::operator*() const {
@@ -2299,18 +2293,18 @@ bool EqClassIterator::operator!=(const EqClassIterator& i) const {
 }
 
 EqClassIterator& EqClassIterator::operator++() {
-  CVC4_DCHECK(!isFinished());
+  Assert(!isFinished());
 
-  CVC4_DCHECK(d_start == d_ee->getEqualityNode(d_current).getFind());
-  CVC4_DCHECK(!d_ee->d_isInternal[d_current]);
+  Assert(d_start == d_ee->getEqualityNode(d_current).getFind());
+  Assert(!d_ee->d_isInternal[d_current]);
 
   // Find the next one
   do {
     d_current = d_ee->getEqualityNode(d_current).getNext();
   } while(d_ee->d_isInternal[d_current]);
 
-  CVC4_DCHECK(d_start == d_ee->getEqualityNode(d_current).getFind());
-  CVC4_DCHECK(!d_ee->d_isInternal[d_current]);
+  Assert(d_start == d_ee->getEqualityNode(d_current).getFind());
+  Assert(!d_ee->d_isInternal[d_current]);
 
   if(d_current == d_start) {
     // we end when we have cycled back to the original representative

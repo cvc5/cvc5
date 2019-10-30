@@ -38,7 +38,7 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
     // evaluatable here)
     if (!options::ufHo())
     {
-      CVC4_DCHECK(!n.getType().isFunction());
+      Assert(!n.getType().isFunction());
       return true;
     }
     else
@@ -61,13 +61,13 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
     if (!options::ufHo())
     {
       // no functions exist, all functions are fully applied
-      CVC4_DCHECK(n.getKind() != kind::HO_APPLY);
-      CVC4_DCHECK(!n.getType().isFunction());
+      Assert(n.getKind() != kind::HO_APPLY);
+      Assert(!n.getType().isFunction());
       return n.isVar() || n.getKind() == kind::APPLY_UF;
     }
     else
     {
-      // CVC4_DCHECK( n.getKind() != kind::APPLY_UF );
+      // Assert( n.getKind() != kind::APPLY_UF );
       return (n.isVar() && !n.getType().isFunction())
              || n.getKind() == kind::APPLY_UF
              || (n.getKind() == kind::HO_APPLY
@@ -120,7 +120,7 @@ bool TheoryEngineModelBuilder::isExcludedCdtValue(
       << std::endl;
   for (set<Node>::iterator i = repSet->begin(); i != repSet->end(); ++i)
   {
-    CVC4_DCHECK(assertedReps.find(*i) != assertedReps.end());
+    Assert(assertedReps.find(*i) != assertedReps.end());
     Node rep = assertedReps[*i];
     Trace("model-builder-debug") << "  Rep : " << rep << std::endl;
     // check matching val to rep with eqc as a free variable
@@ -212,7 +212,7 @@ bool TheoryEngineModelBuilder::isExcludedUSortValue(
     Node v,
     std::map<Node, bool>& visited)
 {
-  CVC4_DCHECK(v.isConst());
+  Assert(v.isConst());
   if (visited.find(v) == visited.end())
   {
     visited[v] = true;
@@ -274,8 +274,8 @@ void TheoryEngineModelBuilder::addToTypeList(
           }
         }
       }
-      CVC4_DCHECK(std::find(type_list.begin(), type_list.end(), tn)
-                  == type_list.end());
+      Assert(std::find(type_list.begin(), type_list.end(), tn)
+             == type_list.end());
       type_list.push_back(tn);
     }
   }
@@ -287,7 +287,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   TheoryModel* tm = (TheoryModel*)m;
 
   // buildModel should only be called once per check
-  CVC4_DCHECK(!tm->isBuilt());
+  Assert(!tm->isBuilt());
 
   // Reset model
   tm->reset();
@@ -378,10 +378,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     // eqc is the equivalence class representative
     Node eqc = (*eqcs_i);
     Trace("model-builder") << "Processing EC: " << eqc << endl;
-    CVC4_DCHECK(tm->d_equalityEngine->getRepresentative(eqc) == eqc);
+    Assert(tm->d_equalityEngine->getRepresentative(eqc) == eqc);
     TypeNode eqct = eqc.getType();
-    CVC4_DCHECK(assertedReps.find(eqc) == assertedReps.end());
-    CVC4_DCHECK(d_constantReps.find(eqc) == d_constantReps.end());
+    Assert(assertedReps.find(eqc) == assertedReps.end());
+    Assert(d_constantReps.find(eqc) == d_constantReps.end());
 
     // Loop through terms in this EC
     Node rep, const_rep;
@@ -397,16 +397,16 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         // e.g. datatypes may assert representative for two constructor terms
         // that are not in the care graph and are merged during
         // collectModelInfo.
-        // CVC4_DCHECK(rep.isNull());
+        // Assert(rep.isNull());
         rep = tm->d_reps[n];
-        CVC4_DCHECK(!rep.isNull());
+        Assert(!rep.isNull());
         Trace("model-builder") << "  Rep( " << eqc << " ) = " << rep
                                << std::endl;
       }
       // Record as const_rep if this node is constant
       if (n.isConst())
       {
-        CVC4_DCHECK(const_rep.isNull());
+        Assert(const_rep.isNull());
         const_rep = n;
         Trace("model-builder") << "  ConstRep( " << eqc << " ) = " << const_rep
                                << std::endl;
@@ -422,7 +422,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       // EC
       // AJR: I believe this assertion is too strict, eqc with asserted reps may
       // merge with constant eqc
-      // CVC4_DCHECK(rep.isNull() || rep == const_rep);
+      // Assert(rep.isNull() || rep == const_rep);
       assignConstantRep(tm, eqc, const_rep);
       typeConstSet.add(eqct.getBaseType(), const_rep);
     }
@@ -545,7 +545,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
           d_normalizedCache.clear();
           for (i = repSet->begin(); i != repSet->end();)
           {
-            CVC4_DCHECK(assertedReps.find(*i) != assertedReps.end());
+            Assert(assertedReps.find(*i) != assertedReps.end());
             Node rep = assertedReps[*i];
             Node normalized = normalize(tm, rep, false);
             Trace("model-builder") << "    Normalizing rep (" << rep
@@ -678,15 +678,15 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
             << ", evaluable=" << evaluable << std::endl;
         if (assignable)
         {
-          CVC4_DCHECK(!evaluable || assignOne);
+          Assert(!evaluable || assignOne);
           // this assertion ensures that if we are assigning to a term of
           // Boolean type, then the term is either a variable or an APPLY_UF.
           // Note we only assign to terms of Boolean type if the term occurs in
           // a singleton equivalence class; otherwise the term would have been
           // in the equivalence class of true or false and would not need
           // assigning.
-          CVC4_DCHECK(!t.isBoolean() || (*i2).isVar()
-                      || (*i2).getKind() == kind::APPLY_UF);
+          Assert(!t.isBoolean() || (*i2).isVar()
+                 || (*i2).getKind() == kind::APPLY_UF);
           Node n;
           if (!t.isFinite())
           {
@@ -697,7 +697,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
                                            << std::endl;
               n = typeConstSet.nextTypeEnum(t, true);
               //--- AJR: this code checks whether n is a legal value
-              CVC4_DCHECK(!n.isNull());
+              Assert(!n.isNull());
               success = true;
               Trace("model-builder-debug") << "Check if excluded : " << n
                                            << std::endl;
@@ -718,7 +718,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
                       << " due to out of range uninterpreted constant."
                       << std::endl;
                 }
-                CVC4_DCHECK(success);
+                Assert(success);
               }
 #endif
               if (success && isCorecursive)
@@ -745,7 +745,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
             TypeEnumerator te(t);
             n = *te;
           }
-          CVC4_DCHECK(!n.isNull());
+          Assert(!n.isNull());
           assignConstantRep(tm, *i2, n);
           changed = true;
           noRepSet.erase(i2);
@@ -769,7 +769,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     // that has both assignable and evaluable expressions will get assigned.
     if (!changed)
     {
-      CVC4_DCHECK(!assignOne);  // check for infinite loop!
+      Assert(!assignOne);  // check for infinite loop!
       assignOne = true;
     }
   }
@@ -783,7 +783,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     {
       Trace("model-builder") << "***Non-empty repSet, size = " << repSet.size()
                              << ", first = " << *(repSet.begin()) << endl;
-      CVC4_DCHECK(false);
+      Assert(false);
     }
   }
 #endif /* CVC4_ASSERTIONS */
@@ -836,7 +836,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
     return;
   }
   TheoryModel* tm = static_cast<TheoryModel*>(m);
-  CVC4_DCHECK(tm != nullptr);
+  Assert(tm != nullptr);
   // debug-check the model if the checkModels() is enabled.
   if (options::checkModels())
   {
@@ -847,7 +847,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
 #ifdef CVC4_ASSERTIONS
-  CVC4_DCHECK(tm->isBuilt());
+  Assert(tm->isBuilt());
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   std::map<Node, Node>::iterator itMap;
   // Check that every term evaluates to its representative in the model
@@ -864,7 +864,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       // if Boolean, it does not necessarily have a constant representative, use
       // get value instead
       rep = tm->getValue(eqc);
-      CVC4_DCHECK(rep.isConst());
+      Assert(rep.isConst());
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
     for (; !eqc_i.isFinished(); ++eqc_i)
@@ -881,7 +881,7 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
                                            << "getValue(n): " << tm->getValue(n)
                                            << endl
                                            << "rep: " << rep << endl;
-        CVC4_DCHECK(tm->getValue(*eqc_i) == rep)
+        Assert(tm->getValue(*eqc_i) == rep)
             << "run with -d check-model::rep-checking for details";
       }
     }
@@ -949,8 +949,8 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     if (childrenConst)
     {
       retNode = Rewriter::rewrite(retNode);
-      CVC4_DCHECK(retNode.getKind() == kind::APPLY_UF
-                  || !retNode.getType().isFirstClass() || retNode.isConst());
+      Assert(retNode.getKind() == kind::APPLY_UF
+             || !retNode.getType().isFirstClass() || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;
@@ -973,7 +973,7 @@ bool TheoryEngineModelBuilder::processBuildModel(TheoryModel* m)
 
 void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 {
-  CVC4_DCHECK(!options::ufHo());
+  Assert(!options::ufHo());
   uf::UfModelTree ufmt(f);
   Node default_v;
   for (size_t i = 0; i < m->d_uf_terms[f].size(); i++)
@@ -987,7 +987,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
       Node rc = m->getRepresentative(un[j]);
       Trace("model-builder-debug2") << "    get rep : " << un[j] << " returned "
                                     << rc << std::endl;
-      CVC4_DCHECK(rc.isConst());
+      Assert(rc.isConst());
       children.push_back(rc);
     }
     Node simp = NodeManager::currentNM()->mkNode(un.getKind(), children);
@@ -1018,7 +1018,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
 
 void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
 {
-  CVC4_DCHECK(options::ufHo());
+  Assert(options::ufHo());
   TypeNode type = f.getType();
   std::vector<TypeNode> argTypes = type.getArgTypes();
   std::vector<Node> args;
@@ -1043,34 +1043,34 @@ void TheoryEngineModelBuilder::assignHoFunction(TheoryModel* m, Node f)
     {
       Node hn = itht->second[i];
       Trace("model-builder-debug") << "    process : " << hn << std::endl;
-      CVC4_DCHECK(hn.getKind() == kind::HO_APPLY);
-      CVC4_DCHECK(m->areEqual(hn[0], f));
+      Assert(hn.getKind() == kind::HO_APPLY);
+      Assert(m->areEqual(hn[0], f));
       Node hni = m->getRepresentative(hn[1]);
       Trace("model-builder-debug2") << "      get rep : " << hn[0]
                                     << " returned " << hni << std::endl;
-      CVC4_DCHECK(hni.isConst());
-      CVC4_DCHECK(hni.getType().isSubtypeOf(args[0].getType()));
+      Assert(hni.isConst());
+      Assert(hni.getType().isSubtypeOf(args[0].getType()));
       hni = Rewriter::rewrite(args[0].eqNode(hni));
       Node hnv = m->getRepresentative(hn);
       Trace("model-builder-debug2") << "      get rep val : " << hn
                                     << " returned " << hnv << std::endl;
-      CVC4_DCHECK(hnv.isConst());
+      Assert(hnv.isConst());
       if (!apply_args.empty())
       {
-        CVC4_DCHECK(hnv.getKind() == kind::LAMBDA
-                    && hnv[0].getNumChildren() + 1 == args.size());
+        Assert(hnv.getKind() == kind::LAMBDA
+               && hnv[0].getNumChildren() + 1 == args.size());
         std::vector<TNode> largs;
         for (unsigned j = 0; j < hnv[0].getNumChildren(); j++)
         {
           largs.push_back(hnv[0][j]);
         }
-        CVC4_DCHECK(largs.size() == apply_args.size());
+        Assert(largs.size() == apply_args.size());
         hnv = hnv[1].substitute(
             largs.begin(), largs.end(), apply_args.begin(), apply_args.end());
         hnv = Rewriter::rewrite(hnv);
       }
-      CVC4_DCHECK(!TypeNode::leastCommonTypeNode(hnv.getType(), curr.getType())
-                       .isNull());
+      Assert(!TypeNode::leastCommonTypeNode(hnv.getType(), curr.getType())
+                  .isNull());
       curr = NodeManager::currentNM()->mkNode(kind::ITE, hni, hnv, curr);
     }
   }

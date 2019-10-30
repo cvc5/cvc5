@@ -105,15 +105,15 @@ LinearEqualityModule::Statistics::~Statistics(){
 }
 
 void LinearEqualityModule::includeBoundUpdate(ArithVar v, const BoundsInfo& prev){
-  CVC4_DCHECK(!d_areTracking);
+  Assert(!d_areTracking);
 
   BoundsInfo curr = d_variables.boundsInfo(v);
 
-  CVC4_DCHECK(prev != curr);
+  Assert(prev != curr);
   Tableau::ColIterator basicIter = d_tableau.colIterator(v);
   for(; !basicIter.atEnd(); ++basicIter){
     const Tableau::Entry& entry = *basicIter;
-    CVC4_DCHECK(entry.getColVar() == v);
+    Assert(entry.getColVar() == v);
     int a_ijSgn = entry.getCoefficient().sgn();
 
     RowIndex ridx = entry.getRowIndex();
@@ -128,7 +128,7 @@ void LinearEqualityModule::updateMany(const DenseMap<DeltaRational>& many){
   for(DenseMap<DeltaRational>::const_iterator i = many.begin(), i_end = many.end(); i != i_end; ++i){
     ArithVar nb = *i;
     if(!d_tableau.isBasic(nb)){
-      CVC4_DCHECK(!d_tableau.isBasic(nb));
+      Assert(!d_tableau.isBasic(nb));
       const DeltaRational& newValue = many[nb];
       if(newValue != d_variables.getAssignment(nb)){
         Trace("arith::updateMany")
@@ -169,7 +169,7 @@ void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
       Tableau::ColIterator colIter = d_tableau.colIterator(v);
       for(; !colIter.atEnd(); ++colIter){
         const Tableau::Entry& entry = *colIter;
-        CVC4_DCHECK(entry.getColVar() == v);
+        Assert(entry.getColVar() == v);
         ArithVar b = d_tableau.rowIndexToBasic(entry.getRowIndex());
         if(!newBasis.isMember(b)){
           toAdd = v;
@@ -180,8 +180,8 @@ void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
         }
       }
     }
-    CVC4_DCHECK(toRemove != ARITHVAR_SENTINEL);
-    CVC4_DCHECK(toAdd != ARITHVAR_SENTINEL);
+    Assert(toRemove != ARITHVAR_SENTINEL);
+    Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
     Message() << toRemove << " " << toAdd << endl;
@@ -195,8 +195,8 @@ void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
 }
 
 void LinearEqualityModule::updateUntracked(ArithVar x_i, const DeltaRational& v){
-  CVC4_DCHECK(!d_tableau.isBasic(x_i));
-  CVC4_DCHECK(!d_areTracking);
+  Assert(!d_tableau.isBasic(x_i));
+  Assert(!d_areTracking);
   const DeltaRational& assignment_x_i = d_variables.getAssignment(x_i);
   ++(d_statistics.d_statUpdates);
 
@@ -208,7 +208,7 @@ void LinearEqualityModule::updateUntracked(ArithVar x_i, const DeltaRational& v)
   Tableau::ColIterator colIter = d_tableau.colIterator(x_i);
   for(; !colIter.atEnd(); ++colIter){
     const Tableau::Entry& entry = *colIter;
-    CVC4_DCHECK(entry.getColVar() == x_i);
+    Assert(entry.getColVar() == x_i);
 
     ArithVar x_j = d_tableau.rowIndexToBasic(entry.getRowIndex());
     const Rational& a_ji = entry.getCoefficient();
@@ -228,8 +228,8 @@ void LinearEqualityModule::updateUntracked(ArithVar x_i, const DeltaRational& v)
 void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
   TimerStat::CodeTimer codeTimer(d_statistics.d_adjTime);
 
-  CVC4_DCHECK(!d_tableau.isBasic(x_i));
-  CVC4_DCHECK(d_areTracking);
+  Assert(!d_tableau.isBasic(x_i));
+  Assert(d_areTracking);
 
   ++(d_statistics.d_statUpdates);
 
@@ -247,7 +247,7 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
   Tableau::ColIterator colIter = d_tableau.colIterator(x_i);
   for(; !colIter.atEnd(); ++colIter){
     const Tableau::Entry& entry = *colIter;
-    CVC4_DCHECK(entry.getColVar() == x_i);
+    Assert(entry.getColVar() == x_i);
 
     RowIndex ridx = entry.getRowIndex();
     ArithVar x_j = d_tableau.rowIndexToBasic(ridx);
@@ -260,7 +260,7 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
     d_variables.setAssignment(x_j, nAssignment);
     BoundCounts xjAfter = d_variables.atBoundCounts(x_j);
 
-    CVC4_DCHECK(rowIndexIsTracked(ridx));
+    Assert(rowIndexIsTracked(ridx));
     BoundsInfo& next_bc_k = d_btracking.get(ridx);
     if(anyChange){
       next_bc_k.addInAtBoundChange(a_ji.sgn(), before, after);
@@ -276,7 +276,7 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
 }
 
 void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const DeltaRational& x_i_value){
-  CVC4_DCHECK(x_i != x_j);
+  Assert(x_i != x_j);
 
   TimerStat::CodeTimer codeTimer(d_statistics.d_pivotTime);
 
@@ -292,7 +292,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
 
   RowIndex ridx = d_tableau.basicToRowIndex(x_i);
   const Tableau::Entry& entry_ij =  d_tableau.findEntry(ridx, x_j);
-  CVC4_DCHECK(!entry_ij.blank());
+  Assert(!entry_ij.blank());
 
   const Rational& a_ij = entry_ij.getCoefficient();
   const DeltaRational& betaX_i = d_variables.getAssignment(x_i);
@@ -326,7 +326,7 @@ void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const Delt
 uint32_t LinearEqualityModule::updateProduct(const UpdateInfo& inf) const {
   uint32_t colLen = d_tableau.getColLength(inf.nonbasic());
   if(inf.describesPivot()){
-    CVC4_DCHECK(inf.leaving() != inf.nonbasic());
+    Assert(inf.leaving() != inf.nonbasic());
     return colLen + d_tableau.basicRowLength(inf.leaving());
   }else{
     return colLen;
@@ -364,7 +364,7 @@ void LinearEqualityModule::debugCheckTracking(){
       Debug("arith::tracking")
         << "computed " << computed
         << " tracking " << d_btracking[ridx] << endl;
-      CVC4_DCHECK(computed == d_btracking[ridx]);
+      Assert(computed == d_btracking[ridx]);
     }
   }
 }
@@ -419,7 +419,7 @@ void LinearEqualityModule::debugCheckTableau(){
     Debug("paranoid:check_tableau") << "ending row" << sum
                                     << "," << shouldBe << endl;
 
-    CVC4_DCHECK(sum == shouldBe);
+    Assert(sum == shouldBe);
   }
 }
 bool LinearEqualityModule::debugEntireLinEqIsConsistent(const string& s){
@@ -464,7 +464,7 @@ DeltaRational LinearEqualityModule::computeRowBound(RowIndex ridx, bool rowUb, A
  * Computes the value of a basic variable using the current assignment.
  */
 DeltaRational LinearEqualityModule::computeRowValue(ArithVar x, bool useSafe) const{
-  CVC4_DCHECK(d_tableau.isBasic(x));
+  Assert(d_tableau.isBasic(x));
   DeltaRational sum(0);
 
   for(Tableau::RowIterator i = d_tableau.basicRowIterator(x); !i.atEnd(); ++i){
@@ -500,10 +500,10 @@ const Tableau::Entry* LinearEqualityModule::rowLacksBound(RowIndex ridx, bool ro
 }
 
 void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
-  CVC4_DCHECK(c != NullConstraint);
-  CVC4_DCHECK(c->isUpperBound() || c->isLowerBound());
-  CVC4_DCHECK(!c->assertedToTheTheory());
-  CVC4_DCHECK(!c->hasProof());
+  Assert(c != NullConstraint);
+  Assert(c->isUpperBound() || c->isLowerBound());
+  Assert(!c->assertedToTheTheory());
+  Assert(!c->hasProof());
 
   bool upperBound = c->isUpperBound();
   ArithVar basic = c->getVariable();
@@ -547,12 +547,12 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
  * for the entire row.
  */
 void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bool rowUp, ConstraintP c, RationalVectorP farkas){
-  CVC4_DCHECK(!c->assertedToTheTheory());
-  CVC4_DCHECK(c->canBePropagated());
-  CVC4_DCHECK(!c->hasProof());
+  Assert(!c->assertedToTheTheory());
+  Assert(c->canBePropagated());
+  Assert(!c->hasProof());
 
   if(farkas != RationalVectorPSentinel){
-    CVC4_DCHECK(farkas->empty());
+    Assert(farkas->empty());
     farkas->push_back(Rational(0));
   }
   
@@ -570,13 +570,13 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
     ArithVar nonbasic = entry.getColVar();
     const Rational& a_ij = entry.getCoefficient();
     int sgn = a_ij.sgn();
-    CVC4_DCHECK(sgn != 0);
+    Assert(sgn != 0);
     bool selectUb = rowUp ? (sgn > 0) : (sgn < 0);
 
-    CVC4_DCHECK(nonbasic != v || (rowUp && a_ij.sgn() > 0 && c->isLowerBound())
-                || (rowUp && a_ij.sgn() < 0 && c->isUpperBound())
-                || (!rowUp && a_ij.sgn() > 0 && c->isUpperBound())
-                || (!rowUp && a_ij.sgn() < 0 && c->isLowerBound()));
+    Assert(nonbasic != v || (rowUp && a_ij.sgn() > 0 && c->isLowerBound())
+           || (rowUp && a_ij.sgn() < 0 && c->isUpperBound())
+           || (!rowUp && a_ij.sgn() > 0 && c->isUpperBound())
+           || (!rowUp && a_ij.sgn() < 0 && c->isLowerBound()));
 
     if(Debug.isOn("arith::propagateRow")){
       if(nonbasic == v){
@@ -593,7 +593,7 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
 
     if(nonbasic == v){
       if(farkas != RationalVectorPSentinel){
-        CVC4_DCHECK(farkas->front().isZero());
+        Assert(farkas->front().isZero());
         Rational multAij = multiple * a_ij;
         Debug("arith::propagateRow") << "("<<multAij<<") ";        
         farkas->front() = multAij;      
@@ -611,7 +611,7 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
         Debug("arith::propagateRow") << "("<<multAij<<") ";        
         farkas->push_back(multAij);
       }
-      CVC4_DCHECK(bound != NullConstraint);
+      Assert(bound != NullConstraint);
       Debug("arith::propagateRow") << bound << endl;
       into.push_back(bound);
     }
@@ -662,7 +662,7 @@ ConstraintP LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRatio
                              << "  " << bound << c << endl
                              << "  " << weakerBound << weaker << endl;
 
-        CVC4_DCHECK(diff.sgn() > 0);
+        Assert(diff.sgn() > 0);
         c = weaker;
       }
     }
@@ -706,7 +706,7 @@ ConstraintP LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRatio
  * for the entire row.
  */
 ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithVar basicVar, FarkasConflictBuilder& fcs) const {
-  CVC4_DCHECK(!fcs.underConstruction());
+  Assert(!fcs.underConstruction());
   TimerStat::CodeTimer codeTimer(d_statistics.d_weakenTime);
 
   Debug("arith::weak") << "LinearEqualityModule::minimallyWeakConflict("
@@ -716,12 +716,12 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
   const DeltaRational& assignment = d_variables.getAssignment(basicVar);
   DeltaRational surplus;
   if(aboveUpper){
-    CVC4_DCHECK(d_variables.hasUpperBound(basicVar));
-    CVC4_DCHECK(assignment > d_variables.getUpperBound(basicVar));
+    Assert(d_variables.hasUpperBound(basicVar));
+    Assert(assignment > d_variables.getUpperBound(basicVar));
     surplus = assignment - d_variables.getUpperBound(basicVar);
   }else{
-    CVC4_DCHECK(d_variables.hasLowerBound(basicVar));
-    CVC4_DCHECK(assignment < d_variables.getLowerBound(basicVar));
+    Assert(d_variables.hasLowerBound(basicVar));
+    Assert(assignment < d_variables.getLowerBound(basicVar));
     surplus = d_variables.getLowerBound(basicVar) - assignment;
   }
   
@@ -740,11 +740,11 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
 
     fcs.addConstraint(c, coeff, adjustSgn);
     if(basicVar == v){
-      CVC4_DCHECK(!c->negationHasProof());
+      Assert(!c->negationHasProof());
       fcs.makeLastConsequent();
     }
   }
-  CVC4_DCHECK(fcs.consequentIsSet());
+  Assert(fcs.consequentIsSet());
 
   ConstraintCP conflicted = fcs.commitConflict();
 
@@ -758,8 +758,8 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
 }
 
 ArithVar LinearEqualityModule::minVarOrder(ArithVar x, ArithVar y) const {
-  CVC4_DCHECK(x != ARITHVAR_SENTINEL);
-  CVC4_DCHECK(y != ARITHVAR_SENTINEL);
+  Assert(x != ARITHVAR_SENTINEL);
+  Assert(y != ARITHVAR_SENTINEL);
   if(x <= y){
     return x;
   } else {
@@ -768,10 +768,10 @@ ArithVar LinearEqualityModule::minVarOrder(ArithVar x, ArithVar y) const {
 }
 
 ArithVar LinearEqualityModule::minColLength(ArithVar x, ArithVar y) const {
-  CVC4_DCHECK(x != ARITHVAR_SENTINEL);
-  CVC4_DCHECK(y != ARITHVAR_SENTINEL);
-  CVC4_DCHECK(!d_tableau.isBasic(x));
-  CVC4_DCHECK(!d_tableau.isBasic(y));
+  Assert(x != ARITHVAR_SENTINEL);
+  Assert(y != ARITHVAR_SENTINEL);
+  Assert(!d_tableau.isBasic(x));
+  Assert(!d_tableau.isBasic(y));
   uint32_t xLen = d_tableau.getColLength(x);
   uint32_t yLen = d_tableau.getColLength(y);
   if( xLen > yLen){
@@ -784,10 +784,10 @@ ArithVar LinearEqualityModule::minColLength(ArithVar x, ArithVar y) const {
 }
 
 ArithVar LinearEqualityModule::minRowLength(ArithVar x, ArithVar y) const {
-  CVC4_DCHECK(x != ARITHVAR_SENTINEL);
-  CVC4_DCHECK(y != ARITHVAR_SENTINEL);
-  CVC4_DCHECK(d_tableau.isBasic(x));
-  CVC4_DCHECK(d_tableau.isBasic(y));
+  Assert(x != ARITHVAR_SENTINEL);
+  Assert(y != ARITHVAR_SENTINEL);
+  Assert(d_tableau.isBasic(x));
+  Assert(d_tableau.isBasic(y));
   uint32_t xLen = d_tableau.basicRowLength(x);
   uint32_t yLen = d_tableau.basicRowLength(y);
   if( xLen > yLen){
@@ -800,10 +800,10 @@ ArithVar LinearEqualityModule::minRowLength(ArithVar x, ArithVar y) const {
 }
 
 ArithVar LinearEqualityModule::minBoundAndColLength(ArithVar x, ArithVar y) const{
-  CVC4_DCHECK(x != ARITHVAR_SENTINEL);
-  CVC4_DCHECK(y != ARITHVAR_SENTINEL);
-  CVC4_DCHECK(!d_tableau.isBasic(x));
-  CVC4_DCHECK(!d_tableau.isBasic(y));
+  Assert(x != ARITHVAR_SENTINEL);
+  Assert(y != ARITHVAR_SENTINEL);
+  Assert(!d_tableau.isBasic(x));
+  Assert(!d_tableau.isBasic(y));
   if(d_variables.hasEitherBound(x) && !d_variables.hasEitherBound(y)){
     return y;
   }else if(!d_variables.hasEitherBound(x) && d_variables.hasEitherBound(y)){
@@ -857,26 +857,26 @@ const Tableau::Entry* LinearEqualityModule::selectSlackEntry(ArithVar x_i, bool 
 }
 
 void LinearEqualityModule::startTrackingBoundCounts(){
-  CVC4_DCHECK(!d_areTracking);
+  Assert(!d_areTracking);
   d_areTracking = true;
   if(Debug.isOn("arith::tracking")){
     debugCheckTracking();
   }
-  CVC4_DCHECK(d_areTracking);
+  Assert(d_areTracking);
 }
 
 void LinearEqualityModule::stopTrackingBoundCounts(){
-  CVC4_DCHECK(d_areTracking);
+  Assert(d_areTracking);
   d_areTracking = false;
   if(Debug.isOn("arith::tracking")){
     debugCheckTracking();
   }
-  CVC4_DCHECK(!d_areTracking);
+  Assert(!d_areTracking);
 }
 
 
 void LinearEqualityModule::trackRowIndex(RowIndex ridx){
-  CVC4_DCHECK(!rowIndexIsTracked(ridx));
+  Assert(!rowIndexIsTracked(ridx));
   BoundsInfo bi = computeRowBoundInfo(ridx, true);
   d_btracking.set(ridx, bi);
 }
@@ -905,11 +905,11 @@ BoundCounts LinearEqualityModule::debugBasicAtBoundCount(ArithVar x_i) const {
  * The minimum/maximum is determined by the direction the non-basic is changing.
  */
 bool LinearEqualityModule::basicsAtBounds(const UpdateInfo& u) const {
-  CVC4_DCHECK(u.describesPivot());
+  Assert(u.describesPivot());
 
   ArithVar nonbasic = u.nonbasic();
   ArithVar basic = u.leaving();
-  CVC4_DCHECK(basicIsTracked(basic));
+  Assert(basicIsTracked(basic));
   int coeffSgn = u.getCoefficient().sgn();
   int nbdir = u.nonbasicDirection();
 
@@ -938,13 +938,13 @@ bool LinearEqualityModule::basicsAtBounds(const UpdateInfo& u) const {
   if(nbdir < 0){
     return nonb.lowerBoundCount() + 1 == length;
   }else{
-    CVC4_DCHECK(nbdir > 0);
+    Assert(nbdir > 0);
     return nonb.upperBoundCount() + 1 == length;
   }
 }
 
 bool LinearEqualityModule::nonbasicsAtLowerBounds(ArithVar basic) const {
-  CVC4_DCHECK(basicIsTracked(basic));
+  Assert(basicIsTracked(basic));
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
   BoundCounts bcs = d_btracking[ridx].atBounds();
@@ -963,7 +963,7 @@ bool LinearEqualityModule::nonbasicsAtLowerBounds(ArithVar basic) const {
 }
 
 bool LinearEqualityModule::nonbasicsAtUpperBounds(ArithVar basic) const {
-  CVC4_DCHECK(basicIsTracked(basic));
+  Assert(basicIsTracked(basic));
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
   BoundCounts bcs = d_btracking[ridx].atBounds();
   uint32_t length = d_tableau.basicRowLength(basic);
@@ -975,8 +975,8 @@ bool LinearEqualityModule::nonbasicsAtUpperBounds(ArithVar basic) const {
 }
 
 void LinearEqualityModule::trackingMultiplyRow(RowIndex ridx, int sgn) {
-  CVC4_DCHECK(rowIndexIsTracked(ridx));
-  CVC4_DCHECK(sgn != 0);
+  Assert(rowIndexIsTracked(ridx));
+  Assert(sgn != 0);
   if(sgn < 0){
     BoundsInfo& bi = d_btracking.get(ridx);
     bi = bi.multiplyBySgn(sgn);
@@ -984,10 +984,10 @@ void LinearEqualityModule::trackingMultiplyRow(RowIndex ridx, int sgn) {
 }
 
 void LinearEqualityModule::trackingCoefficientChange(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn){
-  CVC4_DCHECK(oldSgn != currSgn);
+  Assert(oldSgn != currSgn);
   BoundsInfo nb_inf = d_variables.boundsInfo(nb);
 
-  CVC4_DCHECK(rowIndexIsTracked(ridx));
+  Assert(rowIndexIsTracked(ridx));
 
   BoundsInfo& row_bi = d_btracking.get(ridx);
   row_bi.addInSgn(nb_inf, oldSgn, currSgn);
@@ -1010,14 +1010,14 @@ ArithVar LinearEqualityModule::minBy(const ArithVarVec& vec, VarPreferenceFuncti
 bool LinearEqualityModule::accumulateBorder(const Tableau::Entry& entry, bool ub){
   ArithVar currBasic = d_tableau.rowIndexToBasic(entry.getRowIndex());
 
-  CVC4_DCHECK(basicIsTracked(currBasic));
+  Assert(basicIsTracked(currBasic));
 
   ConstraintP bound = ub ?
     d_variables.getUpperBoundConstraint(currBasic):
     d_variables.getLowerBoundConstraint(currBasic);
 
   if(bound == NullConstraint){ return false; }
-  CVC4_DCHECK(bound != NullConstraint);
+  Assert(bound != NullConstraint);
 
   const Rational& coeff = entry.getCoefficient();
 
@@ -1068,7 +1068,7 @@ bool LinearEqualityModule::accumulateBorder(const Tableau::Entry& entry, bool ub
 
 bool LinearEqualityModule::willBeInConflictAfterPivot(const Tableau::Entry& entry, const DeltaRational& nbDiff, bool bToUB) const{
   int nbSgn = nbDiff.sgn();
-  CVC4_DCHECK(nbSgn != 0);
+  Assert(nbSgn != 0);
 
   if(nbSgn > 0){
     if (d_upperBoundDifference.nothing()
@@ -1088,7 +1088,7 @@ bool LinearEqualityModule::willBeInConflictAfterPivot(const Tableau::Entry& entr
   ArithVar nb = entry.getColVar();
   RowIndex ridx = entry.getRowIndex();
   ArithVar basic = d_tableau.rowIndexToBasic(ridx);
-  CVC4_DCHECK(rowIndexIsTracked(ridx));
+  Assert(rowIndexIsTracked(ridx));
   int coeffSgn = entry.getCoefficient().sgn();
 
 
@@ -1147,10 +1147,10 @@ UpdateInfo LinearEqualityModule::mkConflictUpdate(const Tableau::Entry& entry, b
 }
 
 UpdateInfo LinearEqualityModule::speculativeUpdate(ArithVar nb, const Rational& focusCoeff, UpdatePreferenceFunction pref){
-  CVC4_DCHECK(d_increasing.empty());
-  CVC4_DCHECK(d_decreasing.empty());
-  CVC4_DCHECK(d_lowerBoundDifference.nothing());
-  CVC4_DCHECK(d_upperBoundDifference.nothing());
+  Assert(d_increasing.empty());
+  Assert(d_decreasing.empty());
+  Assert(d_lowerBoundDifference.nothing());
+  Assert(d_upperBoundDifference.nothing());
 
   int focusCoeffSgn = focusCoeff.sgn();
 
@@ -1178,7 +1178,7 @@ UpdateInfo LinearEqualityModule::speculativeUpdate(ArithVar nb, const Rational& 
   Tableau::ColIterator colIter = d_tableau.colIterator(nb);
   for(; !colIter.atEnd(); ++colIter){
     const Tableau::Entry& entry = *colIter;
-    CVC4_DCHECK(entry.getColVar() == nb);
+    Assert(entry.getColVar() == nb);
 
     if(accumulateBorder(entry, true)){
       clearSpeculative();
@@ -1211,7 +1211,7 @@ void LinearEqualityModule::clearSpeculative(){
 }
 
 void LinearEqualityModule::handleBorders(UpdateInfo& selected, ArithVar nb, const Rational& focusCoeff, BorderHeap& heap, int minimumFixes, UpdatePreferenceFunction pref){
-  CVC4_DCHECK(minimumFixes >= 0);
+  Assert(minimumFixes >= 0);
 
   // The values popped off of the heap
   // should be popped with the values closest to 0
@@ -1373,7 +1373,7 @@ Rational LinearEqualityModule::updateCoefficient(BorderVec::const_iterator start
 }
 
 void LinearEqualityModule::pop_block(BorderHeap& heap, int& brokenInBlock, int& fixesRemaining, int& negErrorChange){
-  CVC4_DCHECK(heap.more());
+  Assert(heap.more());
 
   if(heap.top().d_areFixing){
     fixesRemaining--;
@@ -1397,8 +1397,8 @@ void LinearEqualityModule::pop_block(BorderHeap& heap, int& brokenInBlock, int& 
       heap.pop_heap();
     }else{
       // does not belong to the block
-      CVC4_DCHECK((heap.direction() > 0) ? (blockValue < top.d_diff)
-                                         : (blockValue > top.d_diff));
+      Assert((heap.direction() > 0) ? (blockValue < top.d_diff)
+                                    : (blockValue > top.d_diff));
       break;
     }
   }

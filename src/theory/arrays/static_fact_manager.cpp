@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "expr/node.h"
 #include "theory/arrays/static_fact_manager.h"
 
@@ -49,12 +49,12 @@ bool StaticFactManager::areDiseq(TNode a, TNode b) {
 }
 
 void StaticFactManager::addDiseq(TNode eq) {
-  CVC4_DCHECK(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == kind::EQUAL);
   d_diseq.push_back(eq);
 }
 
 void StaticFactManager::addEq(TNode eq) {
-  CVC4_DCHECK(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == kind::EQUAL);
   Node a = find(eq[0]);
   Node b = find(eq[1]);
 
@@ -104,7 +104,7 @@ void StaticFactManager::addEq(TNode eq) {
   //       TNode t = deqn[1];
   //       TNode sp = find(s);
   //       TNode tp = find(t);
-  //       CVC4_DCHECK(sp == b || tp == b);
+  //       Assert(sp == b || tp == b);
   //       if(sp == b) {
   //         alreadyDiseqs[tp] = deqn;
   //       } else {
@@ -124,7 +124,7 @@ void StaticFactManager::addEq(TNode eq) {
   //   for(CTNodeListAlloc::const_iterator i = deqa->begin(); i!= deqa->end();
   //   i++) {
   //     TNode deqn = (*i);
-  //     CVC4_DCHECK(deqn.getKind() == kind::EQUAL || deqn.getKind() ==
+  //     Assert(deqn.getKind() == kind::EQUAL || deqn.getKind() ==
   //     kind::IFF); TNode s = deqn[0]; TNode t = deqn[1]; TNode sp = find(s);
   //     TNode tp = find(t);
 
@@ -132,7 +132,7 @@ void StaticFactManager::addEq(TNode eq) {
   //       d_conflict = deqn;
   //       return;
   //     }
-  //     CVC4_DCHECK( sp == b || tp == b);
+  //     Assert( sp == b || tp == b);
 
   //     // make sure not to add duplicates
 

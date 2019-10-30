@@ -69,7 +69,7 @@ class UnionFind : context::ContextNotifyObj {
 
   /**
    * Return a Node's union-find representative, NOT doing path compression.
-   * This is useful for CVC4_DCHECK() statements, debug checking, and similar
+   * This is useful for Assert() statements, debug checking, and similar
    * things that you do NOT want to mutate the structure.
    */
   inline TNode debugFind(TNode n) const;
@@ -125,8 +125,8 @@ inline TNode UnionFind<NodeType, NodeHash>::find(TNode n) {
 
 template <class NodeType, class NodeHash>
 inline void UnionFind<NodeType, NodeHash>::setCanon(TNode n, TNode newParent) {
-  CVC4_DCHECK(d_map.find(n) == d_map.end());
-  CVC4_DCHECK(d_map.find(newParent) == d_map.end());
+  Assert(d_map.find(n) == d_map.end());
+  Assert(d_map.find(newParent) == d_map.end());
   if(n != newParent) {
     Trace("arraysuf") << "arraysUF setting canon of " << n << " : " << newParent << " @ " << d_trace.size() << std::endl;
     d_map[n] = newParent;

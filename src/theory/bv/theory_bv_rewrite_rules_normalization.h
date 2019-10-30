@@ -122,7 +122,7 @@ inline Node RewriteRule<ExtractSignExtend>::apply(TNode node)
   else
   {
     // extract only over sign extend
-    CVC4_DCHECK(low >= extendee_size);
+    Assert(low >= extendee_size);
     unsigned top = utils::getSize(extendee) - 1;
     Node most_significant_bit = utils::mkExtract(extendee, top, top);
     std::vector<Node> bits;
@@ -157,7 +157,7 @@ inline Node RewriteRule<ExtractArith>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<ExtractArith>(" << node << ")"
                       << std::endl;
   unsigned low = utils::getExtractLow(node);
-  CVC4_DCHECK(low == 0);
+  Assert(low == 0);
   unsigned high = utils::getExtractHigh(node);
   std::vector<Node> children;
   for (unsigned i = 0; i < node[0].getNumChildren(); ++i)
@@ -277,7 +277,7 @@ static inline void updateCoefMap(TNode current, unsigned size,
       Node term;
       if (current.getNumChildren() == 2) {
         // Mult should be normalized with only one constant at end
-        CVC4_DCHECK(!current[0].isConst());
+        Assert(!current[0].isConst());
         if (current[1].isConst()) {
           coeff = current[1].getConst<BitVector>();
           term = current[0];
@@ -287,7 +287,7 @@ static inline void updateCoefMap(TNode current, unsigned size,
         NodeBuilder<> nb(kind::BITVECTOR_MULT);
         TNode::iterator child_it = current.begin();
         for(; (child_it+1) != current.end(); ++child_it) {
-          CVC4_DCHECK(!(*child_it).isConst());
+          Assert(!(*child_it).isConst());
           nb << (*child_it);
         }
         term = nb;
@@ -313,7 +313,7 @@ static inline void updateCoefMap(TNode current, unsigned size,
     }
     case kind::BITVECTOR_SUB:
       // turn into a + (-1)*b
-      CVC4_DCHECK(current.getNumChildren() == 2);
+      Assert(current.getNumChildren() == 2);
       addToCoefMap(factorToCoefficient, current[0], BitVector(size, (unsigned)1)); 
       addToCoefMap(factorToCoefficient, current[1], -BitVector(size, (unsigned)1)); 
       break;
@@ -491,7 +491,7 @@ bool RewriteRule<MultDistribConst>::applies(TNode node) {
       node.getNumChildren() != 2) {
     return false;
   }
-  CVC4_DCHECK(!node[0].isConst());
+  Assert(!node[0].isConst());
   if (!node[1].isConst()) {
     return false;
   }
@@ -510,7 +510,7 @@ inline Node RewriteRule<MultDistribConst>::apply(TNode node)
   NodeManager *nm = NodeManager::currentNM();
   TNode constant = node[1];
   TNode factor = node[0];
-  CVC4_DCHECK(constant.getKind() == kind::CONST_BITVECTOR);
+  Assert(constant.getKind() == kind::CONST_BITVECTOR);
 
   if (factor.getKind() == kind::BITVECTOR_NEG)
   {
@@ -555,10 +555,10 @@ inline Node RewriteRule<MultDistrib>::apply(TNode node)
                        || node[0].getKind() == kind::BITVECTOR_SUB;
   TNode factor = !is_rhs_factor ? node[0] : node[1];
   TNode sum = is_rhs_factor ? node[0] : node[1];
-  CVC4_DCHECK(factor.getKind() != kind::BITVECTOR_PLUS
-              && factor.getKind() != kind::BITVECTOR_SUB
-              && (sum.getKind() == kind::BITVECTOR_PLUS
-                  || sum.getKind() == kind::BITVECTOR_SUB));
+  Assert(factor.getKind() != kind::BITVECTOR_PLUS
+         && factor.getKind() != kind::BITVECTOR_SUB
+         && (sum.getKind() == kind::BITVECTOR_PLUS
+             || sum.getKind() == kind::BITVECTOR_SUB));
 
   std::vector<Node> children;
   for (unsigned i = 0; i < sum.getNumChildren(); ++i)
@@ -596,7 +596,7 @@ inline Node RewriteRule<ConcatToMult>::apply(TNode node)
                       << std::endl;
   unsigned size = utils::getSize(node);
   Node factor = node[0][0];
-  CVC4_DCHECK(utils::getSize(factor) == utils::getSize(node));
+  Assert(utils::getSize(factor) == utils::getSize(node));
   BitVector amount = BitVector(size, utils::getSize(node[1]));
   Node coef = utils::mkConst(BitVector(size, 1u).leftShift(amount));
   return NodeManager::currentNM()->mkNode(kind::BITVECTOR_MULT, factor, coef);
@@ -699,7 +699,7 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
     }
     else if (iLeft == iLeftEnd || termRight < termLeft)
     {
-      CVC4_DCHECK(iRight != iRightEnd);
+      Assert(iRight != iRightEnd);
       addToChildren(termRight, size, coeffRight, childrenRight);
       incRight = true;
     }
@@ -720,7 +720,7 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
       ++iLeft;
       if (iLeft != iLeftEnd)
       {
-        CVC4_DCHECK(termLeft < iLeft->first);
+        Assert(termLeft < iLeft->first);
         coeffLeft = iLeft->second;
         termLeft = iLeft->first;
       }
@@ -730,7 +730,7 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
       ++iRight;
       if (iRight != iRightEnd)
       {
-        CVC4_DCHECK(termRight < iRight->first);
+        Assert(termRight < iRight->first);
         coeffRight = iRight->second;
         termRight = iRight->first;
       }
@@ -759,8 +759,8 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
 
   if (childrenRight.size() == 0 && leftConst != zero)
   {
-    CVC4_DCHECK(childrenLeft.back().isConst()
-                && childrenLeft.back().getConst<BitVector>() == leftConst);
+    Assert(childrenLeft.back().isConst()
+           && childrenLeft.back().getConst<BitVector>() == leftConst);
     if (childrenLeft.size() == 1)
     {
       // c = 0 ==> false
@@ -776,8 +776,8 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
   {
     if (rightConst != zero)
     {
-      CVC4_DCHECK(childrenRight.back().isConst()
-                  && childrenRight.back().getConst<BitVector>() == rightConst);
+      Assert(childrenRight.back().isConst()
+             && childrenRight.back().getConst<BitVector>() == rightConst);
       if (childrenRight.size() == 1)
       {
         // 0 = c ==> false
@@ -807,26 +807,26 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
     newRight = utils::mkNaryNode(kind::BITVECTOR_PLUS, childrenRight);
   }
 
-  //  CVC4_DCHECK(newLeft == Rewriter::rewrite(newLeft));
-  //  CVC4_DCHECK(newRight == Rewriter::rewrite(newRight));
+  //  Assert(newLeft == Rewriter::rewrite(newLeft));
+  //  Assert(newRight == Rewriter::rewrite(newRight));
 
   if (newLeft == newRight)
   {
-    CVC4_DCHECK(newLeft == utils::mkConst(size, (unsigned)0));
+    Assert(newLeft == utils::mkConst(size, (unsigned)0));
     return utils::mkTrue();
   }
 
   if (newLeft < newRight)
   {
-    CVC4_DCHECK((newRight == left && newLeft == right)
-                || Rewriter::rewrite(newRight) != left
-                || Rewriter::rewrite(newLeft) != right);
+    Assert((newRight == left && newLeft == right)
+           || Rewriter::rewrite(newRight) != left
+           || Rewriter::rewrite(newLeft) != right);
     return newRight.eqNode(newLeft);
   }
 
-  CVC4_DCHECK((newLeft == left && newRight == right)
-              || Rewriter::rewrite(newLeft) != left
-              || Rewriter::rewrite(newRight) != right);
+  Assert((newLeft == left && newRight == right)
+         || Rewriter::rewrite(newLeft) != left
+         || Rewriter::rewrite(newRight) != right);
   return newLeft.eqNode(newRight);
 }
 
@@ -933,7 +933,7 @@ Node RewriteRule<BitwiseEq>::apply(TNode node) {
     case kind::BITVECTOR_NOT:
       return term[0].eqNode(utils::mkConst(~c));
     case kind::BITVECTOR_COMP:
-      CVC4_DCHECK(term.getNumChildren() == 2);
+      Assert(term.getNumChildren() == 2);
       if (eqOne) {
         return term[0].eqNode(term[1]);
       }
@@ -972,7 +972,7 @@ Node RewriteRule<NegMult>::apply(TNode node) {
   for(; (child_it+1) != mult.end(); ++child_it) {
     nb << (*child_it);
   }
-  CVC4_DCHECK((*child_it).isConst());
+  Assert((*child_it).isConst());
   bv = (*child_it).getConst<BitVector>();
   nb << utils::mkConst(-bv);
   return Node(nb);
@@ -1356,7 +1356,7 @@ inline Node RewriteRule<XorSimplify>::apply(TNode node)
     children.push_back(utils::mkConst(result));
   }
 
-  CVC4_DCHECK(children.size());
+  Assert(children.size());
 
   return utils::mkSortedNode(kind::BITVECTOR_XOR, children);
 }
@@ -1417,8 +1417,7 @@ inline Node RewriteRule<BitwiseSlicing>::apply(TNode node)
       other_children.push_back(node[i]);
     }
   }
-  CVC4_DCHECK(found_constant
-              && other_children.size() == node.getNumChildren() - 1);
+  Assert(found_constant && other_children.size() == node.getNumChildren() - 1);
 
   Node other = utils::mkNaryNode(node.getKind(), other_children);
 

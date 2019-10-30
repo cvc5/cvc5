@@ -421,7 +421,7 @@ inline void NodeValue::decrRefCounts() {
 }
 
 inline void NodeValue::inc() {
-  CVC4_DCHECK(!isBeingDeleted())
+  Assert(!isBeingDeleted())
       << "NodeValue is currently being deleted "
          "and increment is being called on it. Don't Do That!";
   // FIXME multithreading
@@ -429,7 +429,7 @@ inline void NodeValue::inc() {
     ++d_rc;
   } else if (__builtin_expect((d_rc == MAX_RC - 1), false)) {
     ++d_rc;
-    CVC4_DCHECK(NodeManager::currentNM() != NULL)
+    Assert(NodeManager::currentNM() != NULL)
         << "No current NodeManager on incrementing of NodeValue: "
            "maybe a public CVC4 interface function is missing a "
            "NodeManagerScope ?";
@@ -442,7 +442,7 @@ inline void NodeValue::dec() {
   if(__builtin_expect( ( d_rc < MAX_RC ), true )) {
     --d_rc;
     if(__builtin_expect( ( d_rc == 0 ), false )) {
-      CVC4_DCHECK(NodeManager::currentNM() != NULL)
+      Assert(NodeManager::currentNM() != NULL)
           << "No current NodeManager on destruction of NodeValue: "
              "maybe a public CVC4 interface function is missing a "
              "NodeManagerScope ?";
@@ -487,7 +487,7 @@ inline bool NodeValue::isBeingDeleted() const {
 }
 
 inline NodeValue* NodeValue::getOperator() const {
-  CVC4_DCHECK(getMetaKind() == kind::metakind::PARAMETERIZED);
+  Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
   return d_children[0];
 }
 
@@ -496,7 +496,7 @@ inline NodeValue* NodeValue::getChild(int i) const {
     ++i;
   }
 
-  CVC4_DCHECK(i >= 0 && unsigned(i) < d_nchildren);
+  Assert(i >= 0 && unsigned(i) < d_nchildren);
   return d_children[i];
 }
 

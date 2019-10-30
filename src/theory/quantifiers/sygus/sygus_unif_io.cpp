@@ -40,7 +40,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
                                   std::vector<Node>& vals,
                                   bool pol)
 {
-  CVC4_DCHECK(d_vals.size() == vals.size());
+  Assert(d_vals.size() == vals.size());
   bool changed = false;
   Node poln = pol ? d_true : d_false;
   for (unsigned i = 0; i < vals.size(); i++)
@@ -65,7 +65,7 @@ bool UnifContextIo::updateStringPosition(SygusUnifIo* sui,
                                          std::vector<unsigned>& pos,
                                          NodeRole nrole)
 {
-  CVC4_DCHECK(pos.size() == d_str_pos.size());
+  Assert(pos.size() == d_str_pos.size());
   bool changed = false;
   for (unsigned i = 0; i < pos.size(); i++)
   {
@@ -124,13 +124,13 @@ void UnifContextIo::getCurrentStrings(SygusUnifIo* sui,
   {
     if (d_vals[i] == sui->d_true)
     {
-      CVC4_DCHECK(vals[i].isConst());
+      Assert(vals[i].isConst());
       unsigned pos_value = d_str_pos[i];
       if (pos_value > 0)
       {
-        CVC4_DCHECK(d_curr_role != role_invalid);
+        Assert(d_curr_role != role_invalid);
         String s = vals[i].getConst<String>();
-        CVC4_DCHECK(pos_value <= s.size());
+        Assert(pos_value <= s.size());
         ex_vals.push_back(isPrefix ? s.suffix(s.size() - pos_value)
                                    : s.prefix(s.size() - pos_value));
       }
@@ -241,7 +241,7 @@ Node SubsumeTrie::addTermInternal(Node t,
     }
     else if (status == 1)
     {
-      CVC4_DCHECK(checkSubsume);
+      Assert(checkSubsume);
       // found a subsumed term
       if (!d_term.isNull())
       {
@@ -258,20 +258,19 @@ Node SubsumeTrie::addTermInternal(Node t,
     }
     else
     {
-      CVC4_DCHECK(!checkExistsOnly && checkSubsume);
+      Assert(!checkExistsOnly && checkSubsume);
     }
     return d_term;
   }
   NodeManager* nm = NodeManager::currentNM();
   // the current value
-  CVC4_DCHECK(pol
-              || (vals[index].isConst() && vals[index].getType().isBoolean()));
+  Assert(pol || (vals[index].isConst() && vals[index].getType().isBoolean()));
   Node cv = pol ? vals[index] : nm->mkConst(!vals[index].getConst<bool>());
   // if checkExistsOnly = false, check if the current value is subsumed if
   // checkSubsume = true, if so, don't add
   if (!checkExistsOnly && checkSubsume)
   {
-    CVC4_DCHECK(cv.isConst() && cv.getType().isBoolean());
+    Assert(cv.isConst() && cv.getType().isBoolean());
     std::vector<bool> check_subsumed_by;
     if (status == 0)
     {
@@ -336,7 +335,7 @@ Node SubsumeTrie::addTermInternal(Node t,
     }
     else
     {
-      CVC4_DCHECK(spol);
+      Assert(spol);
       ret = d_children[cv].addTermInternal(t,
                                            vals,
                                            pol,
@@ -354,7 +353,7 @@ Node SubsumeTrie::addTermInternal(Node t,
     }
     if (checkSubsume)
     {
-      CVC4_DCHECK(cv.isConst() && cv.getType().isBoolean());
+      Assert(cv.isConst() && cv.getType().isBoolean());
       // check for subsuming
       if (cv.getConst<bool>())
       {
@@ -364,8 +363,8 @@ Node SubsumeTrie::addTermInternal(Node t,
   }
   else if (status == 1)
   {
-    CVC4_DCHECK(checkSubsume);
-    CVC4_DCHECK(cv.isConst() && cv.getType().isBoolean());
+    Assert(checkSubsume);
+    Assert(cv.isConst() && cv.getType().isBoolean());
     check_subsume.push_back(!spol);
     if (cv.getConst<bool>())
     {
@@ -393,7 +392,7 @@ Node SubsumeTrie::addTermInternal(Node t,
         // clean up
         if (itc->second.isEmpty())
         {
-          CVC4_DCHECK(!checkExistsOnly);
+          Assert(!checkExistsOnly);
           d_children.erase(csval);
         }
       }
@@ -443,14 +442,14 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
     // by convention, if we did not test any points, then we consider the
     // evaluation along the current path to be always false.
     int rstatus = status == -2 ? -1 : status;
-    CVC4_DCHECK(!d_term.isNull());
-    CVC4_DCHECK(std::find(v[rstatus].begin(), v[rstatus].end(), d_term)
-                == v[rstatus].end());
+    Assert(!d_term.isNull());
+    Assert(std::find(v[rstatus].begin(), v[rstatus].end(), d_term)
+           == v[rstatus].end());
     v[rstatus].push_back(d_term);
   }
   else
   {
-    CVC4_DCHECK(vals[index].isConst() && vals[index].getType().isBoolean());
+    Assert(vals[index].isConst() && vals[index].getType().isBoolean());
     bool curr_val_true = vals[index].getConst<bool>() == pol;
     for (std::map<Node, SubsumeTrie>::iterator it = d_children.begin();
          it != d_children.end();
@@ -472,8 +471,8 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
         {
           // if the status is not zero (indicating that we have a mix of T/F),
           // then we must compute the new status.
-          CVC4_DCHECK(it->first.getType().isBoolean());
-          CVC4_DCHECK(it->first.isConst());
+          Assert(it->first.getType().isBoolean());
+          Assert(it->first.isConst());
           new_status = (it->first.getConst<bool>() ? 1 : -1);
           if (status != -2 && new_status != status)
           {
@@ -551,7 +550,7 @@ void SygusUnifIo::computeExamples(Node e, Node bv, std::vector<Node>& exOut)
 void SygusUnifIo::clearExampleCache(Node e, Node bv)
 {
   std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
-  CVC4_DCHECK(eoc.find(bv) != eoc.end());
+  Assert(eoc.find(bv) != eoc.end());
   eoc.erase(bv);
 }
 
@@ -560,8 +559,8 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   Trace("sygus-sui-enum") << "Notify enumeration for " << e << " : " << v
                           << std::endl;
   Node c = d_candidate;
-  CVC4_DCHECK(!d_examples.empty());
-  CVC4_DCHECK(d_examples.size() == d_examples_out.size());
+  Assert(!d_examples.empty());
+  Assert(d_examples.size() == d_examples_out.size());
 
   EnumInfo& ei = d_strategy[c].getEnumInfo(e);
   // The explanation for why the current value should be excluded in future
@@ -583,7 +582,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   bool tryEval = options::sygusEvalOpt();
   for (const Node& xs : ei.d_enum_slave)
   {
-    CVC4_DCHECK(srmap.find(xs) == srmap.end());
+    Assert(srmap.find(xs) == srmap.end());
     EnumInfo& eiv = d_strategy[c].getEnumInfo(xs);
     Node templ = eiv.d_template;
     if (!templ.isNull())
@@ -620,13 +619,13 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 
   // is it excluded for domain-specific reason?
   std::vector<Node> exp_exc_vec;
-  CVC4_DCHECK(d_tds->isEnumerator(e));
+  Assert(d_tds->isEnumerator(e));
   bool isPassive = d_tds->isPassiveEnumerator(e);
   if (getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
   {
     if (isPassive)
     {
-      CVC4_DCHECK(!exp_exc_vec.empty());
+      Assert(!exp_exc_vec.empty());
       exp_exc = exp_exc_vec.size() == 1
                     ? exp_exc_vec[0]
                     : NodeManager::currentNM()->mkNode(AND, exp_exc_vec);
@@ -637,7 +636,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   else
   {
     // notify all slaves
-    CVC4_DCHECK(!ei.d_enum_slave.empty());
+    Assert(!ei.d_enum_slave.empty());
     // explanation for why this value should be excluded
     for (unsigned s = 0; s < ei.d_enum_slave.size(); s++)
     {
@@ -660,7 +659,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       std::vector<Node> results;
       std::map<Node, bool> cond_vals;
       std::map<Node, std::vector<Node>>::iterator itsr = srmap.find(xs);
-      CVC4_DCHECK(itsr != srmap.end());
+      Assert(itsr != srmap.end());
       for (unsigned j = 0, size = itsr->second.size(); j < size; j++)
       {
         Node res = itsr->second[j];
@@ -670,7 +669,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         if (eiv.getRole() == enum_io)
         {
           Node out = d_examples_out[j];
-          CVC4_DCHECK(out.isConst());
+          Assert(out.isConst());
           // If the result is not constant, then we assume that it does
           // not satisfy the example. This is a safe underapproximation
           // of the good behavior of the current term, that is, we only
@@ -718,7 +717,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
           std::vector<Node> subsume;
           if (cond_vals.find(d_false) == cond_vals.end())
           {
-            CVC4_DCHECK(cond_vals.size() == 1);
+            Assert(cond_vals.size() == 1);
             // it is the entire solution, we are done
             Trace("sygus-sui-enum")
                 << "  ...success, full solution added to PBE pool : "
@@ -752,7 +751,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
             }
             else
             {
-              CVC4_DCHECK(subsume.empty());
+              Assert(subsume.empty());
               Trace("sygus-sui-enum") << "  ...fail : subsumed" << std::endl;
             }
           }
@@ -952,7 +951,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
       Trace("sygus-sui-enum") << std::endl;
     }
     // check if all examples had longer length that the output
-    CVC4_DCHECK(d_examples_out.size() == results.size());
+    Assert(d_examples_out.size() == results.size());
     Trace("sygus-sui-cterm-debug")
         << "Check enumerator exclusion for " << e << " -> "
         << d_tds->sygusToBuiltin(v) << " based on str.contains." << std::endl;
@@ -963,7 +962,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
       // impact whether the term is excluded.
       if (results[i].isConst())
       {
-        CVC4_DCHECK(d_examples_out[i].isConst());
+        Assert(d_examples_out[i].isConst());
         Trace("sygus-sui-cterm-debug")
             << "  " << results[i] << " <> " << d_examples_out[i];
         Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
@@ -1006,7 +1005,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
 void SygusUnifIo::EnumCache::addEnumValue(Node v, std::vector<Node>& results)
 {
   // should not have been enumerated before
-  CVC4_DCHECK(d_enum_val_to_index.find(v) == d_enum_val_to_index.end());
+  Assert(d_enum_val_to_index.find(v) == d_enum_val_to_index.end());
   d_enum_val_to_index[v] = d_enum_vals.size();
   d_enum_vals.push_back(v);
   d_enum_vals_res.push_back(results);
@@ -1020,13 +1019,13 @@ void SygusUnifIo::initializeConstructSol()
 
 void SygusUnifIo::initializeConstructSolFor(Node f)
 {
-  CVC4_DCHECK(d_candidate == f);
+  Assert(d_candidate == f);
 }
 
 Node SygusUnifIo::constructSol(
     Node f, Node e, NodeRole nrole, int ind, std::vector<Node>& lemmas)
 {
-  CVC4_DCHECK(d_candidate == f);
+  Assert(d_candidate == f);
   UnifContextIo& x = d_context;
   TypeNode etn = e.getType();
   if (Trace.isOn("sygus-sui-dt-debug"))
@@ -1071,7 +1070,7 @@ Node SygusUnifIo::constructSol(
         indent("sygus-sui-dt", ind);
         Trace("sygus-sui-dt") << "return PBE: success : solved "
                               << d_tds->sygusToBuiltin(ret_dt) << std::endl;
-        CVC4_DCHECK(!ret_dt.isNull());
+        Assert(!ret_dt.isNull());
       }
       else
       {
@@ -1109,8 +1108,7 @@ Node SygusUnifIo::constructSol(
           // get the current examples
           std::vector<String> ex_vals;
           x.getCurrentStrings(this, d_examples_out, ex_vals);
-          CVC4_DCHECK(ecache.d_enum_vals.size()
-                      == ecache.d_enum_vals_res.size());
+          Assert(ecache.d_enum_vals.size() == ecache.d_enum_vals_res.size());
 
           // test each example in the term enumerator for the type
           std::vector<Node> str_solved;
@@ -1238,17 +1236,17 @@ Node SygusUnifIo::constructSol(
 
       // check if there is a value for which is a prefix/suffix of all active
       // examples
-      CVC4_DCHECK(ecache.d_enum_vals.size() == ecache.d_enum_vals_res.size());
+      Assert(ecache.d_enum_vals.size() == ecache.d_enum_vals_res.size());
 
       for (unsigned i = 0, size = ecache.d_enum_vals.size(); i < size; i++)
       {
         Node val_t = ecache.d_enum_vals[i];
-        CVC4_DCHECK(incr.find(val_t) == incr.end());
+        Assert(incr.find(val_t) == incr.end());
         indent("sygus-sui-dt-debug", ind);
         Trace("sygus-sui-dt-debug") << "increment string values : ";
         TermDbSygus::toStreamSygus("sygus-sui-dt-debug", val_t);
         Trace("sygus-sui-dt-debug") << " : ";
-        CVC4_DCHECK(ecache.d_enum_vals_res[i].size() == d_examples_out.size());
+        Assert(ecache.d_enum_vals_res[i].size() == d_examples_out.size());
         unsigned tot = 0;
         bool exsuccess = x.getStringIncrement(this,
                                               isPrefix,
@@ -1276,14 +1274,14 @@ Node SygusUnifIo::constructSol(
         // with respect to failure/success.
         d_sol_cons_nondet = true;
         ret_dt = constructBestStringToConcat(inc_strs, total_inc, incr);
-        CVC4_DCHECK(!ret_dt.isNull());
+        Assert(!ret_dt.isNull());
         indent("sygus-sui-dt", ind);
         Trace("sygus-sui-dt")
             << "PBE: CONCAT strategy : choose " << (isPrefix ? "pre" : "suf")
             << "fix value " << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         // update the context
         bool ret = x.updateStringPosition(this, incr[ret_dt], nrole);
-        CVC4_CHECK(ret == (total_inc[ret_dt] > 0));
+        AlwaysAssert(ret == (total_inc[ret_dt] > 0));
       }
       else
       {
@@ -1303,7 +1301,7 @@ Node SygusUnifIo::constructSol(
   }
   if (!ret_dt.isNull() || einfo.isTemplated())
   {
-    CVC4_DCHECK(ret_dt.isNull() || ret_dt.getType() == e.getType());
+    Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
     indent("sygus-sui-dt", ind);
     Trace("sygus-sui-dt") << "ConstructPBE: returned (pre-strategy) " << ret_dt
                           << std::endl;
@@ -1364,7 +1362,7 @@ Node SygusUnifIo::constructSol(
     if (snode.d_strats[sindex]->isValid(x))
     {
       etis = snode.d_strats[sindex];
-      CVC4_DCHECK(etis != nullptr);
+      Assert(etis != nullptr);
       StrategyType strat = etis->d_this;
       indent("sygus-sui-dt", ind + 1);
       Trace("sygus-sui-dt")
@@ -1392,9 +1390,8 @@ Node SygusUnifIo::constructSol(
         if (strat == strat_ITE && sc > 0)
         {
           EnumCache& ecache_cond = d_ecache[split_cond_enum];
-          CVC4_DCHECK(set_split_cond_res_index);
-          CVC4_DCHECK(split_cond_res_index
-                      < ecache_cond.d_enum_vals_res.size());
+          Assert(set_split_cond_res_index);
+          Assert(split_cond_res_index < ecache_cond.d_enum_vals_res.size());
           prev = x.d_vals;
           x.updateContext(this,
                           ecache_cond.d_enum_vals_res[split_cond_res_index],
@@ -1437,7 +1434,7 @@ Node SygusUnifIo::constructSol(
             if (rec_c.isNull())
             {
               rec_c = constructBestConditional(ce, itpc->second);
-              CVC4_DCHECK(!rec_c.isNull());
+              Assert(!rec_c.isNull());
               indent("sygus-sui-dt", ind);
               Trace("sygus-sui-dt")
                   << "PBE: ITE strategy : choose best conditional "
@@ -1455,13 +1452,12 @@ Node SygusUnifIo::constructSol(
           }
           if (!rec_c.isNull())
           {
-            CVC4_DCHECK(ecache_child.d_enum_val_to_index.find(rec_c)
-                        != ecache_child.d_enum_val_to_index.end());
+            Assert(ecache_child.d_enum_val_to_index.find(rec_c)
+                   != ecache_child.d_enum_val_to_index.end());
             split_cond_res_index = ecache_child.d_enum_val_to_index[rec_c];
             set_split_cond_res_index = true;
             split_cond_enum = ce;
-            CVC4_DCHECK(split_cond_res_index
-                        < ecache_child.d_enum_vals_res.size());
+            Assert(split_cond_res_index < ecache_child.d_enum_vals_res.size());
           }
         }
         else
@@ -1486,7 +1482,7 @@ Node SygusUnifIo::constructSol(
       }
       if (success)
       {
-        CVC4_DCHECK(dt_children_cons.size() == etis->d_sol_templ_args.size());
+        Assert(dt_children_cons.size() == etis->d_sol_templ_args.size());
         // ret_dt = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR,
         // dt_children );
         ret_dt = etis->d_sol_templ;
@@ -1519,7 +1515,7 @@ Node SygusUnifIo::constructSol(
     }
     else if (d_enableMinimality)
     {
-      CVC4_DCHECK(ret_dt.getType() == cached_ret_dt.getType());
+      Assert(ret_dt.getType() == cached_ret_dt.getType());
       // take the cached one if it is smaller
       std::vector<Node> retDts;
       retDts.push_back(cached_ret_dt);
@@ -1527,7 +1523,7 @@ Node SygusUnifIo::constructSol(
       ret_dt = getMinimalTerm(retDts);
     }
   }
-  CVC4_DCHECK(ret_dt.isNull() || ret_dt.getType() == e.getType());
+  Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
   if (Trace.isOn("sygus-sui-dt"))
   {
     indent("sygus-sui-dt", ind);
@@ -1599,13 +1595,13 @@ Node SygusUnifIo::constructBestConditional(Node ce,
       for (unsigned j = 0; j < nconds; j++)
       {
         Node resn = ecache.d_enum_vals_res[eindex[j]][i];
-        CVC4_DCHECK(resn.isConst());
+        Assert(resn.isConst());
         eval[j][resn][eo]++;
         evalCount[j][resn]++;
       }
     }
   }
-  CVC4_CHECK(activePoints > 0);
+  AlwaysAssert(activePoints > 0);
   // find the condition that leads to the lowest entropy
   // initially set minEntropy to > 1.0.
   double minEntropy = 2.0;
@@ -1666,7 +1662,7 @@ Node SygusUnifIo::constructBestConditional(Node ce,
     }
   }
 
-  CVC4_DCHECK(!conds.empty());
+  Assert(!conds.empty());
   return conds[bestIndex];
 }
 

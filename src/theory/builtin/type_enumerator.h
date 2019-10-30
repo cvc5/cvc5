@@ -40,7 +40,7 @@ class UninterpretedSortEnumerator : public TypeEnumeratorBase<UninterpretedSortE
                               TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<UninterpretedSortEnumerator>(type), d_count(0)
   {
-    CVC4_DCHECK(type.getKind() == kind::SORT_TYPE);
+    Assert(type.getKind() == kind::SORT_TYPE);
     d_has_fixed_bound = false;
     Trace("uf-type-enum") << "UF enum " << type << ", tep = " << tep << std::endl;
     if( tep && tep->d_fixed_usort_card ){

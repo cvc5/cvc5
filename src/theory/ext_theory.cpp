@@ -18,7 +18,7 @@
 
 #include "theory/ext_theory.h"
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/substitutions.h"
@@ -79,7 +79,7 @@ Node ExtTheory::getSubstitutedTerm(int effort,
 {
   if (useCache)
   {
-    CVC4_DCHECK(d_gst_cache[effort].find(term) != d_gst_cache[effort].end());
+    Assert(d_gst_cache[effort].find(term) != d_gst_cache[effort].end());
     exp.insert(exp.end(),
                d_gst_cache[effort][term].d_exp.begin(),
                d_gst_cache[effort][term].d_exp.end());
@@ -91,8 +91,8 @@ Node ExtTheory::getSubstitutedTerm(int effort,
   std::vector<Node> sterms;
   std::vector<std::vector<Node> > exps;
   getSubstitutedTerms(effort, terms, sterms, exps, useCache);
-  CVC4_DCHECK(sterms.size() == 1);
-  CVC4_DCHECK(exps.size() == 1);
+  Assert(sterms.size() == 1);
+  Assert(exps.size() == 1);
   exp.insert(exp.end(), exps[0].begin(), exps[0].end());
   return sterms[0];
 }
@@ -108,7 +108,7 @@ void ExtTheory::getSubstitutedTerms(int effort,
   {
     for (const Node& n : terms)
     {
-      CVC4_DCHECK(d_gst_cache[effort].find(n) != d_gst_cache[effort].end());
+      Assert(d_gst_cache[effort].find(n) != d_gst_cache[effort].end());
       sterms.push_back(d_gst_cache[effort][n].d_sterm);
       exp.push_back(std::vector<Node>());
       exp[0].insert(exp[0].end(),
@@ -131,7 +131,7 @@ void ExtTheory::getSubstitutedTerms(int effort,
       {
         // do substitution, rewrite
         std::map<Node, ExtfInfo>::iterator iti = d_extf_info.find(n);
-        CVC4_DCHECK(iti != d_extf_info.end());
+        Assert(iti != d_extf_info.end());
         for (const Node& v : iti->second.d_vars)
         {
           if (std::find(vars.begin(), vars.end(), v) == vars.end())
@@ -142,7 +142,7 @@ void ExtTheory::getSubstitutedTerms(int effort,
       }
       bool useSubs = d_parent->getCurrentSubstitution(effort, vars, sub, expc);
       // get the current substitution for all variables
-      CVC4_DCHECK(!useSubs || vars.size() == sub.size());
+      Assert(!useSubs || vars.size() == sub.size());
       for (const Node& n : terms)
       {
         Node ns = n;
@@ -155,7 +155,7 @@ void ExtTheory::getSubstitutedTerms(int effort,
           {
             // build explanation: explanation vars = sub for each vars in FV(n)
             std::map<Node, ExtfInfo>::iterator iti = d_extf_info.find(n);
-            CVC4_DCHECK(iti != d_extf_info.end());
+            Assert(iti != d_extf_info.end());
             for (const Node& v : iti->second.d_vars)
             {
               std::map<Node, std::vector<Node> >::iterator itx = expc.find(v);
@@ -439,7 +439,7 @@ void ExtTheory::markReduced(Node n, bool contextDepend)
 {
   Trace("extt-debug") << "Mark reduced " << n << std::endl;
   registerTerm(n);
-  CVC4_DCHECK(d_ext_func_terms.find(n) != d_ext_func_terms.end());
+  Assert(d_ext_func_terms.find(n) != d_ext_func_terms.end());
   d_ext_func_terms[n] = false;
   if (!contextDepend)
   {
@@ -477,13 +477,13 @@ void ExtTheory::markCongruent(Node a, Node b)
     }
     else
     {
-      CVC4_DCHECK(false);
+      Assert(false);
     }
     d_ext_func_terms[b] = false;
   }
   else
   {
-    CVC4_DCHECK(false);
+    Assert(false);
   }
 }
 

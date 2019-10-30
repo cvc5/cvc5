@@ -80,7 +80,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
   {
     if (lit.getConst<bool>())
     {
-      CVC4_DCHECK(pol);
+      Assert(pol);
       // trivially holds
       return true;
     }
@@ -287,7 +287,7 @@ void InferenceManager::addToExplanation(Node a,
   {
     Debug("strings-explain")
         << "Add to explanation : " << a << " == " << b << std::endl;
-    CVC4_DCHECK(d_state.areEqual(a, b));
+    Assert(d_state.areEqual(a, b));
     exp.push_back(a.eqNode(b));
   }
 }

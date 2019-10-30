@@ -74,10 +74,10 @@ private:
   NodeToInputConstraintIndexMap d_varToInputConstraintMap;
 
   Node proofVariableToReason(const Variable& v) const{
-    CVC4_DCHECK(d_varToInputConstraintMap.find(v.getNode())
-                != d_varToInputConstraintMap.end());
+    Assert(d_varToInputConstraintMap.find(v.getNode())
+           != d_varToInputConstraintMap.end());
     InputConstraintIndex pos = (*(d_varToInputConstraintMap.find(v.getNode()))).second;
-    CVC4_DCHECK(pos < d_inputConstraints.size());
+    Assert(pos < d_inputConstraints.size());
     return d_inputConstraints[pos].d_reason;
   }
 
@@ -229,13 +229,13 @@ private:
 
   /** Raises a conflict at the index ti. */
   void raiseConflict(TrailIndex ti){
-    CVC4_DCHECK(!inConflict());
+    Assert(!inConflict());
     d_conflictIndex.set(ti);
   }
 
   /** Returns the conflict index. */
   TrailIndex getConflictIndex() const{
-    CVC4_DCHECK(inConflict());
+    Assert(inConflict());
     return d_conflictIndex.get();
   }
 
@@ -344,12 +344,12 @@ private:
 
 
   void pushToQueueBack(TrailIndex t){
-    CVC4_DCHECK(queueConditions(t));
+    Assert(queueConditions(t));
     d_currentF.push_back(t);
   }
 
   void pushToQueueFront(TrailIndex t){
-    CVC4_DCHECK(queueConditions(t));
+    Assert(queueConditions(t));
     d_currentF.push_front(t);
   }
 
@@ -389,7 +389,7 @@ public:
     return !d_decompositionLemmaQueue.empty();
   }
   Node nextDecompositionLemma() {
-    CVC4_DCHECK(hasMoreDecompositionLemmas());
+    Assert(hasMoreDecompositionLemmas());
     TrailIndex front = d_decompositionLemmaQueue.front();
     d_decompositionLemmaQueue.pop();
     return trailIndexToEquality(front);

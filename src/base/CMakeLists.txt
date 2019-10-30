@@ -13,10 +13,8 @@ libcvc4_add_sources(
   configuration.cpp
   configuration.h
   configuration_private.h
-  cvc4_assert.cpp
-  cvc4_assert.h
-  cvc4_check.cpp
-  cvc4_check.h
+  check.cpp
+  check.h
   exception.cpp
   exception.h
   listener.cpp

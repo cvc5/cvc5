@@ -23,8 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
 #include "expr/node.h"
@@ -1046,7 +1045,7 @@ void CommandSequence::invoke(SmtEngine* smtEngine)
     delete d_commandSequence[d_index];
   }
 
-  CVC4_CHECK(d_commandStatus == NULL);
+  AlwaysAssert(d_commandStatus == NULL);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1064,7 +1063,7 @@ void CommandSequence::invoke(SmtEngine* smtEngine, std::ostream& out)
     delete d_commandSequence[d_index];
   }
 
-  CVC4_CHECK(d_commandStatus == NULL);
+  AlwaysAssert(d_commandStatus == NULL);
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1667,11 +1666,11 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
     NodeManager* nm = NodeManager::fromExprManager(em);
     smt::SmtScope scope(smtEngine);
     vector<Expr> result = smtEngine->getValues(d_terms);
-    CVC4_DCHECK(result.size() == d_terms.size());
+    Assert(result.size() == d_terms.size());
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
       Expr e = d_terms[i];
-      CVC4_DCHECK(nm == NodeManager::fromExprManager(e.getExprManager()));
+      Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
       Node request = Node::fromExpr(
           options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
       Node value = Node::fromExpr(result[i]);

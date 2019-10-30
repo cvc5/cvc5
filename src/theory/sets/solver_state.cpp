@@ -86,7 +86,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       }
       else
       {
-        CVC4_DCHECK(false);
+        Assert(false);
       }
     }
   }
@@ -115,7 +115,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     }
     else if (nk == UNIVERSE_SET)
     {
-      CVC4_DCHECK(options::setsExt());
+      Assert(options::setsExt());
       d_eqc_univset[tnn] = r;
     }
     else
@@ -188,7 +188,7 @@ void SolverState::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const
 {
   if (a != b)
   {
-    CVC4_DCHECK(areEqual(a, b));
+    Assert(areEqual(a, b));
     exp.push_back(a.eqNode(b));
   }
 }
@@ -297,8 +297,8 @@ bool SolverState::isEntailed(Node n, bool polarity) const
 
 bool SolverState::isSetDisequalityEntailed(Node r1, Node r2) const
 {
-  CVC4_DCHECK(d_ee.hasTerm(r1) && d_ee.getRepresentative(r1) == r1);
-  CVC4_DCHECK(d_ee.hasTerm(r2) && d_ee.getRepresentative(r2) == r2);
+  Assert(d_ee.hasTerm(r1) && d_ee.getRepresentative(r1) == r1);
+  Assert(d_ee.hasTerm(r2) && d_ee.getRepresentative(r2) == r2);
   TypeNode tn = r1.getType();
   Node re = getEmptySetEqClass(tn);
   for (unsigned e = 0; e < 2; e++)
@@ -337,7 +337,7 @@ bool SolverState::isSetDisequalityEntailedInternal(Node a,
     else
     {
       // a should not be singleton
-      CVC4_DCHECK(d_eqc_singleton.find(a) == d_eqc_singleton.end());
+      Assert(d_eqc_singleton.find(a) == d_eqc_singleton.end());
     }
     return false;
   }
@@ -420,7 +420,7 @@ Node SolverState::getProxy(Node n)
 
 Node SolverState::getCongruent(Node n) const
 {
-  CVC4_DCHECK(d_ee.hasTerm(n));
+  Assert(d_ee.hasTerm(n));
   std::map<Node, Node>::const_iterator it = d_congruent.find(n);
   if (it == d_congruent.end())
   {

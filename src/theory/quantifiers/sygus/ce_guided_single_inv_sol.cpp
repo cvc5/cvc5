@@ -40,7 +40,7 @@ bool doCompare(Node a, Node b, Kind k)
 {
   Node com = NodeManager::currentNM()->mkNode(k, a, b);
   com = Rewriter::rewrite(com);
-  CVC4_DCHECK(com.getType().isBoolean());
+  Assert(com.getType().isBoolean());
   return com.isConst() && com.getConst<bool>();
 }
 
@@ -119,7 +119,7 @@ Node CegSingleInvSol::reconstructSolution(Node sol,
   if( status==0 ){
     Node ret = getReconstructedSolution( d_root_id );
     Trace("csi-rcons") << "Sygus solution is : " << ret << std::endl;
-    CVC4_DCHECK(!ret.isNull());
+    Assert(!ret.isNull());
     reconstructed = 1;
     return ret;
   }
@@ -131,7 +131,7 @@ Node CegSingleInvSol::reconstructSolution(Node sol,
          ++it)
     {
       TypeNode tn = it->first;
-      CVC4_DCHECK(tn.isDatatype());
+      Assert(tn.isDatatype());
       const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
       Trace("csi-rcons") << "Terms to reconstruct of type " << dt.getName()
                          << " : " << std::endl;
@@ -144,7 +144,7 @@ Node CegSingleInvSol::reconstructSolution(Node sol,
           Trace("csi-rcons") << "  " << it2->first << std::endl;
         }
       }
-      CVC4_DCHECK(!it->second.empty());
+      Assert(!it->second.empty());
     }
   }
   if (enumLimit != 0)
@@ -224,11 +224,11 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
     int id = allocate( t, stn );
     d_rcons_to_status[stn][t] = -1;
     TypeNode tn = t.getType();
-    CVC4_DCHECK(stn.isDatatype());
+    Assert(stn.isDatatype());
     const Datatype& dt = stn.getDatatype();
     TermDbSygus* tds = d_qe->getTermDatabaseSygus();
     SygusTypeInfo& sti = tds->getTypeInfo(stn);
-    CVC4_DCHECK(dt.isSygus());
+    Assert(dt.isSygus());
     Trace("csi-rcons-debug") << "Check reconstruct " << t << ", sygus type " << dt.getName() << ", kind " << t.getKind() << ", id : " << id << std::endl;
     int carg = -1;
     int karg = -1;
@@ -291,7 +291,7 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
           //try identity functions
           for (unsigned ii : d_id_funcs[stn])
           {
-            CVC4_DCHECK(dt[ii].getNumArgs() == 1);
+            Assert(dt[ii].getNumArgs() == 1);
             //try to directly reconstruct from single argument
             std::vector< Node > tchildren;
             tchildren.push_back( min_t );
@@ -402,7 +402,7 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
                     //if one succeeds
                     if( status==0 ){
                       Node rsol = getReconstructedSolution( equiv_ids[i] );
-                      CVC4_DCHECK(!rsol.isNull());
+                      Assert(!rsol.isNull());
                       //set all members of the equivalence class that this is the reconstructed solution
                       setReconstructed( id, rsol );
                       break;
@@ -433,7 +433,7 @@ bool CegSingleInvSol::collectReconstructNodes(int pid,
                                               std::vector<int>& ids,
                                               int& status)
 {
-  CVC4_DCHECK(dtc.getNumArgs() == ts.size());
+  Assert(dtc.getNumArgs() == ts.size());
   for( unsigned i=0; i<ts.size(); i++ ){
     TypeNode cstn = d_qe->getTermDatabaseSygus()->getArgType( dtc, i );
     int cstatus;
@@ -689,7 +689,7 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
   SygusTypeInfo& ti = tds->getTypeInfo(tn);
   Node sc;
   d_builtin_const_to_sygus[tn][c] = sc;
-  CVC4_DCHECK(c.isConst());
+  Assert(c.isConst());
   if (!tn.isDatatype())
   {
     // if we've traversed to a builtin type, simply return c
@@ -724,7 +724,7 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
       // identity functions
       for (unsigned ii : d_id_funcs[tn])
       {
-        CVC4_DCHECK(dt[ii].getNumArgs() == 1);
+        Assert(dt[ii].getNumArgs() == 1);
         // try to directly reconstruct from single argument
         TypeNode tnc = tds->getArgType(dt[ii], 0);
         Trace("csi-rcons-debug")
@@ -755,7 +755,7 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
               Kind pkm =
                   getPlusKind(TypeNode::fromType(dt.getSygusType()), true);
               // get types
-              CVC4_DCHECK(dt[arg].getNumArgs() == 2);
+              Assert(dt[arg].getNumArgs() == 2);
               TypeNode tn1 = tds->getArgType(dt[arg], 0);
               TypeNode tn2 = tds->getArgType(dt[arg], 1);
               // initialize d_const_list for tn1
@@ -778,7 +778,7 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
                     if (!sc2.isNull())
                     {
                       Node sc1 = builtinToSygusConst(c1, tn1, rcons_depth);
-                      CVC4_DCHECK(!sc1.isNull());
+                      Assert(!sc1.isNull());
                       sc = nm->mkNode(APPLY_CONSTRUCTOR,
                                       Node::fromExpr(dt[arg].getConstructor()),
                                       sc1,
@@ -814,13 +814,13 @@ void CegSingleInvSol::registerType(TypeNode tn)
     return;
   }
   d_const_list_pos[tn] = 0;
-  CVC4_DCHECK(tn.isDatatype());
+  Assert(tn.isDatatype());
 
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   // ensure it is registered
   tds->registerSygusType(tn);
   const Datatype& dt = tn.getDatatype();
-  CVC4_DCHECK(dt.isSygus());
+  Assert(dt.isSygus());
   TypeNode btn = TypeNode::fromType(dt.getSygusType());
   // for constant reconstruction
   Kind ck = getComparisonKind(btn);
@@ -926,9 +926,9 @@ bool CegSingleInvSol::getMatch(Node t,
                                int index_exc,
                                int index_start)
 {
-  CVC4_DCHECK(st.isDatatype());
+  Assert(st.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(st.toType()).getDatatype();
-  CVC4_DCHECK(dt.isSygus());
+  Assert(dt.isSygus());
   std::map<Kind, std::vector<Node> > kgens;
   std::vector<Node> gens;
   for (unsigned i = index_start, ncons = dt.getNumConstructors(); i < ncons;
@@ -983,7 +983,7 @@ Node CegSingleInvSol::getGenericBase(TypeNode tn, const Datatype& dt, int c)
     return it->second;
   }
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
-  CVC4_DCHECK(tds->isRegistered(tn));
+  Assert(tds->isRegistered(tn));
   Node g = tds->mkGeneric(dt, c);
   Trace("csi-sol-debug") << "Generic is " << g << std::endl;
   Node gr = Rewriter::rewrite(g);

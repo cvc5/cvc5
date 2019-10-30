@@ -57,7 +57,7 @@ bool CnfProof::isDefinition(Node node) {
 }
 
 ProofRule CnfProof::getProofRule(Node node) {
-  CVC4_DCHECK(isAssertion(node));
+  Assert(isAssertion(node));
   NodeToProofRule::iterator it = d_assertionToProofRule.find(node);
   return (*it).second;
 }
@@ -69,26 +69,26 @@ ProofRule CnfProof::getProofRule(ClauseId clause) {
 
 Node CnfProof::getAssertionForClause(ClauseId clause) {
   ClauseIdToNode::const_iterator it = d_clauseToAssertion.find(clause);
-  CVC4_DCHECK(it != d_clauseToAssertion.end());
+  Assert(it != d_clauseToAssertion.end());
   return (*it).second;
 }
 
 Node CnfProof::getDefinitionForClause(ClauseId clause) {
   ClauseIdToNode::const_iterator it = d_clauseToDefinition.find(clause);
-  CVC4_DCHECK(it != d_clauseToDefinition.end());
+  Assert(it != d_clauseToDefinition.end());
   return (*it).second;
 }
 
 void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
-  CVC4_DCHECK(clause != ClauseIdUndef && clause != ClauseIdError
-              && clause != ClauseIdEmpty);
+  Assert(clause != ClauseIdUndef && clause != ClauseIdError
+         && clause != ClauseIdEmpty);
 
   // Explanations do not need a CNF conversion proof since they are in CNF
   // (they will only need a theory proof as they are theory valid)
   if (explanation) {
     Debug("proof:cnf") << "CnfProof::registerConvertedClause "
                        << clause << " explanation? " << explanation << std::endl;
-    CVC4_DCHECK(d_explanations.find(clause) == d_explanations.end());
+    Assert(d_explanations.find(clause) == d_explanations.end());
     d_explanations.insert(clause);
     return;
   }
@@ -166,7 +166,7 @@ void CnfProof::registerAssertion(Node assertion, ProofRule reason) {
 }
 
 LemmaProofRecipe CnfProof::getProofRecipe(const std::set<Node> &lemma) {
-  CVC4_DCHECK(d_lemmaToProofRecipe.find(lemma) != d_lemmaToProofRecipe.end());
+  Assert(d_lemmaToProofRecipe.find(lemma) != d_lemmaToProofRecipe.end());
   return d_lemmaToProofRecipe[lemma];
 }
 
@@ -179,7 +179,7 @@ void CnfProof::setCnfDependence(Node from, Node to) {
                      << "from " << from  << std::endl
                      << "     to " << to << std::endl;
 
-  CVC4_DCHECK(from != to);
+  Assert(from != to);
   d_cnfDeps.insert(std::make_pair(from, to));
 }
 
@@ -195,7 +195,7 @@ void CnfProof::pushCurrentAssertion(Node assertion) {
 }
 
 void CnfProof::popCurrentAssertion() {
-  CVC4_DCHECK(d_currentAssertionStack.size());
+  Assert(d_currentAssertionStack.size());
 
   Debug("proof:cnf") << "CnfProof::popCurrentAssertion "
                      << d_currentAssertionStack.back() << std::endl;
@@ -208,13 +208,13 @@ void CnfProof::popCurrentAssertion() {
 }
 
 Node CnfProof::getCurrentAssertion() {
-  CVC4_DCHECK(d_currentAssertionStack.size());
+  Assert(d_currentAssertionStack.size());
   return d_currentAssertionStack.back();
 }
 
 void CnfProof::setProofRecipe(LemmaProofRecipe* proofRecipe) {
-  CVC4_DCHECK(proofRecipe);
-  CVC4_DCHECK(proofRecipe->getNumSteps() > 0);
+  Assert(proofRecipe);
+  Assert(proofRecipe->getNumSteps() > 0);
   d_lemmaToProofRecipe[proofRecipe->getBaseAssertions()] = *proofRecipe;
 }
 
@@ -226,7 +226,7 @@ void CnfProof::pushCurrentDefinition(Node definition) {
 }
 
 void CnfProof::popCurrentDefinition() {
-  CVC4_DCHECK(d_currentDefinitionStack.size());
+  Assert(d_currentDefinitionStack.size());
 
   Debug("proof:cnf") << "CnfProof::popCurrentDefinition "
                      << d_currentDefinitionStack.back() << std::endl;
@@ -235,7 +235,7 @@ void CnfProof::popCurrentDefinition() {
 }
 
 Node CnfProof::getCurrentDefinition() {
-  CVC4_DCHECK(d_currentDefinitionStack.size());
+  Assert(d_currentDefinitionStack.size());
   return d_currentDefinitionStack.back();
 }
 
@@ -294,7 +294,7 @@ void CnfProof::collectAtomsAndRewritesForLemmas(const IdToSatClause& lemmaClause
       Node node = getAtom(lit.getSatVariable());
       Expr atom = node.toExpr();
       if (atom.isConst()) {
-        CVC4_DCHECK(atom == utils::mkTrue());
+        Assert(atom == utils::mkTrue());
         continue;
       }
       clause_expr_nodes.insert(lit.isNegated() ? node.notNode() : node);
@@ -461,7 +461,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
 
   // return;
 
-  CVC4_DCHECK(clause->size() > 0);
+  Assert(clause->size() > 0);
 
   // If the clause contains x v ~x, it's easy!
   //
@@ -527,7 +527,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
                     << ", base assertion = " << base_assertion << std::endl;
     if (!is_input)
     {
-      CVC4_DCHECK(is_in_clause);
+      Assert(is_in_clause);
       prop::SatLiteral blit = (*clause)[base_index];
       os_base << ProofManager::getLitName(blit, d_name);
       base_pol = !childPol[base_assertion];  // WHY? if the case is =>
@@ -638,10 +638,10 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
 
     Node iatom;
     if (is_in_clause) {
-      CVC4_DCHECK(assertion.getNumChildren() == 2);
+      Assert(assertion.getNumChildren() == 2);
       iatom = assertion[ base_index==0 ? 1 : 0];
     } else {
-      CVC4_DCHECK(assertion.getNumChildren() == 1);
+      Assert(assertion.getNumChildren() == 1);
       iatom = assertion[0];
     }
 
@@ -752,7 +752,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
         Trace("cnf-pf-debug") << "CALLING getlitname" << std::endl;
         os_base_n << ProofManager::getLitName(lit1, d_name) << " ";
       }
-      CVC4_DCHECK(elimNum != 0);
+      Assert(elimNum != 0);
       os_base_n << "(" << ( k==kind::EQUAL ? "iff" : "xor" ) << "_elim_" << elimNum << " _ _ ";
       if( !base_pol ){
         os_base_n << "(not_" << ( base_assertion.getKind()==kind::EQUAL ? "iff" : "xor" ) << "_elim _ _ " << os_base.str() << ")";

@@ -140,7 +140,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         childChanged = true;
       }
     }
-    CVC4_DCHECK(!children.empty());
+    Assert(!children.empty());
     // Some commutative operators have rewriters that are agnostic to order,
     // thus, we sort here.
     if (TermUtil::isComm(k) && (d_aggr || children.size() <= 5))
@@ -183,7 +183,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     new_ret = extendedRewriteEqChain(EQUAL, AND, OR, NOT, ret);
     debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
   }
-  CVC4_DCHECK(new_ret.isNull() || new_ret != ret);
+  Assert(new_ret.isNull() || new_ret != ret);
   if (new_ret.isNull() && ret.getKind() != ITE)
   {
     // simple ITE pulling
@@ -304,8 +304,8 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n)
 
 Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
 {
-  CVC4_DCHECK(n.getKind() == itek);
-  CVC4_DCHECK(n[1] != n[2]);
+  Assert(n.getKind() == itek);
+  Assert(n[1] != n[2]);
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -547,7 +547,7 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n)
 
 Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
 {
-  CVC4_DCHECK(n.getKind() != ITE);
+  Assert(n.getKind() != ITE);
   NodeManager* nm = NodeManager::currentNM();
   TypeNode tn = n.getType();
   std::vector<Node> children;
@@ -633,7 +633,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
     for (std::pair<const unsigned, std::map<unsigned, Node> >& ip : ite_c)
     {
       Node nite = n[ip.first];
-      CVC4_DCHECK(nite.getKind() == itek);
+      Assert(nite.getKind() == itek);
       // now, simply pull the ITE and try ITE rewrites
       Node pull_ite = nm->mkNode(itek, nite[0], ip.second[0], ip.second[1]);
       pull_ite = Rewriter::rewrite(pull_ite);
@@ -665,7 +665,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
 
 Node ExtendedRewriter::extendedRewriteNnf(Node ret)
 {
-  CVC4_DCHECK(ret.getKind() == NOT);
+  Assert(ret.getKind() == NOT);
 
   Kind nk = ret[0].getKind();
   bool neg_ch = false;
@@ -713,7 +713,7 @@ Node ExtendedRewriter::extendedRewriteBcp(
     Kind andk, Kind ork, Kind notk, std::map<Kind, bool>& bcp_kinds, Node ret)
 {
   Kind k = ret.getKind();
-  CVC4_DCHECK(k == andk || k == ork);
+  Assert(k == andk || k == ork);
   Trace("ext-rew-bcp") << "BCP: **** INPUT: " << ret << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
@@ -753,7 +753,7 @@ Node ExtendedRewriter::extendedRewriteBcp(
         Kind cnk = cn.getKind();
         bool pol = cnk != notk;
         Node cln = cnk == notk ? cn[0] : cn;
-        CVC4_DCHECK(cln.getKind() != notk);
+        Assert(cln.getKind() != notk);
         if ((pol && cln.getKind() == k) || (!pol && cln.getKind() == ok))
         {
           // flatten
@@ -868,7 +868,7 @@ Node ExtendedRewriter::extendedRewriteBcp(
       // if propagation did not touch a
       if (prop_clauses.find(a) == prop_clauses.end())
       {
-        CVC4_DCHECK(l.second == truen || l.second == falsen);
+        Assert(l.second == truen || l.second == falsen);
         Node ln = (l.second == truen) == gpol ? a : TermUtil::mkNegate(notk, a);
         children.push_back(ln);
       }
@@ -890,7 +890,7 @@ Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
   NodeManager* nm = NodeManager::currentNM();
 
   Kind nk = n.getKind();
-  CVC4_DCHECK(nk == andk || nk == ork);
+  Assert(nk == andk || nk == ork);
   Kind onk = nk == andk ? ork : andk;
   // count the number of times atoms occur
   std::map<Node, std::vector<Node> > lit_to_cl;
@@ -946,7 +946,7 @@ Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
         std::vector<Node>& lits = cl_to_lits[nc];
         std::vector<Node>::iterator itlfl =
             std::find(lits.begin(), lits.end(), flit);
-        CVC4_DCHECK(itlfl != lits.end());
+        Assert(itlfl != lits.end());
         lits.erase(itlfl);
         // rebuild
         if (!lits.empty())
@@ -957,7 +957,7 @@ Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
       }
     }
     // rebuild the factored children
-    CVC4_DCHECK(!fchildren.empty());
+    Assert(!fchildren.empty());
     Node fcn = fchildren.size() == 1 ? fchildren[0] : nm->mkNode(nk, fchildren);
     children.push_back(nm->mkNode(onk, flit, fcn));
     Node ret = children.size() == 1 ? children[0] : nm->mkNode(nk, children);
@@ -979,7 +979,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
                                             Node n,
                                             bool isXor)
 {
-  CVC4_DCHECK(n.getKind() == andk || n.getKind() == ork);
+  Assert(n.getKind() == andk || n.getKind() == ork);
   Trace("ext-rew-eqres") << "Eq res: **** INPUT: " << n << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
@@ -1019,7 +1019,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
         std::vector<Node> subs;
         if (inferSubstitution(eq, vars, subs))
         {
-          CVC4_DCHECK(vars.size() == 1);
+          Assert(vars.size() == 1);
           std::vector<Node> children;
           bool childrenChanged = false;
           // apply to all other children
@@ -1135,7 +1135,7 @@ class SimpSubsumeTrie
 Node ExtendedRewriter::extendedRewriteEqChain(
     Kind eqk, Kind andk, Kind ork, Kind notk, Node ret, bool isXor)
 {
-  CVC4_DCHECK(ret.getKind() == eqk);
+  Assert(ret.getKind() == eqk);
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -1216,7 +1216,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         Node cl = c[j];
         bool pol = cl.getKind() != notk;
         Node ca = pol ? cl : cl[0];
-        CVC4_DCHECK(atoms[c].find(ca) == atoms[c].end());
+        Assert(atoms[c].find(ca) == atoms[c].end());
         // polarity is flipped when we are AND
         atoms[c][ca] = (ck == andk ? !pol : pol);
         alist[c].push_back(ca);
@@ -1300,7 +1300,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     }
     Node c = cp.first;
     std::map<Node, std::map<Node, bool> >::iterator itc = atoms.find(c);
-    CVC4_DCHECK(itc != atoms.end());
+    Assert(itc != atoms.end());
     Trace("ext-rew-eqchain") << "  - add term " << c << " with atom list "
                              << alist[c] << "...\n";
     std::vector<Node> subsumes;
@@ -1316,7 +1316,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
                                << cc << std::endl;
       // for each of the atoms in cc
       std::map<Node, std::map<Node, bool> >::iterator itcc = atoms.find(cc);
-      CVC4_DCHECK(itcc != atoms.end());
+      Assert(itcc != atoms.end());
       std::vector<Node> common_children;
       std::vector<Node> diff_children;
       for (const std::pair<const Node, bool>& ap : itcc->second)
@@ -1324,7 +1324,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         // compare the polarity
         Node a = ap.first;
         bool polcc = ap.second;
-        CVC4_DCHECK(itc->second.find(a) != itc->second.end());
+        Assert(itc->second.find(a) != itc->second.end());
         bool polc = itc->second[a];
         Trace("ext-rew-eqchain") << "    eqchain-simplify: atom " << a
                                  << " has polarities : " << polc << " " << polcc
@@ -1382,7 +1382,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
       {
         // ( x | y | z ) = ( x | ~y | z ) ---> ( x | z )
         do_rewrite = true;
-        CVC4_DCHECK(!common_children.empty());
+        Assert(!common_children.empty());
         Node comn = common_children.size() == 1
                         ? common_children[0]
                         : nm->mkNode(ork, common_children);
@@ -1534,8 +1534,8 @@ Node ExtendedRewriter::partialSubstitute(Node n,
       for (const Node& cn : cur)
       {
         it = visited.find(cn);
-        CVC4_DCHECK(it != visited.end());
-        CVC4_DCHECK(!it->second.isNull());
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
@@ -1546,15 +1546,15 @@ Node ExtendedRewriter::partialSubstitute(Node n,
       visited[cur] = ret;
     }
   } while (!visit.empty());
-  CVC4_DCHECK(visited.find(n) != visited.end());
-  CVC4_DCHECK(!visited.find(n)->second.isNull());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
   return visited[n];
 }
 
 Node ExtendedRewriter::solveEquality(Node n)
 {
   // TODO (#1706) : implement
-  CVC4_DCHECK(n.getKind() == EQUAL);
+  Assert(n.getKind() == EQUAL);
 
   return Node::null();
 }
@@ -1609,7 +1609,7 @@ bool ExtendedRewriter::inferSubstitution(Node n,
         r2 = n[1 - i];
         if (v[i] != n[i])
         {
-          CVC4_DCHECK(TermUtil::isNegate(n[i].getKind()));
+          Assert(TermUtil::isNegate(n[i].getKind()));
           r2 = TermUtil::mkNegate(n[i].getKind(), r2);
         }
         // TODO (#1706) : union find

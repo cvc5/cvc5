@@ -91,7 +91,7 @@ struct ExtractTerm {
       high(h),
       low(l)
   {
-    CVC4_DCHECK(h >= l && id != UndefinedId);
+    Assert(h >= l && id != UndefinedId);
   }
   Index getBitwidth() const { return high - low + 1; }
   std::string debugPrint() const; 
@@ -138,15 +138,15 @@ class UnionFind {
     bool hasChildren() const { return d_ch1 != UndefinedId && d_ch0 != UndefinedId; }
 
     TermId getChild(Index i) const {
-      CVC4_DCHECK(i < 2);
+      Assert(i < 2);
       return i == 0? d_ch0 : d_ch1;
     }
     void setRepr(TermId id) {
-      CVC4_DCHECK(!hasChildren());
+      Assert(!hasChildren());
       d_repr = id;
     }
     void setChildren(TermId ch1, TermId ch0) {
-      CVC4_DCHECK(d_repr == UndefinedId && !hasChildren());
+      Assert(d_repr == UndefinedId && !hasChildren());
       d_ch1 = ch1;
       d_ch0 = ch0; 
     }
@@ -162,28 +162,28 @@ class UnionFind {
   void handleCommonSlice(const Decomposition& d1, const Decomposition& d2, TermId common);
   /// getter methods for the internal nodes
   TermId getRepr(TermId id)  const {
-    CVC4_DCHECK(id < d_nodes.size());
+    Assert(id < d_nodes.size());
     return d_nodes[id].getRepr(); 
   }
   TermId getChild(TermId id, Index i) const {
-    CVC4_DCHECK(id < d_nodes.size());
+    Assert(id < d_nodes.size());
     return d_nodes[id].getChild(i); 
   }
   Index getCutPoint(TermId id) const {
     return getBitwidth(getChild(id, 0)); 
   }
   bool hasChildren(TermId id) const {
-    CVC4_DCHECK(id < d_nodes.size());
+    Assert(id < d_nodes.size());
     return d_nodes[id].hasChildren(); 
   }
   /// setter methods for the internal nodes
   void setRepr(TermId id, TermId new_repr) {
-    CVC4_DCHECK(id < d_nodes.size());
+    Assert(id < d_nodes.size());
     d_nodes[id].setRepr(new_repr); 
   }
   void setChildren(TermId id, TermId ch1, TermId ch0) {
-    CVC4_DCHECK(id < d_nodes.size()
-                && getBitwidth(id) == getBitwidth(ch1) + getBitwidth(ch0));
+    Assert(id < d_nodes.size()
+           && getBitwidth(id) == getBitwidth(ch1) + getBitwidth(ch0));
     d_nodes[id].setChildren(ch1, ch0); 
   }
 
@@ -219,7 +219,7 @@ public:
   void alignSlicings(const ExtractTerm& term1, const ExtractTerm& term2);
   void ensureSlicing(const ExtractTerm& term);
   Index getBitwidth(TermId id) const {
-    CVC4_DCHECK(id < d_nodes.size());
+    Assert(id < d_nodes.size());
     return d_nodes[id].getBitwidth(); 
   }
   std::string debugPrint(TermId id);

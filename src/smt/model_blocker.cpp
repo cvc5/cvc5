@@ -45,7 +45,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
   Node blocker;
   if (mode == BLOCK_MODELS_LITERALS)
   {
-    CVC4_DCHECK(nodesToBlock.empty());
+    Assert(nodesToBlock.empty());
     // optimization: filter out top-level unit assertions, as they cannot
     // contribute to model blocking.
     unsigned counter = 0;
@@ -118,7 +118,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
               // quantified formulas can be queried
               n = theory::Rewriter::rewrite(n);
               Node vn = Node::fromExpr(m->getValue(n.toExpr()));
-              CVC4_DCHECK(vn.isConst());
+              Assert(vn.isConst());
               if (vn.getConst<bool>() == cpol)
               {
                 impl = cpol ? n : n.negate();
@@ -140,7 +140,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         else if (catom.getKind() == ITE)
         {
           Node vcond = Node::fromExpr(m->getValue(cur[0].toExpr()));
-          CVC4_DCHECK(vcond.isConst());
+          Assert(vcond.isConst());
           Node cond = cur[0];
           Node branch;
           if (vcond.getConst<bool>())
@@ -162,7 +162,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
           for (const Node& cn : catom)
           {
             Node vn = Node::fromExpr(m->getValue(cn.toExpr()));
-            CVC4_DCHECK(vn.isConst());
+            Assert(vn.isConst());
             children.push_back(vn.getConst<bool>() ? cn : cn.negate());
           }
           impl = nm->mkNode(AND, children);
@@ -178,7 +178,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
           visit.push_back(cur);
           if (impl.isNull())
           {
-            CVC4_DCHECK(cur.getKind() == AND);
+            Assert(cur.getKind() == AND);
             Trace("model-blocker-debug") << "...recurse" << std::endl;
             visit.insert(visit.end(), cur.begin(), cur.end());
           }
@@ -199,8 +199,8 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         {
           Node impl = it->second;
           it = visited.find(impl);
-          CVC4_DCHECK(it != visited.end());
-          CVC4_DCHECK(!it->second.isNull());
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
           ret = it->second;
           Trace("model-blocker-debug")
               << "...implicant res: " << ret << std::endl;
@@ -210,12 +210,12 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
           bool childChanged = false;
           std::vector<Node> children;
           // we never recurse to parameterized nodes
-          CVC4_DCHECK(cur.getMetaKind() != metakind::PARAMETERIZED);
+          Assert(cur.getMetaKind() != metakind::PARAMETERIZED);
           for (const Node& cn : cur)
           {
             it = visited.find(cn);
-            CVC4_DCHECK(it != visited.end());
-            CVC4_DCHECK(!it->second.isNull());
+            Assert(it != visited.end());
+            Assert(!it->second.isNull());
             childChanged = childChanged || cn != it->second;
             children.push_back(it->second);
           }
@@ -228,13 +228,13 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         visited[cur] = ret;
       }
     } while (!visit.empty());
-    CVC4_DCHECK(visited.find(formula) != visited.end());
-    CVC4_DCHECK(!visited.find(formula)->second.isNull());
+    Assert(visited.find(formula) != visited.end());
+    Assert(!visited.find(formula)->second.isNull());
     blocker = visited[formula].negate();
   }
   else
   {
-    CVC4_DCHECK(mode == BLOCK_MODELS_VALUES);
+    Assert(mode == BLOCK_MODELS_VALUES);
     std::vector<Node> blockers;
     // if specific terms were not specified, block all variables of
     // the model

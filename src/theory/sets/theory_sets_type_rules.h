@@ -48,8 +48,8 @@ public:
 struct SetsBinaryOperatorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
-                || n.getKind() == kind::SETMINUS);
+    Assert(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
+           || n.getKind() == kind::SETMINUS);
     TypeNode setType = n[0].getType(check);
     if( check ) {
       if(!setType.isSet()) {
@@ -72,8 +72,8 @@ struct SetsBinaryOperatorTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    CVC4_DCHECK(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
-                || n.getKind() == kind::SETMINUS);
+    Assert(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
+           || n.getKind() == kind::SETMINUS);
     if(n.getKind() == kind::UNION) {
       return NormalForm::checkNormalConstant(n);
     } else {
@@ -85,7 +85,7 @@ struct SetsBinaryOperatorTypeRule {
 struct SubsetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::SUBSET);
+    Assert(n.getKind() == kind::SUBSET);
     TypeNode setType = n[0].getType(check);
     if( check ) {
       if(!setType.isSet()) {
@@ -105,7 +105,7 @@ struct SubsetTypeRule {
 struct MemberTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::MEMBER);
+    Assert(n.getKind() == kind::MEMBER);
     TypeNode setType = n[1].getType(check);
     if( check ) {
       if(!setType.isSet()) {
@@ -144,12 +144,12 @@ struct MemberTypeRule {
 struct SingletonTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::SINGLETON);
+    Assert(n.getKind() == kind::SINGLETON);
     return nodeManager->mkSetType(n[0].getType(check));
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    CVC4_DCHECK(n.getKind() == kind::SINGLETON);
+    Assert(n.getKind() == kind::SINGLETON);
     return n[0].isConst();
   }
 };/* struct SingletonTypeRule */
@@ -157,7 +157,7 @@ struct SingletonTypeRule {
 struct EmptySetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::EMPTYSET);
+    Assert(n.getKind() == kind::EMPTYSET);
     EmptySet emptySet = n.getConst<EmptySet>();
     Type setType = emptySet.getType();
     return TypeNode::fromType(setType);
@@ -167,7 +167,7 @@ struct EmptySetTypeRule {
 struct CardTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::CARD);
+    Assert(n.getKind() == kind::CARD);
     TypeNode setType = n[0].getType(check);
     if( check ) {
       if(!setType.isSet()) {
@@ -178,7 +178,7 @@ struct CardTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    CVC4_DCHECK(n.getKind() == kind::CARD);
+    Assert(n.getKind() == kind::CARD);
     return false;
   }
 };/* struct CardTypeRule */
@@ -186,7 +186,7 @@ struct CardTypeRule {
 struct ComplementTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::COMPLEMENT);
+    Assert(n.getKind() == kind::COMPLEMENT);
     TypeNode setType = n[0].getType(check);
     if( check ) {
       if(!setType.isSet()) {
@@ -197,7 +197,7 @@ struct ComplementTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    CVC4_DCHECK(n.getKind() == kind::COMPLEMENT);
+    Assert(n.getKind() == kind::COMPLEMENT);
     return false;
   }
 };/* struct ComplementTypeRule */
@@ -205,9 +205,9 @@ struct ComplementTypeRule {
 struct UniverseSetTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::UNIVERSE_SET);
+    Assert(n.getKind() == kind::UNIVERSE_SET);
     // for nullary operators, we only computeType for check=true, since they are given TypeAttr() on creation
-    CVC4_DCHECK(check);
+    Assert(check);
     TypeNode setType = n.getType();
     if(!setType.isSet()) {
       throw TypeCheckingExceptionPrivate(n, "Non-set type found for universe set");
@@ -219,9 +219,9 @@ struct UniverseSetTypeRule {
 struct InsertTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::INSERT);
+    Assert(n.getKind() == kind::INSERT);
     size_t numChildren = n.getNumChildren();
-    CVC4_DCHECK(numChildren >= 2);
+    Assert(numChildren >= 2);
     TypeNode setType = n[numChildren-1].getType(check);
     if( check ) {
       if(!setType.isSet()) {
@@ -239,7 +239,7 @@ struct InsertTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    CVC4_DCHECK(n.getKind() == kind::INSERT);
+    Assert(n.getKind() == kind::INSERT);
     return false;
   }
 };/* struct InsertTypeRule */
@@ -247,7 +247,7 @@ struct InsertTypeRule {
 struct RelBinaryOperatorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::PRODUCT || n.getKind() == kind::JOIN);
+    Assert(n.getKind() == kind::PRODUCT || n.getKind() == kind::JOIN);
 
     TypeNode firstRelType = n[0].getType(check);
     TypeNode secondRelType = n[1].getType(check);
@@ -283,7 +283,7 @@ struct RelBinaryOperatorTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    CVC4_DCHECK(n.getKind() == kind::JOIN || n.getKind() == kind::PRODUCT);
+    Assert(n.getKind() == kind::JOIN || n.getKind() == kind::PRODUCT);
     return false;
   }
 };/* struct RelBinaryOperatorTypeRule */
@@ -291,7 +291,7 @@ struct RelBinaryOperatorTypeRule {
 struct RelTransposeTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::TRANSPOSE);
+    Assert(n.getKind() == kind::TRANSPOSE);
     TypeNode setType = n[0].getType(check);
     if(check && (!setType.isSet() || !setType.getSetElementType().isTuple())) {
         throw TypeCheckingExceptionPrivate(n, "relation transpose operates on non-relation");
@@ -309,7 +309,7 @@ struct RelTransposeTypeRule {
 struct RelTransClosureTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::TCLOSURE);
+    Assert(n.getKind() == kind::TCLOSURE);
     TypeNode setType = n[0].getType(check);
     if(check) {
       if(!setType.isSet() || !setType.getSetElementType().isTuple()) {
@@ -327,7 +327,7 @@ struct RelTransClosureTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    CVC4_DCHECK(n.getKind() == kind::TCLOSURE);
+    Assert(n.getKind() == kind::TCLOSURE);
     return false;
     }
 };/* struct RelTransClosureTypeRule */
@@ -335,7 +335,7 @@ struct RelTransClosureTypeRule {
 struct JoinImageTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::JOIN_IMAGE);
+    Assert(n.getKind() == kind::JOIN_IMAGE);
 
     TypeNode firstRelType = n[0].getType(check);
 
@@ -374,7 +374,7 @@ struct JoinImageTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    CVC4_DCHECK(n.getKind() == kind::JOIN_IMAGE);
+    Assert(n.getKind() == kind::JOIN_IMAGE);
     return false;
   }
 };/* struct JoinImageTypeRule */
@@ -382,7 +382,7 @@ struct JoinImageTypeRule {
 struct RelIdenTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    CVC4_DCHECK(n.getKind() == kind::IDEN);
+    Assert(n.getKind() == kind::IDEN);
     TypeNode setType = n[0].getType(check);
     if(check) {
       if(!setType.isSet() && !setType.getSetElementType().isTuple()) {
@@ -404,7 +404,7 @@ struct RelIdenTypeRule {
 
 struct SetsProperties {
   inline static Cardinality computeCardinality(TypeNode type) {
-    CVC4_DCHECK(type.getKind() == kind::SET_TYPE);
+    Assert(type.getKind() == kind::SET_TYPE);
     Cardinality elementCard = 2;
     elementCard ^= type[0].getCardinality();
     return elementCard;
@@ -415,7 +415,7 @@ struct SetsProperties {
   }
 
   inline static Node mkGroundTerm(TypeNode type) {
-    CVC4_DCHECK(type.isSet());
+    Assert(type.isSet());
     return NodeManager::currentNM()->mkConst(EmptySet(type.toType()));
   }
 };/* struct SetsProperties */

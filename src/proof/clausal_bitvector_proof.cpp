@@ -63,7 +63,7 @@ void ClausalBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
                                          prop::SatVariable trueVar,
                                          prop::SatVariable falseVar)
 {
-  CVC4_DCHECK(d_cnfProof == nullptr);
+  Assert(d_cnfProof == nullptr);
   d_cnfProof.reset(new LFSCCnfProof(cnfStream, cnf, "bb"));
 
   // Create a clause which forces the true variable to be true, and register it
@@ -108,7 +108,7 @@ void ClausalBitVectorProof::calculateAtomsInBitblastingProof()
 
   // Empty any old record of which atoms were used
   d_atomsInBitblastingProof.clear();
-  CVC4_DCHECK(d_atomsInBitblastingProof.size() == 0);
+  Assert(d_atomsInBitblastingProof.size() == 0);
 
   // For each used clause, ask the CNF proof which atoms are used in it
   for (const ClauseId usedIdx : d_coreClauseIndices)
@@ -175,18 +175,18 @@ void ClausalBitVectorProof::optimizeDratProof()
                                                    optFormulaFilename,
                                                    optDratFilename,
                                                    drat2er::options::QUIET);
-      CVC4_CHECK(dratTrimExitCode == 0)
+      AlwaysAssert(dratTrimExitCode == 0)
           << "drat-trim exited with " << dratTrimExitCode;
     }
 #else
-    Unimplemented(
-        "Proof production when using CryptoMiniSat requires drat2er.\n"
-        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented()
+        << "Proof production when using CryptoMiniSat requires drat2er.\n"
+        << "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild";
 #endif
 
     {
       d_binaryDratProof.str("");
-      CVC4_DCHECK(d_binaryDratProof.str().size() == 0);
+      Assert(d_binaryDratProof.str().size() == 0);
 
       const int64_t startPos = static_cast<int64_t>(d_binaryDratProof.tellp());
       std::ifstream lratStream(optDratFilename);
@@ -243,7 +243,7 @@ void ClausalBitVectorProof::optimizeDratProof()
 
     optFormulaStream->close();
 
-    CVC4_DCHECK(d_coreClauseIndices.size() > 0);
+    Assert(d_coreClauseIndices.size() > 0);
     remove(formulaFilename.c_str());
     remove(dratFilename.c_str());
     remove(optDratFilename.c_str());
@@ -314,9 +314,9 @@ void LfscClausalBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                                       std::ostream& paren,
                                                       const ProofLetMap& map)
 {
-  Unreachable(
-      "Clausal bit-vector proofs should only be used in combination with eager "
-      "bitblasting, which **does not use theory lemmas**");
+  Unreachable() << "Clausal bit-vector proofs should only be used in "
+                   "combination with eager "
+                   "bitblasting, which **does not use theory lemmas**";
 }
 
 void LfscClausalBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
@@ -339,7 +339,7 @@ void LfscClausalBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
 void LfscDratBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                    std::ostream& paren)
 {
-  CVC4_DCHECK(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
       << "the BV theory should only be proving bottom directly in the eager "
          "bitblasting mode";
 
@@ -366,7 +366,7 @@ void LfscDratBitVectorProof::printEmptyClauseProof(std::ostream& os,
 void LfscLratBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                    std::ostream& paren)
 {
-  CVC4_DCHECK(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
       << "the BV theory should only be proving bottom directly in the eager "
          "bitblasting mode";
 
@@ -396,7 +396,7 @@ void LfscLratBitVectorProof::printEmptyClauseProof(std::ostream& os,
 void LfscErBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                  std::ostream& paren)
 {
-  CVC4_DCHECK(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
       << "the BV theory should only be proving bottom directly in the eager "
          "bitblasting mode";
 

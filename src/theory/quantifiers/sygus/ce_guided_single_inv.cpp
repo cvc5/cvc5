@@ -53,7 +53,7 @@ CegSingleInv::~CegSingleInv()
 void CegSingleInv::initialize(Node q)
 {
   // can only register one quantified formula with this
-  CVC4_DCHECK(d_quant.isNull());
+  Assert(d_quant.isNull());
   d_quant = q;
   d_simp_quant = q;
   Trace("cegqi-si") << "CegSingleInv::initialize : " << q << std::endl;
@@ -100,7 +100,7 @@ void CegSingleInv::initialize(Node q)
   d_sip->getFunctions(funcs);
   for (unsigned j = 0, size = funcs.size(); j < size; j++)
   {
-    CVC4_DCHECK(std::find(progs.begin(), progs.end(), funcs[j]) != progs.end());
+    Assert(std::find(progs.begin(), progs.end(), funcs[j]) != progs.end());
     d_prog_to_sol_index[funcs[j]] = j;
   }
 
@@ -151,7 +151,7 @@ void CegSingleInv::initialize(Node q)
     // the invariant could not be inferred
     return;
   }
-  CVC4_DCHECK(prog == q[0][0]);
+  Assert(prog == q[0][0]);
   NodeManager* nm = NodeManager::currentNM();
   // map the program back via non-single invocation map
   std::vector<Node> prog_templ_vars;
@@ -163,7 +163,7 @@ void CegSingleInv::initialize(Node q)
   std::vector<Node> sivars;
   d_sip->getSingleInvocationVariables(sivars);
   Node invariant = d_sip->getFunctionInvocationFor(prog);
-  CVC4_DCHECK(!invariant.isNull());
+  Assert(!invariant.isNull());
   invariant = invariant.substitute(sivars.begin(),
                                    sivars.end(),
                                    prog_templ_vars.begin(),
@@ -179,7 +179,7 @@ void CegSingleInv::initialize(Node q)
   }
   d_simp_quant = d_simp_quant.substitute(
       sivars.begin(), sivars.end(), new_bv.begin(), new_bv.end());
-  CVC4_DCHECK(q[1].getKind() == NOT && q[1][0].getKind() == FORALL);
+  Assert(q[1].getKind() == NOT && q[1][0].getKind() == FORALL);
   for (const Node& v : q[1][0][0])
   {
     new_bv.push_back(v);
@@ -249,15 +249,15 @@ void CegSingleInv::initialize(Node q)
     }
     else
     {
-      CVC4_DCHECK(tmode == SYGUS_INV_TEMPL_MODE_POST);
+      Assert(tmode == SYGUS_INV_TEMPL_MODE_POST);
       templ = nm->mkNode(AND, d_trans_post[prog], d_templ_arg[prog]);
     }
   }
   Trace("cegqi-inv") << "       template (pre-substitution) : " << templ
                      << std::endl;
-  CVC4_DCHECK(!templ.isNull());
+  Assert(!templ.isNull());
   // subsitute the template arguments
-  CVC4_DCHECK(prog_templ_vars.size() == prog_vars[prog].size());
+  Assert(prog_templ_vars.size() == prog_vars[prog].size());
   templ = templ.substitute(prog_templ_vars.begin(),
                            prog_templ_vars.end(),
                            prog_vars[prog].begin(),
@@ -379,7 +379,7 @@ bool CegSingleInv::solve()
   // now, get the instantiations
   std::vector<Expr> qs;
   siSmt.getInstantiatedQuantifiedFormulas(qs);
-  CVC4_DCHECK(qs.size() <= 1);
+  Assert(qs.size() <= 1);
   // track the instantiations, as solution construction is based on this
   Trace("cegqi-si") << "#instantiated quantified formulas=" << qs.size()
                     << std::endl;
@@ -388,7 +388,7 @@ bool CegSingleInv::solve()
   for (const Expr& q : qs)
   {
     TNode qn = Node::fromExpr(q);
-    CVC4_DCHECK(qn.getKind() == FORALL);
+    Assert(qn.getKind() == FORALL);
     std::vector<std::vector<Expr> > tvecs;
     siSmt.getInstantiationTermVectors(q, tvecs);
     Trace("cegqi-si") << "#instantiations of " << q << "=" << tvecs.size()
@@ -409,7 +409,7 @@ bool CegSingleInv::solve()
       }
       Trace("cegqi-si") << "  Instantiation: " << inst << std::endl;
       d_inst.push_back(inst);
-      CVC4_DCHECK(inst.size() == vars.size());
+      Assert(inst.size() == vars.size());
       Node ilem =
           body.substitute(vars.begin(), vars.end(), inst.begin(), inst.end());
       ilem = Rewriter::rewrite(ilem);
@@ -466,7 +466,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
                                int& reconstructed,
                                bool rconsSygus)
 {
-  CVC4_DCHECK(d_sol != NULL);
+  Assert(d_sol != NULL);
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
   Node varList = Node::fromExpr( dt.getSygusVarList() );
   Node prog = d_quant[0][sol_index];
@@ -486,7 +486,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     Trace("csi-sol") << "Get solution for " << prog << ", with skolems : ";
     sol_index = d_prog_to_sol_index[prog];
     d_sol->d_varList.clear();
-    CVC4_DCHECK(d_single_inv_arg_sk.size() == varList.getNumChildren());
+    Assert(d_single_inv_arg_sk.size() == varList.getNumChildren());
     for( unsigned i=0; i<d_single_inv_arg_sk.size(); i++ ){
       Trace("csi-sol") << d_single_inv_arg_sk[i] << " ";
       vars.push_back( d_single_inv_arg_sk[i] );
@@ -501,7 +501,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     {
       indices.push_back(i);
     }
-    CVC4_DCHECK(!indices.empty());
+    Assert(!indices.empty());
     //sort indices based on heuristic : currently, do all constant returns first (leads to simpler conditions)
     // TODO : to minimize solution size, put the largest term last
     sortSiInstanceIndices ssii;
@@ -520,7 +520,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       cond = TermUtil::simpleNegate(cond);
       s = nm->mkNode(ITE, cond, d_inst[uindex][sol_index], s);
     }
-    CVC4_DCHECK(vars.size() == d_sol->d_varList.size());
+    Assert(vars.size() == d_sol->d_varList.size());
     s = s.substitute( vars.begin(), vars.end(), d_sol->d_varList.begin(), d_sol->d_varList.end() );
   }
   d_orig_solution = s;
@@ -622,9 +622,9 @@ void CegSingleInv::preregisterConjecture(Node q) { d_orig_conjecture = q; }
 
 bool CegSingleInv::solveTrivial(Node q)
 {
-  CVC4_DCHECK(!d_isSolved);
-  CVC4_DCHECK(d_inst.empty());
-  CVC4_DCHECK(q.getKind() == FORALL);
+  Assert(!d_isSolved);
+  Assert(d_inst.empty());
+  Assert(q.getKind() == FORALL);
   // If the conjecture is forall x1...xn. ~(x1 = t1 ^ ... xn = tn), it is
   // trivially solvable.
   std::vector<Node> args(q[0].begin(), q[0].end());
@@ -643,7 +643,7 @@ bool CegSingleInv::solveTrivial(Node q)
     // if we eliminated a variable, update body and reprocess
     if (!varsTmp.empty())
     {
-      CVC4_DCHECK(varsTmp.size() == subsTmp.size());
+      Assert(varsTmp.size() == subsTmp.size());
       // remake with eliminated nodes
       body = body.substitute(
           varsTmp.begin(), varsTmp.end(), subsTmp.begin(), subsTmp.end());
@@ -675,7 +675,7 @@ bool CegSingleInv::solveTrivial(Node q)
     std::vector<Node> inst;
     for (const Node& v : q[0])
     {
-      CVC4_DCHECK(imap.find(v) != imap.end());
+      Assert(imap.find(v) != imap.end());
       inst.push_back(imap[v]);
     }
     d_inst.push_back(inst);

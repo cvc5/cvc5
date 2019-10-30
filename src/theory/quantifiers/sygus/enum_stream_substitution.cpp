@@ -80,7 +80,7 @@ void EnumStreamPermutation::reset(Node value)
   std::unordered_set<Node, NodeHashFunction> seen_vars;
   for (const Node& v_cons : vars)
   {
-    CVC4_DCHECK(cons_var.find(v_cons) != cons_var.end());
+    Assert(cons_var.find(v_cons) != cons_var.end());
     Node var = cons_var[v_cons];
     if (seen_vars.insert(var).second)
     {
@@ -163,7 +163,7 @@ Node EnumStreamPermutation::getNext()
       // retrieve variables for substitution domain
       const std::vector<Node>& domain_sub_class =
           d_perm_state_class[i].getVars();
-      CVC4_DCHECK(domain_sub_class.size() == raw_sub.size());
+      Assert(domain_sub_class.size() == raw_sub.size());
       // build proper substitution based on variables types and constructors
       for (unsigned j = 0, size_j = raw_sub.size(); j < size_j; ++j)
       {
@@ -215,7 +215,7 @@ const std::vector<Node>& EnumStreamPermutation::getVarsClass(unsigned id) const
 {
   std::map<unsigned, std::vector<Node>>::const_iterator it =
       d_var_classes.find(id);
-  CVC4_DCHECK(it != d_var_classes.end());
+  Assert(it != d_var_classes.end());
   return it->second;
 }
 
@@ -363,7 +363,7 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
   // split initial variables into classes
   for (const Node& v : var_list)
   {
-    CVC4_DCHECK(ti.getSubclassForVar(v) > 0);
+    Assert(ti.getSubclassForVar(v) > 0);
     d_var_classes[ti.getSubclassForVar(v)].push_back(v);
   }
 }
@@ -488,7 +488,7 @@ Node EnumStreamSubstitution::getNext()
     const std::vector<Node>& domain_sub_class =
         d_stream_permutations.getVarsClass(
             d_comb_state_class[i].getSubclassId());
-    CVC4_DCHECK(domain_sub_class.size() == raw_sub.size());
+    Assert(domain_sub_class.size() == raw_sub.size());
     // build proper substitution based on variables types and constructors
     for (unsigned j = 0, size_j = raw_sub.size(); j < size_j; ++j)
     {
@@ -555,8 +555,8 @@ EnumStreamSubstitution::CombinationState::CombinationState(
     unsigned n, unsigned k, unsigned subclass_id, const std::vector<Node>& vars)
     : d_n(n), d_k(k)
 {
-  CVC4_DCHECK(!vars.empty());
-  CVC4_DCHECK(k <= n);
+  Assert(!vars.empty());
+  Assert(k <= n);
   d_last_comb.resize(k);
   std::iota(d_last_comb.begin(), d_last_comb.end(), 0);
   d_vars = vars;

@@ -427,7 +427,7 @@ bool SymbolTable::Implementation::isBound(const string& name) const {
 }
 
 Expr SymbolTable::Implementation::lookup(const string& name) const {
-  CVC4_DCHECK(isBound(name));
+  Assert(isBound(name));
   Expr expr = (*d_exprMap->find(name)).second;
   if (isOverloadedFunction(expr)) {
     return d_nullExpr;

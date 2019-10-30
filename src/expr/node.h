@@ -33,8 +33,8 @@
 #include <utility>
 #include <vector>
 
+#include "base/check.h"
 #include "base/configuration.h"
-#include "base/cvc4_check.h"
 #include "base/exception.h"
 #include "base/output.h"
 #include "expr/expr.h"
@@ -226,7 +226,7 @@ class NodeTemplate {
   inline void assertTNodeNotExpired() const
   {
     if(!ref_count) {
-      CVC4_DCHECK(d_nv->d_rc > 0) << "TNode pointing to an expired NodeValue";
+      Assert(d_nv->d_rc > 0) << "TNode pointing to an expired NodeValue";
     }
   }
 
@@ -1022,7 +1022,7 @@ template <bool ref_count>
 template <class AttrKind>
 inline typename AttrKind::value_type NodeTemplate<ref_count>::
 getAttribute(const AttrKind&) const {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
@@ -1035,7 +1035,7 @@ template <bool ref_count>
 template <class AttrKind>
 inline bool NodeTemplate<ref_count>::
 hasAttribute(const AttrKind&) const {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
@@ -1048,7 +1048,7 @@ template <bool ref_count>
 template <class AttrKind>
 inline bool NodeTemplate<ref_count>::getAttribute(const AttrKind&,
                                                   typename AttrKind::value_type& ret) const {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
@@ -1061,7 +1061,7 @@ template <bool ref_count>
 template <class AttrKind>
 inline void NodeTemplate<ref_count>::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
@@ -1080,11 +1080,11 @@ NodeTemplate<ref_count> NodeTemplate<ref_count>::s_null(&expr::NodeValue::null()
 template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
   d_nv(const_cast<expr::NodeValue*> (ev)) {
-  CVC4_DCHECK(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
   if(ref_count) {
     d_nv->inc();
   } else {
-    CVC4_DCHECK(d_nv->d_rc > 0 || d_nv == &expr::NodeValue::null())
+    Assert(d_nv->d_rc > 0 || d_nv == &expr::NodeValue::null())
         << "TNode constructed from NodeValue with rc == 0";
   }
 }
@@ -1095,38 +1095,37 @@ NodeTemplate<ref_count>::NodeTemplate(const expr::NodeValue* ev) :
 
 template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate<!ref_count>& e) {
-  CVC4_DCHECK(e.d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv = e.d_nv;
   if(ref_count) {
-    CVC4_DCHECK(d_nv->d_rc > 0) << "Node constructed from TNode with rc == 0";
+    Assert(d_nv->d_rc > 0) << "Node constructed from TNode with rc == 0";
     d_nv->inc();
   } else {
     // shouldn't ever fail
-    CVC4_DCHECK(d_nv->d_rc > 0) << "TNode constructed from Node with rc == 0";
+    Assert(d_nv->d_rc > 0) << "TNode constructed from Node with rc == 0";
   }
 }
 
 template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
-  CVC4_DCHECK(e.d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv = e.d_nv;
   if(ref_count) {
     // shouldn't ever fail
-    CVC4_DCHECK(d_nv->d_rc > 0) << "Node constructed from Node with rc == 0";
+    Assert(d_nv->d_rc > 0) << "Node constructed from Node with rc == 0";
     d_nv->inc();
   } else {
-    CVC4_DCHECK(d_nv->d_rc > 0) << "TNode constructed from TNode with rc == 0";
+    Assert(d_nv->d_rc > 0) << "TNode constructed from TNode with rc == 0";
   }
 }
 
 template <bool ref_count>
 NodeTemplate<ref_count>::NodeTemplate(const Expr& e) {
-  CVC4_DCHECK(e.d_node != NULL) << "Expecting a non-NULL expression value!";
-  CVC4_DCHECK(e.d_node->d_nv != NULL)
-      << "Expecting a non-NULL expression value!";
+  Assert(e.d_node != NULL) << "Expecting a non-NULL expression value!";
+  Assert(e.d_node->d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv = e.d_node->d_nv;
   // shouldn't ever fail
-  CVC4_DCHECK(d_nv->d_rc > 0) << "Node constructed from Expr with rc == 0";
+  Assert(d_nv->d_rc > 0) << "Node constructed from Expr with rc == 0";
   if(ref_count) {
     d_nv->inc();
   }
@@ -1134,10 +1133,10 @@ NodeTemplate<ref_count>::NodeTemplate(const Expr& e) {
 
 template <bool ref_count>
 NodeTemplate<ref_count>::~NodeTemplate() {
-  CVC4_DCHECK(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
   if(ref_count) {
     // shouldn't ever fail
-    CVC4_DCHECK(d_nv->d_rc > 0) << "Node reference count would be negative";
+    Assert(d_nv->d_rc > 0) << "Node reference count would be negative";
     d_nv->dec();
   }
 }
@@ -1148,29 +1147,28 @@ void NodeTemplate<ref_count>::assignNodeValue(expr::NodeValue* ev) {
   if(ref_count) {
     d_nv->inc();
   } else {
-    CVC4_DCHECK(d_nv->d_rc > 0) << "TNode assigned to NodeValue with rc == 0";
+    Assert(d_nv->d_rc > 0) << "TNode assigned to NodeValue with rc == 0";
   }
 }
 
 template <bool ref_count>
 NodeTemplate<ref_count>& NodeTemplate<ref_count>::
 operator=(const NodeTemplate& e) {
-  CVC4_DCHECK(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  CVC4_DCHECK(e.d_nv != NULL)
-      << "Expecting a non-NULL expression value on RHS!";
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value on RHS!";
   if(__builtin_expect( ( d_nv != e.d_nv ), true )) {
     if(ref_count) {
       // shouldn't ever fail
-      CVC4_DCHECK(d_nv->d_rc > 0) << "Node reference count would be negative";
+      Assert(d_nv->d_rc > 0) << "Node reference count would be negative";
       d_nv->dec();
     }
     d_nv = e.d_nv;
     if(ref_count) {
       // shouldn't ever fail
-      CVC4_DCHECK(d_nv->d_rc > 0) << "Node assigned from Node with rc == 0";
+      Assert(d_nv->d_rc > 0) << "Node assigned from Node with rc == 0";
       d_nv->inc();
     } else {
-      CVC4_DCHECK(d_nv->d_rc > 0) << "TNode assigned from TNode with rc == 0";
+      Assert(d_nv->d_rc > 0) << "TNode assigned from TNode with rc == 0";
     }
   }
   return *this;
@@ -1179,22 +1177,21 @@ operator=(const NodeTemplate& e) {
 template <bool ref_count>
 NodeTemplate<ref_count>& NodeTemplate<ref_count>::
 operator=(const NodeTemplate<!ref_count>& e) {
-  CVC4_DCHECK(d_nv != NULL) << "Expecting a non-NULL expression value!";
-  CVC4_DCHECK(e.d_nv != NULL)
-      << "Expecting a non-NULL expression value on RHS!";
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(e.d_nv != NULL) << "Expecting a non-NULL expression value on RHS!";
   if(__builtin_expect( ( d_nv != e.d_nv ), true )) {
     if(ref_count) {
       // shouldn't ever fail
-      CVC4_DCHECK(d_nv->d_rc > 0) << "Node reference count would be negative";
+      Assert(d_nv->d_rc > 0) << "Node reference count would be negative";
       d_nv->dec();
     }
     d_nv = e.d_nv;
     if(ref_count) {
-      CVC4_DCHECK(d_nv->d_rc > 0) << "Node assigned from TNode with rc == 0";
+      Assert(d_nv->d_rc > 0) << "Node assigned from TNode with rc == 0";
       d_nv->inc();
     } else {
       // shouldn't ever happen
-      CVC4_DCHECK(d_nv->d_rc > 0) << "TNode assigned from Node with rc == 0";
+      Assert(d_nv->d_rc > 0) << "TNode assigned from Node with rc == 0";
     }
   }
   return *this;
@@ -1275,7 +1272,7 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
  */
 template <bool ref_count>
 NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
@@ -1303,8 +1300,7 @@ NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
   case kind::metakind::NULLARY_OPERATOR:
     IllegalArgument(*this, "getOperator() called on Node with NULLARY_OPERATOR-kinded kind");
 
-  default:
-    Unhandled(mk);
+  default: Unhandled() << mk;
   }
 }
 
@@ -1321,7 +1317,7 @@ inline bool NodeTemplate<ref_count>::hasOperator() const {
 template <bool ref_count>
 TypeNode NodeTemplate<ref_count>::getType(bool check) const
 {
-  CVC4_DCHECK(NodeManager::currentNM() != NULL)
+  Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
@@ -1344,7 +1340,7 @@ template <bool ref_count>
 Node
 NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
                                     std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
-  CVC4_DCHECK(node != *this);
+  Assert(node != *this);
 
   if (getNumChildren() == 0) {
     return *this;
@@ -1379,7 +1375,7 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
 
   // put in cache
   Node n = nb;
-  CVC4_DCHECK(node != n);
+  Assert(node != n);
   cache[*this] = n;
   return n;
 }
@@ -1411,8 +1407,8 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
   }
 
   // otherwise compute
-  CVC4_DCHECK(std::distance(nodesBegin, nodesEnd)
-              == std::distance(replacementsBegin, replacementsEnd))
+  Assert(std::distance(nodesBegin, nodesEnd)
+         == std::distance(replacementsBegin, replacementsEnd))
       << "Substitution iterator ranges must be equal size";
   Iterator1 j = find(nodesBegin, nodesEnd, TNode(*this));
   if(j != nodesEnd) {

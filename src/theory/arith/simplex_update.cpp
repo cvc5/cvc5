@@ -48,7 +48,7 @@ UpdateInfo::UpdateInfo(ArithVar nb, int dir):
   d_limiting(NullConstraint),
   d_witness(AntiProductive)
 {
-  CVC4_DCHECK(dir == 1 || dir == -1);
+  Assert(dir == 1 || dir == -1);
 }
 
 UpdateInfo::UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP c):
@@ -62,7 +62,7 @@ UpdateInfo::UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, c
   d_limiting(c),
   d_witness(ConflictFound)
 {
-  CVC4_DCHECK(conflict);
+  Assert(conflict);
 }
 
 UpdateInfo UpdateInfo::conflict(ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP lim){
@@ -76,10 +76,10 @@ void UpdateInfo::updateUnbounded(const DeltaRational& delta, int ec, int f){
   d_focusDirection = f;
   d_tableauCoefficient.clear();
   updateWitness();
-  CVC4_DCHECK(unbounded());
-  CVC4_DCHECK(improvement(d_witness));
-  CVC4_DCHECK(!describesPivot());
-  CVC4_DCHECK(debugSgnAgreement());
+  Assert(unbounded());
+  Assert(improvement(d_witness));
+  Assert(!describesPivot());
+  Assert(debugSgnAgreement());
 }
 void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
   d_limiting = c;
@@ -88,9 +88,9 @@ void UpdateInfo::updatePureFocus(const DeltaRational& delta, ConstraintP c){
   d_focusDirection = 1;
   d_tableauCoefficient.clear();
   updateWitness();
-  CVC4_DCHECK(!describesPivot());
-  CVC4_DCHECK(improvement(d_witness));
-  CVC4_DCHECK(debugSgnAgreement());
+  Assert(!describesPivot());
+  Assert(improvement(d_witness));
+  Assert(debugSgnAgreement());
 }
 
 void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, ConstraintP c){
@@ -99,8 +99,8 @@ void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, Cons
   d_errorsChange.clear();
   d_focusDirection.clear();
   updateWitness();
-  CVC4_DCHECK(describesPivot());
-  CVC4_DCHECK(debugSgnAgreement());
+  Assert(describesPivot());
+  Assert(debugSgnAgreement());
 }
 
 void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, ConstraintP c, int ec){
@@ -110,8 +110,8 @@ void UpdateInfo::updatePivot(const DeltaRational& delta, const Rational& r, Cons
   d_focusDirection.clear();
   d_tableauCoefficient = &r;
   updateWitness();
-  CVC4_DCHECK(describesPivot());
-  CVC4_DCHECK(debugSgnAgreement());
+  Assert(describesPivot());
+  Assert(debugSgnAgreement());
 }
 
 void UpdateInfo::witnessedUpdate(const DeltaRational& delta, ConstraintP c, int ec, int fd){
@@ -121,8 +121,8 @@ void UpdateInfo::witnessedUpdate(const DeltaRational& delta, ConstraintP c, int 
   d_focusDirection = fd;
   d_tableauCoefficient.clear();
   updateWitness();
-  CVC4_DCHECK(describesPivot() || improvement(d_witness));
-  CVC4_DCHECK(debugSgnAgreement());
+  Assert(describesPivot() || improvement(d_witness));
+  Assert(debugSgnAgreement());
 }
 
 void UpdateInfo::update(const DeltaRational& delta, const Rational& r, ConstraintP c, int ec, int fd){
@@ -132,8 +132,8 @@ void UpdateInfo::update(const DeltaRational& delta, const Rational& r, Constrain
   d_focusDirection = fd;
   d_tableauCoefficient = &r;
   updateWitness();
-  CVC4_DCHECK(describesPivot() || improvement(d_witness));
-  CVC4_DCHECK(debugSgnAgreement());
+  Assert(describesPivot() || improvement(d_witness));
+  Assert(debugSgnAgreement());
 }
 
 bool UpdateInfo::describesPivot() const {
@@ -154,7 +154,7 @@ void UpdateInfo::output(std::ostream& out) const{
 }
 
 ArithVar UpdateInfo::leaving() const{
-  CVC4_DCHECK(describesPivot());
+  Assert(describesPivot());
 
   return d_limiting->getVariable();
 }
