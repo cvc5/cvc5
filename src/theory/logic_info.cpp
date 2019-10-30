@@ -22,9 +22,8 @@
 #include <sstream>
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
-
 
 using namespace std;
 using namespace CVC4::theory;
@@ -334,8 +333,9 @@ std::string LogicInfo::getLogicString() const {
         ++seen;
       }
       if(seen != d_sharingTheories) {
-        Unhandled("can't extract a logic string from LogicInfo; at least one "
-                  "active theory is unknown to LogicInfo::getLogicString() !");
+        Unhandled()
+            << "can't extract a logic string from LogicInfo; at least one "
+               "active theory is unknown to LogicInfo::getLogicString() !";
       }
 
       if(seen == 0) {
