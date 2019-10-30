@@ -119,7 +119,7 @@ class OstreamVoider
 #define CVC4_FATAL() \
   FatalStream(__PRETTY_FUNCTION__, __FILE__, __LINE__).stream()
 
-/* Current versions of gcc <= 9.2 ignore CVC4_NO_RETURN of ~FatalStream() if
+/* GCC <= 9.2 ignores CVC4_NO_RETURN of ~FatalStream() if
  * used in template classes (e.g., CDHashMap::save()).  As a workaround we
  * explicitly call abort() to let the compiler know that the
  * corresponding function call will not return. */
@@ -152,68 +152,10 @@ class OstreamVoider
   CVC4_FATAL_IF(false, __PRETTY_FUNCTION__, __FILE__, __LINE__)
 #endif /* CVC4_DEBUG */
 
-class AssertionException : public Exception
+class AssertArgumentException : public Exception
 {
  protected:
-  void construct(const char* header,
-                 const char* extra,
-                 const char* function,
-                 const char* file,
-                 unsigned line,
-                 const char* fmt,
-                 ...)
-  {
-    va_list args;
-    va_start(args, fmt);
-    construct(header, extra, function, file, line, fmt, args);
-    va_end(args);
-  }
-
-  void construct(const char* header,
-                 const char* extra,
-                 const char* function,
-                 const char* file,
-                 unsigned line,
-                 const char* fmt,
-                 va_list args);
-
-  void construct(const char* header,
-                 const char* extra,
-                 const char* function,
-                 const char* file,
-                 unsigned line);
-
-  AssertionException() : Exception() {}
-
- public:
-  AssertionException(const char* extra,
-                     const char* function,
-                     const char* file,
-                     unsigned line,
-                     const char* fmt,
-                     ...)
-      : Exception()
-  {
-    va_list args;
-    va_start(args, fmt);
-    construct("Assertion failure", extra, function, file, line, fmt, args);
-    va_end(args);
-  }
-
-  AssertionException(const char* extra,
-                     const char* function,
-                     const char* file,
-                     unsigned line)
-      : Exception()
-  {
-    construct("Assertion failure", extra, function, file, line);
-  }
-}; /* class AssertionException */
-
-class AssertArgumentException : public AssertionException
-{
- protected:
-  AssertArgumentException() : AssertionException() {}
+  AssertArgumentException() : Exception() {}
 
   void construct(const char* header,
                  const char* extra,
@@ -230,77 +172,20 @@ class AssertArgumentException : public AssertionException
                  unsigned line);
 
  public:
-  AssertArgumentException(const char* argDesc,
-                          const char* function,
-                          const char* file,
-                          unsigned line,
-                          const char* fmt,
-                          ...)
-      : AssertionException()
-  {
-    va_list args;
-    va_start(args, fmt);
-    construct("Illegal argument detected",
-              (std::string("`") + argDesc + "' is a bad argument").c_str(),
-              function,
-              file,
-              line,
-              fmt,
-              args);
-    va_end(args);
-  }
-
-  AssertArgumentException(const char* argDesc,
-                          const char* function,
-                          const char* file,
-                          unsigned line)
-      : AssertionException()
-  {
-    construct("Illegal argument detected",
-              (std::string("`") + argDesc + "' is a bad argument").c_str(),
-              function,
-              file,
-              line);
-  }
-
   AssertArgumentException(const char* condStr,
                           const char* argDesc,
                           const char* function,
                           const char* file,
                           unsigned line,
                           const char* fmt,
-                          ...)
-      : AssertionException()
-  {
-    va_list args;
-    va_start(args, fmt);
-    construct("Illegal argument detected",
-              (std::string("`") + argDesc + "' is a bad argument; expected "
-               + condStr + " to hold")
-                  .c_str(),
-              function,
-              file,
-              line,
-              fmt,
-              args);
-    va_end(args);
-  }
+                          ...);
 
   AssertArgumentException(const char* condStr,
                           const char* argDesc,
                           const char* function,
                           const char* file,
-                          unsigned line)
-      : AssertionException()
-  {
-    construct("Illegal argument detected",
-              (std::string("`") + argDesc + "' is a bad argument; expected "
-               + condStr + " to hold")
-                  .c_str(),
-              function,
-              file,
-              line);
-  }
+                          unsigned line);
+
 }; /* class AssertArgumentException */
 
 #define Unreachable() CVC4_FATAL() << "Unreachable code reached"

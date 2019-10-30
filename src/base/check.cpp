@@ -170,4 +170,43 @@ void AssertArgumentException::construct(const char* header,
   delete[] buf;
 }
 
+AssertArgumentException::AssertArgumentException(const char* condStr,
+                                                 const char* argDesc,
+                                                 const char* function,
+                                                 const char* file,
+                                                 unsigned line,
+                                                 const char* fmt,
+                                                 ...)
+    : Exception()
+{
+  va_list args;
+  va_start(args, fmt);
+  construct("Illegal argument detected",
+            (std::string("`") + argDesc + "' is a bad argument; expected "
+             + condStr + " to hold")
+                .c_str(),
+            function,
+            file,
+            line,
+            fmt,
+            args);
+  va_end(args);
+}
+
+AssertArgumentException::AssertArgumentException(const char* condStr,
+                                                 const char* argDesc,
+                                                 const char* function,
+                                                 const char* file,
+                                                 unsigned line)
+    : Exception()
+{
+  construct("Illegal argument detected",
+            (std::string("`") + argDesc + "' is a bad argument; expected "
+             + condStr + " to hold")
+                .c_str(),
+            function,
+            file,
+            line);
+}
+
 }  // namespace CVC4
