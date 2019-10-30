@@ -553,85 +553,6 @@ Node NonlinearExtension::mkBounded( Node l, Node a, Node u ) {
       NodeManager::currentNM()->mkNode(LEQ, a, u));
 }
 
-// by a <k1> b, a <k2> b, we know a <ret> b
-Kind NonlinearExtension::joinKinds(Kind k1, Kind k2) {
-  if (k2 < k1) {
-    return joinKinds(k2, k1);
-  } else if (k1 == k2) {
-    return k1;
-  } else {
-    Assert(k1 == EQUAL || k1 == LT || k1 == LEQ || k1 == GT || k1 == GEQ);
-    Assert(k2 == EQUAL || k2 == LT || k2 == LEQ || k2 == GT || k2 == GEQ);
-    if (k1 == EQUAL)
-    {
-      if (k2 == LEQ || k2 == GEQ)
-      {
-        return k1;
-      }
-    }
-    else if (k1 == LT)
-    {
-      if (k2 == LEQ)
-      {
-        return k1;
-      }
-    }
-    else if (k1 == LEQ)
-    {
-      if (k2 == GEQ)
-      {
-        return EQUAL;
-      }
-    }
-    else if (k1 == GT)
-    {
-      if (k2 == GEQ)
-      {
-        return k1;
-      }
-    }
-    return UNDEFINED_KIND;
-  }
-}
-
-// by a <k1> b, b <k2> c, we know a <ret> c
-Kind NonlinearExtension::transKinds(Kind k1, Kind k2) {
-  if (k2 < k1) {
-    return transKinds(k2, k1);
-  } else if (k1 == k2) {
-    return k1;
-  } else {
-    Assert(k1 == EQUAL || k1 == LT || k1 == LEQ || k1 == GT || k1 == GEQ);
-    Assert(k2 == EQUAL || k2 == LT || k2 == LEQ || k2 == GT || k2 == GEQ);
-    if (k1 == EQUAL)
-    {
-      return k2;
-    }
-    else if (k1 == LT)
-    {
-      if (k2 == LEQ)
-      {
-        return k1;
-      }
-    }
-    else if (k1 == GT)
-    {
-      if (k2 == GEQ)
-      {
-        return k1;
-      }
-    }
-    return UNDEFINED_KIND;
-  }
-}
-
-bool NonlinearExtension::isTranscendentalKind(Kind k) {
-  // many operators are eliminated during rewriting
-  Assert(k != TANGENT && k != COSINE && k != COSECANT && k != SECANT
-         && k != COTANGENT);
-  return k == EXPONENTIAL || k == SINE || k == PI;
-}
- 
 Node NonlinearExtension::mkMonomialRemFactor(
     Node n, const NodeMultiset& n_exp_rem) const {
   std::vector<Node> children;
@@ -2288,32 +2209,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
 void NonlinearExtension::check(Theory::Effort e) {
   Trace("nl-ext") << std::endl;
-  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e << std::endl;
+  Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
+                  << ", built model = " << d_builtModel.get() << std::endl;
   if (d_builtModel.get())
   {
-    if (e == Theory::EFFORT_FULL)
-    {
-      return;
-    }
-    // now, record the approximations we used
-    NodeManager* nm = NodeManager::currentNM();
-    for (const std::pair<const Node, std::pair<Node, Node> >& cb :
-         d_check_model_bounds)
-    {
-      Node l = cb.second.first;
-      Node u = cb.second.second;
-      if (l != u)
-      {
-        Node v = cb.first;
-        Node pred =
-            nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-        pred = Rewriter::rewrite(pred);
-        d_containing.getValuation().getModel()->recordApproximation(v, pred);
-      }
-    }
-    return;
+    // already built model, nothing to do
   }
-  if (e == Theory::EFFORT_FULL) {
+  else if (e == Theory::EFFORT_FULL)
+  {
     d_containing.getExtTheory()->clearCache();
     d_needsLastCall = true;
     if (options::nlExtRewrites()) {
@@ -2328,7 +2231,9 @@ void NonlinearExtension::check(Theory::Effort e) {
         Trace("nl-ext") << "...sent lemmas." << std::endl;
       }
     }
-  } else {
+  }
+  else
+  {
     // get the assertions
     std::vector<Node> assertions;
     getAssertions(assertions);
@@ -2508,6 +2413,61 @@ void NonlinearExtension::check(Theory::Effort e) {
 
     } while (needsRecheck);
   }
+
+  // Did we internally determine a model exists? If so, we need to record some
+  // information in the theory engine's model class.
+  if (d_builtModel.get())
+  {
+    if (e < Theory::EFFORT_LAST_CALL)
+    {
+      // don't need to build the model yet
+      return;
+    }
+    // Record the approximations we used. This code calls the
+    // recordApproximation method of the model, which overrides the model
+    // values for variables that we solved for, using techniques specific to
+    // this class.
+    NodeManager* nm = NodeManager::currentNM();
+    TheoryModel* m = d_containing.getValuation().getModel();
+    for (const std::pair<const Node, std::pair<Node, Node> >& cb :
+         d_check_model_bounds)
+    {
+      Node l = cb.second.first;
+      Node u = cb.second.second;
+      Node pred;
+      Node v = cb.first;
+      if (l != u)
+      {
+        pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+      }
+      else if (!m->areEqual(v, l))
+      {
+        // only record if value was not equal already
+        pred = v.eqNode(l);
+      }
+      if (!pred.isNull())
+      {
+        pred = Rewriter::rewrite(pred);
+        m->recordApproximation(v, pred);
+      }
+    }
+    // Also record the exact values we used. An exact value can be seen as a
+    // special kind approximation of the form (choice x. x = exact_value).
+    // Notice that the above term gets rewritten such that the choice function
+    // is eliminated.
+    for (size_t i = 0, num = d_check_model_vars.size(); i < num; i++)
+    {
+      Node v = d_check_model_vars[i];
+      Node s = d_check_model_subs[i];
+      if (!m->areEqual(v, s))
+      {
+        Node pred = v.eqNode(s);
+        pred = Rewriter::rewrite(pred);
+        m->recordApproximation(v, pred);
+      }
+    }
+    return;
+  }
 }
 
 void NonlinearExtension::presolve()
@@ -2636,84 +2596,6 @@ void NonlinearExtension::getCurrentPiBounds( std::vector< Node >& lemmas ) {
   lemmas.push_back( pi_lem );
 }
 
-Node NonlinearExtension::getApproximateConstant(Node c,
-                                                bool isLower,
-                                                unsigned prec) const
-{
-  Assert(c.isConst());
-  Rational cr = c.getConst<Rational>();
-
-  unsigned lower = 0;
-  unsigned upper = pow(10, prec);
-
-  Rational den = Rational(upper);
-  if (cr.getDenominator() < den.getNumerator())
-  {
-    // denominator is not more than precision, we return it
-    return c;
-  }
-
-  int csign = cr.sgn();
-  Assert(csign != 0);
-  if (csign == -1)
-  {
-    cr = -cr;
-  }
-  Rational one = Rational(1);
-  Rational ten = Rational(10);
-  Rational pow_ten = Rational(1);
-  // inefficient for large numbers
-  while (cr >= one)
-  {
-    cr = cr / ten;
-    pow_ten = pow_ten * ten;
-  }
-  Rational allow_err = one / den;
-
-  Trace("nl-ext-approx") << "Compute approximation for " << c << ", precision "
-                         << prec << "..." << std::endl;
-  // now do binary search
-  Rational two = Rational(2);
-  NodeManager * nm = NodeManager::currentNM();
-  Node cret;
-  do
-  {
-    unsigned curr = (lower + upper) / 2;
-    Rational curr_r = Rational(curr) / den;
-    Rational err = cr - curr_r;
-    int esign = err.sgn();
-    if (err.abs() <= allow_err)
-    {
-      if (esign == 1 && !isLower)
-      {
-        curr_r = Rational(curr + 1) / den;
-      }
-      else if (esign == -1 && isLower)
-      {
-        curr_r = Rational(curr - 1) / den;
-      }
-      curr_r = curr_r * pow_ten;
-      cret = nm->mkConst(csign == 1 ? curr_r : -curr_r);
-    }
-    else
-    {
-      Assert(esign != 0);
-      // update lower/upper
-      if (esign == -1)
-      {
-        upper = curr;
-      }
-      else if (esign == 1)
-      {
-        lower = curr;
-      }
-    }
-  } while (cret.isNull());
-  Trace("nl-ext-approx") << "Approximation for " << c << " for precision "
-                         << prec << " is " << cret << std::endl;
-  return cret;
-}
-
 bool NonlinearExtension::getApproximateSqrt(Node c,
                                             Node& l,
                                             Node& u,
@@ -2757,23 +2639,6 @@ bool NonlinearExtension::getApproximateSqrt(Node c,
   l = nm->mkConst(rl);
   u = nm->mkConst(ru);
   return true;
-}
-
-void NonlinearExtension::printRationalApprox(const char* c,
-                                             Node cr,
-                                             unsigned prec) const
-{
-  Assert(cr.isConst());
-  Node ca = getApproximateConstant(cr, true, prec);
-  if (ca != cr)
-  {
-    Trace(c) << "(+ ";
-  }
-  Trace(c) << ca;
-  if (ca != cr)
-  {
-    Trace(c) << " [0,10^" << prec << "])";
-  }
 }
 
 void NonlinearExtension::printModelValue(const char* c,

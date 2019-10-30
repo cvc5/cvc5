@@ -530,6 +530,8 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   Assert(pred.getType().isBoolean());
   d_approximations[n] = pred;
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
+  // model cache is invalid
+  d_modelCache.clear();
 }
 void TheoryModel::setUsingModelCore()
 {
