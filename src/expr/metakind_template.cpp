@@ -52,7 +52,8 @@ ${metakind_constantMaps}
 namespace kind {
 namespace metakind {
 
-size_t NodeValueCompare::constHash(const ::CVC4::expr::NodeValue* nv){
+size_t NodeValueCompare::constHash(const ::CVC4::expr::NodeValue* nv)
+{
   Assert(nv->getMetaKind() == kind::metakind::CONSTANT);
 
   switch (nv->d_kind)

@@ -959,15 +959,13 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
   Assert(getMetaKind() != kind::metakind::CONSTANT)
       << "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds";
   Assert(getNumChildren() >= kind::metakind::getLowerBoundForKind(getKind()))
-      << "Nodes with kind " << getKind()
-      << " must have at least "
+      << "Nodes with kind " << getKind() << " must have at least "
       << kind::metakind::getLowerBoundForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
   Assert(getNumChildren() <= kind::metakind::getUpperBoundForKind(getKind()))
-      << "Nodes with kind " << getKind()
-      << " must have at most "
+      << "Nodes with kind " << getKind() << " must have at most "
       << kind::metakind::getUpperBoundForKind(getKind())
       << " children (the one under "
          "construction has "
@@ -1136,15 +1134,13 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
   Assert(getMetaKind() != kind::metakind::CONSTANT)
       << "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds";
   Assert(getNumChildren() >= kind::metakind::getLowerBoundForKind(getKind()))
-      << "Nodes with kind " << getKind()
-      << " must have at least "
+      << "Nodes with kind " << getKind() << " must have at least "
       << kind::metakind::getLowerBoundForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
   Assert(getNumChildren() <= kind::metakind::getUpperBoundForKind(getKind()))
-      << "Nodes with kind " << getKind()
-      << " must have at most "
+      << "Nodes with kind " << getKind() << " must have at most "
       << kind::metakind::getUpperBoundForKind(getKind())
       << " children (the one under "
          "construction has "
