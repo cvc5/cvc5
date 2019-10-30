@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4_check.cpp
+/*! \file check.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Tim King
