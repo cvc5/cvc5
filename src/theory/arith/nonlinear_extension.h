@@ -195,9 +195,6 @@ class NonlinearExtension {
   static Node mkAbs(Node a);
   static Node mkValidPhase(Node a, Node pi);
   static Node mkBounded( Node l, Node a, Node u );
-  static Kind joinKinds(Kind k1, Kind k2);
-  static Kind transKinds(Kind k1, Kind k2);
-  static bool isTranscendentalKind(Kind k);
   Node mkMonomialRemFactor(Node n, const NodeMultiset& n_exp_rem) const;
   //---------------------------------------end term utilities
 
@@ -558,8 +555,6 @@ class NonlinearExtension {
 
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
-  /** print rational approximation */
-  void printRationalApprox(const char* c, Node cr, unsigned prec = 5) const;
   /** print model value */
   void printModelValue(const char* c, Node n, unsigned prec = 5) const;
 
@@ -691,14 +686,6 @@ class NonlinearExtension {
    * to a non-variable.
    */
   bool isRefineableTfFun(Node tf);
-  /**
-   * Get a lower/upper approximation of the constant r within the given
-   * level of precision. In other words, this returns a constant c' such that
-   *   c' <= c <= c' + 1/(10^prec) if isLower is true, or
-   *   c' + 1/(10^prec) <= c <= c' if isLower is false.
-   * where c' is a rational of the form n/d for some n and d <= 10^prec.
-   */
-  Node getApproximateConstant(Node c, bool isLower, unsigned prec) const;
   /** get approximate sqrt
    *
    * This approximates the square root of positive constant c. If this method
