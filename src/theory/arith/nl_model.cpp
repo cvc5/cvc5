@@ -38,22 +38,24 @@ NlModel::NlModel(context::Context * c)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(const std::map<Node, Node>& arithModel)
+void NlModel::reset( TheoryModel * m )
 {
+  d_model = m;
+  d_mv[0].clear();
+  d_mv[1].clear();
+  d_check_model_solved.clear();
+  d_check_model_bounds.clear();
+  d_check_model_vars.clear();
+  d_check_model_subs.clear();
+/*
   d_arithVal.clear();
   d_valToRep.clear();
   // FIXME: process arithModel
   
   
-  d_mv[0].clear();
-  d_mv[1].clear();
-  
   d_used_approx = true;
   
-  d_check_model_solved.clear();
-  d_check_model_bounds.clear();
-  d_check_model_vars.clear();
-  d_check_model_subs.clear();
+  */
 }
   
 Node NlModel::computeModelValue(Node n, unsigned index) {
@@ -113,21 +115,27 @@ Node NlModel::computeModelValue(Node n, unsigned index) {
 
 Node NlModel::getValueInternal(Node n) const
 {
+  return d_model->getValue(n);
+  /*
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
     return it->second;
   }
   return Node::null();
+  */
 }
 
 bool NlModel::hasTerm(Node n) const
 {
-  return d_arithVal.find(n)!=d_arithVal.end();
+  return d_model->hasTerm(n);
+  //return d_arithVal.find(n)!=d_arithVal.end();
 }
 
 Node NlModel::getRepresentative(Node n) const
 {
+  return d_model->getRepresentative(n);
+  /*
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
@@ -139,21 +147,22 @@ Node NlModel::getRepresentative(Node n) const
     Assert(false);
   }
   return Node::null();
+  */
 }
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          const std::vector<Node>& false_asserts, 
-                         unsigned d)
+                         unsigned d, std::vector< Node >& lemmas)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
-
+  
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : false_asserts)
   {
     // see if it corresponds to a univariate polynomial equation of degree two
     if (atom.getKind() == EQUAL)
     {
-      if (!solveEqualitySimple(atom, d))
+      if (!solveEqualitySimple(atom, d, lemmas))
       {
         // no chance we will satisfy this equality
         Trace("nl-ext-cm") << "...check-model : failed to solve equality : "
@@ -321,7 +330,7 @@ bool NlModel::hasCheckModelAssignment(Node v) const
          != d_check_model_vars.end();
 }
 
-bool NlModel::solveEqualitySimple(Node eq, unsigned d)
+bool NlModel::solveEqualitySimple(Node eq, unsigned d, std::vector< Node >& lemmas)
 {
   Node seq = eq;
   if (!d_check_model_vars.empty())
@@ -462,7 +471,7 @@ bool NlModel::solveEqualitySimple(Node eq, unsigned d)
         Trace("nl-ext-cm") << std::endl;
         bool ret = addCheckModelSubstitution(uvf, uvfv);
         // recurse
-        return ret ? solveEqualitySimple(eq, d) : false;
+        return ret ? solveEqualitySimple(eq, d, lemmas) : false;
       }
     }
     Trace("nl-ext-cms") << "...fail due to constrained invalid terms."
@@ -514,7 +523,7 @@ bool NlModel::solveEqualitySimple(Node eq, unsigned d)
     Node conf = seq.negate();
     Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : "
                           << conf << std::endl;
-    d_lemmas.push_back(conf);
+    lemmas.push_back(conf);
     Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
     return false;
   }

@@ -23,6 +23,7 @@
 #include "context/cdo.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -36,8 +37,8 @@ class NlModel {
  public:
   NlModel(context::Context * c);
   ~NlModel();
-  /** reset */
-  void reset(const std::map<Node, Node>& arithModel);
+  /** notify model */
+  void reset( TheoryModel * m );
   /** compute model value
    *
    * This computes model values for terms based on two semantics, a "concrete"
@@ -61,61 +62,7 @@ class NlModel {
    */
   Node computeModelValue(Node n, unsigned index = 0);
   
- private:
-  /** TODO */
-  Node getValueInternal(Node n) const;
-  bool hasTerm(Node n) const;
-  Node getRepresentative(Node n) const;
-
-  //---------------------------check model
-  /** Check model
-   *
-   * Checks the current model based on solving for equalities, and using error
-   * bounds on the Taylor approximation.
-   *
-   * If this function returns true, then all assertions in the input argument
-   * "assertions" are satisfied for all interpretations of variables within
-   * their computed bounds (as stored in d_check_model_bounds).
-   *
-   * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
-   * "Detecting Satisfiable Formulas".
-   * 
-   * d is FIXME
-   */
-  bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts, unsigned d);
-
-  /** solve equality simple
-   *
-   * This method is used during checkModel(...). It takes as input an
-   * equality eq. If it returns true, then eq is correct-by-construction based
-   * on the information stored in our model representation (see
-   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
-   * is added to d_check_model_solved.
-   */
-  bool solveEqualitySimple(Node eq, unsigned d);
-
-  /** simple check model for transcendental functions for literal
-   *
-   * This method returns true if literal is true for all interpretations of
-   * transcendental functions within their error bounds (as stored
-   * in d_check_model_bounds). This is determined by a simple under/over
-   * approximation of the value of sum of (linear) monomials. For example,
-   * if we determine that .8 < sin( 1 ) < .9, this function will return
-   * true for literals like:
-   *   2.0*sin( 1 ) > 1.5
-   *   -1.0*sin( 1 ) < -0.79
-   *   -1.0*sin( 1 ) > -0.91
-   *   sin( 1 )*sin( 1 ) + sin( 1 ) > 0.0
-   * It will return false for literals like:
-   *   sin( 1 ) > 0.85
-   * It will also return false for literals like:
-   *   -0.3*sin( 1 )*sin( 2 ) + sin( 2 ) > .7
-   *   sin( sin( 1 ) ) > .5
-   * since the bounds on these terms cannot quickly be determined.
-   */
-  bool simpleCheckModelLit(Node lit);
-  bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
+  //------------------------------ recording model substitutions and bounds
   /** add check model substitution
    *
    * Adds the model substitution v -> s. This applies the substitution
@@ -140,7 +87,66 @@ class NlModel {
    * This method returns true if variable v is in the domain of
    * d_check_model_bounds or if it occurs in d_check_model_vars.
    */
-  bool hasCheckModelAssignment(Node v) const;
+  bool hasCheckModelAssignment(Node v) const;  
+  //------------------------------ end recording model substitutions and bounds
+  
+ private:
+  /** The current model */
+  TheoryModel * d_model;
+  /** TODO */
+  Node getValueInternal(Node n) const;
+  bool hasTerm(Node n) const;
+  Node getRepresentative(Node n) const;
+
+  //---------------------------check model
+  /** Check model
+   *
+   * Checks the current model based on solving for equalities, and using error
+   * bounds on the Taylor approximation.
+   *
+   * If this function returns true, then all assertions in the input argument
+   * "assertions" are satisfied for all interpretations of variables within
+   * their computed bounds (as stored in d_check_model_bounds).
+   *
+   * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
+   * "Detecting Satisfiable Formulas".
+   * 
+   * d is a degree indicating how precise our computations are.
+   */
+  bool checkModel(const std::vector<Node>& assertions,
+                  const std::vector<Node>& false_asserts, unsigned d, std::vector< Node >& lemmas);
+
+  /** solve equality simple
+   *
+   * This method is used during checkModel(...). It takes as input an
+   * equality eq. If it returns true, then eq is correct-by-construction based
+   * on the information stored in our model representation (see
+   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
+   * is added to d_check_model_solved.
+   */
+  bool solveEqualitySimple(Node eq, unsigned d, std::vector< Node >& lemmas);
+
+  /** simple check model for transcendental functions for literal
+   *
+   * This method returns true if literal is true for all interpretations of
+   * transcendental functions within their error bounds (as stored
+   * in d_check_model_bounds). This is determined by a simple under/over
+   * approximation of the value of sum of (linear) monomials. For example,
+   * if we determine that .8 < sin( 1 ) < .9, this function will return
+   * true for literals like:
+   *   2.0*sin( 1 ) > 1.5
+   *   -1.0*sin( 1 ) < -0.79
+   *   -1.0*sin( 1 ) > -0.91
+   *   sin( 1 )*sin( 1 ) + sin( 1 ) > 0.0
+   * It will return false for literals like:
+   *   sin( 1 ) > 0.85
+   * It will also return false for literals like:
+   *   -0.3*sin( 1 )*sin( 2 ) + sin( 2 ) > .7
+   *   sin( sin( 1 ) ) > .5
+   * since the bounds on these terms cannot quickly be determined.
+   */
+  bool simpleCheckModelLit(Node lit);
+  bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
   //---------------------------end check model
   
   /** is refinable transcendental function
@@ -169,12 +175,10 @@ class NlModel {
   Node d_two;
   Node d_true;
   Node d_false;
-  /** TODO */
+  /*
   std::map< Node, Node > d_arithVal;
-  /** TODO */
   std::map< Node, Node > d_valToRep;
-  /** lemmas FIXME: get and send out */
-  std::vector< Node > d_lemmas;
+  */
   /** cache of model values
    *
    * Stores the the concrete/abstract model values
