@@ -35,8 +35,9 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
     return elementTerm == setTerm[0];
   }
 
-  Assert(setTerm.getKind() == kind::UNION && setTerm[1].getKind() == kind::SINGLETON,
-         "kind was %d, term: %s", setTerm.getKind(), setTerm.toString().c_str());
+  Assert(setTerm.getKind() == kind::UNION
+         && setTerm[1].getKind() == kind::SINGLETON)
+      << "kind was " << setTerm.getKind() << ", term: " << setTerm;
 
   return
     elementTerm == setTerm[1][0] ||
@@ -81,7 +82,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   }//kind::MEMBER
 
   case kind::SUBSET: {
-    Assert(false, "TheorySets::postRrewrite(): Subset is handled in preRewrite.");
+    Assert(false)
+        << "TheorySets::postRrewrite(): Subset is handled in preRewrite.";
 
     // but in off-chance we do end up here, let us do our best
 

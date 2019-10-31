@@ -29,9 +29,9 @@
 #include <utility>
 #include <vector>
 
+#include "base/check.h"
 #include "base/configuration.h"
 #include "base/configuration_private.h"
-#include "base/cvc4_check.h"
 #include "base/exception.h"
 #include "base/listener.h"
 #include "base/modal_exception.h"
@@ -1002,9 +1002,9 @@ void SmtEngine::finalOptionsAreSet() {
   // finish initialization, create the prop engine, etc.
   finishInit();
 
-  AlwaysAssert( d_propEngine->getAssertionLevel() == 0,
-                "The PropEngine has pushed but the SmtEngine "
-                "hasn't finished initializing!" );
+  AlwaysAssert(d_propEngine->getAssertionLevel() == 0)
+      << "The PropEngine has pushed but the SmtEngine "
+         "hasn't finished initializing!";
 
   d_fullyInited = true;
   Assert(d_logic.isLocked());
@@ -1139,8 +1139,9 @@ void SmtEngine::setFilename(std::string filename) { d_filename = filename; }
 std::string SmtEngine::getFilename() const { return d_filename; }
 void SmtEngine::setLogicInternal()
 {
-  Assert(!d_fullyInited, "setting logic in SmtEngine but the engine has already"
-         " finished initializing for this run");
+  Assert(!d_fullyInited)
+      << "setting logic in SmtEngine but the engine has already"
+         " finished initializing for this run";
   d_logic.lock();
 }
 
@@ -2504,8 +2505,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
           "last result wasn't unknown!");
     }
   } else if(key == "assertion-stack-levels") {
-    AlwaysAssert(d_userLevels.size() <=
-                 std::numeric_limits<unsigned long int>::max());
+    AlwaysAssert(d_userLevels.size()
+                 <= std::numeric_limits<unsigned long int>::max());
     return SExpr(static_cast<unsigned long int>(d_userLevels.size()));
   } else if(key == "all-options") {
     // get the options, like all-statistics
@@ -3018,10 +3019,9 @@ bool SmtEnginePrivate::simplifyAssertions()
     // theory could still create a new expression that isn't
     // well-typed, and we don't want the C++ runtime to abort our
     // process without any error notice.
-    stringstream ss;
-    ss << "A bad expression was produced.  Original exception follows:\n"
-       << tcep;
-    InternalError(ss.str().c_str());
+    InternalError()
+        << "A bad expression was produced.  Original exception follows:\n"
+        << tcep;
   }
   return true;
 }
@@ -3357,16 +3357,17 @@ void SmtEnginePrivate::processAssertions() {
     //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF
     if( options::fmfFunWellDefined() ){
       quantifiers::FunDefFmf fdf;
-      Assert( d_smt.d_fmfRecFunctionsDefined!=NULL );
+      Assert(d_smt.d_fmfRecFunctionsDefined != NULL);
       //must carry over current definitions (for incremental)
       for( context::CDList<Node>::const_iterator fit = d_smt.d_fmfRecFunctionsDefined->begin();
            fit != d_smt.d_fmfRecFunctionsDefined->end(); ++fit ) {
         Node f = (*fit);
-        Assert( d_smt.d_fmfRecFunctionsAbs.find( f )!=d_smt.d_fmfRecFunctionsAbs.end() );
+        Assert(d_smt.d_fmfRecFunctionsAbs.find(f)
+               != d_smt.d_fmfRecFunctionsAbs.end());
         TypeNode ft = d_smt.d_fmfRecFunctionsAbs[f];
         fdf.d_sorts[f] = ft;
         std::map< Node, std::vector< Node > >::iterator fcit = d_smt.d_fmfRecFunctionsConcrete.find( f );
-        Assert( fcit!=d_smt.d_fmfRecFunctionsConcrete.end() );
+        Assert(fcit != d_smt.d_fmfRecFunctionsConcrete.end());
         for( unsigned j=0; j<fcit->second.size(); j++ ){
           fdf.d_input_arg_inj[f].push_back( fcit->second[j] );
         }
@@ -4233,8 +4234,8 @@ Expr SmtEngine::getValue(const Expr& ex) const
   // Notice that lambdas have function type, which does not respect the subtype
   // relation, so we ignore them here.
   Assert(resultNode.isNull() || resultNode.getKind() == kind::LAMBDA
-             || resultNode.getType().isSubtypeOf(expectedType),
-         "Run with -t smt for details.");
+         || resultNode.getType().isSubtypeOf(expectedType))
+      << "Run with -t smt for details.";
 
   // Ensure it's a constant, or a lambda (for uninterpreted functions), or
   // a choice (for approximate values).
@@ -4480,9 +4481,9 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   {
     return std::make_pair(heap, nil);
   }
-  InternalError(
-      "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
-      "expressions from theory model.");
+  InternalError()
+      << "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
+         "expressions from theory model.";
 }
 
 std::vector<Expr> SmtEngine::getExpandedAssertions()
@@ -4535,9 +4536,9 @@ void SmtEngine::checkProof()
   // lfscc_cleanup();
 
 #else  /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
-  Unreachable(
-      "This version of CVC4 was built without proof support; cannot check "
-      "proofs.");
+  Unreachable()
+      << "This version of CVC4 was built without proof support; cannot check "
+         "proofs.";
 #endif /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
 }
 
@@ -4566,7 +4567,8 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
 }
 
 void SmtEngine::checkUnsatCore() {
-  Assert(options::unsatCores(), "cannot check unsat core if unsat cores are turned off");
+  Assert(options::unsatCores())
+      << "cannot check unsat core if unsat cores are turned off";
 
   Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
   UnsatCore core = getUnsatCore();
@@ -4598,18 +4600,21 @@ void SmtEngine::checkUnsatCore() {
   }
   Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
   if(r.asSatisfiabilityResult().isUnknown()) {
-    InternalError("SmtEngine::checkUnsatCore(): could not check core result unknown.");
+    InternalError()
+        << "SmtEngine::checkUnsatCore(): could not check core result unknown.";
   }
 
   if(r.asSatisfiabilityResult().isSat()) {
-    InternalError("SmtEngine::checkUnsatCore(): produced core was satisfiable.");
+    InternalError()
+        << "SmtEngine::checkUnsatCore(): produced core was satisfiable.";
   }
 }
 
 void SmtEngine::checkModel(bool hardFailure) {
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.
-  Assert(d_assertionList != NULL, "don't have an assertion list to check in SmtEngine::checkModel()");
+  Assert(d_assertionList != NULL)
+      << "don't have an assertion list to check in SmtEngine::checkModel()";
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
@@ -4681,20 +4686,21 @@ void SmtEngine::checkModel(bool hardFailure) {
           }
           ss << "so " << func << " is defined in terms of itself." << endl
              << "Run with `--check-models -v' for additional diagnostics.";
-          InternalError(ss.str());
+          InternalError() << ss.str();
         }
       }
 
       // (2) check that the value is actually a value
       else if (!val.isConst()) {
         Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT A CONSTANT ***" << endl;
-        stringstream ss;
-        ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-           << "model value for " << func << endl
-           << "             is " << val << endl
-           << "and that is not a constant (.isConst() == false)." << endl
-           << "Run with `--check-models -v' for additional diagnostics.";
-        InternalError(ss.str());
+        InternalError()
+            << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH "
+               "MODEL:"
+            << endl
+            << "model value for " << func << endl
+            << "             is " << val << endl
+            << "and that is not a constant (.isConst() == false)." << endl
+            << "Run with `--check-models -v' for additional diagnostics.";
       }
 
       // (3) check that it's the correct (sub)type
@@ -4702,14 +4708,15 @@ void SmtEngine::checkModel(bool hardFailure) {
       // e.g. "1" is an INT, which isn't a subrange type [1..10] (etc.).
       else if(func.getType().isInteger() && !val.getType().isInteger()) {
         Notice() << "SmtEngine::checkModel(): *** PROBLEM: MODEL VALUE NOT CORRECT TYPE ***" << endl;
-        stringstream ss;
-        ss << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-           << "model value for " << func << endl
-           << "             is " << val << endl
-           << "value type is     " << val.getType() << endl
-           << "should be of type " << func.getType() << endl
-           << "Run with `--check-models -v' for additional diagnostics.";
-        InternalError(ss.str());
+        InternalError()
+            << "SmtEngine::checkModel(): ERRORS SATISFYING ASSERTIONS WITH "
+               "MODEL:"
+            << endl
+            << "model value for " << func << endl
+            << "             is " << val << endl
+            << "value type is     " << val.getType() << endl
+            << "should be of type " << func.getType() << endl
+            << "Run with `--check-models -v' for additional diagnostics.";
       }
 
       // (4) checks complete, add the substitution
@@ -4779,7 +4786,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       // this is necessary until preprocessing passes explicitly record how they rewrite quantified formulas
       if( hardFailure && !n.isConst() && n.getKind() != kind::LAMBDA ){
         Notice() << "SmtEngine::checkModel(): -- relax check model wrt quantified formulas..." << endl;
-        AlwaysAssert( quantifiers::QuantifiersRewriter::containsQuantifiers( n ) );
+        AlwaysAssert(quantifiers::QuantifiersRewriter::containsQuantifiers(n));
         Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified assertion : " << n << endl;
         continue;
       }
@@ -4798,7 +4805,7 @@ void SmtEngine::checkModel(bool hardFailure) {
          << "expected `true'." << endl
          << "Run with `--check-models -v' for additional diagnostics.";
       if(hardFailure) {
-        InternalError(ss.str());
+        InternalError() << ss.str();
       } else {
         Warning() << ss.str() << endl;
       }
@@ -4901,15 +4908,15 @@ void SmtEngine::checkSynthSolution()
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
     if (r.asSatisfiabilityResult().isUnknown())
     {
-      InternalError(
-          "SmtEngine::checkSynthSolution(): could not check solution, result "
-          "unknown.");
+      InternalError() << "SmtEngine::checkSynthSolution(): could not check "
+                         "solution, result "
+                         "unknown.";
     }
     else if (r.asSatisfiabilityResult().isSat())
     {
-      InternalError(
-          "SmtEngine::checkSynthSolution(): produced solution leads to "
-          "satisfiable negated conjecture.");
+      InternalError()
+          << "SmtEngine::checkSynthSolution(): produced solution leads to "
+             "satisfiable negated conjecture.";
     }
     solChecker.resetAssertions();
   }
@@ -4974,7 +4981,7 @@ void SmtEngine::checkAbduct(Expr a)
     // did we get an unexpected result?
     if (isError)
     {
-      InternalError(serr.str().c_str());
+      InternalError() << serr.str();
     }
   }
 }
@@ -5025,7 +5032,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   if( d_theoryEngine ){
     d_theoryEngine->printInstantiations( out );
   }else{
-    Assert( false );
+    Assert(false);
   }
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
     out << "% SZS output end Proof for " << d_filename.c_str() << std::endl;
@@ -5038,7 +5045,7 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   if( d_theoryEngine ){
     d_theoryEngine->printSynthSolution( out );
   }else{
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -5083,23 +5090,23 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   e_children.push_back( n_attr );
   Node nn_e = NodeManager::currentNM()->mkNode( kind::EXISTS, e_children );
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << nn_e << std::endl;
-  Assert( nn_e.getNumChildren()==3 );
+  Assert(nn_e.getNumChildren() == 3);
   Result r = checkSatisfiability(nn_e.toExpr(), true, true);
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if(r.asSatisfiabilityResult().isSat() != Result::UNSAT ) {
     if( r.asSatisfiabilityResult().isSat() != Result::SAT && doFull ){
-      stringstream ss;
-      ss << "While performing quantifier elimination, unexpected result : " << r << " for query.";
-      InternalError(ss.str().c_str());
+      InternalError()
+          << "While performing quantifier elimination, unexpected result : "
+          << r << " for query.";
     }
     std::vector< Node > inst_qs;
     d_theoryEngine->getInstantiatedQuantifiedFormulas( inst_qs );
-    Assert( inst_qs.size()<=1 );
+    Assert(inst_qs.size() <= 1);
     Node ret_n;
     if( inst_qs.size()==1 ){
       Node top_q = inst_qs[0];
       //Node top_q = Rewriter::rewrite( nn_e ).negate();
-      Assert( top_q.getKind()==kind::FORALL );
+      Assert(top_q.getKind() == kind::FORALL);
       Trace("smt-qe") << "Get qe for " << top_q << std::endl;
       ret_n = d_theoryEngine->getInstantiatedConjunction( top_q );
       Trace("smt-qe") << "Returned : " << ret_n << std::endl;
@@ -5252,7 +5259,7 @@ void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
       qs.push_back( qs_n[i].toExpr() );
     }
   }else{
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -5265,7 +5272,7 @@ void SmtEngine::getInstantiations( Expr q, std::vector< Expr >& insts ) {
       insts.push_back( insts_n[i].toExpr() );
     }
   }else{
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -5283,7 +5290,7 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
       tvecs.push_back( tvec );
     }
   }else{
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -5641,8 +5648,8 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 }
 
 void SmtEngine::setReplayStream(ExprStream* replayStream) {
-  AlwaysAssert(!d_fullyInited,
-               "Cannot set replay stream once fully initialized");
+  AlwaysAssert(!d_fullyInited)
+      << "Cannot set replay stream once fully initialized";
   d_replayStream = replayStream;
 }
 

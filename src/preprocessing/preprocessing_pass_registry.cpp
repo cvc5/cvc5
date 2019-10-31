@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <utility>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/map_util.h"
 #include "base/output.h"
 #include "preprocessing/passes/ackermann.h"
