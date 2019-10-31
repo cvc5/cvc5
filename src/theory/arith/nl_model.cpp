@@ -164,6 +164,15 @@ Node NlModel::getRepresentative(Node n) const
   return Node::null();
   */
 }
+const std::map<Node, Node>& NlModel::getConcreteModelValues()
+{
+  return d_mv[0];
+}
+
+const std::map<Node, Node>& NlModel::getAbstractModelValues()
+{
+  return d_mv[1];
+}
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          const std::vector<Node>& false_asserts,

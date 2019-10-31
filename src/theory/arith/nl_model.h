@@ -62,7 +62,14 @@ class NlModel
    *   computeModelValue( a*b, 1 ) = 5
    */
   Node computeModelValue(Node n, unsigned index = 0);
-
+  /** get computed model values
+   * 
+   * Returns the map of all computed concrete and abstract model values computed
+   * by the above function.
+   */
+  const std::map<Node, Node>& getConcreteModelValues();
+  const std::map<Node, Node>& getAbstractModelValues();
+  
   //------------------------------ recording model substitutions and bounds
   /** add check model substitution
    *
@@ -184,8 +191,7 @@ class NlModel
   */
   /** cache of model values
    *
-   * Stores the the concrete/abstract model values
-   * at indices 0 and 1 respectively.
+   * Stores the the concrete/abstract model values.
    */
   std::map<Node, Node> d_mv[2];
   /**
