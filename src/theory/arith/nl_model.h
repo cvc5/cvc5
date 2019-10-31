@@ -19,8 +19,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "context/context.h"
 #include "context/cdo.h"
+#include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "theory/theory_model.h"
@@ -31,14 +31,15 @@ namespace arith {
 
 /** Non-linear model
  *
- * TODO 
+ * TODO
  */
-class NlModel {
+class NlModel
+{
  public:
-  NlModel(context::Context * c);
+  NlModel(context::Context* c);
   ~NlModel();
   /** notify model */
-  void reset( TheoryModel * m );
+  void reset(TheoryModel* m);
   /** compute model value
    *
    * This computes model values for terms based on two semantics, a "concrete"
@@ -61,7 +62,7 @@ class NlModel {
    *   computeModelValue( a*b, 1 ) = 5
    */
   Node computeModelValue(Node n, unsigned index = 0);
-  
+
   //------------------------------ recording model substitutions and bounds
   /** add check model substitution
    *
@@ -87,12 +88,12 @@ class NlModel {
    * This method returns true if variable v is in the domain of
    * d_check_model_bounds or if it occurs in d_check_model_vars.
    */
-  bool hasCheckModelAssignment(Node v) const;  
+  bool hasCheckModelAssignment(Node v) const;
   //------------------------------ end recording model substitutions and bounds
-  
+
  private:
   /** The current model */
-  TheoryModel * d_model;
+  TheoryModel* d_model;
   /** TODO */
   Node getValueInternal(Node n) const;
   bool hasTerm(Node n) const;
@@ -110,11 +111,13 @@ class NlModel {
    *
    * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
    * "Detecting Satisfiable Formulas".
-   * 
+   *
    * d is a degree indicating how precise our computations are.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts, unsigned d, std::vector< Node >& lemmas);
+                  const std::vector<Node>& false_asserts,
+                  unsigned d,
+                  std::vector<Node>& lemmas);
 
   /** solve equality simple
    *
@@ -124,7 +127,7 @@ class NlModel {
    * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
    * is added to d_check_model_solved.
    */
-  bool solveEqualitySimple(Node eq, unsigned d, std::vector< Node >& lemmas);
+  bool solveEqualitySimple(Node eq, unsigned d, std::vector<Node>& lemmas);
 
   /** simple check model for transcendental functions for literal
    *
@@ -148,7 +151,7 @@ class NlModel {
   bool simpleCheckModelLit(Node lit);
   bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
   //---------------------------end check model
-  
+
   /** is refinable transcendental function
    *
    * A transcendental function application is not refineable if its current
@@ -156,7 +159,7 @@ class NlModel {
    * to a non-variable.
    */
   bool isRefineableTfFun(Node tf);
-  
+
   /** get approximate sqrt
    *
    * This approximates the square root of positive constant c. If this method
@@ -168,7 +171,7 @@ class NlModel {
    * expensive to compute.
    */
   bool getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter = 15) const;
-  
+
   /** commonly used terms */
   Node d_zero;
   Node d_one;

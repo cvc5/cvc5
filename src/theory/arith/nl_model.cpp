@@ -14,10 +14,10 @@
 
 #include "theory/arith/nl_model.h"
 
+#include "expr/node_algorithm.h"
+#include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
-#include "theory/arith/arith_msum.h"
-#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -25,9 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-
-NlModel::NlModel(context::Context * c)
-    : d_builtModel(c, false)
+NlModel::NlModel(context::Context* c) : d_builtModel(c, false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -38,7 +36,7 @@ NlModel::NlModel(context::Context * c)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset( TheoryModel * m )
+void NlModel::reset(TheoryModel* m)
 {
   d_model = m;
   d_mv[0].clear();
@@ -47,55 +45,70 @@ void NlModel::reset( TheoryModel * m )
   d_check_model_bounds.clear();
   d_check_model_vars.clear();
   d_check_model_subs.clear();
-/*
-  d_arithVal.clear();
-  d_valToRep.clear();
-  // FIXME: process arithModel
-  
-  
-  d_used_approx = true;
-  
-  */
+  /*
+    d_arithVal.clear();
+    d_valToRep.clear();
+    // FIXME: process arithModel
+
+
+    d_used_approx = true;
+
+    */
 }
-  
-Node NlModel::computeModelValue(Node n, unsigned index) {
+
+Node NlModel::computeModelValue(Node n, unsigned index)
+{
   std::map<Node, Node>::iterator it = d_mv[index].find(n);
-  if (it != d_mv[index].end()) {
+  if (it != d_mv[index].end())
+  {
     return it->second;
   }
-  Trace("nl-ext-mv-debug") << "computeModelValue " << n << ", index=" << index << std::endl;
+  Trace("nl-ext-mv-debug") << "computeModelValue " << n << ", index=" << index
+                           << std::endl;
   Node ret;
-  if (n.isConst()) {
+  if (n.isConst())
+  {
     ret = n;
   }
-  else if (index == 1 && (n.getKind() == NONLINEAR_MULT
-                          || isTranscendentalKind(n.getKind())))
+  else if (index == 1
+           && (n.getKind() == NONLINEAR_MULT
+               || isTranscendentalKind(n.getKind())))
   {
-    if (hasTerm(n)) {
+    if (hasTerm(n))
+    {
       // use model value for abstraction
       ret = getRepresentative(n);
-    } else {
+    }
+    else
+    {
       // abstraction does not exist, use model value
-      //ret = computeModelValue(n, 0);
+      // ret = computeModelValue(n, 0);
       ret = getValueInternal(n);
     }
-  } else if (n.getNumChildren() == 0) {
+  }
+  else if (n.getNumChildren() == 0)
+  {
     if (n.getKind() == PI)
     {
       // we are interested in the exact value of PI, which cannot be computed.
       // hence, we return PI itself when asked for the concrete value.
       ret = n;
-    }else{
+    }
+    else
+    {
       ret = getValueInternal(n);
     }
-  } else {    
+  }
+  else
+  {
     // otherwise, compute true value
     std::vector<Node> children;
     if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
       children.push_back(n.getOperator());
     }
-    for (unsigned i = 0; i < n.getNumChildren(); i++) {
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
       Node mc = computeModelValue(n[i], index);
       children.push_back(mc);
     }
@@ -103,12 +116,14 @@ Node NlModel::computeModelValue(Node n, unsigned index) {
     if (n.getKind() == APPLY_UF)
     {
       ret = getValueInternal(ret);
-    }else{
+    }
+    else
+    {
       ret = Rewriter::rewrite(ret);
     }
   }
   Trace("nl-ext-mv-debug") << "computed " << (index == 0 ? "M" : "M_A") << "["
-                            << n << "] = " << ret << std::endl;
+                           << n << "] = " << ret << std::endl;
   d_mv[index][n] = ret;
   return ret;
 }
@@ -129,7 +144,7 @@ Node NlModel::getValueInternal(Node n) const
 bool NlModel::hasTerm(Node n) const
 {
   return d_model->hasTerm(n);
-  //return d_arithVal.find(n)!=d_arithVal.end();
+  // return d_arithVal.find(n)!=d_arithVal.end();
 }
 
 Node NlModel::getRepresentative(Node n) const
@@ -151,11 +166,12 @@ Node NlModel::getRepresentative(Node n) const
 }
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
-                         const std::vector<Node>& false_asserts, 
-                         unsigned d, std::vector< Node >& lemmas)
+                         const std::vector<Node>& false_asserts,
+                         unsigned d,
+                         std::vector<Node>& lemmas)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
-  
+
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : false_asserts)
   {
@@ -257,13 +273,15 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
 bool NlModel::addCheckModelSubstitution(TNode v, TNode s)
 {
   // should not substitute the same variable twice
-  Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s << std::endl;
+  Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s
+                        << std::endl;
   // should not set exact bound more than once
-  if(std::find(d_check_model_vars.begin(),d_check_model_vars.end(),v)!=d_check_model_vars.end())
+  if (std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
+      != d_check_model_vars.end())
   {
     Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
     // this should never happen since substitutions should be applied eagerly
-    Assert( false );
+    Assert(false);
     return false;
   }
   // if we previously had an approximate bound, the exact bound should be in its
@@ -297,8 +315,9 @@ bool NlModel::addCheckModelSubstitution(TNode v, TNode s)
 
 bool NlModel::addCheckModelBound(TNode v, TNode l, TNode u)
 {
-  Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " " << u << "]" << std::endl;
-  if( l==u )
+  Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " "
+                        << u << "]" << std::endl;
+  if (l == u)
   {
     // bound is exact, can add as substitution
     return addCheckModelSubstitution(v, l);
@@ -330,7 +349,9 @@ bool NlModel::hasCheckModelAssignment(Node v) const
          != d_check_model_vars.end();
 }
 
-bool NlModel::solveEqualitySimple(Node eq, unsigned d, std::vector< Node >& lemmas)
+bool NlModel::solveEqualitySimple(Node eq,
+                                  unsigned d,
+                                  std::vector<Node>& lemmas)
 {
   Node seq = eq;
   if (!d_check_model_vars.empty())
@@ -521,8 +542,8 @@ bool NlModel::solveEqualitySimple(Node eq, unsigned d, std::vector< Node >& lemm
   if (sqrt_val.getConst<Rational>().sgn() == -1)
   {
     Node conf = seq.negate();
-    Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : "
-                          << conf << std::endl;
+    Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : " << conf
+                          << std::endl;
     lemmas.push_back(conf);
     Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
     return false;
@@ -821,8 +842,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   return false;
 }
 
-bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum,
-                                              bool pol)
+bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
 {
   Trace("nl-ext-cms-debug") << "* Try simple interval analysis..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -1064,7 +1084,6 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum,
   return comp == d_true;
 }
 
-
 bool NlModel::isRefineableTfFun(Node tf)
 {
   Assert(tf.getKind() == SINE || tf.getKind() == EXPONENTIAL);
@@ -1088,10 +1107,7 @@ bool NlModel::isRefineableTfFun(Node tf)
   return true;
 }
 
-bool NlModel::getApproximateSqrt(Node c,
-                                            Node& l,
-                                            Node& u,
-                                            unsigned iter) const
+bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
 {
   Assert(c.isConst());
   if (c == d_one || c == d_zero)
