@@ -284,9 +284,9 @@ void usortsToBitVectors(const LogicInfo& d_logic,
   if (hasUninterpretedSorts)
   {
     /* the current version only supports BV for removing uninterpreted sorts */
-	  CVC4_CHECK(d_logic.isTheoryEnabled(theory::THEORY_BV)) <<
-                 "Cannot use Ackermannization on formula with uninterpreted "
-                 "sorts without BV logic";
+    CVC4_CHECK(d_logic.isTheoryEnabled(theory::THEORY_BV))
+        << "Cannot use Ackermannization on formula with uninterpreted "
+           "sorts without BV logic";
 
     collectUSortsToBV(usortCardinality, toProcess, sortsToSkolem);
 
