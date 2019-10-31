@@ -18,6 +18,7 @@
 
 #include "prop/cryptominisat.h"
 
+#include "base/check.h"
 #include "proof/clause_id.h"
 #include "proof/sat_proof.h"
 
