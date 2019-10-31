@@ -29,17 +29,22 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
+class NonlinearExtension;
+  
 /** Non-linear model
  *
  * TODO
  */
 class NlModel
 {
+  friend class NonlinearExtension;
  public:
   NlModel(context::Context* c);
   ~NlModel();
-  /** notify model */
+  /** reset TODO */
   void reset(TheoryModel* m);
+  /** reset check TODO */
+  void resetCheck();
   /** compute model value
    *
    * This computes model values for terms based on two semantics, a "concrete"
@@ -62,13 +67,18 @@ class NlModel
    *   computeModelValue( a*b, 1 ) = 5
    */
   Node computeModelValue(Node n, unsigned index = 0);
+  Node getAbstractModelValue(Node n) const;
+  Node getConcreteModelValue(Node n) const;
+  bool hasAbstractModelValue(Node n) const;
+  bool hasConcreteModelValue(Node n) const;
   /** get computed model values
    * 
    * Returns the map of all computed concrete and abstract model values computed
    * by the above function.
    */
-  const std::map<Node, Node>& getConcreteModelValues();
-  const std::map<Node, Node>& getAbstractModelValues();
+  std::map<Node, Node>& getConcreteModelValues();
+  std::map<Node, Node>& getAbstractModelValues();
+  std::map<Node, Node>& getModelValues(unsigned index);
   
   //------------------------------ recording model substitutions and bounds
   /** add check model substitution
@@ -96,8 +106,24 @@ class NlModel
    * d_check_model_bounds or if it occurs in d_check_model_vars.
    */
   bool hasCheckModelAssignment(Node v) const;
+  /** set used approximate */
+  void setUsedApproximate();
+  /** did we use an approximation? */
+  bool usedApproximate() const;
   //------------------------------ end recording model substitutions and bounds
 
+  /** print model value, for debugging.
+   * 
+   * This prints both the abstract and concrete model values for arithmetic
+   * term n on Trace c with precision prec.
+   */
+  void printModelValue(const char* c, Node n, unsigned prec = 5) const;
+  /** record approximations in the current model
+   * 
+   * This makes necessary calls that notify the model of any approximations
+   * that were used by this solver.
+   */
+  void recordApproximations();
  private:
   /** The current model */
   TheoryModel* d_model;
@@ -105,6 +131,9 @@ class NlModel
   Node getValueInternal(Node n) const;
   bool hasTerm(Node n) const;
   Node getRepresentative(Node n) const;
+  
+  Node getModelValueInternal(Node n, bool isConcrete) const;
+  bool hasModelValueInternal(Node n, bool isConcrete) const;
 
   //---------------------------check model
   /** Check model
@@ -124,7 +153,9 @@ class NlModel
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts,
                   unsigned d,
-                  std::vector<Node>& lemmas);
+                  std::vector<Node>& lemmas,
+                  std::vector<Node>& gs
+                 );
 
   /** solve equality simple
    *
@@ -185,13 +216,15 @@ class NlModel
   Node d_two;
   Node d_true;
   Node d_false;
+  Node d_null;
   /*
   std::map< Node, Node > d_arithVal;
   std::map< Node, Node > d_valToRep;
   */
   /** cache of model values
    *
-   * Stores the the concrete/abstract model values.
+   * Stores the the concrete/abstract model values. This is a cache of the
+   * computeModelValue method.
    */
   std::map<Node, Node> d_mv[2];
   /**
@@ -227,8 +260,6 @@ class NlModel
    * definition of our model construction.
    */
   std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
-  /** have we successfully built the model in this SAT context? */
-  context::CDO<bool> d_builtModel;
   /** did we use an approximation on this call to last-call effort? */
   bool d_used_approx;
 }; /* class NlModel */

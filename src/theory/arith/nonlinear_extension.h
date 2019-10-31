@@ -36,6 +36,7 @@
 #include "expr/node.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/arith/nl_model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -208,28 +209,6 @@ class NonlinearExtension {
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
   void registerConstraint(Node atom);
-  /** compute model value
-   *
-   * This computes model values for terms based on two semantics, a "concrete"
-   * semantics and an "abstract" semantics.
-   *
-   * index = 0 means compute the value of n based on its children recursively.
-   *          (we call this its "concrete" value)
-   * index = 1 means lookup the value of n in the model.
-   *          (we call this its "abstract" value)
-   * In other words, index = 1 treats multiplication terms and transcendental
-   * function applications as variables, whereas index = 0 computes their
-   * actual values. This is a key distinction used in the model-based
-   * refinement scheme in Cimatti et al. TACAS 2017.
-   *
-   * For example, if M( a ) = 2, M( b ) = 3, M( a * b ) = 5, then :
-   *
-   *   computeModelValue( a*b, 0 ) =
-   *   computeModelValue( a, 0 )*computeModelValue( b, 0 ) = 2*3 = 6
-   * whereas:
-   *   computeModelValue( a*b, 1 ) = 5
-   */
-  Node computeModelValue(Node n, unsigned index = 0);
   /** returns the Node corresponding to the value of i in the
    * type of order orderType, which is one of values
    * described above ::compare(...).
@@ -274,98 +253,6 @@ class NonlinearExtension {
    */
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts);
-
-  /** solve equality simple
-   *
-   * This method is used during checkModel(...). It takes as input an
-   * equality eq. If it returns true, then eq is correct-by-construction based
-   * on the information stored in our model representation (see
-   * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
-   * is added to d_check_model_solved.
-   */
-  bool solveEqualitySimple(Node eq);
-
-  /** simple check model for transcendental functions for literal
-   *
-   * This method returns true if literal is true for all interpretations of
-   * transcendental functions within their error bounds (as stored
-   * in d_check_model_bounds). This is determined by a simple under/over
-   * approximation of the value of sum of (linear) monomials. For example,
-   * if we determine that .8 < sin( 1 ) < .9, this function will return
-   * true for literals like:
-   *   2.0*sin( 1 ) > 1.5
-   *   -1.0*sin( 1 ) < -0.79
-   *   -1.0*sin( 1 ) > -0.91
-   *   sin( 1 )*sin( 1 ) + sin( 1 ) > 0.0
-   * It will return false for literals like:
-   *   sin( 1 ) > 0.85
-   * It will also return false for literals like:
-   *   -0.3*sin( 1 )*sin( 2 ) + sin( 2 ) > .7
-   *   sin( sin( 1 ) ) > .5
-   * since the bounds on these terms cannot quickly be determined.
-   */
-  bool simpleCheckModelLit(Node lit);
-  bool simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol);
-  /**
-   * A substitution from variables that appear in assertions to a solved form
-   * term. These vectors are ordered in the form:
-   *   x_1 -> t_1 ... x_n -> t_n
-   * where x_i is not in the free variables of t_j for j>=i.
-   */
-  std::vector<Node> d_check_model_vars;
-  std::vector<Node> d_check_model_subs;
-  /** add check model substitution
-   *
-   * Adds the model substitution v -> s. This applies the substitution
-   * { v -> s } to each term in d_check_model_subs and adds v,s to
-   * d_check_model_vars and d_check_model_subs respectively.
-   * If this method returns false, then the substitution v -> s is inconsistent
-   * with the current substitution and bounds.
-   */
-  bool addCheckModelSubstitution(TNode v, TNode s);
-  /** lower and upper bounds for check model
-   *
-   * For each term t in the domain of this map, if this stores the pair
-   * (c_l, c_u) then the model M is such that c_l <= M( t ) <= c_u.
-   *
-   * We add terms whose value is approximated in the model to this map, which
-   * includes:
-   * (1) applications of transcendental functions, whose value is approximated
-   * by the Taylor series,
-   * (2) variables we have solved quadratic equations for, whose value
-   * involves approximations of square roots.
-   */
-  std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
-  /** add check model bound
-   *
-   * Adds the bound x -> < l, u > to the map above, and records the
-   * approximation ( x, l <= x <= u ) in the model. This method returns false
-   * if the bound is inconsistent with the current model substitution or
-   * bounds.
-   */
-  bool addCheckModelBound(TNode v, TNode l, TNode u);
-  /**
-   * The map from literals that our model construction solved, to the variable
-   * that was solved for. Examples of such literals are:
-   * (1) Equalities x = t, which we turned into a model substitution x -> t,
-   * where x not in FV( t ), and
-   * (2) Equalities a*x*x + b*x + c = 0, which we turned into a model bound
-   * -b+s*sqrt(b*b-4*a*c)/2a - E <= x <= -b+s*sqrt(b*b-4*a*c)/2a + E.
-   *
-   * These literals are exempt from check-model, since they are satisfied by
-   * definition of our model construction.
-   */
-  std::unordered_map<Node, Node, NodeHashFunction> d_check_model_solved;
-  /** has check model assignment
-   *
-   * Have we assigned v in the current checkModel(...) call?
-   *
-   * This method returns true if variable v is in the domain of
-   * d_check_model_bounds or if it occurs in d_check_model_vars.
-   */
-  bool hasCheckModelAssignment(Node v) const;
-  /** have we successfully built the model in this SAT context? */
-  context::CDO<bool> d_builtModel;
   //---------------------------end check model
 
   /** In the following functions, status states a relationship
@@ -538,17 +425,14 @@ class NonlinearExtension {
   // per last-call effort
 
   // model values/orderings
-  /** cache of model values
-   *
-   * Stores the the concrete/abstract model values
-   * at indices 0 and 1 respectively.
-   */
-  std::map<Node, Node> d_mv[2];
+
   /** The non-linear model object
    *
    * TODO
    */
-  // NlModel d_model;
+  NlModel d_model;
+  /** have we successfully built the model in this SAT context? */
+  context::CDO<bool> d_builtModel;
 
   // ordering, stores variables and 0,1,-1
   std::map<Node, unsigned> d_order_vars;
@@ -560,13 +444,9 @@ class NonlinearExtension {
   std::map< Node, bool > d_tf_initial_refine;
   /** the list of lemmas we are waiting to flush until after check model */
   std::vector<Node> d_waiting_lemmas;
-  /** did we use an approximation on this call to last-call effort? */
-  bool d_used_approx;
 
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );
-  /** print model value */
-  void printModelValue(const char* c, Node n, unsigned prec = 5) const;
 
  private:
   //per last-call effort check

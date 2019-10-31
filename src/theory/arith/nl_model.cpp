@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-NlModel::NlModel(context::Context* c) : d_builtModel(c, false)
+NlModel::NlModel(context::Context* c) : d_used_approx(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -41,19 +41,17 @@ void NlModel::reset(TheoryModel* m)
   d_model = m;
   d_mv[0].clear();
   d_mv[1].clear();
-  d_check_model_solved.clear();
-  d_check_model_bounds.clear();
-  d_check_model_vars.clear();
-  d_check_model_subs.clear();
   /*
     d_arithVal.clear();
     d_valToRep.clear();
     // FIXME: process arithModel
 
-
-    d_used_approx = true;
-
     */
+}
+
+void NlModel::resetCheck()
+{
+  d_used_approx = false;
 }
 
 Node NlModel::computeModelValue(Node n, unsigned index)
@@ -164,22 +162,68 @@ Node NlModel::getRepresentative(Node n) const
   return Node::null();
   */
 }
-const std::map<Node, Node>& NlModel::getConcreteModelValues()
+
+Node NlModel::getConcreteModelValue(Node n) const
+{
+  return getModelValueInternal(n, true);
+}
+
+Node NlModel::getAbstractModelValue(Node n) const
+{
+  return getModelValueInternal(n, false);
+}
+
+Node NlModel::getModelValueInternal(Node n, bool isConcrete) const
+{
+  unsigned index = isConcrete ? 0 : 1;
+  std::map< Node, Node >::const_iterator it = d_mv[index].find(n);
+  if (it==d_mv[index].end())
+  {
+    return d_null;
+  }
+  return it->second;
+}
+
+bool NlModel::hasConcreteModelValue(Node n) const
+{
+  return hasModelValueInternal(n, true);
+}
+
+bool NlModel::hasAbstractModelValue(Node n) const
+{
+  return hasModelValueInternal(n, false);
+}
+
+bool NlModel::hasModelValueInternal(Node n, bool isConcrete) const
+{
+  unsigned index = isConcrete ? 0 : 1;
+  return d_mv[index].find(n) != d_mv[index].end();
+}
+
+std::map<Node, Node>& NlModel::getConcreteModelValues()
 {
   return d_mv[0];
 }
 
-const std::map<Node, Node>& NlModel::getAbstractModelValues()
+std::map<Node, Node>& NlModel::getAbstractModelValues()
 {
   return d_mv[1];
+}
+std::map<Node, Node>& NlModel::getModelValues(unsigned index)
+{
+  return d_mv[index];
 }
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          const std::vector<Node>& false_asserts,
                          unsigned d,
-                         std::vector<Node>& lemmas)
+                         std::vector<Node>& lemmas,
+                         std::vector<Node>& gs)
 {
-  Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
+  d_check_model_solved.clear();
+  d_check_model_bounds.clear();
+  d_check_model_vars.clear();
+  d_check_model_subs.clear();
 
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : false_asserts)
@@ -276,6 +320,25 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
   }
   Trace("nl-ext-cm") << "...simple check succeeded!" << std::endl;
 
+  // must assert and re-check if produce models is true
+  if (options::produceModels())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    // model guard whose semantics is "the model we constructed holds"
+    Node mg = nm->mkSkolem("model", nm->booleanType());
+    gs.push_back(mg);
+    // assert the constructed model as assertions
+    for (const std::pair<const Node, std::pair<Node, Node> > cb :
+         d_check_model_bounds)
+    {
+      Node l = cb.second.first;
+      Node u = cb.second.second;
+      Node v = cb.first;
+      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+      pred = nm->mkNode(OR, mg.negate(), pred);
+      lemmas.push_back(pred);
+    }
+  }
   return true;
 }
 
@@ -345,6 +408,14 @@ bool NlModel::addCheckModelBound(TNode v, TNode l, TNode u)
   Assert(u.isConst());
   Assert(l.getConst<Rational>() <= u.getConst<Rational>());
   d_check_model_bounds[v] = std::pair<Node, Node>(l, u);
+  if (Trace.isOn("nl-ext-cm"))
+  {
+    Trace("nl-ext-cm") << "check-model-bound : approximate : ";
+    printRationalApprox("nl-ext-cm", l);
+    Trace("nl-ext-cm") << " <= " << v << " <= ";
+    printRationalApprox("nl-ext-cm", u);
+    Trace("nl-ext-cm") << std::endl;
+  }
   return true;
 }
 
@@ -356,6 +427,16 @@ bool NlModel::hasCheckModelAssignment(Node v) const
   }
   return std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
          != d_check_model_vars.end();
+}
+
+void NlModel::setUsedApproximate()
+{
+  d_used_approx = true;
+}
+
+bool NlModel::usedApproximate() const
+{
+  return d_used_approx;
 }
 
 bool NlModel::solveEqualitySimple(Node eq,
@@ -1158,6 +1239,75 @@ bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
   return true;
 }
 
+void NlModel::recordApproximations()
+{
+  // Record the approximations we used. This code calls the
+  // recordApproximation method of the model, which overrides the model
+  // values for variables that we solved for, using techniques specific to
+  // this class.
+  NodeManager* nm = NodeManager::currentNM();
+  for (const std::pair<const Node, std::pair<Node, Node> >& cb :
+        d_check_model_bounds)
+  {
+    Node l = cb.second.first;
+    Node u = cb.second.second;
+    Node pred;
+    Node v = cb.first;
+    if (l != u)
+    {
+      pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+    }
+    else if (!d_model->areEqual(v, l))
+    {
+      // only record if value was not equal already
+      pred = v.eqNode(l);
+    }
+    if (!pred.isNull())
+    {
+      pred = Rewriter::rewrite(pred);
+      d_model->recordApproximation(v, pred);
+    }
+  }
+  // Also record the exact values we used. An exact value can be seen as a
+  // special kind approximation of the form (choice x. x = exact_value).
+  // Notice that the above term gets rewritten such that the choice function
+  // is eliminated.
+  for (size_t i = 0, num = d_check_model_vars.size(); i < num; i++)
+  {
+    Node v = d_check_model_vars[i];
+    Node s = d_check_model_subs[i];
+    if (!d_model->areEqual(v, s))
+    {
+      Node pred = v.eqNode(s);
+      pred = Rewriter::rewrite(pred);
+      d_model->recordApproximation(v, pred);
+    }
+  }
+}
+  void NlModel::printModelValue(const char* c,
+                                         Node n,
+                                         unsigned prec) const
+{
+  if (Trace.isOn(c))
+  {
+    Trace(c) << "  " << n << " -> ";
+    for (unsigned i = 0; i < 2; i++)
+    {
+      std::map<Node, Node>::const_iterator it = d_mv[1 - i].find(n);
+      Assert(it != d_mv[1 - i].end());
+      if (it->second.isConst())
+      {
+        printRationalApprox(c, it->second, prec);
+      }
+      else
+      {
+        Trace(c) << "?";  // it->second;
+      }
+      Trace(c) << (i == 0 ? " [actual: " : " ]");
+    }
+    Trace(c) << std::endl;
+  }
+}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
