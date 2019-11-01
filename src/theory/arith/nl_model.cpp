@@ -50,8 +50,8 @@ void NlModel::reset(TheoryModel* m)
 }
 
 void NlModel::resetCheck()
-{ 
-  d_used_approx = false; 
+{
+  d_used_approx = false;
   d_check_model_solved.clear();
   d_check_model_bounds.clear();
   d_check_model_vars.clear();
@@ -208,26 +208,35 @@ std::map<Node, Node>& NlModel::getConcreteModelValues() { return d_mv[0]; }
 
 std::map<Node, Node>& NlModel::getAbstractModelValues() { return d_mv[1]; }
 
-int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute) const {
+int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute) const
+{
   Node ci = getModelValue(i, isConcrete);
   Node cj = getModelValue(j, isConcrete);
-  if( ci.isConst() ){
-    if( cj.isConst() ){
+  if (ci.isConst())
+  {
+    if (cj.isConst())
+    {
       return compareValue(ci, cj, isAbsolute);
     }
-    return 1; 
+    return 1;
   }
   return cj.isConst() ? -1 : 0;
 }
 
-int NlModel::compareValue(Node i, Node j, bool isAbsolute) const {
+int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
+{
   Assert(i.isConst() && j.isConst());
   int ret;
-  if (i == j) {
+  if (i == j)
+  {
     ret = 0;
-  } else if (!isAbsolute) {
+  }
+  else if (!isAbsolute)
+  {
     ret = i.getConst<Rational>() < j.getConst<Rational>() ? 1 : -1;
-  } else {
+  }
+  else
+  {
     ret = (i.getConst<Rational>().abs() == j.getConst<Rational>().abs()
                ? 0
                : (i.getConst<Rational>().abs() < j.getConst<Rational>().abs()

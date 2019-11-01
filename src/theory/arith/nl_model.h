@@ -34,7 +34,7 @@ class NonlinearExtension;
 /** Non-linear model finder
  *
  * This class is responsible for all queries related to the (candidate) model
- * that is being processed by the non-linear arithmetic solver. It further 
+ * that is being processed by the non-linear arithmetic solver. It further
  * implements techniques for finding modifications to the current candidate
  * model in the case it can determine that a model exists. These include
  * techniques based on solving (quadratic) equations and bound analysis.
@@ -47,14 +47,14 @@ class NlModel
   NlModel(context::Context* c);
   ~NlModel();
   /** reset
-   * 
+   *
    * This method is called once at the beginning of a last call effort check,
    * where m is the model of the theory of arithmetic. This method resets the
    * cache of computed model values.
    */
   void reset(TheoryModel* m);
   /** reset check
-   * 
+   *
    * This method is called when the non-linear arithmetic solver restarts
    * its computation of lemmas and models during a last call effort check.
    */
@@ -96,28 +96,28 @@ class NlModel
    */
   std::map<Node, Node>& getConcreteModelValues();
   std::map<Node, Node>& getAbstractModelValues();
-  
+
   /** Compare arithmetic terms i and j based an ordering.
    *
    * This returns:
    *  -1 if i < j, 1 if i > j, or 0 if i == j
-   * 
+   *
    * If isConcrete is true, we consider the concrete model values of i and j,
    * otherwise, we consider their abstract model values. For definitions of
    * concrete vs abstract model values, see NlModel::computeModelValue.
-   * 
+   *
    * If isAbsolute is true, we compare the absolute value of thee above
    * values.
    */
   int compare(Node i, Node j, bool isConcrete, bool isAbsolute) const;
   /** Compare arithmetic terms i and j based an ordering.
-   * 
+   *
    * This returns:
    *  -1 if i < j, 1 if i > j, or 0 if i == j
-   * 
+   *
    * If isAbsolute is true, we compare the absolute value of i and j
    */
-  int compareValue(Node i, Node j, bool isAbsolute) const;  
+  int compareValue(Node i, Node j, bool isAbsolute) const;
 
   //------------------------------ recording model substitutions and bounds
   /** add check model substitution
@@ -164,7 +164,7 @@ class NlModel
                   unsigned d,
                   std::vector<Node>& lemmas,
                   std::vector<Node>& gs);
-  /** 
+  /**
    * Set that we have used an approximation during this check. This flag is
    * reset on a call to resetCheck. It is set when we use reasoning that
    * is limited by a degree of precision we are using. In other words, if we
@@ -188,6 +188,7 @@ class NlModel
    * that were used by this solver.
    */
   void recordApproximations();
+
  private:
   /** The current model */
   TheoryModel* d_model;
@@ -195,7 +196,6 @@ class NlModel
   Node getValueInternal(Node n) const;
   bool hasTerm(Node n) const;
   Node getRepresentative(Node n) const;
-
 
   //---------------------------check model
   /** solve equality simple

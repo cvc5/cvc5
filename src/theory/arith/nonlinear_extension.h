@@ -180,7 +180,7 @@ class NonlinearExtension {
                     const std::vector<Node>& xts);
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
-  static Node mkLit(Node a, Node b, int status, bool isAbsolute=false);
+  static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);
   static Node mkAbs(Node a);
   static Node mkValidPhase(Node a, Node pi);
   static Node mkBounded( Node l, Node a, Node u );
@@ -193,8 +193,10 @@ class NonlinearExtension {
 
   void registerConstraint(Node atom);
   /** assign order ids */
-  void assignOrderIds(std::vector<Node>& vars, NodeMultiset& d_order,
-                      bool isConcrete, bool isAbsolute);
+  void assignOrderIds(std::vector<Node>& vars,
+                      NodeMultiset& d_order,
+                      bool isConcrete,
+                      bool isAbsolute);
 
   /** get assertions
    *

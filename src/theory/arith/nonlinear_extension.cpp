@@ -113,11 +113,17 @@ void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs) {
   Trace(c) << t << " " << type << " " << rhs;
 }
 
-struct SortNlModel {
+struct SortNlModel
+{
   SortNlModel()
-      : d_nlm(nullptr), d_isConcrete(true), d_isAbsolute(false), d_reverse_order(false) {}
+      : d_nlm(nullptr),
+        d_isConcrete(true),
+        d_isAbsolute(false),
+        d_reverse_order(false)
+  {
+  }
   /** pointer to the model */
-  NlModel * d_nlm;
+  NlModel* d_nlm;
   /** are we comparing concrete model values? */
   bool d_isConcrete;
   /** are we comparing absolute values? */
@@ -133,18 +139,20 @@ struct SortNlModel {
     return d_reverse_order ? cv < 0 : cv > 0;
   }
 };
-struct SortNonlinearDegree {
+struct SortNonlinearDegree
+{
   SortNonlinearDegree(NodeMultiset& m) : d_m_degree(m) {}
   /** pointer to the non-linear extension */
   NodeMultiset& d_m_degree;
-  /** 
+  /**
    * Sorts by degree of the monomials, where lower degree monomials come
    * first.
    */
-  bool operator()(Node i, Node j) {
+  bool operator()(Node i, Node j)
+  {
     unsigned i_count = getCount(d_m_degree, i);
     unsigned j_count = getCount(d_m_degree, j);
-    return i_count == j_count ? (i<j) : (i_count < j_count ? true : false);
+    return i_count == j_count ? (i < j) : (i_count < j_count ? true : false);
   }
 };
 
@@ -446,10 +454,12 @@ bool NonlinearExtension::isArithKind(Kind k) {
   return k == PLUS || k == MULT || k == NONLINEAR_MULT;
 }
 
-Node NonlinearExtension::mkLit(Node a, Node b, int status, bool isAbsolute) {
+Node NonlinearExtension::mkLit(Node a, Node b, int status, bool isAbsolute)
+{
   if (status == 0) {
     Node a_eq_b = a.eqNode(b);
-    if (!isAbsolute) {
+    if (!isAbsolute)
+    {
       return a_eq_b;
     } else {
       // return mkAbs( a ).eqNode( mkAbs( b ) );
@@ -462,7 +472,8 @@ Node NonlinearExtension::mkLit(Node a, Node b, int status, bool isAbsolute) {
     Assert(status == 1 || status == 2);
     NodeManager* nm = NodeManager::currentNM();
     Kind greater_op = status == 1 ? GEQ : GT;
-    if (!isAbsolute) {
+    if (!isAbsolute)
+    {
       return nm->mkNode(greater_op, a, b);
     } else {
       // return nm->mkNode( greater_op, mkAbs( a ), mkAbs( b ) );
@@ -1448,8 +1459,8 @@ void NonlinearExtension::presolve()
 void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
                                         NodeMultiset& order,
                                         bool isConcrete,
-                                        bool isAbsolute
-                                       ) {
+                                        bool isAbsolute)
+{
   SortNlModel smv;
   smv.d_nlm = &d_model;
   smv.d_isConcrete = isConcrete;
@@ -1477,12 +1488,13 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
       do {
         success = false;
         if (order_index < d_order_points.size()) {
-          Node vv = d_model.getModelValue(d_order_points[order_index], isConcrete);
-          if (d_model.compareValue(v, vv, isAbsolute) <= 0) {
+          Node vv =
+              d_model.getModelValue(d_order_points[order_index], isConcrete);
+          if (d_model.compareValue(v, vv, isAbsolute) <= 0)
+          {
             counter++;
-            Trace("nl-ext-mvo")
-                << "O[" << d_order_points[order_index]
-                << "] = " << counter << std::endl;
+            Trace("nl-ext-mvo") << "O[" << d_order_points[order_index]
+                                << "] = " << counter << std::endl;
             order[d_order_points[order_index]] = counter;
             prev = vv;
             order_index++;
@@ -1491,19 +1503,18 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
         }
       } while (success);
     }
-    if (prev.isNull() || d_model.compareValue(v, prev, isAbsolute) != 0) {
+    if (prev.isNull() || d_model.compareValue(v, prev, isAbsolute) != 0)
+    {
       counter++;
     }
-    Trace("nl-ext-mvo") << "O[" << x << "] = " << counter
-                        << std::endl;
+    Trace("nl-ext-mvo") << "O[" << x << "] = " << counter << std::endl;
     order[x] = counter;
     prev = v;
   }
   while (order_index < d_order_points.size()) {
     counter++;
-    Trace("nl-ext-mvo") << "O["
-                        << d_order_points[order_index] << "] = " << counter
-                        << std::endl;
+    Trace("nl-ext-mvo") << "O[" << d_order_points[order_index]
+                        << "] = " << counter << std::endl;
     order[d_order_points[order_index]] = counter;
     order_index++;
   }
@@ -2795,7 +2806,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       }
     }
   }
-  
+
   SortNlModel smv;
   smv.d_nlm = &d_model;
   //sort by concrete values
