@@ -106,6 +106,28 @@ class NlModel
    * d_check_model_bounds or if it occurs in d_check_model_vars.
    */
   bool hasCheckModelAssignment(Node v) const;
+  /** TODO */
+  void resetCheckModel();
+  /** Check model
+   *
+   * Checks the current model based on solving for equalities, and using error
+   * bounds on the Taylor approximation.
+   *
+   * If this function returns true, then all assertions in the input argument
+   * "assertions" are satisfied for all interpretations of variables within
+   * their computed bounds (as stored in d_check_model_bounds).
+   *
+   * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
+   * "Detecting Satisfiable Formulas".
+   *
+   * d is a degree indicating how precise our computations are.
+   */
+  bool checkModel(const std::vector<Node>& assertions,
+                  const std::vector<Node>& false_asserts,
+                  unsigned d,
+                  std::vector<Node>& lemmas,
+                  std::vector<Node>& gs
+                 );  
   /** set used approximate */
   void setUsedApproximate();
   /** did we use an approximation? */
@@ -136,27 +158,6 @@ class NlModel
   bool hasModelValueInternal(Node n, bool isConcrete) const;
 
   //---------------------------check model
-  /** Check model
-   *
-   * Checks the current model based on solving for equalities, and using error
-   * bounds on the Taylor approximation.
-   *
-   * If this function returns true, then all assertions in the input argument
-   * "assertions" are satisfied for all interpretations of variables within
-   * their computed bounds (as stored in d_check_model_bounds).
-   *
-   * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
-   * "Detecting Satisfiable Formulas".
-   *
-   * d is a degree indicating how precise our computations are.
-   */
-  bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts,
-                  unsigned d,
-                  std::vector<Node>& lemmas,
-                  std::vector<Node>& gs
-                 );
-
   /** solve equality simple
    *
    * This method is used during checkModel(...). It takes as input an

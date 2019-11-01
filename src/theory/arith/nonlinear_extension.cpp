@@ -699,6 +699,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
                                     const std::vector<Node>& false_asserts)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
+  d_model.resetCheckModel();
 
   // get the presubstitution
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;

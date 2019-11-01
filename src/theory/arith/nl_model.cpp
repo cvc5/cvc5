@@ -214,17 +214,20 @@ std::map<Node, Node>& NlModel::getModelValues(unsigned index)
   return d_mv[index];
 }
 
+void NlModel::resetCheckModel()
+{
+  d_check_model_solved.clear();
+  d_check_model_bounds.clear();
+  d_check_model_vars.clear();
+  d_check_model_subs.clear();  
+}
+
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          const std::vector<Node>& false_asserts,
                          unsigned d,
                          std::vector<Node>& lemmas,
                          std::vector<Node>& gs)
 {
-  d_check_model_solved.clear();
-  d_check_model_bounds.clear();
-  d_check_model_vars.clear();
-  d_check_model_subs.clear();
-
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : false_asserts)
   {
