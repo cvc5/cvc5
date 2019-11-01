@@ -268,6 +268,7 @@ libcvc4_add_sources(
   theory/arith/arith_rewriter.h
   theory/arith/arith_static_learner.cpp
   theory/arith/arith_static_learner.h
+  theory/arith/arith_utilities.cpp
   theory/arith/arith_utilities.h
   theory/arith/arithvar.cpp
   theory/arith/arithvar.h

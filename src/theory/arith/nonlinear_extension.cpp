@@ -553,85 +553,6 @@ Node NonlinearExtension::mkBounded( Node l, Node a, Node u ) {
       NodeManager::currentNM()->mkNode(LEQ, a, u));
 }
 
-// by a <k1> b, a <k2> b, we know a <ret> b
-Kind NonlinearExtension::joinKinds(Kind k1, Kind k2) {
-  if (k2 < k1) {
-    return joinKinds(k2, k1);
-  } else if (k1 == k2) {
-    return k1;
-  } else {
-    Assert(k1 == EQUAL || k1 == LT || k1 == LEQ || k1 == GT || k1 == GEQ);
-    Assert(k2 == EQUAL || k2 == LT || k2 == LEQ || k2 == GT || k2 == GEQ);
-    if (k1 == EQUAL)
-    {
-      if (k2 == LEQ || k2 == GEQ)
-      {
-        return k1;
-      }
-    }
-    else if (k1 == LT)
-    {
-      if (k2 == LEQ)
-      {
-        return k1;
-      }
-    }
-    else if (k1 == LEQ)
-    {
-      if (k2 == GEQ)
-      {
-        return EQUAL;
-      }
-    }
-    else if (k1 == GT)
-    {
-      if (k2 == GEQ)
-      {
-        return k1;
-      }
-    }
-    return UNDEFINED_KIND;
-  }
-}
-
-// by a <k1> b, b <k2> c, we know a <ret> c
-Kind NonlinearExtension::transKinds(Kind k1, Kind k2) {
-  if (k2 < k1) {
-    return transKinds(k2, k1);
-  } else if (k1 == k2) {
-    return k1;
-  } else {
-    Assert(k1 == EQUAL || k1 == LT || k1 == LEQ || k1 == GT || k1 == GEQ);
-    Assert(k2 == EQUAL || k2 == LT || k2 == LEQ || k2 == GT || k2 == GEQ);
-    if (k1 == EQUAL)
-    {
-      return k2;
-    }
-    else if (k1 == LT)
-    {
-      if (k2 == LEQ)
-      {
-        return k1;
-      }
-    }
-    else if (k1 == GT)
-    {
-      if (k2 == GEQ)
-      {
-        return k1;
-      }
-    }
-    return UNDEFINED_KIND;
-  }
-}
-
-bool NonlinearExtension::isTranscendentalKind(Kind k) {
-  // many operators are eliminated during rewriting
-  Assert(k != TANGENT && k != COSINE && k != COSECANT && k != SECANT
-         && k != COTANGENT);
-  return k == EXPONENTIAL || k == SINE || k == PI;
-}
- 
 Node NonlinearExtension::mkMonomialRemFactor(
     Node n, const NodeMultiset& n_exp_rem) const {
   std::vector<Node> children;
@@ -1054,7 +975,7 @@ bool NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
   {
     Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
     // this should never happen since substitutions should be applied eagerly
-    Assert( false );
+    Assert(false);
     return false;
   }
   // if we previously had an approximate bound, the exact bound should be in its
@@ -1955,8 +1876,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       /*
       //mark processed if has a "one" factor (will look at reduced monomial)
       std::map< Node, std::map< Node, unsigned > >::iterator itme =
-      d_m_exp.find( a ); Assert( itme!=d_m_exp.end() ); for( std::map< Node,
-      unsigned >::iterator itme2 = itme->second.begin(); itme2 !=
+      d_m_exp.find( a ); Assert( itme!=d_m_exp.end() ); for( std::map<
+      Node, unsigned >::iterator itme2 = itme->second.begin(); itme2 !=
       itme->second.end(); ++itme2 ){ Node v = itme->first; Assert(
       d_mv[0].find( v )!=d_mv[0].end() ); Node mvv = d_mv[0][ v ]; if(
       mvv==d_one || mvv==d_neg_one ){ ms_proc[ a ] = true;
@@ -2036,7 +1957,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
     else
     {
-      Assert( false );
+      Assert(false);
     }
   }
   // initialize pi if necessary
@@ -2675,84 +2596,6 @@ void NonlinearExtension::getCurrentPiBounds( std::vector< Node >& lemmas ) {
   lemmas.push_back( pi_lem );
 }
 
-Node NonlinearExtension::getApproximateConstant(Node c,
-                                                bool isLower,
-                                                unsigned prec) const
-{
-  Assert(c.isConst());
-  Rational cr = c.getConst<Rational>();
-
-  unsigned lower = 0;
-  unsigned upper = pow(10, prec);
-
-  Rational den = Rational(upper);
-  if (cr.getDenominator() < den.getNumerator())
-  {
-    // denominator is not more than precision, we return it
-    return c;
-  }
-
-  int csign = cr.sgn();
-  Assert(csign != 0);
-  if (csign == -1)
-  {
-    cr = -cr;
-  }
-  Rational one = Rational(1);
-  Rational ten = Rational(10);
-  Rational pow_ten = Rational(1);
-  // inefficient for large numbers
-  while (cr >= one)
-  {
-    cr = cr / ten;
-    pow_ten = pow_ten * ten;
-  }
-  Rational allow_err = one / den;
-
-  Trace("nl-ext-approx") << "Compute approximation for " << c << ", precision "
-                         << prec << "..." << std::endl;
-  // now do binary search
-  Rational two = Rational(2);
-  NodeManager * nm = NodeManager::currentNM();
-  Node cret;
-  do
-  {
-    unsigned curr = (lower + upper) / 2;
-    Rational curr_r = Rational(curr) / den;
-    Rational err = cr - curr_r;
-    int esign = err.sgn();
-    if (err.abs() <= allow_err)
-    {
-      if (esign == 1 && !isLower)
-      {
-        curr_r = Rational(curr + 1) / den;
-      }
-      else if (esign == -1 && isLower)
-      {
-        curr_r = Rational(curr - 1) / den;
-      }
-      curr_r = curr_r * pow_ten;
-      cret = nm->mkConst(csign == 1 ? curr_r : -curr_r);
-    }
-    else
-    {
-      Assert(esign != 0);
-      // update lower/upper
-      if (esign == -1)
-      {
-        upper = curr;
-      }
-      else if (esign == 1)
-      {
-        lower = curr;
-      }
-    }
-  } while (cret.isNull());
-  Trace("nl-ext-approx") << "Approximation for " << c << " for precision "
-                         << prec << " is " << cret << std::endl;
-  return cret;
-}
-
 bool NonlinearExtension::getApproximateSqrt(Node c,
                                             Node& l,
                                             Node& u,
@@ -2798,23 +2641,6 @@ bool NonlinearExtension::getApproximateSqrt(Node c,
   return true;
 }
 
-void NonlinearExtension::printRationalApprox(const char* c,
-                                             Node cr,
-                                             unsigned prec) const
-{
-  Assert(cr.isConst());
-  Node ca = getApproximateConstant(cr, true, prec);
-  if (ca != cr)
-  {
-    Trace(c) << "(+ ";
-  }
-  Trace(c) << ca;
-  if (ca != cr)
-  {
-    Trace(c) << " [0,10^" << prec << "])";
-  }
-}
-
 void NonlinearExtension::printModelValue(const char* c,
                                          Node n,
                                          unsigned prec) const
@@ -2843,7 +2669,7 @@ void NonlinearExtension::printModelValue(const char* c,
 int NonlinearExtension::compare_value(Node i, Node j,
                                       unsigned orderType) const {
   Assert(orderType >= 0 && orderType <= 3);
-  Assert( i.isConst() && j.isConst() );
+  Assert(i.isConst() && j.isConst());
   Trace("nl-ext-debug") << "compare value " << i << " " << j
                         << ", o = " << orderType << std::endl;
   int ret;
@@ -2899,8 +2725,8 @@ int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
     Node av = d_m_vlist[a][a_index];
     unsigned aexp = d_m_exp[a][av];
     // take current sign in model
-    Assert( d_mv[1].find(av) != d_mv[0].end() );
-    Assert( d_mv[1][av].isConst() );
+    Assert(d_mv[1].find(av) != d_mv[0].end());
+    Assert(d_mv[1][av].isConst());
     int sgn = d_mv[1][av].getConst<Rational>().sgn();
     Trace("nl-ext-debug") << "Process var " << av << "^" << aexp
                           << ", model sign = " << sgn << std::endl;
@@ -3206,7 +3032,7 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
           // compare magnitude against variables
           for (unsigned k = 0; k < d_ms_vars.size(); k++) {
             Node v = d_ms_vars[k];
-            Assert( d_mv[0].find( v )!=d_mv[0].end() );
+            Assert(d_mv[0].find(v) != d_mv[0].end());
             if( d_mv[0][v].isConst() ){
               std::vector<Node> exp;
               NodeMultiset a_exp_proc;
@@ -3359,7 +3185,7 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
                 Node curr_v = p<=1 ? a_v_c : b_v_c;
                 if( prevRefine ){
                   Node pt_v = d_tangent_val_bound[p][a][b];
-                  Assert( !pt_v.isNull() );
+                  Assert(!pt_v.isNull());
                   if( curr_v!=pt_v ){
                     Node do_extend =
                         nm->mkNode((p == 1 || p == 3) ? GT : LT, curr_v, pt_v);
@@ -3598,8 +3424,8 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
               Kind type = itcr->second;
               for (unsigned j = 0; j < itm->second.size(); j++) {
                 Node y = itm->second[j];
-                Assert(d_m_contain_mult[x].find(y) !=
-                       d_m_contain_mult[x].end());
+                Assert(d_m_contain_mult[x].find(y)
+                       != d_m_contain_mult[x].end());
                 Node mult = d_m_contain_mult[x][y];
                 // x <k> t => m*x <k'> t  where y = m*x
                 // get the sign of mult
@@ -3757,7 +3583,7 @@ std::vector<Node> NonlinearExtension::checkFactoring(
             poly.push_back(NodeManager::currentNM()->mkNode(MULT, x, kf));
             std::map<Node, std::vector<Node> >::iterator itfo =
                 factor_to_mono_orig.find(x);
-            Assert( itfo!=factor_to_mono_orig.end() );
+            Assert(itfo != factor_to_mono_orig.end());
             for( std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
               if( std::find( itfo->second.begin(), itfo->second.end(), itm->first )==itfo->second.end() ){
                 poly.push_back(ArithMSum::mkCoeffTerm(
@@ -3955,7 +3781,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
     Kind k = tfl.first;
     for (const Node& t : tfl.second)
     {
-      Assert( d_mv[1].find( t )!=d_mv[1].end() );
+      Assert(d_mv[1].find(t) != d_mv[1].end());
       //initial refinements
       if( d_tf_initial_refine.find( t )==d_tf_initial_refine.end() ){
         d_tf_initial_refine[t] = true;
@@ -4095,10 +3921,10 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       for (unsigned i = 0; i < sorted_tf_args[k].size(); i++)
       {
         Node targ = sorted_tf_args[k][i];
-        Assert( d_mv[1].find( targ )!=d_mv[1].end() );
+        Assert(d_mv[1].find(targ) != d_mv[1].end());
         Trace("nl-ext-tf-mono") << "  " << targ << " -> " << d_mv[1][targ] << std::endl;
         Node t = tf_arg_to_term[k][targ];
-        Assert( d_mv[1].find( t )!=d_mv[1].end() );
+        Assert(d_mv[1].find(t) != d_mv[1].end());
         Trace("nl-ext-tf-mono") << "     f-val : " << d_mv[1][t] << std::endl;
       }
       std::vector< Node > mpoints;
@@ -4121,7 +3947,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
           Node mpv;
           if( !mpoints[i].isNull() ){
             mpv = computeModelValue( mpoints[i], 1 );
-            Assert( mpv.isConst() );
+            Assert(mpv.isConst());
           }
           mpoints_vals.push_back( mpv );
         }
@@ -4133,14 +3959,14 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
         for (unsigned i = 0, size = sorted_tf_args[k].size(); i < size; i++)
         {
           Node sarg = sorted_tf_args[k][i];
-          Assert( d_mv[1].find( sarg )!=d_mv[1].end() );
+          Assert(d_mv[1].find(sarg) != d_mv[1].end());
           Node sargval = d_mv[1][sarg];
-          Assert( sargval.isConst() ); 
+          Assert(sargval.isConst());
           Node s = tf_arg_to_term[k][ sarg ];
-          Assert( d_mv[1].find( s )!=d_mv[1].end() );
+          Assert(d_mv[1].find(s) != d_mv[1].end());
           Node sval = d_mv[1][s];
-          Assert( sval.isConst() ); 
-        
+          Assert(sval.isConst());
+
           //increment to the proper monotonicity region
           bool increment = true;
           while (increment && mdir_index < mpoints.size())
@@ -4150,7 +3976,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
               increment = true;
             }else{
               Node pval = mpoints_vals[mdir_index];
-              Assert( pval.isConst() );
+              Assert(pval.isConst());
               if( sargval.getConst<Rational>() < pval.getConst<Rational>() ){
                 increment = true;
                 Trace("nl-ext-tf-mono") << "...increment at " << sarg << " since model value is less than " << mpoints[mdir_index] << std::endl;
@@ -4191,7 +4017,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
             }
             if( !mono_lem.isNull() ){        
               if( !mono_bounds[0].isNull() ){
-                Assert( !mono_bounds[1].isNull() );
+                Assert(!mono_bounds[1].isNull());
                 mono_lem = NodeManager::currentNM()->mkNode(
                     IMPLIES,
                     NodeManager::currentNM()->mkNode(

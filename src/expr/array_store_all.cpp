@@ -20,7 +20,7 @@
 
 #include <iostream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/expr.h"
 #include "expr/type.h"
 

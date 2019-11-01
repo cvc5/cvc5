@@ -48,9 +48,8 @@ public:
 struct SetsBinaryOperatorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::UNION ||
-           n.getKind() == kind::INTERSECTION ||
-           n.getKind() == kind::SETMINUS);
+    Assert(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
+           || n.getKind() == kind::SETMINUS);
     TypeNode setType = n[0].getType(check);
     if( check ) {
       if(!setType.isSet()) {
@@ -73,9 +72,8 @@ struct SetsBinaryOperatorTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::UNION ||
-           n.getKind() == kind::INTERSECTION ||
-           n.getKind() == kind::SETMINUS);
+    Assert(n.getKind() == kind::UNION || n.getKind() == kind::INTERSECTION
+           || n.getKind() == kind::SETMINUS);
     if(n.getKind() == kind::UNION) {
       return NormalForm::checkNormalConstant(n);
     } else {
@@ -223,7 +221,7 @@ struct InsertTypeRule {
   {
     Assert(n.getKind() == kind::INSERT);
     size_t numChildren = n.getNumChildren();
-    Assert( numChildren >= 2 );
+    Assert(numChildren >= 2);
     TypeNode setType = n[numChildren-1].getType(check);
     if( check ) {
       if(!setType.isSet()) {
@@ -249,8 +247,7 @@ struct InsertTypeRule {
 struct RelBinaryOperatorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::PRODUCT ||
-           n.getKind() == kind::JOIN);
+    Assert(n.getKind() == kind::PRODUCT || n.getKind() == kind::JOIN);
 
     TypeNode firstRelType = n[0].getType(check);
     TypeNode secondRelType = n[1].getType(check);
@@ -286,8 +283,7 @@ struct RelBinaryOperatorTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-    Assert(n.getKind() == kind::JOIN ||
-           n.getKind() == kind::PRODUCT);
+    Assert(n.getKind() == kind::JOIN || n.getKind() == kind::PRODUCT);
     return false;
   }
 };/* struct RelBinaryOperatorTypeRule */
@@ -331,8 +327,8 @@ struct RelTransClosureTypeRule {
   }
 
   inline static bool computeIsConst(NodeManager* nodeManager, TNode n) {
-      Assert(n.getKind() == kind::TCLOSURE);
-      return false;
+    Assert(n.getKind() == kind::TCLOSURE);
+    return false;
     }
 };/* struct RelTransClosureTypeRule */
 
