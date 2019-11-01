@@ -215,8 +215,13 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    {
      // find the "zero" term via mkGroundTerm
      Debug("dt-enum-debug") << "make ground term..." << std::endl;
-     // Start with the ground term constructed via mkGroundTerm, which does
+     // Start with the ground term constructed via mkGroundValue, which does
      // a traversal over the structure of the datatype to find a finite term.
+     // Notice that mkGroundValue may be dependent upon extracting the first
+     // value of type enumerators for *other non-datatype* subfield types of
+     // this datatype. Since datatypes can not be embedded in non-datatype
+     // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
+     // call is guaranteed to avoid infinite recursion.
      d_zeroTerm = Node::fromExpr(d_datatype.mkGroundValue(d_type.toType()));
      d_zeroTermActive = true;
      Debug("dt-enum-debug") << "done : " << d_zeroTerm << std::endl;
@@ -258,7 +263,11 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    d_size_limit = 0;
    if (!d_zeroTermActive)
    {
-     // set up initial conditions (should always succeed)
+     // Set up initial conditions (should always succeed). Here, we are calling
+     // the increment function of this class, which ensures a term is ready to
+     // read via a dereference of this class. We use the same method for
+     // setting up the first term, if it is not already set up
+     // (d_zeroTermActive) using the increment function, for uniformity.
      ++*this;
    }
    AlwaysAssert(!isFinished());
