@@ -49,10 +49,7 @@ void NlModel::reset(TheoryModel* m)
     */
 }
 
-void NlModel::resetCheck()
-{
-  d_used_approx = false;
-}
+void NlModel::resetCheck() { d_used_approx = false; }
 
 Node NlModel::computeModelValue(Node n, unsigned index)
 {
@@ -176,8 +173,8 @@ Node NlModel::getAbstractModelValue(Node n) const
 Node NlModel::getModelValueInternal(Node n, bool isConcrete) const
 {
   unsigned index = isConcrete ? 0 : 1;
-  std::map< Node, Node >::const_iterator it = d_mv[index].find(n);
-  if (it==d_mv[index].end())
+  std::map<Node, Node>::const_iterator it = d_mv[index].find(n);
+  if (it == d_mv[index].end())
   {
     return d_null;
   }
@@ -200,15 +197,9 @@ bool NlModel::hasModelValueInternal(Node n, bool isConcrete) const
   return d_mv[index].find(n) != d_mv[index].end();
 }
 
-std::map<Node, Node>& NlModel::getConcreteModelValues()
-{
-  return d_mv[0];
-}
+std::map<Node, Node>& NlModel::getConcreteModelValues() { return d_mv[0]; }
 
-std::map<Node, Node>& NlModel::getAbstractModelValues()
-{
-  return d_mv[1];
-}
+std::map<Node, Node>& NlModel::getAbstractModelValues() { return d_mv[1]; }
 std::map<Node, Node>& NlModel::getModelValues(unsigned index)
 {
   return d_mv[index];
@@ -219,7 +210,7 @@ void NlModel::resetCheckModel()
   d_check_model_solved.clear();
   d_check_model_bounds.clear();
   d_check_model_vars.clear();
-  d_check_model_subs.clear();  
+  d_check_model_subs.clear();
 }
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
@@ -432,15 +423,9 @@ bool NlModel::hasCheckModelAssignment(Node v) const
          != d_check_model_vars.end();
 }
 
-void NlModel::setUsedApproximate()
-{
-  d_used_approx = true;
-}
+void NlModel::setUsedApproximate() { d_used_approx = true; }
 
-bool NlModel::usedApproximate() const
-{
-  return d_used_approx;
-}
+bool NlModel::usedApproximate() const { return d_used_approx; }
 
 bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,
@@ -1250,7 +1235,7 @@ void NlModel::recordApproximations()
   // this class.
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node> >& cb :
-        d_check_model_bounds)
+       d_check_model_bounds)
   {
     Node l = cb.second.first;
     Node u = cb.second.second;
@@ -1287,9 +1272,7 @@ void NlModel::recordApproximations()
     }
   }
 }
-  void NlModel::printModelValue(const char* c,
-                                         Node n,
-                                         unsigned prec) const
+void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 {
   if (Trace.isOn(c))
   {

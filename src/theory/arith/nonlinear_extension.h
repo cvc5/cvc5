@@ -34,9 +34,9 @@
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/arith/nl_model.h"
 
 namespace CVC4 {
 namespace theory {

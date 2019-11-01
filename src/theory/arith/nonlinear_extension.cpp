@@ -758,9 +758,10 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       }
     }
   }
-  std::vector< Node > lemmas;
-  std::vector< Node > gs;
-  bool ret = d_model.checkModel(passertions, false_asserts, d_taylor_degree, lemmas, gs);
+  std::vector<Node> lemmas;
+  std::vector<Node> gs;
+  bool ret = d_model.checkModel(
+      passertions, false_asserts, d_taylor_degree, lemmas, gs);
   for (Node& mg : gs)
   {
     mg = Rewriter::rewrite(mg);
@@ -770,7 +771,8 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   }
   for (Node& lem : lemmas)
   {
-    Trace("nl-ext-lemma-model") << "Lemma from check model : " << lem << std::endl;
+    Trace("nl-ext-lemma-model")
+        << "Lemma from check model : " << lem << std::endl;
     d_containing.getOutputChannel().lemma(lem);
   }
   return ret;
@@ -847,7 +849,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
-  std::map< Node, Node >& mva = d_model.getAbstractModelValues();
+  std::map<Node, Node>& mva = d_model.getAbstractModelValues();
   for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
   {
     Node a = xts[i];
@@ -868,12 +870,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         if (!IsInVector(d_ms_vars, itvl->second[k])) {
           d_ms_vars.push_back(itvl->second[k]);
         }
-        Node mvk = d_model.computeModelValue( itvl->second[k], 1 );
+        Node mvk = d_model.computeModelValue(itvl->second[k], 1);
         if( !mvk.isConst() ){
           d_m_nconst_factor[a] = true;
         }
       }
-      //mark processed if has a "one" factor (will look at reduced monomial)?
+      // mark processed if has a "one" factor (will look at reduced monomial)?
     }
     else if (a.getNumChildren() > 0)
     {
@@ -1226,7 +1228,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     getAssertions(assertions);
 
     // reset cached information
-    TheoryModel * tm = d_containing.getValuation().getModel();
+    TheoryModel* tm = d_containing.getValuation().getModel();
     d_model.reset(tm);
 
     Trace("nl-ext-mv-assert")
@@ -1640,9 +1642,10 @@ int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
   Trace("nl-ext-debug") << "Process " << a << " at index " << a_index
                         << ", status is " << status << std::endl;
   Assert(d_model.hasAbstractModelValue(oa));
-  std::map< Node, Node >& mva = d_model.getAbstractModelValues();
+  std::map<Node, Node>& mva = d_model.getAbstractModelValues();
   if (a_index == d_m_vlist[a].size()) {
-    if (mva[oa].getConst<Rational>().sgn() != status) {
+    if (mva[oa].getConst<Rational>().sgn() != status)
+    {
       Node lemma =
           safeConstructNary(AND, exp).impNode(mkLit(oa, d_zero, status * 2));
       lem.push_back(lemma);
@@ -1659,7 +1662,8 @@ int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
     Trace("nl-ext-debug") << "Process var " << av << "^" << aexp
                           << ", model sign = " << sgn << std::endl;
     if (sgn == 0) {
-      if (mva[oa].getConst<Rational>().sgn() != 0) {
+      if (mva[oa].getConst<Rational>().sgn() != 0)
+      {
         Node lemma = av.eqNode(d_zero).impNode(oa.eqNode(d_zero));
         lem.push_back(lemma);
       }
@@ -1918,8 +1922,9 @@ std::vector<Node> NonlinearExtension::checkMonomialSign() {
       std::vector<Node> exp;
       if (Trace.isOn("nl-ext-debug"))
       {
-        Node cmva = d_model.computeModelValue(a,0);
-        Trace("nl-ext-debug") << "  process " << a << ", mv=" << cmva << "..." << std::endl;
+        Node cmva = d_model.computeModelValue(a, 0);
+        Trace("nl-ext-debug")
+            << "  process " << a << ", mv=" << cmva << "..." << std::endl;
       }
       if( d_m_nconst_factor.find( a )==d_m_nconst_factor.end() ){
         signs[a] = compareSign(a, a, 0, 1, exp, lemmas);
@@ -1942,7 +1947,7 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
   std::vector<Node> lemmas;
 // if (x,y,L) in cmp_infers, then x > y inferred as conclusion of L
   // in lemmas
-  std::map< Node, Node >& mvc = d_model.getConcreteModelValues();
+  std::map<Node, Node>& mvc = d_model.getConcreteModelValues();
   std::map<int, std::map<Node, std::map<Node, Node> > > cmp_infers;
   Trace("nl-ext") << "Get monomial comparison lemmas (order=" << r
                   << ", compare=" << c << ")..." << std::endl;
@@ -1966,7 +1971,8 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
           for (unsigned k = 0; k < d_ms_vars.size(); k++) {
             Node v = d_ms_vars[k];
             Assert(mvc.find(v) != mvc.end());
-            if( mvc[v].isConst() ){
+            if (mvc[v].isConst())
+            {
               std::vector<Node> exp;
               NodeMultiset a_exp_proc;
               NodeMultiset b_exp_proc;
@@ -2819,7 +2825,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   //sort arguments of all transcendentals
   std::map< Kind, std::vector< Node > > sorted_tf_args;
   std::map< Kind, std::map< Node, Node > > tf_arg_to_term;
-  std::map< Node, Node >& mva = d_model.getAbstractModelValues();
+  std::map<Node, Node>& mva = d_model.getAbstractModelValues();
 
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
   {
@@ -2856,7 +2862,8 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       {
         Node targ = sorted_tf_args[k][i];
         Assert(mva.find(targ) != mva.end());
-        Trace("nl-ext-tf-mono") << "  " << targ << " -> " << mva[targ] << std::endl;
+        Trace("nl-ext-tf-mono")
+            << "  " << targ << " -> " << mva[targ] << std::endl;
         Node t = tf_arg_to_term[k][targ];
         Assert(mva.find(t) != mva.end());
         Trace("nl-ext-tf-mono") << "     f-val : " << mva[t] << std::endl;
@@ -2880,7 +2887,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
         for( unsigned i=0; i<mpoints.size(); i++ ){
           Node mpv;
           if( !mpoints[i].isNull() ){
-            mpv = d_model.computeModelValue( mpoints[i], 1 );
+            mpv = d_model.computeModelValue(mpoints[i], 1);
             Assert(mpv.isConst());
           }
           mpoints_vals.push_back( mpv );

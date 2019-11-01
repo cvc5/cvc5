@@ -30,7 +30,7 @@ namespace theory {
 namespace arith {
 
 class NonlinearExtension;
-  
+
 /** Non-linear model
  *
  * TODO
@@ -38,6 +38,7 @@ class NonlinearExtension;
 class NlModel
 {
   friend class NonlinearExtension;
+
  public:
   NlModel(context::Context* c);
   ~NlModel();
@@ -72,14 +73,14 @@ class NlModel
   bool hasAbstractModelValue(Node n) const;
   bool hasConcreteModelValue(Node n) const;
   /** get computed model values
-   * 
+   *
    * Returns the map of all computed concrete and abstract model values computed
    * by the above function.
    */
   std::map<Node, Node>& getConcreteModelValues();
   std::map<Node, Node>& getAbstractModelValues();
   std::map<Node, Node>& getModelValues(unsigned index);
-  
+
   //------------------------------ recording model substitutions and bounds
   /** add check model substitution
    *
@@ -126,8 +127,7 @@ class NlModel
                   const std::vector<Node>& false_asserts,
                   unsigned d,
                   std::vector<Node>& lemmas,
-                  std::vector<Node>& gs
-                 );  
+                  std::vector<Node>& gs);
   /** set used approximate */
   void setUsedApproximate();
   /** did we use an approximation? */
@@ -135,17 +135,18 @@ class NlModel
   //------------------------------ end recording model substitutions and bounds
 
   /** print model value, for debugging.
-   * 
+   *
    * This prints both the abstract and concrete model values for arithmetic
    * term n on Trace c with precision prec.
    */
   void printModelValue(const char* c, Node n, unsigned prec = 5) const;
   /** record approximations in the current model
-   * 
+   *
    * This makes necessary calls that notify the model of any approximations
    * that were used by this solver.
    */
   void recordApproximations();
+
  private:
   /** The current model */
   TheoryModel* d_model;
@@ -153,7 +154,7 @@ class NlModel
   Node getValueInternal(Node n) const;
   bool hasTerm(Node n) const;
   Node getRepresentative(Node n) const;
-  
+
   Node getModelValueInternal(Node n, bool isConcrete) const;
   bool hasModelValueInternal(Node n, bool isConcrete) const;
 
