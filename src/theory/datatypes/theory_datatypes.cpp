@@ -59,7 +59,8 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
       d_collectTermsCacheU(u),
       d_functionTerms(c),
       d_singleton_eq(u),
-      d_lemmas_produced_c(u)
+      d_lemmas_produced_c(u),
+      d_sygusExtension(nullptr)
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);
@@ -72,8 +73,6 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
   d_true = NodeManager::currentNM()->mkConst( true );
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
   d_dtfCounter = 0;
-
-  d_sygus_sym_break = NULL;
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -83,7 +82,6 @@ TheoryDatatypes::~TheoryDatatypes() {
     Assert(current != NULL);
     delete current;
   }
-  delete d_sygus_sym_break;
 }
 
 void TheoryDatatypes::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -142,9 +140,9 @@ void TheoryDatatypes::check(Effort e) {
   d_addedLemma = false;
   
   if( e == EFFORT_LAST_CALL ){
-    Assert(d_sygus_sym_break);
+    Assert(d_sygusExtension != nullptr);
     std::vector< Node > lemmas;
-    d_sygus_sym_break->check( lemmas );
+    d_sygusExtension->check(lemmas);
     doSendLemmas( lemmas );
     return;
   }
@@ -376,7 +374,7 @@ void TheoryDatatypes::check(Effort e) {
 }
 
 bool TheoryDatatypes::needsCheckLastEffort() {
-  return d_sygus_sym_break!=NULL;
+  return d_sygusExtension != nullptr;
 }
 
 void TheoryDatatypes::flushPendingFacts(){
@@ -483,9 +481,10 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
   }
   doPendingMerges();
   // could be sygus-specific
-  if( d_sygus_sym_break ){
+  if (d_sygusExtension)
+  {
     std::vector< Node > lemmas;
-    d_sygus_sym_break->assertFact( atom, polarity, lemmas );
+    d_sygusExtension->assertFact(atom, polarity, lemmas);
     doSendLemmas( lemmas );
   }
   //add to tester if applicable
@@ -502,11 +501,12 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
     doPendingMerges();
     Trace("dt-tester") << "Done pending merges." << std::endl;
     if( !d_conflict && polarity ){
-      if( d_sygus_sym_break ){
+      if (d_sygusExtension)
+      {
         Trace("dt-tester") << "Assert tester to sygus : " << atom << std::endl;
         //Assert( !d_sygus_util->d_conflict );
         std::vector< Node > lemmas;
-        d_sygus_sym_break->assertTester( tindex, t_arg, atom, lemmas );
+        d_sygusExtension->assertTester(tindex, t_arg, atom, lemmas);
         Trace("dt-tester") << "Done assert tester to sygus." << std::endl;
         doSendLemmas( lemmas );
       }
@@ -532,9 +532,10 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
   default:
     // Function applications/predicates
     d_equalityEngine.addTerm(n);
-    if( d_sygus_sym_break ){
+    if (d_sygusExtension)
+    {
       std::vector< Node > lemmas;
-      d_sygus_sym_break->preRegisterTerm(n, lemmas);
+      d_sygusExtension->preRegisterTerm(n, lemmas);
       doSendLemmas( lemmas );
     }
     //d_equalityEngine.addTriggerTerm(n, THEORY_DATATYPES);
@@ -545,8 +546,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
 
 void TheoryDatatypes::finishInit() {
   if( getQuantifiersEngine() && options::ceGuidedInst() ){
-    d_sygus_sym_break =
-        new SygusSymBreakNew(this, getQuantifiersEngine(), getSatContext());
+    d_sygusExtension.reset(
+        new SygusExtension(this, getQuantifiersEngine(), getSatContext()));
     // do congruence on evaluation functions
     d_equalityEngine.addFunctionKind(kind::DT_SYGUS_EVAL);
   }
