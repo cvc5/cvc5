@@ -18,6 +18,7 @@
 
 #ifdef CVC4_USE_CADICAL
 
+#include "base/check.h"
 #include "proof/sat_proof.h"
 
 namespace CVC4 {
@@ -116,7 +117,7 @@ SatValue CadicalSolver::solve()
 
 SatValue CadicalSolver::solve(long unsigned int&)
 {
-  Unimplemented("Setting limits for CaDiCaL not supported yet");
+  Unimplemented() << "Setting limits for CaDiCaL not supported yet";
 };
 
 SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
