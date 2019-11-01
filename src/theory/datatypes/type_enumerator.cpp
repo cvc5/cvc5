@@ -301,8 +301,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      }
      // Here, we need to step from the current constructor to the next one
 
-     // Find the next constructor (only complicated by the notion of the "zero"
-     // constructor
+     // Go to the next constructor
      d_ctor = d_ctor + 1;
      if (d_ctor >= d_has_debruijn + d_datatype.getNumConstructors())
      {
