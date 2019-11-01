@@ -760,7 +760,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   }
   std::vector< Node > lemmas;
   std::vector< Node > gs;
-  d_model.checkModel(passertions, false_asserts, d_taylor_degree, lemmas, gs);
+  bool ret = d_model.checkModel(passertions, false_asserts, d_taylor_degree, lemmas, gs);
   for (Node& mg : gs)
   {
     mg = Rewriter::rewrite(mg);
@@ -773,7 +773,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     Trace("nl-ext-lemma-model") << "Lemma from check model : " << lem << std::endl;
     d_containing.getOutputChannel().lemma(lem);
   }
-  return true;
+  return ret;
 }
 
 
