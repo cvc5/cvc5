@@ -1158,6 +1158,7 @@ set(regress_1_tests
   regress1/datatypes/dt-param-card4-unsat.smt2
   regress1/datatypes/error.cvc
   regress1/datatypes/issue3266-small.smt2
+  regress1/datatypes/issue-variant-dt-zero.smt2
   regress1/datatypes/manos-model.smt2
   regress1/decision/error3.smtv1.smt2
   regress1/decision/quant-Arrays_Q1-noinfer.smt2
@@ -1392,6 +1393,7 @@ set(regress_1_tests
   regress1/quantifiers/isaplanner-goal20.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
   regress1/quantifiers/issue3250-syg-inf-q.smt2
+  regress1/quantifiers/issue3316.smt2
   regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
