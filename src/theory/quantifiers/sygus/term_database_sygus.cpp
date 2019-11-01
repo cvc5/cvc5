@@ -162,7 +162,8 @@ TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
 Node TermDbSygus::mkGeneric(const Datatype& dt,
                             unsigned c,
                             std::map<TypeNode, int>& var_count,
-                            std::map<int, Node>& pre)
+                            std::map<int, Node>& pre,
+                            bool doBetaRed)
 {
   Assert(c < dt.getNumConstructors());
   Assert(dt.isSygus());
@@ -176,6 +177,7 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
     std::map< int, Node >::iterator it = pre.find( i );
     if( it!=pre.end() ){
       a = it->second;
+      Trace("sygus-db-debug") << "From pre: " << a << std::endl;
     }else{
       TypeNode tna = TypeNode::fromType(dt[c].getArgType(i));
       a = getFreeVarInc( tna, var_count, true );
@@ -185,19 +187,24 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
     Assert(!a.isNull());
     children.push_back( a );
   }
-  return datatypes::utils::mkSygusTerm(dt, c, children);
+  Node ret = datatypes::utils::mkSygusTerm(dt, c, children, doBetaRed);
+  Trace("sygus-db-debug") << "mkGeneric returns " << ret << std::endl;
+  return ret;
 }
 
-Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre)
+Node TermDbSygus::mkGeneric(const Datatype& dt,
+                            int c,
+                            std::map<int, Node>& pre,
+                            bool doBetaRed)
 {
   std::map<TypeNode, int> var_count;
-  return mkGeneric(dt, c, var_count, pre);
+  return mkGeneric(dt, c, var_count, pre, doBetaRed);
 }
 
-Node TermDbSygus::mkGeneric(const Datatype& dt, int c)
+Node TermDbSygus::mkGeneric(const Datatype& dt, int c, bool doBetaRed)
 {
   std::map<int, Node> pre;
-  return mkGeneric(dt, c, pre);
+  return mkGeneric(dt, c, pre, doBetaRed);
 }
 
 struct CanonizeBuiltinAttributeId
@@ -293,6 +300,8 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
     {
       pre[j] = sygusToBuiltin(n[j], TypeNode::fromType(dt[i].getArgType(j)));
+      Trace("sygus-db-debug")
+          << "sygus to builtin " << n[j] << " is " << pre[j] << std::endl;
     }
     Node ret = mkGeneric(dt, i, pre);
     Trace("sygus-db-debug")
