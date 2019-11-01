@@ -23,7 +23,7 @@
 
 #include <cmath>
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "options/options.h"
 #include "preprocessing/passes/ackermann.h"
 
@@ -171,9 +171,8 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       }
       else
       {
-        AlwaysAssert(
-            term.getKind() != kind::STORE,
-            "Cannot use Ackermannization on formula with stores to arrays");
+        AlwaysAssert(term.getKind() != kind::STORE)
+            << "Cannot use Ackermannization on formula with stores to arrays";
         /* add children to the vector, so that they are processed later */
         for (TNode n : term)
         {

@@ -25,6 +25,9 @@ set(regress_0_tests
   regress0/arith/integers/ackermann6.smt2
   regress0/arith/integers/arith-int-042.cvc
   regress0/arith/integers/arith-int-042.min.cvc
+  regress0/arith/issue1399.smt2
+  regress0/arith/issue3412.smt2
+  regress0/arith/issue3413.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
   regress0/arith/miplib2.cvc
@@ -537,6 +540,7 @@ set(regress_0_tests
   regress0/model-core.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/ext-rew-aggr-test.smt2
+  regress0/nl/issue3407.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -565,6 +569,7 @@ set(regress_0_tests
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/force_logic_set_logic.smt2
+  regress0/parser/force_logic_success.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -848,6 +853,7 @@ set(regress_0_tests
   regress0/smallcnf.cvc
   regress0/smt2output.smt2
   regress0/smtlib/get-unsat-assumptions.smt2
+  regress0/smtlib/global-decls.smt2
   regress0/smtlib/reason-unknown.smt2
   regress0/smtlib/set-info-status.smt2
   regress0/strings/bug001.smt2
@@ -912,6 +918,7 @@ set(regress_0_tests
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
+  regress0/sygus/no-logic.sy
   regress0/sygus/no-syntax-test-bool.sy
   regress0/sygus/no-syntax-test.sy
   regress0/sygus/parity-AIG-d0.sy
@@ -1670,6 +1677,7 @@ set(regress_1_tests
   regress1/sygus/cegisunif-depth1.sy
   regress1/sygus/cggmp.sy
   regress1/sygus/clock-inc-tuple.sy
+  regress1/sygus/coeff-solve-inv.sy
   regress1/sygus/commutative-stream.sy
   regress1/sygus/commutative.sy
   regress1/sygus/concat_extract_example.sy
@@ -1690,6 +1698,7 @@ set(regress_1_tests
   regress1/sygus/hd-01-d1-prog.sy
   regress1/sygus/hd-19-d1-prog-dup-op.sy
   regress1/sygus/hd-sdiv.sy
+  regress1/sygus/ho-sygus.sy
   regress1/sygus/icfp_14.12-flip-args.sy
   regress1/sygus/icfp_14.12.sy
   regress1/sygus/icfp_14_12_diff_types.sy
@@ -1727,6 +1736,8 @@ set(regress_1_tests
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
+  regress1/sygus/re-concat.sy
+  regress1/sygus/repair-const-rl.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
   regress1/sygus/strings-no-syntax.sy
@@ -1751,6 +1762,7 @@ set(regress_1_tests
   regress1/sygus/trivial-stream.sy
   regress1/sygus/twolets1.sy
   regress1/sygus/twolets2-orig.sy
+  regress1/sygus/uf-abduct.smt2
   regress1/sygus/unbdd_inv_gen_ex7.sy
   regress1/sygus/unbdd_inv_gen_winf1.sy
   regress1/sygus/univ_2-long-repeat.sy

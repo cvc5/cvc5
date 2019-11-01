@@ -61,21 +61,26 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
   return out;
 }
 
-Node TheoryStrings::TermIndex::add( TNode n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c ) {
+Node TheoryStrings::TermIndex::add(TNode n,
+                                   unsigned index,
+                                   const SolverState& s,
+                                   Node er,
+                                   std::vector<Node>& c)
+{
   if( index==n.getNumChildren() ){
     if( d_data.isNull() ){
       d_data = n;
     }
     return d_data;
   }else{
-    Assert( index<n.getNumChildren() );
-    TNode nir = t->getRepresentative( n[index] );
+    Assert(index < n.getNumChildren());
+    TNode nir = s.getRepresentative(n[index]);
     //if it is empty, and doing CONCAT, ignore
     if( nir==er && n.getKind()==kind::STRING_CONCAT ){
-      return add( n, index+1, t, er, c );
+      return add(n, index + 1, s, er, c);
     }else{
       c.push_back( nir );
-      return d_children[nir].add( n, index+1, t, er, c );
+      return d_children[nir].add(n, index + 1, s, er, c);
     }
   }
 }
@@ -88,16 +93,15 @@ TheoryStrings::TheoryStrings(context::Context* c,
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
-      d_im(*this, c, u, d_equalityEngine, out),
+      d_state(c, d_equalityEngine),
+      d_im(*this, c, u, d_state, out),
       d_conflict(c, false),
-      d_pendingConflict(c),
       d_nf_pairs(c),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
       d_length_lemma_terms_cache(u),
       d_preproc(&d_sk_cache, u),
       d_extf_infer_cache(c),
-      d_extf_infer_cache_u(u),
       d_ee_disequalities(c),
       d_congruent(c),
       d_proxy_var(u),
@@ -105,7 +109,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_functionsTerms(c),
       d_has_extf(c, false),
       d_has_str_code(false),
-      d_regexp_solver(*this, d_im, c, u),
+      d_regexp_solver(*this, d_state, d_im, c, u),
       d_input_vars(u),
       d_input_var_lsum(u),
       d_cardinality_lits(u),
@@ -156,52 +160,12 @@ TheoryStrings::TheoryStrings(context::Context* c,
 }
 
 TheoryStrings::~TheoryStrings() {
-  for( std::map< Node, EqcInfo* >::iterator it = d_eqc_info.begin(); it != d_eqc_info.end(); ++it ){
-    delete it->second;
-  }
-}
 
-Node TheoryStrings::getRepresentative( Node t ) {
-  if( d_equalityEngine.hasTerm( t ) ){
-    return d_equalityEngine.getRepresentative( t );
-  }else{
-    return t;
-  }
-}
-
-bool TheoryStrings::hasTerm( Node a ){
-  return d_equalityEngine.hasTerm( a );
-}
-
-bool TheoryStrings::areEqual( Node a, Node b ){
-  if( a==b ){
-    return true;
-  }else if( hasTerm( a ) && hasTerm( b ) ){
-    return d_equalityEngine.areEqual( a, b );
-  }else{
-    return false;
-  }
-}
-
-bool TheoryStrings::areDisequal( Node a, Node b ){
-  if( a==b ){
-    return false;
-  }else{
-    if( hasTerm( a ) && hasTerm( b ) ) {
-      Node ar = d_equalityEngine.getRepresentative( a );
-      Node br = d_equalityEngine.getRepresentative( b );
-      return ( ar!=br && ar.isConst() && br.isConst() ) || d_equalityEngine.areDisequal( ar, br, false );
-    }else{
-      Node ar = getRepresentative( a );
-      Node br = getRepresentative( b );
-      return ar!=br && ar.isConst() && br.isConst();
-    }
-  }
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
-  Assert( d_equalityEngine.hasTerm(x) );
-  Assert( d_equalityEngine.hasTerm(y) );
+  Assert(d_equalityEngine.hasTerm(x));
+  Assert(d_equalityEngine.hasTerm(y));
   if( d_equalityEngine.isTriggerTerm(x, THEORY_STRINGS) && d_equalityEngine.isTriggerTerm(y, THEORY_STRINGS) ){
     TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_STRINGS);
     TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_STRINGS);
@@ -213,41 +177,18 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
   return false;
 }
 
-Node TheoryStrings::getLengthExp( Node t, std::vector< Node >& exp, Node te ){
-  Assert( areEqual( t, te ) );
-  Node lt = mkLength( te );
-  if( hasTerm( lt ) ){
-    // use own length if it exists, leads to shorter explanation
-    return lt;
-  }else{
-    EqcInfo * ei = getOrMakeEqcInfo( t, false );
-    Node length_term = ei ? ei->d_length_term : Node::null();
-    if( length_term.isNull() ){
-      //typically shouldnt be necessary
-      length_term = t;
-    }
-    Debug("strings") << "TheoryStrings::getLengthTerm " << t << " is " << length_term << std::endl;
-    addToExplanation( length_term, te, exp );
-    return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, length_term ) );
-  }
-}
-
-Node TheoryStrings::getLength( Node t, std::vector< Node >& exp ) {
-  return getLengthExp( t, exp, t );
-}
-
 Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
 {
   if (!x.isConst())
   {
-    Node xr = getRepresentative(x);
+    Node xr = d_state.getRepresentative(x);
     std::map<Node, NormalForm>::iterator it = d_normal_form.find(xr);
     if (it != d_normal_form.end())
     {
       NormalForm& nf = it->second;
-      Node ret = mkConcat(nf.d_nf);
+      Node ret = utils::mkNConcat(nf.d_nf);
       nf_exp.insert(nf_exp.end(), nf.d_exp.begin(), nf.d_exp.end());
-      addToExplanation(x, nf.d_base, nf_exp);
+      d_im.addToExplanation(x, nf.d_base, nf_exp);
       Trace("strings-debug")
           << "Term: " << x << " has a normal form " << ret << std::endl;
       return ret;
@@ -263,7 +204,7 @@ Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
         Node nc = getNormalString(x[i], nf_exp);
         vec_nodes.push_back(nc);
       }
-      return mkConcat(vec_nodes);
+      return utils::mkNConcat(vec_nodes);
     }
   }
   return x;
@@ -326,8 +267,8 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
   std::vector< TNode > tassumptions;
   if (atom.getKind() == kind::EQUAL) {
     if( atom[0]!=atom[1] ){
-      Assert( hasTerm( atom[0] ) );
-      Assert( hasTerm( atom[1] ) );
+      Assert(d_equalityEngine.hasTerm(atom[0]));
+      Assert(d_equalityEngine.hasTerm(atom[1]));
       d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
     }
   } else {
@@ -385,7 +326,7 @@ Node TheoryStrings::getCurrentSubstitutionFor(int effort,
     Trace("strings-subs") << "   model val : " << mv << std::endl;
     return mv;
   }
-  Node nr = getRepresentative(n);
+  Node nr = d_state.getRepresentative(n);
   std::map<Node, Node>::iterator itc = d_eqc_to_const.find(nr);
   if (itc != d_eqc_to_const.end())
   {
@@ -399,7 +340,7 @@ Node TheoryStrings::getCurrentSubstitutionFor(int effort,
     }
     if (!d_eqc_to_const_base[nr].isNull())
     {
-      addToExplanation(n, d_eqc_to_const_base[nr], exp);
+      d_im.addToExplanation(n, d_eqc_to_const_base[nr], exp);
     }
     return itc->second;
   }
@@ -413,7 +354,7 @@ Node TheoryStrings::getCurrentSubstitutionFor(int effort,
                           << " " << nr << std::endl;
     if (!nfnr.d_base.isNull())
     {
-      addToExplanation(n, nfnr.d_base, exp);
+      d_im.addToExplanation(n, nfnr.d_base, exp);
     }
     return ns;
   }
@@ -451,9 +392,9 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
         Node x = n[0];
         Node s = n[1];
         std::vector<Node> lexp;
-        Node lenx = getLength(x, lexp);
-        Node lens = getLength(s, lexp);
-        if (areEqual(lenx, lens))
+        Node lenx = d_state.getLength(x, lexp);
+        Node lens = d_state.getLength(s, lexp);
+        if (d_state.areEqual(lenx, lens))
         {
           Trace("strings-extf-debug")
               << "  resolve extf : " << n
@@ -461,7 +402,7 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
           // We can reduce negative contains to a disequality when lengths are
           // equal. In other words, len( x ) = len( s ) implies
           //   ~contains( x, s ) reduces to x != s.
-          if (!areDisequal(x, s))
+          if (!d_state.areDisequal(x, s))
           {
             // len( x ) = len( s ) ^ ~contains( x, s ) => x != s
             lexp.push_back(lenx.eqNode(lens));
@@ -509,7 +450,7 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
         d_sk_cache.mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
     Node sk2 =
         d_sk_cache.mkSkolemCached(x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
-    Node eq = Rewriter::rewrite(x.eqNode(mkConcat(sk1, s, sk2)));
+    Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
     std::vector<Node> exp_vec;
     exp_vec.push_back(n);
     d_im.sendInference(d_empty_vec, exp_vec, eq, "POS-CTN", true);
@@ -607,7 +548,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   {
     if (s.getType().isString())
     {
-      Node r = getRepresentative(s);
+      Node r = d_state.getRepresentative(s);
       repSet.insert(r);
     }
   }
@@ -644,8 +585,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     }
     else
     {
-      Assert(len_value.getConst<Rational>() <= Rational(String::maxSize()),
-             "Exceeded UINT32_MAX in string model");
+      Assert(len_value.getConst<Rational>() <= Rational(String::maxSize()))
+          << "Exceeded UINT32_MAX in string model";
       unsigned lvalue =
           len_value.getConst<Rational>().getNumerator().toUnsignedInt();
       std::map<unsigned, Node>::iterator itvu = values_used.find(lvalue);
@@ -682,11 +623,11 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
           // one?
           if (d_has_str_code && lts_values[i] == d_one)
           {
-            EqcInfo* eip = getOrMakeEqcInfo(eqc, false);
-            if (eip && !eip->d_code_term.get().isNull())
+            EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
+            if (eip && !eip->d_codeTerm.get().isNull())
             {
               // its value must be equal to its code
-              Node ct = nm->mkNode(kind::STRING_CODE, eip->d_code_term.get());
+              Node ct = nm->mkNode(kind::STRING_CODE, eip->d_codeTerm.get());
               Node ctv = d_valuation.getModelValue(ct);
               unsigned cvalue =
                   ctv.getConst<Rational>().getNumerator().toUnsignedInt();
@@ -727,8 +668,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       Trace("strings-model") << std::endl;
 
       //use type enumerator
-      Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()),
-             "Exceeded UINT32_MAX in string model");
+      Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()))
+          << "Exceeded UINT32_MAX in string model";
       StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
       for (const Node& eqc : pure_eq)
       {
@@ -736,7 +677,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         std::map<Node, Node>::iterator itp = pure_eq_assign.find(eqc);
         if (itp == pure_eq_assign.end())
         {
-          Assert( !sel.isFinished() );
+          Assert(!sel.isFinished());
           c = *sel;
           while (m->hasTerm(c))
           {
@@ -812,7 +753,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
             Trace("strings-model") << " ++ ";
           }
           Trace("strings-model") << n;
-          Node r = getRepresentative(n);
+          Node r = d_state.getRepresentative(n);
           if (!r.isConst() && processed.find(r) == processed.end())
           {
             Trace("strings-model") << "(UNPROCESSED)";
@@ -823,12 +764,12 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       std::vector< Node > nc;
       for (const Node& n : nf.d_nf)
       {
-        Node r = getRepresentative(n);
-        Assert( r.isConst() || processed.find( r )!=processed.end() );
+        Node r = d_state.getRepresentative(n);
+        Assert(r.isConst() || processed.find(r) != processed.end());
         nc.push_back(r.isConst() ? r : processed[r]);
       }
-      Node cc = mkConcat( nc );
-      Assert( cc.getKind()==kind::CONST_STRING );
+      Node cc = utils::mkNConcat(nc);
+      Assert(cc.getKind() == kind::CONST_STRING);
       Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
       processed[nodes[i]] = cc;
       if (!m->assertEquality(nodes[i], cc, true))
@@ -956,7 +897,8 @@ void TheoryStrings::check(Effort e) {
   bool polarity;
   TNode atom;
 
-  if( !done() && !hasTerm( d_emptyString ) ) {
+  if (!done() && !d_equalityEngine.hasTerm(d_emptyString))
+  {
     preRegisterTerm( d_emptyString );
   }
 
@@ -1001,11 +943,16 @@ void TheoryStrings::check(Effort e) {
               ++eqc2_i;
             }
             Trace("strings-eqc") << " } " << std::endl;
-            EqcInfo * ei = getOrMakeEqcInfo( eqc, false );
+            EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
             if( ei ){
-              Trace("strings-eqc-debug") << "* Length term : " << ei->d_length_term.get() << std::endl;
-              Trace("strings-eqc-debug") << "* Cardinality lemma k : " << ei->d_cardinality_lem_k.get() << std::endl;
-              Trace("strings-eqc-debug") << "* Normalization length lemma : " << ei->d_normalized_length.get() << std::endl;
+              Trace("strings-eqc-debug")
+                  << "* Length term : " << ei->d_lengthTerm.get() << std::endl;
+              Trace("strings-eqc-debug")
+                  << "* Cardinality lemma k : " << ei->d_cardinalityLemK.get()
+                  << std::endl;
+              Trace("strings-eqc-debug")
+                  << "* Normalization length lemma : "
+                  << ei->d_normalizedLength.get() << std::endl;
             }
           }
           ++eqcs2_i;
@@ -1097,7 +1044,7 @@ void TheoryStrings::checkMemberships()
       bool pol = d_extf_info_tmp[n].d_const.getConst<bool>();
       Trace("strings-process-debug")
           << "  add membership : " << n << ", pol = " << pol << std::endl;
-      Node r = getRepresentative(n[0]);
+      Node r = d_state.getRepresentative(n[0]);
       assertedMems[r].push_back(pol ? n : n.negate());
     }
     else
@@ -1108,136 +1055,6 @@ void TheoryStrings::checkMemberships()
   }
   d_regexp_solver.check(assertedMems);
 }
-
-TheoryStrings::EqcInfo::EqcInfo(context::Context* c)
-    : d_length_term(c),
-      d_code_term(c),
-      d_cardinality_lem_k(c),
-      d_normalized_length(c),
-      d_prefixC(c),
-      d_suffixC(c)
-{
-}
-
-Node TheoryStrings::EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
-{
-  // check conflict
-  Node prev = isSuf ? d_suffixC : d_prefixC;
-  if (!prev.isNull())
-  {
-    Trace("strings-eager-pconf-debug") << "Check conflict " << prev << ", " << t
-                                       << " post=" << isSuf << std::endl;
-    Node prevC = utils::getConstantEndpoint(prev, isSuf);
-    Assert(!prevC.isNull());
-    Assert(prevC.getKind() == CONST_STRING);
-    if (c.isNull())
-    {
-      c = utils::getConstantEndpoint(t, isSuf);
-      Assert(!c.isNull());
-    }
-    Assert(c.getKind() == CONST_STRING);
-    bool conflict = false;
-    // if the constant prefixes are different
-    if (c != prevC)
-    {
-      // conflicts between constants should be handled by equality engine
-      Assert(!t.isConst() || !prev.isConst());
-      Trace("strings-eager-pconf-debug")
-          << "Check conflict constants " << prevC << ", " << c << std::endl;
-      const String& ps = prevC.getConst<String>();
-      const String& cs = c.getConst<String>();
-      unsigned pvs = ps.size();
-      unsigned cvs = cs.size();
-      if (pvs == cvs || (pvs > cvs && t.isConst())
-          || (cvs > pvs && prev.isConst()))
-      {
-        // If equal length, cannot be equal due to node check above.
-        // If one is fully constant and has less length than the other, then the
-        // other will not fit and we are in conflict.
-        conflict = true;
-      }
-      else
-      {
-        const String& larges = pvs > cvs ? ps : cs;
-        const String& smalls = pvs > cvs ? cs : ps;
-        if (isSuf)
-        {
-          conflict = !larges.hasSuffix(smalls);
-        }
-        else
-        {
-          conflict = !larges.hasPrefix(smalls);
-        }
-      }
-      if (!conflict && (pvs > cvs || prev.isConst()))
-      {
-        // current is subsumed, either shorter prefix or the other is a full
-        // constant
-        return Node::null();
-      }
-    }
-    else if (!t.isConst())
-    {
-      // current is subsumed since the other may be a full constant
-      return Node::null();
-    }
-    if (conflict)
-    {
-      Trace("strings-eager-pconf")
-          << "Conflict for " << prevC << ", " << c << std::endl;
-      std::vector<Node> ccs;
-      Node r[2];
-      for (unsigned i = 0; i < 2; i++)
-      {
-        Node tp = i == 0 ? t : prev;
-        if (tp.getKind() == STRING_IN_REGEXP)
-        {
-          ccs.push_back(tp);
-          r[i] = tp[0];
-        }
-        else
-        {
-          r[i] = tp;
-        }
-      }
-      if (r[0] != r[1])
-      {
-        ccs.push_back(r[0].eqNode(r[1]));
-      }
-      Assert(!ccs.empty());
-      Node ret =
-          ccs.size() == 1 ? ccs[0] : NodeManager::currentNM()->mkNode(AND, ccs);
-      Trace("strings-eager-pconf")
-          << "String: eager prefix conflict: " << ret << std::endl;
-      return ret;
-    }
-  }
-  if (isSuf)
-  {
-    d_suffixC = t;
-  }
-  else
-  {
-    d_prefixC = t;
-  }
-  return Node::null();
-}
-
-TheoryStrings::EqcInfo * TheoryStrings::getOrMakeEqcInfo( Node eqc, bool doMake ) {
-  std::map< Node, EqcInfo* >::iterator eqc_i = d_eqc_info.find( eqc );
-  if( eqc_i==d_eqc_info.end() ){
-    if( doMake ){
-      EqcInfo* ei = new EqcInfo( getSatContext() );
-      d_eqc_info[eqc] = ei;
-      return ei;
-    }else{
-      return NULL;
-    }
-  }else{
-    return (*eqc_i).second;
-  }
-}
-
 
 /** Conflict when merging two constants */
 void TheoryStrings::conflict(TNode a, TNode b){
@@ -1258,14 +1075,14 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
   {
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
     Node r = d_equalityEngine.getRepresentative(t[0]);
-    EqcInfo* ei = getOrMakeEqcInfo(r);
+    EqcInfo* ei = d_state.getOrMakeEqcInfo(r);
     if (k == kind::STRING_LENGTH)
     {
-      ei->d_length_term = t[0];
+      ei->d_lengthTerm = t[0];
     }
     else
     {
-      ei->d_code_term = t[0];
+      ei->d_codeTerm = t[0];
     }
     //we care about the length of this string
     registerTerm( t[0], 1 );
@@ -1273,69 +1090,48 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
   }
   else if (k == CONST_STRING)
   {
-    EqcInfo* ei = getOrMakeEqcInfo(t);
+    EqcInfo* ei = d_state.getOrMakeEqcInfo(t);
     ei->d_prefixC = t;
     ei->d_suffixC = t;
     return;
   }
   else if (k == STRING_CONCAT)
   {
-    addEndpointsToEqcInfo(t, t, t);
-  }
-}
-
-void TheoryStrings::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
-{
-  Assert(concat.getKind() == STRING_CONCAT
-         || concat.getKind() == REGEXP_CONCAT);
-  EqcInfo* ei = nullptr;
-  // check each side
-  for (unsigned r = 0; r < 2; r++)
-  {
-    unsigned index = r == 0 ? 0 : concat.getNumChildren() - 1;
-    Node c = utils::getConstantComponent(concat[index]);
-    if (!c.isNull())
-    {
-      if (ei == nullptr)
-      {
-        ei = getOrMakeEqcInfo(eqc);
-      }
-      Trace("strings-eager-pconf-debug")
-          << "New term: " << concat << " for " << t << " with prefix " << c
-          << " (" << (r == 1) << ")" << std::endl;
-      setPendingConflictWhen(ei->addEndpointConst(t, c, r == 1));
-    }
+    d_state.addEndpointsToEqcInfo(t, t, t);
   }
 }
 
 /** called when two equivalance classes will merge */
 void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
-  EqcInfo * e2 = getOrMakeEqcInfo(t2, false);
+  EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
   if( e2 ){
-    EqcInfo * e1 = getOrMakeEqcInfo( t1 );
+    EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
     //add information from e2 to e1
-    if( !e2->d_length_term.get().isNull() ){
-      e1->d_length_term.set( e2->d_length_term );
-    }
-    if (!e2->d_code_term.get().isNull())
+    if (!e2->d_lengthTerm.get().isNull())
     {
-      e1->d_code_term.set(e2->d_code_term);
+      e1->d_lengthTerm.set(e2->d_lengthTerm);
+    }
+    if (!e2->d_codeTerm.get().isNull())
+    {
+      e1->d_codeTerm.set(e2->d_codeTerm);
     }
     if (!e2->d_prefixC.get().isNull())
     {
-      setPendingConflictWhen(
+      d_state.setPendingConflictWhen(
           e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
     }
     if (!e2->d_suffixC.get().isNull())
     {
-      setPendingConflictWhen(
+      d_state.setPendingConflictWhen(
           e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
     }
-    if( e2->d_cardinality_lem_k.get()>e1->d_cardinality_lem_k.get() ) {
-      e1->d_cardinality_lem_k.set( e2->d_cardinality_lem_k );
+    if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
+    {
+      e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
     }
-    if( !e2->d_normalized_length.get().isNull() ){
-      e1->d_normalized_length.set( e2->d_normalized_length );
+    if (!e2->d_normalizedLength.get().isNull())
+    {
+      e1->d_normalizedLength.set(e2->d_normalizedLength);
     }
   }
 }
@@ -1368,10 +1164,10 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
         for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
           TNode x = f1[k];
           TNode y = f2[k];
-          Assert( d_equalityEngine.hasTerm(x) );
-          Assert( d_equalityEngine.hasTerm(y) );
-          Assert( !d_equalityEngine.areDisequal( x, y, false ) );
-          Assert( !areCareDisequal( x, y ) );
+          Assert(d_equalityEngine.hasTerm(x));
+          Assert(d_equalityEngine.hasTerm(y));
+          Assert(!d_equalityEngine.areDisequal(x, y, false));
+          Assert(!areCareDisequal(x, y));
           if( !d_equalityEngine.areEqual( x, y ) ){
             if( d_equalityEngine.isTriggerTerm(x, THEORY_STRINGS) && d_equalityEngine.isTriggerTerm(y, THEORY_STRINGS) ){
               TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_STRINGS);
@@ -1463,7 +1259,7 @@ void TheoryStrings::computeCareGraph(){
 
 void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   Trace("strings-pending") << "Assert pending fact : " << atom << " " << polarity << " from " << exp << std::endl;
-  Assert(atom.getKind() != kind::OR, "Infer error: a split.");
+  Assert(atom.getKind() != kind::OR) << "Infer error: a split.";
   if( atom.getKind()==kind::EQUAL ){
     Trace("strings-pending-debug") << "  Register term" << std::endl;
     for( unsigned j=0; j<2; j++ ) {
@@ -1481,19 +1277,20 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       if (polarity && atom[1].getKind() == REGEXP_CONCAT)
       {
         Node eqc = d_equalityEngine.getRepresentative(atom[0]);
-        addEndpointsToEqcInfo(atom, atom[1], eqc);
+        d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
       }
     }
   }
   // process the conflict
   if (!d_conflict)
   {
-    if (!d_pendingConflict.get().isNull())
+    Node pc = d_state.getPendingConflict();
+    if (!pc.isNull())
     {
       std::vector<Node> a;
-      a.push_back(d_pendingConflict.get());
-      Trace("strings-pending") << "Process pending conflict "
-                               << d_pendingConflict.get() << std::endl;
+      a.push_back(pc);
+      Trace("strings-pending")
+          << "Process pending conflict " << pc << std::endl;
       Node conflictNode = mkExplain(a);
       d_conflict = true;
       Trace("strings-conflict")
@@ -1509,28 +1306,6 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
-void TheoryStrings::setPendingConflictWhen(Node conf)
-{
-  if (!conf.isNull() && d_pendingConflict.get().isNull())
-  {
-    d_pendingConflict = conf;
-  }
-}
-
-void TheoryStrings::addToExplanation( Node a, Node b, std::vector< Node >& exp ) {
-  if( a!=b ){
-    Debug("strings-explain") << "Add to explanation : " << a << " == " << b << std::endl;
-    Assert( areEqual( a, b ) );
-    exp.push_back( a.eqNode( b ) );
-  }
-}
-
-void TheoryStrings::addToExplanation( Node lit, std::vector< Node >& exp ) {
-  if( !lit.isNull() ){
-    exp.push_back( lit );
-  }
-}
-
 void TheoryStrings::checkInit() {
   //build term index
   d_eqc_to_const.clear();
@@ -1542,7 +1317,7 @@ void TheoryStrings::checkInit() {
 
   std::map< Kind, unsigned > ncongruent;
   std::map< Kind, unsigned > congruent;
-  d_emptyString_r = getRepresentative( d_emptyString );
+  d_emptyString_r = d_state.getRepresentative(d_emptyString);
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
   while( !eqcs_i.isFinished() ){
     Node eqc = (*eqcs_i);
@@ -1561,7 +1336,7 @@ void TheoryStrings::checkInit() {
           d_eqc_to_const_exp[eqc] = Node::null();
         }else if( tn.isInteger() ){
           if( n.getKind()==kind::STRING_LENGTH ){
-            Node nr = getRepresentative( n[0] );
+            Node nr = d_state.getRepresentative(n[0]);
             d_eqc_to_len_term[nr] = n[0];
           }
         }else if( n.getNumChildren()>0 ){
@@ -1569,18 +1344,23 @@ void TheoryStrings::checkInit() {
           if( k!=kind::EQUAL ){
             if( d_congruent.find( n )==d_congruent.end() ){
               std::vector< Node > c;
-              Node nc = d_term_index[k].add( n, 0, this, d_emptyString_r, c );
+              Node nc = d_term_index[k].add(n, 0, d_state, d_emptyString_r, c);
               if( nc!=n ){
                 //check if we have inferred a new equality by removal of empty components
-                if( n.getKind()==kind::STRING_CONCAT && !areEqual( nc, n ) ){
+                if (n.getKind() == kind::STRING_CONCAT
+                    && !d_state.areEqual(nc, n))
+                {
                   std::vector< Node > exp;
                   unsigned count[2] = { 0, 0 };
                   while( count[0]<nc.getNumChildren() || count[1]<n.getNumChildren() ){
                     //explain empty prefixes
                     for( unsigned t=0; t<2; t++ ){
                       Node nn = t==0 ? nc : n;
-                      while( count[t]<nn.getNumChildren() &&
-                            ( nn[count[t]]==d_emptyString || areEqual( nn[count[t]], d_emptyString ) ) ){
+                      while (
+                          count[t] < nn.getNumChildren()
+                          && (nn[count[t]] == d_emptyString
+                              || d_state.areEqual(nn[count[t]], d_emptyString)))
+                      {
                         if( nn[count[t]]!=d_emptyString ){
                           exp.push_back( nn[count[t]].eqNode( d_emptyString ) );
                         }
@@ -1589,7 +1369,7 @@ void TheoryStrings::checkInit() {
                     }
                     //explain equal components
                     if( count[0]<nc.getNumChildren() ){
-                      Assert( count[1]<n.getNumChildren() );
+                      Assert(count[1] < n.getNumChildren());
                       if( nc[count[0]]!=n[count[1]] ){
                         exp.push_back( nc[count[0]].eqNode( n[count[1]] ) );
                       }
@@ -1599,7 +1379,9 @@ void TheoryStrings::checkInit() {
                   }
                   //infer the equality
                   d_im.sendInference(exp, n.eqNode(nc), "I_Norm");
-                }else if( getExtTheory()->hasFunctionKind( n.getKind() ) ){
+                }
+                else if (getExtTheory()->hasFunctionKind(n.getKind()))
+                {
                   //mark as congruent : only process if neither has been reduced
                   getExtTheory()->markCongruent( nc, n );
                 }
@@ -1612,23 +1394,27 @@ void TheoryStrings::checkInit() {
               }else if( k==kind::STRING_CONCAT && c.size()==1 ){
                 Trace("strings-process-debug") << "  congruent term by singular : " << n << " " << c[0] << std::endl;
                 //singular case
-                if( !areEqual( c[0], n ) ){
+                if (!d_state.areEqual(c[0], n))
+                {
                   Node ns;
                   std::vector< Node > exp;
                   //explain empty components
                   bool foundNEmpty = false;
                   for( unsigned i=0; i<n.getNumChildren(); i++ ){
-                    if( areEqual( n[i], d_emptyString ) ){
+                    if (d_state.areEqual(n[i], d_emptyString))
+                    {
                       if( n[i]!=d_emptyString ){
                         exp.push_back( n[i].eqNode( d_emptyString ) );
                       }
-                    }else{
-                      Assert( !foundNEmpty );
+                    }
+                    else
+                    {
+                      Assert(!foundNEmpty);
                       ns = n[i];
                       foundNEmpty = true;
                     }
                   }
-                  AlwaysAssert( foundNEmpty );
+                  AlwaysAssert(foundNEmpty);
                   //infer the equality
                   d_im.sendInference(exp, n.eqNode(ns), "I_Norm_S");
                 }
@@ -1682,8 +1468,9 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
   Node n = ti->d_data;
   if( !n.isNull() ){
     //construct the constant
-    Node c = mkConcat( vecc );
-    if( !areEqual( n, c ) ){
+    Node c = utils::mkNConcat(vecc);
+    if (!d_state.areEqual(n, c))
+    {
       Trace("strings-debug") << "Constant eqc : " << c << " for " << n << std::endl;
       Trace("strings-debug") << "  ";
       for( unsigned i=0; i<vecc.size(); i++ ){
@@ -1694,33 +1481,39 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
       unsigned countc = 0;
       std::vector< Node > exp;
       while( count<n.getNumChildren() ){
-        while( count<n.getNumChildren() && areEqual( n[count], d_emptyString ) ){
-          addToExplanation( n[count], d_emptyString, exp );
+        while (count < n.getNumChildren()
+               && d_state.areEqual(n[count], d_emptyString))
+        {
+          d_im.addToExplanation(n[count], d_emptyString, exp);
           count++;
         }
         if( count<n.getNumChildren() ){
           Trace("strings-debug") << "...explain " << n[count] << " " << vecc[countc] << std::endl;
-          if( !areEqual( n[count], vecc[countc] ) ){
-            Node nrr = getRepresentative( n[count] );
-            Assert( !d_eqc_to_const_exp[nrr].isNull() );
-            addToExplanation( n[count], d_eqc_to_const_base[nrr], exp );
+          if (!d_state.areEqual(n[count], vecc[countc]))
+          {
+            Node nrr = d_state.getRepresentative(n[count]);
+            Assert(!d_eqc_to_const_exp[nrr].isNull());
+            d_im.addToExplanation(n[count], d_eqc_to_const_base[nrr], exp);
             exp.push_back( d_eqc_to_const_exp[nrr] );
-          }else{
-            addToExplanation( n[count], vecc[countc], exp );
+          }
+          else
+          {
+            d_im.addToExplanation(n[count], vecc[countc], exp);
           }
           countc++;
           count++;
         }
       }
       //exp contains an explanation of n==c
-      Assert( countc==vecc.size() );
-      if( hasTerm( c ) ){
+      Assert(countc == vecc.size());
+      if (d_state.hasTerm(c))
+      {
         d_im.sendInference(exp, n.eqNode(c), "I_CONST_MERGE");
         return;
       }
       else if (!d_im.hasProcessed())
       {
-        Node nr = getRepresentative( n );
+        Node nr = d_state.getRepresentative(n);
         std::map< Node, Node >::iterator it = d_eqc_to_const.find( nr );
         if( it==d_eqc_to_const.end() ){
           Trace("strings-debug") << "Set eqc const " << n << " to " << c << std::endl;
@@ -1732,11 +1525,11 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
           Trace("strings-debug") << "Conflict, other constant was " << it->second << ", this constant was " << c << std::endl;
           if( d_eqc_to_const_exp[nr].isNull() ){
             // n==c ^ n == c' => false
-            addToExplanation( n, it->second, exp );
+            d_im.addToExplanation(n, it->second, exp);
           }else{
             // n==c ^ n == d_eqc_to_const_base[nr] == c' => false
             exp.push_back( d_eqc_to_const_exp[nr] );
-            addToExplanation( n, d_eqc_to_const_base[nr], exp );
+            d_im.addToExplanation(n, d_eqc_to_const_base[nr], exp);
           }
           d_im.sendInference(exp, d_false, "I_CONST_CONFLICT");
           return;
@@ -1770,7 +1563,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
   {
     // Setup information about n, including if it is equal to a constant.
     ExtfInfoTmp& einfo = d_extf_info_tmp[n];
-    Node r = getRepresentative(n);
+    Node r = d_state.getRepresentative(n);
     std::map<Node, Node>::iterator itcit = d_eqc_to_const.find(r);
     if (itcit != d_eqc_to_const.end())
     {
@@ -1853,7 +1646,8 @@ void TheoryStrings::checkExtfEval( int effort ) {
           Node conc;
           if( !nrs.isNull() ){
             Trace("strings-extf-debug") << "  symbolic def : " << nrs << std::endl;
-            if( !areEqual( nrs, nrc ) ){
+            if (!d_state.areEqual(nrs, nrc))
+            {
               //infer symbolic unit
               if( n.getType().isBoolean() ){
                 conc = nrc==d_true ? nrs : nrs.negate();
@@ -1863,12 +1657,16 @@ void TheoryStrings::checkExtfEval( int effort ) {
               einfo.d_exp.clear();
             }
           }else{
-            if( !areEqual( n, nrc ) ){
+            if (!d_state.areEqual(n, nrc))
+            {
               if( n.getType().isBoolean() ){
-                if( areEqual( n, nrc==d_true ? d_false : d_true )  ){
+                if (d_state.areEqual(n, nrc == d_true ? d_false : d_true))
+                {
                   einfo.d_exp.push_back(nrc == d_true ? n.negate() : n);
                   conc = d_false;
-                }else{
+                }
+                else
+                {
                   conc = nrc==d_true ? n : n.negate();
                 }
               }else{
@@ -1887,7 +1685,8 @@ void TheoryStrings::checkExtfEval( int effort ) {
           }
         }else{
           //check if it is already equal, if so, mark as reduced. Otherwise, do nothing.
-          if( areEqual( n, nrc ) ){ 
+          if (d_state.areEqual(n, nrc))
+          {
             Trace("strings-extf") << "  resolved extf, since satisfied by model: " << n << std::endl;
             einfo.d_model_active = false;
           }
@@ -1923,7 +1722,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
     }
     //if not reduced
     if( !to_reduce.isNull() ){
-      Assert( effort<3 );
+      Assert(effort < 3);
       if( effort==1 ){
         Trace("strings-extf") << "  cannot rewrite extf : " << to_reduce << std::endl;
       }
@@ -1966,13 +1765,13 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   else
   {
     // otherwise, must explain via base node
-    Node r = getRepresentative(n);
+    Node r = d_state.getRepresentative(n);
     // we have that:
     //   d_eqc_to_const_exp[r] => d_eqc_to_const_base[r] = in.d_const
     // thus:
     //   n = d_eqc_to_const_base[r] ^ d_eqc_to_const_exp[r] => n = in.d_const
     Assert(d_eqc_to_const_base.find(r) != d_eqc_to_const_base.end());
-    addToExplanation(n, d_eqc_to_const_base[r], in.d_exp);
+    d_im.addToExplanation(n, d_eqc_to_const_base[r], in.d_exp);
     Assert(d_eqc_to_const_exp.find(r) != d_eqc_to_const_exp.end());
     in.d_exp.insert(in.d_exp.end(),
                     d_eqc_to_const_exp[r].begin(),
@@ -2016,9 +1815,9 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           Node conc = nm->mkNode(STRING_STRCTN, children);
           conc = Rewriter::rewrite(pol ? conc : conc.negate());
           // check if it already (does not) hold
-          if (hasTerm(conc))
+          if (d_state.hasTerm(conc))
           {
-            if (areEqual(conc, d_false))
+            if (d_state.areEqual(conc, d_false))
             {
               // we are in conflict
               d_im.sendInference(in.d_exp, conc, "CTN_Decompose");
@@ -2082,12 +1881,12 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
             Node lit = pol ? conc : conc[0];
             if (lit.getKind() == EQUAL)
             {
-              do_infer = pol ? !areEqual(lit[0], lit[1])
-                             : !areDisequal(lit[0], lit[1]);
+              do_infer = pol ? !d_state.areEqual(lit[0], lit[1])
+                             : !d_state.areDisequal(lit[0], lit[1]);
             }
             else
             {
-              do_infer = !areEqual(lit, pol ? d_true : d_false);
+              do_infer = !d_state.areEqual(lit, pol ? d_true : d_false);
             }
             if (do_infer)
             {
@@ -2231,9 +2030,6 @@ void TheoryStrings::debugPrintFlatForms( const char * tc ){
   Trace( tc ) << std::endl;
 }
 
-void TheoryStrings::debugPrintNormalForms( const char * tc ) {
-}
-
 struct sortConstLength {
   std::map< Node, unsigned > d_const_length;
   bool operator() (Node i, Node j) {
@@ -2324,7 +2120,7 @@ void TheoryStrings::checkFlatForms()
             // of ( n = f[n] )
             std::vector<Node> exp;
             Assert(d_eqc_to_const_base.find(eqc) != d_eqc_to_const_base.end());
-            addToExplanation(n, d_eqc_to_const_base[eqc], exp);
+            d_im.addToExplanation(n, d_eqc_to_const_base[eqc], exp);
             Assert(d_eqc_to_const_exp.find(eqc) != d_eqc_to_const_exp.end());
             if (!d_eqc_to_const_exp[eqc].isNull())
             {
@@ -2337,7 +2133,7 @@ void TheoryStrings::checkFlatForms()
                 Assert(e >= 0 && e < (int)d_flat_form_index[n].size());
                 Assert(d_flat_form_index[n][e] >= 0
                        && d_flat_form_index[n][e] < (int)n.getNumChildren());
-                addToExplanation(
+                d_im.addToExplanation(
                     d_flat_form[n][e], n[d_flat_form_index[n][e]], exp);
               }
             }
@@ -2435,7 +2231,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
       Node curr_c = getConstantEqc(curr);
       Node ac = a[d_flat_form_index[a][count]];
       std::vector<Node> lexp;
-      Node lcurr = getLength(ac, lexp);
+      Node lcurr = d_state.getLength(ac, lexp);
       for (unsigned i = 1; i < eqc_size; i++)
       {
         b = eqc[i];
@@ -2467,7 +2263,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
             {
               Node bc = b[d_flat_form_index[b][count]];
               inelig.push_back(b);
-              Assert(!areEqual(curr, cc));
+              Assert(!d_state.areEqual(curr, cc));
               Node cc_c = getConstantEqc(cc);
               if (!curr_c.isNull() && !cc_c.isNull())
               {
@@ -2477,10 +2273,10 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                     cc_c, curr_c, index, isRev);
                 if (s.isNull())
                 {
-                  addToExplanation(ac, d_eqc_to_const_base[curr], exp);
-                  addToExplanation(d_eqc_to_const_exp[curr], exp);
-                  addToExplanation(bc, d_eqc_to_const_base[cc], exp);
-                  addToExplanation(d_eqc_to_const_exp[cc], exp);
+                  d_im.addToExplanation(ac, d_eqc_to_const_base[curr], exp);
+                  d_im.addToExplanation(d_eqc_to_const_exp[curr], exp);
+                  d_im.addToExplanation(bc, d_eqc_to_const_base[cc], exp);
+                  d_im.addToExplanation(d_eqc_to_const_exp[cc], exp);
                   conc = d_false;
                   inf_type = 0;
                   break;
@@ -2497,8 +2293,8 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
               {
                 // if lengths are the same, apply LengthEq
                 std::vector<Node> lexp2;
-                Node lcc = getLength(bc, lexp2);
-                if (areEqual(lcurr, lcc))
+                Node lcc = d_state.getLength(bc, lexp2);
+                if (d_state.areEqual(lcurr, lcc))
                 {
                   Trace("strings-ff-debug") << "Infer " << ac << " == " << bc
                                             << " since " << lcurr
@@ -2519,7 +2315,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                   }
                   exp.insert(exp.end(), lexp.begin(), lexp.end());
                   exp.insert(exp.end(), lexp2.begin(), lexp2.end());
-                  addToExplanation(lcurr, lcc, exp);
+                  d_im.addToExplanation(lcurr, lcc, exp);
                   conc = ac.eqNode(bc);
                   inf_type = 1;
                   break;
@@ -2535,13 +2331,13 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
       Trace("strings-ff-debug")
           << "Found inference : " << conc << " based on equality " << a
           << " == " << b << ", " << isRev << " " << inf_type << std::endl;
-      addToExplanation(a, b, exp);
+      d_im.addToExplanation(a, b, exp);
       // explain why prefixes up to now were the same
       for (unsigned j = 0; j < count; j++)
       {
         Trace("strings-ff-debug") << "Add at " << d_flat_form_index[a][j] << " "
                                   << d_flat_form_index[b][j] << std::endl;
-        addToExplanation(
+        d_im.addToExplanation(
             a[d_flat_form_index[a][j]], b[d_flat_form_index[b][j]], exp);
       }
       // explain why other components up to now are empty
@@ -2564,9 +2360,9 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
         int endj = isRev ? c.getNumChildren() : jj;
         for (int j = startj; j < endj; j++)
         {
-          if (areEqual(c[j], d_emptyString))
+          if (d_state.areEqual(c[j], d_emptyString))
           {
-            addToExplanation(c[j], d_emptyString, exp);
+            d_im.addToExplanation(c[j], d_emptyString, exp);
           }
         }
       }
@@ -2615,7 +2411,7 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
             d_eqc[eqc].push_back( n );
           }
           for( unsigned i=0; i<n.getNumChildren(); i++ ){
-            Node nr = getRepresentative( n[i] );
+            Node nr = d_state.getRepresentative(n[i]);
             if( eqc==d_emptyString_r ){
               //for empty eqc, ensure all components are empty
               if( nr!=d_emptyString_r ){
@@ -2634,13 +2430,14 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
               Node ncy = checkCycles( nr, curr, exp );
               if( !ncy.isNull() ){
                 Trace("strings-cycle") << eqc << " cycle: " << ncy << " at " << n << "[" << i << "] : " << n[i] << std::endl;
-                addToExplanation( n, eqc, exp );
-                addToExplanation( nr, n[i], exp );
+                d_im.addToExplanation(n, eqc, exp);
+                d_im.addToExplanation(nr, n[i], exp);
                 if( ncy==eqc ){
                   //can infer all other components must be empty
                   for( unsigned j=0; j<n.getNumChildren(); j++ ){
                     //take first non-empty
-                    if( j!=i && !areEqual( n[j], d_emptyString ) ){
+                    if (j != i && !d_state.areEqual(n[j], d_emptyString))
+                    {
                       d_im.sendInference(
                           exp, n[j].eqNode(d_emptyString), "I_CYCLE");
                       return Node::null();
@@ -2648,7 +2445,7 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
                   }
                   Trace("strings-error") << "Looping term should be congruent : " << n << " " << eqc << " " << ncy << std::endl;
                   //should find a non-empty component, otherwise would have been singular congruent (I_Norm_S)
-                  Assert( false );
+                  Assert(false);
                 }else{
                   return ncy;
                 }
@@ -2710,7 +2507,7 @@ void TheoryStrings::checkNormalFormsEq()
       return;
     }
     NormalForm& nfe = getNormalForm(eqc);
-    Node nf_term = mkConcat(nfe.d_nf);
+    Node nf_term = utils::mkNConcat(nfe.d_nf);
     std::map<Node, Node>::iterator itn = nf_to_eqc.find(nf_term);
     if (itn != nf_to_eqc.end())
     {
@@ -2778,7 +2575,7 @@ void TheoryStrings::checkCodes()
         Node cp = getProxyVariableFor(c);
         AlwaysAssert(!cp.isNull());
         Node vc = nm->mkNode(STRING_CODE, cp);
-        if (!areEqual(cc, vc))
+        if (!d_state.areEqual(cc, vc))
         {
           d_im.sendInference(d_empty_vec, cc.eqNode(vc), "Code_Proxy");
         }
@@ -2786,10 +2583,10 @@ void TheoryStrings::checkCodes()
       }
       else
       {
-        EqcInfo* ei = getOrMakeEqcInfo(eqc, false);
-        if (ei && !ei->d_code_term.get().isNull())
+        EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
+        if (ei && !ei->d_codeTerm.get().isNull())
         {
-          Node vc = nm->mkNode(kind::STRING_CODE, ei->d_code_term.get());
+          Node vc = nm->mkNode(kind::STRING_CODE, ei->d_codeTerm.get());
           nconst_codes.push_back(vc);
         }
       }
@@ -2810,7 +2607,7 @@ void TheoryStrings::checkCodes()
       {
         Trace("strings-code-debug")
             << "Compare codes : " << c1 << " " << c2 << std::endl;
-        if (!areDisequal(c1, c2) && !areEqual(c1, d_neg_one))
+        if (!d_state.areDisequal(c1, c2) && !d_state.areEqual(c1, d_neg_one))
         {
           Node eq_no = c1.eqNode(d_neg_one);
           Node deq = c1.eqNode(c2).negate();
@@ -2828,19 +2625,22 @@ void TheoryStrings::checkCodes()
 //compute d_normal_forms_(base,exp,exp_depend)[eqc]
 void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
   Trace("strings-process-debug") << "Process equivalence class " << eqc << std::endl;
-  if( areEqual( eqc, d_emptyString ) ) {
+  if (d_state.areEqual(eqc, d_emptyString))
+  {
 #ifdef CVC4_ASSERTIONS
     for( unsigned j=0; j<d_eqc[eqc].size(); j++ ){
       Node n = d_eqc[eqc][j];
       for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Assert( areEqual( n[i], d_emptyString ) );
+        Assert(d_state.areEqual(n[i], d_emptyString));
       }
     }
 #endif
     //do nothing
     Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : empty." << std::endl;
     d_normal_form[eqc].init(d_emptyString);
-  } else {
+  }
+  else
+  {
     // should not have computed the normal form of this equivalence class yet
     Assert(d_normal_form.find(eqc) == d_normal_form.end());
     // Normal forms for the relevant terms in the equivalence class of eqc
@@ -2859,10 +2659,9 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
     {
       return;
     }
-    // debugPrintNormalForms( "strings-solve", eqc, normal_forms );
 
     //construct the normal form
-    Assert( !normal_forms.empty() );
+    Assert(!normal_forms.empty());
     unsigned nf_index = 0;
     std::map<Node, unsigned>::iterator it = term_to_nf_index.find(eqc);
     // we prefer taking the normal form whose base is the equivalence
@@ -3007,7 +2806,7 @@ void TheoryStrings::getNormalForms(Node eqc,
                   printConcat(currv, "strings-error");
                   Trace("strings-error") << "..." << currv[i] << std::endl;
                 }
-                Assert(!areEqual(currv[i], n));
+                Assert(!d_state.areEqual(currv[i], n));
               }
             }
           }
@@ -3016,7 +2815,7 @@ void TheoryStrings::getNormalForms(Node eqc,
         }else{
           //this was redundant: combination of self + empty string(s)
           Node nn = currv.size() == 0 ? d_emptyString : currv[0];
-          Assert( areEqual( nn, eqc ) );
+          Assert(d_state.areEqual(nn, eqc));
         }
       }else{
         eqc_non_c = n;
@@ -3102,9 +2901,9 @@ void TheoryStrings::getNormalForms(Node eqc,
           Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
           //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = N[n] )
           std::vector< Node > exp;
-          Assert( d_eqc_to_const_base.find( eqc )!=d_eqc_to_const_base.end() );
-          addToExplanation( n, d_eqc_to_const_base[eqc], exp );
-          Assert( d_eqc_to_const_exp.find( eqc )!=d_eqc_to_const_exp.end() );
+          Assert(d_eqc_to_const_base.find(eqc) != d_eqc_to_const_base.end());
+          d_im.addToExplanation(n, d_eqc_to_const_base[eqc], exp);
+          Assert(d_eqc_to_const_exp.find(eqc) != d_eqc_to_const_exp.end());
           if( !d_eqc_to_const_exp[eqc].isNull() ){
             exp.push_back( d_eqc_to_const_exp[eqc] );
           }
@@ -3251,7 +3050,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           //can infer that this string must be empty
           Node eq = nfkv[index_k].eqNode(d_emptyString);
           //Trace("strings-lemma") << "Strings: Infer " << eq << " from " << eq_exp << std::endl;
-          Assert(!areEqual(d_emptyString, nfkv[index_k]));
+          Assert(!d_state.areEqual(d_emptyString, nfkv[index_k]));
           d_im.sendInference(curr_exp, eq, "N_EndpointEmp");
           index_k++;
         }
@@ -3265,12 +3064,13 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
         index++;
         success = true;
       }else{
-        Assert(!areEqual(nfiv[index], nfjv[index]));
+        Assert(!d_state.areEqual(nfiv[index], nfjv[index]));
         std::vector< Node > temp_exp;
-        Node length_term_i = getLength(nfiv[index], temp_exp);
-        Node length_term_j = getLength(nfjv[index], temp_exp);
+        Node length_term_i = d_state.getLength(nfiv[index], temp_exp);
+        Node length_term_j = d_state.getLength(nfjv[index], temp_exp);
         // check  length(nfiv[index]) == length(nfjv[index])
-        if( areEqual( length_term_i, length_term_j ) ){
+        if (d_state.areEqual(length_term_i, length_term_j))
+        {
           Trace("strings-solve-debug") << "Simple Case 2 : string lengths are equal" << std::endl;
           Node eq = nfiv[index].eqNode(nfjv[index]);
           //eq = Rewriter::rewrite( eq );
@@ -3306,13 +3106,16 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                 eqnc.push_back(nfkv[index_l]);
               }
             }
-            eqn.push_back( mkConcat( eqnc ) );
+            eqn.push_back(utils::mkNConcat(eqnc));
           }
-          if( !areEqual( eqn[0], eqn[1] ) ){
+          if (!d_state.areEqual(eqn[0], eqn[1]))
+          {
             d_im.sendInference(
                 antec, eqn[0].eqNode(eqn[1]), "N_EndpointEq", true);
             return;
-          }else{
+          }
+          else
+          {
             Assert(nfiv.size() == nfjv.size());
             index = nfiv.size() - rproc;
           }
@@ -3367,11 +3170,11 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           bool info_valid = false;
           Assert(index < nfiv.size() - rproc && index < nfjv.size() - rproc);
           std::vector< Node > lexp;
-          Node length_term_i = getLength(nfiv[index], lexp);
-          Node length_term_j = getLength(nfjv[index], lexp);
+          Node length_term_i = d_state.getLength(nfiv[index], lexp);
+          Node length_term_j = d_state.getLength(nfjv[index], lexp);
           //split on equality between string lengths (note that splitting on equality between strings is worse since it is harder to process)
-          if (!areDisequal(length_term_i, length_term_j)
-              && !areEqual(length_term_i, length_term_j)
+          if (!d_state.areDisequal(length_term_i, length_term_j)
+              && !d_state.areEqual(length_term_i, length_term_j)
               && !nfiv[index].isConst() && !nfjv[index].isConst())
           {  // AJR: remove the latter 2 conditions?
             Trace("strings-solve-debug") << "Non-simple Case 1 : string lengths neither equal nor disequal" << std::endl;
@@ -3416,8 +3219,10 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                 NormalForm& nfnc = nfiv[index].isConst() ? nfj : nfi;
                 std::vector<Node>& nfncv = nfnc.d_nf;
                 Node other_str = nfncv[index];
-                Assert( other_str.getKind()!=kind::CONST_STRING, "Other string is not constant." );
-                Assert( other_str.getKind()!=kind::STRING_CONCAT, "Other string is not CONCAT." );
+                Assert(other_str.getKind() != kind::CONST_STRING)
+                    << "Other string is not constant.";
+                Assert(other_str.getKind() != kind::STRING_CONCAT)
+                    << "Other string is not CONCAT.";
                 if( !d_equalityEngine.areDisequal( other_str, d_emptyString, true ) ){
                   Node eq = other_str.eqNode( d_emptyString );
                   eq = Rewriter::rewrite(eq);
@@ -3460,7 +3265,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                     Node const_str =
                         TheoryStringsRewriter::collectConstantStringAt(
                             nfcv, index_c_k, false);
-                    Assert( !const_str.isNull() );
+                    Assert(!const_str.isNull());
                     CVC4::String stra = const_str.getConst<String>();
                     CVC4::String strb = next_const_str.getConst<String>();
                     //since non-empty, we start with charecter #1
@@ -3494,7 +3299,9 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                             "c_spt");
                         Trace("strings-csp") << "Const Split: " << prea << " is removed from " << stra << " due to " << strb << ", p=" << p << std::endl;        
                         //set info
-                        info.d_conc = other_str.eqNode( isRev ? mkConcat( sk, prea ) : mkConcat(prea, sk) );
+                        info.d_conc = other_str.eqNode(
+                            isRev ? utils::mkNConcat(sk, prea)
+                                  : utils::mkNConcat(prea, sk));
                         info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                         info.d_id = INFER_SSPLIT_CST_PROP;
                         info_valid = true;
@@ -3517,10 +3324,17 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                                 : SkolemCache::SK_ID_VC_BIN_SPT,
                           "cb_spt");
                       Trace("strings-csp") << "Const Split: " << c_firstHalf << " is removed from " << const_str << " (binary) " << std::endl;
-                      info.d_conc = NodeManager::currentNM()->mkNode( kind::OR, other_str.eqNode( isRev ? mkConcat( sk, c_firstHalf ) : mkConcat( c_firstHalf, sk ) ),
-                                                                         NodeManager::currentNM()->mkNode( kind::AND,
-                                                                           sk.eqNode( d_emptyString ).negate(),
-                                                                           c_firstHalf.eqNode( isRev ? mkConcat( sk, other_str ) : mkConcat( other_str, sk ) ) ) );
+                      info.d_conc = nm->mkNode(
+                          OR,
+                          other_str.eqNode(
+                              isRev ? utils::mkNConcat(sk, c_firstHalf)
+                                    : utils::mkNConcat(c_firstHalf, sk)),
+                          nm->mkNode(
+                              AND,
+                              sk.eqNode(d_emptyString).negate(),
+                              c_firstHalf.eqNode(
+                                  isRev ? utils::mkNConcat(sk, other_str)
+                                        : utils::mkNConcat(other_str, sk))));
                       info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                       info.d_id = INFER_SSPLIT_CST_BINARY;
                       info_valid = true;
@@ -3533,7 +3347,9 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                                 : SkolemCache::SK_ID_VC_SPT,
                           "c_spt");
                       Trace("strings-csp") << "Const Split: " << firstChar << " is removed from " << const_str << " (serial) " << std::endl;
-                      info.d_conc = other_str.eqNode( isRev ? mkConcat( sk, firstChar ) : mkConcat(firstChar, sk) );
+                      info.d_conc = other_str.eqNode(
+                          isRev ? utils::mkNConcat(sk, firstChar)
+                                : utils::mkNConcat(firstChar, sk));
                       info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
                       info.d_id = INFER_SSPLIT_CST;
                       info_valid = true;
@@ -3585,12 +3401,12 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                     "v_spt");
                 // must add length requirement
                 info.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
-                Node eq1 =
-                    nfiv[index].eqNode(isRev ? mkConcat(sk, nfjv[index])
-                                             : mkConcat(nfjv[index], sk));
-                Node eq2 =
-                    nfjv[index].eqNode(isRev ? mkConcat(sk, nfiv[index])
-                                             : mkConcat(nfiv[index], sk));
+                Node eq1 = nfiv[index].eqNode(
+                    isRev ? utils::mkNConcat(sk, nfjv[index])
+                          : utils::mkNConcat(nfjv[index], sk));
+                Node eq2 = nfjv[index].eqNode(
+                    isRev ? utils::mkNConcat(sk, nfiv[index])
+                          : utils::mkNConcat(nfiv[index], sk));
 
                 if( lentTestSuccess!=-1 ){
                   info.d_antn.push_back( lentTestExp );
@@ -3614,7 +3430,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           }
           if( info_valid ){
             pinfer.push_back( info );
-            Assert( !success );
+            Assert(!success);
           }
         }
       }
@@ -3686,15 +3502,15 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
   Trace("strings-loop") << " ... (X)= " << vecoi[index] << std::endl;
   Trace("strings-loop") << " ... T(Y.Z)= ";
   std::vector<Node> vec_t(veci.begin() + index, veci.begin() + loop_index);
-  Node t_yz = mkConcat(vec_t);
+  Node t_yz = utils::mkNConcat(vec_t);
   Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
   Trace("strings-loop") << " ... S(Z.Y)= ";
   std::vector<Node> vec_s(vecoi.begin() + index + 1, vecoi.end());
-  Node s_zy = mkConcat(vec_s);
+  Node s_zy = utils::mkNConcat(vec_s);
   Trace("strings-loop") << s_zy << std::endl;
   Trace("strings-loop") << " ... R= ";
   std::vector<Node> vec_r(veci.begin() + loop_index + 1, veci.end());
-  Node r = mkConcat(vec_r);
+  Node r = utils::mkNConcat(vec_r);
   Trace("strings-loop") << r << std::endl;
 
   if (s_zy.isConst() && r.isConst() && r != d_emptyString)
@@ -3731,7 +3547,7 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
     // the equality could rewrite to false
     if (!split_eqr.isConst())
     {
-      if (!areDisequal(t, d_emptyString))
+      if (!d_state.areDisequal(t, d_emptyString))
       {
         // try to make t equal to empty to avoid loop
         info.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
@@ -3786,12 +3602,12 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
         std::vector<Node> v2(vec_r);
         v2.insert(v2.begin(), y);
         v2.insert(v2.begin(), z);
-        restr = mkConcat(z, y);
-        cc = Rewriter::rewrite(s_zy.eqNode(mkConcat(v2)));
+        restr = utils::mkNConcat(z, y);
+        cc = Rewriter::rewrite(s_zy.eqNode(utils::mkNConcat(v2)));
       }
       else
       {
-        cc = Rewriter::rewrite(s_zy.eqNode(mkConcat(z, y)));
+        cc = Rewriter::rewrite(s_zy.eqNode(utils::mkNConcat(z, y)));
       }
       if (cc == d_false)
       {
@@ -3831,13 +3647,13 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
     registerLength(sk_y, LENGTH_GEQ_ONE);
     Node sk_z = d_sk_cache.mkSkolem("z_loop");
     // t1 * ... * tn = y * z
-    Node conc1 = t_yz.eqNode(mkConcat(sk_y, sk_z));
+    Node conc1 = t_yz.eqNode(utils::mkNConcat(sk_y, sk_z));
     // s1 * ... * sk = z * y * r
     vec_r.insert(vec_r.begin(), sk_y);
     vec_r.insert(vec_r.begin(), sk_z);
-    Node conc2 = s_zy.eqNode(mkConcat(vec_r));
-    Node conc3 = vecoi[index].eqNode(mkConcat(sk_y, sk_w));
-    Node restr = r == d_emptyString ? s_zy : mkConcat(sk_z, sk_y);
+    Node conc2 = s_zy.eqNode(utils::mkNConcat(vec_r));
+    Node conc3 = vecoi[index].eqNode(utils::mkNConcat(sk_y, sk_w));
+    Node restr = r == d_emptyString ? s_zy : utils::mkNConcat(sk_z, sk_y);
     str_in_re =
         nm->mkNode(kind::STRING_IN_REGEXP,
                    sk_w,
@@ -3864,7 +3680,6 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
 //return true for lemma, false if we succeed
 void TheoryStrings::processDeq( Node ni, Node nj ) {
   NodeManager* nm = NodeManager::currentNM();
-  //Assert( areDisequal( ni, nj ) );
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
   if (nfni.d_nf.size() > 1 || nfnj.d_nf.size() > 1)
@@ -3890,16 +3705,19 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
       if( ret!=0 ) {
         return;
       }else{
-        Assert( index<nfi.size() && index<nfj.size() );
+        Assert(index < nfi.size() && index < nfj.size());
         Node i = nfi[index];
         Node j = nfj[index];
         Trace("strings-solve-debug")  << "...Processing(DEQ) " << i << " " << j << std::endl;
-        if( !areEqual( i, j ) ){
-          Assert( i.getKind()!=kind::CONST_STRING || j.getKind()!=kind::CONST_STRING );
+        if (!d_state.areEqual(i, j))
+        {
+          Assert(i.getKind() != kind::CONST_STRING
+                 || j.getKind() != kind::CONST_STRING);
           std::vector< Node > lexp;
-          Node li = getLength( i, lexp );
-          Node lj = getLength( j, lexp );
-          if( areDisequal( li, lj ) ){
+          Node li = d_state.getLength(i, lexp);
+          Node lj = d_state.getLength(j, lexp);
+          if (d_state.areDisequal(li, lj))
+          {
             if( i.getKind()==kind::CONST_STRING || j.getKind()==kind::CONST_STRING ){
               //check if empty
               Node const_k = i.getKind() == kind::CONST_STRING ? i : j;
@@ -3914,10 +3732,14 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                 //split on first character
                 CVC4::String str = const_k.getConst<String>();
                 Node firstChar = str.size() == 1 ? const_k : NodeManager::currentNM()->mkConst( str.prefix( 1 ) );
-                if( areEqual( lnck, d_one ) ){
-                  if( areDisequal( firstChar, nconst_k ) ){
+                if (d_state.areEqual(lnck, d_one))
+                {
+                  if (d_state.areDisequal(firstChar, nconst_k))
+                  {
                     return;
-                  }else if( !areEqual( firstChar, nconst_k ) ){
+                  }
+                  else if (!d_state.areEqual(firstChar, nconst_k))
+                  {
                     //splitting on demand : try to make them disequal
                     if (d_im.sendSplit(
                             firstChar, nconst_k, "S-Split(DEQL-Const)", false))
@@ -3925,7 +3747,9 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                       return;
                     }
                   }
-                }else{
+                }
+                else
+                {
                   Node sk = d_sk_cache.mkSkolemCached(
                       nconst_k, SkolemCache::SK_ID_DC_SPT, "dc_spt");
                   registerLength(sk, LENGTH_ONE);
@@ -3961,9 +3785,12 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               antec.insert(antec.end(), nfni.d_exp.begin(), nfni.d_exp.end());
               antec.insert(antec.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
               //check disequal
-              if( areDisequal( ni, nj ) ){
+              if (d_state.areDisequal(ni, nj))
+              {
                 antec.push_back( ni.eqNode( nj ).negate() );
-              }else{
+              }
+              else
+              {
                 antec_new_lits.push_back( ni.eqNode( nj ).negate() );
               }
               antec_new_lits.push_back( li.eqNode( lj ).negate() );
@@ -3977,24 +3804,30 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               registerLength(sk3, LENGTH_GEQ_ONE);
               //Node nemp = sk3.eqNode(d_emptyString).negate();
               //conc.push_back(nemp);
-              Node lsk1 = mkLength( sk1 );
+              Node lsk1 = utils::mkNLength(sk1);
               conc.push_back( lsk1.eqNode( li ) );
-              Node lsk2 = mkLength( sk2 );
+              Node lsk2 = utils::mkNLength(sk2);
               conc.push_back( lsk2.eqNode( lj ) );
-              conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
+              conc.push_back(nm->mkNode(OR,
+                                        j.eqNode(utils::mkNConcat(sk1, sk3)),
+                                        i.eqNode(utils::mkNConcat(sk2, sk3))));
               d_im.sendInference(
                   antec, antec_new_lits, nm->mkNode(AND, conc), "D-DISL-Split");
               ++(d_statistics.d_deq_splits);
               return;
             }
-          }else if( areEqual( li, lj ) ){
-            Assert( !areDisequal( i, j ) );
+          }
+          else if (d_state.areEqual(li, lj))
+          {
+            Assert(!d_state.areDisequal(i, j));
             //splitting on demand : try to make them disequal
             if (d_im.sendSplit(i, j, "S-Split(DEQL)", false))
             {
               return;
             }
-          }else{
+          }
+          else
+          {
             //splitting on demand : try to make lengths equal
             if (d_im.sendSplit(li, lj, "D-Split"))
             {
@@ -4005,7 +3838,7 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
         index++;
       }
     }
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -4054,8 +3887,8 @@ int TheoryStrings::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node
       Trace("strings-solve-debug") << "Disequality normalize empty" << std::endl;
       std::vector< Node > ant;
       //we have a conflict : because the lengths are equal, the remainder needs to be empty, which will lead to a conflict
-      Node lni = getLengthExp(ni, ant, nfni.d_base);
-      Node lnj = getLengthExp(nj, ant, nfnj.d_base);
+      Node lni = d_state.getLengthExp(ni, ant, nfni.d_base);
+      Node lnj = d_state.getLengthExp(nj, ant, nfnj.d_base);
       ant.push_back( lni.eqNode( lnj ) );
       ant.insert(ant.end(), nfni.d_exp.begin(), nfni.d_exp.end());
       ant.insert(ant.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
@@ -4072,7 +3905,8 @@ int TheoryStrings::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node
       Node i = nfi[index];
       Node j = nfj[index];
       Trace("strings-solve-debug")  << "...Processing(QED) " << i << " " << j << std::endl;
-      if( !areEqual( i, j ) ) {
+      if (!d_state.areEqual(i, j))
+      {
         if( i.getKind()==kind::CONST_STRING && j.getKind()==kind::CONST_STRING ) {
           unsigned int len_short = i.getConst<String>().size() < j.getConst<String>().size() ? i.getConst<String>().size() : j.getConst<String>().size();
           bool isSameFix = isRev ? i.getConst<String>().rstrncmp(j.getConst<String>(), len_short): i.getConst<String>().strncmp(j.getConst<String>(), len_short);
@@ -4102,13 +3936,16 @@ int TheoryStrings::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node
           }
         }else{
           std::vector< Node > lexp;
-          Node li = getLength( i, lexp );
-          Node lj = getLength( j, lexp );
-          if( areEqual( li, lj ) && areDisequal( i, j ) ){
+          Node li = d_state.getLength(i, lexp);
+          Node lj = d_state.getLength(j, lexp);
+          if (d_state.areEqual(li, lj) && d_state.areDisequal(i, j))
+          {
             Trace("strings-solve") << "Simple Case 2 : found equal length disequal sub strings " << i << " " << j << std::endl;
             //we are done: D-Remove
             return 1;
-          }else{
+          }
+          else
+          {
             return 0;
           }
         }
@@ -4131,8 +3968,8 @@ void TheoryStrings::addNormalFormPair( Node n1, Node n2 ){
       d_nf_pairs_data[n1][index] = n2;
     }else{
       d_nf_pairs_data[n1].push_back( n2 );
-    } 
-    Assert( isNormalFormPair( n1, n2 ) );
+    }
+    Assert(isNormalFormPair(n1, n2));
   } else {
     Trace("strings-nf-debug") << "Already a normal form pair " << n1 << " " << n2 << std::endl;
   }
@@ -4147,9 +3984,9 @@ bool TheoryStrings::isNormalFormPair2( Node n1, Node n2 ) {
   //Trace("strings-debug") << "is normal form pair. " << n1 << " " << n2 << std::endl;
   NodeIntMap::const_iterator it = d_nf_pairs.find( n1 );
   if( it!=d_nf_pairs.end() ){
-    Assert( d_nf_pairs_data.find( n1 )!=d_nf_pairs_data.end() );
+    Assert(d_nf_pairs_data.find(n1) != d_nf_pairs_data.end());
     for( int i=0; i<(*it).second; i++ ){
-      Assert( i<(int)d_nf_pairs_data[n1].size() );
+      Assert(i < (int)d_nf_pairs_data[n1].size());
       if( d_nf_pairs_data[n1][i]==n2 ){
         return true;
       }
@@ -4256,7 +4093,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   {
     d_has_str_code = true;
     // ite( str.len(s)==1, 0 <= str.code(s) < num_codes, str.code(s)=-1 )
-    Node code_len = mkLength(n[0]).eqNode(d_one);
+    Node code_len = utils::mkNLength(n[0]).eqNode(d_one);
     Node code_eq_neg1 = n.eqNode(d_neg_one);
     Node code_range = nm->mkNode(
         AND,
@@ -4269,7 +4106,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   }
   else if (n.getKind() == STRING_STRIDOF)
   {
-    Node len = mkLength(n[0]);
+    Node len = utils::mkNLength(n[0]);
     Node lem = nm->mkNode(AND,
                           nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
                           nm->mkNode(LT, n, len));
@@ -4358,22 +4195,6 @@ void TheoryStrings::registerLength(Node n, LengthStatus s)
   }
 }
 
-Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
-  return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, n1, n2 ) );
-}
-
-Node TheoryStrings::mkConcat( Node n1, Node n2, Node n3 ) {
-  return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, n1, n2, n3 ) );
-}
-
-Node TheoryStrings::mkConcat( const std::vector< Node >& c ) {
-  return Rewriter::rewrite( c.size()>1 ? NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, c ) : ( c.size()==1 ? c[0] : d_emptyString ) );
-}
-
-Node TheoryStrings::mkLength( Node t ) {
-  return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t ) );
-}
-
 Node TheoryStrings::mkExplain(const std::vector<Node>& a)
 {
   std::vector< Node > an;
@@ -4396,8 +4217,8 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a,
     Debug("strings-explain") << "Add to explanation " << apc << std::endl;
     if (apc.getKind() == NOT && apc[0].getKind() == EQUAL)
     {
-      Assert(hasTerm(apc[0][0]));
-      Assert(hasTerm(apc[0][1]));
+      Assert(d_equalityEngine.hasTerm(apc[0][0]));
+      Assert(d_equalityEngine.hasTerm(apc[0][1]));
       // ensure that we are ready to explain the disequality
       AlwaysAssert(d_equalityEngine.areDisequal(apc[0][0], apc[0][1], true));
     }
@@ -4442,14 +4263,15 @@ void TheoryStrings::checkNormalFormsDeq()
       processed[n[0]][n[1]] = true;
       Node lt[2];
       for( unsigned i=0; i<2; i++ ){
-        EqcInfo* ei = getOrMakeEqcInfo( n[i], false );
-        lt[i] = ei ? ei->d_length_term : Node::null();
+        EqcInfo* ei = d_state.getOrMakeEqcInfo(n[i], false);
+        lt[i] = ei ? ei->d_lengthTerm : Node::null();
         if( lt[i].isNull() ){
           lt[i] = eq[i];
         }
         lt[i] = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt[i] );
       }
-      if( !areEqual( lt[0], lt[1] ) && !areDisequal( lt[0], lt[1] ) ){
+      if (!d_state.areEqual(lt[0], lt[1]) && !d_state.areDisequal(lt[0], lt[1]))
+      {
         d_im.sendSplit(lt[0], lt[1], "DEQ-LENGTH-SP");
       }
     }
@@ -4480,7 +4302,7 @@ void TheoryStrings::checkNormalFormsDeq()
             }
             else
             {
-              if (areDisequal(cols[i][j], cols[i][k]))
+              if (d_state.areDisequal(cols[i][j], cols[i][k]))
               {
                 Assert(!d_conflict);
                 if (Trace.isOn("strings-solve"))
@@ -4511,13 +4333,14 @@ void TheoryStrings::checkLengthsEqc() {
       NormalForm& nfi = getNormalForm(d_strings_eqc[i]);
       Trace("strings-process-debug") << "Process length constraints for " << d_strings_eqc[i] << std::endl;
       //check if there is a length term for this equivalence class
-      EqcInfo* ei = getOrMakeEqcInfo( d_strings_eqc[i], false );
-      Node lt = ei ? ei->d_length_term : Node::null();
+      EqcInfo* ei = d_state.getOrMakeEqcInfo(d_strings_eqc[i], false);
+      Node lt = ei ? ei->d_lengthTerm : Node::null();
       if( !lt.isNull() ) {
         Node llt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt );
         //now, check if length normalization has occurred
-        if( ei->d_normalized_length.get().isNull() ) {
-          Node nf = mkConcat(nfi.d_nf);
+        if (ei->d_normalizedLength.get().isNull())
+        {
+          Node nf = utils::mkNConcat(nfi.d_nf);
           if( Trace.isOn("strings-process-debug") ){
             Trace("strings-process-debug")
                 << "  normal form is " << nf << " from base " << nfi.d_base
@@ -4536,17 +4359,17 @@ void TheoryStrings::checkLengthsEqc() {
           Node lc = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, nf );
           Node lcr = Rewriter::rewrite( lc );
           Trace("strings-process-debug") << "Rewrote length " << lc << " to " << lcr << std::endl;
-          if (!areEqual(llt, lcr))
+          if (!d_state.areEqual(llt, lcr))
           {
             Node eq = llt.eqNode(lcr);
-            ei->d_normalized_length.set( eq );
+            ei->d_normalizedLength.set(eq);
             d_im.sendInference(ant, eq, "LEN-NORM", true);
           }
         }
       }else{
         Trace("strings-process-debug") << "No length term for eqc " << d_strings_eqc[i] << " " << d_eqc_to_len_term[d_strings_eqc[i]] << std::endl;
         if( !options::stringEagerLen() ){
-          Node c = mkConcat(nfi.d_nf);
+          Node c = utils::mkNConcat(nfi.d_nf);
           registerTerm( c, 3 );
         }
       }
@@ -4594,9 +4417,12 @@ void TheoryStrings::checkCardinality() {
         bool success = true;
         while( r<card_need && success ){
           Node rr = NodeManager::currentNM()->mkConst<Rational>( Rational(r) );
-          if( areDisequal( rr, lr ) ){
+          if (d_state.areDisequal(rr, lr))
+          {
             r++;
-          }else{
+          }
+          else
+          {
             success = false;
           }
         }
@@ -4612,7 +4438,8 @@ void TheoryStrings::checkCardinality() {
             itr1 != cols[i].end(); ++itr1) {
           for( std::vector< Node >::iterator itr2 = itr1 + 1;
             itr2 != cols[i].end(); ++itr2) {
-            if(!areDisequal( *itr1, *itr2 )) {
+            if (!d_state.areDisequal(*itr1, *itr2))
+            {
               // add split lemma
               if (d_im.sendSplit(*itr1, *itr2, "CARD-SP"))
               {
@@ -4621,9 +4448,12 @@ void TheoryStrings::checkCardinality() {
             }
           }
         }
-        EqcInfo* ei = getOrMakeEqcInfo( lr, true );
-        Trace("strings-card") << "Previous cardinality used for " << lr << " is " << ((int)ei->d_cardinality_lem_k.get()-1) << std::endl;
-        if( int_k+1 > ei->d_cardinality_lem_k.get() ){
+        EqcInfo* ei = d_state.getOrMakeEqcInfo(lr, true);
+        Trace("strings-card")
+            << "Previous cardinality used for " << lr << " is "
+            << ((int)ei->d_cardinalityLemK.get() - 1) << std::endl;
+        if (int_k + 1 > ei->d_cardinalityLemK.get())
+        {
           Node k_node = NodeManager::currentNM()->mkConst( ::CVC4::Rational( int_k ) );
           //add cardinality lemma
           Node dist = NodeManager::currentNM()->mkNode( kind::DISTINCT, cols[i] );
@@ -4640,7 +4470,7 @@ void TheoryStrings::checkCardinality() {
           Node len = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, cols[i][0] );
           Node cons = NodeManager::currentNM()->mkNode( kind::GEQ, len, k_node );
           cons = Rewriter::rewrite( cons );
-          ei->d_cardinality_lem_k.set( int_k+1 );
+          ei->d_cardinalityLemK.set(int_k + 1);
           if( cons!=d_true ){
             d_im.sendInference(
                 d_empty_vec, vec_node, cons, "CARDINALITY", true);
@@ -4653,18 +4483,6 @@ void TheoryStrings::checkCardinality() {
   Trace("strings-card") << "...end check cardinality" << std::endl;
 }
 
-void TheoryStrings::getEquivalenceClasses( std::vector< Node >& eqcs ) {
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-  while( !eqcs_i.isFinished() ) {
-    Node eqc = (*eqcs_i);
-    //if eqc.getType is string
-    if (eqc.getType().isString()) {
-      eqcs.push_back( eqc );
-    }
-    ++eqcs_i;
-  }
-}
-
 void TheoryStrings::separateByLength(std::vector< Node >& n,
   std::vector< std::vector< Node > >& cols,
   std::vector< Node >& lts ) {
@@ -4674,9 +4492,9 @@ void TheoryStrings::separateByLength(std::vector< Node >& n,
   std::map< unsigned, std::vector< Node > > eqc_to_strings;
   for( unsigned i=0; i<n.size(); i++ ) {
     Node eqc = n[i];
-    Assert( d_equalityEngine.getRepresentative(eqc)==eqc );
-    EqcInfo* ei = getOrMakeEqcInfo( eqc, false );
-    Node lt = ei ? ei->d_length_term : Node::null();
+    Assert(d_equalityEngine.getRepresentative(eqc) == eqc);
+    EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
+    Node lt = ei ? ei->d_lengthTerm : Node::null();
     if( !lt.isNull() ){
       lt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt );
       Node r = d_equalityEngine.getRepresentative( lt );
@@ -4778,7 +4596,7 @@ Node TheoryStrings::ppRewrite(TNode atom) {
       }
       return ret;
     }else{
-      Assert( new_nodes.empty() );
+      Assert(new_nodes.empty());
     }
   }
   return atom;
@@ -4843,7 +4661,7 @@ bool TheoryStrings::hasStrategyEffort(Effort e) const
 void TheoryStrings::addStrategyStep(InferStep s, int effort, bool addBreak)
 {
   // must run check init first
-  Assert((s == CHECK_INIT)==d_infer_steps.empty());
+  Assert((s == CHECK_INIT) == d_infer_steps.empty());
   // must use check cycles when using flat forms
   Assert(s != CHECK_FLAT_FORMS
          || std::find(d_infer_steps.begin(), d_infer_steps.end(), CHECK_CYCLES)

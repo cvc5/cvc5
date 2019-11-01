@@ -33,9 +33,8 @@
 
 #include "api/cvc4cpp.h"
 
+#include "base/check.h"
 #include "base/configuration.h"
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -1072,6 +1071,7 @@ bool Term::isParameterized() const
 
 Term Term::notTerm() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   try
   {
     Term res = d_expr->notExpr();
@@ -1086,6 +1086,8 @@ Term Term::notTerm() const
 
 Term Term::andTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->andExpr(*t.d_expr);
@@ -1100,6 +1102,8 @@ Term Term::andTerm(const Term& t) const
 
 Term Term::orTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->orExpr(*t.d_expr);
@@ -1114,6 +1118,8 @@ Term Term::orTerm(const Term& t) const
 
 Term Term::xorTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->xorExpr(*t.d_expr);
@@ -1128,6 +1134,8 @@ Term Term::xorTerm(const Term& t) const
 
 Term Term::eqTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->eqExpr(*t.d_expr);
@@ -1142,6 +1150,8 @@ Term Term::eqTerm(const Term& t) const
 
 Term Term::impTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->impExpr(*t.d_expr);
@@ -1156,6 +1166,9 @@ Term Term::impTerm(const Term& t) const
 
 Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(then_t);
+  CVC4_API_ARG_CHECK_NOT_NULL(else_t);
   try
   {
     Term res = d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
@@ -2009,9 +2022,19 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
       << "base 2, 10, or 16";
 
   Integer val(s, base);
-  CVC4_API_CHECK(val.modByPow2(size) == val)
-      << "Overflow in bitvector construction (specified bitvector size " << size
-      << " too small to hold value " << s << ")";
+
+  if (val.strictlyNegative())
+  {
+    CVC4_API_CHECK(val >= -Integer("2", 10).pow(size - 1))
+        << "Overflow in bitvector construction (specified bitvector size "
+        << size << " too small to hold value " << s << ")";
+  }
+  else
+  {
+    CVC4_API_CHECK(val.modByPow2(size) == val)
+        << "Overflow in bitvector construction (specified bitvector size "
+        << size << " too small to hold value " << s << ")";
+  }
 
   return mkValHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
 }

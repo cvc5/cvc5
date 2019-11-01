@@ -186,6 +186,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 unsigned HoExtension::checkExtensionality(TheoryModel* m)
 {
   eq::EqualityEngine* ee = d_parent.getEqualityEngine();
+  NodeManager* nm = NodeManager::currentNM();
   unsigned num_lemmas = 0;
   bool isCollectModel = (m != nullptr);
   Trace("uf-ho") << "HoExtension::checkExtensionality, collectModel="
@@ -243,6 +244,11 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
                 << "Add extensionality deq to model : " << edeq << std::endl;
             if (!m->assertEquality(edeq[0][0], edeq[0][1], false))
             {
+              Node eq = edeq[0][0].eqNode(edeq[0][1]);
+              Node lem = nm->mkNode(OR, deq.negate(), eq);
+              Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
+                             << std::endl;
+              d_parent.getOutputChannel().lemma(lem);
               return 1;
             }
           }
@@ -423,6 +429,10 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
     Node hn = TheoryUfRewriter::getHoApplyForApplyUf(n);
     if (!m->assertEquality(n, hn, true))
     {
+      Node eq = n.eqNode(hn);
+      Trace("uf-ho") << "HoExtension: cmi app completion lemma " << eq
+                     << std::endl;
+      d_parent.getOutputChannel().lemma(eq);
       return false;
     }
   }

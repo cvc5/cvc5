@@ -14,12 +14,13 @@
 
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -79,7 +80,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
     }else{
       ss << "fv_" << tn << "_" << i;
     }
-    Assert( !vtn.isNull() );
+    Assert(!vtn.isNull());
     Node v = NodeManager::currentNM()->mkSkolem( ss.str(), vtn, "for sygus normal form testing" );
     d_fv_stype[v] = tn;
     d_fv_num[v] = i;
@@ -154,7 +155,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 }
 
 TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
-  Assert( d_fv_stype.find( v )!=d_fv_stype.end() );
+  Assert(d_fv_stype.find(v) != d_fv_stype.end());
   return d_fv_stype[v];
 }
 
@@ -164,8 +165,8 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
                             std::map<int, Node>& pre)
 {
   Assert(c < dt.getNumConstructors());
-  Assert( dt.isSygus() );
-  Assert( !dt[c].getSygusOp().isNull() );
+  Assert(dt.isSygus());
+  Assert(!dt[c].getSygusOp().isNull());
   std::vector< Node > children;
   Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << c << "..."
                           << std::endl;
@@ -181,10 +182,10 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
     }
     Trace("sygus-db-debug")
         << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
-    Assert( !a.isNull() );
+    Assert(!a.isNull());
     children.push_back( a );
   }
-  return datatypes::DatatypesRewriter::mkSygusTerm(dt, c, children);
+  return datatypes::utils::mkSygusTerm(dt, c, children);
 }
 
 Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre)
@@ -286,7 +287,7 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   }
   if (n.getKind() == APPLY_CONSTRUCTOR)
   {
-    unsigned i = datatypes::DatatypesRewriter::indexOf(n.getOperator());
+    unsigned i = datatypes::utils::indexOf(n.getOperator());
     Assert(n.getNumChildren() == dt[i].getNumArgs());
     std::map<int, Node> pre;
     for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
@@ -325,7 +326,7 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
     sum += getSygusTermSize(n[i]);
   }
   const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-  int cindex = datatypes::DatatypesRewriter::indexOf(n.getOperator());
+  int cindex = datatypes::utils::indexOf(n.getOperator());
   Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
   unsigned weight = dt[cindex].getWeight();
   return weight + sum;
@@ -422,7 +423,7 @@ void TermDbSygus::registerEnumerator(Node e,
       // is necessary to generate a term of the form any_constant( x.0 ) for a
       // fresh variable x.0.
       Node fv = getFreeVar(stn, 0);
-      Node exc_val = datatypes::DatatypesRewriter::getInstCons(fv, dt, rindex);
+      Node exc_val = datatypes::utils::getInstCons(fv, dt, rindex);
       // should not include the constuctor in any subterm
       Node x = getFreeVar(stn, 0);
       Trace("sygus-db") << "Construct symmetry breaking lemma from " << x
@@ -494,7 +495,7 @@ void TermDbSygus::registerEnumerator(Node e,
     }
     else
     {
-      Unreachable("Unknown enumerator mode in registerEnumerator");
+      Unreachable() << "Unknown enumerator mode in registerEnumerator";
     }
   }
   Trace("sygus-db") << "isActiveGen for " << e << ", role = " << erole
@@ -776,7 +777,7 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
-  unsigned cindex = datatypes::DatatypesRewriter::indexOf(n.getOperator());
+  unsigned cindex = datatypes::utils::indexOf(n.getOperator());
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
   // it is symbolic if it represents "any constant"
   return sygusOp.getAttribute(SygusAnyConstAttribute());
@@ -948,7 +949,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   Type headType = en[0].getType().toType();
   NodeManager* nm = NodeManager::currentNM();
   const Datatype& dt = static_cast<DatatypeType>(headType).getDatatype();
-  unsigned i = datatypes::DatatypesRewriter::indexOf(ev.getOperator());
+  unsigned i = datatypes::utils::indexOf(ev.getOperator());
   if (track_exp)
   {
     // explanation
@@ -1007,7 +1008,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   }
   Node ret = mkGeneric(dt, i, pre);
   // apply the appropriate substitution to ret
-  ret = datatypes::DatatypesRewriter::applySygusArgs(dt, sop, ret, args);
+  ret = datatypes::utils::applySygusArgs(dt, sop, ret, args);
   // rewrite
   ret = Rewriter::rewrite(ret);
   return ret;
@@ -1038,7 +1039,7 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
           std::vector< Node > vars;
           std::vector< Node > subs;
           Node var_list = Node::fromExpr( dt.getSygusVarList() );
-          Assert( var_list.getNumChildren()+1==n.getNumChildren() );
+          Assert(var_list.getNumChildren() + 1 == n.getNumChildren());
           for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
             vars.push_back( var_list[j] );
           }
@@ -1048,7 +1049,7 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
             Assert(subs[j - 1].getType().isComparableTo(
                 var_list[j - 1].getType()));
           }
-          Assert( vars.size()==subs.size() );
+          Assert(vars.size() == subs.size());
           bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
           Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
           Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;
