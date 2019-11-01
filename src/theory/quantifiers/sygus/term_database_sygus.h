@@ -230,13 +230,14 @@ class TermDbSygus {
                  unsigned c,
                  std::map<TypeNode, int>& var_count,
                  std::map<int, Node>& pre,
-                 bool doBetaRed=true);
+                 bool doBetaRed = true);
   /** same as above, but with empty var_count */
-  Node mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre,
-                 bool doBetaRed=true);
+  Node mkGeneric(const Datatype& dt,
+                 int c,
+                 std::map<int, Node>& pre,
+                 bool doBetaRed = true);
   /** same as above, but with empty pre */
-  Node mkGeneric(const Datatype& dt, int c,
-                 bool doBetaRed=true);
+  Node mkGeneric(const Datatype& dt, int c, bool doBetaRed = true);
   /** makes a symbolic term concrete
    *
    * Given a sygus datatype term n of type tn with holes (symbolic constructor

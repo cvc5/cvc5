@@ -187,7 +187,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     }
     d_min_cons_term_size[i] = csize;
   }
-  Trace("sygus-db") << "Register type " << dt.getName() << " finished" << std::endl;
+  Trace("sygus-db") << "Register type " << dt.getName() << " finished"
+                    << std::endl;
 }
 
 void SygusTypeInfo::initializeVarSubclasses()

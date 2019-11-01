@@ -192,15 +192,16 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
   return ret;
 }
 
-Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre,
-                 bool doBetaRed)
+Node TermDbSygus::mkGeneric(const Datatype& dt,
+                            int c,
+                            std::map<int, Node>& pre,
+                            bool doBetaRed)
 {
   std::map<TypeNode, int> var_count;
   return mkGeneric(dt, c, var_count, pre, doBetaRed);
 }
 
-Node TermDbSygus::mkGeneric(const Datatype& dt, int c,
-                 bool doBetaRed)
+Node TermDbSygus::mkGeneric(const Datatype& dt, int c, bool doBetaRed)
 {
   std::map<int, Node> pre;
   return mkGeneric(dt, c, pre, doBetaRed);
@@ -299,7 +300,8 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
     {
       pre[j] = sygusToBuiltin(n[j], TypeNode::fromType(dt[i].getArgType(j)));
-      Trace("sygus-db-debug") << "sygus to builtin " << n[j] << " is " << pre[j] << std::endl;
+      Trace("sygus-db-debug")
+          << "sygus to builtin " << n[j] << " is " << pre[j] << std::endl;
     }
     Node ret = mkGeneric(dt, i, pre);
     Trace("sygus-db-debug")

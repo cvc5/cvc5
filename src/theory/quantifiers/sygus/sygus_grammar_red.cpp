@@ -75,7 +75,8 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     }
     d_sygus_red_status.push_back(red ? 1 : 0);
   }
-  Trace("sygus-red") << "Compute redundant cons for " << tn << " finished" << std::endl;
+  Trace("sygus-red") << "Compute redundant cons for " << tn << " finished"
+                     << std::endl;
 }
 
 void SygusRedundantCons::getRedundant(std::vector<unsigned>& indices)
