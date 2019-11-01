@@ -883,7 +883,7 @@ Node FpConverter::convert(TNode node)
               case roundTowardPositive: r.insert(current, traits::RTP()); break;
               case roundTowardNegative: r.insert(current, traits::RTN()); break;
               case roundTowardZero: r.insert(current, traits::RTZ()); break;
-              default: Unreachable("Unknown rounding mode"); break;
+              default: Unreachable() << "Unknown rounding mode"; break;
             }
           }
           else
@@ -896,7 +896,7 @@ Node FpConverter::convert(TNode node)
         }
         else
         {
-          Unreachable("Unknown kind of type RoundingMode");
+          Unreachable() << "Unknown kind of type RoundingMode";
         }
       }
       // Returns a rounding-mode type so don't alter the return value
@@ -930,7 +930,7 @@ Node FpConverter::convert(TNode node)
             case kind::VARIABLE:
             case kind::BOUND_VARIABLE:
             case kind::SKOLEM:
-              Unreachable("Kind should have been handled as a leaf.");
+              Unreachable() << "Kind should have been handled as a leaf.";
               break;
 
             /******** Operations ********/
@@ -959,7 +959,7 @@ Node FpConverter::convert(TNode node)
                                                   (*arg1).second));
                   break;
                 default:
-                  Unreachable("Unknown unary floating-point function");
+                  Unreachable() << "Unknown unary floating-point function";
                   break;
               }
             }
@@ -1002,7 +1002,8 @@ Node FpConverter::convert(TNode node)
                                                       (*arg1).second));
                   break;
                 default:
-                  Unreachable("Unknown unary rounded floating-point function");
+                  Unreachable()
+                      << "Unknown unary rounded floating-point function";
                   break;
               }
             }
@@ -1077,7 +1078,8 @@ Node FpConverter::convert(TNode node)
                   break;
 
                 default:
-                  Unreachable("Unknown binary floating-point partial function");
+                  Unreachable()
+                      << "Unknown binary floating-point partial function";
                   break;
               }
             }
@@ -1125,9 +1127,9 @@ Node FpConverter::convert(TNode node)
 
                 case kind::FLOATINGPOINT_SUB:
                   // Should have been removed by the rewriter
-                  Unreachable(
-                      "Floating-point subtraction should be removed by the "
-                      "rewriter.");
+                  Unreachable()
+                      << "Floating-point subtraction should be removed by the "
+                         "rewriter.";
                   break;
 
                 case kind::FLOATINGPOINT_MULT:
@@ -1152,13 +1154,14 @@ Node FpConverter::convert(TNode node)
                                                              (*arg1).second,
                                                              (*arg2).second));
                   */
-                  Unimplemented(
-                      "Remainder with rounding mode not yet supported by "
-                      "SMT-LIB");
+                  Unimplemented()
+                      << "Remainder with rounding mode not yet supported by "
+                         "SMT-LIB";
                   break;
 
                 default:
-                  Unreachable("Unknown binary rounded floating-point function");
+                  Unreachable()
+                      << "Unknown binary rounded floating-point function";
                   break;
               }
             }
@@ -1284,8 +1287,8 @@ Node FpConverter::convert(TNode node)
                   break;
 
                 default:
-                  Unreachable(
-                      "Unknown converstion from bit-vector to floating-point");
+                  Unreachable() << "Unknown converstion from bit-vector to "
+                                   "floating-point";
                   break;
               }
             }
@@ -1300,10 +1303,12 @@ Node FpConverter::convert(TNode node)
             break;
 
             case kind::FLOATINGPOINT_TO_FP_GENERIC:
-              Unreachable("Generic to_fp not removed");
+              Unreachable() << "Generic to_fp not removed";
               break;
 
-            default: Unreachable("Unknown kind of type FloatingPoint"); break;
+            default:
+              Unreachable() << "Unknown kind of type FloatingPoint";
+              break;
           }
         }
       }
@@ -1414,7 +1419,7 @@ Node FpConverter::convert(TNode node)
                 break;
 
               default:
-                Unreachable("Unknown binary floating-point relation");
+                Unreachable() << "Unknown binary floating-point relation";
                 break;
             }
           }
@@ -1482,7 +1487,7 @@ Node FpConverter::convert(TNode node)
                 break;
 
               default:
-                Unreachable("Unknown unary floating-point relation");
+                Unreachable() << "Unknown unary floating-point relation";
                 break;
             }
           }
@@ -1491,7 +1496,7 @@ Node FpConverter::convert(TNode node)
           case kind::FLOATINGPOINT_EQ:
           case kind::FLOATINGPOINT_GEQ:
           case kind::FLOATINGPOINT_GT:
-            Unreachable("Kind should have been removed by rewriter.");
+            Unreachable() << "Kind should have been removed by rewriter.";
             break;
 
           // Components will be registered as they are owned by
@@ -1602,15 +1607,15 @@ Node FpConverter::convert(TNode node)
         break;
 
         case kind::FLOATINGPOINT_TO_UBV:
-          Unreachable(
-              "Partially defined fp.to_ubv should have been removed by "
-              "expandDefinition");
+          Unreachable()
+              << "Partially defined fp.to_ubv should have been removed by "
+                 "expandDefinition";
           break;
 
         case kind::FLOATINGPOINT_TO_SBV:
-          Unreachable(
-              "Partially defined fp.to_sbv should have been removed by "
-              "expandDefinition");
+          Unreachable()
+              << "Partially defined fp.to_sbv should have been removed by "
+                 "expandDefinition";
           break;
 
         // Again, no action is needed
@@ -1653,9 +1658,9 @@ Node FpConverter::convert(TNode node)
         break;
 
         case kind::FLOATINGPOINT_TO_REAL:
-          Unreachable(
-              "Partially defined fp.to_real should have been removed by "
-              "expandDefinition");
+          Unreachable()
+              << "Partially defined fp.to_real should have been removed by "
+                 "expandDefinition";
           break;
 
         default: CVC4_FPCONV_PASSTHROUGH; break;
@@ -1669,7 +1674,7 @@ Node FpConverter::convert(TNode node)
 
   return result;
 #else
-  Unimplemented("Conversion is dependent on SymFPU");
+  Unimplemented() << "Conversion is dependent on SymFPU";
 #endif
 }
 
@@ -1688,7 +1693,7 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 
     if (i == r.end())
     {
-      Unreachable("Asking for the value of an unregistered expression");
+      Unreachable() << "Asking for the value of an unregistered expression";
     }
     else
     {
@@ -1702,7 +1707,7 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 
     if (i == f.end())
     {
-      Unreachable("Asking for the value of an unregistered expression");
+      Unreachable() << "Asking for the value of an unregistered expression";
     }
     else
     {
@@ -1712,15 +1717,15 @@ Node FpConverter::getValue(Valuation &val, TNode var)
   }
   else
   {
-    Unreachable(
-        "Asking for the value of a type that is not managed by the "
-        "floating-point theory");
+    Unreachable()
+        << "Asking for the value of a type that is not managed by the "
+           "floating-point theory";
   }
 
-  Unreachable("Unable to find value");
+  Unreachable() << "Unable to find value";
 
 #else
-  Unimplemented("Conversion is dependent on SymFPU");
+  Unimplemented() << "Conversion is dependent on SymFPU";
 #endif
 }
 

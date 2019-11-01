@@ -25,7 +25,7 @@
 #include <memory>
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"

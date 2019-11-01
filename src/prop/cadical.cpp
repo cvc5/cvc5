@@ -18,6 +18,7 @@
 
 #ifdef CVC4_USE_CADICAL
 
+#include "base/check.h"
 #include "proof/sat_proof.h"
 
 namespace CVC4 {
@@ -90,7 +91,7 @@ ClauseId CadicalSolver::addXorClause(SatClause& clause,
                                      bool rhs,
                                      bool removable)
 {
-  Unreachable("CaDiCaL does not support adding XOR clauses.");
+  Unreachable() << "CaDiCaL does not support adding XOR clauses.";
 }
 
 SatVariable CadicalSolver::newVar(bool isTheoryAtom,
@@ -116,7 +117,7 @@ SatValue CadicalSolver::solve()
 
 SatValue CadicalSolver::solve(long unsigned int&)
 {
-  Unimplemented("Setting limits for CaDiCaL not supported yet");
+  Unimplemented() << "Setting limits for CaDiCaL not supported yet";
 };
 
 SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
@@ -148,7 +149,7 @@ SatValue CadicalSolver::modelValue(SatLiteral l)
 
 unsigned CadicalSolver::getAssertionLevel() const
 {
-  Unreachable("CaDiCal does not support assertion levels.");
+  Unreachable() << "CaDiCaL does not support assertion levels.";
 }
 
 bool CadicalSolver::ok() const { return d_okay; }

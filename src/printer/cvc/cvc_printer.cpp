@@ -434,7 +434,7 @@ void CvcPrinter::toStream(
       }
       break;
     case kind::APPLY_TESTER: {
-      Assert( !n.getType().isTuple() && !n.getType().isRecord() );
+      Assert(!n.getType().isTuple() && !n.getType().isRecord());
       op << "is_";
       unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
       const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());

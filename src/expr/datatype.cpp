@@ -19,7 +19,7 @@
 #include <string>
 #include <sstream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/attribute.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -67,7 +67,7 @@ const Datatype& Datatype::datatypeOf(Expr item) {
   case kind::TESTER_TYPE:
     return DatatypeType(t[0].toType()).getDatatype();
   default:
-    Unhandled("arg must be a datatype constructor, selector, or tester");
+    Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }
 }
 
@@ -242,7 +242,7 @@ void Datatype::setRecord() {
 Cardinality Datatype::getCardinality(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
+  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   std::vector< Type > processing;
   computeCardinality( t, processing );
   return d_card;
@@ -275,10 +275,10 @@ Cardinality Datatype::computeCardinality(Type t,
 bool Datatype::isRecursiveSingleton(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
+  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   if( d_card_rec_singleton.find( t )==d_card_rec_singleton.end() ){
     if( isCodatatype() ){
-      Assert( d_card_u_assume[t].empty() );
+      Assert(d_card_u_assume[t].empty());
       std::vector< Type > processing;
       if( computeCardinalityRecSingleton( t, processing, d_card_u_assume[t] ) ){
         d_card_rec_singleton[t] = 1;
@@ -307,8 +307,8 @@ bool Datatype::isRecursiveSingleton() const
 
 unsigned Datatype::getNumRecursiveSingletonArgTypes(Type t) const
 {
-  Assert( d_card_rec_singleton.find( t )!=d_card_rec_singleton.end() );
-  Assert( isRecursiveSingleton( t ) );
+  Assert(d_card_rec_singleton.find(t) != d_card_rec_singleton.end());
+  Assert(isRecursiveSingleton(t));
   return d_card_u_assume[t].size();
 }
 
@@ -320,8 +320,8 @@ unsigned Datatype::getNumRecursiveSingletonArgTypes() const
 
 Type Datatype::getRecursiveSingletonArgType(Type t, unsigned i) const
 {
-  Assert( d_card_rec_singleton.find( t )!=d_card_rec_singleton.end() );
-  Assert( isRecursiveSingleton( t ) );
+  Assert(d_card_rec_singleton.find(t) != d_card_rec_singleton.end());
+  Assert(isRecursiveSingleton(t));
   return d_card_u_assume[t][i];
 }
 
@@ -384,7 +384,7 @@ bool Datatype::computeCardinalityRecSingleton(Type t,
 bool Datatype::isFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
+  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
 
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
@@ -413,7 +413,7 @@ bool Datatype::isFinite() const
 bool Datatype::isInterpretedFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
+  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
   TypeNode self = TypeNode::fromType(d_self);
@@ -596,10 +596,10 @@ bool Datatype::operator==(const Datatype& other) const
     // testing equivalence of constructors and testers is harder b/c
     // this constructor might not be resolved yet; only compare them
     // if they are both resolved
-    Assert(isResolved() == !(*i).d_constructor.isNull() &&
-           isResolved() == !(*i).d_tester.isNull() &&
-           (*i).d_constructor.isNull() == (*j).d_constructor.isNull() &&
-           (*i).d_tester.isNull() == (*j).d_tester.isNull());
+    Assert(isResolved() == !(*i).d_constructor.isNull()
+           && isResolved() == !(*i).d_tester.isNull()
+           && (*i).d_constructor.isNull() == (*j).d_constructor.isNull()
+           && (*i).d_tester.isNull() == (*j).d_tester.isNull());
     if(!(*i).d_constructor.isNull() && (*i).d_constructor != (*j).d_constructor) {
       return false;
     }
@@ -613,8 +613,8 @@ bool Datatype::operator==(const Datatype& other) const
       }
       // testing equivalence of selectors is harder b/c args might not
       // be resolved yet
-      Assert(isResolved() == (*k).isResolved() &&
-             (*k).isResolved() == (*l).isResolved());
+      Assert(isResolved() == (*k).isResolved()
+             && (*k).isResolved() == (*l).isResolved());
       if((*k).isResolved()) {
         // both are resolved, so simply compare the selectors directly
         if((*k).d_selector != (*l).d_selector) {
@@ -1121,7 +1121,7 @@ Expr DatatypeConstructor::computeGroundTerm(Type t,
 
   Expr groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);
   if( groundTerm.getType()!=t ){
-    Assert( Datatype::datatypeOf( d_constructor ).isParametric() );
+    Assert(Datatype::datatypeOf(d_constructor).isParametric());
     //type is ambiguous, must apply type ascription
     Debug("datatypes-gt") << "ambiguous type for " << groundTerm << ", ascribe to " << t << std::endl;
     groundTerms[0] = getConstructor().getExprManager()->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
@@ -1140,8 +1140,8 @@ void DatatypeConstructor::computeSharedSelectors( Type domainType ) const {
     }else{
       ctype = TypeNode::fromType( d_constructor.getType() );
     }
-    Assert( ctype.isConstructor() );
-    Assert( ctype.getNumChildren()-1==getNumArgs() );
+    Assert(ctype.isConstructor());
+    Assert(ctype.getNumChildren() - 1 == getNumArgs());
     //compute the shared selectors
     const Datatype& dt = Datatype::datatypeOf(d_constructor);
     std::map< TypeNode, unsigned > counter;
@@ -1149,7 +1149,8 @@ void DatatypeConstructor::computeSharedSelectors( Type domainType ) const {
       TypeNode t = ctype[j];
       Expr ss = dt.getSharedSelector( domainType, t.toType(), counter[t] );
       d_shared_selectors[domainType].push_back( ss );
-      Assert( d_shared_selector_index[domainType].find( ss )==d_shared_selector_index[domainType].end() );
+      Assert(d_shared_selector_index[domainType].find(ss)
+             == d_shared_selector_index[domainType].end());
       d_shared_selector_index[domainType][ss] = j;
       counter[t]++;
     }
@@ -1226,7 +1227,7 @@ Expr DatatypeConstructor::getSelectorInternal( Type domainType, size_t index ) c
   PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
   if( options::dtSharedSelectors() ){
     computeSharedSelectors( domainType );
-    Assert( d_shared_selectors[domainType].size()==getNumArgs() );
+    Assert(d_shared_selectors[domainType].size() == getNumArgs());
     return d_shared_selectors[domainType][index];
   }else{
     return d_args[index].getSelector();
@@ -1236,7 +1237,7 @@ Expr DatatypeConstructor::getSelectorInternal( Type domainType, size_t index ) c
 int DatatypeConstructor::getSelectorIndexInternal( Expr sel ) const {
   PrettyCheckArgument(isResolved(), this, "cannot get an internal selector index for an unresolved datatype constructor");
   if( options::dtSharedSelectors() ){
-    Assert( sel.getType().isSelector() );
+    Assert(sel.getType().isSelector());
     Type domainType = ((SelectorType)sel.getType()).getDomain();
     computeSharedSelectors( domainType );
     std::map< Expr, unsigned >::iterator its = d_shared_selector_index[domainType].find( sel );

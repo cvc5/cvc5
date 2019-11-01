@@ -17,7 +17,7 @@
 
 #include "util/sampler.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "util/bitvector.h"
 
 namespace CVC4 {

@@ -998,11 +998,13 @@ void TheoryEngine::postsolve() {
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
-#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-    if (theory::TheoryTraits<THEORY>::hasPostsolve) { \
-      theoryOf(THEORY)->postsolve(); \
-      Assert(! d_inConflict || wasInConflict, "conflict raised during postsolve()"); \
-    }
+#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY)    \
+  if (theory::TheoryTraits<THEORY>::hasPostsolve) \
+  {                                               \
+    theoryOf(THEORY)->postsolve();                \
+    Assert(!d_inConflict || wasInConflict)        \
+        << "conflict raised during postsolve()";  \
+  }
 
     // Postsolve for each theory using the statement above
     CVC4_FOR_EACH_THEORY;
@@ -1317,7 +1319,8 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
 
   // If sending to the shared terms database, it's also simple
   if (toTheoryId == THEORY_BUILTIN) {
-    Assert(atom.getKind() == kind::EQUAL, "atom should be an EQUALity, not `%s'", atom.toString().c_str());
+    Assert(atom.getKind() == kind::EQUAL)
+        << "atom should be an EQUALity, not `" << atom << "'";
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
       d_sharedTerms.assertEquality(atom, polarity, assertion);
     }
@@ -1561,7 +1564,7 @@ void TheoryEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) 
   if( d_quantEngine ){
     d_quantEngine->getInstantiatedQuantifiedFormulas( qs );
   }else{
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -1569,7 +1572,7 @@ void TheoryEngine::getInstantiations( Node q, std::vector< Node >& insts ) {
   if( d_quantEngine ){
     d_quantEngine->getInstantiations( q, insts );
   }else{
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -1577,7 +1580,7 @@ void TheoryEngine::getInstantiationTermVectors( Node q, std::vector< std::vector
   if( d_quantEngine ){
     d_quantEngine->getInstantiationTermVectors( q, tvecs );
   }else{
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -1585,7 +1588,7 @@ void TheoryEngine::getInstantiations( std::map< Node, std::vector< Node > >& ins
   if( d_quantEngine ){
     d_quantEngine->getInstantiations( insts );
   }else{
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -1593,7 +1596,7 @@ void TheoryEngine::getInstantiationTermVectors( std::map< Node, std::vector< std
   if( d_quantEngine ){
     d_quantEngine->getInstantiationTermVectors( insts );
   }else{
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -1601,7 +1604,7 @@ Node TheoryEngine::getInstantiatedConjunction( Node q ) {
   if( d_quantEngine ){
     return d_quantEngine->getInstantiatedConjunction( q );
   }else{
-    Assert( false );
+    Assert(false);
     return Node::null();
   }
 }
@@ -1792,8 +1795,9 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
       }
       continue;
     }else if( eqNormalized.getKind() != kind::EQUAL){
-      Assert( eqNormalized.getKind()==kind::BOOLEAN_TERM_VARIABLE || 
-              ( eqNormalized.getKind()==kind::NOT && eqNormalized[0].getKind()==kind::BOOLEAN_TERM_VARIABLE ) );
+      Assert(eqNormalized.getKind() == kind::BOOLEAN_TERM_VARIABLE
+             || (eqNormalized.getKind() == kind::NOT
+                 && eqNormalized[0].getKind() == kind::BOOLEAN_TERM_VARIABLE));
       // this happens for Boolean term equalities V = true that are rewritten to V, we should skip
       //  TODO : revisit this
       continue;
@@ -2125,7 +2129,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
 
     Debug("theory::explain") << "TheoryEngine::explain(): got explanation " << explanation << " got from " << toExplain.theory << endl;
-    Assert( explanation != toExplain.node, "wasn't sent to you, so why are you explaining it trivially");
+    Assert(explanation != toExplain.node)
+        << "wasn't sent to you, so why are you explaining it trivially";
     // Mark the explanation
     NodeTheoryPair newExplain(explanation, toExplain.theory, toExplain.timestamp);
     explanationVector.push_back(newExplain);
@@ -2217,14 +2222,17 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           ++it) {
         Node assertion = (*it).assertion;
         Node val = getModel()->getValue(assertion);
-        if(val != d_true) {
-          stringstream ss;
-          ss << theoryId << " has an asserted fact that the model doesn't satisfy." << endl
-             << "The fact: " << assertion << endl
-             << "Model value: " << val << endl;
-	  if(hardFailure) {
-	    InternalError(ss.str());
-	  }
+        if (val != d_true)
+        {
+          if (hardFailure)
+          {
+            InternalError()
+                << theoryId
+                << " has an asserted fact that the model doesn't satisfy."
+                << endl
+                << "The fact: " << assertion << endl
+                << "Model value: " << val << endl;
+          }
         }
       }
     }

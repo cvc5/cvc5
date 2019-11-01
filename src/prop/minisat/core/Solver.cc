@@ -210,7 +210,7 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 void Solver::resizeVars(int newSize) {
   assert(enable_incremental);
   assert(decisionLevel() == 0);
-  Assert(newSize >= 2, "always keep true/false");
+  Assert(newSize >= 2) << "always keep true/false";
   if (newSize < nVars()) {
     int shrinkSize = nVars() - newSize;
 
@@ -626,7 +626,8 @@ Lit Solver::pickBranchLit()
       return lit_Undef;
     }
     if(nextLit != lit_Undef) {
-      Assert(value(var(nextLit)) == l_Undef, "literal to decide already has value");
+      Assert(value(var(nextLit)) == l_Undef)
+          << "literal to decide already has value";
       decisions++;
       Var next = var(nextLit);
       if(polarity[next] & 0x2) {
@@ -1736,7 +1737,7 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        Assert (! PROOF_ON());
+        Assert(!PROOF_ON());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -1766,7 +1767,7 @@ CRef Solver::updateLemmas() {
   // Last index in the trail
   int backtrack_index = trail.size();
 
-  PROOF(Assert (lemmas.size() == (int)lemmas_cnf_assertion.size()););
+  PROOF(Assert(lemmas.size() == (int)lemmas_cnf_assertion.size()););
 
   // Attach all the clauses and enqueue all the propagations
   for (int i = 0; i < lemmas.size(); ++ i)
@@ -1839,7 +1840,7 @@ CRef Solver::updateLemmas() {
     }
   }
 
-  PROOF(Assert (lemmas.size() == (int)lemmas_cnf_assertion.size()););
+  PROOF(Assert(lemmas.size() == (int)lemmas_cnf_assertion.size()););
   // Clear the lemmas
   lemmas.clear();
   lemmas_cnf_assertion.clear();
@@ -1881,7 +1882,7 @@ void ClauseAllocator::reloc(CRef& cr,
 
 inline bool Solver::withinBudget(uint64_t amount) const
 {
-  Assert (proxy);
+  Assert(proxy);
   // spendResource sets async_interrupt or throws UnsafeInterruptException
   // depending on whether hard-limit is enabled
   proxy->spendResource(amount);

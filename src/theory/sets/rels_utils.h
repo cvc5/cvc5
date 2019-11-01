@@ -72,7 +72,7 @@ public:
   } 
   
   static Node reverseTuple( Node tuple ) {
-    Assert( tuple.getType().isTuple() );
+    Assert(tuple.getType().isTuple());
     std::vector<Node> elements;
     std::vector<TypeNode> tuple_types = tuple.getType().getTupleTypes();
     std::reverse( tuple_types.begin(), tuple_types.end() );
