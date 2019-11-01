@@ -49,7 +49,14 @@ void NlModel::reset(TheoryModel* m)
     */
 }
 
-void NlModel::resetCheck() { d_used_approx = false; }
+void NlModel::resetCheck()
+{ 
+  d_used_approx = false; 
+  d_check_model_solved.clear();
+  d_check_model_bounds.clear();
+  d_check_model_vars.clear();
+  d_check_model_subs.clear();
+}
 
 Node NlModel::computeModelValue(Node n, unsigned index)
 {
@@ -162,15 +169,15 @@ Node NlModel::getRepresentative(Node n) const
 
 Node NlModel::getConcreteModelValue(Node n) const
 {
-  return getModelValueInternal(n, true);
+  return getModelValue(n, true);
 }
 
 Node NlModel::getAbstractModelValue(Node n) const
 {
-  return getModelValueInternal(n, false);
+  return getModelValue(n, false);
 }
 
-Node NlModel::getModelValueInternal(Node n, bool isConcrete) const
+Node NlModel::getModelValue(Node n, bool isConcrete) const
 {
   unsigned index = isConcrete ? 0 : 1;
   std::map<Node, Node>::const_iterator it = d_mv[index].find(n);
@@ -183,15 +190,15 @@ Node NlModel::getModelValueInternal(Node n, bool isConcrete) const
 
 bool NlModel::hasConcreteModelValue(Node n) const
 {
-  return hasModelValueInternal(n, true);
+  return hasModelValue(n, true);
 }
 
 bool NlModel::hasAbstractModelValue(Node n) const
 {
-  return hasModelValueInternal(n, false);
+  return hasModelValue(n, false);
 }
 
-bool NlModel::hasModelValueInternal(Node n, bool isConcrete) const
+bool NlModel::hasModelValue(Node n, bool isConcrete) const
 {
   unsigned index = isConcrete ? 0 : 1;
   return d_mv[index].find(n) != d_mv[index].end();
@@ -200,17 +207,34 @@ bool NlModel::hasModelValueInternal(Node n, bool isConcrete) const
 std::map<Node, Node>& NlModel::getConcreteModelValues() { return d_mv[0]; }
 
 std::map<Node, Node>& NlModel::getAbstractModelValues() { return d_mv[1]; }
-std::map<Node, Node>& NlModel::getModelValues(unsigned index)
-{
-  return d_mv[index];
+
+int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute) const {
+  Node ci = getModelValue(i, isConcrete);
+  Node cj = getModelValue(j, isConcrete);
+  if( ci.isConst() ){
+    if( cj.isConst() ){
+      return compareValue(ci, cj, isAbsolute);
+    }
+    return 1; 
+  }
+  return cj.isConst() ? -1 : 0;
 }
 
-void NlModel::resetCheckModel()
-{
-  d_check_model_solved.clear();
-  d_check_model_bounds.clear();
-  d_check_model_vars.clear();
-  d_check_model_subs.clear();
+int NlModel::compareValue(Node i, Node j, bool isAbsolute) const {
+  Assert(i.isConst() && j.isConst());
+  int ret;
+  if (i == j) {
+    ret = 0;
+  } else if (!isAbsolute) {
+    ret = i.getConst<Rational>() < j.getConst<Rational>() ? 1 : -1;
+  } else {
+    ret = (i.getConst<Rational>().abs() == j.getConst<Rational>().abs()
+               ? 0
+               : (i.getConst<Rational>().abs() < j.getConst<Rational>().abs()
+                      ? 1
+                      : -1));
+  }
+  return ret;
 }
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,

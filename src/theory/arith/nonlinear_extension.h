@@ -135,23 +135,6 @@ class NonlinearExtension {
    * on the output channel of TheoryArith in this function.
    */
   void presolve();
-  /** Compare arithmetic terms i and j based an ordering.
-   *
-   * orderType = 0 : compare concrete model values
-   * orderType = 1 : compare abstract model values
-   * orderType = 2 : compare abs of concrete model values
-   * orderType = 3 : compare abs of abstract model values
-   * TODO (#1287) make this an enum?
-   *
-   * For definitions of concrete vs abstract model values,
-   * see computeModelValue below.
-   */
-  int compare(Node i, Node j, unsigned orderType) const;
-  /** Compare constant rationals i and j based an ordering.
-   * orderType is the same as above.
-   */
-  int compare_value(Node i, Node j, unsigned orderType) const;
-
  private:
   /** returns true if the multiset containing the
    * factors of monomial a is a subset of the multiset
@@ -197,7 +180,7 @@ class NonlinearExtension {
                     const std::vector<Node>& xts);
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
-  static Node mkLit(Node a, Node b, int status, int orderType = 0);
+  static Node mkLit(Node a, Node b, int status, bool isAbsolute=false);
   static Node mkAbs(Node a);
   static Node mkValidPhase(Node a, Node pi);
   static Node mkBounded( Node l, Node a, Node u );
@@ -209,13 +192,9 @@ class NonlinearExtension {
   void setMonomialFactor(Node a, Node b, const NodeMultiset& common);
 
   void registerConstraint(Node atom);
-  /** returns the Node corresponding to the value of i in the
-   * type of order orderType, which is one of values
-   * described above ::compare(...).
-   */
-  Node get_compare_value(Node i, unsigned orderType) const;
+  /** assign order ids */
   void assignOrderIds(std::vector<Node>& vars, NodeMultiset& d_order,
-                      unsigned orderType);
+                      bool isConcrete, bool isAbsolute);
 
   /** get assertions
    *

@@ -113,19 +113,38 @@ void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs) {
   Trace(c) << t << " " << type << " " << rhs;
 }
 
-struct SortNonlinearExtension {
-  SortNonlinearExtension()
-      : d_nla(NULL), d_order_type(0), d_reverse_order(false) {}
-  NonlinearExtension* d_nla;
-  unsigned d_order_type;
+struct SortNlModel {
+  SortNlModel()
+      : d_nlm(nullptr), d_isConcrete(true), d_isAbsolute(false), d_reverse_order(false) {}
+  /** pointer to the model */
+  NlModel * d_nlm;
+  /** are we comparing concrete model values? */
+  bool d_isConcrete;
+  /** are we comparing absolute values? */
+  bool d_isAbsolute;
+  /** are we in reverse order? */
   bool d_reverse_order;
+  /** the comparison */
   bool operator()(Node i, Node j) {
-    int cv = d_nla->compare(i, j, d_order_type);
+    int cv = d_nlm->compare(i, j, d_isConcrete, d_isAbsolute);
     if (cv == 0) {
       return i < j;
-    } else {
-      return d_reverse_order ? cv < 0 : cv > 0;
     }
+    return d_reverse_order ? cv < 0 : cv > 0;
+  }
+};
+struct SortNonlinearDegree {
+  SortNonlinearDegree(NodeMultiset& m) : d_m_degree(m) {}
+  /** pointer to the non-linear extension */
+  NodeMultiset& d_m_degree;
+  /** 
+   * Sorts by degree of the monomials, where lower degree monomials come
+   * first.
+   */
+  bool operator()(Node i, Node j) {
+    unsigned i_count = getCount(d_m_degree, i);
+    unsigned j_count = getCount(d_m_degree, j);
+    return i_count == j_count ? (i<j) : (i_count < j_count ? true : false);
   }
 };
 
@@ -427,10 +446,10 @@ bool NonlinearExtension::isArithKind(Kind k) {
   return k == PLUS || k == MULT || k == NONLINEAR_MULT;
 }
 
-Node NonlinearExtension::mkLit(Node a, Node b, int status, int orderType) {
+Node NonlinearExtension::mkLit(Node a, Node b, int status, bool isAbsolute) {
   if (status == 0) {
     Node a_eq_b = a.eqNode(b);
-    if (orderType == 0) {
+    if (!isAbsolute) {
       return a_eq_b;
     } else {
       // return mkAbs( a ).eqNode( mkAbs( b ) );
@@ -443,7 +462,7 @@ Node NonlinearExtension::mkLit(Node a, Node b, int status, int orderType) {
     Assert(status == 1 || status == 2);
     NodeManager* nm = NodeManager::currentNM();
     Kind greater_op = status == 1 ? GEQ : GT;
-    if (orderType == 0) {
+    if (!isAbsolute) {
       return nm->mkNode(greater_op, a, b);
     } else {
       // return nm->mkNode( greater_op, mkAbs( a ), mkAbs( b ) );
@@ -699,7 +718,6 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
                                     const std::vector<Node>& false_asserts)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
-  d_model.resetCheckModel();
 
   // get the presubstitution
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
@@ -1088,14 +1106,15 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   //-----------------------------------lemmas based on magnitude of non-zero monomials
   Trace("nl-ext-proc") << "Assign order ids..." << std::endl;
-  unsigned r = 3;
-  assignOrderIds(d_ms_vars, d_order_vars, r);
+  // sort by absolute values of abstract model values
+  assignOrderIds(d_ms_vars, d_order_vars, false, true);
 
   // sort individual variable lists
   Trace("nl-ext-proc") << "Assign order var lists..." << std::endl;
-  SortNonlinearExtension smv;
-  smv.d_nla = this;
-  smv.d_order_type = r;
+  SortNlModel smv;
+  smv.d_nlm = &d_model;
+  smv.d_isConcrete = false;
+  smv.d_isAbsolute = true;
   smv.d_reverse_order = true;
   for (unsigned j = 0; j < d_ms.size(); j++) {
     std::sort(d_m_vlist[d_ms[j]].begin(), d_m_vlist[d_ms[j]].end(), smv);
@@ -1115,10 +1134,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   // sort monomials by degree
   Trace("nl-ext-proc") << "Sort monomials by degree..." << std::endl;
-  SortNonlinearExtension snlad;
-  snlad.d_nla = this;
-  snlad.d_order_type = 4;
-  snlad.d_reverse_order = false;
+  SortNonlinearDegree snlad(d_m_degree);
   std::sort(d_ms.begin(), d_ms.end(), snlad);
   // all monomials
   d_mterms.insert(d_mterms.end(), d_ms_vars.begin(), d_ms_vars.end());
@@ -1431,21 +1447,24 @@ void NonlinearExtension::presolve()
 
 void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
                                         NodeMultiset& order,
-                                        unsigned orderType) {
-  SortNonlinearExtension smv;
-  smv.d_nla = this;
-  smv.d_order_type = orderType;
+                                        bool isConcrete,
+                                        bool isAbsolute
+                                       ) {
+  SortNlModel smv;
+  smv.d_nlm = &d_model;
+  smv.d_isConcrete = isConcrete;
+  smv.d_isAbsolute = isAbsolute;
   smv.d_reverse_order = false;
   std::sort(vars.begin(), vars.end(), smv);
 
   order.clear();
   // assign ordering id's
   unsigned counter = 0;
-  unsigned order_index = (orderType == 0 || orderType == 2) ? 0 : 1;
+  unsigned order_index = isConcrete ? 0 : 1;
   Node prev;
   for (unsigned j = 0; j < vars.size(); j++) {
     Node x = vars[j];
-    Node v = get_compare_value(x, orderType);
+    Node v = d_model.getModelValue(x, isConcrete);
     if( !v.isConst() ){
       Trace("nl-ext-mvo") << "..do not assign order to " << x << " : " << v << std::endl;
       //don't assign for non-constant values (transcendental function apps)
@@ -1458,11 +1477,11 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
       do {
         success = false;
         if (order_index < d_order_points.size()) {
-          Node vv = get_compare_value(d_order_points[order_index], orderType);
-          if (compare_value(v, vv, orderType) <= 0) {
+          Node vv = d_model.getModelValue(d_order_points[order_index], isConcrete);
+          if (d_model.compareValue(v, vv, isAbsolute) <= 0) {
             counter++;
             Trace("nl-ext-mvo")
-                << "O_" << orderType << "[" << d_order_points[order_index]
+                << "O[" << d_order_points[order_index]
                 << "] = " << counter << std::endl;
             order[d_order_points[order_index]] = counter;
             prev = vv;
@@ -1472,53 +1491,23 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
         }
       } while (success);
     }
-    if (prev.isNull() || compare_value(v, prev, orderType) != 0) {
+    if (prev.isNull() || d_model.compareValue(v, prev, isAbsolute) != 0) {
       counter++;
     }
-    Trace("nl-ext-mvo") << "O_" << orderType << "[" << x << "] = " << counter
+    Trace("nl-ext-mvo") << "O[" << x << "] = " << counter
                         << std::endl;
     order[x] = counter;
     prev = v;
   }
   while (order_index < d_order_points.size()) {
     counter++;
-    Trace("nl-ext-mvo") << "O_" << orderType << "["
+    Trace("nl-ext-mvo") << "O["
                         << d_order_points[order_index] << "] = " << counter
                         << std::endl;
     order[d_order_points[order_index]] = counter;
     order_index++;
   }
 }
-
-int NonlinearExtension::compare(Node i, Node j, unsigned orderType) const {
-  Assert(orderType >= 0);
-  if (orderType <= 3) {
-    Node ci = get_compare_value(i, orderType);
-    Node cj = get_compare_value(j, orderType);
-    if( ci.isConst() ){
-      if( cj.isConst() ){
-        return compare_value(ci, cj, orderType);
-      }else{
-        return 1; 
-      }
-    }else{
-      if( cj.isConst() ){
-        return -1;
-      }else{
-        return 0;
-      }
-    }
-    // minimal degree
-  } else if (orderType == 4) {
-    unsigned i_count = getCount(d_m_degree, i);
-    unsigned j_count = getCount(d_m_degree, j);
-    return i_count == j_count ? 0 : (i_count < j_count ? 1 : -1);
-  } else {
-    return 0;
-  }
-}
-
-
 
 void NonlinearExtension::mkPi(){
   if( d_pi.isNull() ){
@@ -1593,46 +1582,6 @@ bool NonlinearExtension::getApproximateSqrt(Node c,
   l = nm->mkConst(rl);
   u = nm->mkConst(ru);
   return true;
-}
-
-int NonlinearExtension::compare_value(Node i, Node j,
-                                      unsigned orderType) const {
-  Assert(orderType >= 0 && orderType <= 3);
-  Assert(i.isConst() && j.isConst());
-  Trace("nl-ext-debug") << "compare value " << i << " " << j
-                        << ", o = " << orderType << std::endl;
-  int ret;
-  if (i == j) {
-    ret = 0;
-  } else if (orderType == 0 || orderType == 2) {
-    ret = i.getConst<Rational>() < j.getConst<Rational>() ? 1 : -1;
-  } else {
-    Trace("nl-ext-debug") << "vals : " << i.getConst<Rational>() << " "
-                          << j.getConst<Rational>() << std::endl;
-    Trace("nl-ext-debug") << i.getConst<Rational>().abs() << " "
-                          << j.getConst<Rational>().abs() << std::endl;
-    ret = (i.getConst<Rational>().abs() == j.getConst<Rational>().abs()
-               ? 0
-               : (i.getConst<Rational>().abs() < j.getConst<Rational>().abs()
-                      ? 1
-                      : -1));
-  }
-  Trace("nl-ext-debug") << "...return " << ret << std::endl;
-  return ret;
-}
-
-Node NonlinearExtension::get_compare_value(Node i, unsigned orderType) const {
-  if (i.isConst())
-  {
-    return i;
-  }
-  Trace("nl-ext-debug") << "Compare variable " << i << " " << orderType
-                        << std::endl;
-  Assert(orderType >= 0 && orderType <= 3);
-  unsigned mindex = orderType <= 1 ? 0 : 1;
-  std::map<Node, Node>::const_iterator iti = d_model.d_mv[mindex].find(i);
-  Assert(iti != d_model.d_mv[mindex].end());
-  return iti->second;
 }
 
 // show a <> 0 by inequalities between variables in monomial a w.r.t 0
@@ -1738,8 +1687,8 @@ bool NonlinearExtension::compareMonomial(
       << " " << b_index << std::endl;
   Assert(status == 0 || status == 2);
   if (a_index == d_m_vlist[a].size() && b_index == d_m_vlist[b].size()) {
-    // finished, compare abstract values
-    int modelStatus = compare(oa, ob, 3) * -2;
+    // finished, compare absolute value of abstract model values
+    int modelStatus = d_model.compare(oa, ob, false, true) * -2;
     Trace("nl-ext-comp") << "...finished comparison with " << oa << " <"
                          << status << "> " << ob
                          << ", model status = " << modelStatus << std::endl;
@@ -1753,7 +1702,7 @@ bool NonlinearExtension::compareMonomial(
         }
       }
       Node clem = NodeManager::currentNM()->mkNode(
-          IMPLIES, safeConstructNary(AND, exp), mkLit(oa, ob, status, 1));
+          IMPLIES, safeConstructNary(AND, exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       lem.push_back(clem);
       cmp_infers[status][oa][ob] = clem;
@@ -1800,7 +1749,7 @@ bool NonlinearExtension::compareMonomial(
       if (bvo <= ovo) {
         Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
         // can multiply b by <=1
-        exp.push_back(mkLit(d_one, bv, bvo == ovo ? 0 : 2, 1));
+        exp.push_back(mkLit(d_one, bv, bvo == ovo ? 0 : 2, true));
         return compareMonomial(oa, a, a_index, a_exp_proc, ob, b, b_index + 1,
                                b_exp_proc, bvo == ovo ? status : 2, exp, lem,
                                cmp_infers);
@@ -1813,7 +1762,7 @@ bool NonlinearExtension::compareMonomial(
       if (avo >= ovo) {
         Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
         // can multiply a by >=1
-        exp.push_back(mkLit(av, d_one, avo == ovo ? 0 : 2, 1));
+        exp.push_back(mkLit(av, d_one, avo == ovo ? 0 : 2, true));
         return compareMonomial(oa, a, a_index + 1, a_exp_proc, ob, b, b_index,
                                b_exp_proc, avo == ovo ? status : 2, exp, lem,
                                cmp_infers);
@@ -1828,7 +1777,7 @@ bool NonlinearExtension::compareMonomial(
         if (bvo < ovo && avo >= ovo) {
           Trace("nl-ext-comp-debug") << "...take leading " << av << std::endl;
           // do avo>=1 instead
-          exp.push_back(mkLit(av, d_one, avo == ovo ? 0 : 2, 1));
+          exp.push_back(mkLit(av, d_one, avo == ovo ? 0 : 2, true));
           return compareMonomial(oa, a, a_index + 1, a_exp_proc, ob, b, b_index,
                                  b_exp_proc, avo == ovo ? status : 2, exp, lem,
                                  cmp_infers);
@@ -1839,7 +1788,7 @@ bool NonlinearExtension::compareMonomial(
           Trace("nl-ext-comp-debug")
               << "...take leading " << min_exp << " from " << av << " and "
               << bv << std::endl;
-          exp.push_back(mkLit(av, bv, avo == bvo ? 0 : 2, 1));
+          exp.push_back(mkLit(av, bv, avo == bvo ? 0 : 2, true));
           bool ret = compareMonomial(oa, a, a_index, a_exp_proc, ob, b, b_index,
                                      b_exp_proc, avo == bvo ? status : 2, exp,
                                      lem, cmp_infers);
@@ -1851,7 +1800,7 @@ bool NonlinearExtension::compareMonomial(
         if (bvo <= ovo) {
           Trace("nl-ext-comp-debug") << "...take leading " << bv << std::endl;
           // try multiply b <= 1
-          exp.push_back(mkLit(d_one, bv, bvo == ovo ? 0 : 2, 1));
+          exp.push_back(mkLit(d_one, bv, bvo == ovo ? 0 : 2, true));
           return compareMonomial(oa, a, a_index, a_exp_proc, ob, b, b_index + 1,
                                  b_exp_proc, bvo == ovo ? status : 2, exp, lem,
                                  cmp_infers);
@@ -2847,10 +2796,10 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
     }
   }
   
-  SortNonlinearExtension smv;
-  smv.d_nla = this;
+  SortNlModel smv;
+  smv.d_nlm = &d_model;
   //sort by concrete values
-  smv.d_order_type = 0;
+  smv.d_isConcrete = true;
   smv.d_reverse_order = true;
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
   {
@@ -3231,9 +3180,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     // insert into the vector
     d_secant_points[tf][d].push_back(c);
     // sort
-    SortNonlinearExtension smv;
-    smv.d_nla = this;
-    smv.d_order_type = 0;
+    SortNlModel smv;
+    smv.d_nlm = &d_model;
+    smv.d_isConcrete = true;
     std::sort(
         d_secant_points[tf][d].begin(), d_secant_points[tf][d].end(), smv);
     // get the resulting index of c

@@ -31,9 +31,13 @@ namespace arith {
 
 class NonlinearExtension;
 
-/** Non-linear model
+/** Non-linear model finder
  *
- * TODO
+ * This class is responsible for all queries related to the (candidate) model
+ * that is being processed by the non-linear arithmetic solver. It further 
+ * implements techniques for finding modifications to the current candidate
+ * model in the case it can determine that a model exists. These include
+ * techniques based on solving (quadratic) equations and bound analysis.
  */
 class NlModel
 {
@@ -42,9 +46,18 @@ class NlModel
  public:
   NlModel(context::Context* c);
   ~NlModel();
-  /** reset TODO */
+  /** reset
+   * 
+   * This method is called once at the beginning of a last call effort check,
+   * where m is the model of the theory of arithmetic. This method resets the
+   * cache of computed model values.
+   */
   void reset(TheoryModel* m);
-  /** reset check TODO */
+  /** reset check
+   * 
+   * This method is called when the non-linear arithmetic solver restarts
+   * its computation of lemmas and models during a last call effort check.
+   */
   void resetCheck();
   /** compute model value
    *
@@ -68,10 +81,14 @@ class NlModel
    *   computeModelValue( a*b, 1 ) = 5
    */
   Node computeModelValue(Node n, unsigned index = 0);
+  /** get the abstract/concrete model value of arithmetic term n */
   Node getAbstractModelValue(Node n) const;
   Node getConcreteModelValue(Node n) const;
+  Node getModelValue(Node n, bool isConcrete) const;
+  /** Has the abstract, concrete model value of n been computed? */
   bool hasAbstractModelValue(Node n) const;
   bool hasConcreteModelValue(Node n) const;
+  bool hasModelValue(Node n, bool isConcrete) const;
   /** get computed model values
    *
    * Returns the map of all computed concrete and abstract model values computed
@@ -79,7 +96,28 @@ class NlModel
    */
   std::map<Node, Node>& getConcreteModelValues();
   std::map<Node, Node>& getAbstractModelValues();
-  std::map<Node, Node>& getModelValues(unsigned index);
+  
+  /** Compare arithmetic terms i and j based an ordering.
+   *
+   * This returns:
+   *  -1 if i < j, 1 if i > j, or 0 if i == j
+   * 
+   * If isConcrete is true, we consider the concrete model values of i and j,
+   * otherwise, we consider their abstract model values. For definitions of
+   * concrete vs abstract model values, see NlModel::computeModelValue.
+   * 
+   * If isAbsolute is true, we compare the absolute value of thee above
+   * values.
+   */
+  int compare(Node i, Node j, bool isConcrete, bool isAbsolute) const;
+  /** Compare arithmetic terms i and j based an ordering.
+   * 
+   * This returns:
+   *  -1 if i < j, 1 if i > j, or 0 if i == j
+   * 
+   * If isAbsolute is true, we compare the absolute value of i and j
+   */
+  int compareValue(Node i, Node j, bool isAbsolute) const;  
 
   //------------------------------ recording model substitutions and bounds
   /** add check model substitution
@@ -107,8 +145,6 @@ class NlModel
    * d_check_model_bounds or if it occurs in d_check_model_vars.
    */
   bool hasCheckModelAssignment(Node v) const;
-  /** TODO */
-  void resetCheckModel();
   /** Check model
    *
    * Checks the current model based on solving for equalities, and using error
@@ -128,9 +164,15 @@ class NlModel
                   unsigned d,
                   std::vector<Node>& lemmas,
                   std::vector<Node>& gs);
-  /** set used approximate */
+  /** 
+   * Set that we have used an approximation during this check. This flag is
+   * reset on a call to resetCheck. It is set when we use reasoning that
+   * is limited by a degree of precision we are using. In other words, if we
+   * used an approximation, then we maybe could still establish or lemma or
+   * determine the input in SAT if we increased our precision.
+   */
   void setUsedApproximate();
-  /** did we use an approximation? */
+  /** Did we use an approximation during this check? */
   bool usedApproximate() const;
   //------------------------------ end recording model substitutions and bounds
 
@@ -146,7 +188,6 @@ class NlModel
    * that were used by this solver.
    */
   void recordApproximations();
-
  private:
   /** The current model */
   TheoryModel* d_model;
@@ -155,8 +196,6 @@ class NlModel
   bool hasTerm(Node n) const;
   Node getRepresentative(Node n) const;
 
-  Node getModelValueInternal(Node n, bool isConcrete) const;
-  bool hasModelValueInternal(Node n, bool isConcrete) const;
 
   //---------------------------check model
   /** solve equality simple
