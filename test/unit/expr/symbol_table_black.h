@@ -19,7 +19,7 @@
 #include <sstream>
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/exception.h"
 #include "context/context.h"
 #include "expr/expr.h"

@@ -33,9 +33,8 @@
 
 #include "api/cvc4cpp.h"
 
+#include "base/check.h"
 #include "base/configuration.h"
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"

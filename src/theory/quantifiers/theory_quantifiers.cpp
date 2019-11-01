@@ -16,8 +16,7 @@
 
 #include "theory/quantifiers/theory_quantifiers.h"
 
-
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
@@ -147,15 +146,11 @@ void TheoryQuantifiers::check(Effort e) {
           //do nothing
           break;
         case kind::INST_CLOSURE:
-        default:
-          Unhandled(assertion[0].getKind());
-          break;
+        default: Unhandled() << assertion[0].getKind(); break;
         }
       }
       break;
-    default:
-      Unhandled(assertion.getKind());
-      break;
+      default: Unhandled() << assertion.getKind(); break;
     }
   }
   // call the quantifiers engine to check

@@ -443,7 +443,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         }
         if( !isStar && !ri.isConst() ){
           Trace("fmc-warn") << "Warning : model for " << op << " has non-constant argument in model " << ri << " (from " << c[i] << ")" << std::endl;
-          Assert( false );
+          Assert(false);
         }
         entry_children.push_back(ri);
       }
@@ -453,7 +453,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
           << "Representative of " << v << " is " << nv << std::endl;
       if( !nv.isConst() ){
         Trace("fmc-warn") << "Warning : model for " << op << " has non-constant value in model " << nv << std::endl;
-        Assert( false );
+        Assert(false);
       }
       Node en = (useSimpleModels() && hasNonStar) ? n : NodeManager::currentNM()->mkNode( APPLY_UF, entry_children );
       if( std::find(conds.begin(), conds.end(), n )==conds.end() ){
@@ -501,13 +501,14 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         inst.push_back( r );
       }
       Node ev = fm->d_models[op]->evaluate( fm, inst );
-      Trace("fmc-model-debug") << ".....Checking eval( " << fm->d_uf_terms[op][i] << " ) = " << ev << std::endl;
-      AlwaysAssert( fm->areEqual( ev, fm->d_uf_terms[op][i] ) );
+      Trace("fmc-model-debug") << ".....Checking eval( " <<
+    fm->d_uf_terms[op][i] << " ) = " << ev << std::endl; AlwaysAssert(
+    fm->areEqual( ev, fm->d_uf_terms[op][i] ) );
     }
     */
   }
-  Assert( d_addedLemmas==0 );
-  
+  Assert(d_addedLemmas == 0);
+
   //make function values
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ){
     Node f_def = getFunctionValue( fm, it->first, "$x" );
@@ -582,7 +583,7 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
 
 int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) {
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
-  Assert( !d_qe->inConflict() );
+  Assert(!d_qe->inConflict());
   if( optUseModel() ){
     FirstOrderModelFmc * fmfmc = fm->asFirstOrderModelFmc();
     if (effort==0) {
@@ -606,7 +607,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         //model check the quantifier
         doCheck(fmfmc, f, d_quant_models[f], f[1]);
         Trace("fmc") << "Definition for quantifier " << f << " is : " << std::endl;
-        Assert( !d_quant_models[f].d_cond.empty() );
+        Assert(!d_quant_models[f].d_cond.empty());
         d_quant_models[f].debugPrint("fmc", Node::null(), this);
         Trace("fmc") << std::endl;
 
@@ -1159,7 +1160,7 @@ void FullModelChecker::doInterpretedCompose( FirstOrderModelFmc * fm, Node f, De
 
 int FullModelChecker::isCompat( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c ) {
   Trace("fmc-debug3") << "isCompat " << c << std::endl;
-  Assert(cond.size()==c.getNumChildren()+1);
+  Assert(cond.size() == c.getNumChildren() + 1);
   for (unsigned i=1; i<cond.size(); i++) {
     if (cond[i] != c[i - 1] && !fm->isStar(cond[i]) && !fm->isStar(c[i - 1]))
     {
@@ -1171,7 +1172,7 @@ int FullModelChecker::isCompat( FirstOrderModelFmc * fm, std::vector< Node > & c
 
 bool FullModelChecker::doMeet( FirstOrderModelFmc * fm, std::vector< Node > & cond, Node c ) {
   Trace("fmc-debug3") << "doMeet " << c << std::endl;
-  Assert(cond.size()==c.getNumChildren()+1);
+  Assert(cond.size() == c.getNumChildren() + 1);
   for (unsigned i=1; i<cond.size(); i++) {
     if( cond[i]!=c[i-1] ) {
       if (fm->isStar(cond[i]))
@@ -1203,7 +1204,7 @@ void FullModelChecker::mkCondDefaultVec( FirstOrderModelFmc * fm, Node f, std::v
   cond.push_back(d_quant_cond[f]);
   for (unsigned i=0; i<f[0].getNumChildren(); i++) {
     Node ts = fm->getStar(f[0][i].getType());
-    Assert( ts.getType()==f[0][i].getType() );
+    Assert(ts.getType() == f[0][i].getType());
     cond.push_back(ts);
   }
 }

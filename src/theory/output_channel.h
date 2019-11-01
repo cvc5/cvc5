@@ -21,7 +21,6 @@
 
 #include <memory>
 
-#include "base/cvc4_assert.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/interrupted.h"

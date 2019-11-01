@@ -18,7 +18,7 @@
 #include <iostream>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/context.h"
 
 
@@ -72,7 +72,7 @@ void Context::push() {
 
 
 void Context::pop() {
-  Assert(getLevel() > 0, "Cannot pop below level 0");
+  Assert(getLevel() > 0) << "Cannot pop below level 0";
 
   // Notify the (pre-pop) ContextNotifyObj objects
   ContextNotifyObj* pCNO = d_pCNOpre;
@@ -149,11 +149,11 @@ void ContextObj::update()
                    << *getContext() << std::endl;
 
   // Check that base class data was saved
-  Assert( ( pContextObjSaved->d_pContextObjNext == d_pContextObjNext &&
-            pContextObjSaved->d_ppContextObjPrev == d_ppContextObjPrev &&
-            pContextObjSaved->d_pContextObjRestore == d_pContextObjRestore &&
-            pContextObjSaved->d_pScope == d_pScope ),
-          "save() did not properly copy information in base class" );
+  Assert((pContextObjSaved->d_pContextObjNext == d_pContextObjNext
+          && pContextObjSaved->d_ppContextObjPrev == d_ppContextObjPrev
+          && pContextObjSaved->d_pContextObjRestore == d_pContextObjRestore
+          && pContextObjSaved->d_pScope == d_pScope))
+      << "save() did not properly copy information in base class";
 
   // Link the "saved" object in place of this ContextObj in the scope
   // we're moving it FROM.
@@ -204,8 +204,8 @@ ContextObj* ContextObj::restoreAndContinue()
     // might not be bottom scope, since objects allocated in context
     // memory don't get linked to scope 0
     //
-    // Assert(d_pScope == d_pScope->getContext()->getBottomScope(),
-    //        "Expected bottom scope");
+    // Assert(d_pScope == d_pScope->getContext()->getBottomScope()) <<
+    //        "Expected bottom scope";
 
     Debug("context") << "NULL restore object! " << this << std::endl;
     pContextObjNext = d_pContextObjNext;
@@ -270,8 +270,7 @@ ContextObj::ContextObj(Context* pContext) :
   d_pContextObjRestore(NULL),
   d_pContextObjNext(NULL),
   d_ppContextObjPrev(NULL) {
-
-  Assert(pContext != NULL, "NULL context pointer");
+  Assert(pContext != NULL) << "NULL context pointer";
 
   Debug("context") << "create new ContextObj(" << this << " inCMM=false)" << std::endl;
   d_pScope = pContext->getBottomScope();
@@ -284,8 +283,7 @@ ContextObj::ContextObj(bool allocatedInCMM, Context* pContext) :
   d_pContextObjRestore(NULL),
   d_pContextObjNext(NULL),
   d_ppContextObjPrev(NULL) {
-
-  Assert(pContext != NULL, "NULL context pointer");
+  Assert(pContext != NULL) << "NULL context pointer";
 
   Debug("context") << "create new ContextObj(" << this << " inCMM=" << allocatedInCMM << ")" << std::endl;
   if(allocatedInCMM) {
@@ -341,16 +339,16 @@ std::ostream& operator<<(std::ostream& out, const Scope& scope)
 {
   out << "Scope " << scope.d_level << " [" << &scope << "]:";
   ContextObj* pContextObj = scope.d_pContextObjList;
-  Assert(pContextObj == NULL ||
-         pContextObj->prev() == &scope.d_pContextObjList);
+  Assert(pContextObj == NULL
+         || pContextObj->prev() == &scope.d_pContextObjList);
   while(pContextObj != NULL) {
     out << " <--> " << pContextObj;
     if(pContextObj->d_pScope != &scope) {
       out << " XXX bad scope" << std::endl;
     }
     Assert(pContextObj->d_pScope == &scope);
-    Assert(pContextObj->next() == NULL ||
-           pContextObj->next()->prev() == &pContextObj->next());
+    Assert(pContextObj->next() == NULL
+           || pContextObj->next()->prev() == &pContextObj->next());
     pContextObj = pContextObj->next();
   }
   return out << " --> NULL";

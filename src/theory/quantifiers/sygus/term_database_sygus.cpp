@@ -14,7 +14,7 @@
 
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -80,7 +80,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
     }else{
       ss << "fv_" << tn << "_" << i;
     }
-    Assert( !vtn.isNull() );
+    Assert(!vtn.isNull());
     Node v = NodeManager::currentNM()->mkSkolem( ss.str(), vtn, "for sygus normal form testing" );
     d_fv_stype[v] = tn;
     d_fv_num[v] = i;
@@ -155,18 +155,19 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 }
 
 TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
-  Assert( d_fv_stype.find( v )!=d_fv_stype.end() );
+  Assert(d_fv_stype.find(v) != d_fv_stype.end());
   return d_fv_stype[v];
 }
 
 Node TermDbSygus::mkGeneric(const Datatype& dt,
                             unsigned c,
                             std::map<TypeNode, int>& var_count,
-                            std::map<int, Node>& pre)
+                            std::map<int, Node>& pre,
+                            bool doBetaRed)
 {
   Assert(c < dt.getNumConstructors());
-  Assert( dt.isSygus() );
-  Assert( !dt[c].getSygusOp().isNull() );
+  Assert(dt.isSygus());
+  Assert(!dt[c].getSygusOp().isNull());
   std::vector< Node > children;
   Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << c << "..."
                           << std::endl;
@@ -176,28 +177,34 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
     std::map< int, Node >::iterator it = pre.find( i );
     if( it!=pre.end() ){
       a = it->second;
+      Trace("sygus-db-debug") << "From pre: " << a << std::endl;
     }else{
       TypeNode tna = TypeNode::fromType(dt[c].getArgType(i));
       a = getFreeVarInc( tna, var_count, true );
     }
     Trace("sygus-db-debug")
         << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
-    Assert( !a.isNull() );
+    Assert(!a.isNull());
     children.push_back( a );
   }
-  return datatypes::utils::mkSygusTerm(dt, c, children);
+  Node ret = datatypes::utils::mkSygusTerm(dt, c, children, doBetaRed);
+  Trace("sygus-db-debug") << "mkGeneric returns " << ret << std::endl;
+  return ret;
 }
 
-Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre)
+Node TermDbSygus::mkGeneric(const Datatype& dt,
+                            int c,
+                            std::map<int, Node>& pre,
+                            bool doBetaRed)
 {
   std::map<TypeNode, int> var_count;
-  return mkGeneric(dt, c, var_count, pre);
+  return mkGeneric(dt, c, var_count, pre, doBetaRed);
 }
 
-Node TermDbSygus::mkGeneric(const Datatype& dt, int c)
+Node TermDbSygus::mkGeneric(const Datatype& dt, int c, bool doBetaRed)
 {
   std::map<int, Node> pre;
-  return mkGeneric(dt, c, pre);
+  return mkGeneric(dt, c, pre, doBetaRed);
 }
 
 struct CanonizeBuiltinAttributeId
@@ -293,6 +300,8 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
     {
       pre[j] = sygusToBuiltin(n[j], TypeNode::fromType(dt[i].getArgType(j)));
+      Trace("sygus-db-debug")
+          << "sygus to builtin " << n[j] << " is " << pre[j] << std::endl;
     }
     Node ret = mkGeneric(dt, i, pre);
     Trace("sygus-db-debug")
@@ -495,7 +504,7 @@ void TermDbSygus::registerEnumerator(Node e,
     }
     else
     {
-      Unreachable("Unknown enumerator mode in registerEnumerator");
+      Unreachable() << "Unknown enumerator mode in registerEnumerator";
     }
   }
   Trace("sygus-db") << "isActiveGen for " << e << ", role = " << erole
@@ -1039,7 +1048,7 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
           std::vector< Node > vars;
           std::vector< Node > subs;
           Node var_list = Node::fromExpr( dt.getSygusVarList() );
-          Assert( var_list.getNumChildren()+1==n.getNumChildren() );
+          Assert(var_list.getNumChildren() + 1 == n.getNumChildren());
           for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
             vars.push_back( var_list[j] );
           }
@@ -1049,7 +1058,7 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
             Assert(subs[j - 1].getType().isComparableTo(
                 var_list[j - 1].getType()));
           }
-          Assert( vars.size()==subs.size() );
+          Assert(vars.size() == subs.size());
           bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
           Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
           Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;

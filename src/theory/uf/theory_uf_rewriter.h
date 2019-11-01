@@ -160,7 +160,7 @@ public:
 public: //conversion between HO_APPLY AND APPLY_UF
   // converts an APPLY_UF to a curried HO_APPLY e.g. (f a b) becomes (@ (@ f a) b)
   static Node getHoApplyForApplyUf(TNode n) {
-    Assert( n.getKind()==kind::APPLY_UF );
+    Assert(n.getKind() == kind::APPLY_UF);
     Node curr = n.getOperator();
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       curr = NodeManager::currentNM()->mkNode( kind::HO_APPLY, curr, n[i] );     
@@ -169,7 +169,7 @@ public: //conversion between HO_APPLY AND APPLY_UF
   }
   // converts a curried HO_APPLY into an APPLY_UF e.g. (@ (@ f a) b) becomes (f a b)
   static Node getApplyUfForHoApply(TNode n) {
-    Assert( n.getType().getNumChildren()==2 );
+    Assert(n.getType().getNumChildren() == 2);
     std::vector< TNode > children;
     TNode curr = decomposeHoApply( n, children, true );
     // if operator is standard

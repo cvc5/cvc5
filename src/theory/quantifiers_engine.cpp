@@ -250,7 +250,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   if( options::quantEpr() ){
-    Assert( !options::incrementalSolving() );
+    Assert(!options::incrementalSolving());
     d_qepr.reset(new quantifiers::QuantEPR);
   }
   //---- end utilities
@@ -660,7 +660,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           return;
         }else{
           //should only fail reset if added a lemma
-          Assert( false );
+          Assert(false);
         }
       }
     }
@@ -742,7 +742,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_hasAddedLemma ){
         break;
       }else{
-        Assert( !d_conflict );
+        Assert(!d_conflict);
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
           if( e==Theory::EFFORT_FULL ){
@@ -812,7 +812,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                     setIncomplete = true;
                     break;
                   }else{
-                    Assert( qmd!=NULL );
+                    Assert(qmd != NULL);
                     Trace("quant-engine-debug2") << "Complete for " << q << " due to " << qmd->identify().c_str() << std::endl;
                   }
                 }
@@ -899,7 +899,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
     Trace("quant") << " : " << f << std::endl;
     unsigned prev_lemma_waiting = d_lemmas_waiting.size();
     ++(d_statistics.d_num_quant);
-    Assert( f.getKind()==FORALL );
+    Assert(f.getKind() == FORALL);
     // register with utilities
     for (unsigned i = 0; i < d_util.size(); i++)
     {

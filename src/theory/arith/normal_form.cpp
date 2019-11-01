@@ -69,11 +69,7 @@ bool Variable::isLeafMember(Node n){
     (Theory::isLeafOf(n, theory::THEORY_ARITH));
 }
 
-VarList::VarList(Node n)
-  : NodeWrapper(n)
-{
-  Assert(isSorted(begin(), end()));
-}
+VarList::VarList(Node n) : NodeWrapper(n) { Assert(isSorted(begin(), end())); }
 
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
@@ -275,11 +271,13 @@ Monomial Monomial::operator*(const Monomial& mono) const {
   return Monomial::mkMonomial(newConstant, newVL);
 }
 
-// vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos) {
+// vector<Monomial> Monomial::sumLikeTerms(const std::vector<Monomial> & monos)
+// {
 //   Assert(isSorted(monos));
 //   vector<Monomial> outMonomials;
 //   typedef vector<Monomial>::const_iterator iterator;
-//   for(iterator rangeIter = monos.begin(), end=monos.end(); rangeIter != end;) {
+//   for(iterator rangeIter = monos.begin(), end=monos.end(); rangeIter != end;)
+//   {
 //     Rational constant = (*rangeIter).getConstant().getValue();
 //     VarList varList  = (*rangeIter).getVarList();
 //     ++rangeIter;
@@ -334,7 +332,7 @@ void Monomial::combineAdjacentMonomials(std::vector<Monomial>& monos) {
         writePos++;
       }
     }
-    Assert(rangeEnd>readPos);
+    Assert(rangeEnd > readPos);
     readPos = rangeEnd;
   }
   if(writePos > 0 ){
@@ -526,7 +524,7 @@ Integer Polynomial::numeratorGCD() const {
   //We'll use the standardization that gcd(0, 0) = 0
   //So that the gcd of the zero polynomial is gcd{0} = 0
   iterator i=begin(), e=end();
-  Assert(i!=e);
+  Assert(i != e);
 
   Integer d = (*i).getConstant().getValue().getNumerator().abs();
   if(d.isOne()){
@@ -683,13 +681,7 @@ SumPair SumPair::mkSumPair(const Polynomial& p){
   }
 }
 
-Comparison::Comparison(TNode n)
-  : NodeWrapper(n)
-{
-  Assert(isNormalForm());
-}
-
-
+Comparison::Comparison(TNode n) : NodeWrapper(n) { Assert(isNormalForm()); }
 
 SumPair Comparison::toSumPair() const {
   Kind cmpKind = comparisonKind();
@@ -727,8 +719,7 @@ SumPair Comparison::toSumPair() const {
         return SumPair(left - right, Constant::mkZero());
       }
     }
-  default:
-    Unhandled(cmpKind);
+    default: Unhandled() << cmpKind;
   }
 }
 
@@ -766,8 +757,7 @@ Polynomial Comparison::normalizedVariablePart() const {
         }
       }
     }
-  default:
-    Unhandled(cmpKind);
+    default: Unhandled() << cmpKind;
   }
 }
 
@@ -816,8 +806,7 @@ DeltaRational Comparison::normalizedDeltaRational() const {
         return DeltaRational(0, 0);
       }
     }
-  default:
-    Unhandled(cmpKind);
+    default: Unhandled() << cmpKind;
   }
 }
 
@@ -834,8 +823,7 @@ Node Comparison::toNode(Kind k, const Polynomial& l, const Constant& r) {
   case kind::GEQ:
   case kind::GT:
     return NodeManager::currentNM()->mkNode(k, l.getNode(), r.getNode());
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
 }
 
@@ -875,9 +863,7 @@ size_t Comparison::getComplexity() const{
   case kind::GT:
   case kind::GEQ:
     return getLeft().getComplexity() +  getRight().getComplexity();
-  default:
-    Unhandled(comparisonKind());
-    return -1;
+  default: Unhandled() << comparisonKind(); return -1;
   }
 }
 
@@ -895,8 +881,7 @@ Polynomial Comparison::getLeft() const {
   case kind::GEQ:
     left = getNode()[0];
     break;
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
   return Polynomial::parsePolynomial(left);
 }
@@ -915,8 +900,7 @@ Polynomial Comparison::getRight() const {
   case kind::GEQ:
     right = getNode()[1];
     break;
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
   return Polynomial::parsePolynomial(right);
 }
@@ -1290,8 +1274,7 @@ Comparison Comparison::mkComparison(Kind k, const Polynomial& l, const Polynomia
       result = isInteger ?
         mkIntInequality(k, diff) : mkRatInequality(k, diff);
       break;
-    default:
-      Unhandled(k);
+    default: Unhandled() << k;
     }
     Assert(!result.isNull());
     if(result.getKind() == kind::NOT && result[0].getKind() == kind::CONST_BOOLEAN){

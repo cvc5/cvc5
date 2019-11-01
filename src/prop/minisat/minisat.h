@@ -44,7 +44,7 @@ public:
   ClauseId addClause(SatClause& clause, bool removable) override;
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
   {
-    Unreachable("Minisat does not support native XOR reasoning");
+    Unreachable() << "Minisat does not support native XOR reasoning";
   }
 
   SatVariable newVar(bool isTheoryAtom,

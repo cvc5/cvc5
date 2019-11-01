@@ -522,7 +522,7 @@ void TheorySetsRels::check(Theory::Effort level)
       std::map< Node, std::map< Node, Node > >::iterator tc_exp_it = d_tcr_tcGraph_exps.find( tc_rel );
 
       TC_GRAPH_IT tc_graph_it = (tc_it->second).find( mem_rep_fst );
-      Assert( tc_exp_it != d_tcr_tcGraph_exps.end() );
+      Assert(tc_exp_it != d_tcr_tcGraph_exps.end());
       std::map< Node, Node >::iterator exp_map_it = (tc_exp_it->second).find( mem_rep_tup );
 
       if( exp_map_it == (tc_exp_it->second).end() ) {
@@ -679,7 +679,7 @@ void TheorySetsRels::check(Theory::Effort level)
         std::vector< Node > reasons;
         std::unordered_set<Node, NodeHashFunction> seen;
         Node tuple = RelsUtils::constructPair( tc_rel, getRepresentative( tc_graph_it->first ), getRepresentative( *snd_elements_it) );
-        Assert( rel_tc_graph_exps.find( tuple ) != rel_tc_graph_exps.end() );
+        Assert(rel_tc_graph_exps.find(tuple) != rel_tc_graph_exps.end());
         Node exp   = rel_tc_graph_exps.find( tuple )->second;
 
         reasons.push_back( exp );
@@ -918,7 +918,8 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "[Theory::Rels] ****** Finalizing transitive closure inferences!" << std::endl;
     TC_IT tc_graph_it = d_tcr_tcGraph.begin();
     while( tc_graph_it != d_tcr_tcGraph.end() ) {
-      Assert ( d_tcr_tcGraph_exps.find(tc_graph_it->first) != d_tcr_tcGraph_exps.end() );
+      Assert(d_tcr_tcGraph_exps.find(tc_graph_it->first)
+             != d_tcr_tcGraph_exps.end());
       doTCInference( tc_graph_it->second, d_tcr_tcGraph_exps.find(tc_graph_it->first)->second, tc_graph_it->first );
       ++tc_graph_it;
     }
@@ -992,7 +993,7 @@ void TheorySetsRels::check(Theory::Effort level)
     std::vector<Node>   members = d_rReps_memberReps_cache[rel0_rep];
     std::vector<Node>   exps    = d_rReps_memberReps_exp_cache[rel0_rep];
 
-    Assert( members.size() == exps.size() );
+    Assert(members.size() == exps.size());
 
     for(unsigned int i = 0; i < members.size(); i++) {
       Node reason = exps[i];
