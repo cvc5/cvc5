@@ -2209,6 +2209,11 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                                   bool isRev)
 {
   size_t count = 0;
+  // We check for flat form inferences involving `eqc[start]` and terms past
+  // `start`. If there was a flat form inference involving `eqc[start]` and a
+  // term at a smaller index `i`, we would have found it with when `start` was
+  // `i`. Thus, we mark the preceeding terms in the equivalence class as
+  // ineligible.
   std::vector<Node> inelig(eqc.begin(), eqc.begin() + start + 1);
   Node a = eqc[start];
   Trace("strings-ff-debug")
