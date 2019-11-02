@@ -177,51 +177,10 @@ Node NlModel::getRepresentative(Node n) const
   */
 }
 
-Node NlModel::getConcreteModelValue(Node n) const
+int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute)
 {
-  return getModelValue(n, true);
-}
-
-Node NlModel::getAbstractModelValue(Node n) const
-{
-  return getModelValue(n, false);
-}
-
-Node NlModel::getModelValue(Node n, bool isConcrete) const
-{
-  unsigned index = isConcrete ? 0 : 1;
-  std::map<Node, Node>::const_iterator it = d_mv[index].find(n);
-  if (it == d_mv[index].end())
-  {
-    return d_null;
-  }
-  return it->second;
-}
-
-bool NlModel::hasConcreteModelValue(Node n) const
-{
-  return hasModelValue(n, true);
-}
-
-bool NlModel::hasAbstractModelValue(Node n) const
-{
-  return hasModelValue(n, false);
-}
-
-bool NlModel::hasModelValue(Node n, bool isConcrete) const
-{
-  unsigned index = isConcrete ? 0 : 1;
-  return d_mv[index].find(n) != d_mv[index].end();
-}
-
-std::map<Node, Node>& NlModel::getConcreteModelValues() { return d_mv[0]; }
-
-std::map<Node, Node>& NlModel::getAbstractModelValues() { return d_mv[1]; }
-
-int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute) const
-{
-  Node ci = getModelValue(i, isConcrete);
-  Node cj = getModelValue(j, isConcrete);
+  Node ci = computeModelValue(i, isConcrete);
+  Node cj = computeModelValue(j, isConcrete);
   if (ci.isConst())
   {
     if (cj.isConst())

@@ -85,21 +85,6 @@ class NlModel
   Node computeConcreteModelValue(Node n);
   Node computeAbstractModelValue(Node n);
   Node computeModelValue(Node n, bool isConcrete);
-  /** get the abstract/concrete model value of arithmetic term n */
-  Node getAbstractModelValue(Node n) const;
-  Node getConcreteModelValue(Node n) const;
-  Node getModelValue(Node n, bool isConcrete) const;
-  /** Has the abstract, concrete model value of n been computed? */
-  bool hasAbstractModelValue(Node n) const;
-  bool hasConcreteModelValue(Node n) const;
-  bool hasModelValue(Node n, bool isConcrete) const;
-  /** get computed model values
-   *
-   * Returns the map of all computed concrete and abstract model values computed
-   * by the above function.
-   */
-  std::map<Node, Node>& getConcreteModelValues();
-  std::map<Node, Node>& getAbstractModelValues();
 
   /** Compare arithmetic terms i and j based an ordering.
    *
@@ -113,7 +98,7 @@ class NlModel
    * If isAbsolute is true, we compare the absolute value of thee above
    * values.
    */
-  int compare(Node i, Node j, bool isConcrete, bool isAbsolute) const;
+  int compare(Node i, Node j, bool isConcrete, bool isAbsolute);
   /** Compare arithmetic terms i and j based an ordering.
    *
    * This returns:

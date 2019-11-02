@@ -878,7 +878,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
-  std::map<Node, Node>& mva = d_model.getAbstractModelValues();
   for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
   {
     Node a = xts[i];
@@ -950,7 +949,9 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         {
           // apply congruence to pairs of terms that are disequal and congruent
           Assert(aa.getNumChildren() == a.getNumChildren());
-          if (mva[a] != mva[aa])
+          Node mvaa = d_model.computeAbstractModelValue(a);
+          Node mvaaa = d_model.computeAbstractModelValue(aa);
+          if (mvaa != mvaaa)
           {
             std::vector<Node> exp;
             for (unsigned j = 0, size = a.getNumChildren(); j < size; j++)
@@ -1475,7 +1476,7 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
   Node prev;
   for (unsigned j = 0; j < vars.size(); j++) {
     Node x = vars[j];
-    Node v = d_model.getModelValue(x, isConcrete);
+    Node v = d_model.computeModelValue(x, isConcrete);
     if( !v.isConst() ){
       Trace("nl-ext-mvo") << "..do not assign order to " << x << " : " << v << std::endl;
       //don't assign for non-constant values (transcendental function apps)
@@ -1489,7 +1490,7 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
         success = false;
         if (order_index < d_order_points.size()) {
           Node vv =
-              d_model.getModelValue(d_order_points[order_index], isConcrete);
+              d_model.computeModelValue(d_order_points[order_index], isConcrete);
           if (d_model.compareValue(v, vv, isAbsolute) <= 0)
           {
             counter++;
@@ -1601,10 +1602,9 @@ int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
                                     std::vector<Node>& lem) {
   Trace("nl-ext-debug") << "Process " << a << " at index " << a_index
                         << ", status is " << status << std::endl;
-  Assert(d_model.hasAbstractModelValue(oa));
-  std::map<Node, Node>& mva = d_model.getAbstractModelValues();
+  Node mvaoa = d_model.computeAbstractModelValue(oa);
   if (a_index == d_m_vlist[a].size()) {
-    if (mva[oa].getConst<Rational>().sgn() != status)
+    if (mvaoa.getConst<Rational>().sgn() != status)
     {
       Node lemma =
           safeConstructNary(AND, exp).impNode(mkLit(oa, d_zero, status * 2));
@@ -1616,13 +1616,12 @@ int NonlinearExtension::compareSign(Node oa, Node a, unsigned a_index,
     Node av = d_m_vlist[a][a_index];
     unsigned aexp = d_m_exp[a][av];
     // take current sign in model
-    Assert(mva.find(av) != mva.end());
-    Assert(mva[av].isConst());
-    int sgn = mva[av].getConst<Rational>().sgn();
+    Node mvaav = d_model.computeAbstractModelValue(av);
+    int sgn = mvaav.getConst<Rational>().sgn();
     Trace("nl-ext-debug") << "Process var " << av << "^" << aexp
                           << ", model sign = " << sgn << std::endl;
     if (sgn == 0) {
-      if (mva[oa].getConst<Rational>().sgn() != 0)
+      if (mvaoa.getConst<Rational>().sgn() != 0)
       {
         Node lemma = av.eqNode(d_zero).impNode(oa.eqNode(d_zero));
         lem.push_back(lemma);
@@ -1907,7 +1906,6 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
   std::vector<Node> lemmas;
 // if (x,y,L) in cmp_infers, then x > y inferred as conclusion of L
   // in lemmas
-  std::map<Node, Node>& mvc = d_model.getConcreteModelValues();
   std::map<int, std::map<Node, std::map<Node, Node> > > cmp_infers;
   Trace("nl-ext") << "Get monomial comparison lemmas (order=" << r
                   << ", compare=" << c << ")..." << std::endl;
@@ -1930,8 +1928,8 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
           // compare magnitude against variables
           for (unsigned k = 0; k < d_ms_vars.size(); k++) {
             Node v = d_ms_vars[k];
-            Assert(mvc.find(v) != mvc.end());
-            if (mvc[v].isConst())
+            Node mvcv = d_model.computeConcreteModelValue(v);
+            if (mvcv.isConst())
             {
               std::vector<Node> exp;
               NodeMultiset a_exp_proc;
@@ -2681,7 +2679,6 @@ std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
     Kind k = tfl.first;
     for (const Node& t : tfl.second)
     {
-      Assert(d_model.hasAbstractModelValue(t));
       //initial refinements
       if( d_tf_initial_refine.find( t )==d_tf_initial_refine.end() ){
         d_tf_initial_refine[t] = true;
@@ -2786,7 +2783,6 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   //sort arguments of all transcendentals
   std::map< Kind, std::vector< Node > > sorted_tf_args;
   std::map< Kind, std::map< Node, Node > > tf_arg_to_term;
-  std::map<Node, Node>& mva = d_model.getAbstractModelValues();
 
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
   {
@@ -2796,9 +2792,8 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       for (const Node& tf : tfl.second)
       {
         Node a = tf[0];
-        d_model.computeAbstractModelValue(a);
-        Assert(mva.find(a) != mva.end());
-        if (mva[a].isConst())
+        Node mvaa = d_model.computeAbstractModelValue(a);
+        if (mvaa.isConst())
         {
           Trace("nl-ext-tf-mono-debug") << "...tf term : " << a << std::endl;
           sorted_tf_args[k].push_back(a);
@@ -2822,12 +2817,12 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       for (unsigned i = 0; i < sorted_tf_args[k].size(); i++)
       {
         Node targ = sorted_tf_args[k][i];
-        Assert(mva.find(targ) != mva.end());
+        Node mvatarg = d_model.computeAbstractModelValue(mvatarg);
         Trace("nl-ext-tf-mono")
-            << "  " << targ << " -> " << mva[targ] << std::endl;
+            << "  " << targ << " -> " << mvatarg << std::endl;
         Node t = tf_arg_to_term[k][targ];
-        Assert(mva.find(t) != mva.end());
-        Trace("nl-ext-tf-mono") << "     f-val : " << mva[t] << std::endl;
+        Node mvat = d_model.computeAbstractModelValue(t);
+        Trace("nl-ext-tf-mono") << "     f-val : " << mvat << std::endl;
       }
       std::vector< Node > mpoints;
       std::vector< Node > mpoints_vals;
@@ -2861,12 +2856,10 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
         for (unsigned i = 0, size = sorted_tf_args[k].size(); i < size; i++)
         {
           Node sarg = sorted_tf_args[k][i];
-          Assert(mva.find(sarg) != mva.end());
-          Node sargval = mva[sarg];
+          Node sargval = d_model.computeAbstractModelValue(sarg);
           Assert(sargval.isConst());
           Node s = tf_arg_to_term[k][ sarg ];
-          Assert(mva.find(s) != mva.end());
-          Node sval = mva[s];
+          Node sval = d_model.computeAbstractModelValue(s);
           Assert(sval.isConst());
 
           //increment to the proper monotonicity region
