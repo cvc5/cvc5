@@ -2636,7 +2636,8 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
                         {
                           Node conc = NodeManager::currentNM()->mkNode(
                               jk, rhs_a_res, rhs_b_res);
-                          Node conc_mv = d_model.computeAbstractModelValue(conc);
+                          Node conc_mv =
+                              d_model.computeAbstractModelValue(conc);
                           if (conc_mv == d_false) {
                             Node rblem = NodeManager::currentNM()->mkNode(
                                 IMPLIES,

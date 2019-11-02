@@ -60,14 +60,14 @@ void NlModel::resetCheck()
 
 Node NlModel::computeConcreteModelValue(Node n)
 {
-  return computeModelValue(n,true);
+  return computeModelValue(n, true);
 }
 
 Node NlModel::computeAbstractModelValue(Node n)
 {
-  return computeModelValue(n,false);
+  return computeModelValue(n, false);
 }
-  
+
 Node NlModel::computeModelValue(Node n, bool isConcrete)
 {
   unsigned index = isConcrete ? 0 : 1;
