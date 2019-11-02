@@ -177,6 +177,7 @@ class NodeManager {
 
   /** A list of datatypes owned by this node manager. */
   std::vector<Datatype*> d_ownedDatatypes;
+  std::vector<Datatype*> d_ownedDTypes;
 
   /**
    * A map of tuple and record types to their corresponding datatype.
@@ -427,8 +428,10 @@ public:
   
   /** register datatype */
   unsigned registerDatatype(Datatype* dt);
+  unsigned registerDatatype(DType* dt);
   /** get datatype for index */
   const Datatype & getDatatypeForIndex( unsigned index ) const;
+  const DType & getDTypeForIndex( unsigned index ) const;
 
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);

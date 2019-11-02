@@ -186,6 +186,7 @@ NodeManager::~NodeManager() {
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
+  // TODO: switch to DType
   for (std::vector<Datatype*>::iterator
            datatype_iter = d_ownedDatatypes.begin(),
            datatype_end = d_ownedDatatypes.end();
@@ -255,6 +256,19 @@ unsigned NodeManager::registerDatatype(Datatype* dt) {
 const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
   Assert(index < d_ownedDatatypes.size());
   return *d_ownedDatatypes[index];
+}
+
+unsigned NodeManager::registerDatatype(DType* dt)
+{
+  unsigned sz = d_ownedDTypes.size();
+  d_ownedDTypes.push_back(dt);
+  return sz;
+}
+
+const DType & NodeManager::getDTypeForIndex( unsigned index ) const
+{
+  Assert(index < d_ownedDTypes.size());
+  return *d_ownedDTypes[index];
 }
 
 void NodeManager::reclaimZombies() {

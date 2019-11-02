@@ -38,6 +38,7 @@ class CVC4_PUBLIC SmtEngine;
 
 class CVC4_PUBLIC Datatype;
 class Record;
+class DType;
 
 template <bool ref_count>
 class NodeTemplate;
