@@ -2810,7 +2810,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       for (unsigned i = 0; i < sorted_tf_args[k].size(); i++)
       {
         Node targ = sorted_tf_args[k][i];
-        Node mvatarg = d_model.computeAbstractModelValue(mvatarg);
+        Node mvatarg = d_model.computeAbstractModelValue(targ);
         Trace("nl-ext-tf-mono")
             << "  " << targ << " -> " << mvatarg << std::endl;
         Node t = tf_arg_to_term[k][targ];
