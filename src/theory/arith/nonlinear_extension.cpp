@@ -1489,8 +1489,8 @@ void NonlinearExtension::assignOrderIds(std::vector<Node>& vars,
       do {
         success = false;
         if (order_index < d_order_points.size()) {
-          Node vv =
-              d_model.computeModelValue(d_order_points[order_index], isConcrete);
+          Node vv = d_model.computeModelValue(d_order_points[order_index],
+                                              isConcrete);
           if (d_model.compareValue(v, vv, isAbsolute) <= 0)
           {
             counter++;
