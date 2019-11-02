@@ -23,6 +23,7 @@
 #include "options/expr_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "theory/type_enumerator.h"
 
 using namespace std;
 
@@ -290,6 +291,12 @@ bool TypeNode::isWellFounded() const {
 
 Node TypeNode::mkGroundTerm() const {
   return kind::mkGroundTerm(*this);
+}
+
+Node TypeNode::mkGroundValue() const
+{
+  theory::TypeEnumerator te(*this);
+  return *te;
 }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {

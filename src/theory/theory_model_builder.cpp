@@ -306,6 +306,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     return false;
   }
 
+  Trace("model-builder")
+      << "TheoryEngineModelBuilder: Preprocess build model..." << std::endl;
   // model-builder specific initialization
   if (!preProcessBuildModel(tm))
   {
@@ -315,6 +317,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     return false;
   }
 
+  Trace("model-builder")
+      << "TheoryEngineModelBuilder: Add assignable subterms..." << std::endl;
   // Loop through all terms and make sure that assignable sub-terms are in the
   // equality engine
   // Also, record #eqc per type (for finite model finding)

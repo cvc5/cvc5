@@ -307,6 +307,7 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   }
 
   //must ensure model basis terms exists in model for each relevant type
+  Trace("fmc") << "preInitialize types..." << std::endl;
   fm->initialize();
   for( std::map<Node, Def * >::iterator it = fm->d_models.begin(); it != fm->d_models.end(); ++it ) {
     Node op = it->first;
@@ -315,8 +316,10 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
     for( unsigned i=0; i<tno.getNumChildren(); i++) {
       Trace("fmc") << "preInitializeType " << tno[i] << std::endl;
       preInitializeType( fm, tno[i] );
+      Trace("fmc") << "finished preInitializeType " << tno[i] << std::endl;
     }
   }
+  Trace("fmc") << "Finish preInitialize types" << std::endl;
   //do not have to introduce terms for sorts of domains of quantified formulas if we are allowed to assume empty sorts
   if( !options::fmfEmptySorts() ){
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
@@ -522,7 +525,9 @@ void FullModelChecker::preInitializeType( FirstOrderModelFmc * fm, TypeNode tn )
     d_preinitialized_types[tn] = true;
     if (!tn.isFunction() || options::ufHo())
     {
+      Trace("fmc") << "Get model basis term " << tn << "..." << std::endl;
       Node mb = fm->getModelBasisTerm(tn);
+      Trace("fmc") << "...return " << mb << std::endl;
       // if the model basis term does not exist in the model,
       // either add it directly to the model's equality engine if no other terms
       // of this type exist, or otherwise assert that it is equal to the first
