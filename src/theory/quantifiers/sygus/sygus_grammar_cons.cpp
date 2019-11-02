@@ -20,7 +20,6 @@
 #include "options/quantifiers_options.h"
 #include "printer/sygus_print_callback.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
@@ -178,7 +177,7 @@ Node CegGrammarConstructor::process(Node q,
       std::map<Node, Node>::const_iterator itta = templates_arg.find(sf);
       Assert(itta != templates_arg.end());
       TNode templ_arg = itta->second;
-      Assert( !templ_arg.isNull() );
+      Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of it
       if( options::sygusTemplEmbedGrammar() ){
         Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
@@ -738,7 +737,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       weights[i].push_back(-1);
       // length
       TypeNode intType = nm->integerType();
-      Assert(std::find(types.begin(),types.end(),intType)!=types.end());
+      Assert(std::find(types.begin(), types.end(), intType) != types.end());
       unsigned i_intType = std::distance(
           types.begin(),
           std::find(types.begin(),
@@ -1087,12 +1086,12 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         datatypes,
                         unres);
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
-  Assert( !datatypes.empty() );
+  Assert(!datatypes.empty());
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
           datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
-  Assert( types.size()==datatypes.size() );
+  Assert(types.size() == datatypes.size());
   return TypeNode::fromType( types[0] );
 }
 
@@ -1115,7 +1114,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
       // TODO : can short circuit to this case when !TermUtil::containsTerm( templ, templ_arg )
       op = templ;
     }else{
-      Assert( templ.hasOperator() );
+      Assert(templ.hasOperator());
       op = templ.getOperator();
       // make constructor taking arguments types from children
       for( unsigned i=0; i<templ.getNumChildren(); i++ ){
@@ -1133,7 +1132,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     std::vector<DatatypeType> types =
         NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
             datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-    Assert( types.size()==1 );
+    Assert(types.size() == 1);
     return TypeNode::fromType( types[0] );
   }
 }

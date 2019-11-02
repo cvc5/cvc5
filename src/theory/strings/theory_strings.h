@@ -432,10 +432,11 @@ private:
   /**
    * This checks whether there are flat form inferences between eqc[start] and
    * eqc[j] for some j>start. If the flag isRev is true, we check for flat form
-   * interferences in the reverse direction of the flat forms. For more details,
-   * see checkFlatForms below.
+   * interferences in the reverse direction of the flat forms (note:
+   * `d_flat_form` and `d_flat_form_index` must be in reverse order if `isRev`
+   * is true). For more details, see checkFlatForms below.
    */
-  void checkFlatForm(std::vector<Node>& eqc, unsigned start, bool isRev);
+  void checkFlatForm(std::vector<Node>& eqc, size_t start, bool isRev);
   //--------------------------end for checkFlatForm
 
   //--------------------------for checkCycles

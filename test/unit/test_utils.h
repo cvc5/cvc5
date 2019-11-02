@@ -18,7 +18,7 @@
 
 /**
  * Use TS_UTILS_EXPECT_ABORT if you expect the expression to abort() when a
- * CVC4_CHECK or CVC4_DCHECK is triggered.
+ * AlwaysAssert or Assert is triggered.
  */
 #define TS_UTILS_EXPECT_ABORT(expr) \
   do                                \

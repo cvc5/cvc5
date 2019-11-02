@@ -268,6 +268,7 @@ libcvc4_add_sources(
   theory/arith/arith_rewriter.h
   theory/arith/arith_static_learner.cpp
   theory/arith/arith_static_learner.h
+  theory/arith/arith_utilities.cpp
   theory/arith/arith_utilities.h
   theory/arith/arithvar.cpp
   theory/arith/arithvar.h
@@ -400,13 +401,15 @@ libcvc4_add_sources(
   theory/care_graph.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
-  theory/datatypes/datatypes_sygus.cpp
-  theory/datatypes/datatypes_sygus.h
+  theory/datatypes/sygus_extension.cpp
+  theory/datatypes/sygus_extension.h
   theory/datatypes/sygus_simple_sym.cpp
   theory/datatypes/sygus_simple_sym.h
   theory/datatypes/theory_datatypes.cpp
   theory/datatypes/theory_datatypes.h
   theory/datatypes/theory_datatypes_type_rules.h
+  theory/datatypes/theory_datatypes_utils.cpp
+  theory/datatypes/theory_datatypes_utils.h
   theory/datatypes/type_enumerator.cpp
   theory/datatypes/type_enumerator.h
   theory/decision_manager.cpp

@@ -28,7 +28,7 @@
 #include <sstream>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "options/set_language.h"
 #include "util/ostream_util.h"
 #include "util/smt2_quote_string.h"

@@ -329,7 +329,7 @@ function register_metakind {
     ub=$nc
   elif expr "$nc" : '[0-9][0-9]*:$' >/dev/null; then
     let `echo "$nc" | awk 'BEGIN{FS=":"}{print"lb="$1}'`
-    ub=MAX_CHILDREN
+    ub="expr::NodeValue::MAX_CHILDREN"
   elif expr "$nc" : '[0-9][0-9]*:[0-9][0-9]*$' >/dev/null; then
     let `echo "$nc" | awk 'BEGIN{FS=":"}{print"lb="$1" ub="$2}'`
     if [ $ub -lt $lb ]; then
