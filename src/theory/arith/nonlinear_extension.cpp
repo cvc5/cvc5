@@ -141,17 +141,17 @@ struct SortNlModel
 };
 struct SortNonlinearDegree
 {
-  SortNonlinearDegree(NodeMultiset& m) : d_m_degree(m) {}
+  SortNonlinearDegree(NodeMultiset& m) : d_mdegree(m) {}
   /** pointer to the non-linear extension */
-  NodeMultiset& d_m_degree;
+  NodeMultiset& d_mdegree;
   /**
    * Sorts by degree of the monomials, where lower degree monomials come
    * first.
    */
   bool operator()(Node i, Node j)
   {
-    unsigned i_count = getCount(d_m_degree, i);
-    unsigned j_count = getCount(d_m_degree, j);
+    unsigned i_count = getCount(d_mdegree, i);
+    unsigned j_count = getCount(d_mdegree, j);
     return i_count == j_count ? (i < j) : (i_count < j_count ? true : false);
   }
 };
@@ -711,7 +711,7 @@ std::vector<Node> NonlinearExtension::checkModelEval(
     Node lit = assertions[i];
     Node atom = lit.getKind()==NOT ? lit[0] : lit;
     if( d_skolem_atoms.find( atom )==d_skolem_atoms.end() ){
-      Node litv = d_model.computeModelValue(lit);
+      Node litv = d_model.computeConcreteModelValue(lit);
       Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
       if (litv != d_true) {
         Trace("nl-ext-mv-assert") << " [model-false]" << std::endl;
@@ -767,7 +767,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     {
       bool success = true;
       // tf is Figure 3 : tf( x )
-      Node atf = d_model.computeModelValue(tf, 0);
+      Node atf = d_model.computeConcreteModelValue(tf);
       if (k == PI)
       {
         success = d_model.addCheckModelBound(atf, d_pi_bound[0], d_pi_bound[1]);
@@ -882,8 +882,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
   {
     Node a = xts[i];
-    d_model.computeModelValue(a, 0);
-    d_model.computeModelValue(a, 1);
+    d_model.computeConcreteModelValue(a);
+    d_model.computeAbstractModelValue(a);
     d_model.printModelValue("nl-ext-mv", a);
     Kind ak = a.getKind();
     if (ak == NONLINEAR_MULT)
@@ -899,7 +899,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         if (!IsInVector(d_ms_vars, itvl->second[k])) {
           d_ms_vars.push_back(itvl->second[k]);
         }
-        Node mvk = d_model.computeModelValue(itvl->second[k], 1);
+        Node mvk = d_model.computeAbstractModelValue(itvl->second[k]);
         if( !mvk.isConst() ){
           d_m_nconst_factor[a] = true;
         }
@@ -1047,8 +1047,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   registerMonomial(d_one);
   for (unsigned j = 0; j < d_order_points.size(); j++) {
     Node c = d_order_points[j];
-    d_model.computeModelValue(c, 0);
-    d_model.computeModelValue(c, 1);
+    d_model.computeConcreteModelValue(c);
+    d_model.computeAbstractModelValue(c);
   }
 
   // register variables
@@ -1056,8 +1056,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   for (unsigned i = 0; i < d_ms_vars.size(); i++) {
     Node v = d_ms_vars[i];
     registerMonomial(v);
-    d_model.computeModelValue(v, 0);
-    d_model.computeModelValue(v, 1);
+    d_model.computeConcreteModelValue(v);
+    d_model.computeAbstractModelValue(v);
     d_model.printModelValue("nl-ext-mv", v);
   }
   if (Trace.isOn("nl-ext-mv"))
@@ -1072,8 +1072,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         for (const Node& tf : tfl.second)
         {
           Node v = tf[0];
-          d_model.computeModelValue(v, 0);
-          d_model.computeModelValue(v, 1);
+          d_model.computeConcreteModelValue(v);
+          d_model.computeAbstractModelValue(v);
           d_model.printModelValue("nl-ext-mv", v);
         }
       }
@@ -1295,8 +1295,8 @@ void NonlinearExtension::check(Theory::Effort e) {
     {
       TNode shared_term = *its;
       // compute its value in the model, and its evaluation in the model
-      Node stv0 = d_model.computeModelValue(shared_term, 0);
-      Node stv1 = d_model.computeModelValue(shared_term, 1);
+      Node stv0 = d_model.computeConcreteModelValue(shared_term);
+      Node stv1 = d_model.computeAbstractModelValue(shared_term);
       d_model.printModelValue("nl-ext-mv", shared_term);
       if (stv0 != stv1)
       {
@@ -1882,7 +1882,7 @@ std::vector<Node> NonlinearExtension::checkMonomialSign() {
       std::vector<Node> exp;
       if (Trace.isOn("nl-ext-debug"))
       {
-        Node cmva = d_model.computeModelValue(a, 0);
+        Node cmva = d_model.computeConcreteModelValue(a);
         Trace("nl-ext-debug")
             << "  process " << a << ", mv=" << cmva << "..." << std::endl;
       }
@@ -2071,8 +2071,8 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
               dproc[a][b] = true;
               Trace("nl-ext-tplanes")
                   << "  decomposable into : " << a << " * " << b << std::endl;
-              Node a_v_c = d_model.computeModelValue(a, 1);
-              Node b_v_c = d_model.computeModelValue(b, 1);
+              Node a_v_c = d_model.computeAbstractModelValue(a);
+              Node b_v_c = d_model.computeAbstractModelValue(b);
               // points we will add tangent planes for
               std::vector< Node > pts[2];
               pts[0].push_back( a_v_c );
@@ -2219,7 +2219,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
             // model
             Node lhs = ArithMSum::mkCoeffTerm(coeff, x);
             Node query = NodeManager::currentNM()->mkNode(GT, lhs, rhs);
-            Node query_mv = d_model.computeModelValue(query, 1);
+            Node query_mv = d_model.computeAbstractModelValue(query);
             if (query_mv == d_true) {
               exp = query;
               type = GT;
@@ -2328,7 +2328,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
                 Node mult = d_m_contain_mult[x][y];
                 // x <k> t => m*x <k'> t  where y = m*x
                 // get the sign of mult
-                Node mmv = d_model.computeModelValue(mult);
+                Node mmv = d_model.computeConcreteModelValue(mult);
                 Trace("nl-ext-bound-debug2")
                     << "Model value of " << mult << " is " << mmv << std::endl;
                 if(mmv.isConst()){
@@ -2353,7 +2353,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
                     Trace("nl-ext-bound-debug2")
                         << "     ...rewritten : " << infer << std::endl;
                     // check whether it is false in model for abstraction
-                    Node infer_mv = d_model.computeModelValue(infer, 1);
+                    Node infer_mv = d_model.computeAbstractModelValue(infer);
                     Trace("nl-ext-bound-debug")
                         << "       ...infer model value is " << infer_mv
                         << std::endl;
@@ -2408,7 +2408,7 @@ std::vector<Node> NonlinearExtension::checkFactoring(
   {
     bool polarity = lit.getKind() != NOT;
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
-    Node litv = d_model.computeModelValue(lit);
+    Node litv = d_model.computeConcreteModelValue(lit);
     bool considerLit = false;
     if( d_skolem_atoms.find(atom) != d_skolem_atoms.end() )
     {
@@ -2548,11 +2548,11 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
           if (ita != d_mono_diff[a].end()) {
             std::map<Node, Node>::iterator itb = d_mono_diff[b].find(a);
             Assert(itb != d_mono_diff[b].end());
-            Node mv_a = d_model.computeModelValue(ita->second, 1);
+            Node mv_a = d_model.computeAbstractModelValue(ita->second);
             Assert(mv_a.isConst());
             int mv_a_sgn = mv_a.getConst<Rational>().sgn();
             Assert(mv_a_sgn != 0);
-            Node mv_b = d_model.computeModelValue(itb->second, 1);
+            Node mv_b = d_model.computeAbstractModelValue(itb->second);
             Assert(mv_b.isConst());
             int mv_b_sgn = mv_b.getConst<Rational>().sgn();
             Assert(mv_b_sgn != 0);
@@ -2636,7 +2636,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
                         {
                           Node conc = NodeManager::currentNM()->mkNode(
                               jk, rhs_a_res, rhs_b_res);
-                          Node conc_mv = d_model.computeModelValue(conc, 1);
+                          Node conc_mv = d_model.computeAbstractModelValue(conc);
                           if (conc_mv == d_false) {
                             Node rblem = NodeManager::currentNM()->mkNode(
                                 IMPLIES,
@@ -2795,7 +2795,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
       for (const Node& tf : tfl.second)
       {
         Node a = tf[0];
-        d_model.computeModelValue(a, 1);
+        d_model.computeAbstractModelValue(a);
         Assert(mva.find(a) != mva.end());
         if (mva[a].isConst())
         {
@@ -2847,7 +2847,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
         for( unsigned i=0; i<mpoints.size(); i++ ){
           Node mpv;
           if( !mpoints[i].isNull() ){
-            mpv = d_model.computeModelValue(mpoints[i], 1);
+            mpv = d_model.computeAbstractModelValue(mpoints[i]);
             Assert(mpv.isConst());
           }
           mpoints_vals.push_back( mpv );
@@ -3020,12 +3020,12 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   poly_approx_bounds[1][-1] = pbounds[3];
 
   // Figure 3 : c
-  Node c = d_model.computeModelValue(tf[0], 1);
+  Node c = d_model.computeAbstractModelValue(tf[0]);
   int csign = c.getConst<Rational>().sgn();
   Assert(csign == 1 || csign == -1);
 
   // Figure 3 : v
-  Node v = d_model.computeModelValue(tf, 1);
+  Node v = d_model.computeAbstractModelValue(tf);
 
   // check value of tf
   Trace("nl-ext-tftp-debug") << "Process tangent plane refinement for " << tf
@@ -3176,7 +3176,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
     lem = Rewriter::rewrite(lem);
     Trace("nl-ext-tftp-lemma") << "*** Tangent plane lemma : " << lem
                                << std::endl;
-    Assert(d_model.computeModelValue(lem, 1) == d_false);
+    Assert(d_model.computeAbstractModelValue(lem) == d_false);
     // Figure 3 : line 9
     lemmas.push_back(lem);
   }
@@ -3247,7 +3247,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
       Assert(!poly_approx.isNull());
       Assert(!bounds[s].isNull());
       // take the model value of l or u (since may contain PI)
-      Node b = d_model.computeModelValue(bounds[s], 1);
+      Node b = d_model.computeAbstractModelValue(bounds[s]);
       Trace("nl-ext-tftp-debug2") << "...model value of bound " << bounds[s]
                                   << " is " << b << std::endl;
       Assert(b.isConst());
@@ -3303,7 +3303,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
                                    << std::endl;
         // Figure 3 : line 22
         lemmas.push_back(lem);
-        Assert(d_model.computeModelValue(lem, 1) == d_false);
+        Assert(d_model.computeAbstractModelValue(lem) == d_false);
       }
     }
   }
@@ -3708,7 +3708,7 @@ void NonlinearExtension::getPolynomialApproximationBoundForArg(
 std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
 {
   // compute the model value of the argument
-  Node c = d_model.computeModelValue(tf[0], 1);
+  Node c = d_model.computeAbstractModelValue(tf[0]);
   Assert(c.isConst());
   int csign = c.getConst<Rational>().sgn();
   Assert(csign != 0);
@@ -3729,7 +3729,7 @@ std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
       // { x -> tf[0] }
       pab = pab.substitute(tfv, tfs);
       pab = Rewriter::rewrite(pab);
-      Node v_pab = d_model.computeModelValue(pab, 1);
+      Node v_pab = d_model.computeAbstractModelValue(pab);
       bounds.push_back(v_pab);
     }
     else

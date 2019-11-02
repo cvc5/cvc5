@@ -58,8 +58,19 @@ void NlModel::resetCheck()
   d_check_model_subs.clear();
 }
 
-Node NlModel::computeModelValue(Node n, unsigned index)
+Node NlModel::computeConcreteModelValue(Node n)
 {
+  return computeModelValue(n,true);
+}
+
+Node NlModel::computeAbstractModelValue(Node n)
+{
+  return computeModelValue(n,false);
+}
+  
+Node NlModel::computeModelValue(Node n, bool isConcrete)
+{
+  unsigned index = isConcrete ? 0 : 1;
   std::map<Node, Node>::iterator it = d_mv[index].find(n);
   if (it != d_mv[index].end())
   {
@@ -84,7 +95,6 @@ Node NlModel::computeModelValue(Node n, unsigned index)
     else
     {
       // abstraction does not exist, use model value
-      // ret = computeModelValue(n, 0);
       ret = getValueInternal(n);
     }
   }
@@ -111,7 +121,7 @@ Node NlModel::computeModelValue(Node n, unsigned index)
     }
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
-      Node mc = computeModelValue(n[i], index);
+      Node mc = computeModelValue(n[i], isConcrete);
       children.push_back(mc);
     }
     ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
@@ -293,7 +303,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
             if (!hasCheckModelAssignment(cur))
             {
               // set its exact model value in the substitution
-              Node curv = computeModelValue(cur);
+              Node curv = computeConcreteModelValue(cur);
               Trace("nl-ext-cm")
                   << "check-model-bound : exact : " << cur << " = ";
               printRationalApprox("nl-ext-cm", curv);
@@ -597,7 +607,7 @@ bool NlModel::solveEqualitySimple(Node eq,
       // cannot already have a bound
       if (uvf.isVar() && !hasCheckModelAssignment(uvf))
       {
-        Node uvfv = computeModelValue(uvf);
+        Node uvfv = computeConcreteModelValue(uvf);
         Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
         printRationalApprox("nl-ext-cm", uvfv);
         Trace("nl-ext-cm") << std::endl;
@@ -681,7 +691,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   // two possible bound regions
   Node bounds[2][2];
   Node diff_bound[2];
-  Node m_var = computeModelValue(var, 0);
+  Node m_var = computeConcreteModelValue(var);
   Assert(m_var.isConst());
   for (unsigned r = 0; r < 2; r++)
   {
@@ -1208,7 +1218,7 @@ bool NlModel::isRefineableTfFun(Node tf)
     }
   }
   // Figure 3 : c
-  Node c = computeModelValue(tf[0], 1);
+  Node c = computeAbstractModelValue(tf[0]);
   Assert(c.isConst());
   int csign = c.getConst<Rational>().sgn();
   if (csign == 0)

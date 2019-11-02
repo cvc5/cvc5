@@ -64,23 +64,27 @@ class NlModel
    * This computes model values for terms based on two semantics, a "concrete"
    * semantics and an "abstract" semantics.
    *
-   * index = 0 means compute the value of n based on its children recursively.
-   *          (we call this its "concrete" value)
-   * index = 1 means lookup the value of n in the model.
+   * if isConcrete is true, this means compute the value of n based on its
+   *          children recursively. (we call this its "concrete" value)
+   * if isConcrete is false, this means lookup the value of n in the model.
    *          (we call this its "abstract" value)
-   * In other words, index = 1 treats multiplication terms and transcendental
-   * function applications as variables, whereas index = 0 computes their
-   * actual values. This is a key distinction used in the model-based
-   * refinement scheme in Cimatti et al. TACAS 2017.
+   * In other words, !isConcrete treats multiplication terms and transcendental
+   * function applications as variables, whereas isConcrete computes their
+   * actual values based on the semantics of multiplication. This is a key
+   * distinction used in the model-based refinement scheme in Cimatti et al.
+   * TACAS 2017.
    *
-   * For example, if M( a ) = 2, M( b ) = 3, M( a * b ) = 5, then :
+   * For example, if M( a ) = 2, M( b ) = 3, M( a*b ) = 5, i.e. the variable
+   * for a*b has been assigned a value 5 by the linear solver, then :
    *
-   *   computeModelValue( a*b, 0 ) =
-   *   computeModelValue( a, 0 )*computeModelValue( b, 0 ) = 2*3 = 6
+   *   computeModelValue( a*b, true ) =
+   *   computeModelValue( a, true )*computeModelValue( b, true ) = 2*3 = 6
    * whereas:
-   *   computeModelValue( a*b, 1 ) = 5
+   *   computeModelValue( a*b, false ) = 5
    */
-  Node computeModelValue(Node n, unsigned index = 0);
+  Node computeConcreteModelValue(Node n);
+  Node computeAbstractModelValue(Node n);
+  Node computeModelValue(Node n, bool isConcrete);
   /** get the abstract/concrete model value of arithmetic term n */
   Node getAbstractModelValue(Node n) const;
   Node getConcreteModelValue(Node n) const;
@@ -192,9 +196,11 @@ class NlModel
  private:
   /** The current model */
   TheoryModel* d_model;
-  /** TODO */
+  /** Get the model value of n from the model object above */
   Node getValueInternal(Node n) const;
+  /** Does the equality engine of the model have term n? */
   bool hasTerm(Node n) const;
+  /** Get the representative of n in the model */
   Node getRepresentative(Node n) const;
 
   //---------------------------check model
