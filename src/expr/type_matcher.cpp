@@ -19,18 +19,20 @@ namespace CVC4 {
 TypeMatcher::TypeMatcher(TypeNode dt)
 {
   Assert(dt.isDatatype());
-  addTypesFromDatatype( dt );
+  addTypesFromDatatype(dt);
 }
 
 void TypeMatcher::addTypesFromDatatype(TypeNode dt)
 {
   std::vector<TypeNode> argTypes = dt.getParamTypes();
-  addTypes( argTypes );
+  addTypes(argTypes);
   Debug("typecheck-idt") << "instantiating matcher for " << dt << std::endl;
-  for(unsigned i = 0, narg = argTypes.size(); i < narg; ++i) {
+  for (unsigned i = 0, narg = argTypes.size(); i < narg; ++i)
+  {
     if (dt.isParameterInstantiatedDatatype(i))
     {
-      Debug("typecheck-idt") << "++ instantiate param " << i << " : " << d_types[i] << std::endl;
+      Debug("typecheck-idt")
+          << "++ instantiate param " << i << " : " << d_types[i] << std::endl;
       d_match[i] = d_types[i];
     }
   }
@@ -39,63 +41,89 @@ void TypeMatcher::addTypesFromDatatype(TypeNode dt)
 void TypeMatcher::addType(TypeNode t)
 {
   d_types.push_back(t);
-  d_match.push_back( TypeNode::null() );
+  d_match.push_back(TypeNode::null());
 }
 
 void TypeMatcher::addTypes(const std::vector<TypeNode>& types)
 {
-  for (const TypeNode& t : types){
-    addType( t );
+  for (const TypeNode& t : types)
+  {
+    addType(t);
   }
 }
 
-bool TypeMatcher::doMatching( TypeNode pattern, TypeNode tn ){
-  Debug("typecheck-idt") << "doMatching() : " << pattern << " : " << tn << std::endl;
-  std::vector< TypeNode >::iterator i = std::find( d_types.begin(), d_types.end(), pattern );
-  if( i!=d_types.end() ){
+bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
+{
+  Debug("typecheck-idt") << "doMatching() : " << pattern << " : " << tn
+                         << std::endl;
+  std::vector<TypeNode>::iterator i =
+      std::find(d_types.begin(), d_types.end(), pattern);
+  if (i != d_types.end())
+  {
     size_t index = i - d_types.begin();
-    if( !d_match[index].isNull() ){
-      Debug("typecheck-idt") << "check subtype " << tn << " " << d_match[index] << std::endl;
-      TypeNode tnn = TypeNode::leastCommonTypeNode( tn, d_match[index] );
-      //recognize subtype relation
-      if( !tnn.isNull() ){
+    if (!d_match[index].isNull())
+    {
+      Debug("typecheck-idt")
+          << "check subtype " << tn << " " << d_match[index] << std::endl;
+      TypeNode tnn = TypeNode::leastCommonTypeNode(tn, d_match[index]);
+      // recognize subtype relation
+      if (!tnn.isNull())
+      {
         d_match[index] = tnn;
         return true;
-      }else{
+      }
+      else
+      {
         return false;
       }
-    }else{
-      d_match[ i - d_types.begin() ] = tn;
+    }
+    else
+    {
+      d_match[i - d_types.begin()] = tn;
       return true;
     }
-  }else if( pattern==tn ){
+  }
+  else if (pattern == tn)
+  {
     return true;
-  }else if( pattern.getKind()!=tn.getKind() || pattern.getNumChildren()!=tn.getNumChildren() ){
+  }
+  else if (pattern.getKind() != tn.getKind()
+           || pattern.getNumChildren() != tn.getNumChildren())
+  {
     return false;
   }
-  for( size_t i=0, nchild = pattern.getNumChildren(); i<nchild; i++ ){
-    if( !doMatching( pattern[i], tn[i] ) ){
+  for (size_t i = 0, nchild = pattern.getNumChildren(); i < nchild; i++)
+  {
+    if (!doMatching(pattern[i], tn[i]))
+    {
       return false;
     }
   }
   return true;
 }
 
-void TypeMatcher::getTypes( std::vector<Type>& types ) {
+void TypeMatcher::getTypes(std::vector<Type>& types)
+{
   types.clear();
-  for (TypeNode& t : d_types){
-    types.push_back( t.toType() );
+  for (TypeNode& t : d_types)
+  {
+    types.push_back(t.toType());
   }
 }
-void TypeMatcher::getMatches( std::vector<Type>& types ) {
+void TypeMatcher::getMatches(std::vector<Type>& types)
+{
   types.clear();
-  for( size_t i=0, nmatch = d_match.size(); i<nmatch; i++ ){
-    if(d_match[i].isNull()) {
-      types.push_back( d_types[i].toType() );
-    } else {
-      types.push_back( d_match[i].toType() );
+  for (size_t i = 0, nmatch = d_match.size(); i < nmatch; i++)
+  {
+    if (d_match[i].isNull())
+    {
+      types.push_back(d_types[i].toType());
+    }
+    else
+    {
+      types.push_back(d_match[i].toType());
     }
   }
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC4

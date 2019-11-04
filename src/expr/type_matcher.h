@@ -24,49 +24,51 @@
 
 namespace CVC4 {
 
-/** 
+/**
  * This class is used for inferring the parameters of an instantiated
  * parametric datatype. For example, given parameteric datatype:
  *   (par (T) (List T))
  * and instantiated parametric datatype (List Int), this class is used to
  * infer the mapping { T -> Int }.
  */
-class TypeMatcher {
-public:
-  TypeMatcher(){}
+class TypeMatcher
+{
+ public:
+  TypeMatcher() {}
   /** Initialize this class to do matching with datatype type dt */
   TypeMatcher(TypeNode dt);
-  ~TypeMatcher(){}
-  /** 
+  ~TypeMatcher() {}
+  /**
    * Add the parameter types from datatype type dt to the above vectors,
    * initializing d_match to null.
    */
   void addTypesFromDatatype(TypeNode dt);
-  /** 
+  /**
    * Do matching on type pattern and tn.
    * If this method returns true, then tn is an instantiation of parametric
    * datatype pattern. The parameters of tn that were inferred are stored in
    * d_match such that pattern * { d_types -> d_match } = tn.
    */
-  bool doMatching( TypeNode pattern, TypeNode tn );
+  bool doMatching(TypeNode pattern, TypeNode tn);
 
   /** Get the parameter types that this class matched on */
-  void getTypes( std::vector<Type>& types );
-  /** 
-   * Get the match for the parameter types based on the last call to doMatching. 
+  void getTypes(std::vector<Type>& types);
+  /**
+   * Get the match for the parameter types based on the last call to doMatching.
    */
-  void getMatches( std::vector<Type>& types );
-private:
+  void getMatches(std::vector<Type>& types);
+
+ private:
   /** The parameter types */
-  std::vector< TypeNode > d_types;
+  std::vector<TypeNode> d_types;
   /** The types they matched */
-  std::vector< TypeNode > d_match;
+  std::vector<TypeNode> d_match;
   /** Add a parameter type to the above vectors */
   void addType(TypeNode t);
   /** Add parameter types to the above vectors */
   void addTypes(const std::vector<TypeNode>& types);
-};/* class TypeMatcher */
+}; /* class TypeMatcher */
 
-}/* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* CVC4__MATCHER_H */
