@@ -18,7 +18,6 @@
 using namespace CVC4::kind;
 
 namespace CVC4 {
-namespace theory {
 
 DType::DType(std::string name, bool isCo)
     : d_name(name),
@@ -159,11 +158,11 @@ size_t DType::cindexOfInternal(Node item)
 }
 
 void DType::resolve(NodeManager* em,
-                    const std::map<std::string, DTypeType>& resolutions,
+                    const std::map<std::string, TypeNode>& resolutions,
                     const std::vector<TypeNode>& placeholders,
                     const std::vector<TypeNode>& replacements,
                     const std::vector<SortConstructorType>& paramTypes,
-                    const std::vector<DTypeType>& paramReplacements)
+                    const std::vector<TypeNode>& paramReplacements)
 {
   PrettyCheckArgument(
       em != NULL, em, "cannot resolve a DType with a NULL expression manager");
@@ -180,7 +179,7 @@ void DType::resolve(NodeManager* em,
   PrettyCheckArgument(getNumConstructors() > 0,
                       *this,
                       "cannot resolve a DTypeNode that has no constructors");
-  DTypeType self = (*resolutions.find(d_name)).second;
+  TypeNode self = (*resolutions.find(d_name)).second;
   PrettyCheckArgument(&self.getDType() == this,
                       resolutions,
                       "DType::resolve(): resolutions doesn't contain me!");
@@ -715,21 +714,21 @@ Node DType::computeGroundTerm(TypeNode t,
   return Node();
 }
 
-DTypeType DType::getDTypeType() const
+TypeNode DType::getTypeNode() const
 {
   PrettyCheckArgument(
-      isResolved(), *this, "DType must be resolved to get its DTypeType");
+      isResolved(), *this, "DType must be resolved to get its TypeNode");
   PrettyCheckArgument(!d_self.isNull(), *this);
-  return DTypeType(d_self);
+  return TypeNode(d_self);
 }
 
-DTypeType DType::getDTypeType(const std::vector<TypeNode>& params) const
+TypeNode DType::getTypeNode(const std::vector<TypeNode>& params) const
 {
   PrettyCheckArgument(
-      isResolved(), *this, "DType must be resolved to get its DTypeType");
-  PrettyCheckArgument(!d_self.isNull() && DTypeType(d_self).isParametric(),
+      isResolved(), *this, "DType must be resolved to get its TypeNode");
+  PrettyCheckArgument(!d_self.isNull() && TypeNode(d_self).isParametric(),
                       this);
-  return DTypeType(d_self).instantiate(params);
+  return d_self.instantiate(params);
 }
 
 bool DType::operator==(const DType& other) const
@@ -955,5 +954,4 @@ std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic)
   return out << "index_" << dic.getIndex();
 }
 
-}  // namespace theory
 }  // namespace CVC4

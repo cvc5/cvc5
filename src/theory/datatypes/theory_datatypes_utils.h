@@ -25,9 +25,8 @@
 #include "expr/node_manager_attributes.h"
 
 namespace CVC4 {
-namespace theory {
-
-// ----------------------- sygus datatype attributes
+  
+// ----------------------- datatype attributes
 /** TODO */
 struct DTypeIndexTag
 {
@@ -53,7 +52,11 @@ struct DTypeUFiniteComputedTag
 {
 };
 typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
+// ----------------------- end datatype attributes
+  
+namespace theory {
 
+// ----------------------- sygus datatype attributes
 /** sygus var num */
 struct SygusVarNumAttributeId
 {

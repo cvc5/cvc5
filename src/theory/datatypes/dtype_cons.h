@@ -25,7 +25,6 @@
 #include "theory/datatypes/dtype_cons_arg.h"
 
 namespace CVC4 {
-namespace theory {
 
 // FIXME
 typedef TypeNode DTypeType;
@@ -482,7 +481,6 @@ class DTypeConstructor
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 
-}  // namespace theory
 }  // namespace CVC4
 
 #endif

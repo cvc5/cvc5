@@ -117,6 +117,17 @@ public:
       }
     }
   }
+  // FIXME: replace above 
+  void getMatchesNode( std::vector<TypeNode>& types ) {
+    types.clear();
+    for( int i=0; i<(int)d_match.size(); i++ ){
+      if(d_match[i].isNull()) {
+        types.push_back( d_types[i] );
+      } else {
+        types.push_back( d_match[i] );
+      }
+    }
+  }
 };/* class Matcher */
 
 }/* CVC4 namespace */

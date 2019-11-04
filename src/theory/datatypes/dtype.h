@@ -26,7 +26,6 @@
 #include "theory/datatypes/dtype_cons_arg.h"
 
 namespace CVC4 {
-namespace theory {
 
 // messy; Node needs DType (because it's the payload of a
 // CONSTANT-kinded expression), and DType needs Node.
@@ -104,11 +103,11 @@ class DTypeConstructorIterator
  * describe "tree" and "list", and their constructors and constructor
  * arguments, but leave any unknown types (including self-references)
  * in an "unresolved" state.  After parsing the whole DATATYPE block,
- * we create a DTypeType through
- * NodeManager::mkMutualDTypeTypes().  The NodeManager creates a
- * DTypeType for each, but before "releasing" this type into the
+ * we create a TypeNode through
+ * NodeManager::mkMutualTypeNodes().  The NodeManager creates a
+ * TypeNode for each, but before "releasing" this type into the
  * wild, it does a round of in-place "resolution" on each DType by
- * calling DType::resolve() with a map of string -> DTypeType to
+ * calling DType::resolve() with a map of string -> TypeNode to
  * allow the datatype to construct the necessary testers and
  * selectors.
  *
@@ -369,16 +368,16 @@ class DType
   Node mkGroundValue(TypeNode t) const;
 
   /**
-   * Get the DTypeType associated to this DType.  Can only be
+   * Get the TypeNode associated to this DType.  Can only be
    * called post-resolution.
    */
-  DTypeType getDTypeType() const;
+  TypeNode getTypeNode() const;
 
   /**
-   * Get the DTypeType associated to this (parameterized) DType.  Can only be
+   * Get the TypeNode associated to this (parameterized) DType.  Can only be
    * called post-resolution.
    */
-  DTypeType getDTypeType(const std::vector<TypeNode>& params) const;
+  TypeNode getTypeNode(const std::vector<TypeNode>& params) const;
 
   /**
    * Return true iff the two DTypes are the same.
@@ -544,12 +543,12 @@ class DType
 
   /**
    * DTypes refer to themselves, recursively, and we have a
-   * chicken-and-egg problem.  The DTypeType around the DType
+   * chicken-and-egg problem.  The TypeNode around the DType
    * cannot exist until the DType is finalized, and the DType
-   * cannot refer to the DTypeType representing itself until it
+   * cannot refer to the TypeNode representing itself until it
    * exists.  resolve() is called by the NodeManager when a type is
    * ultimately requested of the DType specification (that is, when
-   * NodeManager::mkDTypeType() or NodeManager::mkMutualDTypeTypes()
+   * NodeManager::mkTypeNode() or NodeManager::mkMutualTypeNodes()
    * is called).  Has the effect of freezing the object, too; that is,
    * addConstructor() will fail after a call to resolve().
    *
@@ -562,21 +561,21 @@ class DType
    * that should be resolved in the case of parametric datatypes.
    *
    * @param em the NodeManager at play
-   * @param resolutions a map of strings to DTypeTypes currently under
+   * @param resolutions a map of strings to TypeNodes currently under
    * resolution
    * @param placeholders the types in these DTypes under resolution that must
    * be replaced
    * @param replacements the corresponding replacements
    * @param paramTypes the sort constructors in these DTypes under resolution
    * that must be replaced
-   * @param paramReplacements the corresponding (parametric) DTypeTypes
+   * @param paramReplacements the corresponding (parametric) TypeNodes
    */
   void resolve(NodeManager* em,
-               const std::map<std::string, DTypeType>& resolutions,
+               const std::map<std::string, TypeNode>& resolutions,
                const std::vector<TypeNode>& placeholders,
                const std::vector<TypeNode>& replacements,
                const std::vector<SortConstructorType>& paramTypes,
-               const std::vector<DTypeType>& paramReplacements);
+               const std::vector<TypeNode>& paramReplacements);
   friend class NodeManager;  // for access to resolve()
 
   /** compute the cardinality of this datatype */
@@ -683,7 +682,6 @@ struct DTypeIndexConstantHashFunction
 
 std::ostream& operator<<(std::ostream& os, const DType& dt);
 
-}  // namespace theory
 }  // namespace CVC4
 
 #endif

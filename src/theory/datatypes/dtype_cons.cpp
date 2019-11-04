@@ -21,7 +21,6 @@
 using namespace CVC4::kind;
 
 namespace CVC4 {
-namespace theory {
 
 DTypeResolutionException::DTypeResolutionException(std::string msg)
     : Exception(msg)
@@ -198,9 +197,10 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
   Matcher m(dtt);
   m.doMatching(dtt, returnType);
   std::vector<TypeNode> subst;
-  m.getMatches(subst);
+  // FIXME: after matcher is updated, use getMatches
+  m.getMatchesNode(subst);
   std::vector<TypeNode> params = dt.getParameters();
-  return d_constructor.getType().substitute(params, subst);
+  return d_constructor.getType().substitute(params.begin(), params.end(), subst.begin(), subst.end());
 }
 
 const std::vector<DTypeConstructorArg>* DTypeConstructor::getArgs() const
@@ -247,7 +247,7 @@ bool DTypeConstructor::isFinite(TypeNode t) const
     TypeNode tc = (*i).getRangeType();
     if (isParam)
     {
-      tc = tc.substitute(paramTypes, instTypes);
+      tc = tc.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
     }
     if (!tc.isFinite())
     {
@@ -284,7 +284,7 @@ bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
     TypeNode tc = (*i).getRangeType();
     if (isParam)
     {
-      tc = tc.substitute(paramTypes, instTypes);
+      tc = tc.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
     }
     if (!tc.isInterpretedFinite())
     {
@@ -441,7 +441,7 @@ Cardinality DTypeConstructor::computeCardinality(
     TypeNode tc = getArgType(i);
     if (isParam)
     {
-      tc = tc.substitute(paramTypes, instTypes);
+      tc = tc.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
     }
     if (tc.isDatatype())
     {
@@ -755,5 +755,4 @@ std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor)
   return os;
 }
 
-}  // namespace theory
 }  // namespace CVC4

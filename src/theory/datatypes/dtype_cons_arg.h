@@ -24,7 +24,6 @@
 #include "util/hash.h"
 
 namespace CVC4 {
-namespace theory {
 
 class DType;
 class DTypeConstructor;
@@ -89,7 +88,6 @@ class DTypeConstructorArg
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg);
 
-}  // namespace theory
 }  // namespace CVC4
 
 #endif
