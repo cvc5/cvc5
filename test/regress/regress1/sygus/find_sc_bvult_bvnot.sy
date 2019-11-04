@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-out=status
-; COMMAND-LINE: --sygus-out=status --cegis-sample=trust
+; COMMAND-LINE: --sygus-out=status --cegis-sample=trust --no-check-synth-sol
 (set-logic BV)
 
 ; we test --cegis-sample=trust since we can exhaustively sample BV4

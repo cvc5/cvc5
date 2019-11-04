@@ -510,7 +510,10 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Get synth solution.
    *
-   * This function adds entries to sol_map that map functions-to-synthesize with
+   * This method returns true if we are in a state immediately preceeded by
+   * a successful call to checkSynth.
+   *
+   * This method adds entries to sol_map that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
    *
@@ -521,7 +524,7 @@ class CVC4_PUBLIC SmtEngine
    *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
    * is a valid formula.
    */
-  void getSynthSolutions(std::map<Expr, Expr>& sol_map);
+  bool getSynthSolutions(std::map<Expr, Expr>& sol_map);
 
   /**
    * Do quantifier elimination.
