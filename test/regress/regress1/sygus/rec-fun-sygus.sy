@@ -1,6 +1,8 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-out=status --sygus-rec-fun --lang=sygus2
 
+; FIXME: does not pass check-synth due to not being robust to auxiliary assertions.
+
 
 (set-logic ALL)
 
