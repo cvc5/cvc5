@@ -33,23 +33,24 @@ class FunDefEvaluator
  public:
   FunDefEvaluator();
   ~FunDefEvaluator() {}
-  /** 
+  /**
    * Assert definition of a (recursive) function definition given by quantified
    * formula q.
    */
   void assertDefinition(Node q);
-  /** 
+  /**
    * Simplify node based on the (recursive) function definitions known by this
    * class. If n cannot be simplified to a constant, then this method returns
    * null.
    */
   Node evaluate(Node n);
-  /** 
+  /**
    * Has a call to assertDefinition been made? If this returns false, then
    * the evaluate method is the same as calling the rewriter, and returning
    * false if the result is non-constant.
    */
   bool hasDefinitions() const;
+
  private:
   /** information cached per function definition */
   class FunDefInfo

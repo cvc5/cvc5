@@ -26,27 +26,29 @@ namespace quantifiers {
 
 FunDefEvaluator::FunDefEvaluator() {}
 
-void FunDefEvaluator::assertDefinition(Node q) 
+void FunDefEvaluator::assertDefinition(Node q)
 {
   Trace("fd-eval") << "FunDefEvaluator: assertDefinition " << q << std::endl;
-  Node f = QuantAttributes::getFunDefHead( q );
+  Node f = QuantAttributes::getFunDefHead(q);
   if (f.isNull())
   {
     // not a function definition
     return;
   }
-  Assert(d_funDefMap.find(f)!=d_funDefMap.end()) << "FunDefEvaluator::assertDefinition: function already defined";
+  Assert(d_funDefMap.find(f) != d_funDefMap.end())
+      << "FunDefEvaluator::assertDefinition: function already defined";
   FunDefInfo& fdi = d_funDefMap[f];
-  fdi.d_body = QuantAttributes::getFunDefBody( q );
+  fdi.d_body = QuantAttributes::getFunDefBody(q);
   Assert(!fdi.d_body.isNull());
   fdi.d_args.insert(fdi.d_args.end(), q[0].begin(), q[0].end());
-  Trace("fd-eval") << "FunDefEvaluator: function " << f << " is defined with " << fdi.d_args << " / " << fdi.d_body << std::endl;
+  Trace("fd-eval") << "FunDefEvaluator: function " << f << " is defined with "
+                   << fdi.d_args << " / " << fdi.d_body << std::endl;
 }
 
 Node FunDefEvaluator::evaluate(Node n)
 {
   // should do standard rewrite before this call
-  Assert( Rewriter::rewrite(n)==n );
+  Assert(Rewriter::rewrite(n) == n);
   Trace("fd-eval") << "FunDefEvaluator: evaluate " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
@@ -159,14 +161,12 @@ Node FunDefEvaluator::evaluate(Node n)
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   Assert(visited.find(n)->second.isConst());
-  Trace("fd-eval") << "FunDefEvaluator: return SUCCESS " << visited[n] << std::endl;
+  Trace("fd-eval") << "FunDefEvaluator: return SUCCESS " << visited[n]
+                   << std::endl;
   return visited[n];
 }
 
-bool FunDefEvaluator::hasDefinitions() const
-{
-  return !d_funDefMap.empty();
-}
+bool FunDefEvaluator::hasDefinitions() const { return !d_funDefMap.empty(); }
 
 }  // namespace quantifiers
 }  // namespace theory

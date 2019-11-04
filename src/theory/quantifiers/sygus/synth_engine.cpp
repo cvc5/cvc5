@@ -263,7 +263,8 @@ void SynthEngine::assignConjecture(Node q)
 
 void SynthEngine::registerQuantifier(Node q)
 {
-  Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q << std::endl;
+  Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
+                       << std::endl;
   if (d_quantEngine->getOwner(q) == this)
   {
     Trace("cegqi") << "Register conjecture : " << q << std::endl;

@@ -79,6 +79,7 @@ class SynthEngine : public QuantifiersModule
     ~Statistics();
   }; /* class SynthEngine::Statistics */
   Statistics d_statistics;
+
  private:
   /** term database sygus of d_qe */
   TermDbSygus* d_tds;

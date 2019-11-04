@@ -21,11 +21,11 @@
 
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/fun_def_evaluator.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/fun_def_evaluator.h"
 
 namespace CVC4 {
 namespace theory {
