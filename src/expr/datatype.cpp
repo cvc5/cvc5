@@ -935,9 +935,9 @@ Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   ExprManagerScope ems(d_constructor);
   const Datatype& dt = Datatype::datatypeOf(d_constructor);
   PrettyCheckArgument(dt.isParametric(), this, "this datatype constructor is not parametric");
-  DatatypeType dtt = dt.getDatatypeType();
+  TypeNode dtt = TypeNode::fromType(dt.getDatatypeType());
   Matcher m(dtt);
-  m.doMatching( TypeNode::fromType(dtt), TypeNode::fromType(returnType) );
+  m.doMatching( dtt, TypeNode::fromType(returnType) );
   vector<Type> subst;
   m.getMatches(subst);
   vector<Type> params = dt.getParameters();
