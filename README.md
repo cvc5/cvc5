@@ -19,12 +19,17 @@ performance and reduce the memory overhead of its predecessors.  It is written
 entirely in C++ and is released under an open-source software license (see file
 [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING)).
 
+If you are using CVC4 in your work, or incorporating it into software of your
+own, we would like to invite you to send us a description and link to your
+project/software,
+so that we could put it on our [Third Party
+Applications](https://cvc4.github.io/third-party-applications.html) page.
 
 Website
 -------------------------------------------------------------------------------
-
-More information about CVC4 is available at:
+Documentation for users of CVC4 is available at:
 http://cvc4.cs.stanford.edu/
+
 
 Download
 -------------------------------------------------------------------------------
@@ -49,7 +54,8 @@ see file [INSTALL.md](https://github.com/CVC4/CVC4/blob/master/INSTALL.md).
 
 Getting Started
 -------------------------------------------------------------------------------
-
+For information on how to get started with CVC4, please go
+[here](https://cvc4.github.io/getting-started).
 We recommend that you visit our CVC4 tutorials online at:
 
   http://cvc4.cs.stanford.edu/wiki/Tutorials
@@ -60,10 +66,6 @@ If you need help with using CVC4, please refer to
 [http://cvc4.stanford.edu#technical-support](
                                     http://cvc4.stanford.edu#technical-support).
 
-If you are using CVC4 in your work, or incorporating it into software of your
-own, we'd like to invite you to leave a description and link to your
-project/software on our [Third Party
-Applications](http://cvc4.cs.stanford.edu/wiki/Public:Third_Party_Applications).
 
 
 Bug Reports
