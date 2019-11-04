@@ -268,7 +268,9 @@ int RegExpOpr::delta( Node r, Node &exp ) {
       }
       case kind::REGEXP_COMPLEMENT:
       {
-        // ???
+        int tmp = delta( r[0], exp );
+        // flip the result if known
+        tmp = tmp==0 ? 0 : ( 3-tmp );
         break;
       }
       default: {
@@ -1372,23 +1374,14 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     r1 = NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vr1);
     r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vr2);
   }
-  else if (nk == STRING_TO_REGEXP || nk == REGEXP_SIGMA || nk == REGEXP_RANGE)
+  else if (nk == STRING_TO_REGEXP || nk == REGEXP_SIGMA || nk == REGEXP_RANGE || nk == REGEXP_COMPLEMENT || nk == REGEXP_LOOP)
   {
+    // this leaves n unchanged
     r1 = d_emptySingleton;
     r2 = n;
   }
-  else if (nk == REGEXP_LOOP)
+  else 
   {
-    //TODO:LOOP
-    r1 = d_emptySingleton;
-    r2 = n;
-    //Unreachable();
-  }
-  else if (nk == REGEXP_COMPLEMENT)
-  {
-    // ???
-    Unreachable();
-  } else {
     //is it possible?
     Unreachable();
   }

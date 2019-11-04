@@ -124,6 +124,20 @@ class RegExpOpr {
   /** is k a native operator whose return type is a regular expression? */
   static bool isRegExpKind(Kind k);
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
+  /** 
+   * This method returns 1 if the empty string is in r, 2 if the empty string
+   * is not in r, or 0 if it is unknown whether the empty string is in r.
+   * TODO (project #2): refactor the return value of this function.
+   * 
+   * If this method returns 0, then exp is updated to an explanation that
+   * would imply that the empty string is in r.
+   * 
+   * For example,
+   * - delta( (re.inter (str.to.re x) (re.* "A")) ) returns 0 and sets exp to
+   * x = "",
+   * - delta( (re.++ (str.to.re "A") R) ) returns 2,
+   * - delta( (re.union (re.* "A") R) ) returns 1.
+   */
   int delta( Node r, Node &exp );
   int derivativeS( Node r, CVC4::String c, Node &retNode );
   Node derivativeSingle( Node r, CVC4::String c );
