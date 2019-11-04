@@ -1453,12 +1453,11 @@ Node SygusUnifIo::constructSol(
           if (!rec_c.isNull())
           {
             Assert(ecache_child.d_enum_val_to_index.find(rec_c)
-                    != ecache_child.d_enum_val_to_index.end());
+                   != ecache_child.d_enum_val_to_index.end());
             split_cond_res_index = ecache_child.d_enum_val_to_index[rec_c];
             set_split_cond_res_index = true;
             split_cond_enum = ce;
-            Assert(split_cond_res_index
-                    < ecache_child.d_enum_vals_res.size());
+            Assert(split_cond_res_index < ecache_child.d_enum_vals_res.size());
           }
         }
         else

@@ -36,7 +36,7 @@ bool InequalityGraph::addInequality(TNode a, TNode b, bool strict, TNode reason)
   TermId id_b = registerTerm(b);
   ReasonId id_reason = registerReason(reason);
 
-  Assert (!(isConst(id_a) && isConst(id_b))); 
+  Assert(!(isConst(id_a) && isConst(id_b)));
   BitVector a_val = getValue(id_a);
   BitVector b_val = getValue(id_b);
     
@@ -73,7 +73,7 @@ bool InequalityGraph::addInequality(TNode a, TNode b, bool strict, TNode reason)
   // add the inequality edge
   addEdge(id_a, id_b, strict, id_reason);
   BFSQueue queue(&d_modelValues);
-  Assert (hasModelValue(id_a)); 
+  Assert(hasModelValue(id_a));
   queue.push(id_a);
   return processQueue(queue, id_a); 
 }
@@ -141,7 +141,7 @@ bool InequalityGraph::processQueue(BFSQueue& queue, TermId start) {
         // it means we have an overflow and hence a conflict
         std::vector<TermId> conflict;
         conflict.push_back(it->reason);
-        Assert (hasModelValue(start));
+        Assert(hasModelValue(start));
         ReasonId start_reason = getModelValue(start).reason;
         if (start_reason != UndefinedReasonId) {
           conflict.push_back(start_reason);
@@ -193,9 +193,9 @@ void InequalityGraph::computeExplanation(TermId from, TermId to, std::vector<Rea
   while(hasReason(to) && from != to && !seen.count(to)) {
     seen.insert(to); 
     const ModelValue& exp = getModelValue(to);
-    Assert (exp.reason != UndefinedReasonId); 
+    Assert(exp.reason != UndefinedReasonId);
     explanation.push_back(exp.reason);
-    Assert (exp.parent != UndefinedTermId); 
+    Assert(exp.parent != UndefinedTermId);
     to = exp.parent; 
     Debug("bv-inequality-internal") << "  parent: " << getTermNode(to) << "\n"
                                     << "  reason: " << getReasonNode(exp.reason) << "\n"; 
@@ -213,8 +213,8 @@ void InequalityGraph::addEdge(TermId a, TermId b, bool strict, TermId reason) {
 }
 
 void InequalityGraph::initializeModelValue(TNode node) {
-  TermId id = getTermId(node); 
-  Assert (!hasModelValue(id));
+  TermId id = getTermId(node);
+  Assert(!hasModelValue(id));
   bool isConst = node.getKind() == kind::CONST_BITVECTOR;
   unsigned size = utils::getSize(node); 
   BitVector value = isConst? node.getConst<BitVector>() : BitVector(size, 0u); 
@@ -248,10 +248,10 @@ TermId InequalityGraph::registerTerm(TNode term) {
   bool isConst = term.getKind() == kind::CONST_BITVECTOR;
   InequalityNode ineq = InequalityNode(id, size, isConst);
 
-  Assert (d_ineqNodes.size() == id); 
+  Assert(d_ineqNodes.size() == id);
   d_ineqNodes.push_back(ineq);
-  
-  Assert (d_ineqEdges.size() == id); 
+
+  Assert(d_ineqEdges.size() == id);
   d_ineqEdges.push_back(Edges());
 
   initializeModelValue(term); 
@@ -272,22 +272,22 @@ ReasonId InequalityGraph::registerReason(TNode reason) {
 }
 
 TNode InequalityGraph::getReasonNode(ReasonId id) const {
-  Assert (d_reasonNodes.size() > id);
+  Assert(d_reasonNodes.size() > id);
   return d_reasonNodes[id]; 
 }
 
 TNode InequalityGraph::getTermNode(TermId id) const {
-  Assert (d_termNodes.size() > id);
+  Assert(d_termNodes.size() > id);
   return d_termNodes[id]; 
 }
 
 TermId InequalityGraph::getTermId(TNode node) const {
-  Assert (d_termNodeToIdMap.find(node) != d_termNodeToIdMap.end());
+  Assert(d_termNodeToIdMap.find(node) != d_termNodeToIdMap.end());
   return d_termNodeToIdMap.find(node)->second; 
 }
 
 void InequalityGraph::setConflict(const std::vector<ReasonId>& conflict) {
-  Assert (!d_inConflict); 
+  Assert(!d_inConflict);
   d_inConflict = true;
   d_conflict.clear(); 
   for (unsigned i = 0; i < conflict.size(); ++i) {
@@ -314,7 +314,7 @@ void InequalityGraph::setModelValue(TermId term, const ModelValue& mv) {
 }
 
 InequalityGraph::ModelValue InequalityGraph::getModelValue(TermId term) const {
-  Assert (d_modelValues.find(term) != d_modelValues.end());
+  Assert(d_modelValues.find(term) != d_modelValues.end());
   return (*(d_modelValues.find(term))).second; 
 }
 
@@ -323,7 +323,7 @@ bool InequalityGraph::hasModelValue(TermId id) const {
 }
 
 BitVector InequalityGraph::getValue(TermId id) const {
-  Assert (hasModelValue(id)); 
+  Assert(hasModelValue(id));
   return (*(d_modelValues.find(id))).second.value;
 }
 
@@ -387,10 +387,12 @@ bool InequalityGraph::addDisequality(TNode a, TNode b, TNode reason) {
 }
 
 // void InequalityGraph::splitDisequality(TNode diseq) {
-//   Debug("bv-inequality-internal")<<"InequalityGraph::splitDisequality " << diseq <<"\n"; 
-//   Assert (diseq.getKind() == kind::NOT && diseq[0].getKind() == kind::EQUAL);
-//   if (d_disequalitiesAlreadySplit.find(diseq) == d_disequalitiesAlreadySplit.end()) {
-//     d_disequalitiesToSplit.push_back(diseq); 
+//   Debug("bv-inequality-internal")<<"InequalityGraph::splitDisequality " <<
+//   diseq <<"\n"; Assert (diseq.getKind() == kind::NOT &&
+//   diseq[0].getKind() == kind::EQUAL); if
+//   (d_disequalitiesAlreadySplit.find(diseq) ==
+//   d_disequalitiesAlreadySplit.end()) {
+//     d_disequalitiesToSplit.push_back(diseq);
 //   }
 // }
 
@@ -398,7 +400,7 @@ void InequalityGraph::backtrack() {
   Debug("bv-inequality-internal") << "InequalityGraph::backtrack()\n"; 
   int size = d_undoStack.size(); 
   for (int i = size - 1; i >= (int)d_undoStackIndex.get(); --i) {
-    Assert (!d_undoStack.empty());
+    Assert(!d_undoStack.empty());
     TermId id = d_undoStack.back().first; 
     InequalityEdge edge = d_undoStack.back().second;
     d_undoStack.pop_back();
@@ -409,8 +411,8 @@ void InequalityGraph::backtrack() {
     for (Edges::const_iterator it = edges.begin(); it!= edges.end(); ++it) {
       Debug("bv-inequality-internal") << getTermNode(it->next) <<" " << it->strict << "\n"; 
     }
-    Assert (!edges.empty());
-    Assert (edges.back() == edge);
+    Assert(!edges.empty());
+    Assert(edges.back() == edge);
     edges.pop_back(); 
   }
 }
@@ -444,7 +446,7 @@ void InequalityGraph::checkDisequalities(std::vector<Node>& lemmas) {
 }
 
 bool InequalityGraph::isLessThan(TNode a, TNode b) {
-  Assert (isRegistered(a) && isRegistered(b));
+  Assert(isRegistered(a) && isRegistered(b));
   Unimplemented(); 
 }
 
@@ -457,8 +459,8 @@ bool InequalityGraph::hasValueInModel(TNode node) const {
 }
 
 BitVector InequalityGraph::getValueInModel(TNode node) const {
-  TermId id = getTermId(node); 
-  Assert (hasModelValue(id));
+  TermId id = getTermId(node);
+  Assert(hasModelValue(id));
   return getValue(id); 
 }
 

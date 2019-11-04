@@ -224,48 +224,44 @@ public:
 
 class Variable : public NodeWrapper {
 public:
-  Variable(Node n) : NodeWrapper(n) {
-    Assert(isMember(getNode()));
-  }
+ Variable(Node n) : NodeWrapper(n) { Assert(isMember(getNode())); }
 
-  // TODO: check if it's a theory leaf also
-  static bool isMember(Node n) {
-    Kind k = n.getKind();
-    switch(k){
-    case kind::CONST_RATIONAL:
-      return false;
-    case kind::INTS_DIVISION:
-    case kind::INTS_MODULUS:
-    case kind::DIVISION:
-    case kind::INTS_DIVISION_TOTAL:
-    case kind::INTS_MODULUS_TOTAL:
-    case kind::DIVISION_TOTAL:
-      return isDivMember(n);
-    case kind::EXPONENTIAL:
-    case kind::SINE:
-    case kind::COSINE:
-    case kind::TANGENT:
-    case kind::COSECANT:
-    case kind::SECANT:
-    case kind::COTANGENT:
-    case kind::ARCSINE:
-    case kind::ARCCOSINE:
-    case kind::ARCTANGENT:
-    case kind::ARCCOSECANT:
-    case kind::ARCSECANT:
-    case kind::ARCCOTANGENT:
-    case kind::SQRT:
-    case kind::PI:
-      return isTranscendentalMember(n);      
-    case kind::ABS:
-    case kind::TO_INTEGER:
-      // Treat to_int as a variable; it is replaced in early preprocessing
-      // by a variable.
-      return true;
-    default:
-      return isLeafMember(n);
-    }
-  }
+ // TODO: check if it's a theory leaf also
+ static bool isMember(Node n)
+ {
+   Kind k = n.getKind();
+   switch (k)
+   {
+     case kind::CONST_RATIONAL: return false;
+     case kind::INTS_DIVISION:
+     case kind::INTS_MODULUS:
+     case kind::DIVISION:
+     case kind::INTS_DIVISION_TOTAL:
+     case kind::INTS_MODULUS_TOTAL:
+     case kind::DIVISION_TOTAL: return isDivMember(n);
+     case kind::EXPONENTIAL:
+     case kind::SINE:
+     case kind::COSINE:
+     case kind::TANGENT:
+     case kind::COSECANT:
+     case kind::SECANT:
+     case kind::COTANGENT:
+     case kind::ARCSINE:
+     case kind::ARCCOSINE:
+     case kind::ARCTANGENT:
+     case kind::ARCCOSECANT:
+     case kind::ARCSECANT:
+     case kind::ARCCOTANGENT:
+     case kind::SQRT:
+     case kind::PI: return isTranscendentalMember(n);
+     case kind::ABS:
+     case kind::TO_INTEGER:
+       // Treat to_int as a variable; it is replaced in early preprocessing
+       // by a variable.
+       return true;
+     default: return isLeafMember(n);
+   }
+ }
 
   static bool isLeafMember(Node n);
   static bool isDivMember(Node n);
@@ -306,7 +302,7 @@ public:
           if(n < m){
             return -1;
           }else{
-            Assert( n != m );
+            Assert(n != m);
             return 1;
           }
         }else{
@@ -339,20 +335,17 @@ public:
 
 class Constant : public NodeWrapper {
 public:
-  Constant(Node n) : NodeWrapper(n) {
-    Assert(isMember(getNode()));
-  }
+ Constant(Node n) : NodeWrapper(n) { Assert(isMember(getNode())); }
 
-  static bool isMember(Node n) {
-    return n.getKind() == kind::CONST_RATIONAL;
-  }
+ static bool isMember(Node n) { return n.getKind() == kind::CONST_RATIONAL; }
 
-  bool isNormalForm() { return isMember(getNode()); }
+ bool isNormalForm() { return isMember(getNode()); }
 
-  static Constant mkConstant(Node n) {
-    Assert(n.getKind() == kind::CONST_RATIONAL);
-    return Constant(n);
-  }
+ static Constant mkConstant(Node n)
+ {
+   Assert(n.getKind() == kind::CONST_RATIONAL);
+   return Constant(n);
+ }
 
   static Constant mkConstant(const Rational& rat);
 
@@ -597,8 +590,8 @@ private:
   Monomial(Node n, const Constant& c, const VarList& vl):
     NodeWrapper(n), constant(c), varList(vl)
   {
-    Assert(!c.isZero() ||  vl.empty() );
-    Assert( c.isZero() || !vl.empty() );
+    Assert(!c.isZero() || vl.empty());
+    Assert(c.isZero() || !vl.empty());
 
     Assert(!c.isOne() || !multStructured(n));
   }
@@ -623,15 +616,15 @@ private:
   Monomial(const VarList& vl):
     NodeWrapper(vl.getNode()), constant(Constant::mkConstant(1)), varList(vl)
   {
-    Assert( !varList.empty() );
+    Assert(!varList.empty());
   }
 
   Monomial(const Constant& c, const VarList& vl):
     NodeWrapper(makeMultNode(c,vl)), constant(c), varList(vl)
   {
-    Assert( !c.isZero() );
-    Assert( !c.isOne() );
-    Assert( !varList.empty() );
+    Assert(!c.isZero());
+    Assert(!c.isOne());
+    Assert(!varList.empty());
 
     Assert(multStructured(getNode()));
   }
@@ -843,8 +836,8 @@ public:
   Polynomial(const std::vector<Monomial>& m):
     NodeWrapper(makePlusNode(m)), d_singleton(false)
   {
-    Assert( m.size() >= 2);
-    Assert( Monomial::isStrictlySorted(m) );
+    Assert(m.size() >= 2);
+    Assert(Monomial::isStrictlySorted(m));
   }
 
   static Polynomial mkPolynomial(const Constant& c){
@@ -901,7 +894,7 @@ public:
   }
 
   Polynomial getTail() const {
-    Assert(! singleton());
+    Assert(!singleton());
 
     iterator tailStart = begin();
     ++tailStart;
@@ -1097,14 +1090,9 @@ private:
     return NodeManager::currentNM()->mkNode(kind::PLUS, p.getNode(), c.getNode());
   }
 
-  SumPair(TNode n) :
-    NodeWrapper(n)
-  {
-    Assert(isNormalForm());
-  }
+  SumPair(TNode n) : NodeWrapper(n) { Assert(isNormalForm()); }
 
-public:
-
+ public:
   SumPair(const Polynomial& p):
     NodeWrapper(toNode(p, Constant::mkConstant(0)))
   {

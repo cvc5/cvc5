@@ -288,7 +288,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
 
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
-  Assert( c.size() < 2 );
+  Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
 
   int ret = 1;
@@ -535,7 +535,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
 }
 
 Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
-  Assert( c.size() < 2 );
+  Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
   Node retNode = d_emptyRegexp;
   PairNodeStr dv = std::make_pair( r, c );
@@ -1276,8 +1276,8 @@ bool RegExpOpr::isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2) {
 
 bool RegExpOpr::containC2(unsigned cnt, Node n) {
   if(n.getKind() == kind::REGEXP_RV) {
-    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
-           "Exceeded UINT32_MAX in RegExpOpr::containC2");
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()))
+        << "Exceeded UINT32_MAX in RegExpOpr::containC2";
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     return cnt == y;
   } else if(n.getKind() == kind::REGEXP_CONCAT) {
@@ -1322,8 +1322,8 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
   Kind nk = n.getKind();
   if (nk == REGEXP_RV)
   {
-    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
-           "Exceeded UINT32_MAX in RegExpOpr::convert2");
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize())) <<
+           "Exceeded UINT32_MAX in RegExpOpr::convert2";
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     r1 = d_emptySingleton;
     if(cnt == y) {
@@ -1547,7 +1547,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
 }
 
 Node RegExpOpr::removeIntersection(Node r) {
-  Assert( checkConstRegExp(r) );
+  Assert(checkConstRegExp(r));
   std::map < Node, Node >::const_iterator itr = d_rm_inter_cache.find(r);
   if(itr != d_rm_inter_cache.end()) {
     return itr->second;

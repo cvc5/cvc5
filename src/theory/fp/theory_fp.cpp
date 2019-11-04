@@ -72,7 +72,7 @@ Node removeToFPGeneric(TNode node) {
     return nm->mkNode(op, node[0], node[1]);
   }
 
-  Unreachable("to_fp generic not rewritten");
+  Unreachable() << "to_fp generic not rewritten";
 }
 }  // namespace removeToFPGeneric
 
@@ -736,7 +736,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   }
   else
   {
-    Unreachable("Unknown abstraction");
+    Unreachable() << "Unknown abstraction";
   }
 
   return false;
@@ -863,7 +863,7 @@ void TheoryFp::registerTerm(TNode node) {
       }
       else
       {
-        Unreachable("Only isNaN, isInf and isZero have aliases");
+        Unreachable() << "Only isNaN, isInf and isZero have aliases";
       }
 
       handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias));
@@ -965,12 +965,12 @@ void TheoryFp::check(Effort level) {
     TNode predicate = negated ? fact[0] : fact;
 
     if (predicate.getKind() == kind::EQUAL) {
-      Assert(!(predicate[0].getType().isFloatingPoint() ||
-               predicate[0].getType().isRoundingMode()) ||
-             isRegistered(predicate[0]));
-      Assert(!(predicate[1].getType().isFloatingPoint() ||
-               predicate[1].getType().isRoundingMode()) ||
-             isRegistered(predicate[1]));
+      Assert(!(predicate[0].getType().isFloatingPoint()
+               || predicate[0].getType().isRoundingMode())
+             || isRegistered(predicate[0]));
+      Assert(!(predicate[1].getType().isFloatingPoint()
+               || predicate[1].getType().isRoundingMode())
+             || isRegistered(predicate[1]));
       registerTerm(predicate);  // Needed for float equalities
 
       if (negated) {
