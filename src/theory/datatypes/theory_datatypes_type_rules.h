@@ -41,9 +41,9 @@ struct DatatypeConstructorTypeRule {
                                      bool check) {
     Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
     TypeNode consType = n.getOperator().getType(check);
-    Type t = consType.getConstructorRangeType().toType();
+    TypeNode t = consType.getConstructorRangeType();
     Assert(t.isDatatype());
-    DatatypeType dt = DatatypeType(t);
+    DatatypeType dt = DatatypeType(t.toType());
     TNode::iterator child_it = n.begin();
     TNode::iterator child_it_end = n.end();
     TypeNode::iterator tchild_it = consType.begin();
@@ -55,7 +55,7 @@ struct DatatypeConstructorTypeRule {
     if (dt.isParametric()) {
       Debug("typecheck-idt") << "typecheck parameterized datatype " << n
                              << std::endl;
-      Matcher m(dt);
+      Matcher m(t);
       for (; child_it != child_it_end; ++child_it, ++tchild_it) {
         TypeNode childType = (*child_it).getType(check);
         if (!m.doMatching(*tchild_it, childType)) {
@@ -137,7 +137,7 @@ struct DatatypeSelectorTypeRule {
     if (dt.isParametric()) {
       Debug("typecheck-idt") << "typecheck parameterized sel: " << n
                              << std::endl;
-      Matcher m(dt);
+      Matcher m(TypeNode::fromType(t));
       TypeNode childType = n[0].getType(check);
       if (!childType.isInstantiatedDatatype()) {
         throw TypeCheckingExceptionPrivate(
@@ -189,7 +189,7 @@ struct DatatypeTesterTypeRule {
       if (dt.isParametric()) {
         Debug("typecheck-idt") << "typecheck parameterized tester: " << n
                                << std::endl;
-        Matcher m(dt);
+        Matcher m(TypeNode::fromType(t));
         if (!m.doMatching(testType[0], childType)) {
           throw TypeCheckingExceptionPrivate(
               n,
@@ -219,10 +219,10 @@ struct DatatypeAscriptionTypeRule {
 
       Matcher m;
       if (childType.getKind() == kind::CONSTRUCTOR_TYPE) {
-        m.addTypesFromDatatype(
-            ConstructorType(childType.toType()).getRangeType());
+        m.addTypesFromDatatype(TypeNode::fromType(
+            ConstructorType(childType.toType()).getRangeType()));
       } else if (childType.getKind() == kind::DATATYPE_TYPE) {
-        m.addTypesFromDatatype(DatatypeType(childType.toType()));
+        m.addTypesFromDatatype(childType);
       }
       if (!m.doMatching(childType, t)) {
         throw TypeCheckingExceptionPrivate(n,

@@ -35,27 +35,28 @@ private:
   std::vector< TypeNode > d_match;
 public:
   Matcher(){}
-  Matcher( DatatypeType dt ){
+  Matcher( TypeNode dt ){
+    Assert( dt.isDatatype() );
     addTypesFromDatatype( dt );
   }
   ~Matcher(){}
 
-  void addTypesFromDatatype( DatatypeType dt ){
-    std::vector< Type > argTypes = dt.getParamTypes();
+  void addTypesFromDatatype( TypeNode dt ){
+    std::vector< TypeNode > argTypes = dt.getParamTypes();
     addTypes( argTypes );
     Debug("typecheck-idt") << "instantiating matcher for " << dt << std::endl;
     for(unsigned i = 0; i < argTypes.size(); ++i) {
-      if(dt.isParameterInstantiated(i)) {
+      if(dt.isParameterInstantiatedDatatype(i)) {
         Debug("typecheck-idt") << "++ instantiate param " << i << " : " << d_types[i] << std::endl;
         d_match[i] = d_types[i];
       }
     }
   }
-  void addType( Type t ){
-    d_types.push_back( TypeNode::fromType( t ) );
+  void addType( TypeNode t ){
+    d_types.push_back( t );
     d_match.push_back( TypeNode::null() );
   }
-  void addTypes( std::vector< Type > types ){
+  void addTypes( std::vector< TypeNode > types ){
     for( int i=0; i<(int)types.size(); i++ ){
       addType( types[i] );
     }

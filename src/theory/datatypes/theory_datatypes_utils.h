@@ -28,6 +28,20 @@ namespace CVC4 {
 namespace theory {
 
 // ----------------------- sygus datatype attributes
+/** TODO */
+struct DTypeIndexTag {};
+typedef expr::Attribute<DTypeIndexTag, uint64_t> DTypeIndexAttr;
+struct DTypeConsIndexTag {};
+typedef expr::Attribute<DTypeConsIndexTag, uint64_t> DTypeConsIndexAttr;
+struct DTypeFiniteTag {};
+typedef expr::Attribute<DTypeFiniteTag, bool> DTypeFiniteAttr;
+struct DTypeFiniteComputedTag {};
+typedef expr::Attribute<DTypeFiniteComputedTag, bool> DTypeFiniteComputedAttr;
+struct DTypeUFiniteTag {};
+typedef expr::Attribute<DTypeUFiniteTag, bool> DTypeUFiniteAttr;
+struct DTypeUFiniteComputedTag {};
+typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
+  
 /** sygus var num */
 struct SygusVarNumAttributeId
 {

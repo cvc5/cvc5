@@ -19,6 +19,7 @@
 using namespace CVC4::kind;
 
 namespace CVC4 {
+namespace theory {
 
 DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector) :
   d_name(name),
@@ -108,4 +109,5 @@ std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg) {
   return os;
 }
 
+}
 }
