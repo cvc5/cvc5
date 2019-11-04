@@ -2,21 +2,20 @@
 /*! \file fun_def_evaluator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sort inference module
- **
- ** This class implements pre-process steps for admissible recursive function
- *definitions (Reynolds et al IJCAR2016)
+ ** \brief Implementation of techniques for evaluating terms with recursively
+ ** defined functions.
  **/
 
 #include "theory/quantifiers/fun_def_evaluator.h"
 
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;
@@ -27,11 +26,28 @@ namespace quantifiers {
 
 FunDefEvaluator::FunDefEvaluator() {}
 
-void FunDefEvaluator::assertDefinition(Node q) {}
-
-Node FunDefEvaluator::simplifyNode(Node n)
+void FunDefEvaluator::assertDefinition(Node q) 
 {
-  Trace("fd-eval") << "FunDefEvaluator: simplify node " << n << std::endl;
+  Trace("fd-eval") << "FunDefEvaluator: assertDefinition " << q << std::endl;
+  Node f = QuantAttributes::getFunDefHead( q );
+  if (f.isNull())
+  {
+    // not a function definition
+    return;
+  }
+  Assert(d_funDefMap.find(f)!=d_funDefMap.end()) << "FunDefEvaluator::assertDefinition: function already defined";
+  FunDefInfo& fdi = d_funDefMap[f];
+  fdi.d_body = QuantAttributes::getFunDefBody( q );
+  Assert(!fdi.d_body.isNull());
+  fdi.d_args.insert(fdi.d_args.end(), q[0].begin(), q[0].end());
+  Trace("fd-eval") << "FunDefEvaluator: function " << f << " is defined with " << fdi.d_args << " / " << fdi.d_body << std::endl;
+}
+
+Node FunDefEvaluator::evaluate(Node n)
+{
+  // should do standard rewrite before this call
+  Assert( Rewriter::rewrite(n)==n );
+  Trace("fd-eval") << "FunDefEvaluator: evaluate " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -105,7 +121,7 @@ Node FunDefEvaluator::simplifyNode(Node n)
           visited[cur] = sbody;
           // If its not constant, we push back self and the substituted body.
           // Thus, we evaluate the body first; our result will be the result of
-          // the body.
+          // evaluating the body.
           if (!sbody.isConst())
           {
             visit.push_back(cur);
@@ -136,13 +152,20 @@ Node FunDefEvaluator::simplifyNode(Node n)
         Assert(it != visited.end());
         // our definition is the result of the body
         visited[cur] = it->second;
+        Assert(it->second.isConst());
       }
     }
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
-  Trace("fd-eval") << "FunDefEvaluator: return SUCCESS " << n << std::endl;
+  Assert(visited.find(n)->second.isConst());
+  Trace("fd-eval") << "FunDefEvaluator: return SUCCESS " << visited[n] << std::endl;
   return visited[n];
+}
+
+bool FunDefEvaluator::hasDefinitions() const
+{
+  return !d_funDefMap.empty();
 }
 
 }  // namespace quantifiers

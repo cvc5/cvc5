@@ -50,6 +50,7 @@ TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
       d_syexp(new SygusExplain(this)),
       d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
+      d_funDefEval(new FunDefEvaluator),
       d_eval_unfold(new SygusEvalUnfold(this))
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -1125,7 +1126,23 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
     return res;
   }
   res = bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());
-  return Rewriter::rewrite(res);
+  res = Rewriter::rewrite(res);
+  if (options::sygusRecFun())
+  {
+    if (d_funDefEval->hasDefinitions())
+    {
+      // If recursive functions are enabled, then we use the recursive function
+      // evaluation utility.
+      Node fres = d_funDefEval->evaluate(res);
+      if (!fres.isNull())
+      {
+        return fres;
+      }
+      // It may have failed, in which case there are undefined symbols in res.
+      // In this case, we resort to rewriting below.
+    }
+  }
+  return res;
 }
 
 Node TermDbSygus::evaluateWithUnfolding(

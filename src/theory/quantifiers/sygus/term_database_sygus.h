@@ -25,6 +25,7 @@
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/fun_def_evaluator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -77,6 +78,8 @@ class TermDbSygus {
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
   /** get the evaluator */
   Evaluator* getEvaluator() { return d_eval.get(); }
+  /** (recursive) function evaluator utility */
+  FunDefEvaluator* getFunDefEvaluator() { return d_funDefEval.get(); }
   /** evaluation unfolding utility */
   SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   //------------------------------end utilities
@@ -317,6 +320,8 @@ class TermDbSygus {
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
   /** evaluator */
   std::unique_ptr<Evaluator> d_eval;
+  /** (recursive) function evaluator utility */
+  std::unique_ptr<FunDefEvaluator> d_funDefEval;
   /** evaluation function unfolding utility */
   std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   //------------------------------end utilities
