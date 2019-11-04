@@ -19,8 +19,7 @@
 #ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 #define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
-#include "expr/matcher.h"
-//#include "expr/attribute.h"
+#include "expr/type_matcher.h"
 
 namespace CVC4 {
 
@@ -55,7 +54,7 @@ struct DatatypeConstructorTypeRule {
     if (dt.isParametric()) {
       Debug("typecheck-idt") << "typecheck parameterized datatype " << n
                              << std::endl;
-      Matcher m(t);
+      TypeMatcher m(t);
       for (; child_it != child_it_end; ++child_it, ++tchild_it) {
         TypeNode childType = (*child_it).getType(check);
         if (!m.doMatching(*tchild_it, childType)) {
@@ -137,7 +136,7 @@ struct DatatypeSelectorTypeRule {
     if (dt.isParametric()) {
       Debug("typecheck-idt") << "typecheck parameterized sel: " << n
                              << std::endl;
-      Matcher m(t);
+      TypeMatcher m(t);
       TypeNode childType = n[0].getType(check);
       if (!childType.isInstantiatedDatatype()) {
         throw TypeCheckingExceptionPrivate(
@@ -189,7 +188,7 @@ struct DatatypeTesterTypeRule {
       if (dt.isParametric()) {
         Debug("typecheck-idt") << "typecheck parameterized tester: " << n
                                << std::endl;
-        Matcher m(t);
+        TypeMatcher m(t);
         if (!m.doMatching(testType[0], childType)) {
           throw TypeCheckingExceptionPrivate(
               n,
@@ -217,9 +216,10 @@ struct DatatypeAscriptionTypeRule {
     if (check) {
       TypeNode childType = n[0].getType(check);
 
-      Matcher m;
+      TypeMatcher m;
       if (childType.getKind() == kind::CONSTRUCTOR_TYPE) {
-        m.addTypesFromDatatype(childType.getConstructorRangeType());
+        m.addTypesFromDatatype(TypeNode::fromType(
+            ConstructorType(childType.toType()).getRangeType()));
       } else if (childType.getKind() == kind::DATATYPE_TYPE) {
         m.addTypesFromDatatype(childType);
       }

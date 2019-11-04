@@ -23,7 +23,7 @@
 #include "expr/attribute.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
-#include "expr/matcher.h"
+#include "expr/type_matcher.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
@@ -936,7 +936,7 @@ Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   const Datatype& dt = Datatype::datatypeOf(d_constructor);
   PrettyCheckArgument(dt.isParametric(), this, "this datatype constructor is not parametric");
   TypeNode dtt = TypeNode::fromType(dt.getDatatypeType());
-  Matcher m(dtt);
+  TypeMatcher m(dtt);
   m.doMatching( dtt, TypeNode::fromType(returnType) );
   vector<Type> subst;
   m.getMatches(subst);
