@@ -398,6 +398,7 @@ bool SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
       {
         // if one conjecture fails, we fail overall
         ret = false;
+        break;
       }
     }
   }
