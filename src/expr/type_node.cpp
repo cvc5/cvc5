@@ -434,15 +434,17 @@ bool TypeNode::isInstantiatedDatatype() const {
   return true;
 }
 
-TypeNode TypeNode::instantiateParametricDatatype(const std::vector<TypeNode>& params) const
+TypeNode TypeNode::instantiateParametricDatatype(
+    const std::vector<TypeNode>& params) const
 {
   AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
-  AssertArgument(params.size()==getNumChildren(), *this);
-  NodeManager * nm = NodeManager::currentNM();
-  TypeNode cons = nm->mkTypeConst( (*this)[0].getConst<DatatypeIndexConstant>() );
+  AssertArgument(params.size() == getNumChildren(), *this);
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode cons = nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
   std::vector<TypeNode> paramsNodes;
-  paramsNodes.push_back( cons );
-  for(const TypeNode& t : params) {
+  paramsNodes.push_back(cons);
+  for (const TypeNode& t : params)
+  {
     paramsNodes.push_back(t);
   }
   return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
@@ -455,7 +457,6 @@ bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const {
   AssertArgument(n < dt.getNumParameters(), *this);
   return TypeNode::fromType(dt.getParameter(n)) != (*this)[n + 1];
 }
-
 
 TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
   return commonTypeNode( t0, t1, true );
