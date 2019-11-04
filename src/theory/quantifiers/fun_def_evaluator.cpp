@@ -11,7 +11,8 @@
  **
  ** \brief Sort inference module
  **
- ** This class implements pre-process steps for admissible recursive function definitions (Reynolds et al IJCAR2016)
+ ** This class implements pre-process steps for admissible recursive function
+ *definitions (Reynolds et al IJCAR2016)
  **/
 
 #include "theory/quantifiers/fun_def_evaluator.h"
@@ -23,20 +24,15 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-FunDefEvaluator::FunDefEvaluator(){
-  
-}
 
-void FunDefEvaluator::assertDefinition( Node q )
-{
-  
-}
+FunDefEvaluator::FunDefEvaluator() {}
+
+void FunDefEvaluator::assertDefinition(Node q) {}
 
 Node FunDefEvaluator::simplifyNode(Node n)
 {
   Trace("fd-eval") << "FunDefEvaluator: simplify node " << n << std::endl;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -44,12 +40,14 @@ Node FunDefEvaluator::simplifyNode(Node n)
   TNode curEval;
   TNode f;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       if (cur.isConst())
       {
         visited[cur] = cur;
@@ -58,43 +56,49 @@ Node FunDefEvaluator::simplifyNode(Node n)
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
-        for (const Node& cn : cur) {
+        for (const Node& cn : cur)
+        {
           visit.push_back(cn);
         }
       }
-    } else {
+    }
+    else
+    {
       curEval = it->second;
-      if (curEval.isNull()) 
+      if (curEval.isNull())
       {
         Node ret = cur;
         bool childChanged = false;
         std::vector<Node> children;
-        if (cur.getMetaKind() == metakind::PARAMETERIZED) 
+        if (cur.getMetaKind() == metakind::PARAMETERIZED)
         {
           children.push_back(cur.getOperator());
         }
-        for (const Node& cn : cur) {
+        for (const Node& cn : cur)
+        {
           it = visited.find(cn);
           Assert(it != visited.end());
           Assert(!it->second.isNull());
           childChanged = childChanged || cn != it->second;
           children.push_back(it->second);
         }
-        if (cur.getKind()==APPLY_UF)
+        if (cur.getKind() == APPLY_UF)
         {
           // need to evaluate it
           f = cur.getOperator();
-          std::map< Node, FunDefInfo >::iterator it = d_funDefMap.find(f);
-          if (it==d_funDefMap.end())
+          std::map<Node, FunDefInfo>::iterator it = d_funDefMap.find(f);
+          if (it == d_funDefMap.end())
           {
-            Trace("fd-eval") << "FunDefEvaluator: no definition for " << f << ", FAIL" << std::endl;
+            Trace("fd-eval") << "FunDefEvaluator: no definition for " << f
+                             << ", FAIL" << std::endl;
             return Node::null();
           }
           // get the function definition
           Node body = it->second.d_body;
-          std::vector< Node >& args = it->second.d_args;
+          std::vector<Node>& args = it->second.d_args;
           // invoke it on arguments
-          Node sbody = body.substitute(args.begin(),args.end(),children.begin(),children.end());
+          Node sbody = body.substitute(
+              args.begin(), args.end(), children.begin(), children.end());
           // rewrite it
           sbody = Rewriter::rewrite(sbody);
           // our result is the result of the body
@@ -108,16 +112,17 @@ Node FunDefEvaluator::simplifyNode(Node n)
             visit.push_back(sbody);
           }
         }
-        else 
+        else
         {
-          if (childChanged) 
+          if (childChanged)
           {
             ret = nm->mkNode(cur.getKind(), children);
             ret = Rewriter::rewrite(ret);
           }
           if (!ret.isConst())
           {
-            Trace("fd-eval") << "FunDefEvaluator: non-constant subterm " << ret << ", FAIL" << std::endl;
+            Trace("fd-eval") << "FunDefEvaluator: non-constant subterm " << ret
+                             << ", FAIL" << std::endl;
             // failed, possibly due to free variable
             return Node::null();
           }
@@ -140,6 +145,6 @@ Node FunDefEvaluator::simplifyNode(Node n)
   return visited[n];
 }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
