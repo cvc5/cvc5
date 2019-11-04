@@ -772,9 +772,9 @@ public:
    * immediately after the solver answers unsat for sygus input.
    *
    * For details on what is added to sol_map, see
-   * CegConjecture::getSynthSolutions.
+   * SynthConjecture::getSynthSolutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
+  void getSynthSolutions(std::map< Node, std::map<Node, Node> >& sol_map);
 
   /**
    * Get the model builder

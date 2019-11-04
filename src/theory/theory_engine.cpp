@@ -944,7 +944,7 @@ TheoryModel* TheoryEngine::getBuiltModel()
   return d_curr_model;
 }
 
-void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+void TheoryEngine::getSynthSolutions(std::map< Node, std::map<Node, Node> >& sol_map)
 {
   if (d_quantEngine)
   {

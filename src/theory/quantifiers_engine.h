@@ -263,7 +263,7 @@ public:
    * For details on what is added to sol_map, see
    * CegConjecture::getSynthSolutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
+  void getSynthSolutions(std::map< Node, std::map<Node, Node> >& sol_map);
 
   //----------end user interface for instantiations
 
