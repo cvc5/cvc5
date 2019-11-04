@@ -274,14 +274,20 @@ void Parser::defineVar(const std::string& name, const Expr& val,
   assert(isDeclared(name));
 }
 
-void Parser::defineType(const std::string& name, const Type& type) {
-  d_symtab->bindType(name, type);
+void Parser::defineType(const std::string& name,
+                        const Type& type,
+                        bool levelZero)
+{
+  d_symtab->bindType(name, type, levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
 void Parser::defineType(const std::string& name,
-                        const std::vector<Type>& params, const Type& type) {
-  d_symtab->bindType(name, params, type);
+                        const std::vector<Type>& params,
+                        const Type& type,
+                        bool levelZero)
+{
+  d_symtab->bindType(name, params, type, levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
@@ -302,12 +308,12 @@ void Parser::defineParameterizedType(const std::string& name,
 }
 
 SortType Parser::mkSort(const std::string& name, uint32_t flags) {
-  if (d_globalDeclarations) {
-    flags |= ExprManager::VAR_FLAG_GLOBAL;
-  }
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   Type type = getExprManager()->mkSort(name, flags);
-  defineType(name, type);
+  defineType(
+      name,
+      type,
+      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -319,7 +325,11 @@ SortConstructorType Parser::mkSortConstructor(const std::string& name,
                   << std::endl;
   SortConstructorType type =
       getExprManager()->mkSortConstructor(name, arity, flags);
-  defineType(name, vector<Type>(arity), type);
+  defineType(
+      name,
+      vector<Type>(arity),
+      type,
+      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -374,9 +384,9 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
       }
       if (t.isParametric()) {
         std::vector<Type> paramTypes = t.getParamTypes();
-        defineType(name, paramTypes, t);
+        defineType(name, paramTypes, t, d_globalDeclarations);
       } else {
-        defineType(name, t);
+        defineType(name, t, d_globalDeclarations);
       }
       std::unordered_set< std::string > consNames;
       std::unordered_set< std::string > selNames;
@@ -391,7 +401,8 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
           if(!doOverload) {
             checkDeclaration(constructorName, CHECK_UNDECLARED);
           }
-          defineVar(constructorName, constructor, false, doOverload);
+          defineVar(
+              constructorName, constructor, d_globalDeclarations, doOverload);
           consNames.insert(constructorName);
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
@@ -402,7 +413,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         if(!doOverload) {
           checkDeclaration(testerName, CHECK_UNDECLARED);
         }
-        defineVar(testerName, tester, false, doOverload);
+        defineVar(testerName, tester, d_globalDeclarations, doOverload);
         for (DatatypeConstructor::const_iterator k = ctor.begin(),
                                                  k_end = ctor.end();
              k != k_end; ++k) {
@@ -413,7 +424,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
             if(!doOverload) {
               checkDeclaration(selectorName, CHECK_UNDECLARED);
             }
-            defineVar(selectorName, selector, false, doOverload);
+            defineVar(selectorName, selector, d_globalDeclarations, doOverload);
             selNames.insert(selectorName);
           }else{
             throw ParserException(selectorName + " already declared in this datatype");

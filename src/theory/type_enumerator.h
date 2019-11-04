@@ -19,8 +19,8 @@
 #ifndef CVC4__THEORY__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__TYPE_ENUMERATOR_H
 
+#include "base/check.h"
 #include "base/exception.h"
-#include "base/cvc4_assert.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 
@@ -129,7 +129,7 @@ class TypeEnumerator {
     if(d_te->isFinished()) {
       try {
         **d_te;
-        Assert(false, "expected an NoMoreValuesException to be thrown");
+        Assert(false) << "expected an NoMoreValuesException to be thrown";
       } catch(NoMoreValuesException&) {
         // ignore the exception, we're just asserting that it would be thrown
         //
@@ -142,7 +142,7 @@ class TypeEnumerator {
       try {
         **d_te;
       } catch(NoMoreValuesException&) {
-        Assert(false, "didn't expect a NoMoreValuesException to be thrown");
+        Assert(false) << "didn't expect a NoMoreValuesException to be thrown";
       }
     }
 #endif /* CVC4_ASSERTIONS && !(APPLE || clang) */
@@ -157,7 +157,7 @@ class TypeEnumerator {
     try {
       Node n = **d_te;
       Assert(n.isConst());
-      Assert(! isFinished());
+      Assert(!isFinished());
       return n;
     } catch(NoMoreValuesException&) {
       Assert(isFinished());

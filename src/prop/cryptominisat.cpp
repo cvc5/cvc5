@@ -18,6 +18,7 @@
 
 #include "prop/cryptominisat.h"
 
+#include "base/check.h"
 #include "proof/clause_id.h"
 #include "proof/sat_proof.h"
 
@@ -149,7 +150,7 @@ bool CryptoMinisatSolver::ok() const {
 SatVariable  CryptoMinisatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase){
   d_solver->new_var();
   ++d_numVariables;
-  Assert (d_numVariables == d_solver->nVars());
+  Assert(d_numVariables == d_solver->nVars());
   return d_numVariables - 1;
 }
 
@@ -179,7 +180,8 @@ SatValue CryptoMinisatSolver::solve(){
 
 SatValue CryptoMinisatSolver::solve(long unsigned int& resource) {
   // CMSat::SalverConf conf = d_solver->getConf();
-  Unreachable("Not sure how to set different limits for calls to solve in Cryptominisat"); 
+  Unreachable() << "Not sure how to set different limits for calls to solve in "
+                   "Cryptominisat";
   return solve();
 }
 
@@ -198,7 +200,7 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
 SatValue CryptoMinisatSolver::value(SatLiteral l){
   const std::vector<CMSat::lbool> model = d_solver->get_model();
   CMSatVar var = l.getSatVariable();
-  Assert (var < model.size());
+  Assert(var < model.size());
   CMSat::lbool value = model[var];
   return toSatLiteralValue(value);
 }
@@ -208,7 +210,7 @@ SatValue CryptoMinisatSolver::modelValue(SatLiteral l){
 }
 
 unsigned CryptoMinisatSolver::getAssertionLevel() const {
-  Unreachable("No interface to get assertion level in Cryptominisat");
+  Unreachable() << "No interface to get assertion level in Cryptominisat";
   return -1; 
 }
 

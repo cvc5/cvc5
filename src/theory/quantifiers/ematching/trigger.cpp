@@ -144,7 +144,7 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_var
     bool foundVar = false;
     for( unsigned j=0; j<varContains[ temp[i] ].size(); j++ ){
       Node v = varContains[ temp[i] ][j];
-      Assert( quantifiers::TermUtil::getInstConstAttr(v)==q );
+      Assert(quantifiers::TermUtil::getInstConstAttr(v) == q);
       if( vars.find( v )==vars.end() ){
         varCount++;
         vars[ v ] = true;
@@ -282,7 +282,7 @@ bool Trigger::isUsable( Node n, Node q ){
 }
 
 Node Trigger::getIsUsableEq( Node q, Node n ) {
-  Assert( isRelationalTrigger( n ) );
+  Assert(isRelationalTrigger(n));
   for( unsigned i=0; i<2; i++) {
     if( isUsableEqTerms( q, n[i], n[1-i] ) ){
       if( i==1 && n.getKind()==EQUAL && !quantifiers::TermUtil::hasInstConstAttr(n[0]) ){
@@ -451,8 +451,8 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
         }
       }
       if( !nu.isNull() ){
-        Assert( nu==n );
-        Assert( nu.getKind()!=NOT );
+        Assert(nu == n);
+        Assert(nu.getKind() != NOT);
         Trace("auto-gen-trigger-debug2") << "...found usable trigger : " << nu << std::endl;
         Node reqEq;
         if( nu.getKind()==EQUAL ){
@@ -463,8 +463,9 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
             nu = nu[0];
           }
         }
-        Assert( reqEq.isNull() || !quantifiers::TermUtil::hasInstConstAttr( reqEq ) );
-        Assert( isUsableTrigger( nu, q ) );
+        Assert(reqEq.isNull()
+               || !quantifiers::TermUtil::hasInstConstAttr(reqEq));
+        Assert(isUsableTrigger(nu, q));
         //tinfo.find( nu )==tinfo.end()
         Trace("auto-gen-trigger-debug2") << "...add usable trigger : " << nu << std::endl;
         tinfo[ nu ].init( q, nu, hasEPol ? ( epol ? 1 : -1 ) : 0, reqEq );
@@ -484,7 +485,7 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
         bool rm_nu = false;
         for( unsigned i=0; i<added2.size(); i++ ){
           Trace("auto-gen-trigger-debug2") << "..." << nu << " added child " << i << " : " << added2[i] << std::endl;
-          Assert( added2[i]!=nu );
+          Assert(added2[i] != nu);
           // if child was not already removed
           if( tinfo.find( added2[i] )!=tinfo.end() ){
             if( tstrt==quantifiers::TRIGGER_SEL_MAX || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX && !nu_single ) ){
@@ -839,7 +840,7 @@ Node Trigger::getInversion( Node n, Node x ) {
         if( n.getKind()==PLUS ){
           x = NodeManager::currentNM()->mkNode( MINUS, x, n[i] );
         }else if( n.getKind()==MULT ){
-          Assert( n[i].isConst() );
+          Assert(n[i].isConst());
           if( x.getType().isInteger() ){
             Node coeff = NodeManager::currentNM()->mkConst( n[i].getConst<Rational>().abs() );
             if( !n[i].getConst<Rational>().abs().isOne() ){

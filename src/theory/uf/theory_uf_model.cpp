@@ -91,7 +91,9 @@ Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node 
             stk.push(val);
             val = val[2];
           } while(val.getKind() == ITE);
-          AlwaysAssert(val == defaultValue, "default values don't match when constructing function definition!");
+          AlwaysAssert(val == defaultValue)
+              << "default values don't match when constructing function "
+                 "definition!";
           while(!stk.empty()) {
             val = stk.top();
             stk.pop();

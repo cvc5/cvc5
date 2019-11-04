@@ -53,7 +53,7 @@ CegSingleInv::~CegSingleInv()
 void CegSingleInv::initialize(Node q)
 {
   // can only register one quantified formula with this
-  Assert( d_quant.isNull() );
+  Assert(d_quant.isNull());
   d_quant = q;
   d_simp_quant = q;
   Trace("cegqi-si") << "CegSingleInv::initialize : " << q << std::endl;
@@ -466,7 +466,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
                                int& reconstructed,
                                bool rconsSygus)
 {
-  Assert( d_sol!=NULL );
+  Assert(d_sol != NULL);
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
   Node varList = Node::fromExpr( dt.getSygusVarList() );
   Node prog = d_quant[0][sol_index];
@@ -486,7 +486,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     Trace("csi-sol") << "Get solution for " << prog << ", with skolems : ";
     sol_index = d_prog_to_sol_index[prog];
     d_sol->d_varList.clear();
-    Assert( d_single_inv_arg_sk.size()==varList.getNumChildren() );
+    Assert(d_single_inv_arg_sk.size() == varList.getNumChildren());
     for( unsigned i=0; i<d_single_inv_arg_sk.size(); i++ ){
       Trace("csi-sol") << d_single_inv_arg_sk[i] << " ";
       vars.push_back( d_single_inv_arg_sk[i] );
@@ -501,7 +501,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     {
       indices.push_back(i);
     }
-    Assert( !indices.empty() );
+    Assert(!indices.empty());
     //sort indices based on heuristic : currently, do all constant returns first (leads to simpler conditions)
     // TODO : to minimize solution size, put the largest term last
     sortSiInstanceIndices ssii;
@@ -520,7 +520,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       cond = TermUtil::simpleNegate(cond);
       s = nm->mkNode(ITE, cond, d_inst[uindex][sol_index], s);
     }
-    Assert( vars.size()==d_sol->d_varList.size() );
+    Assert(vars.size() == d_sol->d_varList.size());
     s = s.substitute( vars.begin(), vars.end(), d_sol->d_varList.begin(), d_sol->d_varList.end() );
   }
   d_orig_solution = s;

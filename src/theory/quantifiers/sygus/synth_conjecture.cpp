@@ -23,7 +23,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -542,8 +542,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   lem = Rewriter::rewrite(lem);
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
-  std::map<Node, Node> visited_n;
-  lem = d_tds->getEagerUnfold(lem, visited_n);
   // record the instantiation
   // this is used for remembering the solution
   recordInstantiation(candidate_values);

@@ -20,7 +20,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -372,7 +372,7 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
     return false;
   }
   Node op = n.getOperator();
-  unsigned cindex = datatypes::DatatypesRewriter::indexOf(op);
+  unsigned cindex = datatypes::utils::indexOf(op);
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
   if (sygusOp.getAttribute(SygusAnyConstAttribute()))
   {

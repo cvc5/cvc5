@@ -261,7 +261,7 @@ public:
    */
   template<typename memory_class>
   void removeTopFromUseList(memory_class& memory) {
-    Assert ((int) d_useList == (int)memory.size() - 1);
+    Assert((int)d_useList == (int)memory.size() - 1);
     d_useList = memory.back().getNext();
     memory.pop_back();
   }
