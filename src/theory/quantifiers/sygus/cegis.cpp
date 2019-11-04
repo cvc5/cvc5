@@ -589,10 +589,9 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
   Node sbody = d_base_body.substitute(
       candidates.begin(), candidates.end(), vals.begin(), vals.end());
   Trace("cegis-sample-debug2") << "Sample " << sbody << std::endl;
-  // do eager unfolding
-  std::map<Node, Node> visited_n;
-  sbody = d_qe->getTermDatabaseSygus()->getEagerUnfold(sbody, visited_n);
-  Trace("cegis-sample") << "Sample (after unfolding): " << sbody << std::endl;
+  // do eager rewriting
+  sbody = Rewriter::rewrite(sbody);
+  Trace("cegis-sample") << "Sample (after rewriting): " << sbody << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0, size = d_cegis_sampler.getNumSamplePoints(); i < size;
