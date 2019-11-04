@@ -630,6 +630,9 @@ public:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /** Get instantiated datatype type */
+  TypeNode instantiateParametricDatatype(const std::vector<TypeNode>& params) const;
+  
   /** Is this an instantiated datatype parameter */
   bool isParameterInstantiatedDatatype(unsigned n) const;
 
