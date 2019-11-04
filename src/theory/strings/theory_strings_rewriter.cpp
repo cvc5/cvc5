@@ -1489,7 +1489,9 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
   else if (r.getKind() == REGEXP_COMPLEMENT)
   {
     retNode = nm->mkNode(STRING_IN_REGEXP, x, r[0]).negate();
-  }else if(x != node[0] || r != node[1]) {
+  }
+  else if (x != node[0] || r != node[1])
+  {
     retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, r );
   }
 

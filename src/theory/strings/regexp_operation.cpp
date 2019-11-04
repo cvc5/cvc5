@@ -268,9 +268,9 @@ int RegExpOpr::delta( Node r, Node &exp ) {
       }
       case kind::REGEXP_COMPLEMENT:
       {
-        int tmp = delta( r[0], exp );
+        int tmp = delta(r[0], exp);
         // flip the result if known
-        tmp = tmp==0 ? 0 : ( 3-tmp );
+        tmp = tmp == 0 ? 0 : (3 - tmp);
         break;
       }
       default: {
@@ -1324,8 +1324,8 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
   Kind nk = n.getKind();
   if (nk == REGEXP_RV)
   {
-    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize())) <<
-           "Exceeded UINT32_MAX in RegExpOpr::convert2";
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()))
+        << "Exceeded UINT32_MAX in RegExpOpr::convert2";
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     r1 = d_emptySingleton;
     if(cnt == y) {
@@ -1374,13 +1374,14 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     r1 = NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vr1);
     r2 = NodeManager::currentNM()->mkNode(kind::REGEXP_UNION, vr2);
   }
-  else if (nk == STRING_TO_REGEXP || nk == REGEXP_SIGMA || nk == REGEXP_RANGE || nk == REGEXP_COMPLEMENT || nk == REGEXP_LOOP)
+  else if (nk == STRING_TO_REGEXP || nk == REGEXP_SIGMA || nk == REGEXP_RANGE
+           || nk == REGEXP_COMPLEMENT || nk == REGEXP_LOOP)
   {
     // this leaves n unchanged
     r1 = d_emptySingleton;
     r2 = n;
   }
-  else 
+  else
   {
     //is it possible?
     Unreachable();
