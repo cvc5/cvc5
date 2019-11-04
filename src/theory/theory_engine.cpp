@@ -944,17 +944,15 @@ TheoryModel* TheoryEngine::getBuiltModel()
   return d_curr_model;
 }
 
-void TheoryEngine::getSynthSolutions(
+bool TheoryEngine::getSynthSolutions(
     std::map<Node, std::map<Node, Node>>& sol_map)
 {
   if (d_quantEngine)
   {
-    d_quantEngine->getSynthSolutions(sol_map);
+    return d_quantEngine->getSynthSolutions(sol_map);
   }
-  else
-  {
-    Assert(false);
-  }
+  // we are not in a quantified logic, there is no synthesis solution
+  return false;
 }
 
 bool TheoryEngine::presolve() {
