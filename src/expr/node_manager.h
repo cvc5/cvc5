@@ -177,7 +177,7 @@ class NodeManager {
 
   /** A list of datatypes owned by this node manager. */
   std::vector<Datatype*> d_ownedDatatypes;
-  std::vector<Datatype*> d_ownedDTypes;
+  std::vector<DType*> d_ownedDTypes;
 
   /**
    * A map of tuple and record types to their corresponding datatype.

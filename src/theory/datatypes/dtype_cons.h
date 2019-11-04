@@ -14,59 +14,17 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__DTYPE_H
-#define CVC4__THEORY__DATATYPES__DTYPE_H
+#ifndef CVC4__THEORY__DATATYPES__DTYPE_CONS_H
+#define CVC4__THEORY__DATATYPES__DTYPE_CONS_H
 
-#include <functional>
-#include <iostream>
 #include <string>
 #include <vector>
 #include <map>
-#include "base/exception.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "util/hash.h"
-#include "theory/datatypes/dtype_cons_arg.h"
+#include "theory/datatypes/dt_cons_arg.h"
 
 namespace CVC4 {
-
-class DType {
-public:
-  // FIXME
-};
-  
-#if 0
-// messy; Node needs DType (because it's the payload of a
-// CONSTANT-kinded expression), and DType needs Node.
-//class  DType;
-class  DTypeIndexConstant;
-  
-// FIXME
-typedef TypeNode DTypeType;
-  
-class  NodeManager;
-
-class DTypeConstructor;
-class DTypeConstructorArg;
-
-class DTypeConstructorIterator {
-  const std::vector<DTypeConstructor>* d_v;
-  size_t d_i;
-
-  friend class DType;
-
-  DTypeConstructorIterator(const std::vector<DTypeConstructor>& v, bool start) : d_v(&v), d_i(start ? 0 : v.size()) {
-  }
-
-public:
-  typedef const DTypeConstructor& value_type;
-  const DTypeConstructor& operator*() const { return (*d_v)[d_i]; }
-  const DTypeConstructor* operator->() const { return &(*d_v)[d_i]; }
-  DTypeConstructorIterator& operator++() { ++d_i; return *this; }
-  DTypeConstructorIterator operator++(int) { DTypeConstructorIterator i(*this); ++d_i; return i; }
-  bool operator==(const DTypeConstructorIterator& other) const { return d_v == other.d_v && d_i == other.d_i; }
-  bool operator!=(const DTypeConstructorIterator& other) const { return d_v != other.d_v || d_i != other.d_i; }
-};/* class DTypeConstructorIterator */
 
 class DTypeConstructorArgIterator {
   const std::vector<DTypeConstructorArg>* d_v;
@@ -96,15 +54,6 @@ class DTypeResolutionException : public Exception {
 };/* class DatatypeResolutionException */
 
 /**
- * A holder type (used in calls to DTypeConstructor::addArg())
- * to allow a DType to refer to itself.  Self-typed fields of
- * DTypes will be properly typed when a Type is created for the
- * DType by the ExprManager (which calls DType::resolve()).
- */
-class DTypeSelfType {
-};/* class DTypeSelfType */
-
-/**
  * An unresolved type (used in calls to
  * DTypeConstructor::addArg()) to allow a DType to refer to
  * itself or to other mutually-recursive DTypes.  Unresolved-type
@@ -118,63 +67,6 @@ public:
   inline DTypeUnresolvedType(std::string name);
   inline std::string getName() const;
 };/* class DTypeUnresolvedType */
-
-/**
- * A DType constructor argument (i.e., a DType field).
- */
-class  DTypeConstructorArg {
-  friend class DTypeConstructor;
-  friend class DType;
-
- public:
-  /** Get the name of this constructor argument. */
-  std::string getName() const;
-
-  /**
-   * Get the selector for this constructor argument; this call is
-   * only permitted after resolution.
-   */
-  Node getSelector() const;
-
-  /**
-   * Get the associated constructor for this constructor argument;
-   * this call is only permitted after resolution.
-   */
-  Node getConstructor() const;
-
-  /**
-   * Get the type of the selector for this constructor argument;
-   * this call is only permitted after resolution.
-   */
-  TypeNode getType() const;
-
-  /**
-   * Get the range type of this argument.
-   */
-  TypeNode getRangeType() const;
-
-  /**
-   * Returns true iff this constructor argument has been resolved.
-   */
-  bool isResolved() const;
-
-  /** prints this datatype constructor argument to stream */
-  void toStream(std::ostream& out) const;
-
- private:
-  /** the name of this selector */
-  std::string d_name;
-  /** the selector expression */
-  Node d_selector;
-  /** the constructor associated with this selector */
-  Node d_constructor;
-  /** whether this class has been resolved */
-  bool d_resolved;
-  /** is this selector unresolved? */
-  bool isUnresolvedSelf() const;
-  /** constructor */
-  DTypeConstructorArg(std::string name, Node selector);
-};/* class DTypeConstructorArg */
 
 class Printer;
 
@@ -1310,7 +1202,6 @@ inline DTypeConstructor::const_iterator DTypeConstructor::end() const
 {
   return const_iterator(d_args, false);
 }
-#endif
 
 }
 
