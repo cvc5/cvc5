@@ -504,6 +504,8 @@ libcvc4_add_sources(
   theory/quantifiers/fmf/model_builder.h
   theory/quantifiers/fmf/model_engine.cpp
   theory/quantifiers/fmf/model_engine.h
+  theory/quantifiers/fun_def_evaluator.cpp
+  theory/quantifiers/fun_def_evaluator.h
   theory/quantifiers/fun_def_process.cpp
   theory/quantifiers/fun_def_process.h
   theory/quantifiers/inst_match.cpp
