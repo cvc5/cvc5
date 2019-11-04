@@ -52,22 +52,6 @@ For detailed build and installation instructions on these platforms,
 see file [INSTALL.md](https://github.com/CVC4/CVC4/blob/master/INSTALL.md).
 
 
-Getting Started
--------------------------------------------------------------------------------
-For information on how to get started with CVC4, please go
-[here](https://cvc4.github.io/getting-started).
-We recommend that you visit our CVC4 tutorials online at:
-
-  http://cvc4.cs.stanford.edu/wiki/Tutorials
-
-for help getting started using CVC4.
-
-If you need help with using CVC4, please refer to
-[http://cvc4.stanford.edu#technical-support](
-                                    http://cvc4.stanford.edu#technical-support).
-
-
-
 Bug Reports
 -------------------------------------------------------------------------------
 
