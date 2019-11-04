@@ -81,7 +81,7 @@ class SynthEngine : public QuantifiersModule
    * For details on what is added to sol_map, see
    * SynthConjecture::getSynthSolutions.
    */
-  void getSynthSolutions(std::map< Node, std::map<Node, Node> >& sol_map);
+  void getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
   /** preregister assertion (before rewrite)
    *
    * The purpose of this method is to inform the solution reconstruction

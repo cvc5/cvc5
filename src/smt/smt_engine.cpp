@@ -4818,7 +4818,7 @@ void SmtEngine::checkSynthSolution()
 {
   NodeManager* nm = NodeManager::currentNM();
   Notice() << "SmtEngine::checkSynthSolution(): checking synthesis solution" << endl;
-  std::map< Node, std::map<Node, Node> > sol_map;
+  std::map<Node, std::map<Node, Node>> sol_map;
   /* Get solutions and build auxiliary vectors for substituting */
   d_theoryEngine->getSynthSolutions(sol_map);
   if (sol_map.empty())
@@ -4827,18 +4827,19 @@ void SmtEngine::checkSynthSolution()
     return;
   }
   Trace("check-synth-sol") << "Got solution map:\n";
-  std::unordered_set< Node, NodeHashFunction > conjs;
-  std::map< Node, std::vector<Node> > fvarMap;
-  std::map< Node, std::vector<Node> > fsolMap;
-  for (const std::pair< const Node, std::map<Node, Node> >& cmap : sol_map)
+  std::unordered_set<Node, NodeHashFunction> conjs;
+  std::map<Node, std::vector<Node>> fvarMap;
+  std::map<Node, std::vector<Node>> fsolMap;
+  for (const std::pair<const Node, std::map<Node, Node>>& cmap : sol_map)
   {
     Trace("check-synth-sol") << "For conjecture " << cmap.first << ":\n";
     conjs.insert(cmap.first);
     std::vector<Node>& fvars = fvarMap[cmap.first];
     std::vector<Node>& fsols = fsolMap[cmap.first];
-    for ( const std::pair< const Node, Node >& pair : cmap.second)
+    for (const std::pair<const Node, Node>& pair : cmap.second)
     {
-      Trace("check-synth-sol") << "  " << pair.first << " --> " << pair.second << "\n";
+      Trace("check-synth-sol")
+          << "  " << pair.first << " --> " << pair.second << "\n";
       fvars.push_back(pair.first);
       fsols.push_back(pair.second);
     }
@@ -4856,7 +4857,7 @@ void SmtEngine::checkSynthSolution()
     Trace("check-synth-sol") << "No assertions to check\n";
     return;
   }
-  std::vector< Node > auxAssertions;
+  std::vector<Node> auxAssertions;
   for (AssertionList::const_iterator i = d_assertionList->begin();
        i != d_assertionList->end();
        ++i)
@@ -4871,7 +4872,7 @@ void SmtEngine::checkSynthSolution()
     }
     Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << conj << endl;
     Trace("check-synth-sol") << "Expanded assertion " << conj << "\n";
-    if (conjs.find(conj)==conjs.end())
+    if (conjs.find(conj) == conjs.end())
     {
       Trace("check-synth-sol") << "It is an auxiliary assertion\n";
       auxAssertions.push_back(conj);
@@ -4891,17 +4892,13 @@ void SmtEngine::checkSynthSolution()
     /* Whether property is quantifier free */
     if (conj[1].getKind() != kind::EXISTS)
     {
-      conjBody = conj[1].substitute(fvars.begin(),
-                                    fvars.end(),
-                                    fsols.begin(),
-                                    fsols.end());
+      conjBody = conj[1].substitute(
+          fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
     }
     else
     {
-      conjBody = conj[1][1].substitute(fvars.begin(),
-                                       fvars.end(),
-                                       fsols.begin(),
-                                       fsols.end());
+      conjBody = conj[1][1].substitute(
+          fvars.begin(), fvars.end(), fsols.begin(), fsols.end());
 
       /* Skolemize property */
       std::vector<Node> vars, skos;
@@ -5078,10 +5075,10 @@ void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 {
   SmtScope smts(this);
   finalOptionsAreSet();
-  std::map< Node, std::map<Node, Node> > sol_mapn;
+  std::map<Node, std::map<Node, Node>> sol_mapn;
   Assert(d_theoryEngine != nullptr);
   d_theoryEngine->getSynthSolutions(sol_mapn);
-  for (std::pair<const Node, std::map< Node, Node > >& cs : sol_mapn)
+  for (std::pair<const Node, std::map<Node, Node>>& cs : sol_mapn)
   {
     for (std::pair<const Node, Node>& s : cs.second)
     {

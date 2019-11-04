@@ -1142,7 +1142,8 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
   }
 }
 
-void SynthConjecture::getSynthSolutions(std::map< Node, std::map<Node, Node> >& sol_map)
+void SynthConjecture::getSynthSolutions(
+    std::map<Node, std::map<Node, Node> >& sol_map)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> sols;
@@ -1151,7 +1152,7 @@ void SynthConjecture::getSynthSolutions(std::map< Node, std::map<Node, Node> >& 
   {
     return;
   }
-  std::map< Node, Node >& smc = sol_map[d_quant];
+  std::map<Node, Node>& smc = sol_map[d_quant];
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
