@@ -83,7 +83,7 @@ bool TypeMatcher::doMatching( TypeNode pattern, TypeNode tn ){
 
 void TypeMatcher::getTypes( std::vector<Type>& types ) {
   types.clear();
-  for (TypeNode& t : d_match){
+  for (TypeNode& t : d_types){
     types.push_back( t.toType() );
   }
 }

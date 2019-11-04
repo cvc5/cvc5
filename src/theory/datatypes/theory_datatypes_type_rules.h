@@ -218,8 +218,7 @@ struct DatatypeAscriptionTypeRule {
 
       TypeMatcher m;
       if (childType.getKind() == kind::CONSTRUCTOR_TYPE) {
-        m.addTypesFromDatatype(TypeNode::fromType(
-            ConstructorType(childType.toType()).getRangeType()));
+        m.addTypesFromDatatype(childType.getConstructorRangeType());
       } else if (childType.getKind() == kind::DATATYPE_TYPE) {
         m.addTypesFromDatatype(childType);
       }
