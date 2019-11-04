@@ -540,8 +540,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   lem = Rewriter::rewrite(lem);
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
-  std::map<Node, Node> visited_n;
-  lem = d_tds->getEagerUnfold(lem, visited_n);
   // record the instantiation
   // this is used for remembering the solution
   recordInstantiation(candidate_values);
