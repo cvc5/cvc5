@@ -4824,12 +4824,12 @@ void SmtEngine::checkSynthSolution()
   /* Get solutions and build auxiliary vectors for substituting */
   if (!d_theoryEngine->getSynthSolutions(sol_map))
   {
-    InternalError("SmtEngine::checkSynthSolution(): No solution to check!");
+    InternalError() << "SmtEngine::checkSynthSolution(): No solution to check!";
     return;
   }
   if (sol_map.empty())
   {
-    InternalError("SmtEngine::checkSynthSolution(): Got empty solution!");
+    InternalError() << "SmtEngine::checkSynthSolution(): Got empty solution!";
     return;
   }
   Trace("check-synth-sol") << "Got solution map:\n";
