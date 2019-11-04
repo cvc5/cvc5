@@ -223,9 +223,9 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         elif line.startswith(ERROR_SCRUBBER):
             error_scrubber = line[len(ERROR_SCRUBBER):].strip()
         elif line.startswith(EXPECT):
-            expected_output += line[len(EXPECT):].strip()
+            expected_output += line[len(EXPECT):].strip() + '\n'
         elif line.startswith(EXPECT_ERROR):
-            expected_error += line[len(EXPECT_ERROR):].strip()
+            expected_error += line[len(EXPECT_ERROR):].strip() + '\n'
         elif line.startswith(EXIT):
             expected_exit_status = int(line[len(EXIT):].strip())
         elif line.startswith(COMMAND_LINE):
