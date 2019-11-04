@@ -17,45 +17,63 @@
 #ifndef CVC4__THEORY__DATATYPES__DTYPE_H
 #define CVC4__THEORY__DATATYPES__DTYPE_H
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/datatypes/dtype_cons_arg.h"
 #include "theory/datatypes/dtype_cons.h"
+#include "theory/datatypes/dtype_cons_arg.h"
 
 namespace CVC4 {
 namespace theory {
 
 // messy; Node needs DType (because it's the payload of a
 // CONSTANT-kinded expression), and DType needs Node.
-//class  DType;
-class  DTypeIndexConstant;
-  
-class  NodeManager;
+// class  DType;
+class DTypeIndexConstant;
+
+class NodeManager;
 
 class DTypeConstructor;
 class DTypeConstructorArg;
 
-class DTypeConstructorIterator {
+class DTypeConstructorIterator
+{
   const std::vector<DTypeConstructor>* d_v;
   size_t d_i;
 
   friend class DType;
 
-  DTypeConstructorIterator(const std::vector<DTypeConstructor>& v, bool start) : d_v(&v), d_i(start ? 0 : v.size()) {
+  DTypeConstructorIterator(const std::vector<DTypeConstructor>& v, bool start)
+      : d_v(&v), d_i(start ? 0 : v.size())
+  {
   }
 
-public:
+ public:
   typedef const DTypeConstructor& value_type;
   const DTypeConstructor& operator*() const { return (*d_v)[d_i]; }
   const DTypeConstructor* operator->() const { return &(*d_v)[d_i]; }
-  DTypeConstructorIterator& operator++() { ++d_i; return *this; }
-  DTypeConstructorIterator operator++(int) { DTypeConstructorIterator i(*this); ++d_i; return i; }
-  bool operator==(const DTypeConstructorIterator& other) const { return d_v == other.d_v && d_i == other.d_i; }
-  bool operator!=(const DTypeConstructorIterator& other) const { return d_v != other.d_v || d_i != other.d_i; }
-};/* class DTypeConstructorIterator */
+  DTypeConstructorIterator& operator++()
+  {
+    ++d_i;
+    return *this;
+  }
+  DTypeConstructorIterator operator++(int)
+  {
+    DTypeConstructorIterator i(*this);
+    ++d_i;
+    return i;
+  }
+  bool operator==(const DTypeConstructorIterator& other) const
+  {
+    return d_v == other.d_v && d_i == other.d_i;
+  }
+  bool operator!=(const DTypeConstructorIterator& other) const
+  {
+    return d_v != other.d_v || d_i != other.d_i;
+  }
+}; /* class DTypeConstructorIterator */
 
 /**
  * The representation of an inductive datatype.
@@ -110,32 +128,34 @@ public:
  *    tree = node(children : list[tree]) | leaf
  *  END;
  *
- * Here, the definition of the parametric datatype list, where T is a type variable.
- * In other words, this defines a family of types list[C] where C is any concrete
- * type.  DTypes can be parameterized over multiple type variables using the
- * syntax sym[ T1, ..., Tn ] = ...,
+ * Here, the definition of the parametric datatype list, where T is a type
+ * variable. In other words, this defines a family of types list[C] where C is
+ * any concrete type.  DTypes can be parameterized over multiple type variables
+ * using the syntax sym[ T1, ..., Tn ] = ...,
  *
  */
-class  DType {
+class DType
+{
   friend class DTypeConstructor;
-public:
+
+ public:
   /**
    * Get the datatype of a constructor, selector, or tester operator.
    */
-  static const DType& datatypeOf(Node item) ;
+  static const DType& datatypeOf(Node item);
 
   /**
    * Get the index of a constructor or tester in its datatype, or the
    * index of a selector in its constructor.  (Zero is always the
    * first index.)
    */
-  static size_t indexOf(Node item) ;
+  static size_t indexOf(Node item);
 
   /**
    * Get the index of constructor corresponding to selector.  (Zero is
    * always the first index.)
    */
-  static size_t cindexOf(Node item) ;
+  static size_t cindexOf(Node item);
 
   /**
    * Same as above, but without checks. These methods should be used by
@@ -156,7 +176,9 @@ public:
    * Create a new DType of the given name, with the given
    * parameterization.
    */
-  DType(std::string name, const std::vector<TypeNode>& params, bool isCo = false);
+  DType(std::string name,
+        const std::vector<TypeNode>& params,
+        bool isCo = false);
 
   ~DType();
 
@@ -186,7 +208,7 @@ public:
    * when doing solution reconstruction (Figure 5 of Reynolds et al.
    * CAV 2015).
    */
-  void setSygus( TypeNode st, Node bvl, bool allow_const, bool allow_all );
+  void setSygus(TypeNode st, Node bvl, bool allow_const, bool allow_all);
   /** add sygus constructor
    *
    * This adds a sygus constructor to this datatype, where
@@ -209,11 +231,12 @@ public:
    * constructor, which is 0 for nullary constructors and 1 for non-nullary
    * constructors.
    */
-  void addSygusConstructor(Node op,
-                           const std::string& cname,
-                           const std::vector<TypeNode>& cargs,
-                           std::shared_ptr<SygusPrintCallbackInternal> spc = nullptr,
-                           int weight = -1);
+  void addSygusConstructor(
+      Node op,
+      const std::string& cname,
+      const std::vector<TypeNode>& cargs,
+      std::shared_ptr<SygusPrintCallbackInternal> spc = nullptr,
+      int weight = -1);
 
   /** set that this datatype is a tuple */
   void setTuple();
@@ -231,7 +254,7 @@ public:
   size_t getNumParameters() const;
 
   /** Get parameter */
-  TypeNode getParameter( unsigned int i ) const;
+  TypeNode getParameter(unsigned int i) const;
 
   /** Get parameters */
   std::vector<TypeNode> getParameters() const;
@@ -246,7 +269,7 @@ public:
   bool isTuple() const;
 
   /** get the record representation for this datatype */
-  Record * getRecord() const;
+  Record* getRecord() const;
 
   /**
    * Return the cardinality of this datatype.
@@ -318,7 +341,7 @@ public:
    * The versions of these methods that takes Type t is required
    * for parametric datatypes, where t is an instantiated
    * parametric datatype type whose datatype is this class.
-  */
+   */
   unsigned getNumRecursiveSingletonArgTypes(TypeNode t) const;
   TypeNode getRecursiveSingletonArgType(TypeNode t, unsigned i) const;
   unsigned getNumRecursiveSingletonArgTypes() const;
@@ -395,7 +418,7 @@ public:
    * similarly-named constructors, the first is returned.
    */
   const DTypeConstructor& operator[](std::string name) const;
- 
+
   /**
    * Get the constructor operator for the named constructor.
    * This is a linear search through the constructors, so in
@@ -490,9 +513,9 @@ public:
   bool d_sygus_allow_all;
 
   /** the cardinality of this datatype
-  * "mutable" because computing the cardinality can be expensive,
-  * and so it's computed just once, on demand---this is the cache
-  */
+   * "mutable" because computing the cardinality can be expensive,
+   * and so it's computed just once, on demand---this is the cache
+   */
   mutable Cardinality d_card;
 
   /** is this type a recursive singleton type?
@@ -505,9 +528,9 @@ public:
    */
   mutable std::map<TypeNode, int> d_card_rec_singleton;
   /** if d_card_rec_singleton is true,
-  * This datatype has infinite cardinality if at least one of the
-  * following uninterpreted sorts having cardinality > 1.
-  */
+   * This datatype has infinite cardinality if at least one of the
+   * following uninterpreted sorts having cardinality > 1.
+   */
   mutable std::map<TypeNode, std::vector<TypeNode> > d_card_u_assume;
   /** cache of whether this datatype is well-founded */
   mutable int d_well_founded;
@@ -557,7 +580,8 @@ public:
   friend class NodeManager;  // for access to resolve()
 
   /** compute the cardinality of this datatype */
-  Cardinality computeCardinality(TypeNode t, std::vector<TypeNode>& processing) const;
+  Cardinality computeCardinality(TypeNode t,
+                                 std::vector<TypeNode>& processing) const;
   /** compute whether this datatype is a recursive singleton */
   bool computeCardinalityRecSingleton(TypeNode t,
                                       std::vector<TypeNode>& processing,
@@ -594,30 +618,35 @@ public:
    * Helper for mkGroundTerm and mkGroundValue above.
    */
   Node mkGroundTermInternal(TypeNode t, bool isValue) const;
-};/* class DType */
+}; /* class DType */
 
 /**
  * A hash function for DTypes.  Needed to store them in hash sets
  * and hash maps.
  */
-struct  DTypeHashFunction {
-  size_t operator()(const DType& dt) const {
+struct DTypeHashFunction
+{
+  size_t operator()(const DType& dt) const
+  {
     return std::hash<std::string>()(dt.getName());
   }
-  size_t operator()(const DType* dt) const {
+  size_t operator()(const DType* dt) const
+  {
     return std::hash<std::string>()(dt->getName());
   }
-  size_t operator()(const DTypeConstructor& dtc) const {
+  size_t operator()(const DTypeConstructor& dtc) const
+  {
     return std::hash<std::string>()(dtc.getName());
   }
-  size_t operator()(const DTypeConstructor* dtc) const {
+  size_t operator()(const DTypeConstructor* dtc) const
+  {
     return std::hash<std::string>()(dtc->getName());
   }
-};/* struct DTypeHashFunction */
-
+}; /* struct DTypeHashFunction */
 
 /* stores an index to DType residing in NodeManager */
-class  DTypeIndexConstant {
+class DTypeIndexConstant
+{
  public:
   DTypeIndexConstant(unsigned index);
 
@@ -626,10 +655,7 @@ class  DTypeIndexConstant {
   {
     return d_index == uc.d_index;
   }
-  bool operator!=(const DTypeIndexConstant& uc) const
-  {
-    return !(*this == uc);
-  }
+  bool operator!=(const DTypeIndexConstant& uc) const { return !(*this == uc); }
   bool operator<(const DTypeIndexConstant& uc) const
   {
     return d_index < uc.d_index;
@@ -638,29 +664,26 @@ class  DTypeIndexConstant {
   {
     return d_index <= uc.d_index;
   }
-  bool operator>(const DTypeIndexConstant& uc) const
-  {
-    return !(*this <= uc);
-  }
-  bool operator>=(const DTypeIndexConstant& uc) const
-  {
-    return !(*this < uc);
-  }
-private:
+  bool operator>(const DTypeIndexConstant& uc) const { return !(*this <= uc); }
+  bool operator>=(const DTypeIndexConstant& uc) const { return !(*this < uc); }
+
+ private:
   const unsigned d_index;
-};/* class DTypeIndexConstant */
+}; /* class DTypeIndexConstant */
 
-std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic) ;
+std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic);
 
-struct  DTypeIndexConstantHashFunction {
-  size_t operator()(const DTypeIndexConstant& dic) const {
+struct DTypeIndexConstantHashFunction
+{
+  size_t operator()(const DTypeIndexConstant& dic) const
+  {
     return IntegerHashFunction()(dic.getIndex());
   }
-};/* struct DTypeIndexConstantHashFunction */
+}; /* struct DTypeIndexConstantHashFunction */
 
-std::ostream& operator<<(std::ostream& os, const DType& dt) ;
+std::ostream& operator<<(std::ostream& os, const DType& dt);
 
-}
-}
+}  // namespace theory
+}  // namespace CVC4
 
 #endif

@@ -431,7 +431,7 @@ public:
   unsigned registerDatatype(DType* dt);
   /** get datatype for index */
   const Datatype & getDatatypeForIndex( unsigned index ) const;
-  const DType & getDTypeForIndex( unsigned index ) const;
+  const DType& getDTypeForIndex(unsigned index) const;
 
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);

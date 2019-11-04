@@ -644,7 +644,7 @@ public:
 
   /** Get the Datatype specification from a datatype type */
   const Datatype& getDatatype() const;
-  
+
   /** Get the internal Datatype specification from a datatype type */
   const DType& getDType() const;
 

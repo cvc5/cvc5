@@ -21,39 +21,51 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector) :
-  d_name(name),
-  d_selector(selector),
-  d_resolved(false) {
-  PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor arg without a name");
+DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector)
+    : d_name(name), d_selector(selector), d_resolved(false)
+{
+  PrettyCheckArgument(
+      name != "",
+      name,
+      "cannot construct a datatype constructor arg without a name");
 }
 
 std::string DTypeConstructorArg::getName() const
 {
   std::string name = d_name;
   const size_t nul = name.find('\0');
-  if(nul != std::string::npos) {
+  if (nul != std::string::npos)
+  {
     name.resize(nul);
   }
   return name;
 }
 
-Node DTypeConstructorArg::getSelector() const {
-  PrettyCheckArgument(isResolved(), this, "cannot get a selector for an unresolved datatype constructor");
+Node DTypeConstructorArg::getSelector() const
+{
+  PrettyCheckArgument(
+      isResolved(),
+      this,
+      "cannot get a selector for an unresolved datatype constructor");
   return d_selector;
 }
 
-Node DTypeConstructorArg::getConstructor() const {
-  PrettyCheckArgument(isResolved(), this,
-                "cannot get a associated constructor for argument of an unresolved datatype constructor");
+Node DTypeConstructorArg::getConstructor() const
+{
+  PrettyCheckArgument(isResolved(),
+                      this,
+                      "cannot get a associated constructor for argument of an "
+                      "unresolved datatype constructor");
   return d_constructor;
 }
 
-TypeNode DTypeConstructorArg::getType() const {
+TypeNode DTypeConstructorArg::getType() const
+{
   return getSelector().getType();
 }
 
-TypeNode DTypeConstructorArg::getRangeType() const {
+TypeNode DTypeConstructorArg::getRangeType() const
+{
   return getType().getRangeType();
 }
 
@@ -102,12 +114,13 @@ bool DTypeConstructorArg::isUnresolvedSelf() const
   return d_selector.isNull() && d_name.size() == d_name.find('\0') + 1;
 }
 
-std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg) {
+std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg)
+{
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
   arg.toStream(os);
   return os;
 }
 
-}
-}
+}  // namespace theory
+}  // namespace CVC4

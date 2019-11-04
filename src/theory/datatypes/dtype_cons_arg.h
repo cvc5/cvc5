@@ -32,7 +32,8 @@ class DTypeConstructor;
 /**
  * A DType constructor argument (i.e., a DType field).
  */
-class  DTypeConstructorArg {
+class DTypeConstructorArg
+{
   friend class DTypeConstructor;
   friend class DType;
 
@@ -86,9 +87,9 @@ class  DTypeConstructorArg {
   DTypeConstructorArg(std::string name, Node selector);
 };
 
-std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg) ;
+std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg);
 
-}
-}
+}  // namespace theory
+}  // namespace CVC4
 
 #endif

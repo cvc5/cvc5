@@ -265,7 +265,7 @@ unsigned NodeManager::registerDatatype(DType* dt)
   return sz;
 }
 
-const DType & NodeManager::getDTypeForIndex( unsigned index ) const
+const DType& NodeManager::getDTypeForIndex(unsigned index) const
 {
   Assert(index < d_ownedDTypes.size());
   return *d_ownedDTypes[index];

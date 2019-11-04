@@ -17,9 +17,9 @@
 #ifndef CVC4__THEORY__DATATYPES__DTYPE_CONS_H
 #define CVC4__THEORY__DATATYPES__DTYPE_CONS_H
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/datatypes/dtype_cons_arg.h"
@@ -30,32 +30,52 @@ namespace theory {
 // FIXME
 typedef TypeNode DTypeType;
 
-class DTypeConstructorArgIterator {
+class DTypeConstructorArgIterator
+{
   const std::vector<DTypeConstructorArg>* d_v;
   size_t d_i;
 
   friend class DTypeConstructor;
 
-  DTypeConstructorArgIterator(const std::vector<DTypeConstructorArg>& v, bool start) : d_v(&v), d_i(start ? 0 : v.size()) {
+  DTypeConstructorArgIterator(const std::vector<DTypeConstructorArg>& v,
+                              bool start)
+      : d_v(&v), d_i(start ? 0 : v.size())
+  {
   }
 
-public:
+ public:
   typedef const DTypeConstructorArg& value_type;
   const DTypeConstructorArg& operator*() const { return (*d_v)[d_i]; }
   const DTypeConstructorArg* operator->() const { return &(*d_v)[d_i]; }
-  DTypeConstructorArgIterator& operator++() { ++d_i; return *this; }
-  DTypeConstructorArgIterator operator++(int) { DTypeConstructorArgIterator i(*this); ++d_i; return i; }
-  bool operator==(const DTypeConstructorArgIterator& other) const { return d_v == other.d_v && d_i == other.d_i; }
-  bool operator!=(const DTypeConstructorArgIterator& other) const { return d_v != other.d_v || d_i != other.d_i; }
-};/* class DTypeConstructorArgIterator */
+  DTypeConstructorArgIterator& operator++()
+  {
+    ++d_i;
+    return *this;
+  }
+  DTypeConstructorArgIterator operator++(int)
+  {
+    DTypeConstructorArgIterator i(*this);
+    ++d_i;
+    return i;
+  }
+  bool operator==(const DTypeConstructorArgIterator& other) const
+  {
+    return d_v == other.d_v && d_i == other.d_i;
+  }
+  bool operator!=(const DTypeConstructorArgIterator& other) const
+  {
+    return d_v != other.d_v || d_i != other.d_i;
+  }
+}; /* class DTypeConstructorArgIterator */
 
 /**
  * An exception that is thrown when a datatype resolution fails.
  */
-class DTypeResolutionException : public Exception {
+class DTypeResolutionException : public Exception
+{
  public:
   DTypeResolutionException(std::string msg);
-};/* class DatatypeResolutionException */
+}; /* class DatatypeResolutionException */
 
 /**
  * A holder type (used in calls to DTypeConstructor::addArg())
@@ -63,8 +83,9 @@ class DTypeResolutionException : public Exception {
  * DTypes will be properly typed when a Type is created for the
  * DType by the ExprManager (which calls DType::resolve()).
  */
-class DTypeSelfType {
-};/* class DTypeSelfType */
+class DTypeSelfType
+{
+}; /* class DTypeSelfType */
 
 /**
  * An unresolved type (used in calls to
@@ -74,12 +95,14 @@ class DTypeSelfType {
  * for the DType by the NodeManager (which calls
  * DType::resolve()).
  */
-class  DTypeUnresolvedType {
+class DTypeUnresolvedType
+{
   std::string d_name;
-public:
+
+ public:
   DTypeUnresolvedType(std::string name);
   std::string getName() const;
-};/* class DTypeUnresolvedType */
+}; /* class DTypeUnresolvedType */
 
 class Printer;
 
@@ -110,7 +133,8 @@ class SygusPrintCallbackInternal
 /**
  * A constructor for a DType.
  */
-class DTypeConstructor {
+class DTypeConstructor
+{
   friend class DType;
 
  public:
@@ -136,9 +160,7 @@ class DTypeConstructor {
    * For example, if A, B, C have weights 0, 1, and 3 respectively, then
    * C( B( A() ), B( A() ) ) has size 5.
    */
-  DTypeConstructor(std::string name,
-                      std::string tester,
-                      unsigned weight = 1);
+  DTypeConstructor(std::string name, std::string tester, unsigned weight = 1);
 
   ~DTypeConstructor() {}
   /**
@@ -184,8 +206,8 @@ class DTypeConstructor {
    * Get the tester operator of this DType constructor.  The
    * DType must be resolved.
    */
-  Node getTester() const;  
-  
+  Node getTester() const;
+
   /**
    * Get the tester name for this DType constructor.
    */
@@ -221,7 +243,8 @@ class DTypeConstructor {
    * to handle defined or let expressions that
    * appear in user-provided grammars.
    */
-  std::shared_ptr<SygusPrintCallbackInternal> getSygusPrintCallbackInternal() const;
+  std::shared_ptr<SygusPrintCallbackInternal> getSygusPrintCallbackInternal()
+      const;
   /** get weight
    *
    * Get the weight of this constructor. This value is used when computing the
@@ -341,7 +364,7 @@ class DTypeConstructor {
    * of this constructor, then this method returns
    *   stoa(T,C,index)
    */
-  int getSelectorIndexInternal( Node sel ) const;
+  int getSelectorIndexInternal(Node sel) const;
 
   /** involves external type
    *
@@ -357,6 +380,7 @@ class DTypeConstructor {
   bool involvesUninterpretedType() const;
   /** prints this datatype constructor to stream */
   void toStream(std::ostream& out) const;
+
  private:
   /** the name of the constructor */
   std::string d_name;
@@ -428,7 +452,8 @@ class DTypeConstructor {
       const std::vector<TypeNode>& paramReplacements);
 
   /** compute the cardinality of this datatype */
-  Cardinality computeCardinality(TypeNode t, std::vector<TypeNode>& processing) const;
+  Cardinality computeCardinality(TypeNode t,
+                                 std::vector<TypeNode>& processing) const;
   /** compute whether this datatype is well-founded */
   bool computeWellFounded(std::vector<TypeNode>& processing) const;
   /** compute ground term
@@ -453,11 +478,11 @@ class DTypeConstructor {
    * This computes the maps d_shared_selectors and d_shared_selector_index.
    */
   void computeSharedSelectors(TypeNode domainType) const;
-};/* class DTypeConstructor */
+}; /* class DTypeConstructor */
 
-std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor) ;
+std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 
-}
-}
+}  // namespace theory
+}  // namespace CVC4
 
 #endif

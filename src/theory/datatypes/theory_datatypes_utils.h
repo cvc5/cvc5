@@ -29,19 +29,31 @@ namespace theory {
 
 // ----------------------- sygus datatype attributes
 /** TODO */
-struct DTypeIndexTag {};
+struct DTypeIndexTag
+{
+};
 typedef expr::Attribute<DTypeIndexTag, uint64_t> DTypeIndexAttr;
-struct DTypeConsIndexTag {};
+struct DTypeConsIndexTag
+{
+};
 typedef expr::Attribute<DTypeConsIndexTag, uint64_t> DTypeConsIndexAttr;
-struct DTypeFiniteTag {};
+struct DTypeFiniteTag
+{
+};
 typedef expr::Attribute<DTypeFiniteTag, bool> DTypeFiniteAttr;
-struct DTypeFiniteComputedTag {};
+struct DTypeFiniteComputedTag
+{
+};
 typedef expr::Attribute<DTypeFiniteComputedTag, bool> DTypeFiniteComputedAttr;
-struct DTypeUFiniteTag {};
+struct DTypeUFiniteTag
+{
+};
 typedef expr::Attribute<DTypeUFiniteTag, bool> DTypeUFiniteAttr;
-struct DTypeUFiniteComputedTag {};
+struct DTypeUFiniteComputedTag
+{
+};
 typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
-  
+
 /** sygus var num */
 struct SygusVarNumAttributeId
 {
