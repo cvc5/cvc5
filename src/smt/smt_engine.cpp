@@ -4879,7 +4879,8 @@ void SmtEngine::checkSynthSolution()
     Node assertion = Node::fromExpr(*i);
     // Apply any define-funs from the problem.
     assertion = d_private->expandDefinitions(assertion, cache);
-    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << assertion << endl;
+    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << assertion
+             << endl;
     Trace("check-synth-sol") << "Expanded assertion " << assertion << "\n";
     if (conjs.find(assertion) == conjs.end())
     {
