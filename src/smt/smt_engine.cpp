@@ -4833,7 +4833,10 @@ void SmtEngine::checkSynthSolution()
     return;
   }
   Trace("check-synth-sol") << "Got solution map:\n";
+  // the set of synthesis conjectures in our assertions
   std::unordered_set<Node, NodeHashFunction> conjs;
+  // For each of the above conjectures, the functions-to-synthesis and their
+  // solutions. This is used as a substitution below.
   std::map<Node, std::vector<Node>> fvarMap;
   std::map<Node, std::vector<Node>> fsolMap;
   for (const std::pair<const Node, std::map<Node, Node>>& cmap : sol_map)
@@ -4863,25 +4866,25 @@ void SmtEngine::checkSynthSolution()
     Trace("check-synth-sol") << "No assertions to check\n";
     return;
   }
+  // auxiliary assertions
   std::vector<Node> auxAssertions;
+  // expand definitions cache
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
   for (AssertionList::const_iterator i = d_assertionList->begin();
        i != d_assertionList->end();
        ++i)
   {
     Notice() << "SmtEngine::checkSynthSolution(): checking assertion " << *i << endl;
     Trace("check-synth-sol") << "Retrieving assertion " << *i << "\n";
-    Node conj = Node::fromExpr(*i);
+    Node assertion = Node::fromExpr(*i);
     // Apply any define-funs from the problem.
-    {
-      std::unordered_map<Node, Node, NodeHashFunction> cache;
-      conj = d_private->expandDefinitions(conj, cache);
-    }
-    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << conj << endl;
-    Trace("check-synth-sol") << "Expanded assertion " << conj << "\n";
-    if (conjs.find(conj) == conjs.end())
+    assertion = d_private->expandDefinitions(assertion, cache);
+    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << assertion << endl;
+    Trace("check-synth-sol") << "Expanded assertion " << assertion << "\n";
+    if (conjs.find(assertion) == conjs.end())
     {
       Trace("check-synth-sol") << "It is an auxiliary assertion\n";
-      auxAssertions.push_back(conj);
+      auxAssertions.push_back(assertion);
     }
     else
     {
