@@ -29,12 +29,14 @@ FunDefEvaluator::FunDefEvaluator() {}
 void FunDefEvaluator::assertDefinition(Node q)
 {
   Trace("fd-eval") << "FunDefEvaluator: assertDefinition " << q << std::endl;
-  Node f = QuantAttributes::getFunDefHead(q);
-  if (f.isNull())
+  Node h = QuantAttributes::getFunDefHead(q);
+  if (h.isNull())
   {
     // not a function definition
     return;
   }
+  // h possibly with zero arguments?
+  Node f = h.hasOperator() ? h.getOperator() : h;
   Assert(d_funDefMap.find(f) != d_funDefMap.end())
       << "FunDefEvaluator::assertDefinition: function already defined";
   FunDefInfo& fdi = d_funDefMap[f];
@@ -45,7 +47,7 @@ void FunDefEvaluator::assertDefinition(Node q)
                    << fdi.d_args << " / " << fdi.d_body << std::endl;
 }
 
-Node FunDefEvaluator::evaluate(Node n)
+Node FunDefEvaluator::evaluate(Node n) const
 {
   // should do standard rewrite before this call
   Assert(Rewriter::rewrite(n) == n);
@@ -53,25 +55,29 @@ Node FunDefEvaluator::evaluate(Node n)
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::map<Node, FunDefInfo>::const_iterator itf;
   std::vector<TNode> visit;
   TNode cur;
   TNode curEval;
-  TNode f;
+  Node f;
   visit.push_back(n);
   do
   {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
+    Trace("fd-eval-debug") << "evaluate subterm " << cur << std::endl;
 
     if (it == visited.end())
     {
       if (cur.isConst())
       {
+        Trace("fd-eval-debug") << "constant " << cur << std::endl;
         visited[cur] = cur;
       }
       else
       {
+        Trace("fd-eval-debug") << "recurse " << cur << std::endl;
         visited[cur] = Node::null();
         visit.push_back(cur);
         for (const Node& cn : cur)
@@ -85,10 +91,14 @@ Node FunDefEvaluator::evaluate(Node n)
       curEval = it->second;
       if (curEval.isNull())
       {
+        Trace("fd-eval-debug") << "from arguments " << cur << std::endl;
         Node ret = cur;
         bool childChanged = false;
         std::vector<Node> children;
-        if (cur.getMetaKind() == metakind::PARAMETERIZED)
+        Kind ck = cur.getKind();
+        // If a parameterized node that is not APPLY_UF (which is handled below,
+        // we add it to the children vector.
+        if (ck != APPLY_UF && cur.getMetaKind() == metakind::PARAMETERIZED)
         {
           children.push_back(cur.getOperator());
         }
@@ -104,21 +114,24 @@ Node FunDefEvaluator::evaluate(Node n)
         {
           // need to evaluate it
           f = cur.getOperator();
-          std::map<Node, FunDefInfo>::iterator it = d_funDefMap.find(f);
-          if (it == d_funDefMap.end())
+          itf = d_funDefMap.find(f);
+          if (itf == d_funDefMap.end())
           {
             Trace("fd-eval") << "FunDefEvaluator: no definition for " << f
                              << ", FAIL" << std::endl;
             return Node::null();
           }
           // get the function definition
-          Node body = it->second.d_body;
-          std::vector<Node>& args = it->second.d_args;
-          // invoke it on arguments
-          Node sbody = body.substitute(
-              args.begin(), args.end(), children.begin(), children.end());
-          // rewrite it
-          sbody = Rewriter::rewrite(sbody);
+          Node sbody = itf->second.d_body;
+          const std::vector<Node>& args = itf->second.d_args;
+          if (!args.empty())
+          {
+            // invoke it on arguments
+            sbody = sbody.substitute(
+                args.begin(), args.end(), children.begin(), children.end());
+            // rewrite it
+            sbody = Rewriter::rewrite(sbody);
+          }
           // our result is the result of the body
           visited[cur] = sbody;
           // If its not constant, we push back self and the substituted body.
@@ -149,6 +162,7 @@ Node FunDefEvaluator::evaluate(Node n)
       }
       else if (!curEval.isConst())
       {
+        Trace("fd-eval-debug") << "from body " << cur << std::endl;
         // we had to evaluate our body, which should have a definition now
         it = visited.find(curEval);
         Assert(it != visited.end());

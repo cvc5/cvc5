@@ -280,9 +280,13 @@ void SynthEngine::registerQuantifier(Node q)
   }
   if (options::sygusRecFun())
   {
-    // If it is a recursive function definition, add it to the function
-    // definition evaluator class.
-    FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
+    if (d_quantEngine->getQuantAttributes()->isFunDef(q))
+    {
+      // If it is a recursive function definition, add it to the function
+      // definition evaluator class.
+      FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
+      fde->assertDefinition(q);
+    }
   }
 }
 

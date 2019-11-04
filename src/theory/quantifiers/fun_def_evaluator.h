@@ -43,7 +43,7 @@ class FunDefEvaluator
    * class. If n cannot be simplified to a constant, then this method returns
    * null.
    */
-  Node evaluate(Node n);
+  Node evaluate(Node n) const;
   /**
    * Has a call to assertDefinition been made? If this returns false, then
    * the evaluate method is the same as calling the rewriter, and returning

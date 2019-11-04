@@ -726,6 +726,27 @@ SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
   return d_tinfo[tn];
 }
 
+Node TermDbSygus::rewriteNode(Node n) const
+{
+  Node res = Rewriter::rewrite(n);
+  if (options::sygusRecFun())
+  {
+    if (d_funDefEval->hasDefinitions())
+    {
+      // If recursive functions are enabled, then we use the recursive function
+      // evaluation utility.
+      Node fres = d_funDefEval->evaluate(res);
+      if (!fres.isNull())
+      {
+        return fres;
+      }
+      // It may have failed, in which case there are undefined symbols in res.
+      // In this case, we resort to rewriting below.
+    }
+  }
+  return res;
+}
+
 unsigned TermDbSygus::getSelectorWeight(TypeNode tn, Node sel)
 {
   std::map<TypeNode, std::map<Node, unsigned> >::iterator itsw =
@@ -1126,23 +1147,9 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
     return res;
   }
   res = bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());
-  res = Rewriter::rewrite(res);
-  if (options::sygusRecFun())
-  {
-    if (d_funDefEval->hasDefinitions())
-    {
-      // If recursive functions are enabled, then we use the recursive function
-      // evaluation utility.
-      Node fres = d_funDefEval->evaluate(res);
-      if (!fres.isNull())
-      {
-        return fres;
-      }
-      // It may have failed, in which case there are undefined symbols in res.
-      // In this case, we resort to rewriting below.
-    }
-  }
-  return res;
+  // Call the rewrite node function, which may involve recursive function
+  // evaluation.
+  return rewriteNode(res);
 }
 
 Node TermDbSygus::evaluateWithUnfolding(

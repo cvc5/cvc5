@@ -305,6 +305,11 @@ class TermDbSygus {
    * (a subfield type of) a type that has been registered to this class.
    */
   SygusTypeInfo& getTypeInfo(TypeNode tn);
+  /**
+   * Rewrite the given node using the utilities in this class. This may
+   * involve (recursive function) evaluation.
+   */
+  Node rewriteNode(Node n) const;
 
   /** print to sygus stream n on trace c */
   static void toStreamSygus(const char* c, Node n);

@@ -537,7 +537,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     return false;
   }
 
-  lem = Rewriter::rewrite(lem);
+  // simplify the lemma based on the term database sygus utility
+  lem = d_tds->rewriteNode(lem);
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
   std::map<Node, Node> visited_n;
