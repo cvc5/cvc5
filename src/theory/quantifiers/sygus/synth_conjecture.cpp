@@ -47,7 +47,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
     : d_qe(qe),
       d_parent(p),
       d_tds(qe->getTermDatabaseSygus()),
-      d_hasSolution(false, qe->getUserContext()),
+      d_hasSolution(false),
       d_ceg_si(new CegSingleInv(qe, this)),
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
@@ -300,6 +300,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     return true;
   }
   Assert(d_master != nullptr);
+  Assert(!d_hasSolution);
 
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
@@ -486,6 +487,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       lem = getStreamGuardedLemma(lem);
       lems.push_back(lem);
       recordInstantiation(candidate_values);
+      d_hasSolution = true;
       return true;
     }
     Assert(!d_set_ce_sk_vars);
@@ -607,14 +609,16 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
   if (success)
   {
+    d_hasSolution = true;
     if (options::sygusStream())
     {
       // if we were successful, we immediately print the current solution.
       // this saves us from introducing a verification lemma and a new guard.
       printAndContinueStream(terms, candidate_values);
+      // streaming means now we immediately are looking for a new solution
+      d_hasSolution = false;
       return false;
     }
-    d_hasSolution = true;
   }
   lem = getStreamGuardedLemma(lem);
   lems.push_back(lem);
@@ -1140,14 +1144,14 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
   }
 }
 
-void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
+bool SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> sols;
   std::vector<int> statuses;
   if (!getSynthSolutionsInternal(sols, statuses))
   {
-    return;
+    return false;
   }
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
@@ -1180,11 +1184,16 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
     // store in map
     sol_map[fvar] = bsol;
   }
+  return true;
 }
 
 bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
                                                 std::vector<int>& statuses)
 {
+  if (!d_hasSolution)
+  {
+    return false;
+  }
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node prog = d_embed_quant[0][i];

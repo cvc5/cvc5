@@ -60,8 +60,15 @@ class SynthEngine : public QuantifiersModule
  public:
   SynthEngine(QuantifiersEngine* qe, context::Context* c);
   ~SynthEngine();
-
+  /** presolve
+   *
+   * Called at the beginning of each call to solve a synthesis problem, which
+   * may be e.g. a check-synth or get-abduct call.
+   */
+  void presolve() override;
+  /** needs check, return true if e is last call */
   bool needsCheck(Theory::Effort e) override;
+  /** always needs model at effort QEFFORT_MODEL */
   QEffort needsModel(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
@@ -81,7 +88,7 @@ class SynthEngine : public QuantifiersModule
    * For details on what is added to sol_map, see
    * SynthConjecture::getSynthSolutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
+  bool getSynthSolutions(std::map<Node, Node>& sol_map);
   /** preregister assertion (before rewrite)
    *
    * The purpose of this method is to inform the solution reconstruction
