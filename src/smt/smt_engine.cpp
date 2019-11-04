@@ -4879,12 +4879,13 @@ void SmtEngine::checkSynthSolution()
     }
     else
     {
-      Trace("check-synth-sol") << "It is a conjecture-to-synthesize\n";
+      Trace("check-synth-sol") << "It is a synthesis conjecture\n";
     }
   }
   // check all conjectures
   for (const Node& conj : conjs)
   {
+    // get the solution for this conjecture
     std::vector<Node>& fvars = fvarMap[conj];
     std::vector<Node>& fsols = fsolMap[conj];
     // Apply solution map to conjecture body

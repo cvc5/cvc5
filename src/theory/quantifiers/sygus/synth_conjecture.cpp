@@ -1152,6 +1152,7 @@ void SynthConjecture::getSynthSolutions(
   {
     return;
   }
+  // we add it to the solution map, indexed by this conjecture
   std::map<Node, Node>& smc = sol_map[d_quant];
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
