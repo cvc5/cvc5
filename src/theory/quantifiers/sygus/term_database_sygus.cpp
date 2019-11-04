@@ -741,7 +741,8 @@ Node TermDbSygus::rewriteNode(Node n) const
         return fres;
       }
       // It may have failed, in which case there are undefined symbols in res.
-      // In this case, we resort to rewriting below.
+      // In this case, we revert to the result of rewriting in the return
+      // statement below.
     }
   }
   return res;
