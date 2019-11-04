@@ -1063,7 +1063,7 @@ sygusGrammar[CVC4::Type & ret,
         Expr c = btt.mkGroundTerm();
         PARSER_STATE->addSygusConstructorTerm(datatypes[i], c, ntsToUnres);
       }
-      if (datatypes[i].getNumConstructors() == 0)
+      else if (datatypes[i].getNumConstructors() == 0)
       {
         std::stringstream se;
         se << "Grouped rule listing for " << datatypes[i].getName()
