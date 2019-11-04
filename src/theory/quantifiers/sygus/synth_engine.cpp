@@ -41,6 +41,17 @@ SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
 }
 
 SynthEngine::~SynthEngine() {}
+
+void SynthEngine::presolve()
+{
+  Trace("cegqi-engine") << "SynthEngine::presolve" << std::endl;
+  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
+  {
+    d_conjs[i]->presolve();
+  }
+  Trace("cegqi-engine") << "SynthEngine::presolve finished" << std::endl;
+}
+
 bool SynthEngine::needsCheck(Theory::Effort e)
 {
   return e >= Theory::EFFORT_LAST_CALL;
@@ -130,7 +141,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 
 void SynthEngine::assignConjecture(Node q)
 {
-  Trace("cegqi-engine") << "--- Assign conjecture " << q << std::endl;
+  Trace("cegqi-engine") << "SynthEngine::assignConjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
     // the following does quantifier elimination as a preprocess step
@@ -376,15 +387,22 @@ void SynthEngine::printSynthSolution(std::ostream& out)
   }
 }
 
-void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+bool SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
+  bool ret = true;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
     if (d_conjs[i]->isAssigned())
     {
-      d_conjs[i]->getSynthSolutions(sol_map);
+      if (!d_conjs[i]->getSynthSolutions(sol_map))
+      {
+        // if one conjecture fails, we fail overall
+        ret = false;
+        break;
+      }
     }
   }
+  return ret;
 }
 
 void SynthEngine::preregisterAssertion(Node n)

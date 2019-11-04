@@ -3839,12 +3839,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
         checkUnsatCore();
       }
     }
-    // Check that synthesis solutions satisfy the conjecture
-    if (options::checkSynthSol()
-        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-    {
-      checkSynthSolution();
-    }
 
     return r;
   } catch (UnsafeInterruptException& e) {
@@ -4062,62 +4056,70 @@ Result SmtEngine::checkSynth()
     throw ModalException(
         "Cannot make check-synth commands when incremental solving is enabled");
   }
-
-  if (!d_private->d_sygusConjectureStale)
+  Expr query;
+  if (d_private->d_sygusConjectureStale)
   {
-    // do not need to reconstruct, we're done
-    return checkSatisfiability(Expr(), true, false);
-  }
-
-  // build synthesis conjecture from asserted constraints and declared
-  // variables/functions
-  Node sygusVar =
-      d_nodeManager->mkSkolem("sygus", d_nodeManager->booleanType());
-  Node inst_attr = d_nodeManager->mkNode(kind::INST_ATTRIBUTE, sygusVar);
-  Node sygusAttr = d_nodeManager->mkNode(kind::INST_PATTERN_LIST, inst_attr);
-  std::vector<Node> bodyv;
-  Trace("smt") << "Sygus : Constructing sygus constraint...\n";
-  unsigned n_constraints = d_private->d_sygusConstraints.size();
-  Node body = n_constraints == 0
-                  ? d_nodeManager->mkConst(true)
-                  : (n_constraints == 1
-                         ? d_private->d_sygusConstraints[0]
-                         : d_nodeManager->mkNode(
+    // build synthesis conjecture from asserted constraints and declared
+    // variables/functions
+    Node sygusVar =
+        d_nodeManager->mkSkolem("sygus", d_nodeManager->booleanType());
+    Node inst_attr = d_nodeManager->mkNode(kind::INST_ATTRIBUTE, sygusVar);
+    Node sygusAttr = d_nodeManager->mkNode(kind::INST_PATTERN_LIST, inst_attr);
+    std::vector<Node> bodyv;
+    Trace("smt") << "Sygus : Constructing sygus constraint...\n";
+    unsigned n_constraints = d_private->d_sygusConstraints.size();
+    Node body = n_constraints == 0
+                    ? d_nodeManager->mkConst(true)
+                    : (n_constraints == 1
+                           ? d_private->d_sygusConstraints[0]
+                           : d_nodeManager->mkNode(
                                kind::AND, d_private->d_sygusConstraints));
-  body = body.notNode();
-  Trace("smt") << "...constructed sygus constraint " << body << std::endl;
-  if (!d_private->d_sygusVars.empty())
-  {
-    Node boundVars =
-        d_nodeManager->mkNode(kind::BOUND_VAR_LIST, d_private->d_sygusVars);
-    body = d_nodeManager->mkNode(kind::EXISTS, boundVars, body);
-    Trace("smt") << "...constructed exists " << body << std::endl;
+    body = body.notNode();
+    Trace("smt") << "...constructed sygus constraint " << body << std::endl;
+    if (!d_private->d_sygusVars.empty())
+    {
+      Node boundVars =
+          d_nodeManager->mkNode(kind::BOUND_VAR_LIST, d_private->d_sygusVars);
+      body = d_nodeManager->mkNode(kind::EXISTS, boundVars, body);
+      Trace("smt") << "...constructed exists " << body << std::endl;
+    }
+    if (!d_private->d_sygusFunSymbols.empty())
+    {
+      Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
+                                             d_private->d_sygusFunSymbols);
+      body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
+    }
+    Trace("smt") << "...constructed forall " << body << std::endl;
+
+    // set attribute for synthesis conjecture
+    setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
+
+    Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
+
+    d_private->d_sygusConjectureStale = false;
+
+    if (options::incrementalSolving())
+    {
+      // we push a context so that this conjecture is removed if we modify it
+      // later
+      internalPush();
+      assertFormula(body.toExpr(), true);
+    }
+    else
+    {
+      query = body.toExpr();
+    }
   }
-  if (!d_private->d_sygusFunSymbols.empty())
+
+  Result r = checkSatisfiability(query, true, false);
+
+  // Check that synthesis solutions satisfy the conjecture
+  if (options::checkSynthSol()
+      && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
-    Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
-                                           d_private->d_sygusFunSymbols);
-    body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
+    checkSynthSolution();
   }
-  Trace("smt") << "...constructed forall " << body << std::endl;
-
-  // set attribute for synthesis conjecture
-  setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
-
-  Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
-
-  d_private->d_sygusConjectureStale = false;
-
-  if (options::incrementalSolving())
-  {
-    // we push a context so that this conjecture is removed if we modify it
-    // later
-    internalPush();
-    assertFormula(body.toExpr(), true);
-    return checkSatisfiability(body.toExpr(), true, false);
-  }
-
-  return checkSatisfiability(body.toExpr(), true, false);
+  return r;
 }
 
 /*
@@ -4820,10 +4822,14 @@ void SmtEngine::checkSynthSolution()
   Notice() << "SmtEngine::checkSynthSolution(): checking synthesis solution" << endl;
   map<Node, Node> sol_map;
   /* Get solutions and build auxiliary vectors for substituting */
-  d_theoryEngine->getSynthSolutions(sol_map);
+  if (!d_theoryEngine->getSynthSolutions(sol_map))
+  {
+    InternalError() << "SmtEngine::checkSynthSolution(): No solution to check!";
+    return;
+  }
   if (sol_map.empty())
   {
-    Trace("check-synth-sol") << "No solution to check!\n";
+    InternalError() << "SmtEngine::checkSynthSolution(): Got empty solution!";
     return;
   }
   Trace("check-synth-sol") << "Got solution map:\n";
@@ -5049,17 +5055,21 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
+bool SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 {
   SmtScope smts(this);
   finalOptionsAreSet();
   map<Node, Node> sol_mapn;
   Assert(d_theoryEngine != nullptr);
-  d_theoryEngine->getSynthSolutions(sol_mapn);
+  if (!d_theoryEngine->getSynthSolutions(sol_mapn))
+  {
+    return false;
+  }
   for (std::pair<const Node, Node>& s : sol_mapn)
   {
     sol_map[s.first.toExpr()] = s.second.toExpr();
   }
+  return true;
 }
 
 Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
