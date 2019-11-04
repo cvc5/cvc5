@@ -41,9 +41,9 @@ struct DatatypeConstructorTypeRule {
                                      bool check) {
     Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
     TypeNode consType = n.getOperator().getType(check);
-    Type t = consType.getConstructorRangeType().toType();
+    TypeNode t = consType.getConstructorRangeType();
     Assert(t.isDatatype());
-    DatatypeType dt = DatatypeType(t);
+    DatatypeType dt = DatatypeType(t.toType());
     TNode::iterator child_it = n.begin();
     TNode::iterator child_it_end = n.end();
     TypeNode::iterator tchild_it = consType.begin();
@@ -65,7 +65,12 @@ struct DatatypeConstructorTypeRule {
       }
       std::vector<Type> instTypes;
       m.getMatches(instTypes);
-      TypeNode range = TypeNode::fromType(dt.instantiate(instTypes));
+      std::vector<TypeNode> itn;
+      for (const Type& ts : instTypes)
+      {
+        itn.push_back(TypeNode::fromType(ts));
+      }
+      TypeNode range = t.instantiateParametricDatatype(itn);
       Debug("typecheck-idt") << "Return " << range << std::endl;
       return range;
     } else {
