@@ -1065,7 +1065,7 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                    return NodeManager::currentNM()->fromExpr(e).negate();
                  });
 
-  // Get farkas coefficients & literal order
+  // Get Farkas coefficients & literal order
   const auto& farkasInfo = d_recorder.getFarkasCoefficients(conflictSet);
   const Node& conflict = farkasInfo.first;
   theory::arith::RationalVectorCP farkasCoefficients = farkasInfo.second;
