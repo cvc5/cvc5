@@ -18,13 +18,13 @@ import subprocess
 import sys
 import threading
 
-SCRUBBER = 'SCRUBBER: '
-ERROR_SCRUBBER = 'ERROR-SCRUBBER: '
-EXPECT = 'EXPECT: '
-EXPECT_ERROR = 'EXPECT-ERROR: '
-EXIT = 'EXIT: '
-COMMAND_LINE = 'COMMAND-LINE: '
-REQUIRES = 'REQUIRES: '
+SCRUBBER = 'SCRUBBER:'
+ERROR_SCRUBBER = 'ERROR-SCRUBBER:'
+EXPECT = 'EXPECT:'
+EXPECT_ERROR = 'EXPECT-ERROR:'
+EXIT = 'EXIT:'
+COMMAND_LINE = 'COMMAND-LINE:'
+REQUIRES = 'REQUIRES:'
 
 EXIT_OK = 0
 EXIT_FAILURE = 1
@@ -219,17 +219,17 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         line = line[1:].lstrip()
 
         if line.startswith(SCRUBBER):
-            scrubber = line[len(SCRUBBER):]
+            scrubber = line[len(SCRUBBER):].strip()
         elif line.startswith(ERROR_SCRUBBER):
-            error_scrubber = line[len(ERROR_SCRUBBER):]
+            error_scrubber = line[len(ERROR_SCRUBBER):].strip()
         elif line.startswith(EXPECT):
-            expected_output += line[len(EXPECT):]
+            expected_output += line[len(EXPECT):].strip() + '\n'
         elif line.startswith(EXPECT_ERROR):
-            expected_error += line[len(EXPECT_ERROR):]
+            expected_error += line[len(EXPECT_ERROR):].strip() + '\n'
         elif line.startswith(EXIT):
-            expected_exit_status = int(line[len(EXIT):])
+            expected_exit_status = int(line[len(EXIT):].strip())
         elif line.startswith(COMMAND_LINE):
-            command_lines.append(line[len(COMMAND_LINE):])
+            command_lines.append(line[len(COMMAND_LINE):].strip())
         elif line.startswith(REQUIRES):
             requires.append(line[len(REQUIRES):].strip())
     expected_output = expected_output.strip()
