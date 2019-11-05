@@ -426,13 +426,13 @@ class DTypeConstructor
                const std::map<std::string, TypeNode>& resolutions,
                const std::vector<TypeNode>& placeholders,
                const std::vector<TypeNode>& replacements,
-               const std::vector<SortConstructorType>& paramTypes,
+               const std::vector<TypeNode>& paramTypes,
                const std::vector<TypeNode>& paramReplacements,
                size_t cindex);
 
   /** Helper function for resolving parametric datatypes.
    *
-   * This replaces instances of the SortConstructorType produced for unresolved
+   * This replaces instances of the TypeNode produced for unresolved
    * parametric datatypes, with the corresponding resolved TypeNode.  For
    * example, take the parametric definition of a list,
    *    list[T] = cons(car : T, cdr : list[T]) | null.
@@ -447,7 +447,7 @@ class DTypeConstructor
    */
   TypeNode doParametricSubstitution(
       TypeNode range,
-      const std::vector<SortConstructorType>& paramTypes,
+      const std::vector<TypeNode>& paramTypes,
       const std::vector<TypeNode>& paramReplacements);
 
   /** compute the cardinality of this datatype */

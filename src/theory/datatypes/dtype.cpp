@@ -851,7 +851,7 @@ const DTypeConstructor& DType::operator[](std::string name) const
                   d_name.c_str());
 }
 
-Node DType::getSharedSelector(Type dtt, TypeNode t, unsigned index) const
+Node DType::getSharedSelector(TypeNode dtt, TypeNode t, unsigned index) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   std::map<Type, std::map<Type, std::map<unsigned, Node> > >::iterator itd =

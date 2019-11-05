@@ -17,6 +17,7 @@
 #include "expr/node_manager.h"
 #include "theory/datatypes/dtype.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "options/datatypes_options.h"
 
 using namespace CVC4::kind;
 
@@ -159,7 +160,7 @@ bool DTypeConstructor::isSygusIdFunc() const
 {
   PrettyCheckArgument(
       isResolved(), this, "this datatype constructor is not yet resolved");
-  return (d_sygus_op.getKind() == kind::LAMBDA
+  return (d_sygus_op.getKind() == LAMBDA
           && d_sygus_op[0].getNumChildren() == 1
           && d_sygus_op[0][0] == d_sygus_op[1]);
 }
@@ -346,13 +347,13 @@ Node DTypeConstructor::getSelector(std::string name) const
   return (*this)[name].getSelector();
 }
 
-Type DTypeConstructor::getArgType(unsigned index) const
+TypeNode DTypeConstructor::getArgType(unsigned index) const
 {
   PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
-  return static_cast<SelectorType>((*this)[index].getType()).getRangeType();
+  return (*this)[index].getType().getSelectorRangeType();
 }
 
-Node DTypeConstructor::getSelectorInternal(Type domainType, size_t index) const
+Node DTypeConstructor::getSelectorInternal(TypeNode domainType, size_t index) const
 {
   PrettyCheckArgument(
       isResolved(),
@@ -380,7 +381,7 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
   if (options::dtSharedSelectors())
   {
     Assert(sel.getType().isSelector());
-    TypeNode domainType = ((SelectorType)sel.getType()).getDomain();
+    TypeNode domainType = sel.getType().getSelectorDomainType();
     computeSharedSelectors(domainType);
     std::map<Node, unsigned>::iterator its =
         d_shared_selector_index[domainType].find(sel);
@@ -402,9 +403,9 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
 
 bool DTypeConstructor::involvesExternalType() const
 {
-  for (const_iterator i = begin(); i != end(); ++i)
+  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
   {
-    if (!SelectorType((*i).getSelector().getType()).getRangeType().isDatatype())
+    if (!getArgType(i).isDatatype())
     {
       return true;
     }
@@ -414,9 +415,9 @@ bool DTypeConstructor::involvesExternalType() const
 
 bool DTypeConstructor::involvesUninterpretedType() const
 {
-  for (const_iterator i = begin(); i != end(); ++i)
+  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
   {
-    if (SelectorType((*i).getSelector().getType()).getRangeType().isSort())
+    if (!getArgType(i).isSort())
     {
       return true;
     }
@@ -459,9 +460,9 @@ Cardinality DTypeConstructor::computeCardinality(
 bool DTypeConstructor::computeWellFounded(
     std::vector<TypeNode>& processing) const
 {
-  for (const_iterator i = begin(), i_end = end(); i != i_end; ++i)
+  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
   {
-    TypeNode t = SelectorType((*i).getSelector().getType()).getRangeType();
+    TypeNode t = getArgType(i);
     if (t.isDatatype())
     {
       const DType& dt = t.getDType();
@@ -479,6 +480,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
                                          std::map<TypeNode, Node>& gt,
                                          bool isValue) const
 {
+  NodeManager * nm = NodeManager::currentNM();
   std::vector<Node> groundTerms;
   groundTerms.push_back(getConstructor());
 
@@ -491,17 +493,17 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     paramTypes = t.getDType().getParameters();
     instTypes = TypeNode(t).getParamTypes();
   }
-  for (const_iterator i = begin(), i_end = end(); i != i_end; ++i)
+  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
   {
-    Type selType = SelectorType((*i).getSelector().getType()).getRangeType();
+    TypeNode selType = getArgType(i);
     if (isParam)
     {
-      selType = selType.substitute(paramTypes, instTypes);
+      selType = selType.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
     }
     Node arg;
     if (selType.isDatatype())
     {
-      std::map<Type, Node>::iterator itgt = gt.find(selType);
+      std::map<TypeNode, Node>::iterator itgt = gt.find(selType);
       if (itgt != gt.end())
       {
         arg = itgt->second;
@@ -519,7 +521,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     }
     if (arg.isNull())
     {
-      Debug("datatypes") << "...unable to construct arg of " << (*i).getName()
+      Debug("datatypes") << "...unable to construct arg of " << d_args[i].getName()
                          << std::endl;
       return Node();
     }
@@ -530,26 +532,26 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     }
   }
 
-  Node groundTerm = getConstructor().getNodeManager()->mkNode(
-      kind::APPLY_CONSTRUCTOR, groundTerms);
+  Node groundTerm = nm->mkNode(
+      APPLY_CONSTRUCTOR, groundTerms);
   if (isParam)
   {
     Assert(DType::datatypeOf(d_constructor).isParametric());
     // type is parametric, must apply type ascription
     Debug("datatypes-gt") << "ambiguous type for " << groundTerm
                           << ", ascribe to " << t << std::endl;
-    groundTerms[0] = getConstructor().getNodeManager()->mkNode(
-        kind::APPLY_TYPE_ASCRIPTION,
-        getConstructor().getNodeManager()->mkConst(
-            AscriptionType(getSpecializedConstructorType(t))),
+    groundTerms[0] = nm->mkNode(
+        APPLY_TYPE_ASCRIPTION,
+        nm->mkConst(
+            AscriptionType(getSpecializedConstructorType(t).toType())),
         groundTerms[0]);
-    groundTerm = getConstructor().getNodeManager()->mkNode(
-        kind::APPLY_CONSTRUCTOR, groundTerms);
+    groundTerm = nm->mkNode(
+        APPLY_CONSTRUCTOR, groundTerms);
   }
   return groundTerm;
 }
 
-void DTypeConstructor::computeSharedSelectors(Type domainType) const
+void DTypeConstructor::computeSharedSelectors(TypeNode domainType) const
 {
   if (d_shared_selectors[domainType].size() < getNumArgs())
   {
@@ -585,7 +587,7 @@ void DTypeConstructor::resolve(
     const std::map<std::string, TypeNode>& resolutions,
     const std::vector<TypeNode>& placeholders,
     const std::vector<TypeNode>& replacements,
-    const std::vector<SortConstructorType>& paramTypes,
+    const std::vector<TypeNode>& paramTypes,
     const std::vector<TypeNode>& paramReplacements,
     size_t cindex)
 {
@@ -604,7 +606,7 @@ void DTypeConstructor::resolve(
     if ((*i).d_selector.isNull())
     {
       // the unresolved type wasn't created here; do name resolution
-      string typeName = (*i).d_name.substr((*i).d_name.find('\0') + 1);
+      std::string typeName = (*i).d_name.substr((*i).d_name.find('\0') + 1);
       (*i).d_name.resize((*i).d_name.find('\0'));
       if (typeName == "")
       {
@@ -616,10 +618,10 @@ void DTypeConstructor::resolve(
       }
       else
       {
-        map<string, TypeNode>::const_iterator j = resolutions.find(typeName);
+        std::map<std::string, TypeNode>::const_iterator j = resolutions.find(typeName);
         if (j == resolutions.end())
         {
-          stringstream msg;
+          std::stringstream msg;
           msg << "cannot resolve type \"" << typeName << "\" "
               << "in selector \"" << (*i).d_name << "\" "
               << "of constructor \"" << d_name << "\"";
@@ -639,10 +641,10 @@ void DTypeConstructor::resolve(
     {
       // the type for the selector already exists; may need
       // complex-type substitution
-      Type range = (*i).d_selector.getType();
+      TypeNode range = (*i).d_selector.getType();
       if (!placeholders.empty())
       {
-        range = range.substitute(placeholders, replacements);
+        range = range.substitute(placeholders.begin(),placeholders.end(), replacements.begin(), replacements.end());
       }
       if (!paramTypes.empty())
       {
@@ -688,7 +690,7 @@ void DTypeConstructor::resolve(
 
 TypeNode DTypeConstructor::doParametricSubstitution(
     TypeNode range,
-    const std::vector<SortConstructorType>& paramTypes,
+    const std::vector<TypeNode>& paramTypes,
     const std::vector<TypeNode>& paramReplacements)
 {
   if (range.getNumChildren() == 0)
@@ -709,12 +711,13 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     }
     for (unsigned i = 0; i < paramTypes.size(); ++i)
     {
-      if (paramTypes[i].getArity() == origChildren.size())
+      // the arity a parameterized type is the number of its children minus one.
+      if (paramTypes[i].getNumChildren() == origChildren.size()+1)
       {
-        TypeNode tn = paramTypes[i].instantiate(origChildren);
+        TypeNode tn = paramTypes[i].instantiateParametricDatatype(origChildren);
         if (range == tn)
         {
-          return paramReplacements[i].instantiate(children);
+          return paramReplacements[i].instantiateParametricDatatype(children);
         }
       }
     }

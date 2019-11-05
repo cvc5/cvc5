@@ -529,6 +529,12 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
 
+TypeNode NodeManager::mkConstructorType(const DTypeConstructor& constructor, TypeNode range)
+{
+  // FIXME
+  return TypeNode::null();
+}
+
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
   if( index==types.size() ){
     if( d_data.isNull() ){
