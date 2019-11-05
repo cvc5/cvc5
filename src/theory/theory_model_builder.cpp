@@ -301,12 +301,17 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
                          << std::endl;
   if (!d_te->collectModelInfo(tm))
   {
+    Trace("model-builder")
+        << "TheoryEngineModelBuilder: fail collect model info" << std::endl;
     return false;
   }
 
   // model-builder specific initialization
   if (!preProcessBuildModel(tm))
   {
+    Trace("model-builder")
+        << "TheoryEngineModelBuilder: fail preprocess build model."
+        << std::endl;
     return false;
   }
 
@@ -813,9 +818,11 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   // modelBuilder-specific initialization
   if (!processBuildModel(tm))
   {
+    Trace("model-builder")
+        << "TheoryEngineModelBuilder: fail process build model." << std::endl;
     return false;
   }
-
+  Trace("model-builder") << "TheoryEngineModelBuilder: success" << std::endl;
   tm->d_modelBuiltSuccess = true;
   return true;
 }

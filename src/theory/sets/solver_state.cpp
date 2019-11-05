@@ -137,10 +137,10 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     d_nvar_sets[r].push_back(n);
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
   }
-  else if (nk == VARIABLE)
+  else if (n.isVar() && !d_skCache.isSkolem(n))
   {
-    // it is important that we check kind VARIABLE, due to the semantics of the
-    // universe set.
+    // it is important that we check it is a variable, but not an internally
+    // introduced skolem, due to the semantics of the universe set.
     if (tnn.isSet())
     {
       if (d_var_set.find(r) == d_var_set.end())
@@ -401,7 +401,8 @@ Node SolverState::getProxy(Node n)
     return (*it).second;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node k = nm->mkSkolem("sp", n.getType(), "proxy for set");
+  Node k = d_skCache.mkTypedSkolemCached(
+      n.getType(), n, SkolemCache::SK_PURIFY, "sp");
   d_proxy[n] = k;
   d_proxy_to_term[k] = n;
   Node eq = k.eqNode(n);

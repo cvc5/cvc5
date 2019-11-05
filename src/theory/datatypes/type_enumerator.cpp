@@ -14,8 +14,9 @@
  ** Enumerators for datatypes.
  **/
 
- #include "theory/datatypes/type_enumerator.h"
- #include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/type_enumerator.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4;
 using namespace theory;
@@ -187,7 +188,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      Debug("dt-enum-debug") << "done : " << t << std::endl;
      Assert( t.getKind()==kind::APPLY_CONSTRUCTOR );
      // start with the constructor for which a ground term is constructed
-     d_zeroCtor = datatypes::DatatypesRewriter::indexOf(t.getOperator());
+     d_zeroCtor = datatypes::utils::indexOf(t.getOperator());
      d_has_debruijn = 0;
    }
    Debug("dt-enum") << "zero ctor : " << d_zeroCtor << std::endl;

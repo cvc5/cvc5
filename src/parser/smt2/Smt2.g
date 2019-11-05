@@ -208,13 +208,12 @@ parseCommand returns [CVC4::Command* cmd_return = NULL]
  */
 parseSygus returns [CVC4::Command* cmd_return = NULL]
 @declarations {
-  std::unique_ptr<CVC4::Command> cmd;
   std::string name;
 }
 @after {
   cmd_return = cmd.release();
 }
-  : LPAREN_TOK sygusCommand[&cmd] RPAREN_TOK
+  : LPAREN_TOK cmd=sygusCommand RPAREN_TOK
   | EOF
   ;
 
@@ -551,19 +550,16 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     }
   ;
 
-sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
+sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
 @declarations {
-  std::string name, fun;
-  std::vector<std::string> names;
   Expr expr, expr2;
   Type t, range;
-  std::vector<Expr> terms;
-  std::vector<Expr> sygus_vars;
+  std::vector<std::string> names;
   std::vector<std::pair<std::string, Type> > sortedVarNames;
-  Type sygus_ret;
-  Expr synth_fun;
-  Type sygus_type;
+  std::unique_ptr<Smt2::SynthFunFactory> synthFunFactory;
+  std::string name, fun;
   bool isInv;
+  Type grammar;
 }
   : /* declare-var */
     DECLARE_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -572,7 +568,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[t,CHECK_DECLARED]
     {
       Expr var = PARSER_STATE->mkBoundVar(name, t);
-      cmd->reset(new DeclareSygusVarCommand(name, var, t));
+      cmd.reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* declare-primed-var */
     DECLARE_PRIMED_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -582,7 +578,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     {
       // spurious command, we do not need to create a variable. We only keep
       // track of the command for sanity checking / dumping
-      cmd->reset(new DeclareSygusPrimedVarCommand(name, t));
+      cmd.reset(new DeclareSygusPrimedVarCommand(name, t));
     }
 
   | /* synth-fun */
@@ -594,45 +590,18 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
     {
-      if (range.isNull())
-      {
-        PARSER_STATE->parseError("Must supply return type for synth-fun.");
-      }
-      if (range.isFunction())
-      {
-        PARSER_STATE->parseError(
-            "Cannot use synth-fun with function return type.");
-      }
-      std::vector<Type> var_sorts;
-      for (const std::pair<std::string, CVC4::Type>& p : sortedVarNames)
-      {
-        var_sorts.push_back(p.second);
-      }
-      Debug("parser-sygus") << "Define synth fun : " << fun << std::endl;
-      Type synth_fun_type = var_sorts.size() > 0
-                                ? EXPR_MANAGER->mkFunctionType(var_sorts, range)
-                                : range;
-      // we do not allow overloading for synth fun
-      synth_fun = PARSER_STATE->mkBoundVar(fun, synth_fun_type);
-      // set the sygus type to be range by default, which is overwritten below
-      // if a grammar is provided
-      sygus_type = range;
-      // create new scope for parsing the grammar, if any
-      PARSER_STATE->pushScope(true);
-      sygus_vars = PARSER_STATE->mkBoundVars(sortedVarNames);
+      synthFunFactory.reset(new Smt2::SynthFunFactory(
+          PARSER_STATE, fun, isInv, range, sortedVarNames));
     }
     (
       // optionally, read the sygus grammar
       //
-      // the sygus type specifies the required grammar for synth_fun, expressed
-      // as a type
-      sygusGrammarV1[sygus_type, sygus_vars, fun]
+      // `grammar` specifies the required grammar for the function to
+      // synthesize, expressed as a type
+      sygusGrammarV1[grammar, synthFunFactory->getSygusVars(), fun]
     )?
     {
-      PARSER_STATE->popScope();
-      Debug("parser-sygus") << "...read synth fun " << fun << std::endl;
-      cmd->reset(
-          new SynthFunCommand(fun, synth_fun, sygus_type, isInv, sygus_vars));
+      cmd = synthFunFactory->mkCommand(grammar);
     }
   | /* synth-fun */
     ( SYNTH_FUN_TOK { isInv = false; }
@@ -643,45 +612,18 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
     {
-      if (range.isNull())
-      {
-        PARSER_STATE->parseError("Must supply return type for synth-fun.");
-      }
-      if (range.isFunction())
-      {
-        PARSER_STATE->parseError(
-            "Cannot use synth-fun with function return type.");
-      }
-      std::vector<Type> var_sorts;
-      for (const std::pair<std::string, CVC4::Type>& p : sortedVarNames)
-      {
-        var_sorts.push_back(p.second);
-      }
-      Debug("parser-sygus") << "Define synth fun : " << fun << std::endl;
-      Type synth_fun_type = var_sorts.size() > 0
-                                ? EXPR_MANAGER->mkFunctionType(var_sorts, range)
-                                : range;
-      // we do not allow overloading for synth fun
-      synth_fun = PARSER_STATE->mkBoundVar(fun, synth_fun_type);
-      // set the sygus type to be range by default, which is overwritten below
-      // if a grammar is provided
-      sygus_type = range;
-      // create new scope for parsing the grammar, if any
-      PARSER_STATE->pushScope(true);
-      sygus_vars = PARSER_STATE->mkBoundVars(sortedVarNames);
+      synthFunFactory.reset(new Smt2::SynthFunFactory(
+          PARSER_STATE, fun, isInv, range, sortedVarNames));
     }
     (
       // optionally, read the sygus grammar
       //
-      // the sygus type specifies the required grammar for synth_fun, expressed
-      // as a type
-      sygusGrammar[sygus_type, sygus_vars, fun]
+      // `grammar` specifies the required grammar for the function to
+      // synthesize, expressed as a type
+      sygusGrammar[grammar, synthFunFactory->getSygusVars(), fun]
     )?
     {
-      PARSER_STATE->popScope();
-      Debug("parser-sygus") << "...read synth fun " << fun << std::endl;
-      cmd->reset(
-          new SynthFunCommand(fun, synth_fun, sygus_type, isInv, sygus_vars));
+      cmd = synthFunFactory->mkCommand(grammar);
     }
   | /* constraint */
     CONSTRAINT_TOK {
@@ -691,39 +633,21 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     }
     term[expr, expr2]
     { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
-      cmd->reset(new SygusConstraintCommand(expr));
+      cmd.reset(new SygusConstraintCommand(expr));
     }
-  | INV_CONSTRAINT_TOK {
-      PARSER_STATE->checkThatLogicIsSet();
-      Debug("parser-sygus") << "Sygus : define sygus funs..." << std::endl;
-      Debug("parser-sygus") << "Sygus : read inv-constraint..." << std::endl;
-    }
-    ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
-        if( !terms.empty() ){
-          if (!PARSER_STATE->isDeclared(name))
-          {
-            std::stringstream ss;
-            ss << "Function " << name << " in inv-constraint is not defined.";
-            PARSER_STATE->parseError(ss.str());
-          }
-        }
-        terms.push_back( PARSER_STATE->getVariable(name) );
-      }
-    )+ {
-      if( terms.size()!=4 ){
-        PARSER_STATE->parseError("Bad syntax for inv-constraint: expected 4 "
-                                 "arguments.");
-      }
-
-      cmd->reset(new SygusInvConstraintCommand(terms));
+  | /* inv-constraint */
+    INV_CONSTRAINT_TOK
+    ( symbol[name,CHECK_NONE,SYM_VARIABLE] { names.push_back(name); } )+
+    {
+      cmd = PARSER_STATE->invConstraint(names);
     }
   | /* check-synth */
     CHECK_SYNTH_TOK
     { PARSER_STATE->checkThatLogicIsSet(); }
     {
-      cmd->reset(new CheckSynthCommand());
+      cmd.reset(new CheckSynthCommand());
     }
-  | command[cmd]
+  | command[&cmd]
   ;
 
 /** Reads a sygus grammar
@@ -736,8 +660,8 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
  * datatypes constructed by this call.
  */
 sygusGrammarV1[CVC4::Type & ret,
-             std::vector<CVC4::Expr>& sygus_vars,
-             std::string& fun]
+               const std::vector<CVC4::Expr>& sygus_vars,
+               const std::string& fun]
 @declarations
 {
   Type t;
@@ -879,7 +803,7 @@ sygusGrammarV1[CVC4::Type & ret,
 // type argument vectors to cargs[index] (where typically N=1)
 // This method may also add new elements pairwise into
 // datatypes/sorts/ops/cnames/cargs in the case of non-flat gterms.
-sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
+sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
 @declarations {
   std::string name, name2;
   Kind k;
@@ -1013,8 +937,8 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
  * datatypes constructed by this call.
  */
 sygusGrammar[CVC4::Type & ret,
-             std::vector<CVC4::Expr>& sygusVars,
-             std::string& fun]
+             const std::vector<CVC4::Expr>& sygusVars,
+             const std::string& fun]
 @declarations
 {
   // the pre-declaration
@@ -1625,94 +1549,33 @@ datatypesDef[bool isCo,
 
 rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
-  std::vector<std::pair<std::string, Type> > sortedVarNames;
-  std::vector<Expr> args, guards, heads, triggers;
-  Expr head, body, expr, expr2, bvl;
+  std::vector<Expr> guards, heads, triggers;
+  Expr head, body, bvl, expr, expr2;
   Kind kind;
 }
   : /* rewrite rules */
-    REWRITE_RULE_TOK
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    {
-      kind = CVC4::kind::RR_REWRITE;
-      PARSER_STATE->pushScope(true);
-      args = PARSER_STATE->mkBoundVars(sortedVarNames);
-      bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
-    }
+    REWRITE_RULE_TOK { kind = CVC4::kind::RR_REWRITE; }
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
     LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
     LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
-    term[head, expr2] term[body, expr2]
+    term[head, expr2]
+    term[body, expr2]
     {
-      args.clear();
-      args.push_back(head);
-      args.push_back(body);
-      /* triggers */
-      if( !triggers.empty() ){
-        expr2 = MK_EXPR(kind::INST_PATTERN_LIST, triggers);
-        args.push_back(expr2);
-      };
-      expr = MK_EXPR(kind, args);
-      args.clear();
-      args.push_back(bvl);
-      /* guards */
-      switch( guards.size() ){
-      case 0:
-        args.push_back(MK_CONST(bool(true))); break;
-      case 1:
-        args.push_back(guards[0]); break;
-      default:
-        expr2 = MK_EXPR(kind::AND, guards);
-        args.push_back(expr2); break;
-      };
-      args.push_back(expr);
-      expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-      cmd->reset(new AssertCommand(expr, false)); }
+      *cmd = PARSER_STATE->assertRewriteRule(
+          kind, bvl, triggers, guards, {head}, body);
+    }
     /* propagation rule */
   | rewritePropaKind[kind]
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    {
-      PARSER_STATE->pushScope(true);
-      args = PARSER_STATE->mkBoundVars(sortedVarNames);
-      bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
-    }
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
     LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
     LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
     LPAREN_TOK (termList[heads,expr])? RPAREN_TOK
     term[body, expr2]
     {
-      args.clear();
-      /* heads */
-      switch( heads.size() ){
-      case 0:
-        args.push_back(MK_CONST(bool(true))); break;
-      case 1:
-        args.push_back(heads[0]); break;
-      default:
-        expr2 = MK_EXPR(kind::AND, heads);
-        args.push_back(expr2); break;
-      };
-      args.push_back(body);
-      /* triggers */
-      if( !triggers.empty() ){
-        expr2 = MK_EXPR(kind::INST_PATTERN_LIST, triggers);
-        args.push_back(expr2);
-      };
-      expr = MK_EXPR(kind, args);
-      args.clear();
-      args.push_back(bvl);
-      /* guards */
-      switch( guards.size() ){
-      case 0:
-        args.push_back(MK_CONST(bool(true))); break;
-      case 1:
-        args.push_back(guards[0]); break;
-      default:
-        expr2 = MK_EXPR(kind::AND, guards);
-        args.push_back(expr2); break;
-      };
-      args.push_back(expr);
-      expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-      cmd->reset(new AssertCommand(expr, false));
+      *cmd = PARSER_STATE->assertRewriteRule(
+          kind, bvl, triggers, guards, heads, body);
     }
   ;
 
@@ -1830,6 +1693,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::string name;
   std::vector<Expr> args;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
+  Expr bvl;
   Expr f, f2, f3;
   std::string attr;
   Expr attexpr;
@@ -1844,16 +1708,12 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Type> argTypes;
 }
   : LPAREN_TOK quantOp[kind]
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    {
-      PARSER_STATE->pushScope(true);
-      args = PARSER_STATE->mkBoundVars(sortedVarNames);
-      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
-      args.clear();
-      args.push_back(bvl);
-    }
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
     term[f, f2] RPAREN_TOK
     {
+      args.push_back(bvl);
+
       PARSER_STATE->popScope();
       switch(f.getKind()) {
       case CVC4::kind::RR_REWRITE:
@@ -2078,19 +1938,14 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     }
   | /* lambda */
     LPAREN_TOK HO_LAMBDA_TOK
-    LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
-    {
-      PARSER_STATE->pushScope(true);
-      args = PARSER_STATE->mkBoundVars(sortedVarNames);
-      Expr bvl = MK_EXPR(kind::BOUND_VAR_LIST, args);
-      args.clear();
-      args.push_back(bvl);
-    }
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
     term[f, f2] RPAREN_TOK
     {
-      args.push_back( f );
+      args.push_back(bvl);
+      args.push_back(f);
       PARSER_STATE->popScope();
-      expr = MK_EXPR( CVC4::kind::LAMBDA, args );
+      expr = MK_EXPR(CVC4::kind::LAMBDA, args);
     }
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
   {
@@ -2535,6 +2390,21 @@ sortedVarList[std::vector<std::pair<std::string, CVC4::Type> >& sortedVars]
       { sortedVars.push_back(make_pair(name, t)); }
     )*
   ;
+
+/**
+ * Matches a sequence of (variable, sort) symbol pairs, registers them as bound
+ * variables, and returns a term corresponding to the list of pairs.
+ */
+boundVarList[CVC4::Expr& expr]
+@declarations {
+  std::vector<std::pair<std::string, CVC4::Type>> sortedVarNames;
+}
+ : LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
+   {
+     std::vector<CVC4::Expr> args = PARSER_STATE->mkBoundVars(sortedVarNames);
+     expr = MK_EXPR(kind::BOUND_VAR_LIST, args);
+   }
+ ;
 
 /**
  * Matches the sort symbol, which can be an arbitrary symbol.

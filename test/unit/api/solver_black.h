@@ -289,12 +289,14 @@ void SolverBlack::testMkBitVector()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("1234", 10));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("1010", 16));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("a09f", 16));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector(8, "-127", 10));
   TS_ASSERT_THROWS(d_solver->mkBitVector(size0, val1), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkBitVector(size0, val2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkBitVector("", 2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkBitVector("10", 3), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkBitVector("20", 2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkBitVector(8, "101010101", 2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkBitVector(8, "-256", 10), CVC4ApiException&);
   TS_ASSERT_EQUALS(d_solver->mkBitVector("1010", 2),
                    d_solver->mkBitVector("10", 10));
   TS_ASSERT_EQUALS(d_solver->mkBitVector("1010", 2),
@@ -303,6 +305,8 @@ void SolverBlack::testMkBitVector()
                    "0bin01010101");
   TS_ASSERT_EQUALS(d_solver->mkBitVector(8, "F", 16).toString(),
                    "0bin00001111");
+  TS_ASSERT_EQUALS(d_solver->mkBitVector(8, "-1", 10),
+                   d_solver->mkBitVector(8, "FF", 16));
 }
 
 void SolverBlack::testMkVar()

@@ -157,14 +157,14 @@ Node QuantAttributes::getFunDefBody( Node q ) {
       {
         // solve for h in the equality
         std::map<Node, Node> msum;
-        if (ArithMSum::getMonomialSum(q[1], msum))
+        if (ArithMSum::getMonomialSumLit(q[1], msum))
         {
           Node veq;
           int res = ArithMSum::isolate(h, msum, veq, EQUAL);
           if (res != 0)
           {
             Assert(veq.getKind() == EQUAL);
-            return res == 1 ? veq[0] : veq[1];
+            return res == 1 ? veq[1] : veq[0];
           }
         }
       }
