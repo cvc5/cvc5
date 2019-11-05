@@ -1061,7 +1061,7 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                    return NodeManager::currentNM()->fromExpr(e).negate();
                  });
 
-  // Get farkas coefficients & literal order
+  // Get Farkas coefficients & literal order
   const auto& farkasInfo = d_recorder.getFarkasCoefficients(conflictSet);
   const Node& conflict = farkasInfo.first;
   theory::arith::RationalVectorCP farkasCoefficients = farkasInfo.second;
@@ -1128,51 +1128,48 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
       }
     }
 
-    /* Combine linear polynomial constraints to derive a contradiction.
-     *
-     * The linear polynomial constraints are refered to as **antecedents**,
-     * since they are antecedents to the contradiction.
-     *
-     * The structure of the combination is a tree
-     *
-     *   (=> <=)
-     *      |
-     *      +                   0
-     *     / \
-     *    *   +                 1
-     *       / \
-     *      *   +               2
-     *         / \
-     *        *  ...            i
-     *             \
-     *              +           n-1
-     *             / \
-     *            *   (0 >= 0)
-     *
-     * Where each * is a linearized antecedant being scaled by a farkas
-     * coefficient and each + is the sum of inequalities. The tricky bit is
-     * that each antecedent can be strict (>) or relaxed (>=) and the axiom
-     * used for each * and + depends on this... The axiom for * depends on the
-     * strictness of its linear polynomial input, and the axiom for + depends
-     * on the strictness of **both** its inputs. The contradiction axiom is
-     * also a function of the strictness of its input.
-     *
-     * There are n *s and +s and we precompute
-     *    1. The strictness of the ith antecedant (`ith_antecedent_is_strict`)
-     *    2. The strictness of the right argument of the ith sum
-     * (`ith_acc_is_strict`)
-     *    3. The strictness of the final result (`strict_contradiction`)
-     *
-     * Precomupation is helpful since
-     *    the computation is post-order,
-     *    but printing is pre-order.
-     */
-    std::vector<bool> ith_antecedent_is_strict(nAntecedents, false);
-    std::vector<bool> ith_acc_is_strict(nAntecedents, false);
-    for (int i = nAntecedents - 1; i >= 0; --i)
-    {
-      ith_antecedent_is_strict[i] = conflict[i].getKind() == kind::NOT;
-      if (i == (int)nAntecedents - 1)
+      /* Combine linear polynomial constraints to derive a contradiction.
+       *
+       * The linear polynomial constraints are refered to as **antecedents**,
+       * since they are antecedents to the contradiction.
+       *
+       * The structure of the combination is a tree
+       *
+       *   (=> <=)
+       *      |
+       *      +                   0
+       *     / \
+       *    *   +                 1
+       *       / \
+       *      *   +               2
+       *         / \
+       *        *  ...            i
+       *             \
+       *              +           n-1
+       *             / \
+       *            *   (0 >= 0)
+       *
+       * Where each * is a linearized antecedant being scaled by a Farkas
+       * coefficient and each + is the sum of inequalities. The tricky bit is
+       * that each antecedent can be strict (>) or relaxed (>=) and the axiom
+       * used for each * and + depends on this... The axiom for * depends on the
+       * strictness of its linear polynomial input, and the axiom for + depends
+       * on the strictness of **both** its inputs. The contradiction axiom is
+       * also a function of the strictness of its input.
+       *
+       * There are n *s and +s and we precompute
+       *    1. The strictness of the ith antecedant (`ith_antecedent_is_strict`)
+       *    2. The strictness of the right argument of the ith sum
+       * (`ith_acc_is_strict`)
+       *    3. The strictness of the final result (`strict_contradiction`)
+       *
+       * Precomupation is helpful since
+       *    the computation is post-order,
+       *    but printing is pre-order.
+       */
+      std::vector<bool> ith_antecedent_is_strict(nAntecedents, false);
+      std::vector<bool> ith_acc_is_strict(nAntecedents, false);
+      for (int i = nAntecedents - 1; i >= 0; --i)
       {
         ith_acc_is_strict[i] = false;
       }
