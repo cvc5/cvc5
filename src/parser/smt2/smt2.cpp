@@ -542,8 +542,8 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
   return api::Term();
 }
 
-api::OpTerm Smt2::mkIndexedOp(const std::string& name,
-                              const std::vector<uint64_t>& numerals)
+api::Op Smt2::mkIndexedOp(const std::string& name,
+                          const std::vector<uint64_t>& numerals)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
   if (kIt != d_indexedOpKindMap.end())
@@ -551,16 +551,16 @@ api::OpTerm Smt2::mkIndexedOp(const std::string& name,
     api::Kind k = (*kIt).second;
     if (numerals.size() == 1)
     {
-      return d_solver->mkOpTerm(k, numerals[0]);
+      return d_solver->mkOp(k, numerals[0]);
     }
     else if (numerals.size() == 2)
     {
-      return d_solver->mkOpTerm(k, numerals[0], numerals[1]);
+      return d_solver->mkOp(k, numerals[0], numerals[1]);
     }
   }
 
   parseError(std::string("Unknown indexed function `") + name + "'");
-  return api::OpTerm();
+  return api::Op();
 }
 
 Expr Smt2::mkDefineFunRec(

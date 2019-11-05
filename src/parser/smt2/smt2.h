@@ -141,8 +141,8 @@ class Smt2 : public Parser
    * @return The operator term corresponding to the indexed operator or a parse
    *         error if the name is not valid.
    */
-  api::OpTerm mkIndexedOp(const std::string& name,
-                          const std::vector<uint64_t>& numerals);
+  api::Op mkIndexedOp(const std::string& name,
+                      const std::vector<uint64_t>& numerals);
 
   /**
    * Returns the expression that name should be interpreted as.

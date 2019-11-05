@@ -677,7 +677,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Node r1 = e == 0 ? o0 : o1;
               Node r2 = e == 0 ? o1 : o0;
               // check if their intersection exists modulo equality
-              Node r1r2i = d_state.getBinaryOpTerm(INTERSECTION, r1, r2);
+              Node r1r2i = d_state.getBinaryOp(INTERSECTION, r1, r2);
               if (!r1r2i.isNull())
               {
                 Trace("sets-nf-debug")

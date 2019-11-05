@@ -114,7 +114,7 @@ int main()
   cout << " CVC4: " << slv.checkValidAssuming(v) << endl;
 
   // Assert that a is odd
-  OpTerm extract_op = slv.mkOpTerm(BITVECTOR_EXTRACT, 0, 0);
+  Op extract_op = slv.mkOp(BITVECTOR_EXTRACT, 0, 0);
   Term lsb_of_a = slv.mkTerm(extract_op, a);
   cout << "Sort of " << lsb_of_a << " is " << lsb_of_a.getSort() << endl;
   Term a_odd = slv.mkTerm(EQUAL, lsb_of_a, slv.mkBitVector(1u, 1u));

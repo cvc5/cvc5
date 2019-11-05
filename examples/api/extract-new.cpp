@@ -30,16 +30,16 @@ int main()
 
   Term x = slv.mkConst(bitvector32, "a");
 
-  OpTerm ext_31_1 = slv.mkOpTerm(BITVECTOR_EXTRACT, 31, 1);
+  Op ext_31_1 = slv.mkOp(BITVECTOR_EXTRACT, 31, 1);
   Term x_31_1 = slv.mkTerm(ext_31_1, x);
 
-  OpTerm ext_30_0 = slv.mkOpTerm(BITVECTOR_EXTRACT, 30, 0);
+  Op ext_30_0 = slv.mkOp(BITVECTOR_EXTRACT, 30, 0);
   Term x_30_0 = slv.mkTerm(ext_30_0, x);
 
-  OpTerm ext_31_31 = slv.mkOpTerm(BITVECTOR_EXTRACT, 31, 31);
+  Op ext_31_31 = slv.mkOp(BITVECTOR_EXTRACT, 31, 31);
   Term x_31_31 = slv.mkTerm(ext_31_31, x);
 
-  OpTerm ext_0_0 = slv.mkOpTerm(BITVECTOR_EXTRACT, 0, 0);
+  Op ext_0_0 = slv.mkOp(BITVECTOR_EXTRACT, 0, 0);
   Term x_0_0 = slv.mkTerm(ext_0_0, x);
 
   Term eq = slv.mkTerm(EQUAL, x_31_1, x_30_0);

@@ -103,7 +103,7 @@ class FirstOrderModel : public TheoryModel
   /** is model basis term */
   bool isModelBasisTerm(Node n);
   /** get model basis term for op */
-  Node getModelBasisOpTerm(Node op);
+  Node getModelBasisOp(Node op);
   /** get model basis */
   Node getModelBasis(Node q, Node n);
   /** get model basis arg */
