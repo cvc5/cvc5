@@ -93,15 +93,6 @@ class CVC4_PUBLIC DatatypeResolutionException : public Exception {
 };/* class DatatypeResolutionException */
 
 /**
- * A holder type (used in calls to DatatypeConstructor::addArg())
- * to allow a Datatype to refer to itself.  Self-typed fields of
- * Datatypes will be properly typed when a Type is created for the
- * Datatype by the ExprManager (which calls Datatype::resolve()).
- */
-class CVC4_PUBLIC DatatypeSelfType {
-};/* class DatatypeSelfType */
-
-/**
  * A Datatype constructor argument (i.e., a Datatype field).
  */
 class CVC4_PUBLIC DatatypeConstructorArg {
@@ -224,21 +215,6 @@ class CVC4_PUBLIC DatatypeConstructor {
    * they are for convenience and pretty-printing only.
    */
   void addArg(std::string selectorName, Type selectorType);
-
-  /**
-   * Add a self-referential (i.e., a data field) of the given name
-   * to this Datatype constructor that refers to the enclosing
-   * Datatype.  For example, using the familiar "nat" Datatype, to
-   * create the "pred" field for "succ" constructor, one uses
-   * succ::addArg("pred", DatatypeSelfType())---the actual Type
-   * cannot be passed because the Datatype is still under
-   * construction.  Selector names need not be unique; they are for
-   * convenience and pretty-printing only.
-   *
-   * This is a special case of
-   * DatatypeConstructor::addArg(std::string, DatatypeUnresolvedType).
-   */
-  void addArg(std::string selectorName, DatatypeSelfType);
 
   /** Get the name of this Datatype constructor. */
   std::string getName() const;

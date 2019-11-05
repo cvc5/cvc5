@@ -1530,14 +1530,7 @@ DatatypeConstructorDecl::DatatypeConstructorDecl(const std::string& name)
 void DatatypeConstructorDecl::addSelector(const DatatypeSelectorDecl& stor)
 {
   CVC4::Type t = *stor.d_sort.d_type;
-  if (t.isNull())
-  {
-    d_ctor->addArg(stor.d_name, DatatypeSelfType());
-  }
-  else
-  {
-    d_ctor->addArg(stor.d_name, t);
-  }
+  d_ctor->addArg(stor.d_name, t);
 }
 
 std::string DatatypeConstructorDecl::toString() const

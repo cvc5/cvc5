@@ -72,7 +72,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeIndexConstant.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeIndexConstantHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeResolutionException.java
-  ${CMAKE_CURRENT_BINARY_DIR}/DatatypeSelfType.java
   ${CMAKE_CURRENT_BINARY_DIR}/DatatypeType.java
   ${CMAKE_CURRENT_BINARY_DIR}/DeclarationCheck.java
   ${CMAKE_CURRENT_BINARY_DIR}/DeclarationDefinitionCommand.java

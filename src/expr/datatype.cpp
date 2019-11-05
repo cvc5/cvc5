@@ -894,16 +894,6 @@ void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
   d_args.push_back(DatatypeConstructorArg(selectorName, type));
 }
 
-void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
-  // We don't want to introduce a new data member, because eventually
-  // we're going to be a constant stuffed inside a node.  So we mark
-  // the name string with a NUL to indicate that we have a
-  // self-selecting selector until resolution (when we can create the
-  // proper selector type)
-  PrettyCheckArgument(!isResolved(), this, "cannot modify a finalized Datatype constructor");
-  d_args.push_back(DatatypeConstructorArg(selectorName + '\0', Expr()));
-}
-
 std::string DatatypeConstructor::getName() const
 {
   return d_name.substr(0, d_name.find('\0'));
