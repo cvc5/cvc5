@@ -529,7 +529,8 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
 
-TypeNode NodeManager::mkConstructorType(const DTypeConstructor& constructor, TypeNode range)
+TypeNode NodeManager::mkConstructorType(const DTypeConstructor& constructor,
+                                        TypeNode range)
 {
   // FIXME
   return TypeNode::null();

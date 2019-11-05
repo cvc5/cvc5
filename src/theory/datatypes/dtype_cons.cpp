@@ -15,9 +15,9 @@
 
 #include "expr/matcher.h"
 #include "expr/node_manager.h"
+#include "options/datatypes_options.h"
 #include "theory/datatypes/dtype.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "options/datatypes_options.h"
 
 using namespace CVC4::kind;
 
@@ -127,8 +127,7 @@ bool DTypeConstructor::isSygusIdFunc() const
 {
   PrettyCheckArgument(
       isResolved(), this, "this datatype constructor is not yet resolved");
-  return (d_sygus_op.getKind() == LAMBDA
-          && d_sygus_op[0].getNumChildren() == 1
+  return (d_sygus_op.getKind() == LAMBDA && d_sygus_op[0].getNumChildren() == 1
           && d_sygus_op[0][0] == d_sygus_op[1]);
 }
 
@@ -168,7 +167,8 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
   // FIXME: after matcher is updated, use getMatches
   m.getMatchesNode(subst);
   std::vector<TypeNode> params = dt.getParameters();
-  return d_constructor.getType().substitute(params.begin(), params.end(), subst.begin(), subst.end());
+  return d_constructor.getType().substitute(
+      params.begin(), params.end(), subst.begin(), subst.end());
 }
 
 const std::vector<DTypeConstructorArg>* DTypeConstructor::getArgs() const
@@ -210,12 +210,15 @@ bool DTypeConstructor::isFinite(TypeNode t) const
     paramTypes = t.getDType().getParameters();
     instTypes = TypeNode(t).getParamTypes();
   }
-  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
+  for (unsigned i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
     TypeNode tc = getArgType(i);
     if (isParam)
     {
-      tc = tc.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
+      tc = tc.substitute(paramTypes.begin(),
+                         paramTypes.end(),
+                         instTypes.begin(),
+                         instTypes.end());
     }
     if (!tc.isFinite())
     {
@@ -247,12 +250,15 @@ bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
     paramTypes = t.getDType().getParameters();
     instTypes = TypeNode(t).getParamTypes();
   }
-  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
+  for (unsigned i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
     TypeNode tc = getArgType(i);
     if (isParam)
     {
-      tc = tc.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
+      tc = tc.substitute(paramTypes.begin(),
+                         paramTypes.end(),
+                         instTypes.begin(),
+                         instTypes.end());
     }
     if (!tc.isInterpretedFinite())
     {
@@ -280,7 +286,8 @@ TypeNode DTypeConstructor::getArgType(unsigned index) const
   return (*this)[index].getType().getSelectorRangeType();
 }
 
-Node DTypeConstructor::getSelectorInternal(TypeNode domainType, size_t index) const
+Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
+                                           size_t index) const
 {
   PrettyCheckArgument(
       isResolved(),
@@ -330,7 +337,7 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
 
 bool DTypeConstructor::involvesExternalType() const
 {
-  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
+  for (unsigned i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
     if (!getArgType(i).isDatatype())
     {
@@ -342,7 +349,7 @@ bool DTypeConstructor::involvesExternalType() const
 
 bool DTypeConstructor::involvesUninterpretedType() const
 {
-  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
+  for (unsigned i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
     if (!getArgType(i).isSort())
     {
@@ -369,7 +376,10 @@ Cardinality DTypeConstructor::computeCardinality(
     TypeNode tc = getArgType(i);
     if (isParam)
     {
-      tc = tc.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
+      tc = tc.substitute(paramTypes.begin(),
+                         paramTypes.end(),
+                         instTypes.begin(),
+                         instTypes.end());
     }
     if (tc.isDatatype())
     {
@@ -387,7 +397,7 @@ Cardinality DTypeConstructor::computeCardinality(
 bool DTypeConstructor::computeWellFounded(
     std::vector<TypeNode>& processing) const
 {
-  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
+  for (unsigned i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
     TypeNode t = getArgType(i);
     if (t.isDatatype())
@@ -407,7 +417,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
                                          std::map<TypeNode, Node>& gt,
                                          bool isValue) const
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> groundTerms;
   groundTerms.push_back(getConstructor());
 
@@ -420,12 +430,15 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     paramTypes = t.getDType().getParameters();
     instTypes = TypeNode(t).getParamTypes();
   }
-  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
+  for (unsigned i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
     TypeNode selType = getArgType(i);
     if (isParam)
     {
-      selType = selType.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
+      selType = selType.substitute(paramTypes.begin(),
+                                   paramTypes.end(),
+                                   instTypes.begin(),
+                                   instTypes.end());
     }
     Node arg;
     if (selType.isDatatype())
@@ -448,8 +461,8 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     }
     if (arg.isNull())
     {
-      Debug("datatypes") << "...unable to construct arg of " << d_args[i].getName()
-                         << std::endl;
+      Debug("datatypes") << "...unable to construct arg of "
+                         << d_args[i].getName() << std::endl;
       return Node();
     }
     else
@@ -459,8 +472,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     }
   }
 
-  Node groundTerm = nm->mkNode(
-      APPLY_CONSTRUCTOR, groundTerms);
+  Node groundTerm = nm->mkNode(APPLY_CONSTRUCTOR, groundTerms);
   if (isParam)
   {
     Assert(DType::datatypeOf(d_constructor).isParametric());
@@ -469,11 +481,9 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
                           << ", ascribe to " << t << std::endl;
     groundTerms[0] = nm->mkNode(
         APPLY_TYPE_ASCRIPTION,
-        nm->mkConst(
-            AscriptionType(getSpecializedConstructorType(t).toType())),
+        nm->mkConst(AscriptionType(getSpecializedConstructorType(t).toType())),
         groundTerms[0]);
-    groundTerm = nm->mkNode(
-        APPLY_CONSTRUCTOR, groundTerms);
+    groundTerm = nm->mkNode(APPLY_CONSTRUCTOR, groundTerms);
   }
   return groundTerm;
 }
@@ -547,7 +557,8 @@ bool DTypeConstructor::resolve(
       }
       else
       {
-        std::map<std::string, TypeNode>::const_iterator j = resolutions.find(typeName);
+        std::map<std::string, TypeNode>::const_iterator j =
+            resolutions.find(typeName);
         if (j == resolutions.end())
         {
           // failed to resolve selector
@@ -570,7 +581,10 @@ bool DTypeConstructor::resolve(
       TypeNode range = arg.d_selector.getType();
       if (!placeholders.empty())
       {
-        range = range.substitute(placeholders.begin(),placeholders.end(), replacements.begin(), replacements.end());
+        range = range.substitute(placeholders.begin(),
+                                 placeholders.end(),
+                                 replacements.begin(),
+                                 replacements.end());
       }
       if (!paramTypes.empty())
       {
@@ -639,7 +653,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     for (unsigned i = 0; i < paramTypes.size(); ++i)
     {
       // the arity a parameterized type is the number of its children minus one.
-      if (paramTypes[i].getNumChildren() == origChildren.size()+1)
+      if (paramTypes[i].getNumChildren() == origChildren.size() + 1)
       {
         TypeNode tn = paramTypes[i].instantiateParametricDatatype(origChildren);
         if (range == tn)
@@ -662,15 +676,15 @@ void DTypeConstructor::toStream(std::ostream& out) const
   out << getName();
 
   unsigned nargs = getNumArgs();
-  if (nargs==0)
+  if (nargs == 0)
   {
     return;
   }
   out << "(";
-  for (unsigned i=0; i<nargs; i++)
+  for (unsigned i = 0; i < nargs; i++)
   {
     out << d_args[i];
-    if (i+1<nargs)
+    if (i + 1 < nargs)
     {
       out << ", ";
     }

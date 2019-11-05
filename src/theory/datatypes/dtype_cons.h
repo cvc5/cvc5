@@ -60,7 +60,6 @@ class DTypeConstructor
   friend class DType;
 
  public:
-
   /**
    * Create a new DType constructor with the given name for the
    * constructor and the same name (prefixed with "is_") for the
@@ -195,7 +194,7 @@ class DTypeConstructor
    * resolved.
    */
   bool isResolved() const;
-  
+
   /** Get the ith DTypeConstructor arg. */
   const DTypeConstructorArg& operator[](size_t index) const;
 

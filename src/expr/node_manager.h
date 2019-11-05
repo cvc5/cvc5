@@ -875,7 +875,8 @@ public:
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
-  TypeNode mkConstructorType(const DTypeConstructor& constructor, TypeNode range);
+  TypeNode mkConstructorType(const DTypeConstructor& constructor,
+                             TypeNode range);
 
   /** Make a type representing a selector with the given parameterization */
   inline TypeNode mkSelectorType(TypeNode domain, TypeNode range);
