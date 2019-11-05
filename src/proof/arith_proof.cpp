@@ -1153,7 +1153,7 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
        *             / \
        *            *   (0 >= 0)
        *
-       * Where each * is a linearized antecedant being scaled by a farkas
+       * Where each * is a linearized antecedant being scaled by a Farkas
        * coefficient and each + is the sum of inequalities. The tricky bit is
        * that each antecedent can be strict (>) or relaxed (>=) and the axiom
        * used for each * and + depends on this... The axiom for * depends on the
