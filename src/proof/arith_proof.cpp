@@ -36,19 +36,14 @@ inline static Node eqNode(TNode n1, TNode n2) {
 }
 
 // Proofs are supported only for contraints of the form __ <= __ .
-inline static bool allChildrenGeq(const Node& conflict)
+static bool allChildrenGeq(const Node& conflict)
 {
   bool result = true;
   size_t nChildren = conflict.getNumChildren();
-  for (size_t i = 0; i < nChildren; i++)
+  for (const Node& n : conflict) {
   {
-    const Node& n = conflict[i];
     const Node& nonneg = n.getKind() == kind::NOT ? n[0] : n;
-    if (nonneg.getKind() == kind::GEQ)
-    {
-      continue;
-    }
-    else
+    if (nonneg.getKind() != kind::GEQ)
     {
       result = false;
       break;
@@ -58,7 +53,7 @@ inline static bool allChildrenGeq(const Node& conflict)
 }
 
 // Verify that that the farkas coefficients indeed create a contradiction
-inline static bool hasContradiction(
+static bool hasContradiction(
     const Node& conflict, theory::arith::RationalVectorCP farkasCoefficients)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -80,8 +75,8 @@ inline static bool hasContradiction(
     if (lem.getKind() == kind::NOT)
     {
       hasStrictIneq = true;
-      currentLeft = lem[0][0];
       Assert(lem[0].getKind() == kind::GEQ);
+      currentLeft = lem[0][0];
       currentRight = lem[0][1];
       c = c * (-1);
     }
@@ -1130,7 +1125,7 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
         }
         default: Unreachable();
       }
-      }
+    }
 
       /* Combine linear polynomial constraints to derive a contradiction.
        *

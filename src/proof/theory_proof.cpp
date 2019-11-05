@@ -889,7 +889,9 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
       os << "(ite _ ";
     }
     Assert(term[0].getType().isBoolean());
-    if (printsAsBool(term[0])) os << "(p_app ";
+    if (printsAsBool(term[0])) {
+      os << "(p_app ";
+    }
     printBoundTerm(term[0], os, map);
     if (printsAsBool(term[0])) os << ")";
     os << " ";
