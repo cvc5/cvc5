@@ -714,7 +714,7 @@ class CVC4_PUBLIC Term
 
   /**
    * @return the Op used to create this term
-   * safe to call when hasOp() returns true
+   * Note: This is safe to call when hasOp() returns true.
    */
   Op getOp() const;
 
