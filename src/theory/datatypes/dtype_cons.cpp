@@ -23,11 +23,6 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-DTypeResolutionException::DTypeResolutionException(std::string msg)
-    : Exception(msg)
-{
-}
-
 DTypeUnresolvedType::DTypeUnresolvedType(std::string name) : d_name(name) {}
 
 DTypeConstructor::DTypeConstructor(std::string name)
@@ -86,34 +81,6 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   Debug("datatypes") << type << std::endl;
   d_args.push_back(DTypeConstructorArg(selectorName, type));
-}
-
-void DTypeConstructor::addArg(std::string selectorName,
-                              DTypeUnresolvedType selectorType)
-{
-  // We don't want to introduce a new data member, because eventually
-  // we're going to be a constant stuffed inside a node.  So we stow
-  // the selector type away after a NUL in the name string until
-  // resolution (when we can create the proper selector type)
-  PrettyCheckArgument(
-      !isResolved(), this, "cannot modify a finalized DType constructor");
-  PrettyCheckArgument(selectorType.getName() != "",
-                      selectorType,
-                      "cannot add a null selector type");
-  d_args.push_back(DTypeConstructorArg(
-      selectorName + '\0' + selectorType.getName(), Node()));
-}
-
-void DTypeConstructor::addArg(std::string selectorName, DTypeSelfType)
-{
-  // We don't want to introduce a new data member, because eventually
-  // we're going to be a constant stuffed inside a node.  So we mark
-  // the name string with a NUL to indicate that we have a
-  // self-selecting selector until resolution (when we can create the
-  // proper selector type)
-  PrettyCheckArgument(
-      !isResolved(), this, "cannot modify a finalized DType constructor");
-  d_args.push_back(DTypeConstructorArg(selectorName + '\0', Node()));
 }
 
 std::string DTypeConstructor::getName() const
@@ -243,9 +210,9 @@ bool DTypeConstructor::isFinite(TypeNode t) const
     paramTypes = t.getDType().getParameters();
     instTypes = TypeNode(t).getParamTypes();
   }
-  for (const_iterator i = begin(), i_end = end(); i != i_end; ++i)
+  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
   {
-    TypeNode tc = (*i).getRangeType();
+    TypeNode tc = getArgType(i);
     if (isParam)
     {
       tc = tc.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
@@ -280,9 +247,9 @@ bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
     paramTypes = t.getDType().getParameters();
     instTypes = TypeNode(t).getParamTypes();
   }
-  for (const_iterator i = begin(), i_end = end(); i != i_end; ++i)
+  for (unsigned i=0, nargs=getNumArgs(); i<nargs; i++)
   {
-    TypeNode tc = (*i).getRangeType();
+    TypeNode tc = getArgType(i);
     if (isParam)
     {
       tc = tc.substitute(paramTypes.begin(), paramTypes.end(), instTypes.begin(), instTypes.end());
@@ -301,50 +268,10 @@ bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
 
 inline bool DTypeConstructor::isResolved() const { return !d_tester.isNull(); }
 
-DTypeConstructor::iterator DTypeConstructor::begin()
-{
-  return iterator(d_args, true);
-}
-
-DTypeConstructor::iterator DTypeConstructor::end()
-{
-  return iterator(d_args, false);
-}
-
-DTypeConstructor::const_iterator DTypeConstructor::begin() const
-{
-  return const_iterator(d_args, true);
-}
-
-DTypeConstructor::const_iterator DTypeConstructor::end() const
-{
-  return const_iterator(d_args, false);
-}
-
 const DTypeConstructorArg& DTypeConstructor::operator[](size_t index) const
 {
   PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
   return d_args[index];
-}
-
-const DTypeConstructorArg& DTypeConstructor::operator[](std::string name) const
-{
-  for (const_iterator i = begin(); i != end(); ++i)
-  {
-    if ((*i).getName() == name)
-    {
-      return *i;
-    }
-  }
-  IllegalArgument(name,
-                  "No such arg `%s' of constructor `%s'",
-                  name.c_str(),
-                  d_name.c_str());
-}
-
-Node DTypeConstructor::getSelector(std::string name) const
-{
-  return (*this)[name].getSelector();
 }
 
 TypeNode DTypeConstructor::getArgType(unsigned index) const
@@ -582,7 +509,7 @@ void DTypeConstructor::computeSharedSelectors(TypeNode domainType) const
   }
 }
 
-void DTypeConstructor::resolve(
+bool DTypeConstructor::resolve(
     TypeNode self,
     const std::map<std::string, TypeNode>& resolutions,
     const std::vector<TypeNode>& placeholders,
@@ -603,15 +530,17 @@ void DTypeConstructor::resolve(
        i != i_end;
        ++i)
   {
-    if ((*i).d_selector.isNull())
+    DTypeConstructorArg& arg = (*i);
+    std::string argName = arg.d_name;
+    if (arg.d_selector.isNull())
     {
       // the unresolved type wasn't created here; do name resolution
-      std::string typeName = (*i).d_name.substr((*i).d_name.find('\0') + 1);
-      (*i).d_name.resize((*i).d_name.find('\0'));
+      std::string typeName = argName.substr(argName.find('\0') + 1);
+      argName.resize(argName.find('\0'));
       if (typeName == "")
       {
-        (*i).d_selector = nm->mkSkolem(
-            (*i).d_name,
+        arg.d_selector = nm->mkSkolem(
+            argName,
             nm->mkSelectorType(self, self),
             "is a selector",
             NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
@@ -621,16 +550,13 @@ void DTypeConstructor::resolve(
         std::map<std::string, TypeNode>::const_iterator j = resolutions.find(typeName);
         if (j == resolutions.end())
         {
-          std::stringstream msg;
-          msg << "cannot resolve type \"" << typeName << "\" "
-              << "in selector \"" << (*i).d_name << "\" "
-              << "of constructor \"" << d_name << "\"";
-          throw DTypeResolutionException(msg.str());
+          // failed to resolve selector
+          return false;
         }
         else
         {
-          (*i).d_selector = nm->mkSkolem(
-              (*i).d_name,
+          arg.d_selector = nm->mkSkolem(
+              argName,
               nm->mkSelectorType(self, (*j).second),
               "is a selector",
               NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
@@ -641,7 +567,7 @@ void DTypeConstructor::resolve(
     {
       // the type for the selector already exists; may need
       // complex-type substitution
-      TypeNode range = (*i).d_selector.getType();
+      TypeNode range = arg.d_selector.getType();
       if (!placeholders.empty())
       {
         range = range.substitute(placeholders.begin(),placeholders.end(), replacements.begin(), replacements.end());
@@ -650,15 +576,15 @@ void DTypeConstructor::resolve(
       {
         range = doParametricSubstitution(range, paramTypes, paramReplacements);
       }
-      (*i).d_selector = nm->mkSkolem(
-          (*i).d_name,
+      arg.d_selector = nm->mkSkolem(
+          argName,
           nm->mkSelectorType(self, range),
           "is a selector",
           NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
     }
-    (*i).d_selector.setAttribute(DTypeConsIndexAttr(), cindex);
-    (*i).d_selector.setAttribute(DTypeIndexAttr(), index++);
-    (*i).d_resolved = true;
+    arg.d_selector.setAttribute(DTypeConsIndexAttr(), cindex);
+    arg.d_selector.setAttribute(DTypeIndexAttr(), index++);
+    arg.d_resolved = true;
   }
 
   Assert(index == getNumArgs());
@@ -686,6 +612,7 @@ void DTypeConstructor::resolve(
   {
     (*i).d_constructor = d_constructor;
   }
+  return true;
 }
 
 TypeNode DTypeConstructor::doParametricSubstitution(
@@ -734,20 +661,21 @@ void DTypeConstructor::toStream(std::ostream& out) const
 {
   out << getName();
 
-  DTypeConstructor::const_iterator i = begin(), i_end = end();
-  if (i != i_end)
+  unsigned nargs = getNumArgs();
+  if (nargs==0)
   {
-    out << "(";
-    do
-    {
-      out << *i;
-      if (++i != i_end)
-      {
-        out << ", ";
-      }
-    } while (i != i_end);
-    out << ")";
+    return;
   }
+  out << "(";
+  for (unsigned i=0; i<nargs; i++)
+  {
+    out << d_args[i];
+    if (i+1<nargs)
+    {
+      out << ", ";
+    }
+  }
+  out << ")";
 }
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor)

@@ -26,83 +26,6 @@
 
 namespace CVC4 {
 
-// FIXME
-typedef TypeNode DTypeType;
-
-class DTypeConstructorArgIterator
-{
-  const std::vector<DTypeConstructorArg>* d_v;
-  size_t d_i;
-
-  friend class DTypeConstructor;
-
-  DTypeConstructorArgIterator(const std::vector<DTypeConstructorArg>& v,
-                              bool start)
-      : d_v(&v), d_i(start ? 0 : v.size())
-  {
-  }
-
- public:
-  typedef const DTypeConstructorArg& value_type;
-  const DTypeConstructorArg& operator*() const { return (*d_v)[d_i]; }
-  const DTypeConstructorArg* operator->() const { return &(*d_v)[d_i]; }
-  DTypeConstructorArgIterator& operator++()
-  {
-    ++d_i;
-    return *this;
-  }
-  DTypeConstructorArgIterator operator++(int)
-  {
-    DTypeConstructorArgIterator i(*this);
-    ++d_i;
-    return i;
-  }
-  bool operator==(const DTypeConstructorArgIterator& other) const
-  {
-    return d_v == other.d_v && d_i == other.d_i;
-  }
-  bool operator!=(const DTypeConstructorArgIterator& other) const
-  {
-    return d_v != other.d_v || d_i != other.d_i;
-  }
-}; /* class DTypeConstructorArgIterator */
-
-/**
- * An exception that is thrown when a datatype resolution fails.
- */
-class DTypeResolutionException : public Exception
-{
- public:
-  DTypeResolutionException(std::string msg);
-}; /* class DatatypeResolutionException */
-
-/**
- * A holder type (used in calls to DTypeConstructor::addArg())
- * to allow a DType to refer to itself.  Self-typed fields of
- * DTypes will be properly typed when a Type is created for the
- * DType by the ExprManager (which calls DType::resolve()).
- */
-class DTypeSelfType
-{
-}; /* class DTypeSelfType */
-
-/**
- * An unresolved type (used in calls to
- * DTypeConstructor::addArg()) to allow a DType to refer to
- * itself or to other mutually-recursive DTypes.  Unresolved-type
- * fields of DTypes will be properly typed when a Type is created
- * for the DType by the NodeManager (which calls
- * DType::resolve()).
- */
-class DTypeUnresolvedType
-{
-  std::string d_name;
-
- public:
-  DTypeUnresolvedType(std::string name);
-  std::string getName() const;
-}; /* class DTypeUnresolvedType */
-
 class Printer;
 
 /** sygus datatype constructor printer
@@ -137,10 +60,6 @@ class DTypeConstructor
   friend class DType;
 
  public:
-  /** The type for iterators over constructor arguments. */
-  typedef DTypeConstructorArgIterator iterator;
-  /** The (const) type for iterators over constructor arguments. */
-  typedef DTypeConstructorArgIterator const_iterator;
 
   /**
    * Create a new DType constructor with the given name for the
@@ -168,29 +87,6 @@ class DTypeConstructor
    * they are for convenience and pretty-printing only.
    */
   void addArg(std::string selectorName, TypeNode selectorType);
-
-  /**
-   * Add an argument (i.e., a data field) of the given name to this
-   * DType constructor that refers to an as-yet-unresolved
-   * DType (which may be mutually-recursive).  Selector names need
-   * not be unique; they are for convenience and pretty-printing only.
-   */
-  void addArg(std::string selectorName, DTypeUnresolvedType selectorType);
-
-  /**
-   * Add a self-referential (i.e., a data field) of the given name
-   * to this DType constructor that refers to the enclosing
-   * DType.  For example, using the familiar "nat" DType, to
-   * create the "pred" field for "succ" constructor, one uses
-   * succ::addArg("pred", DTypeSelfType())---the actual Type
-   * cannot be passed because the DType is still under
-   * construction.  Selector names need not be unique; they are for
-   * convenience and pretty-printing only.
-   *
-   * This is a special case of
-   * DTypeConstructor::addArg(std::string, DTypeUnresolvedType).
-   */
-  void addArg(std::string selectorName, DTypeSelfType);
 
   /** Get the name of this DType constructor. */
   std::string getName() const;
@@ -299,33 +195,10 @@ class DTypeConstructor
    * resolved.
    */
   bool isResolved() const;
-
-  /** Get the beginning iterator over DTypeConstructor args. */
-  iterator begin();
-  /** Get the ending iterator over DTypeConstructor args. */
-  iterator end();
-  /** Get the beginning const_iterator over DTypeConstructor args. */
-  const_iterator begin() const;
-  /** Get the ending const_iterator over DTypeConstructor args. */
-  const_iterator end() const;
-
+  
   /** Get the ith DTypeConstructor arg. */
   const DTypeConstructorArg& operator[](size_t index) const;
 
-  /**
-   * Get the DTypeConstructor arg named.  This is a linear search
-   * through the arguments, so in the case of multiple,
-   * similarly-named arguments, the first is returned.
-   */
-  const DTypeConstructorArg& operator[](std::string name) const;
-
-  /**
-   * Get the selector named.  This is a linear search
-   * through the arguments, so in the case of multiple,
-   * similarly-named arguments, the selector for the first
-   * is returned.
-   */
-  Node getSelector(std::string name) const;
   /**
    * Get argument type. Returns the return type of the i^th selector of this
    * constructor.
@@ -422,7 +295,7 @@ class DTypeConstructor
    * on how datatypes and their constructors are resolved, see
    * documentation for DType::resolve.
    */
-  void resolve(TypeNode self,
+  bool resolve(TypeNode self,
                const std::map<std::string, TypeNode>& resolutions,
                const std::vector<TypeNode>& placeholders,
                const std::vector<TypeNode>& replacements,
