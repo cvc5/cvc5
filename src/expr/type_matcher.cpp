@@ -74,11 +74,8 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
       }
       return false;
     }
-    else
-    {
-      d_match[index] = tn;
-      return true;
-    }
+    d_match[index] = tn;
+    return true;
   }
   else if (pattern == tn)
   {
