@@ -625,7 +625,8 @@ class CVC4_PUBLIC Op
   /* The kind of this operator. */
   Kind d_kind;
 
-  /** True iff this Op is indexed
+  /**
+   * True iff this Op is indexed
    *  An indexed operator has a non-null internal expr, d_expr
    */
   bool indexed;
