@@ -2576,6 +2576,8 @@ class CVC4_PUBLIC Solver
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
   /* Helper for setLogic. */
   void setLogicHelper(const std::string& logic) const;
+  /* Helper for mkTerm functions that create Term from a Kind */
+  Term mkTermFromKind(Kind kind) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed

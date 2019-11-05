@@ -2048,6 +2048,31 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
   return mkValHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
 }
 
+Term Solver::mkTermFromKind(Kind kind) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
+      << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
+
+  Term res;
+  if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
+  {
+    CVC4::Kind k = extToIntKind(kind);
+    Assert(isDefinedIntKind(k));
+    res = d_exprMgr->mkExpr(k, std::vector<Expr>());
+  }
+  else
+  {
+    Assert(kind == PI);
+    res = d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+  }
+  (void)res.d_expr->getType(true); /* kick off type checking */
+  return res;
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 /* Helpers for converting vectors.                                            */
 /* .......................................................................... */
 
@@ -2744,25 +2769,7 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
 Term Solver::mkTerm(Kind kind) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
-      << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
-
-  Term res;
-  if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
-  {
-    CVC4::Kind k = extToIntKind(kind);
-    Assert(isDefinedIntKind(k));
-    res = d_exprMgr->mkExpr(k, std::vector<Expr>());
-  }
-  else
-  {
-    Assert(kind == PI);
-    res = d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
-  }
-  (void)res.d_expr->getType(true); /* kick off type checking */
-  return res;
-
+  return mkTermFromKind(kind);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -2847,7 +2854,7 @@ Term Solver::mkTerm(OpTerm opTerm) const
   }
   else
   {
-    res = mkTerm(opTerm.d_kind);
+    res = mkTermFromKind(opTerm.d_kind);
   }
 
   (void)res.d_expr->getType(true); /* kick off type checking */
