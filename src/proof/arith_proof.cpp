@@ -36,7 +36,7 @@ inline static Node eqNode(TNode n1, TNode n2) {
 }
 
 // Proofs are supported only for contraints of the form __ <= __ .
-inline static bool allChildrenGeq(const Node& conflict)
+static bool allChildrenGeq(const Node& conflict)
 {
   bool result = true;
   size_t nChildren = conflict.getNumChildren();
