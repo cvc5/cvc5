@@ -409,7 +409,8 @@ class NonlinearExtension {
 
   /** The non-linear model object
    *
-   * TODO
+   * This class is responsible for computing model values for arithmetic terms
+   * and for establishing when we are able to answer "SAT".
    */
   NlModel d_model;
   /** have we successfully built the model in this SAT context? */
@@ -420,7 +421,13 @@ class NonlinearExtension {
   std::vector<Node> d_order_points;
   
   //transcendental functions
+  /**
+   * Maps arguments of SINE applications to a fresh skolem. This is used for
+   * ensuring that the argument of SINE we process are on the interval
+   * [-pi .. pi].
+   */
   std::map<Node, Node> d_tr_base;
+  /** Stores skolems in the range of the above map */
   std::map<Node, bool> d_tr_is_base;
   std::map< Node, bool > d_tf_initial_refine;
   /** the list of lemmas we are waiting to flush until after check model */
