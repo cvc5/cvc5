@@ -1253,6 +1253,10 @@ Op Term::getOp() const
   {
     return Op(APPLY_CONSTRUCTOR, op);
   }
+  else if (t.isTester())
+  {
+    return Op(APPLY_TESTER, op);
+  }
   else
   {
     return Op(intToExtKind(op.getKind()), op);
