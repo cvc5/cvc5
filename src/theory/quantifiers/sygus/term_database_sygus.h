@@ -468,7 +468,6 @@ class TermDbSygus {
    * evaluation heads
    */
   Node unfold(Node en);
-  Node getEagerUnfold( Node n, std::map< Node, Node >& visited );
 };
 
 }/* CVC4::theory::quantifiers namespace */

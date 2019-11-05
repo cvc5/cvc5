@@ -920,6 +920,8 @@ set(regress_0_tests
   regress0/sygus/parity-AIG-d0.sy
   regress0/sygus/parse-bv-let.sy
   regress0/sygus/real-si-all.sy
+  regress0/sygus/sygus-no-wf.sy
+  regress0/sygus/sygus-uf.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/uminus_one.sy
   regress0/sygus/univ_3-long-repeat-conflict.sy
@@ -2067,7 +2069,6 @@ set(regression_disabled_tests
   regress0/sets/sets-new.smt2
   regress0/sets/sets-testlemma-ints.smt2
   regress0/sets/sets-testlemma-reals.smt2
-  regress0/sygus/sygus-uf.sy
   regress0/symmetric.smtv1.smt2
   regress0/tptp/BOO003-4.p
   regress0/tptp/BOO027-1.p
