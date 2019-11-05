@@ -177,7 +177,7 @@ class CVC4_PUBLIC Sort
   friend class DatatypeConstructorDecl;
   friend class DatatypeDecl;
   friend class DatatypeSelectorDecl;
-  friend class OpTerm;
+  friend class Op;
   friend class Solver;
   friend struct SortHashFunction;
   friend class Term;
@@ -524,7 +524,7 @@ struct CVC4_PUBLIC SortHashFunction
 };
 
 /* -------------------------------------------------------------------------- */
-/* OpTerm                                                                     */
+/* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -532,39 +532,39 @@ struct CVC4_PUBLIC SortHashFunction
  * An operator term is a term that represents certain operators, instantiated
  * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
  */
-class CVC4_PUBLIC OpTerm
+class CVC4_PUBLIC Op
 {
   friend class Solver;
-  friend struct OpTermHashFunction;
+  friend struct OpHashFunction;
 
  public:
   /**
    * Constructor.
    */
-  OpTerm();
+  Op();
 
   // !!! This constructor is only temporarily public until the parser is fully
   // migrated to the new API. !!!
   /**
    * Constructor for a single kind (non-indexed operator).
-   * @param k the kind of this OpTerm
+   * @param k the kind of this Op
    */
-  OpTerm(const Kind k);
+  Op(const Kind k);
 
   // !!! This constructor is only temporarily public until the parser is fully
   // migrated to the new API. !!!
   /**
    * Constructor.
-   * @param k the kind of this OpTerm
+   * @param k the kind of this Op
    * @param e the internal expression that is to be wrapped by this term
    * @return the Term
    */
-  OpTerm(const Kind k, const CVC4::Expr& e);
+  Op(const Kind k, const CVC4::Expr& e);
 
   /**
    * Destructor.
    */
-  ~OpTerm();
+  ~Op();
 
   /**
    * Syntactic equality operator.
@@ -573,7 +573,7 @@ class CVC4_PUBLIC OpTerm
    * @param t the operator term to compare to for equality
    * @return true if the operator terms are equal
    */
-  bool operator==(const OpTerm& t) const;
+  bool operator==(const Op& t) const;
 
   /**
    * Syntactic disequality operator.
@@ -582,7 +582,7 @@ class CVC4_PUBLIC OpTerm
    * @param t the operator term to compare to for disequality
    * @return true if operator terms are disequal
    */
-  bool operator!=(const OpTerm& t) const;
+  bool operator!=(const Op& t) const;
 
   /**
    * @return the kind of this operator term
@@ -600,14 +600,14 @@ class CVC4_PUBLIC OpTerm
   bool isNull() const;
 
   /**
-   * Get the indices used to create this OpTerm.
+   * Get the indices used to create this Op.
    * Supports the following template arguments:
    *   - string
    *   - Kind
    *   - uint32_t
    *   - pair<uint32_t, uint32_t>
-   * Check the OpTerm Kind with getKind() to determine which argument to use.
-   * @return the indices used to create this OpTerm
+   * Check the Op Kind with getKind() to determine which argument to use.
+   * @return the indices used to create this Op
    */
   template <typename T>
   T getIndices() const;
@@ -625,7 +625,7 @@ class CVC4_PUBLIC OpTerm
   /* The kind of this operator term. */
   Kind d_kind;
 
-  /** True iff this OpTerm is indexed
+  /** True iff this Op is indexed
    *  An indexed operator has a non-null internal expr, d_expr
    */
   bool indexed;
@@ -721,13 +721,13 @@ class CVC4_PUBLIC Term
   /**
    * @return true iff this term has an operator
    */
-  bool hasOpTerm() const;
+  bool hasOp() const;
 
   /**
-   * @return the OpTerm used to create this term
-   * safe to call when hasOpTerm() returns true
+   * @return the Op used to create this term
+   * safe to call when hasOp() returns true
    */
-  OpTerm getOpTerm() const;
+  Op getOp() const;
 
   /**
    * @return true if this Term is a null term
@@ -962,14 +962,14 @@ std::ostream& operator<<(std::ostream& out,
  * @param t the operator term to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const OpTerm& t) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Op& t) CVC4_PUBLIC;
 
 /**
- * Hash function for OpTerms.
+ * Hash function for Ops.
  */
-struct CVC4_PUBLIC OpTermHashFunction
+struct CVC4_PUBLIC OpHashFunction
 {
-  size_t operator()(const OpTerm& t) const;
+  size_t operator()(const Op& t) const;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -1173,7 +1173,7 @@ class CVC4_PUBLIC DatatypeSelector
    * Get the selector operator of this datatype selector.
    * @return the selector operator
    */
-  OpTerm getSelectorTerm() const;
+  Op getSelectorTerm() const;
 
   /**
    * @return a string representation of this datatype selector
@@ -1230,7 +1230,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * Get the constructor operator of this datatype constructor.
    * @return the constructor operator
    */
-  OpTerm getConstructorTerm() const;
+  Op getConstructorTerm() const;
 
   /**
    * Get the datatype selector with the given name.
@@ -1249,7 +1249,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param name the name of the datatype selector
    * @return a term representing the datatype selector with the given name
    */
-  OpTerm getSelectorTerm(const std::string& name) const;
+  Op getSelectorTerm(const std::string& name) const;
 
   /**
    * @return a string representation of this datatype constructor
@@ -1396,7 +1396,7 @@ class CVC4_PUBLIC Datatype
    * similarly-named constructors, the
    * first is returned.
    */
-  OpTerm getConstructorTerm(const std::string& name) const;
+  Op getConstructorTerm(const std::string& name) const;
 
   /** Get the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
@@ -1804,51 +1804,51 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create nullary term of given kind from a given operator term.
-   * Create operator terms with mkOpTerm().
+   * Create operator terms with mkOp().
    * @param the operator term
    * @return the Term
    */
-  Term mkTerm(OpTerm opTerm) const;
+  Term mkTerm(Op op) const;
 
   /**
    * Create unary term of given kind from a given operator term.
-   * Create operator terms with mkOpTerm().
+   * Create operator terms with mkOp().
    * @param the operator term
    * @child the child of the term
    * @return the Term
    */
-  Term mkTerm(OpTerm opTerm, Term child) const;
+  Term mkTerm(Op op, Term child) const;
 
   /**
    * Create binary term of given kind from a given operator term.
-   * Create operator terms with mkOpTerm().
+   * Create operator terms with mkOp().
    * @param the operator term
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @return the Term
    */
-  Term mkTerm(OpTerm opTerm, Term child1, Term child2) const;
+  Term mkTerm(Op op, Term child1, Term child2) const;
 
   /**
    * Create ternary term of given kind from a given operator term.
-   * Create operator terms with mkOpTerm().
+   * Create operator terms with mkOp().
    * @param the operator term
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @child3 the third child of the term
    * @return the Term
    */
-  Term mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const;
+  Term mkTerm(Op op, Term child1, Term child2, Term child3) const;
 
   /**
    * Create n-ary term of given kind from a given operator term.
-   * Create operator terms with mkOpTerm().
+   * Create operator terms with mkOp().
    * @param kind the kind of the term
    * @param the operator term
    * @children the children of the term
    * @return the Term
    */
-  Term mkTerm(OpTerm opTerm, const std::vector<Term>& children) const;
+  Term mkTerm(Op op, const std::vector<Term>& children) const;
 
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
@@ -1871,7 +1871,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param k the kind argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, Kind k) const;
+  Op mkOp(Kind kind, Kind k) const;
 
   /**
    * Create operator of kind:
@@ -1881,7 +1881,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, const std::string& arg) const;
+  Op mkOp(Kind kind, const std::string& arg) const;
 
   /**
    * Create operator of kind:
@@ -1901,7 +1901,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param arg the uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg) const;
+  Op mkOp(Kind kind, uint32_t arg) const;
 
   /**
    * Create operator of Kind:
@@ -1917,7 +1917,7 @@ class CVC4_PUBLIC Solver
    * @param arg1 the first uint32_t argument to this operator
    * @param arg2 the second uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const;
+  Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -2560,7 +2560,7 @@ class CVC4_PUBLIC Solver
   std::vector<Type> sortVectorToTypes(const std::vector<Sort>& vector) const;
   /* Helper to convert a vector of sorts to internal types. */
   std::vector<Expr> termVectorToExprs(const std::vector<Term>& vector) const;
-  /* Helper to check for API misuse in mkOpTerm functions. */
+  /* Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /* Helper for mk-functions that call d_exprMgr->mkConst(). */
   template <typename T>
