@@ -157,8 +157,8 @@ class NlModel
    * Set that we have used an approximation during this check. This flag is
    * reset on a call to resetCheck. It is set when we use reasoning that
    * is limited by a degree of precision we are using. In other words, if we
-   * used an approximation, then we maybe could still establish or lemma or
-   * determine the input in SAT if we increased our precision.
+   * used an approximation, then we maybe could still establish a lemma or
+   * determine the input is SAT if we increased our precision.
    */
   void setUsedApproximate();
   /** Did we use an approximation during this check? */
@@ -195,7 +195,16 @@ class NlModel
    * equality eq. If it returns true, then eq is correct-by-construction based
    * on the information stored in our model representation (see
    * d_check_model_vars, d_check_model_subs, d_check_model_bounds), and eq
-   * is added to d_check_model_solved.
+   * is added to d_check_model_solved. The equality eq may involve any
+   * number of variables, and monomials of arbitrary degree. If this method
+   * returns false, then we did not show that the equality was true in the
+   * model. This method uses incomplete techniques based on interval
+   * analysis and quadratic equation solving.
+   * 
+   * If it can be shown that the equality must be false in the current
+   * model, then we may add a lemma to lemmas explaining why this is the case.
+   * For instance, if eq reduces to a univariate quadratic equation with no
+   * root, we send a conflict clause of the form a*x^2 + b*x + c != 0.
    */
   bool solveEqualitySimple(Node eq, unsigned d, std::vector<Node>& lemmas);
 
