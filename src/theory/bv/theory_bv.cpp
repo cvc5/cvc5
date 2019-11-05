@@ -336,7 +336,7 @@ void TheoryBV::check(Effort e)
     std::vector<TNode> assertions;
     while (!done()) {
       TNode fact = get().assertion;
-      Assert (fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
+      Assert(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
       assertions.push_back(fact);
       d_eagerSolver->assertFormula(fact[0]);
     }
@@ -379,13 +379,13 @@ void TheoryBV::check(Effort e)
   bool ok = true;
   bool complete = false;
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
-    Assert (!inConflict());
+    Assert(!inConflict());
     ok = d_subtheories[i]->check(e);
     complete = d_subtheories[i]->isComplete();
 
     if (!ok) {
       // if we are in a conflict no need to check with other theories
-      Assert (inConflict());
+      Assert(inConflict());
       sendConflict();
       return;
     }
@@ -511,7 +511,7 @@ bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
   if( getExtTheory()->doReductions( 0, terms, nredr ) ){
     return true;
   }
-  Assert( nredr.empty() );
+  Assert(nredr.empty());
   return false;
 }
 
@@ -873,7 +873,7 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
 
 
 void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
-  Assert (wasPropagatedBySubtheory(literal));
+  Assert(wasPropagatedBySubtheory(literal));
   SubTheory sub = getPropagatingSubtheory(literal);
   d_subtheoryMap[sub]->explain(literal, assumptions);
 }
@@ -912,7 +912,7 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
     return EQUALITY_UNKNOWN;
-  Assert (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     EqualityStatus status = d_subtheories[i]->getEqualityStatus(a, b);
     if (status != EQUALITY_UNKNOWN) {
@@ -924,7 +924,7 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 
 
 void TheoryBV::enableCoreTheorySlicer() {
-  Assert (!d_calledPreregister);
+  Assert(!d_calledPreregister);
   d_isCoreTheory = true;
   if (d_subtheoryMap.find(SUB_CORE) != d_subtheoryMap.end()) {
     CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
@@ -979,7 +979,7 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
       options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
       options::bitvectorAig()) {
     // disable AIG mode
-    AlwaysAssert (!d_eagerSolver->isInitialized());
+    AlwaysAssert(!d_eagerSolver->isInitialized());
     d_eagerSolver->turnOffAig();
     d_eagerSolver->initialize();
   }

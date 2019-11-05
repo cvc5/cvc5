@@ -26,7 +26,7 @@
 #include "expr/attribute.h"
 #include "expr/datatype.h"
 #include "expr/node_trie.h"
-#include "theory/datatypes/datatypes_sygus.h"
+#include "theory/datatypes/sygus_extension.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
@@ -370,7 +370,7 @@ private:
   TNode getRepresentative( TNode a );
 private:
  /** sygus symmetry breaking utility */
- SygusSymBreakNew* d_sygus_sym_break;
+ std::unique_ptr<SygusExtension> d_sygusExtension;
 
 };/* class TheoryDatatypes */
 
