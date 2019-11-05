@@ -151,7 +151,8 @@ struct DatatypeSelectorTypeRule {
       m.getTypes(types);
       m.getMatches(matches);
       TypeNode range = selType[1];
-      range = range.substitute(types.begin(), types.end(), matches.begin(), matches.end());
+      range = range.substitute(
+          types.begin(), types.end(), matches.begin(), matches.end());
       Debug("typecheck-idt") << "Return " << range << std::endl;
       return range;
     } else {
