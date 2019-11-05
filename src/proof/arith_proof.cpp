@@ -40,21 +40,22 @@ static bool allChildrenGeq(const Node& conflict)
 {
   bool result = true;
   size_t nChildren = conflict.getNumChildren();
-  for (const Node& n : conflict) {
+  for (const Node& n : conflict)
   {
-    const Node& nonneg = n.getKind() == kind::NOT ? n[0] : n;
-    if (nonneg.getKind() != kind::GEQ)
     {
-      result = false;
-      break;
+      const Node& nonneg = n.getKind() == kind::NOT ? n[0] : n;
+      if (nonneg.getKind() != kind::GEQ)
+      {
+        result = false;
+        break;
+      }
     }
-  }
-  return result;
+    return result;
 }
 
 // Verify that that the farkas coefficients indeed create a contradiction
-static bool hasContradiction(
-    const Node& conflict, theory::arith::RationalVectorCP farkasCoefficients)
+static bool hasContradiction(const Node& conflict,
+                             theory::arith::RationalVectorCP farkasCoefficients)
 {
   NodeManager* nm = NodeManager::currentNM();
   NodeBuilder<> leftBuilder(kind::PLUS);
@@ -1127,59 +1128,59 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
       }
     }
 
-      /* Combine linear polynomial constraints to derive a contradiction.
-       *
-       * The linear polynomial constraints are refered to as **antecedents**,
-       * since they are antecedents to the contradiction.
-       *
-       * The structure of the combination is a tree
-       *
-       *   (=> <=)
-       *      |
-       *      +                   0
-       *     / \
-       *    *   +                 1
-       *       / \
-       *      *   +               2
-       *         / \
-       *        *  ...            i
-       *             \
-       *              +           n-1
-       *             / \
-       *            *   (0 >= 0)
-       *
-       * Where each * is a linearized antecedant being scaled by a farkas
-       * coefficient and each + is the sum of inequalities. The tricky bit is
-       * that each antecedent can be strict (>) or relaxed (>=) and the axiom
-       * used for each * and + depends on this... The axiom for * depends on the
-       * strictness of its linear polynomial input, and the axiom for + depends
-       * on the strictness of **both** its inputs. The contradiction axiom is
-       * also a function of the strictness of its input.
-       *
-       * There are n *s and +s and we precompute
-       *    1. The strictness of the ith antecedant (`ith_antecedent_is_strict`)
-       *    2. The strictness of the right argument of the ith sum
-       * (`ith_acc_is_strict`)
-       *    3. The strictness of the final result (`strict_contradiction`)
-       *
-       * Precomupation is helpful since
-       *    the computation is post-order,
-       *    but printing is pre-order.
-       */
-      std::vector<bool> ith_antecedent_is_strict(nAntecedents, false);
-      std::vector<bool> ith_acc_is_strict(nAntecedents, false);
-      for (int i = nAntecedents - 1; i >= 0; --i)
+    /* Combine linear polynomial constraints to derive a contradiction.
+     *
+     * The linear polynomial constraints are refered to as **antecedents**,
+     * since they are antecedents to the contradiction.
+     *
+     * The structure of the combination is a tree
+     *
+     *   (=> <=)
+     *      |
+     *      +                   0
+     *     / \
+     *    *   +                 1
+     *       / \
+     *      *   +               2
+     *         / \
+     *        *  ...            i
+     *             \
+     *              +           n-1
+     *             / \
+     *            *   (0 >= 0)
+     *
+     * Where each * is a linearized antecedant being scaled by a farkas
+     * coefficient and each + is the sum of inequalities. The tricky bit is
+     * that each antecedent can be strict (>) or relaxed (>=) and the axiom
+     * used for each * and + depends on this... The axiom for * depends on the
+     * strictness of its linear polynomial input, and the axiom for + depends
+     * on the strictness of **both** its inputs. The contradiction axiom is
+     * also a function of the strictness of its input.
+     *
+     * There are n *s and +s and we precompute
+     *    1. The strictness of the ith antecedant (`ith_antecedent_is_strict`)
+     *    2. The strictness of the right argument of the ith sum
+     * (`ith_acc_is_strict`)
+     *    3. The strictness of the final result (`strict_contradiction`)
+     *
+     * Precomupation is helpful since
+     *    the computation is post-order,
+     *    but printing is pre-order.
+     */
+    std::vector<bool> ith_antecedent_is_strict(nAntecedents, false);
+    std::vector<bool> ith_acc_is_strict(nAntecedents, false);
+    for (int i = nAntecedents - 1; i >= 0; --i)
+    {
+      ith_antecedent_is_strict[i] = conflict[i].getKind() == kind::NOT;
+      if (i == (int)nAntecedents - 1)
       {
-        ith_antecedent_is_strict[i] = conflict[i].getKind() == kind::NOT;
-        if (i == (int)nAntecedents - 1)
-        {
-          ith_acc_is_strict[i] = false;
-        }
-        else
-        {
-          ith_acc_is_strict[i] =
-              ith_acc_is_strict[i + 1] || ith_antecedent_is_strict[i + 1];
-        }
+        ith_acc_is_strict[i] = false;
+      }
+      else
+      {
+        ith_acc_is_strict[i] =
+            ith_acc_is_strict[i + 1] || ith_antecedent_is_strict[i + 1];
+      }
       }
       bool strict_contradiction =
           ith_acc_is_strict[0] || ith_antecedent_is_strict[0];
