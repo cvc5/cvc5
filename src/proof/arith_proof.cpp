@@ -57,7 +57,7 @@ inline static bool allChildrenGeq(const Node& conflict)
   return result;
 }
 
-// Verify that that the farkas coefficients indeed create a contradiction
+// Verify that the Farkas coefficients indeed create a contradiction
 inline static bool hasContradiction(
     const Node& conflict, theory::arith::RationalVectorCP farkasCoefficients)
 {
