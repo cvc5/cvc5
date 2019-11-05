@@ -637,10 +637,11 @@ public:
   bool isInstantiatedDatatype() const;
 
   /**
-   * Get instantiated datatype type. This type should be a parametric datatype
-   * whose parameter list is the same list as argument params. This constructs
-   * the instantiated version of this parametric datatype, e.g. passing
-   * (par (A) (List A)), { Int } ) to this method returns (List Int).
+   * Get instantiated datatype type. The type on which this method is called
+   * should be a parametric datatype whose parameter list is the same list as
+   * argument params. This constructs the instantiated version of this
+   * parametric datatype, e.g. passing (par (A) (List A)), { Int } ) to this
+   * method returns (List Int).
    */
   TypeNode instantiateParametricDatatype(
       const std::vector<TypeNode>& params) const;
