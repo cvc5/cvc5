@@ -19,8 +19,7 @@
 #ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 #define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
-#include "expr/matcher.h"
-//#include "expr/attribute.h"
+#include "expr/type_matcher.h"
 
 namespace CVC4 {
 
@@ -55,7 +54,7 @@ struct DatatypeConstructorTypeRule {
     if (dt.isParametric()) {
       Debug("typecheck-idt") << "typecheck parameterized datatype " << n
                              << std::endl;
-      Matcher m(dt);
+      TypeMatcher m(t);
       for (; child_it != child_it_end; ++child_it, ++tchild_it) {
         TypeNode childType = (*child_it).getType(check);
         if (!m.doMatching(*tchild_it, childType)) {
@@ -132,9 +131,9 @@ struct DatatypeSelectorTypeRule {
     Assert(n.getKind() == kind::APPLY_SELECTOR
            || n.getKind() == kind::APPLY_SELECTOR_TOTAL);
     TypeNode selType = n.getOperator().getType(check);
-    Type t = selType[0].toType();
+    TypeNode t = selType[0];
     Assert(t.isDatatype());
-    DatatypeType dt = DatatypeType(t);
+    DatatypeType dt = DatatypeType(t.toType());
     if ((dt.isParametric() || check) && n.getNumChildren() != 1) {
       throw TypeCheckingExceptionPrivate(
           n, "number of arguments does not match the selector type");
@@ -142,7 +141,7 @@ struct DatatypeSelectorTypeRule {
     if (dt.isParametric()) {
       Debug("typecheck-idt") << "typecheck parameterized sel: " << n
                              << std::endl;
-      Matcher m(dt);
+      TypeMatcher m(t);
       TypeNode childType = n[0].getType(check);
       if (!childType.isInstantiatedDatatype()) {
         throw TypeCheckingExceptionPrivate(
@@ -188,13 +187,13 @@ struct DatatypeTesterTypeRule {
       }
       TypeNode testType = n.getOperator().getType(check);
       TypeNode childType = n[0].getType(check);
-      Type t = testType[0].toType();
+      TypeNode t = testType[0];
       Assert(t.isDatatype());
-      DatatypeType dt = DatatypeType(t);
+      DatatypeType dt = DatatypeType(t.toType());
       if (dt.isParametric()) {
         Debug("typecheck-idt") << "typecheck parameterized tester: " << n
                                << std::endl;
-        Matcher m(dt);
+        TypeMatcher m(t);
         if (!m.doMatching(testType[0], childType)) {
           throw TypeCheckingExceptionPrivate(
               n,
@@ -222,12 +221,11 @@ struct DatatypeAscriptionTypeRule {
     if (check) {
       TypeNode childType = n[0].getType(check);
 
-      Matcher m;
+      TypeMatcher m;
       if (childType.getKind() == kind::CONSTRUCTOR_TYPE) {
-        m.addTypesFromDatatype(
-            ConstructorType(childType.toType()).getRangeType());
+        m.addTypesFromDatatype(childType.getConstructorRangeType());
       } else if (childType.getKind() == kind::DATATYPE_TYPE) {
-        m.addTypesFromDatatype(DatatypeType(childType.toType()));
+        m.addTypesFromDatatype(childType);
       }
       if (!m.doMatching(childType, t)) {
         throw TypeCheckingExceptionPrivate(n,

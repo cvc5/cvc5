@@ -116,13 +116,14 @@ class SynthConjecture
    * This method returns true if this class has a solution available to the
    * conjecture that it was assigned.
    *
-   * This method adds entries to sol_map that map functions-to-synthesize to
+   * Let q be the synthesis conjecture assigned to this class.
+   * This method adds entries to sol_map[q] that map functions-to-synthesize to
    * their builtin solution, which has the same type. For example, for synthesis
-   * conjecture exists f. forall x. f( x )>x, this function may return the map
-   * containing the entry:
+   * conjecture exists f. forall x. f( x )>x, this function will update
+   * sol_map[q] to contain the entry:
    *   f -> (lambda x. x+1)
    */
-  bool getSynthSolutions(std::map<Node, Node>& sol_map);
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
   /**
    * The feasible guard whose semantics are "this conjecture is feasiable".
    * This is "G" in Figure 3 of Reynolds et al CAV 2015.

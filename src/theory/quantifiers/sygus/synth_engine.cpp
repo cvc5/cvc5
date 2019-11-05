@@ -387,7 +387,8 @@ void SynthEngine::printSynthSolution(std::ostream& out)
   }
 }
 
-bool SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+bool SynthEngine::getSynthSolutions(
+    std::map<Node, std::map<Node, Node> >& sol_map)
 {
   bool ret = true;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
