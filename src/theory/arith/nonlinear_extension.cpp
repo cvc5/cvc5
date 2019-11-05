@@ -461,7 +461,9 @@ Node NonlinearExtension::mkLit(Node a, Node b, int status, bool isAbsolute)
     if (!isAbsolute)
     {
       return a_eq_b;
-    } else {
+    }
+    else
+    {
       // return mkAbs( a ).eqNode( mkAbs( b ) );
       Node negate_b = NodeManager::currentNM()->mkNode(UMINUS, b);
       return a_eq_b.orNode(a.eqNode(negate_b));
@@ -475,7 +477,9 @@ Node NonlinearExtension::mkLit(Node a, Node b, int status, bool isAbsolute)
     if (!isAbsolute)
     {
       return nm->mkNode(greater_op, a, b);
-    } else {
+    }
+    else
+    {
       // return nm->mkNode( greater_op, mkAbs( a ), mkAbs( b ) );
       Node zero = mkRationalNode(0);
       Node a_is_nonnegative = nm->mkNode(GEQ, a, zero);

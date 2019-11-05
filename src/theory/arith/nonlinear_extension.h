@@ -416,7 +416,7 @@ class NonlinearExtension {
   std::vector<Node> d_order_points;
   
   //transcendental functions
-  /** 
+  /**
    * Maps arguments of SINE applications to a fresh skolem. This is used for
    * ensuring that the argument of SINE we process are on the interval
    * [-pi .. pi].

@@ -200,7 +200,7 @@ class NlModel
    * returns false, then we did not show that the equality was true in the
    * model. This method uses incomplete techniques based on interval
    * analysis and quadratic equation solving.
-   * 
+   *
    * If it can be shown that the equality must be false in the current
    * model, then we may add a lemma to lemmas explaining why this is the case.
    * For instance, if eq reduces to a univariate quadratic equation with no
