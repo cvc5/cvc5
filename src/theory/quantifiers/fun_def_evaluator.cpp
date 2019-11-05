@@ -37,7 +37,7 @@ void FunDefEvaluator::assertDefinition(Node q)
   }
   // h possibly with zero arguments?
   Node f = h.hasOperator() ? h.getOperator() : h;
-  Assert(d_funDefMap.find(f) != d_funDefMap.end())
+  Assert(d_funDefMap.find(f) == d_funDefMap.end())
       << "FunDefEvaluator::assertDefinition: function already defined";
   FunDefInfo& fdi = d_funDefMap[f];
   fdi.d_body = QuantAttributes::getFunDefBody(q);
