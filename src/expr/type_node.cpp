@@ -438,7 +438,7 @@ TypeNode TypeNode::instantiateParametricDatatype(
     const std::vector<TypeNode>& params) const
 {
   AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
-  AssertArgument(params.size() == getNumChildren(), *this);
+  AssertArgument(params.size() == getNumChildren()-1, *this);
   NodeManager* nm = NodeManager::currentNM();
   TypeNode cons = nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
   std::vector<TypeNode> paramsNodes;
@@ -593,5 +593,15 @@ std::string TypeNode::toString() const {
   return ss.str();
 }
 
+const DType& TypeNode::getDType() const
+{
+  if (getKind() == kind::DATATYPE_TYPE)
+  {
+    DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
+    return NodeManager::currentNM()->getDTypeForIndex(dic.getIndex());
+  }
+  Assert(getKind() == kind::PARAMETRIC_DATATYPE);
+  return (*this)[0].getDType();
+}
 
 }/* CVC4 namespace */
