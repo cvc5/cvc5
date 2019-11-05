@@ -1586,7 +1586,7 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Constructor application.
    * Paramters: n > 0
-   *   -[1]: Constructor (operator term)
+   *   -[1]: Constructor (operator)
    *   -[2]..[n]: Parameters to the constructor
    * Create with:
    *   mkTerm(Kind kind, Op op)
@@ -1599,7 +1599,7 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Datatype selector application.
    * Parameters: 1
-   *   -[1]: Selector (operator term)
+   *   -[1]: Selector (operator)
    *   -[2]: Datatype term (undefined if mis-applied)
    * Create with:
    *   mkTerm(Kind kind, Op op, Term child)
@@ -1608,7 +1608,7 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Datatype selector application.
    * Parameters: 1
-   *   -[1]: Selector (operator term)
+   *   -[1]: Selector (operator)
    *   -[2]: Datatype term (defined rigidly if mis-applied)
    * Create with:
    *   mkTerm(Kind kind, Op op, Term child)

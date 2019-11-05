@@ -528,8 +528,8 @@ struct CVC4_PUBLIC SortHashFunction
 /* -------------------------------------------------------------------------- */
 
 /**
- * A CVC4 operator term.
- * An operator term is a term that represents certain operators, instantiated
+ * A CVC4 operator.
+ * An operator is a term that represents certain operators, instantiated
  * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
  */
 class CVC4_PUBLIC Op
@@ -568,34 +568,34 @@ class CVC4_PUBLIC Op
 
   /**
    * Syntactic equality operator.
-   * Return true if both operator terms are syntactically identical.
-   * Both operator terms must belong to the same solver object.
-   * @param t the operator term to compare to for equality
-   * @return true if the operator terms are equal
+   * Return true if both operators are syntactically identical.
+   * Both operators must belong to the same solver object.
+   * @param t the operator to compare to for equality
+   * @return true if the operators are equal
    */
   bool operator==(const Op& t) const;
 
   /**
    * Syntactic disequality operator.
-   * Return true if both operator terms differ syntactically.
+   * Return true if both operators differ syntactically.
    * Both terms must belong to the same solver object.
-   * @param t the operator term to compare to for disequality
-   * @return true if operator terms are disequal
+   * @param t the operator to compare to for disequality
+   * @return true if operators are disequal
    */
   bool operator!=(const Op& t) const;
 
   /**
-   * @return the kind of this operator term
+   * @return the kind of this operator
    */
   Kind getKind() const;
 
   /**
-   * @return the sort of this operator term
+   * @return the sort of this operator
    */
   Sort getSort() const;
 
   /**
-   * @return true if this operator term is a null term
+   * @return true if this operator is a null term
    */
   bool isNull() const;
 
@@ -613,7 +613,7 @@ class CVC4_PUBLIC Op
   T getIndices() const;
 
   /**
-   * @return a string representation of this operator term
+   * @return a string representation of this operator
    */
   std::string toString() const;
 
@@ -622,7 +622,7 @@ class CVC4_PUBLIC Op
   CVC4::Expr getExpr(void) const;
 
  private:
-  /* The kind of this operator term. */
+  /* The kind of this operator. */
   Kind d_kind;
 
   /** True iff this Op is indexed
@@ -631,7 +631,7 @@ class CVC4_PUBLIC Op
   bool indexed;
 
   /**
-   * The internal expression wrapped by this operator term.
+   * The internal expression wrapped by this operator.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
@@ -960,11 +960,10 @@ std::ostream& operator<<(std::ostream& out,
                          const std::unordered_map<Term, V, TermHashFunction>&
                              unordered_map) CVC4_PUBLIC;
 
-
 /**
- * Serialize an operator term to given stream.
+ * Serialize an operator to given stream.
  * @param out the output stream
- * @param t the operator term to be serialized to the given output stream
+ * @param t the operator to be serialized to the given output stream
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out, const Op& t) CVC4_PUBLIC;
@@ -1808,26 +1807,26 @@ class CVC4_PUBLIC Solver
   Term mkTerm(Kind kind, const std::vector<Term>& children) const;
 
   /**
-   * Create nullary term of given kind from a given operator term.
-   * Create operator terms with mkOp().
-   * @param the operator term
+   * Create nullary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param the operator
    * @return the Term
    */
   Term mkTerm(Op op) const;
 
   /**
-   * Create unary term of given kind from a given operator term.
-   * Create operator terms with mkOp().
-   * @param the operator term
+   * Create unary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param the operator
    * @child the child of the term
    * @return the Term
    */
   Term mkTerm(Op op, Term child) const;
 
   /**
-   * Create binary term of given kind from a given operator term.
-   * Create operator terms with mkOp().
-   * @param the operator term
+   * Create binary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param the operator
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @return the Term
@@ -1835,9 +1834,9 @@ class CVC4_PUBLIC Solver
   Term mkTerm(Op op, Term child1, Term child2) const;
 
   /**
-   * Create ternary term of given kind from a given operator term.
-   * Create operator terms with mkOp().
-   * @param the operator term
+   * Create ternary term of given kind from a given operator.
+   * Create operators with mkOp().
+   * @param the operator
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @child3 the third child of the term
@@ -1846,10 +1845,10 @@ class CVC4_PUBLIC Solver
   Term mkTerm(Op op, Term child1, Term child2, Term child3) const;
 
   /**
-   * Create n-ary term of given kind from a given operator term.
-   * Create operator terms with mkOp().
+   * Create n-ary term of given kind from a given operator.
+   * Create operators with mkOp().
    * @param kind the kind of the term
-   * @param the operator term
+   * @param the operator
    * @children the children of the term
    * @return the Term
    */
@@ -1870,7 +1869,7 @@ class CVC4_PUBLIC Solver
   /* .................................................................... */
 
   /**
-   * Create operator term of kind:
+   * Create operator of kind:
    *   - CHAIN
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
