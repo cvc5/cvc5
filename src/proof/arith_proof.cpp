@@ -39,7 +39,6 @@ inline static Node eqNode(TNode n1, TNode n2) {
 static bool allChildrenGeq(const Node& conflict)
 {
   bool result = true;
-  size_t nChildren = conflict.getNumChildren();
   for (const Node& n : conflict)
   {
     {
@@ -51,6 +50,7 @@ static bool allChildrenGeq(const Node& conflict)
       }
     }
     return result;
+  }
 }
 
 // Verify that that the farkas coefficients indeed create a contradiction
@@ -1169,15 +1169,17 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
        */
       std::vector<bool> ith_antecedent_is_strict(nAntecedents, false);
       std::vector<bool> ith_acc_is_strict(nAntecedents, false);
-      for (int i = nAntecedents - 1; i >= 0; --i)
-      {
-        ith_acc_is_strict[i] = false;
-      }
-      else
-      {
-        ith_acc_is_strict[i] =
-            ith_acc_is_strict[i + 1] || ith_antecedent_is_strict[i + 1];
-      }
+      for (int i = nAntecedents - 1; i >= 0; --i) {
+        ith_antecedent_is_strict[i] = conflict[i].getKind() == kind::NOT;
+        if (i == (int)nAntecedents - 1)
+        {
+          ith_acc_is_strict[i] = false;
+        }
+        else
+        {
+          ith_acc_is_strict[i] =
+              ith_acc_is_strict[i + 1] || ith_antecedent_is_strict[i + 1];
+        }
       }
       bool strict_contradiction =
           ith_acc_is_strict[0] || ith_antecedent_is_strict[0];
