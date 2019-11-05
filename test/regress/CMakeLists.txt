@@ -523,7 +523,6 @@ set(regress_0_tests
   regress0/lemmas/fs_not_sc_seen.induction.smtv1.smt2
   regress0/lemmas/mode_cntrl.induction.smtv1.smt2
   regress0/lemmas/sc_init_frame_gap.induction.smtv1.smt2
-  regress0/lemmas/sc_init_frame_gap.induction_pp.smt2
   regress0/let.cvc
   regress0/let.smtv1.smt2
   regress0/let2.smtv1.smt2
