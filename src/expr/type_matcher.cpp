@@ -72,14 +72,11 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
         d_match[index] = tnn;
         return true;
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
     else
     {
-      d_match[i - d_types.begin()] = tn;
+      d_match[index] = tn;
       return true;
     }
   }
