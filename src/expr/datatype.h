@@ -989,8 +989,7 @@ public:
    * addConstructor() will fail after a call to resolve().
    *
    * The basic goal of resolution is to assign constructors, selectors,
-   * and testers.  To do this, any UnresolvedType/SelfType references
-   * must be cleared up.  This is the purpose of the "resolutions" map;
+   * and testers.  To do this, we use the "resolutions" map;
    * it includes any mutually-recursive datatypes that are currently
    * under resolution.  The four vectors come in two pairs (so, really
    * they are two maps).  placeholders->replacements give type variables
