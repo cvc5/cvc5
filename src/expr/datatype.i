@@ -72,7 +72,6 @@
 %ignore CVC4::DatatypeConstructorIterator;
 %ignore CVC4::DatatypeConstructorArgIterator;
 
-%feature("valuewrapper") CVC4::DatatypeUnresolvedType;
 %feature("valuewrapper") CVC4::DatatypeConstructor;
 
 

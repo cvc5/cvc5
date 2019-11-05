@@ -102,21 +102,6 @@ class CVC4_PUBLIC DatatypeSelfType {
 };/* class DatatypeSelfType */
 
 /**
- * An unresolved type (used in calls to
- * DatatypeConstructor::addArg()) to allow a Datatype to refer to
- * itself or to other mutually-recursive Datatypes.  Unresolved-type
- * fields of Datatypes will be properly typed when a Type is created
- * for the Datatype by the ExprManager (which calls
- * Datatype::resolve()).
- */
-class CVC4_PUBLIC DatatypeUnresolvedType {
-  std::string d_name;
-public:
-  inline DatatypeUnresolvedType(std::string name);
-  inline std::string getName() const;
-};/* class DatatypeUnresolvedType */
-
-/**
  * A Datatype constructor argument (i.e., a Datatype field).
  */
 class CVC4_PUBLIC DatatypeConstructorArg {
@@ -239,14 +224,6 @@ class CVC4_PUBLIC DatatypeConstructor {
    * they are for convenience and pretty-printing only.
    */
   void addArg(std::string selectorName, Type selectorType);
-
-  /**
-   * Add an argument (i.e., a data field) of the given name to this
-   * Datatype constructor that refers to an as-yet-unresolved
-   * Datatype (which may be mutually-recursive).  Selector names need
-   * not be unique; they are for convenience and pretty-printing only.
-   */
-  void addArg(std::string selectorName, DatatypeUnresolvedType selectorType);
 
   /**
    * Add a self-referential (i.e., a data field) of the given name
@@ -1178,11 +1155,6 @@ inline DatatypeResolutionException::DatatypeResolutionException(std::string msg)
   Exception(msg) {
 }
 
-inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
-  d_name(name) {
-}
-
-inline std::string DatatypeUnresolvedType::getName() const { return d_name; }
 inline Datatype::Datatype(std::string name, bool isCo)
     : d_name(name),
       d_params(),
