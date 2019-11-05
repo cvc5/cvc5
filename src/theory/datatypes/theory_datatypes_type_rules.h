@@ -62,14 +62,9 @@ struct DatatypeConstructorTypeRule {
               n, "matching failed for parameterized constructor");
         }
       }
-      std::vector<Type> instTypes;
+      std::vector<TypeNode> instTypes;
       m.getMatches(instTypes);
-      std::vector<TypeNode> itn;
-      for (const Type& ts : instTypes)
-      {
-        itn.push_back(TypeNode::fromType(ts));
-      }
-      TypeNode range = t.instantiateParametricDatatype(itn);
+      TypeNode range = t.instantiateParametricDatatype(instTypes);
       Debug("typecheck-idt") << "Return " << range << std::endl;
       return range;
     } else {
@@ -152,13 +147,13 @@ struct DatatypeSelectorTypeRule {
             n,
             "matching failed for selector argument of parameterized datatype");
       }
-      std::vector<Type> types, matches;
+      std::vector<TypeNode> types, matches;
       m.getTypes(types);
       m.getMatches(matches);
-      Type range = selType[1].toType();
-      range = range.substitute(types, matches);
+      TypeNode range = selType[1];
+      range = range.substitute(types.begin(), types.end(), matches.begin(), matches.end());
       Debug("typecheck-idt") << "Return " << range << std::endl;
-      return TypeNode::fromType(range);
+      return range;
     } else {
       if (check) {
         Debug("typecheck-idt") << "typecheck sel: " << n << std::endl;
