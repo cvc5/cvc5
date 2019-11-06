@@ -32,7 +32,7 @@ if __name__ == "__main__":
     #
     # Two more efficient yet equivalent methods are:
     #
-    #(1) x = a ⊕ b ⊕ x;
+    #(1) x = a xor b xor x;
     #
     #(2) x = a + b - x;
     #

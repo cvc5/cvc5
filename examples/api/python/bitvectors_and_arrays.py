@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
     # Setting up the problem parameters
     k = 4
-    index_size = math.ceil(math.log2(k))
+    index_size = int(math.ceil(math.log(k, 2)))
 
     # Sorts
     elementSort = slv.mkBitVectorSort(32)
