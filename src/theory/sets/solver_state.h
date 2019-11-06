@@ -104,7 +104,7 @@ class SolverState
    * This method returns a non-null node n if and only if a term n that is
    * congruent to <k>(r1,r2) exists in the current context.
    */
-  Node getBinaryOp(Kind k, Node r1, Node r2) const;
+  Node getBinaryOpTerm(Kind k, Node r1, Node r2) const;
   /**
    * Returns a term that is congruent to n in the current context.
    *

@@ -223,7 +223,7 @@ Node SolverState::getSingletonEqClass(Node r) const
   return Node::null();
 }
 
-Node SolverState::getBinaryOp(Kind k, Node r1, Node r2) const
+Node SolverState::getBinaryOpTerm(Kind k, Node r1, Node r2) const
 {
   std::map<Kind, std::map<Node, std::map<Node, Node> > >::const_iterator itk =
       d_bop_index.find(k);

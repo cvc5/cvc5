@@ -397,7 +397,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     Trace("fmc-model-debug") << std::endl;
     //possibly get default
     if( needsDefault ){
-      Node nmb = fm->getModelBasisOp(op);
+      Node nmb = fm->getModelBasisOpTerm(op);
       //add default value if necessary
       if( fm->hasTerm( nmb ) ){
         Trace("fmc-model-debug") << "Add default " << nmb << std::endl;

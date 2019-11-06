@@ -267,7 +267,7 @@ bool FirstOrderModel::isModelBasisTerm(Node n)
   return n == getModelBasisTerm(n.getType());
 }
 
-Node FirstOrderModel::getModelBasisOp(Node op)
+Node FirstOrderModel::getModelBasisOpTerm(Node op)
 {
   if (d_model_basis_op_term.find(op) == d_model_basis_op_term.end())
   {
@@ -313,7 +313,7 @@ void FirstOrderModel::computeModelBasisArgAttribute(Node n)
     // ensure that the model basis terms have been defined
     if (n.getKind() == APPLY_UF)
     {
-      getModelBasisOp(n.getOperator());
+      getModelBasisOpTerm(n.getOperator());
     }
     uint64_t val = 0;
     // determine if it has model basis attribute
