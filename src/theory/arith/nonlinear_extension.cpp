@@ -1432,7 +1432,7 @@ bool NonlinearExtension::check(Theory::Effort e) {
 
   // Did we internally determine a model exists? If so, we need to record some
   // information in the theory engine's model class.
-  return d_builtModel.get();
+  return true;
 }
 
 bool NonlinearExtension::checkModel(std::map<Node, Node>& arithModel)
@@ -1442,8 +1442,11 @@ bool NonlinearExtension::checkModel(std::map<Node, Node>& arithModel)
   // run a last call effort check
   if (check(Theory::EFFORT_LAST_CALL))
   {
-    // modify the model values
-    d_model.recordApproximations(arithModel);
+    if (d_builtModel.get())
+    {
+      // modify the model values
+      d_model.recordApproximations(arithModel);
+    }
     return true;
   }
   return false;
