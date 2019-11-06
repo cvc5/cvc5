@@ -3548,13 +3548,6 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     return;
   }
 
-  if(effortLevel == Theory::EFFORT_LAST_CALL){
-    if( options::nlExt() ){
-      d_nonlinearExtension->check( effortLevel );
-    }
-    return;
-  }
-
   TimerStat::CodeTimer checkTimer(d_containing.d_checkTime);
   //cout << "TheoryArithPrivate::check " << effortLevel << std::endl;
   Debug("effortlevel") << "TheoryArithPrivate::check " << effortLevel << std::endl;
@@ -4359,7 +4352,7 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   if (options::nlExt())
   {
     // non-linear may repair values to satisfy non-linear constraints
-    if (!d_nonlinearExtension->buildModel(arithModel))
+    if (!d_nonlinearExtension->checkModel(arithModel))
     {
       // failed, we added a lemma
       return false;

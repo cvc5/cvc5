@@ -1228,7 +1228,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   return 0;
 }
 
-void NonlinearExtension::check(Theory::Effort e) {
+bool NonlinearExtension::check(Theory::Effort e) {
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
                   << ", built model = " << d_builtModel.get() << std::endl;
@@ -1258,10 +1258,6 @@ void NonlinearExtension::check(Theory::Effort e) {
     // get the assertions
     std::vector<Node> assertions;
     getAssertions(assertions);
-
-    // reset cached information
-    TheoryModel* tm = d_containing.getValuation().getModel();
-    d_model.reset(tm);
 
     Trace("nl-ext-mv-assert")
         << "Getting model values... check for [model-false]" << std::endl;
@@ -1347,7 +1343,7 @@ void NonlinearExtension::check(Theory::Effort e) {
         num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
         if (num_added_lemmas > 0)
         {
-          return;
+          return false;
         }
       }
       Trace("nl-ext") << "Finished check with status : " << complete_status
@@ -1376,7 +1372,7 @@ void NonlinearExtension::check(Theory::Effort e) {
         {
           Trace("nl-ext") << "...added " << num_added_lemmas
                           << " waiting lemmas." << std::endl;
-          return;
+          return false;
         }
         // resort to splitting on shared terms with their model value
         // if we did not add any lemmas
@@ -1401,7 +1397,7 @@ void NonlinearExtension::check(Theory::Effort e) {
               Trace("nl-ext")
                   << "...added " << num_added_lemmas
                   << " shared term value split lemmas." << std::endl;
-              return;
+              return false;
             }
           }
           else
@@ -1436,24 +1432,21 @@ void NonlinearExtension::check(Theory::Effort e) {
 
   // Did we internally determine a model exists? If so, we need to record some
   // information in the theory engine's model class.
-  if (d_builtModel.get())
-  {
-    if (e < Theory::EFFORT_LAST_CALL)
-    {
-      // don't need to build the model yet
-      return;
-    }
-    // record approximations in the model
-    d_model.recordApproximations();
-    return;
-  }
+  return d_builtModel.get();
 }
 
-bool NonlinearExtension::buildModel(std::map<Node, Node>& arithModel)
+bool NonlinearExtension::checkModel(std::map<Node, Node>& arithModel)
 {
   // TODO
-  // d_model.reset(arithModel);
-  return true;
+  d_model.reset(arithModel);
+  // run a last call effort check
+  if (check(Theory::EFFORT_LAST_CALL))
+  {
+    // modify the model values
+    d_model.recordApproximations(arithModel);
+    return true;
+  }
+  return false;
 }
 
 void NonlinearExtension::presolve()

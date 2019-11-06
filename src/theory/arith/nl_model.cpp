@@ -36,17 +36,25 @@ NlModel::NlModel(context::Context* c) : d_used_approx(false)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(TheoryModel* m)
+void NlModel::reset(std::map<Node, Node>& arithModel)
 {
-  d_model = m;
+  //d_model = m;
   d_mv[0].clear();
   d_mv[1].clear();
-  /*
-    d_arithVal.clear();
-    d_valToRep.clear();
-    // FIXME: process arithModel
-
-    */
+  d_arithVal.clear();
+  d_valToRep.clear();
+  d_approximations.clear();
+  // process arithModel
+  std::map< Node, Node >::iterator it;
+  for (const std::pair< const Node, Node >& m : arithModel)
+  {
+    d_arithVal[m.first] = m.second;
+    it = d_valToRep.find(m.second);
+    if (it==d_valToRep.end())
+    {
+      d_valToRep[m.second] = m.first;
+    }
+  }
 }
 
 void NlModel::resetCheck()
@@ -142,27 +150,25 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
 
 Node NlModel::getValueInternal(Node n) const
 {
-  return d_model->getValue(n);
-  /*
+  //return d_model->getValue(n);
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
     return it->second;
   }
-  return Node::null();
-  */
+  // return self
+  return n;
 }
 
 bool NlModel::hasTerm(Node n) const
 {
-  return d_model->hasTerm(n);
-  // return d_arithVal.find(n)!=d_arithVal.end();
+  //return d_model->hasTerm(n);
+  return d_arithVal.find(n)!=d_arithVal.end();
 }
 
 Node NlModel::getRepresentative(Node n) const
 {
-  return d_model->getRepresentative(n);
-  /*
+  //return d_model->getRepresentative(n);
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
@@ -173,8 +179,8 @@ Node NlModel::getRepresentative(Node n) const
     }
     Assert(false);
   }
-  return Node::null();
-  */
+  // return self
+  return n;
 }
 
 int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute)
@@ -1231,7 +1237,7 @@ bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
   return true;
 }
 
-void NlModel::recordApproximations()
+void NlModel::recordApproximations(std::map<Node, Node>& arithModel)
 {
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
@@ -1247,17 +1253,13 @@ void NlModel::recordApproximations()
     Node v = cb.first;
     if (l != u)
     {
-      pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+      Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
+      d_approximations[v] = pred;
     }
-    else if (!d_model->areEqual(v, l))
+    else
     {
-      // only record if value was not equal already
-      pred = v.eqNode(l);
-    }
-    if (!pred.isNull())
-    {
-      pred = Rewriter::rewrite(pred);
-      d_model->recordApproximation(v, pred);
+      // overwrite
+      arithModel[v] = l;
     }
   }
   // Also record the exact values we used. An exact value can be seen as a
@@ -1268,14 +1270,11 @@ void NlModel::recordApproximations()
   {
     Node v = d_check_model_vars[i];
     Node s = d_check_model_subs[i];
-    if (!d_model->areEqual(v, s))
-    {
-      Node pred = v.eqNode(s);
-      pred = Rewriter::rewrite(pred);
-      d_model->recordApproximation(v, pred);
-    }
+    // overwrite
+    arithModel[v] = s;
   }
 }
+
 void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 {
   if (Trace.isOn(c))

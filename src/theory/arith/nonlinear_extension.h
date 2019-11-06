@@ -119,12 +119,12 @@ class NonlinearExtension {
    * calls to d_out->lemma(...) where d_out
    * is the output channel of TheoryArith.
    */
-  void check(Theory::Effort e);
+  bool check(Theory::Effort e);
   /** build model
    *
    * TODO
    */
-  bool buildModel(std::map<Node, Node>& arithModel);
+  bool checkModel(std::map<Node, Node>& arithModel);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
