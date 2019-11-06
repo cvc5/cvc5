@@ -13,6 +13,7 @@
  **/
 #include "theory/datatypes/dtype.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4::kind;
@@ -82,8 +83,6 @@ bool DType::isCodatatype() const { return d_isCo; }
 bool DType::isSygus() const { return !d_sygus_type.isNull(); }
 
 bool DType::isTuple() const { return d_isTuple; }
-
-bool DType::operator!=(const DType& other) const { return !(*this == other); }
 
 bool DType::isResolved() const { return d_resolved; }
 DType::iterator DType::begin() { return iterator(d_constructors, true); }
@@ -157,15 +156,12 @@ size_t DType::cindexOfInternal(Node item)
   }
 }
 
-void DType::resolve(NodeManager* em,
-                    const std::map<std::string, TypeNode>& resolutions,
+void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
                     const std::vector<TypeNode>& placeholders,
                     const std::vector<TypeNode>& replacements,
-                    const std::vector<SortConstructorType>& paramTypes,
+                    const std::vector<TypeNode>& paramTypes,
                     const std::vector<TypeNode>& paramReplacements)
 {
-  PrettyCheckArgument(
-      em != NULL, em, "cannot resolve a DType with a NULL expression manager");
   PrettyCheckArgument(!d_resolved, this, "cannot resolve a DTypeNode twice");
   PrettyCheckArgument(resolutions.find(d_name) != resolutions.end(),
                       resolutions,
@@ -190,8 +186,7 @@ void DType::resolve(NodeManager* em,
        i != i_end;
        ++i)
   {
-    (*i).resolve(em,
-                 self,
+    (*i).resolve(self,
                  resolutions,
                  placeholders,
                  replacements,
@@ -719,114 +714,16 @@ TypeNode DType::getTypeNode() const
   PrettyCheckArgument(
       isResolved(), *this, "DType must be resolved to get its TypeNode");
   PrettyCheckArgument(!d_self.isNull(), *this);
-  return TypeNode(d_self);
+  return d_self;
 }
 
 TypeNode DType::getTypeNode(const std::vector<TypeNode>& params) const
 {
   PrettyCheckArgument(
       isResolved(), *this, "DType must be resolved to get its TypeNode");
-  PrettyCheckArgument(!d_self.isNull() && TypeNode(d_self).isParametric(),
+  PrettyCheckArgument(!d_self.isNull() && d_self.isParametricDatatype(),
                       this);
-  return d_self.instantiate(params);
-}
-
-bool DType::operator==(const DType& other) const
-{
-  // two datatypes are == iff the name is the same and they have
-  // exactly matching constructors (in the same order)
-
-  if (this == &other)
-  {
-    return true;
-  }
-
-  if (isResolved() != other.isResolved())
-  {
-    return false;
-  }
-
-  if (d_name != other.d_name
-      || getNumConstructors() != other.getNumConstructors())
-  {
-    return false;
-  }
-  for (const_iterator i = begin(), j = other.begin(); i != end(); ++i, ++j)
-  {
-    Assert(j != other.end());
-    // two constructors are == iff they have the same name, their
-    // constructors and testers are equal and they have exactly
-    // matching args (in the same order)
-    if ((*i).getName() != (*j).getName()
-        || (*i).getNumArgs() != (*j).getNumArgs())
-    {
-      return false;
-    }
-    // testing equivalence of constructors and testers is harder b/c
-    // this constructor might not be resolved yet; only compare them
-    // if they are both resolved
-    Assert(isResolved() == !(*i).d_constructor.isNull()
-           && isResolved() == !(*i).d_tester.isNull()
-           && (*i).d_constructor.isNull() == (*j).d_constructor.isNull()
-           && (*i).d_tester.isNull() == (*j).d_tester.isNull());
-    if (!(*i).d_constructor.isNull()
-        && (*i).d_constructor != (*j).d_constructor)
-    {
-      return false;
-    }
-    if (!(*i).d_tester.isNull() && (*i).d_tester != (*j).d_tester)
-    {
-      return false;
-    }
-    for (DTypeConstructor::const_iterator k = (*i).begin(), l = (*j).begin();
-         k != (*i).end();
-         ++k, ++l)
-    {
-      Assert(l != (*j).end());
-      if ((*k).getName() != (*l).getName())
-      {
-        return false;
-      }
-      // testing equivalence of selectors is harder b/c args might not
-      // be resolved yet
-      Assert(isResolved() == (*k).isResolved()
-             && (*k).isResolved() == (*l).isResolved());
-      if ((*k).isResolved())
-      {
-        // both are resolved, so simply compare the selectors directly
-        if ((*k).d_selector != (*l).d_selector)
-        {
-          return false;
-        }
-      }
-      else
-      {
-        // neither is resolved, so compare their (possibly unresolved)
-        // types; we don't know if they'll be resolved the same way,
-        // so we can't ever say unresolved types are equal
-        if (!(*k).d_selector.isNull() && !(*l).d_selector.isNull())
-        {
-          if ((*k).d_selector.getType() != (*l).d_selector.getType())
-          {
-            return false;
-          }
-        }
-        else
-        {
-          if ((*k).isUnresolvedSelf() && (*l).isUnresolvedSelf())
-          {
-            // Fine, the selectors are equal if the rest of the
-            // enclosing datatypes are equal...
-          }
-          else
-          {
-            return false;
-          }
-        }
-      }
-    }
-  }
-  return true;
+  return d_self.instantiateParametricDatatype(params);
 }
 
 const DTypeConstructor& DType::operator[](size_t index) const
@@ -854,11 +751,11 @@ const DTypeConstructor& DType::operator[](std::string name) const
 Node DType::getSharedSelector(TypeNode dtt, TypeNode t, unsigned index) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  std::map<Type, std::map<Type, std::map<unsigned, Node> > >::iterator itd =
+  std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >::iterator itd =
       d_shared_sel.find(dtt);
   if (itd != d_shared_sel.end())
   {
-    std::map<Type, std::map<unsigned, Node> >::iterator its =
+    std::map<TypeNode, std::map<unsigned, Node> >::iterator its =
         itd->second.find(t);
     if (its != itd->second.end())
     {
@@ -871,14 +768,13 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, unsigned index) const
   }
   // make the shared selector
   Node s;
-  NodeManager* nm = NodeManager::fromNodeManager(d_self.getNodeManager());
+  NodeManager* nm = NodeManager::currentNM();
   std::stringstream ss;
   ss << "sel_" << index;
   s = nm->mkSkolem(ss.str(),
                    nm->mkSelectorType(dtt, t),
                    "is a shared selector",
-                   NodeManager::SKOLEM_NO_NOTIFY)
-          .toNode();
+                   NodeManager::SKOLEM_NO_NOTIFY);
   d_shared_sel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
@@ -890,7 +786,7 @@ Node DType::getConstructor(std::string name) const
   return (*this)[name].getConstructor();
 }
 
-Type DType::getSygusType() const { return d_sygus_type; }
+TypeNode DType::getSygusType() const { return d_sygus_type; }
 
 Node DType::getSygusVarList() const { return d_sygus_bvl; }
 

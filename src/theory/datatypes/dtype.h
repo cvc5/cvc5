@@ -378,24 +378,7 @@ class DType
    * called post-resolution.
    */
   TypeNode getTypeNode(const std::vector<TypeNode>& params) const;
-
-  /**
-   * Return true iff the two DTypes are the same.
-   *
-   * We need == for mkConst(DType) to properly work---since if the
-   * DType Node requested is the same as an already-existing one,
-   * we need to return that one.  For that, we have a hash and
-   * operator==.  We provide != for symmetry.  We don't provide
-   * operator<() etc. because given two DType Nodes, you could
-   * simply compare those rather than the (bare) DTypes.  This
-   * means, though, that DType cannot be stored in a sorted list or
-   * RB tree directly, so maybe we can consider adding these
-   * comparison operators later on.
-   */
-  bool operator==(const DType& other) const;
-  /** Return true iff the two DTypes are not the same. */
-  bool operator!=(const DType& other) const;
-
+  
   /** Return true iff this DType has already been resolved. */
   bool isResolved() const;
 
@@ -497,7 +480,8 @@ class DType
   std::vector<DTypeConstructor> d_constructors;
   /** whether this datatype has been resolved */
   bool d_resolved;
-  TypeNode d_self;
+  /** self type */
+  mutable TypeNode d_self;
   /** cache for involves external type */
   bool d_involvesExt;
   /** cache for involves uninterpreted type */
@@ -570,11 +554,10 @@ class DType
    * that must be replaced
    * @param paramReplacements the corresponding (parametric) TypeNodes
    */
-  void resolve(NodeManager* em,
-               const std::map<std::string, TypeNode>& resolutions,
+  void resolve(const std::map<std::string, TypeNode>& resolutions,
                const std::vector<TypeNode>& placeholders,
                const std::vector<TypeNode>& replacements,
-               const std::vector<SortConstructorType>& paramTypes,
+               const std::vector<TypeNode>& paramTypes,
                const std::vector<TypeNode>& paramReplacements);
   friend class NodeManager;  // for access to resolve()
 

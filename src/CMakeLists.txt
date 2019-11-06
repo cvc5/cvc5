@@ -403,6 +403,8 @@ libcvc4_add_sources(
   theory/care_graph.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/dtype.cpp
+  theory/datatypes/dtype.h
   theory/datatypes/dtype_cons.cpp
   theory/datatypes/dtype_cons.h
   theory/datatypes/dtype_cons_arg.cpp
