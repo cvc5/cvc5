@@ -179,7 +179,7 @@ class SolverState
    * lts[i] for all elements in col.
    */
   void separateByLength(const std::vector<Node>& n,
-                        std::vector<std::vector<Node> >& col,
+                        std::vector<std::vector<Node> >& cols,
                         std::vector<Node>& lts);
 
  private:
