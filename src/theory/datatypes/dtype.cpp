@@ -817,7 +817,8 @@ void DType::toStream(std::ostream& out) const
   bool firstTime = true;
   for (const DTypeConstructor& ctor : d_constructors)
   {
-    if (!firstTime){
+    if (!firstTime)
+    {
       out << " | ";
     }
     firstTime = false;
