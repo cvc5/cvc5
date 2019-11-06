@@ -931,21 +931,21 @@ void DType::toStream(std::ostream& out) const
     }
     out << ']';
   }
-  out << " =" << endl;
+  out << " =" << std::endl;
   DType::const_iterator i = begin(), i_end = end();
   if (i != i_end)
   {
     out << "  ";
     do
     {
-      out << *i << endl;
+      out << *i << std::endl;
       if (++i != i_end)
       {
         out << "| ";
       }
     } while (i != i_end);
   }
-  out << "END;" << endl;
+  out << "END;" << std::endl;
 }
 
 DTypeIndexConstant::DTypeIndexConstant(unsigned index) : d_index(index) {}
