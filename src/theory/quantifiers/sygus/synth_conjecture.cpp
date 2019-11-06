@@ -47,7 +47,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
     : d_qe(qe),
       d_parent(p),
       d_tds(qe->getTermDatabaseSygus()),
-      d_hasSolution(false, qe->getUserContext()),
+      d_hasSolution(false),
       d_ceg_si(new CegSingleInv(qe, this)),
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
@@ -300,6 +300,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     return true;
   }
   Assert(d_master != nullptr);
+  Assert(!d_hasSolution);
 
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
@@ -486,6 +487,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       lem = getStreamGuardedLemma(lem);
       lems.push_back(lem);
       recordInstantiation(candidate_values);
+      d_hasSolution = true;
       return true;
     }
     Assert(!d_set_ce_sk_vars);
@@ -537,11 +539,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     return false;
   }
 
-  lem = Rewriter::rewrite(lem);
+  // simplify the lemma based on the term database sygus utility
+  lem = d_tds->rewriteNode(lem);
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
-  std::map<Node, Node> visited_n;
-  lem = d_tds->getEagerUnfold(lem, visited_n);
   // record the instantiation
   // this is used for remembering the solution
   recordInstantiation(candidate_values);
@@ -609,14 +610,16 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
   if (success)
   {
+    d_hasSolution = true;
     if (options::sygusStream())
     {
       // if we were successful, we immediately print the current solution.
       // this saves us from introducing a verification lemma and a new guard.
       printAndContinueStream(terms, candidate_values);
+      // streaming means now we immediately are looking for a new solution
+      d_hasSolution = false;
       return false;
     }
-    d_hasSolution = true;
   }
   lem = getStreamGuardedLemma(lem);
   lems.push_back(lem);
@@ -1142,15 +1145,18 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
   }
 }
 
-void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
+bool SynthConjecture::getSynthSolutions(
+    std::map<Node, std::map<Node, Node> >& sol_map)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> sols;
   std::vector<int> statuses;
   if (!getSynthSolutionsInternal(sols, statuses))
   {
-    return;
+    return false;
   }
+  // we add it to the solution map, indexed by this conjecture
+  std::map<Node, Node>& smc = sol_map[d_quant];
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
@@ -1180,13 +1186,18 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
       Assert(fvar.getType().isComparableTo(bsol.getType()));
     }
     // store in map
-    sol_map[fvar] = bsol;
+    smc[fvar] = bsol;
   }
+  return true;
 }
 
 bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
                                                 std::vector<int>& statuses)
 {
+  if (!d_hasSolution)
+  {
+    return false;
+  }
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node prog = d_embed_quant[0][i];
