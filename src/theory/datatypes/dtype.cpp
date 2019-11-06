@@ -297,7 +297,7 @@ void DType::setTuple()
 Cardinality DType::getCardinality(TypeNode t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype() && t.getDType() == *this);
+  Assert(t.isDatatype());
   std::vector<TypeNode> processing;
   computeCardinality(t, processing);
   return d_card;
@@ -337,7 +337,7 @@ Cardinality DType::computeCardinality(TypeNode t,
 bool DType::isRecursiveSingleton(TypeNode t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype() && t.getDType() == *this);
+  Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   if (d_card_rec_singleton.find(t) == d_card_rec_singleton.end())
   {
     if (isCodatatype())
@@ -485,7 +485,7 @@ bool DType::computeCardinalityRecSingleton(
 bool DType::isFinite(TypeNode t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype() && t.getDType() == *this);
+  Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
 
   // is this already in the cache ?
   if (d_self.getAttribute(DTypeFiniteComputedAttr()))
@@ -516,7 +516,7 @@ bool DType::isFinite() const
 bool DType::isInterpretedFinite(TypeNode t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype() && t.getDType() == *this);
+  Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   // is this already in the cache ?
   if (d_self.getAttribute(DTypeUFiniteComputedAttr()))
   {
