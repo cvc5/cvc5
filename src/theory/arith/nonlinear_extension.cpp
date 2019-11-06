@@ -944,8 +944,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         std::vector<Node> repList;
         for (const Node& ac : a)
         {
-          Node r =
-              d_containing.getValuation().getModel()->getRepresentative(ac);
+          Node r = d_model.computeConcreteModelValue(ac);
           repList.push_back(r);
         }
         Node aa = argTrie[ak].add(a, repList);
@@ -1437,6 +1436,11 @@ bool NonlinearExtension::check(Theory::Effort e) {
 
 bool NonlinearExtension::checkModel(std::map<Node, Node>& arithModel)
 {
+  if (!needsCheckLastEffort())
+  {
+    // no non-linear constraints, we are done
+    return true;
+  }
   // TODO
   d_model.reset(arithModel);
   // run a last call effort check
