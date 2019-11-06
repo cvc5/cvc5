@@ -297,7 +297,7 @@ void DType::setTuple()
 Cardinality DType::getCardinality(TypeNode t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype());
+  Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   std::vector<TypeNode> processing;
   computeCardinality(t, processing);
   return d_card;
