@@ -4359,7 +4359,7 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   if (options::nlExt())
   {
     // non-linear may repair values to satisfy non-linear constraints
-    if (!d_nonlinearExtension->checkModel(arithModel))
+    if (!d_nonlinearExtension->interceptModel(arithModel))
     {
       // failed, we added a lemma
       return false;

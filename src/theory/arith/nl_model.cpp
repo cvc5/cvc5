@@ -156,6 +156,7 @@ Node NlModel::getValueInternal(Node n) const
   {
     return it->second;
   }
+  AlwaysAssert(false);
   // return self
   return n;
 }
@@ -179,6 +180,7 @@ Node NlModel::getRepresentative(Node n) const
     }
     Assert(false);
   }
+  AlwaysAssert(false);
   // return self
   return n;
 }

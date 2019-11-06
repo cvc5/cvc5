@@ -1259,17 +1259,16 @@ bool NonlinearExtension::check(Theory::Effort e) {
   return true;
 }
 
-bool NonlinearExtension::checkModel(std::map<Node, Node>& arithModel)
+bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
 {
   if (!needsCheckLastEffort())
   {
     // no non-linear constraints, we are done
     return true;
   }
-  // TODO
   d_model.reset(arithModel);
   // run a last call effort check
-  if (d_builtModel.get() || checkModelMain())
+  if (d_builtModel.get() || interceptModelMain())
   {
     if (d_builtModel.get())
     {
@@ -1281,7 +1280,7 @@ bool NonlinearExtension::checkModel(std::map<Node, Node>& arithModel)
   return false;
 }
 
-bool NonlinearExtension::checkModelMain()
+bool NonlinearExtension::interceptModelMain()
 {
   // get the assertions
   std::vector<Node> assertions;
@@ -1358,7 +1357,6 @@ bool NonlinearExtension::checkModelMain()
   {
     d_model.resetCheck();
     needsRecheck = false;
-    Assert(e == Theory::EFFORT_LAST_CALL);
     // complete_status:
     //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
     int complete_status = 1;
