@@ -13,8 +13,8 @@
  **/
 #include "theory/datatypes/dtype_cons.h"
 
-#include "expr/type_matcher.h"
 #include "expr/node_manager.h"
+#include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
 #include "theory/datatypes/dtype.h"
 #include "theory/datatypes/theory_datatypes_utils.h"

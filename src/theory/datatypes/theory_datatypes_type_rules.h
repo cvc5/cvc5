@@ -46,12 +46,14 @@ struct DatatypeConstructorTypeRule {
     TNode::iterator child_it = n.begin();
     TNode::iterator child_it_end = n.end();
     TypeNode::iterator tchild_it = consType.begin();
-    if ((t.isParametricDatatype() || check) &&
-        n.getNumChildren() != consType.getNumChildren() - 1) {
+    if ((t.isParametricDatatype() || check)
+        && n.getNumChildren() != consType.getNumChildren() - 1)
+    {
       throw TypeCheckingExceptionPrivate(
           n, "number of arguments does not match the constructor type");
     }
-    if (t.isParametricDatatype()) {
+    if (t.isParametricDatatype())
+    {
       Debug("typecheck-idt") << "typecheck parameterized datatype " << n
                              << std::endl;
       TypeMatcher m(t);
@@ -67,7 +69,9 @@ struct DatatypeConstructorTypeRule {
       TypeNode range = t.instantiateParametricDatatype(instTypes);
       Debug("typecheck-idt") << "Return " << range << std::endl;
       return range;
-    } else {
+    }
+    else
+    {
       if (check) {
         Debug("typecheck-idt") << "typecheck cons: " << n << " "
                                << n.getNumChildren() << std::endl;
@@ -128,11 +132,13 @@ struct DatatypeSelectorTypeRule {
     TypeNode selType = n.getOperator().getType(check);
     TypeNode t = selType[0];
     Assert(t.isDatatype());
-    if ((t.isParametricDatatype() || check) && n.getNumChildren() != 1) {
+    if ((t.isParametricDatatype() || check) && n.getNumChildren() != 1)
+    {
       throw TypeCheckingExceptionPrivate(
           n, "number of arguments does not match the selector type");
     }
-    if (t.isParametricDatatype()) {
+    if (t.isParametricDatatype())
+    {
       Debug("typecheck-idt") << "typecheck parameterized sel: " << n
                              << std::endl;
       TypeMatcher m(t);
@@ -154,7 +160,9 @@ struct DatatypeSelectorTypeRule {
           types.begin(), types.end(), matches.begin(), matches.end());
       Debug("typecheck-idt") << "Return " << range << std::endl;
       return range;
-    } else {
+    }
+    else
+    {
       if (check) {
         Debug("typecheck-idt") << "typecheck sel: " << n << std::endl;
         Debug("typecheck-idt") << "sel type: " << selType << std::endl;
@@ -184,7 +192,8 @@ struct DatatypeTesterTypeRule {
       TypeNode childType = n[0].getType(check);
       TypeNode t = testType[0];
       Assert(t.isDatatype());
-      if (t.isParametricDatatype()) {
+      if (t.isParametricDatatype())
+      {
         Debug("typecheck-idt") << "typecheck parameterized tester: " << n
                                << std::endl;
         TypeMatcher m(t);
@@ -193,7 +202,9 @@ struct DatatypeTesterTypeRule {
               n,
               "matching failed for tester argument of parameterized datatype");
         }
-      } else {
+      }
+      else
+      {
         Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
         Debug("typecheck-idt") << "test type: " << testType << std::endl;
         if (!testType[0].isComparableTo(childType)) {
