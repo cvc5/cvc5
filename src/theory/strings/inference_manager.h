@@ -178,6 +178,9 @@ class InferenceManager
    * This method also ensures that, when applicable, the left branch is taken
    * first via calls to requirePhase.
    *
+   * If the status is LENGTH_IGNORE, then no lemma is sent. This status is used
+   * e.g. when the length of n is already implied by other constraints.
+   *
    * In contrast to the above functions, it makes immediate calls to the output
    * channel instead of adding them to pending lists.
    */

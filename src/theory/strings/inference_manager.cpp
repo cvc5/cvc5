@@ -36,11 +36,12 @@ InferenceManager::InferenceManager(TheoryStrings& p,
                                    OutputChannel& out)
     : d_parent(p), d_state(s), d_out(out), d_keep(c), d_lengthLemmaTermsCache(u)
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  NodeManager * nm = NodeManager::currentNM();
+  d_zero = nm->mkConst(Rational(0));
+  d_one = nm->mkConst(Rational(1));
+  d_emptyString = nm->mkConst(::CVC4::String(""));
+  d_true = nm->mkConst(true);
+  d_false = nm->mkConst(false);
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
