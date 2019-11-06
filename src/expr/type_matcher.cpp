@@ -96,26 +96,26 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
   return true;
 }
 
-void TypeMatcher::getTypes(std::vector<Type>& types)
+void TypeMatcher::getTypes(std::vector<TypeNode>& types) const
 {
   types.clear();
-  for (TypeNode& t : d_types)
+  for (const TypeNode& t : d_types)
   {
-    types.push_back(t.toType());
+    types.push_back(t);
   }
 }
-void TypeMatcher::getMatches(std::vector<Type>& types)
+void TypeMatcher::getMatches(std::vector<TypeNode>& types) const
 {
   types.clear();
   for (size_t i = 0, nmatch = d_match.size(); i < nmatch; i++)
   {
     if (d_match[i].isNull())
     {
-      types.push_back(d_types[i].toType());
+      types.push_back(d_types[i]);
     }
     else
     {
-      types.push_back(d_match[i].toType());
+      types.push_back(d_match[i]);
     }
   }
 }

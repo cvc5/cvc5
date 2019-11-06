@@ -938,8 +938,13 @@ Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   TypeNode dtt = TypeNode::fromType(dt.getDatatypeType());
   TypeMatcher m(dtt);
   m.doMatching(dtt, TypeNode::fromType(returnType));
-  vector<Type> subst;
-  m.getMatches(subst);
+  std::vector<TypeNode> sns;
+  m.getMatches(sns);
+  std::vector<Type> subst;
+  for (TypeNode& s : sns)
+  {
+    subst.push_back(s.toType());
+  }
   vector<Type> params = dt.getParameters();
   return d_constructor.getType().substitute(params, subst);
 }
