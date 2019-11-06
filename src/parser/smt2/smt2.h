@@ -214,7 +214,7 @@ class Smt2 : public Parser
                                              const std::vector<Expr>& guards,
                                              const std::vector<Expr>& heads,
                                              Expr body);
-                                             
+
   /**
    * Class for creating instances of `SynthFunCommand`s. Creating an instance
    * of this class pushes the scope, destroying it pops the scope.
