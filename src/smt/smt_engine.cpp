@@ -2280,10 +2280,9 @@ void SmtEngine::setDefaults() {
           << endl;
       setOption("incremental", SExpr("false"));
     }
-    if (d_logic > LogicInfo("QF_AUFBVLRA"))
-    {
-      throw OptionException(
-          "Proofs are only supported for sub-logics of QF_AUFBVLIA.");
+    if (d_logic > LogicInfo("QF_AUFBVLRA")) {
+        throw OptionException(
+            "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
     }
     if (options::bitvectorAlgebraicSolver())
     {

@@ -91,7 +91,7 @@ TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant)
 {
   switch (typeConstant)
   {
-    $ { type_constant_to_theory_id }
+${type_constant_to_theory_id}
 #line 96 "${template}"
     case LAST_TYPE: break;
   }

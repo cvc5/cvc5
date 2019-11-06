@@ -746,9 +746,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
                    ? nm->mkNode(kind::UMINUS, nn)
                    : nn;
     return RewriteResponse(REWRITE_AGAIN, ret);
-  }
-  else if (dIsConstant && n.getKind() == kind::CONST_RATIONAL)
-  {
+  }else if(dIsConstant && n.getKind() == kind::CONST_RATIONAL){
     Assert(d.getConst<Rational>().isIntegral());
     Assert(n.getConst<Rational>().isIntegral());
     Assert(!d.getConst<Rational>().isZero());
@@ -761,9 +759,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
 
     Node resultNode = mkRationalNode(Rational(result));
     return RewriteResponse(REWRITE_DONE, resultNode);
-  }
-  else
-  {
+  }else{
     return RewriteResponse(REWRITE_DONE, t);
   }
 }

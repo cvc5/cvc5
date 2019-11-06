@@ -34,7 +34,8 @@ namespace passes {
 
 /* -------------------------------------------------------------------------- */
 
-namespace {
+namespace
+{
 
 void addLemmaForPair(TNode args1,
                      TNode args2,
@@ -217,6 +218,7 @@ PreprocessingPassResult Ackermann::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
 
 /* -------------------------------------------------------------------------- */
 
