@@ -52,11 +52,11 @@ class TypeMatcher
   bool doMatching(TypeNode pattern, TypeNode tn);
 
   /** Get the parameter types that this class matched on */
-  void getTypes(std::vector<Type>& types);
+  void getTypes(std::vector<TypeNode>& types) const;
   /**
    * Get the match for the parameter types based on the last call to doMatching.
    */
-  void getMatches(std::vector<Type>& types);
+  void getMatches(std::vector<TypeNode>& types) const;
 
  private:
   /** The parameter types */
