@@ -862,8 +862,7 @@ class CVC4_PUBLIC Term
     Term operator*() const;
 
    private:
-    /* The internal expression iterator wrapped by this iterator. */
-    // void* d_iterator;
+    /* The original expression to be iteratoed over */
     std::shared_ptr<CVC4::Expr> d_orig_expr;
     /* Keeps track of the iteration position */
     uint32_t d_pos;
