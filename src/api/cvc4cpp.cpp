@@ -1006,6 +1006,8 @@ size_t SortHashFunction::operator()(const Sort& s) const
 
 Op::Op() : d_kind(NULL_EXPR), indexed(false), d_expr(new CVC4::Expr()) {}
 
+Op::Op(const Kind k) : d_kind(k), indexed(false), d_expr(new CVC4::Expr()) {}
+
 Op::Op(const Kind k, const CVC4::Expr& e)
     : d_kind(k), indexed(true), d_expr(new CVC4::Expr(e))
 {
@@ -1036,12 +1038,17 @@ Sort Op::getSort() const
   return Sort(d_expr->getType());
 }
 
-bool Op::isNull() const { return d_expr->isNull(); }
+bool Op::isNull() const { return (d_expr->isNull() && (d_kind == NULL_EXPR)); }
 
 template <>
 std::string Op::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK(indexed)
+      << "Expecting operator to be an indexed operator when calling getIndices";
+  CVC4_API_CHECK(!d_expr->isNull())
+      << "Expecting a non-null internal expression";
+
   std::string i;
   Kind k = intToExtKind(d_expr->getKind());
 
@@ -1069,6 +1076,10 @@ template <>
 Kind Op::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK(indexed)
+      << "Expecting operator to be an indexed operator when calling getIndices";
+  CVC4_API_CHECK(!d_expr->isNull())
+      << "Expecting a non-null internal expression";
   Kind kind = intToExtKind(d_expr->getKind());
   CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN, kind) << "CHAIN";
   return intToExtKind(d_expr->getConst<Chain>().getOperator());
@@ -1078,6 +1089,10 @@ template <>
 uint32_t Op::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK(indexed)
+      << "Expecting operator to be an indexed operator when calling getIndices";
+  CVC4_API_CHECK(!d_expr->isNull())
+      << "Expecting a non-null internal expression";
   uint32_t i = 0;
   Kind k = intToExtKind(d_expr->getKind());
   switch (k)
@@ -1122,6 +1137,11 @@ template <>
 std::pair<uint32_t, uint32_t> Op::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK(indexed)
+      << "Expecting operator to be an indexed operator when calling getIndices";
+  CVC4_API_CHECK(!d_expr->isNull())
+      << "Expecting a non-null internal expression";
+
   std::pair<uint32_t, uint32_t> indices;
   Kind k = intToExtKind(d_expr->getKind());
 
@@ -1174,7 +1194,20 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
   return indices;
 }
 
-std::string Op::toString() const { return d_expr->toString(); }
+std::string Op::toString() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  if (d_expr->isNull())
+  {
+    return kindToString(d_kind);
+  }
+  else
+  {
+    CVC4_API_CHECK(!d_expr->isNull())
+        << "Expecting a non-null internal expression";
+    return d_expr->toString();
+  }
+}
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
