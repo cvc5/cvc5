@@ -1418,38 +1418,38 @@ Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 
 std::string Term::toString() const { return d_expr->toString(); }
 
-Term::const_iterator::const_iterator() : orig_expr(nullptr), pos(0) {}
+Term::const_iterator::const_iterator() : d_orig_expr(nullptr), d_pos(0) {}
 
 Term::const_iterator::const_iterator(const std::shared_ptr<CVC4::Expr>& e,
                                      uint32_t p)
-    : orig_expr(e), pos(p)
+    : d_orig_expr(e), d_pos(p)
 {
 }
 
 Term::const_iterator::const_iterator(const const_iterator& it)
-    : orig_expr(nullptr)
+    : d_orig_expr(nullptr)
 {
-  if (it.orig_expr != nullptr)
+  if (it.d_orig_expr != nullptr)
   {
-    orig_expr = it.orig_expr;
-    pos = it.pos;
+    d_orig_expr = it.d_orig_expr;
+    d_pos = it.d_pos;
   }
 }
 
 Term::const_iterator& Term::const_iterator::operator=(const const_iterator& it)
 {
-  orig_expr = it.orig_expr;
-  pos = it.pos;
+  d_orig_expr = it.d_orig_expr;
+  d_pos = it.d_pos;
   return *this;
 }
 
 bool Term::const_iterator::operator==(const const_iterator& it) const
 {
-  if (orig_expr == nullptr || it.orig_expr == nullptr)
+  if (d_orig_expr == nullptr || it.d_orig_expr == nullptr)
   {
     return false;
   }
-  return (*orig_expr == *it.orig_expr) && (pos == it.pos);
+  return (*d_orig_expr == *it.d_orig_expr) && (d_pos == it.d_pos);
 }
 
 bool Term::const_iterator::operator!=(const const_iterator& it) const
@@ -1459,36 +1459,36 @@ bool Term::const_iterator::operator!=(const const_iterator& it) const
 
 Term::const_iterator& Term::const_iterator::operator++()
 {
-  Assert(orig_expr != nullptr);
-  ++pos;
+  Assert(d_orig_expr != nullptr);
+  ++d_pos;
   return *this;
 }
 
 Term::const_iterator Term::const_iterator::operator++(int)
 {
-  Assert(orig_expr != nullptr);
+  Assert(d_orig_expr != nullptr);
   const_iterator it = *this;
-  ++pos;
+  ++d_pos;
   return it;
 }
 
 Term Term::const_iterator::operator*() const
 {
-  Assert(orig_expr != nullptr);
-  if (!pos && (orig_expr->getKind() == CVC4::Kind::APPLY_UF))
+  Assert(d_orig_expr != nullptr);
+  if (!d_pos && (d_orig_expr->getKind() == CVC4::Kind::APPLY_UF))
   {
-    return Term(orig_expr->getOperator());
+    return Term(d_orig_expr->getOperator());
   }
   else
   {
-    uint32_t idx = pos;
-    if (orig_expr->getKind() == CVC4::Kind::APPLY_UF)
+    uint32_t idx = d_pos;
+    if (d_orig_expr->getKind() == CVC4::Kind::APPLY_UF)
     {
       Assert(idx > 0);
       --idx;
     }
     Assert(idx >= 0);
-    return Term((*orig_expr)[idx]);
+    return Term((*d_orig_expr)[idx]);
   }
 }
 

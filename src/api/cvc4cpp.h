@@ -864,9 +864,9 @@ class CVC4_PUBLIC Term
    private:
     /* The internal expression iterator wrapped by this iterator. */
     // void* d_iterator;
-    std::shared_ptr<CVC4::Expr> orig_expr;
+    std::shared_ptr<CVC4::Expr> d_orig_expr;
     /* Keeps track of the iteration position */
-    uint32_t pos;
+    uint32_t d_pos;
   };
 
   /**
