@@ -13,23 +13,31 @@ modulo a first order theory (or a combination of such theories).  It is the
 fourth in the Cooperating Validity Checker family of tools (CVC, CVC Lite,
 CVC3) but does not directly incorporate code from any previous version.
 
-CVC4 is intended to be an open and extensible SMT engine.  It can be used as a
-stand-alone tool or as a library.  It has been designed to increase the
-performance and reduce the memory overhead of its predecessors.  It is written
-entirely in C++ and is released under an open-source software license (see file
-[COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING)).
-
 If you are using CVC4 in your work, or incorporating it into software of your
 own, we would like to invite you to send us a description and link to your
 project/software,
 so that we could put it on our [Third Party
 Applications](https://cvc4.github.io/third-party-applications.html) page.
 
-Website
+CVC4 is intended to be an open and extensible SMT engine.  It can be used as a
+stand-alone tool or as a library.  It has been designed to increase the
+performance and reduce the memory overhead of its predecessors.  It is written
+entirely in C++ and is released under an open-source software license (see file
+[COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING)).
+
+
+VWebsite
+-------------------------------------------------------------------------------
+CVC4's website  is available at:
+http://cvc4.cs.stanford.edu/
+
+Documentation
 -------------------------------------------------------------------------------
 Documentation for users of CVC4 is available at:
 http://cvc4.cs.stanford.edu/
 
+Documentation for developers is available at:
+https://github.com/CVC4/CVC4/wiki/Developer-Guide
 
 Download
 -------------------------------------------------------------------------------
