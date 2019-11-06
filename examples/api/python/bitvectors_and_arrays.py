@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 #####################
 #! \file bitvectors_and_arrays.py
