@@ -22,6 +22,7 @@
 #include "base/output.h"
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
+#include "test_utils.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
@@ -300,7 +301,7 @@ class NodeManagerBlack : public CxxTest::TestSuite {
   void testMkNodeTooFew() {
 #ifdef CVC4_ASSERTIONS
     Node x = d_nodeManager->mkSkolem( "x", d_nodeManager->booleanType() );
-    TS_ASSERT_THROWS(d_nodeManager->mkNode(AND, x), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(d_nodeManager->mkNode(AND, x));
 #endif
   }
 
@@ -319,7 +320,7 @@ class NodeManagerBlack : public CxxTest::TestSuite {
       vars.push_back(skolem_j);
       vars.push_back(orNode);
     }
-    TS_ASSERT_THROWS(d_nodeManager->mkNode(AND, vars), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(d_nodeManager->mkNode(AND, vars));
 #endif
   }
 };

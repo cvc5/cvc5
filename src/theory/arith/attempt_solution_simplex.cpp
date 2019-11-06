@@ -138,7 +138,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
       return Result::UNSAT;
     }
   }
-  Assert( d_conflictVariables.empty() );
+  Assert(d_conflictVariables.empty());
 
   if(d_errorSet.errorEmpty()){
     return Result::SAT;

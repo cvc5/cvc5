@@ -654,13 +654,13 @@ Node SortInference::simplifyNode(
       }
       if( processChild ){
         if( n.getKind()==kind::APPLY_UF ){
-          Assert( d_op_arg_types.find( op )!=d_op_arg_types.end() );
+          Assert(d_op_arg_types.find(op) != d_op_arg_types.end());
           tnnc = getOrCreateTypeForId( d_op_arg_types[op][i], n[i].getType() );
-          Assert( !tnnc.isNull() );
+          Assert(!tnnc.isNull());
         }else if( n.getKind()==kind::EQUAL && i==0 ){
-          Assert( d_equality_types.find( n )!=d_equality_types.end() );
+          Assert(d_equality_types.find(n) != d_equality_types.end());
           tnnc = getOrCreateTypeForId( d_equality_types[n], n[0].getType() );
-          Assert( !tnnc.isNull() );
+          Assert(!tnnc.isNull());
         }
         Node nc = simplifyNode(n[i],
                                var_bound,
@@ -688,7 +688,7 @@ Node SortInference::simplifyNode(
       if( !tn1.isSubtypeOf( tn2 ) && !tn2.isSubtypeOf( tn1 ) ){
         Trace("sort-inference-warn") << "Sort inference created bad equality: " << children[0] << " = " << children[1] << std::endl;
         Trace("sort-inference-warn") << "  Types : " << children[0].getType() << " " << children[1].getType() << std::endl;
-        Assert( false );
+        Assert(false);
       }
       ret = NodeManager::currentNM()->mkNode( kind::EQUAL, children );
     }else if( n.getKind()==kind::APPLY_UF ){
@@ -727,7 +727,7 @@ Node SortInference::simplifyNode(
         if (!tn.isSubtypeOf(tna))
         {
           Trace("sort-inference-warn") << "Sort inference created bad child: " << n << " " << n[i] << " " << tn << " " << tna << std::endl;
-          Assert( false );
+          Assert(false);
         }
       }
       ret = NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );
@@ -844,7 +844,7 @@ void SortInference::getSortConstraints( Node n, UnionFind& uf ) {
 }
 
 bool SortInference::isMonotonic( TypeNode tn ) {
-  Assert( tn.isSort() );
+  Assert(tn.isSort());
   return d_non_monotonic_sorts_orig.find( tn )==d_non_monotonic_sorts_orig.end();
 }
 
