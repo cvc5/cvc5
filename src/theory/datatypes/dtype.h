@@ -378,7 +378,7 @@ class DType
    * called post-resolution.
    */
   TypeNode getTypeNode(const std::vector<TypeNode>& params) const;
-  
+
   /** Return true iff this DType has already been resolved. */
   bool isResolved() const;
 

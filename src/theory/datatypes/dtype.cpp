@@ -721,8 +721,7 @@ TypeNode DType::getTypeNode(const std::vector<TypeNode>& params) const
 {
   PrettyCheckArgument(
       isResolved(), *this, "DType must be resolved to get its TypeNode");
-  PrettyCheckArgument(!d_self.isNull() && d_self.isParametricDatatype(),
-                      this);
+  PrettyCheckArgument(!d_self.isNull() && d_self.isParametricDatatype(), this);
   return d_self.instantiateParametricDatatype(params);
 }
 
@@ -751,8 +750,8 @@ const DTypeConstructor& DType::operator[](std::string name) const
 Node DType::getSharedSelector(TypeNode dtt, TypeNode t, unsigned index) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >::iterator itd =
-      d_shared_sel.find(dtt);
+  std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >::iterator
+      itd = d_shared_sel.find(dtt);
   if (itd != d_shared_sel.end())
   {
     std::map<TypeNode, std::map<unsigned, Node> >::iterator its =
