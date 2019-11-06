@@ -342,6 +342,8 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
         output, error, exit_status = run_benchmark(
             dump, wrapper, scrubber, error_scrubber, cvc4_binary,
             command_line_args, benchmark_dir, benchmark_basename, timeout)
+        output = re.sub(r'^[ \t]*', '', output, flags=re.MULTILINE)
+        error = re.sub(r'^[ \t]*', '', error, flags=re.MULTILINE)
         if output != expected_output:
             exit_code = EXIT_FAILURE
             print(
