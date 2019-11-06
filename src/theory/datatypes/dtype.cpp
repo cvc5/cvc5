@@ -85,19 +85,6 @@ bool DType::isSygus() const { return !d_sygus_type.isNull(); }
 bool DType::isTuple() const { return d_isTuple; }
 
 bool DType::isResolved() const { return d_resolved; }
-DType::iterator DType::begin() { return iterator(d_constructors, true); }
-
-DType::iterator DType::end() { return iterator(d_constructors, false); }
-
-DType::const_iterator DType::begin() const
-{
-  return const_iterator(d_constructors, true);
-}
-
-DType::const_iterator DType::end() const
-{
-  return const_iterator(d_constructors, false);
-}
 
 DType::~DType() {}
 
@@ -200,13 +187,13 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
 
   d_involvesExt = false;
   d_involvesUt = false;
-  for (const_iterator i = begin(); i != end(); ++i)
+  for (const DTypeConstructor& ctor : d_constructors)
   {
-    if ((*i).involvesExternalType())
+    if (ctor.involvesExternalType())
     {
       d_involvesExt = true;
     }
-    if ((*i).involvesUninterpretedType())
+    if (ctor.involvesUninterpretedType())
     {
       d_involvesUt = true;
     }
@@ -324,9 +311,9 @@ Cardinality DType::computeCardinality(TypeNode t,
   {
     processing.push_back(d_self);
     Cardinality c = 0;
-    for (const_iterator i = begin(), i_end = end(); i != i_end; ++i)
+    for (const DTypeConstructor& ctor : d_constructors)
     {
-      c += (*i).computeCardinality(t, processing);
+      c += ctor.computeCardinality(t, processing);
     }
     d_card = c;
     processing.pop_back();
@@ -492,9 +479,9 @@ bool DType::isFinite(TypeNode t) const
   {
     return d_self.getAttribute(DTypeFiniteAttr());
   }
-  for (const_iterator i = begin(), i_end = end(); i != i_end; ++i)
+  for (const DTypeConstructor& ctor : d_constructors)
   {
-    if (!(*i).isFinite(t))
+    if (!ctor.isFinite(t))
     {
       d_self.setAttribute(DTypeFiniteComputedAttr(), true);
       d_self.setAttribute(DTypeFiniteAttr(), false);
@@ -525,9 +512,9 @@ bool DType::isInterpretedFinite(TypeNode t) const
   // start by assuming it is not
   d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
   d_self.setAttribute(DTypeUFiniteAttr(), false);
-  for (const_iterator i = begin(), i_end = end(); i != i_end; ++i)
+  for (const DTypeConstructor& ctor : d_constructors)
   {
-    if (!(*i).isInterpretedFinite(t))
+    if (!ctor.isInterpretedFinite(t))
     {
       return false;
     }
@@ -573,16 +560,16 @@ bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
   else
   {
     processing.push_back(d_self);
-    for (const_iterator i = begin(), i_end = end(); i != i_end; ++i)
+    for (const DTypeConstructor& ctor : d_constructors)
     {
-      if ((*i).computeWellFounded(processing))
+      if (ctor.computeWellFounded(processing))
       {
         processing.pop_back();
         return true;
       }
       else
       {
-        Trace("dt-wf") << "Constructor " << (*i).getName()
+        Trace("dt-wf") << "Constructor " << ctor.getName()
                        << " is not well-founded." << std::endl;
       }
     }
@@ -669,16 +656,16 @@ Node DType::computeGroundTerm(TypeNode t,
     processing.push_back(t);
     for (unsigned r = 0; r < 2; r++)
     {
-      for (const_iterator i = begin(), i_end = end(); i != i_end; ++i)
+      for (const DTypeConstructor& ctor : d_constructors)
       {
         // do nullary constructors first
-        if (((*i).getNumArgs() == 0) == (r == 0))
+        if ((ctor.getNumArgs() == 0) == (r == 0))
         {
           Debug("datatypes")
-              << "Try constructing for " << (*i).getName()
+              << "Try constructing for " << ctor.getName()
               << ", processing = " << processing.size() << std::endl;
           Node e =
-              (*i).computeGroundTerm(t, processing, d_ground_term, isValue);
+              ctor.computeGroundTerm(t, processing, d_ground_term, isValue);
           if (!e.isNull())
           {
             // must check subterms for the same type to avoid infinite loops in
@@ -734,11 +721,11 @@ const DTypeConstructor& DType::operator[](size_t index) const
 
 const DTypeConstructor& DType::operator[](std::string name) const
 {
-  for (const_iterator i = begin(); i != end(); ++i)
+  for (const DTypeConstructor& ctor : d_constructors)
   {
-    if ((*i).getName() == name)
+    if (ctor.getName() == name)
     {
-      return *i;
+      return ctor;
     }
   }
   IllegalArgument(name,
@@ -826,21 +813,17 @@ void DType::toStream(std::ostream& out) const
     }
     out << ']';
   }
-  out << " =" << std::endl;
-  DType::const_iterator i = begin(), i_end = end();
-  if (i != i_end)
+  out << " = " << std::endl;
+  bool firstTime = true;
+  for (const DTypeConstructor& ctor : d_constructors)
   {
-    out << "  ";
-    do
-    {
-      out << *i << std::endl;
-      if (++i != i_end)
-      {
-        out << "| ";
-      }
-    } while (i != i_end);
+    if (!firstTime){
+      out << " | ";
+    }
+    firstTime = false;
+    out << ctor;
   }
-  out << "END;" << std::endl;
+  out << " END;" << std::endl;
 }
 
 DTypeIndexConstant::DTypeIndexConstant(unsigned index) : d_index(index) {}

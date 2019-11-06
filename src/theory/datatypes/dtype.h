@@ -37,43 +37,6 @@ class NodeManager;
 class DTypeConstructor;
 class DTypeConstructorArg;
 
-class DTypeConstructorIterator
-{
-  const std::vector<DTypeConstructor>* d_v;
-  size_t d_i;
-
-  friend class DType;
-
-  DTypeConstructorIterator(const std::vector<DTypeConstructor>& v, bool start)
-      : d_v(&v), d_i(start ? 0 : v.size())
-  {
-  }
-
- public:
-  typedef const DTypeConstructor& value_type;
-  const DTypeConstructor& operator*() const { return (*d_v)[d_i]; }
-  const DTypeConstructor* operator->() const { return &(*d_v)[d_i]; }
-  DTypeConstructorIterator& operator++()
-  {
-    ++d_i;
-    return *this;
-  }
-  DTypeConstructorIterator operator++(int)
-  {
-    DTypeConstructorIterator i(*this);
-    ++d_i;
-    return i;
-  }
-  bool operator==(const DTypeConstructorIterator& other) const
-  {
-    return d_v == other.d_v && d_i == other.d_i;
-  }
-  bool operator!=(const DTypeConstructorIterator& other) const
-  {
-    return d_v != other.d_v || d_i != other.d_i;
-  }
-}; /* class DTypeConstructorIterator */
-
 /**
  * The representation of an inductive datatype.
  *
@@ -162,11 +125,6 @@ class DType
    */
   static size_t indexOfInternal(Node item);
   static size_t cindexOfInternal(Node item);
-
-  /** The type for iterators over constructors. */
-  typedef DTypeConstructorIterator iterator;
-  /** The (const) type for iterators over constructors. */
-  typedef DTypeConstructorIterator const_iterator;
 
   /** Create a new DType of the given name. */
   explicit DType(std::string name, bool isCo = false);
@@ -381,15 +339,6 @@ class DType
 
   /** Return true iff this DType has already been resolved. */
   bool isResolved() const;
-
-  /** Get the beginning iterator over DTypeConstructors. */
-  iterator begin();
-  /** Get the ending iterator over DTypeConstructors. */
-  iterator end();
-  /** Get the beginning const_iterator over DTypeConstructors. */
-  const_iterator begin() const;
-  /** Get the ending const_iterator over DTypeConstructors. */
-  const_iterator end() const;
 
   /** Get the ith DTypeConstructor. */
   const DTypeConstructor& operator[](size_t index) const;
