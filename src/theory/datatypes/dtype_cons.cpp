@@ -13,7 +13,7 @@
  **/
 #include "theory/datatypes/dtype_cons.h"
 
-#include "expr/matcher.h"
+#include "expr/type_matcher.h"
 #include "expr/node_manager.h"
 #include "options/datatypes_options.h"
 #include "theory/datatypes/dtype.h"
@@ -22,8 +22,6 @@
 using namespace CVC4::kind;
 
 namespace CVC4 {
-
-DTypeUnresolvedType::DTypeUnresolvedType(std::string name) : d_name(name) {}
 
 DTypeConstructor::DTypeConstructor(std::string name)
     :  // We don't want to introduce a new data member, because eventually
@@ -161,11 +159,10 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
   PrettyCheckArgument(
       dt.isParametric(), this, "this datatype constructor is not parametric");
   TypeNode dtt = dt.getTypeNode();
-  Matcher m(dtt);
+  TypeMatcher m(dtt);
   m.doMatching(dtt, returnType);
   std::vector<TypeNode> subst;
-  // FIXME: after matcher is updated, use getMatches
-  m.getMatchesNode(subst);
+  m.getMatches(subst);
   std::vector<TypeNode> params = dt.getParameters();
   return d_constructor.getType().substitute(
       params.begin(), params.end(), subst.begin(), subst.end());

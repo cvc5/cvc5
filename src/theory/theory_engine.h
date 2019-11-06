@@ -779,7 +779,7 @@ public:
    * For details on what is added to sol_map, see
    * SynthConjecture::getSynthSolutions.
    */
-  bool getSynthSolutions(std::map<Node, Node>& sol_map);
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
 
   /**
    * Get the model builder

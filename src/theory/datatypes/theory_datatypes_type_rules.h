@@ -19,8 +19,7 @@
 #ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 #define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
-#include "expr/matcher.h"
-//#include "expr/attribute.h"
+#include "expr/type_matcher.h"
 
 namespace CVC4 {
 
@@ -55,7 +54,7 @@ struct DatatypeConstructorTypeRule {
     if (dt.isParametric()) {
       Debug("typecheck-idt") << "typecheck parameterized datatype " << n
                              << std::endl;
-      Matcher m(t);
+      TypeMatcher m(t);
       for (; child_it != child_it_end; ++child_it, ++tchild_it) {
         TypeNode childType = (*child_it).getType(check);
         if (!m.doMatching(*tchild_it, childType)) {
@@ -63,9 +62,9 @@ struct DatatypeConstructorTypeRule {
               n, "matching failed for parameterized constructor");
         }
       }
-      std::vector<Type> instTypes;
+      std::vector<TypeNode> instTypes;
       m.getMatches(instTypes);
-      TypeNode range = TypeNode::fromType(dt.instantiate(instTypes));
+      TypeNode range = t.instantiateParametricDatatype(instTypes);
       Debug("typecheck-idt") << "Return " << range << std::endl;
       return range;
     } else {
@@ -127,9 +126,9 @@ struct DatatypeSelectorTypeRule {
     Assert(n.getKind() == kind::APPLY_SELECTOR
            || n.getKind() == kind::APPLY_SELECTOR_TOTAL);
     TypeNode selType = n.getOperator().getType(check);
-    Type t = selType[0].toType();
+    TypeNode t = selType[0];
     Assert(t.isDatatype());
-    DatatypeType dt = DatatypeType(t);
+    DatatypeType dt = DatatypeType(t.toType());
     if ((dt.isParametric() || check) && n.getNumChildren() != 1) {
       throw TypeCheckingExceptionPrivate(
           n, "number of arguments does not match the selector type");
@@ -137,7 +136,7 @@ struct DatatypeSelectorTypeRule {
     if (dt.isParametric()) {
       Debug("typecheck-idt") << "typecheck parameterized sel: " << n
                              << std::endl;
-      Matcher m(TypeNode::fromType(t));
+      TypeMatcher m(t);
       TypeNode childType = n[0].getType(check);
       if (!childType.isInstantiatedDatatype()) {
         throw TypeCheckingExceptionPrivate(
@@ -148,13 +147,14 @@ struct DatatypeSelectorTypeRule {
             n,
             "matching failed for selector argument of parameterized datatype");
       }
-      std::vector<Type> types, matches;
+      std::vector<TypeNode> types, matches;
       m.getTypes(types);
       m.getMatches(matches);
-      Type range = selType[1].toType();
-      range = range.substitute(types, matches);
+      TypeNode range = selType[1];
+      range = range.substitute(
+          types.begin(), types.end(), matches.begin(), matches.end());
       Debug("typecheck-idt") << "Return " << range << std::endl;
-      return TypeNode::fromType(range);
+      return range;
     } else {
       if (check) {
         Debug("typecheck-idt") << "typecheck sel: " << n << std::endl;
@@ -183,13 +183,13 @@ struct DatatypeTesterTypeRule {
       }
       TypeNode testType = n.getOperator().getType(check);
       TypeNode childType = n[0].getType(check);
-      Type t = testType[0].toType();
+      TypeNode t = testType[0];
       Assert(t.isDatatype());
-      DatatypeType dt = DatatypeType(t);
+      DatatypeType dt = DatatypeType(t.toType());
       if (dt.isParametric()) {
         Debug("typecheck-idt") << "typecheck parameterized tester: " << n
                                << std::endl;
-        Matcher m(TypeNode::fromType(t));
+        TypeMatcher m(t);
         if (!m.doMatching(testType[0], childType)) {
           throw TypeCheckingExceptionPrivate(
               n,
@@ -217,10 +217,9 @@ struct DatatypeAscriptionTypeRule {
     if (check) {
       TypeNode childType = n[0].getType(check);
 
-      Matcher m;
+      TypeMatcher m;
       if (childType.getKind() == kind::CONSTRUCTOR_TYPE) {
-        m.addTypesFromDatatype(TypeNode::fromType(
-            ConstructorType(childType.toType()).getRangeType()));
+        m.addTypesFromDatatype(childType.getConstructorRangeType());
       } else if (childType.getKind() == kind::DATATYPE_TYPE) {
         m.addTypesFromDatatype(childType);
       }

@@ -1736,6 +1736,7 @@ set(regress_1_tests
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
+  regress1/sygus/rec-fun-sygus.sy
   regress1/sygus/re-concat.sy
   regress1/sygus/repair-const-rl.sy
   regress1/sygus/simple-regexp.sy

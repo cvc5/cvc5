@@ -23,11 +23,11 @@
 #include "expr/attribute.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
-#include "expr/matcher.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/type.h"
+#include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
 #include "options/set_language.h"
 #include "theory/type_enumerator.h"
@@ -935,11 +935,16 @@ Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   ExprManagerScope ems(d_constructor);
   const Datatype& dt = Datatype::datatypeOf(d_constructor);
   PrettyCheckArgument(dt.isParametric(), this, "this datatype constructor is not parametric");
-  DatatypeType dtt = dt.getDatatypeType();
-  Matcher m(TypeNode::fromType(dtt));
-  m.doMatching( TypeNode::fromType(dtt), TypeNode::fromType(returnType) );
-  vector<Type> subst;
-  m.getMatches(subst);
+  TypeNode dtt = TypeNode::fromType(dt.getDatatypeType());
+  TypeMatcher m(dtt);
+  m.doMatching(dtt, TypeNode::fromType(returnType));
+  std::vector<TypeNode> sns;
+  m.getMatches(sns);
+  std::vector<Type> subst;
+  for (TypeNode& s : sns)
+  {
+    subst.push_back(s.toType());
+  }
   vector<Type> params = dt.getParameters();
   return d_constructor.getType().substitute(params, subst);
 }
