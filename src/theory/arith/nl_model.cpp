@@ -1237,12 +1237,13 @@ bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
   return true;
 }
 
-void NlModel::recordApproximations(std::map<Node, Node>& arithModel)
+void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
 {
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
   // this class.
+  Trace("nl-model") << "NlModel::fixModelValues:" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node> >& cb :
        d_check_model_bounds)
@@ -1255,11 +1256,13 @@ void NlModel::recordApproximations(std::map<Node, Node>& arithModel)
     {
       Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       d_approximations[v] = pred;
+      Trace("nl-model") << v << " approximated as " << pred << std::endl;
     }
     else
     {
       // overwrite
       arithModel[v] = l;
+      Trace("nl-model") << v << " exact approximation is " << l << std::endl;
     }
   }
   // Also record the exact values we used. An exact value can be seen as a
@@ -1272,6 +1275,17 @@ void NlModel::recordApproximations(std::map<Node, Node>& arithModel)
     Node s = d_check_model_subs[i];
     // overwrite
     arithModel[v] = s;
+    Trace("nl-model") << v << " solved is " << s << std::endl;
+  }
+}
+
+void NlModel::recordApproximations(TheoryModel * m)
+{
+  Trace("nl-model") << "NlModel::recordApproximations:" << std::endl;
+  for(std::pair< const Node, Node >& a : d_approximations)
+  {
+    Trace("nl-model") << "record " << a.first << " " << a.second << std::endl;
+    m->recordApproximation(a.first,a.second);
   }
 }
 

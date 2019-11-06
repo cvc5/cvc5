@@ -176,8 +176,9 @@ class NlModel
    * This makes necessary calls that notify the model of any approximations
    * that were used by this solver.
    */
-  void recordApproximations(std::map<Node, Node>& arithModel);
-
+  void fixModelValues(std::map<Node, Node>& arithModel);
+  /** */
+  void recordApproximations(TheoryModel * m);
  private:
   /** The current model */
   //TheoryModel* d_model;

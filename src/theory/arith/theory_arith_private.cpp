@@ -3548,6 +3548,13 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     return;
   }
 
+  if(effortLevel == Theory::EFFORT_LAST_CALL){
+    if( options::nlExt() ){
+      d_nonlinearExtension->check(effortLevel);
+    }
+    return;
+  }
+  
   TimerStat::CodeTimer checkTimer(d_containing.d_checkTime);
   //cout << "TheoryArithPrivate::check " << effortLevel << std::endl;
   Debug("effortlevel") << "TheoryArithPrivate::check " << effortLevel << std::endl;

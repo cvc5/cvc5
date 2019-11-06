@@ -125,6 +125,7 @@ class NonlinearExtension {
    * TODO
    */
   bool checkModel(std::map<Node, Node>& arithModel);
+  bool checkModelMain();
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
