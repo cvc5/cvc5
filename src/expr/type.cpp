@@ -101,6 +101,12 @@ Expr Type::mkGroundTerm() const {
   return d_typeNode->mkGroundTerm().toExpr();
 }
 
+Expr Type::mkGroundValue() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->mkGroundValue().toExpr();
+}
+
 bool Type::isSubtypeOf(Type t) const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isSubtypeOf(*t.d_typeNode);

@@ -475,6 +475,14 @@ public:
   Node mkGroundTerm() const;
 
   /**
+   * Construct and return a ground value of this type.  If the type is
+   * not well founded, this function throws an exception.
+   *
+   * @return a ground value of the type
+   */
+  Node mkGroundValue() const;
+
+  /**
    * Is this type a subtype of the given type?
    */
   bool isSubtypeOf(TypeNode t) const;
@@ -514,6 +522,12 @@ public:
 
   /** Get the return type (for constructor types) */
   TypeNode getConstructorRangeType() const;
+
+  /** Get the domain type (for selector types) */
+  TypeNode getSelectorDomainType() const;
+
+  /** Get the return type (for selector types) */
+  TypeNode getSelectorRangeType() const;
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
@@ -621,6 +635,16 @@ public:
 
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
+
+  /**
+   * Get instantiated datatype type. The type on which this method is called
+   * should be a parametric datatype whose parameter list is the same list as
+   * argument params. This constructs the instantiated version of this
+   * parametric datatype, e.g. passing (par (A) (List A)), { Int } ) to this
+   * method returns (List Int).
+   */
+  TypeNode instantiateParametricDatatype(
+      const std::vector<TypeNode>& params) const;
 
   /** Is this an instantiated datatype parameter */
   bool isParameterInstantiatedDatatype(unsigned n) const;
@@ -912,6 +936,18 @@ inline TypeNode TypeNode::getArrayConstituentType() const {
 inline TypeNode TypeNode::getConstructorRangeType() const {
   Assert(isConstructor());
   return (*this)[getNumChildren()-1];
+}
+
+inline TypeNode TypeNode::getSelectorDomainType() const
+{
+  Assert(isSelector());
+  return (*this)[0];
+}
+
+inline TypeNode TypeNode::getSelectorRangeType() const
+{
+  Assert(isSelector());
+  return (*this)[1];
 }
 
 inline bool TypeNode::isSet() const {

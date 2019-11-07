@@ -50,43 +50,49 @@ Node HoExtension::expandDefinition(Node node)
   return node;
 }
 
-Node HoExtension::getExtensionalityDeq(TNode deq)
+Node HoExtension::getExtensionalityDeq(TNode deq, bool isCached)
 {
   Assert(deq.getKind() == NOT && deq[0].getKind() == EQUAL);
   Assert(deq[0][0].getType().isFunction());
-  std::map<Node, Node>::iterator it = d_extensionality_deq.find(deq);
-  if (it == d_extensionality_deq.end())
+  if (isCached)
   {
-    TypeNode tn = deq[0][0].getType();
-    std::vector<TypeNode> argTypes = tn.getArgTypes();
-    std::vector<Node> skolems;
-    NodeManager* nm = NodeManager::currentNM();
-    for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+    std::map<Node, Node>::iterator it = d_extensionality_deq.find(deq);
+    if (it != d_extensionality_deq.end())
     {
-      Node k =
-          nm->mkSkolem("k", argTypes[i], "skolem created for extensionality.");
-      skolems.push_back(k);
+      return it->second;
     }
-    Node t[2];
-    for (unsigned i = 0; i < 2; i++)
-    {
-      std::vector<Node> children;
-      Node curr = deq[0][i];
-      while (curr.getKind() == HO_APPLY)
-      {
-        children.push_back(curr[1]);
-        curr = curr[0];
-      }
-      children.push_back(curr);
-      std::reverse(children.begin(), children.end());
-      children.insert(children.end(), skolems.begin(), skolems.end());
-      t[i] = nm->mkNode(APPLY_UF, children);
-    }
-    Node conc = t[0].eqNode(t[1]).negate();
-    d_extensionality_deq[deq] = conc;
-    return conc;
   }
-  return it->second;
+  TypeNode tn = deq[0][0].getType();
+  std::vector<TypeNode> argTypes = tn.getArgTypes();
+  std::vector<Node> skolems;
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
+  {
+    Node k =
+        nm->mkSkolem("k", argTypes[i], "skolem created for extensionality.");
+    skolems.push_back(k);
+  }
+  Node t[2];
+  for (unsigned i = 0; i < 2; i++)
+  {
+    std::vector<Node> children;
+    Node curr = deq[0][i];
+    while (curr.getKind() == HO_APPLY)
+    {
+      children.push_back(curr[1]);
+      curr = curr[0];
+    }
+    children.push_back(curr);
+    std::reverse(children.begin(), children.end());
+    children.insert(children.end(), skolems.begin(), skolems.end());
+    t[i] = nm->mkNode(APPLY_UF, children);
+  }
+  Node conc = t[0].eqNode(t[1]).negate();
+  if (isCached)
+  {
+    d_extensionality_deq[deq] = conc;
+  }
+  return conc;
 }
 
 unsigned HoExtension::applyExtensionality(TNode deq)
@@ -228,8 +234,10 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
           // either add to model, or add lemma
           if (isCollectModel)
           {
-            // add extentionality disequality to the model
-            Node edeq = getExtensionalityDeq(deq);
+            // Add extentionality disequality to the model.
+            // It is important that we construct new (unconstrained) variables
+            // k here, so that we do not generate any inconsistencies.
+            Node edeq = getExtensionalityDeq(deq, false);
             Assert(edeq.getKind() == NOT && edeq[0].getKind() == EQUAL);
             // introducing terms, must add required constraints, e.g. to
             // force equalities between APPLY_UF and HO_APPLY terms
