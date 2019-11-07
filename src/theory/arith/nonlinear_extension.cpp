@@ -1250,6 +1250,15 @@ bool NonlinearExtension::check(Theory::Effort e) {
   }
   else
   {
+    if (!options::nlExtInterceptModel())
+    {
+      //d_model.reset(d_containing.getValuation().getModel(), arithModel);
+      // run a last call effort check
+      if (!interceptModelMain())
+      {
+        return false;
+      }
+    } 
     // already ran a check, now record approximations
     d_model.recordApproximations(d_containing.getValuation().getModel());
   }
@@ -1266,16 +1275,19 @@ bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
     // no non-linear constraints, we are done
     return true;
   }
-  d_model.reset(arithModel);
-  // run a last call effort check
-  if (d_builtModel.get() || interceptModelMain())
+  d_model.reset(d_containing.getValuation().getModel(), arithModel);
+  if (options::nlExtInterceptModel())
   {
-    if (d_builtModel.get())
+    // run a last call effort check
+    if (d_builtModel.get() || interceptModelMain())
     {
-      // modify the model values
-      d_model.fixModelValues(arithModel);
+      if (d_builtModel.get())
+      {
+        // modify the model values
+        d_model.fixModelValues(arithModel);
+      }
+      return true;
     }
-    return true;
   }
   return false;
 }

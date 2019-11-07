@@ -519,3 +519,12 @@ header = "options/arith_options.h"
   default    = "true"
   read_only  = true
   help       = "whether to increment the precision for irrational function constraints"
+
+[[option]]
+  name       = "nlExtInterceptModel"
+  category   = "regular"
+  long       = "nl-ext-intercept-model"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "FIXME"

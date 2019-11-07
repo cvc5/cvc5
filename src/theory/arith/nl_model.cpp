@@ -18,6 +18,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
+#include "options/arith_options.h"
 
 using namespace CVC4::kind;
 
@@ -36,9 +37,9 @@ NlModel::NlModel(context::Context* c) : d_used_approx(false)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(std::map<Node, Node>& arithModel)
+void NlModel::reset(TheoryModel * m, std::map<Node, Node>& arithModel)
 {
-  //d_model = m;
+  d_model = m;
   d_mv[0].clear();
   d_mv[1].clear();
   d_arithVal.clear();
@@ -150,7 +151,10 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
 
 Node NlModel::getValueInternal(Node n) const
 {
-  //return d_model->getValue(n);
+  if (!options::nlExtInterceptModel())
+  {
+    return d_model->getValue(n);
+  }
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
@@ -163,13 +167,19 @@ Node NlModel::getValueInternal(Node n) const
 
 bool NlModel::hasTerm(Node n) const
 {
-  //return d_model->hasTerm(n);
+  if (!options::nlExtInterceptModel())
+  {
+    return d_model->hasTerm(n);
+  }
   return d_arithVal.find(n)!=d_arithVal.end();
 }
 
 Node NlModel::getRepresentative(Node n) const
 {
-  //return d_model->getRepresentative(n);
+  if (!options::nlExtInterceptModel())
+  {
+    return d_model->getRepresentative(n);
+  }
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
@@ -1247,6 +1257,7 @@ void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
   // this class.
   Trace("nl-model") << "NlModel::fixModelValues:" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  std::map< Node, Node > modelReplace;
   for (const std::pair<const Node, std::pair<Node, Node> >& cb :
        d_check_model_bounds)
   {
@@ -1263,7 +1274,7 @@ void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
     else
     {
       // overwrite
-      arithModel[v] = l;
+      modelReplace[v] = l;
       Trace("nl-model") << v << " exact approximation is " << l << std::endl;
     }
   }
@@ -1276,8 +1287,21 @@ void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
     Node v = d_check_model_vars[i];
     Node s = d_check_model_subs[i];
     // overwrite
-    arithModel[v] = s;
+    modelReplace[v] = s;
     Trace("nl-model") << v << " solved is " << s << std::endl;
+  }
+  for (std::pair< const Node, Node >& r : modelReplace)
+  {
+    if (options::nlExtInterceptModel())
+    {
+      Node eq = r.first.eqNode(r.second);
+      eq = Rewriter::rewrite(eq);
+      d_model->recordApproximation(r.first, eq);
+    }
+    else
+    {
+      d_arithVal[r.first] = r.second;
+    }
   }
 }
 
