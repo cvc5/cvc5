@@ -254,7 +254,7 @@ std::vector<TNode> getListOfTerms(AssertionPipeline* assertions)
   return res;
 }
 
-/* This is the top level of converting uninterpreted sorts to bit vectors.
+/* This is the top level of converting uninterpreted sorts to bit-vectors.
  * We use BFS to get all terms without duplications, and count the number of
  * different terms for each uninterpreted sort. Then for each sort, we will
  * assign a new bit-vector type with a sufficient size.
