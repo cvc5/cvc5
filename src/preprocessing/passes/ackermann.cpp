@@ -218,7 +218,7 @@ void collectUSortsToBV(USortToBVSizeMap& usortCardinality,
           "BVSKOLEM$$",
           nm->mkBitVectorType(size),
           "a variable created by the ackermannization "
-          "preprocessing pass, representing term with uninterpreted sorts.");
+          "preprocessing pass, representing a term with uninterpreted sort.");
       sortsToSkolem.addSubstitution(term, skolem);
     }
   }
