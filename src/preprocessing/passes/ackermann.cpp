@@ -274,7 +274,7 @@ void usortsToBitVectors(const LogicInfo& d_logic,
       hasUninterpretedSorts = true;
       TypeNode type = term.getType();
       /* Update the statistics for each uninterpreted sort */
-      // For non-existing key, C++ will create a new element for it, which has
+      // For non-existing keys, C++ will create a new element for it, which has
       // the value initialized with a pair of two zeros.
       usortCardinality[type].first = usortCardinality[type].first + 1;
     }
