@@ -1276,18 +1276,19 @@ bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
     return true;
   }
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
-  if (options::nlExtInterceptModel())
+  if (!options::nlExtInterceptModel())
   {
-    // run a last call effort check
-    if (d_builtModel.get() || interceptModelMain())
+    return true;
+  }
+  // run a last call effort check
+  if (d_builtModel.get() || interceptModelMain())
+  {
+    if (d_builtModel.get())
     {
-      if (d_builtModel.get())
-      {
-        // modify the model values
-        d_model.fixModelValues(arithModel);
-      }
-      return true;
+      // modify the model values
+      d_model.fixModelValues(arithModel);
     }
+    return true;
   }
   return false;
 }
