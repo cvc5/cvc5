@@ -1212,7 +1212,7 @@ Expr DatatypeConstructor::getSelector(std::string name) const {
 Type DatatypeConstructor::getArgType(unsigned index) const
 {
   PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
-  return static_cast<SelectorType>((*this)[index].getType()).getRangeType();
+  return (*this)[index].getRangeType();
 }
 
 bool DatatypeConstructor::involvesExternalType() const{

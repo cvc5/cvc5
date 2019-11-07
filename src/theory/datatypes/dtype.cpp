@@ -117,11 +117,8 @@ size_t DType::indexOfInternal(Node item)
   {
     return indexOf(item[0]);
   }
-  else
-  {
-    Assert(item.hasAttribute(DTypeIndexAttr()));
-    return item.getAttribute(DTypeIndexAttr());
-  }
+  Assert(item.hasAttribute(DTypeIndexAttr()));
+  return item.getAttribute(DTypeIndexAttr());
 }
 
 size_t DType::cindexOf(Node item)
@@ -136,11 +133,8 @@ size_t DType::cindexOfInternal(Node item)
   {
     return cindexOf(item[0]);
   }
-  else
-  {
-    Assert(item.hasAttribute(DTypeConsIndexAttr()));
-    return item.getAttribute(DTypeConsIndexAttr());
-  }
+  Assert(item.hasAttribute(DTypeConsIndexAttr()));
+  return item.getAttribute(DTypeConsIndexAttr());
 }
 
 void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
@@ -168,20 +162,17 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
                       "DType::resolve(): resolutions doesn't contain me!");
   d_resolved = true;
   size_t index = 0;
-  for (std::vector<DTypeConstructor>::iterator i = d_constructors.begin(),
-                                               i_end = d_constructors.end();
-       i != i_end;
-       ++i)
+  for (DTypeConstructor& ctor : d_constructors)
   {
-    (*i).resolve(self,
+    ctor.resolve(self,
                  resolutions,
                  placeholders,
                  replacements,
                  paramTypes,
                  paramReplacements,
                  index);
-    (*i).d_constructor.setAttribute(DTypeIndexAttr(), index);
-    (*i).d_tester.setAttribute(DTypeIndexAttr(), index++);
+    ctor.d_constructor.setAttribute(DTypeIndexAttr(), index);
+    ctor.d_tester.setAttribute(DTypeIndexAttr(), index++);
   }
   d_self = self;
 
@@ -306,18 +297,16 @@ Cardinality DType::computeCardinality(TypeNode t,
       != processing.end())
   {
     d_card = Cardinality::INTEGERS;
+    return d_card;
   }
-  else
+  processing.push_back(d_self);
+  Cardinality c = 0;
+  for (const DTypeConstructor& ctor : d_constructors)
   {
-    processing.push_back(d_self);
-    Cardinality c = 0;
-    for (const DTypeConstructor& ctor : d_constructors)
-    {
-      c += ctor.computeCardinality(t, processing);
-    }
-    d_card = c;
-    processing.pop_back();
+    c += ctor.computeCardinality(t, processing);
   }
+  d_card = c;
+  processing.pop_back();
   return d_card;
 }
 
@@ -325,37 +314,38 @@ bool DType::isRecursiveSingleton(TypeNode t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
-  if (d_card_rec_singleton.find(t) == d_card_rec_singleton.end())
+  if (d_card_rec_singleton.find(t) != d_card_rec_singleton.end())
   {
-    if (isCodatatype())
+    return d_card_rec_singleton[t] == 1;
+  }
+  if (isCodatatype())
+  {
+    Assert(d_card_u_assume[t].empty());
+    std::vector<TypeNode> processing;
+    if (computeCardinalityRecSingleton(t, processing, d_card_u_assume[t]))
     {
-      Assert(d_card_u_assume[t].empty());
-      std::vector<TypeNode> processing;
-      if (computeCardinalityRecSingleton(t, processing, d_card_u_assume[t]))
-      {
-        d_card_rec_singleton[t] = 1;
-      }
-      else
-      {
-        d_card_rec_singleton[t] = -1;
-      }
-      if (d_card_rec_singleton[t] == 1)
-      {
-        Trace("dt-card") << "DType " << getName()
-                         << " is recursive singleton, dependent upon "
-                         << d_card_u_assume[t].size()
-                         << " uninterpreted sorts: " << std::endl;
-        for (unsigned i = 0; i < d_card_u_assume[t].size(); i++)
-        {
-          Trace("dt-card") << "  " << d_card_u_assume[t][i] << std::endl;
-        }
-        Trace("dt-card") << std::endl;
-      }
+      d_card_rec_singleton[t] = 1;
     }
     else
     {
       d_card_rec_singleton[t] = -1;
     }
+    if (d_card_rec_singleton[t] == 1)
+    {
+      Trace("dt-card") << "DType " << getName()
+                        << " is recursive singleton, dependent upon "
+                        << d_card_u_assume[t].size()
+                        << " uninterpreted sorts: " << std::endl;
+      for (unsigned i = 0; i < d_card_u_assume[t].size(); i++)
+      {
+        Trace("dt-card") << "  " << d_card_u_assume[t][i] << std::endl;
+      }
+      Trace("dt-card") << std::endl;
+    }
+  }
+  else
+  {
+    d_card_rec_singleton[t] = -1;
   }
   return d_card_rec_singleton[t] == 1;
 }
@@ -557,27 +547,24 @@ bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
   {
     return d_isCo;
   }
-  else
+  processing.push_back(d_self);
+  for (const DTypeConstructor& ctor : d_constructors)
   {
-    processing.push_back(d_self);
-    for (const DTypeConstructor& ctor : d_constructors)
+    if (ctor.computeWellFounded(processing))
     {
-      if (ctor.computeWellFounded(processing))
-      {
-        processing.pop_back();
-        return true;
-      }
-      else
-      {
-        Trace("dt-wf") << "Constructor " << ctor.getName()
-                       << " is not well-founded." << std::endl;
-      }
+      processing.pop_back();
+      return true;
     }
-    processing.pop_back();
-    Trace("dt-wf") << "DType " << getName() << " is not well-founded."
-                   << std::endl;
-    return false;
+    else
+    {
+      Trace("dt-wf") << "Constructor " << ctor.getName()
+                      << " is not well-founded." << std::endl;
+    }
   }
+  processing.pop_back();
+  Trace("dt-wf") << "DType " << getName() << " is not well-founded."
+                  << std::endl;
+  return false;
 }
 
 Node DType::mkGroundTerm(TypeNode t) const
@@ -633,66 +620,61 @@ Node getSubtermWithType(Node e, TypeNode t, bool isTop)
   {
     return e;
   }
-  else
+  for (unsigned i = 0; i < e.getNumChildren(); i++)
   {
-    for (unsigned i = 0; i < e.getNumChildren(); i++)
+    Node se = getSubtermWithType(e[i], t, false);
+    if (!se.isNull())
     {
-      Node se = getSubtermWithType(e[i], t, false);
-      if (!se.isNull())
-      {
-        return se;
-      }
+      return se;
     }
-    return Node();
   }
+  return Node();
 }
 
 Node DType::computeGroundTerm(TypeNode t,
                               std::vector<TypeNode>& processing,
                               bool isValue) const
 {
-  if (std::find(processing.begin(), processing.end(), t) == processing.end())
-  {
-    processing.push_back(t);
-    for (unsigned r = 0; r < 2; r++)
-    {
-      for (const DTypeConstructor& ctor : d_constructors)
-      {
-        // do nullary constructors first
-        if ((ctor.getNumArgs() == 0) == (r == 0))
-        {
-          Debug("datatypes")
-              << "Try constructing for " << ctor.getName()
-              << ", processing = " << processing.size() << std::endl;
-          Node e =
-              ctor.computeGroundTerm(t, processing, d_ground_term, isValue);
-          if (!e.isNull())
-          {
-            // must check subterms for the same type to avoid infinite loops in
-            // type enumeration
-            Node se = getSubtermWithType(e, t, true);
-            if (!se.isNull())
-            {
-              Debug("datatypes") << "Take subterm " << se << std::endl;
-              e = se;
-            }
-            processing.pop_back();
-            return e;
-          }
-          else
-          {
-            Debug("datatypes") << "...failed." << std::endl;
-          }
-        }
-      }
-    }
-    processing.pop_back();
-  }
-  else
+  if (std::find(processing.begin(), processing.end(), t) != processing.end())
   {
     Debug("datatypes") << "...already processing " << t << " " << d_self
                        << std::endl;
+    return Node();
   }
+  processing.push_back(t);
+  for (unsigned r = 0; r < 2; r++)
+  {
+    for (const DTypeConstructor& ctor : d_constructors)
+    {
+      // do nullary constructors first
+      if ((ctor.getNumArgs() == 0) == (r == 0))
+      {
+        Debug("datatypes")
+            << "Try constructing for " << ctor.getName()
+            << ", processing = " << processing.size() << std::endl;
+        Node e =
+            ctor.computeGroundTerm(t, processing, d_ground_term, isValue);
+        if (!e.isNull())
+        {
+          // must check subterms for the same type to avoid infinite loops in
+          // type enumeration
+          Node se = getSubtermWithType(e, t, true);
+          if (!se.isNull())
+          {
+            Debug("datatypes") << "Take subterm " << se << std::endl;
+            e = se;
+          }
+          processing.pop_back();
+          return e;
+        }
+        else
+        {
+          Debug("datatypes") << "...failed." << std::endl;
+        }
+      }
+    }
+  }
+  processing.pop_back();
   return Node();
 }
 
@@ -803,7 +785,7 @@ void DType::toStream(std::ostream& out) const
   if (isParametric())
   {
     out << '[';
-    for (size_t i = 0; i < getNumParameters(); ++i)
+    for (size_t i = 0, nparams = getNumParameters(); i < nparams; ++i)
     {
       if (i > 0)
       {
