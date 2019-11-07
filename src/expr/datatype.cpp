@@ -31,6 +31,7 @@
 #include "options/datatypes_options.h"
 #include "options/set_language.h"
 #include "theory/type_enumerator.h"
+#include "theory/datatypes/dtype.h"
 
 using namespace std;
 
@@ -836,7 +837,8 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
     :  // We don't want to introduce a new data member, because eventually
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
-       // resolution.
+       // resolution. 
+      d_internal(nullptr), //TODO
       d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
       d_tester(),
       d_args(),
@@ -853,6 +855,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name,
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
+      d_internal(nullptr), //TODO
       d_name(name + '\0' + tester),
       d_tester(),
       d_args(),
@@ -1234,6 +1237,7 @@ bool DatatypeConstructor::involvesUninterpretedType() const{
 }
 
 DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector) :
+  d_internal(nullptr), //TODO
   d_name(name),
   d_selector(selector),
   d_resolved(false) {
