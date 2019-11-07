@@ -218,7 +218,7 @@ void collectUSortsToBV(USortToBVSizeMap& usortCardinality,
           "BVSKOLEM$$",
           nm->mkBitVectorType(size),
           "a variable created by the ackermannization "
-          "preprocessing pass, representing term with uninterpreted sorts.");
+          "preprocessing pass, representing a term with uninterpreted sort.");
       sortsToSkolem.addSubstitution(term, skolem);
     }
   }
@@ -254,7 +254,7 @@ std::vector<TNode> getListOfTerms(AssertionPipeline* assertions)
   return res;
 }
 
-/* This is the top level of converting uninterpreted sorts to bit vectors.
+/* This is the top level of converting uninterpreted sorts to bit-vectors.
  * We use BFS to get all terms without duplications, and count the number of
  * different terms for each uninterpreted sort. Then for each sort, we will
  * assign a new bit-vector type with a sufficient size.
@@ -274,7 +274,7 @@ void usortsToBitVectors(const LogicInfo& d_logic,
       hasUninterpretedSorts = true;
       TypeNode type = term.getType();
       /* Update the statistics for each uninterpreted sort */
-      // For non-existing key, C++ will create a new element for it, which has
+      // For non-existing keys, C++ will create a new element for it, which has
       // the value initialized with a pair of two zeros.
       usortCardinality[type].first = usortCardinality[type].first + 1;
     }
