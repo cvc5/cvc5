@@ -848,7 +848,7 @@ Node BVToInt::createShiftNode(vector<Node> children,
    * [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
    * Since we don't have exponentiation, we use the ite declared above.
    */
-  kind::Kind then_kind = isLeftShift ? kind::MULT : kind::INTS_DIVISION_TOTAL;
+  kind::Kind_t then_kind = isLeftShift ? kind::MULT : kind::INTS_DIVISION_TOTAL;
   return d_nm->mkNode(kind::ITE,
                               d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)),
                               d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
