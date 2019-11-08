@@ -1204,10 +1204,18 @@ void SmtEngine::setDefaults() {
           "QF_LIA, QF_IDL)");
     }
     d_logic = LogicInfo("QF_BV");
-  }else if ((d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt()) || (d_logic.getLogicString() == "QF_BV" && options::solveBVAsInt() > 0)) {
-    d_logic = LogicInfo("QF_NIA");
-  } else if (d_logic.getLogicString() == "QF_UFBV" && options::solveBVAsInt() > 0) {
-    d_logic = LogicInfo("QF_UFNIA");
+  }
+
+  if (options::solveBVAsInt() > 0)
+  {
+    if (d_logic.isTheoryEnabled(THEORY_BV))
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.disableTheory(THEORY_BV);
+      d_logic.enableTheory(THEORY_ARITH);
+      d_logic.arithNonLinear();
+      d_logic.lock();
+    }
   }
 
   // set options about ackermannization
@@ -1403,9 +1411,9 @@ void SmtEngine::setDefaults() {
                << endl;
       options::preSkolemQuant.set(false);
     }
-    
 
-    if (options::solveBVAsInt() > 0) { 
+    if (options::solveBVAsInt() > 0)
+    {
       options::bitvectorToBool.set(true);
     }
 
@@ -3341,14 +3349,29 @@ void SmtEnginePrivate::processAssertions() {
   {
     d_passes["bv-to-bool"]->apply(&d_assertions);
   }
-  if (options::solveBVAsInt() > 0) { 
-        if (options::incrementalSolving()) {
-          throw ModalException("solving bitvectors as integers is currently not supported incrementally.");
-        } else if (options::solveBVAsInt() > 8) {
-          throw ModalException("solve-bv-as-int accepts values from 0 to 8.");
-        } else {
-          d_passes["bv-to-int"]->apply(&d_assertions);
-        }
+  if (options::solveBVAsInt() > 0)
+  {
+    if (options::incrementalSolving())
+    {
+      throw ModalException(
+          "solving bitvectors as integers is currently not supported "
+          "incrementally.");
+    }
+    else if (options::solveBVAsInt() > 8)
+    {
+      /**
+       * The granularity sets the size of the ITE in each element
+       * of the sum that is generated for bit-wise operators.
+       * For granularity k, the size of the ITE is 2^{2*k}.
+       * Since we don't want to introduce ITEs with unbounded size,
+       * we bound the granularity.
+       */
+      throw ModalException("solve-bv-as-int accepts values from 0 to 8.");
+    }
+    else
+    {
+      d_passes["bv-to-int"]->apply(&d_assertions);
+    }
   }
 
   // Convert non-top-level Booleans to bit-vectors of size 1

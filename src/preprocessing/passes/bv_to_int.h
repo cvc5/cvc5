@@ -130,7 +130,7 @@ class BVToInt : public PreprocessingPass
   /** 
    * A helper function for createBitwiseNode
    * - x and y are integer nodes that correspond to the original bit-vector nodes.
-   * - bitwidth represents the bitwidth of the original bit-vector nodes.
+   * - granularity represents the bitwidth of the original bit-vector nodes.
    * - table represents a function from pairs of integers to integers.
    *   The domain of this function consists of pairs of 
    *   integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
@@ -139,7 +139,7 @@ class BVToInt : public PreprocessingPass
   Node createITEFromTable(
       Node x,
       Node y,
-      uint64_t bitwidth,
+      uint64_t granularity,
       std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
 
   /**
@@ -200,23 +200,23 @@ class BVToInt : public PreprocessingPass
   Node makeBinary(Node n);
 
   /**
-   * input: A non-negative integer k
-   * output: A node that represents 2^k
+   * @param k A non-negative integer
+   * @return A node that represents the constant 2^k
    */
   Node pow2(uint64_t k);
 
   /**
-   * input: A positive integer k
-   * output: A node that represent the maximal integer value of 
-   * a bit-vector of bit-width k.
+   * @param k A positive integer k
+   * @return A node that represent the constant 2^k-1
    * For example, if k is 4, the result is a node representing the
    * constant 15.
    */
   Node maxInt(uint64_t k);
 
   /**
-   * input: A node n, representing an integer term
-   * output: A node representing (n mod (2^exponent))
+   * @param n A node representing an integer term
+   * @param exponent A non-negative integer
+   * @return A node representing (n mod (2^exponent))
    */
   Node modpow2(Node n, uint64_t exponent);
 
@@ -246,6 +246,12 @@ class BVToInt : public PreprocessingPass
    * These are added for every new integer variable that we introduce.
    */
   unordered_set<Node, NodeHashFunction> d_rangeAssertions;
+
+  /**
+   * Useful constants
+   */
+  Node d_zero;
+  Node d_one;
 };
 
 }  // namespace passes
