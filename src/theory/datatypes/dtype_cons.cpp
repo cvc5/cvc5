@@ -34,6 +34,7 @@ DTypeConstructor::DTypeConstructor(std::string name)
       d_sygus_pc(nullptr),
       d_weight(1)
 {
+  Trace("ajr-temp") << "DTypeConstructor::DTypeConstructor 1" << std::endl;
   PrettyCheckArgument(name != "",
                       name,
                       "cannot construct a datatype constructor without a name");
@@ -52,6 +53,7 @@ DTypeConstructor::DTypeConstructor(std::string name,
       d_sygus_pc(nullptr),
       d_weight(weight)
 {
+  Trace("ajr-temp") << "DTypeConstructor::DTypeConstructor 2" << std::endl;
   PrettyCheckArgument(name != "",
                       name,
                       "cannot construct a datatype constructor without a name");
@@ -59,10 +61,12 @@ DTypeConstructor::DTypeConstructor(std::string name,
       !tester.empty(),
       tester,
       "cannot construct a datatype constructor without a tester");
+  Trace("ajr-temp") << "DTypeConstructor::DTypeConstructor 2 finished" << std::endl;
 }
 
 void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
 {
+  Trace("ajr-temp") << "DTypeConstructor::addArg" << std::endl;
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
   // the selector type away inside a var until resolution (when we can

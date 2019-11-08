@@ -23,6 +23,7 @@ namespace CVC4 {
 DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector)
     : d_name(name), d_selector(selector), d_resolved(false)
 {
+  Trace("ajr-temp") << "DTypeConstructorArg::DTypeConstructorArg" << std::endl;
   PrettyCheckArgument(
       name != "",
       name,

@@ -35,6 +35,7 @@ DType::DType(std::string name, bool isCo)
       d_card(CardinalityUnknown()),
       d_well_founded(0)
 {
+  Trace("ajr-temp") << "DType::DType" << std::endl;
 }
 
 DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
@@ -52,6 +53,7 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_card(CardinalityUnknown()),
       d_well_founded(0)
 {
+  Trace("ajr-temp") << "DType::DType" << std::endl;
 }
 
 std::string DType::getName() const { return d_name; }

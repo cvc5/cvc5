@@ -260,6 +260,7 @@ const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
 
 const DType& NodeManager::getDTypeForIndex(unsigned index) const
 {
+  Trace("ajr-temp") << "getDTypeForIndex " << index << std::endl;
   const Datatype & d = getDatatypeForIndex(index);
   // return its internal representation
   return *d.d_internal;
