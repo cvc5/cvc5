@@ -59,6 +59,43 @@ Datatype::~Datatype(){
   delete d_record;
 }
 
+Datatype::Datatype(std::string name, bool isCo)
+    : d_internal(new DType(name, isCo)),
+      d_name(name),
+      d_params(),
+      d_isCo(isCo),
+      d_isTuple(false),
+      d_isRecord(false),
+      d_record(NULL),
+      d_constructors(),
+      d_resolved(false),
+      d_self(),
+      d_involvesExt(false),
+      d_involvesUt(false),
+      d_sygus_allow_const(false),
+      d_sygus_allow_all(false),
+      d_card(CardinalityUnknown()),
+      d_well_founded(0) {}
+
+Datatype::Datatype(std::string name, const std::vector<Type>& params,
+                          bool isCo)
+    : d_internal(new DType(name, isCo)),
+      d_name(name),
+      d_params(params),
+      d_isCo(isCo),
+      d_isTuple(false),
+      d_isRecord(false),
+      d_record(NULL),
+      d_constructors(),
+      d_resolved(false),
+      d_self(),
+      d_involvesExt(false),
+      d_involvesUt(false),
+      d_sygus_allow_const(false),
+      d_sygus_allow_all(false),
+      d_card(CardinalityUnknown()),
+      d_well_founded(0) {}
+
 const Datatype& Datatype::datatypeOf(Expr item) {
   ExprManagerScope ems(item);
   TypeNode t = Node::fromExpr(item).getType();
@@ -838,7 +875,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution. 
-      d_internal(nullptr), //TODO
+      d_internal(new DTypeConstructor(name,std::string("is_" + name),1)),
       d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
       d_tester(),
       d_args(),
@@ -855,7 +892,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name,
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
-      d_internal(nullptr), //TODO
+      d_internal(new DTypeConstructor(name, tester, weight)),
       d_name(name + '\0' + tester),
       d_tester(),
       d_args(),
@@ -1237,7 +1274,7 @@ bool DatatypeConstructor::involvesUninterpretedType() const{
 }
 
 DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector) :
-  d_internal(nullptr), //TODO
+  d_internal(new DTypeConstructorArg(name,Node::fromExpr(selector))),
   d_name(name),
   d_selector(selector),
   d_resolved(false) {

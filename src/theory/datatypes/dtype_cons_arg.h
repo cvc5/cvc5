@@ -37,6 +37,9 @@ class DTypeConstructorArg
   friend class DType;
 
  public:
+  /** constructor */
+  DTypeConstructorArg(std::string name, Node selector);
+  
   /** Get the name of this constructor argument. */
   std::string getName() const;
 
@@ -82,8 +85,6 @@ class DTypeConstructorArg
   bool d_resolved;
   /** is this selector unresolved? */
   bool isUnresolvedSelf() const;
-  /** constructor */
-  DTypeConstructorArg(std::string name, Node selector);
 };
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg);
