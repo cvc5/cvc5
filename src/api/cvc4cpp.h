@@ -600,6 +600,11 @@ class CVC4_PUBLIC Op
   bool isNull() const;
 
   /**
+   * @return true iff this operator is indexed
+   */
+  bool isIndexed() const;
+
+  /**
    * Get the indices used to create this Op.
    * Supports the following template arguments:
    *   - string
@@ -629,7 +634,7 @@ class CVC4_PUBLIC Op
    * True iff this Op is indexed
    *  An indexed operator has a non-null internal expr, d_expr
    */
-  bool indexed;
+  bool d_indexed;
 
   /**
    * The internal expression wrapped by this operator.

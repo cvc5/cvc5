@@ -1004,12 +1004,12 @@ size_t SortHashFunction::operator()(const Sort& s) const
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Op::Op() : d_kind(NULL_EXPR), indexed(false), d_expr(new CVC4::Expr()) {}
+Op::Op() : d_kind(NULL_EXPR), d_indexed(false), d_expr(new CVC4::Expr()) {}
 
-Op::Op(const Kind k) : d_kind(k), indexed(false), d_expr(new CVC4::Expr()) {}
+Op::Op(const Kind k) : d_kind(k), d_indexed(false), d_expr(new CVC4::Expr()) {}
 
 Op::Op(const Kind k, const CVC4::Expr& e)
-    : d_kind(k), indexed(true), d_expr(new CVC4::Expr(e))
+    : d_kind(k), d_indexed(true), d_expr(new CVC4::Expr(e))
 {
 }
 
@@ -1040,14 +1040,14 @@ Sort Op::getSort() const
 
 bool Op::isNull() const { return (d_expr->isNull() && (d_kind == NULL_EXPR)); }
 
+bool Op::isIndexed() const { return d_indexed; }
+
 template <>
 std::string Op::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_CHECK(indexed)
-      << "Expecting operator to be an indexed operator when calling getIndices";
   CVC4_API_CHECK(!d_expr->isNull())
-      << "Expecting a non-null internal expression";
+      << "Expecting a non-null internal expression. This Op is not indexed.";
 
   std::string i;
   Kind k = intToExtKind(d_expr->getKind());
@@ -1076,10 +1076,8 @@ template <>
 Kind Op::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_CHECK(indexed)
-      << "Expecting operator to be an indexed operator when calling getIndices";
   CVC4_API_CHECK(!d_expr->isNull())
-      << "Expecting a non-null internal expression";
+      << "Expecting a non-null internal expression. This Op is not indexed.";
   Kind kind = intToExtKind(d_expr->getKind());
   CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN, kind) << "CHAIN";
   return intToExtKind(d_expr->getConst<Chain>().getOperator());
@@ -1089,10 +1087,9 @@ template <>
 uint32_t Op::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_CHECK(indexed)
-      << "Expecting operator to be an indexed operator when calling getIndices";
   CVC4_API_CHECK(!d_expr->isNull())
-      << "Expecting a non-null internal expression";
+      << "Expecting a non-null internal expression. This Op is not indexed.";
+
   uint32_t i = 0;
   Kind k = intToExtKind(d_expr->getKind());
   switch (k)
@@ -1137,10 +1134,8 @@ template <>
 std::pair<uint32_t, uint32_t> Op::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_CHECK(indexed)
-      << "Expecting operator to be an indexed operator when calling getIndices";
   CVC4_API_CHECK(!d_expr->isNull())
-      << "Expecting a non-null internal expression";
+      << "Expecting a non-null internal expression. This Op is not indexed.";
 
   std::pair<uint32_t, uint32_t> indices;
   Kind k = intToExtKind(d_expr->getKind());
@@ -1221,7 +1216,7 @@ std::ostream& operator<<(std::ostream& out, const Op& t)
 
 size_t OpHashFunction::operator()(const Op& t) const
 {
-  if (t.indexed)
+  if (t.d_indexed)
   {
     return ExprHashFunction()(*t.d_expr);
   }
@@ -2912,7 +2907,7 @@ Term Solver::mkTerm(Op op) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
   Term res;
-  if (op.indexed)
+  if (op.d_indexed)
   {
     const CVC4::Kind int_kind = extToIntKind(op.d_kind);
     res = d_exprMgr->mkExpr(int_kind, *op.d_expr);
@@ -2935,7 +2930,7 @@ Term Solver::mkTerm(Op op, Term child) const
 
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   Term res;
-  if (op.indexed)
+  if (op.d_indexed)
   {
     res = d_exprMgr->mkExpr(int_kind, *op.d_expr, *child.d_expr);
   }
@@ -2958,7 +2953,7 @@ Term Solver::mkTerm(Op op, Term child1, Term child2) const
 
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   Term res;
-  if (op.indexed)
+  if (op.d_indexed)
   {
     res =
         d_exprMgr->mkExpr(int_kind, *op.d_expr, *child1.d_expr, *child2.d_expr);
@@ -2982,7 +2977,7 @@ Term Solver::mkTerm(Op op, Term child1, Term child2, Term child3) const
 
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   Term res;
-  if (op.indexed)
+  if (op.d_indexed)
   {
     res = d_exprMgr->mkExpr(
         int_kind, *op.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
@@ -3012,7 +3007,7 @@ Term Solver::mkTerm(Op op, const std::vector<Term>& children) const
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<Expr> echildren = termVectorToExprs(children);
   Term res;
-  if (op.indexed)
+  if (op.d_indexed)
   {
     res = d_exprMgr->mkExpr(int_kind, *op.d_expr, echildren);
   }

@@ -27,6 +27,7 @@ class OpBlack : public CxxTest::TestSuite
   void testGetKind();
   void testGetSort();
   void testIsNull();
+  void testOpTermFromKind();
   void testGetIndicesString();
   void testGetIndicesKind();
   void testGetIndicesUint();
@@ -60,12 +61,20 @@ void OpBlack::testIsNull()
   TS_ASSERT(!x.isNull());
 }
 
+void OpBlack::testOpTermFromKind()
+{
+  Op plus(PLUS);
+  TS_ASSERT(!plus.isIndexed());
+  TS_ASSERT_THROWS(plus.getIndices<uint32_t>(), CVC4ApiException&);
+}
+
 void OpBlack::testGetIndicesString()
 {
   Op x;
   TS_ASSERT_THROWS(x.getIndices<std::string>(), CVC4ApiException&);
 
   Op divisible_ot = d_solver.mkOp(DIVISIBLE, 4);
+  TS_ASSERT(divisible_ot.isIndexed());
   std::string divisible_idx = divisible_ot.getIndices<std::string>();
   TS_ASSERT(divisible_idx == "4");
 
@@ -78,6 +87,7 @@ void OpBlack::testGetIndicesString()
 void OpBlack::testGetIndicesKind()
 {
   Op chain_ot = d_solver.mkOp(CHAIN, AND);
+  TS_ASSERT(chain_ot.isIndexed());
   Kind chain_idx = chain_ot.getIndices<Kind>();
   TS_ASSERT(chain_idx == AND);
 }
@@ -85,6 +95,7 @@ void OpBlack::testGetIndicesKind()
 void OpBlack::testGetIndicesUint()
 {
   Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
+  TS_ASSERT(bitvector_repeat_ot.isIndexed());
   uint32_t bitvector_repeat_idx = bitvector_repeat_ot.getIndices<uint32_t>();
   TS_ASSERT(bitvector_repeat_idx == 5);
   TS_ASSERT_THROWS(
@@ -147,6 +158,7 @@ void OpBlack::testGetIndicesUint()
 void OpBlack::testGetIndicesPairUint()
 {
   Op bitvector_extract_ot = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
+  TS_ASSERT(bitvector_extract_ot.isIndexed());
   std::pair<uint32_t, uint32_t> bitvector_extract_indices =
       bitvector_extract_ot.getIndices<std::pair<uint32_t, uint32_t>>();
   TS_ASSERT((bitvector_extract_indices == std::pair<uint32_t, uint32_t>{4, 0}));
