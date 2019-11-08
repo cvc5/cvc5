@@ -178,11 +178,13 @@ Node BVToInt::eliminationPass(Node n)
   {
     current = toVisit.back();
     toVisit.pop_back();
-    if (d_eliminationCache.find(current) == d_eliminationCache.end()) {
-      if (d_rebuildCache.find(current) == d_eliminationCache.end()) {
-        // We still haven't eliminated anything from current.
-        // After eliminating we will add it to the elimination cache,
-        // and its children to the stack, along with its eliminated form.
+    bool inEliminationCache = (d_eliminationCache.find(current) != d_eliminationCache.end());
+    bool inRebuildCache = (d_rebuildCache.find(current) != d_rebuildCache.end());
+    if (!inRebuildCache) {
+      // current is not the elimination of any previously-visited node
+      if (!inEliminationCache) {
+        // current hasn't been eliminated yet.
+        // eliminate operators from it
         Node currentEliminated =
             FixpointRewriteStrategy<RewriteRule<UdivZero>,
                                     RewriteRule<SdivEliminate>,
@@ -200,43 +202,47 @@ Node BVToInt::eliminationPass(Node n)
                                     RewriteRule<SgeEliminate>,
                                     RewriteRule<ShlByConst>,
                                     RewriteRule<LshrByConst> >::apply(current);
+        // save in the cache
         d_eliminationCache[current] = currentEliminated;
+        // put the eliminated node in the rebuild cache, but mark that it hasn't yet been rebuilt
+        // by assigning null.
         d_rebuildCache[currentEliminated] = Node();
+        // Push the eliminated node to the stack
         toVisit.push_back(currentEliminated);
         // Add the children to the stack for future processing.
         toVisit.insert(
             toVisit.end(), currentEliminated.begin(), currentEliminated.end());
-      } else {
-        // current was already added to the rebuild cache.
-        if (d_rebuildCache[current].isNull()) {
-          // We still haven't rebuilt current
-          uint64_t numChildren = current.getNumChildren();
-          if (numChildren == 0)
-          {
-            // We only eliminate operators that are not nullary.
-            d_rebuildCache[current] = current;
-          }
-          else
-          {
-            // The main operator is replaced, and the children
-            // are replaced with their eliminated counterparts.
-            NodeBuilder<> builder(current.getKind());
-            if (current.getKind() == kind::BITVECTOR_EXTRACT
-                || current.getKind() == kind::APPLY_UF)
-            {
-              builder << current.getOperator();
-            }
-            for (Node child : current) 
-            {
-              Assert(d_rebuildCache.find(child)
-                     != d_rebuildCache.end());
-              Assert(!d_rebuildCache[child].isNull());
-              builder << d_rebuildCache[child];
-            }
-            d_rebuildCache[current] = builder.constructNode();
-          }
+      }  
+    } else {
+      //current was already added to the rebuild cache.
+      if (d_rebuildCache[current].isNull()) {
+        //current wasn't rebuilt yet.
+        uint64_t numChildren = current.getNumChildren();
+        if (numChildren == 0)
+        {
+          // We only eliminate operators that are not nullary.
+          d_rebuildCache[current] = current;
         }
-      }
+        else
+        {
+          // The main operator is replaced, and the children
+          // are replaced with their eliminated counterparts.
+          NodeBuilder<> builder(current.getKind());
+          if (current.getKind() == kind::BITVECTOR_EXTRACT
+              || current.getKind() == kind::APPLY_UF)
+          {
+            builder << current.getOperator();
+          }
+          for (Node child : current) 
+          {
+            Assert(d_rebuildCache.find(child)
+                   != d_rebuildCache.end());
+            Assert(!d_rebuildCache[child].isNull());
+            builder << d_rebuildCache[child];
+          }
+          d_rebuildCache[current] = builder.constructNode();
+        }
+      }  
     }
   }
   Assert(d_eliminationCache.find(n) != d_eliminationCache.end());
