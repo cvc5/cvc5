@@ -163,6 +163,29 @@ class InferenceManager
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
+  /** register length
+   *
+   * This method is called on non-constant string terms n. It sends a lemma
+   * on the output channel that ensures that the length n satisfies its assigned
+   * status (given by argument s).
+   *
+   * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
+   *
+   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) > 0.
+   *
+   * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
+   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
+   * This method also ensures that, when applicable, the left branch is taken
+   * first via calls to requirePhase.
+   *
+   * If the status is LENGTH_IGNORE, then no lemma is sent. This status is used
+   * e.g. when the length of n is already implied by other constraints.
+   *
+   * In contrast to the above functions, it makes immediate calls to the output
+   * channel instead of adding them to pending lists.
+   */
+  void registerLength(Node n, LengthStatus s);
+
   //----------------------------constructing antecedants
   /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It
@@ -212,6 +235,21 @@ class InferenceManager
   /** Do we have a pending lemma to send on the output channel? */
   bool hasPendingLemma() const { return !d_pendingLem.empty(); }
 
+  /** make explanation
+   *
+   * This returns a node corresponding to the explanation of formulas in a,
+   * interpreted conjunctively. The returned node is a conjunction of literals
+   * that have been asserted to the equality engine.
+   */
+  Node mkExplain(const std::vector<Node>& a) const;
+  /** Same as above, but the new literals an are append to the result */
+  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an) const;
+  /**
+   * Explain literal l, add conjuncts to assumptions vector instead of making
+   * the node corresponding to their conjunction.
+   */
+  void explain(TNode literal, std::vector<TNode>& assumptions) const;
+
  private:
   /**
    * Indicates that ant => conc should be sent on the output channel of this
@@ -244,8 +282,11 @@ class InferenceManager
    */
   OutputChannel& d_out;
   /** Common constants */
+  Node d_emptyString;
   Node d_true;
   Node d_false;
+  Node d_zero;
+  Node d_one;
   /** The list of pending literals to assert to the equality engine */
   std::vector<Node> d_pending;
   /** A map from the literals in the above vector to their explanation */
@@ -261,6 +302,8 @@ class InferenceManager
    * SAT-context-dependent.
    */
   NodeSet d_keep;
+  /** List of terms that we have register length for */
+  NodeSet d_lengthLemmaTermsCache;
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a
