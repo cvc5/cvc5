@@ -98,18 +98,22 @@ Node BVToInt::makeBinary(Node n)
     uint64_t numChildren = current.getNumChildren();
     if (d_binarizeCache.find(current) == d_binarizeCache.end())
     {
-      // We still haven't visited the sub-dag rooted at the current node.
-      // In this case, we:
-      // mark that we have visited this node by assigning a null node to it in
-      // the cache, and add its children to toVisit.
+      /**
+       * We still haven't visited the sub-dag rooted at the current node.
+       * In this case, we:
+       * mark that we have visited this node by assigning a null node to it in
+       * the cache, and add its children to toVisit.
+       */
       d_binarizeCache[current] = Node();
       toVisit.insert(toVisit.end(), current.begin(), current.end());
     }
     else if (d_binarizeCache[current].isNull())
     {
-      // We already visited the sub-dag rooted at the current node,
-      // and binarized all its children.
-      // Now we binarize the current node itself.
+      /*
+       * We already visited the sub-dag rooted at the current node,
+       * and binarized all its children.
+       * Now we binarize the current node itself.
+       */
       toVisit.pop_back();
       kind::Kind_t k = current.getKind();
       if ((numChildren > 2)
@@ -178,11 +182,15 @@ Node BVToInt::eliminationPass(Node n)
   {
     current = toVisit.back();
     toVisit.pop_back();
-    bool inEliminationCache = (d_eliminationCache.find(current) != d_eliminationCache.end());
-    bool inRebuildCache = (d_rebuildCache.find(current) != d_rebuildCache.end());
-    if (!inRebuildCache) {
+    bool inEliminationCache =
+        (d_eliminationCache.find(current) != d_eliminationCache.end());
+    bool inRebuildCache =
+        (d_rebuildCache.find(current) != d_rebuildCache.end());
+    if (!inRebuildCache)
+    {
       // current is not the elimination of any previously-visited node
-      if (!inEliminationCache) {
+      if (!inEliminationCache)
+      {
         // current hasn't been eliminated yet.
         // eliminate operators from it
         Node currentEliminated =
@@ -204,19 +212,22 @@ Node BVToInt::eliminationPass(Node n)
                                     RewriteRule<LshrByConst> >::apply(current);
         // save in the cache
         d_eliminationCache[current] = currentEliminated;
-        // put the eliminated node in the rebuild cache, but mark that it hasn't yet been rebuilt
-        // by assigning null.
+        // put the eliminated node in the rebuild cache, but mark that it hasn't
+        // yet been rebuilt by assigning null.
         d_rebuildCache[currentEliminated] = Node();
         // Push the eliminated node to the stack
         toVisit.push_back(currentEliminated);
         // Add the children to the stack for future processing.
         toVisit.insert(
             toVisit.end(), currentEliminated.begin(), currentEliminated.end());
-      }  
-    } else {
-      //current was already added to the rebuild cache.
-      if (d_rebuildCache[current].isNull()) {
-        //current wasn't rebuilt yet.
+      }
+    }
+    else
+    {
+      // current was already added to the rebuild cache.
+      if (d_rebuildCache[current].isNull())
+      {
+        // current wasn't rebuilt yet.
         uint64_t numChildren = current.getNumChildren();
         if (numChildren == 0)
         {
@@ -233,16 +244,15 @@ Node BVToInt::eliminationPass(Node n)
           {
             builder << current.getOperator();
           }
-          for (Node child : current) 
+          for (Node child : current)
           {
-            Assert(d_rebuildCache.find(child)
-                   != d_rebuildCache.end());
+            Assert(d_rebuildCache.find(child) != d_rebuildCache.end());
             Assert(!d_rebuildCache[child].isNull());
             builder << d_rebuildCache[child];
           }
           d_rebuildCache[current] = builder.constructNode();
         }
-      }  
+      }
     }
   }
   Assert(d_eliminationCache.find(n) != d_eliminationCache.end());
@@ -250,7 +260,7 @@ Node BVToInt::eliminationPass(Node n)
   Assert(d_rebuildCache.find(eliminated) != d_rebuildCache.end());
   Assert(!d_rebuildCache[eliminated].isNull());
   return d_rebuildCache[eliminated];
-}   
+}
 
 /**
  * Translate n to Integers via post-order traversal.
@@ -333,10 +343,12 @@ Node BVToInt::bvToInt(Node n)
         }
         else
         {
-          // The current node has children.
-          // Since we are on the way back up,
-          // these children were already translated.
-          // We save their translation for future use.
+          /**
+           * The current node has children.
+           * Since we are on the way back up,
+           * these children were already translated.
+           * We save their translation for future use.
+           */
           vector<Node> intized_children;
           for (uint64_t i = 0; i < currentNumChildren; i++)
           {
@@ -350,11 +362,13 @@ Node BVToInt::bvToInt(Node n)
             case kind::BITVECTOR_PLUS:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-              // we avoid modular arithmetics by the addition of an
-              // indicator variable sigma.
-              // Tr(a+b) is Tr(a)+Tr(b)-(sigma*2^k),
-              // with k being the bit width,
-              // and sigma being either 0 or 1.
+              /**
+               * we avoid modular arithmetics by the addition of an
+               * indicator variable sigma.
+               * Tr(a+b) is Tr(a)+Tr(b)-(sigma*2^k),
+               * with k being the bit width,
+               * and sigma being either 0 or 1.
+               */
               Node sigma = d_nm->mkSkolem(
                   "__bvToInt_sigma_var",
                   d_nm->integerType(),
@@ -372,10 +386,12 @@ Node BVToInt::bvToInt(Node n)
             case kind::BITVECTOR_MULT:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-              // we use a similar trick to the one used for addition.
-              // Tr(a*b) is Tr(a)*Tr(b)-(sigma*2^k),
-              // with k being the bit width,
-              // and sigma is between [0, 2^k - 1).
+              /**
+               * we use a similar trick to the one used for addition.
+               * Tr(a*b) is Tr(a)*Tr(b)-(sigma*2^k),
+               * with k being the bit width,
+               * and sigma is between [0, 2^k - 1).
+               */
               Node sigma = d_nm->mkSkolem(
                   "__bvToInt_sigma_var",
                   d_nm->integerType(),
@@ -520,10 +536,12 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_SHL:
             {
-              // a << b is a*2^b.
-              // The exponentiation is simulated by an ite.
-              // Only cases where b <= bit width are considered.
-              // Otherwise, the result is 0.
+              /**
+               * a << b is a*2^b.
+               * The exponentiation is simulated by an ite.
+               * Only cases where b <= bit width are considered.
+               * Otherwise, the result is 0.
+               */
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createShiftNode(intized_children, bvsize, true);
               d_bvToIntCache[current] = newNode;
@@ -531,10 +549,12 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_LSHR:
             {
-              // a >> b is a div 2^b.
-              // The exponentiation is simulated by an ite.
-              // Only cases where b <= bit width are considered.
-              // Otherwise, the result is 0.
+              /**
+               * a >> b is a div 2^b.
+               * The exponentiation is simulated by an ite.
+               * Only cases where b <= bit width are considered.
+               * Otherwise, the result is 0.
+               */
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createShiftNode(intized_children, bvsize, false);
               d_bvToIntCache[current] = newNode;
@@ -554,7 +574,7 @@ Node BVToInt::bvToInt(Node n)
                *           (bvlshr s t)
                *           (bvnot (bvlshr (bvnot s) t)))
                *
-               * */
+               */
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               // signed_min is 100000...
               Node signed_min = pow2(bvsize - 1);
@@ -676,10 +696,12 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::APPLY_UF:
             {
-              // We replace all BV-sorts of the domain with INT
-              // If the range is a BV sort, we replace it with INT
-              // We cache both the term itself (e.g., f(a)) and the function
-              // symbol f.
+              /*
+               * We replace all BV-sorts of the domain with INT
+               * If the range is a BV sort, we replace it with INT
+               * We cache both the term itself (e.g., f(a)) and the function
+               * symbol f.
+               */
               Node bvUF = current.getOperator();
               Node intUF;
               TypeNode tn = current.getOperator().getType();
@@ -692,9 +714,11 @@ Node BVToInt::bvToInt(Node n)
               {
                 vector<TypeNode> bvDomain = tn.getArgTypes();
                 vector<TypeNode> intDomain;
-                // if the original range is a bit-vector sort,
-                // the new range should be an integer sort.
-                // Otherwise, we keep the original range.
+                /**
+                 * if the original range is a bit-vector sort,
+                 * the new range should be an integer sort.
+                 * Otherwise, we keep the original range.
+                 */
                 TypeNode intRange =
                     bvRange.isBitVector() ? d_nm->integerType() : bvRange;
                 for (TypeNode d : bvDomain)
@@ -715,10 +739,12 @@ Node BVToInt::bvToInt(Node n)
               // Insert the term to the cache
               d_bvToIntCache[current] =
                   d_nm->mkNode(kind::APPLY_UF, intized_children);
-              // Add range constraints if necessary.
-              // If the original range was a BV sort, the current application of
-              // the fucntion Must be within the range determined by the
-              // bitwidth.
+              /**
+               * Add range constraints if necessary.
+               * If the original range was a BV sort, the current application of
+               * the fucntion Must be within the range determined by the
+               * bitwidth.
+               */
               if (bvRange.isBitVector())
               {
                 d_rangeAssertions.insert(
@@ -816,10 +842,12 @@ Node BVToInt::createShiftNode(vector<Node> children,
                        pow2(i),
                        ite);
   }
-  // from SMT-LIB:
-  // [[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
-  // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
-  // Since we don't have exponentiation, we use the ite declared above.
+  /**
+   * from SMT-LIB:
+   * [[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
+   * [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
+   * Since we don't have exponentiation, we use the ite declared above.
+   */
   NodeBuilder<> builder(kind::ITE);
   builder << d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize));
   if (isLeftShift)
@@ -877,9 +905,11 @@ Node BVToInt::createBitwiseNode(Node x,
                                 uint64_t granularity,
                                 bool (*f)(bool, bool))
 {
-  // Standardize granularity.
-  // If it is greater than bvsize, it is set to bvsize.
-  // Otherwise, it is set to the closest (going down)  divider of bvsize.
+  /**
+   * Standardize granularity.
+   * If it is greater than bvsize, it is set to bvsize.
+   * Otherwise, it is set to the closest (going down)  divider of bvsize.
+   */
   Assert(granularity > 0);
   if (granularity > bvsize)
   {
@@ -915,17 +945,21 @@ Node BVToInt::createBitwiseNode(Node x,
     }
   }
 
-  // create the sum
-  // For granulaity 1, the sum has bvsize elements.
-  // In contrast, if bvsize = granularity, sum has one element.
-  // Each element in the sum is an ite that corresponds to the generated table,
-  // multiplied by the appropriate power of two.
-  // More details are in the .h file.
+  /*
+   * create the sum
+   * For granulaity 1, the sum has bvsize elements.
+   * In contrast, if bvsize = granularity, sum has one element.
+   * Each element in the sum is an ite that corresponds to the generated table,
+   * multiplied by the appropriate power of two.
+   * More details are in the .h file.
+   */
   uint64_t sumSize = bvsize / granularity;
   Node sumNode = d_zero;
-  // extract definition in integers is:
-  // (define-fun intextract ((k Int) (i Int) (j Int) (a Int)) Int
-  // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
+  /**
+   * extract definition in integers is:
+   * (define-fun intextract ((k Int) (i Int) (j Int) (a Int)) Int
+   * (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
+   */
   for (uint64_t i = 0; i < sumSize; i++)
   {
     Node xExtract = d_nm->mkNode(
