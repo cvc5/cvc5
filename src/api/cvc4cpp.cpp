@@ -1004,17 +1004,25 @@ size_t SortHashFunction::operator()(const Sort& s) const
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Op::Op() : d_kind(NULL_EXPR), d_indexed(false), d_expr(new CVC4::Expr()) {}
+Op::Op() : d_kind(NULL_EXPR), d_expr(new CVC4::Expr()) {}
 
-Op::Op(const Kind k) : d_kind(k), d_indexed(false), d_expr(new CVC4::Expr()) {}
+Op::Op(const Kind k) : d_kind(k), d_expr(new CVC4::Expr()) {}
 
-Op::Op(const Kind k, const CVC4::Expr& e)
-    : d_kind(k), d_indexed(true), d_expr(new CVC4::Expr(e))
+Op::Op(const Kind k, const CVC4::Expr& e) : d_kind(k), d_expr(new CVC4::Expr(e))
 {
 }
 
 Op::~Op() {}
 
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Split out to avoid nested API calls (problematic with API tracing).        */
+/* .......................................................................... */
+
+bool Op::isIndexedHelper() const { return !d_expr->isNull(); }
+
+/* Public methods                                                             */
 bool Op::operator==(const Op& t) const
 {
   if (d_expr->isNull() || t.d_expr->isNull())
@@ -1040,7 +1048,7 @@ Sort Op::getSort() const
 
 bool Op::isNull() const { return (d_expr->isNull() && (d_kind == NULL_EXPR)); }
 
-bool Op::isIndexed() const { return d_indexed; }
+bool Op::isIndexed() const { return isIndexedHelper(); }
 
 template <>
 std::string Op::getIndices() const
@@ -1216,7 +1224,7 @@ std::ostream& operator<<(std::ostream& out, const Op& t)
 
 size_t OpHashFunction::operator()(const Op& t) const
 {
-  if (t.d_indexed)
+  if (t.isIndexedHelper())
   {
     return ExprHashFunction()(*t.d_expr);
   }
@@ -2907,7 +2915,7 @@ Term Solver::mkTerm(Op op) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
   Term res;
-  if (op.d_indexed)
+  if (op.isIndexedHelper())
   {
     const CVC4::Kind int_kind = extToIntKind(op.d_kind);
     res = d_exprMgr->mkExpr(int_kind, *op.d_expr);
@@ -2930,7 +2938,7 @@ Term Solver::mkTerm(Op op, Term child) const
 
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   Term res;
-  if (op.d_indexed)
+  if (op.isIndexedHelper())
   {
     res = d_exprMgr->mkExpr(int_kind, *op.d_expr, *child.d_expr);
   }
@@ -2953,7 +2961,7 @@ Term Solver::mkTerm(Op op, Term child1, Term child2) const
 
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   Term res;
-  if (op.d_indexed)
+  if (op.isIndexedHelper())
   {
     res =
         d_exprMgr->mkExpr(int_kind, *op.d_expr, *child1.d_expr, *child2.d_expr);
@@ -2977,7 +2985,7 @@ Term Solver::mkTerm(Op op, Term child1, Term child2, Term child3) const
 
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   Term res;
-  if (op.d_indexed)
+  if (op.isIndexedHelper())
   {
     res = d_exprMgr->mkExpr(
         int_kind, *op.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
@@ -3007,7 +3015,7 @@ Term Solver::mkTerm(Op op, const std::vector<Term>& children) const
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<Expr> echildren = termVectorToExprs(children);
   Term res;
-  if (op.d_indexed)
+  if (op.isIndexedHelper())
   {
     res = d_exprMgr->mkExpr(int_kind, *op.d_expr, echildren);
   }

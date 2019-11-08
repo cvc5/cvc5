@@ -631,18 +631,20 @@ class CVC4_PUBLIC Op
   Kind d_kind;
 
   /**
-   * True iff this Op is indexed
-   *  An indexed operator has a non-null internal expr, d_expr
-   */
-  bool d_indexed;
-
-  /**
    * The internal expression wrapped by this operator.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
    */
   std::shared_ptr<CVC4::Expr> d_expr;
+
+  /**
+   * Note: An indexed operator has a non-null internal expr, d_expr
+   * Note 2: We use a helper method to avoid having API functions call
+   *         other API functions (we need to call this internally)
+   * @return true iff this Op is indexed
+   */
+  bool isIndexedHelper() const;
 };
 
 /* -------------------------------------------------------------------------- */
