@@ -10,4 +10,3 @@
 (assert (not (bvsle (bvadd x y) (_ bv6 4))))
 (assert (= (bvadd x y) (_ bv6 4)))
 (check-sat)
-

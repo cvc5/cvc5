@@ -11,7 +11,7 @@
  **
  ** \brief The BVToInt preprocessing pass
  **
- ** Converts bitvector operations into integer operations.
+ ** Converts bit-vector operations into integer operations.
  **
  **/
 
@@ -49,9 +49,9 @@ bool oneBitAnd(bool a, bool b) { return (a && b); }
 
 bool oneBitOr(bool a, bool b) { return (a || b); }
 
-bool oneBitXor(bool a, bool b) { return ((a && (!b)) || ((!a) && b)); }
+bool oneBitXor(bool a, bool b) { return a != b; }
 
-bool oneBitXnor(bool a, bool b) { return !(oneBitXor(a, b)); }
+bool oneBitXnor(bool a, bool b) { return a == b; }
 
 bool oneBitNand(bool a, bool b) { return !(a && b); }
 
@@ -107,7 +107,7 @@ Node BVToInt::makeBinary(Node n)
     uint64_t numChildren = current.getNumChildren();
     if (d_binarizeCache.find(current) == d_binarizeCache.end())
     {
-      // We stil haven't visited the sub-dag rooted at the current node.
+      // We still haven't visited the sub-dag rooted at the current node.
       // In this case, we:
       // mark that we have visited this node by assigning a null node to it in
       // the cache, and add its children to toVisit.
@@ -165,7 +165,6 @@ Node BVToInt::makeBinary(Node n)
     {
       // We already binarized current and it is in the cache.
       toVisit.pop_back();
-      continue;
     }
   }
   return d_binarizeCache[n];
@@ -330,7 +329,7 @@ Node BVToInt::bvToInt(Node n)
             }
             else
             {
-              //Boolean variables are left unchanges.
+              //Boolean variables are left unchanged.
               AlwaysAssert(current.getType() == d_nm->booleanType() || 
                   current.getType().isSort());
               d_bvToIntCache[current] = current;
@@ -347,7 +346,7 @@ Node BVToInt::bvToInt(Node n)
               }
               case kind::CONST_BITVECTOR:
               {
-                // Bit-vector cnostants are transformed into their integer value.
+                // Bit-vector constants are transformed into their integer value.
                 BitVector constant(current.getConst<BitVector>());
                 Integer c = constant.toInteger();
                 d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
@@ -393,7 +392,7 @@ Node BVToInt::bvToInt(Node n)
                 // we avoid modular arithmetics by the addition of an 
                 // indicator variable sigma.
                 // Tr(a+b) is Tr(a)+Tr(b)-(sigma*2^k), 
-                // with k being the bitwidth,
+                // with k being the bit width,
                 // and sigma being either 0 or 1.
                 Node sigma = d_nm->mkSkolem(
                     "__bvToInt_sigma_var",
@@ -416,7 +415,7 @@ Node BVToInt::bvToInt(Node n)
               uint64_t bvsize = current[0].getType().getBitVectorSize();
                 // we use a similar trick to the one used for addition.
                 // Tr(a*b) is Tr(a)*Tr(b)-(sigma*2^k), 
-                // with k being the bitwidth,
+                // with k being the bit width,
                 // and sigma is between [0, 2^k - 1).
 	        Node sigma = d_nm->mkSkolem(
                     "__bvToInt_sigma_var",
@@ -426,7 +425,6 @@ Node BVToInt::bvToInt(Node n)
                 Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
                 d_bvToIntCache[current] =
                     d_nm->mkNode(kind::MINUS, mult, multSig);
-
 		d_rangeAssertions.insert(
 		    mkRangeConstraint(d_bvToIntCache[current], bvsize));
 		d_rangeAssertions.insert(mkRangeConstraint(sigma, bvsize));
@@ -576,7 +574,7 @@ Node BVToInt::bvToInt(Node n)
             {
               // a << b is a*2^b. 
               // The exponentiation is simulated by an ite.
-              // Only cases where b <= bitwidth are considered.
+              // Only cases where b <= bit width are considered.
               // Otherwise, the result is 0.
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createShiftNode(intized_children, bvsize, true);
@@ -587,7 +585,7 @@ Node BVToInt::bvToInt(Node n)
             {
               // a >> b is a div 2^b. 
               // The exponentiation is simulated by an ite.
-              // Only cases where b <= bitwidth are considered.
+              // Only cases where b <= bit width are considered.
               // Otherwise, the result is 0.
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createShiftNode(intized_children, bvsize, false);
@@ -867,7 +865,7 @@ Node BVToInt::createShiftNode(vector<Node> children,
                        pow2(i),
                        ite);
   }
-  // from smtlib:
+  // from SMT-LIB:
   // [[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
   // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
   // Since we don't have exponentiation, we use the ite declared above.
