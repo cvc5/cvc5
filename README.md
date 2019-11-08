@@ -14,9 +14,8 @@ fourth in the Cooperating Validity Checker family of tools (CVC, CVC Lite,
 CVC3) but does not directly incorporate code from any previous version.
 
 If you are using CVC4 in your work, or incorporating it into software of your
-own, we would like to invite you to send us a description and link to your
-project/software,
-so that we could put it on our [Third Party
+own, we invite you to send us a description and link to your
+project/software, so that we can link it on our [Third Party
 Applications](https://cvc4.github.io/third-party-applications.html) page.
 
 CVC4 is intended to be an open and extensible SMT engine.  It can be used as a
@@ -26,7 +25,7 @@ entirely in C++ and is released under an open-source software license (see file
 [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING)).
 
 
-VWebsite
+Website
 -------------------------------------------------------------------------------
 CVC4's website  is available at:
 http://cvc4.cs.stanford.edu/
