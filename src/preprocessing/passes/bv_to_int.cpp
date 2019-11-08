@@ -34,12 +34,13 @@ namespace passes {
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
-Rational intpow2(uint64_t b) { 
+Rational intpow2(uint64_t b)
+{
   Integer one = Integer(1);
-  Integer p = one.multiplyByPow2(b);
+  Integer two = Integer(2);
+  Integer p = two.pow(b);
   Rational r = Rational(p, one);
   return r;
-
 }
 
 /**
@@ -106,8 +107,8 @@ Node BVToInt::makeBinary(Node n)
     }
     else if (d_binarizeCache[current].isNull())
     {
-      // We already visited the sub-dag rooted at the current node, 
-      // and binarized all its children. 
+      // We already visited the sub-dag rooted at the current node,
+      // and binarized all its children.
       // Now we binarize the current node itself.
       toVisit.pop_back();
       kind::Kind_t k = current.getKind();
@@ -138,7 +139,7 @@ Node BVToInt::makeBinary(Node n)
         }
         for (Node child : current)
         {
-          builder << d_binarizeCache[child]
+          builder << d_binarizeCache[child];
         }
         d_binarizeCache[current] = builder.constructNode();
       }
@@ -159,13 +160,13 @@ Node BVToInt::makeBinary(Node n)
 
 /**
  * We traverse n and perform rewrites both on the way down and on the way up.
- * On the way down we rewrite the node but not it's children. 
+ * On the way down we rewrite the node but not it's children.
  * On the way up, we update the node's children to the rewritten ones.
  * For each sub-node, we perform rewrites to eliminate operators.
  * Then, the original children are added to toVisit stack so that we rewrite
- * them as well. 
+ * them as well.
  * Whenever we rewrite a node, we add it and its eliminated
- * version to the stack. 
+ * version to the stack.
  * This is marked in the stack by the addition of a null node.
  */
 Node BVToInt::eliminationPass(Node n)
@@ -173,58 +174,16 @@ Node BVToInt::eliminationPass(Node n)
   std::vector<Node> toVisit;
   toVisit.push_back(n);
   Node current;
-  Node currentEliminated;
   while (!toVisit.empty())
   {
     current = toVisit.back();
     toVisit.pop_back();
-    if (current.isNull())
-    {
-      // We computed the node obtained from current after elimination.
-      // The next elements in the stack are 
-      // the eliminated node and the original node.
-      currentEliminated = toVisit.back();
-      toVisit.pop_back();
-      current = toVisit.back();
-      toVisit.pop_back();
-      uint64_t numChildren = currentEliminated.getNumChildren();
-      if (numChildren == 0)
-      {
-        // We only eliminate operators that are not nullary.
-        d_eliminationCache[current] = currentEliminated;
-      }
-      else
-      {
-        // The main operator is replaced, and the children
-        // are replaced with their eliminated counterparts.
-        NodeBuilder<> builder(currentEliminated.getKind());
-        if (currentEliminated.getKind() == kind::BITVECTOR_EXTRACT
-            || currentEliminated.getKind() == kind::APPLY_UF)
-        {
-          builder << currentEliminated.getOperator();
-        }
-        for (uint64_t i = 0; i < numChildren; i++)
-        {
-          Assert(d_eliminationCache.find(currentEliminated[i])
-                 != d_eliminationCache.end());
-          builder << d_eliminationCache[currentEliminated[i]];
-        }
-        d_eliminationCache[current] =
-            builder.constructNode();
-      }
-    }
-    else
-    {
-      if (d_eliminationCache.find(current) != d_eliminationCache.end())
-      {
-        continue;
-      }
-      else
-      {
-        // We still haven't computed the result of the elimination for the
-        // current node. 
-        // This is computed by performing elimination rewrites.
-        currentEliminated =
+    if (d_eliminationCache.find(current) == d_eliminationCache.end()) {
+      if (d_rebuildCache.find(current) == d_eliminationCache.end()) {
+        // We still haven't eliminated anything from current.
+        // After eliminating we will add it to the elimination cache,
+        // and its children to the stack, along with its eliminated form.
+        Node currentEliminated =
             FixpointRewriteStrategy<RewriteRule<UdivZero>,
                                     RewriteRule<SdivEliminate>,
                                     RewriteRule<SremEliminate>,
@@ -241,19 +200,51 @@ Node BVToInt::eliminationPass(Node n)
                                     RewriteRule<SgeEliminate>,
                                     RewriteRule<ShlByConst>,
                                     RewriteRule<LshrByConst> >::apply(current);
-        // push the node, the resulting node after elimination, and a null node,
-        // to mark that the top two elements of the stack should be added to the
-        // cache.
-        toVisit.push_back(current);
+        d_eliminationCache[current] = currentEliminated;
+        d_rebuildCache[currentEliminated] = Node();
         toVisit.push_back(currentEliminated);
-        toVisit.push_back(Node());
-        //Then, add the children to the stack for future processing.
-        toVisit.insert(toVisit.end(), currentEliminated.begin(), currentEliminated.end());
+        // Add the children to the stack for future processing.
+        toVisit.insert(
+            toVisit.end(), currentEliminated.begin(), currentEliminated.end());
+      } else {
+        // current was already added to the rebuild cache.
+        if (d_rebuildCache[current].isNull()) {
+          // We still haven't rebuilt current
+          uint64_t numChildren = current.getNumChildren();
+          if (numChildren == 0)
+          {
+            // We only eliminate operators that are not nullary.
+            d_rebuildCache[current] = current;
+          }
+          else
+          {
+            // The main operator is replaced, and the children
+            // are replaced with their eliminated counterparts.
+            NodeBuilder<> builder(current.getKind());
+            if (current.getKind() == kind::BITVECTOR_EXTRACT
+                || current.getKind() == kind::APPLY_UF)
+            {
+              builder << current.getOperator();
+            }
+            for (Node child : current) 
+            {
+              Assert(d_rebuildCache.find(child)
+                     != d_rebuildCache.end());
+              Assert(!d_rebuildCache[child].isNull());
+              builder << d_rebuildCache[child];
+            }
+            d_rebuildCache[current] = builder.constructNode();
+          }
+        }
       }
     }
   }
-  return d_eliminationCache[n];
-}
+  Assert(d_eliminationCache.find(n) != d_eliminationCache.end());
+  Node eliminated = d_eliminationCache[n];
+  Assert(d_rebuildCache.find(eliminated) != d_rebuildCache.end());
+  Assert(!d_rebuildCache[eliminated].isNull());
+  return d_rebuildCache[eliminated];
+}   
 
 /**
  * Translate n to Integers via post-order traversal.
@@ -308,21 +299,23 @@ Node BVToInt::bvToInt(Node n)
             }
             else
             {
-              //Boolean variables are left unchanged.
-              AlwaysAssert(current.getType() == d_nm->booleanType() || 
-                  current.getType().isSort());
+              // Boolean variables are left unchanged.
+              AlwaysAssert(current.getType() == d_nm->booleanType()
+                           || current.getType().isSort());
               d_bvToIntCache[current] = current;
             }
           }
           else if (current.isConst())
           {
-            if (current.getKind() == kind::CONST_BITVECTOR) {
+            if (current.getKind() == kind::CONST_BITVECTOR)
+            {
               // Bit-vector cnostants are transformed into their integer value.
               BitVector constant(current.getConst<BitVector>());
               Integer c = constant.toInteger();
               d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
-
-            } else {
+            }
+            else
+            {
               // Other constants stay the same.
               d_bvToIntCache[current] = current;
             }
@@ -335,7 +328,7 @@ Node BVToInt::bvToInt(Node n)
         else
         {
           // The current node has children.
-          // Since we are on the way back up, 
+          // Since we are on the way back up,
           // these children were already translated.
           // We save their translation for future use.
           vector<Node> intized_children;
@@ -351,107 +344,104 @@ Node BVToInt::bvToInt(Node n)
             case kind::BITVECTOR_PLUS:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-                // we avoid modular arithmetics by the addition of an 
-                // indicator variable sigma.
-                // Tr(a+b) is Tr(a)+Tr(b)-(sigma*2^k), 
-                // with k being the bit width,
-                // and sigma being either 0 or 1.
-                Node sigma = d_nm->mkSkolem(
-                    "__bvToInt_sigma_var",
-                    d_nm->integerType(),
-                    "Variable introduced in bvToInt pass to avoid integer mod");
-                Node plus = d_nm->mkNode(kind::PLUS, intized_children);
-                Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
-                d_bvToIntCache[current] =
-                    d_nm->mkNode(kind::MINUS, plus, multSig);
-                d_rangeAssertions.insert(d_nm->mkNode(kind::LEQ, d_zero, sigma));
-                d_rangeAssertions.insert(d_nm->mkNode(kind::LEQ, sigma, d_one));
-                d_rangeAssertions.insert(
-                    mkRangeConstraint(d_bvToIntCache[current], bvsize));
+              // we avoid modular arithmetics by the addition of an
+              // indicator variable sigma.
+              // Tr(a+b) is Tr(a)+Tr(b)-(sigma*2^k),
+              // with k being the bit width,
+              // and sigma being either 0 or 1.
+              Node sigma = d_nm->mkSkolem(
+                  "__bvToInt_sigma_var",
+                  d_nm->integerType(),
+                  "Variable introduced in bvToInt pass to avoid integer mod");
+              Node plus = d_nm->mkNode(kind::PLUS, intized_children);
+              Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
+              d_bvToIntCache[current] =
+                  d_nm->mkNode(kind::MINUS, plus, multSig);
+              d_rangeAssertions.insert(d_nm->mkNode(kind::LEQ, d_zero, sigma));
+              d_rangeAssertions.insert(d_nm->mkNode(kind::LEQ, sigma, d_one));
+              d_rangeAssertions.insert(
+                  mkRangeConstraint(d_bvToIntCache[current], bvsize));
               break;
             }
             case kind::BITVECTOR_MULT:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-                // we use a similar trick to the one used for addition.
-                // Tr(a*b) is Tr(a)*Tr(b)-(sigma*2^k), 
-                // with k being the bit width,
-                // and sigma is between [0, 2^k - 1).
-	        Node sigma = d_nm->mkSkolem(
-                    "__bvToInt_sigma_var",
-                    d_nm->integerType(),
-                    "Variable introduced in bvToInt pass to avoid integer mod");
-                Node mult = d_nm->mkNode(kind::MULT, intized_children);
-                Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
-                d_bvToIntCache[current] =
-                    d_nm->mkNode(kind::MINUS, mult, multSig);
-		d_rangeAssertions.insert(
-		    mkRangeConstraint(d_bvToIntCache[current], bvsize));
-		d_rangeAssertions.insert(mkRangeConstraint(sigma, bvsize));
+              // we use a similar trick to the one used for addition.
+              // Tr(a*b) is Tr(a)*Tr(b)-(sigma*2^k),
+              // with k being the bit width,
+              // and sigma is between [0, 2^k - 1).
+              Node sigma = d_nm->mkSkolem(
+                  "__bvToInt_sigma_var",
+                  d_nm->integerType(),
+                  "Variable introduced in bvToInt pass to avoid integer mod");
+              Node mult = d_nm->mkNode(kind::MULT, intized_children);
+              Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
+              d_bvToIntCache[current] =
+                  d_nm->mkNode(kind::MINUS, mult, multSig);
+              d_rangeAssertions.insert(
+                  mkRangeConstraint(d_bvToIntCache[current], bvsize));
+              d_rangeAssertions.insert(mkRangeConstraint(sigma, bvsize));
               break;
             }
             case kind::BITVECTOR_UDIV_TOTAL:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-                //  we use an ITE for the case where the second operand is 0.
-                Node pow2BvSize = pow2(bvsize);
-                Node divNode =
-                    d_nm->mkNode(kind::INTS_DIVISION_TOTAL, intized_children);
-                Node ite = d_nm->mkNode(
-                    kind::ITE,
-                    d_nm->mkNode(kind::EQUAL,
-                                 intized_children[1],
-                                 d_zero),
-                    d_nm->mkNode(
-                        kind::MINUS, pow2BvSize, d_one),
-                    divNode);
-                d_bvToIntCache[current] = ite;
+              // we use an ITE for the case where the second operand is 0.
+              Node pow2BvSize = pow2(bvsize);
+              Node divNode =
+                  d_nm->mkNode(kind::INTS_DIVISION_TOTAL, intized_children);
+              Node ite = d_nm->mkNode(
+                  kind::ITE,
+                  d_nm->mkNode(kind::EQUAL, intized_children[1], d_zero),
+                  d_nm->mkNode(kind::MINUS, pow2BvSize, d_one),
+                  divNode);
+              d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_UREM_TOTAL:
             {
-                //  we use an ITE for the case where the second operand is 0.
-                Node modNode =
-                    d_nm->mkNode(kind::INTS_MODULUS_TOTAL, intized_children);
-                Node ite = d_nm->mkNode(kind::ITE,
-                                        d_nm->mkNode(kind::EQUAL,
-                                                     intized_children[1],
-                                                     d_zero),
-                                        intized_children[0],
-                                        modNode);
-                d_bvToIntCache[current] = ite;
+              // we use an ITE for the case where the second operand is 0.
+              Node modNode =
+                  d_nm->mkNode(kind::INTS_MODULUS_TOTAL, intized_children);
+              Node ite = d_nm->mkNode(
+                  kind::ITE,
+                  d_nm->mkNode(kind::EQUAL, intized_children[1], d_zero),
+                  intized_children[0],
+                  modNode);
+              d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_NEG:
             {
-                //  we use an ITE for the case where the operand is 0.
-                uint64_t bvsize = current[0].getType().getBitVectorSize();
-                Node pow2BvSize = pow2(bvsize);
-                Node neg = d_nm->mkNode(kind::MINUS, pow2BvSize, intized_children[0]);
-                Node isZero =
-                    d_nm->mkNode(kind::EQUAL, intized_children[0], d_zero);
-                d_bvToIntCache[current] =
-                    d_nm->mkNode(kind::ITE, isZero, d_zero, neg);
+              // we use an ITE for the case where the operand is 0.
+              uint64_t bvsize = current[0].getType().getBitVectorSize();
+              Node pow2BvSize = pow2(bvsize);
+              Node neg =
+                  d_nm->mkNode(kind::MINUS, pow2BvSize, intized_children[0]);
+              Node isZero =
+                  d_nm->mkNode(kind::EQUAL, intized_children[0], d_zero);
+              d_bvToIntCache[current] =
+                  d_nm->mkNode(kind::ITE, isZero, d_zero, neg);
               break;
             }
             case kind::BITVECTOR_NOT:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
-                //  we use a specified function to generate the node.
-                d_bvToIntCache[current] =
+              // we use a specified function to generate the node.
+              d_bvToIntCache[current] =
                   createBVNotNode(intized_children[0], bvsize);
               break;
             }
             case kind::BITVECTOR_TO_NAT:
             {
-              //In this case, we already translated the child to integer.
-              //So the result is the translated child.
+              // In this case, we already translated the child to integer.
+              // So the result is the translated child.
               d_bvToIntCache[current] = intized_children[0];
               break;
             }
             case kind::BITVECTOR_AND:
             {
-              //Construct an ite, based on granularity.
+              // Construct an ite, based on granularity.
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Assert(intized_children.size() == 2);
               Node newNode = createBitwiseNode(intized_children[0],
@@ -464,7 +454,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_OR:
             {
-              //Construct an ite, based on granularity.
+              // Construct an ite, based on granularity.
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createBitwiseNode(intized_children[0],
                                                intized_children[1],
@@ -476,7 +466,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_XOR:
             {
-              //Construct an ite, based on granularity.
+              // Construct an ite, based on granularity.
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createBitwiseNode(intized_children[0],
                                                intized_children[1],
@@ -488,7 +478,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_XNOR:
             {
-              //Construct an ite, based on granularity.
+              // Construct an ite, based on granularity.
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createBitwiseNode(intized_children[0],
                                                intized_children[1],
@@ -500,7 +490,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_NAND:
             {
-              //Construct an ite, based on granularity.
+              // Construct an ite, based on granularity.
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createBitwiseNode(intized_children[0],
                                                intized_children[1],
@@ -512,7 +502,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_NOR:
             {
-              //Construct an ite, based on granularity.
+              // Construct an ite, based on granularity.
               uint64_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createBitwiseNode(intized_children[0],
                                                intized_children[1],
@@ -524,7 +514,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_SHL:
             {
-              // a << b is a*2^b. 
+              // a << b is a*2^b.
               // The exponentiation is simulated by an ite.
               // Only cases where b <= bit width are considered.
               // Otherwise, the result is 0.
@@ -535,7 +525,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_LSHR:
             {
-              // a >> b is a div 2^b. 
+              // a >> b is a div 2^b.
               // The exponentiation is simulated by an ite.
               // Only cases where b <= bit width are considered.
               // Otherwise, the result is 0.
@@ -576,9 +566,8 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_ITE:
             {
-              //Lifted to a boolean ite.
-              Node cond =
-                  d_nm->mkNode(kind::EQUAL, intized_children[0], d_one);
+              // Lifted to a boolean ite.
+              Node cond = d_nm->mkNode(kind::EQUAL, intized_children[0], d_one);
               Node ite = d_nm->mkNode(
                   kind::ITE, cond, intized_children[1], intized_children[2]);
               d_bvToIntCache[current] = ite;
@@ -586,7 +575,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_CONCAT:
             {
-              //(concat a b) translates to a*2^k+b, k being the bitwidth of b.
+              // (concat a b) translates to a*2^k+b, k being the bitwidth of b.
               uint64_t bvsizeRight = current[1].getType().getBitVectorSize();
               Node pow2BvSizeRight = pow2(bvsizeRight);
               Node a = d_nm->mkNode(
@@ -598,7 +587,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_EXTRACT:
             {
-              //((_ extract i j) a) is a / 2^j mod 2^{i-j+1}
+              // ((_ extract i j) a) is a / 2^j mod 2^{i-j+1}
               // current = a[i:j]
               Node a = current[0];
               uint64_t i = bv::utils::getExtractHigh(current);
@@ -681,28 +670,31 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::APPLY_UF:
             {
-              //We replace all BV-sorts of the domain with INT
-              //If the range is a BV sort, we replace it with INT
-              //We cache both the term itself (e.g., f(a)) and the function symbol f.
+              // We replace all BV-sorts of the domain with INT
+              // If the range is a BV sort, we replace it with INT
+              // We cache both the term itself (e.g., f(a)) and the function
+              // symbol f.
               Node bvUF = current.getOperator();
               Node intUF;
               TypeNode tn = current.getOperator().getType();
               TypeNode bvRange = tn.getRangeType();
-              if (d_bvToIntCache.find(bvUF) != d_bvToIntCache.end()) {
+              if (d_bvToIntCache.find(bvUF) != d_bvToIntCache.end())
+              {
                 intUF = d_bvToIntCache[bvUF];
-              } else {
+              }
+              else
+              {
                 vector<TypeNode> bvDomain = tn.getArgTypes();
                 vector<TypeNode> intDomain;
-                //if the original range is a bit-vector sort, 
-                //the new range should be an integer sort.
-                //Otherwise, we keep the original range.
+                // if the original range is a bit-vector sort,
+                // the new range should be an integer sort.
+                // Otherwise, we keep the original range.
                 TypeNode intRange =
                     bvRange.isBitVector() ? d_nm->integerType() : bvRange;
-                for (Node d : bvDomain)
+                for (TypeNode d : bvDomain)
                 {
-                  intDomain.push_back(d.isBitVector()
-                                          ? d_nm->integerType()
-                                          : d);
+                  intDomain.push_back(d.isBitVector() ? d_nm->integerType()
+                                                      : d);
                 }
                 ostringstream os;
                 os << "__bvToInt_fun_" << bvUF << "_int";
@@ -710,18 +702,22 @@ Node BVToInt::bvToInt(Node n)
                     d_nm->mkSkolem(os.str(),
                                    d_nm->mkFunctionType(intDomain, intRange),
                                    "bv2int function");
-                //Insert the function symbol itself to the cache
+                // Insert the function symbol itself to the cache
                 d_bvToIntCache[bvUF] = intUF;
               }
               intized_children.insert(intized_children.begin(), intUF);
-              //Insert the term to the cache
+              // Insert the term to the cache
               d_bvToIntCache[current] =
-                       d_nm->mkNode(kind::APPLY_UF, intized_children);
-              //Add range constraints if necessary.
-              //If the original range was a BV sort, the current application of the fucntion
-              //Must be within the range determined by the bitwidth.
-              if (bvRange.isBitVector()) {
-                d_rangeAssertions.insert(mkRangeConstraint(d_bvToIntCache[current], current.getType().getBitVectorSize()));
+                  d_nm->mkNode(kind::APPLY_UF, intized_children);
+              // Add range constraints if necessary.
+              // If the original range was a BV sort, the current application of
+              // the fucntion Must be within the range determined by the
+              // bitwidth.
+              if (bvRange.isBitVector())
+              {
+                d_rangeAssertions.insert(
+                    mkRangeConstraint(d_bvToIntCache[current],
+                                      current.getType().getBitVectorSize()));
               }
               break;
             }
@@ -771,8 +767,7 @@ PreprocessingPassResult BVToInt::applyInternal(
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
     Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
     Trace("bv-to-int-debug") << "rw node: " << rwNode << std::endl;
-    assertionsToPreprocess->replace(
-        i, rwNode);
+    assertionsToPreprocess->replace(i, rwNode);
   }
   addFinalizeRangeAssertions(assertionsToPreprocess);
   return PreprocessingPassResult::NO_CONFLICT;
@@ -786,16 +781,16 @@ void BVToInt::addFinalizeRangeAssertions(
   if (vec_range.size() == 1)
   {
     assertionsToPreprocess->push_back(vec_range[0]);
-    Trace("bv-to-int-debug") << "range constraints: " << 
-      vec_range[0].toString() << std::endl;
+    Trace("bv-to-int-debug")
+        << "range constraints: " << vec_range[0].toString() << std::endl;
   }
   else if (vec_range.size() >= 2)
   {
     Node rangeAssertions =
         Rewriter::rewrite(d_nm->mkNode(kind::AND, vec_range));
     assertionsToPreprocess->push_back(rangeAssertions);
-    Trace("bv-to-int-debug") << "range constraints: " << 
-      rangeAssertions.toString() << std::endl;
+    Trace("bv-to-int-debug")
+        << "range constraints: " << rangeAssertions.toString() << std::endl;
   }
 }
 
@@ -806,7 +801,7 @@ Node BVToInt::createShiftNode(vector<Node> children,
   Node x = children[0];
   Node y = children[1];
   Assert(!y.isConst());
-  //ite represents 2^x for every integer x from 0 to bvsize-1.
+  // ite represents 2^x for every integer x from 0 to bvsize-1.
   Node ite = pow2(0);
   for (uint64_t i = 1; i < bvsize; i++)
   {
@@ -824,14 +819,14 @@ Node BVToInt::createShiftNode(vector<Node> children,
   if (isLeftShift)
   {
     builder << d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                                  d_nm->mkNode(kind::MULT, x, ite),
-                                  pow2(bvsize));
+                            d_nm->mkNode(kind::MULT, x, ite),
+                            pow2(bvsize));
   }
   else
   {
     builder << d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                     d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite),
-                     pow2(bvsize)),
+                            d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite),
+                            pow2(bvsize));
   }
   builder << d_zero;
   return builder.constructNode();
@@ -844,9 +839,9 @@ Node BVToInt::createITEFromTable(
     std::map<std::pair<uint64_t, uint64_t>, uint64_t> table)
 {
   Assert(granularity <= 8);
-  uint64_t max_value = ((uint64_t) pow(2, granularity));
-  //The table represents a function from pairs of integers to integers, where
-  //all integers are between 0 (inclusive) and max_value (exclusive).
+  uint64_t max_value = ((uint64_t)pow(2, granularity));
+  // The table represents a function from pairs of integers to integers, where
+  // all integers are between 0 (inclusive) and max_value (exclusive).
   Assert(table.size() == max_value * max_value);
   Node ite = d_nm->mkConst<Rational>(table[std::make_pair(0, 0)]);
   for (uint64_t i = 0; i < max_value; i++)
@@ -876,9 +871,9 @@ Node BVToInt::createBitwiseNode(Node x,
                                 uint64_t granularity,
                                 bool (*f)(bool, bool))
 {
-  //Standardize granularity.
-  //If it is greater than bvsize, it is set to bvsize.
-  //Otherwise, it is set to the closest (going down)  divider of bvsize.
+  // Standardize granularity.
+  // If it is greater than bvsize, it is set to bvsize.
+  // Otherwise, it is set to the closest (going down)  divider of bvsize.
   Assert(granularity > 0);
   if (granularity > bvsize)
   {
@@ -894,16 +889,16 @@ Node BVToInt::createBitwiseNode(Node x,
   // transform f into a table
   // f is defined over 1 bit, while the table is defined over `granularity` bits
   std::map<std::pair<uint64_t, uint64_t>, uint64_t> table;
-  for (uint64_t i = 0; i < ((uint64_t) pow(2, granularity)); i++)
+  for (uint64_t i = 0; i < ((uint64_t)pow(2, granularity)); i++)
   {
-    for (uint64_t j = 0; j < ((uint64_t) pow(2, granularity)); j++)
+    for (uint64_t j = 0; j < ((uint64_t)pow(2, granularity)); j++)
     {
       uint64_t sum = 0;
       for (uint64_t n = 0; n < granularity; n++)
       {
         // b is the result of f on the current bit
-        bool b =
-            f(((((uint64_t)(i / pow(2, n))) % 2) == 1), (((j / ((uint64_t) pow(2, n))) % 2) == 1));
+        bool b = f(((((uint64_t)(i / pow(2, n))) % 2) == 1),
+                   (((j / ((uint64_t)pow(2, n))) % 2) == 1));
         // add the corresponding power of 2 only if the result is 1
         if (b)
         {
@@ -923,8 +918,8 @@ Node BVToInt::createBitwiseNode(Node x,
   uint64_t sumSize = bvsize / granularity;
   Node sumNode = d_zero;
   // extract definition in integers is:
-  //(define-fun intextract ((k Int) (i Int) (j Int) (a Int)) Int
-  //  (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
+  // (define-fun intextract ((k Int) (i Int) (j Int) (a Int)) Int
+  // (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
   for (uint64_t i = 0; i < sumSize; i++)
   {
     Node xExtract = d_nm->mkNode(
