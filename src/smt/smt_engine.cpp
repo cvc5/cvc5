@@ -3361,7 +3361,7 @@ void SmtEnginePrivate::processAssertions() {
     {
       /**
        * The granularity sets the size of the ITE in each element
-       * of the sum that is generated for bit-wise operators.
+       * of the sum that is generated for bitwise operators.
        * For granularity k, the size of the ITE is 2^{2*k}.
        * Since we don't want to introduce ITEs with unbounded size,
        * we bound the granularity.

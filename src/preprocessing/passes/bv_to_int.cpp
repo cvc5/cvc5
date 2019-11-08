@@ -325,7 +325,7 @@ Node BVToInt::bvToInt(Node n)
           {
             if (current.getKind() == kind::CONST_BITVECTOR)
             {
-              // Bit-vector cnostants are transformed into their integer value.
+              // Bit-vector constants are transformed into their integer value.
               BitVector constant(current.getConst<BitVector>());
               Integer c = constant.toInteger();
               d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
@@ -848,22 +848,13 @@ Node BVToInt::createShiftNode(vector<Node> children,
    * [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
    * Since we don't have exponentiation, we use the ite declared above.
    */
-  NodeBuilder<> builder(kind::ITE);
-  builder << d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize));
-  if (isLeftShift)
-  {
-    builder << d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                            d_nm->mkNode(kind::MULT, x, ite),
-                            pow2(bvsize));
-  }
-  else
-  {
-    builder << d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                            d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite),
-                            pow2(bvsize));
-  }
-  builder << d_zero;
-  return builder.constructNode();
+  kind::Kind then_kind = isLeftShift ? kind::MULT : kind::INTS_DIVISION_TOTAL;
+  return d_nm->mkNode(kind::ITE,
+                              d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)),
+                              d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
+                                                            d_nm->mkNode(then_kind, x, ite),
+                                                            pow2(bvsize)),
+                              d_zero);
 }
 
 Node BVToInt::createITEFromTable(
@@ -925,9 +916,10 @@ Node BVToInt::createBitwiseNode(Node x,
   // transform f into a table
   // f is defined over 1 bit, while the table is defined over `granularity` bits
   std::map<std::pair<uint64_t, uint64_t>, uint64_t> table;
-  for (uint64_t i = 0; i < ((uint64_t)pow(2, granularity)); i++)
+  uint64_t max_value = ((uint64_t)pow(2, granularity));
+  for (uint64_t i = 0; i < max_value; i++)
   {
-    for (uint64_t j = 0; j < ((uint64_t)pow(2, granularity)); j++)
+    for (uint64_t j = 0; j < max_value; j++)
     {
       uint64_t sum = 0;
       for (uint64_t n = 0; n < granularity; n++)
@@ -944,14 +936,15 @@ Node BVToInt::createBitwiseNode(Node x,
       table[std::make_pair(i, j)] = sum;
     }
   }
+   Assert(table.size() == max_value * max_value);
 
   /*
    * create the sum
-   * For granulaity 1, the sum has bvsize elements.
+   * For granularity 1, the sum has bvsize elements.
    * In contrast, if bvsize = granularity, sum has one element.
    * Each element in the sum is an ite that corresponds to the generated table,
    * multiplied by the appropriate power of two.
-   * More details are in the .h file.
+   * More details are in bv_to_int.h .
    */
   uint64_t sumSize = bvsize / granularity;
   Node sumNode = d_zero;

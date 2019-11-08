@@ -18,8 +18,8 @@
  ** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
  ** integer variable.
  ** Tr(c) = the integer value of c, for any bit-vector constant c.
- ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of s and
- *t.
+ ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of 
+ ** s and t.
  ** Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
  ** bvnot, bvconcat, bvextract
  **
