@@ -34,8 +34,7 @@ class DTypeIndexConstant;
 
 class NodeManager;
 
-class DTypeConstructor;
-class DTypeConstructorArg;
+class Datatype;
 
 /**
  * The representation of an inductive datatype.
@@ -98,8 +97,8 @@ class DTypeConstructorArg;
  */
 class DType
 {
+  friend class Datatype;
   friend class DTypeConstructor;
-
  public:
   /**
    * Get the datatype of a constructor, selector, or tester operator.

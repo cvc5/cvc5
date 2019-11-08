@@ -78,12 +78,17 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
       "is an unresolved selector type placeholder",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   Debug("datatypes") << type << std::endl;
-  d_args.push_back(DTypeConstructorArg(selectorName, type));
+  addArg(DTypeConstructorArg(selectorName, type));
+}
+
+void DTypeConstructor::addArg(const DTypeConstructorArg& a)
+{
+  d_args.push_back(a);
 }
 
 std::string DTypeConstructor::getName() const
 {
-  return d_name.substr(0, d_name.find('\0'));
+  return d_name;
 }
 
 Node DTypeConstructor::getConstructor() const

@@ -52,11 +52,14 @@ class SygusPrintCallbackInternal
                              Node e) const = 0;
 };
 
+class DatatypeConstructor;
+
 /**
  * A constructor for a DType.
  */
 class DTypeConstructor
 {
+  friend class DatatypeConstructor;
   friend class DType;
 
  public:
@@ -86,6 +89,7 @@ class DTypeConstructor
    * they are for convenience and pretty-printing only.
    */
   void addArg(std::string selectorName, TypeNode selectorType);
+  void addArg(const DTypeConstructorArg& a);
 
   /** Get the name of this DType constructor. */
   std::string getName() const;

@@ -25,6 +25,8 @@
 
 namespace CVC4 {
 
+  
+class DatatypeConstructorArg;
 class DType;
 class DTypeConstructor;
 
@@ -33,6 +35,7 @@ class DTypeConstructor;
  */
 class DTypeConstructorArg
 {
+  friend class DatatypeConstructorArg;
   friend class DTypeConstructor;
   friend class DType;
 
@@ -83,8 +86,6 @@ class DTypeConstructorArg
   Node d_constructor;
   /** whether this class has been resolved */
   bool d_resolved;
-  /** is this selector unresolved? */
-  bool isUnresolvedSelf() const;
 };
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg);

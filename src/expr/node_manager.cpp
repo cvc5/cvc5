@@ -258,17 +258,11 @@ const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
   return *d_ownedDatatypes[index];
 }
 
-unsigned NodeManager::registerDatatype(DType* dt)
-{
-  unsigned sz = d_ownedDTypes.size();
-  d_ownedDTypes.push_back(dt);
-  return sz;
-}
-
 const DType& NodeManager::getDTypeForIndex(unsigned index) const
 {
-  Assert(index < d_ownedDTypes.size());
-  return *d_ownedDTypes[index];
+  const Datatype & d = getDatatypeForIndex(index);
+  // return its internal representation
+  return *d.d_internal;
 }
 
 void NodeManager::reclaimZombies() {

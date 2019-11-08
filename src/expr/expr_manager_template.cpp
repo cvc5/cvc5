@@ -676,11 +676,13 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
 
+  Trace("dt-debug") << "ExprManager::mkMutualDatatypeTypes" << std::endl;
   //have to build deep copy so that datatypes will live in NodeManager
   std::vector< Datatype* > dt_copies;
   for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
     dt_copies.push_back( new Datatype( *i ) );
   }
+  Trace("dt-debug") << "ExprManager::mkMutualDatatypeTypes done copy" << std::endl;
   
   // First do some sanity checks, set up the final Type to be used for
   // each datatype, and set up the "named resolutions" used to handle

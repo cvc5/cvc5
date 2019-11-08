@@ -31,13 +31,7 @@ DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector)
 
 std::string DTypeConstructorArg::getName() const
 {
-  std::string name = d_name;
-  const size_t nul = name.find('\0');
-  if (nul != std::string::npos)
-  {
-    name.resize(nul);
-  }
-  return name;
+  return d_name;
 }
 
 Node DTypeConstructorArg::getSelector() const
@@ -106,11 +100,6 @@ void DTypeConstructorArg::toStream(std::ostream& out) const
     t = d_selector.getType();
   }
   out << t;
-}
-
-bool DTypeConstructorArg::isUnresolvedSelf() const
-{
-  return d_selector.isNull() && d_name.size() == d_name.find('\0') + 1;
 }
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg)
