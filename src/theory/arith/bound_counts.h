@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "theory/arith/arithvar.h"
 #include "util/dense_map.h"
 
@@ -66,7 +66,7 @@ public:
   }
 
   inline BoundCounts operator-(BoundCounts bc) const {
-    Assert( *this >= bc );
+    Assert(*this >= bc);
     return BoundCounts(d_lowerBoundCount - bc.d_lowerBoundCount,
                        d_upperBoundCount - bc.d_upperBoundCount);
   }

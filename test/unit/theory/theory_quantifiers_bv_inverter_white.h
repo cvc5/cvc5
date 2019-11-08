@@ -47,9 +47,9 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
                    Node x,
                    Node (*getsc)(bool, Kind, Node, Node))
   {
-    Assert(k == BITVECTOR_ULT || k == BITVECTOR_SLT || k == EQUAL
-           || k == BITVECTOR_UGT || k == BITVECTOR_SGT);
-    Assert(k != EQUAL || pol == false);
+    TS_ASSERT(k == BITVECTOR_ULT || k == BITVECTOR_SLT || k == EQUAL
+              || k == BITVECTOR_UGT || k == BITVECTOR_SGT);
+    TS_ASSERT(k != EQUAL || pol == false);
 
     Node sc = getsc(pol, k, d_sk, d_t);
     Kind ksc = sc.getKind();
@@ -78,7 +78,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
       }
       else
       {
-        Assert(k == EQUAL);
+        TS_ASSERT(k == EQUAL);
         k = DISTINCT;
       }
     }
@@ -95,10 +95,10 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
                unsigned idx,
                Node (*getsc)(bool, Kind, Kind, unsigned, Node, Node, Node))
   {
-    Assert(k == BITVECTOR_MULT || k == BITVECTOR_UREM_TOTAL
-           || k == BITVECTOR_UDIV_TOTAL || k == BITVECTOR_AND
-           || k == BITVECTOR_OR || k == BITVECTOR_LSHR || k == BITVECTOR_ASHR
-           || k == BITVECTOR_SHL);
+    TS_ASSERT(k == BITVECTOR_MULT || k == BITVECTOR_UREM_TOTAL
+              || k == BITVECTOR_UDIV_TOTAL || k == BITVECTOR_AND
+              || k == BITVECTOR_OR || k == BITVECTOR_LSHR || k == BITVECTOR_ASHR
+              || k == BITVECTOR_SHL);
 
     Node sc = getsc(pol, litk, k, idx, d_sk, d_s, d_t);
     TS_ASSERT(!sc.isNull());
@@ -148,7 +148,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     }
     else
     {
-      Assert(idx == 2);
+      TS_ASSERT(idx == 2);
       s1 = d_nm->mkVar("s1", d_nm->mkBitVectorType(4));
       s2 = d_nm->mkVar("s2", d_nm->mkBitVectorType(4));
       x = d_nm->mkBoundVar(s2.getType());
