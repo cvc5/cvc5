@@ -1683,12 +1683,12 @@ uminusTerm[CVC4::Expr& f]
   unsigned minusCount = 0;
 }
     /* Unary minus */
-  : (MINUS_TOK { ++minusCount; })* bvBinaryOp[f]
+  : (MINUS_TOK { ++minusCount; })* bvBinaryOpTerm[f]
     { while(minusCount > 0) { --minusCount; f = MK_EXPR(CVC4::kind::UMINUS, f); } }
   ;
 
 /** Parses bitvectors.  Starts with binary operators @, &, and |. */
-bvBinaryOp[CVC4::Expr& f]
+bvBinaryOpTerm[CVC4::Expr& f]
 @init {
   std::vector<CVC4::Expr> expressions;
   std::vector<unsigned> operators;
@@ -1711,7 +1711,7 @@ bvNegTerm[CVC4::Expr& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     { f = f.getType().isSet() ? MK_EXPR(CVC4::kind::COMPLEMENT, f) : MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
-  | relationBinOpExpr[f]
+  | relationBinopTerm[f]
   ;
 
 relationBinop[unsigned& op]
@@ -1723,7 +1723,7 @@ relationBinop[unsigned& op]
   | JOIN_IMAGE_TOK
   ;
 
-relationBinOpExpr[CVC4::Expr& f]
+relationBinopTerm[CVC4::Expr& f]
 @init {
   std::vector<CVC4::Expr> expressions;
   std::vector<unsigned> operators;
