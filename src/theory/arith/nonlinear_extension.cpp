@@ -1250,17 +1250,30 @@ bool NonlinearExtension::check(Theory::Effort e) {
   }
   else
   {
+    TheoryModel * tm = d_containing.getValuation().getModel();
     if (!options::nlExtInterceptModel())
     {
-      //d_model.reset(d_containing.getValuation().getModel(), arithModel);
-      // run a last call effort check
-      if (!interceptModelMain())
+      if (!d_builtModel.get())
       {
-        return false;
+        //d_model.reset(d_containing.getValuation().getModel(), arithModel);
+        // run a last call effort check
+        if (!interceptModelMain())
+        {
+          return false;
+        }
       }
-    } 
+      std::map< Node, Node > arithModel;
+      d_model.fixModelValues(arithModel);
+      // those that are exact are written as exact approximations to the model
+      for (std::pair< const Node, Node >& r : arithModel)
+      {
+        Node eq = r.first.eqNode(r.second);
+        eq = Rewriter::rewrite(eq);
+        tm->recordApproximation(r.first, eq);
+      }
+    }
     // already ran a check, now record approximations
-    d_model.recordApproximations(d_containing.getValuation().getModel());
+    d_model.recordApproximations(tm);
   }
 
   // Did we internally determine a model exists? If so, we need to record some

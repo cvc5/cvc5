@@ -1257,7 +1257,6 @@ void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
   // this class.
   Trace("nl-model") << "NlModel::fixModelValues:" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  std::map< Node, Node > modelReplace;
   for (const std::pair<const Node, std::pair<Node, Node> >& cb :
        d_check_model_bounds)
   {
@@ -1274,7 +1273,7 @@ void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
     else
     {
       // overwrite
-      modelReplace[v] = l;
+      arithModel[v] = l;
       Trace("nl-model") << v << " exact approximation is " << l << std::endl;
     }
   }
@@ -1287,21 +1286,8 @@ void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
     Node v = d_check_model_vars[i];
     Node s = d_check_model_subs[i];
     // overwrite
-    modelReplace[v] = s;
+    arithModel[v] = s;
     Trace("nl-model") << v << " solved is " << s << std::endl;
-  }
-  for (std::pair< const Node, Node >& r : modelReplace)
-  {
-    if (options::nlExtInterceptModel())
-    {
-      Node eq = r.first.eqNode(r.second);
-      eq = Rewriter::rewrite(eq);
-      d_model->recordApproximation(r.first, eq);
-    }
-    else
-    {
-      d_arithVal[r.first] = r.second;
-    }
   }
 }
 
