@@ -165,34 +165,6 @@ class DType
    * CAV 2015).
    */
   void setSygus(TypeNode st, Node bvl, bool allow_const, bool allow_all);
-  /** add sygus constructor
-   *
-   * This adds a sygus constructor to this datatype, where
-   * this datatype should be currently unresolved.
-   *
-   * op : the builtin operator, constant, or variable that
-   *      this constructor encodes
-   * cname : the name of the constructor (for printing only)
-   * cargs : the arguments of the constructor
-   * spc : an (optional) callback that is used for custom printing. This is
-   *       to accomodate user-provided grammars in the sygus format.
-   *
-   * It should be the case that cargs are sygus datatypes that
-   * encode the arguments of op. For example, a sygus constructor
-   * with op = PLUS should be such that cargs.size()>=2 and
-   * the sygus type of cargs[i] is Real/Int for each i.
-   *
-   * weight denotes the value added by the constructor when computing the size
-   * of datatype terms. Passing a value <0 denotes the default weight for the
-   * constructor, which is 0 for nullary constructors and 1 for non-nullary
-   * constructors.
-   */
-  void addSygusConstructor(
-      Node op,
-      const std::string& cname,
-      const std::vector<TypeNode>& cargs,
-      std::shared_ptr<SygusPrintCallbackInternal> spc = nullptr,
-      int weight = -1);
 
   /** set that this datatype is a tuple */
   void setTuple();

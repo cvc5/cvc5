@@ -470,9 +470,8 @@ void DatatypeConstructor::setSygus(Expr op,
   PrettyCheckArgument(
       !isResolved(), this, "cannot modify a finalized Datatype constructor");
   Node opn = Node::fromExpr(op);
-  // FIXME
-  std::shared_ptr<SygusPrintCallbackInternal> spci;
-  d_internal->setSygus(op, spci);
+  d_internal->setSygus(op);
+  // print callback lives at the expression level currently
   d_sygus_pc = spc;
 }
 

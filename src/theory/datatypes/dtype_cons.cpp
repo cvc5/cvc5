@@ -31,7 +31,6 @@ DTypeConstructor::DTypeConstructor(std::string name)
       d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
       d_tester(),
       d_args(),
-      d_sygus_pc(nullptr),
       d_weight(1)
 {
   Trace("ajr-temp") << "DTypeConstructor::DTypeConstructor 1" << std::endl;
@@ -50,7 +49,6 @@ DTypeConstructor::DTypeConstructor(std::string name,
       d_name(name + '\0' + tester),
       d_tester(),
       d_args(),
-      d_sygus_pc(nullptr),
       d_weight(weight)
 {
   Trace("ajr-temp") << "DTypeConstructor::DTypeConstructor 2" << std::endl;
@@ -117,13 +115,11 @@ std::string DTypeConstructor::getTesterName() const
   return d_name.substr(d_name.find('\0') + 1);
 }
 
-void DTypeConstructor::setSygus(Node op,
-                                std::shared_ptr<SygusPrintCallbackInternal> spc)
+void DTypeConstructor::setSygus(Node op)
 {
   PrettyCheckArgument(
       !isResolved(), this, "cannot modify a finalized DType constructor");
   d_sygus_op = op;
-  d_sygus_pc = spc;
 }
 
 Node DTypeConstructor::getSygusOp() const
@@ -139,14 +135,6 @@ bool DTypeConstructor::isSygusIdFunc() const
       isResolved(), this, "this datatype constructor is not yet resolved");
   return (d_sygus_op.getKind() == LAMBDA && d_sygus_op[0].getNumChildren() == 1
           && d_sygus_op[0][0] == d_sygus_op[1]);
-}
-
-std::shared_ptr<SygusPrintCallbackInternal>
-DTypeConstructor::getSygusPrintCallbackInternal() const
-{
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_pc;
 }
 
 unsigned DTypeConstructor::getWeight() const

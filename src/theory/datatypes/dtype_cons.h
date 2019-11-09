@@ -26,32 +26,6 @@
 
 namespace CVC4 {
 
-class Printer;
-
-/** sygus datatype constructor printer
- *
- * This is a virtual class that is used to specify
- * a custom printing callback for sygus terms. This is
- * useful for sygus grammars that include defined
- * functions or let expressions.
- */
-class SygusPrintCallbackInternal
-{
- public:
-  SygusPrintCallbackInternal() {}
-  virtual ~SygusPrintCallbackInternal() {}
-  /**
-   * Writes the term that sygus datatype expression e
-   * encodes to stream out. p is the printer that
-   * requested that expression e be written on output
-   * stream out. Calls may be made to p to print
-   * subterms of e.
-   */
-  virtual void toStreamSygus(const Printer* p,
-                             std::ostream& out,
-                             Node e) const = 0;
-};
-
 class DatatypeConstructor;
 
 /**
@@ -115,10 +89,9 @@ class DTypeConstructor
   /** set sygus
    *
    * Set that this constructor is a sygus datatype constructor that encodes
-   * operator op. spc is the sygus callback of this datatype constructor,
-   * which is stored in a shared pointer.
+   * operator op.
    */
-  void setSygus(Node op, std::shared_ptr<SygusPrintCallbackInternal> spc);
+  void setSygus(Node op);
   /** get sygus op
    *
    * This method returns the operator or
@@ -135,15 +108,6 @@ class DTypeConstructor
    * of the form (lambda (x) x).
    */
   bool isSygusIdFunc() const;
-  /** get sygus print callback
-   *
-   * This class stores custom ways of printing
-   * sygus datatype constructors, for instance,
-   * to handle defined or let expressions that
-   * appear in user-provided grammars.
-   */
-  std::shared_ptr<SygusPrintCallbackInternal> getSygusPrintCallbackInternal()
-      const;
   /** get weight
    *
    * Get the weight of this constructor. This value is used when computing the
@@ -268,8 +232,6 @@ class DTypeConstructor
   std::vector<DTypeConstructorArg*> d_args;
   /** sygus operator */
   Node d_sygus_op;
-  /** sygus print callback */
-  std::shared_ptr<SygusPrintCallbackInternal> d_sygus_pc;
   /** weight */
   unsigned d_weight;
 

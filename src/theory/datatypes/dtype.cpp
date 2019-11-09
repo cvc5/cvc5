@@ -243,35 +243,6 @@ void DType::setSygus(TypeNode st, Node bvl, bool allow_const, bool allow_all)
   d_sygus_allow_all = allow_all;
 }
 
-void DType::addSygusConstructor(Node op,
-                                const std::string& cname,
-                                const std::vector<TypeNode>& cargs,
-                                std::shared_ptr<SygusPrintCallbackInternal> spc,
-                                int weight)
-{
-  Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName()
-                    << std::endl;
-  Debug("dt-sygus") << "    sygus op : " << op << std::endl;
-  // avoid name clashes
-  std::stringstream ss;
-  ss << getName() << "_" << getNumConstructors() << "_" << cname;
-  std::string name = ss.str();
-  std::string testerId("is-");
-  testerId.append(name);
-  unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
-  DTypeConstructor* c = new DTypeConstructor(name, testerId, cweight);
-  c->setSygus(op, spc);
-  for (unsigned j = 0; j < cargs.size(); j++)
-  {
-    Debug("parser-sygus-debug")
-        << "  arg " << j << " : " << cargs[j] << std::endl;
-    std::stringstream sname;
-    sname << name << "_" << j;
-    c->addArg(sname.str(), cargs[j]);
-  }
-  addConstructor(c);
-}
-
 void DType::setTuple()
 {
   PrettyCheckArgument(
