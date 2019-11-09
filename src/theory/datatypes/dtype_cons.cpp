@@ -33,7 +33,8 @@ DTypeConstructor::DTypeConstructor(std::string name)
       d_args(),
       d_weight(1)
 {
-  Assert(name != "") << "cannot construct a datatype constructor without a name";
+  Assert(name != "")
+      << "cannot construct a datatype constructor without a name";
 }
 
 DTypeConstructor::DTypeConstructor(std::string name,
@@ -48,8 +49,10 @@ DTypeConstructor::DTypeConstructor(std::string name,
       d_args(),
       d_weight(weight)
 {
-  Assert(name != "") << "cannot construct a datatype constructor without a name";
-  Assert(!tester.empty()) << "cannot construct a datatype constructor without a tester";
+  Assert(name != "")
+      << "cannot construct a datatype constructor without a name";
+  Assert(!tester.empty())
+      << "cannot construct a datatype constructor without a tester";
 }
 
 void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
@@ -58,10 +61,8 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
   // we're going to be a constant stuffed inside a node.  So we stow
   // the selector type away inside a var until resolution (when we can
   // create the proper selector type)
-  Assert(
-      !isResolved()) << "cannot modify a finalized DType constructor";
-  Assert(
-      !selectorType.isNull()) <<  "cannot add a null selector type";
+  Assert(!isResolved()) << "cannot modify a finalized DType constructor";
+  Assert(!selectorType.isNull()) << "cannot add a null selector type";
 
   Node type = NodeManager::currentNM()->mkSkolem(
       "unresolved_" + selectorName,
@@ -69,11 +70,15 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
       "is an unresolved selector type placeholder",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   Trace("datatypes") << type << std::endl;
-  std::shared_ptr<DTypeConstructorArg> a = std::make_shared<DTypeConstructorArg> (selectorName, type);
+  std::shared_ptr<DTypeConstructorArg> a =
+      std::make_shared<DTypeConstructorArg>(selectorName, type);
   addArg(a);
 }
 
-void DTypeConstructor::addArg(std::shared_ptr<DTypeConstructorArg> a) { d_args.push_back(a); }
+void DTypeConstructor::addArg(std::shared_ptr<DTypeConstructorArg> a)
+{
+  d_args.push_back(a);
+}
 
 std::string DTypeConstructor::getName() const
 {
@@ -82,15 +87,13 @@ std::string DTypeConstructor::getName() const
 
 Node DTypeConstructor::getConstructor() const
 {
-  Assert(
-      isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(isResolved()) << "this datatype constructor is not yet resolved";
   return d_constructor;
 }
 
 Node DTypeConstructor::getTester() const
 {
-  Assert(
-      isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(isResolved()) << "this datatype constructor is not yet resolved";
   return d_tester;
 }
 
@@ -101,30 +104,26 @@ std::string DTypeConstructor::getTesterName() const
 
 void DTypeConstructor::setSygus(Node op)
 {
-  Assert(
-      !isResolved()) << "cannot modify a finalized DType constructor";
+  Assert(!isResolved()) << "cannot modify a finalized DType constructor";
   d_sygus_op = op;
 }
 
 Node DTypeConstructor::getSygusOp() const
 {
-  Assert(
-      isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(isResolved()) << "this datatype constructor is not yet resolved";
   return d_sygus_op;
 }
 
 bool DTypeConstructor::isSygusIdFunc() const
 {
-  Assert(
-      isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(isResolved()) << "this datatype constructor is not yet resolved";
   return (d_sygus_op.getKind() == LAMBDA && d_sygus_op[0].getNumChildren() == 1
           && d_sygus_op[0][0] == d_sygus_op[1]);
 }
 
 unsigned DTypeConstructor::getWeight() const
 {
-  Assert(
-      isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(isResolved()) << "this datatype constructor is not yet resolved";
   return d_weight;
 }
 
@@ -133,13 +132,11 @@ size_t DTypeConstructor::getNumArgs() const { return d_args.size(); }
 TypeNode DTypeConstructor::getSpecializedConstructorType(
     TypeNode returnType) const
 {
-  Assert(
-      isResolved()) << "this datatype constructor is not yet resolved";
-  Assert(
-      returnType.isDatatype()) <<  "cannot get specialized constructor type for non-datatype type";
+  Assert(isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(returnType.isDatatype())
+      << "cannot get specialized constructor type for non-datatype type";
   const DType& dt = DType::datatypeOf(d_constructor);
-  Assert(
-      dt.isParametric()) << "this datatype constructor is not parametric";
+  Assert(dt.isParametric()) << "this datatype constructor is not parametric";
   TypeNode dtt = dt.getTypeNode();
   TypeMatcher m(dtt);
   m.doMatching(dtt, returnType);
@@ -150,15 +147,15 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
       params.begin(), params.end(), subst.begin(), subst.end());
 }
 
-const std::vector< std::shared_ptr<DTypeConstructorArg> >& DTypeConstructor::getArgs() const
+const std::vector<std::shared_ptr<DTypeConstructorArg> >&
+DTypeConstructor::getArgs() const
 {
   return d_args;
 }
 
 Cardinality DTypeConstructor::getCardinality(TypeNode t) const
 {
-  Assert(
-      isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(isResolved()) << "this datatype constructor is not yet resolved";
 
   Cardinality c = 1;
 
@@ -172,8 +169,7 @@ Cardinality DTypeConstructor::getCardinality(TypeNode t) const
 
 bool DTypeConstructor::isFinite(TypeNode t) const
 {
-  Assert(
-      isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(isResolved()) << "this datatype constructor is not yet resolved";
 
   TNode self = d_constructor;
   // is this already in the cache ?
@@ -213,8 +209,7 @@ bool DTypeConstructor::isFinite(TypeNode t) const
 
 bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
 {
-  Assert(
-      isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(isResolved()) << "this datatype constructor is not yet resolved";
   TNode self = d_constructor;
   // is this already in the cache ?
   if (self.getAttribute(DTypeUFiniteComputedAttr()))
@@ -268,9 +263,8 @@ TypeNode DTypeConstructor::getArgType(unsigned index) const
 Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
                                            size_t index) const
 {
-  Assert(
-      isResolved()) <<
-      "cannot get an internal selector for an unresolved datatype constructor";
+  Assert(isResolved()) << "cannot get an internal selector for an unresolved "
+                          "datatype constructor";
   Assert(index < getNumArgs()) << "index out of bounds";
   if (options::dtSharedSelectors())
   {
@@ -286,7 +280,8 @@ Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
 
 int DTypeConstructor::getSelectorIndexInternal(Node sel) const
 {
-  Assert(isResolved()) << "cannot get an internal selector index for an unresolved datatype constructor";
+  Assert(isResolved()) << "cannot get an internal selector index for an "
+                          "unresolved datatype constructor";
   if (options::dtSharedSelectors())
   {
     Assert(sel.getType().isSelector());
@@ -503,7 +498,9 @@ bool DTypeConstructor::resolve(
     const std::vector<TypeNode>& paramReplacements,
     size_t cindex)
 {
-  Assert(!isResolved()) <<  "cannot resolve a DType constructor twice; perhaps the same constructor was added twice, or to two datatypes?";
+  Assert(!isResolved())
+      << "cannot resolve a DType constructor twice; perhaps the same "
+         "constructor was added twice, or to two datatypes?";
   Trace("datatypes") << "DTypeConstructor::resolve, self type is " << self
                      << std::endl;
 

@@ -454,7 +454,8 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
   Trace("ajr-temp")
       << "DatatypeConstructor::DatatypeConstructor 1: make internal"
       << std::endl;
-  d_internal = std::make_shared<DTypeConstructor>(name, std::string("is_" + name), 1);
+  d_internal =
+      std::make_shared<DTypeConstructor>(name, std::string("is_" + name), 1);
   Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: finished"
                     << std::endl;
 }
@@ -656,7 +657,8 @@ DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector)
     : d_internal(nullptr)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor arg without a name");
-  d_internal = std::make_shared<DTypeConstructorArg>(name, Node::fromExpr(selector));
+  d_internal =
+      std::make_shared<DTypeConstructorArg>(name, Node::fromExpr(selector));
 }
 
 std::string DatatypeConstructorArg::getName() const

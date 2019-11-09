@@ -23,22 +23,23 @@ namespace CVC4 {
 DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector)
     : d_name(name), d_selector(selector), d_resolved(false)
 {
-  Assert(
-      name != "") <<
-      "cannot construct a datatype constructor arg without a name";
+  Assert(name != "")
+      << "cannot construct a datatype constructor arg without a name";
 }
 
 std::string DTypeConstructorArg::getName() const { return d_name; }
 
 Node DTypeConstructorArg::getSelector() const
 {
-  Assert(d_resolved) << "cannot get a selector for an unresolved datatype constructor";
+  Assert(d_resolved)
+      << "cannot get a selector for an unresolved datatype constructor";
   return d_selector;
 }
 
 Node DTypeConstructorArg::getConstructor() const
 {
-  Assert(d_resolved) << "Cannot get a associated constructor for argument of an unresolved datatype constructor";
+  Assert(d_resolved) << "Cannot get a associated constructor for argument of "
+                        "an unresolved datatype constructor";
   return d_constructor;
 }
 
@@ -52,10 +53,7 @@ TypeNode DTypeConstructorArg::getRangeType() const
   return getType().getRangeType();
 }
 
-bool DTypeConstructorArg::isResolved() const
-{
-  return d_resolved;
-}
+bool DTypeConstructorArg::isResolved() const { return d_resolved; }
 
 void DTypeConstructorArg::toStream(std::ostream& out) const
 {

@@ -382,7 +382,8 @@ class DType
   /**
    * Get the list of constructors.
    */
-  const std::vector<std::shared_ptr<DTypeConstructor> >& getConstructors() const;
+  const std::vector<std::shared_ptr<DTypeConstructor> >& getConstructors()
+      const;
 
   /** prints this datatype to stream */
   void toStream(std::ostream& out) const;

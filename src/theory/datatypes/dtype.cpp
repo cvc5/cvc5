@@ -103,10 +103,9 @@ const DType& DType::datatypeOf(Node item)
 
 size_t DType::indexOf(Node item)
 {
-  Assert(
-      item.getType().isConstructor() || item.getType().isTester()
-          || item.getType().isSelector()) << 
-      "arg must be a datatype constructor, selector, or tester";
+  Assert(item.getType().isConstructor() || item.getType().isTester()
+         || item.getType().isSelector())
+      << "arg must be a datatype constructor, selector, or tester";
   return indexOfInternal(item);
 }
 
@@ -122,8 +121,7 @@ size_t DType::indexOfInternal(Node item)
 
 size_t DType::cindexOf(Node item)
 {
-  Assert(
-      item.getType().isSelector()) << "arg must be a datatype selector";
+  Assert(item.getType().isSelector()) << "arg must be a datatype selector";
   return cindexOfInternal(item);
 }
 size_t DType::cindexOfInternal(Node item)
@@ -144,17 +142,17 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
 {
   Trace("dt-debug") << "DType::resolve: " << std::endl;
   Assert(!d_resolved) << "cannot resolve a DTypeNode twice");
-  Assert(resolutions.find(d_name) != resolutions.end()) << 
-                      "DType::resolve(): resolutions doesn't contain me!";
-  Assert(placeholders.size() == replacements.size()) << 
-                      "placeholders and replacements must be the same size";
-  Assert(paramTypes.size() == paramReplacements.size()) << 
-                      "paramTypes and paramReplacements must be the same size";
-  Assert(getNumConstructors() > 0) << 
-                      "cannot resolve a DTypeNode that has no constructors";
+  Assert(resolutions.find(d_name) != resolutions.end())
+      << "DType::resolve(): resolutions doesn't contain me!";
+  Assert(placeholders.size() == replacements.size())
+      << "placeholders and replacements must be the same size";
+  Assert(paramTypes.size() == paramReplacements.size())
+      << "paramTypes and paramReplacements must be the same size";
+  Assert(getNumConstructors() > 0)
+      << "cannot resolve a DTypeNode that has no constructors";
   TypeNode self = (*resolutions.find(d_name)).second;
-  Assert(&self.getDType() == this) << 
-                      "DType::resolve(): resolutions doesn't contain me!";
+  Assert(&self.getDType() == this)
+      << "DType::resolve(): resolutions doesn't contain me!";
   d_resolved = true;
   size_t index = 0;
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
@@ -200,16 +198,15 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
     for (unsigned i = 0, ncons = d_constructors.size(); i < ncons; i++)
     {
       Node sop = d_constructors[i]->getSygusOp();
-      Assert(!sop.isNull()) << 
-                          "Sygus datatype contains a non-sygus constructor";
+      Assert(!sop.isNull())
+          << "Sygus datatype contains a non-sygus constructor";
       std::unordered_set<Node, NodeHashFunction> fvs;
       expr::getFreeVariables(sop, fvs);
       for (const Node& v : fvs)
       {
-        Assert(
-            svs.find(v) != svs.end()) << 
-            "Sygus constructor has an operator with a free variable that is "
-            "not in the formal argument list of the function-to-synthesize";
+        Assert(svs.find(v) != svs.end())
+            << "Sygus constructor has an operator with a free variable that is "
+               "not in the formal argument list of the function-to-synthesize";
       }
     }
   }
@@ -218,15 +215,13 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
 
 void DType::addConstructor(std::shared_ptr<DTypeConstructor> c)
 {
-  Assert(
-      !d_resolved) << "cannot add a constructor to a finalized DType";
+  Assert(!d_resolved) << "cannot add a constructor to a finalized DType";
   d_constructors.push_back(c);
 }
 
 void DType::setSygus(TypeNode st, Node bvl, bool allow_const, bool allow_all)
 {
-  Assert(
-      !d_resolved) << "cannot set sygus type to a finalized DType";
+  Assert(!d_resolved) << "cannot set sygus type to a finalized DType";
   d_sygus_type = st;
   d_sygus_bvl = bvl;
   d_sygus_allow_const = allow_const || allow_all;
@@ -235,8 +230,7 @@ void DType::setSygus(TypeNode st, Node bvl, bool allow_const, bool allow_all)
 
 void DType::setTuple()
 {
-  Assert(
-      !d_resolved) << "cannot set tuple to a finalized DType";
+  Assert(!d_resolved) << "cannot set tuple to a finalized DType";
   d_isTuple = true;
 }
 
@@ -252,8 +246,8 @@ Cardinality DType::getCardinality(TypeNode t) const
 
 Cardinality DType::getCardinality() const
 {
-  Assert(!isParametric()) << 
-                      "for getCardinality, this datatype cannot be parametric";
+  Assert(!isParametric())
+      << "for getCardinality, this datatype cannot be parametric";
   return getCardinality(d_self);
 }
 
@@ -322,9 +316,8 @@ bool DType::isRecursiveSingleton(TypeNode t) const
 
 bool DType::isRecursiveSingleton() const
 {
-  Assert(
-      !isParametric()) << 
-      "for isRecursiveSingleton, this datatype cannot be parametric";
+  Assert(!isParametric())
+      << "for isRecursiveSingleton, this datatype cannot be parametric";
   return isRecursiveSingleton(d_self);
 }
 
@@ -337,9 +330,9 @@ unsigned DType::getNumRecursiveSingletonArgTypes(TypeNode t) const
 
 unsigned DType::getNumRecursiveSingletonArgTypes() const
 {
-  Assert(!isParametric()) << 
-                      "for getNumRecursiveSingletonArgTypes, this datatype "
-                      "cannot be parametric";
+  Assert(!isParametric())
+      << "for getNumRecursiveSingletonArgTypes, this datatype "
+         "cannot be parametric";
   return getNumRecursiveSingletonArgTypes(d_self);
 }
 
@@ -352,9 +345,8 @@ TypeNode DType::getRecursiveSingletonArgType(TypeNode t, unsigned i) const
 
 TypeNode DType::getRecursiveSingletonArgType(unsigned i) const
 {
-  Assert(
-      !isParametric()) << 
-      "for getRecursiveSingletonArgType, this datatype cannot be parametric";
+  Assert(!isParametric())
+      << "for getRecursiveSingletonArgType, this datatype cannot be parametric";
   return getRecursiveSingletonArgType(d_self, i);
 }
 
@@ -453,8 +445,8 @@ bool DType::isFinite(TypeNode t) const
 }
 bool DType::isFinite() const
 {
-  Assert(isResolved() && !isParametric()) << 
-                      "this datatype must be resolved and not parametric";
+  Assert(isResolved() && !isParametric())
+      << "this datatype must be resolved and not parametric";
   return isFinite(d_self);
 }
 
@@ -484,8 +476,8 @@ bool DType::isInterpretedFinite(TypeNode t) const
 }
 bool DType::isInterpretedFinite() const
 {
-  Assert(isResolved() && !isParametric()) << 
-                      "this datatype must be resolved and not parametric";
+  Assert(isResolved() && !isParametric())
+      << "this datatype must be resolved and not parametric";
   return isInterpretedFinite(d_self);
 }
 
@@ -538,7 +530,7 @@ bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
 
 Node DType::mkGroundTerm(TypeNode t) const
 {
-  Assert(isResolved()) <<  "this datatype is not yet resolved";
+  Assert(isResolved()) << "this datatype is not yet resolved";
   return mkGroundTermInternal(t, false);
 }
 
@@ -648,24 +640,21 @@ Node DType::computeGroundTerm(TypeNode t,
 
 TypeNode DType::getTypeNode() const
 {
-  Assert(
-      isResolved()) <<  "DType must be resolved to get its TypeNode";
+  Assert(isResolved()) << "DType must be resolved to get its TypeNode";
   Assert(!d_self.isNull(), *this);
   return d_self;
 }
 
 TypeNode DType::getTypeNode(const std::vector<TypeNode>& params) const
 {
-  Assert(
-      isResolved()) << "DType must be resolved to get its TypeNode";
+  Assert(isResolved()) << "DType must be resolved to get its TypeNode";
   Assert(!d_self.isNull() && d_self.isParametricDatatype(), this);
   return d_self.instantiateParametricDatatype(params);
 }
 
 const DTypeConstructor& DType::operator[](size_t index) const
 {
-  Assert(
-      index < getNumConstructors()) << "index out of bounds";
+  Assert(index < getNumConstructors()) << "index out of bounds";
   return *d_constructors[index];
 }
 
@@ -734,7 +723,8 @@ bool DType::involvesExternalType() const { return d_involvesExt; }
 
 bool DType::involvesUninterpretedType() const { return d_involvesUt; }
 
-const std::vector< std::shared_ptr<DTypeConstructor> >& DType::getConstructors() const
+const std::vector<std::shared_ptr<DTypeConstructor> >& DType::getConstructors()
+    const
 {
   return d_constructors;
 }
