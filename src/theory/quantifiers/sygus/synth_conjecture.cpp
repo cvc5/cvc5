@@ -507,6 +507,13 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> vars;
   if (constructed_cand)
   {
+    if (options::ufHo())
+    {
+      // must do function substitution, in the case that the function to
+      // synthesize occurs in a higher-order context. TODO
+      
+    }
+    Trace("cegqi-check-debug") << "Instantiation to check is " << inst << std::endl;
     if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
     {
       for (const Node& v : inst[0][0])
