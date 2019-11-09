@@ -139,7 +139,7 @@ void Datatype::resolve(ExprManager* em,
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(*em);
   
-  Trace("dt-debug") << "Datatype::resolve: " << getName() << std::endl;
+  Trace("datatypes") << "Datatype::resolve: " << getName() << ", #placeholders=" << placeholders.size() << std::endl;
   
   std::map<std::string, TypeNode> resolutionsn;
   std::vector<TypeNode> placeholdersn;

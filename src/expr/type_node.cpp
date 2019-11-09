@@ -450,6 +450,12 @@ TypeNode TypeNode::instantiateParametricDatatype(
   return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
 }
 
+TypeNode TypeNode::instantiateSortConstructor(
+const std::vector<TypeNode>& params) const
+{
+  return NodeManager::currentNM()->mkSort(*this, params);
+}
+
 /** Is this an instantiated datatype parameter */
 bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const {
   AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);

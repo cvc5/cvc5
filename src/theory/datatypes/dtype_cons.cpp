@@ -81,7 +81,7 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
       selectorType,
       "is an unresolved selector type placeholder",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
-  Debug("datatypes") << type << std::endl;
+  Trace("datatypes") << type << std::endl;
   DTypeConstructorArg * a = new DTypeConstructorArg(selectorName, type);
   addArg(a);
 }
@@ -470,13 +470,13 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     }
     if (arg.isNull())
     {
-      Debug("datatypes") << "...unable to construct arg of "
+      Trace("datatypes") << "...unable to construct arg of "
                          << d_args[i]->getName() << std::endl;
       return Node();
     }
     else
     {
-      Debug("datatypes") << "...constructed arg " << arg.getType() << std::endl;
+      Trace("datatypes") << "...constructed arg " << arg.getType() << std::endl;
       groundTerms.push_back(arg);
     }
   }
@@ -537,11 +537,11 @@ bool DTypeConstructor::resolve(
     const std::vector<TypeNode>& paramReplacements,
     size_t cindex)
 {
-  Trace("ajr-temp") << "DTypeConstructor::resolve" << std::endl;
   PrettyCheckArgument(!isResolved(),
                       "cannot resolve a DType constructor twice; "
                       "perhaps the same constructor was added twice, "
                       "or to two datatypes?");
+  Trace("datatypes") << "DTypeConstructor::resolve, self type is " << self << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
   size_t index = 0;
@@ -558,6 +558,7 @@ bool DTypeConstructor::resolve(
       if (typeName == "")
       {
         range = self;
+        Trace("ajr-temp") << "- Take self " << range << std::endl;
         arg->d_selector = nm->mkSkolem(
             argName,
             nm->mkSelectorType(self, self),
@@ -576,6 +577,7 @@ bool DTypeConstructor::resolve(
         else
         {
           range = (*j).second;
+          Trace("ajr-temp") << "- Take resolution " << range << std::endl;
           arg->d_selector = nm->mkSkolem(
               argName,
               nm->mkSelectorType(self, range),
@@ -596,9 +598,19 @@ bool DTypeConstructor::resolve(
                                  replacements.begin(),
                                  replacements.end());
       }
+      Trace("ajr-temp") << "- Take substitution on selector " << range << " under" << std::endl;
+      for (unsigned i=0; i<placeholders.size(); i++)
+      {
+        Trace("ajr-temp") << "  " << placeholders[i] << " -> " << replacements[i] << std::endl;
+      }
       if (!paramTypes.empty())
       {
         range = doParametricSubstitution(range, paramTypes, paramReplacements);
+      }
+      Trace("ajr-temp") << "- After param subs #" << paramTypes.size() << ", " << range << std::endl;
+      for (unsigned i=0; i<paramTypes.size(); i++)
+      {
+        Trace("ajr-temp") << "  " << paramTypes[i] << " -> " << paramReplacements[i] << std::endl;
       }
       arg->d_selector = nm->mkSkolem(
           argName,
@@ -626,7 +638,7 @@ bool DTypeConstructor::resolve(
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   d_constructor = nm->mkSkolem(
       getName(),
-      nm->mkConstructorType(argTypes, self),
+      nm->mkConstructorType(*this, self),
       "is a constructor",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   Trace("ajr-temp") << "Type of constructor is " << d_constructor.getType() << std::endl;
@@ -651,6 +663,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
 {
   if (range.getNumChildren() == 0)
   {
+    Trace("ajr-temp") << "dps: return std " << range << std::endl;
     return range;
   }
   std::vector<TypeNode> origChildren;
@@ -665,13 +678,16 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   }
   for (unsigned i = 0; i < paramTypes.size(); ++i)
   {
-    // the arity a parameterized type is the number of its children minus one.
-    if (paramTypes[i].getNumChildren() == origChildren.size() + 1)
+    Trace("ajr-temp") << "dps: look at " << paramTypes[i] << " " << paramTypes[i].getNumChildren() << " " << origChildren.size() << std::endl;
+    if (paramTypes[i].getNumChildren()+1 == origChildren.size())
     {
-      TypeNode tn = paramTypes[i].instantiateParametricDatatype(origChildren);
+      TypeNode tn = paramTypes[i].instantiateSortConstructor(origChildren);
+      Trace("ajr-temp") << "dps: try " << range << " == " << tn << std::endl;
       if (range == tn)
       {
-        return paramReplacements[i].instantiateParametricDatatype(children);
+        TypeNode tret = paramReplacements[i].instantiateParametricDatatype(children);
+        Trace("ajr-temp") << "dps: success! " << tret << std::endl;
+        return tret;
       }
     }
   }
@@ -680,7 +696,9 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   {
     nb << children[i];
   }
-  return nb.constructTypeNode();
+  TypeNode tn = nb.constructTypeNode();
+  Trace("ajr-temp") << "doParametricSubstitution for " << range << " returns " << tn << std::endl;
+  return tn;
 }
 
 void DTypeConstructor::toStream(std::ostream& out) const

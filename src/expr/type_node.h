@@ -679,6 +679,12 @@ public:
   /** Is this a sort constructor kind */
   bool isSortConstructor() const;
 
+  /**
+   * Instantiate a sort constructor type.
+   */
+  TypeNode instantiateSortConstructor(
+      const std::vector<TypeNode>& params) const;
+  
   /** Get the most general base type of the type */
   TypeNode getBaseType() const;
 
