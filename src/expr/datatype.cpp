@@ -46,7 +46,7 @@ Datatype::Datatype(std::string name, bool isCo)
     : d_internal(nullptr), d_record(NULL), d_isRecord(false), d_constructors()
 {
   Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
-  d_internal = new DType(name, isCo);
+  d_internal = std::make_shared<DType>(name, isCo);
   Trace("ajr-temp") << "Datatype::Datatype finished" << std::endl;
 }
 
@@ -59,7 +59,7 @@ Datatype::Datatype(std::string name, const std::vector<Type>& params, bool isCo)
   {
     paramsn.push_back(TypeNode::fromType(t));
   }
-  d_internal = new DType(name, paramsn, isCo);
+  d_internal = std::make_shared<DType>(name, paramsn, isCo);
   Trace("ajr-temp") << "Datatype::Datatype finished" << std::endl;
 }
 
@@ -454,7 +454,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
   Trace("ajr-temp")
       << "DatatypeConstructor::DatatypeConstructor 1: make internal"
       << std::endl;
-  d_internal = new DTypeConstructor(name, std::string("is_" + name), 1);
+  d_internal = std::make_shared<DTypeConstructor>(name, std::string("is_" + name), 1);
   Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: finished"
                     << std::endl;
 }
@@ -473,7 +473,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name,
   Trace("ajr-temp")
       << "DatatypeConstructor::DatatypeConstructor 2: make internal"
       << std::endl;
-  d_internal = new DTypeConstructor(name, tester, weight);
+  d_internal = std::make_shared<DTypeConstructor>(name, tester, weight);
   Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 2: finished"
                     << std::endl;
 }
@@ -653,9 +653,10 @@ bool DatatypeConstructor::involvesUninterpretedType() const{
 }
 
 DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector)
-    : d_internal(new DTypeConstructorArg(name, Node::fromExpr(selector)))
+    : d_internal(nullptr)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor arg without a name");
+  d_internal = std::make_shared<DTypeConstructorArg>(name, Node::fromExpr(selector));
 }
 
 std::string DatatypeConstructorArg::getName() const

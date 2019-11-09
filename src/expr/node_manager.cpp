@@ -29,7 +29,6 @@
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
-#include "theory/datatypes/dtype.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
@@ -504,46 +503,22 @@ Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, cons
 TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
                                         TypeNode range) {
   vector<TypeNode> sorts;
-  Trace("datatypes") << "ctor name: " << constructor.getName() << endl;
+  Debug("datatypes") << "ctor name: " << constructor.getName() << endl;
   for(DatatypeConstructor::const_iterator i = constructor.begin();
       i != constructor.end();
       ++i) {
     TypeNode selectorType = *(*i).getSelector().getType().d_typeNode;
-    Trace("datatypes") << selectorType << endl;
+    Debug("datatypes") << selectorType << endl;
     TypeNode sort = selectorType[1];
 
     // should be guaranteed here already, but just in case
     Assert(!sort.isFunctionLike());
 
-    Trace("datatypes") << "ctor sort: " << sort << endl;
+    Debug("datatypes") << "ctor sort: " << sort << endl;
     sorts.push_back(sort);
   }
-  Trace("datatypes") << "ctor range: " << range << endl;
+  Debug("datatypes") << "ctor range: " << range << endl;
   PrettyCheckArgument(!range.isFunctionLike(), range,
-                      "cannot create higher-order function types");
-  sorts.push_back(range);
-  return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
-}
-
-TypeNode NodeManager::mkConstructorType(const DTypeConstructor& constructor,
-                                        TypeNode range)
-{
-  std::vector<TypeNode> sorts;
-  Trace("datatypes") << "ctor name: " << constructor.getName() << endl;
-  for (unsigned i = 0, nargs = constructor.getNumArgs(); i < nargs; i++)
-  {
-    TypeNode sort = constructor.getArgType(i);
-    Trace("datatypes") << sort << endl;
-
-    // should be guaranteed here already, but just in case
-    Assert(!sort.isFunctionLike());
-
-    Trace("datatypes") << "ctor sort: " << sort << endl;
-    sorts.push_back(sort);
-  }
-  Trace("datatypes") << "ctor range: " << range << endl;
-  PrettyCheckArgument(!range.isFunctionLike(),
-                      range,
                       "cannot create higher-order function types");
   sorts.push_back(range);
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);

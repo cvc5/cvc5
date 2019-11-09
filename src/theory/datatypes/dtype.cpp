@@ -165,7 +165,7 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
                       "DType::resolve(): resolutions doesn't contain me!");
   d_resolved = true;
   size_t index = 0;
-  for (DTypeConstructor* ctor : d_constructors)
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     Trace("dt-debug") << "DType::resolve ctor " << std::endl;
     ctor->resolve(self,
@@ -184,7 +184,7 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
 
   d_involvesExt = false;
   d_involvesUt = false;
-  for (const DTypeConstructor* ctor : d_constructors)
+  for (const std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     if (ctor->involvesExternalType())
     {
@@ -226,7 +226,7 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
   Trace("dt-debug") << "DType::resolve: finished" << std::endl;
 }
 
-void DType::addConstructor(DTypeConstructor* c)
+void DType::addConstructor(std::shared_ptr<DTypeConstructor> c)
 {
   PrettyCheckArgument(
       !d_resolved, this, "cannot add a constructor to a finalized DType");
@@ -281,7 +281,7 @@ Cardinality DType::computeCardinality(TypeNode t,
   }
   processing.push_back(d_self);
   Cardinality c = 0;
-  for (DTypeConstructor* ctor : d_constructors)
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     c += ctor->computeCardinality(t, processing);
   }
@@ -452,7 +452,7 @@ bool DType::isFinite(TypeNode t) const
   {
     return d_self.getAttribute(DTypeFiniteAttr());
   }
-  for (DTypeConstructor* ctor : d_constructors)
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     if (!ctor->isFinite(t))
     {
@@ -486,7 +486,7 @@ bool DType::isInterpretedFinite(TypeNode t) const
   // start by assuming it is not
   d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
   d_self.setAttribute(DTypeUFiniteAttr(), false);
-  for (DTypeConstructor* ctor : d_constructors)
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     if (!ctor->isInterpretedFinite(t))
     {
@@ -533,7 +533,7 @@ bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
     return d_isCo;
   }
   processing.push_back(d_self);
-  for (DTypeConstructor* ctor : d_constructors)
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     if (ctor->computeWellFounded(processing))
     {
@@ -629,7 +629,7 @@ Node DType::computeGroundTerm(TypeNode t,
   processing.push_back(t);
   for (unsigned r = 0; r < 2; r++)
   {
-    for (DTypeConstructor* ctor : d_constructors)
+    for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
     {
       // do nullary constructors first
       if ((ctor->getNumArgs() == 0) == (r == 0))
@@ -687,7 +687,7 @@ const DTypeConstructor& DType::operator[](size_t index) const
 
 const DTypeConstructor& DType::operator[](std::string name) const
 {
-  for (DTypeConstructor* ctor : d_constructors)
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     if (ctor->getName() == name)
     {
@@ -750,7 +750,7 @@ bool DType::involvesExternalType() const { return d_involvesExt; }
 
 bool DType::involvesUninterpretedType() const { return d_involvesUt; }
 
-const std::vector<DTypeConstructor*>& DType::getConstructors() const
+const std::vector< std::shared_ptr<DTypeConstructor> >& DType::getConstructors() const
 {
   return d_constructors;
 }
@@ -782,7 +782,7 @@ void DType::toStream(std::ostream& out) const
   }
   out << " = " << std::endl;
   bool firstTime = true;
-  for (DTypeConstructor* ctor : d_constructors)
+  for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     if (!firstTime)
     {

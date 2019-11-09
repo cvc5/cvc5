@@ -162,7 +162,7 @@ class CVC4_PUBLIC DatatypeConstructorArg {
 
  private:
   /** The internal representation */
-  DTypeConstructorArg* d_internal;
+  std::shared_ptr<DTypeConstructorArg> d_internal;
   /** The selector */
   Expr d_selector;
   /** is this selector unresolved? */
@@ -455,7 +455,7 @@ class CVC4_PUBLIC DatatypeConstructor {
 
  private:
   /** The internal representation */
-  DTypeConstructor* d_internal;
+  std::shared_ptr<DTypeConstructor> d_internal;
   /** The constructor */
   Expr d_constructor;
   /** the arguments of this constructor */
@@ -882,7 +882,7 @@ class CVC4_PUBLIC Datatype {
 
  private:
   /** The internal representation */
-  DType* d_internal;
+  std::shared_ptr<DType> d_internal;
   /** self type */
   Type d_self;
   /** the data of the record for this datatype (if applicable) */

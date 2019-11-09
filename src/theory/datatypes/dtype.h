@@ -144,7 +144,7 @@ class DType
    * Notice that constructor names need not
    * be unique; they are for convenience and pretty-printing only.
    */
-  void addConstructor(DTypeConstructor* c);
+  void addConstructor(std::shared_ptr<DTypeConstructor> c);
 
   /** set sygus
    *
@@ -382,7 +382,7 @@ class DType
   /**
    * Get the list of constructors.
    */
-  const std::vector<DTypeConstructor*>& getConstructors() const;
+  const std::vector<std::shared_ptr<DTypeConstructor> >& getConstructors() const;
 
   /** prints this datatype to stream */
   void toStream(std::ostream& out) const;
@@ -398,7 +398,7 @@ class DType
   /** whether the datatype is a tuple */
   bool d_isTuple;
   /** the constructors of this datatype */
-  std::vector<DTypeConstructor*> d_constructors;
+  std::vector<std::shared_ptr<DTypeConstructor> > d_constructors;
   /** whether this datatype has been resolved */
   bool d_resolved;
   /** self type */
