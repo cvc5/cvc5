@@ -37,6 +37,7 @@
 namespace CVC4 {
 
 class NodeManager;
+class DType;
 
 namespace expr {
   class NodeValue;
@@ -638,7 +639,7 @@ public:
 
   /**
    * Get instantiated datatype type. The type on which this method is called
-   * should be a parametric datatype whose parameter list is the same list as
+   * should be a parametric datatype whose parameter list is the same size as
    * argument params. This constructs the instantiated version of this
    * parametric datatype, e.g. passing (par (A) (List A)), { Int } ) to this
    * method returns (List Int).
@@ -680,7 +681,12 @@ public:
   bool isSortConstructor() const;
 
   /**
-   * Instantiate a sort constructor type.
+   * Instantiate a sort constructor type. The type on which this method is
+   * called should be a sort constructor type whose parameter list is the
+   * same size as argument params. This constructs the instantiated version of
+   * this sort constructor. For example, this is a sort constructor, e.g.
+   * declared via (declare-sort U 2), then calling this method with
+   * { Int, Int } will generate the instantiated sort (U Int Int).
    */
   TypeNode instantiateSortConstructor(
       const std::vector<TypeNode>& params) const;
