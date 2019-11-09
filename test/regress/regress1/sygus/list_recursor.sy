@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --sygus-rec-fun --lang=sygus2
+; COMMAND-LINE: --sygus-out=status --sygus-rec-fun --lang=sygus2 --uf-ho
 
 (set-logic ALL)
 
