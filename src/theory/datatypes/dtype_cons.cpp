@@ -93,7 +93,7 @@ void DTypeConstructor::addArg(DTypeConstructorArg* a)
 
 std::string DTypeConstructor::getName() const
 {
-  return d_name;
+  return d_name.substr(0, d_name.find('\0'));
 }
 
 Node DTypeConstructor::getConstructor() const
@@ -703,7 +703,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
 
 void DTypeConstructor::toStream(std::ostream& out) const
 {
-  Trace("ajr-temp") << "DTypeConstructor::toStream" << std::endl;
+  Trace("ajr-temp2") << "DTypeConstructor::toStream" << std::endl;
   out << getName();
 
   unsigned nargs = getNumArgs();

@@ -795,6 +795,7 @@ std::ostream& operator<<(std::ostream& os, const DType& dt)
 
 void DType::toStream(std::ostream& out) const
 {
+  Trace("ajr-temp2") << "DType::toStream" << std::endl;
   out << "DATATYPE " << getName();
   if (isParametric())
   {

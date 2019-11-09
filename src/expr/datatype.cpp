@@ -45,6 +45,7 @@ Datatype::~Datatype(){
 Datatype::Datatype(std::string name, bool isCo)
     : d_internal(nullptr),
       d_record(NULL),
+      d_isRecord(false),
       d_constructors() {
   Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
   d_internal = new DType(name, isCo);
@@ -55,6 +56,7 @@ Datatype::Datatype(std::string name, const std::vector<Type>& params,
                           bool isCo)
     : d_internal(nullptr),
       d_record(NULL),
+      d_isRecord(false),
       d_constructors(){
   Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
   std::vector<TypeNode > paramsn;
@@ -181,6 +183,14 @@ void Datatype::resolve(ExprManager* em,
       c.d_args[i].d_selector = c.d_args[i].d_internal->getSelector().toExpr();
     }
   }
+  
+  if( d_isRecord ){
+    std::vector< std::pair<std::string, Type> > fields;
+    for( unsigned i=0; i<(*this)[0].getNumArgs(); i++ ){
+      fields.push_back( std::pair<std::string, Type>( (*this)[0][i].getName(), (*this)[0][i].getRangeType() ) );
+    }
+    d_record = new Record(fields);
+  }  
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -513,12 +523,14 @@ void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
 
 std::string DatatypeConstructor::getName() const
 {
-  std::string name = d_internal->getName();
-  return name.substr(0, name.find('\0'));
+  //std::string name = d_internal->getName();
+  //return name.substr(0, name.find('\0'));
+  return d_internal->getName();
 }
 
 std::string DatatypeConstructor::getTesterName() const
 {
+  return d_internal->getTesterName();
   std::string name = d_internal->getName();
   return name.substr(name.find('\0') + 1);
 }
