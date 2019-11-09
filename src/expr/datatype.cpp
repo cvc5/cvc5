@@ -32,28 +32,11 @@
 #include "options/set_language.h"
 #include "theory/type_enumerator.h"
 #include "theory/datatypes/dtype.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
 
 namespace CVC4 {
-
-namespace expr {
-  namespace attr {
-    struct DatatypeIndexTag {};
-    struct DatatypeConsIndexTag {};
-    struct DatatypeFiniteTag {};
-    struct DatatypeFiniteComputedTag {};
-    struct DatatypeUFiniteTag {};
-    struct DatatypeUFiniteComputedTag {};
-  }/* CVC4::expr::attr namespace */
-}/* CVC4::expr namespace */
-
-typedef expr::Attribute<expr::attr::DatatypeIndexTag, uint64_t> DatatypeIndexAttr;
-typedef expr::Attribute<expr::attr::DatatypeConsIndexTag, uint64_t> DatatypeConsIndexAttr;
-typedef expr::Attribute<expr::attr::DatatypeFiniteTag, bool> DatatypeFiniteAttr;
-typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFiniteComputedAttr;
-typedef expr::Attribute<expr::attr::DatatypeUFiniteTag, bool> DatatypeUFiniteAttr;
-typedef expr::Attribute<expr::attr::DatatypeUFiniteComputedTag, bool> DatatypeUFiniteComputedAttr;
 
 Datatype::~Datatype(){
   delete d_record;
@@ -113,8 +96,8 @@ size_t Datatype::indexOfInternal(Expr item)
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return indexOf( item[0] );
   }else{
-    Assert(n.hasAttribute(DatatypeIndexAttr()));
-    return n.getAttribute(DatatypeIndexAttr());
+    Assert(n.hasAttribute(DTypeIndexAttr()));
+    return n.getAttribute(DTypeIndexAttr());
   }
 }
 
@@ -131,8 +114,8 @@ size_t Datatype::cindexOfInternal(Expr item)
   if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
     return cindexOf( item[0] );
   }else{
-    Assert(n.hasAttribute(DatatypeConsIndexAttr()));
-    return n.getAttribute(DatatypeConsIndexAttr());
+    Assert(n.hasAttribute(DTypeConsIndexAttr()));
+    return n.getAttribute(DTypeConsIndexAttr());
   }
 }
 
