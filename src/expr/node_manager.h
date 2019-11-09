@@ -869,7 +869,7 @@ public:
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
-  /** 
+  /**
    * Make a type representing a constructor with the given argument (subfield)
    * types and return type range.
    */
