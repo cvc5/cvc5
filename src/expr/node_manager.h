@@ -876,6 +876,8 @@ public:
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
   TypeNode mkConstructorType(const DTypeConstructor& constructor,
                              TypeNode range);
+  TypeNode mkConstructorType(const std::vector<TypeNode>& args,
+                             TypeNode range);
 
   /** Make a type representing a selector with the given parameterization */
   inline TypeNode mkSelectorType(TypeNode domain, TypeNode range);

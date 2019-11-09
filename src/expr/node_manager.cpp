@@ -531,9 +531,8 @@ TypeNode NodeManager::mkConstructorType(const DTypeConstructor& constructor,
   std::vector<TypeNode> sorts;
   Debug("datatypes") << "ctor name: " << constructor.getName() << endl;
   for(unsigned i=0, nargs=constructor.getNumArgs(); i<nargs; i++) {
-    TypeNode selectorType = constructor.getArgType(i);
-    Debug("datatypes") << selectorType << endl;
-    TypeNode sort = selectorType[1];
+    TypeNode sort = constructor.getArgType(i);
+    Debug("datatypes") << sort << endl;
 
     // should be guaranteed here already, but just in case
     Assert(!sort.isFunctionLike());
@@ -544,6 +543,14 @@ TypeNode NodeManager::mkConstructorType(const DTypeConstructor& constructor,
   Debug("datatypes") << "ctor range: " << range << endl;
   PrettyCheckArgument(!range.isFunctionLike(), range,
                       "cannot create higher-order function types");
+  sorts.push_back(range);
+  return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
+}
+
+TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
+                            TypeNode range)
+{
+  std::vector<TypeNode> sorts = args;
   sorts.push_back(range);
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }

@@ -186,12 +186,16 @@ void Datatype::resolve(ExprManager* em,
   d_internal->resolve(resolutionsn, placeholdersn, replacementsn, paramTypesn, paramReplacementsn);
   Trace("dt-debug") << "Datatype::resolve: finished " << getName() << " " << d_constructors.size() << std::endl;
   AlwaysAssert(isResolved());
+  // 
+  d_self = d_internal->getTypeNode().toType();
   for (DatatypeConstructor& c : d_constructors)
   {
     AlwaysAssert(c.isResolved());
+    c.d_constructor = c.d_internal->getConstructor().toExpr();
     for (unsigned i=0, nargs=c.getNumArgs(); i<nargs; i++)
     {
-      AlwaysAssert(c[i].isResolved());
+      AlwaysAssert(c.d_args[i].isResolved());
+      c.d_args[i].d_selector = c.d_args[i].d_internal->getSelector().toExpr();
     }
   }
 }
@@ -252,7 +256,7 @@ Cardinality Datatype::getCardinality(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->getCardinality(tn);
 }
@@ -260,7 +264,7 @@ Cardinality Datatype::getCardinality(Type t) const
 Cardinality Datatype::getCardinality() const
 {
   PrettyCheckArgument(!isParametric(), this, "for getCardinality, this datatype cannot be parametric");
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   return d_internal->getCardinality();
 }
 
@@ -268,7 +272,7 @@ bool Datatype::isRecursiveSingleton(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->isRecursiveSingleton(tn);
 }
@@ -276,14 +280,14 @@ bool Datatype::isRecursiveSingleton(Type t) const
 bool Datatype::isRecursiveSingleton() const
 {
   PrettyCheckArgument(!isParametric(), this, "for isRecursiveSingleton, this datatype cannot be parametric");
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   return d_internal->isRecursiveSingleton();
 }
 
 unsigned Datatype::getNumRecursiveSingletonArgTypes(Type t) const
 {
   Assert(isRecursiveSingleton(t));
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->getNumRecursiveSingletonArgTypes(tn);
 }
@@ -291,14 +295,14 @@ unsigned Datatype::getNumRecursiveSingletonArgTypes(Type t) const
 unsigned Datatype::getNumRecursiveSingletonArgTypes() const
 {
   PrettyCheckArgument(!isParametric(), this, "for getNumRecursiveSingletonArgTypes, this datatype cannot be parametric");
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   return d_internal->getNumRecursiveSingletonArgTypes();
 }
 
 Type Datatype::getRecursiveSingletonArgType(Type t, unsigned i) const
 {
   Assert(isRecursiveSingleton(t));
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->getRecursiveSingletonArgType(tn, i).toType();
 }
@@ -306,7 +310,7 @@ Type Datatype::getRecursiveSingletonArgType(Type t, unsigned i) const
 Type Datatype::getRecursiveSingletonArgType(unsigned i) const
 {
   PrettyCheckArgument(!isParametric(), this, "for getRecursiveSingletonArgType, this datatype cannot be parametric");
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   return d_internal->getRecursiveSingletonArgType(i).toType();
 }
 
@@ -314,7 +318,7 @@ bool Datatype::isFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this); 
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->isFinite(tn);
 }
@@ -328,27 +332,27 @@ bool Datatype::isInterpretedFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->isInterpretedFinite(tn);
 }
 bool Datatype::isInterpretedFinite() const
 {
   PrettyCheckArgument(isResolved() && !isParametric(), this, "this datatype must be resolved and not parametric");
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   return d_internal->isInterpretedFinite();
 }
 
 bool Datatype::isWellFounded() const
 {
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   return d_internal->isWellFounded();
 }
 
 Expr Datatype::mkGroundTerm(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->mkGroundTerm(tn).toExpr();
 }
@@ -356,7 +360,7 @@ Expr Datatype::mkGroundTerm(Type t) const
 Expr Datatype::mkGroundValue(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->mkGroundValue(tn).toExpr();
 }
@@ -364,7 +368,7 @@ Expr Datatype::mkGroundValue(Type t) const
 DatatypeType Datatype::getDatatypeType() const
 {
   PrettyCheckArgument(isResolved(), *this, "Datatype must be resolved to get its DatatypeType");
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   Type self = d_internal->getTypeNode().toType();
   PrettyCheckArgument(!self.isNull(), *this);
   return DatatypeType(self);
@@ -373,7 +377,7 @@ DatatypeType Datatype::getDatatypeType() const
 DatatypeType Datatype::getDatatypeType(const std::vector<Type>& params) const
 {
   PrettyCheckArgument(isResolved(), *this, "Datatype must be resolved to get its DatatypeType");
-  ExprManagerScope ems(d_internal->getTypeNode().toType());
+  ExprManagerScope ems(d_self);
   Type self = d_internal->getTypeNode().toType();
   PrettyCheckArgument(!self.isNull() && DatatypeType(self).isParametric(), this);
   return DatatypeType(self).instantiate(params);
@@ -538,29 +542,32 @@ std::string DatatypeConstructor::getTesterName() const
 
 Expr DatatypeConstructor::getConstructor() const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_internal->getConstructor().toExpr();
+  return d_constructor;
 }
 
 Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   PrettyCheckArgument(returnType.isDatatype(), this, "cannot get specialized constructor type for non-datatype type");
-  ExprManagerScope ems(getConstructor());
+  ExprManagerScope ems(d_constructor);
   TypeNode tn = TypeNode::fromType(returnType);
   return d_internal->getSpecializedConstructorType(tn).toType();
 }
 
 Expr DatatypeConstructor::getTester() const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  ExprManagerScope ems(d_constructor);
   return d_internal->getTester().toExpr();
 }
 
 Expr DatatypeConstructor::getSygusOp() const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  ExprManagerScope ems(d_constructor);
   return d_internal->getSygusOp().toExpr();
 }
 
 bool DatatypeConstructor::isSygusIdFunc() const {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
+  ExprManagerScope ems(d_constructor);
   return d_internal->isSygusIdFunc();
 }
 
@@ -588,7 +595,7 @@ Cardinality DatatypeConstructor::getCardinality(Type t) const
 bool DatatypeConstructor::isFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  ExprManagerScope ems(getConstructor());
+  ExprManagerScope ems(d_constructor);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->isFinite(tn);
 }
@@ -596,7 +603,7 @@ bool DatatypeConstructor::isFinite(Type t) const
 bool DatatypeConstructor::isInterpretedFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
-  ExprManagerScope ems(getConstructor());
+  ExprManagerScope ems(d_constructor);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->isInterpretedFinite(tn);
 }
@@ -617,7 +624,7 @@ const DatatypeConstructorArg& DatatypeConstructor::operator[](std::string name) 
 }
 
 Expr DatatypeConstructor::getSelector(std::string name) const {
-  return (*this)[name].getSelector();
+  return (*this)[name].d_selector;
 }
 
 Type DatatypeConstructor::getArgType(unsigned index) const
@@ -651,18 +658,20 @@ std::string DatatypeConstructorArg::getName() const
 
 Expr DatatypeConstructorArg::getSelector() const {
   PrettyCheckArgument(isResolved(), this, "cannot get a selector for an unresolved datatype constructor");
-  return d_internal->getSelector().toExpr();
+  return d_selector;
 }
 
 Expr DatatypeConstructor::getSelectorInternal( Type domainType, size_t index ) const {
   PrettyCheckArgument(isResolved(), this, "cannot get an internal selector for an unresolved datatype constructor");
   PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
+  ExprManagerScope ems(d_constructor);
   TypeNode dtn = TypeNode::fromType(domainType);
   return d_internal->getSelectorInternal(dtn, index).toExpr();
 }
 
 int DatatypeConstructor::getSelectorIndexInternal( Expr sel ) const {
   PrettyCheckArgument(isResolved(), this, "cannot get an internal selector index for an unresolved datatype constructor");
+  ExprManagerScope ems(d_constructor);
   Node seln = Node::fromExpr(sel);
   return d_internal->getSelectorIndexInternal(seln);
 }
@@ -670,11 +679,12 @@ int DatatypeConstructor::getSelectorIndexInternal( Expr sel ) const {
 Expr DatatypeConstructorArg::getConstructor() const {
   PrettyCheckArgument(isResolved(), this,
                 "cannot get a associated constructor for argument of an unresolved datatype constructor");
+  ExprManagerScope ems(d_selector);
   return d_internal->getConstructor().toExpr();
 }
 
 SelectorType DatatypeConstructorArg::getType() const {
-  return getSelector().getType();
+  return d_selector.getType();
 }
 
 Type DatatypeConstructorArg::getRangeType() const {
@@ -684,7 +694,7 @@ Type DatatypeConstructorArg::getRangeType() const {
 bool DatatypeConstructorArg::isUnresolvedSelf() const
 {
   std::string name = getName();
-  return d_internal->d_selector.isNull() && name.size() == name.find('\0') + 1;
+  return d_selector.isNull() && name.size() == name.find('\0') + 1;
 }
 
 bool DatatypeConstructorArg::isResolved() const

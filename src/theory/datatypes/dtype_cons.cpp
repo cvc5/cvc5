@@ -100,6 +100,8 @@ Node DTypeConstructor::getConstructor() const
 {
   PrettyCheckArgument(
       isResolved(), this, "this datatype constructor is not yet resolved");
+  Trace("ajr-temp") << "getConstr : " << d_constructor << std::endl;
+  AlwaysAssert(!d_constructor.isNull());
   return d_constructor;
 }
 
@@ -543,21 +545,20 @@ bool DTypeConstructor::resolve(
 
   NodeManager* nm = NodeManager::currentNM();
   size_t index = 0;
-  for (std::vector<DTypeConstructorArg*>::iterator i = d_args.begin(),
-                                                  i_end = d_args.end();
-       i != i_end;
-       ++i)
+  std::vector<TypeNode> argTypes;
+  for (DTypeConstructorArg* arg : d_args)
   {
-    DTypeConstructorArg& arg = **i;
-    std::string argName = arg.d_name;
-    if (arg.d_selector.isNull())
+    std::string argName = arg->d_name;
+    TypeNode range;
+    if (arg->d_selector.isNull())
     {
       // the unresolved type wasn't created here; do name resolution
       std::string typeName = argName.substr(argName.find('\0') + 1);
       argName.resize(argName.find('\0'));
       if (typeName == "")
       {
-        arg.d_selector = nm->mkSkolem(
+        range = self;
+        arg->d_selector = nm->mkSkolem(
             argName,
             nm->mkSelectorType(self, self),
             "is a selector",
@@ -574,9 +575,10 @@ bool DTypeConstructor::resolve(
         }
         else
         {
-          arg.d_selector = nm->mkSkolem(
+          range = (*j).second;
+          arg->d_selector = nm->mkSkolem(
               argName,
-              nm->mkSelectorType(self, (*j).second),
+              nm->mkSelectorType(self, range),
               "is a selector",
               NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
         }
@@ -586,7 +588,7 @@ bool DTypeConstructor::resolve(
     {
       // the type for the selector already exists; may need
       // complex-type substitution
-      TypeNode range = arg.d_selector.getType();
+      range = arg->d_selector.getType();
       if (!placeholders.empty())
       {
         range = range.substitute(placeholders.begin(),
@@ -598,15 +600,16 @@ bool DTypeConstructor::resolve(
       {
         range = doParametricSubstitution(range, paramTypes, paramReplacements);
       }
-      arg.d_selector = nm->mkSkolem(
+      arg->d_selector = nm->mkSkolem(
           argName,
           nm->mkSelectorType(self, range),
           "is a selector",
           NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
     }
-    arg.d_selector.setAttribute(DTypeConsIndexAttr(), cindex);
-    arg.d_selector.setAttribute(DTypeIndexAttr(), index++);
-    arg.d_resolved = true;
+    arg->d_selector.setAttribute(DTypeConsIndexAttr(), cindex);
+    arg->d_selector.setAttribute(DTypeIndexAttr(), index++);
+    arg->d_resolved = true;
+    argTypes.push_back(range);
   }
 
   Assert(index == getNumArgs());
@@ -623,7 +626,7 @@ bool DTypeConstructor::resolve(
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   d_constructor = nm->mkSkolem(
       getName(),
-      nm->mkConstructorType(*this, self),
+      nm->mkConstructorType(argTypes, self),
       "is a constructor",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   Trace("ajr-temp") << "Type of constructor is " << d_constructor.getType() << std::endl;
