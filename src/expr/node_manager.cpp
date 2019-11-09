@@ -31,6 +31,7 @@
 #include "options/smt_options.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
+#include "theory/datatypes/dtype.h"
 
 using namespace std;
 using namespace CVC4::expr;
@@ -527,8 +528,24 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
 TypeNode NodeManager::mkConstructorType(const DTypeConstructor& constructor,
                                         TypeNode range)
 {
-  // FIXME
-  return TypeNode::null();
+  std::vector<TypeNode> sorts;
+  Debug("datatypes") << "ctor name: " << constructor.getName() << endl;
+  for(unsigned i=0, nargs=constructor.getNumArgs(); i<nargs; i++) {
+    TypeNode selectorType = constructor.getArgType(i);
+    Debug("datatypes") << selectorType << endl;
+    TypeNode sort = selectorType[1];
+
+    // should be guaranteed here already, but just in case
+    Assert(!sort.isFunctionLike());
+
+    Debug("datatypes") << "ctor sort: " << sort << endl;
+    sorts.push_back(sort);
+  }
+  Debug("datatypes") << "ctor range: " << range << endl;
+  PrettyCheckArgument(!range.isFunctionLike(), range,
+                      "cannot create higher-order function types");
+  sorts.push_back(range);
+  return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
 
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {

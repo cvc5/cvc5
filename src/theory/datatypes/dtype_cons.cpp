@@ -626,6 +626,8 @@ bool DTypeConstructor::resolve(
       nm->mkConstructorType(*this, self),
       "is a constructor",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
+  Trace("ajr-temp") << "Type of constructor is " << d_constructor.getType() << std::endl;
+  Assert( d_constructor.getType().isConstructor());
   // associate constructor with all selectors
   for (std::vector<DTypeConstructorArg*>::iterator i = d_args.begin(),
                                                   i_end = d_args.end();

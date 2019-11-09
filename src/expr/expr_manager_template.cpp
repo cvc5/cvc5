@@ -802,10 +802,9 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
            && TesterType(testerType).getRangeType() == booleanType())
         << "malformed tester in datatype post-resolution";
     Type ctorType CVC4_UNUSED = c.getConstructor().getType();
-    Assert(ctorType.isConstructor()
-           && ConstructorType(ctorType).getArity() == c.getNumArgs()
-           && ConstructorType(ctorType).getRangeType() == dtt)
-        << "malformed constructor in datatype post-resolution";
+    Assert(ctorType.isConstructor()) << "malformed cons " << c.getName();
+    Assert(ConstructorType(ctorType).getArity() == c.getNumArgs()) << "malformed cons " << c.getName();
+    Assert(ConstructorType(ctorType).getRangeType() == dtt) << "malformed cons " << c.getName();
     // for all selectors...
     for(DatatypeConstructor::const_iterator j = c.begin(), j_end = c.end();
         j != j_end;
