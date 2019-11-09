@@ -345,7 +345,7 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
         }
         else
         {
-          Assert(children.size()==1);
+          Assert(children.size() == 1);
           Node ef = children[0];
           // Otherwise, we are using the function-to-synthesize itself in a
           // higher-order setting. We must return the lambda term:
@@ -354,16 +354,16 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
           // function-to-synthesize.
           SygusTypeInfo& ti = tds->getTypeInfo(ef.getType());
           const std::vector<Node>& vars = ti.getVarList();
-          Assert( !vars.empty());
-          std::vector< Node > vs;
+          Assert(!vars.empty());
+          std::vector<Node> vs;
           for (const Node& v : vars)
           {
             vs.push_back(nm->mkBoundVar(v.getType()));
           }
-          Node lvl = nm->mkNode(BOUND_VAR_LIST,vs);
-          std::vector< Node > eargs;
+          Node lvl = nm->mkNode(BOUND_VAR_LIST, vs);
+          std::vector<Node> eargs;
           eargs.push_back(ef);
-          eargs.insert(eargs.end(),vs.begin(),vs.end());
+          eargs.insert(eargs.end(), vs.begin(), vs.end());
           ret = nm->mkNode(LAMBDA, lvl, nm->mkNode(DT_SYGUS_EVAL, eargs));
         }
       }

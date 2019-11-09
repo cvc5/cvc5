@@ -153,7 +153,7 @@ Node FunDefEvaluator::evaluate(Node n) const
           visited[cur] = ret;
         }
       }
-      else if (cur!=curEval && !curEval.isConst())
+      else if (cur != curEval && !curEval.isConst())
       {
         Trace("fd-eval-debug") << "from body " << cur << std::endl;
         // we had to evaluate our body, which should have a definition now
