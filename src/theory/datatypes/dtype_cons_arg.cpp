@@ -30,10 +30,7 @@ DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector)
       "cannot construct a datatype constructor arg without a name");
 }
 
-std::string DTypeConstructorArg::getName() const
-{
-  return d_name;
-}
+std::string DTypeConstructorArg::getName() const { return d_name; }
 
 Node DTypeConstructorArg::getSelector() const
 {

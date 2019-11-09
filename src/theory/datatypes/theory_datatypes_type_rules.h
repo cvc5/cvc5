@@ -60,7 +60,8 @@ struct DatatypeConstructorTypeRule {
       for (; child_it != child_it_end; ++child_it, ++tchild_it) {
         TypeNode childType = (*child_it).getType(check);
         if (!m.doMatching(*tchild_it, childType)) {
-          Trace("ajr-temp") << "Match failed " << *tchild_it << " " << childType << " in " << consType << std::endl;
+          Trace("ajr-temp") << "Match failed " << *tchild_it << " " << childType
+                            << " in " << consType << std::endl;
           throw TypeCheckingExceptionPrivate(
               n, "matching failed for parameterized constructor");
         }

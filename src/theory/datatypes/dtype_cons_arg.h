@@ -25,7 +25,6 @@
 
 namespace CVC4 {
 
-  
 class DatatypeConstructorArg;
 class DType;
 class DTypeConstructor;
@@ -42,7 +41,7 @@ class DTypeConstructorArg
  public:
   /** constructor */
   DTypeConstructorArg(std::string name, Node selector);
-  
+
   /** Get the name of this constructor argument. */
   std::string getName() const;
 

@@ -527,9 +527,9 @@ class DType;
  */
 class CVC4_PUBLIC Datatype {
   friend class DatatypeConstructor;
-  friend class NodeManager; // for access to d_internal
-  friend class ExprManager; // for access to resolve()
-public:
+  friend class NodeManager;  // for access to d_internal
+  friend class ExprManager;  // for access to resolve()
+ public:
   /**
    * Get the datatype of a constructor, selector, or tester operator.
    */
@@ -567,7 +567,9 @@ public:
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
+  Datatype(std::string name,
+           const std::vector<Type>& params,
+           bool isCo = false);
 
   ~Datatype();
 
@@ -645,7 +647,7 @@ public:
   size_t getNumParameters() const;
 
   /** Get parameter */
-  Type getParameter( unsigned int i ) const;
+  Type getParameter(unsigned int i) const;
 
   /** Get parameters */
   std::vector<Type> getParameters() const;
@@ -663,7 +665,7 @@ public:
   bool isRecord() const;
 
   /** get the record representation for this datatype */
-  Record * getRecord() const;
+  Record* getRecord() const;
 
   /**
    * Return the cardinality of this datatype.

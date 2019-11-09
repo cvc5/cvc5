@@ -65,7 +65,6 @@ class DTypeConstructor
   void addArg(std::string selectorName, TypeNode selectorType);
   void addArg(DTypeConstructorArg* a);
 
-
   /** Get the name of this DType constructor. */
   std::string getName() const;
 

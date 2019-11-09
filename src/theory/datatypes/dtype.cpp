@@ -169,12 +169,12 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
   {
     Trace("dt-debug") << "DType::resolve ctor " << std::endl;
     ctor->resolve(self,
-                 resolutions,
-                 placeholders,
-                 replacements,
-                 paramTypes,
-                 paramReplacements,
-                 index);
+                  resolutions,
+                  placeholders,
+                  replacements,
+                  paramTypes,
+                  paramReplacements,
+                  index);
     ctor->d_constructor.setAttribute(DTypeIndexAttr(), index);
     ctor->d_tester.setAttribute(DTypeIndexAttr(), index++);
     Assert(ctor->isResolved());
@@ -252,7 +252,7 @@ void DType::setTuple()
 
 Cardinality DType::getCardinality(TypeNode t) const
 {
-    Debug("datatypes") << "...getCardinality " << std::endl;
+  Debug("datatypes") << "...getCardinality " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   std::vector<TypeNode> processing;
@@ -271,7 +271,7 @@ Cardinality DType::getCardinality() const
 Cardinality DType::computeCardinality(TypeNode t,
                                       std::vector<TypeNode>& processing) const
 {
-    Debug("datatypes") << "...computeCardinality " << std::endl;
+  Debug("datatypes") << "...computeCardinality " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   if (std::find(processing.begin(), processing.end(), d_self)
       != processing.end())
@@ -292,7 +292,7 @@ Cardinality DType::computeCardinality(TypeNode t,
 
 bool DType::isRecursiveSingleton(TypeNode t) const
 {
-    Debug("datatypes") << "...isRecursiveSingleton " << std::endl;
+  Debug("datatypes") << "...isRecursiveSingleton " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   if (d_card_rec_singleton.find(t) != d_card_rec_singleton.end())
@@ -314,9 +314,9 @@ bool DType::isRecursiveSingleton(TypeNode t) const
     if (d_card_rec_singleton[t] == 1)
     {
       Trace("dt-card") << "DType " << getName()
-                        << " is recursive singleton, dependent upon "
-                        << d_card_u_assume[t].size()
-                        << " uninterpreted sorts: " << std::endl;
+                       << " is recursive singleton, dependent upon "
+                       << d_card_u_assume[t].size()
+                       << " uninterpreted sorts: " << std::endl;
       for (unsigned i = 0; i < d_card_u_assume[t].size(); i++)
       {
         Trace("dt-card") << "  " << d_card_u_assume[t][i] << std::endl;
@@ -377,7 +377,7 @@ bool DType::computeCardinalityRecSingleton(
     std::vector<TypeNode>& processing,
     std::vector<TypeNode>& u_assume) const
 {
-    Debug("datatypes") << "...computeCardinalityRecSingleton " << std::endl;
+  Debug("datatypes") << "...computeCardinalityRecSingleton " << std::endl;
   if (std::find(processing.begin(), processing.end(), d_self)
       != processing.end())
   {
@@ -443,7 +443,7 @@ bool DType::computeCardinalityRecSingleton(
 
 bool DType::isFinite(TypeNode t) const
 {
-    Debug("datatypes") << "...isFinite " << std::endl;
+  Debug("datatypes") << "...isFinite " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
 
@@ -475,7 +475,7 @@ bool DType::isFinite() const
 
 bool DType::isInterpretedFinite(TypeNode t) const
 {
-    Debug("datatypes") << "...isInterpretedFinite " << std::endl;
+  Debug("datatypes") << "...isInterpretedFinite " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   // is this already in the cache ?
@@ -526,7 +526,7 @@ bool DType::isWellFounded() const
 bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-    Debug("datatypes") << "...computeWellFounded " << std::endl;
+  Debug("datatypes") << "...computeWellFounded " << std::endl;
   if (std::find(processing.begin(), processing.end(), d_self)
       != processing.end())
   {
@@ -543,12 +543,12 @@ bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
     else
     {
       Trace("dt-wf") << "Constructor " << ctor->getName()
-                      << " is not well-founded." << std::endl;
+                     << " is not well-founded." << std::endl;
     }
   }
   processing.pop_back();
   Trace("dt-wf") << "DType " << getName() << " is not well-founded."
-                  << std::endl;
+                 << std::endl;
   return false;
 }
 
@@ -634,11 +634,10 @@ Node DType::computeGroundTerm(TypeNode t,
       // do nullary constructors first
       if ((ctor->getNumArgs() == 0) == (r == 0))
       {
-        Debug("datatypes")
-            << "Try constructing for " << ctor->getName()
-            << ", processing = " << processing.size() << std::endl;
-        Node e =
-            ctor->computeGroundTerm(t, processing, d_ground_term, isValue);
+        Debug("datatypes") << "Try constructing for " << ctor->getName()
+                           << ", processing = " << processing.size()
+                           << std::endl;
+        Node e = ctor->computeGroundTerm(t, processing, d_ground_term, isValue);
         if (!e.isNull())
         {
           // must check subterms for the same type to avoid infinite loops in

@@ -684,7 +684,7 @@ public:
    */
   TypeNode instantiateSortConstructor(
       const std::vector<TypeNode>& params) const;
-  
+
   /** Get the most general base type of the type */
   TypeNode getBaseType() const;
 

@@ -29,9 +29,9 @@
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "theory/datatypes/dtype.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
-#include "theory/datatypes/dtype.h"
 
 using namespace std;
 using namespace CVC4::expr;
@@ -262,7 +262,7 @@ const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
 const DType& NodeManager::getDTypeForIndex(unsigned index) const
 {
   Trace("ajr-temp") << "getDTypeForIndex " << index << std::endl;
-  const Datatype & d = getDatatypeForIndex(index);
+  const Datatype& d = getDatatypeForIndex(index);
   // return its internal representation
   return *d.d_internal;
 }
@@ -530,7 +530,8 @@ TypeNode NodeManager::mkConstructorType(const DTypeConstructor& constructor,
 {
   std::vector<TypeNode> sorts;
   Trace("datatypes") << "ctor name: " << constructor.getName() << endl;
-  for(unsigned i=0, nargs=constructor.getNumArgs(); i<nargs; i++) {
+  for (unsigned i = 0, nargs = constructor.getNumArgs(); i < nargs; i++)
+  {
     TypeNode sort = constructor.getArgType(i);
     Trace("datatypes") << sort << endl;
 
@@ -541,14 +542,15 @@ TypeNode NodeManager::mkConstructorType(const DTypeConstructor& constructor,
     sorts.push_back(sort);
   }
   Trace("datatypes") << "ctor range: " << range << endl;
-  PrettyCheckArgument(!range.isFunctionLike(), range,
+  PrettyCheckArgument(!range.isFunctionLike(),
+                      range,
                       "cannot create higher-order function types");
   sorts.push_back(range);
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
 
 TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
-                            TypeNode range)
+                                        TypeNode range)
 {
   std::vector<TypeNode> sorts = args;
   sorts.push_back(range);

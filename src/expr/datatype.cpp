@@ -30,9 +30,9 @@
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
 #include "options/set_language.h"
-#include "theory/type_enumerator.h"
 #include "theory/datatypes/dtype.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/type_enumerator.h"
 
 using namespace std;
 
@@ -43,23 +43,18 @@ Datatype::~Datatype(){
 }
 
 Datatype::Datatype(std::string name, bool isCo)
-    : d_internal(nullptr),
-      d_record(NULL),
-      d_isRecord(false),
-      d_constructors() {
+    : d_internal(nullptr), d_record(NULL), d_isRecord(false), d_constructors()
+{
   Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
   d_internal = new DType(name, isCo);
   Trace("ajr-temp") << "Datatype::Datatype finished" << std::endl;
 }
 
-Datatype::Datatype(std::string name, const std::vector<Type>& params,
-                          bool isCo)
-    : d_internal(nullptr),
-      d_record(NULL),
-      d_isRecord(false),
-      d_constructors(){
+Datatype::Datatype(std::string name, const std::vector<Type>& params, bool isCo)
+    : d_internal(nullptr), d_record(NULL), d_isRecord(false), d_constructors()
+{
   Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
-  std::vector<TypeNode > paramsn;
+  std::vector<TypeNode> paramsn;
   for (const Type& t : params)
   {
     paramsn.push_back(TypeNode::fromType(t));
@@ -130,24 +125,26 @@ void Datatype::resolve(ExprManager* em,
 {
   PrettyCheckArgument(em != NULL, em, "cannot resolve a Datatype with a NULL expression manager");
   PrettyCheckArgument(!isResolved(), this, "cannot resolve a Datatype twice");
-  PrettyCheckArgument(resolutions.find(getName()) != resolutions.end(), resolutions,
-                "Datatype::resolve(): resolutions doesn't contain me!");
+  PrettyCheckArgument(resolutions.find(getName()) != resolutions.end(),
+                      resolutions,
+                      "Datatype::resolve(): resolutions doesn't contain me!");
   PrettyCheckArgument(placeholders.size() == replacements.size(), placeholders,
                 "placeholders and replacements must be the same size");
   PrettyCheckArgument(paramTypes.size() == paramReplacements.size(), paramTypes,
                 "paramTypes and paramReplacements must be the same size");
   PrettyCheckArgument(getNumConstructors() > 0, *this, "cannot resolve a Datatype that has no constructors");
-  
+
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(*em);
-  
-  Trace("datatypes") << "Datatype::resolve: " << getName() << ", #placeholders=" << placeholders.size() << std::endl;
-  
+
+  Trace("datatypes") << "Datatype::resolve: " << getName()
+                     << ", #placeholders=" << placeholders.size() << std::endl;
+
   std::map<std::string, TypeNode> resolutionsn;
   std::vector<TypeNode> placeholdersn;
   std::vector<TypeNode> replacementsn;
-  std::vector< TypeNode > paramTypesn;
-  std::vector< TypeNode > paramReplacementsn;
+  std::vector<TypeNode> paramTypesn;
+  std::vector<TypeNode> paramReplacementsn;
   for (const std::pair<const std::string, DatatypeType>& r : resolutions)
   {
     resolutionsn[r.first] = TypeNode::fromType(r.second);
@@ -168,35 +165,40 @@ void Datatype::resolve(ExprManager* em,
   {
     paramReplacementsn.push_back(TypeNode::fromType(t));
   }
-  d_internal->resolve(resolutionsn, placeholdersn, replacementsn, paramTypesn, paramReplacementsn);
-  Trace("dt-debug") << "Datatype::resolve: finished " << getName() << " " << d_constructors.size() << std::endl;
+  d_internal->resolve(resolutionsn,
+                      placeholdersn,
+                      replacementsn,
+                      paramTypesn,
+                      paramReplacementsn);
+  Trace("dt-debug") << "Datatype::resolve: finished " << getName() << " "
+                    << d_constructors.size() << std::endl;
   AlwaysAssert(isResolved());
-  // 
+  //
   d_self = d_internal->getTypeNode().toType();
   for (DatatypeConstructor& c : d_constructors)
   {
     AlwaysAssert(c.isResolved());
     c.d_constructor = c.d_internal->getConstructor().toExpr();
-    for (unsigned i=0, nargs=c.getNumArgs(); i<nargs; i++)
+    for (unsigned i = 0, nargs = c.getNumArgs(); i < nargs; i++)
     {
       AlwaysAssert(c.d_args[i].isResolved());
       c.d_args[i].d_selector = c.d_args[i].d_internal->getSelector().toExpr();
     }
   }
-  
+
   if( d_isRecord ){
     std::vector< std::pair<std::string, Type> > fields;
     for( unsigned i=0; i<(*this)[0].getNumArgs(); i++ ){
       fields.push_back( std::pair<std::string, Type>( (*this)[0][i].getName(), (*this)[0][i].getRangeType() ) );
     }
     d_record = new Record(fields);
-  }  
+  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
   Trace("dt-debug") << "Datatype::addConstructor" << std::endl;
-  PrettyCheckArgument(!isResolved(), this,
-                "cannot add a constructor to a finalized Datatype");
+  PrettyCheckArgument(
+      !isResolved(), this, "cannot add a constructor to a finalized Datatype");
   d_constructors.push_back(c);
   d_internal->addConstructor(c.d_internal);
   Trace("dt-debug") << "Datatype::addConstructor: finished" << std::endl;
@@ -204,8 +206,8 @@ void Datatype::addConstructor(const DatatypeConstructor& c) {
 
 
 void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
-  PrettyCheckArgument(!isResolved(), this,
-                      "cannot set sygus type to a finalized Datatype");    
+  PrettyCheckArgument(
+      !isResolved(), this, "cannot set sygus type to a finalized Datatype");
   TypeNode stn = TypeNode::fromType(st);
   Node bvln = Node::fromExpr(bvl);
   d_internal->setSygus(stn, bvln, allow_const, allow_all);
@@ -236,12 +238,14 @@ void Datatype::addSygusConstructor(Expr op,
 }
                                     
 void Datatype::setTuple() {
-  PrettyCheckArgument(!isResolved(), this, "cannot set tuple to a finalized Datatype");
+  PrettyCheckArgument(
+      !isResolved(), this, "cannot set tuple to a finalized Datatype");
   d_internal->setTuple();
 }
 
 void Datatype::setRecord() {
-  PrettyCheckArgument(!isResolved(), this, "cannot set record to a finalized Datatype");
+  PrettyCheckArgument(
+      !isResolved(), this, "cannot set record to a finalized Datatype");
   d_isRecord = true;
 }
 
@@ -310,7 +314,7 @@ Type Datatype::getRecursiveSingletonArgType(unsigned i) const
 bool Datatype::isFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this); 
+  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->isFinite(tn);
@@ -372,7 +376,8 @@ DatatypeType Datatype::getDatatypeType(const std::vector<Type>& params) const
   PrettyCheckArgument(isResolved(), *this, "Datatype must be resolved to get its DatatypeType");
   ExprManagerScope ems(d_self);
   Type self = d_internal->getTypeNode().toType();
-  PrettyCheckArgument(!self.isNull() && DatatypeType(self).isParametric(), this);
+  PrettyCheckArgument(!self.isNull() && DatatypeType(self).isParametric(),
+                      this);
   return DatatypeType(self).instantiate(params);
 }
 
@@ -399,7 +404,10 @@ const DatatypeConstructor& Datatype::operator[](std::string name) const {
     }
   }
   std::string dname = getName();
-  IllegalArgument(name, "No such constructor `%s' of datatype `%s'", name.c_str(), dname.c_str());
+  IllegalArgument(name,
+                  "No such constructor `%s' of datatype `%s'",
+                  name.c_str(),
+                  dname.c_str());
 }
 
 Expr Datatype::getConstructor(std::string name) const {
@@ -439,13 +447,16 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
     :  // We don't want to introduce a new data member, because eventually
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
-       // resolution. 
+       // resolution.
       d_internal(nullptr)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
-  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: make internal" << std::endl;
-  d_internal = new DTypeConstructor(name,std::string("is_" + name),1);
-  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: finished" << std::endl;
+  Trace("ajr-temp")
+      << "DatatypeConstructor::DatatypeConstructor 1: make internal"
+      << std::endl;
+  d_internal = new DTypeConstructor(name, std::string("is_" + name), 1);
+  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: finished"
+                    << std::endl;
 }
 
 DatatypeConstructor::DatatypeConstructor(std::string name,
@@ -459,9 +470,12 @@ DatatypeConstructor::DatatypeConstructor(std::string name,
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
-  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 2: make internal" << std::endl;
+  Trace("ajr-temp")
+      << "DatatypeConstructor::DatatypeConstructor 2: make internal"
+      << std::endl;
   d_internal = new DTypeConstructor(name, tester, weight);
-  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 2: finished" << std::endl;
+  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 2: finished"
+                    << std::endl;
 }
 
 void DatatypeConstructor::setSygus(Expr op,
@@ -522,8 +536,8 @@ void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
 
 std::string DatatypeConstructor::getName() const
 {
-  //std::string name = d_internal->getName();
-  //return name.substr(0, name.find('\0'));
+  // std::string name = d_internal->getName();
+  // return name.substr(0, name.find('\0'));
   return d_internal->getName();
 }
 
@@ -614,7 +628,10 @@ const DatatypeConstructorArg& DatatypeConstructor::operator[](std::string name) 
     }
   }
   std::string dname = getName();
-  IllegalArgument(name, "No such arg `%s' of constructor `%s'", name.c_str(), dname.c_str());
+  IllegalArgument(name,
+                  "No such arg `%s' of constructor `%s'",
+                  name.c_str(),
+                  dname.c_str());
 }
 
 Expr DatatypeConstructor::getSelector(std::string name) const {
@@ -635,8 +652,9 @@ bool DatatypeConstructor::involvesUninterpretedType() const{
   return d_internal->involvesUninterpretedType();
 }
 
-DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector) :
-  d_internal(new DTypeConstructorArg(name,Node::fromExpr(selector))) {
+DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector)
+    : d_internal(new DTypeConstructorArg(name, Node::fromExpr(selector)))
+{
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor arg without a name");
 }
 
@@ -717,10 +735,7 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt)
   return os;
 }
 
-void Datatype::toStream(std::ostream& out) const
-{
-  d_internal->toStream(out);
-}
+void Datatype::toStream(std::ostream& out) const { d_internal->toStream(out); }
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
   // can only output datatypes in the CVC4 native language
@@ -751,8 +766,6 @@ std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) {
   return out << "index_" << dic.getIndex();
 }
 
-
-
 std::string Datatype::getName() const { return d_internal->getName(); }
 size_t Datatype::getNumConstructors() const
 {
@@ -760,65 +773,58 @@ size_t Datatype::getNumConstructors() const
 }
 
 bool Datatype::isParametric() const { return d_internal->isParametric(); }
-size_t Datatype::getNumParameters() const { return d_internal->getNumParameters(); }
-Type Datatype::getParameter( unsigned int i ) const {
-  CheckArgument(isParametric(), this,
+size_t Datatype::getNumParameters() const
+{
+  return d_internal->getNumParameters();
+}
+Type Datatype::getParameter(unsigned int i) const
+{
+  CheckArgument(isParametric(),
+                this,
                 "Cannot get type parameter of a non-parametric datatype.");
-  CheckArgument(i < getNumParameters(), i,
+  CheckArgument(i < getNumParameters(),
+                i,
                 "Type parameter index out of range for datatype.");
   return d_internal->getParameter(i).toType();
 }
 
-std::vector<Type> Datatype::getParameters() const {
-  CheckArgument(isParametric(), this,
+std::vector<Type> Datatype::getParameters() const
+{
+  CheckArgument(isParametric(),
+                this,
                 "Cannot get type parameters of a non-parametric datatype.");
   std::vector<Type> params;
-  std::vector<TypeNode > paramsn = d_internal->getParameters();
+  std::vector<TypeNode> paramsn = d_internal->getParameters();
   // convert to type
-  for (unsigned i=0, nparams = paramsn.size(); i<nparams; i++)
+  for (unsigned i = 0, nparams = paramsn.size(); i < nparams; i++)
   {
     params.push_back(paramsn[i].toType());
   }
   return params;
 }
 
-bool Datatype::isCodatatype() const {
-  return d_internal->isCodatatype();
-}
+bool Datatype::isCodatatype() const { return d_internal->isCodatatype(); }
 
-bool Datatype::isSygus() const {
-  return d_internal->isSygus();
-}
+bool Datatype::isSygus() const { return d_internal->isSygus(); }
 
-bool Datatype::isTuple() const {
-  return d_internal->isTuple();
-}
+bool Datatype::isTuple() const { return d_internal->isTuple(); }
 
-bool Datatype::isRecord() const {
-  return d_isRecord;
-}
+bool Datatype::isRecord() const { return d_isRecord; }
 
-Record * Datatype::getRecord() const {
-  return d_record;
-}
+Record* Datatype::getRecord() const { return d_record; }
 bool Datatype::operator!=(const Datatype& other) const
 {
   return !(*this == other);
 }
 
-bool Datatype::isResolved() const { 
+bool Datatype::isResolved() const
+{
   Trace("ajr-temp") << "Datatype::isResolved? " << d_internal << std::endl;
-  return d_internal->isResolved(); 
+  return d_internal->isResolved();
 }
-Datatype::iterator Datatype::begin()
-{
-  return iterator(d_constructors, true);
-}
+Datatype::iterator Datatype::begin() { return iterator(d_constructors, true); }
 
-Datatype::iterator Datatype::end()
-{
-  return iterator(d_constructors, false);
-}
+Datatype::iterator Datatype::end() { return iterator(d_constructors, false); }
 
 Datatype::const_iterator Datatype::begin() const
 {

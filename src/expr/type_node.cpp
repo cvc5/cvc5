@@ -451,7 +451,7 @@ TypeNode TypeNode::instantiateParametricDatatype(
 }
 
 TypeNode TypeNode::instantiateSortConstructor(
-const std::vector<TypeNode>& params) const
+    const std::vector<TypeNode>& params) const
 {
   return NodeManager::currentNM()->mkSort(*this, params);
 }

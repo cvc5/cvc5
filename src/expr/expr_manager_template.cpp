@@ -682,8 +682,9 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
     dt_copies.push_back( new Datatype( *i ) );
   }
-  Trace("dt-debug") << "ExprManager::mkMutualDatatypeTypes done copy" << std::endl;
-  
+  Trace("dt-debug") << "ExprManager::mkMutualDatatypeTypes done copy"
+                    << std::endl;
+
   // First do some sanity checks, set up the final Type to be used for
   // each datatype, and set up the "named resolutions" used to handle
   // simple self- and mutual-recursion, for example in the definition
@@ -803,8 +804,10 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
         << "malformed tester in datatype post-resolution";
     Type ctorType CVC4_UNUSED = c.getConstructor().getType();
     Assert(ctorType.isConstructor()) << "malformed cons " << c.getName();
-    Assert(ConstructorType(ctorType).getArity() == c.getNumArgs()) << "malformed cons " << c.getName();
-    Assert(ConstructorType(ctorType).getRangeType() == dtt) << "malformed cons " << c.getName();
+    Assert(ConstructorType(ctorType).getArity() == c.getNumArgs())
+        << "malformed cons " << c.getName();
+    Assert(ConstructorType(ctorType).getRangeType() == dtt)
+        << "malformed cons " << c.getName();
     // for all selectors...
     for(DatatypeConstructor::const_iterator j = c.begin(), j_end = c.end();
         j != j_end;
@@ -823,7 +826,8 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
           << "cannot put function-like things in datatypes";
     }
   }
-  Trace("ajr-temp") << "ExprManager::checkResolvedDatatype finished" << std::endl;
+  Trace("ajr-temp") << "ExprManager::checkResolvedDatatype finished"
+                    << std::endl;
 }
 
 ConstructorType ExprManager::mkConstructorType(const DatatypeConstructor& constructor, Type range) const {
