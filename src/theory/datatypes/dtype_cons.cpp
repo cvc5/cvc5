@@ -33,10 +33,7 @@ DTypeConstructor::DTypeConstructor(std::string name)
       d_args(),
       d_weight(1)
 {
-  Trace("ajr-temp") << "DTypeConstructor::DTypeConstructor 1" << std::endl;
-  PrettyCheckArgument(name != "",
-                      name,
-                      "cannot construct a datatype constructor without a name");
+  Assert(name != "") << "cannot construct a datatype constructor without a name";
 }
 
 DTypeConstructor::DTypeConstructor(std::string name,
@@ -51,29 +48,20 @@ DTypeConstructor::DTypeConstructor(std::string name,
       d_args(),
       d_weight(weight)
 {
-  Trace("ajr-temp") << "DTypeConstructor::DTypeConstructor 2" << std::endl;
-  PrettyCheckArgument(name != "",
-                      name,
-                      "cannot construct a datatype constructor without a name");
-  PrettyCheckArgument(
-      !tester.empty(),
-      tester,
-      "cannot construct a datatype constructor without a tester");
-  Trace("ajr-temp") << "DTypeConstructor::DTypeConstructor 2 finished"
-                    << std::endl;
+  Assert(name != "") << "cannot construct a datatype constructor without a name";
+  Assert(!tester.empty()) << "cannot construct a datatype constructor without a tester";
 }
 
 void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
 {
-  Trace("ajr-temp") << "DTypeConstructor::addArg" << std::endl;
   // We don't want to introduce a new data member, because eventually
   // we're going to be a constant stuffed inside a node.  So we stow
   // the selector type away inside a var until resolution (when we can
   // create the proper selector type)
-  PrettyCheckArgument(
-      !isResolved(), this, "cannot modify a finalized DType constructor");
-  PrettyCheckArgument(
-      !selectorType.isNull(), selectorType, "cannot add a null selector type");
+  Assert(
+      !isResolved()) << "cannot modify a finalized DType constructor";
+  Assert(
+      !selectorType.isNull()) <<  "cannot add a null selector type";
 
   Node type = NodeManager::currentNM()->mkSkolem(
       "unresolved_" + selectorName,
@@ -94,17 +82,15 @@ std::string DTypeConstructor::getName() const
 
 Node DTypeConstructor::getConstructor() const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
-  Trace("ajr-temp") << "getConstr : " << d_constructor << std::endl;
-  AlwaysAssert(!d_constructor.isNull());
+  Assert(
+      isResolved()) << "this datatype constructor is not yet resolved";
   return d_constructor;
 }
 
 Node DTypeConstructor::getTester() const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
+  Assert(
+      isResolved()) << "this datatype constructor is not yet resolved";
   return d_tester;
 }
 
@@ -115,30 +101,30 @@ std::string DTypeConstructor::getTesterName() const
 
 void DTypeConstructor::setSygus(Node op)
 {
-  PrettyCheckArgument(
-      !isResolved(), this, "cannot modify a finalized DType constructor");
+  Assert(
+      !isResolved()) << "cannot modify a finalized DType constructor";
   d_sygus_op = op;
 }
 
 Node DTypeConstructor::getSygusOp() const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
+  Assert(
+      isResolved()) << "this datatype constructor is not yet resolved";
   return d_sygus_op;
 }
 
 bool DTypeConstructor::isSygusIdFunc() const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
+  Assert(
+      isResolved()) << "this datatype constructor is not yet resolved";
   return (d_sygus_op.getKind() == LAMBDA && d_sygus_op[0].getNumChildren() == 1
           && d_sygus_op[0][0] == d_sygus_op[1]);
 }
 
 unsigned DTypeConstructor::getWeight() const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
+  Assert(
+      isResolved()) << "this datatype constructor is not yet resolved";
   return d_weight;
 }
 
@@ -147,15 +133,13 @@ size_t DTypeConstructor::getNumArgs() const { return d_args.size(); }
 TypeNode DTypeConstructor::getSpecializedConstructorType(
     TypeNode returnType) const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
-  PrettyCheckArgument(
-      returnType.isDatatype(),
-      this,
-      "cannot get specialized constructor type for non-datatype type");
+  Assert(
+      isResolved()) << "this datatype constructor is not yet resolved";
+  Assert(
+      returnType.isDatatype()) <<  "cannot get specialized constructor type for non-datatype type";
   const DType& dt = DType::datatypeOf(d_constructor);
-  PrettyCheckArgument(
-      dt.isParametric(), this, "this datatype constructor is not parametric");
+  Assert(
+      dt.isParametric()) << "this datatype constructor is not parametric";
   TypeNode dtt = dt.getTypeNode();
   TypeMatcher m(dtt);
   m.doMatching(dtt, returnType);
@@ -173,8 +157,8 @@ const std::vector< std::shared_ptr<DTypeConstructorArg> >& DTypeConstructor::get
 
 Cardinality DTypeConstructor::getCardinality(TypeNode t) const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
+  Assert(
+      isResolved()) << "this datatype constructor is not yet resolved";
 
   Cardinality c = 1;
 
@@ -188,8 +172,8 @@ Cardinality DTypeConstructor::getCardinality(TypeNode t) const
 
 bool DTypeConstructor::isFinite(TypeNode t) const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
+  Assert(
+      isResolved()) << "this datatype constructor is not yet resolved";
 
   TNode self = d_constructor;
   // is this already in the cache ?
@@ -229,8 +213,8 @@ bool DTypeConstructor::isFinite(TypeNode t) const
 
 bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
+  Assert(
+      isResolved()) << "this datatype constructor is not yet resolved";
   TNode self = d_constructor;
   // is this already in the cache ?
   if (self.getAttribute(DTypeUFiniteComputedAttr()))
@@ -271,24 +255,23 @@ bool DTypeConstructor::isResolved() const { return !d_tester.isNull(); }
 
 const DTypeConstructorArg& DTypeConstructor::operator[](size_t index) const
 {
-  PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
+  Assert(index < getNumArgs()) << "index out of bounds";
   return *d_args[index];
 }
 
 TypeNode DTypeConstructor::getArgType(unsigned index) const
 {
-  PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
+  Assert(index < getNumArgs()) << "index out of bounds";
   return (*this)[index].getType().getSelectorRangeType();
 }
 
 Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
                                            size_t index) const
 {
-  PrettyCheckArgument(
-      isResolved(),
-      this,
-      "cannot get an internal selector for an unresolved datatype constructor");
-  PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
+  Assert(
+      isResolved()) <<
+      "cannot get an internal selector for an unresolved datatype constructor";
+  Assert(index < getNumArgs()) << "index out of bounds";
   if (options::dtSharedSelectors())
   {
     computeSharedSelectors(domainType);
@@ -303,10 +286,7 @@ Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
 
 int DTypeConstructor::getSelectorIndexInternal(Node sel) const
 {
-  PrettyCheckArgument(isResolved(),
-                      this,
-                      "cannot get an internal selector index for an unresolved "
-                      "datatype constructor");
+  Assert(isResolved()) << "cannot get an internal selector index for an unresolved datatype constructor";
   if (options::dtSharedSelectors())
   {
     Assert(sel.getType().isSelector());
@@ -523,10 +503,7 @@ bool DTypeConstructor::resolve(
     const std::vector<TypeNode>& paramReplacements,
     size_t cindex)
 {
-  PrettyCheckArgument(!isResolved(),
-                      "cannot resolve a DType constructor twice; "
-                      "perhaps the same constructor was added twice, "
-                      "or to two datatypes?");
+  Assert(!isResolved()) <<  "cannot resolve a DType constructor twice; perhaps the same constructor was added twice, or to two datatypes?";
   Trace("datatypes") << "DTypeConstructor::resolve, self type is " << self
                      << std::endl;
 
@@ -545,7 +522,6 @@ bool DTypeConstructor::resolve(
       if (typeName == "")
       {
         range = self;
-        Trace("ajr-temp") << "- Take self " << range << std::endl;
         arg->d_selector = nm->mkSkolem(
             argName,
             nm->mkSelectorType(self, self),
@@ -564,7 +540,6 @@ bool DTypeConstructor::resolve(
         else
         {
           range = (*j).second;
-          Trace("ajr-temp") << "- Take resolution " << range << std::endl;
           arg->d_selector = nm->mkSkolem(
               argName,
               nm->mkSelectorType(self, range),
@@ -585,23 +560,9 @@ bool DTypeConstructor::resolve(
                                  replacements.begin(),
                                  replacements.end());
       }
-      Trace("ajr-temp") << "- Take substitution on selector " << range
-                        << " under" << std::endl;
-      for (unsigned i = 0; i < placeholders.size(); i++)
-      {
-        Trace("ajr-temp") << "  " << placeholders[i] << " -> "
-                          << replacements[i] << std::endl;
-      }
       if (!paramTypes.empty())
       {
         range = doParametricSubstitution(range, paramTypes, paramReplacements);
-      }
-      Trace("ajr-temp") << "- After param subs #" << paramTypes.size() << ", "
-                        << range << std::endl;
-      for (unsigned i = 0; i < paramTypes.size(); i++)
-      {
-        Trace("ajr-temp") << "  " << paramTypes[i] << " -> "
-                          << paramReplacements[i] << std::endl;
       }
       arg->d_selector = nm->mkSkolem(
           argName,
@@ -632,17 +593,13 @@ bool DTypeConstructor::resolve(
       nm->mkConstructorType(argTypes, self),
       "is a constructor",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
-  Trace("ajr-temp") << "Type of constructor is " << d_constructor.getType()
-                    << std::endl;
   Assert(d_constructor.getType().isConstructor());
   // associate constructor with all selectors
   for (std::shared_ptr<DTypeConstructorArg> sel : d_args)
   {
     sel->d_constructor = d_constructor;
   }
-  Trace("ajr-temp") << "DTypeConstructor::resolve: " << this << " is resolved?"
-                    << std::endl;
-  AlwaysAssert(isResolved());
+  Assert(isResolved());
   return true;
 }
 
@@ -653,7 +610,6 @@ TypeNode DTypeConstructor::doParametricSubstitution(
 {
   if (range.getNumChildren() == 0)
   {
-    Trace("ajr-temp") << "dps: return std " << range << std::endl;
     return range;
   }
   std::vector<TypeNode> origChildren;
@@ -668,18 +624,13 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   }
   for (unsigned i = 0; i < paramTypes.size(); ++i)
   {
-    Trace("ajr-temp") << "dps: look at " << paramTypes[i] << " "
-                      << paramTypes[i].getNumChildren() << " "
-                      << origChildren.size() << std::endl;
     if (paramTypes[i].getNumChildren() + 1 == origChildren.size())
     {
       TypeNode tn = paramTypes[i].instantiateSortConstructor(origChildren);
-      Trace("ajr-temp") << "dps: try " << range << " == " << tn << std::endl;
       if (range == tn)
       {
         TypeNode tret =
             paramReplacements[i].instantiateParametricDatatype(children);
-        Trace("ajr-temp") << "dps: success! " << tret << std::endl;
         return tret;
       }
     }
@@ -690,14 +641,11 @@ TypeNode DTypeConstructor::doParametricSubstitution(
     nb << children[i];
   }
   TypeNode tn = nb.constructTypeNode();
-  Trace("ajr-temp") << "doParametricSubstitution for " << range << " returns "
-                    << tn << std::endl;
   return tn;
 }
 
 void DTypeConstructor::toStream(std::ostream& out) const
 {
-  Trace("ajr-temp2") << "DTypeConstructor::toStream" << std::endl;
   out << getName();
 
   unsigned nargs = getNumArgs();

@@ -23,30 +23,22 @@ namespace CVC4 {
 DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector)
     : d_name(name), d_selector(selector), d_resolved(false)
 {
-  Trace("ajr-temp") << "DTypeConstructorArg::DTypeConstructorArg" << std::endl;
-  PrettyCheckArgument(
-      name != "",
-      name,
-      "cannot construct a datatype constructor arg without a name");
+  Assert(
+      name != "") <<
+      "cannot construct a datatype constructor arg without a name";
 }
 
 std::string DTypeConstructorArg::getName() const { return d_name; }
 
 Node DTypeConstructorArg::getSelector() const
 {
-  PrettyCheckArgument(
-      isResolved(),
-      this,
-      "cannot get a selector for an unresolved datatype constructor");
+  Assert(d_resolved) << "cannot get a selector for an unresolved datatype constructor";
   return d_selector;
 }
 
 Node DTypeConstructorArg::getConstructor() const
 {
-  PrettyCheckArgument(isResolved(),
-                      this,
-                      "cannot get a associated constructor for argument of an "
-                      "unresolved datatype constructor");
+  Assert(d_resolved) << "Cannot get a associated constructor for argument of an unresolved datatype constructor";
   return d_constructor;
 }
 
@@ -62,29 +54,14 @@ TypeNode DTypeConstructorArg::getRangeType() const
 
 bool DTypeConstructorArg::isResolved() const
 {
-  // We could just write:
-  //
-  //   return !d_selector.isNull() && d_selector.getType().isSelector();
-  //
-  // HOWEVER, this causes problems in NodeManager tear-down, because
-  // the attributes are removed before the pool is purged.  When the
-  // pool is purged, this triggers an equality test between DTypes,
-  // and this triggers a call to isResolved(), which breaks because
-  // d_selector has no type after attributes are stripped.
-  //
-  // This problem, coupled with the fact that this function is called
-  // _often_, means we should just use a boolean flag.
-  //
   return d_resolved;
 }
 
 void DTypeConstructorArg::toStream(std::ostream& out) const
 {
-  Trace("ajr-temp2") << "DTypeConstructorArg::toStream" << std::endl;
   out << getName() << ": ";
-
   TypeNode t;
-  if (isResolved())
+  if (d_resolved)
   {
     t = getRangeType();
   }
