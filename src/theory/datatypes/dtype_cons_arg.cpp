@@ -83,6 +83,7 @@ bool DTypeConstructorArg::isResolved() const
 
 void DTypeConstructorArg::toStream(std::ostream& out) const
 {
+  Trace("ajr-temp") << "DTypeConstructorArg::toStream" << std::endl;
   out << getName() << ": ";
 
   TypeNode t;

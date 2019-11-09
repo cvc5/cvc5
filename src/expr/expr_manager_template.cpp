@@ -790,6 +790,7 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
 
   AssertArgument(dt.isResolved(), dtt, "datatype should have been resolved");
 
+  Trace("ajr-temp") << "ExprManager::checkResolvedDatatype..." << std::endl;
   // for all constructors...
   for(Datatype::const_iterator i = dt.begin(), i_end = dt.end();
       i != i_end;
@@ -823,6 +824,7 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
           << "cannot put function-like things in datatypes";
     }
   }
+  Trace("ajr-temp") << "ExprManager::checkResolvedDatatype finished" << std::endl;
 }
 
 ConstructorType ExprManager::mkConstructorType(const DatatypeConstructor& constructor, Type range) const {

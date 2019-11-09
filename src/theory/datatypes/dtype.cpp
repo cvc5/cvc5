@@ -145,6 +145,7 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
                     const std::vector<TypeNode>& paramTypes,
                     const std::vector<TypeNode>& paramReplacements)
 {
+  Trace("dt-debug") << "DType::resolve: " << std::endl;
   PrettyCheckArgument(!d_resolved, this, "cannot resolve a DTypeNode twice");
   PrettyCheckArgument(resolutions.find(d_name) != resolutions.end(),
                       resolutions,
@@ -164,29 +165,32 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
                       "DType::resolve(): resolutions doesn't contain me!");
   d_resolved = true;
   size_t index = 0;
-  for (DTypeConstructor& ctor : d_constructors)
+  for (DTypeConstructor* ctor : d_constructors)
   {
-    ctor.resolve(self,
+    Trace("dt-debug") << "DType::resolve ctor " << std::endl;
+    ctor->resolve(self,
                  resolutions,
                  placeholders,
                  replacements,
                  paramTypes,
                  paramReplacements,
                  index);
-    ctor.d_constructor.setAttribute(DTypeIndexAttr(), index);
-    ctor.d_tester.setAttribute(DTypeIndexAttr(), index++);
+    ctor->d_constructor.setAttribute(DTypeIndexAttr(), index);
+    ctor->d_tester.setAttribute(DTypeIndexAttr(), index++);
+    Assert(ctor->isResolved());
+    Trace("dt-debug") << "DType::resolve ctor finished" << std::endl;
   }
   d_self = self;
 
   d_involvesExt = false;
   d_involvesUt = false;
-  for (const DTypeConstructor& ctor : d_constructors)
+  for (const DTypeConstructor* ctor : d_constructors)
   {
-    if (ctor.involvesExternalType())
+    if (ctor->involvesExternalType())
     {
       d_involvesExt = true;
     }
-    if (ctor.involvesUninterpretedType())
+    if (ctor->involvesUninterpretedType())
     {
       d_involvesUt = true;
     }
@@ -203,7 +207,7 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
     }
     for (unsigned i = 0, ncons = d_constructors.size(); i < ncons; i++)
     {
-      Node sop = d_constructors[i].getSygusOp();
+      Node sop = d_constructors[i]->getSygusOp();
       PrettyCheckArgument(!sop.isNull(),
                           this,
                           "Sygus datatype contains a non-sygus constructor");
@@ -219,9 +223,10 @@ void DType::resolve(const std::map<std::string, TypeNode>& resolutions,
       }
     }
   }
+  Trace("dt-debug") << "DType::resolve: finished" << std::endl;
 }
 
-void DType::addConstructor(const DTypeConstructor& c)
+void DType::addConstructor(DTypeConstructor* c)
 {
   PrettyCheckArgument(
       !d_resolved, this, "cannot add a constructor to a finalized DType");
@@ -254,15 +259,15 @@ void DType::addSygusConstructor(Node op,
   std::string testerId("is-");
   testerId.append(name);
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
-  DTypeConstructor c(name, testerId, cweight);
-  c.setSygus(op, spc);
+  DTypeConstructor* c = new DTypeConstructor(name, testerId, cweight);
+  c->setSygus(op, spc);
   for (unsigned j = 0; j < cargs.size(); j++)
   {
     Debug("parser-sygus-debug")
         << "  arg " << j << " : " << cargs[j] << std::endl;
     std::stringstream sname;
     sname << name << "_" << j;
-    c.addArg(sname.str(), cargs[j]);
+    c->addArg(sname.str(), cargs[j]);
   }
   addConstructor(c);
 }
@@ -276,6 +281,7 @@ void DType::setTuple()
 
 Cardinality DType::getCardinality(TypeNode t) const
 {
+    Debug("datatypes") << "...getCardinality " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   std::vector<TypeNode> processing;
@@ -294,6 +300,7 @@ Cardinality DType::getCardinality() const
 Cardinality DType::computeCardinality(TypeNode t,
                                       std::vector<TypeNode>& processing) const
 {
+    Debug("datatypes") << "...computeCardinality " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   if (std::find(processing.begin(), processing.end(), d_self)
       != processing.end())
@@ -303,9 +310,9 @@ Cardinality DType::computeCardinality(TypeNode t,
   }
   processing.push_back(d_self);
   Cardinality c = 0;
-  for (const DTypeConstructor& ctor : d_constructors)
+  for (DTypeConstructor* ctor : d_constructors)
   {
-    c += ctor.computeCardinality(t, processing);
+    c += ctor->computeCardinality(t, processing);
   }
   d_card = c;
   processing.pop_back();
@@ -314,6 +321,7 @@ Cardinality DType::computeCardinality(TypeNode t,
 
 bool DType::isRecursiveSingleton(TypeNode t) const
 {
+    Debug("datatypes") << "...isRecursiveSingleton " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   if (d_card_rec_singleton.find(t) != d_card_rec_singleton.end())
@@ -398,6 +406,7 @@ bool DType::computeCardinalityRecSingleton(
     std::vector<TypeNode>& processing,
     std::vector<TypeNode>& u_assume) const
 {
+    Debug("datatypes") << "...computeCardinalityRecSingleton " << std::endl;
   if (std::find(processing.begin(), processing.end(), d_self)
       != processing.end())
   {
@@ -412,9 +421,9 @@ bool DType::computeCardinalityRecSingleton(
     }
     bool success = false;
     processing.push_back(d_self);
-    for (unsigned i = 0; i < d_constructors[0].getNumArgs(); i++)
+    for (unsigned i = 0; i < d_constructors[0]->getNumArgs(); i++)
     {
-      TypeNode tc = d_constructors[0].getArgType(i);
+      TypeNode tc = d_constructors[0]->getArgType(i);
       // if it is an uninterpreted sort, then we depend on it having cardinality
       // one
       if (tc.isSort())
@@ -463,6 +472,7 @@ bool DType::computeCardinalityRecSingleton(
 
 bool DType::isFinite(TypeNode t) const
 {
+    Debug("datatypes") << "...isFinite " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
 
@@ -471,9 +481,9 @@ bool DType::isFinite(TypeNode t) const
   {
     return d_self.getAttribute(DTypeFiniteAttr());
   }
-  for (const DTypeConstructor& ctor : d_constructors)
+  for (DTypeConstructor* ctor : d_constructors)
   {
-    if (!ctor.isFinite(t))
+    if (!ctor->isFinite(t))
     {
       d_self.setAttribute(DTypeFiniteComputedAttr(), true);
       d_self.setAttribute(DTypeFiniteAttr(), false);
@@ -494,6 +504,7 @@ bool DType::isFinite() const
 
 bool DType::isInterpretedFinite(TypeNode t) const
 {
+    Debug("datatypes") << "...isInterpretedFinite " << std::endl;
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   // is this already in the cache ?
@@ -504,9 +515,9 @@ bool DType::isInterpretedFinite(TypeNode t) const
   // start by assuming it is not
   d_self.setAttribute(DTypeUFiniteComputedAttr(), true);
   d_self.setAttribute(DTypeUFiniteAttr(), false);
-  for (const DTypeConstructor& ctor : d_constructors)
+  for (DTypeConstructor* ctor : d_constructors)
   {
-    if (!ctor.isInterpretedFinite(t))
+    if (!ctor->isInterpretedFinite(t))
     {
       return false;
     }
@@ -544,22 +555,23 @@ bool DType::isWellFounded() const
 bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+    Debug("datatypes") << "...computeWellFounded " << std::endl;
   if (std::find(processing.begin(), processing.end(), d_self)
       != processing.end())
   {
     return d_isCo;
   }
   processing.push_back(d_self);
-  for (const DTypeConstructor& ctor : d_constructors)
+  for (DTypeConstructor* ctor : d_constructors)
   {
-    if (ctor.computeWellFounded(processing))
+    if (ctor->computeWellFounded(processing))
     {
       processing.pop_back();
       return true;
     }
     else
     {
-      Trace("dt-wf") << "Constructor " << ctor.getName()
+      Trace("dt-wf") << "Constructor " << ctor->getName()
                       << " is not well-founded." << std::endl;
     }
   }
@@ -646,16 +658,16 @@ Node DType::computeGroundTerm(TypeNode t,
   processing.push_back(t);
   for (unsigned r = 0; r < 2; r++)
   {
-    for (const DTypeConstructor& ctor : d_constructors)
+    for (DTypeConstructor* ctor : d_constructors)
     {
       // do nullary constructors first
-      if ((ctor.getNumArgs() == 0) == (r == 0))
+      if ((ctor->getNumArgs() == 0) == (r == 0))
       {
         Debug("datatypes")
-            << "Try constructing for " << ctor.getName()
+            << "Try constructing for " << ctor->getName()
             << ", processing = " << processing.size() << std::endl;
         Node e =
-            ctor.computeGroundTerm(t, processing, d_ground_term, isValue);
+            ctor->computeGroundTerm(t, processing, d_ground_term, isValue);
         if (!e.isNull())
         {
           // must check subterms for the same type to avoid infinite loops in
@@ -700,16 +712,16 @@ const DTypeConstructor& DType::operator[](size_t index) const
 {
   PrettyCheckArgument(
       index < getNumConstructors(), index, "index out of bounds");
-  return d_constructors[index];
+  return *d_constructors[index];
 }
 
 const DTypeConstructor& DType::operator[](std::string name) const
 {
-  for (const DTypeConstructor& ctor : d_constructors)
+  for (DTypeConstructor* ctor : d_constructors)
   {
-    if (ctor.getName() == name)
+    if (ctor->getName() == name)
     {
-      return ctor;
+      return *ctor;
     }
   }
   IllegalArgument(name,
@@ -768,9 +780,9 @@ bool DType::involvesExternalType() const { return d_involvesExt; }
 
 bool DType::involvesUninterpretedType() const { return d_involvesUt; }
 
-const std::vector<DTypeConstructor>* DType::getConstructors() const
+const std::vector<DTypeConstructor*>& DType::getConstructors() const
 {
-  return &d_constructors;
+  return d_constructors;
 }
 
 std::ostream& operator<<(std::ostream& os, const DType& dt)
@@ -799,14 +811,14 @@ void DType::toStream(std::ostream& out) const
   }
   out << " = " << std::endl;
   bool firstTime = true;
-  for (const DTypeConstructor& ctor : d_constructors)
+  for (DTypeConstructor* ctor : d_constructors)
   {
     if (!firstTime)
     {
       out << " | ";
     }
     firstTime = false;
-    out << ctor;
+    out << *ctor;
   }
   out << " END;" << std::endl;
 }

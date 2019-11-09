@@ -89,7 +89,8 @@ class DTypeConstructor
    * they are for convenience and pretty-printing only.
    */
   void addArg(std::string selectorName, TypeNode selectorType);
-  void addArg(const DTypeConstructorArg& a);
+  void addArg(DTypeConstructorArg* a);
+
 
   /** Get the name of this DType constructor. */
   std::string getName() const;
@@ -158,7 +159,7 @@ class DTypeConstructor
   /**
    * Get the list of arguments to this constructor.
    */
-  const std::vector<DTypeConstructorArg>* getArgs() const;
+  const std::vector<DTypeConstructorArg*>& getArgs() const;
   /**
    * Get the specialized constructor type for a parametric
    * constructor; this call is only permitted after resolution.
@@ -264,7 +265,7 @@ class DTypeConstructor
   /** the tester for this constructor */
   Node d_tester;
   /** the arguments of this constructor */
-  std::vector<DTypeConstructorArg> d_args;
+  std::vector<DTypeConstructorArg*> d_args;
   /** sygus operator */
   Node d_sygus_op;
   /** sygus print callback */

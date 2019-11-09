@@ -60,15 +60,28 @@ Datatype::~Datatype(){
 }
 
 Datatype::Datatype(std::string name, bool isCo)
-    : d_internal(new DType(name, isCo)),
+    : d_internal(nullptr),
       d_record(NULL),
-      d_constructors() {}
+      d_constructors() {
+  Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
+  d_internal = new DType(name, isCo);
+  Trace("ajr-temp") << "Datatype::Datatype finished" << std::endl;
+}
 
 Datatype::Datatype(std::string name, const std::vector<Type>& params,
                           bool isCo)
-    : d_internal(new DType(name, isCo)),
+    : d_internal(nullptr),
       d_record(NULL),
-      d_constructors(){}
+      d_constructors(){
+  Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
+  std::vector<TypeNode > paramsn;
+  for (const Type& t : params)
+  {
+    paramsn.push_back(TypeNode::fromType(t));
+  }
+  d_internal = new DType(name, paramsn, isCo);
+  Trace("ajr-temp") << "Datatype::Datatype finished" << std::endl;
+}
 
 const Datatype& Datatype::datatypeOf(Expr item) {
   ExprManagerScope ems(item);
@@ -171,7 +184,16 @@ void Datatype::resolve(ExprManager* em,
     paramReplacementsn.push_back(TypeNode::fromType(t));
   }
   d_internal->resolve(resolutionsn, placeholdersn, replacementsn, paramTypesn, paramReplacementsn);
-  Trace("dt-debug") << "Datatype::resolve: finished " << getName() << std::endl;
+  Trace("dt-debug") << "Datatype::resolve: finished " << getName() << " " << d_constructors.size() << std::endl;
+  AlwaysAssert(isResolved());
+  for (DatatypeConstructor& c : d_constructors)
+  {
+    AlwaysAssert(c.isResolved());
+    for (unsigned i=0, nargs=c.getNumArgs(); i<nargs; i++)
+    {
+      AlwaysAssert(c[i].isResolved());
+    }
+  }
 }
 
 void Datatype::addConstructor(const DatatypeConstructor& c) {
@@ -179,7 +201,7 @@ void Datatype::addConstructor(const DatatypeConstructor& c) {
   PrettyCheckArgument(!isResolved(), this,
                 "cannot add a constructor to a finalized Datatype");
   d_constructors.push_back(c);
-  d_internal->addConstructor(*c.d_internal);
+  d_internal->addConstructor(c.d_internal);
   Trace("dt-debug") << "Datatype::addConstructor: finished" << std::endl;
 }
 
@@ -365,70 +387,6 @@ bool Datatype::operator==(const Datatype& other) const
   if(this == &other) {
     return true;
   }
-
-  if(isResolved() != other.isResolved()) {
-    return false;
-  }
-
-  if( getName() != other.getName() ||
-      getNumConstructors() != other.getNumConstructors() ) {
-    return false;
-  }
-  for(const_iterator i = begin(), j = other.begin(); i != end(); ++i, ++j) {
-    Assert(j != other.end());
-    // two constructors are == iff they have the same name, their
-    // constructors and testers are equal and they have exactly
-    // matching args (in the same order)
-    if((*i).getName() != (*j).getName() ||
-       (*i).getNumArgs() != (*j).getNumArgs()) {
-      return false;
-    }
-    // testing equivalence of constructors and testers is harder b/c
-    // this constructor might not be resolved yet; only compare them
-    // if they are both resolved
-    Assert(isResolved() == !(*i).getConstructor().isNull()
-           && isResolved() == !(*i).getTester().isNull()
-           && (*i).getConstructor().isNull() == (*j).getConstructor().isNull()
-           && (*i).getTester().isNull() == (*j).getTester().isNull());
-    if(!(*i).getConstructor().isNull() && (*i).getConstructor() != (*j).getConstructor()) {
-      return false;
-    }
-    if(!(*i).getTester().isNull() && (*i).getTester() != (*j).getTester()) {
-      return false;
-    }
-    for(DatatypeConstructor::const_iterator k = (*i).begin(), l = (*j).begin(); k != (*i).end(); ++k, ++l) {
-      Assert(l != (*j).end());
-      if((*k).getName() != (*l).getName()) {
-        return false;
-      }
-      // testing equivalence of selectors is harder b/c args might not
-      // be resolved yet
-      Assert(isResolved() == (*k).isResolved()
-             && (*k).isResolved() == (*l).isResolved());
-      if((*k).isResolved()) {
-        // both are resolved, so simply compare the selectors directly
-        if((*k).getSelector() != (*l).getSelector()) {
-          return false;
-        }
-      } else {
-        // neither is resolved, so compare their (possibly unresolved)
-        // types; we don't know if they'll be resolved the same way,
-        // so we can't ever say unresolved types are equal
-        if(!(*k).getSelector().isNull() && !(*l).getSelector().isNull()) {
-          if((*k).getSelector().getType() != (*l).getSelector().getType()) {
-            return false;
-          }
-        } else {
-          if((*k).isUnresolvedSelf() && (*l).isUnresolvedSelf()) {
-            // Fine, the selectors are equal if the rest of the
-            // enclosing datatypes are equal...
-          } else {
-            return false;
-          }
-        }
-      }
-    }
-  }
   return true;
 }
 
@@ -485,9 +443,12 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution. 
-      d_internal(new DTypeConstructor(name,std::string("is_" + name),1))
+      d_internal(nullptr)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
+  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: make internal" << std::endl;
+  d_internal = new DTypeConstructor(name,std::string("is_" + name),1);
+  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: finished" << std::endl;
 }
 
 DatatypeConstructor::DatatypeConstructor(std::string name,
@@ -497,10 +458,13 @@ DatatypeConstructor::DatatypeConstructor(std::string name,
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
-      d_internal(new DTypeConstructor(name, tester, weight))
+      d_internal(nullptr)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
+  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 2: make internal" << std::endl;
+  d_internal = new DTypeConstructor(name, tester, weight);
+  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 2: finished" << std::endl;
 }
 
 void DatatypeConstructor::setSygus(Expr op,
@@ -535,7 +499,7 @@ void DatatypeConstructor::addArg(std::string selectorName, Type selectorType) {
   Expr type = NodeManager::currentNM()->mkSkolem("unresolved_" + selectorName, TypeNode::fromType(selectorType), "is an unresolved selector type placeholder", NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY).toExpr();
   Debug("datatypes") << type << endl;
   d_args.push_back(DatatypeConstructorArg(selectorName, type));
-  d_internal->addArg(*d_args.back().d_internal);
+  d_internal->addArg(d_args.back().d_internal);
 }
 
 void DatatypeConstructor::addArg(std::string selectorName, DatatypeUnresolvedType selectorType) {
@@ -546,7 +510,7 @@ void DatatypeConstructor::addArg(std::string selectorName, DatatypeUnresolvedTyp
   PrettyCheckArgument(!isResolved(), this, "cannot modify a finalized Datatype constructor");
   PrettyCheckArgument(selectorType.getName() != "", selectorType, "cannot add a null selector type");
   d_args.push_back(DatatypeConstructorArg(selectorName + '\0' + selectorType.getName(), Expr()));
-  d_internal->addArg(*d_args.back().d_internal);
+  d_internal->addArg(d_args.back().d_internal);
 }
 
 void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
@@ -557,7 +521,7 @@ void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
   // proper selector type)
   PrettyCheckArgument(!isResolved(), this, "cannot modify a finalized Datatype constructor");
   d_args.push_back(DatatypeConstructorArg(selectorName + '\0', Expr()));
-  d_internal->addArg(*d_args.back().d_internal);
+  d_internal->addArg(d_args.back().d_internal);
 }
 
 std::string DatatypeConstructor::getName() const
@@ -720,7 +684,7 @@ Type DatatypeConstructorArg::getRangeType() const {
 bool DatatypeConstructorArg::isUnresolvedSelf() const
 {
   std::string name = getName();
-  return getSelector().isNull() && name.size() == name.find('\0') + 1;
+  return d_internal->d_selector.isNull() && name.size() == name.find('\0') + 1;
 }
 
 bool DatatypeConstructorArg::isResolved() const
@@ -838,7 +802,10 @@ bool Datatype::operator!=(const Datatype& other) const
   return !(*this == other);
 }
 
-bool Datatype::isResolved() const { return d_internal->isResolved(); }
+bool Datatype::isResolved() const { 
+  Trace("ajr-temp") << "Datatype::isResolved? " << d_internal << std::endl;
+  return d_internal->isResolved(); 
+}
 Datatype::iterator Datatype::begin()
 {
   return iterator(d_constructors, true);
@@ -861,7 +828,8 @@ Datatype::const_iterator Datatype::end() const
 
 bool DatatypeConstructor::isResolved() const
 {
-  return !getTester().isNull();
+  Trace("ajr-temp") << "DatatypeConstructor::isResolved" << std::endl;
+  return d_internal->isResolved();
 }
 
 size_t DatatypeConstructor::getNumArgs() const { return d_args.size(); }

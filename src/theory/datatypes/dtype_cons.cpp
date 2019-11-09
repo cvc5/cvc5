@@ -82,10 +82,11 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
       "is an unresolved selector type placeholder",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   Debug("datatypes") << type << std::endl;
-  addArg(DTypeConstructorArg(selectorName, type));
+  DTypeConstructorArg * a = new DTypeConstructorArg(selectorName, type);
+  addArg(a);
 }
 
-void DTypeConstructor::addArg(const DTypeConstructorArg& a)
+void DTypeConstructor::addArg(DTypeConstructorArg* a)
 {
   d_args.push_back(a);
 }
@@ -177,9 +178,9 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
       params.begin(), params.end(), subst.begin(), subst.end());
 }
 
-const std::vector<DTypeConstructorArg>* DTypeConstructor::getArgs() const
+const std::vector<DTypeConstructorArg*>& DTypeConstructor::getArgs() const
 {
-  return &d_args;
+  return d_args;
 }
 
 Cardinality DTypeConstructor::getCardinality(TypeNode t) const
@@ -278,12 +279,12 @@ bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
   return true;
 }
 
-inline bool DTypeConstructor::isResolved() const { return !d_tester.isNull(); }
+bool DTypeConstructor::isResolved() const { return !d_tester.isNull(); }
 
 const DTypeConstructorArg& DTypeConstructor::operator[](size_t index) const
 {
   PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
-  return d_args[index];
+  return *d_args[index];
 }
 
 TypeNode DTypeConstructor::getArgType(unsigned index) const
@@ -308,7 +309,7 @@ Node DTypeConstructor::getSelectorInternal(TypeNode domainType,
   }
   else
   {
-    return d_args[index].getSelector();
+    return d_args[index]->getSelector();
   }
 }
 
@@ -333,7 +334,7 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
   else
   {
     unsigned sindex = DType::indexOf(sel);
-    if (getNumArgs() > sindex && d_args[sindex].getSelector() == sel)
+    if (getNumArgs() > sindex && d_args[sindex]->getSelector() == sel)
     {
       return (int)sindex;
     }
@@ -468,7 +469,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     if (arg.isNull())
     {
       Debug("datatypes") << "...unable to construct arg of "
-                         << d_args[i].getName() << std::endl;
+                         << d_args[i]->getName() << std::endl;
       return Node();
     }
     else
@@ -534,6 +535,7 @@ bool DTypeConstructor::resolve(
     const std::vector<TypeNode>& paramReplacements,
     size_t cindex)
 {
+  Trace("ajr-temp") << "DTypeConstructor::resolve" << std::endl;
   PrettyCheckArgument(!isResolved(),
                       "cannot resolve a DType constructor twice; "
                       "perhaps the same constructor was added twice, "
@@ -541,12 +543,12 @@ bool DTypeConstructor::resolve(
 
   NodeManager* nm = NodeManager::currentNM();
   size_t index = 0;
-  for (std::vector<DTypeConstructorArg>::iterator i = d_args.begin(),
+  for (std::vector<DTypeConstructorArg*>::iterator i = d_args.begin(),
                                                   i_end = d_args.end();
        i != i_end;
        ++i)
   {
-    DTypeConstructorArg& arg = (*i);
+    DTypeConstructorArg& arg = **i;
     std::string argName = arg.d_name;
     if (arg.d_selector.isNull())
     {
@@ -625,13 +627,15 @@ bool DTypeConstructor::resolve(
       "is a constructor",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   // associate constructor with all selectors
-  for (std::vector<DTypeConstructorArg>::iterator i = d_args.begin(),
+  for (std::vector<DTypeConstructorArg*>::iterator i = d_args.begin(),
                                                   i_end = d_args.end();
        i != i_end;
        ++i)
   {
-    (*i).d_constructor = d_constructor;
+    (*i)->d_constructor = d_constructor;
   }
+  Trace("ajr-temp") << "DTypeConstructor::resolve: " << this << " is resolved?" << std::endl;
+  AlwaysAssert(isResolved());
   return true;
 }
 
@@ -644,41 +648,39 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   {
     return range;
   }
-  else
+  std::vector<TypeNode> origChildren;
+  std::vector<TypeNode> children;
+  for (TypeNode::const_iterator i = range.begin(), iend = range.end();
+        i != iend;
+        ++i)
   {
-    std::vector<TypeNode> origChildren;
-    std::vector<TypeNode> children;
-    for (TypeNode::const_iterator i = range.begin(), iend = range.end();
-         i != iend;
-         ++i)
+    origChildren.push_back((*i));
+    children.push_back(
+        doParametricSubstitution((*i), paramTypes, paramReplacements));
+  }
+  for (unsigned i = 0; i < paramTypes.size(); ++i)
+  {
+    // the arity a parameterized type is the number of its children minus one.
+    if (paramTypes[i].getNumChildren() == origChildren.size() + 1)
     {
-      origChildren.push_back((*i));
-      children.push_back(
-          doParametricSubstitution((*i), paramTypes, paramReplacements));
-    }
-    for (unsigned i = 0; i < paramTypes.size(); ++i)
-    {
-      // the arity a parameterized type is the number of its children minus one.
-      if (paramTypes[i].getNumChildren() == origChildren.size() + 1)
+      TypeNode tn = paramTypes[i].instantiateParametricDatatype(origChildren);
+      if (range == tn)
       {
-        TypeNode tn = paramTypes[i].instantiateParametricDatatype(origChildren);
-        if (range == tn)
-        {
-          return paramReplacements[i].instantiateParametricDatatype(children);
-        }
+        return paramReplacements[i].instantiateParametricDatatype(children);
       }
     }
-    NodeBuilder<> nb(range.getKind());
-    for (unsigned i = 0; i < children.size(); ++i)
-    {
-      nb << children[i];
-    }
-    return nb.constructTypeNode();
   }
+  NodeBuilder<> nb(range.getKind());
+  for (unsigned i = 0; i < children.size(); ++i)
+  {
+    nb << children[i];
+  }
+  return nb.constructTypeNode();
 }
 
 void DTypeConstructor::toStream(std::ostream& out) const
 {
+  Trace("ajr-temp") << "DTypeConstructor::toStream" << std::endl;
   out << getName();
 
   unsigned nargs = getNumArgs();
@@ -689,7 +691,7 @@ void DTypeConstructor::toStream(std::ostream& out) const
   out << "(";
   for (unsigned i = 0; i < nargs; i++)
   {
-    out << d_args[i];
+    out << *d_args[i];
     if (i + 1 < nargs)
     {
       out << ", ";
