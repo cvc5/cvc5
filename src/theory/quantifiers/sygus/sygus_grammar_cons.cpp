@@ -337,8 +337,17 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
       }
       if (makeEvalFun)
       {
-        // will make into an application of an evaluation function
-        ret = nm->mkNode(DT_SYGUS_EVAL, children);
+        if (cur.getKind()==kind::APPLY_UF)
+        {
+          // will make into an application of an evaluation function
+          ret = nm->mkNode(DT_SYGUS_EVAL, children);
+        }
+        else
+        {
+          // otherwise, we are using the function-to-synthesize itself in a
+          // higher-order setting, we return itself
+          ret = cur;
+        }
       }
       else if (childChanged)
       {
