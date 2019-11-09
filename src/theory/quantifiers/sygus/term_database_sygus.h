@@ -258,6 +258,12 @@ class TermDbSygus {
   Node sygusToBuiltin(Node n, TypeNode tn);
   /** same as above, but without tn */
   Node sygusToBuiltin(Node n) { return sygusToBuiltin(n, n.getType()); }
+  /** sygus to builtin lambda
+   *
+   * Given a sygus datatype term n of type tn, this function returns the closed
+   * lambda term whose body is its analog.
+   */
+  Node sygusToBuiltinLambda(Node n, TypeNode tn);
   /** evaluate builtin
    *
    * bn is a term of some sygus datatype tn. This function returns the rewritten

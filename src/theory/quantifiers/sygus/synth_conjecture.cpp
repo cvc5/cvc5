@@ -463,6 +463,19 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
                              << candidate_values[i] << std::endl;
       }
     }
+    /*
+    if (options::ufHo())
+    {
+      std::vector< Node > hoVars;
+      std::vector< Node > hoSubs;
+      // must do function substitution, in the case that the function to
+      // synthesize occurs in a higher-order context
+      for (unsigned i=0, nvars = d_quant[0].getNumChildren(); i<nvars; i++)
+      {
+        if (d_quant[0]
+      }
+    }
+    */
     Assert(candidate_values.size() == d_candidates.size());
     inst = d_base_inst.substitute(d_candidates.begin(),
                                   d_candidates.end(),
@@ -507,12 +520,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> vars;
   if (constructed_cand)
   {
-    if (options::ufHo())
-    {
-      // must do function substitution, in the case that the function to
-      // synthesize occurs in a higher-order context. TODO
-      
-    }
     Trace("cegqi-check-debug") << "Instantiation to check is " << inst << std::endl;
     if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
     {
@@ -525,7 +532,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
             << "  introduce skolem " << sk << " for " << v << "\n";
       }
       lem = inst[0][1].substitute(
-          vars.begin(), vars.end(), sks.begin(), sks.end());
+          vars.begin(), vars.end(), sks.begin(), sks.end());      
       lem = lem.negate();
     }
     else

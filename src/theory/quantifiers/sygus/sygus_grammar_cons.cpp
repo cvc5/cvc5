@@ -287,6 +287,7 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   std::stack<TNode> visit;
   TNode cur;
   visit.push(n);
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   do {
     cur = visit.top();
     visit.pop();
@@ -337,21 +338,38 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
       }
       if (makeEvalFun)
       {
-        if (cur.getKind()==kind::APPLY_UF)
+        if (!cur.getType().isFunction())
         {
           // will make into an application of an evaluation function
           ret = nm->mkNode(DT_SYGUS_EVAL, children);
         }
         else
         {
-          // otherwise, we are using the function-to-synthesize itself in a
-          // higher-order setting, we return itself
-          ret = cur;
+          Assert(children.size()==1);
+          Node ef = children[0];
+          // Otherwise, we are using the function-to-synthesize itself in a
+          // higher-order setting. We must return the lambda term:
+          //   lambda x1...xn. (DT_SYGUS_EVAL ef x1 ... xn)
+          // where ef is the first order variable for the
+          // function-to-synthesize.
+          SygusTypeInfo& ti = tds->getTypeInfo(ef.getType());
+          const std::vector<Node>& vars = ti.getVarList();
+          Assert( !vars.empty());
+          std::vector< Node > vs;
+          for (const Node& v : vars)
+          {
+            vs.push_back(nm->mkBoundVar(v.getType()));
+          }
+          Node lvl = nm->mkNode(BOUND_VAR_LIST,vs);
+          std::vector< Node > eargs;
+          eargs.push_back(ef);
+          eargs.insert(eargs.end(),vs.begin(),vs.end());
+          ret = nm->mkNode(LAMBDA, lvl, nm->mkNode(DT_SYGUS_EVAL, eargs));
         }
       }
       else if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(ret_k, children);
+        ret = nm->mkNode(ret_k, children);
       }
       visited[cur] = ret;
     }

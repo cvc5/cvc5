@@ -150,17 +150,10 @@ Node FunDefEvaluator::evaluate(Node n) const
             ret = nm->mkNode(cur.getKind(), children);
             ret = Rewriter::rewrite(ret);
           }
-          if (!ret.isConst())
-          {
-            Trace("fd-eval") << "FunDefEvaluator: non-constant subterm " << ret
-                             << ", FAIL" << std::endl;
-            // failed, possibly due to free variable
-            return Node::null();
-          }
           visited[cur] = ret;
         }
       }
-      else if (!curEval.isConst())
+      else if (cur!=curEval && !curEval.isConst())
       {
         Trace("fd-eval-debug") << "from body " << cur << std::endl;
         // we had to evaluate our body, which should have a definition now
@@ -168,7 +161,6 @@ Node FunDefEvaluator::evaluate(Node n) const
         Assert(it != visited.end());
         // our definition is the result of the body
         visited[cur] = it->second;
-        Assert(it->second.isConst());
       }
     }
   } while (!visit.empty());
