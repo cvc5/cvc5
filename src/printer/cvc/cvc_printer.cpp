@@ -91,7 +91,6 @@ void toStreamRational(std::ostream& out, Node n, bool forceRational)
 void CvcPrinter::toStream(
     std::ostream& out, TNode n, int depth, bool types, bool bracket) const
 {
-  Trace("ajr-temp3") << "toStream : " << n.getKind() << std::endl;
   if (depth == 0) {
     out << "(...)";
   } else {
@@ -237,7 +236,6 @@ void CvcPrinter::toStream(
   opType = PREFIX;
 
   stringstream op;       // operation (such as '+')
-  Trace("ajr-temp3") << "toStream main : " << n.getKind() << std::endl;
 
   switch(n.getKind()) {
 
@@ -370,16 +368,12 @@ void CvcPrinter::toStream(
       return;
       break;
     case kind::APPLY_CONSTRUCTOR: {
-        Trace("ajr-temp3") << "toStream in apply constructor : " << n.getKind() << std::endl;
         TypeNode t = n.getType();
-        Trace("ajr-temp3") << "toStream in apply constructor type : " << t.getKind() << std::endl;
         if( t.isTuple() ){
-          Trace("ajr-temp3") << "toStream in apply constructor tuple" << std::endl;
           if( n.getNumChildren()==1 ){
             out << "TUPLE";
           }
         }else if( t.isRecord() ){
-          Trace("ajr-temp3") << "toStream in apply constructor record" << std::endl;
           const Record& rec = t.getRecord();
           out << "(# ";
           TNode::iterator i = n.begin();
@@ -396,7 +390,6 @@ void CvcPrinter::toStream(
           out << " #)";
           return;
         }else{
-          Trace("ajr-temp3") << "Print op..." << std::endl;
           toStream(op, n.getOperator(), depth, types, false);
           if (n.getNumChildren() == 0)
           {
