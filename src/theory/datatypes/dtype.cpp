@@ -192,11 +192,13 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
       expr::getFreeVariables(sop, fvs);
       for (const Node& v : fvs)
       {
-        if(svs.find(v) == svs.end())
+        if (svs.find(v) == svs.end())
         {
           // Print a warning and return false, indicating we should abort,
           // since this datatype is not well formed.
-          Warning() << "Sygus constructor has an operator with a free variable that is not in the formal argument list of the function-to-synthesize";
+          Warning() << "Sygus constructor has an operator with a free variable "
+                       "that is not in the formal argument list of the "
+                       "function-to-synthesize";
           return false;
         }
       }
@@ -343,7 +345,8 @@ bool DType::computeCardinalityRecSingleton(
     std::vector<TypeNode>& processing,
     std::vector<TypeNode>& u_assume) const
 {
-  Trace("datatypes-init") << "DType::computeCardinalityRecSingleton " << std::endl;
+  Trace("datatypes-init") << "DType::computeCardinalityRecSingleton "
+                          << std::endl;
   if (std::find(processing.begin(), processing.end(), d_self)
       != processing.end())
   {
@@ -530,14 +533,14 @@ Node DType::mkGroundValue(TypeNode t) const
 Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
 {
   Trace("datatypes-init") << "DType::mkGroundTerm of type " << t
-                     << ", isValue = " << isValue << std::endl;
+                          << ", isValue = " << isValue << std::endl;
   // is this already in the cache ?
   std::map<TypeNode, Node>& cache = isValue ? d_ground_value : d_ground_term;
   std::map<TypeNode, Node>::iterator it = cache.find(t);
   if (it != cache.end())
   {
-    Trace("datatypes-init") << "\nin cache: " << d_self << " => " << it->second
-                       << std::endl;
+    Trace("datatypes-init")
+        << "\nin cache: " << d_self << " => " << it->second << std::endl;
     return it->second;
   }
   std::vector<TypeNode> processing;
@@ -546,11 +549,12 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
   {
     // we found a ground-term-constructing constructor!
     cache[t] = groundTerm;
-    Trace("datatypes-init") << "constructed: " << getName() << " => " << groundTerm
-                       << std::endl;
+    Trace("datatypes-init")
+        << "constructed: " << getName() << " => " << groundTerm << std::endl;
   }
   // if ground term is null, we are not well-founded
-  Trace("datatypes-init") << "DType::mkGroundTerm for " << t << " returns " << groundTerm << std::endl;
+  Trace("datatypes-init") << "DType::mkGroundTerm for " << t << " returns "
+                          << groundTerm << std::endl;
   return groundTerm;
 }
 
@@ -592,8 +596,7 @@ Node DType::computeGroundTerm(TypeNode t,
         continue;
       }
       Debug("datatypes") << "Try constructing for " << ctor->getName()
-                          << ", processing = " << processing.size()
-                          << std::endl;
+                         << ", processing = " << processing.size() << std::endl;
       Node e = ctor->computeGroundTerm(t, processing, d_ground_term, isValue);
       if (!e.isNull())
       {
