@@ -45,7 +45,7 @@ class Ackermann : public PreprocessingPass
 {
  public:
   Ackermann(PreprocessingPassContext* preprocContext);
-  
+
   size_t getBVSkolemSize(size_t capacity);
 
  protected:
