@@ -315,23 +315,6 @@ class DType
   /** Get the ith DTypeConstructor. */
   const DTypeConstructor& operator[](size_t index) const;
 
-  /**
-   * Get the DTypeConstructor named.  This is a linear search
-   * through the constructors, so in the case of multiple,
-   * similarly-named constructors, the first is returned.
-   */
-  const DTypeConstructor& operator[](std::string name) const;
-
-  /**
-   * Get the constructor operator for the named constructor.
-   * This is a linear search through the constructors, so in
-   * the case of multiple, similarly-named constructors, the
-   * first is returned.
-   *
-   * This DType must be resolved.
-   */
-  Node getConstructor(std::string name) const;
-
   /** get sygus type
    * This gets the built-in type associated with
    * this sygus datatype, i.e. the type of the
@@ -476,7 +459,7 @@ class DType
    * that must be replaced
    * @param paramReplacements the corresponding (parametric) TypeNodes
    */
-  void resolve(const std::map<std::string, TypeNode>& resolutions,
+  bool resolve(const std::map<std::string, TypeNode>& resolutions,
                const std::vector<TypeNode>& placeholders,
                const std::vector<TypeNode>& replacements,
                const std::vector<TypeNode>& paramTypes,

@@ -165,11 +165,15 @@ void Datatype::resolve(ExprManager* em,
   {
     paramReplacementsn.push_back(TypeNode::fromType(t));
   }
-  d_internal->resolve(resolutionsn,
+  bool res = d_internal->resolve(resolutionsn,
                       placeholdersn,
                       replacementsn,
                       paramTypesn,
                       paramReplacementsn);
+  if (!res)
+  {
+    IllegalArgument(*this, "could not resolve datatype that is not well formed");
+  }
   Trace("dt-debug") << "Datatype::resolve: finished " << getName() << " "
                     << d_constructors.size() << std::endl;
   AlwaysAssert(isResolved());
@@ -351,7 +355,14 @@ Expr Datatype::mkGroundTerm(Type t) const
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
-  return d_internal->mkGroundTerm(tn).toExpr();
+  Node gterm = d_internal->mkGroundTerm(tn);
+  if (gterm.isNull())
+  {
+    IllegalArgument(
+        *this,
+        "datatype is not well-founded, cannot construct a ground term!");
+  }
+  return gterm.toExpr();
 }
 
 Expr Datatype::mkGroundValue(Type t) const
@@ -359,7 +370,14 @@ Expr Datatype::mkGroundValue(Type t) const
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
   ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
-  return d_internal->mkGroundValue(tn).toExpr();
+  Node gvalue =  d_internal->mkGroundValue(tn);
+  if (gvalue.isNull())
+  {
+    IllegalArgument(
+        *this,
+        "datatype is not well-founded, cannot construct a ground value!");
+  }
+  return gvalue.toExpr();
 }
 
 DatatypeType Datatype::getDatatypeType() const
