@@ -22,8 +22,8 @@
  **/
 
 #include <cmath>
-
 #include "base/check.h"
+#include "expr/node_algorithm.h"
 #include "options/options.h"
 #include "preprocessing/passes/ackermann.h"
 
@@ -188,106 +188,91 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
-bool needsReplace(TNode term)
+/* Given a minimum capacity for an uninterpreted sort, return the size of the new BV type */
+size_t getBVSkolemSize(size_t capacity)
 {
-  if (term.getType().isSort() && !(term.getKind() == kind::BOUND_VARIABLE))
-    return true;
-  return false;
+	return (size_t)log2(capacity) + 1;
 }
 
 /* Given the lowest capacity requirements for each uninterpreted sorts, assign
  * a sufficient bit-vector size. Get the converting map */
-void collectUSortsToBV(USortToBVSizeMap& usortCardinality,
-                       vector<TNode>& vec,
+void collectUSortsToBV(const vector<TNode>& terms,
+					   USortToBVSizeMap& usortCardinality,
                        SubstitutionMap& sortsToSkolem)
 {
   NodeManager* nm = NodeManager::currentNM();
 
-  for (TNode term : vec)
+  for (TNode term : terms)
   {
-    if (needsReplace(term))
-    {
       TypeNode type = term.getType();
-      size_t size = usortCardinality[type].second;
-      if (size == 0)
-      {
-        size = log2(usortCardinality[type].first) + 1;
-        usortCardinality[type].second = size;
-      }
+      size_t size = getBVSkolemSize(usortCardinality[type]);
       Node skolem = nm->mkSkolem(
           "BVSKOLEM$$",
           nm->mkBitVectorType(size),
           "a variable created by the ackermannization "
           "preprocessing pass, representing a term with uninterpreted sort.");
       sortsToSkolem.addSubstitution(term, skolem);
-    }
   }
 }
 
-/* This function returns the list of terms in formula represented by assertions.
+/* This function returns the list of terms with uninterpreted sort in formula represented by assertions.
  * We use a BFS to get all terms without duplications. */
-std::vector<TNode> getListOfTerms(AssertionPipeline* assertions)
+std::vector<TNode> getVarsWithUS(AssertionPipeline* assertions)
 {
   TNodeSet seen;
   std::vector<TNode> res;
-  for (Node& a : assertions->ref())
-  {
-    if (seen.find(a) == seen.end())
-    {
-      res.push_back(a);
-      seen.insert(a);
-    }
-  }
-  size_t i = 0;
-  while (i < res.size())
-  {
-    for (TNode a : res[i])
-    {
-      if (seen.find(a) == seen.end())
-      {
-        res.push_back(a);
-        seen.insert(a);
-      }
-    }
-    ++i;
-  }
-  return res;
+
+	for (Node& assertion : assertions->ref())
+	{
+		std::unordered_set<TNode, TNodeHashFunction> vars;
+		expr::getVariables(assertion, vars);
+		
+		for (const TNode& var : vars)
+		{
+			if (var.getType().isSort() && seen.find(var) == seen.end())
+			{
+				seen.insert(var);
+				res.push_back(var);
+			}
+		}
+	}
+
+	return res;
 }
 
 /* This is the top level of converting uninterpreted sorts to bit-vectors.
- * We use BFS to get all terms without duplications, and count the number of
- * different terms for each uninterpreted sort. Then for each sort, we will
+ * We use BFS to get all variables without duplications, and count the number of
+ * different variables for each uninterpreted sort. Then for each sort, we will
  * assign a new bit-vector type with a sufficient size.
  * The size is calculated to have enough capacity, that can accommodate the
- * variables occured in the original formula. */
+ * variables occured in the original formula.
+ * At the end, all variables of uninterpreted sorts will be converted into Skolem variables of BV */
 void usortsToBitVectors(const LogicInfo& d_logic,
                         AssertionPipeline* assertions,
                         USortToBVSizeMap& usortCardinality,
                         SubstitutionMap& sortsToSkolem)
 {
-  std::vector<TNode> toProcess = getListOfTerms(assertions);
-  bool hasUninterpretedSorts = false;
-  for (TNode term : toProcess)
-  {
-    if (needsReplace(term))
-    {
-      hasUninterpretedSorts = true;
-      TypeNode type = term.getType();
-      /* Update the statistics for each uninterpreted sort */
-      // For non-existing keys, C++ will create a new element for it, which has
-      // the value initialized with a pair of two zeros.
-      usortCardinality[type].first = usortCardinality[type].first + 1;
-    }
-  }
+  std::vector<TNode> toProcess = getVarsWithUS(assertions);
 
-  if (hasUninterpretedSorts)
+  if (toProcess.size() > 0)
   {
-    /* the current version only supports BV for removing uninterpreted sorts */
-    AlwaysAssert(d_logic.isTheoryEnabled(theory::THEORY_BV))
-        << "Cannot use Ackermannization on formula with uninterpreted "
+	  /* the current version only supports BV for removing uninterpreted sorts */
+	  AlwaysAssert(d_logic.isTheoryEnabled(theory::THEORY_BV))
+		  << "Cannot use Ackermannization on formula with uninterpreted "
            "sorts without BV logic";
 
-    collectUSortsToBV(usortCardinality, toProcess, sortsToSkolem);
+	  for (TNode term : toProcess)
+	  {
+		  /* ackermannizatino assumes no quantifiers */
+		  AlwaysAssert(term.getKind() != kind::BOUND_VARIABLE) << "Cannot use ackermannization on formula with bounded variables";
+		  TypeNode type = term.getType();
+		  /* Update the statistics for each uninterpreted sort.
+		   * For non-existing keys, C++ will create a new element for it, which has
+		   * the value initialized with a pair of two zeros. */
+		  usortCardinality[type] = usortCardinality[type] + 1;
+	  }
+
+       collectUSortsToBV(toProcess, usortCardinality, sortsToSkolem);
 
     for (size_t i = 0, size = assertions->size(); i < size; ++i)
     {

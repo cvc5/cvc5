@@ -39,12 +39,14 @@ using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
 using FunctionToArgsMap =
     std::unordered_map<TNode, TNodeSet, TNodeHashFunction>;
 using USortToBVSizeMap =
-    std::unordered_map<TypeNode, pair<size_t, size_t>, TypeNode::HashFunction>;
+    std::unordered_map<TypeNode, size_t, TypeNode::HashFunction>;
 
 class Ackermann : public PreprocessingPass
 {
  public:
   Ackermann(PreprocessingPassContext* preprocContext);
+  
+  size_t getBVSkolemSize(size_t capacity);
 
  protected:
   /**
@@ -63,7 +65,7 @@ class Ackermann : public PreprocessingPass
  private:
   /* Map each function to a set of terms associated with it */
   FunctionToArgsMap d_funcToArgs;
-  /* Map each function term to the new Skolem variable created by
+  /* Map each function-appliaction term to the new Skolem variable created by
    * ackermannization */
   theory::SubstitutionMap d_funcToSkolem;
   /* Map each uninterpreted sort term to the new Skolem variable created by
