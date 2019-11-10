@@ -1718,6 +1718,7 @@ set(regress_1_tests
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
+  regress1/sygus/list_recursor.sy
   regress1/sygus/logiccell_help.sy
   regress1/sygus/max.sy
   regress1/sygus/max2-bv.sy
