@@ -431,7 +431,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
           ++rel_mems_it_snd;
         }
         if( existing_mems.size() >= min_card ) {
-          Datatype dt = node.getType().getSetElementType().getDatatype();
+          const Datatype& dt = node.getType().getSetElementType().getDatatype();
           join_img_mems.insert(NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), fst_mem ));
         }
         ++rel_mems_it;
