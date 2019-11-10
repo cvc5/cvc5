@@ -202,14 +202,13 @@ void collectUSortsToBV(const vector<TNode>& terms,
 
   for (TNode term : terms)
   {
-      TypeNode type = term.getType();
-      size_t size = getBVSkolemSize(usortCardinality[type]);
-      Node skolem = nm->mkSkolem(
-          "BVSKOLEM$$",
-          nm->mkBitVectorType(size),
-          "a variable created by the ackermannization "
-          "preprocessing pass, representing a term with uninterpreted sort.");
-      sortsToSkolem.addSubstitution(term, skolem);
+    TypeNode type = term.getType();
+    size_t size = getBVSkolemSize(usortCardinality[type]);
+    Node skolem = nm->mkSkolem("BVSKOLEM$$",
+    nm->mkBitVectorType(size),
+    "a variable created by the ackermannization "
+    "preprocessing pass, representing a term with uninterpreted sort.");
+    sortsToSkolem.addSubstitution(term, skolem);
   }
 }
 
