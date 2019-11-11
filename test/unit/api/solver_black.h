@@ -777,23 +777,22 @@ void SolverBlack::testMkConstArray()
 
 void SolverBlack::testDeclareDatatype()
 {
-  /*
-  DatatypeConstructorDecl cons("cons");
   DatatypeConstructorDecl nil("nil");
-  DatatypeConstructorDecl nil2("nil");
-  std::vector<DatatypeConstructorDecl> ctors1 = {nil2};
-  std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil};
-  std::vector<DatatypeConstructorDecl> ctors3;
+  std::vector<DatatypeConstructorDecl> ctors1 = {nil};
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("a"), ctors1));
+  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl nil2("nil");
+  std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil2};
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("b"), ctors2));
+  DatatypeConstructorDecl cons2("cons");
   DatatypeConstructorDecl nil3("nil");
-  std::vector<DatatypeConstructorDecl> ctors4 = {cons, nil3};
-  TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string(""), ctors4));
-  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string("c"), ctors3),
+  std::vector<DatatypeConstructorDecl> ctors3 = {cons2, nil3};
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string(""), ctors3));
+  std::vector<DatatypeConstructorDecl> ctors4;
+  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string("c"), ctors4),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string(""), ctors3),
+  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string(""), ctors4),
                    CVC4ApiException&);
-                   */
 }
 
 void SolverBlack::testDeclareFun()
