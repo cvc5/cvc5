@@ -190,7 +190,10 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* Given a minimum capacity for an uninterpreted sort, return the size of the
  * new BV type */
-size_t getBVSkolemSize(size_t capacity) { return static_cast<size_t>(log2(capacity)) + 1; }
+size_t getBVSkolemSize(size_t capacity)
+{
+  return static_cast<size_t>(log2(capacity)) + 1;
+}
 
 /* Given the lowest capacity requirements for each uninterpreted sort, assign
  * a sufficient bit-vector size. Get the converting map */
@@ -213,8 +216,8 @@ void collectUSortsToBV(const vector<TNode>& terms,
   }
 }
 
-/* This function returns the list of terms with uninterpreted sort in the formula
- * represented by assertions. */
+/* This function returns the list of terms with uninterpreted sort in the
+ * formula represented by assertions. */
 std::vector<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 {
   TNodeSet seen;
@@ -239,9 +242,8 @@ std::vector<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 }
 
 /* This is the top level of converting uninterpreted sorts to bit-vectors.
- * We count the number of
- * different variables for each uninterpreted sort. Then for each sort, we will
- * assign a new bit-vector type with a sufficient size.
+ * We count the number of different variables for each uninterpreted sort.
+ * Then for each sort, we will assign a new bit-vector type with a sufficient size.
  * The size is calculated to have enough capacity, that can accommodate the
  * variables occured in the original formula.
  * At the end, all variables of uninterpreted sorts will be converted into
