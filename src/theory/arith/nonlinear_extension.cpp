@@ -1250,22 +1250,22 @@ void NonlinearExtension::check(Theory::Effort e) {
   }
   else
   {
-    TheoryModel * tm = d_containing.getValuation().getModel();
+    TheoryModel* tm = d_containing.getValuation().getModel();
     if (!options::nlExtInterceptModel())
     {
       if (!d_builtModel.get())
       {
-        //d_model.reset(d_containing.getValuation().getModel(), arithModel);
+        // d_model.reset(d_containing.getValuation().getModel(), arithModel);
         // run a last call effort check
         if (modelBasedRefinement())
         {
           return;
         }
       }
-      std::map< Node, Node > arithModel;
+      std::map<Node, Node> arithModel;
       d_model.fixModelValues(arithModel);
       // those that are exact are written as exact approximations to the model
-      for (std::pair< const Node, Node >& r : arithModel)
+      for (std::pair<const Node, Node>& r : arithModel)
       {
         Node eq = r.first.eqNode(r.second);
         eq = Rewriter::rewrite(eq);
@@ -1276,7 +1276,6 @@ void NonlinearExtension::check(Theory::Effort e) {
     d_model.recordApproximations(tm);
   }
 }
-
 
 bool NonlinearExtension::modelBasedRefinement()
 {
@@ -1295,12 +1294,12 @@ bool NonlinearExtension::modelBasedRefinement()
 
   if (Trace.isOn("nl-ext-debug"))
   {
-    Trace("nl-ext-debug")
-        << "  processing NonlinearExtension::check : " << std::endl;
+    Trace("nl-ext-debug") << "  processing NonlinearExtension::check : "
+                          << std::endl;
     Trace("nl-ext-debug") << "     " << false_asserts.size()
                           << " false assertions" << std::endl;
-    Trace("nl-ext-debug")
-        << "     " << xts.size() << " extended terms: " << std::endl;
+    Trace("nl-ext-debug") << "     " << xts.size()
+                          << " extended terms: " << std::endl;
     Trace("nl-ext-debug") << "       ";
     for (unsigned j = 0; j < xts.size(); j++)
     {
@@ -1315,9 +1314,9 @@ bool NonlinearExtension::modelBasedRefinement()
   // must ensure that shared terms are equal to their concrete value
   Trace("nl-ext-mv") << "Shared terms : " << std::endl;
   for (context::CDList<TNode>::const_iterator its =
-            d_containing.shared_terms_begin();
-        its != d_containing.shared_terms_end();
-        ++its)
+           d_containing.shared_terms_begin();
+       its != d_containing.shared_terms_end();
+       ++its)
   {
     TNode shared_term = *its;
     // compute its value in the model, and its evaluation in the model
@@ -1328,7 +1327,7 @@ bool NonlinearExtension::modelBasedRefinement()
     {
       num_shared_wrong_value++;
       Trace("nl-ext-mv") << "Bad shared term value : " << shared_term
-                          << std::endl;
+                         << std::endl;
       if (shared_term != stv0)
       {
         // split on the value, this is non-terminating in general, TODO :
@@ -1348,8 +1347,7 @@ bool NonlinearExtension::modelBasedRefinement()
     }
   }
   Trace("nl-ext-debug") << "     " << num_shared_wrong_value
-                        << " shared terms with wrong model value."
-                        << std::endl;
+                        << " shared terms with wrong model value." << std::endl;
   bool needsRecheck;
   do
   {
@@ -1394,8 +1392,8 @@ bool NonlinearExtension::modelBasedRefinement()
       num_added_lemmas = flushLemmas(d_waiting_lemmas);
       if (num_added_lemmas > 0)
       {
-        Trace("nl-ext") << "...added " << num_added_lemmas
-                        << " waiting lemmas." << std::endl;
+        Trace("nl-ext") << "...added " << num_added_lemmas << " waiting lemmas."
+                        << std::endl;
         return true;
       }
       // resort to splitting on shared terms with their model value
@@ -1418,9 +1416,8 @@ bool NonlinearExtension::modelBasedRefinement()
           num_added_lemmas = flushLemmas(shared_term_value_lemmas);
           if (num_added_lemmas > 0)
           {
-            Trace("nl-ext")
-                << "...added " << num_added_lemmas
-                << " shared term value split lemmas." << std::endl;
+            Trace("nl-ext") << "...added " << num_added_lemmas
+                            << " shared term value split lemmas." << std::endl;
             return true;
           }
         }
@@ -1445,13 +1442,13 @@ bool NonlinearExtension::modelBasedRefinement()
       else
       {
         Trace("nl-ext") << "...failed to send lemma in "
-                            "NonLinearExtension, set incomplete"
+                           "NonLinearExtension, set incomplete"
                         << std::endl;
         d_containing.getOutputChannel().setIncomplete();
       }
     }
   } while (needsRecheck);
-  
+
   // did not add lemmas
   return false;
 }

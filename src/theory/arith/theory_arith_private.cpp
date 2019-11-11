@@ -3554,7 +3554,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
     }
     return;
   }
-  
+
   TimerStat::CodeTimer checkTimer(d_containing.d_checkTime);
   //cout << "TheoryArithPrivate::check " << effortLevel << std::endl;
   Debug("effortlevel") << "TheoryArithPrivate::check " << effortLevel << std::endl;

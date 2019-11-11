@@ -15,10 +15,10 @@
 #include "theory/arith/nl_model.h"
 
 #include "expr/node_algorithm.h"
+#include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
-#include "options/arith_options.h"
 
 using namespace CVC4::kind;
 
@@ -37,7 +37,7 @@ NlModel::NlModel(context::Context* c) : d_used_approx(false)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(TheoryModel * m, std::map<Node, Node>& arithModel)
+void NlModel::reset(TheoryModel* m, std::map<Node, Node>& arithModel)
 {
   d_model = m;
   d_mv[0].clear();
@@ -46,12 +46,12 @@ void NlModel::reset(TheoryModel * m, std::map<Node, Node>& arithModel)
   d_valToRep.clear();
   d_approximations.clear();
   // process arithModel
-  std::map< Node, Node >::iterator it;
-  for (const std::pair< const Node, Node >& m : arithModel)
+  std::map<Node, Node>::iterator it;
+  for (const std::pair<const Node, Node>& m : arithModel)
   {
     d_arithVal[m.first] = m.second;
     it = d_valToRep.find(m.second);
-    if (it==d_valToRep.end())
+    if (it == d_valToRep.end())
     {
       d_valToRep[m.second] = m.first;
     }
@@ -171,7 +171,7 @@ bool NlModel::hasTerm(Node n) const
   {
     return d_model->hasTerm(n);
   }
-  return d_arithVal.find(n)!=d_arithVal.end();
+  return d_arithVal.find(n) != d_arithVal.end();
 }
 
 Node NlModel::getRepresentative(Node n) const
@@ -1187,7 +1187,8 @@ bool NlModel::isRefineableTfFun(Node tf)
   Assert(tf.getKind() == SINE || tf.getKind() == EXPONENTIAL);
   if (tf.getKind() == SINE)
   {
-//     // we do not consider e.g. sin( -1*x ), since considering sin( x ) will
+    //     // we do not consider e.g. sin( -1*x ), since considering sin( x )
+    //     will
     // have the same effect. We also do not consider sin(x+y) since this is
     // handled by introducing a fresh variable (see the map d_tr_base in
     // NonlinearExtension).
@@ -1291,13 +1292,13 @@ void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
   }
 }
 
-void NlModel::recordApproximations(TheoryModel * m)
+void NlModel::recordApproximations(TheoryModel* m)
 {
   Trace("nl-model") << "NlModel::recordApproximations:" << std::endl;
-  for(std::pair< const Node, Node >& a : d_approximations)
+  for (std::pair<const Node, Node>& a : d_approximations)
   {
     Trace("nl-model") << "record " << a.first << " " << a.second << std::endl;
-    m->recordApproximation(a.first,a.second);
+    m->recordApproximation(a.first, a.second);
   }
 }
 

@@ -135,14 +135,14 @@ class NonlinearExtension {
   void presolve();
  private:
   /** Model-based refinement
-   * 
+   *
    * This is the main entry point of this class for generating lemmas on the
    * output channel of the theory of arithmetic.
-   * 
+   *
    * It is currently run at last call effort. It applies lemma schemas
    * described in Reynolds et al. FroCoS 2017 that are based on ruling out
    * the current candidate model.
-   * 
+   *
    * This function returns true if a lemma was sent out on the output
    * channel of the theory of arithmetic. Otherwise, it returns false. In the
    * latter case, the model object d_model may have information regarding

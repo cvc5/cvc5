@@ -52,7 +52,7 @@ class NlModel
    * where m is the model of the theory of arithmetic. This method resets the
    * cache of computed model values.
    */
-  void reset(TheoryModel * m, std::map<Node, Node>& arithModel);
+  void reset(TheoryModel* m, std::map<Node, Node>& arithModel);
   /** reset check
    *
    * This method is called when the non-linear arithmetic solver restarts
@@ -178,7 +178,8 @@ class NlModel
    */
   void fixModelValues(std::map<Node, Node>& arithModel);
   /** */
-  void recordApproximations(TheoryModel * m);
+  void recordApproximations(TheoryModel* m);
+
  private:
   /** The current model */
   TheoryModel* d_model;
@@ -259,9 +260,9 @@ class NlModel
   Node d_true;
   Node d_false;
   Node d_null;
-  std::map< Node, Node > d_arithVal;
-  std::map< Node, Node > d_valToRep;
-  std::map< Node, Node > d_approximations;
+  std::map<Node, Node> d_arithVal;
+  std::map<Node, Node> d_valToRep;
+  std::map<Node, Node> d_approximations;
   /** cache of model values
    *
    * Stores the the concrete/abstract model values. This is a cache of the
