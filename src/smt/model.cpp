@@ -36,7 +36,9 @@ std::ostream& operator<<(std::ostream& out, const Model& m) {
 }
 
 Model::Model() :
-  d_smt(*smt::currentSmtEngine()) {
+  d_smt(*smt::currentSmtEngine()),
+  d_isKnownSat(false)
+{
 }
 
 size_t Model::getNumCommands() const {

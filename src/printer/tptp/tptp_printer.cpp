@@ -55,11 +55,20 @@ void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 
 void TptpPrinter::toStream(std::ostream& out, const Model& m) const
 {
-  out << "% SZS output start FiniteModel for " << m.getInputName() << endl;
+  std::stringstream statusName;
+  if (m.isKnownSat())
+  {
+    statusName << "FiniteModel";
+  }
+  else
+  {
+    statusName << "CandidateFiniteModel";
+  }
+  out << "% SZS output start " << statusName.str() << " for " << m.getInputName() << endl;
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
     this->Printer::toStreamUsing(language::output::LANG_SMTLIB_V2_5, out, m, m.getCommand(i));
   }
-  out << "% SZS output end FiniteModel for " << m.getInputName() << endl;
+  out << "% SZS output end " << statusName.str() << " for " << m.getInputName() << endl;
 }
 
 void TptpPrinter::toStream(std::ostream& out,

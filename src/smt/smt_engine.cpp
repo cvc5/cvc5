@@ -4412,6 +4412,7 @@ Model* SmtEngine::getModel() {
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
+  m->d_isKnownSat = (d_smtMode == SMT_MODE_SAT);
   return m;
 }
 
