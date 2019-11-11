@@ -1255,8 +1255,7 @@ void NonlinearExtension::check(Theory::Effort e) {
     TheoryModel* tm = d_containing.getValuation().getModel();
     if (!d_builtModel.get())
     {
-      // d_model.reset(d_containing.getValuation().getModel(), arithModel);
-      // run a last call effort check
+      // run model-based refinement
       if (modelBasedRefinement())
       {
         return;
