@@ -55,7 +55,7 @@ class Model {
   const SmtEngine* getSmtEngine() const { return &d_smt; }
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
-  /** 
+  /**
    * Returns true if this model is guaranteed to be a model of the input
    * formula. Notice that when CVC4 answers "unknown", it may have a model
    * available for which this method returns false. In this case, this model is
@@ -108,10 +108,11 @@ class Model {
    * this model.
    */
   virtual std::vector<Expr> getDomainElements(Type t) const = 0;
-protected:
+
+ protected:
   /** the input name (file name, etc.) this model is associated to */
   std::string d_inputName;
-  /** 
+  /**
    * Flag set to false if the model is associated with an "unknown" response
    * from the solver.
    */
