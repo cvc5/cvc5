@@ -82,7 +82,7 @@ class CVC4_PUBLIC Result
    */
   Result(const CVC4::Result& r);
 
-  // Nullary constructor for Cython
+  /** Nullary constructor (required for Cython). */
   Result();
 
   /**
