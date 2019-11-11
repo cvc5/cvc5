@@ -1876,7 +1876,6 @@ Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
   d_idx = begin ? 0 : cons->size();
 }
 
-// Nullary constructor for Cython
 Datatype::const_iterator::const_iterator() {}
 
 Datatype::const_iterator& Datatype::const_iterator::operator=(
