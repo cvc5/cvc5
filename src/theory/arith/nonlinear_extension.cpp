@@ -1227,7 +1227,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   return 0;
 }
 
-bool NonlinearExtension::check(Theory::Effort e) {
+void NonlinearExtension::check(Theory::Effort e) {
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
                   << ", built model = " << d_builtModel.get() << std::endl;
@@ -1257,9 +1257,9 @@ bool NonlinearExtension::check(Theory::Effort e) {
       {
         //d_model.reset(d_containing.getValuation().getModel(), arithModel);
         // run a last call effort check
-        if (!interceptModelMain())
+        if (modelBasedRefinement())
         {
-          return false;
+          return;
         }
       }
       std::map< Node, Node > arithModel;
@@ -1275,38 +1275,10 @@ bool NonlinearExtension::check(Theory::Effort e) {
     // already ran a check, now record approximations
     d_model.recordApproximations(tm);
   }
-
-  // Did we internally determine a model exists? If so, we need to record some
-  // information in the theory engine's model class.
-  return true;
 }
 
-bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
-{
-  if (!needsCheckLastEffort())
-  {
-    // no non-linear constraints, we are done
-    return true;
-  }
-  d_model.reset(d_containing.getValuation().getModel(), arithModel);
-  if (!options::nlExtInterceptModel())
-  {
-    return true;
-  }
-  // run a last call effort check
-  if (d_builtModel.get() || interceptModelMain())
-  {
-    if (d_builtModel.get())
-    {
-      // modify the model values
-      d_model.fixModelValues(arithModel);
-    }
-    return true;
-  }
-  return false;
-}
 
-bool NonlinearExtension::interceptModelMain()
+bool NonlinearExtension::modelBasedRefinement()
 {
   // get the assertions
   std::vector<Node> assertions;
@@ -1395,7 +1367,7 @@ bool NonlinearExtension::interceptModelMain()
       num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
       if (num_added_lemmas > 0)
       {
-        return false;
+        return true;
       }
     }
     Trace("nl-ext") << "Finished check with status : " << complete_status
@@ -1424,7 +1396,7 @@ bool NonlinearExtension::interceptModelMain()
       {
         Trace("nl-ext") << "...added " << num_added_lemmas
                         << " waiting lemmas." << std::endl;
-        return false;
+        return true;
       }
       // resort to splitting on shared terms with their model value
       // if we did not add any lemmas
@@ -1449,7 +1421,7 @@ bool NonlinearExtension::interceptModelMain()
             Trace("nl-ext")
                 << "...added " << num_added_lemmas
                 << " shared term value split lemmas." << std::endl;
-            return false;
+            return true;
           }
         }
         else
@@ -1481,7 +1453,32 @@ bool NonlinearExtension::interceptModelMain()
   } while (needsRecheck);
   
   // did not add lemmas
-  return true;
+  return false;
+}
+
+bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
+{
+  if (!needsCheckLastEffort())
+  {
+    // no non-linear constraints, we are done
+    return true;
+  }
+  d_model.reset(d_containing.getValuation().getModel(), arithModel);
+  if (!options::nlExtInterceptModel())
+  {
+    return true;
+  }
+  // run a last call effort check
+  if (d_builtModel.get() || !modelBasedRefinement())
+  {
+    if (d_builtModel.get())
+    {
+      // modify the model values
+      d_model.fixModelValues(arithModel);
+    }
+    return true;
+  }
+  return false;
 }
 
 void NonlinearExtension::presolve()

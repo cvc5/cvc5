@@ -63,8 +63,7 @@ typedef std::map<Node, unsigned> NodeMultiset;
  *
  * It's main functionality is a check(...) method,
  * which is called by TheoryArithPrivate either:
- * (1) at full effort with no conflicts or lemmas emitted,
- * or
+ * (1) at full effort with no conflicts or lemmas emitted, or
  * (2) at last call effort.
  * In this method, this class calls d_out->lemma(...)
  * for valid arithmetic theory lemmas, based on the current set of assertions,
@@ -115,17 +114,15 @@ class NonlinearExtension {
                                       const std::vector<Node>& exp) const;
   /** Check at effort level e.
    *
-   * This call may result in (possibly multiple)
-   * calls to d_out->lemma(...) where d_out
-   * is the output channel of TheoryArith.
+   * This call may result in (possibly multiple) calls to d_out->lemma(...)
+   * where d_out is the output channel of TheoryArith.
    */
-  bool check(Theory::Effort e);
+  void check(Theory::Effort e);
   /** build model
    *
    * TODO
    */
   bool interceptModel(std::map<Node, Node>& arithModel);
-  bool interceptModelMain();
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
@@ -137,6 +134,22 @@ class NonlinearExtension {
    */
   void presolve();
  private:
+  /** Model-based refinement
+   * 
+   * This is the main entry point of this class for generating lemmas on the
+   * output channel of the theory of arithmetic.
+   * 
+   * It is currently run at last call effort. It applies lemma schemas
+   * described in Reynolds et al. FroCoS 2017 that are based on ruling out
+   * the current candidate model.
+   * 
+   * This function returns true if a lemma was sent out on the output
+   * channel of the theory of arithmetic. Otherwise, it returns false. In the
+   * latter case, the model object d_model may have information regarding
+   * how to construct a model, in the case that we determined the problem
+   * is satisfiable.
+   */
+  bool modelBasedRefinement();
   /** returns true if the multiset containing the
    * factors of monomial a is a subset of the multiset
    * containing the factors of monomial b.
