@@ -21,6 +21,7 @@
 
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/fun_def_evaluator.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/type_info.h"
@@ -77,6 +78,8 @@ class TermDbSygus {
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
   /** get the evaluator */
   Evaluator* getEvaluator() { return d_eval.get(); }
+  /** (recursive) function evaluator utility */
+  FunDefEvaluator* getFunDefEvaluator() { return d_funDefEval.get(); }
   /** evaluation unfolding utility */
   SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   //------------------------------end utilities
@@ -302,6 +305,11 @@ class TermDbSygus {
    * (a subfield type of) a type that has been registered to this class.
    */
   SygusTypeInfo& getTypeInfo(TypeNode tn);
+  /**
+   * Rewrite the given node using the utilities in this class. This may
+   * involve (recursive function) evaluation.
+   */
+  Node rewriteNode(Node n) const;
 
   /** print to sygus stream n on trace c */
   static void toStreamSygus(const char* c, Node n);
@@ -317,6 +325,8 @@ class TermDbSygus {
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
   /** evaluator */
   std::unique_ptr<Evaluator> d_eval;
+  /** (recursive) function evaluator utility */
+  std::unique_ptr<FunDefEvaluator> d_funDefEval;
   /** evaluation function unfolding utility */
   std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   //------------------------------end utilities

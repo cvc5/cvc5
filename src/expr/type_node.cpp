@@ -434,6 +434,22 @@ bool TypeNode::isInstantiatedDatatype() const {
   return true;
 }
 
+TypeNode TypeNode::instantiateParametricDatatype(
+    const std::vector<TypeNode>& params) const
+{
+  AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
+  AssertArgument(params.size() == getNumChildren() - 1, *this);
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode cons = nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
+  std::vector<TypeNode> paramsNodes;
+  paramsNodes.push_back(cons);
+  for (const TypeNode& t : params)
+  {
+    paramsNodes.push_back(t);
+  }
+  return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
+}
+
 /** Is this an instantiated datatype parameter */
 bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const {
   AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
@@ -576,6 +592,5 @@ std::string TypeNode::toString() const {
   d_nv->toStream(ss, -1, false, 0, outlang);
   return ss.str();
 }
-
 
 }/* CVC4 namespace */
