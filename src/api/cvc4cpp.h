@@ -1396,7 +1396,7 @@ class CVC4_PUBLIC Datatype
     friend class Datatype;  // to access constructor
 
    public:
-    // Nullary constructor for Cython
+    /** Nullary constructor (required for Cython). */
     const_iterator();
 
     /**
