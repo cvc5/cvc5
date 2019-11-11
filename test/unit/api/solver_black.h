@@ -623,7 +623,8 @@ void SolverBlack::testMkTermFromOpTerm()
   OpTerm opterm1 = d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, 2, 1);
   OpTerm opterm2 = d_solver->mkOpTerm(DIVISIBLE_OP, 1);
   OpTerm opterm3 = d_solver->mkOpTerm(CHAIN_OP, EQUAL);
-  // list datatype
+  // list datatype  
+
   Sort sort = d_solver->mkParamSort("T");
   DatatypeDecl listDecl("paramlist", sort);
   DatatypeConstructorDecl cons("cons");
@@ -776,18 +777,23 @@ void SolverBlack::testMkConstArray()
 
 void SolverBlack::testDeclareDatatype()
 {
+  /*
   DatatypeConstructorDecl cons("cons");
   DatatypeConstructorDecl nil("nil");
-  std::vector<DatatypeConstructorDecl> ctors1 = {nil};
+  DatatypeConstructorDecl nil2("nil");
+  std::vector<DatatypeConstructorDecl> ctors1 = {nil2};
   std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil};
   std::vector<DatatypeConstructorDecl> ctors3;
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("a"), ctors1));
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("b"), ctors2));
-  TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string(""), ctors2));
+  DatatypeConstructorDecl nil3("nil");
+  std::vector<DatatypeConstructorDecl> ctors4 = {cons, nil3};
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string(""), ctors4));
   TS_ASSERT_THROWS(d_solver->declareDatatype(std::string("c"), ctors3),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->declareDatatype(std::string(""), ctors3),
                    CVC4ApiException&);
+                   */
 }
 
 void SolverBlack::testDeclareFun()
@@ -983,7 +989,6 @@ void SolverBlack::testSimplify()
   Sort uSort = d_solver->mkUninterpretedSort("u");
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
-
   DatatypeDecl consListSpec("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver->getIntegerSort());

@@ -492,7 +492,11 @@ bool DTypeConstructor::resolve(
     const std::vector<TypeNode>& paramReplacements,
     size_t cindex)
 {
-  Assert(!isResolved());
+  if(isResolved())
+  {
+    // already resolved, fail
+    return false;
+  }
   Trace("datatypes") << "DTypeConstructor::resolve, self type is " << self
                      << std::endl;
 

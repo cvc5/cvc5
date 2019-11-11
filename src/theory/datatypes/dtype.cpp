@@ -146,13 +146,16 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     Trace("datatypes-init") << "DType::resolve ctor " << std::endl;
-    ctor->resolve(self,
+    if (!ctor->resolve(self,
                   resolutions,
                   placeholders,
                   replacements,
                   paramTypes,
                   paramReplacements,
-                  index);
+                  index))
+    {
+      return false;
+    }
     ctor->d_constructor.setAttribute(DTypeIndexAttr(), index);
     ctor->d_tester.setAttribute(DTypeIndexAttr(), index++);
     Assert(ctor->isResolved());
@@ -581,7 +584,7 @@ Node DType::computeGroundTerm(TypeNode t,
 {
   if (std::find(processing.begin(), processing.end(), t) != processing.end())
   {
-    Debug("datatypes") << "...already processing " << t << " " << d_self
+    Debug("datatypes-gt") << "...already processing " << t << " " << d_self
                        << std::endl;
     return Node();
   }
@@ -595,7 +598,7 @@ Node DType::computeGroundTerm(TypeNode t,
       {
         continue;
       }
-      Debug("datatypes") << "Try constructing for " << ctor->getName()
+      Trace("datatypes-init") << "Try constructing for " << ctor->getName()
                          << ", processing = " << processing.size() << std::endl;
       Node e = ctor->computeGroundTerm(t, processing, d_ground_term, isValue);
       if (!e.isNull())
@@ -605,7 +608,7 @@ Node DType::computeGroundTerm(TypeNode t,
         Node se = getSubtermWithType(e, t, true);
         if (!se.isNull())
         {
-          Debug("datatypes") << "Take subterm " << se << std::endl;
+          Trace("datatypes-init") << "Take subterm " << se << std::endl;
           e = se;
         }
         processing.pop_back();
@@ -613,7 +616,7 @@ Node DType::computeGroundTerm(TypeNode t,
       }
       else
       {
-        Debug("datatypes") << "...failed." << std::endl;
+        Trace("datatypes-init") << "...failed." << std::endl;
       }
     }
   }
