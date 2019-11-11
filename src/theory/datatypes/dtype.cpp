@@ -147,12 +147,12 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
   {
     Trace("datatypes-init") << "DType::resolve ctor " << std::endl;
     if (!ctor->resolve(self,
-                  resolutions,
-                  placeholders,
-                  replacements,
-                  paramTypes,
-                  paramReplacements,
-                  index))
+                       resolutions,
+                       placeholders,
+                       replacements,
+                       paramTypes,
+                       paramReplacements,
+                       index))
     {
       return false;
     }
@@ -585,7 +585,7 @@ Node DType::computeGroundTerm(TypeNode t,
   if (std::find(processing.begin(), processing.end(), t) != processing.end())
   {
     Debug("datatypes-gt") << "...already processing " << t << " " << d_self
-                       << std::endl;
+                          << std::endl;
     return Node();
   }
   processing.push_back(t);
@@ -598,8 +598,9 @@ Node DType::computeGroundTerm(TypeNode t,
       {
         continue;
       }
-      Trace("datatypes-init") << "Try constructing for " << ctor->getName()
-                         << ", processing = " << processing.size() << std::endl;
+      Trace("datatypes-init")
+          << "Try constructing for " << ctor->getName()
+          << ", processing = " << processing.size() << std::endl;
       Node e = ctor->computeGroundTerm(t, processing, d_ground_term, isValue);
       if (!e.isNull())
       {

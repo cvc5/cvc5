@@ -492,7 +492,7 @@ bool DTypeConstructor::resolve(
     const std::vector<TypeNode>& paramReplacements,
     size_t cindex)
 {
-  if(isResolved())
+  if (isResolved())
   {
     // already resolved, fail
     return false;

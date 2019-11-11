@@ -278,7 +278,8 @@ class DatatypeBlack : public CxxTest::TestSuite {
                          << "  is " << dtts[1].mkGroundTerm() << endl;
     TS_ASSERT(dtts[1].mkGroundTerm().getType() == dtts[1]);
   }
-  void testMutualListTrees2() {
+  void testMutualListTrees2()
+  {
     Datatype tree("tree");
     DatatypeConstructor node("node", "is_node");
     node.addArg("left", DatatypeSelfType());
@@ -288,7 +289,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
     DatatypeConstructor leaf("leaf", "is_leaf");
     leaf.addArg("leaf", DatatypeUnresolvedType("list"));
     tree.addConstructor(leaf);
-    
+
     Datatype list("list");
     DatatypeConstructor cons("cons", "is_cons");
     cons.addArg("car", DatatypeUnresolvedType("tree"));
@@ -297,12 +298,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
 
     DatatypeConstructor nil("nil", "is_nil");
     list.addConstructor(nil);
-    
+
     // add another constructor to list datatype resulting in an
     // "otherNil-list"
     DatatypeConstructor otherNil("otherNil", "is_otherNil");
     list.addConstructor(otherNil);
-    
+
     vector<Datatype> dts;
     dts.push_back(tree);
     dts.push_back(list);

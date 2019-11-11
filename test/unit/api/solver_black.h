@@ -623,7 +623,7 @@ void SolverBlack::testMkTermFromOpTerm()
   OpTerm opterm1 = d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, 2, 1);
   OpTerm opterm2 = d_solver->mkOpTerm(DIVISIBLE_OP, 1);
   OpTerm opterm3 = d_solver->mkOpTerm(CHAIN_OP, EQUAL);
-  // list datatype  
+  // list datatype
 
   Sort sort = d_solver->mkParamSort("T");
   DatatypeDecl listDecl("paramlist", sort);
