@@ -3094,7 +3094,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  if (d_smtMode != SMT_MODE_SAT && d_smtModel != SMT_MODE_SAT_UNKNOWN)
+  if (d_smtMode != SMT_MODE_SAT && d_smtMode != SMT_MODE_SAT_UNKNOWN)
   {
     std::stringstream ss;
     ss << "Cannot " << c
