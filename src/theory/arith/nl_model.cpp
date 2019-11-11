@@ -44,7 +44,6 @@ void NlModel::reset(TheoryModel* m, std::map<Node, Node>& arithModel)
   d_mv[1].clear();
   d_arithVal.clear();
   d_valToRep.clear();
-  d_approximations.clear();
   // process arithModel
   std::map<Node, Node>::iterator it;
   for (const std::pair<const Node, Node>& m : arithModel)
@@ -1250,13 +1249,36 @@ bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
   return true;
 }
 
-void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
+void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
+{
+  if (Trace.isOn(c))
+  {
+    Trace(c) << "  " << n << " -> ";
+    for (unsigned i = 0; i < 2; i++)
+    {
+      std::map<Node, Node>::const_iterator it = d_mv[1 - i].find(n);
+      Assert(it != d_mv[1 - i].end());
+      if (it->second.isConst())
+      {
+        printRationalApprox(c, it->second, prec);
+      }
+      else
+      {
+        Trace(c) << "?";  // it->second;
+      }
+      Trace(c) << (i == 0 ? " [actual: " : " ]");
+    }
+    Trace(c) << std::endl;
+  }
+}
+
+void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel, std::map< Node, Node >& approximations)
 {
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
   // values for variables that we solved for, using techniques specific to
   // this class.
-  Trace("nl-model") << "NlModel::fixModelValues:" << std::endl;
+  Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   for (const std::pair<const Node, std::pair<Node, Node> >& cb :
        d_check_model_bounds)
@@ -1268,7 +1290,7 @@ void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
     if (l != u)
     {
       Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
-      d_approximations[v] = pred;
+      approximations[v] = pred;
       Trace("nl-model") << v << " approximated as " << pred << std::endl;
     }
     else
@@ -1292,38 +1314,6 @@ void NlModel::fixModelValues(std::map<Node, Node>& arithModel)
   }
 }
 
-void NlModel::recordApproximations(TheoryModel* m)
-{
-  Trace("nl-model") << "NlModel::recordApproximations:" << std::endl;
-  for (std::pair<const Node, Node>& a : d_approximations)
-  {
-    Trace("nl-model") << "record " << a.first << " " << a.second << std::endl;
-    m->recordApproximation(a.first, a.second);
-  }
-}
-
-void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
-{
-  if (Trace.isOn(c))
-  {
-    Trace(c) << "  " << n << " -> ";
-    for (unsigned i = 0; i < 2; i++)
-    {
-      std::map<Node, Node>::const_iterator it = d_mv[1 - i].find(n);
-      Assert(it != d_mv[1 - i].end());
-      if (it->second.isConst())
-      {
-        printRationalApprox(c, it->second, prec);
-      }
-      else
-      {
-        Trace(c) << "?";  // it->second;
-      }
-      Trace(c) << (i == 0 ? " [actual: " : " ]");
-    }
-    Trace(c) << std::endl;
-  }
-}
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

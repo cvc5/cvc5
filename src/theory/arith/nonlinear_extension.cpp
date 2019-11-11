@@ -1250,6 +1250,7 @@ void NonlinearExtension::check(Theory::Effort e) {
   }
   else
   {
+    std::map< Node, Node > approximations;
     TheoryModel* tm = d_containing.getValuation().getModel();
     if (!options::nlExtInterceptModel())
     {
@@ -1263,7 +1264,7 @@ void NonlinearExtension::check(Theory::Effort e) {
         }
       }
       std::map<Node, Node> arithModel;
-      d_model.fixModelValues(arithModel);
+      d_model.getModelValueRepair(arithModel, approximations);
       // those that are exact are written as exact approximations to the model
       for (std::pair<const Node, Node>& r : arithModel)
       {
@@ -1272,8 +1273,16 @@ void NonlinearExtension::check(Theory::Effort e) {
         tm->recordApproximation(r.first, eq);
       }
     }
-    // already ran a check, now record approximations
-    d_model.recordApproximations(tm);
+    else
+    {
+      // computed the approximations already
+      approximations = d_approximations;
+    }
+    // record approximations
+    for (std::pair<const Node, Node>& a : approximations)
+    {
+      tm->recordApproximation(a.first, a.second);
+    }
   }
 }
 
@@ -1470,8 +1479,9 @@ bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
   {
     if (d_builtModel.get())
     {
+      d_approximations.clear();
       // modify the model values
-      d_model.fixModelValues(arithModel);
+      d_model.getModelValueRepair(arithModel, d_approximations);
     }
     return true;
   }
