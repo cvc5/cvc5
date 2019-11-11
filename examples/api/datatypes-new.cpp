@@ -169,7 +169,13 @@ int main()
             << ">>> Alternatively, use declareDatatype" << std::endl;
   std::cout << std::endl;
 
-  std::vector<DatatypeConstructorDecl> ctors = {cons, nil};
+  DatatypeConstructorDecl cons2("cons");
+  DatatypeSelectorDecl head2("head", slv.getIntegerSort());
+  DatatypeSelectorDecl tail2("tail", DatatypeDeclSelfSort());
+  cons.addSelector(head2);
+  cons.addSelector(tail2);
+  DatatypeConstructorDecl nil2("nil");
+  std::vector<DatatypeConstructorDecl> ctors = {cons2, nil2};
   Sort consListSort2 = slv.declareDatatype("list2", ctors);
   test(slv, consListSort2);
 
