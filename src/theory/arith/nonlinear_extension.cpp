@@ -1250,7 +1250,7 @@ void NonlinearExtension::check(Theory::Effort e) {
   }
   else
   {
-    std::map< Node, Node > approximations;
+    std::map<Node, Node> approximations;
     TheoryModel* tm = d_containing.getValuation().getModel();
     if (!options::nlExtInterceptModel())
     {

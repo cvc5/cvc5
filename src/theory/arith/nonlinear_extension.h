@@ -427,7 +427,7 @@ class NonlinearExtension {
    * and for establishing when we are able to answer "SAT".
    */
   NlModel d_model;
-  std::map< Node, Node > d_approximations;
+  std::map<Node, Node> d_approximations;
   /** have we successfully built the model in this SAT context? */
   context::CDO<bool> d_builtModel;
 

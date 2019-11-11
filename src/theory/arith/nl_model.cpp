@@ -1272,7 +1272,8 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
   }
 }
 
-void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel, std::map< Node, Node >& approximations)
+void NlModel::getModelValueRepair(std::map<Node, Node>& arithModel,
+                                  std::map<Node, Node>& approximations)
 {
   // Record the approximations we used. This code calls the
   // recordApproximation method of the model, which overrides the model
