@@ -27,7 +27,7 @@ void test(Solver& slv, Sort& consListSort)
   // the complete spec for the datatype from the DatatypeSort, and
   // this Datatype object has constructor symbols (and others) filled in.
 
-  Datatype consList = consListSort.getDatatype();
+  const Datatype& consList = consListSort.getDatatype();
 
   // t = cons 0 nil
   //
@@ -103,7 +103,7 @@ void test(Solver& slv, Sort& consListSort)
   Sort paramConsIntListSort =
       paramConsListSort.instantiate(std::vector<Sort>{slv.getIntegerSort()});
 
-  Datatype paramConsList = paramConsListSort.getDatatype();
+  const Datatype& paramConsList = paramConsListSort.getDatatype();
 
   std::cout << "parameterized datatype sort is " << std::endl;
   for (const DatatypeConstructor& ctor : paramConsList)

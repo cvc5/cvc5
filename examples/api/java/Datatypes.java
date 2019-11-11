@@ -55,7 +55,7 @@ public class Datatypes {
     // the complete spec for the datatype from the DatatypeType, and
     // this Datatype object has constructor symbols (and others) filled in.
 
-    Datatype consList = consListType.getDatatype();
+    const Datatype& consList = consListType.getDatatype();
 
     // e = cons 0 nil
     //
