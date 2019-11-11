@@ -712,7 +712,6 @@ class CVC4ApiExceptionStream
 
 Result::Result(const CVC4::Result& r) : d_result(new CVC4::Result(r)) {}
 
-// Nullary constructor for Cython
 Result::Result() {}
 
 bool Result::isSat(void) const
