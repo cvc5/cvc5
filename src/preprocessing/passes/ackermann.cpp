@@ -243,11 +243,10 @@ std::vector<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 
 /* This is the top level of converting uninterpreted sorts to bit-vectors.
  * We count the number of different variables for each uninterpreted sort.
- * Then for each sort, we will assign a new bit-vector type with a sufficient size.
- * The size is calculated to have enough capacity, that can accommodate the
- * variables occured in the original formula.
- * At the end, all variables of uninterpreted sorts will be converted into
- * Skolem variables of BV */
+ * Then for each sort, we will assign a new bit-vector type with a sufficient
+ * size. The size is calculated to have enough capacity, that can accommodate
+ * the variables occured in the original formula. At the end, all variables of
+ * uninterpreted sorts will be converted into Skolem variables of BV */
 void usortsToBitVectors(const LogicInfo& d_logic,
                         AssertionPipeline* assertions,
                         USortToBVSizeMap& usortCardinality,
