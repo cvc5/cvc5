@@ -65,7 +65,7 @@ class Ackermann : public PreprocessingPass
  private:
   /* Map each function to a set of terms associated with it */
   FunctionToArgsMap d_funcToArgs;
-  /* Map each function-appliaction term to the new Skolem variable created by
+  /* Map each function-application term to the new Skolem variable created by
    * ackermannization */
   theory::SubstitutionMap d_funcToSkolem;
   /* Map each uninterpreted sort term to the new Skolem variable created by

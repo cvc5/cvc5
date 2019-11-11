@@ -190,9 +190,9 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* Given a minimum capacity for an uninterpreted sort, return the size of the
  * new BV type */
-size_t getBVSkolemSize(size_t capacity) { return (size_t)log2(capacity) + 1; }
+size_t getBVSkolemSize(size_t capacity) { return static_cast<size_t>(log2(capacity)) + 1; }
 
-/* Given the lowest capacity requirements for each uninterpreted sorts, assign
+/* Given the lowest capacity requirements for each uninterpreted sort, assign
  * a sufficient bit-vector size. Get the converting map */
 void collectUSortsToBV(const vector<TNode>& terms,
                        USortToBVSizeMap& usortCardinality,
@@ -213,15 +213,14 @@ void collectUSortsToBV(const vector<TNode>& terms,
   }
 }
 
-/* This function returns the list of terms with uninterpreted sort in formula
- * represented by assertions. We use a BFS to get all terms without
- * duplications. */
-std::vector<TNode> getVarsWithUS(AssertionPipeline* assertions)
+/* This function returns the list of terms with uninterpreted sort in the formula
+ * represented by assertions. */
+std::vector<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 {
   TNodeSet seen;
   std::vector<TNode> res;
 
-  for (Node& assertion : assertions->ref())
+  for (const Node& assertion : assertions->ref())
   {
     std::unordered_set<TNode, TNodeHashFunction> vars;
     expr::getVariables(assertion, vars);
@@ -240,7 +239,7 @@ std::vector<TNode> getVarsWithUS(AssertionPipeline* assertions)
 }
 
 /* This is the top level of converting uninterpreted sorts to bit-vectors.
- * We use BFS to get all variables without duplications, and count the number of
+ * We count the number of
  * different variables for each uninterpreted sort. Then for each sort, we will
  * assign a new bit-vector type with a sufficient size.
  * The size is calculated to have enough capacity, that can accommodate the
@@ -252,7 +251,7 @@ void usortsToBitVectors(const LogicInfo& d_logic,
                         USortToBVSizeMap& usortCardinality,
                         SubstitutionMap& sortsToSkolem)
 {
-  std::vector<TNode> toProcess = getVarsWithUS(assertions);
+  std::vector<TNode> toProcess = getVarsWithUSorts(assertions);
 
   if (toProcess.size() > 0)
   {
