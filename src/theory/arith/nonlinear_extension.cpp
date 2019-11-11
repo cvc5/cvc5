@@ -944,8 +944,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         std::vector<Node> repList;
         for (const Node& ac : a)
         {
-          Node r =
-              d_containing.getValuation().getModel()->getRepresentative(ac);
+          Node r = d_model.computeConcreteModelValue(ac);
           repList.push_back(r);
         }
         Node aa = argTrie[ak].add(a, repList);
@@ -1232,11 +1231,7 @@ void NonlinearExtension::check(Theory::Effort e) {
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
                   << ", built model = " << d_builtModel.get() << std::endl;
-  if (d_builtModel.get())
-  {
-    // already built model, nothing to do
-  }
-  else if (e == Theory::EFFORT_FULL)
+  if (e == Theory::EFFORT_FULL)
   {
     d_containing.getExtTheory()->clearCache();
     d_needsLastCall = true;
@@ -1255,198 +1250,211 @@ void NonlinearExtension::check(Theory::Effort e) {
   }
   else
   {
-    // get the assertions
-    std::vector<Node> assertions;
-    getAssertions(assertions);
-
-    // reset cached information
+    std::map< Node, Node > approximations;
+    std::map<Node, Node> arithModel;
     TheoryModel* tm = d_containing.getValuation().getModel();
-    d_model.reset(tm);
-
-    Trace("nl-ext-mv-assert")
-        << "Getting model values... check for [model-false]" << std::endl;
-    // get the assertions that are false in the model
-    const std::vector<Node> false_asserts = checkModelEval(assertions);
-
-    // get the extended terms belonging to this theory
-    std::vector<Node> xts;
-    d_containing.getExtTheory()->getTerms(xts);
-
-    if (Trace.isOn("nl-ext-debug"))
+    if (!d_builtModel.get())
     {
-      Trace("nl-ext-debug")
-          << "  processing NonlinearExtension::check : " << std::endl;
-      Trace("nl-ext-debug") << "     " << false_asserts.size()
-                            << " false assertions" << std::endl;
-      Trace("nl-ext-debug")
-          << "     " << xts.size() << " extended terms: " << std::endl;
-      Trace("nl-ext-debug") << "       ";
-      for (unsigned j = 0; j < xts.size(); j++)
+      // d_model.reset(d_containing.getValuation().getModel(), arithModel);
+      // run a last call effort check
+      if (modelBasedRefinement())
       {
-        Trace("nl-ext-debug") << xts[j] << " ";
-      }
-      Trace("nl-ext-debug") << std::endl;
-    }
-
-    // compute whether shared terms have correct values
-    unsigned num_shared_wrong_value = 0;
-    std::vector<Node> shared_term_value_splits;
-    // must ensure that shared terms are equal to their concrete value
-    Trace("nl-ext-mv") << "Shared terms : " << std::endl;
-    for (context::CDList<TNode>::const_iterator its =
-             d_containing.shared_terms_begin();
-         its != d_containing.shared_terms_end();
-         ++its)
-    {
-      TNode shared_term = *its;
-      // compute its value in the model, and its evaluation in the model
-      Node stv0 = d_model.computeConcreteModelValue(shared_term);
-      Node stv1 = d_model.computeAbstractModelValue(shared_term);
-      d_model.printModelValue("nl-ext-mv", shared_term);
-      if (stv0 != stv1)
-      {
-        num_shared_wrong_value++;
-        Trace("nl-ext-mv") << "Bad shared term value : " << shared_term
-                           << std::endl;
-        if (shared_term != stv0)
-        {
-          // split on the value, this is non-terminating in general, TODO :
-          // improve this
-          Node eq = shared_term.eqNode(stv0);
-          shared_term_value_splits.push_back(eq);
-        }
-        else
-        {
-          // this can happen for transcendental functions
-          // the problem is that we cannot evaluate transcendental functions
-          // (they don't have a rewriter that returns constants)
-          // thus, the actual value in their model can be themselves, hence we
-          // have no reference point to rule out the current model.  In this
-          // case, we may set incomplete below.
-        }
+        return;
       }
     }
-    Trace("nl-ext-debug") << "     " << num_shared_wrong_value
-                          << " shared terms with wrong model value."
-                          << std::endl;
-    bool needsRecheck;
-    do
+    // get the values that should be replaced in the model
+    d_model.getModelValueRepair(arithModel, approximations);
+    // those that are exact are written as exact approximations to the model
+    for (std::pair<const Node, Node>& r : arithModel)
     {
-      d_model.resetCheck();
-      needsRecheck = false;
-      Assert(e == Theory::EFFORT_LAST_CALL);
-      // complete_status:
-      //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
-      int complete_status = 1;
-      int num_added_lemmas = 0;
-      // we require a check either if an assertion is false or a shared term has
-      // a wrong value
-      if (!false_asserts.empty() || num_shared_wrong_value > 0)
-      {
-        complete_status = num_shared_wrong_value > 0 ? -1 : 0;
-        num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
-        if (num_added_lemmas > 0)
-        {
-          return;
-        }
-      }
-      Trace("nl-ext") << "Finished check with status : " << complete_status
-                      << std::endl;
-
-      // if we did not add a lemma during check and there is a chance for SAT
-      if (complete_status == 0)
-      {
-        Trace("nl-ext")
-            << "Check model based on bounds for irrational-valued functions..."
-            << std::endl;
-        // check the model based on simple solving of equalities and using
-        // error bounds on the Taylor approximation of transcendental functions.
-        if (checkModel(assertions, false_asserts))
-        {
-          complete_status = 1;
-        }
-      }
-
-      // if we have not concluded SAT
-      if (complete_status != 1)
-      {
-        // flush the waiting lemmas
-        num_added_lemmas = flushLemmas(d_waiting_lemmas);
-        if (num_added_lemmas > 0)
-        {
-          Trace("nl-ext") << "...added " << num_added_lemmas
-                          << " waiting lemmas." << std::endl;
-          return;
-        }
-        // resort to splitting on shared terms with their model value
-        // if we did not add any lemmas
-        if (num_shared_wrong_value > 0)
-        {
-          complete_status = -1;
-          if (!shared_term_value_splits.empty())
-          {
-            std::vector<Node> shared_term_value_lemmas;
-            for (const Node& eq : shared_term_value_splits)
-            {
-              Node req = Rewriter::rewrite(eq);
-              Node literal = d_containing.getValuation().ensureLiteral(req);
-              d_containing.getOutputChannel().requirePhase(literal, true);
-              Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
-              shared_term_value_lemmas.push_back(
-                  literal.orNode(literal.negate()));
-            }
-            num_added_lemmas = flushLemmas(shared_term_value_lemmas);
-            if (num_added_lemmas > 0)
-            {
-              Trace("nl-ext")
-                  << "...added " << num_added_lemmas
-                  << " shared term value split lemmas." << std::endl;
-              return;
-            }
-          }
-          else
-          {
-            // this can happen if we are trying to do theory combination with
-            // trancendental functions
-            // since their model value cannot even be computed exactly
-          }
-        }
-
-        // we are incomplete
-        if (options::nlExtIncPrecision() && d_model.usedApproximate())
-        {
-          d_taylor_degree++;
-          needsRecheck = true;
-          // increase precision for PI?
-          // Difficult since Taylor series is very slow to converge
-          Trace("nl-ext") << "...increment Taylor degree to " << d_taylor_degree
-                          << std::endl;
-        }
-        else
-        {
-          Trace("nl-ext") << "...failed to send lemma in "
-                             "NonLinearExtension, set incomplete"
-                          << std::endl;
-          d_containing.getOutputChannel().setIncomplete();
-        }
-      }
-
-    } while (needsRecheck);
+      Node eq = r.first.eqNode(r.second);
+      eq = Rewriter::rewrite(eq);
+      tm->recordApproximation(r.first, eq);
+    }
+    // those that are approximate are recorded as approximations
+    for (std::pair<const Node, Node>& a : approximations)
+    {
+      tm->recordApproximation(a.first, a.second);
+    }
   }
+}
 
-  // Did we internally determine a model exists? If so, we need to record some
-  // information in the theory engine's model class.
-  if (d_builtModel.get())
+bool NonlinearExtension::modelBasedRefinement()
+{
+  // reset the model object
+  d_model.reset(d_containing.getValuation().getModel());
+  // get the assertions
+  std::vector<Node> assertions;
+  getAssertions(assertions);
+
+  Trace("nl-ext-mv-assert")
+      << "Getting model values... check for [model-false]" << std::endl;
+  // get the assertions that are false in the model
+  const std::vector<Node> false_asserts = checkModelEval(assertions);
+
+  // get the extended terms belonging to this theory
+  std::vector<Node> xts;
+  d_containing.getExtTheory()->getTerms(xts);
+
+  if (Trace.isOn("nl-ext-debug"))
   {
-    if (e < Theory::EFFORT_LAST_CALL)
+    Trace("nl-ext-debug") << "  processing NonlinearExtension::check : "
+                          << std::endl;
+    Trace("nl-ext-debug") << "     " << false_asserts.size()
+                          << " false assertions" << std::endl;
+    Trace("nl-ext-debug") << "     " << xts.size()
+                          << " extended terms: " << std::endl;
+    Trace("nl-ext-debug") << "       ";
+    for (unsigned j = 0; j < xts.size(); j++)
     {
-      // don't need to build the model yet
-      return;
+      Trace("nl-ext-debug") << xts[j] << " ";
     }
-    // record approximations in the model
-    d_model.recordApproximations();
-    return;
+    Trace("nl-ext-debug") << std::endl;
   }
+
+  // compute whether shared terms have correct values
+  unsigned num_shared_wrong_value = 0;
+  std::vector<Node> shared_term_value_splits;
+  // must ensure that shared terms are equal to their concrete value
+  Trace("nl-ext-mv") << "Shared terms : " << std::endl;
+  for (context::CDList<TNode>::const_iterator its =
+           d_containing.shared_terms_begin();
+       its != d_containing.shared_terms_end();
+       ++its)
+  {
+    TNode shared_term = *its;
+    // compute its value in the model, and its evaluation in the model
+    Node stv0 = d_model.computeConcreteModelValue(shared_term);
+    Node stv1 = d_model.computeAbstractModelValue(shared_term);
+    d_model.printModelValue("nl-ext-mv", shared_term);
+    if (stv0 != stv1)
+    {
+      num_shared_wrong_value++;
+      Trace("nl-ext-mv") << "Bad shared term value : " << shared_term
+                         << std::endl;
+      if (shared_term != stv0)
+      {
+        // split on the value, this is non-terminating in general, TODO :
+        // improve this
+        Node eq = shared_term.eqNode(stv0);
+        shared_term_value_splits.push_back(eq);
+      }
+      else
+      {
+        // this can happen for transcendental functions
+        // the problem is that we cannot evaluate transcendental functions
+        // (they don't have a rewriter that returns constants)
+        // thus, the actual value in their model can be themselves, hence we
+        // have no reference point to rule out the current model.  In this
+        // case, we may set incomplete below.
+      }
+    }
+  }
+  Trace("nl-ext-debug") << "     " << num_shared_wrong_value
+                        << " shared terms with wrong model value." << std::endl;
+  bool needsRecheck;
+  do
+  {
+    d_model.resetCheck();
+    needsRecheck = false;
+    // complete_status:
+    //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
+    int complete_status = 1;
+    int num_added_lemmas = 0;
+    // we require a check either if an assertion is false or a shared term has
+    // a wrong value
+    if (!false_asserts.empty() || num_shared_wrong_value > 0)
+    {
+      complete_status = num_shared_wrong_value > 0 ? -1 : 0;
+      num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
+      if (num_added_lemmas > 0)
+      {
+        return true;
+      }
+    }
+    Trace("nl-ext") << "Finished check with status : " << complete_status
+                    << std::endl;
+
+    // if we did not add a lemma during check and there is a chance for SAT
+    if (complete_status == 0)
+    {
+      Trace("nl-ext")
+          << "Check model based on bounds for irrational-valued functions..."
+          << std::endl;
+      // check the model based on simple solving of equalities and using
+      // error bounds on the Taylor approximation of transcendental functions.
+      if (checkModel(assertions, false_asserts))
+      {
+        complete_status = 1;
+      }
+    }
+
+    // if we have not concluded SAT
+    if (complete_status != 1)
+    {
+      // flush the waiting lemmas
+      num_added_lemmas = flushLemmas(d_waiting_lemmas);
+      if (num_added_lemmas > 0)
+      {
+        Trace("nl-ext") << "...added " << num_added_lemmas << " waiting lemmas."
+                        << std::endl;
+        return true;
+      }
+      // resort to splitting on shared terms with their model value
+      // if we did not add any lemmas
+      if (num_shared_wrong_value > 0)
+      {
+        complete_status = -1;
+        if (!shared_term_value_splits.empty())
+        {
+          std::vector<Node> shared_term_value_lemmas;
+          for (const Node& eq : shared_term_value_splits)
+          {
+            Node req = Rewriter::rewrite(eq);
+            Node literal = d_containing.getValuation().ensureLiteral(req);
+            d_containing.getOutputChannel().requirePhase(literal, true);
+            Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
+            shared_term_value_lemmas.push_back(
+                literal.orNode(literal.negate()));
+          }
+          num_added_lemmas = flushLemmas(shared_term_value_lemmas);
+          if (num_added_lemmas > 0)
+          {
+            Trace("nl-ext") << "...added " << num_added_lemmas
+                            << " shared term value split lemmas." << std::endl;
+            return true;
+          }
+        }
+        else
+        {
+          // this can happen if we are trying to do theory combination with
+          // trancendental functions
+          // since their model value cannot even be computed exactly
+        }
+      }
+
+      // we are incomplete
+      if (options::nlExtIncPrecision() && d_model.usedApproximate())
+      {
+        d_taylor_degree++;
+        needsRecheck = true;
+        // increase precision for PI?
+        // Difficult since Taylor series is very slow to converge
+        Trace("nl-ext") << "...increment Taylor degree to " << d_taylor_degree
+                        << std::endl;
+      }
+      else
+      {
+        Trace("nl-ext") << "...failed to send lemma in "
+                           "NonLinearExtension, set incomplete"
+                        << std::endl;
+        d_containing.getOutputChannel().setIncomplete();
+      }
+    }
+  } while (needsRecheck);
+
+  // did not add lemmas
+  return false;
 }
 
 void NonlinearExtension::presolve()
