@@ -1415,6 +1415,12 @@ void SmtEngine::setDefaults() {
 
     if (options::solveBVAsInt() > 0)
     {
+      /**
+       * Operations on 1 bits are better handled as Boolean operations
+       * than as integer operations.
+       * Therefore, we enable bv-to-bool, which runs before
+       * the translation to integers.
+       */
       options::bitvectorToBool.set(true);
     }
 
@@ -3356,13 +3362,17 @@ void SmtEnginePrivate::processAssertions() {
       throw ModalException(
           "solving bitvectors as integers is currently not supported "
           "incrementally.");
+    } else if (options::boolToBitvector()) {
+      throw ModalException(
+          "solving bitvectors as integers is incompatible with --bool-to-bv.");
+
     }
     else if (options::solveBVAsInt() > 8)
     {
       /**
        * The granularity sets the size of the ITE in each element
        * of the sum that is generated for bitwise operators.
-       * For granularity k, the size of the ITE is 2^{2*k}.
+       * The size of the ITE is 2^{2*granularity}.
        * Since we don't want to introduce ITEs with unbounded size,
        * we bound the granularity.
        */
