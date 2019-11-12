@@ -14,7 +14,8 @@
  **/
 
 #include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/term_canonize.h"
+
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4;
 using namespace std;
@@ -23,7 +24,7 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
 struct sortTypeOrder {
-  TermCanonize* d_tu;
+  expr::TermCanonize* d_tu;
   bool operator() (TypeNode i, TypeNode j) {
     return d_tu->getIdForType( i )<d_tu->getIdForType( j );
   }
@@ -84,7 +85,7 @@ Node AlphaEquivalenceTypeNode::registerNode(Node q,
   while (index < typs.size())
   {
     TypeNode curr = typs[index];
-    Assert( typ_count.find( curr )!=typ_count.end() );
+    Assert(typ_count.find(curr) != typ_count.end());
     Trace("aeq-debug") << "[" << curr << " " << typ_count[curr] << "] ";
     aetn = &(aetn->d_children[curr][typ_count[curr]]);
     index = index + 1;
@@ -95,7 +96,7 @@ Node AlphaEquivalenceTypeNode::registerNode(Node q,
 
 Node AlphaEquivalenceDb::addTerm(Node q)
 {
-  Assert( q.getKind()==FORALL );
+  Assert(q.getKind() == FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   //construct canonical quantified formula
   Node t = d_tc->getCanonicalTerm(q[1], true);

@@ -26,7 +26,7 @@
 #  error "This source should only ever be built if CVC4_CLN_IMP is on !"
 #endif /* CVC4_CLN_IMP */
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
 using namespace std;
 

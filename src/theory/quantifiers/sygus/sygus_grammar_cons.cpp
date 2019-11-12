@@ -18,13 +18,14 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "printer/sygus_print_callback.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 
@@ -176,7 +177,7 @@ Node CegGrammarConstructor::process(Node q,
       std::map<Node, Node>::const_iterator itta = templates_arg.find(sf);
       Assert(itta != templates_arg.end());
       TNode templ_arg = itta->second;
-      Assert( !templ_arg.isNull() );
+      Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of it
       if( options::sygusTemplEmbedGrammar() ){
         Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
@@ -286,6 +287,7 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   std::stack<TNode> visit;
   TNode cur;
   visit.push(n);
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   do {
     cur = visit.top();
     visit.pop();
@@ -336,12 +338,38 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
       }
       if (makeEvalFun)
       {
-        // will make into an application of an evaluation function
-        ret = nm->mkNode(DT_SYGUS_EVAL, children);
+        if (!cur.getType().isFunction())
+        {
+          // will make into an application of an evaluation function
+          ret = nm->mkNode(DT_SYGUS_EVAL, children);
+        }
+        else
+        {
+          Assert(children.size() == 1);
+          Node ef = children[0];
+          // Otherwise, we are using the function-to-synthesize itself in a
+          // higher-order setting. We must return the lambda term:
+          //   lambda x1...xn. (DT_SYGUS_EVAL ef x1 ... xn)
+          // where ef is the first order variable for the
+          // function-to-synthesize.
+          SygusTypeInfo& ti = tds->getTypeInfo(ef.getType());
+          const std::vector<Node>& vars = ti.getVarList();
+          Assert(!vars.empty());
+          std::vector<Node> vs;
+          for (const Node& v : vars)
+          {
+            vs.push_back(nm->mkBoundVar(v.getType()));
+          }
+          Node lvl = nm->mkNode(BOUND_VAR_LIST, vs);
+          std::vector<Node> eargs;
+          eargs.push_back(ef);
+          eargs.insert(eargs.end(), vs.begin(), vs.end());
+          ret = nm->mkNode(LAMBDA, lvl, nm->mkNode(DT_SYGUS_EVAL, eargs));
+        }
       }
       else if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(ret_k, children);
+        ret = nm->mkNode(ret_k, children);
       }
       visited[cur] = ret;
     }
@@ -384,8 +412,9 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   }
   else if (type.isArray())
   {
-    // TODO #2694 : generate constant array over the first element of the
-    // constituent type
+    // generate constant array over the first element of the constituent type
+    Node c = type.mkGroundTerm();
+    ops.push_back(c);
   }
   // TODO #1178 : add other missing types
 }
@@ -420,8 +449,37 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         collectSygusGrammarTypesFor(
             TypeNode::fromType(arrayType.getConstituentType()), types);
       }
+      else if (range.isString() )
+      {
+        // theory of strings shares the integer type
+        TypeNode intType = NodeManager::currentNM()->integerType();
+        collectSygusGrammarTypesFor(intType,types);
+      }
+      else if (range.isFunction())
+      {
+        std::vector<TypeNode> atypes = range.getArgTypes();
+        for (unsigned i = 0, ntypes = atypes.size(); i < ntypes; i++)
+        {
+          collectSygusGrammarTypesFor(atypes[i], types);
+        }
+        collectSygusGrammarTypesFor(range.getRangeType(), types);
+      }
     }
   }
+}
+
+bool CegGrammarConstructor::isHandledType(TypeNode t)
+{
+  std::vector<TypeNode> types;
+  collectSygusGrammarTypesFor(t, types);
+  for (const TypeNode& tn : types)
+  {
+    if (tn.isSort() || tn.isFloatingPoint())
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 void CegGrammarConstructor::mkSygusDefaultGrammar(
@@ -511,15 +569,39 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     Type unres_t = unres_types[i];
     //add variables
-    for (unsigned j = 0, size_j = sygus_vars.size(); j < size_j; ++j)
+    for (const Node& sv : sygus_vars)
     {
-      if( sygus_vars[j].getType()==types[i] ){
+      TypeNode svt = sv.getType();
+      if (svt == types[i])
+      {
         std::stringstream ss;
-        ss << sygus_vars[j];
-        Trace("sygus-grammar-def") << "...add for variable " << ss.str() << std::endl;
-        ops[i].push_back( sygus_vars[j].toExpr() );
+        ss << sv;
+        Trace("sygus-grammar-def")
+            << "...add for variable " << ss.str() << std::endl;
+        ops[i].push_back(sv.toExpr());
         cnames[i].push_back(ss.str());
         cargs[i].push_back(std::vector<Type>());
+        pcs[i].push_back(nullptr);
+        weights[i].push_back(-1);
+      }
+      else if (svt.isFunction() && svt.getRangeType() == types[i])
+      {
+        // We add an APPLY_UF for all function whose return type is this type
+        // whose argument types are the other sygus types we are constructing.
+        std::vector<TypeNode> argTypes = svt.getArgTypes();
+        std::vector<Type> stypes;
+        for (unsigned k = 0, ntypes = argTypes.size(); k < ntypes; k++)
+        {
+          unsigned index =
+              std::distance(types.begin(),
+                            std::find(types.begin(), types.end(), argTypes[k]));
+          stypes.push_back(unres_types[index]);
+        }
+        std::stringstream ss;
+        ss << "apply_" << sv;
+        ops[i].push_back(sv.toExpr());
+        cnames[i].push_back(ss.str());
+        cargs[i].push_back(stypes);
         pcs[i].push_back(nullptr);
         weights[i].push_back(-1);
       }
@@ -533,7 +615,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
                itec->second.begin();
            set_it != itec->second.end();
-           set_it++)
+           ++set_it)
       {
         if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
         {
@@ -670,6 +752,31 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         weights[i].push_back(-1);
       }
     }
+    else if (types[i].isString())
+    {
+      // concatenation
+      ops[i].push_back(nm->operatorOf(STRING_CONCAT).toExpr());
+      cnames[i].push_back(kindToString(STRING_CONCAT));
+      cargs[i].push_back(std::vector<Type>());
+      cargs[i].back().push_back(unres_t);
+      cargs[i].back().push_back(unres_t);
+      pcs[i].push_back(nullptr);
+      weights[i].push_back(-1);
+      // length
+      TypeNode intType = nm->integerType();
+      Assert(std::find(types.begin(), types.end(), intType) != types.end());
+      unsigned i_intType = std::distance(
+          types.begin(),
+          std::find(types.begin(),
+                    types.end(),
+                    intType));
+      ops[i_intType].push_back(nm->operatorOf(STRING_LENGTH).toExpr());
+      cnames[i_intType].push_back(kindToString(STRING_LENGTH));
+      cargs[i_intType].push_back(std::vector<Type>());
+      cargs[i_intType].back().push_back(unres_t);
+      pcs[i_intType].push_back(nullptr);
+      weights[i_intType].push_back(-1);
+    }
     else if (types[i].isArray())
     {
       ArrayType arrayType = static_cast<ArrayType>(types[i].toType());
@@ -765,7 +872,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs[i].push_back(nullptr);
         weights[i].push_back(-1);
       }
-    }else{
+    }
+    else if (types[i].isSort() || types[i].isFunction())
+    {
+      // do nothing
+    }
+    else
+    {
       Warning()
           << "Warning: No implementation for default Sygus grammar of type "
           << types[i] << std::endl;
@@ -856,6 +969,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   // add predicates for types
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
+    if (!types[i].isFirstClass())
+    {
+      continue;
+    }
     Trace("sygus-grammar-def") << "...add predicates for " << types[i] << std::endl;
     //add equality per type
     Kind k = EQUAL;
@@ -996,11 +1113,12 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         datatypes,
                         unres);
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
-  Assert( !datatypes.empty() );
+  Assert(!datatypes.empty());
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
           datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-  Assert( types.size()==datatypes.size() );
+  Trace("sygus-grammar-def") << "...finished" << std::endl;
+  Assert(types.size() == datatypes.size());
   return TypeNode::fromType( types[0] );
 }
 
@@ -1023,7 +1141,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
       // TODO : can short circuit to this case when !TermUtil::containsTerm( templ, templ_arg )
       op = templ;
     }else{
-      Assert( templ.hasOperator() );
+      Assert(templ.hasOperator());
       op = templ.getOperator();
       // make constructor taking arguments types from children
       for( unsigned i=0; i<templ.getNumChildren(); i++ ){
@@ -1041,7 +1159,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     std::vector<DatatypeType> types =
         NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
             datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-    Assert( types.size()==1 );
+    Assert(types.size() == 1);
     return TypeNode::fromType( types[0] );
   }
 }

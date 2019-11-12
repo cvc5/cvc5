@@ -17,6 +17,7 @@
 #include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4;
@@ -120,8 +121,8 @@ Node EqualityQueryInstProp::getRepresentativeExp( Node a, std::vector< Node >& e
   if( !ar.isNull() ){
     if( engine_has_a || getEngine()->hasTerm( ar ) ){
       Trace("qip-eq") << "getRepresentativeExp " << a << " returns " << ar << std::endl;
-      Assert( getEngine()->hasTerm( ar ) );
-      Assert( getEngine()->getRepresentative( ar )==ar );
+      Assert(getEngine()->hasTerm(ar));
+      Assert(getEngine()->getRepresentative(ar) == ar);
       return ar;
     }
   }else{
@@ -186,15 +187,15 @@ TNode EqualityQueryInstProp::getCongruentTermExp( Node f, std::vector< TNode >& 
 }
 
 Node EqualityQueryInstProp::getUfRepresentative( Node a, std::vector< Node >& exp ) {
-  Assert( exp.empty() );
+  Assert(exp.empty());
   std::map< Node, Node >::iterator it = d_uf.find( a );
   if( it!=d_uf.end() ){
     if( it->second==a ){
-      Assert( d_uf_exp[ a ].empty() );
+      Assert(d_uf_exp[a].empty());
       return it->second;
     }else{
       Node m = getUfRepresentative( it->second, exp );
-      Assert( !m.isNull() );
+      Assert(!m.isNull());
       if( m!=it->second ){
         //update union find
         d_uf[ a ] = m;
@@ -223,7 +224,7 @@ int EqualityQueryInstProp::setEqual( Node& a, Node& b, bool pol, std::vector< No
   std::vector< Node > exp_a;
   Node ar = getUfRepresentative( a, exp_a );
   if( ar.isNull() ){
-    Assert( exp_a.empty() );
+    Assert(exp_a.empty());
     ar = a;
   }
   if( ar==b ){
@@ -240,7 +241,7 @@ int EqualityQueryInstProp::setEqual( Node& a, Node& b, bool pol, std::vector< No
   std::vector< Node > exp_b;
   Node br = getUfRepresentative( b, exp_b );
   if( br.isNull() ){
-    Assert( exp_b.empty() );
+    Assert(exp_b.empty());
     br = b;
     if( !getEngine()->hasTerm( br ) ){
       if( ar!=a || getEngine()->hasTerm( ar ) ){
@@ -277,8 +278,8 @@ int EqualityQueryInstProp::setEqual( Node& a, Node& b, bool pol, std::vector< No
     br = temp_r;
   }
 
-  Assert( !getEngine()->hasTerm( ar ) || getEngine()->hasTerm( br ) );
-  Assert( ar!=br );
+  Assert(!getEngine()->hasTerm(ar) || getEngine()->hasTerm(br));
+  Assert(ar != br);
 
   std::vector< Node > exp_d;
   if( areDisequalExp( ar, br, exp_d ) ){
@@ -293,8 +294,8 @@ int EqualityQueryInstProp::setEqual( Node& a, Node& b, bool pol, std::vector< No
   }else{
     if( pol ){
       //update the union find
-      Assert( d_uf_exp[ar].empty() );
-      Assert( d_uf_exp[br].empty() );
+      Assert(d_uf_exp[ar].empty());
+      Assert(d_uf_exp[br].empty());
 
       //registerUfTerm( ar );
       d_uf[ar] = br;
@@ -325,8 +326,8 @@ int EqualityQueryInstProp::setEqual( Node& a, Node& b, bool pol, std::vector< No
       return status;
     }else{
       Trace("qip-eq") << "EqualityQueryInstProp::setEqual : disequal " << ar << " <> " << br << std::endl;
-      Assert( d_diseq_list[ar].find( br )==d_diseq_list[ar].end() );
-      Assert( d_diseq_list[br].find( ar )==d_diseq_list[br].end() );
+      Assert(d_diseq_list[ar].find(br) == d_diseq_list[ar].end());
+      Assert(d_diseq_list[br].find(ar) == d_diseq_list[br].end());
 
       merge_exp( d_diseq_list[ar][br], reason );
       merge_exp( d_diseq_list[br][ar], reason );
@@ -371,7 +372,7 @@ bool EqualityQueryInstProp::isPropagateLiteral( Node n ) {
       Node atom = n.getKind()==NOT ? n[0] : n;
       return !atom[0].getType().isBoolean();
     }else{
-      Assert( ak!=NOT );
+      Assert(ak != NOT);
       return ak!=AND && ak!=OR && ak!=ITE;
     }
   }
@@ -409,7 +410,7 @@ Node EqualityQueryInstProp::evaluateTermExp( Node n, std::vector< Node >& exp, s
     Node ret;
     //check if it should be propagated in this context
     if( hasPol && isPropagateLiteral( n ) ){
-      Assert( n.getType().isBoolean() );
+      Assert(n.getType().isBoolean());
       //must be Boolean
       ret = evaluateTermExp( n, exp, visited, false, pol, watch_list_out, props );
       if( isPropagateLiteral( ret ) ){
@@ -431,7 +432,7 @@ Node EqualityQueryInstProp::evaluateTermExp( Node n, std::vector< Node >& exp, s
           bool childChanged = false;
           int abort_i = -1;
           //get the child entailed polarity
-          Assert( n.getKind()!=IMPLIES );
+          Assert(n.getKind() != IMPLIES);
           bool newHasPol, newPol;
           QuantPhaseReq::getEntailPolarity( n, 0, hasPol, pol, newHasPol, newPol );
           std::vector< Node > watch;
@@ -510,19 +511,19 @@ Node EqualityQueryInstProp::evaluateTermExp( Node n, std::vector< Node >& exp, s
                 Trace("qip-eval") << "arg " << i << " : " << args[i] << std::endl;
                 t_args.push_back( args[i] );
               }
-              Assert( args.size()==n.getNumChildren() );
+              Assert(args.size() == n.getNumChildren());
               //args contains terms known by the equality engine
               TNode nn = getCongruentTerm( f, t_args );
               Trace("qip-eval") << "  got congruent term " << nn << " for " << n << std::endl;
               if( !nn.isNull() ){
                 //successfully constructed representative in EE
-                Assert( exp_n.empty() );
+                Assert(exp_n.empty());
                 ret = getRepresentativeExp( nn, exp_n );
                 Trace("qip-eval") << "return rep, exp size = " << exp_n.size() << std::endl;
                 merge_exp( exp, exp_n );
                 ret_set = true;
-                Assert( !ret.isNull() );
-                Assert( ret!=n );
+                Assert(!ret.isNull());
+                Assert(ret != n);
                 // we have that n == ret, check if the union find should be updated TODO?
               }else{
                 watch.push_back( ret );
@@ -541,7 +542,7 @@ Node EqualityQueryInstProp::evaluateTermExp( Node n, std::vector< Node >& exp, s
                     ret_set = true;
                   }
                 }else{
-                  Assert( args.size()==n.getNumChildren() );
+                  Assert(args.size() == n.getNumChildren());
                 }
                 if( !ret_set ){
                   if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
@@ -575,7 +576,7 @@ Node EqualityQueryInstProp::evaluateTermExp( Node n, std::vector< Node >& exp, s
 void EqualityQueryInstProp::merge_exp( std::vector< Node >& v, std::vector< Node >& v_to_merge, int up_to_size ) {
   //TODO : optimize
   if( v.empty() ){
-    Assert( up_to_size==-1 || up_to_size==(int)v_to_merge.size() );
+    Assert(up_to_size == -1 || up_to_size == (int)v_to_merge.size());
     v.insert( v.end(), v_to_merge.begin(), v_to_merge.end() );
   }else{
     //std::vector< Node >::iterator v_end = v.end();
@@ -594,7 +595,7 @@ void InstPropagator::InstInfo::init( Node q, Node lem, std::vector< Node >& term
   //information about the instance
   d_q = q;
   d_lem = lem;
-  Assert( d_terms.empty() );
+  Assert(d_terms.empty());
   d_terms.insert( d_terms.end(), terms.begin(), terms.end() );
   //the current lemma
   d_curr = body;
@@ -640,7 +641,7 @@ bool InstPropagator::notifyInstantiation(QuantifiersModule::QEffort quant_e,
     unsigned id = allocateInstantiation( q, lem, terms, body );
     //initialize the information
     if( cacheConclusion( id, body ) ){
-      Assert( d_update_list.empty() );
+      Assert(d_update_list.empty());
       d_update_list.push_back( id );
       bool firstTime = true;
       //update infos in the update list until empty
@@ -659,7 +660,7 @@ bool InstPropagator::notifyInstantiation(QuantifiersModule::QEffort quant_e,
     Trace("qip-prop") << "...finished notify instantiation." << std::endl;
     return !d_conflict;
   }else{
-    Assert( false );
+    Assert(false);
     return false;
   }
 }
@@ -675,7 +676,7 @@ void InstPropagator::filterInstantiations() {
                   it->second.d_q, it->second.d_lem, it->second.d_terms))
           {
             Trace("qip-warn") << "WARNING : did not remove instantiation id " << it->first << std::endl;
-            Assert( false );
+            Assert(false);
           }else{
             Trace("qip-prop-debug") << it->first << " ";
           }
@@ -699,8 +700,8 @@ unsigned InstPropagator::allocateInstantiation( Node q, Node lem, std::vector< N
 }
 
 bool InstPropagator::update( unsigned id, InstInfo& ii, bool firstTime ) {
-  Assert( !d_conflict );
-  Assert( ii.d_active );
+  Assert(!d_conflict);
+  Assert(ii.d_active);
   Trace("qip-prop-debug") << "Update info [" << id << "]..." << std::endl;
   //update the evaluation of the current lemma
   std::map< Node, std::vector< Node > > watch_list_out;
@@ -732,14 +733,14 @@ bool InstPropagator::update( unsigned id, InstInfo& ii, bool firstTime ) {
     }
     //determine the status of eval
     if( eval==d_qy.d_false ){
-      Assert( props.empty() );
+      Assert(props.empty());
       //we have inferred a conflict
       conflict( ii.d_curr_exp );
       return false;
     }else{
       for( unsigned i=0; i<props.size(); i++ ){
         Trace("qip-prop-debug2")  << "Process propagation " << props[i] << std::endl;
-        Assert( d_qy.isPropagateLiteral( props[i] ) );
+        Assert(d_qy.isPropagateLiteral(props[i]));
         //if we haven't propagated this literal yet
         if( cacheConclusion( id, props[i], 1 ) ){
           //watch list for propagated literal: may not yet be purely EE representatives
@@ -777,7 +778,7 @@ bool InstPropagator::update( unsigned id, InstInfo& ii, bool firstTime ) {
   }else{
     Trace("qip-prop-debug") << "...did not update." << std::endl;
   }
-  Assert( !d_conflict );
+  Assert(!d_conflict);
   return true;
 }
 
@@ -801,8 +802,8 @@ void InstPropagator::propagate( Node a, Node b, bool pol, std::vector< Node >& e
     if( status==EqualityQueryInstProp::STATUS_MERGED_KNOWN ){
       Trace("qip-rlv-propagate")
           << "Relevant propagation : " << a << " == " << b << std::endl;
-      Assert( d_qy.getEngine()->hasTerm( a ) );
-      Assert( d_qy.getEngine()->hasTerm( b ) );
+      Assert(d_qy.getEngine()->hasTerm(a));
+      Assert(d_qy.getEngine()->hasTerm(b));
       Trace("qip-prop-debug") << "...equality between known terms." << std::endl;
       addRelevantInstances( exp, "qip-propagate" );
       //d_has_relevant_inst = true;
@@ -836,7 +837,7 @@ void InstPropagator::conflict( std::vector< Node >& exp ) {
 }
 
 bool InstPropagator::cacheConclusion( unsigned id, Node body, int prop_index ) {
-  Assert( prop_index==0 || prop_index==1 );
+  Assert(prop_index == 0 || prop_index == 1);
   //check if the conclusion is non-redundant
   if( d_conc_to_id[prop_index].find( body )==d_conc_to_id[prop_index].end() ){
     d_conc_to_id[prop_index][body] = id;
@@ -848,7 +849,7 @@ bool InstPropagator::cacheConclusion( unsigned id, Node body, int prop_index ) {
 
 void InstPropagator::addRelevantInstances( std::vector< Node >& exp, const char * c ) {
   for( unsigned i=0; i<exp.size(); i++ ){
-    Assert( d_conc_to_id[0].find( exp[i] )!=d_conc_to_id[0].end() );
+    Assert(d_conc_to_id[0].find(exp[i]) != d_conc_to_id[0].end());
     Trace(c) << "  relevant instance id : " << d_conc_to_id[0][ exp[i] ] << std::endl;
     d_relevant_inst[ d_conc_to_id[0][ exp[i] ] ] = true;
   }
@@ -856,7 +857,7 @@ void InstPropagator::addRelevantInstances( std::vector< Node >& exp, const char 
 
 void InstPropagator::debugPrintExplanation( std::vector< Node >& exp, const char * c ) {
   for( unsigned i=0; i<exp.size(); i++ ){
-    Assert( d_conc_to_id[0].find( exp[i] )!=d_conc_to_id[0].end() );
+    Assert(d_conc_to_id[0].find(exp[i]) != d_conc_to_id[0].end());
     Trace(c) << d_conc_to_id[0][ exp[i] ] << " ";
   }
 }

@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -32,14 +33,25 @@ namespace theory {
 namespace quantifiers {
 
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
-    : QuantifiersModule(qe)
+    : QuantifiersModule(qe), d_tds(qe->getTermDatabaseSygus())
 {
-  d_conjs.push_back(
-      std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+  d_conjs.push_back(std::unique_ptr<SynthConjecture>(
+      new SynthConjecture(d_quantEngine, this)));
   d_conj = d_conjs.back().get();
 }
 
 SynthEngine::~SynthEngine() {}
+
+void SynthEngine::presolve()
+{
+  Trace("cegqi-engine") << "SynthEngine::presolve" << std::endl;
+  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
+  {
+    d_conjs[i]->presolve();
+  }
+  Trace("cegqi-engine") << "SynthEngine::presolve finished" << std::endl;
+}
+
 bool SynthEngine::needsCheck(Theory::Effort e)
 {
   return e >= Theory::EFFORT_LAST_CALL;
@@ -129,7 +141,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 
 void SynthEngine::assignConjecture(Node q)
 {
-  Trace("cegqi-engine") << "--- Assign conjecture " << q << std::endl;
+  Trace("cegqi-engine") << "SynthEngine::assignConjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
     // the following does quantifier elimination as a preprocess step
@@ -254,14 +266,16 @@ void SynthEngine::assignConjecture(Node q)
   // allocate a new synthesis conjecture if not assigned
   if (d_conjs.back()->isAssigned())
   {
-    d_conjs.push_back(
-        std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+    d_conjs.push_back(std::unique_ptr<SynthConjecture>(
+        new SynthConjecture(d_quantEngine, this)));
   }
   d_conjs.back()->assign(q);
 }
 
 void SynthEngine::registerQuantifier(Node q)
 {
+  Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
+                       << std::endl;
   if (d_quantEngine->getOwner(q) == this)
   {
     Trace("cegqi") << "Register conjecture : " << q << std::endl;
@@ -275,9 +289,15 @@ void SynthEngine::registerQuantifier(Node q)
       assignConjecture(q);
     }
   }
-  else
+  if (options::sygusRecFun())
   {
-    Trace("cegqi-debug") << "Register quantifier : " << q << std::endl;
+    if (d_quantEngine->getQuantAttributes()->isFunDef(q))
+    {
+      // If it is a recursive function definition, add it to the function
+      // definition evaluator class.
+      FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
+      fde->assertDefinition(q);
+    }
   }
 }
 
@@ -294,34 +314,6 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
   if (!conj->needsRefinement())
   {
     Trace("cegqi-engine-debug") << "Do conjecture check..." << std::endl;
-    if (conj->isSingleInvocation())
-    {
-      std::vector<Node> clems;
-      conj->doSingleInvCheck(clems);
-      if (!clems.empty())
-      {
-        for (const Node& lem : clems)
-        {
-          Trace("cegqi-lemma")
-              << "Cegqi::Lemma : single invocation instantiation : " << lem
-              << std::endl;
-          d_quantEngine->addLemma(lem);
-        }
-        d_statistics.d_cegqi_si_lemmas += clems.size();
-        Trace("cegqi-engine") << "  ...try single invocation." << std::endl;
-      }
-      else
-      {
-        // This can happen for non-monotonic instantiation strategies. We
-        // set --cbqi-full to ensure that for most strategies (e.g. BV), we
-        // are using a monotonic strategy.
-        Trace("cegqi-warn")
-            << "  ...FAILED to add cbqi instantiation for single invocation!"
-            << std::endl;
-      }
-      return true;
-    }
-
     Trace("cegqi-engine-debug")
         << "  *** Check candidate phase..." << std::endl;
     std::vector<Node> cclems;
@@ -403,15 +395,23 @@ void SynthEngine::printSynthSolution(std::ostream& out)
   }
 }
 
-void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+bool SynthEngine::getSynthSolutions(
+    std::map<Node, std::map<Node, Node> >& sol_map)
 {
+  bool ret = true;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
     if (d_conjs[i]->isAssigned())
     {
-      d_conjs[i]->getSynthSolutions(sol_map);
+      if (!d_conjs[i]->getSynthSolutions(sol_map))
+      {
+        // if one conjecture fails, we fail overall
+        ret = false;
+        break;
+      }
     }
   }
+  return ret;
 }
 
 void SynthEngine::preregisterAssertion(Node n)

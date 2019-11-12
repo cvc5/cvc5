@@ -38,7 +38,7 @@ namespace quantifiers {
 class BvInstantiator : public Instantiator
 {
  public:
-  BvInstantiator(QuantifiersEngine* qe, TypeNode tn);
+  BvInstantiator(TypeNode tn, BvInverter* inv);
   ~BvInstantiator() override;
   /** reset */
   void reset(CegInstantiator* ci,

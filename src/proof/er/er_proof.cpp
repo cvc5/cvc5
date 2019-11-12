@@ -29,7 +29,7 @@
 #include <iterator>
 #include <unordered_set>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/map_util.h"
 #include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
@@ -114,9 +114,9 @@ ErProof ErProof::fromBinaryDratProof(
                                                drat2er::options::QUIET,
                                                false);
 #else
-    Unimplemented(
-        "ER proof production requires drat2er.\n"
-        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented()
+        << "ER proof production requires drat2er.\n"
+        << "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild";
 #endif
   }
 
@@ -184,8 +184,8 @@ ErProof::ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,
     size_t nLinesForThisDef = 2 + otherLiterals.size();
     // Look at the negation of the second literal in the second clause to get
     // the old literal
-    AlwaysAssert(d_tracecheck.d_lines.size() > i + 1,
-                 "Malformed definition in TRACECHECK proof from drat2er");
+    AlwaysAssert(d_tracecheck.d_lines.size() > i + 1)
+        << "Malformed definition in TRACECHECK proof from drat2er";
     d_definitions.emplace_back(newVar,
                                ~d_tracecheck.d_lines[i + 1].d_clause[1],
                                std::move(otherLiterals));
@@ -299,8 +299,8 @@ void ErProof::outputAsLfsc(std::ostream& os) const
   }
 
   // Write proof of bottom
-  Assert(d_tracecheck.d_lines.back().d_clause.size() == 0,
-         "The TRACECHECK proof from drat2er did not prove bottom.");
+  Assert(d_tracecheck.d_lines.back().d_clause.size() == 0)
+      << "The TRACECHECK proof from drat2er did not prove bottom.";
   os << "\n      er.c" << d_tracecheck.d_lines.back().d_idx
      << " ; (holds cln)\n";
 

@@ -28,13 +28,13 @@
 #include "expr/type.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 class SygusGrammarNorm;
+class TermDbSygus;
 
 /** Operator position trie class
  *
@@ -130,10 +130,7 @@ class OpPosTrie
 class SygusGrammarNorm
 {
  public:
-  SygusGrammarNorm(QuantifiersEngine* qe)
-      : d_qe(qe), d_tds(d_qe->getTermDatabaseSygus())
-  {
-  }
+  SygusGrammarNorm(QuantifiersEngine* qe);
   ~SygusGrammarNorm() {}
   /** creates a normalized typenode from a given one.
    *

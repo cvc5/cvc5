@@ -21,7 +21,9 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "theory/sets/inference_manager.h"
 #include "theory/sets/rels_utils.h"
+#include "theory/sets/solver_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -63,10 +65,10 @@ class TheorySetsRels {
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
- TheorySetsRels(context::Context* c,
-                context::UserContext* u,
-                eq::EqualityEngine* eq,
-                TheorySetsPrivate& set);
+ TheorySetsRels(SolverState& s,
+                InferenceManager& im,
+                eq::EqualityEngine& e,
+                context::UserContext* u);
 
  ~TheorySetsRels();
  /**
@@ -83,10 +85,13 @@ private:
   /** True and false constant nodes */
   Node                          d_trueNode;
   Node                          d_falseNode;
-  /** The parent theory of sets object */
-  TheorySetsPrivate& d_sets_theory;
-  /** pointer to the equality engine of the theory of sets */
-  eq::EqualityEngine* d_eqEngine;
+
+  /** Reference to the state object for the theory of sets */
+  SolverState& d_state;
+  /** Reference to the inference manager for the theory of sets */
+  InferenceManager& d_im;
+  /** Reference to the equality engine of theory of sets */
+  eq::EqualityEngine& d_ee;
   /** A list of pending inferences to process */
   std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;
@@ -113,8 +118,6 @@ private:
   std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_tcr_tcGraph;
   std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
 
-  context::Context* d_satContext;
-
  private:
   /** Send infer
    *
@@ -133,6 +136,14 @@ private:
    * the equality engine.
    */
   void doPendingInfers();
+  /** Process inference
+   *
+   * A wrapper around d_im.assertInference that ensures that we do not send
+   * inferences with explanations that are not entailed.
+   *
+   * Argument c is used for debugging, typically the name of the inference.
+   */
+  void processInference(Node conc, Node exp, const char* c);
 
   /** Methods used in full effort */
   void check();

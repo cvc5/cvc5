@@ -29,11 +29,12 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+
+class SynthEngine;
 
 /**
  * A base class for generating values for actively-generated enumerators.
@@ -69,8 +70,10 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe);
+  SynthConjecture(QuantifiersEngine* qe, SynthEngine* p);
   ~SynthConjecture();
+  /** presolve */
+  void presolve();
   /** get original version of conjecture */
   Node getConjecture() { return d_quant; }
   /** get deep embedding version of conjecture */
@@ -83,11 +86,6 @@ class SynthConjecture
   bool needsCheck();
   /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement() const;
-  /** do single invocation check
-   * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al
-   * CAV 2015.
-   */
-  void doSingleInvCheck(std::vector<Node>& lems);
   /** do syntax-guided enumerative check
    *
    * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
@@ -115,13 +113,17 @@ class SynthConjecture
   void printSynthSolution(std::ostream& out);
   /** get synth solutions
    *
-   * This returns a map from function-to-synthesize variables to their
-   * builtin solution, which has the same type. For example, for synthesis
-   * conjecture exists f. forall x. f( x )>x, this function may return the map
-   * containing the entry:
+   * This method returns true if this class has a solution available to the
+   * conjecture that it was assigned.
+   *
+   * Let q be the synthesis conjecture assigned to this class.
+   * This method adds entries to sol_map[q] that map functions-to-synthesize to
+   * their builtin solution, which has the same type. For example, for synthesis
+   * conjecture exists f. forall x. f( x )>x, this function will update
+   * sol_map[q] to contain the entry:
    *   f -> (lambda x. x+1)
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
   /**
    * The feasible guard whose semantics are "this conjecture is feasiable".
    * This is "G" in Figure 3 of Reynolds et al CAV 2015.
@@ -158,14 +160,28 @@ class SynthConjecture
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
   void debugPrint(const char* c);
+  /** check side condition
+   *
+   * This returns false if the solution { d_candidates -> cvals } does not
+   * satisfy the side condition of the conjecture maintained by this class,
+   * if it exists, and true otherwise.
+   */
+  bool checkSideCondition(const std::vector<Node>& cvals) const;
 
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** pointer to the synth engine that owns this */
+  SynthEngine* d_parent;
   /** term database sygus of d_qe */
   TermDbSygus* d_tds;
   /** The feasible guard. */
   Node d_feasible_guard;
+  /**
+   * Do we have a solution in this solve context? This flag is reset to false
+   * on every call to presolve.
+   */
+  bool d_hasSolution;
   /** the decision strategy for the feasible guard */
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */
@@ -366,10 +382,15 @@ class SynthConjecture
    * Prints the current synthesis solution to the output stream indicated by
    * the Options object, send a lemma blocking the current solution to the
    * output channel, which we refer to as a "stream exclusion lemma".
+   *
+   * The argument enums is the set of enumerators that comprise the current
+   * solution, and values is their current values.
    */
-  void printAndContinueStream();
-  /** exclude the current solution */
-  void excludeCurrentSolution();
+  void printAndContinueStream(const std::vector<Node>& enums,
+                              const std::vector<Node>& values);
+  /** exclude the current solution { enums -> values } */
+  void excludeCurrentSolution(const std::vector<Node>& enums,
+                              const std::vector<Node>& values);
   /**
    * Whether we have guarded a stream exclusion lemma when using sygusStream.
    * This is an optimization that allows us to guard only the first stream

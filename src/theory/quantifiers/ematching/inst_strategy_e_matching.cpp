@@ -18,6 +18,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "util/random.h"
 
@@ -41,11 +42,11 @@ namespace quantifiers {
 // user-pat=interleave alternates between use and resort
 
 struct sortQuantifiersForSymbol {
-  QuantifiersEngine* d_qe;
+  QuantRelevance* d_quant_rel;
   std::map< Node, Node > d_op_map;
   bool operator() (Node i, Node j) {
-    int nqfsi = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( d_op_map[i] );
-    int nqfsj = d_qe->getQuantifierRelevance()->getNumQuantifiersForSymbol( d_op_map[j] );
+    int nqfsi = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[i]);
+    int nqfsj = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[j]);
     if( nqfsi<nqfsj ){
       return true;
     }else if( nqfsi>nqfsj ){
@@ -124,7 +125,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
 }
 
 void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
-  Assert( pat.getKind()==INST_PATTERN );
+  Assert(pat.getKind() == INST_PATTERN);
   //add to generators
   bool usable = true;
   std::vector< Node > nodes;
@@ -154,7 +155,10 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
   }
 }
 
-InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers( QuantifiersEngine* qe ) : InstStrategy( qe ){
+InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
+                                                         QuantRelevance* qr)
+    : InstStrategy(qe), d_quant_rel(qr)
+{
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
   //whether to select new triggers during the search
@@ -304,7 +308,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       if( Trace.isOn("auto-gen-trigger-debug") ){
         Trace("auto-gen-trigger-debug") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
         for( unsigned i=0; i<patTermsF.size(); i++ ){
-          Assert( tinfo.find( patTermsF[i] )!=tinfo.end() );
+          Assert(tinfo.find(patTermsF[i]) != tinfo.end());
           Trace("auto-gen-trigger-debug") << "   " << patTermsF[i] << std::endl;
           Trace("auto-gen-trigger-debug2") << "     info = [" << tinfo[patTermsF[i]].d_reqPol << ", " << tinfo[patTermsF[i]].d_reqPolEq << ", " << tinfo[patTermsF[i]].d_fv.size() << "]" << std::endl;
         }
@@ -316,7 +320,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     std::map< Node, bool > rmPatTermsF;
     int last_weight = -1;
     for( unsigned i=0; i<patTermsF.size(); i++ ){
-      Assert( patTermsF[i].getKind()!=NOT );
+      Assert(patTermsF[i].getKind() != NOT);
       bool newVar = false;
       for( unsigned j=0; j<tinfo[ patTermsF[i] ].d_fv.size(); j++ ){
         if( vcMap.find( tinfo[ patTermsF[i] ].d_fv[j] )==vcMap.end() ){
@@ -358,17 +362,17 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         Trace("auto-gen-trigger-debug") << "...processing pattern " << pat << std::endl;
         Node mpat = pat;
         //process the pattern: if it has a required polarity, consider it
-        Assert( tinfo.find( pat )!=tinfo.end() );
+        Assert(tinfo.find(pat) != tinfo.end());
         int rpol = tinfo[pat].d_reqPol;
         Node rpoleq = tinfo[pat].d_reqPolEq;
         unsigned num_fv = tinfo[pat].d_fv.size();
         Trace("auto-gen-trigger-debug") << "...required polarity for " << pat << " is " << rpol << ", eq=" << rpoleq << std::endl;
         if( rpol!=0 ){
-          Assert( rpol==1 || rpol==-1 );
+          Assert(rpol == 1 || rpol == -1);
           if( Trigger::isRelationalTrigger( pat ) ){
             pat = rpol==-1 ? pat.negate() : pat;
           }else{
-            Assert( Trigger::isAtomicTrigger( pat ) );
+            Assert(Trigger::isAtomicTrigger(pat));
             if( pat.getType().isBoolean() && rpoleq.isNull() ){
               if( options::literalMatchMode()==LITERAL_MATCH_USE ){
                 pat = NodeManager::currentNM()->mkNode( EQUAL, pat, NodeManager::currentNM()->mkConst( rpol==-1 ) ).negate();
@@ -376,7 +380,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
                 pat = NodeManager::currentNM()->mkNode( EQUAL, pat, NodeManager::currentNM()->mkConst( rpol==1 ) );
               }
             }else{
-              Assert( !rpoleq.isNull() );
+              Assert(!rpoleq.isNull());
               if( rpol==-1 ){
                 if( options::literalMatchMode()!=LITERAL_MATCH_NONE ){
                   //all equivalence classes except rpoleq
@@ -428,19 +432,29 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       Trace("auto-gen-trigger") << "Generate trigger for " << f << std::endl;
       //sort terms based on relevance
       if( options::relevantTriggers() ){
+        Assert(d_quant_rel);
         sortQuantifiersForSymbol sqfs;
-        sqfs.d_qe = d_quantEngine;
+        sqfs.d_quant_rel = d_quant_rel;
         for( unsigned i=0; i<patTerms.size(); i++ ){
-          Assert( d_pat_to_mpat.find( patTerms[i] )!=d_pat_to_mpat.end() );
-          Assert( d_pat_to_mpat[patTerms[i]].hasOperator() );
+          Assert(d_pat_to_mpat.find(patTerms[i]) != d_pat_to_mpat.end());
+          Assert(d_pat_to_mpat[patTerms[i]].hasOperator());
           sqfs.d_op_map[ patTerms[i] ] = d_pat_to_mpat[patTerms[i]].getOperator();
         }        
         //sort based on # occurrences (this will cause Trigger to select rarer symbols)
         std::sort( patTerms.begin(), patTerms.end(), sqfs );
-        Debug("relevant-trigger") << "Terms based on relevance: " << std::endl;
-        for( unsigned i=0; i<patTerms.size(); i++ ){
-          Debug("relevant-trigger") << "   " << patTerms[i] << " from " << d_pat_to_mpat[patTerms[i]] << " (";
-          Debug("relevant-trigger") << d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( d_pat_to_mpat[patTerms[i]].getOperator() ) << ")" << std::endl;
+        if (Debug.isOn("relevant-trigger"))
+        {
+          Debug("relevant-trigger")
+              << "Terms based on relevance: " << std::endl;
+          for (const Node& p : patTerms)
+          {
+            Debug("relevant-trigger")
+                << "   " << p << " from " << d_pat_to_mpat[p] << " (";
+            Debug("relevant-trigger")
+                << d_quant_rel->getNumQuantifiersForSymbol(
+                       d_pat_to_mpat[p].getOperator())
+                << ")" << std::endl;
+          }
         }
       }
       //now, generate the trigger...
@@ -481,14 +495,18 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
             //check if similar patterns exist, and if so, add them additionally
             unsigned nqfs_curr = 0;
             if( options::relevantTriggers() ){
-              nqfs_curr = d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[0].getOperator() );
+              nqfs_curr = d_quant_rel->getNumQuantifiersForSymbol(
+                  patTerms[0].getOperator());
             }
             index++;
             bool success = true;
             while( success && index<patTerms.size() && d_is_single_trigger[ patTerms[index] ] ){
               success = false;
-              if( !options::relevantTriggers() ||
-                  d_quantEngine->getQuantifierRelevance()->getNumQuantifiersForSymbol( patTerms[index].getOperator() )<=nqfs_curr ){
+              if (!options::relevantTriggers()
+                  || d_quant_rel->getNumQuantifiersForSymbol(
+                         patTerms[index].getOperator())
+                         <= nqfs_curr)
+              {
                 d_single_trigger_gen[ patTerms[index] ] = true;
                 Trigger* tr2 = Trigger::mkTrigger( d_quantEngine, f, patTerms[index], false, Trigger::TR_RETURN_NULL, d_num_trigger_vars[f] );
                 addTrigger( tr2, f );
@@ -573,7 +591,7 @@ bool InstStrategyAutoGenTriggers::hasUserPatterns( Node q ) {
 }
 
 void InstStrategyAutoGenTriggers::addUserNoPattern( Node q, Node pat ) {
-  Assert( pat.getKind()==INST_NO_PATTERN && pat.getNumChildren()==1 );
+  Assert(pat.getKind() == INST_NO_PATTERN && pat.getNumChildren() == 1);
   if( std::find( d_user_no_gen[q].begin(), d_user_no_gen[q].end(), pat[0] )==d_user_no_gen[q].end() ){
     Trace("user-pat") << "Add user no-pattern: " << pat[0] << " for " << q << std::endl;
     d_user_no_gen[q].push_back( pat[0] );

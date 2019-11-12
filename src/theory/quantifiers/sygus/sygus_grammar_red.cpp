@@ -17,6 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -41,7 +42,9 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     Trace("sygus-red") << "  Is " << dt[i].getName() << " a redundant operator?"
                        << std::endl;
     std::map<int, Node> pre;
-    Node g = tds->mkGeneric(dt, i, pre);
+    // We do not do beta reduction, since we want the arguments to match the
+    // the types of the datatype.
+    Node g = tds->mkGeneric(dt, i, pre, false);
     Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
     d_gen_terms[i] = g;
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
@@ -72,6 +75,8 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     }
     d_sygus_red_status.push_back(red ? 1 : 0);
   }
+  Trace("sygus-red") << "Compute redundant cons for " << tn << " finished"
+                     << std::endl;
 }
 
 void SygusRedundantCons::getRedundant(std::vector<unsigned>& indices)

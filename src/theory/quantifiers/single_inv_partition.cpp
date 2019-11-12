@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/single_inv_partition.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4;
@@ -280,17 +281,17 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         Trace("si-prt-debug") << "...normalized invocations to " << cr
                               << std::endl;
         // now must check if it has other bound variables
-        std::vector<Node> bvs;
-        TermUtil::getBoundVars(cr, bvs);
+        std::unordered_set<Node, NodeHashFunction> fvs;
+        expr::getFreeVariables(cr, fvs);
         // bound variables must be contained in the single invocation variables
-        for (const Node& bv : bvs)
+        for (const Node& bv : fvs)
         {
           if (std::find(d_si_vars.begin(), d_si_vars.end(), bv)
               == d_si_vars.end())
           {
-            // getBoundVars also collects functions in the rare case that we are
-            // synthesizing a function with 0 arguments, take this into account
-            // here.
+            // getFreeVariables also collects functions in the rare case that
+            // we are synthesizing a function with 0 arguments, take this into
+            // account here.
             if (std::find(d_input_funcs.begin(), d_input_funcs.end(), bv)
                 == d_input_funcs.end())
             {
@@ -311,15 +312,15 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
         Trace("si-prt") << "...not single invocation." << std::endl;
         singleInvocation = false;
         // rename bound variables with maximal overlap with si_vars
-        std::vector<Node> bvs;
-        TermUtil::getBoundVars(cr, bvs);
+        std::unordered_set<Node, NodeHashFunction> fvs;
+        expr::getFreeVariables(cr, fvs);
         std::vector<Node> terms;
         std::vector<Node> subs;
-        for (unsigned j = 0; j < bvs.size(); j++)
+        for (const Node& v : fvs)
         {
-          TypeNode tn = bvs[j].getType();
-          Trace("si-prt-debug") << "Fit bound var #" << j << " : " << bvs[j]
-                                << " with si." << std::endl;
+          TypeNode tn = v.getType();
+          Trace("si-prt-debug")
+              << "Fit bound var: " << v << " with si." << std::endl;
           for (unsigned k = 0; k < d_si_vars.size(); k++)
           {
             if (tn == d_arg_types[k])
@@ -327,7 +328,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
               if (std::find(subs.begin(), subs.end(), d_si_vars[k])
                   == subs.end())
               {
-                terms.push_back(bvs[j]);
+                terms.push_back(v);
                 subs.push_back(d_si_vars[k]);
                 Trace("si-prt-debug") << "  ...use " << d_si_vars[k]
                                       << std::endl;
@@ -344,7 +345,9 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
       Trace("si-prt") << ".....got si=" << singleInvocation
                       << ", result : " << cr << std::endl;
       d_conjuncts[2].push_back(cr);
-      TermUtil::getBoundVars(cr, d_all_vars);
+      std::unordered_set<Node, NodeHashFunction> fvs;
+      expr::getFreeVariables(cr, fvs);
+      d_all_vars.insert(d_all_vars.end(), fvs.begin(), fvs.end());
       if (singleInvocation)
       {
         // replace with single invocation formulation
@@ -368,6 +371,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   else
   {
     Trace("si-prt") << "...failed." << std::endl;
+    return false;
   }
   return true;
 }
@@ -420,7 +424,6 @@ bool SingleInvocationPartition::processConjunct(Node n,
   else
   {
     bool ret = true;
-    // if( TermUtil::hasBoundVarAttr( n ) ){
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
       if (!processConjunct(n[i], visited, args, terms, subs))

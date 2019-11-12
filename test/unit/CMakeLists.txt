@@ -17,7 +17,7 @@ add_custom_target(build-units)
 add_dependencies(build-tests build-units)
 
 add_custom_target(units
-  COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $(ARGS)
+  COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-units)
 
 set(CVC4_CXXTEST_FLAGS_BLACK
@@ -91,4 +91,5 @@ add_subdirectory(parser)
 add_subdirectory(prop)
 add_subdirectory(proof)
 add_subdirectory(theory)
+add_subdirectory(preprocessing)
 add_subdirectory(util)

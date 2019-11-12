@@ -18,10 +18,37 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
 
-#include "theory/quantifiers_engine.h"
+#include <map>
+#include <vector>
+
+#include "expr/attribute.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
+/**
+ * Attribute for associating a function-to-synthesize with a first order
+ * variable whose type is a sygus datatype type that encodes its grammar.
+ */
+struct SygusSynthGrammarAttributeId
+{
+};
+typedef expr::Attribute<SygusSynthGrammarAttributeId, Node>
+    SygusSynthGrammarAttribute;
+
+/**
+ * Attribute for associating a function-to-synthesize with its formal argument
+ * list.
+ */
+struct SygusSynthFunVarListAttributeId
+{
+};
+typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node>
+    SygusSynthFunVarListAttribute;
+
 namespace quantifiers {
 
 class SynthConjecture;
@@ -127,6 +154,8 @@ public:
    * sygus grammar, add them to vector ops.
    */
   static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
+  /** Is it possible to construct a default grammar for type t? */
+  static bool isHandledType(TypeNode t);
   /**
    * Convert node n based on deep embedding, see Section 4 of Reynolds et al
    * CAV 2015.

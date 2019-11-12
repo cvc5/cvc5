@@ -16,7 +16,6 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -144,7 +143,8 @@ bool SygusPbe::collectExamples(Node n,
   return true;
 }
 
-bool SygusPbe::initialize(Node n,
+bool SygusPbe::initialize(Node conj,
+                          Node n,
                           const std::vector<Node>& candidates,
                           std::vector<Node>& lemmas)
 {
@@ -440,7 +440,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
                                    std::vector<Node>& candidate_values,
                                    std::vector<Node>& lems)
 {
-  Assert( enums.size()==enum_values.size() );
+  Assert(enums.size() == enum_values.size());
   if( !enums.empty() ){
     unsigned min_term_size = 0;
     Trace("sygus-pbe-enum") << "Register new enumerated values : " << std::endl;

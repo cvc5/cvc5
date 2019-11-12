@@ -152,8 +152,16 @@ public:
   inline ArithVar getVariable() const { return d_variable; }
 
   bool isRelaxed() const { return d_relaxed; }
-  void setRelaxed(){ Assert(!d_relaxed); d_relaxed = true; }
-  void setUnrelaxed(){ Assert(d_relaxed); d_relaxed = false; }
+  void setRelaxed()
+  {
+    Assert(!d_relaxed);
+    d_relaxed = true;
+  }
+  void setUnrelaxed()
+  {
+    Assert(d_relaxed);
+    d_relaxed = false;
+  }
 
   inline int sgn() const { return d_sgn; }
 
