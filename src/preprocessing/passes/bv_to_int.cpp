@@ -925,8 +925,8 @@ Node BVToInt::createBitwiseNode(Node x,
       for (uint64_t n = 0; n < granularity; n++)
       {
         // b is the result of f on the current bit
-        bool b = f((i >> n) & 1 == 1),
-                   (j >> n) & 1 == 1));
+        bool b = f((((i >> n) & 1) == 1),
+                   (((j >> n) & 1) == 1));
         // add the corresponding power of 2 only if the result is 1
         if (b)
         {
