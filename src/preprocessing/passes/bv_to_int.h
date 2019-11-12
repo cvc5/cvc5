@@ -29,7 +29,7 @@
  ** The size of each block is the granularity, and so the number of
  ** blocks is:
  ** bit width/granularity (rounded down).
- ** We create an ITE that resresents an arbitrary block,
+ ** We create an ITE that represents an arbitrary block,
  ** and then create a sum by mutiplying each block by the
  ** appropriate power of two.
  ** More formally:
@@ -117,8 +117,8 @@ class BVToInt : public PreprocessingPass
    * 3 | 2 | 2
    * 3 | 3 | 3
    *
-   * (for example, 2 in binary is 10 and 1 in binary is 01, and so doing
-   * "bitwise f" on them gives 00).
+   * For example, 2 in binary is 10 and 1 in binary is 01, and so doing
+   * "bitwise f" on them gives 00.
    * The result of this function would be:
    * ITE(x[1:0], y[1:0])*2^0 + ITE(x[3:2], y[3:2])*2^2
    */
@@ -130,10 +130,11 @@ class BVToInt : public PreprocessingPass
 
   /**
    * A helper function for createBitwiseNode
-   * - x and y are integer nodes that correspond to the original bit-vector
-   * nodes.
-   * - granularity represents the bitwidth of the original bit-vector nodes.
-   * - table represents a function from pairs of integers to integers.
+   * @param x integer node corresponding to the original first bit-vector argument
+   * @param y integer node corresponding to the original second bit-vector argument
+   *   nodes.
+   * @param granularity the bitwidth of the original bit-vector nodes.
+   * - @param table a function from pairs of integers to integers.
    *   The domain of this function consists of pairs of
    *   integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
    * The returned node is an ite term that represents this table.
@@ -154,7 +155,7 @@ class BVToInt : public PreprocessingPass
    * the result is 0.
    * - children: the two operands for the shift
    * - bvsize: the original bit widths of the operands
-   *   (before translation to integers)
+   *           (before translation to integers)
    * - isLeftShift: true iff the desired operation is a left shift.
    *
    */

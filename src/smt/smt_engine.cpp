@@ -3361,11 +3361,10 @@ void SmtEnginePrivate::processAssertions() {
     {
       throw ModalException(
           "solving bitvectors as integers is currently not supported "
-          "incrementally.");
+          "when solving incrementally.");
     } else if (options::boolToBitvector()) {
       throw ModalException(
           "solving bitvectors as integers is incompatible with --bool-to-bv.");
-
     }
     else if (options::solveBVAsInt() > 8)
     {

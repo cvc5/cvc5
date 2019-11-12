@@ -925,12 +925,12 @@ Node BVToInt::createBitwiseNode(Node x,
       for (uint64_t n = 0; n < granularity; n++)
       {
         // b is the result of f on the current bit
-        bool b = f(((((uint64_t)(i / pow(2, n))) % 2) == 1),
-                   (((j / ((uint64_t)pow(2, n))) % 2) == 1));
+        bool b = f((i >> n) & 1 == 1),
+                   (j >> n) & 1 == 1));
         // add the corresponding power of 2 only if the result is 1
         if (b)
         {
-          sum += pow(2, n);
+          sum += 1 << n;
         }
       }
       table[std::make_pair(i, j)] = sum;
