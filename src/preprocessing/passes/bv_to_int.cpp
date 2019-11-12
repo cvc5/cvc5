@@ -930,7 +930,7 @@ Node BVToInt::createBitwiseNode(Node x,
         // add the corresponding power of 2 only if the result is 1
         if (b)
         {
-          sum += pow(2, n);
+          sum += 1 << n;
         }
       }
       table[std::make_pair(i, j)] = sum;
