@@ -790,7 +790,7 @@ std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) {
 std::string Datatype::getName() const { return d_internal->getName(); }
 size_t Datatype::getNumConstructors() const
 {
-  return d_internal->getNumConstructors();
+  return d_constructors.size();
 }
 
 bool Datatype::isParametric() const { return d_internal->isParametric(); }

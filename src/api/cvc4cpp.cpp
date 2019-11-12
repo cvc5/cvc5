@@ -1542,7 +1542,7 @@ std::string DatatypeConstructorDecl::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::DatatypeConstructor DatatypeConstructorDecl::getDatatypeConstructor(
+const CVC4::DatatypeConstructor& DatatypeConstructorDecl::getDatatypeConstructor(
     void) const
 {
   return *d_ctor;
@@ -1613,7 +1613,7 @@ std::string DatatypeDecl::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::Datatype DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+const CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeSelectorDecl& stordecl)
@@ -1782,7 +1782,7 @@ std::string DatatypeConstructor::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::DatatypeConstructor DatatypeConstructor::getDatatypeConstructor(
+const CVC4::DatatypeConstructor& DatatypeConstructor::getDatatypeConstructor(
     void) const
 {
   return *d_ctor;
@@ -1850,7 +1850,7 @@ Datatype::const_iterator Datatype::end() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::Datatype Datatype::getDatatype(void) const { return *d_dtype; }
+const CVC4::Datatype& Datatype::getDatatype(void) const { return *d_dtype; }
 
 Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
                                          bool begin)

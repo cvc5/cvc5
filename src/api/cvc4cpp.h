@@ -1022,7 +1022,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::DatatypeConstructor getDatatypeConstructor(void) const;
+  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1095,7 +1095,7 @@ class CVC4_PUBLIC DatatypeDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::Datatype getDatatype(void) const;
+  const CVC4::Datatype& getDatatype(void) const;
 
  private:
   /* The internal (intermediate) datatype wrapped by this datatype
@@ -1309,7 +1309,7 @@ class CVC4_PUBLIC DatatypeConstructor
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::DatatypeConstructor getDatatypeConstructor(void) const;
+  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1461,7 +1461,7 @@ class CVC4_PUBLIC Datatype
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::Datatype getDatatype(void) const;
+  const CVC4::Datatype& getDatatype(void) const;
 
  private:
   /**
