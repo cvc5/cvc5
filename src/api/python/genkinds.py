@@ -7,7 +7,8 @@ default names are kinds.pxd / kinds.pxi, but the name is
 configurable from the command line with --kinds-file-prefix.
 
 The script is aware of the '#if 0' pattern and will ignore
-kinds declared between '#if 0' and '#endif'.
+kinds declared between '#if 0' and '#endif'. It can also
+handle nested '#if 0' pairs.
 """
 
 import argparse
