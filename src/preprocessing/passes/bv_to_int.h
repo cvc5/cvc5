@@ -117,16 +117,16 @@ class BVToInt : public PreprocessingPass
    * ITE(x[1:0], y[1:0])*2^0 + ITE(x[3:2], y[3:2])*2^2
    *
    *
-   *   @param x is an integer operand that correspond to the first original
-   *   bit-vector operand.
-   *   @param y is an integer operand that correspond to the second original
-   *   bit-vector operand.
-   *  @param bvsize is the bit width of the original bit-vector variables.
-   *  @param granularity is specified in the options for this preprocessing
+   * @param x is an integer operand that correspond to the first original
+   * bit-vector operand.
+   * @param y is an integer operand that correspond to the second original
+   * bit-vector operand.
+   * @param bvsize is the bit width of the original bit-vector variables.
+   * @param granularity is specified in the options for this preprocessing
    * pass.
-   *  @param f is a pointer to a boolean function that corresponds
-   *   to the original bitwise operation.
-   *   @return A node that represents the operation, as described above.
+   * @param f is a pointer to a boolean function that corresponds
+   * to the original bitwise operation.
+   * @return A node that represents the operation, as described above.
    */
   Node createBitwiseNode(Node x,
                          Node y,
