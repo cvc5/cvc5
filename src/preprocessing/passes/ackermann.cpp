@@ -218,7 +218,8 @@ void collectUSortsToBV(const unordered_set<TNode, TNodeHashFunction>& terms,
 
 /* This function returns the list of terms with uninterpreted sort in the
  * formula represented by assertions. */
-std::unordered_set<TNode, TNodeHashFunction> getVarsWithUSorts(AssertionPipeline* assertions)
+std::unordered_set<TNode, TNodeHashFunction> getVarsWithUSorts(
+    AssertionPipeline* assertions)
 {
   std::unordered_set<TNode, TNodeHashFunction> res;
 
@@ -250,7 +251,8 @@ void usortsToBitVectors(const LogicInfo& d_logic,
                         USortToBVSizeMap& usortCardinality,
                         SubstitutionMap& sortsToSkolem)
 {
-  std::unordered_set<TNode, TNodeHashFunction> toProcess = getVarsWithUSorts(assertions);
+  std::unordered_set<TNode, TNodeHashFunction> toProcess =
+      getVarsWithUSorts(assertions);
 
   if (toProcess.size() > 0)
   {
