@@ -172,8 +172,8 @@ int main()
   DatatypeConstructorDecl cons2("cons");
   DatatypeSelectorDecl head2("head", slv.getIntegerSort());
   DatatypeSelectorDecl tail2("tail", DatatypeDeclSelfSort());
-  cons.addSelector(head2);
-  cons.addSelector(tail2);
+  cons2.addSelector(head2);
+  cons2.addSelector(tail2);
   DatatypeConstructorDecl nil2("nil");
   std::vector<DatatypeConstructorDecl> ctors = {cons2, nil2};
   Sort consListSort2 = slv.declareDatatype("list2", ctors);
