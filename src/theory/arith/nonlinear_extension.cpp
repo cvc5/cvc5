@@ -1278,15 +1278,6 @@ void NonlinearExtension::check(Theory::Effort e) {
       // computed the approximations already
       approximations = d_approximations;
     }
-    // get the values that should be replaced in the model
-    d_model.getModelValueRepair(arithModel, approximations);
-    // those that are exact are written as exact approximations to the model
-    for (std::pair<const Node, Node>& r : arithModel)
-    {
-      Node eq = r.first.eqNode(r.second);
-      eq = Rewriter::rewrite(eq);
-      tm->recordApproximation(r.first, eq);
-    }
     // those that are approximate are recorded as approximations
     for (std::pair<const Node, Node>& a : approximations)
     {
