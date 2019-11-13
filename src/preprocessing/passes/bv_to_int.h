@@ -122,7 +122,8 @@ class BVToInt : public PreprocessingPass
    *   @param y is an integer operand that correspond to the second original
    *   bit-vector operand.
    *  @param bvsize is the bit width of the original bit-vector variables.
-   *  @param granularity is specified in the options for this preprocessing pass.
+   *  @param granularity is specified in the options for this preprocessing
+   * pass.
    *  @param f is a pointer to a boolean function that corresponds
    *   to the original bitwise operation.
    *   @return A node that represents the operation, as described above.
@@ -135,9 +136,10 @@ class BVToInt : public PreprocessingPass
 
   /**
    * A helper function for createBitwiseNode
-   * @param x integer node corresponding to the original first bit-vector argument
-   * @param y integer node corresponding to the original second bit-vector argument
-   *   nodes.
+   * @param x integer node corresponding to the original first bit-vector
+   * argument
+   * @param y integer node corresponding to the original second bit-vector
+   * argument nodes.
    * @param granularity the bitwidth of the original bit-vector nodes.
    * @param table a function from pairs of integers to integers.
    *   The domain of this function consists of pairs of
