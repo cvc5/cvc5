@@ -3094,7 +3094,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  if (d_smtMode != SMT_MODE_SAT)
+  if (d_smtMode != SMT_MODE_SAT && d_smtMode != SMT_MODE_SAT_UNKNOWN)
   {
     std::stringstream ss;
     ss << "Cannot " << c
@@ -3809,11 +3809,13 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     {
       d_smtMode = SMT_MODE_UNSAT;
     }
+    else if (d_status.asSatisfiabilityResult().isSat() == Result::SAT)
+    {
+      d_smtMode = SMT_MODE_SAT;
+    }
     else
     {
-      // Notice that unknown response moves to sat mode, since the same set
-      // of commands (get-model, get-value) are applicable to this case.
-      d_smtMode = SMT_MODE_SAT;
+      d_smtMode = SMT_MODE_SAT_UNKNOWN;
     }
 
     Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
@@ -4410,6 +4412,7 @@ Model* SmtEngine::getModel() {
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
+  m->d_isKnownSat = (d_smtMode == SMT_MODE_SAT);
   return m;
 }
 
