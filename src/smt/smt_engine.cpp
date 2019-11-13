@@ -1212,22 +1212,19 @@ void SmtEngine::setDefaults() {
   }
 
   // set options about ackermannization
-  if (options::produceModels())
-  {
-    if (options::ackermann()
-        && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
-            || d_logic.isTheoryEnabled(THEORY_UF)))
-    {
-      if (options::produceModels.wasSetByUser())
-      {
-        throw OptionException(std::string(
-            "Ackermannization currently does not support model generation."));
-      }
-      Notice() << "SmtEngine: turn off ackermannization to support model"
-               << "generation" << endl;
-      options::ackermann.set(false);
-    }
-  }
+	if (options::ackermann() && options::produceModels()
+		&& (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+			|| d_logic.isTheoryEnabled(THEORY_UF)))
+	{
+	  if (options::produceModels.wasSetByUser())
+	  {
+		throw OptionException(std::string(
+			"Ackermannization currently does not support model generation."));
+	  }
+	  Notice() << "SmtEngine: turn off ackermannization to support model"
+			   << "generation" << endl;
+	  options::ackermann.set(false);
+	}
 
   if (options::ackermann())
   {
@@ -1236,6 +1233,11 @@ void SmtEngine::setDefaults() {
       throw OptionException(
           "Incremental Ackermannization is currently not supported.");
     }
+
+	if (d_logic.isQuantified())
+	{
+		throw LogicException("Cannot use Ackermannization on quantified formula");
+	}
 
     if (d_logic.isTheoryEnabled(THEORY_UF))
     {
