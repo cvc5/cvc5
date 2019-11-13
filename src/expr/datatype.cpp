@@ -756,7 +756,10 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt)
   return os;
 }
 
-void Datatype::toStream(std::ostream& out) const { d_internal->toStream(out); }
+void Datatype::toStream(std::ostream& out) const { 
+  ExprManagerScope ems(d_selector);
+  d_internal->toStream(out);
+}
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
   // can only output datatypes in the CVC4 native language
@@ -767,6 +770,7 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
 
 void DatatypeConstructor::toStream(std::ostream& out) const
 {
+  ExprManagerScope ems(d_constructor);  
   d_internal->toStream(out);
 }
 
@@ -779,6 +783,7 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
 
 void DatatypeConstructorArg::toStream(std::ostream& out) const
 {
+  ExprManagerScope ems(d_selector);  
   d_internal->toStream(out);
 }
 
