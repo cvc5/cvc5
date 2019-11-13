@@ -197,7 +197,8 @@ size_t getBVSkolemSize(size_t capacity)
 
 /* Given the lowest capacity requirements for each uninterpreted sort, assign
  * a sufficient bit-vector size.
- * Get the map from variables with uninterpreted sort to the fresh skolem BV variables */
+ * Get the map from variables with uninterpreted sort to the fresh skolem BV
+ * variables */
 void collectUSortsToBV(const unordered_set<TNode, TNodeHashFunction>& vars,
                        USortToBVSizeMap& usortCardinality,
                        SubstitutionMap& usVarsToBVVars)
@@ -212,7 +213,8 @@ void collectUSortsToBV(const unordered_set<TNode, TNodeHashFunction>& vars,
         "BVSKOLEM$$",
         nm->mkBitVectorType(size),
         "a variable created by the ackermannization "
-        "preprocessing pass, representing a variable with uninterpreted sort " + type.toString() + ".");
+        "preprocessing pass, representing a variable with uninterpreted sort "
+            + type.toString() + ".");
     usVarsToBVVars.addSubstitution(var, skolem);
   }
 }

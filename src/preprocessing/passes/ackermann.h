@@ -59,12 +59,12 @@ class Ackermann : public PreprocessingPass
    *   occurring in the input formula, add the following lemma:
    *     (x_1 = y_1 /\ ... /\ x_n = y_n) => f_X = f_Y
    *
-   * - For each uninterpreted sort S, suppose k is the number of variables with 
-   *   sort S, then for each such variable X, introduce a fresh variable BV_X with 
-   *   BV with size log_2(k)+1 and use it to replace all occurrences of X.
+   * - For each uninterpreted sort S, suppose k is the number of variables with
+   *   sort S, then for each such variable X, introduce a fresh variable BV_X
+   *   with BV with size log_2(k)+1 and use it to replace all occurrences of X.
    */
-   PreprocessingPassResult applyInternal(
-       AssertionPipeline* assertionsToPreprocess) override;
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
 
  private:
   /* Map each function to a set of terms associated with it */
@@ -72,8 +72,8 @@ class Ackermann : public PreprocessingPass
   /* Map each function-application term to the new Skolem variable created by
    * ackermannization */
   theory::SubstitutionMap d_funcToSkolem;
-  /* Map each variable with uninterpreted sort to the new Skolem BV variable created by
-   * ackermannization */
+  /* Map each variable with uninterpreted sort to the new Skolem BV variable
+   * created by ackermannization */
   theory::SubstitutionMap d_usVarsToBVVars;
   /* Map each uninterpreted sort to the number of variables in this sort. */
   USortToBVSizeMap d_usortCardinality;
