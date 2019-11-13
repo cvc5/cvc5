@@ -1208,19 +1208,19 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
   if (Trace.isOn(c))
   {
     Trace(c) << "  " << n << " -> ";
-    for (unsigned i = 0; i < 2; i++)
+    for (int i = 1; i >= 0; --i)
     {
-      std::map<Node, Node>::const_iterator it = d_mv[1 - i].find(n);
-      Assert(it != d_mv[1 - i].end());
+      std::map<Node, Node>::const_iterator it = d_mv[i].find(n);
+      Assert(it != d_mv[i].end());
       if (it->second.isConst())
       {
         printRationalApprox(c, it->second, prec);
       }
       else
       {
-        Trace(c) << "?";  // it->second;
+        Trace(c) << "?";
       }
-      Trace(c) << (i == 0 ? " [actual: " : " ]");
+      Trace(c) << (i == 1 ? " [actual: " : " ]");
     }
     Trace(c) << std::endl;
   }
