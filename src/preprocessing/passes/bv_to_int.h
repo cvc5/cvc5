@@ -177,9 +177,10 @@ class BVToInt : public PreprocessingPass
   Node createBVNotNode(Node n, uint64_t bvsize);
 
   /**
-   * n is a bit-vector term or formula.
    * The result is an integer term and is computed
    * according to the translation specified above.
+   * @param n is a bit-vector term or formula to be translated.
+   * @return integer node that corresponds to n.
    */
   Node bvToInt(Node n);
 
