@@ -197,7 +197,7 @@ size_t getBVSkolemSize(size_t capacity)
 
 /* Given the lowest capacity requirements for each uninterpreted sort, assign
  * a sufficient bit-vector size. Get the converting map */
-void collectUSortsToBV(const vector<TNode>& terms,
+void collectUSortsToBV(const unordered_set<TNode, TNodeHashFunction>& terms,
                        USortToBVSizeMap& usortCardinality,
                        SubstitutionMap& sortsToSkolem)
 {
@@ -218,10 +218,9 @@ void collectUSortsToBV(const vector<TNode>& terms,
 
 /* This function returns the list of terms with uninterpreted sort in the
  * formula represented by assertions. */
-std::vector<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
+std::unordered_set<TNode, TNodeHashFunction> getVarsWithUSorts(AssertionPipeline* assertions)
 {
-  TNodeSet seen;
-  std::vector<TNode> res;
+  std::unordered_set<TNode, TNodeHashFunction> res;
 
   for (const Node& assertion : assertions->ref())
   {
@@ -230,10 +229,9 @@ std::vector<TNode> getVarsWithUSorts(AssertionPipeline* assertions)
 
     for (const TNode& var : vars)
     {
-      if (var.getType().isSort() && seen.find(var) == seen.end())
+      if (var.getType().isSort())
       {
-        seen.insert(var);
-        res.push_back(var);
+        res.insert(var);
       }
     }
   }
@@ -252,7 +250,7 @@ void usortsToBitVectors(const LogicInfo& d_logic,
                         USortToBVSizeMap& usortCardinality,
                         SubstitutionMap& sortsToSkolem)
 {
-  std::vector<TNode> toProcess = getVarsWithUSorts(assertions);
+  std::unordered_set<TNode, TNodeHashFunction> toProcess = getVarsWithUSorts(assertions);
 
   if (toProcess.size() > 0)
   {
