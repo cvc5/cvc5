@@ -757,7 +757,7 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt)
 }
 
 void Datatype::toStream(std::ostream& out) const { 
-  ExprManagerScope ems(d_selector);
+  ExprManagerScope ems(d_self);
   d_internal->toStream(out);
 }
 
