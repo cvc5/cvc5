@@ -83,12 +83,6 @@ class BVToInt : public PreprocessingPass
   /**
    * A generic function that creates a node that represents a bitwise
    * operation.
-   * - x and y are integer operands that correspond to the original
-   *   bit-vector operands.
-   * - bvsize is the bit width of the original bit-vector variables.
-   * - granularity is specified in the options for this preprocessing pass.
-   * - f is a pointer to a boolean function that corresponds
-   *   to the original bitwise operation.
    *
    * For example: Suppose bvsize is 4, granularity is 1, and f(x,y) = x && y.
    * Denote by ITE(a,b) the term: ite(a==0, 0, ite(b==1, 1, 0)).
@@ -121,6 +115,17 @@ class BVToInt : public PreprocessingPass
    * "bitwise f" on them gives 00.
    * The result of this function would be:
    * ITE(x[1:0], y[1:0])*2^0 + ITE(x[3:2], y[3:2])*2^2
+   *
+   *
+   *   @param x is an integer operand that correspond to the first original
+   *   bit-vector operand.
+   *   @param y is an integer operand that correspond to the second original
+   *   bit-vector operand.
+   *  @param bvsize is the bit width of the original bit-vector variables.
+   *  @param granularity is specified in the options for this preprocessing pass.
+   *  @param f is a pointer to a boolean function that corresponds
+   *   to the original bitwise operation.
+   *   @return A node that represents the operation, as described above.
    */
   Node createBitwiseNode(Node x,
                          Node y,
@@ -134,10 +139,10 @@ class BVToInt : public PreprocessingPass
    * @param y integer node corresponding to the original second bit-vector argument
    *   nodes.
    * @param granularity the bitwidth of the original bit-vector nodes.
-   * - @param table a function from pairs of integers to integers.
+   * @param table a function from pairs of integers to integers.
    *   The domain of this function consists of pairs of
    *   integers between 0 (inclusive) and 2^{bitwidth} (exclusive).
-   * The returned node is an ite term that represents this table.
+   * @return An ite term that represents this table.
    */
   Node createITEFromTable(
       Node x,
@@ -153,10 +158,11 @@ class BVToInt : public PreprocessingPass
    * values of the exponent, from 0 to k-1.
    * If the right operand of the shift is greater than k-1,
    * the result is 0.
-   * - children: the two operands for the shift
-   * - bvsize: the original bit widths of the operands
+   * @param children: the two operands for the shift
+   * @param bvsize: the original bit widths of the operands
    *           (before translation to integers)
-   * - isLeftShift: true iff the desired operation is a left shift.
+   * @param  isLeftShift: true iff the desired operation is a left shift.
+   * @return a node representing the shift.
    *
    */
   Node createShiftNode(vector<Node> children,
@@ -179,9 +185,9 @@ class BVToInt : public PreprocessingPass
    * Whenever we introduce an integer variable that represents a bit-vector
    * variable, we need to guard the range of the newly introduced variable.
    * For bit width k, the constraint is 0 <= newVar < 2^k.
-   * - newVar is the newly introduced integer variable
-   * - k is the bit width of the original bit-vector variable.
-   * The result is a node representing the range constraint.
+   * @param newVar the newly introduced integer variable
+   * @param k the bit width of the original bit-vector variable.
+   * @return a node representing the range constraint.
    */
   Node mkRangeConstraint(Node newVar, uint64_t k);
 
