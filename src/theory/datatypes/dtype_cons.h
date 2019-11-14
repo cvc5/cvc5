@@ -65,7 +65,7 @@ class DTypeConstructor
    * they are for convenience and pretty-printing only.
    */
   void addArg(std::string selectorName, TypeNode selectorType);
-  /** 
+  /**
    * Add an argument, given a pointer to a selector object.
    */
   void addArg(std::shared_ptr<DTypeSelector> a);

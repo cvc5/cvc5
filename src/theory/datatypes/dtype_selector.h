@@ -81,7 +81,7 @@ class DTypeSelector
   std::string d_name;
   /** the selector expression */
   Node d_selector;
-  /** 
+  /**
    * The constructor associated with this selector. This field is initialized
    * by the constructor of this selector during a call to
    * DTypeConstructor::resolve.

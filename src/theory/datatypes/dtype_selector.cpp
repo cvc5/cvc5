@@ -40,10 +40,7 @@ Node DTypeSelector::getConstructor() const
   return d_constructor;
 }
 
-TypeNode DTypeSelector::getType() const
-{
-  return d_selector.getType();
-}
+TypeNode DTypeSelector::getType() const { return d_selector.getType(); }
 
 TypeNode DTypeSelector::getRangeType() const
 {

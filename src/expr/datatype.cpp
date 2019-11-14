@@ -675,8 +675,7 @@ DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector)
     : d_internal(nullptr)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor arg without a name");
-  d_internal =
-      std::make_shared<DTypeSelector>(name, Node::fromExpr(selector));
+  d_internal = std::make_shared<DTypeSelector>(name, Node::fromExpr(selector));
 }
 
 std::string DatatypeConstructorArg::getName() const
@@ -756,7 +755,8 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt)
   return os;
 }
 
-void Datatype::toStream(std::ostream& out) const { 
+void Datatype::toStream(std::ostream& out) const
+{
   out << "DATATYPE " << getName();
   if (isParametric())
   {
@@ -844,10 +844,7 @@ std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) {
 }
 
 std::string Datatype::getName() const { return d_internal->getName(); }
-size_t Datatype::getNumConstructors() const
-{
-  return d_constructors.size();
-}
+size_t Datatype::getNumConstructors() const { return d_constructors.size(); }
 
 bool Datatype::isParametric() const { return d_internal->isParametric(); }
 size_t Datatype::getNumParameters() const

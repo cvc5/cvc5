@@ -38,7 +38,7 @@ class Datatype;
  * Notice that this class is a specification for a datatype, and is not
  * itself a type. The type that this specification corresponds to can be
  * retrieved (after resolution as described in following) via getTypeNode.
- * 
+ *
  * This is far more complicated than it first seems.  Consider this
  * datatype definition:
  *
@@ -63,7 +63,7 @@ class Datatype;
  * We build DType objects to describe "tree" and "list", and their constructors
  * and constructor arguments, but leave any unknown types (including
  * self-references) in an "unresolved" state.  After parsing the whole DATATYPE
- * block, we create a TypeNode through ExprManager::mkMutualDatatypeTypes().  
+ * block, we create a TypeNode through ExprManager::mkMutualDatatypeTypes().
  * The ExprManager creates a Type for each, but before "releasing" this type
  * into the wild, it does a round of in-place "resolution" on each DType by
  * calling DType::resolve() with a map of string -> TypeNode to
@@ -461,7 +461,7 @@ class DType
                const std::vector<TypeNode>& replacements,
                const std::vector<TypeNode>& paramTypes,
                const std::vector<TypeNode>& paramReplacements);
-  
+
   /** compute the cardinality of this datatype */
   Cardinality computeCardinality(TypeNode t,
                                  std::vector<TypeNode>& processing) const;

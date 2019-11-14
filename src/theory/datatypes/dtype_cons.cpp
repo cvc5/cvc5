@@ -143,8 +143,8 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
       params.begin(), params.end(), subst.begin(), subst.end());
 }
 
-const std::vector<std::shared_ptr<DTypeSelector> >&
-DTypeConstructor::getArgs() const
+const std::vector<std::shared_ptr<DTypeSelector> >& DTypeConstructor::getArgs()
+    const
 {
   return d_args;
 }
