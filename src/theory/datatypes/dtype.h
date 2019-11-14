@@ -24,8 +24,37 @@
 #include "expr/type_node.h"
 #include "theory/datatypes/dtype_cons.h"
 #include "theory/datatypes/dtype_selector.h"
+#include "expr/node_manager_attributes.h"
 
 namespace CVC4 {
+  
+// ----------------------- datatype attributes
+/** TODO */
+struct DTypeIndexTag
+{
+};
+typedef expr::Attribute<DTypeIndexTag, size_t> DTypeIndexAttr;
+struct DTypeConsIndexTag
+{
+};
+typedef expr::Attribute<DTypeConsIndexTag, size_t> DTypeConsIndexAttr;
+struct DTypeFiniteTag
+{
+};
+typedef expr::Attribute<DTypeFiniteTag, bool> DTypeFiniteAttr;
+struct DTypeFiniteComputedTag
+{
+};
+typedef expr::Attribute<DTypeFiniteComputedTag, bool> DTypeFiniteComputedAttr;
+struct DTypeUFiniteTag
+{
+};
+typedef expr::Attribute<DTypeUFiniteTag, bool> DTypeUFiniteAttr;
+struct DTypeUFiniteComputedTag
+{
+};
+typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
+// ----------------------- end datatype attributes  
 
 class NodeManager;
 
@@ -98,6 +127,31 @@ class DType
   friend class NodeManager;  // for access to resolve()
 
  public:
+  /**
+   * Get the datatype of a constructor, selector, or tester operator.
+   */
+  static const DType& datatypeOf(Node item);
+
+  /**
+   * Get the index of a constructor or tester in its datatype, or the
+   * index of a selector in its constructor.  (Zero is always the
+   * first index.)
+   */
+  static size_t indexOf(Node item);
+
+  /**
+   * Get the index of constructor corresponding to selector.  (Zero is
+   * always the first index.)
+   */
+  static size_t cindexOf(Node item);
+
+  /**
+   * Same as above, but without checks. These methods should be used by
+   * internal (Node-level) code.
+   */
+  static size_t indexOfInternal(Node item);
+  static size_t cindexOfInternal(Node item);
+
   /** Create a new DType of the given name. */
   DType(std::string name, bool isCo = false);
 

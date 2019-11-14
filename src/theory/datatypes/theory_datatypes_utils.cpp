@@ -17,6 +17,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 #include "expr/node_algorithm.h"
+#include "theory/datatypes/dtype.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -278,19 +279,12 @@ int isTester(Node n)
 
 size_t indexOf(Node n)
 {
-  // FIXME: move this somewhere else
-  if (n.getKind() == APPLY_TYPE_ASCRIPTION)
-  {
-    return indexOf(n[0]);
-  }
-  Assert(n.hasAttribute(DTypeIndexAttr()));
-  return n.getAttribute(DTypeIndexAttr());
+  return DType::indexOf(n);
 }
 
 size_t cindexOf(Node n)
 {
-  Assert(n.hasAttribute(DTypeConsIndexAttr()));
-  return n.getAttribute(DTypeConsIndexAttr());
+  return DType::cindexOf(n);
 }
 
 const DType& datatypeOf(Node n)
