@@ -31,11 +31,11 @@ namespace CVC4 {
 struct DTypeIndexTag
 {
 };
-typedef expr::Attribute<DTypeIndexTag, uint64_t> DTypeIndexAttr;
+typedef expr::Attribute<DTypeIndexTag, size_t> DTypeIndexAttr;
 struct DTypeConsIndexTag
 {
 };
-typedef expr::Attribute<DTypeConsIndexTag, uint64_t> DTypeConsIndexAttr;
+typedef expr::Attribute<DTypeConsIndexTag, size_t> DTypeConsIndexAttr;
 struct DTypeFiniteTag
 {
 };
@@ -135,7 +135,16 @@ int isTester(Node n);
  * index of a selector in its constructor.  (Zero is always the
  * first index.)
  */
-unsigned indexOf(Node n);
+size_t indexOf(Node n);
+/**
+ * Get the index of constructor corresponding to selector.
+ * (Zero is always the first index.)
+ */
+size_t cindexOf(Node n);
+/**
+ * Get the datatype of n.
+ */
+const DType& datatypeOf(Node n);
 /** make tester is-C( n ), where C is the i^{th} constructor of dt */
 Node mkTester(Node n, int i, const Datatype& dt);
 /** make tester split

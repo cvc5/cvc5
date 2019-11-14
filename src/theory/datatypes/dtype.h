@@ -98,33 +98,8 @@ class DType
   friend class NodeManager;  // for access to resolve()
 
  public:
-  /**
-   * Get the datatype of a constructor, selector, or tester operator.
-   */
-  static const DType& datatypeOf(Node item);
-
-  /**
-   * Get the index of a constructor or tester in its datatype, or the
-   * index of a selector in its constructor.  (Zero is always the
-   * first index.)
-   */
-  static size_t indexOf(Node item);
-
-  /**
-   * Get the index of constructor corresponding to selector.  (Zero is
-   * always the first index.)
-   */
-  static size_t cindexOf(Node item);
-
-  /**
-   * Same as above, but without checks. These methods should be used by
-   * internal (Node-level) code.
-   */
-  static size_t indexOfInternal(Node item);
-  static size_t cindexOfInternal(Node item);
-
   /** Create a new DType of the given name. */
-  explicit DType(std::string name, bool isCo = false);
+  DType(std::string name, bool isCo = false);
 
   /**
    * Create a new DType of the given name, with the given

@@ -17,6 +17,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4::kind;
+using namespace CVC4::theory;
 
 namespace CVC4 {
 
@@ -54,6 +55,8 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
 {
 }
 
+DType::~DType() {}
+
 std::string DType::getName() const { return d_name; }
 size_t DType::getNumConstructors() const { return d_constructors.size(); }
 
@@ -79,53 +82,6 @@ bool DType::isSygus() const { return !d_sygus_type.isNull(); }
 bool DType::isTuple() const { return d_isTuple; }
 
 bool DType::isResolved() const { return d_resolved; }
-
-DType::~DType() {}
-
-const DType& DType::datatypeOf(Node item)
-{
-  TypeNode t = item.getType();
-  switch (t.getKind())
-  {
-    case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
-    case SELECTOR_TYPE:
-    case TESTER_TYPE: return t[0].getDType();
-    default:
-      Unhandled() << "arg must be a datatype constructor, selector, or tester";
-  }
-}
-
-size_t DType::indexOf(Node item)
-{
-  Assert(item.getType().isConstructor() || item.getType().isTester()
-         || item.getType().isSelector());
-  return indexOfInternal(item);
-}
-
-size_t DType::indexOfInternal(Node item)
-{
-  if (item.getKind() == APPLY_TYPE_ASCRIPTION)
-  {
-    return indexOf(item[0]);
-  }
-  Assert(item.hasAttribute(DTypeIndexAttr()));
-  return item.getAttribute(DTypeIndexAttr());
-}
-
-size_t DType::cindexOf(Node item)
-{
-  Assert(item.getType().isSelector());
-  return cindexOfInternal(item);
-}
-size_t DType::cindexOfInternal(Node item)
-{
-  if (item.getKind() == APPLY_TYPE_ASCRIPTION)
-  {
-    return cindexOf(item[0]);
-  }
-  Assert(item.hasAttribute(DTypeConsIndexAttr()));
-  return item.getAttribute(DTypeConsIndexAttr());
-}
 
 bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
                     const std::vector<TypeNode>& placeholders,
