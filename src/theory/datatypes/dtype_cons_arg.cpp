@@ -31,7 +31,7 @@ std::string DTypeConstructorArg::getName() const { return d_name; }
 Node DTypeConstructorArg::getSelector() const
 {
   Assert(d_resolved);
-  return d_selector.getType();
+  return d_selector;
 }
 
 Node DTypeConstructorArg::getConstructor() const
@@ -47,7 +47,7 @@ TypeNode DTypeConstructorArg::getType() const
 
 TypeNode DTypeConstructorArg::getRangeType() const
 {
-  return d_selector.getType().getRangeType();
+  return getType().getRangeType();
 }
 
 bool DTypeConstructorArg::isResolved() const { return d_resolved; }
