@@ -27,11 +27,6 @@
 
 namespace CVC4 {
 
-// messy; Node needs DType (because it's the payload of a
-// CONSTANT-kinded expression), and DType needs Node.
-// class  DType;
-class DTypeIndexConstant;
-
 class NodeManager;
 
 class Datatype;
@@ -99,6 +94,7 @@ class DType
 {
   friend class Datatype;
   friend class DTypeConstructor;
+  friend class NodeManager;  // for access to resolve()
 
  public:
   /**
@@ -464,8 +460,7 @@ class DType
                const std::vector<TypeNode>& replacements,
                const std::vector<TypeNode>& paramTypes,
                const std::vector<TypeNode>& paramReplacements);
-  friend class NodeManager;  // for access to resolve()
-
+  
   /** compute the cardinality of this datatype */
   Cardinality computeCardinality(TypeNode t,
                                  std::vector<TypeNode>& processing) const;
