@@ -1542,8 +1542,8 @@ std::string DatatypeConstructorDecl::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::DatatypeConstructor& DatatypeConstructorDecl::getDatatypeConstructor(
-    void) const
+const CVC4::DatatypeConstructor&
+DatatypeConstructorDecl::getDatatypeConstructor(void) const
 {
   return *d_ctor;
 }
