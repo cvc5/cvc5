@@ -62,6 +62,7 @@ void test(Solver& slv, Sort& consListSort)
 
   // You can also iterate over a Datatype to get all its constructors,
   // and over a DatatypeConstructor to get all its "args" (selectors)
+            /*
   for (Datatype::const_iterator i = consList.begin(); i != consList.end(); ++i)
   {
     std::cout << "ctor: " << *i << std::endl;
@@ -72,6 +73,7 @@ void test(Solver& slv, Sort& consListSort)
     }
   }
   std::cout << std::endl;
+  */
 
   // Alternatively, you can use for each loops.
   for (const auto& c : consList)
