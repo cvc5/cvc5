@@ -14,7 +14,6 @@
 #include "theory/datatypes/dtype.h"
 
 #include "expr/node_algorithm.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4::kind;
 

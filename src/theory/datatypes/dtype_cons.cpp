@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file dtype.cpp
+/*! \file dtype_cons.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -17,7 +17,6 @@
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
 #include "theory/datatypes/dtype.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -132,7 +131,7 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
 {
   Assert(isResolved());
   Assert(returnType.isDatatype());
-  const DType& dt = datatypes::utils::datatypeOf(d_constructor);
+  const DType& dt = DType::datatypeOf(d_constructor);
   Assert(dt.isParametric());
   TypeNode dtt = dt.getTypeNode();
   TypeMatcher m(dtt);
@@ -291,7 +290,7 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
   }
   else
   {
-    unsigned sindex = datatypes::utils::indexOf(sel);
+    unsigned sindex = DType::indexOf(sel);
     if (getNumArgs() > sindex && d_args[sindex]->getSelector() == sel)
     {
       return (int)sindex;
@@ -440,7 +439,7 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
   Node groundTerm = nm->mkNode(APPLY_CONSTRUCTOR, groundTerms);
   if (isParam)
   {
-    Assert(datatypes::utils::datatypeOf(d_constructor).isParametric());
+    Assert(DType::datatypeOf(d_constructor).isParametric());
     // type is parametric, must apply type ascription
     Debug("datatypes-gt") << "ambiguous type for " << groundTerm
                           << ", ascribe to " << t << std::endl;
@@ -469,7 +468,7 @@ void DTypeConstructor::computeSharedSelectors(TypeNode domainType) const
     Assert(ctype.isConstructor());
     Assert(ctype.getNumChildren() - 1 == getNumArgs());
     // compute the shared selectors
-    const DType& dt = datatypes::utils::datatypeOf(d_constructor);
+    const DType& dt = DType::datatypeOf(d_constructor);
     std::map<TypeNode, unsigned> counter;
     for (unsigned j = 0; j < ctype.getNumChildren() - 1; j++)
     {

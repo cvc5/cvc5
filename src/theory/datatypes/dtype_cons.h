@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file dtype.h
+/*! \file dtype_cons.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
