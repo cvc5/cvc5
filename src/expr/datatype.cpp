@@ -817,7 +817,8 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
 
 void DatatypeConstructorArg::toStream(std::ostream& out) const
 {
-  out << getName() << ": ";
+  std::string name = getName();
+  out << name << ": ";
 
   Type t;
   if (isResolved())
@@ -826,7 +827,7 @@ void DatatypeConstructorArg::toStream(std::ostream& out) const
   }
   else if (d_selector.isNull())
   {
-    string typeName = d_name.substr(d_name.find('\0') + 1);
+    string typeName = name.substr(name.find('\0') + 1);
     out << ((typeName == "") ? "[self]" : typeName);
     return;
   }
