@@ -17,7 +17,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 #include "expr/node_algorithm.h"
-#include "theory/datatypes/dtype.h"
+#include "expr/dtype.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -277,9 +277,15 @@ int isTester(Node n)
   return -1;
 }
 
-size_t indexOf(Node n) { return DType::indexOf(n); }
+size_t indexOf(Node n)
+{
+  return DType::indexOf(n);
+}
 
-size_t cindexOf(Node n) { return DType::cindexOf(n); }
+size_t cindexOf(Node n)
+{
+  return DType::cindexOf(n);
+}
 
 const DType& datatypeOf(Node n)
 {

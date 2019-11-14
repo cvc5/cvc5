@@ -46,6 +46,12 @@ libcvc4_add_sources(
   variable_type_map.h
   datatype.h
   datatype.cpp
+  dtype.cpp
+  dtype.h
+  dtype_cons.cpp
+  dtype_cons.h
+  dtype_selector.cpp
+  dtype_selector.h
   record.cpp
   record.h
   uninterpreted_constant.cpp

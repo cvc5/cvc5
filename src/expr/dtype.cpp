@@ -11,7 +11,7 @@
  **
  ** \brief A class representing a datatype definition
  **/
-#include "theory/datatypes/dtype.h"
+#include "expr/dtype.h"
 
 #include "expr/node_algorithm.h"
 

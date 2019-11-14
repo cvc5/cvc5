@@ -11,12 +11,12 @@
  **
  ** \brief A class representing a datatype definition
  **/
-#include "theory/datatypes/dtype_cons.h"
+#include "expr/dtype_cons.h"
 
 #include "expr/node_manager.h"
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
-#include "theory/datatypes/dtype.h"
+#include "expr/dtype.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__DTYPE_H
-#define CVC4__THEORY__DATATYPES__DTYPE_H
+#ifndef CVC4__EXPR__DTYPE_H
+#define CVC4__EXPR__DTYPE_H
 
 #include <map>
 #include <string>
@@ -23,8 +23,8 @@
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_node.h"
-#include "theory/datatypes/dtype_cons.h"
-#include "theory/datatypes/dtype_selector.h"
+#include "expr/dtype_cons.h"
+#include "expr/dtype_selector.h"
 
 namespace CVC4 {
 

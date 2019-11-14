@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__DTYPE_SELECTOR_H
-#define CVC4__THEORY__DATATYPES__DTYPE_SELECTOR_H
+#ifndef CVC4__EXPR__DTYPE_SELECTOR_H
+#define CVC4__EXPR__DTYPE_SELECTOR_H
 
 #include <string>
 #include "base/exception.h"

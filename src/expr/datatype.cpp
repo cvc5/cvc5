@@ -30,8 +30,7 @@
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
 #include "options/set_language.h"
-#include "theory/datatypes/dtype.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
+#include "expr/dtype.h"
 #include "theory/type_enumerator.h"
 
 using namespace std;

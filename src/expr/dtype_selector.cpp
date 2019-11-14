@@ -12,7 +12,7 @@
  ** \brief A class representing a datatype selector.
  **/
 
-#include "theory/datatypes/dtype_selector.h"
+#include "expr/dtype_selector.h"
 
 #include "options/set_language.h"
 
