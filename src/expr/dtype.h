@@ -20,11 +20,11 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "expr/dtype_cons.h"
+#include "expr/dtype_selector.h"
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_node.h"
-#include "expr/dtype_cons.h"
-#include "expr/dtype_selector.h"
 
 namespace CVC4 {
 

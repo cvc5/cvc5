@@ -13,10 +13,10 @@
  **/
 #include "expr/dtype_cons.h"
 
+#include "expr/dtype.h"
 #include "expr/node_manager.h"
 #include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
-#include "expr/dtype.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;

@@ -20,9 +20,9 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "expr/dtype_selector.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "expr/dtype_selector.h"
 
 namespace CVC4 {
 
