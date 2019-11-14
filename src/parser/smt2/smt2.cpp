@@ -610,6 +610,7 @@ void Smt2::pushDefineFunRecScope(
 
 void Smt2::reset() {
   d_logicSet = false;
+  d_seenSetLogic = false;
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<Expr, std::string>();

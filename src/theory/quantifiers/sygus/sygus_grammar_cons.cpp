@@ -177,7 +177,7 @@ Node CegGrammarConstructor::process(Node q,
       std::map<Node, Node>::const_iterator itta = templates_arg.find(sf);
       Assert(itta != templates_arg.end());
       TNode templ_arg = itta->second;
-      Assert( !templ_arg.isNull() );
+      Assert(!templ_arg.isNull());
       // if there is a template for this argument, make a sygus type on top of it
       if( options::sygusTemplEmbedGrammar() ){
         Trace("cegqi-debug") << "Template for " << sf << " is : " << templ
@@ -287,6 +287,7 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   std::stack<TNode> visit;
   TNode cur;
   visit.push(n);
+  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   do {
     cur = visit.top();
     visit.pop();
@@ -337,12 +338,38 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
       }
       if (makeEvalFun)
       {
-        // will make into an application of an evaluation function
-        ret = nm->mkNode(DT_SYGUS_EVAL, children);
+        if (!cur.getType().isFunction())
+        {
+          // will make into an application of an evaluation function
+          ret = nm->mkNode(DT_SYGUS_EVAL, children);
+        }
+        else
+        {
+          Assert(children.size() == 1);
+          Node ef = children[0];
+          // Otherwise, we are using the function-to-synthesize itself in a
+          // higher-order setting. We must return the lambda term:
+          //   lambda x1...xn. (DT_SYGUS_EVAL ef x1 ... xn)
+          // where ef is the first order variable for the
+          // function-to-synthesize.
+          SygusTypeInfo& ti = tds->getTypeInfo(ef.getType());
+          const std::vector<Node>& vars = ti.getVarList();
+          Assert(!vars.empty());
+          std::vector<Node> vs;
+          for (const Node& v : vars)
+          {
+            vs.push_back(nm->mkBoundVar(v.getType()));
+          }
+          Node lvl = nm->mkNode(BOUND_VAR_LIST, vs);
+          std::vector<Node> eargs;
+          eargs.push_back(ef);
+          eargs.insert(eargs.end(), vs.begin(), vs.end());
+          ret = nm->mkNode(LAMBDA, lvl, nm->mkNode(DT_SYGUS_EVAL, eargs));
+        }
       }
       else if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(ret_k, children);
+        ret = nm->mkNode(ret_k, children);
       }
       visited[cur] = ret;
     }
@@ -737,7 +764,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       weights[i].push_back(-1);
       // length
       TypeNode intType = nm->integerType();
-      Assert(std::find(types.begin(),types.end(),intType)!=types.end());
+      Assert(std::find(types.begin(), types.end(), intType) != types.end());
       unsigned i_intType = std::distance(
           types.begin(),
           std::find(types.begin(),
@@ -1086,12 +1113,12 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         datatypes,
                         unres);
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
-  Assert( !datatypes.empty() );
+  Assert(!datatypes.empty());
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
           datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
-  Assert( types.size()==datatypes.size() );
+  Assert(types.size() == datatypes.size());
   return TypeNode::fromType( types[0] );
 }
 
@@ -1114,7 +1141,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
       // TODO : can short circuit to this case when !TermUtil::containsTerm( templ, templ_arg )
       op = templ;
     }else{
-      Assert( templ.hasOperator() );
+      Assert(templ.hasOperator());
       op = templ.getOperator();
       // make constructor taking arguments types from children
       for( unsigned i=0; i<templ.getNumChildren(); i++ ){
@@ -1132,7 +1159,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     std::vector<DatatypeType> types =
         NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
             datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-    Assert( types.size()==1 );
+    Assert(types.size() == 1);
     return TypeNode::fromType( types[0] );
   }
 }

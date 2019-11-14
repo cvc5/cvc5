@@ -113,13 +113,17 @@ class SynthConjecture
   void printSynthSolution(std::ostream& out);
   /** get synth solutions
    *
-   * This returns a map from function-to-synthesize variables to their
-   * builtin solution, which has the same type. For example, for synthesis
-   * conjecture exists f. forall x. f( x )>x, this function may return the map
-   * containing the entry:
+   * This method returns true if this class has a solution available to the
+   * conjecture that it was assigned.
+   *
+   * Let q be the synthesis conjecture assigned to this class.
+   * This method adds entries to sol_map[q] that map functions-to-synthesize to
+   * their builtin solution, which has the same type. For example, for synthesis
+   * conjecture exists f. forall x. f( x )>x, this function will update
+   * sol_map[q] to contain the entry:
    *   f -> (lambda x. x+1)
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
   /**
    * The feasible guard whose semantics are "this conjecture is feasiable".
    * This is "G" in Figure 3 of Reynolds et al CAV 2015.
@@ -174,10 +178,10 @@ class SynthConjecture
   /** The feasible guard. */
   Node d_feasible_guard;
   /**
-   * Do we have a solution in this user context? This is user-context dependent
-   * to enable use cases of sygus in incremental mode.
+   * Do we have a solution in this solve context? This flag is reset to false
+   * on every call to presolve.
    */
-  context::CDO<bool> d_hasSolution;
+  bool d_hasSolution;
   /** the decision strategy for the feasible guard */
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */

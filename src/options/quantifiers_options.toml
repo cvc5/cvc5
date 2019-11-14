@@ -1213,6 +1213,14 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "static inference techniques for computing whether arguments of functions-to-synthesize are relevant"
 
+[[option]]
+  name       = "sygusRecFun"
+  category   = "regular"
+  long       = "sygus-rec-fun"
+  type       = "bool"
+  default    = "false"
+  help       = "enable efficient support for recursive functions in sygus grammars"
+
 # Internal uses of sygus
 
 [[option]]

@@ -421,18 +421,18 @@ inline void NodeValue::decrRefCounts() {
 }
 
 inline void NodeValue::inc() {
-  Assert(!isBeingDeleted(),
-         "NodeValue is currently being deleted "
-         "and increment is being called on it. Don't Do That!");
+  Assert(!isBeingDeleted())
+      << "NodeValue is currently being deleted "
+         "and increment is being called on it. Don't Do That!";
   // FIXME multithreading
   if (__builtin_expect((d_rc < MAX_RC - 1), true)) {
     ++d_rc;
   } else if (__builtin_expect((d_rc == MAX_RC - 1), false)) {
     ++d_rc;
-    Assert(NodeManager::currentNM() != NULL,
-           "No current NodeManager on incrementing of NodeValue: "
+    Assert(NodeManager::currentNM() != NULL)
+        << "No current NodeManager on incrementing of NodeValue: "
            "maybe a public CVC4 interface function is missing a "
-           "NodeManagerScope ?");
+           "NodeManagerScope ?";
     NodeManager::currentNM()->markRefCountMaxedOut(this);
   }
 }
@@ -442,10 +442,10 @@ inline void NodeValue::dec() {
   if(__builtin_expect( ( d_rc < MAX_RC ), true )) {
     --d_rc;
     if(__builtin_expect( ( d_rc == 0 ), false )) {
-      Assert(NodeManager::currentNM() != NULL,
-             "No current NodeManager on destruction of NodeValue: "
+      Assert(NodeManager::currentNM() != NULL)
+          << "No current NodeManager on destruction of NodeValue: "
              "maybe a public CVC4 interface function is missing a "
-             "NodeManagerScope ?");
+             "NodeManagerScope ?";
       NodeManager::currentNM()->markForDeletion(this);
     }
   }

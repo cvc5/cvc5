@@ -19,10 +19,9 @@
 #ifndef CVC4__CONTEXT__CDHASHSET_H
 #define CVC4__CONTEXT__CDHASHSET_H
 
-#include "base/cvc4_assert.h"
-#include "context/context.h"
+#include "base/check.h"
 #include "context/cdinsert_hashmap.h"
-
+#include "context/context.h"
 
 namespace CVC4 {
 namespace context {
@@ -51,7 +50,7 @@ public:
   }
 
   static void operator delete(void* pMem) {
-    AlwaysAssert(false, "It is not allowed to delete a ContextObj this way!");
+    AlwaysAssert(false) << "It is not allowed to delete a ContextObj this way!";
   }
 
   CDHashSet(Context* context) :

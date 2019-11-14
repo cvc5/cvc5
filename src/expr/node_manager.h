@@ -32,6 +32,7 @@
 #include <string>
 #include <unordered_set>
 
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -411,14 +412,16 @@ public:
 
   /** Subscribe to NodeManager events */
   void subscribeEvents(NodeManagerListener* listener) {
-    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener) == d_listeners.end(), "listener already subscribed");
+    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener)
+           == d_listeners.end())
+        << "listener already subscribed";
     d_listeners.push_back(listener);
   }
 
   /** Unsubscribe from NodeManager events */
   void unsubscribeEvents(NodeManagerListener* listener) {
     std::vector<NodeManagerListener*>::iterator elt = std::find(d_listeners.begin(), d_listeners.end(), listener);
-    Assert(elt != d_listeners.end(), "listener not subscribed");
+    Assert(elt != d_listeners.end()) << "listener not subscribed";
     d_listeners.erase(elt);
   }
   
@@ -866,6 +869,11 @@ public:
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
+  /**
+   * Make a type representing a constructor with the given argument (subfield)
+   * types and return type range.
+   */
+  TypeNode mkConstructorType(const std::vector<TypeNode>& args, TypeNode range);
 
   /** Make a type representing a selector with the given parameterization */
   inline TypeNode mkSelectorType(TypeNode domain, TypeNode range);
@@ -1177,14 +1185,14 @@ inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
 }
 
 inline void NodeManager::poolInsert(expr::NodeValue* nv) {
-  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end(),
-         "NodeValue already in the pool!");
+  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end())
+      << "NodeValue already in the pool!";
   d_nodeValuePool.insert(nv);// FIXME multithreading
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
-  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end(),
-         "NodeValue is not in the pool!");
+  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end())
+      << "NodeValue is not in the pool!";
 
   d_nodeValuePool.erase(nv);// FIXME multithreading
 }
@@ -1240,8 +1248,7 @@ inline bool NodeManager::hasOperator(Kind k) {
   case kind::metakind::CONSTANT:
     return false;
 
-  default:
-    Unhandled(mk);
+  default: Unhandled() << mk;
   }
 }
 
