@@ -430,7 +430,6 @@ public:
   
   /** register datatype */
   unsigned registerDatatype(Datatype* dt);
-  unsigned registerDatatype(DType* dt);
   /** get datatype for index */
   const Datatype & getDatatypeForIndex( unsigned index ) const;
   const DType& getDTypeForIndex(unsigned index) const;
