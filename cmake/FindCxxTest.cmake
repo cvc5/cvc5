@@ -20,13 +20,17 @@ find_program(CxxTest_PERL_TESTGEN_EXECUTABLE cxxtestgen.pl
 
 if(NOT CxxTest_HOME)
   find_path(CxxTest_INCLUDE_DIR cxxtest/TestSuite.h)
-  find_program(CxxTest_PYTHON_TESTGEN_EXECUTABLE NAMES cxxtestgen cxxtestgen.py)
+  find_program(CxxTest_BASH_TESTGEN_EXECUTABLE NAMES cxxtestgen)
+  find_program(CxxTest_PYTHON_TESTGEN_EXECUTABLE NAMES cxxtestgen.py)
   find_program(CxxTest_PERL_TESTGEN_EXECUTABLE cxxtestgen.pl)
 endif()
 
 if(PYTHONINTERP_FOUND AND CxxTest_PYTHON_TESTGEN_EXECUTABLE)
   set(CxxTest_TESTGEN_EXECUTABLE ${CxxTest_PYTHON_TESTGEN_EXECUTABLE})
   set(CxxTest_TESTGEN_INTERPRETER ${PYTHON_EXECUTABLE})
+elseif(CxxTest_BASH_TESTGEN_EXECUTABLE)
+  set(CxxTest_TESTGEN_EXECUTABLE ${CxxTest_BASH_TESTGEN_EXECUTABLE})
+  set(CxxTest_TESTGEN_INTERPRETER bash) 
 elseif(PERL_FOUND AND CxxTest_PERL_TESTGEN_EXECUTABLE)
   set(CxxTest_TESTGEN_EXECUTABLE ${CxxTest_PERL_TESTGEN_EXECUTABLE})
   set(CxxTest_TESTGEN_INTERPRETER ${PERL_EXECUTABLE})
