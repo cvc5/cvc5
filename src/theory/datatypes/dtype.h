@@ -21,13 +21,13 @@
 #include <string>
 #include <vector>
 #include "expr/node.h"
+#include "expr/node_manager_attributes.h"
 #include "expr/type_node.h"
 #include "theory/datatypes/dtype_cons.h"
 #include "theory/datatypes/dtype_selector.h"
-#include "expr/node_manager_attributes.h"
 
 namespace CVC4 {
-  
+
 // ----------------------- datatype attributes
 /** TODO */
 struct DTypeIndexTag
@@ -54,7 +54,7 @@ struct DTypeUFiniteComputedTag
 {
 };
 typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
-// ----------------------- end datatype attributes  
+// ----------------------- end datatype attributes
 
 class NodeManager;
 
