@@ -279,7 +279,7 @@ int isTester(Node n)
 size_t indexOf(Node n)
 {
   // FIXME: move this somewhere else
-  if (n.getKind()==APPLY_TYPE_ASCRIPTION)
+  if (n.getKind() == APPLY_TYPE_ASCRIPTION)
   {
     return indexOf(n[0]);
   }
