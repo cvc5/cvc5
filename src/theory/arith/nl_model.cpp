@@ -43,17 +43,11 @@ void NlModel::reset(TheoryModel* m, std::map<Node, Node>& arithModel)
   d_mv[0].clear();
   d_mv[1].clear();
   d_arithVal.clear();
-  d_valToRep.clear();
   // process arithModel
   std::map<Node, Node>::iterator it;
   for (const std::pair<const Node, Node>& m : arithModel)
   {
     d_arithVal[m.first] = m.second;
-    it = d_valToRep.find(m.second);
-    if (it == d_valToRep.end())
-    {
-      d_valToRep[m.second] = m.first;
-    }
   }
 }
 
@@ -157,6 +151,7 @@ Node NlModel::getValueInternal(Node n) const
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
+    AlwaysAssert(it->second.isConst());
     return it->second;
   }
   AlwaysAssert(false);
@@ -179,12 +174,15 @@ Node NlModel::getRepresentative(Node n) const
   {
     return d_model->getRepresentative(n);
   }
+  return getValueInternal(n);
+  /*
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
     std::map< Node, Node >::const_iterator itr = d_valToRep.find(it->second);
     if (itr != d_valToRep.end())
     {
+      AlwaysAssert(itr->second.isConst());
       return itr->second;
     }
     Assert(false);
@@ -192,6 +190,7 @@ Node NlModel::getRepresentative(Node n) const
   AlwaysAssert(false);
   // return self
   return n;
+  */
 }
 
 int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute)
