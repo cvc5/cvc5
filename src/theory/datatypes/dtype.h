@@ -460,7 +460,7 @@ class DType
                const std::vector<TypeNode>& replacements,
                const std::vector<TypeNode>& paramTypes,
                const std::vector<TypeNode>& paramReplacements);
-  
+
   /** compute the cardinality of this datatype */
   Cardinality computeCardinality(TypeNode t,
                                  std::vector<TypeNode>& processing) const;
