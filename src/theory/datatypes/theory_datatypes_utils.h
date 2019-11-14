@@ -25,6 +25,35 @@
 #include "expr/node_manager_attributes.h"
 
 namespace CVC4 {
+
+// ----------------------- datatype attributes
+/** TODO */
+struct DTypeIndexTag
+{
+};
+typedef expr::Attribute<DTypeIndexTag, size_t> DTypeIndexAttr;
+struct DTypeConsIndexTag
+{
+};
+typedef expr::Attribute<DTypeConsIndexTag, size_t> DTypeConsIndexAttr;
+struct DTypeFiniteTag
+{
+};
+typedef expr::Attribute<DTypeFiniteTag, bool> DTypeFiniteAttr;
+struct DTypeFiniteComputedTag
+{
+};
+typedef expr::Attribute<DTypeFiniteComputedTag, bool> DTypeFiniteComputedAttr;
+struct DTypeUFiniteTag
+{
+};
+typedef expr::Attribute<DTypeUFiniteTag, bool> DTypeUFiniteAttr;
+struct DTypeUFiniteComputedTag
+{
+};
+typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
+// ----------------------- end datatype attributes
+
 namespace theory {
 
 // ----------------------- sygus datatype attributes
@@ -106,7 +135,16 @@ int isTester(Node n);
  * index of a selector in its constructor.  (Zero is always the
  * first index.)
  */
-unsigned indexOf(Node n);
+size_t indexOf(Node n);
+/**
+ * Get the index of constructor corresponding to selector.
+ * (Zero is always the first index.)
+ */
+size_t cindexOf(Node n);
+/**
+ * Get the datatype of n.
+ */
+const DType& datatypeOf(Node n);
 /** make tester is-C( n ), where C is the i^{th} constructor of dt */
 Node mkTester(Node n, int i, const Datatype& dt);
 /** make tester split

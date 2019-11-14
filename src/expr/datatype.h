@@ -101,6 +101,8 @@ class CVC4_PUBLIC DatatypeResolutionException : public Exception {
 class CVC4_PUBLIC DatatypeSelfType {
 };/* class DatatypeSelfType */
 
+class DTypeSelector;
+
 /**
  * An unresolved type (used in calls to
  * DatatypeConstructor::addArg()) to allow a Datatype to refer to
@@ -159,6 +161,8 @@ class CVC4_PUBLIC DatatypeConstructorArg {
   void toStream(std::ostream& out) const;
 
  private:
+  /** The internal representation */
+  std::shared_ptr<DTypeSelector> d_internal;
   /** the name of this selector */
   std::string d_name;
   /** the selector expression */
@@ -198,6 +202,8 @@ class CVC4_PUBLIC SygusPrintCallback
                              std::ostream& out,
                              Expr e) const = 0;
 };
+
+class DTypeConstructor;
 
 /**
  * A constructor for a Datatype.
@@ -454,6 +460,8 @@ class CVC4_PUBLIC DatatypeConstructor {
   void toStream(std::ostream& out) const;
 
  private:
+  /** The internal representation */
+  std::shared_ptr<DTypeConstructor> d_internal;
   /** the name of the constructor */
   std::string d_name;
   /** the constructor expression */
@@ -551,6 +559,8 @@ class CVC4_PUBLIC DatatypeConstructor {
    */
   void computeSharedSelectors(Type domainType) const;
 };/* class DatatypeConstructor */
+
+class DType;
 
 /**
  * The representation of an inductive datatype.
@@ -958,11 +968,16 @@ public:
    * Get the list of constructors.
    */
   const std::vector<DatatypeConstructor>* getConstructors() const;
+  
+  /** get DType !!!temporary */
+  const DType& getDType() const;
 
   /** prints this datatype to stream */
   void toStream(std::ostream& out) const;
 
  private:
+  /** The internal representation */
+  std::shared_ptr<DType> d_internal;
   /** name of this datatype */
   std::string d_name;
   /** the type parameters of this datatype (if this is a parametric datatype)
@@ -1184,7 +1199,8 @@ inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
 
 inline std::string DatatypeUnresolvedType::getName() const { return d_name; }
 inline Datatype::Datatype(std::string name, bool isCo)
-    : d_name(name),
+    : d_internal(nullptr), // until the Node-level datatype API is activated
+      d_name(name),
       d_params(),
       d_isCo(isCo),
       d_isTuple(false),
@@ -1202,7 +1218,8 @@ inline Datatype::Datatype(std::string name, bool isCo)
 
 inline Datatype::Datatype(std::string name, const std::vector<Type>& params,
                           bool isCo)
-    : d_name(name),
+    : d_internal(nullptr), // until the Node-level datatype API is activated
+      d_name(name),
       d_params(params),
       d_isCo(isCo),
       d_isTuple(false),

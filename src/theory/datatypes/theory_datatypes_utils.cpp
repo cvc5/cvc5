@@ -276,22 +276,34 @@ int isTester(Node n)
   return -1;
 }
 
-struct DtIndexAttributeId
+size_t indexOf(Node n)
 {
-};
-typedef expr::Attribute<DtIndexAttributeId, uint64_t> DtIndexAttribute;
-
-unsigned indexOf(Node n)
-{
-  if (!n.hasAttribute(DtIndexAttribute()))
+  // FIXME: move this somewhere else
+  if (n.getKind() == APPLY_TYPE_ASCRIPTION)
   {
-    Assert(n.getType().isConstructor() || n.getType().isTester()
-           || n.getType().isSelector());
-    unsigned index = Datatype::indexOfInternal(n.toExpr());
-    n.setAttribute(DtIndexAttribute(), index);
-    return index;
+    return indexOf(n[0]);
   }
-  return n.getAttribute(DtIndexAttribute());
+  Assert(n.hasAttribute(DTypeIndexAttr()));
+  return n.getAttribute(DTypeIndexAttr());
+}
+
+size_t cindexOf(Node n)
+{
+  Assert(n.hasAttribute(DTypeConsIndexAttr()));
+  return n.getAttribute(DTypeConsIndexAttr());
+}
+
+const DType& datatypeOf(Node n)
+{
+  TypeNode t = n.getType();
+  switch (t.getKind())
+  {
+    case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
+    case SELECTOR_TYPE:
+    case TESTER_TYPE: return t[0].getDType();
+    default:
+      Unhandled() << "arg must be a datatype constructor, selector, or tester";
+  }
 }
 
 Node mkTester(Node n, int i, const Datatype& dt)

@@ -43,6 +43,9 @@ namespace CVC4 {
 class StatisticsRegistry;
 class ResourceManager;
 
+class DType;
+class DTypeConstructor;
+
 namespace expr {
   namespace attr {
     class AttributeUniqueId;
@@ -429,6 +432,7 @@ public:
   unsigned registerDatatype(Datatype* dt);
   /** get datatype for index */
   const Datatype & getDatatypeForIndex( unsigned index ) const;
+  const DType& getDTypeForIndex(unsigned index) const;
 
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);
