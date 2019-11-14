@@ -266,7 +266,6 @@ class NlModel
   Node d_false;
   Node d_null;
   std::map<Node, Node> d_arithVal;
-  std::map<Node, Node> d_valToRep;
   /** cache of model values
    *
    * Stores the the concrete/abstract model values. This is a cache of the
