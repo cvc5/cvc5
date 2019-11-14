@@ -68,7 +68,7 @@ public:
   }
  
   void testBitblasterCore() {
-	d_smt->setLogic("QF_BV");
+    d_smt->setLogic("QF_BV");
 
     d_smt->setOption("bitblast", SExpr("eager"));
     d_smt->setOption("incremental", SExpr("false"));
