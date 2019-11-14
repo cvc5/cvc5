@@ -757,7 +757,6 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt)
 }
 
 void Datatype::toStream(std::ostream& out) const { 
-  ExprManagerScope ems(d_self);
   d_internal->toStream(out);
 }
 
@@ -770,7 +769,6 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
 
 void DatatypeConstructor::toStream(std::ostream& out) const
 {
-  ExprManagerScope ems(d_constructor);  
   d_internal->toStream(out);
 }
 
@@ -783,7 +781,6 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
 
 void DatatypeConstructorArg::toStream(std::ostream& out) const
 {
-  ExprManagerScope ems(d_selector);  
   d_internal->toStream(out);
 }
 

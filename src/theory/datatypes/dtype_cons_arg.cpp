@@ -24,6 +24,7 @@ DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector)
     : d_name(name), d_selector(selector), d_resolved(false)
 {
   Assert(name != "");
+  d_selectorType = d_selector.getType();
 }
 
 std::string DTypeConstructorArg::getName() const { return d_name; }
@@ -42,12 +43,12 @@ Node DTypeConstructorArg::getConstructor() const
 
 TypeNode DTypeConstructorArg::getType() const
 {
-  return getSelector().getType();
+  return d_selectorType;
 }
 
 TypeNode DTypeConstructorArg::getRangeType() const
 {
-  return getType().getRangeType();
+  return d_selectorType.getRangeType();
 }
 
 bool DTypeConstructorArg::isResolved() const { return d_resolved; }
@@ -68,7 +69,7 @@ void DTypeConstructorArg::toStream(std::ostream& out) const
   }
   else
   {
-    t = d_selector.getType();
+    t = d_selectorType;
   }
   out << t;
 }

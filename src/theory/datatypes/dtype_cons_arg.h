@@ -81,6 +81,8 @@ class DTypeConstructorArg
   std::string d_name;
   /** the selector expression */
   Node d_selector;
+  /** the type of the selector */
+  TypeNode d_selectorType;
   /** the constructor associated with this selector */
   Node d_constructor;
   /** whether this class has been resolved */
