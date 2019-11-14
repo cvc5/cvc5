@@ -91,7 +91,6 @@ int main() {
 
   // You can also iterate over a Datatype to get all its constructors,
   // and over a DatatypeConstructor to get all its "args" (selectors)
-            /*
   for(Datatype::iterator i = consList.begin(); i != consList.end(); ++i) {
     std::cout << "ctor: " << *i << std::endl;
     for(DatatypeConstructor::iterator j = (*i).begin(); j != (*i).end(); ++j) {
@@ -99,7 +98,6 @@ int main() {
     }
   }
   std::cout << std::endl;
-  */
 
   // You can also define parameterized datatypes.
   // This example builds a simple parameterized list of sort T, with one
