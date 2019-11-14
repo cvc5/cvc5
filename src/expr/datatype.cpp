@@ -757,8 +757,31 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt)
 }
 
 void Datatype::toStream(std::ostream& out) const { 
-  return;
-  d_internal->toStream(out);
+  out << "DATATYPE " << getName();
+  if (isParametric())
+  {
+    out << '[';
+    for (size_t i = 0; i < getNumParameters(); ++i)
+    {
+      if(i > 0) {
+        out << ',';
+      }
+      out << getParameter(i);
+    }
+    out << ']';
+  }
+  out << " =" << endl;
+  Datatype::const_iterator i = begin(), i_end = end();
+  if(i != i_end) {
+    out << "  ";
+    do {
+      out << *i << endl;
+      if(++i != i_end) {
+        out << "| ";
+      }
+    } while(i != i_end);
+  }
+  out << "END;" << endl;
 }
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
@@ -770,8 +793,19 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
 
 void DatatypeConstructor::toStream(std::ostream& out) const
 {
-  return;
-  d_internal->toStream(out);
+  out << getName();
+
+  DatatypeConstructor::const_iterator i = begin(), i_end = end();
+  if(i != i_end) {
+    out << "(";
+    do {
+      out << *i;
+      if(++i != i_end) {
+        out << ", ";
+      }
+    } while(i != i_end);
+    out << ")";
+  }
 }
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
@@ -783,8 +817,24 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
 
 void DatatypeConstructorArg::toStream(std::ostream& out) const
 {
-  return;
-  d_internal->toStream(out);
+  out << getName() << ": ";
+
+  Type t;
+  if (isResolved())
+  {
+    t = getRangeType();
+  }
+  else if (d_selector.isNull())
+  {
+    string typeName = d_name.substr(d_name.find('\0') + 1);
+    out << ((typeName == "") ? "[self]" : typeName);
+    return;
+  }
+  else
+  {
+    t = d_selector.getType();
+  }
+  out << t;
 }
 
 DatatypeIndexConstant::DatatypeIndexConstant(unsigned index) : d_index(index) {}
