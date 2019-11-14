@@ -116,7 +116,7 @@ public:
   inline std::string getName() const;
 };/* class DatatypeUnresolvedType */
 
-class DTypeConstructorArg;
+class DTypeSelector;
 
 /**
  * A Datatype constructor argument (i.e., a Datatype field).
@@ -162,7 +162,7 @@ class CVC4_PUBLIC DatatypeConstructorArg {
 
  private:
   /** The internal representation */
-  std::shared_ptr<DTypeConstructorArg> d_internal;
+  std::shared_ptr<DTypeSelector> d_internal;
   /** The selector */
   Expr d_selector;
   /** is this selector unresolved? */

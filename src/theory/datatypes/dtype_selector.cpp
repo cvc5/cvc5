@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file dtype.cpp
+/*! \file dtype_selector.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A class representing a datatype definition
+ ** \brief A class representing a datatype selector.
  **/
 
-#include "theory/datatypes/dtype_cons_arg.h"
+#include "theory/datatypes/dtype_selector.h"
 
 #include "options/set_language.h"
 
@@ -20,36 +20,39 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-DTypeConstructorArg::DTypeConstructorArg(std::string name, Node selector)
+DTypeSelector::DTypeSelector(std::string name, Node selector)
     : d_name(name), d_selector(selector), d_resolved(false)
 {
   Assert(name != "");
 }
 
-std::string DTypeConstructorArg::getName() const { return d_name; }
+std::string DTypeSelector::getName() const { return d_name; }
 
-Node DTypeConstructorArg::getSelector() const
+Node DTypeSelector::getSelector() const
 {
   Assert(d_resolved);
   return d_selector;
 }
 
-Node DTypeConstructorArg::getConstructor() const
+Node DTypeSelector::getConstructor() const
 {
   Assert(d_resolved);
   return d_constructor;
 }
 
-TypeNode DTypeConstructorArg::getType() const { return d_selector.getType(); }
+TypeNode DTypeSelector::getType() const
+{
+  return d_selector.getType();
+}
 
-TypeNode DTypeConstructorArg::getRangeType() const
+TypeNode DTypeSelector::getRangeType() const
 {
   return getType().getRangeType();
 }
 
-bool DTypeConstructorArg::isResolved() const { return d_resolved; }
+bool DTypeSelector::isResolved() const { return d_resolved; }
 
-void DTypeConstructorArg::toStream(std::ostream& out) const
+void DTypeSelector::toStream(std::ostream& out) const
 {
   out << getName() << ": ";
   TypeNode t;
@@ -71,7 +74,7 @@ void DTypeConstructorArg::toStream(std::ostream& out) const
   out << t;
 }
 
-std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg)
+std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg)
 {
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);

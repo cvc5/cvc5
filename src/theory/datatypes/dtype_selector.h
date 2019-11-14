@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file dtype.h
+/*! \file dtype_selector.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A class representing a datatype definition
+ ** \brief A class representing a datatype selector.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__DTYPE_CONS_ARG_H
-#define CVC4__THEORY__DATATYPES__DTYPE_CONS_ARG_H
+#ifndef CVC4__THEORY__DATATYPES__DTYPE_SELECTOR_H
+#define CVC4__THEORY__DATATYPES__DTYPE_SELECTOR_H
 
 #include <string>
 #include "base/exception.h"
@@ -30,9 +30,9 @@ class DType;
 class DTypeConstructor;
 
 /**
- * A DType constructor argument (i.e., a DType field).
+ * A datatype selector for a constructor argument (i.e., a datatype field).
  */
-class DTypeConstructorArg
+class DTypeSelector
 {
   friend class DatatypeConstructorArg;
   friend class DTypeConstructor;
@@ -40,7 +40,7 @@ class DTypeConstructorArg
 
  public:
   /** constructor */
-  DTypeConstructorArg(std::string name, Node selector);
+  DTypeSelector(std::string name, Node selector);
 
   /** Get the name of this constructor argument. */
   std::string getName() const;
@@ -81,13 +81,17 @@ class DTypeConstructorArg
   std::string d_name;
   /** the selector expression */
   Node d_selector;
-  /** the constructor associated with this selector */
+  /** 
+   * The constructor associated with this selector. This field is initialized
+   * by the constructor of this selector during a call to
+   * DTypeConstructor::resolve.
+   */
   Node d_constructor;
   /** whether this class has been resolved */
   bool d_resolved;
 };
 
-std::ostream& operator<<(std::ostream& os, const DTypeConstructorArg& arg);
+std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg);
 
 }  // namespace CVC4
 

@@ -67,12 +67,12 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
       "is an unresolved selector type placeholder",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   Trace("datatypes") << type << std::endl;
-  std::shared_ptr<DTypeConstructorArg> a =
-      std::make_shared<DTypeConstructorArg>(selectorName, type);
+  std::shared_ptr<DTypeSelector> a =
+      std::make_shared<DTypeSelector>(selectorName, type);
   addArg(a);
 }
 
-void DTypeConstructor::addArg(std::shared_ptr<DTypeConstructorArg> a)
+void DTypeConstructor::addArg(std::shared_ptr<DTypeSelector> a)
 {
   d_args.push_back(a);
 }
@@ -143,7 +143,7 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
       params.begin(), params.end(), subst.begin(), subst.end());
 }
 
-const std::vector<std::shared_ptr<DTypeConstructorArg> >&
+const std::vector<std::shared_ptr<DTypeSelector> >&
 DTypeConstructor::getArgs() const
 {
   return d_args;
@@ -244,7 +244,7 @@ bool DTypeConstructor::isInterpretedFinite(TypeNode t) const
 
 bool DTypeConstructor::isResolved() const { return !d_tester.isNull(); }
 
-const DTypeConstructorArg& DTypeConstructor::operator[](size_t index) const
+const DTypeSelector& DTypeConstructor::operator[](size_t index) const
 {
   Assert(index < getNumArgs());
   return *d_args[index];
@@ -503,7 +503,7 @@ bool DTypeConstructor::resolve(
   NodeManager* nm = NodeManager::currentNM();
   size_t index = 0;
   std::vector<TypeNode> argTypes;
-  for (std::shared_ptr<DTypeConstructorArg> arg : d_args)
+  for (std::shared_ptr<DTypeSelector> arg : d_args)
   {
     std::string argName = arg->d_name;
     TypeNode range;
@@ -588,7 +588,7 @@ bool DTypeConstructor::resolve(
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
   Assert(d_constructor.getType().isConstructor());
   // associate constructor with all selectors
-  for (std::shared_ptr<DTypeConstructorArg> sel : d_args)
+  for (std::shared_ptr<DTypeSelector> sel : d_args)
   {
     sel->d_constructor = d_constructor;
   }

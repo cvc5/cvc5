@@ -87,9 +87,9 @@ const DType& DType::datatypeOf(Node item)
   TypeNode t = item.getType();
   switch (t.getKind())
   {
-    case kind::CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
-    case kind::SELECTOR_TYPE:
-    case kind::TESTER_TYPE: return t[0].getDType();
+    case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
+    case SELECTOR_TYPE:
+    case TESTER_TYPE: return t[0].getDType();
     default:
       Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }
@@ -104,7 +104,7 @@ size_t DType::indexOf(Node item)
 
 size_t DType::indexOfInternal(Node item)
 {
-  if (item.getKind() == kind::APPLY_TYPE_ASCRIPTION)
+  if (item.getKind() == APPLY_TYPE_ASCRIPTION)
   {
     return indexOf(item[0]);
   }
@@ -119,7 +119,7 @@ size_t DType::cindexOf(Node item)
 }
 size_t DType::cindexOfInternal(Node item)
 {
-  if (item.getKind() == kind::APPLY_TYPE_ASCRIPTION)
+  if (item.getKind() == APPLY_TYPE_ASCRIPTION)
   {
     return cindexOf(item[0]);
   }

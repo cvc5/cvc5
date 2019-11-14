@@ -407,8 +407,8 @@ libcvc4_add_sources(
   theory/datatypes/dtype.h
   theory/datatypes/dtype_cons.cpp
   theory/datatypes/dtype_cons.h
-  theory/datatypes/dtype_cons_arg.cpp
-  theory/datatypes/dtype_cons_arg.h
+  theory/datatypes/dtype_selector.cpp
+  theory/datatypes/dtype_selector.h
   theory/datatypes/sygus_extension.cpp
   theory/datatypes/sygus_extension.h
   theory/datatypes/sygus_simple_sym.cpp

@@ -23,7 +23,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/datatypes/dtype_cons.h"
-#include "theory/datatypes/dtype_cons_arg.h"
+#include "theory/datatypes/dtype_selector.h"
 
 namespace CVC4 {
 
@@ -32,8 +32,13 @@ class NodeManager;
 class Datatype;
 
 /**
- * The representation of an inductive datatype.
+ * The Node-level representation of an inductive datatype, which currently
+ * resides within the Expr-level Datatype class (expr/datatype.h).
  *
+ * Notice that this class is a specification for a datatype, and is not
+ * itself a type. The type that this specification corresponds to can be
+ * retrieved (after resolution as described in following) via getTypeNode.
+ * 
  * This is far more complicated than it first seems.  Consider this
  * datatype definition:
  *
@@ -55,18 +60,14 @@ class Datatype;
  *     list = cons(car: tree, cdr: list) | nil
  *   END;
  *
- * Note that while parsing the "tree" definition, we have to take it
- * on faith that "list" is a valid type.  We build DType objects to
- * describe "tree" and "list", and their constructors and constructor
- * arguments, but leave any unknown types (including self-references)
- * in an "unresolved" state.  After parsing the whole DATATYPE block,
- * we create a TypeNode through
- * NodeManager::mkMutualTypeNodes().  The NodeManager creates a
- * TypeNode for each, but before "releasing" this type into the
- * wild, it does a round of in-place "resolution" on each DType by
+ * We build DType objects to describe "tree" and "list", and their constructors
+ * and constructor arguments, but leave any unknown types (including
+ * self-references) in an "unresolved" state.  After parsing the whole DATATYPE
+ * block, we create a TypeNode through ExprManager::mkMutualDatatypeTypes().  
+ * The ExprManager creates a Type for each, but before "releasing" this type
+ * into the wild, it does a round of in-place "resolution" on each DType by
  * calling DType::resolve() with a map of string -> TypeNode to
- * allow the datatype to construct the necessary testers and
- * selectors.
+ * allow the datatype to construct the necessary testers and selectors.
  *
  * An additional point to make is that we want to ease the burden on
  * both the parser AND the users of the CVC4 API, so this class takes
@@ -460,7 +461,7 @@ class DType
                const std::vector<TypeNode>& replacements,
                const std::vector<TypeNode>& paramTypes,
                const std::vector<TypeNode>& paramReplacements);
-
+  
   /** compute the cardinality of this datatype */
   Cardinality computeCardinality(TypeNode t,
                                  std::vector<TypeNode>& processing) const;

@@ -22,14 +22,16 @@
 #include <vector>
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/datatypes/dtype_cons_arg.h"
+#include "theory/datatypes/dtype_selector.h"
 
 namespace CVC4 {
 
 class DatatypeConstructor;
 
 /**
- * A constructor for a DType.
+ * The Node-level representation of a constructor for a datatype, which
+ * currently resides in the Expr-level DatatypeConstructor class
+ * (expr/datatype.h).
  */
 class DTypeConstructor
 {
@@ -38,13 +40,13 @@ class DTypeConstructor
 
  public:
   /**
-   * Create a new DType constructor with the given name for the
+   * Create a new datatype constructor with the given name for the
    * constructor and the same name (prefixed with "is_") for the
    * tester.  The actual constructor and tester (meaning, the Nodes
    * representing operators for these entities) aren't created until
    * resolution time.
    */
-  explicit DTypeConstructor(std::string name);
+  DTypeConstructor(std::string name);
 
   /**
    * Create a new DType constructor with the given name for the
@@ -59,29 +61,32 @@ class DTypeConstructor
   ~DTypeConstructor() {}
   /**
    * Add an argument (i.e., a data field) of the given name and type
-   * to this DType constructor.  Selector names need not be unique;
+   * to this constructor.  Selector names need not be unique;
    * they are for convenience and pretty-printing only.
    */
   void addArg(std::string selectorName, TypeNode selectorType);
-  void addArg(std::shared_ptr<DTypeConstructorArg> a);
+  /** 
+   * Add an argument, given a pointer to a selector object.
+   */
+  void addArg(std::shared_ptr<DTypeSelector> a);
 
-  /** Get the name of this DType constructor. */
+  /** Get the name of this constructor. */
   std::string getName() const;
 
   /**
-   * Get the constructor operator of this DType constructor.  The
+   * Get the constructor operator of this constructor.  The
    * DType must be resolved.
    */
   Node getConstructor() const;
 
   /**
-   * Get the tester operator of this DType constructor.  The
+   * Get the tester operator of this constructor.  The
    * DType must be resolved.
    */
   Node getTester() const;
 
   /**
-   * Get the tester name for this DType constructor.
+   * Get the tester name for this constructor.
    */
   std::string getTesterName() const;
   //-------------------------------------- sygus
@@ -122,7 +127,7 @@ class DTypeConstructor
   /**
    * Get the list of arguments to this constructor.
    */
-  const std::vector<std::shared_ptr<DTypeConstructorArg> >& getArgs() const;
+  const std::vector<std::shared_ptr<DTypeSelector> >& getArgs() const;
   /**
    * Get the specialized constructor type for a parametric
    * constructor; this call is only permitted after resolution.
@@ -158,13 +163,13 @@ class DTypeConstructor
   bool isInterpretedFinite(TypeNode t) const;
 
   /**
-   * Returns true iff this DType constructor has already been
+   * Returns true iff this constructor has already been
    * resolved.
    */
   bool isResolved() const;
 
   /** Get the ith DTypeConstructor arg. */
-  const DTypeConstructorArg& operator[](size_t index) const;
+  const DTypeSelector& operator[](size_t index) const;
 
   /**
    * Get argument type. Returns the return type of the i^th selector of this
@@ -228,7 +233,7 @@ class DTypeConstructor
   /** the tester for this constructor */
   Node d_tester;
   /** the arguments of this constructor */
-  std::vector<std::shared_ptr<DTypeConstructorArg> > d_args;
+  std::vector<std::shared_ptr<DTypeSelector> > d_args;
   /** sygus operator */
   Node d_sygus_op;
   /** weight */
