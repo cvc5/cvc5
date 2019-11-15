@@ -28,16 +28,30 @@ void SygusDatatype::addConstructor(Node op,
                                    const std::string& name,
                                    std::shared_ptr<SygusPrintCallback> spc,
                                    int weight,
-                                   const std::vector<TypeNode>& consTypes)
+                                   const std::vector<TypeNode>& consTypes,
+                                   bool prepend
+                                  )
 {
-  d_ops.push_back(op);
-  d_cons_names.push_back(std::string(name));
-  d_pc.push_back(spc);
-  d_weight.push_back(weight);
-  d_consArgs.push_back(consTypes);
+  if (prepend)
+  {
+    d_ops.push_back(op);
+    d_cons_names.push_back(std::string(name));
+    d_pc.push_back(spc);
+    d_weight.push_back(weight);
+    d_consArgs.push_back(consTypes);
+  }
+  else
+  {
+    d_ops.push_back(op);
+    d_cons_names.push_back(std::string(name));
+    d_pc.push_back(spc);
+    d_weight.push_back(weight);
+    d_consArgs.push_back(consTypes);
+  }
 }
 
-void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
+void SygusDatatype::addAnyConstantConstructor(TypeNode tn,
+                                   bool prepend)
 {
   // add an "any constant" proxy variable
   Node av = NodeManager::currentNM()->mkSkolem("_any_constant", tn);
@@ -47,18 +61,9 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
   std::stringstream ss;
   ss << getName() << "_any_constant";
   std::string cname(ss.str());
-  std::vector<TypeNode> builtin_arg;
-  builtin_arg.push_back(tn);
-  // we add this constructor first since we use left associative chains
-  // and our symmetry breaking should group any constants together
-  // beneath the same application
-  // we set its weight to zero since it should be considered at the
-  // same level as constants.
-  d_ops.insert(d_ops.begin(), av.toExpr());
-  d_cons_names.insert(d_cons_names.begin(), cname);
-  d_consArgs.insert(d_consArgs.begin(), builtin_arg);
-  d_pc.insert(d_pc.begin(), printer::SygusEmptyPrintCallback::getEmptyPC());
-  d_weight.insert(d_weight.begin(), 0);
+  std::vector<TypeNode> builtinArg;
+  builtinArg.push_back(tn);
+  addConstructor(av,cname,printer::SygusEmptyPrintCallback::getEmptyPC(),0,builtinArg,prepend);
 }
 
 void SygusDatatype::buildDatatype(TypeNode sygusType,
