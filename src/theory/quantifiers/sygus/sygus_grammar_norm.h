@@ -24,10 +24,10 @@
 
 #include "expr/datatype.h"
 #include "expr/node.h"
-#include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/type.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/sygus/sygus_type_constructor.h"
 
 namespace CVC4 {
 namespace theory {
@@ -167,87 +167,6 @@ class SygusGrammarNorm
   }
 
  private:
-  /** Keeps the necessary information for bulding a normalized type:
-   *
-   * the original typenode, from which the datatype representation can be
-   * extracted
-   *
-   * the operators, names, print callbacks and list of argument types for each
-   * constructor
-   *
-   * the unresolved type node used as placeholder for references of the yet to
-   * be built normalized type
-   *
-   * a datatype to represent the structure of the type node for the normalized
-   * type
-   */
-  class TypeObject
-  {
-   public:
-    /* Stores the original type node and the unresolved placeholder. The
-     * datatype for the latter is created with the respective name. */
-    TypeObject(TypeNode src_tn, TypeNode unres_tn)
-        : d_tn(src_tn),
-          d_unres_tn(unres_tn),
-          d_dt(Datatype(unres_tn.getAttribute(expr::VarNameAttr())))
-    {
-    }
-    ~TypeObject() {}
-
-    /** adds information in "cons" (operator, name, print callback, argument
-     * types) as it is into "to"
-     *
-     * A side effect of this procedure is to expand the definitions in the sygus
-     * operator of "cons"
-     *
-     * The types of the arguments of "cons" are recursively normalized
-     */
-    void addConsInfo(SygusGrammarNorm* sygus_norm,
-                     const DatatypeConstructor& cons);
-    /**
-     * Returns the total version of Kind k if it is a partial operator, or
-     * otherwise k itself.
-     */
-    static Kind getEliminateKind(Kind k);
-    /**
-     * Returns a version of n where all partial functions such as bvudiv
-     * have been replaced by their total versions like bvudiv_total.
-     */
-    static Node eliminatePartialOperators(Node n);
-
-    /** builds a datatype with the information in the type object
-     *
-     * "dt" is the datatype of the original typenode. It is necessary for
-     * retrieving ancillary information during the datatype building, such as
-     * its sygus type (e.g. Int)
-     *
-     * The built datatype and its unresolved type are saved in the global
-     * accumulators of "sygus_norm"
-     */
-    void buildDatatype(SygusGrammarNorm* sygus_norm, const Datatype& dt);
-
-    //---------- information stored from original type node
-
-    /* The original typenode this TypeObject is built from */
-    TypeNode d_tn;
-
-    //---------- information to build normalized type node
-
-    /* Operators for each constructor. */
-    std::vector<Node> d_ops;
-    /* Names for each constructor. */
-    std::vector<std::string> d_cons_names;
-    /* Print callbacks for each constructor */
-    std::vector<std::shared_ptr<SygusPrintCallback>> d_pc;
-    /* Weights for each constructor */
-    std::vector<int> d_weight;
-    /* List of argument types for each constructor */
-    std::vector<std::vector<Type>> d_cons_args_t;
-    /* Unresolved type node placeholder */
-    TypeNode d_unres_tn;
-    /* Datatype to represent type's structure */
-    Datatype d_dt;
-  }; /* class TypeObject */
 
   /** Transformation abstract class
    *
@@ -267,7 +186,7 @@ class SygusGrammarNorm
      * utilities for any extra necessary normalization.
      */
     virtual void buildType(SygusGrammarNorm* sygus_norm,
-                           TypeObject& to,
+                           SygusTypeConstructor& to,
                            const Datatype& dt,
                            std::vector<unsigned>& op_pos) = 0;
   }; /* class Transf */
@@ -285,7 +204,7 @@ class SygusGrammarNorm
     }
     /** build type */
     void buildType(SygusGrammarNorm* sygus_norm,
-                   TypeObject& to,
+                   SygusTypeConstructor& to,
                    const Datatype& dt,
                    std::vector<unsigned>& op_pos) override;
 
@@ -343,7 +262,7 @@ class SygusGrammarNorm
      * considered.
      */
     void buildType(SygusGrammarNorm* sygus_norm,
-                   TypeObject& to,
+                   SygusTypeConstructor& to,
                    const Datatype& dt,
                    std::vector<unsigned>& op_pos) override;
 
@@ -403,7 +322,7 @@ class SygusGrammarNorm
   /* Datatypes to be resolved */
   std::vector<Datatype> d_dt_all;
   /* Types to be resolved */
-  std::set<Type> d_unres_t_all;
+  std::vector<TypeNode> d_unres_t_all;
   /* Associates type nodes with OpPosTries */
   std::map<TypeNode, OpPosTrie> d_tries;
   /* Map of type nodes into their identity operators (\lambda x. x) */

@@ -22,14 +22,13 @@
 
 #include "expr/datatype.h"
 #include "expr/node.h"
-#include "expr/type.h"
 #include "expr/type_node.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** Keeps the necessary information for bulding a normalized type:
+/** Keeps the necessary information for bulding a sygus type:
  *
  * the original typenode, from which the datatype representation can be
  * extracted
@@ -51,16 +50,21 @@ class SygusTypeConstructor
   SygusTypeConstructor(TypeNode src_tn, TypeNode unres_tn);
   ~SygusTypeConstructor() {}
 
-  /** adds information in "cons" (operator, name, print callback, argument
-   * types) as it is into "to"
+  /** 
+   * Adds information in "cons" (operator, name, print callback, argument
+   * types) as it is into this type constructor.
    *
-   * A side effect of this procedure is to expand the definitions in the sygus
-   * operator of "cons"
-   *
-   * The types of the arguments of "cons" are recursively normalized
+   * The argument types of the constructor are overidden to the provided
+   * argument consTypes.
    */
   void addConsInfo(const DatatypeConstructor& cons,
-                   std::vector<Type>& consTypes);
+                   std::vector<TypeNode>& consTypes);
+  /** 
+   * This adds a constructor that corresponds to the any constant constructor
+   * for the given (builtin) type tn.
+   */
+  void addAnyConstantConstructor(TypeNode tn);
+  //------------------------- utilities for eliminating partial operators
   /**
    * Returns the total version of Kind k if it is a partial operator, or
    * otherwise k itself.
@@ -71,20 +75,23 @@ class SygusTypeConstructor
    * have been replaced by their total versions like bvudiv_total.
    */
   static Node eliminatePartialOperators(Node n);
+  //------------------------- end utilities for eliminating partial operators
 
   /** builds a datatype with the information in the type object
    *
    * "dt" is the datatype of the original typenode. It is necessary for
    * retrieving ancillary information during the datatype building, such as
-   * its sygus type (e.g. Int)
+   * its sygus type (e.g. Int). The argument sygusVars overrides the set of
+   * sygus variables of dt (which correspond to the formal argument list of
+   * a function-to-synthesize).
    *
-   * The built datatype and its unresolved type are saved in the global
-   * accumulators of "sygus_norm"
+   * The built datatype and its unresolved type are added to the vectors
+   * dts and unres respectively.
    */
   void buildDatatype(Node sygusVars,
                      const Datatype& dt,
-                     std::vector<Datatype>& dt_all,
-                     std::set<Type>& unres_t_all);
+                     std::vector<Datatype>& dts,
+                     std::vector<TypeNode>& unres);
 
   //---------- information stored from original type node
 
@@ -102,7 +109,7 @@ class SygusTypeConstructor
   /* Weights for each constructor */
   std::vector<int> d_weight;
   /* List of argument types for each constructor */
-  std::vector<std::vector<Type>> d_cons_args_t;
+  std::vector<std::vector<TypeNode>> d_cons_args_t;
   /* Unresolved type node placeholder */
   TypeNode d_unres_tn;
   /* Datatype to represent type's structure */

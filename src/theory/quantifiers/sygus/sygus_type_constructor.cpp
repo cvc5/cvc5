@@ -19,6 +19,8 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
+#include "printer/sygus_print_callback.h"
 
 using namespace CVC4::kind;
 
@@ -116,13 +118,13 @@ Node SygusTypeConstructor::eliminatePartialOperators(Node n)
 }
 
 void SygusTypeConstructor::addConsInfo(const DatatypeConstructor& cons,
-                                       std::vector<Type>& consTypes)
+                                       std::vector<TypeNode>& consTypes)
 {
-  Trace("sygus-grammar-normalize") << "...for " << cons.getName() << "\n";
+  Trace("sygus-type-cons") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
    * operator (NOT, ITE, etc) */
   Node sygus_op = Node::fromExpr(cons.getSygusOp());
-  Trace("sygus-grammar-normalize-debug")
+  Trace("sygus-type-cons-debug")
       << ".....operator is " << sygus_op << std::endl;
   Node exp_sop_n = sygus_op;
   if (exp_sop_n.isConst())
@@ -130,12 +132,12 @@ void SygusTypeConstructor::addConsInfo(const DatatypeConstructor& cons,
     // If it is a builtin operator, convert to total version if necessary.
     // First, get the kind for the operator.
     Kind ok = NodeManager::operatorToKind(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug")
+    Trace("sygus-type-cons-debug")
         << "...builtin kind is " << ok << std::endl;
     Kind nk = getEliminateKind(ok);
     if (nk != ok)
     {
-      Trace("sygus-grammar-normalize-debug")
+      Trace("sygus-type-cons-debug")
           << "...replace by builtin operator " << nk << std::endl;
       exp_sop_n = NodeManager::currentNM()->operatorOf(nk);
     }
@@ -149,11 +151,11 @@ void SygusTypeConstructor::addConsInfo(const DatatypeConstructor& cons,
     exp_sop_n = Node::fromExpr(
         smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
     exp_sop_n = Rewriter::rewrite(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug")
+    Trace("sygus-type-cons-debug")
         << ".....operator (post-rewrite) is " << exp_sop_n << std::endl;
     // eliminate all partial operators from it
     exp_sop_n = eliminatePartialOperators(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug")
+    Trace("sygus-type-cons-debug")
         << ".....operator (eliminate partial operators) is " << exp_sop_n
         << std::endl;
     // rewrite again
@@ -161,7 +163,7 @@ void SygusTypeConstructor::addConsInfo(const DatatypeConstructor& cons,
   }
 
   d_ops.push_back(exp_sop_n);
-  Trace("sygus-grammar-normalize-defs")
+  Trace("sygus-type-cons-defs")
       << "\tOriginal op: " << cons.getSygusOp()
       << "\n\tExpanded one: " << exp_sop_n
       << "\n\tRewritten one: " << d_ops.back() << "\n\n";
@@ -171,10 +173,35 @@ void SygusTypeConstructor::addConsInfo(const DatatypeConstructor& cons,
   d_cons_args_t.push_back(consTypes);
 }
 
+void SygusTypeConstructor::addAnyConstantConstructor(TypeNode tn)
+{
+  // add an "any constant" proxy variable
+  Node av = NodeManager::currentNM()->mkSkolem("_any_constant", tn);
+  // mark that it represents any constant
+  SygusAnyConstAttribute saca;
+  av.setAttribute(saca, true);
+  std::stringstream ss;
+  ss << d_unres_tn << "_any_constant";
+  std::string cname(ss.str());
+  std::vector<TypeNode> builtin_arg;
+  builtin_arg.push_back(tn);
+  // we add this constructor first since we use left associative chains
+  // and our symmetry breaking should group any constants together
+  // beneath the same application
+  // we set its weight to zero since it should be considered at the
+  // same level as constants.
+  d_ops.insert(d_ops.begin(), av.toExpr());
+  d_cons_names.insert(d_cons_names.begin(), cname);
+  d_cons_args_t.insert(d_cons_args_t.begin(), builtin_arg);
+  d_pc.insert(d_pc.begin(),
+                  printer::SygusEmptyPrintCallback::getEmptyPC());
+  d_weight.insert(d_weight.begin(), 0);
+}
+
 void SygusTypeConstructor::buildDatatype(Node sygusVars,
                                          const Datatype& dt,
-                                         std::vector<Datatype>& dt_all,
-                                         std::set<Type>& unres_t_all)
+                                         std::vector<Datatype>& dts,
+                                         std::vector<TypeNode>& unres)
 {
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
@@ -184,17 +211,24 @@ void SygusTypeConstructor::buildDatatype(Node sygusVars,
                 dt.getSygusAllowAll());
   for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)
   {
+    // must convert to type now
+    std::vector<Type> cargs;
+    for (TypeNode& ct : d_cons_args_t[i])
+    {
+      cargs.push_back(ct.toType());
+    }
+    // add (sygus) constructor
     d_dt.addSygusConstructor(d_ops[i].toExpr(),
                              d_cons_names[i],
-                             d_cons_args_t[i],
+                             cargs,
                              d_pc[i],
                              d_weight[i]);
   }
-  Trace("sygus-grammar-normalize") << "...built datatype " << d_dt << " ";
+  Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
   /* Add to global accumulators */
-  dt_all.push_back(d_dt);
-  unres_t_all.insert(d_unres_tn.toType());
-  Trace("sygus-grammar-normalize") << "---------------------------------\n";
+  dts.push_back(d_dt);
+  unres.push_back(d_unres_tn);
+  Trace("sygus-type-cons") << "---------------------------------\n";
 }
 
 }  // namespace quantifiers
