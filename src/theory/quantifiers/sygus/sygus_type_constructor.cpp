@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/sygus/sygus_type_constructor.h"
 
+#include "expr/node_manager_attributes.h"
 
 using namespace CVC4::kind;
 

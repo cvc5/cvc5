@@ -14,20 +14,16 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_TYPE_CONSTRUCTOR_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_TYPE_CONSTRUCTOR_H
 
-#include <map>
-#include <memory>
 #include <string>
 #include <vector>
 
 #include "expr/datatype.h"
 #include "expr/node.h"
-#include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/type.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {
 namespace theory {
