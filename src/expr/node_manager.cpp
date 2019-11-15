@@ -31,7 +31,7 @@
 #include "options/smt_options.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
-#include "theory/datatypes/dtype.h"
+#include "expr/dtype.h"
 
 using namespace std;
 using namespace CVC4::expr;
