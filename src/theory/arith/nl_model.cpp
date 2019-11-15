@@ -148,13 +148,18 @@ Node NlModel::getValueInternal(Node n) const
   {
     return d_model->getValue(n);
   }
+  if (n.isConst())
+  {
+    return n;
+  }
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
     AlwaysAssert(it->second.isConst());
     return it->second;
   }
-  AlwaysAssert(false);
+  //return NodeManager::currentNM()->mkConst(Rational(0));
+  AlwaysAssert(false) << "No model value for " << n << std::endl;
   // return self
   return n;
 }
