@@ -77,7 +77,7 @@ SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe)
 void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
                                               TypeNode orig,
                                               TypeNode unres,
-                                             SygusTypeConstructor& to,
+                                             SygusDatatype& to,
                                              const Datatype& dt,
                                              std::vector<unsigned>& op_pos)
 {
@@ -119,7 +119,7 @@ bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node n)
 void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
                                               TypeNode orig,
                                               TypeNode unres,
-                                              SygusTypeConstructor& to,
+                                              SygusDatatype& to,
                                               const Datatype& dt,
                                               std::vector<unsigned>& op_pos)
 {
@@ -359,7 +359,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     Trace("sygus-grammar-normalize-trie") << "\n";
   }
   /* Creates type object for normalization */
-  SygusTypeConstructor to(unres_tn.getAttribute(expr::VarNameAttr()));
+  SygusDatatype to(unres_tn.getAttribute(expr::VarNameAttr()));
 
   /* Determine normalization transformation based on sygus type and given
     * operators */
@@ -375,7 +375,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   {
     Assert(op_pos[i] < dt.getNumConstructors());
     // add constructor to sygus type constructor
-    addToSygusTypeConstructor(to, dt[op_pos[i]]);
+    addToSygusDatatype(to, dt[op_pos[i]]);
   }
   if (dt.getSygusAllowConst())
   {
@@ -412,7 +412,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
 }
 
 
-void SygusGrammarNorm::addToSygusTypeConstructor(SygusTypeConstructor& to,
+void SygusGrammarNorm::addToSygusDatatype(SygusDatatype& to,
                                 const DatatypeConstructor& cons)
 {  
   Trace("sygus-type-cons") << "...for " << cons.getName() << "\n";

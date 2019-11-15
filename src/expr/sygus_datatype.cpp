@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_type_constructor.cpp
+/*! \file sygus_datatype.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,27 +12,25 @@
  ** \brief Implementation of class for constructing SyGuS datatypes.
  **/
 
-#include "theory/quantifiers/sygus/sygus_type_constructor.h"
+#include "expr/sygus_datatype.h"
 
 #include "printer/sygus_print_callback.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
-namespace theory {
-namespace quantifiers {
 
-SygusTypeConstructor::SygusTypeConstructor(const std::string& name)
+SygusDatatype::SygusDatatype(const std::string& name)
     : d_dt(Datatype(name))
 {
 }
 
-std::string SygusTypeConstructor::getName() const
+std::string SygusDatatype::getName() const
 {
   return d_dt.getName();
 }
 
-void SygusTypeConstructor::addConstructor(Node op,
+void SygusDatatype::addConstructor(Node op,
                                        const std::string&  name,
                                        std::shared_ptr<SygusPrintCallback> spc,
                                        int weight,
@@ -45,7 +43,7 @@ void SygusTypeConstructor::addConstructor(Node op,
   d_consArgs.push_back(consTypes);
 }
 
-void SygusTypeConstructor::addAnyConstantConstructor(TypeNode tn)
+void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
 {
   // add an "any constant" proxy variable
   Node av = NodeManager::currentNM()->mkSkolem("_any_constant", tn);
@@ -69,7 +67,7 @@ void SygusTypeConstructor::addAnyConstantConstructor(TypeNode tn)
   d_weight.insert(d_weight.begin(), 0);
 }
 
-void SygusTypeConstructor::buildDatatype(TypeNode sygusType,
+void SygusDatatype::buildDatatype(TypeNode sygusType,
                                          Node sygusVars,
                                          bool allowConst,
                                          bool allowAll)
@@ -96,11 +94,9 @@ void SygusTypeConstructor::buildDatatype(TypeNode sygusType,
 }
 
 
-const Datatype& SygusTypeConstructor::getDatatype() const
+const Datatype& SygusDatatype::getDatatype() const
 {
   return d_dt;
 }
 
-}  // namespace quantifiers
-}  // namespace theory
 }  // namespace CVC4

@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "expr/type.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers/sygus/sygus_type_constructor.h"
+#include "expr/sygus_datatype.h"
 #include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {
@@ -200,7 +200,7 @@ class SygusGrammarNorm
     virtual void buildType(SygusGrammarNorm* sygus_norm,
                                               TypeNode orig,
                                               TypeNode unres,
-                           SygusTypeConstructor& to,
+                           SygusDatatype& to,
                            const Datatype& dt,
                            std::vector<unsigned>& op_pos) = 0;
   }; /* class Transf */
@@ -220,7 +220,7 @@ class SygusGrammarNorm
     void buildType(SygusGrammarNorm* sygus_norm,
                                               TypeNode orig,
                                               TypeNode unres,
-                   SygusTypeConstructor& to,
+                   SygusDatatype& to,
                    const Datatype& dt,
                    std::vector<unsigned>& op_pos) override;
 
@@ -280,7 +280,7 @@ class SygusGrammarNorm
     void buildType(SygusGrammarNorm* sygus_norm,
                                               TypeNode orig,
                                               TypeNode unres,
-                   SygusTypeConstructor& to,
+                   SygusDatatype& to,
                    const Datatype& dt,
                    std::vector<unsigned>& op_pos) override;
 
@@ -389,7 +389,7 @@ class SygusGrammarNorm
    * The argument types of the constructor are normalized recursively based on
    * the above methods.
    */
-  void addToSygusTypeConstructor(SygusTypeConstructor& to,
+  void addToSygusDatatype(SygusDatatype& to,
                                  const DatatypeConstructor& cons);
                                  
 

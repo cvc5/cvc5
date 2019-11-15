@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_type_constructor.h
+/*! \file sygus_datatype.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -13,8 +13,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_TYPE_CONSTRUCTOR_H
-#define CVC4__THEORY__QUANTIFIERS__SYGUS_TYPE_CONSTRUCTOR_H
+#ifndef CVC4__EXPR__SYGUS_DATATYPE_H
+#define CVC4__EXPR__SYGUS_DATATYPE_H
 
 #include <string>
 #include <vector>
@@ -25,15 +25,12 @@
 #include "expr/attribute.h"
 
 namespace CVC4 {
-namespace theory {
   
 /** Attribute true for variables that represent any constant */
 struct SygusAnyConstAttributeId
 {
 };
 typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
-  
-namespace quantifiers {
 
 /** 
  * Keeps the necessary information for bulding a sygus type, which includes
@@ -42,13 +39,13 @@ namespace quantifiers {
  *
  * It also maintains a datatype to represent the structure of the type node.
  */
-class SygusTypeConstructor
+class SygusDatatype
 {
  public:
   /* Stores the original type node and the unresolved placeholder. The
    * datatype for the latter is created with the respective name. */
-  SygusTypeConstructor(const std::string& name);
-  ~SygusTypeConstructor() {}
+  SygusDatatype(const std::string& name);
+  ~SygusDatatype() {}
   /** get name */
   std::string getName() const;
   /**
@@ -103,10 +100,8 @@ private:
   std::vector<std::vector<TypeNode>> d_consArgs;
   /* Datatype to represent type's structure */
   Datatype d_dt;
-}; /* class SygusTypeConstructor */
+}; /* class SygusDatatype */
 
-}  // namespace quantifiers
-}  // namespace theory
 }  // namespace CVC4
 
 #endif

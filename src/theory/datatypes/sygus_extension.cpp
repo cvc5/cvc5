@@ -26,6 +26,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_model.h"
+#include "expr/sygus_datatype.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
