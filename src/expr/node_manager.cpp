@@ -515,6 +515,14 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
 
+TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
+                                        TypeNode range)
+{
+  std::vector<TypeNode> sorts = args;
+  sorts.push_back(range);
+  return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
+}
+
 TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vector< TypeNode >& types, unsigned index ) {
   if( index==types.size() ){
     if( d_data.isNull() ){

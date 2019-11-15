@@ -25,6 +25,7 @@ if(NOT CxxTest_HOME)
   find_program(CxxTest_PERL_TESTGEN_EXECUTABLE cxxtestgen.pl)
 endif()
 
+
 if(CxxTest_SHEBANG_TESTGEN_EXECUTABLE)
   set(CxxTest_USE_SHEBANG ON)
   set(CxxTest_TESTGEN_EXECUTABLE ${CxxTest_SHEBANG_TESTGEN_EXECUTABLE})

@@ -855,6 +855,8 @@ set(regress_0_tests
   regress0/smtlib/get-unsat-assumptions.smt2
   regress0/smtlib/global-decls.smt2
   regress0/smtlib/reason-unknown.smt2
+  regress0/smtlib/reset-force-logic.smt2
+  regress0/smtlib/reset-set-logic.smt2
   regress0/smtlib/set-info-status.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2
@@ -1722,6 +1724,7 @@ set(regress_1_tests
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
+  regress1/sygus/list_recursor.sy
   regress1/sygus/logiccell_help.sy
   regress1/sygus/max.sy
   regress1/sygus/max2-bv.sy
