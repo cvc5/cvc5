@@ -86,7 +86,7 @@ class SygusDatatype
    * allowAll: whether the grammar corresponding to this datatype allows
    * any term.
    */
-  void buildDatatype(TypeNode sygusType,
+  void initializeDatatype(TypeNode sygusType,
                      Node sygusVars,
                      bool allowConst,
                      bool allowAll);

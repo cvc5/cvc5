@@ -69,7 +69,7 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn, bool prepend)
                  prepend);
 }
 
-void SygusDatatype::buildDatatype(TypeNode sygusType,
+void SygusDatatype::initializeDatatype(TypeNode sygusType,
                                   Node sygusVars,
                                   bool allowConst,
                                   bool allowAll)
