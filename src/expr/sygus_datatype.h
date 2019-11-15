@@ -33,7 +33,7 @@ struct SygusAnyConstAttributeId
 typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
 
 /**
- * Keeps the necessary information for bulding a sygus type, which includes
+ * Keeps the necessary information for bulding a sygus datatype, which includes
  * the operators, names, print callbacks and list of argument types for each
  * constructor.
  *
@@ -42,11 +42,10 @@ typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
 class SygusDatatype
 {
  public:
-  /* Stores the original type node and the unresolved placeholder. The
-   * datatype for the latter is created with the respective name. */
+  /** constructor */
   SygusDatatype(const std::string& name);
   ~SygusDatatype() {}
-  /** get name */
+  /** get the name of this datatype */
   std::string getName() const;
   /**
    * Add constructor that encodes an application of builtin operator op.
@@ -71,14 +70,12 @@ class SygusDatatype
 
   /** builds a datatype with the information in the type object
    *
-   * "dt" is the datatype of the original typenode. It is necessary for
-   * retrieving ancillary information during the datatype building, such as
-   * its sygus type (e.g. Int). The argument sygusVars overrides the set of
-   * sygus variables of dt (which correspond to the formal argument list of
-   * a function-to-synthesize).
-   *
-   * The built datatype and its unresolved type are added to the vectors
-   * dts and unres respectively.
+   * sygusType: the builtin type that this datatype encodes,
+   * sygusVars: the formal argument list of the function-to-synthesize,
+   * allowConst: whether the grammar corresponding to this datatype allows
+   * any constant,
+   * allowAll: whether the grammar corresponding to this datatype allows
+   * any term.
    */
   void buildDatatype(TypeNode sygusType,
                      Node sygusVars,
@@ -89,19 +86,19 @@ class SygusDatatype
 
  private:
   //---------- information to build normalized type node
-  /* Operators for each constructor. */
+  /** Operators for each constructor. */
   std::vector<Node> d_ops;
-  /* Names for each constructor. */
+  /** Names for each constructor. */
   std::vector<std::string> d_cons_names;
-  /* Print callbacks for each constructor */
+  /** Print callbacks for each constructor */
   std::vector<std::shared_ptr<SygusPrintCallback>> d_pc;
-  /* Weights for each constructor */
+  /** Weights for each constructor */
   std::vector<int> d_weight;
-  /* List of argument types for each constructor */
+  /** List of argument types for each constructor */
   std::vector<std::vector<TypeNode>> d_consArgs;
-  /* Datatype to represent type's structure */
+  /** Datatype to represent type's structure */
   Datatype d_dt;
-}; /* class SygusDatatype */
+};
 
 }  // namespace CVC4
 
