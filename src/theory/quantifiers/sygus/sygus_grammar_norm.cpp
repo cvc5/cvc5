@@ -383,16 +383,16 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   {
     Assert(op_pos[i] < dt.getNumConstructors());
     std::vector<TypeNode> consTypes;
-    for (const DatatypeConstructorArg& arg : dt[op_pos[i]])	
-    {	
-      // Collect unresolved type nodes corresponding to the typenode of the	
+    for (const DatatypeConstructorArg& arg : dt[op_pos[i]])
+    {
+      // Collect unresolved type nodes corresponding to the typenode of the
       // arguments.
       TypeNode atype = TypeNode::fromType(arg.getRangeType());
       // normalize it recursively
       atype = normalizeSygusRec(atype);
       consTypes.push_back(atype);
     }
-    to.addConsInfo(dt[op_pos[i]],consTypes);
+    to.addConsInfo(dt[op_pos[i]], consTypes);
   }
   if (dt.getSygusAllowConst())
   {
@@ -456,7 +456,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
     Trace("sygus-grammar-normalize-build") << "\n";
   }
   // must convert to type
-  std::set<Type> unresT; 
+  std::set<Type> unresT;
   for (TypeNode& ut : d_unres_t_all)
   {
     unresT.insert(ut.toType());

@@ -50,7 +50,7 @@ class SygusTypeConstructor
   SygusTypeConstructor(TypeNode src_tn, TypeNode unres_tn);
   ~SygusTypeConstructor() {}
 
-  /** 
+  /**
    * Adds information in "cons" (operator, name, print callback, argument
    * types) as it is into this type constructor.
    *
@@ -59,7 +59,7 @@ class SygusTypeConstructor
    */
   void addConsInfo(const DatatypeConstructor& cons,
                    std::vector<TypeNode>& consTypes);
-  /** 
+  /**
    * This adds a constructor that corresponds to the any constant constructor
    * for the given (builtin) type tn.
    */

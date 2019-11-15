@@ -16,11 +16,11 @@
 #include "theory/quantifiers/sygus/sygus_type_constructor.h"
 
 #include "expr/node_manager_attributes.h"
+#include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/rewriter.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "printer/sygus_print_callback.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -132,8 +132,7 @@ void SygusTypeConstructor::addConsInfo(const DatatypeConstructor& cons,
     // If it is a builtin operator, convert to total version if necessary.
     // First, get the kind for the operator.
     Kind ok = NodeManager::operatorToKind(exp_sop_n);
-    Trace("sygus-type-cons-debug")
-        << "...builtin kind is " << ok << std::endl;
+    Trace("sygus-type-cons-debug") << "...builtin kind is " << ok << std::endl;
     Kind nk = getEliminateKind(ok);
     if (nk != ok)
     {
@@ -193,8 +192,7 @@ void SygusTypeConstructor::addAnyConstantConstructor(TypeNode tn)
   d_ops.insert(d_ops.begin(), av.toExpr());
   d_cons_names.insert(d_cons_names.begin(), cname);
   d_cons_args_t.insert(d_cons_args_t.begin(), builtin_arg);
-  d_pc.insert(d_pc.begin(),
-                  printer::SygusEmptyPrintCallback::getEmptyPC());
+  d_pc.insert(d_pc.begin(), printer::SygusEmptyPrintCallback::getEmptyPC());
   d_weight.insert(d_weight.begin(), 0);
 }
 
@@ -218,11 +216,8 @@ void SygusTypeConstructor::buildDatatype(Node sygusVars,
       cargs.push_back(ct.toType());
     }
     // add (sygus) constructor
-    d_dt.addSygusConstructor(d_ops[i].toExpr(),
-                             d_cons_names[i],
-                             cargs,
-                             d_pc[i],
-                             d_weight[i]);
+    d_dt.addSygusConstructor(
+        d_ops[i].toExpr(), d_cons_names[i], cargs, d_pc[i], d_weight[i]);
   }
   Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
   /* Add to global accumulators */

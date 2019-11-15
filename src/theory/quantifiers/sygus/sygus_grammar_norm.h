@@ -26,8 +26,8 @@
 #include "expr/node.h"
 #include "expr/type.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/sygus/sygus_type_constructor.h"
+#include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {
 namespace theory {
