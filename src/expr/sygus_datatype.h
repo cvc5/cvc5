@@ -87,9 +87,9 @@ class SygusDatatype
    * any term.
    */
   void initializeDatatype(TypeNode sygusType,
-                     Node sygusVars,
-                     bool allowConst,
-                     bool allowAll);
+                          Node sygusVars,
+                          bool allowConst,
+                          bool allowAll);
   /** Get the sygus datatype initialized by this class */
   const Datatype& getDatatype() const;
 

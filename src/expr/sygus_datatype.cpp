@@ -70,9 +70,9 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn, bool prepend)
 }
 
 void SygusDatatype::initializeDatatype(TypeNode sygusType,
-                                  Node sygusVars,
-                                  bool allowConst,
-                                  bool allowAll)
+                                       Node sygusVars,
+                                       bool allowConst,
+                                       bool allowAll)
 {
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */

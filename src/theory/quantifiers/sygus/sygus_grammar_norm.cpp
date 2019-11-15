@@ -16,6 +16,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
 #include "expr/datatype.h"
+#include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "options/quantifiers_options.h"
 #include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
@@ -26,7 +27,6 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "expr/node_manager_attributes.h"  // for VarNameAttr
 
 #include <numeric>  // for std::iota
 
@@ -221,23 +221,24 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
   Trace("sygus-type-cons-defs") << "\tOriginal op: " << cons.getSygusOp()
                                 << "\n\tExpanded one: " << exp_sop_n << "\n\n";
   d_sdt.addConstructor(exp_sop_n,
-                    cons.getName(),
-                    cons.getSygusPrintCallback(),
-                    cons.getWeight(),
-                    consTypes);
+                       cons.getName(),
+                       cons.getSygusPrintCallback(),
+                       cons.getWeight(),
+                       consTypes);
 }
 
-void SygusGrammarNorm::TypeObject::initializeDatatype(SygusGrammarNorm* sygus_norm,
-                                                 const Datatype& dt)
+void SygusGrammarNorm::TypeObject::initializeDatatype(
+    SygusGrammarNorm* sygus_norm, const Datatype& dt)
 {
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
   TypeNode sygusType = TypeNode::fromType(dt.getSygusType());
   d_sdt.initializeDatatype(sygusType,
-                sygus_norm->d_sygus_vars.toExpr(),
-                dt.getSygusAllowConst(),
-                dt.getSygusAllowAll());
-  Trace("sygus-grammar-normalize") << "...built datatype " << d_sdt.getDatatype() << " ";
+                           sygus_norm->d_sygus_vars.toExpr(),
+                           dt.getSygusAllowConst(),
+                           dt.getSygusAllowAll());
+  Trace("sygus-grammar-normalize")
+      << "...built datatype " << d_sdt.getDatatype() << " ";
   /* Add to global accumulators */
   sygus_norm->d_dt_all.push_back(d_sdt.getDatatype());
   sygus_norm->d_unres_t_all.insert(d_unres_tn.toType());
@@ -340,10 +341,10 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     std::vector<TypeNode> ctypes;
     ctypes.push_back(t);
     to.d_sdt.addConstructor(iden_op,
-                      "id",
-                      printer::SygusEmptyPrintCallback::getEmptyPC(),
-                      0,
-                      ctypes);
+                            "id",
+                            printer::SygusEmptyPrintCallback::getEmptyPC(),
+                            0,
+                            ctypes);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding  " << t << " to " << to.d_unres_tn << "\n";
     /* adds to Root: "type + Root" */
@@ -381,12 +382,12 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   }
   /* adds to Root: (\lambda x. x ) Next */
   std::vector<TypeNode> ctypes;
-  ctypes.push_back(sygus_norm->normalizeSygusRec(to.d_tn,dt, d_elem_pos));
+  ctypes.push_back(sygus_norm->normalizeSygusRec(to.d_tn, dt, d_elem_pos));
   to.d_sdt.addConstructor(iden_op,
-                    "id_next",
-                    printer::SygusEmptyPrintCallback::getEmptyPC(),
-                    0,
-                    ctypes);
+                          "id_next",
+                          printer::SygusEmptyPrintCallback::getEmptyPC(),
+                          0,
+                          ctypes);
 }
 
 std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
