@@ -614,15 +614,16 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
     else
     {
-      std::vector< Node > consts;
-      mkSygusConstantsForType( types[i], consts );
+      std::vector<Node> consts;
+      mkSygusConstantsForType(types[i], consts);
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
           itec = extra_cons.find(types[i]);
-      if( itec!=extra_cons.end() ){
+      if (itec != extra_cons.end())
+      {
         for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
-                itec->second.begin();
-            set_it != itec->second.end();
-            ++set_it)
+                 itec->second.begin();
+             set_it != itec->second.end();
+             ++set_it)
         {
           if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
           {
@@ -634,8 +635,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         std::stringstream ss;
         ss << consts[j];
-        Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
-        ops[i].push_back( consts[j].toExpr() );
+        Trace("sygus-grammar-def")
+            << "...add for constant " << ss.str() << std::endl;
+        ops[i].push_back(consts[j].toExpr());
         cnames[i].push_back(ss.str());
         cargs[i].push_back(std::vector<Type>());
         pcs[i].push_back(nullptr);
@@ -707,7 +709,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           cargs_pos_int.push_back(std::vector<Type>());
           cargs_pos_int.back().push_back(unres_pos_int_t);
           cargs_pos_int.back().push_back(unres_pos_int_t);
-          datatypes.back().setSygus(types[i].toType(), bvl.toExpr(), true, true);
+          datatypes.back().setSygus(
+              types[i].toType(), bvl.toExpr(), true, true);
           for (unsigned j = 0, size_j = ops_pos_int.size(); j < size_j; ++j)
           {
             datatypes.back().addSygusConstructor(

@@ -31,8 +31,8 @@ SygusTypeConstructor::SygusTypeConstructor(TypeNode src_tn, TypeNode unres_tn)
       d_unres_tn(unres_tn),
       d_dt(Datatype(unres_tn.getAttribute(expr::VarNameAttr())))
 {
-}  
-  
+}
+
 Kind SygusTypeConstructor::getEliminateKind(Kind ok)
 {
   Kind nk = ok;
@@ -116,8 +116,7 @@ Node SygusTypeConstructor::eliminatePartialOperators(Node n)
 }
 
 void SygusTypeConstructor::addConsInfo(const DatatypeConstructor& cons,
-                                       std::vector<Type>& consTypes
-                                      )
+                                       std::vector<Type>& consTypes)
 {
   Trace("sygus-grammar-normalize") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
@@ -173,10 +172,9 @@ void SygusTypeConstructor::addConsInfo(const DatatypeConstructor& cons,
 }
 
 void SygusTypeConstructor::buildDatatype(Node sygusVars,
-                                        const Datatype& dt,
-                                      std::vector<Datatype>& dt_all,
-    std::set<Type>& unres_t_all
-                                        )
+                                         const Datatype& dt,
+                                         std::vector<Datatype>& dt_all,
+                                         std::set<Type>& unres_t_all)
 {
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
@@ -198,7 +196,6 @@ void SygusTypeConstructor::buildDatatype(Node sygusVars,
   unres_t_all.insert(d_unres_tn.toType());
   Trace("sygus-grammar-normalize") << "---------------------------------\n";
 }
-
 
 }  // namespace quantifiers
 }  // namespace theory

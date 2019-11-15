@@ -30,57 +30,57 @@ namespace theory {
 namespace quantifiers {
 
 /** Keeps the necessary information for bulding a normalized type:
-  *
-  * the original typenode, from which the datatype representation can be
-  * extracted
-  *
-  * the operators, names, print callbacks and list of argument types for each
-  * constructor
-  *
-  * the unresolved type node used as placeholder for references of the yet to
-  * be built normalized type
-  *
-  * a datatype to represent the structure of the type node for the normalized
-  * type
-  */
+ *
+ * the original typenode, from which the datatype representation can be
+ * extracted
+ *
+ * the operators, names, print callbacks and list of argument types for each
+ * constructor
+ *
+ * the unresolved type node used as placeholder for references of the yet to
+ * be built normalized type
+ *
+ * a datatype to represent the structure of the type node for the normalized
+ * type
+ */
 class SygusTypeConstructor
 {
-  public:
+ public:
   /* Stores the original type node and the unresolved placeholder. The
-    * datatype for the latter is created with the respective name. */
+   * datatype for the latter is created with the respective name. */
   SygusTypeConstructor(TypeNode src_tn, TypeNode unres_tn);
   ~SygusTypeConstructor() {}
 
   /** adds information in "cons" (operator, name, print callback, argument
-    * types) as it is into "to"
-    *
-    * A side effect of this procedure is to expand the definitions in the sygus
-    * operator of "cons"
-    *
-    * The types of the arguments of "cons" are recursively normalized
-    */
+   * types) as it is into "to"
+   *
+   * A side effect of this procedure is to expand the definitions in the sygus
+   * operator of "cons"
+   *
+   * The types of the arguments of "cons" are recursively normalized
+   */
   void addConsInfo(const DatatypeConstructor& cons,
                    std::vector<Type>& consTypes);
   /**
-    * Returns the total version of Kind k if it is a partial operator, or
-    * otherwise k itself.
-    */
+   * Returns the total version of Kind k if it is a partial operator, or
+   * otherwise k itself.
+   */
   static Kind getEliminateKind(Kind k);
   /**
-    * Returns a version of n where all partial functions such as bvudiv
-    * have been replaced by their total versions like bvudiv_total.
-    */
+   * Returns a version of n where all partial functions such as bvudiv
+   * have been replaced by their total versions like bvudiv_total.
+   */
   static Node eliminatePartialOperators(Node n);
 
   /** builds a datatype with the information in the type object
-    *
-    * "dt" is the datatype of the original typenode. It is necessary for
-    * retrieving ancillary information during the datatype building, such as
-    * its sygus type (e.g. Int)
-    *
-    * The built datatype and its unresolved type are saved in the global
-    * accumulators of "sygus_norm"
-    */
+   *
+   * "dt" is the datatype of the original typenode. It is necessary for
+   * retrieving ancillary information during the datatype building, such as
+   * its sygus type (e.g. Int)
+   *
+   * The built datatype and its unresolved type are saved in the global
+   * accumulators of "sygus_norm"
+   */
   void buildDatatype(Node sygusVars,
                      const Datatype& dt,
                      std::vector<Datatype>& dt_all,
@@ -108,7 +108,6 @@ class SygusTypeConstructor
   /* Datatype to represent type's structure */
   Datatype d_dt;
 }; /* class SygusTypeConstructor */
-
 
 }  // namespace quantifiers
 }  // namespace theory
