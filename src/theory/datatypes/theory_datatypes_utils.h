@@ -106,16 +106,7 @@ int isTester(Node n);
  * index of a selector in its constructor.  (Zero is always the
  * first index.)
  */
-size_t indexOf(Node n);
-/**
- * Get the index of constructor corresponding to selector.
- * (Zero is always the first index.)
- */
-size_t cindexOf(Node n);
-/**
- * Get the datatype of n.
- */
-const DType& datatypeOf(Node n);
+unsigned indexOf(Node n);
 /** make tester is-C( n ), where C is the i^{th} constructor of dt */
 Node mkTester(Node n, int i, const Datatype& dt);
 /** make tester split

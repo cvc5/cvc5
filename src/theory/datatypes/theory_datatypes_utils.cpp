@@ -16,7 +16,6 @@
 
 #include "theory/datatypes/theory_datatypes_utils.h"
 
-#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 
 using namespace CVC4;
@@ -277,21 +276,22 @@ int isTester(Node n)
   return -1;
 }
 
-size_t indexOf(Node n) { return DType::indexOf(n); }
-
-size_t cindexOf(Node n) { return DType::cindexOf(n); }
-
-const DType& datatypeOf(Node n)
+struct DtIndexAttributeId
 {
-  TypeNode t = n.getType();
-  switch (t.getKind())
+};
+typedef expr::Attribute<DtIndexAttributeId, uint64_t> DtIndexAttribute;
+
+unsigned indexOf(Node n)
+{
+  if (!n.hasAttribute(DtIndexAttribute()))
   {
-    case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
-    case SELECTOR_TYPE:
-    case TESTER_TYPE: return t[0].getDType();
-    default:
-      Unhandled() << "arg must be a datatype constructor, selector, or tester";
+    Assert(n.getType().isConstructor() || n.getType().isTester()
+           || n.getType().isSelector());
+    unsigned index = Datatype::indexOfInternal(n.toExpr());
+    n.setAttribute(DtIndexAttribute(), index);
+    return index;
   }
+  return n.getAttribute(DtIndexAttribute());
 }
 
 Node mkTester(Node n, int i, const Datatype& dt)
