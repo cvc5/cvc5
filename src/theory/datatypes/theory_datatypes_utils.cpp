@@ -17,6 +17,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/sygus_datatype.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
