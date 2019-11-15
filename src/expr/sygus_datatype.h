@@ -33,11 +33,16 @@ struct SygusAnyConstAttributeId
 typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
 
 /**
- * Keeps the necessary information for bulding a sygus datatype, which includes
- * the operators, names, print callbacks and list of argument types for each
- * constructor.
+ * Keeps the necessary information for initializing a sygus datatype, which
+ * includes the operators, names, print callbacks and list of argument types
+ * for each constructor.
  *
  * It also maintains a datatype to represent the structure of the type node.
+ *
+ * Notice that is class is only responsible for setting SyGuS-related
+ * information regarding the datatype. It is still required that the user
+ * of this class to construct the datatype type corresponding to the datatype
+ * e.g. via a call to ExprManager::mkMutualDatatypeTypes().
  */
 class SygusDatatype
 {
@@ -85,7 +90,7 @@ class SygusDatatype
                      Node sygusVars,
                      bool allowConst,
                      bool allowAll);
-  /** Get the sygus datatype built by this class */
+  /** Get the sygus datatype initialized by this class */
   const Datatype& getDatatype() const;
 
  private:
