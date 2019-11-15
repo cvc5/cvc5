@@ -21,6 +21,7 @@
 
 #include "base/check.h"
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/node.h"
