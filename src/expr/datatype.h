@@ -623,8 +623,8 @@ class DType;
  */
 class CVC4_PUBLIC Datatype {
   friend class DatatypeConstructor;
-  friend class NodeManager; // temporary, for access to d_internal
-public:
+  friend class NodeManager;  // temporary, for access to d_internal
+ public:
   /**
    * Get the datatype of a constructor, selector, or tester operator.
    */
@@ -662,7 +662,9 @@ public:
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
+  Datatype(std::string name,
+           const std::vector<Type>& params,
+           bool isCo = false);
 
   ~Datatype();
 

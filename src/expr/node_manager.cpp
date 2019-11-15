@@ -24,6 +24,7 @@
 #include "base/check.h"
 #include "base/listener.h"
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
 #include "expr/type_checker.h"
@@ -31,7 +32,6 @@
 #include "options/smt_options.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
-#include "expr/dtype.h"
 
 using namespace std;
 using namespace CVC4::expr;
@@ -265,7 +265,8 @@ const DType& NodeManager::getDTypeForIndex(unsigned index) const
   // when the Node-level API is in place, this function will be replaced by a
   // direct lookup into a d_ownedDTypes vector, similar to d_ownedDatatypes
   // above.
-  Unreachable() << "NodeManager::getDTypeForIndex: DType is not available in the current implementation.";
+  Unreachable() << "NodeManager::getDTypeForIndex: DType is not available in "
+                   "the current implementation.";
   const Datatype& d = getDatatypeForIndex(index);
   return *d.d_internal;
 }
