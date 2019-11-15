@@ -25,35 +25,6 @@
 #include "expr/node_manager_attributes.h"
 
 namespace CVC4 {
-
-// ----------------------- datatype attributes
-/** TODO */
-struct DTypeIndexTag
-{
-};
-typedef expr::Attribute<DTypeIndexTag, size_t> DTypeIndexAttr;
-struct DTypeConsIndexTag
-{
-};
-typedef expr::Attribute<DTypeConsIndexTag, size_t> DTypeConsIndexAttr;
-struct DTypeFiniteTag
-{
-};
-typedef expr::Attribute<DTypeFiniteTag, bool> DTypeFiniteAttr;
-struct DTypeFiniteComputedTag
-{
-};
-typedef expr::Attribute<DTypeFiniteComputedTag, bool> DTypeFiniteComputedAttr;
-struct DTypeUFiniteTag
-{
-};
-typedef expr::Attribute<DTypeUFiniteTag, bool> DTypeUFiniteAttr;
-struct DTypeUFiniteComputedTag
-{
-};
-typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
-// ----------------------- end datatype attributes
-
 namespace theory {
 
 // ----------------------- sygus datatype attributes
