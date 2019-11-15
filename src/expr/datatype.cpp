@@ -460,11 +460,6 @@ const std::vector<DatatypeConstructor>* Datatype::getConstructors() const
   return &d_constructors;
 }
 
-const DType& Datatype::getDType() const
-{
-  return *d_internal;
-}
-
 DatatypeConstructor::DatatypeConstructor(std::string name)
     :  // We don't want to introduce a new data member, because eventually
        // we're going to be a constant stuffed inside a node.  So we stow

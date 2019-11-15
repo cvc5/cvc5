@@ -880,7 +880,6 @@ class CVC4_PUBLIC Datatype {
   /** prints this datatype to stream */
   void toStream(std::ostream& out) const;
 
-  const DType& getDType() const;
  private:
   /** The internal representation */
   std::shared_ptr<DType> d_internal;
