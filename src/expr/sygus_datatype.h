@@ -39,9 +39,9 @@ typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
  *
  * It also maintains a datatype to represent the structure of the type node.
  *
- * Notice that is class is only responsible for setting SyGuS-related
+ * Notice that this class is only responsible for setting SyGuS-related
  * information regarding the datatype. It is still required that the user
- * of this class to construct the datatype type corresponding to the datatype
+ * of this class construct the datatype type corresponding to the datatype
  * e.g. via a call to ExprManager::mkMutualDatatypeTypes().
  */
 class SygusDatatype
