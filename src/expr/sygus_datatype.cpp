@@ -49,11 +49,8 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
   std::string cname(ss.str());
   std::vector<TypeNode> builtinArg;
   builtinArg.push_back(tn);
-  addConstructor(av,
-                 cname,
-                 printer::SygusEmptyPrintCallback::getEmptyPC(),
-                 0,
-                 builtinArg);
+  addConstructor(
+      av, cname, printer::SygusEmptyPrintCallback::getEmptyPC(), 0, builtinArg);
 }
 
 void SygusDatatype::initializeDatatype(TypeNode sygusType,
