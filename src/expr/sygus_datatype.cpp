@@ -28,28 +28,16 @@ void SygusDatatype::addConstructor(Node op,
                                    const std::string& name,
                                    std::shared_ptr<SygusPrintCallback> spc,
                                    int weight,
-                                   const std::vector<TypeNode>& consTypes,
-                                   bool prepend)
+                                   const std::vector<TypeNode>& consTypes)
 {
-  if (prepend)
-  {
-    d_ops.push_back(op);
-    d_cons_names.push_back(std::string(name));
-    d_pc.push_back(spc);
-    d_weight.push_back(weight);
-    d_consArgs.push_back(consTypes);
-  }
-  else
-  {
-    d_ops.push_back(op);
-    d_cons_names.push_back(std::string(name));
-    d_pc.push_back(spc);
-    d_weight.push_back(weight);
-    d_consArgs.push_back(consTypes);
-  }
+  d_ops.push_back(op);
+  d_cons_names.push_back(std::string(name));
+  d_pc.push_back(spc);
+  d_weight.push_back(weight);
+  d_consArgs.push_back(consTypes);
 }
 
-void SygusDatatype::addAnyConstantConstructor(TypeNode tn, bool prepend)
+void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
 {
   // add an "any constant" proxy variable
   Node av = NodeManager::currentNM()->mkSkolem("_any_constant", tn);
@@ -65,8 +53,7 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn, bool prepend)
                  cname,
                  printer::SygusEmptyPrintCallback::getEmptyPC(),
                  0,
-                 builtinArg,
-                 prepend);
+                 builtinArg);
 }
 
 void SygusDatatype::initializeDatatype(TypeNode sygusType,
