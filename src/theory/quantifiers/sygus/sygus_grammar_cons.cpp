@@ -630,17 +630,17 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           }
         }
       }
-    }
-    for (unsigned j = 0, size_j = consts.size(); j < size_j; ++j)
-    {
-      std::stringstream ss;
-      ss << consts[j];
-      Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
-      ops[i].push_back( consts[j].toExpr() );
-      cnames[i].push_back(ss.str());
-      cargs[i].push_back(std::vector<Type>());
-      pcs[i].push_back(nullptr);
-      weights[i].push_back(-1);
+      for (unsigned j = 0, size_j = consts.size(); j < size_j; ++j)
+      {
+        std::stringstream ss;
+        ss << consts[j];
+        Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
+        ops[i].push_back( consts[j].toExpr() );
+        cnames[i].push_back(ss.str());
+        cargs[i].push_back(std::vector<Type>());
+        pcs[i].push_back(nullptr);
+        weights[i].push_back(-1);
+      }
     }
     // ITE
     Kind k = ITE;

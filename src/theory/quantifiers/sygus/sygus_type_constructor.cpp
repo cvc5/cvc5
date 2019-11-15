@@ -16,6 +16,7 @@
 #include "theory/quantifiers/sygus/sygus_type_constructor.h"
 
 #include "expr/node_manager_attributes.h"
+#include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
 using namespace CVC4::kind;
 
@@ -113,7 +114,7 @@ Node SygusTypeConstructor::eliminatePartialOperators(Node n)
 }
 
 void SygusTypeConstructor::addConsInfo(SygusGrammarNorm* sygus_norm,
-                                               const DatatypeConstructor& cons)
+                                       const DatatypeConstructor& cons)
 {
   Trace("sygus-grammar-normalize") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
@@ -179,7 +180,7 @@ void SygusTypeConstructor::addConsInfo(SygusGrammarNorm* sygus_norm,
 }
 
 void SygusTypeConstructor::buildDatatype(SygusGrammarNorm* sygus_norm,
-                                                 const Datatype& dt)
+                                         const Datatype& dt)
 {
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */

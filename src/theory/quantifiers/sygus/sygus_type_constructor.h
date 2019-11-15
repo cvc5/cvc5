@@ -29,6 +29,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class SygusGrammarNorm;
 
 /** Keeps the necessary information for bulding a normalized type:
   *
