@@ -74,7 +74,6 @@ SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe)
 {
 }
 
-
 Kind SygusGrammarNorm::getEliminateKind(Kind ok)
 {
   Kind nk = ok;

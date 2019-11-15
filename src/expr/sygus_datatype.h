@@ -56,7 +56,7 @@ class SygusDatatype
    * weight: the weight of this constructor,
    * consTypes: the argument types of the constructor (typically other sygus
    * datatype types).
-   * 
+   *
    * The argument prepend is if we wish to add the constructor to the
    * beginning of the list of constructors.
    */
@@ -70,8 +70,7 @@ class SygusDatatype
    * This adds a constructor that corresponds to the any constant constructor
    * for the given (builtin) type tn.
    */
-  void addAnyConstantConstructor(TypeNode tn,
-                                bool prepend = false);
+  void addAnyConstantConstructor(TypeNode tn, bool prepend = false);
 
   /** builds a datatype with the information in the type object
    *
