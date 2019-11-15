@@ -607,42 +607,32 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
     }
     //add constants
-    if (options::sygusAnyConstGrammar())
-    {
-      // add the "any constant" constructor
-      // FIXME
-    }
-    else
-    {
-      std::vector<Node> consts;
-      mkSygusConstantsForType(types[i], consts);
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
-          itec = extra_cons.find(types[i]);
-      if (itec != extra_cons.end())
+    std::vector< Node > consts;
+    mkSygusConstantsForType( types[i], consts );
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
+        itec = extra_cons.find(types[i]);
+    if( itec!=extra_cons.end() ){
+      for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
+               itec->second.begin();
+           set_it != itec->second.end();
+           ++set_it)
       {
-        for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
-                 itec->second.begin();
-             set_it != itec->second.end();
-             ++set_it)
+        if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
         {
-          if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
-          {
-            consts.push_back(*set_it);
-          }
+          consts.push_back(*set_it);
         }
       }
-      for (unsigned j = 0, size_j = consts.size(); j < size_j; ++j)
-      {
-        std::stringstream ss;
-        ss << consts[j];
-        Trace("sygus-grammar-def")
-            << "...add for constant " << ss.str() << std::endl;
-        ops[i].push_back(consts[j].toExpr());
-        cnames[i].push_back(ss.str());
-        cargs[i].push_back(std::vector<Type>());
-        pcs[i].push_back(nullptr);
-        weights[i].push_back(-1);
-      }
+    }
+    for (unsigned j = 0, size_j = consts.size(); j < size_j; ++j)
+    {
+      std::stringstream ss;
+      ss << consts[j];
+      Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
+      ops[i].push_back( consts[j].toExpr() );
+      cnames[i].push_back(ss.str());
+      cargs[i].push_back(std::vector<Type>());
+      pcs[i].push_back(nullptr);
+      weights[i].push_back(-1);
     }
     // ITE
     Kind k = ITE;
@@ -658,77 +648,68 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
     if (types[i].isReal())
     {
-      if (options::sygusAnyConstGrammar())
+      // Add PLUS, MINUS
+      Kind kinds[2] = {PLUS, MINUS};
+      for (const Kind k : kinds)
       {
-        // it is a single template c1*x1 + ... + cn*xn
-        // FIXME
+        Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+        ops[i].push_back(nm->operatorOf(k).toExpr());
+        cnames[i].push_back(kindToString(k));
+        cargs[i].push_back(std::vector<Type>());
+        cargs[i].back().push_back(unres_t);
+        cargs[i].back().push_back(unres_t);
+        pcs[i].push_back(nullptr);
+        weights[i].push_back(-1);
       }
-      else
+      if (!types[i].isInteger())
       {
-        // Add PLUS, MINUS
-        Kind kinds[2] = {PLUS, MINUS};
-        for (const Kind k : kinds)
+        Trace("sygus-grammar-def")
+            << "  ...create auxiliary Positive Integers grammar\n";
+        /* Creating type for positive integers */
+        std::stringstream ss;
+        ss << fun << "_PosInt";
+        std::string pos_int_name = ss.str();
+        // make unresolved type
+        Type unres_pos_int_t = mkUnresolvedType(pos_int_name, unres).toType();
+        // make data type
+        datatypes.push_back(Datatype(pos_int_name));
+        /* add placeholders */
+        std::vector<Expr> ops_pos_int;
+        std::vector<std::string> cnames_pos_int;
+        std::vector<std::vector<Type>> cargs_pos_int;
+        /* Add operator 1 */
+        Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
+        ops_pos_int.push_back(nm->mkConst(Rational(1)).toExpr());
+        ss.str("");
+        ss << "1";
+        cnames_pos_int.push_back(ss.str());
+        cargs_pos_int.push_back(std::vector<Type>());
+        /* Add operator PLUS */
+        Kind k = PLUS;
+        Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
+        ops_pos_int.push_back(nm->operatorOf(k).toExpr());
+        cnames_pos_int.push_back(kindToString(k));
+        cargs_pos_int.push_back(std::vector<Type>());
+        cargs_pos_int.back().push_back(unres_pos_int_t);
+        cargs_pos_int.back().push_back(unres_pos_int_t);
+        datatypes.back().setSygus(types[i].toType(), bvl.toExpr(), true, true);
+        for (unsigned j = 0, size_j = ops_pos_int.size(); j < size_j; ++j)
         {
-          Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-          ops[i].push_back(nm->operatorOf(k).toExpr());
-          cnames[i].push_back(kindToString(k));
-          cargs[i].push_back(std::vector<Type>());
-          cargs[i].back().push_back(unres_t);
-          cargs[i].back().push_back(unres_t);
-          pcs[i].push_back(nullptr);
-          weights[i].push_back(-1);
+          datatypes.back().addSygusConstructor(
+              ops_pos_int[j], cnames_pos_int[j], cargs_pos_int[j]);
         }
-        if (!types[i].isInteger())
-        {
-          Trace("sygus-grammar-def")
-              << "  ...create auxiliary Positive Integers grammar\n";
-          /* Creating type for positive integers */
-          std::stringstream ss;
-          ss << fun << "_PosInt";
-          std::string pos_int_name = ss.str();
-          // make unresolved type
-          Type unres_pos_int_t = mkUnresolvedType(pos_int_name, unres).toType();
-          // make data type
-          datatypes.push_back(Datatype(pos_int_name));
-          /* add placeholders */
-          std::vector<Expr> ops_pos_int;
-          std::vector<std::string> cnames_pos_int;
-          std::vector<std::vector<Type>> cargs_pos_int;
-          /* Add operator 1 */
-          Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
-          ops_pos_int.push_back(nm->mkConst(Rational(1)).toExpr());
-          ss.str("");
-          ss << "1";
-          cnames_pos_int.push_back(ss.str());
-          cargs_pos_int.push_back(std::vector<Type>());
-          /* Add operator PLUS */
-          Kind k = PLUS;
-          Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
-          ops_pos_int.push_back(nm->operatorOf(k).toExpr());
-          cnames_pos_int.push_back(kindToString(k));
-          cargs_pos_int.push_back(std::vector<Type>());
-          cargs_pos_int.back().push_back(unres_pos_int_t);
-          cargs_pos_int.back().push_back(unres_pos_int_t);
-          datatypes.back().setSygus(
-              types[i].toType(), bvl.toExpr(), true, true);
-          for (unsigned j = 0, size_j = ops_pos_int.size(); j < size_j; ++j)
-          {
-            datatypes.back().addSygusConstructor(
-                ops_pos_int[j], cnames_pos_int[j], cargs_pos_int[j]);
-          }
-          Trace("sygus-grammar-def")
-              << "  ...built datatype " << datatypes.back() << " ";
-          /* Adding division at root */
-          k = DIVISION;
-          Trace("sygus-grammar-def") << "\t...add for " << k << std::endl;
-          ops[i].push_back(nm->operatorOf(k).toExpr());
-          cnames[i].push_back(kindToString(k));
-          cargs[i].push_back(std::vector<Type>());
-          cargs[i].back().push_back(unres_t);
-          cargs[i].back().push_back(unres_pos_int_t);
-          pcs[i].push_back(nullptr);
-          weights[i].push_back(-1);
-        }
+        Trace("sygus-grammar-def")
+            << "  ...built datatype " << datatypes.back() << " ";
+        /* Adding division at root */
+        k = DIVISION;
+        Trace("sygus-grammar-def") << "\t...add for " << k << std::endl;
+        ops[i].push_back(nm->operatorOf(k).toExpr());
+        cnames[i].push_back(kindToString(k));
+        cargs[i].push_back(std::vector<Type>());
+        cargs[i].back().push_back(unres_t);
+        cargs[i].back().push_back(unres_pos_int_t);
+        pcs[i].push_back(nullptr);
+        weights[i].push_back(-1);
       }
     }
     else if (types[i].isBitVector())

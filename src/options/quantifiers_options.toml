@@ -1068,15 +1068,6 @@ header = "options/quantifiers_options.h"
   help       = "statically normalize sygus grammars based on flattening (linearization)"
 
 [[option]]
-  name       = "sygusAnyConstGrammar"
-  category   = "regular"
-  long       = "sygus-any-const-grammar"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "when applicable, use any constant constructors in SyGuS grammars"
-  
-[[option]]
   name       = "sygusTemplEmbedGrammar"
   category   = "regular"
   long       = "sygus-templ-embed-grammar"
