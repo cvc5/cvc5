@@ -392,11 +392,8 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   NodeManager* nm = NodeManager::currentNM();
   if (type.isReal())
   {
-    if (!options::sygusAnyConstGrammar())
-    {
-      ops.push_back(nm->mkConst(Rational(0)));
-      ops.push_back(nm->mkConst(Rational(1)));
-    }
+    ops.push_back(nm->mkConst(Rational(0)));
+    ops.push_back(nm->mkConst(Rational(1)));
   }
   else if (type.isBitVector())
   {
@@ -610,19 +607,27 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
     }
     //add constants
-    std::vector< Node > consts;
-    mkSygusConstantsForType( types[i], consts );
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
-        itec = extra_cons.find(types[i]);
-    if( itec!=extra_cons.end() ){
-      for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
-               itec->second.begin();
-           set_it != itec->second.end();
-           ++set_it)
-      {
-        if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
+    if (options::sygusAnyConstGrammar())
+    {
+      // add the "any constant" constructor
+      // FIXME
+    }
+    else
+    {
+      std::vector< Node > consts;
+      mkSygusConstantsForType( types[i], consts );
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
+          itec = extra_cons.find(types[i]);
+      if( itec!=extra_cons.end() ){
+        for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
+                itec->second.begin();
+            set_it != itec->second.end();
+            ++set_it)
         {
-          consts.push_back(*set_it);
+          if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
+          {
+            consts.push_back(*set_it);
+          }
         }
       }
     }
