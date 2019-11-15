@@ -539,21 +539,6 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   /* Creates type object for normalization */
   TypeObject to(tn, unres_tn);
 
-  /* Determine normalization transformation based on sygus type and given
-    * operators */
-  std::unique_ptr<Transf> transformation = inferTransf(tn, dt, op_pos);
-  /* If a transformation was selected, apply it */
-  if (transformation != nullptr)
-  {
-    transformation->buildType(this, to, dt, op_pos);
-  }
-
-  /* Remaining operators are rebuilt as they are */
-  for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
-  {
-    Assert(op_pos[i] < dt.getNumConstructors());
-    to.addConsInfo(this, dt[op_pos[i]]);
-  }
   if (dt.getSygusAllowConst())
   {
     TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
@@ -569,6 +554,22 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
       TypeNode dtn = TypeNode::fromType(dt.getSygusType());
       to.d_sdt.addAnyConstantConstructor(dtn);
     }
+  }
+
+  /* Determine normalization transformation based on sygus type and given
+    * operators */
+  std::unique_ptr<Transf> transformation = inferTransf(tn, dt, op_pos);
+  /* If a transformation was selected, apply it */
+  if (transformation != nullptr)
+  {
+    transformation->buildType(this, to, dt, op_pos);
+  }
+
+  /* Remaining operators are rebuilt as they are */
+  for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
+  {
+    Assert(op_pos[i] < dt.getNumConstructors());
+    to.addConsInfo(this, dt[op_pos[i]]);
   }
   /* Build normalize datatype */
   if (Trace.isOn("sygus-grammar-normalize"))
