@@ -24,9 +24,9 @@
 
 #include "expr/datatype.h"
 #include "expr/node.h"
+#include "expr/sygus_datatype.h"
 #include "expr/type.h"
 #include "expr/type_node.h"
-#include "expr/sygus_datatype.h"
 #include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {
@@ -179,7 +179,6 @@ class SygusGrammarNorm
   //------------------------- end utilities for eliminating partial operators
 
  private:
-
   /** Transformation abstract class
    *
    * Classes extending this one will define specif transformationst for building
@@ -198,8 +197,8 @@ class SygusGrammarNorm
      * utilities for any extra necessary normalization.
      */
     virtual void buildType(SygusGrammarNorm* sygus_norm,
-                                              TypeNode orig,
-                                              TypeNode unres,
+                           TypeNode orig,
+                           TypeNode unres,
                            SygusDatatype& to,
                            const Datatype& dt,
                            std::vector<unsigned>& op_pos) = 0;
@@ -218,8 +217,8 @@ class SygusGrammarNorm
     }
     /** build type */
     void buildType(SygusGrammarNorm* sygus_norm,
-                                              TypeNode orig,
-                                              TypeNode unres,
+                   TypeNode orig,
+                   TypeNode unres,
                    SygusDatatype& to,
                    const Datatype& dt,
                    std::vector<unsigned>& op_pos) override;
@@ -278,8 +277,8 @@ class SygusGrammarNorm
      * considered.
      */
     void buildType(SygusGrammarNorm* sygus_norm,
-                                              TypeNode orig,
-                                              TypeNode unres,
+                   TypeNode orig,
+                   TypeNode unres,
                    SygusDatatype& to,
                    const Datatype& dt,
                    std::vector<unsigned>& op_pos) override;
@@ -381,7 +380,7 @@ class SygusGrammarNorm
    * invoked when all operators of "tn" are to be considered for normalization
    */
   TypeNode normalizeSygusRec(TypeNode tn);
-  
+
   /**
    * Adds information in "cons" (operator, name, print callback, argument
    * types) as it is into this type constructor.
@@ -389,9 +388,7 @@ class SygusGrammarNorm
    * The argument types of the constructor are normalized recursively based on
    * the above methods.
    */
-  void addToSygusDatatype(SygusDatatype& to,
-                                 const DatatypeConstructor& cons);
-                                 
+  void addToSygusDatatype(SygusDatatype& to, const DatatypeConstructor& cons);
 
   /** infers a transformation for normalizing dt when allowed to use the
    * operators in the positions op_pos.

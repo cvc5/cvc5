@@ -20,21 +20,15 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-SygusDatatype::SygusDatatype(const std::string& name)
-    : d_dt(Datatype(name))
-{
-}
+SygusDatatype::SygusDatatype(const std::string& name) : d_dt(Datatype(name)) {}
 
-std::string SygusDatatype::getName() const
-{
-  return d_dt.getName();
-}
+std::string SygusDatatype::getName() const { return d_dt.getName(); }
 
 void SygusDatatype::addConstructor(Node op,
-                                       const std::string&  name,
-                                       std::shared_ptr<SygusPrintCallback> spc,
-                                       int weight,
-                                       const std::vector<TypeNode>& consTypes)
+                                   const std::string& name,
+                                   std::shared_ptr<SygusPrintCallback> spc,
+                                   int weight,
+                                   const std::vector<TypeNode>& consTypes)
 {
   d_ops.push_back(op);
   d_cons_names.push_back(std::string(name));
@@ -68,16 +62,13 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
 }
 
 void SygusDatatype::buildDatatype(TypeNode sygusType,
-                                         Node sygusVars,
-                                         bool allowConst,
-                                         bool allowAll)
+                                  Node sygusVars,
+                                  bool allowConst,
+                                  bool allowAll)
 {
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
-  d_dt.setSygus(sygusType.toType(),
-                sygusVars.toExpr(),
-                allowConst,
-                allowAll);
+  d_dt.setSygus(sygusType.toType(), sygusVars.toExpr(), allowConst, allowAll);
   for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)
   {
     // must convert to type now
@@ -93,10 +84,6 @@ void SygusDatatype::buildDatatype(TypeNode sygusType,
   Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
 }
 
-
-const Datatype& SygusDatatype::getDatatype() const
-{
-  return d_dt;
-}
+const Datatype& SygusDatatype::getDatatype() const { return d_dt; }
 
 }  // namespace CVC4

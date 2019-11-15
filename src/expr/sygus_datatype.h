@@ -19,20 +19,20 @@
 #include <string>
 #include <vector>
 
+#include "expr/attribute.h"
 #include "expr/datatype.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "expr/attribute.h"
 
 namespace CVC4 {
-  
+
 /** Attribute true for variables that represent any constant */
 struct SygusAnyConstAttributeId
 {
 };
 typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
 
-/** 
+/**
  * Keeps the necessary information for bulding a sygus type, which includes
  * the operators, names, print callbacks and list of argument types for each
  * constructor.
@@ -50,7 +50,7 @@ class SygusDatatype
   std::string getName() const;
   /**
    * Add constructor that encodes an application of builtin operator op.
-   * 
+   *
    * op: the builtin operator,
    * name: the name of the constructor,
    * spc: the print callback (for custom printing of this node),
@@ -59,10 +59,10 @@ class SygusDatatype
    * datatype types).
    */
   void addConstructor(Node op,
-                                       const std::string& name,
-                                       std::shared_ptr<SygusPrintCallback> spc,
-                                       int weight,
-                                       const std::vector<TypeNode>& consTypes);
+                      const std::string& name,
+                      std::shared_ptr<SygusPrintCallback> spc,
+                      int weight,
+                      const std::vector<TypeNode>& consTypes);
   /**
    * This adds a constructor that corresponds to the any constant constructor
    * for the given (builtin) type tn.
@@ -81,12 +81,13 @@ class SygusDatatype
    * dts and unres respectively.
    */
   void buildDatatype(TypeNode sygusType,
-                                         Node sygusVars,
-                                         bool allowConst,
-                                         bool allowAll);
+                     Node sygusVars,
+                     bool allowConst,
+                     bool allowAll);
   /** Get the sygus datatype built by this class */
   const Datatype& getDatatype() const;
-private:
+
+ private:
   //---------- information to build normalized type node
   /* Operators for each constructor. */
   std::vector<Node> d_ops;

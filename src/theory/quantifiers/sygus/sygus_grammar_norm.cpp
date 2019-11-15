@@ -16,6 +16,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
 #include "expr/datatype.h"
+#include "expr/node_manager_attributes.h"
 #include "options/quantifiers_options.h"
 #include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
@@ -25,7 +26,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "expr/node_manager_attributes.h"
 #include "theory/quantifiers_engine.h"
 
 #include <numeric>  // for std::iota
@@ -75,8 +75,8 @@ SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe)
 }
 
 void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
-                                              TypeNode orig,
-                                              TypeNode unres,
+                                             TypeNode orig,
+                                             TypeNode unres,
                                              SygusDatatype& to,
                                              const Datatype& dt,
                                              std::vector<unsigned>& op_pos)
@@ -173,14 +173,19 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     /* adds to Root: "type" */
     std::vector<TypeNode> ctypes;
     ctypes.push_back(t);
-    to.addConstructor(iden_op,"id",printer::SygusEmptyPrintCallback::getEmptyPC(),0,ctypes);
+    to.addConstructor(iden_op,
+                      "id",
+                      printer::SygusEmptyPrintCallback::getEmptyPC(),
+                      0,
+                      ctypes);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding  " << t << " to " << to.getName() << "\n";
     /* adds to Root: "type + Root" */
     std::vector<TypeNode> ctypesp;
     ctypesp.push_back(t);
     ctypesp.push_back(unres);
-    to.addConstructor(nm->operatorOf(PLUS),kindToString(PLUS),nullptr,-1,ctypesp);
+    to.addConstructor(
+        nm->operatorOf(PLUS), kindToString(PLUS), nullptr, -1, ctypesp);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding PLUS to " << to.getName() << " with arg types "
         << to.getName() << " and " << t << "\n";
@@ -209,7 +214,11 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   /* adds to Root: (\lambda x. x ) Next */
   std::vector<TypeNode> ctypes;
   ctypes.push_back(sygus_norm->normalizeSygusRec(orig, dt, d_elem_pos));
-  to.addConstructor(iden_op,"id_next",printer::SygusEmptyPrintCallback::getEmptyPC(),0,ctypes);
+  to.addConstructor(iden_op,
+                    "id_next",
+                    printer::SygusEmptyPrintCallback::getEmptyPC(),
+                    0,
+                    ctypes);
 }
 
 std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
@@ -405,16 +414,16 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   }
   // build the datatype
   TypeNode sygusType = TypeNode::fromType(dt.getSygusType());
-  to.buildDatatype(sygusType,d_sygus_vars, dt.getSygusAllowConst(), dt.getSygusAllowAll());
+  to.buildDatatype(
+      sygusType, d_sygus_vars, dt.getSygusAllowConst(), dt.getSygusAllowAll());
   d_dt_all.push_back(to.getDatatype());
   d_unres_t_all.push_back(unres_tn);
   return unres_tn;
 }
 
-
 void SygusGrammarNorm::addToSygusDatatype(SygusDatatype& to,
-                                const DatatypeConstructor& cons)
-{  
+                                          const DatatypeConstructor& cons)
+{
   Trace("sygus-type-cons") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
    * operator (NOT, ITE, etc) */
@@ -455,7 +464,7 @@ void SygusGrammarNorm::addToSygusDatatype(SygusDatatype& to,
     // rewrite again
     exp_sop_n = Rewriter::rewrite(exp_sop_n);
   }
- 
+
   std::vector<TypeNode> consTypes;
   for (const DatatypeConstructorArg& arg : cons)
   {
@@ -467,10 +476,13 @@ void SygusGrammarNorm::addToSygusDatatype(SygusDatatype& to,
     consTypes.push_back(atype);
   }
 
-  Trace("sygus-type-cons-defs")
-      << "\tOriginal op: " << cons.getSygusOp()
-      << "\n\tExpanded one: " << exp_sop_n << "\n\n";
-  to.addConstructor(exp_sop_n,cons.getName(),cons.getSygusPrintCallback(),cons.getWeight(),consTypes);
+  Trace("sygus-type-cons-defs") << "\tOriginal op: " << cons.getSygusOp()
+                                << "\n\tExpanded one: " << exp_sop_n << "\n\n";
+  to.addConstructor(exp_sop_n,
+                    cons.getName(),
+                    cons.getSygusPrintCallback(),
+                    cons.getWeight(),
+                    consTypes);
 }
 
 TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn)
@@ -521,7 +533,6 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   /* By construction the normalized type node will be the last one considered */
   return TypeNode::fromType(types.back());
 }
-
 
 Kind SygusGrammarNorm::getEliminateKind(Kind ok)
 {
@@ -604,7 +615,6 @@ Node SygusGrammarNorm::eliminatePartialOperators(Node n)
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
 }
-
 
 }  // namespace quantifiers
 }  // namespace theory
