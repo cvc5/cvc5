@@ -552,6 +552,11 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     {
       Trace("sygus-grammar-normalize") << "...add any constant constructor.\n";
       TypeNode dtn = TypeNode::fromType(dt.getSygusType());
+      // we add this constructor first since we use left associative chains
+      // and our symmetry breaking should group any constants together
+      // beneath the same application
+      // we set its weight to zero since it should be considered at the
+      // same level as constants.
       to.d_sdt.addAnyConstantConstructor(dtn);
     }
   }
