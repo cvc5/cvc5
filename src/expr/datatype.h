@@ -623,6 +623,7 @@ class DType;
  */
 class CVC4_PUBLIC Datatype {
   friend class DatatypeConstructor;
+  friend class NodeManager; // temporary, for access to d_internal
 public:
   /**
    * Get the datatype of a constructor, selector, or tester operator.
@@ -968,9 +969,6 @@ public:
    * Get the list of constructors.
    */
   const std::vector<DatatypeConstructor>* getConstructors() const;
-  
-  /** get DType !!!temporary */
-  const DType& getDType() const;
 
   /** prints this datatype to stream */
   void toStream(std::ostream& out) const;

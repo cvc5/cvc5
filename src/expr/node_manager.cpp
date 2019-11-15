@@ -267,7 +267,7 @@ const DType& NodeManager::getDTypeForIndex(unsigned index) const
   // above.
   Unreachable() << "NodeManager::getDTypeForIndex: DType is not available in the current implementation.";
   const Datatype& d = getDatatypeForIndex(index);
-  return d.getDType();
+  return *d.d_internal;
 }
 
 void NodeManager::reclaimZombies() {

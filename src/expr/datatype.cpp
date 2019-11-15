@@ -870,12 +870,6 @@ Type DatatypeConstructor::doParametricSubstitution( Type range,
   }
 }
 
-const DType& Datatype::getDType() const
-{
-  Unreachable() << "Datatype::getDType: DType is not available in the current implementation.";
-  return *d_internal;
-}
-
 DatatypeConstructor::DatatypeConstructor(std::string name)
     :  // We don't want to introduce a new data member, because eventually
        // we're going to be a constant stuffed inside a node.  So we stow
