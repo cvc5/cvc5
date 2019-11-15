@@ -2,15 +2,14 @@
 /*! \file sygus_type_constructor.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief class for simplifying SyGuS grammars after they are encoded into
- ** datatypes.
+ ** \brief A class for constructing SyGuS datatypes.
  **/
 #include "cvc4_private.h"
 
@@ -23,59 +22,55 @@
 #include "expr/datatype.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace theory {
+  
+/** Attribute true for variables that represent any constant */
+struct SygusAnyConstAttributeId
+{
+};
+typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
+  
 namespace quantifiers {
 
-/** Keeps the necessary information for bulding a sygus type:
- *
- * the original typenode, from which the datatype representation can be
- * extracted
- *
+/** 
+ * Keeps the necessary information for bulding a sygus type, which includes
  * the operators, names, print callbacks and list of argument types for each
- * constructor
+ * constructor.
  *
- * the unresolved type node used as placeholder for references of the yet to
- * be built normalized type
- *
- * a datatype to represent the structure of the type node for the normalized
- * type
+ * It also maintains a datatype to represent the structure of the type node.
  */
 class SygusTypeConstructor
 {
  public:
   /* Stores the original type node and the unresolved placeholder. The
    * datatype for the latter is created with the respective name. */
-  SygusTypeConstructor(TypeNode src_tn, TypeNode unres_tn);
+  SygusTypeConstructor(const std::string& name);
   ~SygusTypeConstructor() {}
-
+  /** get name */
+  std::string getName() const;
   /**
-   * Adds information in "cons" (operator, name, print callback, argument
-   * types) as it is into this type constructor.
-   *
-   * The argument types of the constructor are overidden to the provided
-   * argument consTypes.
+   * Add constructor that encodes an application of builtin operator op.
+   * 
+   * op: the builtin operator,
+   * name: the name of the constructor,
+   * spc: the print callback (for custom printing of this node),
+   * weight: the weight of this constructor,
+   * consTypes: the argument types of the constructor (typically other sygus
+   * datatype types).
    */
-  void addConsInfo(const DatatypeConstructor& cons,
-                   std::vector<TypeNode>& consTypes);
+  void addConstructor(Node op,
+                                       const std::string& name,
+                                       std::shared_ptr<SygusPrintCallback> spc,
+                                       int weight,
+                                       const std::vector<TypeNode>& consTypes);
   /**
    * This adds a constructor that corresponds to the any constant constructor
    * for the given (builtin) type tn.
    */
   void addAnyConstantConstructor(TypeNode tn);
-  //------------------------- utilities for eliminating partial operators
-  /**
-   * Returns the total version of Kind k if it is a partial operator, or
-   * otherwise k itself.
-   */
-  static Kind getEliminateKind(Kind k);
-  /**
-   * Returns a version of n where all partial functions such as bvudiv
-   * have been replaced by their total versions like bvudiv_total.
-   */
-  static Node eliminatePartialOperators(Node n);
-  //------------------------- end utilities for eliminating partial operators
 
   /** builds a datatype with the information in the type object
    *
@@ -88,18 +83,14 @@ class SygusTypeConstructor
    * The built datatype and its unresolved type are added to the vectors
    * dts and unres respectively.
    */
-  void buildDatatype(Node sygusVars,
-                     const Datatype& dt,
-                     std::vector<Datatype>& dts,
-                     std::vector<TypeNode>& unres);
-
-  //---------- information stored from original type node
-
-  /* The original typenode this SygusTypeConstructor is built from */
-  TypeNode d_tn;
-
+  void buildDatatype(TypeNode sygusType,
+                                         Node sygusVars,
+                                         bool allowConst,
+                                         bool allowAll);
+  /** Get the sygus datatype built by this class */
+  const Datatype& getDatatype() const;
+private:
   //---------- information to build normalized type node
-
   /* Operators for each constructor. */
   std::vector<Node> d_ops;
   /* Names for each constructor. */
@@ -109,9 +100,7 @@ class SygusTypeConstructor
   /* Weights for each constructor */
   std::vector<int> d_weight;
   /* List of argument types for each constructor */
-  std::vector<std::vector<TypeNode>> d_cons_args_t;
-  /* Unresolved type node placeholder */
-  TypeNode d_unres_tn;
+  std::vector<std::vector<TypeNode>> d_consArgs;
   /* Datatype to represent type's structure */
   Datatype d_dt;
 }; /* class SygusTypeConstructor */

@@ -165,6 +165,18 @@ class SygusGrammarNorm
     }
     return it->second;
   }
+  //------------------------- utilities for eliminating partial operators
+  /**
+   * Returns the total version of Kind k if it is a partial operator, or
+   * otherwise k itself.
+   */
+  static Kind getEliminateKind(Kind k);
+  /**
+   * Returns a version of n where all partial functions such as bvudiv
+   * have been replaced by their total versions like bvudiv_total.
+   */
+  static Node eliminatePartialOperators(Node n);
+  //------------------------- end utilities for eliminating partial operators
 
  private:
 
@@ -186,6 +198,8 @@ class SygusGrammarNorm
      * utilities for any extra necessary normalization.
      */
     virtual void buildType(SygusGrammarNorm* sygus_norm,
+                                              TypeNode orig,
+                                              TypeNode unres,
                            SygusTypeConstructor& to,
                            const Datatype& dt,
                            std::vector<unsigned>& op_pos) = 0;
@@ -204,6 +218,8 @@ class SygusGrammarNorm
     }
     /** build type */
     void buildType(SygusGrammarNorm* sygus_norm,
+                                              TypeNode orig,
+                                              TypeNode unres,
                    SygusTypeConstructor& to,
                    const Datatype& dt,
                    std::vector<unsigned>& op_pos) override;
@@ -262,6 +278,8 @@ class SygusGrammarNorm
      * considered.
      */
     void buildType(SygusGrammarNorm* sygus_norm,
+                                              TypeNode orig,
+                                              TypeNode unres,
                    SygusTypeConstructor& to,
                    const Datatype& dt,
                    std::vector<unsigned>& op_pos) override;
@@ -363,6 +381,17 @@ class SygusGrammarNorm
    * invoked when all operators of "tn" are to be considered for normalization
    */
   TypeNode normalizeSygusRec(TypeNode tn);
+  
+  /**
+   * Adds information in "cons" (operator, name, print callback, argument
+   * types) as it is into this type constructor.
+   *
+   * The argument types of the constructor are normalized recursively based on
+   * the above methods.
+   */
+  void addToSygusTypeConstructor(SygusTypeConstructor& to,
+                                 const DatatypeConstructor& cons);
+                                 
 
   /** infers a transformation for normalizing dt when allowed to use the
    * operators in the positions op_pos.
