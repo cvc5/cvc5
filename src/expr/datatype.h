@@ -655,13 +655,13 @@ public:
   typedef DatatypeConstructorIterator const_iterator;
 
   /** Create a new Datatype of the given name. */
-  inline explicit Datatype(std::string name, bool isCo = false);
+  explicit Datatype(std::string name, bool isCo = false);
 
   /**
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  inline Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
+  Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
 
   ~Datatype();
 
@@ -1198,42 +1198,6 @@ inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
 }
 
 inline std::string DatatypeUnresolvedType::getName() const { return d_name; }
-inline Datatype::Datatype(std::string name, bool isCo)
-    : d_internal(nullptr), // until the Node-level datatype API is activated
-      d_name(name),
-      d_params(),
-      d_isCo(isCo),
-      d_isTuple(false),
-      d_isRecord(false),
-      d_record(NULL),
-      d_constructors(),
-      d_resolved(false),
-      d_self(),
-      d_involvesExt(false),
-      d_involvesUt(false),
-      d_sygus_allow_const(false),
-      d_sygus_allow_all(false),
-      d_card(CardinalityUnknown()),
-      d_well_founded(0) {}
-
-inline Datatype::Datatype(std::string name, const std::vector<Type>& params,
-                          bool isCo)
-    : d_internal(nullptr), // until the Node-level datatype API is activated
-      d_name(name),
-      d_params(params),
-      d_isCo(isCo),
-      d_isTuple(false),
-      d_isRecord(false),
-      d_record(NULL),
-      d_constructors(),
-      d_resolved(false),
-      d_self(),
-      d_involvesExt(false),
-      d_involvesUt(false),
-      d_sygus_allow_const(false),
-      d_sygus_allow_all(false),
-      d_card(CardinalityUnknown()),
-      d_well_founded(0) {}
 
 inline std::string Datatype::getName() const { return d_name; }
 inline size_t Datatype::getNumConstructors() const
