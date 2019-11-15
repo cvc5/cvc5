@@ -16,7 +16,9 @@
 #include "theory/quantifiers/sygus/sygus_type_constructor.h"
 
 #include "expr/node_manager_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_norm.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -113,8 +115,9 @@ Node SygusTypeConstructor::eliminatePartialOperators(Node n)
   return visited[n];
 }
 
-void SygusTypeConstructor::addConsInfo(SygusGrammarNorm* sygus_norm,
-                                       const DatatypeConstructor& cons)
+void SygusTypeConstructor::addConsInfo(const DatatypeConstructor& cons,
+                                       std::vector<Type>& consTypes
+                                      )
 {
   Trace("sygus-grammar-normalize") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
@@ -166,26 +169,19 @@ void SygusTypeConstructor::addConsInfo(SygusGrammarNorm* sygus_norm,
   d_cons_names.push_back(cons.getName());
   d_pc.push_back(cons.getSygusPrintCallback());
   d_weight.push_back(cons.getWeight());
-  d_cons_args_t.push_back(std::vector<Type>());
-  for (const DatatypeConstructorArg& arg : cons)
-  {
-    /* Collect unresolved type nodes corresponding to the typenode of the
-     * arguments */
-    d_cons_args_t.back().push_back(
-        sygus_norm
-            ->normalizeSygusRec(TypeNode::fromType(
-                static_cast<SelectorType>(arg.getType()).getRangeType()))
-            .toType());
-  }
+  d_cons_args_t.push_back(consTypes);
 }
 
-void SygusTypeConstructor::buildDatatype(SygusGrammarNorm* sygus_norm,
-                                         const Datatype& dt)
+void SygusTypeConstructor::buildDatatype(Node sygusVars,
+                                        const Datatype& dt,
+                                      std::vector<Datatype>& dt_all,
+    std::set<Type>& unres_t_all
+                                        )
 {
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
   d_dt.setSygus(dt.getSygusType(),
-                sygus_norm->d_sygus_vars.toExpr(),
+                sygusVars.toExpr(),
                 dt.getSygusAllowConst(),
                 dt.getSygusAllowAll());
   for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)
@@ -198,8 +194,8 @@ void SygusTypeConstructor::buildDatatype(SygusGrammarNorm* sygus_norm,
   }
   Trace("sygus-grammar-normalize") << "...built datatype " << d_dt << " ";
   /* Add to global accumulators */
-  sygus_norm->d_dt_all.push_back(d_dt);
-  sygus_norm->d_unres_t_all.insert(d_unres_tn.toType());
+  dt_all.push_back(d_dt);
+  unres_t_all.insert(d_unres_tn.toType());
   Trace("sygus-grammar-normalize") << "---------------------------------\n";
 }
 

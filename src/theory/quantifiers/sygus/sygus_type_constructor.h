@@ -29,8 +29,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class SygusGrammarNorm;
-
 /** Keeps the necessary information for bulding a normalized type:
   *
   * the original typenode, from which the datatype representation can be
@@ -61,8 +59,8 @@ class SygusTypeConstructor
     *
     * The types of the arguments of "cons" are recursively normalized
     */
-  void addConsInfo(SygusGrammarNorm* sygus_norm,
-                    const DatatypeConstructor& cons);
+  void addConsInfo(const DatatypeConstructor& cons,
+                   std::vector<Type>& consTypes);
   /**
     * Returns the total version of Kind k if it is a partial operator, or
     * otherwise k itself.
@@ -83,7 +81,10 @@ class SygusTypeConstructor
     * The built datatype and its unresolved type are saved in the global
     * accumulators of "sygus_norm"
     */
-  void buildDatatype(SygusGrammarNorm* sygus_norm, const Datatype& dt);
+  void buildDatatype(Node sygusVars,
+                     const Datatype& dt,
+                     std::vector<Datatype>& dt_all,
+                     std::set<Type>& unres_t_all);
 
   //---------- information stored from original type node
 
