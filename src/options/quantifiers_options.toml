@@ -1077,6 +1077,15 @@ header = "options/quantifiers_options.h"
   help       = "embed sygus templates into grammars"
 
 [[option]]
+  name       = "sygusAnyConstGrammar"
+  category   = "regular"
+  long       = "sygus-any-const-grammar"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "add any constant constructors to grammars"
+
+[[option]]
   name       = "sygusInvTemplMode"
   category   = "regular"
   long       = "sygus-inv-templ=MODE"

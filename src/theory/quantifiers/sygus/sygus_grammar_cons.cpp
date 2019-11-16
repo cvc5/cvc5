@@ -592,29 +592,37 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
     }
     //add constants
-    std::vector< Node > consts;
-    mkSygusConstantsForType( types[i], consts );
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
-        itec = extra_cons.find(types[i]);
-    if( itec!=extra_cons.end() ){
-      for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
-               itec->second.begin();
-           set_it != itec->second.end();
-           ++set_it)
-      {
-        if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
+    if (options::sygusAnyConstGrammar())
+    {
+      // use the any constant constructor
+      sdts[i].addAnyConstantConstructor(types[i]);
+    }
+    else
+    {
+      std::vector< Node > consts;
+      mkSygusConstantsForType( types[i], consts );
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
+          itec = extra_cons.find(types[i]);
+      if( itec!=extra_cons.end() ){
+        for (std::unordered_set<Node, NodeHashFunction>::iterator set_it =
+                itec->second.begin();
+            set_it != itec->second.end();
+            ++set_it)
         {
-          consts.push_back(*set_it);
+          if (std::find(consts.begin(), consts.end(), *set_it) == consts.end())
+          {
+            consts.push_back(*set_it);
+          }
         }
       }
-    }
-    for (unsigned j = 0, size_j = consts.size(); j < size_j; ++j)
-    {
-      std::stringstream ss;
-      ss << consts[j];
-      Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
-      std::vector<TypeNode> cargsEmpty;
-      sdts[i].addConstructor(consts[j], ss.str(), cargsEmpty);
+      for (unsigned j = 0, size_j = consts.size(); j < size_j; ++j)
+      {
+        std::stringstream ss;
+        ss << consts[j];
+        Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
+        std::vector<TypeNode> cargsEmpty;
+        sdts[i].addConstructor(consts[j], ss.str(), cargsEmpty);
+      }
     }
     // ITE
     Kind k = ITE;
