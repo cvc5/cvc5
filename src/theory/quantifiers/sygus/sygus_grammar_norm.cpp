@@ -222,9 +222,9 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
                                 << "\n\tExpanded one: " << exp_sop_n << "\n\n";
   d_sdt.addConstructor(exp_sop_n,
                        cons.getName(),
+                       consTypes,
                        cons.getSygusPrintCallback(),
-                       cons.getWeight(),
-                       consTypes);
+                       cons.getWeight());
 }
 
 void SygusGrammarNorm::TypeObject::initializeDatatype(
@@ -342,9 +342,9 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     ctypes.push_back(t);
     to.d_sdt.addConstructor(iden_op,
                             "id",
+                            ctypes,
                             printer::SygusEmptyPrintCallback::getEmptyPC(),
-                            0,
-                            ctypes);
+                            0);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding  " << t << " to " << to.d_unres_tn << "\n";
     /* adds to Root: "type + Root" */
@@ -352,7 +352,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     ctypesp.push_back(t);
     ctypesp.push_back(to.d_unres_tn);
     to.d_sdt.addConstructor(
-        nm->operatorOf(PLUS), kindToString(PLUS), nullptr, -1, ctypesp);
+        nm->operatorOf(PLUS), kindToString(PLUS), ctypesp);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding PLUS to " << to.d_unres_tn << " with arg types "
         << to.d_unres_tn << " and " << t << "\n";
@@ -385,9 +385,9 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   ctypes.push_back(sygus_norm->normalizeSygusRec(to.d_tn, dt, d_elem_pos));
   to.d_sdt.addConstructor(iden_op,
                           "id_next",
+                          ctypes,
                           printer::SygusEmptyPrintCallback::getEmptyPC(),
-                          0,
-                          ctypes);
+                          0);
 }
 
 std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};

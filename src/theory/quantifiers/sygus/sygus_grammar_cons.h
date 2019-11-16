@@ -23,6 +23,7 @@
 
 #include "expr/attribute.h"
 #include "expr/node.h"
+#include "expr/sygus_datatype.h"
 
 namespace CVC4 {
 namespace theory {
@@ -207,7 +208,7 @@ public:
       const std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
           include_cons,
       std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
-      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<SygusDatatype>& datatypes,
       std::set<Type>& unres);
 
   // helper function for mkSygusTemplateType

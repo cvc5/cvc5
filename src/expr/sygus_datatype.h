@@ -64,14 +64,17 @@ class SygusDatatype
    */
   void addConstructor(Node op,
                       const std::string& name,
-                      std::shared_ptr<SygusPrintCallback> spc,
-                      int weight,
-                      const std::vector<TypeNode>& consTypes);
+                      const std::vector<TypeNode>& consTypes,
+                      std::shared_ptr<SygusPrintCallback> spc = nullptr,
+                      int weight = -1);
   /**
    * This adds a constructor that corresponds to the any constant constructor
    * for the given (builtin) type tn.
    */
   void addAnyConstantConstructor(TypeNode tn);
+  
+  /** Get the number of constructors added to this class so far */
+  size_t getNumConstructors() const;
 
   /** builds a datatype with the information in the type object
    *
