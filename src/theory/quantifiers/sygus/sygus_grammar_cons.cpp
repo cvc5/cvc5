@@ -699,8 +699,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(unres_t);
       cargsBinary.push_back(unres_t);
-      sdts[i].addConstructor(STRING_CONCAT,
-                             cargsBinary);
+      sdts[i].addConstructor(STRING_CONCAT, cargsBinary);
       // length
       TypeNode intType = nm->integerType();
       Assert(std::find(types.begin(), types.end(), intType) != types.end());
