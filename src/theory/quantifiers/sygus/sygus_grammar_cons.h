@@ -193,13 +193,19 @@ public:
    public:
     SygusDatatypeGenerator(const std::string& name);
     ~SygusDatatypeGenerator() {}
-    /** Possibly add a constructor to d_sdt, based on the above criteria. */
+    /**
+     * Possibly add a constructor to d_sdt, based on the criteria mentioned
+     * in this class below. For details see expr/sygus_datatype.h.
+     */
     void addConstructor(Node op,
                         const std::string& name,
                         const std::vector<TypeNode>& consTypes,
                         std::shared_ptr<SygusPrintCallback> spc = nullptr,
                         int weight = -1);
-    /** Possibly add a constructor to d_sdt, based on the above criteria. */
+    /**
+     * Possibly add a constructor to d_sdt, based on the criteria mentioned
+     * in this class below.
+     */
     void addConstructor(Kind k,
                         const std::vector<TypeNode>& consTypes,
                         std::shared_ptr<SygusPrintCallback> spc = nullptr,
