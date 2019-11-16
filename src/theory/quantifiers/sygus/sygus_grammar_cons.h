@@ -187,6 +187,36 @@ public:
       Node n,
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& consts);
   //---------------- grammar construction
+  /** A class for generating sygus datatypes */
+  class SygusDatatypeGenerator
+  {
+  public:
+    SygusDatatypeGenerator(const std::string& name);
+    ~SygusDatatypeGenerator(){}
+    /** Possibly add a constructor to d_sdt, based on the above criteria. */
+    void addConstructor(Node op,
+                        const std::string& name,
+                        const std::vector<TypeNode>& consTypes,
+                        std::shared_ptr<SygusPrintCallback> spc = nullptr,
+                        int weight = -1);
+    /** Possibly add a constructor to d_sdt, based on the above criteria. */
+    void addConstructor(Kind k,
+                        const std::vector<TypeNode>& consTypes,
+                        std::shared_ptr<SygusPrintCallback> spc = nullptr,
+                        int weight = -1);
+    /** Should we include constructor with operator op? */
+    bool shouldInclude(Node op) const;
+    /** The constructors that should be excluded. */
+    std::unordered_set<Node, NodeHashFunction> d_exclude_cons;
+    /** 
+     * If this set is non-empty, then only include variables and constructors
+     * from it. 
+     */
+    std::unordered_set<Node, NodeHashFunction> d_include_cons;
+    /** The sygus datatype we are generating. */
+    SygusDatatype d_sdt;
+  };
+  
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
   static TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
   // collect the list of types that depend on type range
@@ -208,9 +238,9 @@ public:
       const std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
           include_cons,
       std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
-      std::vector<SygusDatatype>& datatypes,
+      std::vector<SygusDatatypeGenerator>& sdts,
       std::set<Type>& unres);
-
+  
   // helper function for mkSygusTemplateType
   static TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
                                           const std::string& fun, unsigned& tcount );
