@@ -53,10 +53,7 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
       av, cname, builtinArg, printer::SygusEmptyPrintCallback::getEmptyPC(), 0);
 }
 
-size_t SygusDatatype::getNumConstructors() const
-{
-  return d_ops.size();
-}
+size_t SygusDatatype::getNumConstructors() const { return d_ops.size(); }
 
 void SygusDatatype::initializeDatatype(TypeNode sygusType,
                                        Node sygusVars,
@@ -83,10 +80,11 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
   Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
 }
 
-const Datatype& SygusDatatype::getDatatype() const { 
+const Datatype& SygusDatatype::getDatatype() const
+{
   // should have initialized by this point
   Assert(d_dt.isSygus());
-  return d_dt; 
+  return d_dt;
 }
 
 }  // namespace CVC4

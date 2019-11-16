@@ -48,8 +48,7 @@ bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
     if (!gv.isNull())
     {
       TypeNode tn = gv.getType();
-      if (tn.isDatatype()
-          && tn.getDatatype().isSygus())
+      if (tn.isDatatype() && tn.getDatatype().isSygus())
       {
         return true;
       }
@@ -434,8 +433,7 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
                ++j)
           {
             TypeNode tn = TypeNode::fromType(dt[i][j].getRangeType());
-            collectSygusGrammarTypesFor(tn,
-                types);
+            collectSygusGrammarTypesFor(tn, types);
           }
         }
       }
@@ -513,7 +511,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   }
   // index of top datatype, i.e. the datatype for the range type
   int startIndex = -1;
-  std::map< TypeNode, TypeNode > sygus_to_builtin;
+  std::map<TypeNode, TypeNode> sygus_to_builtin;
 
   std::vector<TypeNode> types;
   // collect connected types for each of the variables
@@ -531,8 +529,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   TypeNode unres_bt = mkUnresolvedType(ssb.str(), unres);
 
   // create placeholders for collected types
-  std::vector< TypeNode > unres_types;
-  std::map< TypeNode, TypeNode > type_to_unres;
+  std::vector<TypeNode> unres_types;
+  std::map<TypeNode, TypeNode> type_to_unres;
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
@@ -560,7 +558,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Trace("sygus-grammar-def")
             << "...add for variable " << ss.str() << std::endl;
         std::vector<TypeNode> cargsEmpty;
-        sdts[i].addConstructor(sv,ss.str(),cargsEmpty);
+        sdts[i].addConstructor(sv, ss.str(), cargsEmpty);
       }
       else if (svt.isFunction() && svt.getRangeType() == types[i])
       {
@@ -577,7 +575,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         }
         std::stringstream ss;
         ss << "apply_" << sv;
-        sdts[i].addConstructor(sv,ss.str(),stypes);
+        sdts[i].addConstructor(sv, ss.str(), stypes);
       }
     }
     //add constants
@@ -603,7 +601,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       ss << consts[j];
       Trace("sygus-grammar-def") << "...add for constant " << ss.str() << std::endl;
       std::vector<TypeNode> cargsEmpty;
-      sdts[i].addConstructor(consts[j],ss.str(),cargsEmpty);
+      sdts[i].addConstructor(consts[j], ss.str(), cargsEmpty);
     }
     // ITE
     Kind k = ITE;
@@ -612,7 +610,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     cargsIte.push_back(unres_bt);
     cargsIte.push_back(unres_t);
     cargsIte.push_back(unres_t);
-    sdts[i].addConstructor(nm->operatorOf(k),kindToString(k),cargsIte);
+    sdts[i].addConstructor(nm->operatorOf(k), kindToString(k), cargsIte);
 
     if (types[i].isReal())
     {
@@ -624,7 +622,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         std::vector<TypeNode> cargsOp;
         cargsOp.push_back(unres_t);
         cargsOp.push_back(unres_t);
-        sdts[i].addConstructor(nm->operatorOf(k),kindToString(k),cargsOp);
+        sdts[i].addConstructor(nm->operatorOf(k), kindToString(k), cargsOp);
       }
       if (!types[i].isInteger())
       {
@@ -640,25 +638,26 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts.push_back(SygusDatatype(pos_int_name));
         /* Add operator 1 */
         Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
-        std::vector<TypeNode > cargsEmpty;
-        sdts.back().addConstructor(nm->mkConst(Rational(1)),"1",cargsEmpty);
+        std::vector<TypeNode> cargsEmpty;
+        sdts.back().addConstructor(nm->mkConst(Rational(1)), "1", cargsEmpty);
         /* Add operator PLUS */
         Kind k = PLUS;
         Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
-        std::vector<TypeNode > cargsPlus;
+        std::vector<TypeNode> cargsPlus;
         cargsPlus.push_back(unres_pos_int_t);
         cargsPlus.push_back(unres_pos_int_t);
-        sdts.back().addConstructor(nm->operatorOf(k),kindToString(k),cargsPlus);
+        sdts.back().addConstructor(
+            nm->operatorOf(k), kindToString(k), cargsPlus);
         sdts.back().initializeDatatype(types[i], bvl, true, true);
         Trace("sygus-grammar-def")
             << "  ...built datatype " << sdts.back().getDatatype() << " ";
         /* Adding division at root */
         k = DIVISION;
         Trace("sygus-grammar-def") << "\t...add for " << k << std::endl;
-        std::vector< TypeNode > cargsDiv;
+        std::vector<TypeNode> cargsDiv;
         cargsDiv.push_back(unres_t);
         cargsDiv.push_back(unres_pos_int_t);
-        sdts[i].addConstructor(nm->operatorOf(k),kindToString(k),cargsDiv);
+        sdts[i].addConstructor(nm->operatorOf(k), kindToString(k), cargsDiv);
       }
     }
     else if (types[i].isBitVector())
@@ -670,7 +669,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       for (const Kind k : un_kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-        sdts[i].addConstructor(nm->operatorOf(k),kindToString(k),cargsUnary);
+        sdts[i].addConstructor(nm->operatorOf(k), kindToString(k), cargsUnary);
       }
       // binary apps
       std::vector<Kind> bin_kinds = {BITVECTOR_AND,
@@ -692,7 +691,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       for (const Kind k : bin_kinds)
       {
         Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-        sdts[i].addConstructor(nm->operatorOf(k),kindToString(k),cargsBinary);
+        sdts[i].addConstructor(nm->operatorOf(k), kindToString(k), cargsBinary);
       }
     }
     else if (types[i].isString())
@@ -701,7 +700,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<TypeNode> cargsBinary;
       cargsBinary.push_back(unres_t);
       cargsBinary.push_back(unres_t);
-      sdts[i].addConstructor(nm->operatorOf(STRING_CONCAT),kindToString(STRING_CONCAT),cargsBinary);
+      sdts[i].addConstructor(nm->operatorOf(STRING_CONCAT),
+                             kindToString(STRING_CONCAT),
+                             cargsBinary);
       // length
       TypeNode intType = nm->integerType();
       Assert(std::find(types.begin(), types.end(), intType) != types.end());
@@ -712,51 +713,47 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
                     intType));
       std::vector<TypeNode> cargsLen;
       cargsLen.push_back(unres_t);
-      sdts[i_intType].addConstructor(nm->operatorOf(STRING_LENGTH),kindToString(STRING_LENGTH),cargsLen);
+      sdts[i_intType].addConstructor(
+          nm->operatorOf(STRING_LENGTH), kindToString(STRING_LENGTH), cargsLen);
     }
     else if (types[i].isArray())
     {
       Trace("sygus-grammar-def")
           << "...building for array type " << types[i] << "\n";
-      Trace("sygus-grammar-def")
-          << "......finding unres type for index type "
-          << types[i].getArrayIndexType() << "\n";
+      Trace("sygus-grammar-def") << "......finding unres type for index type "
+                                 << types[i].getArrayIndexType() << "\n";
       // retrieve index and constituent unresolved types
-      Assert(std::find(types.begin(),
-                       types.end(),
-                       types[i].getArrayIndexType() )
+      Assert(std::find(types.begin(), types.end(), types[i].getArrayIndexType())
              != types.end());
       unsigned i_indexType = std::distance(
           types.begin(),
-          std::find(types.begin(),
-                    types.end(),
-                    types[i].getArrayIndexType()));
+          std::find(types.begin(), types.end(), types[i].getArrayIndexType()));
       TypeNode unres_indexType = unres_types[i_indexType];
-      Assert(std::find(types.begin(),
-                       types.end(),
-                       types[i].getArrayConstituentType())
+      Assert(std::find(
+                 types.begin(), types.end(), types[i].getArrayConstituentType())
              != types.end());
       unsigned i_constituentType = std::distance(
           types.begin(),
-          std::find(types.begin(),
-                    types.end(),
-                    types[i].getArrayConstituentType()));
+          std::find(
+              types.begin(), types.end(), types[i].getArrayConstituentType()));
       TypeNode unres_constituentType = unres_types[i_constituentType];
       // add (store ArrayType IndexType ConstituentType)
       Trace("sygus-grammar-def") << "...add for STORE\n";
-      
+
       std::vector<TypeNode> cargsStore;
       cargsStore.push_back(unres_t);
       cargsStore.push_back(unres_indexType);
       cargsStore.push_back(unres_constituentType);
-      sdts[i].addConstructor(nm->operatorOf(STORE),kindToString(STORE),cargsStore);
+      sdts[i].addConstructor(
+          nm->operatorOf(STORE), kindToString(STORE), cargsStore);
       // add to constituent type : (select ArrayType IndexType)
       Trace("sygus-grammar-def") << "...add select for constituent type"
                                  << unres_constituentType << "\n";
       std::vector<TypeNode> cargsSelect;
       cargsSelect.push_back(unres_t);
       cargsSelect.push_back(unres_indexType);
-      sdts[i_constituentType].addConstructor(nm->operatorOf(SELECT),kindToString(SELECT),cargsSelect);
+      sdts[i_constituentType].addConstructor(
+          nm->operatorOf(SELECT), kindToString(SELECT), cargsSelect);
     }
     else if (types[i].isDatatype())
     {
@@ -792,9 +789,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           std::vector<TypeNode> cargsSel;
           cargsSel.push_back(type_to_unres[arg_type]);
           Node sel = Node::fromExpr(dt[k][j].getSelector());
-          sdts[i_selType].addConstructor(sel,dt[k][j].getName(),cargsSel);
+          sdts[i_selType].addConstructor(sel, dt[k][j].getName(), cargsSel);
         }
-        sdts[i].addConstructor(cop,dt[k].getName(),cargsCons);
+        sdts[i].addConstructor(cop, dt[k].getName(), cargsCons);
       }
     }
     else if (types[i].isSort() || types[i].isFunction())
@@ -811,7 +808,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   // make datatypes
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
-    sdts[i].initializeDatatype( types[i], bvl, true, true );
+    sdts[i].initializeDatatype(types[i], bvl, true, true);
     /*
     //FIXME
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
@@ -846,7 +843,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
     }
     */
-    Trace("sygus-grammar-def") << "...built datatype " << sdts[i].getDatatype() << " ";
+    Trace("sygus-grammar-def")
+        << "...built datatype " << sdts[i].getDatatype() << " ";
     //set start index if applicable
     if( types[i]==range ){
       startIndex = i;
@@ -867,7 +865,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for variable " << ss.str() << std::endl;
       std::vector<TypeNode> cargsEmpty;
       // make boolean variables weight as non-nullary constructors
-      sdtBool.addConstructor(sygus_vars[i],ss.str(),cargsEmpty,nullptr,1);
+      sdtBool.addConstructor(sygus_vars[i], ss.str(), cargsEmpty, nullptr, 1);
     }
   }
   // add constants
@@ -880,7 +878,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     Trace("sygus-grammar-def") << "...add for constant " << ss.str()
                                << std::endl;
     std::vector<TypeNode> cargsEmpty;
-    sdtBool.addConstructor(consts[i],ss.str(),cargsEmpty);
+    sdtBool.addConstructor(consts[i], ss.str(), cargsEmpty);
   }
   // add predicates for types
   for (unsigned i = 0, size = types.size(); i < size; ++i)
@@ -898,19 +896,19 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     std::vector<TypeNode> cargsBinary;
     cargsBinary.push_back(unres_types[i]);
     cargsBinary.push_back(unres_types[i]);
-    sdtBool.addConstructor(nm->operatorOf(k),ss.str(),cargsBinary);
+    sdtBool.addConstructor(nm->operatorOf(k), ss.str(), cargsBinary);
     // type specific predicates
     if (types[i].isReal())
     {
       Kind k = LEQ;
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-      sdtBool.addConstructor(nm->operatorOf(k),kindToString(k),cargsBinary);
+      sdtBool.addConstructor(nm->operatorOf(k), kindToString(k), cargsBinary);
     }
     else if (types[i].isBitVector())
     {
       Kind k = BITVECTOR_ULT;
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-      sdtBool.addConstructor(nm->operatorOf(k),kindToString(k),cargsBinary);
+      sdtBool.addConstructor(nm->operatorOf(k), kindToString(k), cargsBinary);
     }
     else if (types[i].isDatatype())
     {
@@ -922,7 +920,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       for (unsigned k = 0, size_k = dt.getNumConstructors(); k < size_k; ++k)
       {
         Trace("sygus-grammar-def") << "...for " << dt[k].getTesterName() << std::endl;
-        sdtBool.addConstructor(dt[k].getTester(),dt[k].getTesterName(),cargsTester);
+        sdtBool.addConstructor(
+            dt[k].getTester(), dt[k].getTesterName(), cargsTester);
       }
     }
   }
@@ -951,14 +950,15 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           cargs.push_back(unres_bt);
         }
       }
-      sdtBool.addConstructor(nm->operatorOf(k),kindToString(k),cargs);
+      sdtBool.addConstructor(nm->operatorOf(k), kindToString(k), cargs);
     }
   }
   if( range==btype ){
-    startIndex = sdts.size()-1;
+    startIndex = sdts.size() - 1;
   }
-  sdtBool.initializeDatatype( btype, bvl, true, true );
-  Trace("sygus-grammar-def") << "...built datatype for Bool " << sdtBool.getDatatype() << " ";
+  sdtBool.initializeDatatype(btype, bvl, true, true);
+  Trace("sygus-grammar-def")
+      << "...built datatype for Bool " << sdtBool.getDatatype() << " ";
   Trace("sygus-grammar-def") << "...finished make default grammar for " << fun << " " << range << std::endl;
   // make first datatype be the top level datatype
   if( startIndex>0 ){
@@ -988,7 +988,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
     Trace("sygus-grammar-def") << "    ...using " << it->second.size() << " extra constants for " << it->first << std::endl;
   }
   std::set<Type> unres;
-  std::vector< SygusDatatype > sdts;
+  std::vector<SygusDatatype> sdts;
   mkSygusDefaultGrammar(range,
                         bvl,
                         fun,
@@ -1000,7 +1000,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         unres);
   // extract the datatypes from the sygus datatype objects
   std::vector<Datatype> datatypes;
-  for (unsigned i=0, ndts=sdts.size(); i<ndts; i++)
+  for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
   {
     datatypes.push_back(sdts[i].getDatatype());
   }
@@ -1022,13 +1022,13 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
   }else{
     tcount++;
     std::set<Type> unres;
-    std::vector< SygusDatatype > sdts;
+    std::vector<SygusDatatype> sdts;
     std::stringstream ssd;
     ssd << fun << "_templ_" << tcount;
     std::string dbname = ssd.str();
     sdts.push_back(SygusDatatype(dbname));
     Node op;
-    std::vector< TypeNode > argTypes;
+    std::vector<TypeNode> argTypes;
     if( templ.getNumChildren()==0 ){
       // TODO : can short circuit to this case when !TermUtil::containsTerm( templ, templ_arg )
       op = templ;
@@ -1039,17 +1039,17 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
       for( unsigned i=0; i<templ.getNumChildren(); i++ ){
         //recursion depth bound by the depth of SyGuS template expressions (low)
         TypeNode tnc = mkSygusTemplateTypeRec( templ[i], templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
-        argTypes.push_back( tnc );
+        argTypes.push_back(tnc);
       }
     }
     std::stringstream ssdc;
     ssdc << fun << "_templ_cons_" << tcount;
     // we have a single sygus constructor that encodes the template
-    sdts.back().addConstructor( op, ssdc.str(), argTypes );
-    sdts.back().initializeDatatype( templ.getType(), bvl, true, true );
+    sdts.back().addConstructor(op, ssdc.str(), argTypes);
+    sdts.back().initializeDatatype(templ.getType(), bvl, true, true);
     // extract the datatypes from the sygus datatype objects
     std::vector<Datatype> datatypes;
-    for (unsigned i=0, ndts=sdts.size(); i<ndts; i++)
+    for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
     {
       datatypes.push_back(sdts[i].getDatatype());
     }

@@ -351,8 +351,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     std::vector<TypeNode> ctypesp;
     ctypesp.push_back(t);
     ctypesp.push_back(to.d_unres_tn);
-    to.d_sdt.addConstructor(
-        nm->operatorOf(PLUS), kindToString(PLUS), ctypesp);
+    to.d_sdt.addConstructor(nm->operatorOf(PLUS), kindToString(PLUS), ctypesp);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding PLUS to " << to.d_unres_tn << " with arg types "
         << to.d_unres_tn << " and " << t << "\n";

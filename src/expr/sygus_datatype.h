@@ -72,7 +72,7 @@ class SygusDatatype
    * for the given (builtin) type tn.
    */
   void addAnyConstantConstructor(TypeNode tn);
-  
+
   /** Get the number of constructors added to this class so far */
   size_t getNumConstructors() const;
 
