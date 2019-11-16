@@ -1077,13 +1077,14 @@ header = "options/quantifiers_options.h"
   help       = "embed sygus templates into grammars"
 
 [[option]]
-  name       = "sygusAnyConstGrammar"
+  name       = "sygusGrammarConsMode"
   category   = "regular"
-  long       = "sygus-any-const-grammar"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "add any constant constructors to grammars"
+  long       = "sygus-grammar-cons=MODE"
+  type       = "CVC4::theory::quantifiers::SygusGrammarConsMode"
+  default    = "CVC4::theory::quantifiers::SYGUS_GCONS_SIMPLE"
+  handler    = "stringToSygusGrammarConsMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "mode for SyGuS grammar construction"
 
 [[option]]
   name       = "sygusInvTemplMode"

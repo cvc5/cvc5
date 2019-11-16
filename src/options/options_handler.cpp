@@ -569,6 +569,21 @@ auto (default) \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusGrammarConsHelp =
+    "\
+Modes for default SyGuS grammars, supported by --sygus-grammar-cons:\n\
+\n\
+simple (default) \n\
++ Use simple grammar construction (no symbolic terms or constants).\n\
+\n\
+any-const  \n\
++ Use symoblic constant constructors.\n\
+\n\
+any-term  \n\
++ When applicable, use constructors corresponding to any symbolic term.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_macrosQuantHelp = "\
 Modes for quantifiers macro expansion, supported by --macros-quant-mode:\n\
 \n\
@@ -1083,6 +1098,32 @@ OptionsHandler::stringToSygusActiveGenMode(std::string option,
   {
     throw OptionException(std::string("unknown option for --sygus-inv-templ: `")
                           + optarg + "'.  Try --sygus-inv-templ help.");
+  }
+}
+theory::quantifiers::SygusGrammarConsMode OptionsHandler::stringToSygusGrammarConsMode(
+      std::string option, std::string optarg)
+{
+  if (optarg == "simple")
+  {
+    return theory::quantifiers::SYGUS_GCONS_SIMPLE;
+  }
+  else if (optarg == "any-const")
+  {
+    return theory::quantifiers::SYGUS_GCONS_ANY_CONST;
+  }
+  else if (optarg == "any-term")
+  {
+    return theory::quantifiers::SYGUS_GCONS_ANY_TERM;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusGrammarConsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-grammar-cons: `")
+                          + optarg + "'.  Try --sygus-grammar-cons help.");
   }
 }
 
