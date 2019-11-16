@@ -17,13 +17,13 @@
 
 #include "expr/datatype.h"
 #include "expr/node_algorithm.h"
+#include "expr/sygus_datatype.h"
 #include "printer/sygus_print_callback.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/sygus_datatype.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -196,11 +196,9 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
         }
         Trace("sygus-abduct-debug")
             << "Set sygus : " << dtc.getSygusType() << " " << abvl << std::endl;
-            TypeNode stn = TypeNode::fromType(dtc.getSygusType());
-        sdts.back().initializeDatatype(stn,
-                                  abvl,
-                                  dtc.getSygusAllowConst(),
-                                  dtc.getSygusAllowAll());
+        TypeNode stn = TypeNode::fromType(dtc.getSygusType());
+        sdts.back().initializeDatatype(
+            stn, abvl, dtc.getSygusAllowConst(), dtc.getSygusAllowAll());
       }
       dtToProcess.clear();
       dtToProcess.insert(
@@ -209,8 +207,8 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     Trace("sygus-abduct-debug")
         << "Make " << sdts.size() << " datatype types..." << std::endl;
     // extract the datatypes
-    std::vector< Datatype > datatypes;
-    for (unsigned i=0, ndts=sdts.size(); i<ndts; i++)
+    std::vector<Datatype> datatypes;
+    for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
     {
       datatypes.push_back(sdts[i].getDatatype());
     }

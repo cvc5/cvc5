@@ -15,6 +15,7 @@
 
 #include "preprocessing/passes/synth_rew_rules.h"
 
+#include "expr/sygus_datatype.h"
 #include "expr/term_canonize.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -24,7 +25,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/term_util.h"
-#include "expr/sygus_datatype.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -341,12 +341,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           std::stringstream sscs;
           sscs << "C_factor_" << i << "_" << j;
           // ID function is not printed and does not count towards weight
-          sdts[i].addConstructor(
-              lambdaOp,
-              sscs.str(),
-              argListc,
-              printer::SygusEmptyPrintCallback::getEmptyPC(),
-              0);
+          sdts[i].addConstructor(lambdaOp,
+                                 sscs.str(),
+                                 argListc,
+                                 printer::SygusEmptyPrintCallback::getEmptyPC(),
+                                 0);
         }
         // recursive apply
         TypeNode recType = cterm_to_utype[ct];
@@ -372,8 +371,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "Make mutual datatype types for subterms..."
                      << std::endl;
   // extract the datatypes
-  std::vector< Datatype > datatypes;
-  for (unsigned i=0, ndts=sdts.size(); i<ndts; i++)
+  std::vector<Datatype> datatypes;
+  for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
   {
     datatypes.push_back(sdts[i].getDatatype());
   }
@@ -398,8 +397,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     SygusDatatype sdttl(ss.str());
     Node tbv = nm->mkBoundVar(t);
     // the operator of each constructor is a no-op
-    Node lambdaOp =
-        nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv);
+    Node lambdaOp = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv);
     Trace("srs-input") << "  We have " << tcp.second.size()
                        << " subterms of type " << t << std::endl;
     for (unsigned i = 0, size = tcp.second.size(); i < size; i++)
@@ -413,10 +411,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       ssc << "Ctl_" << i;
       // the no-op should not be printed, hence we pass an empty callback
       sdttl.addConstructor(lambdaOp,
-                               ssc.str(),
-                               argList,
-                               printer::SygusEmptyPrintCallback::getEmptyPC(),
-                               0);
+                           ssc.str(),
+                           argList,
+                           printer::SygusEmptyPrintCallback::getEmptyPC(),
+                           0);
       Trace("srs-input-debug")
           << "Grammar for subterm " << n << " is: " << std::endl;
       Trace("srs-input-debug") << subtermTypes[n].getDatatype() << std::endl;
