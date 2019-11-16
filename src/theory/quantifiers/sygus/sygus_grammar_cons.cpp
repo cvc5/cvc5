@@ -424,6 +424,7 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
   if( !range.isBoolean() ){
     if( std::find( types.begin(), types.end(), range )==types.end() ){
       Trace("sygus-grammar-def") << "...will make grammar for " << range << std::endl;
+      types.push_back( range );
       if( range.isDatatype() ){
         const Datatype& dt = range.getDatatype();
         for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
@@ -458,7 +459,6 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         collectSygusGrammarTypesFor(range.getRangeType(), types);
       }
       // now, add to types
-      types.push_back( range );
     }
   }
 }
@@ -662,7 +662,20 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       if (sgcm==SYGUS_GCONS_ANY_TERM)
       {
         // get the operators
+        std::stringstream ssat;
+        ssat << sdts[i].d_sdt.getName() << "_any_term";
+        SygusDatatype sdtAnyTerm(ssat.str());
+        std::vector< Node > sumChildren;
+        std::vector< TypeNode > cargsAnyTerm;
+        std::vector< Node > lambdaVars;
         
+        
+        
+        Node ops = nm->mkNode(PLUS,sumChildren);
+        Node op = nm->mkNode(LAMBDA,nm->mkNode(BOUND_VAR_LIST,lambdaVars),ops);
+        sdtAnyTerm.addConstructor(op,"any_term_templ",cargsAnyTerm);
+        // overwrite the existing type
+        sdts[i].d_sdt = sdtAnyTerm;
       }
       else
       {
