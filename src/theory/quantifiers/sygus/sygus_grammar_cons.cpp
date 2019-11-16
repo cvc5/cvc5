@@ -480,8 +480,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     TypeNode range,
     Node bvl,
     const std::string& fun,
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-        extra_cons,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& extra_cons,
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
         exclude_cons,
     const std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>&
@@ -533,7 +532,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   // create placeholders for collected types
   std::vector<TypeNode> unres_types;
   std::map<TypeNode, TypeNode> type_to_unres;
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::const_iterator itc;
+  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::const_iterator
+      itc;
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
@@ -541,12 +541,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     std::string dname = ss.str();
     sdts.push_back(SygusDatatypeGenerator(dname));
     itc = exclude_cons.find(types[i]);
-    if (itc!=exclude_cons.end())
+    if (itc != exclude_cons.end())
     {
       sdts.back().d_exclude_cons = itc->second;
     }
     itc = include_cons.find(types[i]);
-    if (itc!=include_cons.end())
+    if (itc != include_cons.end())
     {
       sdts.back().d_include_cons = itc->second;
     }
@@ -1061,32 +1061,35 @@ Node CegGrammarConstructor::getSygusVarList(Node f)
   return sfvl;
 }
 
-CegGrammarConstructor::SygusDatatypeGenerator::SygusDatatypeGenerator(const std::string& name) : d_sdt(name)
+CegGrammarConstructor::SygusDatatypeGenerator::SygusDatatypeGenerator(
+    const std::string& name)
+    : d_sdt(name)
 {
-  
 }
-void CegGrammarConstructor::SygusDatatypeGenerator::addConstructor(Node op,
-                    const std::string& name,
-                    const std::vector<TypeNode>& consTypes,
-                    std::shared_ptr<SygusPrintCallback> spc,
-                    int weight)
+void CegGrammarConstructor::SygusDatatypeGenerator::addConstructor(
+    Node op,
+    const std::string& name,
+    const std::vector<TypeNode>& consTypes,
+    std::shared_ptr<SygusPrintCallback> spc,
+    int weight)
 {
   if (shouldInclude(op))
   {
     d_sdt.addConstructor(op, name, consTypes, spc, weight);
   }
 }
-void CegGrammarConstructor::SygusDatatypeGenerator::addConstructor(Kind k,
-                    const std::vector<TypeNode>& consTypes,
-                    std::shared_ptr<SygusPrintCallback> spc,
-                    int weight)
+void CegGrammarConstructor::SygusDatatypeGenerator::addConstructor(
+    Kind k,
+    const std::vector<TypeNode>& consTypes,
+    std::shared_ptr<SygusPrintCallback> spc,
+    int weight)
 {
   NodeManager* nm = NodeManager::currentNM();
   addConstructor(nm->operatorOf(k), kindToString(k), consTypes, spc, weight);
 }
 bool CegGrammarConstructor::SygusDatatypeGenerator::shouldInclude(Node op) const
 {
-  if (d_exclude_cons.find(op)!=d_exclude_cons.end())
+  if (d_exclude_cons.find(op) != d_exclude_cons.end())
   {
     return false;
   }
@@ -1095,7 +1098,7 @@ bool CegGrammarConstructor::SygusDatatypeGenerator::shouldInclude(Node op) const
     // special case, variables and terms of certain types are always included
     if (!op.isVar() && op.getType().getKind() == TYPE_CONSTANT)
     {
-      if (d_include_cons.find(op)==d_include_cons.end())
+      if (d_include_cons.find(op) == d_include_cons.end())
       {
         return false;
       }

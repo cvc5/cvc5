@@ -190,9 +190,9 @@ public:
   /** A class for generating sygus datatypes */
   class SygusDatatypeGenerator
   {
-  public:
+   public:
     SygusDatatypeGenerator(const std::string& name);
-    ~SygusDatatypeGenerator(){}
+    ~SygusDatatypeGenerator() {}
     /** Possibly add a constructor to d_sdt, based on the above criteria. */
     void addConstructor(Node op,
                         const std::string& name,
@@ -208,15 +208,15 @@ public:
     bool shouldInclude(Node op) const;
     /** The constructors that should be excluded. */
     std::unordered_set<Node, NodeHashFunction> d_exclude_cons;
-    /** 
+    /**
      * If this set is non-empty, then only include variables and constructors
-     * from it. 
+     * from it.
      */
     std::unordered_set<Node, NodeHashFunction> d_include_cons;
     /** The sygus datatype we are generating. */
     SygusDatatype d_sdt;
   };
-  
+
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
   static TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
   // collect the list of types that depend on type range
@@ -240,7 +240,7 @@ public:
       std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
       std::vector<SygusDatatypeGenerator>& sdts,
       std::set<Type>& unres);
-  
+
   // helper function for mkSygusTemplateType
   static TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
                                           const std::string& fun, unsigned& tcount );
