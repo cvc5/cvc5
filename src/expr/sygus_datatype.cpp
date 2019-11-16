@@ -26,9 +26,9 @@ std::string SygusDatatype::getName() const { return d_dt.getName(); }
 
 void SygusDatatype::addConstructor(Node op,
                                    const std::string& name,
+                                   const std::vector<TypeNode>& consTypes,
                                    std::shared_ptr<SygusPrintCallback> spc,
-                                   int weight,
-                                   const std::vector<TypeNode>& consTypes)
+                                   int weight)
 {
   d_ops.push_back(op);
   d_cons_names.push_back(std::string(name));
@@ -50,14 +50,26 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
   std::vector<TypeNode> builtinArg;
   builtinArg.push_back(tn);
   addConstructor(
-      av, cname, printer::SygusEmptyPrintCallback::getEmptyPC(), 0, builtinArg);
+      av, cname, builtinArg, printer::SygusEmptyPrintCallback::getEmptyPC(), 0);
 }
+void SygusDatatype::addConstructor(Kind k,
+                                   const std::vector<TypeNode>& consTypes,
+                                   std::shared_ptr<SygusPrintCallback> spc,
+                                   int weight)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  addConstructor(nm->operatorOf(k), kindToString(k), consTypes, spc, weight);
+}
+
+size_t SygusDatatype::getNumConstructors() const { return d_ops.size(); }
 
 void SygusDatatype::initializeDatatype(TypeNode sygusType,
                                        Node sygusVars,
                                        bool allowConst,
                                        bool allowAll)
 {
+  // should not have initialized (set sygus) yet
+  Assert(!d_dt.isSygus());
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
   d_dt.setSygus(sygusType.toType(), sygusVars.toExpr(), allowConst, allowAll);
@@ -76,6 +88,11 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
   Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
 }
 
-const Datatype& SygusDatatype::getDatatype() const { return d_dt; }
+const Datatype& SygusDatatype::getDatatype() const
+{
+  // should have initialized by this point
+  Assert(d_dt.isSygus());
+  return d_dt;
+}
 
 }  // namespace CVC4
