@@ -52,6 +52,14 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
   addConstructor(
       av, cname, builtinArg, printer::SygusEmptyPrintCallback::getEmptyPC(), 0);
 }
+void SygusDatatype::addConstructor(Kind k,
+                      const std::vector<TypeNode>& consTypes,
+                      std::shared_ptr<SygusPrintCallback> spc,
+                      int weight)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  addConstructor(nm->operatorOf(k), kindToString(k), consTypes, spc, weight);
+}
 
 size_t SygusDatatype::getNumConstructors() const { return d_ops.size(); }
 

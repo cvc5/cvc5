@@ -61,9 +61,23 @@ class SygusDatatype
    * weight: the weight of this constructor,
    * consTypes: the argument types of the constructor (typically other sygus
    * datatype types).
+   *
+   * It should be the case that consTypes are sygus datatype types (possibly
+   * unresolved) that encode the arguments of the builtin operator. That is,
+   * if op is the builtin PLUS operator, then consTypes could contain 2+
+   * sygus datatype types that encode integer.
    */
   void addConstructor(Node op,
                       const std::string& name,
+                      const std::vector<TypeNode>& consTypes,
+                      std::shared_ptr<SygusPrintCallback> spc = nullptr,
+                      int weight = -1);
+  /**
+   * Add constructor that encodes an application of builtin kind k. Like above,
+   * the arguments consTypes should correspond to sygus datatypes that encode
+   * the types of the arguments of the kind.
+   */
+  void addConstructor(Kind k,
                       const std::vector<TypeNode>& consTypes,
                       std::shared_ptr<SygusPrintCallback> spc = nullptr,
                       int weight = -1);
