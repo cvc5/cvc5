@@ -65,13 +65,14 @@
 #define CVC4_PREDICT_TRUE(x) x
 #endif
 
-#define CVC4_FALLTHROUGH
 #ifdef __has_cpp_attribute
 #if __has_cpp_attribute(fallthrough)
-#undef CVC4_FALLTHROUGH
 #define CVC4_FALLTHROUGH [[fallthrough]]
-#endif  // __has_cpp_attribute(fallthrough)
-#endif  // __has_cpp_attribute
+#endif // __has_cpp_attribute(fallthrough)
+#endif // __has_cpp_attribute
+#ifndef CVC4_FALLTHROUGH
+#define CVC4_FALLTHROUGH
+#endif
 
 namespace CVC4 {
 
