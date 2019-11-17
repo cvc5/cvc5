@@ -70,6 +70,8 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
 {
   // should not have initialized (set sygus) yet
   Assert(!d_dt.isSygus());
+  // should have added a constructor
+  Assert(!d_ops.empty());
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
   d_dt.setSygus(sygusType.toType(), sygusVars.toExpr(), allowConst, allowAll);

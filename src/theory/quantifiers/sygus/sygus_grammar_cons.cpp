@@ -424,7 +424,9 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
   if( !range.isBoolean() ){
     if( std::find( types.begin(), types.end(), range )==types.end() ){
       Trace("sygus-grammar-def") << "...will make grammar for " << range << std::endl;
-      types.push_back( range );
+      // Must add to the beginning to ensure parametric types appear before
+      // their consistuent types.
+      types.insert( types.begin(), range );
       if( range.isDatatype() ){
         const Datatype& dt = range.getDatatype();
         for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
@@ -537,12 +539,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::const_iterator
       itc;
   // We ensure an ordering on types such that parametric types are processed
-  // before their consitituents. Since parametric types were added after their
+  // before their consitituents. Since parametric types were added before their
   // arguments in collectSygusGrammarTypesFor above, we will construct the
-  // sygus grammars by iterating on types in reverse order. This ensures
+  // sygus grammars by iterating on types in order. This ensures
   // that we know all constructors coming from other types (e.g. select(A,i))
   // by the time we process the type.
-  for (int i = types.size()-1; i>=0; --i)
+  for (unsigned i = 0, ntypes = types.size(); i<ntypes; i++)
   {
     std::stringstream ss;
     ss << fun << "_" << types[i];
@@ -571,8 +573,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
     if (sgcm==SYGUS_GCONS_ANY_TERM)
     {
-      // if the type does not support any term, we do any constant instead
-      if (!types[i].isReal())
+      // If the type does not support any term, we do any constant instead.
+      // We also fall back on any constant construction if the type has no
+      // constructors at this point (e.g. it simply encodes all constants).
+      if (!types[i].isReal() || sdts[i].getNumConstructors()==0)
       {
         sgcm = SYGUS_GCONS_ANY_CONST;
       }
@@ -659,71 +663,50 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
 
     if (types[i].isReal())
     {
-      if (sgcm==SYGUS_GCONS_ANY_TERM)
+      // Add PLUS, MINUS
+      Kind kinds[2] = {PLUS, MINUS};
+      for (const Kind k : kinds)
       {
-        // get the operators
-        std::stringstream ssat;
-        ssat << sdts[i].d_sdt.getName() << "_any_term";
-        SygusDatatype sdtAnyTerm(ssat.str());
-        std::vector< Node > sumChildren;
-        std::vector< TypeNode > cargsAnyTerm;
-        std::vector< Node > lambdaVars;
-        
-        
-        
-        Node ops = nm->mkNode(PLUS,sumChildren);
-        Node op = nm->mkNode(LAMBDA,nm->mkNode(BOUND_VAR_LIST,lambdaVars),ops);
-        sdtAnyTerm.addConstructor(op,"any_term_templ",cargsAnyTerm);
-        // overwrite the existing type
-        sdts[i].d_sdt = sdtAnyTerm;
+        Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+        std::vector<TypeNode> cargsOp;
+        cargsOp.push_back(unres_t);
+        cargsOp.push_back(unres_t);
+        sdts[i].addConstructor(k, cargsOp);
       }
-      else
+      if (!types[i].isInteger())
       {
-        // Add PLUS, MINUS
-        Kind kinds[2] = {PLUS, MINUS};
-        for (const Kind k : kinds)
-        {
-          Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-          std::vector<TypeNode> cargsOp;
-          cargsOp.push_back(unres_t);
-          cargsOp.push_back(unres_t);
-          sdts[i].addConstructor(k, cargsOp);
-        }
-        if (!types[i].isInteger())
-        {
-          Trace("sygus-grammar-def")
-              << "  ...create auxiliary Positive Integers grammar\n";
-          // Creating type for positive integers. Notice we can't use the any
-          // constant constructor here, since it admits zero.
-          std::stringstream ss;
-          ss << fun << "_PosInt";
-          std::string pos_int_name = ss.str();
-          // make unresolved type
-          TypeNode unres_pos_int_t = mkUnresolvedType(pos_int_name, unres);
-          // make data type for positive constant integers
-          sdts.push_back(SygusDatatypeGenerator(pos_int_name));
-          /* Add operator 1 */
-          Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
-          std::vector<TypeNode> cargsEmpty;
-          sdts.back().addConstructor(nm->mkConst(Rational(1)), "1", cargsEmpty);
-          /* Add operator PLUS */
-          Kind k = PLUS;
-          Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
-          std::vector<TypeNode> cargsPlus;
-          cargsPlus.push_back(unres_pos_int_t);
-          cargsPlus.push_back(unres_pos_int_t);
-          sdts.back().addConstructor(k, cargsPlus);
-          sdts.back().d_sdt.initializeDatatype(types[i], bvl, true, true);
-          Trace("sygus-grammar-def")
-              << "  ...built datatype " << sdts.back().d_sdt.getDatatype() << " ";
-          /* Adding division at root */
-          k = DIVISION;
-          Trace("sygus-grammar-def") << "\t...add for " << k << std::endl;
-          std::vector<TypeNode> cargsDiv;
-          cargsDiv.push_back(unres_t);
-          cargsDiv.push_back(unres_pos_int_t);
-          sdts[i].addConstructor(k, cargsDiv);
-        }
+        Trace("sygus-grammar-def")
+            << "  ...create auxiliary Positive Integers grammar\n";
+        // Creating type for positive integers. Notice we can't use the any
+        // constant constructor here, since it admits zero.
+        std::stringstream ss;
+        ss << fun << "_PosInt";
+        std::string pos_int_name = ss.str();
+        // make unresolved type
+        TypeNode unres_pos_int_t = mkUnresolvedType(pos_int_name, unres);
+        // make data type for positive constant integers
+        sdts.push_back(SygusDatatypeGenerator(pos_int_name));
+        /* Add operator 1 */
+        Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
+        std::vector<TypeNode> cargsEmpty;
+        sdts.back().addConstructor(nm->mkConst(Rational(1)), "1", cargsEmpty);
+        /* Add operator PLUS */
+        Kind k = PLUS;
+        Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
+        std::vector<TypeNode> cargsPlus;
+        cargsPlus.push_back(unres_pos_int_t);
+        cargsPlus.push_back(unres_pos_int_t);
+        sdts.back().addConstructor(k, cargsPlus);
+        sdts.back().d_sdt.initializeDatatype(types[i], bvl, true, true);
+        Trace("sygus-grammar-def")
+            << "  ...built datatype " << sdts.back().d_sdt.getDatatype() << " ";
+        /* Adding division at root */
+        k = DIVISION;
+        Trace("sygus-grammar-def") << "\t...add for " << k << std::endl;
+        std::vector<TypeNode> cargsDiv;
+        cargsDiv.push_back(unres_t);
+        cargsDiv.push_back(unres_pos_int_t);
+        sdts[i].addConstructor(k, cargsDiv);
       }
     }
     else if (types[i].isBitVector())
@@ -865,16 +848,55 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           << "Warning: No implementation for default Sygus grammar of type "
           << types[i] << std::endl;
     }
-  }
-  // make datatypes
-  for (unsigned i = 0, size = types.size(); i < size; ++i)
-  {
     sdts[i].d_sdt.initializeDatatype(types[i], bvl, true, true);
     Trace("sygus-grammar-def")
         << "...built datatype " << sdts[i].d_sdt.getDatatype() << " ";
     //set start index if applicable
     if( types[i]==range ){
       startIndex = i;
+    }
+    // TODO
+    if (sgcm==SYGUS_GCONS_ANY_TERM)
+    {
+      // for now, only real has any term construction
+      Assert(types[i].isReal());
+      // We initialize the given type, which should now contain a constructor
+      // for each arithmetic term/variable. We then reconstruct and replace
+      // this datatype with a single constructor corresponding to a linear
+      // polynomial over these variables.
+      Assert( sdts[i].d_sdt.getNumConstructors()>0 );
+      // initialize it now, guaranteed to have at least one constructor
+      sdts[i].d_sdt.initializeDatatype(types[i], bvl, true, true);
+      const Datatype& d = sdts[i].d_sdt.getDatatype();
+      // Make the any constant type.
+      std::stringstream ss;
+      ss << fun << "_AnyConst";
+      // make data type for any constant
+      TypeNode unresAnyConst = mkUnresolvedType(ss.str(), unres);
+      sdts.push_back(SygusDatatypeGenerator(ss.str()));
+      sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
+      sdts.back().d_sdt.initializeDatatype(types[i],bvl,true,true);
+      // get the operators
+      std::stringstream ssat;
+      ssat << sdts[i].d_sdt.getName() << "_any_term";
+      SygusDatatype sdtAnyTerm(ssat.str());
+      std::vector< Node > sumChildren;
+      std::vector< TypeNode > cargsAnyTerm;
+      std::vector< Node > lambdaVars;
+      for (unsigned i=0, ncons=d.getNumConstructors(); i<ncons; i++)
+      {
+        Node sop = Node::fromExpr(d[i].getSygusOp());
+        // take its arguments
+        // FIXME
+      }
+      // add a constant
+      
+      
+      Node ops = nm->mkNode(PLUS,sumChildren);
+      Node op = nm->mkNode(LAMBDA,nm->mkNode(BOUND_VAR_LIST,lambdaVars),ops);
+      sdtAnyTerm.addConstructor(op,"any_term_templ",cargsAnyTerm);
+      // overwrite the existing type
+      sdts[i].d_sdt = sdtAnyTerm;
     }
   }
 
