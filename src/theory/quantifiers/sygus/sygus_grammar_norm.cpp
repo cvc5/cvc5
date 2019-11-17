@@ -495,6 +495,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
                                              const Datatype& dt,
                                              std::vector<unsigned>& op_pos)
 {
+  Assert(tn.isDatatype());
   /* Corresponding type node to tn with the given operator positions. To be
    * retrieved (if cached) or defined (otherwise) */
   TypeNode unres_tn;
@@ -590,9 +591,20 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
 }
 
 TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn)
-{
+{  
+  if(!tn.isDatatype())
+  {
+    // Might not be a sygus datatype, e.g. if the input grammar had the
+    // any constant constructor.
+    return tn;
+  }
   /* Collect all operators for normalization */
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const Datatype& dt = tn.getDatatype();
+  if (!dt.isSygus())
+  {
+    // datatype but not sygus datatype case
+    return tn;
+  }
   std::vector<unsigned> op_pos(dt.getNumConstructors());
   std::iota(op_pos.begin(), op_pos.end(), 0);
   return normalizeSygusRec(tn, dt, op_pos);

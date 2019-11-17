@@ -873,6 +873,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     itgat = typeToGAnyTerm.find(types[i]);
     if (itgat!=typeToGAnyTerm.end())
     {
+      Trace("sygus-grammar-def") << "Build any-term datatype for " << types[i] << std::endl;
       unsigned iat = itgat->second;
       // for now, only real has any term construction
       Assert(types[i].isReal());
@@ -890,7 +891,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       sdts.push_back(SygusDatatypeGenerator(ss.str()));
       sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
       sdts.back().d_sdt.initializeDatatype(types[i],bvl,true,true);
-      // get the operators
+      // Now, extract the terms and set up the polynomial
       std::vector< Node > sumChildren;
       std::vector< TypeNode > cargsAnyTerm;
       std::vector< Node > lambdaVars;
@@ -902,6 +903,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           // don't consider constants or builtin operators (e.g. PLUS)
           continue;
         }
+        Trace("sygus-grammar-def") << "Monomial variable: " << sop << std::endl;
         Node coeff = nm->mkBoundVar(types[i]);
         lambdaVars.push_back(coeff);
         cargsAnyTerm.push_back(unresAnyConst);
@@ -944,8 +946,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // do not consider the exclusion criteria of the generator
       sdts[iat].d_sdt.addConstructor(op,"any_term_templ",cargsAnyTerm);
       sdts[iat].d_sdt.initializeDatatype(types[i],bvl,true,true);
+      Trace("sygus-grammar-def")
+          << "...built datatype " << sdts[iat].d_sdt.getDatatype() << std::endl;
       // if the type is range, use it as the default type
-      if( types[i]==range ){
+      if( types[i]==range )
+      {
         startIndex = iat;
       }
     }
@@ -986,6 +991,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       continue;
     }
+    unsigned iuse = i;
+    // use the any-term type if it exists
+    itgat = typeToGAnyTerm.find(types[i]);
+    if (itgat!=typeToGAnyTerm.end())
+    {
+      iuse = itgat->second;
+    }
     Trace("sygus-grammar-def") << "...add predicates for " << types[i] << std::endl;
     //add equality per type
     Kind k = EQUAL;
@@ -993,8 +1005,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     std::stringstream ss;
     ss << kindToString(k) << "_" << types[i];
     std::vector<TypeNode> cargsBinary;
-    cargsBinary.push_back(unres_types[i]);
-    cargsBinary.push_back(unres_types[i]);
+    cargsBinary.push_back(unres_types[iuse]);
+    cargsBinary.push_back(unres_types[iuse]);
     sdtBool.addConstructor(nm->operatorOf(k), ss.str(), cargsBinary);
     // type specific predicates
     if (types[i].isReal())
@@ -1015,7 +1027,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for testers" << std::endl;
       const Datatype& dt = types[i].getDatatype();
       std::vector<TypeNode> cargsTester;
-      cargsTester.push_back(unres_types[i]);
+      cargsTester.push_back(unres_types[iuse]);
       for (unsigned k = 0, size_k = dt.getNumConstructors(); k < size_k; ++k)
       {
         Trace("sygus-grammar-def") << "...for " << dt[k].getTesterName() << std::endl;
