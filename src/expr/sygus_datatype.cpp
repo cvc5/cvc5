@@ -66,7 +66,7 @@ size_t SygusDatatype::getNumConstructors() const { return d_cons.size(); }
 
 const SygusDatatypeConstructor& SygusDatatype::getConstructor(unsigned i) const
 {
-  Assert(i<d_cons.size());
+  Assert(i < d_cons.size());
   return d_cons[i];
 }
 
@@ -91,8 +91,11 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
       cargs.push_back(ct.toType());
     }
     // add (sygus) constructor
-    d_dt.addSygusConstructor(
-        d_cons[i].d_op.toExpr(), d_cons[i].d_name, cargs, d_cons[i].d_pc, d_cons[i].d_weight);
+    d_dt.addSygusConstructor(d_cons[i].d_op.toExpr(),
+                             d_cons[i].d_name,
+                             cargs,
+                             d_cons[i].d_pc,
+                             d_cons[i].d_weight);
   }
   Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
 }
