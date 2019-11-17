@@ -424,10 +424,7 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
   if( !range.isBoolean() ){
     if( std::find( types.begin(), types.end(), range )==types.end() ){
       Trace("sygus-grammar-def") << "...will make grammar for " << range << std::endl;
-      // Must add to the beginning to ensure parametric types appear before
-      // their consistuent types.
-      types.insert( types.begin(), range );
-      //types.push_back(range);
+      types.push_back( range );
       if( range.isDatatype() ){
         const Datatype& dt = range.getDatatype();
         for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
@@ -461,7 +458,6 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         }
         collectSygusGrammarTypesFor(range.getRangeType(), types);
       }
-      // now, add to types
     }
   }
 }
@@ -541,13 +537,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       itc;
   // maps types to the index of its "any term" grammar construction
   std::map< TypeNode, unsigned > typeToGAnyTerm;
-  // We ensure an ordering on types such that parametric types are processed
-  // before their consitituents. Since parametric types were added before their
-  // arguments in collectSygusGrammarTypesFor above, we will construct the
-  // sygus grammars by iterating on types in order. This ensures
-  // that we know all constructors coming from other types (e.g. select(A,i))
-  // by the time we process the type.
-  for (unsigned i = 0, ntypes = types.size(); i<ntypes; i++)
+  for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
     ss << fun << "_" << types[i];
@@ -569,7 +559,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     type_to_unres[types[i]] = unres_t;
     sygus_to_builtin[unres_t] = types[i];
   }
-  for (unsigned i = 0, size = types.size(); i < size; ++i)
+  // We ensure an ordering on types such that parametric types are processed
+  // before their consitituents. Since parametric types were added before their
+  // arguments in collectSygusGrammarTypesFor above, we will construct the
+  // sygus grammars by iterating on types in reverse order. This ensures
+  // that we know all constructors coming from other types (e.g. select(A,i))
+  // by the time we process the type.
+  for (int i = (types.size() -1); i>=0; --i)
   {
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     TypeNode unres_t = unres_types[i];
@@ -582,6 +578,17 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       if (!types[i].isReal() || sdts[i].d_sdt.getNumConstructors()==0)
       {
         sgcm = SYGUS_GCONS_ANY_CONST;
+      }
+      else
+      {
+        // Add a placeholder for the "any term" version of this datatype, to be
+        // constructed later.
+        typeToGAnyTerm[types[i]] = sdts.size();
+        std::stringstream ssat;
+        ssat << sdts[i].d_sdt.getName() << "_any_term";
+        sdts.push_back(SygusDatatypeGenerator(ssat.str()));
+        TypeNode unresAnyTerm = mkUnresolvedType(ssat.str(), unres);
+        unres_types.push_back(unresAnyTerm);
       }
     }
     //add variables
@@ -852,6 +859,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           << "Warning: No implementation for default Sygus grammar of type "
           << types[i] << std::endl;
     }
+  }
+  std::map< TypeNode, unsigned >::iterator itgat;
+  for (unsigned i = 0, size = types.size(); i < size; ++i)
+  {
     sdts[i].d_sdt.initializeDatatype(types[i], bvl, true, true);
     Trace("sygus-grammar-def")
         << "...built datatype " << sdts[i].d_sdt.getDatatype() << " ";
@@ -859,8 +870,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     if( types[i]==range ){
       startIndex = i;
     }
-    if (sgcm==SYGUS_GCONS_ANY_TERM)
+    itgat = typeToGAnyTerm.find(types[i]);
+    if (itgat!=typeToGAnyTerm.end())
     {
+      unsigned iat = itgat->second;
       // for now, only real has any term construction
       Assert(types[i].isReal());
       const Datatype& dt = sdts[i].d_sdt.getDatatype();
@@ -881,9 +894,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector< Node > sumChildren;
       std::vector< TypeNode > cargsAnyTerm;
       std::vector< Node > lambdaVars;
-      for (unsigned i=0, ncons=dt.getNumConstructors(); i<ncons; i++)
+      for (unsigned k=0, ncons=dt.getNumConstructors(); k<ncons; k++)
       {
-        Node sop = Node::fromExpr(dt[i].getSygusOp());
+        Node sop = Node::fromExpr(dt[k].getSygusOp());
         if (sop.isConst() || sop.getKind() == BUILTIN)
         {
           // don't consider constants or builtin operators (e.g. PLUS)
@@ -892,7 +905,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Node coeff = nm->mkBoundVar(types[i]);
         lambdaVars.push_back(coeff);
         cargsAnyTerm.push_back(unresAnyConst);
-        unsigned nargs=dt[i].getNumArgs();
+        unsigned nargs=dt[k].getNumArgs();
         if (nargs>0)
         {
           // Take its arguments. For example, if we are building a polynomial
@@ -904,7 +917,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           for (unsigned j=0; j<nargs; j++)
           {
             // this is already corresponds to the correct sygus datatype type
-            TypeNode atype = TypeNode::fromType(dt[i].getArgType(j));
+            TypeNode atype = TypeNode::fromType(dt[k].getArgType(j));
             cargsAnyTerm.push_back(atype);
             // builtin type can be extracted from lambda
             opLArgs.push_back(nm->mkBoundVar(sop[0][j].getType()));
@@ -928,26 +941,15 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Node ops = nm->mkNode(PLUS,sumChildren);
       Node op = nm->mkNode(LAMBDA,nm->mkNode(BOUND_VAR_LIST,lambdaVars),ops);
       // make the any term datatype, add to back
-      std::stringstream ssat;
-      ssat << sdts[i].d_sdt.getName() << "_any_term";
-      sdts.push_back(SygusDatatypeGenerator(ssat.str()));
-      TypeNode unresAnyTerm = mkUnresolvedType(ss.str(), unres);
-      unres_types.push_back(unresAnyTerm);
       // do not consider the exclusion criteria of the generator
-      sdts.back().d_sdt.addConstructor(op,"any_term_templ",cargsAnyTerm);
-      sdts.back().d_sdt.initializeDatatype(types[i],bvl,true,true);
+      sdts[iat].d_sdt.addConstructor(op,"any_term_templ",cargsAnyTerm);
+      sdts[iat].d_sdt.initializeDatatype(types[i],bvl,true,true);
       // if the type is range, use it as the default type
       if( types[i]==range ){
-        startIndex = sdts.size()-1;
-      }
-      else
-      {
-        // otherwise, remember its index (for the Boolean case)
-        typeToGAnyTerm[types[i]] = sdts.size()-1;
+        startIndex = iat;
       }
     }
   }
-
   //------ make Boolean type
   TypeNode btype = nm->booleanType();
   sdts.push_back(SygusDatatypeGenerator(dbname));

@@ -69,7 +69,7 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
                                        bool allowAll)
 {
   // should not have initialized (set sygus) yet
-  Assert(!d_dt.isSygus());
+  Assert(!isInitialized());
   // should have added a constructor
   Assert(!d_ops.empty());
   /* Use the sygus type to not lose reference to the original types (Bool,
@@ -93,8 +93,13 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
 const Datatype& SygusDatatype::getDatatype() const
 {
   // should have initialized by this point
-  Assert(d_dt.isSygus());
+  Assert(isInitialized());
   return d_dt;
+}
+
+bool SygusDatatype::isInitialized() const
+{
+  return d_dt.isSygus();
 }
 
 }  // namespace CVC4
