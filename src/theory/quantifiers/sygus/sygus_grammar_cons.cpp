@@ -900,9 +900,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       for (unsigned k = 0, ncons = dt.getNumConstructors(); k < ncons; k++)
       {
         Node sop = Node::fromExpr(dt[k].getSygusOp());
-        if (sop.isConst() || sop.getKind() == BUILTIN)
+        //FIXME
+        if (sop.isConst() || sop.getKind() == PLUS || sop.getKind()==MINUS)
         {
-          // don't consider constants or builtin operators (e.g. PLUS)
+          Trace("sygus-grammar-def") << "Ignore monomial variable: " << sop << std::endl;
+          // don't consider constants or arithmetic operators
           continue;
         }
         Trace("sygus-grammar-def") << "Monomial variable: " << sop << std::endl;
