@@ -14,11 +14,11 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 
+#include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "expr/sygus_datatype.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -55,7 +55,7 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     Node g = tds->mkGeneric(dt, i, pre, false);
     Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
     d_gen_terms[i] = g;
-    Assert(g.getNumChildren()==dt[i].getNumArgs());
+    Assert(g.getNumChildren() == dt[i].getNumArgs());
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {
       pre[j] = g[j];

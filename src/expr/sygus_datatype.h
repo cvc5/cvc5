@@ -105,9 +105,10 @@ class SygusDatatype
                           bool allowAll);
   /** Get the sygus datatype initialized by this class */
   const Datatype& getDatatype() const;
-  
+
   /** is initialized */
   bool isInitialized() const;
+
  private:
   //---------- information to build normalized type node
   /** Operators for each constructor. */

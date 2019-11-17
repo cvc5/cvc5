@@ -591,8 +591,8 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
 }
 
 TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn)
-{  
-  if(!tn.isDatatype())
+{
+  if (!tn.isDatatype())
   {
     // Might not be a sygus datatype, e.g. if the input grammar had the
     // any constant constructor.

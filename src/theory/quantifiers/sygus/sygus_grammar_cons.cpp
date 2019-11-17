@@ -536,7 +536,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::const_iterator
       itc;
   // maps types to the index of its "any term" grammar construction
-  std::map< TypeNode, unsigned > typeToGAnyTerm;
+  std::map<TypeNode, unsigned> typeToGAnyTerm;
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
@@ -565,17 +565,17 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   // sygus grammars by iterating on types in reverse order. This ensures
   // that we know all constructors coming from other types (e.g. select(A,i))
   // by the time we process the type.
-  for (int i = (types.size() -1); i>=0; --i)
+  for (int i = (types.size() - 1); i >= 0; --i)
   {
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     TypeNode unres_t = unres_types[i];
     SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
-    if (sgcm==SYGUS_GCONS_ANY_TERM)
+    if (sgcm == SYGUS_GCONS_ANY_TERM)
     {
       // If the type does not support any term, we do any constant instead.
       // We also fall back on any constant construction if the type has no
       // constructors at this point (e.g. it simply encodes all constants).
-      if (!types[i].isReal() || sdts[i].d_sdt.getNumConstructors()==0)
+      if (!types[i].isReal() || sdts[i].d_sdt.getNumConstructors() == 0)
       {
         sgcm = SYGUS_GCONS_ANY_CONST;
       }
@@ -625,7 +625,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     //add constants
     std::vector<Node> consts;
     mkSygusConstantsForType(types[i], consts);
-    if (sgcm==SYGUS_GCONS_ANY_CONST)
+    if (sgcm == SYGUS_GCONS_ANY_CONST)
     {
       // Use the any constant constructor. Notice that for types that don't
       // have constants (e.g. uninterpreted or function types), we don't add
@@ -860,7 +860,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           << types[i] << std::endl;
     }
   }
-  std::map< TypeNode, unsigned >::iterator itgat;
+  std::map<TypeNode, unsigned>::iterator itgat;
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     sdts[i].d_sdt.initializeDatatype(types[i], bvl, true, true);
@@ -871,15 +871,16 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       startIndex = i;
     }
     itgat = typeToGAnyTerm.find(types[i]);
-    if (itgat!=typeToGAnyTerm.end())
+    if (itgat != typeToGAnyTerm.end())
     {
-      Trace("sygus-grammar-def") << "Build any-term datatype for " << types[i] << std::endl;
+      Trace("sygus-grammar-def")
+          << "Build any-term datatype for " << types[i] << std::endl;
       unsigned iat = itgat->second;
       // for now, only real has any term construction
       Assert(types[i].isReal());
       const Datatype& dt = sdts[i].d_sdt.getDatatype();
       // We have initialized the given type sdts[i], which should now contain
-      // a constructor for each relevant arithmetic term/variable. We now 
+      // a constructor for each relevant arithmetic term/variable. We now
       // construct a sygus datatype with a single constructor corresponding to
       // a linear polynomial over these variables/terms. Doing this first
       // requires making the "any constant" arithmetic type.
@@ -890,12 +891,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       unres_types.push_back(unresAnyConst);
       sdts.push_back(SygusDatatypeGenerator(ss.str()));
       sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
-      sdts.back().d_sdt.initializeDatatype(types[i],bvl,true,true);
+      sdts.back().d_sdt.initializeDatatype(types[i], bvl, true, true);
       // Now, extract the terms and set up the polynomial
-      std::vector< Node > sumChildren;
-      std::vector< TypeNode > cargsAnyTerm;
-      std::vector< Node > lambdaVars;
-      for (unsigned k=0, ncons=dt.getNumConstructors(); k<ncons; k++)
+      std::vector<Node> sumChildren;
+      std::vector<TypeNode> cargsAnyTerm;
+      std::vector<Node> lambdaVars;
+      for (unsigned k = 0, ncons = dt.getNumConstructors(); k < ncons; k++)
       {
         Node sop = Node::fromExpr(dt[k].getSygusOp());
         if (sop.isConst() || sop.getKind() == BUILTIN)
@@ -907,16 +908,16 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Node coeff = nm->mkBoundVar(types[i]);
         lambdaVars.push_back(coeff);
         cargsAnyTerm.push_back(unresAnyConst);
-        unsigned nargs=dt[k].getNumArgs();
-        if (nargs>0)
+        unsigned nargs = dt[k].getNumArgs();
+        if (nargs > 0)
         {
           // Take its arguments. For example, if we are building a polynomial
           // over str.len(s), then our any term constructor would include an
           // argument of string type, e.g.:
           //   (lambda s : String, c1, c2 : Int. c1*len(s) + c2)
-          Assert(sop.getKind()==LAMBDA && sop[0].getNumChildren()==nargs);
-          std::vector< Node > opLArgs;
-          for (unsigned j=0; j<nargs; j++)
+          Assert(sop.getKind() == LAMBDA && sop[0].getNumChildren() == nargs);
+          std::vector<Node> opLArgs;
+          for (unsigned j = 0; j < nargs; j++)
           {
             // this is already corresponds to the correct sygus datatype type
             TypeNode atype = TypeNode::fromType(dt[k].getArgType(j));
@@ -924,32 +925,32 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
             // builtin type can be extracted from lambda
             opLArgs.push_back(nm->mkBoundVar(sop[0][j].getType()));
           }
-          lambdaVars.insert(lambdaVars.end(),opLArgs.begin(),opLArgs.end());
-          opLArgs.insert(opLArgs.begin(),sop);
+          lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
+          opLArgs.insert(opLArgs.begin(), sop);
           // Do beta reduction on the operator so that its arguments match the
           // fresh variables of the lambda we are constructing.
-          sop = nm->mkNode(APPLY_UF,opLArgs);
+          sop = nm->mkNode(APPLY_UF, opLArgs);
           sop = Rewriter::rewrite(sop);
         }
         // add the monomial c*t to the sum
-        sumChildren.push_back(nm->mkNode(MULT,coeff,sop));        
+        sumChildren.push_back(nm->mkNode(MULT, coeff, sop));
       }
       // add the constant
       Node coeff = nm->mkBoundVar(types[i]);
       lambdaVars.push_back(coeff);
       cargsAnyTerm.push_back(unresAnyConst);
       // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
-      Assert(sumChildren.size()>1);
-      Node ops = nm->mkNode(PLUS,sumChildren);
-      Node op = nm->mkNode(LAMBDA,nm->mkNode(BOUND_VAR_LIST,lambdaVars),ops);
+      Assert(sumChildren.size() > 1);
+      Node ops = nm->mkNode(PLUS, sumChildren);
+      Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
       // make the any term datatype, add to back
       // do not consider the exclusion criteria of the generator
-      sdts[iat].d_sdt.addConstructor(op,"any_term_templ",cargsAnyTerm);
-      sdts[iat].d_sdt.initializeDatatype(types[i],bvl,true,true);
+      sdts[iat].d_sdt.addConstructor(op, "any_term_templ", cargsAnyTerm);
+      sdts[iat].d_sdt.initializeDatatype(types[i], bvl, true, true);
       Trace("sygus-grammar-def")
           << "...built datatype " << sdts[iat].d_sdt.getDatatype() << std::endl;
       // if the type is range, use it as the default type
-      if( types[i]==range )
+      if (types[i] == range)
       {
         startIndex = iat;
       }
@@ -994,7 +995,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     unsigned iuse = i;
     // use the any-term type if it exists
     itgat = typeToGAnyTerm.find(types[i]);
-    if (itgat!=typeToGAnyTerm.end())
+    if (itgat != typeToGAnyTerm.end())
     {
       iuse = itgat->second;
     }

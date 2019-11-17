@@ -97,9 +97,6 @@ const Datatype& SygusDatatype::getDatatype() const
   return d_dt;
 }
 
-bool SygusDatatype::isInitialized() const
-{
-  return d_dt.isSygus();
-}
+bool SygusDatatype::isInitialized() const { return d_dt.isSygus(); }
 
 }  // namespace CVC4

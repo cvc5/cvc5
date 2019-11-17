@@ -294,7 +294,7 @@ enum SygusFilterSolMode
 
 enum SygusGrammarConsMode
 {
-  /** 
+  /**
    * Use simple default SyGuS grammar construction (no symbolic terms or
    * constants).
    */

@@ -1100,8 +1100,9 @@ OptionsHandler::stringToSygusActiveGenMode(std::string option,
                           + optarg + "'.  Try --sygus-inv-templ help.");
   }
 }
-theory::quantifiers::SygusGrammarConsMode OptionsHandler::stringToSygusGrammarConsMode(
-      std::string option, std::string optarg)
+theory::quantifiers::SygusGrammarConsMode
+OptionsHandler::stringToSygusGrammarConsMode(std::string option,
+                                             std::string optarg)
 {
   if (optarg == "simple")
   {
@@ -1122,8 +1123,9 @@ theory::quantifiers::SygusGrammarConsMode OptionsHandler::stringToSygusGrammarCo
   }
   else
   {
-    throw OptionException(std::string("unknown option for --sygus-grammar-cons: `")
-                          + optarg + "'.  Try --sygus-grammar-cons help.");
+    throw OptionException(
+        std::string("unknown option for --sygus-grammar-cons: `") + optarg
+        + "'.  Try --sygus-grammar-cons help.");
   }
 }
 
