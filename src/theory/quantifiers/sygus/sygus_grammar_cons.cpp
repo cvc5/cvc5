@@ -879,7 +879,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       unsigned iat = itgat->second;
       // for now, only real has any term construction
       Assert(types[i].isReal());
-      const Datatype& dt = sdts[i].d_sdt.getDatatype();
+      const SygusDatatype& sdti = sdts[i].d_sdt;
       // We have initialized the given type sdts[i], which should now contain
       // a constructor for each relevant arithmetic term/variable. We now
       // construct a sygus datatype with a single constructor corresponding to
@@ -897,9 +897,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<Node> sumChildren;
       std::vector<TypeNode> cargsAnyTerm;
       std::vector<Node> lambdaVars;
-      for (unsigned k = 0, ncons = dt.getNumConstructors(); k < ncons; k++)
+      for (unsigned k = 0, ncons = sdti.getNumConstructors(); k < ncons; k++)
       {
-        Node sop = Node::fromExpr(dt[k].getSygusOp());
+        const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
+        Node sop = sdc.d_op;
         //FIXME
         if (sop.isConst() || sop.getKind() == PLUS || sop.getKind()==MINUS)
         {
@@ -911,7 +912,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Node coeff = nm->mkBoundVar(types[i]);
         lambdaVars.push_back(coeff);
         cargsAnyTerm.push_back(unresAnyConst);
-        unsigned nargs = dt[k].getNumArgs();
+        unsigned nargs = sdc.d_argTypes.size();
         if (nargs > 0)
         {
           // Take its arguments. For example, if we are building a polynomial
@@ -923,7 +924,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           for (unsigned j = 0; j < nargs; j++)
           {
             // this is already corresponds to the correct sygus datatype type
-            TypeNode atype = TypeNode::fromType(dt[k].getArgType(j));
+            TypeNode atype = sdc.d_argTypes[j];
             cargsAnyTerm.push_back(atype);
             // builtin type can be extracted from lambda
             opLArgs.push_back(nm->mkBoundVar(sop[0][j].getType()));
@@ -949,6 +950,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // make the any term datatype, add to back
       // do not consider the exclusion criteria of the generator
       sdts[iat].d_sdt.addConstructor(op, "any_term_templ", cargsAnyTerm);
+      // also add ITE
+      std::vector<TypeNode> cargsIte;
+      cargsIte.push_back(unres_bt);
+      cargsIte.push_back(unres_types[iat]);
+      cargsIte.push_back(unres_types[iat]);
+      sdts[iat].d_sdt.addConstructor(ITE, cargsIte);
       sdts[iat].d_sdt.initializeDatatype(types[i], bvl, true, true);
       Trace("sygus-grammar-def")
           << "...built datatype " << sdts[iat].d_sdt.getDatatype() << std::endl;

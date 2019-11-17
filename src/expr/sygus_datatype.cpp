@@ -26,15 +26,16 @@ std::string SygusDatatype::getName() const { return d_dt.getName(); }
 
 void SygusDatatype::addConstructor(Node op,
                                    const std::string& name,
-                                   const std::vector<TypeNode>& consTypes,
+                                   const std::vector<TypeNode>& argTypes,
                                    std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
-  d_ops.push_back(op);
-  d_cons_names.push_back(std::string(name));
-  d_pc.push_back(spc);
-  d_weight.push_back(weight);
-  d_consArgs.push_back(consTypes);
+  d_cons.push_back(SygusDatatypeConstructor());
+  d_cons.back().d_op = op;
+  d_cons.back().d_name = name;
+  d_cons.back().d_argTypes = argTypes;
+  d_cons.back().d_pc = spc;
+  d_cons.back().d_weight = weight;
 }
 
 void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
@@ -53,15 +54,21 @@ void SygusDatatype::addAnyConstantConstructor(TypeNode tn)
       av, cname, builtinArg, printer::SygusEmptyPrintCallback::getEmptyPC(), 0);
 }
 void SygusDatatype::addConstructor(Kind k,
-                                   const std::vector<TypeNode>& consTypes,
+                                   const std::vector<TypeNode>& argTypes,
                                    std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
   NodeManager* nm = NodeManager::currentNM();
-  addConstructor(nm->operatorOf(k), kindToString(k), consTypes, spc, weight);
+  addConstructor(nm->operatorOf(k), kindToString(k), argTypes, spc, weight);
 }
 
-size_t SygusDatatype::getNumConstructors() const { return d_ops.size(); }
+size_t SygusDatatype::getNumConstructors() const { return d_cons.size(); }
+
+const SygusDatatypeConstructor& SygusDatatype::getConstructor(unsigned i) const
+{
+  Assert(i<d_cons.size());
+  return d_cons[i];
+}
 
 void SygusDatatype::initializeDatatype(TypeNode sygusType,
                                        Node sygusVars,
@@ -71,21 +78,21 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
   // should not have initialized (set sygus) yet
   Assert(!isInitialized());
   // should have added a constructor
-  Assert(!d_ops.empty());
+  Assert(!d_cons.empty());
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
   d_dt.setSygus(sygusType.toType(), sygusVars.toExpr(), allowConst, allowAll);
-  for (unsigned i = 0, size_d_ops = d_ops.size(); i < size_d_ops; ++i)
+  for (unsigned i = 0, ncons = d_cons.size(); i < ncons; ++i)
   {
     // must convert to type now
     std::vector<Type> cargs;
-    for (TypeNode& ct : d_consArgs[i])
+    for (TypeNode& ct : d_cons[i].d_argTypes)
     {
       cargs.push_back(ct.toType());
     }
     // add (sygus) constructor
     d_dt.addSygusConstructor(
-        d_ops[i].toExpr(), d_cons_names[i], cargs, d_pc[i], d_weight[i]);
+        d_cons[i].d_op.toExpr(), d_cons[i].d_name, cargs, d_cons[i].d_pc, d_cons[i].d_weight);
   }
   Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
 }
