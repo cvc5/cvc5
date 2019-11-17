@@ -955,12 +955,10 @@ Expr DatatypeConstructor::getTester() const {
 }
 
 Expr DatatypeConstructor::getSygusOp() const {
-  PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return d_sygus_op;
 }
 
 bool DatatypeConstructor::isSygusIdFunc() const {
-  PrettyCheckArgument(isResolved(), this, "this datatype constructor is not yet resolved");
   return (d_sygus_op.getKind() == kind::LAMBDA
           && d_sygus_op[0].getNumChildren() == 1
           && d_sygus_op[0][0] == d_sygus_op[1]);
@@ -968,15 +966,11 @@ bool DatatypeConstructor::isSygusIdFunc() const {
 
 unsigned DatatypeConstructor::getWeight() const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
   return d_weight;
 }
 
 std::shared_ptr<SygusPrintCallback> DatatypeConstructor::getSygusPrintCallback() const
 {
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
   return d_sygus_pc;
 }
 

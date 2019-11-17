@@ -575,7 +575,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // If the type does not support any term, we do any constant instead.
       // We also fall back on any constant construction if the type has no
       // constructors at this point (e.g. it simply encodes all constants).
-      if (!types[i].isReal() || sdts[i].d_sdt.getNumConstructors() == 0)
+      if (!types[i].isReal())
       {
         sgcm = SYGUS_GCONS_ANY_CONST;
       }
@@ -591,6 +591,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         unres_types.push_back(unresAnyTerm);
       }
     }
+    Trace("sygus-grammar-def") << "Grammar constructor mode is " << sgcm << std::endl;
     //add variables
     for (const Node& sv : sygus_vars)
     {
