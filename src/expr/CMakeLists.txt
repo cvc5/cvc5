@@ -48,6 +48,8 @@ libcvc4_add_sources(
   datatype.cpp
   record.cpp
   record.h
+  sygus_datatype.cpp
+  sygus_datatype.h
   uninterpreted_constant.cpp
   uninterpreted_constant.h
 )
