@@ -427,6 +427,7 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
       // Must add to the beginning to ensure parametric types appear before
       // their consistuent types.
       types.insert( types.begin(), range );
+      //types.push_back(range);
       if( range.isDatatype() ){
         const Datatype& dt = range.getDatatype();
         for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
