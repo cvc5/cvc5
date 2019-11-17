@@ -32,13 +32,13 @@ struct SygusAnyConstAttributeId
 };
 typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
 
-/** 
+/**
  * Information necessary to specify a sygus constructor. Further detail on these
  * fields can be found in SygusDatatype below.
  */
 class SygusDatatypeConstructor
 {
-public:
+ public:
   /** The operator that the constructor encodes. */
   Node d_op;
   /** Name of the constructor. */
@@ -108,7 +108,7 @@ class SygusDatatype
 
   /** Get the number of constructors added to this class so far */
   size_t getNumConstructors() const;
-  
+
   /** Get constructor at index i */
   const SygusDatatypeConstructor& getConstructor(unsigned i) const;
 

@@ -591,7 +591,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         unres_types.push_back(unresAnyTerm);
       }
     }
-    Trace("sygus-grammar-def") << "Grammar constructor mode is " << sgcm << std::endl;
+    Trace("sygus-grammar-def")
+        << "Grammar constructor mode is " << sgcm << std::endl;
     //add variables
     for (const Node& sv : sygus_vars)
     {
@@ -901,10 +902,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
         Node sop = sdc.d_op;
-        //FIXME
-        if (sop.isConst() || sop.getKind() == PLUS || sop.getKind()==MINUS)
+        // FIXME
+        if (sop.isConst() || sop.getKind() == PLUS || sop.getKind() == MINUS)
         {
-          Trace("sygus-grammar-def") << "Ignore monomial variable: " << sop << std::endl;
+          Trace("sygus-grammar-def")
+              << "Ignore monomial variable: " << sop << std::endl;
           // don't consider constants or arithmetic operators
           continue;
         }
