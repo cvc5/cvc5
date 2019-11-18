@@ -55,13 +55,24 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     Node g = tds->mkGeneric(dt, i, pre, false);
     Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
     d_gen_terms[i] = g;
-    Assert(g.getNumChildren() == dt[i].getNumArgs());
-    for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
-    {
-      pre[j] = g[j];
-    }
+    // a list of variants of the generic term (see getGenericList).
     std::vector<Node> glist;
-    getGenericList(tds, dt, i, 0, pre, glist);
+    if (sop.isConst() || sop.getKind()==LAMBDA)
+    {
+      Assert(g.getNumChildren() == dt[i].getNumArgs());
+      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      {
+        pre[j] = g[j];
+      }
+      getGenericList(tds, dt, i, 0, pre, glist);
+    }
+    else
+    {
+      // It is a builtin (possibly) term. Its children do not correspond
+      // one-to-one with the arugments of the constructor. Hence, we consider
+      // only g itself as a variant.
+      glist.push_back(g);
+    }
     // call the extended rewriter
     bool red = false;
     for (const Node& gr : glist)
