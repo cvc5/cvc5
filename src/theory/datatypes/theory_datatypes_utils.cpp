@@ -28,7 +28,7 @@ namespace theory {
 namespace datatypes {
 namespace utils {
 
-Node applySygusArgs(const Datatype& dt,
+Node applySygusArgs(const DType& dt,
                     Node op,
                     Node n,
                     const std::vector<Node>& args)
@@ -37,7 +37,7 @@ Node applySygusArgs(const Datatype& dt,
   {
     Assert(n.hasAttribute(SygusVarNumAttribute()));
     int vn = n.getAttribute(SygusVarNumAttribute());
-    Assert(Node::fromExpr(dt.getSygusVarList())[vn] == n);
+    Assert(dt.getSygusVarList()[vn] == n);
     return args[vn];
   }
   // n is an application of operator op.
@@ -81,7 +81,7 @@ Node applySygusArgs(const Datatype& dt,
   }
   // do the full substitution
   std::vector<Node> vars;
-  Node bvl = Node::fromExpr(dt.getSygusVarList());
+  Node bvl = dt.getSygusVarList();
   for (unsigned i = 0, nvars = bvl.getNumChildren(); i < nvars; i++)
   {
     vars.push_back(bvl[i]);
@@ -116,7 +116,7 @@ Kind getOperatorKindForSygusBuiltin(Node op)
   return UNDEFINED_KIND;
 }
 
-Node mkSygusTerm(const Datatype& dt,
+Node mkSygusTerm(const DType& dt,
                  unsigned i,
                  const std::vector<Node>& children,
                  bool doBetaReduction)
@@ -127,7 +127,7 @@ Node mkSygusTerm(const Datatype& dt,
   Assert(dt.isSygus());
   Assert(!dt[i].getSygusOp().isNull());
   std::vector<Node> schildren;
-  Node op = Node::fromExpr(dt[i].getSygusOp());
+  Node op = dt[i].getSygusOp();
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {
@@ -196,24 +196,23 @@ Node mkSygusTerm(const Datatype& dt,
 }
 
 /** get instantiate cons */
-Node getInstCons(Node n, const Datatype& dt, int index)
+Node getInstCons(Node n, const DType& dt, int index)
 {
   Assert(index >= 0 && index < (int)dt.getNumConstructors());
   std::vector<Node> children;
   NodeManager* nm = NodeManager::currentNM();
-  children.push_back(Node::fromExpr(dt[index].getConstructor()));
-  Type t = n.getType().toType();
+  children.push_back(dt[index].getConstructor());
+  TypeNode tn = n.getType();
   for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
     Node nc = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                         Node::fromExpr(dt[index].getSelectorInternal(t, i)),
+                         dt[index].getSelectorInternal(tn, i),
                          n);
     children.push_back(nc);
   }
   Node n_ic = nm->mkNode(APPLY_CONSTRUCTOR, children);
   if (dt.isParametric())
   {
-    TypeNode tn = TypeNode::fromType(t);
     // add type ascription for ambiguous constructor types
     if (!n_ic.getType().isComparableTo(tn))
     {
@@ -222,12 +221,12 @@ Node getInstCons(Node n, const Datatype& dt, int index)
           << n.getType() << std::endl;
       Debug("datatypes-parametric")
           << "Constructor is " << dt[index] << std::endl;
-      Type tspec =
-          dt[index].getSpecializedConstructorType(n.getType().toType());
+      TypeNode tspec =
+          dt[index].getSpecializedConstructorType(n.getType());
       Debug("datatypes-parametric")
           << "Type specification is " << tspec << std::endl;
       children[0] = nm->mkNode(APPLY_TYPE_ASCRIPTION,
-                               nm->mkConst(AscriptionType(tspec)),
+                               nm->mkConst(AscriptionType(tspec.toType())),
                                children[0]);
       n_ic = nm->mkNode(APPLY_CONSTRUCTOR, children);
       Assert(n_ic.getType() == tn);
@@ -238,17 +237,17 @@ Node getInstCons(Node n, const Datatype& dt, int index)
   return n_ic;
 }
 
-int isInstCons(Node t, Node n, const Datatype& dt)
+int isInstCons(Node t, Node n, const DType& dt)
 {
   if (n.getKind() == APPLY_CONSTRUCTOR)
   {
     int index = indexOf(n.getOperator());
-    const DatatypeConstructor& c = dt[index];
-    Type nt = n.getType().toType();
+    const DTypeConstructor& c = dt[index];
+    TypeNode tn = n.getType();
     for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
     {
       if (n[i].getKind() != APPLY_SELECTOR_TOTAL
-          || n[i].getOperator() != Node::fromExpr(c.getSelectorInternal(nt, i))
+          || n[i].getOperator() != c.getSelectorInternal(tn, i)
           || n[i][0] != t)
       {
         return -1;
@@ -295,13 +294,13 @@ const DType& datatypeOf(Node n)
   }
 }
 
-Node mkTester(Node n, int i, const Datatype& dt)
+Node mkTester(Node n, int i, const DType& dt)
 {
   return NodeManager::currentNM()->mkNode(
-      APPLY_TESTER, Node::fromExpr(dt[i].getTester()), n);
+      APPLY_TESTER, dt[i].getTester(), n);
 }
 
-Node mkSplit(Node n, const Datatype& dt)
+Node mkSplit(Node n, const DType& dt)
 {
   std::vector<Node> splits;
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
@@ -326,7 +325,7 @@ bool isNullaryApplyConstructor(Node n)
   return true;
 }
 
-bool isNullaryConstructor(const DatatypeConstructor& c)
+bool isNullaryConstructor(const DTypeConstructor& c)
 {
   for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
   {

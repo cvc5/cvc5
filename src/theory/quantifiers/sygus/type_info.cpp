@@ -18,6 +18,7 @@
 #include "expr/sygus_datatype.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "expr/dtype.h"
 
 using namespace CVC4::kind;
 
@@ -37,14 +38,14 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
 {
   d_this = tn;
   Assert(tn.isDatatype());
-  const Datatype& dt = tn.getDatatype();
+  const DType& dt = tn.getDType();
   Assert(dt.isSygus());
   Trace("sygus-db") << "Register type " << dt.getName() << "..." << std::endl;
-  TypeNode btn = TypeNode::fromType(dt.getSygusType());
+  TypeNode btn = dt.getSygusType();
   d_btype = btn;
   Assert(!d_btype.isNull());
   // get the sygus variable list
-  Node var_list = Node::fromExpr(dt.getSygusVarList());
+  Node var_list = dt.getSygusVarList();
   if (!var_list.isNull())
   {
     for (unsigned j = 0; j < var_list.getNumChildren(); j++)
@@ -77,7 +78,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
   {
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {
-      TypeNode ctn = TypeNode::fromType(dt[i].getArgType(j));
+      TypeNode ctn = dt[i].getArgType(j);
       Trace("sygus-db") << "  register subfield type " << ctn << std::endl;
       if (tds->registerSygusType(ctn))
       {
@@ -93,13 +94,12 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
   // iterate over constructors
   for (unsigned i = 0; i < dt.getNumConstructors(); i++)
   {
-    Expr sop = dt[i].getSygusOp();
+    Node sop = dt[i].getSygusOp();
     Assert(!sop.isNull());
-    Node n = Node::fromExpr(sop);
     Trace("sygus-db") << "  Operator #" << i << " : " << sop;
     if (sop.getKind() == kind::BUILTIN)
     {
-      Kind sk = NodeManager::operatorToKind(n);
+      Kind sk = NodeManager::operatorToKind(sop);
       Trace("sygus-db") << ", kind = " << sk;
       d_kinds[sk] = i;
       d_arg_kind[i] = sk;
@@ -112,8 +112,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     else if (sop.isConst() && dt[i].getNumArgs() == 0)
     {
       Trace("sygus-db") << ", constant";
-      d_consts[n] = i;
-      d_arg_const[i] = n;
+      d_consts[sop] = i;
+      d_arg_const[i] = sop;
     }
     else if (sop.getKind() == LAMBDA)
     {
@@ -121,9 +121,9 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       Assert(sop[0].getNumChildren() == dt[i].getNumArgs());
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
-        TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
+        TypeNode ct = dt[i].getArgType(j);
         TypeNode cbt = tds->sygusToBuiltinType(ct);
-        TypeNode lat = TypeNode::fromType(sop[0][j].getType());
+        TypeNode lat = sop[0][j].getType();
         AlwaysAssert(cbt.isSubtypeOf(lat))
             << "In sygus datatype " << dt.getName()
             << ", argument to a lambda constructor is not " << lat << std::endl;
@@ -135,7 +135,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       }
     }
     // symbolic constructors
-    if (n.getAttribute(SygusAnyConstAttribute()))
+    if (sop.getAttribute(SygusAnyConstAttribute()))
     {
       d_sym_cons_any_constant = i;
       d_has_subterm_sym_cons = true;
@@ -145,8 +145,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     // The challenge is that we easily ask for expected argument types of
     // builtin operators e.g. PLUS. Hence the call to mkGeneric below
     // will throw a type exception.
-    d_ops[n] = i;
-    d_arg_ops[i] = n;
+    d_ops[sop] = i;
+    d_arg_ops[i] = sop;
     Trace("sygus-db") << std::endl;
     // ensure that terms that this constructor encodes are
     // of the type specified in the datatype. This will fail if
@@ -170,7 +170,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       csize = 1;
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
-        TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
+        TypeNode ct = dt[i].getArgType(j);
         if (ct == tn)
         {
           csize += d_min_term_size;
@@ -182,7 +182,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         }
         else
         {
-          Assert(!ct.isDatatype() || !ct.getDatatype().isSygus());
+          Assert(!ct.isDatatype() || !ct.getDType().isSygus());
         }
       }
     }
@@ -219,12 +219,11 @@ void SygusTypeInfo::initializeVarSubclasses()
     std::vector<unsigned> rm_indices;
     TypeNode stn = sf_types[i];
     Assert(stn.isDatatype());
-    const Datatype& dt = stn.getDatatype();
+    const DType& dt = stn.getDType();
     for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
     {
-      Expr sop = dt[j].getSygusOp();
-      Assert(!sop.isNull());
-      Node sopn = Node::fromExpr(sop);
+      Node sopn = dt[j].getSygusOp();
+      Assert(!sopn.isNull());
       if (type_occurs.find(sopn) != type_occurs.end())
       {
         // if it is a variable, store that it occurs in stn
@@ -272,7 +271,7 @@ void SygusTypeInfo::computeMinTypeDepthInternal(TypeNode tn,
     // do not recurse to non-datatype types
     return;
   }
-  const Datatype& dt = tn.getDatatype();
+  const DType& dt = tn.getDType();
   if (!dt.isSygus())
   {
     // do not recurse to non-sygus datatype types
@@ -284,7 +283,7 @@ void SygusTypeInfo::computeMinTypeDepthInternal(TypeNode tn,
   {
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {
-      TypeNode at = TypeNode::fromType(dt[i].getArgType(j));
+      TypeNode at = dt[i].getArgType(j);
       computeMinTypeDepthInternal(at, type_depth + 1);
     }
   }

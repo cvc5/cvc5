@@ -26,6 +26,7 @@
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
+#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace theory {
@@ -229,18 +230,18 @@ class TermDbSygus {
    * If doBetaRed is true, then lambda operators are eagerly eliminated via
    * beta reduction.
    */
-  Node mkGeneric(const Datatype& dt,
+  Node mkGeneric(const DType& dt,
                  unsigned c,
                  std::map<TypeNode, int>& var_count,
                  std::map<int, Node>& pre,
                  bool doBetaRed = true);
   /** same as above, but with empty var_count */
-  Node mkGeneric(const Datatype& dt,
+  Node mkGeneric(const DType& dt,
                  int c,
                  std::map<int, Node>& pre,
                  bool doBetaRed = true);
   /** same as above, but with empty pre */
-  Node mkGeneric(const Datatype& dt, int c, bool doBetaRed = true);
+  Node mkGeneric(const DType& dt, int c, bool doBetaRed = true);
   /** makes a symbolic term concrete
    *
    * Given a sygus datatype term n of type tn with holes (symbolic constructor
@@ -413,9 +414,9 @@ class TermDbSygus {
   /** get the weight of the selector, where tn is the domain of sel */
   unsigned getSelectorWeight(TypeNode tn, Node sel);
   /** get arg type */
-  TypeNode getArgType(const DatatypeConstructor& c, unsigned i) const;
+  TypeNode getArgType(const DTypeConstructor& c, unsigned i) const;
   /** Do constructors c1 and c2 have the same type? */
-  bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
+  bool isTypeMatch( const DTypeConstructor& c1, const DTypeConstructor& c2 );
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** can construct kind

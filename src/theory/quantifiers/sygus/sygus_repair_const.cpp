@@ -70,7 +70,7 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
       // "any constant" constructors
       return;
     }
-    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    const DType& dt = tn.getDType();
     if (!dt.isSygus())
     {
       // may have recursed to a non-sygus-datatype
@@ -83,7 +83,7 @@ void SygusRepairConst::registerSygusType(TypeNode tn,
     }
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
-      const DatatypeConstructor& dtc = dt[i];
+      const DTypeConstructor& dtc = dt[i];
       // recurse on all subfields
       for (unsigned j = 0, nargs = dtc.getNumArgs(); j < nargs; j++)
       {
@@ -366,14 +366,14 @@ bool SygusRepairConst::isRepairable(Node n, bool useConstantsAsHoles)
   }
   TypeNode tn = n.getType();
   Assert(tn.isDatatype());
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   if (!dt.isSygus())
   {
     return false;
   }
   Node op = n.getOperator();
   unsigned cindex = datatypes::utils::indexOf(op);
-  Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
+  Node sygusOp = dt[cindex].getSygusOp();
   if (sygusOp.getAttribute(SygusAnyConstAttribute()))
   {
     // if it represents "any constant" then it is repairable

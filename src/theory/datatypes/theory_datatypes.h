@@ -354,7 +354,7 @@ private:
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */
-  Node getInstantiateCons( Node n, const Datatype& dt, int index );
+  Node getInstantiateCons( Node n, const DType& dt, int index );
   /** check instantiate */
   void instantiate( EqcInfo* eqc, Node n );
   /** must communicate fact */

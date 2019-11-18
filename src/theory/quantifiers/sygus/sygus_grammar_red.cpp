@@ -18,6 +18,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "expr/dtype.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -34,9 +35,9 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
   Assert(tn.isDatatype());
   TermDbSygus* tds = qe->getTermDatabaseSygus();
   tds->registerSygusType(tn);
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   Assert(dt.isSygus());
-  TypeNode btn = TypeNode::fromType(dt.getSygusType());
+  TypeNode btn = dt.getSygusType();
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
     Trace("sygus-red") << "  Is " << dt[i].getName() << " a redundant operator?"
@@ -81,7 +82,7 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
 
 void SygusRedundantCons::getRedundant(std::vector<unsigned>& indices)
 {
-  const Datatype& dt = static_cast<DatatypeType>(d_type.toType()).getDatatype();
+  const DType& dt = d_type.getDType();
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
     if (isRedundant(i))
@@ -98,7 +99,7 @@ bool SygusRedundantCons::isRedundant(unsigned i)
 }
 
 void SygusRedundantCons::getGenericList(TermDbSygus* tds,
-                                        const Datatype& dt,
+                                        const DType& dt,
                                         unsigned c,
                                         unsigned index,
                                         std::map<int, Node>& pre,

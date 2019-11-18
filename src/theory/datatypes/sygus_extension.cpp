@@ -27,6 +27,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_model.h"
+#include "expr/dtype.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -77,8 +78,8 @@ void SygusExtension::assertTester( int tindex, TNode n, Node exp, std::vector< N
             Assert(itt != d_testers.end());
             int ptindex = (*itt).second;
             TypeNode ptn = n[0].getType();
-            const Datatype& pdt = ((DatatypeType)ptn.toType()).getDatatype();
-            int sindex_in_parent = pdt[ptindex].getSelectorIndexInternal( n.getOperator().toExpr() );
+            const DType& pdt = ptn.getDType();
+            int sindex_in_parent = pdt[ptindex].getSelectorIndexInternal( n.getOperator() );
             // the tester is irrelevant in this branch
             if( sindex_in_parent==-1 ){
               do_add = false;
@@ -138,7 +139,7 @@ Node SygusExtension::getTermOrderPredicate( Node n1, Node n2 ) {
   sz_eq_cases.push_back( sz_eq );
   if( options::sygusOpt1() ){
     TypeNode tnc = n1.getType();
-    const Datatype& cdt = ((DatatypeType)(tnc).toType()).getDatatype();
+    const DType& cdt = tnc.getDType();
     for( unsigned j=0; j<cdt.getNumConstructors(); j++ ){
       std::vector<Node> case_conj;
       for (unsigned k = 0; k < j; k++)
@@ -194,7 +195,7 @@ void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
       }
     }
     if( success ){
-      Trace("sygus-sb-debug") << "Register : " << n << ", depth : " << d << ", top level = " << is_top_level << ", type = " << ((DatatypeType)tn.toType()).getDatatype().getName() << std::endl;
+      Trace("sygus-sb-debug") << "Register : " << n << ", depth : " << d << ", top level = " << is_top_level << ", type = " << tn.getDType().getName() << std::endl;
       d_term_to_depth[n] = d;
       d_is_top_level[n] = is_top_level;
       registerSearchTerm( tn, d, n, is_top_level, lemmas );
@@ -221,7 +222,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
     // nothing to do for non-datatype types
     return;
   }
-  const Datatype& dt = static_cast<DatatypeType>(ntn.toType()).getDatatype();
+  const DType& dt = ntn.getDType();
   if (!dt.isSygus())
   {
     // nothing to do for non-sygus-datatype type
@@ -265,7 +266,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
           IntMap::const_iterator ittv = d_testers.find( x );
           Assert(ittv != d_testers.end());
           int tindex = (*ittv).second;
-          const Datatype& dti = ((DatatypeType)x.getType().toType()).getDatatype();
+          const DType& dti = x.getType().getDType();
           if( dti[tindex].getNumArgs()>0 ){
             NodeMap::const_iterator itt = d_testers_exp.find( x );
             Assert(itt != d_testers_exp.end());
@@ -365,7 +366,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
   if( options::sygusSymBreakLazy() ){
     Trace("sygus-sb-debug") << "Do lazy symmetry breaking...\n";
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
-      Node sel = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( ntn.toType(), j ) ), n );
+      Node sel = NodeManager::currentNM()->mkNode( APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal( ntn, j ), n );
       Trace("sygus-sb-debug2") << "  activate child sel : " << sel << std::endl;
       Assert(d_active_terms.find(sel) == d_active_terms.end());
       IntMap::const_iterator itt = d_testers.find( sel );
@@ -384,14 +385,13 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
     Node cond;
     if( n.getKind()==APPLY_SELECTOR_TOTAL && options::sygusSymBreakRlv() ){
       TypeNode ntn = n[0].getType();
-      Type nt = ntn.toType();
-      const Datatype& dt = ((DatatypeType)nt).getDatatype();
-      Expr selExpr = n.getOperator().toExpr();
+      const DType& dt = ntn.getDType();
+      Node sel = n.getOperator();
       if( options::dtSharedSelectors() ){
         std::vector< Node > disj;
         bool excl = false;
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-          int sindexi = dt[i].getSelectorIndexInternal(selExpr);
+          int sindexi = dt[i].getSelectorIndexInternal(sel);
           if (sindexi != -1)
           {
             disj.push_back(utils::mkTester(n[0], i, dt).negate());
@@ -407,7 +407,7 @@ Node SygusExtension::getRelevancyCondition( Node n ) {
                                                   kind::AND, disj);
         }
       }else{
-        int sindex = Datatype::cindexOf( selExpr );
+        int sindex = utils::cindexOf( sel );
         Assert(sindex != -1);
         cond = utils::mkTester(n[0], sindex, dt).negate();
       }
@@ -551,7 +551,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   Assert(tn.isDatatype());
   NodeManager* nm = NodeManager::currentNM();
   Node n = getFreeVar(tn);
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   Assert(dt.isSygus());
   Assert(tindex >= 0 && tindex < static_cast<int>(dt.getNumConstructors()));
 
@@ -561,7 +561,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
 
   quantifiers::SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   // get the sygus operator
-  Node sop = Node::fromExpr(dt[tindex].getSygusOp());
+  Node sop = dt[tindex].getSygusOp();
   // get the kind of the constructor operator
   Kind nk = ti.getConsNumKind(tindex);
   // is this the any-constant constructor?
@@ -576,14 +576,14 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   unsigned dt_index_nargs = isAnyConstant ? 0 : dt[tindex].getNumArgs();
 
   // builtin type
-  TypeNode tnb = TypeNode::fromType(dt.getSygusType());
+  TypeNode tnb = dt.getSygusType();
   // get children
   std::vector<Node> children;
   for (unsigned j = 0; j < dt_index_nargs; j++)
   {
     Node sel = nm->mkNode(
         APPLY_SELECTOR_TOTAL,
-        Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), j)),
+        dt[tindex].getSelectorInternal(tn, j),
         n);
     Assert(sel.getType().isDatatype());
     children.push_back(sel);
@@ -615,7 +615,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
       // is the tindex^{th} constructor of dt. Thus, is-x_i( z ) is either
       // true or false below.
 
-      Node svl = Node::fromExpr(dt.getSygusVarList());
+      Node svl = dt.getSygusVarList();
       // for each variable
       Assert(!e.isNull());
       TypeNode etn = e.getType();
@@ -699,8 +699,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
       {
         children_solved[j] = i;
         TypeNode ctn = children[j].getType();
-        const Datatype& cdt =
-            static_cast<DatatypeType>(ctn.toType()).getDatatype();
+        const DType& cdt = ctn.getDType();
         Assert(i < static_cast<int>(cdt.getNumConstructors()));
         sbp_conj.push_back(utils::mkTester(children[j], i, cdt));
       }
@@ -820,8 +819,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
           TypeNode tnc = nc.getType();
           quantifiers::SygusTypeInfo& cti = d_tds->getTypeInfo(tnc);
           int anyc_cons_num = cti.getAnyConstantConsNum();
-          const Datatype& cdt =
-              static_cast<DatatypeType>(tnc.toType()).getDatatype();
+          const DType& cdt = tnc.getDType();
           std::vector<Node> exp_const;
           for (unsigned k = 0, ncons = cdt.getNumConstructors(); k < ncons; k++)
           {
@@ -911,7 +909,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
         // chainable
         Node child11 = nm->mkNode(
             APPLY_SELECTOR_TOTAL,
-            Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), 1)),
+            dt[tindex].getSelectorInternal(tn, 1),
             children[0]);
         Assert(child11.getType() == children[1].getType());
         Node order_pred_trans =
@@ -974,7 +972,7 @@ Node SygusExtension::registerSearchValue(Node a,
     // selector chain n.
     return n;
   }
-  const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   if (!dt.isSygus())
   {
     // don't register non-sygus-datatype terms
@@ -993,7 +991,7 @@ Node SygusExtension::registerSearchValue(Node a,
     {
       Node sel = nm->mkNode(
           APPLY_SELECTOR_TOTAL,
-          Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
+          dt[cindex].getSelectorInternal(tn, i),
           n);
       Node nvc = registerSearchValue(a,
                                      sel,
@@ -1283,7 +1281,7 @@ void SygusExtension::registerSizeTerm(Node e, std::vector<Node>& lemmas)
     d_register_st[e] = false;
     return;
   }
-  const Datatype& dt = etn.getDatatype();
+  const DType& dt = etn.getDType();
   if (!dt.isSygus())
   {
     // not a sygus datatype term
@@ -1358,7 +1356,7 @@ void SygusExtension::registerSizeTerm(Node e, std::vector<Node>& lemmas)
   {
     // if it is variable agnostic, enforce top-level constraint that says no
     // variables occur pre-traversal at top-level
-    Node varList = Node::fromExpr(dt.getSygusVarList());
+    Node varList = dt.getSygusVarList();
     std::vector<Node> constraints;
     quantifiers::SygusTypeInfo& eti = d_tds->getTypeInfo(etn);
     for (const Node& v : varList)
@@ -1672,7 +1670,7 @@ bool SygusExtension::checkValue(Node n,
                                   << std::endl;
   }
   TypeNode tn = n.getType();
-  const Datatype& dt = tn.getDatatype();
+  const DType& dt = tn.getDType();
   Assert(dt.isSygus());
 
   // ensure that the expected size bound is met
@@ -1704,7 +1702,7 @@ bool SygusExtension::checkValue(Node n,
   for( unsigned i=0; i<vn.getNumChildren(); i++ ){
     Node sel = nm->mkNode(
         APPLY_SELECTOR_TOTAL,
-        Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
+        dt[cindex].getSelectorInternal(tn, i),
         n);
     if (!checkValue(sel, vn[i], ind + 1, lemmas))
     {
@@ -1719,14 +1717,14 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
     TypeNode tn = n.getType();
     IntMap::const_iterator it = d_testers.find( n );
     Assert(it != d_testers.end());
-    const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
+    const DType& dt = tn.getDType();
     int tindex = (*it).second;
     Assert(tindex >= 0);
     Assert(tindex < (int)dt.getNumConstructors());
     std::vector< Node > children;
-    children.push_back( Node::fromExpr( dt[tindex].getConstructor() ) );
+    children.push_back( dt[tindex].getConstructor() );
     for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
-      Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[tindex].getSelectorInternal( tn.toType(), i ) ), n );
+      Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal( tn, i ), n );
       Node cc = getCurrentTemplate( sel, var_count );
       children.push_back( cc );
     }

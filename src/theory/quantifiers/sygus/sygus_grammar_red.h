@@ -113,7 +113,7 @@ class SygusRedundantCons
    * to terms.
    */
   void getGenericList(TermDbSygus* tds,
-                      const Datatype& dt,
+                      const DType& dt,
                       unsigned c,
                       unsigned index,
                       std::map<int, Node>& pre,
