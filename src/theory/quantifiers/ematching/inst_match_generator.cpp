@@ -203,7 +203,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       {
         // 1-constructors have a trivial way of generating candidates in a
         // given equivalence class
-        const Datatype& dt = d_match_pattern.getType().getDatatype();
+        const DType& dt = d_match_pattern.getType().getDType();
         if (dt.getNumConstructors() == 1)
         {
           d_cg = new inst::CandidateGeneratorConsExpand(qe, d_match_pattern);

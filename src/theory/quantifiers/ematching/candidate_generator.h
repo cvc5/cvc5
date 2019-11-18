@@ -203,7 +203,7 @@ class CandidateGeneratorConsExpand : public CandidateGeneratorQE
 
  protected:
   /** the (datatype) type of the input match pattern */
-  DatatypeType d_mpat_type;
+  TypeNode d_mpat_type;
   /** we don't care about the operator of n */
   bool isLegalOpCandidate(Node n) override;
 };
