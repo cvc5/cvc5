@@ -18,6 +18,7 @@
 #include "options/uf_options.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf_model.h"
+#include "expr/dtype.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -198,7 +199,7 @@ bool TheoryEngineModelBuilder::involvesUSort(TypeNode tn)
   }
   else if (tn.isDatatype())
   {
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    const DType& dt = tn.getDType();
     return dt.involvesUninterpretedType();
   }
   else
@@ -264,12 +265,12 @@ void TheoryEngineModelBuilder::addToTypeList(
       }
       else if (tn.isDatatype())
       {
-        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+        const DType& dt = tn.getDType();
         for (unsigned i = 0; i < dt.getNumConstructors(); i++)
         {
           for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
           {
-            TypeNode ctn = TypeNode::fromType(dt[i][j].getRangeType());
+            TypeNode ctn = dt[i][j].getRangeType();
             addToTypeList(ctn, type_list, visiting);
           }
         }
@@ -627,10 +628,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       bool isCorecursive = false;
       if (t.isDatatype())
       {
-        const Datatype& dt = ((DatatypeType)(t).toType()).getDatatype();
+        const DType& dt = t.getDType();
         isCorecursive =
-            dt.isCodatatype() && (!dt.isFinite(t.toType())
-                                  || dt.isRecursiveSingleton(t.toType()));
+            dt.isCodatatype() && (!dt.isFinite(t)
+                                  || dt.isRecursiveSingleton(t));
       }
 #ifdef CVC4_ASSERTIONS
       bool isUSortFiniteRestricted = false;
