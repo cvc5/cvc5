@@ -57,7 +57,7 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     d_gen_terms[i] = g;
     // a list of variants of the generic term (see getGenericList).
     std::vector<Node> glist;
-    if (sop.isConst() || sop.getKind()==LAMBDA)
+    if (sop.isConst() || sop.getKind() == LAMBDA)
     {
       Assert(g.getNumChildren() == dt[i].getNumArgs());
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)

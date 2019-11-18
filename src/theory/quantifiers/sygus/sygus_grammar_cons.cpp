@@ -888,12 +888,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       //   C -> any_constant
       // where x1, ..., xn are the arithmetic terms/variables (non-arithmetic
       // builtin operator) terms we have considered thus far.
-      
+
       // construct a sygus datatype with a single constructor corresponding to
       // a linear polynomial over these variables/terms. Doing this first
       // requires making the "any constant" arithmetic type.
 
-      
       std::stringstream ss;
       ss << fun << "_AnyConst";
       // make sygus datatype for any constant
@@ -912,7 +911,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         Node sop = sdc.d_op;
         Trace("sygus-grammar-def") << "Monomial variable: " << sop << std::endl;
         unsigned nargs = sdc.d_argTypes.size();
-        bool isBuiltinArithOp = (sop.getKind()==CONST_RATIONAL);
+        bool isBuiltinArithOp = (sop.getKind() == CONST_RATIONAL);
         if (nargs > 0)
         {
           // Take its arguments. For example, if we are building a polynomial
@@ -925,7 +924,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           {
             // this is already corresponds to the correct sygus datatype type
             TypeNode atype = sdc.d_argTypes[j];
-            if (atype==unres_types[i])
+            if (atype == unres_types[i])
             {
               // it is recursive, thus may be a builtin arithmetic operator
               isBuiltinArithOp = true;
