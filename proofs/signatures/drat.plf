@@ -11,7 +11,8 @@
 ; Both are detailed in this paper, along with their differences:
 ;   http://fmv.jku.at/papers/RebolaPardoBiere-POS18.pdf
 ;
-; This signature checks **Specified DRAT**.
+; This signature contains implementations for a checker for each.
+; **Specified DRAT** is first.
 
 ; A DRAT proof itself: a list of addition or deletion instructions.
 (declare DRATProof type)
@@ -45,8 +46,8 @@
 ;    the mark 4 means (seen as - in c1)
 ;
 ; This implementation is robust to literal order, repeated literals, and
-; literals of opposite polarity in the same clause. It is true equality on sets
-; literals.
+; literals of opposite polarity in the same clause.
+; It is a true implementation of set equality over literals.
 ;
 ; TODO(aozdemir) This implementation could be further optimized b/c once c1 is
 ; drained, we need not continue to pattern match on it.
