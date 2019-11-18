@@ -21,6 +21,7 @@
 
 #include "expr/type_matcher.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "expr/dtype.h"
 
 namespace CVC4 {
 
@@ -104,22 +105,6 @@ struct DatatypeConstructorTypeRule {
         return false;
       }
     }
-    //if we support subtyping for tuples, enable this
-    /*
-    //check whether it is in normal form?
-    TypeNode tn = n.getType();
-    if( tn.isTuple() ){
-      const Datatype& dt = tn.getDatatype();
-      //may be the wrong constructor, if children types are subtypes
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( n[i].getType()!=TypeNode::fromType( dt[0][i].getRangeType() ) ){
-          return false;
-        }
-      }
-    }else if( tn.isCodatatype() ){
-      //TODO?
-    }
-    */
     return true;
   }
 }; /* struct DatatypeConstructorTypeRule */
@@ -404,7 +389,7 @@ class DtSyguEvalTypeRule
       throw TypeCheckingExceptionPrivate(
           n, "datatype sygus eval takes a datatype head");
     }
-    const Datatype& dt = headType.getDatatype();
+    const DType& dt = headType.getDType();
     if (!dt.isSygus())
     {
       throw TypeCheckingExceptionPrivate(
@@ -412,7 +397,7 @@ class DtSyguEvalTypeRule
     }
     if (check)
     {
-      Node svl = Node::fromExpr(dt.getSygusVarList());
+      Node svl = dt.getSygusVarList();
       if (svl.getNumChildren() + 1 != n.getNumChildren())
       {
         throw TypeCheckingExceptionPrivate(n,
@@ -432,7 +417,7 @@ class DtSyguEvalTypeRule
         }
       }
     }
-    return TypeNode::fromType(dt.getSygusType());
+    return dt.getSygusType();
   }
 }; /* class DtSyguEvalTypeRule */
 
@@ -450,7 +435,7 @@ class MatchTypeRule
     {
       throw TypeCheckingExceptionPrivate(n, "expecting datatype head in match");
     }
-    const Datatype& hdt = headType.getDatatype();
+    const DType& hdt = headType.getDType();
 
     std::unordered_set<unsigned> patIndices;
     bool patHasVariable = false;
@@ -510,10 +495,10 @@ class MatchTypeRule
           throw TypeCheckingExceptionPrivate(
               n, "unexpected kind of term in pattern in match");
         }
-        const Datatype& pdt = patType.getDatatype();
+        const DType& pdt = patType.getDType();
         // compare datatypes instead of the types to catch parametric case,
         // where the pattern has parametric type.
-        if (hdt != pdt)
+        if (hdt.getTypeNode() != pdt.getTypeNode())
         {
           std::stringstream ss;
           ss << "pattern of a match case does not match the head type in match";
