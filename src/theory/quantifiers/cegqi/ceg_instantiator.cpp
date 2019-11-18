@@ -341,13 +341,12 @@ CegHandledStatus CegInstantiator::isCbqiSort(
     // we initialize to handled, we remain handled as long as all subfields
     // of this datatype are not unhandled.
     ret = CEG_HANDLED;
-    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    const DType& dt = tn.getDType();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
-        TypeNode crange = TypeNode::fromType(
-            static_cast<SelectorType>(dt[i][j].getType()).getRangeType());
+        TypeNode crange = dt[i].getArgType(j);
         CegHandledStatus cret = isCbqiSort(crange, visited, qe);
         if (cret == CEG_UNHANDLED)
         {
@@ -520,14 +519,12 @@ void CegInstantiator::registerTheoryIds(TypeNode tn,
     registerTheoryId(tid);
     if (tn.isDatatype())
     {
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      const DType& dt = tn.getDType();
       for (unsigned i = 0; i < dt.getNumConstructors(); i++)
       {
         for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
         {
-          registerTheoryIds(
-              TypeNode::fromType(
-                  ((SelectorType)dt[i][j].getType()).getRangeType()),
+          registerTheoryIds(dt[i].getArgType(j),
               visited);
         }
       }
