@@ -35,7 +35,7 @@ void SygusEnumerator::initialize(Node e)
   d_enum = e;
   d_etype = d_enum.getType();
   Assert(d_etype.isDatatype());
-  Assert(d_etype.getDatatype().isSygus());
+  Assert(d_etype.getDType().isSygus());
   d_tlEnum = getMasterEnumForType(d_etype);
   d_abortSize = options::sygusAbortSize();
 
@@ -50,7 +50,7 @@ void SygusEnumerator::initialize(Node e)
   TNode agt = ag;
   TNode truent = truen;
   Assert(d_tcache.find(d_etype) != d_tcache.end());
-  const Datatype& dt = d_etype.getDatatype();
+  const DType& dt = d_etype.getDType();
   for (const Node& lem : sbl)
   {
     if (!d_tds->isSymBreakLemmaTemplate(lem))
@@ -86,7 +86,7 @@ void SygusEnumerator::initialize(Node e)
           {
             if (a == e)
             {
-              Node cons = Node::fromExpr(dt[tst].getConstructor());
+              Node cons = dt[tst].getConstructor();
               Trace("sygus-enum") << "  ...unit exclude constructor #" << tst
                                   << ", constructor " << cons << std::endl;
               d_sbExcTlCons.insert(cons);
@@ -168,7 +168,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
     // not a datatype, finish
     return;
   }
-  const Datatype& dt = tn.getDatatype();
+  const DType& dt = tn.getDType();
   if (!dt.isSygus())
   {
     // not a sygus datatype, finish
@@ -200,7 +200,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
     // record type information
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {
-      TypeNode tn = TypeNode::fromType(dt[i].getArgType(j));
+      TypeNode tn = dt[i].getArgType(j);
       argTypes[i].push_back(tn);
     }
   }
@@ -544,7 +544,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
 
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
 {
-  if (tn.isDatatype() && tn.getDatatype().isSygus())
+  if (tn.isDatatype() && tn.getDType().isSygus())
   {
     std::map<TypeNode, TermEnumMaster>::iterator it = d_masterEnum.find(tn);
     if (it != d_masterEnum.end())
@@ -627,11 +627,11 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
   d_currTermSet = true;
   // construct based on the children
   std::vector<Node> children;
-  const Datatype& dt = d_tn.getDatatype();
+  const DType& dt = d_tn.getDType();
   Assert(d_consNum > 0 && d_consNum <= d_ccCons.size());
   // get the current constructor number
   unsigned cnum = d_ccCons[d_consNum - 1];
-  children.push_back(Node::fromExpr(dt[cnum].getConstructor()));
+  children.push_back(dt[cnum].getConstructor());
   // add the current of each child to children
   for (unsigned i = 0, nargs = dt[cnum].getNumArgs(); i < nargs; i++)
   {

@@ -223,7 +223,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   {
     d_eqc = eqc;
     d_mode = cand_term_ident;
-    Assert(d_eqc.getType().toType() == d_mpat_type);
+    Assert(d_eqc.getType() == d_mpat_type);
   }
 }
 

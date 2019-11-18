@@ -467,8 +467,8 @@ Node CegSingleInv::getSolution(unsigned sol_index,
                                bool rconsSygus)
 {
   Assert(d_sol != NULL);
-  const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
-  Node varList = Node::fromExpr( dt.getSygusVarList() );
+  const DType& dt = stn.getDType();
+  Node varList = dt.getSygusVarList();
   Node prog = d_quant[0][sol_index];
   std::vector< Node > vars;
   Node s;
@@ -479,7 +479,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
   {
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
     s = d_qe->getTermEnumeration()->getEnumerateTerm(
-        TypeNode::fromType(dt.getSygusType()), 0);
+        dt.getSygusType(), 0);
   }
   else
   {
@@ -538,7 +538,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
                                        bool rconsSygus)
 {
   d_solution = s;
-  const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
+  const DType& dt = stn.getDType();
 
   //reconstruct the solution into sygus if necessary
   reconstructed = 0;
@@ -611,7 +611,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   }
   //make into lambda
   if( !dt.getSygusVarList().isNull() ){
-    Node varList = Node::fromExpr( dt.getSygusVarList() );
+    Node varList = dt.getSygusVarList();
     return NodeManager::currentNM()->mkNode( LAMBDA, varList, sol );
   }else{
     return sol;
