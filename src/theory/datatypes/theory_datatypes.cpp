@@ -19,6 +19,7 @@
 
 #include "base/check.h"
 #include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/kind.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -30,7 +31,6 @@
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
-#include "expr/dtype.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -206,8 +206,9 @@ void TheoryDatatypes::check(Effort e) {
             TypeNode tt = tn;
             const DType& dt = tt.getDType();
             Trace("datatypes-debug")
-                << "Datatype " << dt.getName() << " is " << dt.isInterpretedFinite(tt)
-                << " " << dt.isRecursiveSingleton(tt) << std::endl;
+                << "Datatype " << dt.getName() << " is "
+                << dt.isInterpretedFinite(tt) << " "
+                << dt.isRecursiveSingleton(tt) << std::endl;
             bool continueProc = true;
             if( dt.isRecursiveSingleton( tt ) ){
               Trace("datatypes-debug") << "Check recursive singleton..." << std::endl;
@@ -225,7 +226,7 @@ void TheoryDatatypes::check(Effort e) {
                   //otherwise, if the logic is quantified, under the assumption that all uninterpreted sorts have cardinality one,
                   //  infer the equality.
                   for( unsigned i=0; i<dt.getNumRecursiveSingletonArgTypes( tt ); i++ ){
-                    TypeNode tn = dt.getRecursiveSingletonArgType( tt, i );
+                    TypeNode tn = dt.getRecursiveSingletonArgType(tt, i);
                     if( getQuantifiersEngine() ){
                       // under the assumption that the cardinality of this type is one
                       Node a = getSingletonLemma( tn, true );
@@ -651,9 +652,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
         else
         {
           b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL,
-              dt[0].getSelectorInternal(t, i),
-              n[0]);
+              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(t, i), n[0]);
           Debug("tuprec") << "arg " << i << " copies "
                           << b[b.getNumChildren() - 1] << std::endl;
         }
@@ -1116,7 +1115,7 @@ void TheoryDatatypes::addTester(
         d_labels_tindex[n].push_back(ttindex);
       }
       n_lbl++;
-      
+
       const DType& dt = t_arg.getType().getDType();
       Debug("datatypes-labels") << "Labels at " << n_lbl << " / " << dt.getNumConstructors() << std::endl;
       if( tpolarity ){
@@ -1748,7 +1747,8 @@ void TheoryDatatypes::collectTerms( Node n ) {
   }
 }
 
-Node TheoryDatatypes::getInstantiateCons( Node n, const DType& dt, int index ){
+Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
+{
   std::map< int, Node >::iterator it = d_inst_map[n].find( index );
   if( it!=d_inst_map[n].end() ){
     return it->second;

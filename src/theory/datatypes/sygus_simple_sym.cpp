@@ -240,8 +240,7 @@ bool SygusSimpleSymBreak::considerArgKind(
           //  (not (~ x y)) ----->  (~ (+ y 1) x)
           rt.d_req_kind = k;
           rt.d_children[0].d_req_kind = PLUS;
-          rt.d_children[0].d_children[0].d_req_type =
-              dt[c].getArgType(1);
+          rt.d_children[0].d_children[0].d_req_type = dt[c].getArgType(1);
           rt.d_children[0].d_children[1].d_req_const =
               NodeManager::currentNM()->mkConst(Rational(1));
           rt.d_children[1].d_req_type = dt[c].getArgType(0);
@@ -252,8 +251,7 @@ bool SygusSimpleSymBreak::considerArgKind(
           rt.d_req_kind = k;
           rt.d_children[0].d_req_type = dt[c].getArgType(1);
           rt.d_children[1].d_req_kind = PLUS;
-          rt.d_children[1].d_children[0].d_req_type =
-              dt[c].getArgType(0);
+          rt.d_children[1].d_children[0].d_req_type = dt[c].getArgType(0);
           rt.d_children[1].d_children[1].d_req_const =
               NodeManager::currentNM()->mkConst(Rational(1));
         }
@@ -318,8 +316,7 @@ bool SygusSimpleSymBreak::considerArgKind(
               if (rk != UNDEFINED_KIND)
               {
                 rt.d_children[i].d_req_kind = rk;
-                rt.d_children[i].d_children[0].d_req_type =
-                    dt[c].getArgType(i);
+                rt.d_children[i].d_children[0].d_req_type = dt[c].getArgType(i);
               }
             }
           }
@@ -338,10 +335,8 @@ bool SygusSimpleSymBreak::considerArgKind(
       rt.d_req_kind = pk;
       rt.d_children[arg].d_req_type = dt[c].getArgType(0);
       rt.d_children[oarg].d_req_kind = k == MINUS ? PLUS : BITVECTOR_PLUS;
-      rt.d_children[oarg].d_children[0].d_req_type =
-          pdt[pc].getArgType(oarg);
-      rt.d_children[oarg].d_children[1].d_req_type =
-          dt[c].getArgType(1);
+      rt.d_children[oarg].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
+      rt.d_children[oarg].d_children[1].d_req_type = dt[c].getArgType(1);
     }
     else if (pk == PLUS || pk == BITVECTOR_PLUS)
     {
@@ -350,10 +345,8 @@ bool SygusSimpleSymBreak::considerArgKind(
       rt.d_req_kind = pk == PLUS ? MINUS : BITVECTOR_SUB;
       int oarg = arg == 0 ? 1 : 0;
       rt.d_children[0].d_req_kind = pk;
-      rt.d_children[0].d_children[0].d_req_type =
-          pdt[pc].getArgType(oarg);
-      rt.d_children[0].d_children[1].d_req_type =
-          dt[c].getArgType(0);
+      rt.d_children[0].d_children[0].d_req_type = pdt[pc].getArgType(oarg);
+      rt.d_children[0].d_children[1].d_req_type = dt[c].getArgType(0);
       rt.d_children[1].d_req_type = dt[c].getArgType(1);
     }
   }
@@ -372,13 +365,11 @@ bool SygusSimpleSymBreak::considerArgKind(
         {
           if ((int)q == arg)
           {
-            rt.d_children[r].d_children[q].d_req_type =
-                dt[c].getArgType(r);
+            rt.d_children[r].d_children[q].d_req_type = dt[c].getArgType(r);
           }
           else
           {
-            rt.d_children[r].d_children[q].d_req_type =
-                pdt[pc].getArgType(q);
+            rt.d_children[r].d_children[q].d_req_type = pdt[pc].getArgType(q);
           }
         }
       }

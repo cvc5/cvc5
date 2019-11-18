@@ -21,9 +21,9 @@
 
 #include <vector>
 
+#include "expr/dtype.h"
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
-#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace theory {

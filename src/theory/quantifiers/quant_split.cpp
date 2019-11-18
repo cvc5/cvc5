@@ -48,12 +48,15 @@ void QuantDSplit::checkOwnership(Node q)
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
       const DType& dt = tn.getDType();
-      if( dt.isRecursiveSingleton( tn ) ){
+      if (dt.isRecursiveSingleton(tn))
+      {
         Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is recursive singleton." << std::endl;
-      }else{
+      }
+      else
+      {
         int score = -1;
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
-          score = dt.isInterpretedFinite( tn ) ? 1 : 0;
+          score = dt.isInterpretedFinite(tn) ? 1 : 0;
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
           if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
             if (dt.isInterpretedFinite(tn))
@@ -70,7 +73,10 @@ void QuantDSplit::checkOwnership(Node q)
             }
           }
         }
-        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isInterpretedFinite( tn ) << " " << dt.isFinite( tn ) << ")" << std::endl;
+        Trace("quant-dsplit-debug")
+            << "Datatype " << dt.getName() << " is score " << score << " ("
+            << dt.isInterpretedFinite(tn) << " " << dt.isFinite(tn) << ")"
+            << std::endl;
         if( score>max_score ){
           max_index = i;
           max_score = score;

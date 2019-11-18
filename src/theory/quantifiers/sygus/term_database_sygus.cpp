@@ -127,9 +127,7 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 {
   Assert(tn.isDatatype());
   Assert(tn.getDType().isSygus());
-  Assert(
-          tn.getDType().getSygusType()
-          .isComparableTo(c.getType()));
+  Assert(tn.getDType().getSygusType().isComparableTo(c.getType()));
 
   std::map<Node, Node>::iterator it = d_proxy_vars[tn].find(c);
   if (it == d_proxy_vars[tn].end())
@@ -782,7 +780,9 @@ TypeNode TermDbSygus::getArgType(const DTypeConstructor& c, unsigned i) const
   return c.getArgType(i);
 }
 
-bool TermDbSygus::isTypeMatch( const DTypeConstructor& c1, const DTypeConstructor& c2 ) {
+bool TermDbSygus::isTypeMatch(const DTypeConstructor& c1,
+                              const DTypeConstructor& c2)
+{
   if( c1.getNumArgs()!=c2.getNumArgs() ){
     return false;
   }else{
@@ -981,8 +981,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   if (track_exp)
   {
     // explanation
-    Node ee = nm->mkNode(
-        kind::APPLY_TESTER, dt[i].getTester(), en[0]);
+    Node ee = nm->mkNode(kind::APPLY_TESTER, dt[i].getTester(), en[0]);
     if (std::find(exp.begin(), exp.end(), ee) == exp.end())
     {
       exp.push_back(ee);

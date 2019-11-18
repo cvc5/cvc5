@@ -301,10 +301,10 @@ void TheorySetsRels::check(Theory::Effort level)
 
       const DType& dt =
           join_image_term.getType().getSetElementType().getDType();
-      Node new_membership = nm->mkNode(MEMBER,
-                                                             nm->mkNode( APPLY_CONSTRUCTOR,
-                                                                                               dt[0].getConstructor(), fst_mem_rep ),
-                                                             join_image_term);
+      Node new_membership = nm->mkNode(
+          MEMBER,
+          nm->mkNode(APPLY_CONSTRUCTOR, dt[0].getConstructor(), fst_mem_rep),
+          join_image_term);
       if (d_state.isEntailed(new_membership, true))
       {
         ++mem_rep_it;
@@ -429,9 +429,11 @@ void TheorySetsRels::check(Theory::Effort level)
     Node reason = exp;
     Node fst_mem = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_mem = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    const DType& dt =
-        iden_term[0].getType().getSetElementType().getDType();
-    Node fact = nm->mkNode( MEMBER, nm->mkNode( APPLY_CONSTRUCTOR, dt[0].getConstructor(), fst_mem ), iden_term[0] );
+    const DType& dt = iden_term[0].getType().getSetElementType().getDType();
+    Node fact = nm->mkNode(
+        MEMBER,
+        nm->mkNode(APPLY_CONSTRUCTOR, dt[0].getConstructor(), fst_mem),
+        iden_term[0]);
 
     if( exp[1] != iden_term ) {
       reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, exp[1], iden_term ) );
@@ -825,8 +827,7 @@ void TheorySetsRels::check(Theory::Effort level)
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
     Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
-    const DType& dt1 =
-        join_rel[0].getType().getSetElementType().getDType();
+    const DType& dt1 = join_rel[0].getType().getSetElementType().getDType();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
     unsigned int tup_len        = join_rel.getType().getSetElementType().getTupleLength();
 
@@ -836,8 +837,7 @@ void TheorySetsRels::check(Theory::Effort level)
       r1_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
     r1_element.push_back(shared_x);
-    const DType& dt2 =
-        join_rel[1].getType().getSetElementType().getDType();
+    const DType& dt2 = join_rel[1].getType().getSetElementType().getDType();
     r2_element.push_back(dt2[0].getConstructor());
     r2_element.push_back(shared_x);
     for(; i < tup_len; ++i) {
@@ -1041,7 +1041,7 @@ void TheorySetsRels::check(Theory::Effort level)
         TypeNode tn = rel.getType().getSetElementType();
         Node r1_rmost = RelsUtils::nthElementOfTuple( r1_rep_exps[i][0], r1_tuple_len-1 );
         Node r2_lmost = RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 );
-        tuple_elements.push_back( tn.getDType()[0].getConstructor() );
+        tuple_elements.push_back(tn.getDType()[0].getConstructor());
 
         if( (areEqual(r1_rmost, r2_lmost) && rel.getKind() == kind::JOIN) ||
             rel.getKind() == kind::PRODUCT ) {

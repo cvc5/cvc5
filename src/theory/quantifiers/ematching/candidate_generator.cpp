@@ -13,6 +13,7 @@
  **/
 
 #include "theory/quantifiers/ematching/candidate_generator.h"
+#include "expr/dtype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
@@ -21,7 +22,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
-#include "expr/dtype.h"
 
 using namespace std;
 using namespace CVC4;
@@ -243,10 +243,8 @@ Node CandidateGeneratorConsExpand::getNextCandidate()
   children.push_back(d_op);
   for (unsigned i = 0, nargs = dt[0].getNumArgs(); i < nargs; i++)
   {
-    Node sel =
-        nm->mkNode(APPLY_SELECTOR_TOTAL,
-                   dt[0].getSelectorInternal(d_mpat_type, i),
-                   curr);
+    Node sel = nm->mkNode(
+        APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(d_mpat_type, i), curr);
     children.push_back(sel);
   }
   return nm->mkNode(APPLY_CONSTRUCTOR, children);

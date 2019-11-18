@@ -524,8 +524,7 @@ void CegInstantiator::registerTheoryIds(TypeNode tn,
       {
         for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
         {
-          registerTheoryIds(dt[i].getArgType(j),
-              visited);
+          registerTheoryIds(dt[i].getArgType(j), visited);
         }
       }
     }

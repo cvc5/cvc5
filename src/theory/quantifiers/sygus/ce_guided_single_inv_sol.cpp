@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
 
 #include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
@@ -27,7 +28,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "expr/dtype.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -240,7 +240,8 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
     carg = sti.getOpConsNum(min_t);
     if( carg!=-1 ){
       Trace("csi-rcons-debug") << "  Type has operator." << std::endl;
-      d_reconstruct[id] = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, dt[carg].getConstructor() );
+      d_reconstruct[id] = NodeManager::currentNM()->mkNode(
+          APPLY_CONSTRUCTOR, dt[carg].getConstructor());
       status = 0;
     }else{
       //check if kind is in syntax sort
@@ -716,8 +717,7 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
     int carg = ti.getOpConsNum(c);
     if (carg != -1)
     {
-      sc = nm->mkNode(APPLY_CONSTRUCTOR,
-                      dt[carg].getConstructor());
+      sc = nm->mkNode(APPLY_CONSTRUCTOR, dt[carg].getConstructor());
     }
     else
     {
@@ -734,8 +734,7 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
         Node n = builtinToSygusConst(c, tnc, rcons_depth);
         if (!n.isNull())
         {
-          sc = nm->mkNode(
-              APPLY_CONSTRUCTOR, dt[ii].getConstructor(), n);
+          sc = nm->mkNode(APPLY_CONSTRUCTOR, dt[ii].getConstructor(), n);
           break;
         }
       }
@@ -750,10 +749,8 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
             int arg = ti.getKindConsNum(pk);
             if (arg != -1)
             {
-              Kind ck =
-                  getComparisonKind(dt.getSygusType());
-              Kind pkm =
-                  getPlusKind(dt.getSygusType(), true);
+              Kind ck = getComparisonKind(dt.getSygusType());
+              Kind pkm = getPlusKind(dt.getSygusType(), true);
               // get types
               Assert(dt[arg].getNumArgs() == 2);
               TypeNode tn1 = tds->getArgType(dt[arg], 0);

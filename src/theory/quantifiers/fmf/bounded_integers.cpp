@@ -19,13 +19,13 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4;
 using namespace std;
@@ -738,15 +738,17 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
         return Node::null();
       }
     }
-    NodeManager * nm = NodeManager::currentNM();
-    const DType& dt = datatypes::utils::datatypeOf( t.getOperator() );
-    unsigned index = datatypes::utils::indexOf( t.getOperator() );
+    NodeManager* nm = NodeManager::currentNM();
+    const DType& dt = datatypes::utils::datatypeOf(t.getOperator());
+    unsigned index = datatypes::utils::indexOf(t.getOperator());
     for( unsigned i=0; i<t.getNumChildren(); i++ ){
       Node u;
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node se = nm->mkNode( APPLY_SELECTOR_TOTAL, dt[index].getSelectorInternal( e.getType(), i ), e );
+        Node se = nm->mkNode(APPLY_SELECTOR_TOTAL,
+                             dt[index].getSelectorInternal(e.getType(), i),
+                             e);
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){

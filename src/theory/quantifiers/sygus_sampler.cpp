@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -22,7 +23,6 @@
 #include "util/bitvector.h"
 #include "util/random.h"
 #include "util/sampler.h"
-#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace theory {

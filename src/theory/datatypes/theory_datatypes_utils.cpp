@@ -205,9 +205,8 @@ Node getInstCons(Node n, const DType& dt, int index)
   TypeNode tn = n.getType();
   for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
-    Node nc = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                         dt[index].getSelectorInternal(tn, i),
-                         n);
+    Node nc = nm->mkNode(
+        APPLY_SELECTOR_TOTAL, dt[index].getSelectorInternal(tn, i), n);
     children.push_back(nc);
   }
   Node n_ic = nm->mkNode(APPLY_CONSTRUCTOR, children);
@@ -221,8 +220,7 @@ Node getInstCons(Node n, const DType& dt, int index)
           << n.getType() << std::endl;
       Debug("datatypes-parametric")
           << "Constructor is " << dt[index] << std::endl;
-      TypeNode tspec =
-          dt[index].getSpecializedConstructorType(n.getType());
+      TypeNode tspec = dt[index].getSpecializedConstructorType(n.getType());
       Debug("datatypes-parametric")
           << "Type specification is " << tspec << std::endl;
       children[0] = nm->mkNode(APPLY_TYPE_ASCRIPTION,
@@ -247,8 +245,7 @@ int isInstCons(Node t, Node n, const DType& dt)
     for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
     {
       if (n[i].getKind() != APPLY_SELECTOR_TOTAL
-          || n[i].getOperator() != c.getSelectorInternal(tn, i)
-          || n[i][0] != t)
+          || n[i].getOperator() != c.getSelectorInternal(tn, i) || n[i][0] != t)
       {
         return -1;
       }
@@ -296,8 +293,7 @@ const DType& datatypeOf(Node n)
 
 Node mkTester(Node n, int i, const DType& dt)
 {
-  return NodeManager::currentNM()->mkNode(
-      APPLY_TESTER, dt[i].getTester(), n);
+  return NodeManager::currentNM()->mkNode(APPLY_TESTER, dt[i].getTester(), n);
 }
 
 Node mkSplit(Node n, const DType& dt)

@@ -15,10 +15,10 @@
 #include "theory/quantifiers/sygus/type_info.h"
 
 #include "base/check.h"
+#include "expr/dtype.h"
 #include "expr/sygus_datatype.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "expr/dtype.h"
 
 using namespace CVC4::kind;
 

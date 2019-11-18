@@ -71,7 +71,8 @@ public:
     }
     TypeNode tn = tuple.getType();
     const DType& dt = tn.getDType();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal( tn, n_th ), tuple);
+    return NodeManager::currentNM()->mkNode(
+        kind::APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, n_th), tuple);
   } 
   
   static Node reverseTuple( Node tuple ) {
@@ -81,7 +82,7 @@ public:
     std::reverse( tuple_types.begin(), tuple_types.end() );
     TypeNode tn = NodeManager::currentNM()->mkTupleType( tuple_types );
     const DType& dt = tn.getDType();
-    elements.push_back( dt[0].getConstructor() );
+    elements.push_back(dt[0].getConstructor());
     for(int i = tuple_types.size() - 1; i >= 0; --i) {
       elements.push_back( nthElementOfTuple(tuple, i) );
     }
@@ -89,7 +90,8 @@ public:
   }
   static Node constructPair(Node rel, Node a, Node b) {
     const DType& dt = rel.getType().getSetElementType().getDType();
-    return NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), a, b);
+    return NodeManager::currentNM()->mkNode(
+        kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), a, b);
   }     
     
 };             

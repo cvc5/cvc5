@@ -14,9 +14,11 @@
 
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -24,8 +26,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "expr/dtype.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -311,7 +311,7 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
       computeDtTesterIteSplit( n[ itp->second==n[0] ? 1 : 2 ], pcons, ncons, conj );
     }else{
       Node tester = n[0].getOperator();
-      int index = datatypes::utils::indexOf( tester );
+      int index = datatypes::utils::indexOf(tester);
       std::map< int, Node >::iterator itn = ncons[x].find( index );
       if( itn!=ncons[x].end() ){
         Trace("quantifiers-rewrite-ite-debug") << "...condition negated " << itn->second << std::endl;
@@ -330,7 +330,7 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
       }
     }
   }else{
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Trace("quantifiers-rewrite-ite-debug") << "Return value : " << n << std::endl;
     std::vector< Node > children;
     children.push_back( n );
@@ -359,7 +359,7 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
         }
         if( pos_cons>=0 ){
           Node tester = dt[pos_cons].getTester();
-          children.push_back( nm->mkNode( APPLY_TESTER, tester, x ).negate() );
+          children.push_back(nm->mkNode(APPLY_TESTER, tester, x).negate());
         }else{
           children.insert( children.end(), nchildren.begin(), nchildren.end() );
         }
@@ -456,21 +456,21 @@ void setEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::v
   }
   if( addEntailedCond( n, pol, currCond, new_cond, conflict ) ){
     if( n.getKind()==APPLY_TESTER ){
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       const DType& dt = datatypes::utils::datatypeOf(n.getOperator());
       unsigned index = datatypes::utils::indexOf(n.getOperator());
       Assert(dt.getNumConstructors() > 1);
       if( pol ){
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
           if( i!=index ){
-            Node t = nm->mkNode( APPLY_TESTER, dt[i].getTester(), n[0] );
+            Node t = nm->mkNode(APPLY_TESTER, dt[i].getTester(), n[0]);
             addEntailedCond( t, false, currCond, new_cond, conflict );
           }
         }
       }else{
         if( dt.getNumConstructors()==2 ){
           int oindex = 1-index;
-          Node t = nm->mkNode( APPLY_TESTER, dt[oindex].getTester(), n[0] );
+          Node t = nm->mkNode(APPLY_TESTER, dt[oindex].getTester(), n[0]);
           addEntailedCond( t, true, currCond, new_cond, conflict );
         }
       }

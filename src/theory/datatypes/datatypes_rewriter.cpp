@@ -16,11 +16,11 @@
 
 #include "theory/datatypes/datatypes_rewriter.h"
 
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "expr/dtype.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -208,9 +208,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
           {
             vars.push_back(c[0][i]);
             Node sc = nm->mkNode(
-                APPLY_SELECTOR_TOTAL,
-                dt[cindex].getSelectorInternal(t, i),
-                h);
+                APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(t, i), h);
             subs.push_back(sc);
           }
         }
@@ -296,8 +294,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
             << std::endl;
         Node op = in.getOperator();
         // get the constructor object
-        const DTypeConstructor& dtc =
-            utils::datatypeOf(op)[utils::indexOf(op)];
+        const DTypeConstructor& dtc = utils::datatypeOf(op)[utils::indexOf(op)];
         // create ascribed constructor type
         Node tc = NodeManager::currentNM()->mkConst(
             AscriptionType(dtc.getSpecializedConstructorType(tn).toType()));

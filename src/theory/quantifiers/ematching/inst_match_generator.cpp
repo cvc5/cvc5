@@ -17,13 +17,13 @@
 #include "expr/datatype.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
 using namespace CVC4;
@@ -227,7 +227,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       }
     }else if( d_match_pattern.getKind()==INST_CONSTANT ){
       if( d_pattern.getKind()==APPLY_SELECTOR_TOTAL ){
-        Node selectorExpr = qe->getTermDatabase()->getMatchOperator( d_pattern );
+        Node selectorExpr = qe->getTermDatabase()->getMatchOperator(d_pattern);
         size_t selectorIndex = datatypes::utils::cindexOf(selectorExpr);
         const DType& dt = datatypes::utils::datatypeOf(selectorExpr);
         const DTypeConstructor& c = dt[selectorIndex];

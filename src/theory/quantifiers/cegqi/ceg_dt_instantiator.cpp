@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
 
-#include "expr/node_algorithm.h"
 #include "expr/dtype.h"
+#include "expr/node_algorithm.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
@@ -64,10 +64,9 @@ bool DtInstantiator::processEqualTerms(CegInstantiator* ci,
       // now must solve for selectors applied to pv
       for (unsigned j = 0, nargs = dt[cindex].getNumArgs(); j < nargs; j++)
       {
-        Node c = nm->mkNode(
-            APPLY_SELECTOR_TOTAL,
-            dt[cindex].getSelectorInternal(d_type, j),
-            pv);
+        Node c = nm->mkNode(APPLY_SELECTOR_TOTAL,
+                            dt[cindex].getSelectorInternal(d_type, j),
+                            pv);
         ci->pushStackVariable(c);
         children.push_back(c);
       }
@@ -153,9 +152,7 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
       for (unsigned i = 0, nchild = a.getNumChildren(); i < nchild; i++)
       {
         Node nn = nm->mkNode(
-            APPLY_SELECTOR_TOTAL,
-            dt[cindex].getSelectorInternal(tn, i),
-            sb);
+            APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(tn, i), sb);
         Node s = solve_dt(v, a[i], Node::null(), sa[i], nn);
         if (!s.isNull())
         {

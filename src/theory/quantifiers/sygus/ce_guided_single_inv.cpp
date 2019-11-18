@@ -478,8 +478,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       || d_inst.empty())
   {
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
-    s = d_qe->getTermEnumeration()->getEnumerateTerm(
-        dt.getSygusType(), 0);
+    s = d_qe->getTermEnumeration()->getEnumerateTerm(dt.getSygusType(), 0);
   }
   else
   {

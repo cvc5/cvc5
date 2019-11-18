@@ -19,6 +19,7 @@
 
 #include <unordered_set>
 
+#include "expr/dtype.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/fun_def_evaluator.h"
@@ -26,7 +27,6 @@
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/type_info.h"
 #include "theory/quantifiers/term_database.h"
-#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace theory {
@@ -416,7 +416,7 @@ class TermDbSygus {
   /** get arg type */
   TypeNode getArgType(const DTypeConstructor& c, unsigned i) const;
   /** Do constructors c1 and c2 have the same type? */
-  bool isTypeMatch( const DTypeConstructor& c1, const DTypeConstructor& c2 );
+  bool isTypeMatch(const DTypeConstructor& c1, const DTypeConstructor& c2);
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** can construct kind

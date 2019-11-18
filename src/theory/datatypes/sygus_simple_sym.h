@@ -18,9 +18,9 @@
 #define CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
 
 #include <map>
+#include "expr/dtype.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace theory {
@@ -97,8 +97,7 @@ class SygusSimpleSymBreak
    * Helper function for consider const above, pdt is the datatype of the type
    * of tnp.
    */
-  bool considerConst(
-      const DType& pdt, TypeNode tnp, Node c, Kind pk, int arg);
+  bool considerConst(const DType& pdt, TypeNode tnp, Node c, Kind pk, int arg);
 };
 
 }  // namespace datatypes

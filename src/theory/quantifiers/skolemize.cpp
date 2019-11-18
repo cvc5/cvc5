@@ -82,15 +82,14 @@ void Skolemize::getSelfSel(const DType& dt,
   TypeNode tspec;
   if (dt.isParametric())
   {
-    tspec = 
-        dc.getSpecializedConstructorType(n.getType());
+    tspec = dc.getSpecializedConstructorType(n.getType());
     Trace("sk-ind-debug") << "Specialized constructor type : " << tspec
                           << std::endl;
     Assert(tspec.getNumChildren() == dc.getNumArgs());
   }
   Trace("sk-ind-debug") << "Check self sel " << dc.getName() << " "
                         << dt.getName() << std::endl;
-                        NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < dc.getNumArgs(); j++)
   {
     std::vector<Node> ssc;
@@ -115,9 +114,7 @@ void Skolemize::getSelfSel(const DType& dt,
     for (unsigned k = 0; k < ssc.size(); k++)
     {
       Node ss = nm->mkNode(
-          APPLY_SELECTOR_TOTAL,
-          dc.getSelectorInternal(n.getType(), j),
-          n);
+          APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(n.getType(), j), n);
       if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
       {
         selfSel.push_back(ss);
@@ -134,7 +131,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
                                  Node& sub,
                                  std::vector<unsigned>& sub_vars)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Assert(sk.empty() || sk.size() == f[0].getNumChildren());
   // calculate the variables and substitution
   std::vector<TNode> ind_vars;
@@ -216,8 +213,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
         std::vector<Node> selfSel;
         getSelfSel(dt, dt[i], k, tn, selfSel);
         std::vector<Node> conj;
-        conj.push_back(nm->mkNode(APPLY_TESTER, dt[i].getTester(), k)
-                .negate());
+        conj.push_back(nm->mkNode(APPLY_TESTER, dt[i].getTester(), k).negate());
         for (unsigned j = 0; j < selfSel.size(); j++)
         {
           conj.push_back(ret.substitute(ind_vars[0], selfSel[j]).negate());

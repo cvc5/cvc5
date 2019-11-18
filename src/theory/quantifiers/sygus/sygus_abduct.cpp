@@ -16,16 +16,16 @@
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 
 #include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "printer/sygus_print_callback.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/dtype.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
 using namespace CVC4::kind;

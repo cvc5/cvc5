@@ -19,12 +19,12 @@
 #ifndef CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
 
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
-#include "expr/type.h"
-#include "expr/kind.h"
-#include "options/quantifiers_options.h"
 #include "expr/dtype.h"
+#include "expr/kind.h"
+#include "expr/type.h"
+#include "expr/type_node.h"
+#include "options/quantifiers_options.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -63,8 +63,9 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   /** child */
   bool d_child_enum;
 
-  bool hasCyclesDt( const DType& dt ) {
-    return dt.isRecursiveSingleton( d_type ) || !dt.isFinite( d_type );
+  bool hasCyclesDt(const DType& dt)
+  {
+    return dt.isRecursiveSingleton(d_type) || !dt.isFinite(d_type);
   }
   bool hasCycles( TypeNode tn ){
     if( tn.isDatatype() ){

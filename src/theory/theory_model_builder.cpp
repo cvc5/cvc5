@@ -13,12 +13,12 @@
  **/
 #include "theory/theory_model_builder.h"
 
+#include "expr/dtype.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf_model.h"
-#include "expr/dtype.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -629,9 +629,8 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       if (t.isDatatype())
       {
         const DType& dt = t.getDType();
-        isCorecursive =
-            dt.isCodatatype() && (!dt.isFinite(t)
-                                  || dt.isRecursiveSingleton(t));
+        isCorecursive = dt.isCodatatype()
+                        && (!dt.isFinite(t) || dt.isRecursiveSingleton(t));
       }
 #ifdef CVC4_ASSERTIONS
       bool isUSortFiniteRestricted = false;
