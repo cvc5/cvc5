@@ -23,6 +23,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
 using namespace CVC4;
@@ -226,11 +227,11 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       }
     }else if( d_match_pattern.getKind()==INST_CONSTANT ){
       if( d_pattern.getKind()==APPLY_SELECTOR_TOTAL ){
-        Expr selectorExpr = qe->getTermDatabase()->getMatchOperator( d_pattern ).toExpr();
-        size_t selectorIndex = Datatype::cindexOf(selectorExpr);
-        const Datatype& dt = Datatype::datatypeOf(selectorExpr);
-        const DatatypeConstructor& c = dt[selectorIndex];
-        Node cOp = Node::fromExpr(c.getConstructor());
+        Node selectorExpr = qe->getTermDatabase()->getMatchOperator( d_pattern );
+        size_t selectorIndex = datatypes::utils::cindexOf(selectorExpr);
+        const DType& dt = datatypes::utils::datatypeOf(selectorExpr);
+        const DTypeConstructor& c = dt[selectorIndex];
+        Node cOp = c.getConstructor();
         Trace("inst-match-gen") << "Purify dt trigger " << d_pattern << ", will match terms of op " << cOp << std::endl;
         d_cg = new inst::CandidateGeneratorQE( qe, cOp );
       }else{

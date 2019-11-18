@@ -43,7 +43,7 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
   {
     Trace("sygus-red") << "  Is " << dt[i].getName() << " a redundant operator?"
                        << std::endl;
-    Node sop = Node::fromExpr(dt[i].getSygusOp());
+    Node sop = dt[i].getSygusOp();
     if (sop.getAttribute(SygusAnyConstAttribute()))
     {
       // the any constant constructor is never redundant

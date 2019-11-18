@@ -25,6 +25,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4;
 using namespace std;
@@ -737,14 +738,15 @@ Node BoundedIntegers::matchBoundVar( Node v, Node t, Node e ){
         return Node::null();
       }
     }
-    const Datatype& dt = Datatype::datatypeOf( t.getOperator().toExpr() );
-    unsigned index = Datatype::indexOf( t.getOperator().toExpr() );
+    NodeManager * nm = NodeManager::currentNM();
+    const DType& dt = datatypes::utils::datatypeOf( t.getOperator() );
+    unsigned index = datatypes::utils::indexOf( t.getOperator() );
     for( unsigned i=0; i<t.getNumChildren(); i++ ){
       Node u;
       if( e.getKind()==kind::APPLY_CONSTRUCTOR ){
         u = matchBoundVar( v, t[i], e[i] );
       }else{
-        Node se = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[index].getSelectorInternal( e.getType().toType(), i ) ), e );
+        Node se = nm->mkNode( APPLY_SELECTOR_TOTAL, dt[index].getSelectorInternal( e.getType(), i ), e );
         u = matchBoundVar( v, t[i], se );
       }
       if( !u.isNull() ){
