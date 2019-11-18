@@ -1302,7 +1302,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         }
         children.insert(children.end(), largs.begin(), largs.end());
         Kind sk = ops[i].getKind() != kind::BUILTIN
-                      ? kind::APPLY_UF
+                      ? getKindForFunction(ops[i])
                       : getExprManager()->operatorToKind(ops[i]);
         Expr body = getExprManager()->mkExpr(sk, children);
         // replace by lambda

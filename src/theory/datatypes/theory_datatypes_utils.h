@@ -34,12 +34,6 @@ struct SygusVarNumAttributeId
 };
 typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
 
-/** Attribute true for variables that represent any constant */
-struct SygusAnyConstAttributeId
-{
-};
-typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
-
 /**
  * Attribute true for enumerators whose current model values were registered by
  * the datatypes sygus solver, and were not excluded by sygus symmetry breaking.
