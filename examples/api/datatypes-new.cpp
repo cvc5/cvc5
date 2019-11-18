@@ -27,7 +27,7 @@ void test(Solver& slv, Sort& consListSort)
   // the complete spec for the datatype from the DatatypeSort, and
   // this Datatype object has constructor symbols (and others) filled in.
 
-  Datatype consList = consListSort.getDatatype();
+  const Datatype& consList = consListSort.getDatatype();
 
   // t = cons 0 nil
   //
@@ -103,7 +103,7 @@ void test(Solver& slv, Sort& consListSort)
   Sort paramConsIntListSort =
       paramConsListSort.instantiate(std::vector<Sort>{slv.getIntegerSort()});
 
-  Datatype paramConsList = paramConsListSort.getDatatype();
+  const Datatype& paramConsList = paramConsListSort.getDatatype();
 
   std::cout << "parameterized datatype sort is " << std::endl;
   for (const DatatypeConstructor& ctor : paramConsList)
@@ -169,7 +169,13 @@ int main()
             << ">>> Alternatively, use declareDatatype" << std::endl;
   std::cout << std::endl;
 
-  std::vector<DatatypeConstructorDecl> ctors = {cons, nil};
+  DatatypeConstructorDecl cons2("cons");
+  DatatypeSelectorDecl head2("head", slv.getIntegerSort());
+  DatatypeSelectorDecl tail2("tail", DatatypeDeclSelfSort());
+  cons2.addSelector(head2);
+  cons2.addSelector(tail2);
+  DatatypeConstructorDecl nil2("nil");
+  std::vector<DatatypeConstructorDecl> ctors = {cons2, nil2};
   Sort consListSort2 = slv.declareDatatype("list2", ctors);
   test(slv, consListSort2);
 
