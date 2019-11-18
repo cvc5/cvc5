@@ -883,9 +883,17 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       const SygusDatatype& sdti = sdts[i].d_sdt;
       // We have initialized the given type sdts[i], which should now contain
       // a constructor for each relevant arithmetic term/variable. We now
+      // construct a sygus datatype of the form:
+      //   I -> C*x1 | ... | C*xn | C | I + I | ite( B, I, I )
+      //   C -> any_constant
+      // where x1, ..., xn are the arithmetic terms/variables (non-arithmetic
+      // builtin operator) terms we have considered thus far.
+      
       // construct a sygus datatype with a single constructor corresponding to
       // a linear polynomial over these variables/terms. Doing this first
       // requires making the "any constant" arithmetic type.
+
+      
       std::stringstream ss;
       ss << fun << "_AnyConst";
       // make sygus datatype for any constant
@@ -902,19 +910,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
         Node sop = sdc.d_op;
-        // FIXME
-        if (sop.isConst() || sop.getKind() == PLUS || sop.getKind() == MINUS)
-        {
-          Trace("sygus-grammar-def")
-              << "Ignore monomial variable: " << sop << std::endl;
-          // don't consider constants or arithmetic operators
-          continue;
-        }
         Trace("sygus-grammar-def") << "Monomial variable: " << sop << std::endl;
-        Node coeff = nm->mkBoundVar(types[i]);
-        lambdaVars.push_back(coeff);
-        cargsAnyTerm.push_back(unresAnyConst);
         unsigned nargs = sdc.d_argTypes.size();
+        bool isBuiltinArithOp = (sop.getKind()==CONST_RATIONAL);
         if (nargs > 0)
         {
           // Take its arguments. For example, if we are building a polynomial
@@ -927,19 +925,34 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           {
             // this is already corresponds to the correct sygus datatype type
             TypeNode atype = sdc.d_argTypes[j];
+            if (atype==unres_types[i])
+            {
+              // it is recursive, thus may be a builtin arithmetic operator
+              isBuiltinArithOp = true;
+              break;
+            }
             cargsAnyTerm.push_back(atype);
             // builtin type can be extracted from lambda
             opLArgs.push_back(nm->mkBoundVar(sop[0][j].getType()));
           }
-          lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
-          opLArgs.insert(opLArgs.begin(), sop);
-          // Do beta reduction on the operator so that its arguments match the
-          // fresh variables of the lambda we are constructing.
-          sop = nm->mkNode(APPLY_UF, opLArgs);
-          sop = Rewriter::rewrite(sop);
+          if (!isBuiltinArithOp)
+          {
+            lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
+            opLArgs.insert(opLArgs.begin(), sop);
+            // Do beta reduction on the operator so that its arguments match the
+            // fresh variables of the lambda we are constructing.
+            sop = nm->mkNode(APPLY_UF, opLArgs);
+            sop = Rewriter::rewrite(sop);
+          }
         }
-        // add the monomial c*t to the sum
-        sumChildren.push_back(nm->mkNode(MULT, coeff, sop));
+        if (!isBuiltinArithOp)
+        {
+          Node coeff = nm->mkBoundVar(types[i]);
+          lambdaVars.push_back(coeff);
+          cargsAnyTerm.push_back(unresAnyConst);
+          // add the monomial c*t to the sum
+          sumChildren.push_back(nm->mkNode(MULT, coeff, sop));
+        }
       }
       // add the constant
       Node coeff = nm->mkBoundVar(types[i]);
