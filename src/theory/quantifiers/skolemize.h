@@ -123,8 +123,8 @@ class Skolemize
    * applied to term n, whose return type in ntn, and stores
    * them in the vector selfSel.
    */
-  static void getSelfSel(const Datatype& dt,
-                         const DatatypeConstructor& dc,
+  static void getSelfSel(const DType& dt,
+                         const DTypeConstructor& dc,
                          Node n,
                          TypeNode ntn,
                          std::vector<Node>& selfSel);
