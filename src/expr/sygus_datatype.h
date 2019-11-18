@@ -33,6 +33,25 @@ struct SygusAnyConstAttributeId
 typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
 
 /**
+ * Information necessary to specify a sygus constructor. Further detail on these
+ * fields can be found in SygusDatatype below.
+ */
+class SygusDatatypeConstructor
+{
+ public:
+  /** The operator that the constructor encodes. */
+  Node d_op;
+  /** Name of the constructor. */
+  std::string d_name;
+  /** List of argument types. */
+  std::vector<TypeNode> d_argTypes;
+  /** Print callback of the constructor. */
+  std::shared_ptr<SygusPrintCallback> d_pc;
+  /** Weight of the constructor. */
+  int d_weight;
+};
+
+/**
  * Keeps the necessary information for initializing a sygus datatype, which
  * includes the operators, names, print callbacks and list of argument types
  * for each constructor.
@@ -57,28 +76,28 @@ class SygusDatatype
    *
    * op: the builtin operator,
    * name: the name of the constructor,
-   * spc: the print callback (for custom printing of this node),
-   * weight: the weight of this constructor,
-   * consTypes: the argument types of the constructor (typically other sygus
+   * argTypes: the argument types of the constructor (typically other sygus
    * datatype types).
+   * spc: the print callback (for custom printing of this node),
+   * weight: the weight of this constructor.
    *
-   * It should be the case that consTypes are sygus datatype types (possibly
+   * It should be the case that argTypes are sygus datatype types (possibly
    * unresolved) that encode the arguments of the builtin operator. That is,
-   * if op is the builtin PLUS operator, then consTypes could contain 2+
+   * if op is the builtin PLUS operator, then argTypes could contain 2+
    * sygus datatype types that encode integer.
    */
   void addConstructor(Node op,
                       const std::string& name,
-                      const std::vector<TypeNode>& consTypes,
+                      const std::vector<TypeNode>& argTypes,
                       std::shared_ptr<SygusPrintCallback> spc = nullptr,
                       int weight = -1);
   /**
    * Add constructor that encodes an application of builtin kind k. Like above,
-   * the arguments consTypes should correspond to sygus datatypes that encode
+   * the arguments argTypes should correspond to sygus datatypes that encode
    * the types of the arguments of the kind.
    */
   void addConstructor(Kind k,
-                      const std::vector<TypeNode>& consTypes,
+                      const std::vector<TypeNode>& argTypes,
                       std::shared_ptr<SygusPrintCallback> spc = nullptr,
                       int weight = -1);
   /**
@@ -89,6 +108,9 @@ class SygusDatatype
 
   /** Get the number of constructors added to this class so far */
   size_t getNumConstructors() const;
+
+  /** Get constructor at index i */
+  const SygusDatatypeConstructor& getConstructor(unsigned i) const;
 
   /** builds a datatype with the information in the type object
    *
@@ -106,18 +128,12 @@ class SygusDatatype
   /** Get the sygus datatype initialized by this class */
   const Datatype& getDatatype() const;
 
+  /** is initialized */
+  bool isInitialized() const;
+
  private:
-  //---------- information to build normalized type node
-  /** Operators for each constructor. */
-  std::vector<Node> d_ops;
-  /** Names for each constructor. */
-  std::vector<std::string> d_cons_names;
-  /** Print callbacks for each constructor */
-  std::vector<std::shared_ptr<SygusPrintCallback>> d_pc;
-  /** Weights for each constructor */
-  std::vector<int> d_weight;
-  /** List of argument types for each constructor */
-  std::vector<std::vector<TypeNode>> d_consArgs;
+  /** Information for each constructor. */
+  std::vector<SygusDatatypeConstructor> d_cons;
   /** Datatype to represent type's structure */
   Datatype d_dt;
 };
