@@ -17,7 +17,7 @@
 
 #include "proof/proof_output_channel.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
 
@@ -55,8 +55,8 @@ theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool,
   // following assertion cannot be enabled due to
   // "test/regress/regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smt".
   // Assert(
-  //     d_lemma.isNull(),
-  //     "Multiple calls to ProofOutputChannel::lemma() are not supported.");
+  //     d_lemma.isNull()) <<
+  //     "Multiple calls to ProofOutputChannel::lemma() are not supported.";
   d_lemma = n;
   return theory::LemmaStatus(TNode::null(), 0);
 }

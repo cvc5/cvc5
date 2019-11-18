@@ -77,7 +77,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     doCheck = quant_e == QEFFORT_MODEL;
   }
   if( doCheck ){
-    Assert( !d_quantEngine->inConflict() );
+    Assert(!d_quantEngine->inConflict());
     int addedLemmas = 0;
     FirstOrderModel* fm = d_quantEngine->getModel();
 
@@ -240,7 +240,7 @@ int ModelEngine::checkModel(){
     if( d_addedLemmas>0 ){
       break;
     }else{
-      Assert( !d_quantEngine->inConflict() );
+      Assert(!d_quantEngine->inConflict());
     }
   }
 

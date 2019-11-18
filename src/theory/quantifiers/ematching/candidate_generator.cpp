@@ -40,7 +40,7 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)
       d_mode(cand_term_none)
 {
   d_op = qe->getTermDatabase()->getMatchOperator( pat );
-  Assert( !d_op.isNull() );
+  Assert(!d_op.isNull());
 }
 
 void CandidateGeneratorQE::resetInstantiationRound(){
@@ -130,8 +130,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 
 CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( QuantifiersEngine* qe, Node mpat ) :
 CandidateGenerator( qe ), d_match_pattern( mpat ){
-
-  Assert( d_match_pattern.getKind()==EQUAL );
+  Assert(d_match_pattern.getKind() == EQUAL);
   d_match_pattern_type = d_match_pattern[0].getType();
 }
 
@@ -161,7 +160,7 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
 CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mpat ) :
   CandidateGenerator( qe ), d_match_pattern( mpat ){
   d_match_pattern_type = mpat.getType();
-  Assert( mpat.getKind()==INST_CONSTANT );
+  Assert(mpat.getKind() == INST_CONSTANT);
   d_f = quantifiers::TermUtil::getInstConstAttr( mpat );
   d_index = mpat.getAttribute(InstVarNumAttribute());
   d_firstTime = false;

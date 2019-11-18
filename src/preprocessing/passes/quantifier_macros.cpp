@@ -199,7 +199,7 @@ bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
 }
 
 bool QuantifierMacros::isBoundVarApplyUf( Node n ) {
-  Assert( n.getKind()==APPLY_UF );
+  Assert(n.getKind() == APPLY_UF);
   TypeNode tno = n.getOperator().getType();
   std::map< Node, bool > vars;
   // allow if a vector of unique variables of the same type as UF arguments
@@ -437,7 +437,7 @@ Node QuantifierMacros::simplify( Node n ){
             }else if( !etc.isConst() ){
               cond.push_back( etc );
             }
-            Assert( children[i].getType().isSubtypeOf( tno[i] ) );
+            Assert(children[i].getType().isSubtypeOf(tno[i]));
           }
           if( success ){
             //do substitution if necessary

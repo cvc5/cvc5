@@ -163,8 +163,8 @@ void ArithStaticLearner::iteMinMax(TNode n, NodeBuilder<>& learned){
 
   if(t == cleft && e == cright){
     // t == cleft && e == cright
-    Assert( t == cleft );
-    Assert( e == cright );
+    Assert(t == cleft);
+    Assert(e == cright);
     switch(k){
     case LT:   // (ite (< x y) x y)
     case LEQ: { // (ite (<= x y) x y)
@@ -252,27 +252,23 @@ void ArithStaticLearner::addBound(TNode n) {
   DeltaRational bound = constant;
 
   switch(Kind k = n.getKind()) {
-  case kind::LT:
-    bound = DeltaRational(constant, -1);
-    /* fall through */
-  case kind::LEQ:
-    if (maxFind == d_maxMap.end() || (*maxFind).second > bound) {
-      d_maxMap.insert(n[0], bound);
-      Debug("arith::static") << "adding bound " << n << endl;
-    }
-    break;
-  case kind::GT:
-    bound = DeltaRational(constant, 1);
-    /* fall through */
-  case kind::GEQ:
-    if (minFind == d_minMap.end() || (*minFind).second < bound) {
-      d_minMap.insert(n[0], bound);
-      Debug("arith::static") << "adding bound " << n << endl;
-    }
-    break;
-  default:
-    Unhandled(k);
-    break;
+    case kind::LT: bound = DeltaRational(constant, -1); CVC4_FALLTHROUGH;
+    case kind::LEQ:
+      if (maxFind == d_maxMap.end() || (*maxFind).second > bound)
+      {
+        d_maxMap.insert(n[0], bound);
+        Debug("arith::static") << "adding bound " << n << endl;
+      }
+      break;
+    case kind::GT: bound = DeltaRational(constant, 1); CVC4_FALLTHROUGH;
+    case kind::GEQ:
+      if (minFind == d_minMap.end() || (*minFind).second < bound)
+      {
+        d_minMap.insert(n[0], bound);
+        Debug("arith::static") << "adding bound " << n << endl;
+      }
+      break;
+    default: Unhandled() << k; break;
   }
 }
 

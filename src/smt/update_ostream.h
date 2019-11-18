@@ -22,12 +22,12 @@
 
 #include <ostream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
+#include "options/base_options.h"
 #include "options/language.h"
 #include "options/set_language.h"
-#include "options/base_options.h"
 #include "smt/dump.h"
 
 namespace CVC4 {

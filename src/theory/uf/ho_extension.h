@@ -127,8 +127,12 @@ class HoExtension
    *
    * Given disequality deq f != g, this returns the disequality:
    *   (f k) != (g k) for fresh constant(s) k.
+   *
+   * If isCached is true, then this returns the same k for all calls to this
+   * method with the same deq. If it is false, it creates fresh k and does not
+   * cache the result.
    */
-  Node getExtensionalityDeq(TNode deq);
+  Node getExtensionalityDeq(TNode deq, bool isCached = true);
 
   /**
    * Check whether extensionality should be applied for any pair of terms in the
