@@ -1186,7 +1186,7 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
     }
 
     // If letification is off or there were 2 children, same treatment as the other cases.
-    // (No break is intentional).
+    CVC4_FALLTHROUGH;
   case kind::XOR:
   case kind::IMPLIES:
   case kind::NOT:

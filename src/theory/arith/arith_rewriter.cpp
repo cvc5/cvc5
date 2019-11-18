@@ -197,6 +197,7 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
                                  NodeManager::currentNM()->mkConst(-rat));
         }
       }
+      return RewriteResponse(REWRITE_DONE, t);
     case kind::TO_REAL:
       return RewriteResponse(REWRITE_DONE, t[0]);
     case kind::TO_INTEGER:
