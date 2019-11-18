@@ -14,7 +14,8 @@
 
 #include "theory/quantifiers/sygus/type_info.h"
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
+#include "expr/sygus_datatype.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
@@ -123,7 +124,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
         TypeNode cbt = tds->sygusToBuiltinType(ct);
         TypeNode lat = TypeNode::fromType(sop[0][j].getType());
-        CVC4_CHECK(cbt.isSubtypeOf(lat))
+        AlwaysAssert(cbt.isSubtypeOf(lat))
             << "In sygus datatype " << dt.getName()
             << ", argument to a lambda constructor is not " << lat << std::endl;
       }
@@ -152,7 +153,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     // e.g. bitvector-and is a constructor of an integer grammar.
     Node g = tds->mkGeneric(dt, i);
     TypeNode gtn = g.getType();
-    CVC4_CHECK(gtn.isSubtypeOf(btn))
+    AlwaysAssert(gtn.isSubtypeOf(btn))
         << "Sygus datatype " << dt.getName()
         << " encodes terms that are not of type " << btn << std::endl;
     Trace("sygus-db") << "...done register Operator #" << i << std::endl;
@@ -187,6 +188,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     }
     d_min_cons_term_size[i] = csize;
   }
+  Trace("sygus-db") << "Register type " << dt.getName() << " finished"
+                    << std::endl;
 }
 
 void SygusTypeInfo::initializeVarSubclasses()

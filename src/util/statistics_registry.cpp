@@ -20,8 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "lib/clock_gettime.h"
 #include "util/ostream_util.h"
 
@@ -77,7 +76,7 @@ inline timespec& operator-=(timespec& a, const timespec& b) {
     nsec -= nsec_per_sec;
     ++a.tv_sec;
   }
-  CVC4_DCHECK(nsec >= 0 && nsec < nsec_per_sec);
+  Assert(nsec >= 0 && nsec < nsec_per_sec);
   a.tv_nsec = nsec;
   return a;
 }
@@ -168,8 +167,8 @@ void StatisticsRegistry::registerStat(Stat* s)
 void StatisticsRegistry::unregisterStat(Stat* s)
 {
 #ifdef CVC4_STATISTICS_ON
-  CVC4_CHECK(s != nullptr);
-  CVC4_CHECK(d_stats.erase(s) > 0)
+  AlwaysAssert(s != nullptr);
+  AlwaysAssert(d_stats.erase(s) > 0)
       << "Statistic `" << s->getName()
       << "' was not registered with this registry.";
 #endif /* CVC4_STATISTICS_ON */
@@ -203,7 +202,7 @@ void TimerStat::start() {
 
 void TimerStat::stop() {
   if(CVC4_USE_STATISTICS) {
-    CVC4_CHECK(d_running) << "timer not running";
+    AlwaysAssert(d_running) << "timer not running";
     ::timespec end;
     clock_gettime(CLOCK_MONOTONIC, &end);
     d_data += end - d_start;

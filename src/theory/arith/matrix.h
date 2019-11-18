@@ -478,7 +478,6 @@ protected:
 
     Assert(newEntry.getCoefficient() != 0);
 
-
     ++d_entriesInUse;
 
     d_rows[row].insert(newId);
@@ -650,7 +649,6 @@ public:
 
     Assert(mult != 0);
 
-
     RowIterator i = getRow(to).begin();
     RowIterator i_end = getRow(to).end();
     while(i != i_end){
@@ -709,7 +707,6 @@ public:
     Assert(debugNoZeroCoefficients(d_rowInMergeBuffer));
 
     Assert(mult != 0);
-
 
     RowIterator i = getRow(to).begin();
     RowIterator i_end = getRow(to).end();

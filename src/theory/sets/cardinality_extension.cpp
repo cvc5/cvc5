@@ -870,8 +870,8 @@ void CardinalityExtension::mkModelValueElementsFor(
       Node v = val.getModelValue(it->second);
       Trace("sets-model") << "Cardinality of " << eqc << " is " << v
                           << std::endl;
-      Assert(v.getConst<Rational>() <= LONG_MAX,
-             "Exceeded LONG_MAX in sets model");
+      Assert(v.getConst<Rational>() <= LONG_MAX)
+          << "Exceeded LONG_MAX in sets model";
       unsigned vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
       Assert(els.size() <= vu);
       NodeManager* nm = NodeManager::currentNM();

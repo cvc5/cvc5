@@ -74,7 +74,7 @@ public:
 
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
   {
-    Unreachable("Minisat does not support native XOR reasoning");
+    Unreachable() << "Minisat does not support native XOR reasoning";
   }
 
   SatValue propagate() override;

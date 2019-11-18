@@ -624,6 +624,7 @@ void SolverBlack::testMkTermFromOpTerm()
   OpTerm opterm2 = d_solver->mkOpTerm(DIVISIBLE_OP, 1);
   OpTerm opterm3 = d_solver->mkOpTerm(CHAIN_OP, EQUAL);
   // list datatype
+
   Sort sort = d_solver->mkParamSort("T");
   DatatypeDecl listDecl("paramlist", sort);
   DatatypeConstructorDecl cons("cons");
@@ -776,17 +777,21 @@ void SolverBlack::testMkConstArray()
 
 void SolverBlack::testDeclareDatatype()
 {
-  DatatypeConstructorDecl cons("cons");
   DatatypeConstructorDecl nil("nil");
   std::vector<DatatypeConstructorDecl> ctors1 = {nil};
-  std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil};
-  std::vector<DatatypeConstructorDecl> ctors3;
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("a"), ctors1));
+  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl nil2("nil");
+  std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil2};
   TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("b"), ctors2));
-  TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string(""), ctors2));
-  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string("c"), ctors3),
+  DatatypeConstructorDecl cons2("cons");
+  DatatypeConstructorDecl nil3("nil");
+  std::vector<DatatypeConstructorDecl> ctors3 = {cons2, nil3};
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string(""), ctors3));
+  std::vector<DatatypeConstructorDecl> ctors4;
+  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string("c"), ctors4),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string(""), ctors3),
+  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string(""), ctors4),
                    CVC4ApiException&);
 }
 
@@ -983,7 +988,6 @@ void SolverBlack::testSimplify()
   Sort uSort = d_solver->mkUninterpretedSort("u");
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
-
   DatatypeDecl consListSpec("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver->getIntegerSort());

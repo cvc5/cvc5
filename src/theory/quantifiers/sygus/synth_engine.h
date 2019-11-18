@@ -30,7 +30,66 @@ class SynthEngine : public QuantifiersModule
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
+ public:
+  SynthEngine(QuantifiersEngine* qe, context::Context* c);
+  ~SynthEngine();
+  /** presolve
+   *
+   * Called at the beginning of each call to solve a synthesis problem, which
+   * may be e.g. a check-synth or get-abduct call.
+   */
+  void presolve() override;
+  /** needs check, return true if e is last call */
+  bool needsCheck(Theory::Effort e) override;
+  /** always needs model at effort QEFFORT_MODEL */
+  QEffort needsModel(Theory::Effort e) override;
+  /* Call during quantifier engine's check */
+  void check(Theory::Effort e, QEffort quant_e) override;
+  /* Called for new quantifiers */
+  void registerQuantifier(Node q) override;
+  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  std::string identify() const override { return "SynthEngine"; }
+  /** print solution for synthesis conjectures */
+  void printSynthSolution(std::ostream& out);
+  /** get synth solutions
+   *
+   * This function adds entries to sol_map that map functions-to-synthesize
+   * with their solutions, for all active conjectures (currently just the one
+   * assigned to d_conj). This should be called immediately after the solver
+   * answers unsat for sygus input.
+   *
+   * For details on what is added to sol_map, see
+   * SynthConjecture::getSynthSolutions.
+   */
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
+  /** preregister assertion (before rewrite)
+   *
+   * The purpose of this method is to inform the solution reconstruction
+   * techniques within the single invocation module that n is an original
+   * assertion. This is used as a heuristic to remember terms that are likely
+   * to help when trying to reconstruct a solution that fits a given input
+   * syntax.
+   */
+  void preregisterAssertion(Node n);
+
+ public:
+  class Statistics
+  {
+   public:
+    IntStat d_cegqi_lemmas_ce;
+    IntStat d_cegqi_lemmas_refine;
+    IntStat d_cegqi_si_lemmas;
+    IntStat d_solutions;
+    IntStat d_filtered_solutions;
+    IntStat d_candidate_rewrites_print;
+    Statistics();
+    ~Statistics();
+  }; /* class SynthEngine::Statistics */
+  Statistics d_statistics;
+
  private:
+  /** term database sygus of d_qe */
+  TermDbSygus* d_tds;
   /** the conjecture formula(s) we are waiting to assign */
   std::vector<Node> d_waiting_conj;
   /** The synthesis conjectures that this class is managing. */
@@ -56,56 +115,6 @@ class SynthEngine : public QuantifiersModule
    * for this call to SynthEngine::check().
    */
   bool checkConjecture(SynthConjecture* conj);
-
- public:
-  SynthEngine(QuantifiersEngine* qe, context::Context* c);
-  ~SynthEngine();
-
-  bool needsCheck(Theory::Effort e) override;
-  QEffort needsModel(Theory::Effort e) override;
-  /* Call during quantifier engine's check */
-  void check(Theory::Effort e, QEffort quant_e) override;
-  /* Called for new quantifiers */
-  void registerQuantifier(Node q) override;
-  /** Identify this module (for debugging, dynamic configuration, etc..) */
-  std::string identify() const override { return "SynthEngine"; }
-  /** print solution for synthesis conjectures */
-  void printSynthSolution(std::ostream& out);
-  /** get synth solutions
-   *
-   * This function adds entries to sol_map that map functions-to-synthesize
-   * with their solutions, for all active conjectures (currently just the one
-   * assigned to d_conj). This should be called immediately after the solver
-   * answers unsat for sygus input.
-   *
-   * For details on what is added to sol_map, see
-   * SynthConjecture::getSynthSolutions.
-   */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
-  /** preregister assertion (before rewrite)
-   *
-   * The purpose of this method is to inform the solution reconstruction
-   * techniques within the single invocation module that n is an original
-   * assertion. This is used as a heuristic to remember terms that are likely
-   * to help when trying to reconstruct a solution that fits a given input
-   * syntax.
-   */
-  void preregisterAssertion(Node n);
-
- public:
-  class Statistics
-  {
-   public:
-    IntStat d_cegqi_lemmas_ce;
-    IntStat d_cegqi_lemmas_refine;
-    IntStat d_cegqi_si_lemmas;
-    IntStat d_solutions;
-    IntStat d_filtered_solutions;
-    IntStat d_candidate_rewrites_print;
-    Statistics();
-    ~Statistics();
-  }; /* class SynthEngine::Statistics */
-  Statistics d_statistics;
 }; /* class SynthEngine */
 
 }  // namespace quantifiers

@@ -18,7 +18,7 @@
 
 #include "theory/ext_theory.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/substitutions.h"

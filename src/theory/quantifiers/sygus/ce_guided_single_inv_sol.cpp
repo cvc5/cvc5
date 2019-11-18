@@ -119,7 +119,7 @@ Node CegSingleInvSol::reconstructSolution(Node sol,
   if( status==0 ){
     Node ret = getReconstructedSolution( d_root_id );
     Trace("csi-rcons") << "Sygus solution is : " << ret << std::endl;
-    Assert( !ret.isNull() );
+    Assert(!ret.isNull());
     reconstructed = 1;
     return ret;
   }
@@ -224,11 +224,11 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
     int id = allocate( t, stn );
     d_rcons_to_status[stn][t] = -1;
     TypeNode tn = t.getType();
-    Assert( stn.isDatatype() );
+    Assert(stn.isDatatype());
     const Datatype& dt = stn.getDatatype();
     TermDbSygus* tds = d_qe->getTermDatabaseSygus();
     SygusTypeInfo& sti = tds->getTypeInfo(stn);
-    Assert( dt.isSygus() );
+    Assert(dt.isSygus());
     Trace("csi-rcons-debug") << "Check reconstruct " << t << ", sygus type " << dt.getName() << ", kind " << t.getKind() << ", id : " << id << std::endl;
     int carg = -1;
     int karg = -1;
@@ -291,7 +291,7 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
           //try identity functions
           for (unsigned ii : d_id_funcs[stn])
           {
-            Assert( dt[ii].getNumArgs()==1 );
+            Assert(dt[ii].getNumArgs() == 1);
             //try to directly reconstruct from single argument
             std::vector< Node > tchildren;
             tchildren.push_back( min_t );
@@ -402,7 +402,7 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
                     //if one succeeds
                     if( status==0 ){
                       Node rsol = getReconstructedSolution( equiv_ids[i] );
-                      Assert( !rsol.isNull() );
+                      Assert(!rsol.isNull());
                       //set all members of the equivalence class that this is the reconstructed solution
                       setReconstructed( id, rsol );
                       break;
@@ -433,7 +433,7 @@ bool CegSingleInvSol::collectReconstructNodes(int pid,
                                               std::vector<int>& ids,
                                               int& status)
 {
-  Assert( dtc.getNumArgs()==ts.size() );
+  Assert(dtc.getNumArgs() == ts.size());
   for( unsigned i=0; i<ts.size(); i++ ){
     TypeNode cstn = d_qe->getTermDatabaseSygus()->getArgType( dtc, i );
     int cstatus;

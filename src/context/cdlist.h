@@ -25,10 +25,10 @@
 #include <string>
 #include <sstream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
+#include "context/cdlist_forward.h"
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "context/cdlist_forward.h"
 
 namespace CVC4 {
 namespace context {
@@ -139,8 +139,8 @@ private:
       size_t newSize = GROWTH_FACTOR * d_sizeAlloc;
       if(newSize > d_allocator.max_size()) {
         newSize = d_allocator.max_size();
-        Assert(newSize > d_sizeAlloc,
-               "cannot request larger list due to allocator limits");
+        Assert(newSize > d_sizeAlloc)
+            << "cannot request larger list due to allocator limits";
       }
       T* newList = d_allocator.allocate(newSize);
       Debug("cdlist") << "2x grow of cdlist " << this
@@ -306,7 +306,7 @@ public:
    * Access to the ith item in the list.
    */
   const T& operator[](size_t i) const {
-    Assert(i < d_size, "index out of bounds in CDList::operator[]");
+    Assert(i < d_size) << "index out of bounds in CDList::operator[]";
     return d_list[i];
   }
 
@@ -314,7 +314,7 @@ public:
    * Returns the most recent item added to the list.
    */
   const T& back() const {
-    Assert(d_size > 0, "CDList::back() called on empty list");
+    Assert(d_size > 0) << "CDList::back() called on empty list";
     return d_list[d_size - 1];
   }
 

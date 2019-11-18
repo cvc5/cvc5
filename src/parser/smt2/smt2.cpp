@@ -15,6 +15,9 @@
  **/
 #include "parser/smt2/smt2.h"
 
+#include <algorithm>
+
+#include "base/check.h"
 #include "expr/type.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
@@ -22,8 +25,6 @@
 #include "parser/smt2/smt2_input.h"
 #include "printer/sygus_print_callback.h"
 #include "util/bitvector.h"
-
-#include <algorithm>
 
 // ANTLR defines these, which is really bad!
 #undef true
@@ -303,6 +304,7 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::IS_INTEGER, "is_int");
     addOperator(kind::TO_REAL, "to_real");
     // falling through on purpose, to add Ints part of Reals_Ints
+    CVC4_FALLTHROUGH;
   case THEORY_INTS:
     defineType("Int", getExprManager()->integerType());
     addArithmeticOperators();
@@ -610,6 +612,7 @@ void Smt2::pushDefineFunRecScope(
 
 void Smt2::reset() {
   d_logicSet = false;
+  d_seenSetLogic = false;
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<Expr, std::string>();
@@ -1301,7 +1304,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         }
         children.insert(children.end(), largs.begin(), largs.end());
         Kind sk = ops[i].getKind() != kind::BUILTIN
-                      ? kind::APPLY_UF
+                      ? getKindForFunction(ops[i])
                       : getExprManager()->operatorToKind(ops[i]);
         Expr body = getExprManager()->mkExpr(sk, children);
         // replace by lambda
