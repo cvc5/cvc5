@@ -24,8 +24,8 @@
 ; Functional  Programs ;
 ; ==================== ;
 
-; Are two clauses equal (i.e., if iterpretted as sets of literals, are those
-; sets equal)
+; Are two clauses equal (i.e., if interpretted as sets of literals, are those
+; sets equal?)
 ;
 ; Assumes that marks 1,2,3,4 are clear for the constituent variables, and
 ; leaves them clear afterwards.
