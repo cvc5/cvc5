@@ -68,7 +68,7 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     }
     else
     {
-      // It is a builtin (possibly) term. Its children do not correspond
+      // It is a builtin (possibly) ground term. Its children do not correspond
       // one-to-one with the arugments of the constructor. Hence, we consider
       // only g itself as a variant.
       glist.push_back(g);
