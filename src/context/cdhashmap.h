@@ -88,9 +88,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/cvc4_assert.h"
-#include "context/context.h"
+#include "base/check.h"
 #include "context/cdhashmap_forward.h"
+#include "context/context.h"
 
 namespace CVC4 {
 namespace context {
@@ -278,7 +278,11 @@ class CDHashMap : public ContextObj {
   Context* d_context;
 
   // Nothing to save; the elements take care of themselves
-  ContextObj* save(ContextMemoryManager* pCMM) override { Unreachable(); }
+  ContextObj* save(ContextMemoryManager* pCMM) override
+  {
+    Unreachable();
+    SuppressWrongNoReturnWarning;
+  }
 
   // Similarly, nothing to restore
   void restore(ContextObj* data) override { Unreachable(); }

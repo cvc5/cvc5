@@ -19,11 +19,11 @@
 #include <iostream>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/exception.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
-
+#include "test_utils.h"
 
 using namespace std;
 using namespace CVC4;
@@ -106,8 +106,8 @@ private:
     d_context->push();
     d_context->pop();
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(d_context->pop(), AssertionException&);
-    TS_ASSERT_THROWS(d_context->pop(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(d_context->pop());
+    TS_UTILS_EXPECT_ABORT(d_context->pop());
 #endif /* CVC4_ASSERTIONS */
   }
 
