@@ -972,10 +972,19 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         else
         {
           Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, opLArgs), monomial);
+          // use a print callback since we do not want to print the lambda
+          std::shared_ptr<SygusPrintCallback> spc;
+          std::vector<Expr> opLArgsExpr;
+          for (unsigned i=0, nvars=opLArgs.size(); i<nvars; i++)
+          {
+            opLArgsExpr.push_back(opLArgs[i].toExpr());
+          }
+          spc = std::make_shared<printer::SygusExprPrintCallback>(
+                          monomial.toExpr(), opLArgsExpr);
           // add it as a constructor
           std::stringstream ssop;
           ssop << "monomial_" << sdc.d_name;
-          sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs);
+          sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, spc);
         }
       }
     }
@@ -989,10 +998,18 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Assert(sumChildren.size() > 1);
       Node ops = nm->mkNode(PLUS, sumChildren);
       Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
+      std::shared_ptr<SygusPrintCallback> spc;
+      std::vector<Expr> lambdaVarsExpr;
+      for (unsigned i=0, nvars=lambdaVars.size(); i<nvars; i++)
+      {
+        lambdaVarsExpr.push_back(lambdaVars[i].toExpr());
+      }
+      spc = std::make_shared<printer::SygusExprPrintCallback>(
+                      ops.toExpr(), lambdaVarsExpr);
       Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
       // make the any term datatype, add to back
       // do not consider the exclusion criteria of the generator
-      sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm);
+      sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, spc);
     }
     else
     {

@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "expr/sygus_datatype.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -148,6 +149,16 @@ void SygusEvalUnfold::registerModelValue(Node a,
             do_unfold = true;
           }
         }
+        // do unfold if we are the any constant 
+        Node cons = vn.getOperator();
+        const Datatype& dt = Datatype::datatypeOf(cons.toExpr());
+        unsigned index = Datatype::indexOf(cons.toExpr());
+        const DatatypeConstructor& dtc = dt[index];
+        Node sop = Node::fromExpr(dtc.getSygusOp());
+        if (sop.getAttribute(SygusAnyConstAttribute()))
+        {
+          do_unfold = true;
+        }
         if (do_unfold)
         {
           // note that this is replicated for different values
@@ -159,6 +170,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           eval_children.resize(1);
           res = d_tds->unfold(eval_fun, vtm, exp);
+          Trace("sygus-eval-unfold") << "Unfold returns " << res << std::endl;
           expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
         }
         else
@@ -170,6 +182,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
           eval_children[0] = vn;
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           res = d_tds->evaluateWithUnfolding(eval_fun);
+          Trace("sygus-eval-unfold") << "Evaluate with unfolding returns " << res << std::endl;
           esit.init(conj, n, res);
           eval_children.resize(1);
           eval_children[0] = n;

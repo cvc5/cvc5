@@ -1002,12 +1002,15 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
     Assert(dt[i].getNumArgs() == 1);
     if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
+      Trace("sygus-db-debug") << "...return (from constructor) " << en[0][0] << std::endl;
       return en[0][0];
     }
     else
     {
-      return nm->mkNode(
+      Node ret = nm->mkNode(
           APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
+      Trace("sygus-db-debug") << "...return (from constructor) " << ret << std::endl;
+      return ret;
     }
   }
 
@@ -1102,29 +1105,41 @@ Node TermDbSygus::evaluateWithUnfolding(
     {
       if (ret == n && ret[0].isConst())
       {
-        Trace("dt-eval-unfold-debug")
-            << "Optimize: evaluate constant head " << ret << std::endl;
-        // can just do direct evaluation here
-        std::vector<Node> args;
-        bool success = true;
-        for (unsigned i = 1, nchild = ret.getNumChildren(); i < nchild; i++)
+        // if we are not the any constant constructor
+        Node cons = ret[0].getOperator();
+        const Datatype& dt = Datatype::datatypeOf(cons.toExpr());
+        unsigned index = Datatype::indexOf(cons.toExpr());
+        const DatatypeConstructor& dtc = dt[index];
+        Node sop = Node::fromExpr(dtc.getSygusOp());
+        if (!sop.getAttribute(SygusAnyConstAttribute()))
         {
-          if (!ret[i].isConst())
-          {
-            success = false;
-            break;
-          }
-          args.push_back(ret[i]);
-        }
-        if (success)
-        {
-          TypeNode rt = ret[0].getType();
-          Node bret = sygusToBuiltin(ret[0], rt);
-          Node rete = evaluateBuiltin(rt, bret, args);
-          visited[n] = rete;
           Trace("dt-eval-unfold-debug")
-              << "Return " << rete << " for " << n << std::endl;
-          return rete;
+              << "Optimize: evaluate constant head " << ret << std::endl;
+          // can just do direct evaluation here
+          std::vector<Node> args;
+          bool success = true;
+          for (unsigned i = 1, nchild = ret.getNumChildren(); i < nchild; i++)
+          {
+            if (!ret[i].isConst())
+            {
+              success = false;
+              break;
+            }
+            args.push_back(ret[i]);
+          }
+          if (success)
+          {
+            Trace("dt-eval-unfold-debug") << "I have " << ret[0] << std::endl;
+            TypeNode rt = ret[0].getType();
+            Node bret = sygusToBuiltin(ret[0], rt);
+            Trace("dt-eval-unfold-debug") << "To builtin " << bret << std::endl;
+            Node rete = evaluateBuiltin(rt, bret, args);
+            Trace("dt-eval-unfold-debug") << "After evaluation " << rete << std::endl;
+            visited[n] = rete;
+            Trace("dt-eval-unfold-debug")
+                << "Return " << rete << " for " << n << std::endl;
+            return rete;
+          }
         }
       }
       ret = unfold( ret );
