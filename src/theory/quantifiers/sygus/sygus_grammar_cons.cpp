@@ -26,6 +26,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4::kind;
 
@@ -873,111 +874,115 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       startIndex = i;
     }
     itgat = typeToGAnyTerm.find(types[i]);
-    if (itgat != typeToGAnyTerm.end())
+    if (itgat == typeToGAnyTerm.end())
     {
-      Trace("sygus-grammar-def")
-          << "Build any-term datatype for " << types[i] << std::endl;
-      unsigned iat = itgat->second;
-      // for now, only real has any term construction
-      Assert(types[i].isReal());
-      const SygusDatatype& sdti = sdts[i].d_sdt;
-      // We have initialized the given type sdts[i], which should now contain
-      // a constructor for each relevant arithmetic term/variable. We now
-      // construct a sygus datatype of the form:
-      //   I -> C*x1 | ... | C*xn | C | I + I | ite( B, I, I )
-      //   C -> any_constant
-      // where x1, ..., xn are the arithmetic terms/variables (non-arithmetic
-      // builtin operator) terms we have considered thus far.
+      // no any term datatype, we are done
+      continue;
+    }
+    Trace("sygus-grammar-def")
+        << "Build any-term datatype for " << types[i] << std::endl;
+    unsigned iat = itgat->second;
+    // for now, only real has any term construction
+    Assert(types[i].isReal());
+    const SygusDatatype& sdti = sdts[i].d_sdt;
+    // We have initialized the given type sdts[i], which should now contain
+    // a constructor for each relevant arithmetic term/variable. We now
+    // construct a sygus datatype of the form:
+    //   I -> C*x1 | ... | C*xn | C | I + I | ite( B, I, I )
+    //   C -> any_constant
+    // where x1, ..., xn are the arithmetic terms/variables (non-arithmetic
+    // builtin operator) terms we have considered thus far.
 
-      // construct a sygus datatype with a single constructor corresponding to
-      // a linear polynomial over these variables/terms. Doing this first
-      // requires making the "any constant" arithmetic type.
+    // construct a sygus datatype with a single constructor corresponding to
+    // a linear polynomial over these variables/terms. Doing this first
+    // requires making the "any constant" arithmetic type.
 
-      std::stringstream ss;
-      ss << fun << "_AnyConst";
-      // make sygus datatype for any constant
-      TypeNode unresAnyConst = mkUnresolvedType(ss.str(), unres);
-      unres_types.push_back(unresAnyConst);
-      sdts.push_back(SygusDatatypeGenerator(ss.str()));
-      sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
-      sdts.back().d_sdt.initializeDatatype(types[i], bvl, true, true);
-      // Now, extract the terms and set up the polynomial
-      std::vector<Node> sumChildren;
-      std::vector<TypeNode> cargsAnyTerm;
-      std::vector<Node> lambdaVars;
-      for (unsigned k = 0, ncons = sdti.getNumConstructors(); k < ncons; k++)
+    std::stringstream ss;
+    ss << fun << "_AnyConst";
+    // make sygus datatype for any constant
+    TypeNode unresAnyConst = mkUnresolvedType(ss.str(), unres);
+    unres_types.push_back(unresAnyConst);
+    sdts.push_back(SygusDatatypeGenerator(ss.str()));
+    sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
+    sdts.back().d_sdt.initializeDatatype(types[i], bvl, true, true);
+    // Now, extract the terms and set up the polynomial
+    std::vector<Node> sumChildren;
+    std::vector<TypeNode> cargsAnyTerm;
+    std::vector<Node> lambdaVars;
+    for (unsigned k = 0, ncons = sdti.getNumConstructors(); k < ncons; k++)
+    {
+      const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
+      Node sop = sdc.d_op;
+      Trace("sygus-grammar-def") << "Monomial variable: " << sop << std::endl;
+      unsigned nargs = sdc.d_argTypes.size();
+      bool isBuiltinArithOp = (sop.getKind() == CONST_RATIONAL);
+      if (nargs > 0)
       {
-        const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
-        Node sop = sdc.d_op;
-        Trace("sygus-grammar-def") << "Monomial variable: " << sop << std::endl;
-        unsigned nargs = sdc.d_argTypes.size();
-        bool isBuiltinArithOp = (sop.getKind() == CONST_RATIONAL);
-        if (nargs > 0)
+        // Take its arguments. For example, if we are building a polynomial
+        // over str.len(s), then our any term constructor would include an
+        // argument of string type, e.g.:
+        //   (lambda s : String, c1, c2 : Int. c1*len(s) + c2)
+        std::vector<Node> opLArgs;
+        std::vector<TypeNode> cargsCurr;
+        for (unsigned j = 0; j < nargs; j++)
         {
-          // Take its arguments. For example, if we are building a polynomial
-          // over str.len(s), then our any term constructor would include an
-          // argument of string type, e.g.:
-          //   (lambda s : String, c1, c2 : Int. c1*len(s) + c2)
-          Assert(sop.getKind() == LAMBDA && sop[0].getNumChildren() == nargs);
-          std::vector<Node> opLArgs;
-          for (unsigned j = 0; j < nargs; j++)
+          // this is already corresponds to the correct sygus datatype type
+          TypeNode atype = sdc.d_argTypes[j];
+          if (atype == unres_types[i])
           {
-            // this is already corresponds to the correct sygus datatype type
-            TypeNode atype = sdc.d_argTypes[j];
-            if (atype == unres_types[i])
-            {
-              // it is recursive, thus may be a builtin arithmetic operator
-              isBuiltinArithOp = true;
-              break;
-            }
-            cargsAnyTerm.push_back(atype);
-            // builtin type can be extracted from lambda
-            opLArgs.push_back(nm->mkBoundVar(sop[0][j].getType()));
+            // it is recursive, thus may be a builtin arithmetic operator
+            isBuiltinArithOp = true;
+            break;
           }
-          if (!isBuiltinArithOp)
-          {
-            lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
-            opLArgs.insert(opLArgs.begin(), sop);
-            // Do beta reduction on the operator so that its arguments match the
-            // fresh variables of the lambda we are constructing.
-            sop = nm->mkNode(APPLY_UF, opLArgs);
-            sop = Rewriter::rewrite(sop);
-          }
+          cargsCurr.push_back(atype);
+          // get the builtin type
+          TypeNode btype = sygus_to_builtin[atype];
+          opLArgs.push_back(nm->mkBoundVar(btype));
         }
         if (!isBuiltinArithOp)
         {
-          Node coeff = nm->mkBoundVar(types[i]);
-          lambdaVars.push_back(coeff);
-          cargsAnyTerm.push_back(unresAnyConst);
-          // add the monomial c*t to the sum
-          sumChildren.push_back(nm->mkNode(MULT, coeff, sop));
+          cargsAnyTerm.insert(cargsAnyTerm.end(),cargsCurr.begin(), cargsCurr.end());
+          lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
+          // Do beta reduction on the operator so that its arguments match the
+          // fresh variables of the lambda we are constructing.
+          sop = datatypes::utils::mkSygusTerm(sop, opLArgs);
+          sop = Rewriter::rewrite(sop);
         }
       }
-      // add the constant
-      Node coeff = nm->mkBoundVar(types[i]);
-      lambdaVars.push_back(coeff);
-      cargsAnyTerm.push_back(unresAnyConst);
-      // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
-      Assert(sumChildren.size() > 1);
-      Node ops = nm->mkNode(PLUS, sumChildren);
-      Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
-      // make the any term datatype, add to back
-      // do not consider the exclusion criteria of the generator
-      sdts[iat].d_sdt.addConstructor(op, "any_term_templ", cargsAnyTerm);
-      // also add ITE
-      std::vector<TypeNode> cargsIte;
-      cargsIte.push_back(unres_bt);
-      cargsIte.push_back(unres_types[iat]);
-      cargsIte.push_back(unres_types[iat]);
-      sdts[iat].d_sdt.addConstructor(ITE, cargsIte);
-      sdts[iat].d_sdt.initializeDatatype(types[i], bvl, true, true);
-      Trace("sygus-grammar-def")
-          << "...built datatype " << sdts[iat].d_sdt.getDatatype() << std::endl;
-      // if the type is range, use it as the default type
-      if (types[i] == range)
+      if (!isBuiltinArithOp)
       {
-        startIndex = iat;
+        Node coeff = nm->mkBoundVar(types[i]);
+        lambdaVars.push_back(coeff);
+        cargsAnyTerm.push_back(unresAnyConst);
+        // add the monomial c*t to the sum
+        sumChildren.push_back(nm->mkNode(MULT, coeff, sop));
       }
+    }
+    // add the constant
+    Node coeff = nm->mkBoundVar(types[i]);
+    lambdaVars.push_back(coeff);
+    cargsAnyTerm.push_back(unresAnyConst);
+    // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
+    Assert(sumChildren.size() > 1);
+    Node ops = nm->mkNode(PLUS, sumChildren);
+    Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
+    Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
+    // make the any term datatype, add to back
+    // do not consider the exclusion criteria of the generator
+    sdts[iat].d_sdt.addConstructor(op, "any_term_templ", cargsAnyTerm);
+    // also add ITE
+    std::vector<TypeNode> cargsIte;
+    cargsIte.push_back(unres_bt);
+    cargsIte.push_back(unres_types[iat]);
+    cargsIte.push_back(unres_types[iat]);
+    sdts[iat].d_sdt.addConstructor(ITE, cargsIte);
+    sdts[iat].d_sdt.initializeDatatype(types[i], bvl, true, true);
+    Trace("sygus-grammar-def")
+        << "...built datatype " << sdts[iat].d_sdt.getDatatype() << std::endl;
+    // if the type is range, use it as the default type
+    if (types[i] == range)
+    {
+      startIndex = iat;
     }
   }
   //------ make Boolean type

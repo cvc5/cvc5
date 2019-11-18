@@ -147,6 +147,9 @@ Node mkSygusTerm(const Datatype& dt,
                  unsigned i,
                  const std::vector<Node>& children,
                  bool doBetaReduction = true);
+Node mkSygusTerm(Node op,
+                 const std::vector<Node>& children,
+                 bool doBetaReduction = true);
 /**
  * n is a builtin term that is an application of operator op.
  *
