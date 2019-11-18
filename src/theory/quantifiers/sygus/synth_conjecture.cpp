@@ -1044,7 +1044,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
       Node prog = d_embed_quant[0][i];
       int status = statuses[i];
       TypeNode tn = prog.getType();
-      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      const DType& dt = tn.getDType();
       std::stringstream ss;
       ss << prog;
       std::string f(ss.str());
@@ -1107,7 +1107,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         // pvs stores the variables that will be printed in the argument list
         // below.
         std::vector<Node> pvs;
-        Node vl = Node::fromExpr(dt.getSygusVarList());
+        Node vl = dt.getSygusVarList();
         if (!vl.isNull())
         {
           Assert(vl.getKind() == BOUND_VAR_LIST);
@@ -1170,9 +1170,9 @@ bool SynthConjecture::getSynthSolutions(
     }
     // convert to lambda
     TypeNode tn = d_embed_quant[0][i].getType();
-    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    const DType& dt = tn.getDType();
     Node fvar = d_quant[0][i];
-    Node bvl = Node::fromExpr(dt.getSygusVarList());
+    Node bvl = dt.getSygusVarList();
     if (!bvl.isNull())
     {
       // since we don't have function subtyping, this assertion should only

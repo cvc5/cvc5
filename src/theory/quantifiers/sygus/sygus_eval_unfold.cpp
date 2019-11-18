@@ -45,7 +45,7 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   TypeNode tn = n[0].getType();
   // since n[0] is an evaluation head, we know tn is a sygus datatype
   Assert(tn.isDatatype());
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   Assert(dt.isSygus());
   if (n[0].getKind() == APPLY_CONSTRUCTOR)
   {
@@ -55,7 +55,7 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   }
   // register this evaluation term with its head
   d_evals[n[0]].push_back(n);
-  Node var_list = Node::fromExpr(dt.getSygusVarList());
+  Node var_list = dt.getSygusVarList();
   d_eval_args[n[0]].push_back(std::vector<Node>());
   for (unsigned j = 1, size = n.getNumChildren(); j < size; j++)
   {
@@ -103,7 +103,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
       TypeNode tn = n.getType();
       // n occurs as an evaluation head, thus it has sygus datatype type
       Assert(tn.isDatatype());
-      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      const DType& dt = tn.getDType();
       Assert(dt.isSygus());
       Trace("sygus-eval-unfold")
           << "SygusEvalUnfold: Register model value : " << vn << " for " << n
@@ -115,7 +115,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
       Node bTerm = d_tds->sygusToBuiltin(vn, tn);
       Trace("sygus-eval-unfold") << "Built-in term : " << bTerm << std::endl;
       std::vector<Node> vars;
-      Node var_list = Node::fromExpr(dt.getSygusVarList());
+      Node var_list = dt.getSygusVarList();
       for (const Node& v : var_list)
       {
         vars.push_back(v);
