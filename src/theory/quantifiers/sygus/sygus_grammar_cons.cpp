@@ -887,19 +887,28 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     const SygusDatatype& sdti = sdts[i].d_sdt;
     // We have initialized the given type sdts[i], which should now contain
     // a constructor for each relevant arithmetic term/variable. We now
-    // construct a sygus datatype of the form:
+    // construct a sygus datatype of one of the following two forms.
+    //
+    // (1) The "sum of monomials" grammar:
     //   I -> C*x1 | ... | C*xn | C | I + I | ite( B, I, I )
     //   C -> any_constant
     // where x1, ..., xn are the arithmetic terms/variables (non-arithmetic
-    // builtin operator) terms we have considered thus far.
+    // builtin operators) terms we have considered thus far.
+    //
+    // (2) The "polynomial" grammar:
+    //   I -> C*x1 + ... + C*xn + C | ite( B, I, I )
+    //   C -> any_constant
+    //
+    // The advantage of the first is that it allows for sums of terms
+    // constructible from other theories that share sorts with arithmetic, e.g.
+    //   c1*str.len(x) + c2*str.len(y)
+    // The advantage of the second is that there are fewer constructors, and
+    // hence may be more efficient.
 
-    // construct a sygus datatype with a single constructor corresponding to
-    // a linear polynomial over these variables/terms. Doing this first
-    // requires making the "any constant" arithmetic type.
-
+    bool polynomialGrammar = false;
     std::stringstream ss;
     ss << fun << "_AnyConst";
-    // make sygus datatype for any constant
+    // Make sygus datatype for any constant.
     TypeNode unresAnyConst = mkUnresolvedType(ss.str(), unres);
     unres_types.push_back(unresAnyConst);
     sdts.push_back(SygusDatatypeGenerator(ss.str()));
@@ -916,14 +925,14 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "Monomial variable: " << sop << std::endl;
       unsigned nargs = sdc.d_argTypes.size();
       bool isBuiltinArithOp = (sop.getKind() == CONST_RATIONAL);
+      std::vector<TypeNode> opCArgs;
+      std::vector<Node> opLArgs;
       if (nargs > 0)
       {
         // Take its arguments. For example, if we are building a polynomial
         // over str.len(s), then our any term constructor would include an
         // argument of string type, e.g.:
         //   (lambda s : String, c1, c2 : Int. c1*len(s) + c2)
-        std::vector<Node> opLArgs;
-        std::vector<TypeNode> cargsCurr;
         for (unsigned j = 0; j < nargs; j++)
         {
           // this is already corresponds to the correct sygus datatype type
@@ -934,15 +943,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
             isBuiltinArithOp = true;
             break;
           }
-          cargsCurr.push_back(atype);
+          opCArgs.push_back(atype);
           // get the builtin type
           TypeNode btype = sygus_to_builtin[atype];
           opLArgs.push_back(nm->mkBoundVar(btype));
         }
         if (!isBuiltinArithOp)
         {
-          cargsAnyTerm.insert(cargsAnyTerm.end(),cargsCurr.begin(), cargsCurr.end());
-          lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
           // Do beta reduction on the operator so that its arguments match the
           // fresh variables of the lambda we are constructing.
           sop = datatypes::utils::mkSygusTerm(sop, opLArgs);
@@ -951,25 +958,52 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
       if (!isBuiltinArithOp)
       {
+        opCArgs.push_back(unresAnyConst);
         Node coeff = nm->mkBoundVar(types[i]);
-        lambdaVars.push_back(coeff);
-        cargsAnyTerm.push_back(unresAnyConst);
-        // add the monomial c*t to the sum
-        sumChildren.push_back(nm->mkNode(MULT, coeff, sop));
+        opLArgs.push_back(coeff);
+        Node monomial = nm->mkNode(MULT, coeff, sop);
+        if (polynomialGrammar)
+        {
+          // add the monomial c*t to the sum
+          sumChildren.push_back(monomial);
+          lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
+          cargsAnyTerm.insert(cargsAnyTerm.end(),opCArgs.begin(), opCArgs.end());
+        }
+        else
+        {
+          Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, opLArgs), monomial);
+          // add it as a constructor
+          std::stringstream ssop;
+          ssop << "monomial_" << sdc.d_name;
+          sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs);
+        }
       }
     }
-    // add the constant
-    Node coeff = nm->mkBoundVar(types[i]);
-    lambdaVars.push_back(coeff);
-    cargsAnyTerm.push_back(unresAnyConst);
-    // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
-    Assert(sumChildren.size() > 1);
-    Node ops = nm->mkNode(PLUS, sumChildren);
-    Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
-    Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
-    // make the any term datatype, add to back
-    // do not consider the exclusion criteria of the generator
-    sdts[iat].d_sdt.addConstructor(op, "any_term_templ", cargsAnyTerm);
+    if (polynomialGrammar)
+    {
+      // add the constant
+      Node coeff = nm->mkBoundVar(types[i]);
+      lambdaVars.push_back(coeff);
+      cargsAnyTerm.push_back(unresAnyConst);
+      // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
+      Assert(sumChildren.size() > 1);
+      Node ops = nm->mkNode(PLUS, sumChildren);
+      Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
+      Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
+      // make the any term datatype, add to back
+      // do not consider the exclusion criteria of the generator
+      sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm);
+    }
+    else
+    {
+      // add the any constant constructor
+      sdts[iat].d_sdt.addAnyConstantConstructor(types[i]);
+      // add plus
+      std::vector<TypeNode> cargsPlus;
+      cargsPlus.push_back(unres_types[iat]);
+      cargsPlus.push_back(unres_types[iat]);
+      sdts[iat].d_sdt.addConstructor(PLUS, cargsPlus);
+    }
     // also add ITE
     std::vector<TypeNode> cargsIte;
     cargsIte.push_back(unres_bt);
