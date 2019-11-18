@@ -277,20 +277,38 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Debug("groundterms") << "ground term of " << dtts[1].getDatatype().getName() << endl
                          << "  is " << dtts[1].mkGroundTerm() << endl;
     TS_ASSERT(dtts[1].mkGroundTerm().getType() == dtts[1]);
+  }
+  void testMutualListTrees2()
+  {
+    Datatype tree("tree");
+    DatatypeConstructor node("node", "is_node");
+    node.addArg("left", DatatypeSelfType());
+    node.addArg("right", DatatypeSelfType());
+    tree.addConstructor(node);
+
+    DatatypeConstructor leaf("leaf", "is_leaf");
+    leaf.addArg("leaf", DatatypeUnresolvedType("list"));
+    tree.addConstructor(leaf);
+
+    Datatype list("list");
+    DatatypeConstructor cons("cons", "is_cons");
+    cons.addArg("car", DatatypeUnresolvedType("tree"));
+    cons.addArg("cdr", DatatypeSelfType());
+    list.addConstructor(cons);
+
+    DatatypeConstructor nil("nil", "is_nil");
+    list.addConstructor(nil);
 
     // add another constructor to list datatype resulting in an
     // "otherNil-list"
     DatatypeConstructor otherNil("otherNil", "is_otherNil");
-    dts[1].addConstructor(otherNil);
+    list.addConstructor(otherNil);
 
+    vector<Datatype> dts;
+    dts.push_back(tree);
+    dts.push_back(list);
     // remake the types
     vector<DatatypeType> dtts2 = d_em->mkMutualDatatypeTypes(dts);
-
-    TS_ASSERT_DIFFERS(dtts, dtts2);
-    TS_ASSERT_DIFFERS(dtts[1], dtts2[1]);
-
-    // tree is also different because it's a tree of otherNil-lists
-    TS_ASSERT_DIFFERS(dtts[0], dtts2[0]);
 
     TS_ASSERT(! dtts2[0].getDatatype().isFinite());
     TS_ASSERT(dtts2[0].getDatatype().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
