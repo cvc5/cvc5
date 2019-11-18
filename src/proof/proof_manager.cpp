@@ -670,7 +670,8 @@ void LFSCProof::toStream(std::ostream& out) const
       }
     }
 
-    // From the cl
+    // From the clauses, compute the atoms (atomic theory predicates in
+    // assertions and lemmas).
     d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
     d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 
