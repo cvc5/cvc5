@@ -990,8 +990,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
 }
 
 Node TermDbSygus::evaluateWithUnfolding(
-    Node n,
-    std::unordered_map<Node, Node, NodeHashFunction>& visited)
+    Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited)
 {
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
       visited.find(n);

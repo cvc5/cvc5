@@ -98,8 +98,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
   EvalSygusInvarianceTest()
-      : d_kind(kind::UNDEFINED_KIND),
-        d_is_conjunctive(false)
+      : d_kind(kind::UNDEFINED_KIND), d_is_conjunctive(false)
   {
   }
 
