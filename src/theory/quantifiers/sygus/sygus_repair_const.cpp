@@ -489,8 +489,7 @@ Node SygusRepairConst::getFoQuery(Node body,
   Trace("sygus-repair-const-debug") << "  ...got : " << body << std::endl;
 
   Trace("sygus-repair-const") << "  Unfold the specification..." << std::endl;
-  // does the argument true matter? TODO
-  body = d_tds->evaluateWithUnfolding(body, true);
+  body = d_tds->evaluateWithUnfolding(body);
   Trace("sygus-repair-const-debug") << "  ...got : " << body << std::endl;
 
   Trace("sygus-repair-const") << "  Introduce first-order vars..." << std::endl;

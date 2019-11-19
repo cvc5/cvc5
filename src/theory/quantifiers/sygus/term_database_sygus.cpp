@@ -991,8 +991,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
 
 Node TermDbSygus::evaluateWithUnfolding(
     Node n,
-    std::unordered_map<Node, Node, NodeHashFunction>& visited,
-    bool evalSymbolic)
+    std::unordered_map<Node, Node, NodeHashFunction>& visited)
 {
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
       visited.find(n);
@@ -1001,15 +1000,7 @@ Node TermDbSygus::evaluateWithUnfolding(
     while (ret.getKind() == DT_SYGUS_EVAL
            && ret[0].getKind() == APPLY_CONSTRUCTOR)
     {
-      if (!evalSymbolic)
-      {
-        if (isSymbolicConsApp(ret[0]))
-        {
-          // assuming any constant for now FIXME
-          return ret[0][0];
-        }
-      }
-      else if (ret == n && ret[0].isConst())
+      if (ret == n && ret[0].isConst())
       {
         // If the head is constant, we can evaluate immediately. We
         // do not do this if we are leaving symbolic terms unevaluated.
@@ -1051,7 +1042,7 @@ Node TermDbSygus::evaluateWithUnfolding(
       }
       bool childChanged = false;
       for( unsigned i=0; i<ret.getNumChildren(); i++ ){
-        Node nc = evaluateWithUnfolding(ret[i], visited, evalSymbolic);
+        Node nc = evaluateWithUnfolding(ret[i], visited);
         childChanged = childChanged || nc!=ret[i];
         children.push_back( nc );
       }
@@ -1067,10 +1058,10 @@ Node TermDbSygus::evaluateWithUnfolding(
   }
 }
 
-Node TermDbSygus::evaluateWithUnfolding(Node n, bool evalSymbolic)
+Node TermDbSygus::evaluateWithUnfolding(Node n)
 {
   std::unordered_map<Node, Node, NodeHashFunction> visited;
-  return evaluateWithUnfolding(n, visited, evalSymbolic);
+  return evaluateWithUnfolding(n, visited);
 }
 
 bool TermDbSygus::isEvaluationPoint(Node n) const

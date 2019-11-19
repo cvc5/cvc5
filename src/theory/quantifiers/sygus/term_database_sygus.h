@@ -283,12 +283,11 @@ class TermDbSygus {
    * then calling this function on eval( C_+( x, 1 ), 4 ) = y returns 5 = y.
    * The node returned by this function is in (extended) rewritten form.
    */
-  Node evaluateWithUnfolding(Node n, bool evalSymbolic);
+  Node evaluateWithUnfolding(Node n);
   /** same as above, but with a cache of visited nodes */
   Node evaluateWithUnfolding(
       Node n,
-      std::unordered_map<Node, Node, NodeHashFunction>& visited,
-      bool evalSymbolic);
+      std::unordered_map<Node, Node, NodeHashFunction>& visited);
   /** is evaluation point?
    *
    * Returns true if n is of the form eval( x, c1...cn ) for some variable x

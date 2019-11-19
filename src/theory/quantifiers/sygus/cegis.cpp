@@ -515,7 +515,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
       Node lemcs = lem.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
       Trace("sygus-cref-eval2")
           << "...under substitution it is : " << lemcs << std::endl;
-      Node lemcsu = vsit.doEvaluateWithUnfolding(d_tds, lemcs, true);
+      Node lemcsu = vsit.doEvaluateWithUnfolding(d_tds, lemcs);
       Trace("sygus-cref-eval2")
           << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
@@ -537,7 +537,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           // substitute for everything except this
           Node sconj =
               lem.substitute(vs.begin(), vs.end(), msu.begin(), msu.end());
-          vsit.init(sconj, vs[k], nfalse, true);
+          vsit.init(sconj, vs[k], nfalse);
           // get minimal explanation for this
           Node ut = vsit.getUpdatedTerm();
           Trace("sygus-cref-eval2-debug")
