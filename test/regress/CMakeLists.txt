@@ -537,6 +537,7 @@ set(regress_0_tests
   regress0/nl/coeff-sat.smt2
   regress0/nl/ext-rew-aggr-test.smt2
   regress0/nl/issue3407.smt2
+  regress0/nl/issue3475.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -552,6 +553,7 @@ set(regress_0_tests
   regress0/nl/nta/tan-rewrite.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
+  regress0/nl/sqrt.smt2
   regress0/nl/sqrt2-value.smt2
   regress0/nl/subs0-unsat-confirm.smt2
   regress0/nl/very-easy-sat.smt2
