@@ -154,7 +154,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
             do_unfold = true;
           }
         }
-        if (do_unfold)
+        if (do_unfold || hasSymCons)
         {
           // note that this is replicated for different values
           std::map<Node, Node> vtm;
@@ -164,7 +164,9 @@ void SygusEvalUnfold::registerModelValue(Node a,
               eval_children.end(), it->second[i].begin(), it->second[i].end());
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           eval_children.resize(1);
-          res = unfold(eval_fun, vtm, exp);
+          // If we explicitly asked to unfold, we use single step, otherwise
+          // we use multi step.
+          res = unfold(eval_fun, vtm, exp, true, !do_unfold);
           Trace("sygus-eval-unfold") << "Unfold returns " << res << std::endl;
           expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
         }
@@ -202,13 +204,13 @@ void SygusEvalUnfold::registerModelValue(Node a,
 }
 
 
-Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
+Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp, bool doRec ) {
   if (en.getKind() != DT_SYGUS_EVAL)
   {
     Assert(en.isConst());
     return en;
   }
-  Trace("sygus-eval-unfold-debug") << "Unfold : " << en << std::endl;
+  Trace("sygus-eval-unfold-debug") << "Unfold : " << en << ", track exp is " << track_exp << ", doRec is " << doRec << std::endl;
   Node ev = en[0];
   if (track_exp)
   {
@@ -221,7 +223,8 @@ Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector<
     Assert(en[0].getType() == ev.getType());
     Assert(ev.isConst());
   }
-  Assert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
+  Trace("sygus-eval-unfold-debug") << "Unfold model value is : " << ev << std::endl;
+  AlwaysAssert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
   std::vector<Node> args;
   for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
   {
@@ -249,6 +252,7 @@ Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector<
     Trace("sygus-eval-unfold-debug") << "...it is an any-constant constructor"
                             << std::endl;
     Assert(dt[i].getNumArgs() == 1);
+    // always abstract the any constant, regardless of whether this condition holds? TODO
     if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
       Trace("sygus-eval-unfold-debug") << "...return (from constructor) " << en[0][0] << std::endl;
@@ -289,7 +293,14 @@ Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector<
       vtm[s] = ev[j];
     }
     cc.insert(cc.end(), args.begin(), args.end());
-    pre[j] = nm->mkNode(DT_SYGUS_EVAL, cc);
+    Node argj =  nm->mkNode(DT_SYGUS_EVAL, cc);
+    if (doRec)
+    {
+      Trace("sygus-eval-unfold-debug") << "Recurse on " << s << std::endl;
+      // evaluate recursively
+      argj = unfold(argj,vtm, exp, track_exp, doRec);
+    }
+    pre[j] = argj;
   }
   Node ret = d_tds->mkGeneric(dt, i, pre);
   // apply the appropriate substitution to ret
@@ -299,13 +310,13 @@ Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector<
   return ret;
 }
 
+
 Node SygusEvalUnfold::unfold(Node en)
 {
   std::map<Node, Node> vtm;
   std::vector<Node> exp;
-  return unfold(en, vtm, exp, false);
+  return unfold(en, vtm, exp, false, false);
 }
-
 
 }  // namespace quantifiers
 }  // namespace theory

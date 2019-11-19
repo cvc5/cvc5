@@ -97,11 +97,15 @@ class SygusEvalUnfold
    * For example, if vtm[d] = C_+( C_x(), C_0() ) and track_exp is true, then
    * this method applied to eval( d, t ) will return
    * +( eval( d.0, t ), eval( d.1, t ) ), and is-C_+( d ) is added to exp.
+   * 
+   * If the argument doRec is true, we do a multi-step unfolding instead of
+   * a single-step unfolding.
    */
   Node unfold(Node en,
               std::map<Node, Node>& vtm,
               std::vector<Node>& exp,
-              bool track_exp = true);
+              bool track_exp = true,
+              bool doRec = false);
   /**
    * Same as above, but without explanation tracking. This is used for concrete
    * evaluation heads
