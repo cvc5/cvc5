@@ -4973,7 +4973,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         Node divByZeroNum =
-            getArithSkolemApp(logicRequest, num, arith_skolem_div_by_zero);
+            getArithSkolemApp(logicRequest, num, ArithSkolemId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
       }
@@ -4988,8 +4988,8 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node intDivByZeroNum =
-            getArithSkolemApp(logicRequest, num, arith_skolem_int_div_by_zero);
+        Node intDivByZeroNum = getArithSkolemApp(
+            logicRequest, num, ArithSkolemId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -5005,7 +5005,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         Node modZeroNum =
-            getArithSkolemApp(logicRequest, num, arith_skolem_mod_by_zero);
+            getArithSkolemApp(logicRequest, num, ArithSkolemId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
       }
@@ -5037,7 +5037,25 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
         Node lem;
         if (k == kind::SQRT)
         {
-          lem = nm->mkNode(kind::MULT, var, var).eqNode(node[0]);
+          Node skolemApp =
+              getArithSkolemApp(logicRequest, node[0], ArithSkolemId::SQRT);
+          Node uf = skolemApp.eqNode(var);
+          Node nonNeg = nm->mkNode(
+              kind::AND, nm->mkNode(kind::MULT, var, var).eqNode(node[0]), uf);
+
+          // sqrt(x) reduces to:
+          // choice y. ite(x >= 0.0, y * y = x ^ Uf(x), Uf(x))
+          //
+          // Uf(x) makes sure that the reduction still behaves like a function,
+          // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
+          // satisfiable. On the original formula, this would require that we
+          // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
+          // model.
+          lem = nm->mkNode(
+              kind::ITE,
+              nm->mkNode(kind::GEQ, node[0], nm->mkConst(Rational(0))),
+              nonNeg,
+              uf);
         }
         else
         {
@@ -5102,23 +5120,29 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
     TypeNode tn;
     std::string name;
     std::string desc;
-    if (asi == arith_skolem_div_by_zero)
+    switch (asi)
     {
-      tn = nm->realType();
-      name = std::string("divByZero");
-      desc = std::string("partial real division");
-    }
-    else if (asi == arith_skolem_int_div_by_zero)
-    {
-      tn = nm->integerType();
-      name = std::string("intDivByZero");
-      desc = std::string("partial int division");
-    }
-    else if (asi == arith_skolem_mod_by_zero)
-    {
-      tn = nm->integerType();
-      name = std::string("modZero");
-      desc = std::string("partial modulus");
+      case ArithSkolemId::DIV_BY_ZERO:
+        tn = nm->realType();
+        name = std::string("divByZero");
+        desc = std::string("partial real division");
+        break;
+      case ArithSkolemId::INT_DIV_BY_ZERO:
+        tn = nm->integerType();
+        name = std::string("intDivByZero");
+        desc = std::string("partial int division");
+        break;
+      case ArithSkolemId::MOD_BY_ZERO:
+        tn = nm->integerType();
+        name = std::string("modZero");
+        desc = std::string("partial modulus");
+        break;
+      case ArithSkolemId::SQRT:
+        tn = nm->realType();
+        name = std::string("sqrtUf");
+        desc = std::string("partial sqrt");
+        break;
+      default: Unhandled();
     }
 
     Node skolem;
