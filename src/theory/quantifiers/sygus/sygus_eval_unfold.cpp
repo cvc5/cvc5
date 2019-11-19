@@ -14,10 +14,10 @@
 
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "expr/sygus_datatype.h"
+#include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -179,7 +179,8 @@ void SygusEvalUnfold::registerModelValue(Node a,
           eval_children[0] = vn;
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           res = d_tds->evaluateWithUnfolding(eval_fun, false);
-          Trace("sygus-eval-unfold") << "Evaluate with unfolding returns " << res << std::endl;
+          Trace("sygus-eval-unfold")
+              << "Evaluate with unfolding returns " << res << std::endl;
           esit.init(conj, n, res, false);
           eval_children.resize(1);
           eval_children[0] = n;
@@ -203,14 +204,20 @@ void SygusEvalUnfold::registerModelValue(Node a,
   }
 }
 
-
-Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp, bool doRec ) {
+Node SygusEvalUnfold::unfold(Node en,
+                             std::map<Node, Node>& vtm,
+                             std::vector<Node>& exp,
+                             bool track_exp,
+                             bool doRec)
+{
   if (en.getKind() != DT_SYGUS_EVAL)
   {
     Assert(en.isConst());
     return en;
   }
-  Trace("sygus-eval-unfold-debug") << "Unfold : " << en << ", track exp is " << track_exp << ", doRec is " << doRec << std::endl;
+  Trace("sygus-eval-unfold-debug")
+      << "Unfold : " << en << ", track exp is " << track_exp << ", doRec is "
+      << doRec << std::endl;
   Node ev = en[0];
   if (track_exp)
   {
@@ -223,7 +230,8 @@ Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector<
     Assert(en[0].getType() == ev.getType());
     Assert(ev.isConst());
   }
-  Trace("sygus-eval-unfold-debug") << "Unfold model value is : " << ev << std::endl;
+  Trace("sygus-eval-unfold-debug")
+      << "Unfold model value is : " << ev << std::endl;
   AlwaysAssert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
   std::vector<Node> args;
   for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
@@ -249,20 +257,23 @@ Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector<
   Node sop = Node::fromExpr(dt[i].getSygusOp());
   if (sop.getAttribute(SygusAnyConstAttribute()))
   {
-    Trace("sygus-eval-unfold-debug") << "...it is an any-constant constructor"
-                            << std::endl;
+    Trace("sygus-eval-unfold-debug")
+        << "...it is an any-constant constructor" << std::endl;
     Assert(dt[i].getNumArgs() == 1);
-    // always abstract the any constant, regardless of whether this condition holds? TODO
+    // always abstract the any constant, regardless of whether this condition
+    // holds? TODO
     if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
-      Trace("sygus-eval-unfold-debug") << "...return (from constructor) " << en[0][0] << std::endl;
+      Trace("sygus-eval-unfold-debug")
+          << "...return (from constructor) " << en[0][0] << std::endl;
       return en[0][0];
     }
     else
     {
       Node ret = nm->mkNode(
           APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
-      Trace("sygus-eval-unfold-debug") << "...return (from constructor) " << ret << std::endl;
+      Trace("sygus-eval-unfold-debug")
+          << "...return (from constructor) " << ret << std::endl;
       return ret;
     }
   }
@@ -293,12 +304,12 @@ Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector<
       vtm[s] = ev[j];
     }
     cc.insert(cc.end(), args.begin(), args.end());
-    Node argj =  nm->mkNode(DT_SYGUS_EVAL, cc);
+    Node argj = nm->mkNode(DT_SYGUS_EVAL, cc);
     if (doRec)
     {
       Trace("sygus-eval-unfold-debug") << "Recurse on " << s << std::endl;
       // evaluate recursively
-      argj = unfold(argj,vtm, exp, track_exp, doRec);
+      argj = unfold(argj, vtm, exp, track_exp, doRec);
     }
     pre[j] = argj;
   }
@@ -309,7 +320,6 @@ Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector<
   ret = Rewriter::rewrite(ret);
   return ret;
 }
-
 
 Node SygusEvalUnfold::unfold(Node en)
 {

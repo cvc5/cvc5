@@ -95,7 +95,7 @@ bool Cegis::processInitialize(Node conj,
       }
     }
     // also use symbolic constructors if specified by the grammar mode
-    if (options::sygusGrammarConsMode()!=SYGUS_GCONS_SIMPLE)
+    if (options::sygusGrammarConsMode() != SYGUS_GCONS_SIMPLE)
     {
       useSymCons = true;
     }

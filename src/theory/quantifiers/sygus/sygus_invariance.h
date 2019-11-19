@@ -98,7 +98,9 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
   EvalSygusInvarianceTest()
-      : d_kind(kind::UNDEFINED_KIND), d_is_conjunctive(false), d_evalSymbolic(false)
+      : d_kind(kind::UNDEFINED_KIND),
+        d_is_conjunctive(false),
+        d_evalSymbolic(false)
   {
   }
 
@@ -136,7 +138,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
    * disjunctively, i.e. if one child test succeeds, the overall test succeeds.
    */
   bool d_is_conjunctive;
-  /** 
+  /**
    * If this flag is false, we are treating symbolic constructors as their
    * concrete values.
    */

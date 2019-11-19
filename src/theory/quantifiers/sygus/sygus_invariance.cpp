@@ -25,7 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void EvalSygusInvarianceTest::init(Node conj, Node var, Node res, bool evalSymbolic)
+void EvalSygusInvarianceTest::init(Node conj,
+                                   Node var,
+                                   Node res,
+                                   bool evalSymbolic)
 {
   d_terms.clear();
   // simple miniscope
@@ -48,7 +51,9 @@ void EvalSygusInvarianceTest::init(Node conj, Node var, Node res, bool evalSymbo
   d_evalSymbolic = evalSymbolic;
 }
 
-Node EvalSygusInvarianceTest::doEvaluateWithUnfolding(TermDbSygus* tds, Node n, bool evalSymbolic)
+Node EvalSygusInvarianceTest::doEvaluateWithUnfolding(TermDbSygus* tds,
+                                                      Node n,
+                                                      bool evalSymbolic)
 {
   return tds->evaluateWithUnfolding(n, d_visited, evalSymbolic);
 }
@@ -60,7 +65,8 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
   for (const Node& c : d_terms)
   {
     Node conj_subs = c.substitute(d_var, tnvn, cache);
-    Node conj_subs_unfold = doEvaluateWithUnfolding(tds, conj_subs, d_evalSymbolic);
+    Node conj_subs_unfold =
+        doEvaluateWithUnfolding(tds, conj_subs, d_evalSymbolic);
     Trace("sygus-cref-eval2-debug")
         << "  ...check unfolding : " << conj_subs_unfold << std::endl;
     Trace("sygus-cref-eval2-debug")

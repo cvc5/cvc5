@@ -816,7 +816,6 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   return sygusOp.getAttribute(SygusAnyConstAttribute());
 }
 
-
 bool TermDbSygus::canConstructKind(TypeNode tn,
                                    Kind k,
                                    std::vector<TypeNode>& argts,
@@ -991,7 +990,9 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
 }
 
 Node TermDbSygus::evaluateWithUnfolding(
-    Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited, bool evalSymbolic)
+    Node n,
+    std::unordered_map<Node, Node, NodeHashFunction>& visited,
+    bool evalSymbolic)
 {
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
       visited.find(n);
@@ -1033,14 +1034,15 @@ Node TermDbSygus::evaluateWithUnfolding(
           Node bret = sygusToBuiltin(ret[0], rt);
           Trace("dt-eval-unfold-debug") << "To builtin " << bret << std::endl;
           Node rete = evaluateBuiltin(rt, bret, args);
-          Trace("dt-eval-unfold-debug") << "After evaluation " << rete << std::endl;
+          Trace("dt-eval-unfold-debug")
+              << "After evaluation " << rete << std::endl;
           visited[n] = rete;
           Trace("dt-eval-unfold-debug")
               << "Return " << rete << " for " << n << std::endl;
           return rete;
         }
       }
-      ret = d_eval_unfold->unfold( ret );
+      ret = d_eval_unfold->unfold(ret);
     }    
     if( ret.getNumChildren()>0 ){
       std::vector< Node > children;
@@ -1049,7 +1051,7 @@ Node TermDbSygus::evaluateWithUnfolding(
       }
       bool childChanged = false;
       for( unsigned i=0; i<ret.getNumChildren(); i++ ){
-        Node nc = evaluateWithUnfolding( ret[i], visited, evalSymbolic ); 
+        Node nc = evaluateWithUnfolding(ret[i], visited, evalSymbolic);
         childChanged = childChanged || nc!=ret[i];
         children.push_back( nc );
       }
@@ -1065,9 +1067,10 @@ Node TermDbSygus::evaluateWithUnfolding(
   }
 }
 
-Node TermDbSygus::evaluateWithUnfolding( Node n, bool evalSymbolic ) {
+Node TermDbSygus::evaluateWithUnfolding(Node n, bool evalSymbolic)
+{
   std::unordered_map<Node, Node, NodeHashFunction> visited;
-  return evaluateWithUnfolding( n, visited, evalSymbolic );
+  return evaluateWithUnfolding(n, visited, evalSymbolic);
 }
 
 bool TermDbSygus::isEvaluationPoint(Node n) const

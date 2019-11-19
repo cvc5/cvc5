@@ -15,9 +15,9 @@
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
 
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 

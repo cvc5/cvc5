@@ -20,13 +20,13 @@
 #include "options/quantifiers_options.h"
 #include "printer/sygus_print_callback.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4::kind;
 
@@ -967,20 +967,22 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           // add the monomial c*t to the sum
           sumChildren.push_back(monomial);
           lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
-          cargsAnyTerm.insert(cargsAnyTerm.end(),opCArgs.begin(), opCArgs.end());
+          cargsAnyTerm.insert(
+              cargsAnyTerm.end(), opCArgs.begin(), opCArgs.end());
         }
         else
         {
-          Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, opLArgs), monomial);
+          Node op =
+              nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, opLArgs), monomial);
           // use a print callback since we do not want to print the lambda
           std::shared_ptr<SygusPrintCallback> spc;
           std::vector<Expr> opLArgsExpr;
-          for (unsigned i=0, nvars=opLArgs.size(); i<nvars; i++)
+          for (unsigned i = 0, nvars = opLArgs.size(); i < nvars; i++)
           {
             opLArgsExpr.push_back(opLArgs[i].toExpr());
           }
           spc = std::make_shared<printer::SygusExprPrintCallback>(
-                          monomial.toExpr(), opLArgsExpr);
+              monomial.toExpr(), opLArgsExpr);
           // add it as a constructor
           std::stringstream ssop;
           ssop << "monomial_" << sdc.d_name;
@@ -1000,12 +1002,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
       std::shared_ptr<SygusPrintCallback> spc;
       std::vector<Expr> lambdaVarsExpr;
-      for (unsigned i=0, nvars=lambdaVars.size(); i<nvars; i++)
+      for (unsigned i = 0, nvars = lambdaVars.size(); i < nvars; i++)
       {
         lambdaVarsExpr.push_back(lambdaVars[i].toExpr());
       }
-      spc = std::make_shared<printer::SygusExprPrintCallback>(
-                      ops.toExpr(), lambdaVarsExpr);
+      spc = std::make_shared<printer::SygusExprPrintCallback>(ops.toExpr(),
+                                                              lambdaVarsExpr);
       Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
       // make the any term datatype, add to back
       // do not consider the exclusion criteria of the generator

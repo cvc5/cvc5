@@ -286,7 +286,9 @@ class TermDbSygus {
   Node evaluateWithUnfolding(Node n, bool evalSymbolic);
   /** same as above, but with a cache of visited nodes */
   Node evaluateWithUnfolding(
-      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited, bool evalSymbolic);
+      Node n,
+      std::unordered_map<Node, Node, NodeHashFunction>& visited,
+      bool evalSymbolic);
   /** is evaluation point?
    *
    * Returns true if n is of the form eval( x, c1...cn ) for some variable x
@@ -419,7 +421,7 @@ class TermDbSygus {
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** return whether n contains an application of a symbolic constructor */
-  //bool containsSymbolicConsApp(Node n) const;
+  // bool containsSymbolicConsApp(Node n) const;
   /** can construct kind
    *
    * Given a sygus datatype type tn, if this method returns true, then there
