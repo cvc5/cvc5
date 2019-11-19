@@ -283,10 +283,10 @@ class TermDbSygus {
    * then calling this function on eval( C_+( x, 1 ), 4 ) = y returns 5 = y.
    * The node returned by this function is in (extended) rewritten form.
    */
-  Node evaluateWithUnfolding(Node n);
+  Node evaluateWithUnfolding(Node n, bool evalSymbolic);
   /** same as above, but with a cache of visited nodes */
   Node evaluateWithUnfolding(
-      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited);
+      Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited, bool evalSymbolic);
   /** is evaluation point?
    *
    * Returns true if n is of the form eval( x, c1...cn ) for some variable x
@@ -418,6 +418,8 @@ class TermDbSygus {
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
+  /** return whether n contains an application of a symbolic constructor */
+  //bool containsSymbolicConsApp(Node n) const;
   /** can construct kind
    *
    * Given a sygus datatype type tn, if this method returns true, then there
@@ -453,31 +455,6 @@ class TermDbSygus {
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
 
- public:
-  /** unfold
-   *
-   * This method returns the one-step unfolding of an evaluation function
-   * application. An example of a one step unfolding is:
-   *    eval( C_+( d1, d2 ), t ) ---> +( eval( d1, t ), eval( d2, t ) )
-   *
-   * This function does this unfolding for a (possibly symbolic) evaluation
-   * head, where the argument "variable to model" vtm stores the model value of
-   * variables from this head. This allows us to track an explanation of the
-   * unfolding in the vector exp when track_exp is true.
-   *
-   * For example, if vtm[d] = C_+( C_x(), C_0() ) and track_exp is true, then
-   * this method applied to eval( d, t ) will return
-   * +( eval( d.0, t ), eval( d.1, t ) ), and is-C_+( d ) is added to exp.
-   */
-  Node unfold(Node en,
-              std::map<Node, Node>& vtm,
-              std::vector<Node>& exp,
-              bool track_exp = true);
-  /**
-   * Same as above, but without explanation tracking. This is used for concrete
-   * evaluation heads
-   */
-  Node unfold(Node en);
 };
 
 }/* CVC4::theory::quantifiers namespace */

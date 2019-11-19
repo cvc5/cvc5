@@ -80,7 +80,7 @@ bool Cegis::processInitialize(Node conj,
   for (unsigned i = 0; i < csize; i++)
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
-    bool do_repair_const = false;
+    bool useSymCons = false;
     if (options::sygusRepairConst())
     {
       TypeNode ctn = candidates[i].getType();
@@ -88,15 +88,20 @@ bool Cegis::processInitialize(Node conj,
       SygusTypeInfo& cti = d_tds->getTypeInfo(ctn);
       if (cti.hasSubtermSymbolicCons())
       {
-        do_repair_const = true;
+        useSymCons = true;
         // remember that we are doing grammar-based repair
         d_using_gr_repair = true;
         Trace("cegis") << " (using repair)";
       }
     }
+    // also use symbolic constructors if specified by the grammar mode
+    if (options::sygusGrammarConsMode()!=SYGUS_GCONS_SIMPLE)
+    {
+      useSymCons = true;
+    }
     Trace("cegis") << std::endl;
     d_tds->registerEnumerator(
-        candidates[i], candidates[i], d_parent, erole, do_repair_const);
+        candidates[i], candidates[i], d_parent, erole, useSymCons);
   }
   return true;
 }
@@ -510,7 +515,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
       Node lemcs = lem.substitute(vs.begin(), vs.end(), ms.begin(), ms.end());
       Trace("sygus-cref-eval2")
           << "...under substitution it is : " << lemcs << std::endl;
-      Node lemcsu = vsit.doEvaluateWithUnfolding(d_tds, lemcs);
+      Node lemcsu = vsit.doEvaluateWithUnfolding(d_tds, lemcs, true);
       Trace("sygus-cref-eval2")
           << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
@@ -532,7 +537,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           // substitute for everything except this
           Node sconj =
               lem.substitute(vs.begin(), vs.end(), msu.begin(), msu.end());
-          vsit.init(sconj, vs[k], nfalse);
+          vsit.init(sconj, vs[k], nfalse, true);
           // get minimal explanation for this
           Node ut = vsit.getUpdatedTerm();
           Trace("sygus-cref-eval2-debug")

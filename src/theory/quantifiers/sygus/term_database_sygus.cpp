@@ -816,6 +816,7 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   return sygusOp.getAttribute(SygusAnyConstAttribute());
 }
 
+
 bool TermDbSygus::canConstructKind(TypeNode tn,
                                    Kind k,
                                    std::vector<TypeNode>& argts,
@@ -953,110 +954,6 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
   }
 }
 
-Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
-  if (en.getKind() != DT_SYGUS_EVAL)
-  {
-    Assert(en.isConst());
-    return en;
-  }
-  Trace("sygus-db-debug") << "Unfold : " << en << std::endl;
-  Node ev = en[0];
-  if (track_exp)
-  {
-    std::map<Node, Node>::iterator itv = vtm.find(en[0]);
-    Assert(itv != vtm.end());
-    if (itv != vtm.end())
-    {
-      ev = itv->second;
-    }
-    Assert(en[0].getType() == ev.getType());
-    Assert(ev.isConst());
-  }
-  Assert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
-  std::vector<Node> args;
-  for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
-  {
-    args.push_back(en[i]);
-  }
-
-  Type headType = en[0].getType().toType();
-  NodeManager* nm = NodeManager::currentNM();
-  const Datatype& dt = static_cast<DatatypeType>(headType).getDatatype();
-  unsigned i = datatypes::utils::indexOf(ev.getOperator());
-  if (track_exp)
-  {
-    // explanation
-    Node ee = nm->mkNode(
-        kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
-    if (std::find(exp.begin(), exp.end(), ee) == exp.end())
-    {
-      exp.push_back(ee);
-    }
-  }
-  // if we are a symbolic constructor, unfolding returns the subterm itself
-  Node sop = Node::fromExpr(dt[i].getSygusOp());
-  if (sop.getAttribute(SygusAnyConstAttribute()))
-  {
-    Trace("sygus-db-debug") << "...it is an any-constant constructor"
-                            << std::endl;
-    Assert(dt[i].getNumArgs() == 1);
-    if (en[0].getKind() == APPLY_CONSTRUCTOR)
-    {
-      Trace("sygus-db-debug") << "...return (from constructor) " << en[0][0] << std::endl;
-      return en[0][0];
-    }
-    else
-    {
-      Node ret = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
-      Trace("sygus-db-debug") << "...return (from constructor) " << ret << std::endl;
-      return ret;
-    }
-  }
-
-  Assert(!dt.isParametric());
-  std::map<int, Node> pre;
-  for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
-  {
-    std::vector<Node> cc;
-    Node s;
-    // get the j^th subfield of en
-    if (en[0].getKind() == kind::APPLY_CONSTRUCTOR)
-    {
-      // if it is a concrete constructor application, as an optimization,
-      // just return the argument
-      s = en[0][j];
-    }
-    else
-    {
-      s = nm->mkNode(kind::APPLY_SELECTOR_TOTAL,
-                     dt[i].getSelectorInternal(headType, j),
-                     en[0]);
-    }
-    cc.push_back(s);
-    if (track_exp)
-    {
-      // update vtm map
-      vtm[s] = ev[j];
-    }
-    cc.insert(cc.end(), args.begin(), args.end());
-    pre[j] = nm->mkNode(DT_SYGUS_EVAL, cc);
-  }
-  Node ret = mkGeneric(dt, i, pre);
-  // apply the appropriate substitution to ret
-  ret = datatypes::utils::applySygusArgs(dt, sop, ret, args);
-  // rewrite
-  ret = Rewriter::rewrite(ret);
-  return ret;
-}
-
-Node TermDbSygus::unfold(Node en)
-{
-  std::map<Node, Node> vtm;
-  std::vector<Node> exp;
-  return unfold(en, vtm, exp, false);
-}
-
 Node TermDbSygus::evaluateBuiltin(TypeNode tn,
                                   Node bn,
                                   std::vector<Node>& args,
@@ -1094,7 +991,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
 }
 
 Node TermDbSygus::evaluateWithUnfolding(
-    Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited)
+    Node n, std::unordered_map<Node, Node, NodeHashFunction>& visited, bool evalSymbolic)
 {
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
       visited.find(n);
@@ -1103,46 +1000,47 @@ Node TermDbSygus::evaluateWithUnfolding(
     while (ret.getKind() == DT_SYGUS_EVAL
            && ret[0].getKind() == APPLY_CONSTRUCTOR)
     {
-      if (ret == n && ret[0].isConst())
+      if (!evalSymbolic)
       {
-        // if we are not the any constant constructor
-        Node cons = ret[0].getOperator();
-        const Datatype& dt = Datatype::datatypeOf(cons.toExpr());
-        unsigned index = Datatype::indexOf(cons.toExpr());
-        const DatatypeConstructor& dtc = dt[index];
-        Node sop = Node::fromExpr(dtc.getSygusOp());
-        if (!sop.getAttribute(SygusAnyConstAttribute()))
+        if (isSymbolicConsApp(ret[0]))
         {
-          Trace("dt-eval-unfold-debug")
-              << "Optimize: evaluate constant head " << ret << std::endl;
-          // can just do direct evaluation here
-          std::vector<Node> args;
-          bool success = true;
-          for (unsigned i = 1, nchild = ret.getNumChildren(); i < nchild; i++)
-          {
-            if (!ret[i].isConst())
-            {
-              success = false;
-              break;
-            }
-            args.push_back(ret[i]);
-          }
-          if (success)
-          {
-            Trace("dt-eval-unfold-debug") << "I have " << ret[0] << std::endl;
-            TypeNode rt = ret[0].getType();
-            Node bret = sygusToBuiltin(ret[0], rt);
-            Trace("dt-eval-unfold-debug") << "To builtin " << bret << std::endl;
-            Node rete = evaluateBuiltin(rt, bret, args);
-            Trace("dt-eval-unfold-debug") << "After evaluation " << rete << std::endl;
-            visited[n] = rete;
-            Trace("dt-eval-unfold-debug")
-                << "Return " << rete << " for " << n << std::endl;
-            return rete;
-          }
+          // assuming any constant for now FIXME
+          return ret[0][0];
         }
       }
-      ret = unfold( ret );
+      else if (ret == n && ret[0].isConst())
+      {
+        // If the head is constant, we can evaluate immediately. We
+        // do not do this if we are leaving symbolic terms unevaluated.
+        Trace("dt-eval-unfold-debug")
+            << "Optimize: evaluate constant head " << ret << std::endl;
+        // can just do direct evaluation here
+        std::vector<Node> args;
+        bool success = true;
+        for (unsigned i = 1, nchild = ret.getNumChildren(); i < nchild; i++)
+        {
+          if (!ret[i].isConst())
+          {
+            success = false;
+            break;
+          }
+          args.push_back(ret[i]);
+        }
+        if (success)
+        {
+          Trace("dt-eval-unfold-debug") << "I have " << ret[0] << std::endl;
+          TypeNode rt = ret[0].getType();
+          Node bret = sygusToBuiltin(ret[0], rt);
+          Trace("dt-eval-unfold-debug") << "To builtin " << bret << std::endl;
+          Node rete = evaluateBuiltin(rt, bret, args);
+          Trace("dt-eval-unfold-debug") << "After evaluation " << rete << std::endl;
+          visited[n] = rete;
+          Trace("dt-eval-unfold-debug")
+              << "Return " << rete << " for " << n << std::endl;
+          return rete;
+        }
+      }
+      ret = d_eval_unfold->unfold( ret );
     }    
     if( ret.getNumChildren()>0 ){
       std::vector< Node > children;
@@ -1151,7 +1049,7 @@ Node TermDbSygus::evaluateWithUnfolding(
       }
       bool childChanged = false;
       for( unsigned i=0; i<ret.getNumChildren(); i++ ){
-        Node nc = evaluateWithUnfolding( ret[i], visited ); 
+        Node nc = evaluateWithUnfolding( ret[i], visited, evalSymbolic ); 
         childChanged = childChanged || nc!=ret[i];
         children.push_back( nc );
       }
@@ -1167,9 +1065,9 @@ Node TermDbSygus::evaluateWithUnfolding(
   }
 }
 
-Node TermDbSygus::evaluateWithUnfolding( Node n ) {
+Node TermDbSygus::evaluateWithUnfolding( Node n, bool evalSymbolic ) {
   std::unordered_map<Node, Node, NodeHashFunction> visited;
-  return evaluateWithUnfolding( n, visited );
+  return evaluateWithUnfolding( n, visited, evalSymbolic );
 }
 
 bool TermDbSygus::isEvaluationPoint(Node n) const

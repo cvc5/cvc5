@@ -98,7 +98,7 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
   EvalSygusInvarianceTest()
-      : d_kind(kind::UNDEFINED_KIND), d_is_conjunctive(false)
+      : d_kind(kind::UNDEFINED_KIND), d_is_conjunctive(false), d_evalSymbolic(false)
   {
   }
 
@@ -108,10 +108,10 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
    *   <d_kind>(d_terms) { d_var -> n } ----> d_result.
    * for terms n.
    */
-  void init(Node conj, Node var, Node res);
+  void init(Node conj, Node var, Node res, bool evalSymbolic);
 
   /** do evaluate with unfolding, using the cache of this class */
-  Node doEvaluateWithUnfolding(TermDbSygus* tds, Node n);
+  Node doEvaluateWithUnfolding(TermDbSygus* tds, Node n, bool evalSymbolic);
 
  protected:
   /** does d_terms{ d_var -> nvn } still rewrite to d_result? */
@@ -136,6 +136,11 @@ class EvalSygusInvarianceTest : public SygusInvarianceTest
    * disjunctively, i.e. if one child test succeeds, the overall test succeeds.
    */
   bool d_is_conjunctive;
+  /** 
+   * If this flag is false, we are treating symbolic constructors as their
+   * concrete values.
+   */
+  bool d_evalSymbolic;
   /** cache of n -> the simplified form of eval( n ) */
   std::unordered_map<Node, Node, NodeHashFunction> d_visited;
 };

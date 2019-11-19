@@ -191,6 +191,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   {
     // sygus datatype fields that are not sygus datatypes are treated as
     // abstractions only, hence we disregard this field
+    //exp.push_back(n.eqNode(vn));
     return;
   }
   Assert(vn.getKind() == APPLY_CONSTRUCTOR);

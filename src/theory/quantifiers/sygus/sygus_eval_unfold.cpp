@@ -17,6 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "expr/sygus_datatype.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -102,6 +103,10 @@ void SygusEvalUnfold::registerModelValue(Node a,
           antec_exp.size() == 1 ? antec_exp[0] : nm->mkNode(AND, antec_exp);
       // Node antec = n.eqNode( vn );
       TypeNode tn = n.getType();
+      // Check if the sygus type has any symbolic constructors. This will
+      // impact how the unfolding is computed below.
+      SygusTypeInfo& sti = d_tds->getTypeInfo(tn);
+      bool hasSymCons = sti.hasSubtermSymbolicCons();
       // n occurs as an evaluation head, thus it has sygus datatype type
       Assert(tn.isDatatype());
       const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
@@ -149,16 +154,6 @@ void SygusEvalUnfold::registerModelValue(Node a,
             do_unfold = true;
           }
         }
-        // do unfold if we are the any constant 
-        Node cons = vn.getOperator();
-        const Datatype& dt = Datatype::datatypeOf(cons.toExpr());
-        unsigned index = Datatype::indexOf(cons.toExpr());
-        const DatatypeConstructor& dtc = dt[index];
-        Node sop = Node::fromExpr(dtc.getSygusOp());
-        if (sop.getAttribute(SygusAnyConstAttribute()))
-        {
-          do_unfold = true;
-        }
         if (do_unfold)
         {
           // note that this is replicated for different values
@@ -169,7 +164,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
               eval_children.end(), it->second[i].begin(), it->second[i].end());
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           eval_children.resize(1);
-          res = d_tds->unfold(eval_fun, vtm, exp);
+          res = unfold(eval_fun, vtm, exp);
           Trace("sygus-eval-unfold") << "Unfold returns " << res << std::endl;
           expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
         }
@@ -181,9 +176,9 @@ void SygusEvalUnfold::registerModelValue(Node a,
           Node conj = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           eval_children[0] = vn;
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
-          res = d_tds->evaluateWithUnfolding(eval_fun);
+          res = d_tds->evaluateWithUnfolding(eval_fun, false);
           Trace("sygus-eval-unfold") << "Evaluate with unfolding returns " << res << std::endl;
-          esit.init(conj, n, res);
+          esit.init(conj, n, res, false);
           eval_children.resize(1);
           eval_children[0] = n;
 
@@ -205,6 +200,112 @@ void SygusEvalUnfold::registerModelValue(Node a,
     }
   }
 }
+
+
+Node SygusEvalUnfold::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
+  if (en.getKind() != DT_SYGUS_EVAL)
+  {
+    Assert(en.isConst());
+    return en;
+  }
+  Trace("sygus-eval-unfold-debug") << "Unfold : " << en << std::endl;
+  Node ev = en[0];
+  if (track_exp)
+  {
+    std::map<Node, Node>::iterator itv = vtm.find(en[0]);
+    Assert(itv != vtm.end());
+    if (itv != vtm.end())
+    {
+      ev = itv->second;
+    }
+    Assert(en[0].getType() == ev.getType());
+    Assert(ev.isConst());
+  }
+  Assert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
+  std::vector<Node> args;
+  for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
+  {
+    args.push_back(en[i]);
+  }
+
+  Type headType = en[0].getType().toType();
+  NodeManager* nm = NodeManager::currentNM();
+  const Datatype& dt = static_cast<DatatypeType>(headType).getDatatype();
+  unsigned i = datatypes::utils::indexOf(ev.getOperator());
+  if (track_exp)
+  {
+    // explanation
+    Node ee = nm->mkNode(
+        kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
+    if (std::find(exp.begin(), exp.end(), ee) == exp.end())
+    {
+      exp.push_back(ee);
+    }
+  }
+  // if we are a symbolic constructor, unfolding returns the subterm itself
+  Node sop = Node::fromExpr(dt[i].getSygusOp());
+  if (sop.getAttribute(SygusAnyConstAttribute()))
+  {
+    Trace("sygus-eval-unfold-debug") << "...it is an any-constant constructor"
+                            << std::endl;
+    Assert(dt[i].getNumArgs() == 1);
+    if (en[0].getKind() == APPLY_CONSTRUCTOR)
+    {
+      Trace("sygus-eval-unfold-debug") << "...return (from constructor) " << en[0][0] << std::endl;
+      return en[0][0];
+    }
+    else
+    {
+      Node ret = nm->mkNode(
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
+      Trace("sygus-eval-unfold-debug") << "...return (from constructor) " << ret << std::endl;
+      return ret;
+    }
+  }
+
+  Assert(!dt.isParametric());
+  std::map<int, Node> pre;
+  for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+  {
+    std::vector<Node> cc;
+    Node s;
+    // get the j^th subfield of en
+    if (en[0].getKind() == kind::APPLY_CONSTRUCTOR)
+    {
+      // if it is a concrete constructor application, as an optimization,
+      // just return the argument
+      s = en[0][j];
+    }
+    else
+    {
+      s = nm->mkNode(kind::APPLY_SELECTOR_TOTAL,
+                     dt[i].getSelectorInternal(headType, j),
+                     en[0]);
+    }
+    cc.push_back(s);
+    if (track_exp)
+    {
+      // update vtm map
+      vtm[s] = ev[j];
+    }
+    cc.insert(cc.end(), args.begin(), args.end());
+    pre[j] = nm->mkNode(DT_SYGUS_EVAL, cc);
+  }
+  Node ret = d_tds->mkGeneric(dt, i, pre);
+  // apply the appropriate substitution to ret
+  ret = datatypes::utils::applySygusArgs(dt, sop, ret, args);
+  // rewrite
+  ret = Rewriter::rewrite(ret);
+  return ret;
+}
+
+Node SygusEvalUnfold::unfold(Node en)
+{
+  std::map<Node, Node> vtm;
+  std::vector<Node> exp;
+  return unfold(en, vtm, exp, false);
+}
+
 
 }  // namespace quantifiers
 }  // namespace theory
