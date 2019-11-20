@@ -538,6 +538,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       itc;
   // maps types to the index of its "any term" grammar construction
   std::map<TypeNode, unsigned> typeToGAnyTerm;
+  SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
@@ -570,15 +571,15 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   {
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     TypeNode unres_t = unres_types[i];
-    SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
-    if (sgcm == SYGUS_GCONS_ANY_TERM)
+    SygusGrammarConsMode tsgcm = sgcm;
+    if (tsgcm == SYGUS_GCONS_ANY_TERM || tsgcm == SYGUS_GCONS_ANY_TERM_CONCISE)
     {
       // If the type does not support any term, we do any constant instead.
       // We also fall back on any constant construction if the type has no
       // constructors at this point (e.g. it simply encodes all constants).
       if (!types[i].isReal())
       {
-        sgcm = SYGUS_GCONS_ANY_CONST;
+        tsgcm = SYGUS_GCONS_ANY_CONST;
       }
       else
       {
@@ -593,7 +594,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
     }
     Trace("sygus-grammar-def")
-        << "Grammar constructor mode is " << sgcm << std::endl;
+        << "Grammar constructor mode for this type is " << tsgcm << std::endl;
     //add variables
     for (const Node& sv : sygus_vars)
     {
@@ -628,7 +629,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     //add constants
     std::vector<Node> consts;
     mkSygusConstantsForType(types[i], consts);
-    if (sgcm == SYGUS_GCONS_ANY_CONST)
+    if (tsgcm == SYGUS_GCONS_ANY_CONST)
     {
       // Use the any constant constructor. Notice that for types that don't
       // have constants (e.g. uninterpreted or function types), we don't add
@@ -880,11 +881,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       continue;
     }
     Trace("sygus-grammar-def")
-        << "Build any-term datatype for " << types[i] << std::endl;
+        << "Build any-term datatype for " << types[i] << "..." << std::endl;
     unsigned iat = itgat->second;
     // for now, only real has any term construction
     Assert(types[i].isReal());
-    const SygusDatatype& sdti = sdts[i].d_sdt;
     // We have initialized the given type sdts[i], which should now contain
     // a constructor for each relevant arithmetic term/variable. We now
     // construct a sygus datatype of one of the following two forms.
@@ -904,8 +904,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     //   c1*str.len(x) + c2*str.len(y)
     // The advantage of the second is that there are fewer constructors, and
     // hence may be more efficient.
-
-    bool polynomialGrammar = false;
+    
+    // Before proceeding, we build the any constant datatype
+    Trace("sygus-grammar-def")
+        << "Build any-constant datatype for " << types[i] << std::endl;
     std::stringstream ss;
     ss << fun << "_AnyConst";
     // Make sygus datatype for any constant.
@@ -914,17 +916,68 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     sdts.push_back(SygusDatatypeGenerator(ss.str()));
     sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
     sdts.back().d_sdt.initializeDatatype(types[i], bvl, true, true);
+    
+    // Now get the reference to the sygus datatype at position i (important that
+    // this comes after the modification to sdts above, which may modify
+    // the references).
+    const SygusDatatype& sdti = sdts[i].d_sdt;
+    // whether we will use the polynomial grammar
+    bool polynomialGrammar = sgcm==SYGUS_GCONS_ANY_TERM_CONCISE;
+    std::map< unsigned, bool > useConstructor;
+    Trace("sygus-grammar-def")
+        << "Look at operators, num = " << sdti.getNumConstructors() << "..." << std::endl;
+    for (unsigned k = 0, ncons = sdti.getNumConstructors(); k < ncons; k++)
+    {
+      const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
+      Node sop = sdc.d_op;
+      bool isBuiltinArithOp = (sop.getKind() == CONST_RATIONAL);
+      for (unsigned j = 0, nargs = sdc.d_argTypes.size(); j < nargs; j++)
+      {
+        // this is already corresponds to the correct sygus datatype type
+        TypeNode atype = sdc.d_argTypes[j];
+        if (atype == unres_types[i])
+        {
+          // It is recursive, thus is (likely) a builtin arithmetic operator
+          // as constructed above. It may also be an operator from another
+          // theory that has both an arithmetic return type and an arithmetic
+          // argument (e.g. str.indexof). In either case, we ignore it for the
+          // sake of well-foundedness.
+          isBuiltinArithOp = true;
+          break;
+        }
+        else
+        {
+          // It is an external type. This is the case of an operator of another
+          // theory whose return type is arithmetic, e.g. select. We must use
+          // the sum of monomials construction.
+          polynomialGrammar = false;
+        }
+      }
+      if (!isBuiltinArithOp)
+      {
+        useConstructor[k] = true;
+      }
+    }
+    Trace("sygus-grammar-def")
+        << "Done look at operators, num = " << sdti.getNumConstructors() << "..." << std::endl;
+    // we have now decided whether we will use sum-of-monomials or polynomial
     // Now, extract the terms and set up the polynomial
     std::vector<Node> sumChildren;
     std::vector<TypeNode> cargsAnyTerm;
     std::vector<Node> lambdaVars;
     for (unsigned k = 0, ncons = sdti.getNumConstructors(); k < ncons; k++)
     {
+      Trace("sygus-grammar-def") << "Process #" << k << std::endl;
+      if (useConstructor.find(k)==useConstructor.end())
+      {
+        Trace("sygus-grammar-def") << "Skip variable #" << k << std::endl;
+        // builtin operator, as computed above, we skip
+        continue;
+      }
       const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
       Node sop = sdc.d_op;
-      Trace("sygus-grammar-def") << "Monomial variable: " << sop << std::endl;
+      Trace("sygus-grammar-def") << "Monomial variable: #" << k << ": " << sop << std::endl;
       unsigned nargs = sdc.d_argTypes.size();
-      bool isBuiltinArithOp = (sop.getKind() == CONST_RATIONAL);
       std::vector<TypeNode> opCArgs;
       std::vector<Node> opLArgs;
       if (nargs > 0)
@@ -937,57 +990,45 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         {
           // this is already corresponds to the correct sygus datatype type
           TypeNode atype = sdc.d_argTypes[j];
-          if (atype == unres_types[i])
-          {
-            // it is recursive, thus may be a builtin arithmetic operator
-            isBuiltinArithOp = true;
-            break;
-          }
           opCArgs.push_back(atype);
           // get the builtin type
           TypeNode btype = sygus_to_builtin[atype];
           opLArgs.push_back(nm->mkBoundVar(btype));
         }
-        if (!isBuiltinArithOp)
-        {
-          // Do beta reduction on the operator so that its arguments match the
-          // fresh variables of the lambda we are constructing.
-          sop = datatypes::utils::mkSygusTerm(sop, opLArgs);
-          sop = Rewriter::rewrite(sop);
-        }
+        // Do beta reduction on the operator so that its arguments match the
+        // fresh variables of the lambda we are constructing.
+        sop = datatypes::utils::mkSygusTerm(sop, opLArgs);
+        sop = Rewriter::rewrite(sop);
       }
-      if (!isBuiltinArithOp)
+      opCArgs.push_back(unresAnyConst);
+      Node coeff = nm->mkBoundVar(types[i]);
+      opLArgs.push_back(coeff);
+      Node monomial = nm->mkNode(MULT, coeff, sop);
+      if (polynomialGrammar)
       {
-        opCArgs.push_back(unresAnyConst);
-        Node coeff = nm->mkBoundVar(types[i]);
-        opLArgs.push_back(coeff);
-        Node monomial = nm->mkNode(MULT, coeff, sop);
-        if (polynomialGrammar)
+        // add the monomial c*t to the sum
+        sumChildren.push_back(monomial);
+        lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
+        cargsAnyTerm.insert(
+            cargsAnyTerm.end(), opCArgs.begin(), opCArgs.end());
+      }
+      else
+      {
+        Node op =
+            nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, opLArgs), monomial);
+        // use a print callback since we do not want to print the lambda
+        std::shared_ptr<SygusPrintCallback> spc;
+        std::vector<Expr> opLArgsExpr;
+        for (unsigned i = 0, nvars = opLArgs.size(); i < nvars; i++)
         {
-          // add the monomial c*t to the sum
-          sumChildren.push_back(monomial);
-          lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
-          cargsAnyTerm.insert(
-              cargsAnyTerm.end(), opCArgs.begin(), opCArgs.end());
+          opLArgsExpr.push_back(opLArgs[i].toExpr());
         }
-        else
-        {
-          Node op =
-              nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, opLArgs), monomial);
-          // use a print callback since we do not want to print the lambda
-          std::shared_ptr<SygusPrintCallback> spc;
-          std::vector<Expr> opLArgsExpr;
-          for (unsigned i = 0, nvars = opLArgs.size(); i < nvars; i++)
-          {
-            opLArgsExpr.push_back(opLArgs[i].toExpr());
-          }
-          spc = std::make_shared<printer::SygusExprPrintCallback>(
-              monomial.toExpr(), opLArgsExpr);
-          // add it as a constructor
-          std::stringstream ssop;
-          ssop << "monomial_" << sdc.d_name;
-          sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, spc);
-        }
+        spc = std::make_shared<printer::SygusExprPrintCallback>(
+            monomial.toExpr(), opLArgsExpr);
+        // add it as a constructor
+        std::stringstream ssop;
+        ssop << "monomial_" << sdc.d_name;
+        sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, spc);
       }
     }
     if (polynomialGrammar)
@@ -1015,7 +1056,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
     else
     {
-      // add the any constant constructor
+      // add the any constant constructor as a separator constructor
       sdts[iat].d_sdt.addAnyConstantConstructor(types[i]);
       // add plus
       std::vector<TypeNode> cargsPlus;
@@ -1023,7 +1064,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       cargsPlus.push_back(unres_types[iat]);
       sdts[iat].d_sdt.addConstructor(PLUS, cargsPlus);
     }
-    // also add ITE
+    // add the ITE, regardless of sum-of-monomials vs polynomial
     std::vector<TypeNode> cargsIte;
     cargsIte.push_back(unres_bt);
     cargsIte.push_back(unres_types[iat]);

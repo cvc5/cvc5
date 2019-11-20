@@ -299,13 +299,20 @@ enum SygusGrammarConsMode
    * constants).
    */
   SYGUS_GCONS_SIMPLE,
-  /** Use any constant constructors in default SyGuS grammar construction. */
+  /** Use "any constant" constructors in default SyGuS grammar construction. */
   SYGUS_GCONS_ANY_CONST,
   /**
-   * When applicable, use constructors corresponding to any symbolic term in
-   * SyGuS grammar construction.
+   * When applicable, use constructors that encode any term using "any constant"
+   * constructors. This construction uses sum-of-monomials for arithmetic
+   * grammars.
    */
   SYGUS_GCONS_ANY_TERM,
+  /**
+   * When applicable, use constructors that encode any term using "any constant"
+   * constructors in a way that prefers conciseness over generality. This
+   * construction uses polynomials for arithmetic grammars.
+   */
+  SYGUS_GCONS_ANY_TERM_CONCISE,
 };
 
 enum MacrosQuantMode {

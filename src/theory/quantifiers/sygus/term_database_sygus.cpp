@@ -1001,36 +1001,7 @@ Node TermDbSygus::evaluateWithUnfolding(
     {
       if (ret == n && ret[0].isConst())
       {
-        // If the head is constant, we can evaluate immediately. We
-        // do not do this if we are leaving symbolic terms unevaluated.
-        Trace("dt-eval-unfold-debug")
-            << "Optimize: evaluate constant head " << ret << std::endl;
-        // can just do direct evaluation here
-        std::vector<Node> args;
-        bool success = true;
-        for (unsigned i = 1, nchild = ret.getNumChildren(); i < nchild; i++)
-        {
-          if (!ret[i].isConst())
-          {
-            success = false;
-            break;
-          }
-          args.push_back(ret[i]);
-        }
-        if (success)
-        {
-          Trace("dt-eval-unfold-debug") << "I have " << ret[0] << std::endl;
-          TypeNode rt = ret[0].getType();
-          Node bret = sygusToBuiltin(ret[0], rt);
-          Trace("dt-eval-unfold-debug") << "To builtin " << bret << std::endl;
-          Node rete = evaluateBuiltin(rt, bret, args);
-          Trace("dt-eval-unfold-debug")
-              << "After evaluation " << rete << std::endl;
-          visited[n] = rete;
-          Trace("dt-eval-unfold-debug")
-              << "Return " << rete << " for " << n << std::endl;
-          return rete;
-        }
+        return Rewriter::rewrite(n);
       }
       ret = d_eval_unfold->unfold(ret);
     }    

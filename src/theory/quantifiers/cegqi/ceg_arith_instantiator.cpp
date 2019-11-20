@@ -76,6 +76,7 @@ bool ArithInstantiator::processEquality(CegInstantiator* ci,
   NodeManager* nm = NodeManager::currentNM();
   Node eq_lhs = terms[0];
   Node eq_rhs = terms[1];
+  Trace("cegqi-arith-debug") << "...solving equality " << eq_lhs << " == " << eq_rhs << std::endl;
   Node lhs_coeff = term_props[0].d_coeff;
   Node rhs_coeff = term_props[1].d_coeff;
   // make the same coefficient
