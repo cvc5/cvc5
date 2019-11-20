@@ -232,7 +232,7 @@ Node SygusEvalUnfold::unfold(Node en,
   }
   Trace("sygus-eval-unfold-debug")
       << "Unfold model value is : " << ev << std::endl;
-  AlwaysAssert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
+  AlwaysAssert(ev.getKind() == APPLY_CONSTRUCTOR);
   std::vector<Node> args;
   for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
   {
@@ -247,7 +247,7 @@ Node SygusEvalUnfold::unfold(Node en,
   {
     // explanation
     Node ee = nm->mkNode(
-        kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
+        APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
     if (std::find(exp.begin(), exp.end(), ee) == exp.end())
     {
       exp.push_back(ee);
@@ -285,7 +285,7 @@ Node SygusEvalUnfold::unfold(Node en,
     std::vector<Node> cc;
     Node s;
     // get the j^th subfield of en
-    if (en[0].getKind() == kind::APPLY_CONSTRUCTOR)
+    if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
       // if it is a concrete constructor application, as an optimization,
       // just return the argument
@@ -293,7 +293,7 @@ Node SygusEvalUnfold::unfold(Node en,
     }
     else
     {
-      s = nm->mkNode(kind::APPLY_SELECTOR_TOTAL,
+      s = nm->mkNode(APPLY_SELECTOR_TOTAL,
                      dt[i].getSelectorInternal(headType, j),
                      en[0]);
     }
