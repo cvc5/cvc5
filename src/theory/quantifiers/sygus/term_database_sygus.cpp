@@ -1001,6 +1001,9 @@ Node TermDbSygus::evaluateWithUnfolding(
     {
       if (ret == n && ret[0].isConst())
       {
+        Trace("dt-eval-unfold-debug")
+            << "Optimize: evaluate constant head " << ret << std::endl;
+        // can just do direct evaluation here
         return Rewriter::rewrite(n);
       }
       ret = d_eval_unfold->unfold(ret);
