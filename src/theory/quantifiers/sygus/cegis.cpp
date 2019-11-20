@@ -78,7 +78,8 @@ bool Cegis::processInitialize(Node conj,
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
     bool useSymCons = false;
-    if (options::sygusRepairConst() || options::sygusGrammarConsMode() != SYGUS_GCONS_SIMPLE)
+    if (options::sygusRepairConst()
+        || options::sygusGrammarConsMode() != SYGUS_GCONS_SIMPLE)
     {
       TypeNode ctn = candidates[i].getType();
       d_tds->registerSygusType(ctn);

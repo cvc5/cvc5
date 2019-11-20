@@ -904,7 +904,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     //   c1*str.len(x) + c2*str.len(y)
     // The advantage of the second is that there are fewer constructors, and
     // hence may be more efficient.
-    
+
     // Before proceeding, we build the any constant datatype
     Trace("sygus-grammar-def")
         << "Build any-constant datatype for " << types[i] << std::endl;
@@ -916,16 +916,17 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     sdts.push_back(SygusDatatypeGenerator(ss.str()));
     sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
     sdts.back().d_sdt.initializeDatatype(types[i], bvl, true, true);
-    
+
     // Now get the reference to the sygus datatype at position i (important that
     // this comes after the modification to sdts above, which may modify
     // the references).
     const SygusDatatype& sdti = sdts[i].d_sdt;
     // whether we will use the polynomial grammar
-    bool polynomialGrammar = sgcm==SYGUS_GCONS_ANY_TERM_CONCISE;
-    std::map< unsigned, bool > useConstructor;
+    bool polynomialGrammar = sgcm == SYGUS_GCONS_ANY_TERM_CONCISE;
+    std::map<unsigned, bool> useConstructor;
     Trace("sygus-grammar-def")
-        << "Look at operators, num = " << sdti.getNumConstructors() << "..." << std::endl;
+        << "Look at operators, num = " << sdti.getNumConstructors() << "..."
+        << std::endl;
     for (unsigned k = 0, ncons = sdti.getNumConstructors(); k < ncons; k++)
     {
       const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
@@ -959,7 +960,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
     }
     Trace("sygus-grammar-def")
-        << "Done look at operators, num = " << sdti.getNumConstructors() << "..." << std::endl;
+        << "Done look at operators, num = " << sdti.getNumConstructors()
+        << "..." << std::endl;
     // we have now decided whether we will use sum-of-monomials or polynomial
     // Now, extract the terms and set up the polynomial
     std::vector<Node> sumChildren;
@@ -968,7 +970,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     for (unsigned k = 0, ncons = sdti.getNumConstructors(); k < ncons; k++)
     {
       Trace("sygus-grammar-def") << "Process #" << k << std::endl;
-      if (useConstructor.find(k)==useConstructor.end())
+      if (useConstructor.find(k) == useConstructor.end())
       {
         Trace("sygus-grammar-def") << "Skip variable #" << k << std::endl;
         // builtin operator, as computed above, we skip
@@ -976,7 +978,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       }
       const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
       Node sop = sdc.d_op;
-      Trace("sygus-grammar-def") << "Monomial variable: #" << k << ": " << sop << std::endl;
+      Trace("sygus-grammar-def")
+          << "Monomial variable: #" << k << ": " << sop << std::endl;
       unsigned nargs = sdc.d_argTypes.size();
       std::vector<TypeNode> opCArgs;
       std::vector<Node> opLArgs;
@@ -1009,8 +1012,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // add the monomial c*t to the sum
         sumChildren.push_back(monomial);
         lambdaVars.insert(lambdaVars.end(), opLArgs.begin(), opLArgs.end());
-        cargsAnyTerm.insert(
-            cargsAnyTerm.end(), opCArgs.begin(), opCArgs.end());
+        cargsAnyTerm.insert(cargsAnyTerm.end(), opCArgs.begin(), opCArgs.end());
       }
       else
       {
