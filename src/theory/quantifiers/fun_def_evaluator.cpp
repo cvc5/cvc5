@@ -117,7 +117,7 @@ Node FunDefEvaluator::evaluate(Node n) const
           Assert(!it->second.isNull());
           Assert(it->second.isConst());
           // pick child to evaluate depending on condition eval
-          unsigned childIdxToEval = it->second.getConst<bool>()? 1 : 2;
+          unsigned childIdxToEval = it->second.getConst<bool>() ? 1 : 2;
           Trace("fd-eval-debug2")
               << "FunDefEvaluator: result of ITE condition : "
               << it->second.getConst<bool>() << "\n";
@@ -143,7 +143,8 @@ Node FunDefEvaluator::evaluate(Node n) const
         {
           // need to evaluate it
           f = cur.getOperator();
-          Trace("fd-eval-debug2") << "FunDefEvaluator: need to eval " << f << "\n";
+          Trace("fd-eval-debug2")
+              << "FunDefEvaluator: need to eval " << f << "\n";
           itf = d_funDefMap.find(f);
           if (itf == d_funDefMap.end())
           {
@@ -153,7 +154,8 @@ Node FunDefEvaluator::evaluate(Node n) const
           }
           // get the function definition
           Node sbody = itf->second.d_body;
-          Trace("fd-eval-debug2") << "FunDefEvaluator: definition: " << sbody << "\n";
+          Trace("fd-eval-debug2")
+              << "FunDefEvaluator: definition: " << sbody << "\n";
           const std::vector<Node>& args = itf->second.d_args;
           if (!args.empty())
           {
@@ -164,7 +166,8 @@ Node FunDefEvaluator::evaluate(Node n) const
             sbody = Rewriter::rewrite(sbody);
             if (Trace.isOn("fd-eval-debug2"))
             {
-              Trace("fd-eval-debug2") << "FunDefEvaluator: evaluation with args:\n";
+              Trace("fd-eval-debug2")
+                  << "FunDefEvaluator: evaluation with args:\n";
               for (const Node& child : children)
               {
                 Trace("fd-eval-debug2") << "..." << child << "\n";
