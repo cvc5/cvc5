@@ -191,10 +191,7 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
   }
 }
 
-
-Node arithSubstitute(Node n,
-                                         std::vector<Node>& vars,
-                                         std::vector<Node>& subs)
+Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs)
 {
   Assert(vars.size() == subs.size());
   NodeManager* nm = NodeManager::currentNM();

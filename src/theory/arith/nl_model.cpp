@@ -334,7 +334,7 @@ bool NlModel::addCheckModelSubstitution(TNode v, TNode s)
           << "...ERROR: already has bound which is out of range." << std::endl;
       return false;
     }
-  }  
+  }
   std::vector<Node> varsTmp;
   varsTmp.push_back(v);
   std::vector<Node> subsTmp;
