@@ -1,0 +1,127 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --sygus-rec-fun --no-e-matching
+
+(set-logic ALL)
+
+; The environment datatypes
+(declare-datatype NVars ((x) (y)))
+
+(declare-datatype Pair ((build (first NVars) (second Int))))
+
+(declare-datatype Env ((cons (head Pair) (tail Env)) (nil)))
+
+(define-fun-rec envStore ((var NVars) (value Int) (env Env)) Env
+  (ite (is-nil env)
+    (cons (build var value) env)
+    (ite (= var (first (head env)))
+      (cons (build var value) (tail env))
+      (cons (head env) (envStore var value (tail env)))
+      )
+    )
+  )
+
+(define-fun-rec envSelect ((var NVars) (env Env)) Int
+  (ite (is-nil env)
+    0
+    (ite (= var (first (head env)))
+      (second (head env))
+      (envSelect var (tail env))
+      )
+    )
+  )
+
+; Syntax for arithmetic expressions
+(declare-datatype Aexp
+  (
+    (Val (val Int))
+    (Var (name NVars))
+    (Add (addL Aexp) (addR Aexp))
+    (Sub (subL Aexp) (subR Aexp))
+    )
+  )
+
+; Function to evaluate arithmetic expressions
+(define-fun-rec evalA ((env Env) (a Aexp)) Int
+  (ite (is-Val a)
+    (val a)
+    ; (ite (is-Var a)
+      (envSelect (name a) env)
+      ; (ite (is-Add a)
+      ; (+ (evalA env (addL a)) (evalA env (addR a)))
+      ; (- (evalA env (subL a)) (evalA env (subR a)))
+    ))
+; ))
+
+; Syntax for boolean expressions
+(declare-datatype Bexp
+  (
+    ; (NEQ (eqL Aexp) (eqR Aexp))
+    (GTH (geqL Aexp) (geqR Aexp))
+    ; (AND (andL Bexp) (andR Bexp))
+    )
+  )
+
+; Function to evaluate boolean expressions
+(define-fun-rec evalB ((env Env) (b Bexp)) Bool
+  ; (ite (is-NEQ b)
+  ;   (not (= (evalA env (eqL b)) (evalA env (eqR b))))
+    ; (ite (is-GTH b)
+    (> (evalA env (geqL b)) (evalA env (geqR b)))
+    ; (and (evalB env (andL b)) (evalB env (andL b))))
+  )
+; )
+
+; Syntax for commands
+(declare-datatype Com
+  (
+    ; (Skip)
+    (Assign (lhs NVars) (rhs Aexp))
+    ; (CondS (tCond Bexp) (tCom Com) (eCom Com))
+    (While (wCond Bexp) (wCom Com))
+    ; (CSeq (cBef Com) (aAft Com))
+    )
+  )
+
+; Function to evaluate statements
+(define-fun-rec evalC ((env Env) (c Com)) Env
+  ; (ite (is-Skip c)
+  ;   env
+    (ite (is-Assign c)
+      (envStore (lhs c) (evalA env (rhs c)) env)
+      ; (ite (is-CondS c)
+        ; (ite (evalB env (tCond c)) (evalC env (tCom c)) (evalC env (eCom c)))
+        ; (ite (is-While c)
+          (ite (evalB env (wCond c)) (evalC (evalC env (wCom c)) c) env)
+          ; (evalC (evalC env (cBef c)) (aAft c))
+        )
+      )
+    ; )
+;   )
+; )
+
+(synth-fun prog () Com
+  ((C1 Com) (C2 Com) (C3 Com) (C4 Com) (VX NVars) (VY NVars) (A0 Aexp) (A1 Aexp) (A2 Aexp) (A3 Aexp) (A4 Aexp) (B Bexp) (I1 Int) (I2 Int))
+  (
+    (C1 Com ((While B C2)))
+    ; (C2 Com ((CSeq C3 C4)))
+    (C2 Com (C4))
+    (C3 Com ((Assign VX A3)))
+    (C4 Com ((Assign VY A4)))
+    (VX NVars (x))
+    (VY NVars (y))
+    (A0 Aexp ((Var VX)))
+    (A1 Aexp ((Var VY)))
+    (A2 Aexp ((Val I2)))
+    (A3 Aexp ((Add A0 A2)))
+    (A4 Aexp ((Val I1)))
+    (B Bexp ((GTH A2 A1)))
+    (I1 Int (2))
+    (I2 Int (2))
+    )
+)
+
+(constraint (= (evalC (cons (build y 0) nil) prog) (cons (build y 2) nil)))
+
+; (constraint (= (evalC (cons (build y 0) (cons (build x 0) nil)) prog) (cons (build y 2) (cons (build x 4) nil))))
+
+(check-synth)
