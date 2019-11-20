@@ -321,8 +321,6 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     bool addedLemma = false;
     for (const Node& lem : cclems)
     {
-      Trace("cegqi-lemma") << "Cegqi::Lemma : counterexample : " << lem
-                           << std::endl;
       if (d_quantEngine->addLemma(lem))
       {
         ++(d_statistics.d_cegqi_lemmas_ce);

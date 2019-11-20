@@ -105,7 +105,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       {
         TNode cand = n[0];
         Node tmp = n.substitute(cand, it->second);
-        nv = d_tds->evaluateWithUnfolding(tmp);
+        // should be concrete, can just use the rewriter
+        nv = Rewriter::rewrite(tmp);
         Trace("sygus-unif-rl-purify")
             << "PurifyLemma : model value for " << tmp << " is " << nv << "\n";
       }
