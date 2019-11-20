@@ -86,9 +86,9 @@ class SygusEvalUnfold
   /** unfold
    *
    * This method is called when a sygus term d (typically a variable for a SyGuS
-   * enumerator) has a model value specified by the map vtm. The argument en 
+   * enumerator) has a model value specified by the map vtm. The argument en
    * is an application of kind DT_SYGUS_EVAL, i.e. eval( d, c1, ..., cm ).
-   * 
+   *
    * If doRec is false, this method returns the one-step unfolding of this
    * evaluation function application. An example of a one step unfolding is:
    *    eval( C_+( d1, d2 ), t ) ---> +( eval( d1, t ), eval( d2, t ) )
@@ -105,7 +105,7 @@ class SygusEvalUnfold
    * If the argument doRec is true, we do a multi-step unfolding instead of
    * a single-step unfolding. For example, if vtm[d] = C_+( C_x(), C_0() ),
    * then this method applied to eval(d,5) will return 5+0 = 0.
-   * 
+   *
    * Furthermore, notice that any-constant constructors are *never* expanded to
    * their concrete model values. This means that the multi-step unfolding when
    * vtm[d] = C_+( C_x(), any_constant(n) ), then this method applied to
