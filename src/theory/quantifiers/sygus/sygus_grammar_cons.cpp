@@ -932,6 +932,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       const SygusDatatypeConstructor& sdc = sdti.getConstructor(k);
       Node sop = sdc.d_op;
       bool isBuiltinArithOp = (sop.getKind() == CONST_RATIONAL);
+      bool hasExternalType = false;
       for (unsigned j = 0, nargs = sdc.d_argTypes.size(); j < nargs; j++)
       {
         // this is already corresponds to the correct sygus datatype type
@@ -946,17 +947,23 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           isBuiltinArithOp = true;
           break;
         }
-        else
+        else if (atype != unres_bt)
         {
           // It is an external type. This is the case of an operator of another
-          // theory whose return type is arithmetic, e.g. select. We must use
-          // the sum of monomials construction.
-          polynomialGrammar = false;
+          // theory whose return type is arithmetic, e.g. select.
+          hasExternalType = false;
         }
       }
       if (!isBuiltinArithOp)
       {
         useConstructor[k] = true;
+        if (hasExternalType)
+        {
+          // If we have an external term in the sum, e.g. select(A,i), we
+          // cannot use a fixed polynomial template.
+          Trace("sygus-grammar-def") << "Cannot use polynomial grammar due to " << sop << std::endl;
+          polynomialGrammar = false;
+        }
       }
     }
     Trace("sygus-grammar-def")

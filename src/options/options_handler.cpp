@@ -1122,6 +1122,10 @@ OptionsHandler::stringToSygusGrammarConsMode(std::string option,
   {
     return theory::quantifiers::SYGUS_GCONS_ANY_TERM;
   }
+  else if (optarg == "any-term-concise")
+  {
+    return theory::quantifiers::SYGUS_GCONS_ANY_TERM_CONCISE;
+  }
   else if (optarg == "help")
   {
     puts(s_sygusGrammarConsHelp.c_str());

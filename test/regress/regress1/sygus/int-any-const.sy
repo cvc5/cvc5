@@ -1,0 +1,7 @@
+
+(set-logic LIA)
+(synth-fun f ((x Int) (y Int)) Int)
+(constraint (= (f 1 7) 15))
+(constraint (= (f 0 27) 27))
+(constraint (= (f 2 27) 43))
+(check-synth)
