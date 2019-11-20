@@ -65,6 +65,10 @@ public:
 
   static bool isAsanBuild();
 
+  static bool isUbsanBuild();
+
+  static bool isTsanBuild();
+
   static bool isCompetitionBuild();
 
   static std::string getPackageName();

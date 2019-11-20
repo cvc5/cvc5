@@ -33,9 +33,8 @@
 
 #include "api/cvc4cpp.h"
 
+#include "base/check.h"
 #include "base/configuration.h"
-#include "base/cvc4_assert.h"
-#include "base/cvc4_check.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -815,8 +814,7 @@ bool Sort::isDatatype() const { return d_type->isDatatype(); }
 bool Sort::isParametricDatatype() const
 {
   if (!d_type->isDatatype()) return false;
-  DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
-  return type->isParametric();
+  return DatatypeType(*d_type).isParametric();
 }
 
 bool Sort::isFunction() const { return d_type->isFunction(); }
@@ -842,8 +840,7 @@ bool Sort::isFunctionLike() const { return d_type->isFunctionLike(); }
 Datatype Sort::getDatatype() const
 {
   CVC4_API_CHECK(isDatatype()) << "Expected datatype sort.";
-  DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
-  return type->getDatatype();
+  return DatatypeType(*d_type).getDatatype();
 }
 
 Sort Sort::instantiate(const std::vector<Sort>& params) const
@@ -857,11 +854,10 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   }
   if (d_type->isDatatype())
   {
-    DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
-    return type->instantiate(tparams);
+    return DatatypeType(*d_type).instantiate(tparams);
   }
   Assert(d_type->isSortConstructor());
-  return static_cast<SortConstructorType*>(d_type.get())->instantiate(tparams);
+  return SortConstructorType(*d_type).instantiate(tparams);
 }
 
 std::string Sort::toString() const { return d_type->toString(); }
@@ -875,21 +871,20 @@ CVC4::Type Sort::getType(void) const { return *d_type; }
 size_t Sort::getFunctionArity() const
 {
   CVC4_API_CHECK(isFunction()) << "Not a function sort.";
-  return static_cast<FunctionType*>(d_type.get())->getArity();
+  return FunctionType(*d_type).getArity();
 }
 
 std::vector<Sort> Sort::getFunctionDomainSorts() const
 {
   CVC4_API_CHECK(isFunction()) << "Not a function sort.";
-  std::vector<CVC4::Type> types =
-      static_cast<FunctionType*>(d_type.get())->getArgTypes();
+  std::vector<CVC4::Type> types = FunctionType(*d_type).getArgTypes();
   return typeVectorToSorts(types);
 }
 
 Sort Sort::getFunctionCodomainSort() const
 {
   CVC4_API_CHECK(isFunction()) << "Not a function sort.";
-  return static_cast<FunctionType*>(d_type.get())->getRangeType();
+  return FunctionType(*d_type).getRangeType();
 }
 
 /* Array sort ---------------------------------------------------------- */
@@ -897,13 +892,13 @@ Sort Sort::getFunctionCodomainSort() const
 Sort Sort::getArrayIndexSort() const
 {
   CVC4_API_CHECK(isArray()) << "Not an array sort.";
-  return static_cast<ArrayType*>(d_type.get())->getIndexType();
+  return ArrayType(*d_type).getIndexType();
 }
 
 Sort Sort::getArrayElementSort() const
 {
   CVC4_API_CHECK(isArray()) << "Not an array sort.";
-  return static_cast<ArrayType*>(d_type.get())->getConstituentType();
+  return ArrayType(*d_type).getConstituentType();
 }
 
 /* Set sort ------------------------------------------------------------ */
@@ -911,7 +906,7 @@ Sort Sort::getArrayElementSort() const
 Sort Sort::getSetElementSort() const
 {
   CVC4_API_CHECK(isSet()) << "Not a set sort.";
-  return static_cast<SetType*>(d_type.get())->getElementType();
+  return SetType(*d_type).getElementType();
 }
 
 /* Uninterpreted sort -------------------------------------------------- */
@@ -919,20 +914,19 @@ Sort Sort::getSetElementSort() const
 std::string Sort::getUninterpretedSortName() const
 {
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  return static_cast<SortType*>(d_type.get())->getName();
+  return SortType(*d_type).getName();
 }
 
 bool Sort::isUninterpretedSortParameterized() const
 {
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  return static_cast<SortType*>(d_type.get())->isParameterized();
+  return SortType(*d_type).isParameterized();
 }
 
 std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 {
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  std::vector<CVC4::Type> types =
-      static_cast<SortType*>(d_type.get())->getParamTypes();
+  std::vector<CVC4::Type> types = SortType(*d_type).getParamTypes();
   return typeVectorToSorts(types);
 }
 
@@ -941,13 +935,13 @@ std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 std::string Sort::getSortConstructorName() const
 {
   CVC4_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
-  return static_cast<SortConstructorType*>(d_type.get())->getName();
+  return SortConstructorType(*d_type).getName();
 }
 
 size_t Sort::getSortConstructorArity() const
 {
   CVC4_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
-  return static_cast<SortConstructorType*>(d_type.get())->getArity();
+  return SortConstructorType(*d_type).getArity();
 }
 
 /* Bit-vector sort ----------------------------------------------------- */
@@ -955,7 +949,7 @@ size_t Sort::getSortConstructorArity() const
 uint32_t Sort::getBVSize() const
 {
   CVC4_API_CHECK(isBitVector()) << "Not a bit-vector sort.";
-  return static_cast<BitVectorType*>(d_type.get())->getSize();
+  return BitVectorType(*d_type).getSize();
 }
 
 /* Floating-point sort ------------------------------------------------- */
@@ -963,13 +957,13 @@ uint32_t Sort::getBVSize() const
 uint32_t Sort::getFPExponentSize() const
 {
   CVC4_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
-  return static_cast<FloatingPointType*>(d_type.get())->getExponentSize();
+  return FloatingPointType(*d_type).getExponentSize();
 }
 
 uint32_t Sort::getFPSignificandSize() const
 {
   CVC4_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
-  return static_cast<FloatingPointType*>(d_type.get())->getSignificandSize();
+  return FloatingPointType(*d_type).getSignificandSize();
 }
 
 /* Datatype sort ------------------------------------------------------- */
@@ -977,15 +971,14 @@ uint32_t Sort::getFPSignificandSize() const
 std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
   CVC4_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
-  std::vector<CVC4::Type> types =
-      static_cast<DatatypeType*>(d_type.get())->getParamTypes();
+  std::vector<CVC4::Type> types = DatatypeType(*d_type).getParamTypes();
   return typeVectorToSorts(types);
 }
 
 size_t Sort::getDatatypeArity() const
 {
   CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
-  return static_cast<DatatypeType*>(d_type.get())->getArity();
+  return DatatypeType(*d_type).getArity();
 }
 
 /* Tuple sort ---------------------------------------------------------- */
@@ -993,14 +986,13 @@ size_t Sort::getDatatypeArity() const
 size_t Sort::getTupleLength() const
 {
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  return static_cast<DatatypeType*>(d_type.get())->getTupleLength();
+  return DatatypeType(*d_type).getTupleLength();
 }
 
 std::vector<Sort> Sort::getTupleSorts() const
 {
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  std::vector<CVC4::Type> types =
-      static_cast<DatatypeType*>(d_type.get())->getTupleTypes();
+  std::vector<CVC4::Type> types = DatatypeType(*d_type).getTupleTypes();
   return typeVectorToSorts(types);
 }
 
@@ -1044,6 +1036,12 @@ bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
 
+uint64_t Term::getId() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->getId();
+}
+
 Kind Term::getKind() const
 {
   CVC4_API_CHECK_NOT_NULL;
@@ -1058,8 +1056,15 @@ Sort Term::getSort() const
 
 bool Term::isNull() const { return d_expr->isNull(); }
 
+bool Term::isParameterized() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->isParameterized();
+}
+
 Term Term::notTerm() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   try
   {
     Term res = d_expr->notExpr();
@@ -1074,6 +1079,8 @@ Term Term::notTerm() const
 
 Term Term::andTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->andExpr(*t.d_expr);
@@ -1088,6 +1095,8 @@ Term Term::andTerm(const Term& t) const
 
 Term Term::orTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->orExpr(*t.d_expr);
@@ -1102,6 +1111,8 @@ Term Term::orTerm(const Term& t) const
 
 Term Term::xorTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->xorExpr(*t.d_expr);
@@ -1116,6 +1127,8 @@ Term Term::xorTerm(const Term& t) const
 
 Term Term::eqTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->eqExpr(*t.d_expr);
@@ -1130,6 +1143,8 @@ Term Term::eqTerm(const Term& t) const
 
 Term Term::impTerm(const Term& t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(t);
   try
   {
     Term res = d_expr->impExpr(*t.d_expr);
@@ -1144,6 +1159,9 @@ Term Term::impTerm(const Term& t) const
 
 Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 {
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(then_t);
+  CVC4_API_ARG_CHECK_NOT_NULL(else_t);
   try
   {
     Term res = d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
@@ -1350,7 +1368,7 @@ template <>
 uint32_t OpTerm::getIndices() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  uint32_t i;
+  uint32_t i = 0;
   Kind k = intToExtKind(d_expr->getKind());
   switch (k)
   {
@@ -1524,8 +1542,8 @@ std::string DatatypeConstructorDecl::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::DatatypeConstructor DatatypeConstructorDecl::getDatatypeConstructor(
-    void) const
+const CVC4::DatatypeConstructor&
+DatatypeConstructorDecl::getDatatypeConstructor(void) const
 {
   return *d_ctor;
 }
@@ -1595,7 +1613,7 @@ std::string DatatypeDecl::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::Datatype DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+const CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeSelectorDecl& stordecl)
@@ -1764,7 +1782,7 @@ std::string DatatypeConstructor::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::DatatypeConstructor DatatypeConstructor::getDatatypeConstructor(
+const CVC4::DatatypeConstructor& DatatypeConstructor::getDatatypeConstructor(
     void) const
 {
   return *d_ctor;
@@ -1832,7 +1850,7 @@ Datatype::const_iterator Datatype::end() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::Datatype Datatype::getDatatype(void) const { return *d_dtype; }
+const CVC4::Datatype& Datatype::getDatatype(void) const { return *d_dtype; }
 
 Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
                                          bool begin)
@@ -1997,9 +2015,19 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
       << "base 2, 10, or 16";
 
   Integer val(s, base);
-  CVC4_API_CHECK(val.modByPow2(size) == val)
-      << "Overflow in bitvector construction (specified bitvector size " << size
-      << " too small to hold value " << s << ")";
+
+  if (val.strictlyNegative())
+  {
+    CVC4_API_CHECK(val >= -Integer("2", 10).pow(size - 1))
+        << "Overflow in bitvector construction (specified bitvector size "
+        << size << " too small to hold value " << s << ")";
+  }
+  else
+  {
+    CVC4_API_CHECK(val.modByPow2(size) == val)
+        << "Overflow in bitvector construction (specified bitvector size "
+        << size << " too small to hold value " << s << ")";
+  }
 
   return mkValHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
 }

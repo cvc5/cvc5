@@ -29,7 +29,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "util/cardinality.h"
@@ -475,6 +475,14 @@ public:
   Node mkGroundTerm() const;
 
   /**
+   * Construct and return a ground value of this type.  If the type is
+   * not well founded, this function throws an exception.
+   *
+   * @return a ground value of the type
+   */
+  Node mkGroundValue() const;
+
+  /**
    * Is this type a subtype of the given type?
    */
   bool isSubtypeOf(TypeNode t) const;
@@ -514,6 +522,12 @@ public:
 
   /** Get the return type (for constructor types) */
   TypeNode getConstructorRangeType() const;
+
+  /** Get the domain type (for selector types) */
+  TypeNode getSelectorDomainType() const;
+
+  /** Get the return type (for selector types) */
+  TypeNode getSelectorRangeType() const;
 
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
@@ -622,6 +636,16 @@ public:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /**
+   * Get instantiated datatype type. The type on which this method is called
+   * should be a parametric datatype whose parameter list is the same size as
+   * argument params. This constructs the instantiated version of this
+   * parametric datatype, e.g. passing (par (A) (List A)), { Int } ) to this
+   * method returns (List Int).
+   */
+  TypeNode instantiateParametricDatatype(
+      const std::vector<TypeNode>& params) const;
+
   /** Is this an instantiated datatype parameter */
   bool isParameterInstantiatedDatatype(unsigned n) const;
 
@@ -651,6 +675,17 @@ public:
 
   /** Is this a sort constructor kind */
   bool isSortConstructor() const;
+
+  /**
+   * Instantiate a sort constructor type. The type on which this method is
+   * called should be a sort constructor type whose parameter list is the
+   * same size as argument params. This constructs the instantiated version of
+   * this sort constructor. For example, this is a sort constructor, e.g.
+   * declared via (declare-sort U 2), then calling this method with
+   * { Int, Int } will generate the instantiated sort (U Int Int).
+   */
+  TypeNode instantiateSortConstructor(
+      const std::vector<TypeNode>& params) const;
 
   /** Get the most general base type of the type */
   TypeNode getBaseType() const;
@@ -752,8 +787,8 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
   }
 
   // otherwise compute
-  Assert( typesEnd - typesBegin == replacementsEnd - replacementsBegin,
-          "Substitution iterator ranges must be equal size" );
+  Assert(typesEnd - typesBegin == replacementsEnd - replacementsBegin)
+      << "Substitution iterator ranges must be equal size";
   Iterator1 j = find(typesBegin, typesEnd, *this);
   if(j != typesEnd) {
     TypeNode tn = *(replacementsBegin + (j - typesBegin));
@@ -792,18 +827,18 @@ inline const T& TypeNode::getConst() const {
 
 inline TypeNode::TypeNode(const expr::NodeValue* ev) :
   d_nv(const_cast<expr::NodeValue*> (ev)) {
-  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv->inc();
 }
 
 inline TypeNode::TypeNode(const TypeNode& typeNode) {
-  Assert(typeNode.d_nv != NULL, "Expecting a non-NULL expression value!");
+  Assert(typeNode.d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv = typeNode.d_nv;
   d_nv->inc();
 }
 
 inline TypeNode::~TypeNode() {
-  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
   d_nv->dec();
 }
 
@@ -813,9 +848,9 @@ inline void TypeNode::assignNodeValue(expr::NodeValue* ev) {
 }
 
 inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
-  Assert(d_nv != NULL, "Expecting a non-NULL expression value!");
-  Assert(typeNode.d_nv != NULL,
-         "Expecting a non-NULL expression value on RHS!");
+  Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
+  Assert(typeNode.d_nv != NULL)
+      << "Expecting a non-NULL expression value on RHS!";
   if(__builtin_expect( ( d_nv != typeNode.d_nv ), true )) {
     d_nv->dec();
     d_nv = typeNode.d_nv;
@@ -827,35 +862,35 @@ inline TypeNode& TypeNode::operator=(const TypeNode& typeNode) {
 template <class AttrKind>
 inline typename AttrKind::value_type TypeNode::
 getAttribute(const AttrKind&) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::
 hasAttribute(const AttrKind&) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->hasAttribute(d_nv, AttrKind());
 }
 
 template <class AttrKind>
 inline bool TypeNode::getAttribute(const AttrKind&, typename AttrKind::value_type& ret) const {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   return NodeManager::currentNM()->getAttribute(d_nv, AttrKind(), ret);
 }
 
 template <class AttrKind>
 inline void TypeNode::
 setAttribute(const AttrKind&, const typename AttrKind::value_type& value) {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
   NodeManager::currentNM()->setAttribute(d_nv, AttrKind(), value);
 }
 
@@ -912,6 +947,18 @@ inline TypeNode TypeNode::getArrayConstituentType() const {
 inline TypeNode TypeNode::getConstructorRangeType() const {
   Assert(isConstructor());
   return (*this)[getNumChildren()-1];
+}
+
+inline TypeNode TypeNode::getSelectorDomainType() const
+{
+  Assert(isSelector());
+  return (*this)[0];
+}
+
+inline TypeNode TypeNode::getSelectorRangeType() const
+{
+  Assert(isSelector());
+  return (*this)[1];
 }
 
 inline bool TypeNode::isSet() const {
@@ -1022,7 +1069,7 @@ inline const Datatype& TypeNode::getDatatype() const {
     DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
     return NodeManager::currentNM()->getDatatypeForIndex( dic.getIndex() );
   }else{
-    Assert( getKind() == kind::PARAMETRIC_DATATYPE );
+    Assert(getKind() == kind::PARAMETRIC_DATATYPE);
     return (*this)[0].getDatatype();
   }
 }
@@ -1035,8 +1082,8 @@ inline unsigned TypeNode::getFloatingPointExponentSize() const {
 
 /** Get the significand size of this floating-point type */
 inline unsigned TypeNode::getFloatingPointSignificandSize() const {
- Assert(isFloatingPoint());
- return getConst<FloatingPointSize>().significand();
+  Assert(isFloatingPoint());
+  return getConst<FloatingPointSize>().significand();
 }
 
 /** Get the size of this bit-vector type */

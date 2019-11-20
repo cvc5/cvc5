@@ -15,9 +15,8 @@
  **/
 
 #include <iostream>
-#include "options/language.h" // for use with make examples
-#include "smt/smt_engine.h" // for use with make examples
-//#include <cvc4/cvc4.h> // To follow the wiki
+
+#include <cvc4/cvc4.h>
 
 using namespace CVC4;
 
@@ -115,7 +114,7 @@ int main() {
   DatatypeType paramConsListType = em.mkDatatypeType(paramConsListSpec);
   Type paramConsIntListType = paramConsListType.instantiate(std::vector<Type>{em.integerType()});
 
-  Datatype paramConsList = paramConsListType.getDatatype();
+  const Datatype& paramConsList = paramConsListType.getDatatype();
 
   std::cout << "parameterized datatype sort is " << std::endl;
   for (const DatatypeConstructor& ctor : paramConsList)

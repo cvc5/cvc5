@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/strings/infer_info.h"
+#include "theory/strings/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -70,7 +71,7 @@ class InferenceManager
   InferenceManager(TheoryStrings& p,
                    context::Context* c,
                    context::UserContext* u,
-                   eq::EqualityEngine& ee,
+                   SolverState& s,
                    OutputChannel& out);
   ~InferenceManager() {}
 
@@ -162,6 +163,38 @@ class InferenceManager
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
+  /** register length
+   *
+   * This method is called on non-constant string terms n. It sends a lemma
+   * on the output channel that ensures that the length n satisfies its assigned
+   * status (given by argument s).
+   *
+   * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
+   *
+   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) > 0.
+   *
+   * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
+   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
+   * This method also ensures that, when applicable, the left branch is taken
+   * first via calls to requirePhase.
+   *
+   * If the status is LENGTH_IGNORE, then no lemma is sent. This status is used
+   * e.g. when the length of n is already implied by other constraints.
+   *
+   * In contrast to the above functions, it makes immediate calls to the output
+   * channel instead of adding them to pending lists.
+   */
+  void registerLength(Node n, LengthStatus s);
+
+  //----------------------------constructing antecedants
+  /**
+   * Adds equality a = b to the vector exp if a and b are distinct terms. It
+   * must be the case that areEqual( a, b ) holds in this context.
+   */
+  void addToExplanation(Node a, Node b, std::vector<Node>& exp) const;
+  /** Adds lit to the vector exp if it is non-null */
+  void addToExplanation(Node lit, std::vector<Node>& exp) const;
+  //----------------------------end constructing antecedants
   /** Do pending facts
    *
    * This method asserts pending facts (d_pending) with explanations
@@ -196,16 +229,26 @@ class InferenceManager
    * this returns true if we have a pending fact or lemma, or have encountered
    * a conflict.
    */
-  bool hasProcessed() const
-  {
-    return hasConflict() || !d_pendingLem.empty() || !d_pending.empty();
-  }
+  bool hasProcessed() const;
   /** Do we have a pending fact to add to the equality engine? */
   bool hasPendingFact() const { return !d_pending.empty(); }
   /** Do we have a pending lemma to send on the output channel? */
   bool hasPendingLemma() const { return !d_pendingLem.empty(); }
-  /** Are we in conflict? */
-  bool hasConflict() const;
+
+  /** make explanation
+   *
+   * This returns a node corresponding to the explanation of formulas in a,
+   * interpreted conjunctively. The returned node is a conjunction of literals
+   * that have been asserted to the equality engine.
+   */
+  Node mkExplain(const std::vector<Node>& a) const;
+  /** Same as above, but the new literals an are append to the result */
+  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an) const;
+  /**
+   * Explain literal l, add conjuncts to assumptions vector instead of making
+   * the node corresponding to their conjunction.
+   */
+  void explain(TNode literal, std::vector<TNode>& assumptions) const;
 
  private:
   /**
@@ -229,19 +272,21 @@ class InferenceManager
 
   /** the parent theory of strings object */
   TheoryStrings& d_parent;
-  /** the equality engine
-   *
-   * This is a reference to the equality engine of the theory of strings.
+  /**
+   * This is a reference to the solver state of the theory of strings.
    */
-  eq::EqualityEngine& d_ee;
+  SolverState& d_state;
   /** the output channel
    *
    * This is a reference to the output channel of the theory of strings.
    */
   OutputChannel& d_out;
   /** Common constants */
+  Node d_emptyString;
   Node d_true;
   Node d_false;
+  Node d_zero;
+  Node d_one;
   /** The list of pending literals to assert to the equality engine */
   std::vector<Node> d_pending;
   /** A map from the literals in the above vector to their explanation */
@@ -257,6 +302,8 @@ class InferenceManager
    * SAT-context-dependent.
    */
   NodeSet d_keep;
+  /** List of terms that we have register length for */
+  NodeSet d_lengthLemmaTermsCache;
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a

@@ -26,10 +26,19 @@ endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Generate compile_commands.json, which can be used for various code completion
 # plugins.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+#-----------------------------------------------------------------------------#
+
+set(INCLUDE_INSTALL_DIR include)
+set(LIBRARY_INSTALL_DIR lib)
+set(RUNTIME_INSTALL_DIR bin)
+
+#-----------------------------------------------------------------------------#
 
 # Embed the installation prefix as an RPATH in the executable such that the
 # linker can find our libraries (such as libcvc4parser) when executing the cvc4
@@ -40,7 +49,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #
 # More information on RPATH in CMake:
 # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
 
 #-----------------------------------------------------------------------------#
 
@@ -57,19 +66,23 @@ option(ENABLE_GPL "Enable GPL dependencies")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for build types
-cvc4_option(ENABLE_ASAN          "Enable ASAN build")
-cvc4_option(ENABLE_ASSERTIONS    "Enable assertions")
-cvc4_option(ENABLE_DEBUG_SYMBOLS "Enable debug symbols")
-cvc4_option(ENABLE_DUMPING       "Enable dumping")
-cvc4_option(ENABLE_MUZZLE        "Suppress ALL non-result output")
-cvc4_option(ENABLE_OPTIMIZED     "Enable optimization")
-cvc4_option(ENABLE_PROOFS        "Enable proof support")
-cvc4_option(ENABLE_REPLAY        "Enable the replay feature")
-cvc4_option(ENABLE_STATISTICS    "Enable statistics")
-cvc4_option(ENABLE_TRACING       "Enable tracing")
-cvc4_option(ENABLE_UNIT_TESTING  "Enable unit testing")
-cvc4_option(ENABLE_VALGRIND      "Enable valgrind instrumentation")
-cvc4_option(ENABLE_SHARED        "Build as shared library")
+cvc4_option(ENABLE_ASAN           "Enable ASAN build")
+cvc4_option(ENABLE_UBSAN          "Enable UBSan build")
+cvc4_option(ENABLE_TSAN           "Enable TSan build")
+cvc4_option(ENABLE_ASSERTIONS     "Enable assertions")
+cvc4_option(ENABLE_COMP_INC_TRACK
+            "Enable optimizations for incremental SMT-COMP tracks")
+cvc4_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
+cvc4_option(ENABLE_DUMPING        "Enable dumping")
+cvc4_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
+cvc4_option(ENABLE_OPTIMIZED      "Enable optimization")
+cvc4_option(ENABLE_PROOFS         "Enable proof support")
+cvc4_option(ENABLE_REPLAY         "Enable the replay feature")
+cvc4_option(ENABLE_STATISTICS     "Enable statistics")
+cvc4_option(ENABLE_TRACING        "Enable tracing")
+cvc4_option(ENABLE_UNIT_TESTING   "Enable unit testing")
+cvc4_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
+cvc4_option(ENABLE_SHARED         "Build as shared library")
 cvc4_option(ENABLE_STATIC_BINARY
             "Build static binaries with statically linked system libraries")
 # >> 2-valued: ON OFF
@@ -144,7 +157,7 @@ endif()
 #       to cmake standards (first letter uppercase).
 set(BUILD_TYPES Production Debug Testing Competition)
 
-if(ENABLE_ASAN)
+if(ENABLE_ASAN OR ENABLE_UBSAN OR ENABLE_TSAN)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
@@ -176,6 +189,7 @@ add_check_c_flag("-fexceptions")
 add_check_c_cxx_flag("-Wno-deprecated")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
+add_check_c_cxx_flag("-Wimplicit-fallthrough")
 
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
@@ -226,8 +240,6 @@ if(ENABLE_SHARED)
 else()
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
-  # This is required to force find_package(Boost) to use static libraries.
-  set(Boost_USE_STATIC_LIBS ON)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
 
   # Never build unit tests as static binaries, otherwise we'll end up with
@@ -287,6 +299,19 @@ if(ENABLE_ASAN)
   add_check_c_cxx_flag("-fsanitize-recover=address")
 endif()
 
+if(ENABLE_UBSAN)
+  add_required_c_cxx_flag("-fsanitize=undefined")
+  add_definitions(-DCVC4_USE_UBSAN)
+endif()
+
+if(ENABLE_TSAN)
+  # -fsanitize=thread requires CMAKE_REQUIRED_FLAGS to be explicitely set,
+  # otherwise the -fsanitize=thread check will fail while linking.
+  set(CMAKE_REQUIRED_FLAGS -fsanitize=thread)
+  add_required_c_cxx_flag("-fsanitize=thread")
+  unset(CMAKE_REQUIRED_FLAGS)
+endif()
+
 if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC4_ASSERTIONS)
 else()
@@ -316,6 +341,10 @@ endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
   add_check_c_cxx_flag("-ggdb3")
+endif()
+
+if(ENABLE_COMP_INC_TRACK)
+  add_definitions(-DCVC4_SMTCOMP_APPLICATION_TRACK)
 endif()
 
 if(ENABLE_MUZZLE)
@@ -450,7 +479,6 @@ if(ENABLE_PROOFS)
 endif()
 
 add_subdirectory(doc)
-add_subdirectory(examples EXCLUDE_FROM_ALL)  # excluded from all target
 add_subdirectory(src)
 add_subdirectory(test)
 
@@ -468,12 +496,13 @@ include(CMakePackageConfigHelpers)
 install(EXPORT cvc4-targets
   FILE CVC4Targets.cmake
   NAMESPACE CVC4::
-  DESTINATION lib/cmake/CVC4)
+  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4)
 
 configure_package_config_file(
   ${CMAKE_SOURCE_DIR}/cmake/CVC4Config.cmake.in
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
-  INSTALL_DESTINATION lib/cmake/CVC4
+  INSTALL_DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
+  PATH_VARS LIBRARY_INSTALL_DIR
 )
 
 write_basic_package_version_file(
@@ -485,7 +514,7 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_BINARY_DIR}/cmake/CVC4Config.cmake
   ${CMAKE_BINARY_DIR}/CVC4ConfigVersion.cmake
-  DESTINATION lib/cmake/CVC4
+  DESTINATION ${LIBRARY_INSTALL_DIR}/cmake/CVC4
 )
 
 
@@ -501,7 +530,11 @@ string(REPLACE ";" " " CVC4_DEFINITIONS "${CVC4_DEFINITIONS}")
 
 message("CVC4 ${CVC4_RELEASE_STRING}")
 message("")
-message("Build profile        : ${CVC4_BUILD_PROFILE_STRING}")
+if(ENABLE_COMP_INC_TRACK)
+  message("Build profile        : ${CVC4_BUILD_PROFILE_STRING} (incremental)")
+else()
+  message("Build profile        : ${CVC4_BUILD_PROFILE_STRING}")
+endif()
 message("")
 print_config("GPL                  :" ENABLE_GPL)
 print_config("Best configuration   :" ENABLE_BEST)
@@ -519,7 +552,9 @@ print_config("Replay               :" ENABLE_REPLAY)
 print_config("Statistics           :" ENABLE_STATISTICS)
 print_config("Tracing              :" ENABLE_TRACING)
 message("")
-print_config("Asan                 :" ENABLE_ASAN)
+print_config("ASan                 :" ENABLE_ASAN)
+print_config("UBSan                :" ENABLE_UBSAN)
+print_config("TSan                 :" ENABLE_TSAN)
 print_config("Coverage (gcov)      :" ENABLE_COVERAGE)
 print_config("Profiling (gprof)    :" ENABLE_PROFILING)
 print_config("Unit tests           :" ENABLE_UNIT_TESTING)

@@ -1,0 +1,12 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status
+(set-logic ALL)
+
+(synth-fun f ((x String) (y String)) String)
+
+(declare-var x String)
+(declare-var y String)
+
+(constraint (= (f x y) (str.replace (str.++ x y) "A" "ABCD")))
+
+(check-synth)

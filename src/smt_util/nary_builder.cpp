@@ -77,13 +77,13 @@ Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children){
 
     /* It's inconceivable we could have enough children for this to fail
      * (more than 2^32, in most cases?). */
-    AlwaysAssert( newChildren.size() <= max,
-                  "Too many new children in mkAssociative" );
+    AlwaysAssert(newChildren.size() <= max)
+        << "Too many new children in mkAssociative";
 
     /* It would be really weird if this happened (it would require
      * min > 2, for one thing), but let's make sure. */
-    AlwaysAssert( newChildren.size() >= min,
-                  "Too few new children in mkAssociative" );
+    AlwaysAssert(newChildren.size() >= min)
+        << "Too few new children in mkAssociative";
 
     return nm->mkNode(kind,newChildren);
   }
@@ -152,7 +152,6 @@ Node RePairAssocCommutativeOperators::case_assoccomm(TNode n){
   Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
   unsigned N = n.getNumChildren();
   Assert(N >= 2);
-
 
   Node last = rePairAssocCommutativeOperators( n[N-1]);
   Node nextToLast = rePairAssocCommutativeOperators(n[N-2]);

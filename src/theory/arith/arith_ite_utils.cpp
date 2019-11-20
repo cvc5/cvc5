@@ -374,7 +374,8 @@ Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const{
     // (not y) => (not x)
     // (not z) => x
     std::set<Node>::const_iterator ci = negtimp.begin(), cend = negtimp.end();
-    for(; ci != cend; ci++){
+    for (; ci != cend; ++ci)
+    {
       Node impliedByNotTB = *ci;
       Node impliedByNotTBNeg = impliedByNotTB.negate();
       if(negfimp.find(impliedByNotTBNeg) != negfimp.end()){
@@ -389,8 +390,8 @@ Node ArithIteUtils::findIteCnd(TNode tb, TNode fb) const{
 bool ArithIteUtils::solveBinOr(TNode binor){
   Assert(binor.getKind() == kind::OR);
   Assert(binor.getNumChildren() == 2);
-  Assert(binor[0].getKind() ==  kind::EQUAL);
-  Assert(binor[1].getKind() ==  kind::EQUAL);
+  Assert(binor[0].getKind() == kind::EQUAL);
+  Assert(binor[1].getKind() == kind::EQUAL);
 
   //Node n = 
   Node n = applySubstitutions(binor);
@@ -410,8 +411,8 @@ bool ArithIteUtils::solveBinOr(TNode binor){
   TNode l = n[0];
   TNode r = n[1];
 
-  Assert(l.getKind() ==  kind::EQUAL);
-  Assert(r.getKind() ==  kind::EQUAL);
+  Assert(l.getKind() == kind::EQUAL);
+  Assert(r.getKind() == kind::EQUAL);
 
   Debug("arith::ite") << "bin or " << n << endl;
 

@@ -5,9 +5,6 @@
 # > system tests
 
 add_custom_target(build-tests)
-# Since examples are also built and run for testing, we have to add examples
-# to the build test dependencies.
-add_dependencies(build-tests examples)
 
 # Note: Do not add custom targets for running tests (regress, systemtests,
 # units) as dependencies to other run targets. This will result in executing
