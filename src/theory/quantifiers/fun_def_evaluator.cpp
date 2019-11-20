@@ -208,7 +208,6 @@ Node FunDefEvaluator::evaluate(Node n) const
   Trace("fd-eval") << "FunDefEvaluator: return " << visited[n];
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
-  // Assert(visited.find(n)->second.isConst());
   if (!visited.find(n)->second.isConst())
   {
     visited[n] = Node::null();
