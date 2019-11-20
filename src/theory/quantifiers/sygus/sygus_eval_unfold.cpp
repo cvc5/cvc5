@@ -246,8 +246,8 @@ Node SygusEvalUnfold::unfold(Node en,
   if (track_exp)
   {
     // explanation
-    Node ee = nm->mkNode(
-        APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
+    Node ee =
+        nm->mkNode(APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
     if (std::find(exp.begin(), exp.end(), ee) == exp.end())
     {
       exp.push_back(ee);
@@ -293,9 +293,8 @@ Node SygusEvalUnfold::unfold(Node en,
     }
     else
     {
-      s = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                     dt[i].getSelectorInternal(headType, j),
-                     en[0]);
+      s = nm->mkNode(
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, j), en[0]);
     }
     cc.push_back(s);
     if (track_exp)
