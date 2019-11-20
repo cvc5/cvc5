@@ -591,7 +591,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         Trace("cegqi-debug") << "...squery : " << squery << std::endl;
         squery = Rewriter::rewrite(squery);
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
-        Assert(squery.isConst() && squery.getConst<bool>());
+        Assert(options::sygusRecFun() || (squery.isConst() && squery.getConst<bool>()));
 #endif
         return false;
       }

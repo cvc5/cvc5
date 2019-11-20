@@ -205,11 +205,19 @@ Node FunDefEvaluator::evaluate(Node n) const
       }
     }
   } while (!visit.empty());
+  Trace("fd-eval") << "FunDefEvaluator: return " << visited[n];
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
-  Assert(visited.find(n)->second.isConst());
-  Trace("fd-eval") << "FunDefEvaluator: return SUCCESS " << visited[n]
-                   << std::endl;
+  // Assert(visited.find(n)->second.isConst());
+  if (!visited.find(n)->second.isConst())
+  {
+    visited[n] = Node::null();
+    Trace("fd-eval") << "\n with NONCONST\n";
+  }
+  else
+  {
+    Trace("fd-eval") << "\n with SUCCESS\n";
+  }
   return visited[n];
 }
 
