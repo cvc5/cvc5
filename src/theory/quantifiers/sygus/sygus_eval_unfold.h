@@ -88,6 +88,8 @@ class SygusEvalUnfold
    * This method is called when a sygus term d (typically a variable for a SyGuS
    * enumerator) has a model value specified by the map vtm. The argument en
    * is an application of kind DT_SYGUS_EVAL, i.e. eval( d, c1, ..., cm ).
+   * Typically, d is a shared selector chain, although it may also be a
+   * non-constant application of a constructor.
    *
    * If doRec is false, this method returns the one-step unfolding of this
    * evaluation function application. An example of a one step unfolding is:
