@@ -70,10 +70,9 @@
 (define-fun-rec evalC ((env Env) (c Com)) Env
   (ite (is-Assign c)
     (envStore (lhs c) (evalA env (rhs c)) env)
-        ; (is-While c)
-          (ite (evalB env (wCond c)) (evalC (evalC env (wCom c)) c) env)
-        )
-      )
+    (ite (evalB env (wCond c)) (evalC (evalC env (wCom c)) c) env)
+    )
+  )
 
 (synth-fun prog () Com
   ((C1 Com) (C2 Com) (VX NVars) (A1 Aexp) (A2 Aexp) (B Bexp) (I Int))
