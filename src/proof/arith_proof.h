@@ -167,6 +167,12 @@ public:
   void printAliasingDeclarations(std::ostream& os,
                                  std::ostream& paren,
                                  const ProofLetMap& globalLetMap) override;
+
+  /**
+   * Return whether this node, when serialized to LFSC, has sort `Bool`.
+   * This is true if it's type is `Bool`.
+   */
+  bool printsAsBool(const Node &n) override;
 };
 
 
