@@ -260,8 +260,8 @@ Node SygusEvalUnfold::unfold(Node en,
     Trace("sygus-eval-unfold-debug")
         << "...it is an any-constant constructor" << std::endl;
     Assert(dt[i].getNumArgs() == 1);
-    // always abstract the any constant, regardless of whether this condition
-    // holds? TODO
+    // If the argument to evaluate is itself concrete, then we use its
+    // argument; otherwise we return its selector.
     if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
       Trace("sygus-eval-unfold-debug")
