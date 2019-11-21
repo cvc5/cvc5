@@ -453,31 +453,6 @@ class TermDbSygus {
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
 
- public:
-  /** unfold
-   *
-   * This method returns the one-step unfolding of an evaluation function
-   * application. An example of a one step unfolding is:
-   *    eval( C_+( d1, d2 ), t ) ---> +( eval( d1, t ), eval( d2, t ) )
-   *
-   * This function does this unfolding for a (possibly symbolic) evaluation
-   * head, where the argument "variable to model" vtm stores the model value of
-   * variables from this head. This allows us to track an explanation of the
-   * unfolding in the vector exp when track_exp is true.
-   *
-   * For example, if vtm[d] = C_+( C_x(), C_0() ) and track_exp is true, then
-   * this method applied to eval( d, t ) will return
-   * +( eval( d.0, t ), eval( d.1, t ) ), and is-C_+( d ) is added to exp.
-   */
-  Node unfold(Node en,
-              std::map<Node, Node>& vtm,
-              std::vector<Node>& exp,
-              bool track_exp = true);
-  /**
-   * Same as above, but without explanation tracking. This is used for concrete
-   * evaluation heads
-   */
-  Node unfold(Node en);
 };
 
 }/* CVC4::theory::quantifiers namespace */
