@@ -896,12 +896,14 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
 
   switch(k) {
   case kind::ITE: {
-    bool usePredicateType = term.getType().isBoolean();
-    os << (usePredicateType ? "(ifte " : "(ite _ ");
+    bool useFormulaType = term.getType().isBoolean();
+    Assert(term.getType() == term[1].getType());
+    Assert(term.getType() == term[2].getType());
+    os << (useFormulaType ? "(ifte " : "(ite _ ");
 
     printBoundFormula(term[0], os, map);
     os << " ";
-    if (usePredicateType)
+    if (useFormulaType)
     {
       printBoundFormula(term[1], os, map);
     }
@@ -910,7 +912,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
       printBoundTerm(term[1], os, map);
     }
     os << " ";
-    if (usePredicateType)
+    if (useFormulaType)
     {
       printBoundFormula(term[2], os, map);
     }

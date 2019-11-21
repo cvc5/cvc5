@@ -358,8 +358,14 @@ protected:
    */
   virtual void printRewriteProof(std::ostream& os, const Node &n1, const Node &n2);
 
-  // Return true if node prints as Bool, false if it prints as a formula.
-  // Undefined for node that are neither.
+  /**
+   * Return whether this node, when serialized as an LFSC proof, has sort `Bool`.
+   *
+   * This is virtual because it ultimately, theories control the serialization
+   * of their proofs, so a theory will need to override this appropriately.
+   *
+   * This should only be called on nodes of type `Bool`.
+   */
   virtual bool printsAsBool(const Node &n) {
     // Most nodes print as formulas, so this is the default.
     return false;
