@@ -869,14 +869,19 @@ void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const Pr
   printTheoryTerm(term, os, map);
 }
 
-void LFSCTheoryProofEngine::printBoundFormula(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printBoundFormula(Expr term,
+                                              std::ostream& os,
+                                              const ProofLetMap& map)
+{
   Assert(term.getType().isBoolean() or term.getType().isPredicate());
   bool wrapWithBoolToPred = term.getType().isBoolean() and printsAsBool(term);
-  if (wrapWithBoolToPred) {
+  if (wrapWithBoolToPred)
+  {
     os << "(p_app ";
   }
   printBoundTerm(term, os, map);
-  if (wrapWithBoolToPred) {
+  if (wrapWithBoolToPred)
+  {
     os << ")";
   }
 }
@@ -892,19 +897,25 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
   switch(k) {
   case kind::ITE: {
     bool usePredicateType = term.getType().isBoolean();
-    os << (usePredicateType ? "(ifte ": "(ite _ ");
+    os << (usePredicateType ? "(ifte " : "(ite _ ");
 
     printBoundFormula(term[0], os, map);
     os << " ";
-    if (usePredicateType) {
+    if (usePredicateType)
+    {
       printBoundFormula(term[1], os, map);
-    } else {
+    }
+    else
+    {
       printBoundTerm(term[1], os, map);
     }
     os << " ";
-    if (usePredicateType) {
+    if (usePredicateType)
+    {
       printBoundFormula(term[2], os, map);
-    } else {
+    }
+    else
+    {
       printBoundTerm(term[2], os, map);
     }
     os << ")";
