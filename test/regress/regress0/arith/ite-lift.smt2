@@ -1,3 +1,4 @@
+; COMMAND-LINE: --check-proofs
 (set-option :incremental false)
 (set-info :status unsat)
 (set-info :category "crafted")
