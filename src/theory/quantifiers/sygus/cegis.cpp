@@ -31,12 +31,9 @@ namespace theory {
 namespace quantifiers {
 
 Cegis::Cegis(QuantifiersEngine* qe, SynthConjecture* p)
-    : SygusModule(qe, p), d_eval_unfold(nullptr), d_using_gr_repair(false)
+    : SygusModule(qe, p), d_eval_unfold(nullptr), d_usingSymCons(false)
 {
-  if (options::sygusEvalUnfold())
-  {
-    d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
-  }
+  d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
 }
 
 bool Cegis::initialize(Node conj,
@@ -80,7 +77,7 @@ bool Cegis::processInitialize(Node conj,
   for (unsigned i = 0; i < csize; i++)
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
-    bool do_repair_const = false;
+    bool useSymCons = false;
     if (options::sygusRepairConst())
     {
       TypeNode ctn = candidates[i].getType();
@@ -88,15 +85,15 @@ bool Cegis::processInitialize(Node conj,
       SygusTypeInfo& cti = d_tds->getTypeInfo(ctn);
       if (cti.hasSubtermSymbolicCons())
       {
-        do_repair_const = true;
-        // remember that we are doing grammar-based repair
-        d_using_gr_repair = true;
-        Trace("cegis") << " (using repair)";
+        useSymCons = true;
+        // remember that we are using symbolic constructors
+        d_usingSymCons = true;
+        Trace("cegis") << " (using symbolic constructors)";
       }
     }
     Trace("cegis") << std::endl;
     d_tds->registerEnumerator(
-        candidates[i], candidates[i], d_parent, erole, do_repair_const);
+        candidates[i], candidates[i], d_parent, erole, useSymCons);
   }
   return true;
 }
@@ -135,7 +132,10 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   }
   NodeManager* nm = NodeManager::currentNM();
   bool addedEvalLemmas = false;
-  if (options::sygusRefEval())
+  // Refinement evaluation should not be done for grammars with symbolic
+  // constructors.
+  bool doRefEval = options::sygusRefEval() && !d_usingSymCons;
+  if (doRefEval)
   {
     Trace("cegqi-engine") << "  *** Do refinement lemma evaluation"
                           << (doGen ? " with conjecture-specific refinement"
@@ -169,7 +169,8 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     }
   }
   // we only do evaluation unfolding for passive enumerators
-  if (doGen && d_eval_unfold != nullptr)
+  bool doEvalUnfold = (doGen && options::sygusEvalUnfold()) || d_usingSymCons;
+  if (doEvalUnfold)
   {
     Trace("cegqi-engine") << "  *** Do evaluation unfolding..." << std::endl;
     std::vector<Node> eager_terms, eager_vals, eager_exps;
@@ -239,7 +240,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     }
   }
   // if we are using grammar-based repair
-  if (d_using_gr_repair)
+  if (d_usingSymCons && options::sygusRepairConst())
   {
     SygusRepairConst* src = d_parent->getRepairConst();
     Assert(src != nullptr);
