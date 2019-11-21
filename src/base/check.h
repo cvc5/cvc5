@@ -29,7 +29,7 @@
  ** AlwaysAssert may be added.
  **/
 
-#include "cvc4_private.h"
+#include "cvc4_private_library.h"
 
 #ifndef CVC4__CHECK_H
 #define CVC4__CHECK_H
@@ -63,6 +63,15 @@
 #else
 #define CVC4_PREDICT_FALSE(x) x
 #define CVC4_PREDICT_TRUE(x) x
+#endif
+
+#ifdef __has_cpp_attribute
+#if __has_cpp_attribute(fallthrough)
+#define CVC4_FALLTHROUGH [[fallthrough]]
+#endif // __has_cpp_attribute(fallthrough)
+#endif // __has_cpp_attribute
+#ifndef CVC4_FALLTHROUGH
+#define CVC4_FALLTHROUGH
 #endif
 
 namespace CVC4 {

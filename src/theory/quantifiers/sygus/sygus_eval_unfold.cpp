@@ -232,22 +232,23 @@ Node SygusEvalUnfold::unfold(Node en,
   }
   Trace("sygus-eval-unfold-debug")
       << "Unfold model value is : " << ev << std::endl;
-  AlwaysAssert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
+  AlwaysAssert(ev.getKind() == APPLY_CONSTRUCTOR);
   std::vector<Node> args;
   for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
   {
     args.push_back(en[i]);
   }
 
-  Type headType = en[0].getType().toType();
+  TypeNode headType = en[0].getType();
+  Type headTypeT = headType.toType();
   NodeManager* nm = NodeManager::currentNM();
-  const Datatype& dt = static_cast<DatatypeType>(headType).getDatatype();
+  const Datatype& dt = headType.getDatatype();
   unsigned i = datatypes::utils::indexOf(ev.getOperator());
   if (track_exp)
   {
     // explanation
-    Node ee = nm->mkNode(
-        kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
+    Node ee =
+        nm->mkNode(APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
     if (std::find(exp.begin(), exp.end(), ee) == exp.end())
     {
       exp.push_back(ee);
@@ -260,8 +261,8 @@ Node SygusEvalUnfold::unfold(Node en,
     Trace("sygus-eval-unfold-debug")
         << "...it is an any-constant constructor" << std::endl;
     Assert(dt[i].getNumArgs() == 1);
-    // always abstract the any constant, regardless of whether this condition
-    // holds? TODO
+    // If the argument to evaluate is itself concrete, then we use its
+    // argument; otherwise we return its selector.
     if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
       Trace("sygus-eval-unfold-debug")
@@ -271,7 +272,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       Node ret = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, 0), en[0]);
       Trace("sygus-eval-unfold-debug")
           << "...return (from constructor) " << ret << std::endl;
       return ret;
@@ -285,7 +286,7 @@ Node SygusEvalUnfold::unfold(Node en,
     std::vector<Node> cc;
     Node s;
     // get the j^th subfield of en
-    if (en[0].getKind() == kind::APPLY_CONSTRUCTOR)
+    if (en[0].getKind() == APPLY_CONSTRUCTOR)
     {
       // if it is a concrete constructor application, as an optimization,
       // just return the argument
@@ -293,9 +294,8 @@ Node SygusEvalUnfold::unfold(Node en,
     }
     else
     {
-      s = nm->mkNode(kind::APPLY_SELECTOR_TOTAL,
-                     dt[i].getSelectorInternal(headType, j),
-                     en[0]);
+      s = nm->mkNode(
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, j), en[0]);
     }
     cc.push_back(s);
     if (track_exp)
