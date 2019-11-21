@@ -239,9 +239,10 @@ Node SygusEvalUnfold::unfold(Node en,
     args.push_back(en[i]);
   }
 
-  Type headType = en[0].getType().toType();
+  TypeNode headType = en[0].getType();
+  Type headTypeT = headType.toType();
   NodeManager* nm = NodeManager::currentNM();
-  const Datatype& dt = static_cast<DatatypeType>(headType).getDatatype();
+  const Datatype& dt = headType.getDatatype();
   unsigned i = datatypes::utils::indexOf(ev.getOperator());
   if (track_exp)
   {
@@ -271,7 +272,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       Node ret = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, 0), en[0]);
       Trace("sygus-eval-unfold-debug")
           << "...return (from constructor) " << ret << std::endl;
       return ret;
@@ -294,7 +295,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       s = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, j), en[0]);
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, j), en[0]);
     }
     cc.push_back(s);
     if (track_exp)
