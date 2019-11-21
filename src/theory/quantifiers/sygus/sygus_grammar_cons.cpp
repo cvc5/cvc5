@@ -961,7 +961,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         {
           // If we have an external term in the sum, e.g. select(A,i), we
           // cannot use a fixed polynomial template.
-          Trace("sygus-grammar-def") << "Cannot use polynomial grammar due to " << sop << std::endl;
+          Trace("sygus-grammar-def")
+              << "Cannot use polynomial grammar due to " << sop << std::endl;
           polynomialGrammar = false;
         }
       }
