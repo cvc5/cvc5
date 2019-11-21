@@ -77,6 +77,8 @@ bool Cegis::processInitialize(Node conj,
   for (unsigned i = 0; i < csize; i++)
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
+    // We use symbolic constants if we are doing repair constants or if the
+    // grammar construction was not simple.
     bool useSymCons = false;
     if (options::sygusRepairConst()
         || options::sygusGrammarConsMode() != SYGUS_GCONS_SIMPLE)
