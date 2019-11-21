@@ -189,9 +189,10 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   TypeNode ntn = n.getType();
   if (!ntn.isDatatype())
   {
-    // sygus datatype fields that are not sygus datatypes are treated as
-    // abstractions only, hence we disregard this field
-    // exp.push_back(n.eqNode(vn));
+    // SyGuS datatype fields that are not sygus datatypes are treated as
+    // abstractions only, hence we disregard this field. It is important
+    // that users of this method handle any constants properly, otherwise
+    // the explanation n.eqNode(vn) is necessary here.
     return;
   }
   Assert(vn.getKind() == APPLY_CONSTRUCTOR);

@@ -418,8 +418,6 @@ class TermDbSygus {
   bool isTypeMatch( const DatatypeConstructor& c1, const DatatypeConstructor& c2 );
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
-  /** return whether n contains an application of a symbolic constructor */
-  // bool containsSymbolicConsApp(Node n) const;
   /** can construct kind
    *
    * Given a sygus datatype type tn, if this method returns true, then there

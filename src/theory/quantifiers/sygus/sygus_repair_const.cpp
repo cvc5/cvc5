@@ -276,8 +276,6 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   ExprManagerMapCollection varMap;
   ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> repcChecker;
-  Trace("sygus-repair-const")
-      << "first order query is : " << fo_body << std::endl;
   initializeChecker(repcChecker, em, varMap, fo_body, needExport);
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
