@@ -897,8 +897,8 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
   switch(k) {
   case kind::ITE: {
     bool useFormulaType = term.getType().isBoolean();
-    Assert(term.getType() == term[1].getType());
-    Assert(term.getType() == term[2].getType());
+    Assert(term[1].getType().isSubtypeOf(term.getType()));
+    Assert(term[2].getType().isSubtypeOf(term.getType()));
     os << (useFormulaType ? "(ifte " : "(ite _ ");
 
     printBoundFormula(term[0], os, map);
