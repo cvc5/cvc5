@@ -53,7 +53,7 @@ void QuantDSplit::checkOwnership(Node q)
       }else{
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
           // split if it is a finite datatype
-          doSplit = dt.isInterpretedFinite( tn.toType() );
+          doSplit = dt.isInterpretedFinite(tn.toType());
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
           if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
             if (dt.isInterpretedFinite(tn.toType()))
@@ -77,10 +77,13 @@ void QuantDSplit::checkOwnership(Node q)
         {
           // store the index to split
           d_quant_to_reduce[q] = i;
-          Trace("quant-dsplit-debug") << "Split at index " << i << " based on datatype " << dt.getName() << std::endl;
+          Trace("quant-dsplit-debug")
+              << "Split at index " << i << " based on datatype " << dt.getName()
+              << std::endl;
           break;
         }
-        Trace("quant-dsplit-debug") << "Do not split based on datatype " << dt.getName() << std::endl;
+        Trace("quant-dsplit-debug")
+            << "Do not split based on datatype " << dt.getName() << std::endl;
       }
     }
   }
