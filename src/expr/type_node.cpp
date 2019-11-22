@@ -518,53 +518,55 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
   // t0.getKind() == kind::TYPE_CONSTANT &&
   // t1.getKind() == kind::TYPE_CONSTANT
   switch(t0.getKind()) {
-  case kind::FUNCTION_TYPE:
-  {
-    if (t1.getKind()!=kind::FUNCTION_TYPE)
+    case kind::FUNCTION_TYPE:
     {
-      return TypeNode();
-    }
-    // must have equal arguments
-    std::vector< TypeNode > t0a = t0.getArgTypes();
-    std::vector< TypeNode > t1a = t1.getArgTypes();
-    if (t0a.size()!=t1a.size())
-    {
-      // different arities
-      return TypeNode();
-    }
-    for (unsigned i=0, nargs=t0a.size(); i<nargs; i++)
-    {
-      if (t0a[i]!=t1a[i])
+      if (t1.getKind() != kind::FUNCTION_TYPE)
       {
-        // an argument is different
         return TypeNode();
       }
+      // must have equal arguments
+      std::vector<TypeNode> t0a = t0.getArgTypes();
+      std::vector<TypeNode> t1a = t1.getArgTypes();
+      if (t0a.size() != t1a.size())
+      {
+        // different arities
+        return TypeNode();
+      }
+      for (unsigned i = 0, nargs = t0a.size(); i < nargs; i++)
+      {
+        if (t0a[i] != t1a[i])
+        {
+          // an argument is different
+          return TypeNode();
+        }
+      }
+      TypeNode t0r = t0.getRangeType();
+      TypeNode t1r = t1.getRangeType();
+      TypeNode tr = commonTypeNode(t0r, t1r, isLeast);
+      std::vector<TypeNode> ftypes;
+      ftypes.insert(ftypes.end(), t0a.begin(), t0a.end());
+      ftypes.push_back(tr);
+      return NodeManager::currentNM()->mkFunctionType(ftypes);
     }
-    TypeNode t0r = t0.getRangeType();
-    TypeNode t1r = t1.getRangeType();
-    TypeNode tr = commonTypeNode(t0r,t1r,isLeast);
-    std::vector< TypeNode > ftypes;
-    ftypes.insert(ftypes.end(),t0a.begin(),t0a.end());
-    ftypes.push_back(tr);
-    return NodeManager::currentNM()->mkFunctionType(ftypes);
-  }
     break;
-  case kind::BITVECTOR_TYPE:
-  case kind::FLOATINGPOINT_TYPE:
-  case kind::SORT_TYPE:
-  case kind::CONSTRUCTOR_TYPE:
-  case kind::SELECTOR_TYPE:
-  case kind::TESTER_TYPE:
-  case kind::ARRAY_TYPE:
-  case kind::DATATYPE_TYPE:
-  case kind::PARAMETRIC_DATATYPE:
-    return TypeNode();
-  case kind::SET_TYPE: {
-    // take the least common subtype of element types
-    TypeNode elementType;
-    if(t1.isSet() && !(elementType = commonTypeNode(t0[0], t1[0], isLeast)).isNull() ) {
-      return NodeManager::currentNM()->mkSetType(elementType);
-    } else {
+    case kind::BITVECTOR_TYPE:
+    case kind::FLOATINGPOINT_TYPE:
+    case kind::SORT_TYPE:
+    case kind::CONSTRUCTOR_TYPE:
+    case kind::SELECTOR_TYPE:
+    case kind::TESTER_TYPE:
+    case kind::ARRAY_TYPE:
+    case kind::DATATYPE_TYPE:
+    case kind::PARAMETRIC_DATATYPE: return TypeNode();
+    case kind::SET_TYPE:
+    {
+      // take the least common subtype of element types
+      TypeNode elementType;
+      if (t1.isSet()
+          && !(elementType = commonTypeNode(t0[0], t1[0], isLeast)).isNull())
+      {
+        return NodeManager::currentNM()->mkSetType(elementType);
+      } else {
       return TypeNode();
     }
   }
