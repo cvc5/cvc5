@@ -341,7 +341,7 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   if (isFunction() && t.isFunction())
   {
     // comparable if they have a common type node
-    return !leastCommonTypeNode(*this,t).isNull();
+    return !leastCommonTypeNode(*this, t).isNull();
   }
   return false;
 }
@@ -576,10 +576,12 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
           && !(elementType = commonTypeNode(t0[0], t1[0], isLeast)).isNull())
       {
         return NodeManager::currentNM()->mkSetType(elementType);
-      } else {
-      return TypeNode();
+      }
+      else
+      {
+        return TypeNode();
+      }
     }
-  }
   case kind::SEXPR_TYPE:
     Unimplemented()
         << "haven't implemented leastCommonType for symbolic expressions yet";
