@@ -127,14 +127,7 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
         children.push_back(mc);
       }
       ret = NodeManager::currentNM()->mkNode(nk, children);
-      //if (n.getKind() == APPLY_UF)
-      //{
-      //  ret = getValueInternal(ret);
-      //}
-      //else
-      //{
-        ret = Rewriter::rewrite(ret);
-      //}
+      ret = Rewriter::rewrite(ret);
     }
   }
   Trace("nl-ext-mv-debug") << "computed " << (index == 0 ? "M" : "M_A") << "["
