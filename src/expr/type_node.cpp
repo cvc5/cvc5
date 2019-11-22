@@ -316,6 +316,11 @@ bool TypeNode::isSubtypeOf(TypeNode t) const {
   }
   if (isFunction() && t.isFunction())
   {
+    if (!isComparableTo(t))
+    {
+      // incomparable, not subtype
+      return false;
+    }
     return getRangeType().isSubtypeOf(t.getRangeType());
   }
   // this should only return true for types T1, T2 where we handle equalities between T1 and T2
@@ -332,6 +337,11 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   }
   if(isSet() && t.isSet()) {
     return getSetElementType().isComparableTo(t.getSetElementType());
+  }
+  if (isFunction() && t.isFunction())
+  {
+    // comparable if they have a common type node
+    return !leastCommonTypeNode(*this,t).isNull();
   }
   return false;
 }
