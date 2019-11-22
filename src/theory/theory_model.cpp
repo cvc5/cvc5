@@ -369,12 +369,11 @@ void TheoryModel::addSubstitution( TNode x, TNode t, bool invalidateCache ){
     Node oldX = d_substitutions.getSubstitution(x);
     // check that either the old substitution is the same, or it now maps to the new substitution
     if(oldX != t && d_substitutions.apply(oldX) != d_substitutions.apply(t)) {
-      stringstream ss;
-      ss << "Two incompatible substitutions added to TheoryModel:\n"
-         << "the term:    " << x << "\n"
-         << "old mapping: " << d_substitutions.apply(oldX) << "\n"
-         << "new mapping: " << d_substitutions.apply(t);
-      InternalError(ss.str());
+      InternalError()
+          << "Two incompatible substitutions added to TheoryModel:\n"
+          << "the term:    " << x << "\n"
+          << "old mapping: " << d_substitutions.apply(oldX) << "\n"
+          << "new mapping: " << d_substitutions.apply(t);
     }
 #endif /* CVC4_ASSERTIONS */
   }
@@ -530,6 +529,8 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   Assert(pred.getType().isBoolean());
   d_approximations[n] = pred;
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
+  // model cache is invalid
+  d_modelCache.clear();
 }
 void TheoryModel::setUsingModelCore()
 {
@@ -598,7 +599,7 @@ bool TheoryModel::areFunctionValuesEnabled() const
 }
 
 void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
-  Assert( d_uf_models.find( f )==d_uf_models.end() );
+  Assert(d_uf_models.find(f) == d_uf_models.end());
   Trace("model-builder") << "  Assigning function (" << f << ") to (" << f_def << ")" << endl;
 
   if( options::ufHo() ){
@@ -606,7 +607,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     f_def = Rewriter::rewrite( f_def );
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
-    Assert( f_def.isConst() );
+    Assert(f_def.isConst());
   }
  
   // d_uf_models only stores models for variables
@@ -644,7 +645,7 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
   // collect functions
   for( std::map< Node, std::vector< Node > >::iterator it = d_uf_terms.begin(); it != d_uf_terms.end(); ++it ){
     Node n = it->first;
-    Assert( !n.isNull() );
+    Assert(!n.isNull());
     if( !hasAssignedFunctionDefinition( n ) ){
       Trace("model-builder-fun-debug") << "Look at function : " << n << std::endl;
       if( options::ufHo() ){

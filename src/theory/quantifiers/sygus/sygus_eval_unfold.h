@@ -83,6 +83,49 @@ class SygusEvalUnfold
                           std::vector<Node>& exps,
                           std::vector<Node>& terms,
                           std::vector<Node>& vals);
+  /** unfold
+   *
+   * This method is called when a sygus term d (typically a variable for a SyGuS
+   * enumerator) has a model value specified by the map vtm. The argument en
+   * is an application of kind DT_SYGUS_EVAL, i.e. eval( d, c1, ..., cm ).
+   * Typically, d is a shared selector chain, although it may also be a
+   * non-constant application of a constructor.
+   *
+   * If doRec is false, this method returns the one-step unfolding of this
+   * evaluation function application. An example of a one step unfolding is:
+   *    eval( C_+( d1, d2 ), t ) ---> +( eval( d1, t ), eval( d2, t ) )
+   *
+   * This function does this unfolding for a (possibly symbolic) evaluation
+   * head, where the argument "variable to model" vtm stores the model value of
+   * variables from this head. This allows us to track an explanation of the
+   * unfolding in the vector exp when track_exp is true.
+   *
+   * For example, if vtm[d] = C_+( C_x(), C_0() ) and track_exp is true, then
+   * this method applied to eval( d, t ) will return
+   * +( eval( d.0, t ), eval( d.1, t ) ), and is-C_+( d ) is added to exp.
+   *
+   * If the argument doRec is true, we do a multi-step unfolding instead of
+   * a single-step unfolding. For example, if vtm[d] = C_+( C_x(), C_0() ),
+   * then this method applied to eval(d,5) will return 5+0 = 0.
+   *
+   * Furthermore, notice that any-constant constructors are *never* expanded to
+   * their concrete model values. This means that the multi-step unfolding when
+   * vtm[d] = C_+( C_x(), any_constant(n) ), then this method applied to
+   * eval(d,5) will return 5 + d.2.1, where the latter term is a shared selector
+   * chain. In other words, this unfolding elaborates the connection between
+   * the builtin integer field d.2.1 of d and the builtin interpretation of
+   * this sygus term, for the given argument.
+   */
+  Node unfold(Node en,
+              std::map<Node, Node>& vtm,
+              std::vector<Node>& exp,
+              bool track_exp = true,
+              bool doRec = false);
+  /**
+   * Same as above, but without explanation tracking. This is used for concrete
+   * evaluation heads
+   */
+  Node unfold(Node en);
 
  private:
   /** sygus term database associated with this utility */

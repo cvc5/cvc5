@@ -36,8 +36,8 @@ class RationalEnumerator : public TypeEnumeratorBase<RationalEnumerator> {
   RationalEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<RationalEnumerator>(type), d_rat(0)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT &&
-           type.getConst<TypeConstant>() == REAL_TYPE);
+    Assert(type.getKind() == kind::TYPE_CONSTANT
+           && type.getConst<TypeConstant>() == REAL_TYPE);
   }
 
   Node operator*() override { return NodeManager::currentNM()->mkConst(d_rat); }
@@ -77,8 +77,8 @@ class IntegerEnumerator : public TypeEnumeratorBase<IntegerEnumerator> {
   IntegerEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<IntegerEnumerator>(type), d_int(0)
   {
-    Assert(type.getKind() == kind::TYPE_CONSTANT &&
-           type.getConst<TypeConstant>() == INTEGER_TYPE);
+    Assert(type.getKind() == kind::TYPE_CONSTANT
+           && type.getConst<TypeConstant>() == INTEGER_TYPE);
   }
 
   Node operator*() override

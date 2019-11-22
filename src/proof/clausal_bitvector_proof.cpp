@@ -175,13 +175,13 @@ void ClausalBitVectorProof::optimizeDratProof()
                                                    optFormulaFilename,
                                                    optDratFilename,
                                                    drat2er::options::QUIET);
-      AlwaysAssert(
-          dratTrimExitCode == 0, "drat-trim exited with %d", dratTrimExitCode);
+      AlwaysAssert(dratTrimExitCode == 0)
+          << "drat-trim exited with " << dratTrimExitCode;
     }
 #else
-    Unimplemented(
-        "Proof production when using CryptoMiniSat requires drat2er.\n"
-        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented()
+        << "Proof production when using CryptoMiniSat requires drat2er.\n"
+        << "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild";
 #endif
 
     {
@@ -314,9 +314,9 @@ void LfscClausalBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                                       std::ostream& paren,
                                                       const ProofLetMap& map)
 {
-  Unreachable(
-      "Clausal bit-vector proofs should only be used in combination with eager "
-      "bitblasting, which **does not use theory lemmas**");
+  Unreachable() << "Clausal bit-vector proofs should only be used in "
+                   "combination with eager "
+                   "bitblasting, which **does not use theory lemmas**";
 }
 
 void LfscClausalBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
@@ -339,9 +339,9 @@ void LfscClausalBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
 void LfscDratBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                    std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
 
   os << "\n;; Proof of input to SAT solver\n";
   os << "(@ proofOfSatInput ";
@@ -366,9 +366,9 @@ void LfscDratBitVectorProof::printEmptyClauseProof(std::ostream& os,
 void LfscLratBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                    std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
 
   os << "\n;; Proof of input to SAT solver\n";
   os << "(@ proofOfCMap ";
@@ -396,9 +396,9 @@ void LfscLratBitVectorProof::printEmptyClauseProof(std::ostream& os,
 void LfscErBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                  std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
 
   d_dratTranslationStatistics.d_totalTime.start();
   er::ErProof pf =

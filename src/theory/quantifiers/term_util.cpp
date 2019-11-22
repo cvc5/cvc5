@@ -217,7 +217,7 @@ Node TermUtil::substituteBoundVariables(Node n,
                                         std::vector<Node>& terms)
 {
   registerQuantifier(q);
-  Assert( d_vars[q].size()==terms.size() );
+  Assert(d_vars[q].size() == terms.size());
   return n.substitute( d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end() );
 }
 
@@ -306,7 +306,7 @@ void TermUtil::computeInstConstContainsForQuant(Node q,
 
 Node TermUtil::ensureType( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
-  Assert( ntn.isComparableTo( tn ) );
+  Assert(ntn.isComparableTo(tn));
   if( ntn.isSubtypeOf( tn ) ){
     return n;
   }else{
