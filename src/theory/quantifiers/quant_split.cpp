@@ -53,7 +53,7 @@ void QuantDSplit::checkOwnership(Node q)
       }else{
         int score = -1;
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
-          score = dt.isInterpretedFinite( tn.toType() ) ? 1 : 0;
+          score = dt.isInterpretedFinite( tn.toType() ) ? 2 : 0;
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
           if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
             if (dt.isInterpretedFinite(tn.toType()))
@@ -61,7 +61,7 @@ void QuantDSplit::checkOwnership(Node q)
               // split if goes from being unhandled -> handled by finite
               // instantiation. An example is datatypes with uninterpreted sort
               // fields which are "interpreted finite" but not "finite".
-              score = 1;
+              score = 2;
             }
             else if (dt.getNumConstructors() == 1 && !dt.isCodatatype())
             {
@@ -82,7 +82,10 @@ void QuantDSplit::checkOwnership(Node q)
   if( max_index!=-1 ){
     Trace("quant-dsplit-debug") << "Will split at index " << max_index << "." << std::endl;
     d_quant_to_reduce[q] = max_index;
-    d_quantEngine->setOwner( q, this );
+    if (max_score>=2)
+    {
+      d_quantEngine->setOwner( q, this );
+    }
   }
 }
 
