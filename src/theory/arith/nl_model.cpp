@@ -87,7 +87,7 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
   {
     // we are interested in the exact value of PI, which cannot be computed.
     // hence, we return PI itself when asked for the concrete value.
-    if (nk==PI)
+    if (nk == PI)
     {
       ret = n;
     }
@@ -98,10 +98,9 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
   }
   else
   {
-    // otherwise, compute true value       
+    // otherwise, compute true value
     TheoryId ctid = theory::kindToTheoryId(nk);
-    if (ctid != THEORY_ARITH && ctid != THEORY_BOOL
-        && ctid != THEORY_BUILTIN)
+    if (ctid != THEORY_ARITH && ctid != THEORY_BOOL && ctid != THEORY_BUILTIN)
     {
       // we directly look up terms not belonging to arithmetic
       ret = getValueInternal(n);
