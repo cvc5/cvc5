@@ -81,31 +81,22 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
   Trace("nl-ext-mv-debug") << "computeModelValue " << n << ", index=" << index
                            << std::endl;
   Node ret;
+  Kind nk = n.getKind();
   if (n.isConst())
   {
     ret = n;
   }
-  else if (index == 1
-           && (n.getKind() == NONLINEAR_MULT
-               || isTranscendentalKind(n.getKind())))
+  else if (!isConcrete && hasTerm(n))
   {
-    if (hasTerm(n))
-    {
-      // use model value for abstraction
-      ret = getRepresentative(n);
-    }
-    else
-    {
-      // abstraction does not exist, use model value
-      ret = getValueInternal(n);
-    }
+    // use model value for abstraction
+    ret = getRepresentative(n);
   }
   else if (n.getNumChildren() == 0)
   {
-    if (n.getKind() == PI)
+    // we are interested in the exact value of PI, which cannot be computed.
+    // hence, we return PI itself when asked for the concrete value.
+    if (nk==PI)
     {
-      // we are interested in the exact value of PI, which cannot be computed.
-      // hence, we return PI itself when asked for the concrete value.
       ret = n;
     }
     else
@@ -115,53 +106,41 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
   }
   else
   {
-    // otherwise, compute true value
-    std::vector<Node> children;
-    if (n.getMetaKind() == metakind::PARAMETERIZED)
+    // otherwise, compute true value       
+    TheoryId ctid = theory::kindToTheoryId(nk);
+    if (ctid != THEORY_ARITH && ctid != THEORY_BOOL
+        && ctid != THEORY_BUILTIN)
     {
-      children.push_back(n.getOperator());
-    }
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
-    {
-      Node mc = computeModelValue(n[i], isConcrete);
-      children.push_back(mc);
-    }
-    ret = NodeManager::currentNM()->mkNode(n.getKind(), children);
-    if (n.getKind() == APPLY_UF)
-    {
-      ret = getValueInternal(ret);
+      // we directly look up terms not belonging to arithmetic
+      ret = getValueInternal(n);
     }
     else
     {
-      ret = Rewriter::rewrite(ret);
+      std::vector<Node> children;
+      if (n.getMetaKind() == metakind::PARAMETERIZED)
+      {
+        children.push_back(n.getOperator());
+      }
+      for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+      {
+        Node mc = computeModelValue(n[i], isConcrete);
+        children.push_back(mc);
+      }
+      ret = NodeManager::currentNM()->mkNode(nk, children);
+      if (n.getKind() == APPLY_UF)
+      {
+        ret = getValueInternal(ret);
+      }
+      else
+      {
+        ret = Rewriter::rewrite(ret);
+      }
     }
   }
   Trace("nl-ext-mv-debug") << "computed " << (index == 0 ? "M" : "M_A") << "["
                            << n << "] = " << ret << std::endl;
   d_mv[index][n] = ret;
   return ret;
-}
-
-Node NlModel::getValueInternal(Node n) const
-{
-  if (!options::nlExtInterceptModel())
-  {
-    return d_model->getValue(n);
-  }
-  if (n.isConst())
-  {
-    return n;
-  }
-  std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
-  if (it!=d_arithVal.end())
-  {
-    AlwaysAssert(it->second.isConst());
-    return it->second;
-  }
-  //return NodeManager::currentNM()->mkConst(Rational(0));
-  AlwaysAssert(false) << "No model value for " << n << std::endl;
-  // return self
-  return n;
 }
 
 bool NlModel::hasTerm(Node n) const
@@ -196,6 +175,28 @@ Node NlModel::getRepresentative(Node n) const
   // return self
   return n;
   */
+}
+
+Node NlModel::getValueInternal(Node n) const
+{
+  if (!options::nlExtInterceptModel())
+  {
+    return d_model->getValue(n);
+  }
+  if (n.isConst())
+  {
+    return n;
+  }
+  std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
+  if (it!=d_arithVal.end())
+  {
+    AlwaysAssert(it->second.isConst());
+    return it->second;
+  }
+  //return NodeManager::currentNM()->mkConst(Rational(0));
+  AlwaysAssert(false) << "No model value for " << n << std::endl;
+  // return self
+  return n;
 }
 
 int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute)
