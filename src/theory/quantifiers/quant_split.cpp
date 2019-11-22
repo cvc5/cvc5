@@ -41,8 +41,8 @@ void QuantDSplit::checkOwnership(Node q)
   {
     return;
   }
-  int max_index = -1;
-  int max_score = -1;
+  bool takeOwnership = false;
+  bool doSplit = false;
   Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
@@ -51,9 +51,9 @@ void QuantDSplit::checkOwnership(Node q)
       if( dt.isRecursiveSingleton( tn.toType() ) ){
         Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is recursive singleton." << std::endl;
       }else{
-        int score = -1;
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
-          score = dt.isInterpretedFinite(tn.toType()) ? 2 : 0;
+          // split if it is a finite datatype
+          doSplit = dt.isInterpretedFinite( tn.toType() );
         }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
           if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
             if (dt.isInterpretedFinite(tn.toType()))
@@ -61,32 +61,40 @@ void QuantDSplit::checkOwnership(Node q)
               // split if goes from being unhandled -> handled by finite
               // instantiation. An example is datatypes with uninterpreted sort
               // fields which are "interpreted finite" but not "finite".
-              score = 2;
+              doSplit = true;
+              // we additionally take ownership of this formula, in other words,
+              // we mark it reduced.
+              takeOwnership = true;
             }
             else if (dt.getNumConstructors() == 1 && !dt.isCodatatype())
             {
               // split if only one constructor
-              score = 1;
+              doSplit = true;
             }
           }
         }
-        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isInterpretedFinite( tn.toType() ) << " " << dt.isFinite( tn.toType() ) << ")" << std::endl;
-        if( score>max_score ){
-          max_index = i;
-          max_score = score;
+        if (doSplit)
+        {
+          // store the index to split
+          d_quant_to_reduce[q] = i;
+          Trace("quant-dsplit-debug") << "Split at index " << i << " based on datatype " << dt.getName() << std::endl;
+          break;
         }
+        Trace("quant-dsplit-debug") << "Do not split based on datatype " << dt.getName() << std::endl;
       }
     }
   }
 
-  if( max_index!=-1 ){
-    Trace("quant-dsplit-debug") << "Will split at index " << max_index << "." << std::endl;
-    d_quant_to_reduce[q] = max_index;
-    if (max_score >= 2)
-    {
-      d_quantEngine->setOwner(q, this);
-    }
+  if (takeOwnership)
+  {
+    Trace("quant-dsplit-debug") << "Will take ownership." << std::endl;
+    d_quantEngine->setOwner( q, this );
   }
+  // Notice we may not take ownership in some cases, meaning that both the
+  // original quantified formula and the split one are generated. This may
+  // increase our ability to answer "unsat", since quantifier instantiation
+  // heuristics may be more effective for one or the other (see issues #993
+  // and 3481).
 }
 
 /* whether this module needs to check this round */
