@@ -29,18 +29,18 @@
 namespace CVC4 {
 
 // ----------------------- datatype attributes
-/** 
+/**
  * Attribute for the index of an expression within a datatype, which is either:
- * (1) If the expression is a constructor, then its index refers to its placement
- * in the constructor list of the datatype that owns it,
- * (2) If the expression is a selector, then its index refers to its placement
- * in the argument list of the constructor that owns it.
+ * (1) If the expression is a constructor, then its index refers to its
+ * placement in the constructor list of the datatype that owns it, (2) If the
+ * expression is a selector, then its index refers to its placement in the
+ * argument list of the constructor that owns it.
  */
 struct DTypeIndexTag
 {
 };
 typedef expr::Attribute<DTypeIndexTag, size_t> DTypeIndexAttr;
-/** 
+/**
  * Attribute for the constructor index of a selector. This indicates the index
  * (DTypeIndexAttr) of the constructor that owns this selector.
  */
@@ -58,7 +58,7 @@ struct DTypeFiniteComputedTag
 {
 };
 typedef expr::Attribute<DTypeFiniteComputedTag, bool> DTypeFiniteComputedAttr;
-/** 
+/**
  * Attribute true for datatype types that are interpreted as finite (see
  * TypeNode::isInterpretedFinite).
  */
@@ -66,7 +66,7 @@ struct DTypeUFiniteTag
 {
 };
 typedef expr::Attribute<DTypeUFiniteTag, bool> DTypeUFiniteAttr;
-/** 
+/**
  * Attribute true when we have computed whether a datatype type is interpreted
  * as finite.
  */
