@@ -293,7 +293,7 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
     unsigned sindex = DType::indexOf(sel);
     if (getNumArgs() > sindex && d_args[sindex]->getSelector() == sel)
     {
-      return (int)sindex;
+      return static_cast<int>(sindex);
     }
   }
   return -1;

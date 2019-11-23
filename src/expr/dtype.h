@@ -29,27 +29,47 @@
 namespace CVC4 {
 
 // ----------------------- datatype attributes
-/** TODO */
+/** 
+ * Attribute for the index of an expression within a datatype, which is either:
+ * (1) If the expression is a constructor, then its index refers to its placement
+ * in the constructor list of the datatype that owns it,
+ * (2) If the expression is a selector, then its index refers to its placement
+ * in the argument list of the constructor that owns it.
+ */
 struct DTypeIndexTag
 {
 };
 typedef expr::Attribute<DTypeIndexTag, size_t> DTypeIndexAttr;
+/** 
+ * Attribute for the constructor index of a selector. This indicates the index
+ * (DTypeIndexAttr) of the constructor that owns this selector.
+ */
 struct DTypeConsIndexTag
 {
 };
 typedef expr::Attribute<DTypeConsIndexTag, size_t> DTypeConsIndexAttr;
+/** Attribute true for datatype types that are finite. */
 struct DTypeFiniteTag
 {
 };
 typedef expr::Attribute<DTypeFiniteTag, bool> DTypeFiniteAttr;
+/** Attribute true when we have computed whether a datatype type is finite */
 struct DTypeFiniteComputedTag
 {
 };
 typedef expr::Attribute<DTypeFiniteComputedTag, bool> DTypeFiniteComputedAttr;
+/** 
+ * Attribute true for datatype types that are interpreted as finite (see
+ * TypeNode::isInterpretedFinite).
+ */
 struct DTypeUFiniteTag
 {
 };
 typedef expr::Attribute<DTypeUFiniteTag, bool> DTypeUFiniteAttr;
+/** 
+ * Attribute true when we have computed whether a datatype type is interpreted
+ * as finite.
+ */
 struct DTypeUFiniteComputedTag
 {
 };
@@ -66,7 +86,7 @@ class Datatype;
  *
  * Notice that this class is a specification for a datatype, and is not
  * itself a type. The type that this specification corresponds to can be
- * retrieved (after resolution as described in following) via getTypeNode.
+ * retrieved (after resolution as described in the following) via getTypeNode.
  *
  * This is far more complicated than it first seems.  Consider this
  * datatype definition:
@@ -240,7 +260,7 @@ class DType
   /**
    * Return true iff this DType has finite cardinality. If the
    * datatype is not well-founded, this method returns false. The
-   * DType must be resolved or an exception is thrown.
+   * DType must be resolved or an assertion is violated.
    *
    * The version of this method that takes type t is required
    * for parametric datatypes, where t is an instantiated
@@ -254,7 +274,7 @@ class DType
    * finite, i.e., there  are finitely  many ground terms) under the
    * assumption unintepreted sorts are finite. If the
    * datatype is  not well-founded, this method returns false.  The
-   * DType must be resolved or an exception is thrown.
+   * DType must be resolved or an assertion is violated.
    *
    * The versions of these methods that takes type t is required
    * for parametric datatypes, where t is an instantiated
@@ -266,8 +286,8 @@ class DType
   /** is well-founded
    *
    * Return true iff this datatype is well-founded (there exist finite
-   * values of this type).
-   * This datatype must be resolved or an exception is thrown.
+   * values of this type). This datatype must be resolved or an assertion is
+   * violated.
    */
   bool isWellFounded() const;
 
