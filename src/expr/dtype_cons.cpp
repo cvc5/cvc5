@@ -23,29 +23,13 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-DTypeConstructor::DTypeConstructor(std::string name)
-    :  // We don't want to introduce a new data member, because eventually
-       // we're going to be a constant stuffed inside a node.  So we stow
-       // the tester name away inside the constructor name until
-       // resolution.
-      d_name(name), 
-      d_testerName("is_" + name), // default tester name is "is_FOO"
-      d_tester(),
-      d_args(),
-      d_weight(1)
-{
-  Assert(name != "");
-}
-
 DTypeConstructor::DTypeConstructor(std::string name,
-                                   std::string tester,
                                    unsigned weight)
     :  // We don't want to introduce a new data member, because eventually
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
       d_name(name),
-      d_testerName(tester),
       d_tester(),
       d_args(),
       d_weight(weight)
@@ -94,11 +78,6 @@ Node DTypeConstructor::getTester() const
 {
   Assert(isResolved());
   return d_tester;
-}
-
-std::string DTypeConstructor::getTesterName() const
-{
-  return d_testerName;
 }
 
 void DTypeConstructor::setSygus(Node op)

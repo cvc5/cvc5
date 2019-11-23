@@ -465,14 +465,15 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
-      d_internal(nullptr)
+      d_internal(nullptr),
+      d_testerName("is_" + name) // default tester name is "is_FOO"
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   Trace("ajr-temp")
       << "DatatypeConstructor::DatatypeConstructor 1: make internal"
       << std::endl;
   d_internal =
-      std::make_shared<DTypeConstructor>(name, std::string("is_" + name), 1);
+      std::make_shared<DTypeConstructor>(name, 1);
   Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: finished"
                     << std::endl;
 }
@@ -484,14 +485,15 @@ DatatypeConstructor::DatatypeConstructor(std::string name,
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
-      d_internal(nullptr)
+      d_internal(nullptr),
+      d_testerName(tester)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
   Trace("ajr-temp")
       << "DatatypeConstructor::DatatypeConstructor 2: make internal"
       << std::endl;
-  d_internal = std::make_shared<DTypeConstructor>(name, tester, weight);
+  d_internal = std::make_shared<DTypeConstructor>(name, weight);
   Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 2: finished"
                     << std::endl;
 }
@@ -554,16 +556,13 @@ void DatatypeConstructor::addArg(std::string selectorName, DatatypeSelfType) {
 
 std::string DatatypeConstructor::getName() const
 {
-  // std::string name = d_internal->getName();
-  // return name.substr(0, name.find('\0'));
   return d_internal->getName();
 }
 
 std::string DatatypeConstructor::getTesterName() const
 {
-  return d_internal->getTesterName();
-  std::string name = d_internal->getName();
-  return name.substr(name.find('\0') + 1);
+  // not stored internally, since tester names only pertain to parsing
+  return d_testerName;
 }
 
 Expr DatatypeConstructor::getConstructor() const {

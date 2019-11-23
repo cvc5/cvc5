@@ -456,6 +456,8 @@ class CVC4_PUBLIC DatatypeConstructor {
  private:
   /** The internal representation */
   std::shared_ptr<DTypeConstructor> d_internal;
+  /** the name of the tester */
+  std::string d_testerName;
   /** The constructor */
   Expr d_constructor;
   /** the arguments of this constructor */
