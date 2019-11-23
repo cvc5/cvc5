@@ -228,6 +228,8 @@ class DTypeConstructor
  private:
   /** the name of the constructor */
   std::string d_name;
+  /** the name of the tester */
+  std::string d_testerName;
   /** the constructor expression */
   Node d_constructor;
   /** the tester for this constructor */

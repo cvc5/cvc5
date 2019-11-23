@@ -28,7 +28,8 @@ DTypeConstructor::DTypeConstructor(std::string name)
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
-      d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
+      d_name(name), 
+      d_testerName("is_" + name), // default tester name is "is_FOO"
       d_tester(),
       d_args(),
       d_weight(1)
@@ -43,7 +44,8 @@ DTypeConstructor::DTypeConstructor(std::string name,
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
-      d_name(name + '\0' + tester),
+      d_name(name),
+      d_testerName(tester),
       d_tester(),
       d_args(),
       d_weight(weight)
@@ -79,7 +81,7 @@ void DTypeConstructor::addArg(std::shared_ptr<DTypeSelector> a)
 
 std::string DTypeConstructor::getName() const
 {
-  return d_name.substr(0, d_name.find('\0'));
+  return d_name;
 }
 
 Node DTypeConstructor::getConstructor() const
@@ -96,7 +98,7 @@ Node DTypeConstructor::getTester() const
 
 std::string DTypeConstructor::getTesterName() const
 {
-  return d_name.substr(d_name.find('\0') + 1);
+  return d_testerName;
 }
 
 void DTypeConstructor::setSygus(Node op)
