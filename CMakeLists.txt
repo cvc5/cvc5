@@ -68,6 +68,7 @@ option(ENABLE_GPL "Enable GPL dependencies")
 #    > only necessary for options set for build types
 cvc4_option(ENABLE_ASAN           "Enable ASAN build")
 cvc4_option(ENABLE_UBSAN          "Enable UBSan build")
+cvc4_option(ENABLE_TSAN           "Enable TSan build")
 cvc4_option(ENABLE_ASSERTIONS     "Enable assertions")
 cvc4_option(ENABLE_COMP_INC_TRACK
             "Enable optimizations for incremental SMT-COMP tracks")
@@ -156,7 +157,7 @@ endif()
 #       to cmake standards (first letter uppercase).
 set(BUILD_TYPES Production Debug Testing Competition)
 
-if(ENABLE_ASAN OR ENABLE_UBSAN)
+if(ENABLE_ASAN OR ENABLE_UBSAN OR ENABLE_TSAN)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
@@ -188,6 +189,7 @@ add_check_c_flag("-fexceptions")
 add_check_c_cxx_flag("-Wno-deprecated")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
+add_check_c_cxx_flag("-Wimplicit-fallthrough")
 
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
@@ -300,6 +302,14 @@ endif()
 if(ENABLE_UBSAN)
   add_required_c_cxx_flag("-fsanitize=undefined")
   add_definitions(-DCVC4_USE_UBSAN)
+endif()
+
+if(ENABLE_TSAN)
+  # -fsanitize=thread requires CMAKE_REQUIRED_FLAGS to be explicitely set,
+  # otherwise the -fsanitize=thread check will fail while linking.
+  set(CMAKE_REQUIRED_FLAGS -fsanitize=thread)
+  add_required_c_cxx_flag("-fsanitize=thread")
+  unset(CMAKE_REQUIRED_FLAGS)
 endif()
 
 if(ENABLE_ASSERTIONS)
@@ -542,7 +552,9 @@ print_config("Replay               :" ENABLE_REPLAY)
 print_config("Statistics           :" ENABLE_STATISTICS)
 print_config("Tracing              :" ENABLE_TRACING)
 message("")
-print_config("Asan                 :" ENABLE_ASAN)
+print_config("ASan                 :" ENABLE_ASAN)
+print_config("UBSan                :" ENABLE_UBSAN)
+print_config("TSan                 :" ENABLE_TSAN)
 print_config("Coverage (gcov)      :" ENABLE_COVERAGE)
 print_config("Profiling (gprof)    :" ENABLE_PROFILING)
 print_config("Unit tests           :" ENABLE_UNIT_TESTING)
