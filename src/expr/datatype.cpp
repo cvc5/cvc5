@@ -466,14 +466,13 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
        // the tester name away inside the constructor name until
        // resolution.
       d_internal(nullptr),
-      d_testerName("is_" + name) // default tester name is "is_FOO"
+      d_testerName("is_" + name)  // default tester name is "is_FOO"
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   Trace("ajr-temp")
       << "DatatypeConstructor::DatatypeConstructor 1: make internal"
       << std::endl;
-  d_internal =
-      std::make_shared<DTypeConstructor>(name, 1);
+  d_internal = std::make_shared<DTypeConstructor>(name, 1);
   Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: finished"
                     << std::endl;
 }

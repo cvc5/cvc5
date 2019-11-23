@@ -63,10 +63,7 @@ void DTypeConstructor::addArg(std::shared_ptr<DTypeSelector> a)
   d_args.push_back(a);
 }
 
-std::string DTypeConstructor::getName() const
-{
-  return d_name;
-}
+std::string DTypeConstructor::getName() const { return d_name; }
 
 Node DTypeConstructor::getConstructor() const
 {

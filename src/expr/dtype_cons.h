@@ -45,7 +45,7 @@ class DTypeConstructor
    * tester.  The actual constructor and tester (meaning, the Nodes
    * representing operators for these entities) aren't created until
    * resolution time.
-   * 
+   *
    * weight is the value that this constructor carries when computing size
    * for SyGuS. For example, if A, B, C have weights 0, 1, and 3 respectively,
    * then C( B( A() ), B( A() ) ) has size 5.
