@@ -35,7 +35,6 @@ DTypeConstructor::DTypeConstructor(std::string name,
       d_weight(weight)
 {
   Assert(name != "");
-  Assert(!tester.empty());
 }
 
 void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
