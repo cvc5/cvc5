@@ -288,9 +288,9 @@ bool DType::isRecursiveSingleton(TypeNode t) const
       if (Trace.isOn("dt-card"))
       {
         Trace("dt-card") << "DType " << getName()
-                        << " is recursive singleton, dependent upon "
-                        << d_card_u_assume[t].size()
-                        << " uninterpreted sorts: " << std::endl;
+                         << " is recursive singleton, dependent upon "
+                         << d_card_u_assume[t].size()
+                         << " uninterpreted sorts: " << std::endl;
         for (unsigned i = 0; i < d_card_u_assume[t].size(); i++)
         {
           Trace("dt-card") << "  " << d_card_u_assume[t][i] << std::endl;
@@ -363,7 +363,8 @@ bool DType::computeCardinalityRecSingleton(
     }
     bool success = false;
     processing.push_back(d_self);
-    for (unsigned i = 0, nargs = d_constructors[0]->getNumArgs(); i < nargs; i++)
+    for (unsigned i = 0, nargs = d_constructors[0]->getNumArgs(); i < nargs;
+         i++)
     {
       TypeNode tc = d_constructors[0]->getArgType(i);
       // if it is an uninterpreted sort, then we depend on it having cardinality

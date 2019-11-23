@@ -246,8 +246,7 @@ Node SygusEvalUnfold::unfold(Node en,
   if (track_exp)
   {
     // explanation
-    Node ee =
-        nm->mkNode(APPLY_TESTER, dt[i].getTester(), en[0]);
+    Node ee = nm->mkNode(APPLY_TESTER, dt[i].getTester(), en[0]);
     if (std::find(exp.begin(), exp.end(), ee) == exp.end())
     {
       exp.push_back(ee);
