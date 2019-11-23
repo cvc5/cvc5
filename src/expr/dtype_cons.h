@@ -45,18 +45,12 @@ class DTypeConstructor
    * tester.  The actual constructor and tester (meaning, the Nodes
    * representing operators for these entities) aren't created until
    * resolution time.
+   *
+   * weight is the value that this constructor carries when computing size
+   * for SyGuS. For example, if A, B, C have weights 0, 1, and 3 respectively,
+   * then C( B( A() ), B( A() ) ) has size 5.
    */
-  DTypeConstructor(std::string name);
-
-  /**
-   * Create a new DType constructor with the given name for the
-   * constructor and the given name for the tester.  The actual
-   * constructor and tester aren't created until resolution time.
-   * weight is the value that this constructor carries when computing size.
-   * For example, if A, B, C have weights 0, 1, and 3 respectively, then
-   * C( B( A() ), B( A() ) ) has size 5.
-   */
-  DTypeConstructor(std::string name, std::string tester, unsigned weight = 1);
+  DTypeConstructor(std::string name, unsigned weight = 1);
 
   ~DTypeConstructor() {}
   /**
@@ -84,11 +78,6 @@ class DTypeConstructor
    * DType must be resolved.
    */
   Node getTester() const;
-
-  /**
-   * Get the tester name for this constructor.
-   */
-  std::string getTesterName() const;
   //-------------------------------------- sygus
   /** set sygus
    *
@@ -228,6 +217,8 @@ class DTypeConstructor
  private:
   /** the name of the constructor */
   std::string d_name;
+  /** the name of the tester */
+  std::string d_testerName;
   /** the constructor expression */
   Node d_constructor;
   /** the tester for this constructor */

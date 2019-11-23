@@ -23,33 +23,18 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-DTypeConstructor::DTypeConstructor(std::string name)
-    :  // We don't want to introduce a new data member, because eventually
-       // we're going to be a constant stuffed inside a node.  So we stow
-       // the tester name away inside the constructor name until
-       // resolution.
-      d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
-      d_tester(),
-      d_args(),
-      d_weight(1)
-{
-  Assert(name != "");
-}
-
 DTypeConstructor::DTypeConstructor(std::string name,
-                                   std::string tester,
                                    unsigned weight)
     :  // We don't want to introduce a new data member, because eventually
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
-      d_name(name + '\0' + tester),
+      d_name(name),
       d_tester(),
       d_args(),
       d_weight(weight)
 {
   Assert(name != "");
-  Assert(!tester.empty());
 }
 
 void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
@@ -77,10 +62,7 @@ void DTypeConstructor::addArg(std::shared_ptr<DTypeSelector> a)
   d_args.push_back(a);
 }
 
-std::string DTypeConstructor::getName() const
-{
-  return d_name.substr(0, d_name.find('\0'));
-}
+std::string DTypeConstructor::getName() const { return d_name; }
 
 Node DTypeConstructor::getConstructor() const
 {
@@ -92,11 +74,6 @@ Node DTypeConstructor::getTester() const
 {
   Assert(isResolved());
   return d_tester;
-}
-
-std::string DTypeConstructor::getTesterName() const
-{
-  return d_name.substr(d_name.find('\0') + 1);
 }
 
 void DTypeConstructor::setSygus(Node op)
@@ -576,8 +553,9 @@ bool DTypeConstructor::resolve(
   // fails above, we want Constuctor::isResolved() to remain "false".
   // Further, mkConstructorType() iterates over the selectors, so
   // should get the results of any resolutions we did above.
+  std::string testerName("is_" + d_name);
   d_tester = nm->mkSkolem(
-      getTesterName(),
+      testerName,
       nm->mkTesterType(self),
       "is a tester",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
