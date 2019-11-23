@@ -240,22 +240,21 @@ Node SygusEvalUnfold::unfold(Node en,
   }
 
   TypeNode headType = en[0].getType();
-  Type headTypeT = headType.toType();
   NodeManager* nm = NodeManager::currentNM();
-  const Datatype& dt = headType.getDatatype();
+  const DType& dt = headType.getDType();
   unsigned i = datatypes::utils::indexOf(ev.getOperator());
   if (track_exp)
   {
     // explanation
     Node ee =
-        nm->mkNode(APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
+        nm->mkNode(APPLY_TESTER, dt[i].getTester(), en[0]);
     if (std::find(exp.begin(), exp.end(), ee) == exp.end())
     {
       exp.push_back(ee);
     }
   }
   // if we are a symbolic constructor, unfolding returns the subterm itself
-  Node sop = Node::fromExpr(dt[i].getSygusOp());
+  Node sop = dt[i].getSygusOp();
   if (sop.getAttribute(SygusAnyConstAttribute()))
   {
     Trace("sygus-eval-unfold-debug")
@@ -272,7 +271,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       Node ret = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, 0), en[0]);
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
       Trace("sygus-eval-unfold-debug")
           << "...return (from constructor) " << ret << std::endl;
       return ret;
@@ -295,7 +294,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       s = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, j), en[0]);
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, j), en[0]);
     }
     cc.push_back(s);
     if (track_exp)
