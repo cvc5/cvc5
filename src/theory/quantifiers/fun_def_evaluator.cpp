@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/fun_def_evaluator.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 
@@ -53,6 +54,8 @@ Node FunDefEvaluator::evaluate(Node n) const
   Assert(Rewriter::rewrite(n) == n);
   Trace("fd-eval") << "FunDefEvaluator: evaluate " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<TNode, unsigned, TNodeHashFunction> funDefCount;
+  std::unordered_map<TNode, unsigned, TNodeHashFunction>::iterator itCount;
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::map<Node, FunDefInfo>::const_iterator itf;
@@ -74,6 +77,13 @@ Node FunDefEvaluator::evaluate(Node n) const
       {
         Trace("fd-eval-debug") << "constant " << cur << std::endl;
         visited[cur] = cur;
+      }
+      else if (cur.getKind() == ITE)
+      {
+        Trace("fd-eval-debug") << "ITE " << cur << std::endl;
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.push_back(cur[0]);
       }
       else
       {
@@ -102,6 +112,28 @@ Node FunDefEvaluator::evaluate(Node n) const
         {
           children.push_back(cur.getOperator());
         }
+        else if (ck == ITE)
+        {
+          // get evaluation of condition
+          it = visited.find(cur[0]);
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
+          Assert(it->second.isConst());
+          // pick child to evaluate depending on condition eval
+          unsigned childIdxToEval = it->second.getConst<bool>() ? 1 : 2;
+          Trace("fd-eval-debug2")
+              << "FunDefEvaluator: result of ITE condition : "
+              << it->second.getConst<bool>() << "\n";
+          // the result will be the result of evaluation the child
+          visited[cur] = cur[childIdxToEval];
+          // push back self and child. The child will be evaluated first and
+          // result will be the result of evaluation child
+          visit.push_back(cur);
+          visit.push_back(cur[childIdxToEval]);
+          Trace("fd-eval-debug2") << "FunDefEvaluator: result will be from : "
+                                  << cur[childIdxToEval] << "\n";
+          continue;
+        }
         for (const Node& cn : cur)
         {
           it = visited.find(cn);
@@ -114,15 +146,30 @@ Node FunDefEvaluator::evaluate(Node n) const
         {
           // need to evaluate it
           f = cur.getOperator();
+          Trace("fd-eval-debug2")
+              << "FunDefEvaluator: need to eval " << f << "\n";
           itf = d_funDefMap.find(f);
-          if (itf == d_funDefMap.end())
+          itCount = funDefCount.find(f);
+          if (itCount == funDefCount.end())
           {
-            Trace("fd-eval") << "FunDefEvaluator: no definition for " << f
-                             << ", FAIL" << std::endl;
+            funDefCount[f] = 0;
+            itCount = funDefCount.find(f);
+          }
+          if (itf == d_funDefMap.end()
+              || itCount->second > options::sygusRecFunEvalLimit())
+          {
+            Trace("fd-eval")
+                << "FunDefEvaluator: "
+                << (itf == d_funDefMap.end() ? "no definition for "
+                                             : "too many evals for ")
+                << f << ", FAIL" << std::endl;
             return Node::null();
           }
+          ++funDefCount[f];
           // get the function definition
           Node sbody = itf->second.d_body;
+          Trace("fd-eval-debug2")
+              << "FunDefEvaluator: definition: " << sbody << "\n";
           const std::vector<Node>& args = itf->second.d_args;
           if (!args.empty())
           {
@@ -131,6 +178,17 @@ Node FunDefEvaluator::evaluate(Node n) const
                 args.begin(), args.end(), children.begin(), children.end());
             // rewrite it
             sbody = Rewriter::rewrite(sbody);
+            if (Trace.isOn("fd-eval-debug2"))
+            {
+              Trace("fd-eval-debug2")
+                  << "FunDefEvaluator: evaluation with args:\n";
+              for (const Node& child : children)
+              {
+                Trace("fd-eval-debug2") << "..." << child << "\n";
+              }
+              Trace("fd-eval-debug2")
+                  << "FunDefEvaluator: results in " << sbody << "\n";
+            }
           }
           // our result is the result of the body
           visited[cur] = sbody;
@@ -164,11 +222,18 @@ Node FunDefEvaluator::evaluate(Node n) const
       }
     }
   } while (!visit.empty());
+  Trace("fd-eval") << "FunDefEvaluator: return " << visited[n];
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
-  Assert(visited.find(n)->second.isConst());
-  Trace("fd-eval") << "FunDefEvaluator: return SUCCESS " << visited[n]
-                   << std::endl;
+  if (!visited.find(n)->second.isConst())
+  {
+    visited[n] = Node::null();
+    Trace("fd-eval") << "\n with NONCONST\n";
+  }
+  else
+  {
+    Trace("fd-eval") << "\n with SUCCESS\n";
+  }
   return visited[n];
 }
 
