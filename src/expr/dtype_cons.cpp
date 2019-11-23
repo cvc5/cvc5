@@ -554,8 +554,9 @@ bool DTypeConstructor::resolve(
   // fails above, we want Constuctor::isResolved() to remain "false".
   // Further, mkConstructorType() iterates over the selectors, so
   // should get the results of any resolutions we did above.
+  std::string testerName("is_" + d_name);
   d_tester = nm->mkSkolem(
-      getTesterName(),
+      testerName,
       nm->mkTesterType(self),
       "is a tester",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
