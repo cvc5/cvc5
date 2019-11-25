@@ -1438,7 +1438,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   // Ensure that we do type checking here to catch sygus constructors with
   // malformed builtin operators. The argument "true" to getType here forces
   // a recursive well-typedness check.
-  Type eType = term.getType(true);
+  term.getType(true);
   // purify each occurrence of a non-terminal symbol in term, replace by
   // free variables. These become arguments to constructors. Notice we must do
   // a tree traversal in this function, since unique paths to the same term
