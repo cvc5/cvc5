@@ -923,6 +923,7 @@ set(regress_0_tests
   regress0/sygus/no-syntax-test.sy
   regress0/sygus/parity-AIG-d0.sy
   regress0/sygus/parse-bv-let.sy
+  regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/sygus-no-wf.sy
   regress0/sygus/sygus-uf.sy
