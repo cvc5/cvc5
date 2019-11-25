@@ -140,11 +140,10 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       d_sym_cons_any_constant = i;
       d_has_subterm_sym_cons = true;
     }
-    // TODO (as part of #1170): we still do not properly catch type
-    // errors in sygus grammars for arguments of builtin operators.
-    // The challenge is that we easily ask for expected argument types of
-    // builtin operators e.g. PLUS. Hence the call to mkGeneric below
-    // will throw a type exception.
+    // We must properly catch type errors in sygus grammars for arguments of
+    // builtin operators. The challenge is that we easily ask for expected
+    // argument types of builtin operators e.g. PLUS. Hence we use a call to
+    // mkGeneric below, and then type check at the Expr level.
     d_ops[n] = i;
     d_arg_ops[i] = n;
     Trace("sygus-db") << std::endl;
@@ -152,8 +151,9 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     // of the type specified in the datatype. This will fail if
     // e.g. bitvector-and is a constructor of an integer grammar.
     Node g = tds->mkGeneric(dt, i);
-    // Must type check at the expression level
+    // Must type check at the expression level to throw proper exceptions.
     Expr ge = g.toExpr();
+    // We pass true to getType to force a recursive check for well-typedness.
     Type gt = ge.getType(true);
     TypeNode gtn = TypeNode::fromType(gt);
     AlwaysAssert(gtn.isSubtypeOf(btn))
