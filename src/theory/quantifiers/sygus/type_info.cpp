@@ -148,9 +148,9 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     // argument types of builtin operators e.g. PLUS. Hence we use a call to
     // mkGeneric below. This ensure that terms that this constructor encodes
     // are of the type specified in the datatype. This will fail if
-    // e.g. bitvector-and is a constructor of an integer grammar. Our parser
-    // ensures that sygus constructors are built from well-typed terms, so
-    // the term created by mkGeneric should also be well-typed here.
+    // e.g. bitvector-and is a constructor of an integer grammar. Our (version
+    // 2) SyGuS parser ensures that sygus constructors are built from well-typed
+    // terms, so the term created by mkGeneric should also be well-typed here.
     Node g = tds->mkGeneric(dt, i);
     TypeNode gtn = g.getType();
     AlwaysAssert(gtn.isSubtypeOf(btn))
