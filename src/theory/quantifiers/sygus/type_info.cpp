@@ -152,7 +152,10 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     // of the type specified in the datatype. This will fail if
     // e.g. bitvector-and is a constructor of an integer grammar.
     Node g = tds->mkGeneric(dt, i);
-    TypeNode gtn = g.getType();
+    // Must type check at the expression level
+    Expr ge = g.toExpr();
+    Type gt = ge.getType(true);
+    TypeNode gtn = TypeNode::fromType(gt);
     AlwaysAssert(gtn.isSubtypeOf(btn))
         << "Sygus datatype " << dt.getName()
         << " encodes terms that are not of type " << btn << std::endl;
