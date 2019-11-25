@@ -865,6 +865,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
   }
   std::map<TypeNode, unsigned>::iterator itgat;
+  // initialize the datatypes
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     sdts[i].d_sdt.initializeDatatype(types[i], bvl, true, true);
@@ -923,7 +924,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     const SygusDatatype& sdti = sdts[i].d_sdt;
     // whether we will use the polynomial grammar
     bool polynomialGrammar = sgcm == SYGUS_GCONS_ANY_TERM_CONCISE;
-    std::map<unsigned, bool> useConstructor;
+    // A set of constructor indices that will be used in the overall sum we
+    // are constructing; indices of constructors corresponding to builtin
+    // arithmetic operators will be excluded from this set.
+    std::set<unsigned> useConstructor;
     Trace("sygus-grammar-def")
         << "Look at operators, num = " << sdti.getNumConstructors() << "..."
         << std::endl;
@@ -935,7 +939,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       bool hasExternalType = false;
       for (unsigned j = 0, nargs = sdc.d_argTypes.size(); j < nargs; j++)
       {
-        // this is already corresponds to the correct sygus datatype type
+        // Since we are accessing the fields of the sygus datatype, this
+        // already corresponds to the correct sygus datatype type.
         TypeNode atype = sdc.d_argTypes[j];
         if (atype == unres_types[i])
         {
@@ -951,16 +956,18 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         {
           // It is an external type. This is the case of an operator of another
           // theory whose return type is arithmetic, e.g. select.
-          hasExternalType = false;
+          hasExternalType = true;
         }
       }
       if (!isBuiltinArithOp)
       {
-        useConstructor[k] = true;
+        useConstructor.insert(k);
         if (hasExternalType)
         {
           // If we have an external term in the sum, e.g. select(A,i), we
-          // cannot use a fixed polynomial template.
+          // cannot use a fixed polynomial template. As mentioned above, we
+          // cannot use a polynomial grammar when external terms (those built
+          // from the symbols of other theories) are involved.
           Trace("sygus-grammar-def")
               << "Cannot use polynomial grammar due to " << sop << std::endl;
           polynomialGrammar = false;
@@ -1007,7 +1014,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           opLArgs.push_back(nm->mkBoundVar(btype));
         }
         // Do beta reduction on the operator so that its arguments match the
-        // fresh variables of the lambda we are constructing.
+        // fresh variables of the lambda (op) we are constructing below.
         sop = datatypes::utils::mkSygusTerm(sop, opLArgs);
         sop = Rewriter::rewrite(sop);
       }
@@ -1066,7 +1073,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
     else
     {
-      // add the any constant constructor as a separator constructor
+      // add the any constant constructor as a separate constructor
       sdts[iat].d_sdt.addAnyConstantConstructor(types[i]);
       // add plus
       std::vector<TypeNode> cargsPlus;
