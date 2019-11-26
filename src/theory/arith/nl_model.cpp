@@ -146,6 +146,10 @@ bool NlModel::hasTerm(Node n) const
 
 Node NlModel::getRepresentative(Node n) const
 {
+  if (n.isConst())
+  {
+    return n;
+  }
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
