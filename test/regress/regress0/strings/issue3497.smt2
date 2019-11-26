@@ -1,6 +1,7 @@
 (set-info :smt-lib-version 2.5)
 (set-logic QF_SLIA)
 (set-info :status sat)
+(set-option :strings-exp true)
 (declare-fun x () String)
 (declare-fun y () String)
 (assert (= (str.indexof x y 1) (str.len x)))
