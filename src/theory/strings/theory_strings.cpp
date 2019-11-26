@@ -4113,7 +4113,8 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Node lem = nm->mkNode(AND,
                           nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
                           nm->mkNode(LEQ, n, len));
-    Trace("strings-lemma") << "Strings::Lemma IDOF range : " << lem << std::endl;
+    Trace("strings-lemma") << "Strings::Lemma IDOF range : " << lem
+                           << std::endl;
     d_out->lemma(lem);
   }
 }
