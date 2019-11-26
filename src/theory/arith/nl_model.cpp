@@ -146,27 +146,13 @@ bool NlModel::hasTerm(Node n) const
 
 Node NlModel::getRepresentative(Node n) const
 {
-  if (!options::nlExtInterceptModel())
-  {
-    return d_model->getRepresentative(n);
-  }
-  return getValueInternal(n);
-  /*
   std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
   if (it!=d_arithVal.end())
   {
-    std::map< Node, Node >::const_iterator itr = d_valToRep.find(it->second);
-    if (itr != d_valToRep.end())
-    {
-      AlwaysAssert(itr->second.isConst());
-      return itr->second;
-    }
-    Assert(false);
+    AlwaysAssert(it->second.isConst());
+    return it->second;
   }
-  AlwaysAssert(false);
-  // return self
-  return n;
-  */
+  return d_model->getRepresentative(n);
 }
 
 Node NlModel::getValueInternal(Node n) const
