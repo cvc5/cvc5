@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/fun_def_evaluator.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 
@@ -53,6 +54,8 @@ Node FunDefEvaluator::evaluate(Node n) const
   Assert(Rewriter::rewrite(n) == n);
   Trace("fd-eval") << "FunDefEvaluator: evaluate " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<TNode, unsigned, TNodeHashFunction> funDefCount;
+  std::unordered_map<TNode, unsigned, TNodeHashFunction>::iterator itCount;
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::map<Node, FunDefInfo>::const_iterator itf;
@@ -146,12 +149,23 @@ Node FunDefEvaluator::evaluate(Node n) const
           Trace("fd-eval-debug2")
               << "FunDefEvaluator: need to eval " << f << "\n";
           itf = d_funDefMap.find(f);
-          if (itf == d_funDefMap.end())
+          itCount = funDefCount.find(f);
+          if (itCount == funDefCount.end())
           {
-            Trace("fd-eval") << "FunDefEvaluator: no definition for " << f
-                             << ", FAIL" << std::endl;
+            funDefCount[f] = 0;
+            itCount = funDefCount.find(f);
+          }
+          if (itf == d_funDefMap.end()
+              || itCount->second > options::sygusRecFunEvalLimit())
+          {
+            Trace("fd-eval")
+                << "FunDefEvaluator: "
+                << (itf == d_funDefMap.end() ? "no definition for "
+                                             : "too many evals for ")
+                << f << ", FAIL" << std::endl;
             return Node::null();
           }
+          ++funDefCount[f];
           // get the function definition
           Node sbody = itf->second.d_body;
           Trace("fd-eval-debug2")

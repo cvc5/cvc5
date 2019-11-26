@@ -923,6 +923,7 @@ set(regress_0_tests
   regress0/sygus/no-syntax-test.sy
   regress0/sygus/parity-AIG-d0.sy
   regress0/sygus/parse-bv-let.sy
+  regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/sygus-no-wf.sy
   regress0/sygus/sygus-uf.sy
@@ -1747,6 +1748,7 @@ set(regress_1_tests
   regress1/sygus/rec-fun-sygus.sy
   regress1/sygus/rec-fun-while-1.sy
   regress1/sygus/rec-fun-while-2.sy
+  regress1/sygus/rec-fun-while-infinite.sy
   regress1/sygus/re-concat.sy
   regress1/sygus/repair-const-rl.sy
   regress1/sygus/simple-regexp.sy
