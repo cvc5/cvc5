@@ -3583,7 +3583,8 @@ void SmtEnginePrivate::processAssertions() {
 void SmtEnginePrivate::addFormula(TNode n,
                                   bool inUnsatCore,
                                   bool inInput,
-                                  bool isAssumption)
+                                  bool isAssumption,
+                                  bool maybeHasFv)
 {
   if (n == d_true) {
     // nothing to do
