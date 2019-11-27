@@ -3598,7 +3598,15 @@ void SmtEnginePrivate::addFormula(
   {
     if (expr::hasFreeVar(n))
     {
-      throw ModalException("Cannot process assertion with free variable.");
+      std::stringstream se;
+      se << "Cannot process assertion with free variable."
+      if (language::isInputLangSygus(options::inputLanguage()))
+      {
+        // Common misuse of SyGuS is to use top-level assert instead of
+        // constraint when defining the synthesis conjecture.
+        se << " Perhaps you meant `constraint` instead of `assert`?";
+      }
+      throw ModalException(se.str().c_str());
     }
   }
 
