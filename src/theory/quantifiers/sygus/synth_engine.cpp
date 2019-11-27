@@ -290,17 +290,17 @@ void SynthEngine::registerQuantifier(Node q)
     fde->assertDefinition(q);
     return;
   }
-    Trace("cegqi") << "Register conjecture : " << q << std::endl;
-    if (options::sygusQePreproc())
-    {
-      d_waiting_conj.push_back(q);
-    }
-    else
-    {
-      // assign it now
-      assignConjecture(q);
-    }
+  Trace("cegqi") << "Register conjecture : " << q << std::endl;
+  if (options::sygusQePreproc())
+  {
+    d_waiting_conj.push_back(q);
   }
+  else
+  {
+    // assign it now
+    assignConjecture(q);
+  }
+}
 
 bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {

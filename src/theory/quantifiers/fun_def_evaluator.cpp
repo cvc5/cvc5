@@ -237,8 +237,9 @@ Node FunDefEvaluator::evaluate(Node n) const
         }
         else
         {
-          Trace("fd-eval-debug2") << "eval with definition " << it->second << "\n";
-        visited[cur] = it->second;
+          Trace("fd-eval-debug2")
+              << "eval with definition " << it->second << "\n";
+          visited[cur] = it->second;
       }
     }
     }
