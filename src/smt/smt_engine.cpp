@@ -751,7 +751,12 @@ class SmtEnginePrivate : public NodeManagerListener {
    * formula might be pushed out to the propositional layer
    * immediately, or it might be simplified and kept, or it might not
    * even be simplified.
-   * the 2nd and 3rd arguments added for bookkeeping for proofs
+   * The arguments isInput and isAssumption are used for bookkeeping for proofs.
+   * The argument maybeHasFv should be set to true if the assertion may have
+   * free variables. By construction, assertions from the smt2 parser are
+   * guaranteed not to have free variables. However, other cases such as
+   * assertions from the SyGuS parser may have free variables (say if the
+   * input contains an assert or define-fun-rec command).
    *
    * @param isAssumption If true, the formula is considered to be an assumption
    * (this is used to distinguish assertions and assumptions)
@@ -759,7 +764,9 @@ class SmtEnginePrivate : public NodeManagerListener {
   void addFormula(TNode n,
                   bool inUnsatCore,
                   bool inInput = true,
-                  bool isAssumption = false);
+                  bool isAssumption = false,
+                  bool maybeHasFv = false
+                 );
 
   /** Expand definitions in n. */
   Node expandDefinitions(TNode n,
@@ -2641,6 +2648,7 @@ void SmtEngine::defineFunctionsRec(
   }
 
   ExprManager* em = getExprManager();
+  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula
@@ -2680,7 +2688,7 @@ void SmtEngine::defineFunctionsRec(
     {
       d_assertionList->push_back(e);
     }
-    d_private->addFormula(e.getNode(), false);
+    d_private->addFormula(e.getNode(), false, true, false, maybeHasFv);
   }
 }
 
@@ -3589,9 +3597,12 @@ void SmtEnginePrivate::addFormula(TNode n,
                << ", isAssumption = " << isAssumption << endl;
   
   // Ensure that it does not contain free variables
-  if (expr::hasFreeVar(n))
+  if (maybeHasFv)
   {
-    
+    if (expr::hasFreeVar(n))
+    {
+      throw ModalException("Cannot process assertion with free variable.");
+    }
   }
 
   // Give it to proof manager
@@ -3901,7 +3912,8 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
   if(d_assertionList != NULL) {
     d_assertionList->push_back(e);
   }
-  d_private->addFormula(e.getNode(), inUnsatCore);
+  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
+  d_private->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv );
   return quickCheck().asValidityResult();
 }/* SmtEngine::assertFormula() */
 
