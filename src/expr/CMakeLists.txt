@@ -15,7 +15,6 @@ libcvc4_add_sources(
   expr_manager_scope.h
   expr_stream.h
   kind_map.h
-  matcher.h
   match_trie.cpp
   match_trie.h
   node.cpp
@@ -40,6 +39,8 @@ libcvc4_add_sources(
   type.cpp
   type.h
   type_checker.h
+  type_matcher.cpp
+  type_matcher.h
   type_node.cpp
   type_node.h
   variable_type_map.h
@@ -47,6 +48,8 @@ libcvc4_add_sources(
   datatype.cpp
   record.cpp
   record.h
+  sygus_datatype.cpp
+  sygus_datatype.h
   uninterpreted_constant.cpp
   uninterpreted_constant.h
 )

@@ -202,7 +202,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
                  == free_functions.end());
           free_functions.push_back(cur);
         }
-        else if (cur.getKind() == FORALL)
+        else if (cur.isClosure())
         {
           Trace("sygus-infer")
               << "...fail: non-top-level quantifier." << std::endl;

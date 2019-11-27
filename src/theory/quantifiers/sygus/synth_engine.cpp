@@ -33,7 +33,7 @@ namespace theory {
 namespace quantifiers {
 
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
-    : QuantifiersModule(qe)
+    : QuantifiersModule(qe), d_tds(qe->getTermDatabaseSygus())
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
       new SynthConjecture(d_quantEngine, this)));
@@ -274,22 +274,31 @@ void SynthEngine::assignConjecture(Node q)
 
 void SynthEngine::registerQuantifier(Node q)
 {
-  if (d_quantEngine->getOwner(q) == this)
+  Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
+                       << std::endl;
+  if (d_quantEngine->getOwner(q) != this)
   {
-    Trace("cegqi") << "Register conjecture : " << q << std::endl;
-    if (options::sygusQePreproc())
-    {
-      d_waiting_conj.push_back(q);
-    }
-    else
-    {
-      // assign it now
-      assignConjecture(q);
-    }
+    return;
+  }
+  if (d_quantEngine->getQuantAttributes()->isFunDef(q))
+  {
+    Assert(options::sygusRecFun());
+    // If it is a recursive function definition, add it to the function
+    // definition evaluator class.
+    Trace("cegqi") << "Registering function definition : " << q << "\n";
+    FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
+    fde->assertDefinition(q);
+    return;
+  }
+  Trace("cegqi") << "Register conjecture : " << q << std::endl;
+  if (options::sygusQePreproc())
+  {
+    d_waiting_conj.push_back(q);
   }
   else
   {
-    Trace("cegqi-debug") << "Register quantifier : " << q << std::endl;
+    // assign it now
+    assignConjecture(q);
   }
 }
 
@@ -313,8 +322,6 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     bool addedLemma = false;
     for (const Node& lem : cclems)
     {
-      Trace("cegqi-lemma") << "Cegqi::Lemma : counterexample : " << lem
-                           << std::endl;
       if (d_quantEngine->addLemma(lem))
       {
         ++(d_statistics.d_cegqi_lemmas_ce);

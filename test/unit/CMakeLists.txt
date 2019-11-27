@@ -32,14 +32,24 @@ macro(cvc4_add_unit_test is_white name output_dir)
   # generate the test sources
   set(test_src ${CMAKE_CURRENT_BINARY_DIR}/${name}.cpp)
   set(test_header ${CMAKE_CURRENT_LIST_DIR}/${name}.h)
-  add_custom_command(
-      OUTPUT  ${test_src}
-      DEPENDS ${test_header}
-      COMMAND
-        ${CxxTest_TESTGEN_INTERPRETER}
+  if (CxxTest_USE_SHEBANG)
+    add_custom_command(
+        OUTPUT  ${test_src}
+        DEPENDS ${test_header}
+        COMMAND
           ${CxxTest_TESTGEN_EXECUTABLE}
-          ${CxxTest_TESTGEN_ARGS} -o ${test_src} ${test_header}
-  )
+            ${CxxTest_TESTGEN_ARGS} -o ${test_src} ${test_header}
+    )
+  else()
+    add_custom_command(
+        OUTPUT  ${test_src}
+        DEPENDS ${test_header}
+        COMMAND
+          ${CxxTest_TESTGEN_INTERPRETER}
+            ${CxxTest_TESTGEN_EXECUTABLE}
+            ${CxxTest_TESTGEN_ARGS} -o ${test_src} ${test_header}
+    )
+  endif()
   set_source_files_properties(${test_src} PROPERTIES GENERATED true)
   # The build target is created without the path prefix (not supported),
   # e.g., for '<output_dir>/myunittest.h'

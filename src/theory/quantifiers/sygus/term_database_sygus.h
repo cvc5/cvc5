@@ -21,6 +21,7 @@
 
 #include "theory/evaluator.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/fun_def_evaluator.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/type_info.h"
@@ -77,6 +78,8 @@ class TermDbSygus {
   ExtendedRewriter* getExtRewriter() { return d_ext_rw.get(); }
   /** get the evaluator */
   Evaluator* getEvaluator() { return d_eval.get(); }
+  /** (recursive) function evaluator utility */
+  FunDefEvaluator* getFunDefEvaluator() { return d_funDefEval.get(); }
   /** evaluation unfolding utility */
   SygusEvalUnfold* getEvalUnfold() { return d_eval_unfold.get(); }
   //------------------------------end utilities
@@ -302,6 +305,11 @@ class TermDbSygus {
    * (a subfield type of) a type that has been registered to this class.
    */
   SygusTypeInfo& getTypeInfo(TypeNode tn);
+  /**
+   * Rewrite the given node using the utilities in this class. This may
+   * involve (recursive function) evaluation.
+   */
+  Node rewriteNode(Node n) const;
 
   /** print to sygus stream n on trace c */
   static void toStreamSygus(const char* c, Node n);
@@ -317,6 +325,8 @@ class TermDbSygus {
   std::unique_ptr<ExtendedRewriter> d_ext_rw;
   /** evaluator */
   std::unique_ptr<Evaluator> d_eval;
+  /** (recursive) function evaluator utility */
+  std::unique_ptr<FunDefEvaluator> d_funDefEval;
   /** evaluation function unfolding utility */
   std::unique_ptr<SygusEvalUnfold> d_eval_unfold;
   //------------------------------end utilities
@@ -443,31 +453,6 @@ class TermDbSygus {
   static Node getAnchor( Node n );
   static unsigned getAnchorDepth( Node n );
 
- public:
-  /** unfold
-   *
-   * This method returns the one-step unfolding of an evaluation function
-   * application. An example of a one step unfolding is:
-   *    eval( C_+( d1, d2 ), t ) ---> +( eval( d1, t ), eval( d2, t ) )
-   *
-   * This function does this unfolding for a (possibly symbolic) evaluation
-   * head, where the argument "variable to model" vtm stores the model value of
-   * variables from this head. This allows us to track an explanation of the
-   * unfolding in the vector exp when track_exp is true.
-   *
-   * For example, if vtm[d] = C_+( C_x(), C_0() ) and track_exp is true, then
-   * this method applied to eval( d, t ) will return
-   * +( eval( d.0, t ), eval( d.1, t ) ), and is-C_+( d ) is added to exp.
-   */
-  Node unfold(Node en,
-              std::map<Node, Node>& vtm,
-              std::vector<Node>& exp,
-              bool track_exp = true);
-  /**
-   * Same as above, but without explanation tracking. This is used for concrete
-   * evaluation heads
-   */
-  Node unfold(Node en);
 };
 
 }/* CVC4::theory::quantifiers namespace */

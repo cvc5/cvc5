@@ -109,7 +109,6 @@ class TheoryStrings : public Theory {
  public:
   void propagate(Effort e) override;
   bool propagate(TNode literal);
-  void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain(TNode literal) override;
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
   bool getCurrentSubstitution(int effort,
@@ -222,8 +221,6 @@ class TheoryStrings : public Theory {
   SolverState d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager d_im;
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /** get normal form */
@@ -237,7 +234,6 @@ class TheoryStrings : public Theory {
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
-  NodeSet d_length_lemma_terms_cache;
   /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
   // extended functions inferences cache
@@ -358,23 +354,6 @@ private:
   };
 
  private:
-
-  /** register length
-   *
-   * This method is called on non-constant string terms n. It sends a lemma
-   * on the output channel that ensures that the length n satisfies its assigned
-   * status (given by argument s).
-   *
-   * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
-   *
-   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) > 0.
-   *
-   * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
-   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
-   * This method also ensures that, when applicable, the left branch is taken
-   * first via calls to requirePhase.
-   */
-  void registerLength(Node n, LengthStatus s);
 
   /** cache of all skolems */
   SkolemCache d_sk_cache;
@@ -636,23 +615,8 @@ private:
    */
   void registerTerm(Node n, int effort);
 
-  /** make explanation
-   *
-   * This returns a node corresponding to the explanation of formulas in a,
-   * interpreted conjunctively. The returned node is a conjunction of literals
-   * that have been asserted to the equality engine.
-   */
-  Node mkExplain(const std::vector<Node>& a);
-  /** Same as above, but the new literals an are append to the result */
-  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an);
-
  protected:
 
-
-  // separate into collections with equal length
-  void separateByLength(std::vector<Node>& n,
-                        std::vector<std::vector<Node> >& col,
-                        std::vector<Node>& lts);
   void printConcat(std::vector<Node>& n, const char* c);
 
   // Symbolic Regular Expression
