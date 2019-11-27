@@ -765,8 +765,7 @@ class SmtEnginePrivate : public NodeManagerListener {
                   bool inUnsatCore,
                   bool inInput = true,
                   bool isAssumption = false,
-                  bool maybeHasFv = false
-                 );
+                  bool maybeHasFv = false);
 
   /** Expand definitions in n. */
   Node expandDefinitions(TNode n,
@@ -1161,8 +1160,8 @@ void SmtEngine::setDefaults() {
     // set this option if the input format is SMT LIB 2.6. We also set this
     // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
     options::bitvectorDivByZeroConst.set(
-        language::isInputLang_smt2_6(options::inputLanguage()) ||
-        language::isInputLangSygus(options::inputLanguage()));
+        language::isInputLang_smt2_6(options::inputLanguage())
+        || language::isInputLangSygus(options::inputLanguage()));
   }
   bool is_sygus = language::isInputLangSygus(options::inputLanguage());
 
@@ -3595,7 +3594,7 @@ void SmtEnginePrivate::addFormula(TNode n,
                << "), inUnsatCore = " << inUnsatCore
                << ", inInput = " << inInput
                << ", isAssumption = " << isAssumption << endl;
-  
+
   // Ensure that it does not contain free variables
   if (maybeHasFv)
   {
@@ -3913,7 +3912,7 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
     d_assertionList->push_back(e);
   }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
-  d_private->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv );
+  d_private->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv);
   return quickCheck().asValidityResult();
 }/* SmtEngine::assertFormula() */
 
