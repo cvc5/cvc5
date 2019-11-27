@@ -4861,6 +4861,7 @@ void SmtEngine::checkSynthSolution()
   SmtEngine solChecker(d_exprManager);
   solChecker.setLogic(getLogicInfo());
   setOption("check-synth-sol", SExpr("false"));
+  setOption("sygus-rec-fun", SExpr("false"));
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions

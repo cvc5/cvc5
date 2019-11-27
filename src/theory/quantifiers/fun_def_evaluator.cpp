@@ -118,7 +118,12 @@ Node FunDefEvaluator::evaluate(Node n) const
           it = visited.find(cur[0]);
           Assert(it != visited.end());
           Assert(!it->second.isNull());
-          Assert(it->second.isConst());
+          if (!it->second.isConst())
+          {
+            Trace("fd-eval") << "FunDefEvaluator: couldn't reduce condition of "
+                                "ITE to const, FAIL\n";
+            return Node::null();
+          }
           // pick child to evaluate depending on condition eval
           unsigned childIdxToEval = it->second.getConst<bool>() ? 1 : 2;
           Trace("fd-eval-debug2")
@@ -134,6 +139,7 @@ Node FunDefEvaluator::evaluate(Node n) const
                                   << cur[childIdxToEval] << "\n";
           continue;
         }
+        unsigned child CVC4_UNUSED = 0;
         for (const Node& cn : cur)
         {
           it = visited.find(cn);
@@ -141,6 +147,8 @@ Node FunDefEvaluator::evaluate(Node n) const
           Assert(!it->second.isNull());
           childChanged = childChanged || cn != it->second;
           children.push_back(it->second);
+          Trace("fd-eval-debug2") << "argument " << child++
+                                  << " eval : " << it->second << std::endl;
         }
         if (cur.getKind() == APPLY_UF)
         {
@@ -197,6 +205,8 @@ Node FunDefEvaluator::evaluate(Node n) const
           // evaluating the body.
           if (!sbody.isConst())
           {
+            Trace("fd-eval-debug2") << "FunDefEvaluator: will map " << cur
+                                    << " from body " << sbody << "\n";
             visit.push_back(cur);
             visit.push_back(sbody);
           }
@@ -208,32 +218,35 @@ Node FunDefEvaluator::evaluate(Node n) const
             ret = nm->mkNode(cur.getKind(), children);
             ret = Rewriter::rewrite(ret);
           }
+          Trace("fd-eval-debug2") << "built from arguments " << ret << "\n";
           visited[cur] = ret;
         }
       }
       else if (cur != curEval && !curEval.isConst())
       {
         Trace("fd-eval-debug") << "from body " << cur << std::endl;
+        Trace("fd-eval-debug") << "and eval  " << curEval << std::endl;
         // we had to evaluate our body, which should have a definition now
         it = visited.find(curEval);
-        Assert(it != visited.end());
-        // our definition is the result of the body
-        visited[cur] = it->second;
+        if (it == visited.end())
+        {
+          Trace("fd-eval-debug2") << "eval without definition\n";
+          // this is the case where curEval was not a constant but it was
+          // irreducible, for example (DT_SYGUS_EVAL e args)
+          visited[cur] = curEval;
+        }
+        else
+        {
+          Trace("fd-eval-debug2")
+              << "eval with definition " << it->second << "\n";
+          visited[cur] = it->second;
       }
     }
+    }
   } while (!visit.empty());
-  Trace("fd-eval") << "FunDefEvaluator: return " << visited[n];
+  Trace("fd-eval") << "FunDefEvaluator: return " << visited[n] << ", SUCCESS\n";
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
-  if (!visited.find(n)->second.isConst())
-  {
-    visited[n] = Node::null();
-    Trace("fd-eval") << "\n with NONCONST\n";
-  }
-  else
-  {
-    Trace("fd-eval") << "\n with SUCCESS\n";
-  }
   return visited[n];
 }
 
