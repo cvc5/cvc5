@@ -3580,11 +3580,8 @@ void SmtEnginePrivate::processAssertions() {
   getIteSkolemMap().clear();
 }
 
-void SmtEnginePrivate::addFormula(TNode n,
-                                  bool inUnsatCore,
-                                  bool inInput,
-                                  bool isAssumption,
-                                  bool maybeHasFv)
+void SmtEnginePrivate::addFormula(
+    TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
 {
   if (n == d_true) {
     // nothing to do
