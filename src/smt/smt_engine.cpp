@@ -3599,7 +3599,7 @@ void SmtEnginePrivate::addFormula(
     if (expr::hasFreeVar(n))
     {
       std::stringstream se;
-      se << "Cannot process assertion with free variable."
+      se << "Cannot process assertion with free variable.";
       if (language::isInputLangSygus(options::inputLanguage()))
       {
         // Common misuse of SyGuS is to use top-level assert instead of
