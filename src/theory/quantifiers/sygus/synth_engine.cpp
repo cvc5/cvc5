@@ -276,28 +276,29 @@ void SynthEngine::registerQuantifier(Node q)
 {
   Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
                        << std::endl;
-  if (d_quantEngine->getOwner(q) == this)
+  if (d_quantEngine->getOwner(q) != this)
   {
-    Trace("cegqi") << "Register conjecture : " << q << std::endl;
-    if (options::sygusQePreproc())
-    {
-      d_waiting_conj.push_back(q);
-    }
-    else
-    {
-      // assign it now
-      assignConjecture(q);
-    }
+    return;
   }
-  if (options::sygusRecFun())
+  if (d_quantEngine->getQuantAttributes()->isFunDef(q))
   {
-    if (d_quantEngine->getQuantAttributes()->isFunDef(q))
-    {
-      // If it is a recursive function definition, add it to the function
-      // definition evaluator class.
-      FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
-      fde->assertDefinition(q);
-    }
+    Assert(options::sygusRecFun());
+    // If it is a recursive function definition, add it to the function
+    // definition evaluator class.
+    Trace("cegqi") << "Registering function definition : " << q << "\n";
+    FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
+    fde->assertDefinition(q);
+    return;
+  }
+  Trace("cegqi") << "Register conjecture : " << q << std::endl;
+  if (options::sygusQePreproc())
+  {
+    d_waiting_conj.push_back(q);
+  }
+  else
+  {
+    // assign it now
+    assignConjecture(q);
   }
 }
 
