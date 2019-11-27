@@ -71,10 +71,6 @@
     )
 )
 
-; with this one works
-; (constraint (= (evalC (cons (pair y 0) (cons (pair x 1) nil)) prog) (cons (pair y 0) (cons (pair x 0) nil))))
-
-; with this one it does not produce any candidate
 (constraint (= (evalC (cons (pair y 0) (cons (pair x 1) nil)) prog) (cons (pair y 1) (cons (pair x 0) nil))))
 
 (check-synth)
