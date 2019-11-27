@@ -712,7 +712,7 @@ void SynthConjecture::doRefine(std::vector<Node>& lems)
   base_lem = base_lem.substitute(
       sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end());
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
-  base_lem = Rewriter::rewrite(base_lem);
+  base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
                         << "..." << std::endl;
   d_master->registerRefinementLemma(sk_vars, base_lem, lems);
