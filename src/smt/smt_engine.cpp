@@ -1154,16 +1154,10 @@ void SmtEngine::setDefaults() {
     // set this option if the input format is SMT LIB 2.6. We also set this
     // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
     options::bitvectorDivByZeroConst.set(
-        language::isInputLang_smt2_6(options::inputLanguage())
-        || options::inputLanguage() == language::input::LANG_SYGUS
-        || options::inputLanguage() == language::input::LANG_SYGUS_V2);
+        language::isInputLang_smt2_6(options::inputLanguage()) ||
+        language::isInputLangSygus(options::inputLanguage()));
   }
-  bool is_sygus = false;
-  if (options::inputLanguage() == language::input::LANG_SYGUS
-      || options::inputLanguage() == language::input::LANG_SYGUS_V2)
-  {
-    is_sygus = true;
-  }
+  bool is_sygus = language::isInputLangSygus(options::inputLanguage());
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
   {
@@ -3593,6 +3587,12 @@ void SmtEnginePrivate::addFormula(TNode n,
                << "), inUnsatCore = " << inUnsatCore
                << ", inInput = " << inInput
                << ", isAssumption = " << isAssumption << endl;
+  
+  // Ensure that it does not contain free variables
+  if (expr::hasFreeVar(n))
+  {
+    
+  }
 
   // Give it to proof manager
   PROOF(
