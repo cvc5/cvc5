@@ -271,6 +271,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         int tmp = delta(r[0], exp);
         // flip the result if known
         tmp = tmp == 0 ? 0 : (3 - tmp);
+        exp = exp.isNull() ? exp : exp.negate();
         break;
       }
       default: {
@@ -1067,8 +1068,8 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
       {
         // ~( s in complement(R) ) ---> s in R
         conc = nm->mkNode(STRING_IN_REGEXP, s, r[0]);
+        break;
       }
-      break;
       default: {
         Assert(!isRegExpKind(k));
         break;
@@ -1249,8 +1250,8 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
       {
         // s in complement(R) ---> ~( s in R )
         conc = nm->mkNode(STRING_IN_REGEXP, s, r[0]).negate();
+        break;
       }
-      break;
       default: {
         Assert(!isRegExpKind(k));
         break;
