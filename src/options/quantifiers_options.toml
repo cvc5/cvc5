@@ -1225,7 +1225,7 @@ header = "options/quantifiers_options.h"
   name       = "sygusRecFunEvalLimit"
   category   = "regular"
   long       = "sygus-rec-fun-eval-limit=N"
-  type       = "int"
+  type       = "unsigned"
   default    = "1000"
   help       = "use a hard limit for how many times in a given evaluator call a recursive function can be evaluated (so infinite loops can be avoided)"
 

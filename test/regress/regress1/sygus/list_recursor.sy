@@ -16,7 +16,7 @@
 (synth-fun g ((x Int) (y List) (z Int)) Int
   ((I Int) (L List))
   ((I Int  (x z (+ I I) (head L) 0 1))
-   (L List (y (tail y)))))
+   (L List (y (tail L)))))
    
 
 (constraint (= (List_rec f g (cons 0 (cons 1 nil))) 2))
