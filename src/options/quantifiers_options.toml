@@ -1218,7 +1218,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-rec-fun"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "enable efficient support for recursive functions in sygus grammars"
 
 [[option]]
