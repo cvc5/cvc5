@@ -197,10 +197,10 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
         }
         else if (cur.isVar() && cur.getKind() != BOUND_VARIABLE)
         {
-          // A free variable that is not in a higher-order context is a 
+          // A free variable that is not in a higher-order context is a
           // 0-argument function-to-synthesize.
           if (std::find(free_functions.begin(), free_functions.end(), cur)
-                 == free_functions.end())
+              == free_functions.end())
           {
             free_functions.push_back(cur);
           }
