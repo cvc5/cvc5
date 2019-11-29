@@ -200,7 +200,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
           // higher-order context is a 0-argument function-to-synthesize.
           // We should not have traversed here before due to our visited cache.
           Assert(std::find(free_functions.begin(), free_functions.end(), cur)
-              == free_functions.end());
+                 == free_functions.end());
           free_functions.push_back(cur);
         }
         else if (cur.isClosure())
