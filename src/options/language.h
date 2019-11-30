@@ -220,6 +220,10 @@ bool isOutputLang_smt2_5(OutputLanguage lang, bool exact = false) CVC4_PUBLIC;
 bool isInputLang_smt2_6(InputLanguage lang, bool exact = false) CVC4_PUBLIC;
 bool isOutputLang_smt2_6(OutputLanguage lang, bool exact = false) CVC4_PUBLIC;
 
+/** Is the language a variant of the SyGuS input language? */
+bool isInputLangSygus(InputLanguage lang) CVC4_PUBLIC;
+bool isOutputLangSygus(OutputLanguage lang) CVC4_PUBLIC;
+
 InputLanguage toInputLanguage(OutputLanguage language) CVC4_PUBLIC;
 OutputLanguage toOutputLanguage(InputLanguage language) CVC4_PUBLIC;
 InputLanguage toInputLanguage(std::string language) CVC4_PUBLIC;
