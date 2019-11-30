@@ -1,7 +1,7 @@
 ; REQUIRES: no-competition
 ; COMMAND-LINE: --sygus-out=status --sygus-rec-fun --lang=sygus2
 ; EXPECT-ERROR: CVC4 Error:
-; EXPECT-ERROR: Parse Error: pLTL-sygus-syntax-err.sy:79.19: number of arguments does not match the constructor type
+; EXPECT-ERROR: Parse Error: pLTL-sygus-syntax-err.sy:80.19: number of arguments does not match the constructor type
 ; EXPECT-ERROR: 
 ; EXPECT-ERROR: (Op2 <O2> <F>)
 ; EXPECT-ERROR: ^
