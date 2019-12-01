@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --no-strings-lazy-pp
 ; EXPECT: sat
 (set-info :smt-lib-version 2.5)
-(set-logic QF_SL)
+(set-logic QF_S)
 (set-info :status sat)
 (declare-fun a () String)                                                       
 (declare-fun b () String)                                                       
