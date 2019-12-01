@@ -474,7 +474,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
   // the correctness of Proposition 1 for the multiple function-to-synthesize
   // case requires that the instantiations come in the same order for all
   // functions-to-synthesize.
-  bool allowSort = (d_quant[0].getNumChildren()==1);
+  bool allowSort = (d_quant[0].getNumChildren() == 1);
   std::vector< Node > vars;
   Node s;
   // If it is unconstrained: either the variable does not appear in the
@@ -507,13 +507,14 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       indices.push_back(i);
     }
     Assert(!indices.empty());
-    // Sort indices based on heuristic : currently, do all constant returns first (leads to simpler conditions).
+    // Sort indices based on heuristic : currently, do all constant returns
+    // first (leads to simpler conditions).
     if (allowSort)
     {
       sortSiInstanceIndices ssii;
       ssii.d_ccsi = this;
       ssii.d_i = sol_index;
-      std::sort( indices.begin(), indices.end(), ssii );
+      std::sort(indices.begin(), indices.end(), ssii);
     }
     Trace("csi-sol") << "Construct solution" << std::endl;
     std::reverse(indices.begin(), indices.end());
