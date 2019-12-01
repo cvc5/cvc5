@@ -470,11 +470,6 @@ Node CegSingleInv::getSolution(unsigned sol_index,
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
   Node varList = Node::fromExpr( dt.getSygusVarList() );
   Node prog = d_quant[0][sol_index];
-  // We only allow sorting of instantiations if we have a single variable, since
-  // the correctness of Proposition 1 for the multiple function-to-synthesize
-  // case requires that the instantiations come in the same order for all
-  // functions-to-synthesize.
-  bool allowSort = (d_quant[0].getNumChildren() == 1);
   std::vector< Node > vars;
   Node s;
   // If it is unconstrained: either the variable does not appear in the
@@ -507,8 +502,15 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       indices.push_back(i);
     }
     Assert(!indices.empty());
-    // Sort indices based on heuristic : currently, do all constant returns
-    // first (leads to simpler conditions).
+    // We are constructing an ITE based on the list of instantiations. We
+    // sort this list based on heuristic. Currently, we do all constant values
+    // first since this leads to simpler conditions. Notice that we only allow
+    // sorting if we have a single variable, since the correctness of
+    // Proposition 1 of Reynolds et al CAV 2015 for the case of multiple
+    // functions-to-synthesize requires that the instantiations come in the
+    // same order for all functions. Thus, we cannot decide on an order for
+    // instantiations independently, since this may lead to incorrect solutions.
+    bool allowSort = (d_quant[0].getNumChildren() == 1);
     if (allowSort)
     {
       sortSiInstanceIndices ssii;
