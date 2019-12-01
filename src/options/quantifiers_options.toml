@@ -1218,8 +1218,16 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-rec-fun"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "enable efficient support for recursive functions in sygus grammars"
+
+[[option]]
+  name       = "sygusRecFunEvalLimit"
+  category   = "regular"
+  long       = "sygus-rec-fun-eval-limit=N"
+  type       = "unsigned"
+  default    = "1000"
+  help       = "use a hard limit for how many times in a given evaluator call a recursive function can be evaluated (so infinite loops can be avoided)"
 
 # Internal uses of sygus
 
@@ -1359,7 +1367,7 @@ header = "options/quantifiers_options.h"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
-  
+
 [[option]]
   name       = "sygusRewSynthRec"
   category   = "regular"
@@ -1420,7 +1428,7 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "compute backwards filtering to compute whether previous solutions are filtered based on later ones"
 
-  
+
 [[option]]
   name       = "sygusExprMinerCheckUseExport"
   category   = "expert"
