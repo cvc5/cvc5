@@ -150,8 +150,8 @@ Node NlModel::getRepresentative(Node n) const
   {
     return n;
   }
-  std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
-  if (it!=d_arithVal.end())
+  std::map<Node, Node>::const_iterator it = d_arithVal.find(n);
+  if (it != d_arithVal.end())
   {
     AlwaysAssert(it->second.isConst());
     return it->second;
@@ -169,13 +169,13 @@ Node NlModel::getValueInternal(Node n) const
   {
     return n;
   }
-  std::map< Node, Node >::const_iterator it = d_arithVal.find(n);
-  if (it!=d_arithVal.end())
+  std::map<Node, Node>::const_iterator it = d_arithVal.find(n);
+  if (it != d_arithVal.end())
   {
     AlwaysAssert(it->second.isConst());
     return it->second;
   }
-  //addCheckModelSubstitution(n,d_zero);
+  // addCheckModelSubstitution(n,d_zero);
   // we just return 0
   return d_zero;
 }
@@ -221,8 +221,8 @@ int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          const std::vector<Node>& false_asserts,
                          unsigned d,
-                         std::unordered_set<Node,NodeHashFunction>& lemmas,
-                         std::unordered_set<Node,NodeHashFunction>& gs)
+                         std::unordered_set<Node, NodeHashFunction>& lemmas,
+                         std::unordered_set<Node, NodeHashFunction>& gs)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : false_asserts)
@@ -432,9 +432,8 @@ void NlModel::setUsedApproximate() { d_used_approx = true; }
 
 bool NlModel::usedApproximate() const { return d_used_approx; }
 
-bool NlModel::solveEqualitySimple(Node eq,
-                                  unsigned d,
-                                  std::unordered_set<Node,NodeHashFunction>& lemmas)
+bool NlModel::solveEqualitySimple(
+    Node eq, unsigned d, std::unordered_set<Node, NodeHashFunction>& lemmas)
 {
   Node seq = eq;
   if (!d_check_model_vars.empty())

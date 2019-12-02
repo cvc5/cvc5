@@ -248,8 +248,8 @@ class NonlinearExtension {
    */
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts,
-                  std::unordered_set<Node,NodeHashFunction>& lemmas,
-                  std::unordered_set<Node,NodeHashFunction>& gs);
+                  std::unordered_set<Node, NodeHashFunction>& lemmas,
+                  std::unordered_set<Node, NodeHashFunction>& gs);
   //---------------------------end check model
 
   /** In the following functions, status states a relationship
@@ -346,18 +346,21 @@ class NonlinearExtension {
    * the number of lemmas sent to the output channel.
    */
   int flushLemmas(std::vector<Node>& lemmas);
-  
-  /** 
+
+  /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns
    * the number of lemmas added to out. We do not add lemmas that have already
    * been sent on the output channel of TheoryArith.
    */
-  unsigned filterLemmas(std::vector<Node>& lemmas, std::unordered_set< Node, NodeHashFunction >& out);
+  unsigned filterLemmas(std::vector<Node>& lemmas,
+                        std::unordered_set<Node, NodeHashFunction>& out);
   /** singleton version of above */
-  unsigned filterLemma(Node lem, std::unordered_set< Node, NodeHashFunction >& out);
-  
+  unsigned filterLemma(Node lem,
+                       std::unordered_set<Node, NodeHashFunction>& out);
+
   /** send lemmas */
-  void sendLemmas(const std::unordered_set< Node, NodeHashFunction >& out, bool preprocess = false);
+  void sendLemmas(const std::unordered_set<Node, NodeHashFunction>& out,
+                  bool preprocess = false);
 
   // Returns the NodeMultiset for an existing monomial.
   const NodeMultiset& getMonomialExponentMap(Node monomial) const;

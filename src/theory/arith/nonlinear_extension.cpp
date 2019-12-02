@@ -589,7 +589,8 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
   return sum;
 }
 
-void NonlinearExtension::sendLemmas(const std::unordered_set< Node, NodeHashFunction >& out, bool preprocess)
+void NonlinearExtension::sendLemmas(
+    const std::unordered_set<Node, NodeHashFunction>& out, bool preprocess)
 {
   for (const Node& lem : out)
   {
@@ -602,24 +603,31 @@ void NonlinearExtension::sendLemmas(const std::unordered_set< Node, NodeHashFunc
   }
 }
 
-
-unsigned NonlinearExtension::filterLemma(Node lem, std::unordered_set< Node, NodeHashFunction >& out) {
+unsigned NonlinearExtension::filterLemma(
+    Node lem, std::unordered_set<Node, NodeHashFunction>& out)
+{
   Trace("nl-ext-lemma-debug")
       << "NonlinearExtension::Lemma pre-rewrite : " << lem << std::endl;
   lem = Rewriter::rewrite(lem);
-  if (d_lemmas.find(lem)!=d_lemmas.end() || out.find(lem)!=out.end()) {
+  if (d_lemmas.find(lem) != d_lemmas.end() || out.find(lem) != out.end())
+  {
     Trace("nl-ext-lemma-debug")
-        << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;;
+        << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
+    ;
     return 0;
   }
   out.insert(lem);
   return 1;
 }
 
-unsigned NonlinearExtension::filterLemmas(std::vector<Node>& lemmas, std::unordered_set< Node, NodeHashFunction >& out) {
-  if (options::nlExtEntailConflicts()) {
+unsigned NonlinearExtension::filterLemmas(
+    std::vector<Node>& lemmas, std::unordered_set<Node, NodeHashFunction>& out)
+{
+  if (options::nlExtEntailConflicts())
+  {
     // check if any are entailed to be false
-    for (const Node& lem : lemmas){
+    for (const Node& lem : lemmas)
+    {
       Node ch_lemma = lem.negate();
       ch_lemma = Rewriter::rewrite(ch_lemma);
       Trace("nl-ext-et-debug")
@@ -628,11 +636,13 @@ unsigned NonlinearExtension::filterLemmas(std::vector<Node>& lemmas, std::unorde
           THEORY_OF_TYPE_BASED, ch_lemma);
       Trace("nl-ext-et-debug") << "entailment test result : " << et.first << " "
                                << et.second << std::endl;
-      if (et.first) {
-        Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : "
-                           << lem << std::endl;
+      if (et.first)
+      {
+        Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : " << lem
+                           << std::endl;
         // return just this lemma
-        if (filterLemma(lem, out)) {
+        if (filterLemma(lem, out))
+        {
           lemmas.clear();
           return 1;
         }
@@ -641,7 +651,8 @@ unsigned NonlinearExtension::filterLemmas(std::vector<Node>& lemmas, std::unorde
   }
 
   unsigned sum = 0;
-  for (const Node& lem : lemmas){
+  for (const Node& lem : lemmas)
+  {
     sum += filterLemma(lem, out);
   }
   lemmas.clear();
@@ -788,10 +799,11 @@ std::vector<Node> NonlinearExtension::checkModelEval(
   return false_asserts;
 }
 
-bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
-                                    const std::vector<Node>& false_asserts,
-                  std::unordered_set<Node,NodeHashFunction>& lemmas,
-                  std::unordered_set<Node,NodeHashFunction>& gs)
+bool NonlinearExtension::checkModel(
+    const std::vector<Node>& assertions,
+    const std::vector<Node>& false_asserts,
+    std::unordered_set<Node, NodeHashFunction>& lemmas,
+    std::unordered_set<Node, NodeHashFunction>& gs)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
 
@@ -1335,7 +1347,7 @@ void NonlinearExtension::check(Theory::Effort e) {
 bool NonlinearExtension::modelBasedRefinement()
 {
   // reset the model object
-  //d_model.reset(d_containing.getValuation().getModel());
+  // d_model.reset(d_containing.getValuation().getModel());
   // get the assertions
   std::vector<Node> assertions;
   getAssertions(assertions);
@@ -1436,8 +1448,8 @@ bool NonlinearExtension::modelBasedRefinement()
           << std::endl;
       // check the model based on simple solving of equalities and using
       // error bounds on the Taylor approximation of transcendental functions.
-      std::unordered_set<Node,NodeHashFunction> lemmas;
-      std::unordered_set<Node,NodeHashFunction> gs;
+      std::unordered_set<Node, NodeHashFunction> lemmas;
+      std::unordered_set<Node, NodeHashFunction> gs;
       if (checkModel(assertions, false_asserts, lemmas, gs))
       {
         complete_status = 1;
