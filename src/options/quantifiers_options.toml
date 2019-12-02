@@ -1218,14 +1218,14 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-rec-fun"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "enable efficient support for recursive functions in sygus grammars"
 
 [[option]]
   name       = "sygusRecFunEvalLimit"
   category   = "regular"
   long       = "sygus-rec-fun-eval-limit=N"
-  type       = "int"
+  type       = "unsigned"
   default    = "1000"
   help       = "use a hard limit for how many times in a given evaluator call a recursive function can be evaluated (so infinite loops can be avoided)"
 
