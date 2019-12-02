@@ -203,9 +203,9 @@ class NonlinearExtension {
   int checkLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts,
-                    std::unordered_set<Node, NodeHashFunction>& lems,
-                    std::unordered_set<Node, NodeHashFunction>& lemsPp,
-                    std::unordered_set<Node, NodeHashFunction>& wlems);
+                    std::vector<Node>& lems,
+                    std::vector<Node>& lemsPp,
+                    std::vector<Node>& wlems);
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
   static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);
@@ -348,32 +348,19 @@ class NonlinearExtension {
   /** Is n entailed with polarity pol in the current context? */
   bool isEntailed(Node n, bool pol);
 
-  /** flush lemmas
-   *
-   * Potentially sends lem on the output channel if lem has not been sent on the
-   * output channel in this context. Returns the number of lemmas sent on the
-   * output channel of TheoryArith.
-   */
-  int flushLemma(Node lem);
-
-  /** Potentially sends lemmas to the output channel and clears lemmas. Returns
-   * the number of lemmas sent to the output channel.
-   */
-  int flushLemmas(std::vector<Node>& lemmas);
-
   /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns
    * the number of lemmas added to out. We do not add lemmas that have already
    * been sent on the output channel of TheoryArith.
    */
   unsigned filterLemmas(std::vector<Node>& lemmas,
-                        std::unordered_set<Node, NodeHashFunction>& out);
+                        std::vector<Node>& out);
   /** singleton version of above */
   unsigned filterLemma(Node lem,
-                       std::unordered_set<Node, NodeHashFunction>& out);
+                       std::vector<Node>& out);
 
   /** send lemmas */
-  void sendLemmas(const std::unordered_set<Node, NodeHashFunction>& out,
+  void sendLemmas(const std::vector<Node>& out,
                   bool preprocess = false);
 
   // Returns the NodeMultiset for an existing monomial.

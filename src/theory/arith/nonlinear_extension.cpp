@@ -540,57 +540,8 @@ Node NonlinearExtension::mkMonomialRemFactor(
   return ret;
 }
 
-int NonlinearExtension::flushLemma(Node lem) {
-  Trace("nl-ext-lemma-debug")
-      << "NonlinearExtension::Lemma pre-rewrite : " << lem << std::endl;
-  lem = Rewriter::rewrite(lem);
-  if (Contains(d_lemmas, lem)) {
-    Trace("nl-ext-lemma-debug")
-        << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
-    // should not generate duplicates
-    // Assert( false );
-    return 0;
-  }
-  d_lemmas.insert(lem);
-  Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << lem << std::endl;
-  d_containing.getOutputChannel().lemma(lem);
-  return 1;
-}
-
-int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
-  if (options::nlExtEntailConflicts()) {
-    // check if any are entailed to be false
-    for (unsigned i = 0; i < lemmas.size(); i++) {
-      Node ch_lemma = lemmas[i].negate();
-      ch_lemma = Rewriter::rewrite(ch_lemma);
-      Trace("nl-ext-et-debug")
-          << "Check entailment of " << ch_lemma << "..." << std::endl;
-      std::pair<bool, Node> et = d_containing.getValuation().entailmentCheck(
-          THEORY_OF_TYPE_BASED, ch_lemma);
-      Trace("nl-ext-et-debug") << "entailment test result : " << et.first << " "
-                               << et.second << std::endl;
-      if (et.first) {
-        Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : "
-                           << lemmas[i] << std::endl;
-        // return just this lemma
-        if (flushLemma(lemmas[i])) {
-          lemmas.clear();
-          return 1;
-        }
-      }
-    }
-  }
-
-  int sum = 0;
-  for (unsigned i = 0; i < lemmas.size(); i++) {
-    sum += flushLemma(lemmas[i]);
-  }
-  lemmas.clear();
-  return sum;
-}
-
 void NonlinearExtension::sendLemmas(
-    const std::unordered_set<Node, NodeHashFunction>& out, bool preprocess)
+    const std::vector<Node>& out, bool preprocess)
 {
   for (const Node& lem : out)
   {
@@ -604,24 +555,23 @@ void NonlinearExtension::sendLemmas(
 }
 
 unsigned NonlinearExtension::filterLemma(
-    Node lem, std::unordered_set<Node, NodeHashFunction>& out)
+    Node lem, std::vector<Node>& out)
 {
   Trace("nl-ext-lemma-debug")
       << "NonlinearExtension::Lemma pre-rewrite : " << lem << std::endl;
   lem = Rewriter::rewrite(lem);
-  if (d_lemmas.find(lem) != d_lemmas.end() || out.find(lem) != out.end())
+  if (d_lemmas.find(lem) != d_lemmas.end() || std::find(out.begin(),out.end(),lem)!=out.end())
   {
     Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
-    ;
     return 0;
   }
-  out.insert(lem);
+  out.push_back(lem);
   return 1;
 }
 
 unsigned NonlinearExtension::filterLemmas(
-    std::vector<Node>& lemmas, std::unordered_set<Node, NodeHashFunction>& out)
+    std::vector<Node>& lemmas, std::vector<Node>& out)
 {
   if (options::nlExtEntailConflicts())
   {
@@ -641,7 +591,7 @@ unsigned NonlinearExtension::filterLemmas(
         Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : " << lem
                            << std::endl;
         // return just this lemma
-        if (filterLemma(lem, out))
+        if (filterLemma(lem, out)>0)
         {
           lemmas.clear();
           return 1;
@@ -915,9 +865,9 @@ int NonlinearExtension::checkLastCall(
     const std::vector<Node>& assertions,
     const std::vector<Node>& false_asserts,
     const std::vector<Node>& xts,
-    std::unordered_set<Node, NodeHashFunction>& lems,
-    std::unordered_set<Node, NodeHashFunction>& lemsPp,
-    std::unordered_set<Node, NodeHashFunction>& wlems)
+    std::vector<Node>& lems,
+    std::vector<Node>& lemsPp,
+    std::vector<Node>& wlems)
 {
   d_ms_vars.clear();
   d_ms_proc.clear();
@@ -1095,7 +1045,7 @@ int NonlinearExtension::checkLastCall(
       // must do preprocess on this one
       Trace("nl-ext-lemma")
           << "NonlinearExtension::Lemma : purify : " << lem << std::endl;
-      lemsPp.insert(lem);
+      lemsPp.push_back(lem);
       lemmas_proc++;
     }
   }
@@ -1157,7 +1107,7 @@ int NonlinearExtension::checkLastCall(
 
   //-----------------------------------initial lemmas for transcendental functions
   lemmas = checkTranscendentalInitialRefine();
-  lemmas_proc = flushLemmas(lemmas);
+  lemmas_proc = filterLemmas(lemmas,lems);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
     return lemmas_proc;
@@ -1165,7 +1115,7 @@ int NonlinearExtension::checkLastCall(
   
   //-----------------------------------lemmas based on sign (comparison to zero)
   lemmas = checkMonomialSign();
-  lemmas_proc = flushLemmas(lemmas);
+  lemmas_proc = filterLemmas(lemmas,lems);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
     return lemmas_proc;
@@ -1173,7 +1123,7 @@ int NonlinearExtension::checkLastCall(
   
   //-----------------------------------monotonicity of transdental functions
   lemmas = checkTranscendentalMonotonic();
-  lemmas_proc = flushLemmas(lemmas);
+  lemmas_proc = filterLemmas(lemmas,lems);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
     return lemmas_proc;
@@ -1198,7 +1148,7 @@ int NonlinearExtension::checkLastCall(
     // c is effort level
     lemmas = checkMonomialMagnitude( c );
     unsigned nlem = lemmas.size();
-    lemmas_proc = flushLemmas(lemmas);
+    lemmas_proc = filterLemmas(lemmas,lems);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc
                       << " new lemmas (out of possible " << nlem << ")."
@@ -1222,12 +1172,12 @@ int NonlinearExtension::checkLastCall(
   // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
   // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
   // introduce new monomials
-  lemmas_proc = flushLemmas(lemmas);
+  lemmas_proc = filterLemmas(lemmas,lems);
 
   if (options::nlExtTangentPlanes() && options::nlExtTangentPlanesInterleave())
   {
     lemmas = checkTangentPlanes();
-    lemmas_proc += flushLemmas(lemmas);
+    lemmas_proc += filterLemmas(lemmas,lems);
   }
 
   if (lemmas_proc > 0) {
@@ -1237,7 +1187,7 @@ int NonlinearExtension::checkLastCall(
   }
   
   // from inferred bound inferences : now do ones that introduce new terms
-  lemmas_proc = flushLemmas(nt_lemmas);
+  lemmas_proc = filterLemmas(nt_lemmas,lems);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc
                     << " new (monomial-introducing) lemmas." << std::endl;
@@ -1425,15 +1375,15 @@ bool NonlinearExtension::modelBasedRefinement()
     int complete_status = 1;
     int num_added_lemmas = 0;
     // lemmas that should be sent later
-    std::unordered_set<Node, NodeHashFunction> wlems;
+    std::vector<Node> wlems;
     // We require a check either if an assertion is false or a shared term has
     // a wrong value
     if (!false_asserts.empty() || num_shared_wrong_value > 0)
     {
       // lemmas that should be sent immediately
-      std::unordered_set<Node, NodeHashFunction> lems;
+      std::vector<Node> lems;
       // lemmas that should be sent immediately and preprocessed
-      std::unordered_set<Node, NodeHashFunction> lemsPp;
+      std::vector<Node> lemsPp;
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
       num_added_lemmas =
           checkLastCall(assertions, false_asserts, xts, lems, lemsPp, wlems);
@@ -1468,7 +1418,7 @@ bool NonlinearExtension::modelBasedRefinement()
         d_containing.getOutputChannel().requirePhase(mgr, true);
         d_builtModel = true;
       }
-      std::unordered_set<Node, NodeHashFunction> cmLemmas;
+      std::vector<Node> cmLemmas;
       filterLemmas(lemmas, cmLemmas);
       sendLemmas(cmLemmas);
     }
@@ -1491,7 +1441,7 @@ bool NonlinearExtension::modelBasedRefinement()
         complete_status = -1;
         if (!shared_term_value_splits.empty())
         {
-          std::unordered_set<Node, NodeHashFunction> stvLemmas;
+          std::vector<Node> stvLemmas;
           for (const Node& eq : shared_term_value_splits)
           {
             Node req = Rewriter::rewrite(eq);
