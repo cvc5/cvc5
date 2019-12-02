@@ -802,8 +802,8 @@ std::vector<Node> NonlinearExtension::checkModelEval(
 bool NonlinearExtension::checkModel(
     const std::vector<Node>& assertions,
     const std::vector<Node>& false_asserts,
-    std::unordered_set<Node, NodeHashFunction>& lemmas,
-    std::unordered_set<Node, NodeHashFunction>& gs)
+    std::vector<Node>& lemmas,
+    std::vector<Node>& gs)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
 
@@ -1448,8 +1448,8 @@ bool NonlinearExtension::modelBasedRefinement()
           << std::endl;
       // check the model based on simple solving of equalities and using
       // error bounds on the Taylor approximation of transcendental functions.
-      std::unordered_set<Node, NodeHashFunction> lemmas;
-      std::unordered_set<Node, NodeHashFunction> gs;
+      std::vector<Node> lemmas;
+      std::vector<Node> gs;
       if (checkModel(assertions, false_asserts, lemmas, gs))
       {
         complete_status = 1;
@@ -1461,7 +1461,9 @@ bool NonlinearExtension::modelBasedRefinement()
         d_containing.getOutputChannel().requirePhase(mgr, true);
         d_builtModel = true;
       }
-      sendLemmas(lemmas);
+      std::unordered_set<Node,NodeHashFunction> cmLemmas;
+      filterLemmas(lemmas,cmLemmas);
+      sendLemmas(cmLemmas);
     }
 
     // if we have not concluded SAT
@@ -1482,19 +1484,19 @@ bool NonlinearExtension::modelBasedRefinement()
         complete_status = -1;
         if (!shared_term_value_splits.empty())
         {
-          std::vector<Node> shared_term_value_lemmas;
+          std::unordered_set<Node, NodeHashFunction> stvLemmas;
           for (const Node& eq : shared_term_value_splits)
           {
             Node req = Rewriter::rewrite(eq);
             Node literal = d_containing.getValuation().ensureLiteral(req);
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
-            shared_term_value_lemmas.push_back(
-                literal.orNode(literal.negate()));
+            Node split = literal.orNode(literal.negate());
+            filterLemma(split,stvLemmas);
           }
-          num_added_lemmas = flushLemmas(shared_term_value_lemmas);
-          if (num_added_lemmas > 0)
+          if (!stvLemmas.empty())
           {
+            sendLemmas(stvLemmas);
             Trace("nl-ext") << "...added " << num_added_lemmas
                             << " shared term value split lemmas." << std::endl;
             return true;

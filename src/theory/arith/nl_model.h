@@ -151,8 +151,8 @@ class NlModel
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts,
                   unsigned d,
-                  std::unordered_set<Node, NodeHashFunction>& lemmas,
-                  std::unordered_set<Node, NodeHashFunction>& gs);
+                  std::vector<Node>& lemmas,
+                  std::vector<Node>& gs);
   /**
    * Set that we have used an approximation during this check. This flag is
    * reset on a call to resetCheck. It is set when we use reasoning that
@@ -215,7 +215,7 @@ class NlModel
    */
   bool solveEqualitySimple(Node eq,
                            unsigned d,
-                           std::unordered_set<Node, NodeHashFunction>& lemmas);
+                           std::vector<Node>& lemmas);
 
   /** simple check model for transcendental functions for literal
    *

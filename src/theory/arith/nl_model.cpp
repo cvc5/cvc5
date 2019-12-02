@@ -221,8 +221,8 @@ int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          const std::vector<Node>& false_asserts,
                          unsigned d,
-                         std::unordered_set<Node, NodeHashFunction>& lemmas,
-                         std::unordered_set<Node, NodeHashFunction>& gs)
+                         std::vector<Node>& lemmas,
+                         std::vector<Node>& gs)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : false_asserts)
@@ -325,7 +325,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     NodeManager* nm = NodeManager::currentNM();
     // model guard whose semantics is "the model we constructed holds"
     Node mg = nm->mkSkolem("model", nm->booleanType());
-    gs.insert(mg);
+    gs.push_back(mg);
     // assert the constructed model as assertions
     for (const std::pair<const Node, std::pair<Node, Node> > cb :
          d_check_model_bounds)
@@ -335,7 +335,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       Node v = cb.first;
       Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       pred = nm->mkNode(OR, mg.negate(), pred);
-      lemmas.insert(pred);
+      lemmas.push_back(pred);
     }
   }
   return true;
@@ -433,7 +433,7 @@ void NlModel::setUsedApproximate() { d_used_approx = true; }
 bool NlModel::usedApproximate() const { return d_used_approx; }
 
 bool NlModel::solveEqualitySimple(
-    Node eq, unsigned d, std::unordered_set<Node, NodeHashFunction>& lemmas)
+    Node eq, unsigned d, std::vector<Node>& lemmas)
 {
   Node seq = eq;
   if (!d_check_model_vars.empty())
@@ -626,7 +626,7 @@ bool NlModel::solveEqualitySimple(
     Node conf = seq.negate();
     Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : " << conf
                           << std::endl;
-    lemmas.insert(conf);
+    lemmas.push_back(conf);
     Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
     return false;
   }

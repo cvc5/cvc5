@@ -248,8 +248,8 @@ class NonlinearExtension {
    */
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts,
-                  std::unordered_set<Node, NodeHashFunction>& lemmas,
-                  std::unordered_set<Node, NodeHashFunction>& gs);
+                  std::vector<Node>& lemmas,
+                  std::vector<Node>& gs);
   //---------------------------end check model
 
   /** In the following functions, status states a relationship
