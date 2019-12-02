@@ -540,8 +540,8 @@ Node NonlinearExtension::mkMonomialRemFactor(
   return ret;
 }
 
-void NonlinearExtension::sendLemmas(
-    const std::vector<Node>& out, bool preprocess)
+void NonlinearExtension::sendLemmas(const std::vector<Node>& out,
+                                    bool preprocess)
 {
   for (const Node& lem : out)
   {
@@ -554,13 +554,13 @@ void NonlinearExtension::sendLemmas(
   }
 }
 
-unsigned NonlinearExtension::filterLemma(
-    Node lem, std::vector<Node>& out)
+unsigned NonlinearExtension::filterLemma(Node lem, std::vector<Node>& out)
 {
   Trace("nl-ext-lemma-debug")
       << "NonlinearExtension::Lemma pre-rewrite : " << lem << std::endl;
   lem = Rewriter::rewrite(lem);
-  if (d_lemmas.find(lem) != d_lemmas.end() || std::find(out.begin(),out.end(),lem)!=out.end())
+  if (d_lemmas.find(lem) != d_lemmas.end()
+      || std::find(out.begin(), out.end(), lem) != out.end())
   {
     Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
@@ -570,8 +570,8 @@ unsigned NonlinearExtension::filterLemma(
   return 1;
 }
 
-unsigned NonlinearExtension::filterLemmas(
-    std::vector<Node>& lemmas, std::vector<Node>& out)
+unsigned NonlinearExtension::filterLemmas(std::vector<Node>& lemmas,
+                                          std::vector<Node>& out)
 {
   if (options::nlExtEntailConflicts())
   {
@@ -591,7 +591,7 @@ unsigned NonlinearExtension::filterLemmas(
         Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : " << lem
                            << std::endl;
         // return just this lemma
-        if (filterLemma(lem, out)>0)
+        if (filterLemma(lem, out) > 0)
         {
           lemmas.clear();
           return 1;
@@ -861,13 +861,12 @@ class ArgTrie
   }
 };
 
-int NonlinearExtension::checkLastCall(
-    const std::vector<Node>& assertions,
-    const std::vector<Node>& false_asserts,
-    const std::vector<Node>& xts,
-    std::vector<Node>& lems,
-    std::vector<Node>& lemsPp,
-    std::vector<Node>& wlems)
+int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
+                                      const std::vector<Node>& false_asserts,
+                                      const std::vector<Node>& xts,
+                                      std::vector<Node>& lems,
+                                      std::vector<Node>& lemsPp,
+                                      std::vector<Node>& wlems)
 {
   d_ms_vars.clear();
   d_ms_proc.clear();
@@ -1098,7 +1097,7 @@ int NonlinearExtension::checkLastCall(
   if (options::nlExtSplitZero()) {
     Trace("nl-ext") << "Get zero split lemmas..." << std::endl;
     lemmas = checkSplitZero();
-    lemmas_proc = filterLemmas(lemmas,lems);
+    lemmas_proc = filterLemmas(lemmas, lems);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
       return lemmas_proc;
@@ -1107,7 +1106,7 @@ int NonlinearExtension::checkLastCall(
 
   //-----------------------------------initial lemmas for transcendental functions
   lemmas = checkTranscendentalInitialRefine();
-  lemmas_proc = filterLemmas(lemmas,lems);
+  lemmas_proc = filterLemmas(lemmas, lems);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
     return lemmas_proc;
@@ -1115,7 +1114,7 @@ int NonlinearExtension::checkLastCall(
   
   //-----------------------------------lemmas based on sign (comparison to zero)
   lemmas = checkMonomialSign();
-  lemmas_proc = filterLemmas(lemmas,lems);
+  lemmas_proc = filterLemmas(lemmas, lems);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
     return lemmas_proc;
@@ -1123,7 +1122,7 @@ int NonlinearExtension::checkLastCall(
   
   //-----------------------------------monotonicity of transdental functions
   lemmas = checkTranscendentalMonotonic();
-  lemmas_proc = filterLemmas(lemmas,lems);
+  lemmas_proc = filterLemmas(lemmas, lems);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
     return lemmas_proc;
@@ -1148,7 +1147,7 @@ int NonlinearExtension::checkLastCall(
     // c is effort level
     lemmas = checkMonomialMagnitude( c );
     unsigned nlem = lemmas.size();
-    lemmas_proc = filterLemmas(lemmas,lems);
+    lemmas_proc = filterLemmas(lemmas, lems);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc
                       << " new lemmas (out of possible " << nlem << ")."
@@ -1172,12 +1171,12 @@ int NonlinearExtension::checkLastCall(
   // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
   // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
   // introduce new monomials
-  lemmas_proc = filterLemmas(lemmas,lems);
+  lemmas_proc = filterLemmas(lemmas, lems);
 
   if (options::nlExtTangentPlanes() && options::nlExtTangentPlanesInterleave())
   {
     lemmas = checkTangentPlanes();
-    lemmas_proc += filterLemmas(lemmas,lems);
+    lemmas_proc += filterLemmas(lemmas, lems);
   }
 
   if (lemmas_proc > 0) {
@@ -1187,7 +1186,7 @@ int NonlinearExtension::checkLastCall(
   }
   
   // from inferred bound inferences : now do ones that introduce new terms
-  lemmas_proc = filterLemmas(nt_lemmas,lems);
+  lemmas_proc = filterLemmas(nt_lemmas, lems);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc
                     << " new (monomial-introducing) lemmas." << std::endl;

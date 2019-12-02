@@ -353,15 +353,12 @@ class NonlinearExtension {
    * the number of lemmas added to out. We do not add lemmas that have already
    * been sent on the output channel of TheoryArith.
    */
-  unsigned filterLemmas(std::vector<Node>& lemmas,
-                        std::vector<Node>& out);
+  unsigned filterLemmas(std::vector<Node>& lemmas, std::vector<Node>& out);
   /** singleton version of above */
-  unsigned filterLemma(Node lem,
-                       std::vector<Node>& out);
+  unsigned filterLemma(Node lem, std::vector<Node>& out);
 
   /** send lemmas */
-  void sendLemmas(const std::vector<Node>& out,
-                  bool preprocess = false);
+  void sendLemmas(const std::vector<Node>& out, bool preprocess = false);
 
   // Returns the NodeMultiset for an existing monomial.
   const NodeMultiset& getMonomialExponentMap(Node monomial) const;
