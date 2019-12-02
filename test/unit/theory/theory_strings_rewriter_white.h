@@ -1009,14 +1009,14 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     {
       // Same normal form for:
       //
-      // (str.contains "ABBCHIJP" (str.charat x n))
+      // (str.contains "ABBCHIJP" (str.at x n))
       //
       // (or (= x "")
-      //     (and (<= (str.code "A") (str.code (str.charat x n)))
-      //          (<= (str.code (str.charat x n)) (str.code "C")))
-      //     (and (<= (str.code "H") (str.code (str.charat x n)))
-      //          (<= (str.code (str.charat x n)) (str.code "J")))
-      //     (= (str.code (str.charat x n)) (str.code "P")))
+      //     (and (<= (str.code "A") (str.code (str.at x n)))
+      //          (<= (str.code (str.at x n)) (str.code "C")))
+      //     (and (<= (str.code "H") (str.code (str.at x n)))
+      //          (<= (str.code (str.at x n)) (str.code "J")))
+      //     (= (str.code (str.at x n)) (str.code "P")))
       Node cat = d_nm->mkNode(kind::STRING_CHARAT, x, n);
       lhs = d_nm->mkNode(kind::STRING_STRCTN, abbchijp, cat);
       Node ca = d_nm->mkNode(kind::STRING_CODE, a);
