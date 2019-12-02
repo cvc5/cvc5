@@ -734,7 +734,7 @@ std::vector<Node> NonlinearExtension::checkModelEval(
   for (size_t i = 0; i < assertions.size(); ++i) {
     Node lit = assertions[i];
     Node atom = lit.getKind()==NOT ? lit[0] : lit;
-    if( d_skolem_atoms.find( atom )==d_skolem_atoms.end() ){
+    if( true || d_skolem_atoms.find( atom )==d_skolem_atoms.end() ){
       Node litv = d_model.computeConcreteModelValue(lit);
       Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
       if (litv != d_true) {
