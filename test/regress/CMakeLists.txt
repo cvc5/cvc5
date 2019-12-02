@@ -1404,6 +1404,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3250-syg-inf-q.smt2
   regress1/quantifiers/issue3316.smt2
   regress1/quantifiers/issue3317.smt2
+  regress1/quantifiers/issue3481.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
