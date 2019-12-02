@@ -1248,7 +1248,7 @@ int NonlinearExtension::checkLastCall(
   //   x*y + x*z >= t => exists k. k = y + z ^ x*k >= t
   if( options::nlExtFactor() ){
     lemmas = checkFactoring(assertions, false_asserts);
-    lemmas_proc = flushLemmas(lemmas);
+    lemmas_proc = filterLemmas(lemmas, lems);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
       return lemmas_proc;
@@ -1259,7 +1259,7 @@ int NonlinearExtension::checkLastCall(
   //  e.g. ( y>=0 ^ s <= x*z ^ x*y <= t ) => y*s <= z*t
   if (options::nlExtResBound()) {
     lemmas = checkMonomialInferResBounds();
-    lemmas_proc = flushLemmas(lemmas);
+    lemmas_proc = filterLemmas(lemmas, lems);
     if (lemmas_proc > 0) {
       Trace("nl-ext") << "  ...finished with " << lemmas_proc << " new lemmas." << std::endl;
       return lemmas_proc;
