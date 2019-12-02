@@ -143,12 +143,13 @@ class NonlinearExtension {
    * described in Reynolds et al. FroCoS 2017 that are based on ruling out
    * the current candidate model.
    *
-   * This function returns true if a lemma was added to the vector lems/lemsPp. 
+   * This function returns true if a lemma was added to the vector lems/lemsPp.
    * Otherwise, it returns false. In the latter case, the model object d_model
    * may have information regarding how to construct a model, in the case that
    * we determined the problem is satisfiable.
    */
-  bool modelBasedRefinement(std::vector<Node>& mlems, std::vector<Node>& mlemsPp);
+  bool modelBasedRefinement(std::vector<Node>& mlems,
+                            std::vector<Node>& mlemsPp);
   /** returns true if the multiset containing the
    * factors of monomial a is a subset of the multiset
    * containing the factors of monomial b.
@@ -356,7 +357,7 @@ class NonlinearExtension {
   /** singleton version of above */
   unsigned filterLemma(Node lem, std::vector<Node>& out);
 
-  /** 
+  /**
    * Send lemmas in out on the output channel of theory of arithmetic.
    */
   void sendLemmas(const std::vector<Node>& out, bool preprocess = false);
