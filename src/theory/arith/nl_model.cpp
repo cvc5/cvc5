@@ -175,10 +175,9 @@ Node NlModel::getValueInternal(Node n) const
     AlwaysAssert(it->second.isConst());
     return it->second;
   }
-  //return NodeManager::currentNM()->mkConst(Rational(0));
-  AlwaysAssert(false) << "No model value for " << n << std::endl;
-  // return self
-  return n;
+  //addCheckModelSubstitution(n,d_zero);
+  // we just return 0
+  return d_zero;
 }
 
 int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute)
@@ -222,8 +221,8 @@ int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          const std::vector<Node>& false_asserts,
                          unsigned d,
-                         std::vector<Node>& lemmas,
-                         std::vector<Node>& gs)
+                         std::unordered_set<Node,NodeHashFunction>& lemmas,
+                         std::unordered_set<Node,NodeHashFunction>& gs)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
   for (const Node& atom : false_asserts)
@@ -326,7 +325,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     NodeManager* nm = NodeManager::currentNM();
     // model guard whose semantics is "the model we constructed holds"
     Node mg = nm->mkSkolem("model", nm->booleanType());
-    gs.push_back(mg);
+    gs.insert(mg);
     // assert the constructed model as assertions
     for (const std::pair<const Node, std::pair<Node, Node> > cb :
          d_check_model_bounds)
@@ -336,7 +335,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       Node v = cb.first;
       Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       pred = nm->mkNode(OR, mg.negate(), pred);
-      lemmas.push_back(pred);
+      lemmas.insert(pred);
     }
   }
   return true;
@@ -435,7 +434,7 @@ bool NlModel::usedApproximate() const { return d_used_approx; }
 
 bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,
-                                  std::vector<Node>& lemmas)
+                                  std::unordered_set<Node,NodeHashFunction>& lemmas)
 {
   Node seq = eq;
   if (!d_check_model_vars.empty())
@@ -628,7 +627,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     Node conf = seq.negate();
     Trace("nl-ext-lemma") << "NlModel::Lemma : quadratic no root : " << conf
                           << std::endl;
-    lemmas.push_back(conf);
+    lemmas.insert(conf);
     Trace("nl-ext-cms") << "...fail due to negative discriminant." << std::endl;
     return false;
   }

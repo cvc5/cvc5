@@ -151,8 +151,8 @@ class NlModel
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts,
                   unsigned d,
-                  std::vector<Node>& lemmas,
-                  std::vector<Node>& gs);
+                  std::unordered_set<Node,NodeHashFunction>& lemmas,
+                  std::unordered_set<Node,NodeHashFunction>& gs);
   /**
    * Set that we have used an approximation during this check. This flag is
    * reset on a call to resetCheck. It is set when we use reasoning that
@@ -213,7 +213,7 @@ class NlModel
    * For instance, if eq reduces to a univariate quadratic equation with no
    * root, we send a conflict clause of the form a*x^2 + b*x + c != 0.
    */
-  bool solveEqualitySimple(Node eq, unsigned d, std::vector<Node>& lemmas);
+  bool solveEqualitySimple(Node eq, unsigned d, std::unordered_set<Node,NodeHashFunction>& lemmas);
 
   /** simple check model for transcendental functions for literal
    *
@@ -265,6 +265,11 @@ class NlModel
   Node d_true;
   Node d_false;
   Node d_null;
+  /** 
+   * The values that the arithmetic theory solver assigned in the model. This
+   * corresponds to exactly the set of equalities that TheoryArith is currently
+   * sending to TheoryModel during collectModelInfo.
+   */
   std::map<Node, Node> d_arithVal;
   /** cache of model values
    *

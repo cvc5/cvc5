@@ -247,7 +247,9 @@ class NonlinearExtension {
    * "Detecting Satisfiable Formulas".
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts);
+                  const std::vector<Node>& false_asserts,
+                  std::unordered_set<Node,NodeHashFunction>& lemmas,
+                  std::unordered_set<Node,NodeHashFunction>& gs);
   //---------------------------end check model
 
   /** In the following functions, status states a relationship
@@ -344,6 +346,9 @@ class NonlinearExtension {
    * the number of lemmas sent to the output channel.
    */
   int flushLemmas(std::vector<Node>& lemmas);
+  
+  /** send lemmas */
+  void sendLemmas(const std::unordered_set< Node, NodeHashFunction >& out, bool preprocess = false);
 
   // Returns the NodeMultiset for an existing monomial.
   const NodeMultiset& getMonomialExponentMap(Node monomial) const;

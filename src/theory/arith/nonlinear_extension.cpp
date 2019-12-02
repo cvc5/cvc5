@@ -557,6 +557,19 @@ int NonlinearExtension::flushLemma(Node lem) {
   return 1;
 }
 
+void NonlinearExtension::sendLemmas(const std::unordered_set< Node, NodeHashFunction >& out, bool preprocess)
+{
+  for (const Node& lem : out)
+  {
+    d_containing.getOutputChannel().lemma(lem, false, preprocess);
+    // add to cache if not preprocess
+    if (!preprocess)
+    {
+      d_lemmas.insert(lem);
+    }
+  }
+}
+
 int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
   if (options::nlExtEntailConflicts()) {
     // check if any are entailed to be false
@@ -730,7 +743,9 @@ std::vector<Node> NonlinearExtension::checkModelEval(
 }
 
 bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
-                                    const std::vector<Node>& false_asserts)
+                                    const std::vector<Node>& false_asserts,
+                  std::unordered_set<Node,NodeHashFunction>& lemmas,
+                  std::unordered_set<Node,NodeHashFunction>& gs)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
 
@@ -791,23 +806,8 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       }
     }
   }
-  std::vector<Node> lemmas;
-  std::vector<Node> gs;
   bool ret = d_model.checkModel(
       passertions, false_asserts, d_taylor_degree, lemmas, gs);
-  for (Node& mg : gs)
-  {
-    mg = Rewriter::rewrite(mg);
-    mg = d_containing.getValuation().ensureLiteral(mg);
-    d_containing.getOutputChannel().requirePhase(mg, true);
-    d_builtModel = true;
-  }
-  for (Node& lem : lemmas)
-  {
-    Trace("nl-ext-lemma-model")
-        << "Lemma from check model : " << lem << std::endl;
-    d_containing.getOutputChannel().lemma(lem);
-  }
   return ret;
 }
 
@@ -1390,10 +1390,20 @@ bool NonlinearExtension::modelBasedRefinement()
           << std::endl;
       // check the model based on simple solving of equalities and using
       // error bounds on the Taylor approximation of transcendental functions.
-      if (checkModel(assertions, false_asserts))
+      std::unordered_set<Node,NodeHashFunction> lemmas;
+      std::unordered_set<Node,NodeHashFunction> gs;
+      if (checkModel(assertions, false_asserts, lemmas, gs))
       {
         complete_status = 1;
       }
+      for (const Node& mg : gs)
+      {
+        Node mgr = Rewriter::rewrite(mg);
+        mgr = d_containing.getValuation().ensureLiteral(mgr);
+        d_containing.getOutputChannel().requirePhase(mgr, true);
+        d_builtModel = true;
+      }
+      sendLemmas(lemmas);
     }
 
     // if we have not concluded SAT
