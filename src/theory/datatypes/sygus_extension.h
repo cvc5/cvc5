@@ -1,23 +1,21 @@
 /*********************                                                        */
-/*! \file datatypes_sygus.h
+/*! \file sygus_extension.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sygus utilities for theory of datatypes
- **
- ** Theory of datatypes.
+ ** \brief The sygus extension of the theory of datatypes.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_NEW_H
-#define CVC4__THEORY__DATATYPES__DATATYPES_SYGUS_NEW_H
+#ifndef CVC4__THEORY__DATATYPES__SYGUS_EXTENSION_H
+#define CVC4__THEORY__DATATYPES__SYGUS_EXTENSION_H
 
 #include <iostream>
 #include <map>
@@ -64,7 +62,7 @@ class TheoryDatatypes;
  * We prioritize decisions of form (1) before (2). Both kinds of decision are
  * critical for solution completeness, which is enforced by DecisionManager.
  */
-class SygusSymBreakNew
+class SygusExtension
 {
   typedef context::CDHashMap< Node, int, NodeHashFunction > IntMap;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
@@ -72,10 +70,10 @@ class SygusSymBreakNew
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  SygusSymBreakNew(TheoryDatatypes* td,
+  SygusExtension(TheoryDatatypes* td,
                    QuantifiersEngine* qe,
                    context::Context* c);
-  ~SygusSymBreakNew();
+  ~SygusExtension();
   /**
    * Notify this class that tester for constructor tindex has been asserted for
    * n. Exp is the literal corresponding to this tester. This method may add
@@ -571,7 +569,7 @@ private:
      */
     std::map< unsigned, Node > d_search_size_exp;
     /**
-     * For each size, whether we have called SygusSymBreakNew::notifySearchSize.
+     * For each size, whether we have called SygusExtension::notifySearchSize.
      */
     std::map< unsigned, bool > d_search_size;
     /**

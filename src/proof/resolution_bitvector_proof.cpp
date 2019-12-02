@@ -513,9 +513,9 @@ void LfscResolutionBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
 void LfscResolutionBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                          std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
   proof::LFSCProofPrinter::printResolutionEmptyClause(
       d_resolutionProof.get(), os, paren);
 }

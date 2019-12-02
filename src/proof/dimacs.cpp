@@ -16,7 +16,7 @@
 
 #include "proof/dimacs.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
 #include <iostream>
 

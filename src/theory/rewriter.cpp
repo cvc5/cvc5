@@ -222,15 +222,18 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         } else if (response.status == REWRITE_DONE) {
 #ifdef CVC4_ASSERTIONS
 	  RewriteResponse r2 = Rewriter::callPostRewrite(newTheoryId, response.node);
-	  Assert(r2.node == response.node);
+          Assert(r2.node == response.node);
 #endif
 	  rewriteStackTop.node = response.node;
           break;
         }
         // Check for trivial rewrite loops of size 1 or 2
         Assert(response.node != rewriteStackTop.node);
-        Assert(Rewriter::callPostRewrite((TheoryId) rewriteStackTop.theoryId, response.node).node != rewriteStackTop.node);
-	rewriteStackTop.node = response.node;
+        Assert(Rewriter::callPostRewrite((TheoryId)rewriteStackTop.theoryId,
+                                         response.node)
+                   .node
+               != rewriteStackTop.node);
+        rewriteStackTop.node = response.node;
       }
       // We're done with the post rewrite, so we add to the cache
       Rewriter::setPostRewriteCache((TheoryId) rewriteStackTop.originalTheoryId, rewriteStackTop.original, rewriteStackTop.node);
@@ -243,7 +246,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
     // If this is the last node, just return
     if (rewriteStack.size() == 1) {
-      Assert(!isEquality || rewriteStackTop.node.getKind() == kind::EQUAL || rewriteStackTop.node.isConst());
+      Assert(!isEquality || rewriteStackTop.node.getKind() == kind::EQUAL
+             || rewriteStackTop.node.isConst());
       return rewriteStackTop.node;
     }
 
