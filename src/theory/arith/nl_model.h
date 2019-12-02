@@ -213,9 +213,7 @@ class NlModel
    * For instance, if eq reduces to a univariate quadratic equation with no
    * root, we send a conflict clause of the form a*x^2 + b*x + c != 0.
    */
-  bool solveEqualitySimple(Node eq,
-                           unsigned d,
-                           std::vector<Node>& lemmas);
+  bool solveEqualitySimple(Node eq, unsigned d, std::vector<Node>& lemmas);
 
   /** simple check model for transcendental functions for literal
    *

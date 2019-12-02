@@ -189,12 +189,12 @@ class NonlinearExtension {
    * This method adds lemmas to arguments lems, lemsPp, and wlems, each of
    * which are intended to be sent out on the output channel of TheoryArith
    * under certain conditions.
-   * 
+   *
    * If the set lems or lemsPp is non-empty, then no further processing is
    * necessary. The last call effort check should terminate and these
    * lemmas should be sent. The set lemsPp is distinguished from lems since
    * the preprocess flag on the lemma(...) call should be set to true.
-   * 
+   *
    * The "waiting" lemmas wlems contain lemmas that should be sent on the
    * output channel as a last resort. In other words, only if we are not
    * able to establish SAT via a call to checkModel(...) should wlems be
@@ -203,9 +203,9 @@ class NonlinearExtension {
   int checkLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts,
-                                      std::unordered_set<Node, NodeHashFunction>& lems,
-                                      std::unordered_set<Node, NodeHashFunction>& lemsPp,
-                                      std::unordered_set<Node, NodeHashFunction>& wlems);
+                    std::unordered_set<Node, NodeHashFunction>& lems,
+                    std::unordered_set<Node, NodeHashFunction>& lemsPp,
+                    std::unordered_set<Node, NodeHashFunction>& wlems);
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
   static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);

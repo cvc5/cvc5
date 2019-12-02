@@ -799,11 +799,10 @@ std::vector<Node> NonlinearExtension::checkModelEval(
   return false_asserts;
 }
 
-bool NonlinearExtension::checkModel(
-    const std::vector<Node>& assertions,
-    const std::vector<Node>& false_asserts,
-    std::vector<Node>& lemmas,
-    std::vector<Node>& gs)
+bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
+                                    const std::vector<Node>& false_asserts,
+                                    std::vector<Node>& lemmas,
+                                    std::vector<Node>& gs)
 {
   Trace("nl-ext-cm") << "--- check-model ---" << std::endl;
 
@@ -912,13 +911,13 @@ class ArgTrie
   }
 };
 
-int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
-                                      const std::vector<Node>& false_asserts,
-                                      const std::vector<Node>& xts,
-                                      std::unordered_set<Node, NodeHashFunction>& lems,
-                                      std::unordered_set<Node, NodeHashFunction>& lemsPp,
-                                      std::unordered_set<Node, NodeHashFunction>& wlems
-                                     )
+int NonlinearExtension::checkLastCall(
+    const std::vector<Node>& assertions,
+    const std::vector<Node>& false_asserts,
+    const std::vector<Node>& xts,
+    std::unordered_set<Node, NodeHashFunction>& lems,
+    std::unordered_set<Node, NodeHashFunction>& lemsPp,
+    std::unordered_set<Node, NodeHashFunction>& wlems)
 {
   d_ms_vars.clear();
   d_ms_proc.clear();
@@ -1271,15 +1270,15 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   if (options::nlExtTangentPlanes() && !options::nlExtTangentPlanesInterleave())
   {
     lemmas = checkTangentPlanes();
-    filterLemmas(lemmas,wlems);
+    filterLemmas(lemmas, wlems);
   }
   if (options::nlExtTfTangentPlanes())
   {
     lemmas = checkTranscendentalTangentPlanes();
-    filterLemmas(lemmas,wlems);
+    filterLemmas(lemmas, wlems);
   }
-  Trace("nl-ext") << "  ...finished with " << wlems.size()
-                  << " waiting lemmas." << std::endl;
+  Trace("nl-ext") << "  ...finished with " << wlems.size() << " waiting lemmas."
+                  << std::endl;
 
   return 0;
 }
@@ -1436,7 +1435,8 @@ bool NonlinearExtension::modelBasedRefinement()
       // lemmas that should be sent immediately and preprocessed
       std::unordered_set<Node, NodeHashFunction> lemsPp;
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
-      num_added_lemmas = checkLastCall(assertions, false_asserts, xts, lems, lemsPp, wlems);
+      num_added_lemmas =
+          checkLastCall(assertions, false_asserts, xts, lems, lemsPp, wlems);
       sendLemmas(lems);
       sendLemmas(lemsPp);
       if (num_added_lemmas > 0)
@@ -1468,8 +1468,8 @@ bool NonlinearExtension::modelBasedRefinement()
         d_containing.getOutputChannel().requirePhase(mgr, true);
         d_builtModel = true;
       }
-      std::unordered_set<Node,NodeHashFunction> cmLemmas;
-      filterLemmas(lemmas,cmLemmas);
+      std::unordered_set<Node, NodeHashFunction> cmLemmas;
+      filterLemmas(lemmas, cmLemmas);
       sendLemmas(cmLemmas);
     }
 
@@ -1499,7 +1499,7 @@ bool NonlinearExtension::modelBasedRefinement()
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
-            filterLemma(split,stvLemmas);
+            filterLemma(split, stvLemmas);
           }
           if (!stvLemmas.empty())
           {

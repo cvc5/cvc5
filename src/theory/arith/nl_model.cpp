@@ -432,8 +432,9 @@ void NlModel::setUsedApproximate() { d_used_approx = true; }
 
 bool NlModel::usedApproximate() const { return d_used_approx; }
 
-bool NlModel::solveEqualitySimple(
-    Node eq, unsigned d, std::vector<Node>& lemmas)
+bool NlModel::solveEqualitySimple(Node eq,
+                                  unsigned d,
+                                  std::vector<Node>& lemmas)
 {
   Node seq = eq;
   if (!d_check_model_vars.empty())
