@@ -871,6 +871,7 @@ set(regress_0_tests
   regress0/strings/indexof-sym-simp.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
+  regress0/strings/issue3440.smt2
   regress0/strings/issue3497.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/leadingzero001.smt2
@@ -1737,6 +1738,7 @@ set(regress_1_tests
   regress1/sygus/nia-max-square-ns.sy
   regress1/sygus/no-flat-simp.sy
   regress1/sygus/no-mention.sy
+  regress1/sygus/once_2.sy
   regress1/sygus/only-const-grammar.sy
   regress1/sygus/parity-si-rcons.sy
   regress1/sygus/pbe_multi.sy
