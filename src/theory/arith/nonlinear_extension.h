@@ -347,6 +347,15 @@ class NonlinearExtension {
    */
   int flushLemmas(std::vector<Node>& lemmas);
   
+  /** 
+   * Potentially adds lemmas to the set out and clears lemmas. Returns
+   * the number of lemmas added to out. We do not add lemmas that have already
+   * been sent on the output channel of TheoryArith.
+   */
+  unsigned filterLemmas(std::vector<Node>& lemmas, std::unordered_set< Node, NodeHashFunction >& out);
+  /** singleton version of above */
+  unsigned filterLemma(Node lem, std::unordered_set< Node, NodeHashFunction >& out);
+  
   /** send lemmas */
   void sendLemmas(const std::unordered_set< Node, NodeHashFunction >& out, bool preprocess = false);
 

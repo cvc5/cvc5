@@ -557,19 +557,6 @@ int NonlinearExtension::flushLemma(Node lem) {
   return 1;
 }
 
-void NonlinearExtension::sendLemmas(const std::unordered_set< Node, NodeHashFunction >& out, bool preprocess)
-{
-  for (const Node& lem : out)
-  {
-    d_containing.getOutputChannel().lemma(lem, false, preprocess);
-    // add to cache if not preprocess
-    if (!preprocess)
-    {
-      d_lemmas.insert(lem);
-    }
-  }
-}
-
 int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
   if (options::nlExtEntailConflicts()) {
     // check if any are entailed to be false
@@ -597,6 +584,65 @@ int NonlinearExtension::flushLemmas(std::vector<Node>& lemmas) {
   int sum = 0;
   for (unsigned i = 0; i < lemmas.size(); i++) {
     sum += flushLemma(lemmas[i]);
+  }
+  lemmas.clear();
+  return sum;
+}
+
+void NonlinearExtension::sendLemmas(const std::unordered_set< Node, NodeHashFunction >& out, bool preprocess)
+{
+  for (const Node& lem : out)
+  {
+    d_containing.getOutputChannel().lemma(lem, false, preprocess);
+    // add to cache if not preprocess
+    if (!preprocess)
+    {
+      d_lemmas.insert(lem);
+    }
+  }
+}
+
+
+unsigned NonlinearExtension::filterLemma(Node lem, std::unordered_set< Node, NodeHashFunction >& out) {
+  Trace("nl-ext-lemma-debug")
+      << "NonlinearExtension::Lemma pre-rewrite : " << lem << std::endl;
+  lem = Rewriter::rewrite(lem);
+  if (d_lemmas.find(lem)!=d_lemmas.end() || out.find(lem)!=out.end()) {
+    Trace("nl-ext-lemma-debug")
+        << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;;
+    return 0;
+  }
+  out.insert(lem);
+  return 1;
+}
+
+unsigned NonlinearExtension::filterLemmas(std::vector<Node>& lemmas, std::unordered_set< Node, NodeHashFunction >& out) {
+  if (options::nlExtEntailConflicts()) {
+    // check if any are entailed to be false
+    for (const Node& lem : lemmas){
+      Node ch_lemma = lem.negate();
+      ch_lemma = Rewriter::rewrite(ch_lemma);
+      Trace("nl-ext-et-debug")
+          << "Check entailment of " << ch_lemma << "..." << std::endl;
+      std::pair<bool, Node> et = d_containing.getValuation().entailmentCheck(
+          THEORY_OF_TYPE_BASED, ch_lemma);
+      Trace("nl-ext-et-debug") << "entailment test result : " << et.first << " "
+                               << et.second << std::endl;
+      if (et.first) {
+        Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : "
+                           << lem << std::endl;
+        // return just this lemma
+        if (filterLemma(lem, out)) {
+          lemmas.clear();
+          return 1;
+        }
+      }
+    }
+  }
+
+  unsigned sum = 0;
+  for (const Node& lem : lemmas){
+    sum += filterLemma(lem, out);
   }
   lemmas.clear();
   return sum;
