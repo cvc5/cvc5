@@ -254,6 +254,10 @@ class NonlinearExtension {
    *
    * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
    * "Detecting Satisfiable Formulas".
+   *
+   * The arguments lemmas and gs store the lemmas and guard literals to be sent
+   * out on the output channel of TheoryArith as lemmas and calls to
+   * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts,
