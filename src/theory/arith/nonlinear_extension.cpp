@@ -1299,6 +1299,12 @@ void NonlinearExtension::check(Theory::Effort e) {
     }
     else
     {
+      if (!d_cmiLemmas.empty() || !d_cmiLemmasPp.empty())
+      {
+        sendLemmas(d_cmiLemmas);
+        sendLemmas(d_cmiLemmasPp, true);
+        return;
+      }
       // computed the approximations already
       approximations = d_approximations;
     }
@@ -1517,21 +1523,19 @@ bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
     return true;
   }
   // run a last call effort check
-  std::vector<Node> mlems;
-  std::vector<Node> mlemsPp;
-  if (d_builtModel.get() || !modelBasedRefinement(mlems, mlemsPp))
+  d_cmiLemmas.clear();
+  d_cmiLemmasPp.clear();
+  if (!d_builtModel.get())
   {
-    if (d_builtModel.get())
-    {
-      d_approximations.clear();
-      // modify the model values
-      d_model.getModelValueRepair(arithModel, d_approximations);
-    }
-    return true;
+    modelBasedRefinement(d_cmiLemmas, d_cmiLemmasPp);
   }
-  sendLemmas(mlems);
-  sendLemmas(mlemsPp, true);
-  return false;
+  if (d_builtModel.get())
+  {
+    d_approximations.clear();
+    // modify the model values
+    d_model.getModelValueRepair(arithModel, d_approximations);
+  }
+  return true;
 }
 
 void NonlinearExtension::presolve()
