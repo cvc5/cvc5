@@ -3048,6 +3048,13 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
 /* Create operators                                                           */
 /* -------------------------------------------------------------------------- */
 
+Op Solver::mkOp(Kind kind) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  return Op(kind);
+  CVC4_API_SOLVER_TRY_CATCH_END
+}
+
 Op Solver::mkOp(Kind kind, Kind k) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
