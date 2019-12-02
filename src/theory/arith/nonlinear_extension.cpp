@@ -914,7 +914,11 @@ class ArgTrie
 
 int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       const std::vector<Node>& false_asserts,
-                                      const std::vector<Node>& xts)
+                                      const std::vector<Node>& xts,
+                                      std::unordered_set<Node, NodeHashFunction>& lems,
+                                      std::unordered_set<Node, NodeHashFunction>& lemsPp,
+                                      std::unordered_set<Node, NodeHashFunction>& wlems
+                                     )
 {
   d_ms_vars.clear();
   d_ms_proc.clear();
@@ -927,7 +931,6 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci_max.clear();
   d_f_map.clear();
   d_tf_region.clear();
-  d_waiting_lemmas.clear();
 
   int lemmas_proc = 0;
   std::vector<Node> lemmas;
@@ -1268,18 +1271,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   if (options::nlExtTangentPlanes() && !options::nlExtTangentPlanesInterleave())
   {
     lemmas = checkTangentPlanes();
-    d_waiting_lemmas.insert(
-        d_waiting_lemmas.end(), lemmas.begin(), lemmas.end());
-    lemmas.clear();
+    filterLemmas(lemmas,wlems);
   }
   if (options::nlExtTfTangentPlanes())
   {
     lemmas = checkTranscendentalTangentPlanes();
-    d_waiting_lemmas.insert(
-        d_waiting_lemmas.end(), lemmas.begin(), lemmas.end());
-    lemmas.clear();
+    filterLemmas(lemmas,wlems);
   }
-  Trace("nl-ext") << "  ...finished with " << d_waiting_lemmas.size()
+  Trace("nl-ext") << "  ...finished with " << wlems.size()
                   << " waiting lemmas." << std::endl;
 
   return 0;
@@ -1426,12 +1425,20 @@ bool NonlinearExtension::modelBasedRefinement()
     //   1 : we may answer SAT, -1 : we may not answer SAT, 0 : unknown
     int complete_status = 1;
     int num_added_lemmas = 0;
-    // we require a check either if an assertion is false or a shared term has
+    // lemmas that should be sent later
+    std::unordered_set<Node, NodeHashFunction> wlems;
+    // We require a check either if an assertion is false or a shared term has
     // a wrong value
     if (!false_asserts.empty() || num_shared_wrong_value > 0)
     {
+      // lemmas that should be sent immediately
+      std::unordered_set<Node, NodeHashFunction> lems;
+      // lemmas that should be sent immediately and preprocessed
+      std::unordered_set<Node, NodeHashFunction> lemsPp;
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
-      num_added_lemmas = checkLastCall(assertions, false_asserts, xts);
+      num_added_lemmas = checkLastCall(assertions, false_asserts, xts, lems, lemsPp, wlems);
+      sendLemmas(lems);
+      sendLemmas(lemsPp);
       if (num_added_lemmas > 0)
       {
         return true;
@@ -1470,10 +1477,10 @@ bool NonlinearExtension::modelBasedRefinement()
     if (complete_status != 1)
     {
       // flush the waiting lemmas
-      num_added_lemmas = flushLemmas(d_waiting_lemmas);
-      if (num_added_lemmas > 0)
+      if (!wlems.empty())
       {
-        Trace("nl-ext") << "...added " << num_added_lemmas << " waiting lemmas."
+        sendLemmas(wlems);
+        Trace("nl-ext") << "...added " << wlems.size() << " waiting lemmas."
                         << std::endl;
         return true;
       }
