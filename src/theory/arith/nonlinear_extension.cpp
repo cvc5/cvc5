@@ -1222,12 +1222,12 @@ int NonlinearExtension::checkLastCall(
   // Trace("nl-ext") << "Bound lemmas : " << lemmas.size() << ", " <<
   // nt_lemmas.size() << std::endl;  prioritize lemmas that do not
   // introduce new monomials
-  lemmas_proc = filterLemmas(lemmas,lems);
+  lemmas_proc = flushLemmas(lemmas);
 
   if (options::nlExtTangentPlanes() && options::nlExtTangentPlanesInterleave())
   {
     lemmas = checkTangentPlanes();
-    lemmas_proc += filterLemmas(lemmas,lems);
+    lemmas_proc += flushLemmas(lemmas);
   }
 
   if (lemmas_proc > 0) {
@@ -1237,7 +1237,7 @@ int NonlinearExtension::checkLastCall(
   }
   
   // from inferred bound inferences : now do ones that introduce new terms
-  lemmas_proc = filterLemmas(nt_lemmas,lems);
+  lemmas_proc = flushLemmas(nt_lemmas);
   if (lemmas_proc > 0) {
     Trace("nl-ext") << "  ...finished with " << lemmas_proc
                     << " new (monomial-introducing) lemmas." << std::endl;
