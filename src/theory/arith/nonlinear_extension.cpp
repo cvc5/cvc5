@@ -1095,7 +1095,7 @@ int NonlinearExtension::checkLastCall(
       // must do preprocess on this one
       Trace("nl-ext-lemma")
           << "NonlinearExtension::Lemma : purify : " << lem << std::endl;
-      d_containing.getOutputChannel().lemma(lem, false, true);
+      lemsPp.insert(lem);
       lemmas_proc++;
     }
   }
@@ -1437,10 +1437,10 @@ bool NonlinearExtension::modelBasedRefinement()
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
       num_added_lemmas =
           checkLastCall(assertions, false_asserts, xts, lems, lemsPp, wlems);
-      sendLemmas(lems);
-      sendLemmas(lemsPp);
-      if (num_added_lemmas > 0)
+      if (!lems.empty() || !lemsPp.empty() || num_added_lemmas > 0)
       {
+        sendLemmas(lems);
+        sendLemmas(lemsPp);
         return true;
       }
     }
