@@ -444,13 +444,13 @@ class NonlinearExtension {
    * and for establishing when we are able to answer "SAT".
    */
   NlModel d_model;
-  /** 
+  /**
    * The lemmas we computed during collectModelInfo. We store two vectors of
    * lemmas to be sent out on the output channel of TheoryArith. The first
    * is not preprocessed, the second is.
    */
-  std::vector< Node > d_cmiLemmas;
-  std::vector< Node > d_cmiLemmasPp;
+  std::vector<Node> d_cmiLemmas;
+  std::vector<Node> d_cmiLemmasPp;
   /** The approximations computed during collectModelInfo. */
   std::map<Node, Node> d_approximations;
   /** have we successfully built the model in this SAT context? */
