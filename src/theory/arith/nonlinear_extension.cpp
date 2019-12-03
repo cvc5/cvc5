@@ -1270,46 +1270,17 @@ void NonlinearExtension::check(Theory::Effort e) {
   }
   else
   {
-    std::map<Node, Node> approximations;
+    // If we computed lemmas during collectModelInfo, send them now.
+    if (!d_cmiLemmas.empty() || !d_cmiLemmasPp.empty())
+    {
+      sendLemmas(d_cmiLemmas);
+      sendLemmas(d_cmiLemmasPp, true);
+      return;
+    }
+    // Otherwise, we will answer SAT. The values that we approximated are
+    // recorded as approximations here.
     TheoryModel* tm = d_containing.getValuation().getModel();
-    if (!options::nlExtInterceptModel())
-    {
-      std::map<Node, Node> arithModel;
-      if (!d_builtModel.get())
-      {
-        d_model.reset(d_containing.getValuation().getModel(), arithModel);
-        // run a last call effort check
-        std::vector<Node> mlems;
-        std::vector<Node> mlemsPp;
-        if (modelBasedRefinement(mlems, mlemsPp))
-        {
-          sendLemmas(mlems);
-          sendLemmas(mlemsPp, true);
-          return;
-        }
-      }
-      d_model.getModelValueRepair(arithModel, approximations);
-      // those that are exact are written as exact approximations to the model
-      for (std::pair<const Node, Node>& r : arithModel)
-      {
-        Node eq = r.first.eqNode(r.second);
-        eq = Rewriter::rewrite(eq);
-        tm->recordApproximation(r.first, eq);
-      }
-    }
-    else
-    {
-      if (!d_cmiLemmas.empty() || !d_cmiLemmasPp.empty())
-      {
-        sendLemmas(d_cmiLemmas);
-        sendLemmas(d_cmiLemmasPp, true);
-        return;
-      }
-      // computed the approximations already
-      approximations = d_approximations;
-    }
-    // those that are approximate are recorded as approximations
-    for (std::pair<const Node, Node>& a : approximations)
+    for (std::pair<const Node, Node>& a : d_approximations)
     {
       tm->recordApproximation(a.first, a.second);
     }
@@ -1518,10 +1489,6 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
     return;
   }
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
-  if (!options::nlExtInterceptModel())
-  {
-    return;
-  }
   // run a last call effort check
   d_cmiLemmas.clear();
   d_cmiLemmasPp.clear();

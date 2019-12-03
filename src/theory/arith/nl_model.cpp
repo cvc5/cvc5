@@ -137,10 +137,6 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
 
 bool NlModel::hasTerm(Node n) const
 {
-  if (!options::nlExtInterceptModel())
-  {
-    return d_model->hasTerm(n);
-  }
   return d_arithVal.find(n) != d_arithVal.end();
 }
 
@@ -161,10 +157,6 @@ Node NlModel::getRepresentative(Node n) const
 
 Node NlModel::getValueInternal(Node n) const
 {
-  if (!options::nlExtInterceptModel())
-  {
-    return d_model->getValue(n);
-  }
   if (n.isConst())
   {
     return n;
@@ -175,8 +167,7 @@ Node NlModel::getValueInternal(Node n) const
     AlwaysAssert(it->second.isConst());
     return it->second;
   }
-  // addCheckModelSubstitution(n,d_zero);
-  // we just return 0
+  // It is unconstrained in the model, return 0.
   return d_zero;
 }
 
