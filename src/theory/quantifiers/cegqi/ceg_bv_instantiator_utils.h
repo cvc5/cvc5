@@ -63,7 +63,7 @@ Node getPvCoeff(TNode pv, TNode n);
 Node normalizePvMult(
     TNode pv,
     const std::vector<Node>& children,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv);
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
 
 /**
  * Normalizes the children of a BITVECTOR_PLUS w.r.t. pv. contains_pv marks
@@ -83,7 +83,7 @@ Node normalizePvMult(
 Node normalizePvPlus(
     Node pv,
     const std::vector<Node>& children,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv);
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
 
 /**
  * Linearize an equality w.r.t. pv such that pv only occurs once. contains_pv
@@ -99,7 +99,7 @@ Node normalizePvPlus(
 Node normalizePvEqual(
     Node pv,
     const std::vector<Node>& children,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv);
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
 
 }  // namespace utils
 }  // namespace quantifiers

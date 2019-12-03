@@ -153,7 +153,7 @@ void BvInstantiatorWhite::testNormalizePvMult()
   Node zero = mkZero(32);
   Node one = mkOne(32);
   BvLinearAttribute is_linear;
-  std::unordered_map<TNode, bool, TNodeHashFunction> contains_x;
+  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
@@ -251,7 +251,7 @@ void BvInstantiatorWhite::testNormalizePvPlus()
   Node c = mkVar(32);
   Node d = mkVar(32);
   BvLinearAttribute is_linear;
-  std::unordered_map<TNode, bool, TNodeHashFunction> contains_x;
+  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
@@ -374,7 +374,7 @@ void BvInstantiatorWhite::testNormalizePvEqual()
   Node one = mkOne(32);
   Node ntrue = mkTrue();
   BvLinearAttribute is_linear;
-  std::unordered_map<TNode, bool, TNodeHashFunction> contains_x;
+  std::unordered_map<Node, bool, NodeHashFunction> contains_x;
 
   contains_x[x] = true;
   contains_x[neg_x] = true;
