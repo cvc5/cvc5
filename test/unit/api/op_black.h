@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file opterm_black.h
+/*! \file op_black.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -27,7 +27,7 @@ class OpBlack : public CxxTest::TestSuite
   void testGetKind();
   void testGetSort();
   void testIsNull();
-  void testOpTermFromKind();
+  void testOpFromKind();
   void testGetIndicesString();
   void testGetIndicesKind();
   void testGetIndicesUint();
@@ -61,7 +61,7 @@ void OpBlack::testIsNull()
   TS_ASSERT(!x.isNull());
 }
 
-void OpBlack::testOpTermFromKind()
+void OpBlack::testOpFromKind()
 {
   Op plus(PLUS);
   TS_ASSERT(!plus.isIndexed());
