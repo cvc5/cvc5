@@ -116,10 +116,10 @@ class NonlinearExtension {
    *
    * This call may result in (possibly multiple) calls to d_out->lemma(...)
    * where d_out is the output channel of TheoryArith.
-   * 
+   *
    * If e is FULL, then we add lemmas based on context-depedent
-   * simplification (see Reynolds et al FroCoS 2017). 
-   * 
+   * simplification (see Reynolds et al FroCoS 2017).
+   *
    * If e is LAST_CALL, we add lemmas based on model-based refinement
    * (see additionally Cimatti et al., TACAS 2017). The lemmas added at this
    * effort may be computed during a call to interceptModel as described below.
@@ -127,10 +127,10 @@ class NonlinearExtension {
   void check(Theory::Effort e);
   /** intercept model
    *
-   * This method is called during TheoryArith::collectModelInfo, which is 
+   * This method is called during TheoryArith::collectModelInfo, which is
    * invoked after the linear arithmetic solver passes a full effort check
    * with no lemmas.
-   * 
+   *
    * The argument arithModel is a map of the form { v1 -> c1, ..., vn -> cn }
    * which represents the linear arithmetic theory solver's contribution to the
    * current candidate model. That is, its collectModelInfo method is requesting
@@ -138,7 +138,7 @@ class NonlinearExtension {
    * v1, ..., vn are arithmetic variables and c1, ..., cn are constants. Notice
    * arithmetic variables may be real-valued terms belonging to other theories,
    * or abstractions of applications of multiplication (kind NONLINEAR_MULT).
-   * 
+   *
    * This method requests that the non-linear solver inspect this model and
    * do any number of the following:
    * (1) Construct lemmas based on a model-based refinement procedure inspired
@@ -147,7 +147,7 @@ class NonlinearExtension {
    * constraints are satisfiable, it may "repair" the values in the argument
    * arithModel so that it satisfies certain nonlinear constraints. This may
    * involve e.g. solving for variables in nonlinear equations.
-   * 
+   *
    * Notice that in the former case, the lemmas it constructs are not sent out
    * immediately. Instead, they are put in temporary vectors d_cmiLemmas
    * and d_cmiLemmasPp, which are then sent out (if necessary) when a last call

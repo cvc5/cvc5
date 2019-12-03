@@ -735,11 +735,14 @@ std::vector<Node> NonlinearExtension::checkModelEval(
     Node atom = lit.getKind()==NOT ? lit[0] : lit;
     Node litv = d_model.computeConcreteModelValue(lit);
     Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
-    if (litv != d_true) {
+    if (litv != d_true)
+    {
       Trace("nl-ext-mv-assert") << " [model-false]" << std::endl;
-      //Assert(litv == d_false);
+      // Assert(litv == d_false);
       false_asserts.push_back(lit);
-    } else {
+    }
+    else
+    {
       Trace("nl-ext-mv-assert") << std::endl;
     }
   }
