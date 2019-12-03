@@ -1017,7 +1017,11 @@ bool Op::isIndexedHelper() const { return !d_expr->isNull(); }
 /* Public methods                                                             */
 bool Op::operator==(const Op& t) const
 {
-  if (d_expr->isNull() || t.d_expr->isNull())
+  if (d_expr->isNull() && t.d_expr->isNull())
+  {
+    return (d_kind == t.d_kind);
+  }
+  else if (d_expr->isNull() || t.d_expr->isNull())
   {
     return false;
   }
