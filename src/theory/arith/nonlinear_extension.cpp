@@ -544,6 +544,7 @@ void NonlinearExtension::sendLemmas(const std::vector<Node>& out,
 {
   for (const Node& lem : out)
   {
+    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << lem << std::endl;
     d_containing.getOutputChannel().lemma(lem, false, preprocess);
     // add to cache if not preprocess
     if (!preprocess)
