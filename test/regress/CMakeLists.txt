@@ -612,6 +612,7 @@ set(regress_0_tests
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/let_shadowing.smt2
+  regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc
   regress0/proof_no_support.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -1404,6 +1405,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3250-syg-inf-q.smt2
   regress1/quantifiers/issue3316.smt2
   regress1/quantifiers/issue3317.smt2
+  regress1/quantifiers/issue3481.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
