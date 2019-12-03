@@ -185,7 +185,6 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
     : d_lemmas(containing.getUserContext()),
       d_zero_split(containing.getUserContext()),
-      d_skolem_atoms(containing.getUserContext()),
       d_containing(containing),
       d_ee(ee),
       d_needsLastCall(false),
@@ -734,16 +733,14 @@ std::vector<Node> NonlinearExtension::checkModelEval(
   for (size_t i = 0; i < assertions.size(); ++i) {
     Node lit = assertions[i];
     Node atom = lit.getKind()==NOT ? lit[0] : lit;
-    if( true || d_skolem_atoms.find( atom )==d_skolem_atoms.end() ){
-      Node litv = d_model.computeConcreteModelValue(lit);
-      Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
-      if (litv != d_true) {
-        Trace("nl-ext-mv-assert") << " [model-false]" << std::endl;
-        //Assert(litv == d_false);
-        false_asserts.push_back(lit);
-      } else {
-        Trace("nl-ext-mv-assert") << std::endl;
-      }
+    Node litv = d_model.computeConcreteModelValue(lit);
+    Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
+    if (litv != d_true) {
+      Trace("nl-ext-mv-assert") << " [model-false]" << std::endl;
+      //Assert(litv == d_false);
+      false_asserts.push_back(lit);
+    } else {
+      Trace("nl-ext-mv-assert") << std::endl;
     }
   }
   return false_asserts;
@@ -2460,17 +2457,9 @@ std::vector<Node> NonlinearExtension::checkFactoring(
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
     Node litv = d_model.computeConcreteModelValue(lit);
     bool considerLit = false;
-    if( d_skolem_atoms.find(atom) != d_skolem_atoms.end() )
-    {
-      //always consider skolem literals
-      considerLit = true;
-    }
-    else
-    {
-      // Only consider literals that are in false_asserts.
-      considerLit = std::find(false_asserts.begin(), false_asserts.end(), lit)
-                    != false_asserts.end();
-    }
+    // Only consider literals that are in false_asserts.
+    considerLit = std::find(false_asserts.begin(), false_asserts.end(), lit)
+                  != false_asserts.end();
 
     if (considerLit)
     {
@@ -2545,7 +2534,6 @@ std::vector<Node> NonlinearExtension::checkFactoring(
             Trace("nl-ext-factor") << "...factored polynomial : " << polyn << std::endl;
             Node conc_lit = NodeManager::currentNM()->mkNode( atom.getKind(), polyn, d_zero );
             conc_lit = Rewriter::rewrite( conc_lit );
-            d_skolem_atoms.insert( conc_lit );
             if( !polarity ){
               conc_lit = conc_lit.negate();
             }
@@ -2569,7 +2557,6 @@ Node NonlinearExtension::getFactorSkolem( Node n, std::vector< Node >& lemmas ) 
   if( itf==d_factor_skolem.end() ){
     Node k = NodeManager::currentNM()->mkSkolem( "kf", n.getType() );
     Node k_eq = Rewriter::rewrite( k.eqNode( n ) );
-    d_skolem_atoms.insert( k_eq );
     lemmas.push_back( k_eq );
     d_factor_skolem[n] = k;
     return k;

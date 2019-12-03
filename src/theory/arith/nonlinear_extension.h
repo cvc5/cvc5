@@ -422,12 +422,6 @@ class NonlinearExtension {
   NodeSet d_lemmas;
   /** cache of terms t for which we have added the lemma ( t = 0 V t != 0 ). */
   NodeSet d_zero_split;
-  
-  /** 
-   * The set of atoms with Skolems that this solver introduced. We do not
-   * require that models satisfy literals over Skolem atoms.
-   */
-  NodeSet d_skolem_atoms;
 
   /** commonly used terms */
   Node d_zero;
