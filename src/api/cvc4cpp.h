@@ -495,6 +495,12 @@ class CVC4_PUBLIC Sort
   std::vector<Sort> getTupleSorts() const;
 
  private:
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
+
   /* Helper to convert a vector of sorts into a vector of internal types. */
   std::vector<Sort> typeVectorToSorts(
       const std::vector<CVC4::Type>& vector) const;
@@ -627,6 +633,20 @@ class CVC4_PUBLIC Op
   CVC4::Expr getExpr(void) const;
 
  private:
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
+
+  /**
+   * Note: An indexed operator has a non-null internal expr, d_expr
+   * Note 2: We use a helper method to avoid having API functions call
+   *         other API functions (we need to call this internally)
+   * @return true iff this Op is indexed
+   */
+  bool isIndexedHelper() const;
+
   /* The kind of this operator. */
   Kind d_kind;
 
@@ -637,14 +657,6 @@ class CVC4_PUBLIC Op
    * a unique_ptr instead).
    */
   std::shared_ptr<CVC4::Expr> d_expr;
-
-  /**
-   * Note: An indexed operator has a non-null internal expr, d_expr
-   * Note 2: We use a helper method to avoid having API functions call
-   *         other API functions (we need to call this internally)
-   * @return true iff this Op is indexed
-   */
-  bool isIndexedHelper() const;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -869,7 +881,7 @@ class CVC4_PUBLIC Term
     Term operator*() const;
 
    private:
-    /* The original expression to be iteratoed over */
+    /* The original expression to be iterated over */
     std::shared_ptr<CVC4::Expr> d_orig_expr;
     /* Keeps track of the iteration position */
     uint32_t d_pos;
@@ -890,6 +902,12 @@ class CVC4_PUBLIC Term
   CVC4::Expr getExpr(void) const;
 
  private:
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
+
   /**
    * The internal expression wrapped by this term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to

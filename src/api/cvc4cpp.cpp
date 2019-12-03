@@ -623,8 +623,8 @@ class CVC4ApiExceptionStream
   ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
 
 #define CVC4_API_CHECK_NOT_NULL                                           \
-  CVC4_API_CHECK(!isNull()) << "Invalid call to '" << __PRETTY_FUNCTION__ \
-                            << "', expected non-null object";
+  CVC4_API_CHECK(!isNullHelper()) << "Invalid call to '" << __PRETTY_FUNCTION__ \
+                                  << "', expected non-null object";
 
 #define CVC4_API_ARG_CHECK_NOT_NULL(arg) \
   CVC4_API_CHECK(!arg.isNull()) << "Invalid null argument for '" << #arg << "'";
@@ -757,11 +757,30 @@ Sort::Sort() : d_type(new CVC4::Type()) {}
 
 Sort::~Sort() {}
 
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Split out to avoid nested API calls (problematic with API tracing).        */
+/* .......................................................................... */
+
+bool Sort::isNullHelper() const { return d_type->isNull(); }
+
+std::vector<Sort> Sort::typeVectorToSorts(
+                                          const std::vector<CVC4::Type>& types) const
+{
+  std::vector<Sort> res;
+  for (const CVC4::Type& t : types)
+    {
+      res.push_back(Sort(t));
+    }
+  return res;
+}
+
 bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
 
 bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
 
-bool Sort::isNull() const { return d_type->isNull(); }
+bool Sort::isNull() const { return isNullHelper(); }
 
 bool Sort::isBoolean() const { return d_type->isBoolean(); }
 
@@ -968,19 +987,6 @@ std::vector<Sort> Sort::getTupleSorts() const
 
 /* --------------------------------------------------------------------- */
 
-std::vector<Sort> Sort::typeVectorToSorts(
-    const std::vector<CVC4::Type>& types) const
-{
-  std::vector<Sort> res;
-  for (const CVC4::Type& t : types)
-  {
-    res.push_back(Sort(t));
-  }
-  return res;
-}
-
-/* --------------------------------------------------------------------- */
-
 std::ostream& operator<<(std::ostream& out, const Sort& s)
 {
   out << s.toString();
@@ -1012,6 +1018,8 @@ Op::~Op() {}
 /* Split out to avoid nested API calls (problematic with API tracing).        */
 /* .......................................................................... */
 
+bool Op::isNullHelper() const { return (d_expr->isNull() && (d_kind == NULL_EXPR)); }
+
 bool Op::isIndexedHelper() const { return !d_expr->isNull(); }
 
 /* Public methods                                                             */
@@ -1038,7 +1046,7 @@ Sort Op::getSort() const
   return Sort(d_expr->getType());
 }
 
-bool Op::isNull() const { return (d_expr->isNull() && (d_kind == NULL_EXPR)); }
+bool Op::isNull() const { return isNullHelper(); }
 
 bool Op::isIndexed() const { return isIndexedHelper(); }
 
@@ -1236,6 +1244,14 @@ Term::Term(const CVC4::Expr& e) : d_expr(new CVC4::Expr(e)) {}
 
 Term::~Term() {}
 
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Split out to avoid nested API calls (problematic with API tracing).        */
+/* .......................................................................... */
+
+bool Term::isNullHelper() const { return d_expr->isNull(); }
+
 bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
@@ -1291,7 +1307,7 @@ Op Term::getOp() const
   }
 }
 
-bool Term::isNull() const { return d_expr->isNull(); }
+bool Term::isNull() const { return isNullHelper(); }
 
 bool Term::isParameterized() const
 {
