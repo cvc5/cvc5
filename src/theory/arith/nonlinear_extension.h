@@ -116,15 +116,25 @@ class NonlinearExtension {
    *
    * This call may result in (possibly multiple) calls to d_out->lemma(...)
    * where d_out is the output channel of TheoryArith.
+   * 
+   * If e is FULL, then we add lemmas based on context-depedent
+   * simplification (see Reynolds et al FroCoS 2017). 
+   * 
+   * If e is LAST_CALL, we add lemmas based on model-based refinement
+   * (see additionally Cimatti et al., TACAS 2017). The lemmas added at this
+   * effort may be computed during a call to interceptModel as described below.
    */
   void check(Theory::Effort e);
   /** intercept model
    *
-   * This method is called during TheoryArith::collectModelInfo. The argument
-   * arithModel is a map of the form { v1 -> c1, ..., vn -> cn } which
-   * represents the arithmetic theory solver's contribution to the current
-   * candidate model. That is, its collectModelInfo method is requesting that
-   * the equalities v1 = c1, ..., vn = cn be added to the current model, where
+   * This method is called during TheoryArith::collectModelInfo, which is 
+   * invoked after the linear arithmetic solver passes a full effort check
+   * with no lemmas.
+   * 
+   * The argument arithModel is a map of the form { v1 -> c1, ..., vn -> cn }
+   * which represents the linear arithmetic theory solver's contribution to the
+   * current candidate model. That is, its collectModelInfo method is requesting
+   * that equalities v1 = c1, ..., vn = cn be added to the current model, where
    * v1, ..., vn are arithmetic variables and c1, ..., cn are constants. Notice
    * arithmetic variables may be real-valued terms belonging to other theories,
    * or abstractions of applications of multiplication (kind NONLINEAR_MULT).

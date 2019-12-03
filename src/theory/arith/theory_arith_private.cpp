@@ -4339,7 +4339,7 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
         if (options::nlExt())
         {
-          // Let non-linear extension see/modify the values before they are sent
+          // Let non-linear extension inspect the values before they are sent
           // to the theory model.
           arithModel[term] = qNode;
         }
@@ -4358,13 +4358,10 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   }
   if (options::nlExt())
   {
-    // non-linear may repair values to satisfy non-linear constraints
-    if (!d_nonlinearExtension->interceptModel(arithModel))
-    {
-      // failed, we added a lemma
-      return false;
-    }
-    // otherwise, we are ready to assert the model
+    // Non-linear may repair values to satisfy non-linear constraints (see
+    // documentation for NonlinearExtension::interceptModel).
+    d_nonlinearExtension->interceptModel(arithModel);
+    // We are now ready to assert the model.
     for (std::pair<const Node, Node>& p : arithModel)
     {
       if (!m->assertEquality(p.first, p.second, true))

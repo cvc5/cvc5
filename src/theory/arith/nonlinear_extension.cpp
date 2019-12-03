@@ -1510,7 +1510,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<Node>& mlems,
   return false;
 }
 
-bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
+void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
 {
   if (!needsCheckLastEffort())
   {
