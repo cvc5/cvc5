@@ -1515,12 +1515,12 @@ bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
   if (!needsCheckLastEffort())
   {
     // no non-linear constraints, we are done
-    return true;
+    return;
   }
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
   if (!options::nlExtInterceptModel())
   {
-    return true;
+    return;
   }
   // run a last call effort check
   d_cmiLemmas.clear();
@@ -1535,7 +1535,6 @@ bool NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
     // modify the model values
     d_model.getModelValueRepair(arithModel, d_approximations);
   }
-  return true;
 }
 
 void NonlinearExtension::presolve()

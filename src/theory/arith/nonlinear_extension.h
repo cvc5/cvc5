@@ -118,11 +118,32 @@ class NonlinearExtension {
    * where d_out is the output channel of TheoryArith.
    */
   void check(Theory::Effort e);
-  /** build model
+  /** intercept model
    *
-   * TODO
+   * This method is called during TheoryArith::collectModelInfo. The argument
+   * arithModel is a map of the form { v1 -> c1, ..., vn -> cn } which
+   * represents the arithmetic theory solver's contribution to the current
+   * candidate model. That is, its collectModelInfo method is requesting that
+   * the equalities v1 = c1, ..., vn = cn be added to the current model, where
+   * v1, ..., vn are arithmetic variables and c1, ..., cn are constants. Notice
+   * arithmetic variables may be real-valued terms belonging to other theories,
+   * or abstractions of applications of multiplication (kind NONLINEAR_MULT).
+   * 
+   * This method requests that the non-linear solver inspect this model and
+   * do any number of the following:
+   * (1) Construct lemmas based on a model-based refinement procedure inspired
+   * by Cimatti et al., TACAS 2017.,
+   * (2) In the case that the nonlinear solver finds that the current
+   * constraints are satisfiable, it may "repair" the values in the argument
+   * arithModel so that it satisfies certain nonlinear constraints. This may
+   * involve e.g. solving for variables in nonlinear equations.
+   * 
+   * Notice that in the former case, the lemmas it constructs are not sent out
+   * immediately. Instead, they are put in temporary vectors d_cmiLemmas
+   * and d_cmiLemmasPp, which are then sent out (if necessary) when a last call
+   * effort check is issued to this class.
    */
-  bool interceptModel(std::map<Node, Node>& arithModel);
+  void interceptModel(std::map<Node, Node>& arithModel);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
