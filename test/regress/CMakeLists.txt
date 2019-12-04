@@ -612,6 +612,7 @@ set(regress_0_tests
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/let_shadowing.smt2
+  regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc
   regress0/proof_no_support.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -871,6 +872,8 @@ set(regress_0_tests
   regress0/strings/indexof-sym-simp.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
+  regress0/strings/issue3440.smt2
+  regress0/strings/issue3497.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
@@ -923,6 +926,7 @@ set(regress_0_tests
   regress0/sygus/no-syntax-test.sy
   regress0/sygus/parity-AIG-d0.sy
   regress0/sygus/parse-bv-let.sy
+  regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/sygus-no-wf.sy
   regress0/sygus/sygus-uf.sy
@@ -1401,6 +1405,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3250-syg-inf-q.smt2
   regress1/quantifiers/issue3316.smt2
   regress1/quantifiers/issue3317.smt2
+  regress1/quantifiers/issue3481.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1720,6 +1725,9 @@ set(regress_1_tests
   regress1/sygus/issue3247.smt2
   regress1/sygus/issue3320-quant.sy
   regress1/sygus/issue3461.sy
+  regress1/sygus/issue3498.smt2
+  regress1/sygus/issue3514.smt2
+  regress1/sygus/issue3507.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -1733,6 +1741,7 @@ set(regress_1_tests
   regress1/sygus/nia-max-square-ns.sy
   regress1/sygus/no-flat-simp.sy
   regress1/sygus/no-mention.sy
+  regress1/sygus/once_2.sy
   regress1/sygus/only-const-grammar.sy
   regress1/sygus/parity-si-rcons.sy
   regress1/sygus/pbe_multi.sy
@@ -1742,6 +1751,7 @@ set(regress_1_tests
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
   regress1/sygus/real-grammar.sy
+  regress1/sygus/rec-fun-swap.sy
   regress1/sygus/rec-fun-sygus.sy
   regress1/sygus/rec-fun-while-1.sy
   regress1/sygus/rec-fun-while-2.sy

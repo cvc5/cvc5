@@ -2048,6 +2048,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
           NodeManager::currentNM()->mkConst(s.find(t) != std::string::npos);
       return returnRewrite(node, ret, "ctn-const");
     }else{
+      Node t = node[1];
       if (s.size() == 0)
       {
         Node len1 =
@@ -2060,6 +2061,50 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
           Node ret = NodeManager::currentNM()->mkConst(false);
           return returnRewrite(node, ret, "ctn-lhs-emptystr");
         }
+      }
+      else if (checkEntailLengthOne(t))
+      {
+        std::vector<unsigned> svec = s.getVec();
+        std::sort(svec.begin(), svec.end());
+
+        NodeBuilder<> nb(OR);
+        nb << nm->mkConst(String("")).eqNode(t);
+
+        Node tc = nm->mkNode(STRING_CODE, t);
+        unsigned lb = svec[0];
+        unsigned curr = lb;
+        for (size_t i = 0, size = svec.size(); i <= size; i++)
+        {
+          if (i == size || (svec[i] != curr && svec[i] != curr + 1))
+          {
+            Node nlb = nm->mkConst(Rational(CVC4::String::convertUnsignedIntToCode(lb)));
+            Node nub = nm->mkConst(Rational(CVC4::String::convertUnsignedIntToCode(svec[i - 1])));
+            if (nlb == nub)
+            {
+              nb << nm->mkNode(EQUAL, tc, nlb);
+            }
+            else
+            {
+              nb << nm->mkNode(
+                  AND, nm->mkNode(LEQ, nlb, tc), nm->mkNode(LEQ, tc, nub));
+            }
+
+            if (i != size) {
+            lb = svec[i];
+            curr = lb;
+            }
+          } else {
+            curr = svec[i];
+          }
+        }
+
+        Node ret = nb;
+
+        // str.contains("ABCDEFabcdef", t) --->
+        // t = "" v str.code("A") <= str.code(t) <= str.code("F") v
+        //          str.code("a") <= str.code(t) <= str.code("f")
+        // if len(t) <= 1
+        return returnRewrite(node, ret, "ctn-split");
       }
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {

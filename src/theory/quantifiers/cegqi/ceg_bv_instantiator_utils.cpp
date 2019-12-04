@@ -61,7 +61,7 @@ Node getPvCoeff(TNode pv, TNode n)
 Node normalizePvMult(
     TNode pv,
     const std::vector<Node>& children,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
 {
   bool neg, neg_coeff = false;
   bool found_pv = false;
@@ -141,7 +141,7 @@ namespace {
 bool isLinearPlus(
     TNode n,
     TNode pv,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
 {
   Node coeff;
   Assert(n.getAttribute(BvLinearAttribute()));
@@ -165,7 +165,7 @@ bool isLinearPlus(
 Node normalizePvPlus(
     Node pv,
     const std::vector<Node>& children,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
 {
   NodeManager* nm;
   NodeBuilder<> nb_c(BITVECTOR_PLUS);
@@ -254,7 +254,7 @@ Node normalizePvPlus(
 Node normalizePvEqual(
     Node pv,
     const std::vector<Node>& children,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
 {
   Assert(children.size() == 2);
 
