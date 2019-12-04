@@ -528,7 +528,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
     };
 
 /* Set of kinds for indexed operators */
-const static std::unordered_set<Kind, KindHashFunction> indexed_kinds(
+const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
     {CHAIN,
      RECORD_UPDATE,
      DIVISIBLE,
