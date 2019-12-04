@@ -469,7 +469,6 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   std::vector<Node> eargs;
   bool svarsInit = false;
   std::vector<Node> svars;
-  Assert(n.isConst());
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
