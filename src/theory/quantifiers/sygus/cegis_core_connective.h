@@ -55,7 +55,7 @@ class VariadicTrie
 /** CegisCoreConnective
  *
  * A sygus module that is specialized in handling conjectures of the form:
- * exists P. forall x. A[x] => C(x) ^ C(x) => B(x)
+ * exists P. forall x. (A[x] => C(x)) ^ (C(x) => B(x))
  * That is, conjectures with a pre/post condition but no inductive relation
  * or other constraints. Additionally, we may have that the above conjecture
  * has a side condition, which requires that exists x. SC[x]^C(x) is
