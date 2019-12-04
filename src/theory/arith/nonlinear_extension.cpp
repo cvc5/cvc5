@@ -739,7 +739,6 @@ std::vector<Node> NonlinearExtension::checkModelEval(
     if (litv != d_true)
     {
       Trace("nl-ext-mv-assert") << " [model-false]" << std::endl;
-      // Assert(litv == d_false);
       false_asserts.push_back(lit);
     }
     else
@@ -1291,8 +1290,6 @@ void NonlinearExtension::check(Theory::Effort e) {
 bool NonlinearExtension::modelBasedRefinement(std::vector<Node>& mlems,
                                               std::vector<Node>& mlemsPp)
 {
-  // reset the model object
-  // d_model.reset(d_containing.getValuation().getModel());
   // get the assertions
   std::vector<Node> assertions;
   getAssertions(assertions);
