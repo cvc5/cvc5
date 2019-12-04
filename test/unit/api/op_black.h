@@ -69,6 +69,7 @@ void OpBlack::testOpFromKind()
 
   TS_ASSERT_THROWS_NOTHING(d_solver.mkOp(PLUS));
   TS_ASSERT_EQUALS(plus, d_solver.mkOp(PLUS));
+  TS_ASSERT_THROWS(d_solver.mkOp(BITVECTOR_EXTRACT), CVC4ApiException&);
 }
 
 void OpBlack::testGetIndicesString()
