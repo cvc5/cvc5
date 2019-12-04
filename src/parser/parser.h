@@ -49,7 +49,6 @@ class CVC4_PUBLIC SygusGTerm {
 public:
   enum{
     gterm_op,
-    gterm_let,
     gterm_constant,
     gterm_variable,
     gterm_input_variable,
@@ -527,12 +526,31 @@ public:
   void defineVar(const std::string& name, const Expr& val,
                  bool levelZero = false, bool doOverload = false);
 
-  /** Create a new type definition. */
-  void defineType(const std::string& name, const Type& type);
-
-  /** Create a new (parameterized) type definition. */
+  /**
+   * Create a new type definition.
+   *
+   * @param name The name of the type
+   * @param type The type that should be associated with the name
+   * @param levelZero If true, the type definition is considered global and
+   *                  cannot be removed by poppoing the user context
+   */
   void defineType(const std::string& name,
-                  const std::vector<Type>& params, const Type& type);
+                  const Type& type,
+                  bool levelZero = false);
+
+  /**
+   * Create a new (parameterized) type definition.
+   *
+   * @param name The name of the type
+   * @param params The type parameters
+   * @param type The type that should be associated with the name
+   * @param levelZero If true, the type definition is considered global and
+   *                  cannot be removed by poppoing the user context
+   */
+  void defineType(const std::string& name,
+                  const std::vector<Type>& params,
+                  const Type& type,
+                  bool levelZero = false);
 
   /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
   void defineParameterizedType(const std::string& name,

@@ -34,10 +34,12 @@ namespace theory {
 namespace strings {
 
 RegExpSolver::RegExpSolver(TheoryStrings& p,
+                           SolverState& s,
                            InferenceManager& im,
                            context::Context* c,
                            context::UserContext* u)
     : d_parent(p),
+      d_state(s),
       d_im(im),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
@@ -65,9 +67,15 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   Trace("regexp-process") << "Checking Memberships ... " << std::endl;
   for (const std::pair<const Node, std::vector<Node> >& mr : mems)
   {
+    std::vector<Node> mems = mr.second;
     Trace("regexp-process")
         << "Memberships(" << mr.first << ") = " << mr.second << std::endl;
-    if (!checkEqcIntersect(mr.second))
+    if (!checkEqcInclusion(mems))
+    {
+      // conflict discovered, return
+      return;
+    }
+    if (!checkEqcIntersect(mems))
     {
       // conflict discovered, return
       return;
@@ -128,7 +136,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
         bool flag = true;
         Node x = atom[0];
         Node r = atom[1];
-        Assert(rep == d_parent.getRepresentative(x));
+        Assert(rep == d_state.getRepresentative(x));
         // The following code takes normal forms into account for the purposes
         // of simplifying a regular expression membership x in R. For example,
         // if x = "A" in the current context, then we may be interested in
@@ -219,32 +227,40 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
               << std::endl;
           // if so, do simple unrolling
           std::vector<Node> nvec;
-          if (nvec.empty())
+          Trace("strings-regexp") << "Simplify on " << atom << std::endl;
+          d_regexp_opr.simplify(atom, nvec, polarity);
+          Trace("strings-regexp") << "...finished" << std::endl;
+          // if simplifying successfully generated a lemma
+          if (!nvec.empty())
           {
-            d_regexp_opr.simplify(atom, nvec, polarity);
-          }
-          std::vector<Node> exp_n;
-          exp_n.push_back(assertion);
-          Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
-          d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
-          addedLemma = true;
-          if (changed)
-          {
-            cprocessed.push_back(assertion);
+            std::vector<Node> exp_n;
+            exp_n.push_back(assertion);
+            Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
+            d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
+            addedLemma = true;
+            if (changed)
+            {
+              cprocessed.push_back(assertion);
+            }
+            else
+            {
+              processed.push_back(assertion);
+            }
+            if (e == 0)
+            {
+              // Remember that we have unfolded a membership for x
+              // notice that we only do this here, after we have definitely
+              // added a lemma.
+              repUnfold.insert(rep);
+            }
           }
           else
           {
-            processed.push_back(assertion);
-          }
-          if (e == 0)
-          {
-            // Remember that we have unfolded a membership for x
-            // notice that we only do this here, after we have definitely
-            // added a lemma.
-            repUnfold.insert(rep);
+            // otherwise we are incomplete
+            d_parent.getOutputChannel().setIncomplete();
           }
         }
-        if (d_im.hasConflict())
+        if (d_state.isInConflict())
         {
           break;
         }
@@ -253,7 +269,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   }
   if (addedLemma)
   {
-    if (!d_im.hasConflict())
+    if (!d_state.isInConflict())
     {
       for (unsigned i = 0; i < processed.size(); i++)
       {
@@ -269,6 +285,90 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
       }
     }
   }
+}
+
+bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
+{
+  std::unordered_set<Node, NodeHashFunction> remove;
+
+  for (const Node& m1 : mems)
+  {
+    bool m1Neg = m1.getKind() == NOT;
+    Node m1Lit = m1Neg ? m1[0] : m1;
+
+    if (remove.find(m1) != remove.end())
+    {
+      // Skip memberships marked for removal
+      continue;
+    }
+
+    for (const Node& m2 : mems)
+    {
+      if (m1 == m2)
+      {
+        continue;
+      }
+
+      bool m2Neg = m2.getKind() == NOT;
+      Node m2Lit = m2Neg ? m2[0] : m2;
+
+      // Both regular expression memberships have the same polarity
+      if (m1Neg == m2Neg)
+      {
+        if (d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))
+        {
+          if (m1Neg)
+          {
+            // ~str.in.re(x, R1) includes ~str.in.re(x, R2) --->
+            //   mark ~str.in.re(x, R2) as reduced
+            d_parent.getExtTheory()->markReduced(m2Lit);
+            remove.insert(m2);
+          }
+          else
+          {
+            // str.in.re(x, R1) includes str.in.re(x, R2) --->
+            //   mark str.in.re(x, R1) as reduced
+            d_parent.getExtTheory()->markReduced(m1Lit);
+            remove.insert(m1);
+
+            // We don't need to process m1 anymore
+            break;
+          }
+        }
+      }
+      else
+      {
+        Node pos = m1Neg ? m2Lit : m1Lit;
+        Node neg = m1Neg ? m1Lit : m2Lit;
+        if (d_regexp_opr.regExpIncludes(neg[1], pos[1]))
+        {
+          // We have a conflict because we have a case where str.in.re(x, R1)
+          // and ~str.in.re(x, R2) but R2 includes R1, so there is no
+          // possible value for x that satisfies both memberships.
+          std::vector<Node> vec_nodes;
+          vec_nodes.push_back(pos);
+          vec_nodes.push_back(neg.negate());
+
+          if (pos[0] != neg[0])
+          {
+            vec_nodes.push_back(pos[0].eqNode(neg[0]));
+          }
+
+          Node conc;
+          d_im.sendInference(vec_nodes, conc, "Intersect inclusion", true);
+          return false;
+        }
+      }
+    }
+  }
+
+  mems.erase(std::remove_if(
+                 mems.begin(),
+                 mems.end(),
+                 [&remove](Node& n) { return remove.find(n) != remove.end(); }),
+             mems.end());
+
+  return true;
 }
 
 bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
@@ -295,7 +395,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       Assert(m.getKind() == NOT && m[0].getKind() == STRING_IN_REGEXP);
       continue;
     }
-    RegExpConstType rct = d_regexp_opr.getRegExpConstType(m);
+    RegExpConstType rct = d_regexp_opr.getRegExpConstType(m[1]);
     if (rct == RE_C_VARIABLE
         || (options::stringRegExpInterMode() == RE_INTER_CONSTANT
             && rct != RE_C_CONRETE_CONSTANT))
@@ -378,7 +478,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
 bool RegExpSolver::checkPDerivative(
     Node x, Node r, Node atom, bool& addedLemma, std::vector<Node>& nf_exp)
 {
-  if (d_parent.areEqual(x, d_emptyString))
+  if (d_state.areEqual(x, d_emptyString))
   {
     Node exp;
     switch (d_regexp_opr.delta(r, exp))
@@ -474,9 +574,9 @@ bool RegExpSolver::deriveRegExp(Node x,
     {
       if (x.isConst())
       {
-        Assert(false,
-               "Impossible: RegExpSolver::deriveRegExp: const string in const "
-               "regular expression.");
+        Assert(false)
+            << "Impossible: RegExpSolver::deriveRegExp: const string in const "
+               "regular expression.";
         return false;
       }
       else
@@ -537,7 +637,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
     {
       Trace("strings-error") << "Unsupported term: " << r
                              << " in normalization SymRegExp." << std::endl;
-      Assert(false);
+      Assert(!RegExpOpr::isRegExpKind(r.getKind()));
     }
   }
   return ret;

@@ -33,83 +33,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-RepSetIterator::RsiEnumType QRepBoundExt::setBound(Node owner,
-                                                   unsigned i,
-                                                   std::vector<Node>& elements)
-{
-  // builtin: check if it is bound by bounded integer module
-  if (owner.getKind() == FORALL && d_qe->getBoundedIntegers())
-  {
-    if (d_qe->getBoundedIntegers()->isBoundVar(owner, owner[0][i]))
-    {
-      unsigned bvt =
-          d_qe->getBoundedIntegers()->getBoundVarType(owner, owner[0][i]);
-      if (bvt != BoundedIntegers::BOUND_FINITE)
-      {
-        d_bound_int[i] = true;
-        return RepSetIterator::ENUM_BOUND_INT;
-      }
-      else
-      {
-        // indicates the variable is finitely bound due to
-        // the (small) cardinality of its type,
-        // will treat in default way
-      }
-    }
-  }
-  return RepSetIterator::ENUM_INVALID;
-}
-
-bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
-                              Node owner,
-                              unsigned i,
-                              bool initial,
-                              std::vector<Node>& elements)
-{
-  if (d_bound_int.find(i) != d_bound_int.end())
-  {
-    Assert(owner.getKind() == FORALL);
-    Assert(d_qe->getBoundedIntegers() != nullptr);
-    if (!d_qe->getBoundedIntegers()->getBoundElements(
-            rsi, initial, owner, owner[0][i], elements))
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool QRepBoundExt::initializeRepresentativesForType(TypeNode tn)
-{
-  return d_qe->getModel()->initializeRepresentativesForType(tn);
-}
-
-bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
-{
-  // must set a variable index order based on bounded integers
-  if (owner.getKind() == FORALL && d_qe->getBoundedIntegers())
-  {
-    Trace("bound-int-rsi") << "Calculating variable order..." << std::endl;
-    for (unsigned i = 0; i < d_qe->getBoundedIntegers()->getNumBoundVars(owner);
-         i++)
-    {
-      Node v = d_qe->getBoundedIntegers()->getBoundVar(owner, i);
-      Trace("bound-int-rsi") << "  bound var #" << i << " is " << v
-                             << std::endl;
-      varOrder.push_back(d_qe->getTermUtil()->getVariableNum(owner, v));
-    }
-    for (unsigned i = 0; i < owner[0].getNumChildren(); i++)
-    {
-      if (!d_qe->getBoundedIntegers()->isBoundVar(owner, owner[0][i]))
-      {
-        varOrder.push_back(i);
-      }
-    }
-    return true;
-  }
-  return false;
-}
-
 FirstOrderModel::FirstOrderModel(QuantifiersEngine* qe,
                                  context::Context* c,
                                  std::string name)
@@ -123,7 +46,7 @@ void FirstOrderModel::assertQuantifier( Node n ){
   if( n.getKind()==FORALL ){
     d_forall_asserts.push_back( n );
   }else if( n.getKind()==NOT ){
-    Assert( n[0].getKind()==FORALL );
+    Assert(n[0].getKind() == FORALL);
   }
 }
 
@@ -135,7 +58,7 @@ Node FirstOrderModel::getAssertedQuantifier( unsigned i, bool ordered ) {
   if( !ordered ){
     return d_forall_asserts[i]; 
   }else{
-    Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
+    Assert(d_forall_rlv_assert.size() == d_forall_asserts.size());
     return d_forall_rlv_assert[i];
   }
 }
@@ -263,7 +186,7 @@ void FirstOrderModel::reset_round() {
       }
     }
     Trace("fm-relevant-debug") << "Sizes : " << d_forall_rlv_assert.size() << " " << d_forall_asserts.size() << std::endl;
-    Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
+    Assert(d_forall_rlv_assert.size() == d_forall_asserts.size());
   }else{
     for( unsigned i=0; i<d_forall_asserts.size(); i++ ){
       d_forall_rlv_assert.push_back( d_forall_asserts[i] );
@@ -302,7 +225,7 @@ bool FirstOrderModel::isQuantifierActive(TNode q) const
 
 bool FirstOrderModel::isQuantifierAsserted(TNode q) const
 {
-  Assert( d_forall_rlv_assert.size()==d_forall_asserts.size() );
+  Assert(d_forall_rlv_assert.size() == d_forall_asserts.size());
   return std::find( d_forall_rlv_assert.begin(), d_forall_rlv_assert.end(), q )!=d_forall_rlv_assert.end();
 }
 
@@ -472,7 +395,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   for( int i=(d_models[op]->d_cond.size()-1); i>=0; i--) {
     Node v = d_models[op]->d_value[i];
     Trace("fmc-model-func") << "Value is : " << v << std::endl;
-    Assert( v.isConst() );
+    Assert(v.isConst());
     /*
     if( !hasTerm( v ) ){
       //can happen when the model basis term does not exist in ground assignment
@@ -508,7 +431,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
           children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
         }
       }
-      Assert( !children.empty() );
+      Assert(!children.empty());
       Node cc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( AND, children );
 
       Trace("fmc-model-func") << "condition : " << cc << ", value : " << v << std::endl;

@@ -30,6 +30,10 @@
 	(select arrIn x)
 )
 
+(define-fun letf ((m MemSort) (v1 AddrSort) (v2 AddrSort)) ValSort
+  (bvadd 
+    (ReadArr v1 m) 
+    (ReadArr v2 m)))
 
 (synth-fun f 
 	; Args
@@ -45,12 +49,8 @@
 		(WriteArr (Variable AddrSort) (Variable ValSort) mem)))
 
 	(Start ValSort (
-		(let 
-			((m MemSort StartArray)) 
-			(bvadd 
-				(ReadArr (Variable AddrSort) m) 
-				(ReadArr (Variable AddrSort) m))))))
-)
+		(letf StartArray (Variable AddrSort) (Variable AddrSort))))
+))
 
 (declare-var a (BitVec 8))
 (declare-var b (BitVec 8))

@@ -84,6 +84,10 @@ bool Configuration::isProfilingBuild() {
 
 bool Configuration::isAsanBuild() { return IS_ASAN_BUILD; }
 
+bool Configuration::isUbsanBuild() { return IS_UBSAN_BUILD; }
+
+bool Configuration::isTsanBuild() { return IS_TSAN_BUILD; }
+
 bool Configuration::isCompetitionBuild() {
   return IS_COMPETITION_BUILD;
 }

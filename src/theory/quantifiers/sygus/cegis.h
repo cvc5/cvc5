@@ -168,6 +168,8 @@ class Cegis : public SygusModule
   bool addEvalLemmas(const std::vector<Node>& candidates,
                      const std::vector<Node>& candidate_values,
                      std::vector<Node>& lems);
+  /** Get the node corresponding to the conjunction of all refinement lemmas. */
+  Node getRefinementLemmaFormula();
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas
@@ -202,15 +204,15 @@ class Cegis : public SygusModule
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
 
-  //---------------------------------for sygus repair
-  /** are we using grammar-based repair?
+  //---------------------------------for symbolic constructors
+  /** are we using symbolic constants?
    *
    * This flag is set ot true if at least one of the enumerators allocated
    * by this class has been configured to allow model values with symbolic
    * constructors, such as the "any constant" constructor.
    */
-  bool d_using_gr_repair;
-  //---------------------------------end for sygus repair
+  bool d_usingSymCons;
+  //---------------------------------end for symbolic constructors
 };
 
 } /* CVC4::theory::quantifiers namespace */

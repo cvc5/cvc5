@@ -20,7 +20,7 @@
 #include <map>
 #include <utility>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
 #include "expr/expr.h"
@@ -30,13 +30,12 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
-#include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
-#include "smt/smt_statistics_registry.h"
 #include "smt/command.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
 #include "util/resource_manager.h"
@@ -95,12 +94,8 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
   d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::TseitinCnfStream
-    (d_satSolver, d_registrar, userContext,
-     // fullLitToNode Map =
-     options::threads() > 1 ||
-     options::decisionMode() == decision::DECISION_STRATEGY_RELEVANCY ||
-     ( CVC4_USE_REPLAY && replayLog != NULL ));
+  d_cnfStream = new CVC4::prop::TseitinCnfStream(
+      d_satSolver, d_registrar, userContext, true);
 
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream, replayLog,
@@ -123,7 +118,7 @@ PropEngine::~PropEngine() {
 }
 
 void PropEngine::assertFormula(TNode node) {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
   d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
@@ -174,7 +169,7 @@ void PropEngine::printSatisfyingAssignment(){
 }
 
 Result PropEngine::checkSat() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "PropEngine::checkSat()" << endl;
 
   // Mark that we are in the checkSat
@@ -265,13 +260,13 @@ void PropEngine::ensureLiteral(TNode n) {
 }
 
 void PropEngine::push() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->push();
   Debug("prop") << "push()" << endl;
 }
 
 void PropEngine::pop() {
-  Assert(!d_inCheckSat, "Sat solver in solve()!");
+  Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->pop();
   Debug("prop") << "pop()" << endl;
 }

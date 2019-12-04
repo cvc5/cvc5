@@ -44,12 +44,6 @@ class IntStat;
 struct ExprManagerMapCollection;
 class ResourceManager;
 
-namespace expr {
-  namespace pickle {
-    class Pickler;
-  }/* CVC4::expr::pickle namespace */
-}/* CVC4::expr namespace */
-
 class CVC4_PUBLIC ExprManager {
 private:
   /** The internal node manager */
@@ -85,10 +79,7 @@ private:
   // undefined, private copy constructor and assignment op (disallow copy)
   ExprManager(const ExprManager&) = delete;
   ExprManager& operator=(const ExprManager&) = delete;
-
-  std::vector<DatatypeType> d_keep_dtt;
-  std::vector<Datatype> d_keep_dt;
-
+  
 public:
 
   /**

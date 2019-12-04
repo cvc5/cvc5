@@ -279,7 +279,6 @@ void DioSolver::enqueueInputConstraints(){
 void DioSolver::moveMinimumByAbsToQueueFront(){
   Assert(!queueEmpty());
 
-
   //Select the minimum element.
   size_t indexInQueue = 0;
   Monomial minMonomial = d_trail[d_currentF[indexInQueue]].d_minimalMonomial;
@@ -399,7 +398,12 @@ DioSolver::TrailIndex DioSolver::impliedGcdOfOne(){
             Debug("arith::dio") << "extendedReduction combine" << endl;
             TrailIndex next = combineEqAtIndexes(current, s, inQueue, t);
 
-            Assert(d_trail[next].d_eq.getPolynomial().getCoefficient(vl).getValue().getNumerator() == g);
+            Assert(d_trail[next]
+                       .d_eq.getPolynomial()
+                       .getCoefficient(vl)
+                       .getValue()
+                       .getNumerator()
+                   == g);
 
             current = next;
             currentCoeff = g;
@@ -633,7 +637,8 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(DioS
   d_subs.push_back(Substitution(Node::null(), var, ci));
 
   Debug("arith::dio") << "after solveIndex " <<  d_trail[ci].d_eq.getNode() << " for " << av.getNode() << endl;
-  Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl) == Constant::mkConstant(-1));
+  Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
+         == Constant::mkConstant(-1));
 
   return make_pair(subBy, i);
 }
@@ -690,7 +695,8 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 
   Debug("arith::dio") << "Decompose ci(" << ci <<":" <<  d_trail[ci].d_eq.getNode()
                       << ") for " << d_trail[i].d_minimalMonomial.getNode() << endl;
-  Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl) == Constant::mkConstant(-1));
+  Assert(d_trail[ci].d_eq.getPolynomial().getCoefficient(vl)
+         == Constant::mkConstant(-1));
 
   SumPair newFact = r + fresh_a;
 
@@ -717,7 +723,10 @@ DioSolver::TrailIndex DioSolver::applySubstitution(DioSolver::SubIndex si, DioSo
   if(!a.isZero()){
     Integer one(1);
     TrailIndex afterSub = combineEqAtIndexes(ti, one, subIndex, a.getValue().getNumerator());
-    Assert(d_trail[afterSub].d_eq.getPolynomial().getCoefficient(VarList(var)).isZero());
+    Assert(d_trail[afterSub]
+               .d_eq.getPolynomial()
+               .getCoefficient(VarList(var))
+               .isZero());
     return afterSub;
   }else{
     return ti;

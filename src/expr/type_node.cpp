@@ -23,6 +23,7 @@
 #include "options/expr_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "theory/type_enumerator.h"
 
 using namespace std;
 
@@ -66,103 +67,156 @@ Cardinality TypeNode::getCardinality() const {
   return kind::getCardinality(*this);
 }
 
+/** Attribute true for types that are finite */
+struct IsFiniteTag
+{
+};
+typedef expr::Attribute<IsFiniteTag, bool> IsFiniteAttr;
+/** Attribute true for types which we have computed the above attribute */
+struct IsFiniteComputedTag
+{
+};
+typedef expr::Attribute<IsFiniteComputedTag, bool> IsFiniteComputedAttr;
+
 /** Attribute true for types that are interpreted as finite */
 struct IsInterpretedFiniteTag
 {
 };
+typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
+/** Attribute true for types which we have computed the above attribute */
 struct IsInterpretedFiniteComputedTag
 {
 };
-typedef expr::Attribute<IsInterpretedFiniteTag, bool> IsInterpretedFiniteAttr;
 typedef expr::Attribute<IsInterpretedFiniteComputedTag, bool>
     IsInterpretedFiniteComputedAttr;
 
+bool TypeNode::isFinite() { return isFiniteInternal(false); }
+
 bool TypeNode::isInterpretedFinite()
 {
+  return isFiniteInternal(options::finiteModelFind());
+}
+
+bool TypeNode::isFiniteInternal(bool usortFinite)
+{
   // check it is already cached
-  if (!getAttribute(IsInterpretedFiniteComputedAttr()))
+  if (usortFinite)
   {
-    bool isInterpretedFinite = false;
-    if (isSort())
+    if (getAttribute(IsInterpretedFiniteComputedAttr()))
     {
-      // If the finite model finding flag is set, we treat uninterpreted sorts
-      // as finite. If it is not set, we treat them implicitly as infinite
-      // sorts (that is, their cardinality is not constrained to be finite).
-      isInterpretedFinite = options::finiteModelFind();
+      return getAttribute(IsInterpretedFiniteAttr());
     }
-    else if (isBitVector() || isFloatingPoint())
+  }
+  else if (getAttribute(IsFiniteComputedAttr()))
+  {
+    return getAttribute(IsFiniteAttr());
+  }
+  bool ret = false;
+  if (isSort())
+  {
+    ret = usortFinite;
+  }
+  else if (isBoolean() || isBitVector() || isFloatingPoint())
+  {
+    ret = true;
+  }
+  else if (isString() || isRegExp() || isReal())
+  {
+    ret = false;
+  }
+  else
+  {
+    // recursive case (this may be a parametric sort), we assume infinite for
+    // the moment here to prevent infinite loops
+    if (usortFinite)
     {
-      isInterpretedFinite = true;
+      setAttribute(IsInterpretedFiniteAttr(), false);
+      setAttribute(IsInterpretedFiniteComputedAttr(), true);
     }
-    else if (isDatatype())
+    else
+    {
+      setAttribute(IsFiniteAttr(), false);
+      setAttribute(IsFiniteComputedAttr(), true);
+    }
+    if (isDatatype())
     {
       TypeNode tn = *this;
       const Datatype& dt = getDatatype();
-      isInterpretedFinite = dt.isInterpretedFinite(tn.toType());
+      ret = usortFinite ? dt.isInterpretedFinite(tn.toType())
+                        : dt.isFinite(tn.toType());
     }
     else if (isArray())
     {
       TypeNode tnc = getArrayConstituentType();
-      if (!tnc.isInterpretedFinite())
+      if (!tnc.isFiniteInternal(usortFinite))
       {
         // arrays with consistuent type that is infinite are infinite
-        isInterpretedFinite = false;
+        ret = false;
       }
-      else if (getArrayIndexType().isInterpretedFinite())
+      else if (getArrayIndexType().isFiniteInternal(usortFinite))
       {
         // arrays with both finite consistuent and index types are finite
-        isInterpretedFinite = true;
+        ret = true;
       }
       else
       {
         // If the consistuent type of the array has cardinality one, then the
         // array type has cardinality one, independent of the index type.
-        isInterpretedFinite = tnc.getCardinality().isOne();
+        ret = tnc.getCardinality().isOne();
       }
     }
     else if (isSet())
     {
-      isInterpretedFinite = getSetElementType().isInterpretedFinite();
+      ret = getSetElementType().isFiniteInternal(usortFinite);
     }
     else if (isFunction())
     {
-      isInterpretedFinite = true;
+      ret = true;
       TypeNode tnr = getRangeType();
-      if (!tnr.isInterpretedFinite())
+      if (!tnr.isFiniteInternal(usortFinite))
       {
-        isInterpretedFinite = false;
+        ret = false;
       }
       else
       {
         std::vector<TypeNode> argTypes = getArgTypes();
         for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
         {
-          if (!argTypes[i].isInterpretedFinite())
+          if (!argTypes[i].isFiniteInternal(usortFinite))
           {
-            isInterpretedFinite = false;
+            ret = false;
             break;
           }
         }
-        if (!isInterpretedFinite)
+        if (!ret)
         {
           // similar to arrays, functions are finite if their range type
           // has cardinality one, regardless of the arguments.
-          isInterpretedFinite = tnr.getCardinality().isOne();
+          ret = tnr.getCardinality().isOne();
         }
       }
     }
     else
     {
+      // all types should be handled above
+      Assert(false);
       // by default, compute the exact cardinality for the type and check
       // whether it is finite. This should be avoided in general, since
       // computing cardinalities for types can be highly expensive.
-      isInterpretedFinite = getCardinality().isFinite();
+      ret = getCardinality().isFinite();
     }
-    setAttribute(IsInterpretedFiniteAttr(), isInterpretedFinite);
-    setAttribute(IsInterpretedFiniteComputedAttr(), true);
-    return isInterpretedFinite;
   }
-  return getAttribute(IsInterpretedFiniteAttr());
+  if (usortFinite)
+  {
+    setAttribute(IsInterpretedFiniteAttr(), ret);
+    setAttribute(IsInterpretedFiniteComputedAttr(), true);
+  }
+  else
+  {
+    setAttribute(IsFiniteAttr(), ret);
+    setAttribute(IsFiniteComputedAttr(), true);
+  }
+  return ret;
 }
 
 /** Attribute true for types that are closed enumerable */
@@ -237,6 +291,12 @@ bool TypeNode::isWellFounded() const {
 
 Node TypeNode::mkGroundTerm() const {
   return kind::mkGroundTerm(*this);
+}
+
+Node TypeNode::mkGroundValue() const
+{
+  theory::TypeEnumerator te(*this);
+  return *te;
 }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
@@ -324,14 +384,14 @@ bool TypeNode::isRecord() const {
 size_t TypeNode::getTupleLength() const {
   Assert(isTuple());
   const Datatype& dt = getDatatype();
-  Assert(dt.getNumConstructors()==1);
+  Assert(dt.getNumConstructors() == 1);
   return dt[0].getNumArgs();
 }
 
 vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(isTuple());
   const Datatype& dt = getDatatype();
-  Assert(dt.getNumConstructors()==1);
+  Assert(dt.getNumConstructors() == 1);
   vector<TypeNode> types;
   for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
     types.push_back(TypeNode::fromType(dt[0][i].getRangeType()));
@@ -374,6 +434,28 @@ bool TypeNode::isInstantiatedDatatype() const {
   return true;
 }
 
+TypeNode TypeNode::instantiateParametricDatatype(
+    const std::vector<TypeNode>& params) const
+{
+  AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
+  AssertArgument(params.size() == getNumChildren() - 1, *this);
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode cons = nm->mkTypeConst((*this)[0].getConst<DatatypeIndexConstant>());
+  std::vector<TypeNode> paramsNodes;
+  paramsNodes.push_back(cons);
+  for (const TypeNode& t : params)
+  {
+    paramsNodes.push_back(t);
+  }
+  return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
+}
+
+TypeNode TypeNode::instantiateSortConstructor(
+    const std::vector<TypeNode>& params) const
+{
+  return NodeManager::currentNM()->mkSort(*this, params);
+}
+
 /** Is this an instantiated datatype parameter */
 bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const {
   AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
@@ -391,9 +473,9 @@ TypeNode TypeNode::mostCommonTypeNode(TypeNode t0, TypeNode t1){
 }
 
 TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
-  Assert( NodeManager::currentNM() != NULL,
-          "There is no current CVC4::NodeManager associated to this thread.\n"
-          "Perhaps a public-facing function is missing a NodeManagerScope ?" );
+  Assert(NodeManager::currentNM() != NULL)
+      << "There is no current CVC4::NodeManager associated to this thread.\n"
+         "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   Assert(!t0.isNull());
   Assert(!t1.isNull());
@@ -453,15 +535,17 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     }
   }
   case kind::SEXPR_TYPE:
-    Unimplemented("haven't implemented leastCommonType for symbolic expressions yet");
+    Unimplemented()
+        << "haven't implemented leastCommonType for symbolic expressions yet";
   default:
-    Unimplemented("don't have a commonType for types `%s' and `%s'", t0.toString().c_str(), t1.toString().c_str());
+    Unimplemented() << "don't have a commonType for types `" << t0 << "' and `"
+                    << t1 << "'";
   }
 }
 
 Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
   TypeNode ntn = n.getType();
-  Assert( ntn.isComparableTo( tn ) );
+  Assert(ntn.isComparableTo(tn));
   if( !ntn.isSubtypeOf( tn ) ){
     if( tn.isInteger() ){
       if( tn.isSubtypeOf( ntn ) ){
@@ -514,6 +598,5 @@ std::string TypeNode::toString() const {
   d_nv->toStream(ss, -1, false, 0, outlang);
   return ss.str();
 }
-
 
 }/* CVC4 namespace */

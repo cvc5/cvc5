@@ -41,8 +41,6 @@ template=$1; shift
 theory_traits=
 theory_includes=
 theory_constructors=
-theory_for_each_macro="#define CVC4_FOR_EACH_THEORY \\
-"
 
 type_enumerator_includes=
 mk_type_enumerator_cases=
@@ -104,8 +102,6 @@ function theory {
 
   theory_header="$3"
   theory_includes="${theory_includes}#include \"$theory_header\"
-"
-  theory_for_each_macro="${theory_for_each_macro} CVC4_FOR_EACH_THEORY_STATEMENT(CVC4::theory::${theory_id}) \\
 "
 }
 
@@ -412,7 +408,6 @@ nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
 text=$(cat "$template")
 for var in \
     theory_traits \
-    theory_for_each_macro \
     theory_includes \
     theory_constructors \
     template \

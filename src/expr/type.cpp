@@ -67,6 +67,18 @@ Cardinality Type::getCardinality() const {
   return d_typeNode->getCardinality();
 }
 
+bool Type::isFinite() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isFinite();
+}
+
+bool Type::isInterpretedFinite() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isInterpretedFinite();
+}
+
 bool Type::isWellFounded() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isWellFounded();
@@ -87,6 +99,12 @@ bool Type::isFunctionLike() const
 Expr Type::mkGroundTerm() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->mkGroundTerm().toExpr();
+}
+
+Expr Type::mkGroundValue() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->mkGroundValue().toExpr();
 }
 
 bool Type::isSubtypeOf(Type t) const {

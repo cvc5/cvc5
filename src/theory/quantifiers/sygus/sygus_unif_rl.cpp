@@ -17,7 +17,6 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "util/random.h"
@@ -106,7 +105,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       {
         TNode cand = n[0];
         Node tmp = n.substitute(cand, it->second);
-        nv = d_tds->evaluateWithUnfolding(tmp);
+        // should be concrete, can just use the rewriter
+        nv = Rewriter::rewrite(tmp);
         Trace("sygus-unif-rl-purify")
             << "PurifyLemma : model value for " << tmp << " is " << nv << "\n";
       }

@@ -239,6 +239,8 @@ public:
   bool hasApproximations() const override;
   /** get approximations */
   std::vector<std::pair<Expr, Expr> > getApproximations() const override;
+  /** get domain elements for uninterpreted sort t */
+  std::vector<Expr> getDomainElements(Type t) const override;
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */

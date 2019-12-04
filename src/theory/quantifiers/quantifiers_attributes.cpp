@@ -64,24 +64,24 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     QuantNameAttribute qna;
     n.setAttribute(qna, true);
   } else if (attr == "sygus-synth-grammar") {
-    Assert( node_values.size()==1 );
+    Assert(node_values.size() == 1);
     Trace("quant-attr-debug") << "Set sygus synth grammar " << n << " to "
                               << node_values[0] << std::endl;
     SygusSynthGrammarAttribute ssg;
     n.setAttribute(ssg, node_values[0]);
   }else if( attr=="sygus-synth-fun-var-list" ){
-    Assert( node_values.size()==1 );
+    Assert(node_values.size() == 1);
     Trace("quant-attr-debug") << "Set sygus synth fun var list to " << n << " to "  << node_values[0] << std::endl;
     SygusSynthFunVarListAttribute ssfvla;
     n.setAttribute( ssfvla, node_values[0] );
   }else if( attr=="quant-inst-max-level" ){
-    Assert( node_values.size()==1 );
+    Assert(node_values.size() == 1);
     uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
     Trace("quant-attr-debug") << "Set instantiation level " << n << " to " << lvl << std::endl;
     QuantInstLevelAttribute qila;
     n.setAttribute( qila, lvl );
   }else if( attr=="rr-priority" ){
-    Assert( node_values.size()==1 );
+    Assert(node_values.size() == 1);
     uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
     Trace("quant-attr-debug") << "Set rewrite rule priority " << n << " to " << lvl << std::endl;
     RrPriorityAttribute rrpa;
@@ -157,14 +157,14 @@ Node QuantAttributes::getFunDefBody( Node q ) {
       {
         // solve for h in the equality
         std::map<Node, Node> msum;
-        if (ArithMSum::getMonomialSum(q[1], msum))
+        if (ArithMSum::getMonomialSumLit(q[1], msum))
         {
           Node veq;
           int res = ArithMSum::isolate(h, msum, veq, EQUAL);
           if (res != 0)
           {
             Assert(veq.getKind() == EQUAL);
-            return res == 1 ? veq[0] : veq[1];
+            return res == 1 ? veq[1] : veq[0];
           }
         }
       }
@@ -296,7 +296,7 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
         }
         if( avar.getKind()==REWRITE_RULE ){
           Trace("quant-attr") << "Attribute : rewrite rule : " << q << std::endl;
-          Assert( i==0 );
+          Assert(i == 0);
           qa.d_rr = avar;
         }
       }
