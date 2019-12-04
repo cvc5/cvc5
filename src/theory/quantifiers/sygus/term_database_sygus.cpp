@@ -277,6 +277,11 @@ typedef expr::Attribute<SygusToBuiltinAttributeId, Node>
 
 Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
 {
+  if (n.isConst())
+  {
+    // if its a constant, we use the datatype utility version
+    return datatypes::utils::sygusToBuiltinTerm(n);
+  }
   Assert(n.getType().isComparableTo(tn));
   if (!tn.isDatatype())
   {
