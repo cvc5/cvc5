@@ -1107,7 +1107,6 @@ OptionsHandler::stringToSygusActiveGenMode(std::string option,
   }
 }
 
-
 theory::quantifiers::SygusUnifPiMode OptionsHandler::stringToSygusUnifPiMode(
     std::string option, std::string optarg)
 {
