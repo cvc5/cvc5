@@ -598,7 +598,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         // It may not be constant, e.g. if we involve a partial operator
         // like datatype selectors. In this case, we avoid using the evaluator,
         // which expects a constant substitution.
-        if( tres.isConst() )
+        if (tres.isConst())
         {
           std::vector<Node> vals;
           vals.push_back(tres);

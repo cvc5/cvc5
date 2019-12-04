@@ -101,7 +101,8 @@ void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
 
 void SygusUnifStrategy::initializeType(TypeNode tn)
 {
-  Trace("sygus-unif") << "SygusUnifStrategy: initialize : " << tn << " for " << d_candidate << std::endl;
+  Trace("sygus-unif") << "SygusUnifStrategy: initialize : " << tn << " for "
+                      << d_candidate << std::endl;
   d_tinfo[tn].d_this_type = tn;
 }
 
@@ -124,7 +125,8 @@ EnumInfo& SygusUnifStrategy::getEnumInfo(Node e)
 
 EnumTypeInfo& SygusUnifStrategy::getEnumTypeInfo(TypeNode tn)
 {
-  Trace("sygus-unif") << "SygusUnifStrategy: get : " << tn << " for " << d_candidate << std::endl;
+  Trace("sygus-unif") << "SygusUnifStrategy: get : " << tn << " for "
+                      << d_candidate << std::endl;
   std::map<TypeNode, EnumTypeInfo>::iterator it = d_tinfo.find(tn);
   Assert(it != d_tinfo.end());
   return it->second;
