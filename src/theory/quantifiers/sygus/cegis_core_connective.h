@@ -76,7 +76,8 @@ class VariadicTrie
  * cores(B) : a set of sets of literals { U_1, ..., U_p } s.t. for i=1,...,p:
  * - U_i is a subset of pool(B),
  * - A ^ U_i is unsat.
- *
+ * We construct pool(A)/pool(B) using enumerative SyGuS, discarding the literals
+ * that do not match the criteria.
  *
  * Variant #1 (Interpolation)
  *
