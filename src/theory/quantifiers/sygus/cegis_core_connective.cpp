@@ -174,7 +174,21 @@ bool CegisCoreConnective::processInitialize(Node conj,
           << "  precondition of SC: " << scPre << std::endl;
       Trace("sygus-ccore-init")
           << "  postcondition of SC: " << scPost << std::endl;
-      // FIXME
+      // We are extracting the side condition to be used by this algorithm
+      // from the side condition ascribed to the synthesis conjecture.
+      // A sygus conjecture of the form, for predicate-to-synthesize I:
+      //   exists I. forall x. P[I,x]
+      // whose ascribed side condition is C[I], has the semantics:
+      //   exists I. C[I] ^ forall x. P[I,x].
+      // Notice that this side condition C may be an arbitrary formula over the
+      // function to synthesize. However, the algorithm implemented by this
+      // class is restricted to side conditions of the form:
+      //   exists k. A[k] ^ I(k)
+      // The above condition guards for this case, and runs this block of code,
+      // where we use the TransitionInference utility to extract A[k] from
+      // A[k] ^ I(k). In the end, we set d_sc to A[d_vars]; notice the variables
+      // d_vars are those introduced by the TransitionInference utility
+      // for normalization.
       d_sc = scPost;
     }
   }
