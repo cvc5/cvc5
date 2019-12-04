@@ -581,12 +581,14 @@ any-const  \n\
 \n\
 any-term  \n\
 + When applicable, use constructors corresponding to any symbolic term.\n\
-This option enables a sum-of-monomials grammar for arithmetic.\n\
+This option enables a sum-of-monomials grammar for arithmetic. For all\n\
+other types, it enables symbolic constant constructors.\n\
 \n\
 any-term-concise  \n\
 + When applicable, use constructors corresponding to any symbolic term,\n\
-favoring conciseness over generality. This option enables a polynomial\n\
-grammar for arithmetic.\n\
+favoring conciseness over generality. This option is equivalent to any-term\n\
+but enables a polynomial grammar for arithmetic when not in a combined\n\
+theory.\n\
 \n\
 ";
 
