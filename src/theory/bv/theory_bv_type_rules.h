@@ -342,7 +342,8 @@ class IntToBitVectorOpTypeRule
                                          nodeManager->mkBitVectorType(bvSize));
     }
 
-    InternalError("bv-conversion typerule invoked for non-bv-conversion kind");
+    InternalError()
+        << "bv-conversion typerule invoked for non-bv-conversion kind";
   }
 }; /* class IntToBitVectorOpTypeRule */
 
@@ -372,7 +373,8 @@ class BitVectorConversionTypeRule
       return nodeManager->mkBitVectorType(bvSize);
     }
 
-    InternalError("bv-conversion typerule invoked for non-bv-conversion kind");
+    InternalError()
+        << "bv-conversion typerule invoked for non-bv-conversion kind";
   }
 }; /* class BitVectorConversionTypeRule */
 

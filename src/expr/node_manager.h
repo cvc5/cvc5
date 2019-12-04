@@ -32,6 +32,7 @@
 #include <string>
 #include <unordered_set>
 
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -411,14 +412,16 @@ public:
 
   /** Subscribe to NodeManager events */
   void subscribeEvents(NodeManagerListener* listener) {
-    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener) == d_listeners.end(), "listener already subscribed");
+    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener)
+           == d_listeners.end())
+        << "listener already subscribed";
     d_listeners.push_back(listener);
   }
 
   /** Unsubscribe from NodeManager events */
   void unsubscribeEvents(NodeManagerListener* listener) {
     std::vector<NodeManagerListener*>::iterator elt = std::find(d_listeners.begin(), d_listeners.end(), listener);
-    Assert(elt != d_listeners.end(), "listener not subscribed");
+    Assert(elt != d_listeners.end()) << "listener not subscribed";
     d_listeners.erase(elt);
   }
   
@@ -866,6 +869,11 @@ public:
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
+  /**
+   * Make a type representing a constructor with the given argument (subfield)
+   * types and return type range.
+   */
+  TypeNode mkConstructorType(const std::vector<TypeNode>& args, TypeNode range);
 
   /** Make a type representing a selector with the given parameterization */
   inline TypeNode mkSelectorType(TypeNode domain, TypeNode range);
@@ -1087,8 +1095,10 @@ NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 2);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(sorts[i].isFirstClass(), sorts,
-                  "cannot create function types for argument types that are not first-class");
+    CheckArgument(sorts[i].isFirstClass(),
+                  sorts,
+                  "cannot create function types for argument types that are "
+                  "not first-class. Try option --uf-ho.");
     sortNodes.push_back(sorts[i]);
   }
   CheckArgument(!sorts[sorts.size()-1].isFunction(), sorts[sorts.size()-1],
@@ -1101,8 +1111,10 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(sorts[i].isFirstClass(), sorts,
-                  "cannot create predicate types for argument types that are not first-class");
+    CheckArgument(sorts[i].isFirstClass(),
+                  sorts,
+                  "cannot create predicate types for argument types that are "
+                  "not first-class. Try option --uf-ho.");
     sortNodes.push_back(sorts[i]);
   }
   sortNodes.push_back(booleanType());
@@ -1135,10 +1147,14 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "unexpected NULL index type");
   CheckArgument(!constituentType.isNull(), constituentType,
                 "unexpected NULL constituent type");
-  CheckArgument(indexType.isFirstClass(), indexType,
-                "cannot index arrays by types that are not first-class");
-  CheckArgument(constituentType.isFirstClass(), constituentType,
-                "cannot store types that are not first-class in arrays");
+  CheckArgument(indexType.isFirstClass(),
+                indexType,
+                "cannot index arrays by types that are not first-class. Try "
+                "option --uf-ho.");
+  CheckArgument(constituentType.isFirstClass(),
+                constituentType,
+                "cannot store types that are not first-class in arrays. Try "
+                "option --uf-ho.");
   Debug("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
@@ -1147,8 +1163,10 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
 inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
   CheckArgument(!elementType.isNull(), elementType,
                 "unexpected NULL element type");
-  CheckArgument(elementType.isFirstClass(), elementType,
-                "cannot store types that are not first-class in sets");
+  CheckArgument(elementType.isFirstClass(),
+                elementType,
+                "cannot store types that are not first-class in sets. Try "
+                "option --uf-ho.");
   Debug("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
@@ -1156,8 +1174,10 @@ inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
 inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
   CheckArgument(domain.isDatatype(), domain,
                 "cannot create non-datatype selector type");
-  CheckArgument(range.isFirstClass(), range,
-                "cannot have selector fields that are not first-class types");
+  CheckArgument(range.isFirstClass(),
+                range,
+                "cannot have selector fields that are not first-class types. "
+                "Try option --uf-ho.");
   return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
 }
 
@@ -1177,14 +1197,14 @@ inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
 }
 
 inline void NodeManager::poolInsert(expr::NodeValue* nv) {
-  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end(),
-         "NodeValue already in the pool!");
+  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end())
+      << "NodeValue already in the pool!";
   d_nodeValuePool.insert(nv);// FIXME multithreading
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
-  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end(),
-         "NodeValue is not in the pool!");
+  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end())
+      << "NodeValue is not in the pool!";
 
   d_nodeValuePool.erase(nv);// FIXME multithreading
 }
@@ -1240,8 +1260,7 @@ inline bool NodeManager::hasOperator(Kind k) {
   case kind::metakind::CONSTANT:
     return false;
 
-  default:
-    Unhandled(mk);
+  default: Unhandled() << mk;
   }
 }
 

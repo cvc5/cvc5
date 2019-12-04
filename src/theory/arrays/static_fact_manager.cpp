@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/node.h"
 #include "theory/arrays/static_fact_manager.h"
 
@@ -97,7 +97,8 @@ void StaticFactManager::addEq(TNode eq) {
   //   CNodeTNodesMap::iterator deq_ib = d_disequalities.find(b);
   //   if(deq_ib != d_disequalities.end()) {
   //     CTNodeListAlloc* deq = (*deq_ib).second;
-  //     for(CTNodeListAlloc::const_iterator j = deq->begin(); j!=deq->end(); j++) {
+  //     for(CTNodeListAlloc::const_iterator j = deq->begin(); j!=deq->end();
+  //     j++) {
   //       TNode deqn = *j;
   //       TNode s = deqn[0];
   //       TNode t = deqn[1];
@@ -120,12 +121,11 @@ void StaticFactManager::addEq(TNode eq) {
   //    */
 
   //   CTNodeListAlloc* deqa = (*deq_ia).second;
-  //   for(CTNodeListAlloc::const_iterator i = deqa->begin(); i!= deqa->end(); i++) {
+  //   for(CTNodeListAlloc::const_iterator i = deqa->begin(); i!= deqa->end();
+  //   i++) {
   //     TNode deqn = (*i);
-  //     Assert(deqn.getKind() == kind::EQUAL || deqn.getKind() == kind::IFF);
-  //     TNode s = deqn[0];
-  //     TNode t = deqn[1];
-  //     TNode sp = find(s);
+  //     Assert(deqn.getKind() == kind::EQUAL || deqn.getKind() ==
+  //     kind::IFF); TNode s = deqn[0]; TNode t = deqn[1]; TNode sp = find(s);
   //     TNode tp = find(t);
 
   //     if(find(s) == find(t)) {

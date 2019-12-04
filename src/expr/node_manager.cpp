@@ -21,7 +21,7 @@
 #include <stack>
 #include <utility>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/listener.h"
 #include "expr/attribute.h"
 #include "expr/node_manager_attributes.h"
@@ -29,8 +29,8 @@
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
-#include "util/statistics_registry.h"
 #include "util/resource_manager.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace CVC4::expr;
@@ -195,7 +195,7 @@ NodeManager::~NodeManager() {
   }
   d_ownedDatatypes.clear();
 
-  Assert(!d_attrManager->inGarbageCollection() );
+  Assert(!d_attrManager->inGarbageCollection());
 
   std::vector<NodeValue*> order = TopologicalSort(d_maxedOut);
   d_maxedOut.clear();
@@ -253,7 +253,7 @@ unsigned NodeManager::registerDatatype(Datatype* dt) {
 }
 
 const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
-  Assert( index<d_ownedDatatypes.size() );
+  Assert(index < d_ownedDatatypes.size());
   return *d_ownedDatatypes[index];
 }
 
@@ -264,7 +264,8 @@ void NodeManager::reclaimZombies() {
   Debug("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
 
   // during reclamation, reclaimZombies() is never supposed to be called
-  Assert(! d_inReclaimZombies, "NodeManager::reclaimZombies() not re-entrant!");
+  Assert(!d_inReclaimZombies)
+      << "NodeManager::reclaimZombies() not re-entrant!";
 
   // whether exit is normal or exceptional, the Reclaim dtor is called
   // and ensures that d_inReclaimZombies is set back to false.
@@ -446,7 +447,7 @@ TypeNode NodeManager::getType(TNode n, bool check)
       }
 
       if( readyToCompute ) {
-        Assert( check || m.getMetaKind()!=kind::metakind::NULLARY_OPERATOR );
+        Assert(check || m.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
         /* All the children have types, time to compute */
         typeNode = TypeChecker::computeType(this, m, check);
         worklist.pop();
@@ -454,18 +455,18 @@ TypeNode NodeManager::getType(TNode n, bool check)
     } // end while
 
     /* Last type computed in loop should be the type of n */
-    Assert( typeNode == getAttribute(n, TypeAttr()) );
+    Assert(typeNode == getAttribute(n, TypeAttr()));
   } else if( !hasType || needsCheck ) {
     /* We can compute the type top-down, without worrying about
        deep recursion. */
-    Assert( check || n.getMetaKind()!=kind::metakind::NULLARY_OPERATOR );
+    Assert(check || n.getMetaKind() != kind::metakind::NULLARY_OPERATOR);
     typeNode = TypeChecker::computeType(this, n, check);
   }
 
   /* The type should be have been computed and stored. */
-  Assert( hasAttribute(n, TypeAttr()) );
+  Assert(hasAttribute(n, TypeAttr()));
   /* The check should have happened, if we asked for it. */
-  Assert( !check || getAttribute(n, TypeCheckedAttr()) );
+  Assert(!check || getAttribute(n, TypeCheckedAttr()));
 
   Debug("getType") << "type of " << &n << " " <<  n << " is " << typeNode << endl;
   return typeNode;
@@ -510,6 +511,14 @@ TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
   Debug("datatypes") << "ctor range: " << range << endl;
   PrettyCheckArgument(!range.isFunctionLike(), range,
                       "cannot create higher-order function types");
+  sorts.push_back(range);
+  return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
+}
+
+TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
+                                        TypeNode range)
+{
+  std::vector<TypeNode> sorts = args;
   sorts.push_back(range);
   return mkTypeNode(kind::CONSTRUCTOR_TYPE, sorts);
 }
@@ -628,16 +637,17 @@ TypeNode NodeManager::mkSort(const std::string& name, uint32_t flags) {
 TypeNode NodeManager::mkSort(TypeNode constructor,
                                     const std::vector<TypeNode>& children,
                                     uint32_t flags) {
-  Assert(constructor.getKind() == kind::SORT_TYPE &&
-         constructor.getNumChildren() == 0,
-         "expected a sort constructor");
-  Assert(children.size() > 0, "expected non-zero # of children");
-  Assert( hasAttribute(constructor.d_nv, expr::SortArityAttr()) &&
-          hasAttribute(constructor.d_nv, expr::VarNameAttr()),
-          "expected a sort constructor" );
+  Assert(constructor.getKind() == kind::SORT_TYPE
+         && constructor.getNumChildren() == 0)
+      << "expected a sort constructor";
+  Assert(children.size() > 0) << "expected non-zero # of children";
+  Assert(hasAttribute(constructor.d_nv, expr::SortArityAttr())
+         && hasAttribute(constructor.d_nv, expr::VarNameAttr()))
+      << "expected a sort constructor";
   std::string name = getAttribute(constructor.d_nv, expr::VarNameAttr());
-  Assert(getAttribute(constructor.d_nv, expr::SortArityAttr()) == children.size(),
-         "arity mismatch in application of sort constructor");
+  Assert(getAttribute(constructor.d_nv, expr::SortArityAttr())
+         == children.size())
+      << "arity mismatch in application of sort constructor";
   NodeBuilder<> nb(this, kind::SORT_TYPE);
   Node sortTag = Node(constructor.d_nv->d_children[0]);
   nb << sortTag;
@@ -706,7 +716,7 @@ Node* NodeManager::mkBoundVarPtr(const std::string& name,
 }
 
 Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
-  Assert( tn.isFunction() );
+  Assert(tn.isFunction());
   Node bvl = tn.getAttribute(LambdaBoundVarListAttr());
   if( bvl.isNull() ){
     std::vector< Node > vars;
@@ -777,7 +787,7 @@ Node NodeManager::mkNullaryOperator(const TypeNode& type, Kind k) {
     setAttribute(n, TypeAttr(), type);
     //setAttribute(n, TypeCheckedAttr(), true);
     d_unique_vars[k][type] = n;
-    Assert( n.getMetaKind() == kind::metakind::NULLARY_OPERATOR );
+    Assert(n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
     return n;
   }else{
     return it->second;

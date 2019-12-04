@@ -207,7 +207,7 @@ void TermBlack::testAndTerm()
 
   Term b = d_solver.mkTrue();
   TS_ASSERT_THROWS(Term().andTerm(b), CVC4ApiException&);
-  TS_ASSERT_THROWS(b.andTerm(Term()), CVC4ApiException&);  
+  TS_ASSERT_THROWS(b.andTerm(Term()), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.andTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.andTerm(b), CVC4ApiException&);
@@ -471,7 +471,7 @@ void TermBlack::testImpTerm()
 
   Term b = d_solver.mkTrue();
   TS_ASSERT_THROWS(Term().impTerm(b), CVC4ApiException&);
-  TS_ASSERT_THROWS(b.impTerm(Term()), CVC4ApiException&);  
+  TS_ASSERT_THROWS(b.impTerm(Term()), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.impTerm(b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS(x.impTerm(b), CVC4ApiException&);
@@ -538,7 +538,7 @@ void TermBlack::testIteTerm()
   Term b = d_solver.mkTrue();
   TS_ASSERT_THROWS(Term().iteTerm(b, b), CVC4ApiException&);
   TS_ASSERT_THROWS(b.iteTerm(Term(), b), CVC4ApiException&);
-  TS_ASSERT_THROWS(b.iteTerm(b, Term()), CVC4ApiException&);    
+  TS_ASSERT_THROWS(b.iteTerm(b, Term()), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(b.iteTerm(b, b));
   Term x = d_solver.mkVar(d_solver.mkBitVectorSort(8), "x");
   TS_ASSERT_THROWS_NOTHING(b.iteTerm(x, x));
