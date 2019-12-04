@@ -95,7 +95,7 @@ static std::string maybeQuoteSymbol(const std::string& s) {
   if (s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                           "0123456789~!@$%^&*_-+=<>.?/")
           != string::npos
-      || s.empty())
+      || s.empty() || (s[0] >= '0' && s[0] <= '9'))
   {
     // need to quote it
     stringstream ss;

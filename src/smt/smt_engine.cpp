@@ -1251,10 +1251,12 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  // set default options associated with strings-exp
-  if (options::stringExp())
+  // Set default options associated with strings-exp. We also set these options
+  // if we are using eager string preprocessing, which may introduce quantified
+  // formulas at preprocess time.
+  if (options::stringExp() || !options::stringLazyPreproc())
   {
-    // We require quantifiers since extended functions reduce using them
+    // We require quantifiers since extended functions reduce using them.
     if (!d_logic.isQuantified())
     {
       d_logic = d_logic.getUnlockedCopy();
@@ -2281,9 +2283,10 @@ void SmtEngine::setDefaults() {
           << endl;
       setOption("incremental", SExpr("false"));
     }
-    if (d_logic > LogicInfo("QF_AUFBVLRA")) {
-        throw OptionException(
-            "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
+    if (d_logic > LogicInfo("QF_AUFBVLRA"))
+    {
+      throw OptionException(
+          "Proofs are only supported for sub-logics of QF_AUFBVLIA.");
     }
     if (options::bitvectorAlgebraicSolver())
     {
