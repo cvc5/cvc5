@@ -29,7 +29,7 @@ namespace theory {
 namespace quantifiers {
 
 /**
- * A trie for that stores data at undetermined depth. Storing data at
+ * A trie that stores data at undetermined depth. Storing data at
  * undetermined depth is in contrast to the NodeTrie (expr/node_trie.h), which
  * assumes all data is stored at a fixed depth.
  *
