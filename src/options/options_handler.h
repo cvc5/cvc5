@@ -124,6 +124,8 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::SygusUnifPiMode stringToSygusUnifPiMode(
       std::string option, std::string optarg);
+  theory::quantifiers::SygusGrammarConsMode stringToSygusGrammarConsMode(
+      std::string option, std::string optarg);
   theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(
       std::string option, std::string optarg);
   theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(
@@ -277,7 +279,11 @@ public:
   static const std::string s_sygusFilterSolHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_sygusActiveGenHelp;
+<<<<<<< HEAD
   static const std::string s_sygusUnifPiHelp;
+=======
+  static const std::string s_sygusGrammarConsHelp;
+>>>>>>> dd66d825a0e05b46690b0bb914da3b0aa2045654
   static const std::string s_termDbModeHelp;
   static const std::string s_theoryOfModeHelp;
   static const std::string s_triggerSelModeHelp;

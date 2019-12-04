@@ -292,6 +292,29 @@ enum SygusFilterSolMode
   SYGUS_FILTER_SOL_WEAK,
 };
 
+enum SygusGrammarConsMode
+{
+  /**
+   * Use simple default SyGuS grammar construction (no symbolic terms or
+   * constants).
+   */
+  SYGUS_GCONS_SIMPLE,
+  /** Use "any constant" constructors in default SyGuS grammar construction. */
+  SYGUS_GCONS_ANY_CONST,
+  /**
+   * When applicable, use constructors that encode any term using "any constant"
+   * constructors. This construction uses sum-of-monomials for arithmetic
+   * grammars.
+   */
+  SYGUS_GCONS_ANY_TERM,
+  /**
+   * When applicable, use constructors that encode any term using "any constant"
+   * constructors in a way that prefers conciseness over generality. This
+   * construction uses polynomials for arithmetic grammars.
+   */
+  SYGUS_GCONS_ANY_TERM_CONCISE,
+};
+
 enum MacrosQuantMode {
   /** infer all definitions */
   MACROS_QUANT_MODE_ALL,
