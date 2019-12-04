@@ -205,7 +205,7 @@ void ErProof::outputAsLfsc(std::ostream& os) const
   // Print Definitions
   for (const ErDefinition& def : d_definitions)
   {
-    os << "\n    (decl_rat_elimination_def ("
+    os << "\n    (decl_definition ("
        << (def.d_oldLiteral.isNegated() ? "neg " : "pos ")
        << ProofManager::getVarName(def.d_oldLiteral.getSatVariable(), "bb")
        << ") ";
@@ -220,8 +220,8 @@ void ErProof::outputAsLfsc(std::ostream& os) const
   TraceCheckIdx firstDefClause = d_inputClauseIds.size() + 1;
   for (const ErDefinition& def : d_definitions)
   {
-    os << "\n    (clausify_rat_elimination_def _ _ _ "
-       << "er.def " << def.d_newVariable << " _ (\\ er.c" << firstDefClause
+    os << "\n    (clausify_definition _ _ _ "
+       << "er.def" << def.d_newVariable << " _ (\\ er.c" << firstDefClause
        << " (\\ er.c" << (firstDefClause + 1) << " (\\ er.cnf"
        << def.d_newVariable;
 
