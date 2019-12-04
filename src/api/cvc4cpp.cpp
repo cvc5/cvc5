@@ -3095,7 +3095,7 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
 Op Solver::mkOp(Kind kind) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_CHECK(indexed_kinds.find(kind) == indexed_kinds.end())
+  CVC4_API_CHECK(s_indexed_kinds.find(kind) == s_indexed_kinds.end())
       << "Expected a kind for a non-indexed operator.";
   return Op(kind);
   CVC4_API_SOLVER_TRY_CATCH_END
