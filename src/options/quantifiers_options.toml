@@ -950,6 +950,17 @@ header = "options/quantifiers_options.h"
   help       = "abort if constant repair techniques are not applicable"
 
 [[option]]
+  name       = "sygusUnifPi"
+  category   = "regular"
+  long       = "sygus-unif-pi=MODE"
+  type       = "CVC4::theory::quantifiers::SygusUnifPiMode"
+  default    = "CVC4::theory::quantifiers::SYGUS_UNIF_PI_NONE"
+  handler    = "stringToSygusUnifPiMode"
+  includes   = ["options/quantifiers_modes.h"]
+  read_only  = true
+  help       = "mode for synthesis via piecewise-indepedent unification"
+
+[[option]]
   name       = "sygusUnif"
   category   = "regular"
   long       = "sygus-unif"

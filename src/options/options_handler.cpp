@@ -569,6 +569,27 @@ auto (default) \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusUnifPiHelp =
+    "\
+Modes for piecewise-independent unification supported by --sygus-unif-pi:\n\
+\n\
+none  \n\
++ Do not use piecewise-independent unification.\n\
+\n\
+complete \n\
++ Use complete approach for piecewise-independent unification (see Section 3\n\
+of Barbosa et al FMCAD 2019).\n\
+\n\
+cond-enum  \n\
++ Use unconstrained condition enumeration for piecewise-independent\n\
+unification (see Section 4 of Barbosa et al FMCAD 2019).\n\
+\n\
+cond-enum-igain \n\
++ Same as cond-enum, but additionally uses an information gain heuristic\n\
+when doing decision tree learning.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_macrosQuantHelp = "\
 Modes for quantifiers macro expansion, supported by --macros-quant-mode:\n\
 \n\
@@ -1083,6 +1104,38 @@ OptionsHandler::stringToSygusActiveGenMode(std::string option,
   {
     throw OptionException(std::string("unknown option for --sygus-inv-templ: `")
                           + optarg + "'.  Try --sygus-inv-templ help.");
+  }
+}
+
+
+theory::quantifiers::SygusUnifPiMode OptionsHandler::stringToSygusUnifPiMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_NONE;
+  }
+  else if (optarg == "complete")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_COMPLETE;
+  }
+  else if (optarg == "cond-enum")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_CONDITION_ENUM;
+  }
+  else if (optarg == "cond-enum-igain")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_CONDITION_ENUM_IGAIN;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusUnifPiHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-unif-pi: `")
+                          + optarg + "'.  Try --sygus-unif-pi help.");
   }
 }
 
