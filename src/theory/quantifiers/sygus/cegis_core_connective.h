@@ -70,10 +70,10 @@ class VariadicTrie
  * special cases of this class. Below, let:
  *
  * pool(A) be a set of literals { c_1, ..., c_n } s.t. c_i => B for i=1,...,n,
- * pts(A) : a set of points { x -> v } s.t. A[v] is true,
- * pool(B) : a set of literals { d_1, ..., d_n } s.t. A => d_i for i=1,...,n,
- * pts(B) : a set of points { v } s.t. ~B[v] is true,
- * cores(B) : a set of sets of literals { U_1, ..., U_n } s.t. for i=1,...,n:
+ * pts(A) : a set of points { v | A[v] is true },
+ * pool(B) : a set of literals { d_1, ..., d_m } s.t. A => d_i for i=1,...,m,
+ * pts(B) : a set of points { v | ~B[v] is true },
+ * cores(B) : a set of sets of literals { U_1, ..., U_p } s.t. for i=1,...,p:
  * - U_i is a subset of pool(B),
  * - A ^ U_i is unsat.
  *
@@ -85,7 +85,7 @@ class VariadicTrie
  *
  * The high level idea is we construct solutions for C of the form
  *   c_1 OR ... OR c_n where c_i => B for each i=1,...,n, or
- *   d_1 AND ... AND d_n where A => d_i for each i=1,...,n.
+ *   d_1 AND ... AND d_m where A => d_i for each i=1,...,m.
  *
  * while(true){
  *   Let e_i = next_sygus_enum();
