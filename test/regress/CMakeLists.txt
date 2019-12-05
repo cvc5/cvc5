@@ -1713,6 +1713,7 @@ set(regress_1_tests
   regress1/sygus/icfp_14_12_diff_types.sy
   regress1/sygus/icfp_28_10.sy
   regress1/sygus/icfp_easy-ite.sy
+  regress1/sygus/int-any-const.sy
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
@@ -1726,6 +1727,7 @@ set(regress_1_tests
   regress1/sygus/issue3320-quant.sy
   regress1/sygus/issue3461.sy
   regress1/sygus/issue3498.smt2
+  regress1/sygus/issue3514.smt2
   regress1/sygus/issue3507.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
@@ -1749,6 +1751,7 @@ set(regress_1_tests
   regress1/sygus/process-10-vars.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
+  regress1/sygus/real-any-const.sy
   regress1/sygus/real-grammar.sy
   regress1/sygus/rec-fun-swap.sy
   regress1/sygus/rec-fun-sygus.sy
@@ -1759,6 +1762,7 @@ set(regress_1_tests
   regress1/sygus/repair-const-rl.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
+  regress1/sygus/strings-any-term1.sy
   regress1/sygus/strings-no-syntax.sy
   regress1/sygus/strings-concat-3-args.sy
   regress1/sygus/strings-double-rec.sy
@@ -1923,6 +1927,7 @@ set(regress_3_tests
   regress3/pp-regfile.smtv1.smt2
   regress3/qwh.35.405.shuffled-as.sat03-1651.smtv1.smt2
   regress3/sixfuncs.sy
+  regress3/strings-any-term.sy
   regress3/strings/extf_d_perf.smt2
 )
 
