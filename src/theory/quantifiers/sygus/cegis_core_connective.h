@@ -58,7 +58,7 @@ class VariadicTrie
  * exists P. forall x. (A[x] => C(x)) ^ (C(x) => B(x))
  * That is, conjectures with a pre/post condition but no inductive relation
  * or other constraints. Additionally, we may have that the above conjecture
- * has a side condition, which requires that exists x. SC[x]^C(x) is
+ * has a side condition SC, which requires that exists x. SC[x]^C(x) is
  * satisfiable.
  *
  * Two examples of this kind of sygus conjecture are abduction and
