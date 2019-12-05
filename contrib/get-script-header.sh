@@ -45,6 +45,31 @@ if [ -z "$PYTHON" ]; then
   exit 1
 fi
 
+function setup_dep
+{
+  url="$1"
+  directory="$2"
+  echo "Setting up $directory ..."
+  mkdir -p "$directory"
+  cd "$directory"
+  webget "$url" archive
+  tar xf archive --strip 1 # Strip top-most directory
+  rm archive
+}
+
+function check_dep_dir
+{
+  if [ -e "$1" ]; then
+    echo "error: file or directory '$1' exists; please move it out of the way." >&2
+    exit 1
+  fi
+}
+
+
+# Some of our dependencies do not provide a make install rule. Use the
+# following helper functions to copy libraries/headers/binaries into the
+# corresponding directories in deps/install.
+
 function install_lib
 {
   echo "Copying $1 to $INSTALL_LIB_DIR"
@@ -67,24 +92,4 @@ function install_bin
   echo "Copying $1 to $INSTALL_BIN_DIR"
   [ ! -d "$INSTALL_BIN_DIR" ] && mkdir -p "$INSTALL_BIN_DIR"
   cp "$1" "$INSTALL_BIN_DIR"
-}
-
-function setup_dep
-{
-  url="$1"
-  directory="$2"
-  echo "Setting up $directory ..."
-  mkdir -p "$directory"
-  cd "$directory"
-  webget "$url" archive
-  tar xf archive --strip 1 # Strip top-most directory
-  rm archive
-}
-
-function check_dep_dir
-{
-  if [ -e "$1" ]; then
-    echo "error: file or directory '$1' exists; please move it out of the way." >&2
-    exit 1
-  fi
 }
