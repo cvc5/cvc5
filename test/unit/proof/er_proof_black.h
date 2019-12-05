@@ -31,14 +31,14 @@
 #include "utils.h"
 
 #if IS_LFSC_BUILD
-  #include "lfscc.h"
-#endif
+#include "lfscc.h"
 
 namespace CVC4 {
 namespace proof {
 extern const char* const plf_signatures;
 }  // namespace proof
 }  // namespace CVC4
+#endif
 
 
 using namespace CVC4;
