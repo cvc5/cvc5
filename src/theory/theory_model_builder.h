@@ -269,7 +269,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * and have not already been assigned a constant,
    * (2) evaluableEqc: the set of equivalence classes that are "evaluable", i.e.
    * those that have an expression in them that is not assignable, and have not
-   * already been assigned,
+   * already been assigned a constant,
    * (3) eqcToAssigner: assigner objects for relevant equivalence classes that
    * require special ways of assigning values, e.g. those that take into
    * account assignment exclusion sets,
