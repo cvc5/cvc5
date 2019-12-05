@@ -232,7 +232,7 @@ bool CegisUnif::usingConditionEnum() const
 {
   return d_sygus_unif.usingConditionEnum();
 }
-  
+
 void CegisUnif::setConditions(
     const std::map<Node, std::vector<Node>>& unif_cenums,
     const std::map<Node, std::vector<Node>>& unif_cvalues,
@@ -406,7 +406,8 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
   d_initialized = false;
   d_tds = d_qe->getTermDatabaseSygus();
   SygusUnifPiMode mode = options::sygusUnifPi();
-  d_useCondEnum = mode==SYGUS_UNIF_PI_CENUM || mode==SYGUS_UNIF_PI_CENUM_IGAIN;
+  d_useCondEnum =
+      mode == SYGUS_UNIF_PI_CENUM || mode == SYGUS_UNIF_PI_CENUM_IGAIN;
 }
 
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)

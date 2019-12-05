@@ -103,7 +103,7 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
   SynthConjecture* d_parent;
-  /** 
+  /**
    * Whether we are using condition enumeration (Section 4 of Barbosa et al
    * FMCAD 2019). This is determined by option::sygusUnifPi().
    */
@@ -300,7 +300,7 @@ class CegisUnif : public Cegis
                      std::map<Node, std::vector<Node>>& unif_cvalues,
                      std::vector<Node>& lems);
 
-  /** 
+  /**
    * Whether we are using condition enumeration (Section 4 of Barbosa et al
    * FMCAD 2019). This is determined by option::sygusUnifPi().
    */

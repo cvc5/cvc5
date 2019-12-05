@@ -29,7 +29,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnifRl::SygusUnifRl(SynthConjecture* p) : d_parent(p), d_useCondEnum(false), d_useCondEnumIGain(false) {}
+SygusUnifRl::SygusUnifRl(SynthConjecture* p)
+    : d_parent(p), d_useCondEnum(false), d_useCondEnumIGain(false)
+{
+}
 SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initializeCandidate(
     QuantifiersEngine* qe,
@@ -57,10 +60,11 @@ void SygusUnifRl::initializeCandidate(
     d_cand_to_eval_hds[f].clear();
     d_cand_to_hd_count[f] = 0;
   }
-  // check whether we are using condition enumeration 
+  // check whether we are using condition enumeration
   SygusUnifPiMode mode = options::sygusUnifPi();
-  d_useCondEnum = mode==SYGUS_UNIF_PI_CENUM || mode==SYGUS_UNIF_PI_CENUM_IGAIN;
-  d_useCondEnumIGain = mode==SYGUS_UNIF_PI_CENUM_IGAIN;
+  d_useCondEnum =
+      mode == SYGUS_UNIF_PI_CENUM || mode == SYGUS_UNIF_PI_CENUM_IGAIN;
+  d_useCondEnumIGain = mode == SYGUS_UNIF_PI_CENUM_IGAIN;
 }
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
@@ -352,8 +356,7 @@ Node SygusUnifRl::constructSol(
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
   Node sol = itd->second.buildSol(etis->d_cons, lemmas);
-  Assert(d_useCondEnum || !sol.isNull()
-         || !lemmas.empty());
+  Assert(d_useCondEnum || !sol.isNull() || !lemmas.empty());
   return sol;
 }
 
@@ -390,10 +393,7 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
   return it->second;
 }
 
-bool SygusUnifRl::usingConditionEnum() const
-{
-  return d_useCondEnum;
-}
+bool SygusUnifRl::usingConditionEnum() const { return d_useCondEnum; }
 bool SygusUnifRl::usingConditionEnumInfoGain() const
 {
   return d_useCondEnumIGain;
@@ -565,7 +565,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
   // reset the trie
   d_pt_sep.d_trie.clear();
   return d_unif->usingConditionEnum() ? buildSolAllCond(cons, lemmas)
-                                             : buildSolMinCond(cons, lemmas);
+                                      : buildSolMinCond(cons, lemmas);
 }
 
 Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,

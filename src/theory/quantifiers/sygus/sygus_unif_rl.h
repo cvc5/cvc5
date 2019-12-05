@@ -103,13 +103,14 @@ class SygusUnifRl : public SygusUnif
   /** retrieve the head of evaluation points for candidate c, if any */
   std::vector<Node> getEvalPointHeads(Node c);
 
-  /** 
+  /**
    * Whether we are using condition enumeration (Section 4 of Barbosa et al
    * FMCAD 2019). This is determined by option::sygusUnifPi().
    */
   bool usingConditionEnum() const;
   /** Whether we are additionally using information gain.  */
   bool usingConditionEnumInfoGain() const;
+
  protected:
   /** reference to the parent conjecture */
   SynthConjecture* d_parent;
