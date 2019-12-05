@@ -15,6 +15,7 @@
 #include "theory/arith/nl_model.h"
 
 #include "expr/node_algorithm.h"
+#include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
@@ -36,11 +37,18 @@ NlModel::NlModel(context::Context* c) : d_used_approx(false)
 
 NlModel::~NlModel() {}
 
-void NlModel::reset(TheoryModel* m)
+void NlModel::reset(TheoryModel* m, std::map<Node, Node>& arithModel)
 {
   d_model = m;
   d_mv[0].clear();
   d_mv[1].clear();
+  d_arithVal.clear();
+  // process arithModel
+  std::map<Node, Node>::iterator it;
+  for (const std::pair<const Node, Node>& m : arithModel)
+  {
+    d_arithVal[m.first] = m.second;
+  }
 }
 
 void NlModel::resetCheck()
@@ -127,19 +135,40 @@ Node NlModel::computeModelValue(Node n, bool isConcrete)
   return ret;
 }
 
-Node NlModel::getValueInternal(Node n) const
-{
-  return d_model->getValue(n);
-}
-
 bool NlModel::hasTerm(Node n) const
 {
-  return d_model->hasTerm(n);
+  return d_arithVal.find(n) != d_arithVal.end();
 }
 
 Node NlModel::getRepresentative(Node n) const
 {
+  if (n.isConst())
+  {
+    return n;
+  }
+  std::map<Node, Node>::const_iterator it = d_arithVal.find(n);
+  if (it != d_arithVal.end())
+  {
+    AlwaysAssert(it->second.isConst());
+    return it->second;
+  }
   return d_model->getRepresentative(n);
+}
+
+Node NlModel::getValueInternal(Node n) const
+{
+  if (n.isConst())
+  {
+    return n;
+  }
+  std::map<Node, Node>::const_iterator it = d_arithVal.find(n);
+  if (it != d_arithVal.end())
+  {
+    AlwaysAssert(it->second.isConst());
+    return it->second;
+  }
+  // It is unconstrained in the model, return 0.
+  return d_zero;
 }
 
 int NlModel::compare(Node i, Node j, bool isConcrete, bool isAbsolute)
