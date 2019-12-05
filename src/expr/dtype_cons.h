@@ -164,11 +164,11 @@ class DTypeConstructor
    * Get argument type. Returns the return type of the i^th selector of this
    * constructor.
    */
-  TypeNode getArgType(unsigned i) const;
+  TypeNode getArgType(size_t i) const;
 
   /** get selector internal
    *
-   * This gets selector for the index^th argument
+   * This gets the selector for the index^th argument
    * of this constructor. The type dtt is the datatype
    * type whose datatype is the owner of this constructor,
    * where this type may be an instantiated parametric datatype.
@@ -205,7 +205,7 @@ class DTypeConstructor
    * in any constructor that is not a datatype type.
    */
   bool involvesExternalType() const;
-  /** involves external type
+  /** involves uninterpreted type
    *
    * Get whether this constructor has a subfield
    * in any constructor that is an uninterpreted type.
@@ -215,41 +215,6 @@ class DTypeConstructor
   void toStream(std::ostream& out) const;
 
  private:
-  /** the name of the constructor */
-  std::string d_name;
-  /** the name of the tester */
-  std::string d_testerName;
-  /** the constructor expression */
-  Node d_constructor;
-  /** the tester for this constructor */
-  Node d_tester;
-  /** the arguments of this constructor */
-  std::vector<std::shared_ptr<DTypeSelector> > d_args;
-  /** sygus operator */
-  Node d_sygus_op;
-  /** weight */
-  unsigned d_weight;
-
-  /** shared selectors for each type
-   *
-   * This stores the shared (constructor-agnotic)
-   * selectors that access the fields of this datatype.
-   * In the terminology of "DTypes with Shared Selectors",
-   * this stores:
-   *   sel_{dtt}^{T1,atos(T1,C,1)}, ...,
-   *   sel_{dtt}^{Tn,atos(Tn,C,n)}
-   * where C is this constructor, which has type
-   * T1 x ... x Tn -> dtt above.
-   * We store this information for (possibly multiple)
-   * datatype types dtt, since this constructor may be
-   * for a parametric datatype, where dtt is an instantiated
-   * parametric datatype.
-   */
-  mutable std::map<TypeNode, std::vector<Node> > d_shared_selectors;
-  /** for each type, a cache mapping from shared selectors to
-   * its argument index for this constructor.
-   */
-  mutable std::map<TypeNode, std::map<Node, unsigned> > d_shared_selector_index;
   /** resolve
    *
    * This resolves (initializes) the constructor. For details
@@ -308,10 +273,60 @@ class DTypeConstructor
                          std::map<TypeNode, Node>& gt,
                          bool isValue) const;
   /** compute shared selectors
-   * This computes the maps d_shared_selectors and d_shared_selector_index.
+   * This computes the maps d_sharedSelectors and d_sharedSelectorIndex.
    */
   void computeSharedSelectors(TypeNode domainType) const;
+  /** the name of the constructor */
+  std::string d_name;
+  /** the name of the tester */
+  std::string d_testerName;
+  /** the constructor expression */
+  Node d_constructor;
+  /** the tester for this constructor */
+  Node d_tester;
+  /** the arguments of this constructor */
+  std::vector<std::shared_ptr<DTypeSelector> > d_args;
+  /** sygus operator */
+  Node d_sygusOp;
+  /** weight */
+  unsigned d_weight;
+  /** shared selectors for each type
+   *
+   * This stores the shared (constructor-agnotic)
+   * selectors that access the fields of this datatype.
+   * In the terminology of "DTypes with Shared Selectors",
+   * this stores:
+   *   sel_{dtt}^{T1,atos(T1,C,1)}, ...,
+   *   sel_{dtt}^{Tn,atos(Tn,C,n)}
+   * where C is this constructor, which has type
+   * T1 x ... x Tn -> dtt above.
+   * We store this information for (possibly multiple)
+   * datatype types dtt, since this constructor may be
+   * for a parametric datatype, where dtt is an instantiated
+   * parametric datatype.
+   */
+  mutable std::map<TypeNode, std::vector<Node> > d_sharedSelectors;
+  /** for each type, a cache mapping from shared selectors to
+   * its argument index for this constructor.
+   */
+  mutable std::map<TypeNode, std::map<Node, unsigned> > d_sharedSelectorIndex;  
 }; /* class DTypeConstructor */
+
+/**
+ * A hash function for DTypeConstructors.  Needed to store them in hash sets
+ * and hash maps.
+ */
+struct DTypeConstructorHashFunction
+{
+  size_t operator()(const DTypeConstructor& dtc) const
+  {
+    return std::hash<std::string>()(dtc.getName());
+  }
+  size_t operator()(const DTypeConstructor* dtc) const
+  {
+    return std::hash<std::string>()(dtc->getName());
+  }
+}; /* struct DTypeConstructorHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 

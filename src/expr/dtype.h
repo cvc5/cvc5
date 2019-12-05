@@ -211,7 +211,7 @@ class DType
    * when doing solution reconstruction (Figure 5 of Reynolds et al.
    * CAV 2015).
    */
-  void setSygus(TypeNode st, Node bvl, bool allow_const, bool allow_all);
+  void setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll);
 
   /** set that this datatype is a tuple */
   void setTuple();
@@ -225,11 +225,11 @@ class DType
   /** Is this datatype parametric? */
   bool isParametric() const;
 
-  /** Get the nubmer of type parameters */
+  /** Get the number of type parameters */
   size_t getNumParameters() const;
 
   /** Get parameter */
-  TypeNode getParameter(unsigned int i) const;
+  TypeNode getParameter(size_t i) const;
 
   /** Get parameters */
   std::vector<TypeNode> getParameters() const;
@@ -272,7 +272,7 @@ class DType
   /**
    * Return true iff this  DType is finite (all constructors are
    * finite, i.e., there  are finitely  many ground terms) under the
-   * assumption unintepreted sorts are finite. If the
+   * assumption that unintepreted sorts are finite. If the
    * datatype is  not well-founded, this method returns false.  The
    * DType must be resolved or an assertion is violated.
    *
@@ -318,9 +318,9 @@ class DType
    * parametric datatype type whose datatype is this class.
    */
   unsigned getNumRecursiveSingletonArgTypes(TypeNode t) const;
-  TypeNode getRecursiveSingletonArgType(TypeNode t, unsigned i) const;
+  TypeNode getRecursiveSingletonArgType(TypeNode t, size_t i) const;
   unsigned getNumRecursiveSingletonArgTypes() const;
-  TypeNode getRecursiveSingletonArgType(unsigned i) const;
+  TypeNode getRecursiveSingletonArgType(size_t i) const;
 
   /**
    * Construct and return a ground term of this DType.  The
@@ -438,13 +438,13 @@ class DType
   /** cache for involves uninterpreted type */
   bool d_involvesUt;
   /** the builtin type that this sygus type encodes */
-  TypeNode d_sygus_type;
+  TypeNode d_sygusType;
   /** the variable list for the sygus function to synthesize */
-  Node d_sygus_bvl;
+  Node d_sygusBvl;
   /** whether all constants are allowed as solutions */
-  bool d_sygus_allow_const;
+  bool d_sygusAllowConst;
   /** whether all terms are allowed as solutions */
-  bool d_sygus_allow_all;
+  bool d_sygusAllowAll;
 
   /** the cardinality of this datatype
    * "mutable" because computing the cardinality can be expensive,
@@ -460,21 +460,25 @@ class DType
    * For definition of (co)recursive singleton, see
    * Section 2 of Reynolds et al. CADE 2015.
    */
-  mutable std::map<TypeNode, int> d_card_rec_singleton;
-  /** if d_card_rec_singleton is true,
+  mutable std::map<TypeNode, int> d_cardRecSingleton;
+  /** if d_cardRecSingleton is true,
    * This datatype has infinite cardinality if at least one of the
    * following uninterpreted sorts having cardinality > 1.
    */
-  mutable std::map<TypeNode, std::vector<TypeNode> > d_card_u_assume;
-  /** cache of whether this datatype is well-founded */
-  mutable int d_well_founded;
+  mutable std::map<TypeNode, std::vector<TypeNode> > d_cardUAssume;
+  /** 
+   * Cache of whether this datatype is well-founded, where 0 means we have
+   * not computed this information, 1 means it is well-founded, -1 means it is
+   * not.
+   */
+  mutable int d_wellFounded;
   /** cache of ground term for this datatype */
-  mutable std::map<TypeNode, Node> d_ground_term;
+  mutable std::map<TypeNode, Node> d_groundTerm;
   /** cache of ground values for this datatype */
-  mutable std::map<TypeNode, Node> d_ground_value;
+  mutable std::map<TypeNode, Node> d_groundValue;
   /** cache of shared selectors for this datatype */
   mutable std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >
-      d_shared_sel;
+      d_sharedSel;
 
   /**
    * DTypes refer to themselves, recursively, and we have a
@@ -545,7 +549,7 @@ class DType
    * In the terminology of "DTypes with Shared Selectors",
    * this returns the term sel_{dtt}^{t,index}.
    */
-  Node getSharedSelector(TypeNode dtt, TypeNode t, unsigned index) const;
+  Node getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const;
   /**
    * Helper for mkGroundTerm and mkGroundValue above.
    */
@@ -565,14 +569,6 @@ struct DTypeHashFunction
   size_t operator()(const DType* dt) const
   {
     return std::hash<std::string>()(dt->getName());
-  }
-  size_t operator()(const DTypeConstructor& dtc) const
-  {
-    return std::hash<std::string>()(dtc.getName());
-  }
-  size_t operator()(const DTypeConstructor* dtc) const
-  {
-    return std::hash<std::string>()(dtc->getName());
   }
 }; /* struct DTypeHashFunction */
 

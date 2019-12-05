@@ -29,10 +29,10 @@ DType::DType(std::string name, bool isCo)
       d_self(),
       d_involvesExt(false),
       d_involvesUt(false),
-      d_sygus_allow_const(false),
-      d_sygus_allow_all(false),
+      d_sygusAllowConst(false),
+      d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
-      d_well_founded(0)
+      d_wellFounded(0)
 {
 }
 
@@ -46,10 +46,10 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_self(),
       d_involvesExt(false),
       d_involvesUt(false),
-      d_sygus_allow_const(false),
-      d_sygus_allow_all(false),
+      d_sygusAllowConst(false),
+      d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
-      d_well_founded(0)
+      d_wellFounded(0)
 {
 }
 
@@ -60,7 +60,7 @@ size_t DType::getNumConstructors() const { return d_constructors.size(); }
 
 bool DType::isParametric() const { return d_params.size() > 0; }
 size_t DType::getNumParameters() const { return d_params.size(); }
-TypeNode DType::getParameter(unsigned int i) const
+TypeNode DType::getParameter(size_t i) const
 {
   Assert(isParametric());
   Assert(i < d_params.size());
@@ -75,7 +75,7 @@ std::vector<TypeNode> DType::getParameters() const
 
 bool DType::isCodatatype() const { return d_isCo; }
 
-bool DType::isSygus() const { return !d_sygus_type.isNull(); }
+bool DType::isSygus() const { return !d_sygusType.isNull(); }
 
 bool DType::isTuple() const { return d_isTuple; }
 
@@ -181,11 +181,11 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
     // all datatype constructors should be sygus and have sygus operators whose
     // free variables are subsets of sygus bound var list.
     std::unordered_set<Node, NodeHashFunction> svs;
-    for (const Node& sv : d_sygus_bvl)
+    for (const Node& sv : d_sygusBvl)
     {
       svs.insert(sv);
     }
-    for (unsigned i = 0, ncons = d_constructors.size(); i < ncons; i++)
+    for (size_t i = 0, ncons = d_constructors.size(); i < ncons; i++)
     {
       Node sop = d_constructors[i]->getSygusOp();
       Assert(!sop.isNull())
@@ -216,13 +216,13 @@ void DType::addConstructor(std::shared_ptr<DTypeConstructor> c)
   d_constructors.push_back(c);
 }
 
-void DType::setSygus(TypeNode st, Node bvl, bool allow_const, bool allow_all)
+void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
 {
   Assert(!d_resolved);
-  d_sygus_type = st;
-  d_sygus_bvl = bvl;
-  d_sygus_allow_const = allow_const || allow_all;
-  d_sygus_allow_all = allow_all;
+  d_sygusType = st;
+  d_sygusBvl = bvl;
+  d_sygusAllowConst = allowConst || allowAll;
+  d_sygusAllowAll = allowAll;
 }
 
 void DType::setTuple()
@@ -274,40 +274,40 @@ bool DType::isRecursiveSingleton(TypeNode t) const
   Trace("datatypes-init") << "DType::isRecursiveSingleton " << std::endl;
   Assert(isResolved());
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
-  if (d_card_rec_singleton.find(t) != d_card_rec_singleton.end())
+  if (d_cardRecSingleton.find(t) != d_cardRecSingleton.end())
   {
-    return d_card_rec_singleton[t] == 1;
+    return d_cardRecSingleton[t] == 1;
   }
   if (isCodatatype())
   {
-    Assert(d_card_u_assume[t].empty());
+    Assert(d_cardUAssume[t].empty());
     std::vector<TypeNode> processing;
-    if (computeCardinalityRecSingleton(t, processing, d_card_u_assume[t]))
+    if (computeCardinalityRecSingleton(t, processing, d_cardUAssume[t]))
     {
-      d_card_rec_singleton[t] = 1;
+      d_cardRecSingleton[t] = 1;
       if (Trace.isOn("dt-card"))
       {
         Trace("dt-card") << "DType " << getName()
                          << " is recursive singleton, dependent upon "
-                         << d_card_u_assume[t].size()
+                         << d_cardUAssume[t].size()
                          << " uninterpreted sorts: " << std::endl;
-        for (unsigned i = 0; i < d_card_u_assume[t].size(); i++)
+        for (size_t i = 0; i < d_cardUAssume[t].size(); i++)
         {
-          Trace("dt-card") << "  " << d_card_u_assume[t][i] << std::endl;
+          Trace("dt-card") << "  " << d_cardUAssume[t][i] << std::endl;
         }
         Trace("dt-card") << std::endl;
       }
     }
     else
     {
-      d_card_rec_singleton[t] = -1;
+      d_cardRecSingleton[t] = -1;
     }
   }
   else
   {
-    d_card_rec_singleton[t] = -1;
+    d_cardRecSingleton[t] = -1;
   }
-  return d_card_rec_singleton[t] == 1;
+  return d_cardRecSingleton[t] == 1;
 }
 
 bool DType::isRecursiveSingleton() const
@@ -318,9 +318,9 @@ bool DType::isRecursiveSingleton() const
 
 unsigned DType::getNumRecursiveSingletonArgTypes(TypeNode t) const
 {
-  Assert(d_card_rec_singleton.find(t) != d_card_rec_singleton.end());
+  Assert(d_cardRecSingleton.find(t) != d_cardRecSingleton.end());
   Assert(isRecursiveSingleton(t));
-  return d_card_u_assume[t].size();
+  return d_cardUAssume[t].size();
 }
 
 unsigned DType::getNumRecursiveSingletonArgTypes() const
@@ -329,14 +329,14 @@ unsigned DType::getNumRecursiveSingletonArgTypes() const
   return getNumRecursiveSingletonArgTypes(d_self);
 }
 
-TypeNode DType::getRecursiveSingletonArgType(TypeNode t, unsigned i) const
+TypeNode DType::getRecursiveSingletonArgType(TypeNode t, size_t i) const
 {
-  Assert(d_card_rec_singleton.find(t) != d_card_rec_singleton.end());
+  Assert(d_cardRecSingleton.find(t) != d_cardRecSingleton.end());
   Assert(isRecursiveSingleton(t));
-  return d_card_u_assume[t][i];
+  return d_cardUAssume[t][i];
 }
 
-TypeNode DType::getRecursiveSingletonArgType(unsigned i) const
+TypeNode DType::getRecursiveSingletonArgType(size_t i) const
 {
   Assert(!isParametric());
   return getRecursiveSingletonArgType(d_self, i);
@@ -354,7 +354,7 @@ bool DType::computeCardinalityRecSingleton(
   {
     return true;
   }
-  if (d_card_rec_singleton[t] == 0)
+  if (d_cardRecSingleton[t] == 0)
   {
     // if not yet computed
     if (d_constructors.size() != 1)
@@ -363,7 +363,7 @@ bool DType::computeCardinalityRecSingleton(
     }
     bool success = false;
     processing.push_back(d_self);
-    for (unsigned i = 0, nargs = d_constructors[0]->getNumArgs(); i < nargs;
+    for (size_t i = 0, nargs = d_constructors[0]->getNumArgs(); i < nargs;
          i++)
     {
       TypeNode tc = d_constructors[0]->getArgType(i);
@@ -398,16 +398,16 @@ bool DType::computeCardinalityRecSingleton(
     processing.pop_back();
     return success;
   }
-  else if (d_card_rec_singleton[t] == -1)
+  else if (d_cardRecSingleton[t] == -1)
   {
     return false;
   }
-  for (unsigned i = 0; i < d_card_u_assume[t].size(); i++)
+  for (size_t i = 0, csize = d_cardUAssume[t].size(); i < csize; i++)
   {
-    if (std::find(u_assume.begin(), u_assume.end(), d_card_u_assume[t][i])
+    if (std::find(u_assume.begin(), u_assume.end(), d_cardUAssume[t][i])
         == u_assume.end())
     {
-      u_assume.push_back(d_card_u_assume[t][i]);
+      u_assume.push_back(d_cardUAssume[t][i]);
     }
   }
   return true;
@@ -477,19 +477,19 @@ bool DType::isWellFounded() const
 {
   Trace("datatypes-init") << "DType::isWellFounded " << std::endl;
   Assert(isResolved());
-  if (d_well_founded == 0)
+  if (d_wellFounded == 0)
   {
     std::vector<TypeNode> processing;
     if (computeWellFounded(processing))
     {
-      d_well_founded = 1;
+      d_wellFounded = 1;
     }
     else
     {
-      d_well_founded = -1;
+      d_wellFounded = -1;
     }
   }
-  return d_well_founded == 1;
+  return d_wellFounded == 1;
 }
 
 bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
@@ -538,7 +538,7 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
   Trace("datatypes-init") << "DType::mkGroundTerm of type " << t
                           << ", isValue = " << isValue << std::endl;
   // is this already in the cache ?
-  std::map<TypeNode, Node>& cache = isValue ? d_ground_value : d_ground_term;
+  std::map<TypeNode, Node>& cache = isValue ? d_groundValue : d_groundTerm;
   std::map<TypeNode, Node>::iterator it = cache.find(t);
   if (it != cache.end())
   {
@@ -601,7 +601,7 @@ Node DType::computeGroundTerm(TypeNode t,
       Trace("datatypes-init")
           << "Try constructing for " << ctor->getName()
           << ", processing = " << processing.size() << std::endl;
-      Node e = ctor->computeGroundTerm(t, processing, d_ground_term, isValue);
+      Node e = ctor->computeGroundTerm(t, processing, d_groundTerm, isValue);
       if (!e.isNull())
       {
         // must check subterms for the same type to avoid infinite loops in
@@ -645,12 +645,12 @@ const DTypeConstructor& DType::operator[](size_t index) const
   return *d_constructors[index];
 }
 
-Node DType::getSharedSelector(TypeNode dtt, TypeNode t, unsigned index) const
+Node DType::getSharedSelector(TypeNode dtt, TypeNode t, size_t index) const
 {
   Assert(isResolved());
   std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >::iterator
-      itd = d_shared_sel.find(dtt);
-  if (itd != d_shared_sel.end())
+      itd = d_sharedSel.find(dtt);
+  if (itd != d_sharedSel.end())
   {
     std::map<TypeNode, std::map<unsigned, Node> >::iterator its =
         itd->second.find(t);
@@ -672,19 +672,19 @@ Node DType::getSharedSelector(TypeNode dtt, TypeNode t, unsigned index) const
                    nm->mkSelectorType(dtt, t),
                    "is a shared selector",
                    NodeManager::SKOLEM_NO_NOTIFY);
-  d_shared_sel[dtt][t][index] = s;
+  d_sharedSel[dtt][t][index] = s;
   Trace("dt-shared-sel") << "Made " << s << " of type " << dtt << " -> " << t
                          << std::endl;
   return s;
 }
 
-TypeNode DType::getSygusType() const { return d_sygus_type; }
+TypeNode DType::getSygusType() const { return d_sygusType; }
 
-Node DType::getSygusVarList() const { return d_sygus_bvl; }
+Node DType::getSygusVarList() const { return d_sygusBvl; }
 
-bool DType::getSygusAllowConst() const { return d_sygus_allow_const; }
+bool DType::getSygusAllowConst() const { return d_sygusAllowConst; }
 
-bool DType::getSygusAllowAll() const { return d_sygus_allow_all; }
+bool DType::getSygusAllowAll() const { return d_sygusAllowAll; }
 
 bool DType::involvesExternalType() const { return d_involvesExt; }
 
