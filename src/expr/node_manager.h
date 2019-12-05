@@ -44,7 +44,6 @@ class StatisticsRegistry;
 class ResourceManager;
 
 class DType;
-class DTypeConstructor;
 
 namespace expr {
   namespace attr {

@@ -18,10 +18,8 @@
 #define CVC4__EXPR__DTYPE_SELECTOR_H
 
 #include <string>
-#include "base/exception.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "util/hash.h"
 
 namespace CVC4 {
 
@@ -58,8 +56,7 @@ class DTypeSelector
   Node getConstructor() const;
 
   /**
-   * Get the type of the selector for this constructor argument;
-   * this call is only permitted after resolution.
+   * Get the type of the selector for this constructor argument.
    */
   TypeNode getType() const;
 
