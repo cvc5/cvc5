@@ -466,7 +466,7 @@ class DType
    * following uninterpreted sorts having cardinality > 1.
    */
   mutable std::map<TypeNode, std::vector<TypeNode> > d_cardUAssume;
-  /** 
+  /**
    * Cache of whether this datatype is well-founded, where 0 means we have
    * not computed this information, 1 means it is well-founded, -1 means it is
    * not.

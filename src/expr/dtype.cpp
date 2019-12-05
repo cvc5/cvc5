@@ -363,8 +363,7 @@ bool DType::computeCardinalityRecSingleton(
     }
     bool success = false;
     processing.push_back(d_self);
-    for (size_t i = 0, nargs = d_constructors[0]->getNumArgs(); i < nargs;
-         i++)
+    for (size_t i = 0, nargs = d_constructors[0]->getNumArgs(); i < nargs; i++)
     {
       TypeNode tc = d_constructors[0]->getArgType(i);
       // if it is an uninterpreted sort, then we depend on it having cardinality
