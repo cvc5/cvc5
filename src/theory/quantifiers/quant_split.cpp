@@ -51,7 +51,9 @@ void QuantDSplit::checkOwnership(Node q)
       if (dt.isRecursiveSingleton(tn))
       {
         Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is recursive singleton." << std::endl;
-      }else{
+      }
+      else
+      {
         if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
           // split if it is a finite datatype
           doSplit = dt.isInterpretedFinite(tn);

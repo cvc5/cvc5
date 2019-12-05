@@ -309,7 +309,7 @@ class DTypeConstructor
   /** for each type, a cache mapping from shared selectors to
    * its argument index for this constructor.
    */
-  mutable std::map<TypeNode, std::map<Node, unsigned> > d_sharedSelectorIndex;  
+  mutable std::map<TypeNode, std::map<Node, unsigned> > d_sharedSelectorIndex;
 }; /* class DTypeConstructor */
 
 /**
