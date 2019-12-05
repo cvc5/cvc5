@@ -122,7 +122,7 @@ class VariadicTrie
  * The high level idea is we construct solutions for C of the form
  *   d_1 AND ... AND d_n
  * where the above conjunction is weakened based on only including conjuncts
- * that in the unsat core of d_1 AND ... AND d_n => B.
+ * that are in the unsat core of d_1 AND ... AND d_n => B.
  *
  * while(true){
  *   Let e_i = next_sygus_enum();
