@@ -118,7 +118,8 @@ class VariadicTrie
  *
  * Let the synthesis conjecture be of the form exists C. forall x. C[x] => B[x]
  * such that S[x] ^ C[x] is satisfiable. We refer to S as the side condition
- * for this conjecture.
+ * for this conjecture. Notice that A in this variant is false, hence the
+ * algorithm below is modified accordingly.
  *
  * The high level idea is we construct solutions for C of the form
  *   d_1 AND ... AND d_n
@@ -133,7 +134,8 @@ class VariadicTrie
  *   Let D = {}.
  *   while
  *     D[v] is true for some v in pts(B), and
- *     d'[v] is false for some d' in pool(B)
+ *     d'[v] is false for some d' in pool(B) and
+ *     no element of cores(B) is a subset of D ++ { d' }
  *   {
  *     D += { d' }
  *     if D is false for all v in pts(B)

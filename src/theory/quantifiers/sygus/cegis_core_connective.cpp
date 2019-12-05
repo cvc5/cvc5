@@ -712,17 +712,24 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
   bool addSuccess = true;
   // Ensure that the current conjunction evaluates to false on all refinement
   // points. We get refinement points until we have exhausted.
-  // In terms of Variant #2, this is outer while loop that adds points to D
+  // In terms of Variant #2, this is inner while loop that adds points to D
   // while there exists a point in pts(B) such that D is true.
   Node mvId;
   do
   {
     mvs.clear();
     Trace("sygus-ccore-debug") << "...get refinement pt..." << std::endl;
+    // In terms of Variant #2, this implements the line:
+    //   "D[v] is true for some v in pts(B)",
+    // where v is stored in mvs.
     mvId = ccheck.getRefinementPt(this, an, visited, mvs);
     if (!mvId.isNull())
     {
       Trace("sygus-ccore-debug") << "...got " << mvs << std::endl;
+      // In terms of Variant #2, this checks the conditions:
+      //   "d'[v] is false for some d' in pool(B)" and
+      //   "no element of cores(B) is a subset of D ++ { d' }"
+      // and adds d' to D (asserts) if possible.
       addSuccess = ccheck.addToAsserts(this, passerts, mvs, mvId, asserts, an);
       Trace("sygus-ccore-debug")
           << "...add success is " << addSuccess << std::endl;
@@ -740,6 +747,9 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
   }
   Trace("sygus-ccore") << "----- Initial candidate is " << an << std::endl;
 
+  // We now have constructed an initial candidate for D. In terms of Variant #2,
+  // we now enter the block code within "if D is false for all v in pts(B)".
+  // Further refinements to D are made as the following do-while loop proceeds.
   do
   {
     addSuccess = false;
@@ -748,7 +758,6 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     checkSol.setIsInternalSubsolver();
     checkSol.setLogic(smt::currentSmtEngine()->getLogicInfo());
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
-    // In terms of Variant #2, this is the check "if D => B"
     std::vector<Node> rasserts = asserts;
     rasserts.push_back(ccheck.getFormula());
     std::shuffle(rasserts.begin(), rasserts.end(), Random::getRandom());
@@ -759,10 +768,13 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     }
     Result r = checkSol.checkSat();
     Trace("sygus-ccore") << "----- check-sat returned " << r << std::endl;
+    // In terms of Variant #2, this is the check "if D => B"
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
-      // it entails the postcondition
-      // get the unsat core
+      // it entails the postcondition, now get the unsat core
+      // In terms of Variant #2, this is the line
+      //   "Let U be a subset of D such that U ^ ~B is unsat."
+      // and uasserts is set to U.
       std::vector<Node> uasserts;
       bool hasQuery = getUnsatCore(checkSol, ccheck.getFormula(), uasserts);
       // now, check the side condition
@@ -771,7 +783,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       {
         if (!hasQuery)
         {
-          // already know false
+          // Already know it trivially rewrites to false, don't need
+          // to use unsat cores.
           falseCore = true;
         }
         else
@@ -790,7 +803,9 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
               << "----- check-sat returned " << rsc << std::endl;
           if (rsc.asSatisfiabilityResult().isSat() == Result::UNSAT)
           {
-            // can minimize based on this
+            // In terms of Variant #2, this is the line
+            //   "Let W be a subset of D such that S ^ W is unsat."
+            // and uasserts is set to W.
             uasserts.clear();
             getUnsatCore(checkSc, d_sc, uasserts);
             falseCore = true;
@@ -800,8 +815,11 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
 
       if (!falseCore)
       {
+        // In terms of Variant #2, this is the line:
+        //   "return u_1 AND ... AND u_m where U = { u_1, ..., u_m }".
         Trace("sygus-ccore") << ">>> Solution : " << uasserts << std::endl;
-
+        // We convert the builtin solution to a sygus datatype to
+        // communicate with the sygus solver.
         Node sol = ccheck.getSygusSolution(uasserts);
         Trace("sygus-ccore-sy") << "Sygus solution : " << sol << std::endl;
         return sol;
@@ -812,17 +830,19 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         Node xu = uasserts[0];
         Trace("sygus-ccore")
             << "--- Add false core : " << uasserts << std::endl;
-        // notice that a singleton false core should be removed from pool
+        // notice that a singleton false core could be removed from pool
         // in the case that (uasserts.size() == 1).
         std::sort(uasserts.begin(), uasserts.end());
-        // add false core
+        // In terms of Variant #2, this is "cores(B) += W".
         ccheck.addFalseCore(query, uasserts);
         // remove and continue
+        // In terms of Variant #2, this is "remove some d'' in W from D".
         std::vector<Node>::iterator ita =
             std::find(asserts.begin(), asserts.end(), xu);
         Assert(ita != asserts.end());
         asserts.erase(ita);
-        // start over, since now we don't know which points were required
+        // Start over, since now we don't know which points are required to
+        // falsify.
         return constructSolutionFromPool(ccheck, asserts, passerts);
       }
     }
@@ -836,8 +856,12 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       Node ean = evaluate(an, Node::null(), mvs);
       Assert(ean.isConst() && ean.getConst<bool>());
       Trace("sygus-ccore") << "--- Add refinement point " << mvs << std::endl;
+      // In terms of Variant #2, this is the line:
+      //   "pts(B) += { v } where { x -> v } is a model for D ^ ~B".
       ccheck.addRefinementPt(query, mvs);
       Trace("sygus-ccore-debug") << "...get new assertion..." << std::endl;
+      // In terms of Variant #2, this rechecks the condition of the inner while
+      // loop and attempts to add a new assertion to D.
       addSuccess = ccheck.addToAsserts(this, passerts, mvs, query, asserts, an);
       Trace("sygus-ccore-debug") << "...success is " << addSuccess << std::endl;
     }
