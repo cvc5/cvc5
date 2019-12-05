@@ -418,68 +418,6 @@ class DType
   void toStream(std::ostream& out) const;
 
  private:
-  /** name of this datatype */
-  std::string d_name;
-  /** the type parameters of this datatype (if this is a parametric datatype)
-   */
-  std::vector<TypeNode> d_params;
-  /** whether the datatype is a codatatype. */
-  bool d_isCo;
-  /** whether the datatype is a tuple */
-  bool d_isTuple;
-  /** the constructors of this datatype */
-  std::vector<std::shared_ptr<DTypeConstructor> > d_constructors;
-  /** whether this datatype has been resolved */
-  bool d_resolved;
-  /** self type */
-  mutable TypeNode d_self;
-  /** cache for involves external type */
-  bool d_involvesExt;
-  /** cache for involves uninterpreted type */
-  bool d_involvesUt;
-  /** the builtin type that this sygus type encodes */
-  TypeNode d_sygusType;
-  /** the variable list for the sygus function to synthesize */
-  Node d_sygusBvl;
-  /** whether all constants are allowed as solutions */
-  bool d_sygusAllowConst;
-  /** whether all terms are allowed as solutions */
-  bool d_sygusAllowAll;
-
-  /** the cardinality of this datatype
-   * "mutable" because computing the cardinality can be expensive,
-   * and so it's computed just once, on demand---this is the cache
-   */
-  mutable Cardinality d_card;
-
-  /** is this type a recursive singleton type?
-   * The range of this map stores
-   * 0 if the field has not been computed,
-   * 1 if this datatype is a recursive singleton type,
-   * -1 if this datatype is not a recursive singleton type.
-   * For definition of (co)recursive singleton, see
-   * Section 2 of Reynolds et al. CADE 2015.
-   */
-  mutable std::map<TypeNode, int> d_cardRecSingleton;
-  /** if d_cardRecSingleton is true,
-   * This datatype has infinite cardinality if at least one of the
-   * following uninterpreted sorts having cardinality > 1.
-   */
-  mutable std::map<TypeNode, std::vector<TypeNode> > d_cardUAssume;
-  /**
-   * Cache of whether this datatype is well-founded, where 0 means we have
-   * not computed this information, 1 means it is well-founded, -1 means it is
-   * not.
-   */
-  mutable int d_wellFounded;
-  /** cache of ground term for this datatype */
-  mutable std::map<TypeNode, Node> d_groundTerm;
-  /** cache of ground values for this datatype */
-  mutable std::map<TypeNode, Node> d_groundValue;
-  /** cache of shared selectors for this datatype */
-  mutable std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >
-      d_sharedSel;
-
   /**
    * DTypes refer to themselves, recursively, and we have a
    * chicken-and-egg problem.  The TypeNode around the DType
@@ -554,6 +492,67 @@ class DType
    * Helper for mkGroundTerm and mkGroundValue above.
    */
   Node mkGroundTermInternal(TypeNode t, bool isValue) const;
+  /** name of this datatype */
+  std::string d_name;
+  /** the type parameters of this datatype (if this is a parametric datatype)
+   */
+  std::vector<TypeNode> d_params;
+  /** whether the datatype is a codatatype. */
+  bool d_isCo;
+  /** whether the datatype is a tuple */
+  bool d_isTuple;
+  /** the constructors of this datatype */
+  std::vector<std::shared_ptr<DTypeConstructor> > d_constructors;
+  /** whether this datatype has been resolved */
+  bool d_resolved;
+  /** self type */
+  mutable TypeNode d_self;
+  /** cache for involves external type */
+  bool d_involvesExt;
+  /** cache for involves uninterpreted type */
+  bool d_involvesUt;
+  /** the builtin type that this sygus type encodes */
+  TypeNode d_sygusType;
+  /** the variable list for the sygus function to synthesize */
+  Node d_sygusBvl;
+  /** whether all constants are allowed as solutions */
+  bool d_sygusAllowConst;
+  /** whether all terms are allowed as solutions */
+  bool d_sygusAllowAll;
+
+  /** the cardinality of this datatype
+   * "mutable" because computing the cardinality can be expensive,
+   * and so it's computed just once, on demand---this is the cache
+   */
+  mutable Cardinality d_card;
+
+  /** is this type a recursive singleton type?
+   * The range of this map stores
+   * 0 if the field has not been computed,
+   * 1 if this datatype is a recursive singleton type,
+   * -1 if this datatype is not a recursive singleton type.
+   * For definition of (co)recursive singleton, see
+   * Section 2 of Reynolds et al. CADE 2015.
+   */
+  mutable std::map<TypeNode, int> d_cardRecSingleton;
+  /** if d_cardRecSingleton is true,
+   * This datatype has infinite cardinality if at least one of the
+   * following uninterpreted sorts having cardinality > 1.
+   */
+  mutable std::map<TypeNode, std::vector<TypeNode> > d_cardUAssume;
+  /** 
+   * Cache of whether this datatype is well-founded, where 0 means we have
+   * not computed this information, 1 means it is well-founded, -1 means it is
+   * not.
+   */
+  mutable int d_wellFounded;
+  /** cache of ground term for this datatype */
+  mutable std::map<TypeNode, Node> d_groundTerm;
+  /** cache of ground values for this datatype */
+  mutable std::map<TypeNode, Node> d_groundValue;
+  /** cache of shared selectors for this datatype */
+  mutable std::map<TypeNode, std::map<TypeNode, std::map<unsigned, Node> > >
+      d_sharedSel;
 }; /* class DType */
 
 /**
