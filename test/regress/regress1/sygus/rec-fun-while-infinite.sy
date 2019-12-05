@@ -1,5 +1,5 @@
 ; EXPECT: unknown
-; COMMAND-LINE: --sygus-out=status --lang=sygus2 --sygus-rec-fun --no-e-matching --no-check-synth-sol
+; COMMAND-LINE: --sygus-out=status --lang=sygus2 --no-check-synth-sol
 
 (set-logic ALL)
 

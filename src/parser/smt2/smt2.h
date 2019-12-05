@@ -75,7 +75,7 @@ class Smt2 : public Parser
   std::unordered_map<std::string, Kind> operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
-   * BITVECTOR_EXTRACT_OP).
+   * BITVECTOR_EXTRACT).
    */
   std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
@@ -106,7 +106,7 @@ class Smt2 : public Parser
    *              BITVECTOR_EXTRACT). NOTE: this is an internal kind for now
    *              because that is what we use to create expressions. Eventually
    *              it will be an api::Kind.
-   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT_OP)
+   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT)
    * @param name The name of the symbol (e.g. "extract")
    */
   void addIndexedOperator(Kind tKind,
@@ -141,8 +141,8 @@ class Smt2 : public Parser
    * @return The operator term corresponding to the indexed operator or a parse
    *         error if the name is not valid.
    */
-  api::OpTerm mkIndexedOp(const std::string& name,
-                          const std::vector<uint64_t>& numerals);
+  api::Op mkIndexedOp(const std::string& name,
+                      const std::vector<uint64_t>& numerals);
 
   /**
    * Returns the expression that name should be interpreted as.
@@ -214,7 +214,7 @@ class Smt2 : public Parser
                                              const std::vector<Expr>& guards,
                                              const std::vector<Expr>& heads,
                                              Expr body);
-                                             
+
   /**
    * Class for creating instances of `SynthFunCommand`s. Creating an instance
    * of this class pushes the scope, destroying it pops the scope.
