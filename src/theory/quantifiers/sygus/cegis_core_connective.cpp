@@ -313,6 +313,8 @@ bool CegisCoreConnective::constructSolution(
       continue;
     }
     Component& cfilter = d == 0 ? d_post : d_pre;
+    // In terms of the algorithm described in the h file, this gets the formula
+    // A (or B, depending on the direction d).
     Node fpred = cfilter.getFormula();
     if (!fpred.isNull() && !fpred.isConst())
     {
@@ -344,6 +346,7 @@ bool CegisCoreConnective::constructSolution(
     }
     Trace("sygus-ccore-debug")
         << "...add to pool in direction " << d << std::endl;
+    // implements e.g. pool(B) += e_i.
     ccheck.addToPool(etsr, cval);
 
     // ----- get the pool of assertions and randomize it
@@ -697,6 +700,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
                                                     std::vector<Node>& asserts,
                                                     std::vector<Node>& passerts)
 {
+  // In terms of Variant #2, the set D is represented by asserts. The available
+  // set of prediates pool(B) is represented by passerts.
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-ccore") << "------ Get initial candidate..." << std::endl;
   Node an = asserts.empty()
@@ -707,6 +712,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
   bool addSuccess = true;
   // Ensure that the current conjunction evaluates to false on all refinement
   // points. We get refinement points until we have exhausted.
+  // In terms of Variant #2, this is outer while loop that adds points to D
+  // while there exists a point in pts(B) such that D is true.
   Node mvId;
   do
   {
@@ -741,6 +748,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     checkSol.setIsInternalSubsolver();
     checkSol.setLogic(smt::currentSmtEngine()->getLogicInfo());
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
+    // In terms of Variant #2, this is the check "if D => B"
     std::vector<Node> rasserts = asserts;
     rasserts.push_back(ccheck.getFormula());
     std::shuffle(rasserts.begin(), rasserts.end(), Random::getRandom());
@@ -768,6 +776,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         }
         else
         {
+          // In terms of Variant #2, this is the check "if S ^ U is unsat"
           Trace("sygus-ccore") << "----- Check side condition" << std::endl;
           SmtEngine checkSc(nm->toExprManager());
           checkSc.setIsInternalSubsolver();

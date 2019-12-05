@@ -105,7 +105,7 @@ class VariadicTrie
  *     D += { d' }
  *     if D is false for all v in pts(B)
  *       if D => B
- *         return d_1 AND ... AND d_n
+ *         return AND_{d in D}( d )
  *       else
  *         pts(B) += { v } where { x -> v } is a model for D ^ ~B
  *   }
@@ -228,6 +228,11 @@ class CegisCoreConnective : public Cegis
     /**
      * Selects a node from passerts that evaluates to false on point mv if one
      * exists, or otherwise returns false.
+     * The argument mvId is an identifier used for indexing the point mv.
+     * The argument asserts stores the current candidate solution (set D in
+     * Variant #2 described above). If the method returns true, it updates
+     * an (the node version of asserts) to be the conjunction of the nodes
+     * in asserts.
      *
      * If true is returned, it is removed from passerts.
      */
