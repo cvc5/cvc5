@@ -342,6 +342,24 @@ enum QuantRepMode {
   QUANT_REP_MODE_DEPTH,
 };
 
+/**
+ * Modes for piecewise-independent unification for synthesis (see Barbosa et al
+ * FMCAD 2019).
+ */
+enum SygusUnifPiMode
+{
+  /** do not do piecewise-independent unification for synthesis */
+  SYGUS_UNIF_PI_NONE,
+  /** use (finite-model) complete piecewise-independent unification */
+  SYGUS_UNIF_PI_COMPLETE,
+  /** use approach based on condition enumeration for piecewise-independent
+     unification */
+  SYGUS_UNIF_PI_CENUM,
+  /** use approach based on condition enumeration with information gain
+     heuristics for piecewise-independent unification */
+  SYGUS_UNIF_PI_CENUM_IGAIN,
+};
+
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 

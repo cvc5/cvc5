@@ -569,6 +569,27 @@ auto (default) \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusUnifPiHelp =
+    "\
+Modes for piecewise-independent unification supported by --sygus-unif-pi:\n\
+\n\
+none  \n\
++ Do not use piecewise-independent unification.\n\
+\n\
+complete \n\
++ Use complete approach for piecewise-independent unification (see Section 3\n\
+of Barbosa et al FMCAD 2019).\n\
+\n\
+cond-enum  \n\
++ Use unconstrained condition enumeration for piecewise-independent\n\
+unification (see Section 4 of Barbosa et al FMCAD 2019).\n\
+\n\
+cond-enum-igain \n\
++ Same as cond-enum, but additionally uses an information gain heuristic\n\
+when doing decision tree learning.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_sygusGrammarConsHelp =
     "\
 Modes for default SyGuS grammars, supported by --sygus-grammar-cons:\n\
@@ -1138,6 +1159,37 @@ OptionsHandler::stringToSygusGrammarConsMode(std::string option,
     throw OptionException(
         std::string("unknown option for --sygus-grammar-cons: `") + optarg
         + "'.  Try --sygus-grammar-cons help.");
+  }
+}
+
+theory::quantifiers::SygusUnifPiMode OptionsHandler::stringToSygusUnifPiMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_NONE;
+  }
+  else if (optarg == "complete")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_COMPLETE;
+  }
+  else if (optarg == "cond-enum")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_CENUM;
+  }
+  else if (optarg == "cond-enum-igain")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_CENUM_IGAIN;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusUnifPiHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-unif-pi: `")
+                          + optarg + "'.  Try --sygus-unif-pi help.");
   }
 }
 
