@@ -490,6 +490,7 @@ set(regress_0_tests
   regress0/ho/finite-fun-ext.smt2
   regress0/ho/fta0144-alpha-eq.smt2
   regress0/ho/fta0210.smt2
+  regress0/ho/fun-subtyping.smt2
   regress0/ho/ho-exponential-model.smt2
   regress0/ho/ho-match-fun-suffix.smt2
   regress0/ho/ho-matching-enum.smt2
@@ -857,6 +858,7 @@ set(regress_0_tests
   regress0/smtlib/reset-force-logic.smt2
   regress0/smtlib/reset-set-logic.smt2
   regress0/smtlib/set-info-status.smt2
+  regress0/strings/bidir_star.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2

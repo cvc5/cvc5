@@ -1890,8 +1890,19 @@ class CVC4_PUBLIC Solver
                const std::vector<Term>& terms) const;
 
   /* .................................................................... */
-  /* Create Operator Terms                                                */
+  /* Create Operators                                                     */
   /* .................................................................... */
+
+  /**
+   * Create an operator for a builtin Kind
+   * The Kind may not be the Kind for an indexed operator
+   *   (e.g. BITVECTOR_EXTRACT)
+   * Note: in this case, the Op simply wraps the Kind.
+   * The Kind can be used in mkTerm directly without
+   *   creating an op first.
+   * @param kind the kind to wrap
+   */
+  Op mkOp(Kind kind) const;
 
   /**
    * Create operator of kind:
