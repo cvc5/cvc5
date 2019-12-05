@@ -148,6 +148,13 @@ Node mkSygusTerm(const Datatype& dt,
                  const std::vector<Node>& children,
                  bool doBetaReduction = true);
 /**
+ * Same as above, but we already have the sygus operator op. The above method
+ * is syntax sugar for calling this method on dt[i].getSygusOp().
+ */
+Node mkSygusTerm(Node op,
+                 const std::vector<Node>& children,
+                 bool doBetaReduction = true);
+/**
  * n is a builtin term that is an application of operator op.
  *
  * This returns an n' such that (eval n args) is n', where n' is a instance of

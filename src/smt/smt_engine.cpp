@@ -1923,16 +1923,6 @@ void SmtEngine::setDefaults() {
         options::cbqi.set(true);
       }
     }
-    // setting unif requirements
-    if (options::sygusUnifBooleanHeuristicDt()
-        && !options::sygusUnifCondIndependent())
-    {
-      options::sygusUnifCondIndependent.set(true);
-    }
-    if (options::sygusUnifCondIndependent() && !options::sygusUnif())
-    {
-      options::sygusUnif.set(true);
-    }
   }
   if (options::sygusInference())
   {
