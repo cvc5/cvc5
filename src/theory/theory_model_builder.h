@@ -217,8 +217,8 @@ class TheoryEngineModelBuilder : public ModelBuilder
 
   /** Theory engine model builder assigner class
    *
-   * This manages the assignment of values to a terms of a given type.
-   * In particular, it is a wrapper over a type enumerator that is restricted
+   * This manages the assignment of values to terms of a given type.
+   * In particular, it is a wrapper around a type enumerator that is restricted
    * by a set of values that it cannot generate, called an "assignment exclusion
    * set".
    */
@@ -237,7 +237,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
     Node getNextAssignment();
     /** The type enumerator */
     std::unique_ptr<TypeEnumerator> d_te;
-    /** The assignment exclusion set of this */
+    /** The assignment exclusion set of this Assigner */
     std::vector<Node> d_assignExcSet;
     /**
      * Is active, flag set to true when all values in d_assignExcSet are
@@ -253,7 +253,36 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * these values whenever possible.
    */
   bool isAssignerActive(TheoryModel* tm, Assigner& a);
-
+  /** compute assignable information
+   * 
+   * This computes necessary information pertaining to how values should be
+   * assigned to equivalence classes in the equality engine of tm.
+   * 
+   * The argument tep stores global information about how values should be
+   * assigned, such as information on how many uninterpreted constant
+   * values are available, which is restricted if finite model finding is
+   * enabled.
+   * 
+   * In particular this method constructs the following, passed as arguments:
+   * (1) assignableEqc: the set of equivalence classes that are "assignable",
+   * i.e. those that have an assignable expression in them (see isAssignable),
+   * and have not already been assigned a constant,
+   * (2) evaluableEqc: the set of equivalence classes that are "evaluable", i.e.
+   * those that have an expression in them that is not assignable, and have not
+   * already been assigned,
+   * (3) eqcToAssigner: assigner objects for relevant equivalence classes that
+   * require special ways of assigning values, e.g. those that take into
+   * account assignment exclusion sets,
+   * (4) eqcToAssignerMaster: a map from equivalence classes to the equivalence
+   * class that it shares an assigner object (all elements in the range of this
+   * map are in the domain of eqcToAssigner).
+   */
+  void computeAssignableInfo(TheoryModel* tm,
+                                                     TypeEnumeratorProperties& tep,
+                             std::unordered_set<Node, NodeHashFunction>& assignableEqc,
+                             std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
+                             std::map<Node, Assigner>& eqcToAssigner,
+                             std::map<Node, Node>& eqcToAssignerMaster);
   //------------------------------------for codatatypes
   /** is v an excluded codatatype value?
    *

@@ -180,10 +180,10 @@ public:
                                       const std::vector<Node>& eset);
   /** get assignment exclusion set for term n
    *
-   * This method returns true if n has been given an assignment exclusion set,
-   * and appends it to eset. Otherwise it returns false.
+   * If n has been given an assignment exclusion set, then this method returns
+   * true and the set is added to eset. Otherwise, the method returns false.
    *
-   * If n was assigned an assignment exclusion set via a call to
+   * Additionally, if n was assigned an assignment exclusion set via a call to
    * setAssignmentExclusionSetGroup, it adds all members that were passed
    * in the first argument of that call to the vector group. Otherwise, it
    * adds n itself to group.
