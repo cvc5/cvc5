@@ -30,7 +30,7 @@
 #include "prop/sat_solver_types.h"
 #include "utils.h"
 
-#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
+#if IS_LFSC_BUILD
   #include "lfscc.h"
 #endif
 
@@ -457,6 +457,8 @@ void ErProofBlack::testErTraceCheckOutputMedium()
   std::stringstream actual_pf;
   actual_pf << proof::plf_signatures << pf_header << actual_pf_body.str() << pf_footer;
 
+#if IS_LFSC_BUILD
   lfscc_init();
   lfscc_check_file(actual_pf, false, false, false, false, false, false, false);
+#endif
 }
