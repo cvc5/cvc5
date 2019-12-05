@@ -333,7 +333,7 @@ class CegisCoreConnective : public Cegis
    */
   void getModel(SmtEngine& smt, std::vector<Node>& mvs) const;
   /**
-   * Assuming smt has just been called to check-sat and returned "SAT", this
+   * Assuming smt has just been called to check-sat and returned "UNSAT", this
    * method get the unsat core and adds it to uasserts.
    *
    * If query is non-null, then it is excluded from uasserts. If query was
