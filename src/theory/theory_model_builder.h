@@ -274,8 +274,8 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * require special ways of assigning values, e.g. those that take into
    * account assignment exclusion sets,
    * (4) eqcToAssignerMaster: a map from equivalence classes to the equivalence
-   * class that it shares an assigner object (all elements in the range of this
-   * map are in the domain of eqcToAssigner).
+   * class that it shares an assigner object with (all elements in the range of
+   * this map are in the domain of eqcToAssigner).
    */
   void computeAssignableInfo(
       TheoryModel* tm,
