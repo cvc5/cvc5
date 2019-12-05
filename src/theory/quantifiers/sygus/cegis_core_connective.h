@@ -90,7 +90,7 @@ class VariadicTrie
  *
  * while(true){
  *   Let e_i = next_sygus_enum();
- *   // check if e_i should be added to the pool
+ *   // check if e_i should be added to pool(B)
  *   if e_i[v] is true for all v in pts(A)
  *     if A => e_i
  *       pool(B) += e_i;
