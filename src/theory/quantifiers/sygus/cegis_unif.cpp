@@ -151,7 +151,7 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
         // set enums for condition enumerators
         if (index == 1)
         {
-          if (options::sygusUnifCondIndependent())
+          if (usingConditionEnum())
           {
             Assert(es.size() == 1);
             // whether valueus exhausted
@@ -228,6 +228,11 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
   return !addedUnifEnumSymBreakLemma;
 }
 
+bool CegisUnif::usingConditionEnum() const
+{
+  return d_sygus_unif.usingConditionEnum();
+}
+  
 void CegisUnif::setConditions(
     const std::map<Node, std::vector<Node>>& unif_cenums,
     const std::map<Node, std::vector<Node>>& unif_cvalues,
@@ -250,7 +255,7 @@ void CegisUnif::setConditions(
       // d_sygus_unif.setConditions(e, cost_lit, unif_cenums[e],
       // unif_cvalues[e]); if condition enumerator had value and it is being
       // passively generated, exclude this value
-      if (options::sygusUnifCondIndependent() && !itc->second.empty())
+      if (usingConditionEnum() && !itc->second.empty())
       {
         Node eu = itc->second[0];
         Assert(d_tds->isEnumerator(eu));
@@ -321,7 +326,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     // if condition values are being indepedently enumerated, they should be
     // communicated to the decision tree strategies indepedently of we
     // proceeding to attempt solution building
-    if (options::sygusUnifCondIndependent())
+    if (usingConditionEnum())
     {
       setConditions(unif_cenums, unif_cvalues, lems);
     }
@@ -353,7 +358,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   }
 
   // TODO tie this to the lemma for getting a new condition value
-  Assert(options::sygusUnifCondIndependent() || !lemmas.empty());
+  Assert(usingConditionEnum() || !lemmas.empty());
   for (const Node& lem : lemmas)
   {
     Trace("cegis-unif-lemma")
@@ -400,6 +405,8 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
 {
   d_initialized = false;
   d_tds = d_qe->getTermDatabaseSygus();
+  SygusUnifPiMode mode = options::sygusUnifPi();
+  d_useCondEnum = mode==SYGUS_UNIF_PI_CENUM || mode==SYGUS_UNIF_PI_CENUM_IGAIN;
 }
 
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
@@ -415,7 +422,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     TypeNode ct = c.getType();
     Node eu = nm->mkSkolem("eu", ct);
     Node ceu;
-    if (!options::sygusUnifCondIndependent() && !ci.second.d_enums[0].empty())
+    if (!d_useCondEnum && !ci.second.d_enums[0].empty())
     {
       // make a new conditional enumerator as well, starting the
       // second type around
@@ -554,7 +561,7 @@ void CegisUnifEnumDecisionStrategy::initialize(
       DecisionManager::STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS, this);
 
   // create single condition enumerator for each decision tree strategy
-  if (options::sygusUnifCondIndependent())
+  if (d_useCondEnum)
   {
     // allocate a condition enumerator for each candidate
     for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
@@ -576,7 +583,7 @@ void CegisUnifEnumDecisionStrategy::getEnumeratorsForStrategyPt(
   if (index == 1)
   {
     // we always use (cost-1) conditions, or 1 if in the indepedent case
-    num_enums = !options::sygusUnifCondIndependent() ? num_enums - 1 : 1;
+    num_enums = !d_useCondEnum ? num_enums - 1 : 1;
   }
   if (num_enums > 0)
   {
@@ -622,7 +629,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   // if we are using a single independent enumerator for conditions, then we
   // allocate an active guard, and are eligible to use variable-agnostic
   // enumeration.
-  if (options::sygusUnifCondIndependent() && index == 1)
+  if (d_useCondEnum && index == 1)
   {
     erole = ROLE_ENUM_POOL;
   }

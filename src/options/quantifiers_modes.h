@@ -354,10 +354,10 @@ enum SygusUnifPiMode
   SYGUS_UNIF_PI_COMPLETE,
   /** use approach based on condition enumeration for piecewise-independent
      unification */
-  SYGUS_UNIF_PI_CONDITION_ENUM,
+  SYGUS_UNIF_PI_CENUM,
   /** use approach based on condition enumeration with information gain
      heuristics for piecewise-independent unification */
-  SYGUS_UNIF_PI_CONDITION_ENUM_IGAIN,
+  SYGUS_UNIF_PI_CENUM_IGAIN,
 };
 
 }/* CVC4::theory::quantifiers namespace */

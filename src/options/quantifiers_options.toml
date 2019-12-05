@@ -961,36 +961,12 @@ header = "options/quantifiers_options.h"
   help       = "mode for synthesis via piecewise-indepedent unification"
 
 [[option]]
-  name       = "sygusUnif"
-  category   = "regular"
-  long       = "sygus-unif"
-  type       = "bool"
-  default    = "false"
-  help       = "Unification-based function synthesis"
-
-[[option]]
-  name       = "sygusUnifCondIndependent"
-  category   = "regular"
-  long       = "sygus-unif-cond-independent"
-  type       = "bool"
-  default    = "false"
-  help       = "Synthesize conditions indepedently from return values (may generate bigger solutions)"
-
-[[option]]
   name       = "sygusUnifShuffleCond"
   category   = "regular"
   long       = "sygus-unif-shuffle-cond"
   type       = "bool"
   default    = "false"
   help       = "Shuffle condition pool when building solutions (may change solutions sizes)"
-
-[[option]]
-  name       = "sygusUnifBooleanHeuristicDt"
-  category   = "regular"
-  long       = "sygus-unif-boolean-heuristic-dt"
-  type       = "bool"
-  default    = "false"
-  help       = "Build boolean solutions using heuristic decision tree learning (generates smaller solutions)"
 
 [[option]]
   name       = "sygusUnifCondIndNoRepeatSol"

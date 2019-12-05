@@ -1187,7 +1187,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // TODO #1935 ITEs are added to Boolean grammars so that we can infer
       // unification strategies. We can do away with this if we can infer
       // unification strategies from and/or/not
-      if (k == ITE && !options::sygusUnif())
+      if (k == ITE && options::sygusUnifPi()==SYGUS_UNIF_PI_NONE)
       {
         continue;
       }
