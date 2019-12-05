@@ -700,8 +700,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
                                                     std::vector<Node>& asserts,
                                                     std::vector<Node>& passerts)
 {
-  // In terms of Variant #2 from the header file, the set D is represented by asserts. The available
-  // set of prediates pool(B) is represented by passerts.
+  // In terms of Variant #2 from the header file, the set D is represented by
+  // asserts. The available set of prediates pool(B) is represented by passerts.
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-ccore") << "------ Get initial candidate..." << std::endl;
   Node an = asserts.empty()
