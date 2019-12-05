@@ -189,8 +189,13 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   TypeNode ntn = n.getType();
   if (!ntn.isDatatype())
   {
-    // sygus datatype fields that are not sygus datatypes are treated as
-    // abstractions only, hence we disregard this field
+    // SyGuS datatype fields that are not sygus datatypes are treated as
+    // abstractions only, hence we disregard this field. It is important
+    // that users of this method pay special attention to any constants,
+    // otherwise the explanation n.eqNode(vn) is necessary here. For example,
+    // any lemma schema that blocks the current value of an enumerator should
+    // not make any assumptions about the value of the arguments of its any
+    // constant constructors, since their explanation is not included here.
     return;
   }
   Assert(vn.getKind() == APPLY_CONSTRUCTOR);
