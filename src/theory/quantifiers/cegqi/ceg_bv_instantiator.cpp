@@ -384,7 +384,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
   std::stack<std::unordered_map<TNode, Node, TNodeHashFunction> > visited;
   visited.push(std::unordered_map<TNode, Node, TNodeHashFunction>());
   // whether the visited term contains pv
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited_contains_pv;
+  std::unordered_map<Node, bool, NodeHashFunction> visited_contains_pv;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::unordered_map<TNode, Node, TNodeHashFunction> curr_subs;
   std::stack<std::stack<TNode> > visit;
@@ -534,7 +534,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
     Node pv,
     Node n,
     std::vector<Node>& children,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
 {
   NodeManager* nm = NodeManager::currentNM();
 

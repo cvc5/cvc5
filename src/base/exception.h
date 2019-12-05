@@ -128,7 +128,7 @@ template <class T> inline void CheckArgument(bool cond, const T& arg,
 template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED,
                                              const char* tail CVC4_UNUSED) {
   if(__builtin_expect( ( !cond ), false )) { \
-    throw ::CVC4::IllegalArgumentException("", "", ""); \
+    throw ::CVC4::IllegalArgumentException("", "", tail); \
   } \
 }
 template <class T> inline void CheckArgument(bool cond, const T& arg)
