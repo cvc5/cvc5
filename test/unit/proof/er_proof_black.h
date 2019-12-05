@@ -430,6 +430,7 @@ void ErProofBlack::testErTraceCheckOutputMedium()
   std::ostringstream actual_pf_body;
   pf.outputAsLfsc(actual_pf_body);
 
+#if IS_LFSC_BUILD
   std::string pf_header = R"EOF(
     (check
       (% bb.v0 var
@@ -457,7 +458,6 @@ void ErProofBlack::testErTraceCheckOutputMedium()
   std::stringstream actual_pf;
   actual_pf << proof::plf_signatures << pf_header << actual_pf_body.str() << pf_footer;
 
-#if IS_LFSC_BUILD
   lfscc_init();
   lfscc_check_file(actual_pf, false, false, false, false, false, false, false);
 #endif
