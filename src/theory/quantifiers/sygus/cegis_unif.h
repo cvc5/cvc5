@@ -103,6 +103,11 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
   SynthConjecture* d_parent;
+  /**
+   * Whether we are using condition pool enumeration (Section 4 of Barbosa et al
+   * FMCAD 2019). This is determined by option::sygusUnifPi().
+   */
+  bool d_useCondPool;
   /** whether this module has been initialized */
   bool d_initialized;
   /** null node */
@@ -294,6 +299,12 @@ class CegisUnif : public Cegis
                      std::map<Node, std::vector<Node>>& unif_cenums,
                      std::map<Node, std::vector<Node>>& unif_cvalues,
                      std::vector<Node>& lems);
+
+  /**
+   * Whether we are using condition pool enumeration (Section 4 of Barbosa et al
+   * FMCAD 2019). This is determined by option::sygusUnifPi().
+   */
+  bool usingConditionPool() const;
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
    * tree learning) that this module relies upon.

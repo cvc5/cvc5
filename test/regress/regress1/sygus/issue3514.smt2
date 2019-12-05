@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; COMMAND-LINE: --sygus-inference
+; COMMAND-LINE: --sygus-inference --no-check-models
 (set-logic ALL)
 (assert
  (forall ((a Real))
