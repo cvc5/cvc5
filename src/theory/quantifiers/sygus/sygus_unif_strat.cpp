@@ -102,6 +102,8 @@ void SygusUnifStrategy::initialize(QuantifiersEngine* qe,
 
 void SygusUnifStrategy::initializeType(TypeNode tn)
 {
+  Trace("sygus-unif") << "SygusUnifStrategy: initialize : " << tn << " for "
+                      << d_candidate << std::endl;
   d_tinfo[tn].d_this_type = tn;
 }
 
@@ -124,6 +126,8 @@ EnumInfo& SygusUnifStrategy::getEnumInfo(Node e)
 
 EnumTypeInfo& SygusUnifStrategy::getEnumTypeInfo(TypeNode tn)
 {
+  Trace("sygus-unif") << "SygusUnifStrategy: get : " << tn << " for "
+                      << d_candidate << std::endl;
   std::map<TypeNode, EnumTypeInfo>::iterator it = d_tinfo.find(tn);
   Assert(it != d_tinfo.end());
   return it->second;
@@ -563,6 +567,9 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
           EnumRole erole_c = getEnumeratorRoleForNodeRole(nrole_c);
           // make the enumerator
           Node et;
+          // Build the strategy recursively, regardless of whether the
+          // enumerator is templated.
+          buildStrategyGraph(ct, nrole_c);
           if (cop_to_child_templ[cop].find(j) != cop_to_child_templ[cop].end())
           {
             // it is templated, allocate a fresh variable
@@ -582,7 +589,6 @@ void SygusUnifStrategy::buildStrategyGraph(TypeNode tn, NodeRole nrole)
             Trace("sygus-unif-debug")
                 << "...child type enumerate " << ct.getDType().getName()
                 << ", node role = " << nrole_c << std::endl;
-            buildStrategyGraph(ct, nrole_c);
             // otherwise use the previous
             Assert(d_tinfo[ct].d_enum.find(erole_c)
                    != d_tinfo[ct].d_enum.end());

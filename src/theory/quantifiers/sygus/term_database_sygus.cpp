@@ -736,9 +736,9 @@ Node TermDbSygus::rewriteNode(Node n) const
       {
         return fres;
       }
-      // It may have failed, in which case there are undefined symbols in res.
-      // In this case, we revert to the result of rewriting in the return
-      // statement below.
+      // It may have failed, in which case there are undefined symbols in res or
+      // we reached the limit of evaluations. In this case, we revert to the
+      // result of rewriting in the return statement below.
     }
   }
   return res;
@@ -1077,4 +1077,3 @@ bool TermDbSygus::isEvaluationPoint(Node n) const
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-

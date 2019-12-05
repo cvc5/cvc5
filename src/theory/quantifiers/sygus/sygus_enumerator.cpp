@@ -996,6 +996,10 @@ bool SygusEnumerator::TermEnumMasterInterp::initialize(SygusEnumerator* se,
 Node SygusEnumerator::TermEnumMasterInterp::getCurrent() { return *d_te; }
 bool SygusEnumerator::TermEnumMasterInterp::increment()
 {
+  if (d_te.isFinished())
+  {
+    return false;
+  }
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   Node curr = getCurrent();
   tc.addTerm(curr);
