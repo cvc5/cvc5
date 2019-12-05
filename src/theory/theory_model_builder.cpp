@@ -553,8 +553,9 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   // object in the above map.
   std::map<Node, Node> eqcToAssignerMaster;
   // Compute the above information
-  computeAssignableInfo(tm, tep, assignableEqc, evaluableEqc, eqcToAssigner, eqcToAssignerMaster);
-                        
+  computeAssignableInfo(
+      tm, tep, assignableEqc, evaluableEqc, eqcToAssigner, eqcToAssignerMaster);
+
   // Need to ensure that each EC has a constant representative.
 
   Trace("model-builder") << "Processing EC's..." << std::endl;
@@ -946,13 +947,14 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   tm->d_modelBuiltSuccess = true;
   return true;
 }
-void TheoryEngineModelBuilder::computeAssignableInfo(TheoryModel* tm,
-                                                     TypeEnumeratorProperties& tep,
-                             std::unordered_set<Node, NodeHashFunction>& assignableEqc,
-                             std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
-                             std::map<Node, Assigner>& eqcToAssigner,
-                             std::map<Node, Node>& eqcToAssignerMaster)
-{  
+void TheoryEngineModelBuilder::computeAssignableInfo(
+    TheoryModel* tm,
+    TypeEnumeratorProperties& tep,
+    std::unordered_set<Node, NodeHashFunction>& assignableEqc,
+    std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
+    std::map<Node, Assigner>& eqcToAssigner,
+    std::map<Node, Node>& eqcToAssignerMaster)
+{
   eq::EqualityEngine* ee = tm->d_equalityEngine;
   bool computeAssigners = tm->hasAssignmentExclusionSets();
   std::unordered_set<Node, NodeHashFunction> processed;

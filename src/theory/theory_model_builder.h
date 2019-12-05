@@ -254,15 +254,15 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   bool isAssignerActive(TheoryModel* tm, Assigner& a);
   /** compute assignable information
-   * 
+   *
    * This computes necessary information pertaining to how values should be
    * assigned to equivalence classes in the equality engine of tm.
-   * 
+   *
    * The argument tep stores global information about how values should be
    * assigned, such as information on how many uninterpreted constant
    * values are available, which is restricted if finite model finding is
    * enabled.
-   * 
+   *
    * In particular this method constructs the following, passed as arguments:
    * (1) assignableEqc: the set of equivalence classes that are "assignable",
    * i.e. those that have an assignable expression in them (see isAssignable),
@@ -277,12 +277,13 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * class that it shares an assigner object (all elements in the range of this
    * map are in the domain of eqcToAssigner).
    */
-  void computeAssignableInfo(TheoryModel* tm,
-                                                     TypeEnumeratorProperties& tep,
-                             std::unordered_set<Node, NodeHashFunction>& assignableEqc,
-                             std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
-                             std::map<Node, Assigner>& eqcToAssigner,
-                             std::map<Node, Node>& eqcToAssignerMaster);
+  void computeAssignableInfo(
+      TheoryModel* tm,
+      TypeEnumeratorProperties& tep,
+      std::unordered_set<Node, NodeHashFunction>& assignableEqc,
+      std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
+      std::map<Node, Assigner>& eqcToAssigner,
+      std::map<Node, Node>& eqcToAssignerMaster);
   //------------------------------------for codatatypes
   /** is v an excluded codatatype value?
    *
