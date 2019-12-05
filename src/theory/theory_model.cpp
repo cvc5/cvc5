@@ -543,7 +543,7 @@ void TheoryModel::setAssignmentExclusionSetGroup(
   // relationship
   setAssignmentExclusionSet(group[0], eset);
   std::vector<Node>& gslaves = d_aesSlaves[group[0]];
-  for (unsigned i = 1, gsize = group.size(); i < gsize; i++)
+  for (unsigned i = 1, gsize = group.size(); i < gsize; ++i)
   {
     Node gs = group[i];
     // set master
