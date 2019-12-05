@@ -803,10 +803,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         Node xu = uasserts[0];
         Trace("sygus-ccore")
             << "--- Add false core : " << uasserts << std::endl;
-        if (uasserts.size() == 1)
-        {
-          // singleton false core should be removed from pool TODO
-        }
+        // notice that a singleton false core should be removed from pool
+        // in the case that (uasserts.size() == 1).
         std::sort(uasserts.begin(), uasserts.end());
         // add false core
         ccheck.addFalseCore(query, uasserts);

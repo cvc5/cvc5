@@ -117,7 +117,8 @@ class VariadicTrie
  * Variant #2 (Abduction)
  *
  * Let the synthesis conjecture be of the form exists C. forall x. C[x] => B[x]
- * such that A[x] ^ C[x] is satisfiable.
+ * such that S[x] ^ C[x] is satisfiable. We refer to S as the side condition
+ * for this conjecture.
  *
  * The high level idea is we construct solutions for C of the form
  *   d_1 AND ... AND d_n
@@ -138,8 +139,8 @@ class VariadicTrie
  *     if D is false for all v in pts(B)
  *       if D => B
  *         Let U be a subset of D such that U ^ ~B is unsat.
- *         if A ^ U is unsat
- *           Let W be a subset of D such that A ^ W is unsat.
+ *         if S ^ U is unsat
+ *           Let W be a subset of D such that S ^ W is unsat.
  *             cores(B) += W
  *             remove some d'' in W from D
  *         else
@@ -226,9 +227,9 @@ class CegisCoreConnective : public Cegis
     void addFalseCore(Node id, const std::vector<Node>& u);
     /**
      * Selects a node from passerts that evaluates to false on point mv if one
-     * exists, or otherwise returns null.
+     * exists, or otherwise returns false.
      *
-     * If a non-null node is returned, it is removed from passerts.
+     * If true is returned, it is removed from passerts.
      */
     bool addToAsserts(CegisCoreConnective* p,
                       std::vector<Node>& passerts,
@@ -276,7 +277,8 @@ class CegisCoreConnective : public Cegis
     std::map<Node, Node> d_cpoolToSol;
     /**
      * An index of list of predicates such that each list ( P1, ..., Pn )
-     * indexed by this trie is such that
+     * indexed by this trie is such that P1 ^ ... ^ Pn is equivalent to false.
+     * We call this a "false core".
      */
     VariadicTrie d_falseCores;
     /**
