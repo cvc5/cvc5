@@ -28,13 +28,10 @@ make -j$(nproc) libabc.a OPTFLAGS='-O -fPIC' ABC_USE_NO_READLINE=1 ABC_USE_NO_PT
 install_lib libabc.a
 install_bin arch_flags
 
-# Copy headers
+# Copy headers and preserve subdirectories
 cd src
-#mkdir -p "$INSTALL_INCLUDE_DIR/abc"
-for header in $(find . -name '*.h'); do
-  cp --parents "$header" "$INSTALL_INCLUDE_DIR"
-done
-#find "$INSTALL_INCLUDE_DIR/abc" -name '*.h' | xargs sed -i 's/^#include\s*"/#include "abc\//'
+mkdir -p "$INSTALL_INCLUDE_DIR/abc"
+cp --parents $(find . -name '*.h') "$INSTALL_INCLUDE_DIR/abc"
 
 echo
 echo ===================== Now configure CVC4 with =====================

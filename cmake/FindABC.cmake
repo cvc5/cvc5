@@ -4,10 +4,10 @@
 # ABC_LIBRARIES - Libraries needed to use ABC
 # ABC_ARCH_FLAGS - Platform specific compile flags
 
-
-# Note: We don't check the system version since ABC does not provide a default
-# install rule.
-find_path(ABC_INCLUDE_DIR NAMES base/abc/abc.h)
+# Note: contrib/get-abc copies header files to deps/install/include/abc.
+# However, includes in ABC headers are not prefixed with "abc/" and therefore
+# we have to look for headers in include/abc instead of include/.
+find_path(ABC_INCLUDE_DIR NAMES base/abc/abc.h PATH_SUFFIXES abc)
 find_library(ABC_LIBRARIES NAMES abc)
 find_program(ABC_ARCH_FLAGS_PROG NAMES arch_flags)
 
