@@ -37,13 +37,14 @@ bool SkolemizationManager::hasSkolem(Node disequality) {
 
 Node SkolemizationManager::getSkolem(Node disequality) {
   Debug("pf::pm") << "SkolemizationManager: getSkolem( ";
-  Assert (d_disequalityToSkolem.find(disequality) != d_disequalityToSkolem.end());
+  Assert(d_disequalityToSkolem.find(disequality)
+         != d_disequalityToSkolem.end());
   Debug("pf::pm") << disequality << " ) = " << d_disequalityToSkolem[disequality] << std::endl;
   return d_disequalityToSkolem[disequality];
 }
 
 Node SkolemizationManager::getDisequality(Node skolem) {
-  Assert (d_skolemToDisequality.find(skolem) != d_skolemToDisequality.end());
+  Assert(d_skolemToDisequality.find(skolem) != d_skolemToDisequality.end());
   return d_skolemToDisequality[skolem];
 }
 

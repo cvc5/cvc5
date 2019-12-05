@@ -48,7 +48,7 @@ ${typerules}
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
-    Unhandled(n.getKind());
+    Unhandled() << n.getKind();
   }
 
   nodeManager->setAttribute(n, TypeAttr(), typeNode);
@@ -61,14 +61,16 @@ ${typerules}
 
 bool TypeChecker::computeIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
+  Assert(n.getMetaKind() == kind::metakind::OPERATOR
+         || n.getMetaKind() == kind::metakind::PARAMETERIZED
+         || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
   switch(n.getKind()) {
 ${construles}
 
-#line 70 "${template}"
+#line 72 "${template}"
 
-  default:;
+    default:;
   }
 
   return false;
@@ -77,14 +79,16 @@ ${construles}
 
 bool TypeChecker::neverIsConst(NodeManager* nodeManager, TNode n)
 {
-  Assert(n.getMetaKind() == kind::metakind::OPERATOR || n.getMetaKind() == kind::metakind::PARAMETERIZED || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
+  Assert(n.getMetaKind() == kind::metakind::OPERATOR
+         || n.getMetaKind() == kind::metakind::PARAMETERIZED
+         || n.getMetaKind() == kind::metakind::NULLARY_OPERATOR);
 
   switch(n.getKind()) {
 ${neverconstrules}
 
-#line 86 "${template}"
+#line 90 "${template}"
 
-  default:;
+    default:;
   }
 
   return true;

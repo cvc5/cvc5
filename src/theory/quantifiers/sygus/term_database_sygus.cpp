@@ -14,12 +14,14 @@
 
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
+#include "expr/sygus_datatype.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -49,6 +51,7 @@ TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
       d_syexp(new SygusExplain(this)),
       d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
+      d_funDefEval(new FunDefEvaluator),
       d_eval_unfold(new SygusEvalUnfold(this))
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -79,7 +82,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
     }else{
       ss << "fv_" << tn << "_" << i;
     }
-    Assert( !vtn.isNull() );
+    Assert(!vtn.isNull());
     Node v = NodeManager::currentNM()->mkSkolem( ss.str(), vtn, "for sygus normal form testing" );
     d_fv_stype[v] = tn;
     d_fv_num[v] = i;
@@ -154,18 +157,19 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 }
 
 TypeNode TermDbSygus::getSygusTypeForVar( Node v ) {
-  Assert( d_fv_stype.find( v )!=d_fv_stype.end() );
+  Assert(d_fv_stype.find(v) != d_fv_stype.end());
   return d_fv_stype[v];
 }
 
 Node TermDbSygus::mkGeneric(const Datatype& dt,
                             unsigned c,
                             std::map<TypeNode, int>& var_count,
-                            std::map<int, Node>& pre)
+                            std::map<int, Node>& pre,
+                            bool doBetaRed)
 {
   Assert(c < dt.getNumConstructors());
-  Assert( dt.isSygus() );
-  Assert( !dt[c].getSygusOp().isNull() );
+  Assert(dt.isSygus());
+  Assert(!dt[c].getSygusOp().isNull());
   std::vector< Node > children;
   Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << c << "..."
                           << std::endl;
@@ -175,28 +179,34 @@ Node TermDbSygus::mkGeneric(const Datatype& dt,
     std::map< int, Node >::iterator it = pre.find( i );
     if( it!=pre.end() ){
       a = it->second;
+      Trace("sygus-db-debug") << "From pre: " << a << std::endl;
     }else{
       TypeNode tna = TypeNode::fromType(dt[c].getArgType(i));
       a = getFreeVarInc( tna, var_count, true );
     }
     Trace("sygus-db-debug")
         << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
-    Assert( !a.isNull() );
+    Assert(!a.isNull());
     children.push_back( a );
   }
-  return datatypes::DatatypesRewriter::mkSygusTerm(dt, c, children);
+  Node ret = datatypes::utils::mkSygusTerm(dt, c, children, doBetaRed);
+  Trace("sygus-db-debug") << "mkGeneric returns " << ret << std::endl;
+  return ret;
 }
 
-Node TermDbSygus::mkGeneric(const Datatype& dt, int c, std::map<int, Node>& pre)
+Node TermDbSygus::mkGeneric(const Datatype& dt,
+                            int c,
+                            std::map<int, Node>& pre,
+                            bool doBetaRed)
 {
   std::map<TypeNode, int> var_count;
-  return mkGeneric(dt, c, var_count, pre);
+  return mkGeneric(dt, c, var_count, pre, doBetaRed);
 }
 
-Node TermDbSygus::mkGeneric(const Datatype& dt, int c)
+Node TermDbSygus::mkGeneric(const Datatype& dt, int c, bool doBetaRed)
 {
   std::map<int, Node> pre;
-  return mkGeneric(dt, c, pre);
+  return mkGeneric(dt, c, pre, doBetaRed);
 }
 
 struct CanonizeBuiltinAttributeId
@@ -286,12 +296,14 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   }
   if (n.getKind() == APPLY_CONSTRUCTOR)
   {
-    unsigned i = datatypes::DatatypesRewriter::indexOf(n.getOperator());
+    unsigned i = datatypes::utils::indexOf(n.getOperator());
     Assert(n.getNumChildren() == dt[i].getNumArgs());
     std::map<int, Node> pre;
     for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
     {
       pre[j] = sygusToBuiltin(n[j], TypeNode::fromType(dt[i].getArgType(j)));
+      Trace("sygus-db-debug")
+          << "sygus to builtin " << n[j] << " is " << pre[j] << std::endl;
     }
     Node ret = mkGeneric(dt, i, pre);
     Trace("sygus-db-debug")
@@ -325,7 +337,7 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
     sum += getSygusTermSize(n[i]);
   }
   const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-  int cindex = datatypes::DatatypesRewriter::indexOf(n.getOperator());
+  int cindex = datatypes::utils::indexOf(n.getOperator());
   Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
   unsigned weight = dt[cindex].getWeight();
   return weight + sum;
@@ -422,7 +434,7 @@ void TermDbSygus::registerEnumerator(Node e,
       // is necessary to generate a term of the form any_constant( x.0 ) for a
       // fresh variable x.0.
       Node fv = getFreeVar(stn, 0);
-      Node exc_val = datatypes::DatatypesRewriter::getInstCons(fv, dt, rindex);
+      Node exc_val = datatypes::utils::getInstCons(fv, dt, rindex);
       // should not include the constuctor in any subterm
       Node x = getFreeVar(stn, 0);
       Trace("sygus-db") << "Construct symmetry breaking lemma from " << x
@@ -494,7 +506,7 @@ void TermDbSygus::registerEnumerator(Node e,
     }
     else
     {
-      Unreachable("Unknown enumerator mode in registerEnumerator");
+      Unreachable() << "Unknown enumerator mode in registerEnumerator";
     }
   }
   Trace("sygus-db") << "isActiveGen for " << e << ", role = " << erole
@@ -715,6 +727,28 @@ SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
   return d_tinfo[tn];
 }
 
+Node TermDbSygus::rewriteNode(Node n) const
+{
+  Node res = Rewriter::rewrite(n);
+  if (options::sygusRecFun())
+  {
+    if (d_funDefEval->hasDefinitions())
+    {
+      // If recursive functions are enabled, then we use the recursive function
+      // evaluation utility.
+      Node fres = d_funDefEval->evaluate(res);
+      if (!fres.isNull())
+      {
+        return fres;
+      }
+      // It may have failed, in which case there are undefined symbols in res or
+      // we reached the limit of evaluations. In this case, we revert to the
+      // result of rewriting in the return statement below.
+    }
+  }
+  return res;
+}
+
 unsigned TermDbSygus::getSelectorWeight(TypeNode tn, Node sel)
 {
   std::map<TypeNode, std::map<Node, unsigned> >::iterator itsw =
@@ -776,7 +810,7 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   Assert(tn.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   Assert(dt.isSygus());
-  unsigned cindex = datatypes::DatatypesRewriter::indexOf(n.getOperator());
+  unsigned cindex = datatypes::utils::indexOf(n.getOperator());
   Node sygusOp = Node::fromExpr(dt[cindex].getSygusOp());
   // it is symbolic if it represents "any constant"
   return sygusOp.getAttribute(SygusAnyConstAttribute());
@@ -919,171 +953,6 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
   }
 }
 
-Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Node >& exp, bool track_exp ) {
-  if (en.getKind() != DT_SYGUS_EVAL)
-  {
-    Assert(en.isConst());
-    return en;
-  }
-  Trace("sygus-db-debug") << "Unfold : " << en << std::endl;
-  Node ev = en[0];
-  if (track_exp)
-  {
-    std::map<Node, Node>::iterator itv = vtm.find(en[0]);
-    Assert(itv != vtm.end());
-    if (itv != vtm.end())
-    {
-      ev = itv->second;
-    }
-    Assert(en[0].getType() == ev.getType());
-    Assert(ev.isConst());
-  }
-  Assert(ev.getKind() == kind::APPLY_CONSTRUCTOR);
-  std::vector<Node> args;
-  for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
-  {
-    args.push_back(en[i]);
-  }
-
-  Type headType = en[0].getType().toType();
-  NodeManager* nm = NodeManager::currentNM();
-  const Datatype& dt = static_cast<DatatypeType>(headType).getDatatype();
-  unsigned i = datatypes::DatatypesRewriter::indexOf(ev.getOperator());
-  if (track_exp)
-  {
-    // explanation
-    Node ee = nm->mkNode(
-        kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
-    if (std::find(exp.begin(), exp.end(), ee) == exp.end())
-    {
-      exp.push_back(ee);
-    }
-  }
-  // if we are a symbolic constructor, unfolding returns the subterm itself
-  Node sop = Node::fromExpr(dt[i].getSygusOp());
-  if (sop.getAttribute(SygusAnyConstAttribute()))
-  {
-    Trace("sygus-db-debug") << "...it is an any-constant constructor"
-                            << std::endl;
-    Assert(dt[i].getNumArgs() == 1);
-    if (en[0].getKind() == APPLY_CONSTRUCTOR)
-    {
-      return en[0][0];
-    }
-    else
-    {
-      return nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
-    }
-  }
-
-  Assert(!dt.isParametric());
-  std::map<int, Node> pre;
-  for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
-  {
-    std::vector<Node> cc;
-    Node s;
-    // get the j^th subfield of en
-    if (en[0].getKind() == kind::APPLY_CONSTRUCTOR)
-    {
-      // if it is a concrete constructor application, as an optimization,
-      // just return the argument
-      s = en[0][j];
-    }
-    else
-    {
-      s = nm->mkNode(kind::APPLY_SELECTOR_TOTAL,
-                     dt[i].getSelectorInternal(headType, j),
-                     en[0]);
-    }
-    cc.push_back(s);
-    if (track_exp)
-    {
-      // update vtm map
-      vtm[s] = ev[j];
-    }
-    cc.insert(cc.end(), args.begin(), args.end());
-    pre[j] = nm->mkNode(DT_SYGUS_EVAL, cc);
-  }
-  Node ret = mkGeneric(dt, i, pre);
-  // apply the appropriate substitution to ret
-  ret = datatypes::DatatypesRewriter::applySygusArgs(dt, sop, ret, args);
-  // rewrite
-  ret = Rewriter::rewrite(ret);
-  return ret;
-}
-
-Node TermDbSygus::unfold(Node en)
-{
-  std::map<Node, Node> vtm;
-  std::vector<Node> exp;
-  return unfold(en, vtm, exp, false);
-}
-
-Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
-  std::map< Node, Node >::iterator itv = visited.find( n );
-  if( itv==visited.end() ){
-    Trace("cegqi-eager-debug") << "getEagerUnfold " << n << std::endl;
-    Node ret;
-    if (n.getKind() == DT_SYGUS_EVAL)
-    {
-      TypeNode tn = n[0].getType();
-      Trace("cegqi-eager-debug") << "check " << n[0].getType() << std::endl;
-      if( tn.isDatatype() ){
-        const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-        if( dt.isSygus() ){ 
-          Trace("cegqi-eager") << "Unfold eager : " << n << std::endl;
-          Node bTerm = sygusToBuiltin( n[0], tn );
-          Trace("cegqi-eager") << "Built-in term : " << bTerm << std::endl;
-          std::vector< Node > vars;
-          std::vector< Node > subs;
-          Node var_list = Node::fromExpr( dt.getSygusVarList() );
-          Assert( var_list.getNumChildren()+1==n.getNumChildren() );
-          for( unsigned j=0; j<var_list.getNumChildren(); j++ ){
-            vars.push_back( var_list[j] );
-          }
-          for( unsigned j=1; j<n.getNumChildren(); j++ ){
-            Node nc = getEagerUnfold( n[j], visited );
-            subs.push_back( nc );
-            Assert(subs[j - 1].getType().isComparableTo(
-                var_list[j - 1].getType()));
-          }
-          Assert( vars.size()==subs.size() );
-          bTerm = bTerm.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-          Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
-          Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;
-          Assert(n.getType().isComparableTo(bTerm.getType()));
-          ret = bTerm; 
-        }
-      }
-    }
-    if( ret.isNull() ){
-      if( n.getKind()!=FORALL ){
-        bool childChanged = false;
-        std::vector< Node > children;
-        for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          Node nc = getEagerUnfold( n[i], visited );
-          childChanged = childChanged || n[i]!=nc;
-          children.push_back( nc );
-        }
-        if( childChanged ){
-          if( n.getMetaKind() == kind::metakind::PARAMETERIZED ){
-            children.insert( children.begin(), n.getOperator() );
-          }
-          ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-        }
-      }
-      if( ret.isNull() ){
-        ret = n;
-      }
-    }
-    visited[n] = ret;
-    return ret;
-  }else{
-    return itv->second;
-  }
-}
-
 Node TermDbSygus::evaluateBuiltin(TypeNode tn,
                                   Node bn,
                                   std::vector<Node>& args,
@@ -1115,7 +984,9 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
     return res;
   }
   res = bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());
-  return Rewriter::rewrite(res);
+  // Call the rewrite node function, which may involve recursive function
+  // evaluation.
+  return rewriteNode(res);
 }
 
 Node TermDbSygus::evaluateWithUnfolding(
@@ -1133,6 +1004,8 @@ Node TermDbSygus::evaluateWithUnfolding(
         Trace("dt-eval-unfold-debug")
             << "Optimize: evaluate constant head " << ret << std::endl;
         // can just do direct evaluation here
+        // notice we prefer this code to the rewriter since it may use
+        // the evaluator
         std::vector<Node> args;
         bool success = true;
         for (unsigned i = 1, nchild = ret.getNumChildren(); i < nchild; i++)
@@ -1155,7 +1028,7 @@ Node TermDbSygus::evaluateWithUnfolding(
           return rete;
         }
       }
-      ret = unfold( ret );
+      ret = d_eval_unfold->unfold(ret);
     }    
     if( ret.getNumChildren()>0 ){
       std::vector< Node > children;
@@ -1164,7 +1037,7 @@ Node TermDbSygus::evaluateWithUnfolding(
       }
       bool childChanged = false;
       for( unsigned i=0; i<ret.getNumChildren(); i++ ){
-        Node nc = evaluateWithUnfolding( ret[i], visited ); 
+        Node nc = evaluateWithUnfolding(ret[i], visited);
         childChanged = childChanged || nc!=ret[i];
         children.push_back( nc );
       }
@@ -1180,9 +1053,10 @@ Node TermDbSygus::evaluateWithUnfolding(
   }
 }
 
-Node TermDbSygus::evaluateWithUnfolding( Node n ) {
+Node TermDbSygus::evaluateWithUnfolding(Node n)
+{
   std::unordered_map<Node, Node, NodeHashFunction> visited;
-  return evaluateWithUnfolding( n, visited );
+  return evaluateWithUnfolding(n, visited);
 }
 
 bool TermDbSygus::isEvaluationPoint(Node n) const
@@ -1208,4 +1082,3 @@ bool TermDbSygus::isEvaluationPoint(Node n) const
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-

@@ -114,7 +114,7 @@ int main() {
   DatatypeType paramConsListType = em.mkDatatypeType(paramConsListSpec);
   Type paramConsIntListType = paramConsListType.instantiate(std::vector<Type>{em.integerType()});
 
-  Datatype paramConsList = paramConsListType.getDatatype();
+  const Datatype& paramConsList = paramConsListType.getDatatype();
 
   std::cout << "parameterized datatype sort is " << std::endl;
   for (const DatatypeConstructor& ctor : paramConsList)

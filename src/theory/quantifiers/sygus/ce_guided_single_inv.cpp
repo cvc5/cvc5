@@ -53,7 +53,7 @@ CegSingleInv::~CegSingleInv()
 void CegSingleInv::initialize(Node q)
 {
   // can only register one quantified formula with this
-  Assert( d_quant.isNull() );
+  Assert(d_quant.isNull());
   d_quant = q;
   d_simp_quant = q;
   Trace("cegqi-si") << "CegSingleInv::initialize : " << q << std::endl;
@@ -143,14 +143,15 @@ void CegSingleInv::initialize(Node q)
   }
   // if we are doing invariant templates, then construct the template
   Trace("cegqi-si") << "- Do transition inference..." << std::endl;
-  d_ti[q].process(qq);
+  d_ti[q].process(qq, q[0][0]);
   Trace("cegqi-inv") << std::endl;
   Node prog = d_ti[q].getFunction();
-  if (prog.isNull())
+  if (!d_ti[q].isComplete())
   {
     // the invariant could not be inferred
     return;
   }
+  Assert(prog == q[0][0]);
   NodeManager* nm = NodeManager::currentNM();
   // map the program back via non-single invocation map
   std::vector<Node> prog_templ_vars;
@@ -465,7 +466,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
                                int& reconstructed,
                                bool rconsSygus)
 {
-  Assert( d_sol!=NULL );
+  Assert(d_sol != NULL);
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
   Node varList = Node::fromExpr( dt.getSygusVarList() );
   Node prog = d_quant[0][sol_index];
@@ -485,7 +486,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     Trace("csi-sol") << "Get solution for " << prog << ", with skolems : ";
     sol_index = d_prog_to_sol_index[prog];
     d_sol->d_varList.clear();
-    Assert( d_single_inv_arg_sk.size()==varList.getNumChildren() );
+    Assert(d_single_inv_arg_sk.size() == varList.getNumChildren());
     for( unsigned i=0; i<d_single_inv_arg_sk.size(); i++ ){
       Trace("csi-sol") << d_single_inv_arg_sk[i] << " ";
       vars.push_back( d_single_inv_arg_sk[i] );
@@ -500,13 +501,23 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     {
       indices.push_back(i);
     }
-    Assert( !indices.empty() );
-    //sort indices based on heuristic : currently, do all constant returns first (leads to simpler conditions)
-    // TODO : to minimize solution size, put the largest term last
-    sortSiInstanceIndices ssii;
-    ssii.d_ccsi = this;
-    ssii.d_i = sol_index;
-    std::sort( indices.begin(), indices.end(), ssii );
+    Assert(!indices.empty());
+    // We are constructing an ITE based on the list of instantiations. We
+    // sort this list based on heuristic. Currently, we do all constant values
+    // first since this leads to simpler conditions. Notice that we only allow
+    // sorting if we have a single variable, since the correctness of
+    // Proposition 1 of Reynolds et al CAV 2015 for the case of multiple
+    // functions-to-synthesize requires that the instantiations come in the
+    // same order for all functions. Thus, we cannot decide on an order for
+    // instantiations independently, since this may lead to incorrect solutions.
+    bool allowSort = (d_quant[0].getNumChildren() == 1);
+    if (allowSort)
+    {
+      sortSiInstanceIndices ssii;
+      ssii.d_ccsi = this;
+      ssii.d_i = sol_index;
+      std::sort(indices.begin(), indices.end(), ssii);
+    }
     Trace("csi-sol") << "Construct solution" << std::endl;
     std::reverse(indices.begin(), indices.end());
     s = d_inst[indices[0]][sol_index];
@@ -519,7 +530,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       cond = TermUtil::simpleNegate(cond);
       s = nm->mkNode(ITE, cond, d_inst[uindex][sol_index], s);
     }
-    Assert( vars.size()==d_sol->d_varList.size() );
+    Assert(vars.size() == d_sol->d_varList.size());
     s = s.substitute( vars.begin(), vars.end(), d_sol->d_varList.begin(), d_sol->d_varList.end() );
   }
   d_orig_solution = s;

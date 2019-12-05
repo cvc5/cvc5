@@ -127,12 +127,14 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
         n_members = (*mem_i1).second;
       }
       for( int i=0; i<(*mem_i2).second; i++ ){
-        Assert( i<(int)d_members_data[t2].size() && d_members_data[t2][i].getKind()==kind::MEMBER );
+        Assert(i < (int)d_members_data[t2].size()
+               && d_members_data[t2][i].getKind() == kind::MEMBER);
         Node m2 = d_members_data[t2][i];
         //check if redundant
         bool add = true;
         for( int j=0; j<n_members; j++ ){
-          Assert( j<(int)d_members_data[t1].size() && d_members_data[t1][j].getKind()==kind::MEMBER );
+          Assert(j < (int)d_members_data[t1].size()
+                 && d_members_data[t1][j].getKind() == kind::MEMBER);
           if (d_state.areEqual(m2[0], d_members_data[t1][j][0]))
           {
             add = false;
@@ -141,7 +143,7 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
         }
         if( add ){
           if( !s1.isNull() && s2.isNull() ){
-            Assert( m2[1].getType().isComparableTo( s1.getType() ) );
+            Assert(m2[1].getType().isComparableTo(s1.getType()));
             Assert(d_state.areEqual(m2[1], s1));
             Node exp = NodeManager::currentNM()->mkNode( kind::AND, m2[1].eqNode( s1 ), m2 );
             if( s1.getKind()==kind::SINGLETON ){
@@ -213,7 +215,8 @@ bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
 }
 
 bool TheorySetsPrivate::isMember( Node x, Node s ) {
-  Assert( d_equalityEngine.hasTerm( s ) && d_equalityEngine.getRepresentative( s )==s );
+  Assert(d_equalityEngine.hasTerm(s)
+         && d_equalityEngine.getRepresentative(s) == s);
   NodeIntMap::iterator mem_i = d_members.find( s );
   if( mem_i != d_members.end() ) {
     for( int i=0; i<(*mem_i).second; i++ ){
@@ -331,10 +334,10 @@ void TheorySetsPrivate::fullEffortCheck(){
         }
         TypeNode tnn = n.getType();
         if( isSet ){
-          Assert( tnn.isSet() );
+          Assert(tnn.isSet());
           TypeNode tnnel = tnn.getSetElementType();
           tnc = TypeNode::mostCommonTypeNode( tnc, tnnel );
-          Assert( !tnc.isNull() );
+          Assert(!tnc.isNull());
           //update the common type term
           if( tnc==tnnel ){
             tnct = n;
@@ -367,7 +370,7 @@ void TheorySetsPrivate::fullEffortCheck(){
         ++eqc_i;
       }
       if( isSet ){
-        Assert( tnct.getType().getSetElementType()==tnc );
+        Assert(tnct.getType().getSetElementType() == tnc);
         d_most_common_type[eqc] = tnc;
         d_most_common_type_term[eqc] = tnct;
       }
@@ -513,7 +516,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
           {
             Node mem = it2.second;
             Node eq_set = nv;
-            Assert( d_equalityEngine.areEqual( mem[1], eq_set ) );
+            Assert(d_equalityEngine.areEqual(mem[1], eq_set));
             if( mem[1]!=eq_set ){
               Trace("sets-debug") << "Downwards closure based on " << mem << ", eq_set = " << eq_set << std::endl;
               if( !options::setsProxyLemmas() ){
@@ -621,7 +624,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     }
                   }
                 }else{
-                  Assert( k==kind::SETMINUS );
+                  Assert(k == kind::SETMINUS);
                   std::map<Node, Node>::const_iterator itm = r2mem.find(xr);
                   if (itm == r2mem.end())
                   {
@@ -736,44 +739,50 @@ void TheorySetsPrivate::checkDisequalities()
 {
   //disequalities
   Trace("sets") << "TheorySetsPrivate: check disequalities..." << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   for(NodeBoolMap::const_iterator it=d_deq.begin(); it !=d_deq.end(); ++it) {
-    if( (*it).second ){
-      Node deq = (*it).first;
-      //check if it is already satisfied
-      Assert( d_equalityEngine.hasTerm( deq[0] ) && d_equalityEngine.hasTerm( deq[1] ) );
-      Node r1 = d_equalityEngine.getRepresentative( deq[0] );
-      Node r2 = d_equalityEngine.getRepresentative( deq[1] );
-      bool is_sat = d_state.isSetDisequalityEntailed(r1, r2);
-      /*
-      if( !is_sat ){
-        //try to make one of them empty
-        for( unsigned e=0; e<2; e++ ){
-        }
-      }
-      */
-      Trace("sets-debug") << "Check disequality " << deq << ", is_sat = " << is_sat << std::endl;
-      //will process regardless of sat/processed/unprocessed
-      d_deq[deq] = false;
-      
-      if( !is_sat ){
-        if( d_deq_processed.find( deq )==d_deq_processed.end() ){
-          d_deq_processed.insert( deq );
-          d_deq_processed.insert( deq[1].eqNode( deq[0] ) );
-          Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
-          TypeNode elementType = deq[0].getType().getSetElementType();
-          Node x = NodeManager::currentNM()->mkSkolem("sde_", elementType);
-          Node mem1 = NodeManager::currentNM()->mkNode( kind::MEMBER, x, deq[0] );
-          Node mem2 = NodeManager::currentNM()->mkNode( kind::MEMBER, x, deq[1] );
-          Node lem = NodeManager::currentNM()->mkNode( kind::OR, deq, NodeManager::currentNM()->mkNode( kind::EQUAL, mem1, mem2 ).negate() );
-          lem = Rewriter::rewrite( lem );
-          d_im.assertInference(lem, d_emp_exp, "diseq", 1);
-          d_im.flushPendingLemmas();
-          if (d_im.hasProcessed())
-          {
-            return;
-          }
-        }
-      }
+    if (!(*it).second)
+    {
+      // not active
+      continue;
+    }
+    Node deq = (*it).first;
+    // check if it is already satisfied
+    Assert(d_equalityEngine.hasTerm(deq[0])
+           && d_equalityEngine.hasTerm(deq[1]));
+    Node r1 = d_equalityEngine.getRepresentative(deq[0]);
+    Node r2 = d_equalityEngine.getRepresentative(deq[1]);
+    bool is_sat = d_state.isSetDisequalityEntailed(r1, r2);
+    Trace("sets-debug") << "Check disequality " << deq
+                        << ", is_sat = " << is_sat << std::endl;
+    // will process regardless of sat/processed/unprocessed
+    d_deq[deq] = false;
+
+    if (is_sat)
+    {
+      // already satisfied
+      continue;
+    }
+    if (d_deq_processed.find(deq) != d_deq_processed.end())
+    {
+      // already added lemma
+      continue;
+    }
+    d_deq_processed.insert(deq);
+    d_deq_processed.insert(deq[1].eqNode(deq[0]));
+    Trace("sets") << "Process Disequality : " << deq.negate() << std::endl;
+    TypeNode elementType = deq[0].getType().getSetElementType();
+    Node x = d_state.getSkolemCache().mkTypedSkolemCached(
+        elementType, deq[0], deq[1], SkolemCache::SK_DISEQUAL, "sde");
+    Node mem1 = nm->mkNode(MEMBER, x, deq[0]);
+    Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
+    Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
+    lem = Rewriter::rewrite(lem);
+    d_im.assertInference(lem, d_emp_exp, "diseq", 1);
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      return;
     }
   }
 }
@@ -841,8 +850,8 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
         for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
           TNode x = f1[k];
           TNode y = f2[k];
-          Assert( d_equalityEngine.hasTerm(x) );
-          Assert( d_equalityEngine.hasTerm(y) );
+          Assert(d_equalityEngine.hasTerm(x));
+          Assert(d_equalityEngine.hasTerm(y));
           Assert(!d_state.areDisequal(x, y));
           Assert(!areCareDisequal(x, y));
           if( !d_equalityEngine.areEqual( x, y ) ){
@@ -854,7 +863,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
             }else if( isCareArg( f1, k ) && isCareArg( f2, k ) ){
               //splitting on sets (necessary for handling set of sets properly)
               if( x.getType().isSet() ){
-                Assert( y.getType().isSet() );
+                Assert(y.getType().isSet());
                 if (!d_state.areDisequal(x, y))
                 {
                   Trace("sets-cg-lemma") << "Should split on : " << x << "==" << y << std::endl;

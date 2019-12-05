@@ -528,10 +528,24 @@ class CVC4_PUBLIC DatatypeConstructor {
   Cardinality computeCardinality(Type t, std::vector<Type>& processing) const;
   /** compute whether this datatype is well-founded */
   bool computeWellFounded(std::vector<Type>& processing) const;
-  /** compute ground term */
+  /** compute ground term
+   *
+   * This method is used for constructing a term that is an application
+   * of this constructor whose type is t.
+   *
+   * The argument processing is the set of datatype types we are currently
+   * traversing. This is used to avoid infinite loops.
+   *
+   * The argument gt caches the ground terms we have computed so far.
+   *
+   * The argument isValue is whether we are constructing a constant value. If
+   * this flag is false, we are constructing a canonical ground term that is
+   * not necessarily constant.
+   */
   Expr computeGroundTerm(Type t,
                          std::vector<Type>& processing,
-                         std::map<Type, Expr>& gt) const;
+                         std::map<Type, Expr>& gt,
+                         bool isValue) const;
   /** compute shared selectors
    * This computes the maps d_shared_selectors and d_shared_selector_index.
    */
@@ -821,6 +835,16 @@ public:
    * type if this datatype is parametric.
    */
   Expr mkGroundTerm(Type t) const;
+  /** Make ground value
+   *
+   * Same as above, but constructs a constant value instead of a ground term.
+   * These two notions typically coincide. However, for uninterpreted sorts,
+   * they do not: mkGroundTerm returns a fresh variable whereas mkValue returns
+   * an uninterpreted constant. The motivation for mkGroundTerm is that
+   * unintepreted constants should never appear in lemmas. The motivation for
+   * mkGroundValue is for things like type enumeration and model construction.
+   */
+  Expr mkGroundValue(Type t) const;
 
   /**
    * Get the DatatypeType associated to this Datatype.  Can only be
@@ -994,6 +1018,8 @@ public:
   mutable int d_well_founded;
   /** cache of ground term for this datatype */
   mutable std::map<Type, Expr> d_ground_term;
+  /** cache of ground values for this datatype */
+  mutable std::map<Type, Expr> d_ground_value;
   /** cache of shared selectors for this datatype */
   mutable std::map<Type, std::map<Type, std::map<unsigned, Expr> > >
       d_shared_sel;
@@ -1043,8 +1069,21 @@ public:
                                       std::vector<Type>& u_assume) const;
   /** compute whether this datatype is well-founded */
   bool computeWellFounded(std::vector<Type>& processing) const;
-  /** compute ground term */
-  Expr computeGroundTerm(Type t, std::vector<Type>& processing) const;
+  /** compute ground term
+   *
+   * This method checks if there is a term of this datatype whose type is t
+   * that is finitely constructable. As needed, it traverses its subfield types.
+   *
+   * The argument processing is the set of datatype types we are currently
+   * traversing.
+   *
+   * The argument isValue is whether we are constructing a constant value. If
+   * this flag is false, we are constructing a canonical ground term that is
+   * not necessarily constant.
+   */
+  Expr computeGroundTerm(Type t,
+                         std::vector<Type>& processing,
+                         bool isValue) const;
   /** Get the shared selector
    *
    * This returns the index^th (constructor-agnostic)
@@ -1056,6 +1095,10 @@ public:
    * this returns the term sel_{dtt}^{t,index}.
    */
   Expr getSharedSelector(Type dtt, Type t, unsigned index) const;
+  /**
+   * Helper for mkGroundTerm and mkGroundValue above.
+   */
+  Expr mkGroundTermInternal(Type t, bool isValue) const;
 };/* class Datatype */
 
 /**

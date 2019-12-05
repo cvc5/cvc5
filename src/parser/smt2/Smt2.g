@@ -305,8 +305,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         t = PARSER_STATE->mkFlatFunctionType(sorts, t);
       }
       if(t.isFunction() && !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-        PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) cannot "
-                                      "be declared in logic ");
+        PARSER_STATE->parseError(
+            "Functions (of non-zero arity) cannot "
+            "be declared in logic "
+            + PARSER_STATE->getLogic().getLogicString()
+            + " unless option --uf-ho is used.");
       }
       // we allow overloading for function declarations
       if (PARSER_STATE->sygus_v1())
@@ -391,17 +394,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         Command* csen = new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
-      }
-      // if sygus, check whether it has a free variable
-      // this is because, due to the sygus format, one can write assertions
-      // that have free function variables in them
-      if (PARSER_STATE->sygus())
-      {
-        if (expr.hasFreeVariable())
-        {
-          PARSER_STATE->parseError("Assertion has free variable. Perhaps you "
-                                   "meant constraint instead of assert?");
-        }
       }
     }
   | /* check-sat */
@@ -585,6 +577,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     ( SYNTH_FUN_V1_TOK { isInv = false; }
       | SYNTH_INV_V1_TOK { isInv = true; range = EXPR_MANAGER->booleanType(); }
     )
+    { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
@@ -606,6 +599,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     ( SYNTH_FUN_TOK { isInv = false; }
       | SYNTH_INV_TOK { isInv = true; range = EXPR_MANAGER->booleanType(); }
     )
+    { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
     LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
     ( sortSymbol[range,CHECK_DECLARED] )?
@@ -1052,21 +1046,21 @@ sygusGrammar[CVC4::Type & ret,
       // grammar. This results in the error below.
       // We can also be in a case where the only rule specified was
       // (Constant T), in which case we have not yet added a constructor. We
-      // ensure an arbitrary constant is added in this case.
-      if (datatypes[i].getNumConstructors() == 0)
+      // ensure an arbitrary constant is added in this case. We additionally
+      // add a constant if the grammar allows it regardless of whether the
+      // datatype has other constructors, since this ensures the datatype is
+      // well-founded (see 3423).
+      if (aci)
       {
-        if (aci)
-        {
-          Expr c = btt.mkGroundTerm();
-          PARSER_STATE->addSygusConstructorTerm(datatypes[i], c, ntsToUnres);
-        }
-        else
-        {
-          std::stringstream se;
-          se << "Grouped rule listing for " << datatypes[i].getName()
-             << " produced an empty rule list.";
-          PARSER_STATE->parseError(se.str());
-        }
+        Expr c = btt.mkGroundTerm();
+        PARSER_STATE->addSygusConstructorTerm(datatypes[i], c, ntsToUnres);
+      }
+      else if (datatypes[i].getNumConstructors() == 0)
+      {
+        std::stringstream se;
+        se << "Grouped rule listing for " << datatypes[i].getName()
+           << " produced an empty rule list.";
+        PARSER_STATE->parseError(se.str());
       }
     }
     // pop scope from the pre-declaration
@@ -1292,8 +1286,11 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { Type t;
         if(sorts.size() > 1) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-            PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) "
-                                          "cannot be declared in logic ");
+            PARSER_STATE->parseError(
+                "Functions (of non-zero arity) cannot "
+                "be declared in logic "
+                + PARSER_STATE->getLogic().getLogicString()
+                + " unless option --uf-ho is used");
           }
           // must flatten
           Type range = sorts.back();
@@ -1319,8 +1316,11 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { Type t = EXPR_MANAGER->booleanType();
         if(sorts.size() > 0) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-            PARSER_STATE->parseErrorLogic("Predicates (of non-zero arity) "
-                                          "cannot be declared in logic ");
+            PARSER_STATE->parseError(
+                "Functions (of non-zero arity) cannot "
+                "be declared in logic "
+                + PARSER_STATE->getLogic().getLogicString()
+                + " unless option --uf-ho is used");
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }

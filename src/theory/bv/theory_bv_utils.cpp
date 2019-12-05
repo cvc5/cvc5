@@ -287,9 +287,8 @@ Node mkVar(unsigned size)
 
 Node mkSortedNode(Kind kind, TNode child1, TNode child2)
 {
-  Assert(kind == kind::BITVECTOR_AND
-      || kind == kind::BITVECTOR_OR
-      || kind == kind::BITVECTOR_XOR);
+  Assert(kind == kind::BITVECTOR_AND || kind == kind::BITVECTOR_OR
+         || kind == kind::BITVECTOR_XOR);
 
   if (child1 < child2)
   {

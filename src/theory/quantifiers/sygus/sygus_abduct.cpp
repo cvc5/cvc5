@@ -17,6 +17,7 @@
 
 #include "expr/datatype.h"
 #include "expr/node_algorithm.h"
+#include "expr/sygus_datatype.h"
 #include "printer/sygus_print_callback.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -55,20 +56,20 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   for (const Node& s : symset)
   {
     TypeNode tn = s.getType();
-    if (tn.isFirstClass())
-    {
-      std::stringstream ss;
-      ss << s;
-      Node var = nm->mkBoundVar(tn);
-      syms.push_back(s);
-      vars.push_back(var);
-      Node vlv = nm->mkBoundVar(ss.str(), tn);
-      varlist.push_back(vlv);
-      varlistTypes.push_back(tn);
-      // set that this variable encodes the term s
-      SygusVarToTermAttribute sta;
-      vlv.setAttribute(sta, s);
-    }
+    // Notice that we allow for non-first class (e.g. function) variables here.
+    // This is applicable to the case where we are doing get-abduct in a logic
+    // with UF.
+    std::stringstream ss;
+    ss << s;
+    Node var = nm->mkBoundVar(tn);
+    syms.push_back(s);
+    vars.push_back(var);
+    Node vlv = nm->mkBoundVar(ss.str(), tn);
+    varlist.push_back(vlv);
+    varlistTypes.push_back(tn);
+    // set that this variable encodes the term s
+    SygusVarToTermAttribute sta;
+    vlv.setAttribute(sta, s);
   }
   // make the sygus variable list
   Node abvl = nm->mkNode(BOUND_VAR_LIST, varlist);
@@ -86,7 +87,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   {
     Assert(abdGType.isDatatype() && abdGType.getDatatype().isSygus());
     // must convert all constructors to version with bound variables in "vars"
-    std::vector<Datatype> datatypes;
+    std::vector<SygusDatatype> sdts;
     std::set<Type> unres;
 
     Trace("sygus-abduct-debug") << "Process abduction type:" << std::endl;
@@ -129,9 +130,9 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
         const Datatype& dtc = curr.getDatatype();
         std::stringstream ssdtn;
         ssdtn << dtc.getName() << "_s";
-        datatypes.push_back(Datatype(ssdtn.str()));
+        sdts.push_back(SygusDatatype(ssdtn.str()));
         Trace("sygus-abduct-debug")
-            << "Process datatype " << datatypes.back().getName() << "..."
+            << "Process datatype " << sdts.back().getName() << "..."
             << std::endl;
         for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
         {
@@ -141,7 +142,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
               syms.begin(), syms.end(), varlist.begin(), varlist.end());
           Trace("sygus-abduct-debug") << "  Process constructor " << op << " / "
                                       << ops << "..." << std::endl;
-          std::vector<Type> cargs;
+          std::vector<TypeNode> cargs;
           for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
           {
             TypeNode argt = TypeNode::fromType(dtc[j].getArgType(k));
@@ -167,7 +168,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
             }
             Trace("sygus-abduct-debug")
                 << "    Arg #" << k << ": " << argtNew << std::endl;
-            cargs.push_back(argtNew.toType());
+            cargs.push_back(argtNew);
           }
           // callback prints as the expression
           std::shared_ptr<SygusPrintCallback> spc;
@@ -191,22 +192,26 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
           ss << ops.getKind();
           Trace("sygus-abduct-debug")
               << "Add constructor : " << ops << std::endl;
-          datatypes.back().addSygusConstructor(
-              ops.toExpr(), ss.str(), cargs, spc);
+          sdts.back().addConstructor(ops, ss.str(), cargs, spc);
         }
         Trace("sygus-abduct-debug")
             << "Set sygus : " << dtc.getSygusType() << " " << abvl << std::endl;
-        datatypes.back().setSygus(dtc.getSygusType(),
-                                  abvl.toExpr(),
-                                  dtc.getSygusAllowConst(),
-                                  dtc.getSygusAllowAll());
+        TypeNode stn = TypeNode::fromType(dtc.getSygusType());
+        sdts.back().initializeDatatype(
+            stn, abvl, dtc.getSygusAllowConst(), dtc.getSygusAllowAll());
       }
       dtToProcess.clear();
       dtToProcess.insert(
           dtToProcess.end(), dtNextToProcess.begin(), dtNextToProcess.end());
     }
     Trace("sygus-abduct-debug")
-        << "Make " << datatypes.size() << " datatype types..." << std::endl;
+        << "Make " << sdts.size() << " datatype types..." << std::endl;
+    // extract the datatypes
+    std::vector<Datatype> datatypes;
+    for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
+    {
+      datatypes.push_back(sdts[i].getDatatype());
+    }
     // make the datatype types
     std::vector<DatatypeType> datatypeTypes =
         nm->toExprManager()->mkMutualDatatypeTypes(

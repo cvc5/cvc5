@@ -44,6 +44,9 @@ The following flags enable optional features (disable with --no-<option name>).
   --unit-testing           support for unit testing
   --python2                prefer using Python 2 (also for Python bindings)
   --python3                prefer using Python 3 (also for Python bindings)
+  --asan                   build with ASan instrumentation
+  --ubsan                  build with UBSan instrumentation
+  --tsan                   build with TSan instrumentation
 
 The following options configure parameterized features.
 
@@ -107,6 +110,8 @@ buildtype=default
 
 abc=default
 asan=default
+ubsan=default
+tsan=default
 assertions=default
 best=default
 cadical=default
@@ -167,6 +172,12 @@ do
 
     --asan) asan=ON;;
     --no-asan) asan=OFF;;
+
+    --ubsan) ubsan=ON;;
+    --no-ubsan) ubsan=OFF;;
+
+    --tsan) tsan=ON;;
+    --no-tsan) tsan=OFF;;
 
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
@@ -348,6 +359,10 @@ cmake_opts=""
 
 [ $asan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
+[ $ubsan != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
+[ $tsan != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_TSAN=$tsan"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $best != default ] \

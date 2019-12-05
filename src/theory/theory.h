@@ -42,6 +42,7 @@
 #include "theory/decision_manager.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
+#include "theory/theory_id.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
@@ -516,8 +517,9 @@ public:
    * (which was previously propagated by this theory).
    */
   virtual Node explain(TNode n) {
-    Unimplemented("Theory %s propagated a node but doesn't implement the "
-                  "Theory::explain() interface!", identify().c_str());
+    Unimplemented() << "Theory " << identify()
+                    << " propagated a node but doesn't implement the "
+                       "Theory::explain() interface!";
   }
 
   /**
@@ -614,8 +616,8 @@ public:
     *  via the syntax (! n :attr)
     */
   virtual void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value) {
-    Unimplemented("Theory %s doesn't support Theory::setUserAttribute interface",
-                  identify().c_str());
+    Unimplemented() << "Theory " << identify()
+                    << " doesn't support Theory::setUserAttribute interface";
   }
 
   /** A set of theories */
@@ -644,7 +646,7 @@ public:
 
   /** Returns the index size of a set of theories */
   static inline size_t setIndex(TheoryId id, Set set) {
-    Assert (setContains(id, set));
+    Assert(setContains(id, set));
     size_t count = 0;
     while (setPop(set) != id) {
       ++ count;
@@ -857,7 +859,7 @@ std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
 
 
 inline theory::Assertion Theory::get() {
-  Assert( !done(), "Theory::get() called with assertion queue empty!" );
+  Assert(!done()) << "Theory::get() called with assertion queue empty!";
 
   // Get the assertion
   Assertion fact = d_facts[d_factsHead];

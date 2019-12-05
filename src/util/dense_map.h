@@ -29,7 +29,7 @@
 #include <limits>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "util/index.h"
 
 
@@ -101,7 +101,7 @@ public:
     if( x >= allocated()){
       return false;
     }else{
-      Assert(x <  allocated());
+      Assert(x < allocated());
       return d_posVector[x] != +POSITION_SENTINEL;
     }
   }

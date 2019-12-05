@@ -16,7 +16,7 @@
  **/
 #include "proof/theory_proof.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/context.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
@@ -103,7 +103,9 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
               bvp = new proof::LfscErBitVectorProof(thBv, this);
               break;
             }
-            default: { Unreachable("Invalid BvProofFormat");
+            default:
+            {
+              Unreachable() << "Invalid BvProofFormat";
             }
           };
           d_theoryProofTable[id] = bvp;
@@ -154,9 +156,9 @@ TheoryProof* TheoryProofEngine::getTheoryProof(theory::TheoryId id) {
   }
 
   if (d_theoryProofTable.find(id) == d_theoryProofTable.end()) {
-    std::stringstream ss;
-    ss << "Error! Proofs not yet supported for the following theory: " << id << std::endl;
-    InternalError(ss.str().c_str());
+    InternalError()
+        << "Error! Proofs not yet supported for the following theory: " << id
+        << std::endl;
   }
 
   return d_theoryProofTable[id];
@@ -221,7 +223,7 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(const prop::SatClause* cla
     Node node = pm->getCnfProof()->getAtom(lit.getSatVariable());
     Expr atom = node.toExpr();
     if (atom.isConst()) {
-      Assert (atom == utils::mkTrue());
+      Assert(atom == utils::mkTrue());
       continue;
     }
 
@@ -229,7 +231,7 @@ theory::TheoryId TheoryProofEngine::getTheoryForLemma(const prop::SatClause* cla
   }
 
   // Ensure that the lemma is in the database.
-  Assert (pm->getCnfProof()->haveProofRecipe(nodes));
+  Assert(pm->getCnfProof()->haveProofRecipe(nodes));
   return pm->getCnfProof()->getProofRecipe(nodes).getTheory();
 }
 
@@ -257,7 +259,7 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
     Expr current_expr = let_order[i].expr;
     unsigned let_id = let_order[i].id;
     ProofLetMap::const_iterator it = map.find(current_expr);
-    Assert (it != map.end());
+    Assert(it != map.end());
     unsigned let_count = it->second.count;
     Assert(let_count);
     // skip terms that only appear once
@@ -387,8 +389,8 @@ void LFSCTheoryProofEngine::printLemmaRewrites(NodePairSet& rewrites,
 
     Node n1 = it->first;
     Node n2 = it->second;
-    Assert(n1.toExpr() == utils::mkFalse() ||
-           theory::Theory::theoryOf(n1) == theory::Theory::theoryOf(n2));
+    Assert(n1.toExpr() == utils::mkFalse()
+           || theory::Theory::theoryOf(n1) == theory::Theory::theoryOf(n2));
 
     std::ostringstream rewriteRule;
     rewriteRule << ".lrr" << d_assertionToRewrite.size();
@@ -462,7 +464,7 @@ void LFSCTheoryProofEngine::dumpTheoryLemmas(const IdToSatClause& lemmas) {
       prop::SatLiteral lit = (*clause)[i];
       Node node = pm->getCnfProof()->getAtom(lit.getSatVariable());
       if (node.isConst()) {
-        Assert (node.toExpr() == utils::mkTrue());
+        Assert(node.toExpr() == utils::mkTrue());
         continue;
       }
       nodes.insert(lit.isNegated() ? node.notNode() : node);
@@ -493,8 +495,8 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
 
       // The literals (true) and (not false) are omitted from conflicts
       if (atom.isConst()) {
-        Assert (atom == utils::mkTrue() ||
-                (atom == utils::mkFalse() && lit.isNegated()));
+        Assert(atom == utils::mkTrue()
+               || (atom == utils::mkFalse() && lit.isNegated()));
         continue;
       }
 
@@ -584,7 +586,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   ProofManager::getBitVectorProof()->printBBDeclarationAndCnf(os, paren, map);
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    Assert (lemmas.size() == 1);
+    Assert(lemmas.size() == 1);
     // nothing more to do (no combination with eager so far)
     return;
   }
@@ -606,7 +608,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
       Node node = pm->getCnfProof()->getAtom(lit.getSatVariable());
       Expr atom = node.toExpr();
       if (atom.isConst()) {
-        Assert (atom == utils::mkTrue());
+        Assert(atom == utils::mkTrue());
         continue;
       }
       Expr expr_lit = lit.isNegated() ? atom.notExpr(): atom;
@@ -922,7 +924,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
 
   case kind::DISTINCT:
     // Distinct nodes can have any number of chidlren.
-    Assert (term.getNumChildren() >= 2);
+    Assert(term.getNumChildren() >= 2);
 
     if (term.getNumChildren() == 2) {
       os << "(not (= ";
@@ -999,8 +1001,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
     return;
   }
 
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
 
 }
@@ -1010,7 +1011,7 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                         std::ostream& paren,
                                         const ProofLetMap& map) {
   // Default method for replaying proofs: assert (negated) literals back to a fresh copy of the theory
-  Assert(d_theory!=NULL);
+  Assert(d_theory != NULL);
 
   context::UserContext fakeContext;
   ProofOutputChannel oc;
@@ -1032,7 +1033,8 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     os << " (clausify_false trust)";
     return;
   } else {
-    InternalError(std::string("can't generate theory-proof for ") + ProofManager::currentPM()->getLogic());
+    InternalError() << "can't generate theory-proof for "
+                    << ProofManager::currentPM()->getLogic();
   }
 
   Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;
@@ -1122,7 +1124,7 @@ BooleanProof::BooleanProof(TheoryProofEngine* proofEngine)
 {}
 
 void BooleanProof::registerTerm(Expr term) {
-  Assert (term.getType().isBoolean());
+  Assert(term.getType().isBoolean());
 
   if (term.isVariable() && d_declarations.find(term) == d_declarations.end()) {
     d_declarations.insert(term);
@@ -1149,7 +1151,7 @@ void LFSCBooleanProof::printConstantDisequalityProof(std::ostream& os, Expr c1, 
 }
 
 void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  Assert (term.getType().isBoolean());
+  Assert(term.getType().isBoolean());
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);
     return;
@@ -1184,7 +1186,7 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
     }
 
     // If letification is off or there were 2 children, same treatment as the other cases.
-    // (No break is intentional).
+    CVC4_FALLTHROUGH;
   case kind::XOR:
   case kind::IMPLIES:
   case kind::NOT:
@@ -1224,14 +1226,13 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
     os << (term.getConst<bool>() ? "true" : "false");
     return;
 
-  default:
-    Unhandled(k);
+  default: Unhandled() << k;
   }
 
 }
 
 void LFSCBooleanProof::printOwnedSort(Type type, std::ostream& os) {
-  Assert (type.isBoolean());
+  Assert(type.isBoolean());
   os << "Bool";
 }
 
@@ -1262,7 +1263,7 @@ void LFSCBooleanProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                              std::ostream& os,
                                              std::ostream& paren,
                                              const ProofLetMap& map) {
-  Unreachable("No boolean lemmas yet!");
+  Unreachable() << "No boolean lemmas yet!";
 }
 
 bool LFSCBooleanProof::printsAsBool(const Node &n)

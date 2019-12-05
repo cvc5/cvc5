@@ -134,7 +134,7 @@ class LambdaTypeRule {
     //get array representation of this function, if possible
     Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda(n);
     if( !na.isNull() ){
-      Assert( na.getType().isArray() );
+      Assert(na.getType().isArray());
       Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
       // must have the standard bound variable list
       Node bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( n.getType() );

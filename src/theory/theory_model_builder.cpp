@@ -391,15 +391,24 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
                          << std::endl;
   if (!d_te->collectModelInfo(tm))
   {
+    Trace("model-builder")
+        << "TheoryEngineModelBuilder: fail collect model info" << std::endl;
     return false;
   }
 
+  Trace("model-builder")
+      << "TheoryEngineModelBuilder: Preprocess build model..." << std::endl;
   // model-builder specific initialization
   if (!preProcessBuildModel(tm))
   {
+    Trace("model-builder")
+        << "TheoryEngineModelBuilder: fail preprocess build model."
+        << std::endl;
     return false;
   }
 
+  Trace("model-builder")
+      << "TheoryEngineModelBuilder: Add assignable subterms..." << std::endl;
   // Loop through all terms and make sure that assignable sub-terms are in the
   // equality engine
   // Also, record #eqc per type (for finite model finding)
@@ -929,9 +938,11 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   // modelBuilder-specific initialization
   if (!processBuildModel(tm))
   {
+    Trace("model-builder")
+        << "TheoryEngineModelBuilder: fail process build model." << std::endl;
     return false;
   }
-
+  Trace("model-builder") << "TheoryEngineModelBuilder: success" << std::endl;
   tm->d_modelBuiltSuccess = true;
   return true;
 }
@@ -1146,8 +1157,8 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
                                            << "getValue(n): " << tm->getValue(n)
                                            << endl
                                            << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep,
-               "run with -d check-model::rep-checking for details");
+        Assert(tm->getValue(*eqc_i) == rep)
+            << "run with -d check-model::rep-checking for details";
       }
     }
   }
@@ -1215,8 +1226,7 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
     {
       retNode = Rewriter::rewrite(retNode);
       Assert(retNode.getKind() == kind::APPLY_UF
-             || !retNode.getType().isFirstClass()
-             || retNode.isConst());
+             || !retNode.getType().isFirstClass() || retNode.isConst());
     }
   }
   d_normalizedCache[r] = retNode;

@@ -14,8 +14,9 @@
 
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 
+#include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace std;
@@ -102,6 +103,10 @@ void SygusEvalUnfold::registerModelValue(Node a,
           antec_exp.size() == 1 ? antec_exp[0] : nm->mkNode(AND, antec_exp);
       // Node antec = n.eqNode( vn );
       TypeNode tn = n.getType();
+      // Check if the sygus type has any symbolic constructors. This will
+      // impact how the unfolding is computed below.
+      SygusTypeInfo& sti = d_tds->getTypeInfo(tn);
+      bool hasSymCons = sti.hasSubtermSymbolicCons();
       // n occurs as an evaluation head, thus it has sygus datatype type
       Assert(tn.isDatatype());
       const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
@@ -149,7 +154,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
             do_unfold = true;
           }
         }
-        if (do_unfold)
+        if (do_unfold || hasSymCons)
         {
           // note that this is replicated for different values
           std::map<Node, Node> vtm;
@@ -159,7 +164,10 @@ void SygusEvalUnfold::registerModelValue(Node a,
               eval_children.end(), it->second[i].begin(), it->second[i].end());
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           eval_children.resize(1);
-          res = d_tds->unfold(eval_fun, vtm, exp);
+          // If we explicitly asked to unfold, we use single step, otherwise
+          // we use multi step.
+          res = unfold(eval_fun, vtm, exp, true, !do_unfold);
+          Trace("sygus-eval-unfold") << "Unfold returns " << res << std::endl;
           expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
         }
         else
@@ -171,6 +179,8 @@ void SygusEvalUnfold::registerModelValue(Node a,
           eval_children[0] = vn;
           Node eval_fun = nm->mkNode(DT_SYGUS_EVAL, eval_children);
           res = d_tds->evaluateWithUnfolding(eval_fun);
+          Trace("sygus-eval-unfold")
+              << "Evaluate with unfolding returns " << res << std::endl;
           esit.init(conj, n, res);
           eval_children.resize(1);
           eval_children[0] = n;
@@ -192,6 +202,130 @@ void SygusEvalUnfold::registerModelValue(Node a,
       d_node_mv_args_proc[n][vn] = curr_size;
     }
   }
+}
+
+Node SygusEvalUnfold::unfold(Node en,
+                             std::map<Node, Node>& vtm,
+                             std::vector<Node>& exp,
+                             bool track_exp,
+                             bool doRec)
+{
+  if (en.getKind() != DT_SYGUS_EVAL)
+  {
+    Assert(en.isConst());
+    return en;
+  }
+  Trace("sygus-eval-unfold-debug")
+      << "Unfold : " << en << ", track exp is " << track_exp << ", doRec is "
+      << doRec << std::endl;
+  Node ev = en[0];
+  if (track_exp)
+  {
+    std::map<Node, Node>::iterator itv = vtm.find(en[0]);
+    Assert(itv != vtm.end());
+    if (itv != vtm.end())
+    {
+      ev = itv->second;
+    }
+    Assert(en[0].getType() == ev.getType());
+    Assert(ev.isConst());
+  }
+  Trace("sygus-eval-unfold-debug")
+      << "Unfold model value is : " << ev << std::endl;
+  AlwaysAssert(ev.getKind() == APPLY_CONSTRUCTOR);
+  std::vector<Node> args;
+  for (unsigned i = 1, nchild = en.getNumChildren(); i < nchild; i++)
+  {
+    args.push_back(en[i]);
+  }
+
+  TypeNode headType = en[0].getType();
+  Type headTypeT = headType.toType();
+  NodeManager* nm = NodeManager::currentNM();
+  const Datatype& dt = headType.getDatatype();
+  unsigned i = datatypes::utils::indexOf(ev.getOperator());
+  if (track_exp)
+  {
+    // explanation
+    Node ee =
+        nm->mkNode(APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
+    if (std::find(exp.begin(), exp.end(), ee) == exp.end())
+    {
+      exp.push_back(ee);
+    }
+  }
+  // if we are a symbolic constructor, unfolding returns the subterm itself
+  Node sop = Node::fromExpr(dt[i].getSygusOp());
+  if (sop.getAttribute(SygusAnyConstAttribute()))
+  {
+    Trace("sygus-eval-unfold-debug")
+        << "...it is an any-constant constructor" << std::endl;
+    Assert(dt[i].getNumArgs() == 1);
+    // If the argument to evaluate is itself concrete, then we use its
+    // argument; otherwise we return its selector.
+    if (en[0].getKind() == APPLY_CONSTRUCTOR)
+    {
+      Trace("sygus-eval-unfold-debug")
+          << "...return (from constructor) " << en[0][0] << std::endl;
+      return en[0][0];
+    }
+    else
+    {
+      Node ret = nm->mkNode(
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, 0), en[0]);
+      Trace("sygus-eval-unfold-debug")
+          << "...return (from constructor) " << ret << std::endl;
+      return ret;
+    }
+  }
+
+  Assert(!dt.isParametric());
+  std::map<int, Node> pre;
+  for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+  {
+    std::vector<Node> cc;
+    Node s;
+    // get the j^th subfield of en
+    if (en[0].getKind() == APPLY_CONSTRUCTOR)
+    {
+      // if it is a concrete constructor application, as an optimization,
+      // just return the argument
+      s = en[0][j];
+    }
+    else
+    {
+      s = nm->mkNode(
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, j), en[0]);
+    }
+    cc.push_back(s);
+    if (track_exp)
+    {
+      // update vtm map
+      vtm[s] = ev[j];
+    }
+    cc.insert(cc.end(), args.begin(), args.end());
+    Node argj = nm->mkNode(DT_SYGUS_EVAL, cc);
+    if (doRec)
+    {
+      Trace("sygus-eval-unfold-debug") << "Recurse on " << s << std::endl;
+      // evaluate recursively
+      argj = unfold(argj, vtm, exp, track_exp, doRec);
+    }
+    pre[j] = argj;
+  }
+  Node ret = d_tds->mkGeneric(dt, i, pre);
+  // apply the appropriate substitution to ret
+  ret = datatypes::utils::applySygusArgs(dt, sop, ret, args);
+  // rewrite
+  ret = Rewriter::rewrite(ret);
+  return ret;
+}
+
+Node SygusEvalUnfold::unfold(Node en)
+{
+  std::map<Node, Node> vtm;
+  std::vector<Node> exp;
+  return unfold(en, vtm, exp, false, false);
 }
 
 }  // namespace quantifiers
