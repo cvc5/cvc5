@@ -1175,11 +1175,11 @@ theory::quantifiers::SygusUnifPiMode OptionsHandler::stringToSygusUnifPiMode(
   }
   else if (optarg == "cond-enum")
   {
-    return theory::quantifiers::SYGUS_UNIF_PI_CONDITION_ENUM;
+    return theory::quantifiers::SYGUS_UNIF_PI_CENUM;
   }
   else if (optarg == "cond-enum-igain")
   {
-    return theory::quantifiers::SYGUS_UNIF_PI_CONDITION_ENUM_IGAIN;
+    return theory::quantifiers::SYGUS_UNIF_PI_CENUM_IGAIN;
   }
   else if (optarg == "help")
   {
