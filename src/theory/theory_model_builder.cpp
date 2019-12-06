@@ -39,7 +39,8 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
   Node n;
   bool success = false;
   TypeEnumerator& te = *d_te;
-  // check if we have run out of elements
+  // Check if we have run out of elements. This should never happen; if it
+  // does we assert false and return null.
   if (te.isFinished())
   {
     Assert(false);
