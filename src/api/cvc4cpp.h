@@ -1105,6 +1105,7 @@ class CVC4_PUBLIC DatatypeDecl
  public:
   /**
    * Constructor.
+   * @param s the solver that created this datatype declaration
    * @param name the name of the datatype
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
@@ -1116,6 +1117,7 @@ class CVC4_PUBLIC DatatypeDecl
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
+   * @param s the solver that created this datatype declaration
    * @param name the name of the datatype
    * @param param the sort parameter
    * @param isCoDatatype true if a codatatype is to be constructed
@@ -1128,6 +1130,7 @@ class CVC4_PUBLIC DatatypeDecl
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with Solver::mkParamSort().
+   * @param s the solver that created this datatype declaration
    * @param name the name of the datatype
    * @param params a list of sort parameters
    * @param isCoDatatype true if a codatatype is to be constructed
