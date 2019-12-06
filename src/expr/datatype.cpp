@@ -38,11 +38,9 @@ using namespace std;
 namespace CVC4 {
 
 Datatype::~Datatype(){
-  Trace("ajr-temp") << "Destruct " << d_em << std::endl;
   ExprManagerScope ems(*d_em);
   d_internal.reset();
   d_constructors.clear();
-  Trace("ajr-temp") << "Finish destruct " << d_em << std::endl;
   delete d_record;
 }
 
@@ -54,9 +52,7 @@ Datatype::Datatype(ExprManager* em, std::string name, bool isCo)
       d_constructors()
 {
   ExprManagerScope ems(*d_em);
-  Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
   d_internal = std::make_shared<DType>(name, isCo);
-  Trace("ajr-temp") << "Datatype::Datatype finished" << std::endl;
 }
 
 Datatype::Datatype(ExprManager* em,
@@ -70,14 +66,12 @@ Datatype::Datatype(ExprManager* em,
       d_constructors()
 {
   ExprManagerScope ems(*d_em);
-  Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
   std::vector<TypeNode> paramsn;
   for (const Type& t : params)
   {
     paramsn.push_back(TypeNode::fromType(t));
   }
   d_internal = std::make_shared<DType>(name, paramsn, isCo);
-  Trace("ajr-temp") << "Datatype::Datatype finished" << std::endl;
 }
 
 const Datatype& Datatype::datatypeOf(Expr item) {
@@ -485,12 +479,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
       d_testerName("is_" + name)  // default tester name is "is_FOO"
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
-  Trace("ajr-temp")
-      << "DatatypeConstructor::DatatypeConstructor 1: make internal"
-      << std::endl;
   d_internal = std::make_shared<DTypeConstructor>(name, 1);
-  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 1: finished"
-                    << std::endl;
 }
 
 DatatypeConstructor::DatatypeConstructor(std::string name,
@@ -505,12 +494,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name,
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
-  Trace("ajr-temp")
-      << "DatatypeConstructor::DatatypeConstructor 2: make internal"
-      << std::endl;
   d_internal = std::make_shared<DTypeConstructor>(name, weight);
-  Trace("ajr-temp") << "DatatypeConstructor::DatatypeConstructor 2: finished"
-                    << std::endl;
 }
 
 void DatatypeConstructor::setSygus(Expr op,
@@ -906,7 +890,6 @@ bool Datatype::operator!=(const Datatype& other) const
 
 bool Datatype::isResolved() const
 {
-  Trace("ajr-temp") << "Datatype::isResolved? " << d_internal << std::endl;
   return d_internal->isResolved();
 }
 Datatype::iterator Datatype::begin() { return iterator(d_constructors, true); }
@@ -925,7 +908,6 @@ Datatype::const_iterator Datatype::end() const
 
 bool DatatypeConstructor::isResolved() const
 {
-  Trace("ajr-temp") << "DatatypeConstructor::isResolved" << std::endl;
   return d_internal->isResolved();
 }
 
