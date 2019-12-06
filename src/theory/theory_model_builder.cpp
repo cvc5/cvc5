@@ -101,7 +101,7 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
       continue;
     }
     // Assignable members of assignment exclusion set should be representatives
-    // of their equivalence clases. This ensures we look up the constant
+    // of their equivalence classes. This ensures we look up the constant
     // representatives for assignable members of assignment exclusion sets.
     Assert(er == tm->getRepresentative(er));
     it = d_constantReps.find(er);
