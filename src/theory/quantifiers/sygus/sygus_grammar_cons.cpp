@@ -539,12 +539,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   // maps types to the index of its "any term" grammar construction
   std::map<TypeNode, unsigned> typeToGAnyTerm;
   SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
+  ExprManager * em = nm->toExprManager();
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
     ss << fun << "_" << types[i];
     std::string dname = ss.str();
-    sdts.push_back(SygusDatatypeGenerator(dname));
+    sdts.push_back(SygusDatatypeGenerator(em,dname));
     itc = exclude_cons.find(types[i]);
     if (itc != exclude_cons.end())
     {
@@ -588,7 +589,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         typeToGAnyTerm[types[i]] = sdts.size();
         std::stringstream ssat;
         ssat << sdts[i].d_sdt.getName() << "_any_term";
-        sdts.push_back(SygusDatatypeGenerator(ssat.str()));
+        sdts.push_back(SygusDatatypeGenerator(em,ssat.str()));
         TypeNode unresAnyTerm = mkUnresolvedType(ssat.str(), unres);
         unres_types.push_back(unresAnyTerm);
       }
@@ -700,7 +701,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         TypeNode unresPosInt = mkUnresolvedType(pos_int_name, unres);
         unres_types.push_back(unresPosInt);
         // make data type for positive constant integers
-        sdts.push_back(SygusDatatypeGenerator(pos_int_name));
+        sdts.push_back(SygusDatatypeGenerator(em,pos_int_name));
         /* Add operator 1 */
         Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
         std::vector<TypeNode> cargsEmpty;
@@ -914,7 +915,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     // Make sygus datatype for any constant.
     TypeNode unresAnyConst = mkUnresolvedType(ss.str(), unres);
     unres_types.push_back(unresAnyConst);
-    sdts.push_back(SygusDatatypeGenerator(ss.str()));
+    sdts.push_back(SygusDatatypeGenerator(em,ss.str()));
     sdts.back().d_sdt.addAnyConstantConstructor(types[i]);
     sdts.back().d_sdt.initializeDatatype(types[i], bvl, true, true);
 
@@ -1098,7 +1099,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   }
   //------ make Boolean type
   TypeNode btype = nm->booleanType();
-  sdts.push_back(SygusDatatypeGenerator(dbname));
+  sdts.push_back(SygusDatatypeGenerator(em,dbname));
   SygusDatatypeGenerator& sdtBool = sdts.back();
   Trace("sygus-grammar-def") << "Make grammar for " << btype << std::endl;
   //add variables
@@ -1273,12 +1274,13 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     return templ_arg_sygus_type;
   }else{
     tcount++;
+    NodeManager * nm = NodeManager::currentNM();
     std::set<Type> unres;
     std::vector<SygusDatatype> sdts;
     std::stringstream ssd;
     ssd << fun << "_templ_" << tcount;
     std::string dbname = ssd.str();
-    sdts.push_back(SygusDatatype(dbname));
+    sdts.push_back(SygusDatatype(nm->toExprManager(),dbname));
     Node op;
     std::vector<TypeNode> argTypes;
     if( templ.getNumChildren()==0 ){
@@ -1341,8 +1343,9 @@ Node CegGrammarConstructor::getSygusVarList(Node f)
 }
 
 CegGrammarConstructor::SygusDatatypeGenerator::SygusDatatypeGenerator(
+  ExprManager * em, 
     const std::string& name)
-    : d_sdt(name)
+    : d_sdt(em, name)
 {
 }
 void CegGrammarConstructor::SygusDatatypeGenerator::addConstructor(

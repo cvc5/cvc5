@@ -38,7 +38,7 @@ using namespace std;
 namespace CVC4 {
 
 Datatype::~Datatype(){
-  ExprManagerScope ems(d_em); 
+  ExprManagerScope ems(*d_em); 
   d_internal.reset();
   delete d_record;
 }

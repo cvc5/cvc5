@@ -20,7 +20,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-SygusDatatype::SygusDatatype(const std::string& name) : d_dt(Datatype(name)) {}
+SygusDatatype::SygusDatatype(ExprManager * em, const std::string& name) : d_dt(Datatype(em, name)) {}
 
 std::string SygusDatatype::getName() const { return d_dt.getName(); }
 

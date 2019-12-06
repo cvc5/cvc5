@@ -1680,20 +1680,20 @@ std::ostream& operator<<(std::ostream& out,
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
-DatatypeDecl::DatatypeDecl(const std::string& name, bool isCoDatatype)
-    : d_dtype(new CVC4::Datatype(name, isCoDatatype))
+DatatypeDecl::DatatypeDecl(const Solver * s, const std::string& name, bool isCoDatatype)
+    : d_dtype(new CVC4::Datatype(s->getExprManager(), name, isCoDatatype))
 {
 }
 
-DatatypeDecl::DatatypeDecl(const std::string& name,
+DatatypeDecl::DatatypeDecl(const Solver * s, const std::string& name,
                            Sort param,
                            bool isCoDatatype)
-    : d_dtype(new CVC4::Datatype(
+    : d_dtype(new CVC4::Datatype(s->getExprManager(), 
           name, std::vector<Type>{*param.d_type}, isCoDatatype))
 {
 }
 
-DatatypeDecl::DatatypeDecl(const std::string& name,
+DatatypeDecl::DatatypeDecl(const Solver * s, const std::string& name,
                            const std::vector<Sort>& params,
                            bool isCoDatatype)
 {
@@ -1703,7 +1703,7 @@ DatatypeDecl::DatatypeDecl(const std::string& name,
     tparams.push_back(*s.d_type);
   }
   d_dtype = std::shared_ptr<CVC4::Datatype>(
-      new CVC4::Datatype(name, tparams, isCoDatatype));
+      new CVC4::Datatype(s->getExprManager(), name, tparams, isCoDatatype));
 }
 
 DatatypeDecl::~DatatypeDecl() {}
@@ -3409,7 +3409,7 @@ Sort Solver::declareDatatype(
 {
   CVC4_API_ARG_CHECK_EXPECTED(ctors.size() > 0, ctors)
       << "a datatype declaration with at least one constructor";
-  DatatypeDecl dtdecl(symbol);
+  DatatypeDecl dtdecl(this,symbol);
   for (const DatatypeConstructorDecl& ctor : ctors)
   {
     dtdecl.addConstructor(ctor);

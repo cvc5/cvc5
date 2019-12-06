@@ -1093,6 +1093,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
 };
 
+class Solver;
 /**
  * A CVC4 datatype declaration.
  */
@@ -1108,7 +1109,7 @@ class CVC4_PUBLIC DatatypeDecl
    * @param isCoDatatype true if a codatatype is to be constructed
    * @return the DatatypeDecl
    */
-  DatatypeDecl(const std::string& name, bool isCoDatatype = false);
+  DatatypeDecl(const Solver * s, const std::string& name, bool isCoDatatype = false);
 
   /**
    * Constructor for parameterized datatype declaration.
@@ -1117,7 +1118,7 @@ class CVC4_PUBLIC DatatypeDecl
    * @param param the sort parameter
    * @param isCoDatatype true if a codatatype is to be constructed
    */
-  DatatypeDecl(const std::string& name, Sort param, bool isCoDatatype = false);
+  DatatypeDecl(const Solver * s, const std::string& name, Sort param, bool isCoDatatype = false);
 
   /**
    * Constructor for parameterized datatype declaration.
@@ -1126,7 +1127,7 @@ class CVC4_PUBLIC DatatypeDecl
    * @param params a list of sort parameters
    * @param isCoDatatype true if a codatatype is to be constructed
    */
-  DatatypeDecl(const std::string& name,
+  DatatypeDecl(const Solver * s, const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
 

@@ -67,7 +67,7 @@ class SygusDatatype
 {
  public:
   /** constructor */
-  SygusDatatype(const std::string& name);
+  SygusDatatype(ExprManager * em, const std::string& name);
   ~SygusDatatype() {}
   /** get the name of this datatype */
   std::string getName() const;

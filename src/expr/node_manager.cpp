@@ -540,7 +540,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
       for (unsigned i = 0; i < types.size(); ++ i) {
         sst << "_" << types[i];
       }
-      Datatype dt(sst.str());
+      Datatype dt(nm->d_exprManager,sst.str());
       dt.setTuple();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
@@ -569,7 +569,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         sst << "_" << (*i).first << "_" << (*i).second;
       }
-      Datatype dt(sst.str());
+      Datatype dt(nm->d_exprManager,sst.str());
       dt.setRecord();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";

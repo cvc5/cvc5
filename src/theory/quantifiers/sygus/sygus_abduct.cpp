@@ -123,6 +123,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
 
     // We are traversing over the subfield types of the datatype to convert
     // them into the form described above.
+    ExprManager * em = nm->toExprManager();
     while (!dtToProcess.empty())
     {
       std::vector<TypeNode> dtNextToProcess;
@@ -132,7 +133,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
         const DType& dtc = curr.getDType();
         std::stringstream ssdtn;
         ssdtn << dtc.getName() << "_s";
-        sdts.push_back(SygusDatatype(ssdtn.str()));
+        sdts.push_back(SygusDatatype(em,ssdtn.str()));
         Trace("sygus-abduct-debug")
             << "Process datatype " << sdts.back().getName() << "..."
             << std::endl;
