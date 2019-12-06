@@ -766,7 +766,7 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
       ++i) {
     const Datatype& dt = (*i).getDatatype();
     if(!dt.isResolved()) {
-      const_cast<Datatype&>(dt).resolve(this, nameResolutions,
+      const_cast<Datatype&>(dt).resolve(nameResolutions,
                                         placeholders, replacements,
                                         paramTypes, paramReplacements);
     }
