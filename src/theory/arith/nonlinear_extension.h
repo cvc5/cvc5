@@ -116,8 +116,44 @@ class NonlinearExtension {
    *
    * This call may result in (possibly multiple) calls to d_out->lemma(...)
    * where d_out is the output channel of TheoryArith.
+   *
+   * If e is FULL, then we add lemmas based on context-depedent
+   * simplification (see Reynolds et al FroCoS 2017).
+   *
+   * If e is LAST_CALL, we add lemmas based on model-based refinement
+   * (see additionally Cimatti et al., TACAS 2017). The lemmas added at this
+   * effort may be computed during a call to interceptModel as described below.
    */
   void check(Theory::Effort e);
+  /** intercept model
+   *
+   * This method is called during TheoryArith::collectModelInfo, which is
+   * invoked after the linear arithmetic solver passes a full effort check
+   * with no lemmas.
+   *
+   * The argument arithModel is a map of the form { v1 -> c1, ..., vn -> cn }
+   * which represents the linear arithmetic theory solver's contribution to the
+   * current candidate model. That is, its collectModelInfo method is requesting
+   * that equalities v1 = c1, ..., vn = cn be added to the current model, where
+   * v1, ..., vn are arithmetic variables and c1, ..., cn are constants. Notice
+   * arithmetic variables may be real-valued terms belonging to other theories,
+   * or abstractions of applications of multiplication (kind NONLINEAR_MULT).
+   *
+   * This method requests that the non-linear solver inspect this model and
+   * do any number of the following:
+   * (1) Construct lemmas based on a model-based refinement procedure inspired
+   * by Cimatti et al., TACAS 2017.,
+   * (2) In the case that the nonlinear solver finds that the current
+   * constraints are satisfiable, it may "repair" the values in the argument
+   * arithModel so that it satisfies certain nonlinear constraints. This may
+   * involve e.g. solving for variables in nonlinear equations.
+   *
+   * Notice that in the former case, the lemmas it constructs are not sent out
+   * immediately. Instead, they are put in temporary vectors d_cmiLemmas
+   * and d_cmiLemmasPp, which are then sent out (if necessary) when a last call
+   * effort check is issued to this class.
+   */
+  void interceptModel(std::map<Node, Node>& arithModel);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
@@ -390,12 +426,6 @@ class NonlinearExtension {
   NodeSet d_lemmas;
   /** cache of terms t for which we have added the lemma ( t = 0 V t != 0 ). */
   NodeSet d_zero_split;
-  
-  /** 
-   * The set of atoms with Skolems that this solver introduced. We do not
-   * require that models satisfy literals over Skolem atoms.
-   */
-  NodeSet d_skolem_atoms;
 
   /** commonly used terms */
   Node d_zero;
@@ -443,6 +473,15 @@ class NonlinearExtension {
    * and for establishing when we are able to answer "SAT".
    */
   NlModel d_model;
+  /**
+   * The lemmas we computed during collectModelInfo. We store two vectors of
+   * lemmas to be sent out on the output channel of TheoryArith. The first
+   * is not preprocessed, the second is.
+   */
+  std::vector<Node> d_cmiLemmas;
+  std::vector<Node> d_cmiLemmasPp;
+  /** The approximations computed during collectModelInfo. */
+  std::map<Node, Node> d_approximations;
   /** have we successfully built the model in this SAT context? */
   context::CDO<bool> d_builtModel;
 

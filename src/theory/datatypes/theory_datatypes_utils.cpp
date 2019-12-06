@@ -126,8 +126,14 @@ Node mkSygusTerm(const Datatype& dt,
   Assert(i < dt.getNumConstructors());
   Assert(dt.isSygus());
   Assert(!dt[i].getSygusOp().isNull());
-  std::vector<Node> schildren;
   Node op = Node::fromExpr(dt[i].getSygusOp());
+  return mkSygusTerm(op, children, doBetaReduction);
+}
+
+Node mkSygusTerm(Node op,
+                 const std::vector<Node>& children,
+                 bool doBetaReduction)
+{
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
   if (children.empty())
   {
@@ -141,6 +147,7 @@ Node mkSygusTerm(const Datatype& dt,
     Assert(children.size() == 1);
     return children[0];
   }
+  std::vector<Node> schildren;
   // get the kind of the operator
   Kind ok = op.getKind();
   if (ok != BUILTIN)

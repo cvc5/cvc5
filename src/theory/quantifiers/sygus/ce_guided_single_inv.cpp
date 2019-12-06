@@ -502,12 +502,22 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       indices.push_back(i);
     }
     Assert(!indices.empty());
-    //sort indices based on heuristic : currently, do all constant returns first (leads to simpler conditions)
-    // TODO : to minimize solution size, put the largest term last
-    sortSiInstanceIndices ssii;
-    ssii.d_ccsi = this;
-    ssii.d_i = sol_index;
-    std::sort( indices.begin(), indices.end(), ssii );
+    // We are constructing an ITE based on the list of instantiations. We
+    // sort this list based on heuristic. Currently, we do all constant values
+    // first since this leads to simpler conditions. Notice that we only allow
+    // sorting if we have a single variable, since the correctness of
+    // Proposition 1 of Reynolds et al CAV 2015 for the case of multiple
+    // functions-to-synthesize requires that the instantiations come in the
+    // same order for all functions. Thus, we cannot decide on an order for
+    // instantiations independently, since this may lead to incorrect solutions.
+    bool allowSort = (d_quant[0].getNumChildren() == 1);
+    if (allowSort)
+    {
+      sortSiInstanceIndices ssii;
+      ssii.d_ccsi = this;
+      ssii.d_i = sol_index;
+      std::sort(indices.begin(), indices.end(), ssii);
+    }
     Trace("csi-sol") << "Construct solution" << std::endl;
     std::reverse(indices.begin(), indices.end());
     s = d_inst[indices[0]][sol_index];
