@@ -1331,6 +1331,18 @@ void SmtEngine::setDefaults() {
                   "support unsat cores/proofs/incremental solving"
                << endl;
       options::unconstrainedSimp.set(false);
+    }    
+    if (options::sygusInference())
+    {
+      if (options::sygusInference.wasSetByUser())
+      {
+        throw OptionException(
+            "sygus inference not supported with unsat cores/proofs/incremental solving");
+      }
+      Notice() << "SmtEngine: turning off sygus inference to support unsat "
+                  "cores/proofs/incremental solving"
+               << std::endl;
+      options::sygusInference.set(false);
     }
   }
   else
@@ -1472,7 +1484,7 @@ void SmtEngine::setDefaults() {
                << endl;
       setOption("global-negate", false);
     }
-
+    
     if (options::bitvectorAig())
     {
       throw OptionException(
