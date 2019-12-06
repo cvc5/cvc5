@@ -175,6 +175,8 @@ public:
  bool isFinished() const;
  /** get domain size of the i^th field of this iterator */
  unsigned domainSize(unsigned i);
+ /** Get the type of terms in the i^th field of this iterator */
+ TypeNode getTypeOf(unsigned i) const;
  /**
   * Get the value for the i^th field in the tuple we are currently considering.
   * If valTerm is true, we return a term instead of a value by calling

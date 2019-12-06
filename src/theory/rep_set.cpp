@@ -201,6 +201,11 @@ unsigned RepSetIterator::domainSize(unsigned i)
   return d_domain_elements[v].size();
 }
 
+TypeNode RepSetIterator::getTypeOf(unsigned i) const
+{
+  return d_types[i];
+}
+
 bool RepSetIterator::setQuantifier(Node q)
 {
   Trace("rsi") << "Make rsi for quantified formula " << q << std::endl;
