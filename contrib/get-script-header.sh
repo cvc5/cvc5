@@ -2,7 +2,7 @@
 #
 set -e -o pipefail
 
-[ ! -e contrib ] && echo "$0 not called from base directory" && exit 1
+[ ! -d contrib ] && echo "$0 not called from base directory" && exit 1
 
 DEPS_DIR="$(pwd)/deps"
 INSTALL_DIR="$DEPS_DIR/install"
