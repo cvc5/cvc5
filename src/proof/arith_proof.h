@@ -169,7 +169,7 @@ public:
                                  const ProofLetMap& globalLetMap) override;
 
   /**
-   * Return whether this node, when serialized to LFSC, has sort `Bool`.
+   * Return whether this node, when serialized to LFSC, has sort `Bool`. Otherwise, the sort is `formula`.
    */
   bool printsAsBool(const Node& n) override;
 };
