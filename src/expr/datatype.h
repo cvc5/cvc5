@@ -101,6 +101,8 @@ class CVC4_PUBLIC DatatypeResolutionException : public Exception {
 class CVC4_PUBLIC DatatypeSelfType {
 };/* class DatatypeSelfType */
 
+class DTypeSelector;
+
 /**
  * An unresolved type (used in calls to
  * DatatypeConstructor::addArg()) to allow a Datatype to refer to
@@ -529,8 +531,8 @@ class DType;
  */
 class CVC4_PUBLIC Datatype {
   friend class DatatypeConstructor;
-  friend class NodeManager;  // for access to d_internal
   friend class ExprManager;  // for access to resolve()
+  friend class NodeManager;  // temporary, for access to d_internal
  public:
   /**
    * Get the datatype of a constructor, selector, or tester operator.
@@ -1014,6 +1016,7 @@ inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
 }
 
 inline std::string DatatypeUnresolvedType::getName() const { return d_name; }
+
 
 }/* CVC4 namespace */
 

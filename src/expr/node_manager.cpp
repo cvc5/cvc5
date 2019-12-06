@@ -24,6 +24,7 @@
 #include "base/check.h"
 #include "base/listener.h"
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
 #include "expr/type_checker.h"
@@ -254,13 +255,13 @@ unsigned NodeManager::registerDatatype(Datatype* dt) {
 }
 
 const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
+  // when the Node-level API is in place, this function will be deleted.
   Assert(index < d_ownedDatatypes.size());
   return *d_ownedDatatypes[index];
 }
 
 const DType& NodeManager::getDTypeForIndex(unsigned index) const
 {
-  Trace("ajr-temp") << "getDTypeForIndex " << index << std::endl;
   const Datatype& d = getDatatypeForIndex(index);
   // return its internal representation
   return *d.d_internal;

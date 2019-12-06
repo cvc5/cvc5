@@ -537,7 +537,9 @@ set(regress_0_tests
   regress0/model-core.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/ext-rew-aggr-test.smt2
+  regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
+  regress0/nl/issue3411.smt2
   regress0/nl/issue3475.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
@@ -554,6 +556,7 @@ set(regress_0_tests
   regress0/nl/nta/tan-rewrite.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
+  regress0/nl/sin-cos-346-b-chunk-0169.smt2
   regress0/nl/sqrt.smt2
   regress0/nl/sqrt2-value.smt2
   regress0/nl/subs0-unsat-confirm.smt2
@@ -1261,6 +1264,7 @@ set(regress_1_tests
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
+  regress1/nl/issue3441.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2

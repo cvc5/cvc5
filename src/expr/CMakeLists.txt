@@ -46,12 +46,12 @@ libcvc4_add_sources(
   variable_type_map.h
   datatype.h
   datatype.cpp
-  dtype.cpp
   dtype.h
-  dtype_cons.cpp
+  dtype.cpp
   dtype_cons.h
-  dtype_selector.cpp
+  dtype_cons.cpp
   dtype_selector.h
+  dtype_selector.cpp
   record.cpp
   record.h
   sygus_datatype.cpp
