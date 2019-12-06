@@ -19,17 +19,19 @@
 #include <string>
 #include <sstream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
-#include "expr/matcher.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/type.h"
+#include "expr/type_matcher.h"
 #include "options/datatypes_options.h"
 #include "options/set_language.h"
+#include "theory/type_enumerator.h"
 
 using namespace std;
 
@@ -53,6 +55,48 @@ typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFin
 typedef expr::Attribute<expr::attr::DatatypeUFiniteTag, bool> DatatypeUFiniteAttr;
 typedef expr::Attribute<expr::attr::DatatypeUFiniteComputedTag, bool> DatatypeUFiniteComputedAttr;
 
+Datatype::Datatype(std::string name, bool isCo)
+    : d_internal(nullptr),  // until the Node-level datatype API is activated
+      d_name(name),
+      d_params(),
+      d_isCo(isCo),
+      d_isTuple(false),
+      d_isRecord(false),
+      d_record(NULL),
+      d_constructors(),
+      d_resolved(false),
+      d_self(),
+      d_involvesExt(false),
+      d_involvesUt(false),
+      d_sygus_allow_const(false),
+      d_sygus_allow_all(false),
+      d_card(CardinalityUnknown()),
+      d_well_founded(0)
+{
+}
+
+Datatype::Datatype(std::string name,
+                   const std::vector<Type>& params,
+                   bool isCo)
+    : d_internal(nullptr),  // until the Node-level datatype API is activated
+      d_name(name),
+      d_params(params),
+      d_isCo(isCo),
+      d_isTuple(false),
+      d_isRecord(false),
+      d_record(NULL),
+      d_constructors(),
+      d_resolved(false),
+      d_self(),
+      d_involvesExt(false),
+      d_involvesUt(false),
+      d_sygus_allow_const(false),
+      d_sygus_allow_all(false),
+      d_card(CardinalityUnknown()),
+      d_well_founded(0)
+{
+}
+
 Datatype::~Datatype(){
   delete d_record;
 }
@@ -67,7 +111,7 @@ const Datatype& Datatype::datatypeOf(Expr item) {
   case kind::TESTER_TYPE:
     return DatatypeType(t[0].toType()).getDatatype();
   default:
-    Unhandled("arg must be a datatype constructor, selector, or tester");
+    Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }
 }
 
@@ -242,7 +286,7 @@ void Datatype::setRecord() {
 Cardinality Datatype::getCardinality(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
+  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   std::vector< Type > processing;
   computeCardinality( t, processing );
   return d_card;
@@ -275,10 +319,10 @@ Cardinality Datatype::computeCardinality(Type t,
 bool Datatype::isRecursiveSingleton(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
+  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   if( d_card_rec_singleton.find( t )==d_card_rec_singleton.end() ){
     if( isCodatatype() ){
-      Assert( d_card_u_assume[t].empty() );
+      Assert(d_card_u_assume[t].empty());
       std::vector< Type > processing;
       if( computeCardinalityRecSingleton( t, processing, d_card_u_assume[t] ) ){
         d_card_rec_singleton[t] = 1;
@@ -307,8 +351,8 @@ bool Datatype::isRecursiveSingleton() const
 
 unsigned Datatype::getNumRecursiveSingletonArgTypes(Type t) const
 {
-  Assert( d_card_rec_singleton.find( t )!=d_card_rec_singleton.end() );
-  Assert( isRecursiveSingleton( t ) );
+  Assert(d_card_rec_singleton.find(t) != d_card_rec_singleton.end());
+  Assert(isRecursiveSingleton(t));
   return d_card_u_assume[t].size();
 }
 
@@ -320,8 +364,8 @@ unsigned Datatype::getNumRecursiveSingletonArgTypes() const
 
 Type Datatype::getRecursiveSingletonArgType(Type t, unsigned i) const
 {
-  Assert( d_card_rec_singleton.find( t )!=d_card_rec_singleton.end() );
-  Assert( isRecursiveSingleton( t ) );
+  Assert(d_card_rec_singleton.find(t) != d_card_rec_singleton.end());
+  Assert(isRecursiveSingleton(t));
   return d_card_u_assume[t][i];
 }
 
@@ -384,7 +428,7 @@ bool Datatype::computeCardinalityRecSingleton(Type t,
 bool Datatype::isFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
+  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
 
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
@@ -413,7 +457,7 @@ bool Datatype::isFinite() const
 bool Datatype::isInterpretedFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert( t.isDatatype() && ((DatatypeType)t).getDatatype()==*this );
+  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_self);
   TypeNode self = TypeNode::fromType(d_self);
@@ -479,32 +523,48 @@ bool Datatype::computeWellFounded(std::vector<Type>& processing) const
 Expr Datatype::mkGroundTerm(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  return mkGroundTermInternal(t, false);
+}
+
+Expr Datatype::mkGroundValue(Type t) const
+{
+  PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
+  return mkGroundTermInternal(t, true);
+}
+
+Expr Datatype::mkGroundTermInternal(Type t, bool isValue) const
+{
   ExprManagerScope ems(d_self);
-  Debug("datatypes") << "mkGroundTerm of type " << t << std::endl;
+  Debug("datatypes") << "mkGroundTerm of type " << t
+                     << ", isValue = " << isValue << std::endl;
   // is this already in the cache ?
-  std::map< Type, Expr >::iterator it = d_ground_term.find( t );
-  if( it != d_ground_term.end() ){
+  std::map<Type, Expr>& cache = isValue ? d_ground_value : d_ground_term;
+  std::map<Type, Expr>::iterator it = cache.find(t);
+  if (it != cache.end())
+  {
     Debug("datatypes") << "\nin cache: " << d_self << " => " << it->second << std::endl;
     return it->second;
-  } else {
-    std::vector< Type > processing;
-    Expr groundTerm = computeGroundTerm( t, processing );
-    if(!groundTerm.isNull() ) {
-      // we found a ground-term-constructing constructor!
-      d_ground_term[t] = groundTerm;
-      Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm << std::endl;
-    }
-    if( groundTerm.isNull() ){
-      if( !d_isCo ){
-        // if we get all the way here, we aren't well-founded
-        IllegalArgument(*this, "datatype is not well-founded, cannot construct a ground term!");
-      }else{
-        return groundTerm;
-      }
-    }else{
-      return groundTerm;
+  }
+  std::vector<Type> processing;
+  Expr groundTerm = computeGroundTerm(t, processing, isValue);
+  if (!groundTerm.isNull())
+  {
+    // we found a ground-term-constructing constructor!
+    cache[t] = groundTerm;
+    Debug("datatypes") << "constructed: " << getName() << " => " << groundTerm
+                       << std::endl;
+  }
+  if (groundTerm.isNull())
+  {
+    if (!d_isCo)
+    {
+      // if we get all the way here, we aren't well-founded
+      IllegalArgument(
+          *this,
+          "datatype is not well-founded, cannot construct a ground term!");
     }
   }
+  return groundTerm;
 }
 
 Expr getSubtermWithType( Expr e, Type t, bool isTop ){
@@ -521,7 +581,9 @@ Expr getSubtermWithType( Expr e, Type t, bool isTop ){
   }
 }
 
-Expr Datatype::computeGroundTerm(Type t, std::vector<Type>& processing) const
+Expr Datatype::computeGroundTerm(Type t,
+                                 std::vector<Type>& processing,
+                                 bool isValue) const
 {
   if( std::find( processing.begin(), processing.end(), t )==processing.end() ){
     processing.push_back( t );
@@ -530,7 +592,8 @@ Expr Datatype::computeGroundTerm(Type t, std::vector<Type>& processing) const
         //do nullary constructors first
         if( ((*i).getNumArgs()==0)==(r==0)){
           Debug("datatypes") << "Try constructing for " << (*i).getName() << ", processing = " << processing.size() << std::endl;
-          Expr e = (*i).computeGroundTerm( t, processing, d_ground_term );
+          Expr e =
+              (*i).computeGroundTerm(t, processing, d_ground_term, isValue);
           if( !e.isNull() ){
             //must check subterms for the same type to avoid infinite loops in type enumeration
             Expr se = getSubtermWithType( e, t, true );
@@ -596,10 +659,10 @@ bool Datatype::operator==(const Datatype& other) const
     // testing equivalence of constructors and testers is harder b/c
     // this constructor might not be resolved yet; only compare them
     // if they are both resolved
-    Assert(isResolved() == !(*i).d_constructor.isNull() &&
-           isResolved() == !(*i).d_tester.isNull() &&
-           (*i).d_constructor.isNull() == (*j).d_constructor.isNull() &&
-           (*i).d_tester.isNull() == (*j).d_tester.isNull());
+    Assert(isResolved() == !(*i).d_constructor.isNull()
+           && isResolved() == !(*i).d_tester.isNull()
+           && (*i).d_constructor.isNull() == (*j).d_constructor.isNull()
+           && (*i).d_tester.isNull() == (*j).d_tester.isNull());
     if(!(*i).d_constructor.isNull() && (*i).d_constructor != (*j).d_constructor) {
       return false;
     }
@@ -613,8 +676,8 @@ bool Datatype::operator==(const Datatype& other) const
       }
       // testing equivalence of selectors is harder b/c args might not
       // be resolved yet
-      Assert(isResolved() == (*k).isResolved() &&
-             (*k).isResolved() == (*l).isResolved());
+      Assert(isResolved() == (*k).isResolved()
+             && (*k).isResolved() == (*l).isResolved());
       if((*k).isResolved()) {
         // both are resolved, so simply compare the selectors directly
         if((*k).d_selector != (*l).d_selector) {
@@ -817,6 +880,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
+      d_internal(nullptr),  // until the Node-level datatype API is activated
       d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
       d_tester(),
       d_args(),
@@ -833,6 +897,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name,
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
+      d_internal(nullptr),  // until the Node-level datatype API is activated
       d_name(name + '\0' + tester),
       d_tester(),
       d_args(),
@@ -915,11 +980,16 @@ Type DatatypeConstructor::getSpecializedConstructorType(Type returnType) const {
   ExprManagerScope ems(d_constructor);
   const Datatype& dt = Datatype::datatypeOf(d_constructor);
   PrettyCheckArgument(dt.isParametric(), this, "this datatype constructor is not parametric");
-  DatatypeType dtt = dt.getDatatypeType();
-  Matcher m(dtt);
-  m.doMatching( TypeNode::fromType(dtt), TypeNode::fromType(returnType) );
-  vector<Type> subst;
-  m.getMatches(subst);
+  TypeNode dtt = TypeNode::fromType(dt.getDatatypeType());
+  TypeMatcher m(dtt);
+  m.doMatching(dtt, TypeNode::fromType(returnType));
+  std::vector<TypeNode> sns;
+  m.getMatches(sns);
+  std::vector<Type> subst;
+  for (TypeNode& s : sns)
+  {
+    subst.push_back(s.toType());
+  }
   vector<Type> params = dt.getParameters();
   return d_constructor.getType().substitute(params, subst);
 }
@@ -1078,7 +1148,8 @@ bool DatatypeConstructor::isInterpretedFinite(Type t) const
 
 Expr DatatypeConstructor::computeGroundTerm(Type t,
                                             std::vector<Type>& processing,
-                                            std::map<Type, Expr>& gt) const
+                                            std::map<Type, Expr>& gt,
+                                            bool isValue) const
 {
   // we're using some internals, so we have to set up this library context
   ExprManagerScope ems(d_constructor);
@@ -1089,13 +1160,16 @@ Expr DatatypeConstructor::computeGroundTerm(Type t,
   // for each selector, get a ground term
   std::vector< Type > instTypes;
   std::vector< Type > paramTypes;
-  if( DatatypeType(t).isParametric() ){
+  bool isParam = static_cast<DatatypeType>(t).isParametric();
+  if (isParam)
+  {
     paramTypes = DatatypeType(t).getDatatype().getParameters();
     instTypes = DatatypeType(t).getParamTypes();
   }
   for(const_iterator i = begin(), i_end = end(); i != i_end; ++i) {
     Type selType = SelectorType((*i).getSelector().getType()).getRangeType();
-    if( DatatypeType(t).isParametric() ){
+    if (isParam)
+    {
       selType = selType.substitute( paramTypes, instTypes );
     }
     Expr arg;
@@ -1105,10 +1179,13 @@ Expr DatatypeConstructor::computeGroundTerm(Type t,
         arg = itgt->second;
       }else{
         const Datatype & dt = DatatypeType(selType).getDatatype();
-        arg = dt.computeGroundTerm( selType, processing );
+        arg = dt.computeGroundTerm(selType, processing, isValue);
       }
-    }else{
-      arg = selType.mkGroundTerm();
+    }
+    else
+    {
+      // call mkGroundValue or mkGroundTerm based on isValue
+      arg = isValue ? selType.mkGroundValue() : selType.mkGroundTerm();
     }
     if( arg.isNull() ){
       Debug("datatypes") << "...unable to construct arg of " << (*i).getName() << std::endl;
@@ -1120,9 +1197,10 @@ Expr DatatypeConstructor::computeGroundTerm(Type t,
   }
 
   Expr groundTerm = getConstructor().getExprManager()->mkExpr(kind::APPLY_CONSTRUCTOR, groundTerms);
-  if( groundTerm.getType()!=t ){
+  if (isParam)
+  {
     Assert( Datatype::datatypeOf( d_constructor ).isParametric() );
-    //type is ambiguous, must apply type ascription
+    // type is parametric, must apply type ascription
     Debug("datatypes-gt") << "ambiguous type for " << groundTerm << ", ascribe to " << t << std::endl;
     groundTerms[0] = getConstructor().getExprManager()->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
                        getConstructor().getExprManager()->mkConst(AscriptionType(getSpecializedConstructorType(t))),
@@ -1140,8 +1218,8 @@ void DatatypeConstructor::computeSharedSelectors( Type domainType ) const {
     }else{
       ctype = TypeNode::fromType( d_constructor.getType() );
     }
-    Assert( ctype.isConstructor() );
-    Assert( ctype.getNumChildren()-1==getNumArgs() );
+    Assert(ctype.isConstructor());
+    Assert(ctype.getNumChildren() - 1 == getNumArgs());
     //compute the shared selectors
     const Datatype& dt = Datatype::datatypeOf(d_constructor);
     std::map< TypeNode, unsigned > counter;
@@ -1149,7 +1227,8 @@ void DatatypeConstructor::computeSharedSelectors( Type domainType ) const {
       TypeNode t = ctype[j];
       Expr ss = dt.getSharedSelector( domainType, t.toType(), counter[t] );
       d_shared_selectors[domainType].push_back( ss );
-      Assert( d_shared_selector_index[domainType].find( ss )==d_shared_selector_index[domainType].end() );
+      Assert(d_shared_selector_index[domainType].find(ss)
+             == d_shared_selector_index[domainType].end());
       d_shared_selector_index[domainType][ss] = j;
       counter[t]++;
     }
@@ -1199,10 +1278,12 @@ bool DatatypeConstructor::involvesUninterpretedType() const{
   return false;
 }
 
-DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector) :
-  d_name(name),
-  d_selector(selector),
-  d_resolved(false) {
+DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector)
+    : d_internal(nullptr),  // until the Node-level datatype API is activated
+      d_name(name),
+      d_selector(selector),
+      d_resolved(false)
+{
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor arg without a name");
 }
 
@@ -1226,7 +1307,7 @@ Expr DatatypeConstructor::getSelectorInternal( Type domainType, size_t index ) c
   PrettyCheckArgument(index < getNumArgs(), index, "index out of bounds");
   if( options::dtSharedSelectors() ){
     computeSharedSelectors( domainType );
-    Assert( d_shared_selectors[domainType].size()==getNumArgs() );
+    Assert(d_shared_selectors[domainType].size() == getNumArgs());
     return d_shared_selectors[domainType][index];
   }else{
     return d_args[index].getSelector();
@@ -1236,7 +1317,7 @@ Expr DatatypeConstructor::getSelectorInternal( Type domainType, size_t index ) c
 int DatatypeConstructor::getSelectorIndexInternal( Expr sel ) const {
   PrettyCheckArgument(isResolved(), this, "cannot get an internal selector index for an unresolved datatype constructor");
   if( options::dtSharedSelectors() ){
-    Assert( sel.getType().isSelector() );
+    Assert(sel.getType().isSelector());
     Type domainType = ((SelectorType)sel.getType()).getDomain();
     computeSharedSelectors( domainType );
     std::map< Expr, unsigned >::iterator its = d_shared_selector_index[domainType].find( sel );

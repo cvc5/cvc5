@@ -227,7 +227,6 @@ public:
   bool getVersion() const;
   bool getWaitToJoin() const;
   const std::string& getForceLogicString() const;
-  const std::vector<std::string>& getThreadArgv() const;
   int getVerbosity() const;
   std::istream* getIn() const;
   std::ostream* getErr();

@@ -268,6 +268,7 @@ libcvc4_add_sources(
   theory/arith/arith_rewriter.h
   theory/arith/arith_static_learner.cpp
   theory/arith/arith_static_learner.h
+  theory/arith/arith_utilities.cpp
   theory/arith/arith_utilities.h
   theory/arith/arithvar.cpp
   theory/arith/arithvar.h
@@ -299,6 +300,8 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl_model.cpp
+  theory/arith/nl_model.h
   theory/arith/nonlinear_extension.cpp
   theory/arith/nonlinear_extension.h
   theory/arith/normal_form.cpp
@@ -400,13 +403,15 @@ libcvc4_add_sources(
   theory/care_graph.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
-  theory/datatypes/datatypes_sygus.cpp
-  theory/datatypes/datatypes_sygus.h
+  theory/datatypes/sygus_extension.cpp
+  theory/datatypes/sygus_extension.h
   theory/datatypes/sygus_simple_sym.cpp
   theory/datatypes/sygus_simple_sym.h
   theory/datatypes/theory_datatypes.cpp
   theory/datatypes/theory_datatypes.h
   theory/datatypes/theory_datatypes_type_rules.h
+  theory/datatypes/theory_datatypes_utils.cpp
+  theory/datatypes/theory_datatypes_utils.h
   theory/datatypes/type_enumerator.cpp
   theory/datatypes/type_enumerator.h
   theory/decision_manager.cpp
@@ -501,6 +506,8 @@ libcvc4_add_sources(
   theory/quantifiers/fmf/model_builder.h
   theory/quantifiers/fmf/model_engine.cpp
   theory/quantifiers/fmf/model_engine.h
+  theory/quantifiers/fun_def_evaluator.cpp
+  theory/quantifiers/fun_def_evaluator.h
   theory/quantifiers/fun_def_process.cpp
   theory/quantifiers/fun_def_process.h
   theory/quantifiers/inst_match.cpp
@@ -662,6 +669,8 @@ libcvc4_add_sources(
   theory/strings/regexp_solver.h
   theory/strings/skolem_cache.cpp
   theory/strings/skolem_cache.h
+  theory/strings/solver_state.cpp
+  theory/strings/solver_state.h
   theory/strings/theory_strings.cpp
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp

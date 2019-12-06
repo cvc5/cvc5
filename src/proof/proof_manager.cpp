@@ -17,7 +17,7 @@
 
 #include "proof/proof_manager.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/context.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
@@ -97,52 +97,52 @@ const Proof& ProofManager::getProof(SmtEngine* smt)
 }
 
 CoreSatProof* ProofManager::getSatProof() {
-  Assert (currentPM()->d_satProof);
+  Assert(currentPM()->d_satProof);
   return currentPM()->d_satProof;
 }
 
 CnfProof* ProofManager::getCnfProof() {
-  Assert (currentPM()->d_cnfProof);
+  Assert(currentPM()->d_cnfProof);
   return currentPM()->d_cnfProof;
 }
 
 TheoryProofEngine* ProofManager::getTheoryProofEngine() {
-  Assert (currentPM()->d_theoryProof != NULL);
+  Assert(currentPM()->d_theoryProof != NULL);
   return currentPM()->d_theoryProof;
 }
 
 UFProof* ProofManager::getUfProof() {
-  Assert (options::proof());
+  Assert(options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_UF);
   return (UFProof*)pf;
 }
 
 proof::ResolutionBitVectorProof* ProofManager::getBitVectorProof()
 {
-  Assert (options::proof());
+  Assert(options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_BV);
   return static_cast<proof::ResolutionBitVectorProof*>(pf);
 }
 
 ArrayProof* ProofManager::getArrayProof() {
-  Assert (options::proof());
+  Assert(options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARRAYS);
   return (ArrayProof*)pf;
 }
 
 ArithProof* ProofManager::getArithProof() {
-  Assert (options::proof());
+  Assert(options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_ARITH);
   return (ArithProof*)pf;
 }
 
 SkolemizationManager* ProofManager::getSkolemizationManager() {
-  Assert (options::proof() || options::unsatCores());
+  Assert(options::proof() || options::unsatCores());
   return &(currentPM()->d_skolemizationManager);
 }
 
 void ProofManager::initSatProof(Minisat::Solver* solver) {
-  Assert (currentPM()->d_satProof == NULL);
+  Assert(currentPM()->d_satProof == NULL);
   Assert(currentPM()->d_format == LFSC);
   currentPM()->d_satProof = new CoreSatProof(solver, d_context, "");
 }
@@ -151,8 +151,8 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
                                 context::Context* ctx) {
   ProofManager* pm = currentPM();
   Assert(pm->d_satProof != NULL);
-  Assert (pm->d_cnfProof == NULL);
-  Assert (pm->d_format == LFSC);
+  Assert(pm->d_cnfProof == NULL);
+  Assert(pm->d_format == LFSC);
   CnfProof* cnf = new LFSCCnfProof(cnfStream, ctx, "");
   pm->d_cnfProof = cnf;
 
@@ -175,8 +175,8 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
 }
 
 void ProofManager::initTheoryProofEngine() {
-  Assert (currentPM()->d_theoryProof == NULL);
-  Assert (currentPM()->d_format == LFSC);
+  Assert(currentPM()->d_theoryProof == NULL);
+  Assert(currentPM()->d_format == LFSC);
   currentPM()->d_theoryProof = new LFSCTheoryProofEngine();
 }
 
@@ -250,7 +250,7 @@ bool ProofManager::hasLitName(TNode lit) {
 }
 
 std::string ProofManager::sanitize(TNode node) {
-  Assert (node.isVar() || node.isConst());
+  Assert(node.isVar() || node.isConst());
 
   std::string name = node.toString();
   if (node.isVar()) {
@@ -282,7 +282,9 @@ void ProofManager::traceDeps(TNode n, ExprSet* coreAssertions) {
         Debug("cores") << " -- Could not track cause assertion. Failing silently." << std::endl;
         return;
       }
-      InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
+      InternalError()
+          << "Cannot trace dependence information back to input assertion:\n`"
+          << n << "'";
     }
     Assert(d_deps.find(n) != d_deps.end());
     std::vector<Node> deps = (*d_deps.find(n)).second;
@@ -312,7 +314,9 @@ void ProofManager::traceDeps(TNode n, CDExprSet* coreAssertions) {
         Debug("cores") << " -- Could not track cause assertion. Failing silently." << std::endl;
         return;
       }
-      InternalError("Cannot trace dependence information back to input assertion:\n`%s'", n.toString().c_str());
+      InternalError()
+          << "Cannot trace dependence information back to input assertion:\n`"
+          << n << "'";
     }
     Assert(d_deps.find(n) != d_deps.end());
     std::vector<Node> deps = (*d_deps.find(n)).second;
@@ -327,7 +331,7 @@ void ProofManager::traceDeps(TNode n, CDExprSet* coreAssertions) {
 }
 
 void ProofManager::traceUnsatCore() {
-  Assert (options::unsatCores());
+  Assert(options::unsatCores());
   d_satProof->refreshProof();
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
@@ -375,8 +379,9 @@ void ProofManager::constructSatProof() {
 }
 
 void ProofManager::getLemmasInUnsatCore(theory::TheoryId theory, std::vector<Node> &lemmas) {
-  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
-  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
+  Assert(PROOF_ON()) << "Cannot compute unsat core when proofs are off";
+  Assert(unsatCoreAvailable())
+      << "Cannot get unsat core at this time. Mabye the input is SAT?";
 
   constructSatProof();
 
@@ -425,8 +430,9 @@ std::set<Node> ProofManager::satClauseToNodeSet(prop::SatClause* clause) {
 }
 
 Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma) {
-  Assert(PROOF_ON(), "Cannot compute unsat core when proofs are off");
-  Assert(unsatCoreAvailable(), "Cannot get unsat core at this time. Mabye the input is SAT?" );
+  Assert(PROOF_ON()) << "Cannot compute unsat core when proofs are off";
+  Assert(unsatCoreAvailable())
+      << "Cannot get unsat core at this time. Mabye the input is SAT?";
 
   // If we're doing aggressive minimization, work on all lemmas, not just conjunctions.
   if (!options::aggressiveCoreMin() && (lemma.getKind() != kind::AND))
@@ -531,7 +537,7 @@ void ProofManager::addDependence(TNode n, TNode dep) {
 }
 
 void ProofManager::addUnsatCore(Expr formula) {
-  Assert (d_inputCoreFormulas.find(formula) != d_inputCoreFormulas.end());
+  Assert(d_inputCoreFormulas.find(formula) != d_inputCoreFormulas.end());
   d_outputCoreFormulas.insert(formula);
 }
 
@@ -573,9 +579,13 @@ void LFSCProof::toStream(std::ostream& out) const
     CodeTimer skeletonProofTimer{
         ProofManager::currentPM()->getStats().d_skeletonProofTraceTime};
     Assert(!d_satProof->proofConstructed());
+
+    // Here we give our SAT solver a chance to flesh out the resolution proof.
+    // It proves bottom from a set of clauses.
     d_satProof->constructProof();
 
-    // collecting leaf clauses in resolution proof
+    // We ask the SAT solver which clauses are used in that proof.
+    // For a resolution proof, these are the leaves of the tree.
     d_satProof->collectClausesUsed(used_inputs, used_lemmas);
 
     IdToSatClause::iterator it2;
@@ -666,6 +676,8 @@ void LFSCProof::toStream(std::ostream& out) const
       }
     }
 
+    // From the clauses, compute the atoms (atomic theory predicates in
+    // assertions and lemmas).
     d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
     d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 
@@ -912,7 +924,8 @@ void LFSCProof::checkUnrewrittenAssertion(const NodeSet& rewrites) const
   for (rewrite = rewrites.begin(); rewrite != rewrites.end(); ++rewrite) {
     Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: handling " << *rewrite << std::endl;
     if (ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr())) {
-      Assert(ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr()));
+      Assert(
+          ProofManager::currentPM()->have_input_assertion((*rewrite).toExpr()));
       Debug("pf::pm") << "LFSCProof::checkUnrewrittenAssertion: this assertion was NOT rewritten!" << std::endl
                       << "\tAdding filter: "
                       << ProofManager::getPreprocessedAssertionName(*rewrite, "")
@@ -947,7 +960,8 @@ Node ProofManager::mkOp(TNode n) {
 
   Node& op = d_ops[n];
   if(op.isNull()) {
-    Assert((n.getConst<Kind>() == kind::SELECT) || (n.getConst<Kind>() == kind::STORE));
+    Assert((n.getConst<Kind>() == kind::SELECT)
+           || (n.getConst<Kind>() == kind::STORE));
 
     Debug("mgd-pm-mkop") << "making an op for " << n << "\n";
 
@@ -1036,12 +1050,12 @@ std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k) {
 }
 
 void ProofManager::registerRewrite(unsigned ruleId, Node original, Node result){
-  Assert (currentPM()->d_theoryProof != NULL);
+  Assert(currentPM()->d_theoryProof != NULL);
   currentPM()->d_rewriteLog.push_back(RewriteLogEntry(ruleId, original, result));
 }
 
 void ProofManager::clearRewriteLog() {
-  Assert (currentPM()->d_theoryProof != NULL);
+  Assert(currentPM()->d_theoryProof != NULL);
   currentPM()->d_rewriteLog.clear();
 }
 

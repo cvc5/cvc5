@@ -299,7 +299,8 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       hasChecked.insert( fst_mem_rep );
 
-      Datatype dt = join_image_term.getType().getSetElementType().getDatatype();
+      const Datatype& dt =
+          join_image_term.getType().getSetElementType().getDatatype();
       Node new_membership = NodeManager::currentNM()->mkNode(kind::MEMBER,
                                                              NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR,
                                                                                                Node::fromExpr(dt[0].getConstructor()), fst_mem_rep ),
@@ -428,7 +429,8 @@ void TheorySetsRels::check(Theory::Effort level)
     Node reason = exp;
     Node fst_mem = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_mem = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    Datatype dt = iden_term[0].getType().getSetElementType().getDatatype();
+    const Datatype& dt =
+        iden_term[0].getType().getSetElementType().getDatatype();
     Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), fst_mem ), iden_term[0] );
 
     if( exp[1] != iden_term ) {
@@ -510,6 +512,8 @@ void TheorySetsRels::check(Theory::Effort level)
                               << " or can be infered by TC_Graph of tc_rel[0]! " << std::endl;
       return;
     }
+    NodeManager* nm = NodeManager::currentNM();
+
     // add mem_rep to d_tcrRep_tcGraph
     TC_IT tc_it = d_tcr_tcGraph.find( tc_rel );
     Node mem_rep_fst = getRepresentative( RelsUtils::nthElementOfTuple( mem_rep, 0 ) );
@@ -520,7 +524,7 @@ void TheorySetsRels::check(Theory::Effort level)
       std::map< Node, std::map< Node, Node > >::iterator tc_exp_it = d_tcr_tcGraph_exps.find( tc_rel );
 
       TC_GRAPH_IT tc_graph_it = (tc_it->second).find( mem_rep_fst );
-      Assert( tc_exp_it != d_tcr_tcGraph_exps.end() );
+      Assert(tc_exp_it != d_tcr_tcGraph_exps.end());
       std::map< Node, Node >::iterator exp_map_it = (tc_exp_it->second).find( mem_rep_tup );
 
       if( exp_map_it == (tc_exp_it->second).end() ) {
@@ -544,25 +548,45 @@ void TheorySetsRels::check(Theory::Effort level)
       exp_map[mem_rep_tup] = exp;
       d_tcr_tcGraph_exps[tc_rel] = exp_map;
     }
-
     Node fst_element = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_element = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    Node sk_1     = NodeManager::currentNM()->mkSkolem("stc", fst_element.getType());
-    Node sk_2     = NodeManager::currentNM()->mkSkolem("stc", snd_element.getType());
-    Node mem_of_r = NodeManager::currentNM()->mkNode(kind::MEMBER, exp[0], tc_rel[0]);
-    Node sk_eq    = NodeManager::currentNM()->mkNode(kind::EQUAL, sk_1, sk_2);
+    SkolemCache& sc = d_state.getSkolemCache();
+    Node sk_1 = sc.mkTypedSkolemCached(fst_element.getType(),
+                                       exp[0],
+                                       tc_rel[0],
+                                       SkolemCache::SK_TCLOSURE_DOWN1,
+                                       "stc1");
+    Node sk_2 = sc.mkTypedSkolemCached(fst_element.getType(),
+                                       exp[0],
+                                       tc_rel[0],
+                                       SkolemCache::SK_TCLOSURE_DOWN2,
+                                       "stc2");
+    Node mem_of_r = nm->mkNode(MEMBER, exp[0], tc_rel[0]);
+    Node sk_eq = nm->mkNode(EQUAL, sk_1, sk_2);
     Node reason   = exp;
 
     if( tc_rel != exp[1] ) {
-      reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, tc_rel, exp[1]));
+      reason = nm->mkNode(AND, reason, nm->mkNode(EQUAL, tc_rel, exp[1]));
     }
 
-    Node conclusion = NodeManager::currentNM()->mkNode(kind::OR, mem_of_r,
-                                                     (NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, fst_element, sk_1), tc_rel[0]),
-                                                     (NodeManager::currentNM()->mkNode(kind::AND, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, sk_2, snd_element), tc_rel[0]),
-                                                     (NodeManager::currentNM()->mkNode(kind::OR, sk_eq, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, sk_1, sk_2), tc_rel))))))));
+    Node conc = nm->mkNode(
+        OR,
+        mem_of_r,
+        nm->mkNode(
+            AND,
+            nm->mkNode(MEMBER,
+                       RelsUtils::constructPair(tc_rel, fst_element, sk_1),
+                       tc_rel[0]),
+            nm->mkNode(MEMBER,
+                       RelsUtils::constructPair(tc_rel, sk_2, snd_element),
+                       tc_rel[0]),
+            nm->mkNode(OR,
+                       sk_eq,
+                       nm->mkNode(MEMBER,
+                                  RelsUtils::constructPair(tc_rel, sk_1, sk_2),
+                                  tc_rel))));
 
-    Node tc_lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason, conclusion );
+    Node tc_lemma = nm->mkNode(IMPLIES, reason, conc);
     d_pending.push_back(tc_lemma);
   }
 
@@ -657,7 +681,7 @@ void TheorySetsRels::check(Theory::Effort level)
         std::vector< Node > reasons;
         std::unordered_set<Node, NodeHashFunction> seen;
         Node tuple = RelsUtils::constructPair( tc_rel, getRepresentative( tc_graph_it->first ), getRepresentative( *snd_elements_it) );
-        Assert( rel_tc_graph_exps.find( tuple ) != rel_tc_graph_exps.end() );
+        Assert(rel_tc_graph_exps.find(tuple) != rel_tc_graph_exps.end());
         Node exp   = rel_tc_graph_exps.find( tuple )->second;
 
         reasons.push_back( exp );
@@ -743,18 +767,18 @@ void TheorySetsRels::check(Theory::Effort level)
     Node mem = exp[0];
     std::vector<Node>   r1_element;
     std::vector<Node>   r2_element;
-    Datatype     dt      = pt_rel[0].getType().getSetElementType().getDatatype();
+    const Datatype& dt1 = pt_rel[0].getType().getSetElementType().getDatatype();
     unsigned int s1_len  = pt_rel[0].getType().getSetElementType().getTupleLength();
     unsigned int tup_len = pt_rel.getType().getSetElementType().getTupleLength();
 
-    r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    r1_element.push_back(Node::fromExpr(dt1[0].getConstructor()));
 
     unsigned int i = 0;
     for(; i < s1_len; ++i) {
       r1_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
-    dt = pt_rel[1].getType().getSetElementType().getDatatype();
-    r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    const Datatype& dt2 = pt_rel[1].getType().getSetElementType().getDatatype();
+    r2_element.push_back(Node::fromExpr(dt2[0].getConstructor()));
     for(; i < tup_len; ++i) {
       r2_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
@@ -801,18 +825,20 @@ void TheorySetsRels::check(Theory::Effort level)
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
     Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
-    Datatype     dt             = join_rel[0].getType().getSetElementType().getDatatype();
+    const Datatype& dt1 =
+        join_rel[0].getType().getSetElementType().getDatatype();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
     unsigned int tup_len        = join_rel.getType().getSetElementType().getTupleLength();
 
     unsigned int i = 0;
-    r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    r1_element.push_back(Node::fromExpr(dt1[0].getConstructor()));
     for(; i < s1_len-1; ++i) {
       r1_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
     r1_element.push_back(shared_x);
-    dt = join_rel[1].getType().getSetElementType().getDatatype();
-    r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    const Datatype& dt2 =
+        join_rel[1].getType().getSetElementType().getDatatype();
+    r2_element.push_back(Node::fromExpr(dt2[0].getConstructor()));
     r2_element.push_back(shared_x);
     for(; i < tup_len; ++i) {
       r2_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
@@ -896,7 +922,8 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "[Theory::Rels] ****** Finalizing transitive closure inferences!" << std::endl;
     TC_IT tc_graph_it = d_tcr_tcGraph.begin();
     while( tc_graph_it != d_tcr_tcGraph.end() ) {
-      Assert ( d_tcr_tcGraph_exps.find(tc_graph_it->first) != d_tcr_tcGraph_exps.end() );
+      Assert(d_tcr_tcGraph_exps.find(tc_graph_it->first)
+             != d_tcr_tcGraph_exps.end());
       doTCInference( tc_graph_it->second, d_tcr_tcGraph_exps.find(tc_graph_it->first)->second, tc_graph_it->first );
       ++tc_graph_it;
     }
@@ -970,7 +997,7 @@ void TheorySetsRels::check(Theory::Effort level)
     std::vector<Node>   members = d_rReps_memberReps_cache[rel0_rep];
     std::vector<Node>   exps    = d_rReps_memberReps_exp_cache[rel0_rep];
 
-    Assert( members.size() == exps.size() );
+    Assert(members.size() == exps.size());
 
     for(unsigned int i = 0; i < members.size(); i++) {
       Node reason = exps[i];
@@ -1168,17 +1195,15 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   void TheorySetsRels::makeSharedTerm( Node n ) {
-    if(d_shared_terms.find(n) == d_shared_terms.end()) {
-      Trace("rels-share") << " [sets-rels] making shared term " << n
-                          << std::endl;
-      Node skolem = NodeManager::currentNM()->mkSkolem( "sts", NodeManager::currentNM()->mkSetType( n.getType() ) );
-      Node skEq =
-          skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON, n));
-      // force lemma to be sent immediately
-      d_im.assertInference(skEq, d_trueNode, "shared-term");
-      d_im.flushPendingLemmas();
-      d_shared_terms.insert(n);
+    if (d_shared_terms.find(n) != d_shared_terms.end())
+    {
+      return;
     }
+    Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
+    // force a proxy lemma to be sent for the singleton containing n
+    Node ss = NodeManager::currentNM()->mkNode(SINGLETON, n);
+    d_state.getProxy(ss);
+    d_shared_terms.insert(n);
   }
 
   /*

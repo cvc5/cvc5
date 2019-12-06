@@ -23,7 +23,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/exception.h"
 
 using namespace std;

@@ -15,7 +15,6 @@
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/evaluator.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -595,12 +594,18 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       for (const Node& res : base_results)
       {
         TNode tres = res;
-        std::vector<Node> vals;
-        vals.push_back(tres);
         Node sres;
-        if (tryEval)
+        // It may not be constant, e.g. if we involve a partial operator
+        // like datatype selectors. In this case, we avoid using the evaluator,
+        // which expects a constant substitution.
+        if (tres.isConst())
         {
-          sres = ev->eval(templ, args, vals);
+          std::vector<Node> vals;
+          vals.push_back(tres);
+          if (tryEval)
+          {
+            sres = ev->eval(templ, args, vals);
+          }
         }
         if (sres.isNull())
         {
@@ -1454,12 +1459,11 @@ Node SygusUnifIo::constructSol(
           if (!rec_c.isNull())
           {
             Assert(ecache_child.d_enum_val_to_index.find(rec_c)
-                    != ecache_child.d_enum_val_to_index.end());
+                   != ecache_child.d_enum_val_to_index.end());
             split_cond_res_index = ecache_child.d_enum_val_to_index[rec_c];
             set_split_cond_res_index = true;
             split_cond_enum = ce;
-            Assert(split_cond_res_index
-                    < ecache_child.d_enum_vals_res.size());
+            Assert(split_cond_res_index < ecache_child.d_enum_vals_res.size());
           }
         }
         else

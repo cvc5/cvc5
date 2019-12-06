@@ -22,7 +22,7 @@
 #include <cstring>
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
 using namespace std;
 

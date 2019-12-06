@@ -95,7 +95,7 @@ static std::string maybeQuoteSymbol(const std::string& s) {
   if (s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                           "0123456789~!@$%^&*_-+=<>.?/")
           != string::npos
-      || s.empty())
+      || s.empty() || (s[0] >= '0' && s[0] <= '9'))
   {
     // need to quote it
     stringstream ss;
@@ -195,7 +195,8 @@ void Smt2Printer::toStream(std::ostream& out,
       case roundTowardNegative : out << "roundTowardNegative"; break;
       case roundTowardZero : out << "roundTowardZero"; break;
       default :
-        Unreachable("Invalid value of rounding mode constant (%d)",n.getConst<RoundingMode>());
+        Unreachable() << "Invalid value of rounding mode constant ("
+                      << n.getConst<RoundingMode>() << ")";
       }
       break;
     case kind::CONST_BOOLEAN:
@@ -614,7 +615,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     // arrays theory
   case kind::SELECT:
-  case kind::STORE: typeChildren = true;
+  case kind::STORE: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::PARTIAL_SELECT_0:
   case kind::PARTIAL_SELECT_1:
   case kind::ARRAY_TYPE:
@@ -751,7 +752,7 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
-  case kind::MEMBER: typeChildren = true;
+  case kind::MEMBER: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::INSERT:
   case kind::SET_TYPE:
   case kind::SINGLETON:
@@ -983,7 +984,7 @@ void Smt2Printer::toStream(std::ostream& out,
       force_child_type[1] = NodeManager::currentNM()->mkSetType( elemType );
     }else{
       // APPLY_UF, APPLY_CONSTRUCTOR, etc.
-      Assert( n.hasOperator() );
+      Assert(n.hasOperator());
       TypeNode opt = n.getOperator().getType();
       if (n.getKind() == kind::APPLY_CONSTRUCTOR)
       {
@@ -997,7 +998,7 @@ void Smt2Printer::toStream(std::ostream& out,
           opt = TypeNode::fromType(dt[ci].getSpecializedConstructorType(tn));
         }
       }
-      Assert( opt.getNumChildren() == n.getNumChildren() + 1 );
+      Assert(opt.getNumChildren() == n.getNumChildren() + 1);
       for(size_t i = 0; i < n.getNumChildren(); ++i ) {
         force_child_type[i] = opt[i];
       }
@@ -1352,7 +1353,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   out << "(" << std::endl;
   SmtEngine * smt = core.getSmtEngine();
-  Assert( smt!=NULL );
+  Assert(smt != NULL);
   for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
     std::string name;
     if (smt->getExpressionName(*i,name)) {

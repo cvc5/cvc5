@@ -26,7 +26,7 @@
 #include <vector>
 #include <utility>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"
@@ -767,14 +767,19 @@ public:
 
   /** get synth solutions
    *
-   * This function adds entries to sol_map that map functions-to-synthesize with
+   * This method returns true if there is a synthesis solution available. This
+   * is the case if the last call to check satisfiability originated in a
+   * check-synth call, and the synthesis solver successfully found a solution
+   * for all active synthesis conjectures.
+   *
+   * This method adds entries to sol_map that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
    *
    * For details on what is added to sol_map, see
-   * CegConjecture::getSynthSolutions.
+   * SynthConjecture::getSynthSolutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map);
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
 
   /**
    * Get the model builder
@@ -797,6 +802,7 @@ public:
    * @returns the theory
    */
   inline theory::Theory* theoryOf(theory::TheoryId theoryId) const {
+    Assert(theoryId < theory::THEORY_LAST);
     return d_theoryTable[theoryId];
   }
 
