@@ -38,7 +38,7 @@ void DatatypeBlack::tearDown() {}
 
 void DatatypeBlack::testMkDatatypeSort()
 {
-  DatatypeDecl dtypeSpec(&d_solver,"list");
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver.getIntegerSort());
   cons.addSelector(head);

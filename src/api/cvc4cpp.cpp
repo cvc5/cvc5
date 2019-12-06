@@ -2867,6 +2867,26 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+/* Create datatype declarations                                               */
+/* -------------------------------------------------------------------------- */
+
+DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
+{
+  return DatatypeDecl(this, name, isCoDatatype);
+}
+
+DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, Sort param, bool isCoDatatype)
+{
+  return DatatypeDecl(this, name, param, isCoDatatype);
+}
+
+DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
+              const std::vector<Sort>& params,
+              bool isCoDatatype)
+{
+  return DatatypeDecl(this, name, params, isCoDatatype);
+}
+
 /* Create terms                                                               */
 /* -------------------------------------------------------------------------- */
 
