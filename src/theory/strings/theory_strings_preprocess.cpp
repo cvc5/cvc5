@@ -256,6 +256,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //   itost = ""
     // thus:
     //   int.to.str( n ) = itost
+    //
+    // Note: The conjunct `n >= U(x + 1)` is not needed for correctness but is
+    // just an optimization.
 
     // In the above encoding, we use Us/Ud to introduce a chain of strings
     // that allow us to refer to each character substring of itost. Notice this
@@ -358,6 +361,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //     48 <= str.code( Ud( x ) ) < 58 ^
     //     stoit >= U( x+1 )
     // Thus, str.to.int( s ) = stoit
+    //
+    // Note: The conjunct `stoit >= U( x+1 )` is not needed for correctness but
+    // is just an optimization.
 
     retNode = stoit;
   }
