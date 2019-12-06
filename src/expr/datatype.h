@@ -1188,7 +1188,7 @@ inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
 }
 
 inline std::string DatatypeUnresolvedType::getName() const { return d_name; }
-inline Datatype::Datatype(ExprManager * em, std::string name, bool isCo)
+inline Datatype::Datatype(ExprManager* em, std::string name, bool isCo)
     : d_em(em),
       d_name(name),
       d_params(),
@@ -1204,9 +1204,13 @@ inline Datatype::Datatype(ExprManager * em, std::string name, bool isCo)
       d_sygus_allow_const(false),
       d_sygus_allow_all(false),
       d_card(CardinalityUnknown()),
-      d_well_founded(0) {}
+      d_well_founded(0)
+{
+}
 
-inline Datatype::Datatype(ExprManager * em, std::string name, const std::vector<Type>& params,
+inline Datatype::Datatype(ExprManager* em,
+                          std::string name,
+                          const std::vector<Type>& params,
                           bool isCo)
     : d_em(em),
       d_name(name),
@@ -1223,7 +1227,9 @@ inline Datatype::Datatype(ExprManager * em, std::string name, const std::vector<
       d_sygus_allow_const(false),
       d_sygus_allow_all(false),
       d_card(CardinalityUnknown()),
-      d_well_founded(0) {}
+      d_well_founded(0)
+{
+}
 
 inline std::string Datatype::getName() const { return d_name; }
 inline size_t Datatype::getNumConstructors() const
