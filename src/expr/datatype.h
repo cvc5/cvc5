@@ -101,6 +101,8 @@ class CVC4_PUBLIC DatatypeResolutionException : public Exception {
 class CVC4_PUBLIC DatatypeSelfType {
 };/* class DatatypeSelfType */
 
+class DTypeSelector;
+
 /**
  * An unresolved type (used in calls to
  * DatatypeConstructor::addArg()) to allow a Datatype to refer to
@@ -159,6 +161,8 @@ class CVC4_PUBLIC DatatypeConstructorArg {
   void toStream(std::ostream& out) const;
 
  private:
+  /** The internal representation */
+  std::shared_ptr<DTypeSelector> d_internal;
   /** the name of this selector */
   std::string d_name;
   /** the selector expression */
@@ -198,6 +202,8 @@ class CVC4_PUBLIC SygusPrintCallback
                              std::ostream& out,
                              Expr e) const = 0;
 };
+
+class DTypeConstructor;
 
 /**
  * A constructor for a Datatype.
@@ -454,6 +460,8 @@ class CVC4_PUBLIC DatatypeConstructor {
   void toStream(std::ostream& out) const;
 
  private:
+  /** The internal representation */
+  std::shared_ptr<DTypeConstructor> d_internal;
   /** the name of the constructor */
   std::string d_name;
   /** the constructor expression */
@@ -528,15 +536,31 @@ class CVC4_PUBLIC DatatypeConstructor {
   Cardinality computeCardinality(Type t, std::vector<Type>& processing) const;
   /** compute whether this datatype is well-founded */
   bool computeWellFounded(std::vector<Type>& processing) const;
-  /** compute ground term */
+  /** compute ground term
+   *
+   * This method is used for constructing a term that is an application
+   * of this constructor whose type is t.
+   *
+   * The argument processing is the set of datatype types we are currently
+   * traversing. This is used to avoid infinite loops.
+   *
+   * The argument gt caches the ground terms we have computed so far.
+   *
+   * The argument isValue is whether we are constructing a constant value. If
+   * this flag is false, we are constructing a canonical ground term that is
+   * not necessarily constant.
+   */
   Expr computeGroundTerm(Type t,
                          std::vector<Type>& processing,
-                         std::map<Type, Expr>& gt) const;
+                         std::map<Type, Expr>& gt,
+                         bool isValue) const;
   /** compute shared selectors
    * This computes the maps d_shared_selectors and d_shared_selector_index.
    */
   void computeSharedSelectors(Type domainType) const;
 };/* class DatatypeConstructor */
+
+class DType;
 
 /**
  * The representation of an inductive datatype.
@@ -599,7 +623,8 @@ class CVC4_PUBLIC DatatypeConstructor {
  */
 class CVC4_PUBLIC Datatype {
   friend class DatatypeConstructor;
-public:
+  friend class NodeManager;  // temporary, for access to d_internal
+ public:
   /**
    * Get the datatype of a constructor, selector, or tester operator.
    */
@@ -631,13 +656,15 @@ public:
   typedef DatatypeConstructorIterator const_iterator;
 
   /** Create a new Datatype of the given name. */
-  inline explicit Datatype(std::string name, bool isCo = false);
+  explicit Datatype(std::string name, bool isCo = false);
 
   /**
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  inline Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
+  Datatype(std::string name,
+           const std::vector<Type>& params,
+           bool isCo = false);
 
   ~Datatype();
 
@@ -821,6 +848,16 @@ public:
    * type if this datatype is parametric.
    */
   Expr mkGroundTerm(Type t) const;
+  /** Make ground value
+   *
+   * Same as above, but constructs a constant value instead of a ground term.
+   * These two notions typically coincide. However, for uninterpreted sorts,
+   * they do not: mkGroundTerm returns a fresh variable whereas mkValue returns
+   * an uninterpreted constant. The motivation for mkGroundTerm is that
+   * unintepreted constants should never appear in lemmas. The motivation for
+   * mkGroundValue is for things like type enumeration and model construction.
+   */
+  Expr mkGroundValue(Type t) const;
 
   /**
    * Get the DatatypeType associated to this Datatype.  Can only be
@@ -939,6 +976,8 @@ public:
   void toStream(std::ostream& out) const;
 
  private:
+  /** The internal representation */
+  std::shared_ptr<DType> d_internal;
   /** name of this datatype */
   std::string d_name;
   /** the type parameters of this datatype (if this is a parametric datatype)
@@ -994,6 +1033,8 @@ public:
   mutable int d_well_founded;
   /** cache of ground term for this datatype */
   mutable std::map<Type, Expr> d_ground_term;
+  /** cache of ground values for this datatype */
+  mutable std::map<Type, Expr> d_ground_value;
   /** cache of shared selectors for this datatype */
   mutable std::map<Type, std::map<Type, std::map<unsigned, Expr> > >
       d_shared_sel;
@@ -1043,8 +1084,21 @@ public:
                                       std::vector<Type>& u_assume) const;
   /** compute whether this datatype is well-founded */
   bool computeWellFounded(std::vector<Type>& processing) const;
-  /** compute ground term */
-  Expr computeGroundTerm(Type t, std::vector<Type>& processing) const;
+  /** compute ground term
+   *
+   * This method checks if there is a term of this datatype whose type is t
+   * that is finitely constructable. As needed, it traverses its subfield types.
+   *
+   * The argument processing is the set of datatype types we are currently
+   * traversing.
+   *
+   * The argument isValue is whether we are constructing a constant value. If
+   * this flag is false, we are constructing a canonical ground term that is
+   * not necessarily constant.
+   */
+  Expr computeGroundTerm(Type t,
+                         std::vector<Type>& processing,
+                         bool isValue) const;
   /** Get the shared selector
    *
    * This returns the index^th (constructor-agnostic)
@@ -1056,6 +1110,10 @@ public:
    * this returns the term sel_{dtt}^{t,index}.
    */
   Expr getSharedSelector(Type dtt, Type t, unsigned index) const;
+  /**
+   * Helper for mkGroundTerm and mkGroundValue above.
+   */
+  Expr mkGroundTermInternal(Type t, bool isValue) const;
 };/* class Datatype */
 
 /**
@@ -1140,40 +1198,6 @@ inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
 }
 
 inline std::string DatatypeUnresolvedType::getName() const { return d_name; }
-inline Datatype::Datatype(std::string name, bool isCo)
-    : d_name(name),
-      d_params(),
-      d_isCo(isCo),
-      d_isTuple(false),
-      d_isRecord(false),
-      d_record(NULL),
-      d_constructors(),
-      d_resolved(false),
-      d_self(),
-      d_involvesExt(false),
-      d_involvesUt(false),
-      d_sygus_allow_const(false),
-      d_sygus_allow_all(false),
-      d_card(CardinalityUnknown()),
-      d_well_founded(0) {}
-
-inline Datatype::Datatype(std::string name, const std::vector<Type>& params,
-                          bool isCo)
-    : d_name(name),
-      d_params(params),
-      d_isCo(isCo),
-      d_isTuple(false),
-      d_isRecord(false),
-      d_record(NULL),
-      d_constructors(),
-      d_resolved(false),
-      d_self(),
-      d_involvesExt(false),
-      d_involvesUt(false),
-      d_sygus_allow_const(false),
-      d_sygus_allow_all(false),
-      d_card(CardinalityUnknown()),
-      d_well_founded(0) {}
 
 inline std::string Datatype::getName() const { return d_name; }
 inline size_t Datatype::getNumConstructors() const

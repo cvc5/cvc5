@@ -491,6 +491,7 @@ set(regress_0_tests
   regress0/ho/finite-fun-ext.smt2
   regress0/ho/fta0144-alpha-eq.smt2
   regress0/ho/fta0210.smt2
+  regress0/ho/fun-subtyping.smt2
   regress0/ho/ho-exponential-model.smt2
   regress0/ho/ho-match-fun-suffix.smt2
   regress0/ho/ho-matching-enum.smt2
@@ -537,7 +538,10 @@ set(regress_0_tests
   regress0/model-core.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/ext-rew-aggr-test.smt2
+  regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
+  regress0/nl/issue3411.smt2
+  regress0/nl/issue3475.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -553,6 +557,8 @@ set(regress_0_tests
   regress0/nl/nta/tan-rewrite.smt2
   regress0/nl/real-as-int.smt2
   regress0/nl/real-div-ufnra.smt2
+  regress0/nl/sin-cos-346-b-chunk-0169.smt2
+  regress0/nl/sqrt.smt2
   regress0/nl/sqrt2-value.smt2
   regress0/nl/subs0-unsat-confirm.smt2
   regress0/nl/very-easy-sat.smt2
@@ -611,6 +617,7 @@ set(regress_0_tests
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/let_shadowing.smt2
+  regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc
   regress0/proof_no_support.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
@@ -852,7 +859,10 @@ set(regress_0_tests
   regress0/smtlib/get-unsat-assumptions.smt2
   regress0/smtlib/global-decls.smt2
   regress0/smtlib/reason-unknown.smt2
+  regress0/smtlib/reset-force-logic.smt2
+  regress0/smtlib/reset-set-logic.smt2
   regress0/smtlib/set-info-status.smt2
+  regress0/strings/bidir_star.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
@@ -868,6 +878,8 @@ set(regress_0_tests
   regress0/strings/indexof-sym-simp.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
+  regress0/strings/issue3440.smt2
+  regress0/strings/issue3497.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
@@ -920,7 +932,10 @@ set(regress_0_tests
   regress0/sygus/no-syntax-test.sy
   regress0/sygus/parity-AIG-d0.sy
   regress0/sygus/parse-bv-let.sy
+  regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/real-si-all.sy
+  regress0/sygus/sygus-no-wf.sy
+  regress0/sygus/sygus-uf.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/uminus_one.sy
   regress0/sygus/univ_3-long-repeat-conflict.sy
@@ -1159,6 +1174,7 @@ set(regress_1_tests
   regress1/datatypes/dt-param-card4-unsat.smt2
   regress1/datatypes/error.cvc
   regress1/datatypes/issue3266-small.smt2
+  regress1/datatypes/issue-variant-dt-zero.smt2
   regress1/datatypes/manos-model.smt2
   regress1/decision/error3.smtv1.smt2
   regress1/decision/quant-Arrays_Q1-noinfer.smt2
@@ -1249,6 +1265,7 @@ set(regress_1_tests
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
+  regress1/nl/issue3441.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -1393,7 +1410,9 @@ set(regress_1_tests
   regress1/quantifiers/isaplanner-goal20.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
   regress1/quantifiers/issue3250-syg-inf-q.smt2
+  regress1/quantifiers/issue3316.smt2
   regress1/quantifiers/issue3317.smt2
+  regress1/quantifiers/issue3481.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1701,6 +1720,7 @@ set(regress_1_tests
   regress1/sygus/icfp_14_12_diff_types.sy
   regress1/sygus/icfp_28_10.sy
   regress1/sygus/icfp_easy-ite.sy
+  regress1/sygus/int-any-const.sy
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
@@ -1712,9 +1732,14 @@ set(regress_1_tests
   regress1/sygus/issue3205.smt2
   regress1/sygus/issue3247.smt2
   regress1/sygus/issue3320-quant.sy
+  regress1/sygus/issue3461.sy
+  regress1/sygus/issue3498.smt2
+  regress1/sygus/issue3514.smt2
+  regress1/sygus/issue3507.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
+  regress1/sygus/list_recursor.sy
   regress1/sygus/logiccell_help.sy
   regress1/sygus/max.sy
   regress1/sygus/max2-bv.sy
@@ -1724,6 +1749,7 @@ set(regress_1_tests
   regress1/sygus/nia-max-square-ns.sy
   regress1/sygus/no-flat-simp.sy
   regress1/sygus/no-mention.sy
+  regress1/sygus/once_2.sy
   regress1/sygus/only-const-grammar.sy
   regress1/sygus/parity-si-rcons.sy
   regress1/sygus/pbe_multi.sy
@@ -1732,11 +1758,18 @@ set(regress_1_tests
   regress1/sygus/process-10-vars.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
+  regress1/sygus/real-any-const.sy
   regress1/sygus/real-grammar.sy
+  regress1/sygus/rec-fun-swap.sy
+  regress1/sygus/rec-fun-sygus.sy
+  regress1/sygus/rec-fun-while-1.sy
+  regress1/sygus/rec-fun-while-2.sy
+  regress1/sygus/rec-fun-while-infinite.sy
   regress1/sygus/re-concat.sy
   regress1/sygus/repair-const-rl.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
+  regress1/sygus/strings-any-term1.sy
   regress1/sygus/strings-no-syntax.sy
   regress1/sygus/strings-concat-3-args.sy
   regress1/sygus/strings-double-rec.sy
@@ -1901,6 +1934,7 @@ set(regress_3_tests
   regress3/pp-regfile.smtv1.smt2
   regress3/qwh.35.405.shuffled-as.sat03-1651.smtv1.smt2
   regress3/sixfuncs.sy
+  regress3/strings-any-term.sy
   regress3/strings/extf_d_perf.smt2
 )
 
@@ -2066,7 +2100,6 @@ set(regression_disabled_tests
   regress0/sets/sets-new.smt2
   regress0/sets/sets-testlemma-ints.smt2
   regress0/sets/sets-testlemma-reals.smt2
-  regress0/sygus/sygus-uf.sy
   regress0/symmetric.smtv1.smt2
   regress0/tptp/BOO003-4.p
   regress0/tptp/BOO027-1.p

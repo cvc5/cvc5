@@ -48,7 +48,7 @@ extern int optreset;
 #include <sstream>
 #include <limits>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
 #include "options/argument_extender.h"

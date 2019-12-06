@@ -299,7 +299,8 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       hasChecked.insert( fst_mem_rep );
 
-      Datatype dt = join_image_term.getType().getSetElementType().getDatatype();
+      const Datatype& dt =
+          join_image_term.getType().getSetElementType().getDatatype();
       Node new_membership = NodeManager::currentNM()->mkNode(kind::MEMBER,
                                                              NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR,
                                                                                                Node::fromExpr(dt[0].getConstructor()), fst_mem_rep ),
@@ -428,7 +429,8 @@ void TheorySetsRels::check(Theory::Effort level)
     Node reason = exp;
     Node fst_mem = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_mem = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    Datatype dt = iden_term[0].getType().getSetElementType().getDatatype();
+    const Datatype& dt =
+        iden_term[0].getType().getSetElementType().getDatatype();
     Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), fst_mem ), iden_term[0] );
 
     if( exp[1] != iden_term ) {
@@ -522,7 +524,7 @@ void TheorySetsRels::check(Theory::Effort level)
       std::map< Node, std::map< Node, Node > >::iterator tc_exp_it = d_tcr_tcGraph_exps.find( tc_rel );
 
       TC_GRAPH_IT tc_graph_it = (tc_it->second).find( mem_rep_fst );
-      Assert( tc_exp_it != d_tcr_tcGraph_exps.end() );
+      Assert(tc_exp_it != d_tcr_tcGraph_exps.end());
       std::map< Node, Node >::iterator exp_map_it = (tc_exp_it->second).find( mem_rep_tup );
 
       if( exp_map_it == (tc_exp_it->second).end() ) {
@@ -679,7 +681,7 @@ void TheorySetsRels::check(Theory::Effort level)
         std::vector< Node > reasons;
         std::unordered_set<Node, NodeHashFunction> seen;
         Node tuple = RelsUtils::constructPair( tc_rel, getRepresentative( tc_graph_it->first ), getRepresentative( *snd_elements_it) );
-        Assert( rel_tc_graph_exps.find( tuple ) != rel_tc_graph_exps.end() );
+        Assert(rel_tc_graph_exps.find(tuple) != rel_tc_graph_exps.end());
         Node exp   = rel_tc_graph_exps.find( tuple )->second;
 
         reasons.push_back( exp );
@@ -765,18 +767,18 @@ void TheorySetsRels::check(Theory::Effort level)
     Node mem = exp[0];
     std::vector<Node>   r1_element;
     std::vector<Node>   r2_element;
-    Datatype     dt      = pt_rel[0].getType().getSetElementType().getDatatype();
+    const Datatype& dt1 = pt_rel[0].getType().getSetElementType().getDatatype();
     unsigned int s1_len  = pt_rel[0].getType().getSetElementType().getTupleLength();
     unsigned int tup_len = pt_rel.getType().getSetElementType().getTupleLength();
 
-    r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    r1_element.push_back(Node::fromExpr(dt1[0].getConstructor()));
 
     unsigned int i = 0;
     for(; i < s1_len; ++i) {
       r1_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
-    dt = pt_rel[1].getType().getSetElementType().getDatatype();
-    r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    const Datatype& dt2 = pt_rel[1].getType().getSetElementType().getDatatype();
+    r2_element.push_back(Node::fromExpr(dt2[0].getConstructor()));
     for(; i < tup_len; ++i) {
       r2_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
@@ -823,18 +825,20 @@ void TheorySetsRels::check(Theory::Effort level)
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
     Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
-    Datatype     dt             = join_rel[0].getType().getSetElementType().getDatatype();
+    const Datatype& dt1 =
+        join_rel[0].getType().getSetElementType().getDatatype();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
     unsigned int tup_len        = join_rel.getType().getSetElementType().getTupleLength();
 
     unsigned int i = 0;
-    r1_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    r1_element.push_back(Node::fromExpr(dt1[0].getConstructor()));
     for(; i < s1_len-1; ++i) {
       r1_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
     r1_element.push_back(shared_x);
-    dt = join_rel[1].getType().getSetElementType().getDatatype();
-    r2_element.push_back(Node::fromExpr(dt[0].getConstructor()));
+    const Datatype& dt2 =
+        join_rel[1].getType().getSetElementType().getDatatype();
+    r2_element.push_back(Node::fromExpr(dt2[0].getConstructor()));
     r2_element.push_back(shared_x);
     for(; i < tup_len; ++i) {
       r2_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
@@ -918,7 +922,8 @@ void TheorySetsRels::check(Theory::Effort level)
     Trace("rels-debug") << "[Theory::Rels] ****** Finalizing transitive closure inferences!" << std::endl;
     TC_IT tc_graph_it = d_tcr_tcGraph.begin();
     while( tc_graph_it != d_tcr_tcGraph.end() ) {
-      Assert ( d_tcr_tcGraph_exps.find(tc_graph_it->first) != d_tcr_tcGraph_exps.end() );
+      Assert(d_tcr_tcGraph_exps.find(tc_graph_it->first)
+             != d_tcr_tcGraph_exps.end());
       doTCInference( tc_graph_it->second, d_tcr_tcGraph_exps.find(tc_graph_it->first)->second, tc_graph_it->first );
       ++tc_graph_it;
     }
@@ -992,7 +997,7 @@ void TheorySetsRels::check(Theory::Effort level)
     std::vector<Node>   members = d_rReps_memberReps_cache[rel0_rep];
     std::vector<Node>   exps    = d_rReps_memberReps_exp_cache[rel0_rep];
 
-    Assert( members.size() == exps.size() );
+    Assert(members.size() == exps.size());
 
     for(unsigned int i = 0; i < members.size(); i++) {
       Node reason = exps[i];

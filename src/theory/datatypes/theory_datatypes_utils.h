@@ -34,12 +34,6 @@ struct SygusVarNumAttributeId
 };
 typedef expr::Attribute<SygusVarNumAttributeId, uint64_t> SygusVarNumAttribute;
 
-/** Attribute true for variables that represent any constant */
-struct SygusAnyConstAttributeId
-{
-};
-typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
-
 /**
  * Attribute true for enumerators whose current model values were registered by
  * the datatypes sygus solver, and were not excluded by sygus symmetry breaking.
@@ -146,11 +140,20 @@ Kind getOperatorKindForSygusBuiltin(Node op);
  *
  * This function returns a builtin term f( children[0], ..., children[n] )
  * where f is the builtin op that the i^th constructor of sygus datatype dt
- * encodes.
+ * encodes. If doBetaReduction is true, then lambdas are eagerly eliminated
+ * via beta reduction.
  */
 Node mkSygusTerm(const Datatype& dt,
                  unsigned i,
-                 const std::vector<Node>& children);
+                 const std::vector<Node>& children,
+                 bool doBetaReduction = true);
+/**
+ * Same as above, but we already have the sygus operator op. The above method
+ * is syntax sugar for calling this method on dt[i].getSygusOp().
+ */
+Node mkSygusTerm(Node op,
+                 const std::vector<Node>& children,
+                 bool doBetaReduction = true);
 /**
  * n is a builtin term that is an application of operator op.
  *

@@ -188,7 +188,7 @@ void TheoryUF::check(Effort level) {
 }/* TheoryUF::check() */
 
 Node TheoryUF::getOperatorForApplyTerm( TNode node ) {
-  Assert( node.getKind()==kind::APPLY_UF || node.getKind()==kind::HO_APPLY );
+  Assert(node.getKind() == kind::APPLY_UF || node.getKind() == kind::HO_APPLY);
   if( node.getKind()==kind::APPLY_UF ){
     return node.getOperator();
   }else{
@@ -197,7 +197,7 @@ Node TheoryUF::getOperatorForApplyTerm( TNode node ) {
 }
 
 unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
-  Assert( node.getKind()==kind::APPLY_UF || node.getKind()==kind::HO_APPLY );
+  Assert(node.getKind() == kind::APPLY_UF || node.getKind() == kind::HO_APPLY);
   return node.getKind()==kind::APPLY_UF ? 0 : 1;
 }
 
@@ -230,7 +230,7 @@ void TheoryUF::preRegisterTerm(TNode node) {
 
   // we always use APPLY_UF if not higher-order, HO_APPLY if higher-order
   //Assert( node.getKind()!=kind::APPLY_UF || !options::ufHo() );
-  Assert( node.getKind()!=kind::HO_APPLY || options::ufHo() );
+  Assert(node.getKind() != kind::HO_APPLY || options::ufHo());
 
   switch (node.getKind()) {
   case kind::EQUAL:
@@ -507,8 +507,8 @@ void TheoryUF::addSharedTerm(TNode t) {
 }
 
 bool TheoryUF::areCareDisequal(TNode x, TNode y){
-  Assert( d_equalityEngine.hasTerm(x) );
-  Assert( d_equalityEngine.hasTerm(y) );
+  Assert(d_equalityEngine.hasTerm(x));
+  Assert(d_equalityEngine.hasTerm(y));
   if( d_equalityEngine.isTriggerTerm(x, THEORY_UF) && d_equalityEngine.isTriggerTerm(y, THEORY_UF) ){
     TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_UF);
     TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_UF);
@@ -536,10 +536,10 @@ void TheoryUF::addCarePairs(TNodeTrie* t1,
         for (unsigned k = arg_start_index; k < f1.getNumChildren(); ++ k) {
           TNode x = f1[k];
           TNode y = f2[k];
-          Assert( d_equalityEngine.hasTerm(x) );
-          Assert( d_equalityEngine.hasTerm(y) );
-          Assert( !d_equalityEngine.areDisequal( x, y, false ) );
-          Assert( !areCareDisequal( x, y ) );
+          Assert(d_equalityEngine.hasTerm(x));
+          Assert(d_equalityEngine.hasTerm(y));
+          Assert(!d_equalityEngine.areDisequal(x, y, false));
+          Assert(!areCareDisequal(x, y));
           if( !d_equalityEngine.areEqual( x, y ) ){
             if( d_equalityEngine.isTriggerTerm(x, THEORY_UF) && d_equalityEngine.isTriggerTerm(y, THEORY_UF) ){
               TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_UF);

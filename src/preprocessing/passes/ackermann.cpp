@@ -23,6 +23,7 @@
 
 #include "preprocessing/passes/ackermann.h"
 
+#include "base/check.h"
 #include "options/options.h"
 
 using namespace CVC4;
@@ -34,8 +35,7 @@ namespace passes {
 
 /* -------------------------------------------------------------------------- */
 
-namespace
-{
+namespace {
 
 void addLemmaForPair(TNode args1,
                      TNode args2,
@@ -169,9 +169,8 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
       }
       else
       {
-        AlwaysAssert(
-            term.getKind() != kind::STORE,
-            "Cannot use Ackermannization on formula with stores to arrays");
+        AlwaysAssert(term.getKind() != kind::STORE)
+            << "Cannot use Ackermannization on formula with stores to arrays";
         /* add children to the vector, so that they are processed later */
         for (TNode n : term)
         {
@@ -218,7 +217,6 @@ PreprocessingPassResult Ackermann::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 /* -------------------------------------------------------------------------- */
 

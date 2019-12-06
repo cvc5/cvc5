@@ -281,7 +281,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
 
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
-  Assert( c.size() < 2 );
+  Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
 
   int ret = 1;
@@ -522,7 +522,7 @@ int RegExpOpr::derivativeS( Node r, CVC4::String c, Node &retNode ) {
 }
 
 Node RegExpOpr::derivativeSingle( Node r, CVC4::String c ) {
-  Assert( c.size() < 2 );
+  Assert(c.size() < 2);
   Trace("regexp-derive") << "RegExp-derive starts with /" << mkString( r ) << "/, c=" << c << std::endl;
   Node retNode = d_emptyRegexp;
   PairNodeStr dv = std::make_pair( r, c );
@@ -1168,18 +1168,36 @@ void RegExpOpr::simplifyPRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         } else if(r[0].getKind() == kind::REGEXP_SIGMA) {
           conc = d_true;
         } else {
+          NodeManager* nm = NodeManager::currentNM();
           Node se = s.eqNode(d_emptyString);
-          Node sinr = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, s, r[0]);
-          Node sk1 = NodeManager::currentNM()->mkSkolem( "rs", s.getType(), "created for regular expression star" );
-          Node sk2 = NodeManager::currentNM()->mkSkolem( "rs", s.getType(), "created for regular expression star" );
-          Node s1nz = sk1.eqNode(d_emptyString).negate();
-          Node s2nz = sk2.eqNode(d_emptyString).negate();
-          Node s1inr = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, sk1, r[0]);
-          Node s2inrs = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, sk2, r);
-          Node s12 = s.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, sk1, sk2));
+          Node sinr = nm->mkNode(kind::STRING_IN_REGEXP, s, r[0]);
+          Node sk1 = nm->mkSkolem(
+              "rs", s.getType(), "created for regular expression star");
+          Node sk2 = nm->mkSkolem(
+              "rs", s.getType(), "created for regular expression star");
+          Node sk3 = nm->mkSkolem(
+              "rs", s.getType(), "created for regular expression star");
 
-          conc = NodeManager::currentNM()->mkNode(kind::AND, s12, s1nz, s2nz, s1inr, s2inrs);
-          conc = NodeManager::currentNM()->mkNode(kind::OR, se, sinr, conc);
+          NodeBuilder<> nb(kind::AND);
+          nb << sk1.eqNode(d_emptyString).negate();
+          nb << sk3.eqNode(d_emptyString).negate();
+          nb << nm->mkNode(kind::STRING_IN_REGEXP, sk1, r[0]);
+          nb << nm->mkNode(kind::STRING_IN_REGEXP, sk2, r);
+          nb << nm->mkNode(kind::STRING_IN_REGEXP, sk3, r[0]);
+          nb << s.eqNode(nm->mkNode(kind::STRING_CONCAT, sk1, sk2, sk3));
+          conc = nb;
+
+          // We unfold `x in R*` by considering three cases: `x` is empty, `x`
+          // is matched by `R`, or `x` is matched by two or more `R`s. For the
+          // last case, we break `x` into three pieces, making the beginning
+          // and the end each match `R` and the middle match `R*`. Matching the
+          // beginning and the end with `R` allows us to reason about the
+          // beginning and the end of `x` simultaneously.
+          //
+          // x in R* ---> (x = "") v (x in R) v
+          //              (x = x1 ++ x2 ++ x3 ^ x1 != "" ^ x3 != "" ^
+          //               x1 in R ^ x2 in R* ^ x3 in R)
+          conc = nm->mkNode(kind::OR, se, sinr, conc);
         }
         break;
       }
@@ -1249,8 +1267,8 @@ bool RegExpOpr::isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2) {
 
 bool RegExpOpr::containC2(unsigned cnt, Node n) {
   if(n.getKind() == kind::REGEXP_RV) {
-    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
-           "Exceeded UINT32_MAX in RegExpOpr::containC2");
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()))
+        << "Exceeded UINT32_MAX in RegExpOpr::containC2";
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     return cnt == y;
   } else if(n.getKind() == kind::REGEXP_CONCAT) {
@@ -1291,8 +1309,8 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     r1 = d_emptySingleton;
     r2 = d_emptySingleton;
   } else if(n.getKind() == kind::REGEXP_RV) {
-    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
-           "Exceeded UINT32_MAX in RegExpOpr::convert2");
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()))
+        << "Exceeded UINT32_MAX in RegExpOpr::convert2";
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     r1 = d_emptySingleton;
     if(cnt == y) {
@@ -1503,7 +1521,7 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
 }
 
 Node RegExpOpr::removeIntersection(Node r) {
-  Assert( checkConstRegExp(r) );
+  Assert(checkConstRegExp(r));
   std::map < Node, Node >::const_iterator itr = d_rm_inter_cache.find(r);
   if(itr != d_rm_inter_cache.end()) {
     return itr->second;

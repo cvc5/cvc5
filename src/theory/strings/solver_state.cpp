@@ -138,8 +138,14 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
   return Node::null();
 }
 
-SolverState::SolverState(context::Context* c, eq::EqualityEngine& ee)
-    : d_context(c), d_ee(ee), d_conflict(c, false), d_pendingConflict(c)
+SolverState::SolverState(context::Context* c,
+                         eq::EqualityEngine& ee,
+                         Valuation& v)
+    : d_context(c),
+      d_ee(ee),
+      d_valuation(v),
+      d_conflict(c, false),
+      d_pendingConflict(c)
 {
 }
 SolverState::~SolverState()
@@ -277,6 +283,51 @@ void SolverState::setPendingConflictWhen(Node conf)
 }
 
 Node SolverState::getPendingConflict() const { return d_pendingConflict; }
+
+std::pair<bool, Node> SolverState::entailmentCheck(TheoryOfMode mode, TNode lit)
+{
+  return d_valuation.entailmentCheck(mode, lit);
+}
+
+void SolverState::separateByLength(const std::vector<Node>& n,
+                                   std::vector<std::vector<Node> >& cols,
+                                   std::vector<Node>& lts)
+{
+  unsigned leqc_counter = 0;
+  std::map<Node, unsigned> eqc_to_leqc;
+  std::map<unsigned, Node> leqc_to_eqc;
+  std::map<unsigned, std::vector<Node> > eqc_to_strings;
+  NodeManager* nm = NodeManager::currentNM();
+  for (const Node& eqc : n)
+  {
+    Assert(d_ee.getRepresentative(eqc) == eqc);
+    EqcInfo* ei = getOrMakeEqcInfo(eqc, false);
+    Node lt = ei ? ei->d_lengthTerm : Node::null();
+    if (!lt.isNull())
+    {
+      lt = nm->mkNode(STRING_LENGTH, lt);
+      Node r = d_ee.getRepresentative(lt);
+      if (eqc_to_leqc.find(r) == eqc_to_leqc.end())
+      {
+        eqc_to_leqc[r] = leqc_counter;
+        leqc_to_eqc[leqc_counter] = r;
+        leqc_counter++;
+      }
+      eqc_to_strings[eqc_to_leqc[r]].push_back(eqc);
+    }
+    else
+    {
+      eqc_to_strings[leqc_counter].push_back(eqc);
+      leqc_counter++;
+    }
+  }
+  for (const std::pair<const unsigned, std::vector<Node> >& p : eqc_to_strings)
+  {
+    cols.push_back(std::vector<Node>());
+    cols.back().insert(cols.back().end(), p.second.begin(), p.second.end());
+    lts.push_back(leqc_to_eqc[p.first]);
+  }
+}
 
 }  // namespace strings
 }  // namespace theory
