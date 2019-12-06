@@ -427,7 +427,11 @@ Node sygusToBuiltin(Node n)
       Node ret = cur;
       Assert(cur.getKind() == APPLY_CONSTRUCTOR);
       const Datatype& dt = cur.getType().getDatatype();
-      // non sygus-datatype terms are also themselves
+      // Non sygus-datatype terms are also themselves. Notice we treat the
+      // case of non-sygus datatypes this way since it avoids computing
+      // the type / datatype of the node in the pre-traversal above. The
+      // case of non-sygus datatypes is very rare, so the extra addition to
+      // visited is justified performance-wise.
       if (dt.isSygus())
       {
         std::vector<Node> children;
