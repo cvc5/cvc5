@@ -118,8 +118,6 @@ public:
   inline std::string getName() const;
 };/* class DatatypeUnresolvedType */
 
-class DTypeSelector;
-
 /**
  * A Datatype constructor argument (i.e., a Datatype field).
  */
@@ -917,7 +915,6 @@ class CVC4_PUBLIC Datatype {
    * they are two maps).  placeholders->replacements give type variables
    * that should be resolved in the case of parametric datatypes.
    *
-   * @param em the ExprManager at play
    * @param resolutions a map of strings to DatatypeTypes currently under
    * resolution
    * @param placeholders the types in these Datatypes under resolution that must

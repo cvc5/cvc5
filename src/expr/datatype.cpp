@@ -37,7 +37,8 @@ using namespace std;
 
 namespace CVC4 {
 
-Datatype::~Datatype(){
+Datatype::~Datatype()
+{
   ExprManagerScope ems(*d_em);
   d_internal.reset();
   d_constructors.clear();
@@ -888,10 +889,7 @@ bool Datatype::operator!=(const Datatype& other) const
   return !(*this == other);
 }
 
-bool Datatype::isResolved() const
-{
-  return d_internal->isResolved();
-}
+bool Datatype::isResolved() const { return d_internal->isResolved(); }
 Datatype::iterator Datatype::begin() { return iterator(d_constructors, true); }
 
 Datatype::iterator Datatype::end() { return iterator(d_constructors, false); }
