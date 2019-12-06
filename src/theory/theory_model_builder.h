@@ -113,7 +113,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
   /** Evaluate equivalence class
    *
    * If this method returns a non-null node c, then c is a constant and some
-   * term in the equivalence class of t evaluates to c based on the current
+   * term in the equivalence class of r evaluates to c based on the current
    * state of the model m.
    */
   Node evaluateEqc(TheoryModel* m, TNode r);
