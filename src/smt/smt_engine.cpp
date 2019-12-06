@@ -1303,6 +1303,12 @@ void SmtEngine::setDefaults() {
     }
   }
 
+  // sygus core connective requires unsat cores
+  if (options::sygusCoreConnective())
+  {
+    options::unsatCores.set(true);
+  }
+
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
        || options::modelCoresMode() != MODEL_CORES_NONE
