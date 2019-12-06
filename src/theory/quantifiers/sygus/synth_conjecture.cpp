@@ -65,7 +65,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
   {
     d_modules.push_back(d_ceg_pbe.get());
   }
-  if (options::sygusUnif())
+  if (options::sygusUnifPi() != SYGUS_UNIF_PI_NONE)
   {
     d_modules.push_back(d_ceg_cegisUnif.get());
   }

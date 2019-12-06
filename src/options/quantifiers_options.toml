@@ -950,20 +950,15 @@ header = "options/quantifiers_options.h"
   help       = "abort if constant repair techniques are not applicable"
 
 [[option]]
-  name       = "sygusUnif"
+  name       = "sygusUnifPi"
   category   = "regular"
-  long       = "sygus-unif"
-  type       = "bool"
-  default    = "false"
-  help       = "Unification-based function synthesis"
-
-[[option]]
-  name       = "sygusUnifCondIndependent"
-  category   = "regular"
-  long       = "sygus-unif-cond-independent"
-  type       = "bool"
-  default    = "false"
-  help       = "Synthesize conditions indepedently from return values (may generate bigger solutions)"
+  long       = "sygus-unif-pi=MODE"
+  type       = "CVC4::theory::quantifiers::SygusUnifPiMode"
+  default    = "CVC4::theory::quantifiers::SYGUS_UNIF_PI_NONE"
+  handler    = "stringToSygusUnifPiMode"
+  includes   = ["options/quantifiers_modes.h"]
+  read_only  = true
+  help       = "mode for synthesis via piecewise-indepedent unification"
 
 [[option]]
   name       = "sygusUnifShuffleCond"
@@ -972,14 +967,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "Shuffle condition pool when building solutions (may change solutions sizes)"
-
-[[option]]
-  name       = "sygusUnifBooleanHeuristicDt"
-  category   = "regular"
-  long       = "sygus-unif-boolean-heuristic-dt"
-  type       = "bool"
-  default    = "false"
-  help       = "Build boolean solutions using heuristic decision tree learning (generates smaller solutions)"
 
 [[option]]
   name       = "sygusUnifCondIndNoRepeatSol"
@@ -1075,6 +1062,16 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "embed sygus templates into grammars"
+
+[[option]]
+  name       = "sygusGrammarConsMode"
+  category   = "regular"
+  long       = "sygus-grammar-cons=MODE"
+  type       = "CVC4::theory::quantifiers::SygusGrammarConsMode"
+  default    = "CVC4::theory::quantifiers::SYGUS_GCONS_SIMPLE"
+  handler    = "stringToSygusGrammarConsMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "mode for SyGuS grammar construction"
 
 [[option]]
   name       = "sygusInvTemplMode"

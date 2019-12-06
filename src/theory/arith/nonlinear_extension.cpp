@@ -185,7 +185,6 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
     : d_lemmas(containing.getUserContext()),
       d_zero_split(containing.getUserContext()),
-      d_skolem_atoms(containing.getUserContext()),
       d_containing(containing),
       d_ee(ee),
       d_needsLastCall(false),
@@ -735,16 +734,16 @@ std::vector<Node> NonlinearExtension::checkModelEval(
   for (size_t i = 0; i < assertions.size(); ++i) {
     Node lit = assertions[i];
     Node atom = lit.getKind()==NOT ? lit[0] : lit;
-    if( d_skolem_atoms.find( atom )==d_skolem_atoms.end() ){
-      Node litv = d_model.computeConcreteModelValue(lit);
-      Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
-      if (litv != d_true) {
-        Trace("nl-ext-mv-assert") << " [model-false]" << std::endl;
-        //Assert(litv == d_false);
-        false_asserts.push_back(lit);
-      } else {
-        Trace("nl-ext-mv-assert") << std::endl;
-      }
+    Node litv = d_model.computeConcreteModelValue(lit);
+    Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
+    if (litv != d_true)
+    {
+      Trace("nl-ext-mv-assert") << " [model-false]" << std::endl;
+      false_asserts.push_back(lit);
+    }
+    else
+    {
+      Trace("nl-ext-mv-assert") << std::endl;
     }
   }
   return false_asserts;
@@ -1271,32 +1270,17 @@ void NonlinearExtension::check(Theory::Effort e) {
   }
   else
   {
-    std::map<Node, Node> approximations;
-    std::map<Node, Node> arithModel;
+    // If we computed lemmas during collectModelInfo, send them now.
+    if (!d_cmiLemmas.empty() || !d_cmiLemmasPp.empty())
+    {
+      sendLemmas(d_cmiLemmas);
+      sendLemmas(d_cmiLemmasPp, true);
+      return;
+    }
+    // Otherwise, we will answer SAT. The values that we approximated are
+    // recorded as approximations here.
     TheoryModel* tm = d_containing.getValuation().getModel();
-    if (!d_builtModel.get())
-    {
-      // run a last call effort check
-      std::vector<Node> mlems;
-      std::vector<Node> mlemsPp;
-      if (modelBasedRefinement(mlems, mlemsPp))
-      {
-        sendLemmas(mlems);
-        sendLemmas(mlemsPp, true);
-        return;
-      }
-    }
-    // get the values that should be replaced in the model
-    d_model.getModelValueRepair(arithModel, approximations);
-    // those that are exact are written as exact approximations to the model
-    for (std::pair<const Node, Node>& r : arithModel)
-    {
-      Node eq = r.first.eqNode(r.second);
-      eq = Rewriter::rewrite(eq);
-      tm->recordApproximation(r.first, eq);
-    }
-    // those that are approximate are recorded as approximations
-    for (std::pair<const Node, Node>& a : approximations)
+    for (std::pair<const Node, Node>& a : d_approximations)
     {
       tm->recordApproximation(a.first, a.second);
     }
@@ -1306,8 +1290,6 @@ void NonlinearExtension::check(Theory::Effort e) {
 bool NonlinearExtension::modelBasedRefinement(std::vector<Node>& mlems,
                                               std::vector<Node>& mlemsPp)
 {
-  // reset the model object
-  d_model.reset(d_containing.getValuation().getModel());
   // get the assertions
   std::vector<Node> assertions;
   getAssertions(assertions);
@@ -1495,6 +1477,29 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<Node>& mlems,
 
   // did not add lemmas
   return false;
+}
+
+void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
+{
+  if (!needsCheckLastEffort())
+  {
+    // no non-linear constraints, we are done
+    return;
+  }
+  d_model.reset(d_containing.getValuation().getModel(), arithModel);
+  // run a last call effort check
+  d_cmiLemmas.clear();
+  d_cmiLemmasPp.clear();
+  if (!d_builtModel.get())
+  {
+    modelBasedRefinement(d_cmiLemmas, d_cmiLemmasPp);
+  }
+  if (d_builtModel.get())
+  {
+    d_approximations.clear();
+    // modify the model values
+    d_model.getModelValueRepair(arithModel, d_approximations);
+  }
 }
 
 void NonlinearExtension::presolve()
@@ -2453,17 +2458,9 @@ std::vector<Node> NonlinearExtension::checkFactoring(
     Node atom = lit.getKind() == NOT ? lit[0] : lit;
     Node litv = d_model.computeConcreteModelValue(lit);
     bool considerLit = false;
-    if( d_skolem_atoms.find(atom) != d_skolem_atoms.end() )
-    {
-      //always consider skolem literals
-      considerLit = true;
-    }
-    else
-    {
-      // Only consider literals that are in false_asserts.
-      considerLit = std::find(false_asserts.begin(), false_asserts.end(), lit)
-                    != false_asserts.end();
-    }
+    // Only consider literals that are in false_asserts.
+    considerLit = std::find(false_asserts.begin(), false_asserts.end(), lit)
+                  != false_asserts.end();
 
     if (considerLit)
     {
@@ -2538,7 +2535,6 @@ std::vector<Node> NonlinearExtension::checkFactoring(
             Trace("nl-ext-factor") << "...factored polynomial : " << polyn << std::endl;
             Node conc_lit = NodeManager::currentNM()->mkNode( atom.getKind(), polyn, d_zero );
             conc_lit = Rewriter::rewrite( conc_lit );
-            d_skolem_atoms.insert( conc_lit );
             if( !polarity ){
               conc_lit = conc_lit.negate();
             }
@@ -2562,7 +2558,6 @@ Node NonlinearExtension::getFactorSkolem( Node n, std::vector< Node >& lemmas ) 
   if( itf==d_factor_skolem.end() ){
     Node k = NodeManager::currentNM()->mkSkolem( "kf", n.getType() );
     Node k_eq = Rewriter::rewrite( k.eqNode( n ) );
-    d_skolem_atoms.insert( k_eq );
     lemmas.push_back( k_eq );
     d_factor_skolem[n] = k;
     return k;
