@@ -2294,7 +2294,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
         params.push_back( t ); }
       )* RBRACKET
     )?
-    { datatypes.push_back(Datatype(id, params, false));
+    { datatypes.push_back(Datatype(EXPR_MANAGER, id, params, false));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
