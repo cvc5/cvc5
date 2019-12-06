@@ -569,7 +569,7 @@ class CVC4_PUBLIC Datatype {
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  Datatype(ExprManager* em, 
+  Datatype(ExprManager* em,
            std::string name,
            const std::vector<Type>& params,
            bool isCo = false);

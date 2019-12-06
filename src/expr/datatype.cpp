@@ -39,7 +39,7 @@ namespace CVC4 {
 
 Datatype::~Datatype(){
   Trace("ajr-temp") << "Destruct " << d_em << std::endl;
-  ExprManagerScope ems(*d_em); 
+  ExprManagerScope ems(*d_em);
   d_internal.reset();
   d_constructors.clear();
   Trace("ajr-temp") << "Finish destruct " << d_em << std::endl;
@@ -47,18 +47,29 @@ Datatype::~Datatype(){
 }
 
 Datatype::Datatype(ExprManager* em, std::string name, bool isCo)
-    : d_em(em), d_internal(nullptr), d_record(NULL), d_isRecord(false), d_constructors()
+    : d_em(em),
+      d_internal(nullptr),
+      d_record(NULL),
+      d_isRecord(false),
+      d_constructors()
 {
-  ExprManagerScope ems(*d_em); 
+  ExprManagerScope ems(*d_em);
   Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
   d_internal = std::make_shared<DType>(name, isCo);
   Trace("ajr-temp") << "Datatype::Datatype finished" << std::endl;
 }
 
-Datatype::Datatype(ExprManager* em, std::string name, const std::vector<Type>& params, bool isCo)
-    : d_em(em), d_internal(nullptr), d_record(NULL), d_isRecord(false), d_constructors()
+Datatype::Datatype(ExprManager* em,
+                   std::string name,
+                   const std::vector<Type>& params,
+                   bool isCo)
+    : d_em(em),
+      d_internal(nullptr),
+      d_record(NULL),
+      d_isRecord(false),
+      d_constructors()
 {
-  ExprManagerScope ems(*d_em); 
+  ExprManagerScope ems(*d_em);
   Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
   std::vector<TypeNode> paramsn;
   for (const Type& t : params)
@@ -125,8 +136,8 @@ size_t Datatype::cindexOfInternal(Expr item)
 void Datatype::resolve(const std::map<std::string, DatatypeType>& resolutions,
                        const std::vector<Type>& placeholders,
                        const std::vector<Type>& replacements,
-                       const std::vector< SortConstructorType >& paramTypes,
-                       const std::vector< DatatypeType >& paramReplacements)
+                       const std::vector<SortConstructorType>& paramTypes,
+                       const std::vector<DatatypeType>& paramReplacements)
 {
   PrettyCheckArgument(!isResolved(), this, "cannot resolve a Datatype twice");
   PrettyCheckArgument(resolutions.find(getName()) != resolutions.end(),
@@ -139,7 +150,7 @@ void Datatype::resolve(const std::map<std::string, DatatypeType>& resolutions,
   PrettyCheckArgument(getNumConstructors() > 0, *this, "cannot resolve a Datatype that has no constructors");
 
   // we're using some internals, so we have to set up this library context
-  ExprManagerScope ems(*d_em); 
+  ExprManagerScope ems(*d_em);
 
   Trace("datatypes") << "Datatype::resolve: " << getName()
                      << ", #placeholders=" << placeholders.size() << std::endl;

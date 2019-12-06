@@ -770,8 +770,10 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
     const Datatype& dt = (*i).getDatatype();
     if(!dt.isResolved()) {
       const_cast<Datatype&>(dt).resolve(nameResolutions,
-                                        placeholders, replacements,
-                                        paramTypes, paramReplacements);
+                                        placeholders,
+                                        replacements,
+                                        paramTypes,
+                                        paramReplacements);
     }
 
     // Now run some checks, including a check to make sure that no

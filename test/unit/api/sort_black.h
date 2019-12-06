@@ -58,7 +58,7 @@ void SortBlack::tearDown() {}
 void SortBlack::testGetDatatype()
 {
   // create datatype sort, check should not fail
-  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl( "list");
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver.getIntegerSort());
   cons.addSelector(head);
@@ -232,7 +232,7 @@ void SortBlack::testGetDatatypeParamSorts()
   Sort paramDtypeSort = d_solver.mkDatatypeSort(paramDtypeSpec);
   TS_ASSERT_THROWS_NOTHING(paramDtypeSort.getDatatypeParamSorts());
   // create non-parametric datatype sort, check should fail
-  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl( "list");
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver.getIntegerSort());
   cons.addSelector(head);

@@ -1680,20 +1680,26 @@ std::ostream& operator<<(std::ostream& out,
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
-DatatypeDecl::DatatypeDecl(const Solver * s, const std::string& name, bool isCoDatatype)
+DatatypeDecl::DatatypeDecl(const Solver* s,
+                           const std::string& name,
+                           bool isCoDatatype)
     : d_dtype(new CVC4::Datatype(s->getExprManager(), name, isCoDatatype))
 {
 }
 
-DatatypeDecl::DatatypeDecl(const Solver * s, const std::string& name,
+DatatypeDecl::DatatypeDecl(const Solver* s,
+                           const std::string& name,
                            Sort param,
                            bool isCoDatatype)
-    : d_dtype(new CVC4::Datatype(s->getExprManager(), 
-          name, std::vector<Type>{*param.d_type}, isCoDatatype))
+    : d_dtype(new CVC4::Datatype(s->getExprManager(),
+                                 name,
+                                 std::vector<Type>{*param.d_type},
+                                 isCoDatatype))
 {
 }
 
-DatatypeDecl::DatatypeDecl(const Solver * s, const std::string& name,
+DatatypeDecl::DatatypeDecl(const Solver* s,
+                           const std::string& name,
                            const std::vector<Sort>& params,
                            bool isCoDatatype)
 {
@@ -2875,14 +2881,16 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
   return DatatypeDecl(this, name, isCoDatatype);
 }
 
-DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, Sort param, bool isCoDatatype)
+DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
+                                    Sort param,
+                                    bool isCoDatatype)
 {
   return DatatypeDecl(this, name, param, isCoDatatype);
 }
 
 DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
-              const std::vector<Sort>& params,
-              bool isCoDatatype)
+                                    const std::vector<Sort>& params,
+                                    bool isCoDatatype)
 {
   return DatatypeDecl(this, name, params, isCoDatatype);
 }
@@ -3429,7 +3437,7 @@ Sort Solver::declareDatatype(
 {
   CVC4_API_ARG_CHECK_EXPECTED(ctors.size() > 0, ctors)
       << "a datatype declaration with at least one constructor";
-  DatatypeDecl dtdecl(this,symbol);
+  DatatypeDecl dtdecl(this, symbol);
   for (const DatatypeConstructorDecl& ctor : ctors)
   {
     dtdecl.addConstructor(ctor);

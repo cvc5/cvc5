@@ -47,7 +47,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testEnumeration() {
-    Datatype colors(d_em,"colors");
+    Datatype colors(d_em, "colors");
 
     DatatypeConstructor yellow("yellow", "is_yellow");
     DatatypeConstructor blue("blue", "is_blue");
