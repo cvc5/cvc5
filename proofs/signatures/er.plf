@@ -64,13 +64,17 @@
                                            (holds cln)))
                   (holds cln)))))
 
-; Takes a `list` of literals and a clause, `suffix`, adds the suffix to each
-; literal and returns a list of clauses as a `cnf`.
-(program clause_add_suffix_all ((list clause) (suffix clause)) cnf
-         (match list
-                (cln cnfn)
-                ((clc l rest) (cnfc (clc l suffix)
-                                    (clause_add_suffix_all rest suffix)))))
+; Represents multiple conjoined clauses.
+; There is a list, `heads` of literals, each of which is suffixed by the
+; same `tail`.
+(declare common_tail_cnf_t type)
+(declare common_tail_cnf
+         (! heads clause
+         (! tail  clause common_tail_cnf_t)))
+
+; A member of this type is a proof of a common_tail_cnf.
+(declare common_tail_cnf_holds
+         (! cnf common_tail_cnf_t type))
 
 ; This translates a definition witness value for the def:
 ;
@@ -89,10 +93,6 @@
          (! def (definition new old others)
          (! negOld lit
          (! mkNegOld (^ (lit_flip old) negOld)
-         (! provenCnf cnf
-         (! mkProvenCnf (^ (clause_add_suffix_all
-                             others
-                             (clc (neg new) (clc old cln))) provenCnf)
          ; If you can prove bottom from its clausal representation
          (! pf_continuation
             ; new v l_1 v l_2 v ... v l_n
@@ -100,26 +100,31 @@
                ; new v ~old
                (! pf_c2 (holds (clc (pos new) (clc negOld cln)))
                   ; for each i <= n: l_i v ~new v old
-                  (! pf_cs (cnf_holds provenCnf)
+                  (! pf_cs (common_tail_cnf_holds
+                             (common_tail_cnf
+                               others
+                               (clc (neg new) (clc old cln))))
                      (holds cln))))
          ; Then you've proven bottom
-         (holds cln)))))))))))
+         (holds cln)))))))))
 
-; This axiom is useful for converting a proof of some CNF formula (a value of
-; type (cnf_holds ...)) into proofs of the constituent clauses (many values of
-; type (holds ...)).
+; These axioms are useful for converting a proof of some CNF formula represented
+; using the `common_tail_cnf` type (a value of type `common_tail_cnf_holds`),
+; into proofs of its constituent clauses (many values of type `holds`).
 ; Given
-;    1. a proof of some cnf, first ^ rest, and
-;    2. a proof continuation that
-;       a. takes in proofs of
-;          i. first and
-;          ii. rest and
-;       b. proceeds to prove bottom,
-; proves bottom.
-(declare cnfc_unroll_towards_bottom
-         (! first clause
-            (! rest cnf
-               (! pf (cnf_holds (cnfc first rest))
-                  (! pf_continuation (! r1 (holds first) (! r2 (cnf_holds rest) (holds cln)))
-                    (holds cln))))))
-
+;    1. a proof of some `common_tail_cnf`
+; Then
+;    1. the first axiom gives you a proof of the first `clause` therein and
+;    2. the second gives you a proof of the rest of the `common_tail_cnf`.
+(declare common_tail_cnf_prove_head
+         (! first lit
+         (! rest clause
+         (! tail clause
+         (! pf (common_tail_cnf_holds (common_tail_cnf (clc first rest) tail))
+            (holds (clc first tail)))))))
+(declare common_tail_cnf_prove_tail
+         (! first lit
+         (! rest clause
+         (! tail clause
+         (! pf (common_tail_cnf_holds (common_tail_cnf (clc first rest) tail))
+            (common_tail_cnf_holds (common_tail_cnf rest tail)))))))
