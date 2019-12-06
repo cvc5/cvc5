@@ -1137,6 +1137,7 @@ class CVC4_PUBLIC DatatypeDecl
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
+
  public:
   /**
    * Destructor.

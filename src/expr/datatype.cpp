@@ -76,9 +76,9 @@ Datatype::Datatype(ExprManager* em, std::string name, bool isCo)
 }
 
 Datatype::Datatype(ExprManager* em,
-                          std::string name,
-                          const std::vector<Type>& params,
-                          bool isCo)
+                   std::string name,
+                   const std::vector<Type>& params,
+                   bool isCo)
     : d_em(em),
       d_name(name),
       d_params(params),
