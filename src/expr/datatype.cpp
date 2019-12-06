@@ -21,6 +21,7 @@
 
 #include "base/check.h"
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/node.h"
@@ -53,6 +54,49 @@ typedef expr::Attribute<expr::attr::DatatypeFiniteTag, bool> DatatypeFiniteAttr;
 typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFiniteComputedAttr;
 typedef expr::Attribute<expr::attr::DatatypeUFiniteTag, bool> DatatypeUFiniteAttr;
 typedef expr::Attribute<expr::attr::DatatypeUFiniteComputedTag, bool> DatatypeUFiniteComputedAttr;
+
+inline Datatype::Datatype(ExprManager* em, std::string name, bool isCo)
+    : d_em(em),
+      d_name(name),
+      d_params(),
+      d_isCo(isCo),
+      d_isTuple(false),
+      d_isRecord(false),
+      d_record(NULL),
+      d_constructors(),
+      d_resolved(false),
+      d_self(),
+      d_involvesExt(false),
+      d_involvesUt(false),
+      d_sygus_allow_const(false),
+      d_sygus_allow_all(false),
+      d_card(CardinalityUnknown()),
+      d_well_founded(0)
+{
+}
+
+inline Datatype::Datatype(ExprManager* em,
+                          std::string name,
+                          const std::vector<Type>& params,
+                          bool isCo)
+    : d_em(em),
+      d_name(name),
+      d_params(params),
+      d_isCo(isCo),
+      d_isTuple(false),
+      d_isRecord(false),
+      d_record(NULL),
+      d_constructors(),
+      d_resolved(false),
+      d_self(),
+      d_involvesExt(false),
+      d_involvesUt(false),
+      d_sygus_allow_const(false),
+      d_sygus_allow_all(false),
+      d_card(CardinalityUnknown()),
+      d_well_founded(0)
+{
+}
 
 Datatype::~Datatype(){
   delete d_record;
@@ -837,6 +881,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
+      d_internal(nullptr),  // until the Node-level datatype API is activated
       d_name(name + '\0' + "is_" + name),  // default tester name is "is_FOO"
       d_tester(),
       d_args(),
@@ -853,6 +898,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name,
        // we're going to be a constant stuffed inside a node.  So we stow
        // the tester name away inside the constructor name until
        // resolution.
+      d_internal(nullptr),  // until the Node-level datatype API is activated
       d_name(name + '\0' + tester),
       d_tester(),
       d_args(),
@@ -1233,10 +1279,12 @@ bool DatatypeConstructor::involvesUninterpretedType() const{
   return false;
 }
 
-DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector) :
-  d_name(name),
-  d_selector(selector),
-  d_resolved(false) {
+DatatypeConstructorArg::DatatypeConstructorArg(std::string name, Expr selector)
+    : d_internal(nullptr),  // until the Node-level datatype API is activated
+      d_name(name),
+      d_selector(selector),
+      d_resolved(false)
+{
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor arg without a name");
 }
 
