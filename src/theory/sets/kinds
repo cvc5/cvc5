@@ -53,6 +53,11 @@ nullaryoperator UNIVERSE_SET "(finite) universe set, all set variables must be i
 # A comprehension C with the above form has members given by the following
 # semantics:
 # forall y. ( exists x1...xn. P[x1...xn] ^ t[x1...xn] = y ) <=> (member y C)
+# Notice that since all sets must be interpreted as finite, this means that
+# CVC4 will not be able to construct a model for any set comprehension such
+# that there are infinitely many y that satisfy the left hand side of the
+# equivalence above. The same limitation occurs more generally when combining
+# finite sets with quantified formulas.
 operator COMPREHENSION 3 "set comprehension specified by a bound variable list, a predicate, and a term."
 
 operator JOIN 		   2  "set join"
