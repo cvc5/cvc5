@@ -20,13 +20,26 @@
 #include <cctype>
 #include <iostream>
 #include <iterator>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "base/configuration_private.h"
 #include "proof/clause_id.h"
 #include "proof/er/er_proof.h"
 #include "prop/sat_solver_types.h"
 #include "utils.h"
+
+#if IS_LFSC_BUILD
+#include "lfscc.h"
+
+namespace CVC4 {
+namespace proof {
+extern const char* const plf_signatures;
+}  // namespace proof
+}  // namespace CVC4
+#endif
+
 
 using namespace CVC4;
 using namespace CVC4::proof::er;
@@ -291,12 +304,12 @@ void ErProofBlack::testErTraceCheckOutput()
   pf.outputAsLfsc(lfsc);
 
   std::string out = R"EOF(
-    (decl_rat_elimination_def
+    (decl_definition
       (neg bb.v0)
       cln
       (\ er.v4
       (\ er.def4
-        (clausify_rat_elimination_def _ _ _ er.def4 _ _
+        (clausify_definition _ _ _ er.def4 _
           (\ er.c9
           (\ er.c10
           (\ er.cnf4
@@ -414,63 +427,38 @@ void ErProofBlack::testErTraceCheckOutputMedium()
           SatLiteral(0, false), SatLiteral(1, true), SatLiteral(3, true)});
   ErProof pf(clauses, usedIds, std::move(tc));
 
-  std::ostringstream lfsc;
-  pf.outputAsLfsc(lfsc);
+  std::ostringstream actual_pf_body;
+  pf.outputAsLfsc(actual_pf_body);
 
-  std::string out = R"EOF(
-    (decl_rat_elimination_def
-      (neg bb.v0)
-      (clc (pos bb.v1) (clc (pos bb.v3) cln))
-      (\ er.v4
-      (\ er.def4
-    (decl_rat_elimination_def
-      (pos bb.v2)
-      cln
-      (\ er.v5
-      (\ er.def5
-        (clausify_rat_elimination_def _ _ _ er.def4 _ _
-          (\ er.c9
-          (\ er.c10
-          (\ er.cnf4
-        (clausify_rat_elimination_def _ _ _ er.def5 _ _
-          (\ er.c13
-          (\ er.c14
-          (\ er.cnf5
-            (cnfc_unroll _ _ er.cnf4
-              (\ er.c11
-              (\ er.cnf4.u1
-            (cnfc_unroll _ _ er.cnf4.u1
-              (\ er.c12
-              (\ er.cnf4.u2
-                (satlem_simplify _ _ _
-                  (R _ _ (R _ _ (Q _ _ (Q _ _ er.c11 bb.pb1 bb.v0)
-                    er.c10 er.v4)
-                    bb.pb7 bb.v0)
-                    bb.pb4 bb.v1) (\ er.c15
-                (satlem_simplify _ _ _
-                  (Q _ _ (R _ _ bb.pb2 bb.pb5 bb.v2) bb.pb8 bb.v0) (\ er.c16
-                (satlem_simplify _ _ _
-                  (Q _ _ (R _ _ bb.pb7 bb.pb2 bb.v1) bb.pb6 bb.v0) (\ er.c17
-                (satlem_simplify _ _ _
-                  (Q _ _ (R _ _ bb.pb7 bb.pb5 bb.v3) bb.pb1 bb.v0) (\ er.c18
-                (satlem_simplify _ _ _
-                  (R _ _ (Q _ _ bb.pb3 er.c17 bb.v3) er.c18 bb.v2) (\ er.c19
-                (satlem_simplify _ _ _
-                  (Q _ _ (R _ _ (Q _ _ bb.pb4 er.c17 bb.v2) er.c16 bb.v3)
-                      er.c19 bb.v1) (\ er.c20
-                  er.c20 ; (holds cln)
-              ))))))))))))
-            )))
-            )))
-          )))
-        )
-          )))
-        )
-      ))
-    )
-      ))
+#if IS_LFSC_BUILD
+  std::string pf_header = R"EOF(
+    (check
+      (% bb.v0 var
+      (% bb.v1 var
+      (% bb.v2 var
+      (% bb.v3 var
+        (% bb.pb1 (holds (clc (pos bb.v0) (clc (pos bb.v1) (clc (neg bb.v2) cln))))
+        (% bb.pb2 (holds (clc (neg bb.v0) (clc (neg bb.v1) (clc (pos bb.v2) cln))))
+        (% bb.pb3 (holds (clc (pos bb.v1) (clc (pos bb.v2) (clc (neg bb.v3) cln))))
+        (% bb.pb4 (holds (clc (neg bb.v1) (clc (neg bb.v2) (clc (pos bb.v3) cln))))
+        (% bb.pb5 (holds (clc (neg bb.v0) (clc (neg bb.v2) (clc (neg bb.v3) cln))))
+        (% bb.pb6 (holds (clc (pos bb.v0) (clc (pos bb.v2) (clc (pos bb.v3) cln))))
+        (% bb.pb7 (holds (clc (neg bb.v0) (clc (pos bb.v1) (clc (pos bb.v3) cln))))
+        (% bb.pb8 (holds (clc (pos bb.v0) (clc (neg bb.v1) (clc (neg bb.v3) cln))))
+          (: (holds cln)
+    )EOF";
+
+  std::string pf_footer = R"EOF(
+          )
+        ))))))))
+      ))))
     )
     )EOF";
 
-  TS_ASSERT_EQUALS(filterWhitespace(lfsc.str()), filterWhitespace(out));
+  std::stringstream actual_pf;
+  actual_pf << proof::plf_signatures << pf_header << actual_pf_body.str() << pf_footer;
+
+  lfscc_init();
+  lfscc_check_file(actual_pf, false, false, false, false, false, false, false);
+#endif
 }
