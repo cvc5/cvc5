@@ -38,19 +38,21 @@ using namespace std;
 namespace CVC4 {
 
 Datatype::~Datatype(){
+  ExprManagerScope ems(d_em); 
+  d_internal.reset();
   delete d_record;
 }
 
-Datatype::Datatype(std::string name, bool isCo)
-    : d_internal(nullptr), d_record(NULL), d_isRecord(false), d_constructors()
+Datatype::Datatype(ExprManager* em, std::string name, bool isCo)
+    : d_em(em), d_internal(nullptr), d_record(NULL), d_isRecord(false), d_constructors()
 {
   Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
   d_internal = std::make_shared<DType>(name, isCo);
   Trace("ajr-temp") << "Datatype::Datatype finished" << std::endl;
 }
 
-Datatype::Datatype(std::string name, const std::vector<Type>& params, bool isCo)
-    : d_internal(nullptr), d_record(NULL), d_isRecord(false), d_constructors()
+Datatype::Datatype(ExprManager* em, std::string name, const std::vector<Type>& params, bool isCo)
+    : d_em(em), d_internal(nullptr), d_record(NULL), d_isRecord(false), d_constructors()
 {
   Trace("ajr-temp") << "Datatype::Datatype make internal" << std::endl;
   std::vector<TypeNode> paramsn;
