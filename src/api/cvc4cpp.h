@@ -1101,6 +1101,34 @@ class CVC4_PUBLIC DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
+ public:
+  /**
+   * Destructor.
+   */
+  ~DatatypeDecl();
+
+  /**
+   * Add datatype constructor declaration.
+   * @param ctor the datatype constructor declaration to add
+   */
+  void addConstructor(const DatatypeConstructorDecl& ctor);
+
+  /** Get the number of constructors (so far) for this Datatype declaration. */
+  size_t getNumConstructors() const;
+
+  /** Is this Datatype declaration parametric? */
+  bool isParametric() const;
+
+  /**
+   * @return a string representation of this datatype declaration
+   */
+  std::string toString() const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  const CVC4::Datatype& getDatatype(void) const;
+
+ private:
   /**
    * Constructor.
    * @param s the solver that created this datatype declaration
@@ -1137,35 +1165,6 @@ class CVC4_PUBLIC DatatypeDecl
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
-
- public:
-  /**
-   * Destructor.
-   */
-  ~DatatypeDecl();
-
-  /**
-   * Add datatype constructor declaration.
-   * @param ctor the datatype constructor declaration to add
-   */
-  void addConstructor(const DatatypeConstructorDecl& ctor);
-
-  /** Get the number of constructors (so far) for this Datatype declaration. */
-  size_t getNumConstructors() const;
-
-  /** Is this Datatype declaration parametric? */
-  bool isParametric() const;
-
-  /**
-   * @return a string representation of this datatype declaration
-   */
-  std::string toString() const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  const CVC4::Datatype& getDatatype(void) const;
-
- private:
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
