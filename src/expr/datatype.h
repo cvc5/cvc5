@@ -925,8 +925,7 @@ class CVC4_PUBLIC Datatype {
    * that must be replaced
    * @param paramReplacements the corresponding (parametric) DatatypeTypes
    */
-  void resolve(ExprManager* em,
-               const std::map<std::string, DatatypeType>& resolutions,
+  void resolve(const std::map<std::string, DatatypeType>& resolutions,
                const std::vector<Type>& placeholders,
                const std::vector<Type>& replacements,
                const std::vector<SortConstructorType>& paramTypes,
