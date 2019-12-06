@@ -793,8 +793,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       std::vector< Node > inst;
       for (unsigned i = 0; i < riter.getNumTerms(); i++)
       {
-        Node rr = riter.getCurrentTerm( i, true );
-        Node r = fm->getRepresentative( rr );
+        Node rr = riter.getCurrentTerm(i, true);
+        Node r = fm->getRepresentative(rr);
         debugPrint("fmc-exh-debug", r);
         Trace("fmc-exh-debug") << " (term : " << rr << ")";
         ev_inst.push_back( r );

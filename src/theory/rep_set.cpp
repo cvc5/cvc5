@@ -407,8 +407,10 @@ Node RepSetIterator::getCurrentTerm(unsigned i, bool valTerm) const
 {
   unsigned ii = d_index_order[i];
   unsigned curr = d_index[ii];
-  Trace("rsi-debug") << "rsi : get term " << i << ", index order = " << d_index_order[i] << std::endl;
-  Trace("rsi-debug") << "rsi : curr = " << curr << " / " << d_domain_elements[i].size() << std::endl;
+  Trace("rsi-debug") << "rsi : get term " << i
+                     << ", index order = " << d_index_order[i] << std::endl;
+  Trace("rsi-debug") << "rsi : curr = " << curr << " / "
+                     << d_domain_elements[i].size() << std::endl;
   Assert(0 <= curr && curr < d_domain_elements[i].size());
   Node t = d_domain_elements[i][curr];
   if (valTerm)
