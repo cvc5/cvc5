@@ -733,7 +733,7 @@ void DType::toStream(std::ostream& out) const
   out << " END;" << std::endl;
 }
 
-DTypeIndexConstant::DTypeIndexConstant(unsigned index) : d_index(index) {}
+DTypeIndexConstant::DTypeIndexConstant(size_t index) : d_index(index) {}
 std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic)
 {
   return out << "index_" << dic.getIndex();
