@@ -179,7 +179,7 @@ void SolverBlack::testMkFloatingPointSort()
 
 void SolverBlack::testMkDatatypeSort()
 {
-  DatatypeDecl dtypeSpec("list");
+  DatatypeDecl dtypeSpec = d_solver->mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver->getIntegerSort());
   cons.addSelector(head);
@@ -187,7 +187,7 @@ void SolverBlack::testMkDatatypeSort()
   DatatypeConstructorDecl nil("nil");
   dtypeSpec.addConstructor(nil);
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSort(dtypeSpec));
-  DatatypeDecl throwsDtypeSpec("list");
+  DatatypeDecl throwsDtypeSpec = d_solver->mkDatatypeDecl("list");
   TS_ASSERT_THROWS(d_solver->mkDatatypeSort(throwsDtypeSpec),
                    CVC4ApiException&);
 }
@@ -627,7 +627,7 @@ void SolverBlack::testMkTermFromOp()
   // list datatype
 
   Sort sort = d_solver->mkParamSort("T");
-  DatatypeDecl listDecl("paramlist", sort);
+  DatatypeDecl listDecl = d_solver->mkDatatypeDecl("paramlist", sort);
   DatatypeConstructorDecl cons("cons");
   DatatypeConstructorDecl nil("nil");
   DatatypeSelectorDecl head("head", sort);
@@ -930,7 +930,7 @@ void SolverBlack::testGetOp()
   TS_ASSERT_EQUALS(exta.getOp(), ext);
 
   // Test Datatypes -- more complicated
-  DatatypeDecl consListSpec("list");
+  DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver->getIntegerSort());
   DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
@@ -1036,7 +1036,7 @@ void SolverBlack::testSimplify()
   Sort uSort = d_solver->mkUninterpretedSort("u");
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
-  DatatypeDecl consListSpec("list");
+  DatatypeDecl consListSpec = d_solver->mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver->getIntegerSort());
   DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());

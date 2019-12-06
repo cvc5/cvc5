@@ -101,6 +101,8 @@ class CVC4_PUBLIC DatatypeResolutionException : public Exception {
 class CVC4_PUBLIC DatatypeSelfType {
 };/* class DatatypeSelfType */
 
+class DTypeSelector;
+
 /**
  * An unresolved type (used in calls to
  * DatatypeConstructor::addArg()) to allow a Datatype to refer to
@@ -159,6 +161,8 @@ class CVC4_PUBLIC DatatypeConstructorArg {
   void toStream(std::ostream& out) const;
 
  private:
+  /** The internal representation */
+  std::shared_ptr<DTypeSelector> d_internal;
   /** the name of this selector */
   std::string d_name;
   /** the selector expression */
@@ -198,6 +202,8 @@ class CVC4_PUBLIC SygusPrintCallback
                              std::ostream& out,
                              Expr e) const = 0;
 };
+
+class DTypeConstructor;
 
 /**
  * A constructor for a Datatype.
@@ -454,6 +460,8 @@ class CVC4_PUBLIC DatatypeConstructor {
   void toStream(std::ostream& out) const;
 
  private:
+  /** The internal representation */
+  std::shared_ptr<DTypeConstructor> d_internal;
   /** the name of the constructor */
   std::string d_name;
   /** the constructor expression */
@@ -552,6 +560,8 @@ class CVC4_PUBLIC DatatypeConstructor {
   void computeSharedSelectors(Type domainType) const;
 };/* class DatatypeConstructor */
 
+class DType;
+
 /**
  * The representation of an inductive datatype.
  *
@@ -613,7 +623,8 @@ class CVC4_PUBLIC DatatypeConstructor {
  */
 class CVC4_PUBLIC Datatype {
   friend class DatatypeConstructor;
-public:
+  friend class NodeManager;  // temporary, for access to d_internal
+ public:
   /**
    * Get the datatype of a constructor, selector, or tester operator.
    */
@@ -645,13 +656,16 @@ public:
   typedef DatatypeConstructorIterator const_iterator;
 
   /** Create a new Datatype of the given name. */
-  inline explicit Datatype(std::string name, bool isCo = false);
+  explicit Datatype(ExprManager* em, std::string name, bool isCo = false);
 
   /**
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  inline Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
+  Datatype(ExprManager* em,
+           std::string name,
+           const std::vector<Type>& params,
+           bool isCo = false);
 
   ~Datatype();
 
@@ -963,6 +977,10 @@ public:
   void toStream(std::ostream& out) const;
 
  private:
+  /** The expression manager that created this datatype */
+  ExprManager* d_em;
+  /** The internal representation */
+  std::shared_ptr<DType> d_internal;
   /** name of this datatype */
   std::string d_name;
   /** the type parameters of this datatype (if this is a parametric datatype)
@@ -1183,40 +1201,6 @@ inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
 }
 
 inline std::string DatatypeUnresolvedType::getName() const { return d_name; }
-inline Datatype::Datatype(std::string name, bool isCo)
-    : d_name(name),
-      d_params(),
-      d_isCo(isCo),
-      d_isTuple(false),
-      d_isRecord(false),
-      d_record(NULL),
-      d_constructors(),
-      d_resolved(false),
-      d_self(),
-      d_involvesExt(false),
-      d_involvesUt(false),
-      d_sygus_allow_const(false),
-      d_sygus_allow_all(false),
-      d_card(CardinalityUnknown()),
-      d_well_founded(0) {}
-
-inline Datatype::Datatype(std::string name, const std::vector<Type>& params,
-                          bool isCo)
-    : d_name(name),
-      d_params(params),
-      d_isCo(isCo),
-      d_isTuple(false),
-      d_isRecord(false),
-      d_record(NULL),
-      d_constructors(),
-      d_resolved(false),
-      d_self(),
-      d_involvesExt(false),
-      d_involvesUt(false),
-      d_sygus_allow_const(false),
-      d_sygus_allow_all(false),
-      d_card(CardinalityUnknown()),
-      d_well_founded(0) {}
 
 inline std::string Datatype::getName() const { return d_name; }
 inline size_t Datatype::getNumConstructors() const

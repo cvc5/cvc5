@@ -1099,7 +1099,7 @@ bool Smt2::pushSygusDatatypeDef( Type t, std::string& dname,
                                   std::vector< bool >& allow_const,
                                   std::vector< std::vector< std::string > >& unresolved_gterm_sym ){
   sorts.push_back(t);
-  datatypes.push_back(Datatype(dname));
+  datatypes.push_back(Datatype(getExprManager(), dname));
   ops.push_back(std::vector<Expr>());
   cnames.push_back(std::vector<std::string>());
   cargs.push_back(std::vector<std::vector<CVC4::Type> >());

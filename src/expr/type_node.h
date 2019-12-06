@@ -37,6 +37,7 @@
 namespace CVC4 {
 
 class NodeManager;
+class DType;
 
 namespace expr {
   class NodeValue;
@@ -660,6 +661,9 @@ public:
 
   /** Get the Datatype specification from a datatype type */
   const Datatype& getDatatype() const;
+
+  /** Get the internal Datatype specification from a datatype type */
+  const DType& getDType() const;
 
   /** Get the exponent size of this floating-point type */
   unsigned getFloatingPointExponentSize() const;
