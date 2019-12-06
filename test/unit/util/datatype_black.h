@@ -47,7 +47,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testEnumeration() {
-    Datatype colors("colors");
+    Datatype colors(d_em,"colors");
 
     DatatypeConstructor yellow("yellow", "is_yellow");
     DatatypeConstructor blue("blue", "is_blue");
@@ -85,7 +85,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testNat() {
-    Datatype nat("nat");
+    Datatype nat(d_em, "nat");
 
     DatatypeConstructor succ("succ", "is_succ");
     succ.addArg("pred", DatatypeSelfType());
@@ -112,7 +112,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testTree() {
-    Datatype tree("tree");
+    Datatype tree(d_em, "tree");
     Type integerType = d_em->integerType();
 
     DatatypeConstructor node("node", "is_node");
@@ -144,7 +144,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testListInt() {
-    Datatype list("list");
+    Datatype list(d_em, "list");
     Type integerType = d_em->integerType();
 
     DatatypeConstructor cons("cons", "is_cons");
@@ -169,7 +169,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testListReal() {
-    Datatype list("list");
+    Datatype list(d_em, "list");
     Type realType = d_em->realType();
 
     DatatypeConstructor cons("cons", "is_cons");
@@ -194,7 +194,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testListBoolean() {
-    Datatype list("list");
+    Datatype list(d_em, "list");
     Type booleanType = d_em->booleanType();
 
     DatatypeConstructor cons("cons", "is_cons");
@@ -226,7 +226,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
      *     list = cons(car: tree, cdr: list) | nil
      *   END;
      */
-    Datatype tree("tree");
+    Datatype tree(d_em, "tree");
     DatatypeConstructor node("node", "is_node");
     node.addArg("left", DatatypeSelfType());
     node.addArg("right", DatatypeSelfType());
@@ -238,7 +238,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
 
     Debug("datatypes") << tree << std::endl;
 
-    Datatype list("list");
+    Datatype list(d_em, "list");
     DatatypeConstructor cons("cons", "is_cons");
     cons.addArg("car", DatatypeUnresolvedType("tree"));
     cons.addArg("cdr", DatatypeSelfType());
@@ -280,7 +280,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
   void testMutualListTrees2()
   {
-    Datatype tree("tree");
+    Datatype tree(d_em, "tree");
     DatatypeConstructor node("node", "is_node");
     node.addArg("left", DatatypeSelfType());
     node.addArg("right", DatatypeSelfType());
@@ -290,7 +290,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
     leaf.addArg("leaf", DatatypeUnresolvedType("list"));
     tree.addConstructor(leaf);
 
-    Datatype list("list");
+    Datatype list(d_em, "list");
     DatatypeConstructor cons("cons", "is_cons");
     cons.addArg("car", DatatypeUnresolvedType("tree"));
     cons.addArg("cdr", DatatypeSelfType());
@@ -327,7 +327,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testNotSoWellFounded() {
-    Datatype tree("tree");
+    Datatype tree(d_em, "tree");
 
     DatatypeConstructor node("node", "is_node");
     node.addArg("left", DatatypeSelfType());
@@ -351,7 +351,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Type t1, t2;
     v.push_back(t1 = d_em->mkSort("T1"));
     v.push_back(t2 = d_em->mkSort("T2"));
-    Datatype pair("pair", v);
+    Datatype pair(d_em, "pair", v);
 
     DatatypeConstructor mkpair("mk-pair");
     mkpair.addArg("first", t1);

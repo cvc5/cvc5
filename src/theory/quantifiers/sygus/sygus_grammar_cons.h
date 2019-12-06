@@ -191,7 +191,7 @@ public:
   class SygusDatatypeGenerator
   {
    public:
-    SygusDatatypeGenerator(ExprManager * em, const std::string& name);
+    SygusDatatypeGenerator(const std::string& name);
     ~SygusDatatypeGenerator() {}
     /**
      * Possibly add a constructor to d_sdt, based on the criteria mentioned

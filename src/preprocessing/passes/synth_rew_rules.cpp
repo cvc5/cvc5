@@ -246,7 +246,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   std::vector<SygusDatatype> sdts;
   // make unresolved types for each canonical term
   std::map<Node, TypeNode> cterm_to_utype;
-  ExprManager * em = nm->toExprManager();
   for (unsigned i = 0, ncterms = cterms.size(); i < ncterms; i++)
   {
     Node ct = cterms[i];
@@ -256,7 +255,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     TypeNode tnu = nm->mkSort(tname, ExprManager::SORT_FLAG_PLACEHOLDER);
     cterm_to_utype[ct] = tnu;
     unres.insert(tnu.toType());
-    sdts.push_back(SygusDatatype(em,tname));
+    sdts.push_back(SygusDatatype(tname));
   }
   Trace("srs-input") << "...finished." << std::endl;
 
@@ -395,7 +394,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     TypeNode t = tcp.first;
     std::stringstream ss;
     ss << "T_" << t;
-    SygusDatatype sdttl(em,ss.str());
+    SygusDatatype sdttl(ss.str());
     Node tbv = nm->mkBoundVar(t);
     // the operator of each constructor is a no-op
     Node lambdaOp = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv);
