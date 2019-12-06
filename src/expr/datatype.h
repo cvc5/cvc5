@@ -645,13 +645,16 @@ public:
   typedef DatatypeConstructorIterator const_iterator;
 
   /** Create a new Datatype of the given name. */
-  inline explicit Datatype(std::string name, bool isCo = false);
+  explicit Datatype(ExprManager* em, std::string name, bool isCo = false);
 
   /**
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  inline Datatype(std::string name, const std::vector<Type>& params, bool isCo = false);
+  Datatype(ExprManager* em,
+           std::string name,
+           const std::vector<Type>& params,
+           bool isCo = false);
 
   ~Datatype();
 
@@ -963,6 +966,8 @@ public:
   void toStream(std::ostream& out) const;
 
  private:
+  /** The expression manager that created this datatype */
+  ExprManager* d_em;
   /** name of this datatype */
   std::string d_name;
   /** the type parameters of this datatype (if this is a parametric datatype)
@@ -1183,8 +1188,9 @@ inline DatatypeUnresolvedType::DatatypeUnresolvedType(std::string name) :
 }
 
 inline std::string DatatypeUnresolvedType::getName() const { return d_name; }
-inline Datatype::Datatype(std::string name, bool isCo)
-    : d_name(name),
+inline Datatype::Datatype(ExprManager * em, std::string name, bool isCo)
+    : d_em(em),
+      d_name(name),
       d_params(),
       d_isCo(isCo),
       d_isTuple(false),
@@ -1200,9 +1206,10 @@ inline Datatype::Datatype(std::string name, bool isCo)
       d_card(CardinalityUnknown()),
       d_well_founded(0) {}
 
-inline Datatype::Datatype(std::string name, const std::vector<Type>& params,
+inline Datatype::Datatype(ExprManager * em, std::string name, const std::vector<Type>& params,
                           bool isCo)
-    : d_name(name),
+    : d_em(em),
+      d_name(name),
       d_params(params),
       d_isCo(isCo),
       d_isTuple(false),
