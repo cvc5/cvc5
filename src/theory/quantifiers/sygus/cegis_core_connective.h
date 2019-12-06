@@ -284,8 +284,9 @@ class CegisCoreConnective : public Cegis
     std::map<Node, Node> d_cpoolToSol;
     /**
      * An index of list of predicates such that each list ( P1, ..., Pn )
-     * indexed by this trie is such that P1 ^ ... ^ Pn is equivalent to false.
-     * We call this a "false core".
+     * indexed by this trie is such that P1 ^ ... ^ Pn ^ S is unsatisfiable,
+     * where S is the side condition of our synthesis conjecture. We call this
+     * a "false core". This set is "cores(B)" in Variant #2 above.
      */
     VariadicTrie d_falseCores;
     /**
