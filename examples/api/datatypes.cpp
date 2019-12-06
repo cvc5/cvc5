@@ -31,7 +31,7 @@ int main() {
   // is specified.  Second, it is "resolved"---at which point function
   // symbols are assigned to its constructors, selectors, and testers.
 
-  Datatype consListSpec(&em, "list"); // give the datatype a name
+  Datatype consListSpec(&em, "list");  // give the datatype a name
   DatatypeConstructor cons("cons");
   cons.addArg("head", em.integerType());
   cons.addArg("tail", DatatypeSelfType()); // a list
