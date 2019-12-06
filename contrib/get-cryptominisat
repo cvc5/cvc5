@@ -20,7 +20,7 @@ cmake -DENABLE_PYTHON_INTERFACE=OFF \
       -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       ..
 
-make libcryptominisat5 -j$(nproc) install
+make install -j$(nproc)
 
 echo
 echo ===================== Now configure CVC4 with =====================
