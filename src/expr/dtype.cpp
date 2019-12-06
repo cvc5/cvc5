@@ -196,11 +196,8 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
       {
         if (svs.find(v) == svs.end())
         {
-          // Print a warning and return false, indicating we should abort,
-          // since this datatype is not well formed.
-          Warning() << "Sygus constructor has an operator with a free variable "
-                       "that is not in the formal argument list of the "
-                       "function-to-synthesize";
+          // return false, indicating we should abort, since this datatype is
+          // not well formed.
           return false;
         }
       }
