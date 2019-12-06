@@ -83,7 +83,7 @@ function install_includes
   subdir="$2"
   echo "Copying $1 to $INSTALL_INCLUDE_DIR/$subdir"
   [ ! -d "$INSTALL_INCLUDE_DIR" ] && mkdir -p "$INSTALL_INCLUDE_DIR"
-  [ -n "$subdir" ] && mkdir -p "$INSTALL_INCLUDE_DIR/$subdir"
+  [ -n "$subdir" ] && [ ! -d "$INSTALL_INCLUDE_DIR/$subdir" ] && mkdir -p "$INSTALL_INCLUDE_DIR/$subdir"
   cp -r "$include" "$INSTALL_INCLUDE_DIR/$subdir"
 }
 
