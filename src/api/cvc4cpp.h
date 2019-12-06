@@ -1093,6 +1093,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
 };
 
+class Solver;
 /**
  * A CVC4 datatype declaration.
  */
@@ -1100,36 +1101,7 @@ class CVC4_PUBLIC DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
-
  public:
-  /**
-   * Constructor.
-   * @param name the name of the datatype
-   * @param isCoDatatype true if a codatatype is to be constructed
-   * @return the DatatypeDecl
-   */
-  DatatypeDecl(const std::string& name, bool isCoDatatype = false);
-
-  /**
-   * Constructor for parameterized datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param param the sort parameter
-   * @param isCoDatatype true if a codatatype is to be constructed
-   */
-  DatatypeDecl(const std::string& name, Sort param, bool isCoDatatype = false);
-
-  /**
-   * Constructor for parameterized datatype declaration.
-   * Create sorts parameter with Solver::mkParamSort().
-   * @param name the name of the datatype
-   * @param params a list of sort parameters
-   * @param isCoDatatype true if a codatatype is to be constructed
-   */
-  DatatypeDecl(const std::string& name,
-               const std::vector<Sort>& params,
-               bool isCoDatatype = false);
-
   /**
    * Destructor.
    */
@@ -1157,6 +1129,42 @@ class CVC4_PUBLIC DatatypeDecl
   const CVC4::Datatype& getDatatype(void) const;
 
  private:
+  /**
+   * Constructor.
+   * @param s the solver that created this datatype declaration
+   * @param name the name of the datatype
+   * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
+   */
+  DatatypeDecl(const Solver* s,
+               const std::string& name,
+               bool isCoDatatype = false);
+
+  /**
+   * Constructor for parameterized datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param s the solver that created this datatype declaration
+   * @param name the name of the datatype
+   * @param param the sort parameter
+   * @param isCoDatatype true if a codatatype is to be constructed
+   */
+  DatatypeDecl(const Solver* s,
+               const std::string& name,
+               Sort param,
+               bool isCoDatatype = false);
+
+  /**
+   * Constructor for parameterized datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param s the solver that created this datatype declaration
+   * @param name the name of the datatype
+   * @param params a list of sort parameters
+   * @param isCoDatatype true if a codatatype is to be constructed
+   */
+  DatatypeDecl(const Solver* s,
+               const std::string& name,
+               const std::vector<Sort>& params,
+               bool isCoDatatype = false);
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
@@ -2291,6 +2299,43 @@ class CVC4_PUBLIC Solver
    * @return the variable
    */
   Term mkVar(Sort sort, const std::string& symbol = std::string()) const;
+
+  /* .................................................................... */
+  /* Create datatype declarations                                         */
+  /* .................................................................... */
+
+  /**
+   * Create a datatype declaration.
+   * @param name the name of the datatype
+   * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
+   */
+  DatatypeDecl mkDatatypeDecl(const std::string& name,
+                              bool isCoDatatype = false);
+
+  /**
+   * Create a datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param name the name of the datatype
+   * @param param the sort parameter
+   * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
+   */
+  DatatypeDecl mkDatatypeDecl(const std::string& name,
+                              Sort param,
+                              bool isCoDatatype = false);
+
+  /**
+   * Create a datatype declaration.
+   * Create sorts parameter with Solver::mkParamSort().
+   * @param name the name of the datatype
+   * @param params a list of sort parameters
+   * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
+   */
+  DatatypeDecl mkDatatypeDecl(const std::string& name,
+                              const std::vector<Sort>& params,
+                              bool isCoDatatype = false);
 
   /* .................................................................... */
   /* Formula Handling                                                     */

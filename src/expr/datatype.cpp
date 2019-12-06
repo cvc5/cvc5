@@ -55,8 +55,8 @@ typedef expr::Attribute<expr::attr::DatatypeFiniteComputedTag, bool> DatatypeFin
 typedef expr::Attribute<expr::attr::DatatypeUFiniteTag, bool> DatatypeUFiniteAttr;
 typedef expr::Attribute<expr::attr::DatatypeUFiniteComputedTag, bool> DatatypeUFiniteComputedAttr;
 
-Datatype::Datatype(std::string name, bool isCo)
-    : d_internal(nullptr),  // until the Node-level datatype API is activated
+Datatype::Datatype(ExprManager* em, std::string name, bool isCo)
+    : d_em(em),
       d_name(name),
       d_params(),
       d_isCo(isCo),
@@ -75,10 +75,11 @@ Datatype::Datatype(std::string name, bool isCo)
 {
 }
 
-Datatype::Datatype(std::string name,
+Datatype::Datatype(ExprManager* em,
+                   std::string name,
                    const std::vector<Type>& params,
                    bool isCo)
-    : d_internal(nullptr),  // until the Node-level datatype API is activated
+    : d_em(em),
       d_name(name),
       d_params(params),
       d_isCo(isCo),
