@@ -2,23 +2,21 @@
 #
 source "$(dirname "$0")/get-script-header.sh"
 
-if [ -e cadical ]; then
-  echo 'error: file or directory "cadical" exists; please move it out of the way.' >&2
-  exit 1
-fi
-
+CADICAL_DIR="$DEPS_DIR/cadical"
 version="rel-1.0.3"
 
-webget "https://github.com/arminbiere/cadical/archive/$version.tar.gz" "cadical-$version.tar.gz"
-tar xfvz "cadical-$version.tar.gz"
-rm "cadical-$version.tar.gz"
-mv "cadical-$version" cadical
-cd cadical
+check_dep_dir "$CADICAL_DIR"
+setup_dep \
+  "https://github.com/arminbiere/cadical/archive/$version.tar.gz" "$CADICAL_DIR"
+cd "$CADICAL_DIR"
 
 CXXFLAGS="-fPIC" ./configure && make -j$(nproc)
 
+install_lib build/libcadical.a
+install_includes src/cadical.hpp
+
 echo
-echo "Using CaDiCaL commit $commit"
+echo "Using CaDiCaL version $version"
 echo
 echo ===================== Now configure CVC4 with =====================
 echo ./configure.sh --cadical
