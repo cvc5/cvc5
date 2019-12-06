@@ -1101,8 +1101,6 @@ class CVC4_PUBLIC DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
-
- public:
   /**
    * Constructor.
    * @param s the solver that created this datatype declaration
@@ -1139,7 +1137,7 @@ class CVC4_PUBLIC DatatypeDecl
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
-
+ public:
   /**
    * Destructor.
    */
@@ -2321,6 +2319,7 @@ class CVC4_PUBLIC Solver
    * @param name the name of the datatype
    * @param param the sort parameter
    * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
    */
   DatatypeDecl mkDatatypeDecl(const std::string& name,
                               Sort param,
@@ -2332,6 +2331,7 @@ class CVC4_PUBLIC Solver
    * @param name the name of the datatype
    * @param params a list of sort parameters
    * @param isCoDatatype true if a codatatype is to be constructed
+   * @return the DatatypeDecl
    */
   DatatypeDecl mkDatatypeDecl(const std::string& name,
                               const std::vector<Sort>& params,
