@@ -575,9 +575,9 @@ struct DTypeHashFunction
 class DTypeIndexConstant
 {
  public:
-  DTypeIndexConstant(unsigned index);
+  DTypeIndexConstant(size_t index);
 
-  unsigned getIndex() const { return d_index; }
+  size_t getIndex() const { return d_index; }
   bool operator==(const DTypeIndexConstant& uc) const
   {
     return d_index == uc.d_index;
@@ -595,7 +595,7 @@ class DTypeIndexConstant
   bool operator>=(const DTypeIndexConstant& uc) const { return !(*this < uc); }
 
  private:
-  const unsigned d_index;
+  const size_t d_index;
 }; /* class DTypeIndexConstant */
 
 std::ostream& operator<<(std::ostream& out, const DTypeIndexConstant& dic);
