@@ -199,7 +199,7 @@ size_t getBVSkolemSize(size_t capacity)
  * Get the map from variables with uninterpreted sort to the fresh skolem BV
  * variables */
 void collectUSortsToBV(const unordered_set<TNode, TNodeHashFunction>& vars,
-                       USortToBVSizeMap& usortCardinality,
+                       const USortToBVSizeMap& usortCardinality,
                        SubstitutionMap& usVarsToBVVars)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -207,7 +207,7 @@ void collectUSortsToBV(const unordered_set<TNode, TNodeHashFunction>& vars,
   for (TNode var : vars)
   {
     TypeNode type = var.getType();
-    size_t size = getBVSkolemSize(usortCardinality[type]);
+    size_t size = getBVSkolemSize(usortCardinality.at(type));
     Node skolem = nm->mkSkolem(
         "BVSKOLEM$$",
         nm->mkBitVectorType(size),
@@ -259,16 +259,17 @@ void usortsToBitVectors(const LogicInfo& d_logic,
   if (toProcess.size() > 0)
   {
     /* the current version only supports BV for removing uninterpreted sorts */
-    AlwaysAssert(d_logic.isTheoryEnabled(theory::THEORY_BV))
-        << "Cannot use Ackermannization on formula with uninterpreted "
-           "sorts without BV logic";
+    if (not d_logic.isTheoryEnabled(theory::THEORY_BV))
+    {
+	    return;
+    }
 
     for (TNode term : toProcess)
     {
       TypeNode type = term.getType();
-      /* Update the statistics for each uninterpreted sort.
+      /* Update the counts for each uninterpreted sort.
        * For non-existing keys, C++ will create a new element for it, which has
-       * the value initialized with a pair of two zeros. */
+       * a default 0 value, before incrementing by 1. */
       usortCardinality[type] = usortCardinality[type] + 1;
     }
 
