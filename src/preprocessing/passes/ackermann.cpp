@@ -261,7 +261,7 @@ void usortsToBitVectors(const LogicInfo& d_logic,
     /* the current version only supports BV for removing uninterpreted sorts */
     if (not d_logic.isTheoryEnabled(theory::THEORY_BV))
     {
-	    return;
+      return;
     }
 
     for (TNode term : toProcess)
