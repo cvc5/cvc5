@@ -569,6 +569,50 @@ auto (default) \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusUnifPiHelp =
+    "\
+Modes for piecewise-independent unification supported by --sygus-unif-pi:\n\
+\n\
+none  \n\
++ Do not use piecewise-independent unification.\n\
+\n\
+complete \n\
++ Use complete approach for piecewise-independent unification (see Section 3\n\
+of Barbosa et al FMCAD 2019).\n\
+\n\
+cond-enum  \n\
++ Use unconstrained condition enumeration for piecewise-independent\n\
+unification (see Section 4 of Barbosa et al FMCAD 2019).\n\
+\n\
+cond-enum-igain \n\
++ Same as cond-enum, but additionally uses an information gain heuristic\n\
+when doing decision tree learning.\n\
+\n\
+";
+
+const std::string OptionsHandler::s_sygusGrammarConsHelp =
+    "\
+Modes for default SyGuS grammars, supported by --sygus-grammar-cons:\n\
+\n\
+simple (default) \n\
++ Use simple grammar construction (no symbolic terms or constants).\n\
+\n\
+any-const  \n\
++ Use symoblic constant constructors.\n\
+\n\
+any-term  \n\
++ When applicable, use constructors corresponding to any symbolic term.\n\
+This option enables a sum-of-monomials grammar for arithmetic. For all\n\
+other types, it enables symbolic constant constructors.\n\
+\n\
+any-term-concise  \n\
++ When applicable, use constructors corresponding to any symbolic term,\n\
+favoring conciseness over generality. This option is equivalent to any-term\n\
+but enables a polynomial grammar for arithmetic when not in a combined\n\
+theory.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_macrosQuantHelp = "\
 Modes for quantifiers macro expansion, supported by --macros-quant-mode:\n\
 \n\
@@ -1083,6 +1127,69 @@ OptionsHandler::stringToSygusActiveGenMode(std::string option,
   {
     throw OptionException(std::string("unknown option for --sygus-inv-templ: `")
                           + optarg + "'.  Try --sygus-inv-templ help.");
+  }
+}
+theory::quantifiers::SygusGrammarConsMode
+OptionsHandler::stringToSygusGrammarConsMode(std::string option,
+                                             std::string optarg)
+{
+  if (optarg == "simple")
+  {
+    return theory::quantifiers::SYGUS_GCONS_SIMPLE;
+  }
+  else if (optarg == "any-const")
+  {
+    return theory::quantifiers::SYGUS_GCONS_ANY_CONST;
+  }
+  else if (optarg == "any-term")
+  {
+    return theory::quantifiers::SYGUS_GCONS_ANY_TERM;
+  }
+  else if (optarg == "any-term-concise")
+  {
+    return theory::quantifiers::SYGUS_GCONS_ANY_TERM_CONCISE;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusGrammarConsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --sygus-grammar-cons: `") + optarg
+        + "'.  Try --sygus-grammar-cons help.");
+  }
+}
+
+theory::quantifiers::SygusUnifPiMode OptionsHandler::stringToSygusUnifPiMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_NONE;
+  }
+  else if (optarg == "complete")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_COMPLETE;
+  }
+  else if (optarg == "cond-enum")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_CENUM;
+  }
+  else if (optarg == "cond-enum-igain")
+  {
+    return theory::quantifiers::SYGUS_UNIF_PI_CENUM_IGAIN;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusUnifPiHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-unif-pi: `")
+                          + optarg + "'.  Try --sygus-unif-pi help.");
   }
 }
 
@@ -2108,6 +2215,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("profiling", Configuration::isProfilingBuild());
   print_config_cond("asan", Configuration::isAsanBuild());
   print_config_cond("ubsan", Configuration::isUbsanBuild());
+  print_config_cond("tsan", Configuration::isTsanBuild());
   print_config_cond("competition", Configuration::isCompetitionBuild());
   
   std::cout << std::endl;

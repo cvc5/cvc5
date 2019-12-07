@@ -88,6 +88,9 @@ class Evaluator
    * `args` and the corresponding values `vals`. The function returns a null
    * node if there is a subterm that is not constant under the substitution or
    * if an operator is not supported by the evaluator.
+   *
+   * The nodes in the vals must be constant values, that is, they must return
+   * true for isConst().
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
