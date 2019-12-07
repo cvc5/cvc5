@@ -710,7 +710,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node abc = d_nm->mkConst(::CVC4::String("ABC"));
     Node def = d_nm->mkConst(::CVC4::String("DEF"));
     Node ghi = d_nm->mkConst(::CVC4::String("GHI"));
-    Node abbchijp = d_nm->mkConst(::CVC4::String("ABBCHIJP"));
+    Node abcabc = d_nm->mkConst(::CVC4::String("ABC"));
     Node x = d_nm->mkVar("x", strType);
     Node y = d_nm->mkVar("y", strType);
     Node xy = d_nm->mkNode(kind::STRING_CONCAT, x, y);
@@ -1009,31 +1009,17 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     {
       // Same normal form for:
       //
-      // (str.contains "ABBCHIJP" (str.at x n))
+      // (str.contains "ABC" (str.at x n))
       //
       // (or (= x "")
-      //     (and (<= (str.code "A") (str.code (str.at x n)))
-      //          (<= (str.code (str.at x n)) (str.code "C")))
-      //     (and (<= (str.code "H") (str.code (str.at x n)))
-      //          (<= (str.code (str.at x n)) (str.code "J")))
-      //     (= (str.code (str.at x n)) (str.code "P")))
+      //     (= x "A") (= x "B") (= x "C"))
       Node cat = d_nm->mkNode(kind::STRING_CHARAT, x, n);
-      lhs = d_nm->mkNode(kind::STRING_STRCTN, abbchijp, cat);
-      Node ca = d_nm->mkNode(kind::STRING_CODE, a);
-      Node cc = d_nm->mkNode(kind::STRING_CODE, c);
-      Node ch = d_nm->mkNode(kind::STRING_CODE, h);
-      Node cj = d_nm->mkNode(kind::STRING_CODE, j);
-      Node cp = d_nm->mkNode(kind::STRING_CODE, p);
-      Node ccat = d_nm->mkNode(kind::STRING_CODE, cat);
+      lhs = d_nm->mkNode(kind::STRING_STRCTN, abcabc, cat);
       rhs = d_nm->mkNode(kind::OR,
                          d_nm->mkNode(kind::EQUAL, cat, empty),
-                         d_nm->mkNode(kind::AND,
-                                      d_nm->mkNode(kind::LEQ, ca, ccat),
-                                      d_nm->mkNode(kind::LEQ, ccat, cc)),
-                         d_nm->mkNode(kind::AND,
-                                      d_nm->mkNode(kind::LEQ, ch, ccat),
-                                      d_nm->mkNode(kind::LEQ, ccat, cj)),
-                         d_nm->mkNode(kind::EQUAL, ccat, cp));
+                         d_nm->mkNode(kind::EQUAL, cat, a),
+                         d_nm->mkNode(kind::EQUAL, cat, b),
+                         d_nm->mkNode(kind::EQUAL, cat, c));
       sameNormalForm(lhs, rhs);
     }
   }
