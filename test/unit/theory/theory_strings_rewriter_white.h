@@ -710,7 +710,6 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node abc = d_nm->mkConst(::CVC4::String("ABC"));
     Node def = d_nm->mkConst(::CVC4::String("DEF"));
     Node ghi = d_nm->mkConst(::CVC4::String("GHI"));
-    Node abcabc = d_nm->mkConst(::CVC4::String("ABC"));
     Node x = d_nm->mkVar("x", strType);
     Node y = d_nm->mkVar("y", strType);
     Node xy = d_nm->mkNode(kind::STRING_CONCAT, x, y);
@@ -1014,7 +1013,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
       // (or (= x "")
       //     (= x "A") (= x "B") (= x "C"))
       Node cat = d_nm->mkNode(kind::STRING_CHARAT, x, n);
-      lhs = d_nm->mkNode(kind::STRING_STRCTN, abcabc, cat);
+      lhs = d_nm->mkNode(kind::STRING_STRCTN, abc, cat);
       rhs = d_nm->mkNode(kind::OR,
                          d_nm->mkNode(kind::EQUAL, cat, empty),
                          d_nm->mkNode(kind::EQUAL, cat, a),
