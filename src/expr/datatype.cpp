@@ -144,7 +144,7 @@ void Datatype::resolve(const std::map<std::string, DatatypeType>& resolutions,
                 "paramTypes and paramReplacements must be the same size");
   PrettyCheckArgument(getNumConstructors() > 0, *this, "cannot resolve a Datatype that has no constructors");
 
-  // we're using some internals, so we have to set up this library context
+  // we're using some internals, so we have to make sure that the Datatype's ExprManager is active
   ExprManagerScope ems(*d_em);
 
   Trace("datatypes") << "Datatype::resolve: " << getName()
