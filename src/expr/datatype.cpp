@@ -144,7 +144,8 @@ void Datatype::resolve(const std::map<std::string, DatatypeType>& resolutions,
                 "paramTypes and paramReplacements must be the same size");
   PrettyCheckArgument(getNumConstructors() > 0, *this, "cannot resolve a Datatype that has no constructors");
 
-  // we're using some internals, so we have to make sure that the Datatype's ExprManager is active
+  // we're using some internals, so we have to make sure that the Datatype's
+  // ExprManager is active
   ExprManagerScope ems(*d_em);
 
   Trace("datatypes") << "Datatype::resolve: " << getName()
@@ -368,7 +369,10 @@ Expr Datatype::mkGroundTerm(Type t) const
   ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   Node gterm = d_internal->mkGroundTerm(tn);
-  PrettyCheckArgument(!gterm.isNull(), this, "datatype is not well-founded, cannot construct a ground term!");
+  PrettyCheckArgument(
+      !gterm.isNull(),
+      this,
+      "datatype is not well-founded, cannot construct a ground term!");
   return gterm.toExpr();
 }
 
@@ -378,7 +382,10 @@ Expr Datatype::mkGroundValue(Type t) const
   ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   Node gvalue = d_internal->mkGroundValue(tn);
-  PrettyCheckArgument(!gvalue.isNull(), this, "datatype is not well-founded, cannot construct a ground value!");
+  PrettyCheckArgument(
+      !gvalue.isNull(),
+      this,
+      "datatype is not well-founded, cannot construct a ground value!");
   return gvalue.toExpr();
 }
 
@@ -474,8 +481,7 @@ DatatypeConstructor::DatatypeConstructor(std::string name)
 DatatypeConstructor::DatatypeConstructor(std::string name,
                                          std::string tester,
                                          unsigned weight)
-    : d_internal(nullptr),
-      d_testerName(tester)
+    : d_internal(nullptr), d_testerName(tester)
 {
   PrettyCheckArgument(name != "", name, "cannot construct a datatype constructor without a name");
   PrettyCheckArgument(!tester.empty(), tester, "cannot construct a datatype constructor without a tester");
@@ -829,16 +835,17 @@ std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) {
   return out << "index_" << dic.getIndex();
 }
 
-std::string Datatype::getName() const {
+std::string Datatype::getName() const
+{
   ExprManagerScope ems(*d_em);
-  return d_internal->getName(); 
+  return d_internal->getName();
 }
 size_t Datatype::getNumConstructors() const { return d_constructors.size(); }
 
-bool Datatype::isParametric() const { 
+bool Datatype::isParametric() const
+{
   ExprManagerScope ems(*d_em);
-  return d_internal->isParametric(); 
-  
+  return d_internal->isParametric();
 }
 size_t Datatype::getNumParameters() const
 {
@@ -872,14 +879,23 @@ std::vector<Type> Datatype::getParameters() const
   return params;
 }
 
-bool Datatype::isCodatatype() const { 
-  ExprManagerScope ems(*d_em);return d_internal->isCodatatype(); }
+bool Datatype::isCodatatype() const
+{
+  ExprManagerScope ems(*d_em);
+  return d_internal->isCodatatype();
+}
 
-bool Datatype::isSygus() const { 
-  ExprManagerScope ems(*d_em);return d_internal->isSygus(); }
+bool Datatype::isSygus() const
+{
+  ExprManagerScope ems(*d_em);
+  return d_internal->isSygus();
+}
 
-bool Datatype::isTuple() const { 
-  ExprManagerScope ems(*d_em);return d_internal->isTuple(); }
+bool Datatype::isTuple() const
+{
+  ExprManagerScope ems(*d_em);
+  return d_internal->isTuple();
+}
 
 bool Datatype::isRecord() const { return d_isRecord; }
 
@@ -889,8 +905,11 @@ bool Datatype::operator!=(const Datatype& other) const
   return !(*this == other);
 }
 
-bool Datatype::isResolved() const { 
-  ExprManagerScope ems(*d_em);return d_internal->isResolved(); }
+bool Datatype::isResolved() const
+{
+  ExprManagerScope ems(*d_em);
+  return d_internal->isResolved();
+}
 Datatype::iterator Datatype::begin() { return iterator(d_constructors, true); }
 
 Datatype::iterator Datatype::end() { return iterator(d_constructors, false); }
