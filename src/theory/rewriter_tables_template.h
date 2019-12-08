@@ -77,12 +77,9 @@ ${post_rewrite_set_cache}
   }
 }
 
-void Rewriter::init() {
+Rewriter::Rewriter()
+{
 ${rewrite_init}
-}
-
-void Rewriter::shutdown() {
-${rewrite_shutdown}
 }
 
 void Rewriter::clearCachesInternal() {
