@@ -16,6 +16,7 @@
 #include "theory/strings/regexp_elim.h"
 
 #include "options/strings_options.h"
+#include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 
