@@ -20,23 +20,19 @@
 #ifndef CVC4__THEORY__BOOLEANS__THEORY_BOOL_REWRITER_H
 #define CVC4__THEORY__BOOLEANS__THEORY_BOOL_REWRITER_H
 
-#include "theory/rewriter.h"
+#include "theory/theory_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace booleans {
 
-class TheoryBoolRewriter {
+class TheoryBoolRewriter : public TheoryRewriter
+{
+ public:
+  RewriteResponse preRewrite(TNode node) override;
+  RewriteResponse postRewrite(TNode node) override;
 
-public:
-
-  static RewriteResponse preRewrite(TNode node);
-  static RewriteResponse postRewrite(TNode node);
-
-  static void init() {}
-  static void shutdown() {}
-
-};/* class TheoryBoolRewriter */
+}; /* class TheoryBoolRewriter */
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */

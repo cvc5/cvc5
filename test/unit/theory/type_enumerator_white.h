@@ -146,7 +146,7 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
   }
 
   void testDatatypesFinite() {
-    Datatype dt("Colors");
+    Datatype dt(d_em, "Colors");
     dt.addConstructor(DatatypeConstructor("red"));
     dt.addConstructor(DatatypeConstructor("orange"));
     dt.addConstructor(DatatypeConstructor("yellow"));
@@ -167,7 +167,7 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
   }
 
   void testDatatypesInfinite1() {
-    Datatype colors("Colors");
+    Datatype colors(d_em, "Colors");
     colors.addConstructor(DatatypeConstructor("red"));
     colors.addConstructor(DatatypeConstructor("orange"));
     colors.addConstructor(DatatypeConstructor("yellow"));
@@ -175,7 +175,7 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     colors.addConstructor(DatatypeConstructor("blue"));
     colors.addConstructor(DatatypeConstructor("violet"));
     TypeNode colorsType = TypeNode::fromType(d_em->mkDatatypeType(colors));
-    Datatype listColors("ListColors");
+    Datatype listColors(d_em, "ListColors");
     DatatypeConstructor consC("cons");
     consC.addArg("car", colorsType.toType());
     consC.addArg("cdr", DatatypeSelfType());

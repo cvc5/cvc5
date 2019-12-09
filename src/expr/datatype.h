@@ -656,13 +656,14 @@ class CVC4_PUBLIC Datatype {
   typedef DatatypeConstructorIterator const_iterator;
 
   /** Create a new Datatype of the given name. */
-  explicit Datatype(std::string name, bool isCo = false);
+  explicit Datatype(ExprManager* em, std::string name, bool isCo = false);
 
   /**
    * Create a new Datatype of the given name, with the given
    * parameterization.
    */
-  Datatype(std::string name,
+  Datatype(ExprManager* em,
+           std::string name,
            const std::vector<Type>& params,
            bool isCo = false);
 
@@ -976,6 +977,8 @@ class CVC4_PUBLIC Datatype {
   void toStream(std::ostream& out) const;
 
  private:
+  /** The expression manager that created this datatype */
+  ExprManager* d_em;
   /** The internal representation */
   std::shared_ptr<DType> d_internal;
   /** name of this datatype */

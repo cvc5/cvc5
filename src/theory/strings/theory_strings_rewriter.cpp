@@ -2064,46 +2064,20 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       }
       else if (checkEntailLengthOne(t))
       {
-        std::vector<unsigned> svec = s.getVec();
-        std::sort(svec.begin(), svec.end());
+        const std::vector<unsigned>& vec = s.getVec();
 
         NodeBuilder<> nb(OR);
         nb << nm->mkConst(String("")).eqNode(t);
-
-        Node tc = nm->mkNode(STRING_CODE, t);
-        unsigned lb = svec[0];
-        unsigned curr = lb;
-        for (size_t i = 0, size = svec.size(); i <= size; i++)
+        for (unsigned c : vec)
         {
-          if (i == size || (svec[i] != curr && svec[i] != curr + 1))
-          {
-            Node nlb = nm->mkConst(Rational(CVC4::String::convertUnsignedIntToCode(lb)));
-            Node nub = nm->mkConst(Rational(CVC4::String::convertUnsignedIntToCode(svec[i - 1])));
-            if (nlb == nub)
-            {
-              nb << nm->mkNode(EQUAL, tc, nlb);
-            }
-            else
-            {
-              nb << nm->mkNode(
-                  AND, nm->mkNode(LEQ, nlb, tc), nm->mkNode(LEQ, tc, nub));
-            }
-
-            if (i != size) {
-            lb = svec[i];
-            curr = lb;
-            }
-          } else {
-            curr = svec[i];
-          }
+          std::vector<unsigned> sv = {c};
+          nb << nm->mkConst(String(sv)).eqNode(t);
         }
 
-        Node ret = nb;
-
-        // str.contains("ABCDEFabcdef", t) --->
-        // t = "" v str.code("A") <= str.code(t) <= str.code("F") v
-        //          str.code("a") <= str.code(t) <= str.code("f")
+        // str.contains("ABCabc", t) --->
+        // t = "" v t = "A" v t = "B" v t = "C" v t = "a" v t = "b" v t = "c"
         // if len(t) <= 1
+        Node ret = nb;
         return returnRewrite(node, ret, "ctn-split");
       }
       else if (node[1].getKind() == kind::STRING_CONCAT)

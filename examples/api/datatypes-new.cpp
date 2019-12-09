@@ -85,8 +85,9 @@ void test(Solver& slv, Sort& consListSort)
   // This example builds a simple parameterized list of sort T, with one
   // constructor "cons".
   Sort sort = slv.mkParamSort("T");
-  DatatypeDecl paramConsListSpec("paramlist",
-                                 sort);  // give the datatype a name
+  DatatypeDecl paramConsListSpec =
+      slv.mkDatatypeDecl("paramlist",
+                         sort);  // give the datatype a name
   DatatypeConstructorDecl paramCons("cons");
   DatatypeConstructorDecl paramNil("nil");
   DatatypeSelectorDecl paramHead("head", sort);
@@ -139,7 +140,8 @@ int main()
   // Second, it is "resolved" to an actual sort, at which point function
   // symbols are assigned to its constructors, selectors, and testers.
 
-  DatatypeDecl consListSpec("list");  // give the datatype a name
+  DatatypeDecl consListSpec =
+      slv.mkDatatypeDecl("list");  // give the datatype a name
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", slv.getIntegerSort());
   DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());

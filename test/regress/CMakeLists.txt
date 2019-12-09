@@ -1413,6 +1413,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3316.smt2
   regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue3481.smt2
+  regress1/quantifiers/issue3537.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1688,8 +1689,10 @@ set(regress_1_tests
   regress1/strings/username_checker_min.smt2
   regress1/sygus-abduct-ex1-grammar.smt2
   regress1/sygus-abduct-test.smt2
+  regress1/sygus-abduct-test-ccore.smt2
   regress1/sygus-abduct-test-user.smt2
   regress1/sygus/VC22_a.sy
+  regress1/sygus/abd-simple-conj-4.smt2
   regress1/sygus/abv.sy
   regress1/sygus/array_search_5-Q-easy.sy
   regress1/sygus/bvudiv-by-2.sy

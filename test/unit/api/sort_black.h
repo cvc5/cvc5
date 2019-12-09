@@ -58,7 +58,7 @@ void SortBlack::tearDown() {}
 void SortBlack::testGetDatatype()
 {
   // create datatype sort, check should not fail
-  DatatypeDecl dtypeSpec("list");
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver.getIntegerSort());
   cons.addSelector(head);
@@ -76,7 +76,7 @@ void SortBlack::testInstantiate()
 {
   // instantiate parametric datatype, check should not fail
   Sort sort = d_solver.mkParamSort("T");
-  DatatypeDecl paramDtypeSpec("paramlist", sort);
+  DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
   DatatypeConstructorDecl paramCons("cons");
   DatatypeConstructorDecl paramNil("nil");
   DatatypeSelectorDecl paramHead("head", sort);
@@ -87,7 +87,7 @@ void SortBlack::testInstantiate()
   TS_ASSERT_THROWS_NOTHING(
       paramDtypeSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()}));
   // instantiate non-parametric datatype sort, check should fail
-  DatatypeDecl dtypeSpec("list");
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver.getIntegerSort());
   cons.addSelector(head);
@@ -222,7 +222,7 @@ void SortBlack::testGetDatatypeParamSorts()
 {
   // create parametric datatype, check should not fail
   Sort sort = d_solver.mkParamSort("T");
-  DatatypeDecl paramDtypeSpec("paramlist", sort);
+  DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
   DatatypeConstructorDecl paramCons("cons");
   DatatypeConstructorDecl paramNil("nil");
   DatatypeSelectorDecl paramHead("head", sort);
@@ -232,7 +232,7 @@ void SortBlack::testGetDatatypeParamSorts()
   Sort paramDtypeSort = d_solver.mkDatatypeSort(paramDtypeSpec);
   TS_ASSERT_THROWS_NOTHING(paramDtypeSort.getDatatypeParamSorts());
   // create non-parametric datatype sort, check should fail
-  DatatypeDecl dtypeSpec("list");
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver.getIntegerSort());
   cons.addSelector(head);
@@ -246,7 +246,7 @@ void SortBlack::testGetDatatypeParamSorts()
 void SortBlack::testGetDatatypeArity()
 {
   // create datatype sort, check should not fail
-  DatatypeDecl dtypeSpec("list");
+  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", d_solver.getIntegerSort());
   cons.addSelector(head);
