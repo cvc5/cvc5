@@ -201,6 +201,8 @@ unsigned RepSetIterator::domainSize(unsigned i)
   return d_domain_elements[v].size();
 }
 
+TypeNode RepSetIterator::getTypeOf(unsigned i) const { return d_types[i]; }
+
 bool RepSetIterator::setQuantifier(Node q)
 {
   Trace("rsi") << "Make rsi for quantified formula " << q << std::endl;
@@ -403,14 +405,16 @@ int RepSetIterator::increment(){
 
 bool RepSetIterator::isFinished() const { return d_index.empty(); }
 
-Node RepSetIterator::getCurrentTerm(unsigned v, bool valTerm) const
+Node RepSetIterator::getCurrentTerm(unsigned i, bool valTerm) const
 {
-  unsigned ii = d_index_order[v];
+  unsigned ii = d_index_order[i];
   unsigned curr = d_index[ii];
-  Trace("rsi-debug") << "rsi : get term " << v << ", index order = " << d_index_order[v] << std::endl;
-  Trace("rsi-debug") << "rsi : curr = " << curr << " / " << d_domain_elements[v].size() << std::endl;
-  Assert(0 <= curr && curr < d_domain_elements[v].size());
-  Node t = d_domain_elements[v][curr];
+  Trace("rsi-debug") << "rsi : get term " << i
+                     << ", index order = " << d_index_order[i] << std::endl;
+  Trace("rsi-debug") << "rsi : curr = " << curr << " / "
+                     << d_domain_elements[i].size() << std::endl;
+  Assert(0 <= curr && curr < d_domain_elements[i].size());
+  Node t = d_domain_elements[i][curr];
   if (valTerm)
   {
     Node tt = d_rs->getTermForRepresentative(t);
