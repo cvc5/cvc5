@@ -127,8 +127,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         // Rewrite until fix-point is reached
         for(;;) {
           // Perform the pre-rewrite
-          RewriteResponse response = callPreRewrite(
-              (TheoryId)rewriteStackTop.theoryId, rewriteStackTop.node);
+          RewriteResponse response =
+              d_theoryRewriters[(TheoryId)rewriteStackTop.theoryId]->preRewrite(
+                  rewriteStackTop.node);
           // Put the rewritten node to the top of the stack
           rewriteStackTop.node = response.node;
           TheoryId newTheory = theoryOf(rewriteStackTop.node);
@@ -193,8 +194,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
       // Done with all pre-rewriting, so let's do the post rewrite
       for(;;) {
         // Do the post-rewrite
-        RewriteResponse response = callPostRewrite(
-            (TheoryId)rewriteStackTop.theoryId, rewriteStackTop.node);
+        RewriteResponse response =
+            d_theoryRewriters[(TheoryId)rewriteStackTop.theoryId]->postRewrite(
+                rewriteStackTop.node);
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.node);
         if (newTheoryId != (TheoryId) rewriteStackTop.theoryId || response.status == REWRITE_AGAIN_FULL) {
@@ -213,7 +215,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           break;
         } else if (response.status == REWRITE_DONE) {
 #ifdef CVC4_ASSERTIONS
-          RewriteResponse r2 = callPostRewrite(newTheoryId, response.node);
+          RewriteResponse r2 =
+              d_theoryRewriters[newTheoryId]->postRewrite(response.node);
           Assert(r2.node == response.node);
 #endif
 	  rewriteStackTop.node = response.node;
@@ -221,10 +224,10 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         }
         // Check for trivial rewrite loops of size 1 or 2
         Assert(response.node != rewriteStackTop.node);
-        Assert(
-            callPostRewrite((TheoryId)rewriteStackTop.theoryId, response.node)
-                .node
-            != rewriteStackTop.node);
+        Assert(d_theoryRewriters[(TheoryId)rewriteStackTop.theoryId]
+                   ->postRewrite(response.node)
+                   .node
+               != rewriteStackTop.node);
         rewriteStackTop.node = response.node;
       }
       // We're done with the post rewrite, so we add to the cache

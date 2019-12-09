@@ -39,11 +39,9 @@ template=$1; shift
 rewriter_includes=
 rewrite_init=
 
-pre_rewrite_calls=
 pre_rewrite_get_cache=
 pre_rewrite_set_cache=
 
-post_rewrite_calls=
 post_rewrite_get_cache=
 post_rewrite_set_cache=
 
@@ -149,15 +147,11 @@ function rewriter {
   post_rewrite_attribute_ids="${post_rewrite_attribute_ids} postids.push_back(expr::attr::AttributeManager::getAttributeId(RewriteAttibute<${theory_id}>::post_rewrite()));
 "
 
-  pre_rewrite_calls="${pre_rewrite_calls}    case ${theory_id}: return d_theoryRewriters[${theory_id}]->preRewrite(node);
-"
   pre_rewrite_get_cache="${pre_rewrite_get_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::getPreRewriteCache(node);
 "
   pre_rewrite_set_cache="${pre_rewrite_set_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::setPreRewriteCache(node, cache);
 "
 
-  post_rewrite_calls="${post_rewrite_calls}    case ${theory_id}: return d_theoryRewriters[${theory_id}]->postRewrite(node);
-"
   post_rewrite_get_cache="${post_rewrite_get_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::getPostRewriteCache(node);
 "
   post_rewrite_set_cache="${post_rewrite_set_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::setPostRewriteCache(node, cache);
@@ -259,8 +253,6 @@ nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
 text=$(cat "$template")
 for var in \
     rewriter_includes \
-    pre_rewrite_calls \
-    post_rewrite_calls \
     pre_rewrite_get_cache \
     post_rewrite_get_cache \
     pre_rewrite_set_cache \

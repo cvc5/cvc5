@@ -29,22 +29,6 @@ ${rewriter_includes}
 namespace CVC4 {
 namespace theory {
 
-RewriteResponse Rewriter::callPreRewrite(theory::TheoryId theoryId, TNode node) {
-  switch(theoryId) {
-${pre_rewrite_calls}
-  default:
-    Unreachable();
-  }
-}
-
-RewriteResponse Rewriter::callPostRewrite(theory::TheoryId theoryId, TNode node) {
-  switch(theoryId) {
-${post_rewrite_calls}
-  default:
-    Unreachable();
-  }
-}
-
 Node Rewriter::getPreRewriteCache(theory::TheoryId theoryId, TNode node) {
   switch(theoryId) {
 ${pre_rewrite_get_cache}
