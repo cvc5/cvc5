@@ -1303,6 +1303,12 @@ void SmtEngine::setDefaults() {
     }
   }
 
+  // sygus core connective requires unsat cores
+  if (options::sygusCoreConnective())
+  {
+    options::unsatCores.set(true);
+  }
+
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
        || options::modelCoresMode() != MODEL_CORES_NONE
@@ -4654,12 +4660,12 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   TheoryModel* m = getAvailableModel("check model");
 
-  // check-model is not guaranteed to succeed if approximate values were used
+  // check-model is not guaranteed to succeed if approximate values were used.
+  // Thus, we intentionally abort here.
   if (m->hasApproximations())
   {
-    Warning()
-        << "WARNING: running check-model on a model with approximate values..."
-        << endl;
+    throw RecoverableModalException(
+        "Cannot run check-model on a model with approximate values.");
   }
 
   // Check individual theory assertions
