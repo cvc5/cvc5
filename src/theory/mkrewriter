@@ -38,13 +38,10 @@ template=$1; shift
 
 rewriter_includes=
 rewrite_init=
-rewrite_shutdown=
 
-pre_rewrite_calls=
 pre_rewrite_get_cache=
 pre_rewrite_set_cache=
 
-post_rewrite_calls=
 post_rewrite_get_cache=
 post_rewrite_set_cache=
 
@@ -143,24 +140,18 @@ function rewriter {
 
   rewriter_includes="${rewriter_includes}#include \"$header\"
 "
-  rewrite_init="${rewrite_init}   ${class}::init();
-"
-  rewrite_shutdown="${rewrite_shutdown}    ${class}::shutdown();
+  rewrite_init="${rewrite_init}   d_theoryRewriters[${theory_id}].reset(new ${class});
 "
   pre_rewrite_attribute_ids="${pre_rewrite_attribute_ids} preids.push_back(expr::attr::AttributeManager::getAttributeId(RewriteAttibute<${theory_id}>::pre_rewrite()));
 "
   post_rewrite_attribute_ids="${post_rewrite_attribute_ids} postids.push_back(expr::attr::AttributeManager::getAttributeId(RewriteAttibute<${theory_id}>::post_rewrite()));
 "
 
-  pre_rewrite_calls="${pre_rewrite_calls}    case ${theory_id}: return ${class}::preRewrite(node);
-"
   pre_rewrite_get_cache="${pre_rewrite_get_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::getPreRewriteCache(node);
 "
   pre_rewrite_set_cache="${pre_rewrite_set_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::setPreRewriteCache(node, cache);
 "
 
-  post_rewrite_calls="${post_rewrite_calls}    case ${theory_id}: return ${class}::postRewrite(node);
-"
   post_rewrite_get_cache="${post_rewrite_get_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::getPostRewriteCache(node);
 "
   post_rewrite_set_cache="${post_rewrite_set_cache}    case ${theory_id}: return RewriteAttibute<${theory_id}>::setPostRewriteCache(node, cache);
@@ -262,13 +253,11 @@ nl -ba -s' ' "$template"  | grep '^ *[0-9][0-9]* # *line' |
 text=$(cat "$template")
 for var in \
     rewriter_includes \
-    pre_rewrite_calls \
-    post_rewrite_calls \
     pre_rewrite_get_cache \
     post_rewrite_get_cache \
     pre_rewrite_set_cache \
     post_rewrite_set_cache \
-    rewrite_init rewrite_shutdown \
+    rewrite_init \
     pre_rewrite_attribute_ids \
     post_rewrite_attribute_ids \
     template \
