@@ -1338,6 +1338,19 @@ void SmtEngine::setDefaults() {
                << endl;
       options::unconstrainedSimp.set(false);
     }
+    if (options::sygusInference())
+    {
+      if (options::sygusInference.wasSetByUser())
+      {
+        throw OptionException(
+            "sygus inference not supported with unsat cores/proofs/incremental "
+            "solving");
+      }
+      Notice() << "SmtEngine: turning off sygus inference to support unsat "
+                  "cores/proofs/incremental solving"
+               << std::endl;
+      options::sygusInference.set(false);
+    }
   }
   else
   {
