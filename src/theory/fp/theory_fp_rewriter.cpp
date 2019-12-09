@@ -1048,7 +1048,7 @@ TheoryFpRewriter::TheoryFpRewriter()
       rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
       rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -1096,7 +1096,7 @@ TheoryFpRewriter::TheoryFpRewriter()
   d_postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
   d_postRewriteTable[kind::FLOATINGPOINT_PLUS] =
       rewrite::reorderBinaryOperation;
-  d_postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_MULT] =
       rewrite::reorderBinaryOperation;
   d_postRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
@@ -1110,11 +1110,11 @@ TheoryFpRewriter::TheoryFpRewriter()
   d_postRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
 
   /******** Comparisons ********/
-  d_postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::leqId;
   d_postRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::ltId;
-  d_postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
-  d_postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::identity;
 
   /******** Classifications ********/
   d_postRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::removeSignOperations;
@@ -1135,7 +1135,7 @@ TheoryFpRewriter::TheoryFpRewriter()
       rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
       rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -1186,7 +1186,6 @@ TheoryFpRewriter::TheoryFpRewriter()
   d_constantFoldTable[kind::FLOATINGPOINT_ABS] = constantFold::abs;
   d_constantFoldTable[kind::FLOATINGPOINT_NEG] = constantFold::neg;
   d_constantFoldTable[kind::FLOATINGPOINT_PLUS] = constantFold::plus;
-  d_constantFoldTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
   d_constantFoldTable[kind::FLOATINGPOINT_MULT] = constantFold::mult;
   d_constantFoldTable[kind::FLOATINGPOINT_DIV] = constantFold::div;
   d_constantFoldTable[kind::FLOATINGPOINT_FMA] = constantFold::fma;
@@ -1199,11 +1198,8 @@ TheoryFpRewriter::TheoryFpRewriter()
   d_constantFoldTable[kind::FLOATINGPOINT_MAX_TOTAL] = constantFold::maxTotal;
 
   /******** Comparisons ********/
-  d_constantFoldTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
   d_constantFoldTable[kind::FLOATINGPOINT_LEQ] = constantFold::leq;
   d_constantFoldTable[kind::FLOATINGPOINT_LT] = constantFold::lt;
-  d_constantFoldTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
-  d_constantFoldTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
 
   /******** Classifications ********/
   d_constantFoldTable[kind::FLOATINGPOINT_ISN] = constantFold::isNormal;
@@ -1225,7 +1221,6 @@ TheoryFpRewriter::TheoryFpRewriter()
       constantFold::convertFromSBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
       constantFold::convertFromUBV;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV] = constantFold::convertToUBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV] = constantFold::convertToSBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_REAL] =

@@ -53,6 +53,13 @@ struct RewriteResponse
   }
 }; /* struct RewriteResponse */
 
+/**
+ * The interface that a theory rewriter has to implement.
+ *
+ * Note: A theory rewriter is expected to handle all kinds of a theory, even
+ * the ones that are removed by `Theory::expandDefinition()` since it may be
+ * called on terms before the definitions have been expanded.
+ */
 class TheoryRewriter
 {
  public:
