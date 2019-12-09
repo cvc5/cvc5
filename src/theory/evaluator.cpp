@@ -230,9 +230,8 @@ EvalResult Evaluator::evalInternal(
         currNodeVal = nm->mkNode(currNode.getKind(), echildren);
         Trace("evaluator") << "Evaluator: partially evaluated " << currNodeVal
                            << std::endl;
-        // now, use substitution + rewriting
-        currNodeVal = currNodeVal.substitute(
-            args.begin(), args.end(), vals.begin(), vals.end());
+        // Use rewriting. Notice we do not need to substitute here since
+        // all substitutions should already have been applied recursively.
         currNodeVal = Rewriter::rewrite(currNodeVal);
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
