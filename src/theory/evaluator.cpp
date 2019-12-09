@@ -285,7 +285,7 @@ EvalResult Evaluator::evalInternal(
             evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNode);
         if (results[currNode].d_tag == EvalResult::INVALID)
         {
-          // evaluation was invalid, we take the node of op[1] as this
+          // evaluation was invalid, we take the node of op[1] as the result
           evalAsNode[currNode] = evalAsNode[op[1]];
         }
         continue;
