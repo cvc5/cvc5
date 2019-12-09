@@ -38,6 +38,24 @@ static TheoryId theoryOf(TNode node) {
  * RewriteStackElement.
  */
 struct RewriteStackElement {
+  /**
+   * Construct a fresh stack element.
+   */
+  RewriteStackElement(TNode node, TheoryId theoryId)
+      : node(node),
+        original(node),
+        theoryId(theoryId),
+        originalTheoryId(theoryId),
+        nextChild(0)
+  {
+  }
+
+  TheoryId getTheoryId() { return static_cast<TheoryId>(theoryId); }
+
+  TheoryId getOriginalTheoryId()
+  {
+    return static_cast<TheoryId>(originalTheoryId);
+  }
 
   /** The node we're currently rewriting */
   Node node;
@@ -51,17 +69,6 @@ struct RewriteStackElement {
   unsigned nextChild        : 32;
   /** Builder for this node */
   NodeBuilder<> builder;
-
-  /**
-   * Construct a fresh stack element.
-   */
-  RewriteStackElement(TNode node, TheoryId theoryId) :
-    node(node),
-    original(node),
-    theoryId(theoryId),
-    originalTheoryId(theoryId),
-    nextChild(0) {
-  }
 };
 
 Node Rewriter::rewrite(TNode node) {
@@ -115,32 +122,36 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
     // Get the top of the recursion stack
     RewriteStackElement& rewriteStackTop = rewriteStack.back();
 
-    Trace("rewriter") << "Rewriter::rewriting: " << (TheoryId) rewriteStackTop.theoryId << "," << rewriteStackTop.node << std::endl;
+    Trace("rewriter") << "Rewriter::rewriting: "
+                      << rewriteStackTop.getTheoryId() << ","
+                      << rewriteStackTop.node << std::endl;
 
     // Before rewriting children we need to do a pre-rewrite of the node
     if (rewriteStackTop.nextChild == 0) {
 
       // Check if the pre-rewrite has already been done (it's in the cache)
-      Node cached = getPreRewriteCache((TheoryId)rewriteStackTop.theoryId,
+      Node cached = getPreRewriteCache(rewriteStackTop.getTheoryId(),
                                        rewriteStackTop.node);
       if (cached.isNull()) {
         // Rewrite until fix-point is reached
         for(;;) {
           // Perform the pre-rewrite
           RewriteResponse response =
-              d_theoryRewriters[(TheoryId)rewriteStackTop.theoryId]->preRewrite(
+              d_theoryRewriters[rewriteStackTop.getTheoryId()]->preRewrite(
                   rewriteStackTop.node);
           // Put the rewritten node to the top of the stack
           rewriteStackTop.node = response.node;
           TheoryId newTheory = theoryOf(rewriteStackTop.node);
           // In the pre-rewrite, if changing theories, we just call the other theories pre-rewrite
-          if (newTheory == (TheoryId) rewriteStackTop.theoryId && response.status == REWRITE_DONE) {
+          if (newTheory == rewriteStackTop.getTheoryId()
+              && response.status == REWRITE_DONE)
+          {
             break;
           }
           rewriteStackTop.theoryId = newTheory;
         }
         // Cache the rewrite
-        setPreRewriteCache((TheoryId)rewriteStackTop.originalTheoryId,
+        setPreRewriteCache(rewriteStackTop.getOriginalTheoryId(),
                            rewriteStackTop.original,
                            rewriteStackTop.node);
       }
@@ -154,7 +165,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
 
     rewriteStackTop.original =rewriteStackTop.node;
     // Now it's time to rewrite the children, check if this has already been done
-    Node cached = getPostRewriteCache((TheoryId)rewriteStackTop.theoryId,
+    Node cached = getPostRewriteCache(rewriteStackTop.getTheoryId(),
                                       rewriteStackTop.node);
     // If not, go through the children
     if(cached.isNull()) {
@@ -195,11 +206,13 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
       for(;;) {
         // Do the post-rewrite
         RewriteResponse response =
-            d_theoryRewriters[(TheoryId)rewriteStackTop.theoryId]->postRewrite(
+            d_theoryRewriters[rewriteStackTop.getTheoryId()]->postRewrite(
                 rewriteStackTop.node);
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.node);
-        if (newTheoryId != (TheoryId) rewriteStackTop.theoryId || response.status == REWRITE_AGAIN_FULL) {
+        if (newTheoryId != rewriteStackTop.getTheoryId()
+            || response.status == REWRITE_AGAIN_FULL)
+        {
           // In the post rewrite if we've changed theories, we must do a full rewrite
           Assert(response.node != rewriteStackTop.node);
           //TODO: this is not thread-safe - should make this assertion dependent on sequential build
@@ -213,7 +226,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
           d_rewriteStack->erase(response.node);
 #endif
           break;
-        } else if (response.status == REWRITE_DONE) {
+        }
+        else if (response.status == REWRITE_DONE)
+        {
 #ifdef CVC4_ASSERTIONS
           RewriteResponse r2 =
               d_theoryRewriters[newTheoryId]->postRewrite(response.node);
@@ -224,14 +239,14 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
         }
         // Check for trivial rewrite loops of size 1 or 2
         Assert(response.node != rewriteStackTop.node);
-        Assert(d_theoryRewriters[(TheoryId)rewriteStackTop.theoryId]
+        Assert(d_theoryRewriters[rewriteStackTop.getTheoryId()]
                    ->postRewrite(response.node)
                    .node
                != rewriteStackTop.node);
         rewriteStackTop.node = response.node;
       }
       // We're done with the post rewrite, so we add to the cache
-      setPostRewriteCache((TheoryId)rewriteStackTop.originalTheoryId,
+      setPostRewriteCache(rewriteStackTop.getOriginalTheoryId(),
                           rewriteStackTop.original,
                           rewriteStackTop.node);
     } else {
