@@ -793,13 +793,13 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       std::vector< Node > inst;
       for (unsigned i = 0; i < riter.getNumTerms(); i++)
       {
-        Node rr = riter.getCurrentTerm( i );
-        Node r = rr;
-        //if( r.getType().isSort() ){
-        r = fm->getRepresentative( r );
-        //}else{
-        //  r = fm->getCurrentModelValue( r );
-        //}
+        TypeNode tn = riter.getTypeOf(i);
+        // if the type is not closed enumerable (see
+        // TypeNode::isClosedEnumerable), then we must ensure that we are
+        // using a term and not a value. This ensures that e.g. uninterpreted
+        // constants do not appear in instantiations.
+        Node rr = riter.getCurrentTerm(i, !tn.isClosedEnumerable());
+        Node r = fm->getRepresentative(rr);
         debugPrint("fmc-exh-debug", r);
         Trace("fmc-exh-debug") << " (term : " << rr << ")";
         ev_inst.push_back( r );

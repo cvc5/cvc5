@@ -52,6 +52,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
+      d_sygus_ccore(new CegisCoreConnective(qe, this)),
       d_ceg_pbe(new SygusPbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
       d_ceg_cegisUnif(new CegisUnif(qe, this)),
@@ -68,6 +69,10 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
   if (options::sygusUnifPi() != SYGUS_UNIF_PI_NONE)
   {
     d_modules.push_back(d_ceg_cegisUnif.get());
+  }
+  if (options::sygusCoreConnective())
+  {
+    d_modules.push_back(d_sygus_ccore.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
 }
@@ -438,7 +443,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
 
   NodeManager* nm = NodeManager::currentNM();
 
-  // check the side condition
+  // check the side condition if we constructed a candidate
   if (constructed_cand)
   {
     if (!checkSideCondition(candidate_values))

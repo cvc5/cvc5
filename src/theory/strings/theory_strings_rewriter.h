@@ -18,19 +18,20 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 
+#include <climits>
 #include <utility>
 #include <vector>
 
-#include "theory/rewriter.h"
-#include "theory/type_enumerator.h"
 #include "expr/attribute.h"
-#include <climits>
+#include "theory/theory_rewriter.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class TheoryStringsRewriter {
+class TheoryStringsRewriter : public TheoryRewriter
+{
  private:
   /** simple regular expression consume
    *
@@ -155,11 +156,9 @@ class TheoryStringsRewriter {
   static Node returnRewrite(Node node, Node ret, const char* c);
 
  public:
-  static RewriteResponse postRewrite(TNode node);
-  static RewriteResponse preRewrite(TNode node);
+  RewriteResponse postRewrite(TNode node) override;
+  RewriteResponse preRewrite(TNode node) override;
 
-  static inline void init() {}
-  static inline void shutdown() {}
   /** get the cardinality of the alphabet used, based on the options */
   static unsigned getAlphabetCardinality();
   /** rewrite equality
@@ -769,7 +768,7 @@ class TheoryStringsRewriter {
    * and the list of nodes that are compared to the empty string
    */
   static std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
-};/* class TheoryStringsRewriter */
+}; /* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

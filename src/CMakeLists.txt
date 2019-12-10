@@ -558,6 +558,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/ce_guided_single_inv_sol.h
   theory/quantifiers/sygus/cegis.cpp
   theory/quantifiers/sygus/cegis.h
+  theory/quantifiers/sygus/cegis_core_connective.cpp
+  theory/quantifiers/sygus/cegis_core_connective.h
   theory/quantifiers/sygus/cegis_unif.cpp
   theory/quantifiers/sygus/cegis_unif.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
@@ -627,6 +629,7 @@ libcvc4_add_sources(
   theory/rewriter.h
   theory/rewriter_attributes.h
   theory/sep/theory_sep.cpp
+  theory/theory_rewriter.h
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h

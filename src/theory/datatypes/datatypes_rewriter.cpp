@@ -121,34 +121,16 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     if (ev.getKind() == APPLY_CONSTRUCTOR)
     {
       Trace("dt-sygus-util") << "Rewrite " << in << " by unfolding...\n";
-      const DType& dt = ev.getType().getDType();
-      unsigned i = utils::indexOf(ev.getOperator());
-      Node op = dt[i].getSygusOp();
-      // if it is the "any constant" constructor, return its argument
-      if (op.getAttribute(SygusAnyConstAttribute()))
-      {
-        Assert(ev.getNumChildren() == 1);
-        Assert(ev[0].getType().isComparableTo(in.getType()));
-        return RewriteResponse(REWRITE_AGAIN_FULL, ev[0]);
-      }
+      Trace("dt-sygus-util") << "Type is " << in.getType() << std::endl;
       std::vector<Node> args;
       for (unsigned j = 1, nchild = in.getNumChildren(); j < nchild; j++)
       {
         args.push_back(in[j]);
       }
-      Assert(!dt.isParametric());
-      std::vector<Node> children;
-      for (const Node& evc : ev)
-      {
-        std::vector<Node> cc;
-        cc.push_back(evc);
-        cc.insert(cc.end(), args.begin(), args.end());
-        children.push_back(nm->mkNode(DT_SYGUS_EVAL, cc));
-      }
-      Node ret = utils::mkSygusTerm(dt, i, children);
-      // apply the appropriate substitution
-      ret = utils::applySygusArgs(dt, op, ret, args);
+      Node ret = utils::sygusToBuiltinEval(ev, args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
+      Trace("dt-sygus-util") << "Type is " << ret.getType() << std::endl;
+      Assert(in.getType().isComparableTo(ret.getType()));
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
