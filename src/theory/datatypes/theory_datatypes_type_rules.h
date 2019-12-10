@@ -20,6 +20,7 @@
 #define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
 #include "expr/type_matcher.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 namespace CVC4 {
 
@@ -42,16 +43,17 @@ struct DatatypeConstructorTypeRule {
     TypeNode consType = n.getOperator().getType(check);
     TypeNode t = consType.getConstructorRangeType();
     Assert(t.isDatatype());
-    DatatypeType dt = DatatypeType(t.toType());
     TNode::iterator child_it = n.begin();
     TNode::iterator child_it_end = n.end();
     TypeNode::iterator tchild_it = consType.begin();
-    if ((dt.isParametric() || check) &&
-        n.getNumChildren() != consType.getNumChildren() - 1) {
+    if ((t.isParametricDatatype() || check)
+        && n.getNumChildren() != consType.getNumChildren() - 1)
+    {
       throw TypeCheckingExceptionPrivate(
           n, "number of arguments does not match the constructor type");
     }
-    if (dt.isParametric()) {
+    if (t.isParametricDatatype())
+    {
       Debug("typecheck-idt") << "typecheck parameterized datatype " << n
                              << std::endl;
       TypeMatcher m(t);
@@ -67,7 +69,9 @@ struct DatatypeConstructorTypeRule {
       TypeNode range = t.instantiateParametricDatatype(instTypes);
       Debug("typecheck-idt") << "Return " << range << std::endl;
       return range;
-    } else {
+    }
+    else
+    {
       if (check) {
         Debug("typecheck-idt") << "typecheck cons: " << n << " "
                                << n.getNumChildren() << std::endl;
@@ -128,12 +132,13 @@ struct DatatypeSelectorTypeRule {
     TypeNode selType = n.getOperator().getType(check);
     TypeNode t = selType[0];
     Assert(t.isDatatype());
-    DatatypeType dt = DatatypeType(t.toType());
-    if ((dt.isParametric() || check) && n.getNumChildren() != 1) {
+    if ((t.isParametricDatatype() || check) && n.getNumChildren() != 1)
+    {
       throw TypeCheckingExceptionPrivate(
           n, "number of arguments does not match the selector type");
     }
-    if (dt.isParametric()) {
+    if (t.isParametricDatatype())
+    {
       Debug("typecheck-idt") << "typecheck parameterized sel: " << n
                              << std::endl;
       TypeMatcher m(t);
@@ -155,7 +160,9 @@ struct DatatypeSelectorTypeRule {
           types.begin(), types.end(), matches.begin(), matches.end());
       Debug("typecheck-idt") << "Return " << range << std::endl;
       return range;
-    } else {
+    }
+    else
+    {
       if (check) {
         Debug("typecheck-idt") << "typecheck sel: " << n << std::endl;
         Debug("typecheck-idt") << "sel type: " << selType << std::endl;
@@ -185,8 +192,8 @@ struct DatatypeTesterTypeRule {
       TypeNode childType = n[0].getType(check);
       TypeNode t = testType[0];
       Assert(t.isDatatype());
-      DatatypeType dt = DatatypeType(t.toType());
-      if (dt.isParametric()) {
+      if (t.isParametricDatatype())
+      {
         Debug("typecheck-idt") << "typecheck parameterized tester: " << n
                                << std::endl;
         TypeMatcher m(t);
@@ -195,7 +202,9 @@ struct DatatypeTesterTypeRule {
               n,
               "matching failed for tester argument of parameterized datatype");
         }
-      } else {
+      }
+      else
+      {
         Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
         Debug("typecheck-idt") << "test type: " << testType << std::endl;
         if (!testType[0].isComparableTo(childType)) {
@@ -395,8 +404,7 @@ class DtSyguEvalTypeRule
       throw TypeCheckingExceptionPrivate(
           n, "datatype sygus eval takes a datatype head");
     }
-    const Datatype& dt =
-        static_cast<DatatypeType>(headType.toType()).getDatatype();
+    const Datatype& dt = headType.getDatatype();
     if (!dt.isSygus())
     {
       throw TypeCheckingExceptionPrivate(
@@ -490,7 +498,7 @@ class MatchTypeRule
             }
             bvs.erase(arg);
           }
-          unsigned ci = Datatype::indexOf(nc[pindex].getOperator().toExpr());
+          unsigned ci = utils::indexOf(nc[pindex].getOperator());
           patIndices.insert(ci);
         }
         else if (ncpk == kind::BOUND_VARIABLE)

@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/type_info.h"
 
 #include "base/check.h"
+#include "expr/sygus_datatype.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
@@ -139,17 +140,17 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       d_sym_cons_any_constant = i;
       d_has_subterm_sym_cons = true;
     }
-    // TODO (as part of #1170): we still do not properly catch type
-    // errors in sygus grammars for arguments of builtin operators.
-    // The challenge is that we easily ask for expected argument types of
-    // builtin operators e.g. PLUS. Hence the call to mkGeneric below
-    // will throw a type exception.
     d_ops[n] = i;
     d_arg_ops[i] = n;
     Trace("sygus-db") << std::endl;
-    // ensure that terms that this constructor encodes are
-    // of the type specified in the datatype. This will fail if
-    // e.g. bitvector-and is a constructor of an integer grammar.
+    // We must properly catch type errors in sygus grammars for arguments of
+    // builtin operators. The challenge is that we easily ask for expected
+    // argument types of builtin operators e.g. PLUS. Hence we use a call to
+    // mkGeneric below. This ensures that terms that this constructor encodes
+    // are of the type specified in the datatype. This will fail if
+    // e.g. bitvector-and is a constructor of an integer grammar. Our (version
+    // 2) SyGuS parser ensures that sygus constructors are built from well-typed
+    // terms, so the term created by mkGeneric will also be well-typed here.
     Node g = tds->mkGeneric(dt, i);
     TypeNode gtn = g.getType();
     AlwaysAssert(gtn.isSubtypeOf(btn))

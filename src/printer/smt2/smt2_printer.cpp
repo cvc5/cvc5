@@ -95,7 +95,7 @@ static std::string maybeQuoteSymbol(const std::string& s) {
   if (s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                           "0123456789~!@$%^&*_-+=<>.?/")
           != string::npos
-      || s.empty())
+      || s.empty() || (s[0] >= '0' && s[0] <= '9'))
   {
     // need to quote it
     stringstream ss;
@@ -615,7 +615,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     // arrays theory
   case kind::SELECT:
-  case kind::STORE: typeChildren = true;
+  case kind::STORE: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::PARTIAL_SELECT_0:
   case kind::PARTIAL_SELECT_1:
   case kind::ARRAY_TYPE:
@@ -751,7 +751,7 @@ void Smt2Printer::toStream(std::ostream& out,
     parametricTypeChildren = true;
     out << smtKindString(k, d_variant) << " ";
     break;
-  case kind::MEMBER: typeChildren = true;
+  case kind::MEMBER: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::INSERT:
   case kind::SET_TYPE:
   case kind::SINGLETON:

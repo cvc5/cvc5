@@ -29,7 +29,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnifRl::SygusUnifRl(SynthConjecture* p) : d_parent(p) {}
+SygusUnifRl::SygusUnifRl(SynthConjecture* p)
+    : d_parent(p), d_useCondPool(false), d_useCondPoolIGain(false)
+{
+}
 SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initializeCandidate(
     QuantifiersEngine* qe,
@@ -57,6 +60,11 @@ void SygusUnifRl::initializeCandidate(
     d_cand_to_eval_hds[f].clear();
     d_cand_to_hd_count[f] = 0;
   }
+  // check whether we are using condition enumeration
+  SygusUnifPiMode mode = options::sygusUnifPi();
+  d_useCondPool =
+      mode == SYGUS_UNIF_PI_CENUM || mode == SYGUS_UNIF_PI_CENUM_IGAIN;
+  d_useCondPoolIGain = mode == SYGUS_UNIF_PI_CENUM_IGAIN;
 }
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
@@ -105,7 +113,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       {
         TNode cand = n[0];
         Node tmp = n.substitute(cand, it->second);
-        nv = d_tds->evaluateWithUnfolding(tmp);
+        // should be concrete, can just use the rewriter
+        nv = Rewriter::rewrite(tmp);
         Trace("sygus-unif-rl-purify")
             << "PurifyLemma : model value for " << tmp << " is " << nv << "\n";
       }
@@ -347,8 +356,7 @@ Node SygusUnifRl::constructSol(
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
   Node sol = itd->second.buildSol(etis->d_cons, lemmas);
-  Assert(options::sygusUnifCondIndependent() || !sol.isNull()
-         || !lemmas.empty());
+  Assert(d_useCondPool || !sol.isNull() || !lemmas.empty());
   return sol;
 }
 
@@ -385,6 +393,11 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
   return it->second;
 }
 
+bool SygusUnifRl::usingConditionPool() const { return d_useCondPool; }
+bool SygusUnifRl::usingConditionPoolInfoGain() const
+{
+  return d_useCondPoolIGain;
+}
 void SygusUnifRl::registerStrategy(
     Node f,
     std::vector<Node>& enums,
@@ -515,7 +528,7 @@ void SygusUnifRl::DecisionTreeInfo::setConditions(
   d_enums.insert(d_enums.end(), enums.begin(), enums.end());
   d_conds.insert(d_conds.end(), conds.begin(), conds.end());
   // add to condition pool
-  if (options::sygusUnifCondIndependent())
+  if (d_unif->usingConditionPool())
   {
     d_cond_mvs.insert(conds.begin(), conds.end());
     if (Trace.isOn("sygus-unif-cond-pool"))
@@ -551,8 +564,8 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
                           << " conditions..." << std::endl;
   // reset the trie
   d_pt_sep.d_trie.clear();
-  return options::sygusUnifCondIndependent() ? buildSolAllCond(cons, lemmas)
-                                             : buildSolMinCond(cons, lemmas);
+  return d_unif->usingConditionPool() ? buildSolAllCond(cons, lemmas)
+                                      : buildSolMinCond(cons, lemmas);
 }
 
 Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
@@ -839,7 +852,7 @@ Node SygusUnifRl::DecisionTreeInfo::extractSol(Node cons,
                                                std::map<Node, Node>& hd_mv)
 {
   // rebuild decision tree using heuristic learning
-  if (options::sygusUnifBooleanHeuristicDt())
+  if (d_unif->usingConditionPoolInfoGain())
   {
     recomputeSolHeuristically(hd_mv);
   }

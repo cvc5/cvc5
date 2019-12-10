@@ -751,7 +751,12 @@ class SmtEnginePrivate : public NodeManagerListener {
    * formula might be pushed out to the propositional layer
    * immediately, or it might be simplified and kept, or it might not
    * even be simplified.
-   * the 2nd and 3rd arguments added for bookkeeping for proofs
+   * The arguments isInput and isAssumption are used for bookkeeping for proofs.
+   * The argument maybeHasFv should be set to true if the assertion may have
+   * free variables. By construction, assertions from the smt2 parser are
+   * guaranteed not to have free variables. However, other cases such as
+   * assertions from the SyGuS parser may have free variables (say if the
+   * input contains an assert or define-fun-rec command).
    *
    * @param isAssumption If true, the formula is considered to be an assumption
    * (this is used to distinguish assertions and assumptions)
@@ -759,7 +764,8 @@ class SmtEnginePrivate : public NodeManagerListener {
   void addFormula(TNode n,
                   bool inUnsatCore,
                   bool inInput = true,
-                  bool isAssumption = false);
+                  bool isAssumption = false,
+                  bool maybeHasFv = false);
 
   /** Expand definitions in n. */
   Node expandDefinitions(TNode n,
@@ -1155,15 +1161,9 @@ void SmtEngine::setDefaults() {
     // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
     options::bitvectorDivByZeroConst.set(
         language::isInputLang_smt2_6(options::inputLanguage())
-        || options::inputLanguage() == language::input::LANG_SYGUS
-        || options::inputLanguage() == language::input::LANG_SYGUS_V2);
+        || language::isInputLangSygus(options::inputLanguage()));
   }
-  bool is_sygus = false;
-  if (options::inputLanguage() == language::input::LANG_SYGUS
-      || options::inputLanguage() == language::input::LANG_SYGUS_V2)
-  {
-    is_sygus = true;
-  }
+  bool is_sygus = language::isInputLangSygus(options::inputLanguage());
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
   {
@@ -1258,10 +1258,13 @@ void SmtEngine::setDefaults() {
       d_logic.lock();
     }
   }
-  // set default options associated with strings-exp
-  if (options::stringExp())
+
+  // Set default options associated with strings-exp. We also set these options
+  // if we are using eager string preprocessing, which may introduce quantified
+  // formulas at preprocess time.
+  if (options::stringExp() || !options::stringLazyPreproc())
   {
-    // We require quantifiers since extended functions reduce using them
+    // We require quantifiers since extended functions reduce using them.
     if (!d_logic.isQuantified())
     {
       d_logic = d_logic.getUnlockedCopy();
@@ -1306,6 +1309,12 @@ void SmtEngine::setDefaults() {
       d_logic.enableSygus();
       d_logic.lock();
     }
+  }
+
+  // sygus core connective requires unsat cores
+  if (options::sygusCoreConnective())
+  {
+    options::unsatCores.set(true);
   }
 
   if ((options::checkModels() || options::checkSynthSol()
@@ -1354,6 +1363,22 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << endl;
       options::unconstrainedSimp.set(uncSimp);
+    }
+  }
+
+  if (options::incrementalSolving() || options::proof())
+  {
+    if (options::sygusInference())
+    {
+      if (options::sygusInference.wasSetByUser())
+      {
+        throw OptionException(
+            "sygus inference not supported with proofs/incremental solving");
+      }
+      Notice() << "SmtEngine: turning off sygus inference to support "
+                  "proofs/incremental solving"
+               << std::endl;
+      options::sygusInference.set(false);
     }
   }
 
@@ -1939,16 +1964,6 @@ void SmtEngine::setDefaults() {
         options::cbqi.set(true);
       }
     }
-    // setting unif requirements
-    if (options::sygusUnifBooleanHeuristicDt()
-        && !options::sygusUnifCondIndependent())
-    {
-      options::sygusUnifCondIndependent.set(true);
-    }
-    if (options::sygusUnifCondIndependent() && !options::sygusUnif())
-    {
-      options::sygusUnif.set(true);
-    }
   }
   if (options::sygusInference())
   {
@@ -2299,9 +2314,10 @@ void SmtEngine::setDefaults() {
           << endl;
       setOption("incremental", SExpr("false"));
     }
-    if (d_logic > LogicInfo("QF_AUFBVLRA")) {
-        throw OptionException(
-            "Proofs are only supported for sub-logics of QF_AUFBVLIA."); 
+    if (d_logic > LogicInfo("QF_AUFBVLRA"))
+    {
+      throw OptionException(
+          "Proofs are only supported for sub-logics of QF_AUFBVLIA.");
     }
     if (options::bitvectorAlgebraicSolver())
     {
@@ -2665,6 +2681,7 @@ void SmtEngine::defineFunctionsRec(
   }
 
   ExprManager* em = getExprManager();
+  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula
@@ -2704,7 +2721,7 @@ void SmtEngine::defineFunctionsRec(
     {
       d_assertionList->push_back(e);
     }
-    d_private->addFormula(e.getNode(), false);
+    d_private->addFormula(e.getNode(), false, true, false, maybeHasFv);
   }
 }
 
@@ -3112,7 +3129,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  if (d_smtMode != SMT_MODE_SAT)
+  if (d_smtMode != SMT_MODE_SAT && d_smtMode != SMT_MODE_SAT_UNKNOWN)
   {
     std::stringstream ss;
     ss << "Cannot " << c
@@ -3625,10 +3642,8 @@ void SmtEnginePrivate::processAssertions() {
   getIteSkolemMap().clear();
 }
 
-void SmtEnginePrivate::addFormula(TNode n,
-                                  bool inUnsatCore,
-                                  bool inInput,
-                                  bool isAssumption)
+void SmtEnginePrivate::addFormula(
+    TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
 {
   if (n == d_true) {
     // nothing to do
@@ -3639,6 +3654,23 @@ void SmtEnginePrivate::addFormula(TNode n,
                << "), inUnsatCore = " << inUnsatCore
                << ", inInput = " << inInput
                << ", isAssumption = " << isAssumption << endl;
+
+  // Ensure that it does not contain free variables
+  if (maybeHasFv)
+  {
+    if (expr::hasFreeVar(n))
+    {
+      std::stringstream se;
+      se << "Cannot process assertion with free variable.";
+      if (language::isInputLangSygus(options::inputLanguage()))
+      {
+        // Common misuse of SyGuS is to use top-level assert instead of
+        // constraint when defining the synthesis conjecture.
+        se << " Perhaps you meant `constraint` instead of `assert`?";
+      }
+      throw ModalException(se.str().c_str());
+    }
+  }
 
   // Give it to proof manager
   PROOF(
@@ -3855,11 +3887,13 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     {
       d_smtMode = SMT_MODE_UNSAT;
     }
+    else if (d_status.asSatisfiabilityResult().isSat() == Result::SAT)
+    {
+      d_smtMode = SMT_MODE_SAT;
+    }
     else
     {
-      // Notice that unknown response moves to sat mode, since the same set
-      // of commands (get-model, get-value) are applicable to this case.
-      d_smtMode = SMT_MODE_SAT;
+      d_smtMode = SMT_MODE_SAT_UNKNOWN;
     }
 
     Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
@@ -3945,7 +3979,8 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
   if(d_assertionList != NULL) {
     d_assertionList->push_back(e);
   }
-  d_private->addFormula(e.getNode(), inUnsatCore);
+  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
+  d_private->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv);
   return quickCheck().asValidityResult();
 }/* SmtEngine::assertFormula() */
 
@@ -4456,6 +4491,7 @@ Model* SmtEngine::getModel() {
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
+  m->d_isKnownSat = (d_smtMode == SMT_MODE_SAT);
   return m;
 }
 
@@ -4674,12 +4710,12 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   TheoryModel* m = getAvailableModel("check model");
 
-  // check-model is not guaranteed to succeed if approximate values were used
+  // check-model is not guaranteed to succeed if approximate values were used.
+  // Thus, we intentionally abort here.
   if (m->hasApproximations())
   {
-    Warning()
-        << "WARNING: running check-model on a model with approximate values..."
-        << endl;
+    throw RecoverableModalException(
+        "Cannot run check-model on a model with approximate values.");
   }
 
   // Check individual theory assertions
@@ -4904,6 +4940,7 @@ void SmtEngine::checkSynthSolution()
   SmtEngine solChecker(d_exprManager);
   solChecker.setLogic(getLogicInfo());
   setOption("check-synth-sol", SExpr("false"));
+  setOption("sygus-rec-fun", SExpr("false"));
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
