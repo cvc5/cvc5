@@ -1075,7 +1075,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // make the any term datatype, add to back
       // do not consider the exclusion criteria of the generator
       // we use 0 as the weight, since this constructor should be seen as
-      // a simulateous generalization of set of non-Boolean variables.
+      // a simultaneous generalization of set of non-Boolean variables.
       // This ensures that ( c1*x + c2*y >= 0 ) has the same weight as
       // e.g. ( x >= 0 ) or ( y >= 0 ).
       sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, spc, 0);
