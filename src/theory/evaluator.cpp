@@ -667,8 +667,8 @@ EvalResult Evaluator::evalInternal(
         case kind::BITVECTOR_UDIV:
         case kind::BITVECTOR_UDIV_TOTAL:
         {
-          if (currNodeVal.getKind()==kind::BITVECTOR_UDIV_TOTAL || 
-            results[currNode[1]].d_bv.getValue()!=0)
+          if (currNodeVal.getKind() == kind::BITVECTOR_UDIV_TOTAL
+              || results[currNode[1]].d_bv.getValue() != 0)
           {
             BitVector res = results[currNode[0]].d_bv;
             res = res.unsignedDivTotal(results[currNode[1]].d_bv);
@@ -684,8 +684,8 @@ EvalResult Evaluator::evalInternal(
         case kind::BITVECTOR_UREM:
         case kind::BITVECTOR_UREM_TOTAL:
         {
-          if (currNodeVal.getKind()==kind::BITVECTOR_UREM_TOTAL ||
-            results[currNode[1]].d_bv.getValue()!=0)
+          if (currNodeVal.getKind() == kind::BITVECTOR_UREM_TOTAL
+              || results[currNode[1]].d_bv.getValue() != 0)
           {
             BitVector res = results[currNode[0]].d_bv;
             res = res.unsignedRemTotal(results[currNode[1]].d_bv);
