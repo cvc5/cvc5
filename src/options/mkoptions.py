@@ -46,11 +46,12 @@ import os
 import re
 import sys
 import textwrap
+import toml
 
 ### Allowed attributes for module/option/alias
 
 MODULE_ATTR_REQ = ['id', 'name', 'header']
-MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['options', 'aliases']
+MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option', 'alias']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
@@ -258,7 +259,6 @@ class Option(object):
         self.links = []
         self.read_only = False
         self.alternate = True    # add --no- alternative long option for bool
-        self.lineno = None
         self.filename = None
         for (attr, val) in d.items():
             assert attr in self.__dict__
@@ -275,7 +275,6 @@ class Alias(object):
     def __init__(self, d):
         self.__dict__ = dict((k, None) for k in ALIAS_ATTR_ALL)
         self.links = []
-        self.lineno = None
         self.filename = None
         self.alternate_for = None  # replaces a --no- alternative for an option
         for (attr, val) in d.items():
@@ -1191,42 +1190,7 @@ def check_module_attrib(filename, lineno, attrib, value):
                      header_name, value))
 
 
-def parse_value(filename, lineno, attrib, val):
-    """
-    Parse attribute values.
-    We only allow three types of values:
-     - bool   (val either true/false or "true"/"false")
-     - string (val starting with ")
-     - lists  (val starting with [)
-    """
-    if val[0] == '"':
-        if val[-1] != '"':
-            perr(filename, lineno, 'missing closing " for string')
-        val = val.lstrip('"').rstrip('"').replace('\\"', '"')
-
-        # for read_only/alternate we allow both true/false and "true"/"false"
-        if attrib in ['read_only', 'alternate']:
-            if val == 'true':
-                return True
-            elif val == 'false':
-                return False
-        return val if val else None
-    elif val[0] == '[':
-        try:
-            val_list = ast.literal_eval(val)
-        except SyntaxError as e:
-            perr(filename, lineno, 'parsing list: {}'.format(e.msg))
-        return val_list
-    elif val == 'true':
-        return True
-    elif val == 'false':
-        return False
-    else:
-        perr(filename, lineno, "invalid value '{}'".format(val))
-        return None
-
-
-def parse_module(filename, file):
+def parse_module(filename, module):
     """
     Parse options module file.
 
@@ -1235,122 +1199,40 @@ def parse_module(filename, file):
     toml format, we chose to implement our own parser to get better error
     messages.
     """
-    module = dict()
-    options = []
-    aliases = []
-    lines = [[x.strip() for x in line.split('=', 1)] for line in file]
-    option = None
-    alias = None
-    option_lines = []
-    alias_lines = []
-    for i in range(len(lines)):
-        assert option is None or alias is None
-        line = lines[i]
-        # Skip comments
-        if line[0].startswith('#'):
-            continue
-        # Check if a new option/alias starts.
-        if len(line) == 1:
-            # Create a new option/alias object, save previously created
-            if line[0] in ['[[option]]', '[[alias]]']:
-                if option:
-                    options.append(option)
-                    option = None
-                if alias:
-                    aliases.append(alias)
-                    alias = None
-                # Create new option dict and save line number where option
-                # was defined.
-                if line[0] == '[[option]]':
-                    assert alias is None
-                    option = dict()
-                    option_lines.append(i)
-                else:
-                    # Create new alias dict and save line number where alias
-                    # was defined.
-                    assert line[0] == '[[alias]]'
-                    assert option is None
-                    alias = dict()
-                    # Save line number where alias was defined
-                    alias_lines.append(i)
-            elif line[0] != '':
-                perr(filename, i, "invalid attribute '{}'".format(line[0]))
-        # Parse module/option/alias attributes.
-        elif len(line) == 2:
-            attrib = line[0]
-            value = parse_value(filename, i, attrib, line[1])
-            # All attributes we parse are part of the current option.
-            if option is not None:
-                check_option_attrib(filename, i, attrib, value)
-                if attrib in option:
-                    perr(filename, i,
-                         "duplicate option attribute '{}'".format(attrib))
-                assert option is not None
-                option[attrib] = value
-            # All attributes we parse are part of the current alias.
-            elif alias is not None:
-                check_alias_attrib(filename, i, attrib, value)
-                if attrib in alias:
-                    perr(filename, i,
-                         "duplicate alias attribute '{}'".format(attrib))
-                assert alias is not None
-                alias[attrib] = value
-            # All other attributes are part of the module.
-            else:
-                if attrib in module:
-                    perr(filename, i,
-                         "duplicate module attribute '{}'".format(attrib))
-                check_module_attrib(filename, i, attrib, value)
-                module[attrib] = value
-        else:
-            perr(filename, i, "invalid attribute '{}'".format(line[0]))
-
-    # Save previously parsed option/alias
-    if option:
-        options.append(option)
-    if alias:
-        aliases.append(alias)
-
     # Check if parsed module attributes are valid and if all required
     # attributes are defined.
     check_attribs(filename, 1,
                   MODULE_ATTR_REQ, MODULE_ATTR_ALL, module, 'module')
     res = Module(module)
 
-    # Check parsed option/alias attributes and create option/alias objects and
-    # associate file name and line number with options/aliases (required for
-    # better error reporting).
-    assert len(option_lines) == len(options)
-    assert len(alias_lines) == len(aliases)
-    for i in range(len(options)):
-        attribs = options[i]
-        lineno = option_lines[i]
-        check_attribs(filename, lineno,
-                      OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
-        option = Option(attribs)
-        if option.short and not option.long:
-            perr(filename, lineno,
-                 "short option '{}' specified but no long option".format(
-                     option.short))
-        if option.type == 'bool' and option.handler:
-            perr(filename, lineno,
-                 'specifying handlers for options of type bool is not allowed')
-        if option.category != 'undocumented' and not option.help:
-            perr(filename, lineno,
-                 'help text is required for {} options'.format(option.category))
-        option.lineno = lineno
-        option.filename = filename
-        res.options.append(option)
+    if 'option' in module:
+        for name, attribs in module['option'].items():
+            attribs['name'] = name
+            lineno = 0
+            check_attribs(filename, lineno,
+                          OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
+            option = Option(attribs)
+            if option.short and not option.long:
+                perr(filename, lineno,
+                     "short option '{}' specified but no long option".format(
+                         option.short))
+            if option.type == 'bool' and option.handler:
+                perr(filename, lineno,
+                     'specifying handlers for options of type bool is not allowed')
+            if option.category != 'undocumented' and not option.help:
+                perr(filename, lineno,
+                     'help text is required for {} options'.format(option.category))
+            option.filename = filename
+            res.options.append(option)
 
-    for i in range(len(aliases)):
-        attribs = aliases[i]
-        lineno = alias_lines[i]
-        check_attribs(filename, lineno,
-                      ALIAS_ATTR_REQ, ALIAS_ATTR_ALL, attribs, 'alias')
-        alias = Alias(attribs)
-        alias.lineno = lineno
-        alias.filename = filename
-        res.aliases.append(alias)
+    if 'alias' in module:
+        for attribs in module['alias']:
+            lineno = 0
+            check_attribs(filename, lineno,
+                          ALIAS_ATTR_REQ, ALIAS_ATTR_ALL, attribs, 'alias')
+            alias = Alias(attribs)
+            alias.filename = filename
+            res.aliases.append(alias)
 
     return res
 
@@ -1400,20 +1282,19 @@ def mkoptions_main():
     # Parse files, check attributes and create module/option objects
     modules = []
     for filename in filenames:
-        with open(filename, 'r') as file:
-            module = parse_module(filename, file)
-            # Check if long options are valid and unique.  First populate
-            # g_long_cache with option.long and --no- alternatives if
-            # applicable.
-            for option in module.options:
-                check_long(option.filename, option.lineno, option.long,
-                           option.type)
-                if option.long:
-                    g_long_to_opt[long_get_option(option.long)] = option
-                    # Add long option that requires an argument
-                    if option.type not in ['bool', 'void']:
-                        g_long_arguments.add(long_get_option(option.long))
-            modules.append(module)
+        module = parse_module(filename, toml.load(filename))
+
+        # Check if long options are valid and unique.  First populate
+        # g_long_cache with option.long and --no- alternatives if
+        # applicable.
+        for option in module.options:
+            check_long(filename, 0, option.long, option.type)
+            if option.long:
+                g_long_to_opt[long_get_option(option.long)] = option
+                # Add long option that requires an argument
+                if option.type not in ['bool', 'void']:
+                    g_long_arguments.add(long_get_option(option.long))
+        modules.append(module)
 
     # Check if alias.long is unique and check if alias.long defines an alias
     # for an alternate (--no-<long>) option for existing option <long>.
@@ -1428,7 +1309,7 @@ def mkoptions_main():
                     m[0].alternate = False
                     alias.alternate_for = m[0]
                     del g_long_cache[alias.long]
-            check_long(alias.filename, alias.lineno, alias.long)
+            check_long(alias.filename, 0, alias.long)
             # Add long option that requires an argument
             if '=' in alias.long:
                 g_long_arguments.add(long_get_option(alias.long))
@@ -1437,9 +1318,9 @@ def mkoptions_main():
     # long options are available).
     for module in modules:
         for option in module.options:
-            check_links(option.filename, option.lineno, option.links)
+            check_links(option.filename, 0, option.links)
         for alias in module.aliases:
-            check_links(alias.filename, alias.lineno, alias.links)
+            check_links(alias.filename, 0, alias.links)
 
     # Create *_options.{h,cpp} in destination directory
     for module in modules:
