@@ -1772,7 +1772,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       parseError("Too many arguments to array constant.");
     }
-    Node constVal = args[0];
+    Expr constVal = args[0];
     // To parse array constants taking reals whose values are integral,
     // e.g. ((as const (Array Int Real)) 5.0), we must handle the following
     // issue. To distinguish real constants from integer ones, we construct
@@ -1780,7 +1780,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     // a constant value that can be put inside an array. Hence, we must
     if (!constVal.isConst())
     {
-      if (constVal.getKind() == DIVISION && constVal[1].isConst()
+      if (constVal.getKind() == kind::DIVISION && constVal[1].isConst()
           && constVal[1].getConst<Rational>().isOne())
       {
         constVal = constVal[0];

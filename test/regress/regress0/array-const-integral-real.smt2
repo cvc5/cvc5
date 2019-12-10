@@ -1,6 +1,5 @@
 (set-logic QF_AUFLIRA)
+(set-info :status sat)
 (declare-fun a () (Array Int Real))
-
 (assert (= a ((as const (Array Int Real)) 0.0)))
-
 (check-sat)
