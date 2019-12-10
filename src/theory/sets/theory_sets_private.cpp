@@ -769,7 +769,7 @@ void TheorySetsPrivate::checkDisequalities()
       // already satisfied
       continue;
     }
-    if (d_termProcessed.find(deq) == d_termProcessed.end())
+    if (d_termProcessed.find(deq) != d_termProcessed.end())
     {
       // already added lemma
       continue;
