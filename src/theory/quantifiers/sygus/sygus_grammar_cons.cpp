@@ -1053,6 +1053,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // add the constant
       Node coeff = nm->mkBoundVar(types[i]);
       lambdaVars.push_back(coeff);
+      sumChildren.push_back(coeff);
       cargsAnyTerm.push_back(unresAnyConst);
       // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
       Assert(sumChildren.size() > 1);
