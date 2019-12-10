@@ -208,16 +208,8 @@ EvalResult Evaluator::evalInternal(
           {
             // could not evaluate this child, look in the node cache
             itn = evalAsNode.find(currNodeChild);
-            if (itn != evalAsNode.end())
-            {
-              // take cached value
-              echildren.push_back(itn->second);
-            }
-            else
-            {
-              // must take original
-              echildren.push_back(currNodeChild);
-            }
+            Assert(itn != evalAsNode.end());
+            echildren.push_back(itn->second);
           }
           else
           {
@@ -244,6 +236,9 @@ EvalResult Evaluator::evalInternal(
           evalAsNode[currNode] = currNodeVal;
           continue;
         }
+        // Otherwise, we may be able to turn the overall result into an
+        // valid EvalResult and continue. We fallthrough and continue with the
+        // block of code below.
       }
 
       if (currNode.isVar())
@@ -280,13 +275,17 @@ EvalResult Evaluator::evalInternal(
         }
 
         // Lambdas are evaluated in a recursive fashion because each evaluation
-        // requires different substitutions
+        // requires different substitutions. We use a fresh cache since the
+        // evaluation of op[1] is under a new substitution and thus should not
+        // be cached. We could alternatively copy evalAsNode to evalAsNodeC but
+        // favor avoiding this copy for performance reasons.
+        std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
         results[currNode] =
-            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNode);
+            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC);
         if (results[currNode].d_tag == EvalResult::INVALID)
         {
           // evaluation was invalid, we take the node of op[1] as the result
-          evalAsNode[currNode] = evalAsNode[op[1]];
+          evalAsNode[currNode] = evalAsNodeC[op[1]];
         }
         continue;
       }
@@ -668,17 +667,35 @@ EvalResult Evaluator::evalInternal(
         case kind::BITVECTOR_UDIV:
         case kind::BITVECTOR_UDIV_TOTAL:
         {
-          BitVector res = results[currNode[0]].d_bv;
-          res = res.unsignedDivTotal(results[currNode[1]].d_bv);
-          results[currNode] = EvalResult(res);
+          if (currNodeVal.getKind()==kind::BITVECTOR_UDIV_TOTAL || 
+            results[currNode[1]].d_bv.getValue()!=0)
+          {
+            BitVector res = results[currNode[0]].d_bv;
+            res = res.unsignedDivTotal(results[currNode[1]].d_bv);
+            results[currNode] = EvalResult(res);
+          }
+          else
+          {
+            results[currNode] = EvalResult();
+            evalAsNode[currNode] = currNodeVal;
+          }
           break;
         }
         case kind::BITVECTOR_UREM:
         case kind::BITVECTOR_UREM_TOTAL:
         {
-          BitVector res = results[currNode[0]].d_bv;
-          res = res.unsignedRemTotal(results[currNode[1]].d_bv);
-          results[currNode] = EvalResult(res);
+          if (currNodeVal.getKind()==kind::BITVECTOR_UREM_TOTAL ||
+            results[currNode[1]].d_bv.getValue()!=0)
+          {
+            BitVector res = results[currNode[0]].d_bv;
+            res = res.unsignedRemTotal(results[currNode[1]].d_bv);
+            results[currNode] = EvalResult(res);
+          }
+          else
+          {
+            results[currNode] = EvalResult();
+            evalAsNode[currNode] = currNodeVal;
+          }
           break;
         }
 
