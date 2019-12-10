@@ -34,6 +34,7 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/quantifiers_options.h"
+#include "options/uf_options.h"
 
 namespace CVC4 {
 
@@ -48,6 +49,10 @@ InstFormatMode Options::getInstFormatMode() const {
 
 OutputLanguage Options::getOutputLanguage() const {
   return (*this)[options::outputLanguage];
+}
+
+bool Options::getUfHo() const{
+  return (*this)[options::ufHo];
 }
 
 bool Options::getCheckProofs() const{
