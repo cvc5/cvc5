@@ -806,7 +806,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       exp_conflict = true;
       // Since the explanation of the condition (c_exp above) does not account
       // for builtin subterms, we additionally require that the valuation of
-      // the condition is indeed different on the two points. 
+      // the condition is indeed different on the two points.
       // For example, say ce has model value equal to the SyGuS datatype term:
       //   C_leq_xy( 0, 1 )
       // where C_leq_xy is a SyGuS datatype constructor taking two integer
@@ -831,30 +831,35 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       // The above is only necessary if we use symbolic constructors.
       if (ti.hasSubtermSymbolicCons())
       {
-        Trace("sygus-unif-sol-sym") << "Explain symbolic separation conflict" << std::endl;
+        Trace("sygus-unif-sol-sym")
+            << "Explain symbolic separation conflict" << std::endl;
         std::map<Node, std::vector<Node>>::iterator ith;
         Node ceApp[2];
         SygusEvalUnfold* eunf = d_unif->d_tds->getEvalUnfold();
-        std::map< Node, Node > vtm;
+        std::map<Node, Node> vtm;
         vtm[ce] = cv;
-        Trace("sygus-unif-sol-sym") << "Model value for " << ce << " is " << cv << std::endl;
-        for (unsigned r=0; r<2; r++)
+        Trace("sygus-unif-sol-sym")
+            << "Model value for " << ce << " is " << cv << std::endl;
+        for (unsigned r = 0; r < 2; r++)
         {
           std::vector<Node> cechildren;
           cechildren.push_back(ce);
-          Node ecurr = r==0 ? e : er;
+          Node ecurr = r == 0 ? e : er;
           ith = d_unif->d_hd_to_pt.find(e);
-          AlwaysAssert(ith!=d_unif->d_hd_to_pt.end());
-          cechildren.insert(cechildren.end(),ith->second.begin(),ith->second.end());
-          Node cea = nm->mkNode(DT_SYGUS_EVAL,cechildren);
-          Trace("sygus-unif-sol-sym") << "Sep conflict app #" << r << " : " << cea << std::endl;
+          AlwaysAssert(ith != d_unif->d_hd_to_pt.end());
+          cechildren.insert(
+              cechildren.end(), ith->second.begin(), ith->second.end());
+          Node cea = nm->mkNode(DT_SYGUS_EVAL, cechildren);
+          Trace("sygus-unif-sol-sym")
+              << "Sep conflict app #" << r << " : " << cea << std::endl;
           std::vector<Node> tmpExp;
-          cea = eunf->unfold(cea,vtm,tmpExp,true,true);
+          cea = eunf->unfold(cea, vtm, tmpExp, true, true);
           Trace("sygus-unif-sol-sym") << "Unfolded to : " << cea << std::endl;
           ceApp[r] = cea;
         }
         Node ceAppEq = ceApp[0].eqNode(ceApp[1]);
-        Trace("sygus-unif-sol-sym") << "Sep conflict app explanation is : " << ceAppEq << std::endl;
+        Trace("sygus-unif-sol-sym")
+            << "Sep conflict app explanation is : " << ceAppEq << std::endl;
         exp.push_back(ceAppEq);
       }
       break;

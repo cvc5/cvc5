@@ -473,13 +473,15 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       std::vector<TypeNode> cargsPlus;
       cargsPlus.push_back(u);
       cargsPlus.push_back(u);
-      sdt.addConstructor(PLUS,cargsPlus);
-      sdt.initializeDatatype(nm->integerType(),bvl,false,false);
+      sdt.addConstructor(PLUS, cargsPlus);
+      sdt.initializeDatatype(nm->integerType(), bvl, false, false);
       std::vector<Datatype> datatypes;
       datatypes.push_back(sdt.getDatatype());
-      std::vector<DatatypeType> dtypes = nm->toExprManager()->mkMutualDatatypeTypes(
-      datatypes,
-      unresolvedTypes, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+      std::vector<DatatypeType> dtypes =
+          nm->toExprManager()->mkMutualDatatypeTypes(
+              datatypes,
+              unresolvedTypes,
+              ExprManager::DATATYPE_FLAG_PLACEHOLDER);
       TypeNode vtn = TypeNode::fromType(dtypes[0]);
       d_virtual_enum = nm->mkSkolem("_ve", vtn);
       d_tds->registerEnumerator(
