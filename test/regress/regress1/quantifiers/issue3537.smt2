@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE: --strings-exp --no-check-models
 ; EXPECT: sat
 (set-logic ALL)
 (declare-datatypes ((UNIT 0)) (((Unit))
