@@ -809,6 +809,9 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       std::map<Node, std::vector<Node>>::iterator ith;
       Node ceApp[2];
       SygusEvalUnfold* eunf = d_unif->d_tds->getEvalUnfold();
+      std::map< Node, Node > vtm;
+      vtm[ce] = cv;
+      Trace("sygus-unif-sol-sym") << "Model value for " << ce << " is " << cv << std::endl;
       for (unsigned r=0; r<2; r++)
       {
         std::vector<Node> cechildren;
@@ -819,14 +822,12 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
         cechildren.insert(cechildren.end(),ith->second.begin(),ith->second.end());
         Node cea = nm->mkNode(DT_SYGUS_EVAL,cechildren);
         Trace("sygus-unif-sol-sym") << "Sep conflict app #" << r << " : " << cea << std::endl;
-        std::map< Node, Node > vtm;
-        vtm[ce] = cv;
         std::vector<Node> tmpExp;
-        cea = eunf->unfold(cea,vtm,tmpExp,false,true);
+        cea = eunf->unfold(cea,vtm,tmpExp,true,true);
         Trace("sygus-unif-sol-sym") << "Unfolded to : " << cea << std::endl;
         ceApp[r] = cea;
       }
-      Node ceAppEq = ceApp[0].eqNode(ceApp[1]).negate();
+      Node ceAppEq = ceApp[0].eqNode(ceApp[1]);
       Trace("sygus-unif-sol-sym") << "Sep conflict app explanation is : " << ceAppEq << std::endl;
       exp.push_back(ceAppEq);
       break;
