@@ -1780,7 +1780,8 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     // a constant value that can be put inside an array. Hence, we must
     if (!constVal.isConst())
     {
-      if (constVal.getKind()==DIVISION && constVal[1].isConst() && constVal[1].getConst<Rational>().isOne())
+      if (constVal.getKind() == DIVISION && constVal[1].isConst()
+          && constVal[1].getConst<Rational>().isOne())
       {
         constVal = constVal[0];
       }
@@ -1788,8 +1789,8 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       {
         std::stringstream ss;
         ss << "expected constant term inside array constant, but found "
-          << "nonconstant term:" << std::endl
-          << "the term: " << constVal;
+           << "nonconstant term:" << std::endl
+           << "the term: " << constVal;
         parseError(ss.str());
       }
     }
