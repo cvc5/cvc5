@@ -1045,7 +1045,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // add it as a constructor
         std::stringstream ssop;
         ssop << "monomial_" << sdc.d_name;
-        sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, spc);
+        // we use 0 as the weight, since this constructor should be seen as
+        // a generalization of a non-Boolean variable (which has weight 0).
+        // This ensures that e.g. ( c1*x >= 0 ) has the same weight as
+        // ( x >= 0 ).
+        sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, spc, 0);
       }
     }
     if (polynomialGrammar)
@@ -1070,7 +1074,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
       // make the any term datatype, add to back
       // do not consider the exclusion criteria of the generator
-      sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, spc);
+      // we use 0 as the weight, since this constructor should be seen as
+      // a simulateous generalization of set of non-Boolean variables.
+      // This ensures that ( c1*x + c2*y >= 0 ) has the same weight as
+      // e.g. ( x >= 0 ) or ( y >= 0 ).
+      sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, spc, 0);
     }
     else
     {
