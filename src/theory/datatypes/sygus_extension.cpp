@@ -370,7 +370,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
   if( options::sygusSymBreakLazy() ){
     Trace("sygus-sb-debug") << "Do lazy symmetry breaking...\n";
     for( unsigned j=0; j<dt[tindex].getNumArgs(); j++ ){
-      Node sel = NodeManager::currentNM()->mkNode(
+      Node sel = nm->mkNode(
           APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal(ntn, j), n);
       Trace("sygus-sb-debug2") << "  activate child sel : " << sel << std::endl;
       Assert(d_active_terms.find(sel) == d_active_terms.end());
@@ -1723,7 +1723,7 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
     children.push_back(dt[tindex].getConstructor());
     for( unsigned i=0; i<dt[tindex].getNumArgs(); i++ ){
       Node sel = NodeManager::currentNM()->mkNode(
-          kind::APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal(tn, i), n);
+          APPLY_SELECTOR_TOTAL, dt[tindex].getSelectorInternal(tn, i), n);
       Node cc = getCurrentTemplate( sel, var_count );
       children.push_back( cc );
     }

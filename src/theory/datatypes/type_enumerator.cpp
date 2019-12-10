@@ -140,10 +140,11 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
      if (d_datatype.isParametric())
      {
+       NodeManager * nm = NodeManager::currentNM();
        TypeNode typ = ctor.getSpecializedConstructorType(d_type);
-       b << NodeManager::currentNM()->mkNode(
+       b << nm->mkNode(
            kind::APPLY_TYPE_ASCRIPTION,
-           NodeManager::currentNM()->mkConst(AscriptionType(typ.toType())),
+           nm->mkConst(AscriptionType(typ.toType())),
            ctor.getConstructor());
      }
      else
