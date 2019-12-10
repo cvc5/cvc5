@@ -1357,7 +1357,7 @@ void SmtEngine::setDefaults() {
       options::unconstrainedSimp.set(uncSimp);
     }
   }
-  
+
   if (options::incrementalSolving() || options::proof())
   {
     if (options::sygusInference())
@@ -1367,7 +1367,8 @@ void SmtEngine::setDefaults() {
         throw OptionException(
             "sygus inference not supported with proofs/incremental solving");
       }
-      Notice() << "SmtEngine: turning off sygus inference to support proofs/incremental solving"
+      Notice() << "SmtEngine: turning off sygus inference to support "
+                  "proofs/incremental solving"
                << std::endl;
       options::sygusInference.set(false);
     }
