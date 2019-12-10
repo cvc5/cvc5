@@ -1772,25 +1772,38 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       parseError("Too many arguments to array constant.");
     }
-    if (!args[0].isConst())
+    Node constVal = args[0];
+    // To parse array constants taking reals whose values are integral,
+    // e.g. ((as const (Array Int Real)) 5.0), we must handle the following
+    // issue. To distinguish real constants from integer ones, we construct
+    // the node (/ 5 1) when we parse 5.0. However, the node (/ 5 1) is not
+    // a constant value that can be put inside an array. Hence, we must
+    if (!constVal.isConst())
     {
-      std::stringstream ss;
-      ss << "expected constant term inside array constant, but found "
-         << "nonconstant term:" << std::endl
-         << "the term: " << args[0];
-      parseError(ss.str());
+      if (constVal.getKind()==DIVISION && constVal[1].isConst() && constVal[1].getConst<Rational>().isOne())
+      {
+        constVal = constVal[0];
+      }
+      if (!constVal.isConst())
+      {
+        std::stringstream ss;
+        ss << "expected constant term inside array constant, but found "
+          << "nonconstant term:" << std::endl
+          << "the term: " << constVal;
+        parseError(ss.str());
+      }
     }
     ArrayType aqtype = static_cast<ArrayType>(p.d_type);
-    if (!aqtype.getConstituentType().isComparableTo(args[0].getType()))
+    if (!aqtype.getConstituentType().isComparableTo(constVal.getType()))
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
          << "array type:          " << p.d_type << std::endl
          << "expected const type: " << aqtype.getConstituentType() << std::endl
-         << "computed const type: " << args[0].getType();
+         << "computed const type: " << constVal.getType();
       parseError(ss.str());
     }
-    return em->mkConst(ArrayStoreAll(p.d_type, args[0]));
+    return em->mkConst(ArrayStoreAll(p.d_type, constVal));
   }
   else if (p.d_kind == kind::APPLY_SELECTOR)
   {
