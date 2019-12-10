@@ -1824,18 +1824,6 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     const Datatype& dt = ((DatatypeType)t).getDatatype();
     return em->mkExpr(kind::APPLY_SELECTOR, dt[0][n].getSelector(), args);
   }
-  else if (!em->getOptions().getUfHo()
-           && (kind == kind::EQUAL || kind == kind::DISTINCT))
-  {
-    // need --uf-ho if these operators are applied over function args
-    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
-    {
-      if ((*i).getType().isFunction())
-      {
-        parseError("Cannot apply equalty to functions unless --uf-ho is set.");
-      }
-    }
-  }
   else if (p.d_kind != kind::NULL_EXPR)
   {
     std::stringstream ss;
@@ -1844,6 +1832,19 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   }
   else if (isBuiltinOperator)
   {
+    if (!em->getOptions().getUfHo()
+           && (kind == kind::EQUAL || kind == kind::DISTINCT))
+  {
+    // need --uf-ho if these operators are applied over function args
+    for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+    {
+      if ((*i).getType().isFunction())
+      {
+          parseError(
+              "Cannot apply equalty to functions unless --uf-ho is set.");
+    }
+  }
+  }
     if (args.size() > 2)
     {
       if (kind == kind::INTS_DIVISION || kind == kind::XOR
