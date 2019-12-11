@@ -305,8 +305,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         t = PARSER_STATE->mkFlatFunctionType(sorts, t);
       }
       if(t.isFunction() && !PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-        PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) cannot "
-                                      "be declared in logic ");
+        PARSER_STATE->parseError(
+            "Functions (of non-zero arity) cannot "
+            "be declared in logic "
+            + PARSER_STATE->getLogic().getLogicString()
+            + " unless option --uf-ho is used.");
       }
       // we allow overloading for function declarations
       if (PARSER_STATE->sygus_v1())
@@ -391,17 +394,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
         Command* csen = new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
-      }
-      // if sygus, check whether it has a free variable
-      // this is because, due to the sygus format, one can write assertions
-      // that have free function variables in them
-      if (PARSER_STATE->sygus())
-      {
-        if (expr.hasFreeVariable())
-        {
-          PARSER_STATE->parseError("Assertion has free variable. Perhaps you "
-                                   "meant constraint instead of assert?");
-        }
       }
     }
   | /* check-sat */
@@ -967,7 +959,7 @@ sygusGrammar[CVC4::Type & ret,
       std::stringstream ss;
       ss << "dt_" << fun << "_" << i.first;
       std::string dname = ss.str();
-      datatypes.push_back(Datatype(dname));
+      datatypes.push_back(Datatype(EXPR_MANAGER, dname));
       // make its unresolved type, used for referencing the final version of
       // the datatype
       PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
@@ -1294,8 +1286,11 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { Type t;
         if(sorts.size() > 1) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-            PARSER_STATE->parseErrorLogic("Functions (of non-zero arity) "
-                                          "cannot be declared in logic ");
+            PARSER_STATE->parseError(
+                "Functions (of non-zero arity) cannot "
+                "be declared in logic "
+                + PARSER_STATE->getLogic().getLogicString()
+                + " unless option --uf-ho is used");
           }
           // must flatten
           Type range = sorts.back();
@@ -1321,8 +1316,11 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { Type t = EXPR_MANAGER->booleanType();
         if(sorts.size() > 0) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
-            PARSER_STATE->parseErrorLogic("Predicates (of non-zero arity) "
-                                          "cannot be declared in logic ");
+            PARSER_STATE->parseError(
+                "Functions (of non-zero arity) cannot "
+                "be declared in logic "
+                + PARSER_STATE->getLogic().getLogicString()
+                + " unless option --uf-ho is used");
           }
           t = EXPR_MANAGER->mkFunctionType(sorts, t);
         }
@@ -1525,7 +1523,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(dnames[dts.size()],params,isCo));
+        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],params,isCo));
       }
       LPAREN_TOK
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
@@ -1535,7 +1533,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("No parameters given for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(dnames[dts.size()],params,isCo));
+        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],params,isCo));
       }
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
     )
@@ -2598,7 +2596,7 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
         params.push_back( t ); }
       )* ']'
     )?*/ //AJR: this isn't necessary if we use z3's style
-    { datatypes.push_back(Datatype(id,params,isCo));
+    { datatypes.push_back(Datatype(EXPR_MANAGER, id, params, isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);

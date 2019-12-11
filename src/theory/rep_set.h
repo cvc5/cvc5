@@ -175,8 +175,14 @@ public:
  bool isFinished() const;
  /** get domain size of the i^th field of this iterator */
  unsigned domainSize(unsigned i);
- /** get the i^th term in the tuple we are considering */
- Node getCurrentTerm(unsigned v, bool valTerm = false) const;
+ /** Get the type of terms in the i^th field of this iterator */
+ TypeNode getTypeOf(unsigned i) const;
+ /**
+  * Get the value for the i^th field in the tuple we are currently considering.
+  * If valTerm is true, we return a term instead of a value by calling
+  * RepSet::getTermForRepresentative on the value.
+  */
+ Node getCurrentTerm(unsigned i, bool valTerm = false) const;
  /** get the number of terms in the tuple we are considering */
  unsigned getNumTerms() const { return d_index_order.size(); }
  /** get current terms */

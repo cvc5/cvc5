@@ -52,6 +52,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
+      d_sygus_ccore(new CegisCoreConnective(qe, this)),
       d_ceg_pbe(new SygusPbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
       d_ceg_cegisUnif(new CegisUnif(qe, this)),
@@ -65,9 +66,13 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
   {
     d_modules.push_back(d_ceg_pbe.get());
   }
-  if (options::sygusUnif())
+  if (options::sygusUnifPi() != SYGUS_UNIF_PI_NONE)
   {
     d_modules.push_back(d_ceg_cegisUnif.get());
+  }
+  if (options::sygusCoreConnective())
+  {
+    d_modules.push_back(d_sygus_ccore.get());
   }
   d_modules.push_back(d_ceg_cegis.get());
 }
@@ -438,7 +443,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
 
   NodeManager* nm = NodeManager::currentNM();
 
-  // check the side condition
+  // check the side condition if we constructed a candidate
   if (constructed_cand)
   {
     if (!checkSideCondition(candidate_values))
@@ -712,7 +717,7 @@ void SynthConjecture::doRefine(std::vector<Node>& lems)
   base_lem = base_lem.substitute(
       sk_vars.begin(), sk_vars.end(), sk_subs.begin(), sk_subs.end());
   Trace("cegqi-refine") << "doRefine : rewrite..." << std::endl;
-  base_lem = Rewriter::rewrite(base_lem);
+  base_lem = d_tds->rewriteNode(base_lem);
   Trace("cegqi-refine") << "doRefine : register refinement lemma " << base_lem
                         << "..." << std::endl;
   d_master->registerRefinementLemma(sk_vars, base_lem, lems);

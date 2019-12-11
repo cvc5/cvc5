@@ -123,23 +123,18 @@ void Smt2::addBitvectorOperators() {
   addOperator(kind::BITVECTOR_TO_NAT, "bv2nat");
 
   addIndexedOperator(
-      kind::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT_OP, "extract");
+      kind::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT, "extract");
+  addIndexedOperator(kind::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT, "repeat");
   addIndexedOperator(
-      kind::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT_OP, "repeat");
-  addIndexedOperator(kind::BITVECTOR_ZERO_EXTEND,
-                     api::BITVECTOR_ZERO_EXTEND_OP,
-                     "zero_extend");
-  addIndexedOperator(kind::BITVECTOR_SIGN_EXTEND,
-                     api::BITVECTOR_SIGN_EXTEND_OP,
-                     "sign_extend");
-  addIndexedOperator(kind::BITVECTOR_ROTATE_LEFT,
-                     api::BITVECTOR_ROTATE_LEFT_OP,
-                     "rotate_left");
+      kind::BITVECTOR_ZERO_EXTEND, api::BITVECTOR_ZERO_EXTEND, "zero_extend");
+  addIndexedOperator(
+      kind::BITVECTOR_SIGN_EXTEND, api::BITVECTOR_SIGN_EXTEND, "sign_extend");
+  addIndexedOperator(
+      kind::BITVECTOR_ROTATE_LEFT, api::BITVECTOR_ROTATE_LEFT, "rotate_left");
   addIndexedOperator(kind::BITVECTOR_ROTATE_RIGHT,
-                     api::BITVECTOR_ROTATE_RIGHT_OP,
+                     api::BITVECTOR_ROTATE_RIGHT,
                      "rotate_right");
-  addIndexedOperator(
-      kind::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR_OP, "int2bv");
+  addIndexedOperator(kind::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR, "int2bv");
 }
 
 void Smt2::addDatatypesOperators()
@@ -234,29 +229,29 @@ void Smt2::addFloatingPointOperators() {
   addOperator(kind::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
   addIndexedOperator(kind::FLOATINGPOINT_TO_FP_GENERIC,
-                     api::FLOATINGPOINT_TO_FP_GENERIC_OP,
+                     api::FLOATINGPOINT_TO_FP_GENERIC,
                      "to_fp");
   addIndexedOperator(kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
-                     api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP,
+                     api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
                      "to_fp_unsigned");
   addIndexedOperator(
-      kind::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV_OP, "fp.to_ubv");
+      kind::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
   addIndexedOperator(
-      kind::FLOATINGPOINT_TO_SBV, api::FLOATINGPOINT_TO_SBV_OP, "fp.to_sbv");
+      kind::FLOATINGPOINT_TO_SBV, api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
 
   if (!strictModeEnabled())
   {
     addIndexedOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
-                       api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
+                       api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
                        "to_fp_bv");
     addIndexedOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
-                       api::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP,
+                       api::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
                        "to_fp_fp");
     addIndexedOperator(kind::FLOATINGPOINT_TO_FP_REAL,
-                       api::FLOATINGPOINT_TO_FP_REAL_OP,
+                       api::FLOATINGPOINT_TO_FP_REAL,
                        "to_fp_real");
     addIndexedOperator(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
-                       api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP,
+                       api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
                        "to_fp_signed");
   }
 }
@@ -311,7 +306,7 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::INTS_DIVISION, "div");
     addOperator(kind::INTS_MODULUS, "mod");
     addOperator(kind::ABS, "abs");
-    addIndexedOperator(kind::DIVISIBLE, api::DIVISIBLE_OP, "divisible");
+    addIndexedOperator(kind::DIVISIBLE, api::DIVISIBLE, "divisible");
     break;
 
   case THEORY_REALS:
@@ -549,8 +544,8 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
   return api::Term();
 }
 
-api::OpTerm Smt2::mkIndexedOp(const std::string& name,
-                              const std::vector<uint64_t>& numerals)
+api::Op Smt2::mkIndexedOp(const std::string& name,
+                          const std::vector<uint64_t>& numerals)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
   if (kIt != d_indexedOpKindMap.end())
@@ -558,16 +553,16 @@ api::OpTerm Smt2::mkIndexedOp(const std::string& name,
     api::Kind k = (*kIt).second;
     if (numerals.size() == 1)
     {
-      return d_solver->mkOpTerm(k, numerals[0]);
+      return d_solver->mkOp(k, numerals[0]);
     }
     else if (numerals.size() == 2)
     {
-      return d_solver->mkOpTerm(k, numerals[0], numerals[1]);
+      return d_solver->mkOp(k, numerals[0], numerals[1]);
     }
   }
 
   parseError(std::string("Unknown indexed function `") + name + "'");
-  return api::OpTerm();
+  return api::Op();
 }
 
 Expr Smt2::mkDefineFunRec(
@@ -1104,7 +1099,7 @@ bool Smt2::pushSygusDatatypeDef( Type t, std::string& dname,
                                   std::vector< bool >& allow_const,
                                   std::vector< std::vector< std::string > >& unresolved_gterm_sym ){
   sorts.push_back(t);
-  datatypes.push_back(Datatype(dname));
+  datatypes.push_back(Datatype(getExprManager(), dname));
   ops.push_back(std::vector<Expr>());
   cnames.push_back(std::vector<std::string>());
   cargs.push_back(std::vector<std::vector<CVC4::Type> >());
@@ -1435,6 +1430,10 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
                                    std::map<Expr, Type>& ntsToUnres) const
 {
   Trace("parser-sygus2") << "Add sygus cons term " << term << std::endl;
+  // Ensure that we do type checking here to catch sygus constructors with
+  // malformed builtin operators. The argument "true" to getType here forces
+  // a recursive well-typedness check.
+  term.getType(true);
   // purify each occurrence of a non-terminal symbol in term, replace by
   // free variables. These become arguments to constructors. Notice we must do
   // a tree traversal in this function, since unique paths to the same term
@@ -1764,7 +1763,6 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       }
     }
   }
-
   // Second phase: apply the arguments to the parse op
   ExprManager* em = getExprManager();
   // handle special cases
@@ -1834,6 +1832,19 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   }
   else if (isBuiltinOperator)
   {
+    if (!em->getOptions().getUfHo()
+        && (kind == kind::EQUAL || kind == kind::DISTINCT))
+    {
+      // need --uf-ho if these operators are applied over function args
+      for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+      {
+        if ((*i).getType().isFunction())
+        {
+          parseError(
+              "Cannot apply equalty to functions unless --uf-ho is set.");
+        }
+      }
+    }
     if (args.size() > 2)
     {
       if (kind == kind::INTS_DIVISION || kind == kind::XOR
