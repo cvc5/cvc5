@@ -428,7 +428,7 @@ Node sygusToBuiltin(Node n)
     {
       Node ret = cur;
       Assert(cur.getKind() == APPLY_CONSTRUCTOR);
-      const Datatype& dt = cur.getType().getDatatype();
+      const DType& dt = cur.getType().getDType();
       // Non sygus-datatype terms are also themselves. Notice we treat the
       // case of non-sygus datatypes this way since it avoids computing
       // the type / datatype of the node in the pre-traversal above. The
@@ -550,7 +550,7 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
     {
       Node ret = cur;
       Assert(cur.getKind() == APPLY_CONSTRUCTOR);
-      const Datatype& dt = cur.getType().getDatatype();
+      const DType& dt = cur.getType().getDType();
       // non sygus-datatype terms are also themselves
       if (dt.isSygus())
       {
