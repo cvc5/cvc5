@@ -107,7 +107,8 @@ void SygusExtension::assertFact( Node n, bool polarity, std::vector< Node >& lem
     Node m = n[0];
     Trace("sygus-fair") << "Have sygus bound : " << n << ", polarity=" << polarity << " on measure " << m << std::endl;
     registerMeasureTerm( m );
-    if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
+    if (options::sygusFair() == options::SygusFairMode::DT_SIZE)
+    {
       std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
           d_szinfo.find(m);
       Assert(its != d_szinfo.end());
@@ -245,8 +246,9 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
       d_szinfo.find(m);
   Assert(itsz != d_szinfo.end());
   unsigned ssz = itsz->second->d_curr_search_size;
-  
-  if( options::sygusFair()==SYGUS_FAIR_DIRECT ){
+
+  if (options::sygusFair() == options::SygusFairMode::DIRECT)
+  {
     if( dt[tindex].getNumArgs()>0 ){
       quantifiers::SygusTypeInfo& nti = d_tds->getTypeInfo(ntn);
       // consider lower bounds for size of types
@@ -596,7 +598,8 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
   {
     Trace("sygus-sb-simple-debug") << "  Size..." << std::endl;
     // fairness
-    if (options::sygusFair() == SYGUS_FAIR_DT_SIZE && !isAnyConstant)
+    if (options::sygusFair() == options::SygusFairMode::DT_SIZE
+        && !isAnyConstant)
     {
       Node szl = nm->mkNode(DT_SIZE, n);
       Node szr = nm->mkNode(DT_SIZE, utils::getInstCons(n, dt, tindex));
@@ -1335,7 +1338,7 @@ void SygusExtension::registerSizeTerm(Node e, std::vector<Node>& lemmas)
   d_szinfo[m]->d_anchors.push_back(e);
   d_anchor_to_measure_term[e] = m;
   NodeManager* nm = NodeManager::currentNM();
-  if (options::sygusFair() == SYGUS_FAIR_DT_SIZE)
+  if (options::sygusFair() == options::SygusFairMode::DT_SIZE)
   {
     // update constraints on the measure term
     Node slem;
@@ -1575,7 +1578,8 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
       {
         isExc = false;
         //debugging : ensure fairness was properly handled
-        if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){  
+        if (options::sygusFair() == options::SygusFairMode::DT_SIZE)
+        {
           Node prog_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, prog );
           Node prog_szv = d_td->getValuation().getModel()->getValue( prog_sz );
           Node progv_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, progv );
@@ -1768,7 +1772,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
 
 Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
 {
-  if (options::sygusFair() == SYGUS_FAIR_NONE)
+  if (options::sygusFair() == options::SygusFairMode::NONE)
   {
     return Node::null();
   }

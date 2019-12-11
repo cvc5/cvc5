@@ -26,7 +26,6 @@
 #include "options/base_handlers.h"
 #include "options/bool_to_bv_mode.h"
 #include "options/bv_bitblast_mode.h"
-#include "options/datatypes_modes.h"
 #include "options/decision_mode.h"
 #include "options/language.h"
 #include "options/option_exception.h"
@@ -118,8 +117,6 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::QuantRepMode stringToQuantRepMode(std::string option,
                                                          std::string optarg);
-  theory::SygusFairMode stringToSygusFairMode(std::string option,
-                                              std::string optarg);
 
   // theory/bv/options_handlers.h
   void abcEnabledBuild(std::string option, bool value);
@@ -225,7 +222,6 @@ public:
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
   static const std::string s_boolToBVModeHelp;
-  static const std::string s_cegqiFairModeHelp;
   static const std::string s_instFormatHelp;
   static const std::string s_decisionModeHelp;
   static const std::string s_instWhenHelp;

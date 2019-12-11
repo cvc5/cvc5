@@ -32,7 +32,6 @@
 #include "options/base_options.h"
 #include "options/bv_bitblast_mode.h"
 #include "options/bv_options.h"
-#include "options/datatypes_modes.h"
 #include "options/decision_mode.h"
 #include "options/decision_options.h"
 #include "options/didyoumean.h"
@@ -274,26 +273,6 @@ dnorm \n\
 \n\
 norm \n\
 + Prenex to prenex normal form.\n\
-\n\
-";
-
-const std::string OptionsHandler::s_cegqiFairModeHelp = "\
-Modes for enforcing fairness for counterexample guided quantifier instantion, supported by --sygus-fair:\n\
-\n\
-uf-dt-size \n\
-+ Enforce fairness using an uninterpreted function for datatypes size.\n\
-\n\
-direct \n\
-+ Enforce fairness using direct conflict lemmas.\n\
-\n\
-default | dt-size \n\
-+ Default, enforce fairness using size operator.\n\
-\n\
-dt-height-bound \n\
-+ Enforce fairness by height bound predicate.\n\
-\n\
-none \n\
-+ Do not enforce fairness. \n\
 \n\
 ";
 
@@ -750,28 +729,6 @@ theory::quantifiers::PrenexQuantMode OptionsHandler::stringToPrenexQuantMode(
   } else {
     throw OptionException(std::string("unknown option for --prenex-quant: `") +
                           optarg + "'.  Try --prenex-quant help.");
-  }
-}
-
-theory::SygusFairMode OptionsHandler::stringToSygusFairMode(std::string option,
-                                                            std::string optarg)
-{
-  if(optarg == "direct") {
-    return theory::SYGUS_FAIR_DIRECT;
-  } else if(optarg == "default" || optarg == "dt-size") {
-    return theory::SYGUS_FAIR_DT_SIZE;
-  } else if(optarg == "dt-height-bound" ){
-    return theory::SYGUS_FAIR_DT_HEIGHT_PRED;
-  } else if(optarg == "dt-size-bound" ){
-    return theory::SYGUS_FAIR_DT_SIZE_PRED;
-  } else if(optarg == "none") {
-    return theory::SYGUS_FAIR_NONE;
-  } else if(optarg ==  "help") {
-    puts(s_cegqiFairModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --cegqi-fair: `") +
-                          optarg + "'.  Try --cegqi-fair help.");
   }
 }
 
