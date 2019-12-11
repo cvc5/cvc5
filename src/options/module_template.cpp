@@ -26,6 +26,7 @@ namespace options {
 
 ${defs}$
 
+${modes}$
 
 }  // namespace options
 }  // namespace CVC4

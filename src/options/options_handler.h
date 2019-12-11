@@ -23,9 +23,6 @@
 #include <string>
 
 #include "base/modal_exception.h"
-#include "options/arith_heuristic_pivot_rule.h"
-#include "options/arith_propagation_mode.h"
-#include "options/arith_unate_lemma_mode.h"
 #include "options/base_handlers.h"
 #include "options/bool_to_bv_mode.h"
 #include "options/bv_bitblast_mode.h"
@@ -69,14 +66,6 @@ public:
   void doubleLessOrEqual1(const std::string& option, double value) {
     options::less_equal(1.0)(option, value);
   }
-
-  // theory/arith/options_handlers.h
-  ArithUnateLemmaMode stringToArithUnateLemmaMode(std::string option,
-                                                  std::string optarg);
-  ArithPropagationMode stringToArithPropagationMode(std::string option,
-                                                    std::string optarg);
-  ErrorSelectionRule stringToErrorSelectionRule(std::string option,
-                                                std::string optarg);
 
   // theory/quantifiers/options_handlers.h
   theory::quantifiers::InstWhenMode stringToInstWhenMode(std::string option,
@@ -288,9 +277,6 @@ public:
   static const std::string s_ufssModeHelp;
   static const std::string s_userPatModeHelp;
   static const std::string s_fmfBoundMinModeModeHelp;
-  static const std::string s_errorSelectionRulesHelp;
-  static const std::string s_arithPropagationModeHelp;
-  static const std::string s_arithUnateLemmasHelp;
 
 }; /* class OptionHandler */
 

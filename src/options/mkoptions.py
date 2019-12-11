@@ -55,8 +55,9 @@ MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option', 'alias']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
-    'name', 'help', 'smt_name', 'short', 'long', 'default', 'includes',
-    'handler', 'predicates', 'notifies', 'links', 'read_only', 'alternate'
+    'name', 'help', 'help_mode', 'smt_name', 'short', 'long', 'default',
+    'includes', 'handler', 'predicates', 'notifies', 'links', 'read_only',
+    'alternate', 'mode'
 ]
 
 ALIAS_ATTR_REQ = ['category', 'long', 'links']
@@ -227,6 +228,66 @@ TPL_IMPL_OPTION_WAS_SET_BY_USER = \
   return Options::current()->wasSetByUser(*this);
 }}"""
 
+# Mode templates
+TPL_DECL_MODE_ENUM = \
+"""
+enum class {type}
+{{
+  {values}
+}};"""
+
+TPL_DECL_MODE_FUNC = \
+"""
+std::ostream&
+operator<<(std::ostream& out, {type} mode) CVC4_PUBLIC;"""
+
+TPL_IMPL_MODE_FUNC = \
+"""
+std::ostream&
+operator<<(std::ostream& out, {type} mode)
+{{
+  switch(mode) {{{cases}
+  }}
+  return out;
+}}
+"""
+
+TPL_IMPL_MODE_CASE = \
+"""
+    case {type}::{enum}:
+      out << "{enum}";
+      break;"""
+
+TPL_DECL_MODE_HANDLER = \
+"""
+{type}
+stringTo{type}(std::string option, std::string optarg);
+"""
+
+TPL_IMPL_MODE_HANDLER = \
+"""
+{type}
+stringTo{type}(std::string option, std::string optarg)
+{{
+  {cases}
+  else if (optarg == "help")
+  {{
+    puts({help});
+    exit(1);
+  }}
+  else
+  {{
+    throw OptionException(std::string("unknown option for --{long}: `") +
+                          optarg + "'.  Try --{long}=help.");
+  }}
+}}
+"""
+
+TPL_MODE_HANDLER_CASE = \
+"""if (optarg == "{name}")
+  {{
+    return {type}::{enum};
+  }}"""
 
 
 class Module(object):
@@ -436,6 +497,29 @@ def help_format(help_msg, opts):
     lines.extend([' ' * width_opt + l for l in text[1:]])
     return ['"{}\\n"'.format(x) for x in lines]
 
+def help_mode_format(option):
+    """
+    Format help message for mode options.
+    """
+    assert option.help_mode
+    assert option.mode
+
+    wrapper = textwrap.TextWrapper(width=78, break_on_hyphens=False)
+    text = ['{}'.format(x) for x in wrapper.wrap(option.help_mode)]
+    text.append('Available modes for --{} are:'.format(option.long))
+
+    for value, attrib in option.mode.items():
+        assert len(attrib) == 1
+        attrib = attrib[0]
+        if value == option.default:
+            text.append('+ {} (default)'.format(attrib['name']))
+        else:
+            text.append('+ {}'.format(attrib['name']))
+        if 'help' in attrib:
+            text.extend('  {}'.format(x) for x in wrapper.wrap(attrib['help']))
+
+    return '\n         '.join('"{}\\n"'.format(x) for x in text)
+
 
 def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     """
@@ -449,6 +533,8 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     decls = []
     specs = []
     inls = []
+    mode_decl = []
+    mode_impl = []
 
     # *_options_.cpp
     accs = []
@@ -511,6 +597,38 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         # Global definitions
         defs.append('struct {name}__option_t {name};'.format(name=option.name))
 
+        if option.mode:
+            values = option.mode.keys()
+            mode_decl.append(
+                TPL_DECL_MODE_ENUM.format(
+                    type=option.type,
+                    values=',\n  '.join(values)))
+            mode_decl.append(TPL_DECL_MODE_FUNC.format(type=option.type))
+            cases = [TPL_IMPL_MODE_CASE.format(
+                        type=option.type, enum=x) for x in values]
+            mode_impl.append(
+                TPL_IMPL_MODE_FUNC.format(
+                    type=option.type,
+                    cases=''.join(cases)))
+
+            # Generate str-to-enum handler
+            cases = []
+            for value, attrib in option.mode.items():
+                assert len(attrib) == 1
+                cases.append(
+                    TPL_MODE_HANDLER_CASE.format(
+                        name=attrib[0]['name'],
+                        type=option.type,
+                        enum=value))
+            assert option.long
+            assert cases
+            mode_decl.append(TPL_DECL_MODE_HANDLER.format(type=option.type))
+            mode_impl.append(
+                TPL_IMPL_MODE_HANDLER.format(
+                    type=option.type,
+                    cases='\n  else '.join(cases),
+                    help=help_mode_format(option),
+                    long=option.long.split('=')[0]))
 
     filename = os.path.splitext(os.path.split(module.header)[1])[0]
     write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
@@ -521,14 +639,14 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         holder_spec=' \\\n'.join(holder_specs),
         decls='\n'.join(decls),
         specs='\n'.join(specs),
-        inls='\n'.join(inls)
-    ))
+        inls='\n'.join(inls),
+        modes=''.join(mode_decl)))
 
     write_file(dst_dir, '{}.cpp'.format(filename), tpl_module_cpp.format(
         filename=filename,
         accs='\n'.join(accs),
-        defs='\n'.join(defs)
-    ))
+        defs='\n'.join(defs),
+        modes=''.join(mode_impl)))
 
 
 def docgen(category, name, smt_name, short_name, long_name, ctype, default,
@@ -675,7 +793,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                 '.TP\n.I "{} OPTIONS"'.format(module.name.upper()))
             man_others_int.append(man_others_smt[-1])
 
-
         for option in \
             sorted(module.options, key=lambda x: x.long if x.long else x.name):
             assert option.type != 'void' or option.name is None
@@ -695,6 +812,8 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                 else:
                     handler = \
                         'handler->{}(option, optionarg)'.format(option.handler)
+            elif option.mode:
+                handler = 'stringTo{}(option, optionarg)'.format(option.type)
             elif option.type != 'bool':
                 handler = \
                     'handleOption<{}>(option, optionarg)'.format(option.type)
@@ -906,6 +1025,9 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
 
                 # Default option values
                 default = option.default if option.default else ''
+                # Prepend enum name
+                if option.mode and option.type not in default:
+                    default = '{}::{}'.format(option.type, default)
                 defaults.append('{}({})'.format(option.name, default))
                 defaults.append('{}__setByUser__(false)'.format(option.name))
 
@@ -1206,12 +1328,19 @@ def parse_module(filename, module):
     res = Module(module)
 
     if 'option' in module:
-        for name, attribs in module['option'].items():
-            attribs['name'] = name
+        for attribs in module['option']:
             lineno = 0
             check_attribs(filename, lineno,
                           OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
             option = Option(attribs)
+            if option.mode and not option.help_mode:
+                perr(filename, lineno,
+                     "option {} defines modes but no help_mode".format(option.name))
+            if option.mode and option.default and \
+                    option.default not in option.mode.keys():
+                perr(filename, lineno,
+                     "invalid default value '{}' for option {}".format(
+                         option.default, option.name))
             if option.short and not option.long:
                 perr(filename, lineno,
                      "short option '{}' specified but no long option".format(

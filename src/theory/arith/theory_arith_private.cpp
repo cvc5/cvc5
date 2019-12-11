@@ -3737,8 +3737,8 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
   // This should be fine if sat or unknown
   if(!emmittedConflictOrSplit &&
-     (options::arithPropagationMode() == UNATE_PROP ||
-      options::arithPropagationMode() == BOTH_PROP)){
+     (options::arithPropagationMode() == options::ArithPropagationMode::UNATE_PROP ||
+      options::arithPropagationMode() == options::ArithPropagationMode::BOTH_PROP)){
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
     Assert(d_qflraStatus != Result::UNSAT);
 
@@ -4110,8 +4110,8 @@ bool TheoryArithPrivate::isExtfReduced(int effort, Node n, Node on,
 void TheoryArithPrivate::propagate(Theory::Effort e) {
   // This uses model values for safety. Disable for now.
   if(d_qflraStatus == Result::SAT &&
-     (options::arithPropagationMode() == BOUND_INFERENCE_PROP ||
-      options::arithPropagationMode() == BOTH_PROP)
+     (options::arithPropagationMode() == options::ArithPropagationMode::BOUND_INFERENCE_PROP ||
+      options::arithPropagationMode() == options::ArithPropagationMode::BOTH_PROP)
      && hasAnyUpdates()){
     if(options::newProp()){
       propagateCandidatesNew();
@@ -4474,15 +4474,15 @@ void TheoryArithPrivate::presolve(){
   vector<Node> lemmas;
   if(!options::incrementalSolving()) {
     switch(options::arithUnateLemmaMode()){
-    case NO_PRESOLVE_LEMMAS:
+    case options::ArithUnateLemmaMode::NO_PRESOLVE_LEMMAS:
       break;
-    case INEQUALITY_PRESOLVE_LEMMAS:
+    case options::ArithUnateLemmaMode::INEQUALITY_PRESOLVE_LEMMAS:
       d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
       break;
-    case EQUALITY_PRESOLVE_LEMMAS:
+    case options::ArithUnateLemmaMode::EQUALITY_PRESOLVE_LEMMAS:
       d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
       break;
-    case ALL_PRESOLVE_LEMMAS:
+    case options::ArithUnateLemmaMode::ALL_PRESOLVE_LEMMAS:
       d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
       d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
       break;

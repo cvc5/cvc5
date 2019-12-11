@@ -29,9 +29,6 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
-#include "options/arith_heuristic_pivot_rule.h"
-#include "options/arith_propagation_mode.h"
-#include "options/arith_unate_lemma_mode.h"
 #include "options/base_options.h"
 #include "options/bv_bitblast_mode.h"
 #include "options/bv_options.h"
@@ -120,102 +117,6 @@ void OptionsHandler::notifyPrintSuccess(std::string option) {
   d_options->d_setPrintSuccessListeners.notify();
 }
 
-// theory/arith/options_handlers.h
-const std::string OptionsHandler::s_arithUnateLemmasHelp = "\
-Unate lemmas are generated before SAT search begins using the relationship\n\
-of constant terms and polynomials.\n\
-Modes currently supported by the --unate-lemmas option:\n\
-+ none \n\
-+ ineqs \n\
-  Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d.\n\
-+ eqs \n\
-  Outputs lemmas of the general forms\n\
-  (= p c) implies (<= p d) for c < d, or\n\
-  (= p c) implies (not (= p d)) for c != d.\n\
-+ all \n\
-  A combination of inequalities and equalities.\n\
-";
-
-const std::string OptionsHandler::s_arithPropagationModeHelp = "\
-This decides on kind of propagation arithmetic attempts to do during the search.\n\
-+ none\n\
-+ unate\n\
- use constraints to do unate propagation\n\
-+ bi (Bounds Inference)\n\
-  infers bounds on basic variables using the upper and lower bounds of the\n\
-  non-basic variables in the tableau.\n\
-+both\n\
-";
-
-const std::string OptionsHandler::s_errorSelectionRulesHelp = "\
-This decides on the rule used by simplex during heuristic rounds\n\
-for deciding the next basic variable to select.\n\
-Heuristic pivot rules available:\n\
-+min\n\
-  The minimum abs() value of the variable's violation of its bound. (default)\n\
-+max\n\
-  The maximum violation the bound\n\
-+varord\n\
-  The variable order\n\
-";
-
-ArithUnateLemmaMode OptionsHandler::stringToArithUnateLemmaMode(
-    std::string option, std::string optarg)
-{
-  if(optarg == "all") {
-    return ALL_PRESOLVE_LEMMAS;
-  } else if(optarg == "none") {
-    return NO_PRESOLVE_LEMMAS;
-  } else if(optarg == "ineqs") {
-    return INEQUALITY_PRESOLVE_LEMMAS;
-  } else if(optarg == "eqs") {
-    return EQUALITY_PRESOLVE_LEMMAS;
-  } else if(optarg == "help") {
-    puts(s_arithUnateLemmasHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --unate-lemmas: `") +
-                          optarg + "'.  Try --unate-lemmas help.");
-  }
-}
-
-ArithPropagationMode OptionsHandler::stringToArithPropagationMode(
-    std::string option, std::string optarg)
-{
-  if(optarg == "none") {
-    return NO_PROP;
-  } else if(optarg == "unate") {
-    return UNATE_PROP;
-  } else if(optarg == "bi") {
-    return BOUND_INFERENCE_PROP;
-  } else if(optarg == "both") {
-    return BOTH_PROP;
-  } else if(optarg == "help") {
-    puts(s_arithPropagationModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --arith-prop: `") +
-                          optarg + "'.  Try --arith-prop help.");
-  }
-}
-
-ErrorSelectionRule OptionsHandler::stringToErrorSelectionRule(
-    std::string option, std::string optarg)
-{
-  if(optarg == "min") {
-    return MINIMUM_AMOUNT;
-  } else if(optarg == "varord") {
-    return VAR_ORDER;
-  } else if(optarg == "max") {
-    return MAXIMUM_AMOUNT;
-  } else if(optarg == "help") {
-    puts(s_errorSelectionRulesHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --heuristic-pivot-rule: `") +
-                          optarg + "'.  Try --heuristic-pivot-rule help.");
-  }
-}
 // theory/quantifiers/options_handlers.h
 
 const std::string OptionsHandler::s_instWhenHelp = "\

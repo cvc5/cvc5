@@ -2,12 +2,6 @@ libcvc4_add_sources(
   argument_extender.h
   argument_extender_implementation.cpp
   argument_extender_implementation.h
-  arith_heuristic_pivot_rule.cpp
-  arith_heuristic_pivot_rule.h
-  arith_propagation_mode.cpp
-  arith_propagation_mode.h
-  arith_unate_lemma_mode.cpp
-  arith_unate_lemma_mode.h
   base_handlers.h
   bool_to_bv_mode.cpp
   bool_to_bv_mode.h
