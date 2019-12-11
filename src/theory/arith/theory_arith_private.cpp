@@ -4474,19 +4474,18 @@ void TheoryArithPrivate::presolve(){
   vector<Node> lemmas;
   if(!options::incrementalSolving()) {
     switch(options::arithUnateLemmaMode()){
-    case options::ArithUnateLemmaMode::NO_PRESOLVE_LEMMAS:
-      break;
-    case options::ArithUnateLemmaMode::INEQUALITY_PRESOLVE_LEMMAS:
-      d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
-      break;
-    case options::ArithUnateLemmaMode::EQUALITY_PRESOLVE_LEMMAS:
-      d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
-      break;
-    case options::ArithUnateLemmaMode::ALL_PRESOLVE_LEMMAS:
-      d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
-      d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
-      break;
-    default: Unhandled() << options::arithUnateLemmaMode();
+      case options::ArithUnateLemmaMode::NO: break;
+      case options::ArithUnateLemmaMode::INEQUALITY:
+        d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
+        break;
+      case options::ArithUnateLemmaMode::EQUALITY:
+        d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
+        break;
+      case options::ArithUnateLemmaMode::ALL:
+        d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
+        d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
+        break;
+      default: Unhandled() << options::arithUnateLemmaMode();
     }
   }
 

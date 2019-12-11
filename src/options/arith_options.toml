@@ -7,20 +7,20 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "unate-lemmas=MODE"
   type       = "ArithUnateLemmaMode"
-  default    = "ALL_PRESOLVE_LEMMAS"
+  default    = "ALL"
   read_only  = true
   help       = "determines which lemmas to add before solving (default is 'all', see --unate-lemmas=help)"
   help_mode  = "Unate lemmas are generated before SAT search begins using the relationship of constant terms and polynomials."
-[[option.mode.ALL_PRESOLVE_LEMMAS]]
+[[option.mode.ALL]]
   name = "all"
   help = "A combination of inequalities and equalities."
-[[option.mode.EQUALITY_PRESOLVE_LEMMAS]]
+[[option.mode.EQUALITY]]
   name = "eqs"
   help = "Outputs lemmas of the general forms (= p c) implies (<= p d) for c < d, or (= p c) implies (not (= p d)) for c != d."
-[[option.mode.INEQUALITY_PRESOLVE_LEMMAS]]
+[[option.mode.INEQUALITY]]
   name = "ineqs"
   help  = "Outputs lemmas of the general form (<= p c) implies (<= p d) for c < d."
-[[option.mode.NO_PRESOLVE_LEMMAS]]
+[[option.mode.NO]]
   name = "none"
 
 [[option]]

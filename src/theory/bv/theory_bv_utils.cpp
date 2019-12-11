@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include "options/theory_options.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
@@ -156,7 +157,7 @@ static bool isCoreEqTerm(bool iseq, TNode term, TNodeBoolMap& cache)
       continue;
     }
 
-    if (theory::Theory::theoryOf(theory::THEORY_OF_TERM_BASED, n)
+    if (theory::Theory::theoryOf(options::TheoryOfMode::THEORY_OF_TERM_BASED, n)
         == theory::THEORY_BV)
     {
       Kind k = n.getKind();

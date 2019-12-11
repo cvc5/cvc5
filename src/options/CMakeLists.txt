@@ -34,8 +34,6 @@ libcvc4_add_sources(
   strings_modes.cpp
   strings_modes.h
   sygus_out_mode.h
-  theoryof_mode.cpp
-  theoryof_mode.h
   ufss_mode.h
 )
 

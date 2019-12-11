@@ -29,6 +29,7 @@
 #include "options/options.h"
 #include "options/proof_options.h"
 #include "options/quantifiers_options.h"
+#include "options/theory_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/cnf_proof.h"
 #include "proof/lemma_proof.h"
@@ -2242,7 +2243,12 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   }
 }
 
-std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* seffects) {
+std::pair<bool, Node> TheoryEngine::entailmentCheck(
+    options::TheoryOfMode mode,
+    TNode lit,
+    const EntailmentCheckParameters* params,
+    EntailmentCheckSideEffects* seffects)
+{
   TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
   if( atom.getKind()==kind::AND || atom.getKind()==kind::OR || atom.getKind()==kind::IMPLIES ){
     //Boolean connective, recurse

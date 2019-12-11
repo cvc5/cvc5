@@ -22,6 +22,7 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "options/theory_options.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 
@@ -171,7 +172,7 @@ class SolverState
    *
    * This calls entailmentCheck on the Valuation object of theory of strings.
    */
-  std::pair<bool, Node> entailmentCheck(TheoryOfMode mode, TNode lit);
+  std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
   /** Separate by length
    *
    * Separate the string representatives in argument n into a partition cols

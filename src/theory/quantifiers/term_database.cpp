@@ -16,10 +16,11 @@
 
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
@@ -672,7 +673,8 @@ Node TermDb::evaluateTerm2(TNode n,
             for (unsigned j = 0; j < 2; j++)
             {
               std::pair<bool, Node> et = te->entailmentCheck(
-                  THEORY_OF_TYPE_BASED, j == 0 ? ret : ret.negate());
+                  options::TheoryOfMode::THEORY_OF_TYPE_BASED,
+                  j == 0 ? ret : ret.negate());
               if (et.first)
               {
                 ret = j == 0 ? d_true : d_false;

@@ -583,7 +583,7 @@ unsigned NonlinearExtension::filterLemmas(std::vector<Node>& lemmas,
       Trace("nl-ext-et-debug")
           << "Check entailment of " << ch_lemma << "..." << std::endl;
       std::pair<bool, Node> et = d_containing.getValuation().entailmentCheck(
-          THEORY_OF_TYPE_BASED, ch_lemma);
+          options::TheoryOfMode::THEORY_OF_TYPE_BASED, ch_lemma);
       Trace("nl-ext-et-debug") << "entailment test result : " << et.first << " "
                                << et.second << std::endl;
       if (et.first)

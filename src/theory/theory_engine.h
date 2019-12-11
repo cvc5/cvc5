@@ -23,14 +23,15 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "base/check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "smt_util/lemma_channels.h"
@@ -864,9 +865,13 @@ public:
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
-  std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
+  std::pair<bool, Node> entailmentCheck(
+      options::TheoryOfMode mode,
+      TNode lit,
+      const theory::EntailmentCheckParameters* params = NULL,
+      theory::EntailmentCheckSideEffects* out = NULL);
 
-private:
+ private:
 
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;

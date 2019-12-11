@@ -1549,7 +1549,7 @@ void SmtEngine::setDefaults() {
        !d_logic.isTheoryEnabled(THEORY_STRINGS) &&
        !d_logic.isTheoryEnabled(THEORY_SETS) ) {
       Trace("smt") << "setting theoryof-mode to term-based" << endl;
-      options::theoryOfMode.set(THEORY_OF_TERM_BASED);
+      options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
     }
   }
 

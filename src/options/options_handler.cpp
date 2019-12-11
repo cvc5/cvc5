@@ -41,7 +41,6 @@
 #include "options/printer_modes.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "options/theoryof_mode.h"
 #include "options/ufss_mode.h"
 
 namespace CVC4 {
@@ -1629,31 +1628,6 @@ theory::uf::UfssMode OptionsHandler::stringToUfssMode(std::string option,
 }
 
 
-
-// theory/options_handlers.h
-const std::string OptionsHandler::s_theoryOfModeHelp = "\
-TheoryOf modes currently supported by the --theoryof-mode option:\n\
-\n\
-type (default) \n\
-+ type variables, constants and equalities by type\n\
-\n\
-term \n\
-+ type variables as uninterpreted, equalities by the parametric theory\n\
-";
-
-theory::TheoryOfMode OptionsHandler::stringToTheoryOfMode(std::string option, std::string optarg) {
-  if(optarg == "type") {
-    return theory::THEORY_OF_TYPE_BASED;
-  } else if(optarg == "term") {
-    return theory::THEORY_OF_TERM_BASED;
-  } else if(optarg == "help") {
-    puts(s_theoryOfModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --theoryof-mode: `") +
-                          optarg + "'.  Try --theoryof-mode help.");
-  }
-}
 
 // theory/options_handlers.h
 std::string OptionsHandler::handleUseTheoryList(std::string option, std::string optarg) {

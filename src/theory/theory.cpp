@@ -16,13 +16,14 @@
 
 #include "theory/theory.h"
 
-#include <vector>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/quantifiers_engine.h"
@@ -90,20 +91,27 @@ Theory::~Theory() {
   delete d_extTheory;
 }
 
-TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
+TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
+{
   TheoryId tid = THEORY_BUILTIN;
   switch(mode) {
-  case THEORY_OF_TYPE_BASED:
-    // Constants, variables, 0-ary constructors
-    if (node.isVar()) {
-      if( node.getKind() == kind::BOOLEAN_TERM_VARIABLE ){
-        tid = THEORY_UF;
-      }else{
-        tid = Theory::theoryOf(node.getType());
+    case options::TheoryOfMode::THEORY_OF_TYPE_BASED:
+      // Constants, variables, 0-ary constructors
+      if (node.isVar())
+      {
+        if (node.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+        {
+          tid = THEORY_UF;
+        }
+        else
+        {
+          tid = Theory::theoryOf(node.getType());
+        }
       }
-    }else if (node.isConst()) {
-      tid = Theory::theoryOf(node.getType());
-    } else if (node.getKind() == kind::EQUAL) {
+      else if (node.isConst())
+      {
+        tid = Theory::theoryOf(node.getType());
+      } else if (node.getKind() == kind::EQUAL) {
       // Equality is owned by the theory that owns the domain
       tid = Theory::theoryOf(node[0].getType());
     } else {
@@ -111,13 +119,15 @@ TheoryId Theory::theoryOf(TheoryOfMode mode, TNode node) {
       tid = kindToTheoryId(node.getKind());
     }
     break;
-  case THEORY_OF_TERM_BASED:
-    // Variables
-    if (node.isVar()) {
-      if (Theory::theoryOf(node.getType()) != theory::THEORY_BOOL) {
-        // We treat the variables as uninterpreted
-        tid = s_uninterpretedSortOwner;
-      } else {
+    case options::TheoryOfMode::THEORY_OF_TERM_BASED:
+      // Variables
+      if (node.isVar())
+      {
+        if (Theory::theoryOf(node.getType()) != theory::THEORY_BOOL)
+        {
+          // We treat the variables as uninterpreted
+          tid = s_uninterpretedSortOwner;
+        } else {
         if( node.getKind() == kind::BOOLEAN_TERM_VARIABLE ){
           //Boolean vars go to UF
           tid = THEORY_UF;
