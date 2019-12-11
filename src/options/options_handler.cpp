@@ -41,7 +41,6 @@
 #include "options/printer_modes.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "options/ufss_mode.h"
 
 namespace CVC4 {
 namespace options {
@@ -1591,43 +1590,6 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
     }
   }
 }
-
-// theory/uf/options_handlers.h
-const std::string OptionsHandler::s_ufssModeHelp = "\
-UF with cardinality options currently supported by the --uf-ss option when\n\
-combined with finite model finding:\n\
-\n\
-full \n\
-+ Default, use UF with cardinality to find minimal models for uninterpreted\n\
-sorts.\n\
-\n\
-no-minimal \n\
-+ Use UF with cardinality to shrink models, but do no enforce minimality.\n\
-\n\
-none \n\
-+ Do not use UF with cardinality to shrink model sizes. \n\
-\n\
-";
-
-theory::uf::UfssMode OptionsHandler::stringToUfssMode(std::string option,
-                                                      std::string optarg)
-{
-  if(optarg ==  "default" || optarg == "full" ) {
-    return theory::uf::UF_SS_FULL;
-  } else if(optarg == "no-minimal") {
-    return theory::uf::UF_SS_NO_MINIMAL;
-  } else if(optarg == "none") {
-    return theory::uf::UF_SS_NONE;
-  } else if(optarg ==  "help") {
-    puts(s_ufssModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --uf-ss: `") +
-                          optarg + "'.  Try --uf-ss help.");
-  }
-}
-
-
 
 // theory/options_handlers.h
 std::string OptionsHandler::handleUseTheoryList(std::string option, std::string optarg) {

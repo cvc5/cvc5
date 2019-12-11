@@ -36,7 +36,6 @@
 #include "options/smt_modes.h"
 #include "options/strings_modes.h"
 #include "options/sygus_out_mode.h"
-#include "options/ufss_mode.h"
 
 namespace CVC4 {
 namespace options {
@@ -149,9 +148,6 @@ public:
       std::string option, std::string optarg);
   theory::strings::RegExpInterMode stringToRegExpInterMode(std::string option,
                                                            std::string optarg);
-
-  // theory/uf/options_handlers.h
-  theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg);
 
   // theory/options_handlers.h
   void notifyUseTheoryList(std::string option);
@@ -271,7 +267,6 @@ public:
   static const std::string s_termDbModeHelp;
   static const std::string s_triggerSelModeHelp;
   static const std::string s_triggerActiveSelModeHelp;
-  static const std::string s_ufssModeHelp;
   static const std::string s_userPatModeHelp;
   static const std::string s_fmfBoundMinModeModeHelp;
 
