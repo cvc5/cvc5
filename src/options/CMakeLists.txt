@@ -3,8 +3,6 @@ libcvc4_add_sources(
   argument_extender_implementation.cpp
   argument_extender_implementation.h
   base_handlers.h
-  bool_to_bv_mode.cpp
-  bool_to_bv_mode.h
   decision_mode.cpp
   decision_mode.h
   decision_weight.h

@@ -165,11 +165,19 @@ header = "options/bv_options.h"
   smt_name   = "bool-to-bv"
   category   = "regular"
   long       = "bool-to-bv=MODE"
-  type       = "CVC4::preprocessing::passes::BoolToBVMode"
-  default    = "CVC4::preprocessing::passes::BOOL_TO_BV_OFF"
-  handler    = "stringToBoolToBVMode"
-  includes   = ["options/bool_to_bv_mode.h"]
+  type       = "BoolToBVMode"
+  default    = "OFF"
   help       = "convert booleans to bit-vectors of size 1 at various levels of aggressiveness, see --bool-to-bv=help"
+  help_mode  = "BoolToBV preprocessing pass modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Don't push any booleans to width one bit-vectors."
+[[option.mode.ITE]]
+  name = "ite"
+  help = "Try to turn ITEs into BITVECTOR_ITE when possible. It can fail per-formula if not all sub-formulas can be turned to bit-vectors."
+[[option.mode.ALL]]
+  name = "all"
+  help = "Force all booleans to be bit-vectors of width one except at the top level. Most aggressive mode."
 
 [[option]]
   name       = "bitwiseEq"

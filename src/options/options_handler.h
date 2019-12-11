@@ -24,7 +24,6 @@
 
 #include "base/modal_exception.h"
 #include "options/base_handlers.h"
-#include "options/bool_to_bv_mode.h"
 #include "options/bv_options.h"
 #include "options/decision_mode.h"
 #include "options/language.h"
@@ -126,8 +125,6 @@ public:
   void checkBvSatSolver(std::string option, SatSolverMode m);
   void checkBitblastMode(std::string option, BitblastMode m);
 
-  preprocessing::passes::BoolToBVMode stringToBoolToBVMode(std::string option,
-                                                           std::string optarg);
   void setBitblastAig(std::string option, bool arg);
 
   // theory/options_handlers.h
@@ -206,7 +203,6 @@ public:
 
   /* Help strings */
   static const std::string s_booleanTermConversionModeHelp;
-  static const std::string s_boolToBVModeHelp;
   static const std::string s_instFormatHelp;
   static const std::string s_decisionModeHelp;
   static const std::string s_instWhenHelp;

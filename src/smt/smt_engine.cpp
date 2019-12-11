@@ -1442,7 +1442,7 @@ void SmtEngine::setDefaults() {
       options::bitvectorToBool.set(false);
     }
 
-    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
+    if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
       if (options::boolToBitvector.wasSetByUser())
       {
@@ -1518,7 +1518,7 @@ void SmtEngine::setDefaults() {
 
   if (options::cbqiBv() && d_logic.isQuantified())
   {
-    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
+    if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
       if (options::boolToBitvector.wasSetByUser())
       {
@@ -1691,7 +1691,7 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if (options::boolToBitvector() == preprocessing::passes::BOOL_TO_BV_ALL
+  if (options::boolToBitvector() == options::BoolToBVMode::ALL
       && !d_logic.isTheoryEnabled(THEORY_BV))
   {
     if (options::boolToBitvector.wasSetByUser())
@@ -3353,7 +3353,7 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["bv-to-bool"]->apply(&d_assertions);
   }
   // Convert non-top-level Booleans to bit-vectors of size 1
-  if (options::boolToBitvector())
+  if (options::boolToBitvector() != options::BoolToBVMode::OFF)
   {
     d_passes["bool-to-bv"]->apply(&d_assertions);
   }
