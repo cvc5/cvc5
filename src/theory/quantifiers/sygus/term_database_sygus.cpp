@@ -735,6 +735,11 @@ SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 Node TermDbSygus::rewriteNode(Node n) const
 {
   Node res = Rewriter::rewrite(n);
+  if (res.isConst())
+  {
+    // constant, we are done
+    return res;
+  }
   if (options::sygusRecFun())
   {
     if (d_funDefEval->hasDefinitions())
@@ -1006,34 +1011,13 @@ Node TermDbSygus::evaluateWithUnfolding(
     {
       if (ret == n && ret[0].isConst())
       {
-        Trace("dt-eval-unfold-debug")
-            << "Optimize: evaluate constant head " << ret << std::endl;
-        // can just do direct evaluation here
-        // notice we prefer this code to the rewriter since it may use
-        // the evaluator
-        std::vector<Node> args;
-        bool success = true;
-        for (unsigned i = 1, nchild = ret.getNumChildren(); i < nchild; i++)
-        {
-          if (!ret[i].isConst())
-          {
-            success = false;
-            break;
-          }
-          args.push_back(ret[i]);
-        }
-        if (success)
-        {
-          TypeNode rt = ret[0].getType();
-          Node bret = sygusToBuiltin(ret[0], rt);
-          Node rete = evaluateBuiltin(rt, bret, args);
-          visited[n] = rete;
-          Trace("dt-eval-unfold-debug")
-              << "Return " << rete << " for " << n << std::endl;
-          return rete;
-        }
+        // use rewriting, possibly involving recursive functions
+        ret = rewriteNode(ret);
       }
-      ret = d_eval_unfold->unfold(ret);
+      else
+      {
+        ret = d_eval_unfold->unfold(ret);
+      }
     }    
     if( ret.getNumChildren()>0 ){
       std::vector< Node > children;
@@ -1050,6 +1034,8 @@ Node TermDbSygus::evaluateWithUnfolding(
         ret = NodeManager::currentNM()->mkNode( ret.getKind(), children );
       }
       ret = getExtRewriter()->extendedRewrite(ret);
+      // use rewriting, possibly involving recursive functions
+      ret = rewriteNode(ret);
     }
     visited[n] = ret;
     return ret;
