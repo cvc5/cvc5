@@ -804,6 +804,12 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       // this violates the invariant that the i^th conditional enumerator
       // resolves the i^th separation conflict
       exp_conflict = true;
+      SygusTypeInfo& ti = d_unif->d_tds->getTypeInfo(ce.getType());
+      // The reasoning below is only necessary if we use symbolic constructors.
+      if (!ti.hasSubtermSymbolicCons())
+      {
+        break;
+      }
       // Since the explanation of the condition (c_exp above) does not account
       // for builtin subterms, we additionally require that the valuation of
       // the condition is indeed different on the two points.
@@ -827,41 +833,36 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       // which unfolds via the SygusEvalUnfold utility to:
       //   ( (c_x ce)*1 + (c_y ce)*2 >= 0 ) == ( (c_x ce)*2 + (c_y ce)*3 >= 0 )
       // where c_x and c_y are the selectors of the subfields of C_leq_xy.
-      SygusTypeInfo& ti = d_unif->d_tds->getTypeInfo(ce.getType());
-      // The above is only necessary if we use symbolic constructors.
-      if (ti.hasSubtermSymbolicCons())
+      Trace("sygus-unif-sol-sym")
+          << "Explain symbolic separation conflict" << std::endl;
+      std::map<Node, std::vector<Node>>::iterator ith;
+      Node ceApp[2];
+      SygusEvalUnfold* eunf = d_unif->d_tds->getEvalUnfold();
+      std::map<Node, Node> vtm;
+      vtm[ce] = cv;
+      Trace("sygus-unif-sol-sym")
+          << "Model value for " << ce << " is " << cv << std::endl;
+      for (unsigned r = 0; r < 2; r++)
       {
+        std::vector<Node> cechildren;
+        cechildren.push_back(ce);
+        Node ecurr = r == 0 ? e : er;
+        ith = d_unif->d_hd_to_pt.find(e);
+        AlwaysAssert(ith != d_unif->d_hd_to_pt.end());
+        cechildren.insert(
+            cechildren.end(), ith->second.begin(), ith->second.end());
+        Node cea = nm->mkNode(DT_SYGUS_EVAL, cechildren);
         Trace("sygus-unif-sol-sym")
-            << "Explain symbolic separation conflict" << std::endl;
-        std::map<Node, std::vector<Node>>::iterator ith;
-        Node ceApp[2];
-        SygusEvalUnfold* eunf = d_unif->d_tds->getEvalUnfold();
-        std::map<Node, Node> vtm;
-        vtm[ce] = cv;
-        Trace("sygus-unif-sol-sym")
-            << "Model value for " << ce << " is " << cv << std::endl;
-        for (unsigned r = 0; r < 2; r++)
-        {
-          std::vector<Node> cechildren;
-          cechildren.push_back(ce);
-          Node ecurr = r == 0 ? e : er;
-          ith = d_unif->d_hd_to_pt.find(e);
-          AlwaysAssert(ith != d_unif->d_hd_to_pt.end());
-          cechildren.insert(
-              cechildren.end(), ith->second.begin(), ith->second.end());
-          Node cea = nm->mkNode(DT_SYGUS_EVAL, cechildren);
-          Trace("sygus-unif-sol-sym")
-              << "Sep conflict app #" << r << " : " << cea << std::endl;
-          std::vector<Node> tmpExp;
-          cea = eunf->unfold(cea, vtm, tmpExp, true, true);
-          Trace("sygus-unif-sol-sym") << "Unfolded to : " << cea << std::endl;
-          ceApp[r] = cea;
-        }
-        Node ceAppEq = ceApp[0].eqNode(ceApp[1]);
-        Trace("sygus-unif-sol-sym")
-            << "Sep conflict app explanation is : " << ceAppEq << std::endl;
-        exp.push_back(ceAppEq);
+            << "Sep conflict app #" << r << " : " << cea << std::endl;
+        std::vector<Node> tmpExp;
+        cea = eunf->unfold(cea, vtm, tmpExp, true, true);
+        Trace("sygus-unif-sol-sym") << "Unfolded to : " << cea << std::endl;
+        ceApp[r] = cea;
       }
+      Node ceAppEq = ceApp[0].eqNode(ceApp[1]);
+      Trace("sygus-unif-sol-sym")
+          << "Sep conflict app explanation is : " << ceAppEq << std::endl;
+      exp.push_back(ceAppEq);
       break;
     }
     Trace("sygus-unif-sol")
