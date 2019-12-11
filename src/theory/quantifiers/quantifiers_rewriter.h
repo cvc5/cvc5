@@ -19,7 +19,7 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
-#include "theory/rewriter.h"
+#include "theory/theory_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -27,8 +27,9 @@ namespace quantifiers {
 
 struct QAttributes;
 
-class QuantifiersRewriter {
-public:
+class QuantifiersRewriter : public TheoryRewriter
+{
+ public:
   static bool isLiteral( Node n );
   //-------------------------------------variable elimination utilities
   /** is variable elimination
@@ -194,10 +195,9 @@ private:
   };
   static Node computeOperation( Node f, int computeOption, QAttributes& qa );
 public:
-  static RewriteResponse preRewrite(TNode in);
-  static RewriteResponse postRewrite(TNode in);
-  static inline void init() {}
-  static inline void shutdown() {}
+ RewriteResponse preRewrite(TNode in) override;
+ RewriteResponse postRewrite(TNode in) override;
+
 private:
   /** options */
   static bool doOperation( Node f, int computeOption, QAttributes& qa );
@@ -223,7 +223,7 @@ public:
   static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node mkForall( std::vector< Node >& args, Node body, bool marked = false );
   static Node mkForall( std::vector< Node >& args, Node body, std::vector< Node >& iplc, bool marked = false );
-};/* class QuantifiersRewriter */
+}; /* class QuantifiersRewriter */
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

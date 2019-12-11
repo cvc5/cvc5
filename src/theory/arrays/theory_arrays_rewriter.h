@@ -24,6 +24,7 @@
 #include <unordered_set>
 
 #include "theory/rewriter.h"
+#include "theory/theory_rewriter.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {
@@ -39,11 +40,13 @@ static inline Node mkEqNode(Node a, Node b) {
   return a.eqNode(b);
 }
 
-class TheoryArraysRewriter {
+class TheoryArraysRewriter : public TheoryRewriter
+{
   static Node normalizeConstant(TNode node) {
     return normalizeConstant(node, node[1].getType().getCardinality());
   }
-public:
+
+ public:
   //this function is called by printers when using the option "--model-u-dt-enum"
   static Node normalizeConstant(TNode node, Cardinality indexCard) {
     TNode store = node[0];
@@ -229,9 +232,9 @@ public:
     return n;
   }
 
-public:
-
-  static RewriteResponse postRewrite(TNode node) {
+ public:
+  RewriteResponse postRewrite(TNode node) override
+  {
     Trace("arrays-postrewrite") << "Arrays::postRewrite start " << node << std::endl;
     switch (node.getKind()) {
       case kind::SELECT: {
@@ -403,7 +406,8 @@ public:
     return RewriteResponse(REWRITE_DONE, node);
   }
 
-  static inline RewriteResponse preRewrite(TNode node) {
+  RewriteResponse preRewrite(TNode node) override
+  {
     Trace("arrays-prerewrite") << "Arrays::preRewrite start " << node << std::endl;
     switch (node.getKind()) {
       case kind::SELECT: {
@@ -503,7 +507,7 @@ public:
   static inline void init() {}
   static inline void shutdown() {}
 
-};/* class TheoryArraysRewriter */
+}; /* class TheoryArraysRewriter */
 
 }/* CVC4::theory::arrays namespace */
 }/* CVC4::theory namespace */
