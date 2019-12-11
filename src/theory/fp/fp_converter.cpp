@@ -17,6 +17,7 @@
 // theory.h Only needed for the leaf test
 
 #include <stack>
+#include <vector>
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
@@ -846,7 +847,7 @@ FpConverter::uf FpConverter::buildComponents(TNode current)
 Node FpConverter::convert(TNode node)
 {
 #ifdef CVC4_USE_SYMFPU
-  std::stack<TNode> workStack;
+  std::stack<TNode, std::vector<TNode>> workStack;
   TNode result = node;
 
   workStack.push(node);
