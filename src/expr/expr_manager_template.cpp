@@ -676,14 +676,11 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
 
-  Trace("dt-debug") << "ExprManager::mkMutualDatatypeTypes" << std::endl;
   //have to build deep copy so that datatypes will live in NodeManager
   std::vector< Datatype* > dt_copies;
   for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
     dt_copies.push_back( new Datatype( *i ) );
   }
-  Trace("dt-debug") << "ExprManager::mkMutualDatatypeTypes done copy"
-                    << std::endl;
 
   // First do some sanity checks, set up the final Type to be used for
   // each datatype, and set up the "named resolutions" used to handle
@@ -793,7 +790,6 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
 
   AssertArgument(dt.isResolved(), dtt, "datatype should have been resolved");
 
-  Trace("ajr-temp") << "ExprManager::checkResolvedDatatype..." << std::endl;
   // for all constructors...
   for(Datatype::const_iterator i = dt.begin(), i_end = dt.end();
       i != i_end;
@@ -805,11 +801,10 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
            && TesterType(testerType).getRangeType() == booleanType())
         << "malformed tester in datatype post-resolution";
     Type ctorType CVC4_UNUSED = c.getConstructor().getType();
-    Assert(ctorType.isConstructor()) << "malformed cons " << c.getName();
-    Assert(ConstructorType(ctorType).getArity() == c.getNumArgs())
-        << "malformed cons " << c.getName();
-    Assert(ConstructorType(ctorType).getRangeType() == dtt)
-        << "malformed cons " << c.getName();
+    Assert(ctorType.isConstructor()
+           && ConstructorType(ctorType).getArity() == c.getNumArgs()
+           && ConstructorType(ctorType).getRangeType() == dtt)
+        << "malformed constructor in datatype post-resolution";
     // for all selectors...
     for(DatatypeConstructor::const_iterator j = c.begin(), j_end = c.end();
         j != j_end;
@@ -828,8 +823,6 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
           << "cannot put function-like things in datatypes";
     }
   }
-  Trace("ajr-temp") << "ExprManager::checkResolvedDatatype finished"
-                    << std::endl;
 }
 
 ConstructorType ExprManager::mkConstructorType(const DatatypeConstructor& constructor, Type range) const {
