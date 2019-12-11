@@ -2002,7 +2002,7 @@ void TheoryEngine::staticInitializeBVOptions(
     const std::vector<Node>& assertions)
 {
   bool useSlicer = true;
-  if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_ON)
+  if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::ON)
   {
     if (!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
       throw ModalException(
@@ -2017,11 +2017,11 @@ void TheoryEngine::staticInitializeBVOptions(
           "Slicer does not currently support model generation. Use "
           "--bv-eq-slicer=off");
   }
-  else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_OFF)
+  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::OFF)
   {
     return;
   }
-  else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO)
+  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::AUTO)
   {
     if ((!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
         || options::incrementalSolving()

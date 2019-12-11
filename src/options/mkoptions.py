@@ -241,10 +241,8 @@ TPL_DECL_MODE_FUNC = \
 std::ostream&
 operator<<(std::ostream& out, {type} mode) CVC4_PUBLIC;"""
 
-TPL_IMPL_MODE_FUNC = \
+TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(" CVC4_PUBLIC;")] + \
 """
-std::ostream&
-operator<<(std::ostream& out, {type} mode)
 {{
   out << "{type}::";
   switch(mode) {{{cases}
@@ -264,13 +262,10 @@ TPL_IMPL_MODE_CASE = \
 TPL_DECL_MODE_HANDLER = \
 """
 {type}
-stringTo{type}(std::string option, std::string optarg);
-"""
+stringTo{type}(std::string option, std::string optarg);"""
 
-TPL_IMPL_MODE_HANDLER = \
+TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + \
 """
-{type}
-stringTo{type}(std::string option, std::string optarg)
 {{
   {cases}
   else if (optarg == "help")
@@ -1339,6 +1334,9 @@ def parse_module(filename, module):
             if option.mode and not option.help_mode:
                 perr(filename, lineno,
                      "option {} defines modes but no help_mode".format(option.name))
+            if option.mode and option.handler:
+                perr(filename, lineno,
+                     "option {} defines modes and a handler".format(option.name))
             if option.mode and option.default and \
                     option.default not in option.mode.keys():
                 perr(filename, lineno,

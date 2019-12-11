@@ -5,8 +5,6 @@ libcvc4_add_sources(
   base_handlers.h
   bool_to_bv_mode.cpp
   bool_to_bv_mode.h
-  bv_bitblast_mode.cpp
-  bv_bitblast_mode.h
   decision_mode.cpp
   decision_mode.h
   decision_weight.h

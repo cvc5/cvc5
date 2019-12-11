@@ -1164,7 +1164,7 @@ void SmtEngine::setDefaults() {
   }
   bool is_sygus = language::isInputLangSygus(options::inputLanguage());
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     if (options::produceModels()
         && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
@@ -3288,10 +3288,11 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["int-to-bv"]->apply(&d_assertions);
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
-      !d_smt.d_logic.isPure(THEORY_BV) &&
-      d_smt.d_logic.getLogicString() != "QF_UFBV" &&
-      d_smt.d_logic.getLogicString() != "QF_ABV") {
+  if (options::bitblastMode() == options::BitblastMode::EAGER
+      && !d_smt.d_logic.isPure(THEORY_BV)
+      && d_smt.d_logic.getLogicString() != "QF_UFBV"
+      && d_smt.d_logic.getLogicString() != "QF_ABV")
+  {
     throw ModalException("Eager bit-blasting does not currently support theory combination. "
                          "Note that in a QF_BV problem UF symbols can be introduced for division. "
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
@@ -3550,7 +3551,7 @@ void SmtEnginePrivate::processAssertions() {
 
   d_passes["theory-preprocess"]->apply(&d_assertions);
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     d_passes["bv-eager-atoms"]->apply(&d_assertions);
   }

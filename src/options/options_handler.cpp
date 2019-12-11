@@ -30,7 +30,6 @@
 #include "base/output.h"
 #include "lib/strtok_r.h"
 #include "options/base_options.h"
-#include "options/bv_bitblast_mode.h"
 #include "options/bv_options.h"
 #include "options/decision_mode.h"
 #include "options/decision_options.h"
@@ -46,16 +45,16 @@ namespace options {
 // helper functions
 namespace {
 
-void throwLazyBBUnsupported(theory::bv::SatSolverMode m)
+void throwLazyBBUnsupported(options::SatSolverMode m)
 {
   std::string sat_solver;
-  if (m == theory::bv::SAT_SOLVER_CADICAL)
+  if (m == options::SatSolverMode::CADICAL)
   {
     sat_solver = "CaDiCaL";
   }
   else
   {
-    Assert(m == theory::bv::SAT_SOLVER_CRYPTOMINISAT);
+    Assert(m == options::SatSolverMode::CRYPTOMINISAT);
     sat_solver = "CryptoMiniSat";
   }
   std::string indent(25, ' ');
@@ -1152,148 +1151,25 @@ void OptionsHandler::satSolverEnabledBuild(std::string option,
 #endif
 }
 
-const std::string OptionsHandler::s_bvSatSolverHelp = "\
-Sat solvers currently supported by the --bv-sat-solver option:\n\
-\n\
-minisat (default)\n\
-\n\
-cadical\n\
-\n\
-cryptominisat\n\
-";
-
-theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
-                                                            std::string optarg)
+void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
 {
-  if(optarg == "minisat") {
-    return theory::bv::SAT_SOLVER_MINISAT;
-  } else if(optarg == "cryptominisat") {
-    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY &&
-        options::bitblastMode.wasSetByUser()) {
-      throwLazyBBUnsupported(theory::bv::SAT_SOLVER_CRYPTOMINISAT);
-    }
-    if (!options::bitvectorToBool.wasSetByUser()) {
-      options::bitvectorToBool.set(true);
-    }
-    return theory::bv::SAT_SOLVER_CRYPTOMINISAT;
-  }
-  else if (optarg == "cadical")
+  if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL)
   {
-    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
+    if (options::bitblastMode() == options::BitblastMode::LAZY
         && options::bitblastMode.wasSetByUser())
     {
-      throwLazyBBUnsupported(theory::bv::SAT_SOLVER_CADICAL);
+      throwLazyBBUnsupported(m);
     }
     if (!options::bitvectorToBool.wasSetByUser())
     {
       options::bitvectorToBool.set(true);
     }
-    return theory::bv::SAT_SOLVER_CADICAL;
-  } else if(optarg == "help") {
-    puts(s_bvSatSolverHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --bv-sat-solver: `") +
-                          optarg + "'.  Try --bv-sat-solver=help.");
   }
 }
 
-const std::string OptionsHandler::s_bvProofFormatHelp =
-    "\
-Proof formats currently supported by the --bv-proof-format option:\n\
-\n\
-  lrat : DRAT with unit propagation hints to accelerate checking (default)\n\
-\n\
-  drat : Deletion and Resolution Asymmetric Tautology Additions \n\
-\n\
-  er : Extended Resolution, i.e. resolution with new variable definitions\n\
-\n\
-This option controls which underlying UNSAT proof format is used in BV proofs.\n\
-\n\
-Note: Currently this option does nothing. BV proofs are a work in progress!\
-";
-
-theory::bv::BvProofFormat OptionsHandler::stringToBvProofFormat(
-    std::string option, std::string optarg)
+void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
 {
-  if (optarg == "er")
-  {
-    return theory::bv::BITVECTOR_PROOF_ER;
-  }
-  else if (optarg == "lrat")
-  {
-    return theory::bv::BITVECTOR_PROOF_LRAT;
-  }
-  else if (optarg == "drat")
-  {
-    return theory::bv::BITVECTOR_PROOF_DRAT;
-  }
-  else if (optarg == "help")
-  {
-    puts(s_bvProofFormatHelp.c_str());
-    exit(1);
-  }
-  else
-  {
-    throw OptionException(std::string("unknown option for --bv-proof-format: `")
-                          + optarg + "'.  Try --bv-proof-format=help.");
-  }
-}
-
-const std::string OptionsHandler::s_bvOptimizeSatProofHelp =
-    "\
-Optimization levels currently supported by the --bv-optimize-sat-proof option:\n\
-\n\
-  none    : Do not optimize the SAT proof\n\
-\n\
-  proof   : Use drat-trim to shrink the SAT proof\n\
-\n\
-  formula : Use drat-trim to shrink the SAT proof and formula (default)\
-";
-
-theory::bv::BvOptimizeSatProof OptionsHandler::stringToBvOptimizeSatProof(
-    std::string option, std::string optarg)
-{
-  if (optarg == "none")
-  {
-    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_NONE;
-  }
-  else if (optarg == "proof")
-  {
-    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF;
-  }
-  else if (optarg == "formula")
-  {
-    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA;
-  }
-  else if (optarg == "help")
-  {
-    puts(s_bvOptimizeSatProofHelp.c_str());
-    exit(1);
-  }
-  else
-  {
-    throw OptionException(std::string("unknown option for --bv-optimize-sat-proof: `")
-                          + optarg + "'.  Try --bv-optimize-sat-proof=help.");
-  }
-}
-
-
-const std::string OptionsHandler::s_bitblastingModeHelp = "\
-Bit-blasting modes currently supported by the --bitblast option:\n\
-\n\
-lazy (default)\n\
-+ Separate boolean structure and term reasoning between the core\n\
-  SAT solver and the bv SAT solver\n\
-\n\
-eager\n\
-+ Bitblast eagerly to bv SAT solver\n\
-";
-
-theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
-    std::string option, std::string optarg)
-{
-  if (optarg == "lazy")
+  if (m == options::BitblastMode::LAZY)
   {
     if (!options::bitvectorPropagate.wasSetByUser())
     {
@@ -1307,11 +1183,11 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     {
       if (options::incrementalSolving() || options::produceModels())
       {
-        options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_OFF);
+        options::bitvectorEqualitySlicer.set(options::BvSlicerMode::OFF);
       }
       else
       {
-        options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_AUTO);
+        options::bitvectorEqualitySlicer.set(options::BvSlicerMode::AUTO);
       }
     }
 
@@ -1323,60 +1199,17 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     {
       options::bitvectorAlgebraicSolver.set(true);
     }
-    if (options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+    if (options::bvSatSolver() != options::SatSolverMode::MINISAT)
     {
       throwLazyBBUnsupported(options::bvSatSolver());
     }
-    return theory::bv::BITBLAST_MODE_LAZY;
   }
-  else if (optarg == "eager")
+  else if (m == BitblastMode::EAGER)
   {
     if (!options::bitvectorToBool.wasSetByUser())
     {
       options::bitvectorToBool.set(true);
     }
-    return theory::bv::BITBLAST_MODE_EAGER;
-  }
-  else if (optarg == "help")
-  {
-    puts(s_bitblastingModeHelp.c_str());
-    exit(1);
-  }
-  else
-  {
-    throw OptionException(std::string("unknown option for --bitblast: `")
-                          + optarg + "'.  Try --bitblast=help.");
-  }
-}
-
-const std::string OptionsHandler::s_bvSlicerModeHelp = "\
-Bit-vector equality slicer modes supported by the --bv-eq-slicer option:\n\
-\n\
-auto (default)\n\
-+ Turn slicer on if input has only equalities over core symbols\n\
-\n\
-on\n\
-+ Turn slicer on\n\
-\n\
-off\n\
-+ Turn slicer off\n\
-";
-
-theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
-    std::string option, std::string optarg)
-{
-  if(optarg == "auto") {
-    return theory::bv::BITVECTOR_SLICER_AUTO;
-  } else if(optarg == "on") {
-    return theory::bv::BITVECTOR_SLICER_ON;
-  } else if(optarg == "off") {
-    return theory::bv::BITVECTOR_SLICER_OFF;
-  } else if(optarg == "help") {
-    puts(s_bvSlicerModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
-                          optarg + "'.  Try --bv-eq-slicer=help.");
   }
 }
 
@@ -1428,11 +1261,12 @@ void OptionsHandler::setBitblastAig(std::string option, bool arg)
 {
   if(arg) {
     if(options::bitblastMode.wasSetByUser()) {
-      if(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER) {
+      if (options::bitblastMode() != options::BitblastMode::EAGER)
+      {
         throw OptionException("bitblast-aig must be used with eager bitblaster");
       }
     } else {
-      theory::bv::BitblastMode mode = stringToBitblastMode("", "eager");
+      options::BitblastMode mode = stringToBitblastMode("", "eager");
       options::bitblastMode.set(mode);
     }
     if(!options::bitvectorAigSimplifications.wasSetByUser()) {
@@ -1710,9 +1544,9 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
 #ifdef CVC4_PROOF
-  if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT
-      && options::bvSatSolver() != theory::bv::SAT_SOLVER_CRYPTOMINISAT)
+  if (value && options::bitblastMode() == options::BitblastMode::EAGER
+      && options::bvSatSolver() != options::SatSolverMode::MINISAT
+      && options::bvSatSolver() != options::SatSolverMode::CRYPTOMINISAT)
   {
     throw OptionException(
         "Eager BV proofs only supported when MiniSat or CryptoMiniSat is used");

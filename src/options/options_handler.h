@@ -25,15 +25,15 @@
 #include "base/modal_exception.h"
 #include "options/base_handlers.h"
 #include "options/bool_to_bv_mode.h"
-#include "options/bv_bitblast_mode.h"
+#include "options/bv_options.h"
 #include "options/decision_mode.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/options.h"
+#include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
 #include "options/smt_modes.h"
 #include "options/sygus_out_mode.h"
-#include "options/printer_modes.h"
 
 namespace CVC4 {
 namespace options {
@@ -123,22 +123,12 @@ public:
   void abcEnabledBuild(std::string option, std::string value);
   void satSolverEnabledBuild(std::string option, bool value);
   void satSolverEnabledBuild(std::string option, std::string optarg);
+  void checkBvSatSolver(std::string option, SatSolverMode m);
+  void checkBitblastMode(std::string option, BitblastMode m);
 
-  theory::bv::BitblastMode stringToBitblastMode(std::string option,
-                                                std::string optarg);
-  theory::bv::BvSlicerMode stringToBvSlicerMode(std::string option,
-                                                std::string optarg);
   preprocessing::passes::BoolToBVMode stringToBoolToBVMode(std::string option,
                                                            std::string optarg);
   void setBitblastAig(std::string option, bool arg);
-
-  theory::bv::SatSolverMode stringToSatSolver(std::string option,
-                                              std::string optarg);
-
-  theory::bv::BvProofFormat stringToBvProofFormat(std::string option,
-                                                  std::string optarg);
-  theory::bv::BvOptimizeSatProof stringToBvOptimizeSatProof(std::string option,
-                                                            std::string optarg);
 
   // theory/options_handlers.h
   void notifyUseTheoryList(std::string option);
@@ -215,12 +205,7 @@ public:
   Options* d_options;
 
   /* Help strings */
-  static const std::string s_bitblastingModeHelp;
-  static const std::string s_bvSatSolverHelp;
-  static const std::string s_bvProofFormatHelp;
-  static const std::string s_bvOptimizeSatProofHelp;
   static const std::string s_booleanTermConversionModeHelp;
-  static const std::string s_bvSlicerModeHelp;
   static const std::string s_boolToBVModeHelp;
   static const std::string s_instFormatHelp;
   static const std::string s_decisionModeHelp;

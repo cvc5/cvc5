@@ -6,46 +6,73 @@ header = "options/bv_options.h"
   name       = "bvProofFormat"
   category   = "expert"
   long       = "bv-proof-format=MODE"
-  type       = "CVC4::theory::bv::BvProofFormat"
-  default    = "CVC4::theory::bv::BITVECTOR_PROOF_ER"
-  handler    = "stringToBvProofFormat"
-  predicates = ["satSolverEnabledBuild"]
-  includes   = ["options/bv_bitblast_mode.h"]
+  type       = "BvProofFormat"
+  default    = "ER"
+#  predicates = ["satSolverEnabledBuild"]
   help       = "choose which UNSAT proof format to use, see --bv-sat-solver=help"
+  help_mode  = "Bit-vector proof formats."
+[[option.mode.ER]]
+  name = "er"
+  help = "Extended Resolution, i.e. resolution with new variable definitions."
+[[option.mode.DRAT]]
+  name = "drat"
+  help = "Deletion and Resolution Asymmetric Tautology Additions."
+[[option.mode.LRAT]]
+  name = "lrat"
+  help = "DRAT with unit propagation hints to accelerate checking."
 
 [[option]]
   name       = "bvOptimizeSatProof"
   category   = "expert"
   long       = "bv-optimize-sat-proof=MODE"
-  type       = "CVC4::theory::bv::BvOptimizeSatProof"
-  default    = "CVC4::theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA"
-  handler    = "stringToBvOptimizeSatProof"
-  predicates = ["satSolverEnabledBuild"]
-  includes   = ["options/bv_bitblast_mode.h"]
+  type       = "BvOptimizeSatProof"
+  default    = "FORMULA"
+#  predicates = ["satSolverEnabledBuild"]
   help       = "enable SAT proof optimizations, see --bv-optimize-sat-proof=help"
+  help_mode  = "SAT proof optimization level."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not optimize the SAT proof."
+[[option.mode.PROOF]]
+  name = "proof"
+  help = "Use drat-trim to shrink the SAT proof."
+[[option.mode.FORMULA]]
+  name = "formula"
+  help = "Use drat-trim to shrink the SAT proof and formula."
 
 [[option]]
   name       = "bvSatSolver"
   smt_name   = "bv-sat-solver"
   category   = "expert"
   long       = "bv-sat-solver=MODE"
-  type       = "CVC4::theory::bv::SatSolverMode"
-  default    = "CVC4::theory::bv::SAT_SOLVER_MINISAT"
-  handler    = "stringToSatSolver"
-  predicates = ["satSolverEnabledBuild"]
-  includes   = ["options/bv_bitblast_mode.h"]
+  type       = "SatSolverMode"
+  default    = "MINISAT"
+#  predicates = ["satSolverEnabledBuild"]
+  predicates = ["checkBvSatSolver"]
   help       = "choose which sat solver to use, see --bv-sat-solver=help"
+  help_mode  = "SAT solver for bit-blasting backend."
+[[option.mode.MINISAT]]
+  name = "minisat"
+[[option.mode.CRYPTOMINISAT]]
+  name = "cryptominisat"
+[[option.mode.CADICAL]]
+  name = "cadical"
 
 [[option]]
   name       = "bitblastMode"
   smt_name   = "bitblast"
   category   = "regular"
   long       = "bitblast=MODE"
-  type       = "CVC4::theory::bv::BitblastMode"
-  default    = "CVC4::theory::bv::BITBLAST_MODE_LAZY"
-  handler    = "stringToBitblastMode"
-  includes   = ["options/bv_bitblast_mode.h"]
+  type       = "BitblastMode"
+  default    = "LAZY"
   help       = "choose bitblasting mode, see --bitblast=help"
+  help_mode  = "Bit-blasting modes."
+[[option.mode.LAZY]]
+  name = "lazy"
+  help = "Separate boolean structure and term reasoning between the core SAT solver and the bit-vector SAT solver."
+[[option.mode.EAGER]]
+  name = "eager"
+  help = "Bitblast eagerly to bit-vector SAT solver."
 
 [[option]]
   name       = "bitvectorAig"
@@ -85,12 +112,20 @@ header = "options/bv_options.h"
   name       = "bitvectorEqualitySlicer"
   category   = "regular"
   long       = "bv-eq-slicer=MODE"
-  type       = "CVC4::theory::bv::BvSlicerMode"
-  default    = "CVC4::theory::bv::BITVECTOR_SLICER_OFF"
-  handler    = "stringToBvSlicerMode"
-  includes   = ["options/bv_bitblast_mode.h"]
+  type       = "BvSlicerMode"
+  default    = "OFF"
   links      = ["--bv-eq-solver"]
   help       = "turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)"
+  help_mode  = "Bit-vector equality slicer modes."
+[[option.mode.ON]]
+  name = "on"
+  help = "Turn slicer on"
+[[option.mode.OFF]]
+  name = "off"
+  help = "Turn slicer off"
+[[option.mode.AUTO]]
+  name = "auto"
+  help = "Turn slicer on if input has only equalities over core symbols."
 
 [[option]]
   name       = "bitvectorInequalitySolver"
