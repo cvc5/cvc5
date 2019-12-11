@@ -246,6 +246,7 @@ TPL_IMPL_MODE_FUNC = \
 std::ostream&
 operator<<(std::ostream& out, {type} mode)
 {{
+  out << "{type}::";
   switch(mode) {{{cases}
     default:
         Unreachable();
@@ -257,7 +258,7 @@ operator<<(std::ostream& out, {type} mode)
 TPL_IMPL_MODE_CASE = \
 """
     case {type}::{enum}:
-      out << "{type}::{enum}";
+      out << "{enum}";
       break;"""
 
 TPL_DECL_MODE_HANDLER = \

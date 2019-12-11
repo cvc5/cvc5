@@ -38,7 +38,6 @@
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/option_exception.h"
-#include "options/printer_modes.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 
@@ -1498,62 +1497,6 @@ std::string OptionsHandler::handleUseTheoryList(std::string option, std::string 
 void OptionsHandler::notifyUseTheoryList(std::string option) {
   d_options->d_useTheoryListListeners.notify();
 }
-
-
-
-// printer/options_handlers.h
-const std::string OptionsHandler::s_modelFormatHelp = "\
-Model format modes currently supported by the --model-format option:\n\
-\n\
-default \n\
-+ Print model as expressions in the output language format.\n\
-\n\
-table\n\
-+ Print functional expressions over finite domains in a table format.\n\
-";
-
-const std::string OptionsHandler::s_instFormatHelp = "\
-Inst format modes currently supported by the --inst-format option:\n\
-\n\
-default \n\
-+ Print instantiations as a list in the output language format.\n\
-\n\
-szs\n\
-+ Print instantiations as SZS compliant proof.\n\
-";
-
-ModelFormatMode OptionsHandler::stringToModelFormatMode(std::string option,
-                                                        std::string optarg)
-{
-  if(optarg == "default") {
-    return MODEL_FORMAT_MODE_DEFAULT;
-  } else if(optarg == "table") {
-    return MODEL_FORMAT_MODE_TABLE;
-  } else if(optarg == "help") {
-    puts(s_modelFormatHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --model-format: `") +
-                          optarg + "'.  Try --model-format help.");
-  }
-}
-
-InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
-                                                      std::string optarg)
-{
-  if(optarg == "default") {
-    return INST_FORMAT_MODE_DEFAULT;
-  } else if(optarg == "szs") {
-    return INST_FORMAT_MODE_SZS;
-  } else if(optarg == "help") {
-    puts(s_instFormatHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --inst-format: `") +
-                          optarg + "'.  Try --inst-format help.");
-  }
-}
-
 
 // decision/options_handlers.h
 const std::string OptionsHandler::s_decisionModeHelp = "\

@@ -31,7 +31,6 @@
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/options.h"
-#include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
 #include "options/smt_modes.h"
 #include "options/sygus_out_mode.h"
@@ -148,11 +147,6 @@ public:
   std::string handleUseTheoryList(std::string option, std::string optarg);
 
 
-  // printer/options_handlers.h
-  ModelFormatMode stringToModelFormatMode(std::string option,
-                                          std::string optarg);
-  InstFormatMode stringToInstFormatMode(std::string option, std::string optarg);
-
   // decision/options_handlers.h
   decision::DecisionMode stringToDecisionMode(std::string option,
                                               std::string optarg);
@@ -230,7 +224,6 @@ public:
   static const std::string s_boolToBVModeHelp;
   static const std::string s_cegqiFairModeHelp;
   static const std::string s_decisionModeHelp;
-  static const std::string s_instFormatHelp ;
   static const std::string s_instWhenHelp;
   static const std::string s_iteLiftQuantHelp;
   static const std::string s_literalMatchHelp;
@@ -238,7 +231,6 @@ public:
   static const std::string s_quantDSplitHelp;
   static const std::string s_quantRepHelp;
   static const std::string s_mbqiModeHelp;
-  static const std::string s_modelFormatHelp;
   static const std::string s_prenexQuantModeHelp;
   static const std::string s_qcfModeHelp;
   static const std::string s_qcfWhenModeHelp;

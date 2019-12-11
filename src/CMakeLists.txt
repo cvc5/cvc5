@@ -894,19 +894,14 @@ install(FILES
           ${INCLUDE_INSTALL_DIR}/cvc4/expr)
 install(FILES
           options/argument_extender.h
-          options/arith_heuristic_pivot_rule.h
-          options/arith_propagation_mode.h
-          options/arith_unate_lemma_mode.h
           options/datatypes_modes.h
           options/language.h
           options/option_exception.h
           options/options.h
-          options/printer_modes.h
           options/quantifiers_modes.h
           options/set_language.h
           options/smt_modes.h
           options/sygus_out_mode.h
-          options/theoryof_mode.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/options)
 install(FILES

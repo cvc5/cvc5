@@ -5093,7 +5093,8 @@ const Proof& SmtEngine::getProof()
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
   finalOptionsAreSet();
-  if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
+  if (options::instFormatMode() == options::InstFormatMode::SZS)
+  {
     out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
   }
   if( d_theoryEngine ){
@@ -5101,7 +5102,8 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }else{
     Assert(false);
   }
-  if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
+  if (options::instFormatMode() == options::InstFormatMode::SZS)
+  {
     out << "% SZS output end Proof for " << d_filename.c_str() << std::endl;
   }
 }
