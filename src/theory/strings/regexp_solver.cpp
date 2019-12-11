@@ -375,7 +375,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
 {
   // do not compute intersections if the re intersection mode is none
   if (options::stringRegExpInterMode()
-      == options::RegExpInterMode::RE_INTER_NONE)
+      == options::RegExpInterMode::NONE)
   {
     return true;
   }
@@ -399,7 +399,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     RegExpConstType rct = d_regexp_opr.getRegExpConstType(m[1]);
     if (rct == RE_C_VARIABLE
         || (options::stringRegExpInterMode()
-                == options::RegExpInterMode::RE_INTER_CONSTANT
+                == options::RegExpInterMode::CONSTANT
             && rct != RE_C_CONRETE_CONSTANT))
     {
       // cannot do intersection on RE with variables, or with re.allchar based
@@ -407,12 +407,12 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       continue;
     }
     if (options::stringRegExpInterMode()
-        == options::RegExpInterMode::RE_INTER_ONE_CONSTANT)
+        == options::RegExpInterMode::ONE_CONSTANT)
     {
       if (!mi.isNull() && rcti >= RE_C_CONSTANT && rct >= RE_C_CONSTANT)
       {
         // if both have re.allchar, do not do intersection if the
-        // options::RegExpInterMode::RE_INTER_ONE_CONSTANT option is set.
+        // options::RegExpInterMode::ONE_CONSTANT option is set.
         continue;
       }
     }

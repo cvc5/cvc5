@@ -237,18 +237,18 @@ header = "options/strings_options.h"
   category   = "expert"
   long       = "re-inter-mode=MODE"
   type       = "RegExpInterMode"
-  default    = "RE_INTER_CONSTANT"
+  default    = "CONSTANT"
   help       = "determines which regular expressions intersections to compute"
   help_mode  = "Regular expression intersection modes."
-[[option.mode.RE_INTER_ALL]]
+[[option.mode.ALL]]
   name = "all"
   help = "Compute intersections for all regular expressions."
-[[option.mode.RE_INTER_CONSTANT]]
+[[option.mode.CONSTANT]]
   name = "constant"
   help = "Compute intersections only between regular expressions that do not contain re.allchar or re.range."
-[[option.mode.RE_INTER_ONE_CONSTANT]]
+[[option.mode.ONE_CONSTANT]]
   name = "one-constant"
   help = "Compute intersections only between regular expressions such that at least one side does not contain re.allchar or re.range."
-[[option.mode.RE_INTER_NONE]]
+[[option.mode.NONE]]
   name = "none"
   help = "Do not compute intersections for regular expressions."
