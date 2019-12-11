@@ -36,7 +36,7 @@ set(regress_0_tests
   regress0/arith/mod-simp.smt2
   regress0/arith/mod.01.smt2
   regress0/arith/mult.01.smt2
-  regress0/array-const-integral-real.smt2
+  regress0/array-const-real-parse.smt2
   regress0/arrayinuf_declare.smt2
   regress0/arrays/arrays0.smt2
   regress0/arrays/arrays1.smt2
