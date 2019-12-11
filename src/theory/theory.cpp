@@ -111,14 +111,18 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       else if (node.isConst())
       {
         tid = Theory::theoryOf(node.getType());
-      } else if (node.getKind() == kind::EQUAL) {
-      // Equality is owned by the theory that owns the domain
-      tid = Theory::theoryOf(node[0].getType());
-    } else {
-      // Regular nodes are owned by the kind
-      tid = kindToTheoryId(node.getKind());
-    }
-    break;
+      }
+      else if (node.getKind() == kind::EQUAL)
+      {
+        // Equality is owned by the theory that owns the domain
+        tid = Theory::theoryOf(node[0].getType());
+      }
+      else
+      {
+        // Regular nodes are owned by the kind
+        tid = kindToTheoryId(node.getKind());
+      }
+      break;
     case options::TheoryOfMode::THEORY_OF_TERM_BASED:
       // Variables
       if (node.isVar())
@@ -127,23 +131,34 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
         {
           // We treat the variables as uninterpreted
           tid = s_uninterpretedSortOwner;
-        } else {
-        if( node.getKind() == kind::BOOLEAN_TERM_VARIABLE ){
-          //Boolean vars go to UF
-          tid = THEORY_UF;
-        }else{
-          // Except for the Boolean ones
-          tid = THEORY_BOOL;
+        }
+        else
+        {
+          if (node.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+          {
+            // Boolean vars go to UF
+            tid = THEORY_UF;
+          }
+          else
+          {
+            // Except for the Boolean ones
+            tid = THEORY_BOOL;
+          }
         }
       }
-    } else if (node.isConst()) {
-      // Constants go to the theory of the type
-      tid = Theory::theoryOf(node.getType());
-    } else if (node.getKind() == kind::EQUAL) { // Equality
-      // If one of them is an ITE, it's irelevant, since they will get replaced out anyhow
-      if (node[0].getKind() == kind::ITE) {
-        tid = Theory::theoryOf(node[0].getType());
-      } else if (node[1].getKind() == kind::ITE) {
+      else if (node.isConst())
+      {
+        // Constants go to the theory of the type
+        tid = Theory::theoryOf(node.getType());
+      }
+      else if (node.getKind() == kind::EQUAL)
+      {  // Equality
+        // If one of them is an ITE, it's irelevant, since they will get
+        // replaced out anyhow
+        if (node[0].getKind() == kind::ITE)
+        {
+          tid = Theory::theoryOf(node[0].getType());
+        } else if (node[1].getKind() == kind::ITE) {
         tid = Theory::theoryOf(node[1].getType());
       } else {
         TNode l = node[0];
@@ -177,10 +192,12 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           }
         }
       }
-    } else {
-      // Regular nodes are owned by the kind
-      tid = kindToTheoryId(node.getKind());
-    }
+      }
+      else
+      {
+        // Regular nodes are owned by the kind
+        tid = kindToTheoryId(node.getKind());
+      }
     break;
   default:
     Unreachable();

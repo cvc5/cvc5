@@ -70,7 +70,8 @@ private:
   const ErrorSet* d_errorSet;
 
   options::ErrorSelectionRule d_rule;
-public:
+
+ public:
   ComparatorPivotRule();
   ComparatorPivotRule(const ErrorSet* es, options::ErrorSelectionRule r);
 
@@ -259,12 +260,12 @@ private:
 public:
   DeltaRational computeDiff(ArithVar x) const;
 private:
-  void recomputeAmount(ErrorInformation& ei, options::ErrorSelectionRule r);
+ void recomputeAmount(ErrorInformation& ei, options::ErrorSelectionRule r);
 
-  void update(ErrorInformation& ei);
-  void transitionVariableOutOfError(ArithVar v);
-  void transitionVariableIntoError(ArithVar v);
-  void addBackIntoFocus(ArithVar v);
+ void update(ErrorInformation& ei);
+ void transitionVariableOutOfError(ArithVar v);
+ void transitionVariableIntoError(ArithVar v);
+ void addBackIntoFocus(ArithVar v);
 
 public:
 

@@ -872,7 +872,6 @@ public:
       theory::EntailmentCheckSideEffects* out = NULL);
 
  private:
-
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;
 

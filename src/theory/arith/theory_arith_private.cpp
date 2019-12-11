@@ -3736,9 +3736,12 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
                       << "post approx cuts" << endl;
 
   // This should be fine if sat or unknown
-  if(!emmittedConflictOrSplit &&
-     (options::arithPropagationMode() == options::ArithPropagationMode::UNATE_PROP ||
-      options::arithPropagationMode() == options::ArithPropagationMode::BOTH_PROP)){
+  if (!emmittedConflictOrSplit
+      && (options::arithPropagationMode()
+              == options::ArithPropagationMode::UNATE_PROP
+          || options::arithPropagationMode()
+                 == options::ArithPropagationMode::BOTH_PROP))
+  {
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
     Assert(d_qflraStatus != Result::UNSAT);
 
@@ -3789,7 +3792,9 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
       Debug("arith::conflict") << "unate arith conflict" << endl;
     }
-  }else{
+  }
+  else
+  {
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
     d_currentPropagationList.clear();
   }
@@ -4109,16 +4114,21 @@ bool TheoryArithPrivate::isExtfReduced(int effort, Node n, Node on,
 
 void TheoryArithPrivate::propagate(Theory::Effort e) {
   // This uses model values for safety. Disable for now.
-  if(d_qflraStatus == Result::SAT &&
-     (options::arithPropagationMode() == options::ArithPropagationMode::BOUND_INFERENCE_PROP ||
-      options::arithPropagationMode() == options::ArithPropagationMode::BOTH_PROP)
-     && hasAnyUpdates()){
+  if (d_qflraStatus == Result::SAT
+      && (options::arithPropagationMode()
+              == options::ArithPropagationMode::BOUND_INFERENCE_PROP
+          || options::arithPropagationMode()
+                 == options::ArithPropagationMode::BOTH_PROP)
+      && hasAnyUpdates())
+  {
     if(options::newProp()){
       propagateCandidatesNew();
     }else{
       propagateCandidates();
     }
-  }else{
+  }
+  else
+  {
     clearUpdates();
   }
 

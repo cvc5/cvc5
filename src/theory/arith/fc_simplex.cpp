@@ -108,7 +108,6 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   // We must start tracking NOW
   d_errorSet.setSelectionRule(options::ErrorSelectionRule::SUM_METRIC);
 
-
   if(initialProcessSignals()){
     d_conflictVariables.purge();
     if(verbose){ Message() << "fcFindModel("<< instance <<") early conflict" << endl; }
