@@ -16,6 +16,7 @@
  **/
 
 #include "options/options_holder.h"
+#include "base/check.h"
 
 namespace CVC4 {
 

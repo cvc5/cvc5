@@ -247,6 +247,8 @@ std::ostream&
 operator<<(std::ostream& out, {type} mode)
 {{
   switch(mode) {{{cases}
+    default:
+        Unreachable();
   }}
   return out;
 }}
