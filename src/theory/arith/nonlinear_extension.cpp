@@ -772,8 +772,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     Node pa = a;
     if (!pvars.empty())
     {
-      pa =
-          pa.substitute(pvars.begin(), pvars.end(), psubs.begin(), psubs.end());
+      pa = arithSubstitute(pa, pvars, psubs);
       pa = Rewriter::rewrite(pa);
     }
     if (!pa.isConst() || !pa.getConst<bool>())

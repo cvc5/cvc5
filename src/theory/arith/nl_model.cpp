@@ -284,10 +284,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       // apply the substitution to a
       if (!d_check_model_vars.empty())
       {
-        av = av.substitute(d_check_model_vars.begin(),
-                           d_check_model_vars.end(),
-                           d_check_model_subs.begin(),
-                           d_check_model_subs.end());
+        av = arithSubstitute(av, d_check_model_vars, d_check_model_subs);
         av = Rewriter::rewrite(av);
       }
       // simple check literal
@@ -360,10 +357,14 @@ bool NlModel::addCheckModelSubstitution(TNode v, TNode s)
       return false;
     }
   }
+  std::vector<Node> varsTmp;
+  varsTmp.push_back(v);
+  std::vector<Node> subsTmp;
+  subsTmp.push_back(s);
   for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
   {
     Node ms = d_check_model_subs[i];
-    Node mss = ms.substitute(v, s);
+    Node mss = arithSubstitute(ms, varsTmp, subsTmp);
     if (mss != ms)
     {
       mss = Rewriter::rewrite(mss);
@@ -430,10 +431,7 @@ bool NlModel::solveEqualitySimple(Node eq,
   Node seq = eq;
   if (!d_check_model_vars.empty())
   {
-    seq = eq.substitute(d_check_model_vars.begin(),
-                        d_check_model_vars.end(),
-                        d_check_model_subs.begin(),
-                        d_check_model_subs.end());
+    seq = arithSubstitute(eq, d_check_model_vars, d_check_model_subs);
     seq = Rewriter::rewrite(seq);
     if (seq.isConst())
     {
@@ -866,8 +864,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
             for (unsigned r = 0; r < 2; r++)
             {
               qsubs.push_back(boundn[r]);
-              Node ts = t.substitute(
-                  qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end());
+              Node ts = arithSubstitute(t, qvars, qsubs);
               tcmpn[r] = Rewriter::rewrite(ts);
               qsubs.pop_back();
             }

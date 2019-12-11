@@ -458,28 +458,31 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
     if (d_virtual_enum.isNull())
     {
       // we construct the default integer grammar with no variables, e.g.:
-      //   A -> 0 | 1 | A+A
+      //   A -> 1 | A+A
       TypeNode intTn = nm->integerType();
       // use a null variable list
       Node bvl;
-      std::stringstream ss;
-      ss << "_virtual_enum_grammar";
-      std::string virtualEnumName(ss.str());
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
-          exclude_cons;
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
-          include_cons;
-      // do not include "-", which is included by default for integers
-      exclude_cons[intTn].insert(nm->operatorOf(MINUS));
-      std::unordered_set<Node, NodeHashFunction> term_irrelevant;
-      TypeNode vtn = CegGrammarConstructor::mkSygusDefaultType(intTn,
-                                                               bvl,
-                                                               virtualEnumName,
-                                                               extra_cons,
-                                                               exclude_cons,
-                                                               include_cons,
-                                                               term_irrelevant);
+      std::string veName("_virtual_enum_grammar");
+      SygusDatatype sdt(veName);
+      TypeNode u = nm->mkSort(veName, ExprManager::SORT_FLAG_PLACEHOLDER);
+      std::set<Type> unresolvedTypes;
+      unresolvedTypes.insert(u.toType());
+      std::vector<TypeNode> cargsEmpty;
+      Node cr = nm->mkConst(Rational(1));
+      sdt.addConstructor(cr, "1", cargsEmpty);
+      std::vector<TypeNode> cargsPlus;
+      cargsPlus.push_back(u);
+      cargsPlus.push_back(u);
+      sdt.addConstructor(PLUS, cargsPlus);
+      sdt.initializeDatatype(nm->integerType(), bvl, false, false);
+      std::vector<Datatype> datatypes;
+      datatypes.push_back(sdt.getDatatype());
+      std::vector<DatatypeType> dtypes =
+          nm->toExprManager()->mkMutualDatatypeTypes(
+              datatypes,
+              unresolvedTypes,
+              ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+      TypeNode vtn = TypeNode::fromType(dtypes[0]);
       d_virtual_enum = nm->mkSkolem("_ve", vtn);
       d_tds->registerEnumerator(
           d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
@@ -636,7 +639,8 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   }
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
-  d_tds->registerEnumerator(e, si.d_pt, d_parent, erole, false);
+  bool useSymCons = options::sygusGrammarConsMode() != SYGUS_GCONS_SIMPLE;
+  d_tds->registerEnumerator(e, si.d_pt, d_parent, erole, useSymCons);
 }
 
 void CegisUnifEnumDecisionStrategy::registerEvalPts(

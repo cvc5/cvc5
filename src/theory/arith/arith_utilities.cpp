@@ -191,6 +191,84 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
   }
 }
 
+Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs)
+{
+  Assert(vars.size() == subs.size());
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<Node>::iterator itv;
+  std::vector<TNode> visit;
+  TNode cur;
+  Kind ck;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end())
+    {
+      visited[cur] = Node::null();
+      ck = cur.getKind();
+      itv = std::find(vars.begin(), vars.end(), cur);
+      if (itv != vars.end())
+      {
+        visited[cur] = subs[std::distance(vars.begin(), itv)];
+      }
+      else if (cur.getNumChildren() == 0)
+      {
+        visited[cur] = cur;
+      }
+      else
+      {
+        TheoryId ctid = theory::kindToTheoryId(ck);
+        if (ctid != THEORY_ARITH && ctid != THEORY_BOOL
+            && ctid != THEORY_BUILTIN)
+        {
+          // do not traverse beneath applications that belong to another theory
+          visited[cur] = cur;
+        }
+        else
+        {
+          visit.push_back(cur);
+          for (const Node& cn : cur)
+          {
+            visit.push_back(cn);
+          }
+        }
+      }
+    }
+    else if (it->second.isNull())
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur)
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged)
+      {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
+}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
