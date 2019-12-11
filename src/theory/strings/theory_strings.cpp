@@ -3483,11 +3483,11 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
                                                             int index,
                                                             InferInfo& info)
 {
-  if (options::stringProcessLoopMode() == ProcessLoopMode::ABORT)
+  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
   {
     throw LogicException("Looping word equation encountered.");
   }
-  else if (options::stringProcessLoopMode() == ProcessLoopMode::NONE)
+  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE)
   {
     d_out->setIncomplete();
     return ProcessLoopResult::SKIPPED;
@@ -3630,11 +3630,13 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
   }
   else
   {
-    if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE_ABORT)
+    if (options::stringProcessLoopMode()
+        == options::ProcessLoopMode::SIMPLE_ABORT)
     {
       throw LogicException("Normal looping word equation encountered.");
     }
-    else if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE)
+    else if (options::stringProcessLoopMode()
+             == options::ProcessLoopMode::SIMPLE)
     {
       d_out->setIncomplete();
       return ProcessLoopResult::SKIPPED;

@@ -68,7 +68,6 @@
 #include "options/sep_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
-#include "options/strings_modes.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
@@ -2373,8 +2372,7 @@ void SmtEngine::setDefaults() {
     Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
                     "--strings-fmf enabled"
                  << endl;
-    options::stringProcessLoopMode.set(
-        theory::strings::ProcessLoopMode::SIMPLE);
+    options::stringProcessLoopMode.set(options::ProcessLoopMode::SIMPLE);
   }
 }
 

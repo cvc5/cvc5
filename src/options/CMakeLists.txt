@@ -31,8 +31,6 @@ libcvc4_add_sources(
   set_language.h
   smt_modes.cpp
   smt_modes.h
-  strings_modes.cpp
-  strings_modes.h
   sygus_out_mode.h
 )
 

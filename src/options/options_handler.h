@@ -34,7 +34,6 @@
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
 #include "options/smt_modes.h"
-#include "options/strings_modes.h"
 #include "options/sygus_out_mode.h"
 
 namespace CVC4 {
@@ -144,11 +143,6 @@ public:
   theory::bv::BvOptimizeSatProof stringToBvOptimizeSatProof(std::string option,
                                                             std::string optarg);
 
-  theory::strings::ProcessLoopMode stringToStringsProcessLoopMode(
-      std::string option, std::string optarg);
-  theory::strings::RegExpInterMode stringToRegExpInterMode(std::string option,
-                                                           std::string optarg);
-
   // theory/options_handlers.h
   void notifyUseTheoryList(std::string option);
   std::string handleUseTheoryList(std::string option, std::string optarg);
@@ -233,8 +227,6 @@ public:
   static const std::string s_bvOptimizeSatProofHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
-  static const std::string s_stringsProcessLoopModeHelp;
-  static const std::string s_regExpInterModeHelp;
   static const std::string s_boolToBVModeHelp;
   static const std::string s_cegqiFairModeHelp;
   static const std::string s_decisionModeHelp;

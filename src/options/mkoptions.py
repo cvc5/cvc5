@@ -255,7 +255,7 @@ operator<<(std::ostream& out, {type} mode)
 TPL_IMPL_MODE_CASE = \
 """
     case {type}::{enum}:
-      out << "{enum}";
+      out << "{type}::{enum}";
       break;"""
 
 TPL_DECL_MODE_HANDLER = \
