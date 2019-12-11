@@ -22,7 +22,9 @@ header = "options/printer_options.h"
   category   = "regular"
   long       = "inst-format=MODE"
   type       = "InstFormatMode"
-  default    = "DEFAULT"
+  default    = "InstFormatMode::DEFAULT"
+  handler    = "stringToInstFormatMode"
+  includes   = ["options/printer_modes.h"]
   help       = "print format mode for instantiations, see --inst-format=help"
 # InstFormatMode is currently exported as public so we can't auto genenerate
 # the enum.

@@ -514,7 +514,7 @@ def help_mode_format(option):
     for value, attrib in option.mode.items():
         assert len(attrib) == 1
         attrib = attrib[0]
-        if value == option.default:
+        if value == option.default and attrib['name'] != "default":
             text.append('+ {} (default)'.format(attrib['name']))
         else:
             text.append('+ {}'.format(attrib['name']))

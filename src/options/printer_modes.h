@@ -35,7 +35,7 @@ enum class CVC4_PUBLIC InstFormatMode
   SZS,
 };
 
-std::ostream& operator<<(std::ostream& out, InstFormatMode mode) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, options::InstFormatMode mode) CVC4_PUBLIC;
 
 }  // namespace options
 }  // namespace CVC4

@@ -34,6 +34,7 @@
 #include "options/quantifiers_modes.h"
 #include "options/smt_modes.h"
 #include "options/sygus_out_mode.h"
+#include "options/printer_modes.h"
 
 namespace CVC4 {
 namespace options {
@@ -146,6 +147,8 @@ public:
   void notifyUseTheoryList(std::string option);
   std::string handleUseTheoryList(std::string option, std::string optarg);
 
+  // printer/options_handlers.h
+  InstFormatMode stringToInstFormatMode(std::string option, std::string optarg);
 
   // decision/options_handlers.h
   decision::DecisionMode stringToDecisionMode(std::string option,
@@ -223,6 +226,7 @@ public:
   static const std::string s_bvSlicerModeHelp;
   static const std::string s_boolToBVModeHelp;
   static const std::string s_cegqiFairModeHelp;
+  static const std::string s_instFormatHelp;
   static const std::string s_decisionModeHelp;
   static const std::string s_instWhenHelp;
   static const std::string s_iteLiftQuantHelp;

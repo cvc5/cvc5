@@ -1498,6 +1498,33 @@ void OptionsHandler::notifyUseTheoryList(std::string option) {
   d_options->d_useTheoryListListeners.notify();
 }
 
+// printer/options_handlers.h
+const std::string OptionsHandler::s_instFormatHelp = "\
+Inst format modes currently supported by the --inst-format option:\n\
+\n\
+default \n\
++ Print instantiations as a list in the output language format.\n\
+\n\
+szs\n\
++ Print instantiations as SZS compliant proof.\n\
+";
+
+InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
+                                                      std::string optarg)
+{
+  if(optarg == "default") {
+    return InstFormatMode::DEFAULT;
+  } else if(optarg == "szs") {
+    return InstFormatMode::SZS;
+  } else if(optarg == "help") {
+    puts(s_instFormatHelp.c_str());
+    exit(1);
+  } else {
+    throw OptionException(std::string("unknown option for --inst-format: `") +
+                          optarg + "'.  Try --inst-format help.");
+  }
+}
+
 // decision/options_handlers.h
 const std::string OptionsHandler::s_decisionModeHelp = "\
 Decision modes currently supported by the --decision option:\n\
