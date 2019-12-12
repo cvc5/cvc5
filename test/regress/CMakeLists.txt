@@ -1264,7 +1264,6 @@ set(regress_1_tests
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
-  regress1/nl/issue3307.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -2224,6 +2223,8 @@ set(regression_disabled_tests
   regress1/issue1048-arrays-int-real.smt2
   # times out after update to tangent planes
   regress1/nl/NAVIGATION2.smt2
+  # sat or unknown in different builds
+  regress1/nl/issue3307.smt2
   # ajreynol: disabled these since they give different error messages on
   # production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
