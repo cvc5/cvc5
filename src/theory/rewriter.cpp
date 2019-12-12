@@ -29,7 +29,12 @@ namespace CVC4 {
 namespace theory {
 
 static TheoryId theoryOf(TNode node) {
-  return Theory::theoryOf(THEORY_OF_TYPE_BASED, node);
+  if (node.getKind() == kind::EQUAL) {
+    // Equality is owned by the theory that owns the domain
+    return Theory::theoryOf(node[0].getType());
+  } 
+  // Regular nodes are owned by the kind
+  return kindToTheoryId(node.getKind());
 }
 
 /**
@@ -72,6 +77,10 @@ struct RewriteStackElement {
 };
 
 Node Rewriter::rewrite(TNode node) {
+  if (node.isConst() || node.isVar())
+  {
+    return node;
+  }
   Rewriter& rewriter = getInstance();
   return rewriter.rewriteTo(theoryOf(node), node);
 }
