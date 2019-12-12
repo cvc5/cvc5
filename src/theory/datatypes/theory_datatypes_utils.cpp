@@ -489,7 +489,7 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
     if (it == visited.end())
     {
       TypeNode tn = cur.getType();
-      if (!tn.isDatatype() || !tn.getDatatype().isSygus())
+      if (!tn.isDatatype() || !tn.getDType().isSygus())
       {
         visited[cur] = cur;
       }
@@ -502,7 +502,7 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
         {
           svarsInit = true;
           TypeNode tn = cur.getType();
-          Node varList = Node::fromExpr(tn.getDatatype().getSygusVarList());
+          Node varList = tn.getDType().getSygusVarList();
           for (const Node& v : varList)
           {
             svars.push_back(v);

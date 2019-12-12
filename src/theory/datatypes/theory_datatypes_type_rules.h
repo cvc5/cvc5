@@ -287,11 +287,13 @@ struct RecordUpdateTypeRule {
     TypeNode recordType = n[0].getType(check);
     TypeNode newValue = n[1].getType(check);
     if (check) {
-      if (!recordType.isRecord()) {
+      if (!recordType.toType().isRecord())
+      {
         throw TypeCheckingExceptionPrivate(
             n, "Record-update expression formed over non-record");
       }
-      const Record& rec = recordType.getRecord();
+      const Record& rec =
+          static_cast<DatatypeType>(recordType.toType()).getRecord();
       if (!rec.contains(ru.getField())) {
         std::stringstream ss;
         ss << "Record-update field `" << ru.getField()

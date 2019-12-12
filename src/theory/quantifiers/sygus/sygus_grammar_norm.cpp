@@ -599,7 +599,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn)
     return tn;
   }
   /* Collect all operators for normalization */
-  const Datatype& dt = tn.getDatatype();
+  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
   if (!dt.isSygus())
   {
     // datatype but not sygus datatype case
