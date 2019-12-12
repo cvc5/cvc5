@@ -1798,6 +1798,7 @@ set(regress_1_tests
   regress1/sygus/uf-abduct.smt2
   regress1/sygus/unbdd_inv_gen_ex7.sy
   regress1/sygus/unbdd_inv_gen_winf1.sy
+  regress1/sygus/unifpi-solve-car_1.lus.sy
   regress1/sygus/univ_2-long-repeat.sy
   regress1/sym/q-constant.smt2
   regress1/sym/q-function.smt2
