@@ -1685,7 +1685,6 @@ set(regress_1_tests
   regress1/sygus-abduct-test.smt2
   regress1/sygus-abduct-test-ccore.smt2
   regress1/sygus-abduct-test-user.smt2
-  regress1/sygus/DRAGON_1.sy
   regress1/sygus/VC22_a.sy
   regress1/sygus/abd-simple-conj-4.smt2
   regress1/sygus/abv.sy
@@ -1897,6 +1896,7 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
+  regress2/sygus/DRAGON_1.lus.sy
   regress2/sygus/MPwL_d1s3.sy
   regress2/sygus/array_sum_dd.sy
   regress2/sygus/cegisunif-depth1-bv.sy
