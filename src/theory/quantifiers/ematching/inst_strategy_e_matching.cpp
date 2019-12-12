@@ -374,20 +374,28 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
           }else{
             Assert(Trigger::isAtomicTrigger(pat));
             if( pat.getType().isBoolean() && rpoleq.isNull() ){
-              if( options::literalMatchMode()==LITERAL_MATCH_USE ){
+              if (options::literalMatchMode() == options::LiteralMatchMode::USE)
+              {
                 pat = NodeManager::currentNM()->mkNode( EQUAL, pat, NodeManager::currentNM()->mkConst( rpol==-1 ) ).negate();
-              }else if( options::literalMatchMode()!=LITERAL_MATCH_NONE ){
+              }
+              else if (options::literalMatchMode()
+                       != options::LiteralMatchMode::NONE)
+              {
                 pat = NodeManager::currentNM()->mkNode( EQUAL, pat, NodeManager::currentNM()->mkConst( rpol==1 ) );
               }
             }else{
               Assert(!rpoleq.isNull());
               if( rpol==-1 ){
-                if( options::literalMatchMode()!=LITERAL_MATCH_NONE ){
+                if (options::literalMatchMode()
+                    != options::LiteralMatchMode::NONE)
+                {
                   //all equivalence classes except rpoleq
                   pat = NodeManager::currentNM()->mkNode( EQUAL, pat, rpoleq ).negate();
                 }
               }else if( rpol==1 ){
-                if( options::literalMatchMode()==LITERAL_MATCH_AGG ){
+                if (options::literalMatchMode()
+                    == options::LiteralMatchMode::AGG)
+                {
                   //only equivalence class rpoleq
                   pat = NodeManager::currentNM()->mkNode( EQUAL, pat, rpoleq );
                 }

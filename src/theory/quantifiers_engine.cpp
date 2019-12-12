@@ -273,8 +273,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
-    if (options::mbqiMode() == quantifiers::MBQI_FMC
-        || options::mbqiMode() == quantifiers::MBQI_TRUST
+    if (options::mbqiMode() == options::MbqiMode::FMC
+        || options::mbqiMode() == options::MbqiMode::TRUST
         || options::fmfBound())
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
@@ -1082,17 +1082,29 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;
   //determine if we should perform check, based on instWhenMode
   bool performCheck = false;
-  if( options::instWhenMode()==quantifiers::INST_WHEN_FULL ){
+  if (options::instWhenMode() == options::InstWhenMode::FULL)
+  {
     performCheck = ( e >= Theory::EFFORT_FULL );
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY ){
+  }
+  else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
+  {
     performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_LAST_CALL ){
+  }
+  else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
+  {
     performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY_LAST_CALL ){
+  }
+  else if (options::instWhenMode()
+           == options::InstWhenMode::FULL_DELAY_LAST_CALL)
+  {
     performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_LAST_CALL ){
+  }
+  else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
+  {
     performCheck = ( e >= Theory::EFFORT_LAST_CALL );
-  }else{
+  }
+  else
+  {
     performCheck = true;
   }
   if( e==Theory::EFFORT_LAST_CALL ){

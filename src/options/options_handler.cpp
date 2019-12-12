@@ -113,30 +113,6 @@ void OptionsHandler::notifyPrintSuccess(std::string option) {
 
 // theory/quantifiers/options_handlers.h
 
-const std::string OptionsHandler::s_instWhenHelp = "\
-Instantiation modes currently supported by the --inst-when option:\n\
-\n\
-full-last-call (default)\n\
-+ Alternate running instantiation rounds at full effort and last\n\
-  call.  In other words, interleave instantiation and theory combination.\n\
-\n\
-full\n\
-+ Run instantiation round at full effort, before theory combination.\n\
-\n\
-full-delay \n\
-+ Run instantiation round at full effort, before theory combination, after\n\
-  all other theories have finished.\n\
-\n\
-full-delay-last-call \n\
-+ Alternate running instantiation rounds at full effort after all other\n\
-  theories have finished, and last call.  \n\
-\n\
-last-call\n\
-+ Run instantiation at last call effort, after theory combination and\n\
-  and theories report sat.\n\
-\n\
-";
-
 const std::string OptionsHandler::s_literalMatchHelp = "\
 Literal match modes currently supported by the --literal-match option:\n\
 \n\
@@ -155,40 +131,6 @@ agg-predicate \n\
 \n\
 agg \n\
 + Consider the phase requirements aggressively for all triggers.\n\
-\n\
-";
-
-const std::string OptionsHandler::s_mbqiModeHelp =
-    "\
-Model-based quantifier instantiation modes currently supported by the --mbqi option:\n\
-\n\
-default \n\
-+ Use algorithm from Section 5.4.2 of thesis Finite Model Finding in Satisfiability \n\
-  Modulo Theories.\n\
-\n\
-none \n\
-+ Disable model-based quantifier instantiation.\n\
-\n\
-trust \n\
-+ Do not instantiate quantified formulas (incomplete technique).\n\
-\n\
-";
-
-const std::string OptionsHandler::s_qcfWhenModeHelp = "\
-Quantifier conflict find modes currently supported by the --quant-cf-when option:\n\
-\n\
-default \n\
-+ Default, apply conflict finding at full effort.\n\
-\n\
-last-call \n\
-+ Apply conflict finding at last call, after theory combination and \n\
-  and all theories report sat. \n\
-\n\
-std \n\
-+ Apply conflict finding at standard effort.\n\
-\n\
-std-h \n\
-+ Apply conflict finding at standard effort when heuristic says to. \n\
 \n\
 ";
 
@@ -530,104 +472,12 @@ depth \n\
 \n\
 ";
 
-theory::quantifiers::InstWhenMode OptionsHandler::stringToInstWhenMode(
-    std::string option, std::string optarg)
+void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
 {
-  if(optarg == "pre-full") {
-    return theory::quantifiers::INST_WHEN_PRE_FULL;
-  } else if(optarg == "full") {
-    return theory::quantifiers::INST_WHEN_FULL;
-  } else if(optarg == "full-delay") {
-    return theory::quantifiers::INST_WHEN_FULL_DELAY;
-  } else if(optarg == "full-last-call") {
-    return theory::quantifiers::INST_WHEN_FULL_LAST_CALL;
-  } else if(optarg == "full-delay-last-call") {
-    return theory::quantifiers::INST_WHEN_FULL_DELAY_LAST_CALL;
-  } else if(optarg == "last-call") {
-    return theory::quantifiers::INST_WHEN_LAST_CALL;
-  } else if(optarg == "help") {
-    puts(s_instWhenHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --inst-when: `") +
-                          optarg + "'.  Try --inst-when help.");
-  }
-}
-
-void OptionsHandler::checkInstWhenMode(std::string option,
-                                       theory::quantifiers::InstWhenMode mode)
-{
-  if(mode == theory::quantifiers::INST_WHEN_PRE_FULL) {
-    throw OptionException(std::string("Mode pre-full for ") + option + " is not supported in this release.");
-  }
-}
-
-theory::quantifiers::LiteralMatchMode OptionsHandler::stringToLiteralMatchMode(
-    std::string option, std::string optarg)
-{
-  if(optarg ==  "none") {
-    return theory::quantifiers::LITERAL_MATCH_NONE;
-  } else if(optarg ==  "use") {
-    return theory::quantifiers::LITERAL_MATCH_USE;
-  } else if(optarg ==  "agg-predicate") {
-    return theory::quantifiers::LITERAL_MATCH_AGG_PREDICATE;
-  } else if(optarg ==  "agg") {
-    return theory::quantifiers::LITERAL_MATCH_AGG;
-  } else if(optarg ==  "help") {
-    puts(s_literalMatchHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --literal-matching: `") +
-                          optarg + "'.  Try --literal-matching help.");
-  }
-}
-
-void OptionsHandler::checkLiteralMatchMode(
-    std::string option, theory::quantifiers::LiteralMatchMode mode)
-{
-}
-
-theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(
-    std::string option, std::string optarg)
-{
-  if (optarg == "none")
+  if (mode == InstWhenMode::PRE_FULL)
   {
-    return theory::quantifiers::MBQI_NONE;
-  } else if(optarg == "default" || optarg ==  "fmc") {
-    return theory::quantifiers::MBQI_FMC;
-  } else if(optarg == "trust") {
-    return theory::quantifiers::MBQI_TRUST;
-  } else if(optarg == "help") {
-    puts(s_mbqiModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --mbqi: `") +
-                          optarg + "'.  Try --mbqi help.");
-  }
-}
-
-void OptionsHandler::checkMbqiMode(std::string option,
-                                   theory::quantifiers::MbqiMode mode)
-{
-}
-
-theory::quantifiers::QcfWhenMode OptionsHandler::stringToQcfWhenMode(
-    std::string option, std::string optarg)
-{
-  if(optarg ==  "default") {
-    return theory::quantifiers::QCF_WHEN_MODE_DEFAULT;
-  } else if(optarg ==  "last-call") {
-    return theory::quantifiers::QCF_WHEN_MODE_LAST_CALL;
-  } else if(optarg ==  "std") {
-    return theory::quantifiers::QCF_WHEN_MODE_STD;
-  } else if(optarg ==  "std-h") {
-    return theory::quantifiers::QCF_WHEN_MODE_STD_H;
-  } else if(optarg ==  "help") {
-    puts(s_qcfWhenModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --quant-cf-when: `") +
-                          optarg + "'.  Try --quant-cf-when help.");
+    throw OptionException(std::string("Mode pre-full for ") + option
+                          + " is not supported in this release.");
   }
 }
 

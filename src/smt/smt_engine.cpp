@@ -1864,11 +1864,11 @@ void SmtEngine::setDefaults() {
   //apply fmfBoundInt options
   if( options::fmfBound() ){
     if (!options::mbqiMode.wasSetByUser()
-        || (options::mbqiMode() != quantifiers::MBQI_NONE
-            && options::mbqiMode() != quantifiers::MBQI_FMC))
+        || (options::mbqiMode() != options::MbqiMode::NONE
+            && options::mbqiMode() != options::MbqiMode::FMC))
     {
       //if bounded integers are set, use no MBQI by default
-      options::mbqiMode.set( quantifiers::MBQI_NONE );
+      options::mbqiMode.set(options::MbqiMode::NONE);
     }
     if( ! options::prenexQuant.wasSetByUser() ){
       options::prenexQuant.set( quantifiers::PRENEX_QUANT_NONE );
@@ -1876,8 +1876,9 @@ void SmtEngine::setDefaults() {
   }
   if( options::ufHo() ){
     //if higher-order, then current variants of model-based instantiation cannot be used
-    if( options::mbqiMode()!=quantifiers::MBQI_NONE ){
-      options::mbqiMode.set( quantifiers::MBQI_NONE );
+    if (options::mbqiMode() != options::MbqiMode::NONE)
+    {
+      options::mbqiMode.set(options::MbqiMode::NONE);
     }
     if (!options::hoElimStoreAx.wasSetByUser())
     {
@@ -1919,7 +1920,7 @@ void SmtEngine::setDefaults() {
     if( !options::instWhenMode.wasSetByUser() ){
       //instantiate only on last call
       if( options::eMatching() ){
-        options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+        options::instWhenMode.set(options::InstWhenMode::LAST_CALL);
       }
     }
   }
@@ -2117,7 +2118,7 @@ void SmtEngine::setDefaults() {
       }
       if( !options::instWhenMode.wasSetByUser() && options::cbqiModel() ){
         //only instantiation should happen at last call when model is avaiable
-        options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+        options::instWhenMode.set(options::InstWhenMode::LAST_CALL);
       }
     }else{
       // only supported in pure arithmetic or pure BV

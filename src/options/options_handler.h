@@ -30,7 +30,7 @@
 #include "options/option_exception.h"
 #include "options/options.h"
 #include "options/printer_modes.h"
-#include "options/quantifiers_modes.h"
+#include "options/quantifiers_options.h"
 
 namespace CVC4 {
 namespace options {
@@ -61,19 +61,9 @@ public:
   }
 
   // theory/quantifiers/options_handlers.h
-  theory::quantifiers::InstWhenMode stringToInstWhenMode(std::string option,
-                                                         std::string optarg);
-  void checkInstWhenMode(std::string option,
-                         theory::quantifiers::InstWhenMode mode);
-  theory::quantifiers::LiteralMatchMode stringToLiteralMatchMode(
-      std::string option, std::string optarg);
-  void checkLiteralMatchMode(std::string option,
-                             theory::quantifiers::LiteralMatchMode mode);
-  theory::quantifiers::MbqiMode stringToMbqiMode(std::string option,
-                                                 std::string optarg);
-  void checkMbqiMode(std::string option, theory::quantifiers::MbqiMode mode);
-  theory::quantifiers::QcfWhenMode stringToQcfWhenMode(std::string option,
-                                                       std::string optarg);
+  void checkInstWhenMode(std::string option, InstWhenMode mode);
+  options::QcfWhenMode stringToQcfWhenMode(std::string option,
+                                           std::string optarg);
   theory::quantifiers::QcfMode stringToQcfMode(std::string option,
                                                std::string optarg);
   theory::quantifiers::UserPatMode stringToUserPatMode(std::string option,
@@ -192,13 +182,11 @@ public:
   /* Help strings */
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_instFormatHelp;
-  static const std::string s_instWhenHelp;
   static const std::string s_iteLiftQuantHelp;
   static const std::string s_literalMatchHelp;
   static const std::string s_macrosQuantHelp;
   static const std::string s_quantDSplitHelp;
   static const std::string s_quantRepHelp;
-  static const std::string s_mbqiModeHelp;
   static const std::string s_prenexQuantModeHelp;
   static const std::string s_qcfModeHelp;
   static const std::string s_qcfWhenModeHelp;

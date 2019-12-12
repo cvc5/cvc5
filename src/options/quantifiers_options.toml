@@ -353,12 +353,29 @@ header = "options/quantifiers_options.h"
   name       = "instWhenMode"
   category   = "regular"
   long       = "inst-when=MODE"
-  type       = "CVC4::theory::quantifiers::InstWhenMode"
-  default    = "CVC4::theory::quantifiers::INST_WHEN_FULL_LAST_CALL"
-  handler    = "stringToInstWhenMode"
+  type       = "InstWhenMode"
+  default    = "FULL_LAST_CALL"
   predicates = ["checkInstWhenMode"]
-  includes   = ["options/quantifiers_modes.h"]
   help       = "when to apply instantiation"
+  help_mode  = "Instantiation modes."
+[[option.mode.PRE_FULL]]
+  name = "pre-full"
+  help = "Run instantiation round before full effort (possibly at standard effort)."
+[[option.mode.FULL]]
+  name = "full"
+  help = "Run instantiation round at full effort, before theory combination."
+[[option.mode.FULL_DELAY]]
+  name = "full-delay"
+  help = "Run instantiation round at full effort, before theory combination, after all other theories have finished."
+[[option.mode.FULL_LAST_CALL]]
+  name = "full-last-call"
+  help = "Alternate running instantiation rounds at full effort and last call.  In other words, interleave instantiation and theory combination."
+[[option.mode.FULL_DELAY_LAST_CALL]]
+  name = "full-delay-last-call"
+  help = "Alternate running instantiation rounds at full effort after all other theories have finished, and last call."
+[[option.mode.LAST_CALL]]
+  name = "last-call"
+  help = "Run instantiation at last call effort, after theory combination and and theories report sat."
 
 [[option]]
   name       = "instWhenStrictInterleave"
@@ -459,13 +476,23 @@ header = "options/quantifiers_options.h"
   name       = "literalMatchMode"
   category   = "regular"
   long       = "literal-matching=MODE"
-  type       = "CVC4::theory::quantifiers::LiteralMatchMode"
-  default    = "CVC4::theory::quantifiers::LITERAL_MATCH_USE"
-  handler    = "stringToLiteralMatchMode"
-  predicates = ["checkLiteralMatchMode"]
-  includes   = ["options/quantifiers_modes.h"]
+  type       = "LiteralMatchMode"
+  default    = "USE"
   read_only  = true
   help       = "choose literal matching mode"
+  help_mode  = "Literal match modes."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use literal matching."
+[[option.mode.USE]]
+  name = "use"
+  help = "Consider phase requirements of triggers conservatively. For example, the trigger P( x ) in forall( x ). ( P( x ) V ~Q( x ) ) will not be matched with terms in the equivalence class of true, and likewise Q( x ) will not be matched terms in the equivalence class of false. Extends to equality."
+[[option.mode.AGG_PREDICATE]]
+  name = "agg-predicate"
+  help = "Consider phase requirements aggressively for predicates. In the above example, only match P( x ) with terms that are in the equivalence class of false."
+[[option.mode.AGG]]
+  name = "agg"
+  help = "Consider the phase requirements aggressively for all triggers."
 
 ### Finite model finding options
 
@@ -516,12 +543,19 @@ header = "options/quantifiers_options.h"
   name       = "mbqiMode"
   category   = "regular"
   long       = "mbqi=MODE"
-  type       = "CVC4::theory::quantifiers::MbqiMode"
-  default    = "CVC4::theory::quantifiers::MBQI_FMC"
-  handler    = "stringToMbqiMode"
-  predicates = ["checkMbqiMode"]
-  includes   = ["options/quantifiers_modes.h"]
+  type       = "MbqiMode"
+  default    = "FMC"
   help       = "choose mode for model-based quantifier instantiation"
+  help_mode  = "Model-based quantifier instantiation modes."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Disable model-based quantifier instantiation."
+[[option.mode.FMC]]
+  name = "fmc"
+  help = "Use algorithm from Section 5.4.2 of thesis Finite Model Finding in Satisfiability Modulo Theories."
+[[option.mode.TRUST]]
+  name = "trust"
+  help = "Do not instantiate quantified formulas (incomplete technique)."
 
 [[option]]
   name       = "fmfOneInstPerRound"
@@ -649,12 +683,23 @@ header = "options/quantifiers_options.h"
   name       = "qcfWhenMode"
   category   = "regular"
   long       = "quant-cf-when=MODE"
-  type       = "CVC4::theory::quantifiers::QcfWhenMode"
-  default    = "CVC4::theory::quantifiers::QCF_WHEN_MODE_DEFAULT"
-  handler    = "stringToQcfWhenMode"
-  includes   = ["options/quantifiers_modes.h"]
+  type       = "QcfWhenMode"
+  default    = "DEFAULT"
   read_only  = true
   help       = "when to invoke conflict find mechanism for quantifiers"
+  help_mode  = "Quantifier conflict find modes."
+[[option.mode.DEFAULT]]
+  name = "default"
+  help = "Default, apply conflict finding at full effort."
+[[option.mode.LAST_CALL]]
+  name = "last-call"
+  help = "Apply conflict finding at last call, after theory combination and and all theories report sat."
+[[option.mode.STD]]
+  name = "std"
+  help = "Apply conflict finding at standard effort."
+[[option.mode.STD_H]]
+  name = "std-h"
+  help = "Apply conflict finding at standard effort when heuristic says to."
 
 [[option]]
   name       = "qcfTConstraint"

@@ -26,52 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-enum InstWhenMode {
-  /** Apply instantiation round before full effort (possibly at standard effort) */
-  INST_WHEN_PRE_FULL,
-  /** Apply instantiation round at full effort or above  */
-  INST_WHEN_FULL,
-  /** Apply instantiation round at full effort, after all other theories finish, or above  */
-  INST_WHEN_FULL_DELAY,
-  /** Apply instantiation round at full effort half the time, and last call always */
-  INST_WHEN_FULL_LAST_CALL,
-  /** Apply instantiation round at full effort after all other theories finish half the time, and last call always */
-  INST_WHEN_FULL_DELAY_LAST_CALL,
-  /** Apply instantiation round at last call only */
-  INST_WHEN_LAST_CALL,
-};
-
-enum LiteralMatchMode {
-  /** Do not consider polarity of patterns */
-  LITERAL_MATCH_NONE,
-  /** Conservatively consider polarity of patterns */
-  LITERAL_MATCH_USE,
-  /** Aggressively consider polarity of Boolean predicates */
-  LITERAL_MATCH_AGG_PREDICATE,
-  /** Aggressively consider polarity of all terms */
-  LITERAL_MATCH_AGG,
-};
-
-enum MbqiMode {
-  /** no mbqi */
-  MBQI_NONE,
-  /** default, mbqi from Section 5.4.2 of AJR thesis */
-  MBQI_FMC,
-  /** mbqi trust (produce no instantiations) */
-  MBQI_TRUST,
-};
-
-enum QcfWhenMode {
-  /** default, apply at full effort */
-  QCF_WHEN_MODE_DEFAULT,
-  /** apply at last call */
-  QCF_WHEN_MODE_LAST_CALL,
-  /** apply at standard effort */
-  QCF_WHEN_MODE_STD,
-  /** apply based on heuristics */
-  QCF_WHEN_MODE_STD_H,
-};
-
 enum QcfMode {
   /** default, use qcf for conflicts only */
   QCF_CONFLICT_ONLY,
@@ -362,8 +316,6 @@ enum SygusUnifPiMode
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
-
-std::ostream& operator<<(std::ostream& out, theory::quantifiers::InstWhenMode mode) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

@@ -1904,11 +1904,11 @@ bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   bool performCheck = false;
   if( options::quantConflictFind() && !d_conflict ){
     if( level==Theory::EFFORT_LAST_CALL ){
-      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_LAST_CALL;
+      performCheck = options::qcfWhenMode() == options::QcfWhenMode::LAST_CALL;
     }else if( level==Theory::EFFORT_FULL ){
-      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_DEFAULT;
+      performCheck = options::qcfWhenMode() == options::QcfWhenMode::DEFAULT;
     }else if( level==Theory::EFFORT_STANDARD ){
-      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_STD;
+      performCheck = options::qcfWhenMode() == options::QcfWhenMode::STD;
     }
   }
   return performCheck;
