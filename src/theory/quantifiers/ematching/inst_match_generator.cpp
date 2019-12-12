@@ -17,6 +17,7 @@
 #include "expr/datatype.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/instantiate.h"
@@ -203,7 +204,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       {
         // 1-constructors have a trivial way of generating candidates in a
         // given equivalence class
-        const Datatype& dt = d_match_pattern.getType().getDatatype();
+        const DType& dt = d_match_pattern.getType().getDType();
         if (dt.getNumConstructors() == 1)
         {
           d_cg = new inst::CandidateGeneratorConsExpand(qe, d_match_pattern);
@@ -226,11 +227,11 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       }
     }else if( d_match_pattern.getKind()==INST_CONSTANT ){
       if( d_pattern.getKind()==APPLY_SELECTOR_TOTAL ){
-        Expr selectorExpr = qe->getTermDatabase()->getMatchOperator( d_pattern ).toExpr();
-        size_t selectorIndex = Datatype::cindexOf(selectorExpr);
-        const Datatype& dt = Datatype::datatypeOf(selectorExpr);
-        const DatatypeConstructor& c = dt[selectorIndex];
-        Node cOp = Node::fromExpr(c.getConstructor());
+        Node selectorExpr = qe->getTermDatabase()->getMatchOperator(d_pattern);
+        size_t selectorIndex = datatypes::utils::cindexOf(selectorExpr);
+        const DType& dt = datatypes::utils::datatypeOf(selectorExpr);
+        const DTypeConstructor& c = dt[selectorIndex];
+        Node cOp = c.getConstructor();
         Trace("inst-match-gen") << "Purify dt trigger " << d_pattern << ", will match terms of op " << cOp << std::endl;
         d_cg = new inst::CandidateGeneratorQE( qe, cOp );
       }else{
