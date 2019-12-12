@@ -868,10 +868,10 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine)
     d_solution.clear();
     // check whether we should print the status
     if (d_result.asSatisfiabilityResult() != Result::UNSAT
-        || options::sygusOut() == SYGUS_SOL_OUT_STATUS_AND_DEF
-        || options::sygusOut() == SYGUS_SOL_OUT_STATUS)
+        || options::sygusOut() == options::SygusSolutionOutMode::STATUS_AND_DEF
+        || options::sygusOut() == options::SygusSolutionOutMode::STATUS)
     {
-      if (options::sygusOut() == SYGUS_SOL_OUT_STANDARD)
+      if (options::sygusOut() == options::SygusSolutionOutMode::STANDARD)
       {
         d_solution << "(fail)" << endl;
       }
@@ -882,7 +882,7 @@ void CheckSynthCommand::invoke(SmtEngine* smtEngine)
     }
     // check whether we should print the solution
     if (d_result.asSatisfiabilityResult() == Result::UNSAT
-        && options::sygusOut() != SYGUS_SOL_OUT_STATUS)
+        && options::sygusOut() != options::SygusSolutionOutMode::STATUS)
     {
       // printing a synthesis solution is a non-constant
       // method, since it invokes a sophisticated algorithm

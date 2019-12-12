@@ -22,7 +22,6 @@ libcvc4_add_sources(
   quantifiers_modes.h
   set_language.cpp
   set_language.h
-  sygus_out_mode.h
 )
 
 set(options_toml_files

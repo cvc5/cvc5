@@ -31,7 +31,6 @@
 #include "options/options.h"
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
-#include "options/sygus_out_mode.h"
 
 namespace CVC4 {
 namespace options {
@@ -142,8 +141,6 @@ public:
    */
   void notifyBeforeSearch(const std::string& option);
   void notifyDumpMode(std::string option);
-  SygusSolutionOutMode stringToSygusSolutionOutMode(std::string option,
-                                                    std::string optarg);
   void setProduceAssertions(std::string option, bool value);
   void proofEnabledBuild(std::string option, bool value);
   void LFSCEnabledBuild(std::string option, bool value);
@@ -205,7 +202,6 @@ public:
   static const std::string s_prenexQuantModeHelp;
   static const std::string s_qcfModeHelp;
   static const std::string s_qcfWhenModeHelp;
-  static const std::string s_sygusSolutionOutModeHelp;
   static const std::string s_cbqiBvIneqModeHelp;
   static const std::string s_cegqiSingleInvHelp;
   static const std::string s_cegqiSingleInvRconsHelp;

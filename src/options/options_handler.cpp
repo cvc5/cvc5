@@ -1277,57 +1277,6 @@ void OptionsHandler::setDecisionModeStopOnly(std::string option, DecisionMode m)
   options::decisionStopOnly.set(m == DecisionMode::RELEVANCY);
 }
 
-const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
-    "\
-Modes for sygus solution output, supported by --sygus-out:\n\
-\n\
-status \n\
-+ Print only status for check-synth calls.\n\
-\n\
-status-and-def (default) \n\
-+ Print status followed by definition corresponding to solution.\n\
-\n\
-status-or-def \n\
-+ Print status if infeasible, or definition corresponding to\n\
-  solution if feasible.\n\
-\n\
-sygus-standard \n\
-+ Print based on SyGuS standard.\n\
-\n\
-";
-
-SygusSolutionOutMode OptionsHandler::stringToSygusSolutionOutMode(
-    std::string option, std::string optarg)
-{
-  if (optarg == "status")
-  {
-    return SYGUS_SOL_OUT_STATUS;
-  }
-  else if (optarg == "status-and-def")
-  {
-    return SYGUS_SOL_OUT_STATUS_AND_DEF;
-  }
-  else if (optarg == "status-or-def")
-  {
-    return SYGUS_SOL_OUT_STATUS_OR_DEF;
-  }
-  else if (optarg == "sygus-standard")
-  {
-    return SYGUS_SOL_OUT_STANDARD;
-  }
-  else if (optarg == "help")
-  {
-    puts(s_sygusSolutionOutModeHelp.c_str());
-    exit(1);
-  }
-  else
-  {
-    throw OptionException(std::string("unknown option for --sygus-out: `")
-                          + optarg
-                          + "'.  Try --sygus-out help.");
-  }
-}
-
 void OptionsHandler::setProduceAssertions(std::string option, bool value)
 {
   options::produceAssertions.set(value);
