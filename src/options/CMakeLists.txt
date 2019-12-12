@@ -1,7 +1,7 @@
 # Check if the toml Python module is installed.
 execute_process(
   COMMAND
-  ${PYTHON_EXECUTABLE} -c "import atoml"
+  ${PYTHON_EXECUTABLE} -c "import toml"
   RESULT_VARIABLE
     RET_TOML
   ERROR_QUIET
