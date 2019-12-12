@@ -61,10 +61,10 @@ void SygusUnifRl::initializeCandidate(
     d_cand_to_hd_count[f] = 0;
   }
   // check whether we are using condition enumeration
-  SygusUnifPiMode mode = options::sygusUnifPi();
-  d_useCondPool =
-      mode == SYGUS_UNIF_PI_CENUM || mode == SYGUS_UNIF_PI_CENUM_IGAIN;
-  d_useCondPoolIGain = mode == SYGUS_UNIF_PI_CENUM_IGAIN;
+  options::SygusUnifPiMode mode = options::sygusUnifPi();
+  d_useCondPool = mode == options::SygusUnifPiMode::CENUM
+                  || mode == options::SygusUnifPiMode::CENUM_IGAIN;
+  d_useCondPoolIGain = mode == options::SygusUnifPiMode::CENUM_IGAIN;
 }
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)

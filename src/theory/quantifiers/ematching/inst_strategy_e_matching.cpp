@@ -85,14 +85,17 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
   if( e==0 ){
     return STATUS_UNFINISHED;
   }else{
-    int peffort = d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT ? 2 : 1;
+    int peffort =
+        d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT ? 2
+                                                                            : 1;
     if( e<peffort ){
       return STATUS_UNFINISHED;
     }else if( e==peffort ){
       d_counter[f]++;
 
       Trace("inst-alg") << "-> User-provided instantiate " << f << "..." << std::endl;
-      if( d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT  ){
+      if (d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT)
+      {
         for( unsigned i=0; i<d_user_gen_wait[f].size(); i++ ){
           Trigger * t = Trigger::mkTrigger( d_quantEngine, f, d_user_gen_wait[f][i], true, Trigger::TR_RETURN_NULL );
           if( t ){
@@ -142,9 +145,12 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
   if( usable ){
     Trace("user-pat") << "Add user pattern: " << pat << " for " << q << std::endl;
     //check match option
-    if( d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT ){
+    if (d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT)
+    {
       d_user_gen_wait[q].push_back( nodes );
-    }else{
+    }
+    else
+    {
       Trigger * t = Trigger::mkTrigger( d_quantEngine, q, nodes, true, Trigger::TR_MAKE_NEW );
       if( t ){
         d_user_gen[q].push_back( t );
@@ -187,11 +193,17 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
 }
 
 int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
-  UserPatMode upMode = d_quantEngine->getInstUserPatMode();
-  if( hasUserPatterns( f ) && upMode==USER_PAT_MODE_TRUST ){
+  options::UserPatMode upMode = d_quantEngine->getInstUserPatMode();
+  if (hasUserPatterns(f) && upMode == options::UserPatMode::TRUST)
+  {
     return STATUS_UNKNOWN;
-  }else{
-    int peffort = ( hasUserPatterns( f ) && upMode!=USER_PAT_MODE_IGNORE && upMode!=USER_PAT_MODE_RESORT ) ? 2 : 1;
+  }
+  else
+  {
+    int peffort = (hasUserPatterns(f) && upMode != options::UserPatMode::IGNORE
+                   && upMode != options::UserPatMode::RESORT)
+                      ? 2
+                      : 1;
     if( e<peffort ){
       return STATUS_UNFINISHED;
     }else{
@@ -219,17 +231,22 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       //  d_processed_trigger.clear();
       //  d_quantEngine->getEqualityQuery()->setLiberal( true );
       //}
-      if( options::triggerActiveSelMode()!=TRIGGER_ACTIVE_SEL_ALL ){
+      if (options::triggerActiveSelMode() != options::TriggerActiveSelMode::ALL)
+      {
         int max_score = -1;
         Trigger * max_trigger = NULL;
         for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[0][f].begin(); itt != d_auto_gen_trigger[0][f].end(); ++itt ){
           int score = itt->first->getActiveScore();
-          if( options::triggerActiveSelMode()==TRIGGER_ACTIVE_SEL_MIN ){
+          if (options::triggerActiveSelMode()
+              == options::TriggerActiveSelMode::MIN)
+          {
             if( score>=0 && ( score<max_score || max_score<0 ) ){
               max_score = score;
               max_trigger = itt->first;
-            } 
-          }else{
+            }
+          }
+          else
+          {
             if( score>max_score ){
               max_score = score;
               max_trigger = itt->first;
@@ -241,7 +258,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
           d_auto_gen_trigger[0][f][max_trigger] = true;
         }
       }
-      
+
       bool hasInst = false;
       for( unsigned r=0; r<2; r++ ){
         for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[r][f].begin(); itt != d_auto_gen_trigger[r][f].end(); ++itt ){

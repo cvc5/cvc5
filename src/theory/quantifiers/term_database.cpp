@@ -907,11 +907,16 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
     return d_has_map.find( n )!=d_has_map.end();
   }else{
     //return d_quantEngine->getActiveEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
-    if( options::termDbMode()==TERM_DB_ALL ){
+    if (options::termDbMode() == options::TermDbMode::ALL)
+    {
       return true;
-    }else if( options::termDbMode()==TERM_DB_RELEVANT ){
+    }
+    else if (options::termDbMode() == options::TermDbMode::RELEVANT)
+    {
       return d_has_map.find( n )!=d_has_map.end();
-    }else{
+    }
+    else
+    {
       Assert(false);
       return false;
     }
@@ -1063,7 +1068,9 @@ bool TermDb::reset( Theory::Effort effort ){
   }
 
   //compute has map
-  if( options::termDbMode()==TERM_DB_RELEVANT || options::lteRestrictInstClosure() ){
+  if (options::termDbMode() == options::TermDbMode::RELEVANT
+      || options::lteRestrictInstClosure())
+  {
     d_has_map.clear();
     d_term_elig_eqc.clear();
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );

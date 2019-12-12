@@ -504,7 +504,7 @@ def help_mode_format(option):
 
     wrapper = textwrap.TextWrapper(width=78, break_on_hyphens=False)
     text = ['{}'.format(x) for x in wrapper.wrap(option.help_mode)]
-    text.append('Available modes for --{} are:'.format(option.long))
+    text.append('Available modes for --{} are:'.format(option.long.split('=')[0]))
 
     for value, attrib in option.mode.items():
         assert len(attrib) == 1

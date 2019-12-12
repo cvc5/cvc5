@@ -1871,7 +1871,7 @@ void SmtEngine::setDefaults() {
       options::mbqiMode.set(options::MbqiMode::NONE);
     }
     if( ! options::prenexQuant.wasSetByUser() ){
-      options::prenexQuant.set( quantifiers::PRENEX_QUANT_NONE );
+      options::prenexQuant.set(options::PrenexQuantMode::NONE);
     }
   }
   if( options::ufHo() ){
@@ -1908,7 +1908,7 @@ void SmtEngine::setDefaults() {
   if( options::finiteModelFind() ){
     //apply conservative quantifiers splitting
     if( !options::quantDynamicSplit.wasSetByUser() ){
-      options::quantDynamicSplit.set( quantifiers::QUANT_DSPLIT_MODE_DEFAULT );
+      options::quantDynamicSplit.set(options::QuantDSplitMode::DEFAULT);
     }
     //do not eliminate extended arithmetic symbols from quantified formulas
     if( !options::elimExtArithQuant.wasSetByUser() ){
@@ -1958,7 +1958,8 @@ void SmtEngine::setDefaults() {
       options::preSkolemQuantNested.set(true);
     }
   }
-  if( options::cegqiSingleInvMode()!=quantifiers::CEGQI_SI_MODE_NONE ){
+  if (options::cegqiSingleInvMode() != options::CegqiSingleInvMode::NONE)
+  {
     if( !options::ceGuidedInst.wasSetByUser() ){
       options::ceGuidedInst.set( true );
     }
@@ -1967,7 +1968,7 @@ void SmtEngine::setDefaults() {
   if( options::ceGuidedInst() ){
     //counterexample-guided instantiation for sygus
     if( !options::cegqiSingleInvMode.wasSetByUser() ){
-      options::cegqiSingleInvMode.set( quantifiers::CEGQI_SI_MODE_USE );
+      options::cegqiSingleInvMode.set(options::CegqiSingleInvMode::USE);
     }
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );
@@ -2008,7 +2009,7 @@ void SmtEngine::setDefaults() {
       // if doing abduction, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
       {
-        options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG);
+        options::sygusFilterSolMode.set(options::SygusFilterSolMode::STRONG);
       }
       // we must use basic sygus algorithms, since e.g. we require checking
       // a sygus side condition for consistency with axioms.
@@ -2040,11 +2041,11 @@ void SmtEngine::setDefaults() {
       }
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
-        options::sygusInvTemplMode.set(quantifiers::SYGUS_INV_TEMPL_MODE_NONE);
+        options::sygusInvTemplMode.set(options::SygusInvTemplMode::NONE);
       }
       if (!options::cegqiSingleInvMode.wasSetByUser())
       {
-        options::cegqiSingleInvMode.set(quantifiers::CEGQI_SI_MODE_NONE);
+        options::cegqiSingleInvMode.set(options::CegqiSingleInvMode::NONE);
       }
     }
     //do not allow partial functions
@@ -2128,23 +2129,23 @@ void SmtEngine::setDefaults() {
     if (options::cbqiNestedQE())
     {
       // only complete with prenex = disj_normal or normal
-      if (options::prenexQuant() <= quantifiers::PRENEX_QUANT_DISJ_NORMAL)
+      if (options::prenexQuant() <= options::PrenexQuantMode::DISJ_NORMAL)
       {
-        options::prenexQuant.set(quantifiers::PRENEX_QUANT_DISJ_NORMAL);
+        options::prenexQuant.set(options::PrenexQuantMode::DISJ_NORMAL);
       }
     }
     else if (options::globalNegate())
     {
       if (!options::prenexQuant.wasSetByUser())
       {
-        options::prenexQuant.set(quantifiers::PRENEX_QUANT_NONE);
+        options::prenexQuant.set(options::PrenexQuantMode::NONE);
       }
     }
   }
   //implied options...
   if( options::strictTriggers() ){
     if( !options::userPatternsQuant.wasSetByUser() ){
-      options::userPatternsQuant.set( quantifiers::USER_PAT_MODE_TRUST );
+      options::userPatternsQuant.set(options::UserPatMode::TRUST);
     }
   }
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
@@ -2171,7 +2172,7 @@ void SmtEngine::setDefaults() {
       options::iteDtTesterSplitQuant.set( true );
     }
     if( !options::iteLiftQuant.wasSetByUser() ){
-      options::iteLiftQuant.set( quantifiers::ITE_LIFT_QUANT_MODE_ALL );
+      options::iteLiftQuant.set(options::IteLiftQuantMode::ALL);
     }
   }
   if( options::intWfInduction() ){
@@ -2204,7 +2205,7 @@ void SmtEngine::setDefaults() {
     }
   }
   if( !d_logic.isTheoryEnabled(THEORY_DATATYPES) ){
-    options::quantDynamicSplit.set( quantifiers::QUANT_DSPLIT_MODE_NONE );
+    options::quantDynamicSplit.set(options::QuantDSplitMode::NONE);
   }
 
   //until bugs 371,431 are fixed

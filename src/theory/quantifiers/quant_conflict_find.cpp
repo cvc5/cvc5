@@ -1959,8 +1959,9 @@ inline QuantConflictFind::Effort QcfEffortStart() {
 // Returns the beginning of a range of efforts. The value returned is included
 // in the range.
 inline QuantConflictFind::Effort QcfEffortEnd() {
-  return options::qcfMode() == QCF_PROP_EQ ? QuantConflictFind::EFFORT_PROP_EQ
-                                           : QuantConflictFind::EFFORT_CONFLICT;
+  return options::qcfMode() == options::QcfMode::PROP_EQ
+             ? QuantConflictFind::EFFORT_PROP_EQ
+             : QuantConflictFind::EFFORT_CONFLICT;
 }
 
 }  // namespace

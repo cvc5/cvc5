@@ -64,46 +64,6 @@ public:
   void checkInstWhenMode(std::string option, InstWhenMode mode);
   options::QcfWhenMode stringToQcfWhenMode(std::string option,
                                            std::string optarg);
-  theory::quantifiers::QcfMode stringToQcfMode(std::string option,
-                                               std::string optarg);
-  theory::quantifiers::UserPatMode stringToUserPatMode(std::string option,
-                                                       std::string optarg);
-  theory::quantifiers::TriggerSelMode stringToTriggerSelMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::TriggerActiveSelMode stringToTriggerActiveSelMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::PrenexQuantMode stringToPrenexQuantMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::TermDbMode stringToTermDbMode(std::string option,
-                                                     std::string optarg);
-  theory::quantifiers::IteLiftQuantMode stringToIteLiftQuantMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::CbqiBvIneqMode stringToCbqiBvIneqMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::CegqiSingleInvMode stringToCegqiSingleInvMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::CegqiSingleInvRconsMode stringToCegqiSingleInvRconsMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::CegisSampleMode stringToCegisSampleMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::SygusQueryDumpFilesMode stringToSygusQueryDumpFilesMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::SygusFilterSolMode stringToSygusFilterSolMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::SygusActiveGenMode stringToSygusActiveGenMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::SygusUnifPiMode stringToSygusUnifPiMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::SygusGrammarConsMode stringToSygusGrammarConsMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(
-      std::string option, std::string optarg);
-  theory::quantifiers::QuantRepMode stringToQuantRepMode(std::string option,
-                                                         std::string optarg);
 
   // theory/bv/options_handlers.h
   void abcEnabledBuild(std::string option, bool value);
@@ -180,31 +140,7 @@ public:
   Options* d_options;
 
   /* Help strings */
-  static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_instFormatHelp;
-  static const std::string s_iteLiftQuantHelp;
-  static const std::string s_literalMatchHelp;
-  static const std::string s_macrosQuantHelp;
-  static const std::string s_quantDSplitHelp;
-  static const std::string s_quantRepHelp;
-  static const std::string s_prenexQuantModeHelp;
-  static const std::string s_qcfModeHelp;
-  static const std::string s_qcfWhenModeHelp;
-  static const std::string s_cbqiBvIneqModeHelp;
-  static const std::string s_cegqiSingleInvHelp;
-  static const std::string s_cegqiSingleInvRconsHelp;
-  static const std::string s_cegisSampleHelp;
-  static const std::string s_sygusQueryDumpFileHelp;
-  static const std::string s_sygusFilterSolHelp;
-  static const std::string s_sygusInvTemplHelp;
-  static const std::string s_sygusActiveGenHelp;
-  static const std::string s_sygusUnifPiHelp;
-  static const std::string s_sygusGrammarConsHelp;
-  static const std::string s_termDbModeHelp;
-  static const std::string s_triggerSelModeHelp;
-  static const std::string s_triggerActiveSelModeHelp;
-  static const std::string s_userPatModeHelp;
-  static const std::string s_fmfBoundMinModeModeHelp;
 
 }; /* class OptionHandler */
 

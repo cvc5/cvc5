@@ -898,7 +898,6 @@ install(FILES
           options/language.h
           options/option_exception.h
           options/options.h
-          options/quantifiers_modes.h
           options/set_language.h
           options/smt_modes.h
           options/sygus_out_mode.h

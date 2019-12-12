@@ -160,7 +160,7 @@ class QuantifiersEnginePrivate
       d_lte_part_inst.reset(new quantifiers::LtePartialInst(qe, c));
       modules.push_back(d_lte_part_inst.get());
     }
-    if (options::quantDynamicSplit() != quantifiers::QUANT_DSPLIT_MODE_NONE)
+    if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
     {
       d_qsplit.reset(new quantifiers::QuantDSplit(qe, c));
       modules.push_back(d_qsplit.get());
@@ -1117,10 +1117,15 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   return performCheck;
 }
 
-quantifiers::UserPatMode QuantifiersEngine::getInstUserPatMode() {
-  if( options::userPatternsQuant()==quantifiers::USER_PAT_MODE_INTERLEAVE ){
-    return d_ierCounter%2==0 ? quantifiers::USER_PAT_MODE_USE : quantifiers::USER_PAT_MODE_RESORT;
-  }else{
+options::UserPatMode QuantifiersEngine::getInstUserPatMode()
+{
+  if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
+  {
+    return d_ierCounter % 2 == 0 ? options::UserPatMode::USE
+                                 : options::UserPatMode::RESORT;
+  }
+  else
+  {
     return options::userPatternsQuant();
   }
 }

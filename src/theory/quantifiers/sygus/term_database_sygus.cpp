@@ -453,7 +453,7 @@ void TermDbSygus::registerEnumerator(Node e,
 
   // determine if we are actively-generated
   bool isActiveGen = false;
-  if (options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE)
+  if (options::sygusActiveGenMode() != options::SygusActiveGenMode::NONE)
   {
     if (erole == ROLE_ENUM_MULTI_SOLUTION || erole == ROLE_ENUM_CONSTRAINED)
     {
@@ -481,7 +481,7 @@ void TermDbSygus::registerEnumerator(Node e,
     {
       // If the enumerator is the single function-to-synthesize, if auto is
       // enabled, we infer whether it is better to enable active generation.
-      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO)
+      if (options::sygusActiveGenMode() == options::SygusActiveGenMode::AUTO)
       {
         // We use active generation if the grammar of the enumerator does not
         // have ITE and is not Boolean. Experimentally, it is better to
@@ -513,9 +513,9 @@ void TermDbSygus::registerEnumerator(Node e,
                     << " returned " << isActiveGen << std::endl;
   // Currently, actively-generated enumerators are either basic or variable
   // agnostic.
-  bool isVarAgnostic =
-      isActiveGen
-      && options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
+  bool isVarAgnostic = isActiveGen
+                       && options::sygusActiveGenMode()
+                              == options::SygusActiveGenMode::VAR_AGNOSTIC;
   d_enum_var_agnostic[e] = isVarAgnostic;
   if (isVarAgnostic)
   {

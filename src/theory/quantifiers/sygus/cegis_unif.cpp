@@ -405,9 +405,9 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
 {
   d_initialized = false;
   d_tds = d_qe->getTermDatabaseSygus();
-  SygusUnifPiMode mode = options::sygusUnifPi();
-  d_useCondPool =
-      mode == SYGUS_UNIF_PI_CENUM || mode == SYGUS_UNIF_PI_CENUM_IGAIN;
+  options::SygusUnifPiMode mode = options::sygusUnifPi();
+  d_useCondPool = mode == options::SygusUnifPiMode::CENUM
+                  || mode == options::SygusUnifPiMode::CENUM_IGAIN;
 }
 
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)

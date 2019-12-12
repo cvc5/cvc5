@@ -18,8 +18,6 @@ libcvc4_add_sources(
   options_public_functions.cpp
   printer_modes.cpp
   printer_modes.h
-  quantifiers_modes.cpp
-  quantifiers_modes.h
   set_language.cpp
   set_language.h
 )
