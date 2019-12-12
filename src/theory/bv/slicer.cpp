@@ -538,7 +538,8 @@ bool Slicer::isCoreTerm(TNode node) {
     bool not_core;
     if (options::bitvectorEqualitySlicer() != options::BvSlicerMode::OFF)
     {
-      not_core = (kind != kind::BITVECTOR_EXTRACT && kind != kind::BITVECTOR_CONCAT);
+      not_core =
+          (kind != kind::BITVECTOR_EXTRACT && kind != kind::BITVECTOR_CONCAT);
     }
     else
     {

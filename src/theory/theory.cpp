@@ -158,22 +158,30 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
         if (node[0].getKind() == kind::ITE)
         {
           tid = Theory::theoryOf(node[0].getType());
-        } else if (node[1].getKind() == kind::ITE) {
-        tid = Theory::theoryOf(node[1].getType());
-      } else {
-        TNode l = node[0];
-        TNode r = node[1];
-        TypeNode ltype = l.getType();
-        TypeNode rtype = r.getType();
-        if( ltype != rtype ){
-          tid = Theory::theoryOf(l.getType());
-        }else {
-          // If both sides belong to the same theory the choice is easy
-          TheoryId T1 = Theory::theoryOf(l);
-          TheoryId T2 = Theory::theoryOf(r);
-          if (T1 == T2) {
-            tid = T1;
-          } else {
+        }
+        else if (node[1].getKind() == kind::ITE)
+        {
+          tid = Theory::theoryOf(node[1].getType());
+        }
+        else
+        {
+          TNode l = node[0];
+          TNode r = node[1];
+          TypeNode ltype = l.getType();
+          TypeNode rtype = r.getType();
+          if (ltype != rtype)
+          {
+            tid = Theory::theoryOf(l.getType());
+          }
+          else
+          {
+            // If both sides belong to the same theory the choice is easy
+            TheoryId T1 = Theory::theoryOf(l);
+            TheoryId T2 = Theory::theoryOf(r);
+            if (T1 == T2)
+            {
+              tid = T1;
+            } else {
             TheoryId T3 = Theory::theoryOf(ltype);
             // This is a case of
             // * x*y = f(z) -> UF
@@ -191,7 +199,7 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
             }
           }
         }
-      }
+        }
       }
       else
       {

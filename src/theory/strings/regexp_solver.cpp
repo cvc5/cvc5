@@ -374,8 +374,7 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
 bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
 {
   // do not compute intersections if the re intersection mode is none
-  if (options::stringRegExpInterMode()
-      == options::RegExpInterMode::NONE)
+  if (options::stringRegExpInterMode() == options::RegExpInterMode::NONE)
   {
     return true;
   }
