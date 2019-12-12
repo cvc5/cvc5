@@ -312,6 +312,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     // that immediately refutes the candidate we just constructed
     if (sampleAddRefinementLemma(candidates, candidate_values, lems))
     {
+      candidate_values.clear();
       // restart (should be guaranteed to add evaluation lemmas on this call)
       return constructCandidates(
           enums, enum_values, candidates, candidate_values, lems);
