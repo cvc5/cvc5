@@ -46,7 +46,8 @@ class ModelBlocker
    * { t1 ... tn }; if exprToBlock is empty, then t1 ... tn are the free
    * variables of assertions.
    *
-   * We expect exprToBlock to be non-empty only if mode is BLOCK_MODELS_VALUES.
+   * We expect exprToBlock to be non-empty only if mode is
+   * BlockModelsMode::VALUES.
    *
    * For example, if our input is:
    *    x > 0 ^ ( y < 0 V z < 0 V w < 0 )
@@ -61,7 +62,7 @@ class ModelBlocker
   static Expr getModelBlocker(
       const std::vector<Expr>& assertions,
       theory::TheoryModel* m,
-      BlockModelsMode mode,
+      options::BlockModelsMode mode,
       const std::vector<Expr>& exprToBlock = std::vector<Expr>());
 }; /* class TheoryModelCoreBuilder */
 

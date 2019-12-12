@@ -1309,8 +1309,8 @@ void SmtEngine::setDefaults() {
 
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
-       || options::modelCoresMode() != MODEL_CORES_NONE
-       || options::blockModelsMode() != BLOCK_MODELS_NONE)
+       || options::modelCoresMode() != options::ModelCoresMode::NONE
+       || options::blockModelsMode() != options::BlockModelsMode::NONE)
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -1376,7 +1376,7 @@ void SmtEngine::setDefaults() {
   // error if enabled explicitly
   if (options::unsatCores() || options::proof())
   {
-    if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
+    if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
       if (options::simplificationMode.wasSetByUser())
       {
@@ -1386,7 +1386,7 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off simplification to support unsat "
                   "cores/proofs"
                << endl;
-      options::simplificationMode.set(SIMPLIFICATION_MODE_NONE);
+      options::simplificationMode.set(options::SimplificationMode::NONE);
     }
 
     if (options::pbRewrites())
@@ -1509,9 +1509,11 @@ void SmtEngine::setDefaults() {
                    << d_logic.getLogicString() << "> " << (!qf_sat) << endl;
       // simplification=none works better for SMT LIB benchmarks with
       // quantifiers, not others options::simplificationMode.set(qf_sat ||
-      // quantifiers ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
-      options::simplificationMode.set(qf_sat ? SIMPLIFICATION_MODE_NONE
-                                             : SIMPLIFICATION_MODE_BATCH);
+      // quantifiers ? options::SimplificationMode::NONE :
+      // options::SimplificationMode::BATCH);
+      options::simplificationMode.set(qf_sat
+                                          ? options::SimplificationMode::NONE
+                                          : options::SimplificationMode::BATCH);
     }
   }
 
@@ -2946,7 +2948,7 @@ bool SmtEnginePrivate::simplifyAssertions()
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
 
-    if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
+    if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
       if (!options::unsatCores() && !options::fewerPreprocessingHoles())
       {
@@ -3010,7 +3012,7 @@ bool SmtEnginePrivate::simplifyAssertions()
     }
 
     if (options::repeatSimp()
-        && options::simplificationMode() != SIMPLIFICATION_MODE_NONE
+        && options::simplificationMode() != options::SimplificationMode::NONE
         && !options::unsatCores() && !options::fewerPreprocessingHoles())
     {
       PreprocessingPassResult res =
@@ -4433,7 +4435,7 @@ Model* SmtEngine::getModel() {
   // the theory engine into "eager model building" mode. TODO #2648: revisit.
   d_theoryEngine->setEagerModelBuilding();
 
-  if (options::modelCoresMode() != MODEL_CORES_NONE)
+  if (options::modelCoresMode() != options::ModelCoresMode::NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
     // (expanded) assertions using the model core builder utility
@@ -4459,7 +4461,7 @@ Result SmtEngine::blockModel()
 
   TheoryModel* m = getAvailableModel("block model");
 
-  if (options::blockModelsMode() == BLOCK_MODELS_NONE)
+  if (options::blockModelsMode() == options::BlockModelsMode::NONE)
   {
     std::stringstream ss;
     ss << "Cannot block model when block-models is set to none.";
@@ -4494,7 +4496,7 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
   std::vector<Expr> eassertsProc = getExpandedAssertions();
   // we always do block model values mode here
   Expr eblocker = ModelBlocker::getModelBlocker(
-      eassertsProc, m, BLOCK_MODELS_VALUES, exprs);
+      eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
   return assertFormula(eblocker);
 }
 
