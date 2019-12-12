@@ -19,11 +19,12 @@
 #ifndef CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__DATATYPES__TYPE_ENUMERATOR_H
 
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
-#include "expr/type.h"
+#include "expr/dtype.h"
 #include "expr/kind.h"
+#include "expr/type.h"
+#include "expr/type_node.h"
 #include "options/quantifiers_options.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -34,7 +35,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   /** type properties */
   TypeEnumeratorProperties * d_tep;
   /** The datatype we're enumerating */
-  const Datatype& d_datatype;
+  const DType& d_datatype;
   /** extra cons */
   unsigned d_has_debruijn;
   /** type */
@@ -62,12 +63,13 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   /** child */
   bool d_child_enum;
 
-  bool hasCyclesDt( const Datatype& dt ) {
-    return dt.isRecursiveSingleton( d_type.toType() ) || !dt.isFinite( d_type.toType() );
+  bool hasCyclesDt(const DType& dt)
+  {
+    return dt.isRecursiveSingleton(d_type) || !dt.isFinite(d_type);
   }
   bool hasCycles( TypeNode tn ){
     if( tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      const DType& dt = tn.getDType();
       return hasCyclesDt( dt );
     }else{
       return false;
@@ -86,7 +88,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
   DatatypesEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<DatatypesEnumerator>(type),
         d_tep(tep),
-        d_datatype(DatatypeType(type.toType()).getDatatype()),
+        d_datatype(type.getDType()),
         d_type(type),
         d_ctor(0),
         d_zeroTermActive(false)
@@ -99,7 +101,7 @@ class DatatypesEnumerator : public TypeEnumeratorBase<DatatypesEnumerator> {
                       TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<DatatypesEnumerator>(type),
         d_tep(tep),
-        d_datatype(DatatypeType(type.toType()).getDatatype()),
+        d_datatype(type.getDType()),
         d_type(type),
         d_ctor(0),
         d_zeroTermActive(false)
