@@ -1750,6 +1750,7 @@ set(regress_1_tests
   regress1/sygus/nflat-fwd-3.sy
   regress1/sygus/nflat-fwd.sy
   regress1/sygus/nia-max-square-ns.sy
+  regress1/sygus/node-discrete.sy
   regress1/sygus/no-flat-simp.sy
   regress1/sygus/no-mention.sy
   regress1/sygus/once_2.sy
