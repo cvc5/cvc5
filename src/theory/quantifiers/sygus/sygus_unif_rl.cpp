@@ -847,7 +847,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
         std::vector<Node> cechildren;
         cechildren.push_back(ce);
         Node ecurr = r == 0 ? e : er;
-        ith = d_unif->d_hd_to_pt.find(e);
+        ith = d_unif->d_hd_to_pt.find(ecurr);
         AlwaysAssert(ith != d_unif->d_hd_to_pt.end());
         cechildren.insert(
             cechildren.end(), ith->second.begin(), ith->second.end());
