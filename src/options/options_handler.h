@@ -62,8 +62,6 @@ public:
 
   // theory/quantifiers/options_handlers.h
   void checkInstWhenMode(std::string option, InstWhenMode mode);
-  options::QcfWhenMode stringToQcfWhenMode(std::string option,
-                                           std::string optarg);
 
   // theory/bv/options_handlers.h
   void abcEnabledBuild(std::string option, bool value);
