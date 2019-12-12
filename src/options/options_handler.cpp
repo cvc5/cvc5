@@ -31,7 +31,6 @@
 #include "lib/strtok_r.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
-#include "options/decision_mode.h"
 #include "options/decision_options.h"
 #include "options/didyoumean.h"
 #include "options/language.h"
@@ -1273,55 +1272,10 @@ InstFormatMode OptionsHandler::stringToInstFormatMode(std::string option,
 }
 
 // decision/options_handlers.h
-const std::string OptionsHandler::s_decisionModeHelp = "\
-Decision modes currently supported by the --decision option:\n\
-\n\
-internal (default)\n\
-+ Use the internal decision heuristics of the SAT solver\n\
-\n\
-justification\n\
-+ An ATGP-inspired justification heuristic\n\
-\n\
-justification-stoponly\n\
-+ Use the justification heuristic only to stop early, not for decisions\n\
-";
-
-decision::DecisionMode OptionsHandler::stringToDecisionMode(std::string option,
-                                                            std::string optarg)
+void OptionsHandler::setDecisionModeStopOnly(std::string option, DecisionMode m)
 {
-  options::decisionStopOnly.set(false);
-
-  if(optarg == "internal") {
-    return decision::DECISION_STRATEGY_INTERNAL;
-  } else if(optarg == "justification") {
-    return decision::DECISION_STRATEGY_JUSTIFICATION;
-  } else if(optarg == "justification-stoponly") {
-    options::decisionStopOnly.set(true);
-    return decision::DECISION_STRATEGY_JUSTIFICATION;
-  } else if(optarg == "help") {
-    puts(s_decisionModeHelp.c_str());
-    exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --decision: `") +
-                          optarg + "'.  Try --decision help.");
-  }
+  options::decisionStopOnly.set(m == DecisionMode::RELEVANCY);
 }
-
-decision::DecisionWeightInternal OptionsHandler::stringToDecisionWeightInternal(
-    std::string option, std::string optarg)
-{
-  if(optarg == "off")
-    return decision::DECISION_WEIGHT_INTERNAL_OFF;
-  else if(optarg == "max")
-    return decision::DECISION_WEIGHT_INTERNAL_MAX;
-  else if(optarg == "sum")
-    return decision::DECISION_WEIGHT_INTERNAL_SUM;
-  else if(optarg == "usr1")
-    return decision::DECISION_WEIGHT_INTERNAL_USR1;
-  else
-    throw OptionException(std::string("--decision-weight-internal must be off, max or sum."));
-}
-
 
 // smt/options_handlers.h
 const std::string OptionsHandler::s_simplificationHelp = "\

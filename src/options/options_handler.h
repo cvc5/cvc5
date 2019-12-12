@@ -25,7 +25,7 @@
 #include "base/modal_exception.h"
 #include "options/base_handlers.h"
 #include "options/bv_options.h"
-#include "options/decision_mode.h"
+#include "options/decision_options.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/options.h"
@@ -135,10 +135,7 @@ public:
   InstFormatMode stringToInstFormatMode(std::string option, std::string optarg);
 
   // decision/options_handlers.h
-  decision::DecisionMode stringToDecisionMode(std::string option,
-                                              std::string optarg);
-  decision::DecisionWeightInternal stringToDecisionWeightInternal(
-      std::string option, std::string optarg);
+  void setDecisionModeStopOnly(std::string option, DecisionMode m);
 
   /**
    * Throws a ModalException if this option is being set after final
@@ -204,7 +201,6 @@ public:
   /* Help strings */
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_instFormatHelp;
-  static const std::string s_decisionModeHelp;
   static const std::string s_instWhenHelp;
   static const std::string s_iteLiftQuantHelp;
   static const std::string s_literalMatchHelp;

@@ -55,7 +55,6 @@
 #include "options/booleans_options.h"
 #include "options/bv_options.h"
 #include "options/datatypes_options.h"
-#include "options/decision_mode.h"
 #include "options/decision_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
@@ -1762,41 +1761,40 @@ void SmtEngine::setDefaults() {
 
   // Set decision mode based on logic (if not set by user)
   if(!options::decisionMode.wasSetByUser()) {
-    decision::DecisionMode decMode =
+    options::DecisionMode decMode =
         // sygus uses internal
-        is_sygus ? decision::DECISION_STRATEGY_INTERNAL :
+        is_sygus ? options::DecisionMode::INTERNAL :
                  // ALL
             d_logic.hasEverything()
-                ? decision::DECISION_STRATEGY_JUSTIFICATION
+                ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
-                      (not d_logic.isQuantified() && d_logic.isPure(THEORY_BV))
-                              ||
-                              // QF_AUFBV or QF_ABV or QF_UFBV
-                              (not d_logic.isQuantified()
-                               && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
-                                   || d_logic.isTheoryEnabled(THEORY_UF))
-                               && d_logic.isTheoryEnabled(THEORY_BV))
-                              ||
-                              // QF_AUFLIA (and may be ends up enabling
-                              // QF_AUFLRA?)
-                              (not d_logic.isQuantified()
-                               && d_logic.isTheoryEnabled(THEORY_ARRAYS)
-                               && d_logic.isTheoryEnabled(THEORY_UF)
-                               && d_logic.isTheoryEnabled(THEORY_ARITH))
-                              ||
-                              // QF_LRA
-                              (not d_logic.isQuantified()
-                               && d_logic.isPure(THEORY_ARITH)
-                               && d_logic.isLinear()
-                               && !d_logic.isDifferenceLogic()
-                               && !d_logic.areIntegersUsed())
-                              ||
-                              // Quantifiers
-                              d_logic.isQuantified() ||
-                              // Strings
-                              d_logic.isTheoryEnabled(THEORY_STRINGS)
-                          ? decision::DECISION_STRATEGY_JUSTIFICATION
-                          : decision::DECISION_STRATEGY_INTERNAL);
+                    (not d_logic.isQuantified() && d_logic.isPure(THEORY_BV)) ||
+                            // QF_AUFBV or QF_ABV or QF_UFBV
+                            (not d_logic.isQuantified()
+                             && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                                 || d_logic.isTheoryEnabled(THEORY_UF))
+                             && d_logic.isTheoryEnabled(THEORY_BV))
+                            ||
+                            // QF_AUFLIA (and may be ends up enabling
+                            // QF_AUFLRA?)
+                            (not d_logic.isQuantified()
+                             && d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                             && d_logic.isTheoryEnabled(THEORY_UF)
+                             && d_logic.isTheoryEnabled(THEORY_ARITH))
+                            ||
+                            // QF_LRA
+                            (not d_logic.isQuantified()
+                             && d_logic.isPure(THEORY_ARITH)
+                             && d_logic.isLinear()
+                             && !d_logic.isDifferenceLogic()
+                             && !d_logic.areIntegersUsed())
+                            ||
+                            // Quantifiers
+                            d_logic.isQuantified() ||
+                            // Strings
+                            d_logic.isTheoryEnabled(THEORY_STRINGS)
+                        ? options::DecisionMode::JUSTIFICATION
+                        : options::DecisionMode::INTERNAL);
 
     bool stoponly =
       // ALL
