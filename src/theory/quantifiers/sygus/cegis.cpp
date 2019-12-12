@@ -307,7 +307,6 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
 
   if (options::cegisSample() != CEGIS_SAMPLE_NONE && lems.empty())
   {
-    //AlwaysAssert( candidates.size()==candidate_values.size());
     // if we didn't add a lemma, trying sampling to add a refinement lemma
     // that immediately refutes the candidate we just constructed
     if (sampleAddRefinementLemma(candidates, candidate_values, lems))
