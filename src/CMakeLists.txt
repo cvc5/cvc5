@@ -894,13 +894,10 @@ install(FILES
           ${INCLUDE_INSTALL_DIR}/cvc4/expr)
 install(FILES
           options/argument_extender.h
-          options/datatypes_modes.h
           options/language.h
           options/option_exception.h
           options/options.h
           options/set_language.h
-          options/smt_modes.h
-          options/sygus_out_mode.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/options)
 install(FILES
