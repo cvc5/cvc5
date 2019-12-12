@@ -195,11 +195,7 @@ void Datatype::resolve(const std::map<std::string, DatatypeType>& resolutions,
   {
     AlwaysAssert(c.isResolved());
     c.d_constructor = c.d_internal->getConstructor().toExpr();
-<<<<<<< HEAD
-    for (unsigned i = 0, nargs = c.getNumArgs(); i < nargs; i++)
-=======
     for (size_t i = 0, nargs = c.getNumArgs(); i < nargs; i++)
->>>>>>> d803e7fcf60f9bb847853fe6ccf7589b94b76922
     {
       AlwaysAssert(c.d_args[i].isResolved());
       c.d_args[i].d_selector = c.d_args[i].d_internal->getSelector().toExpr();
