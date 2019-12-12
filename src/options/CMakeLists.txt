@@ -1,3 +1,17 @@
+# Check if the toml Python module is installed.
+execute_process(
+  COMMAND
+  ${PYTHON_EXECUTABLE} -c "import atoml"
+  RESULT_VARIABLE
+    RET_TOML
+  ERROR_QUIET
+)
+
+if(RET_TOML)
+    message(FATAL_ERROR
+      "Could not find Python module toml. Install via `pip install toml'.")
+endif()
+
 libcvc4_add_sources(
   argument_extender.h
   argument_extender_implementation.cpp
