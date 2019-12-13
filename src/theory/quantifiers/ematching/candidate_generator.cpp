@@ -13,6 +13,7 @@
  **/
 
 #include "theory/quantifiers/ematching/candidate_generator.h"
+#include "expr/dtype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
@@ -208,7 +209,7 @@ CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(
     : CandidateGeneratorQE(qe, mpat)
 {
   Assert(mpat.getKind() == APPLY_CONSTRUCTOR);
-  d_mpat_type = static_cast<DatatypeType>(mpat.getType().toType());
+  d_mpat_type = mpat.getType();
 }
 
 void CandidateGeneratorConsExpand::reset(Node eqc)
@@ -222,7 +223,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   {
     d_eqc = eqc;
     d_mode = cand_term_ident;
-    Assert(d_eqc.getType().toType() == d_mpat_type);
+    Assert(d_eqc.getType() == d_mpat_type);
   }
 }
 
@@ -237,15 +238,13 @@ Node CandidateGeneratorConsExpand::getNextCandidate()
   // expand it
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children;
-  const Datatype& dt = d_mpat_type.getDatatype();
+  const DType& dt = d_mpat_type.getDType();
   Assert(dt.getNumConstructors() == 1);
   children.push_back(d_op);
   for (unsigned i = 0, nargs = dt[0].getNumArgs(); i < nargs; i++)
   {
-    Node sel =
-        nm->mkNode(APPLY_SELECTOR_TOTAL,
-                   Node::fromExpr(dt[0].getSelectorInternal(d_mpat_type, i)),
-                   curr);
+    Node sel = nm->mkNode(
+        APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(d_mpat_type, i), curr);
     children.push_back(sel);
   }
   return nm->mkNode(APPLY_CONSTRUCTOR, children);

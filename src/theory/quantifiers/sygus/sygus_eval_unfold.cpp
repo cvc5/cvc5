@@ -47,7 +47,7 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   TypeNode tn = n[0].getType();
   // since n[0] is an evaluation head, we know tn is a sygus datatype
   Assert(tn.isDatatype());
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   Assert(dt.isSygus());
   if (n[0].getKind() == APPLY_CONSTRUCTOR)
   {
@@ -57,7 +57,7 @@ void SygusEvalUnfold::registerEvalTerm(Node n)
   }
   // register this evaluation term with its head
   d_evals[n[0]].push_back(n);
-  Node var_list = Node::fromExpr(dt.getSygusVarList());
+  Node var_list = dt.getSygusVarList();
   d_eval_args[n[0]].push_back(std::vector<Node>());
   for (unsigned j = 1, size = n.getNumChildren(); j < size; j++)
   {
@@ -109,7 +109,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
       bool hasSymCons = sti.hasSubtermSymbolicCons();
       // n occurs as an evaluation head, thus it has sygus datatype type
       Assert(tn.isDatatype());
-      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      const DType& dt = tn.getDType();
       Assert(dt.isSygus());
       Trace("sygus-eval-unfold")
           << "SygusEvalUnfold: Register model value : " << vn << " for " << n
@@ -121,7 +121,7 @@ void SygusEvalUnfold::registerModelValue(Node a,
       Node bTerm = d_tds->sygusToBuiltin(vn, tn);
       Trace("sygus-eval-unfold") << "Built-in term : " << bTerm << std::endl;
       std::vector<Node> vars;
-      Node var_list = Node::fromExpr(dt.getSygusVarList());
+      Node var_list = dt.getSygusVarList();
       for (const Node& v : var_list)
       {
         vars.push_back(v);
@@ -240,22 +240,20 @@ Node SygusEvalUnfold::unfold(Node en,
   }
 
   TypeNode headType = en[0].getType();
-  Type headTypeT = headType.toType();
   NodeManager* nm = NodeManager::currentNM();
-  const Datatype& dt = headType.getDatatype();
+  const DType& dt = headType.getDType();
   unsigned i = datatypes::utils::indexOf(ev.getOperator());
   if (track_exp)
   {
     // explanation
-    Node ee =
-        nm->mkNode(APPLY_TESTER, Node::fromExpr(dt[i].getTester()), en[0]);
+    Node ee = nm->mkNode(APPLY_TESTER, dt[i].getTester(), en[0]);
     if (std::find(exp.begin(), exp.end(), ee) == exp.end())
     {
       exp.push_back(ee);
     }
   }
   // if we are a symbolic constructor, unfolding returns the subterm itself
-  Node sop = Node::fromExpr(dt[i].getSygusOp());
+  Node sop = dt[i].getSygusOp();
   if (sop.getAttribute(SygusAnyConstAttribute()))
   {
     Trace("sygus-eval-unfold-debug")
@@ -272,7 +270,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       Node ret = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, 0), en[0]);
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, 0), en[0]);
       Trace("sygus-eval-unfold-debug")
           << "...return (from constructor) " << ret << std::endl;
       return ret;
@@ -295,7 +293,7 @@ Node SygusEvalUnfold::unfold(Node en,
     else
     {
       s = nm->mkNode(
-          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headTypeT, j), en[0]);
+          APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(headType, j), en[0]);
     }
     cc.push_back(s);
     if (track_exp)
