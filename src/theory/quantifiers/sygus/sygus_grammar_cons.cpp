@@ -498,7 +498,7 @@ Node CegGrammarConstructor::createLambdaWithZeroArg(
     unsigned size = bargtype.getBitVectorSize();
     zarg = bv::utils::mkZero(size);
   }
-  Node body = nm->mkNode(k, opLArgs.back(), zarg);
+  Node body = nm->mkNode(k, zarg, opLArgs.back());
   // use a print callback since we do not want to print the lambda
   spc = std::make_shared<printer::SygusExprPrintCallback>(body.toExpr(),
                                                           opLArgsExpr);
