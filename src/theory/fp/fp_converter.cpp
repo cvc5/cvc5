@@ -16,7 +16,6 @@
 #include "theory/theory.h"
 // theory.h Only needed for the leaf test
 
-#include <stack>
 #include <vector>
 
 #ifdef CVC4_USE_SYMFPU
