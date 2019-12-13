@@ -594,7 +594,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // set tracking information for later addition at boolean type. The zero
         // integer type, if necessary (i.e., polynomial grammar case), will
         // be set built and tracked  at anyterm building
-        std::pair<unsigned, int> p(sdts.size() - 1, - 1);
+        std::pair<unsigned, int> p(sdts.size() - 1, -1);
         typeToGAnyTerm[types[i]] = p;
       }
     }
@@ -1086,12 +1086,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // e.g. ( x >= 0 ) or ( y >= 0 ).
       sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, spc, 0);
       // define zero integer dtype
-        std::stringstream ssz;
-        ssz << sdts[i].d_sdt.getName() << "_zero_int";
-        sdts.push_back(SygusDatatypeGenerator(ssz.str()));
-        TypeNode unresZeroInt = mkUnresolvedType(ssz.str(), unres);
-        unres_types.push_back(unresZeroInt);
-        unsigned izint = sdts.size() - 1;
+      std::stringstream ssz;
+      ssz << sdts[i].d_sdt.getName() << "_zero_int";
+      sdts.push_back(SygusDatatypeGenerator(ssz.str()));
+      TypeNode unresZeroInt = mkUnresolvedType(ssz.str(), unres);
+      unres_types.push_back(unresZeroInt);
+      unsigned izint = sdts.size() - 1;
       Trace("sygus-grammar-def")
           << "\t...add 0 to ZeroInt for index " << izint << "\n";
       std::vector<TypeNode> cargsEmpty;
@@ -1201,13 +1201,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       Kind k = LEQ;
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-      sdts[ibool].addConstructor(k, cargsBinary);
+      sdtBool.addConstructor(k, cargsBinary);
     }
     else if (types[i].isBitVector())
     {
       Kind k = BITVECTOR_ULT;
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-      sdts[ibool].addConstructor(k, cargsBinary);
+      sdtBool.addConstructor(k, cargsBinary);
     }
     else if (types[i].isDatatype())
     {
@@ -1226,8 +1226,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   }
   // add Boolean connectives, if not in a degenerate case of (recursively)
   // having only constant constructors
-  Trace("sygus-grammar-def") << "...add Boolean connectives for unres type " << unres_bt << std::endl;
-  if (sdts[ibool].d_sdt.getNumConstructors() > consts.size())
+  Trace("sygus-grammar-def")
+      << "...add Boolean connectives for unres type " << unres_bt << std::endl;
+  if (sdtBool.d_sdt.getNumConstructors() > consts.size())
   {
     for (unsigned i = 0; i < 4; i++)
     {
@@ -1246,11 +1247,13 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       if (k != NOT)
       {
         cargs.push_back(unres_bt);
-        Trace("sygus-grammar-def") << "\t...with args " << unres_bt << std::endl;
+        Trace("sygus-grammar-def")
+            << "\t...with args " << unres_bt << std::endl;
         if (k == ITE)
         {
           cargs.push_back(unres_bt);
-          Trace("sygus-grammar-def") << "\t...with args " << unres_bt << std::endl;
+          Trace("sygus-grammar-def")
+              << "\t...with args " << unres_bt << std::endl;
         }
       }
       Trace("sygus-grammar-def") << std::endl;
@@ -1261,8 +1264,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     startIndex = sdts.size() - 1;
   }
   sdtBool.d_sdt.initializeDatatype(btype, bvl, true, true);
-  Trace("sygus-grammar-def")
-      << "...built datatype for Bool " << sdts[ibool].d_sdt.getDatatype() << " ";
+  Trace("sygus-grammar-def") << "...built datatype for Bool "
+                             << sdtBool.d_sdt.getDatatype() << " ";
   Trace("sygus-grammar-def") << "...finished make default grammar for " << fun << " " << range << std::endl;
   // make first datatype be the top level datatype
   if( startIndex>0 ){
