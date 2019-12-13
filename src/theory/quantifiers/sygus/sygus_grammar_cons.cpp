@@ -1243,20 +1243,14 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       std::vector<TypeNode> cargs;
       cargs.push_back(unres_bt);
-      Trace("sygus-grammar-def") << "\t...with args " << unres_bt << std::endl;
       if (k != NOT)
       {
         cargs.push_back(unres_bt);
-        Trace("sygus-grammar-def")
-            << "\t...with args " << unres_bt << std::endl;
         if (k == ITE)
         {
           cargs.push_back(unres_bt);
-          Trace("sygus-grammar-def")
-              << "\t...with args " << unres_bt << std::endl;
         }
       }
-      Trace("sygus-grammar-def") << std::endl;
       sdtBool.addConstructor(k, cargs);
     }
   }
