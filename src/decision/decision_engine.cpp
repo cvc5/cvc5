@@ -52,9 +52,6 @@ void DecisionEngine::init()
   Trace("decision-init") << " * options->decisionStopOnly: "
                          << options::decisionStopOnly() << std::endl;
 
-  if (options::decisionMode() == options::DecisionMode::INTERNAL)
-  {
-  }
   if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
   {
     ITEDecisionStrategy* ds =
