@@ -99,7 +99,10 @@ bool Type::isFunctionLike() const
 Expr Type::mkGroundTerm() const {
   NodeManagerScope nms(d_nodeManager);
   Expr ret = d_typeNode->mkGroundTerm().toExpr();
-  PrettyCheckArgument(ret.isNull(), this, "Cannot construct ground term!");
+  if (ret.isNull())
+  {
+    IllegalArgument(this, "Cannot construct ground term!");
+  }
   return ret;
 }
 
