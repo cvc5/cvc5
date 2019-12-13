@@ -293,7 +293,7 @@ struct RecordUpdateTypeRule {
             n, "Record-update expression formed over non-record");
       }
       const Record& rec =
-          static_cast<DatatypeType>(recordType.toType()).getRecord();
+          DatatypeType(recordType.toType()).getRecord();
       if (!rec.contains(ru.getField())) {
         std::stringstream ss;
         ss << "Record-update field `" << ru.getField()
