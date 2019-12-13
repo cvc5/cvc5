@@ -332,7 +332,7 @@ bool Type::isTuple() const {
 bool Type::isRecord() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->getKind() == kind::DATATYPE_TYPE
-         && static_cast<DatatypeType>(*this).getDatatype().isRecord();
+         && DatatypeType(*this).getDatatype().isRecord();
 }
 
 /** Is this a symbolic expression type? */
