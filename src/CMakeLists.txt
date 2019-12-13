@@ -897,6 +897,7 @@ install(FILES
           options/language.h
           options/option_exception.h
           options/options.h
+          options/printer_modes.h
           options/set_language.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/options)
