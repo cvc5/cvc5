@@ -573,6 +573,11 @@ private:
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
 
+  /**
+   * Return the datatype at the given index owned by this class. Type nodes are
+   * associated with datatypes through the DatatypeIndexConstant class. The
+   * argument index is intended to be a value taken from that class.
+   */
   const Datatype& getDatatypeForIndex(unsigned index) const;
 };/* class ExprManager */
 
