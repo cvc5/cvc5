@@ -79,8 +79,11 @@ private:
   // undefined, private copy constructor and assignment op (disallow copy)
   ExprManager(const ExprManager&) = delete;
   ExprManager& operator=(const ExprManager&) = delete;
-  
-public:
+
+  /** A list of datatypes owned by this node manager. */
+  std::vector<std::unique_ptr<Datatype> > d_ownedDatatypes;
+
+ public:
 
   /**
    * Creates an expression manager with default options.
@@ -571,6 +574,7 @@ public:
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
 
+  const Datatype& getDatatypeForIndex(unsigned index) const;
 };/* class ExprManager */
 
 ${mkConst_instantiations}

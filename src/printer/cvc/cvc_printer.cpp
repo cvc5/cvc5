@@ -24,11 +24,12 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h" // for ExprSetDepth etc..
-#include "expr/node_manager_attributes.h" // for VarNameAttr
-#include "options/language.h" // for LANG_AST
-#include "printer/dagification_visitor.h"
+#include "expr/dtype.h"
+#include "expr/expr.h"                     // for ExprSetDepth etc..
+#include "expr/node_manager_attributes.h"  // for VarNameAttr
+#include "options/language.h"              // for LANG_AST
 #include "options/smt_options.h"
+#include "printer/dagification_visitor.h"
 #include "smt/command.h"
 #include "smt/smt_engine.h"
 #include "smt_util/node_visitor.h"
@@ -179,7 +180,9 @@ void CvcPrinter::toStream(
       break;
 
     case kind::DATATYPE_TYPE: {
-      const Datatype& dt = (NodeManager::currentNM()->getDatatypeForIndex( n.getConst< DatatypeIndexConstant >().getIndex() ));
+      const Datatype& dt =
+          NodeManager::currentNM()->toExprManager()->getDatatypeForIndex(
+              n.getConst<DatatypeIndexConstant>().getIndex());
       if( dt.isTuple() ){
         out << '[';
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
@@ -347,13 +350,16 @@ void CvcPrinter::toStream(
 
     // DATATYPES
     case kind::PARAMETRIC_DATATYPE: {
-        const Datatype & dt = (NodeManager::currentNM()->getDatatypeForIndex( n[0].getConst< DatatypeIndexConstant >().getIndex() ));
-        out << dt.getName() << '[';
-        for(unsigned i = 1; i < n.getNumChildren(); ++i) {
-          if(i > 1) {
-            out << ',';
-          }
-          out << n[i];
+      const DType& dt = NodeManager::currentNM()->getDTypeForIndex(
+          n[0].getConst<DatatypeIndexConstant>().getIndex());
+      out << dt.getName() << '[';
+      for (unsigned i = 1; i < n.getNumChildren(); ++i)
+      {
+        if (i > 1)
+        {
+          out << ',';
+        }
+        out << n[i];
         }
         out << ']';
       }
