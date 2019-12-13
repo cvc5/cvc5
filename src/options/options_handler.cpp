@@ -145,33 +145,6 @@ void OptionsHandler::abcEnabledBuild(std::string option, std::string value)
 #endif /* CVC4_USE_ABC */
 }
 
-void OptionsHandler::satSolverEnabledBuild(std::string option, bool value)
-{
-#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL)
-  if (value)
-  {
-    std::stringstream ss;
-    ss << "option `" << option
-       << "' requires a CVC4 to be built with CryptoMiniSat or CaDiCaL";
-    throw OptionException(ss.str());
-  }
-#endif
-}
-
-void OptionsHandler::satSolverEnabledBuild(std::string option,
-                                           std::string value)
-{
-#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL)
-  if (!value.empty())
-  {
-    std::stringstream ss;
-    ss << "option `" << option
-       << "' requires a CVC4 to be built with CryptoMiniSat or CaDiCaL";
-    throw OptionException(ss.str());
-  }
-#endif
-}
-
 void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
 {
   if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL)

@@ -66,8 +66,9 @@ public:
   // theory/bv/options_handlers.h
   void abcEnabledBuild(std::string option, bool value);
   void abcEnabledBuild(std::string option, std::string value);
-  void satSolverEnabledBuild(std::string option, bool value);
-  void satSolverEnabledBuild(std::string option, std::string optarg);
+
+  template<class T> void checkSatSolverEnabled(std::string option, T m);
+
   void checkBvSatSolver(std::string option, SatSolverMode m);
   void checkBitblastMode(std::string option, BitblastMode m);
 
@@ -142,6 +143,16 @@ public:
 
 }; /* class OptionHandler */
 
+template<class T>
+void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
+{
+#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL)
+  std::stringstream ss;
+  ss << "option `" << option
+     << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL";
+  throw OptionException(ss.str());
+#endif
+}
 
 }/* CVC4::options namespace */
 }/* CVC4 namespace */

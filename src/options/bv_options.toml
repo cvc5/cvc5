@@ -8,7 +8,7 @@ header = "options/bv_options.h"
   long       = "bv-proof-format=MODE"
   type       = "BvProofFormat"
   default    = "ER"
-#  predicates = ["satSolverEnabledBuild"]
+  predicates = ["checkSatSolverEnabled<BvProofFormat>"]
   help       = "choose which UNSAT proof format to use, see --bv-sat-solver=help"
   help_mode  = "Bit-vector proof formats."
 [[option.mode.ER]]
@@ -27,7 +27,7 @@ header = "options/bv_options.h"
   long       = "bv-optimize-sat-proof=MODE"
   type       = "BvOptimizeSatProof"
   default    = "FORMULA"
-#  predicates = ["satSolverEnabledBuild"]
+  predicates = ["checkSatSolverEnabled<BvOptimizeSatProof>"]
   help       = "enable SAT proof optimizations, see --bv-optimize-sat-proof=help"
   help_mode  = "SAT proof optimization level."
 [[option.mode.NONE]]
@@ -47,7 +47,6 @@ header = "options/bv_options.h"
   long       = "bv-sat-solver=MODE"
   type       = "SatSolverMode"
   default    = "MINISAT"
-#  predicates = ["satSolverEnabledBuild"]
   predicates = ["checkBvSatSolver"]
   help       = "choose which sat solver to use, see --bv-sat-solver=help"
   help_mode  = "SAT solver for bit-blasting backend."
