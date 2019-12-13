@@ -633,7 +633,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       {
         Assert(t.toType().isRecord());
         const Record& record =
-            static_cast<DatatypeType>(t.toType()).getRecord();
+            DatatypeType(t.toType()).getRecord();
         size = record.getNumFields();
         updateIndex = record.getIndex(
             n.getOperator().getConst<RecordUpdate>().getField());
