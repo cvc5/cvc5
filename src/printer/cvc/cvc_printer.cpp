@@ -413,7 +413,7 @@ void CvcPrinter::toStream(
           toStream(op, opn, depth, types, false);
         }
         else if (t.isTuple()
-                 || static_cast<DatatypeType>(t.toType()).isRecord())
+                 || DatatypeType(t.toType()).isRecord())
         {
           toStream(out, n[0], depth, types, true);
           out << '.';
