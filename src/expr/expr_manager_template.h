@@ -84,7 +84,6 @@ private:
   std::vector<std::unique_ptr<Datatype> > d_ownedDatatypes;
 
  public:
-
   /**
    * Creates an expression manager with default options.
    */

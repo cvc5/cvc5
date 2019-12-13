@@ -360,7 +360,7 @@ void CvcPrinter::toStream(
           out << ',';
         }
         out << n[i];
-        }
+      }
         out << ']';
       }
       return;
