@@ -100,7 +100,7 @@ public:
   *   - term_irrelevant: a set of terms that should not be included in the
   *      grammar.
   *   - include_cons: a set of operators such that if this set is not empty,
-  *     its elements that are in the default grammar (and only them) 
+  *     its elements that are in the default grammar (and only them)
   *     will be included.
   */
  static TypeNode mkSygusDefaultType(
@@ -248,8 +248,17 @@ public:
       std::set<Type>& unres);
 
   // helper function for mkSygusTemplateType
-  static TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
+  static TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
                                           const std::string& fun, unsigned& tcount );
+
+  /**
+   * Given a kind k, create a lambda operator with the given builtin input type
+   * and an extra zero argument of that same type. Also creates a print
+   * callback since we do not want to print the lambda.
+   */
+  static Node createLambdaWithZeroArg(Kind k,
+                                      TypeNode bargtype,
+                                      std::shared_ptr<SygusPrintCallback> spc);
   //---------------- end grammar construction
 };
 
