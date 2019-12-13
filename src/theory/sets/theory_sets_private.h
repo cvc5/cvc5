@@ -101,6 +101,11 @@ class TheorySetsPrivate {
    * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
    */
   void checkDisequalities();
+  /**
+   * Check comprehensions. This adds reduction lemmas for all set comprehensions
+   * in the current context.
+   */
+  void checkReduceComprehensions();
 
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
@@ -112,7 +117,11 @@ class TheorySetsPrivate {
   Node d_false;
   Node d_zero;
   NodeBoolMap d_deq;
-  NodeSet d_deq_processed;
+  /**
+   * The set of terms that we have reduced via a lemma in the current user
+   * context.
+   */
+  NodeSet d_termProcessed;
   NodeSet d_keep;
   std::vector< Node > d_emp_exp;
   

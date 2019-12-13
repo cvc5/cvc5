@@ -16,7 +16,7 @@
 #include "theory/theory.h"
 // theory.h Only needed for the leaf test
 
-#include <stack>
+#include <vector>
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
@@ -846,17 +846,17 @@ FpConverter::uf FpConverter::buildComponents(TNode current)
 Node FpConverter::convert(TNode node)
 {
 #ifdef CVC4_USE_SYMFPU
-  std::stack<TNode> workStack;
+  std::vector<TNode> workStack;
   TNode result = node;
 
-  workStack.push(node);
+  workStack.push_back(node);
 
   NodeManager *nm = NodeManager::currentNM();
 
   while (!workStack.empty())
   {
-    TNode current = workStack.top();
-    workStack.pop();
+    TNode current = workStack.back();
+    workStack.pop_back();
     result = current;
 
     TypeNode t(current.getType());
@@ -941,8 +941,8 @@ Node FpConverter::convert(TNode node)
 
               if (arg1 == f.end())
               {
-                workStack.push(current);
-                workStack.push(current[0]);
+                workStack.push_back(current);
+                workStack.push_back(current[0]);
                 continue;  // i.e. recurse!
               }
 
@@ -974,14 +974,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1017,14 +1017,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1047,14 +1047,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1098,18 +1098,18 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[2]);
+                  workStack.push_back(current[2]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1178,22 +1178,22 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[2]);
+                  workStack.push_back(current[2]);
                 }
                 if (arg3 == f.end())
                 {
-                  workStack.push(current[3]);
+                  workStack.push_back(current[3]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1216,14 +1216,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1260,10 +1260,10 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1335,14 +1335,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1359,14 +1359,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (arg1 == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg2 == r.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1392,14 +1392,14 @@ Node FpConverter::convert(TNode node)
 
             if (recurseNeeded)
             {
-              workStack.push(current);
+              workStack.push_back(current);
               if (arg1 == f.end())
               {
-                workStack.push(current[0]);
+                workStack.push_back(current[0]);
               }
               if (arg2 == f.end())
               {
-                workStack.push(current[1]);
+                workStack.push_back(current[1]);
               }
               continue;  // i.e. recurse!
             }
@@ -1438,8 +1438,8 @@ Node FpConverter::convert(TNode node)
 
             if (arg1 == f.end())
             {
-              workStack.push(current);
-              workStack.push(current[0]);
+              workStack.push_back(current);
+              workStack.push_back(current[0]);
               continue;  // i.e. recurse!
             }
 
@@ -1536,14 +1536,14 @@ Node FpConverter::convert(TNode node)
 
             if (recurseNeeded)
             {
-              workStack.push(current);
+              workStack.push_back(current);
               if (mode == r.end())
               {
-                workStack.push(current[0]);
+                workStack.push_back(current[0]);
               }
               if (arg1 == f.end())
               {
-                workStack.push(current[1]);
+                workStack.push_back(current[1]);
               }
               continue;  // i.e. recurse!
             }
@@ -1577,14 +1577,14 @@ Node FpConverter::convert(TNode node)
 
             if (recurseNeeded)
             {
-              workStack.push(current);
+              workStack.push_back(current);
               if (mode == r.end())
               {
-                workStack.push(current[0]);
+                workStack.push_back(current[0]);
               }
               if (arg1 == f.end())
               {
-                workStack.push(current[1]);
+                workStack.push_back(current[1]);
               }
               continue;  // i.e. recurse!
             }
@@ -1643,8 +1643,8 @@ Node FpConverter::convert(TNode node)
 
           if (arg1 == f.end())
           {
-            workStack.push(current);
-            workStack.push(current[0]);
+            workStack.push_back(current);
+            workStack.push_back(current[0]);
             continue;  // i.e. recurse!
           }
 
