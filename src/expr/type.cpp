@@ -579,7 +579,7 @@ const Datatype& DatatypeType::getDatatype() const {
     return d_nodeManager->getDatatypeForIndex(dic.getIndex());
   }
   Assert(d_typeNode->getKind() == kind::PARAMETRIC_DATATYPE);
-  return static_cast<DatatypeType>((*d_typeNode)[0].toType()).getDatatype();
+  return DatatypeType((*d_typeNode)[0].toType()).getDatatype();
 }
 
 bool DatatypeType::isParametric() const {
