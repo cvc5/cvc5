@@ -835,6 +835,7 @@ std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) {
   return out << "index_" << dic.getIndex();
 }
 
+
 std::string Datatype::getName() const
 {
   ExprManagerScope ems(*d_em);

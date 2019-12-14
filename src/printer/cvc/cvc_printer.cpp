@@ -373,8 +373,10 @@ void CvcPrinter::toStream(
           if( n.getNumChildren()==1 ){
             out << "TUPLE";
           }
-        }else if( t.isRecord() ){
-          const Record& rec = t.getRecord();
+        }
+        else if (t.toType().isRecord())
+        {
+          const Record& rec = static_cast<DatatypeType>(t.toType()).getRecord();
           out << "(# ";
           TNode::iterator i = n.begin();
           bool first = true;
@@ -389,7 +391,9 @@ void CvcPrinter::toStream(
           }
           out << " #)";
           return;
-        }else{
+        }
+        else
+        {
           toStream(op, n.getOperator(), depth, types, false);
           if (n.getNumChildren() == 0)
           {
@@ -404,7 +408,12 @@ void CvcPrinter::toStream(
     case kind::APPLY_SELECTOR_TOTAL: {
         TypeNode t = n[0].getType();
         Node opn = n.getOperator();
-        if (t.isTuple() || t.isRecord())
+        if (!t.isDatatype())
+        {
+          toStream(op, opn, depth, types, false);
+        }
+        else if (t.isTuple()
+                 || DatatypeType(t.toType()).isRecord())
         {
           toStream(out, n[0], depth, types, true);
           out << '.';
@@ -434,7 +443,7 @@ void CvcPrinter::toStream(
       }
       break;
     case kind::APPLY_TESTER: {
-      Assert(!n.getType().isTuple() && !n.getType().isRecord());
+      Assert(!n.getType().isTuple() && !n.getType().toType().isRecord());
       op << "is_";
       unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
       const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
