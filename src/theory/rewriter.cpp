@@ -77,8 +77,10 @@ struct RewriteStackElement {
 };
 
 Node Rewriter::rewrite(TNode node) {
-  if (node.isConst() || node.isVar())
+  if (node.getNumChildren()==0)
   {
+    // Nodes with 0 children should never rewrite. We return eagerly for
+    // optimal performance here.
     return node;
   }
   Rewriter& rewriter = getInstance();
