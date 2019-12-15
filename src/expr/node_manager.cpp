@@ -240,9 +240,9 @@ NodeManager::~NodeManager() {
   d_options = NULL;
 }
 
-unsigned NodeManager::registerDatatype(std::shared_ptr<DType> dt)
+size_t NodeManager::registerDatatype(std::shared_ptr<DType> dt)
 {
-  unsigned sz = d_ownedDTypes.size();
+  size_t sz = d_ownedDTypes.size();
   d_ownedDTypes.push_back(dt);
   return sz;
 }

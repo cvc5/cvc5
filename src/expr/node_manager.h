@@ -428,7 +428,7 @@ public:
   }
   
   /** register datatype */
-  unsigned registerDatatype(std::shared_ptr<DType> dt);
+  size_t registerDatatype(std::shared_ptr<DType> dt);
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
    * associated with datatypes through the DatatypeIndexConstant class. The
