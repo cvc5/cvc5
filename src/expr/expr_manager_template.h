@@ -80,7 +80,7 @@ private:
   ExprManager(const ExprManager&) = delete;
   ExprManager& operator=(const ExprManager&) = delete;
 
-  /** A list of datatypes owned by this node manager. */
+  /** A list of datatypes owned by this expr manager. */
   std::vector<std::unique_ptr<Datatype> > d_ownedDatatypes;
 
  public:
