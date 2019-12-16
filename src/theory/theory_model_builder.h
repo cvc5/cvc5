@@ -233,7 +233,14 @@ class TheoryEngineModelBuilder : public ModelBuilder
     void initialize(TypeNode tn,
                     TypeEnumeratorProperties* tep,
                     const std::vector<Node>& aes);
-    /** get the next term, or null if it does not exist */
+    /** get the next term in the enumeration
+     *
+     * This method returns the next legal term based on type enumeration, where
+     * a term is legal it does not belong to the assignment exclusion set of
+     * this assigner. If no more terms exist, this method returns null. This
+     * should never be the case due to the conditions ensured by theory solvers
+     * for finite types. If it is the case, we give an assertion failure.
+     */
     Node getNextAssignment();
     /** The type enumerator */
     std::unique_ptr<TypeEnumerator> d_te;
