@@ -182,7 +182,7 @@ Node FunDefEvaluator::evaluate(Node n) const
           if (!args.empty())
           {
             // invoke it on arguments using the evaluator
-            sbody = d_eval.eval(sbody,args,children);
+            sbody = d_eval.eval(sbody, args, children);
             Trace("ajr-temp") << "Evaluate : " << sbody << std::endl;
             if (Trace.isOn("fd-eval-debug2"))
             {
