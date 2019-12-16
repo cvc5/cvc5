@@ -1773,17 +1773,20 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       parseError("Too many arguments to array constant.");
     }
     Expr constVal = args[0];
-    // To parse array constants taking reals whose values are integral,
-    // e.g. ((as const (Array Int Real)) 5.0), we must handle the following
-    // issue. To distinguish real constants from integer ones, we construct
-    // the node (/ 5 1) when we parse 5.0. However, the node (/ 5 1) is not
-    // a constant value that can be put inside an array. Hence, we must
     if (!constVal.isConst())
     {
-      if (constVal.getKind() == kind::DIVISION && constVal[1].isConst()
-          && constVal[1].getConst<Rational>().isOne())
+      // To parse array constants taking reals whose values are specified by
+      // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
+      // the fact that (/ 1 3) is the division of constants 1 and 3, and not
+      // the resulting constant rational value. Thus, we must construct the
+      // resulting rational here. This also is applied for integral real values
+      // like 5.0 which are converted to (/ 5 1) to distinguish them from
+      // integer constants. We must ensure numerator and denominator are
+      // constant and the denominator is non-zero.
+      if (constVal.getKind() == kind::DIVISION && constVal[0].isConst()
+          && constVal[1].isConst() && !constVal[1].getConst<Rational>().isZero())
       {
-        constVal = constVal[0];
+        constVal = em->mkConst(constVal[0].getConst<Rational>()/constVal[1].getConst<Rational>());
       }
       if (!constVal.isConst())
       {
