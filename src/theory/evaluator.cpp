@@ -133,8 +133,8 @@ Node Evaluator::eval(TNode n,
   }
   // should be the same as substitution + rewriting
   Assert(ret
-          == Rewriter::rewrite(n.substitute(
-              args.begin(), args.end(), vals.begin(), vals.end())));
+         == Rewriter::rewrite(
+             n.substitute(args.begin(), args.end(), vals.begin(), vals.end())));
   return ret;
 }
 
