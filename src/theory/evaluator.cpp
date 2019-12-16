@@ -245,7 +245,7 @@ EvalResult Evaluator::evalInternal(
         currNodeVal = vals[pos];
         // Don't need to reconstruct since range of substitution should already
         // be normalized.
-        Assert (vals[pos] == Rewriter::rewrite(vals[pos]));
+        Assert(vals[pos] == Rewriter::rewrite(vals[pos]));
         needsReconstruct = false;
       }
       else if (currNode.getKind() == kind::APPLY_UF)
