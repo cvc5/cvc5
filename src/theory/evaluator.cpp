@@ -257,7 +257,8 @@ EvalResult Evaluator::evalInternal(
         Trace("evaluator") << "Operator evaluated to " << op << std::endl;
         if (op.getKind() != kind::LAMBDA)
         {
-          // this node is not evaluatable due to operator, must add to evalAsNode
+          // this node is not evaluatable due to operator, must add to
+          // evalAsNode
           results[currNode] = EvalResult();
           evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
           continue;
