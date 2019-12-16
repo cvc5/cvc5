@@ -199,6 +199,8 @@ EvalResult Evaluator::evalInternal(
       queue.pop_back();
 
       Node currNodeVal = currNode;
+      // whether we need to reconstruct the current node in the case of failure
+      bool needsReconstruct = true;
 
       // The code below should either:
       // (1) store a valid EvalResult into results[currNode], or
@@ -213,6 +215,7 @@ EvalResult Evaluator::evalInternal(
         // successfully evaluated, and the children that did not.
         Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
         currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
+        needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
         if (currNodeVal.getNumChildren() > 0)
@@ -241,6 +244,9 @@ EvalResult Evaluator::evalInternal(
         }
         ptrdiff_t pos = std::distance(args.begin(), it);
         currNodeVal = vals[pos];
+        // Don't need to reconstruct since range of substitution should already
+        // be normalized.
+        needsReconstruct = false;
       }
       else if (currNode.getKind() == kind::APPLY_UF
                && currNode.getOperator().getKind() == kind::LAMBDA)
@@ -667,7 +673,7 @@ EvalResult Evaluator::evalInternal(
           else
           {
             results[currNode] = EvalResult();
-            evalAsNode[currNode] = currNodeVal==currNode ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
+            evalAsNode[currNode] = needsReconstruct ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
           }
           break;
         }
@@ -684,7 +690,7 @@ EvalResult Evaluator::evalInternal(
           else
           {
             results[currNode] = EvalResult();
-            evalAsNode[currNode] = currNodeVal==currNode ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
+            evalAsNode[currNode] = needsReconstruct ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
           }
           break;
         }
@@ -725,7 +731,7 @@ EvalResult Evaluator::evalInternal(
               Trace("evaluator") << "Theory " << Theory::theoryOf(currNode[0])
                                  << " not supported" << std::endl;
               results[currNode] = EvalResult();
-              evalAsNode[currNode] = currNodeVal==currNode ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
+              evalAsNode[currNode] = needsReconstruct ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
               break;
             }
           }
@@ -751,7 +757,7 @@ EvalResult Evaluator::evalInternal(
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
                              << " not supported" << std::endl;
           results[currNode] = EvalResult();
-          evalAsNode[currNode] = currNodeVal==currNode ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
+          evalAsNode[currNode] = needsReconstruct ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
         }
       }
     }
