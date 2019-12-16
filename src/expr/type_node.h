@@ -37,6 +37,7 @@
 namespace CVC4 {
 
 class NodeManager;
+class DType;
 
 namespace expr {
   class NodeValue;
@@ -596,12 +597,6 @@ public:
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
 
-  /** Is this a record type? */
-  bool isRecord() const;
-
-  /** Get the description of the record type */
-  const Record& getRecord() const;
-
   /** Is this a symbolic expression type? */
   bool isSExpr() const;
 
@@ -658,8 +653,8 @@ public:
   /** Is this a tester type */
   bool isTester() const;
 
-  /** Get the Datatype specification from a datatype type */
-  const Datatype& getDatatype() const;
+  /** Get the internal Datatype specification from a datatype type */
+  const DType& getDType() const;
 
   /** Get the exponent size of this floating-point type */
   unsigned getFloatingPointExponentSize() const;
@@ -1023,15 +1018,6 @@ inline bool TypeNode::isParametricDatatype() const {
   return getKind() == kind::PARAMETRIC_DATATYPE;
 }
 
-/** Is this a codatatype type */
-inline bool TypeNode::isCodatatype() const {
-  if( isDatatype() ){
-    return getDatatype().isCodatatype();
-  }else{
-    return false;
-  }
-}
-
 /** Is this a constructor type */
 inline bool TypeNode::isConstructor() const {
   return getKind() == kind::CONSTRUCTOR_TYPE;
@@ -1060,18 +1046,6 @@ inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
 inline bool TypeNode::isBitVector(unsigned size) const {
   return
     ( getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size );
-}
-
-/** Get the datatype specification from a datatype type */
-inline const Datatype& TypeNode::getDatatype() const {
-  Assert(isDatatype());
-  if( getKind() == kind::DATATYPE_TYPE ){
-    DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
-    return NodeManager::currentNM()->getDatatypeForIndex( dic.getIndex() );
-  }else{
-    Assert(getKind() == kind::PARAMETRIC_DATATYPE);
-    return (*this)[0].getDatatype();
-  }
 }
 
 /** Get the exponent size of this floating-point type */

@@ -15,11 +15,12 @@
  ** \todo document this file
  **/
 
-#include "expr/attribute.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
 
+#include "expr/attribute.h"
 #include "expr/chain.h"
 #include "expr/node_algorithm.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 

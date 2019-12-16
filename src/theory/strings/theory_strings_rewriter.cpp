@@ -2048,6 +2048,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
           NodeManager::currentNM()->mkConst(s.find(t) != std::string::npos);
       return returnRewrite(node, ret, "ctn-const");
     }else{
+      Node t = node[1];
       if (s.size() == 0)
       {
         Node len1 =
@@ -2060,6 +2061,24 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
           Node ret = NodeManager::currentNM()->mkConst(false);
           return returnRewrite(node, ret, "ctn-lhs-emptystr");
         }
+      }
+      else if (checkEntailLengthOne(t))
+      {
+        const std::vector<unsigned>& vec = s.getVec();
+
+        NodeBuilder<> nb(OR);
+        nb << nm->mkConst(String("")).eqNode(t);
+        for (unsigned c : vec)
+        {
+          std::vector<unsigned> sv = {c};
+          nb << nm->mkConst(String(sv)).eqNode(t);
+        }
+
+        // str.contains("ABCabc", t) --->
+        // t = "" v t = "A" v t = "B" v t = "C" v t = "a" v t = "b" v t = "c"
+        // if len(t) <= 1
+        Node ret = nb;
+        return returnRewrite(node, ret, "ctn-split");
       }
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {

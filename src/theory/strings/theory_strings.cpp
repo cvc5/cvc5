@@ -645,11 +645,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         std::map<Node, Node>::iterator itp = pure_eq_assign.find(eqc);
         if (itp == pure_eq_assign.end())
         {
-          Assert(!sel.isFinished());
-          c = *sel;
-          while (m->hasTerm(c))
+          do
           {
-            ++sel;
             if (sel.isFinished())
             {
               // We are in a case where model construction is impossible due to
@@ -687,8 +684,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
               return false;
             }
             c = *sel;
-          }
-          ++sel;
+            ++sel;
+          } while (m->hasTerm(c));
         }
         else
         {
@@ -4112,7 +4109,9 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Node len = utils::mkNLength(n[0]);
     Node lem = nm->mkNode(AND,
                           nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
-                          nm->mkNode(LT, n, len));
+                          nm->mkNode(LEQ, n, len));
+    Trace("strings-lemma") << "Strings::Lemma IDOF range : " << lem
+                           << std::endl;
     d_out->lemma(lem);
   }
 }

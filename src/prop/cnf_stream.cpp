@@ -740,6 +740,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
       convertAndAssertIff(node, negated);
       break;
     }
+    CVC4_FALLTHROUGH;
   default:
   {
     Node nnode = node;

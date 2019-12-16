@@ -3550,7 +3550,7 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
   if(effortLevel == Theory::EFFORT_LAST_CALL){
     if( options::nlExt() ){
-      d_nonlinearExtension->check( effortLevel );
+      d_nonlinearExtension->check(effortLevel);
     }
     return;
   }
@@ -4321,6 +4321,8 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   // TODO:
   // This is not very good for user push/pop....
   // Revisit when implementing push/pop
+  // Map of terms to values, constructed when non-linear arithmetic is active.
+  std::map<Node, Node> arithModel;
   for(var_iterator vi = var_begin(), vend = var_end(); vi != vend; ++vi){
     ArithVar v = *vi;
 
@@ -4335,14 +4337,36 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
-
-        if (!m->assertEquality(term, qNode, true))
+        if (options::nlExt())
         {
-          return false;
+          // Let non-linear extension inspect the values before they are sent
+          // to the theory model.
+          arithModel[term] = qNode;
+        }
+        else
+        {
+          if (!m->assertEquality(term, qNode, true))
+          {
+            return false;
+          }
         }
       }else{
         Debug("arith::collectModelInfo") << "Skipping m->assertEquality(" << term << ", true)" << endl;
 
+      }
+    }
+  }
+  if (options::nlExt())
+  {
+    // Non-linear may repair values to satisfy non-linear constraints (see
+    // documentation for NonlinearExtension::interceptModel).
+    d_nonlinearExtension->interceptModel(arithModel);
+    // We are now ready to assert the model.
+    for (std::pair<const Node, Node>& p : arithModel)
+    {
+      if (!m->assertEquality(p.first, p.second, true))
+      {
+        return false;
       }
     }
   }
@@ -4973,7 +4997,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         Node divByZeroNum =
-            getArithSkolemApp(logicRequest, num, arith_skolem_div_by_zero);
+            getArithSkolemApp(logicRequest, num, ArithSkolemId::DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
       }
@@ -4988,8 +5012,8 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
-        Node intDivByZeroNum =
-            getArithSkolemApp(logicRequest, num, arith_skolem_int_div_by_zero);
+        Node intDivByZeroNum = getArithSkolemApp(
+            logicRequest, num, ArithSkolemId::INT_DIV_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
       }
@@ -5005,7 +5029,7 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
       if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
       {
         Node modZeroNum =
-            getArithSkolemApp(logicRequest, num, arith_skolem_mod_by_zero);
+            getArithSkolemApp(logicRequest, num, ArithSkolemId::MOD_BY_ZERO);
         Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
         ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
       }
@@ -5037,7 +5061,25 @@ Node TheoryArithPrivate::expandDefinition(LogicRequest &logicRequest, Node node)
         Node lem;
         if (k == kind::SQRT)
         {
-          lem = nm->mkNode(kind::MULT, var, var).eqNode(node[0]);
+          Node skolemApp =
+              getArithSkolemApp(logicRequest, node[0], ArithSkolemId::SQRT);
+          Node uf = skolemApp.eqNode(var);
+          Node nonNeg = nm->mkNode(
+              kind::AND, nm->mkNode(kind::MULT, var, var).eqNode(node[0]), uf);
+
+          // sqrt(x) reduces to:
+          // choice y. ite(x >= 0.0, y * y = x ^ Uf(x), Uf(x))
+          //
+          // Uf(x) makes sure that the reduction still behaves like a function,
+          // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
+          // satisfiable. On the original formula, this would require that we
+          // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
+          // model.
+          lem = nm->mkNode(
+              kind::ITE,
+              nm->mkNode(kind::GEQ, node[0], nm->mkConst(Rational(0))),
+              nonNeg,
+              uf);
         }
         else
         {
@@ -5102,23 +5144,29 @@ Node TheoryArithPrivate::getArithSkolem(LogicRequest& logicRequest,
     TypeNode tn;
     std::string name;
     std::string desc;
-    if (asi == arith_skolem_div_by_zero)
+    switch (asi)
     {
-      tn = nm->realType();
-      name = std::string("divByZero");
-      desc = std::string("partial real division");
-    }
-    else if (asi == arith_skolem_int_div_by_zero)
-    {
-      tn = nm->integerType();
-      name = std::string("intDivByZero");
-      desc = std::string("partial int division");
-    }
-    else if (asi == arith_skolem_mod_by_zero)
-    {
-      tn = nm->integerType();
-      name = std::string("modZero");
-      desc = std::string("partial modulus");
+      case ArithSkolemId::DIV_BY_ZERO:
+        tn = nm->realType();
+        name = std::string("divByZero");
+        desc = std::string("partial real division");
+        break;
+      case ArithSkolemId::INT_DIV_BY_ZERO:
+        tn = nm->integerType();
+        name = std::string("intDivByZero");
+        desc = std::string("partial int division");
+        break;
+      case ArithSkolemId::MOD_BY_ZERO:
+        tn = nm->integerType();
+        name = std::string("modZero");
+        desc = std::string("partial modulus");
+        break;
+      case ArithSkolemId::SQRT:
+        tn = nm->realType();
+        name = std::string("sqrtUf");
+        desc = std::string("partial sqrt");
+        break;
+      default: Unhandled();
     }
 
     Node skolem;
@@ -5392,6 +5440,7 @@ std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const Arith
       }
       // intentionally fall through to DISTINCT case!
       // entailments of negations are eager exit cases for EQUAL
+      CVC4_FALLTHROUGH;
     case DISTINCT:
       if(!bestPrimDiff.first.isNull()){
         // primDir [dm * dp] <= primDir * dm * U < primDir * sep

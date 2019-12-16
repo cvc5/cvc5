@@ -594,12 +594,18 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       for (const Node& res : base_results)
       {
         TNode tres = res;
-        std::vector<Node> vals;
-        vals.push_back(tres);
         Node sres;
-        if (tryEval)
+        // It may not be constant, e.g. if we involve a partial operator
+        // like datatype selectors. In this case, we avoid using the evaluator,
+        // which expects a constant substitution.
+        if (tres.isConst())
         {
-          sres = ev->eval(templ, args, vals);
+          std::vector<Node> vals;
+          vals.push_back(tres);
+          if (tryEval)
+          {
+            sres = ev->eval(templ, args, vals);
+          }
         }
         if (sres.isNull())
         {

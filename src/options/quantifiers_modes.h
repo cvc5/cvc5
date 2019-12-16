@@ -292,6 +292,29 @@ enum SygusFilterSolMode
   SYGUS_FILTER_SOL_WEAK,
 };
 
+enum SygusGrammarConsMode
+{
+  /**
+   * Use simple default SyGuS grammar construction (no symbolic terms or
+   * constants).
+   */
+  SYGUS_GCONS_SIMPLE,
+  /** Use "any constant" constructors in default SyGuS grammar construction. */
+  SYGUS_GCONS_ANY_CONST,
+  /**
+   * When applicable, use constructors that encode any term using "any constant"
+   * constructors. This construction uses sum-of-monomials for arithmetic
+   * grammars.
+   */
+  SYGUS_GCONS_ANY_TERM,
+  /**
+   * When applicable, use constructors that encode any term using "any constant"
+   * constructors in a way that prefers conciseness over generality. This
+   * construction uses polynomials for arithmetic grammars.
+   */
+  SYGUS_GCONS_ANY_TERM_CONCISE,
+};
+
 enum MacrosQuantMode {
   /** infer all definitions */
   MACROS_QUANT_MODE_ALL,
@@ -317,6 +340,24 @@ enum QuantRepMode {
   QUANT_REP_MODE_FIRST,
   /** choose representatives that have minimal depth */
   QUANT_REP_MODE_DEPTH,
+};
+
+/**
+ * Modes for piecewise-independent unification for synthesis (see Barbosa et al
+ * FMCAD 2019).
+ */
+enum SygusUnifPiMode
+{
+  /** do not do piecewise-independent unification for synthesis */
+  SYGUS_UNIF_PI_NONE,
+  /** use (finite-model) complete piecewise-independent unification */
+  SYGUS_UNIF_PI_COMPLETE,
+  /** use approach based on condition enumeration for piecewise-independent
+     unification */
+  SYGUS_UNIF_PI_CENUM,
+  /** use approach based on condition enumeration with information gain
+     heuristics for piecewise-independent unification */
+  SYGUS_UNIF_PI_CENUM_IGAIN,
 };
 
 }/* CVC4::theory::quantifiers namespace */

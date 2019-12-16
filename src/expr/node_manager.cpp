@@ -24,6 +24,7 @@
 #include "base/check.h"
 #include "base/listener.h"
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
 #include "expr/type_checker.h"
@@ -186,6 +187,7 @@ NodeManager::~NodeManager() {
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
+  // TODO: switch to DType
   for (std::vector<Datatype*>::iterator
            datatype_iter = d_ownedDatatypes.begin(),
            datatype_end = d_ownedDatatypes.end();
@@ -253,8 +255,16 @@ unsigned NodeManager::registerDatatype(Datatype* dt) {
 }
 
 const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
+  // when the Node-level API is in place, this function will be deleted.
   Assert(index < d_ownedDatatypes.size());
   return *d_ownedDatatypes[index];
+}
+
+const DType& NodeManager::getDTypeForIndex(unsigned index) const
+{
+  const Datatype& d = getDatatypeForIndex(index);
+  // return its internal representation
+  return *d.d_internal;
 }
 
 void NodeManager::reclaimZombies() {
@@ -531,7 +541,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
       for (unsigned i = 0; i < types.size(); ++ i) {
         sst << "_" << types[i];
       }
-      Datatype dt(sst.str());
+      Datatype dt(nm->toExprManager(), sst.str());
       dt.setTuple();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
@@ -560,7 +570,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         sst << "_" << (*i).first << "_" << (*i).second;
       }
-      Datatype dt(sst.str());
+      Datatype dt(nm->toExprManager(), sst.str());
       dt.setRecord();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";

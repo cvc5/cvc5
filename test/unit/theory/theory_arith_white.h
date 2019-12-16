@@ -323,5 +323,9 @@ public:
 
     TS_ASSERT_EQUALS(Rewriter::rewrite(leq0), Rewriter::rewrite(geq1.notNode()));
     TS_ASSERT_EQUALS(Rewriter::rewrite(leq1), Rewriter::rewrite(geq2.notNode()));
+
+    // (abs x) --> (abs x)
+    Node absX = d_nm->mkNode(ABS, x);
+    TS_ASSERT_EQUALS(Rewriter::rewrite(absX), absX);
   }
 };

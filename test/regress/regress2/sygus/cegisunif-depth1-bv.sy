@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-unif --sygus-out=status
+; COMMAND-LINE: --sygus-unif-pi=complete --sygus-out=status
 (set-logic BV)
 
 (synth-fun f ((x (BitVec 64)) (y (BitVec 64))) (BitVec 64)

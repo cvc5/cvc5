@@ -579,9 +579,13 @@ void LFSCProof::toStream(std::ostream& out) const
     CodeTimer skeletonProofTimer{
         ProofManager::currentPM()->getStats().d_skeletonProofTraceTime};
     Assert(!d_satProof->proofConstructed());
+
+    // Here we give our SAT solver a chance to flesh out the resolution proof.
+    // It proves bottom from a set of clauses.
     d_satProof->constructProof();
 
-    // collecting leaf clauses in resolution proof
+    // We ask the SAT solver which clauses are used in that proof.
+    // For a resolution proof, these are the leaves of the tree.
     d_satProof->collectClausesUsed(used_inputs, used_lemmas);
 
     IdToSatClause::iterator it2;
@@ -672,6 +676,8 @@ void LFSCProof::toStream(std::ostream& out) const
       }
     }
 
+    // From the clauses, compute the atoms (atomic theory predicates in
+    // assertions and lemmas).
     d_cnfProof->collectAtomsForClauses(used_inputs, atoms);
     d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 

@@ -31,7 +31,7 @@ public class Datatypes {
     // is specified.  Second, it is "resolved"---at which point function
     // symbols are assigned to its constructors, selectors, and testers.
 
-    Datatype consListSpec = new Datatype("list"); // give the datatype a name
+    Datatype consListSpec = new Datatype(em, "list"); // give a name
     DatatypeConstructor cons = new DatatypeConstructor("cons");
     cons.addArg("head", em.integerType());
     cons.addArg("tail", new DatatypeSelfType()); // a list

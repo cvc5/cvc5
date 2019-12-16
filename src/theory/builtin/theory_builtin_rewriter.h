@@ -20,15 +20,15 @@
 #ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 #define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 
-#include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_rewriter.h"
 
 namespace CVC4 {
 namespace theory {
 namespace builtin {
 
-class TheoryBuiltinRewriter {
-
+class TheoryBuiltinRewriter : public TheoryRewriter
+{
   static Node blastDistinct(TNode node);
   static Node blastChain(TNode node);
 
@@ -45,17 +45,12 @@ public:
     }
   }
 
-  static RewriteResponse postRewrite(TNode node);
+  RewriteResponse postRewrite(TNode node) override;
 
-  static inline RewriteResponse preRewrite(TNode node) {
-    return doRewrite(node);
-  }
+  RewriteResponse preRewrite(TNode node) override { return doRewrite(node); }
 
-  static inline void init() {}
-  static inline void shutdown() {}
-
-// conversions between lambdas and arrays
-private:  
+  // conversions between lambdas and arrays
+ private:
   /** recursive helper for getLambdaForArrayRepresentation */
   static Node getLambdaForArrayRepresentationRec( TNode a, TNode bvl, unsigned bvlIndex, 
                                                   std::unordered_map< TNode, Node, TNodeHashFunction >& visited );
@@ -124,7 +119,7 @@ private:
    * to n, this method returns null.
    */
   static Node getArrayRepresentationForLambda(TNode n);
-};/* class TheoryBuiltinRewriter */
+}; /* class TheoryBuiltinRewriter */
 
 }/* CVC4::theory::builtin namespace */
 }/* CVC4::theory namespace */

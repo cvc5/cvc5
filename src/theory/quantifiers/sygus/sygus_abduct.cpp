@@ -16,8 +16,11 @@
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 
 #include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
+#include "expr/sygus_datatype.h"
 #include "printer/sygus_print_callback.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -84,13 +87,13 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   // if provided, we will associate it with the function-to-synthesize
   if (!abdGType.isNull())
   {
-    Assert(abdGType.isDatatype() && abdGType.getDatatype().isSygus());
+    Assert(abdGType.isDatatype() && abdGType.getDType().isSygus());
     // must convert all constructors to version with bound variables in "vars"
-    std::vector<Datatype> datatypes;
+    std::vector<SygusDatatype> sdts;
     std::set<Type> unres;
 
     Trace("sygus-abduct-debug") << "Process abduction type:" << std::endl;
-    Trace("sygus-abduct-debug") << abdGType.getDatatype() << std::endl;
+    Trace("sygus-abduct-debug") << abdGType.getDType().getName() << std::endl;
 
     // datatype types we need to process
     std::vector<TypeNode> dtToProcess;
@@ -98,7 +101,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     std::map<TypeNode, TypeNode> dtProcessed;
     dtToProcess.push_back(abdGType);
     std::stringstream ssutn0;
-    ssutn0 << abdGType.getDatatype().getName() << "_s";
+    ssutn0 << abdGType.getDType().getName() << "_s";
     TypeNode abdTNew =
         nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
     unres.insert(abdTNew.toType());
@@ -125,33 +128,33 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
       std::vector<TypeNode> dtNextToProcess;
       for (const TypeNode& curr : dtToProcess)
       {
-        Assert(curr.isDatatype() && curr.getDatatype().isSygus());
-        const Datatype& dtc = curr.getDatatype();
+        Assert(curr.isDatatype() && curr.getDType().isSygus());
+        const DType& dtc = curr.getDType();
         std::stringstream ssdtn;
         ssdtn << dtc.getName() << "_s";
-        datatypes.push_back(Datatype(ssdtn.str()));
+        sdts.push_back(SygusDatatype(ssdtn.str()));
         Trace("sygus-abduct-debug")
-            << "Process datatype " << datatypes.back().getName() << "..."
+            << "Process datatype " << sdts.back().getName() << "..."
             << std::endl;
         for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
         {
-          Node op = Node::fromExpr(dtc[j].getSygusOp());
+          Node op = dtc[j].getSygusOp();
           // apply the substitution to the argument
           Node ops = op.substitute(
               syms.begin(), syms.end(), varlist.begin(), varlist.end());
           Trace("sygus-abduct-debug") << "  Process constructor " << op << " / "
                                       << ops << "..." << std::endl;
-          std::vector<Type> cargs;
+          std::vector<TypeNode> cargs;
           for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
           {
-            TypeNode argt = TypeNode::fromType(dtc[j].getArgType(k));
+            TypeNode argt = dtc[j].getArgType(k);
             std::map<TypeNode, TypeNode>::iterator itdp =
                 dtProcessed.find(argt);
             TypeNode argtNew;
             if (itdp == dtProcessed.end())
             {
               std::stringstream ssutn;
-              ssutn << argt.getDatatype().getName() << "_s";
+              ssutn << argt.getDType().getName() << "_s";
               argtNew =
                   nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
               Trace("sygus-abduct-debug")
@@ -167,7 +170,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
             }
             Trace("sygus-abduct-debug")
                 << "    Arg #" << k << ": " << argtNew << std::endl;
-            cargs.push_back(argtNew.toType());
+            cargs.push_back(argtNew);
           }
           // callback prints as the expression
           std::shared_ptr<SygusPrintCallback> spc;
@@ -191,22 +194,26 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
           ss << ops.getKind();
           Trace("sygus-abduct-debug")
               << "Add constructor : " << ops << std::endl;
-          datatypes.back().addSygusConstructor(
-              ops.toExpr(), ss.str(), cargs, spc);
+          sdts.back().addConstructor(ops, ss.str(), cargs, spc);
         }
         Trace("sygus-abduct-debug")
             << "Set sygus : " << dtc.getSygusType() << " " << abvl << std::endl;
-        datatypes.back().setSygus(dtc.getSygusType(),
-                                  abvl.toExpr(),
-                                  dtc.getSygusAllowConst(),
-                                  dtc.getSygusAllowAll());
+        TypeNode stn = dtc.getSygusType();
+        sdts.back().initializeDatatype(
+            stn, abvl, dtc.getSygusAllowConst(), dtc.getSygusAllowAll());
       }
       dtToProcess.clear();
       dtToProcess.insert(
           dtToProcess.end(), dtNextToProcess.begin(), dtNextToProcess.end());
     }
     Trace("sygus-abduct-debug")
-        << "Make " << datatypes.size() << " datatype types..." << std::endl;
+        << "Make " << sdts.size() << " datatype types..." << std::endl;
+    // extract the datatypes
+    std::vector<Datatype> datatypes;
+    for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
+    {
+      datatypes.push_back(sdts[i].getDatatype());
+    }
     // make the datatype types
     std::vector<DatatypeType> datatypeTypes =
         nm->toExprManager()->mkMutualDatatypeTypes(
@@ -217,7 +224,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
       Trace("sygus-abduct-debug") << "Made datatype types:" << std::endl;
       for (unsigned j = 0, ndts = datatypeTypes.size(); j < ndts; j++)
       {
-        const Datatype& dtj = datatypeTypes[j].getDatatype();
+        const DType& dtj = TypeNode::fromType(datatypeTypes[j]).getDType();
         Trace("sygus-abduct-debug") << "#" << j << ": " << dtj << std::endl;
         for (unsigned k = 0, ncons = dtj.getNumConstructors(); k < ncons; k++)
         {

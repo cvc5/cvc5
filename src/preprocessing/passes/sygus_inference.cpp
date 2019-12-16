@@ -189,20 +189,21 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
         if (cur.getKind() == APPLY_UF)
         {
           Node op = cur.getOperator();
-          if (std::find(free_functions.begin(), free_functions.end(), op)
-              == free_functions.end())
-          {
-            free_functions.push_back(op);
-          }
+          // visit the operator, which might not be a variable
+          visit.push_back(op);
         }
         else if (cur.isVar() && cur.getKind() != BOUND_VARIABLE)
         {
-          // a free variable is a 0-argument function to synthesize
+          // We are either in the case of a free first-order constant or a
+          // function in a higher-order context. We add to free_functions
+          // in either case. Note that a free constant that is not in a
+          // higher-order context is a 0-argument function-to-synthesize.
+          // We should not have traversed here before due to our visited cache.
           Assert(std::find(free_functions.begin(), free_functions.end(), cur)
                  == free_functions.end());
           free_functions.push_back(cur);
         }
-        else if (cur.getKind() == FORALL)
+        else if (cur.isClosure())
         {
           Trace("sygus-infer")
               << "...fail: non-top-level quantifier." << std::endl;

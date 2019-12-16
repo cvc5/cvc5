@@ -467,8 +467,8 @@ Node CegSingleInv::getSolution(unsigned sol_index,
                                bool rconsSygus)
 {
   Assert(d_sol != NULL);
-  const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
-  Node varList = Node::fromExpr( dt.getSygusVarList() );
+  const DType& dt = stn.getDType();
+  Node varList = dt.getSygusVarList();
   Node prog = d_quant[0][sol_index];
   std::vector< Node > vars;
   Node s;
@@ -478,8 +478,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       || d_inst.empty())
   {
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
-    s = d_qe->getTermEnumeration()->getEnumerateTerm(
-        TypeNode::fromType(dt.getSygusType()), 0);
+    s = d_qe->getTermEnumeration()->getEnumerateTerm(dt.getSygusType(), 0);
   }
   else
   {
@@ -502,12 +501,22 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       indices.push_back(i);
     }
     Assert(!indices.empty());
-    //sort indices based on heuristic : currently, do all constant returns first (leads to simpler conditions)
-    // TODO : to minimize solution size, put the largest term last
-    sortSiInstanceIndices ssii;
-    ssii.d_ccsi = this;
-    ssii.d_i = sol_index;
-    std::sort( indices.begin(), indices.end(), ssii );
+    // We are constructing an ITE based on the list of instantiations. We
+    // sort this list based on heuristic. Currently, we do all constant values
+    // first since this leads to simpler conditions. Notice that we only allow
+    // sorting if we have a single variable, since the correctness of
+    // Proposition 1 of Reynolds et al CAV 2015 for the case of multiple
+    // functions-to-synthesize requires that the instantiations come in the
+    // same order for all functions. Thus, we cannot decide on an order for
+    // instantiations independently, since this may lead to incorrect solutions.
+    bool allowSort = (d_quant[0].getNumChildren() == 1);
+    if (allowSort)
+    {
+      sortSiInstanceIndices ssii;
+      ssii.d_ccsi = this;
+      ssii.d_i = sol_index;
+      std::sort(indices.begin(), indices.end(), ssii);
+    }
     Trace("csi-sol") << "Construct solution" << std::endl;
     std::reverse(indices.begin(), indices.end());
     s = d_inst[indices[0]][sol_index];
@@ -538,7 +547,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
                                        bool rconsSygus)
 {
   d_solution = s;
-  const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
+  const DType& dt = stn.getDType();
 
   //reconstruct the solution into sygus if necessary
   reconstructed = 0;
@@ -611,7 +620,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   }
   //make into lambda
   if( !dt.getSygusVarList().isNull() ){
-    Node varList = Node::fromExpr( dt.getSygusVarList() );
+    Node varList = dt.getSygusVarList();
     return NodeManager::currentNM()->mkNode( LAMBDA, varList, sol );
   }else{
     return sol;

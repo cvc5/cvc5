@@ -978,269 +978,287 @@ namespace constantFold {
 };  /* CVC4::theory::fp::constantFold */
 
 
-RewriteFunction TheoryFpRewriter::preRewriteTable[kind::LAST_KIND]; 
-RewriteFunction TheoryFpRewriter::postRewriteTable[kind::LAST_KIND]; 
-RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND]; 
-
-
   /**
    * Initialize the rewriter.
    */
-  void TheoryFpRewriter::init() {
-
-    /* Set up the pre-rewrite dispatch table */
-    for (unsigned i = 0; i < kind::LAST_KIND; ++i) {
-      preRewriteTable[i] = rewrite::notFP;
-    }
-
-    /******** Constants ********/
-    /* No rewriting possible for constants */
-    preRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
-    preRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity; 
-
-    /******** Sorts(?) ********/
-    /* These kinds should only appear in types */
-    //preRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
-    preRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
-      
-    /******** Operations ********/
-    preRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
-    preRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-    preRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::convertSubtractionToAddition;
-    preRewriteTable[kind::FLOATINGPOINT_MULT] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
-    preRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
-    preRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
-    preRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
-
-    /******** Comparisons ********/
-    preRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::then<rewrite::breakChain,rewrite::ieeeEqToEq>;
-    preRewriteTable[kind::FLOATINGPOINT_LEQ] =
-        rewrite::then<rewrite::breakChain, rewrite::leqId>;
-    preRewriteTable[kind::FLOATINGPOINT_LT] =
-        rewrite::then<rewrite::breakChain, rewrite::ltId>;
-    preRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::then<rewrite::breakChain,rewrite::geqToleq>;
-    preRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::then<rewrite::breakChain,rewrite::gtTolt>;
-
-    /******** Classifications ********/
-    preRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::identity;  
-    preRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
-
-    /******** Conversions ********/
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
-    preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
-
-    /******** Variables ********/
-    preRewriteTable[kind::VARIABLE] = rewrite::variable;
-    preRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
-    preRewriteTable[kind::SKOLEM] = rewrite::variable;
-    preRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
-
-    preRewriteTable[kind::EQUAL] = rewrite::equal;
-
-
-    /******** Components for bit-blasting ********/
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = rewrite::identity;
-    preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] = rewrite::identity;
-    preRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
-
-
-
-
-    /* Set up the post-rewrite dispatch table */
-    for (unsigned i = 0; i < kind::LAST_KIND; ++i) {
-      postRewriteTable[i] = rewrite::notFP;
-    }
-
-    /******** Constants ********/
-    /* No rewriting possible for constants */
-    postRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
-    postRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity; 
-
-    /******** Sorts(?) ********/
-    /* These kinds should only appear in types */
-    //postRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
-    postRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
-      
-    /******** Operations ********/
-    postRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
-    postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
-    postRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::reorderBinaryOperation;
-    postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
-    postRewriteTable[kind::FLOATINGPOINT_MULT] = rewrite::reorderBinaryOperation;
-    postRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::reorderFMA;
-    postRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::compactRemainder;
-    postRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
-    postRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
-    postRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
-    postRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
-
-    /******** Comparisons ********/
-    postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
-    postRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::leqId;
-    postRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::ltId;
-    postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
-    postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
-
-    /******** Classifications ********/
-    postRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::removeSignOperations;
-    postRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
-
-    /******** Conversions ********/
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
-    postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
-
-    /******** Variables ********/
-    postRewriteTable[kind::VARIABLE] = rewrite::variable;
-    postRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
-    postRewriteTable[kind::SKOLEM] = rewrite::variable;
-    postRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
-
-    postRewriteTable[kind::EQUAL] = rewrite::equal;
-
-
-    /******** Components for bit-blasting ********/
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = rewrite::identity;
-    postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] = rewrite::identity;
-    postRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
-
-
-
-    /* Set up the post-rewrite constant fold table */
-    for (unsigned i = 0; i < kind::LAST_KIND; ++i) {
-      // Note that this is identity, not notFP
-      // Constant folding is called after post-rewrite
-      // So may have to deal with cases of things being
-      // re-written to non-floating-point sorts (i.e. true).
-      constantFoldTable[i] = rewrite::identity;
-    }
-
-    /******** Constants ********/
-    /* Already folded! */
-    constantFoldTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
-    constantFoldTable[kind::CONST_ROUNDINGMODE] = rewrite::identity; 
-
-    /******** Sorts(?) ********/
-    /* These kinds should only appear in types */
-    constantFoldTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
-      
-    /******** Operations ********/
-    constantFoldTable[kind::FLOATINGPOINT_FP] = constantFold::fpLiteral;
-    constantFoldTable[kind::FLOATINGPOINT_ABS] = constantFold::abs;
-    constantFoldTable[kind::FLOATINGPOINT_NEG] = constantFold::neg;
-    constantFoldTable[kind::FLOATINGPOINT_PLUS] = constantFold::plus;
-    constantFoldTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
-    constantFoldTable[kind::FLOATINGPOINT_MULT] = constantFold::mult;
-    constantFoldTable[kind::FLOATINGPOINT_DIV] = constantFold::div;
-    constantFoldTable[kind::FLOATINGPOINT_FMA] = constantFold::fma;
-    constantFoldTable[kind::FLOATINGPOINT_SQRT] = constantFold::sqrt;
-    constantFoldTable[kind::FLOATINGPOINT_REM] = constantFold::rem;
-    constantFoldTable[kind::FLOATINGPOINT_RTI] = constantFold::rti;
-    constantFoldTable[kind::FLOATINGPOINT_MIN] = constantFold::min;
-    constantFoldTable[kind::FLOATINGPOINT_MAX] = constantFold::max;
-    constantFoldTable[kind::FLOATINGPOINT_MIN_TOTAL] = constantFold::minTotal;
-    constantFoldTable[kind::FLOATINGPOINT_MAX_TOTAL] = constantFold::maxTotal;
-
-    /******** Comparisons ********/
-    constantFoldTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
-    constantFoldTable[kind::FLOATINGPOINT_LEQ] = constantFold::leq;
-    constantFoldTable[kind::FLOATINGPOINT_LT] = constantFold::lt;
-    constantFoldTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
-    constantFoldTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
-
-    /******** Classifications ********/
-    constantFoldTable[kind::FLOATINGPOINT_ISN] = constantFold::isNormal;
-    constantFoldTable[kind::FLOATINGPOINT_ISSN] = constantFold::isSubnormal;
-    constantFoldTable[kind::FLOATINGPOINT_ISZ] = constantFold::isZero;
-    constantFoldTable[kind::FLOATINGPOINT_ISINF] = constantFold::isInfinite;
-    constantFoldTable[kind::FLOATINGPOINT_ISNAN] = constantFold::isNaN;
-    constantFoldTable[kind::FLOATINGPOINT_ISNEG] = constantFold::isNegative;
-    constantFoldTable[kind::FLOATINGPOINT_ISPOS] = constantFold::isPositive;
-
-    /******** Conversions ********/
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] = constantFold::convertFromIEEEBitVectorLiteral;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] = constantFold::constantConvert;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_REAL] = constantFold::convertFromRealLiteral;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] = constantFold::convertFromSBV;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] = constantFold::convertFromUBV;
-    constantFoldTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
-    constantFoldTable[kind::FLOATINGPOINT_TO_UBV] = constantFold::convertToUBV;
-    constantFoldTable[kind::FLOATINGPOINT_TO_SBV] = constantFold::convertToSBV;
-    constantFoldTable[kind::FLOATINGPOINT_TO_REAL] = constantFold::convertToReal;
-    constantFoldTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = constantFold::convertToUBVTotal;
-    constantFoldTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = constantFold::convertToSBVTotal;
-    constantFoldTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = constantFold::convertToRealTotal;
-
-    /******** Variables ********/
-    constantFoldTable[kind::VARIABLE] = rewrite::variable;
-    constantFoldTable[kind::BOUND_VARIABLE] = rewrite::variable;
-
-    constantFoldTable[kind::EQUAL] = constantFold::equal;
-
-
-    /******** Components for bit-blasting ********/
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_NAN] = constantFold::componentFlag;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_INF] = constantFold::componentFlag;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = constantFold::componentFlag;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = constantFold::componentFlag;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = constantFold::componentExponent;
-    constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] = constantFold::componentSignificand;
-    constantFoldTable[kind::ROUNDINGMODE_BITBLAST] = constantFold::roundingModeBitBlast;
-
-
+TheoryFpRewriter::TheoryFpRewriter()
+{
+  /* Set up the pre-rewrite dispatch table */
+  for (unsigned i = 0; i < kind::LAST_KIND; ++i)
+  {
+    d_preRewriteTable[i] = rewrite::notFP;
   }
 
+  /******** Constants ********/
+  /* No rewriting possible for constants */
+  d_preRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
+  d_preRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity;
 
+  /******** Sorts(?) ********/
+  /* These kinds should only appear in types */
+  // d_preRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
+  d_preRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
 
+  /******** Operations ********/
+  d_preRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
+  d_preRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
+  d_preRewriteTable[kind::FLOATINGPOINT_PLUS] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_SUB] =
+      rewrite::convertSubtractionToAddition;
+  d_preRewriteTable[kind::FLOATINGPOINT_MULT] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
+  d_preRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
+  d_preRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
+  d_preRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
+
+  /******** Comparisons ********/
+  d_preRewriteTable[kind::FLOATINGPOINT_EQ] =
+      rewrite::then<rewrite::breakChain, rewrite::ieeeEqToEq>;
+  d_preRewriteTable[kind::FLOATINGPOINT_LEQ] =
+      rewrite::then<rewrite::breakChain, rewrite::leqId>;
+  d_preRewriteTable[kind::FLOATINGPOINT_LT] =
+      rewrite::then<rewrite::breakChain, rewrite::ltId>;
+  d_preRewriteTable[kind::FLOATINGPOINT_GEQ] =
+      rewrite::then<rewrite::breakChain, rewrite::geqToleq>;
+  d_preRewriteTable[kind::FLOATINGPOINT_GT] =
+      rewrite::then<rewrite::breakChain, rewrite::gtTolt>;
+
+  /******** Classifications ********/
+  d_preRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
+
+  /******** Conversions ********/
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] =
+      rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] =
+      rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
+      rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
+      rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
+
+  /******** Variables ********/
+  d_preRewriteTable[kind::VARIABLE] = rewrite::variable;
+  d_preRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
+  d_preRewriteTable[kind::SKOLEM] = rewrite::variable;
+  d_preRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
+
+  d_preRewriteTable[kind::EQUAL] = rewrite::equal;
+
+  /******** Components for bit-blasting ********/
+  d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] = rewrite::identity;
+  d_preRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] =
+      rewrite::identity;
+  d_preRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
+
+  /* Set up the post-rewrite dispatch table */
+  for (unsigned i = 0; i < kind::LAST_KIND; ++i)
+  {
+    d_postRewriteTable[i] = rewrite::notFP;
+  }
+
+  /******** Constants ********/
+  /* No rewriting possible for constants */
+  d_postRewriteTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
+  d_postRewriteTable[kind::CONST_ROUNDINGMODE] = rewrite::identity;
+
+  /******** Sorts(?) ********/
+  /* These kinds should only appear in types */
+  // d_postRewriteTable[kind::ROUNDINGMODE_TYPE] = rewrite::type;
+  d_postRewriteTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
+
+  /******** Operations ********/
+  d_postRewriteTable[kind::FLOATINGPOINT_FP] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_ABS] = rewrite::compactAbs;
+  d_postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
+  d_postRewriteTable[kind::FLOATINGPOINT_PLUS] =
+      rewrite::reorderBinaryOperation;
+  d_postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_MULT] =
+      rewrite::reorderBinaryOperation;
+  d_postRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_FMA] = rewrite::reorderFMA;
+  d_postRewriteTable[kind::FLOATINGPOINT_SQRT] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_REM] = rewrite::compactRemainder;
+  d_postRewriteTable[kind::FLOATINGPOINT_RTI] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_MIN] = rewrite::compactMinMax;
+  d_postRewriteTable[kind::FLOATINGPOINT_MAX] = rewrite::compactMinMax;
+  d_postRewriteTable[kind::FLOATINGPOINT_MIN_TOTAL] = rewrite::compactMinMax;
+  d_postRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
+
+  /******** Comparisons ********/
+  d_postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::leqId;
+  d_postRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::ltId;
+  d_postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
+
+  /******** Classifications ********/
+  d_postRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_ISSN] = rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_ISZ] = rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_ISINF] = rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_ISNAN] = rewrite::removeSignOperations;
+  d_postRewriteTable[kind::FLOATINGPOINT_ISNEG] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_ISPOS] = rewrite::identity;
+
+  /******** Conversions ********/
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] =
+      rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] =
+      rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_REAL] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
+      rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
+      rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] = rewrite::identity;
+
+  /******** Variables ********/
+  d_postRewriteTable[kind::VARIABLE] = rewrite::variable;
+  d_postRewriteTable[kind::BOUND_VARIABLE] = rewrite::variable;
+  d_postRewriteTable[kind::SKOLEM] = rewrite::variable;
+  d_postRewriteTable[kind::INST_CONSTANT] = rewrite::variable;
+
+  d_postRewriteTable[kind::EQUAL] = rewrite::equal;
+
+  /******** Components for bit-blasting ********/
+  d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_NAN] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_INF] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_ZERO] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGN] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] =
+      rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] =
+      rewrite::identity;
+  d_postRewriteTable[kind::ROUNDINGMODE_BITBLAST] = rewrite::identity;
+
+  /* Set up the post-rewrite constant fold table */
+  for (unsigned i = 0; i < kind::LAST_KIND; ++i)
+  {
+    // Note that this is identity, not notFP
+    // Constant folding is called after post-rewrite
+    // So may have to deal with cases of things being
+    // re-written to non-floating-point sorts (i.e. true).
+    d_constantFoldTable[i] = rewrite::identity;
+  }
+
+  /******** Constants ********/
+  /* Already folded! */
+  d_constantFoldTable[kind::CONST_FLOATINGPOINT] = rewrite::identity;
+  d_constantFoldTable[kind::CONST_ROUNDINGMODE] = rewrite::identity;
+
+  /******** Sorts(?) ********/
+  /* These kinds should only appear in types */
+  d_constantFoldTable[kind::FLOATINGPOINT_TYPE] = rewrite::type;
+
+  /******** Operations ********/
+  d_constantFoldTable[kind::FLOATINGPOINT_FP] = constantFold::fpLiteral;
+  d_constantFoldTable[kind::FLOATINGPOINT_ABS] = constantFold::abs;
+  d_constantFoldTable[kind::FLOATINGPOINT_NEG] = constantFold::neg;
+  d_constantFoldTable[kind::FLOATINGPOINT_PLUS] = constantFold::plus;
+  d_constantFoldTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
+  d_constantFoldTable[kind::FLOATINGPOINT_MULT] = constantFold::mult;
+  d_constantFoldTable[kind::FLOATINGPOINT_DIV] = constantFold::div;
+  d_constantFoldTable[kind::FLOATINGPOINT_FMA] = constantFold::fma;
+  d_constantFoldTable[kind::FLOATINGPOINT_SQRT] = constantFold::sqrt;
+  d_constantFoldTable[kind::FLOATINGPOINT_REM] = constantFold::rem;
+  d_constantFoldTable[kind::FLOATINGPOINT_RTI] = constantFold::rti;
+  d_constantFoldTable[kind::FLOATINGPOINT_MIN] = constantFold::min;
+  d_constantFoldTable[kind::FLOATINGPOINT_MAX] = constantFold::max;
+  d_constantFoldTable[kind::FLOATINGPOINT_MIN_TOTAL] = constantFold::minTotal;
+  d_constantFoldTable[kind::FLOATINGPOINT_MAX_TOTAL] = constantFold::maxTotal;
+
+  /******** Comparisons ********/
+  d_constantFoldTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
+  d_constantFoldTable[kind::FLOATINGPOINT_LEQ] = constantFold::leq;
+  d_constantFoldTable[kind::FLOATINGPOINT_LT] = constantFold::lt;
+  d_constantFoldTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
+  d_constantFoldTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
+
+  /******** Classifications ********/
+  d_constantFoldTable[kind::FLOATINGPOINT_ISN] = constantFold::isNormal;
+  d_constantFoldTable[kind::FLOATINGPOINT_ISSN] = constantFold::isSubnormal;
+  d_constantFoldTable[kind::FLOATINGPOINT_ISZ] = constantFold::isZero;
+  d_constantFoldTable[kind::FLOATINGPOINT_ISINF] = constantFold::isInfinite;
+  d_constantFoldTable[kind::FLOATINGPOINT_ISNAN] = constantFold::isNaN;
+  d_constantFoldTable[kind::FLOATINGPOINT_ISNEG] = constantFold::isNegative;
+  d_constantFoldTable[kind::FLOATINGPOINT_ISPOS] = constantFold::isPositive;
+
+  /******** Conversions ********/
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR] =
+      constantFold::convertFromIEEEBitVectorLiteral;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT] =
+      constantFold::constantConvert;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_REAL] =
+      constantFold::convertFromRealLiteral;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR] =
+      constantFold::convertFromSBV;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
+      constantFold::convertFromUBV;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV] = constantFold::convertToUBV;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV] = constantFold::convertToSBV;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_REAL] =
+      constantFold::convertToReal;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV_TOTAL] =
+      constantFold::convertToUBVTotal;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV_TOTAL] =
+      constantFold::convertToSBVTotal;
+  d_constantFoldTable[kind::FLOATINGPOINT_TO_REAL_TOTAL] =
+      constantFold::convertToRealTotal;
+
+  /******** Variables ********/
+  d_constantFoldTable[kind::VARIABLE] = rewrite::variable;
+  d_constantFoldTable[kind::BOUND_VARIABLE] = rewrite::variable;
+
+  d_constantFoldTable[kind::EQUAL] = constantFold::equal;
+
+  /******** Components for bit-blasting ********/
+  d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_NAN] =
+      constantFold::componentFlag;
+  d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_INF] =
+      constantFold::componentFlag;
+  d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_ZERO] =
+      constantFold::componentFlag;
+  d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGN] =
+      constantFold::componentFlag;
+  d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_EXPONENT] =
+      constantFold::componentExponent;
+  d_constantFoldTable[kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND] =
+      constantFold::componentSignificand;
+  d_constantFoldTable[kind::ROUNDINGMODE_BITBLAST] =
+      constantFold::roundingModeBitBlast;
+}
 
   /**
    * Rewrite a node into the normal form for the theory of fp
@@ -1254,7 +1272,7 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
 
   RewriteResponse TheoryFpRewriter::preRewrite(TNode node) {
     Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): " << node << std::endl;
-    RewriteResponse res = preRewriteTable [node.getKind()] (node, true);
+    RewriteResponse res = d_preRewriteTable[node.getKind()](node, true);
     if (res.node != node) {
       Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
       Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  " << res.node << std::endl;
@@ -1287,7 +1305,7 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
 
   RewriteResponse TheoryFpRewriter::postRewrite(TNode node) {
     Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): " << node << std::endl;
-    RewriteResponse res = postRewriteTable [node.getKind()] (node, false);
+    RewriteResponse res = d_postRewriteTable[node.getKind()](node, false);
     if (res.node != node) {
       Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before " << node << std::endl;
       Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after  " << res.node << std::endl;
@@ -1366,9 +1384,10 @@ RewriteFunction TheoryFpRewriter::constantFoldTable[kind::LAST_KIND];
 							     wRTP))));
 	  }
 	} else {
-	  RewriteResponse tmp = constantFoldTable [res.node.getKind()] (res.node, false);
-	  rs = tmp.status;
-	  rn = tmp.node;
+          RewriteResponse tmp =
+              d_constantFoldTable[res.node.getKind()](res.node, false);
+          rs = tmp.status;
+          rn = tmp.node;
 	}
 
 	RewriteResponse constRes(rs,rn);

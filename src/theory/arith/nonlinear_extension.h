@@ -63,8 +63,7 @@ typedef std::map<Node, unsigned> NodeMultiset;
  *
  * It's main functionality is a check(...) method,
  * which is called by TheoryArithPrivate either:
- * (1) at full effort with no conflicts or lemmas emitted,
- * or
+ * (1) at full effort with no conflicts or lemmas emitted, or
  * (2) at last call effort.
  * In this method, this class calls d_out->lemma(...)
  * for valid arithmetic theory lemmas, based on the current set of assertions,
@@ -115,11 +114,46 @@ class NonlinearExtension {
                                       const std::vector<Node>& exp) const;
   /** Check at effort level e.
    *
-   * This call may result in (possibly multiple)
-   * calls to d_out->lemma(...) where d_out
-   * is the output channel of TheoryArith.
+   * This call may result in (possibly multiple) calls to d_out->lemma(...)
+   * where d_out is the output channel of TheoryArith.
+   *
+   * If e is FULL, then we add lemmas based on context-depedent
+   * simplification (see Reynolds et al FroCoS 2017).
+   *
+   * If e is LAST_CALL, we add lemmas based on model-based refinement
+   * (see additionally Cimatti et al., TACAS 2017). The lemmas added at this
+   * effort may be computed during a call to interceptModel as described below.
    */
   void check(Theory::Effort e);
+  /** intercept model
+   *
+   * This method is called during TheoryArith::collectModelInfo, which is
+   * invoked after the linear arithmetic solver passes a full effort check
+   * with no lemmas.
+   *
+   * The argument arithModel is a map of the form { v1 -> c1, ..., vn -> cn }
+   * which represents the linear arithmetic theory solver's contribution to the
+   * current candidate model. That is, its collectModelInfo method is requesting
+   * that equalities v1 = c1, ..., vn = cn be added to the current model, where
+   * v1, ..., vn are arithmetic variables and c1, ..., cn are constants. Notice
+   * arithmetic variables may be real-valued terms belonging to other theories,
+   * or abstractions of applications of multiplication (kind NONLINEAR_MULT).
+   *
+   * This method requests that the non-linear solver inspect this model and
+   * do any number of the following:
+   * (1) Construct lemmas based on a model-based refinement procedure inspired
+   * by Cimatti et al., TACAS 2017.,
+   * (2) In the case that the nonlinear solver finds that the current
+   * constraints are satisfiable, it may "repair" the values in the argument
+   * arithModel so that it satisfies certain nonlinear constraints. This may
+   * involve e.g. solving for variables in nonlinear equations.
+   *
+   * Notice that in the former case, the lemmas it constructs are not sent out
+   * immediately. Instead, they are put in temporary vectors d_cmiLemmas
+   * and d_cmiLemmasPp, which are then sent out (if necessary) when a last call
+   * effort check is issued to this class.
+   */
+  void interceptModel(std::map<Node, Node>& arithModel);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
@@ -131,6 +165,22 @@ class NonlinearExtension {
    */
   void presolve();
  private:
+  /** Model-based refinement
+   *
+   * This is the main entry point of this class for generating lemmas on the
+   * output channel of the theory of arithmetic.
+   *
+   * It is currently run at last call effort. It applies lemma schemas
+   * described in Reynolds et al. FroCoS 2017 that are based on ruling out
+   * the current candidate model.
+   *
+   * This function returns true if a lemma was added to the vector lems/lemsPp.
+   * Otherwise, it returns false. In the latter case, the model object d_model
+   * may have information regarding how to construct a model, in the case that
+   * we determined the problem is satisfiable.
+   */
+  bool modelBasedRefinement(std::vector<Node>& mlems,
+                            std::vector<Node>& mlemsPp);
   /** returns true if the multiset containing the
    * factors of monomial a is a subset of the multiset
    * containing the factors of monomial b.
@@ -167,12 +217,26 @@ class NonlinearExtension {
    *
    * xts : the list of (non-reduced) extended terms in the current context.
    *
-   * This method returns the number of lemmas added on the output channel of
-   * TheoryArith.
+   * This method adds lemmas to arguments lems, lemsPp, and wlems, each of
+   * which are intended to be sent out on the output channel of TheoryArith
+   * under certain conditions.
+   *
+   * If the set lems or lemsPp is non-empty, then no further processing is
+   * necessary. The last call effort check should terminate and these
+   * lemmas should be sent. The set lemsPp is distinguished from lems since
+   * the preprocess flag on the lemma(...) call should be set to true.
+   *
+   * The "waiting" lemmas wlems contain lemmas that should be sent on the
+   * output channel as a last resort. In other words, only if we are not
+   * able to establish SAT via a call to checkModel(...) should wlems be
+   * considered. This set typically contains tangent plane lemmas.
    */
   int checkLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+                    const std::vector<Node>& xts,
+                    std::vector<Node>& lems,
+                    std::vector<Node>& lemsPp,
+                    std::vector<Node>& wlems);
   //---------------------------------------term utilities
   static bool isArithKind(Kind k);
   static Node mkLit(Node a, Node b, int status, bool isAbsolute = false);
@@ -226,9 +290,15 @@ class NonlinearExtension {
    *
    * For details, see Section 3 of Cimatti et al CADE 2017 under the heading
    * "Detecting Satisfiable Formulas".
+   *
+   * The arguments lemmas and gs store the lemmas and guard literals to be sent
+   * out on the output channel of TheoryArith as lemmas and calls to
+   * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts);
+                  const std::vector<Node>& false_asserts,
+                  std::vector<Node>& lemmas,
+                  std::vector<Node>& gs);
   //---------------------------end check model
 
   /** In the following functions, status states a relationship
@@ -313,18 +383,19 @@ class NonlinearExtension {
   /** Is n entailed with polarity pol in the current context? */
   bool isEntailed(Node n, bool pol);
 
-  /** flush lemmas
-   *
-   * Potentially sends lem on the output channel if lem has not been sent on the
-   * output channel in this context. Returns the number of lemmas sent on the
-   * output channel of TheoryArith.
+  /**
+   * Potentially adds lemmas to the set out and clears lemmas. Returns
+   * the number of lemmas added to out. We do not add lemmas that have already
+   * been sent on the output channel of TheoryArith.
    */
-  int flushLemma(Node lem);
+  unsigned filterLemmas(std::vector<Node>& lemmas, std::vector<Node>& out);
+  /** singleton version of above */
+  unsigned filterLemma(Node lem, std::vector<Node>& out);
 
-  /** Potentially sends lemmas to the output channel and clears lemmas. Returns
-   * the number of lemmas sent to the output channel.
+  /**
+   * Send lemmas in out on the output channel of theory of arithmetic.
    */
-  int flushLemmas(std::vector<Node>& lemmas);
+  void sendLemmas(const std::vector<Node>& out, bool preprocess = false);
 
   // Returns the NodeMultiset for an existing monomial.
   const NodeMultiset& getMonomialExponentMap(Node monomial) const;
@@ -355,12 +426,6 @@ class NonlinearExtension {
   NodeSet d_lemmas;
   /** cache of terms t for which we have added the lemma ( t = 0 V t != 0 ). */
   NodeSet d_zero_split;
-  
-  /** 
-   * The set of atoms with Skolems that this solver introduced. We do not
-   * require that models satisfy literals over Skolem atoms.
-   */
-  NodeSet d_skolem_atoms;
 
   /** commonly used terms */
   Node d_zero;
@@ -408,6 +473,15 @@ class NonlinearExtension {
    * and for establishing when we are able to answer "SAT".
    */
   NlModel d_model;
+  /**
+   * The lemmas we computed during collectModelInfo. We store two vectors of
+   * lemmas to be sent out on the output channel of TheoryArith. The first
+   * is not preprocessed, the second is.
+   */
+  std::vector<Node> d_cmiLemmas;
+  std::vector<Node> d_cmiLemmasPp;
+  /** The approximations computed during collectModelInfo. */
+  std::map<Node, Node> d_approximations;
   /** have we successfully built the model in this SAT context? */
   context::CDO<bool> d_builtModel;
 
@@ -425,8 +499,6 @@ class NonlinearExtension {
   /** Stores skolems in the range of the above map */
   std::map<Node, bool> d_tr_is_base;
   std::map< Node, bool > d_tf_initial_refine;
-  /** the list of lemmas we are waiting to flush until after check model */
-  std::vector<Node> d_waiting_lemmas;
 
   void mkPi();
   void getCurrentPiBounds( std::vector< Node >& lemmas );

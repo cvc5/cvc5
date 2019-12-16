@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/sygus_explain.h"
 
+#include "expr/dtype.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
@@ -138,7 +139,7 @@ void SygusExplain::getExplanationForEquality(Node n,
     return;
   }
   Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
-  const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   int i = datatypes::utils::indexOf(vn.getOperator());
   Node tst = datatypes::utils::mkTester(n, i, dt);
   exp.push_back(tst);
@@ -147,9 +148,7 @@ void SygusExplain::getExplanationForEquality(Node n,
     if (cexc.find(j) == cexc.end())
     {
       Node sel = NodeManager::currentNM()->mkNode(
-          kind::APPLY_SELECTOR_TOTAL,
-          Node::fromExpr(dt[i].getSelectorInternal(tn.toType(), j)),
-          n);
+          kind::APPLY_SELECTOR_TOTAL, dt[i].getSelectorInternal(tn, j), n);
       getExplanationForEquality(sel, vn[j], exp);
     }
   }
@@ -189,8 +188,13 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   TypeNode ntn = n.getType();
   if (!ntn.isDatatype())
   {
-    // sygus datatype fields that are not sygus datatypes are treated as
-    // abstractions only, hence we disregard this field
+    // SyGuS datatype fields that are not sygus datatypes are treated as
+    // abstractions only, hence we disregard this field. It is important
+    // that users of this method pay special attention to any constants,
+    // otherwise the explanation n.eqNode(vn) is necessary here. For example,
+    // any lemma schema that blocks the current value of an enumerator should
+    // not make any assumptions about the value of the arguments of its any
+    // constant constructors, since their explanation is not included here.
     return;
   }
   Assert(vn.getKind() == APPLY_CONSTRUCTOR);
@@ -222,7 +226,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
       trb.replaceChild(i, vn[i]);
     }
   }
-  const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
+  const DType& dt = ntn.getDType();
   int cindex = datatypes::utils::indexOf(vn.getOperator());
   Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
   Node tst = datatypes::utils::mkTester(n, cindex, dt);
@@ -240,9 +244,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
   for (unsigned i = 0; i < vn.getNumChildren(); i++)
   {
     Node sel = NodeManager::currentNM()->mkNode(
-        kind::APPLY_SELECTOR_TOTAL,
-        Node::fromExpr(dt[cindex].getSelectorInternal(ntn.toType(), i)),
-        n);
+        kind::APPLY_SELECTOR_TOTAL, dt[cindex].getSelectorInternal(ntn, i), n);
     Node vnr_c = vnr.isNull() ? vnr : (vn[i] == vnr[i] ? Node::null() : vnr[i]);
     if (cexc.find(i) == cexc.end())
     {
