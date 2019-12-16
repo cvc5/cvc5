@@ -527,7 +527,7 @@ void TheoryModel::setAssignmentExclusionSet(TNode n,
                                             const std::vector<Node>& eset)
 {
   // should not be assigned yet
-  Assert(d_assignExcSet.find(n)==d_assignExcSet.end());
+  Assert(d_assignExcSet.find(n) == d_assignExcSet.end());
   Trace("model-builder-debug")
       << "Exclude values of " << n << " : " << eset << std::endl;
   std::vector<Node>& aes = d_assignExcSet[n];
