@@ -63,7 +63,7 @@ header = "options/decision_options.h"
   type       = "DecisionWeightInternal"
   default    = "OFF"
   read_only  = true
-  help       = "compute weights of internal nodes using children: off, max, sum, usr1 (meaning evolving)"
+  help       = "compute weights of internal nodes using children: off, max, sum, usr1"
   help_mode  = "Decision weight internal mode."
 [[option.mode.OFF]]
   name = "off"

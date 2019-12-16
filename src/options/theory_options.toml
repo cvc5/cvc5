@@ -13,10 +13,10 @@ header = "options/theory_options.h"
   help_mode  = "Defines how we associate theories with terms."
 [[option.mode.THEORY_OF_TYPE_BASED]]
   name = "type"
-  help = "type variables, constants and equalities by type"
+  help = "Type variables, constants and equalities by type."
 [[option.mode.THEORY_OF_TERM_BASED]]
   name = "term"
-  help = "type variables as uninterpreted, equalities by the parametric theory"
+  help = "Type variables as uninterpreted, type constants by theory, equalities by the parametric theory."
 
 [[option]]
   name       = "useTheoryList"

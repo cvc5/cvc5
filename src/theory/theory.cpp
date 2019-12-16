@@ -181,24 +181,31 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
             if (T1 == T2)
             {
               tid = T1;
-            } else {
-            TheoryId T3 = Theory::theoryOf(ltype);
-            // This is a case of
-            // * x*y = f(z) -> UF
-            // * x = c      -> UF
-            // * f(x) = read(a, y) -> either UF or ARRAY
-            // at least one of the theories has to be parametric, i.e. theory of the type is different
-            // from the theory of the term
-            if (T1 == T3) {
-              tid = T2;
-            } else if (T2 == T3) {
-              tid = T1;
-            } else {
-              // If both are parametric, we take the smaller one (arbitrary)
-              tid = T1 < T2 ? T1 : T2;
+            }
+            else
+            {
+              TheoryId T3 = Theory::theoryOf(ltype);
+              // This is a case of
+              // * x*y = f(z) -> UF
+              // * x = c      -> UF
+              // * f(x) = read(a, y) -> either UF or ARRAY
+              // at least one of the theories has to be parametric, i.e. theory
+              // of the type is different from the theory of the term
+              if (T1 == T3)
+              {
+                tid = T2;
+              }
+              else if (T2 == T3)
+              {
+                tid = T1;
+              }
+              else
+              {
+                // If both are parametric, we take the smaller one (arbitrary)
+                tid = T1 < T2 ? T1 : T2;
+              }
             }
           }
-        }
         }
       }
       else
