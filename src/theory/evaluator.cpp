@@ -264,9 +264,11 @@ EvalResult Evaluator::evalInternal(
       }
       else if (currNode.getKind() == kind::APPLY_UF)
       {
+        Trace("evaluator") << "Evaluate " << currNode << std::endl;
         TNode op = currNode.getOperator();
         Assert (evalAsNode.find(op)!=evalAsNode.end());
         op = evalAsNode[op];
+        Trace("evaluator") << "Operator evaluated to " << op << std::endl;
         if (op.getKind()!=kind::LAMBDA)
         {
           // operator is not evaluatable
@@ -299,10 +301,12 @@ EvalResult Evaluator::evalInternal(
         std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
         results[currNode] =
             evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC);
+        Trace("evaluator") << "Evaluated via arguments to " << results[currNode].d_tag << std::endl;
         if (results[currNode].d_tag == EvalResult::INVALID)
         {
           // evaluation was invalid, we take the node of op[1] as the result
           evalAsNode[currNode] = evalAsNodeC[op[1]];
+        Trace("evaluator") << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
         }
         continue;
       }
@@ -797,14 +801,28 @@ Node Evaluator::reconstruct(TNode n,
     return n;
   }
   Trace("evaluator") << "Evaluator: reconstruct " << n << std::endl;
-  std::vector<Node> echildren;
-  if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
-  {
-    echildren.push_back(n.getOperator());
-  }
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, EvalResult, TNodeHashFunction>::iterator itr;
   std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn;
+  std::vector<Node> echildren;
+  if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    TNode op = n.getOperator();
+    itr = eresults.find(op);
+    AlwaysAssert (itr!=eresults.end());
+    if (itr->second.d_tag == EvalResult::INVALID)
+    {
+      // could not evaluate this child, look in the node cache
+      itn = evalAsNode.find(op);
+      AlwaysAssert(itn != evalAsNode.end());
+      echildren.push_back(itn->second);
+    }
+    else
+    {
+      // otherwise, use the evaluation
+      echildren.push_back(itr->second.toNode());
+    }
+  }
   for (const auto& currNodeChild : n)
   {
     itr = eresults.find(currNodeChild);
