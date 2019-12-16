@@ -810,14 +810,14 @@ Node Evaluator::reconstruct(
     Assert(itr != eresults.end());
     if (itr->second.d_tag == EvalResult::INVALID)
     {
-      // could not evaluate this child, look in the node cache
+      // could not evaluate the operator, look in the node cache
       itn = evalAsNode.find(op);
       Assert(itn != evalAsNode.end());
       echildren.push_back(itn->second);
     }
     else
     {
-      // otherwise, use the evaluation
+      // otherwise, use the evaluation of the operator
       echildren.push_back(itr->second.toNode());
     }
   }
