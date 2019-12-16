@@ -262,12 +262,8 @@ const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
 
 const DType& NodeManager::getDTypeForIndex(unsigned index) const
 {
-  // when the Node-level API is in place, this function will be replaced by a
-  // direct lookup into a d_ownedDTypes vector, similar to d_ownedDatatypes
-  // above.
-  Unreachable() << "NodeManager::getDTypeForIndex: DType is not available in "
-                   "the current implementation.";
   const Datatype& d = getDatatypeForIndex(index);
+  // return its internal representation
   return *d.d_internal;
 }
 

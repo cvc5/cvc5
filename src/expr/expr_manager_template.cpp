@@ -681,7 +681,7 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
     dt_copies.push_back( new Datatype( *i ) );
   }
-  
+
   // First do some sanity checks, set up the final Type to be used for
   // each datatype, and set up the "named resolutions" used to handle
   // simple self- and mutual-recursion, for example in the definition
@@ -766,9 +766,11 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
       ++i) {
     const Datatype& dt = (*i).getDatatype();
     if(!dt.isResolved()) {
-      const_cast<Datatype&>(dt).resolve(this, nameResolutions,
-                                        placeholders, replacements,
-                                        paramTypes, paramReplacements);
+      const_cast<Datatype&>(dt).resolve(nameResolutions,
+                                        placeholders,
+                                        replacements,
+                                        paramTypes,
+                                        paramReplacements);
     }
 
     // Now run some checks, including a check to make sure that no

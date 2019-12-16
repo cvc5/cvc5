@@ -73,8 +73,8 @@ Node Skolemize::getSkolemConstant(Node q, unsigned i)
   return Node::null();
 }
 
-void Skolemize::getSelfSel(const Datatype& dt,
-                           const DatatypeConstructor& dc,
+void Skolemize::getSelfSel(const DType& dt,
+                           const DTypeConstructor& dc,
                            Node n,
                            TypeNode ntn,
                            std::vector<Node>& selfSel)
@@ -82,14 +82,14 @@ void Skolemize::getSelfSel(const Datatype& dt,
   TypeNode tspec;
   if (dt.isParametric())
   {
-    tspec = TypeNode::fromType(
-        dc.getSpecializedConstructorType(n.getType().toType()));
+    tspec = dc.getSpecializedConstructorType(n.getType());
     Trace("sk-ind-debug") << "Specialized constructor type : " << tspec
                           << std::endl;
     Assert(tspec.getNumChildren() == dc.getNumArgs());
   }
   Trace("sk-ind-debug") << "Check self sel " << dc.getName() << " "
                         << dt.getName() << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < dc.getNumArgs(); j++)
   {
     std::vector<Node> ssc;
@@ -104,32 +104,17 @@ void Skolemize::getSelfSel(const Datatype& dt,
     }
     else
     {
-      TypeNode tn = TypeNode::fromType(dc[j].getRangeType());
+      TypeNode tn = dc[j].getRangeType();
       Trace("sk-ind-debug") << "Compare " << tn << " " << ntn << std::endl;
       if (tn == ntn)
       {
         ssc.push_back(n);
       }
     }
-    /* TODO: more than weak structural induction
-    else if( tn.isDatatype() && std::find( visited.begin(), visited.end(), tn
-    )==visited.end() ){
-      visited.push_back( tn );
-      const Datatype& dt =
-    ((DatatypeType)(subs[0].getType()).toType()).getDatatype();
-      std::vector< Node > disj;
-      for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-        getSelfSel( dt[i], n, ntn, ssc );
-      }
-      visited.pop_back();
-    }
-    */
     for (unsigned k = 0; k < ssc.size(); k++)
     {
-      Node ss = NodeManager::currentNM()->mkNode(
-          APPLY_SELECTOR_TOTAL,
-          dc.getSelectorInternal(n.getType().toType(), j),
-          n);
+      Node ss = nm->mkNode(
+          APPLY_SELECTOR_TOTAL, dc.getSelectorInternal(n.getType(), j), n);
       if (std::find(selfSel.begin(), selfSel.end(), ss) == selfSel.end())
       {
         selfSel.push_back(ss);
@@ -146,6 +131,7 @@ Node Skolemize::mkSkolemizedBody(Node f,
                                  Node& sub,
                                  std::vector<unsigned>& sub_vars)
 {
+  NodeManager* nm = NodeManager::currentNM();
   Assert(sk.empty() || sk.size() == f[0].getNumChildren());
   // calculate the variables and substitution
   std::vector<TNode> ind_vars;
@@ -220,17 +206,14 @@ Node Skolemize::mkSkolemizedBody(Node f,
     // the following constructs ~( R( x, k ) => ~P( x ) )
     if (options::dtStcInduction() && tn.isDatatype())
     {
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+      const DType& dt = tn.getDType();
       std::vector<Node> disj;
       for (unsigned i = 0; i < dt.getNumConstructors(); i++)
       {
         std::vector<Node> selfSel;
         getSelfSel(dt, dt[i], k, tn, selfSel);
         std::vector<Node> conj;
-        conj.push_back(
-            NodeManager::currentNM()
-                ->mkNode(APPLY_TESTER, Node::fromExpr(dt[i].getTester()), k)
-                .negate());
+        conj.push_back(nm->mkNode(APPLY_TESTER, dt[i].getTester(), k).negate());
         for (unsigned j = 0; j < selfSel.size(); j++)
         {
           conj.push_back(ret.substitute(ind_vars[0], selfSel[j]).negate());
@@ -346,7 +329,7 @@ bool Skolemize::isInductionTerm(Node n)
   TypeNode tn = n.getType();
   if (options::dtStcInduction() && tn.isDatatype())
   {
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
+    const DType& dt = tn.getDType();
     return !dt.isCodatatype();
   }
   if (options::intWfInduction() && n.getType().isInteger())
