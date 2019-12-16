@@ -106,7 +106,11 @@ private:
   int allocate( Node n, TypeNode stn );
   // term t with sygus type st, returns inducted templated form of t
   int collectReconstructNodes( Node t, TypeNode stn, int& status );
-  bool collectReconstructNodes( int pid, std::vector< Node >& ts, const DatatypeConstructor& dtc, std::vector< int >& ids, int& status );
+  bool collectReconstructNodes(int pid,
+                               std::vector<Node>& ts,
+                               const DTypeConstructor& dtc,
+                               std::vector<int>& ids,
+                               int& status);
   bool getPathToRoot( int id );
   void setReconstructed( int id, Node n );
   //get equivalent terms to n with top symbol k
@@ -140,7 +144,7 @@ private:
    * This returns the builtin term that is the analog of an application of the
    * c^th constructor of dt to fresh variables.
    */
-  Node getGenericBase(TypeNode tn, const Datatype& dt, int c);
+  Node getGenericBase(TypeNode tn, const DType& dt, int c);
   /** cache for the above function */
   std::map<TypeNode, std::map<int, Node> > d_generic_base;
   /** get match

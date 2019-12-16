@@ -28,8 +28,17 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 
+// Note that this function is a simplified version of Theory::theoryOf for
+// (type-based) theoryOfMode. We expand and simplify it here for the sake of
+// efficiency.
 static TheoryId theoryOf(TNode node) {
-  return Theory::theoryOf(THEORY_OF_TYPE_BASED, node);
+  if (node.getKind() == kind::EQUAL)
+  {
+    // Equality is owned by the theory that owns the domain
+    return Theory::theoryOf(node[0].getType());
+  }
+  // Regular nodes are owned by the kind
+  return kindToTheoryId(node.getKind());
 }
 
 /**
@@ -72,6 +81,12 @@ struct RewriteStackElement {
 };
 
 Node Rewriter::rewrite(TNode node) {
+  if (node.getNumChildren() == 0)
+  {
+    // Nodes with zero children should never change via rewriting. We return
+    // eagerly for the sake of efficiency here.
+    return node;
+  }
   Rewriter& rewriter = getInstance();
   return rewriter.rewriteTo(theoryOf(node), node);
 }

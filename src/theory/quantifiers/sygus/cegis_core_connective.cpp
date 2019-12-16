@@ -197,7 +197,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
   // candidate has the production rule gt -> AND( gt, gt ). Similarly for
   // precondition and OR.
   Assert(gt.isDatatype());
-  const Datatype& gdt = gt.getDatatype();
+  const DType& gdt = gt.getDType();
   SygusTypeInfo& gti = d_tds->getTypeInfo(gt);
   for (unsigned r = 0; r < 2; r++)
   {
@@ -211,12 +211,12 @@ bool CegisCoreConnective::processInitialize(Node conj,
     Kind rk = r == 0 ? OR : AND;
     int i = gti.getKindConsNum(rk);
     if (i != -1 && gdt[i].getNumArgs() == 2
-        && TypeNode::fromType(gdt[i].getArgType(0)) == gt
-        && TypeNode::fromType(gdt[i].getArgType(1)) == gt)
+        && gdt[i].getArgType(0) == gt
+        && gdt[i].getArgType(1) == gt)
     {
       Trace("sygus-ccore-init") << "  will do " << (r == 0 ? "pre" : "post")
                                 << "condition." << std::endl;
-      Node cons = Node::fromExpr(gdt[i].getConstructor());
+      Node cons = gdt[i].getConstructor();
       c.initialize(f, cons);
       // Register the symmetry breaking lemma: do not do top-level solutions
       // with this constructor (e.g. we want to enumerate literals, not

@@ -469,6 +469,7 @@ public:
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA || getKind() == kind::FORALL
            || getKind() == kind::EXISTS || getKind() == kind::CHOICE
+           || getKind() == kind::COMPREHENSION
            || getKind() == kind::MATCH_BIND_CASE;
   }
 

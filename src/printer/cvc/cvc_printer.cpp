@@ -24,11 +24,12 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h" // for ExprSetDepth etc..
-#include "expr/node_manager_attributes.h" // for VarNameAttr
-#include "options/language.h" // for LANG_AST
-#include "printer/dagification_visitor.h"
+#include "expr/dtype.h"
+#include "expr/expr.h"                     // for ExprSetDepth etc..
+#include "expr/node_manager_attributes.h"  // for VarNameAttr
+#include "options/language.h"              // for LANG_AST
 #include "options/smt_options.h"
+#include "printer/dagification_visitor.h"
 #include "smt/command.h"
 #include "smt/smt_engine.h"
 #include "smt_util/node_visitor.h"
@@ -179,7 +180,9 @@ void CvcPrinter::toStream(
       break;
 
     case kind::DATATYPE_TYPE: {
-      const Datatype& dt = (NodeManager::currentNM()->getDatatypeForIndex( n.getConst< DatatypeIndexConstant >().getIndex() ));
+      const Datatype& dt =
+          NodeManager::currentNM()->toExprManager()->getDatatypeForIndex(
+              n.getConst<DatatypeIndexConstant>().getIndex());
       if( dt.isTuple() ){
         out << '[';
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
@@ -347,14 +350,17 @@ void CvcPrinter::toStream(
 
     // DATATYPES
     case kind::PARAMETRIC_DATATYPE: {
-        const Datatype & dt = (NodeManager::currentNM()->getDatatypeForIndex( n[0].getConst< DatatypeIndexConstant >().getIndex() ));
-        out << dt.getName() << '[';
-        for(unsigned i = 1; i < n.getNumChildren(); ++i) {
-          if(i > 1) {
-            out << ',';
-          }
-          out << n[i];
+      const DType& dt = NodeManager::currentNM()->getDTypeForIndex(
+          n[0].getConst<DatatypeIndexConstant>().getIndex());
+      out << dt.getName() << '[';
+      for (unsigned i = 1; i < n.getNumChildren(); ++i)
+      {
+        if (i > 1)
+        {
+          out << ',';
         }
+        out << n[i];
+      }
         out << ']';
       }
       return;
@@ -373,8 +379,10 @@ void CvcPrinter::toStream(
           if( n.getNumChildren()==1 ){
             out << "TUPLE";
           }
-        }else if( t.isRecord() ){
-          const Record& rec = t.getRecord();
+        }
+        else if (t.toType().isRecord())
+        {
+          const Record& rec = static_cast<DatatypeType>(t.toType()).getRecord();
           out << "(# ";
           TNode::iterator i = n.begin();
           bool first = true;
@@ -389,7 +397,9 @@ void CvcPrinter::toStream(
           }
           out << " #)";
           return;
-        }else{
+        }
+        else
+        {
           toStream(op, n.getOperator(), depth, types, false);
           if (n.getNumChildren() == 0)
           {
@@ -404,7 +414,12 @@ void CvcPrinter::toStream(
     case kind::APPLY_SELECTOR_TOTAL: {
         TypeNode t = n[0].getType();
         Node opn = n.getOperator();
-        if (t.isTuple() || t.isRecord())
+        if (!t.isDatatype())
+        {
+          toStream(op, opn, depth, types, false);
+        }
+        else if (t.isTuple()
+                 || DatatypeType(t.toType()).isRecord())
         {
           toStream(out, n[0], depth, types, true);
           out << '.';
@@ -434,7 +449,7 @@ void CvcPrinter::toStream(
       }
       break;
     case kind::APPLY_TESTER: {
-      Assert(!n.getType().isTuple() && !n.getType().isRecord());
+      Assert(!n.getType().isTuple() && !n.getType().toType().isRecord());
       op << "is_";
       unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
       const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
