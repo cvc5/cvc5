@@ -212,7 +212,7 @@ EvalResult Evaluator::evalInternal(
         // Reconstruct the node with a combination of the children that
         // successfully evaluated, and the children that did not.
         Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
-        currNodeVal = reconstruct(currNode, results, evalAsNode);
+        currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
         if (currNodeVal.getNumChildren() > 0)
@@ -667,7 +667,7 @@ EvalResult Evaluator::evalInternal(
           else
           {
             results[currNode] = EvalResult();
-            evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
+            evalAsNode[currNode] = currNodeVal==currNode ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
           }
           break;
         }
@@ -684,7 +684,7 @@ EvalResult Evaluator::evalInternal(
           else
           {
             results[currNode] = EvalResult();
-            evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
+            evalAsNode[currNode] = currNodeVal==currNode ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
           }
           break;
         }
@@ -725,7 +725,7 @@ EvalResult Evaluator::evalInternal(
               Trace("evaluator") << "Theory " << Theory::theoryOf(currNode[0])
                                  << " not supported" << std::endl;
               results[currNode] = EvalResult();
-              evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
+              evalAsNode[currNode] = currNodeVal==currNode ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
               break;
             }
           }
@@ -751,7 +751,7 @@ EvalResult Evaluator::evalInternal(
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
                              << " not supported" << std::endl;
           results[currNode] = EvalResult();
-          evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
+          evalAsNode[currNode] = currNodeVal==currNode ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
         }
       }
     }
@@ -764,7 +764,11 @@ Node Evaluator::reconstruct(TNode n,
       std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
       std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode)
 {
-  Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
+  if (n.getNumChildren()==0)
+  {
+    return n;
+  }
+  Trace("evaluator") << "Evaluator: reconstruct " << n << std::endl;
   std::vector<Node> echildren;
   if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
@@ -776,11 +780,12 @@ Node Evaluator::reconstruct(TNode n,
   for (const auto& currNodeChild : n)
   {
     itr = eresults.find(currNodeChild);
+    AlwaysAssert (itr!=eresults.end());
     if (itr->second.d_tag == EvalResult::INVALID)
     {
       // could not evaluate this child, look in the node cache
       itn = evalAsNode.find(currNodeChild);
-      Assert(itn != evalAsNode.end());
+      AlwaysAssert(itn != evalAsNode.end());
       echildren.push_back(itn->second);
     }
     else
@@ -792,7 +797,7 @@ Node Evaluator::reconstruct(TNode n,
   // The value is the result of our (partially) successful evaluation
   // of the children.
   Node nn = nm->mkNode(n.getKind(), echildren);
-  Trace("evaluator") << "Evaluator: partially evaluated " << nn
+  Trace("evaluator") << "Evaluator: reconstructed " << nn
                       << std::endl;
   // Use rewriting. Notice we do not need to substitute here since
   // all substitutions should already have been applied recursively.
