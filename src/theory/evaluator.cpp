@@ -252,11 +252,12 @@ EvalResult Evaluator::evalInternal(
         Trace("evaluator") << "Evaluate " << currNode << std::endl;
         TNode op = currNode.getOperator();
         Assert(evalAsNode.find(op) != evalAsNode.end());
+        // no function can be a valid EvalResult
         op = evalAsNode[op];
         Trace("evaluator") << "Operator evaluated to " << op << std::endl;
         if (op.getKind() != kind::LAMBDA)
         {
-          // operator is not evaluatable, must add to evalAsNode
+          // this node is not evaluatable due to operator, must add to evalAsNode
           results[currNode] = EvalResult();
           evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
           continue;
