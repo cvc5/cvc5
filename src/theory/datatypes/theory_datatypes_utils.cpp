@@ -16,8 +16,10 @@
 
 #include "theory/datatypes/theory_datatypes_utils.h"
 
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
+#include "theory/evaluator.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -27,7 +29,7 @@ namespace theory {
 namespace datatypes {
 namespace utils {
 
-Node applySygusArgs(const Datatype& dt,
+Node applySygusArgs(const DType& dt,
                     Node op,
                     Node n,
                     const std::vector<Node>& args)
@@ -36,7 +38,7 @@ Node applySygusArgs(const Datatype& dt,
   {
     Assert(n.hasAttribute(SygusVarNumAttribute()));
     int vn = n.getAttribute(SygusVarNumAttribute());
-    Assert(Node::fromExpr(dt.getSygusVarList())[vn] == n);
+    Assert(dt.getSygusVarList()[vn] == n);
     return args[vn];
   }
   // n is an application of operator op.
@@ -80,7 +82,7 @@ Node applySygusArgs(const Datatype& dt,
   }
   // do the full substitution
   std::vector<Node> vars;
-  Node bvl = Node::fromExpr(dt.getSygusVarList());
+  Node bvl = dt.getSygusVarList();
   for (unsigned i = 0, nvars = bvl.getNumChildren(); i < nvars; i++)
   {
     vars.push_back(bvl[i]);
@@ -115,7 +117,7 @@ Kind getOperatorKindForSygusBuiltin(Node op)
   return UNDEFINED_KIND;
 }
 
-Node mkSygusTerm(const Datatype& dt,
+Node mkSygusTerm(const DType& dt,
                  unsigned i,
                  const std::vector<Node>& children,
                  bool doBetaReduction)
@@ -125,7 +127,7 @@ Node mkSygusTerm(const Datatype& dt,
   Assert(i < dt.getNumConstructors());
   Assert(dt.isSygus());
   Assert(!dt[i].getSygusOp().isNull());
-  Node op = Node::fromExpr(dt[i].getSygusOp());
+  Node op = dt[i].getSygusOp();
   return mkSygusTerm(op, children, doBetaReduction);
 }
 
@@ -202,24 +204,22 @@ Node mkSygusTerm(Node op,
 }
 
 /** get instantiate cons */
-Node getInstCons(Node n, const Datatype& dt, int index)
+Node getInstCons(Node n, const DType& dt, int index)
 {
   Assert(index >= 0 && index < (int)dt.getNumConstructors());
   std::vector<Node> children;
   NodeManager* nm = NodeManager::currentNM();
-  children.push_back(Node::fromExpr(dt[index].getConstructor()));
-  Type t = n.getType().toType();
+  children.push_back(dt[index].getConstructor());
+  TypeNode tn = n.getType();
   for (unsigned i = 0, nargs = dt[index].getNumArgs(); i < nargs; i++)
   {
-    Node nc = nm->mkNode(APPLY_SELECTOR_TOTAL,
-                         Node::fromExpr(dt[index].getSelectorInternal(t, i)),
-                         n);
+    Node nc = nm->mkNode(
+        APPLY_SELECTOR_TOTAL, dt[index].getSelectorInternal(tn, i), n);
     children.push_back(nc);
   }
   Node n_ic = nm->mkNode(APPLY_CONSTRUCTOR, children);
   if (dt.isParametric())
   {
-    TypeNode tn = TypeNode::fromType(t);
     // add type ascription for ambiguous constructor types
     if (!n_ic.getType().isComparableTo(tn))
     {
@@ -228,12 +228,11 @@ Node getInstCons(Node n, const Datatype& dt, int index)
           << n.getType() << std::endl;
       Debug("datatypes-parametric")
           << "Constructor is " << dt[index] << std::endl;
-      Type tspec =
-          dt[index].getSpecializedConstructorType(n.getType().toType());
+      TypeNode tspec = dt[index].getSpecializedConstructorType(n.getType());
       Debug("datatypes-parametric")
           << "Type specification is " << tspec << std::endl;
       children[0] = nm->mkNode(APPLY_TYPE_ASCRIPTION,
-                               nm->mkConst(AscriptionType(tspec)),
+                               nm->mkConst(AscriptionType(tspec.toType())),
                                children[0]);
       n_ic = nm->mkNode(APPLY_CONSTRUCTOR, children);
       Assert(n_ic.getType() == tn);
@@ -244,18 +243,17 @@ Node getInstCons(Node n, const Datatype& dt, int index)
   return n_ic;
 }
 
-int isInstCons(Node t, Node n, const Datatype& dt)
+int isInstCons(Node t, Node n, const DType& dt)
 {
   if (n.getKind() == APPLY_CONSTRUCTOR)
   {
     int index = indexOf(n.getOperator());
-    const DatatypeConstructor& c = dt[index];
-    Type nt = n.getType().toType();
+    const DTypeConstructor& c = dt[index];
+    TypeNode tn = n.getType();
     for (unsigned i = 0, size = n.getNumChildren(); i < size; i++)
     {
       if (n[i].getKind() != APPLY_SELECTOR_TOTAL
-          || n[i].getOperator() != Node::fromExpr(c.getSelectorInternal(nt, i))
-          || n[i][0] != t)
+          || n[i].getOperator() != c.getSelectorInternal(tn, i) || n[i][0] != t)
       {
         return -1;
       }
@@ -284,31 +282,29 @@ int isTester(Node n)
   return -1;
 }
 
-struct DtIndexAttributeId
-{
-};
-typedef expr::Attribute<DtIndexAttributeId, uint64_t> DtIndexAttribute;
+size_t indexOf(Node n) { return DType::indexOf(n); }
 
-unsigned indexOf(Node n)
+size_t cindexOf(Node n) { return DType::cindexOf(n); }
+
+const DType& datatypeOf(Node n)
 {
-  if (!n.hasAttribute(DtIndexAttribute()))
+  TypeNode t = n.getType();
+  switch (t.getKind())
   {
-    Assert(n.getType().isConstructor() || n.getType().isTester()
-           || n.getType().isSelector());
-    unsigned index = Datatype::indexOfInternal(n.toExpr());
-    n.setAttribute(DtIndexAttribute(), index);
-    return index;
+    case CONSTRUCTOR_TYPE: return t[t.getNumChildren() - 1].getDType();
+    case SELECTOR_TYPE:
+    case TESTER_TYPE: return t[0].getDType();
+    default:
+      Unhandled() << "arg must be a datatype constructor, selector, or tester";
   }
-  return n.getAttribute(DtIndexAttribute());
 }
 
-Node mkTester(Node n, int i, const Datatype& dt)
+Node mkTester(Node n, int i, const DType& dt)
 {
-  return NodeManager::currentNM()->mkNode(
-      APPLY_TESTER, Node::fromExpr(dt[i].getTester()), n);
+  return NodeManager::currentNM()->mkNode(APPLY_TESTER, dt[i].getTester(), n);
 }
 
-Node mkSplit(Node n, const Datatype& dt)
+Node mkSplit(Node n, const DType& dt)
 {
   std::vector<Node> splits;
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
@@ -333,7 +329,7 @@ bool isNullaryApplyConstructor(Node n)
   return true;
 }
 
-bool isNullaryConstructor(const DatatypeConstructor& c)
+bool isNullaryConstructor(const DTypeConstructor& c)
 {
   for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
   {
@@ -382,6 +378,200 @@ bool checkClash(Node n1, Node n2, std::vector<Node>& rew)
     }
   }
   return false;
+}
+
+struct SygusToBuiltinTermAttributeId
+{
+};
+typedef expr::Attribute<SygusToBuiltinTermAttributeId, Node>
+    SygusToBuiltinTermAttribute;
+
+Node sygusToBuiltin(Node n)
+{
+  Assert(n.isConst());
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  unsigned index;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      if (cur.getKind() == APPLY_CONSTRUCTOR)
+      {
+        if (cur.hasAttribute(SygusToBuiltinTermAttribute()))
+        {
+          visited[cur] = cur.getAttribute(SygusToBuiltinTermAttribute());
+        }
+        else
+        {
+          visited[cur] = Node::null();
+          visit.push_back(cur);
+          for (const Node& cn : cur)
+          {
+            visit.push_back(cn);
+          }
+        }
+      }
+      else
+      {
+        // non-datatypes are themselves
+        visited[cur] = cur;
+      }
+    }
+    else if (it->second.isNull())
+    {
+      Node ret = cur;
+      Assert(cur.getKind() == APPLY_CONSTRUCTOR);
+      const DType& dt = cur.getType().getDType();
+      // Non sygus-datatype terms are also themselves. Notice we treat the
+      // case of non-sygus datatypes this way since it avoids computing
+      // the type / datatype of the node in the pre-traversal above. The
+      // case of non-sygus datatypes is very rare, so the extra addition to
+      // visited is justified performance-wise.
+      if (dt.isSygus())
+      {
+        std::vector<Node> children;
+        for (const Node& cn : cur)
+        {
+          it = visited.find(cn);
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
+          children.push_back(it->second);
+        }
+        index = indexOf(cur.getOperator());
+        ret = mkSygusTerm(dt, index, children);
+      }
+      visited[cur] = ret;
+      // cache
+      SygusToBuiltinTermAttribute stbt;
+      cur.setAttribute(stbt, ret);
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
+}
+
+Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Evaluator eval;
+  // constant arguments?
+  bool constArgs = true;
+  for (const Node& a : args)
+  {
+    if (!a.isConst())
+    {
+      constArgs = false;
+      break;
+    }
+  }
+  std::vector<Node> eargs;
+  bool svarsInit = false;
+  std::vector<Node> svars;
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  unsigned index;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      TypeNode tn = cur.getType();
+      if (!tn.isDatatype() || !tn.getDType().isSygus())
+      {
+        visited[cur] = cur;
+      }
+      else if (cur.isConst())
+      {
+        // convert to builtin term
+        Node bt = sygusToBuiltin(cur);
+        // run the evaluator if possible
+        if (!svarsInit)
+        {
+          svarsInit = true;
+          TypeNode tn = cur.getType();
+          Node varList = tn.getDType().getSygusVarList();
+          for (const Node& v : varList)
+          {
+            svars.push_back(v);
+          }
+        }
+        Assert(args.size() == svars.size());
+        // try evaluation if we have constant arguments
+        Node ret = constArgs ? eval.eval(bt, svars, args) : Node::null();
+        if (ret.isNull())
+        {
+          // if evaluation was not available, use a substitution
+          ret = bt.substitute(
+              svars.begin(), svars.end(), args.begin(), args.end());
+        }
+        visited[cur] = ret;
+      }
+      else
+      {
+        if (cur.getKind() == APPLY_CONSTRUCTOR)
+        {
+          visited[cur] = Node::null();
+          visit.push_back(cur);
+          for (const Node& cn : cur)
+          {
+            visit.push_back(cn);
+          }
+        }
+        else
+        {
+          // it is the evaluation of this term on the arguments
+          if (eargs.empty())
+          {
+            eargs.push_back(cur);
+            eargs.insert(eargs.end(), args.begin(), args.end());
+          }
+          else
+          {
+            eargs[0] = cur;
+          }
+          visited[cur] = nm->mkNode(DT_SYGUS_EVAL, eargs);
+        }
+      }
+    }
+    else if (it->second.isNull())
+    {
+      Node ret = cur;
+      Assert(cur.getKind() == APPLY_CONSTRUCTOR);
+      const DType& dt = cur.getType().getDType();
+      // non sygus-datatype terms are also themselves
+      if (dt.isSygus())
+      {
+        std::vector<Node> children;
+        for (const Node& cn : cur)
+        {
+          it = visited.find(cn);
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
+          children.push_back(it->second);
+        }
+        index = indexOf(cur.getOperator());
+        // apply to arguments
+        ret = mkSygusTerm(dt, index, children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 }  // namespace utils

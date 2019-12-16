@@ -20,7 +20,7 @@
 #ifndef CVC4__THEORY__BV__THEORY_BV_REWRITER_H
 #define CVC4__THEORY__BV__THEORY_BV_REWRITER_H
 
-#include "theory/rewriter.h"
+#include "theory/theory_rewriter.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -30,14 +30,27 @@ namespace bv {
 struct AllRewriteRules;
 typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 
-class TheoryBVRewriter {
+class TheoryBVRewriter : public TheoryRewriter
+{
+ public:
+  /**
+   * Temporary hack for devision-by-zero until we refactor theory code from
+   * smt engine.
+   *
+   * @param node
+   *
+   * @return
+   */
+  static Node eliminateBVSDiv(TNode node);
 
-  static RewriteFunction d_rewriteTable[kind::LAST_KIND];
+  TheoryBVRewriter();
 
+  RewriteResponse postRewrite(TNode node) override;
+  RewriteResponse preRewrite(TNode node) override;
+
+ private:
   static RewriteResponse IdentityRewrite(TNode node, bool prerewrite = false);
   static RewriteResponse UndefinedRewrite(TNode node, bool prerewrite = false); 
-
-  static void initializeRewrites();
   
   static RewriteResponse RewriteEqual(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteUlt(TNode node, bool prerewrite = false);
@@ -86,24 +99,10 @@ class TheoryBVRewriter {
   static RewriteResponse RewriteBVToNat(TNode node, bool prerewrite = false);
   static RewriteResponse RewriteIntToBV(TNode node, bool prerewrite = false);
 
-public:
+  void initializeRewrites();
 
-  static RewriteResponse postRewrite(TNode node);
-
-  static RewriteResponse preRewrite(TNode node);
-  
-  static void init();
-  static void shutdown();
-  /** 
-   * Temporary hack for devision-by-zero until we refactor theory code from
-   * smt engine. 
-   * 
-   * @param node 
-   * 
-   * @return 
-   */
-  static Node eliminateBVSDiv(TNode node); 
-};/* class TheoryBVRewriter */
+  RewriteFunction d_rewriteTable[kind::LAST_KIND];
+}; /* class TheoryBVRewriter */
 
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */

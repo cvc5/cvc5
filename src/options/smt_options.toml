@@ -192,7 +192,6 @@ header = "options/smt_options.h"
   type       = "bool"
   predicates = ["proofEnabledBuild"]
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "turn on unsat core generation"
 
 [[option]]

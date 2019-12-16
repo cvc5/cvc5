@@ -383,22 +383,25 @@ class Smt2 : public Parser
       CVC4::Type& ret,
       bool isNested = false);
 
-  static bool pushSygusDatatypeDef( Type t, std::string& dname,
-                                    std::vector< CVC4::Datatype >& datatypes,
-                                    std::vector< CVC4::Type>& sorts,
-                                    std::vector< std::vector<CVC4::Expr> >& ops,
-                                    std::vector< std::vector<std::string> >& cnames,
-                                    std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
-                                    std::vector< bool >& allow_const,
-                                    std::vector< std::vector< std::string > >& unresolved_gterm_sym );
+  bool pushSygusDatatypeDef(
+      Type t,
+      std::string& dname,
+      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<CVC4::Type>& sorts,
+      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<std::vector<std::string>>& cnames,
+      std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
+      std::vector<bool>& allow_const,
+      std::vector<std::vector<std::string>>& unresolved_gterm_sym);
 
-  static bool popSygusDatatypeDef( std::vector< CVC4::Datatype >& datatypes,
-                                   std::vector< CVC4::Type>& sorts,
-                                   std::vector< std::vector<CVC4::Expr> >& ops,
-                                   std::vector< std::vector<std::string> >& cnames,
-                                   std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
-                                   std::vector< bool >& allow_const,
-                                   std::vector< std::vector< std::string > >& unresolved_gterm_sym );
+  bool popSygusDatatypeDef(
+      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<CVC4::Type>& sorts,
+      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<std::vector<std::string>>& cnames,
+      std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
+      std::vector<bool>& allow_const,
+      std::vector<std::vector<std::string>>& unresolved_gterm_sym);
 
   void setSygusStartIndex(const std::string& fun,
                           int startIndex,

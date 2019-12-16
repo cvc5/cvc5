@@ -25,9 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-class TheorySetsRewriter {
-public:
-
+class TheorySetsRewriter : public TheoryRewriter
+{
+ public:
   /**
    * Rewrite a node into the normal form for the theory of sets.
    * Called in post-order (really reverse-topological order) when
@@ -49,7 +49,7 @@ public:
    * expression belongs to a different theory, it will be fully
    * rewritten by that theory's rewriter.
    */
-  static RewriteResponse postRewrite(TNode node);
+  RewriteResponse postRewrite(TNode node) override;
 
   /**
    * Rewrite a node into the normal form for the theory of sets
@@ -60,30 +60,18 @@ public:
    * nasty expression).  Since it's only an optimization, the
    * implementation here can do nothing.
    */
-  static RewriteResponse preRewrite(TNode node);
+  RewriteResponse preRewrite(TNode node) override;
 
   /**
    * Rewrite an equality, in case special handling is required.
    */
-  static Node rewriteEquality(TNode equality) {
+  Node rewriteEquality(TNode equality)
+  {
     // often this will suffice
     return postRewrite(equality).node;
   }
 
-  /**
-   * Initialize the rewriter.
-   */
-  static inline void init() {
-    // nothing to do
-  }
-
-  /**
-   * Shut down the rewriter.
-   */
-  static inline void shutdown() {
-    // nothing to do
-  }
-};/* class TheorySetsRewriter */
+}; /* class TheorySetsRewriter */
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */

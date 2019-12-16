@@ -259,6 +259,7 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
   Trace("theory::conflict")
       << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
       << ")" << std::endl;
+  Trace("dtview::conflict") << ":CONFLICT: " << conflictNode << std::endl;
   Assert(!proof);  // Theory shouldn't be producing proofs yet
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
@@ -1398,6 +1399,9 @@ void TheoryEngine::assertFact(TNode literal)
   if (d_inConflict) {
     return;
   }
+
+  Trace("dtview::prop") << std::string(d_context->getLevel(), ' ') << literal
+                        << endl;
 
   // Get the atom
   bool polarity = literal.getKind() != kind::NOT;

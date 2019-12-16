@@ -24,6 +24,7 @@
 #include "base/check.h"
 #include "base/listener.h"
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
 #include "expr/type_checker.h"
@@ -186,14 +187,7 @@ NodeManager::~NodeManager() {
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
-  for (std::vector<Datatype*>::iterator
-           datatype_iter = d_ownedDatatypes.begin(),
-           datatype_end = d_ownedDatatypes.end();
-       datatype_iter != datatype_end; ++datatype_iter) {
-    Datatype* datatype = *datatype_iter;
-    delete datatype;
-  }
-  d_ownedDatatypes.clear();
+  d_ownedDTypes.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -246,15 +240,17 @@ NodeManager::~NodeManager() {
   d_options = NULL;
 }
 
-unsigned NodeManager::registerDatatype(Datatype* dt) {
-  unsigned sz = d_ownedDatatypes.size();
-  d_ownedDatatypes.push_back( dt );
+size_t NodeManager::registerDatatype(std::shared_ptr<DType> dt)
+{
+  size_t sz = d_ownedDTypes.size();
+  d_ownedDTypes.push_back(dt);
   return sz;
 }
 
-const Datatype & NodeManager::getDatatypeForIndex( unsigned index ) const{
-  Assert(index < d_ownedDatatypes.size());
-  return *d_ownedDatatypes[index];
+const DType& NodeManager::getDTypeForIndex(unsigned index) const
+{
+  Assert(index < d_ownedDTypes.size());
+  return *d_ownedDTypes[index];
 }
 
 void NodeManager::reclaimZombies() {
@@ -531,7 +527,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
       for (unsigned i = 0; i < types.size(); ++ i) {
         sst << "_" << types[i];
       }
-      Datatype dt(sst.str());
+      Datatype dt(nm->toExprManager(), sst.str());
       dt.setTuple();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
@@ -560,7 +556,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         sst << "_" << (*i).first << "_" << (*i).second;
       }
-      Datatype dt(sst.str());
+      Datatype dt(nm->toExprManager(), sst.str());
       dt.setRecord();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";

@@ -33,6 +33,51 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #-----------------------------------------------------------------------------#
+# Policies
+
+# Required for FindGLPK since it sets CMAKE_REQUIRED_LIBRARIES
+if(POLICY CMP0075)
+  cmake_policy(SET CMP0075 NEW)
+endif()
+
+#-----------------------------------------------------------------------------#
+# Tell CMake where to find our dependencies
+
+if(ABC_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${ABC_DIR}")
+endif()
+if(ANTLR_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${ANTLR_DIR}")
+endif()
+if(CADICAL_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${CADICAL_DIR}")
+endif()
+if(CRYPTOMINISAT_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${CRYPTOMINISAT_DIR}")
+endif()
+if(CXXTEST_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${CXXTEST_DIR}")
+endif()
+if(DRAT2ER_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${DRAT2ER_DIR}")
+endif()
+if(GLPK_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${GLPK_DIR}")
+endif()
+if(GMP_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${GMP_DIR}")
+endif()
+if(LFSC_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${LFSC_DIR}")
+endif()
+if(SYMFPU_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${SYMFPU_DIR}")
+endif()
+
+# By default the contrib/get-* scripts install dependencies to deps/install.
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
+
+#-----------------------------------------------------------------------------#
 
 set(INCLUDE_INSTALL_DIR include)
 set(LIBRARY_INSTALL_DIR lib)
@@ -286,7 +331,6 @@ else()
   find_package(PythonInterp REQUIRED)
 endif()
 
-set(GMP_HOME ${GMP_DIR})
 find_package(GMP REQUIRED)
 
 if(ENABLE_ASAN)
@@ -383,13 +427,11 @@ if(ENABLE_VALGRIND)
 endif()
 
 if(USE_ABC)
-  set(ABC_HOME "${ABC_DIR}")
   find_package(ABC REQUIRED)
   add_definitions(-DCVC4_USE_ABC ${ABC_ARCH_FLAGS})
 endif()
 
 if(USE_CADICAL)
-  set(CaDiCaL_HOME ${CADICAL_DIR})
   find_package(CaDiCaL REQUIRED)
   add_definitions(-DCVC4_USE_CADICAL)
 endif()
@@ -411,27 +453,23 @@ if(USE_CRYPTOMINISAT)
   if(THREADS_HAVE_PTHREAD_ARG)
     add_c_cxx_flag(-pthread)
   endif()
-  set(CryptoMiniSat_HOME ${CRYPTOMINISAT_DIR})
   find_package(CryptoMiniSat REQUIRED)
   add_definitions(-DCVC4_USE_CRYPTOMINISAT)
 endif()
 
 if(USE_DRAT2ER)
-  set(Drat2Er_HOME ${DRAT2ER_DIR})
   find_package(Drat2Er REQUIRED)
   add_definitions(-DCVC4_USE_DRAT2ER)
 endif()
 
 if(USE_GLPK)
   set(GPL_LIBS "${GPL_LIBS} glpk")
-  set(GLPK_HOME ${GLPK_DIR})
   find_package(GLPK REQUIRED)
   add_definitions(-DCVC4_USE_GLPK)
 endif()
 
 if(USE_LFSC)
   set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --with-lfsc)
-  set(LFSC_HOME ${LFSC_DIR})
   find_package(LFSC REQUIRED)
   add_definitions(-DCVC4_USE_LFSC)
 endif()
@@ -446,7 +484,6 @@ if(USE_READLINE)
 endif()
 
 if(USE_SYMFPU)
-  set(SymFPU_HOME ${SYMFPU_DIR})
   find_package(SymFPU REQUIRED)
   add_definitions(-DCVC4_USE_SYMFPU)
   set(CVC4_USE_SYMFPU 1)

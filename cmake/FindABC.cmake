@@ -4,26 +4,12 @@
 # ABC_LIBRARIES - Libraries needed to use ABC
 # ABC_ARCH_FLAGS - Platform specific compile flags
 
-
-# Check default location of ABC built with contrib/get-abc.
-if(NOT ABC_HOME)
-  set(ABC_HOME ${PROJECT_SOURCE_DIR}/abc/alanmi-abc-53f39c11b58d)
-endif()
-
-# Note: We don't check the system version since ABC does not provide a default
-# install rule.
-find_path(ABC_INCLUDE_DIR
-          NAMES base/abc/abc.h
-          PATHS ${ABC_HOME}/src
-          NO_DEFAULT_PATH)
-find_library(ABC_LIBRARIES
-             NAMES abc
-             PATHS ${ABC_HOME}
-             NO_DEFAULT_PATH)
-find_program(ABC_ARCH_FLAGS_PROG
-             NAMES arch_flags
-             PATHS ${ABC_HOME}
-             NO_DEFAULT_PATH)
+# Note: contrib/get-abc copies header files to deps/install/include/abc.
+# However, includes in ABC headers are not prefixed with "abc/" and therefore
+# we have to look for headers in include/abc instead of include/.
+find_path(ABC_INCLUDE_DIR NAMES base/abc/abc.h PATH_SUFFIXES abc)
+find_library(ABC_LIBRARIES NAMES abc)
+find_program(ABC_ARCH_FLAGS_PROG NAMES arch_flags)
 
 if(ABC_ARCH_FLAGS_PROG)
   execute_process(COMMAND ${ABC_ARCH_FLAGS_PROG}

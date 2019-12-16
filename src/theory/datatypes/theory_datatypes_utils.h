@@ -21,6 +21,7 @@
 
 #include <vector>
 
+#include "expr/dtype.h"
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
 
@@ -77,14 +78,14 @@ namespace utils {
  * This returns the term C( sel^{C,1}( n ), ..., sel^{C,m}( n ) ),
  * where C is the index^{th} constructor of datatype dt.
  */
-Node getInstCons(Node n, const Datatype& dt, int index);
+Node getInstCons(Node n, const DType& dt, int index);
 /** is instantiation cons
  *
  * If this method returns a value >=0, then that value, call it index,
  * is such that n = C( sel^{C,1}( t ), ..., sel^{C,m}( t ) ),
  * where C is the index^{th} constructor of dt.
  */
-int isInstCons(Node t, Node n, const Datatype& dt);
+int isInstCons(Node t, Node n, const DType& dt);
 /** is tester
  *
  * This method returns a value >=0 if n is a tester predicate. The return
@@ -100,19 +101,28 @@ int isTester(Node n);
  * index of a selector in its constructor.  (Zero is always the
  * first index.)
  */
-unsigned indexOf(Node n);
+size_t indexOf(Node n);
+/**
+ * Get the index of constructor corresponding to selector.
+ * (Zero is always the first index.)
+ */
+size_t cindexOf(Node n);
+/**
+ * Get the datatype of n.
+ */
+const DType& datatypeOf(Node n);
 /** make tester is-C( n ), where C is the i^{th} constructor of dt */
-Node mkTester(Node n, int i, const Datatype& dt);
+Node mkTester(Node n, int i, const DType& dt);
 /** make tester split
  *
  * Returns the formula (OR is-C1( n ) ... is-Ck( n ) ), where C1...Ck
  * are the constructors of n's type (dt).
  */
-Node mkSplit(Node n, const Datatype& dt);
+Node mkSplit(Node n, const DType& dt);
 /** returns true iff n is a constructor term with no datatype children */
 bool isNullaryApplyConstructor(Node n);
 /** returns true iff c is a constructor with no datatype children */
-bool isNullaryConstructor(const DatatypeConstructor& c);
+bool isNullaryConstructor(const DTypeConstructor& c);
 /** check clash
  *
  * This method returns true if and only if n1 and n2 have a skeleton that has
@@ -143,7 +153,7 @@ Kind getOperatorKindForSygusBuiltin(Node op);
  * encodes. If doBetaReduction is true, then lambdas are eagerly eliminated
  * via beta reduction.
  */
-Node mkSygusTerm(const Datatype& dt,
+Node mkSygusTerm(const DType& dt,
                  unsigned i,
                  const std::vector<Node>& children,
                  bool doBetaReduction = true);
@@ -181,16 +191,40 @@ Node mkSygusTerm(Node op,
  * to cache the results of whether the evaluation of this constructor needs
  * a substitution over the formal argument list of the function-to-synthesize.
  */
-Node applySygusArgs(const Datatype& dt,
+Node applySygusArgs(const DType& dt,
                     Node op,
                     Node n,
                     const std::vector<Node>& args);
-/**
- * Get the builtin sygus operator for constructor term n of sygus datatype
- * type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
- * constructor whose sygus op is the builtin operator +, this method returns +.
+/** Sygus to builtin
+ *
+ * This method converts a constant term of SyGuS datatype type to its builtin
+ * equivalent. For example, given input C_*( C_x(), C_y() ), this method returns
+ * x*y, assuming C_+, C_x, and C_y have sygus operators *, x, and y
+ * respectively.
  */
-Node getSygusOpForCTerm(Node n);
+Node sygusToBuiltin(Node c);
+/** Sygus to builtin eval
+ *
+ * This method returns the rewritten form of (DT_SYGUS_EVAL n args). Notice that
+ * n does not necessarily need to be a constant.
+ *
+ * It does so by (1) converting constant subterms of n to builtin terms and
+ * evaluating them on the arguments args, (2) unfolding non-constant
+ * applications of sygus constructors in n with respect to args and (3)
+ * converting all other non-constant subterms of n to applications of
+ * DT_SYGUS_EVAL.
+ *
+ * For example, if
+ *   n = C_+( C_*( C_x(), C_y() ), n' ), and args = { 3, 4 }
+ * where n' is a variable, then this method returns:
+ *   12 + (DT_SYGUS_EVAL n' 3 4)
+ * Notice that the subterm C_*( C_x(), C_y() ) is converted to its builtin
+ * equivalent x*y and evaluated under the substition { x -> 3, x -> 4 } giving
+ * 12. The subterm n' is non-constant and thus we return its evaluation under
+ * 3,4, giving the term (DT_SYGUS_EVAL n' 3 4). Since the top-level constructor
+ * is C_+, these terms are added together to give the result.
+ */
+Node sygusToBuiltinEval(Node n, const std::vector<Node>& args);
 
 // ------------------------ end sygus utils
 
