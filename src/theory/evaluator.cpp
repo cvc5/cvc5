@@ -125,11 +125,28 @@ Node Evaluator::eval(TNode n,
   // if we failed to evaluate
   if (ret.isNull())
   {
+    Trace("ajr-temp") << "Could not evaluate " << n << std::endl;
     // maybe it was stored in the evaluation-as-node map
     std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn =
         evalAsNode.find(n);
     if (itn != evalAsNode.end())
     {
+      Node sn = n.substitute(args.begin(),args.end(),vals.begin(),vals.end());
+      sn = Rewriter::rewrite(sn);
+      if (sn!=itn->second)
+      {
+        Trace("ajr-temp") << "From : " << n << std::endl;
+        for (unsigned i=0, nargs=args.size(); i<nargs; i++)
+        {
+          Trace("ajr-temp") << "  " << args[i] << " -> " << vals[i] << std::endl;
+        }
+        Trace("ajr-temp") << "Not equal : " << sn << " " << itn->second << std::endl;
+      }
+      AlwaysAssert(sn==itn->second);
+      // should be the same as substitution + rewriting
+      Assert(itn->second
+            == Rewriter::rewrite(n.substitute(
+                args.begin(), args.end(), vals.begin(), vals.end())));
       return itn->second;
     }
   }
@@ -145,9 +162,7 @@ EvalResult Evaluator::evalInternal(
   std::unordered_map<TNode, EvalResult, TNodeHashFunction> results;
   std::vector<TNode> queue;
   queue.emplace_back(n);
-  std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn;
   std::unordered_map<TNode, EvalResult, TNodeHashFunction>::iterator itr;
-  NodeManager* nm = NodeManager::currentNM();
 
   while (queue.size() != 0)
   {
@@ -197,35 +212,7 @@ EvalResult Evaluator::evalInternal(
         // Reconstruct the node with a combination of the children that
         // successfully evaluated, and the children that did not.
         Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
-        std::vector<Node> echildren;
-        if (currNode.getMetaKind() == kind::metakind::PARAMETERIZED)
-        {
-          echildren.push_back(currNode.getOperator());
-        }
-        for (const auto& currNodeChild : currNode)
-        {
-          itr = results.find(currNodeChild);
-          if (itr->second.d_tag == EvalResult::INVALID)
-          {
-            // could not evaluate this child, look in the node cache
-            itn = evalAsNode.find(currNodeChild);
-            Assert(itn != evalAsNode.end());
-            echildren.push_back(itn->second);
-          }
-          else
-          {
-            // otherwise, use the evaluation
-            echildren.push_back(itr->second.toNode());
-          }
-        }
-        // The value is the result of our (partially) successful evaluation
-        // of the children.
-        currNodeVal = nm->mkNode(currNode.getKind(), echildren);
-        Trace("evaluator") << "Evaluator: partially evaluated " << currNodeVal
-                           << std::endl;
-        // Use rewriting. Notice we do not need to substitute here since
-        // all substitutions should already have been applied recursively.
-        currNodeVal = Rewriter::rewrite(currNodeVal);
+        currNodeVal = reconstruct(currNode, results, evalAsNode);
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
         if (currNodeVal.getNumChildren() > 0)
@@ -247,6 +234,7 @@ EvalResult Evaluator::evalInternal(
         const auto& it = std::find(args.begin(), args.end(), currNode);
         if (it == args.end())
         {
+          // variable with no substitution is itself
           evalAsNode[currNode] = currNode;
           results[currNode] = EvalResult();
           continue;
@@ -679,7 +667,7 @@ EvalResult Evaluator::evalInternal(
           else
           {
             results[currNode] = EvalResult();
-            evalAsNode[currNode] = currNodeVal;
+            evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
           }
           break;
         }
@@ -696,7 +684,7 @@ EvalResult Evaluator::evalInternal(
           else
           {
             results[currNode] = EvalResult();
-            evalAsNode[currNode] = currNodeVal;
+            evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
           }
           break;
         }
@@ -737,7 +725,7 @@ EvalResult Evaluator::evalInternal(
               Trace("evaluator") << "Theory " << Theory::theoryOf(currNode[0])
                                  << " not supported" << std::endl;
               results[currNode] = EvalResult();
-              evalAsNode[currNode] = currNodeVal;
+              evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
               break;
             }
           }
@@ -763,13 +751,52 @@ EvalResult Evaluator::evalInternal(
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
                              << " not supported" << std::endl;
           results[currNode] = EvalResult();
-          evalAsNode[currNode] = currNodeVal;
+          evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
         }
       }
     }
   }
 
   return results[n];
+}
+
+Node Evaluator::reconstruct(TNode n,
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode)
+{
+  Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
+  std::vector<Node> echildren;
+  if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    echildren.push_back(n.getOperator());
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<TNode, EvalResult, TNodeHashFunction>::iterator itr;
+  std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn;
+  for (const auto& currNodeChild : n)
+  {
+    itr = eresults.find(currNodeChild);
+    if (itr->second.d_tag == EvalResult::INVALID)
+    {
+      // could not evaluate this child, look in the node cache
+      itn = evalAsNode.find(currNodeChild);
+      Assert(itn != evalAsNode.end());
+      echildren.push_back(itn->second);
+    }
+    else
+    {
+      // otherwise, use the evaluation
+      echildren.push_back(itr->second.toNode());
+    }
+  }
+  // The value is the result of our (partially) successful evaluation
+  // of the children.
+  Node nn = nm->mkNode(n.getKind(), echildren);
+  Trace("evaluator") << "Evaluator: partially evaluated " << nn
+                      << std::endl;
+  // Use rewriting. Notice we do not need to substitute here since
+  // all substitutions should already have been applied recursively.
+  return Rewriter::rewrite(nn);
 }
 
 }  // namespace theory
