@@ -131,8 +131,8 @@ Node Evaluator::eval(TNode n,
     Assert(itn != evalAsNode.end());
     // should be the same as substitution + rewriting
     Assert(itn->second
-          == Rewriter::rewrite(n.substitute(
-              args.begin(), args.end(), vals.begin(), vals.end())));
+           == Rewriter::rewrite(n.substitute(
+               args.begin(), args.end(), vals.begin(), vals.end())));
     return itn->second;
   }
   return ret;
@@ -251,10 +251,10 @@ EvalResult Evaluator::evalInternal(
       {
         Trace("evaluator") << "Evaluate " << currNode << std::endl;
         TNode op = currNode.getOperator();
-        Assert (evalAsNode.find(op)!=evalAsNode.end());
+        Assert(evalAsNode.find(op) != evalAsNode.end());
         op = evalAsNode[op];
         Trace("evaluator") << "Operator evaluated to " << op << std::endl;
-        if (op.getKind()!=kind::LAMBDA)
+        if (op.getKind() != kind::LAMBDA)
         {
           // operator is not evaluatable
           results[currNode] = EvalResult();
@@ -286,12 +286,14 @@ EvalResult Evaluator::evalInternal(
         std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
         results[currNode] =
             evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC);
-        Trace("evaluator") << "Evaluated via arguments to " << results[currNode].d_tag << std::endl;
+        Trace("evaluator") << "Evaluated via arguments to "
+                           << results[currNode].d_tag << std::endl;
         if (results[currNode].d_tag == EvalResult::INVALID)
         {
           // evaluation was invalid, we take the node of op[1] as the result
           evalAsNode[currNode] = evalAsNodeC[op[1]];
-        Trace("evaluator") << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
+          Trace("evaluator")
+              << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
         }
         continue;
       }
@@ -684,7 +686,9 @@ EvalResult Evaluator::evalInternal(
           else
           {
             results[currNode] = EvalResult();
-            evalAsNode[currNode] = needsReconstruct ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
+            evalAsNode[currNode] =
+                needsReconstruct ? reconstruct(currNode, results, evalAsNode)
+                                 : currNodeVal;
           }
           break;
         }
@@ -701,7 +705,9 @@ EvalResult Evaluator::evalInternal(
           else
           {
             results[currNode] = EvalResult();
-            evalAsNode[currNode] = needsReconstruct ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
+            evalAsNode[currNode] =
+                needsReconstruct ? reconstruct(currNode, results, evalAsNode)
+                                 : currNodeVal;
           }
           break;
         }
@@ -742,7 +748,9 @@ EvalResult Evaluator::evalInternal(
               Trace("evaluator") << "Theory " << Theory::theoryOf(currNode[0])
                                  << " not supported" << std::endl;
               results[currNode] = EvalResult();
-              evalAsNode[currNode] = needsReconstruct ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
+              evalAsNode[currNode] =
+                  needsReconstruct ? reconstruct(currNode, results, evalAsNode)
+                                   : currNodeVal;
               break;
             }
           }
@@ -768,7 +776,9 @@ EvalResult Evaluator::evalInternal(
           Trace("evaluator") << "Kind " << currNodeVal.getKind()
                              << " not supported" << std::endl;
           results[currNode] = EvalResult();
-          evalAsNode[currNode] = needsReconstruct ? reconstruct(currNode, results, evalAsNode) : currNodeVal;
+          evalAsNode[currNode] =
+              needsReconstruct ? reconstruct(currNode, results, evalAsNode)
+                               : currNodeVal;
         }
       }
     }
@@ -777,11 +787,12 @@ EvalResult Evaluator::evalInternal(
   return results[n];
 }
 
-Node Evaluator::reconstruct(TNode n,
-      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
-      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode)
+Node Evaluator::reconstruct(
+    TNode n,
+    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
+    std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode)
 {
-  if (n.getNumChildren()==0)
+  if (n.getNumChildren() == 0)
   {
     return n;
   }
@@ -794,7 +805,7 @@ Node Evaluator::reconstruct(TNode n,
   {
     TNode op = n.getOperator();
     itr = eresults.find(op);
-    Assert (itr!=eresults.end());
+    Assert(itr != eresults.end());
     if (itr->second.d_tag == EvalResult::INVALID)
     {
       // could not evaluate this child, look in the node cache
@@ -811,7 +822,7 @@ Node Evaluator::reconstruct(TNode n,
   for (const auto& currNodeChild : n)
   {
     itr = eresults.find(currNodeChild);
-    Assert (itr!=eresults.end());
+    Assert(itr != eresults.end());
     if (itr->second.d_tag == EvalResult::INVALID)
     {
       // could not evaluate this child, look in the node cache
@@ -828,8 +839,7 @@ Node Evaluator::reconstruct(TNode n,
   // The value is the result of our (partially) successful evaluation
   // of the children.
   Node nn = nm->mkNode(n.getKind(), echildren);
-  Trace("evaluator") << "Evaluator: reconstructed " << nn
-                      << std::endl;
+  Trace("evaluator") << "Evaluator: reconstructed " << nn << std::endl;
   // Use rewriting. Notice we do not need to substitute here since
   // all substitutions should already have been applied recursively.
   return Rewriter::rewrite(nn);

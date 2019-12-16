@@ -984,7 +984,8 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   if (res.isNull())
   {
     // must do substitution
-    res = bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());
+    res =
+        bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());
   }
   // Call the rewrite node function, which may involve recursive function
   // evaluation.
