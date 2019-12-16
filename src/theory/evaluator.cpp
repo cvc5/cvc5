@@ -176,6 +176,20 @@ EvalResult Evaluator::evalInternal(
 
     bool doProcess = true;
     bool doEval = true;
+    if (currNode.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      TNode op = currNode.getOperator();
+      itr = results.find(op);
+      if (itr == results.end())
+      {
+        queue.emplace_back(op);
+        doProcess = false;
+      }
+      else if (itr->second.d_tag == EvalResult::INVALID)
+      {
+        doEval = false;
+      }
+    }
     for (const auto& currNodeChild : currNode)
     {
       itr = results.find(currNodeChild);
@@ -248,9 +262,18 @@ EvalResult Evaluator::evalInternal(
         // be normalized.
         needsReconstruct = false;
       }
-      else if (currNode.getKind() == kind::APPLY_UF
-               && currNode.getOperator().getKind() == kind::LAMBDA)
+      else if (currNode.getKind() == kind::APPLY_UF)
       {
+        TNode op = currNode.getOperator();
+        Assert (evalAsNode.find(op)!=evalAsNode.end());
+        op = evalAsNode[op];
+        if (op.getKind()!=kind::LAMBDA)
+        {
+          // operator is not evaluatable
+          results[currNode] = EvalResult();
+          evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
+          continue;
+        }
         // Create a copy of the current substitutions
         std::vector<Node> lambdaArgs(args);
         std::vector<Node> lambdaVals(vals);
@@ -258,7 +281,6 @@ EvalResult Evaluator::evalInternal(
         // Add the values for the arguments of the lambda as substitutions at
         // the beginning of the vector to shadow variables from outer scopes
         // with the same name
-        Node op = currNode.getOperator();
         for (const auto& lambdaArg : op[0])
         {
           lambdaArgs.insert(lambdaArgs.begin(), lambdaArg);
