@@ -118,6 +118,19 @@ class Evaluator
       const std::vector<Node>& args,
       const std::vector<Node>& vals,
       std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode);
+  /** reconstruct
+   *
+   * This function reconstructs the result of evaluating n using a combination
+   * of evaluation results (eresults) and substitution+rewriting (evalAsNode).
+   *
+   * Arguments eresults and evalAsNode are built within the context of the
+   * above method for some args and vals. This method ensures that the return
+   * value is equivalent to the rewritten form of n * { args -> vals }.
+   */
+  Node reconstruct(
+      TNode n,
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode);
 };
 
 }  // namespace theory
