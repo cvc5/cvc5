@@ -118,10 +118,10 @@ header = "options/bv_options.h"
   help_mode  = "Bit-vector equality slicer modes."
 [[option.mode.ON]]
   name = "on"
-  help = "Turn slicer on"
+  help = "Turn slicer on."
 [[option.mode.OFF]]
   name = "off"
-  help = "Turn slicer off"
+  help = "Turn slicer off."
 [[option.mode.AUTO]]
   name = "auto"
   help = "Turn slicer on if input has only equalities over core symbols."

@@ -34,16 +34,15 @@ header = "options/arith_options.h"
   help_mode  = "This decides on kind of propagation arithmetic attempts to do during the search."
 [[option.mode.NO_PROP]]
   name = "none"
-  help = ""
 [[option.mode.UNATE_PROP]]
   name = "unate"
-  help = "use constraints to do unate propagation"
+  help = "Use constraints to do unate propagation."
 [[option.mode.BOUND_INFERENCE_PROP]]
   name = "bi"
   help  = "(Bounds Inference) infers bounds on basic variables using the upper and lower bounds of the non-basic variables in the tableau."
 [[option.mode.BOTH_PROP]]
   name = "both"
-  help = "use bounds inference and unate."
+  help = "Use bounds inference and unate."
 
 
 
