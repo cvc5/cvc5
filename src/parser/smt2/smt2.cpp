@@ -1784,9 +1784,11 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       // integer constants. We must ensure numerator and denominator are
       // constant and the denominator is non-zero.
       if (constVal.getKind() == kind::DIVISION && constVal[0].isConst()
-          && constVal[1].isConst() && !constVal[1].getConst<Rational>().isZero())
+          && constVal[1].isConst()
+          && !constVal[1].getConst<Rational>().isZero())
       {
-        constVal = em->mkConst(constVal[0].getConst<Rational>()/constVal[1].getConst<Rational>());
+        constVal = em->mkConst(constVal[0].getConst<Rational>()
+                               / constVal[1].getConst<Rational>());
       }
       if (!constVal.isConst())
       {
