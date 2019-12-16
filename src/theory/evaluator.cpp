@@ -125,7 +125,7 @@ Node Evaluator::eval(TNode n,
   // if we failed to evaluate
   if (ret.isNull())
   {
-    // maybe it was stored in the evaluation-as-node map
+    // should be stored in the evaluation-as-node map
     std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn =
         evalAsNode.find(n);
     Assert(itn != evalAsNode.end());
@@ -245,6 +245,7 @@ EvalResult Evaluator::evalInternal(
         currNodeVal = vals[pos];
         // Don't need to reconstruct since range of substitution should already
         // be normalized.
+        Assert (vals[pos] == Rewriter::rewrite(vals[pos]));
         needsReconstruct = false;
       }
       else if (currNode.getKind() == kind::APPLY_UF)
