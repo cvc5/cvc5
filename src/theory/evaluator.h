@@ -94,7 +94,7 @@ class Evaluator
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
-            const std::vector<Node>& vals);
+            const std::vector<Node>& vals) const;
 
  private:
   /**
@@ -117,7 +117,7 @@ class Evaluator
       TNode n,
       const std::vector<Node>& args,
       const std::vector<Node>& vals,
-      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode);
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const;
   /** reconstruct
    *
    * This function reconstructs the result of evaluating n using a combination
@@ -130,7 +130,7 @@ class Evaluator
   Node reconstruct(
       TNode n,
       std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
-      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode);
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const;
 };
 
 }  // namespace theory
