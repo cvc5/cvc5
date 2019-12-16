@@ -125,30 +125,15 @@ Node Evaluator::eval(TNode n,
   // if we failed to evaluate
   if (ret.isNull())
   {
-    Trace("ajr-temp") << "Could not evaluate " << n << std::endl;
     // maybe it was stored in the evaluation-as-node map
     std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn =
         evalAsNode.find(n);
-    if (itn != evalAsNode.end())
-    {
-      Node sn = n.substitute(args.begin(),args.end(),vals.begin(),vals.end());
-      sn = Rewriter::rewrite(sn);
-      if (sn!=itn->second)
-      {
-        Trace("ajr-temp") << "From : " << n << std::endl;
-        for (unsigned i=0, nargs=args.size(); i<nargs; i++)
-        {
-          Trace("ajr-temp") << "  " << args[i] << " -> " << vals[i] << std::endl;
-        }
-        Trace("ajr-temp") << "Not equal : " << sn << " " << itn->second << std::endl;
-      }
-      AlwaysAssert(sn==itn->second);
-      // should be the same as substitution + rewriting
-      Assert(itn->second
-            == Rewriter::rewrite(n.substitute(
-                args.begin(), args.end(), vals.begin(), vals.end())));
-      return itn->second;
-    }
+    Assert(itn != evalAsNode.end());
+    // should be the same as substitution + rewriting
+    Assert(itn->second
+          == Rewriter::rewrite(n.substitute(
+              args.begin(), args.end(), vals.begin(), vals.end())));
+    return itn->second;
   }
   return ret;
 }
