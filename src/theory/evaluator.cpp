@@ -129,12 +129,12 @@ Node Evaluator::eval(TNode n,
     std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn =
         evalAsNode.find(n);
     Assert(itn != evalAsNode.end());
-    // should be the same as substitution + rewriting
-    Assert(itn->second
-           == Rewriter::rewrite(n.substitute(
-               args.begin(), args.end(), vals.begin(), vals.end())));
-    return itn->second;
+    ret = itn->second;
   }
+  // should be the same as substitution + rewriting
+  Assert(ret
+          == Rewriter::rewrite(n.substitute(
+              args.begin(), args.end(), vals.begin(), vals.end())));
   return ret;
 }
 
@@ -256,7 +256,7 @@ EvalResult Evaluator::evalInternal(
         Trace("evaluator") << "Operator evaluated to " << op << std::endl;
         if (op.getKind() != kind::LAMBDA)
         {
-          // operator is not evaluatable
+          // operator is not evaluatable, must add to evalAsNode
           results[currNode] = EvalResult();
           evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
           continue;
