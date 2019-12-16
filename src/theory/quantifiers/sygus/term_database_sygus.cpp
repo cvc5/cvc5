@@ -981,14 +981,12 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
     // supported by the evaluator
     res = d_eval->eval(bn, varlist, args);
   }
-  if (!res.isNull())
+  if (res.isNull())
   {
-    Assert(res
-           == Rewriter::rewrite(bn.substitute(
-               varlist.begin(), varlist.end(), args.begin(), args.end())));
-    return res;
+    // must do substitution
+    res =
+        bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());
   }
-  res = bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());
   // Call the rewrite node function, which may involve recursive function
   // evaluation.
   return rewriteNode(res);
