@@ -1733,6 +1733,18 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
+  | LPAREN_TOK COMPREHENSION_TOK
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
+    {
+      args.push_back(bvl);
+    }
+    term[f, f2] { args.push_back(f); }
+    term[f, f2] { 
+      args.push_back(f); 
+      expr = MK_EXPR(CVC4::kind::COMPREHENSION, args);
+    }
+    RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
     termList[args,expr] RPAREN_TOK
     { 
@@ -2683,6 +2695,7 @@ DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'decla
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() }?'par';
+COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }?'comprehension';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'is';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';

@@ -119,7 +119,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    {
      Debug("dt-enum-debug")
          << "Look at constructor " << (index - d_has_debruijn) << std::endl;
-     DatatypeConstructor ctor = d_datatype[index - d_has_debruijn];
+     const DTypeConstructor& ctor = d_datatype[index - d_has_debruijn];
      Debug("dt-enum-debug") << "Check last term..." << std::endl;
      // we first check if the last argument (which is forced to make sum of
      // iterated arguments equal to d_size_limit) is defined
@@ -138,14 +138,13 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      }
      Debug("dt-enum-debug") << "Get constructor..." << std::endl;
      NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
-     Type typ;
      if (d_datatype.isParametric())
      {
-       typ = ctor.getSpecializedConstructorType(d_type.toType());
-       b << NodeManager::currentNM()->mkNode(
-           kind::APPLY_TYPE_ASCRIPTION,
-           NodeManager::currentNM()->mkConst(AscriptionType(typ)),
-           Node::fromExpr(ctor.getConstructor()));
+       NodeManager* nm = NodeManager::currentNM();
+       TypeNode typ = ctor.getSpecializedConstructorType(d_type);
+       b << nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                       nm->mkConst(AscriptionType(typ.toType())),
+                       ctor.getConstructor());
      }
      else
      {
@@ -199,8 +198,8 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    Debug("dt-enum") << "datatype is kind " << d_type.getKind() << std::endl;
    Debug("dt-enum") << "datatype is " << d_type << std::endl;
    Debug("dt-enum") << "properties : " << d_datatype.isCodatatype() << " "
-                    << d_datatype.isRecursiveSingleton(d_type.toType());
-   Debug("dt-enum") << " " << d_datatype.isInterpretedFinite(d_type.toType())
+                    << d_datatype.isRecursiveSingleton(d_type);
+   Debug("dt-enum") << " " << d_datatype.isInterpretedFinite(d_type)
                     << std::endl;
 
    if (d_datatype.isCodatatype() && hasCyclesDt(d_datatype))
@@ -222,7 +221,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      // this datatype. Since datatypes can not be embedded in non-datatype
      // types (e.g. (Array D D) cannot be a subfield type of datatype D), this
      // call is guaranteed to avoid infinite recursion.
-     d_zeroTerm = Node::fromExpr(d_datatype.mkGroundValue(d_type.toType()));
+     d_zeroTerm = d_datatype.mkGroundValue(d_type);
      d_zeroTermActive = true;
      Debug("dt-enum-debug") << "done : " << d_zeroTerm << std::endl;
      Assert(d_zeroTerm.getKind() == kind::APPLY_CONSTRUCTOR);
@@ -235,22 +234,22 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
      d_sel_types.push_back(std::vector<TypeNode>());
      d_sel_index.push_back(std::vector<unsigned>());
      d_sel_sum.push_back(-1);
-     DatatypeConstructor ctor = d_datatype[i];
-     Type typ;
+     const DTypeConstructor& ctor = d_datatype[i];
+     TypeNode typ;
      if (d_datatype.isParametric())
      {
-       typ = ctor.getSpecializedConstructorType(d_type.toType());
+       typ = ctor.getSpecializedConstructorType(d_type);
      }
      for (unsigned a = 0; a < ctor.getNumArgs(); ++a)
      {
        TypeNode tn;
        if (d_datatype.isParametric())
        {
-         tn = TypeNode::fromType(typ)[a];
+         tn = typ[a];
        }
        else
        {
-         tn = Node::fromExpr(ctor[a].getSelector()).getType()[1];
+         tn = ctor[a].getSelector().getType()[1];
        }
        d_sel_types.back().push_back(tn);
        d_sel_index.back().push_back(0);
@@ -309,7 +308,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
        // or other cases
        if (prevSize == d_size_limit
            || (d_size_limit == 0 && d_datatype.isCodatatype())
-           || !d_datatype.isInterpretedFinite(d_type.toType()))
+           || !d_datatype.isInterpretedFinite(d_type))
        {
          d_size_limit++;
          d_ctor = 0;
