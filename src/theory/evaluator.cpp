@@ -121,19 +121,7 @@ Node Evaluator::eval(TNode n,
   Trace("evaluator") << "Evaluating " << n << " under substitution " << args
                      << " " << vals << std::endl;
   std::unordered_map<TNode, Node, NodeHashFunction> evalAsNode;
-  Node ret = evalInternal(n, args, vals, evalAsNode).toNode();
-  // if we failed to evaluate
-  if (ret.isNull())
-  {
-    // maybe it was stored in the evaluation-as-node map
-    std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn =
-        evalAsNode.find(n);
-    if (itn != evalAsNode.end())
-    {
-      return itn->second;
-    }
-  }
-  return ret;
+  return evalInternal(n, args, vals, evalAsNode).toNode();
 }
 
 EvalResult Evaluator::evalInternal(
