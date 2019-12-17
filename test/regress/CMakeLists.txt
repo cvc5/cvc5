@@ -170,10 +170,6 @@ set(regress_0_tests
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
   regress0/bv/ackermann4.smt2
-  regress0/bv/ackermann5.smt2
-  regress0/bv/ackermann6.smt2
-  regress0/bv/ackermann7.smt2
-  regress0/bv/ackermann8.smt2
   regress0/bv/bool-model.smt2
   regress0/bv/bool-to-bv-all.smt2
   regress0/bv/bool-to-bv-ite.smt2
@@ -807,7 +803,6 @@ set(regress_0_tests
   regress0/sets/complement.cvc
   regress0/sets/complement2.cvc
   regress0/sets/complement3.cvc
-  regress0/sets/comp-qf-error.smt2
   regress0/sets/cvc-sample.cvc
   regress0/sets/dt-simp-mem.smt2
   regress0/sets/emptyset.smt2
@@ -1268,6 +1263,7 @@ set(regress_1_tests
   regress1/nl/exp-approx.smt2
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
+  regress1/nl/exp-soundness-bound.smt2
   regress1/nl/factor_agg_s.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/metitarski-1025.smt2
@@ -1570,10 +1566,6 @@ set(regress_1_tests
   regress1/sets/card-6.smt2
   regress1/sets/card-7.smt2
   regress1/sets/card-vc6-minimized.smt2
-  regress1/sets/comp-intersect.smt2
-  regress1/sets/comp-odd.smt2
-  regress1/sets/comp-positive.smt2
-  regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
   regress1/sets/fuzz14418.smt2
@@ -1586,7 +1578,6 @@ set(regress_1_tests
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc
-  regress1/sets/set-comp-sat.smt2
   regress1/sets/sharingbug.smt2
   regress1/sets/univ-set-uf-elim.smt2
   regress1/simplification_bug4.smt2

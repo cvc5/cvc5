@@ -3046,7 +3046,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   // mapped to for signs of c
   std::map<int, Node> poly_approx_bounds[2];
   std::vector<Node> pbounds;
-  getPolynomialApproximationBounds(k, d, pbounds);
+  getPolynomialApproximationBoundForArg(k, tf[0], d, pbounds);
   poly_approx_bounds[0][1] = pbounds[0];
   poly_approx_bounds[0][-1] = pbounds[1];
   poly_approx_bounds[1][1] = pbounds[2];
