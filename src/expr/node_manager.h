@@ -177,8 +177,10 @@ class NodeManager {
    */
   std::vector<NodeManagerListener*> d_listeners;
 
-  /** A list of datatypes owned by this node manager. */
-  std::vector<std::shared_ptr<DType> > d_ownedDTypes;
+  /** A list of datatypes registered by its corresponding expr manager. */
+  std::vector<std::shared_ptr<DType> > d_registeredDTypes;
+  /** A list of datatypes owned by this node manager */
+  std::vector<std::unique_ptr<DType> > d_ownedDTypes;
 
   /**
    * A map of tuple and record types to their corresponding datatype.
@@ -429,6 +431,13 @@ public:
   
   /** register datatype */
   size_t registerDatatype(std::shared_ptr<DType> dt);
+  
+  /** Make a datatype object */
+  size_t mkDatatype(std::string name, bool isCo = false);
+  /** Make a datatype object */
+  size_t mkDatatype(std::string name,
+                    const std::vector<TypeNode>& params,
+                    bool isCo = false);
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
    * associated with datatypes through the DatatypeIndexConstant class. The
@@ -439,7 +448,7 @@ public:
    * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexConstant
    * which is used as an index to retrieve the DType via this call.
    */
-  const DType& getDTypeForIndex(unsigned index) const;
+  const DType& getDTypeForIndex(size_t index) const;
 
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);

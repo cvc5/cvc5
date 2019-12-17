@@ -187,7 +187,7 @@ NodeManager::~NodeManager() {
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
-  d_ownedDTypes.clear();
+  d_registeredDTypes.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -242,15 +242,32 @@ NodeManager::~NodeManager() {
 
 size_t NodeManager::registerDatatype(std::shared_ptr<DType> dt)
 {
-  size_t sz = d_ownedDTypes.size();
-  d_ownedDTypes.push_back(dt);
+  size_t sz = d_registeredDTypes.size();
+  d_registeredDTypes.push_back(dt);
   return sz;
 }
 
-const DType& NodeManager::getDTypeForIndex(unsigned index) const
+size_t NodeManager::mkDatatype(std::string name, bool isCo)
 {
-  Assert(index < d_ownedDTypes.size());
-  return *d_ownedDTypes[index];
+  size_t sz = d_ownedDTypes.size();
+  d_ownedDTypes.push_back(std::unique_ptr<DType>(new DType(name, isCo)));
+  return sz;
+}
+
+size_t NodeManager::mkDatatype(std::string name,
+                               const std::vector<TypeNode>& params,
+                               bool isCo)
+{
+  size_t sz = d_ownedDTypes.size();
+  d_ownedDTypes.push_back(
+      std::unique_ptr<DType>(new DType(name, params, isCo)));
+  return sz;
+}
+
+const DType& NodeManager::getDTypeForIndex(size_t index) const
+{
+  Assert(index < d_registeredDTypes.size());
+  return *d_registeredDTypes[index];
 }
 
 void NodeManager::reclaimZombies() {
