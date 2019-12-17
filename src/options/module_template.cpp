@@ -16,6 +16,7 @@
  **/
 
 #include "options/options_holder.h"
+#include "base/check.h"
 
 namespace CVC4 {
 
@@ -26,6 +27,7 @@ namespace options {
 
 ${defs}$
 
+${modes}$
 
 }  // namespace options
 }  // namespace CVC4

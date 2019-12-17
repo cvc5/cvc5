@@ -159,11 +159,13 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (d_options.getDumpInstantiations() &&
-        ((d_options.getInstFormatMode() != INST_FORMAT_MODE_SZS &&
-          (res.asSatisfiabilityResult() == Result::SAT ||
-           (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) ||
-         res.asSatisfiabilityResult() == Result::UNSAT)) {
+    if (d_options.getDumpInstantiations()
+        && ((d_options.getInstFormatMode() != options::InstFormatMode::SZS
+             && (res.asSatisfiabilityResult() == Result::SAT
+                 || (res.isUnknown()
+                     && res.whyUnknown() == Result::INCOMPLETE)))
+            || res.asSatisfiabilityResult() == Result::UNSAT))
+    {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 

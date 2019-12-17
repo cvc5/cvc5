@@ -43,6 +43,7 @@ script:
  - ccache -z
  - ${CC} --version
  - ${CXX} --version
+ - sudo pip install toml
  - |
    echo "travis_fold:start:load_script"
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"

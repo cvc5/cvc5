@@ -37,7 +37,7 @@ QModelBuilder::QModelBuilder(context::Context* c, QuantifiersEngine* qe)
       d_triedLemmas(0) {}
 
 bool QModelBuilder::optUseModel() {
-  return options::mbqiMode()!=MBQI_NONE || options::fmfBound();
+  return options::mbqiMode() != options::MbqiMode::NONE || options::fmfBound();
 }
 
 bool QModelBuilder::preProcessBuildModel(TheoryModel* m) {

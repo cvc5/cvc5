@@ -55,7 +55,6 @@
 #include "options/booleans_options.h"
 #include "options/bv_options.h"
 #include "options/datatypes_options.h"
-#include "options/decision_mode.h"
 #include "options/decision_options.h"
 #include "options/language.h"
 #include "options/main_options.h"
@@ -68,7 +67,6 @@
 #include "options/sep_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
-#include "options/strings_modes.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
@@ -1165,7 +1163,7 @@ void SmtEngine::setDefaults() {
   }
   bool is_sygus = language::isInputLangSygus(options::inputLanguage());
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     if (options::produceModels()
         && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
@@ -1313,8 +1311,8 @@ void SmtEngine::setDefaults() {
 
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
-       || options::modelCoresMode() != MODEL_CORES_NONE
-       || options::blockModelsMode() != BLOCK_MODELS_NONE)
+       || options::modelCoresMode() != options::ModelCoresMode::NONE
+       || options::blockModelsMode() != options::BlockModelsMode::NONE)
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -1380,7 +1378,7 @@ void SmtEngine::setDefaults() {
   // error if enabled explicitly
   if (options::unsatCores() || options::proof())
   {
-    if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
+    if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
       if (options::simplificationMode.wasSetByUser())
       {
@@ -1390,7 +1388,7 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off simplification to support unsat "
                   "cores/proofs"
                << endl;
-      options::simplificationMode.set(SIMPLIFICATION_MODE_NONE);
+      options::simplificationMode.set(options::SimplificationMode::NONE);
     }
 
     if (options::pbRewrites())
@@ -1445,7 +1443,7 @@ void SmtEngine::setDefaults() {
       options::bitvectorToBool.set(false);
     }
 
-    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
+    if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
       if (options::boolToBitvector.wasSetByUser())
       {
@@ -1513,15 +1511,17 @@ void SmtEngine::setDefaults() {
                    << d_logic.getLogicString() << "> " << (!qf_sat) << endl;
       // simplification=none works better for SMT LIB benchmarks with
       // quantifiers, not others options::simplificationMode.set(qf_sat ||
-      // quantifiers ? SIMPLIFICATION_MODE_NONE : SIMPLIFICATION_MODE_BATCH);
-      options::simplificationMode.set(qf_sat ? SIMPLIFICATION_MODE_NONE
-                                             : SIMPLIFICATION_MODE_BATCH);
+      // quantifiers ? options::SimplificationMode::NONE :
+      // options::SimplificationMode::BATCH);
+      options::simplificationMode.set(qf_sat
+                                          ? options::SimplificationMode::NONE
+                                          : options::SimplificationMode::BATCH);
     }
   }
 
   if (options::cbqiBv() && d_logic.isQuantified())
   {
-    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
+    if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
       if (options::boolToBitvector.wasSetByUser())
       {
@@ -1551,7 +1551,7 @@ void SmtEngine::setDefaults() {
        !d_logic.isTheoryEnabled(THEORY_STRINGS) &&
        !d_logic.isTheoryEnabled(THEORY_SETS) ) {
       Trace("smt") << "setting theoryof-mode to term-based" << endl;
-      options::theoryOfMode.set(THEORY_OF_TERM_BASED);
+      options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
     }
   }
 
@@ -1694,7 +1694,7 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if (options::boolToBitvector() == preprocessing::passes::BOOL_TO_BV_ALL
+  if (options::boolToBitvector() == options::BoolToBVMode::ALL
       && !d_logic.isTheoryEnabled(THEORY_BV))
   {
     if (options::boolToBitvector.wasSetByUser())
@@ -1765,41 +1765,40 @@ void SmtEngine::setDefaults() {
 
   // Set decision mode based on logic (if not set by user)
   if(!options::decisionMode.wasSetByUser()) {
-    decision::DecisionMode decMode =
+    options::DecisionMode decMode =
         // sygus uses internal
-        is_sygus ? decision::DECISION_STRATEGY_INTERNAL :
+        is_sygus ? options::DecisionMode::INTERNAL :
                  // ALL
             d_logic.hasEverything()
-                ? decision::DECISION_STRATEGY_JUSTIFICATION
+                ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
-                      (not d_logic.isQuantified() && d_logic.isPure(THEORY_BV))
-                              ||
-                              // QF_AUFBV or QF_ABV or QF_UFBV
-                              (not d_logic.isQuantified()
-                               && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
-                                   || d_logic.isTheoryEnabled(THEORY_UF))
-                               && d_logic.isTheoryEnabled(THEORY_BV))
-                              ||
-                              // QF_AUFLIA (and may be ends up enabling
-                              // QF_AUFLRA?)
-                              (not d_logic.isQuantified()
-                               && d_logic.isTheoryEnabled(THEORY_ARRAYS)
-                               && d_logic.isTheoryEnabled(THEORY_UF)
-                               && d_logic.isTheoryEnabled(THEORY_ARITH))
-                              ||
-                              // QF_LRA
-                              (not d_logic.isQuantified()
-                               && d_logic.isPure(THEORY_ARITH)
-                               && d_logic.isLinear()
-                               && !d_logic.isDifferenceLogic()
-                               && !d_logic.areIntegersUsed())
-                              ||
-                              // Quantifiers
-                              d_logic.isQuantified() ||
-                              // Strings
-                              d_logic.isTheoryEnabled(THEORY_STRINGS)
-                          ? decision::DECISION_STRATEGY_JUSTIFICATION
-                          : decision::DECISION_STRATEGY_INTERNAL);
+                    (not d_logic.isQuantified() && d_logic.isPure(THEORY_BV)) ||
+                            // QF_AUFBV or QF_ABV or QF_UFBV
+                            (not d_logic.isQuantified()
+                             && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                                 || d_logic.isTheoryEnabled(THEORY_UF))
+                             && d_logic.isTheoryEnabled(THEORY_BV))
+                            ||
+                            // QF_AUFLIA (and may be ends up enabling
+                            // QF_AUFLRA?)
+                            (not d_logic.isQuantified()
+                             && d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                             && d_logic.isTheoryEnabled(THEORY_UF)
+                             && d_logic.isTheoryEnabled(THEORY_ARITH))
+                            ||
+                            // QF_LRA
+                            (not d_logic.isQuantified()
+                             && d_logic.isPure(THEORY_ARITH)
+                             && d_logic.isLinear()
+                             && !d_logic.isDifferenceLogic()
+                             && !d_logic.areIntegersUsed())
+                            ||
+                            // Quantifiers
+                            d_logic.isQuantified() ||
+                            // Strings
+                            d_logic.isTheoryEnabled(THEORY_STRINGS)
+                        ? options::DecisionMode::JUSTIFICATION
+                        : options::DecisionMode::INTERNAL);
 
     bool stoponly =
       // ALL
@@ -1867,20 +1866,21 @@ void SmtEngine::setDefaults() {
   //apply fmfBoundInt options
   if( options::fmfBound() ){
     if (!options::mbqiMode.wasSetByUser()
-        || (options::mbqiMode() != quantifiers::MBQI_NONE
-            && options::mbqiMode() != quantifiers::MBQI_FMC))
+        || (options::mbqiMode() != options::MbqiMode::NONE
+            && options::mbqiMode() != options::MbqiMode::FMC))
     {
       //if bounded integers are set, use no MBQI by default
-      options::mbqiMode.set( quantifiers::MBQI_NONE );
+      options::mbqiMode.set(options::MbqiMode::NONE);
     }
     if( ! options::prenexQuant.wasSetByUser() ){
-      options::prenexQuant.set( quantifiers::PRENEX_QUANT_NONE );
+      options::prenexQuant.set(options::PrenexQuantMode::NONE);
     }
   }
   if( options::ufHo() ){
     //if higher-order, then current variants of model-based instantiation cannot be used
-    if( options::mbqiMode()!=quantifiers::MBQI_NONE ){
-      options::mbqiMode.set( quantifiers::MBQI_NONE );
+    if (options::mbqiMode() != options::MbqiMode::NONE)
+    {
+      options::mbqiMode.set(options::MbqiMode::NONE);
     }
     if (!options::hoElimStoreAx.wasSetByUser())
     {
@@ -1910,7 +1910,7 @@ void SmtEngine::setDefaults() {
   if( options::finiteModelFind() ){
     //apply conservative quantifiers splitting
     if( !options::quantDynamicSplit.wasSetByUser() ){
-      options::quantDynamicSplit.set( quantifiers::QUANT_DSPLIT_MODE_DEFAULT );
+      options::quantDynamicSplit.set(options::QuantDSplitMode::DEFAULT);
     }
     //do not eliminate extended arithmetic symbols from quantified formulas
     if( !options::elimExtArithQuant.wasSetByUser() ){
@@ -1922,7 +1922,7 @@ void SmtEngine::setDefaults() {
     if( !options::instWhenMode.wasSetByUser() ){
       //instantiate only on last call
       if( options::eMatching() ){
-        options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+        options::instWhenMode.set(options::InstWhenMode::LAST_CALL);
       }
     }
   }
@@ -1960,7 +1960,8 @@ void SmtEngine::setDefaults() {
       options::preSkolemQuantNested.set(true);
     }
   }
-  if( options::cegqiSingleInvMode()!=quantifiers::CEGQI_SI_MODE_NONE ){
+  if (options::cegqiSingleInvMode() != options::CegqiSingleInvMode::NONE)
+  {
     if( !options::ceGuidedInst.wasSetByUser() ){
       options::ceGuidedInst.set( true );
     }
@@ -1969,7 +1970,7 @@ void SmtEngine::setDefaults() {
   if( options::ceGuidedInst() ){
     //counterexample-guided instantiation for sygus
     if( !options::cegqiSingleInvMode.wasSetByUser() ){
-      options::cegqiSingleInvMode.set( quantifiers::CEGQI_SI_MODE_USE );
+      options::cegqiSingleInvMode.set(options::CegqiSingleInvMode::USE);
     }
     if( !options::quantConflictFind.wasSetByUser() ){
       options::quantConflictFind.set( false );
@@ -2010,7 +2011,7 @@ void SmtEngine::setDefaults() {
       // if doing abduction, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
       {
-        options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG);
+        options::sygusFilterSolMode.set(options::SygusFilterSolMode::STRONG);
       }
       // we must use basic sygus algorithms, since e.g. we require checking
       // a sygus side condition for consistency with axioms.
@@ -2042,11 +2043,11 @@ void SmtEngine::setDefaults() {
       }
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
-        options::sygusInvTemplMode.set(quantifiers::SYGUS_INV_TEMPL_MODE_NONE);
+        options::sygusInvTemplMode.set(options::SygusInvTemplMode::NONE);
       }
       if (!options::cegqiSingleInvMode.wasSetByUser())
       {
-        options::cegqiSingleInvMode.set(quantifiers::CEGQI_SI_MODE_NONE);
+        options::cegqiSingleInvMode.set(options::CegqiSingleInvMode::NONE);
       }
     }
     //do not allow partial functions
@@ -2120,7 +2121,7 @@ void SmtEngine::setDefaults() {
       }
       if( !options::instWhenMode.wasSetByUser() && options::cbqiModel() ){
         //only instantiation should happen at last call when model is avaiable
-        options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
+        options::instWhenMode.set(options::InstWhenMode::LAST_CALL);
       }
     }else{
       // only supported in pure arithmetic or pure BV
@@ -2130,23 +2131,23 @@ void SmtEngine::setDefaults() {
     if (options::cbqiNestedQE())
     {
       // only complete with prenex = disj_normal or normal
-      if (options::prenexQuant() <= quantifiers::PRENEX_QUANT_DISJ_NORMAL)
+      if (options::prenexQuant() <= options::PrenexQuantMode::DISJ_NORMAL)
       {
-        options::prenexQuant.set(quantifiers::PRENEX_QUANT_DISJ_NORMAL);
+        options::prenexQuant.set(options::PrenexQuantMode::DISJ_NORMAL);
       }
     }
     else if (options::globalNegate())
     {
       if (!options::prenexQuant.wasSetByUser())
       {
-        options::prenexQuant.set(quantifiers::PRENEX_QUANT_NONE);
+        options::prenexQuant.set(options::PrenexQuantMode::NONE);
       }
     }
   }
   //implied options...
   if( options::strictTriggers() ){
     if( !options::userPatternsQuant.wasSetByUser() ){
-      options::userPatternsQuant.set( quantifiers::USER_PAT_MODE_TRUST );
+      options::userPatternsQuant.set(options::UserPatMode::TRUST);
     }
   }
   if( options::qcfMode.wasSetByUser() || options::qcfTConstraint() ){
@@ -2173,7 +2174,7 @@ void SmtEngine::setDefaults() {
       options::iteDtTesterSplitQuant.set( true );
     }
     if( !options::iteLiftQuant.wasSetByUser() ){
-      options::iteLiftQuant.set( quantifiers::ITE_LIFT_QUANT_MODE_ALL );
+      options::iteLiftQuant.set(options::IteLiftQuantMode::ALL);
     }
   }
   if( options::intWfInduction() ){
@@ -2206,7 +2207,7 @@ void SmtEngine::setDefaults() {
     }
   }
   if( !d_logic.isTheoryEnabled(THEORY_DATATYPES) ){
-    options::quantDynamicSplit.set( quantifiers::QUANT_DSPLIT_MODE_NONE );
+    options::quantDynamicSplit.set(options::QuantDSplitMode::NONE);
   }
 
   //until bugs 371,431 are fixed
@@ -2375,8 +2376,7 @@ void SmtEngine::setDefaults() {
     Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
                     "--strings-fmf enabled"
                  << endl;
-    options::stringProcessLoopMode.set(
-        theory::strings::ProcessLoopMode::SIMPLE);
+    options::stringProcessLoopMode.set(options::ProcessLoopMode::SIMPLE);
   }
 }
 
@@ -2952,7 +2952,7 @@ bool SmtEnginePrivate::simplifyAssertions()
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
 
-    if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
+    if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
       if (!options::unsatCores() && !options::fewerPreprocessingHoles())
       {
@@ -3016,7 +3016,7 @@ bool SmtEnginePrivate::simplifyAssertions()
     }
 
     if (options::repeatSimp()
-        && options::simplificationMode() != SIMPLIFICATION_MODE_NONE
+        && options::simplificationMode() != options::SimplificationMode::NONE
         && !options::unsatCores() && !options::fewerPreprocessingHoles())
     {
       PreprocessingPassResult res =
@@ -3292,10 +3292,11 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["int-to-bv"]->apply(&d_assertions);
   }
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
-      !d_smt.d_logic.isPure(THEORY_BV) &&
-      d_smt.d_logic.getLogicString() != "QF_UFBV" &&
-      d_smt.d_logic.getLogicString() != "QF_ABV") {
+  if (options::bitblastMode() == options::BitblastMode::EAGER
+      && !d_smt.d_logic.isPure(THEORY_BV)
+      && d_smt.d_logic.getLogicString() != "QF_UFBV"
+      && d_smt.d_logic.getLogicString() != "QF_ABV")
+  {
     throw ModalException("Eager bit-blasting does not currently support theory combination. "
                          "Note that in a QF_BV problem UF symbols can be introduced for division. "
                          "Try --bv-div-zero-const to interpret division by zero as a constant.");
@@ -3356,7 +3357,7 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["bv-to-bool"]->apply(&d_assertions);
   }
   // Convert non-top-level Booleans to bit-vectors of size 1
-  if (options::boolToBitvector())
+  if (options::boolToBitvector() != options::BoolToBVMode::OFF)
   {
     d_passes["bool-to-bv"]->apply(&d_assertions);
   }
@@ -3554,7 +3555,7 @@ void SmtEnginePrivate::processAssertions() {
 
   d_passes["theory-preprocess"]->apply(&d_assertions);
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     d_passes["bv-eager-atoms"]->apply(&d_assertions);
   }
@@ -4438,7 +4439,7 @@ Model* SmtEngine::getModel() {
   // the theory engine into "eager model building" mode. TODO #2648: revisit.
   d_theoryEngine->setEagerModelBuilding();
 
-  if (options::modelCoresMode() != MODEL_CORES_NONE)
+  if (options::modelCoresMode() != options::ModelCoresMode::NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
     // (expanded) assertions using the model core builder utility
@@ -4464,7 +4465,7 @@ Result SmtEngine::blockModel()
 
   TheoryModel* m = getAvailableModel("block model");
 
-  if (options::blockModelsMode() == BLOCK_MODELS_NONE)
+  if (options::blockModelsMode() == options::BlockModelsMode::NONE)
   {
     std::stringstream ss;
     ss << "Cannot block model when block-models is set to none.";
@@ -4499,7 +4500,7 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
   std::vector<Expr> eassertsProc = getExpandedAssertions();
   // we always do block model values mode here
   Expr eblocker = ModelBlocker::getModelBlocker(
-      eassertsProc, m, BLOCK_MODELS_VALUES, exprs);
+      eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
   return assertFormula(eblocker);
 }
 
@@ -5097,7 +5098,8 @@ const Proof& SmtEngine::getProof()
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
   finalOptionsAreSet();
-  if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
+  if (options::instFormatMode() == options::InstFormatMode::SZS)
+  {
     out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
   }
   if( d_theoryEngine ){
@@ -5105,7 +5107,8 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }else{
     Assert(false);
   }
-  if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
+  if (options::instFormatMode() == options::InstFormatMode::SZS)
+  {
     out << "% SZS output end Proof for " << d_filename.c_str() << std::endl;
   }
 }

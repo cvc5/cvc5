@@ -20,6 +20,7 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
+#include "options/theory_options.h"
 #include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
@@ -3369,7 +3370,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                       Node lt2 = e==0 ? length_term_j : length_term_i;
                       Node ent_lit = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT, lt1, lt2 ) );
                       std::pair<bool, Node> et = d_state.entailmentCheck(
-                          THEORY_OF_TYPE_BASED, ent_lit);
+                          options::TheoryOfMode::THEORY_OF_TYPE_BASED, ent_lit);
                       if( et.first ){
                         Trace("strings-entail") << "Strings entailment : " << ent_lit << " is entailed in the current context." << std::endl;
                         Trace("strings-entail") << "  explanation was : " << et.second << std::endl;
@@ -3482,11 +3483,11 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
                                                             int index,
                                                             InferInfo& info)
 {
-  if (options::stringProcessLoopMode() == ProcessLoopMode::ABORT)
+  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
   {
     throw LogicException("Looping word equation encountered.");
   }
-  else if (options::stringProcessLoopMode() == ProcessLoopMode::NONE)
+  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE)
   {
     d_out->setIncomplete();
     return ProcessLoopResult::SKIPPED;
@@ -3629,11 +3630,13 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
   }
   else
   {
-    if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE_ABORT)
+    if (options::stringProcessLoopMode()
+        == options::ProcessLoopMode::SIMPLE_ABORT)
     {
       throw LogicException("Normal looping word equation encountered.");
     }
-    else if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE)
+    else if (options::stringProcessLoopMode()
+             == options::ProcessLoopMode::SIMPLE)
     {
       d_out->setIncomplete();
       return ProcessLoopResult::SKIPPED;
