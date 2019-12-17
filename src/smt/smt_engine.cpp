@@ -1212,21 +1212,18 @@ void SmtEngine::setDefaults() {
   }
 
   // set options about ackermannization
-  if (options::produceModels())
+  if (options::ackermann() && options::produceModels()
+      && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+          || d_logic.isTheoryEnabled(THEORY_UF)))
   {
-    if (options::ackermann()
-        && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
-            || d_logic.isTheoryEnabled(THEORY_UF)))
+    if (options::produceModels.wasSetByUser())
     {
-      if (options::produceModels.wasSetByUser())
-      {
-        throw OptionException(std::string(
-            "Ackermannization currently does not support model generation."));
-      }
-      Notice() << "SmtEngine: turn off ackermannization to support model"
-               << "generation" << endl;
-      options::ackermann.set(false);
+      throw OptionException(std::string(
+          "Ackermannization currently does not support model generation."));
     }
+    Notice() << "SmtEngine: turn off ackermannization to support model"
+             << "generation" << endl;
+    options::ackermann.set(false);
   }
 
   if (options::ackermann())
@@ -1235,6 +1232,11 @@ void SmtEngine::setDefaults() {
     {
       throw OptionException(
           "Incremental Ackermannization is currently not supported.");
+    }
+
+    if (d_logic.isQuantified())
+    {
+      throw LogicException("Cannot use Ackermannization on quantified formula");
     }
 
     if (d_logic.isTheoryEnabled(THEORY_UF))
@@ -1303,6 +1305,12 @@ void SmtEngine::setDefaults() {
     }
   }
 
+  // sygus core connective requires unsat cores
+  if (options::sygusCoreConnective())
+  {
+    options::unsatCores.set(true);
+  }
+
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
        || options::modelCoresMode() != MODEL_CORES_NONE
@@ -1349,6 +1357,22 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << endl;
       options::unconstrainedSimp.set(uncSimp);
+    }
+  }
+
+  if (options::incrementalSolving() || options::proof())
+  {
+    if (options::sygusInference())
+    {
+      if (options::sygusInference.wasSetByUser())
+      {
+        throw OptionException(
+            "sygus inference not supported with proofs/incremental solving");
+      }
+      Notice() << "SmtEngine: turning off sygus inference to support "
+                  "proofs/incremental solving"
+               << std::endl;
+      options::sygusInference.set(false);
     }
   }
 
@@ -4641,12 +4665,12 @@ void SmtEngine::checkModel(bool hardFailure) {
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   TheoryModel* m = getAvailableModel("check model");
 
-  // check-model is not guaranteed to succeed if approximate values were used
+  // check-model is not guaranteed to succeed if approximate values were used.
+  // Thus, we intentionally abort here.
   if (m->hasApproximations())
   {
-    Warning()
-        << "WARNING: running check-model on a model with approximate values..."
-        << endl;
+    throw RecoverableModalException(
+        "Cannot run check-model on a model with approximate values.");
   }
 
   // Check individual theory assertions

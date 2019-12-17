@@ -24,6 +24,7 @@
 #include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
+#include "theory/quantifiers/sygus/cegis_core_connective.h"
 #include "theory/quantifiers/sygus/cegis_unif.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
@@ -192,6 +193,8 @@ class SynthConjecture
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
   /** repair constant utility */
   std::unique_ptr<SygusRepairConst> d_sygus_rconst;
+  /** connective core utility */
+  std::unique_ptr<CegisCoreConnective> d_sygus_ccore;
 
   //------------------------modules
   /** program by examples module */

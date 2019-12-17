@@ -417,7 +417,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
                            0);
       Trace("srs-input-debug")
           << "Grammar for subterm " << n << " is: " << std::endl;
-      Trace("srs-input-debug") << subtermTypes[n].getDatatype() << std::endl;
+      Trace("srs-input-debug") << subtermTypes[n].getDType() << std::endl;
     }
     // set that this is a sygus datatype
     sdttl.initializeDatatype(t, sygusVarList, false, false);

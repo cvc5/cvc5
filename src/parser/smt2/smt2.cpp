@@ -1099,7 +1099,7 @@ bool Smt2::pushSygusDatatypeDef( Type t, std::string& dname,
                                   std::vector< bool >& allow_const,
                                   std::vector< std::vector< std::string > >& unresolved_gterm_sym ){
   sorts.push_back(t);
-  datatypes.push_back(Datatype(dname));
+  datatypes.push_back(Datatype(getExprManager(), dname));
   ops.push_back(std::vector<Expr>());
   cnames.push_back(std::vector<std::string>());
   cargs.push_back(std::vector<std::vector<CVC4::Type> >());
@@ -1763,7 +1763,6 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       }
     }
   }
-
   // Second phase: apply the arguments to the parse op
   ExprManager* em = getExprManager();
   // handle special cases
@@ -1773,25 +1772,44 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     {
       parseError("Too many arguments to array constant.");
     }
-    if (!args[0].isConst())
+    Expr constVal = args[0];
+    if (!constVal.isConst())
     {
-      std::stringstream ss;
-      ss << "expected constant term inside array constant, but found "
-         << "nonconstant term:" << std::endl
-         << "the term: " << args[0];
-      parseError(ss.str());
+      // To parse array constants taking reals whose values are specified by
+      // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
+      // the fact that (/ 1 3) is the division of constants 1 and 3, and not
+      // the resulting constant rational value. Thus, we must construct the
+      // resulting rational here. This also is applied for integral real values
+      // like 5.0 which are converted to (/ 5 1) to distinguish them from
+      // integer constants. We must ensure numerator and denominator are
+      // constant and the denominator is non-zero.
+      if (constVal.getKind() == kind::DIVISION && constVal[0].isConst()
+          && constVal[1].isConst()
+          && !constVal[1].getConst<Rational>().isZero())
+      {
+        constVal = em->mkConst(constVal[0].getConst<Rational>()
+                               / constVal[1].getConst<Rational>());
+      }
+      if (!constVal.isConst())
+      {
+        std::stringstream ss;
+        ss << "expected constant term inside array constant, but found "
+           << "nonconstant term:" << std::endl
+           << "the term: " << constVal;
+        parseError(ss.str());
+      }
     }
     ArrayType aqtype = static_cast<ArrayType>(p.d_type);
-    if (!aqtype.getConstituentType().isComparableTo(args[0].getType()))
+    if (!aqtype.getConstituentType().isComparableTo(constVal.getType()))
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
          << "array type:          " << p.d_type << std::endl
          << "expected const type: " << aqtype.getConstituentType() << std::endl
-         << "computed const type: " << args[0].getType();
+         << "computed const type: " << constVal.getType();
       parseError(ss.str());
     }
-    return em->mkConst(ArrayStoreAll(p.d_type, args[0]));
+    return em->mkConst(ArrayStoreAll(p.d_type, constVal));
   }
   else if (p.d_kind == kind::APPLY_SELECTOR)
   {
@@ -1833,6 +1851,19 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   }
   else if (isBuiltinOperator)
   {
+    if (!em->getOptions().getUfHo()
+        && (kind == kind::EQUAL || kind == kind::DISTINCT))
+    {
+      // need --uf-ho if these operators are applied over function args
+      for (std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i)
+      {
+        if ((*i).getType().isFunction())
+        {
+          parseError(
+              "Cannot apply equalty to functions unless --uf-ho is set.");
+        }
+      }
+    }
     if (args.size() > 2)
     {
       if (kind == kind::INTS_DIVISION || kind == kind::XOR

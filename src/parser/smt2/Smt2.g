@@ -959,7 +959,7 @@ sygusGrammar[CVC4::Type & ret,
       std::stringstream ss;
       ss << "dt_" << fun << "_" << i.first;
       std::string dname = ss.str();
-      datatypes.push_back(Datatype(dname));
+      datatypes.push_back(Datatype(EXPR_MANAGER, dname));
       // make its unresolved type, used for referencing the final version of
       // the datatype
       PARSER_STATE->checkDeclaration(dname, CHECK_UNDECLARED, SYM_SORT);
@@ -1523,7 +1523,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(dnames[dts.size()],params,isCo));
+        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],params,isCo));
       }
       LPAREN_TOK
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
@@ -1533,7 +1533,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("No parameters given for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(dnames[dts.size()],params,isCo));
+        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],params,isCo));
       }
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
     )
@@ -1733,6 +1733,18 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
+  | LPAREN_TOK COMPREHENSION_TOK
+    { PARSER_STATE->pushScope(true); }
+    boundVarList[bvl]
+    {
+      args.push_back(bvl);
+    }
+    term[f, f2] { args.push_back(f); }
+    term[f, f2] { 
+      args.push_back(f); 
+      expr = MK_EXPR(CVC4::kind::COMPREHENSION, args);
+    }
+    RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
     termList[args,expr] RPAREN_TOK
     { 
@@ -2596,7 +2608,7 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
         params.push_back( t ); }
       )* ']'
     )?*/ //AJR: this isn't necessary if we use z3's style
-    { datatypes.push_back(Datatype(id,params,isCo));
+    { datatypes.push_back(Datatype(EXPR_MANAGER, id, params, isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);
@@ -2683,6 +2695,7 @@ DECLARE_DATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'decla
 DECLARE_CODATATYPES_2_5_TOK : { !( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) }?'declare-codatatypes';
 DECLARE_CODATATYPES_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }?'declare-codatatypes';
 PAR_TOK : { PARSER_STATE->v2_6() }?'par';
+COMPREHENSION_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }?'comprehension';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'is';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';

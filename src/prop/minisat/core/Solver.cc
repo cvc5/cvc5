@@ -56,6 +56,27 @@ bool assertionLevelOnly()
 {
   return options::unsatCores() && options::incrementalSolving();
 }
+
+//=================================================================================================
+// Helper functions for decision tree tracing
+
+// Writes to Trace macro for decision tree tracing
+static inline void dtviewDecisionHelper(size_t level,
+                                        const Node& node,
+                                        const char* decisiontype)
+{
+  Trace("dtview") << std::string(level - (options::incrementalSolving() ? 1 : 0), '*')
+                  << " " << node << " :" << decisiontype << "-DECISION:" << std::endl;
+}
+
+// Writes to Trace macro for propagation tracing
+static inline void dtviewPropagationHeaderHelper(size_t level)
+{
+  Trace("dtview::prop") << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0),
+                                       '*')
+                        << " /Propagations/" << std::endl;
+}
+
 }  // namespace
 
 //=================================================================================================
@@ -607,6 +628,20 @@ Lit Solver::pickBranchLit()
             << "getNextTheoryDecisionRequest(): now deciding on " << nextLit
             << std::endl;
         decisions++;
+
+        // org-mode tracing -- theory decision
+        if (Trace.isOn("dtview"))
+        {
+          dtviewDecisionHelper(context->getLevel(),
+                               proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
+                               "THEORY");
+        }
+
+        if (Trace.isOn("dtview::prop"))
+        {
+          dtviewPropagationHeaderHelper(context->getLevel());
+        }
+
         return nextLit;
       } else {
         Debug("theoryDecision")
@@ -631,10 +666,23 @@ Lit Solver::pickBranchLit()
       decisions++;
       Var next = var(nextLit);
       if(polarity[next] & 0x2) {
-        return mkLit(next, polarity[next] & 0x1);
-      } else {
-        return nextLit;
+        nextLit = mkLit(next, polarity[next] & 0x1);
       }
+
+      // org-mode tracing -- decision engine decision
+      if (Trace.isOn("dtview"))
+      {
+        dtviewDecisionHelper(context->getLevel(),
+                             proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
+                             "DE");
+      }
+
+      if (Trace.isOn("dtview::prop"))
+      {
+        dtviewPropagationHeaderHelper(context->getLevel());
+      }
+
+      return nextLit;
     }
 
     Var next = var_Undef;
@@ -668,12 +716,32 @@ Lit Solver::pickBranchLit()
       // Check with decision engine if it can tell polarity
       lbool dec_pol = MinisatSatSolver::toMinisatlbool
         (proxy->getDecisionPolarity(MinisatSatSolver::toSatVariable(next)));
+      Lit decisionLit;
       if(dec_pol != l_Undef) {
         Assert(dec_pol == l_True || dec_pol == l_False);
-        return mkLit(next, (dec_pol == l_True) );
+        decisionLit = mkLit(next, (dec_pol == l_True));
       }
-      // If it can't use internal heuristic to do that
-      return mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
+      else
+      {
+        // If it can't use internal heuristic to do that
+        decisionLit = mkLit(
+            next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
+      }
+
+      // org-mode tracing -- decision engine decision
+      if (Trace.isOn("dtview"))
+      {
+        dtviewDecisionHelper(context->getLevel(),
+                             proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)),
+                             "DE");
+      }
+
+      if (Trace.isOn("dtview::prop"))
+      {
+        dtviewPropagationHeaderHelper(context->getLevel());
+      }
+
+      return decisionLit;
     }
 }
 
