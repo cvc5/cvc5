@@ -116,7 +116,7 @@ Node EvalResult::toNode() const
 
 Node Evaluator::eval(TNode n,
                      const std::vector<Node>& args,
-                     const std::vector<Node>& vals)
+                     const std::vector<Node>& vals) const
 {
   Trace("evaluator") << "Evaluating " << n << " under substitution " << args
                      << " " << vals << std::endl;
@@ -142,7 +142,7 @@ EvalResult Evaluator::evalInternal(
     TNode n,
     const std::vector<Node>& args,
     const std::vector<Node>& vals,
-    std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode)
+    std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const
 {
   std::unordered_map<TNode, EvalResult, TNodeHashFunction> results;
   std::vector<TNode> queue;
@@ -793,7 +793,7 @@ EvalResult Evaluator::evalInternal(
 Node Evaluator::reconstruct(
     TNode n,
     std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
-    std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode)
+    std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const
 {
   if (n.getNumChildren() == 0)
   {
