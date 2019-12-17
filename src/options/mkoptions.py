@@ -347,18 +347,18 @@ def die(msg):
 
 
 def perr(filename, msg, option_or_alias = None):
-    msg_prefix  = ''
+    msg_suffix = ''
     if option_or_alias:
         if isinstance(option_or_alias, Option):
-            msg_prefix = 'option '
+            msg_suffix = 'option '
             if option_or_alias.name:
-                msg_prefix = "{} '{}' ".format(msg_prefix, option_or_alias.name)
+                msg_suffix = "{} '{}' ".format(msg_suffix, option_or_alias.name)
             else:
-                msg_prefix = "{} '{}' ".format(msg_prefix, option_or_alias.long)
+                msg_suffix = "{} '{}' ".format(msg_suffix, option_or_alias.long)
         else:
             assert isinstance(option_or_alias, Alias)
-            msg_prefix = "alias '{}' ".format(option_or_alias.long)
-    die('parse error in {}: {}{}'.format(filename, msg, msg_prefix))
+            msg_suffix = "alias '{}' ".format(option_or_alias.long)
+    die('parse error in {}: {}{}'.format(filename, msg, msg_suffix))
 
 
 def write_file(directory, name, content):
