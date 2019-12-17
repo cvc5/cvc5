@@ -3042,12 +3042,12 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
 
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
-  
+
   // Figure 3 : c
   Node c = d_model.computeAbstractModelValue(tf[0]);
   int csign = c.getConst<Rational>().sgn();
   Assert(csign == 1 || csign == -1);
-  
+
   // Figure 3: P_l, P_u
   // mapped to for signs of c
   std::map<int, Node> poly_approx_bounds[2];
