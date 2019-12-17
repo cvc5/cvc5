@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "options/bv_options.h"
 #include "options/language.h"
@@ -246,7 +247,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::DATATYPE_TYPE:
     {
-      const Datatype& dt = (NodeManager::currentNM()->getDatatypeForIndex(
+      const DType& dt = (NodeManager::currentNM()->getDTypeForIndex(
           n.getConst<DatatypeIndexConstant>().getIndex()));
       if (dt.isTuple())
       {
