@@ -429,12 +429,29 @@ public:
     d_listeners.erase(elt);
   }
   
-  /** register datatype */
+  /** register that datatype dt was constructed by the expression manager
+   * !!! this interface should be deleted when the Expr-layer is deleted.
+   */
   size_t registerDatatype(std::shared_ptr<DType> dt);
   
-  /** Make a datatype object */
+  /** Make a datatype object
+   * 
+   * Returns the index of the datatype where the result is stored; the datatype
+   * object can then be accessed by the method below.
+   * 
+   * name: the name of the datatype,
+   * isCo: whether the datatype is a codatatype.
+   */
   size_t mkDatatype(std::string name, bool isCo = false);
-  /** Make a datatype object */
+  /** Make a datatype object
+   * 
+   * Returns the index of the datatype where the result is stored; the datatype
+   * object can then be accessed by the method below.
+   * 
+   * name: the name of the datatype,
+   * params: the parameters of the datatype,
+   * isCo: whether the datatype is a codatatype.
+   */
   size_t mkDatatype(std::string name,
                     const std::vector<TypeNode>& params,
                     bool isCo = false);
