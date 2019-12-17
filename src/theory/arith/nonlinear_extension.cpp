@@ -3042,20 +3042,21 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
 
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
-  // Figure 3: P_l, P_u
-  // mapped to for signs of c
-  std::map<int, Node> poly_approx_bounds[2];
-  std::vector<Node> pbounds;
-  getPolynomialApproximationBoundForArg(k, tf[0], d, pbounds);
-  poly_approx_bounds[0][1] = pbounds[0];
-  poly_approx_bounds[0][-1] = pbounds[1];
-  poly_approx_bounds[1][1] = pbounds[2];
-  poly_approx_bounds[1][-1] = pbounds[3];
-
+  
   // Figure 3 : c
   Node c = d_model.computeAbstractModelValue(tf[0]);
   int csign = c.getConst<Rational>().sgn();
   Assert(csign == 1 || csign == -1);
+  
+  // Figure 3: P_l, P_u
+  // mapped to for signs of c
+  std::map<int, Node> poly_approx_bounds[2];
+  std::vector<Node> pbounds;
+  getPolynomialApproximationBoundForArg(k, c, d, pbounds);
+  poly_approx_bounds[0][1] = pbounds[0];
+  poly_approx_bounds[0][-1] = pbounds[1];
+  poly_approx_bounds[1][1] = pbounds[2];
+  poly_approx_bounds[1][-1] = pbounds[3];
 
   // Figure 3 : v
   Node v = d_model.computeAbstractModelValue(tf);
