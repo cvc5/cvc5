@@ -43,7 +43,8 @@ InputLanguage Options::getInputLanguage() const {
   return (*this)[options::inputLanguage];
 }
 
-InstFormatMode Options::getInstFormatMode() const {
+options::InstFormatMode Options::getInstFormatMode() const
+{
   return (*this)[options::instFormatMode];
 }
 

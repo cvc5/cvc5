@@ -538,7 +538,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       itc;
   // maps types to the index of its "any term" grammar construction
   std::map<TypeNode, unsigned> typeToGAnyTerm;
-  SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
+  options::SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
@@ -571,15 +571,16 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   {
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     TypeNode unres_t = unres_types[i];
-    SygusGrammarConsMode tsgcm = sgcm;
-    if (tsgcm == SYGUS_GCONS_ANY_TERM || tsgcm == SYGUS_GCONS_ANY_TERM_CONCISE)
+    options::SygusGrammarConsMode tsgcm = sgcm;
+    if (tsgcm == options::SygusGrammarConsMode::ANY_TERM
+        || tsgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE)
     {
       // If the type does not support any term, we do any constant instead.
       // We also fall back on any constant construction if the type has no
       // constructors at this point (e.g. it simply encodes all constants).
       if (!types[i].isReal())
       {
-        tsgcm = SYGUS_GCONS_ANY_CONST;
+        tsgcm = options::SygusGrammarConsMode::ANY_CONST;
       }
       else
       {
@@ -629,7 +630,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     //add constants
     std::vector<Node> consts;
     mkSygusConstantsForType(types[i], consts);
-    if (tsgcm == SYGUS_GCONS_ANY_CONST)
+    if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
     {
       // Use the any constant constructor. Notice that for types that don't
       // have constants (e.g. uninterpreted or function types), we don't add
@@ -923,7 +924,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     // the references).
     const SygusDatatype& sdti = sdts[i].d_sdt;
     // whether we will use the polynomial grammar
-    bool polynomialGrammar = sgcm == SYGUS_GCONS_ANY_TERM_CONCISE;
+    bool polynomialGrammar =
+        sgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE;
     // A set of constructor indices that will be used in the overall sum we
     // are constructing; indices of constructors corresponding to builtin
     // arithmetic operators will be excluded from this set.
@@ -1198,7 +1200,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // TODO #1935 ITEs are added to Boolean grammars so that we can infer
       // unification strategies. We can do away with this if we can infer
       // unification strategies from and/or/not
-      if (k == ITE && options::sygusUnifPi() == SYGUS_UNIF_PI_NONE)
+      if (k == ITE && options::sygusUnifPi() == options::SygusUnifPiMode::NONE)
       {
         continue;
       }

@@ -3736,9 +3736,12 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
                       << "post approx cuts" << endl;
 
   // This should be fine if sat or unknown
-  if(!emmittedConflictOrSplit &&
-     (options::arithPropagationMode() == UNATE_PROP ||
-      options::arithPropagationMode() == BOTH_PROP)){
+  if (!emmittedConflictOrSplit
+      && (options::arithPropagationMode()
+              == options::ArithPropagationMode::UNATE_PROP
+          || options::arithPropagationMode()
+                 == options::ArithPropagationMode::BOTH_PROP))
+  {
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
     Assert(d_qflraStatus != Result::UNSAT);
 
@@ -3789,7 +3792,9 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
 
       Debug("arith::conflict") << "unate arith conflict" << endl;
     }
-  }else{
+  }
+  else
+  {
     TimerStat::CodeTimer codeTimer(d_statistics.d_newPropTime);
     d_currentPropagationList.clear();
   }
@@ -4109,16 +4114,21 @@ bool TheoryArithPrivate::isExtfReduced(int effort, Node n, Node on,
 
 void TheoryArithPrivate::propagate(Theory::Effort e) {
   // This uses model values for safety. Disable for now.
-  if(d_qflraStatus == Result::SAT &&
-     (options::arithPropagationMode() == BOUND_INFERENCE_PROP ||
-      options::arithPropagationMode() == BOTH_PROP)
-     && hasAnyUpdates()){
+  if (d_qflraStatus == Result::SAT
+      && (options::arithPropagationMode()
+              == options::ArithPropagationMode::BOUND_INFERENCE_PROP
+          || options::arithPropagationMode()
+                 == options::ArithPropagationMode::BOTH_PROP)
+      && hasAnyUpdates())
+  {
     if(options::newProp()){
       propagateCandidatesNew();
     }else{
       propagateCandidates();
     }
-  }else{
+  }
+  else
+  {
     clearUpdates();
   }
 
@@ -4474,19 +4484,18 @@ void TheoryArithPrivate::presolve(){
   vector<Node> lemmas;
   if(!options::incrementalSolving()) {
     switch(options::arithUnateLemmaMode()){
-    case NO_PRESOLVE_LEMMAS:
-      break;
-    case INEQUALITY_PRESOLVE_LEMMAS:
-      d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
-      break;
-    case EQUALITY_PRESOLVE_LEMMAS:
-      d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
-      break;
-    case ALL_PRESOLVE_LEMMAS:
-      d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
-      d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
-      break;
-    default: Unhandled() << options::arithUnateLemmaMode();
+      case options::ArithUnateLemmaMode::NO: break;
+      case options::ArithUnateLemmaMode::INEQUALITY:
+        d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
+        break;
+      case options::ArithUnateLemmaMode::EQUALITY:
+        d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
+        break;
+      case options::ArithUnateLemmaMode::ALL:
+        d_constraintDatabase.outputUnateInequalityLemmas(lemmas);
+        d_constraintDatabase.outputUnateEqualityLemmas(lemmas);
+        break;
+      default: Unhandled() << options::arithUnateLemmaMode();
     }
   }
 

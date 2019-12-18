@@ -17,10 +17,11 @@
 
 #include "theory/rewriter.h"
 
-#include "theory/theory.h"
+#include "options/theory_options.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter_tables.h"
+#include "theory/theory.h"
 #include "util/resource_manager.h"
 
 using namespace std;

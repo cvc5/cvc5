@@ -23,26 +23,23 @@
 #include <iostream>
 
 namespace CVC4 {
+namespace options {
 
-/** Enumeration of model_format modes (how to print models from get-model command). */
-enum CVC4_PUBLIC ModelFormatMode {
+/** Enumeration of inst_format modes (how to print models from get-model
+ * command). */
+enum class CVC4_PUBLIC InstFormatMode
+{
   /** default mode (print expressions in the output language format) */
-  MODEL_FORMAT_MODE_DEFAULT,
-  /** print functional values in a table format */
-  MODEL_FORMAT_MODE_TABLE,
-};
-
-/** Enumeration of inst_format modes (how to print models from get-model command). */
-enum CVC4_PUBLIC InstFormatMode {
-  /** default mode (print expressions in the output language format) */
-  INST_FORMAT_MODE_DEFAULT,
+  DEFAULT,
   /** print as SZS proof */
-  INST_FORMAT_MODE_SZS,
+  SZS,
 };
 
-std::ostream& operator<<(std::ostream& out, ModelFormatMode mode) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream& out, InstFormatMode mode) CVC4_PUBLIC;
+}  // namespace options
 
-}/* CVC4 namespace */
+std::ostream& operator<<(std::ostream& out,
+                         options::InstFormatMode mode) CVC4_PUBLIC;
+
+}  // namespace CVC4
 
 #endif /* CVC4__PRINTER__MODEL_FORMAT_H */
