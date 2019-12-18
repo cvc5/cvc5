@@ -284,7 +284,8 @@ void SolverState::setPendingConflictWhen(Node conf)
 
 Node SolverState::getPendingConflict() const { return d_pendingConflict; }
 
-std::pair<bool, Node> SolverState::entailmentCheck(TheoryOfMode mode, TNode lit)
+std::pair<bool, Node> SolverState::entailmentCheck(options::TheoryOfMode mode,
+                                                   TNode lit)
 {
   return d_valuation.entailmentCheck(mode, lit);
 }

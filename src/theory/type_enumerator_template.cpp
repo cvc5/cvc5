@@ -42,7 +42,7 @@ TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
       }
       Unreachable();
       ${mk_type_enumerator_cases}
-#line 44 "${template}"
+#line 46 "${template}"
     default: Unhandled() << "No type enumerator for type `" << type << "'";
   }
   Unreachable();

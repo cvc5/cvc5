@@ -82,23 +82,23 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
 
       if (id == theory::THEORY_BV) {
         auto thBv = static_cast<theory::bv::TheoryBV*>(th);
-        if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-            && options::bvSatSolver() == theory::bv::SAT_SOLVER_CRYPTOMINISAT)
+        if (options::bitblastMode() == options::BitblastMode::EAGER
+            && options::bvSatSolver() == options::SatSolverMode::CRYPTOMINISAT)
         {
           proof::BitVectorProof* bvp = nullptr;
           switch (options::bvProofFormat())
           {
-            case theory::bv::BvProofFormat::BITVECTOR_PROOF_DRAT:
+            case options::BvProofFormat::DRAT:
             {
               bvp = new proof::LfscDratBitVectorProof(thBv, this);
               break;
             }
-            case theory::bv::BvProofFormat::BITVECTOR_PROOF_LRAT:
+            case options::BvProofFormat::LRAT:
             {
               bvp = new proof::LfscLratBitVectorProof(thBv, this);
               break;
             }
-            case theory::bv::BvProofFormat::BITVECTOR_PROOF_ER:
+            case options::BvProofFormat::ER:
             {
               bvp = new proof::LfscErBitVectorProof(thBv, this);
               break;
@@ -585,7 +585,8 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   //  finalizeBvConflicts(lemmas, os, paren, map);
   ProofManager::getBitVectorProof()->printBBDeclarationAndCnf(os, paren, map);
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
     Assert(lemmas.size() == 1);
     // nothing more to do (no combination with eager so far)
     return;

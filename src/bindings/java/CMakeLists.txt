@@ -185,7 +185,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Model.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Printer.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__api__Solver.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_InstFormatMode.java
+  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__options__InstFormatMode.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_LemmaChannels.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_Listener.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_ListenerCollection__Registration.java

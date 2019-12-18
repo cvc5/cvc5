@@ -66,7 +66,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
   {
     d_modules.push_back(d_ceg_pbe.get());
   }
-  if (options::sygusUnifPi() != SYGUS_UNIF_PI_NONE)
+  if (options::sygusUnifPi() != options::SygusUnifPiMode::NONE)
   {
     d_modules.push_back(d_ceg_cegisUnif.get());
   }
@@ -483,7 +483,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   bool sk_refine = (!isGround() || d_refine_count == 0) && constructed_cand;
   if (sk_refine)
   {
-    if (options::cegisSample() == CEGIS_SAMPLE_TRUST)
+    if (options::cegisSample() == options::CegisSampleMode::TRUST)
     {
       // we have that the current candidate passed a sample test
       // since we trust sampling in this mode, we assert there is no
@@ -799,14 +799,17 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
       // or basic. The auto mode always prefers the optimized enumerator over
       // the basic one.
       Assert(d_tds->isBasicEnumerator(e));
-      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM_BASIC)
+      if (options::sygusActiveGenMode()
+          == options::SygusActiveGenMode::ENUM_BASIC)
       {
         d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
       }
       else
       {
-        Assert(options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM
-               || options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO);
+        Assert(options::sygusActiveGenMode()
+                   == options::SygusActiveGenMode::ENUM
+               || options::sygusActiveGenMode()
+                      == options::SygusActiveGenMode::AUTO);
         d_evg[e].reset(new SygusEnumerator(d_tds, this));
       }
     }
@@ -1061,7 +1064,8 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
 
       if (status != 0
           && (options::sygusRewSynth() || options::sygusQueryGen()
-              || options::sygusFilterSolMode() != SYGUS_FILTER_SOL_NONE))
+              || options::sygusFilterSolMode()
+                     != options::SygusFilterSolMode::NONE))
       {
         Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
         std::map<Node, ExpressionMinerManager>::iterator its =
@@ -1078,13 +1082,16 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           {
             d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
           }
-          if (options::sygusFilterSolMode() != SYGUS_FILTER_SOL_NONE)
+          if (options::sygusFilterSolMode()
+              != options::SygusFilterSolMode::NONE)
           {
-            if (options::sygusFilterSolMode() == SYGUS_FILTER_SOL_STRONG)
+            if (options::sygusFilterSolMode()
+                == options::SygusFilterSolMode::STRONG)
             {
               d_exprm[prog].enableFilterStrongSolutions();
             }
-            else if (options::sygusFilterSolMode() == SYGUS_FILTER_SOL_WEAK)
+            else if (options::sygusFilterSolMode()
+                     == options::SygusFilterSolMode::WEAK)
             {
               d_exprm[prog].enableFilterWeakSolutions();
             }

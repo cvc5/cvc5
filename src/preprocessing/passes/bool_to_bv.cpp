@@ -72,7 +72,7 @@ bool BoolToBV::needToRebuild(TNode n) const
 
 Node BoolToBV::lowerAssertion(const TNode& a)
 {
-  bool optionITE = options::boolToBitvector() == BOOL_TO_BV_ITE;
+  bool optionITE = options::boolToBitvector() == options::BoolToBVMode::ITE;
   NodeManager* nm = NodeManager::currentNM();
   std::vector<TNode> visit;
   visit.push_back(a);
@@ -166,7 +166,7 @@ void BoolToBV::lowerNode(const TNode& n)
 
   if (!all_bv || (n.getNumChildren() == 0))
   {
-    if ((options::boolToBitvector() == BOOL_TO_BV_ALL)
+    if ((options::boolToBitvector() == options::BoolToBVMode::ALL)
         && n.getType().isBoolean())
     {
       if (k == kind::CONST_BOOLEAN)
@@ -222,7 +222,8 @@ void BoolToBV::lowerNode(const TNode& n)
   }
 
   NodeBuilder<> builder(new_kind);
-  if ((options::boolToBitvector() == BOOL_TO_BV_ALL) && (new_kind != k))
+  if ((options::boolToBitvector() == options::BoolToBVMode::ALL)
+      && (new_kind != k))
   {
     ++(d_statistics.d_numTermsLowered);
   }
@@ -259,7 +260,7 @@ BoolToBV::Statistics::Statistics()
           "preprocessing::passes::BoolToBV::NumTermsForcedLowered", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_numIteToBvite);
-  if (options::boolToBitvector() == BOOL_TO_BV_ALL)
+  if (options::boolToBitvector() == options::BoolToBVMode::ALL)
   {
     // these statistics wouldn't be correct in the ITE mode,
     // because it might discard rebuilt nodes if it fails to
@@ -272,7 +273,7 @@ BoolToBV::Statistics::Statistics()
 BoolToBV::Statistics::~Statistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_numIteToBvite);
-  if (options::boolToBitvector() == BOOL_TO_BV_ALL)
+  if (options::boolToBitvector() == options::BoolToBVMode::ALL)
   {
     smtStatisticsRegistry()->unregisterStat(&d_numTermsLowered);
     smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLowered);
