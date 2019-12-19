@@ -134,7 +134,7 @@ header = "options/smt_options.h"
   name = "literals"
   help = "Block models based on the SAT skeleton."
 [[option.mode.VALUES]]
-  name = "valuels"
+  name = "values"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
