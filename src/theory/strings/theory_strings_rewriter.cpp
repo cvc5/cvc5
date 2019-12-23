@@ -3253,6 +3253,7 @@ Node TheoryStringsRewriter::rewriteStrReverse(Node node)
   }
   else if (x.getKind() == STRING_REV)
   {
+    // rev( rev( x ) ) --> x
     Node retNode = x[0];
     return returnRewrite(node, retNode, "str-rev-idem");
   }
