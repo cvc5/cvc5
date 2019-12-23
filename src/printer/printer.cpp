@@ -77,8 +77,7 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
     return unique_ptr<Printer>(
         new printer::cvc::CvcPrinter(/* cvc3-mode = */ true));
 
-  default:
-    Unhandled(lang);
+  default: Unhandled() << lang;
   }
 }
 

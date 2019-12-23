@@ -436,8 +436,8 @@ Node substituteCaptureAvoiding(TNode n,
   std::vector<TNode> visit;
   TNode curr;
   visit.push_back(n);
-  Assert(src.size() == dest.size(),
-         "Substitution domain and range must be equal size");
+  Assert(src.size() == dest.size())
+      << "Substitution domain and range must be equal size";
   do
   {
     curr = visit.back();

@@ -39,6 +39,13 @@ Node SkolemCache::mkTypedSkolemCached(
   }
   return it->second;
 }
+Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
+                                      Node a,
+                                      SkolemId id,
+                                      const char* c)
+{
+  return mkTypedSkolemCached(tn, a, Node::null(), id, c);
+}
 
 Node SkolemCache::mkTypedSkolem(TypeNode tn, const char* c)
 {

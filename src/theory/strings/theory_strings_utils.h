@@ -56,7 +56,27 @@ void getConcat(Node n, std::vector<Node>& c);
  * Make the concatentation from vector c
  * The kind k is either STRING_CONCAT or REGEXP_CONCAT.
  */
-Node mkConcat(Kind k, std::vector<Node>& c);
+Node mkConcat(Kind k, const std::vector<Node>& c);
+
+/**
+ * Returns the rewritten form of the string concatenation of n1 and n2.
+ */
+Node mkNConcat(Node n1, Node n2);
+
+/**
+ * Returns the rewritten form of the string concatenation of n1, n2 and n3.
+ */
+Node mkNConcat(Node n1, Node n2, Node n3);
+
+/**
+ * Returns the rewritten form of the string concatenation of nodes in c.
+ */
+Node mkNConcat(const std::vector<Node>& c);
+
+/**
+ * Returns the rewritten form of the length of string term t.
+ */
+Node mkNLength(Node t);
 
 /**
  * Get constant component. Returns the string constant represented by the

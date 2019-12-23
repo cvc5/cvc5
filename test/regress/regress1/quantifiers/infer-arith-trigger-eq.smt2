@@ -1,5 +1,3 @@
-; COMMAND-LINE: --infer-arith-trigger-eq
-; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic UFLIA)
 (set-info :status unsat)

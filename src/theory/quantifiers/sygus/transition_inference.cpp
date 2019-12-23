@@ -186,6 +186,13 @@ void TransitionInference::getConstantSubstitution(
   }
 }
 
+void TransitionInference::process(Node n, Node f)
+{
+  // set the function
+  d_func = f;
+  process(n);
+}
+
 void TransitionInference::process(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -404,10 +411,14 @@ bool TransitionInference::processDisjunct(
   // if another part mentions UF or a free variable, then fail
   bool lit_pol = n.getKind() != NOT;
   Node lit = n.getKind() == NOT ? n[0] : n;
-  if (lit.getKind() == APPLY_UF)
+  // is it an application of the function-to-synthesize? Yes if we haven't
+  // encountered a function or if it matches the existing d_func.
+  if (lit.getKind() == APPLY_UF
+      && (d_func.isNull() || lit.getOperator() == d_func))
   {
     Node op = lit.getOperator();
-    if (d_func.isNull())
+    // initialize the variables
+    if (d_vars.empty())
     {
       d_func = op;
       Trace("cegqi-inv-debug") << "Use " << op << " with args ";
@@ -420,13 +431,8 @@ bool TransitionInference::processDisjunct(
       }
       Trace("cegqi-inv-debug") << std::endl;
     }
-    if (op != d_func)
-    {
-      Trace("cegqi-inv-debug")
-          << "...failed, free function : " << n << std::endl;
-      return false;
-    }
-    else if (topLevel)
+    Assert(!d_func.isNull());
+    if (topLevel)
     {
       if (terms.find(lit_pol) == terms.end())
       {

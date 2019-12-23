@@ -17,7 +17,6 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "util/random.h"
@@ -30,7 +29,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnifRl::SygusUnifRl(SynthConjecture* p) : d_parent(p) {}
+SygusUnifRl::SygusUnifRl(SynthConjecture* p)
+    : d_parent(p), d_useCondPool(false), d_useCondPoolIGain(false)
+{
+}
 SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initializeCandidate(
     QuantifiersEngine* qe,
@@ -58,6 +60,11 @@ void SygusUnifRl::initializeCandidate(
     d_cand_to_eval_hds[f].clear();
     d_cand_to_hd_count[f] = 0;
   }
+  // check whether we are using condition enumeration
+  options::SygusUnifPiMode mode = options::sygusUnifPi();
+  d_useCondPool = mode == options::SygusUnifPiMode::CENUM
+                  || mode == options::SygusUnifPiMode::CENUM_IGAIN;
+  d_useCondPoolIGain = mode == options::SygusUnifPiMode::CENUM_IGAIN;
 }
 
 void SygusUnifRl::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
@@ -106,7 +113,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       {
         TNode cand = n[0];
         Node tmp = n.substitute(cand, it->second);
-        nv = d_tds->evaluateWithUnfolding(tmp);
+        // should be concrete, can just use the rewriter
+        nv = Rewriter::rewrite(tmp);
         Trace("sygus-unif-rl-purify")
             << "PurifyLemma : model value for " << tmp << " is " << nv << "\n";
       }
@@ -348,8 +356,7 @@ Node SygusUnifRl::constructSol(
   }
   EnumTypeInfoStrat* etis = snode.d_strats[itd->second.getStrategyIndex()];
   Node sol = itd->second.buildSol(etis->d_cons, lemmas);
-  Assert(options::sygusUnifCondIndependent() || !sol.isNull()
-         || !lemmas.empty());
+  Assert(d_useCondPool || !sol.isNull() || !lemmas.empty());
   return sol;
 }
 
@@ -386,6 +393,11 @@ std::vector<Node> SygusUnifRl::getEvalPointHeads(Node c)
   return it->second;
 }
 
+bool SygusUnifRl::usingConditionPool() const { return d_useCondPool; }
+bool SygusUnifRl::usingConditionPoolInfoGain() const
+{
+  return d_useCondPoolIGain;
+}
 void SygusUnifRl::registerStrategy(
     Node f,
     std::vector<Node>& enums,
@@ -516,7 +528,7 @@ void SygusUnifRl::DecisionTreeInfo::setConditions(
   d_enums.insert(d_enums.end(), enums.begin(), enums.end());
   d_conds.insert(d_conds.end(), conds.begin(), conds.end());
   // add to condition pool
-  if (options::sygusUnifCondIndependent())
+  if (d_unif->usingConditionPool())
   {
     d_cond_mvs.insert(conds.begin(), conds.end());
     if (Trace.isOn("sygus-unif-cond-pool"))
@@ -552,8 +564,8 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
                           << " conditions..." << std::endl;
   // reset the trie
   d_pt_sep.d_trie.clear();
-  return options::sygusUnifCondIndependent() ? buildSolAllCond(cons, lemmas)
-                                             : buildSolMinCond(cons, lemmas);
+  return d_unif->usingConditionPool() ? buildSolAllCond(cons, lemmas)
+                                      : buildSolMinCond(cons, lemmas);
 }
 
 Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
@@ -792,6 +804,65 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       // this violates the invariant that the i^th conditional enumerator
       // resolves the i^th separation conflict
       exp_conflict = true;
+      SygusTypeInfo& ti = d_unif->d_tds->getTypeInfo(ce.getType());
+      // The reasoning below is only necessary if we use symbolic constructors.
+      if (!ti.hasSubtermSymbolicCons())
+      {
+        break;
+      }
+      // Since the explanation of the condition (c_exp above) does not account
+      // for builtin subterms, we additionally require that the valuation of
+      // the condition is indeed different on the two points.
+      // For example, say ce has model value equal to the SyGuS datatype term:
+      //   C_leq_xy( 0, 1 )
+      // where C_leq_xy is a SyGuS datatype constructor taking two integer
+      // constants c_x and c_y, and whose builtin version is:
+      //   (0*x + 1*y >= 0)
+      // Then, c_exp above is:
+      //   is-C_leq_xy( ce )
+      // which is added to our explanation of the conflict, which does not
+      // account for the values of the arguments of C_leq_xy.
+      // Now, say that we are in a separation conflict due to f(1,2) and f(2,3)
+      // being assigned different values; the value of ce does not separate
+      // these two terms since:
+      //   (y>=0) { x -> 1, y -> 2 } = (y>=0) { x -> 2, y -> 3 } = true
+      // The code below adds a constraint that states that the above values are
+      // the same, which is part of the reason for the conflict. In the above
+      // example, we generate:
+      //   (DT_SYGUS_EVAL ce 1 2) == (DT_SYGUS_EVAL ce 2 3) { ce -> M(ce) }
+      // which unfolds via the SygusEvalUnfold utility to:
+      //   ( (c_x ce)*1 + (c_y ce)*2 >= 0 ) == ( (c_x ce)*2 + (c_y ce)*3 >= 0 )
+      // where c_x and c_y are the selectors of the subfields of C_leq_xy.
+      Trace("sygus-unif-sol-sym")
+          << "Explain symbolic separation conflict" << std::endl;
+      std::map<Node, std::vector<Node>>::iterator ith;
+      Node ceApp[2];
+      SygusEvalUnfold* eunf = d_unif->d_tds->getEvalUnfold();
+      std::map<Node, Node> vtm;
+      vtm[ce] = cv;
+      Trace("sygus-unif-sol-sym")
+          << "Model value for " << ce << " is " << cv << std::endl;
+      for (unsigned r = 0; r < 2; r++)
+      {
+        std::vector<Node> cechildren;
+        cechildren.push_back(ce);
+        Node ecurr = r == 0 ? e : er;
+        ith = d_unif->d_hd_to_pt.find(ecurr);
+        AlwaysAssert(ith != d_unif->d_hd_to_pt.end());
+        cechildren.insert(
+            cechildren.end(), ith->second.begin(), ith->second.end());
+        Node cea = nm->mkNode(DT_SYGUS_EVAL, cechildren);
+        Trace("sygus-unif-sol-sym")
+            << "Sep conflict app #" << r << " : " << cea << std::endl;
+        std::vector<Node> tmpExp;
+        cea = eunf->unfold(cea, vtm, tmpExp, true, true);
+        Trace("sygus-unif-sol-sym") << "Unfolded to : " << cea << std::endl;
+        ceApp[r] = cea;
+      }
+      Node ceAppEq = ceApp[0].eqNode(ceApp[1]);
+      Trace("sygus-unif-sol-sym")
+          << "Sep conflict app explanation is : " << ceAppEq << std::endl;
+      exp.push_back(ceAppEq);
       break;
     }
     Trace("sygus-unif-sol")
@@ -840,7 +911,7 @@ Node SygusUnifRl::DecisionTreeInfo::extractSol(Node cons,
                                                std::map<Node, Node>& hd_mv)
 {
   // rebuild decision tree using heuristic learning
-  if (options::sygusUnifBooleanHeuristicDt())
+  if (d_unif->usingConditionPoolInfoGain())
   {
     recomputeSolHeuristically(hd_mv);
   }

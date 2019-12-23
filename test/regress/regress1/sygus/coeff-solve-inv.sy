@@ -1,0 +1,29 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status --sygus-repair-const --lang=sygus2
+(set-logic LIA)
+
+(synth-inv inv-f ((x Int) (y Int)) )
+
+
+(define-fun pre-f ((x Int) (y Int)) Bool
+  (and 
+    (= x 0)
+    (= y 100)
+  )
+)
+
+(define-fun trans-f ((x Int) (y Int) (x! Int) (y! Int)) Bool
+  (and
+    (< x 100)
+    (= x! (+ x 1))
+    (= y! (+ y 1))
+  )
+)
+
+(define-fun post-f ((x Int) (y Int)) Bool 
+  (=> (>= x 100) (>= y 200))
+)
+
+(inv-constraint inv-f pre-f trans-f post-f)
+
+(check-synth)

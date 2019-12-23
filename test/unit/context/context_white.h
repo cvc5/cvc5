@@ -16,9 +16,9 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "base/cvc4_assert.h"
-#include "context/context.h"
+#include "base/check.h"
 #include "context/cdo.h"
+#include "context/context.h"
 
 using namespace std;
 using namespace CVC4;

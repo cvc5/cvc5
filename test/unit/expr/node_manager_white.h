@@ -19,6 +19,7 @@
 #include <string>
 
 #include "expr/node_manager.h"
+#include "test_utils.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
@@ -57,7 +58,7 @@ class NodeManagerWhite : public CxxTest::TestSuite {
     TS_ASSERT_THROWS_NOTHING(nb.realloc(25));
     TS_ASSERT_THROWS_NOTHING(nb.realloc(256));
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.realloc(100), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb.realloc(100));
 #endif /* CVC4_ASSERTIONS */
     TS_ASSERT_THROWS_NOTHING(nb.realloc(257));
     TS_ASSERT_THROWS_NOTHING(nb.realloc(4000));
@@ -67,7 +68,7 @@ class NodeManagerWhite : public CxxTest::TestSuite {
     TS_ASSERT_THROWS_NOTHING(nb.realloc(65536));
     TS_ASSERT_THROWS_NOTHING(nb.realloc(67108863));
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.realloc(67108863), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb.realloc(67108863));
 #endif /* CVC4_ASSERTIONS */
   }
 

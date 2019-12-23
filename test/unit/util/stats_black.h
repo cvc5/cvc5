@@ -46,8 +46,8 @@ public:
     // StatisticsRegistry
     //static void flushStatistics(std::ostream& out);
 
-    //static inline void registerStat(Stat* s) throw (AssertionException);
-    //static inline void unregisterStat(Stat* s) throw (AssertionException);
+    // static inline void registerStat(Stat* s);
+    // static inline void unregisterStat(Stat* s);
 
     string empty, bar = "bar", baz = "baz";
     ReferenceStat<string> refStr("stat #1", empty);

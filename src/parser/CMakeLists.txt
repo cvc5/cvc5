@@ -98,7 +98,7 @@ target_link_libraries(cvc4parser cvc4 ${ANTLR_LIBRARIES})
 target_include_directories(cvc4parser PRIVATE ${ANTLR_INCLUDE_DIR})
 install(TARGETS cvc4parser
   EXPORT cvc4-targets
-  DESTINATION lib)
+  DESTINATION ${LIBRARY_INSTALL_DIR})
 
 # The generated lexer/parser files define some functions as
 # __declspec(dllexport) via the ANTLR3_API macro, which leads to lots of

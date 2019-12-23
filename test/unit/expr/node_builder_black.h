@@ -20,11 +20,12 @@
 #include <limits.h>
 #include <sstream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
+#include "test_utils.h"
 #include "util/rational.h"
 
 using namespace CVC4;
@@ -90,9 +91,9 @@ private:
     NodeBuilder<> def;
     TS_ASSERT_EQUALS(def.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(def.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(def.begin(), AssertionException&);
-    TS_ASSERT_THROWS(def.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(def.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(def.begin());
+    TS_UTILS_EXPECT_ABORT(def.end());
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> spec(specKind);
@@ -104,9 +105,9 @@ private:
     NodeBuilder<> from_nm(d_nm);
     TS_ASSERT_EQUALS(from_nm.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(from_nm.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(from_nm.begin(), AssertionException&);
-    TS_ASSERT_THROWS(from_nm.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(from_nm.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(from_nm.begin());
+    TS_UTILS_EXPECT_ABORT(from_nm.end());
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> from_nm_kind(d_nm, specKind);
@@ -120,9 +121,9 @@ private:
     NodeBuilder<K> ws;
     TS_ASSERT_EQUALS(ws.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(ws.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(ws.begin(), AssertionException&);
-    TS_ASSERT_THROWS(ws.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(ws.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(ws.begin());
+    TS_UTILS_EXPECT_ABORT(ws.end());
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K> ws_kind(specKind);
@@ -134,9 +135,9 @@ private:
     NodeBuilder<K> ws_from_nm(d_nm);
     TS_ASSERT_EQUALS(ws_from_nm.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(ws_from_nm.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(ws_from_nm.begin(), AssertionException&);
-    TS_ASSERT_THROWS(ws_from_nm.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(ws_from_nm.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(ws_from_nm.begin());
+    TS_UTILS_EXPECT_ABORT(ws_from_nm.end());
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K> ws_from_nm_kind(d_nm, specKind);
@@ -158,33 +159,33 @@ private:
     NodeBuilder<> copy(def);
     TS_ASSERT_EQUALS(copy.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(copy.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(copy.begin(), AssertionException&);
-    TS_ASSERT_THROWS(copy.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(copy.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(copy.begin());
+    TS_UTILS_EXPECT_ABORT(copy.end());
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K> cp_ws(ws);
     TS_ASSERT_EQUALS(cp_ws.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(cp_ws.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(cp_ws.begin(), AssertionException&);
-    TS_ASSERT_THROWS(cp_ws.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(cp_ws.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(cp_ws.begin());
+    TS_UTILS_EXPECT_ABORT(cp_ws.end());
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K-10> cp_from_larger(ws);
     TS_ASSERT_EQUALS(cp_from_larger.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(cp_from_larger.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(cp_from_larger.begin(), AssertionException&);
-    TS_ASSERT_THROWS(cp_from_larger.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(cp_from_larger.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(cp_from_larger.begin());
+    TS_UTILS_EXPECT_ABORT(cp_from_larger.end());
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K+10> cp_from_smaller(ws);
     TS_ASSERT_EQUALS(cp_from_smaller.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(cp_from_smaller.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(cp_from_smaller.begin(), AssertionException&);
-    TS_ASSERT_THROWS(cp_from_smaller.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(cp_from_smaller.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(cp_from_smaller.begin());
+    TS_UTILS_EXPECT_ABORT(cp_from_smaller.end());
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -282,7 +283,7 @@ private:
     Node n = noKind;
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(noKind.getKind(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(noKind.getKind());
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> spec(PLUS);
@@ -297,7 +298,7 @@ private:
 
     NodeBuilder<> nb;
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb.getNumChildren());
 #endif /* CVC4_ASSERTIONS */
     nb << PLUS << x << x;
 
@@ -309,7 +310,7 @@ private:
     Node n = nb;// avoid warning on clear()
     nb.clear();
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb.getNumChildren());
 #endif /* CVC4_ASSERTIONS */
     nb.clear(PLUS);
     TS_ASSERT_EQUALS(nb.getNumChildren(), 0u);
@@ -321,16 +322,16 @@ private:
     TS_ASSERT_EQUALS(nb.getNumChildren(), 6u);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb << PLUS, AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb << PLUS);
     n = nb;
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb.getNumChildren());
 #endif /* CVC4_ASSERTIONS */
   }
 
   void testOperatorSquare() {
     /*
       Node operator[](int i) const {
-      Assert(i >= 0 && i < d_ev->getNumChildren());
+      TS_ASSERT(i >= 0 && i < d_ev->getNumChildren());
       return Node(d_ev->d_children[i]);
       }
     */
@@ -341,8 +342,8 @@ private:
     Node i_K = d_nm->mkNode(NOT, i_0);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(arr[-1], AssertionException&);
-    TS_ASSERT_THROWS(arr[0], AssertionException&);
+    TS_UTILS_EXPECT_ABORT(arr[-1]);
+    TS_UTILS_EXPECT_ABORT(arr[0]);
 #endif /* CVC4_ASSERTIONS */
 
     arr << i_0;
@@ -375,7 +376,7 @@ private:
 
 #ifdef CVC4_ASSERTIONS
     Node n = arr;
-    TS_ASSERT_THROWS(arr[0], AssertionException&);
+    TS_UTILS_EXPECT_ABORT(arr[0]);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -385,9 +386,9 @@ private:
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(nb.begin(), AssertionException&);
-    TS_ASSERT_THROWS(nb.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(nb.begin());
+    TS_UTILS_EXPECT_ABORT(nb.end());
 #endif /* CVC4_ASSERTIONS */
 
     nb << specKind;
@@ -402,9 +403,9 @@ private:
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(nb.begin(), AssertionException&);
-    TS_ASSERT_THROWS(nb.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(nb.begin());
+    TS_UTILS_EXPECT_ABORT(nb.end());
 #endif /* CVC4_ASSERTIONS */
 
     nb << specKind;
@@ -427,9 +428,9 @@ private:
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
-    TS_ASSERT_THROWS(nb.begin(), AssertionException&);
-    TS_ASSERT_THROWS(nb.end(), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb.getNumChildren());
+    TS_UTILS_EXPECT_ABORT(nb.begin());
+    TS_UTILS_EXPECT_ABORT(nb.end());
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -438,7 +439,7 @@ private:
 
 #ifdef CVC4_ASSERTIONS
     NodeBuilder<> spec(specKind);
-    TS_ASSERT_THROWS(spec << PLUS, AssertionException&);
+    TS_UTILS_EXPECT_ABORT(spec << PLUS);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> noSpec;
@@ -457,12 +458,12 @@ private:
     nb.clear(PLUS);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(n = nb, AssertionException&);
+    TS_UTILS_EXPECT_ABORT(n = nb);
     nb.clear(PLUS);
 #endif /* CVC4_ASSERTIONS */
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb << PLUS, AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb << PLUS);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> testRef;
@@ -470,7 +471,7 @@ private:
 
 #ifdef CVC4_ASSERTIONS
     NodeBuilder<> testTwo;
-    TS_ASSERT_THROWS(testTwo << specKind << PLUS, AssertionException&);
+    TS_UTILS_EXPECT_ABORT(testTwo << specKind << PLUS);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> testMixOrder1;
@@ -494,7 +495,7 @@ private:
 
 #ifdef CVC4_ASSERTIONS
     Node n = nb;
-    TS_ASSERT_THROWS(nb << n, AssertionException&);
+    TS_UTILS_EXPECT_ABORT(nb << n);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> overflow(specKind);
@@ -527,7 +528,7 @@ private:
     Node q = d_nm->mkNode(AND, x, z, d_nm->mkNode(NOT, y));
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(d_nm->mkNode(XOR, y, x, x), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(d_nm->mkNode(XOR, y, x, x));
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> b(specKind);
@@ -588,7 +589,7 @@ private:
     TS_ASSERT_EQUALS(nexplicit.getNumChildren(), K);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(Node blah = implicit, AssertionException&);
+    TS_UTILS_EXPECT_ABORT(Node blah = implicit);
 #endif /* CVC4_ASSERTIONS */
   }
 

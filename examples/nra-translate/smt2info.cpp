@@ -21,12 +21,8 @@
 #include <typeinfo>
 #include <vector>
 
-#include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "options/options.h"
-#include "parser/parser.h"
-#include "parser/parser_builder.h"
-#include "smt/command.h"
+#include <cvc4/api/cvc4cpp.h>
+#include <cvc4/cvc4.h>
 
 using namespace std;
 using namespace CVC4;

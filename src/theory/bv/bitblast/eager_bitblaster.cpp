@@ -42,7 +42,7 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
   prop::SatSolver *solver = nullptr;
   switch (options::bvSatSolver())
   {
-    case SAT_SOLVER_MINISAT:
+    case options::SatSolverMode::MINISAT:
     {
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
@@ -52,15 +52,15 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
       solver = minisat;
       break;
     }
-    case SAT_SOLVER_CADICAL:
+    case options::SatSolverMode::CADICAL:
       solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
                                                      "EagerBitblaster");
       break;
-    case SAT_SOLVER_CRYPTOMINISAT:
+    case options::SatSolverMode::CRYPTOMINISAT:
       solver = prop::SatSolverFactory::createCryptoMinisat(
           smtStatisticsRegistry(), "EagerBitblaster");
       break;
-    default: Unreachable("Unknown SAT solver type");
+    default: Unreachable() << "Unknown SAT solver type";
   }
   d_satSolver.reset(solver);
   d_cnfStream.reset(
@@ -120,7 +120,7 @@ void EagerBitblaster::bbAtom(TNode node)
   Node atom_definition =
       NodeManager::currentNM()->mkNode(kind::EQUAL, node, atom_bb);
 
-  AlwaysAssert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER);
+  AlwaysAssert(options::bitblastMode() == options::BitblastMode::EAGER);
   storeBBAtom(node, atom_bb);
   d_cnfStream->convertAndAssert(
       atom_definition, false, false, RULE_INVALID, TNode::null());

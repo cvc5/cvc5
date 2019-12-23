@@ -83,7 +83,7 @@ public:
   /** Check satisfiability under assumptions */
   virtual SatValue solve(const std::vector<SatLiteral>& assumptions)
   {
-    Unimplemented("Solving under assumptions not implemented");
+    Unimplemented() << "Solving under assumptions not implemented";
   };
 
   /** Interrupt the solver */

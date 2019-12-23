@@ -257,7 +257,7 @@ public:
 
   /** Sets the focusDirection. */
   void setFocusDirection(int fd){
-    Assert(-1 <= fd  && fd <= 1);
+    Assert(-1 <= fd && fd <= 1);
     d_focusDirection = fd;
     updateWitness();
   }

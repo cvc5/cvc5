@@ -16,6 +16,8 @@
 
 #include "theory/strings/theory_strings_utils.h"
 
+#include "theory/rewriter.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -101,12 +103,34 @@ void getConcat(Node n, std::vector<Node>& c)
   }
 }
 
-Node mkConcat(Kind k, std::vector<Node>& c)
+Node mkConcat(Kind k, const std::vector<Node>& c)
 {
   Assert(!c.empty() || k == STRING_CONCAT);
   NodeManager* nm = NodeManager::currentNM();
   return c.size() > 1 ? nm->mkNode(k, c)
                       : (c.size() == 1 ? c[0] : nm->mkConst(String("")));
+}
+
+Node mkNConcat(Node n1, Node n2)
+{
+  return Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2));
+}
+
+Node mkNConcat(Node n1, Node n2, Node n3)
+{
+  return Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(STRING_CONCAT, n1, n2, n3));
+}
+
+Node mkNConcat(const std::vector<Node>& c)
+{
+  return Rewriter::rewrite(mkConcat(STRING_CONCAT, c));
+}
+
+Node mkNLength(Node t)
+{
+  return Rewriter::rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, t));
 }
 
 Node getConstantComponent(Node t)

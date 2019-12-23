@@ -22,7 +22,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/node.h"
 

@@ -375,7 +375,7 @@ bool EqualityEngine::hasTerm(TNode t) const {
 }
 
 EqualityNodeId EqualityEngine::getNodeId(TNode node) const {
-  Assert(hasTerm(node), node.toString().c_str());
+  Assert(hasTerm(node)) << node;
   return (*d_nodeIds.find(node)).second;
 }
 
@@ -417,7 +417,7 @@ void EqualityEngine::assertEqualityInternal(TNode t1, TNode t2, TNode reason, un
 
 void EqualityEngine::assertPredicate(TNode t, bool polarity, TNode reason, unsigned pid) {
   Debug("equality") << d_name << "::eq::addPredicate(" << t << "," << (polarity ? "true" : "false") << ")" << std::endl;
-  Assert(t.getKind() != kind::EQUAL, "Use assertEquality instead");
+  Assert(t.getKind() != kind::EQUAL) << "Use assertEquality instead";
   assertEqualityInternal(t, polarity ? d_true : d_false, reason, pid);
   propagate();
 }
@@ -556,8 +556,9 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   // Check for constant merges
   bool class1isConstant = d_isConstant[class1Id];
   bool class2isConstant = d_isConstant[class2Id];
-  Assert(class1isConstant || !class2isConstant, "Should always merge into constants");
-  Assert(!class1isConstant || !class2isConstant, "Don't merge constants");
+  Assert(class1isConstant || !class2isConstant)
+      << "Should always merge into constants";
+  Assert(!class1isConstant || !class2isConstant) << "Don't merge constants";
 
   // Trigger set of class 1
   TriggerTermSetRef class1triggerRef = d_nodeIndividualTrigger[class1Id];
@@ -884,7 +885,8 @@ void EqualityEngine::backtrack() {
   if (d_deducedDisequalities.size() > d_deducedDisequalitiesSize) {
     for(int i = d_deducedDisequalities.size() - 1, i_end = (int)d_deducedDisequalitiesSize; i >= i_end; -- i) {
       EqualityPair pair = d_deducedDisequalities[i];
-      Assert(d_disequalityReasonsMap.find(pair) != d_disequalityReasonsMap.end());
+      Assert(d_disequalityReasonsMap.find(pair)
+             != d_disequalityReasonsMap.end());
       // Remove from the map
       d_disequalityReasonsMap.erase(pair);
       std::swap(pair.first, pair.second);
@@ -934,7 +936,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
                   << ", proof = " << (eqp ? "ON" : "OFF") << std::endl;
 
   // The terms must be there already
-  Assert(hasTerm(t1) && hasTerm(t2));;
+  Assert(hasTerm(t1) && hasTerm(t2));
+  ;
 
   // Get the ids
   EqualityNodeId t1Id = getNodeId(t1);
@@ -952,7 +955,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
 
     // Get the reason for this disequality
     EqualityPair pair(t1Id, t2Id);
-    Assert(d_disequalityReasonsMap.find(pair) != d_disequalityReasonsMap.end(), "Don't ask for stuff I didn't notify you about");
+    Assert(d_disequalityReasonsMap.find(pair) != d_disequalityReasonsMap.end())
+        << "Don't ask for stuff I didn't notify you about";
     DisequalityReasonRef reasonRef = d_disequalityReasonsMap.find(pair)->second;
 
     for (unsigned i = reasonRef.mergesStart; i < reasonRef.mergesEnd; ++ i) {
@@ -1219,7 +1223,8 @@ void EqualityEngine::getExplanation(
                       eqpc->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_1, d_nodes[f1.b]);
                       // The first child is a PARTIAL_SELECT_0.
                       // Give it a child so that we know what kind of (read) it is, when we dump to LFSC.
-                      Assert(eqpc->d_children[0]->d_node.getKind() == kind::PARTIAL_SELECT_0);
+                      Assert(eqpc->d_children[0]->d_node.getKind()
+                             == kind::PARTIAL_SELECT_0);
                       Assert(eqpc->d_children[0]->d_children.size() == 0);
 
                       eqpc->d_children[0]->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_0,
@@ -1241,7 +1246,7 @@ void EqualityEngine::getExplanation(
               Debug("equality") << d_name << "::eq::getExplanation(): due to reflexivity, going deeper" << std::endl;
               EqualityNodeId eqId = currentNode == d_trueId ? edgeNode : currentNode;
               const FunctionApplication& eq = d_applications[eqId].original;
-              Assert(eq.isEquality(), "Must be an equality");
+              Assert(eq.isEquality()) << "Must be an equality";
 
               // Explain why a = b constant
               Debug("equality") << push;
@@ -1416,8 +1421,10 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
 }
 
 void EqualityEngine::addTriggerPredicate(TNode predicate) {
-  Assert(predicate.getKind() != kind::NOT && predicate.getKind() != kind::EQUAL);
-  Assert(d_congruenceKinds.tst(predicate.getKind()), "No point in adding non-congruence predicates");
+  Assert(predicate.getKind() != kind::NOT
+         && predicate.getKind() != kind::EQUAL);
+  Assert(d_congruenceKinds.tst(predicate.getKind()))
+      << "No point in adding non-congruence predicates";
 
   if (d_done) {
     return;
@@ -1811,7 +1818,8 @@ size_t EqualityEngine::getSize(TNode t) {
 
 void EqualityEngine::addPathReconstructionTrigger(unsigned trigger, const PathReconstructionNotify* notify) {
   // Currently we can only inform one callback per trigger
-  Assert(d_pathReconstructionTriggers.find(trigger) == d_pathReconstructionTriggers.end());
+  Assert(d_pathReconstructionTriggers.find(trigger)
+         == d_pathReconstructionTriggers.end());
   d_pathReconstructionTriggers[trigger] = notify;
 }
 
@@ -1993,7 +2001,7 @@ bool EqualityEngine::hasPropagatedDisequality(EqualityNodeId lhsId, EqualityNode
   bool propagated = d_propagatedDisequalities.find(eq) != d_propagatedDisequalities.end();
 #ifdef CVC4_ASSERTIONS
   bool stored = d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end();
-  Assert(propagated == stored, "These two should be in sync");
+  Assert(propagated == stored) << "These two should be in sync";
 #endif
   Debug("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => " << (propagated ? "true" : "false") << std::endl;
   return propagated;
@@ -2005,11 +2013,13 @@ bool EqualityEngine::hasPropagatedDisequality(TheoryId tag, EqualityNodeId lhsId
 
   PropagatedDisequalitiesMap::const_iterator it = d_propagatedDisequalities.find(eq);
   if (it == d_propagatedDisequalities.end()) {
-    Assert(d_disequalityReasonsMap.find(eq) == d_disequalityReasonsMap.end(), "Why do we have a proof if not propagated");
+    Assert(d_disequalityReasonsMap.find(eq) == d_disequalityReasonsMap.end())
+        << "Why do we have a proof if not propagated";
     Debug("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => false" << std::endl;
     return false;
   }
-  Assert(d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end(), "We propagated but there is no proof");
+  Assert(d_disequalityReasonsMap.find(eq) != d_disequalityReasonsMap.end())
+      << "We propagated but there is no proof";
   bool result = Theory::setContains(tag, (*it).second);
   Debug("equality::disequality") << d_name << "::eq::hasPropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ") => " << (result ? "true" : "false") << std::endl;
   return result;
@@ -2017,9 +2027,9 @@ bool EqualityEngine::hasPropagatedDisequality(TheoryId tag, EqualityNodeId lhsId
 
 
 void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhsId, EqualityNodeId rhsId) {
-
-  Assert(!hasPropagatedDisequality(tag, lhsId, rhsId), "Check before you store it");
-  Assert(lhsId != rhsId, "Wow, wtf!");
+  Assert(!hasPropagatedDisequality(tag, lhsId, rhsId))
+      << "Check before you store it";
+  Assert(lhsId != rhsId) << "Wow, wtf!";
 
   Debug("equality::disequality") << d_name << "::eq::storePropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << ")" << std::endl;
 
@@ -2040,12 +2050,15 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
   // Store the proof if provided
   if (d_deducedDisequalityReasons.size() > d_deducedDisequalityReasonsSize) {
     Debug("equality::disequality") << d_name << "::eq::storePropagatedDisequality(" << tag << ", " << d_nodes[lhsId] << ", " << d_nodes[rhsId] << "): storing proof" << std::endl;
-    Assert(d_disequalityReasonsMap.find(pair1) == d_disequalityReasonsMap.end(), "There can't be a proof if you're adding a new one");
+    Assert(d_disequalityReasonsMap.find(pair1) == d_disequalityReasonsMap.end())
+        << "There can't be a proof if you're adding a new one";
     DisequalityReasonRef ref(d_deducedDisequalityReasonsSize, d_deducedDisequalityReasons.size());
 #ifdef CVC4_ASSERTIONS
     // Check that the reasons are valid
     for (unsigned i = ref.mergesStart; i < ref.mergesEnd; ++ i) {
-      Assert(getEqualityNode(d_deducedDisequalityReasons[i].first).getFind() == getEqualityNode(d_deducedDisequalityReasons[i].second).getFind());
+      Assert(
+          getEqualityNode(d_deducedDisequalityReasons[i].first).getFind()
+          == getEqualityNode(d_deducedDisequalityReasons[i].second).getFind());
     }
 #endif
     if (Debug.isOn("equality::disequality")) {
@@ -2065,7 +2078,8 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
     d_disequalityReasonsMap[pair1] = ref;
     d_disequalityReasonsMap[pair2] = ref;
   } else {
-    Assert(d_disequalityReasonsMap.find(pair1) != d_disequalityReasonsMap.end(), "You must provide a proof initially");
+    Assert(d_disequalityReasonsMap.find(pair1) != d_disequalityReasonsMap.end())
+        << "You must provide a proof initially";
   }
 }
 
@@ -2073,7 +2087,11 @@ void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classI
   // Must be empty on input
   Assert(out.size() == 0);
   // The class we are looking for, shouldn't have any of the tags we are looking for already set
-  Assert(d_nodeIndividualTrigger[classId] == null_set_id || Theory::setIntersection(getTriggerTermSet(d_nodeIndividualTrigger[classId]).tags, inputTags) == 0);
+  Assert(d_nodeIndividualTrigger[classId] == null_set_id
+         || Theory::setIntersection(
+                getTriggerTermSet(d_nodeIndividualTrigger[classId]).tags,
+                inputTags)
+                == 0);
 
   if (inputTags == 0) {
     return;
@@ -2259,7 +2277,7 @@ EqClassIterator::EqClassIterator(Node eqc, const eq::EqualityEngine* ee)
   Assert(d_ee->consistent());
   d_current = d_start = d_ee->getNodeId(eqc);
   Assert(d_start == d_ee->getEqualityNode(d_start).getFind());
-  Assert (!d_ee->d_isInternal[d_start]);
+  Assert(!d_ee->d_isInternal[d_start]);
 }
 
 Node EqClassIterator::operator*() const {

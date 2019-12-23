@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/solver_state.h"
 #include "util/regexp.h"
 
 namespace CVC4 {
@@ -44,6 +45,7 @@ class RegExpSolver
 
  public:
   RegExpSolver(TheoryStrings& p,
+               SolverState& s,
                InferenceManager& im,
                context::Context* c,
                context::UserContext* u);
@@ -100,10 +102,22 @@ class RegExpSolver
   Node d_false;
   /** the parent of this object */
   TheoryStrings& d_parent;
+  /** The solver state of the parent of this object */
+  SolverState& d_state;
   /** the output channel of the parent of this object */
   InferenceManager& d_im;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
+  /**
+   * Check partial derivative
+   *
+   * Returns false if a lemma pertaining to checking the partial derivative
+   * of x in r was added. In this case, addedLemma is updated to true.
+   *
+   * The argument atom is the assertion that explains x in r, which is the
+   * normalized form of atom that may be modified using a substitution whose
+   * explanation is nf_exp.
+   */
   bool checkPDerivative(
       Node x, Node r, Node atom, bool& addedLemma, std::vector<Node>& nf_exp);
   Node getMembership(Node n, bool isPos, unsigned i);

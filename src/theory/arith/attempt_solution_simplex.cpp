@@ -78,7 +78,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     }
   }
   d_errorSet.reduceToSignals();
-  d_errorSet.setSelectionRule(VAR_ORDER);
+  d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
 
   static int instance = 0;
   ++instance;
@@ -138,7 +138,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
       return Result::UNSAT;
     }
   }
-  Assert( d_conflictVariables.empty() );
+  Assert(d_conflictVariables.empty());
 
   if(d_errorSet.errorEmpty()){
     return Result::SAT;

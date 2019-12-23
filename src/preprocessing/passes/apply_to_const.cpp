@@ -67,12 +67,11 @@ Node ApplyToConst::rewriteApplyToConst(TNode n, NodeMap& cache)
       Trace("rewriteApplyToConst") << "made :: " << newvar << std::endl;
       return newvar;
     }
-    stringstream ss;
-    ss << "The rewrite-apply-to-const preprocessor is currently limited;\n"
-       << "it only works if all function symbols are unary and with Integer\n"
-       << "domain, and all applications are to integer values.\n"
-       << "Found application: " << n;
-    Unhandled(ss.str());
+    Unhandled()
+        << "The rewrite-apply-to-const preprocessor is currently limited;\n"
+        << "it only works if all function symbols are unary and with Integer\n"
+        << "domain, and all applications are to integer values.\n"
+        << "Found application: " << n;
   }
 
   NodeBuilder<> builder(n.getKind());

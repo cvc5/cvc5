@@ -195,8 +195,9 @@ public:
 
   // Get accessor functions.
   InputLanguage getInputLanguage() const;
-  InstFormatMode getInstFormatMode() const;
+  options::InstFormatMode getInstFormatMode() const;
   OutputLanguage getOutputLanguage() const;
+  bool getUfHo() const;
   bool getCheckProofs() const;
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
@@ -227,7 +228,6 @@ public:
   bool getVersion() const;
   bool getWaitToJoin() const;
   const std::string& getForceLogicString() const;
-  const std::vector<std::string>& getThreadArgv() const;
   int getVerbosity() const;
   std::istream* getIn() const;
   std::ostream* getErr();

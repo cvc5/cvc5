@@ -19,7 +19,7 @@
 #include <iostream>
 #include <vector>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"

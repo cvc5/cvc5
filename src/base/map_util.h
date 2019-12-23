@@ -38,7 +38,7 @@
 #ifndef CVC4__BASE__MAP_UTIL_H
 #define CVC4__BASE__MAP_UTIL_H
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 
 namespace CVC4 {
 
@@ -88,7 +88,7 @@ template <class M>
 const MapMappedTypeT<M>& FindOrDie(const M& map, const MapKeyTypeT<M>& key)
 {
   auto it = map.find(key);
-  CVC4_CHECK(it != map.end()) << "The map does not contain the key.";
+  AlwaysAssert(it != map.end()) << "The map does not contain the key.";
   return (*it).second;
 }
 

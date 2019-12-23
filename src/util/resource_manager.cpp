@@ -16,7 +16,7 @@
 **/
 #include "util/resource_manager.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "options/smt_options.h"
 
@@ -49,7 +49,7 @@ void Timer::set(uint64_t millis, bool wallTime) {
 
 /** Return the milliseconds elapsed since last set(). */
 uint64_t Timer::elapsedWall() const {
-  Assert (d_wall_time);
+  Assert(d_wall_time);
   timeval tv;
   gettimeofday(&tv, NULL);
   Trace("limit") << "Timer::elapsedWallTime(): it's now " << tv.tv_sec << "," << tv.tv_usec << std::endl;
@@ -60,7 +60,7 @@ uint64_t Timer::elapsedWall() const {
 }
 
 uint64_t Timer::elapsedCPU() const {
-  Assert (!d_wall_time);
+  Assert(!d_wall_time);
   clock_t elapsed = ((double)clock())/(CLOCKS_PER_SEC *0.001)- d_cpu_start_time;
   Trace("limit") << "Timer::elapsedCPUTime(): elapsed time is " << elapsed << " ms" <<std::endl;
   return elapsed;
@@ -212,7 +212,6 @@ void ResourceManager::beginCall() {
     }
 
     if (d_timeBudgetCumulative) {
-
       AlwaysAssert(d_cumulativeTimer.on());
       // timer was on since the option was set
       d_cumulativeTimeUsed = d_cumulativeTimer.elapsed();

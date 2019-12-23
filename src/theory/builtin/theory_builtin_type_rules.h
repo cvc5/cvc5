@@ -134,7 +134,7 @@ class LambdaTypeRule {
     //get array representation of this function, if possible
     Node na = TheoryBuiltinRewriter::getArrayRepresentationForLambda(n);
     if( !na.isNull() ){
-      Assert( na.getType().isArray() );
+      Assert(na.getType().isArray());
       Trace("lambda-const") << "Array representation for " << n << " is " << na << " " << na.getType() << std::endl;
       // must have the standard bound variable list
       Node bvl = NodeManager::currentNM()->getBoundVarListForFunctionType( n.getType() );
@@ -205,10 +205,7 @@ class ChainTypeRule {
 
     TypeNode tn;
     try {
-      // Actually do the expansion to do the typechecking.
-      // Shouldn't be extra work to do this, since the rewriter
-      // keeps a cache.
-      tn = nodeManager->getType(Rewriter::rewrite(n), check);
+      tn = nodeManager->getType(TheoryBuiltinRewriter::blastChain(n), check);
     } catch(TypeCheckingExceptionPrivate& e) {
       std::stringstream ss;
       ss << "Cannot typecheck the expansion of chained operator `" << n.getOperator() << "':"

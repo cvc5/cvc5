@@ -360,8 +360,6 @@ class SymbolTable::Implementation {
   void bindType(const string& name, const vector<Type>& params, Type t,
                 bool levelZero = false);
   bool isBound(const string& name) const;
-  bool isBoundDefinedFunction(const string& name) const;
-  bool isBoundDefinedFunction(Expr func) const;
   bool isBoundType(const string& name) const;
   Expr lookup(const string& name) const;
   Type lookupType(const string& name) const;

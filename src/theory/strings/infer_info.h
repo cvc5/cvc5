@@ -87,6 +87,9 @@ std::ostream& operator<<(std::ostream& out, Inference i);
  */
 enum LengthStatus
 {
+  // The length of the Skolem should not be constrained. This should be
+  // used for Skolems whose length is already implied.
+  LENGTH_IGNORE,
   // The length of the Skolem is not specified, and should be split on.
   LENGTH_SPLIT,
   // The length of the Skolem is exactly one.

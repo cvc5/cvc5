@@ -33,8 +33,7 @@ namespace api {
  *
  * Note that the underlying type of Kind must be signed (to enable range
  * checks for validity). The size of this type depends on the size of
- * CVC4::Kind (CVC4__EXPR__NODE_VALUE__NBITS__KIND, currently 10 bits,
- * see expr/metakind_template.h).
+ * CVC4::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
  */
 enum CVC4_PUBLIC Kind : int32_t
 {
@@ -144,26 +143,24 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   CHOICE,
   /**
-   * Chained operation.
-   * Parameters: n > 1
-   *   -[1]: Term of kind CHAIN_OP (represents a binary op)
-   *   -[2]..[n]: Arguments to that operator
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   * Turned into a conjunction of binary applications of the operator on
-   * adjoining parameters.
-   */
-  CHAIN,
-  /**
    * Chained operator.
    * Parameters: 1
    *   -[1]: Kind of the binary operation
    * Create with:
-   *   mkOpTerm(Kind opkind, Kind kind)
+   *   mkOp(Kind opkind, Kind kind)
+
+   * Apply chained operation.
+   * Parameters: n > 1
+   *   -[1]: Op of kind CHAIN (represents a binary op)
+   *   -[2]..[n]: Arguments to that operator
+   * Create with:
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, Term child1, Term child2, Term child3)
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   * Turned into a conjunction of binary applications of the operator on
+   * adjoining parameters.
    */
-  CHAIN_OP,
+  CHAIN,
 
   /* Boolean --------------------------------------------------------------- */
 
@@ -383,16 +380,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   ABS,
   /**
-   * Divisibility-by-k predicate.
-   * Parameters: 2
-   *   -[1]: DIVISIBLE_OP Term
-   *   -[2]: Integer Term
-   * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  DIVISIBLE,
-  /**
    * Arithmetic power.
    * Parameters: 2
    *   -[1]..[2]: Terms of sort Integer, Real
@@ -518,9 +505,17 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameter: 1
    *   -[1]: The k to divide by (sort Integer)
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
+   *   mkOp(Kind kind, uint32_t param)
+   *
+   * Apply divisibility-by-k predicate.
+   * Parameters: 2
+   *   -[1]: Op of kind DIVISIBLE
+   *   -[2]: Integer Term
+   * Create with:
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  DIVISIBLE_OP,
+  DIVISIBLE,
   /**
    * Multiple-precision rational constant.
    * Parameters:
@@ -974,9 +969,6 @@ enum CVC4_PUBLIC Kind : int32_t
   /* term to be treated as a variable. used for eager bit-blasting Ackermann
    * expansion of bvurem (internal-only symbol) */
   BITVECTOR_ACKERMANIZE_UREM,
-  /* operator for the bit-vector boolean bit extract.
-   * One parameter, parameter is the index of the bit to extract */
-  BITVECTOR_BITOF_OP,
 #endif
   /**
    * Operator for bit-vector extract (from index 'high' to 'low').
@@ -984,125 +976,115 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: The 'high' index
    *   -[2]: The 'low' index
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param, uint32_t param)
+   *   mkOp(Kind kind, uint32_t param, uint32_t param)
+   *
+   * Apply bit-vector extract.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_EXTRACT
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_EXTRACT_OP,
+  BITVECTOR_EXTRACT,
   /**
    * Operator for bit-vector repeat.
    * Parameter 1:
    *   -[1]: Number of times to repeat a given bit-vector
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector repeat.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_REPEAT
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_REPEAT_OP,
+  BITVECTOR_REPEAT,
   /**
    * Operator for bit-vector zero-extend.
    * Parameter 1:
    *   -[1]: Number of bits by which a given bit-vector is to be extended
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector zero-extend.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_ZERO_EXTEND
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_ZERO_EXTEND_OP,
+  BITVECTOR_ZERO_EXTEND,
   /**
    * Operator for bit-vector sign-extend.
    * Parameter 1:
    *   -[1]: Number of bits by which a given bit-vector is to be extended
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector sign-extend.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_SIGN_EXTEND
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_SIGN_EXTEND_OP,
+  BITVECTOR_SIGN_EXTEND,
   /**
    * Operator for bit-vector rotate left.
    * Parameter 1:
    *   -[1]: Number of bits by which a given bit-vector is to be rotated
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector rotate left.
+   * Parameters: 2
+   *   -[1]: Op of kind BITVECTOR_ROTATE_LEFT
+   *   -[2]: Term of bit-vector sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  BITVECTOR_ROTATE_LEFT_OP,
+  BITVECTOR_ROTATE_LEFT,
   /**
    * Operator for bit-vector rotate right.
    * Parameter 1:
    *   -[1]: Number of bits by which a given bit-vector is to be rotated
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
-   */
-  BITVECTOR_ROTATE_RIGHT_OP,
-#if 0
-  /* bit-vector boolean bit extract.
-   * first parameter is a BITVECTOR_BITOF_OP, second is a bit-vector term */
-  BITVECTOR_BITOF,
-#endif
-  /* Bit-vector extract.
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply bit-vector rotate right.
    * Parameters: 2
-   *   -[1]: BITVECTOR_EXTRACT_OP Term
+   *   -[1]: Op of kind BITVECTOR_ROTATE_RIGHT
    *   -[2]: Term of bit-vector sort
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_EXTRACT,
-  /* Bit-vector repeat.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_REPEAT_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_REPEAT,
-  /* Bit-vector zero-extend.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_ZERO_EXTEND_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_ZERO_EXTEND,
-  /* Bit-vector sign-extend.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_SIGN_EXTEND_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_SIGN_EXTEND,
-  /* Bit-vector rotate left.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_ROTATE_LEFT_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
-   */
-  BITVECTOR_ROTATE_LEFT,
-  /**
-   * Bit-vector rotate right.
-   * Parameters: 2
-   *   -[1]: BITVECTOR_ROTATE_RIGHT_OP Term
-   *   -[2]: Term of bit-vector sort
-   * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   BITVECTOR_ROTATE_RIGHT,
+#if 0
+  /* bit-vector boolean bit extract. */
+  BITVECTOR_BITOF,
+#endif
   /**
    * Operator for the conversion from Integer to bit-vector.
    * Parameter: 1
    *   -[1]: Size of the bit-vector to convert to
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param).
-   */
-  INT_TO_BITVECTOR_OP,
-  /**
-   * Integer conversion to bit-vector.
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply integer conversion to bit-vector.
    * Parameters: 2
-   *   -[1]: INT_TO_BITVECTOR_OP Term
+   *   -[1]: Op of kind INT_TO_BITVECTOR
    *   -[2]: Integer term
    * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   INT_TO_BITVECTOR,
   /**
@@ -1372,17 +1354,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Conversion from an IEEE-754 bit vector to floating-point.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_IEEE_BITVECTOR
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
   /**
@@ -1391,17 +1371,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Conversion between floating-point sorts.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_FLOATINGPOINT
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_FLOATINGPOINT,
   /**
@@ -1410,17 +1388,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_REAL_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Conversion from a real to floating-point.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_REAL_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_REAL
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_REAL,
   /*
@@ -1429,17 +1405,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Conversion from a signed bit vector to floating-point.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
   /**
@@ -1448,17 +1422,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP,
-  /**
-   * Operator for converting an unsigned bit vector to floating-point.
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
+   * Converting an unsigned bit vector to floating-point.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
   /**
@@ -1467,17 +1439,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: exponent size
    *   -[2]: Significand size
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param1, uint32_t param2)
-   */
-  FLOATINGPOINT_TO_FP_GENERIC_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param1, uint32_t param2)
+   *
    * Generic conversion to floating-point, used in parsing only.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_GENERIC_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_GENERIC
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_FP_GENERIC,
   /**
@@ -1485,17 +1455,15 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 1
    *   -[1]: Size of the bit-vector to convert to
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  FLOATINGPOINT_TO_UBV_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param)
+   *
    * Conversion from a floating-point value to an unsigned bit vector.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_TO_UBV_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_UBV
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_UBV,
   /**
@@ -1503,18 +1471,16 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 1
    *   -[1]: Size of the bit-vector to convert to
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  FLOATINGPOINT_TO_UBV_TOTAL_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param)
+   *
    * Conversion from  a floating-point value to an unsigned bit vector
    * (defined for all inputs).
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_TO_UBV_TOTAL_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_UBV_TOTAL
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_UBV_TOTAL,
   /**
@@ -1522,17 +1488,15 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 1
    *   -[1]: Size of the bit-vector to convert to
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  FLOATINGPOINT_TO_SBV_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param)
+   *
    * Conversion from a floating-point value to a signed bit vector.
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_TO_SBV_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_SBV
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_SBV,
   /**
@@ -1540,18 +1504,16 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 1
    *   -[1]: Size of the bit-vector to convert to
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  FLOATINGPOINT_TO_SBV_TOTAL_OP,
-  /**
+   *   mkOp(Kind kind, uint32_t param)
+   *
    * Conversion from a floating-point value to a signed bit vector
    * (defined for all inputs).
    * Parameters: 2
-   *   -[1]: FLOATINGPOINT_TO_FP_TO_SBV_TOTAL_OP Term
+   *   -[1]: Op of kind FLOATINGPOINT_TO_FP_TO_SBV_TOTAL
    *   -[2]: Term of sort FloatingPoint
    * Create with:
-   *   mkTerm(Term opTerm, Term child)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   FLOATINGPOINT_TO_SBV_TOTAL,
   /**
@@ -1579,8 +1541,8 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Term of array sort
    *   -[2]: Selection index
    * Create with:
-   *   mkTerm(Term opTerm, Term child1, Term child2)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   SELECT,
   /**
@@ -1590,8 +1552,8 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[2]: Store index
    *   -[3]: Term to store at the index
    * Create with:
-   *   mkTerm(Term opTerm, Term child1, Term child2, Term child3)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child1, Term child2, Term child3)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   STORE,
   /**
@@ -1600,8 +1562,8 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Array sort
    *   -[2]: Term representing a constant
    * Create with:
-   *   mkTerm(Term opTerm, Term child1, Term child2)
-   *   mkTerm(Term opTerm, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    *
    * Note: We currently support the creation of constant arrays, but under some
    * conditions when there is a chain of equalities connecting two constant
@@ -1624,32 +1586,32 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Constructor application.
    * Paramters: n > 0
-   *   -[1]: Constructor (operator term)
+   *   -[1]: Constructor (operator)
    *   -[2]..[n]: Parameters to the constructor
    * Create with:
-   *   mkTerm(Kind kind, OpTerm opTerm)
-   *   mkTerm(Kind kind, OpTerm opTerm, Term child)
-   *   mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2)
-   *   mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, OpTerm opTerm, const std::vector<Term>& children)
+   *   mkTerm(Kind kind, Op op)
+   *   mkTerm(Kind kind, Op op, Term child)
+   *   mkTerm(Kind kind, Op op, Term child1, Term child2)
+   *   mkTerm(Kind kind, Op op, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, Op op, const std::vector<Term>& children)
    */
   APPLY_CONSTRUCTOR,
   /**
    * Datatype selector application.
    * Parameters: 1
-   *   -[1]: Selector (operator term)
+   *   -[1]: Selector (operator)
    *   -[2]: Datatype term (undefined if mis-applied)
    * Create with:
-   *   mkTerm(Kind kind, OpTerm opTerm, Term child)
+   *   mkTerm(Kind kind, Op op, Term child)
    */
   APPLY_SELECTOR,
   /**
    * Datatype selector application.
    * Parameters: 1
-   *   -[1]: Selector (operator term)
+   *   -[1]: Selector (operator)
    *   -[2]: Datatype term (defined rigidly if mis-applied)
    * Create with:
-   *   mkTerm(Kind kind, OpTerm opTerm, Term child)
+   *   mkTerm(Kind kind, Op op, Term child)
    */
   APPLY_SELECTOR_TOTAL,
   /**
@@ -1675,18 +1637,16 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 1
    *   -[1]: Index of the tuple to be updated
    * Create with:
-   *   mkOpTerm(Kind kind, uint32_t param)
-   */
-  TUPLE_UPDATE_OP,
-  /**
-   * Tuple update.
+   *   mkOp(Kind kind, uint32_t param)
+   *
+   * Apply tuple update.
    * Parameters: 3
-   *   -[1]: TUPLE_UPDATE_OP (which references an index)
+   *   -[1]: Op of kind TUPLE_UPDATE (which references an index)
    *   -[2]: Tuple
    *   -[3]: Element to store in the tuple at the given index
    * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
    */
   TUPLE_UPDATE,
   /**
@@ -1694,18 +1654,16 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 1
    *   -[1]: Name of the field to be updated
    * Create with:
-   *   mkOpTerm(Kind kind, const std::string& param)
-   */
-  RECORD_UPDATE_OP,
-  /**
+   *   mkOp(Kind kind, const std::string& param)
+   *
    * Record update.
    * Parameters: 3
-   *   -[1]: RECORD_UPDATE_OP Term (which references a field)
+   *   -[1]: Op of kind RECORD_UPDATE (which references a field)
    *   -[2]: Record term to update
    *   -[3]: Element to store in the record in the given field
    * Create with:
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op,, const std::vector<Term>& children)
    */
   RECORD_UPDATE,
 #if 0

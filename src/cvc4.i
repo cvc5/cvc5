@@ -357,6 +357,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "smt/command.i"
 %include "smt/logic_exception.i"
 %include "theory/logic_info.i"
+%include "theory/theory_id.i"
 
 // Tim: This should come after "theory/logic_info.i".
 %include "smt/smt_engine.i"

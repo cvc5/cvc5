@@ -526,12 +526,31 @@ public:
   void defineVar(const std::string& name, const Expr& val,
                  bool levelZero = false, bool doOverload = false);
 
-  /** Create a new type definition. */
-  void defineType(const std::string& name, const Type& type);
-
-  /** Create a new (parameterized) type definition. */
+  /**
+   * Create a new type definition.
+   *
+   * @param name The name of the type
+   * @param type The type that should be associated with the name
+   * @param levelZero If true, the type definition is considered global and
+   *                  cannot be removed by poppoing the user context
+   */
   void defineType(const std::string& name,
-                  const std::vector<Type>& params, const Type& type);
+                  const Type& type,
+                  bool levelZero = false);
+
+  /**
+   * Create a new (parameterized) type definition.
+   *
+   * @param name The name of the type
+   * @param params The type parameters
+   * @param type The type that should be associated with the name
+   * @param levelZero If true, the type definition is considered global and
+   *                  cannot be removed by poppoing the user context
+   */
+  void defineType(const std::string& name,
+                  const std::vector<Type>& params,
+                  const Type& type,
+                  bool levelZero = false);
 
   /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
   void defineParameterizedType(const std::string& name,
@@ -720,6 +739,14 @@ public:
    */
   inline size_t scopeLevel() const { return d_symtab->getLevel(); }
 
+  /**
+   * Pushes a scope. All subsequent symbol declarations made are only valid in
+   * this scope, i.e. they are deleted on the next call to popScope.
+   *
+   * The argument bindingLevel is true, the assertion level is set to the
+   * current scope level. This determines which scope assertions are declared
+   * at.
+   */
   inline void pushScope(bool bindingLevel = false) {
     d_symtab->pushScope();
     if(!bindingLevel) {

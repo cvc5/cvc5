@@ -43,42 +43,13 @@ typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
 struct ContainsUConstAttributeId {};
 typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
 
-//for bounded integers
-struct BoundIntLitAttributeId {};
-typedef expr::Attribute<BoundIntLitAttributeId, uint64_t> BoundIntLitAttribute;
-
 //for quantifier instantiation level
 struct QuantInstLevelAttributeId {};
 typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t> QuantInstLevelAttribute;
 
-//rewrite-rule priority
-struct RrPriorityAttributeId {};
-typedef expr::Attribute<RrPriorityAttributeId, uint64_t> RrPriorityAttribute;
-
-/** Attribute true for quantifiers that do not need to be partially instantiated */
-struct LtePartialInstAttributeId {};
-typedef expr::Attribute< LtePartialInstAttributeId, bool > LtePartialInstAttribute;
-
-// attribute for associating a synthesis function with a first order variable
-struct SygusSynthGrammarAttributeId {};
-typedef expr::Attribute<SygusSynthGrammarAttributeId, Node>
-    SygusSynthGrammarAttribute;
-
-// attribute for associating a variable list with a synth fun
-struct SygusSynthFunVarListAttributeId {};
-typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node> SygusSynthFunVarListAttribute;
-
-//attribute for fun-def abstraction type
-struct AbsTypeFunDefAttributeId {};
-typedef expr::Attribute<AbsTypeFunDefAttributeId, bool> AbsTypeFunDefAttribute;
-
 /** Attribute for id number */
 struct QuantIdNumAttributeId {};
 typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
-
-/** Attribute to mark Skolems as virtual terms */
-struct VirtualTermSkolemAttributeId {};
-typedef expr::Attribute< VirtualTermSkolemAttributeId, bool > VirtualTermSkolemAttribute;
 
 class QuantifiersEngine;
 
@@ -188,31 +159,7 @@ public:
                                                Node n,
                                                std::vector<Node>& vars);
 
-//for virtual term substitution
-private:
-  Node d_vts_delta;
-  std::map< TypeNode, Node > d_vts_inf;
-  Node d_vts_delta_free;
-  std::map< TypeNode, Node > d_vts_inf_free;
-  /** get vts infinity index */
-  Node getVtsInfinityIndex( int i, bool isFree = false, bool create = true  );
-  /** substitute vts free terms */
-  Node substituteVtsFreeTerms( Node n );
 public:
-  /** get vts delta */
-  Node getVtsDelta( bool isFree = false, bool create = true );
-  /** get vts infinity */
-  Node getVtsInfinity( TypeNode tn, bool isFree = false, bool create = true );
-  /** get all vts terms */
-  void getVtsTerms( std::vector< Node >& t, bool isFree = false, bool create = true, bool inc_delta = true );
-  /** rewrite delta */
-  Node rewriteVtsSymbols( Node n );
-  /** simple check for contains term */
-  bool containsVtsTerm( Node n, bool isFree = false );
-  /** simple check for contains term */
-  bool containsVtsTerm( std::vector< Node >& n, bool isFree = false );
-  /** simple check for contains term */
-  bool containsVtsInfinity( Node n, bool isFree = false );
   /** ensure type */
   static Node ensureType( Node n, TypeNode tn );
   

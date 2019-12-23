@@ -21,7 +21,7 @@
 
 #include <iosfwd>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 
 namespace CVC4 {
@@ -114,21 +114,6 @@ typedef ::CVC4::kind::metakind::MetaKind_t MetaKind;
 MetaKind metaKindOf(Kind k);
 }/* CVC4::kind namespace */
 
-namespace kind {
-namespace metakind {
-
-/* these are #defines so their sum can be #if-checked in node_value.h */
-#define CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT 20
-#define CVC4__EXPR__NODE_VALUE__NBITS__KIND 10
-#define CVC4__EXPR__NODE_VALUE__NBITS__ID 40
-#define CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN 26
-
-static const unsigned MAX_CHILDREN =
-  (1u << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
-
-}/* CVC4::kind::metakind namespace */
-}/* CVC4::kind namespace */
-
 namespace expr {
 
 // Comparison predicate
@@ -216,7 +201,7 @@ Kind operatorToKind(::CVC4::expr::NodeValue* nv);
 
 }/* CVC4::kind namespace */
 
-#line 220 "${template}"
+#line 205 "${template}"
 
 namespace theory {
 

@@ -22,8 +22,7 @@
 #include <iostream>
 
 #include "context/context_mm.h"
-
-#include "base/cvc4_assert.h"
+#include "test_utils.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -90,7 +89,7 @@ private:
     }
 
     // Try popping out of scope
-    TS_ASSERT_THROWS(d_cmm->pop(), CVC4::AssertionException&);
+    TS_UTILS_EXPECT_ABORT(d_cmm->pop());
 #endif /* __CVC4__CONTEXT__CONTEXT_MM_H */
   }
 

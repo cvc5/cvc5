@@ -24,7 +24,6 @@
 #include <utility>
 #include <vector>
 
-#include "base/cvc4_assert.h"
 #include "expr/node.h"
 #include "theory/interrupted.h"
 #include "theory/output_channel.h"

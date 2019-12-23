@@ -47,9 +47,12 @@ set_target_properties(cvc4-bin
 target_link_libraries(cvc4-bin cvc4 cvc4parser)
 if(PROGRAM_PREFIX)
   install(PROGRAMS
-    $<TARGET_FILE:cvc4-bin> DESTINATION bin RENAME ${PROGRAM_PREFIX}cvc4)
+    $<TARGET_FILE:cvc4-bin>
+    DESTINATION ${RUNTIME_INSTALL_DIR}
+    RENAME ${PROGRAM_PREFIX}cvc4)
 else()
-  install(TARGETS cvc4-bin DESTINATION bin)
+  install(TARGETS cvc4-bin
+    DESTINATION ${RUNTIME_INSTALL_DIR})
 endif()
 
 # In order to get a fully static executable we have to make sure that we also

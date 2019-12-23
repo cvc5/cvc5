@@ -510,7 +510,10 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Get synth solution.
    *
-   * This function adds entries to sol_map that map functions-to-synthesize with
+   * This method returns true if we are in a state immediately preceeded by
+   * a successful call to checkSynth.
+   *
+   * This method adds entries to sol_map that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
    *
@@ -521,7 +524,7 @@ class CVC4_PUBLIC SmtEngine
    *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
    * is a valid formula.
    */
-  void getSynthSolutions(std::map<Expr, Expr>& sol_map);
+  bool getSynthSolutions(std::map<Expr, Expr>& sol_map);
 
   /**
    * Do quantifier elimination.
@@ -835,8 +838,8 @@ class CVC4_PUBLIC SmtEngine
   typedef context::CDList<Node> NodeList;
 
   /**
-   * The current mode of the solver, see Figure 4.1 on page 52 of the
-   * SMT-LIB version 2.6 standard
+   * The current mode of the solver, which is an extension of Figure 4.1 on
+   * page 52 of the SMT-LIB version 2.6 standard
    * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
    */
   enum SmtMode
@@ -845,8 +848,10 @@ class CVC4_PUBLIC SmtEngine
     SMT_MODE_START,
     // normal state of the solver, after assert/push/pop/declare/define
     SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat" or "unknown"
+    // immediately after a check-sat returning "sat"
     SMT_MODE_SAT,
+    // immediately after a check-sat returning "unknown"
+    SMT_MODE_SAT_UNKNOWN,
     // immediately after a check-sat returning "unsat"
     SMT_MODE_UNSAT,
     // immediately after a successful call to get-abduct

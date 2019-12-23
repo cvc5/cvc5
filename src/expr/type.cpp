@@ -67,6 +67,18 @@ Cardinality Type::getCardinality() const {
   return d_typeNode->getCardinality();
 }
 
+bool Type::isFinite() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isFinite();
+}
+
+bool Type::isInterpretedFinite() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isInterpretedFinite();
+}
+
 bool Type::isWellFounded() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isWellFounded();
@@ -86,7 +98,18 @@ bool Type::isFunctionLike() const
 
 Expr Type::mkGroundTerm() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->mkGroundTerm().toExpr();
+  Expr ret = d_typeNode->mkGroundTerm().toExpr();
+  if (ret.isNull())
+  {
+    IllegalArgument(this, "Cannot construct ground term!");
+  }
+  return ret;
+}
+
+Expr Type::mkGroundValue() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->mkGroundValue().toExpr();
 }
 
 bool Type::isSubtypeOf(Type t) const {
@@ -308,7 +331,8 @@ bool Type::isTuple() const {
 /** Is this a record type? */
 bool Type::isRecord() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isRecord();
+  return d_typeNode->getKind() == kind::DATATYPE_TYPE
+         && DatatypeType(*this).getDatatype().isRecord();
 }
 
 /** Is this a symbolic expression type? */
@@ -548,7 +572,14 @@ std::vector<Type> ConstructorType::getArgTypes() const {
 
 const Datatype& DatatypeType::getDatatype() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getDatatype();
+  Assert(isDatatype());
+  if (d_typeNode->getKind() == kind::DATATYPE_TYPE)
+  {
+    DatatypeIndexConstant dic = d_typeNode->getConst<DatatypeIndexConstant>();
+    return d_nodeManager->toExprManager()->getDatatypeForIndex(dic.getIndex());
+  }
+  Assert(d_typeNode->getKind() == kind::PARAMETRIC_DATATYPE);
+  return DatatypeType((*d_typeNode)[0].toType()).getDatatype();
 }
 
 bool DatatypeType::isParametric() const {
@@ -618,7 +649,9 @@ std::vector<Type> DatatypeType::getTupleTypes() const {
 /** Get the description of the record type */
 const Record& DatatypeType::getRecord() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getRecord();
+  Assert(isRecord());
+  const Datatype& dt = getDatatype();
+  return *(dt.getRecord());
 }
 
 DatatypeType SelectorType::getDomain() const {

@@ -57,6 +57,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
       d_incomplete_check(false),
       d_added_cbqi_lemma(qe->getUserContext()),
       d_elim_quants(qe->getSatContext()),
+      d_vtsCache(new VtsTermCache(qe)),
       d_bv_invert(nullptr),
       d_nested_qe_waitlist_size(qe->getUserContext()),
       d_nested_qe_waitlist_proc(qe->getUserContext())
@@ -120,7 +121,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
               //add totality lemma
               std::map< TypeNode, std::vector< Node > >::iterator itc = qepr->d_consts.find( tn );
               if( itc!=qepr->d_consts.end() ){
-                Assert( !itc->second.empty() );
+                Assert(!itc->second.empty());
                 Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( q, i );
                 std::vector< Node > disj;
                 for( unsigned j=0; j<itc->second.size(); j++ ){
@@ -130,10 +131,10 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
                 Trace("cbqi-lemma") << "EPR totality lemma : " << tlem << std::endl;
                 d_quantEngine->getOutputChannel().lemma( tlem );
               }else{
-                Assert( false );
+                Assert(false);
               }                  
             }else{
-              Assert( !options::cbqiAll() );
+              Assert(!options::cbqiAll());
             }
           }
         }
@@ -151,7 +152,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
           if( std::find( d_parent_quant[q].begin(), d_parent_quant[q].end(), qi )==d_parent_quant[q].end() ){
             d_parent_quant[q].push_back( qi );
             d_children_quant[qi].push_back( q );
-            Assert( hasAddedCbqiLemma( qi ) );
+            Assert(hasAddedCbqiLemma(qi));
             Node qicel = getCounterexampleLiteral(qi);
             dep.push_back( qi );
             dep.push_back( qicel );
@@ -220,7 +221,7 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
     //it is not active if it corresponds to a rewrite rule: we will process in rewrite engine
     if( doCbqi( q ) ){
-      Assert( hasAddedCbqiLemma( q ) );
+      Assert(hasAddedCbqiLemma(q));
       if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
         d_active_quant[q] = true;
         Debug("cbqi-debug") << "Check quantified formula " << q << "..." << std::endl;
@@ -241,8 +242,8 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
               //process from waitlist
               while( d_nested_qe_waitlist_proc[q]<d_nested_qe_waitlist_size[q] ){
                 int index = d_nested_qe_waitlist_proc[q];
-                Assert( index>=0 );
-                Assert( index<(int)d_nested_qe_waitlist[q].size() );
+                Assert(index >= 0);
+                Assert(index < (int)d_nested_qe_waitlist[q].size());
                 Node nq = d_nested_qe_waitlist[q][index];
                 Node nqeqn = doNestedQENode( d_nested_qe_info[nq].d_q, q, nq, d_nested_qe_info[nq].d_inst_terms, d_nested_qe_info[nq].d_doVts );
                 Node dqelem = nq.eqNode( nqeqn ); 
@@ -278,10 +279,10 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
       } 
       Trace("cbqi-debug") << "Found " << ninner.size() << " non-innermost." << std::endl;
       for( unsigned i=0; i<ninner.size(); i++ ){
-        Assert( d_active_quant.find( ninner[i] )!=d_active_quant.end() );
+        Assert(d_active_quant.find(ninner[i]) != d_active_quant.end());
         d_active_quant.erase( ninner[i] );
       }
-      Assert( !d_active_quant.empty() );
+      Assert(!d_active_quant.empty());
       Trace("cbqi-debug") << "...done removing." << std::endl;
     }
   }
@@ -292,7 +293,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
 {
   if (quant_e == QEFFORT_STANDARD)
   {
-    Assert( !d_quantEngine->inConflict() );
+    Assert(!d_quantEngine->inConflict());
     double clSet = 0;
     if( Trace.isOn("cbqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -313,7 +314,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
           }
         }else{
           Trace("cbqi-warn") << "CBQI : Cannot process already eliminated quantified formula " << q << std::endl;
-          Assert( false );
+          Assert(false);
         }
       }
       if( d_quantEngine->inConflict() || d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
@@ -460,7 +461,7 @@ Node InstStrategyCegqi::rewriteInstantiation(Node q,
     // do virtual term substitution
     inst = Rewriter::rewrite(inst);
     Trace("quant-vts-debug") << "Rewrite vts symbols in " << inst << std::endl;
-    inst = d_quantEngine->getTermUtil()->rewriteVtsSymbols(inst);
+    inst = d_vtsCache->rewriteVtsSymbols(inst);
     Trace("quant-vts-debug") << "...got " << inst << std::endl;
   }
   if (options::cbqiNestedQE())
@@ -489,9 +490,10 @@ Node InstStrategyCegqi::doNestedQENode(
     Trace("cbqi-nqe") << "  " << ceq << std::endl; 
     Trace("cbqi-nqe") << "  " << d_nested_qe[ceq] << std::endl;
     //should not contain quantifiers
-    Assert( !QuantifiersRewriter::containsQuantifiers( d_nested_qe[ceq] ) );
+    Assert(!QuantifiersRewriter::containsQuantifiers(d_nested_qe[ceq]));
   }
-  Assert( d_quantEngine->getTermUtil()->d_inst_constants[q].size()==inst_terms.size() );
+  Assert(d_quantEngine->getTermUtil()->d_inst_constants[q].size()
+         == inst_terms.size());
   //replace inst constants with instantiation
   Node ret = d_nested_qe[ceq].substitute( d_quantEngine->getTermUtil()->d_inst_constants[q].begin(),
                                           d_quantEngine->getTermUtil()->d_inst_constants[q].end(),
@@ -499,7 +501,7 @@ Node InstStrategyCegqi::doNestedQENode(
   if( doVts ){
     //do virtual term substitution
     ret = Rewriter::rewrite( ret );
-    ret = d_quantEngine->getTermUtil()->rewriteVtsSymbols( ret );
+    ret = d_vtsCache->rewriteVtsSymbols(ret);
   }
   Trace("cbqi-nqe") << "Nested quantifier elimination: " << std::endl;
   Trace("cbqi-nqe") << "  " << n << std::endl; 
@@ -543,7 +545,7 @@ Node InstStrategyCegqi::doNestedQERec(Node q,
             d_nested_qe_info[nr].d_inst_terms.insert( d_nested_qe_info[nr].d_inst_terms.end(), inst_terms.begin(), inst_terms.end() );
             d_nested_qe_info[nr].d_doVts = doVts;
             //TODO: ensure this holds by restricting prenex when cbqiNestedQe is true.
-            Assert( !options::cbqiInnermost() );
+            Assert(!options::cbqiInnermost());
           }
         } 
       } 
@@ -631,14 +633,14 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       d_small_const = NodeManager::currentNM()->mkNode( MULT, d_small_const, d_small_const );
       d_small_const = Rewriter::rewrite( d_small_const );
       //heuristic for now, until we know how to do nested quantification
-      Node delta = d_quantEngine->getTermUtil()->getVtsDelta( true, false );
+      Node delta = d_vtsCache->getVtsDelta(true, false);
       if( !delta.isNull() ){
         Trace("quant-vts-debug") << "Delta lemma for " << d_small_const << std::endl;
         Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, delta, d_small_const );
         d_quantEngine->getOutputChannel().lemma( delta_lem_ub );
       }
       std::vector< Node > inf;
-      d_quantEngine->getTermUtil()->getVtsTerms( inf, true, false, false );
+      d_vtsCache->getVtsTerms(inf, true, false, false);
       for( unsigned i=0; i<inf.size(); i++ ){
         Trace("quant-vts-debug") << "Infinity lemma for " << inf[i] << " " << d_small_const << std::endl;
         Node inf_lem_lb = NodeManager::currentNM()->mkNode( GT, inf[i], NodeManager::currentNM()->mkConst( Rational(1)/d_small_const.getConst<Rational>() ) );
@@ -664,7 +666,7 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
 }
 
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
-  Assert( !d_curr_quant.isNull() );
+  Assert(!d_curr_quant.isNull());
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if( d_quantEngine->getQuantAttributes()->isQuantElimPartial( d_curr_quant ) ){
     d_cbqi_set_quant_inactive = true;
@@ -674,7 +676,7 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
     return true;
   }else{
     //check if we need virtual term substitution (if used delta or infinity)
-    bool used_vts = d_quantEngine->getTermUtil()->containsVtsTerm( subs, false );
+    bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
     if (d_quantEngine->getInstantiate()->addInstantiation(
             d_curr_quant, subs, false, false, used_vts))
     {
@@ -702,6 +704,11 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
     return d_cinst[q].get();
   }
   return it->second.get();
+}
+
+VtsTermCache* InstStrategyCegqi::getVtsTermCache() const
+{
+  return d_vtsCache.get();
 }
 
 BvInverter* InstStrategyCegqi::getBvInverter() const

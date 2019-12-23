@@ -102,7 +102,7 @@ void Tableau::addRow(ArithVar basic,
 {
   Assert(basic < getNumColumns());
   Assert(debugIsASet(variables));
-  Assert(coefficients.size() == variables.size() );
+  Assert(coefficients.size() == variables.size());
   Assert(!isBasic(basic));
 
   RowIndex newRow = Matrix<Rational>::addRow(coefficients, variables);

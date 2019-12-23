@@ -371,6 +371,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   else
   {
     Trace("si-prt") << "...failed." << std::endl;
+    return false;
   }
   return true;
 }

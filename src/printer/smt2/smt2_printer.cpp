@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "options/bv_options.h"
 #include "options/language.h"
@@ -95,7 +96,7 @@ static std::string maybeQuoteSymbol(const std::string& s) {
   if (s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                           "0123456789~!@$%^&*_-+=<>.?/")
           != string::npos
-      || s.empty())
+      || s.empty() || (s[0] >= '0' && s[0] <= '9'))
   {
     // need to quote it
     stringstream ss;
@@ -195,7 +196,8 @@ void Smt2Printer::toStream(std::ostream& out,
       case roundTowardNegative : out << "roundTowardNegative"; break;
       case roundTowardZero : out << "roundTowardZero"; break;
       default :
-        Unreachable("Invalid value of rounding mode constant (%d)",n.getConst<RoundingMode>());
+        Unreachable() << "Invalid value of rounding mode constant ("
+                      << n.getConst<RoundingMode>() << ")";
       }
       break;
     case kind::CONST_BOOLEAN:
@@ -245,7 +247,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::DATATYPE_TYPE:
     {
-      const Datatype& dt = (NodeManager::currentNM()->getDatatypeForIndex(
+      const DType& dt = (NodeManager::currentNM()->getDTypeForIndex(
           n.getConst<DatatypeIndexConstant>().getIndex()));
       if (dt.isTuple())
       {
@@ -540,9 +542,32 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     return;
 
-  case kind::LAMBDA:
+  case kind::LAMBDA: out << smtKindString(k, d_variant) << " "; break;
+  case kind::MATCH:
     out << smtKindString(k, d_variant) << " ";
+    toStream(out, n[0], toDepth, types, TypeNode::null());
+    out << " (";
+    for (size_t i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+    {
+      if (i > 1)
+      {
+        out << " ";
+      }
+      toStream(out, n[i], toDepth, types, TypeNode::null());
+    }
+    out << "))";
+    return;
+  case kind::MATCH_BIND_CASE:
+    // ignore the binder
+    toStream(out, n[1], toDepth, types, TypeNode::null());
+    out << " ";
+    toStream(out, n[2], toDepth, types, TypeNode::null());
+    out << ")";
+    return;
+  case kind::MATCH_CASE:
+    // do nothing
     break;
+  case kind::CHOICE: out << smtKindString(k, d_variant) << " "; break;
 
   // arith theory
   case kind::PLUS:
@@ -591,7 +616,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     // arrays theory
   case kind::SELECT:
-  case kind::STORE: typeChildren = true;
+  case kind::STORE: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::PARTIAL_SELECT_0:
   case kind::PARTIAL_SELECT_1:
   case kind::ARRAY_TYPE:
@@ -727,7 +752,8 @@ void Smt2Printer::toStream(std::ostream& out,
     parametricTypeChildren = true;
     out << smtKindString(k, d_variant) << " ";
     break;
-  case kind::MEMBER: typeChildren = true;
+  case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
+  case kind::MEMBER: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::INSERT:
   case kind::SET_TYPE:
   case kind::SINGLETON:
@@ -862,7 +888,8 @@ void Smt2Printer::toStream(std::ostream& out,
     out << ')';
     return;
   }
-  case kind::INST_PATTERN: break;
+  case kind::INST_PATTERN:
+  case kind::INST_NO_PATTERN: break;
   case kind::INST_PATTERN_LIST:
   {
     for (const Node& nc : n)
@@ -874,9 +901,13 @@ void Smt2Printer::toStream(std::ostream& out,
           out << ":fun-def";
         }
       }
-      else
+      else if (nc.getKind() == kind::INST_PATTERN)
       {
         out << ":pattern " << nc;
+      }
+      else if (nc.getKind() == kind::INST_NO_PATTERN)
+      {
+        out << ":no-pattern " << nc[0];
       }
     }
     return;
@@ -954,7 +985,7 @@ void Smt2Printer::toStream(std::ostream& out,
       force_child_type[1] = NodeManager::currentNM()->mkSetType( elemType );
     }else{
       // APPLY_UF, APPLY_CONSTRUCTOR, etc.
-      Assert( n.hasOperator() );
+      Assert(n.hasOperator());
       TypeNode opt = n.getOperator().getType();
       if (n.getKind() == kind::APPLY_CONSTRUCTOR)
       {
@@ -968,7 +999,7 @@ void Smt2Printer::toStream(std::ostream& out,
           opt = TypeNode::fromType(dt[ci].getSpecializedConstructorType(tn));
         }
       }
-      Assert( opt.getNumChildren() == n.getNumChildren() + 1 );
+      Assert(opt.getNumChildren() == n.getNumChildren() + 1);
       for(size_t i = 0; i < n.getNumChildren(); ++i ) {
         force_child_type[i] = opt[i];
       }
@@ -1026,6 +1057,8 @@ static string smtKindString(Kind k, Variant v)
 
   case kind::LAMBDA:
     return "lambda";
+  case kind::MATCH: return "match";
+  case kind::CHOICE: return "choice";
 
   // arith theory
   case kind::PLUS: return "+";
@@ -1124,6 +1157,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::INSERT: return "insert";
   case kind::COMPLEMENT: return "complement";
   case kind::CARD: return "card";
+  case kind::COMPREHENSION: return "comprehension";
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
@@ -1320,7 +1354,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
   out << "(" << std::endl;
   SmtEngine * smt = core.getSmtEngine();
-  Assert( smt!=NULL );
+  Assert(smt != NULL);
   for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
     std::string name;
     if (smt->getExpressionName(*i,name)) {
@@ -1345,15 +1379,8 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   }
   //print the model
   out << "(model" << endl;
-  // print approximations
-  if (m.hasApproximations())
-  {
-    std::vector<std::pair<Expr, Expr> > approx = m.getApproximations();
-    for (unsigned i = 0, size = approx.size(); i < size; i++)
-    {
-      out << "(approximation " << approx[i].second << ")" << std::endl;
-    }
-  }
+  // don't need to print approximations since they are built into choice
+  // functions in the values of variables.
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists

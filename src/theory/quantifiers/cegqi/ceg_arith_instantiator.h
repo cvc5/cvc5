@@ -20,6 +20,7 @@
 #include <vector>
 #include "expr/node.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/cegqi/vts_term_cache.h"
 
 namespace CVC4 {
 namespace theory {
@@ -42,7 +43,7 @@ namespace quantifiers {
 class ArithInstantiator : public Instantiator
 {
  public:
-  ArithInstantiator(TypeNode tn);
+  ArithInstantiator(TypeNode tn, VtsTermCache* vtc);
   virtual ~ArithInstantiator() {}
   /** reset */
   void reset(CegInstantiator* ci,
@@ -129,6 +130,8 @@ class ArithInstantiator : public Instantiator
   std::string identify() const override { return "Arith"; }
 
  private:
+  /** pointer to the virtual term substitution term cache class */
+  VtsTermCache* d_vtc;
   /** zero/one */
   Node d_zero;
   Node d_one;

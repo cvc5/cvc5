@@ -32,6 +32,7 @@
 #include <string>
 #include <unordered_set>
 
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -41,6 +42,8 @@ namespace CVC4 {
 
 class StatisticsRegistry;
 class ResourceManager;
+
+class DType;
 
 namespace expr {
   namespace attr {
@@ -175,7 +178,7 @@ class NodeManager {
   std::vector<NodeManagerListener*> d_listeners;
 
   /** A list of datatypes owned by this node manager. */
-  std::vector<Datatype*> d_ownedDatatypes;
+  std::vector<std::shared_ptr<DType> > d_ownedDTypes;
 
   /**
    * A map of tuple and record types to their corresponding datatype.
@@ -411,21 +414,32 @@ public:
 
   /** Subscribe to NodeManager events */
   void subscribeEvents(NodeManagerListener* listener) {
-    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener) == d_listeners.end(), "listener already subscribed");
+    Assert(std::find(d_listeners.begin(), d_listeners.end(), listener)
+           == d_listeners.end())
+        << "listener already subscribed";
     d_listeners.push_back(listener);
   }
 
   /** Unsubscribe from NodeManager events */
   void unsubscribeEvents(NodeManagerListener* listener) {
     std::vector<NodeManagerListener*>::iterator elt = std::find(d_listeners.begin(), d_listeners.end(), listener);
-    Assert(elt != d_listeners.end(), "listener not subscribed");
+    Assert(elt != d_listeners.end()) << "listener not subscribed";
     d_listeners.erase(elt);
   }
   
   /** register datatype */
-  unsigned registerDatatype(Datatype* dt);
-  /** get datatype for index */
-  const Datatype & getDatatypeForIndex( unsigned index ) const;
+  size_t registerDatatype(std::shared_ptr<DType> dt);
+  /**
+   * Return the datatype at the given index owned by this class. Type nodes are
+   * associated with datatypes through the DatatypeIndexConstant class. The
+   * argument index is intended to be a value taken from that class.
+   *
+   * Type nodes must access their DTypes through a level of indirection to
+   * prevent cycles in the Node AST (as DTypes themselves contain Nodes), which
+   * would lead to memory leaks. Thus TypeNode are given a DatatypeIndexConstant
+   * which is used as an index to retrieve the DType via this call.
+   */
+  const DType& getDTypeForIndex(unsigned index) const;
 
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);
@@ -866,6 +880,11 @@ public:
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
+  /**
+   * Make a type representing a constructor with the given argument (subfield)
+   * types and return type range.
+   */
+  TypeNode mkConstructorType(const std::vector<TypeNode>& args, TypeNode range);
 
   /** Make a type representing a selector with the given parameterization */
   inline TypeNode mkSelectorType(TypeNode domain, TypeNode range);
@@ -1087,8 +1106,10 @@ NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 2);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(sorts[i].isFirstClass(), sorts,
-                  "cannot create function types for argument types that are not first-class");
+    CheckArgument(sorts[i].isFirstClass(),
+                  sorts,
+                  "cannot create function types for argument types that are "
+                  "not first-class. Try option --uf-ho.");
     sortNodes.push_back(sorts[i]);
   }
   CheckArgument(!sorts[sorts.size()-1].isFunction(), sorts[sorts.size()-1],
@@ -1101,8 +1122,10 @@ NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts) {
   Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0; i < sorts.size(); ++ i) {
-    CheckArgument(sorts[i].isFirstClass(), sorts,
-                  "cannot create predicate types for argument types that are not first-class");
+    CheckArgument(sorts[i].isFirstClass(),
+                  sorts,
+                  "cannot create predicate types for argument types that are "
+                  "not first-class. Try option --uf-ho.");
     sortNodes.push_back(sorts[i]);
   }
   sortNodes.push_back(booleanType());
@@ -1135,10 +1158,14 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                 "unexpected NULL index type");
   CheckArgument(!constituentType.isNull(), constituentType,
                 "unexpected NULL constituent type");
-  CheckArgument(indexType.isFirstClass(), indexType,
-                "cannot index arrays by types that are not first-class");
-  CheckArgument(constituentType.isFirstClass(), constituentType,
-                "cannot store types that are not first-class in arrays");
+  CheckArgument(indexType.isFirstClass(),
+                indexType,
+                "cannot index arrays by types that are not first-class. Try "
+                "option --uf-ho.");
+  CheckArgument(constituentType.isFirstClass(),
+                constituentType,
+                "cannot store types that are not first-class in arrays. Try "
+                "option --uf-ho.");
   Debug("arrays") << "making array type " << indexType << " "
                   << constituentType << std::endl;
   return mkTypeNode(kind::ARRAY_TYPE, indexType, constituentType);
@@ -1147,8 +1174,10 @@ inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
 inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
   CheckArgument(!elementType.isNull(), elementType,
                 "unexpected NULL element type");
-  CheckArgument(elementType.isFirstClass(), elementType,
-                "cannot store types that are not first-class in sets");
+  CheckArgument(elementType.isFirstClass(),
+                elementType,
+                "cannot store types that are not first-class in sets. Try "
+                "option --uf-ho.");
   Debug("sets") << "making sets type " << elementType << std::endl;
   return mkTypeNode(kind::SET_TYPE, elementType);
 }
@@ -1156,8 +1185,10 @@ inline TypeNode NodeManager::mkSetType(TypeNode elementType) {
 inline TypeNode NodeManager::mkSelectorType(TypeNode domain, TypeNode range) {
   CheckArgument(domain.isDatatype(), domain,
                 "cannot create non-datatype selector type");
-  CheckArgument(range.isFirstClass(), range,
-                "cannot have selector fields that are not first-class types");
+  CheckArgument(range.isFirstClass(),
+                range,
+                "cannot have selector fields that are not first-class types. "
+                "Try option --uf-ho.");
   return mkTypeNode(kind::SELECTOR_TYPE, domain, range);
 }
 
@@ -1177,14 +1208,14 @@ inline expr::NodeValue* NodeManager::poolLookup(expr::NodeValue* nv) const {
 }
 
 inline void NodeManager::poolInsert(expr::NodeValue* nv) {
-  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end(),
-         "NodeValue already in the pool!");
+  Assert(d_nodeValuePool.find(nv) == d_nodeValuePool.end())
+      << "NodeValue already in the pool!";
   d_nodeValuePool.insert(nv);// FIXME multithreading
 }
 
 inline void NodeManager::poolRemove(expr::NodeValue* nv) {
-  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end(),
-         "NodeValue is not in the pool!");
+  Assert(d_nodeValuePool.find(nv) != d_nodeValuePool.end())
+      << "NodeValue is not in the pool!";
 
   d_nodeValuePool.erase(nv);// FIXME multithreading
 }
@@ -1240,8 +1271,7 @@ inline bool NodeManager::hasOperator(Kind k) {
   case kind::metakind::CONSTANT:
     return false;
 
-  default:
-    Unhandled(mk);
+  default: Unhandled() << mk;
   }
 }
 

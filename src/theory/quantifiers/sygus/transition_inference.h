@@ -123,7 +123,13 @@ class TransitionInference
    * The node n should be the inner body of the negated synthesis conjecture,
    * prior to generating the deep embedding. That is, given:
    *   forall f. ~forall x. P( f, x ),
-   * this method expects n to be P( f, x ).
+   * this method expects n to be P( f, x ), and the argument f to be the
+   * function f above.
+   */
+  void process(Node n, Node f);
+  /**
+   * Same as above, without specifying f. This will try to infer a function f
+   * based on the body of n.
    */
   void process(Node n);
   /**

@@ -24,7 +24,7 @@
 #include <sstream>
 #include <unordered_map>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
@@ -151,9 +151,9 @@ LratProof LratProof::fromDratProof(
     drat2er::drat_trim::CheckAndConvertToLRAT(
         formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
 #else
-    Unimplemented(
-        "LRAT proof production requires drat2er.\n"
-        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented()
+        << "LRAT proof production requires drat2er.\n"
+        << "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild";
 #endif
   }
 
@@ -221,7 +221,8 @@ LratProof::LratProof(std::istream& textualProof)
       SatLiteral lit;
       firstS >> lit;
       Trace("pf::lrat") << "First lit: " << lit << std::endl;
-      Assert(!firstS.fail(), "Couldn't parse first literal from addition line");
+      Assert(!firstS.fail())
+          << "Couldn't parse first literal from addition line";
 
       SatClause clause;
       for (; lit != 0; textualProof >> lit)
