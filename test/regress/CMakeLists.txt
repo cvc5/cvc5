@@ -907,6 +907,7 @@ set(regress_0_tests
   regress0/strings/str004.smt2
   regress0/strings/str005.smt2
   regress0/strings/str_unsound_ext_rew_eq.smt2
+  regress0/strings/str-rev-simple.smt2
   regress0/strings/strings-charat.cvc
   regress0/strings/strings-native-simple.cvc
   regress0/strings/strip-endpoint-itos.smt2
@@ -1669,6 +1670,11 @@ set(regress_1_tests
   regress1/strings/repl-soundness-sem.smt2
   regress1/strings/replaceall-len.smt2
   regress1/strings/replaceall-replace.smt2
+  regress1/strings/rev-ex1.smt2
+  regress1/strings/rev-ex2.smt2
+  regress1/strings/rev-ex3.smt2
+  regress1/strings/rev-ex4.smt2
+  regress1/strings/rev-ex5.smt2
   regress1/strings/rew-020618.smt2
   regress1/strings/rew-check1.smt2
   regress1/strings/simple-re-consume.smt2
@@ -1678,6 +1684,7 @@ set(regress_1_tests
   regress1/strings/str-code-unsat-2.smt2
   regress1/strings/str-code-unsat-3.smt2
   regress1/strings/str-code-unsat.smt2
+  regress1/strings/str-rev-simple-s.smt2
   regress1/strings/str001.smt2
   regress1/strings/str002.smt2
   regress1/strings/str006.smt2

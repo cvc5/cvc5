@@ -3228,7 +3228,33 @@ Node TheoryStringsRewriter::rewriteStrConvert(Node node)
 
 Node TheoryStringsRewriter::rewriteStrReverse(Node node)
 {
-  // TODO
+  Assert(node.getKind() == STRING_REV);
+  NodeManager* nm = NodeManager::currentNM();
+  Node x = node[0];
+  if (x.isConst())
+  {
+    std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
+    std::reverse(nvec.begin(),nvec.end());
+    Node retNode = nm->mkConst(String(nvec));
+    return returnRewrite(node, retNode, "str-conv-const");
+  }
+  else if (x.getKind() == STRING_CONCAT)
+  {
+    std::vector<Node> children;
+    for (const Node& nc : x)
+    {
+      children.push_back(nm->mkNode(STRING_REV, nc));
+    }
+    std::reverse(children.begin(),children.end());
+    // rev( x1 ++ x2 ) --> rev( x2 ) ++ rev( x1 )
+    Node retNode = nm->mkNode(STRING_CONCAT,children);
+    return returnRewrite(node, retNode, "str-rev-minscope-concat");
+  }
+  else if (x.getKind()==STRING_REV)
+  {
+    Node retNode = x[0];
+    return returnRewrite(node, retNode, "str-rev-idem");
+  }
   return node;
 }
 

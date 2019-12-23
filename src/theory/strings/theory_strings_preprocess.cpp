@@ -527,7 +527,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     
     Node revi = nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), nm->mkNode(PLUS, i, d_one));    
     Node ssr = nm->mkNode(STRING_SUBSTR, r, i, d_one);
-    Node ssx = nm->mkNode(STRING_SUBSTR, r, revi, d_one);
+    Node ssx = nm->mkNode(STRING_SUBSTR, x, revi, d_one);
     
     
     Node bound =
