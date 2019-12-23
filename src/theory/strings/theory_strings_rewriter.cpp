@@ -1600,6 +1600,11 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
       }
     }
+    else if (nk0==STRING_TOLOWER || nk0==STRING_TOUPPER || nk0==STRING_REV)
+    {
+      // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
+      retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
+    }
   }
   else if (nk == kind::STRING_CHARAT)
   {
@@ -1640,6 +1645,10 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
   {
     retNode = rewriteStrConvert(node);
+  }
+  else if (nk == STRING_REV)
+  {
+    retNode = rewriteStrReverse(node);
   }
   else if (nk == kind::STRING_PREFIX || nk == kind::STRING_SUFFIX)
   {
@@ -3214,6 +3223,12 @@ Node TheoryStringsRewriter::rewriteStrConvert(Node node)
     // tolower( str.from.int( x ) ) --> str.from.int( x )
     return returnRewrite(node, node[0], "str-conv-itos");
   }
+  return node;
+}
+
+Node TheoryStringsRewriter::rewriteStrReverse(Node node)
+{
+  // TODO
   return node;
 }
 
