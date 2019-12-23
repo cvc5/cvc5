@@ -1671,6 +1671,7 @@ set(regress_1_tests
   regress1/strings/repl-soundness-sem.smt2
   regress1/strings/replaceall-len.smt2
   regress1/strings/replaceall-replace.smt2
+  regress1/strings/rev-conv1.smt2
   regress1/strings/rev-ex1.smt2
   regress1/strings/rev-ex2.smt2
   regress1/strings/rev-ex3.smt2
