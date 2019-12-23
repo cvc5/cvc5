@@ -639,9 +639,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   }
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
-  bool useSymCons =
-      options::sygusGrammarConsMode() != options::SygusGrammarConsMode::SIMPLE;
-  d_tds->registerEnumerator(e, si.d_pt, d_parent, erole, useSymCons);
+  d_tds->registerEnumerator(e, si.d_pt, d_parent, erole);
 }
 
 void CegisUnifEnumDecisionStrategy::registerEvalPts(

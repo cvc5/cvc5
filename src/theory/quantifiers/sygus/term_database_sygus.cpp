@@ -373,8 +373,7 @@ bool TermDbSygus::registerSygusType(TypeNode tn)
 void TermDbSygus::registerEnumerator(Node e,
                                      Node f,
                                      SynthConjecture* conj,
-                                     EnumeratorRole erole,
-                                     bool useSymbolicCons)
+                                     EnumeratorRole erole)
 {
   if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
   {
@@ -391,7 +390,6 @@ void TermDbSygus::registerEnumerator(Node e,
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
-  d_enum_to_using_sym_cons[e] = useSymbolicCons;
   // depending on if we are using symbolic constructors, introduce symmetry
   // breaking lemma templates for each relevant subtype of the grammar
   SygusTypeInfo& eti = getTypeInfo(et);
@@ -409,13 +407,7 @@ void TermDbSygus::registerEnumerator(Node e,
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       bool isAnyC = static_cast<int>(i) == anyC;
-      if (isAnyC && !useSymbolicCons)
-      {
-        // if we are not using the any constant constructor
-        // do not use the symbolic constructor
-        rm_indices.push_back(i);
-      }
-      else if (anyC != -1 && !isAnyC && useSymbolicCons)
+      if (anyC != -1 && !isAnyC)
       {
         // if we are using the any constant constructor, do not use any
         // concrete constant

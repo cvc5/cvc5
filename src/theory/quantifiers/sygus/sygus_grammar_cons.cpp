@@ -141,6 +141,9 @@ Node CegGrammarConstructor::process(Node q,
     {
       sfvl = preGrammarType.getDType().getSygusVarList();
       tn = preGrammarType;
+      // normalize type, if user-provided
+      SygusGrammarNorm sygus_norm(d_qe);
+      tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }else{
       sfvl = getSygusVarList(sf);
       // check which arguments are irrelevant
@@ -166,10 +169,6 @@ Node CegGrammarConstructor::process(Node q,
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is "
                          << sfvl << std::endl;
-
-    // normalize type
-    SygusGrammarNorm sygus_norm(d_qe);
-    tn = sygus_norm.normalizeSygusType(tn, sfvl);
 
     std::map<Node, Node>::const_iterator itt = templates.find(sf);
     if( itt!=templates.end() ){
