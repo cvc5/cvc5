@@ -533,7 +533,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node ssx = nm->mkNode(STRING_SUBSTR, x, revi, d_one);
 
     Node bound =
-        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LEQ, i, lenr));
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, lenr));
     Node rangeA = nm->mkNode(
         FORALL, bvi, nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx)));
     // assert:
