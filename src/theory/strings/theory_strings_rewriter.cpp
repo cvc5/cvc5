@@ -1600,7 +1600,8 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
       }
     }
-    else if (nk0==STRING_TOLOWER || nk0==STRING_TOUPPER || nk0==STRING_REV)
+    else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER
+             || nk0 == STRING_REV)
     {
       // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
       retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
@@ -3234,7 +3235,7 @@ Node TheoryStringsRewriter::rewriteStrReverse(Node node)
   if (x.isConst())
   {
     std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
-    std::reverse(nvec.begin(),nvec.end());
+    std::reverse(nvec.begin(), nvec.end());
     Node retNode = nm->mkConst(String(nvec));
     return returnRewrite(node, retNode, "str-conv-const");
   }
@@ -3245,12 +3246,12 @@ Node TheoryStringsRewriter::rewriteStrReverse(Node node)
     {
       children.push_back(nm->mkNode(STRING_REV, nc));
     }
-    std::reverse(children.begin(),children.end());
+    std::reverse(children.begin(), children.end());
     // rev( x1 ++ x2 ) --> rev( x2 ) ++ rev( x1 )
-    Node retNode = nm->mkNode(STRING_CONCAT,children);
+    Node retNode = nm->mkNode(STRING_CONCAT, children);
     return returnRewrite(node, retNode, "str-rev-minscope-concat");
   }
-  else if (x.getKind()==STRING_REV)
+  else if (x.getKind() == STRING_REV)
   {
     Node retNode = x[0];
     return returnRewrite(node, retNode, "str-rev-idem");

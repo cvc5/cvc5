@@ -514,36 +514,40 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     // Thus, toLower( x ) = r
     retNode = r;
-  } else if (t.getKind() == STRING_REV){
+  }
+  else if (t.getKind() == STRING_REV)
+  {
     Node x = t[0];
     Node r = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "r");
 
     Node lenx = nm->mkNode(STRING_LENGTH, x);
     Node lenr = nm->mkNode(STRING_LENGTH, r);
     Node eqLenA = lenx.eqNode(lenr);
-    
+
     Node i = nm->mkBoundVar(nm->integerType());
     Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
-    
-    Node revi = nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), nm->mkNode(PLUS, i, d_one));    
+
+    Node revi = nm->mkNode(
+        MINUS, nm->mkNode(STRING_LENGTH, x), nm->mkNode(PLUS, i, d_one));
     Node ssr = nm->mkNode(STRING_SUBSTR, r, i, d_one);
     Node ssx = nm->mkNode(STRING_SUBSTR, x, revi, d_one);
-    
-    
+
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LEQ, i, lenr));
-    Node rangeA =
-        nm->mkNode(FORALL, bvi, nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx)));
+    Node rangeA = nm->mkNode(
+        FORALL, bvi, nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx)));
     // assert:
     //   len(r) = len(x) ^
     //   forall i. 0 <= i < len(r) =>
     //     substr(r,i,1) == substr(x,len(x)-(i+1),1)
     Node assert = nm->mkNode(AND, eqLenA, rangeA);
     new_nodes.push_back(assert);
-    
+
     // Thus, (str.rev x) = r
     retNode = r;
-  } else if( t.getKind() == kind::STRING_STRCTN ){
+  }
+  else if (t.getKind() == kind::STRING_STRCTN)
+  {
     Node x = t[0];
     Node s = t[1];
     //negative contains reduces to existential
