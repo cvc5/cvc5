@@ -539,7 +539,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // assert:
     //   len(r) = len(x) ^
     //   forall i. 0 <= i < len(r) =>
-    //     substr(r,i,1) == substr(x,len(x)-(i+1),1)
+    //     substr(r,i,1) = substr(x,len(x)-(i+1),1)
     Node assert = nm->mkNode(AND, eqLenA, rangeA);
     new_nodes.push_back(assert);
 
