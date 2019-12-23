@@ -103,9 +103,6 @@ class TermDbSygus {
    * and not x2-x1 will be generated, assuming x1 and x2 are in the same
    * "subclass", see getSubclassForVar).
    *
-   * useSymbolicCons : whether we want model values for e to include symbolic
-   * constructors like the "any constant" variable.
-   *
    * An "active guard" may be allocated by this method for e based on erole
    * and the policies for active generation.
    */
