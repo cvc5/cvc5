@@ -893,6 +893,7 @@ set(regress_0_tests
   regress0/strings/ncontrib-rewrites.smt2
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
+  regress0/strings/parser-syms.cvc
   regress0/strings/re.all.smt2
   regress0/strings/regexp-native-simple.cvc
   regress0/strings/regexp_inclusion.smt2
