@@ -498,7 +498,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         ci);
 
     Node bound =
-        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LEQ, i, lenr));
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, lenr));
     Node rangeA =
         nm->mkNode(FORALL, bvi, nm->mkNode(OR, bound.negate(), ri.eqNode(res)));
 
