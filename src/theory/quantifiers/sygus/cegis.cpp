@@ -94,8 +94,7 @@ bool Cegis::processInitialize(Node conj,
       }
     }
     Trace("cegis") << std::endl;
-    d_tds->registerEnumerator(
-        candidates[i], candidates[i], d_parent, erole);
+    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent, erole);
   }
   return true;
 }
