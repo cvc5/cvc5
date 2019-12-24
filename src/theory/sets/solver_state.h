@@ -121,8 +121,13 @@ class SolverState
    * class.
    */
   bool isCongruent(Node n) const;
-  /** Get the list of all equivalence classes of set type */
+
+  /** Get the list of all equivalence classes of set terms */
   const std::vector<Node>& getSetsEqClasses() const { return d_set_eqc; }
+  /** Get the list of all equivalence classes of set terms that have element
+   * type t */
+  const std::vector<Node> getSetsEqClasses(const TypeNode& t) const;
+
   /**
    * Get the list of non-variable sets that exists in the equivalence class
    * whose representative is r.
@@ -203,6 +208,9 @@ class SolverState
   // --------------------------------------- end commonly used terms
   /** debug print set */
   void debugPrintSet(Node s, const char* c) const;
+
+  /** get the constant true */
+  const Node& getTrue() const { return d_true; }
 
  private:
   /** constants */
