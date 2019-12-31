@@ -38,7 +38,7 @@ class CVC4_PUBLIC String {
  public:
   /**
    * The start ASCII code. In our string representation below, we represent
-   * characters using a vector d_vec of unsigned integers. We refer to this as
+   * characters using a vector d_str of unsigned integers. We refer to this as
    * the "internal representation" for the string.
    *
    * We make unsigned integer 0 correspond to the 65th character ("A") in the
@@ -57,7 +57,7 @@ class CVC4_PUBLIC String {
   static inline unsigned num_codes() { return 256; }
   /**
    * Convert unsigned char to the unsigned used in the internal representation
-   * in d_vec below.
+   * in d_str below.
    */
   static unsigned convertCharToUnsignedInt(unsigned char c);
   /** Convert the internal unsigned to a unsigned char. */

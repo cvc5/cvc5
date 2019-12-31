@@ -79,7 +79,7 @@ void TheoryUF::finishInit() {
   // finite model finding is enabled, and it is not disabled by
   // options::ufssMode().
   if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind()
-      && options::ufssMode() != UF_SS_NONE)
+      && options::ufssMode() != options::UfssMode::NONE)
   {
     d_thss.reset(new CardinalityExtension(
         getSatContext(), getUserContext(), *d_out, this));

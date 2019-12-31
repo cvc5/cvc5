@@ -205,10 +205,7 @@ class ChainTypeRule {
 
     TypeNode tn;
     try {
-      // Actually do the expansion to do the typechecking.
-      // Shouldn't be extra work to do this, since the rewriter
-      // keeps a cache.
-      tn = nodeManager->getType(Rewriter::rewrite(n), check);
+      tn = nodeManager->getType(TheoryBuiltinRewriter::blastChain(n), check);
     } catch(TypeCheckingExceptionPrivate& e) {
       std::stringstream ss;
       ss << "Cannot typecheck the expansion of chained operator `" << n.getOperator() << "':"

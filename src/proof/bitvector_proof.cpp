@@ -224,7 +224,7 @@ void BitVectorProof::printOwnedTerm(Expr term,
 void BitVectorProof::printEmptyClauseProof(std::ostream& os,
                                            std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  Assert(options::bitblastMode() == options::BitblastMode::EAGER)
       << "the BV theory should only be proving bottom directly in the eager "
          "bitblasting mode";
 }
@@ -644,8 +644,8 @@ void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
   std::vector<Expr>::const_iterator it = d_bbTerms.begin();
   std::vector<Expr>::const_iterator end = d_bbTerms.end();
   for (; it != end; ++it) {
-    if (d_usedBB.find(*it) == d_usedBB.end() &&
-        options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER)
+    if (d_usedBB.find(*it) == d_usedBB.end()
+        && options::bitblastMode() != options::BitblastMode::EAGER)
       continue;
 
     // Is this term has an alias, we inject it through the decl_bblast statement
@@ -668,8 +668,8 @@ void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
   ExprToExpr::const_iterator ait = d_bbAtoms.begin();
   ExprToExpr::const_iterator aend = d_bbAtoms.end();
   for (; ait != aend; ++ait) {
-    if (d_usedBB.find(ait->first) == d_usedBB.end() &&
-        options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER)
+    if (d_usedBB.find(ait->first) == d_usedBB.end()
+        && options::bitblastMode() != options::BitblastMode::EAGER)
       continue;
 
     os << "(th_let_pf _ ";

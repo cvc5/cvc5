@@ -129,7 +129,7 @@ void ResolutionBitVectorProof::endBVConflict(
 
 void ResolutionBitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts)
 {
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     Debug("pf::bv") << "Construct full proof." << std::endl;
     d_resolutionProof->constructProof();
@@ -513,7 +513,7 @@ void LfscResolutionBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
 void LfscResolutionBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                          std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  Assert(options::bitblastMode() == options::BitblastMode::EAGER)
       << "the BV theory should only be proving bottom directly in the eager "
          "bitblasting mode";
   proof::LFSCProofPrinter::printResolutionEmptyClause(

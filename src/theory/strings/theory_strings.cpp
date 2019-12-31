@@ -20,6 +20,7 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
+#include "options/theory_options.h"
 #include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
@@ -128,6 +129,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   getExtTheory()->addFunctionKind(kind::STRING_CODE);
   getExtTheory()->addFunctionKind(kind::STRING_TOLOWER);
   getExtTheory()->addFunctionKind(kind::STRING_TOUPPER);
+  getExtTheory()->addFunctionKind(kind::STRING_REV);
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
@@ -146,6 +148,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
   d_equalityEngine.addFunctionKind(kind::STRING_TOLOWER);
   d_equalityEngine.addFunctionKind(kind::STRING_TOUPPER);
+  d_equalityEngine.addFunctionKind(kind::STRING_REV);
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -436,7 +439,7 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
     Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
            || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL
            || k == STRING_STRREPLALL || k == STRING_LEQ || k == STRING_TOLOWER
-           || k == STRING_TOUPPER);
+           || k == STRING_TOUPPER || k == STRING_REV);
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
@@ -764,7 +767,8 @@ void TheoryStrings::preRegisterTerm(TNode n) {
       if (k == kind::STRING_STRIDOF || k == kind::STRING_ITOS
           || k == kind::STRING_STOI || k == kind::STRING_STRREPL
           || k == kind::STRING_STRREPLALL || k == kind::STRING_STRCTN
-          || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER)
+          || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER
+          || k == STRING_REV)
       {
         std::stringstream ss;
         ss << "Term of kind " << k
@@ -3369,7 +3373,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                       Node lt2 = e==0 ? length_term_j : length_term_i;
                       Node ent_lit = Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::GT, lt1, lt2 ) );
                       std::pair<bool, Node> et = d_state.entailmentCheck(
-                          THEORY_OF_TYPE_BASED, ent_lit);
+                          options::TheoryOfMode::THEORY_OF_TYPE_BASED, ent_lit);
                       if( et.first ){
                         Trace("strings-entail") << "Strings entailment : " << ent_lit << " is entailed in the current context." << std::endl;
                         Trace("strings-entail") << "  explanation was : " << et.second << std::endl;
@@ -3482,11 +3486,11 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
                                                             int index,
                                                             InferInfo& info)
 {
-  if (options::stringProcessLoopMode() == ProcessLoopMode::ABORT)
+  if (options::stringProcessLoopMode() == options::ProcessLoopMode::ABORT)
   {
     throw LogicException("Looping word equation encountered.");
   }
-  else if (options::stringProcessLoopMode() == ProcessLoopMode::NONE)
+  else if (options::stringProcessLoopMode() == options::ProcessLoopMode::NONE)
   {
     d_out->setIncomplete();
     return ProcessLoopResult::SKIPPED;
@@ -3629,11 +3633,13 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
   }
   else
   {
-    if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE_ABORT)
+    if (options::stringProcessLoopMode()
+        == options::ProcessLoopMode::SIMPLE_ABORT)
     {
       throw LogicException("Normal looping word equation encountered.");
     }
-    else if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE)
+    else if (options::stringProcessLoopMode()
+             == options::ProcessLoopMode::SIMPLE)
     {
       d_out->setIncomplete();
       return ProcessLoopResult::SKIPPED;

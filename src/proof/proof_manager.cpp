@@ -798,7 +798,7 @@ void LFSCProof::toStream(std::ostream& out) const
     CodeTimer finalProofTimer{
         ProofManager::currentPM()->getStats().d_finalProofTime};
     out << ";; Printing final unsat proof \n";
-    if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+    if (options::bitblastMode() == options::BitblastMode::EAGER
         && ProofManager::getBitVectorProof())
     {
       ProofManager::getBitVectorProof()->printEmptyClauseProof(out, paren);

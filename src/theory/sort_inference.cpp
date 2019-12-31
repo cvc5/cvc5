@@ -394,7 +394,10 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
     for( size_t i=0; i<n.getNumChildren(); i++ ){
       bool processChild = true;
       if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
-        processChild = options::userPatternsQuant()==theory::quantifiers::USER_PAT_MODE_IGNORE ? i==1 : i>=1;
+        processChild =
+            options::userPatternsQuant() == options::UserPatMode::IGNORE
+                ? i == 1
+                : i >= 1;
       }
       if( processChild ){
         children.push_back( n[i] );
@@ -650,7 +653,10 @@ Node SortInference::simplifyNode(
     for( size_t i=0; i<n.getNumChildren(); i++ ){
       bool processChild = true;
       if( n.getKind()==kind::FORALL || n.getKind()==kind::EXISTS ){
-        processChild = options::userPatternsQuant()==theory::quantifiers::USER_PAT_MODE_IGNORE ? i==1 : i>=1;
+        processChild =
+            options::userPatternsQuant() == options::UserPatMode::IGNORE
+                ? i == 1
+                : i >= 1;
       }
       if( processChild ){
         if( n.getKind()==kind::APPLY_UF ){

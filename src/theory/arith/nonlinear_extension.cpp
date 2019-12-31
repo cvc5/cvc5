@@ -583,7 +583,7 @@ unsigned NonlinearExtension::filterLemmas(std::vector<Node>& lemmas,
       Trace("nl-ext-et-debug")
           << "Check entailment of " << ch_lemma << "..." << std::endl;
       std::pair<bool, Node> et = d_containing.getValuation().entailmentCheck(
-          THEORY_OF_TYPE_BASED, ch_lemma);
+          options::TheoryOfMode::THEORY_OF_TYPE_BASED, ch_lemma);
       Trace("nl-ext-et-debug") << "entailment test result : " << et.first << " "
                                << et.second << std::endl;
       if (et.first)
@@ -3042,20 +3042,21 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
 
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
-  // Figure 3: P_l, P_u
-  // mapped to for signs of c
-  std::map<int, Node> poly_approx_bounds[2];
-  std::vector<Node> pbounds;
-  getPolynomialApproximationBounds(k, d, pbounds);
-  poly_approx_bounds[0][1] = pbounds[0];
-  poly_approx_bounds[0][-1] = pbounds[1];
-  poly_approx_bounds[1][1] = pbounds[2];
-  poly_approx_bounds[1][-1] = pbounds[3];
 
   // Figure 3 : c
   Node c = d_model.computeAbstractModelValue(tf[0]);
   int csign = c.getConst<Rational>().sgn();
   Assert(csign == 1 || csign == -1);
+
+  // Figure 3: P_l, P_u
+  // mapped to for signs of c
+  std::map<int, Node> poly_approx_bounds[2];
+  std::vector<Node> pbounds;
+  getPolynomialApproximationBoundForArg(k, c, d, pbounds);
+  poly_approx_bounds[0][1] = pbounds[0];
+  poly_approx_bounds[0][-1] = pbounds[1];
+  poly_approx_bounds[1][1] = pbounds[2];
+  poly_approx_bounds[1][-1] = pbounds[3];
 
   // Figure 3 : v
   Node v = d_model.computeAbstractModelValue(tf);

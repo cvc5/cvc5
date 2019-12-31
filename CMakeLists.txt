@@ -142,19 +142,19 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for ENABLE_BEST
-cvc4_option(USE_ABC      "Use ABC for AIG bit-blasting")
-cvc4_option(USE_CLN      "Use CLN instead of GMP")
-cvc4_option(USE_GLPK     "Use GLPK simplex solver")
-cvc4_option(USE_READLINE "Use readline for better interactive support")
+cvc4_option(USE_ABC           "Use ABC for AIG bit-blasting")
+cvc4_option(USE_CADICAL       "Use CaDiCaL SAT solver")
+cvc4_option(USE_CLN           "Use CLN instead of GMP")
+cvc4_option(USE_GLPK          "Use GLPK simplex solver")
+cvc4_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
+cvc4_option(USE_READLINE      "Use readline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
-option(USE_CADICAL       "Use CaDiCaL SAT solver")
-option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
-option(USE_DRAT2ER       "Include drat2er for making eager BV proofs")
-option(USE_LFSC          "Use LFSC proof checker")
-option(USE_SYMFPU        "Use SymFPU for floating point support")
-option(USE_PYTHON2       "Prefer using Python 2 (for Python bindings)")
-option(USE_PYTHON3       "Prefer using Python 3 (for Python bindings)")
+option(USE_DRAT2ER            "Include drat2er for making eager BV proofs")
+option(USE_LFSC               "Use LFSC proof checker")
+option(USE_SYMFPU             "Use SymFPU for floating point support")
+option(USE_PYTHON2            "Prefer using Python 2 (for Python bindings)")
+option(USE_PYTHON3            "Prefer using Python 3 (for Python bindings)")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was

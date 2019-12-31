@@ -120,7 +120,7 @@ void BitblastSolver::bitblastQueue() {
 bool BitblastSolver::check(Theory::Effort e)
 {
   Debug("bv-bitblast") << "BitblastSolver::check (" << e << ")\n";
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
+  Assert(options::bitblastMode() == options::BitblastMode::LAZY);
 
   ++(d_statistics.d_numCallstoCheck);
 
