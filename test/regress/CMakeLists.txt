@@ -1222,6 +1222,7 @@ set(regress_1_tests
   regress1/fmf/german169.smt2
   regress1/fmf/german73.smt2
   regress1/fmf/issue2034-preinit.smt2
+  regress1/fmf/issue3587.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
