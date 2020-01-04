@@ -871,12 +871,16 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         // if not, there is no use continuing.
         if (initializeChildren())
         {
-          Trace("sygus-enum-debug2") << "master(" << d_tn << "): success\n";
+          Trace("sygus-enum-debug2") << "master(" << d_tn << "): success init children\n";
           Assert(d_currChildSize + d_ccWeight <= d_currSize);
           incSuccess = true;
         }
+        else
+        {
+          Trace("sygus-enum-debug2") << "master(" << d_tn << "): fail init children\n";
+        }
       }
-      else
+      if (!incSuccess)
       {
         Trace("sygus-enum-debug2") << "master(" << d_tn
                                    << "): fail, backtrack...\n";
@@ -900,19 +904,13 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
       << "master(" << d_tn << "): init children, start = " << d_childrenValid
       << ", #types=" << d_ccTypes.size() << ", sizes=" << d_currChildSize << "/"
       << d_currSize << std::endl;
+  unsigned currChildren = d_childrenValid;
   unsigned sizeMin = 0;
   // while we need to initialize the current child
   while (d_childrenValid < d_ccTypes.size())
   {
     if (!initializeChild(d_childrenValid, sizeMin))
     {
-      if (d_childrenValid == 0)
-      {
-        Trace("sygus-enum-debug2") << "master(" << d_tn
-                                   << "): init children : failed, finished"
-                                   << std::endl;
-        return false;
-      }
       Trace("sygus-enum-debug2") << "master(" << d_tn
                                  << "): init children : failed" << std::endl;
       // we failed in this size configuration
@@ -921,6 +919,13 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
       d_currChildSize -= currSize;
       sizeMin = currSize + 1;
       d_children.erase(d_childrenValid - 1);
+      if (d_childrenValid == currChildren)
+      {
+        Trace("sygus-enum-debug2") << "master(" << d_tn
+                                   << "): init children : failed, finished"
+                                   << std::endl;
+        return false;
+      }
       d_childrenValid--;
     }
     else
