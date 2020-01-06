@@ -219,9 +219,9 @@ int ModelEngine::checkModel(){
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
-  int e_max = options::mbqiMode() == MBQI_FMC
+  int e_max = options::mbqiMode() == options::MbqiMode::FMC
                   ? 2
-                  : (options::mbqiMode() == MBQI_TRUST ? 0 : 1);
+                  : (options::mbqiMode() == options::MbqiMode::TRUST ? 0 : 1);
   for( int e=0; e<e_max; e++) {
     d_incomplete_quants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){

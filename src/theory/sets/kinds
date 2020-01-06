@@ -46,6 +46,21 @@ operator CARD          1  "set cardinality operator"
 operator COMPLEMENT    1  "set COMPLEMENT (with respect to finite universe)"
 nullaryoperator UNIVERSE_SET "(finite) universe set, all set variables must be interpreted as subsets of it."
 
+# A set comprehension is specified by:
+# (1) a bound variable list x1 ... xn,
+# (2) a predicate P[x1...xn], and
+# (3) a term t[x1...xn].
+# A comprehension C with the above form has members given by the following
+# semantics:
+# forall y. ( exists x1...xn. P[x1...xn] ^ t[x1...xn] = y ) <=> (member y C)
+# where y ranges over the element type of the (set) type of the comprehension.
+# Notice that since all sets must be interpreted as finite, this means that
+# CVC4 will not be able to construct a model for any set comprehension such
+# that there are infinitely many y that satisfy the left hand side of the
+# equivalence above. The same limitation occurs more generally when combining
+# finite sets with quantified formulas.
+operator COMPREHENSION 3 "set comprehension specified by a bound variable list, a predicate, and a term."
+
 operator JOIN 		   2  "set join"
 operator PRODUCT 	   2  "set cartesian product"
 operator TRANSPOSE 	   1  "set transpose"
@@ -64,6 +79,7 @@ typerule INSERT         ::CVC4::theory::sets::InsertTypeRule
 typerule CARD           ::CVC4::theory::sets::CardTypeRule
 typerule COMPLEMENT     ::CVC4::theory::sets::ComplementTypeRule
 typerule UNIVERSE_SET   ::CVC4::theory::sets::UniverseSetTypeRule
+typerule COMPREHENSION  ::CVC4::theory::sets::ComprehensionTypeRule
 
 typerule JOIN 			::CVC4::theory::sets::RelBinaryOperatorTypeRule
 typerule PRODUCT 		::CVC4::theory::sets::RelBinaryOperatorTypeRule

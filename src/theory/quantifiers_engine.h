@@ -214,8 +214,9 @@ public:
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
   /** get user pat mode */
-  quantifiers::UserPatMode getInstUserPatMode();
-public:
+  options::UserPatMode getInstUserPatMode();
+
+ public:
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */

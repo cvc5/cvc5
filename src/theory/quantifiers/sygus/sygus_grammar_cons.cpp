@@ -49,7 +49,7 @@ bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
     if (!gv.isNull())
     {
       TypeNode tn = gv.getType();
-      if (tn.isDatatype() && tn.getDatatype().isSygus())
+      if (tn.isDatatype() && tn.getDType().isSygus())
       {
         return true;
       }
@@ -137,9 +137,9 @@ Node CegGrammarConstructor::process(Node q,
     std::stringstream ss;
     ss << sf;
     Node sfvl;
-    if (preGrammarType.isDatatype() && preGrammarType.getDatatype().isSygus())
+    if (preGrammarType.isDatatype() && preGrammarType.getDType().isSygus())
     {
-      sfvl = Node::fromExpr(preGrammarType.getDatatype().getSygusVarList());
+      sfvl = preGrammarType.getDType().getSygusVarList();
       tn = preGrammarType;
     }else{
       sfvl = getSygusVarList(sf);
@@ -260,7 +260,7 @@ Node CegGrammarConstructor::process(Node q,
     }
     tds->registerSygusType(tn);
     Assert(tn.isDatatype());
-    const Datatype& dt = tn.getDatatype();
+    const DType& dt = tn.getDType();
     Assert(dt.isSygus());
     if( !dt.getSygusAllowAll() ){
       d_is_syntax_restricted = true;
@@ -427,13 +427,13 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
       Trace("sygus-grammar-def") << "...will make grammar for " << range << std::endl;
       types.push_back( range );
       if( range.isDatatype() ){
-        const Datatype& dt = range.getDatatype();
+        const DType& dt = range.getDType();
         for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
         {
           for (unsigned j = 0, size_args = dt[i].getNumArgs(); j < size_args;
                ++j)
           {
-            TypeNode tn = TypeNode::fromType(dt[i][j].getRangeType());
+            TypeNode tn = dt[i][j].getRangeType();
             collectSygusGrammarTypesFor(tn, types);
           }
         }
@@ -538,7 +538,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       itc;
   // maps types to the index of its "any term" grammar construction
   std::map<TypeNode, unsigned> typeToGAnyTerm;
-  SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
+  options::SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
     std::stringstream ss;
@@ -571,15 +571,16 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   {
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     TypeNode unres_t = unres_types[i];
-    SygusGrammarConsMode tsgcm = sgcm;
-    if (tsgcm == SYGUS_GCONS_ANY_TERM || tsgcm == SYGUS_GCONS_ANY_TERM_CONCISE)
+    options::SygusGrammarConsMode tsgcm = sgcm;
+    if (tsgcm == options::SygusGrammarConsMode::ANY_TERM
+        || tsgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE)
     {
       // If the type does not support any term, we do any constant instead.
       // We also fall back on any constant construction if the type has no
       // constructors at this point (e.g. it simply encodes all constants).
       if (!types[i].isReal())
       {
-        tsgcm = SYGUS_GCONS_ANY_CONST;
+        tsgcm = options::SygusGrammarConsMode::ANY_CONST;
       }
       else
       {
@@ -629,7 +630,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     //add constants
     std::vector<Node> consts;
     mkSygusConstantsForType(types[i], consts);
-    if (tsgcm == SYGUS_GCONS_ANY_CONST)
+    if (tsgcm == options::SygusGrammarConsMode::ANY_CONST)
     {
       // Use the any constant constructor. Notice that for types that don't
       // have constants (e.g. uninterpreted or function types), we don't add
@@ -817,11 +818,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     else if (types[i].isDatatype())
     {
       Trace("sygus-grammar-def") << "...add for constructors" << std::endl;
-      const Datatype& dt = types[i].getDatatype();
+      const DType& dt = types[i].getDType();
       for (unsigned k = 0, size_k = dt.getNumConstructors(); k < size_k; ++k)
       {
         Trace("sygus-grammar-def") << "...for " << dt[k].getName() << std::endl;
-        Node cop = Node::fromExpr(dt[k].getConstructor());
+        Node cop = dt[k].getConstructor();
         if (dt[k].getNumArgs() == 0)
         {
           // Nullary constructors are interpreted as terms, not operators.
@@ -834,7 +835,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         {
           Trace("sygus-grammar-def")
               << "...for " << dt[k][j].getName() << std::endl;
-          TypeNode crange = TypeNode::fromType(dt[k][j].getRangeType());
+          TypeNode crange = dt[k][j].getRangeType();
           Assert(type_to_unres.find(crange) != type_to_unres.end());
           cargsCons.push_back(type_to_unres[crange]);
           // add to the selector type the selector operator
@@ -842,12 +843,12 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
           Assert(std::find(types.begin(), types.end(), crange) != types.end());
           unsigned i_selType = std::distance(
               types.begin(), std::find(types.begin(), types.end(), crange));
-          TypeNode arg_type = TypeNode::fromType(dt[k][j].getType());
+          TypeNode arg_type = dt[k][j].getType();
           arg_type = arg_type.getSelectorDomainType();
           Assert(type_to_unres.find(arg_type) != type_to_unres.end());
           std::vector<TypeNode> cargsSel;
           cargsSel.push_back(type_to_unres[arg_type]);
-          Node sel = Node::fromExpr(dt[k][j].getSelector());
+          Node sel = dt[k][j].getSelector();
           sdts[i_selType].addConstructor(sel, dt[k][j].getName(), cargsSel);
         }
         sdts[i].addConstructor(cop, dt[k].getName(), cargsCons);
@@ -923,7 +924,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     // the references).
     const SygusDatatype& sdti = sdts[i].d_sdt;
     // whether we will use the polynomial grammar
-    bool polynomialGrammar = sgcm == SYGUS_GCONS_ANY_TERM_CONCISE;
+    bool polynomialGrammar =
+        sgcm == options::SygusGrammarConsMode::ANY_TERM_CONCISE;
     // A set of constructor indices that will be used in the overall sum we
     // are constructing; indices of constructors corresponding to builtin
     // arithmetic operators will be excluded from this set.
@@ -1045,7 +1047,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // add it as a constructor
         std::stringstream ssop;
         ssop << "monomial_" << sdc.d_name;
-        sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, spc);
+        // we use 0 as the weight, since this constructor should be seen as
+        // a generalization of a non-Boolean variable (which has weight 0).
+        // This ensures that e.g. ( c1*x >= 0 ) has the same weight as
+        // ( x >= 0 ).
+        sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, spc, 0);
       }
     }
     if (polynomialGrammar)
@@ -1053,6 +1059,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // add the constant
       Node coeff = nm->mkBoundVar(types[i]);
       lambdaVars.push_back(coeff);
+      sumChildren.push_back(coeff);
       cargsAnyTerm.push_back(unresAnyConst);
       // make the sygus operator lambda X. c1*t1 + ... + cn*tn + c
       Assert(sumChildren.size() > 1);
@@ -1069,7 +1076,11 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
       // make the any term datatype, add to back
       // do not consider the exclusion criteria of the generator
-      sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, spc);
+      // we use 0 as the weight, since this constructor should be seen as
+      // a simultaneous generalization of set of non-Boolean variables.
+      // This ensures that ( c1*x + c2*y >= 0 ) has the same weight as
+      // e.g. ( x >= 0 ) or ( y >= 0 ).
+      sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, spc, 0);
     }
     else
     {
@@ -1166,14 +1177,16 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       //add for testers
       Trace("sygus-grammar-def") << "...add for testers" << std::endl;
-      const Datatype& dt = types[i].getDatatype();
+      const DType& dt = types[i].getDType();
       std::vector<TypeNode> cargsTester;
       cargsTester.push_back(unres_types[iuse]);
       for (unsigned k = 0, size_k = dt.getNumConstructors(); k < size_k; ++k)
       {
-        Trace("sygus-grammar-def") << "...for " << dt[k].getTesterName() << std::endl;
-        sdtBool.addConstructor(
-            dt[k].getTester(), dt[k].getTesterName(), cargsTester);
+        Trace("sygus-grammar-def")
+            << "...for " << dt[k].getTester() << std::endl;
+        std::stringstream sst;
+        sst << dt[k].getTester();
+        sdtBool.addConstructor(dt[k].getTester(), sst.str(), cargsTester);
       }
     }
   }
@@ -1187,7 +1200,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // TODO #1935 ITEs are added to Boolean grammars so that we can infer
       // unification strategies. We can do away with this if we can infer
       // unification strategies from and/or/not
-      if (k == ITE && options::sygusUnifPi() == SYGUS_UNIF_PI_NONE)
+      if (k == ITE && options::sygusUnifPi() == options::SygusUnifPiMode::NONE)
       {
         continue;
       }

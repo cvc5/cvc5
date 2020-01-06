@@ -47,16 +47,24 @@ void QuantDSplit::checkOwnership(Node q)
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      if( dt.isRecursiveSingleton( tn.toType() ) ){
+      const DType& dt = tn.getDType();
+      if (dt.isRecursiveSingleton(tn))
+      {
         Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is recursive singleton." << std::endl;
-      }else{
-        if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
+      }
+      else
+      {
+        if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
+        {
           // split if it is a finite datatype
-          doSplit = dt.isInterpretedFinite(tn.toType());
-        }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
-          if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
-            if (dt.isInterpretedFinite(tn.toType()))
+          doSplit = dt.isInterpretedFinite(tn);
+        }
+        else if (options::quantDynamicSplit()
+                 == options::QuantDSplitMode::DEFAULT)
+        {
+          if (!d_quantEngine->isFiniteBound(q, q[0][i]))
+          {
+            if (dt.isInterpretedFinite(tn))
             {
               // split if goes from being unhandled -> handled by finite
               // instantiation. An example is datatypes with uninterpreted sort
@@ -144,20 +152,20 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
       TypeNode tn = svar.getType();
       Assert(tn.isDatatype());
       std::vector<Node> cons;
-      const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+      const DType& dt = tn.getDType();
       for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         std::vector<Node> vars;
         for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
         {
-          TypeNode tns = TypeNode::fromType(dt[j][k].getRangeType());
+          TypeNode tns = dt[j][k].getRangeType();
           Node v = nm->mkBoundVar(tns);
           vars.push_back(v);
         }
         std::vector<Node> bvs_cmb;
         bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
         bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
-        vars.insert(vars.begin(), Node::fromExpr(dt[j].getConstructor()));
+        vars.insert(vars.begin(), dt[j].getConstructor());
         Node c = nm->mkNode(kind::APPLY_CONSTRUCTOR, vars);
         TNode ct = c;
         Node body = q[1].substitute(svar, ct);

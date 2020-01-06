@@ -299,12 +299,12 @@ void TheorySetsRels::check(Theory::Effort level)
       }
       hasChecked.insert( fst_mem_rep );
 
-      const Datatype& dt =
-          join_image_term.getType().getSetElementType().getDatatype();
-      Node new_membership = NodeManager::currentNM()->mkNode(kind::MEMBER,
-                                                             NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR,
-                                                                                               Node::fromExpr(dt[0].getConstructor()), fst_mem_rep ),
-                                                             join_image_term);
+      const DType& dt =
+          join_image_term.getType().getSetElementType().getDType();
+      Node new_membership = nm->mkNode(
+          MEMBER,
+          nm->mkNode(APPLY_CONSTRUCTOR, dt[0].getConstructor(), fst_mem_rep),
+          join_image_term);
       if (d_state.isEntailed(new_membership, true))
       {
         ++mem_rep_it;
@@ -429,9 +429,11 @@ void TheorySetsRels::check(Theory::Effort level)
     Node reason = exp;
     Node fst_mem = RelsUtils::nthElementOfTuple( exp[0], 0 );
     Node snd_mem = RelsUtils::nthElementOfTuple( exp[0], 1 );
-    const Datatype& dt =
-        iden_term[0].getType().getSetElementType().getDatatype();
-    Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, Node::fromExpr(dt[0].getConstructor()), fst_mem ), iden_term[0] );
+    const DType& dt = iden_term[0].getType().getSetElementType().getDType();
+    Node fact = nm->mkNode(
+        MEMBER,
+        nm->mkNode(APPLY_CONSTRUCTOR, dt[0].getConstructor(), fst_mem),
+        iden_term[0]);
 
     if( exp[1] != iden_term ) {
       reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, exp[1], iden_term ) );
@@ -767,18 +769,18 @@ void TheorySetsRels::check(Theory::Effort level)
     Node mem = exp[0];
     std::vector<Node>   r1_element;
     std::vector<Node>   r2_element;
-    const Datatype& dt1 = pt_rel[0].getType().getSetElementType().getDatatype();
+    const DType& dt1 = pt_rel[0].getType().getSetElementType().getDType();
     unsigned int s1_len  = pt_rel[0].getType().getSetElementType().getTupleLength();
     unsigned int tup_len = pt_rel.getType().getSetElementType().getTupleLength();
 
-    r1_element.push_back(Node::fromExpr(dt1[0].getConstructor()));
+    r1_element.push_back(dt1[0].getConstructor());
 
     unsigned int i = 0;
     for(; i < s1_len; ++i) {
       r1_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
-    const Datatype& dt2 = pt_rel[1].getType().getSetElementType().getDatatype();
-    r2_element.push_back(Node::fromExpr(dt2[0].getConstructor()));
+    const DType& dt2 = pt_rel[1].getType().getSetElementType().getDType();
+    r2_element.push_back(dt2[0].getConstructor());
     for(; i < tup_len; ++i) {
       r2_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
@@ -825,20 +827,18 @@ void TheorySetsRels::check(Theory::Effort level)
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
     Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
-    const Datatype& dt1 =
-        join_rel[0].getType().getSetElementType().getDatatype();
+    const DType& dt1 = join_rel[0].getType().getSetElementType().getDType();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
     unsigned int tup_len        = join_rel.getType().getSetElementType().getTupleLength();
 
     unsigned int i = 0;
-    r1_element.push_back(Node::fromExpr(dt1[0].getConstructor()));
+    r1_element.push_back(dt1[0].getConstructor());
     for(; i < s1_len-1; ++i) {
       r1_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
     }
     r1_element.push_back(shared_x);
-    const Datatype& dt2 =
-        join_rel[1].getType().getSetElementType().getDatatype();
-    r2_element.push_back(Node::fromExpr(dt2[0].getConstructor()));
+    const DType& dt2 = join_rel[1].getType().getSetElementType().getDType();
+    r2_element.push_back(dt2[0].getConstructor());
     r2_element.push_back(shared_x);
     for(; i < tup_len; ++i) {
       r2_element.push_back(RelsUtils::nthElementOfTuple(mem, i));
@@ -1041,7 +1041,7 @@ void TheorySetsRels::check(Theory::Effort level)
         TypeNode tn = rel.getType().getSetElementType();
         Node r1_rmost = RelsUtils::nthElementOfTuple( r1_rep_exps[i][0], r1_tuple_len-1 );
         Node r2_lmost = RelsUtils::nthElementOfTuple( r2_rep_exps[j][0], 0 );
-        tuple_elements.push_back( Node::fromExpr(tn.getDatatype()[0].getConstructor()) );
+        tuple_elements.push_back(tn.getDType()[0].getConstructor());
 
         if( (areEqual(r1_rmost, r2_lmost) && rel.getKind() == kind::JOIN) ||
             rel.getKind() == kind::PRODUCT ) {
@@ -1226,7 +1226,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if(d_symbolic_tuples.find(n) == d_symbolic_tuples.end()) {
       Trace("rels-debug") << "[Theory::Rels] Reduce tuple var: " << n[0] << " to a concrete one " << " node = " << n << std::endl;
       std::vector<Node> tuple_elements;
-      tuple_elements.push_back(Node::fromExpr((n[0].getType().getDatatype())[0].getConstructor()));
+      tuple_elements.push_back((n[0].getType().getDType())[0].getConstructor());
       for(unsigned int i = 0; i < n[0].getType().getTupleLength(); i++) {
         Node element = RelsUtils::nthElementOfTuple(n[0], i);
         makeSharedTerm(element);

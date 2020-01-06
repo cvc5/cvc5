@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "options/bv_options.h"
 #include "options/language.h"
@@ -246,7 +247,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::DATATYPE_TYPE:
     {
-      const Datatype& dt = (NodeManager::currentNM()->getDatatypeForIndex(
+      const DType& dt = (NodeManager::currentNM()->getDTypeForIndex(
           n.getConst<DatatypeIndexConstant>().getIndex()));
       if (dt.isTuple())
       {
@@ -665,6 +666,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_STRREPLALL:
   case kind::STRING_TOLOWER:
   case kind::STRING_TOUPPER:
+  case kind::STRING_REV:
   case kind::STRING_PREFIX:
   case kind::STRING_SUFFIX:
   case kind::STRING_LEQ:
@@ -751,6 +753,7 @@ void Smt2Printer::toStream(std::ostream& out,
     parametricTypeChildren = true;
     out << smtKindString(k, d_variant) << " ";
     break;
+  case kind::COMPREHENSION: out << smtKindString(k, d_variant) << " "; break;
   case kind::MEMBER: typeChildren = true; CVC4_FALLTHROUGH;
   case kind::INSERT:
   case kind::SET_TYPE:
@@ -1155,6 +1158,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::INSERT: return "insert";
   case kind::COMPLEMENT: return "complement";
   case kind::CARD: return "card";
+  case kind::COMPREHENSION: return "comprehension";
   case kind::JOIN: return "join";
   case kind::PRODUCT: return "product";
   case kind::TRANSPOSE: return "transpose";
@@ -1225,6 +1229,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_STRREPLALL: return "str.replaceall";
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
+  case kind::STRING_REV: return "str.rev";
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_LEQ: return "str.<=";

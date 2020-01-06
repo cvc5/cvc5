@@ -1193,4 +1193,11 @@ void LFSCArithProof::printAliasingDeclarations(std::ostream& os, std::ostream& p
   // Nothing to do here at this point.
 }
 
+bool LFSCArithProof::printsAsBool(const Node& n)
+{
+  // Our boolean variables and constants print as sort Bool.
+  // All complex booleans print as formulas.
+  return n.getType().isBoolean() and (n.isVar() or n.isConst());
+}
+
 } /* CVC4  namespace */
