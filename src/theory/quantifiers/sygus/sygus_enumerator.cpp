@@ -871,13 +871,15 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         // if not, there is no use continuing.
         if (initializeChildren())
         {
-          Trace("sygus-enum-debug2") << "master(" << d_tn << "): success init children\n";
+          Trace("sygus-enum-debug2")
+              << "master(" << d_tn << "): success init children\n";
           Assert(d_currChildSize + d_ccWeight <= d_currSize);
           incSuccess = true;
         }
         else
         {
-          Trace("sygus-enum-debug2") << "master(" << d_tn << "): fail init children\n";
+          Trace("sygus-enum-debug2")
+              << "master(" << d_tn << "): fail init children\n";
           d_currChildSize -= d_children[i].getCurrentSize();
         }
       }
