@@ -448,28 +448,26 @@ class Smt2 : public Parser
                         SymbolType type = SYM_VARIABLE,
                         std::string notes = "")
   {
+    std::cout << "{" << name << "} " << name[0] << " " << name.find_first_not_of("0123456789", 1) << " " << std::string::npos << " " << name.length() << std::endl;
     // if the symbol is something like "-1", we'll give the user a helpful
     // syntax hint.  (-1 is a valid identifier in SMT-LIB, NOT unary minus.)
-    if( check != CHECK_DECLARED ||
-        name[0] != '-' ||
-        name.find_first_not_of("0123456789", 1) != std::string::npos ) {
-      this->Parser::checkDeclaration(name, check, type, notes);
-      return;
-    }else{
-      //it is allowable in sygus
-      if (sygus_v1() && name[0] == '-')
+    if (name.length()>1 && name[0]=='-' && name.find_first_not_of("0123456789", 1) == std::string::npos )
+    {
+      std::cout << " I am here " << std::endl;
+      if (sygus_v1())
       {
-        //do not check anything
         return;
       }
+      std::stringstream ss;
+      ss << notes
+        << "You may have intended to apply unary minus: `(- "
+        << name.substr(1)
+        << ")'\n";
+      this->Parser::checkDeclaration(name, check, type, ss.str());
+      return;
     }
-
-    std::stringstream ss;
-    ss << notes
-       << "You may have intended to apply unary minus: `(- "
-       << name.substr(1)
-       << ")'\n";
-    this->Parser::checkDeclaration(name, check, type, ss.str());
+    this->Parser::checkDeclaration(name, check, type, notes);
+    return;
   }
 
   void checkOperator(Kind kind, unsigned numArgs)
