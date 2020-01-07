@@ -465,7 +465,6 @@ class Smt2 : public Parser
       return;
     }
     this->Parser::checkDeclaration(name, check, type, notes);
-    return;
   }
 
   void checkOperator(Kind kind, unsigned numArgs)
