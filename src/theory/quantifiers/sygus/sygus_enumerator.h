@@ -354,7 +354,7 @@ class SygusEnumerator : public EnumValGenerator
     /** initialize children
      *
      * Initialize all the remaining uninitialized children of this enumerator.
-     * If thi method returns true, then all children d_children are successfully
+     * If this method returns true, then each of d_children are
      * initialized to be slave enumerators of the argument types indicated by
      * d_ccTypes, and the sum of their current sizes (d_currChildSize) is
      * exactly (d_currSize - d_ccWeight). If this method returns false, then
