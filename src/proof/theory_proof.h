@@ -197,6 +197,11 @@ public:
 private:
   static void dumpTheoryLemmas(const IdToSatClause& lemmas);
 
+  // Prints this boolean term as a formula.
+  // If necessary, it prints a wrapper converting a `Bool`-sorted term to a
+  // formula.
+  void printBoundFormula(Expr term, std::ostream& os, const ProofLetMap& map);
+
   // TODO: this function should be moved into the BV prover.
 
   std::map<Node, std::string> d_assertionToRewrite;
@@ -353,7 +358,14 @@ protected:
    */
   virtual void printRewriteProof(std::ostream& os, const Node &n1, const Node &n2);
 
-  // Return true if node prints as bool, false if it prints as a formula.
+  /**
+   * Return whether this node, when serialized as an LFSC proof, has sort `Bool`.
+   *
+   * This is virtual because it ultimately, theories control the serialization
+   * of their proofs, so a theory will need to override this appropriately.
+   *
+   * This should only be called on nodes of type `Bool`.
+   */
   virtual bool printsAsBool(const Node &n) {
     // Most nodes print as formulas, so this is the default.
     return false;
