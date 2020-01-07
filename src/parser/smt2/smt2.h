@@ -448,14 +448,13 @@ class Smt2 : public Parser
                         SymbolType type = SYM_VARIABLE,
                         std::string notes = "")
   {
-    std::cout << "{" << name << "} " << name[0] << " " << name.find_first_not_of("0123456789", 1) << " " << std::string::npos << " " << name.length() << std::endl;
     // if the symbol is something like "-1", we'll give the user a helpful
     // syntax hint.  (-1 is a valid identifier in SMT-LIB, NOT unary minus.)
     if (name.length()>1 && name[0]=='-' && name.find_first_not_of("0123456789", 1) == std::string::npos )
     {
-      std::cout << " I am here " << std::endl;
       if (sygus_v1())
       {
+        // "-1" is allowed in SyGuS version 1.0
         return;
       }
       std::stringstream ss;
