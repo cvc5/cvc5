@@ -878,6 +878,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         else
         {
           Trace("sygus-enum-debug2") << "master(" << d_tn << "): fail init children\n";
+          d_currChildSize -= d_children[i].getCurrentSize();
         }
       }
       if (!incSuccess)
@@ -911,6 +912,13 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
   {
     if (!initializeChild(d_childrenValid, sizeMin))
     {
+      if (d_childrenValid == currChildren)
+      {
+        Trace("sygus-enum-debug2") << "master(" << d_tn
+                                   << "): init children : failed, finished"
+                                   << std::endl;
+        return false;
+      }
       Trace("sygus-enum-debug2") << "master(" << d_tn
                                  << "): init children : failed" << std::endl;
       // we failed in this size configuration
@@ -919,13 +927,6 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
       d_currChildSize -= currSize;
       sizeMin = currSize + 1;
       d_children.erase(d_childrenValid - 1);
-      if (d_childrenValid == currChildren)
-      {
-        Trace("sygus-enum-debug2") << "master(" << d_tn
-                                   << "): init children : failed, finished"
-                                   << std::endl;
-        return false;
-      }
       d_childrenValid--;
     }
     else
