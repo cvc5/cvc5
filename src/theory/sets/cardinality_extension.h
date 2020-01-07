@@ -143,7 +143,7 @@ class CardinalityExtension
    * exclude these slack elements from the members in all sets of that type.
    */
   const std::map<TypeNode, std::vector<TNode> >& getFiniteTypeSlackElements()
-  const
+      const
   {
     return d_finite_type_slack_elements;
   }
@@ -156,6 +156,7 @@ class CardinalityExtension
 
  private:
   /** constants */
+  Node d_true;
   Node d_zero;
   /** the empty vector */
   std::vector<Node> d_emp_exp;
@@ -323,8 +324,8 @@ class CardinalityExtension
   void checkNormalForm(Node eqc, std::vector<Node>& intro_sets);
 
   /**
-  * add cardinality lemmas for each finite type
-  */
+   * add cardinality lemmas for each finite type
+   */
   void checkFiniteTypes();
   /**
    * This function adds the following lemmas for the finite type t for each S

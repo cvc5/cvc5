@@ -40,6 +40,7 @@ CardinalityExtension::CardinalityExtension(SolverState& s,
       d_card_processed(u),
       d_finite_type_constants_processed(false)
 {
+  d_true = NodeManager::currentNM()->mkConst(true);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   // we do congruence over cardinality
   d_ee.addFunctionKind(CARD);
@@ -105,7 +106,7 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
   Cardinality card = t.getCardinality();
   if (!card.isFinite())
   {
-    // ToDo (#1123): support uninterpreted sorts with --finite-model-find
+    // TODO (#1123): support uninterpreted sorts with --finite-model-find
     std::stringstream message;
     message << "The cardinality " << card << " of the finite type " << t
             << " is not supported yet." << endl;
@@ -117,18 +118,17 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
   Node cardUniv = nm->mkNode(kind::CARD, proxy);
   Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
 
-  /** (=> true (<= (card (as univset t)) cardUniv) */
+  // (=> true (<= (card (as univset t)) cardUniv)
   if (!d_state.isEntailed(leq, true))
   {
-    d_im.assertInference(leq, d_state.getTrue(), "finite type cardinality", 1);
+    d_im.assertInference(leq, d_true, "finite type cardinality", 1);
   }
 
-  // add subset lemmas for sets and membership lemmas for negative members
+  // add subset lemmas for sets, and membership lemmas for negative members
   for (Node& representative : representatives)
   {
-    if (representative
-        != d_ee.getRepresentative(
-            univ))  // the universe set is a subset of itself
+    // the universe set is a subset of itself
+    if (representative != d_ee.getRepresentative(univ))
     {
       // here we only add representatives with variables to avoid adding
       // infinite equivalent generated terms to the cardinality graph
@@ -138,15 +138,14 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
         continue;
       }
 
-      /** (=> true (subset representative (as univset t)) */
+      // (=> true (subset representative (as univset t))
       Node subset = nm->mkNode(kind::SUBSET, variable, proxy);
       // subset terms are rewritten as union terms: (subset A B) implies (=
       // (union A B) B)
       subset = Rewriter::rewrite(subset);
       if (!d_state.isEntailed(subset, true))
       {
-        d_im.assertInference(
-            subset, d_state.getTrue(), "univset is a super set", 1);
+        d_im.assertInference(subset, d_true, "univset is a super set", 1);
       }
 
       // negative members are members in the universe set
@@ -160,8 +159,9 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
         // has kind MEMBER. So we specify the negation as the reason for the
         // negative membership lemma
         Node notMember = nm->mkNode(NOT, negativeMember.second);
-        /** (=> (not (member negativeMember representative))) (member
-         * negativeMember (as univset t))) */
+        // (=>
+        //    (not (member negativeMember representative)))
+        //    (member negativeMember (as univset t)))
         d_im.assertInference(
             member, notMember, "negative members are in the universe", 1);
       }

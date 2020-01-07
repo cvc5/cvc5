@@ -209,9 +209,6 @@ class SolverState
   /** debug print set */
   void debugPrintSet(Node s, const char* c) const;
 
-  /** get the constant true */
-  const Node& getTrue() const { return d_true; }
-
  private:
   /** constants */
   Node d_true;
