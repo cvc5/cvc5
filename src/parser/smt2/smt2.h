@@ -450,7 +450,8 @@ class Smt2 : public Parser
   {
     // if the symbol is something like "-1", we'll give the user a helpful
     // syntax hint.  (-1 is a valid identifier in SMT-LIB, NOT unary minus.)
-    if (name.length()>1 && name[0]=='-' && name.find_first_not_of("0123456789", 1) == std::string::npos )
+    if (name.length() > 1 && name[0] == '-'
+        && name.find_first_not_of("0123456789", 1) == std::string::npos)
     {
       if (sygus_v1())
       {
@@ -458,10 +459,8 @@ class Smt2 : public Parser
         return;
       }
       std::stringstream ss;
-      ss << notes
-        << "You may have intended to apply unary minus: `(- "
-        << name.substr(1)
-        << ")'\n";
+      ss << notes << "You may have intended to apply unary minus: `(- "
+         << name.substr(1) << ")'\n";
       this->Parser::checkDeclaration(name, check, type, ss.str());
       return;
     }
