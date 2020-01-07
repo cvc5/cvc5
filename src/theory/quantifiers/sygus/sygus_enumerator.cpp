@@ -878,6 +878,8 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         }
         else
         {
+          // failed to initialize the remaining children (likely due to a
+          // child having a non-zero minimum size bound).
           Trace("sygus-enum-debug2")
               << "master(" << d_tn << "): fail init children\n";
           d_currChildSize -= d_children[i].getCurrentSize();
@@ -916,6 +918,7 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
     {
       if (d_childrenValid == currChildren)
       {
+        // we are back to the child we started with, we terminate now.
         Trace("sygus-enum-debug2") << "master(" << d_tn
                                    << "): init children : failed, finished"
                                    << std::endl;
