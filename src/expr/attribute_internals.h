@@ -104,7 +104,7 @@ struct KindValueToTableValueMapping
 };
 
 /**
- * This converts arbitrary unsinged integers (up to 64-bit) to and from 64-bit
+ * This converts arbitrary unsigned integers (up to 64-bit) to and from 64-bit
  * integers s.t. they can be stored in the hash table for integral-valued
  * attributes.
  */
