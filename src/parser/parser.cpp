@@ -538,7 +538,6 @@ void Parser::checkDeclaration(const std::string& varName,
   if (!d_checksEnabled) {
     return;
   }
-  std::cout << check << " Check with notes: {" << notes << "} size " << notes.size() << std::endl;
 
   switch (check) {
     case CHECK_DECLARED:
