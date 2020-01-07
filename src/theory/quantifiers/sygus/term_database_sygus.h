@@ -103,17 +103,13 @@ class TermDbSygus {
    * and not x2-x1 will be generated, assuming x1 and x2 are in the same
    * "subclass", see getSubclassForVar).
    *
-   * useSymbolicCons : whether we want model values for e to include symbolic
-   * constructors like the "any constant" variable.
-   *
    * An "active guard" may be allocated by this method for e based on erole
    * and the policies for active generation.
    */
   void registerEnumerator(Node e,
                           Node f,
                           SynthConjecture* conj,
-                          EnumeratorRole erole,
-                          bool useSymbolicCons = false);
+                          EnumeratorRole erole);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
