@@ -404,7 +404,7 @@ Node SolverState::getProxy(Node n)
 {
   Kind nk = n.getKind();
   if (nk != EMPTYSET && nk != SINGLETON && nk != INTERSECTION && nk != SETMINUS
-      && nk != UNION)
+      && nk != UNION && nk != UNIVERSE_SET)
   {
     return n;
   }
@@ -603,6 +603,19 @@ void SolverState::debugPrintSet(Node s, const char* c) const
     }
     Trace(c) << ")";
   }
+}
+
+const vector<Node> SolverState::getSetsEqClasses(const TypeNode& t) const
+{
+  vector<Node> representatives;
+  for (const Node& eqc : getSetsEqClasses())
+  {
+    if (eqc.getType().getSetElementType() == t)
+    {
+      representatives.push_back(eqc);
+    }
+  }
+  return representatives;
 }
 
 }  // namespace sets
