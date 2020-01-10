@@ -111,6 +111,13 @@ bool CegisCoreConnective::processInitialize(Node conj,
     Trace("sygus-ccore-init") << "...could not infer predicate." << std::endl;
     return false;
   }
+  if (ti.isTrivial())
+  {
+    // not necessary to use this class if the conjecture is trivial (does
+    // not contain the function-to-synthesize).
+    Trace("sygus-ccore-init") << "...conjecture is trivial." << std::endl;
+    return false;
+  }
   Node trans = ti.getTransitionRelation();
   Trace("sygus-ccore-init") << "  transition relation: " << trans << std::endl;
   if (!trans.isConst() || trans.getConst<bool>())
