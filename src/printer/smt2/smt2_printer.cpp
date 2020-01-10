@@ -91,21 +91,6 @@ void Smt2Printer::toStream(
   }
 }
 
-static std::string maybeQuoteSymbol(const std::string& s) {
-  // this is the set of SMT-LIBv2 permitted characters in "simple" (non-quoted) symbols
-  if (s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-                          "0123456789~!@$%^&*_-+=<>.?/")
-          != string::npos
-      || s.empty() || (s[0] >= '0' && s[0] <= '9'))
-  {
-    // need to quote it
-    stringstream ss;
-    ss << '|' << s << '|';
-    return ss.str();
-  }
-  return s;
-}
-
 static bool stringifyRegexp(Node n, stringstream& ss) {
   if(n.getKind() == kind::STRING_TO_REGEXP) {
     ss << n[0].getConst<String>().toString(true);
@@ -268,7 +253,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       else
       {
-        out << maybeQuoteSymbol(dt.getName());
+        out << CVC4::quoteSymbol(dt.getName());
       }
       break;
     }
@@ -277,7 +262,7 @@ void Smt2Printer::toStream(std::ostream& out,
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
       std::stringstream ss;
       ss << '@' << uc;
-      out << maybeQuoteSymbol(ss.str());
+      out << CVC4::quoteSymbol(ss.str());
       break;
     }
 
@@ -381,7 +366,7 @@ void Smt2Printer::toStream(std::ostream& out,
       out << '(';
     }
     if(n.getAttribute(expr::VarNameAttr(), name)) {
-      out << maybeQuoteSymbol(name);
+      out << CVC4::quoteSymbol(name);
     }
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
@@ -446,7 +431,7 @@ void Smt2Printer::toStream(std::ostream& out,
     string s;
     if (n.getAttribute(expr::VarNameAttr(), s))
     {
-      out << maybeQuoteSymbol(s);
+      out << CVC4::quoteSymbol(s);
     }
     else
     {
@@ -1328,9 +1313,8 @@ void Smt2Printer::toStream(std::ostream& out,
 
 
 static std::string quoteSymbol(TNode n) {
-  // #warning "check the old implementation. It seems off."
   std::stringstream ss;
-  ss << language::SetLanguage(language::output::LANG_SMTLIB_V2_5);
+  ss << n;
   return CVC4::quoteSymbol(ss.str());
 }
 
@@ -1361,7 +1345,7 @@ void Smt2Printer::toStream(std::ostream& out, const UnsatCore& core) const
     std::string name;
     if (smt->getExpressionName(*i,name)) {
       // Named assertions always get printed
-      out << maybeQuoteSymbol(name) << endl;
+      out << CVC4::quoteSymbol(name) << endl;
     } else if (options::dumpUnsatCoresFull()) {
       // Unnamed assertions only get printed if the option is set
       out << *i << endl;
@@ -1802,7 +1786,7 @@ static void toStreamRational(std::ostream& out,
 
 static void toStream(std::ostream& out, const DeclareTypeCommand* c)
 {
-  out << "(declare-sort " << maybeQuoteSymbol(c->getSymbol()) << " "
+  out << "(declare-sort " << CVC4::quoteSymbol(c->getSymbol()) << " "
       << c->getArity() << ")";
 }
 
@@ -1917,7 +1901,7 @@ static void toStream(std::ostream& out, const Datatype & d) {
   for(Datatype::const_iterator ctor = d.begin(), ctor_end = d.end();
       ctor != ctor_end; ++ctor){
     if( ctor!=d.begin() ) out << " ";
-    out << "(" << maybeQuoteSymbol(ctor->getName());
+    out << "(" << CVC4::quoteSymbol(ctor->getName());
 
     for(DatatypeConstructor::const_iterator arg = ctor->begin(), arg_end = ctor->end();
         arg != arg_end; ++arg){
@@ -1955,7 +1939,7 @@ static void toStream(std::ostream& out,
          ++i)
     {
       const Datatype& d = i->getDatatype();
-      out << "(" << maybeQuoteSymbol(d.getName());
+      out << "(" << CVC4::quoteSymbol(d.getName());
       out << " " << d.getNumParameters() << ")";
     }
     out << ") (";
@@ -2039,7 +2023,7 @@ static void toStream(std::ostream& out,
          ++i)
     {
       const Datatype& d = i->getDatatype();
-      out << "(" << maybeQuoteSymbol(d.getName()) << " ";
+      out << "(" << CVC4::quoteSymbol(d.getName()) << " ";
       toStream(out, d);
       out << ")";
     }
