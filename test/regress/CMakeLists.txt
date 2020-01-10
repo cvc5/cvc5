@@ -1583,22 +1583,6 @@ set(regress_1_tests
   regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
-  regress1/sets/finite-type/sets-card-arrcolor.smt2
-  regress1/sets/finite-type/sets-card-arrunit.smt2
-  regress1/sets/finite-type/sets-card-bool-1.smt2
-  regress1/sets/finite-type/sets-card-bool-2.smt2
-  regress1/sets/finite-type/sets-card-bool-3.smt2
-  regress1/sets/finite-type/sets-card-bool-4.smt2
-  regress1/sets/finite-type/sets-card-bool-rec.smt2
-  regress1/sets/finite-type/sets-card-bv-1.smt2
-  regress1/sets/finite-type/sets-card-bv-2.smt2
-  regress1/sets/finite-type/sets-card-bv-3.smt2
-  regress1/sets/finite-type/sets-card-bv-4.smt2
-  regress1/sets/finite-type/sets-card-color.smt2
-  regress1/sets/finite-type/sets-card-color-sat.smt2
-  regress1/sets/finite-type/sets-card-datatype-1.smt2
-  regress1/sets/finite-type/sets-card-datatype-2.smt2
-  regress1/sets/finite-type/sets-card-neg-mem-union-1.smt2
   regress1/sets/fuzz14418.smt2
   regress1/sets/fuzz15201.smt2
   regress1/sets/fuzz31811.smt2
@@ -1727,6 +1711,7 @@ set(regress_1_tests
   regress1/sygus-abduct-test-user.smt2
   regress1/sygus/VC22_a.sy
   regress1/sygus/abd-simple-conj-4.smt2
+  regress1/sygus/abduction_streq.readable.smt2
   regress1/sygus/abv.sy
   regress1/sygus/array_search_5-Q-easy.sy
   regress1/sygus/bvudiv-by-2.sy
@@ -1751,7 +1736,6 @@ set(regress_1_tests
   regress1/sygus/dup-op.sy
   regress1/sygus/error1-dt.sy
   regress1/sygus/extract.sy
-  regress1/sygus/fast-enum-backtrack.sy
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
   regress1/sygus/hd-01-d1-prog.sy
@@ -1779,7 +1763,6 @@ set(regress_1_tests
   regress1/sygus/issue3498.smt2
   regress1/sygus/issue3514.smt2
   regress1/sygus/issue3507.smt2
-  regress1/sygus/issue3580.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -2294,7 +2277,6 @@ set(regression_disabled_tests
   regress1/rewriterules/test_guards.smt2
   regress1/rewriterules/why3_vstte10_max_sum_harness2.smt2
   regress1/sets/setofsets-disequal.smt2
-  regress1/sets/finite-type/sets-card-neg-mem-union-2.smt2
   regress1/simple-rdl-definefun.smt2
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy
