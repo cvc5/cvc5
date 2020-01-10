@@ -88,7 +88,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // Length of the result is at most m
     Node b14 = nm->mkNode(LEQ, nm->mkNode(STRING_LENGTH, skt), m);
 
-    Node b1 = nm->mkNode(AND, b11, b12, b13);
+    Node b1 = nm->mkNode(AND, b11, b12, b13, b14);
     Node b2 = skt.eqNode(d_empty_str);
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
