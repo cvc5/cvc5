@@ -805,6 +805,10 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
           scasserts.push_back(d_sc);
           std::shuffle(scasserts.begin(), scasserts.end(), Random::getRandom());
+          for (const Node& sca : scasserts)
+          {
+            checkSc.assertFormula(sca.toExpr());
+          }
           Result rsc = checkSc.checkSat();
           Trace("sygus-ccore")
               << "----- check-sat returned " << rsc << std::endl;
