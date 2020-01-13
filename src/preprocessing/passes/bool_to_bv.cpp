@@ -154,8 +154,6 @@ Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
                         << n << " and visited = " << ContainsKey(visited, n)
                         << std::endl;
 
-    int numChildren = n.getNumChildren();
-
     // Mark as visited
     if (!ContainsKey(visited, n))
     {
@@ -164,7 +162,7 @@ Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
 
       // insert children in reverse order so that they're processed in order
       //    important for rewriting which sorts by node id
-      for (int i = numChildren - 1; i >= 0; --i)
+      for (int i = n.getNumChildren() - 1; i >= 0; --i)
       {
         to_visit.push_back(n[i]);
       }
