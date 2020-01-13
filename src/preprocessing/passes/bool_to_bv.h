@@ -56,8 +56,8 @@ class BoolToBV : public PreprocessingPass
   */
   Node lowerAssertion(const TNode& node, bool allowIteIntroduction = false);
 
-  /** Traverses subterms to turn booleans into bit-vectors using lowerNodeHelper
-   *  Passes the allowIteIntroduction argument to lowerNodeHelper
+  /** Traverses subterms to turn booleans into bit-vectors using visit
+   *  Passes the allowIteIntroduction argument to visit
    *  Returns the lowered node
    */
   Node lowerNode(const TNode& node, bool allowIteIntroduction = false);
@@ -69,7 +69,7 @@ class BoolToBV : public PreprocessingPass
    *     using an ITE this is only used by mode ALL currently, but could
    *     conceivably be used in new modes.
    */
-  void lowerNodeHelper(const TNode& n, bool allowIteIntroduction = false);
+  void visit(const TNode& n, bool allowIteIntroduction = false);
 
   /* Traverses formula looking for ITEs to lower to BITVECTOR_ITE using
    * lowerNode*/

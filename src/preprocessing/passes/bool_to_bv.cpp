@@ -141,14 +141,14 @@ Node BoolToBV::lowerAssertion(const TNode& assertion, bool allowIteIntroduction)
 
 Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
 {
-  std::vector<TNode> visit;
-  visit.push_back(node);
+  std::vector<TNode> to_visit;
+  to_visit.push_back(node);
   std::unordered_set<TNode, TNodeHashFunction> visited;
 
-  while (!visit.empty())
+  while (!to_visit.empty())
   {
-    TNode n = visit.back();
-    visit.pop_back();
+    TNode n = to_visit.back();
+    to_visit.pop_back();
 
     Debug("bool-to-bv") << "BoolToBV::lowerNode: Post-order traversal with "
                         << n << " and visited = " << ContainsKey(visited, n)
@@ -160,25 +160,25 @@ Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
     if (!ContainsKey(visited, n))
     {
       visited.insert(n);
-      visit.push_back(n);
+      to_visit.push_back(n);
 
       // insert children in reverse order so that they're processed in order
       //    important for rewriting which sorts by node id
       for (int i = numChildren - 1; i >= 0; --i)
       {
-        visit.push_back(n[i]);
+        to_visit.push_back(n[i]);
       }
     }
     else
     {
-      lowerNodeHelper(n, allowIteIntroduction);
+      visit(n, allowIteIntroduction);
     }
   }
 
   return fromCache(node);
 }
 
-void BoolToBV::lowerNodeHelper(const TNode& n, bool allowIteIntroduction)
+void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
 {
   Kind k = n.getKind();
 
@@ -268,7 +268,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool allowIteIntroduction)
                              fromCache(n),
                              bv::utils::mkOne(1),
                              bv::utils::mkZero(1)));
-      Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
+      Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
                           << " =>\n"
                           << fromCache(n) << std::endl;
       ++(d_statistics.d_numIntroducedItes);
@@ -287,14 +287,14 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool allowIteIntroduction)
     // have been converted (even constants and variables) when forcing
     updateCache(
         n, nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
-    Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
+    Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
     ++(d_statistics.d_numIntroducedItes);
   }
   else
   {
-    Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper skipping: " << n
+    Debug("bool-to-bv") << "BoolToBV::visit skipping: " << n
                         << std::endl;
   }
 }
