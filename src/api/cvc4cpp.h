@@ -82,6 +82,9 @@ class CVC4_PUBLIC Result
    */
   Result(const CVC4::Result& r);
 
+  /** Constructor. */
+  Result();
+
   /**
    * Return true if query was a satisfiable checkSat() or checkSatAssuming()
    * query.

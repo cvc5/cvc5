@@ -3678,15 +3678,17 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 
 Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
 {
-  return checkSatisfiability(
-      assumption.isNull() ? std::vector<Expr>() : std::vector<Expr>{assumption},
-      inUnsatCore,
-      true);
+  return checkSatisfiability(assumption.isNull()
+                                 ? std::vector<Expr>()
+                                 : std::vector<Expr>{assumption},
+                             inUnsatCore,
+                             true)
+      .asValidityResult();
 }
 
 Result SmtEngine::query(const vector<Expr>& assumptions, bool inUnsatCore)
 {
-  return checkSatisfiability(assumptions, inUnsatCore, true);
+  return checkSatisfiability(assumptions, inUnsatCore, true).asValidityResult();
 }
 
 Result SmtEngine::checkSatisfiability(const Expr& expr,
@@ -3771,7 +3773,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       d_private->addFormula(e.getNode(), inUnsatCore, true, true);
     }
 
-    r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
+    r = check();
 
     if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
         && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
