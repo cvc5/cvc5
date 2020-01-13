@@ -153,7 +153,18 @@ class SygusPbe : public SygusModule
                            std::vector<Node>& lems) override;
   /** is PBE enabled for any enumerator? */
   bool isPbe() { return d_is_pbe; }
-  /** is the enumerator e associated with I/O example pairs? */
+  /**
+   * Is the enumerator e associated with examples? This is true if the
+   * function-to-synthesize associated with e is only applied to concrete
+   * arguments. Notice that the conjecture need not be in PBE form for this
+   * to be the case. For example, f has examples in:
+   *   exists f. f( 1 ) = 3 ^ f( 2 ) = 4
+   *   exists f. f( 45 ) > 0 ^ f( 99 ) > 0
+   *   exists f. forall x. ( x > 5 => f( 4 ) < x )
+   * It does not have examples in:
+   *   exists f. forall x. f( x ) > 5
+   *   exists f. f( f( 4 ) ) = 5
+   */
   bool hasExamples(Node e);
   /** get number of I/O example pairs for enumerator e */
   unsigned getNumExamples(Node e);
