@@ -155,7 +155,11 @@ Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
                         << std::endl;
 
     // Mark as visited
-    if (!ContainsKey(visited, n))
+    if (ContainsKey(visited, n))
+    {
+      visit(n, allowIteIntroduction);
+    }
+    else
     {
       visited.insert(n);
       to_visit.push_back(n);
@@ -166,10 +170,6 @@ Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
       {
         to_visit.push_back(n[i]);
       }
-    }
-    else
-    {
-      visit(n, allowIteIntroduction);
     }
   }
 
