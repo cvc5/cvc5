@@ -91,6 +91,11 @@ namespace attr {
  *
  * This general (non-specialized) implementation of the template does
  * nothing.
+ *
+ * The `Enable` template parameter is used to instantiate the template
+ * conditionally: If the template substitution of Enable fails (e.g. when using
+ * `std::enable_if` in the template parameter and the condition is false), the
+ * instantiation is ignored due to the SFINAE rule.
  */
 template <class T, class Enable = void>
 struct KindValueToTableValueMapping
@@ -111,6 +116,7 @@ struct KindValueToTableValueMapping
 template <class T>
 struct KindValueToTableValueMapping<
     T,
+    // Use this specialization only for unsigned integers
     typename std::enable_if<std::is_unsigned<T>::value>::type>
 {
   typedef uint64_t table_value_type;

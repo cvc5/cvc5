@@ -190,6 +190,11 @@ namespace attr {
 /**
  * The getTable<> template provides (static) access to the
  * AttributeManager field holding the table.
+ *
+ * The `Enable` template parameter is used to instantiate the template
+ * conditionally: If the template substitution of Enable fails (e.g. when using
+ * `std::enable_if` in the template parameter and the condition is false), the
+ * instantiation is ignored due to the SFINAE rule.
  */
 template <class T, bool context_dep, class Enable = void>
 struct getTable;
@@ -211,6 +216,7 @@ struct getTable<bool, false> {
 template <class T>
 struct getTable<T,
                 false,
+                // Use this specialization only for unsigned integers
                 typename std::enable_if<std::is_unsigned<T>::value>::type>
 {
   static const AttrTableId id = AttrTableUInt64;
