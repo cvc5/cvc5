@@ -116,15 +116,15 @@ bool BoolToBV::needToRebuild(TNode n) const
   return false;
 }
 
-Node BoolToBV::lowerAssertion(const TNode& assertion, bool force)
+Node BoolToBV::lowerAssertion(const TNode& assertion, bool allowIteIntroduction)
 {
   // first try to lower all the children
   for (const Node& c : assertion)
   {
-    lowerNode(c, force);
+    lowerNode(c, allowIteIntroduction);
   }
 
-  // now try lowering the assertion, but don't force it (even in mode all)
+  // now try lowering the assertion, but don't force it with an ITE (even in mode all)
   lowerNode(assertion, false);
   Node newAssertion = fromCache(assertion);
   TypeNode newAssertionType = newAssertion.getType();
@@ -139,7 +139,7 @@ Node BoolToBV::lowerAssertion(const TNode& assertion, bool force)
   return newAssertion;
 }
 
-Node BoolToBV::lowerNode(const TNode& node, bool force)
+Node BoolToBV::lowerNode(const TNode& node, bool allowIteIntroduction)
 {
   std::vector<TNode> visit;
   visit.push_back(node);
@@ -171,14 +171,14 @@ Node BoolToBV::lowerNode(const TNode& node, bool force)
     }
     else
     {
-      lowerNodeHelper(n, force);
+      lowerNodeHelper(n, allowIteIntroduction);
     }
   }
 
   return fromCache(node);
 }
 
-void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
+void BoolToBV::lowerNodeHelper(const TNode& n, bool allowIteIntroduction)
 {
   Kind k = n.getKind();
 
@@ -255,7 +255,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
       return;
     }
 
-    else if (force && fromCache(n).getType().isBoolean())
+    else if (allowIteIntroduction && fromCache(n).getType().isBoolean())
     {
       if (safe_to_rebuild && needToRebuild(n))
       {
@@ -271,7 +271,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
       Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
                           << " =>\n"
                           << fromCache(n) << std::endl;
-      ++(d_statistics.d_numTermsForcedLowered);
+      ++(d_statistics.d_numIntroducedItes);
       return;
     }
   }
@@ -280,7 +280,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
     Assert(k == new_kind);
     rebuildNode(n, k);
   }
-  else if (force && fromCache(n).getType().isBoolean())
+  else if (allowIteIntroduction && fromCache(n).getType().isBoolean())
   {
     // force booleans (which haven't already been converted) to bit-vector
     // needed to maintain the invariant that all boolean children
@@ -290,7 +290,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
     Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
-    ++(d_statistics.d_numTermsForcedLowered);
+    ++(d_statistics.d_numIntroducedItes);
   }
   else
   {
@@ -400,7 +400,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 BoolToBV::Statistics::Statistics()
     : d_numIteToBvite("preprocessing::passes::BoolToBV::NumIteToBvite", 0),
       d_numTermsLowered("preprocessing::passes:BoolToBV::NumTermsLowered", 0),
-      d_numTermsForcedLowered(
+      d_numIntroducedItes(
           "preprocessing::passes::BoolToBV::NumTermsForcedLowered", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_numIteToBvite);
@@ -410,7 +410,7 @@ BoolToBV::Statistics::Statistics()
     // because it might discard rebuilt nodes if it fails to
     // convert a bool to width-one bit-vector (never forces)
     smtStatisticsRegistry()->registerStat(&d_numTermsLowered);
-    smtStatisticsRegistry()->registerStat(&d_numTermsForcedLowered);
+    smtStatisticsRegistry()->registerStat(&d_numIntroducedItes);
   }
 }
 
@@ -420,7 +420,7 @@ BoolToBV::Statistics::~Statistics()
   if (options::boolToBitvector() == options::BoolToBVMode::ALL)
   {
     smtStatisticsRegistry()->unregisterStat(&d_numTermsLowered);
-    smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLowered);
+    smtStatisticsRegistry()->unregisterStat(&d_numIntroducedItes);
   }
 }
 

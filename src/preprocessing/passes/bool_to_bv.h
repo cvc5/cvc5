@@ -41,7 +41,7 @@ class BoolToBV : public PreprocessingPass
   {
     IntStat d_numIteToBvite;
     IntStat d_numTermsLowered;
-    IntStat d_numTermsForcedLowered;
+    IntStat d_numIntroducedItes;
     Statistics();
     ~Statistics();
   };
@@ -49,26 +49,27 @@ class BoolToBV : public PreprocessingPass
   /** Takes an assertion and attempts to create more bit-vector structure
       by replacing boolean operators with bit-vector operators.
 
-      It passes the force argument down to lowerNode, however it never
-      forces the top-level assertion. There's no point forcing the assertion
-      to be a bit-vector when it will just be converted back into a boolean.
+      It passes the allowIteIntroduction argument down to lowerNode, however it
+      never allows ite introduction in the top-level assertion. There's no point
+      forcing the assertion to be a bit-vector when it will just be converted
+      back into a boolean.
   */
-  Node lowerAssertion(const TNode& node, bool force = false);
+  Node lowerAssertion(const TNode& node, bool allowIteIntroduction = false);
 
   /** Traverses subterms to turn booleans into bit-vectors using lowerNodeHelper
-   *  Passes the force argument to lowerNodeHelper
+   *  Passes the allowIteIntroduction argument to lowerNodeHelper
    *  Returns the lowered node
    */
-  Node lowerNode(const TNode& node, bool force = false);
+  Node lowerNode(const TNode& node, bool allowIteIntroduction = false);
 
   /** Tries to lower one node to a width-one bit-vector
    *  Caches the result if successful
    *
-   *  force = true causes booleans to be converted to bit-vectors using an ITE
-   *     this is only used by mode ALL currently, but could conceivably be used
-   *     in new modes.
+   *  allowIteIntroduction = true causes booleans to be converted to bit-vectors
+   *     using an ITE this is only used by mode ALL currently, but could
+   *     conceivably be used in new modes.
    */
-  void lowerNodeHelper(const TNode& n, bool force = false);
+  void lowerNodeHelper(const TNode& n, bool allowIteIntroduction = false);
 
   /* Traverses formula looking for ITEs to lower to BITVECTOR_ITE using
    * lowerNode*/
