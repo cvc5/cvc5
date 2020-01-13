@@ -38,11 +38,11 @@ PreprocessingPassResult BoolToBV::applyInternal(
   NodeManager::currentResourceManager()->spendResource(
       ResourceManager::Resource::PreprocessStep);
 
-  unsigned size = assertionsToPreprocess->size();
+  size_t size = assertionsToPreprocess->size();
 
   if (options::boolToBitvector() == options::BoolToBVMode::ALL)
   {
-    for (unsigned i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
       Node newAssertion = lowerAssertion((*assertionsToPreprocess)[i], true);
       assertionsToPreprocess->replace(i, Rewriter::rewrite(newAssertion));
@@ -50,7 +50,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
   }
   else if (options::boolToBitvector() == options::BoolToBVMode::ITE)
   {
-    for (unsigned i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
       assertionsToPreprocess->replace(
           i, Rewriter::rewrite(lowerIte((*assertionsToPreprocess)[i])));
