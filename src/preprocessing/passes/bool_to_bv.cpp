@@ -242,36 +242,36 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   Debug("bool-to-bv") << "safe_to_lower = " << safe_to_lower
                       << ", safe_to_rebuild = " << safe_to_rebuild << std::endl;
 
-  if (new_kind != k)
+  if (new_kind != k && safe_to_lower)
   {
-    if (safe_to_lower)
+    // lower to BV
+    rebuildNode(n, new_kind);
+    return;
+  }
+  else if (new_kind != k && allowIteIntroduction && fromCache(n).getType().isBoolean())
+  {
+    // lower to BV using an ITE
+
+    if (safe_to_rebuild && needToRebuild(n))
     {
-      rebuildNode(n, new_kind);
-      return;
+      // need to rebuild to keep changes made to descendants
+      rebuildNode(n, k);
     }
 
-    else if (allowIteIntroduction && fromCache(n).getType().isBoolean())
-    {
-      if (safe_to_rebuild && needToRebuild(n))
-      {
-        // need to rebuild to keep changes made to descendants
-        rebuildNode(n, k);
-      }
-
-      updateCache(n,
-                  nm->mkNode(kind::ITE,
-                             fromCache(n),
-                             bv::utils::mkOne(1),
-                             bv::utils::mkZero(1)));
-      Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
-                          << " =>\n"
-                          << fromCache(n) << std::endl;
-      ++(d_statistics.d_numIntroducedItes);
-      return;
-    }
+    updateCache(n,
+                nm->mkNode(kind::ITE,
+                           fromCache(n),
+                           bv::utils::mkOne(1),
+                           bv::utils::mkZero(1)));
+    Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
+                        << " =>\n"
+                        << fromCache(n) << std::endl;
+    ++(d_statistics.d_numIntroducedItes);
+    return;
   }
   else if (safe_to_rebuild && needToRebuild(n))
   {
+    // rebuild to incorporate changes to children
     Assert(k == new_kind);
     rebuildNode(n, k);
   }
@@ -280,6 +280,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     // force booleans (which haven't already been converted) to bit-vector
     // needed to maintain the invariant that all boolean children
     // have been converted (even constants and variables) when forcing
+    // with ITE introductions
     updateCache(
         n, nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
     Debug("bool-to-bv") << "BoolToBV::visit forcing " << n
@@ -289,6 +290,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   }
   else
   {
+    // do nothing
     Debug("bool-to-bv") << "BoolToBV::visit skipping: " << n
                         << std::endl;
   }
