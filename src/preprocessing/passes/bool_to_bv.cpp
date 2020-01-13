@@ -304,7 +304,6 @@ Node BoolToBV::lowerIte(const TNode& node)
   {
     TNode n = visit.back();
     visit.pop_back();
-    Kind k = n.getKind();
 
     Debug("bool-to-bv") << "BoolToBV::lowerIte: Post-order traversal with " << n
                         << " and visited = " << ContainsKey(visited, n)
@@ -313,7 +312,7 @@ Node BoolToBV::lowerIte(const TNode& node)
     // Look for ITEs and mark visited
     if (!ContainsKey(visited, n))
     {
-      if ((k == kind::ITE) && n[1].getType().isBitVector())
+      if ((n.getKind() == kind::ITE) && n[1].getType().isBitVector())
       {
         Debug("bool-to-bv") << "BoolToBV::lowerIte: adding " << n[0]
                             << " to set of ite conditions" << std::endl;
