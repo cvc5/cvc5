@@ -284,7 +284,7 @@ bool SygusPbe::initialize(Node conj,
         // encoded as a constraint to an active enumerator.
         d_tds->registerSymBreakLemma(e, lem, etn, 0, false);
       }
-    }   
+    }
     Trace("sygus-pbe") << "Initialize " << d_examples[c].size()
                        << " example points for " << c << "..." << std::endl;
     // initialize the examples
@@ -314,13 +314,14 @@ Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
 bool SygusPbe::hasExamples(Node e)
 {
   e = d_tds->getSynthFunForEnumerator(e);
-  if(e.isNull())
+  if (e.isNull())
   {
     // enumerator is not associated with synthesis function?
     return false;
   }
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
-  if (itx == d_examples_invalid.end()) {
+  if (itx == d_examples_invalid.end())
+  {
     return d_examples.find(e) != d_examples.end();
   }
   return false;
@@ -396,8 +397,8 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
       // of a function-to-synthesize are applied to constant arguments but
       // the conjecture is not PBE.
       TypeNode etn = e.getType();
-      std::vector< std::vector< Node > >& exs = d_examples[ee];
-      for (size_t i=0, esize=exs.size(); i<esize; i++)
+      std::vector<std::vector<Node>>& exs = d_examples[ee];
+      for (size_t i = 0, esize = exs.size(); i < esize; i++)
       {
         Node res = d_tds->evaluateBuiltin(etn, bvr, exs[i]);
         vals.push_back(res);
