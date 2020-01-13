@@ -79,7 +79,6 @@ bool Cegis::processInitialize(Node conj,
     Trace("cegis") << "...register enumerator " << candidates[i];
     // We use symbolic constants if we are doing repair constants or if the
     // grammar construction was not simple.
-    bool useSymCons = false;
     if (options::sygusRepairConst()
         || options::sygusGrammarConsMode()
                != options::SygusGrammarConsMode::SIMPLE)
@@ -89,15 +88,13 @@ bool Cegis::processInitialize(Node conj,
       SygusTypeInfo& cti = d_tds->getTypeInfo(ctn);
       if (cti.hasSubtermSymbolicCons())
       {
-        useSymCons = true;
         // remember that we are using symbolic constructors
         d_usingSymCons = true;
         Trace("cegis") << " (using symbolic constructors)";
       }
     }
     Trace("cegis") << std::endl;
-    d_tds->registerEnumerator(
-        candidates[i], candidates[i], d_parent, erole, useSymCons);
+    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent, erole);
   }
   return true;
 }

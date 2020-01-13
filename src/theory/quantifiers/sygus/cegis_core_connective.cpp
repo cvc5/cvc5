@@ -111,6 +111,13 @@ bool CegisCoreConnective::processInitialize(Node conj,
     Trace("sygus-ccore-init") << "...could not infer predicate." << std::endl;
     return false;
   }
+  if (ti.isTrivial())
+  {
+    // not necessary to use this class if the conjecture is trivial (does
+    // not contain the function-to-synthesize).
+    Trace("sygus-ccore-init") << "...conjecture is trivial." << std::endl;
+    return false;
+  }
   Node trans = ti.getTransitionRelation();
   Trace("sygus-ccore-init") << "  transition relation: " << trans << std::endl;
   if (!trans.isConst() || trans.getConst<bool>())
@@ -798,6 +805,10 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
           scasserts.push_back(d_sc);
           std::shuffle(scasserts.begin(), scasserts.end(), Random::getRandom());
+          for (const Node& sca : scasserts)
+          {
+            checkSc.assertFormula(sca.toExpr());
+          }
           Result rsc = checkSc.checkSat();
           Trace("sygus-ccore")
               << "----- check-sat returned " << rsc << std::endl;

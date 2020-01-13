@@ -235,7 +235,7 @@ bool SygusPbe::initialize(Node conj,
     for (const Node& e : d_candidate_to_enum[c])
     {
       TypeNode etn = e.getType();
-      d_tds->registerEnumerator(e, c, d_parent, ROLE_ENUM_POOL, false);
+      d_tds->registerEnumerator(e, c, d_parent, ROLE_ENUM_POOL);
       d_enum_to_candidate[e] = c;
       TNode te = e;
       // initialize static symmetry breaking lemmas for it
