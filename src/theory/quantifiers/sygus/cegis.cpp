@@ -496,7 +496,6 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   Node neg_guard = d_parent->getGuard().negate();
   bool ret = false;
   Evaluator* eval = d_tds->getEvaluator();
-  SygusPbe * pbe = d_parent->getPbe();
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node, NodeHashFunction>& rlemmas =

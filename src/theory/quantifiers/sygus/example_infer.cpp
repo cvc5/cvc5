@@ -14,6 +14,9 @@
  **/
 #include "theory/quantifiers/sygus/example_infer.h"
 
+#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/sygus/example_cache.h"
+
 using namespace CVC4;
 using namespace CVC4::kind;
 
@@ -21,7 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ExampleInfer::ExampleInfer()
+ExampleInfer::ExampleInfer(TermDbSygus* tds) : d_tds(tds)
 {
   d_isExamples = false;
 }
@@ -92,6 +95,7 @@ bool ExampleInfer::collectExamples(Node n,
     return true;
   }
   visited[n] = true;
+  NodeManager * nm = NodeManager::currentNM();
   Node neval;
   Node n_output;
   bool neval_is_evalapp = false;
@@ -99,7 +103,7 @@ bool ExampleInfer::collectExamples(Node n,
   {
     neval = n;
     if( hasPol ){
-      n_output = pol ? d_true : d_false;
+      n_output = nm->mkConst(pol);
     }
     neval_is_evalapp = true;
   }
@@ -209,6 +213,7 @@ unsigned ExampleInfer::getNumExamples(Node e)
 
 void ExampleInfer::getExample(Node e, unsigned i, std::vector<Node>& ex)
 {
+  Assert(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
       d_examples.find(e);
   if (it != d_examples.end()) {
@@ -221,7 +226,6 @@ void ExampleInfer::getExample(Node e, unsigned i, std::vector<Node>& ex)
 
 Node ExampleInfer::getExampleOut(Node e, unsigned i)
 {
-  e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<Node> >::iterator it = d_examples_out.find(e);
   if (it != d_examples_out.end()) {
@@ -232,8 +236,21 @@ Node ExampleInfer::getExampleOut(Node e, unsigned i)
   return Node::null();
 }
 
-void ExampleInfer::evaluate(Node e, Node bv, std::vector<Node>& exOut)
+void ExampleInfer::evaluate(Node e, Node bv, std::vector<Node>& exOut, bool doCache)
 {
+  if (!doCache)
+  {
+  // TODO: use ExampleCache here
+    TypeNode xtn = e.getType();
+    std::vector<std::vector<Node> >& exs = d_examples[e];
+    for (size_t j = 0, size = d_examples.size(); j < size; j++)
+    {
+      Node res = d_tds->evaluateBuiltin(xtn, bv, exs[j]);
+      exOut.push_back(res);
+    }
+    return;
+  }
+  // is it in the cache?
   std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
   std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
   if (it != eoc.end())
@@ -241,15 +258,11 @@ void ExampleInfer::evaluate(Node e, Node bv, std::vector<Node>& exOut)
     exOut.insert(exOut.end(), it->second.begin(), it->second.end());
     return;
   }
-  TypeNode xtn = e.getType();
+  // get the evaluation
+  evaluate(e,bv,exOut,false);
+  // store in cache
   std::vector<Node>& eocv = eoc[bv];
-  for (size_t j = 0, size = d_examples.size(); j < size; j++)
-  {
-    Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
-    exOut.push_back(res);
-    eocv.push_back(res);
-  }
-  // TODO: use ExampleCache here
+  eocv.insert(eocv.end(),exOut.begin(),exOut.end());
 }
 
 void ExampleInfer::clearEvaluationCache(Node e, Node bv)

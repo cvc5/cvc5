@@ -19,24 +19,40 @@
 #include "context/cdhashmap.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 /** Example Inference
+ * 
+ * This class determines whether a formula "has examples", for details
+ * see the method hasExamples below. This is important for certain
+ * optimizations in enumerative SyGuS, include example-based symmetry breaking
+ * (discarding terms that equivalent to a previous one up to examples).
+ * 
+ * 
+ * Additionally, it provides helper methods for retrieving the examples
+ * for a function-to-synthesize and for evaluating terms under the inferred
+ * set of examples.
  */
 class ExampleInfer
 {
  public:
-  ExampleInfer();
+  ExampleInfer(TermDbSygus* tds);
   ~ExampleInfer();
   /** initialize 
    * 
-   * Returns false if and only if n has a conflicting example input/output.
+   * This method initializes the data of this class so that examples are
+   * inferred for functions-to-synthesize candidates in n, where
+   * n is the "base instantiation" of the deep-embedding version of the
+   * synthesis conjecture under candidates (see SynthConjecture::d_base_inst).
+   * 
+   * Returns false if and only if n has a conflicting example input/output,
+   * for example if n is ( f(0) = 1 ^ f(0) = 2 ).
    */
-  bool initialize(Node conj,
-                  Node n,
+  bool initialize(Node n,
                   const std::vector<Node>& candidates);
   /** does the conjecture have examples for all candidates? */
   bool isExamples() { return d_isExamples; }
@@ -70,12 +86,27 @@ class ExampleInfer
    */
   Node getExampleOut(Node e, unsigned i);
   //----------------------------------- evaluating terms
-  /** evaluate node */
+  /** Evaluate node 
+   * 
+   * This stores 
+   
+   */
   void evaluate(Node e, Node bv, std::vector<Node>& exOut, bool doCache=false);
   /** clear evaluation cache */
   void clearEvaluationCache(Node e, Node bv);
   //----------------------------------- end evaluating terms
  private:
+  /** collect the PBE examples in n
+   * This is called on the input conjecture, and will populate the above
+   * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
+   * function returns false if it finds two examples that are contradictory.
+   */
+  bool collectExamples(Node n,
+                       std::map<Node, bool>& visited,
+                       bool hasPol,
+                       bool pol);
+  /** sygus term database of d_qe */
+  TermDbSygus* d_tds;
   /** is this an examples conjecture for all functions-to-synthesize? */
   bool d_isExamples;
   /** for each candidate variable f (a function-to-synthesize), whether the
@@ -112,15 +143,8 @@ class ExampleInfer
    * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.
    */
   std::map<Node, Node> d_exampleTermMap;
-  /** collect the PBE examples in n
-   * This is called on the input conjecture, and will populate the above
-   * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
-   * function returns false if it finds two examples that are contradictory.
-   */
-  bool collectExamples(Node n,
-                       std::map<Node, bool>& visited,
-                       bool hasPol,
-                       bool pol);
+  /** cache for evaluate */
+  std::map<Node, std::map<Node, std::vector<Node>>> d_exOutCache;
 };
 
 } /* namespace CVC4::theory::quantifiers */

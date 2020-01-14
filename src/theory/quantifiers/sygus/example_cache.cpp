@@ -53,7 +53,7 @@ Node ExampleCache::evaluate(const std::vector< Node >& subs)
   if (res.isNull())
   {
     // not already cached, must evaluate
-    res = d_eval->eval(n,d_vars,subs);
+    res = d_eval.eval(d_evalNode,d_vars,subs);
     // add to trie
     d_trie.addTerm(res,relSubs);
   }
@@ -65,5 +65,3 @@ Node ExampleCache::evaluate(const std::vector< Node >& subs)
 } /* namespace CVC4::theory::quantifiers */
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */
-
-#endif

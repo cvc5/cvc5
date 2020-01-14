@@ -52,10 +52,11 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
-      d_sygus_ccore(new CegisCoreConnective(qe, this)),
+      d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
       d_ceg_cegisUnif(new CegisUnif(qe, this)),
+      d_sygus_ccore(new CegisCoreConnective(qe, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
@@ -188,6 +189,8 @@ void SynthConjecture::assign(Node q)
       }
     }
   }
+  // initialize the example inference utility
+  d_exampleInfer->initialize(d_base_inst,d_candidates);
 
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
