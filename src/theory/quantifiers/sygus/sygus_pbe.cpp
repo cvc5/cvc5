@@ -20,6 +20,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/random.h"
+#include "theory/quantifiers/sygus/example_infer.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -212,8 +213,11 @@ bool SygusPbe::initialize(Node conj,
 
   // check if all candidates are valid examples
   d_is_pbe = true;
+  ExampleInfer * ei = d_parent->getExampleInfer();
   for (const Node& c : candidates)
   {
+    // if it has no examples or the output of the examples is invalid
+    //if (ei->getNumExamples(c)==0 || !ei->hasExamplesOut(c))
     if (d_examples[c].empty()
         || d_examples_out_invalid.find(c) != d_examples_out_invalid.end())
     {

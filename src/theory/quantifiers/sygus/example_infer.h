@@ -54,7 +54,7 @@ class ExampleInfer
    */
   bool initialize(Node n, const std::vector<Node>& candidates);
   /** does the conjecture have examples for all candidates? */
-  bool isExamples() { return d_isExamples; }
+  bool isExamples() const { return d_isExamples; }
   /**
    * Is the enumerator e associated with examples? This is true if the
    * function-to-synthesize associated with e is only applied to concrete
@@ -70,14 +70,14 @@ class ExampleInfer
    * have examples. In particular, the method addSearchVal below can be
    * called.
    */
-  bool hasExamples(Node e);
+  bool hasExamples(Node e) const;
   /** get number of examples for enumerator e */
-  unsigned getNumExamples(Node e);
+  unsigned getNumExamples(Node e) const;
   /**
    * Get the input arguments for i^th example for e, which is added to the
    * vector ex
    */
-  void getExample(Node e, unsigned i, std::vector<Node>& ex);
+  void getExample(Node e, unsigned i, std::vector<Node>& ex) const;
   /**
    * Get the output value of the i^th example for enumerator e, or null if
    * it does not exist (an example does not have an associate output if it is

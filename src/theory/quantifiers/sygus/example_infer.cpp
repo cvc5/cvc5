@@ -195,9 +195,9 @@ bool ExampleInfer::collectExamples(Node n,
   return true;
 }
 
-bool ExampleInfer::hasExamples(Node e)
+bool ExampleInfer::hasExamples(Node e) const
 {
-  std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
+  std::map<Node, bool>::const_iterator itx = d_examples_invalid.find(e);
   if (itx == d_examples_invalid.end())
   {
     return d_examples.find(e) != d_examples.end();
@@ -216,10 +216,10 @@ unsigned ExampleInfer::getNumExamples(Node e) const
   return 0;
 }
 
-void ExampleInfer::getExample(Node e, unsigned i, std::vector<Node>& ex)
+void ExampleInfer::getExample(Node e, unsigned i, std::vector<Node>& ex) const
 {
   Assert(!e.isNull());
-  std::map<Node, std::vector<std::vector<Node>>>::iterator it =
+  std::map<Node, std::vector<std::vector<Node>>>::const_iterator it =
       d_examples.find(e);
   if (it != d_examples.end())
   {
