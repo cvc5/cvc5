@@ -31,8 +31,7 @@ ExampleInfer::ExampleInfer(TermDbSygus* tds) : d_tds(tds)
 
 ExampleInfer::~ExampleInfer() {}
 
-bool ExampleInfer::initialize(Node n,
-                              const std::vector<Node>& candidates)
+bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
 {
   Trace("sygus-pbe") << "Initialize example inference : " << n << std::endl;
 
@@ -51,7 +50,7 @@ bool ExampleInfer::initialize(Node n,
     return false;
   }
 
-  if (Trace.isOn("sygus-pbe")) 
+  if (Trace.isOn("sygus-pbe"))
   {
     for (unsigned i = 0; i < candidates.size(); i++)
     {
@@ -79,42 +78,46 @@ bool ExampleInfer::initialize(Node n,
         }
       }
       Trace("sygus-pbe") << "Initialize " << d_examples[v].size()
-                        << " example points for " << v << "..." << std::endl;
+                         << " example points for " << v << "..." << std::endl;
     }
   }
   return true;
 }
 
 bool ExampleInfer::collectExamples(Node n,
-                               std::map<Node, bool>& visited,
-                               bool hasPol,
-                               bool pol)
+                                   std::map<Node, bool>& visited,
+                                   bool hasPol,
+                                   bool pol)
 {
-  if( visited.find( n )!=visited.end() ){
+  if (visited.find(n) != visited.end())
+  {
     // already visited
     return true;
   }
   visited[n] = true;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node neval;
   Node n_output;
   bool neval_is_evalapp = false;
   if (n.getKind() == DT_SYGUS_EVAL)
   {
     neval = n;
-    if( hasPol ){
+    if (hasPol)
+    {
       n_output = nm->mkConst(pol);
     }
     neval_is_evalapp = true;
   }
   else if (n.getKind() == EQUAL && hasPol && pol)
   {
-    for( unsigned r=0; r<2; r++ ){
+    for (unsigned r = 0; r < 2; r++)
+    {
       if (n[r].getKind() == DT_SYGUS_EVAL)
       {
         neval = n[r];
-        if( n[1-r].isConst() ){
-          n_output = n[1-r];
+        if (n[1 - r].isConst())
+        {
+          n_output = n[1 - r];
         }
         neval_is_evalapp = true;
       }
@@ -179,7 +182,8 @@ bool ExampleInfer::collectExamples(Node n,
       d_examples_out_invalid[eh] = true;
     }
   }
-  for( unsigned i=0, nchild = n.getNumChildren(); i<nchild; i++ ){
+  for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+  {
     bool newHasPol;
     bool newPol;
     QuantPhaseReq::getEntailPolarity(n, i, hasPol, pol, newHasPol, newPol);
@@ -203,9 +207,10 @@ bool ExampleInfer::hasExamples(Node e)
 
 unsigned ExampleInfer::getNumExamples(Node e) const
 {
-  std::map<Node, std::vector<std::vector<Node> > >::const_iterator it =
+  std::map<Node, std::vector<std::vector<Node>>>::const_iterator it =
       d_examples.find(e);
-  if (it != d_examples.end()) {
+  if (it != d_examples.end())
+  {
     return it->second.size();
   }
   return 0;
@@ -214,12 +219,15 @@ unsigned ExampleInfer::getNumExamples(Node e) const
 void ExampleInfer::getExample(Node e, unsigned i, std::vector<Node>& ex)
 {
   Assert(!e.isNull());
-  std::map<Node, std::vector<std::vector<Node> > >::iterator it =
+  std::map<Node, std::vector<std::vector<Node>>>::iterator it =
       d_examples.find(e);
-  if (it != d_examples.end()) {
+  if (it != d_examples.end())
+  {
     Assert(i < it->second.size());
     ex.insert(ex.end(), it->second[i].begin(), it->second[i].end());
-  } else {
+  }
+  else
+  {
     Assert(false);
   }
 }
@@ -227,8 +235,9 @@ void ExampleInfer::getExample(Node e, unsigned i, std::vector<Node>& ex)
 Node ExampleInfer::getExampleOut(Node e, unsigned i) const
 {
   Assert(!e.isNull());
-  std::map<Node, std::vector<Node> >::const_iterator it = d_examples_out.find(e);
-  if (it != d_examples_out.end()) {
+  std::map<Node, std::vector<Node>>::const_iterator it = d_examples_out.find(e);
+  if (it != d_examples_out.end())
+  {
     Assert(i < it->second.size());
     return it->second[i];
   }
@@ -238,16 +247,19 @@ Node ExampleInfer::getExampleOut(Node e, unsigned i) const
 
 bool ExampleInfer::hasExamplesOut(Node e) const
 {
-  return d_examples_out_invalid.find(e)!=d_examples_out_invalid.end();
+  return d_examples_out_invalid.find(e) != d_examples_out_invalid.end();
 }
 
-void ExampleInfer::evaluate(Node e, Node bv, std::vector<Node>& exOut, bool doCache)
+void ExampleInfer::evaluate(Node e,
+                            Node bv,
+                            std::vector<Node>& exOut,
+                            bool doCache)
 {
   if (!doCache)
   {
-  // TODO: use ExampleCache here
+    // TODO: use ExampleCache here
     TypeNode xtn = e.getType();
-    std::vector<std::vector<Node> >& exs = d_examples[e];
+    std::vector<std::vector<Node>>& exs = d_examples[e];
     for (size_t j = 0, size = d_examples.size(); j < size; j++)
     {
       Node res = d_tds->evaluateBuiltin(xtn, bv, exs[j]);
@@ -264,10 +276,10 @@ void ExampleInfer::evaluate(Node e, Node bv, std::vector<Node>& exOut, bool doCa
     return;
   }
   // get the evaluation
-  evaluate(e,bv,exOut,false);
+  evaluate(e, bv, exOut, false);
   // store in cache
   std::vector<Node>& eocv = eoc[bv];
-  eocv.insert(eocv.end(),exOut.begin(),exOut.end());
+  eocv.insert(eocv.end(), exOut.begin(), exOut.end());
 }
 
 void ExampleInfer::clearEvaluationCache(Node e, Node bv)
@@ -277,6 +289,6 @@ void ExampleInfer::clearEvaluationCache(Node e, Node bv)
   eoc.erase(bv);
 }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

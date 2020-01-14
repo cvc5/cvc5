@@ -380,7 +380,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   }
   Node ee = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
-  std::vector< Node > vals;
+  std::vector<Node> vals;
   if (computeExamples(e, bvr, vals))
   {
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
@@ -408,7 +408,8 @@ bool SygusPbe::computeExamples(Node e, Node bvr, std::vector<Node>& exOut)
   Node ee = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
-  if (itx == d_examples_invalid.end()) {
+  if (itx == d_examples_invalid.end())
+  {
     Trace("sygus-pbe-debug")
         << "Compute examples " << bvr << "..." << std::endl;
     // Compute example values with the I/O utility, which ensures they are

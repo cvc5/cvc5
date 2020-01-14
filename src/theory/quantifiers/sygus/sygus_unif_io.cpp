@@ -16,9 +16,9 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/evaluator.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
 #include <math.h>
@@ -509,12 +509,10 @@ SygusUnifIo::SygusUnifIo()
 
 SygusUnifIo::~SygusUnifIo() {}
 
-void SygusUnifIo::initializeDefault(
-    QuantifiersEngine* qe)
+void SygusUnifIo::initializeDefault(QuantifiersEngine* qe)
 {
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
-    
 }
 void SygusUnifIo::initializeCandidate(
     QuantifiersEngine* qe,

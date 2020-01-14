@@ -508,14 +508,14 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         // via example-based symmetry breaking
         // TODO
         // if we are not doing structural generalization, just use the evaluator
-        Node lemcsu = eval->eval( lem, vs, ms );
+        Node lemcsu = eval->eval(lem, vs, ms);
         if (lemcsu.isConst() && !lemcsu.getConst<bool>())
         {
           return true;
         }
         continue;
       }
-      
+
       Assert(!lem.isNull());
       std::map<Node, Node> visited;
       std::map<Node, std::vector<Node> > exp;

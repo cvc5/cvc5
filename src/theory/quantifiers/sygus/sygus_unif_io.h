@@ -272,8 +272,7 @@ class SygusUnifIo : public SygusUnif
    * We only initialize for one function f, since I/O specifications across
    * multiple functions can be separated.
    */
-  void initializeDefault(
-      QuantifiersEngine* qe);
+  void initializeDefault(QuantifiersEngine* qe);
   void initializeCandidate(
       QuantifiersEngine* qe,
       Node f,

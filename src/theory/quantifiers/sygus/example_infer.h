@@ -26,13 +26,13 @@ namespace theory {
 namespace quantifiers {
 
 /** Example Inference
- * 
+ *
  * This class determines whether a formula "has examples", for details
  * see the method hasExamples below. This is important for certain
  * optimizations in enumerative SyGuS, include example-based symmetry breaking
  * (discarding terms that equivalent to a previous one up to examples).
- * 
- * 
+ *
+ *
  * Additionally, it provides helper methods for retrieving the examples
  * for a function-to-synthesize and for evaluating terms under the inferred
  * set of examples.
@@ -42,18 +42,17 @@ class ExampleInfer
  public:
   ExampleInfer(TermDbSygus* tds);
   ~ExampleInfer();
-  /** initialize 
-   * 
+  /** initialize
+   *
    * This method initializes the data of this class so that examples are
    * inferred for functions-to-synthesize candidates in n, where
    * n is the "base instantiation" of the deep-embedding version of the
    * synthesis conjecture under candidates (see SynthConjecture::d_base_inst).
-   * 
+   *
    * Returns false if and only if n has a conflicting example input/output,
    * for example if n is ( f(0) = 1 ^ f(0) = 2 ).
    */
-  bool initialize(Node n,
-                  const std::vector<Node>& candidates);
+  bool initialize(Node n, const std::vector<Node>& candidates);
   /** does the conjecture have examples for all candidates? */
   bool isExamples() { return d_isExamples; }
   /**
@@ -78,26 +77,29 @@ class ExampleInfer
    * Get the input arguments for i^th example for e, which is added to the
    * vector ex
    */
-  void getExample(Node e, unsigned i, std::vector<Node>& ex);  
+  void getExample(Node e, unsigned i, std::vector<Node>& ex);
   /**
    * Get the output value of the i^th example for enumerator e, or null if
    * it does not exist (an example does not have an associate output if it is
    * not a top-level equality).
    */
   Node getExampleOut(Node e, unsigned i) const;
-  /** 
+  /**
    * Is example output valid? Returns true if all examples are associated
    * with an output value, e.g. they return a non-null value for getExampleOut
    * above.
    */
   bool hasExamplesOut(Node e) const;
   //----------------------------------- evaluating terms
-  /** Evaluate node 
-   * 
-   * This stores 
-   
+  /** Evaluate node
+   *
+   * This stores
+
    */
-  void evaluate(Node e, Node bv, std::vector<Node>& exOut, bool doCache=false);
+  void evaluate(Node e,
+                Node bv,
+                std::vector<Node>& exOut,
+                bool doCache = false);
   /** clear evaluation cache */
   void clearEvaluationCache(Node e, Node bv);
   //----------------------------------- end evaluating terms
@@ -116,34 +118,34 @@ class ExampleInfer
   /** is this an examples conjecture for all functions-to-synthesize? */
   bool d_isExamples;
   /** for each candidate variable f (a function-to-synthesize), whether the
-  * conjecture is purely PBE for that variable
-  * In other words, all occurrences of f are guarded by equalities that
-  * constraint its arguments to constants.
-  */
+   * conjecture is purely PBE for that variable
+   * In other words, all occurrences of f are guarded by equalities that
+   * constraint its arguments to constants.
+   */
   std::map<Node, bool> d_examples_invalid;
   /** for each candidate variable (function-to-synthesize), whether the
-  * conjecture is purely PBE for that variable.
-  * An example of a conjecture for which d_examples_invalid is false but
-  * d_examples_out_invalid is true is:
-  *   exists f. forall x. ( x = 0 => f( x ) > 2 )
-  * another example is:
-  *   exists f. forall x. ( ( x = 0 => f( x ) = 2 ) V ( x = 3 => f( x ) = 3 ) )
-  * since the formula is not a conjunction (the example values are not
-  * entailed).
-  * However, the domain of f in both cases is finite, which can be used for
-  * search space pruning.
-  */
+   * conjecture is purely PBE for that variable.
+   * An example of a conjecture for which d_examples_invalid is false but
+   * d_examples_out_invalid is true is:
+   *   exists f. forall x. ( x = 0 => f( x ) > 2 )
+   * another example is:
+   *   exists f. forall x. ( ( x = 0 => f( x ) = 2 ) V ( x = 3 => f( x ) = 3 ) )
+   * since the formula is not a conjunction (the example values are not
+   * entailed).
+   * However, the domain of f in both cases is finite, which can be used for
+   * search space pruning.
+   */
   std::map<Node, bool> d_examples_out_invalid;
   /** for each candidate variable (function-to-synthesize), input of I/O
    * examples */
-  std::map<Node, std::vector<std::vector<Node> > > d_examples;
+  std::map<Node, std::vector<std::vector<Node>>> d_examples;
   /** for each candidate variable (function-to-synthesize), output of I/O
    * examples */
-  std::map<Node, std::vector<Node> > d_examples_out;
+  std::map<Node, std::vector<Node>> d_examples_out;
   /** the list of example terms
    * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 )
    */
-  std::map<Node, std::vector<Node> > d_examples_term;
+  std::map<Node, std::vector<Node>> d_examples_term;
   /**
    * Map from example input terms to their output, for example [EX#1] above,
    * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.
@@ -153,8 +155,8 @@ class ExampleInfer
   std::map<Node, std::map<Node, std::vector<Node>>> d_exOutCache;
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
+}  // namespace quantifiers
+}  // namespace theory
 } /* namespace CVC4 */
 
 #endif
