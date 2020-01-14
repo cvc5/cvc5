@@ -45,8 +45,8 @@ void ResultBlack::testEq()
   Result res2 = d_solver->checkSat();
   Result res3 = d_solver->checkSat();
   res = res2;
-  TS_ASSERT (res == res2);
-  TS_ASSERT (res3 == res2);
+  TS_ASSERT(res == res2);
+  TS_ASSERT(res3 == res2);
 }
 
 void ResultBlack::testIsSat()
@@ -55,8 +55,8 @@ void ResultBlack::testIsSat()
   Term x = d_solver->mkVar(u_sort, "x");
   d_solver->assertFormula(x.eqTerm(x));
   Result res = d_solver->checkSat();
-  TS_ASSERT (res.isSat());
-  TS_ASSERT (!res.isSatUnknown());
+  TS_ASSERT(res.isSat());
+  TS_ASSERT(!res.isSatUnknown());
 }
 
 void ResultBlack::testIsUnsat()
@@ -65,8 +65,8 @@ void ResultBlack::testIsUnsat()
   Term x = d_solver->mkVar(u_sort, "x");
   d_solver->assertFormula(x.eqTerm(x).notTerm());
   Result res = d_solver->checkSat();
-  TS_ASSERT (res.isUnsat());
-  TS_ASSERT (!res.isSatUnknown());
+  TS_ASSERT(res.isUnsat());
+  TS_ASSERT(!res.isSatUnknown());
 }
 
 void ResultBlack::testIsSatUnknown()
@@ -78,8 +78,8 @@ void ResultBlack::testIsSatUnknown()
   Term x = d_solver->mkVar(int_sort, "x");
   d_solver->assertFormula(x.eqTerm(x).notTerm());
   Result res = d_solver->checkSat();
-  TS_ASSERT (!res.isSat());
-  TS_ASSERT (res.isSatUnknown());
+  TS_ASSERT(!res.isSat());
+  TS_ASSERT(res.isSatUnknown());
 }
 
 void ResultBlack::testIsValid()
@@ -88,8 +88,8 @@ void ResultBlack::testIsValid()
   Term x = d_solver->mkVar(u_sort, "x");
   d_solver->assertFormula(x.eqTerm(x).notTerm());
   Result res = d_solver->checkValid();
-  TS_ASSERT (res.isValid());
-  TS_ASSERT (!res.isValidUnknown());
+  TS_ASSERT(res.isValid());
+  TS_ASSERT(!res.isValidUnknown());
 }
 
 void ResultBlack::testIsInvalid()
@@ -98,8 +98,8 @@ void ResultBlack::testIsInvalid()
   Term x = d_solver->mkVar(u_sort, "x");
   d_solver->assertFormula(x.eqTerm(x));
   Result res = d_solver->checkValid();
-  TS_ASSERT (res.isInvalid());
-  TS_ASSERT (!res.isValidUnknown());
+  TS_ASSERT(res.isInvalid());
+  TS_ASSERT(!res.isValidUnknown());
 }
 
 void ResultBlack::testIsValidUnknown()
@@ -111,8 +111,8 @@ void ResultBlack::testIsValidUnknown()
   Term x = d_solver->mkVar(int_sort, "x");
   d_solver->assertFormula(x.eqTerm(x).notTerm());
   Result res = d_solver->checkValid();
-  TS_ASSERT (!res.isValid());
-  TS_ASSERT (res.isValidUnknown());
+  TS_ASSERT(!res.isValid());
+  TS_ASSERT(res.isValidUnknown());
   TS_ASSERT_EQUALS(res.getUnknownExplanation(), "UNKNOWN_REASON");
 }
 
