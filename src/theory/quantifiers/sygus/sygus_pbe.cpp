@@ -157,6 +157,7 @@ bool SygusPbe::initialize(Node conj,
     d_examples[v].clear();
     d_examples_out[v].clear();
     d_examples_term[v].clear();
+    d_sygus_unif[v].initializeDefault(d_qe);
   }
 
   std::map<Node, bool> visited;
@@ -193,6 +194,13 @@ bool SygusPbe::initialize(Node conj,
         }
         Trace("sygus-pbe") << std::endl;
       }
+    }
+    Trace("sygus-pbe") << "Initialize " << d_examples[v].size()
+                       << " example points for " << v << "..." << std::endl;
+    // initialize the examples
+    for (unsigned i = 0, nex = d_examples[v].size(); i < nex; i++)
+    {
+      d_sygus_unif[v].addExample(d_examples[v][i], d_examples_out[v][i]);
     }
   }
 
@@ -285,13 +293,6 @@ bool SygusPbe::initialize(Node conj,
         d_tds->registerSymBreakLemma(e, lem, etn, 0, false);
       }
     }
-    Trace("sygus-pbe") << "Initialize " << d_examples[c].size()
-                       << " example points for " << c << "..." << std::endl;
-    // initialize the examples
-    for (unsigned i = 0, nex = d_examples[c].size(); i < nex; i++)
-    {
-      d_sygus_unif[c].addExample(d_examples[c][i], d_examples_out[c][i]);
-    }
   }
   return true;
 }
@@ -314,14 +315,13 @@ Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
 bool SygusPbe::hasExamples(Node e)
 {
   e = d_tds->getSynthFunForEnumerator(e);
-  if (e.isNull())
+  if(e.isNull())
   {
     // enumerator is not associated with synthesis function?
     return false;
   }
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
-  if (itx == d_examples_invalid.end())
-  {
+  if (itx == d_examples_invalid.end()) {
     return d_examples.find(e) != d_examples.end();
   }
   return false;
@@ -379,33 +379,9 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   }
   Node ee = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
-  std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
-  if (itx == d_examples_invalid.end()) {
-    std::vector<Node> vals;
-    Trace("sygus-pbe-debug")
-        << "Compute examples " << bvr << "..." << std::endl;
-    if (d_is_pbe)
-    {
-      // Compute example values with the I/O utility, which ensures they are
-      // not later recomputed when the enumerated term is given the I/O utility.
-      d_sygus_unif[ee].computeExamples(e, bvr, vals);
-    }
-    else
-    {
-      // If the I/O utility is not enabled (if the conjecture is not PBE),
-      // compute them separately. This handles the case when all applications
-      // of a function-to-synthesize are applied to constant arguments but
-      // the conjecture is not PBE.
-      TypeNode etn = e.getType();
-      std::vector<std::vector<Node>>& exs = d_examples[ee];
-      for (size_t i = 0, esize = exs.size(); i < esize; i++)
-      {
-        Node res = d_tds->evaluateBuiltin(etn, bvr, exs[i]);
-        vals.push_back(res);
-      }
-    }
-    Assert(vals.size() == d_examples[ee].size());
-    Trace("sygus-pbe-debug") << "...got " << vals << std::endl;
+  std::vector< Node > vals;
+  if (computeExamples(e, bvr, vals))
+  {
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
     Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
     Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
@@ -424,6 +400,23 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
     return ret;
   }
   return Node::null();
+}
+
+bool SygusPbe::computeExamples(Node e, Node bvr, std::vector<Node>& exOut)
+{
+  Node ee = d_tds->getSynthFunForEnumerator(e);
+  Assert(!e.isNull());
+  std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
+  if (itx == d_examples_invalid.end()) {
+    Trace("sygus-pbe-debug")
+        << "Compute examples " << bvr << "..." << std::endl;
+    // Compute example values with the I/O utility, which ensures they are
+    // not later recomputed when the enumerated term is given the I/O utility.
+    d_sygus_unif[ee].computeExamples(e, bvr, exOut);
+    Trace("sygus-pbe-debug") << "...got " << exOut << std::endl;
+    return true;
+  }
+  return false;
 }
 
 Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)

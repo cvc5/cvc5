@@ -496,6 +496,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   Node neg_guard = d_parent->getGuard().negate();
   bool ret = false;
   Evaluator* eval = d_tds->getEvaluator();
+  SygusPbe * pbe = d_parent->getPbe();
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node, NodeHashFunction>& rlemmas =
@@ -504,6 +505,10 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
     {
       if (!doGen)
       {
+        // we may have computed the evaluation of all function applications
+        // via example-based symmetry breaking
+        // TODO
+        // if we are not doing structural generalization, just use the evaluator
         Node lemcsu = eval->eval( lem, vs, ms );
         if (lemcsu.isConst() && !lemcsu.getConst<bool>())
         {

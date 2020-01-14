@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/evaluator.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/random.h"
@@ -507,14 +508,20 @@ SygusUnifIo::SygusUnifIo()
 }
 
 SygusUnifIo::~SygusUnifIo() {}
+
+void SygusUnifIo::initializeDefault(
+    QuantifiersEngine* qe)
+{
+  d_qe = qe;
+  d_tds = qe->getTermDatabaseSygus();
+    
+}
 void SygusUnifIo::initializeCandidate(
     QuantifiersEngine* qe,
     Node f,
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
-  d_examples.clear();
-  d_examples_out.clear();
   d_ecache.clear();
   d_candidate = f;
   SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
