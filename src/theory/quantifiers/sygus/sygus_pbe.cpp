@@ -315,13 +315,14 @@ Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
 bool SygusPbe::hasExamples(Node e)
 {
   e = d_tds->getSynthFunForEnumerator(e);
-  if(e.isNull())
+  if (e.isNull())
   {
     // enumerator is not associated with synthesis function?
     return false;
   }
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
-  if (itx == d_examples_invalid.end()) {
+  if (itx == d_examples_invalid.end())
+  {
     return d_examples.find(e) != d_examples.end();
   }
   return false;

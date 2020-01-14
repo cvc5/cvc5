@@ -61,7 +61,7 @@ class AttributeManager {
    * getTable<> is a helper template that gets the right table from an
    * AttributeManager given its type.
    */
-  template <class T, bool context_dep>
+  template <class T, bool context_dep, class Enable>
   friend struct getTable;
 
   bool d_inGarbageCollection;
@@ -190,8 +190,13 @@ namespace attr {
 /**
  * The getTable<> template provides (static) access to the
  * AttributeManager field holding the table.
+ *
+ * The `Enable` template parameter is used to instantiate the template
+ * conditionally: If the template substitution of Enable fails (e.g. when using
+ * `std::enable_if` in the template parameter and the condition is false), the
+ * instantiation is ignored due to the SFINAE rule.
  */
-template <class T, bool context_dep>
+template <class T, bool context_dep, class Enable = void>
 struct getTable;
 
 /** Access the "d_bools" member of AttributeManager. */
@@ -208,8 +213,12 @@ struct getTable<bool, false> {
 };
 
 /** Access the "d_ints" member of AttributeManager. */
-template <>
-struct getTable<uint64_t, false> {
+template <class T>
+struct getTable<T,
+                false,
+                // Use this specialization only for unsigned integers
+                typename std::enable_if<std::is_unsigned<T>::value>::type>
+{
   static const AttrTableId id = AttrTableUInt64;
   typedef AttrHash<uint64_t> table_type;
   static inline table_type& get(AttributeManager& am) {
