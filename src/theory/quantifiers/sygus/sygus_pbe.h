@@ -171,12 +171,12 @@ class SygusPbe : public SygusModule
   bool hasExamples(Node e);
   /** get number of examples for enumerator e */
   unsigned getNumExamples(Node e);
-  /** 
+  /**
    * Get the input arguments for i^th example for e, which is added to the
    * vector ex
    */
   void getExample(Node e, unsigned i, std::vector<Node>& ex);
-  /** 
+  /**
    * Get the output value of the i^th example for enumerator e, or null if
    * it does not exist (an example does not have an associate output if it is
    * not a top-level equality).
@@ -184,23 +184,23 @@ class SygusPbe : public SygusModule
   Node getExampleOut(Node e, unsigned i);
 
   /** add the search val
-  * This function is called by the extension of quantifier-free datatypes
-  * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
-  * considering a value of enumerator e of sygus type tn whose analog in the
-  * signature of builtin theory is bvr.
-  *
-  * For example, bvr = x + 1 when e is the datatype value Plus( x(), One() ) and
-  * tn is a sygus datatype that encodes a subsignature of the integers.
-  *
-  * This returns either:
-  * - A SyGuS term whose analog is equivalent to bvr up to examples
-  *   In the above example,
-  *   it may return a term t of the form Plus( One(), x() ), such that this
-  *   function was previously called with t as input.
-  * - e, indicating that no previous terms are equivalent to e up to examples.
-  * 
-  * This method should only be called if hasExamples(e) returns true.
-  */
+   * This function is called by the extension of quantifier-free datatypes
+   * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
+   * considering a value of enumerator e of sygus type tn whose analog in the
+   * signature of builtin theory is bvr.
+   *
+   * For example, bvr = x + 1 when e is the datatype value Plus( x(), One() )
+   * and tn is a sygus datatype that encodes a subsignature of the integers.
+   *
+   * This returns either:
+   * - A SyGuS term whose analog is equivalent to bvr up to examples
+   *   In the above example,
+   *   it may return a term t of the form Plus( One(), x() ), such that this
+   *   function was previously called with t as input.
+   * - e, indicating that no previous terms are equivalent to e up to examples.
+   *
+   * This method should only be called if hasExamples(e) returns true.
+   */
   Node addSearchVal(TypeNode tn, Node e, Node bvr);
   /** evaluate builtin
   * This returns the evaluation of bn on the i^th example for the
