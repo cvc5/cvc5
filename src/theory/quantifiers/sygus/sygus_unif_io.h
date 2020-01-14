@@ -243,6 +243,8 @@ class SubsumeTrie
                          int status);
 };
 
+class ExampleInfer;
+
 /** Sygus unification I/O utility
  *
  * This class implement synthesis-by-unification, where the specification is
@@ -271,8 +273,14 @@ class SygusUnifIo : public SygusUnif
    *
    * We only initialize for one function f, since I/O specifications across
    * multiple functions can be separated.
+   * 
+   * FIXME
+   * This adds input -> output to the specification for f. The arity of
+   * input should be equal to the number of arguments in the sygus variable
+   * list of the grammar of f. That is, if we are searching for solutions for f
+   * of the form (lambda v1...vn. t), then the arity of input should be n.
    */
-  void initializeDefault(QuantifiersEngine* qe);
+  void initializeExamples(QuantifiersEngine* qe, Node f, ExampleInfer * ei);
   void initializeCandidate(
       QuantifiersEngine* qe,
       Node f,
@@ -284,15 +292,6 @@ class SygusUnifIo : public SygusUnif
   /** Construct solution */
   bool constructSolution(std::vector<Node>& sols,
                          std::vector<Node>& lemmas) override;
-
-  /** add example
-   *
-   * This adds input -> output to the specification for f. The arity of
-   * input should be equal to the number of arguments in the sygus variable
-   * list of the grammar of f. That is, if we are searching for solutions for f
-   * of the form (lambda v1...vn. t), then the arity of input should be n.
-   */
-  void addExample(const std::vector<Node>& input, Node output);
 
   /** compute examples
    *

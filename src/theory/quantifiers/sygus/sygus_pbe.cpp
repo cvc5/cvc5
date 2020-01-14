@@ -152,13 +152,14 @@ bool SygusPbe::initialize(Node conj,
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
 
+  ExampleInfer * ei = d_parent->getExampleInfer();
   for (unsigned i = 0; i < candidates.size(); i++)
   {
     Node v = candidates[i];
     d_examples[v].clear();
     d_examples_out[v].clear();
     d_examples_term[v].clear();
-    d_sygus_unif[v].initializeDefault(d_qe);
+    d_sygus_unif[v].initializeExamples(d_qe, v, ei);
   }
 
   std::map<Node, bool> visited;
@@ -171,40 +172,6 @@ bool SygusPbe::initialize(Node conj,
     return false;
   }
 
-  for (unsigned i = 0; i < candidates.size(); i++)
-  {
-    Node v = candidates[i];
-    Trace("sygus-pbe") << "  examples for " << v << " : ";
-    if (d_examples_invalid.find(v) != d_examples_invalid.end())
-    {
-      Trace("sygus-pbe") << "INVALID" << std::endl;
-    }
-    else
-    {
-      Trace("sygus-pbe") << std::endl;
-      for (unsigned j = 0; j < d_examples[v].size(); j++)
-      {
-        Trace("sygus-pbe") << "    ";
-        for (unsigned k = 0; k < d_examples[v][j].size(); k++)
-        {
-          Trace("sygus-pbe") << d_examples[v][j][k] << " ";
-        }
-        if (!d_examples_out[v][j].isNull())
-        {
-          Trace("sygus-pbe") << " -> " << d_examples_out[v][j];
-        }
-        Trace("sygus-pbe") << std::endl;
-      }
-    }
-    Trace("sygus-pbe") << "Initialize " << d_examples[v].size()
-                       << " example points for " << v << "..." << std::endl;
-    // initialize the examples
-    for (unsigned i = 0, nex = d_examples[v].size(); i < nex; i++)
-    {
-      d_sygus_unif[v].addExample(d_examples[v][i], d_examples_out[v][i]);
-    }
-  }
-
   if (!options::sygusUnifPbe())
   {
     // we are not doing unification
@@ -213,13 +180,10 @@ bool SygusPbe::initialize(Node conj,
 
   // check if all candidates are valid examples
   d_is_pbe = true;
-  ExampleInfer * ei = d_parent->getExampleInfer();
   for (const Node& c : candidates)
   {
     // if it has no examples or the output of the examples is invalid
-    //if (ei->getNumExamples(c)==0 || !ei->hasExamplesOut(c))
-    if (d_examples[c].empty()
-        || d_examples_out_invalid.find(c) != d_examples_out_invalid.end())
+    if (ei->getNumExamples(c)==0 || !ei->hasExamplesOut(c))
     {
       d_is_pbe = false;
       return false;
@@ -227,7 +191,7 @@ bool SygusPbe::initialize(Node conj,
   }
   for (const Node& c : candidates)
   {
-    Assert(d_examples.find(c) != d_examples.end());
+    Assert(ei->hasExamples(c));
     Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
                        << std::endl;
     std::map<Node, std::vector<Node>> strategy_lemmas;
@@ -385,6 +349,8 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   Node ee = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::vector<Node> vals;
+  ExampleInfer * ei = d_parent->getExampleInfer();
+  // if (ei->evaluate(ee, bvr, vals, true))
   if (computeExamples(e, bvr, vals))
   {
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;

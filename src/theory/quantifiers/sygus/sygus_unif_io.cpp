@@ -20,6 +20,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "util/random.h"
+#include "theory/quantifiers/sygus/example_infer.h"
 
 #include <math.h>
 
@@ -509,11 +510,26 @@ SygusUnifIo::SygusUnifIo()
 
 SygusUnifIo::~SygusUnifIo() {}
 
-void SygusUnifIo::initializeDefault(QuantifiersEngine* qe)
+void SygusUnifIo::initializeExamples(QuantifiersEngine* qe, Node f, ExampleInfer * ei)
 {
   d_qe = qe;
   d_tds = qe->getTermDatabaseSygus();
+  d_examples.clear();
+  d_examples_out.clear();
+  // copy the examples
+  if (ei->hasExamples(f))
+  {
+    for (unsigned i=0, nex = ei->getNumExamples(f); i<nex; i++)
+    {
+      std::vector< Node > input;
+      ei->getExample(f,i,input);
+      Node output = ei->getExampleOut(f,i);
+      d_examples.push_back(input);
+      d_examples_out.push_back(output);
+    }
+  }
 }
+
 void SygusUnifIo::initializeCandidate(
     QuantifiersEngine* qe,
     Node f,
@@ -525,12 +541,6 @@ void SygusUnifIo::initializeCandidate(
   SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
   // learn redundant operators based on the strategy
   d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
-}
-
-void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
-{
-  d_examples.push_back(input);
-  d_examples_out.push_back(output);
 }
 
 void SygusUnifIo::computeExamples(Node e, Node bv, std::vector<Node>& exOut)

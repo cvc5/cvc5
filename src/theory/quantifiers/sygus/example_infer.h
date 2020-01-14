@@ -94,9 +94,10 @@ class ExampleInfer
   /** Evaluate node
    *
    * This stores
-
+   * 
+   * It returns false if e does not have examples.
    */
-  void evaluate(Node e,
+  bool evaluate(Node e,
                 Node bv,
                 std::vector<Node>& exOut,
                 bool doCache = false);

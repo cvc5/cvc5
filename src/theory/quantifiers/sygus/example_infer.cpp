@@ -247,14 +247,18 @@ Node ExampleInfer::getExampleOut(Node e, unsigned i) const
 
 bool ExampleInfer::hasExamplesOut(Node e) const
 {
-  return d_examples_out_invalid.find(e) != d_examples_out_invalid.end();
+  return d_examples_out_invalid.find(e) == d_examples_out_invalid.end();
 }
 
-void ExampleInfer::evaluate(Node e,
+bool ExampleInfer::evaluate(Node e,
                             Node bv,
                             std::vector<Node>& exOut,
                             bool doCache)
 {
+  if (!hasExamples(e))
+  {
+    return false;
+  }
   if (!doCache)
   {
     // TODO: use ExampleCache here
@@ -265,7 +269,7 @@ void ExampleInfer::evaluate(Node e,
       Node res = d_tds->evaluateBuiltin(xtn, bv, exs[j]);
       exOut.push_back(res);
     }
-    return;
+    return true;
   }
   // is it in the cache?
   std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
@@ -273,13 +277,14 @@ void ExampleInfer::evaluate(Node e,
   if (it != eoc.end())
   {
     exOut.insert(exOut.end(), it->second.begin(), it->second.end());
-    return;
+    return true;
   }
   // get the evaluation
   evaluate(e, bv, exOut, false);
   // store in cache
   std::vector<Node>& eocv = eoc[bv];
   eocv.insert(eocv.end(), exOut.begin(), exOut.end());
+  return true;
 }
 
 void ExampleInfer::clearEvaluationCache(Node e, Node bv)
