@@ -45,8 +45,8 @@ void ResultBlack::testEq()
   Result res2 = d_solver->checkSat();
   Result res3 = d_solver->checkSat();
   res = res2;
-  TS_ASSERT(res == res2);
-  TS_ASSERT(res3 == res2);
+  TS_ASSERT_EQUALS(res, res2);
+  TS_ASSERT_EQUALS(res3, res2);
 }
 
 void ResultBlack::testIsSat()
