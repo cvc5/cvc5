@@ -236,6 +236,32 @@ Node ExampleInfer::getExampleOut(Node e, unsigned i)
   return Node::null();
 }
 
+void ExampleInfer::evaluate(Node e, Node bv, std::vector<Node>& exOut)
+{
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
+  std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
+  if (it != eoc.end())
+  {
+    exOut.insert(exOut.end(), it->second.begin(), it->second.end());
+    return;
+  }
+  TypeNode xtn = e.getType();
+  std::vector<Node>& eocv = eoc[bv];
+  for (size_t j = 0, size = d_examples.size(); j < size; j++)
+  {
+    Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
+    exOut.push_back(res);
+    eocv.push_back(res);
+  }
+}
+
+void ExampleInfer::clearEvaluationCache(Node e, Node bv)
+{
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
+  Assert(eoc.find(bv) != eoc.end());
+  eoc.erase(bv);
+}
+
 }
 }
 }

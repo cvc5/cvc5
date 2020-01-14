@@ -66,6 +66,12 @@ class ExampleInfer
    * not a top-level equality).
    */
   Node getExampleOut(Node e, unsigned i);
+  //----------------------------------- evaluating terms
+  /** evaluate node */
+  void evaluate(Node e, Node bv, std::vector<Node>& exOut, bool doCache=false);
+  /** clear evaluation cache */
+  void clearEvaluationCache(Node e, Node bv);
+  //----------------------------------- end evaluating terms
  private:
   /** is this an examples conjecture for all functions-to-synthesize? */
   bool d_isExamples;
