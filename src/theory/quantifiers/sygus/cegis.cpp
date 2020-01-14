@@ -495,12 +495,23 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   Node nfalse = nm->mkConst(false);
   Node neg_guard = d_parent->getGuard().negate();
   bool ret = false;
+  Evaluator* eval = d_tds->getEvaluator();
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node, NodeHashFunction>& rlemmas =
         r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
     for (const Node& lem : rlemmas)
     {
+      if (!doGen)
+      {
+        Node lemcsu = eval->eval( lem, vs, ms );
+        if (lemcsu.isConst() && !lemcsu.getConst<bool>())
+        {
+          return true;
+        }
+        continue;
+      }
+      
       Assert(!lem.isNull());
       std::map<Node, Node> visited;
       std::map<Node, std::vector<Node> > exp;
