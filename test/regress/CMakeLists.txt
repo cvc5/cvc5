@@ -1932,7 +1932,6 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
-  regress2/strings/issue3203.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
@@ -2316,6 +2315,8 @@ set(regression_disabled_tests
   regress2/nl/nt-lemmas-bad.smt2
   regress2/quantifiers/ForElimination-scala-9.smt2
   regress2/quantifiers/small-bug1-fixpoint-3.smt2
+  # Times out, see issue #3606
+  regress2/strings/issue3203.smt2
   regress2/xs-11-20-5-2-5-3.smtv1.smt2
   regress2/xs-11-20-5-2-5-3.smt2
 )
