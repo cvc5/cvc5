@@ -31,8 +31,11 @@ class ExampleInfer
  public:
   ExampleInfer();
   ~ExampleInfer();
-  /** initialize */
-  void initialize(Node conj,
+  /** initialize 
+   * 
+   * Returns false if and only if n has a conflicting example input/output.
+   */
+  bool initialize(Node conj,
                   Node n,
                   const std::vector<Node>& candidates);
   /** does the conjecture have examples for all candidates? */

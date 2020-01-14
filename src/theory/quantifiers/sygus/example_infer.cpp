@@ -28,7 +28,59 @@ ExampleInfer::ExampleInfer()
 
 ExampleInfer::~ExampleInfer() {}
 
-//--------------------------------- collecting finite input/output domain information
+bool ExampleInfer::initialize(Node n,
+                              const std::vector<Node>& candidates)
+{
+  Trace("sygus-pbe") << "Initialize example inference : " << n << std::endl;
+
+  for (const Node& v : candidates)
+  {
+    d_examples[v].clear();
+    d_examples_out[v].clear();
+    d_examples_term[v].clear();
+  }
+
+  std::map<Node, bool> visited;
+  // n is negated conjecture
+  if (!collectExamples(n, visited, true, false))
+  {
+    Trace("sygus-pbe") << "...conflicting examples" << std::endl;
+    return false;
+  }
+
+  if (Trace.isOn("sygus-pbe")) 
+  {
+    for (unsigned i = 0; i < candidates.size(); i++)
+    {
+      Node v = candidates[i];
+      Trace("sygus-pbe") << "  examples for " << v << " : ";
+      if (d_examples_invalid.find(v) != d_examples_invalid.end())
+      {
+        Trace("sygus-pbe") << "INVALID" << std::endl;
+      }
+      else
+      {
+        Trace("sygus-pbe") << std::endl;
+        for (unsigned j = 0; j < d_examples[v].size(); j++)
+        {
+          Trace("sygus-pbe") << "    ";
+          for (unsigned k = 0; k < d_examples[v][j].size(); k++)
+          {
+            Trace("sygus-pbe") << d_examples[v][j][k] << " ";
+          }
+          if (!d_examples_out[v][j].isNull())
+          {
+            Trace("sygus-pbe") << " -> " << d_examples_out[v][j];
+          }
+          Trace("sygus-pbe") << std::endl;
+        }
+      }
+      Trace("sygus-pbe") << "Initialize " << d_examples[v].size()
+                        << " example points for " << v << "..." << std::endl;
+    }
+  }
+  return true;
+}
 
 bool ExampleInfer::collectExamples(Node n,
                                std::map<Node, bool>& visited,
@@ -123,69 +175,13 @@ bool ExampleInfer::collectExamples(Node n,
       d_examples_out_invalid[eh] = true;
     }
   }
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+  for( unsigned i=0, nchild = n.getNumChildren(); i<nchild; i++ ){
     bool newHasPol;
     bool newPol;
     QuantPhaseReq::getEntailPolarity(n, i, hasPol, pol, newHasPol, newPol);
     if (!collectExamples(n[i], visited, newHasPol, newPol))
     {
       return false;
-    }
-  }
-  return true;
-}
-
-bool ExampleInfer::initialize(Node conj,
-                            Node n,
-                            const std::vector<Node>& candidates)
-{
-  Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-
-  for (unsigned i = 0; i < candidates.size(); i++)
-  {
-    d_examples[v].clear();
-    d_examples_out[v].clear();
-    d_examples_term[v].clear();
-  }
-
-  std::map<Node, bool> visited;
-  // n is negated conjecture
-  if (!collectExamples(n, visited, true, false))
-  {
-    Trace("sygus-pbe") << "...conflicting examples" << std::endl;
-    return false;
-  }
-
-  if (Trace.isOn("sygus-pbe")) 
-  {
-    for (unsigned i = 0; i < candidates.size(); i++)
-    {
-      Node v = candidates[i];
-      Trace("sygus-pbe") << "  examples for " << v << " : ";
-      if (d_examples_invalid.find(v) != d_examples_invalid.end())
-      {
-        Trace("sygus-pbe") << "INVALID" << std::endl;
-      }
-      else
-      {
-        Trace("sygus-pbe") << std::endl;
-        for (unsigned j = 0; j < d_examples[v].size(); j++)
-        {
-          Trace("sygus-pbe") << "    ";
-          for (unsigned k = 0; k < d_examples[v][j].size(); k++)
-          {
-            Trace("sygus-pbe") << d_examples[v][j][k] << " ";
-          }
-          if (!d_examples_out[v][j].isNull())
-          {
-            Trace("sygus-pbe") << " -> " << d_examples_out[v][j];
-          }
-          Trace("sygus-pbe") << std::endl;
-        }
-      }
-      Trace("sygus-pbe") << "Initialize " << d_examples[v].size()
-                        << " example points for " << v << "..." << std::endl;
     }
   }
   return true;
@@ -253,6 +249,7 @@ void ExampleInfer::evaluate(Node e, Node bv, std::vector<Node>& exOut)
     exOut.push_back(res);
     eocv.push_back(res);
   }
+  // TODO: use ExampleCache here
 }
 
 void ExampleInfer::clearEvaluationCache(Node e, Node bv)
