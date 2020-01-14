@@ -78,13 +78,19 @@ class ExampleInfer
    * Get the input arguments for i^th example for e, which is added to the
    * vector ex
    */
-  void getExample(Node e, unsigned i, std::vector<Node>& ex);
+  void getExample(Node e, unsigned i, std::vector<Node>& ex);  
   /**
    * Get the output value of the i^th example for enumerator e, or null if
    * it does not exist (an example does not have an associate output if it is
    * not a top-level equality).
    */
-  Node getExampleOut(Node e, unsigned i);
+  Node getExampleOut(Node e, unsigned i) const;
+  /** 
+   * Is example output valid? Returns true if all examples are associated
+   * with an output value, e.g. they return a non-null value for getExampleOut
+   * above.
+   */
+  bool hasExamplesOut(Node e) const;
   //----------------------------------- evaluating terms
   /** Evaluate node 
    * 

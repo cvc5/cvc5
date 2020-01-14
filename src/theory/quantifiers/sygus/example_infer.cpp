@@ -227,13 +227,18 @@ void ExampleInfer::getExample(Node e, unsigned i, std::vector<Node>& ex)
 Node ExampleInfer::getExampleOut(Node e, unsigned i)
 {
   Assert(!e.isNull());
-  std::map<Node, std::vector<Node> >::iterator it = d_examples_out.find(e);
+  std::map<Node, std::vector<Node> >::const_iterator it = d_examples_out.find(e);
   if (it != d_examples_out.end()) {
     Assert(i < it->second.size());
     return it->second[i];
   }
   Assert(false);
   return Node::null();
+}
+
+bool ExampleInfer::hasExamplesOut(Node e) const
+{
+  return d_examples_out_invalid.find(e)!=d_examples_out_invalid.end();
 }
 
 void ExampleInfer::evaluate(Node e, Node bv, std::vector<Node>& exOut, bool doCache)
