@@ -91,16 +91,16 @@ void EquivSygusInvarianceTest::init(
 {
   // compute the current examples
   d_bvr = bvr;
-  if (aconj->getPbe()->hasExamples(e))
+  Assert( tds!=nullptr );
+  Node f = tds->getSynthFunForEnumerator(e);
+  ExampleInfer * ei = aconj->getExampleInfer();
+  Assert( ei!=nullptr );
+  if (ei->hasExamples(f))
   {
+    // get the result of evaluating bvr on the examples of f.
+    ei->evaluate(f,e,bvr,d_exo,false);
     d_conj = aconj;
     d_enum = e;
-    unsigned nex = aconj->getPbe()->getNumExamples(e);
-    ExampleInfer * ei = d_conj->getExampleInfer();
-    for (unsigned i = 0; i < nex; i++)
-    {
-      d_exo.push_back(ei->evaluateBuiltin(tn, bvr, e, i));
-    }
   }
 }
 
