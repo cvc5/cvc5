@@ -365,7 +365,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
       if (ret != bvr)
       {
         Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
-        ei->clearEvaluationCache(ee, e,bvr);
+        ei->clearEvaluationCache(e,bvr);
         //d_sygus_unif[ee].clearExampleCache(e, bvr);
       }
     }

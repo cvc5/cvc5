@@ -596,7 +596,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   d_exi->evaluate(d_candidate, e, bv, base_results, true);
   // don't need it after this
   //clearExampleCache(e, bv);
-  d_exi->clearEvaluationCache(d_candidate, e, bv);
+  d_exi->clearEvaluationCache(e, bv);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
   Evaluator* ev = d_tds->getEvaluator();
