@@ -79,7 +79,7 @@ class ExampleInfer
    */
   void getExample(Node f, unsigned i, std::vector<Node>& ex) const;
   /** get example terms
-   * 
+   *
    * Add the list of example terms (see d_examplesTerm below) for
    * function-to-synthesize f to the vector exTerms.
    */
@@ -103,25 +103,22 @@ class ExampleInfer
    * by this class. Term bv is the builtin version of a term generated for
    * enumerator e that is associated with a function-to-synthesize f.
    * It stores the resulting output for each example in exOut.
-   * 
+   *
    * It returns false if e does not have examples.
    */
-  bool evaluate(Node f,
-                Node e,
-                Node bv,
-                std::vector<Node>& exOut,
-                bool doCache = false);
+  bool evaluate(
+      Node f, Node e, Node bv, std::vector<Node>& exOut, bool doCache = false);
   /** evaluate builtin
-  * This returns the evaluation of bn on the i^th example for the
-  * function-to-synthesis
-  * associated with enumerator e. If there are not at least i examples, it
-  * returns the rewritten form of bn.
-  * For example, if bn = x+5, e is an enumerator for f in the above example
-  * [EX#1], then
-  *   evaluateBuiltin( tn, bn, e, 0 ) = 7
-  *   evaluateBuiltin( tn, bn, e, 1 ) = 9
-  *   evaluateBuiltin( tn, bn, e, 2 ) = 10
-  */
+   * This returns the evaluation of bn on the i^th example for the
+   * function-to-synthesis
+   * associated with enumerator e. If there are not at least i examples, it
+   * returns the rewritten form of bn.
+   * For example, if bn = x+5, e is an enumerator for f in the above example
+   * [EX#1], then
+   *   evaluateBuiltin( tn, bn, e, 0 ) = 7
+   *   evaluateBuiltin( tn, bn, e, 1 ) = 9
+   *   evaluateBuiltin( tn, bn, e, 2 ) = 10
+   */
   Node evaluateBuiltin(TypeNode tn, Node bn, Node f, unsigned i);
   /** clear evaluation cache */
   void clearEvaluationCache(Node e, Node bv);
@@ -158,12 +155,12 @@ class ExampleInfer
    * used for search space pruning.
    */
   std::map<Node, bool> d_examplesOut_invalid;
-  /** 
+  /**
    * For each candidate variable (function-to-synthesize), input of I/O
-   * examples 
+   * examples
    */
   std::map<Node, std::vector<std::vector<Node>>> d_examples;
-  /** 
+  /**
    * For each candidate variable (function-to-synthesize), output of I/O
    * examples.
    */

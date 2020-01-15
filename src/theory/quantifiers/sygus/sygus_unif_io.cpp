@@ -16,11 +16,11 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/evaluator.h"
+#include "theory/quantifiers/sygus/example_infer.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "util/random.h"
-#include "theory/quantifiers/sygus/example_infer.h"
 
 #include <math.h>
 
@@ -510,7 +510,7 @@ SygusUnifIo::SygusUnifIo()
 
 SygusUnifIo::~SygusUnifIo() {}
 
-void SygusUnifIo::initializeExamples(Node f, ExampleInfer * ei)
+void SygusUnifIo::initializeExamples(Node f, ExampleInfer* ei)
 {
   d_candidate = f;
   d_exi = ei;
@@ -519,11 +519,11 @@ void SygusUnifIo::initializeExamples(Node f, ExampleInfer * ei)
   // copy the examples
   if (ei->hasExamples(f))
   {
-    for (unsigned i=0, nex = ei->getNumExamples(f); i<nex; i++)
+    for (unsigned i = 0, nex = ei->getNumExamples(f); i < nex; i++)
     {
-      std::vector< Node > input;
-      ei->getExample(f,i,input);
-      Node output = ei->getExampleOut(f,i);
+      std::vector<Node> input;
+      ei->getExample(f, i, input);
+      Node output = ei->getExampleOut(f, i);
       d_examples.push_back(input);
       d_examples_out.push_back(output);
     }
@@ -536,7 +536,7 @@ void SygusUnifIo::initializeCandidate(
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
-  Assert( d_candidate==f );
+  Assert(d_candidate == f);
   d_ecache.clear();
   SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
   // learn redundant operators based on the strategy
@@ -562,7 +562,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   bv = d_tds->getExtRewriter()->extendedRewrite(bv);
   Trace("sygus-sui-enum") << "PBE Compute Examples for " << bv << std::endl;
   // compte the results (should be cached)
-  Assert( d_exi!=nullptr);
+  Assert(d_exi != nullptr);
   d_exi->evaluate(d_candidate, e, bv, base_results, true);
   // don't need it after this
   d_exi->clearEvaluationCache(e, bv);

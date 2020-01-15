@@ -91,14 +91,14 @@ void EquivSygusInvarianceTest::init(
 {
   // compute the current examples
   d_bvr = bvr;
-  Assert( tds!=nullptr );
+  Assert(tds != nullptr);
   Node f = tds->getSynthFunForEnumerator(e);
-  ExampleInfer * ei = aconj->getExampleInfer();
-  Assert( ei!=nullptr );
+  ExampleInfer* ei = aconj->getExampleInfer();
+  Assert(ei != nullptr);
   if (ei->hasExamples(f))
   {
     // get the result of evaluating bvr on the examples of f.
-    ei->evaluate(f,e,bvr,d_exo,false);
+    ei->evaluate(f, e, bvr, d_exo, false);
     d_conj = aconj;
     d_enum = e;
   }
@@ -150,7 +150,7 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
     if (!d_enum.isNull())
     {
       bool ex_equiv = true;
-      ExampleInfer * ei = d_conj->getExampleInfer();
+      ExampleInfer* ei = d_conj->getExampleInfer();
       for (unsigned j = 0; j < d_exo.size(); j++)
       {
         Node nbvr_ex = ei->evaluateBuiltin(tn, nbvr, d_enum, j);

@@ -16,11 +16,11 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/sygus/example_infer.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/random.h"
-#include "theory/quantifiers/sygus/example_infer.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -47,7 +47,7 @@ bool SygusPbe::initialize(Node conj,
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
 
-  ExampleInfer * ei = d_parent->getExampleInfer();
+  ExampleInfer* ei = d_parent->getExampleInfer();
   for (const Node& c : candidates)
   {
     d_sygus_unif[c].initializeExamples(c, ei);
@@ -64,7 +64,7 @@ bool SygusPbe::initialize(Node conj,
   for (const Node& c : candidates)
   {
     // if it has no examples or the output of the examples is invalid
-    if (ei->getNumExamples(c)==0 || !ei->hasExamplesOut(c))
+    if (ei->getNumExamples(c) == 0 || !ei->hasExamplesOut(c))
     {
       d_is_pbe = false;
       return false;
@@ -173,7 +173,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   Node ee = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::vector<Node> vals;
-  ExampleInfer * ei = d_parent->getExampleInfer();
+  ExampleInfer* ei = d_parent->getExampleInfer();
   if (ei->evaluate(ee, e, bvr, vals, true))
   {
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
@@ -187,7 +187,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
       if (ret != bvr)
       {
         Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
-        ei->clearEvaluationCache(e,bvr);
+        ei->clearEvaluationCache(e, bvr);
       }
     }
     Assert(ret.getType() == bvr.getType());

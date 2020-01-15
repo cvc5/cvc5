@@ -269,17 +269,17 @@ class SygusUnifIo : public SygusUnif
  public:
   SygusUnifIo();
   ~SygusUnifIo();
-  
-  /** Initialize examples 
-   * 
-   * This initializes the examples managed by this class. 
+
+  /** Initialize examples
+   *
+   * This initializes the examples managed by this class.
    * In particular, this class will use the examples associated with a
    * function-to-synthesize f.  The argument ei is the utility that has
    * computed the examples associated with f.  In particular, this utility
    * has computed whether there is a finite list of relevant input vectors
    * of f, and whether those inputs have an associated output.
    */
-  void initializeExamples(Node f, ExampleInfer * ei);
+  void initializeExamples(Node f, ExampleInfer* ei);
   /** initialize
    *
    * This initializes this class for solving PBE conjectures for
@@ -300,11 +300,11 @@ class SygusUnifIo : public SygusUnif
   bool constructSolution(std::vector<Node>& sols,
                          std::vector<Node>& lemmas) override;
  protected:
-  /** 
+  /**
    * Pointer to the example inference utility, which is used for computing
    * the feature vectors of terms.
    */
-  ExampleInfer * d_exi;
+  ExampleInfer* d_exi;
   /** the function-to-synthesize */
   Node d_candidate;
   /**

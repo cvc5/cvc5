@@ -234,12 +234,13 @@ void ExampleInfer::getExample(Node f, unsigned i, std::vector<Node>& ex) const
 
 void ExampleInfer::getExampleTerms(Node f, std::vector<Node>& exTerms) const
 {
-  std::map< Node, std::vector<Node> >::const_iterator itt = d_examplesTerm.find(f);
-  if (itt==d_examplesTerm.end())
+  std::map<Node, std::vector<Node>>::const_iterator itt =
+      d_examplesTerm.find(f);
+  if (itt == d_examplesTerm.end())
   {
     return;
   }
-  exTerms.insert(exTerms.end(),itt->second.begin(), itt->second.end());
+  exTerms.insert(exTerms.end(), itt->second.begin(), itt->second.end());
 }
 
 Node ExampleInfer::getExampleOut(Node f, unsigned i) const
@@ -260,11 +261,8 @@ bool ExampleInfer::hasExamplesOut(Node f) const
   return d_examplesOut_invalid.find(f) == d_examplesOut_invalid.end();
 }
 
-bool ExampleInfer::evaluate(Node f,
-                            Node e,
-                            Node bv,
-                            std::vector<Node>& exOut,
-                            bool doCache)
+bool ExampleInfer::evaluate(
+    Node f, Node e, Node bv, std::vector<Node>& exOut, bool doCache)
 {
   if (!hasExamples(f))
   {
@@ -274,7 +272,7 @@ bool ExampleInfer::evaluate(Node f,
   {
     // TODO: use ExampleCache here
     TypeNode xtn = e.getType();
-    Assert( d_examples.find(f)!=d_examples.end());
+    Assert(d_examples.find(f) != d_examples.end());
     std::vector<std::vector<Node>>& exs = d_examples[f];
     for (size_t j = 0, esize = exs.size(); j < esize; j++)
     {
@@ -304,10 +302,12 @@ Node ExampleInfer::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
   Node f = d_tds->getSynthFunForEnumerator(e);
   Assert(!f.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(f);
-  if (itx == d_examples_invalid.end()) {
-    std::map<Node, std::vector<std::vector<Node> > >::iterator it =
+  if (itx == d_examples_invalid.end())
+  {
+    std::map<Node, std::vector<std::vector<Node>>>::iterator it =
         d_examples.find(f);
-    if (it != d_examples.end()) {
+    if (it != d_examples.end())
+    {
       Assert(i < it->second.size());
       return d_tds->evaluateBuiltin(tn, bn, it->second[i]);
     }
