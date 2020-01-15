@@ -379,8 +379,8 @@ bool SygusPbe::computeExamples(Node e, Node bvr, std::vector<Node>& exOut)
 {
   Node ee = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
-  std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
-  if (itx == d_examples_invalid.end())
+  ExampleInfer * ei = d_parent->getExampleInfer();
+  if (ei->hasExamples(ee))
   {
     Trace("sygus-pbe-debug")
         << "Compute examples " << bvr << "..." << std::endl;
@@ -392,24 +392,6 @@ bool SygusPbe::computeExamples(Node e, Node bvr, std::vector<Node>& exOut)
   }
   return false;
 }
-
-/*
-Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
-{
-  e = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
-  std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
-  if (itx == d_examples_invalid.end()) {
-    std::map<Node, std::vector<std::vector<Node> > >::iterator it =
-        d_examples.find(e);
-    if (it != d_examples.end()) {
-      Assert(i < it->second.size());
-      return d_tds->evaluateBuiltin(tn, bn, it->second[i]);
-    }
-  }
-  return Rewriter::rewrite(bn);
-}
-*/
 
 // ------------------------------------------- solution construction from enumeration
 
