@@ -194,8 +194,9 @@ void SynthConjecture::assign(Node q)
   if (!d_exampleInfer->initialize(d_base_inst, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
-    // TODO
-    guarded_lemmas.push_back(getGuard().negate());
+    Node infLem = d_feasible_guard.negate();
+    d_qe->getOutputChannel().lemma(infLem);
+    return;
   }
 
   // register this term with sygus database and other utilities that impact
