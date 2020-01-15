@@ -24,6 +24,7 @@ class ResultBlack : public CxxTest::TestSuite
   void setUp() { d_solver.reset(new Solver()); }
   void tearDown() override {}
 
+  void testIsNull();
   void testEq();
   void testIsSat();
   void testIsUnsat();
@@ -35,6 +36,23 @@ class ResultBlack : public CxxTest::TestSuite
  private:
   std::unique_ptr<Solver> d_solver;
 };
+
+void ResultBlack::testIsNull()
+{
+  Result res_null;
+  TS_ASSERT(res_null.isNull());
+  TS_ASSERT(!res_null.isSat());
+  TS_ASSERT(!res_null.isUnsat());
+  TS_ASSERT(!res_null.isSatUnknown());
+  TS_ASSERT(!res_null.isValid());
+  TS_ASSERT(!res_null.isInvalid());
+  TS_ASSERT(!res_null.isValidUnknown());
+  Sort u_sort = d_solver->mkUninterpretedSort("u");
+  Term x = d_solver->mkVar(u_sort, "x");
+  d_solver->assertFormula(x.eqTerm(x));
+  Result res = d_solver->checkSat();
+  TS_ASSERT(!res.isNull());
+}
 
 void ResultBlack::testEq()
 {

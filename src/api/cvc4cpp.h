@@ -86,6 +86,12 @@ class CVC4_PUBLIC Result
   Result();
 
   /**
+   * Return true if Result is empty, i.e., a nullary Result, and not an actual
+   * result returned from a checkSat() (and friends) query.
+   */
+  bool isNull() const;
+
+  /**
    * Return true if query was a satisfiable checkSat() or checkSatAssuming()
    * query.
    */

@@ -708,6 +708,11 @@ Result::Result(const CVC4::Result& r) : d_result(new CVC4::Result(r)) {}
 
 Result::Result() : d_result(new CVC4::Result()) {}
 
+bool Result::isNull() const
+{
+  return d_result->getType() == CVC4::Result::TYPE_NONE;
+}
+
 bool Result::isSat(void) const
 {
   return d_result->getType() == CVC4::Result::TYPE_SAT
