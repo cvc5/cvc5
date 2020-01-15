@@ -393,6 +393,7 @@ bool SygusPbe::computeExamples(Node e, Node bvr, std::vector<Node>& exOut)
   return false;
 }
 
+/*
 Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
 {
   e = d_tds->getSynthFunForEnumerator(e);
@@ -408,6 +409,7 @@ Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
   }
   return Rewriter::rewrite(bn);
 }
+*/
 
 // ------------------------------------------- solution construction from enumeration
 

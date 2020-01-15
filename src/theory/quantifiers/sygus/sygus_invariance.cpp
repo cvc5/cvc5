@@ -96,9 +96,10 @@ void EquivSygusInvarianceTest::init(
     d_conj = aconj;
     d_enum = e;
     unsigned nex = aconj->getPbe()->getNumExamples(e);
+    ExampleInfer * ei = d_conj->getExampleInfer();
     for (unsigned i = 0; i < nex; i++)
     {
-      d_exo.push_back(d_conj->getPbe()->evaluateBuiltin(tn, bvr, e, i));
+      d_exo.push_back(ei->evaluateBuiltin(tn, bvr, e, i));
     }
   }
 }
@@ -149,9 +150,10 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
     if (!d_enum.isNull())
     {
       bool ex_equiv = true;
+      ExampleInfer * ei = d_conj->getExampleInfer();
       for (unsigned j = 0; j < d_exo.size(); j++)
       {
-        Node nbvr_ex = d_conj->getPbe()->evaluateBuiltin(tn, nbvr, d_enum, j);
+        Node nbvr_ex = ei->evaluateBuiltin(tn, nbvr, d_enum, j);
         if (nbvr_ex != d_exo[j])
         {
           ex_equiv = false;

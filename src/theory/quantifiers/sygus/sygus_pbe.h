@@ -202,18 +202,6 @@ class SygusPbe : public SygusModule
    * This method should only be called if hasExamples(e) returns true.
    */
   Node addSearchVal(TypeNode tn, Node e, Node bvr);
-  /** evaluate builtin
-  * This returns the evaluation of bn on the i^th example for the
-  * function-to-synthesis
-  * associated with enumerator e. If there are not at least i examples, it
-  * returns the rewritten form of bn.
-  * For example, if bn = x+5, e is an enumerator for f in the above example
-  * [EX#1], then
-  *   evaluateBuiltin( tn, bn, e, 0 ) = 7
-  *   evaluateBuiltin( tn, bn, e, 1 ) = 9
-  *   evaluateBuiltin( tn, bn, e, 2 ) = 10
-  */
-  Node evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i);
 
   /** compute examples
    *

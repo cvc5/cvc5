@@ -102,6 +102,18 @@ class ExampleInfer
                 Node bv,
                 std::vector<Node>& exOut,
                 bool doCache = false);
+  /** evaluate builtin
+  * This returns the evaluation of bn on the i^th example for the
+  * function-to-synthesis
+  * associated with enumerator e. If there are not at least i examples, it
+  * returns the rewritten form of bn.
+  * For example, if bn = x+5, e is an enumerator for f in the above example
+  * [EX#1], then
+  *   evaluateBuiltin( tn, bn, e, 0 ) = 7
+  *   evaluateBuiltin( tn, bn, e, 1 ) = 9
+  *   evaluateBuiltin( tn, bn, e, 2 ) = 10
+  */
+  Node evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i);
   /** clear evaluation cache */
   void clearEvaluationCache(Node eenum, Node bv);
   //----------------------------------- end evaluating terms
