@@ -39,111 +39,6 @@ SygusPbe::SygusPbe(QuantifiersEngine* qe, SynthConjecture* p)
 
 SygusPbe::~SygusPbe() {}
 
-//--------------------------------- collecting finite input/output domain information
-
-bool SygusPbe::collectExamples(Node n,
-                               std::map<Node, bool>& visited,
-                               bool hasPol,
-                               bool pol)
-{
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    Node neval;
-    Node n_output;
-    bool neval_is_evalapp = false;
-    if (n.getKind() == DT_SYGUS_EVAL)
-    {
-      neval = n;
-      if( hasPol ){
-        n_output = pol ? d_true : d_false;
-      }
-      neval_is_evalapp = true;
-    }
-    else if (n.getKind() == EQUAL && hasPol && pol)
-    {
-      for( unsigned r=0; r<2; r++ ){
-        if (n[r].getKind() == DT_SYGUS_EVAL)
-        {
-          neval = n[r];
-          if( n[1-r].isConst() ){
-            n_output = n[1-r];
-          }
-          neval_is_evalapp = true;
-        }
-      }
-    }
-    // is it an evaluation function?
-    if (neval_is_evalapp && d_examples.find(neval[0]) != d_examples.end())
-    {
-      Trace("sygus-pbe-debug")
-          << "Process head: " << n << " == " << n_output << std::endl;
-      // If n_output is null, then neval does not have a constant value
-      // If n_output is non-null, then neval is constrained to always be
-      // that value.
-      if (!n_output.isNull())
-      {
-        std::map<Node, Node>::iterator itet = d_exampleTermMap.find(neval);
-        if (itet == d_exampleTermMap.end())
-        {
-          d_exampleTermMap[neval] = n_output;
-        }
-        else if (itet->second != n_output)
-        {
-          // We have a conflicting pair f( c ) = d1 ^ f( c ) = d2 for d1 != d2,
-          // the conjecture is infeasible.
-          return false;
-        }
-      }
-      // get the evaluation head
-      Node eh = neval[0];
-      std::map<Node, bool>::iterator itx = d_examples_invalid.find(eh);
-      if (itx == d_examples_invalid.end())
-      {
-        // collect example
-        bool success = true;
-        std::vector<Node> ex;
-        for (unsigned j = 1, nchild = neval.getNumChildren(); j < nchild; j++)
-        {
-          if (!neval[j].isConst())
-          {
-            success = false;
-            break;
-          }
-          ex.push_back(neval[j]);
-        }
-        if (success)
-        {
-          d_examples[eh].push_back(ex);
-          d_examples_out[eh].push_back(n_output);
-          d_examples_term[eh].push_back(neval);
-          if (n_output.isNull())
-          {
-            d_examples_out_invalid[eh] = true;
-          }
-          else
-          {
-            Assert(n_output.isConst());
-          }
-          // finished processing this node
-          return true;
-        }
-        d_examples_invalid[eh] = true;
-        d_examples_out_invalid[eh] = true;
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      bool newHasPol;
-      bool newPol;
-      QuantPhaseReq::getEntailPolarity(n, i, hasPol, pol, newHasPol, newPol);
-      if (!collectExamples(n[i], visited, newHasPol, newPol))
-      {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
 bool SygusPbe::initialize(Node conj,
                           Node n,
                           const std::vector<Node>& candidates,
@@ -155,20 +50,7 @@ bool SygusPbe::initialize(Node conj,
   ExampleInfer * ei = d_parent->getExampleInfer();
   for (const Node& c : candidates)
   {
-    d_examples[c].clear();
-    d_examples_out[c].clear();
-    d_examples_term[c].clear();
     d_sygus_unif[c].initializeExamples(c, ei);
-  }
-
-  std::map<Node, bool> visited;
-  // n is negated conjecture
-  if (!collectExamples(n, visited, true, false))
-  {
-    Trace("sygus-pbe") << "...conflicting examples" << std::endl;
-    Node infeasible = d_parent->getGuard().negate();
-    lemmas.push_back(infeasible);
-    return false;
   }
 
   if (!options::sygusUnifPbe())
@@ -279,63 +161,6 @@ Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
   return b;
 }
 
-bool SygusPbe::hasExamples(Node e)
-{
-  e = d_tds->getSynthFunForEnumerator(e);
-  if (e.isNull())
-  {
-    // enumerator is not associated with synthesis function?
-    return false;
-  }
-  std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
-  if (itx == d_examples_invalid.end())
-  {
-    return d_examples.find(e) != d_examples.end();
-  }
-  return false;
-}
-
-unsigned SygusPbe::getNumExamples(Node e)
-{
-  e = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
-  std::map<Node, std::vector<std::vector<Node> > >::iterator it =
-      d_examples.find(e);
-  if (it != d_examples.end()) {
-    return it->second.size();
-  } else {
-    return 0;
-  }
-}
-
-void SygusPbe::getExample(Node e, unsigned i, std::vector<Node>& ex)
-{
-  e = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
-  std::map<Node, std::vector<std::vector<Node> > >::iterator it =
-      d_examples.find(e);
-  if (it != d_examples.end()) {
-    Assert(i < it->second.size());
-    ex.insert(ex.end(), it->second[i].begin(), it->second[i].end());
-  } else {
-    Assert(false);
-  }
-}
-
-Node SygusPbe::getExampleOut(Node e, unsigned i)
-{
-  e = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
-  std::map<Node, std::vector<Node> >::iterator it = d_examples_out.find(e);
-  if (it != d_examples_out.end()) {
-    Assert(i < it->second.size());
-    return it->second[i];
-  } else {
-    Assert(false);
-    return Node::null();
-  }
-}
-
 Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
 {
   Assert(!e.isNull());
@@ -349,9 +174,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   Assert(!e.isNull());
   std::vector<Node> vals;
   ExampleInfer * ei = d_parent->getExampleInfer();
-  // FIXME
   if (ei->evaluate(ee, e, bvr, vals, true))
-  //if (computeExamples(e, bvr, vals))
   {
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
     Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
@@ -365,7 +188,6 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
       {
         Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
         ei->clearEvaluationCache(e,bvr);
-        //d_sygus_unif[ee].clearExampleCache(e, bvr);
       }
     }
     Assert(ret.getType() == bvr.getType());

@@ -209,25 +209,6 @@ class SygusPbe : public SygusModule
   Node d_false;
   /** is this a PBE conjecture for any function? */
   bool d_is_pbe;
-  /** for each candidate variable f (a function-to-synthesize), whether the
-  * conjecture is purely PBE for that variable
-  * In other words, all occurrences of f are guarded by equalities that
-  * constraint its arguments to constants.
-  */
-  std::map<Node, bool> d_examples_invalid;
-  /** for each candidate variable (function-to-synthesize), whether the
-  * conjecture is purely PBE for that variable.
-  * An example of a conjecture for which d_examples_invalid is false but
-  * d_examples_out_invalid is true is:
-  *   exists f. forall x. ( x = 0 => f( x ) > 2 )
-  * another example is:
-  *   exists f. forall x. ( ( x = 0 => f( x ) = 2 ) V ( x = 3 => f( x ) = 3 ) )
-  * since the formula is not a conjunction (the example values are not
-  * entailed).
-  * However, the domain of f in both cases is finite, which can be used for
-  * search space pruning.
-  */
-  std::map<Node, bool> d_examples_out_invalid;
   /**
    * Map from candidates to sygus unif utility. This class implements
    * the core algorithm (e.g. decision tree learning) that this module relies
@@ -241,30 +222,6 @@ class SygusPbe : public SygusModule
   std::map<Node, std::vector<Node> > d_candidate_to_enum;
   /** reverse map of above */
   std::map<Node, Node> d_enum_to_candidate;
-  /** for each candidate variable (function-to-synthesize), input of I/O
-   * examples */
-  std::map<Node, std::vector<std::vector<Node> > > d_examples;
-  /** for each candidate variable (function-to-synthesize), output of I/O
-   * examples */
-  std::map<Node, std::vector<Node> > d_examples_out;
-  /** the list of example terms
-   * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 )
-   */
-  std::map<Node, std::vector<Node> > d_examples_term;
-  /**
-   * Map from example input terms to their output, for example [EX#1] above,
-   * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.
-   */
-  std::map<Node, Node> d_exampleTermMap;
-  /** collect the PBE examples in n
-   * This is called on the input conjecture, and will populate the above
-   * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
-   * function returns false if it finds two examples that are contradictory.
-   */
-  bool collectExamples(Node n,
-                       std::map<Node, bool>& visited,
-                       bool hasPol,
-                       bool pol);
 
   //--------------------------------- PBE search values
   /**
