@@ -203,14 +203,6 @@ class SygusPbe : public SygusModule
    */
   Node addSearchVal(TypeNode tn, Node e, Node bvr);
 
-  /** compute examples
-   *
-   * This adds the result of evaluating bv on the set of input examples managed
-   * by this class. Term bv is the builtin version of a term generated for
-   * enumerator e. It stores the resulting output for each example in exOut.
-   */
-  bool computeExamples(Node e, Node bv, std::vector<Node>& exOut);
-
  private:
   /** true and false nodes */
   Node d_true;

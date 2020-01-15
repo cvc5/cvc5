@@ -195,20 +195,20 @@ bool ExampleInfer::collectExamples(Node n,
   return true;
 }
 
-bool ExampleInfer::hasExamples(Node e) const
+bool ExampleInfer::hasExamples(Node f) const
 {
-  std::map<Node, bool>::const_iterator itx = d_examples_invalid.find(e);
+  std::map<Node, bool>::const_iterator itx = d_examples_invalid.find(f);
   if (itx == d_examples_invalid.end())
   {
-    return d_examples.find(e) != d_examples.end();
+    return d_examples.find(f) != d_examples.end();
   }
   return false;
 }
 
-unsigned ExampleInfer::getNumExamples(Node e) const
+unsigned ExampleInfer::getNumExamples(Node f) const
 {
   std::map<Node, std::vector<std::vector<Node>>>::const_iterator it =
-      d_examples.find(e);
+      d_examples.find(f);
   if (it != d_examples.end())
   {
     return it->second.size();
@@ -216,11 +216,11 @@ unsigned ExampleInfer::getNumExamples(Node e) const
   return 0;
 }
 
-void ExampleInfer::getExample(Node e, unsigned i, std::vector<Node>& ex) const
+void ExampleInfer::getExample(Node f, unsigned i, std::vector<Node>& ex) const
 {
-  Assert(!e.isNull());
+  Assert(!f.isNull());
   std::map<Node, std::vector<std::vector<Node>>>::const_iterator it =
-      d_examples.find(e);
+      d_examples.find(f);
   if (it != d_examples.end())
   {
     Assert(i < it->second.size());
@@ -232,10 +232,10 @@ void ExampleInfer::getExample(Node e, unsigned i, std::vector<Node>& ex) const
   }
 }
 
-Node ExampleInfer::getExampleOut(Node e, unsigned i) const
+Node ExampleInfer::getExampleOut(Node f, unsigned i) const
 {
-  Assert(!e.isNull());
-  std::map<Node, std::vector<Node>>::const_iterator it = d_examples_out.find(e);
+  Assert(!f.isNull());
+  std::map<Node, std::vector<Node>>::const_iterator it = d_examples_out.find(f);
   if (it != d_examples_out.end())
   {
     Assert(i < it->second.size());
@@ -245,27 +245,27 @@ Node ExampleInfer::getExampleOut(Node e, unsigned i) const
   return Node::null();
 }
 
-bool ExampleInfer::hasExamplesOut(Node e) const
+bool ExampleInfer::hasExamplesOut(Node f) const
 {
-  return d_examples_out_invalid.find(e) == d_examples_out_invalid.end();
+  return d_examples_out_invalid.find(f) == d_examples_out_invalid.end();
 }
 
-bool ExampleInfer::evaluate(Node e,
-                            Node eenum,
+bool ExampleInfer::evaluate(Node f,
+                            Node e,
                             Node bv,
                             std::vector<Node>& exOut,
                             bool doCache)
 {
-  if (!hasExamples(e))
+  if (!hasExamples(f))
   {
     return false;
   }
   if (!doCache)
   {
     // TODO: use ExampleCache here
-    TypeNode xtn = eenum.getType();
-    Assert( d_examples.find(e)!=d_examples.end());
-    std::vector<std::vector<Node>>& exs = d_examples[e];
+    TypeNode xtn = e.getType();
+    Assert( d_examples.find(f)!=d_examples.end());
+    std::vector<std::vector<Node>>& exs = d_examples[f];
     for (size_t j = 0, esize = exs.size(); j < esize; j++)
     {
       Node res = d_tds->evaluateBuiltin(xtn, bv, exs[j]);
@@ -274,7 +274,7 @@ bool ExampleInfer::evaluate(Node e,
     return true;
   }
   // is it in the cache?
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[eenum];
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
   std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
   if (it != eoc.end())
   {
@@ -282,7 +282,7 @@ bool ExampleInfer::evaluate(Node e,
     return true;
   }
   // get the evaluation
-  evaluate(e, eenum, bv, exOut, false);
+  evaluate(f, e, bv, exOut, false);
   // store in cache
   std::vector<Node>& eocv = eoc[bv];
   eocv.insert(eocv.end(), exOut.begin(), exOut.end());
@@ -291,12 +291,12 @@ bool ExampleInfer::evaluate(Node e,
 
 Node ExampleInfer::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
 {
-  e = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
-  std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
+  Node f = d_tds->getSynthFunForEnumerator(e);
+  Assert(!f.isNull());
+  std::map<Node, bool>::iterator itx = d_examples_invalid.find(f);
   if (itx == d_examples_invalid.end()) {
     std::map<Node, std::vector<std::vector<Node> > >::iterator it =
-        d_examples.find(e);
+        d_examples.find(f);
     if (it != d_examples.end()) {
       Assert(i < it->second.size());
       return d_tds->evaluateBuiltin(tn, bn, it->second[i]);

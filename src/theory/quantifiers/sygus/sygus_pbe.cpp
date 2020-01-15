@@ -153,13 +153,12 @@ bool SygusPbe::initialize(Node conj,
   NodeManager* nm = NodeManager::currentNM();
 
   ExampleInfer * ei = d_parent->getExampleInfer();
-  for (unsigned i = 0; i < candidates.size(); i++)
+  for (const Node& c : candidates)
   {
-    Node v = candidates[i];
-    d_examples[v].clear();
-    d_examples_out[v].clear();
-    d_examples_term[v].clear();
-    d_sygus_unif[v].initializeExamples(d_qe, v, ei);
+    d_examples[c].clear();
+    d_examples_out[c].clear();
+    d_examples_term[c].clear();
+    d_sygus_unif[c].initializeExamples(c, ei);
   }
 
   std::map<Node, bool> visited;
@@ -373,24 +372,6 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
     return ret;
   }
   return Node::null();
-}
-
-bool SygusPbe::computeExamples(Node e, Node bvr, std::vector<Node>& exOut)
-{
-  Node ee = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
-  ExampleInfer * ei = d_parent->getExampleInfer();
-  if (ei->hasExamples(ee))
-  {
-    Trace("sygus-pbe-debug")
-        << "Compute examples " << bvr << "..." << std::endl;
-    // Compute example values with the I/O utility, which ensures they are
-    // not later recomputed when the enumerated term is given the I/O utility.
-    d_sygus_unif[ee].computeExamples(e, bvr, exOut);
-    Trace("sygus-pbe-debug") << "...got " << exOut << std::endl;
-    return true;
-  }
-  return false;
 }
 
 // ------------------------------------------- solution construction from enumeration

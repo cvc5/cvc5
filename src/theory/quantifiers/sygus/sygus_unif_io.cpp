@@ -510,11 +510,9 @@ SygusUnifIo::SygusUnifIo()
 
 SygusUnifIo::~SygusUnifIo() {}
 
-void SygusUnifIo::initializeExamples(QuantifiersEngine* qe, Node f, ExampleInfer * ei)
+void SygusUnifIo::initializeExamples(Node f, ExampleInfer * ei)
 {
-  d_qe = qe;
   d_candidate = f;
-  d_tds = qe->getTermDatabaseSygus();
   d_exi = ei;
   d_examples.clear();
   d_examples_out.clear();
@@ -538,37 +536,11 @@ void SygusUnifIo::initializeCandidate(
     std::vector<Node>& enums,
     std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
+  Assert( d_candidate==f );
   d_ecache.clear();
-  d_candidate = f;
   SygusUnif::initializeCandidate(qe, f, enums, strategy_lemmas);
   // learn redundant operators based on the strategy
   d_strategy[f].staticLearnRedundantOps(strategy_lemmas);
-}
-
-void SygusUnifIo::computeExamples(Node e, Node bv, std::vector<Node>& exOut)
-{
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
-  std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
-  if (it != eoc.end())
-  {
-    exOut.insert(exOut.end(), it->second.begin(), it->second.end());
-    return;
-  }
-  TypeNode xtn = e.getType();
-  std::vector<Node>& eocv = eoc[bv];
-  for (size_t j = 0, size = d_examples.size(); j < size; j++)
-  {
-    Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
-    exOut.push_back(res);
-    eocv.push_back(res);
-  }
-}
-
-void SygusUnifIo::clearExampleCache(Node e, Node bv)
-{
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
-  Assert(eoc.find(bv) != eoc.end());
-  eoc.erase(bv);
 }
 
 void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
@@ -590,12 +562,9 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   bv = d_tds->getExtRewriter()->extendedRewrite(bv);
   Trace("sygus-sui-enum") << "PBE Compute Examples for " << bv << std::endl;
   // compte the results (should be cached)
-  //computeExamples(e, bv, base_results);
-  // FIXME
   Assert( d_exi!=nullptr);
   d_exi->evaluate(d_candidate, e, bv, base_results, true);
   // don't need it after this
-  //clearExampleCache(e, bv);
   d_exi->clearEvaluationCache(e, bv);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;

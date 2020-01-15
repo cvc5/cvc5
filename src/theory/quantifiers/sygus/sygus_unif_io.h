@@ -248,16 +248,17 @@ class ExampleInfer;
 /** Sygus unification I/O utility
  *
  * This class implement synthesis-by-unification, where the specification is
- * I/O examples. With respect to SygusUnif, it's main interface function is
- * addExample, which adds an I/O example to the specification.
+ * I/O examples. With respect to SygusUnif, it's main additional function is
+ * initializeExamples, which adds all I/O examples for a function f to the
+ * specification. Initializing this class requires both a call to
+ * initialize and initializeExamples (for the same f).
  *
  * Since I/O specifications for multiple functions can be fully separated, we
  * assume that this class is used only for a single function to synthesize.
  *
  * In addition to the base class which maintains a strategy tree, this class
  * maintains:
- * (1) A set of input/output examples that are the specification for f. This
- * can be updated via calls to resetExmaples/addExamples,
+ * (1) A set of input/output examples that are the specification for f.
  * (2) A set of terms that have been enumerated for enumerators (d_ecache). This
  * can be updated via calls to notifyEnumeration.
  */
@@ -271,19 +272,21 @@ class SygusUnifIo : public SygusUnif
   
   /** Initialize examples 
    * 
-   * FIXME
+   * This initializes the examples managed by this class. 
+   * In particular, this class will use the examples associated with a
+   * function-to-synthesize f.  The argument ei is the utility that has
+   * computed the examples associated with f.  In particular, this utility
+   * has computed whether there is a finite list of relevant input vectors
+   * of f, and whether those inputs have an associated output.
    */
-  void initializeExamples(QuantifiersEngine* qe, Node f, ExampleInfer * ei);
+  void initializeExamples(Node f, ExampleInfer * ei);
   /** initialize
+   *
+   * This initializes this class for solving PBE conjectures for
+   * function-to-synthesize f.
    *
    * We only initialize for one function f, since I/O specifications across
    * multiple functions can be separated.
-   * 
-   * FIXME
-   * This adds input -> output to the specification for f. The arity of
-   * input should be equal to the number of arguments in the sygus variable
-   * list of the grammar of f. That is, if we are searching for solutions for f
-   * of the form (lambda v1...vn. t), then the arity of input should be n.
    */
   void initializeCandidate(
       QuantifiersEngine* qe,
@@ -296,22 +299,13 @@ class SygusUnifIo : public SygusUnif
   /** Construct solution */
   bool constructSolution(std::vector<Node>& sols,
                          std::vector<Node>& lemmas) override;
-
-  /** compute examples
-   *
-   * This adds the result of evaluating bv on the set of input examples managed
-   * by this class. Term bv is the builtin version of a term generated for
-   * enumerator e. It stores the resulting output for each example in exOut.
-   */
-  void computeExamples(Node e, Node bv, std::vector<Node>& exOut);
-
-  /** clear example cache */
-  void clearExampleCache(Node e, Node bv);
-
  protected:
-  /** example inference module */
+  /** 
+   * Pointer to the example inference utility, which is used for computing
+   * the feature vectors of terms.
+   */
   ExampleInfer * d_exi;
-  /** the candidate */
+  /** the function-to-synthesize */
   Node d_candidate;
   /**
    * Whether we will try to construct solution on the next call to
@@ -368,9 +362,6 @@ class SygusUnifIo : public SygusUnif
   std::vector<std::vector<Node>> d_examples;
   /** output of I/O examples */
   std::vector<Node> d_examples_out;
-
-  /** cache for computeExamples */
-  std::map<Node, std::map<Node, std::vector<Node>>> d_exOutCache;
 
   /**
   * This class stores information regarding an enumerator, including:
