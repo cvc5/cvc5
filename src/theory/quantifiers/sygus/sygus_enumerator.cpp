@@ -534,7 +534,8 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
   if (options::sygusSymBreakPbe())
   {
     pbe = d_parent->getPbe();
-    if (!pbe->hasExamples(d_enum))
+    Node f = d_tds->getSynthFunForEnumerator(d_enum);
+    if (!d_parent->getExampleInfer()->hasExamples(f))
     {
       pbe = nullptr;
     }

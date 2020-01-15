@@ -1061,7 +1061,8 @@ Node SygusExtension::registerSearchValue(Node a,
         Node bvr_equiv;
         if (options::sygusSymBreakPbe())
         {
-          if (aconj->getPbe()->hasExamples(a))
+          Node f = d_tds->getSynthFunForEnumerator(a);
+          if (aconj->getExampleInfer()->hasExamples(f))
           {
             bvr_equiv = aconj->getPbe()->addSearchVal(tn, a, bvr);
           }
