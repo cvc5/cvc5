@@ -98,11 +98,12 @@ class ExampleInfer
    * It returns false if e does not have examples.
    */
   bool evaluate(Node e,
+                Node eenum,
                 Node bv,
                 std::vector<Node>& exOut,
                 bool doCache = false);
   /** clear evaluation cache */
-  void clearEvaluationCache(Node e, Node bv);
+  void clearEvaluationCache(Node eenum, Node bv);
   //----------------------------------- end evaluating terms
  private:
   /** collect the PBE examples in n

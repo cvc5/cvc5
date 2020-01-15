@@ -268,7 +268,12 @@ class SygusUnifIo : public SygusUnif
  public:
   SygusUnifIo();
   ~SygusUnifIo();
-
+  
+  /** Initialize examples 
+   * 
+   * FIXME
+   */
+  void initializeExamples(QuantifiersEngine* qe, Node f, ExampleInfer * ei);
   /** initialize
    *
    * We only initialize for one function f, since I/O specifications across
@@ -280,7 +285,6 @@ class SygusUnifIo : public SygusUnif
    * list of the grammar of f. That is, if we are searching for solutions for f
    * of the form (lambda v1...vn. t), then the arity of input should be n.
    */
-  void initializeExamples(QuantifiersEngine* qe, Node f, ExampleInfer * ei);
   void initializeCandidate(
       QuantifiersEngine* qe,
       Node f,
@@ -305,6 +309,8 @@ class SygusUnifIo : public SygusUnif
   void clearExampleCache(Node e, Node bv);
 
  protected:
+  /** example inference module */
+  ExampleInfer * d_exi;
   /** the candidate */
   Node d_candidate;
   /**

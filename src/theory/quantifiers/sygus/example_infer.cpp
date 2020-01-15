@@ -251,6 +251,7 @@ bool ExampleInfer::hasExamplesOut(Node e) const
 }
 
 bool ExampleInfer::evaluate(Node e,
+                            Node eenum,
                             Node bv,
                             std::vector<Node>& exOut,
                             bool doCache)
@@ -262,7 +263,7 @@ bool ExampleInfer::evaluate(Node e,
   if (!doCache)
   {
     // TODO: use ExampleCache here
-    TypeNode xtn = e.getType();
+    TypeNode xtn = eenum.getType();
     std::vector<std::vector<Node>>& exs = d_examples[e];
     for (size_t j = 0, size = d_examples.size(); j < size; j++)
     {
@@ -272,7 +273,7 @@ bool ExampleInfer::evaluate(Node e,
     return true;
   }
   // is it in the cache?
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[eenum];
   std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
   if (it != eoc.end())
   {
@@ -280,16 +281,16 @@ bool ExampleInfer::evaluate(Node e,
     return true;
   }
   // get the evaluation
-  evaluate(e, bv, exOut, false);
+  evaluate(e, eenum, bv, exOut, false);
   // store in cache
   std::vector<Node>& eocv = eoc[bv];
   eocv.insert(eocv.end(), exOut.begin(), exOut.end());
   return true;
 }
 
-void ExampleInfer::clearEvaluationCache(Node e, Node bv)
+void ExampleInfer::clearEvaluationCache(Node eenum, Node bv)
 {
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[eenum];
   Assert(eoc.find(bv) != eoc.end());
   eoc.erase(bv);
 }

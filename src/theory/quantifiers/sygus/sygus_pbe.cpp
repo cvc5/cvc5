@@ -350,7 +350,8 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   Assert(!e.isNull());
   std::vector<Node> vals;
   ExampleInfer * ei = d_parent->getExampleInfer();
-  // if (ei->evaluate(ee, bvr, vals, true))
+  // FIXME
+  //if (ei->evaluate(ee, e, bvr, vals, true))
   if (computeExamples(e, bvr, vals))
   {
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
@@ -364,6 +365,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
       if (ret != bvr)
       {
         Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
+        //ei->clearEvaluationCache(e,bvr);
         d_sygus_unif[ee].clearExampleCache(e, bvr);
       }
     }
