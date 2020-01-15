@@ -264,8 +264,9 @@ bool ExampleInfer::evaluate(Node e,
   {
     // TODO: use ExampleCache here
     TypeNode xtn = eenum.getType();
+    Assert( d_examples.find(e)!=d_examples.end());
     std::vector<std::vector<Node>>& exs = d_examples[e];
-    for (size_t j = 0, size = d_examples.size(); j < size; j++)
+    for (size_t j = 0, esize = exs.size(); j < esize; j++)
     {
       Node res = d_tds->evaluateBuiltin(xtn, bv, exs[j]);
       exOut.push_back(res);
@@ -273,7 +274,7 @@ bool ExampleInfer::evaluate(Node e,
     return true;
   }
   // is it in the cache?
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[eenum];
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e][eenum];
   std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
   if (it != eoc.end())
   {
@@ -304,9 +305,9 @@ Node ExampleInfer::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
   return Rewriter::rewrite(bn);
 }
 
-void ExampleInfer::clearEvaluationCache(Node eenum, Node bv)
+void ExampleInfer::clearEvaluationCache(Node e, Node eenum, Node bv)
 {
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[eenum];
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e][eenum];
   Assert(eoc.find(bv) != eoc.end());
   eoc.erase(bv);
 }

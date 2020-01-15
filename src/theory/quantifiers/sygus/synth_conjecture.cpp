@@ -196,6 +196,7 @@ void SynthConjecture::assign(Node q)
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_feasible_guard.negate();
     d_qe->getOutputChannel().lemma(infLem);
+    // we don't need to continue initialization in this case
     return;
   }
 

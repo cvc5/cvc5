@@ -115,7 +115,7 @@ class ExampleInfer
   */
   Node evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i);
   /** clear evaluation cache */
-  void clearEvaluationCache(Node eenum, Node bv);
+  void clearEvaluationCache(Node e, Node eenum, Node bv);
   //----------------------------------- end evaluating terms
  private:
   /** collect the PBE examples in n
@@ -166,7 +166,7 @@ class ExampleInfer
    */
   std::map<Node, Node> d_exampleTermMap;
   /** cache for evaluate */
-  std::map<Node, std::map<Node, std::vector<Node>>> d_exOutCache;
+  std::map< Node, std::map<Node, std::map<Node, std::vector<Node>>>> d_exOutCache;
 };
 
 }  // namespace quantifiers

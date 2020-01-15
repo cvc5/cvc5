@@ -351,8 +351,8 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   std::vector<Node> vals;
   ExampleInfer * ei = d_parent->getExampleInfer();
   // FIXME
-  //if (ei->evaluate(ee, e, bvr, vals, true))
-  if (computeExamples(e, bvr, vals))
+  if (ei->evaluate(ee, e, bvr, vals, true))
+  //if (computeExamples(e, bvr, vals))
   {
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
     Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
@@ -365,8 +365,8 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
       if (ret != bvr)
       {
         Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
-        //ei->clearEvaluationCache(e,bvr);
-        d_sygus_unif[ee].clearExampleCache(e, bvr);
+        ei->clearEvaluationCache(ee, e,bvr);
+        //d_sygus_unif[ee].clearExampleCache(e, bvr);
       }
     }
     Assert(ret.getType() == bvr.getType());

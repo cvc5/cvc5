@@ -513,7 +513,9 @@ SygusUnifIo::~SygusUnifIo() {}
 void SygusUnifIo::initializeExamples(QuantifiersEngine* qe, Node f, ExampleInfer * ei)
 {
   d_qe = qe;
+  d_candidate = f;
   d_tds = qe->getTermDatabaseSygus();
+  d_exi = ei;
   d_examples.clear();
   d_examples_out.clear();
   // copy the examples
@@ -588,12 +590,13 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   bv = d_tds->getExtRewriter()->extendedRewrite(bv);
   Trace("sygus-sui-enum") << "PBE Compute Examples for " << bv << std::endl;
   // compte the results (should be cached)
-  computeExamples(e, bv, base_results);
+  //computeExamples(e, bv, base_results);
   // FIXME
-  //d_exi->evaluate(d_candidate, e, bv, base_results, true);
+  Assert( d_exi!=nullptr);
+  d_exi->evaluate(d_candidate, e, bv, base_results, true);
   // don't need it after this
-  clearExampleCache(e, bv);
-  //d_exi->clearEvaluationCache(e, bv);
+  //clearExampleCache(e, bv);
+  d_exi->clearEvaluationCache(d_candidate, e, bv);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
   Evaluator* ev = d_tds->getEvaluator();
