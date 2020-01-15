@@ -74,10 +74,16 @@ class ExampleInfer
   /** get number of examples for enumerator e */
   unsigned getNumExamples(Node f) const;
   /**
-   * Get the input arguments for i^th example for e, which is added to the
-   * vector ex
+   * Get the input arguments for i^th example for function-to-synthesize f,
+   * which is added to the vector ex.
    */
   void getExample(Node f, unsigned i, std::vector<Node>& ex) const;
+  /** get example terms
+   * 
+   * Add the list of example terms (see d_examplesTerm below) for
+   * function-to-synthesize f to the vector exTerms.
+   */
+  void getExampleTerms(Node f, std::vector<Node>& exTerms) const;
   /**
    * Get the output value of the i^th example for enumerator e, or null if
    * it does not exist (an example does not have an associate output if it is
@@ -143,26 +149,29 @@ class ExampleInfer
   /** for each candidate variable (function-to-synthesize), whether the
    * conjecture is purely PBE for that variable.
    * An example of a conjecture for which d_examples_invalid is false but
-   * d_examples_out_invalid is true is:
-   *   exists f. forall x. ( x = 0 => f( x ) > 2 )
+   * d_examplesOut_invalid is true is:
+   *   exists f. forall x. ( f( 0 ) > 2 )
    * another example is:
-   *   exists f. forall x. ( ( x = 0 => f( x ) = 2 ) V ( x = 3 => f( x ) = 3 ) )
+   *   exists f. forall x. f( 0 ) = 2 V f( 3 ) = 3
    * since the formula is not a conjunction (the example values are not
-   * entailed).
-   * However, the domain of f in both cases is finite, which can be used for
-   * search space pruning.
+   * entailed). However, the domain of f in both cases is finite, which can be
+   * used for search space pruning.
    */
-  std::map<Node, bool> d_examples_out_invalid;
-  /** for each candidate variable (function-to-synthesize), input of I/O
-   * examples */
+  std::map<Node, bool> d_examplesOut_invalid;
+  /** 
+   * For each candidate variable (function-to-synthesize), input of I/O
+   * examples 
+   */
   std::map<Node, std::vector<std::vector<Node>>> d_examples;
-  /** for each candidate variable (function-to-synthesize), output of I/O
-   * examples */
-  std::map<Node, std::vector<Node>> d_examples_out;
+  /** 
+   * For each candidate variable (function-to-synthesize), output of I/O
+   * examples.
+   */
+  std::map<Node, std::vector<Node>> d_examplesOut;
   /** the list of example terms
    * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 )
    */
-  std::map<Node, std::vector<Node>> d_examples_term;
+  std::map<Node, std::vector<Node>> d_examplesTerm;
   /**
    * Map from example input terms to their output, for example [EX#1] above,
    * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.

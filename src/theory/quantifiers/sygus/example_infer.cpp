@@ -38,8 +38,8 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
   for (const Node& v : candidates)
   {
     d_examples[v].clear();
-    d_examples_out[v].clear();
-    d_examples_term[v].clear();
+    d_examplesOut[v].clear();
+    d_examplesTerm[v].clear();
   }
 
   std::map<Node, bool> visited;
@@ -70,9 +70,9 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
           {
             Trace("sygus-pbe") << d_examples[v][j][k] << " ";
           }
-          if (!d_examples_out[v][j].isNull())
+          if (!d_examplesOut[v][j].isNull())
           {
-            Trace("sygus-pbe") << " -> " << d_examples_out[v][j];
+            Trace("sygus-pbe") << " -> " << d_examplesOut[v][j];
           }
           Trace("sygus-pbe") << std::endl;
         }
@@ -165,11 +165,11 @@ bool ExampleInfer::collectExamples(Node n,
       if (success)
       {
         d_examples[eh].push_back(ex);
-        d_examples_out[eh].push_back(n_output);
-        d_examples_term[eh].push_back(neval);
+        d_examplesOut[eh].push_back(n_output);
+        d_examplesTerm[eh].push_back(neval);
         if (n_output.isNull())
         {
-          d_examples_out_invalid[eh] = true;
+          d_examplesOut_invalid[eh] = true;
         }
         else
         {
@@ -179,7 +179,7 @@ bool ExampleInfer::collectExamples(Node n,
         return true;
       }
       d_examples_invalid[eh] = true;
-      d_examples_out_invalid[eh] = true;
+      d_examplesOut_invalid[eh] = true;
     }
   }
   for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
@@ -232,11 +232,21 @@ void ExampleInfer::getExample(Node f, unsigned i, std::vector<Node>& ex) const
   }
 }
 
+void ExampleInfer::getExampleTerms(Node f, std::vector<Node>& exTerms) const
+{
+  std::map< Node, std::vector<Node> >::const_iterator itt = d_examplesTerm.find(f);
+  if (itt==d_examplesTerm.end())
+  {
+    return;
+  }
+  exTerms.insert(exTerms.end(),itt->second.begin(), itt->second.end());
+}
+
 Node ExampleInfer::getExampleOut(Node f, unsigned i) const
 {
   Assert(!f.isNull());
-  std::map<Node, std::vector<Node>>::const_iterator it = d_examples_out.find(f);
-  if (it != d_examples_out.end())
+  std::map<Node, std::vector<Node>>::const_iterator it = d_examplesOut.find(f);
+  if (it != d_examplesOut.end())
   {
     Assert(i < it->second.size());
     return it->second[i];
@@ -247,7 +257,7 @@ Node ExampleInfer::getExampleOut(Node f, unsigned i) const
 
 bool ExampleInfer::hasExamplesOut(Node f) const
 {
-  return d_examples_out_invalid.find(f) == d_examples_out_invalid.end();
+  return d_examplesOut_invalid.find(f) == d_examplesOut_invalid.end();
 }
 
 bool ExampleInfer::evaluate(Node f,
