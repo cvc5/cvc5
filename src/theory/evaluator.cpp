@@ -133,25 +133,12 @@ Node Evaluator::eval(TNode n,
   // add visited to results
   for (const std::pair< const Node, Node >& p : visited )
   {
-    Assert(p.second.isConst());
     Trace("evaluator") << "Add " << p.first << " == " << p.second << std::endl;
-    switch(p.second.getKind())
+    results[p.first] = evalInternal(p.second,args,vals,evalAsNode,results);
+    if (results[p.first].d_tag==EvalResult::INVALID)
     {
-      case kind::CONST_BOOLEAN:
-        results[p.first] = EvalResult(p.second.getConst<bool>());
-        break;
-      case kind::CONST_RATIONAL:
-        results[p.first] = EvalResult(p.second.getConst<Rational>());
-        break;
-      case kind::CONST_STRING:
-        results[p.first] = EvalResult(p.second.getConst<String>());
-        break;
-      case kind::CONST_BITVECTOR:
-        results[p.first] = EvalResult(p.second.getConst<BitVector>());
-        break;
-      default:
-        // can't use it
-        break;
+      // could not evaluate, use the evalAsNode map
+      evalAsNode[p.first] = evalAsNode[p.second];
     }
   }
   Trace("evaluator") << "Run eval internal..." << std::endl;
@@ -847,19 +834,26 @@ Node Evaluator::reconstruct(
   if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     TNode op = n.getOperator();
-    itr = eresults.find(op);
-    Assert(itr != eresults.end());
-    if (itr->second.d_tag == EvalResult::INVALID)
+    if (op.isConst())
     {
-      // could not evaluate the operator, look in the node cache
-      itn = evalAsNode.find(op);
-      Assert(itn != evalAsNode.end());
-      echildren.push_back(itn->second);
+      echildren.push_back(op);
     }
     else
     {
-      // otherwise, use the evaluation of the operator
-      echildren.push_back(itr->second.toNode());
+      itr = eresults.find(op);
+      Assert(itr != eresults.end());
+      if (itr->second.d_tag == EvalResult::INVALID)
+      {
+        // could not evaluate the operator, look in the node cache
+        itn = evalAsNode.find(op);
+        Assert(itn != evalAsNode.end());
+        echildren.push_back(itn->second);
+      }
+      else
+      {
+        // otherwise, use the evaluation of the operator
+        echildren.push_back(itr->second.toNode());
+      }
     }
   }
   for (const auto& currNodeChild : n)
