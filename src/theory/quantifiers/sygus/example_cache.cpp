@@ -22,7 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void ExampleCache::initialize(Node n, const std::vector<Node>& vars, ExampleCacheEval* ece)
+void ExampleMinEval::initialize(Node n, const std::vector<Node>& vars, EmeEval* ece)
 {
   AlwaysAssert(d_evalNode.isNull());
   d_evalNode = n;
@@ -43,7 +43,7 @@ void ExampleCache::initialize(Node n, const std::vector<Node>& vars, ExampleCach
   d_ece = ece;
 }
 
-Node ExampleCache::evaluate(const std::vector<Node>& subs)
+Node ExampleMinEval::evaluate(const std::vector<Node>& subs)
 {
   Assert(d_vars.size() == subs.size());
   // get the subsequence of subs that is relevant
@@ -64,7 +64,7 @@ Node ExampleCache::evaluate(const std::vector<Node>& subs)
   return res;
 }
 
-Node ExampleCacheEvalTds::eval(TNode n,
+Node EmeEvalTds::eval(TNode n,
           const std::vector<Node>& args,
           const std::vector<Node>& vals)
 {

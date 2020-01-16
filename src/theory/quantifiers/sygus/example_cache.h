@@ -25,12 +25,14 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** virtual evaluator class */
-class ExampleCacheEval
+/** 
+ * Virtual evaluator class for Example Minimize Eval.
+ */
+class EmeEval
 {
 public:
-  ExampleCacheEval(){}
-  virtual ~ExampleCacheEval(){}
+  EmeEval(){}
+  virtual ~EmeEval(){}
   /** Evaluate n given substitution { args -> vals }. */
   virtual Node eval(TNode n,
             const std::vector<Node>& args,
@@ -38,7 +40,7 @@ public:
 };
   
 /**
- * Example Cache
+ * Example Minimize Eval
  *
  * This class is designed to evaluate a term on a set of substitutions
  * with a fixed domain.
@@ -57,16 +59,16 @@ public:
  * evaluate(subs_1) ... evaluate(subs_n) as desired. Details on these methods
  * can be found below.
  */
-class ExampleCache
+class ExampleMinEval
 {
  public:
-  ExampleCache() {}
-  ~ExampleCache() {}
+  ExampleMinEval() {}
+  ~ExampleMinEval() {}
   /** 
    * Initialize this cache to evaluate n on substitutions with domain vars.
    * Argument ece is the evaluator object.
    */
-  void initialize(Node n, const std::vector<Node>& vars, ExampleCacheEval* ece);
+  void initialize(Node n, const std::vector<Node>& vars, EmeEval* ece);
   /**
    * Return the result of evaluating n * { vars -> subs } where vars is the
    * set of variables passed to initialize above.
@@ -87,17 +89,17 @@ class ExampleCache
    */
   NodeTrie d_trie;
   /** Pointer to the evaluator object */
-  ExampleCacheEval* d_ece;
+  EmeEval* d_ece;
 };
 
 class TermDbSygus;
 
 /** An example cache evaluator based on the term database sygus utility */
-class ExampleCacheEvalTds : public ExampleCacheEval
+class EmeEvalTds : public EmeEval
 {
 public: 
-  ExampleCacheEvalTds(TermDbSygus * tds, TypeNode tn) : d_tds(tds), d_tn(tn) {}
-  virtual ~ExampleCacheEvalTds(){}
+  EmeEvalTds(TermDbSygus * tds, TypeNode tn) : d_tds(tds), d_tn(tn) {}
+  virtual ~EmeEvalTds(){}
   /** 
    * Evaluate n given substitution { args -> vals } using the term database
    * sygus evaluateBuiltin function.

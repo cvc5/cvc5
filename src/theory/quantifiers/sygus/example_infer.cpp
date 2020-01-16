@@ -294,15 +294,14 @@ void ExampleInfer::evaluateInternal(
   TypeNode xtn = e.getType();
   SygusTypeInfo& ti = d_tds->getTypeInfo(xtn);
   const std::vector<Node>& varlist = ti.getVarList();
-  ExampleCache ec;
-  ExampleCacheEvalTds ecetds(d_tds,xtn);
-  ec.initialize(bv,varlist,&ecetds);
+  ExampleMinEval eme;
+  EmeEvalTds emetds(d_tds,xtn);
+  eme.initialize(bv,varlist,&emetds);
   Assert(d_examples.find(f) != d_examples.end());
   std::vector<std::vector<Node>>& exs = d_examples[f];
   for (size_t j = 0, esize = exs.size(); j < esize; j++)
   {
-    Node res = ec.evaluate(exs[j]);
-    //Node res = d_tds->evaluateBuiltin(xtn, bv, exs[j]);
+    Node res = eme.evaluate(exs[j]);
     exOut.push_back(res);
   }
 }
