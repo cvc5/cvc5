@@ -520,7 +520,7 @@ void SygusUnifIo::initializeCandidate(
 {
   d_candidate = f;
   // copy the examples from the parent
-  ExampleInfer * ei = d_parent->getExampleInfer();
+  ExampleInfer* ei = d_parent->getExampleInfer();
   d_examples.clear();
   d_examples_out.clear();
   // copy the examples
@@ -560,13 +560,13 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   bv = d_tds->getExtRewriter()->extendedRewrite(bv);
   Trace("sygus-sui-enum") << "PBE Compute Examples for " << bv << std::endl;
   // compte the results (should be cached)
-  ExampleEvalCache * eec = d_parent->getExampleEvalCache(e);
-  Assert( eec!=nullptr);
+  ExampleEvalCache* eec = d_parent->getExampleEvalCache(e);
+  Assert(eec != nullptr);
   // Evaluate, which should be cached (assuming we have performed example-based
   // symmetry breaking on bv). Moreover don't cache the result in the case it
   // is not there already, since we won't need this evaluation anywhere outside
   // of this class.
-  eec->evaluateVec(bv,base_results);
+  eec->evaluateVec(bv, base_results);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
   Evaluator* ev = d_tds->getEvaluator();

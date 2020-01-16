@@ -450,10 +450,11 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     constructed_cand = d_master->constructCandidates(
         terms, enum_values, d_candidates, candidate_values, lems);
     // now clear the evaluation caches
-    for (std::pair<const Node, std::unique_ptr<ExampleEvalCache> >& ecp : d_exampleEvalCache )
+    for (std::pair<const Node, std::unique_ptr<ExampleEvalCache> >& ecp :
+         d_exampleEvalCache)
     {
-      ExampleEvalCache * eec = ecp.second.get();
-      if (eec!=nullptr)
+      ExampleEvalCache* eec = ecp.second.get();
+      if (eec != nullptr)
       {
         eec->clearEvaluationAll();
       }
@@ -1346,7 +1347,7 @@ ExampleEvalCache* SynthConjecture::getExampleEvalCache(Node e)
   }
   Node f = d_tds->getSynthFunForEnumerator(e);
   // if f does not have examples, we don't construct the utility
-  if (!d_exampleInfer->hasExamples(f) || d_exampleInfer->getNumExamples(f)==0)
+  if (!d_exampleInfer->hasExamples(f) || d_exampleInfer->getNumExamples(f) == 0)
   {
     d_exampleEvalCache[e].reset(nullptr);
     return nullptr;

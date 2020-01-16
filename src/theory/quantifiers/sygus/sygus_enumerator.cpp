@@ -149,8 +149,10 @@ SygusEnumerator::TermCache::TermCache()
       d_sampleRrVInit(false)
 {
 }
-void SygusEnumerator::TermCache::initialize(
-    Node e, TypeNode tn, TermDbSygus* tds, ExampleEvalCache* eec)
+void SygusEnumerator::TermCache::initialize(Node e,
+                                            TypeNode tn,
+                                            TermDbSygus* tds,
+                                            ExampleEvalCache* eec)
 {
   Trace("sygus-enum-debug") << "Init term cache " << tn << "..." << std::endl;
   d_enum = e;

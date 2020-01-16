@@ -113,14 +113,11 @@ Node ExampleEvalCache::evaluate(Node bn, unsigned i) const
 
 void ExampleEvalCache::clearEvaluationCache(Node bv)
 {
-  Assert(d_exOutCache.find(bv)!=d_exOutCache.end());
+  Assert(d_exOutCache.find(bv) != d_exOutCache.end());
   d_exOutCache.erase(bv);
 }
 
-void ExampleEvalCache::clearEvaluationAll()
-{
-  d_exOutCache.clear();
-}
+void ExampleEvalCache::clearEvaluationAll() { d_exOutCache.clear(); }
 
 }  // namespace quantifiers
 }  // namespace theory

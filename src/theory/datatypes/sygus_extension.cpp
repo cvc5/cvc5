@@ -1060,8 +1060,8 @@ Node SygusExtension::registerSearchValue(Node a,
         {
           // If the enumerator has examples, see if it is equivalent up to its
           // examples with a previous term.
-          quantifiers::ExampleEvalCache * eec = aconj->getExampleEvalCache(a);
-          if (eec!=nullptr)
+          quantifiers::ExampleEvalCache* eec = aconj->getExampleEvalCache(a);
+          if (eec != nullptr)
           {
             bvr_equiv = eec->addSearchVal(bvr);
           }

@@ -97,6 +97,7 @@ class ExampleInfer
    * above.
    */
   bool hasExamplesOut(Node f) const;
+
  private:
   /** collect the PBE examples in n
    * This is called on the input conjecture, and will populate the above

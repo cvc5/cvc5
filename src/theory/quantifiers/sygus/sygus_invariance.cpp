@@ -94,7 +94,7 @@ void EquivSygusInvarianceTest::init(
   Assert(tds != nullptr);
   Node f = tds->getSynthFunForEnumerator(e);
   ExampleEvalCache* eec = aconj->getExampleEvalCache(e);
-  if (eec!=nullptr)
+  if (eec != nullptr)
   {
     // get the result of evaluating bvr on the examples of f.
     eec->evaluateVec(bvr, d_exo, false);
@@ -153,7 +153,7 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
       Assert(eec != nullptr);
       for (unsigned j = 0; j < d_exo.size(); j++)
       {
-        Node nbvr_ex = eec->evaluate(nbvr,j);
+        Node nbvr_ex = eec->evaluate(nbvr, j);
         if (nbvr_ex != d_exo[j])
         {
           ex_equiv = false;

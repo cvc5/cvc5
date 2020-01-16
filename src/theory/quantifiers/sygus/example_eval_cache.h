@@ -39,7 +39,7 @@ class TermDbSygus;
  * This class is associated with a function to synthesize and an enumerator,
  * which determine which examples are taken from the conjecture and how
  * to evaluate builtin terms.
- * 
+ *
  * The use of (1) is required since we may be interested in computing the
  *
  * A typical use case of (2) is the following.
@@ -79,7 +79,7 @@ class ExampleEvalCache
    * argument to a previous call to addSearchVal, or
    * - bvr, indicating that no previous terms are equivalent to bvr up to
    * examples.
-   * 
+   *
    * If this method returns bvr (indicating it is not redundant), the
    * result of the evaluation of bvr is cached by this class, and can be
    * later accessed by evaluateVec below.
@@ -93,12 +93,12 @@ class ExampleEvalCache
    * generated for enumerator e that is associated with a
    * function-to-synthesize f, which were passed to the constructor of this
    * class. It stores the resulting output for each example in exOut.
-   * 
+   *
    * If doCache is true, the result of the evaluation is cached internally.
    */
   void evaluateVec(Node bv, std::vector<Node>& exOut, bool doCache = false);
   /** evaluate builtin
-   * 
+   *
    * This returns the evaluation of bn on the i^th example for the
    * function-to-synthesis associated with enumerator e. If there are not at
    * least i examples, it returns the rewritten form of bn. For example, if bn =
@@ -106,7 +106,7 @@ class ExampleEvalCache
    *   evaluateBuiltin( tn, bn, e, 0 ) = 7
    *   evaluateBuiltin( tn, bn, e, 1 ) = 9
    *   evaluateBuiltin( tn, bn, e, 2 ) = 10
-   * This 
+   * This
    */
   Node evaluate(Node bv, unsigned i) const;
   /** clear evaluation cache for bv */
