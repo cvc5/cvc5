@@ -1081,7 +1081,7 @@ Node SygusExtension::registerSearchValue(Node a,
             Trace("sygus-sb-debug") << "......adding search val for " << bvr
                                     << " returned " << bvr_equiv << std::endl;
             Assert(d_cache[a].d_search_val[tn].find(bvr_equiv)
-                  != d_cache[a].d_search_val[tn].end());
+                   != d_cache[a].d_search_val[tn].end());
             Trace("sygus-sb-debug")
                 << "......search value was "
                 << d_cache[a].d_search_val[tn][bvr_equiv] << std::endl;
@@ -1107,8 +1107,9 @@ Node SygusExtension::registerSearchValue(Node a,
         if (Trace.isOn("sygus-sb-exc"))
         {
           Node prev_bv = d_tds->sygusToBuiltin(itsv->second, tn);
-          Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv
-                                << " rewrite to " << bvr << "." << std::endl;
+          Trace("sygus-sb-exc")
+              << "  ......programs " << prev_bv << " and " << bv
+              << " rewrite to " << bvr << "." << std::endl;
         }
       }
 
@@ -1135,7 +1136,7 @@ Node SygusExtension::registerSearchValue(Node a,
         Node bad_val = nv;
         Node bad_val_o = d_cache[a].d_search_val[tn][bad_val_bvr];
         Assert(d_cache[a].d_search_val_sz[tn].find(bad_val_bvr)
-              != d_cache[a].d_search_val_sz[tn].end());
+               != d_cache[a].d_search_val_sz[tn].end());
         unsigned prev_sz = d_cache[a].d_search_val_sz[tn][bad_val_bvr];
         bool doFlip = (prev_sz > sz);
         if (doFlip)
@@ -1150,8 +1151,8 @@ Node SygusExtension::registerSearchValue(Node a,
             quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val);
             Trace("sygus-sb-exc") << " instead of ";
             quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val_o);
-            Trace("sygus-sb-exc")
-                << ", since its size is " << sz << " < " << prev_sz << std::endl;
+            Trace("sygus-sb-exc") << ", since its size is " << sz << " < "
+                                  << prev_sz << std::endl;
           }
           sz = prev_sz;
         }
@@ -1173,8 +1174,8 @@ Node SygusExtension::registerSearchValue(Node a,
         eset.init(d_tds, tn, aconj, a, bvr);
 
         Trace("sygus-sb-mexp-debug")
-            << "Minimize explanation for eval[" << d_tds->sygusToBuiltin(bad_val)
-            << "] = " << bvr << std::endl;
+            << "Minimize explanation for eval["
+            << d_tds->sygusToBuiltin(bad_val) << "] = " << bvr << std::endl;
         registerSymBreakLemmaForValue(
             a, bad_val, eset, bad_val_o, var_count, lemmas);
 
