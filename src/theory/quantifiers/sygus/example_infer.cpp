@@ -15,7 +15,7 @@
 #include "theory/quantifiers/sygus/example_infer.h"
 
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/sygus/example_cache.h"
+#include "theory/quantifiers/sygus/example_min_eval.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

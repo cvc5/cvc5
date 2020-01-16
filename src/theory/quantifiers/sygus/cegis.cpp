@@ -21,7 +21,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
-#include "theory/quantifiers/sygus/example_cache.h"
+#include "theory/quantifiers/sygus/example_min_eval.h"
 
 using namespace std;
 using namespace CVC4::kind;

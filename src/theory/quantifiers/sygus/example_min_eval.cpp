@@ -13,10 +13,9 @@
  ** evaluate a term on substitutions with a fixed domain.
  **/
 
-#include "cvc4_private.h"
+#include "theory/quantifiers/sygus/example_min_eval.h"
 
 #include "expr/node_algorithm.h"
-#include "theory/quantifiers/sygus/example_cache.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 namespace CVC4 {
