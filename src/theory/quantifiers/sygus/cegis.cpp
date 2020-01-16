@@ -144,30 +144,36 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                                     : "")
                           << "..." << std::endl;
     // see if any refinement lemma is refuted by evaluation
-    std::vector<Node> cre_lems;
-    bool ret =
-        getRefinementEvalLemmas(candidates, candidate_values, cre_lems, doGen);
-    if (ret && !doGen)
+    if (doGen)
     {
-      Trace("cegqi-engine") << "...(actively enumerated) candidate failed "
-                               "refinement lemma evaluation."
-                            << std::endl;
-      return true;
-    }
-    if (!cre_lems.empty())
-    {
-      lems.insert(lems.end(), cre_lems.begin(), cre_lems.end());
-      addedEvalLemmas = true;
-      if (Trace.isOn("cegqi-lemma"))
+      std::vector<Node> cre_lems;
+      getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
+      if (!cre_lems.empty())
       {
-        for (const Node& lem : cre_lems)
+        lems.insert(lems.end(), cre_lems.begin(), cre_lems.end());
+        addedEvalLemmas = true;
+        if (Trace.isOn("cegqi-lemma"))
         {
-          Trace("cegqi-lemma")
-              << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
+          for (const Node& lem : cre_lems)
+          {
+            Trace("cegqi-lemma")
+                << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
+          }
         }
+        /* we could, but do not return here. experimentally, it is better to
+          add the lemmas below as well, in parallel. */
       }
-      /* we could, but do not return here. experimentally, it is better to
-         add the lemmas below as well, in parallel. */
+    }
+    else
+    {
+      // just check whether the refinement lemmas are satisfied, fail if not
+      if (checkRefinementEvalLemmas(candidates, candidate_values))
+      {
+        Trace("cegqi-engine") << "...(actively enumerated) candidate failed "
+                                "refinement lemma evaluation."
+                              << std::endl;
+        return true;
+      }
     }
   }
   // we only do evaluation unfolding for passive enumerators
@@ -482,8 +488,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
 bool Cegis::usingRepairConst() { return true; }
 bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     const std::vector<Node>& ms,
-                                    std::vector<Node>& lems,
-                                    bool doGen)
+                                    std::vector<Node>& lems)
 {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
                            << d_refinement_lemma_unit.size() << " unit and "
@@ -497,35 +502,6 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   Node nfalse = nm->mkConst(false);
   Node neg_guard = d_parent->getGuard().negate();
   bool ret = false;
-  Evaluator* eval = d_tds->getEvaluator();
-  
-  // Maybe we already evaluated some terms in refinement lemmas.
-  // In particular, the example inference module may have some evaluations
-  // cached.
-  std::unordered_map<Node, Node, NodeHashFunction> evalVisited;
-  if (!doGen)
-  {
-    ExampleInfer * ei = d_parent->getExampleInfer();
-    for( unsigned i=0, vsize=vs.size(); i<vsize; i++)
-    {
-      Node f = vs[i];
-      if (ei->hasExamples(f))
-      {
-        std::vector< Node > vsProc;
-        std::vector< Node > msProc;
-        Node bmsi = d_tds->sygusToBuiltin(ms[i]);
-        ei->getExampleTerms(f,vsProc);
-        ei->evaluate(f,f,bmsi,msProc);
-        ei->clearEvaluationCache(f,bmsi);
-        Assert( vsProc.size()==msProc.size());
-        for (unsigned j=0, psize=vsProc.size(); j<psize; j++)
-        {
-          evalVisited[vsProc[j]] = msProc[j];
-          Assert( vsProc[j].getType()==msProc[j].getType());
-        }
-      }
-    }
-  }
   
   for (unsigned r = 0; r < 2; r++)
   {
@@ -533,19 +509,6 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
     for (const Node& lem : rlemmas)
     {
-      if (!doGen)
-      {
-        // If we are not doing structural generalization, just use the evaluator
-        // We may have computed the evaluation of all function applications
-        // via example-based symmetry breaking
-        Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
-        if (lemcsu.isConst() && !lemcsu.getConst<bool>())
-        {
-          return true;
-        }
-        continue;
-      }
-
       Assert(!lem.isNull());
       std::map<Node, Node> visited;
       std::map<Node, std::vector<Node> > exp;
@@ -612,6 +575,56 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   }
   return ret;
 }
+
+bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
+                               const std::vector<Node>& ms)
+{
+  // Maybe we already evaluated some terms in refinement lemmas.
+  // In particular, the example inference module may have some evaluations
+  // cached.
+  std::unordered_map<Node, Node, NodeHashFunction> evalVisited;
+  ExampleInfer * ei = d_parent->getExampleInfer();
+  for( unsigned i=0, vsize=vs.size(); i<vsize; i++)
+  {
+    Node f = vs[i];
+    if (ei->hasExamples(f))
+    {
+      // get the results we obtained through the example evaluation utility
+      std::vector< Node > vsProc;
+      std::vector< Node > msProc;
+      Node bmsi = d_tds->sygusToBuiltin(ms[i]);
+      ei->getExampleTerms(f,vsProc);
+      ei->evaluate(f,f,bmsi,msProc);
+      ei->clearEvaluationCache(f,bmsi);
+      Assert( vsProc.size()==msProc.size());
+      for (unsigned j=0, psize=vsProc.size(); j<psize; j++)
+      {
+        evalVisited[vsProc[j]] = msProc[j];
+        Assert( vsProc[j].getType()==msProc[j].getType());
+      }
+    }
+  }
+  
+  Evaluator* eval = d_tds->getEvaluator();
+  for (unsigned r = 0; r < 2; r++)
+  {
+    std::unordered_set<Node, NodeHashFunction>& rlemmas =
+        r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
+    for (const Node& lem : rlemmas)
+    {
+        // If we are not doing structural generalization, just use the evaluator
+        // We may have computed the evaluation of all function applications
+        // via example-based symmetry breaking
+        Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
+        if (lemcsu.isConst() && !lemcsu.getConst<bool>())
+        {
+          return true;
+        }
+    }
+  }
+  return false;
+}
+
 
 bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                      const std::vector<Node>& vals,

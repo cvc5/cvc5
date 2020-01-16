@@ -185,13 +185,21 @@ class Cegis : public SygusModule
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
    * for previous refinements (d_refinement_lemmas).
    *
-   * Returns true if any such lemma exists. If doGen is false, then the
-   * lemmas are not generated or added to lems.
+   * Returns true if any such lemma exists.
    */
   bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,
-                               std::vector<Node>& lems,
-                               bool doGen);
+                               std::vector<Node>& lems);
+  /** Check refinement evaluation lemmas
+   *
+   * This method is similar to above, but does not perform any generalization
+   * techniques. It is used when we are using only fast enumerators for
+   * all functions-to-synthesize.
+   * 
+   * Returns true if a refinement lemma is false for the current solution.
+   */
+  bool checkRefinementEvalLemmas(const std::vector<Node>& vs,
+                               const std::vector<Node>& ms);
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis

@@ -325,9 +325,9 @@ Node ExampleInfer::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
   return Rewriter::rewrite(bn);
 }
 
-void ExampleInfer::clearEvaluationCache(Node eenum, Node bv)
+void ExampleInfer::clearEvaluationCache(Node e, Node bv)
 {
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[eenum];
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
   Assert(eoc.find(bv) != eoc.end());
   eoc.erase(bv);
 }
