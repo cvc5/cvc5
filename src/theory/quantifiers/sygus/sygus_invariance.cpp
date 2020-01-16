@@ -94,14 +94,14 @@ void EquivSygusInvarianceTest::init(
   Assert(tds != nullptr);
   Node f = tds->getSynthFunForEnumerator(e);
   ExampleInfer* ei = aconj->getExampleInfer();
-  // ExampleEvalCache* eec = aconj->getExampleEvalCache(e);
+  ExampleEvalCache* eec = aconj->getExampleEvalCache(e);
   Assert(ei != nullptr);
-  // if (eec!=nullptr)
-  if (ei->hasExamples(f))
+  if (eec!=nullptr)
+  //if (ei->hasExamples(f))
   {
     // get the result of evaluating bvr on the examples of f.
-    ei->evaluate(f, e, bvr, d_exo, false);
-    // eec->evaluateVec(bvr, d_exo, false);
+    //ei->evaluate(f, e, bvr, d_exo, false);
+    eec->evaluateVec(bvr, d_exo, false);
     d_conj = aconj;
     d_enum = e;
   }

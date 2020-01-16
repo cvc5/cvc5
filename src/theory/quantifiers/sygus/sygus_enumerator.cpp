@@ -332,11 +332,11 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
       return false;
     }
     // if we are doing PBE symmetry breaking
-    if (d_pbe != nullptr)
+    if (d_eec != nullptr)
     {
       // Is it equivalent under examples?
-      Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
-      // Node bne = d_eec->addSearchVal(bnr);
+      //Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
+      Node bne = d_eec->addSearchVal(bnr);
       if (!bne.isNull())
       {
         if (bnr != bne)

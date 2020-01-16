@@ -1058,7 +1058,7 @@ Node SygusExtension::registerSearchValue(Node a,
         Node bvr_equiv;
         if (options::sygusSymBreakPbe())
         {
-#if 0
+#if 1
           // If the enumerator has examples, see if it is equivalent up to its
           // examples with a previous term.
           quantifiers::ExampleEvalCache * eec = aconj->getExampleEvalCache(a);

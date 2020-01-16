@@ -561,7 +561,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   Trace("sygus-sui-enum") << "PBE Compute Examples for " << bv << std::endl;
   // compte the results (should be cached)
   Assert(d_exi != nullptr);
-#if 0
+#if 1
   ExampleEvalCache * eec = d_parent->getExampleEvalCache(e);
   Assert( eec!=nullptr);
   eec->evaluateVec(bv,base_results);

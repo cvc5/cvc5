@@ -1337,7 +1337,7 @@ ExampleEvalCache* SynthConjecture::getExampleEvalCache(Node e)
   }
   Node f = d_tds->getSynthFunForEnumerator(e);
   // if f does not have examples, we don't construct the utility
-  if (!d_exampleInfer->hasExamples(f))
+  if (!d_exampleInfer->hasExamples(f) || d_exampleInfer->getNumExamples(f)==0)
   {
     d_exampleEvalCache[e].reset(nullptr);
     return nullptr;
