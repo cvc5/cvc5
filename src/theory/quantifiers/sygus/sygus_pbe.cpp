@@ -142,53 +142,6 @@ bool SygusPbe::initialize(Node conj,
   return true;
 }
 
-Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
-{
-  PbeTrie* curr = this;
-  for (const Node& eo : exOut)
-  {
-    curr = &(curr->d_children[eo]);
-  }
-  if (!curr->d_children.empty())
-  {
-    return curr->d_children.begin()->first;
-  }
-  curr->d_children.insert(std::pair<Node, PbeTrie>(b, PbeTrie()));
-  return b;
-}
-
-Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
-{
-  Assert(!e.isNull());
-  if (d_tds->isVariableAgnosticEnumerator(e))
-  {
-    // we cannot apply conjecture-specific symmetry breaking on variable
-    // agnostic enumerators
-    return Node::null();
-  }
-  Node ee = d_tds->getSynthFunForEnumerator(e);
-  Assert(!e.isNull());
-  std::vector<Node> vals;
-  ExampleInfer* ei = d_parent->getExampleInfer();
-  if (ei->evaluate(ee, e, bvr, vals, true))
-  {
-    Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
-    Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
-    Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
-    // Clean up the cache data if necessary: if the enumerated term
-    // is redundant, its cached data will not be used later and thus should
-    // be cleared now.
-    if (ret != bvr)
-    {
-      Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
-      ei->clearEvaluationCache(e, bvr);
-    }
-    Assert(ret.getType() == bvr.getType());
-    return ret;
-  }
-  return Node::null();
-}
-
 // ------------------------------------------- solution construction from enumeration
 
 void SygusPbe::getTermList(const std::vector<Node>& candidates,

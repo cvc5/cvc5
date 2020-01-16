@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief utility for processing programming by examples synthesis conjectures
+ ** \brief Implementation of utility for inferring whether a formula is in
+ ** examples form (functions applied to concrete arguments only).
  **
  **/
 #include "theory/quantifiers/sygus/example_infer.h"
 
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/sygus/example_min_eval.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -259,78 +259,6 @@ Node ExampleInfer::getExampleOut(Node f, unsigned i) const
 bool ExampleInfer::hasExamplesOut(Node f) const
 {
   return d_examplesOut_invalid.find(f) == d_examplesOut_invalid.end();
-}
-
-bool ExampleInfer::evaluate(
-    Node f, Node e, Node bv, std::vector<Node>& exOut, bool doCache)
-{
-  if (!hasExamples(f))
-  {
-    return false;
-  }
-  // is it in the cache?
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
-  std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
-  if (it != eoc.end())
-  {
-    exOut.insert(exOut.end(), it->second.begin(), it->second.end());
-    return true;
-  }
-  // get the evaluation
-  evaluateInternal(f, e, bv, exOut);
-  // store in cache if necessary
-  if (doCache)
-  {
-    std::vector<Node>& eocv = eoc[bv];
-    eocv.insert(eocv.end(), exOut.begin(), exOut.end());
-  }
-  return true;
-}
-
-void ExampleInfer::evaluateInternal(Node f,
-                                    Node e,
-                                    Node bv,
-                                    std::vector<Node>& exOut)
-{
-  // use ExampleCache here
-  TypeNode xtn = e.getType();
-  SygusTypeInfo& ti = d_tds->getTypeInfo(xtn);
-  const std::vector<Node>& varlist = ti.getVarList();
-  ExampleMinEval eme;
-  EmeEvalTds emetds(d_tds, xtn);
-  eme.initialize(bv, varlist, &emetds);
-  Assert(d_examples.find(f) != d_examples.end());
-  std::vector<std::vector<Node>>& exs = d_examples[f];
-  for (size_t j = 0, esize = exs.size(); j < esize; j++)
-  {
-    Node res = eme.evaluate(exs[j]);
-    exOut.push_back(res);
-  }
-}
-
-Node ExampleInfer::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
-{
-  Node f = d_tds->getSynthFunForEnumerator(e);
-  Assert(!f.isNull());
-  std::map<Node, bool>::iterator itx = d_examples_invalid.find(f);
-  if (itx == d_examples_invalid.end())
-  {
-    std::map<Node, std::vector<std::vector<Node>>>::iterator it =
-        d_examples.find(f);
-    if (it != d_examples.end())
-    {
-      Assert(i < it->second.size());
-      return d_tds->evaluateBuiltin(tn, bn, it->second[i]);
-    }
-  }
-  return Rewriter::rewrite(bn);
-}
-
-void ExampleInfer::clearEvaluationCache(Node e, Node bv)
-{
-  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
-  Assert(eoc.find(bv) != eoc.end());
-  eoc.erase(bv);
 }
 
 }  // namespace quantifiers

@@ -9,6 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
+ ** \brief Utility for inferring whether a formula is in examples form
+ ** (functions applied to concrete arguments only).
  **/
 
 #include "cvc4_private.h"
@@ -31,7 +33,6 @@ namespace quantifiers {
  * see the method hasExamples below. This is important for certain
  * optimizations in enumerative SyGuS, include example-based symmetry breaking
  * (discarding terms that equivalent to a previous one up to examples).
- *
  *
  * Additionally, it provides helper methods for retrieving the examples
  * for a function-to-synthesize and for evaluating terms under the inferred
@@ -96,35 +97,7 @@ class ExampleInfer
    * above.
    */
   bool hasExamplesOut(Node f) const;
-  //----------------------------------- evaluating terms
-  /** Evaluate node
-   *
-   * This adds the result of evaluating bv on the set of input examples managed
-   * by this class. Term bv is the builtin version of a term generated for
-   * enumerator e that is associated with a function-to-synthesize f.
-   * It stores the resulting output for each example in exOut.
-   *
-   * It returns false if e does not have examples.
-   */
-  bool evaluate(
-      Node f, Node e, Node bv, std::vector<Node>& exOut, bool doCache = false);
-  /** evaluate builtin
-   * This returns the evaluation of bn on the i^th example for the
-   * function-to-synthesis
-   * associated with enumerator e. If there are not at least i examples, it
-   * returns the rewritten form of bn.
-   * For example, if bn = x+5, e is an enumerator for f in the above example
-   * [EX#1], then
-   *   evaluateBuiltin( tn, bn, e, 0 ) = 7
-   *   evaluateBuiltin( tn, bn, e, 1 ) = 9
-   *   evaluateBuiltin( tn, bn, e, 2 ) = 10
-   */
-  Node evaluateBuiltin(TypeNode tn, Node bn, Node f, unsigned i);
-  /** clear evaluation cache */
-  void clearEvaluationCache(Node e, Node bv);
-  //----------------------------------- end evaluating terms
  private:
-  void evaluateInternal(Node f, Node e, Node bv, std::vector<Node>& exOut);
   /** collect the PBE examples in n
    * This is called on the input conjecture, and will populate the above
    * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
@@ -175,8 +148,6 @@ class ExampleInfer
    * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.
    */
   std::map<Node, Node> d_exampleTermMap;
-  /** cache for evaluate */
-  std::map<Node, std::map<Node, std::vector<Node>>> d_exOutCache;
 };
 
 }  // namespace quantifiers

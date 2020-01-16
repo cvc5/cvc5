@@ -34,13 +34,14 @@ class SynthConjecture;
  *
  * [EX#1] An example of a synthesis conjecture in PBE form is :
  * exists f. forall x.
- * ( x = 0 => f( x ) = 2 ) ^ ( x = 5 => f( x ) = 7 ) ^ ( x = 6 => f( x ) = 8 )
+ * ( f( 0 ) = 2 ) ^ ( f( 5 ) = 7 ) ^ ( f( 6 ) = 8 )
  *
  * We say that the above conjecture has I/O examples (0)->2, (5)->7, (6)->8.
  *
  * Internally, this class does the following for SyGuS inputs:
  *
- * (1) Infers whether the input conjecture is in PBE form or not.
+ * (1) Infers whether the input conjecture is in PBE form or not, which
+ *     is based on looking up information in the ExampleInfer utility.
  * (2) Based on this information and on the syntactic restrictions, it
  *     devises a strategy for enumerating terms and construction solutions,
  *     which is inspired by Alur et al. "Scaling Enumerative Program Synthesis
@@ -68,22 +69,11 @@ class SynthConjecture;
  * syntactic restrictions for it. The search may continue unless all enumerators
  * become inactive.
  *
- * (4) During search, the extension of quantifier-free datatypes procedure for
- *     SyGuS datatypes may ask this class whether current candidates can be
- *     discarded based on inferring when two candidate solutions are equivalent
- *     up to examples. For example, the candidate solutions:
- *     f = \x ite( x < 0, x+1, x ) and f = \x x
- *     are equivalent up to examples on the above conjecture, since they have
- * the same value on the points x = 0,5,6. Hence, we need only consider one of
- *     them. The interface for querying this is
- *       SygusPbe::addSearchVal(...).
- *     For details, see Reynolds et al. SYNT 2017.
- *
- * (5) When the extension of quantifier-free datatypes procedure for SyGuS
+ * (4) When the extension of quantifier-free datatypes procedure for SyGuS
  *     datatypes terminates with a model, the parent of this class calls
  *     SygusPbe::getCandidateList(...), where this class returns the list
  *     of active enumerators.
- * (6) The parent class subsequently calls
+ * (5) The parent class subsequently calls
  *     SygusPbe::constructValues(...), which informs this class that new
  *     values have been enumerated for active enumerators, as indicated by the
  *     current model. This call also requests that based on these
@@ -154,26 +144,6 @@ class SygusPbe : public SygusModule
   /** is PBE enabled for any enumerator? */
   bool isPbe() { return d_is_pbe; }
 
-  /** add the search val
-   * This function is called by the extension of quantifier-free datatypes
-   * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
-   * considering a value of enumerator e of sygus type tn whose analog in the
-   * signature of builtin theory is bvr.
-   *
-   * For example, bvr = x + 1 when e is the datatype value Plus( x(), One() )
-   * and tn is a sygus datatype that encodes a subsignature of the integers.
-   *
-   * This returns either:
-   * - A SyGuS term whose analog is equivalent to bvr up to examples
-   *   In the above example,
-   *   it may return a term t of the form Plus( One(), x() ), such that this
-   *   function was previously called with t as input.
-   * - e, indicating that no previous terms are equivalent to e up to examples.
-   *
-   * This method should only be called if hasExamples(e) returns true.
-   */
-  Node addSearchVal(TypeNode tn, Node e, Node bvr);
-
  private:
   /** true and false nodes */
   Node d_true;
@@ -193,39 +163,6 @@ class SygusPbe : public SygusModule
   std::map<Node, std::vector<Node> > d_candidate_to_enum;
   /** reverse map of above */
   std::map<Node, Node> d_enum_to_candidate;
-
-  //--------------------------------- PBE search values
-  /**
-   * This class is an index of candidate solutions for PBE synthesis and their
-   * (concrete) evaluation on the set of input examples. For example, if the
-   * set of input examples for (x,y) is (0,1), (1,3), then:
-   *   term x is indexed by 0,1
-   *   term x+y is indexed by 1,4
-   *   term 0 is indexed by 0,0.
-   */
-  class PbeTrie
-  {
-   public:
-    PbeTrie() {}
-    ~PbeTrie() {}
-    /** the children for this node in the trie */
-    std::map<Node, PbeTrie> d_children;
-    /** clear this trie */
-    void clear() { d_children.clear(); }
-    /**
-     * Add term b whose value on examples is exOut to the trie. Return
-     * the first term registered to this trie whose evaluation was exOut.
-     */
-    Node addTerm(Node b, const std::vector<Node>& exOut);
-  };
-  /** trie of candidate solutions tried
-  * This stores information for each (enumerator, type),
-  * where type is a type in the grammar of the space of solutions for a subterm
-  * of e. This is used for symmetry breaking in quantifier-free reasoning
-  * about SyGuS datatypes.
-  */
-  std::map<Node, std::map<TypeNode, PbeTrie> > d_pbe_trie;
-  //--------------------------------- end PBE search values
 };
 
 } /* namespace CVC4::theory::quantifiers */

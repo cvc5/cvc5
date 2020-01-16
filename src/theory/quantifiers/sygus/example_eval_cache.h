@@ -32,13 +32,15 @@ class TermDbSygus;
  * This class caches the evaluation of nodes on a fixed list of examples. It
  * serves two purposes:
  * (1) To maintain a cache of the results of evaluation of nodes so that
- * evaluation is not recomputed, and
+ * evaluation is not recomputed in different contexts, and
  * (2) To maintain a trie of terms indexed by their evaluation on the list
  * of examples to recognize when two terms are equivalent up to examples.
  *
  * This class is associated with a function to synthesize and an enumerator,
  * which determine which examples are taken from the conjecture and how
  * to evaluate builtin terms.
+ * 
+ * The use of (1) is required since we may be interested in computing the
  *
  * A typical use case of (2) is the following.
  * During search, the extension of quantifier-free datatypes procedure for
@@ -69,38 +71,42 @@ class ExampleEvalCache
    *
    * This function is called by the extension of quantifier-free datatypes
    * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
-   * considering a value of enumerator e of sygus type tn whose analog in the
-   * signature of builtin theory is bvr.
-   *
-   * For example, bvr = x + 1 when e is the datatype value Plus( x(), One() )
-   * and tn is a sygus datatype that encodes a subsignature of the integers.
+   * considering a value of enumerator e passed to the constructor of this
+   * class whose analog in the signature of builtin theory is bvr.
    *
    * This returns either:
-   * - A term that is equivalent to bvr up to examples
-   *   In the above example, it may return a term t of the form
-   *   Plus( One(), x() ), such that this function was previously called with t
-   *   as input.
+   * - A term that is equivalent to bvr up to examples that was passed as the
+   * argument to a previous call to addSearchVal, or
    * - bvr, indicating that no previous terms are equivalent to bvr up to
    * examples.
+   * 
+   * If this method returns bvr (indicating it is not redundant), the
+   * result of the evaluation of bvr is cached by this class, and can be
+   * later accessed by evaluateVec below.
    */
   Node addSearchVal(Node bvr);
   //----------------------------------- evaluating terms
   /** Evaluate vector
    *
-   * This adds the result of evaluating bv on the set of input examples managed
-   * by this class. Term bv is the builtin version of a term generated for
-   * enumerator e that is associated with a function-to-synthesize f.
-   * It stores the resulting output for each example in exOut.
+   * This adds to exOut the result of evaluating builtin term bv on the set of
+   * examples managed by this class. Term bv is the builtin version of a term
+   * generated for enumerator e that is associated with a
+   * function-to-synthesize f, which were passed to the constructor of this
+   * class. It stores the resulting output for each example in exOut.
+   * 
+   * If doCache is true, the result of the evaluation is cached internally.
    */
   void evaluateVec(Node bv, std::vector<Node>& exOut, bool doCache = false);
   /** evaluate builtin
+   * 
    * This returns the evaluation of bn on the i^th example for the
    * function-to-synthesis associated with enumerator e. If there are not at
    * least i examples, it returns the rewritten form of bn. For example, if bn =
-   * x+5, e is an enumerator for f in the above example [EX#1], then
+   * x+5, e is an enumerator for f in the example [EX#1] from SygusPbe, then
    *   evaluateBuiltin( tn, bn, e, 0 ) = 7
    *   evaluateBuiltin( tn, bn, e, 1 ) = 9
    *   evaluateBuiltin( tn, bn, e, 2 ) = 10
+   * This 
    */
   Node evaluate(Node bv, unsigned i) const;
   /** clear evaluation cache for bv */
