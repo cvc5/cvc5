@@ -150,11 +150,8 @@ SygusEnumerator::TermCache::TermCache()
       d_sampleRrVInit(false)
 {
 }
-void SygusEnumerator::TermCache::initialize(Node e,
-                                            TypeNode tn,
-                                            TermDbSygus* tds,
-                                            SygusPbe* pbe,
-                    ExampleEvalCache* eec)
+void SygusEnumerator::TermCache::initialize(
+    Node e, TypeNode tn, TermDbSygus* tds, SygusPbe* pbe, ExampleEvalCache* eec)
 {
   Trace("sygus-enum-debug") << "Init term cache " << tn << "..." << std::endl;
   d_enum = e;
@@ -339,7 +336,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     {
       // Is it equivalent under examples?
       Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
-      //Node bne = d_eec->addSearchVal(bnr);
+      // Node bne = d_eec->addSearchVal(bnr);
       if (!bne.isNull())
       {
         if (bnr != bne)
@@ -535,7 +532,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
   // initialize the term cache
   // see if we use sygus PBE for symmetry breaking
   SygusPbe* pbe = nullptr;
-  ExampleEvalCache * eec = nullptr;
+  ExampleEvalCache* eec = nullptr;
   if (options::sygusSymBreakPbe())
   {
     eec = d_parent->getExampleEvalCache(d_enum);

@@ -35,7 +35,7 @@ class TermDbSygus;
  * evaluation is not recomputed, and
  * (2) To maintain a trie of terms indexed by their evaluation on the list
  * of examples to recognize when two terms are equivalent up to examples.
- * 
+ *
  * This class is associated with a function to synthesize and an enumerator,
  * which determine which examples are taken from the conjecture and how
  * to evaluate builtin terms.
@@ -116,7 +116,7 @@ class ExampleEvalCache
   std::vector<std::vector<Node>> d_examples;
   /** The SyGuS type of the enumerator */
   TypeNode d_stn;
-  /** 
+  /**
    * Whether we should index search values. This flag is false if the enumerator
    * of this class is variable agnostic.
    */

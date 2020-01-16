@@ -54,7 +54,7 @@ bool SygusPbe::initialize(Node conj,
   }
 
   // check if all candidates are valid examples
-  ExampleInfer * ei = d_parent->getExampleInfer();
+  ExampleInfer* ei = d_parent->getExampleInfer();
   d_is_pbe = true;
   for (const Node& c : candidates)
   {

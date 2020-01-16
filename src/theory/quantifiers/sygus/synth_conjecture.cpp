@@ -1327,10 +1327,11 @@ Node SynthConjecture::getSymmetryBreakingPredicate(
   }
 }
 
-ExampleEvalCache * SynthConjecture::getExampleEvalCache( Node e )
+ExampleEvalCache* SynthConjecture::getExampleEvalCache(Node e)
 {
-  std::map< Node, std::unique_ptr<ExampleEvalCache> >::iterator it = d_exampleEvalCache.find(e);
-  if (it!=d_exampleEvalCache.end())
+  std::map<Node, std::unique_ptr<ExampleEvalCache> >::iterator it =
+      d_exampleEvalCache.find(e);
+  if (it != d_exampleEvalCache.end())
   {
     return it->second.get();
   }

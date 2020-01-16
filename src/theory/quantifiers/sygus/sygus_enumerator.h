@@ -150,11 +150,11 @@ class SygusEnumerator : public EnumValGenerator
     TermDbSygus* d_tds;
     /** pointer to the PBE utility (used for symmetry breaking) */
     SygusPbe* d_pbe;
-    /** 
+    /**
      * Pointer to the example evaluation cache utility (used for symmetry
      * breaking).
      */
-    ExampleEvalCache * d_eec;
+    ExampleEvalCache* d_eec;
     //-------------------------static information about type
     /** is d_tn a sygus type? */
     bool d_isSygusType;

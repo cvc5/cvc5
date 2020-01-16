@@ -88,7 +88,8 @@ void ExampleEvalCache::evaluateVec(Node bv,
   }
 }
 
-void ExampleEvalCache::evaluateVecInternal(Node bv, std::vector<Node>& exOut) const
+void ExampleEvalCache::evaluateVecInternal(Node bv,
+                                           std::vector<Node>& exOut) const
 {
   // use ExampleMinEval
   SygusTypeInfo& ti = d_tds->getTypeInfo(d_stn);
