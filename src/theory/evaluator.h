@@ -63,30 +63,6 @@ struct EvalResult
   EvalResult(const BitVector& bv) : d_tag(BITVECTOR), d_bv(bv) {}
   EvalResult(const Rational& i) : d_tag(RATIONAL), d_rat(i) {}
   EvalResult(const String& str) : d_tag(STRING), d_str(str) {}
-  EvalResult(Node n) {
-    switch(n.getKind())
-    {
-      case kind::CONST_BOOLEAN:
-        d_tag = BOOL;
-        d_bool = n.getConst<bool>();
-        break;
-      case kind::CONST_RATIONAL:
-        d_tag = RATIONAL;
-        d_rat = n.getConst<Rational>();
-        break;
-      case kind::CONST_STRING:
-        d_tag = STRING;
-        d_str = n.getConst<String>();
-        break;
-      case kind::CONST_BITVECTOR:
-        d_tag = BITVECTOR;
-        d_bv = n.getConst<BitVector>();
-        break;
-      default:
-        d_tag = INVALID;
-        break;
-    }
-  }
 
   EvalResult& operator=(const EvalResult& other);
 
