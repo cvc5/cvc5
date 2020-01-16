@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file example_cache.cpp
+/*! \file example_min_eval.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief utility for processing programming by examples synthesis conjectures
+ ** \brief Implementation of utility for minimizing the number of calls to
+ ** evaluate a term on substitutions with a fixed domain.
  **/
 
 #include "cvc4_private.h"

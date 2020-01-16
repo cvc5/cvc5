@@ -1,21 +1,22 @@
 /*********************                                                        */
-/*! \file example_cache.h
+/*! \file example_min_eval.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief utility for processing programming by examples synthesis conjectures
+ ** \brief utility for minimizing the number of calls to evaluate a term
+ ** on substitutions with a fixed domain.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__EXAMPLE_CACHE_H
-#define CVC4__THEORY__QUANTIFIERS__EXAMPLE_CACHE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__EXAMPLE_MIN_EVAL_H
+#define CVC4__THEORY__QUANTIFIERS__EXAMPLE_MIN_EVAL_H
 
 #include "expr/node_trie.h"
 #include "theory/evaluator.h"
