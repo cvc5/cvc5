@@ -179,16 +179,13 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
     Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
     Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
-    if (d_is_pbe)
+    // Clean up the cache data if necessary: if the enumerated term
+    // is redundant, its cached data will not be used later and thus should
+    // be cleared now.
+    if (ret != bvr)
     {
-      // Clean up the cache data if necessary: if the enumerated term
-      // is redundant, its cached data will not be used later and thus should
-      // be cleared now.
-      if (ret != bvr)
-      {
-        Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
-        ei->clearEvaluationCache(e, bvr);
-      }
+      Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
+      ei->clearEvaluationCache(e, bvr);
     }
     Assert(ret.getType() == bvr.getType());
     return ret;

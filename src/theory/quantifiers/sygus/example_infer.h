@@ -135,7 +135,7 @@ class ExampleInfer
                        std::map<Node, bool>& visited,
                        bool hasPol,
                        bool pol);
-  /** sygus term database of d_qe */
+  /** Pointer to the sygus term database */
   TermDbSygus* d_tds;
   /** is this an examples conjecture for all functions-to-synthesize? */
   bool d_isExamples;

@@ -153,35 +153,6 @@ class SygusPbe : public SygusModule
                            std::vector<Node>& lems) override;
   /** is PBE enabled for any enumerator? */
   bool isPbe() { return d_is_pbe; }
-  /**
-   * Is the enumerator e associated with examples? This is true if the
-   * function-to-synthesize associated with e is only applied to concrete
-   * arguments. Notice that the conjecture need not be in PBE form for this
-   * to be the case. For example, f has examples in:
-   *   exists f. f( 1 ) = 3 ^ f( 2 ) = 4
-   *   exists f. f( 45 ) > 0 ^ f( 99 ) > 0
-   *   exists f. forall x. ( x > 5 => f( 4 ) < x )
-   * It does not have examples in:
-   *   exists f. forall x. f( x ) > 5
-   *   exists f. f( f( 4 ) ) = 5
-   * This class implements techniques for functions-to-synthesize that
-   * have examples. In particular, the method addSearchVal below can be
-   * called.
-   */
-  bool hasExamples(Node e);
-  /** get number of examples for enumerator e */
-  unsigned getNumExamples(Node e);
-  /**
-   * Get the input arguments for i^th example for e, which is added to the
-   * vector ex
-   */
-  void getExample(Node e, unsigned i, std::vector<Node>& ex);
-  /**
-   * Get the output value of the i^th example for enumerator e, or null if
-   * it does not exist (an example does not have an associate output if it is
-   * not a top-level equality).
-   */
-  Node getExampleOut(Node e, unsigned i);
 
   /** add the search val
    * This function is called by the extension of quantifier-free datatypes
