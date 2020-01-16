@@ -38,12 +38,18 @@ ExampleEvalCache::ExampleEvalCache(TermDbSygus* tds,
     ei->getExample(f, i, input);
     d_examples.push_back(input);
   }
+  d_indexSearchVals = !d_tds->isVariableAgnosticEnumerator(e);
 }
 
 ExampleEvalCache::~ExampleEvalCache() {}
 
 Node ExampleEvalCache::addSearchVal(Node bv)
 {
+  if (!d_indexSearchVals)
+  {
+    // not indexing search values
+    return Node::null();
+  }
   std::vector<Node> vals;
   evaluateVec(bv, vals, true);
   Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
