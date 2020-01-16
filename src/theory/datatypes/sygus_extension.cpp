@@ -25,6 +25,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_model.h"
@@ -1058,7 +1059,6 @@ Node SygusExtension::registerSearchValue(Node a,
         Node bvr_equiv;
         if (options::sygusSymBreakPbe())
         {
-#if 1
           // If the enumerator has examples, see if it is equivalent up to its
           // examples with a previous term.
           quantifiers::ExampleEvalCache * eec = aconj->getExampleEvalCache(a);
@@ -1066,13 +1066,6 @@ Node SygusExtension::registerSearchValue(Node a,
           {
             bvr_equiv = eec->addSearchVal(bvr);
           }
-#else
-          Node f = d_tds->getSynthFunForEnumerator(a);
-          if (aconj->getExampleInfer()->hasExamples(f))
-          {
-            bvr_equiv = aconj->getPbe()->addSearchVal(tn, a, bvr);
-          }
-#endif
         }
         if (!bvr_equiv.isNull())
         {

@@ -68,8 +68,8 @@ class SygusEnumerator : public EnumValGenerator
    * natural number n, and redundancy criteria are used for discarding terms
    * that are not relevant. This includes discarding terms whose builtin version
    * is the same up to T-rewriting with another, or is equivalent under
-   * examples, if the conjecture in question is in PBE form and sygusSymBreakPbe
-   * is enabled.
+   * examples, if the conjecture in question is in examples form and
+   * sygusSymBreakPbe is enabled.
    *
    * This class also computes static information about sygus types that is
    * relevant for enumeration. Primarily, this includes mapping constructors
@@ -100,7 +100,6 @@ class SygusEnumerator : public EnumValGenerator
     void initialize(Node e,
                     TypeNode tn,
                     TermDbSygus* tds,
-                    SygusPbe* pbe = nullptr,
                     ExampleEvalCache* ece = nullptr);
     /** get last constructor class index for weight
      *
@@ -148,8 +147,6 @@ class SygusEnumerator : public EnumValGenerator
     TypeNode d_tn;
     /** pointer to term database sygus */
     TermDbSygus* d_tds;
-    /** pointer to the PBE utility (used for symmetry breaking) */
-    SygusPbe* d_pbe;
     /**
      * Pointer to the example evaluation cache utility (used for symmetry
      * breaking).
