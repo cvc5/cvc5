@@ -29,6 +29,13 @@ class TermDbSygus;
 
 /** ExampleEvalCache
  *
+ * This class caches the evaluation of nodes on a fixed list of examples. It
+ * serves two purposes:
+ * (1) To maintain a cache of the results of evaluation of nodes so that
+ * evaluation is not recomputed.
+ * (2) To maintain a trie of terms indexed by their evaluation on the list
+ * of examples to recognize when two terms are equivalent up to examples.
+ * 
  * A typical use case of this class is the following.
  * During search, the extension of quantifier-free datatypes procedure for
  * SyGuS datatypes may ask this class whether current candidates can be
@@ -44,6 +51,13 @@ class TermDbSygus;
 class ExampleEvalCache
 {
  public:
+  /** Construct this class 
+   * 
+   * This initializes this class for function-to-synthesize f and enumerator
+   * e. In particular, the terms that will be evaluated by this class
+   * are builtin terms that the analog of values taken by enumerator e that
+   * is associated with f.
+   */
   ExampleEvalCache(TermDbSygus * tds, SynthConjecture* p, Node f, Node e);
   ~ExampleEvalCache();
 
@@ -77,8 +91,7 @@ class ExampleEvalCache
   void evaluateVec(Node bv, std::vector<Node>& exOut, bool doCache = false);
   /** evaluate builtin
    * This returns the evaluation of bn on the i^th example for the
-   * function-to-synthesis
-   * associated with enumerator e. If there are not at least i examples, it
+   * function-to-synthesis associated with enumerator e. If there are not at least i examples, it
    * returns the rewritten form of bn.
    * For example, if bn = x+5, e is an enumerator for f in the above example
    * [EX#1], then
@@ -86,8 +99,8 @@ class ExampleEvalCache
    *   evaluateBuiltin( tn, bn, e, 1 ) = 9
    *   evaluateBuiltin( tn, bn, e, 2 ) = 10
    */
-  Node evaluate(Node bn, unsigned i);
-  /** clear evaluation cache */
+  Node evaluate(Node bv, unsigned i);
+  /** clear evaluation cache for bv */
   void clearEvaluationCache(Node bv);
   //----------------------------------- end evaluating terms
 
