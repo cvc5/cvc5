@@ -26,20 +26,20 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * Virtual evaluator class for Example Minimize Eval.
  */
 class EmeEval
 {
-public:
-  EmeEval(){}
-  virtual ~EmeEval(){}
+ public:
+  EmeEval() {}
+  virtual ~EmeEval() {}
   /** Evaluate n given substitution { args -> vals }. */
   virtual Node eval(TNode n,
-            const std::vector<Node>& args,
-            const std::vector<Node>& vals) = 0;
+                    const std::vector<Node>& args,
+                    const std::vector<Node>& vals) = 0;
 };
-  
+
 /**
  * Example Minimize Eval
  *
@@ -65,7 +65,7 @@ class ExampleMinEval
  public:
   ExampleMinEval() {}
   ~ExampleMinEval() {}
-  /** 
+  /**
    * Initialize this cache to evaluate n on substitutions with domain vars.
    * Argument ece is the evaluator object.
    */
@@ -98,19 +98,20 @@ class TermDbSygus;
 /** An example cache evaluator based on the term database sygus utility */
 class EmeEvalTds : public EmeEval
 {
-public: 
-  EmeEvalTds(TermDbSygus * tds, TypeNode tn) : d_tds(tds), d_tn(tn) {}
-  virtual ~EmeEvalTds(){}
-  /** 
+ public:
+  EmeEvalTds(TermDbSygus* tds, TypeNode tn) : d_tds(tds), d_tn(tn) {}
+  virtual ~EmeEvalTds() {}
+  /**
    * Evaluate n given substitution { args -> vals } using the term database
    * sygus evaluateBuiltin function.
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
             const std::vector<Node>& vals) override;
-private:
+
+ private:
   /** Pointer to the sygus term database */
-  TermDbSygus * d_tds;
+  TermDbSygus* d_tds;
   /** The sygus type of the node we will be evaluating */
   TypeNode d_tn;
 };

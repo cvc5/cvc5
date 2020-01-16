@@ -22,7 +22,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void ExampleMinEval::initialize(Node n, const std::vector<Node>& vars, EmeEval* ece)
+void ExampleMinEval::initialize(Node n,
+                                const std::vector<Node>& vars,
+                                EmeEval* ece)
 {
   AlwaysAssert(d_evalNode.isNull());
   d_evalNode = n;
@@ -39,7 +41,9 @@ void ExampleMinEval::initialize(Node n, const std::vector<Node>& vars, EmeEval* 
       d_indices.push_back(i);
     }
   }
-  Trace("example-cache") << "For " << n << ", " << d_indices.size() << " / " << d_vars.size() << " variables are relevant" << std::endl;
+  Trace("example-cache") << "For " << n << ", " << d_indices.size() << " / "
+                         << d_vars.size() << " variables are relevant"
+                         << std::endl;
   d_ece = ece;
 }
 
@@ -57,7 +61,7 @@ Node ExampleMinEval::evaluate(const std::vector<Node>& subs)
   {
     // not already cached, must evaluate
     res = d_ece->eval(d_evalNode, d_vars, subs);
-    
+
     // add to trie
     d_trie.addTerm(res, relSubs);
   }
@@ -65,10 +69,10 @@ Node ExampleMinEval::evaluate(const std::vector<Node>& subs)
 }
 
 Node EmeEvalTds::eval(TNode n,
-          const std::vector<Node>& args,
-          const std::vector<Node>& vals)
+                      const std::vector<Node>& args,
+                      const std::vector<Node>& vals)
 {
-  return d_tds->evaluateBuiltin(d_tn,n,vals);
+  return d_tds->evaluateBuiltin(d_tn, n, vals);
 }
 
 }  // namespace quantifiers

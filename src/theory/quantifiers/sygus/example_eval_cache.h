@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief 
+ ** \brief
  **/
 
 #include "cvc4_private.h"
@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
 #define CVC4__THEORY__QUANTIFIERS__EXAMPLE_EVAL_CACHE_H
 
-#include "theory/quantifiers/sygus/example_infer.h"
 #include "expr/node_trie.h"
+#include "theory/quantifiers/sygus/example_infer.h"
 
 namespace CVC4 {
 namespace theory {
@@ -35,7 +35,7 @@ class TermDbSygus;
  * evaluation is not recomputed.
  * (2) To maintain a trie of terms indexed by their evaluation on the list
  * of examples to recognize when two terms are equivalent up to examples.
- * 
+ *
  * A typical use case of this class is the following.
  * During search, the extension of quantifier-free datatypes procedure for
  * SyGuS datatypes may ask this class whether current candidates can be
@@ -51,18 +51,18 @@ class TermDbSygus;
 class ExampleEvalCache
 {
  public:
-  /** Construct this class 
-   * 
+  /** Construct this class
+   *
    * This initializes this class for function-to-synthesize f and enumerator
    * e. In particular, the terms that will be evaluated by this class
    * are builtin terms that the analog of values taken by enumerator e that
    * is associated with f.
    */
-  ExampleEvalCache(TermDbSygus * tds, SynthConjecture* p, Node f, Node e);
+  ExampleEvalCache(TermDbSygus* tds, SynthConjecture* p, Node f, Node e);
   ~ExampleEvalCache();
 
   /** Add search value
-   * 
+   *
    * This function is called by the extension of quantifier-free datatypes
    * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
    * considering a value of enumerator e of sygus type tn whose analog in the
@@ -91,10 +91,9 @@ class ExampleEvalCache
   void evaluateVec(Node bv, std::vector<Node>& exOut, bool doCache = false);
   /** evaluate builtin
    * This returns the evaluation of bn on the i^th example for the
-   * function-to-synthesis associated with enumerator e. If there are not at least i examples, it
-   * returns the rewritten form of bn.
-   * For example, if bn = x+5, e is an enumerator for f in the above example
-   * [EX#1], then
+   * function-to-synthesis associated with enumerator e. If there are not at
+   * least i examples, it returns the rewritten form of bn. For example, if bn =
+   * x+5, e is an enumerator for f in the above example [EX#1], then
    *   evaluateBuiltin( tn, bn, e, 0 ) = 7
    *   evaluateBuiltin( tn, bn, e, 1 ) = 9
    *   evaluateBuiltin( tn, bn, e, 2 ) = 10
@@ -114,23 +113,23 @@ class ExampleEvalCache
   /** The SyGuS type of the enumerator */
   TypeNode d_stn;
   /** trie of search values
-   * 
+   *
    * This trie is an index of candidate solutions for PBE synthesis and their
    * (concrete) evaluation on the set of input examples. For example, if the
    * set of input examples for (x,y) is (0,1), (1,3), then:
    *   term x is indexed by 0,1
    *   term x+y is indexed by 1,4
    *   term 0 is indexed by 0,0.
-  * This is used for symmetry breaking in quantifier-free reasoning
-  * about SyGuS datatypes.
-  */
+   * This is used for symmetry breaking in quantifier-free reasoning
+   * about SyGuS datatypes.
+   */
   NodeTrie d_trie;
   /** cache for evaluate */
   std::map<Node, std::vector<Node>> d_exOutCache;
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
+}  // namespace quantifiers
+}  // namespace theory
 } /* namespace CVC4 */
 
 #endif

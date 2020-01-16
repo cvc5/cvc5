@@ -119,23 +119,25 @@ Node Evaluator::eval(TNode n,
                      const std::vector<Node>& vals) const
 {
   std::unordered_map<Node, Node, NodeHashFunction> visited;
-  return eval(n,args,vals,visited);
+  return eval(n, args, vals, visited);
 }
-Node Evaluator::eval(TNode n,
-                     const std::vector<Node>& args,
-                     const std::vector<Node>& vals,
-                     const std::unordered_map<Node, Node, NodeHashFunction>& visited) const
+Node Evaluator::eval(
+    TNode n,
+    const std::vector<Node>& args,
+    const std::vector<Node>& vals,
+    const std::unordered_map<Node, Node, NodeHashFunction>& visited) const
 {
   Trace("evaluator") << "Evaluating " << n << " under substitution " << args
-                     << " " << vals << " with visited size = " << visited.size() << std::endl;
+                     << " " << vals << " with visited size = " << visited.size()
+                     << std::endl;
   std::unordered_map<TNode, Node, NodeHashFunction> evalAsNode;
   std::unordered_map<TNode, EvalResult, TNodeHashFunction> results;
   // add visited to results
-  for (const std::pair< const Node, Node >& p : visited )
+  for (const std::pair<const Node, Node>& p : visited)
   {
     Trace("evaluator") << "Add " << p.first << " == " << p.second << std::endl;
-    results[p.first] = evalInternal(p.second,args,vals,evalAsNode,results);
-    if (results[p.first].d_tag==EvalResult::INVALID)
+    results[p.first] = evalInternal(p.second, args, vals, evalAsNode, results);
+    if (results[p.first].d_tag == EvalResult::INVALID)
     {
       // could not evaluate, use the evalAsNode map
       evalAsNode[p.first] = evalAsNode[p.second];

@@ -95,13 +95,15 @@ class Evaluator
   Node eval(TNode n,
             const std::vector<Node>& args,
             const std::vector<Node>& vals) const;
-  /** 
+  /**
    * Same as above, but with a precomputed visited map.
    */
-  Node eval(TNode n,
-            const std::vector<Node>& args,
-            const std::vector<Node>& vals,
-            const std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
+  Node eval(
+      TNode n,
+      const std::vector<Node>& args,
+      const std::vector<Node>& vals,
+      const std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
+
  private:
   /**
    * Evaluates node `n` under the substitution described by the variable names

@@ -24,11 +24,13 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ExampleEvalCache::ExampleEvalCache(TermDbSygus * tds, SynthConjecture* p, Node f, Node e) :
-d_tds(tds),
-d_stn(e.getType())
+ExampleEvalCache::ExampleEvalCache(TermDbSygus* tds,
+                                   SynthConjecture* p,
+                                   Node f,
+                                   Node e)
+    : d_tds(tds), d_stn(e.getType())
 {
-  ExampleInfer * ei = p->getExampleInfer();
+  ExampleInfer* ei = p->getExampleInfer();
   Assert(ei->hasExamples(f));
   for (unsigned i = 0, nex = ei->getNumExamples(f); i < nex; i++)
   {
@@ -59,7 +61,9 @@ Node ExampleEvalCache::addSearchVal(Node bv)
   return ret;
 }
 
-void ExampleEvalCache::evaluateVec(Node bv, std::vector<Node>& exOut, bool doCache)
+void ExampleEvalCache::evaluateVec(Node bv,
+                                   std::vector<Node>& exOut,
+                                   bool doCache)
 {
   // is it in the cache?
   std::map<Node, std::vector<Node>>::iterator it = d_exOutCache.find(bv);
@@ -78,15 +82,14 @@ void ExampleEvalCache::evaluateVec(Node bv, std::vector<Node>& exOut, bool doCac
   }
 }
 
-void ExampleEvalCache::evaluateVecInternal(
-    Node bv, std::vector<Node>& exOut)
+void ExampleEvalCache::evaluateVecInternal(Node bv, std::vector<Node>& exOut)
 {
   // use ExampleMinEval
   SygusTypeInfo& ti = d_tds->getTypeInfo(d_stn);
   const std::vector<Node>& varlist = ti.getVarList();
   ExampleMinEval eme;
-  EmeEvalTds emetds(d_tds,d_stn);
-  eme.initialize(bv,varlist,&emetds);
+  EmeEvalTds emetds(d_tds, d_stn);
+  eme.initialize(bv, varlist, &emetds);
   for (size_t j = 0, esize = d_examples.size(); j < esize; j++)
   {
     Node res = eme.evaluate(d_examples[j]);
@@ -106,6 +109,6 @@ void ExampleEvalCache::clearEvaluationCache(Node bv)
   d_exOutCache.erase(bv);
 }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
