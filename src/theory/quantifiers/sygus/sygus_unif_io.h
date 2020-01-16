@@ -288,11 +288,6 @@ class SygusUnifIo : public SygusUnif
   bool constructSolution(std::vector<Node>& sols,
                          std::vector<Node>& lemmas) override;
  protected:
-  /**
-   * Pointer to the example evaluation cache utility, which is used for
-   * computing the feature vectors of terms.
-   */
-  ExampleInfer* d_exi;
   /** The synthesis conjecture */
   SynthConjecture* d_parent;
   /** the function-to-synthesize */

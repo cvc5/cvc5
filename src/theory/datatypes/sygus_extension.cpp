@@ -25,7 +25,6 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_model.h"
@@ -1067,43 +1066,29 @@ Node SygusExtension::registerSearchValue(Node a,
             bvr_equiv = eec->addSearchVal(bvr);
           }
         }
-        if (!bvr_equiv.isNull())
-        {
-          if (bvr_equiv != bvr)
-          {
-            Trace("sygus-sb-debug") << "......adding search val for " << bvr
-                                    << " returned " << bvr_equiv << std::endl;
+        if( !bvr_equiv.isNull() ){
+          if( bvr_equiv!=bvr ){
+            Trace("sygus-sb-debug") << "......adding search val for " << bvr << " returned " << bvr_equiv << std::endl;
             Assert(d_cache[a].d_search_val[tn].find(bvr_equiv)
                    != d_cache[a].d_search_val[tn].end());
-            Trace("sygus-sb-debug")
-                << "......search value was "
-                << d_cache[a].d_search_val[tn][bvr_equiv] << std::endl;
-            if (Trace.isOn("sygus-sb-exc"))
-            {
-              Node prev = d_tds->sygusToBuiltin(
-                  d_cache[a].d_search_val[tn][bvr_equiv], tn);
-              Trace("sygus-sb-exc")
-                  << "  ......programs " << prev << " and " << bv
-                  << " are equivalent up to examples." << std::endl;
+            Trace("sygus-sb-debug") << "......search value was " << d_cache[a].d_search_val[tn][bvr_equiv] << std::endl;
+            if( Trace.isOn("sygus-sb-exc") ){
+              Node prev = d_tds->sygusToBuiltin( d_cache[a].d_search_val[tn][bvr_equiv], tn );
+              Trace("sygus-sb-exc") << "  ......programs " << prev << " and " << bv << " are equivalent up to examples." << std::endl;
             }
             bad_val_bvr = bvr_equiv;
             by_examples = true;
           }
         }
-        // store rewritten values, regardless of whether it will be considered
+        //store rewritten values, regardless of whether it will be considered
         d_cache[a].d_search_val[tn][bvr] = nv;
         d_cache[a].d_search_val_sz[tn][bvr] = sz;
-      }
-      else
-      {
+      }else{
         bad_val_bvr = bvr;
-        if (Trace.isOn("sygus-sb-exc"))
-        {
-          Node prev_bv = d_tds->sygusToBuiltin(itsv->second, tn);
-          Trace("sygus-sb-exc")
-              << "  ......programs " << prev_bv << " and " << bv
-              << " rewrite to " << bvr << "." << std::endl;
-        }
+        if( Trace.isOn("sygus-sb-exc") ){
+          Node prev_bv = d_tds->sygusToBuiltin( itsv->second, tn );
+          Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv << " rewrite to " << bvr << "." << std::endl;
+        } 
       }
 
       if (options::sygusRewVerify())
@@ -1124,8 +1109,7 @@ Node SygusExtension::registerSearchValue(Node a,
         }
       }
 
-      if (!bad_val_bvr.isNull())
-      {
+      if( !bad_val_bvr.isNull() ){
         Node bad_val = nv;
         Node bad_val_o = d_cache[a].d_search_val[tn][bad_val_bvr];
         Assert(d_cache[a].d_search_val_sz[tn].find(bad_val_bvr)
@@ -1134,7 +1118,7 @@ Node SygusExtension::registerSearchValue(Node a,
         bool doFlip = (prev_sz > sz);
         if (doFlip)
         {
-          // swap : the excluded value is the previous
+          //swap : the excluded value is the previous
           d_cache[a].d_search_val_sz[tn][bad_val_bvr] = sz;
           bad_val = d_cache[a].d_search_val[tn][bad_val_bvr];
           bad_val_o = nv;
@@ -1149,12 +1133,10 @@ Node SygusExtension::registerSearchValue(Node a,
           }
           sz = prev_sz;
         }
-        if (Trace.isOn("sygus-sb-exc"))
-        {
-          Node bad_val_bv = d_tds->sygusToBuiltin(bad_val, tn);
+        if( Trace.isOn("sygus-sb-exc") ){
+          Node bad_val_bv = d_tds->sygusToBuiltin( bad_val, tn );
           Trace("sygus-sb-exc") << "  ........exclude : " << bad_val_bv;
-          if (by_examples)
-          {
+          if( by_examples ){
             Trace("sygus-sb-exc") << " (by examples)";
           }
           Trace("sygus-sb-exc") << std::endl;
@@ -1166,9 +1148,7 @@ Node SygusExtension::registerSearchValue(Node a,
         quantifiers::EquivSygusInvarianceTest eset;
         eset.init(d_tds, tn, aconj, a, bvr);
 
-        Trace("sygus-sb-mexp-debug")
-            << "Minimize explanation for eval["
-            << d_tds->sygusToBuiltin(bad_val) << "] = " << bvr << std::endl;
+        Trace("sygus-sb-mexp-debug") << "Minimize explanation for eval[" << d_tds->sygusToBuiltin( bad_val ) << "] = " << bvr << std::endl;
         registerSymBreakLemmaForValue(
             a, bad_val, eset, bad_val_o, var_count, lemmas);
 

@@ -520,17 +520,17 @@ void SygusUnifIo::initializeCandidate(
 {
   d_candidate = f;
   // copy the examples from the parent
-  d_exi = d_parent->getExampleInfer();  // TODO: remove
+  ExampleInfer * ei = d_parent->getExampleInfer();
   d_examples.clear();
   d_examples_out.clear();
   // copy the examples
-  if (d_exi->hasExamples(f))
+  if (ei->hasExamples(f))
   {
-    for (unsigned i = 0, nex = d_exi->getNumExamples(f); i < nex; i++)
+    for (unsigned i = 0, nex = ei->getNumExamples(f); i < nex; i++)
     {
       std::vector<Node> input;
-      d_exi->getExample(f, i, input);
-      Node output = d_exi->getExampleOut(f, i);
+      ei->getExample(f, i, input);
+      Node output = ei->getExampleOut(f, i);
       d_examples.push_back(input);
       d_examples_out.push_back(output);
     }
@@ -560,17 +560,9 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   bv = d_tds->getExtRewriter()->extendedRewrite(bv);
   Trace("sygus-sui-enum") << "PBE Compute Examples for " << bv << std::endl;
   // compte the results (should be cached)
-  Assert(d_exi != nullptr);
-#if 1
   ExampleEvalCache * eec = d_parent->getExampleEvalCache(e);
   Assert( eec!=nullptr);
   eec->evaluateVec(bv,base_results);
-  eec->clearEvaluationCache(bv);
-#else
-  d_exi->evaluate(d_candidate, e, bv, base_results, true);
-  // don't need it after this
-  d_exi->clearEvaluationCache(e, bv);
-#endif
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
   Evaluator* ev = d_tds->getEvaluator();

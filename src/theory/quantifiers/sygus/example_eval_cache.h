@@ -111,6 +111,8 @@ class ExampleEvalCache
   Node evaluate(Node bv, unsigned i) const;
   /** clear evaluation cache for bv */
   void clearEvaluationCache(Node bv);
+  /** clear the entire evaluation cache */
+  void clearEvaluationAll();
   //----------------------------------- end evaluating terms
 
  private:
