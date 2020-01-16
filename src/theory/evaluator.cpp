@@ -127,20 +127,34 @@ Node Evaluator::eval(TNode n,
                      const std::unordered_map<Node, Node, NodeHashFunction>& visited) const
 {
   Trace("evaluator") << "Evaluating " << n << " under substitution " << args
-                     << " " << vals << std::endl;
+                     << " " << vals << " with visited size = " << visited.size() << std::endl;
   std::unordered_map<TNode, Node, NodeHashFunction> evalAsNode;
   std::unordered_map<TNode, EvalResult, TNodeHashFunction> results;
   // add visited to results
   for (const std::pair< const Node, Node >& p : visited )
   {
     Assert(p.second.isConst());
-    results[p.first] = EvalResult(p.second);
-    if (results[p.first].d_tag==EvalResult::INVALID)
+    Trace("evaluator") << "Add " << p.first << " == " << p.second << std::endl;
+    switch(p.second.getKind())
     {
-      // can't use it
-      results.erase(p.first);
+      case kind::CONST_BOOLEAN:
+        results[p.first] = EvalResult(p.second.getConst<bool>());
+        break;
+      case kind::CONST_RATIONAL:
+        results[p.first] = EvalResult(p.second.getConst<Rational>());
+        break;
+      case kind::CONST_STRING:
+        results[p.first] = EvalResult(p.second.getConst<String>());
+        break;
+      case kind::CONST_BITVECTOR:
+        results[p.first] = EvalResult(p.second.getConst<BitVector>());
+        break;
+      default:
+        // can't use it
+        break;
     }
   }
+  Trace("evaluator") << "Run eval internal..." << std::endl;
   Node ret = evalInternal(n, args, vals, evalAsNode, results).toNode();
   // if we failed to evaluate
   if (ret.isNull())

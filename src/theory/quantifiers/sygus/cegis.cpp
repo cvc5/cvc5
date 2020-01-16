@@ -516,7 +516,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         Node bmsi = d_tds->sygusToBuiltin(ms[i]);
         ei->getExampleTerms(f,vsProc);
         ei->evaluate(f,f,bmsi,msProc);
-        //ei->clearEvaluationCache(f,bmsi);
+        ei->clearEvaluationCache(f,bmsi);
         Assert( vsProc.size()==msProc.size());
         for (unsigned j=0, psize=vsProc.size(); j<psize; j++)
         {
@@ -538,7 +538,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         // If we are not doing structural generalization, just use the evaluator
         // We may have computed the evaluation of all function applications
         // via example-based symmetry breaking
-        Node lemcsu = eval->eval(lem, vs, ms);
+        Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
         if (lemcsu.isConst() && !lemcsu.getConst<bool>())
         {
           return true;
@@ -563,11 +563,6 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
-        if (!doGen)
-        {
-          // we are not generating the lemmas, instead just return
-          return true;
-        }
         ret = true;
         std::vector<Node> msu;
         std::vector<Node> mexp;
