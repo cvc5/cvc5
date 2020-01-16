@@ -25,6 +25,18 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** virtual evaluator class */
+class ExampleCacheEval
+{
+public:
+  ExampleCacheEval(){}
+  virtual ~ExampleCacheEval(){}
+  /** Evaluate n given substitution { args -> vals }. */
+  virtual Node eval(TNode n,
+            const std::vector<Node>& args,
+            const std::vector<Node>& vals) = 0;
+};
+  
 /**
  * Example Cache
  *
@@ -49,9 +61,12 @@ class ExampleCache
 {
  public:
   ExampleCache() {}
-  ~ExampleCache();
-  /** initialize this cache to evaluate n on substitutions with domain vars. */
-  void initialize(Node n, const std::vector<Node>& vars);
+  ~ExampleCache() {}
+  /** 
+   * Initialize this cache to evaluate n on substitutions with domain vars.
+   * Argument ece is the evaluator object.
+   */
+  void initialize(Node n, const std::vector<Node>& vars, ExampleCacheEval* ece);
   /**
    * Return the result of evaluating n * { vars -> subs } where vars is the
    * set of variables passed to initialize above.
@@ -71,8 +86,30 @@ class ExampleCache
    * this trie would map (0) -> 5, (1) -> 6.
    */
   NodeTrie d_trie;
-  /** The evaluator utility */
-  Evaluator d_eval;
+  /** Pointer to the evaluator object */
+  ExampleCacheEval* d_ece;
+};
+
+class TermDbSygus;
+
+/** An example cache evaluator based on the term database sygus utility */
+class ExampleCacheEvalTds : public ExampleCacheEval
+{
+public: 
+  ExampleCacheEvalTds(TermDbSygus * tds, TypeNode tn) : d_tds(tds), d_tn(tn) {}
+  virtual ~ExampleCacheEvalTds(){}
+  /** 
+   * Evaluate n given substitution { args -> vals } using the term database
+   * sygus evaluateBuiltin function.
+   */
+  Node eval(TNode n,
+            const std::vector<Node>& args,
+            const std::vector<Node>& vals) override;
+private:
+  /** Pointer to the sygus term database */
+  TermDbSygus * d_tds;
+  /** The sygus type of the node we will be evaluating */
+  TypeNode d_tn;
 };
 
 }  // namespace quantifiers

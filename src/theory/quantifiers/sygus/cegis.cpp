@@ -21,6 +21,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers/sygus/example_cache.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -426,6 +427,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
     d_rl_eval_hds.push_back(term);
     d_rl_vals.push_back(val);
     d_refinement_lemma_unit.insert(lem);
+    
     // apply to waiting lemmas beyond this one
     for (unsigned i = wcounter + 1, size = waiting.size(); i < size; i++)
     {
@@ -496,6 +498,35 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   Node neg_guard = d_parent->getGuard().negate();
   bool ret = false;
   Evaluator* eval = d_tds->getEvaluator();
+  
+  // Maybe we already evaluated some terms in refinement lemmas.
+  // In particular, the example inference module may have some evaluations
+  // cached.
+  std::unordered_map<Node, Node, NodeHashFunction> evalVisited;
+  if (!doGen)
+  {
+    ExampleInfer * ei = d_parent->getExampleInfer();
+    for( unsigned i=0, vsize=vs.size(); i<vsize; i++)
+    {
+      Node f = vs[i];
+      if (ei->hasExamples(f))
+      {
+        std::vector< Node > vsProc;
+        std::vector< Node > msProc;
+        Node bmsi = d_tds->sygusToBuiltin(ms[i]);
+        ei->getExampleTerms(f,vsProc);
+        ei->evaluate(f,f,bmsi,msProc);
+        //ei->clearEvaluationCache(f,bmsi);
+        Assert( vsProc.size()==msProc.size());
+        for (unsigned j=0, psize=vsProc.size(); j<psize; j++)
+        {
+          evalVisited[vsProc[j]] = msProc[j];
+          Assert( vsProc[j].getType()==msProc[j].getType());
+        }
+      }
+    }
+  }
+  
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node, NodeHashFunction>& rlemmas =
@@ -504,10 +535,9 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
     {
       if (!doGen)
       {
-        // we may have computed the evaluation of all function applications
+        // If we are not doing structural generalization, just use the evaluator
+        // We may have computed the evaluation of all function applications
         // via example-based symmetry breaking
-        // TODO
-        // if we are not doing structural generalization, just use the evaluator
         Node lemcsu = eval->eval(lem, vs, ms);
         if (lemcsu.isConst() && !lemcsu.getConst<bool>())
         {

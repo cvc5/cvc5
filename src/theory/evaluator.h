@@ -63,6 +63,30 @@ struct EvalResult
   EvalResult(const BitVector& bv) : d_tag(BITVECTOR), d_bv(bv) {}
   EvalResult(const Rational& i) : d_tag(RATIONAL), d_rat(i) {}
   EvalResult(const String& str) : d_tag(STRING), d_str(str) {}
+  EvalResult(Node n) {
+    switch(n.getKind())
+    {
+      case kind::CONST_BOOLEAN:
+        d_tag = BOOL;
+        d_bool = n.getConst<bool>();
+        break;
+      case kind::CONST_RATIONAL:
+        d_tag = RATIONAL;
+        d_rat = n.getConst<Rational>();
+        break;
+      case kind::CONST_STRING:
+        d_tag = STRING;
+        d_str = n.getConst<String>();
+        break;
+      case kind::CONST_BITVECTOR:
+        d_tag = BITVECTOR;
+        d_bv = n.getConst<BitVector>();
+        break;
+      default:
+        d_tag = INVALID;
+        break;
+    }
+  }
 
   EvalResult& operator=(const EvalResult& other);
 
@@ -95,7 +119,13 @@ class Evaluator
   Node eval(TNode n,
             const std::vector<Node>& args,
             const std::vector<Node>& vals) const;
-
+  /** 
+   * Same as above, but with a precomputed visited map.
+   */
+  Node eval(TNode n,
+            const std::vector<Node>& args,
+            const std::vector<Node>& vals,
+            const std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
  private:
   /**
    * Evaluates node `n` under the substitution described by the variable names
@@ -117,7 +147,8 @@ class Evaluator
       TNode n,
       const std::vector<Node>& args,
       const std::vector<Node>& vals,
-      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const;
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const;
   /** reconstruct
    *
    * This function reconstructs the result of evaluating n using a combination

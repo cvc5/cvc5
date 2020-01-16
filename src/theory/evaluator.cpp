@@ -118,10 +118,30 @@ Node Evaluator::eval(TNode n,
                      const std::vector<Node>& args,
                      const std::vector<Node>& vals) const
 {
+  std::unordered_map<Node, Node, NodeHashFunction> visited;
+  return eval(n,args,vals,visited);
+}
+Node Evaluator::eval(TNode n,
+                     const std::vector<Node>& args,
+                     const std::vector<Node>& vals,
+                     const std::unordered_map<Node, Node, NodeHashFunction>& visited) const
+{
   Trace("evaluator") << "Evaluating " << n << " under substitution " << args
                      << " " << vals << std::endl;
   std::unordered_map<TNode, Node, NodeHashFunction> evalAsNode;
-  Node ret = evalInternal(n, args, vals, evalAsNode).toNode();
+  std::unordered_map<TNode, EvalResult, TNodeHashFunction> results;
+  // add visited to results
+  for (const std::pair< const Node, Node >& p : visited )
+  {
+    Assert(p.second.isConst());
+    results[p.first] = EvalResult(p.second);
+    if (results[p.first].d_tag==EvalResult::INVALID)
+    {
+      // can't use it
+      results.erase(p.first);
+    }
+  }
+  Node ret = evalInternal(n, args, vals, evalAsNode, results).toNode();
   // if we failed to evaluate
   if (ret.isNull())
   {
@@ -142,9 +162,9 @@ EvalResult Evaluator::evalInternal(
     TNode n,
     const std::vector<Node>& args,
     const std::vector<Node>& vals,
-    std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const
+    std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
+    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const
 {
-  std::unordered_map<TNode, EvalResult, TNodeHashFunction> results;
   std::vector<TNode> queue;
   queue.emplace_back(n);
   std::unordered_map<TNode, EvalResult, TNodeHashFunction>::iterator itr;
@@ -287,8 +307,9 @@ EvalResult Evaluator::evalInternal(
         // be cached. We could alternatively copy evalAsNode to evalAsNodeC but
         // favor avoiding this copy for performance reasons.
         std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
+        std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
         results[currNode] =
-            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC);
+            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC);
         Trace("evaluator") << "Evaluated via arguments to "
                            << results[currNode].d_tag << std::endl;
         if (results[currNode].d_tag == EvalResult::INVALID)

@@ -124,6 +124,8 @@ class ExampleInfer
   void clearEvaluationCache(Node e, Node bv);
   //----------------------------------- end evaluating terms
  private:
+  void evaluateInternal(
+      Node f, Node e, Node bv, std::vector<Node>& exOut);
   /** collect the PBE examples in n
    * This is called on the input conjecture, and will populate the above
    * vectors, where hasPol/pol denote the polarity of n in the conjecture. This

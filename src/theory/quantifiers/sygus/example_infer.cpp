@@ -268,19 +268,6 @@ bool ExampleInfer::evaluate(
   {
     return false;
   }
-  if (!doCache)
-  {
-    // TODO: use ExampleCache here
-    TypeNode xtn = e.getType();
-    Assert(d_examples.find(f) != d_examples.end());
-    std::vector<std::vector<Node>>& exs = d_examples[f];
-    for (size_t j = 0, esize = exs.size(); j < esize; j++)
-    {
-      Node res = d_tds->evaluateBuiltin(xtn, bv, exs[j]);
-      exOut.push_back(res);
-    }
-    return true;
-  }
   // is it in the cache?
   std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
   std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
@@ -290,11 +277,34 @@ bool ExampleInfer::evaluate(
     return true;
   }
   // get the evaluation
-  evaluate(f, e, bv, exOut, false);
-  // store in cache
-  std::vector<Node>& eocv = eoc[bv];
-  eocv.insert(eocv.end(), exOut.begin(), exOut.end());
+  evaluateInternal(f, e, bv, exOut);
+  // store in cache if necessary
+  if (doCache)
+  {
+    std::vector<Node>& eocv = eoc[bv];
+    eocv.insert(eocv.end(), exOut.begin(), exOut.end());
+  }
   return true;
+}
+
+void ExampleInfer::evaluateInternal(
+    Node f, Node e, Node bv, std::vector<Node>& exOut)
+{
+  // use ExampleCache here
+  TypeNode xtn = e.getType();
+  SygusTypeInfo& ti = d_tds->getTypeInfo(xtn);
+  const std::vector<Node>& varlist = ti.getVarList();
+  ExampleCache ec;
+  ExampleCacheEvalTds ecetds(d_tds,xtn);
+  ec.initialize(bv,varlist,&ecetds);
+  Assert(d_examples.find(f) != d_examples.end());
+  std::vector<std::vector<Node>>& exs = d_examples[f];
+  for (size_t j = 0, esize = exs.size(); j < esize; j++)
+  {
+    Node res = ec.evaluate(exs[j]);
+    //Node res = d_tds->evaluateBuiltin(xtn, bv, exs[j]);
+    exOut.push_back(res);
+  }
 }
 
 Node ExampleInfer::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
