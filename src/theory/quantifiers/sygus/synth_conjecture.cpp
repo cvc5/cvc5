@@ -1327,6 +1327,18 @@ Node SynthConjecture::getSymmetryBreakingPredicate(
   }
 }
 
+ExampleEvalCache * SynthConjecture::getExampleEvalCache( Node e )
+{
+  std::map< Node, std::unique_ptr<ExampleEvalCache> >::iterator it = d_exampleEvalCache.find(e);
+  if (it!=d_exampleEvalCache.end())
+  {
+    return it->second.get();
+  }
+  Node f = d_tds->getSynthFunForEnumerator(e);
+  d_exampleEvalCache[e].reset(new ExampleEvalCache(d_tds, this, f, e));
+  return d_exampleEvalCache[e].get();
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 } /* namespace CVC4 */

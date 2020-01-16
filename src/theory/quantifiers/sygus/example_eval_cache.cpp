@@ -82,7 +82,7 @@ void ExampleEvalCache::evaluateVec(Node bv,
   }
 }
 
-void ExampleEvalCache::evaluateVecInternal(Node bv, std::vector<Node>& exOut)
+void ExampleEvalCache::evaluateVecInternal(Node bv, std::vector<Node>& exOut) const
 {
   // use ExampleMinEval
   SygusTypeInfo& ti = d_tds->getTypeInfo(d_stn);
@@ -97,7 +97,7 @@ void ExampleEvalCache::evaluateVecInternal(Node bv, std::vector<Node>& exOut)
   }
 }
 
-Node ExampleEvalCache::evaluate(Node bn, unsigned i)
+Node ExampleEvalCache::evaluate(Node bn, unsigned i) const
 {
   Assert(i < d_examples.size());
   return d_tds->evaluateBuiltin(d_stn, bn, d_examples[i]);

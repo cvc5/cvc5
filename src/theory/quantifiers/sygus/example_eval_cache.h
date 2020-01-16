@@ -32,11 +32,11 @@ class TermDbSygus;
  * This class caches the evaluation of nodes on a fixed list of examples. It
  * serves two purposes:
  * (1) To maintain a cache of the results of evaluation of nodes so that
- * evaluation is not recomputed.
+ * evaluation is not recomputed, and
  * (2) To maintain a trie of terms indexed by their evaluation on the list
  * of examples to recognize when two terms are equivalent up to examples.
  *
- * A typical use case of this class is the following.
+ * A typical use case of (2) is the following.
  * During search, the extension of quantifier-free datatypes procedure for
  * SyGuS datatypes may ask this class whether current candidates can be
  * discarded based on inferring when two candidate solutions are equivalent
@@ -98,14 +98,14 @@ class ExampleEvalCache
    *   evaluateBuiltin( tn, bn, e, 1 ) = 9
    *   evaluateBuiltin( tn, bn, e, 2 ) = 10
    */
-  Node evaluate(Node bv, unsigned i);
+  Node evaluate(Node bv, unsigned i) const;
   /** clear evaluation cache for bv */
   void clearEvaluationCache(Node bv);
   //----------------------------------- end evaluating terms
 
  private:
   /** Version of evaluateVec that does not do caching */
-  void evaluateVecInternal(Node bv, std::vector<Node>& exOut);
+  void evaluateVecInternal(Node bv, std::vector<Node>& exOut) const;
   /** Pointer to the sygus term database */
   TermDbSygus* d_tds;
   /** pointer to the example inference class */
