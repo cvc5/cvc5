@@ -449,6 +449,15 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
         terms, enum_values, d_candidates, candidate_values, lems);
+    // now clear the evaluation caches
+    for (std::pair<const Node, std::unique_ptr<ExampleEvalCache> >& ecp : d_exampleEvalCache )
+    {
+      ExampleEvalCache * eec = ecp.second.get();
+      if (eec!=nullptr)
+      {
+        eec->clearEvaluationAll();
+      }
+    }
   }
 
   NodeManager* nm = NodeManager::currentNM();

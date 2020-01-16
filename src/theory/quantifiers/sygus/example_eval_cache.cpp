@@ -60,6 +60,7 @@ Node ExampleEvalCache::addSearchVal(Node bv)
   // be cleared now.
   if (ret != bv)
   {
+    // immediately clear it
     Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
     clearEvaluationCache(bv);
   }
@@ -112,6 +113,7 @@ Node ExampleEvalCache::evaluate(Node bn, unsigned i) const
 
 void ExampleEvalCache::clearEvaluationCache(Node bv)
 {
+  Assert(d_exOutCache.find(bv)!=d_exOutCache.end());
   d_exOutCache.erase(bv);
 }
 

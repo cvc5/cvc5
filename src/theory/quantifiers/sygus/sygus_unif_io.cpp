@@ -562,6 +562,10 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   // compte the results (should be cached)
   ExampleEvalCache * eec = d_parent->getExampleEvalCache(e);
   Assert( eec!=nullptr);
+  // Evaluate, which should be cached (assuming we have performed example-based
+  // symmetry breaking on bv). Moreover don't cache the result in the case it
+  // is not there already, since we won't need this evaluation anywhere outside
+  // of this class.
   eec->evaluateVec(bv,base_results);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;

@@ -595,8 +595,7 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
       std::vector<Node> msProc;
       Node bmsi = d_tds->sygusToBuiltin(ms[i]);
       ei->getExampleTerms(f, vsProc);
-      eec->evaluateVec(bmsi, msProc, true);
-      eec->clearEvaluationCache(bmsi);
+      eec->evaluateVec(bmsi, msProc);
       Assert(vsProc.size() == msProc.size());
       for (unsigned j = 0, psize = vsProc.size(); j < psize; j++)
       {
