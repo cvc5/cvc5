@@ -199,7 +199,7 @@ EvalResult Evaluator::evalInternal(
     {
       TNode op = currNode.getOperator();
       // Certain nodes are parameterized with constant operators, including
-      // bitvector extract.
+      // bitvector extract. These operators do not need to be evaluated.
       if (!op.isConst())
       {
         itr = results.find(op);
