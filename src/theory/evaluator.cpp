@@ -198,15 +198,20 @@ EvalResult Evaluator::evalInternal(
     if (currNode.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       TNode op = currNode.getOperator();
-      itr = results.find(op);
-      if (itr == results.end())
+      // Certain nodes are parameterized with constant operators, including
+      // bitvector extract.
+      if (!op.isConst())
       {
-        queue.emplace_back(op);
-        doProcess = false;
-      }
-      else if (itr->second.d_tag == EvalResult::INVALID)
-      {
-        doEval = false;
+        itr = results.find(op);
+        if (itr == results.end())
+        {
+          queue.emplace_back(op);
+          doProcess = false;
+        }
+        else if (itr->second.d_tag == EvalResult::INVALID)
+        {
+          doEval = false;
+        }
       }
     }
     for (const auto& currNodeChild : currNode)
