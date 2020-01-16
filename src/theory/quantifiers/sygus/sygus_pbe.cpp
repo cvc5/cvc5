@@ -47,12 +47,6 @@ bool SygusPbe::initialize(Node conj,
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
 
-  ExampleInfer* ei = d_parent->getExampleInfer();
-  for (const Node& c : candidates)
-  {
-    d_sygus_unif[c].initializeExamples(c, ei);
-  }
-
   if (!options::sygusUnifPbe())
   {
     // we are not doing unification
@@ -60,6 +54,7 @@ bool SygusPbe::initialize(Node conj,
   }
 
   // check if all candidates are valid examples
+  ExampleInfer * ei = d_parent->getExampleInfer();
   d_is_pbe = true;
   for (const Node& c : candidates)
   {
@@ -73,10 +68,11 @@ bool SygusPbe::initialize(Node conj,
   for (const Node& c : candidates)
   {
     Assert(ei->hasExamples(c));
+    d_sygus_unif[c].reset(new SygusUnifIo(d_parent));
     Trace("sygus-pbe") << "Initialize unif utility for " << c << "..."
                        << std::endl;
     std::map<Node, std::vector<Node>> strategy_lemmas;
-    d_sygus_unif[c].initializeCandidate(
+    d_sygus_unif[c]->initializeCandidate(
         d_qe, c, d_candidate_to_enum[c], strategy_lemmas);
     Assert(!d_candidate_to_enum[c].empty());
     Trace("sygus-pbe") << "Initialize " << d_candidate_to_enum[c].size()
@@ -274,7 +270,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       Assert(d_enum_to_candidate.find(e) != d_enum_to_candidate.end());
       Node c = d_enum_to_candidate[e];
       std::vector<Node> enum_lems;
-      d_sygus_unif[c].notifyEnumeration(e, v, enum_lems);
+      d_sygus_unif[c]->notifyEnumeration(e, v, enum_lems);
       if (!enum_lems.empty())
       {
         // the lemmas must be guarded by the active guard of the enumerator
@@ -292,7 +288,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     Node c = candidates[i];
     //build decision tree for candidate
     std::vector<Node> sol;
-    if (d_sygus_unif[c].constructSolution(sol, lems))
+    if (d_sygus_unif[c]->constructSolution(sol, lems))
     {
       Assert(sol.size() == 1);
       candidate_values.push_back(sol[0]);

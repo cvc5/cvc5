@@ -185,7 +185,7 @@ class SygusPbe : public SygusModule
    * the core algorithm (e.g. decision tree learning) that this module relies
    * upon.
    */
-  std::map<Node, SygusUnifIo> d_sygus_unif;
+  std::map<Node, std::unique_ptr<SygusUnifIo> > d_sygus_unif;
   /**
    * map from candidates to the list of enumerators that are being used to
    * build solutions for that candidate by the above utility.

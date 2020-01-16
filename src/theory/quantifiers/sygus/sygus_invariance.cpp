@@ -151,9 +151,11 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
     {
       bool ex_equiv = true;
       ExampleInfer* ei = d_conj->getExampleInfer();
+      ExampleEvalCache * eec = d_conj->getExampleEvalCache(d_enum);
       for (unsigned j = 0; j < d_exo.size(); j++)
       {
         Node nbvr_ex = ei->evaluateBuiltin(tn, nbvr, d_enum, j);
+        // Node nbvr_ex = eec->evaluate(nbvr,j);
         if (nbvr_ex != d_exo[j])
         {
           ex_equiv = false;

@@ -243,15 +243,13 @@ class SubsumeTrie
                          int status);
 };
 
+class SynthConjecture;
 class ExampleInfer;
 
 /** Sygus unification I/O utility
  *
  * This class implement synthesis-by-unification, where the specification is
- * I/O examples. With respect to SygusUnif, it's main additional function is
- * initializeExamples, which adds all I/O examples for a function f to the
- * specification. Initializing this class requires both a call to
- * initialize and initializeExamples (for the same f).
+ * I/O examples.
  *
  * Since I/O specifications for multiple functions can be fully separated, we
  * assume that this class is used only for a single function to synthesize.
@@ -267,19 +265,9 @@ class SygusUnifIo : public SygusUnif
   friend class UnifContextIo;
 
  public:
-  SygusUnifIo();
+  SygusUnifIo(SynthConjecture* p);
   ~SygusUnifIo();
 
-  /** Initialize examples
-   *
-   * This initializes the examples managed by this class.
-   * In particular, this class will use the examples associated with a
-   * function-to-synthesize f.  The argument ei is the utility that has
-   * computed the examples associated with f.  In particular, this utility
-   * has computed whether there is a finite list of relevant input vectors
-   * of f, and whether those inputs have an associated output.
-   */
-  void initializeExamples(Node f, ExampleInfer* ei);
   /** initialize
    *
    * This initializes this class for solving PBE conjectures for
@@ -301,10 +289,12 @@ class SygusUnifIo : public SygusUnif
                          std::vector<Node>& lemmas) override;
  protected:
   /**
-   * Pointer to the example inference utility, which is used for computing
-   * the feature vectors of terms.
+   * Pointer to the example evaluation cache utility, which is used for
+   * computing the feature vectors of terms.
    */
   ExampleInfer* d_exi;
+  /** The synthesis conjecture */
+  SynthConjecture* d_parent;
   /** the function-to-synthesize */
   Node d_candidate;
   /**
