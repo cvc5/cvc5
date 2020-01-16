@@ -18,9 +18,10 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__EXAMPLE_MIN_EVAL_H
 #define CVC4__THEORY__QUANTIFIERS__EXAMPLE_MIN_EVAL_H
 
+#include <vector>
+
+#include "expr/node.h"
 #include "expr/node_trie.h"
-#include "theory/evaluator.h"
-#include "theory/quantifiers/sygus/example_infer.h"
 
 namespace CVC4 {
 namespace theory {
