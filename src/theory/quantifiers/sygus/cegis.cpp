@@ -587,7 +587,8 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
   for (unsigned i = 0, vsize = vs.size(); i < vsize; i++)
   {
     Node f = vs[i];
-    if (ei->hasExamples(f))
+    ExampleEvalCache * eec = d_parent->getExampleEvalCache(f);
+    if (eec!=nullptr)
     {
       // get the results we obtained through the example evaluation utility
       std::vector<Node> vsProc;
@@ -596,6 +597,8 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
       ei->getExampleTerms(f, vsProc);
       ei->evaluate(f, f, bmsi, msProc);
       ei->clearEvaluationCache(f, bmsi);
+      //eec->evaluateVec(bmsi, msProc);
+      //eec->clearEvaluationCache(bmsi);
       Assert(vsProc.size() == msProc.size());
       for (unsigned j = 0, psize = vsProc.size(); j < psize; j++)
       {

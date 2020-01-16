@@ -1061,135 +1061,134 @@ Node SygusExtension::registerSearchValue(Node a,
 #if 0
           // If the enumerator has examples, see if it is equivalent up to its
           // examples with a previous term.
-          ExampleEvalCache * eec = aconj->getExampleEvalCache(a);
+          quantifiers::ExampleEvalCache * eec = aconj->getExampleEvalCache(a);
           if (eec!=nullptr)
           {
             bvr_equiv = eec->addSearchVal(bvr);
           }
-        }
 #else
           Node f = d_tds->getSynthFunForEnumerator(a);
           if (aconj->getExampleInfer()->hasExamples(f))
           {
             bvr_equiv = aconj->getPbe()->addSearchVal(tn, a, bvr);
+          }
 #endif
         }
-      }
-      if (!bvr_equiv.isNull())
-      {
-        if (bvr_equiv != bvr)
+        if (!bvr_equiv.isNull())
         {
-          Trace("sygus-sb-debug") << "......adding search val for " << bvr
-                                  << " returned " << bvr_equiv << std::endl;
-          Assert(d_cache[a].d_search_val[tn].find(bvr_equiv)
-                 != d_cache[a].d_search_val[tn].end());
-          Trace("sygus-sb-debug")
-              << "......search value was "
-              << d_cache[a].d_search_val[tn][bvr_equiv] << std::endl;
-          if (Trace.isOn("sygus-sb-exc"))
+          if (bvr_equiv != bvr)
           {
-            Node prev = d_tds->sygusToBuiltin(
-                d_cache[a].d_search_val[tn][bvr_equiv], tn);
-            Trace("sygus-sb-exc")
-                << "  ......programs " << prev << " and " << bv
-                << " are equivalent up to examples." << std::endl;
+            Trace("sygus-sb-debug") << "......adding search val for " << bvr
+                                    << " returned " << bvr_equiv << std::endl;
+            Assert(d_cache[a].d_search_val[tn].find(bvr_equiv)
+                  != d_cache[a].d_search_val[tn].end());
+            Trace("sygus-sb-debug")
+                << "......search value was "
+                << d_cache[a].d_search_val[tn][bvr_equiv] << std::endl;
+            if (Trace.isOn("sygus-sb-exc"))
+            {
+              Node prev = d_tds->sygusToBuiltin(
+                  d_cache[a].d_search_val[tn][bvr_equiv], tn);
+              Trace("sygus-sb-exc")
+                  << "  ......programs " << prev << " and " << bv
+                  << " are equivalent up to examples." << std::endl;
+            }
+            bad_val_bvr = bvr_equiv;
+            by_examples = true;
           }
-          bad_val_bvr = bvr_equiv;
-          by_examples = true;
         }
+        // store rewritten values, regardless of whether it will be considered
+        d_cache[a].d_search_val[tn][bvr] = nv;
+        d_cache[a].d_search_val_sz[tn][bvr] = sz;
       }
-      // store rewritten values, regardless of whether it will be considered
-      d_cache[a].d_search_val[tn][bvr] = nv;
-      d_cache[a].d_search_val_sz[tn][bvr] = sz;
-    }
-    else
-    {
-      bad_val_bvr = bvr;
-      if (Trace.isOn("sygus-sb-exc"))
+      else
       {
-        Node prev_bv = d_tds->sygusToBuiltin(itsv->second, tn);
-        Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv
-                              << " rewrite to " << bvr << "." << std::endl;
-      }
-    }
-
-    if (options::sygusRewVerify())
-    {
-      if (bv != bvr)
-      {
-        // add to the sampler database object
-        std::map<TypeNode, quantifiers::SygusSampler>::iterator its =
-            d_sampler[a].find(tn);
-        if (its == d_sampler[a].end())
-        {
-          d_sampler[a][tn].initializeSygus(
-              d_tds, nv, options::sygusSamples(), false);
-          its = d_sampler[a].find(tn);
-        }
-        // check equivalent
-        its->second.checkEquivalent(bv, bvr);
-      }
-    }
-
-    if (!bad_val_bvr.isNull())
-    {
-      Node bad_val = nv;
-      Node bad_val_o = d_cache[a].d_search_val[tn][bad_val_bvr];
-      Assert(d_cache[a].d_search_val_sz[tn].find(bad_val_bvr)
-             != d_cache[a].d_search_val_sz[tn].end());
-      unsigned prev_sz = d_cache[a].d_search_val_sz[tn][bad_val_bvr];
-      bool doFlip = (prev_sz > sz);
-      if (doFlip)
-      {
-        // swap : the excluded value is the previous
-        d_cache[a].d_search_val_sz[tn][bad_val_bvr] = sz;
-        bad_val = d_cache[a].d_search_val[tn][bad_val_bvr];
-        bad_val_o = nv;
+        bad_val_bvr = bvr;
         if (Trace.isOn("sygus-sb-exc"))
         {
-          Trace("sygus-sb-exc") << "Flip : exclude ";
-          quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val);
-          Trace("sygus-sb-exc") << " instead of ";
-          quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val_o);
-          Trace("sygus-sb-exc")
-              << ", since its size is " << sz << " < " << prev_sz << std::endl;
+          Node prev_bv = d_tds->sygusToBuiltin(itsv->second, tn);
+          Trace("sygus-sb-exc") << "  ......programs " << prev_bv << " and " << bv
+                                << " rewrite to " << bvr << "." << std::endl;
         }
-        sz = prev_sz;
       }
-      if (Trace.isOn("sygus-sb-exc"))
+
+      if (options::sygusRewVerify())
       {
-        Node bad_val_bv = d_tds->sygusToBuiltin(bad_val, tn);
-        Trace("sygus-sb-exc") << "  ........exclude : " << bad_val_bv;
-        if (by_examples)
+        if (bv != bvr)
         {
-          Trace("sygus-sb-exc") << " (by examples)";
+          // add to the sampler database object
+          std::map<TypeNode, quantifiers::SygusSampler>::iterator its =
+              d_sampler[a].find(tn);
+          if (its == d_sampler[a].end())
+          {
+            d_sampler[a][tn].initializeSygus(
+                d_tds, nv, options::sygusSamples(), false);
+            its = d_sampler[a].find(tn);
+          }
+          // check equivalent
+          its->second.checkEquivalent(bv, bvr);
         }
-        Trace("sygus-sb-exc") << std::endl;
       }
-      Assert(d_tds->getSygusTermSize(bad_val) == sz);
 
-      // generalize the explanation for why the analog of bad_val
-      // is equivalent to bvr
-      quantifiers::EquivSygusInvarianceTest eset;
-      eset.init(d_tds, tn, aconj, a, bvr);
-
-      Trace("sygus-sb-mexp-debug")
-          << "Minimize explanation for eval[" << d_tds->sygusToBuiltin(bad_val)
-          << "] = " << bvr << std::endl;
-      registerSymBreakLemmaForValue(
-          a, bad_val, eset, bad_val_o, var_count, lemmas);
-
-      // other generalization criteria go here
-
-      // If the exclusion was flipped, we are excluding a previous value
-      // instead of the current one. Hence, the current value is a legal
-      // value that we will consider.
-      if (!doFlip)
+      if (!bad_val_bvr.isNull())
       {
-        return Node::null();
+        Node bad_val = nv;
+        Node bad_val_o = d_cache[a].d_search_val[tn][bad_val_bvr];
+        Assert(d_cache[a].d_search_val_sz[tn].find(bad_val_bvr)
+              != d_cache[a].d_search_val_sz[tn].end());
+        unsigned prev_sz = d_cache[a].d_search_val_sz[tn][bad_val_bvr];
+        bool doFlip = (prev_sz > sz);
+        if (doFlip)
+        {
+          // swap : the excluded value is the previous
+          d_cache[a].d_search_val_sz[tn][bad_val_bvr] = sz;
+          bad_val = d_cache[a].d_search_val[tn][bad_val_bvr];
+          bad_val_o = nv;
+          if (Trace.isOn("sygus-sb-exc"))
+          {
+            Trace("sygus-sb-exc") << "Flip : exclude ";
+            quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val);
+            Trace("sygus-sb-exc") << " instead of ";
+            quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc", bad_val_o);
+            Trace("sygus-sb-exc")
+                << ", since its size is " << sz << " < " << prev_sz << std::endl;
+          }
+          sz = prev_sz;
+        }
+        if (Trace.isOn("sygus-sb-exc"))
+        {
+          Node bad_val_bv = d_tds->sygusToBuiltin(bad_val, tn);
+          Trace("sygus-sb-exc") << "  ........exclude : " << bad_val_bv;
+          if (by_examples)
+          {
+            Trace("sygus-sb-exc") << " (by examples)";
+          }
+          Trace("sygus-sb-exc") << std::endl;
+        }
+        Assert(d_tds->getSygusTermSize(bad_val) == sz);
+
+        // generalize the explanation for why the analog of bad_val
+        // is equivalent to bvr
+        quantifiers::EquivSygusInvarianceTest eset;
+        eset.init(d_tds, tn, aconj, a, bvr);
+
+        Trace("sygus-sb-mexp-debug")
+            << "Minimize explanation for eval[" << d_tds->sygusToBuiltin(bad_val)
+            << "] = " << bvr << std::endl;
+        registerSymBreakLemmaForValue(
+            a, bad_val, eset, bad_val_o, var_count, lemmas);
+
+        // other generalization criteria go here
+
+        // If the exclusion was flipped, we are excluding a previous value
+        // instead of the current one. Hence, the current value is a legal
+        // value that we will consider.
+        if (!doFlip)
+        {
+          return Node::null();
+        }
       }
     }
-  }
   }
   return nv;
 }
