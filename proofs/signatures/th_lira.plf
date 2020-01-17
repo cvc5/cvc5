@@ -33,7 +33,7 @@
     ((u-_Int x) (u-_Real (reify_int_term x)))
     ((*_Int x y) (*_Real (reify_int_term x) (reify_int_term y)))
     ; Reifying integer division is an error, since it changes the value!
-    ((/_Int x y) (fail Real))
+    ((/_Int x y) (fail (term Real)))
   ))
 
 ; This function recursively converts a real term to a real term.
@@ -52,3 +52,21 @@
     ((/_Real x y) (/_Real (reify_real_term x) (reify_real_term y)))
   ))
 
+; Predicates of the form (term Integer) >= (term Real) or negations thereof
+(declare >=_IntReal (! x (term Int) (! y (term Real) formula)))
+
+; From an arith predicate, compute the equivalent real predicate
+; All arith predicates are (possibly negated) >='s with a real on the right.
+; Technically it's a real literal on the right, but we don't assume that here.
+(program reify_arith_pred ((p formula)) formula
+  (match p
+         ((not p') (match p'
+                          ((>=_Real x y) (not (>=_Real (reify_real_term x) (reify_real_term y))))
+                          ((>=_Int x y) (not (>=_Real (reify_int_term x) (reify_int_term y))))
+                          ((>=_IntReal x y) (not (>=_Real (reify_int_term x) (reify_real_term y))))
+                          (default (fail formula))))
+         ((>=_Real x y) (>=_Real (reify_real_term x) (reify_real_term y)))
+         ((>=_Int x y) (>=_Real (reify_int_term x) (reify_int_term y)))
+         ((>=_IntReal x y) (>=_Real (reify_int_term x) (reify_real_term y)))
+         (default (fail formula))
+         ))
