@@ -766,6 +766,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     checkSol.setLogic(smt::currentSmtEngine()->getLogicInfo());
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
     std::vector<Node> rasserts = asserts;
+    rasserts.push_back(d_sc);
     rasserts.push_back(ccheck.getFormula());
     std::shuffle(rasserts.begin(), rasserts.end(), Random::getRandom());
     Node query = rasserts.size() == 1 ? rasserts[0] : nm->mkNode(AND, rasserts);
@@ -775,12 +776,12 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     }
     Result r = checkSol.checkSat();
     Trace("sygus-ccore") << "----- check-sat returned " << r << std::endl;
-    // In terms of Variant #2, this is the check "if D => B"
+    // In terms of Variant #2, this is the check "if (S ^ D) => B"
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
       // it entails the postcondition, now get the unsat core
       // In terms of Variant #2, this is the line
-      //   "Let U be a subset of D such that U ^ ~B is unsat."
+      //   "Let U be a subset of D such that S ^ U ^ ~B is unsat."
       // and uasserts is set to U.
       std::vector<Node> uasserts;
       bool hasQuery = getUnsatCore(checkSol, ccheck.getFormula(), uasserts);

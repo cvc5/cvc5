@@ -139,8 +139,8 @@ class VariadicTrie
  *   {
  *     D += { d' }
  *     if D is false for all v in pts(B)
- *       if D => B
- *         Let U be a subset of D such that U ^ ~B is unsat.
+ *       if (S ^ D) => B
+ *         Let U be a subset of D such that S ^ U ^ ~B is unsat.
  *         if S ^ U is unsat
  *           Let W be a subset of D such that S ^ W is unsat.
  *             cores(B) += W
