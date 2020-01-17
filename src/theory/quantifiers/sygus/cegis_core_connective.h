@@ -341,9 +341,10 @@ class CegisCoreConnective : public Cegis
    * of the formulas in queryAsserts was in the unsat core, then this method
    * returns true. Otherwise, this method returns false.
    */
-  bool getUnsatCore(SmtEngine& smt,
-                    const std::unordered_set<Node, NodeHashFunction>& queryAsserts,
-                    std::vector<Node>& uasserts) const;
+  bool getUnsatCore(
+      SmtEngine& smt,
+      const std::unordered_set<Node, NodeHashFunction>& queryAsserts,
+      std::vector<Node>& uasserts) const;
   /**
    * Return the result of checking satisfiability of formula n.
    * If n was satisfiable, then we store the model for d_vars in mvs.

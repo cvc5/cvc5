@@ -603,9 +603,10 @@ void CegisCoreConnective::getModel(SmtEngine& smt,
   }
 }
 
-bool CegisCoreConnective::getUnsatCore(SmtEngine& smt,
-                                       const std::unordered_set<Node, NodeHashFunction>& queryAsserts,
-                                       std::vector<Node>& uasserts) const
+bool CegisCoreConnective::getUnsatCore(
+    SmtEngine& smt,
+    const std::unordered_set<Node, NodeHashFunction>& queryAsserts,
+    std::vector<Node>& uasserts) const
 {
   UnsatCore uc = smt.getUnsatCore();
   bool hasQuery = false;
@@ -613,7 +614,7 @@ bool CegisCoreConnective::getUnsatCore(SmtEngine& smt,
   {
     Node uassert = Node::fromExpr(*i);
     Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
-    if (queryAsserts.find(uassert)!=queryAsserts.end())
+    if (queryAsserts.find(uassert) != queryAsserts.end())
     {
       hasQuery = true;
       continue;
@@ -784,7 +785,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       //   "Let U be a subset of D such that S ^ U ^ ~B is unsat."
       // and uasserts is set to U.
       std::vector<Node> uasserts;
-      std::unordered_set< Node, NodeHashFunction > queryAsserts;
+      std::unordered_set<Node, NodeHashFunction> queryAsserts;
       queryAsserts.insert(ccheck.getFormula());
       queryAsserts.insert(d_sc);
       bool hasQuery = getUnsatCore(checkSol, queryAsserts, uasserts);
@@ -822,7 +823,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
             //   "Let W be a subset of D such that S ^ W is unsat."
             // and uasserts is set to W.
             uasserts.clear();
-            std::unordered_set< Node, NodeHashFunction > queryAsserts;
+            std::unordered_set<Node, NodeHashFunction> queryAsserts;
             queryAsserts.insert(d_sc);
             getUnsatCore(checkSc, queryAsserts, uasserts);
             falseCore = true;
