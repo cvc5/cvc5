@@ -1,0 +1,54 @@
+; Depends on th_real.plf, th_int.plf, smt.plf, sat.plf
+
+; Types for arithmetic variables
+; Specifically a real
+(declare real_var type)
+; Specifically an integer
+(declare int_var type)
+
+; Functions to map them to terms
+(declare term_real_var (! v real_var (term Real)))
+(declare term_int_var (! v int_var (term Int)))
+
+; A function to cast an integer term to real.
+(declare term_int_to_real (! i (term Int) (term Real)))
+
+
+; The recursive functions `reify_int_term` and `reify_real_term` work
+; together to  reify or "make real" an integer term. That is, to convert it to
+; a real term.  More precisely, they take an integer term and return a real
+; term in which any integer variables are immediately converted to real terms,
+; and all non-leaves in the term are real-sorted.
+;
+; They explicitly do not work on integer division, because such a conversion
+; would not be correct when integer division is involved.
+
+; This function recursively converts an integer term to a real term.
+(program reify_int_term ((t (term Int))) (term Real)
+  (match t
+    ((term_int_var v) (term_int_to_real (term_int_var v)))
+    ((a_int i) (a_real (mpz_to_mpq i)))
+    ((+_Int x y) (+_Real (reify_int_term x) (reify_int_term y)))
+    ((-_Int x y) (-_Real (reify_int_term x) (reify_int_term y)))
+    ((u-_Int x) (u-_Real (reify_int_term x)))
+    ((*_Int x y) (*_Real (reify_int_term x) (reify_int_term y)))
+    ; Reifying integer division is an error, since it changes the value!
+    ((/_Int x y) (fail Real))
+  ))
+
+; This function recursively converts a real term to a real term.
+; It will never change the top-level node in the term (since that node is
+; real), but it may change subterms...
+(program reify_real_term ((t (term Real))) (term Real)
+  (match t
+    ((term_real_var v) (term_real_var v))
+    ((a_real v) (a_real v))
+    ; We've found an integer term -- reify it!
+    ((term_int_to_real t') (reify_int_term t'))
+    ((+_Real x y) (+_Real (reify_real_term x) (reify_real_term y)))
+    ((-_Real x y) (-_Real (reify_real_term x) (reify_real_term y)))
+    ((u-_Real x) (u-_Real (reify_real_term x)))
+    ((*_Real x y) (*_Real (reify_real_term x) (reify_real_term y)))
+    ((/_Real x y) (/_Real (reify_real_term x) (reify_real_term y)))
+  ))
+
