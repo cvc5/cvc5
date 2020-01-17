@@ -337,9 +337,10 @@ class CegisCoreConnective : public Cegis
    * Assuming smt has just been called to check-sat and returned "UNSAT", this
    * method get the unsat core and adds it to uasserts.
    *
-   * The assertions in queryAsserts, are excluded from uasserts. If one
-   * of the formulas in queryAsserts was in the unsat core, then this method
-   * returns true. Otherwise, this method returns false.
+   * The assertions in the argument queryAsserts (which we are not interested
+   * in tracking in the unsat core) are excluded from uasserts.
+   * If one of the formulas in queryAsserts was in the unsat core, then this
+   * method returns true. Otherwise, this method returns false.
    */
   bool getUnsatCore(
       SmtEngine& smt,
