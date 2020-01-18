@@ -60,11 +60,7 @@
 ; Technically it's a real literal on the right, but we don't assume that here.
 (program reify_arith_pred ((p formula)) formula
   (match p
-         ((not p') (match p'
-                          ((>=_Real x y) (not (>=_Real (reify_real_term x) (reify_real_term y))))
-                          ((>=_Int x y) (not (>=_Real (reify_int_term x) (reify_int_term y))))
-                          ((>=_IntReal x y) (not (>=_Real (reify_int_term x) (reify_real_term y))))
-                          (default (fail formula))))
+         ((not p') (not (reify_arith_pred p)))
          ((>=_Real x y) (>=_Real (reify_real_term x) (reify_real_term y)))
          ((>=_Int x y) (>=_Real (reify_int_term x) (reify_int_term y)))
          ((>=_IntReal x y) (>=_Real (reify_int_term x) (reify_real_term y)))
