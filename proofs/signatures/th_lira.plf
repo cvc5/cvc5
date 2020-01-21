@@ -1,5 +1,12 @@
 ; Depends on th_real.plf, th_int.plf, smt.plf, sat.plf
 
+; Some axiom arguments are marked "; Omit", because they can be deduced from
+; other arguments and should be replaced with a "_" when invoking the axiom.
+
+;; ====================================== ;;
+;; Arith Terms, Predicates, & Conversions ;;
+;; ====================================== ;;
+
 ; Types for arithmetic variables
 ; Specifically a real
 (declare real_var type)
@@ -66,3 +73,122 @@
          ((>=_IntReal x y) (>=_Real (reify_int_term x) (reify_real_term y)))
          (default (fail formula))
          ))
+
+; From an arith predicate, prove the equivalent real predicate
+(declare pf_reified_arith_pred
+  (! p formula
+  (! p' formula
+    (! pf (th_holds p)
+      (! reify_sc (^ (reify_arith_pred p) p')
+         (th_holds p'))))))
+
+;; ========================== ;;
+;; Int Bound Tightening Rules ;;
+;; ========================== ;;
+
+; Returns whether `ceil` is the ceiling of `q`.
+(program is_ceil ((q mpq) (ceil mpz)) bool
+  (let diff (mp_add (mpz_to_mpq ceil) (mp_neg q))
+    (mp_ifneg diff
+              ff
+              (mp_ifneg (mp_add diff (~ 1/1))
+                        tt
+                        ff))))
+
+; Returns whether `n` is the greatest integer less than `q`.
+(program is_greatest_integer_below ((n mpz) (q mpq)) bool
+  (is_ceil q (mp_add n 1)))
+
+
+; Negates terms of the form:
+; (a) k     OR
+; (b) x     OR
+; (c) k * x
+; where k is a constant and x is a variable.
+; Otherwise fails.
+; This aligns closely with the LFSCArithProof::printLinearMonomialNormalizer
+; function.
+(program negate_linear_monomial_int_term ((t (term Int))) (term Int)
+  (match t
+    ((term_int_var v) (*_Int (a_int (~ 1)) (term_int_var v)))
+    ((a_int k) (a_int (mp_neg k)))
+    ((*_Int x y)
+     (match x
+            ((a_int k)
+             (match y
+                    ((term_int_var v) (*_Int (a_int (mp_neg k)) y))
+                    (default (fail (term Int)))))
+            (default (fail (term Int)))))
+    (default (fail (term Int)))
+  ))
+
+; This function negates linear interger terms---sums of terms of the form
+; recognized by `negate_linear_monomial_int_term`.
+(program negate_linear_int_term ((t (term Int))) (term Int)
+  (match t
+    ((term_int_var v) (negate_linear_monomial_int_term t))
+    ((a_int i) (negate_linear_monomial_int_term t))
+    ((+_Int x y) (+_Int (negate_linear_int_term x) (negate_linear_int_term y)))
+    ((*_Int x y) (negate_linear_monomial_int_term t))
+    (default (fail (term Int)))
+  ))
+
+; Statement that z is the negation of greatest integer less than q.
+(declare holds_neg_of_greatest_integer_below
+  (! z mpz
+  (! q mpq
+    type)))
+
+; For proving statements of the above form.
+(declare check_neg_of_greatest_integer_below
+  (! z mpz
+  (! q mpq
+    (! sc_check (^ (is_greatest_integer_below (mp_neg z) q) tt)
+       (holds_neg_of_greatest_integer_below z q)))))
+
+; Axiom for tightening [Int] < q into -[Int] >= -greatest_int_below(q).
+; Note that [Int] < q is actually not([Int] >= q)
+(declare tighten_not_>=_IntReal
+  (! t       (term Int)  ; Omit
+  (! neg_t   (term Int)  ; Omit
+  (! real_bound mpq    ; Omit
+  (! neg_int_bound mpz ; Omit
+    (! pf_step (holds_neg_of_greatest_integer_below neg_int_bound real_bound)
+    (! pf_real_bound (th_holds (not (>=_IntReal t (a_real real_bound))))
+      (! sc_neg (^ (negate_linear_int_term t) neg_t)
+        (th_holds (>=_IntReal neg_t (term_int_to_real (a_int neg_int_bound))))))))))))
+
+; Axiom for tightening [Int] >= q into [Int] >= ceil(q)
+(declare tighten_>=_IntReal
+  (! t       (term Int)   ; Omit
+  (! real_bound mpq     ; Omit
+    (! int_bound mpz
+    (! pf_real_bound (th_holds (>=_IntReal t (a_real real_bound)))
+      (! sc_floor (^ (is_ceil real_bound int_bound) tt)
+        (th_holds (>=_IntReal t (term_int_to_real (a_int int_bound))))))))))
+
+; Statement that z is the greatest integer less than z'.
+(declare holds_neg_of_greatest_integer_below_int
+  (! z mpz
+  (! z' mpz
+    type)))
+
+; For proving statements of the above form.
+(declare check_neg_of_greatest_integer_below_int
+  (! z mpz
+  (! z' mpz
+    (! sc_check (^ (is_greatest_integer_below (mp_neg z) (mpz_to_mpq z')) tt)
+       (holds_neg_of_greatest_integer_below_int z z')))))
+
+; Axiom for tightening [Int] < i into -[Int] >= -(i - 1).
+; Note that [Int] < i is actually not([Int] >= i)
+(declare tighten_not_>=_IntInt
+  (! t       (term Int)  ; Omit
+  (! neg_t   (term Int)  ; Omit
+  (! old_bound     mpz ; Omit
+  (! neg_int_bound mpz ; Omit
+    (! pf_step (holds_neg_of_greatest_integer_below_int neg_int_bound old_bound)
+    ; Note that even when the RHS is an integer, we convert it to real and use >_IntReal
+    (! pf_real_bound (th_holds (not (>=_IntReal t (term_int_to_real (a_int old_bound)))))
+      (! sc_neg (^ (negate_linear_int_term t) neg_t)
+        (th_holds (>=_IntReal neg_t (term_int_to_real (a_int neg_int_bound))))))))))))
