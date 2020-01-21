@@ -288,7 +288,7 @@ inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
     result << nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z);
   }
   // avoid plus with one child
-  if (result.getNumChildren() == 1)
+  if (size == 1)
   {
     return result.getChild(0);
   }
