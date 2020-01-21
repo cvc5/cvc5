@@ -568,7 +568,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   unres_types.push_back(unres_bt);
   type_to_unres[btype] = unres_bt;
   sygus_to_builtin[unres_bt] = btype;
-  
+
   // We ensure an ordering on types such that parametric types are processed
   // before their consitituents. Since parametric types were added before their
   // arguments in collectSygusGrammarTypesFor above, we will construct the
@@ -876,7 +876,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   }
   std::map<TypeNode, unsigned>::iterator itgat;
   // initialize the datatypes (except for the last one, reserved for Bool)
-  for (unsigned i = 0, size = types.size()-1; i < size; ++i)
+  for (unsigned i = 0, size = types.size() - 1; i < size; ++i)
   {
     sdts[i].d_sdt.initializeDatatype(types[i], bvl, true, true);
     Trace("sygus-grammar-def")
@@ -1144,7 +1144,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     sdtBool.addConstructor(consts[i], ss.str(), cargsEmpty);
   }
   // add predicates for non-Boolean types
-  for (unsigned i = 0, size = types.size()-1; i < size; ++i)
+  for (unsigned i = 0, size = types.size() - 1; i < size; ++i)
   {
     if (!types[i].isFirstClass())
     {
