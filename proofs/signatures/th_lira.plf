@@ -129,13 +129,13 @@
     (default (fail (term Int)))
   ))
 
-; Statement that z is the greatest integer less than q.
+; Statement that z is the negation of greatest integer less than q.
 (declare holds_neg_of_greatest_integer_below
   (! z mpz
   (! q mpq
     type)))
 
-; For proving tstatements of the above form.
+; For proving statements of the above form.
 (declare check_neg_of_greatest_integer_below
   (! z mpz
   (! q mpq
