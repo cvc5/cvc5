@@ -192,3 +192,94 @@
     (! pf_real_bound (th_holds (not (>=_IntReal t (term_int_to_real (a_int old_bound)))))
       (! sc_neg (^ (negate_linear_int_term t) neg_t)
         (th_holds (>=_IntReal neg_t (term_int_to_real (a_int neg_int_bound))))))))))))
+
+;; ======================================== ;;
+;; Linear Combinations and Affine functions ;;
+;; ======================================== ;;
+
+; Unifying type for both kinds of arithmetic variables
+(declare arith_var type)
+(declare av_from_int (! v int_var arith_var))
+(declare av_from_real (! v real_var arith_var))
+
+; Total order type -- return value for the comparison of two things
+(declare ord type)
+(declare ord_lt ord)
+(declare ord_eq ord)
+(declare ord_gt ord)
+
+; Compare two arith vars. Integers come before reals, and otherwise we use the
+; LFSC ordering
+(program arith_var_cmp ((v1 arith_var) (v2 arith_var)) ord
+  (match v1
+    ((av_from_int  i1)
+      (match v2
+        ((av_from_int  i2)
+          (ifequal i1 i2
+            ord_eq
+            (compare i1 i2 ord_lt ord_gt)))
+        ((av_from_real r2) ord_lt)))
+    ((av_from_real r1)
+      (match v2
+        ((av_from_int  i2) ord_gt)
+        ((av_from_real r2)
+          (ifequal r1 r2
+            ord_eq
+            (compare r1 r2 ord_lt ord_gt)))))))
+
+; Type for linear combinations of variables
+; NB: Functions below will assume that the list is always sorted by variable!
+(declare lc type)
+(declare lc_null lc)
+(declare lc_cons (! c mpq (! v arith_var (! rest lc lc))))
+
+; Sum of linear combinations.
+(program lc_add ((l1 lc) (l2 lc)) lc
+  (match l1
+    (lc_null l2)
+    ((lc_cons c1 v1 l1')
+      (match l2
+        (lc_null l1)
+        ((lc_cons c2 v2 l2')
+          (match (arith_var_cmp v1 v2)
+            (ord_lt (lc_cons c1 v1 (lc_add l1' l2)))
+            (ord_eq
+              (let c (mp_add c1 c2)
+                (mp_ifzero c
+                  (lc_add l1' l2')
+                  (lc_cons c v1 (lc_add l1' l2')))))
+            (ord_gt (lc_cons c2 v2 (lc_add l1 l2')))))))))
+
+; Scaling a linear combination
+(program lc_mul_c ((l lc) (c mpq)) lc
+  (match l
+    (lc_null l)
+    ((lc_cons c' v' l') (lc_cons (mp_mul c c') v' (lc_mul_c l' c)))))
+
+; Negating a linear combination
+(program lc_neg ((l lc)) lc
+         (lc_mul_c l (~ 1/1)))
+
+; An affine function of variables (a linear combination + a constant)
+(declare aff type)
+(declare aff_cons (! c mpq (! l lc aff)))
+
+; Sum of affine functions
+(program aff_add ((p1 aff) (p2 aff)) aff
+  (match p1
+    ((aff_cons c1 l1)
+      (match p2
+        ((aff_cons c2 l2) (aff_cons (mp_add c1 c2) (lc_add l1 l2)))))))
+
+; Scaling an affine function
+(program aff_mul_c ((p aff) (c mpq)) aff
+  (match p
+    ((aff_cons c' l') (aff_cons (mp_mul c' c) (lc_mul_c l' c)))))
+
+; Negating an affine function
+(program aff_neg ((p aff)) aff
+  (aff_mul_c p (~ 1/1)))
+
+; Subtracting affine functions
+(program aff_sub ((p1 aff) (p2 aff)) aff
+  (aff_add p1 (aff_neg p2)))
