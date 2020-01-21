@@ -283,3 +283,73 @@
 ; Subtracting affine functions
 (program aff_sub ((p1 aff) (p2 aff)) aff
   (aff_add p1 (aff_neg p2)))
+
+;; ================================= ;;
+;; Proving (Real) terms to be affine ;;
+;; ================================= ;;
+
+; truth type for some real term being affine
+; * `t` the real term
+; * `a` the equivalent affine function
+(declare is_aff (! t (term Real) (! a aff type)))
+
+; Constants are affine
+(declare is_aff_const
+  (! x mpq
+    (is_aff (a_real x) (aff_cons x lc_null))))
+
+; Real variables are affine
+(declare is_aff_var_real
+  (! v real_var
+    (is_aff (term_real_var v)
+            (aff_cons 0/1 (lc_cons 1/1 (av_from_real v) lc_null)))))
+
+; Int variables are affine
+(declare is_aff_var_int
+  (! v int_var
+    (is_aff (term_int_to_real (term_int_var v))
+            (aff_cons 0/1 (lc_cons 1/1 (av_from_int v) lc_null)))))
+
+; affine functions are closed under addition
+(declare is_aff_+
+  (! x (term Real)      ; Omit
+  (! aff_x aff          ; Omit
+  (! y (term Real)      ; Omit
+  (! aff_y aff          ; Omit
+  (! aff_z aff          ; Omit
+    (! is_affx (is_aff x aff_x)
+    (! is_affy (is_aff y aff_y)
+      (! a (^ (aff_add aff_x aff_y) aff_z)
+        (is_aff (+_Real x y) aff_z))))))))))
+
+; affine functions are closed under subtraction
+(declare is_aff_-
+  (! x (term Real)      ; Omit
+  (! aff_x aff          ; Omit
+  (! y (term Real)      ; Omit
+  (! aff_y aff          ; Omit
+  (! aff_z aff          ; Omit
+    (! is_affx (is_aff x aff_x)
+    (! is_affy (is_aff y aff_y)
+      (! a (^ (aff_sub aff_x aff_y) aff_z)
+        (is_aff (-_Real x y) aff_z))))))))))
+
+; affine functions are closed under left-multiplication by scalars
+(declare is_aff_mul_c_L
+  (! y (term Real)      ; Omit
+  (! aff_y aff          ; Omit
+  (! aff_z aff          ; Omit
+    (! x mpq
+    (! is_affy (is_aff y aff_y)
+      (! a (^ (aff_mul_c aff_y x) aff_z)
+        (is_aff (*_Real (a_real x) y) aff_z))))))))
+
+; affine functions are closed under right-multiplication by scalars
+(declare is_aff_mul_c_R
+  (! y (term Real)      ; Omit
+  (! aff_y aff          ; Omit
+  (! aff_z aff          ; Omit
+    (! x mpq
+    (! is_affy (is_aff y aff_y)
+      (! a (^ (aff_mul_c aff_y x) aff_z)
+        (is_aff (*_Real y (a_real x)) aff_z))))))))
