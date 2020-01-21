@@ -283,16 +283,14 @@ inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
 
   NodeBuilder<> result(kind::PLUS);
   Integer i = 1;
-  Node curr;
   for(unsigned bit = 0; bit < size; ++bit, i *= 2) {
     Node cond = nm->mkNode(kind::EQUAL, nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), node[0]), bvone);
-    curr = nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z);
-    result << curr;
+    result << nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z);
   }
   // avoid plus with one child
-  if (size == 1)
+  if (result.getNumChildren() == 1)
   {
-    return curr;
+    return result.getChild(0);
   }
   return Node(result);
 }
