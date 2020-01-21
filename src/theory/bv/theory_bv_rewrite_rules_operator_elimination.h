@@ -290,7 +290,7 @@ inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
     result << curr;
   }
   // avoid plus with one child
-  if (size==1)
+  if (size == 1)
   {
     return curr;
   }
