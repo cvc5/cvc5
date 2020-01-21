@@ -364,6 +364,7 @@
 (declare bound_non_neg bound)       ; >= 0
 
 ; formulas over affine functions
+; the statement that `a` satisfies `b` for all inputs
 (declare bounded_aff (! a aff (! b bound formula)))
 
 ; Sum of two bounds (the bound satisfied by the sum of two functions satifying
@@ -378,10 +379,6 @@
 (program bounded_aff_add ((a1 aff) (b bound) (a2 aff) (b2 bound)) formula
   (bounded_aff (aff_add a1 a2) (bound_add b b2)))
 
-
-; Is this rational positive?
-(program mpq_ispos ((x mpq)) bool
-  (mp_ifneg x ff (mp_ifzero x ff tt)))
 
 ; The implication of scaling the inequality of `a1` satisfying `b`.
 (program bounded_aff_mul_c ((a1 aff) (b bound) (c mpq)) formula
