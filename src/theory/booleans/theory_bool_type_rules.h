@@ -33,9 +33,9 @@ public:
       TNode::iterator child_it_end = n.end();
       for(; child_it != child_it_end; ++child_it) {
         if(!(*child_it).getType(check).isBoolean()) {
-          Debug("pb") << "failed type checking: " << *child_it << std::endl;
-          Debug("pb") << "  integer: " << (*child_it).getType(check).isInteger() << std::endl;
-          Debug("pb") << "  real: " << (*child_it).getType(check).isReal() << std::endl;
+          Trace("pb") << "failed type checking: " << n << " " << *child_it << std::endl;
+          Trace("pb") << "  integer: " << (*child_it).getType(check).isInteger() << std::endl;
+          Trace("pb") << "  real: " << (*child_it).getType(check).isReal() << std::endl;
           throw TypeCheckingExceptionPrivate(n, "expecting a Boolean subexpression");
         }
       }

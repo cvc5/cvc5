@@ -525,10 +525,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   collectSygusGrammarTypesFor(range, types);
 
   // create placeholder for boolean type (kept apart since not collected)
-  std::stringstream ssb;
-  ssb << fun << "_Bool";
-  std::string dbname = ssb.str();
-  TypeNode unres_bt = mkUnresolvedType(ssb.str(), unres);
 
   // create placeholders for collected types
   std::vector<TypeNode> unres_types;
@@ -560,13 +556,27 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     type_to_unres[types[i]] = unres_t;
     sygus_to_builtin[unres_t] = types[i];
   }
+  // make Boolean type
+  std::stringstream ssb;
+  ssb << fun << "_Bool";
+  std::string dbname = ssb.str();
+  sdts.push_back(SygusDatatypeGenerator(dbname));
+  unsigned boolIndex = types.size();
+  TypeNode btype = nm->booleanType();
+  TypeNode unres_bt = mkUnresolvedType(ssb.str(), unres);
+  types.push_back(btype);
+  unres_types.push_back(unres_bt);
+  type_to_unres[btype] = unres_bt;
+  sygus_to_builtin[unres_bt] = btype;
+  
   // We ensure an ordering on types such that parametric types are processed
   // before their consitituents. Since parametric types were added before their
   // arguments in collectSygusGrammarTypesFor above, we will construct the
   // sygus grammars by iterating on types in reverse order. This ensures
   // that we know all constructors coming from other types (e.g. select(A,i))
-  // by the time we process the type.
-  for (int i = (types.size() - 1); i >= 0; --i)
+  // by the time we process the type. We start with types.size()-2, since
+  // we construct the grammar for the Boolean type last.
+  for (int i = (types.size() - 2); i >= 0; --i)
   {
     Trace("sygus-grammar-def") << "Make grammar for " << types[i] << " " << unres_types[i] << std::endl;
     TypeNode unres_t = unres_types[i];
@@ -865,8 +875,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
   }
   std::map<TypeNode, unsigned>::iterator itgat;
-  // initialize the datatypes
-  for (unsigned i = 0, size = types.size(); i < size; ++i)
+  // initialize the datatypes (except for the last one, reserved for Bool)
+  for (unsigned i = 0, size = types.size()-1; i < size; ++i)
   {
     sdts[i].d_sdt.initializeDatatype(types[i], bvl, true, true);
     Trace("sygus-grammar-def")
@@ -1107,9 +1117,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
   }
   //------ make Boolean type
-  TypeNode btype = nm->booleanType();
-  sdts.push_back(SygusDatatypeGenerator(dbname));
-  SygusDatatypeGenerator& sdtBool = sdts.back();
+  SygusDatatypeGenerator& sdtBool = sdts[boolIndex];
   Trace("sygus-grammar-def") << "Make grammar for " << btype << std::endl;
   //add variables
   for (unsigned i = 0, size = sygus_vars.size(); i < size; ++i)
@@ -1135,8 +1143,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     std::vector<TypeNode> cargsEmpty;
     sdtBool.addConstructor(consts[i], ss.str(), cargsEmpty);
   }
-  // add predicates for types
-  for (unsigned i = 0, size = types.size(); i < size; ++i)
+  // add predicates for non-Boolean types
+  for (unsigned i = 0, size = types.size()-1; i < size; ++i)
   {
     if (!types[i].isFirstClass())
     {
@@ -1218,7 +1226,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     }
   }
   if( range==btype ){
-    startIndex = sdts.size() - 1;
+    startIndex = boolIndex;
   }
   sdtBool.d_sdt.initializeDatatype(btype, bvl, true, true);
   Trace("sygus-grammar-def")
