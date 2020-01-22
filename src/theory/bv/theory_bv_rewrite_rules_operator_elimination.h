@@ -282,17 +282,18 @@ inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
   const Node bvone = utils::mkOne(1);
 
   Integer i = 1;
-  std::vector< Node > children;
+  std::vector<Node> children;
   for(unsigned bit = 0; bit < size; ++bit, i *= 2) {
     Node cond = nm->mkNode(kind::EQUAL, nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), node[0]), bvone);
-    children.push_back( nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z) );
+    children.push_back(
+        nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z));
   }
   // avoid plus with one child
   if (children.size() == 1)
   {
     return children[0];
   }
-  return nm->mkNode(kind::PLUS, children );
+  return nm->mkNode(kind::PLUS, children);
 }
 
 template <>
