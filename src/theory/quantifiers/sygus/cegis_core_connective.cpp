@@ -111,6 +111,13 @@ bool CegisCoreConnective::processInitialize(Node conj,
     Trace("sygus-ccore-init") << "...could not infer predicate." << std::endl;
     return false;
   }
+  if (ti.isTrivial())
+  {
+    // not necessary to use this class if the conjecture is trivial (does
+    // not contain the function-to-synthesize).
+    Trace("sygus-ccore-init") << "...conjecture is trivial." << std::endl;
+    return false;
+  }
   Node trans = ti.getTransitionRelation();
   Trace("sygus-ccore-init") << "  transition relation: " << trans << std::endl;
   if (!trans.isConst() || trans.getConst<bool>())
@@ -596,9 +603,10 @@ void CegisCoreConnective::getModel(SmtEngine& smt,
   }
 }
 
-bool CegisCoreConnective::getUnsatCore(SmtEngine& smt,
-                                       Node query,
-                                       std::vector<Node>& uasserts) const
+bool CegisCoreConnective::getUnsatCore(
+    SmtEngine& smt,
+    const std::unordered_set<Node, NodeHashFunction>& queryAsserts,
+    std::vector<Node>& uasserts) const
 {
   UnsatCore uc = smt.getUnsatCore();
   bool hasQuery = false;
@@ -606,7 +614,7 @@ bool CegisCoreConnective::getUnsatCore(SmtEngine& smt,
   {
     Node uassert = Node::fromExpr(*i);
     Trace("sygus-ccore-debug") << "  uc " << uassert << std::endl;
-    if (uassert == query)
+    if (queryAsserts.find(uassert) != queryAsserts.end())
     {
       hasQuery = true;
       continue;
@@ -759,6 +767,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     checkSol.setLogic(smt::currentSmtEngine()->getLogicInfo());
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
     std::vector<Node> rasserts = asserts;
+    rasserts.push_back(d_sc);
     rasserts.push_back(ccheck.getFormula());
     std::shuffle(rasserts.begin(), rasserts.end(), Random::getRandom());
     Node query = rasserts.size() == 1 ? rasserts[0] : nm->mkNode(AND, rasserts);
@@ -768,15 +777,18 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     }
     Result r = checkSol.checkSat();
     Trace("sygus-ccore") << "----- check-sat returned " << r << std::endl;
-    // In terms of Variant #2, this is the check "if D => B"
+    // In terms of Variant #2, this is the check "if (S ^ D) => B"
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
       // it entails the postcondition, now get the unsat core
       // In terms of Variant #2, this is the line
-      //   "Let U be a subset of D such that U ^ ~B is unsat."
+      //   "Let U be a subset of D such that S ^ U ^ ~B is unsat."
       // and uasserts is set to U.
       std::vector<Node> uasserts;
-      bool hasQuery = getUnsatCore(checkSol, ccheck.getFormula(), uasserts);
+      std::unordered_set<Node, NodeHashFunction> queryAsserts;
+      queryAsserts.insert(ccheck.getFormula());
+      queryAsserts.insert(d_sc);
+      bool hasQuery = getUnsatCore(checkSol, queryAsserts, uasserts);
       // now, check the side condition
       bool falseCore = false;
       if (!d_sc.isNull())
@@ -798,6 +810,10 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
           scasserts.push_back(d_sc);
           std::shuffle(scasserts.begin(), scasserts.end(), Random::getRandom());
+          for (const Node& sca : scasserts)
+          {
+            checkSc.assertFormula(sca.toExpr());
+          }
           Result rsc = checkSc.checkSat();
           Trace("sygus-ccore")
               << "----- check-sat returned " << rsc << std::endl;
@@ -807,7 +823,9 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
             //   "Let W be a subset of D such that S ^ W is unsat."
             // and uasserts is set to W.
             uasserts.clear();
-            getUnsatCore(checkSc, d_sc, uasserts);
+            std::unordered_set<Node, NodeHashFunction> queryAsserts;
+            queryAsserts.insert(d_sc);
+            getUnsatCore(checkSc, queryAsserts, uasserts);
             falseCore = true;
           }
         }

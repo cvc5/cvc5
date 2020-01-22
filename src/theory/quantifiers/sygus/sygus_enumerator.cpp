@@ -871,12 +871,21 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         // if not, there is no use continuing.
         if (initializeChildren())
         {
-          Trace("sygus-enum-debug2") << "master(" << d_tn << "): success\n";
+          Trace("sygus-enum-debug2")
+              << "master(" << d_tn << "): success init children\n";
           Assert(d_currChildSize + d_ccWeight <= d_currSize);
           incSuccess = true;
         }
+        else
+        {
+          // failed to initialize the remaining children (likely due to a
+          // child having a non-zero minimum size bound).
+          Trace("sygus-enum-debug2")
+              << "master(" << d_tn << "): fail init children\n";
+          d_currChildSize -= d_children[i].getCurrentSize();
+        }
       }
-      else
+      if (!incSuccess)
       {
         Trace("sygus-enum-debug2") << "master(" << d_tn
                                    << "): fail, backtrack...\n";
@@ -900,14 +909,16 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
       << "master(" << d_tn << "): init children, start = " << d_childrenValid
       << ", #types=" << d_ccTypes.size() << ", sizes=" << d_currChildSize << "/"
       << d_currSize << std::endl;
+  unsigned currChildren = d_childrenValid;
   unsigned sizeMin = 0;
   // while we need to initialize the current child
   while (d_childrenValid < d_ccTypes.size())
   {
     if (!initializeChild(d_childrenValid, sizeMin))
     {
-      if (d_childrenValid == 0)
+      if (d_childrenValid == currChildren)
       {
+        // we are back to the child we started with, we terminate now.
         Trace("sygus-enum-debug2") << "master(" << d_tn
                                    << "): init children : failed, finished"
                                    << std::endl;

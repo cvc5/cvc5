@@ -621,6 +621,7 @@ set(regress_0_tests
   regress0/print_lambda.cvc
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
+  regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
@@ -1731,6 +1732,8 @@ set(regress_1_tests
   regress1/sygus-abduct-test-user.smt2
   regress1/sygus/VC22_a.sy
   regress1/sygus/abd-simple-conj-4.smt2
+  regress1/sygus/abduction_1255.corecstrs.readable.smt2
+  regress1/sygus/abduction_streq.readable.smt2
   regress1/sygus/abv.sy
   regress1/sygus/array_search_5-Q-easy.sy
   regress1/sygus/bvudiv-by-2.sy
@@ -1755,6 +1758,7 @@ set(regress_1_tests
   regress1/sygus/dup-op.sy
   regress1/sygus/error1-dt.sy
   regress1/sygus/extract.sy
+  regress1/sygus/fast-enum-backtrack.sy
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
   regress1/sygus/hd-01-d1-prog.sy
@@ -1804,6 +1808,7 @@ set(regress_1_tests
   regress1/sygus/phone-1-long.sy
   regress1/sygus/planning-unif.sy
   regress1/sygus/process-10-vars.sy
+  regress1/sygus/pLTL_5_trace.sy
   regress1/sygus/qe.sy
   regress1/sygus/qf_abv.smt2
   regress1/sygus/real-any-const.sy
