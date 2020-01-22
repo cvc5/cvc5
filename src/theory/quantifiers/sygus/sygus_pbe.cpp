@@ -420,7 +420,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
         d_sygus_unif[ee].clearExampleCache(e, bvr);
       }
     }
-    Assert(ret.getType() == bvr.getType());
+    Assert(ret.getType().isComparableTo(bvr.getType()));
     return ret;
   }
   return Node::null();
