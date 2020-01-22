@@ -143,7 +143,7 @@ class CardinalityExtension
    * exclude these slack elements from the members in all sets of that type.
    */
   const std::map<TypeNode, std::vector<TNode> >& getFiniteTypeSlackElements()
-      const
+  const
   {
     return d_finite_type_slack_elements;
   }
@@ -324,18 +324,22 @@ class CardinalityExtension
   void checkNormalForm(Node eqc, std::vector<Node>& intro_sets);
 
   /**
-   * add cardinality lemmas for each finite type
-   */
-  void checkFiniteTypes();
+  * add cardinality lemmas for each type except uninterpreted sorts with
+  * finite-model-find
+  */
+  void checkTypesUnivCardinality();
   /**
-   * This function adds the following lemmas for the finite type t for each S
+   * This function adds the following lemmas for type t for each S
    * where S is a (a representative) set term of type t, and for each negative
-   * member x not in S 1- (=> true (<= (card (as univset t)) n) where n is the
-   * cardinality of t 2- (=> true (subset S (as univset t)) where S is a set
-   * term of type t 3- (=> (not (member negativeMember S))) (member
+   * member x not in S:
+   * 1- (=> true (<= (card (as univset t)) n) where n is the
+   * cardinality of t, which may be symbolic
+   * 2- (=> true (subset S (as univset t)) where S is a set
+   * term of type t
+   * 3- (=> (not (member negativeMember S))) (member
    * negativeMember (as univset t)))
    */
-  void checkFiniteType(TypeNode& t);
+  void checkTypeUnivCardinality(TypeNode& t);
 
   /** element types of sets for which cardinality is enabled */
   std::map<TypeNode, bool> d_t_card_enabled;
@@ -398,6 +402,18 @@ class CardinalityExtension
    *  Default value is false
    */
   bool d_finite_type_constants_processed;
+
+  /**
+   * a vector that tracks which infinite type has cardinality constraints
+   * on its universe set
+   */
+  std::vector<TypeNode> d_infiniteTypeUnivCard;
+
+  /*
+   * a map that stores skolem nodes n that satisfies the constraint
+   * (<= (card t) n) where t is an infinite type
+   */
+  std::map<TypeNode, Node> d_infiniteTypeUnivCardSkolems;
 
 }; /* class CardinalityExtension */
 

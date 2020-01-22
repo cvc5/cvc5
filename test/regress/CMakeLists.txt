@@ -1602,6 +1602,10 @@ set(regress_1_tests
   regress1/sets/fuzz14418.smt2
   regress1/sets/fuzz15201.smt2
   regress1/sets/fuzz31811.smt2
+  regress1/sets/infinite-type/sets-card-array-int-1.smt2
+  regress1/sets/infinite-type/sets-card-array-int-2.smt2
+  regress1/sets/infinite-type/sets-card-int-1.smt2
+  regress1/sets/infinite-type/sets-card-int-2.smt2
   regress1/sets/insert_invariant_37_2.smt2
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2

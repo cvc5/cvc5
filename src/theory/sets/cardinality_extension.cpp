@@ -66,24 +66,31 @@ void CardinalityExtension::registerTerm(Node n)
     d_eqc_to_card_term[r] = n;
     registerCardinalityTerm(n[0]);
   }
+
+  Node univ = d_state.getUnivSet(tnc);
+  if (!tnc.isInterpretedFinite() && d_ee.hasTerm(univ)
+      && d_ee.areEqual(r, univ))
+  {
+    d_infiniteTypeUnivCard.push_back(tnc);
+  }
+
   Trace("sets-card-debug") << "...finished register term" << std::endl;
 }
 
-void CardinalityExtension::checkFiniteTypes()
+void CardinalityExtension::checkTypesUnivCardinality()
 {
   for (std::pair<const TypeNode, bool>& pair : d_t_card_enabled)
   {
     TypeNode type = pair.first;
-    if (pair.second && type.isInterpretedFinite())
+    if (pair.second)
     {
-      checkFiniteType(type);
+      checkTypeUnivCardinality(type);
     }
   }
 }
 
-void CardinalityExtension::checkFiniteType(TypeNode& t)
+void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
 {
-  Assert(t.isInterpretedFinite());
   NodeManager* nm = NodeManager::currentNM();
   // get the universe set (as univset (Set t))
   Node univ = d_state.getUnivSet(nm->mkSetType(t));
@@ -104,16 +111,33 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
   vector<Node> representatives = d_state.getSetsEqClasses(t);
   // get the cardinality of the finite type t
   Cardinality card = t.getCardinality();
-  if (!card.isFinite())
+  Node typeCardinality;
+  if (t.isInterpretedFinite())
   {
-    // TODO (#1123): support uninterpreted sorts with --finite-model-find
-    std::stringstream message;
-    message << "The cardinality " << card << " of the finite type " << t
-            << " is not supported yet." << endl;
-    Assert(false) << message.str().c_str();
+    if (!card.isFinite())
+    {
+      // TODO (#1123): support uninterpreted sorts with --finite-model-find
+      std::stringstream message;
+      message << "The cardinality " << card << " of the finite type " << t
+              << " is not supported yet." << endl;
+      Assert(false) << message.str().c_str();
+    }
+    typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
   }
-
-  Node typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
+  else
+  {
+    std::map<TypeNode, Node>::iterator skolemIt =
+        d_infiniteTypeUnivCardSkolems.find(t);
+    if (skolemIt == d_infiniteTypeUnivCardSkolems.end())
+    {
+      typeCardinality = nm->mkSkolem("univCard", nm->integerType());
+      d_infiniteTypeUnivCardSkolems[t] = typeCardinality;
+    }
+    else
+    {
+      typeCardinality = skolemIt->second;
+    }
+  }
 
   Node cardUniv = nm->mkNode(kind::CARD, proxy);
   Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
@@ -124,11 +148,12 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
     d_im.assertInference(leq, d_true, "finite type cardinality", 1);
   }
 
-  // add subset lemmas for sets, and membership lemmas for negative members
+  // add subset lemmas for sets and membership lemmas for negative members
   for (Node& representative : representatives)
   {
-    // the universe set is a subset of itself
-    if (representative != d_ee.getRepresentative(univ))
+    if (representative
+        != d_ee.getRepresentative(
+            univ))  // the universe set is a subset of itself
     {
       // here we only add representatives with variables to avoid adding
       // infinite equivalent generated terms to the cardinality graph
@@ -138,14 +163,15 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
         continue;
       }
 
-      // (=> true (subset representative (as univset t))
+      /** (=> true (subset representative (as univset t)) */
       Node subset = nm->mkNode(kind::SUBSET, variable, proxy);
       // subset terms are rewritten as union terms: (subset A B) implies (=
       // (union A B) B)
       subset = Rewriter::rewrite(subset);
       if (!d_state.isEntailed(subset, true))
       {
-        d_im.assertInference(subset, d_true, "univset is a super set", 1);
+        d_im.assertInference(
+            subset, d_true, "univset is a super set", 1);
       }
 
       // negative members are members in the universe set
@@ -171,7 +197,7 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
 
 void CardinalityExtension::check()
 {
-  checkFiniteTypes();
+  checkTypesUnivCardinality();
   checkRegister();
   if (d_im.hasProcessed())
   {
@@ -990,11 +1016,11 @@ void CardinalityExtension::mkModelValueElementsFor(
           // cardinality constraints are satisfied. Since this type is finite,
           // there is only one single cardinality graph for all sets of this
           // type because the universe cardinality constraint has been added by
-          // CardinalityExtension::checkFiniteType. This means we have enough
-          // slack elements of this finite type for all disjoint leaves in the
-          // cardinality graph. Therefore we can safely add new distinct slack
-          // elements for the leaves without worrying about conflicts with the
-          // current members of this finite type.
+          // CardinalityExtension::checkTypeUnivCardinality. This means we have
+          // enough slack elements of this finite type for all disjoint leaves
+          // in the cardinality graph. Therefore we can safely add new distinct
+          // slack elements for the leaves without worrying about conflicts with
+          // the current members of this finite type.
 
           Node slack = nm->mkSkolem("slack", elementType);
           Node singleton = nm->mkNode(SINGLETON, slack);
