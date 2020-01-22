@@ -905,8 +905,7 @@ bool NlModel::simpleCheckModelLit(Node lit)
   if (!qvars.empty())
   {
     Assert(qvars.size() == qsubs.size());
-    Node slit =
-        lit.substitute(qvars.begin(), qvars.end(), qsubs.begin(), qsubs.end());
+    Node slit = arithSubstitute(lit, qvars, qsubs);
     slit = Rewriter::rewrite(slit);
     return simpleCheckModelLit(slit);
   }
