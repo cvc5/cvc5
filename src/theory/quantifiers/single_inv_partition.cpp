@@ -513,7 +513,7 @@ bool SingleInvocationPartition::isAntiSkolemizableType(Node f)
   {
     TypeNode tn = f.getType();
     bool ret = false;
-    if (tn.isFunction() && (tn.getNumChildren() == d_arg_types.size() + 1
+    if ( ((tn.isFunction() &&tn.getNumChildren() == d_arg_types.size() + 1)
         || (d_arg_types.empty() && tn.getNumChildren() == 0)))
     {
       ret = true;
