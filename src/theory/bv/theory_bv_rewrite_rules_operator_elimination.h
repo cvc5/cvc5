@@ -290,7 +290,7 @@ inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
   // avoid plus with one child
   if (children.size() == 1)
   {
-    return children[0]
+    return children[0];
   }
   return nm->mkNode(kind::PLUS, children );
 }
