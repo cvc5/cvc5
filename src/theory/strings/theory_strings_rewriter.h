@@ -232,6 +232,13 @@ class TheoryStringsRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   static Node rewriteStrConvert(Node node);
+  /** rewrite string reverse
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.rev( s )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStrReverse(Node node);
   /** rewrite string less than or equal
   * This is the entry point for post-rewriting terms n of the form
   *   str.<=( t, s )
