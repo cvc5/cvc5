@@ -167,7 +167,9 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
       if( d_rep_score.find( r_best )==d_rep_score.end() ){
         d_rep_score[ r_best ] = d_reset_count;
       }
-      Trace("internal-rep-select") << "...Choose " << r_best << " with score " << r_best_score << " and type " << r_best.getType() << std::endl;
+      Trace("internal-rep-select")
+          << "...Choose " << r_best << " with score " << r_best_score
+          << " and type " << r_best.getType() << std::endl;
       Assert(r_best.getType().isSubtypeOf(v_tn));
       v_int_rep[r] = r_best;
       if( r_best!=a ){
