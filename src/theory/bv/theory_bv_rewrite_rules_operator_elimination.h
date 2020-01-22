@@ -289,11 +289,7 @@ inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
         nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z));
   }
   // avoid plus with one child
-  if (children.size() == 1)
-  {
-    return children[0];
-  }
-  return nm->mkNode(kind::PLUS, children);
+  return children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
 }
 
 template <>
