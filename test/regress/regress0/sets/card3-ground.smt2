@@ -1,5 +1,6 @@
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
+(set-option :sets-ext true)
 (declare-fun S () (Set Int))
 (assert (>= (card S) 3))
 (assert (not (member 1 S)))

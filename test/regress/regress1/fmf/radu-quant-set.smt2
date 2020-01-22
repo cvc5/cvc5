@@ -1,6 +1,7 @@
 ; COMMAND-LINE: --fmf-bound
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
+(set-option :sets-ext true)
 
 (declare-const A (Set Int))
 (declare-const B (Set Int))

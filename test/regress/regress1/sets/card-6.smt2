@@ -1,5 +1,6 @@
 (set-logic QF_UFLIAFS)
 (set-info :status unsat)
+(set-option :sets-ext true)
 (declare-sort E 0)
 (declare-fun A () (Set E))
 (declare-fun B () (Set E))

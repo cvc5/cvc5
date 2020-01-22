@@ -1,6 +1,7 @@
 % EXPECT: valid
 OPTION "finite-model-find";
 OPTION "fmf-bound-int";
+OPTION "sets-ext"
 
 X : SET OF INT;
 

@@ -1,6 +1,6 @@
 (set-logic ALL_SUPPORTED)
 (set-info :status unsat)
-
+(set-option :sets-ext true)
 ; conjecture set nonempty(~b & ~c)
 
 (declare-fun n () Int)

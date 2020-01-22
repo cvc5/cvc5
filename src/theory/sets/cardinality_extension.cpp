@@ -111,7 +111,6 @@ void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
   vector<Node> representatives = d_state.getSetsEqClasses(t);
   // get the cardinality of the finite type t
   Cardinality card = t.getCardinality();
-  Node typeCardinality;
   if (t.isInterpretedFinite())
   {
     if (!card.isFinite())
@@ -122,7 +121,6 @@ void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
               << " is not supported yet." << endl;
       Assert(false) << message.str().c_str();
     }
-    typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
   }
   else
   {
@@ -130,23 +128,20 @@ void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
         d_infiniteTypeUnivCardSkolems.find(t);
     if (skolemIt == d_infiniteTypeUnivCardSkolems.end())
     {
-      typeCardinality = nm->mkSkolem("univCard", nm->integerType());
+      Node typeCardinality = nm->mkSkolem("univCard", nm->integerType());
       d_infiniteTypeUnivCardSkolems[t] = typeCardinality;
-    }
-    else
-    {
-      typeCardinality = skolemIt->second;
+
+      Node cardUniv = nm->mkNode(kind::CARD, proxy);
+      Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
+
+      // (=> true (<= (card (as univset t)) cardUniv)
+      if (!d_state.isEntailed(leq, true))
+      {
+        d_im.assertInference(leq, d_true, "univset cardinality <= type cardinality", 1);
+      }
     }
   }
 
-  Node cardUniv = nm->mkNode(kind::CARD, proxy);
-  Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
-
-  // (=> true (<= (card (as univset t)) cardUniv)
-  if (!d_state.isEntailed(leq, true))
-  {
-    d_im.assertInference(leq, d_true, "finite type cardinality", 1);
-  }
 
   // add subset lemmas for sets and membership lemmas for negative members
   for (Node& representative : representatives)
