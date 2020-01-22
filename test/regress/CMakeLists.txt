@@ -935,6 +935,7 @@ set(regress_0_tests
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
+  regress0/sygus/issue3624.sy
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-logic.sy
@@ -1783,6 +1784,7 @@ set(regress_1_tests
   regress1/sygus/issue3514.smt2
   regress1/sygus/issue3507.smt2
   regress1/sygus/issue3580.sy
+  regress1/sygus/issue3634.smt2
   regress1/sygus/issue3635.smt2
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
