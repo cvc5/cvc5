@@ -630,9 +630,10 @@ int TheoryBV::getReduction(int effort, Node n, Node& nr)
           nm->mkNode(kind::EQUAL,
                      nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), n[0]),
                      bvone);
-      children.push_back( nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z));
+      children.push_back(
+          nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z));
     }
-    nr = children.size()==1 ? children[0] : nm->mkNode(kind::PLUS,children);
+    nr = children.size() == 1 ? children[0] : nm->mkNode(kind::PLUS, children);
     return -1;
   }
   else if (n.getKind() == kind::INT_TO_BITVECTOR)
