@@ -1786,6 +1786,7 @@ set(regress_1_tests
   regress1/sygus/issue3580.sy
   regress1/sygus/issue3634.smt2
   regress1/sygus/issue3635.smt2
+  regress1/sygus/issue3654.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
