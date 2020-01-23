@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
-(set-logic NRA)
+(set-logic NIRA)
 (declare-fun a () Real)
 (declare-fun b () Real)
 (declare-fun c () Real)
