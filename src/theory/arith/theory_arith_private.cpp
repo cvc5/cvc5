@@ -4384,7 +4384,7 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
         // lemma of the form ( x = v V x != v ) where v is the model value
         // assigned by the non-linear solver to x.
         Node eq = p.first.eqNode(p.second);
-        Node lem = NodeManager::currentNM()->mkNode(kind::OR,eq,eq.negate());
+        Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
         d_containing.d_out->lemma(lem);
         return false;
       }
