@@ -98,7 +98,7 @@
   ))
 )
 
-;; Term proof, 2 (>=), one (not >=)
+;; Term proof, 2 premises of the form (>=), one of the form (not >=)
 ;; Proof (from predicates on real terms) that the following imply bottom
 ;
 ;        -x +     y >=  2
@@ -162,7 +162,7 @@
   ))
 )
 
-;; Term proof, 2 (>=), one (not >=)
+;; Term proof, 2 premises of the form (>=), one of the form (not >=)
 ;; x is a real,
 ;; y is an integer
 ;; Proof (from predicates on real terms) that the following imply bottom
@@ -228,9 +228,9 @@
   ))
 )
 
-;; Term proof, 2 (>=), one (not >=)
+;; Term proof, 2 premises of the form (>=), one of the form (not >=)
 ;; x is a real,
-;; y is an integer, an needs tightening
+;; y is an integer, and needs tightening
 ;; Proof (from predicates on real terms) that the following imply bottom
 ;
 ;        -x         >=  -1/2
