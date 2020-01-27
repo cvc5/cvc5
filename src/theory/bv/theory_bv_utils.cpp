@@ -468,8 +468,12 @@ Node eliminateBv2Nat(TNode node)
 
   Integer i = 1;
   std::vector<Node> children;
-  for(unsigned bit = 0; bit < size; ++bit, i *= 2) {
-    Node cond = nm->mkNode(kind::EQUAL, nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), node[0]), bvone);
+  for (unsigned bit = 0; bit < size; ++bit, i *= 2)
+  {
+    Node cond =
+        nm->mkNode(kind::EQUAL,
+                   nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), node[0]),
+                   bvone);
     children.push_back(
         nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z));
   }

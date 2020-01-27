@@ -206,7 +206,6 @@ void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
 
-
 /**
  * Returns the rewritten form of node, which is a term of the form bv2nat(x).
  * The return value of this method is the integer sum:
@@ -216,7 +215,6 @@ void intersect(const std::vector<uint32_t>& v1,
  * where n is the bitwidth of x.
  */
 Node eliminateBv2Nat(TNode node);
-
 }
 }
 }
