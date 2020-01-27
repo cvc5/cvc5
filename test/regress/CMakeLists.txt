@@ -888,6 +888,7 @@ set(regress_0_tests
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
   regress0/strings/issue3497.smt2
+  regress0/strings/issue3657-evalLeq.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
