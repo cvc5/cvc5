@@ -88,18 +88,14 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
   // get the cardinality of the finite type t
   Cardinality card = t.getCardinality();
 
-  // get the universe set (as univset (Set t))
-  NodeManager* nm = NodeManager::currentNM();
-  Node univ = d_state.getUnivSet(nm->mkSetType(t));
-  std::map<Node, Node>::iterator it = d_univProxy.find(univ);
-
   // cardinality of an interpreted finite type t is infinite when t
   // is infinite without --fmf
 
   if (card.isInfinite())
   {
-    if (it == d_univProxy.end())
+    if (d_state.getUnivSetEqClass(t).isNull())
     {
+      // no need to compute the cardinality of univset if it is not used
       return;
     }
     else
@@ -111,6 +107,11 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
       Assert(false) << message.str().c_str();
     }
   }
+
+  // get the universe set (as univset (Set t))
+  NodeManager* nm = NodeManager::currentNM();
+  Node univ = d_state.getUnivSet(nm->mkSetType(t));
+  std::map<Node, Node>::iterator it = d_univProxy.find(univ);
 
   Node proxy;
 
