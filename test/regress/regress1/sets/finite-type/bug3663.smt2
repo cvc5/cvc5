@@ -1,0 +1,7 @@
+(set-logic ALL)
+(set-info :status sat)
+(set-option :fmf-fun true)
+(declare-sort a 0)
+(declare-const b (Set a))
+(assert (= (card b) 0))
+(check-sat)
