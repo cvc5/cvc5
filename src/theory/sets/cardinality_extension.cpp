@@ -96,7 +96,7 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
   // cardinality of an interpreted finite type t is infinite when t
   // is infinite without --fmf
 
-  if(card.isInfinite())
+  if (card.isInfinite())
   {
     if (it == d_univProxy.end())
     {
