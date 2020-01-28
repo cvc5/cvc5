@@ -333,6 +333,7 @@ set(regress_0_tests
   regress0/bv/fuzz40.delta01.smtv1.smt2
   regress0/bv/fuzz40.smtv1.smt2
   regress0/bv/fuzz41.smtv1.smt2
+  regress0/bv/issue3621.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
   regress0/bv/mult-pow2-negative.smt2
@@ -1225,6 +1226,7 @@ set(regress_1_tests
   regress1/fmf/german73.smt2
   regress1/fmf/issue2034-preinit.smt2
   regress1/fmf/issue3587.smt2
+  regress1/fmf/issue3626.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
@@ -1785,7 +1787,10 @@ set(regress_1_tests
   regress1/sygus/issue3507.smt2
   regress1/sygus/issue3580.sy
   regress1/sygus/issue3633.smt2
+  regress1/sygus/issue3634.smt2
+  regress1/sygus/issue3635.smt2
   regress1/sygus/issue3648.smt2
+  regress1/sygus/issue3654.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
