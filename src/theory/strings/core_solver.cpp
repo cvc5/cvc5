@@ -1212,7 +1212,8 @@ void CoreSolver::getNormalForms(Node eqc,
           if( !d_eqc_to_const_exp[eqc].isNull() ){
             exp.push_back( d_eqc_to_const_exp[eqc] );
           }
-          //TODO: this can be minimized based on firstc/lastc, normal_forms_exp_depend
+          // Notice although not implemented, this can be minimized based on
+          // firstc/lastc, normal_forms_exp_depend.
           exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
           Node conc = d_false;
           d_im.sendInference(exp, conc, "N_NCTN");
@@ -2262,7 +2263,6 @@ void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
 }
 
 bool CoreSolver::isNormalFormPair( Node n1, Node n2 ) {
-  //TODO: modulo equality?
   return isNormalFormPair2( n1, n2 ) || isNormalFormPair2( n2, n1 );
 }
 
