@@ -134,7 +134,7 @@ void getRegexpComponents(Node r, std::vector<Node>& result);
 /** Print the vector n as a concatentation term on output stream out */
 void printConcat(std::ostream& out, std::vector<Node>& n);
 /** Print the vector n as a concatentation term on trace given by c */
-void printConcatTrace(std::vector<Node>& n, const char * c);
+void printConcatTrace(std::vector<Node>& n, const char* c);
 
 }  // namespace utils
 }  // namespace strings

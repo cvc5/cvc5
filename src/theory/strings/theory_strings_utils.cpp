@@ -227,8 +227,9 @@ void getRegexpComponents(Node r, std::vector<Node>& result)
 
 void printConcat(std::ostream& out, std::vector<Node>& n)
 {
-  for( unsigned i=0, nsize = n.size(); i<nsize; i++ ){
-    if( i>0 )
+  for (unsigned i = 0, nsize = n.size(); i < nsize; i++)
+  {
+    if (i > 0)
     {
       out << " ++ ";
     }
@@ -236,10 +237,10 @@ void printConcat(std::ostream& out, std::vector<Node>& n)
   }
 }
 
-void printConcatTrace(std::vector<Node>& n, const char * c)
+void printConcatTrace(std::vector<Node>& n, const char* c)
 {
   std::stringstream ss;
-  printConcat(ss,out);
+  printConcat(ss, out);
   Trace(c) << ss.str();
 }
 
