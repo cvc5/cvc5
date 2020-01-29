@@ -1157,13 +1157,17 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       static int repCheckInstance = 0;
       ++repCheckInstance;
 
-      Debug("check-model::rep-checking") << "( " << repCheckInstance << ") "
-                                          << "n: " << n << endl
-                                          << "getValue(n): " << tm->getValue(n)
-                                          << endl
-                                          << "rep: " << rep << endl;
-      Assert(tm->getValue(*eqc_i) == rep)
-          << "run with -d check-model::rep-checking for details";
+      // non-linear mult is not necessarily accurate wrt getValue
+      if (n.getKind() != kind::NONLINEAR_MULT)
+      {
+        Debug("check-model::rep-checking") << "( " << repCheckInstance << ") "
+                                           << "n: " << n << endl
+                                           << "getValue(n): " << tm->getValue(n)
+                                           << endl
+                                           << "rep: " << rep << endl;
+        Assert(tm->getValue(*eqc_i) == rep)
+            << "run with -d check-model::rep-checking for details";
+      }
     }
   }
 #endif /* CVC4_ASSERTIONS */
