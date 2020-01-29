@@ -283,7 +283,7 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
   os << paren.str();
 }
 
-void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const ProofLetMap& map, Type expectedType) {
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 
   // boolean terms and ITEs are special because they
@@ -855,7 +855,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   }
 }
 
-void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const ProofLetMap& map, Type expectedType) {
   Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
 
   ProofLetMap::const_iterator it = map.find(term);
@@ -889,7 +889,7 @@ void LFSCTheoryProofEngine::printBoundFormula(Expr term,
   }
 }
 
-void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const ProofLetMap& map, Type expectedType) {
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);
     return;
@@ -1181,7 +1181,7 @@ void LFSCBooleanProof::printConstantDisequalityProof(std::ostream& os, Expr c1, 
     os << "(negsymm _ _ _ t_t_neq_f)";
 }
 
-void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map, Type expectedType) {
   Assert(term.getType().isBoolean());
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);

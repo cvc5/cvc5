@@ -681,7 +681,7 @@ void ArithProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map, Type expectedType) {
   Debug("pf::arith") << "Arith print term: " << term << ". Kind: " << term.getKind()
                      << ". Type: " << term.getType()
                      << ". Number of children: " << term.getNumChildren() << std::endl;

@@ -137,7 +137,8 @@ class BitVectorProof : public TheoryProof
  public:
   void printOwnedTerm(Expr term,
                       std::ostream& os,
-                      const ProofLetMap& map) override;
+                      const ProofLetMap& map,
+                      Type expectedType = Type()) override;
 
   void printOwnedSort(Type type, std::ostream& os) override;
 

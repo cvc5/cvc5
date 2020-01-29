@@ -1123,7 +1123,7 @@ std::string ArrayProof::skolemToLiteral(Expr skolem) {
   return d_skolemToLiteral[skolem];
 }
 
-void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map, Type expectedType) {
   Assert(theory::Theory::theoryOf(term) == theory::THEORY_ARRAYS);
 
   if (theory::Theory::theoryOf(term) != theory::THEORY_ARRAYS) {

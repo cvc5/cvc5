@@ -123,7 +123,8 @@ std::string BitVectorProof::getBBTermName(Expr expr)
 
 void BitVectorProof::printOwnedTerm(Expr term,
                                     std::ostream& os,
-                                    const ProofLetMap& map)
+                                    const ProofLetMap& map,
+                                    Type expectedType)
 {
   Debug("pf::bv") << std::endl
                   << "(pf::bv) BitVectorProof::printOwnedTerm( " << term
