@@ -331,11 +331,13 @@ bool String::isLeq(const String &y) const
     {
       return false;
     }
-    if (d_str[i] > y.d_str[i])
+    unsigned ci = convertUnsignedIntToCode(d_str[i]);
+    unsigned cyi = convertUnsignedIntToCode(y.d_str[i]);
+    if (ci > cyi)
     {
       return false;
     }
-    if (d_str[i] < y.d_str[i])
+    if (ci < cyi)
     {
       return true;
     }
