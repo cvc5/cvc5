@@ -61,7 +61,8 @@ class TheoryStrings;
  * to doPendingLemmas.
  *
  * It also manages other kinds of interaction with the output channel of the
- * theory of strings, e.g. sendPhaseRequirement, setIncomplete.
+ * theory of strings, e.g. sendPhaseRequirement, setIncomplete, and
+ * with the extended theory object e.g. markCongruent.
  */
 class InferenceManager
 {
@@ -255,6 +256,13 @@ class InferenceManager
    * channel's setIncomplete method.
    */
   void setIncomplete();
+  /** 
+   * Mark that terms a and b are congruent in the current context.
+   * This makes a call to markCongruent in the extended theory object of
+   * the parent theory if the kind of a (and b) is owned by the extended
+   * theory.
+   */
+  void markCongruent(Node a, Node b);
  private:
   /**
    * Indicates that ant => conc should be sent on the output channel of this

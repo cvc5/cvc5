@@ -20,6 +20,7 @@
 #include "theory/strings/theory_strings.h"
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/ext_theory.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -630,6 +631,15 @@ void InferenceManager::setIncomplete()
   d_out.setIncomplete();
 }
 
+void InferenceManager::markCongruent(Node a, Node b)
+{
+  ExtTheory * eth = d_parent.getExtTheory();
+  if (eth->hasFunctionKind(a.getKind()))
+  {
+    eth->markCongruent(a,b);
+  }
+}
+  
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
