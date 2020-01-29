@@ -33,7 +33,7 @@ ExampleInfer::~ExampleInfer() {}
 
 bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
 {
-  Trace("sygus-pbe") << "Initialize example inference : " << n << std::endl;
+  Trace("ex-infer") << "Initialize example inference : " << n << std::endl;
 
   for (const Node& v : candidates)
   {
@@ -46,39 +46,39 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
   // n is negated conjecture
   if (!collectExamples(n, visited, true, false))
   {
-    Trace("sygus-pbe") << "...conflicting examples" << std::endl;
+    Trace("ex-infer") << "...conflicting examples" << std::endl;
     return false;
   }
 
-  if (Trace.isOn("sygus-pbe"))
+  if (Trace.isOn("ex-infer"))
   {
     for (unsigned i = 0; i < candidates.size(); i++)
     {
       Node v = candidates[i];
-      Trace("sygus-pbe") << "  examples for " << v << " : ";
+      Trace("ex-infer") << "  examples for " << v << " : ";
       if (d_examples_invalid.find(v) != d_examples_invalid.end())
       {
-        Trace("sygus-pbe") << "INVALID" << std::endl;
+        Trace("ex-infer") << "INVALID" << std::endl;
       }
       else
       {
-        Trace("sygus-pbe") << std::endl;
+        Trace("ex-infer") << std::endl;
         for (unsigned j = 0; j < d_examples[v].size(); j++)
         {
-          Trace("sygus-pbe") << "    ";
+          Trace("ex-infer") << "    ";
           for (unsigned k = 0; k < d_examples[v][j].size(); k++)
           {
-            Trace("sygus-pbe") << d_examples[v][j][k] << " ";
+            Trace("ex-infer") << d_examples[v][j][k] << " ";
           }
           if (!d_examplesOut[v][j].isNull())
           {
-            Trace("sygus-pbe") << " -> " << d_examplesOut[v][j];
+            Trace("ex-infer") << " -> " << d_examplesOut[v][j];
           }
-          Trace("sygus-pbe") << std::endl;
+          Trace("ex-infer") << std::endl;
         }
       }
-      Trace("sygus-pbe") << "Initialize " << d_examples[v].size()
-                         << " example points for " << v << "..." << std::endl;
+      Trace("ex-infer") << "Initialize " << d_examples[v].size()
+                        << " example points for " << v << "..." << std::endl;
     }
   }
   return true;
@@ -126,7 +126,7 @@ bool ExampleInfer::collectExamples(Node n,
   // is it an evaluation function?
   if (neval_is_evalapp && d_examples.find(neval[0]) != d_examples.end())
   {
-    Trace("sygus-pbe-debug")
+    Trace("ex-infer-debug")
         << "Process head: " << n << " == " << n_output << std::endl;
     // If n_output is null, then neval does not have a constant value
     // If n_output is non-null, then neval is constrained to always be
