@@ -16,6 +16,7 @@
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
+#include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/strings/theory_strings_rewriter.h"
@@ -623,6 +624,16 @@ void InferenceManager::explain(TNode literal,
     {
       Debug("strings-explain-debug") << "   " << a << std::endl;
     }
+  }
+}
+void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
+
+void InferenceManager::markCongruent(Node a, Node b)
+{
+  ExtTheory* eth = d_parent.getExtTheory();
+  if (eth->hasFunctionKind(a.getKind()))
+  {
+    eth->markCongruent(a, b);
   }
 }
 
