@@ -71,6 +71,154 @@ CoreSolver::~CoreSolver() {
 
 }
 
+
+void CoreSolver::checkInit() {
+  //build term index
+  d_eqc_to_const.clear();
+  d_eqc_to_const_base.clear();
+  d_eqc_to_const_exp.clear();
+  d_eqc_to_len_term.clear();
+  d_term_index.clear();
+  d_strings_eqc.clear();
+
+  std::map< Kind, unsigned > ncongruent;
+  std::map< Kind, unsigned > congruent;
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  d_emptyString_r = d_state.getRepresentative(d_emptyString);
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
+  while( !eqcs_i.isFinished() ){
+    Node eqc = (*eqcs_i);
+    TypeNode tn = eqc.getType();
+    if( !tn.isRegExp() ){
+      if( tn.isString() ){
+        d_strings_eqc.push_back( eqc );
+      }
+      Node var;
+      eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
+      while( !eqc_i.isFinished() ) {
+        Node n = *eqc_i;
+        if( n.isConst() ){
+          d_eqc_to_const[eqc] = n;
+          d_eqc_to_const_base[eqc] = n;
+          d_eqc_to_const_exp[eqc] = Node::null();
+        }else if( tn.isInteger() ){
+          if( n.getKind()==kind::STRING_LENGTH ){
+            Node nr = d_state.getRepresentative(n[0]);
+            d_eqc_to_len_term[nr] = n[0];
+          }
+        }else if( n.getNumChildren()>0 ){
+          Kind k = n.getKind();
+          if( k!=kind::EQUAL ){
+            if( d_congruent.find( n )==d_congruent.end() ){
+              std::vector< Node > c;
+              Node nc = d_term_index[k].add(n, 0, d_state, d_emptyString_r, c);
+              if( nc!=n ){
+                //check if we have inferred a new equality by removal of empty components
+                if (n.getKind() == kind::STRING_CONCAT
+                    && !d_state.areEqual(nc, n))
+                {
+                  std::vector< Node > exp;
+                  unsigned count[2] = { 0, 0 };
+                  while( count[0]<nc.getNumChildren() || count[1]<n.getNumChildren() ){
+                    //explain empty prefixes
+                    for( unsigned t=0; t<2; t++ ){
+                      Node nn = t==0 ? nc : n;
+                      while (
+                          count[t] < nn.getNumChildren()
+                          && (nn[count[t]] == d_emptyString
+                              || d_state.areEqual(nn[count[t]], d_emptyString)))
+                      {
+                        if( nn[count[t]]!=d_emptyString ){
+                          exp.push_back( nn[count[t]].eqNode( d_emptyString ) );
+                        }
+                        count[t]++;
+                      }
+                    }
+                    //explain equal components
+                    if( count[0]<nc.getNumChildren() ){
+                      Assert(count[1] < n.getNumChildren());
+                      if( nc[count[0]]!=n[count[1]] ){
+                        exp.push_back( nc[count[0]].eqNode( n[count[1]] ) );
+                      }
+                      count[0]++;
+                      count[1]++;
+                    }
+                  }
+                  //infer the equality
+                  d_im.sendInference(exp, n.eqNode(nc), "I_Norm");
+                }
+                /*
+                // FIXME
+                else if (getExtTheory()->hasFunctionKind(n.getKind()))
+                {
+                  //mark as congruent : only process if neither has been reduced
+                  getExtTheory()->markCongruent( nc, n );
+                }
+                */
+                //this node is congruent to another one, we can ignore it
+                Trace("strings-process-debug")
+                    << "  congruent term : " << n << " (via " << nc << ")"
+                    << std::endl;
+                d_congruent.insert( n );
+                congruent[k]++;
+              }else if( k==kind::STRING_CONCAT && c.size()==1 ){
+                Trace("strings-process-debug") << "  congruent term by singular : " << n << " " << c[0] << std::endl;
+                //singular case
+                if (!d_state.areEqual(c[0], n))
+                {
+                  Node ns;
+                  std::vector< Node > exp;
+                  //explain empty components
+                  bool foundNEmpty = false;
+                  for( unsigned i=0; i<n.getNumChildren(); i++ ){
+                    if (d_state.areEqual(n[i], d_emptyString))
+                    {
+                      if( n[i]!=d_emptyString ){
+                        exp.push_back( n[i].eqNode( d_emptyString ) );
+                      }
+                    }
+                    else
+                    {
+                      Assert(!foundNEmpty);
+                      ns = n[i];
+                      foundNEmpty = true;
+                    }
+                  }
+                  AlwaysAssert(foundNEmpty);
+                  //infer the equality
+                  d_im.sendInference(exp, n.eqNode(ns), "I_Norm_S");
+                }
+                d_congruent.insert( n );
+                congruent[k]++;
+              }else{
+                ncongruent[k]++;
+              }
+            }else{
+              congruent[k]++;
+            }
+          }
+        }else{
+          if( d_congruent.find( n )==d_congruent.end() ){
+            if( var.isNull() ){
+              var = n;
+            }else{
+              Trace("strings-process-debug") << "  congruent variable : " << n << std::endl;
+              d_congruent.insert( n );
+            }
+          }
+        }
+        ++eqc_i;
+      }
+    }
+    ++eqcs_i;
+  }
+  if( Trace.isOn("strings-process") ){
+    for( std::map< Kind, TermIndex >::iterator it = d_term_index.begin(); it != d_term_index.end(); ++it ){
+      Trace("strings-process") << "  Terms[" << it->first << "] = " << ncongruent[it->first] << "/" << (congruent[it->first]+ncongruent[it->first]) << std::endl;
+    }
+  }
+}
+
 void CoreSolver::checkConstantEquivalenceClasses()
 {
   // do fixed point
@@ -2263,9 +2411,6 @@ void CoreSolver::checkLengthsEqc() {
         }
 #endif
       }
-      //} else {
-      //  Trace("strings-process-debug") << "Do not process length constraints for " << nodes[i] << " " << d_normal_forms[nodes[i]].size() << std::endl;
-      //}
     }
   }
 }

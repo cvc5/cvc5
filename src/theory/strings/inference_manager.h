@@ -61,7 +61,7 @@ class TheoryStrings;
  * to doPendingLemmas.
  *
  * It also manages other kinds of interaction with the output channel of the
- * theory of strings, e.g. sendPhaseRequirement.
+ * theory of strings, e.g. sendPhaseRequirement, setIncomplete.
  */
 class InferenceManager
 {

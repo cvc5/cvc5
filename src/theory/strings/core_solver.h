@@ -55,6 +55,20 @@ class CoreSolver {
   //-------------------------- end helper functions
 
   //-----------------------inference steps
+  /** check initial
+   *
+   * This function initializes term indices for each strings function symbol.
+   * One key aspect of this construction is that concat terms are indexed by
+   * their list of non-empty components. For example, if x = "" is an equality
+   * asserted in this SAT context, then y ++ x ++ z may be indexed by (y,z).
+   * This method may infer various facts while building these term indices, for
+   * instance, based on congruence. An example would be inferring:
+   *   y ++ x ++ z = y ++ z
+   * if both terms are registered in this SAT context.
+   *
+   * This function should be called as a first step of any strategy.
+   */
+  void checkInit();
   /** check constant equivalence classes
    *
    * This function infers whether CONCAT terms can be simplified to constants.
@@ -234,20 +248,6 @@ private:
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
   Node getConstantEqc( Node eqc );
-  /**
-   * Get the current substitution for term n.
-   *
-   * This method returns a term that n is currently equal to in the current
-   * context. It updates exp to contain an explanation of why it is currently
-   * equal to that term.
-   *
-   * The argument effort determines what kind of term to return, either
-   * a constant in the equivalence class of n (effort=0), the normal form of
-   * n (effort=1,2) or the model value of n (effort>=3). The latter is only
-   * valid at LAST_CALL effort. If a term of the above form cannot be returned,
-   * then n itself is returned.
-   */
-  Node getCurrentSubstitutionFor(int effort, Node n, std::vector<Node>& exp);
 
   std::map< Node, Node > d_eqc_to_len_term;
   std::vector< Node > d_strings_eqc;
