@@ -236,9 +236,11 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           // since the quantifier-free arithmetic solver may pass full
           // effort with no lemmas even when we are not guaranteed to have a
           // model. By convention, we use GEQ to compare the values here.
+          // It also may be the case that cmp is non-constant, in the case
+          // where lhs or rhs contains a transcendental function. We consider
+          // the bound to be an upper bound in this case.
           Node cmp = nm->mkNode(GEQ, lhs_value, rhs_value);
           cmp = Rewriter::rewrite(cmp);
-          Assert(cmp.isConst());
           is_upper = !cmp.isConst() || !cmp.getConst<bool>();
         }
       }
@@ -466,8 +468,9 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               cmp_bound = Rewriter::rewrite(cmp_bound);
               // Should be comparing two constant values which should rewrite
               // to a constant. If a step failed, we assume that this is not
-              // the new best bound.
-              Assert(cmp_bound.isConst());
+              // the new best bound. We might not be comparing constant
+              // values (for instance if transcendental functions are
+              // involved), in which case we do update the best bound value.
               if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
               {
                 new_best = false;
