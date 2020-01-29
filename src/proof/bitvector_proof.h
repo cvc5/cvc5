@@ -135,10 +135,10 @@ class BitVectorProof : public TheoryProof
   theory::TheoryId getTheoryId() override;
 
  public:
-  void printOwnedTerm(Expr term,
+  void printOwnedTermAsType(Expr term,
                       std::ostream& os,
                       const ProofLetMap& map,
-                      Type expectedType = Type()) override;
+                      TypeNode expectedType) override;
 
   void printOwnedSort(Type type, std::ostream& os) override;
 
