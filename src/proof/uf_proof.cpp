@@ -623,7 +623,11 @@ void UFProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCUFProof::printOwnedTermAsType(Expr term, std::ostream& os, const ProofLetMap& map, TypeNode expectedType) {
+void LFSCUFProof::printOwnedTermAsType(Expr term,
+                                       std::ostream& os,
+                                       const ProofLetMap& map,
+                                       TypeNode expectedType)
+{
   Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printOwnedTerm: term = " << term << std::endl;
 
   Assert(theory::Theory::theoryOf(term) == theory::THEORY_UF);

@@ -96,9 +96,9 @@ public:
   {}
 
   void printOwnedTermAsType(Expr term,
-                      std::ostream& os,
-                      const ProofLetMap& map,
-                      TypeNode expectedType) override;
+                            std::ostream& os,
+                            const ProofLetMap& map,
+                            TypeNode expectedType) override;
   void printOwnedSort(Type type, std::ostream& os) override;
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
                              std::ostream& os,
