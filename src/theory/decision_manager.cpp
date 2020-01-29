@@ -48,6 +48,7 @@ void DecisionManager::presolve()
       if (active.find(ds) != active.end())
       {
         // if its active, we keep it
+        ds->initialize();
         d_reg_strategy[rs.first].push_back(ds);
       }
     }
