@@ -1127,6 +1127,11 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
 #ifdef CVC4_ASSERTIONS
   Assert(tm->isBuilt());
+  if (tm->hasApproximations())
+  {
+    // models with approximations may fail the assertions below
+    return;
+  }
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   std::map<Node, Node>::iterator itMap;
   // Check that every term evaluates to its representative in the model
@@ -1152,17 +1157,13 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       static int repCheckInstance = 0;
       ++repCheckInstance;
 
-      // non-linear mult is not necessarily accurate wrt getValue
-      if (n.getKind() != kind::NONLINEAR_MULT)
-      {
-        Debug("check-model::rep-checking") << "( " << repCheckInstance << ") "
-                                           << "n: " << n << endl
-                                           << "getValue(n): " << tm->getValue(n)
-                                           << endl
-                                           << "rep: " << rep << endl;
-        Assert(tm->getValue(*eqc_i) == rep)
-            << "run with -d check-model::rep-checking for details";
-      }
+      Debug("check-model::rep-checking") << "( " << repCheckInstance << ") "
+                                          << "n: " << n << endl
+                                          << "getValue(n): " << tm->getValue(n)
+                                          << endl
+                                          << "rep: " << rep << endl;
+      Assert(tm->getValue(*eqc_i) == rep)
+          << "run with -d check-model::rep-checking for details";
     }
   }
 #endif /* CVC4_ASSERTIONS */
