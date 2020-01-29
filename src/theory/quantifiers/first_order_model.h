@@ -134,7 +134,8 @@ class FirstOrderModel : public TheoryModel
   context::CDList<Node> d_forall_asserts;
   /** 
    * The (ordered) list of quantified formulas marked as relevant using
-   * markRelevant.
+   * markRelevant, where the quantified formula q in the most recent
+   * call to markRelevant comes last in the list.
    */
   std::vector<Node> d_forall_rlv_vec;
   /** The last quantified formula marked as relevant, if one exists. */
