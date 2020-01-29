@@ -78,7 +78,7 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
         }
       }
       Trace("ex-infer") << "Initialize " << d_examples[v].size()
-                         << " example points for " << v << "..." << std::endl;
+                        << " example points for " << v << "..." << std::endl;
     }
   }
   return true;
