@@ -64,7 +64,7 @@ Node ExampleEvalCache::addSearchVal(Node bv)
     Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
     clearEvaluationCache(bv);
   }
-  Assert(ret.getType() == bv.getType());
+  Assert(ret.getType().isComparableTo(bvr.getType()));
   return ret;
 }
 

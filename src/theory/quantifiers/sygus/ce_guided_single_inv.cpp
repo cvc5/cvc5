@@ -676,7 +676,7 @@ bool CegSingleInv::solveTrivial(Node q)
     }
   }
   // if we solved all arguments
-  if (args.empty())
+  if (args.empty() && body.isConst() && !body.getConst<bool>())
   {
     Trace("cegqi-si-trivial-solve")
         << q << " is trivially solvable by substitution " << vars << " -> "
