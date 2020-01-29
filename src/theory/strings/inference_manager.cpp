@@ -625,6 +625,10 @@ void InferenceManager::explain(TNode literal,
     }
   }
 }
+void InferenceManager::setIncomplete()
+{
+  d_out.setIncomplete();
+}
 
 }  // namespace strings
 }  // namespace theory

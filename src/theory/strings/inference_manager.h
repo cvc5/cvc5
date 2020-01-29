@@ -249,7 +249,12 @@ class InferenceManager
    * the node corresponding to their conjunction.
    */
   void explain(TNode literal, std::vector<TNode>& assumptions) const;
-
+  /** 
+   * Set that we are incomplete for the current set of assertions (in other
+   * words, we must answer "unknown" instead of "sat"); this calls the output
+   * channel's setIncomplete method.
+   */
+  void setIncomplete();
  private:
   /**
    * Indicates that ant => conc should be sent on the output channel of this
