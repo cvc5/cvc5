@@ -1108,7 +1108,7 @@ void CoreSolver::getNormalForms(Node eqc,
                 if (Trace.isOn("strings-error"))
                 {
                   Trace("strings-error") << "Cycle for normal form ";
-                  printConcat(currv, "strings-error");
+                  utils::printConcatTrace(currv, "strings-error");
                   Trace("strings-error") << "..." << currv[i] << std::endl;
                 }
                 Assert(!d_state.areEqual(currv[i], n));
@@ -2323,7 +2323,7 @@ void CoreSolver::checkNormalFormsDeq()
         {
           Trace("strings-solve") << "- Verify disequalities are processed for "
                                  << cols[i][0] << ", normal form : ";
-          printConcat(getNormalForm(cols[i][0]).d_nf, "strings-solve");
+          utils::printConcatTrace(getNormalForm(cols[i][0]).d_nf, "strings-solve");
           Trace("strings-solve")
               << "... #eql = " << cols[i].size() << std::endl;
         }
@@ -2344,9 +2344,9 @@ void CoreSolver::checkNormalFormsDeq()
                 if (Trace.isOn("strings-solve"))
                 {
                   Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
-                  printConcat(getNormalForm(cols[i][j]).d_nf, "strings-solve");
+                  utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf, "strings-solve");
                   Trace("strings-solve") << " against " << cols[i][k] << " ";
-                  printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
+                  utils::printConcatTrace(getNormalForm(cols[i][k]).d_nf, "strings-solve");
                   Trace("strings-solve") << "..." << std::endl;
                 }
                 processDeq(cols[i][j], cols[i][k]);
@@ -2435,13 +2435,6 @@ void CoreSolver::doInferInfo(const InferInfo& ii)
     {
       d_im.registerLength(n, sks.first);
     }
-  }
-}
-
-void CoreSolver::printConcat( std::vector< Node >& n, const char * c ) {
-  for( unsigned i=0; i<n.size(); i++ ){
-    if( i>0 ) Trace(c) << " ++ ";
-    Trace(c) << n[i];
   }
 }
 

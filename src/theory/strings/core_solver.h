@@ -386,9 +386,6 @@ private:
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
   //--------------------------end for checkNormalFormsDeq
-  
-  
-  void printConcat(std::vector<Node>& n, const char* c);
 };/* class CoreSolver */
 
 }/* CVC4::theory::strings namespace */
