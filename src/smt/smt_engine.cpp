@@ -2035,11 +2035,6 @@ void SmtEngine::setDefaults() {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
-        // also disable PBE-specific symmetry breaking unless PBE was enabled
-        if (!options::sygusSymBreakPbe.wasSetByUser())
-        {
-          options::sygusSymBreakPbe.set(false);
-        }
       }
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
