@@ -23,8 +23,8 @@ namespace theory {
 namespace quantifiers {
 
 ExampleMinEval::ExampleMinEval(Node n,
-                                const std::vector<Node>& vars,
-                                EmeEval* ece)
+                               const std::vector<Node>& vars,
+                               EmeEval* ece)
 {
   AlwaysAssert(d_evalNode.isNull());
   d_evalNode = n;
@@ -50,13 +50,13 @@ ExampleMinEval::ExampleMinEval(Node n,
 Node ExampleMinEval::evaluate(const std::vector<Node>& subs)
 {
   Assert(d_vars.size() == subs.size());
-  
-  if (d_indices.size()==d_vars.size())
+
+  if (d_indices.size() == d_vars.size())
   {
     // no sharing is possible since all variables are relevant, just evaluate
     return d_ece->eval(d_evalNode, d_vars, subs);
   }
-  
+
   // get the subsequence of subs that is relevant
   std::vector<Node> relSubs;
   for (unsigned i = 0, ssize = d_indices.size(); i < ssize; i++)
