@@ -26,6 +26,22 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class SygusStatistics
+{
+ public:
+  SygusStatistics();
+  ~SygusStatistics();
+  IntStat d_cegqi_lemmas_ce;
+  IntStat d_cegqi_lemmas_refine;
+  IntStat d_cegqi_si_lemmas;
+  IntStat d_solutions;
+  IntStat d_filtered_solutions;
+  IntStat d_candidate_rewrites_print;
+  IntStat d_enumTermsRewrite;
+  IntStat d_enumTermsExampleEval;
+  IntStat d_enumTerms;
+};
+
 class SynthEngine : public QuantifiersModule
 {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
@@ -72,21 +88,6 @@ class SynthEngine : public QuantifiersModule
    */
   void preregisterAssertion(Node n);
 
- public:
-  class Statistics
-  {
-   public:
-    IntStat d_cegqi_lemmas_ce;
-    IntStat d_cegqi_lemmas_refine;
-    IntStat d_cegqi_si_lemmas;
-    IntStat d_solutions;
-    IntStat d_filtered_solutions;
-    IntStat d_candidate_rewrites_print;
-    Statistics();
-    ~Statistics();
-  }; /* class SynthEngine::Statistics */
-  Statistics d_statistics;
-
  private:
   /** term database sygus of d_qe */
   TermDbSygus* d_tds;
@@ -100,6 +101,8 @@ class SynthEngine : public QuantifiersModule
    * preregisterAssertion.
    */
   SynthConjecture* d_conj;
+  /** The statistics */
+  SygusStatistics d_statistics;
   /** assign quantified formula q as a conjecture
    *
    * This method either assigns q to a synthesis conjecture object in d_conjs,

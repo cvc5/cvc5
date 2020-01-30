@@ -44,7 +44,7 @@ class SygusPbe;
 class SygusEnumerator : public EnumValGenerator
 {
  public:
-  SygusEnumerator(TermDbSygus* tds, SynthConjecture* p);
+  SygusEnumerator(TermDbSygus* tds, SynthConjecture* p, SygusStatistics& s);
   ~SygusEnumerator() {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
@@ -60,6 +60,8 @@ class SygusEnumerator : public EnumValGenerator
   TermDbSygus* d_tds;
   /** pointer to the synth conjecture that owns this enumerator */
   SynthConjecture* d_parent;
+  /** reference to the statistics of parent */
+  SygusStatistics& d_stats;
   /** Term cache
    *
    * This stores a list of terms for a given sygus type. The key features of
@@ -97,7 +99,8 @@ class SygusEnumerator : public EnumValGenerator
    public:
     TermCache();
     /** initialize this cache */
-    void initialize(Node e,
+    void initialize(SygusStatistics* s,
+                    Node e,
                     TypeNode tn,
                     TermDbSygus* tds,
                     ExampleEvalCache* ece = nullptr);
@@ -141,6 +144,8 @@ class SygusEnumerator : public EnumValGenerator
     void setComplete();
 
    private:
+    /** reference to the statistics of parent */
+    SygusStatistics* d_stats;
     /** the enumerator this cache is for */
     Node d_enum;
     /** the sygus type of terms in this cache */
