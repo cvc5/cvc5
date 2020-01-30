@@ -860,27 +860,6 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
 
 void CoreSolver::checkNormalFormsEq()
 {
-#if 0 //FIXME
-  if( !options::stringEagerLen() ){
-    eq::EqualityEngine* ee = d_state.getEqualityEngine();
-    for( unsigned i=0; i<d_strings_eqc.size(); i++ ) {
-      Node eqc = d_strings_eqc[i];
-      eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, ee );
-      while( !eqc_i.isFinished() ) {
-        Node n = (*eqc_i);
-        if( d_congruent.find( n )==d_congruent.end() ){
-          registerTerm( n, 2 );
-        }
-        ++eqc_i;
-      }
-    }
-  }
-#endif
-
-  if (d_im.hasProcessed())
-  {
-    return;
-  }
   // calculate normal forms for each equivalence class, possibly adding
   // splitting lemmas
   d_normal_form.clear();
@@ -2377,52 +2356,51 @@ void CoreSolver::checkNormalFormsDeq()
 }
 
 void CoreSolver::checkLengthsEqc() {
-  if( options::stringLenNorm() ){
-    for( unsigned i=0; i<d_strings_eqc.size(); i++ ){
-      NormalForm& nfi = getNormalForm(d_strings_eqc[i]);
-      Trace("strings-process-debug") << "Process length constraints for " << d_strings_eqc[i] << std::endl;
-      //check if there is a length term for this equivalence class
-      EqcInfo* ei = d_state.getOrMakeEqcInfo(d_strings_eqc[i], false);
-      Node lt = ei ? ei->d_lengthTerm : Node::null();
-      if( !lt.isNull() ) {
-        Node llt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt );
-        //now, check if length normalization has occurred
-        if (ei->d_normalizedLength.get().isNull())
+  for (unsigned i = 0; i < d_strings_eqc.size(); i++)
+  {
+    NormalForm& nfi = getNormalForm(d_strings_eqc[i]);
+    Trace("strings-process-debug")
+        << "Process length constraints for " << d_strings_eqc[i] << std::endl;
+    // check if there is a length term for this equivalence class
+    EqcInfo* ei = d_state.getOrMakeEqcInfo(d_strings_eqc[i], false);
+    Node lt = ei ? ei->d_lengthTerm : Node::null();
+    if (lt.isNull())
+    {
+      Trace("strings-process-debug")
+          << "No length term for eqc " << d_strings_eqc[i] << " "
+          << d_eqc_to_len_term[d_strings_eqc[i]] << std::endl;
+      continue;
+    }
+    Node llt = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, lt);
+    // now, check if length normalization has occurred
+    if (ei->d_normalizedLength.get().isNull())
+    {
+      Node nf = utils::mkNConcat(nfi.d_nf);
+      if (Trace.isOn("strings-process-debug"))
+      {
+        Trace("strings-process-debug")
+            << "  normal form is " << nf << " from base " << nfi.d_base
+            << std::endl;
+        Trace("strings-process-debug") << "  normal form exp is: " << std::endl;
+        for (const Node& exp : nfi.d_exp)
         {
-          Node nf = utils::mkNConcat(nfi.d_nf);
-          if( Trace.isOn("strings-process-debug") ){
-            Trace("strings-process-debug")
-                << "  normal form is " << nf << " from base " << nfi.d_base
-                << std::endl;
-            Trace("strings-process-debug") << "  normal form exp is: " << std::endl;
-            for (const Node& exp : nfi.d_exp)
-            {
-              Trace("strings-process-debug") << "   " << exp << std::endl;
-            }
-          }
-          
-          //if not, add the lemma
-          std::vector< Node > ant;
-          ant.insert(ant.end(), nfi.d_exp.begin(), nfi.d_exp.end());
-          ant.push_back(nfi.d_base.eqNode(lt));
-          Node lc = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, nf );
-          Node lcr = Rewriter::rewrite( lc );
-          Trace("strings-process-debug") << "Rewrote length " << lc << " to " << lcr << std::endl;
-          if (!d_state.areEqual(llt, lcr))
-          {
-            Node eq = llt.eqNode(lcr);
-            ei->d_normalizedLength.set(eq);
-            d_im.sendInference(ant, eq, "LEN-NORM", true);
-          }
+          Trace("strings-process-debug") << "   " << exp << std::endl;
         }
-      }else{
-        Trace("strings-process-debug") << "No length term for eqc " << d_strings_eqc[i] << " " << d_eqc_to_len_term[d_strings_eqc[i]] << std::endl;
-#if 0 // FIXME
-        if( !options::stringEagerLen() ){
-          Node c = utils::mkNConcat(nfi.d_nf);
-          registerTerm( c, 3 );
-        }
-#endif
+      }
+
+      // if not, add the lemma
+      std::vector<Node> ant;
+      ant.insert(ant.end(), nfi.d_exp.begin(), nfi.d_exp.end());
+      ant.push_back(nfi.d_base.eqNode(lt));
+      Node lc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, nf);
+      Node lcr = Rewriter::rewrite(lc);
+      Trace("strings-process-debug")
+          << "Rewrote length " << lc << " to " << lcr << std::endl;
+      if (!d_state.areEqual(llt, lcr))
+      {
+        Node eq = llt.eqNode(lcr);
+        ei->d_normalizedLength.set(eq);
+        d_im.sendInference(ant, eq, "LEN-NORM", true);
       }
     }
   }
