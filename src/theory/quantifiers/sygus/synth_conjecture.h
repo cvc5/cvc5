@@ -36,6 +36,7 @@ namespace theory {
 namespace quantifiers {
 
 class SynthEngine;
+class SygusStatistics;
 
 /**
  * A base class for generating values for actively-generated enumerators.
@@ -71,7 +72,7 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe, SynthEngine* p);
+  SynthConjecture(QuantifiersEngine* qe, SynthEngine* p, SygusStatistics& s);
   ~SynthConjecture();
   /** presolve */
   void presolve();
@@ -174,6 +175,8 @@ class SynthConjecture
   QuantifiersEngine* d_qe;
   /** pointer to the synth engine that owns this */
   SynthEngine* d_parent;
+  /** reference to the statistics of parent */
+  SygusStatistics& d_stats;
   /** term database sygus of d_qe */
   TermDbSygus* d_tds;
   /** The feasible guard. */

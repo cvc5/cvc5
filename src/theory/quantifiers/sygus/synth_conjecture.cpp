@@ -43,9 +43,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SynthEngine* p)
+SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
+                                 SynthEngine* p,
+                                 SygusStatistics& s)
     : d_qe(qe),
       d_parent(p),
+      d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(qe, this)),
@@ -810,7 +813,7 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
                    == options::SygusActiveGenMode::ENUM
                || options::sygusActiveGenMode()
                       == options::SygusActiveGenMode::AUTO);
-        d_evg[e].reset(new SygusEnumerator(d_tds, this));
+        d_evg[e].reset(new SygusEnumerator(d_tds, this, d_stats));
       }
     }
     Trace("sygus-active-gen")
@@ -1058,7 +1061,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
       ss << prog;
       std::string f(ss.str());
       f.erase(f.begin());
-      ++(d_parent->d_statistics.d_solutions);
+      ++(d_stats.d_solutions);
 
       bool is_unique_term = true;
 
@@ -1102,11 +1105,11 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         is_unique_term = d_exprm[prog].addTerm(sol, out, rew_print);
         if (rew_print)
         {
-          ++(d_parent->d_statistics.d_candidate_rewrites_print);
+          ++(d_stats.d_candidate_rewrites_print);
         }
         if (!is_unique_term)
         {
-          ++(d_parent->d_statistics.d_filtered_solutions);
+          ++(d_stats.d_filtered_solutions);
         }
       }
       if (is_unique_term)

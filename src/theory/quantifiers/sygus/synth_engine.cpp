@@ -32,11 +32,39 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+SygusStatistics::SygusStatistics()
+    : d_cegqi_lemmas_ce("SynthEngine::cegqi_lemmas_ce", 0),
+      d_cegqi_lemmas_refine("SynthEngine::cegqi_lemmas_refine", 0),
+      d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
+      d_solutions("SynthConjecture::solutions", 0),
+      d_filtered_solutions("SynthConjecture::filtered_solutions", 0),
+      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print",
+                                 0)
+
+{
+  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
+  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_refine);
+  smtStatisticsRegistry()->registerStat(&d_cegqi_si_lemmas);
+  smtStatisticsRegistry()->registerStat(&d_solutions);
+  smtStatisticsRegistry()->registerStat(&d_filtered_solutions);
+  smtStatisticsRegistry()->registerStat(&d_candidate_rewrites_print);
+}
+
+SygusStatistics::~SygusStatistics()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_ce);
+  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
+  smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
+  smtStatisticsRegistry()->unregisterStat(&d_solutions);
+  smtStatisticsRegistry()->unregisterStat(&d_filtered_solutions);
+  smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites_print);
+}
+
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe), d_tds(qe->getTermDatabaseSygus())
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(d_quantEngine, this)));
+      new SynthConjecture(d_quantEngine, this, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -267,7 +295,7 @@ void SynthEngine::assignConjecture(Node q)
   if (d_conjs.back()->isAssigned())
   {
     d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_quantEngine, this)));
+        new SynthConjecture(d_quantEngine, this, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }
@@ -422,33 +450,6 @@ void SynthEngine::preregisterAssertion(Node n)
     Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
     d_conj->preregisterConjecture(n);
   }
-}
-
-SynthEngine::Statistics::Statistics()
-    : d_cegqi_lemmas_ce("SynthEngine::cegqi_lemmas_ce", 0),
-      d_cegqi_lemmas_refine("SynthEngine::cegqi_lemmas_refine", 0),
-      d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
-      d_solutions("SynthConjecture::solutions", 0),
-      d_filtered_solutions("SynthConjecture::filtered_solutions", 0),
-      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print", 0)
-
-{
-  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
-  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_refine);
-  smtStatisticsRegistry()->registerStat(&d_cegqi_si_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_solutions);
-  smtStatisticsRegistry()->registerStat(&d_filtered_solutions);
-  smtStatisticsRegistry()->registerStat(&d_candidate_rewrites_print);
-}
-
-SynthEngine::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_ce);
-  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
-  smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_solutions);
-  smtStatisticsRegistry()->unregisterStat(&d_filtered_solutions);
-  smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites_print);
 }
 
 }  // namespace quantifiers
