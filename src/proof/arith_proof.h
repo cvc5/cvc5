@@ -82,9 +82,10 @@ public:
   LFSCArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* proofEngine)
     : ArithProof(arith, proofEngine)
   {}
-  void printOwnedTerm(Expr term,
-                      std::ostream& os,
-                      const ProofLetMap& map) override;
+  void printOwnedTermAsType(Expr term,
+                            std::ostream& os,
+                            const ProofLetMap& map,
+                            TypeNode expectedType) override;
   void printOwnedSort(Type type, std::ostream& os) override;
 
   /**

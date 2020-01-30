@@ -460,6 +460,7 @@ set(regress_0_tests
   regress0/fmf/fmc_unsound_model.smt2
   regress0/fmf/fmf-strange-bounds-2.smt2
   regress0/fmf/forall_unit_data2.smt2
+  regress0/fmf/issue3661-ccard-dec.smt2
   regress0/fmf/krs-sat.smt2
   regress0/fmf/no-minimal-sat.smt2
   regress0/fmf/quant_real_univ.cvc
@@ -549,6 +550,7 @@ set(regress_0_tests
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
   regress0/nl/issue3475.smt2
+  regress0/nl/issue3652.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -1430,6 +1432,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue3481.smt2
   regress1/quantifiers/issue3537.smt2
+  regress1/quantifiers/issue3628.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
