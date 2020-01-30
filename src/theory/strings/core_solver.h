@@ -30,6 +30,11 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/** The core solver for the theory of strings
+ * 
+ * This implements techniques for handling (dis)equalities involving
+ * string concatenation terms based on the procedure by Liang et al CAV 2014.
+ */
 class CoreSolver {
   friend class InferenceManager;
   typedef context::CDList<Node> NodeList;
@@ -296,14 +301,24 @@ private:
   std::map< Kind, TermIndex > d_term_index;
   /** list of non-congruent concat terms in each equivalence class */
   std::map< Node, std::vector< Node > > d_eqc;
-  /** The flat form for each equivalence class */
+  /** 
+   * The flat form for each equivalence class. For a term (str.++ t1 ... tn),
+   * this is a list of the form (r_{i1} ... r_{im}) where each empty t1...tn
+   * is dropped and the others are replaced in order with their representative.
+   */
   std::map< Node, std::vector< Node > > d_flat_form;
+  /** 
+   * For each component r_{i1} ... r_{im} in a flat form, this stores
+   * the argument number of the t1 ... tn they were generated from.
+   */
   std::map< Node, std::vector< int > > d_flat_form_index;
 
+  /** debug print current flat forms on trace tc */
   void debugPrintFlatForms( const char * tc );
 
-  
+  //--------------------------for checkConstantEquivalenceClasses
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
+  //--------------------------end for checkConstantEquivalenceClasses
   //--------------------------for checkFlatForm
   /**
    * This checks whether there are flat form inferences between eqc[start] and
