@@ -74,9 +74,8 @@ class BaseSolver
   void checkConstantEquivalenceClasses();
   //-----------------------end inference steps
 
-  
-  //-----------------------query functions 
-  /** 
+  //-----------------------query functions
+  /**
    * Is n congruent to another term in the current context that has not been
    * marked congruent? If so, we can ignore n.
    */
@@ -97,7 +96,7 @@ class BaseSolver
    * Get the set of equivalence classes of type string
    */
   const std::vector<Node>& getStringEqc() const;
-  //-----------------------end query functions 
+  //-----------------------end query functions
 
  private:
   /** The solver state object */
