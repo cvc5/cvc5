@@ -208,8 +208,6 @@ private:
   std::vector<Node> d_emptyVec;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
-  /** get normal form */
-  NormalForm& getNormalForm(Node n);
   /** 
    * In certain cases, we know that two terms are equivalent despite
    * not having to verify their normal forms are identical. For example,
@@ -225,10 +223,6 @@ private:
    */
   NodeIntMap d_nf_pairs;
   std::map< Node, std::vector< Node > > d_nf_pairs_data;
-  /** Add that (n1,n2) is a normal form pair in the current context. */
-  void addNormalFormPair( Node n1, Node n2 );
-  /** Is (n1,n2) a normal form pair in the current context? */
-  bool isNormalFormPair( Node n1, Node n2 );
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, it introduces Skolems, and
@@ -268,11 +262,6 @@ private:
   std::map< Node, Node > d_eqc_to_const;
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
-  /**
-   * Get the constant that the equivalence class eqc is entailed to be equal
-   * to, or null if none exist.
-   */ 
-  Node getConstantEqc( Node eqc );
   /** The list of equivalence classes of type string */
   std::vector< Node > d_strings_eqc;
   /** The representative of the equivalence class containing the empty string */
@@ -308,11 +297,20 @@ private:
    */
   std::map< Node, std::vector< int > > d_flat_form_index;
 
-  /** debug print current flat forms on trace tc */
-  void debugPrintFlatForms( const char * tc );
+  /** get normal form */
+  NormalForm& getNormalForm(Node n);
+  /** Add that (n1,n2) is a normal form pair in the current context. */
+  void addNormalFormPair( Node n1, Node n2 );
+  /** Is (n1,n2) a normal form pair in the current context? */
+  bool isNormalFormPair( Node n1, Node n2 );
 
   //--------------------------for checkConstantEquivalenceClasses
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
+  /**
+   * Get the constant that the equivalence class eqc is entailed to be equal
+   * to, or null if none exist.
+   */ 
+  Node getConstantEqc( Node eqc );
   //--------------------------end for checkConstantEquivalenceClasses
   //--------------------------for checkFlatForm
   /**
@@ -323,6 +321,8 @@ private:
    * is true). For more details, see checkFlatForms below.
    */
   void checkFlatForm(std::vector<Node>& eqc, size_t start, bool isRev);
+  /** debug print current flat forms on trace tc */
+  void debugPrintFlatForms( const char * tc );
   //--------------------------end for checkFlatForm
 
   //--------------------------for checkCycles
