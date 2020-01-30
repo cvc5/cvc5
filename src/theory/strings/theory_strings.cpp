@@ -1401,11 +1401,24 @@ void TheoryStrings::checkInit() {
           }
         }else{
           if( d_congruent.find( n )==d_congruent.end() ){
-            if( var.isNull() ){
+            // We mark all but the oldest variable in the equivalence class as
+            // congruent.
+            if (var.isNull())
+            {
               var = n;
-            }else{
-              Trace("strings-process-debug") << "  congruent variable : " << n << std::endl;
-              d_congruent.insert( n );
+            }
+            else if (var > n)
+            {
+              Trace("strings-process-debug")
+                  << "  congruent variable : " << var << std::endl;
+              d_congruent.insert(var);
+              var = n;
+            }
+            else
+            {
+              Trace("strings-process-debug")
+                  << "  congruent variable : " << n << std::endl;
+              d_congruent.insert(n);
             }
           }
         }
@@ -4564,7 +4577,7 @@ void TheoryStrings::initializeStrategy()
     }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
-    if (!options::stringEagerLen())
+    if (!options::stringEagerLen() && options::stringLenNorm())
     {
       addStrategyStep(CHECK_LENGTH_EQC, 0, false);
       addStrategyStep(CHECK_REGISTER_TERMS_NF);
