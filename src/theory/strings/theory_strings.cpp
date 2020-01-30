@@ -4568,7 +4568,7 @@ void TheoryStrings::initializeStrategy()
     }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
-    if (!options::stringEagerLen())
+    if (!options::stringEagerLen() && options::stringLenNorm())
     {
       addStrategyStep(CHECK_LENGTH_EQC, 0, false);
       addStrategyStep(CHECK_REGISTER_TERMS_NF);
