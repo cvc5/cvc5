@@ -43,8 +43,8 @@ BaseSolver::~BaseSolver() {
 void BaseSolver::checkInit() {
   //build term index
   d_eqcToConst.clear();
-  d_eqcToConst_base.clear();
-  d_eqcToConst_exp.clear();
+  d_eqcToConstBase.clear();
+  d_eqcToConstExp.clear();
   d_termIndex.clear();
   d_stringsEqc.clear();
 
@@ -66,8 +66,8 @@ void BaseSolver::checkInit() {
         Node n = *eqc_i;
         if( n.isConst() ){
           d_eqcToConst[eqc] = n;
-          d_eqcToConst_base[eqc] = n;
-          d_eqcToConst_exp[eqc] = Node::null();
+          d_eqcToConstBase[eqc] = n;
+          d_eqcToConstExp[eqc] = Node::null();
         }else if( tn.isInteger() ){
           // do nothing
         }else if( n.getNumChildren()>0 ){
@@ -236,9 +236,9 @@ void BaseSolver::checkConstantEquivalenceClasses( TermIndex* ti, std::vector< No
           if (!d_state.areEqual(n[count], vecc[countc]))
           {
             Node nrr = d_state.getRepresentative(n[count]);
-            Assert(!d_eqcToConst_exp[nrr].isNull());
-            d_im.addToExplanation(n[count], d_eqcToConst_base[nrr], exp);
-            exp.push_back( d_eqcToConst_exp[nrr] );
+            Assert(!d_eqcToConstExp[nrr].isNull());
+            d_im.addToExplanation(n[count], d_eqcToConstBase[nrr], exp);
+            exp.push_back( d_eqcToConstExp[nrr] );
           }
           else
           {
@@ -262,18 +262,18 @@ void BaseSolver::checkConstantEquivalenceClasses( TermIndex* ti, std::vector< No
         if( it==d_eqcToConst.end() ){
           Trace("strings-debug") << "Set eqc const " << n << " to " << c << std::endl;
           d_eqcToConst[nr] = c;
-          d_eqcToConst_base[nr] = n;
-          d_eqcToConst_exp[nr] = utils::mkAnd(exp);
+          d_eqcToConstBase[nr] = n;
+          d_eqcToConstExp[nr] = utils::mkAnd(exp);
         }else if( c!=it->second ){
           //conflict
           Trace("strings-debug") << "Conflict, other constant was " << it->second << ", this constant was " << c << std::endl;
-          if( d_eqcToConst_exp[nr].isNull() ){
+          if( d_eqcToConstExp[nr].isNull() ){
             // n==c ^ n == c' => false
             d_im.addToExplanation(n, it->second, exp);
           }else{
-            // n==c ^ n == d_eqcToConst_base[nr] == c' => false
-            exp.push_back( d_eqcToConst_exp[nr] );
-            d_im.addToExplanation(n, d_eqcToConst_base[nr], exp);
+            // n==c ^ n == d_eqcToConstBase[nr] == c' => false
+            exp.push_back( d_eqcToConstExp[nr] );
+            d_im.addToExplanation(n, d_eqcToConstBase[nr], exp);
           }
           d_im.sendInference(exp, d_false, "I_CONST_CONFLICT");
           return;
@@ -301,6 +301,23 @@ void BaseSolver::checkConstantEquivalenceClasses( TermIndex* ti, std::vector< No
 Node BaseSolver::getConstantEqc( Node eqc ) {
   std::map< Node, Node >::iterator it = d_eqcToConst.find( eqc );
   if( it!=d_eqcToConst.end() ){
+    return it->second;
+  }
+  return Node::null();
+}
+
+Node BaseSolver::getConstantEqc( Node n, Node eqc, std::vector<Node>& exp )
+{
+  std::map< Node, Node >::iterator it = d_eqcToConst.find( eqc );
+  if( it!=d_eqcToConst.end() ){
+    if (!d_eqcToConstExp[eqc].isNull())
+    {
+      exp.push_back(d_eqcToConstExp[eqc]);
+    }
+    if (!d_eqcToConstBase[eqc].isNull())
+    {
+      d_im.addToExplanation(n, d_eqcToConstBase[eqc], exp);
+    }
     return it->second;
   }
   return Node::null();

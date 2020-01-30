@@ -75,6 +75,12 @@ class BaseSolver {
    * to, or null if none exist.
    */ 
   Node getConstantEqc( Node eqc );
+  /** 
+   * Same as above, where the explanation for n = c is added to exp if c is
+   * the (non-null) return value of this function, where n is a term in the
+   * equivalence class of eqc.
+   */
+  Node getConstantEqc( Node n, Node eqc, std::vector<Node>& exp );
 
   /**
    * Get the set of equivalence classes of type string
@@ -105,23 +111,23 @@ private:
    * equivalence class is entailed to be equal to.
    * - The map d_eqcToConst maps (representatives) r of equivalence classes to
    * the constant that that equivalence class is entailed to be equal to,
-   * - The term d_eqcToConst_base[r] is the term in the equivalence class r
+   * - The term d_eqcToConstBase[r] is the term in the equivalence class r
    * that is entailed to be equal to the constant d_eqcToConst[r],
-   * - The term d_eqcToConst_exp[r] is the explanation of why
-   * d_eqcToConst_base[r] is equal to d_eqcToConst[r].
+   * - The term d_eqcToConstExp[r] is the explanation of why
+   * d_eqcToConstBase[r] is equal to d_eqcToConst[r].
    *
    * For example, consider the equivalence class { r, x++"a"++y, x++z }, and
    * assume x = "" and y = "bb" in the current context. We have that
    *   d_eqcToConst[r] = "abb",
-   *   d_eqcToConst_base[r] = x++"a"++y
-   *   d_eqcToConst_exp[r] = ( x = "" AND y = "bb" )
+   *   d_eqcToConstBase[r] = x++"a"++y
+   *   d_eqcToConstExp[r] = ( x = "" AND y = "bb" )
    *
    * This information is computed during checkInit and is used during various
    * inference schemas for deriving inferences.
    */
   std::map< Node, Node > d_eqcToConst;
-  std::map< Node, Node > d_eqcToConst_base;
-  std::map< Node, Node > d_eqcToConst_exp;
+  std::map< Node, Node > d_eqcToConstBase;
+  std::map< Node, Node > d_eqcToConstExp;
   /** The list of equivalence classes of type string */
   std::vector< Node > d_stringsEqc;
   /** 
