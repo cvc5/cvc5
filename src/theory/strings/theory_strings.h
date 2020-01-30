@@ -615,10 +615,6 @@ private:
    */
   void registerTerm(Node n, int effort);
 
- protected:
-
-  void printConcat(std::vector<Node>& n, const char* c);
-
   // Symbolic Regular Expression
  private:
   /** regular expression solver module */
