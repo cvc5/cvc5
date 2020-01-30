@@ -155,7 +155,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         // we may have subsumed children down to one
         ret = children[0];
       }
-      else if (children.size() > kind::metakind::getUpperBoundForKind(k))
+      else if (isAssoc && children.size() > kind::metakind::getUpperBoundForKind(k))
       {
         Assert(kind::metakind::getUpperBoundForKind(k) >= 2);
         // kind may require binary construction
