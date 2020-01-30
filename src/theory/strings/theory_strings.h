@@ -68,6 +68,8 @@ enum InferStep
   CHECK_CYCLES,
   // check flat forms
   CHECK_FLAT_FORMS,
+  // check register terms pre-normal forms
+  CHECK_REGISTER_TERMS_PRE_NF,
   // check normal forms equalities
   CHECK_NORMAL_FORMS_EQ,
   // check normal forms disequalities
@@ -76,6 +78,8 @@ enum InferStep
   CHECK_CODES,
   // check lengths for equivalence classes
   CHECK_LENGTH_EQC,
+  // check register terms for normal forms
+  CHECK_REGISTER_TERMS_NF,
   // check extended function reductions
   CHECK_EXTF_REDUCTION,
   // check regular expression memberships
@@ -764,6 +768,12 @@ private:
    * Must call checkCycles before this function in a strategy.
    */
   void checkFlatForms();
+  /** check register terms pre-normal forms
+   *
+   * This calls registerTerm(n,2) on all non-congruent strings in the
+   * equality engine of this class.
+   */
+  void checkRegisterTermsPreNormalForm();
   /** check normal forms equalities
    *
    * This applies an inference schema based on "normal forms". The normal form
@@ -841,6 +851,13 @@ private:
    * shown to be helpful.
    */
   void checkLengthsEqc();
+  /** check register terms for normal forms
+   *
+   * This calls registerTerm(str.++(t1, ..., tn ), 3) on the normal forms
+   * (t1, ..., tn) of all string equivalence classes { s1, ..., sm } such that
+   * there does not exist a term of the form str.len(si) in the current context.
+   */
+  void checkRegisterTermsNormalForms();
   /** check extended function reductions
    *
    * This adds "reduction" lemmas for each active extended function in this SAT
