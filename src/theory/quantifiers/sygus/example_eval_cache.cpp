@@ -64,7 +64,7 @@ Node ExampleEvalCache::addSearchVal(Node bv)
     Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
     clearEvaluationCache(bv);
   }
-  Assert(ret.getType().isComparableTo(bvr.getType()));
+  Assert(ret.getType().isComparableTo(bv.getType()));
   return ret;
 }
 
@@ -95,9 +95,8 @@ void ExampleEvalCache::evaluateVecInternal(Node bv,
   // use ExampleMinEval
   SygusTypeInfo& ti = d_tds->getTypeInfo(d_stn);
   const std::vector<Node>& varlist = ti.getVarList();
-  ExampleMinEval eme;
   EmeEvalTds emetds(d_tds, d_stn);
-  eme.initialize(bv, varlist, &emetds);
+  ExampleMinEval eme(bv, varlist, &emetds);
   for (size_t j = 0, esize = d_examples.size(); j < esize; j++)
   {
     Node res = eme.evaluate(d_examples[j]);
