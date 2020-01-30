@@ -813,7 +813,7 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
                    == options::SygusActiveGenMode::ENUM
                || options::sygusActiveGenMode()
                       == options::SygusActiveGenMode::AUTO);
-        d_evg[e].reset(new SygusEnumerator(d_tds, this, d_stats));
+        d_evg[e].reset(new SygusEnumerator(d_tds, this));
       }
     }
     Trace("sygus-active-gen")
