@@ -24,6 +24,8 @@
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
+#include "theory/strings/base_solver.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
@@ -243,33 +245,7 @@ class TheoryStrings : public Theory {
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
   std::vector< Node > d_empty_vec;
-  //
-  NodeList d_ee_disequalities;
 private:
-  NodeSet d_congruent;
-  /**
-   * The following three vectors are used for tracking constants that each
-   * equivalence class is entailed to be equal to.
-   * - The map d_eqc_to_const maps (representatives) r of equivalence classes to
-   * the constant that that equivalence class is entailed to be equal to,
-   * - The term d_eqc_to_const_base[r] is the term in the equivalence class r
-   * that is entailed to be equal to the constant d_eqc_to_const[r],
-   * - The term d_eqc_to_const_exp[r] is the explanation of why
-   * d_eqc_to_const_base[r] is equal to d_eqc_to_const[r].
-   *
-   * For example, consider the equivalence class { r, x++"a"++y, x++z }, and
-   * assume x = "" and y = "bb" in the current context. We have that
-   *   d_eqc_to_const[r] = "abb",
-   *   d_eqc_to_const_base[r] = x++"a"++y
-   *   d_eqc_to_const_exp[r] = ( x = "" AND y = "bb" )
-   *
-   * This information is computed during checkInit and is used during various
-   * inference schemas for deriving inferences.
-   */
-  std::map< Node, Node > d_eqc_to_const;
-  std::map< Node, Node > d_eqc_to_const_base;
-  std::map< Node, Node > d_eqc_to_const_exp;
-  Node getConstantEqc( Node eqc );
   /**
    * Get the current substitution for term n.
    *
@@ -287,19 +263,6 @@ private:
 
   std::map< Node, Node > d_eqc_to_len_term;
   std::vector< Node > d_strings_eqc;
-  Node d_emptyString_r;
-  class TermIndex {
-  public:
-    Node d_data;
-    std::map< TNode, TermIndex > d_children;
-    Node add(TNode n,
-             unsigned index,
-             const SolverState& s,
-             Node er,
-             std::vector<Node>& c);
-    void clear(){ d_children.clear(); }
-  };
-  std::map< Kind, TermIndex > d_term_index;
   //list of non-congruent concat terms in each eqc
   std::map< Node, std::vector< Node > > d_eqc;
   std::map< Node, std::vector< Node > > d_flat_form;
@@ -362,7 +325,6 @@ private:
   /** cache of all skolems */
   SkolemCache d_sk_cache;
 
-  void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   /** Get proxy variable
    *
    * If this method returns the proxy variable for (string) term n if one
@@ -621,6 +583,16 @@ private:
 
   // Symbolic Regular Expression
  private:
+  /**
+   * The base solver, responsible for reasoning about congruent terms and
+   * inferring constants for equivalence classes.
+   */
+  BaseSolver d_bsolver;
+  /**
+   * The core solver, responsible for reasoning about string concatenation
+   * with length constraints.
+   */
+  CoreSolver d_csolver;
   /** regular expression solver module */
   RegExpSolver d_regexp_solver;
   /** regular expression elimination module */
@@ -690,28 +662,6 @@ private:
 
  private:
   //-----------------------inference steps
-  /** check initial
-   *
-   * This function initializes term indices for each strings function symbol.
-   * One key aspect of this construction is that concat terms are indexed by
-   * their list of non-empty components. For example, if x = "" is an equality
-   * asserted in this SAT context, then y ++ x ++ z may be indexed by (y,z).
-   * This method may infer various facts while building these term indices, for
-   * instance, based on congruence. An example would be inferring:
-   *   y ++ x ++ z = y ++ z
-   * if both terms are registered in this SAT context.
-   *
-   * This function should be called as a first step of any strategy.
-   */
-  void checkInit();
-  /** check constant equivalence classes
-   *
-   * This function infers whether CONCAT terms can be simplified to constants.
-   * For example, if x = "a" and y = "b" are equalities in the current SAT
-   * context, then we may infer x ++ "c" ++ y is equivalent to "acb". In this
-   * case, we infer the fact x ++ "c" ++ y = "acb".
-   */
-  void checkConstantEquivalenceClasses();
   /** check extended functions evaluation
    *
    * This applies "context-dependent simplification" for all active extended
