@@ -56,6 +56,7 @@
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/passes/theory_preprocess.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
+#include "preprocessing/passes/quantifier_macro_elimination.h"
 #include "preprocessing/preprocessing_pass.h"
 
 namespace CVC4 {
@@ -152,6 +153,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
   registerPassInfo("ho-elim", callCtor<HoElim>);
+  registerPassInfo("quantifier-macro-elimination", callCtor<QuantifierMacroElimination>);
 }
 
 }  // namespace preprocessing

@@ -3360,6 +3360,10 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["unconstrained-simplifier"]->apply(&d_assertions);
   }
 
+  if(options::quantifierMacroElimination()) {
+    d_passes["quantifier-macro-elimination"]->apply(&d_assertions);
+  }
+
   if(options::bvIntroducePow2())
   {
     d_passes["bv-intro-pow2"]->apply(&d_assertions);

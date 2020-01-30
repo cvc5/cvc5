@@ -1964,6 +1964,14 @@ header = "options/quantifiers_options.h"
   help       = "infer alpha equivalence between quantified formulas"
 
 [[option]]
+  name       = "quantifierMacroElimination"
+  category   = "regular"
+  long       = "quantifier-macro-elimination"
+  type       = "bool"
+  default    = "false"
+  help       = "perform quantifier macro substitution"
+
+[[option]]
   name       = "macrosQuant"
   category   = "regular"
   long       = "macros-quant"

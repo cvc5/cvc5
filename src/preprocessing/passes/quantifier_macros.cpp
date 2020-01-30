@@ -548,7 +548,6 @@ void QuantifierMacros::addMacro( Node op, Node n, std::vector< Node >& opc ) {
   }
 }
 
-
 }  // passes
 }  // preprocessing
 }  // CVC4
