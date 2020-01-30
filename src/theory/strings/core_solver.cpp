@@ -77,7 +77,6 @@ void CoreSolver::checkInit() {
   d_eqc_to_const.clear();
   d_eqc_to_const_base.clear();
   d_eqc_to_const_exp.clear();
-  d_eqc_to_len_term.clear();
   d_term_index.clear();
   d_strings_eqc.clear();
 
@@ -102,10 +101,7 @@ void CoreSolver::checkInit() {
           d_eqc_to_const_base[eqc] = n;
           d_eqc_to_const_exp[eqc] = Node::null();
         }else if( tn.isInteger() ){
-          if( n.getKind()==kind::STRING_LENGTH ){
-            Node nr = d_state.getRepresentative(n[0]);
-            d_eqc_to_len_term[nr] = n[0];
-          }
+          // do nothing
         }else if( n.getNumChildren()>0 ){
           Kind k = n.getKind();
           if( k!=kind::EQUAL ){
@@ -2236,6 +2232,11 @@ int CoreSolver::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >&
 }
 
 void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
+  if (n1>n2)
+  {
+    addNormalFormPair(n2,n1);
+    return;
+  }
   if( !isNormalFormPair( n1, n2 ) ){
     int index = 0;
     NodeIntMap::const_iterator it = d_nf_pairs.find( n1 );
@@ -2255,10 +2256,10 @@ void CoreSolver::addNormalFormPair( Node n1, Node n2 ){
 }
 
 bool CoreSolver::isNormalFormPair( Node n1, Node n2 ) {
-  return isNormalFormPair2( n1, n2 ) || isNormalFormPair2( n2, n1 );
-}
-
-bool CoreSolver::isNormalFormPair2( Node n1, Node n2 ) {
+  if (n1>n2)
+  {
+    return isNormalFormPair(n2,n1);
+  }
   //Trace("strings-debug") << "is normal form pair. " << n1 << " " << n2 << std::endl;
   NodeIntMap::const_iterator it = d_nf_pairs.find( n1 );
   if( it!=d_nf_pairs.end() ){
@@ -2367,8 +2368,7 @@ void CoreSolver::checkLengthsEqc() {
     if (lt.isNull())
     {
       Trace("strings-process-debug")
-          << "No length term for eqc " << d_strings_eqc[i] << " "
-          << d_eqc_to_len_term[d_strings_eqc[i]] << std::endl;
+          << "No length term for eqc " << d_strings_eqc[i] << std::endl;
       continue;
     }
     Node llt = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, lt);

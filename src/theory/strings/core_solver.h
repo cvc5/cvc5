@@ -208,20 +208,41 @@ private:
   std::map<Node, NormalForm> d_normal_form;
   /** get normal form */
   NormalForm& getNormalForm(Node n);
-  /** map of pairs of terms that have the same normal form */
+  /** 
+   * In certain cases, we know that two terms are equivalent despite
+   * not having to verify their normal forms are identical. For example,
+   * after applying the R-Loop rule to two terms a and b, we know they
+   * are entailed to be equal in the current context without having
+   * to look at their normal forms. We call (a,b) a normal form pair.
+   * 
+   * We map representative terms a to a list of nodes b1,...,bn such that
+   * (a,b1) ... (a, bn) are normal form pairs. This list is SAT-context
+   * dependent. We use a context-dependent integer along with a context
+   * indepedent map from nodes to lists of nodes to model this, given by
+   * the two data members below.
+   */
   NodeIntMap d_nf_pairs;
-  /** TODO */
   std::map< Node, std::vector< Node > > d_nf_pairs_data;
+  /** Add that (n1,n2) is a normal form pair in the current context. */
   void addNormalFormPair( Node n1, Node n2 );
+  /** Is (n1,n2) a normal form pair in the current context? */
   bool isNormalFormPair( Node n1, Node n2 );
-  bool isNormalFormPair2( Node n1, Node n2 );
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, it introduces Skolems, and
    * updates the set of normal form pairs.
    */
   void doInferInfo(const InferInfo& ii);
-  /** TODO */
+  /** 
+   * A congruence class is a set of terms f( t1 ), ..., f( tn ) where
+   * t1 = ... = tn. Congruence classes are important since all but
+   * one of the above terms (the representative of the congruence class)
+   * can be ignored by the solver.
+   * 
+   * This set contains a set of nodes that are not representatives of their
+   * congruence class. This set is used to skip reasoning about terms in
+   * various inference schemas implemnted by this class.
+   */
   NodeSet d_congruent;
   /** The (SAT-context-dependent) list of disequalities */
   NodeList d_ee_disequalities;
@@ -247,11 +268,19 @@ private:
   std::map< Node, Node > d_eqc_to_const;
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
+  /**
+   * Get the constant that the equivalence class eqc is entailed to be equal
+   * to, or null if none exist.
+   */ 
   Node getConstantEqc( Node eqc );
-
-  std::map< Node, Node > d_eqc_to_len_term;
+  /** The list of equivalence classes of type string */
   std::vector< Node > d_strings_eqc;
+  /** The representative of the equivalence class containing the empty string */
   Node d_emptyString_r;
+  /** 
+   * A term index that considers terms modulo flattening and constant merging
+   * for concatenationterms.
+   */
   class TermIndex {
   public:
     Node d_data;
@@ -263,9 +292,11 @@ private:
              std::vector<Node>& c);
     void clear(){ d_children.clear(); }
   };
+  /** A term index for each function kind */
   std::map< Kind, TermIndex > d_term_index;
-  //list of non-congruent concat terms in each eqc
+  /** list of non-congruent concat terms in each equivalence class */
   std::map< Node, std::vector< Node > > d_eqc;
+  /** The flat form for each equivalence class */
   std::map< Node, std::vector< Node > > d_flat_form;
   std::map< Node, std::vector< int > > d_flat_form_index;
 
