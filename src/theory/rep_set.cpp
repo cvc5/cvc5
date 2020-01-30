@@ -383,8 +383,9 @@ int RepSetIterator::do_reset_increment( int i, bool initial ) {
       emptyDomain = true;
     }
     //force next iteration if currently an empty domain
-    if( emptyDomain ){
-    Trace("rsi-debug") << "This is an empty domain, increment." << std::endl;
+    if( emptyDomain )
+    {
+      Trace("rsi-debug") << "This is an empty domain, increment." << std::endl;
       return increment();
     }
   }
