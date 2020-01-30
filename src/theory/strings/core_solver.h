@@ -223,12 +223,6 @@ private:
    */
   NodeIntMap d_nf_pairs;
   std::map< Node, std::vector< Node > > d_nf_pairs_data;
-  /**
-   * This processes the infer info ii as an inference. In more detail, it calls
-   * the inference manager to process the inference, it introduces Skolems, and
-   * updates the set of normal form pairs.
-   */
-  void doInferInfo(const InferInfo& ii);
   /** 
    * A congruence class is a set of terms f( t1 ), ..., f( tn ) where
    * t1 = ... = tn. Congruence classes are important since all but
@@ -297,6 +291,12 @@ private:
    */
   std::map< Node, std::vector< int > > d_flat_form_index;
 
+  /**
+   * This processes the infer info ii as an inference. In more detail, it calls
+   * the inference manager to process the inference, it introduces Skolems, and
+   * updates the set of normal form pairs.
+   */
+  void doInferInfo(const InferInfo& ii);
   /** get normal form */
   NormalForm& getNormalForm(Node n);
   /** Add that (n1,n2) is a normal form pair in the current context. */

@@ -142,14 +142,11 @@ void CoreSolver::checkInit() {
                   //infer the equality
                   d_im.sendInference(exp, n.eqNode(nc), "I_Norm");
                 }
-                /*
-                // FIXME
-                else if (getExtTheory()->hasFunctionKind(n.getKind()))
+                else
                 {
                   //mark as congruent : only process if neither has been reduced
-                  getExtTheory()->markCongruent( nc, n );
+                  d_im.markCongruent( nc, n );
                 }
-                */
                 //this node is congruent to another one, we can ignore it
                 Trace("strings-process-debug")
                     << "  congruent term : " << n << " (via " << nc << ")"

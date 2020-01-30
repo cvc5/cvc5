@@ -24,6 +24,7 @@
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
+#include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
@@ -620,6 +621,11 @@ private:
 
   // Symbolic Regular Expression
  private:
+  /**
+   * The base solver, responsible for reasoning about congruent terms and
+   * inferring constants for equivalence classes.
+   */
+  BaseSolver d_bsolver;
   /**
    * The core solver, responsible for reasoning about string concatenation
    * with length constraints.
