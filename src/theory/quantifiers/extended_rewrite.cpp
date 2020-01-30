@@ -1143,7 +1143,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
   {
     return Node::null();
   }
-  
+
   NodeManager* nm = NodeManager::currentNM();
 
   TypeNode tn = ret[0].getType();
