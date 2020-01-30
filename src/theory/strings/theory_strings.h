@@ -244,8 +244,6 @@ class TheoryStrings : public Theory {
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
   std::vector< Node > d_empty_vec;
-  //
-  NodeList d_ee_disequalities;
 private:
   NodeSet d_congruent;
   /**

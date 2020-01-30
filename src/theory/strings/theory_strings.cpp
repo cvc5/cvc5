@@ -101,7 +101,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_registered_terms_cache(u),
       d_preproc(&d_sk_cache, u),
       d_extf_infer_cache(c),
-      d_ee_disequalities(c),
       d_congruent(c),
       d_proxy_var(u),
       d_proxy_var_to_length(u),
@@ -1076,37 +1075,7 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
 
 /** called when two equivalance classes will merge */
 void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
-  EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
-  if( e2 ){
-    EqcInfo* e1 = d_state.getOrMakeEqcInfo(t1);
-    //add information from e2 to e1
-    if (!e2->d_lengthTerm.get().isNull())
-    {
-      e1->d_lengthTerm.set(e2->d_lengthTerm);
-    }
-    if (!e2->d_codeTerm.get().isNull())
-    {
-      e1->d_codeTerm.set(e2->d_codeTerm);
-    }
-    if (!e2->d_prefixC.get().isNull())
-    {
-      d_state.setPendingConflictWhen(
-          e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
-    }
-    if (!e2->d_suffixC.get().isNull())
-    {
-      d_state.setPendingConflictWhen(
-          e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
-    }
-    if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
-    {
-      e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
-    }
-    if (!e2->d_normalizedLength.get().isNull())
-    {
-      e1->d_normalizedLength.set(e2->d_normalizedLength);
-    }
-  }
+  d_state.eqNotifyPreMerge(t1,t2);
 }
 
 /** called when two equivalance classes have merged */
@@ -1116,10 +1085,7 @@ void TheoryStrings::eqNotifyPostMerge(TNode t1, TNode t2) {
 
 /** called when two equivalance classes are disequal */
 void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  if( t1.getType().isString() ){
-    //store disequalities between strings, may need to check if their lengths are equal/disequal
-    d_ee_disequalities.push_back( t1.eqNode( t2 ) );
-  }
+  d_state.eqNotifyDisequal(t1,t2,reason);
 }
 
 void TheoryStrings::addCarePairs(TNodeTrie* t1,
@@ -4141,9 +4107,11 @@ void TheoryStrings::checkNormalFormsDeq()
   std::vector< Node > lts;
   std::map< Node, std::map< Node, bool > > processed;
   
+  std::vector<Node> diseqs;
+  d_state.getDisequalityList(diseqs);
+  
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
-  for( NodeList::const_iterator id = d_ee_disequalities.begin(); id != d_ee_disequalities.end(); ++id ) {
-    Node eq = *id;
+  for (const Node& eq : diseqs){
     Node n[2];
     for( unsigned i=0; i<2; i++ ){
       n[i] = d_equalityEngine.getRepresentative( eq[i] );

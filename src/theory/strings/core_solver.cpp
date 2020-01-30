@@ -56,8 +56,7 @@ Node CoreSolver::TermIndex::add(TNode n,
 CoreSolver::CoreSolver(context::Context* c, context::UserContext* u, SolverState& s, InferenceManager& im, SkolemCache& skc) :
 d_state(s), d_im(im), d_skCache(skc),
 d_nf_pairs(c),
-d_congruent(c),
-d_ee_disequalities(c)
+d_congruent(c)
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -2281,9 +2280,11 @@ void CoreSolver::checkNormalFormsDeq()
   std::vector< Node > lts;
   std::map< Node, std::map< Node, bool > > processed;
   
+  std::vector<Node> diseqs;
+  d_state.getDisequalityList(diseqs);
+  
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
-  for( NodeList::const_iterator id = d_ee_disequalities.begin(); id != d_ee_disequalities.end(); ++id ) {
-    Node eq = *id;
+  for (const Node& eq : diseqs){
     Node n[2];
     for( unsigned i=0; i<2; i++ ){
       n[i] = ee->getRepresentative( eq[i] );

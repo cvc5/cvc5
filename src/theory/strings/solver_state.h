@@ -88,6 +88,7 @@ class EqcInfo
  */
 class SolverState
 {
+  typedef context::CDList<Node> NodeList;
  public:
   SolverState(context::Context* c, eq::EqualityEngine& ee, Valuation& v);
   ~SolverState();
@@ -111,7 +112,18 @@ class SolverState
   bool areDisequal(Node a, Node b) const;
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() const;
+  /** 
+   * Get the list of disequalities that are currently asserted to the equality
+   * engine.
+   */
+  void getDisequalityList(std::vector<Node>& diseqs) const;
   //-------------------------------------- end equality information
+  //-------------------------------------- notifications for equalities
+  /** called when two equivalence classes will merge */
+  void eqNotifyPreMerge(TNode t1, TNode t2);
+  /** called when two equivalence classes are made disequal */
+  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  //-------------------------------------- end notifications for equalities
   //------------------------------------------ conflicts
   /**
    * Set that the current state of the solver is in conflict. This should be
@@ -188,6 +200,11 @@ class SolverState
   context::Context* d_context;
   /** Reference to equality engine of the theory of strings. */
   eq::EqualityEngine& d_ee;
+  /** 
+   * The (SAT-context-dependent) list of disequalities that have been asserted
+   * to the equality engine above.
+   */
+  NodeList d_eeDisequalities;
   /** Reference to the valuation of the theory of strings */
   Valuation& d_valuation;
   /** Are we in conflict? */

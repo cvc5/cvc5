@@ -37,10 +37,7 @@ namespace strings {
  */
 class CoreSolver {
   friend class InferenceManager;
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
@@ -249,8 +246,6 @@ private:
    * various inference schemas implemnted by this class.
    */
   NodeSet d_congruent;
-  /** The (SAT-context-dependent) list of disequalities */
-  NodeList d_ee_disequalities;
   /**
    * The following three vectors are used for tracking constants that each
    * equivalence class is entailed to be equal to.
