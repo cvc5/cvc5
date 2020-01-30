@@ -78,14 +78,14 @@ class BaseSolver
   /**
    * Is n congruent to another term in the current context that has not been
    * marked congruent? If so, we can ignore n.
-   * 
+   *
    * Note this and the functions in this block below are valid during a full
    * effort check after a call to checkInit.
    */
   bool isCongruent(Node n);
   /**
    * Get the constant that the equivalence class eqc is entailed to be equal
-   * to, or null if none exist. 
+   * to, or null if none exist.
    */
   Node getConstantEqc(Node eqc);
   /**

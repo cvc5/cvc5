@@ -274,7 +274,7 @@ Node TheoryStrings::getCurrentSubstitutionFor(int effort,
     return mv;
   }
   Node nr = d_state.getRepresentative(n);
-  Node c = d_bsolver.explainConstantEqc(n,nr,exp);
+  Node c = d_bsolver.explainConstantEqc(n, nr, exp);
   if (!c.isNull())
   {
     return c;
@@ -1420,7 +1420,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
     // otherwise, must explain via base node
     Node r = d_state.getRepresentative(n);
     // explain using the base solver
-    d_bsolver.explainConstantEqc(n,r,in.d_exp);
+    d_bsolver.explainConstantEqc(n, r, in.d_exp);
   }
 
   // d_extf_infer_cache stores whether we have made the inferences associated
@@ -1634,8 +1634,9 @@ void TheoryStrings::debugPrintFlatForms( const char * tc ){
       Trace( tc ) << "eqc [" << eqc << "]";
     }
     Node c = d_bsolver.getConstantEqc(eqc);
-    if( !c.isNull() ){
-      Trace( tc ) << "  C: " << c;
+    if (!c.isNull())
+    {
+      Trace(tc) << "  C: " << c;
       if( d_eqc[eqc].size()>1 ){
         Trace( tc ) << std::endl;
       }
@@ -1648,9 +1649,12 @@ void TheoryStrings::debugPrintFlatForms( const char * tc ){
           Node fc = d_flat_form[n][j];
           Node fcc = d_bsolver.getConstantEqc(fc);
           Trace( tc ) << " ";
-          if( !fcc.isNull() ){
-            Trace( tc ) << fcc;
-          }else{
+          if (!fcc.isNull())
+          {
+            Trace(tc) << fcc;
+          }
+          else
+          {
             Trace( tc ) << fc;
           }
         }
@@ -1695,14 +1699,15 @@ void TheoryStrings::checkCycles()
   d_eqc.clear();
   // Rebuild strings eqc based on acyclic ordering, first copy the equivalence
   // classes from the base solver.
-  std::vector< Node > eqc = d_bsolver.getStringEqc();
+  std::vector<Node> eqc = d_bsolver.getStringEqc();
   d_strings_eqc.clear();
   if( options::stringBinaryCsp() ){
     //sort: process smallest constants first (necessary if doing binary splits)
     sortConstLength scl;
     for( unsigned i=0; i<eqc.size(); i++ ){
       Node ci = d_bsolver.getConstantEqc(eqc[i]);
-      if( !ci.isNull() ){
+      if (!ci.isNull())
+      {
         scl.d_const_length[eqc[i]] = ci.getConst<String>().size();
       }
     }
@@ -1755,7 +1760,7 @@ void TheoryStrings::checkFlatForms()
             // conflict, explanation is n = base ^ base = c ^ relevant portion
             // of ( n = f[n] )
             std::vector<Node> exp;
-            d_bsolver.explainConstantEqc(n,eqc,exp);
+            d_bsolver.explainConstantEqc(n, eqc, exp);
             for (int e = firstc; e <= lastc; e++)
             {
               if (d_flat_form[n][e].isConst())
@@ -1941,8 +1946,8 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                   cc_c, curr_c, index, isRev);
               if (s.isNull())
               {
-                d_bsolver.explainConstantEqc(ac,curr,exp);
-                d_bsolver.explainConstantEqc(bc,cc,exp);
+                d_bsolver.explainConstantEqc(ac, curr, exp);
+                d_bsolver.explainConstantEqc(bc, cc, exp);
                 conc = d_false;
                 infType = FlatFormInfer::CONST;
                 break;
@@ -2062,25 +2067,32 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
     while( !eqc_i.isFinished() ) {
       Node n = (*eqc_i);
-      if( !d_bsolver.isCongruent(n) ){
+      if (!d_bsolver.isCongruent(n))
+      {
         if( n.getKind() == kind::STRING_CONCAT ){
           Trace("strings-cycle") << eqc << " check term : " << n << " in " << eqc << std::endl;
-          if( eqc!=d_emptyString ){
+          if (eqc != d_emptyString)
+          {
             d_eqc[eqc].push_back( n );
           }
           for( unsigned i=0; i<n.getNumChildren(); i++ ){
             Node nr = d_state.getRepresentative(n[i]);
-            if( eqc==d_emptyString ){
+            if (eqc == d_emptyString)
+            {
               //for empty eqc, ensure all components are empty
-              if( nr!=d_emptyString ){
+              if (nr != d_emptyString)
+              {
                 std::vector< Node > exp;
                 exp.push_back( n.eqNode( d_emptyString ) );
                 d_im.sendInference(
                     exp, n[i].eqNode(d_emptyString), "I_CYCLE_E");
                 return Node::null();
               }
-            }else{
-              if( nr!=d_emptyString ){
+            }
+            else
+            {
+              if (nr != d_emptyString)
+              {
                 d_flat_form[n].push_back( nr );
                 d_flat_form_index[n].push_back( i );
               }
@@ -2362,7 +2374,8 @@ void TheoryStrings::getNormalForms(Node eqc,
   eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
   while( !eqc_i.isFinished() ){
     Node n = (*eqc_i);
-    if( !d_bsolver.isCongruent(n) ){
+    if (!d_bsolver.isCongruent(n))
+    {
       if (n.getKind() == CONST_STRING || n.getKind() == STRING_CONCAT)
       {
         Trace("strings-process-debug") << "Get Normal Form : Process term " << n << " in eqc " << eqc << std::endl;
@@ -2543,7 +2556,7 @@ void TheoryStrings::getNormalForms(Node eqc,
     }
     
     //if equivalence class is constant, approximate as containment, infer conflicts
-    Node c = d_bsolver.getConstantEqc( eqc );
+    Node c = d_bsolver.getConstantEqc(eqc);
     if( !c.isNull() ){
       Trace("strings-solve") << "Eqc is constant " << c << std::endl;
       for (unsigned i = 0, size = normal_forms.size(); i < size; i++)
@@ -2558,7 +2571,7 @@ void TheoryStrings::getNormalForms(Node eqc,
           Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
           //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = N[n] )
           std::vector< Node > exp;
-          d_bsolver.explainConstantEqc(n,eqc,exp);
+          d_bsolver.explainConstantEqc(n, eqc, exp);
           //TODO: this can be minimized based on firstc/lastc, normal_forms_exp_depend
           exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
           Node conc = d_false;
