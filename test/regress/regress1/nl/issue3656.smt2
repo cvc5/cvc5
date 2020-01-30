@@ -1,4 +1,4 @@
-(set-logic QF_NIA)   
+(set-logic QF_NRA)   
 (set-info :status sat)  
 (declare-fun b () Real)
 (declare-fun c () Real)
