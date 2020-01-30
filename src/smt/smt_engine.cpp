@@ -4273,10 +4273,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
          || resultNode.getType().isSubtypeOf(expectedType))
       << "Run with -t smt for details.";
 
-  // Ensure it's a constant, or a lambda (for uninterpreted functions), or
-  // a choice (for approximate values).
-  Assert(resultNode.getKind() == kind::LAMBDA
-         || resultNode.getKind() == kind::CHOICE || resultNode.isConst());
+  // Ensure it's a constant, or a lambda (for uninterpreted functions). This
+  // assertion only holds for models that do not have approximate values.
+  Assert(m->hasApproximations() || resultNode.getKind() == kind::LAMBDA
+         || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);

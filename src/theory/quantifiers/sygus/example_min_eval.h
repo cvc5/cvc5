@@ -82,7 +82,7 @@ class ExampleMinEval
   /** The domain of substitutions */
   std::vector<Node> d_vars;
   /** The indices in d_vars that occur free in n */
-  std::vector<unsigned> d_indices;
+  std::vector<size_t> d_indices;
   /**
    * The trie of results. This maps subs[d_indices[0]] .. subs[d_indices[j]]
    * to the result of the evaluation. For the example at the top of this class,

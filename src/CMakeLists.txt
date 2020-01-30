@@ -570,6 +570,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/sygus_abduct.cpp
   theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
