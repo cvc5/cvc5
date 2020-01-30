@@ -117,7 +117,7 @@ class SolverState
    * Get the list of disequalities that are currently asserted to the equality
    * engine.
    */
-  void getDisequalityList(std::vector<Node>& diseqs) const;
+  const context::CDList<Node>& getDisequalityList() const;
   //-------------------------------------- end equality information
   //-------------------------------------- notifications for equalities
   /** called when two equivalence classes will merge */

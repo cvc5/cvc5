@@ -2280,11 +2280,11 @@ void CoreSolver::checkNormalFormsDeq()
   std::vector< Node > lts;
   std::map< Node, std::map< Node, bool > > processed;
   
-  std::vector<Node> diseqs;
-  d_state.getDisequalityList(diseqs);
-  
+  const context::CDList<Node>& deqs = d_state.getDisequalityList();
+
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
-  for (const Node& eq : diseqs){
+  for (const Node& eq : deqs)
+  {
     Node n[2];
     for( unsigned i=0; i<2; i++ ){
       n[i] = ee->getRepresentative( eq[i] );

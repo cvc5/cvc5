@@ -201,14 +201,9 @@ bool SolverState::areDisequal(Node a, Node b) const
 
 eq::EqualityEngine* SolverState::getEqualityEngine() const { return &d_ee; }
 
-void SolverState::getDisequalityList(std::vector<Node>& diseqs) const
+const context::CDList<Node>& SolverState::getDisequalityList() const
 {
-  for (NodeList::const_iterator id = d_eeDisequalities.begin();
-       id != d_eeDisequalities.end();
-       ++id)
-  {
-    diseqs.push_back(*id);
-  }
+  return d_eeDisequalities;
 }
 
 void SolverState::eqNotifyPreMerge(TNode t1, TNode t2)
