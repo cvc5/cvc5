@@ -630,7 +630,7 @@ void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
 
 void InferenceManager::markCongruent(Node a, Node b)
 {
-  Assert(a.getKind()==b.getKind());
+  Assert(a.getKind() == b.getKind());
   ExtTheory* eth = d_parent.getExtTheory();
   if (eth->hasFunctionKind(a.getKind()))
   {
