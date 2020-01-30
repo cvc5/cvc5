@@ -1,3 +1,5 @@
+; COMMAND-LINE: --ext-rew-prep
+; EXPECT: sat
 (set-logic QF_NRA)   
 (set-info :status sat)  
 (declare-fun b () Real)
