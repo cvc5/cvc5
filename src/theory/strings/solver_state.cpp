@@ -203,16 +203,21 @@ eq::EqualityEngine* SolverState::getEqualityEngine() const { return &d_ee; }
 
 void SolverState::getDisequalityList(std::vector<Node>& diseqs) const
 {
-  for( NodeList::const_iterator id = d_eeDisequalities.begin(); id != d_eeDisequalities.end(); ++id ) {
+  for (NodeList::const_iterator id = d_eeDisequalities.begin();
+       id != d_eeDisequalities.end();
+       ++id)
+  {
     diseqs.push_back(*id);
   }
 }
-  
-void SolverState::eqNotifyPreMerge(TNode t1, TNode t2){
+
+void SolverState::eqNotifyPreMerge(TNode t1, TNode t2)
+{
   EqcInfo* e2 = getOrMakeEqcInfo(t2, false);
-  if( e2 ){
+  if (e2)
+  {
     EqcInfo* e1 = getOrMakeEqcInfo(t1);
-    //add information from e2 to e1
+    // add information from e2 to e1
     if (!e2->d_lengthTerm.get().isNull())
     {
       e1->d_lengthTerm.set(e2->d_lengthTerm);
@@ -242,10 +247,13 @@ void SolverState::eqNotifyPreMerge(TNode t1, TNode t2){
   }
 }
 
-void SolverState::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  if( t1.getType().isString() ){
-    //store disequalities between strings, may need to check if their lengths are equal/disequal
-    d_eeDisequalities.push_back( t1.eqNode( t2 ) );
+void SolverState::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+{
+  if (t1.getType().isString())
+  {
+    // store disequalities between strings, may need to check if their lengths
+    // are equal/disequal
+    d_eeDisequalities.push_back(t1.eqNode(t2));
   }
 }
 

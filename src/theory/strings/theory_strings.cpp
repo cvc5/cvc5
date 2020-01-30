@@ -1075,7 +1075,7 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
 
 /** called when two equivalance classes will merge */
 void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
-  d_state.eqNotifyPreMerge(t1,t2);
+  d_state.eqNotifyPreMerge(t1, t2);
 }
 
 /** called when two equivalance classes have merged */
@@ -1085,7 +1085,7 @@ void TheoryStrings::eqNotifyPostMerge(TNode t1, TNode t2) {
 
 /** called when two equivalance classes are disequal */
 void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  d_state.eqNotifyDisequal(t1,t2,reason);
+  d_state.eqNotifyDisequal(t1, t2, reason);
 }
 
 void TheoryStrings::addCarePairs(TNodeTrie* t1,
@@ -4106,12 +4106,13 @@ void TheoryStrings::checkNormalFormsDeq()
   std::vector< std::vector< Node > > cols;
   std::vector< Node > lts;
   std::map< Node, std::map< Node, bool > > processed;
-  
+
   std::vector<Node> diseqs;
   d_state.getDisequalityList(diseqs);
-  
+
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
-  for (const Node& eq : diseqs){
+  for (const Node& eq : diseqs)
+  {
     Node n[2];
     for( unsigned i=0; i<2; i++ ){
       n[i] = d_equalityEngine.getRepresentative( eq[i] );

@@ -24,6 +24,7 @@
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
@@ -35,7 +36,6 @@
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/strings/core_solver.h"
 
 #include <climits>
 #include <deque>
@@ -620,7 +620,7 @@ private:
 
   // Symbolic Regular Expression
  private:
-  /** 
+  /**
    * The core solver, responsible for reasoning about string concatenation
    * with length constraints.
    */
