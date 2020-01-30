@@ -26,7 +26,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * All statistics managed for the synth engine.
  */
 class SygusStatistics

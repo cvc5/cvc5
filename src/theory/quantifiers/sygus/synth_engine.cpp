@@ -38,8 +38,7 @@ SygusStatistics::SygusStatistics()
       d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
       d_solutions("SynthConjecture::solutions", 0),
       d_filtered_solutions("SynthConjecture::filtered_solutions", 0),
-      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print",
-                                 0)
+      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print", 0)
 
 {
   smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
