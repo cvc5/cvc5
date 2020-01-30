@@ -1178,6 +1178,7 @@ set(regress_1_tests
   regress1/bv/divtest.smt2
   regress1/bv/fuzz34.smtv1.smt2
   regress1/bv/fuzz38.smtv1.smt2
+  regress1/bv/issue3654.smt2
   regress1/bv/test-bv-abstraction.smt2
   regress1/bv/unsound1.smt2
   regress1/bvdiv2.smt2
