@@ -227,7 +227,7 @@ public:
   void printCoreTerm(Expr term,
                      std::ostream& os,
                      const ProofLetMap& map,
-                     Type expectedType = Type());
+                     TypeNode expectedType = TypeNode());
   void printLetTerm(Expr term, std::ostream& os) override;
   void printBoundTermAsType(Expr term,
                             std::ostream& os,

@@ -295,11 +295,11 @@ void LFSCTheoryProofEngine::printTheoryTermAsType(Expr term,
   if (theory_id == theory::THEORY_BUILTIN ||
       term.getKind() == kind::ITE ||
       term.getKind() == kind::EQUAL) {
-    printCoreTerm(term, os, map);
+    printCoreTerm(term, os, map, expectedType);
     return;
   }
   // dispatch to proper theory
-  getTheoryProof(theory_id)->printOwnedTerm(term, os, map);
+  getTheoryProof(theory_id)->printOwnedTerm(term, os, map, expectedType);
 }
 
 void LFSCTheoryProofEngine::printSort(Type type, std::ostream& os) {
@@ -866,18 +866,23 @@ void LFSCTheoryProofEngine::printBoundTermAsType(Expr term,
 {
   Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
 
-  ProofLetMap::const_iterator it = map.find(term);
-  if (it != map.end()) {
-    unsigned id = it->second.id;
-    unsigned count = it->second.count;
+  // Since let-abbreviated terms are abbreviated with their default type, only
+  // use the let map if there is no expectedType or the expectedType matches
+  // the default.
+  if (expectedType.isNull() || TypeNode::fromType(term.getType()) == expectedType) {
+    ProofLetMap::const_iterator it = map.find(term);
+    if (it != map.end()) {
+      unsigned id = it->second.id;
+      unsigned count = it->second.count;
 
-    if (count > LET_COUNT) {
-      os << "let" << id;
-      return;
+      if (count > LET_COUNT) {
+        os << "let" << id;
+        return;
+      }
     }
   }
 
-  printTheoryTerm(term, os, map);
+  printTheoryTerm(term, os, map, expectedType);
 }
 
 void LFSCTheoryProofEngine::printBoundFormula(Expr term,
@@ -900,7 +905,7 @@ void LFSCTheoryProofEngine::printBoundFormula(Expr term,
 void LFSCTheoryProofEngine::printCoreTerm(Expr term,
                                           std::ostream& os,
                                           const ProofLetMap& map,
-                                          Type expectedType)
+                                          TypeNode expectedType)
 {
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);
@@ -911,6 +916,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
 
   switch(k) {
   case kind::ITE: {
+    TypeNode armType = expectedType.isNull() ? TypeNode::fromType(term.getType()) : expectedType;
     bool useFormulaType = term.getType().isBoolean();
     Assert(term[1].getType().isSubtypeOf(term.getType()));
     Assert(term[2].getType().isSubtypeOf(term.getType()));
@@ -924,7 +930,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
     }
     else
     {
-      printBoundTerm(term[1], os, map);
+      printBoundTerm(term[1], os, map, armType);
     }
     os << " ";
     if (useFormulaType)
@@ -941,6 +947,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
 
   case kind::EQUAL: {
     bool booleanCase = term[0].getType().isBoolean();
+    TypeNode armType = TypeNode::fromType(term[0].getType());
 
     os << "(";
     if (booleanCase) {
@@ -952,30 +959,31 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
     }
 
     if (booleanCase && printsAsBool(term[0])) os << "(p_app ";
-    printBoundTerm(term[0], os, map);
+    printBoundTerm(term[0], os, map, armType);
     if (booleanCase && printsAsBool(term[0])) os << ")";
 
     os << " ";
 
     if (booleanCase && printsAsBool(term[1])) os << "(p_app ";
-    printBoundTerm(term[1], os, map);
+    printBoundTerm(term[1], os, map, armType);
     if (booleanCase && printsAsBool(term[1])) os << ") ";
     os << ")";
 
     return;
   }
 
-  case kind::DISTINCT:
+  case kind::DISTINCT: {
     // Distinct nodes can have any number of chidlren.
     Assert(term.getNumChildren() >= 2);
+    TypeNode armType = TypeNode::fromType(term[0].getType());
 
     if (term.getNumChildren() == 2) {
       os << "(not (= ";
       printSort(term[0].getType(), os);
       os << " ";
-      printBoundTerm(term[0], os, map);
+      printBoundTerm(term[0], os, map, armType);
       os << " ";
-      printBoundTerm(term[1], os, map);
+      printBoundTerm(term[1], os, map, armType);
       os << "))";
     } else {
       unsigned numOfPairs = term.getNumChildren() * (term.getNumChildren() - 1) / 2;
@@ -989,24 +997,24 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
             os << "(not (= ";
             printSort(term[0].getType(), os);
             os << " ";
-            printBoundTerm(term[i], os, map);
+            printBoundTerm(term[i], os, map, armType);
             os << " ";
-            printBoundTerm(term[j], os, map);
+            printBoundTerm(term[j], os, map, armType);
             os << ")))";
           } else {
             os << "(not (= ";
             printSort(term[0].getType(), os);
             os << " ";
-            printBoundTerm(term[0], os, map);
+            printBoundTerm(term[0], os, map, armType);
             os << " ";
-            printBoundTerm(term[1], os, map);
+            printBoundTerm(term[1], os, map, armType);
             os << "))";
           }
         }
       }
     }
-
     return;
+  }
 
   case kind::CHAIN: {
     // LFSC doesn't allow declarations with variable numbers of
