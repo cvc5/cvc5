@@ -4162,8 +4162,7 @@ void TheoryStrings::checkNormalFormsDeq()
         {
           Trace("strings-solve") << "- Verify disequalities are processed for "
                                  << cols[i][0] << ", normal form : ";
-          printConcat(getNormalForm(cols[i][0]).d_nf,
-                                  "strings-solve");
+          printConcat(getNormalForm(cols[i][0]).d_nf, "strings-solve");
           Trace("strings-solve")
               << "... #eql = " << cols[i].size() << std::endl;
         }
@@ -4184,11 +4183,9 @@ void TheoryStrings::checkNormalFormsDeq()
                 if (Trace.isOn("strings-solve"))
                 {
                   Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
-                  printConcat(getNormalForm(cols[i][j]).d_nf,
-                                          "strings-solve");
+                  printConcat(getNormalForm(cols[i][j]).d_nf, "strings-solve");
                   Trace("strings-solve") << " against " << cols[i][k] << " ";
-                  printConcat(getNormalForm(cols[i][k]).d_nf,
-                                          "strings-solve");
+                  printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
                   Trace("strings-solve") << "..." << std::endl;
                 }
                 processDeq(cols[i][j], cols[i][k]);
