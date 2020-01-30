@@ -31,20 +31,24 @@ namespace theory {
 namespace strings {
 
 /** The base solver for the theory of strings
- * 
+ *
  * This implements techniques for inferring when terms are congruent in the
  * current context, and techniques for inferring when equivalence classes
  * are equivalent to constants.
  */
-class BaseSolver {
+class BaseSolver
+{
   friend class InferenceManager;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  BaseSolver(context::Context* c, context::UserContext* u, SolverState& s,InferenceManager& im);
+  BaseSolver(context::Context* c,
+             context::UserContext* u,
+             SolverState& s,
+             InferenceManager& im);
   ~BaseSolver();
-  
+
   //-----------------------inference steps
   /** check initial
    *
@@ -68,26 +72,26 @@ class BaseSolver {
    * case, we infer the fact x ++ "c" ++ y = "acb".
    */
   void checkConstantEquivalenceClasses();
-  //-----------------------end inference steps  
-  
+  //-----------------------end inference steps
+
   /**
    * Get the constant that the equivalence class eqc is entailed to be equal
    * to, or null if none exist.
-   */ 
-  Node getConstantEqc( Node eqc );
-  /** 
+   */
+  Node getConstantEqc(Node eqc);
+  /**
    * Same as above, where the explanation for n = c is added to exp if c is
    * the (non-null) return value of this function, where n is a term in the
    * equivalence class of eqc.
    */
-  Node getConstantEqc( Node n, Node eqc, std::vector<Node>& exp );
+  Node getConstantEqc(Node n, Node eqc, std::vector<Node>& exp);
 
   /**
    * Get the set of equivalence classes of type string
    */
   const std::vector<Node>& getStringEqc() const;
-  
-private:  
+
+ private:
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
@@ -95,12 +99,12 @@ private:
   /** Commonly used constants */
   Node d_emptyString;
   Node d_false;
-  /** 
+  /**
    * A congruence class is a set of terms f( t1 ), ..., f( tn ) where
    * t1 = ... = tn. Congruence classes are important since all but
    * one of the above terms (the representative of the congruence class)
    * can be ignored by the solver.
-   * 
+   *
    * This set contains a set of nodes that are not representatives of their
    * congruence class. This set is used to skip reasoning about terms in
    * various inference schemas implemnted by this class.
@@ -125,32 +129,33 @@ private:
    * This information is computed during checkInit and is used during various
    * inference schemas for deriving inferences.
    */
-  std::map< Node, Node > d_eqcToConst;
-  std::map< Node, Node > d_eqcToConstBase;
-  std::map< Node, Node > d_eqcToConstExp;
+  std::map<Node, Node> d_eqcToConst;
+  std::map<Node, Node> d_eqcToConstBase;
+  std::map<Node, Node> d_eqcToConstExp;
   /** The list of equivalence classes of type string */
-  std::vector< Node > d_stringsEqc;
-  /** 
+  std::vector<Node> d_stringsEqc;
+  /**
    * A term index that considers terms modulo flattening and constant merging
    * for concatenationterms.
    */
-  class TermIndex {
-  public:
+  class TermIndex
+  {
+   public:
     /** The data at this node of the trie */
     Node d_data;
     /** The children of this node of the trie */
-    std::map< TNode, TermIndex > d_children;
+    std::map<TNode, TermIndex> d_children;
     /** Add n to this trie
-     * 
+     *
      * A term is indexed by flattening arguments of concatenation terms,
      * and replacing them by (non-empty) constants when possible, for example
      * if n is (str.++ x y z) and x = "abc" and y = "" are asserted, then n is
      * indexed by ("abc", z).
-     * 
-     * index: the child of n we are currently processing, 
+     *
+     * index: the child of n we are currently processing,
      * s : reference to solver state,
      * er : the representative of the empty equivalence class.
-     * 
+     *
      * We store the vector of terms that n was indexed by in the vector c.
      */
     Node add(TNode n,
@@ -159,22 +164,22 @@ private:
              Node er,
              std::vector<Node>& c);
     /** Clear this trie */
-    void clear(){ d_children.clear(); }
+    void clear() { d_children.clear(); }
   };
   /** A term index for each function kind */
-  std::map< Kind, TermIndex > d_termIndex;
-  
-  /** 
+  std::map<Kind, TermIndex> d_termIndex;
+
+  /**
    * This method is called as we are traversing the term index ti, where vecc
    * accumulates the list of constants in the path to ti. If ti has a non-null
    * data n, then we have inferred that d_data is equivalent to the
    * constant specified by vecc.
    */
-  void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-};/* class BaseSolver */
+  void checkConstantEquivalenceClasses(TermIndex* ti, std::vector<Node>& vecc);
+}; /* class BaseSolver */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__BASE_SOLVER_H */
