@@ -371,8 +371,8 @@ int RepSetIterator::incrementAtIndex(int i)
 }
 
 int RepSetIterator::do_reset_increment( int i, bool initial ) {
-  bool emptyDomain = false;
   for( unsigned ii=(i+1); ii<d_index.size(); ii++ ){
+    bool emptyDomain = false;
     int ri_res = resetIndex( ii, initial );
     if( ri_res==-1 ){
       //failed
@@ -384,15 +384,11 @@ int RepSetIterator::do_reset_increment( int i, bool initial ) {
     }
     //force next iteration if currently an empty domain
     if( emptyDomain ){
-      d_index[ii] = domainSize(ii)-1;
+    Trace("rsi-debug") << "This is an empty domain, increment." << std::endl;
+      return increment();
     }
   }
-  if( emptyDomain ){
-    Trace("rsi-debug") << "This is an empty domain, increment." << std::endl;
-    return increment();
-  }else{
-    return i;
-  }
+  return i;
 }
 
 int RepSetIterator::increment(){
