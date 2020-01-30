@@ -25,6 +25,7 @@
 #include "theory/strings/normal_form.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/base_solver.h"
 
 namespace CVC4 {
 namespace theory {

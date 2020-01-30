@@ -359,6 +359,11 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
   }
 }
 
+bool BaseSolver::isCongruent(Node n)
+{
+  return d_congruent.find(n)!=d_congruent.end();
+}
+
 Node BaseSolver::getConstantEqc(Node eqc)
 {
   std::map<Node, Node>::iterator it = d_eqcToConst.find(eqc);
