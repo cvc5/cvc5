@@ -4109,7 +4109,8 @@ void TheoryStrings::checkNormalFormsDeq()
   const NodeList& deqs = d_state.getDisequalityList();
 
   //for each pair of disequal strings, must determine whether their lengths are equal or disequal
-  for (const Node& eq : deqs){
+  for (const Node& eq : deqs)
+  {
     Node n[2];
     for( unsigned i=0; i<2; i++ ){
       n[i] = d_equalityEngine.getRepresentative( eq[i] );
