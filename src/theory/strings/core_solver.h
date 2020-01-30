@@ -39,10 +39,9 @@ namespace strings {
 class CoreSolver {
   friend class InferenceManager;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  CoreSolver(context::Context* c, context::UserContext* u, SolverState& s,InferenceManager& im, SkolemCache& skc);
+  CoreSolver(context::Context* c, context::UserContext* u, SolverState& s,InferenceManager& im, SkolemCache& skc, BaseSolver& bs);
   ~CoreSolver();
  
   //--------------------------- helper functions
@@ -198,6 +197,8 @@ private:
   InferenceManager& d_im;
   /** cache of all skolems */
   SkolemCache& d_skCache;
+  /** reference to the base solver, used for certain queries */
+  BaseSolver& d_bsolver;
   /** Commonly used constants */
   Node d_emptyString;
   Node d_true;
@@ -205,6 +206,11 @@ private:
   Node d_zero;
   Node d_one;
   Node d_neg_one;
+  /** 
+   * The list of equivalence classes of type string. These are ordered based
+   * on the ordering described in checkCycles.
+   */
+  std::vector<Node> d_strings_eqc;
   /** empty vector (used for trivial explanations) */
   std::vector<Node> d_emptyVec;
   /** map from terms to their normal forms */
@@ -224,60 +230,6 @@ private:
    */
   NodeIntMap d_nf_pairs;
   std::map< Node, std::vector< Node > > d_nf_pairs_data;
-  /** 
-   * A congruence class is a set of terms f( t1 ), ..., f( tn ) where
-   * t1 = ... = tn. Congruence classes are important since all but
-   * one of the above terms (the representative of the congruence class)
-   * can be ignored by the solver.
-   * 
-   * This set contains a set of nodes that are not representatives of their
-   * congruence class. This set is used to skip reasoning about terms in
-   * various inference schemas implemnted by this class.
-   */
-  NodeSet d_congruent;
-  /**
-   * The following three vectors are used for tracking constants that each
-   * equivalence class is entailed to be equal to.
-   * - The map d_eqc_to_const maps (representatives) r of equivalence classes to
-   * the constant that that equivalence class is entailed to be equal to,
-   * - The term d_eqc_to_const_base[r] is the term in the equivalence class r
-   * that is entailed to be equal to the constant d_eqc_to_const[r],
-   * - The term d_eqc_to_const_exp[r] is the explanation of why
-   * d_eqc_to_const_base[r] is equal to d_eqc_to_const[r].
-   *
-   * For example, consider the equivalence class { r, x++"a"++y, x++z }, and
-   * assume x = "" and y = "bb" in the current context. We have that
-   *   d_eqc_to_const[r] = "abb",
-   *   d_eqc_to_const_base[r] = x++"a"++y
-   *   d_eqc_to_const_exp[r] = ( x = "" AND y = "bb" )
-   *
-   * This information is computed during checkInit and is used during various
-   * inference schemas for deriving inferences.
-   */
-  std::map< Node, Node > d_eqc_to_const;
-  std::map< Node, Node > d_eqc_to_const_base;
-  std::map< Node, Node > d_eqc_to_const_exp;
-  /** The list of equivalence classes of type string */
-  std::vector< Node > d_strings_eqc;
-  /** The representative of the equivalence class containing the empty string */
-  Node d_emptyString_r;
-  /** 
-   * A term index that considers terms modulo flattening and constant merging
-   * for concatenationterms.
-   */
-  class TermIndex {
-  public:
-    Node d_data;
-    std::map< TNode, TermIndex > d_children;
-    Node add(TNode n,
-             unsigned index,
-             const SolverState& s,
-             Node er,
-             std::vector<Node>& c);
-    void clear(){ d_children.clear(); }
-  };
-  /** A term index for each function kind */
-  std::map< Kind, TermIndex > d_term_index;
   /** list of non-congruent concat terms in each equivalence class */
   std::map< Node, std::vector< Node > > d_eqc;
   /** 
@@ -305,14 +257,6 @@ private:
   /** Is (n1,n2) a normal form pair in the current context? */
   bool isNormalFormPair( Node n1, Node n2 );
 
-  //--------------------------for checkConstantEquivalenceClasses
-  void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  /**
-   * Get the constant that the equivalence class eqc is entailed to be equal
-   * to, or null if none exist.
-   */ 
-  Node getConstantEqc( Node eqc );
-  //--------------------------end for checkConstantEquivalenceClasses
   //--------------------------for checkFlatForm
   /**
    * This checks whether there are flat form inferences between eqc[start] and
