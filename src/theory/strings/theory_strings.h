@@ -25,7 +25,6 @@
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
 #include "theory/strings/base_solver.h"
-#include "theory/strings/core_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
@@ -588,11 +587,6 @@ private:
    * inferring constants for equivalence classes.
    */
   BaseSolver d_bsolver;
-  /**
-   * The core solver, responsible for reasoning about string concatenation
-   * with length constraints.
-   */
-  CoreSolver d_csolver;
   /** regular expression solver module */
   RegExpSolver d_regexp_solver;
   /** regular expression elimination module */
