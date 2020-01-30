@@ -550,6 +550,7 @@ set(regress_0_tests
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
   regress0/nl/issue3475.smt2
+  regress0/nl/issue3652.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -890,6 +891,7 @@ set(regress_0_tests
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
   regress0/strings/issue3497.smt2
+  regress0/strings/issue3657-evalLeq.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
@@ -1430,6 +1432,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue3481.smt2
   regress1/quantifiers/issue3537.smt2
+  regress1/quantifiers/issue3628.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1654,6 +1657,7 @@ set(regress_1_tests
   regress1/strings/issue3217.smt2
   regress1/strings/issue3272.smt2
   regress1/strings/issue3357.smt2
+  regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
