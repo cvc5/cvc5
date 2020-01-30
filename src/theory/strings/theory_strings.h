@@ -35,6 +35,7 @@
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/strings/core_solver.h"
 
 #include <climits>
 #include <deque>
@@ -621,6 +622,11 @@ private:
 
   // Symbolic Regular Expression
  private:
+  /** 
+   * The core solver, responsible for reasoning about string concatenation
+   * with length constraints.
+   */
+  CoreSolver d_csolver;
   /** regular expression solver module */
   RegExpSolver d_regexp_solver;
   /** regular expression elimination module */
