@@ -2473,26 +2473,25 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
   return Node::null();
 }
 
-void TheoryStrings::checkNormalFormsEq()
+void TheoryStrings::checkRegisterTermsPreNormalForm()
 {
-  if( !options::stringEagerLen() ){
-    for( unsigned i=0; i<d_strings_eqc.size(); i++ ) {
-      Node eqc = d_strings_eqc[i];
-      eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
-      while( !eqc_i.isFinished() ) {
-        Node n = (*eqc_i);
-        if( d_congruent.find( n )==d_congruent.end() ){
-          registerTerm( n, 2 );
-        }
-        ++eqc_i;
+  for (const Node& eqc : d_strings_eqc)
+  {
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, &d_equalityEngine);
+    while (!eqc_i.isFinished())
+    {
+      Node n = (*eqc_i);
+      if (d_congruent.find(n) == d_congruent.end())
+      {
+        registerTerm(n, 2);
       }
+      ++eqc_i;
     }
   }
+}
 
-  if (d_im.hasProcessed())
-  {
-    return;
-  }
+void TheoryStrings::checkNormalFormsEq()
+{
   // calculate normal forms for each equivalence class, possibly adding
   // splitting lemmas
   d_normal_form.clear();
@@ -4163,7 +4162,8 @@ void TheoryStrings::checkNormalFormsDeq()
         {
           Trace("strings-solve") << "- Verify disequalities are processed for "
                                  << cols[i][0] << ", normal form : ";
-          printConcat(getNormalForm(cols[i][0]).d_nf, "strings-solve");
+          printConcat(getNormalForm(cols[i][0]).d_nf,
+                                  "strings-solve");
           Trace("strings-solve")
               << "... #eql = " << cols[i].size() << std::endl;
         }
@@ -4184,9 +4184,11 @@ void TheoryStrings::checkNormalFormsDeq()
                 if (Trace.isOn("strings-solve"))
                 {
                   Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
-                  printConcat(getNormalForm(cols[i][j]).d_nf, "strings-solve");
+                  printConcat(getNormalForm(cols[i][j]).d_nf,
+                                          "strings-solve");
                   Trace("strings-solve") << " against " << cols[i][k] << " ";
-                  printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
+                  printConcat(getNormalForm(cols[i][k]).d_nf,
+                                          "strings-solve");
                   Trace("strings-solve") << "..." << std::endl;
                 }
                 processDeq(cols[i][j], cols[i][k]);
@@ -4204,54 +4206,67 @@ void TheoryStrings::checkNormalFormsDeq()
 }
 
 void TheoryStrings::checkLengthsEqc() {
-  if( options::stringLenNorm() ){
-    for( unsigned i=0; i<d_strings_eqc.size(); i++ ){
-      NormalForm& nfi = getNormalForm(d_strings_eqc[i]);
-      Trace("strings-process-debug") << "Process length constraints for " << d_strings_eqc[i] << std::endl;
-      //check if there is a length term for this equivalence class
-      EqcInfo* ei = d_state.getOrMakeEqcInfo(d_strings_eqc[i], false);
-      Node lt = ei ? ei->d_lengthTerm : Node::null();
-      if( !lt.isNull() ) {
-        Node llt = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, lt );
-        //now, check if length normalization has occurred
-        if (ei->d_normalizedLength.get().isNull())
+  for (unsigned i = 0; i < d_strings_eqc.size(); i++)
+  {
+    NormalForm& nfi = getNormalForm(d_strings_eqc[i]);
+    Trace("strings-process-debug")
+        << "Process length constraints for " << d_strings_eqc[i] << std::endl;
+    // check if there is a length term for this equivalence class
+    EqcInfo* ei = d_state.getOrMakeEqcInfo(d_strings_eqc[i], false);
+    Node lt = ei ? ei->d_lengthTerm : Node::null();
+    if (lt.isNull())
+    {
+      Trace("strings-process-debug")
+          << "No length term for eqc " << d_strings_eqc[i] << " "
+          << d_eqc_to_len_term[d_strings_eqc[i]] << std::endl;
+      continue;
+    }
+    Node llt = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, lt);
+    // now, check if length normalization has occurred
+    if (ei->d_normalizedLength.get().isNull())
+    {
+      Node nf = utils::mkNConcat(nfi.d_nf);
+      if (Trace.isOn("strings-process-debug"))
+      {
+        Trace("strings-process-debug")
+            << "  normal form is " << nf << " from base " << nfi.d_base
+            << std::endl;
+        Trace("strings-process-debug") << "  normal form exp is: " << std::endl;
+        for (const Node& exp : nfi.d_exp)
         {
-          Node nf = utils::mkNConcat(nfi.d_nf);
-          if( Trace.isOn("strings-process-debug") ){
-            Trace("strings-process-debug")
-                << "  normal form is " << nf << " from base " << nfi.d_base
-                << std::endl;
-            Trace("strings-process-debug") << "  normal form exp is: " << std::endl;
-            for (const Node& exp : nfi.d_exp)
-            {
-              Trace("strings-process-debug") << "   " << exp << std::endl;
-            }
-          }
-          
-          //if not, add the lemma
-          std::vector< Node > ant;
-          ant.insert(ant.end(), nfi.d_exp.begin(), nfi.d_exp.end());
-          ant.push_back(nfi.d_base.eqNode(lt));
-          Node lc = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, nf );
-          Node lcr = Rewriter::rewrite( lc );
-          Trace("strings-process-debug") << "Rewrote length " << lc << " to " << lcr << std::endl;
-          if (!d_state.areEqual(llt, lcr))
-          {
-            Node eq = llt.eqNode(lcr);
-            ei->d_normalizedLength.set(eq);
-            d_im.sendInference(ant, eq, "LEN-NORM", true);
-          }
-        }
-      }else{
-        Trace("strings-process-debug") << "No length term for eqc " << d_strings_eqc[i] << " " << d_eqc_to_len_term[d_strings_eqc[i]] << std::endl;
-        if( !options::stringEagerLen() ){
-          Node c = utils::mkNConcat(nfi.d_nf);
-          registerTerm( c, 3 );
+          Trace("strings-process-debug") << "   " << exp << std::endl;
         }
       }
-      //} else {
-      //  Trace("strings-process-debug") << "Do not process length constraints for " << nodes[i] << " " << d_normal_forms[nodes[i]].size() << std::endl;
-      //}
+
+      // if not, add the lemma
+      std::vector<Node> ant;
+      ant.insert(ant.end(), nfi.d_exp.begin(), nfi.d_exp.end());
+      ant.push_back(nfi.d_base.eqNode(lt));
+      Node lc = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, nf);
+      Node lcr = Rewriter::rewrite(lc);
+      Trace("strings-process-debug")
+          << "Rewrote length " << lc << " to " << lcr << std::endl;
+      if (!d_state.areEqual(llt, lcr))
+      {
+        Node eq = llt.eqNode(lcr);
+        ei->d_normalizedLength.set(eq);
+        d_im.sendInference(ant, eq, "LEN-NORM", true);
+      }
+    }
+  }
+}
+void TheoryStrings::checkRegisterTermsNormalForms()
+{
+  for (const Node& eqc : d_strings_eqc)
+  {
+    NormalForm& nfi = getNormalForm(eqc);
+    // check if there is a length term for this equivalence class
+    EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
+    Node lt = ei ? ei->d_lengthTerm : Node::null();
+    if (lt.isNull())
+    {
+      Node c = utils::mkNConcat(nfi.d_nf);
+      registerTerm(c, 3);
     }
   }
 }
@@ -4481,10 +4496,12 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
     case CHECK_EXTF_EVAL: checkExtfEval(effort); break;
     case CHECK_CYCLES: checkCycles(); break;
     case CHECK_FLAT_FORMS: checkFlatForms(); break;
+    case CHECK_REGISTER_TERMS_PRE_NF: checkRegisterTermsPreNormalForm(); break;
     case CHECK_NORMAL_FORMS_EQ: checkNormalFormsEq(); break;
     case CHECK_NORMAL_FORMS_DEQ: checkNormalFormsDeq(); break;
     case CHECK_CODES: checkCodes(); break;
     case CHECK_LENGTH_EQC: checkLengthsEqc(); break;
+    case CHECK_REGISTER_TERMS_NF: checkRegisterTermsNormalForms(); break;
     case CHECK_EXTF_REDUCTION: checkExtfReductions(effort); break;
     case CHECK_MEMBERSHIP: checkMemberships(); break;
     case CHECK_CARDINALITY: checkCardinality(); break;
@@ -4548,15 +4565,20 @@ void TheoryStrings::initializeStrategy()
       // do only the above inferences at standard effort, if applicable
       step_end[EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
+    if (!options::stringEagerLen())
+    {
+      addStrategyStep(CHECK_REGISTER_TERMS_PRE_NF);
+    }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
     if (!options::stringEagerLen())
     {
-      addStrategyStep(CHECK_LENGTH_EQC);
+      addStrategyStep(CHECK_LENGTH_EQC, 0, false);
+      addStrategyStep(CHECK_REGISTER_TERMS_NF);
     }
     addStrategyStep(CHECK_NORMAL_FORMS_DEQ);
     addStrategyStep(CHECK_CODES);
-    if (options::stringEagerLen())
+    if (options::stringEagerLen() && options::stringLenNorm())
     {
       addStrategyStep(CHECK_LENGTH_EQC);
     }
