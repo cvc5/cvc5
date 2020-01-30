@@ -154,19 +154,19 @@ void BaseSolver::checkInit()
                   std::vector<Node> exp;
                   // explain empty components
                   bool foundNEmpty = false;
-                  for (unsigned i = 0; i < n.getNumChildren(); i++)
+                  for (const Node& nc : n)
                   {
-                    if (d_state.areEqual(n[i], d_emptyString))
+                    if (d_state.areEqual(nc, d_emptyString))
                     {
-                      if (n[i] != d_emptyString)
+                      if (nc != d_emptyString)
                       {
-                        exp.push_back(n[i].eqNode(d_emptyString));
+                        exp.push_back(nc.eqNode(d_emptyString));
                       }
                     }
                     else
                     {
                       Assert(!foundNEmpty);
-                      ns = n[i];
+                      ns = nc;
                       foundNEmpty = true;
                     }
                   }
@@ -256,14 +256,17 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
     Node c = utils::mkNConcat(vecc);
     if (!d_state.areEqual(n, c))
     {
-      Trace("strings-debug")
-          << "Constant eqc : " << c << " for " << n << std::endl;
-      Trace("strings-debug") << "  ";
-      for (unsigned i = 0; i < vecc.size(); i++)
+      if (Trace.isOn("strings-debug"))
       {
-        Trace("strings-debug") << vecc[i] << " ";
+        Trace("strings-debug")
+            << "Constant eqc : " << c << " for " << n << std::endl;
+        Trace("strings-debug") << "  ";
+        for (const Node& v : vecc)
+        {
+          Trace("strings-debug") << v << " ";
+        }
+        Trace("strings-debug") << std::endl;
       }
-      Trace("strings-debug") << std::endl;
       unsigned count = 0;
       unsigned countc = 0;
       std::vector<Node> exp;
@@ -340,15 +343,13 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       }
     }
   }
-  for (std::map<TNode, TermIndex>::iterator it = ti->d_children.begin();
-       it != ti->d_children.end();
-       ++it)
+  for (std::pair<const TNode, TermIndex>& p : ti->d_children)
   {
-    std::map<Node, Node>::iterator itc = d_eqcToConst.find(it->first);
+    std::map<Node, Node>::iterator itc = d_eqcToConst.find(p.first);
     if (itc != d_eqcToConst.end())
     {
       vecc.push_back(itc->second);
-      checkConstantEquivalenceClasses(&it->second, vecc);
+      checkConstantEquivalenceClasses(&p.second, vecc);
       vecc.pop_back();
       if (d_im.hasProcessed())
       {
