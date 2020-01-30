@@ -143,6 +143,7 @@ SolverState::SolverState(context::Context* c,
                          Valuation& v)
     : d_context(c),
       d_ee(ee),
+      d_eeDisequalities(c),
       d_valuation(v),
       d_conflict(c, false),
       d_pendingConflict(c)
@@ -199,6 +200,57 @@ bool SolverState::areDisequal(Node a, Node b) const
 }
 
 eq::EqualityEngine* SolverState::getEqualityEngine() const { return &d_ee; }
+
+const context::CDList<Node>& SolverState::getDisequalityList() const
+{
+  return d_eeDisequalities;
+}
+
+void SolverState::eqNotifyPreMerge(TNode t1, TNode t2)
+{
+  EqcInfo* e2 = getOrMakeEqcInfo(t2, false);
+  if (e2)
+  {
+    EqcInfo* e1 = getOrMakeEqcInfo(t1);
+    // add information from e2 to e1
+    if (!e2->d_lengthTerm.get().isNull())
+    {
+      e1->d_lengthTerm.set(e2->d_lengthTerm);
+    }
+    if (!e2->d_codeTerm.get().isNull())
+    {
+      e1->d_codeTerm.set(e2->d_codeTerm);
+    }
+    if (!e2->d_prefixC.get().isNull())
+    {
+      setPendingConflictWhen(
+          e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
+    }
+    if (!e2->d_suffixC.get().isNull())
+    {
+      setPendingConflictWhen(
+          e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
+    }
+    if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
+    {
+      e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
+    }
+    if (!e2->d_normalizedLength.get().isNull())
+    {
+      e1->d_normalizedLength.set(e2->d_normalizedLength);
+    }
+  }
+}
+
+void SolverState::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+{
+  if (t1.getType().isString())
+  {
+    // store disequalities between strings, may need to check if their lengths
+    // are equal/disequal
+    d_eeDisequalities.push_back(t1.eqNode(t2));
+  }
+}
 
 EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
 {
