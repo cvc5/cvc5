@@ -64,13 +64,12 @@ class EmeEval
 class ExampleMinEval
 {
  public:
-  ExampleMinEval() {}
-  ~ExampleMinEval() {}
   /**
    * Initialize this cache to evaluate n on substitutions with domain vars.
    * Argument ece is the evaluator object.
    */
-  void initialize(Node n, const std::vector<Node>& vars, EmeEval* ece);
+  ExampleMinEval(Node n, const std::vector<Node>& vars, EmeEval* ece);
+  ~ExampleMinEval() {}
   /**
    * Return the result of evaluating n * { vars -> subs } where vars is the
    * set of variables passed to initialize above.

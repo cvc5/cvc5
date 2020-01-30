@@ -22,7 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void ExampleMinEval::initialize(Node n,
+ExampleMinEval::ExampleMinEval(Node n,
                                 const std::vector<Node>& vars,
                                 EmeEval* ece)
 {
