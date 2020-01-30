@@ -374,7 +374,7 @@ Node BaseSolver::getConstantEqc(Node eqc)
   return Node::null();
 }
 
-Node BaseSolver::getConstantEqc(Node n, Node eqc, std::vector<Node>& exp)
+Node BaseSolver::explainConstantEqc(Node n, Node eqc, std::vector<Node>& exp)
 {
   std::map<Node, Node>::iterator it = d_eqcToConst.find(eqc);
   if (it != d_eqcToConst.end())

@@ -78,11 +78,14 @@ class BaseSolver
   /**
    * Is n congruent to another term in the current context that has not been
    * marked congruent? If so, we can ignore n.
+   * 
+   * Note this and the functions in this block below are valid during a full
+   * effort check after a call to checkInit.
    */
   bool isCongruent(Node n);
   /**
    * Get the constant that the equivalence class eqc is entailed to be equal
-   * to, or null if none exist.
+   * to, or null if none exist. 
    */
   Node getConstantEqc(Node eqc);
   /**
@@ -90,10 +93,9 @@ class BaseSolver
    * the (non-null) return value of this function, where n is a term in the
    * equivalence class of eqc.
    */
-  Node getConstantEqc(Node n, Node eqc, std::vector<Node>& exp);
-
+  Node explainConstantEqc(Node n, Node eqc, std::vector<Node>& exp);
   /**
-   * Get the set of equivalence classes of type string
+   * Get the set of equivalence classes of type string.
    */
   const std::vector<Node>& getStringEqc() const;
   //-----------------------end query functions
