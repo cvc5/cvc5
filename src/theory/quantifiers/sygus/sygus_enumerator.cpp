@@ -539,7 +539,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
       pbe = nullptr;
     }
   }
-  d_tcache[tn].initialize(&d_stats, d_enum, tn, d_tds, pbe);
+  d_tcache[tn].initialize(d_enum, tn, d_tds, pbe);
 }
 
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
