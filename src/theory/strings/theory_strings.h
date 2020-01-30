@@ -769,7 +769,7 @@ private:
    */
   void checkFlatForms();
   /** check register terms pre-normal forms
-   * 
+   *
    * This calls registerTerm(n,2) on all non-congruent strings in the
    * equality engine of this class.
    */
@@ -852,7 +852,7 @@ private:
    */
   void checkLengthsEqc();
   /** check register terms for normal forms
-   * 
+   *
    * This calls registerTerm(str.++(t1, ..., tn ), 3) on the normal forms
    * (t1, ..., tn) of all string equivalence classes { s1, ..., sm } such that
    * there does not exist a term of the form str.len(si) in the current context.
