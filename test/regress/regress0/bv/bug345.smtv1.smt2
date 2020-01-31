@@ -1,0 +1,5 @@
+(set-option :incremental false)
+(set-info :status unknown)
+(set-logic QF_AUFBV)
+(declare-fun mem_35_197 () (Array (_ BitVec 32) (_ BitVec 8)))
+(check-sat-assuming ( (let ((_let_0 (concat (_ bv0 24) (select mem_35_197 (_ bv0 32))))) (let ((_let_1 ((_ extract 7 0) (concat (_ bv0 24) (select mem_35_197 (_ bv1 32)))))) (= (_ bv1 1) (bvor ((_ extract 0 0) (concat (_ bv0 31) (ite (= (_ bv0 32) _let_0) (_ bv1 1) (_ bv0 1)))) (ite (= (_ bv0 32) (concat (_ bv0 24) (select (store (store mem_35_197 (_ bv0 32) ((_ extract 7 0) (ite (= (_ bv0 8) _let_1) (_ bv1 32) (ite (= _let_1 (_ bv1 8)) (_ bv0 32) (ite (= _let_1 (_ bv3 8)) (_ bv1 32) (_ bv0 32)))))) (bvadd _let_0 (concat (_ bv0 24) ((_ extract 7 0) (concat (_ bv0 24) ((_ extract 7 0) (concat (_ bv0 24) _let_1)))))) (_ bv0 8)) (_ bv0 32)))) (_ bv1 1) (_ bv0 1)))))) ))

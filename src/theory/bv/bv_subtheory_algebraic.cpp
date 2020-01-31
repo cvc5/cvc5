@@ -83,7 +83,7 @@ SubstitutionEx::SubstitutionEx(theory::SubstitutionMap* modelMap)
 bool SubstitutionEx::addSubstitution(TNode from, TNode to, TNode reason) {
   Debug("bv-substitution") << "SubstitutionEx::addSubstitution: "<< from
                            <<" => "<< to << "\n" << " reason "<<reason << "\n";
-  Assert (from != to);
+  Assert(from != to);
   if (d_substitutions.find(from) != d_substitutions.end()) {
     return false;
   }
@@ -160,12 +160,12 @@ Node SubstitutionEx::internalApply(TNode node) {
 
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
         TNode op = current.getOperator();
-        Assert (hasCache(op));
+        Assert(hasCache(op));
         nb << getCache(op);
         reasons.push_back(getReason(op));
       }
       for (unsigned i = 0; i < current.getNumChildren(); ++i) {
-        Assert (hasCache(current[i]));
+        Assert(hasCache(current[i]));
         nb << getCache(current[i]);
         reasons.push_back(getReason(current[i]));
       }
@@ -217,13 +217,13 @@ bool SubstitutionEx::hasCache(TNode node) const {
 }
 
 Node SubstitutionEx::getCache(TNode node) const {
-  Assert (hasCache(node));
+  Assert(hasCache(node));
   return d_cache.find(node)->second.to;
 }
 
 void SubstitutionEx::storeCache(TNode from, TNode to, Node reason) {
   //  Debug("bv-substitution") << "SubstitutionEx::storeCache(" << from <<", " << to <<", "<< reason<<")\n";
-  Assert (!hasCache(from));
+  Assert(!hasCache(from));
   d_cache[from] = SubstitutionElement(to, reason);
 }
 
@@ -253,7 +253,7 @@ AlgebraicSolver::~AlgebraicSolver() {}
 
 bool AlgebraicSolver::check(Theory::Effort e)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
+  Assert(options::bitblastMode() == options::BitblastMode::LAZY);
 
   if (!Theory::fullEffort(e)) { return true; }
   if (!useHeuristic()) { return true; }
@@ -284,7 +284,7 @@ bool AlgebraicSolver::check(Theory::Effort e)
     storeExplanation(assertion);
 
     uint64_t assertion_size = d_quickSolver->computeAtomWeight(assertion, seen_assertions);
-    Assert (original_bb_cost <= original_bb_cost + assertion_size);
+    Assert(original_bb_cost <= original_bb_cost + assertion_size);
     original_bb_cost+= assertion_size;
   }
 
@@ -294,7 +294,7 @@ bool AlgebraicSolver::check(Theory::Effort e)
 
   Debug("bv-subtheory-algebraic") << "Assertions " << worklist.size() <<" : \n";
 
-  Assert (d_explanations.size() == worklist.size());
+  Assert(d_explanations.size() == worklist.size());
 
   d_modelMap.reset(new SubstitutionMap(d_context));
   SubstitutionEx subst(d_modelMap.get());
@@ -424,8 +424,8 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts) {
     return true;
   }
 
-  Assert (res == SAT_VALUE_FALSE);
-  Assert (d_quickSolver->inConflict());
+  Assert(res == SAT_VALUE_FALSE);
+  Assert(d_quickSolver->inConflict());
   d_isComplete.set(true);
   Debug("bv-subtheory-algebraic") << " Unsat.\n";
   ++(d_numSolved);
@@ -437,15 +437,15 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts) {
 
   // singleton conflict
   if (conflict.getKind() != kind::AND) {
-    Assert (d_ids.find(conflict) != d_ids.end());
+    Assert(d_ids.find(conflict) != d_ids.end());
     unsigned id = d_ids[conflict];
-    Assert (id < d_explanations.size());
+    Assert(id < d_explanations.size());
     Node theory_confl = d_explanations[id];
     d_bv->setConflict(theory_confl);
     return false;
   }
 
-  Assert (conflict.getKind() == kind::AND);
+  Assert(conflict.getKind() == kind::AND);
   if (options::bitvectorQuickXplain()) {
     d_quickSolver->popToZero();
     Debug("bv-quick-xplain") << "AlgebraicSolver::quickCheck original conflict size " << conflict.getNumChildren() << "\n";
@@ -457,9 +457,9 @@ bool AlgebraicSolver::quickCheck(std::vector<Node>& facts) {
   for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
     TNode c = conflict[i];
 
-    Assert (d_ids.find(c) != d_ids.end());
+    Assert(d_ids.find(c) != d_ids.end());
     unsigned c_id = d_ids[c];
-    Assert (c_id < d_explanations.size());
+    Assert(c_id < d_explanations.size());
     TNode c_expl = d_explanations[c_id];
     theory_confl.push_back(c_expl);
   }
@@ -514,7 +514,7 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
         if (right[i] != var)
           right_children.push_back(right[i]);
       }
-      Assert (right_children.size());
+      Assert(right_children.size());
       Node new_right = utils::mkNaryNode(kind::BITVECTOR_XOR, right_children);
       std::vector<Node> left_children;
       for (unsigned i = 1; i < left.getNumChildren(); ++i) {
@@ -656,17 +656,17 @@ void AlgebraicSolver::processAssertions(std::vector<WorklistElement>& worklist, 
       worklist[i] = WorklistElement(utils::mkTrue(), worklist[i].id);
       changed = true;
     }
-    Assert (d_explanations.size() == worklist.size());
+    Assert(d_explanations.size() == worklist.size());
   }
 }
 
 void AlgebraicSolver::storeExplanation(unsigned id, TNode explanation) {
-  Assert (checkExplanation(explanation));
+  Assert(checkExplanation(explanation));
   d_explanations[id] = explanation;
 }
 
 void AlgebraicSolver::storeExplanation(TNode explanation) {
-  Assert (checkExplanation(explanation));
+  Assert(checkExplanation(explanation));
   d_explanations.push_back(explanation);
 }
 
@@ -713,7 +713,7 @@ EqualityStatus AlgebraicSolver::getEqualityStatus(TNode a, TNode b) {
 bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel)
 {
   Debug("bitvector-model") << "AlgebraicSolver::collectModelInfo\n";
-  AlwaysAssert (!d_quickSolver->inConflict());
+  AlwaysAssert(!d_quickSolver->inConflict());
   set<Node> termSet;
   d_bv->computeRelevantTerms(termSet);
 
@@ -746,13 +746,13 @@ bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel)
   for (NodeSet::const_iterator it = leaf_vars.begin(); it != leaf_vars.end(); ++it) {
     TNode var = *it;
     Node value = d_quickSolver->getVarValue(var, true);
-    Assert (!value.isNull() || !fullModel);
+    Assert(!value.isNull() || !fullModel);
 
     // may be a shared term that did not appear in the current assertions
     // AJR: need to check whether already in map for cases where collectModelInfo is called multiple times in the same context
     if (!value.isNull() && !d_modelMap->hasSubstitution(var)) {
       Debug("bitvector-model") << "   " << var << " => " << value << "\n";
-      Assert (value.getKind() == kind::CONST_BITVECTOR);
+      Assert(value.getKind() == kind::CONST_BITVECTOR);
       d_modelMap->addSubstitution(var, value);
     }
   }
@@ -763,7 +763,7 @@ bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel)
     TNode subst = Rewriter::rewrite(d_modelMap->apply(current));
     Debug("bitvector-model") << "AlgebraicSolver:   " << variables[i] << " => " << subst << "\n";
     // Doesn't have to be constant as it may be irrelevant
-    Assert (subst.getKind() == kind::CONST_BITVECTOR);
+    Assert(subst.getKind() == kind::CONST_BITVECTOR);
     if (!model->assertEquality(variables[i], subst, true))
     {
       return false;
@@ -860,16 +860,16 @@ void ExtractSkolemizer::skolemize(std::vector<WorklistElement>& facts) {
     std::vector<Node> skolems;
     for (unsigned i = 0; i < cuts.size(); ++i) {
       current = cuts[i];
-      Assert (current > 0);
+      Assert(current > 0);
       int size = current - previous;
-      Assert (size > 0);
+      Assert(size > 0);
       Node sk = utils::mkVar(size);
       skolems.push_back(sk);
       previous = current;
     }
     if (current < bw -1) {
       int size = bw - current;
-      Assert (size > 0);
+      Assert(size > 0);
       Node sk = utils::mkVar(size);
       skolems.push_back(sk);
     }
@@ -880,7 +880,7 @@ void ExtractSkolemizer::skolemize(std::vector<WorklistElement>& facts) {
     }
 
     Node skolem_concat = skolems.size() == 1 ? (Node)skolems[0] : (Node) skolem_nb;
-    Assert (utils::getSize(skolem_concat) == utils::getSize(var));
+    Assert(utils::getSize(skolem_concat) == utils::getSize(var));
     storeSkolem(var, skolem_concat);
 
     for (unsigned i = 0; i < el.extracts.size(); ++i) {
@@ -888,8 +888,8 @@ void ExtractSkolemizer::skolemize(std::vector<WorklistElement>& facts) {
       unsigned l = el.extracts[i].low;
       Node extract = utils::mkExtract(var, h, l);
       Node skolem_extract = Rewriter::rewrite(utils::mkExtract(skolem_concat, h, l));
-      Assert (skolem_extract.getMetaKind() == kind::metakind::VARIABLE ||
-              skolem_extract.getKind() == kind::BITVECTOR_CONCAT);
+      Assert(skolem_extract.getMetaKind() == kind::metakind::VARIABLE
+             || skolem_extract.getKind() == kind::BITVECTOR_CONCAT);
       storeSkolem(extract, skolem_extract);
     }
   }
@@ -900,9 +900,9 @@ void ExtractSkolemizer::skolemize(std::vector<WorklistElement>& facts) {
 }
 
 Node ExtractSkolemizer::mkSkolem(Node node) {
-  Assert (node.getKind() == kind::BITVECTOR_EXTRACT &&
-          node[0].getMetaKind() == kind::metakind::VARIABLE);
-  Assert (!d_skolemSubst.hasSubstitution(node));
+  Assert(node.getKind() == kind::BITVECTOR_EXTRACT
+         && node[0].getMetaKind() == kind::metakind::VARIABLE);
+  Assert(!d_skolemSubst.hasSubstitution(node));
   return utils::mkVar(utils::getSize(node));
 }
 
@@ -933,7 +933,7 @@ void ExtractSkolemizer::ExtractList::addExtract(Extract& e) {
 }
 
 void ExtractSkolemizer::storeExtract(TNode var, unsigned high, unsigned low) {
-  Assert (var.getMetaKind() == kind::metakind::VARIABLE);
+  Assert(var.getMetaKind() == kind::metakind::VARIABLE);
   if (d_varToExtract.find(var) == d_varToExtract.end()) {
     d_varToExtract[var] = ExtractList(utils::getSize(var));
   }
@@ -982,7 +982,7 @@ Node mergeExplanations(const std::vector<Node>& expls) {
   TNodeSet literals;
   for (unsigned i = 0; i < expls.size(); ++i) {
     TNode expl = expls[i];
-    Assert (expl.getType().isBoolean());
+    Assert(expl.getType().isBoolean());
     if (expl.getKind() == kind::AND) {
       for (unsigned i = 0; i < expl.getNumChildren(); ++i) {
         TNode child = expl[i];

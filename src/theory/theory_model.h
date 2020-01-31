@@ -139,6 +139,60 @@ public:
    * during Theory's collectModelInfo( ... ) functions.
    */
   void assertSkeleton(TNode n);
+  /** set assignment exclusion set
+   *
+   * This method sets the "assignment exclusion set" for term n. This is a
+   * set of terms whose value n must be distinct from in the model.
+   *
+   * This method should be used sparingly, and in a way such that model
+   * building is still guaranteed to succeed. Term n is intended to be an
+   * assignable term, typically of finite type. Thus, for example, this method
+   * should not be called with a vector eset that is greater than the
+   * cardinality of the type of n. Additionally, this method should not be
+   * called in a way that introduces cyclic dependencies on the assignment order
+   * of terms in the model. For example, providing { y } as the assignment
+   * exclusion set of x and { x } as the assignment exclusion set of y will
+   * cause model building to fail.
+   *
+   * The vector eset should contain only terms that occur in the model, or
+   * are constants.
+   *
+   * Additionally, we (currently) require that an assignment exclusion set
+   * should not be set for two terms in the same equivalence class, or to
+   * equivalence classes with an assignable term. Otherwise an
+   * assertion will be thrown by TheoryEngineModelBuilder during model building.
+   */
+  void setAssignmentExclusionSet(TNode n, const std::vector<Node>& eset);
+  /** set assignment exclusion set group
+   *
+   * Given group = { x_1, ..., x_n }, this is semantically equivalent to calling
+   * the above method on the following pairs of arguments:
+   *   x1, eset
+   *   x2, eset + { x_1 }
+   *   ...
+   *   xn, eset + { x_1, ..., x_{n-1} }
+   * Similar restrictions should be considered as above when applying this
+   * method to ensure that model building will succeed. Notice that for
+   * efficiency, the implementation of how the above information is stored
+   * may avoid constructing n copies of eset.
+   */
+  void setAssignmentExclusionSetGroup(const std::vector<TNode>& group,
+                                      const std::vector<Node>& eset);
+  /** get assignment exclusion set for term n
+   *
+   * If n has been given an assignment exclusion set, then this method returns
+   * true and the set is added to eset. Otherwise, the method returns false.
+   *
+   * Additionally, if n was assigned an assignment exclusion set via a call to
+   * setAssignmentExclusionSetGroup, it adds all members that were passed
+   * in the first argument of that call to the vector group. Otherwise, it
+   * adds n itself to group.
+   */
+  bool getAssignmentExclusionSet(TNode n,
+                                 std::vector<Node>& group,
+                                 std::vector<Node>& eset);
+  /** have any assignment exclusion sets been created? */
+  bool hasAssignmentExclusionSets() const;
   /** record approximation
    *
    * This notifies this model that the value of n was approximated in this
@@ -239,6 +293,8 @@ public:
   bool hasApproximations() const override;
   /** get approximations */
   std::vector<std::pair<Expr, Expr> > getApproximations() const override;
+  /** get domain elements for uninterpreted sort t */
+  std::vector<Expr> getDomainElements(Type t) const override;
   /** get the representative set object */
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
@@ -297,9 +353,22 @@ public:
   std::unordered_set<Kind, kind::KindHashFunction> d_not_evaluated_kinds;
   /** a set of kinds that are semi-evaluated */
   std::unordered_set<Kind, kind::KindHashFunction> d_semi_evaluated_kinds;
-  /** map of representatives of equality engine to used representatives in
-   * representative set */
+  /**
+   * Map of representatives of equality engine to used representatives in
+   * representative set
+   */
   std::map<Node, Node> d_reps;
+  /** Map of terms to their assignment exclusion set. */
+  std::map<Node, std::vector<Node> > d_assignExcSet;
+  /**
+   * Map of terms to their "assignment exclusion set master". After a call to
+   * setAssignmentExclusionSetGroup, the master of each term in group
+   * (except group[0]) is set to group[0], which stores the assignment
+   * exclusion set for that group in the above map.
+   */
+  std::map<Node, Node> d_aesMaster;
+  /** Reverse of the above map */
+  std::map<Node, std::vector<Node> > d_aesSlaves;
   /** stores set of representatives for each type */
   RepSet d_rep_set;
   /** true/false nodes */

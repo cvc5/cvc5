@@ -78,7 +78,7 @@ public:
    * prints the information
    */
   void print() const {
-    Assert(indices != NULL && stores!= NULL && in_stores != NULL);
+    Assert(indices != NULL && stores != NULL && in_stores != NULL);
     Trace("arrays-info")<<"  indices   ";
     printList(indices);
     Trace("arrays-info")<<"  stores ";

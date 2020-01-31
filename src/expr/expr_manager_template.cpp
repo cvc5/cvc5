@@ -115,10 +115,11 @@ ExprManager::~ExprManager()
       }
     }
 #endif
+    // clear the datatypes
+    d_ownedDatatypes.clear();
 
     delete d_nodeManager;
     d_nodeManager = NULL;
-
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << std::endl
               << e << std::endl;
@@ -578,7 +579,7 @@ FunctionType ExprManager::mkFunctionType(Type domain, Type range) {
 /** Make a function type with input types from argTypes. */
 FunctionType ExprManager::mkFunctionType(const std::vector<Type>& argTypes, Type range) {
   NodeManagerScope nms(d_nodeManager);
-  Assert( argTypes.size() >= 1 );
+  Assert(argTypes.size() >= 1);
   std::vector<TypeNode> argTypeNodes;
   for (unsigned i = 0, i_end = argTypes.size(); i < i_end; ++ i) {
     argTypeNodes.push_back(*argTypes[i].d_typeNode);
@@ -588,7 +589,7 @@ FunctionType ExprManager::mkFunctionType(const std::vector<Type>& argTypes, Type
 
 FunctionType ExprManager::mkFunctionType(const std::vector<Type>& sorts) {
   NodeManagerScope nms(d_nodeManager);
-  Assert( sorts.size() >= 2 );
+  Assert(sorts.size() >= 2);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0, i_end = sorts.size(); i < i_end; ++ i) {
      sortNodes.push_back(*sorts[i].d_typeNode);
@@ -598,7 +599,7 @@ FunctionType ExprManager::mkFunctionType(const std::vector<Type>& sorts) {
 
 FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
   NodeManagerScope nms(d_nodeManager);
-  Assert( sorts.size() >= 1 );
+  Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   for (unsigned i = 0, i_end = sorts.size(); i < i_end; ++ i) {
      sortNodes.push_back(*sorts[i].d_typeNode);
@@ -676,12 +677,13 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
 
-  //have to build deep copy so that datatypes will live in NodeManager
+  // have to build deep copy so that datatypes will live in this class
   std::vector< Datatype* > dt_copies;
   for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
-    dt_copies.push_back( new Datatype( *i ) );
+    d_ownedDatatypes.push_back(std::unique_ptr<Datatype>(new Datatype(*i)));
+    dt_copies.push_back(d_ownedDatatypes.back().get());
   }
-  
+
   // First do some sanity checks, set up the final Type to be used for
   // each datatype, and set up the "named resolutions" used to handle
   // simple self- and mutual-recursion, for example in the definition
@@ -689,12 +691,12 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   // pred selector.
   for(std::vector<Datatype*>::iterator i = dt_copies.begin(), i_end = dt_copies.end(); i != i_end; ++i) {
     TypeNode* typeNode;
+    // register datatype with the node manager
+    unsigned index = d_nodeManager->registerDatatype((*i)->d_internal);
     if( (*i)->getNumParameters() == 0 ) {
-      unsigned index = d_nodeManager->registerDatatype( *i );
       typeNode = new TypeNode(d_nodeManager->mkTypeConst(DatatypeIndexConstant(index)));
       //typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
     } else {
-      unsigned index = d_nodeManager->registerDatatype( *i );
       TypeNode cons = d_nodeManager->mkTypeConst(DatatypeIndexConstant(index));
       //TypeNode cons = d_nodeManager->mkTypeConst(*i);
       std::vector< TypeNode > params;
@@ -715,9 +717,6 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
         (*i)->getName().c_str());
     nameResolutions.insert(std::make_pair((*i)->getName(), dtt));
     dtts.push_back(dtt);
-    //d_keep_dtt.push_back(dtt);
-    //d_keep_dt.push_back(*i);
-    //Assert( dtt.getDatatype()==(*i) );
   }
 
   // Second, set up the type substitution map for complex type
@@ -738,7 +737,7 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
     if( (*i).isSort() ) {
       name = SortType(*i).getName();
     } else {
-      Assert( (*i).isSortConstructor() );
+      Assert((*i).isSortConstructor());
       name = SortConstructorType(*i).getName();
     }
     std::map<std::string, DatatypeType>::const_iterator resolver =
@@ -756,7 +755,7 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
       placeholders.push_back(*i);
       replacements.push_back( (*resolver).second );
     } else {
-      Assert( (*i).isSortConstructor() );
+      Assert((*i).isSortConstructor());
       paramTypes.push_back( SortConstructorType(*i) );
       paramReplacements.push_back( (*resolver).second );
     }
@@ -769,9 +768,11 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
       ++i) {
     const Datatype& dt = (*i).getDatatype();
     if(!dt.isResolved()) {
-      const_cast<Datatype&>(dt).resolve(this, nameResolutions,
-                                        placeholders, replacements,
-                                        paramTypes, paramReplacements);
+      const_cast<Datatype&>(dt).resolve(nameResolutions,
+                                        placeholders,
+                                        replacements,
+                                        paramTypes,
+                                        paramReplacements);
     }
 
     // Now run some checks, including a check to make sure that no
@@ -797,31 +798,31 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
       ++i) {
     const DatatypeConstructor& c = *i;
     Type testerType CVC4_UNUSED = c.getTester().getType();
-    Assert(c.isResolved() &&
-           testerType.isTester() &&
-           TesterType(testerType).getDomain() == dtt &&
-           TesterType(testerType).getRangeType() == booleanType(),
-           "malformed tester in datatype post-resolution");
+    Assert(c.isResolved() && testerType.isTester()
+           && TesterType(testerType).getDomain() == dtt
+           && TesterType(testerType).getRangeType() == booleanType())
+        << "malformed tester in datatype post-resolution";
     Type ctorType CVC4_UNUSED = c.getConstructor().getType();
-    Assert(ctorType.isConstructor() &&
-           ConstructorType(ctorType).getArity() == c.getNumArgs() &&
-           ConstructorType(ctorType).getRangeType() == dtt,
-           "malformed constructor in datatype post-resolution");
+    Assert(ctorType.isConstructor()
+           && ConstructorType(ctorType).getArity() == c.getNumArgs()
+           && ConstructorType(ctorType).getRangeType() == dtt)
+        << "malformed constructor in datatype post-resolution";
     // for all selectors...
     for(DatatypeConstructor::const_iterator j = c.begin(), j_end = c.end();
         j != j_end;
         ++j) {
       const DatatypeConstructorArg& a = *j;
       Type selectorType = a.getType();
-      Assert(a.isResolved() &&
-             selectorType.isSelector() &&
-             SelectorType(selectorType).getDomain() == dtt,
-             "malformed selector in datatype post-resolution");
+      Assert(a.isResolved() && selectorType.isSelector()
+             && SelectorType(selectorType).getDomain() == dtt)
+          << "malformed selector in datatype post-resolution";
       // This next one's a "hard" check, performed in non-debug builds
       // as well; the other ones should all be guaranteed by the
       // CVC4::Datatype class, but this actually needs to be checked.
-      AlwaysAssert(!SelectorType(selectorType).getRangeType().d_typeNode->isFunctionLike(),
-                   "cannot put function-like things in datatypes");
+      AlwaysAssert(!SelectorType(selectorType)
+                        .getRangeType()
+                        .d_typeNode->isFunctionLike())
+          << "cannot put function-like things in datatypes";
     }
   }
 }
@@ -895,7 +896,9 @@ Type ExprManager::getType(Expr e, bool check)
 }
 
 Expr ExprManager::mkVar(const std::string& name, Type type, uint32_t flags) {
-  Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
+  Assert(NodeManager::currentNM() == NULL)
+      << "ExprManager::mkVar() should only be called externally, not from "
+         "within CVC4 code.  Please use mkSkolem().";
   NodeManagerScope nms(d_nodeManager);
   Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode, flags);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
@@ -904,7 +907,9 @@ Expr ExprManager::mkVar(const std::string& name, Type type, uint32_t flags) {
 }
 
 Expr ExprManager::mkVar(Type type, uint32_t flags) {
-  Assert(NodeManager::currentNM() == NULL, "ExprManager::mkVar() should only be called externally, not from within CVC4 code.  Please use mkSkolem().");
+  Assert(NodeManager::currentNM() == NULL)
+      << "ExprManager::mkVar() should only be called externally, not from "
+         "within CVC4 code.  Please use mkSkolem().";
   NodeManagerScope nms(d_nodeManager);
   INC_STAT_VAR(type, false);
   return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode, flags));
@@ -977,8 +982,8 @@ Expr ExprManager::mkAssociative(Kind kind,
 
   /* It would be really weird if this happened (it would require
    * min > 2, for one thing), but let's make sure. */
-  AlwaysAssert( newChildren.size() >= min,
-                "Too few new children in mkAssociative" );
+  AlwaysAssert(newChildren.size() >= min)
+      << "Too few new children in mkAssociative";
 
   // recurse
   return mkAssociative(kind, newChildren);
@@ -1088,11 +1093,18 @@ TypeNode exportTypeInternal(TypeNode n, NodeManager* from, NodeManager* to, Expr
 }/* CVC4::expr namespace */
 
 Type ExprManager::exportType(const Type& t, ExprManager* em, ExprManagerMapCollection& vmap) {
-  Assert(t.d_nodeManager != em->d_nodeManager,
-         "Can't export a Type to the same ExprManager");
+  Assert(t.d_nodeManager != em->d_nodeManager)
+      << "Can't export a Type to the same ExprManager";
   NodeManagerScope ems(t.d_nodeManager);
   return Type(em->d_nodeManager,
               new TypeNode(expr::exportTypeInternal(*t.d_typeNode, t.d_nodeManager, em->d_nodeManager, vmap)));
+}
+
+const Datatype& ExprManager::getDatatypeForIndex(unsigned index) const
+{
+  // when the Node-level API is in place, this function will be deleted.
+  Assert(index < d_ownedDatatypes.size());
+  return *d_ownedDatatypes[index];
 }
 
 ${mkConst_implementations}

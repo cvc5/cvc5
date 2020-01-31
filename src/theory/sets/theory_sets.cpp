@@ -15,7 +15,11 @@
  **/
 
 #include "theory/sets/theory_sets.h"
+#include "options/sets_options.h"
 #include "theory/sets/theory_sets_private.h"
+#include "theory/theory_model.h"
+
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
@@ -40,6 +44,13 @@ TheorySets::~TheorySets()
   // Do not move me to the header. See explanation in the constructor.
 }
 
+void TheorySets::finishInit()
+{
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  tm->setUnevaluatedKind(COMPREHENSION);
+}
+
 void TheorySets::addSharedTerm(TNode n) {
   d_internal->addSharedTerm(n);
 }
@@ -50,10 +61,6 @@ void TheorySets::check(Effort e) {
   }
   TimerStat::CodeTimer checkTimer(d_checkTime);
   d_internal->check(e);
-}
-
-bool TheorySets::needsCheckLastEffort() {
-  return d_internal->needsCheckLastEffort();
 }
 
 bool TheorySets::collectModelInfo(TheoryModel* m)
@@ -82,6 +89,28 @@ void TheorySets::preRegisterTerm(TNode node) {
 }
 
 Node TheorySets::expandDefinition(LogicRequest &logicRequest, Node n) {
+  Kind nk = n.getKind();
+  if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
+      || nk == COMPREHENSION)
+  {
+    if (!options::setsExt())
+    {
+      std::stringstream ss;
+      ss << "Extended set operators are not supported in default mode, try "
+            "--sets-ext.";
+      throw LogicException(ss.str());
+    }
+  }
+  if (nk == COMPREHENSION)
+  {
+    // set comprehension is an implicit quantifier, require it in the logic
+    if (!getLogicInfo().isQuantified())
+    {
+      std::stringstream ss;
+      ss << "Set comprehensions require quantifiers in the background logic.";
+      throw LogicException(ss.str());
+    }
+  }
   return d_internal->expandDefinition(logicRequest, n);
 }
 

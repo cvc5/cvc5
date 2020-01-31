@@ -1,0 +1,9 @@
+% EXPECT: sat
+
+x : STRING;
+y : STRING;
+
+ASSERT CONCAT( REVERSE("abc"), "d") = x;
+ASSERT CONCAT( TOLOWER("ABC"), TOUPPER("abc")) = y;
+
+CHECKSAT;

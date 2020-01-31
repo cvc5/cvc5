@@ -109,12 +109,6 @@ class CVC4_PUBLIC SymbolTable {
   bool isBound(const std::string& name) const;
 
   /**
-   * Check whether an Expr was bound to a function (i.e., was the
-   * second arg to bindDefinedFunction()).
-   */
-  bool isBoundDefinedFunction(Expr func) const;
-
-  /**
    * Check whether a name is bound to a type (or type constructor).
    *
    * @param name the identifier to check.

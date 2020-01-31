@@ -27,6 +27,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/node_value.h"
+#include "test_utils.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -179,8 +180,8 @@ class NodeBlack : public CxxTest::TestSuite {
 
 #ifdef CVC4_ASSERTIONS
     // Basic bounds check on a node w/out children
-    TS_ASSERT_THROWS(Node::null()[-1], AssertionException&);
-    TS_ASSERT_THROWS(Node::null()[0], AssertionException&);
+    TS_UTILS_EXPECT_ABORT(Node::null()[-1]);
+    TS_UTILS_EXPECT_ABORT(Node::null()[0]);
 #endif /* CVC4_ASSERTIONS */
 
     // Basic access check
@@ -198,8 +199,8 @@ class NodeBlack : public CxxTest::TestSuite {
 
 #ifdef CVC4_ASSERTIONS
     // Bounds check on a node with children
-    TS_ASSERT_THROWS(ite == ite[-1], AssertionException&);
-    TS_ASSERT_THROWS(ite == ite[4], AssertionException&);
+    TS_UTILS_EXPECT_ABORT(ite == ite[-1]);
+    TS_UTILS_EXPECT_ABORT(ite == ite[4]);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -459,10 +460,10 @@ class NodeBlack : public CxxTest::TestSuite {
     }
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(testNaryExpForSize(AND, 0), AssertionException&);
-    TS_ASSERT_THROWS(testNaryExpForSize(AND, 1), AssertionException&);
-    TS_ASSERT_THROWS(testNaryExpForSize(NOT, 0), AssertionException&);
-    TS_ASSERT_THROWS(testNaryExpForSize(NOT, 2), AssertionException&);
+    TS_UTILS_EXPECT_ABORT(testNaryExpForSize(AND, 0));
+    TS_UTILS_EXPECT_ABORT(testNaryExpForSize(AND, 1));
+    TS_UTILS_EXPECT_ABORT(testNaryExpForSize(NOT, 0));
+    TS_UTILS_EXPECT_ABORT(testNaryExpForSize(NOT, 2));
 #endif /* CVC4_ASSERTIONS */
   }
 

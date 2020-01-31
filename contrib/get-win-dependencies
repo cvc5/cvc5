@@ -1,9 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # win32-build script
 # Morgan Deters <mdeters@cs.nyu.edu>
 # Tue, 15 Jan 2013 11:11:24 -0500
 #
+
+set -e -o pipefail
 
 export WINDOWS_BUILD=yes
 export MAKE_CFLAGS=
@@ -50,10 +52,10 @@ function reporterror {
 }
 
 function webget {
-  if which curl &>/dev/null; then
-    curl -L "$1" >"$2"
-  elif which wget &>/dev/null; then
+  if [ -x "$(command -v wget)" ]; then
     wget -c -O "$2" "$1"
+  elif [ -x "$(command -v curl)" ]; then
+    curl -L "$1" >"$2"
   else
     echo "Can't figure out how to download from web.  Please install wget or curl." >&2
     exit 1

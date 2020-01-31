@@ -48,27 +48,27 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 //=================================================================================================
 // Constructor/Destructor:
 
-
-SimpSolver::SimpSolver(CVC4::context::Context* c) :
-    Solver(c)
-  , grow               (opt_grow)
-  , clause_lim         (opt_clause_lim)
-  , subsumption_lim    (opt_subsumption_lim)
-  , simp_garbage_frac  (opt_simp_garbage_frac)
-  , use_asymm          (opt_use_asymm)
-  , use_rcheck         (opt_use_rcheck)
-  , use_elim           (opt_use_elim &&
-                        CVC4::options::bitblastMode() == CVC4::theory::bv::BITBLAST_MODE_EAGER &&
-                        !CVC4::options::produceModels())
-  , merges             (0)
-  , asymm_lits         (0)
-  , eliminated_vars    (0)
-  , elimorder          (1)
-  , use_simplification (!PROOF_ON())
-  , occurs             (ClauseDeleted(ca))
-  , elim_heap          (ElimLt(n_occ))
-  , bwdsub_assigns     (0)
-  , n_touched          (0)
+SimpSolver::SimpSolver(CVC4::context::Context* c)
+    : Solver(c),
+      grow(opt_grow),
+      clause_lim(opt_clause_lim),
+      subsumption_lim(opt_subsumption_lim),
+      simp_garbage_frac(opt_simp_garbage_frac),
+      use_asymm(opt_use_asymm),
+      use_rcheck(opt_use_rcheck),
+      use_elim(opt_use_elim
+               && CVC4::options::bitblastMode()
+                      == CVC4::options::BitblastMode::EAGER
+               && !CVC4::options::produceModels()),
+      merges(0),
+      asymm_lits(0),
+      eliminated_vars(0),
+      elimorder(1),
+      use_simplification(!PROOF_ON()),
+      occurs(ClauseDeleted(ca)),
+      elim_heap(ElimLt(n_occ)),
+      bwdsub_assigns(0),
+      n_touched(0)
 {
 
     vec<Lit> dummy(1,lit_Undef);

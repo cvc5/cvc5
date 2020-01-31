@@ -107,7 +107,7 @@ void InstMatch::setValue( int i, TNode n ) {
 }
 bool InstMatch::set(EqualityQuery* q, int i, TNode n)
 {
-  Assert( i>=0 );
+  Assert(i >= 0);
   if( !d_vals[i].isNull() ){
     if (q->areEqual(d_vals[i], n))
     {

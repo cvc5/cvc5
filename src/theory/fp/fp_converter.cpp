@@ -16,7 +16,7 @@
 #include "theory/theory.h"
 // theory.h Only needed for the leaf test
 
-#include <stack>
+#include <vector>
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
@@ -846,17 +846,17 @@ FpConverter::uf FpConverter::buildComponents(TNode current)
 Node FpConverter::convert(TNode node)
 {
 #ifdef CVC4_USE_SYMFPU
-  std::stack<TNode> workStack;
+  std::vector<TNode> workStack;
   TNode result = node;
 
-  workStack.push(node);
+  workStack.push_back(node);
 
   NodeManager *nm = NodeManager::currentNM();
 
   while (!workStack.empty())
   {
-    TNode current = workStack.top();
-    workStack.pop();
+    TNode current = workStack.back();
+    workStack.pop_back();
     result = current;
 
     TypeNode t(current.getType());
@@ -883,7 +883,7 @@ Node FpConverter::convert(TNode node)
               case roundTowardPositive: r.insert(current, traits::RTP()); break;
               case roundTowardNegative: r.insert(current, traits::RTN()); break;
               case roundTowardZero: r.insert(current, traits::RTZ()); break;
-              default: Unreachable("Unknown rounding mode"); break;
+              default: Unreachable() << "Unknown rounding mode"; break;
             }
           }
           else
@@ -896,7 +896,7 @@ Node FpConverter::convert(TNode node)
         }
         else
         {
-          Unreachable("Unknown kind of type RoundingMode");
+          Unreachable() << "Unknown kind of type RoundingMode";
         }
       }
       // Returns a rounding-mode type so don't alter the return value
@@ -930,7 +930,7 @@ Node FpConverter::convert(TNode node)
             case kind::VARIABLE:
             case kind::BOUND_VARIABLE:
             case kind::SKOLEM:
-              Unreachable("Kind should have been handled as a leaf.");
+              Unreachable() << "Kind should have been handled as a leaf.";
               break;
 
             /******** Operations ********/
@@ -941,8 +941,8 @@ Node FpConverter::convert(TNode node)
 
               if (arg1 == f.end())
               {
-                workStack.push(current);
-                workStack.push(current[0]);
+                workStack.push_back(current);
+                workStack.push_back(current[0]);
                 continue;  // i.e. recurse!
               }
 
@@ -959,7 +959,7 @@ Node FpConverter::convert(TNode node)
                                                   (*arg1).second));
                   break;
                 default:
-                  Unreachable("Unknown unary floating-point function");
+                  Unreachable() << "Unknown unary floating-point function";
                   break;
               }
             }
@@ -974,14 +974,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1002,7 +1002,8 @@ Node FpConverter::convert(TNode node)
                                                       (*arg1).second));
                   break;
                 default:
-                  Unreachable("Unknown unary rounded floating-point function");
+                  Unreachable()
+                      << "Unknown unary rounded floating-point function";
                   break;
               }
             }
@@ -1016,14 +1017,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1046,14 +1047,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1077,7 +1078,8 @@ Node FpConverter::convert(TNode node)
                   break;
 
                 default:
-                  Unreachable("Unknown binary floating-point partial function");
+                  Unreachable()
+                      << "Unknown binary floating-point partial function";
                   break;
               }
             }
@@ -1096,18 +1098,18 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[2]);
+                  workStack.push_back(current[2]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1125,9 +1127,9 @@ Node FpConverter::convert(TNode node)
 
                 case kind::FLOATINGPOINT_SUB:
                   // Should have been removed by the rewriter
-                  Unreachable(
-                      "Floating-point subtraction should be removed by the "
-                      "rewriter.");
+                  Unreachable()
+                      << "Floating-point subtraction should be removed by the "
+                         "rewriter.";
                   break;
 
                 case kind::FLOATINGPOINT_MULT:
@@ -1152,13 +1154,14 @@ Node FpConverter::convert(TNode node)
                                                              (*arg1).second,
                                                              (*arg2).second));
                   */
-                  Unimplemented(
-                      "Remainder with rounding mode not yet supported by "
-                      "SMT-LIB");
+                  Unimplemented()
+                      << "Remainder with rounding mode not yet supported by "
+                         "SMT-LIB";
                   break;
 
                 default:
-                  Unreachable("Unknown binary rounded floating-point function");
+                  Unreachable()
+                      << "Unknown binary rounded floating-point function";
                   break;
               }
             }
@@ -1175,22 +1178,22 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[2]);
+                  workStack.push_back(current[2]);
                 }
                 if (arg3 == f.end())
                 {
-                  workStack.push(current[3]);
+                  workStack.push_back(current[3]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1213,14 +1216,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1257,10 +1260,10 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (mode == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1284,8 +1287,8 @@ Node FpConverter::convert(TNode node)
                   break;
 
                 default:
-                  Unreachable(
-                      "Unknown converstion from bit-vector to floating-point");
+                  Unreachable() << "Unknown converstion from bit-vector to "
+                                   "floating-point";
                   break;
               }
             }
@@ -1300,10 +1303,12 @@ Node FpConverter::convert(TNode node)
             break;
 
             case kind::FLOATINGPOINT_TO_FP_GENERIC:
-              Unreachable("Generic to_fp not removed");
+              Unreachable() << "Generic to_fp not removed";
               break;
 
-            default: Unreachable("Unknown kind of type FloatingPoint"); break;
+            default:
+              Unreachable() << "Unknown kind of type FloatingPoint";
+              break;
           }
         }
       }
@@ -1330,14 +1335,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (arg1 == f.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg2 == f.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1354,14 +1359,14 @@ Node FpConverter::convert(TNode node)
 
               if (recurseNeeded)
               {
-                workStack.push(current);
+                workStack.push_back(current);
                 if (arg1 == r.end())
                 {
-                  workStack.push(current[0]);
+                  workStack.push_back(current[0]);
                 }
                 if (arg2 == r.end())
                 {
-                  workStack.push(current[1]);
+                  workStack.push_back(current[1]);
                 }
                 continue;  // i.e. recurse!
               }
@@ -1387,14 +1392,14 @@ Node FpConverter::convert(TNode node)
 
             if (recurseNeeded)
             {
-              workStack.push(current);
+              workStack.push_back(current);
               if (arg1 == f.end())
               {
-                workStack.push(current[0]);
+                workStack.push_back(current[0]);
               }
               if (arg2 == f.end())
               {
-                workStack.push(current[1]);
+                workStack.push_back(current[1]);
               }
               continue;  // i.e. recurse!
             }
@@ -1414,7 +1419,7 @@ Node FpConverter::convert(TNode node)
                 break;
 
               default:
-                Unreachable("Unknown binary floating-point relation");
+                Unreachable() << "Unknown binary floating-point relation";
                 break;
             }
           }
@@ -1433,8 +1438,8 @@ Node FpConverter::convert(TNode node)
 
             if (arg1 == f.end())
             {
-              workStack.push(current);
-              workStack.push(current[0]);
+              workStack.push_back(current);
+              workStack.push_back(current[0]);
               continue;  // i.e. recurse!
             }
 
@@ -1482,7 +1487,7 @@ Node FpConverter::convert(TNode node)
                 break;
 
               default:
-                Unreachable("Unknown unary floating-point relation");
+                Unreachable() << "Unknown unary floating-point relation";
                 break;
             }
           }
@@ -1491,7 +1496,7 @@ Node FpConverter::convert(TNode node)
           case kind::FLOATINGPOINT_EQ:
           case kind::FLOATINGPOINT_GEQ:
           case kind::FLOATINGPOINT_GT:
-            Unreachable("Kind should have been removed by rewriter.");
+            Unreachable() << "Kind should have been removed by rewriter.";
             break;
 
           // Components will be registered as they are owned by
@@ -1531,14 +1536,14 @@ Node FpConverter::convert(TNode node)
 
             if (recurseNeeded)
             {
-              workStack.push(current);
+              workStack.push_back(current);
               if (mode == r.end())
               {
-                workStack.push(current[0]);
+                workStack.push_back(current[0]);
               }
               if (arg1 == f.end())
               {
-                workStack.push(current[1]);
+                workStack.push_back(current[1]);
               }
               continue;  // i.e. recurse!
             }
@@ -1572,14 +1577,14 @@ Node FpConverter::convert(TNode node)
 
             if (recurseNeeded)
             {
-              workStack.push(current);
+              workStack.push_back(current);
               if (mode == r.end())
               {
-                workStack.push(current[0]);
+                workStack.push_back(current[0]);
               }
               if (arg1 == f.end())
               {
-                workStack.push(current[1]);
+                workStack.push_back(current[1]);
               }
               continue;  // i.e. recurse!
             }
@@ -1602,15 +1607,15 @@ Node FpConverter::convert(TNode node)
         break;
 
         case kind::FLOATINGPOINT_TO_UBV:
-          Unreachable(
-              "Partially defined fp.to_ubv should have been removed by "
-              "expandDefinition");
+          Unreachable()
+              << "Partially defined fp.to_ubv should have been removed by "
+                 "expandDefinition";
           break;
 
         case kind::FLOATINGPOINT_TO_SBV:
-          Unreachable(
-              "Partially defined fp.to_sbv should have been removed by "
-              "expandDefinition");
+          Unreachable()
+              << "Partially defined fp.to_sbv should have been removed by "
+                 "expandDefinition";
           break;
 
         // Again, no action is needed
@@ -1638,8 +1643,8 @@ Node FpConverter::convert(TNode node)
 
           if (arg1 == f.end())
           {
-            workStack.push(current);
-            workStack.push(current[0]);
+            workStack.push_back(current);
+            workStack.push_back(current[0]);
             continue;  // i.e. recurse!
           }
 
@@ -1653,9 +1658,9 @@ Node FpConverter::convert(TNode node)
         break;
 
         case kind::FLOATINGPOINT_TO_REAL:
-          Unreachable(
-              "Partially defined fp.to_real should have been removed by "
-              "expandDefinition");
+          Unreachable()
+              << "Partially defined fp.to_real should have been removed by "
+                 "expandDefinition";
           break;
 
         default: CVC4_FPCONV_PASSTHROUGH; break;
@@ -1669,7 +1674,7 @@ Node FpConverter::convert(TNode node)
 
   return result;
 #else
-  Unimplemented("Conversion is dependent on SymFPU");
+  Unimplemented() << "Conversion is dependent on SymFPU";
 #endif
 }
 
@@ -1688,7 +1693,7 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 
     if (i == r.end())
     {
-      Unreachable("Asking for the value of an unregistered expression");
+      Unreachable() << "Asking for the value of an unregistered expression";
     }
     else
     {
@@ -1702,7 +1707,7 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 
     if (i == f.end())
     {
-      Unreachable("Asking for the value of an unregistered expression");
+      Unreachable() << "Asking for the value of an unregistered expression";
     }
     else
     {
@@ -1712,15 +1717,15 @@ Node FpConverter::getValue(Valuation &val, TNode var)
   }
   else
   {
-    Unreachable(
-        "Asking for the value of a type that is not managed by the "
-        "floating-point theory");
+    Unreachable()
+        << "Asking for the value of a type that is not managed by the "
+           "floating-point theory";
   }
 
-  Unreachable("Unable to find value");
+  Unreachable() << "Unable to find value";
 
 #else
-  Unimplemented("Conversion is dependent on SymFPU");
+  Unimplemented() << "Conversion is dependent on SymFPU";
 #endif
 }
 

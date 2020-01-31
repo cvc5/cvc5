@@ -16,8 +16,9 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/cdhashmap.h"
+#include "test_utils.h"
 
 using namespace std;
 using namespace CVC4;
@@ -38,12 +39,12 @@ class CDMapWhite : public CxxTest::TestSuite {
 
     TS_ASSERT_THROWS_NOTHING(map.makeCurrent());
 
-    TS_ASSERT_THROWS(map.update(), UnreachableCodeException&);
+    TS_UTILS_EXPECT_ABORT(map.update());
 
-    TS_ASSERT_THROWS(map.save(d_context->getCMM()), UnreachableCodeException&);
-    TS_ASSERT_THROWS(map.restore(&map), UnreachableCodeException&);
+    TS_UTILS_EXPECT_ABORT(map.save(d_context->getCMM()));
+    TS_UTILS_EXPECT_ABORT(map.restore(&map));
 
     d_context->push();
-    TS_ASSERT_THROWS(map.makeCurrent(), UnreachableCodeException&);
+    TS_UTILS_EXPECT_ABORT(map.makeCurrent());
   }
 };

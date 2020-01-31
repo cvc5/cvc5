@@ -20,7 +20,7 @@
 #include <cstring>
 #include <list>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "options/argument_extender.h"
 

@@ -72,7 +72,7 @@ Node removeToFPGeneric(TNode node) {
     return nm->mkNode(op, node[0], node[1]);
   }
 
-  Unreachable("to_fp generic not rewritten");
+  Unreachable() << "to_fp generic not rewritten";
 }
 }  // namespace removeToFPGeneric
 
@@ -736,7 +736,7 @@ bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
   }
   else
   {
-    Unreachable("Unknown abstraction");
+    Unreachable() << "Unknown abstraction";
   }
 
   return false;
@@ -813,33 +813,40 @@ void TheoryFp::registerTerm(TNode node) {
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
   if (!isRegistered(node)) {
+    Kind k = node.getKind();
+    Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC
+           && k != kind::FLOATINGPOINT_SUB && k != kind::FLOATINGPOINT_EQ
+           && k != kind::FLOATINGPOINT_GEQ && k != kind::FLOATINGPOINT_GT);
+
     bool success = d_registeredTerms.insert(node);
     (void)success;  // Only used for assertion
     Assert(success);
 
     // Add to the equality engine
-    if (node.getKind() == kind::EQUAL) {
+    if (k == kind::EQUAL)
+    {
       d_equalityEngine.addTriggerEquality(node);
-    } else {
+    }
+    else
+    {
       d_equalityEngine.addTerm(node);
     }
 
     // Give the expansion of classifications in terms of equalities
     // This should make equality reasoning slightly more powerful.
-    if ((node.getKind() == kind::FLOATINGPOINT_ISNAN)
-        || (node.getKind() == kind::FLOATINGPOINT_ISZ)
-        || (node.getKind() == kind::FLOATINGPOINT_ISINF))
+    if ((k == kind::FLOATINGPOINT_ISNAN) || (k == kind::FLOATINGPOINT_ISZ)
+        || (k == kind::FLOATINGPOINT_ISINF))
     {
       NodeManager *nm = NodeManager::currentNM();
       FloatingPointSize s = node[0].getType().getConst<FloatingPointSize>();
       Node equalityAlias = Node::null();
 
-      if (node.getKind() == kind::FLOATINGPOINT_ISNAN)
+      if (k == kind::FLOATINGPOINT_ISNAN)
       {
         equalityAlias = nm->mkNode(
             kind::EQUAL, node[0], nm->mkConst(FloatingPoint::makeNaN(s)));
       }
-      else if (node.getKind() == kind::FLOATINGPOINT_ISZ)
+      else if (k == kind::FLOATINGPOINT_ISZ)
       {
         equalityAlias = nm->mkNode(
             kind::OR,
@@ -850,7 +857,7 @@ void TheoryFp::registerTerm(TNode node) {
                        node[0],
                        nm->mkConst(FloatingPoint::makeZero(s, false))));
       }
-      else if (node.getKind() == kind::FLOATINGPOINT_ISINF)
+      else if (k == kind::FLOATINGPOINT_ISINF)
       {
         equalityAlias = nm->mkNode(
             kind::OR,
@@ -863,7 +870,7 @@ void TheoryFp::registerTerm(TNode node) {
       }
       else
       {
-        Unreachable("Only isNaN, isInf and isZero have aliases");
+        Unreachable() << "Only isNaN, isInf and isZero have aliases";
       }
 
       handleLemma(nm->mkNode(kind::EQUAL, node, equalityAlias));
@@ -965,12 +972,12 @@ void TheoryFp::check(Effort level) {
     TNode predicate = negated ? fact[0] : fact;
 
     if (predicate.getKind() == kind::EQUAL) {
-      Assert(!(predicate[0].getType().isFloatingPoint() ||
-               predicate[0].getType().isRoundingMode()) ||
-             isRegistered(predicate[0]));
-      Assert(!(predicate[1].getType().isFloatingPoint() ||
-               predicate[1].getType().isRoundingMode()) ||
-             isRegistered(predicate[1]));
+      Assert(!(predicate[0].getType().isFloatingPoint()
+               || predicate[0].getType().isRoundingMode())
+             || isRegistered(predicate[0]));
+      Assert(!(predicate[1].getType().isFloatingPoint()
+               || predicate[1].getType().isRoundingMode())
+             || isRegistered(predicate[1]));
       registerTerm(predicate);  // Needed for float equalities
 
       if (negated) {

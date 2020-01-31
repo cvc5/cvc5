@@ -57,7 +57,7 @@ bool EprInstantiator::processEqualTerm(CegInstantiator* ci,
     d_equal_terms.push_back(n);
     return false;
   }
-  pv_prop.d_type = 0;
+  pv_prop.d_type = CEG_TT_EQUAL;
   return ci->constructInstantiationInc(pv, n, pv_prop, sf);
 }
 
@@ -93,7 +93,7 @@ bool EprInstantiator::processEqualTerms(CegInstantiator* ci,
   // sort by match score
   std::sort(d_equal_terms.begin(), d_equal_terms.end(), setm);
   TermProperties pv_prop;
-  pv_prop.d_type = 0;
+  pv_prop.d_type = CEG_TT_EQUAL;
   for (unsigned i = 0, size = d_equal_terms.size(); i < size; i++)
   {
     if (ci->constructInstantiationInc(pv, d_equal_terms[i], pv_prop, sf))

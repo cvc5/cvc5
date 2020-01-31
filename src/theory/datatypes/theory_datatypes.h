@@ -26,7 +26,7 @@
 #include "expr/attribute.h"
 #include "expr/datatype.h"
 #include "expr/node_trie.h"
-#include "theory/datatypes/datatypes_sygus.h"
+#include "theory/datatypes/sygus_extension.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
@@ -205,8 +205,16 @@ private:
   bool d_addedFact;
   /** The conflict node */
   Node d_conflictNode;
-  /** cache for which terms we have called collectTerms(...) on */
+  /**
+   * SAT-context dependent cache for which terms we have called
+   * collectTerms(...) on.
+   */
   BoolMap d_collectTermsCache;
+  /**
+   * User-context dependent cache for which terms we have called
+   * collectTerms(...) on.
+   */
+  BoolMap d_collectTermsCacheU;
   /** pending assertions/merges */
   std::vector< Node > d_pending_lem;
   std::vector< Node > d_pending;
@@ -346,7 +354,7 @@ private:
   /** collect terms */
   void collectTerms( Node n );
   /** get instantiate cons */
-  Node getInstantiateCons( Node n, const Datatype& dt, int index );
+  Node getInstantiateCons(Node n, const DType& dt, int index);
   /** check instantiate */
   void instantiate( EqcInfo* eqc, Node n );
   /** must communicate fact */
@@ -362,7 +370,7 @@ private:
   TNode getRepresentative( TNode a );
 private:
  /** sygus symmetry breaking utility */
- SygusSymBreakNew* d_sygus_sym_break;
+ std::unique_ptr<SygusExtension> d_sygusExtension;
 
 };/* class TheoryDatatypes */
 

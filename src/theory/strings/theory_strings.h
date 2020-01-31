@@ -31,6 +31,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
+#include "theory/strings/solver_state.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -67,6 +68,8 @@ enum InferStep
   CHECK_CYCLES,
   // check flat forms
   CHECK_FLAT_FORMS,
+  // check register terms pre-normal forms
+  CHECK_REGISTER_TERMS_PRE_NF,
   // check normal forms equalities
   CHECK_NORMAL_FORMS_EQ,
   // check normal forms disequalities
@@ -75,6 +78,8 @@ enum InferStep
   CHECK_CODES,
   // check lengths for equivalence classes
   CHECK_LENGTH_EQC,
+  // check register terms for normal forms
+  CHECK_REGISTER_TERMS_NF,
   // check extended function reductions
   CHECK_EXTF_REDUCTION,
   // check regular expression memberships
@@ -108,7 +113,6 @@ class TheoryStrings : public Theory {
  public:
   void propagate(Effort e) override;
   bool propagate(TNode literal);
-  void explain( TNode literal, std::vector<TNode>& assumptions );
   Node explain(TNode literal) override;
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
   bool getCurrentSubstitution(int effort,
@@ -191,42 +195,7 @@ class TheoryStrings : public Theory {
     }
   };/* class TheoryStrings::NotifyClass */
 
-  //--------------------------- equality engine
-  /**
-   * Get the representative of t in the equality engine of this class, or t
-   * itself if it is not registered as a term.
-   */
-  Node getRepresentative(Node t);
-  /** Is t registered as a term in the equality engine of this class? */
-  bool hasTerm(Node a);
-  /**
-   * Are a and b equal according to the equality engine of this class? Also
-   * returns true if a and b are identical.
-   */
-  bool areEqual(Node a, Node b);
-  /**
-   * Are a and b disequal according to the equality engine of this class? Also
-   * returns true if the representative of a and b are distinct constants.
-   */
-  bool areDisequal(Node a, Node b);
-  //--------------------------- end equality engine
-
   //--------------------------- helper functions
-  /** get length with explanation
-   *
-   * If possible, this returns an arithmetic term that exists in the current
-   * context that is equal to the length of te, or otherwise returns the
-   * length of t. It adds to exp literals that hold in the current context that
-   * explain why that term is equal to the length of t. For example, if
-   * we have assertions:
-   *   len( x ) = 5 ^ z = x ^ x = y,
-   * then getLengthExp( z, exp, y ) returns len( x ) and adds { z = x } to
-   * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
-   * adds nothing to exp.
-   */
-  Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
-  /** shorthand for getLengthExp(t, exp, t) */
-  Node getLength(Node t, std::vector<Node>& exp);
   /** get normal string
    *
    * This method returns the node that is equivalent to the normal form of x,
@@ -252,12 +221,10 @@ class TheoryStrings : public Theory {
   NotifyClass d_notify;
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
+  /** The solver state object */
+  SolverState d_state;
   /** The (custom) output channel of the theory of strings */
   InferenceManager d_im;
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
-  /** Pending conflict */
-  context::CDO<Node> d_pendingConflict;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /** get normal form */
@@ -271,15 +238,11 @@ class TheoryStrings : public Theory {
   // preReg cache
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
-  NodeSet d_length_lemma_terms_cache;
   /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
-  NodeSet d_extf_infer_cache_u;
   std::vector< Node > d_empty_vec;
-  //
-  NodeList d_ee_disequalities;
 private:
   NodeSet d_congruent;
   /**
@@ -305,7 +268,21 @@ private:
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
   Node getConstantEqc( Node eqc );
-  
+  /**
+   * Get the current substitution for term n.
+   *
+   * This method returns a term that n is currently equal to in the current
+   * context. It updates exp to contain an explanation of why it is currently
+   * equal to that term.
+   *
+   * The argument effort determines what kind of term to return, either
+   * a constant in the equivalence class of n (effort=0), the normal form of
+   * n (effort=1,2) or the model value of n (effort>=3). The latter is only
+   * valid at LAST_CALL effort. If a term of the above form cannot be returned,
+   * then n itself is returned.
+   */
+  Node getCurrentSubstitutionFor(int effort, Node n, std::vector<Node>& exp);
+
   std::map< Node, Node > d_eqc_to_len_term;
   std::vector< Node > d_strings_eqc;
   Node d_emptyString_r;
@@ -313,7 +290,11 @@ private:
   public:
     Node d_data;
     std::map< TNode, TermIndex > d_children;
-    Node add( TNode n, unsigned index, TheoryStrings* t, Node er, std::vector< Node >& c );
+    Node add(TNode n,
+             unsigned index,
+             const SolverState& s,
+             Node er,
+             std::vector<Node>& c);
     void clear(){ d_children.clear(); }
   };
   std::map< Kind, TermIndex > d_term_index;
@@ -323,7 +304,6 @@ private:
   std::map< Node, std::vector< int > > d_flat_form_index;
 
   void debugPrintFlatForms( const char * tc );
-  void debugPrintNormalForms( const char * tc );
   /////////////////////////////////////////////////////////////////////////////
   // MODEL GENERATION
   /////////////////////////////////////////////////////////////////////////////
@@ -345,55 +325,6 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
  private:
-  /** SAT-context-dependent information about an equivalence class */
-  class EqcInfo {
-  public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    /**
-     * If non-null, this is a term x from this eq class such that str.len( x )
-     * occurs as a term in this SAT context.
-     */
-    context::CDO< Node > d_length_term;
-    /**
-     * If non-null, this is a term x from this eq class such that str.code( x )
-     * occurs as a term in this SAT context.
-     */
-    context::CDO<Node> d_code_term;
-    context::CDO< unsigned > d_cardinality_lem_k;
-    context::CDO< Node > d_normalized_length;
-    /**
-     * A node that explains the longest constant prefix known of this
-     * equivalence class. This can either be:
-     * (1) A term from this equivalence class, including a constant "ABC" or
-     * concatenation term (str.++ "ABC" ...), or
-     * (2) A membership of the form (str.in.re x R) where x is in this
-     * equivalence class and R is a regular expression of the form
-     * (str.to.re "ABC") or (re.++ (str.to.re "ABC") ...).
-     */
-    context::CDO<Node> d_prefixC;
-    /** same as above, for suffix. */
-    context::CDO<Node> d_suffixC;
-    /** add prefix constant
-     *
-     * This informs this equivalence class info that a term t in its
-     * equivalence class has a constant prefix (if isSuf=true) or suffix
-     * (if isSuf=false). The constant c (if non-null) is the value of that
-     * constant, if it has been computed already.
-     *
-     * If this method returns a non-null node ret, then ret is a conjunction
-     * corresponding to a conflict that holds in the current context.
-     */
-    Node addEndpointConst(Node t, Node c, bool isSuf);
-  };
-  /** map from representatives to information necessary for equivalence classes */
-  std::map< Node, EqcInfo* > d_eqc_info;
-  /**
-   * Get the above information for equivalence class eqc. If doMake is true,
-   * we construct a new information class if one does not exist. The term eqc
-   * should currently be a representative of the equality engine of this class.
-   */
-  EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
   /**
    * Map string terms to their "proxy variables". Proxy variables are used are
    * intermediate variables so that length information can be communicated for
@@ -425,23 +356,6 @@ private:
   };
 
  private:
-
-  /** register length
-   *
-   * This method is called on non-constant string terms n. It sends a lemma
-   * on the output channel that ensures that the length n satisfies its assigned
-   * status (given by argument s).
-   *
-   * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
-   *
-   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) > 0.
-   *
-   * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
-   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
-   * This method also ensures that, when applicable, the left branch is taken
-   * first via calls to requirePhase.
-   */
-  void registerLength(Node n, LengthStatus s);
 
   /** cache of all skolems */
   SkolemCache d_sk_cache;
@@ -520,10 +434,11 @@ private:
   /**
    * This checks whether there are flat form inferences between eqc[start] and
    * eqc[j] for some j>start. If the flag isRev is true, we check for flat form
-   * interferences in the reverse direction of the flat forms. For more details,
-   * see checkFlatForms below.
+   * interferences in the reverse direction of the flat forms (note:
+   * `d_flat_form` and `d_flat_form_index` must be in reverse order if `isRev`
+   * is true). For more details, see checkFlatForms below.
    */
-  void checkFlatForm(std::vector<Node>& eqc, unsigned start, bool isRev);
+  void checkFlatForm(std::vector<Node>& eqc, size_t start, bool isRev);
   //--------------------------end for checkFlatForm
 
   //--------------------------for checkCycles
@@ -629,15 +544,6 @@ private:
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
   //--------------------------end for checkNormalFormsDeq
 
-  //--------------------------------for checkMemberships
-  // check membership constraints
-  Node mkRegExpAntec(Node atom, Node ant);
-  bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
-  //check contains
-  void checkPosContains( std::vector< Node >& posContains );
-  void checkNegContains( std::vector< Node >& negContains );
-  //--------------------------------end for checkMemberships
-
  private:
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
@@ -684,41 +590,12 @@ private:
    * of atom, including calls to registerTerm.
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
-  /** add endpoints to eqc info
-   *
-   * This method is called when term t is the explanation for why equivalence
-   * class eqc may have a constant endpoint due to a concatentation term concat.
-   * For example, we may call this method on:
-   *   t := (str.++ x y), concat := (str.++ x y), eqc
-   * for some eqc that is currently equal to t. Another example is:
-   *   t := (str.in.re z (re.++ r s)), concat := (re.++ r s), eqc
-   * for some eqc that is currently equal to z.
-   */
-  void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
-  /** set pending conflict
-   *
-   * If conf is non-null, this is called when conf is a conjunction of literals
-   * that hold in the current context that are unsatisfiable. It is set as the
-   * "pending conflict" to be processed as a conflict lemma on the output
-   * channel of this class. It is not sent out immediately since it may require
-   * explanation from the equality engine, and may be called at any time, e.g.
-   * during a merge operation, when the equality engine is not in a state to
-   * provide explanations.
-   */
-  void setPendingConflictWhen(Node conf);
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, it introduces Skolems, and
    * updates the set of normal form pairs.
    */
   void doInferInfo(const InferInfo& ii);
-  /**
-   * Adds equality a = b to the vector exp if a and b are distinct terms. It
-   * must be the case that areEqual( a, b ) holds in this context.
-   */
-  void addToExplanation(Node a, Node b, std::vector<Node>& exp);
-  /** Adds lit to the vector exp if it is non-null */
-  void addToExplanation(Node lit, std::vector<Node>& exp);
 
   /** Register term
    *
@@ -739,49 +616,6 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
-
-  /**
-   * Are we in conflict? This returns true if this theory has called its output
-   * channel's conflict method in the current SAT context.
-   */
-  bool inConflict() const { return d_conflict; }
-
-  /** mkConcat **/
-  inline Node mkConcat(Node n1, Node n2);
-  inline Node mkConcat(Node n1, Node n2, Node n3);
-  inline Node mkConcat(const std::vector<Node>& c);
-  inline Node mkLength(Node n);
-
-  /** make explanation
-   *
-   * This returns a node corresponding to the explanation of formulas in a,
-   * interpreted conjunctively. The returned node is a conjunction of literals
-   * that have been asserted to the equality engine.
-   */
-  Node mkExplain(const std::vector<Node>& a);
-  /** Same as above, but the new literals an are append to the result */
-  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an);
-
- protected:
-
-  /** get equivalence classes
-   *
-   * This adds the representative of all equivalence classes to eqcs
-   */
-  void getEquivalenceClasses(std::vector<Node>& eqcs);
-  /** get relevant equivalence classes
-   *
-   * This adds the representative of all equivalence classes that contain at
-   * least one term in termSet.
-   */
-  void getRelevantEquivalenceClasses(std::vector<Node>& eqcs,
-                                     std::set<Node>& termSet);
-
-  // separate into collections with equal length
-  void separateByLength(std::vector<Node>& n,
-                        std::vector<std::vector<Node> >& col,
-                        std::vector<Node>& lts);
-  void printConcat(std::vector<Node>& n, const char* c);
 
   // Symbolic Regular Expression
  private:
@@ -932,6 +766,12 @@ private:
    * Must call checkCycles before this function in a strategy.
    */
   void checkFlatForms();
+  /** check register terms pre-normal forms
+   *
+   * This calls registerTerm(n,2) on all non-congruent strings in the
+   * equality engine of this class.
+   */
+  void checkRegisterTermsPreNormalForm();
   /** check normal forms equalities
    *
    * This applies an inference schema based on "normal forms". The normal form
@@ -1009,6 +849,13 @@ private:
    * shown to be helpful.
    */
   void checkLengthsEqc();
+  /** check register terms for normal forms
+   *
+   * This calls registerTerm(str.++(t1, ..., tn ), 3) on the normal forms
+   * (t1, ..., tn) of all string equivalence classes { s1, ..., sm } such that
+   * there does not exist a term of the form str.len(si) in the current context.
+   */
+  void checkRegisterTermsNormalForms();
   /** check extended function reductions
    *
    * This adds "reduction" lemmas for each active extended function in this SAT

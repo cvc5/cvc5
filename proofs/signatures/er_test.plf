@@ -1,30 +1,5 @@
 ; Depends on er.plf
 
-; Type for representing success when testing a side-condition
-(declare TestSuccess type)
-
-; Test for clause_add_suffix_all
-(declare test_clause_add_suffix_all
-         (! list clause
-            (! suffix clause
-               (! result cnf
-                  (! (^ (clause_add_suffix_all list suffix) result)
-                     TestSuccess)))))
-
-(check
-  (% a lit
-  (% b lit
-  (% c lit
-     (test_clause_add_suffix_all
-       (clc a (clc b cln))
-       (clc c cln)
-       (cnfc (clc a (clc c cln))
-        (cnfc (clc b (clc c cln))
-        cnfn))
-     )
-  )))
-)
-
 ; This is a circuitous proof that uses the definition introduction and
 ; unrolling rules
 (check
@@ -40,13 +15,11 @@
             (clc (neg v2) cln)
             (\ v3
             (\ def3
-              (clausify_definition _ _ _ def3 _ _
+              (clausify_definition _ _ _ def3 _
                 (\ pf_c5 ; type: (holds (clc (pos v3) (clc (neg v2) cln)))
                 (\ pf_c6 ; type: (holds (clc (pos v3) (clc (pos v1) cln)))
-                (\ pf_cnf3 ; type: (cnf_holds (cnfc (clc (neg v2) (clc (neg v3) (clc (neg v1) cln))) cnfn))
-                  (cnfc_unroll_towards_bottom _ _ pf_cnf3
-                    (\ pf_c7 ; type: (clc (neg v2) (clc (neg v3) (clc (neg v1) cln)))
-                    (\ pf_cnfn
+                (\ pf_cnf ; type: (common_tail_cnf (clc (neg v2) cln) (clc (neg v3) (clc (neg v1) cln)))
+                  (@ pf_c7 (common_tail_cnf_prove_head _ _ _ pf_cnf)
                                                                           ; Clauses
                   (satlem_simplify _ _ _ (R _ _ pf_c1 pf_c2 v1)  (\ pf_c8 ; v2
                   (satlem_simplify _ _ _ (R _ _ pf_c8 pf_c5 v2)  (\ pf_c9 ; v3
@@ -61,7 +34,7 @@
                   ))
                   ))
                   ))
-                  )))
+                  )
                 )))
               )
             ))
@@ -92,10 +65,10 @@
             cln
             (\ v5
             (\ def1
-              (clausify_definition _ _ _ def1 _ _
+              (clausify_definition _ _ _ def1 _
                 (\ pf_c9 ; type: (holds (clc (pos def1v) cln))
                 (\ pf_c10 ; type: (holds (clc (pos def1v) (clc (pos v1) cln)))
-                (\ idc0 ; type: (cnf_holds cnfn)
+                (\ idc0 ; type: (common_tail_cnf cln _)
                   (satlem_simplify _ _ _ (R _ _ pf_c10 pf_c7 v1) (\ pf_c11
                   (satlem_simplify _ _ _ (R _ _ pf_c10 pf_c5 v1) (\ pf_c12
                   (satlem_simplify _ _ _ (R _ _ pf_c10 pf_c2 v1) (\ pf_c13

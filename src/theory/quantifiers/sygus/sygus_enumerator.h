@@ -156,12 +156,20 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_numConClasses;
     /** Map from weights to the starting constructor class for that weight. */
     std::map<unsigned, unsigned> d_weightToCcIndex;
-    /** constructor classes */
-    std::map<unsigned, std::vector<unsigned>> d_ccToCons;
-    /** maps constructor classes to children types */
-    std::map<unsigned, std::vector<TypeNode>> d_ccToTypes;
-    /** maps constructor classes to constructor weight */
-    std::map<unsigned, unsigned> d_ccToWeight;
+    /** Information for each constructor class */
+    class ConstructorClass
+    {
+     public:
+      ConstructorClass() : d_weight(0) {}
+      ~ConstructorClass() {}
+      /** The indices of the constructors in this constructor class */
+      std::vector<unsigned> d_cons;
+      /** The argument types of the constructor class */
+      std::vector<TypeNode> d_types;
+      /** Constructor weight */
+      unsigned d_weight;
+    };
+    std::map<unsigned, ConstructorClass> d_cclass;
     /** constructor to indices */
     std::map<unsigned, std::vector<unsigned>> d_cToCIndices;
     //-------------------------end static information about type
@@ -353,15 +361,16 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_childrenValid;
     /** initialize children
      *
-     * Initialize all the uninitialized children of this enumerator. If this
-     * method returns true, then all children d_children are successfully
+     * Initialize all the remaining uninitialized children of this enumerator.
+     * If this method returns true, then each of d_children are
      * initialized to be slave enumerators of the argument types indicated by
      * d_ccTypes, and the sum of their current sizes (d_currChildSize) is
      * exactly (d_currSize - d_ccWeight). If this method returns false, then
      * it was not possible to initialize the children such that they meet the
      * size requirements, and such that the assignments from children to size
-     * has not already been considered. In this case, d_children is cleared
-     * and d_currChildSize and d_childrenValid are reset.
+     * has not already been considered. In this case, all updates to d_children
+     * are reverted and d_currChildSize and d_childrenValid are reset to their
+     * values prior to this call.
      */
     bool initializeChildren();
     /** initialize child

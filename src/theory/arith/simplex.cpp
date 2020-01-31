@@ -57,8 +57,7 @@ SimplexDecisionProcedure::~SimplexDecisionProcedure(){
 
 bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStat& conflicts) {
   TimerStat::CodeTimer codeTimer(timer);
-  Assert( d_conflictVariables.empty() );
-
+  Assert(d_conflictVariables.empty());
 
   while(d_errorSet.moreSignals()){
     ArithVar curr = d_errorSet.topSignal();
@@ -99,7 +98,6 @@ void SimplexDecisionProcedure::reportConflict(ArithVar basic){
 }
 
 ConstraintCP SimplexDecisionProcedure::generateConflictForBasic(ArithVar basic) const {
-
   Assert(d_tableau.isBasic(basic));
   Assert(checkBasicForConflict(basic));
 
@@ -198,7 +196,7 @@ ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& time
   TimerStat::CodeTimer codeTimer(timer);
   Assert(!d_errorSet.focusEmpty());
   Assert(debugIsASet(set));
-  
+
   ArithVar inf = requestVariable();
   Assert(inf != ARITHVAR_SENTINEL);
 

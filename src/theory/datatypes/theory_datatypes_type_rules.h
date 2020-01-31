@@ -19,8 +19,9 @@
 #ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 #define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
-#include "expr/matcher.h"
-//#include "expr/attribute.h"
+#include "expr/dtype.h"
+#include "expr/type_matcher.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 
 namespace CVC4 {
 
@@ -41,21 +42,22 @@ struct DatatypeConstructorTypeRule {
                                      bool check) {
     Assert(n.getKind() == kind::APPLY_CONSTRUCTOR);
     TypeNode consType = n.getOperator().getType(check);
-    Type t = consType.getConstructorRangeType().toType();
+    TypeNode t = consType.getConstructorRangeType();
     Assert(t.isDatatype());
-    DatatypeType dt = DatatypeType(t);
     TNode::iterator child_it = n.begin();
     TNode::iterator child_it_end = n.end();
     TypeNode::iterator tchild_it = consType.begin();
-    if ((dt.isParametric() || check) &&
-        n.getNumChildren() != consType.getNumChildren() - 1) {
+    if ((t.isParametricDatatype() || check)
+        && n.getNumChildren() != consType.getNumChildren() - 1)
+    {
       throw TypeCheckingExceptionPrivate(
           n, "number of arguments does not match the constructor type");
     }
-    if (dt.isParametric()) {
+    if (t.isParametricDatatype())
+    {
       Debug("typecheck-idt") << "typecheck parameterized datatype " << n
                              << std::endl;
-      Matcher m(dt);
+      TypeMatcher m(t);
       for (; child_it != child_it_end; ++child_it, ++tchild_it) {
         TypeNode childType = (*child_it).getType(check);
         if (!m.doMatching(*tchild_it, childType)) {
@@ -63,12 +65,14 @@ struct DatatypeConstructorTypeRule {
               n, "matching failed for parameterized constructor");
         }
       }
-      std::vector<Type> instTypes;
+      std::vector<TypeNode> instTypes;
       m.getMatches(instTypes);
-      TypeNode range = TypeNode::fromType(dt.instantiate(instTypes));
+      TypeNode range = t.instantiateParametricDatatype(instTypes);
       Debug("typecheck-idt") << "Return " << range << std::endl;
       return range;
-    } else {
+    }
+    else
+    {
       if (check) {
         Debug("typecheck-idt") << "typecheck cons: " << n << " "
                                << n.getNumChildren() << std::endl;
@@ -101,22 +105,6 @@ struct DatatypeConstructorTypeRule {
         return false;
       }
     }
-    //if we support subtyping for tuples, enable this
-    /*
-    //check whether it is in normal form?
-    TypeNode tn = n.getType();
-    if( tn.isTuple() ){
-      const Datatype& dt = tn.getDatatype();
-      //may be the wrong constructor, if children types are subtypes
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        if( n[i].getType()!=TypeNode::fromType( dt[0][i].getRangeType() ) ){
-          return false;
-        }
-      }
-    }else if( tn.isCodatatype() ){
-      //TODO?
-    }
-    */
     return true;
   }
 }; /* struct DatatypeConstructorTypeRule */
@@ -124,20 +112,21 @@ struct DatatypeConstructorTypeRule {
 struct DatatypeSelectorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
-    Assert(n.getKind() == kind::APPLY_SELECTOR ||
-           n.getKind() == kind::APPLY_SELECTOR_TOTAL);
+    Assert(n.getKind() == kind::APPLY_SELECTOR
+           || n.getKind() == kind::APPLY_SELECTOR_TOTAL);
     TypeNode selType = n.getOperator().getType(check);
-    Type t = selType[0].toType();
+    TypeNode t = selType[0];
     Assert(t.isDatatype());
-    DatatypeType dt = DatatypeType(t);
-    if ((dt.isParametric() || check) && n.getNumChildren() != 1) {
+    if ((t.isParametricDatatype() || check) && n.getNumChildren() != 1)
+    {
       throw TypeCheckingExceptionPrivate(
           n, "number of arguments does not match the selector type");
     }
-    if (dt.isParametric()) {
+    if (t.isParametricDatatype())
+    {
       Debug("typecheck-idt") << "typecheck parameterized sel: " << n
                              << std::endl;
-      Matcher m(dt);
+      TypeMatcher m(t);
       TypeNode childType = n[0].getType(check);
       if (!childType.isInstantiatedDatatype()) {
         throw TypeCheckingExceptionPrivate(
@@ -148,14 +137,17 @@ struct DatatypeSelectorTypeRule {
             n,
             "matching failed for selector argument of parameterized datatype");
       }
-      std::vector<Type> types, matches;
+      std::vector<TypeNode> types, matches;
       m.getTypes(types);
       m.getMatches(matches);
-      Type range = selType[1].toType();
-      range = range.substitute(types, matches);
+      TypeNode range = selType[1];
+      range = range.substitute(
+          types.begin(), types.end(), matches.begin(), matches.end());
       Debug("typecheck-idt") << "Return " << range << std::endl;
-      return TypeNode::fromType(range);
-    } else {
+      return range;
+    }
+    else
+    {
       if (check) {
         Debug("typecheck-idt") << "typecheck sel: " << n << std::endl;
         Debug("typecheck-idt") << "sel type: " << selType << std::endl;
@@ -183,19 +175,21 @@ struct DatatypeTesterTypeRule {
       }
       TypeNode testType = n.getOperator().getType(check);
       TypeNode childType = n[0].getType(check);
-      Type t = testType[0].toType();
+      TypeNode t = testType[0];
       Assert(t.isDatatype());
-      DatatypeType dt = DatatypeType(t);
-      if (dt.isParametric()) {
+      if (t.isParametricDatatype())
+      {
         Debug("typecheck-idt") << "typecheck parameterized tester: " << n
                                << std::endl;
-        Matcher m(dt);
+        TypeMatcher m(t);
         if (!m.doMatching(testType[0], childType)) {
           throw TypeCheckingExceptionPrivate(
               n,
               "matching failed for tester argument of parameterized datatype");
         }
-      } else {
+      }
+      else
+      {
         Debug("typecheck-idt") << "typecheck test: " << n << std::endl;
         Debug("typecheck-idt") << "test type: " << testType << std::endl;
         if (!testType[0].isComparableTo(childType)) {
@@ -217,12 +211,11 @@ struct DatatypeAscriptionTypeRule {
     if (check) {
       TypeNode childType = n[0].getType(check);
 
-      Matcher m;
+      TypeMatcher m;
       if (childType.getKind() == kind::CONSTRUCTOR_TYPE) {
-        m.addTypesFromDatatype(
-            ConstructorType(childType.toType()).getRangeType());
+        m.addTypesFromDatatype(childType.getConstructorRangeType());
       } else if (childType.getKind() == kind::DATATYPE_TYPE) {
-        m.addTypesFromDatatype(DatatypeType(childType.toType()));
+        m.addTypesFromDatatype(childType);
       }
       if (!m.doMatching(childType, t)) {
         throw TypeCheckingExceptionPrivate(n,
@@ -294,11 +287,13 @@ struct RecordUpdateTypeRule {
     TypeNode recordType = n[0].getType(check);
     TypeNode newValue = n[1].getType(check);
     if (check) {
-      if (!recordType.isRecord()) {
+      if (!recordType.toType().isRecord())
+      {
         throw TypeCheckingExceptionPrivate(
             n, "Record-update expression formed over non-record");
       }
-      const Record& rec = recordType.getRecord();
+      const Record& rec =
+          DatatypeType(recordType.toType()).getRecord();
       if (!rec.contains(ru.getField())) {
         std::stringstream ss;
         ss << "Record-update field `" << ru.getField()
@@ -396,8 +391,7 @@ class DtSyguEvalTypeRule
       throw TypeCheckingExceptionPrivate(
           n, "datatype sygus eval takes a datatype head");
     }
-    const Datatype& dt =
-        static_cast<DatatypeType>(headType.toType()).getDatatype();
+    const DType& dt = headType.getDType();
     if (!dt.isSygus())
     {
       throw TypeCheckingExceptionPrivate(
@@ -405,7 +399,7 @@ class DtSyguEvalTypeRule
     }
     if (check)
     {
-      Node svl = Node::fromExpr(dt.getSygusVarList());
+      Node svl = dt.getSygusVarList();
       if (svl.getNumChildren() + 1 != n.getNumChildren())
       {
         throw TypeCheckingExceptionPrivate(n,
@@ -425,9 +419,167 @@ class DtSyguEvalTypeRule
         }
       }
     }
-    return TypeNode::fromType(dt.getSygusType());
+    return dt.getSygusType();
   }
-}; /* class DtSygusBoundTypeRule */
+}; /* class DtSyguEvalTypeRule */
+
+class MatchTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+  {
+    Assert(n.getKind() == kind::MATCH);
+
+    TypeNode retType;
+
+    TypeNode headType = n[0].getType(check);
+    if (!headType.isDatatype())
+    {
+      throw TypeCheckingExceptionPrivate(n, "expecting datatype head in match");
+    }
+    const DType& hdt = headType.getDType();
+
+    std::unordered_set<unsigned> patIndices;
+    bool patHasVariable = false;
+    // the type of a match case list is the least common type of its cases
+    for (unsigned i = 1, nchildren = n.getNumChildren(); i < nchildren; i++)
+    {
+      Node nc = n[i];
+      if (check)
+      {
+        Kind nck = nc.getKind();
+        std::unordered_set<Node, NodeHashFunction> bvs;
+        if (nck == kind::MATCH_BIND_CASE)
+        {
+          for (const Node& v : nc[0])
+          {
+            Assert(v.getKind() == kind::BOUND_VARIABLE);
+            bvs.insert(v);
+          }
+        }
+        else if (nck != kind::MATCH_CASE)
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "expected a match case in match expression");
+        }
+        // get the pattern type
+        unsigned pindex = nck == kind::MATCH_CASE ? 0 : 1;
+        TypeNode patType = nc[pindex].getType();
+        // should be caught in the above call
+        if (!patType.isDatatype())
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "expecting datatype pattern in match");
+        }
+        Kind ncpk = nc[pindex].getKind();
+        if (ncpk == kind::APPLY_CONSTRUCTOR)
+        {
+          for (const Node& arg : nc[pindex])
+          {
+            if (bvs.find(arg) == bvs.end())
+            {
+              throw TypeCheckingExceptionPrivate(
+                  n,
+                  "expecting distinct bound variable as argument to "
+                  "constructor in pattern of match");
+            }
+            bvs.erase(arg);
+          }
+          unsigned ci = utils::indexOf(nc[pindex].getOperator());
+          patIndices.insert(ci);
+        }
+        else if (ncpk == kind::BOUND_VARIABLE)
+        {
+          patHasVariable = true;
+        }
+        else
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "unexpected kind of term in pattern in match");
+        }
+        const DType& pdt = patType.getDType();
+        // compare datatypes instead of the types to catch parametric case,
+        // where the pattern has parametric type.
+        if (hdt.getTypeNode() != pdt.getTypeNode())
+        {
+          std::stringstream ss;
+          ss << "pattern of a match case does not match the head type in match";
+          throw TypeCheckingExceptionPrivate(n, ss.str());
+        }
+      }
+      TypeNode currType = nc.getType(check);
+      if (i == 1)
+      {
+        retType = currType;
+      }
+      else
+      {
+        retType = TypeNode::leastCommonTypeNode(retType, currType);
+        if (retType.isNull())
+        {
+          throw TypeCheckingExceptionPrivate(
+              n, "incomparable types in match case list");
+        }
+      }
+    }
+    if (check)
+    {
+      if (!patHasVariable && patIndices.size() < hdt.getNumConstructors())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "cases for match term are not exhaustive");
+      }
+    }
+    return retType;
+  }
+}; /* class MatchTypeRule */
+
+class MatchCaseTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::MATCH_CASE);
+    if (check)
+    {
+      TypeNode patType = n[0].getType(check);
+      if (!patType.isDatatype())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting datatype pattern in match case");
+      }
+    }
+    return n[1].getType(check);
+  }
+}; /* class MatchCaseTypeRule */
+
+class MatchBindCaseTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::MATCH_BIND_CASE);
+    if (check)
+    {
+      if (n[0].getKind() != kind::BOUND_VAR_LIST)
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expected a bound variable list in match bind case");
+      }
+      TypeNode patType = n[1].getType(check);
+      if (!patType.isDatatype())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting datatype pattern in match bind case");
+      }
+    }
+    return n[2].getType(check);
+  }
+}; /* class MatchBindCaseTypeRule */
 
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */

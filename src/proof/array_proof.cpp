@@ -152,7 +152,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         out << ss.str();
         out << ") (pred_eq_f _ " << ProofManager::getLitName(n2[0]) << ")) t_t_neq_f))" << std::endl;
       } else {
-        Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1]) || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
+        Assert((n1[0] == n2[0][0] && n1[1] == n2[0][1])
+               || (n1[1] == n2[0][0] && n1[0] == n2[0][1]));
         if(n1[1] == n2[0][0]) {
           out << "(symm _ _ _ " << ss.str() << ")";
         } else {
@@ -166,7 +167,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     } else {
       Node n2 = pf.d_node;
       Assert(n2.getKind() == kind::EQUAL);
-      Assert((n1[0] == n2[0] && n1[1] == n2[1]) || (n1[1] == n2[0] && n1[0] == n2[1]));
+      Assert((n1[0] == n2[0] && n1[1] == n2[1])
+             || (n1[1] == n2[0] && n1[0] == n2[1]));
 
       out << ss.str();
       out << " ";
@@ -323,10 +325,15 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
       b2 << n2[1-side];
       out << ss.str();
     } else {
-      Assert(pf2->d_node[b1.getNumChildren() +
-                         (n1[side].getKind() == kind::PARTIAL_SELECT_0 ? 1 : 0) +
-                         (n1[side].getKind() == kind::PARTIAL_SELECT_1 ? 1 : 0) -
-                         (pf2->d_node.getMetaKind() == kind::metakind::PARAMETERIZED ? 0 : 1)] == n2[1-side]);
+      Assert(
+          pf2->d_node[b1.getNumChildren()
+                      + (n1[side].getKind() == kind::PARTIAL_SELECT_0 ? 1 : 0)
+                      + (n1[side].getKind() == kind::PARTIAL_SELECT_1 ? 1 : 0)
+                      - (pf2->d_node.getMetaKind()
+                                 == kind::metakind::PARAMETERIZED
+                             ? 0
+                             : 1)]
+          == n2[1 - side]);
       b1 << n2[1-side];
       b2 << n2[side];
       out << "(symm _ _ _ " << ss.str() << ")";
@@ -359,7 +366,7 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
         b2 << n2[1-side];
         out << ss.str();
       } else {
-        Assert(pf2->d_node[b1.getNumChildren()] == n2[1-side]);
+        Assert(pf2->d_node[b1.getNumChildren()] == n2[1 - side]);
         b1 << n2[1-side];
         b2 << n2[side];
         out << "(symm _ _ _ " << ss.str() << ")";
@@ -383,7 +390,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     Debug("mgd") << "n1.getNumChildren() + 1 = "
                  << n1.getNumChildren() + 1 << std::endl;
 
-    Assert(!((n1.getKind() == kind::PARTIAL_SELECT_0 && n1.getNumChildren() == 2)));
+    Assert(!(
+        (n1.getKind() == kind::PARTIAL_SELECT_0 && n1.getNumChildren() == 2)));
     if (n1.getKind() == kind::PARTIAL_SELECT_1 && n1.getNumChildren() == 2) {
       Debug("mgd") << "Finished a SELECT. Updating.." << std::endl;
       b1.clear(kind::SELECT);
@@ -410,7 +418,8 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     Debug("mgd") << "n2.getNumChildren() + 1 = "
                  << n2.getNumChildren() + 1 << std::endl;
 
-    Assert(!((n2.getKind() == kind::PARTIAL_SELECT_0 && n2.getNumChildren() == 2)));
+    Assert(!(
+        (n2.getKind() == kind::PARTIAL_SELECT_0 && n2.getNumChildren() == 2)));
     if (n2.getKind() == kind::PARTIAL_SELECT_1 && n2.getNumChildren() == 2) {
       Debug("mgd") << "Finished a SELECT. Updating.." << std::endl;
       b2.clear(kind::SELECT);
@@ -1114,8 +1123,12 @@ std::string ArrayProof::skolemToLiteral(Expr skolem) {
   return d_skolemToLiteral[skolem];
 }
 
-void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARRAYS);
+void LFSCArrayProof::printOwnedTermAsType(Expr term,
+                                          std::ostream& os,
+                                          const ProofLetMap& map,
+                                          TypeNode expectedType)
+{
+  Assert(theory::Theory::theoryOf(term) == theory::THEORY_ARRAYS);
 
   if (theory::Theory::theoryOf(term) != theory::THEORY_ARRAYS) {
     // We can get here, for instance, if there's a (select ite ...), e.g. a non-array term
@@ -1129,7 +1142,10 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
     return;
   }
 
-  Assert ((term.getKind() == kind::SELECT) || (term.getKind() == kind::PARTIAL_SELECT_0) || (term.getKind() == kind::PARTIAL_SELECT_1) || (term.getKind() == kind::STORE));
+  Assert((term.getKind() == kind::SELECT)
+         || (term.getKind() == kind::PARTIAL_SELECT_0)
+         || (term.getKind() == kind::PARTIAL_SELECT_1)
+         || (term.getKind() == kind::STORE));
 
   switch (term.getKind()) {
   case kind::SELECT: {
@@ -1196,7 +1212,7 @@ void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
 
 void LFSCArrayProof::printOwnedSort(Type type, std::ostream& os) {
   Debug("pf::array") << std::endl << "(pf::array) LFSCArrayProof::printOwnedSort: type is: " << type << std::endl;
-  Assert (type.isArray() || type.isSort());
+  Assert(type.isArray() || type.isSort());
   if (type.isArray()){
     ArrayType array_type(type);
 

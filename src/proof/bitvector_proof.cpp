@@ -121,9 +121,10 @@ std::string BitVectorProof::getBBTermName(Expr expr)
   return os.str();
 }
 
-void BitVectorProof::printOwnedTerm(Expr term,
-                                    std::ostream& os,
-                                    const ProofLetMap& map)
+void BitVectorProof::printOwnedTermAsType(Expr term,
+                                          std::ostream& os,
+                                          const ProofLetMap& map,
+                                          TypeNode expectedType)
 {
   Debug("pf::bv") << std::endl
                   << "(pf::bv) BitVectorProof::printOwnedTerm( " << term
@@ -224,16 +225,16 @@ void BitVectorProof::printOwnedTerm(Expr term,
 void BitVectorProof::printEmptyClauseProof(std::ostream& os,
                                            std::ostream& paren)
 {
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
+  Assert(options::bitblastMode() == options::BitblastMode::EAGER)
+      << "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode";
 }
 
 void BitVectorProof::printBitOf(Expr term,
                                 std::ostream& os,
                                 const ProofLetMap& map)
 {
-  Assert (term.getKind() == kind::BITVECTOR_BITOF);
+  Assert(term.getKind() == kind::BITVECTOR_BITOF);
   unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
   Expr var = term[0];
 
@@ -247,7 +248,7 @@ void BitVectorProof::printBitOf(Expr term,
 
 void BitVectorProof::printConstant(Expr term, std::ostream& os)
 {
-  Assert (term.isConst());
+  Assert(term.isConst());
   os << "(a_bv " << utils::getSize(term) << " ";
 
   if (d_useConstantLetification) {
@@ -336,7 +337,7 @@ void BitVectorProof::printOperatorParametric(Expr term,
     os << high <<" " << low << " " << utils::getSize(term[0]);
   }
   os <<" ";
-  Assert (term.getNumChildren() == 1);
+  Assert(term.getNumChildren() == 1);
   d_proofEngine->printBoundTerm(term[0], os, map);
   os <<")";
 }
@@ -346,7 +347,7 @@ void BitVectorProof::printOwnedSort(Type type, std::ostream& os)
   Debug("pf::bv") << std::endl
                   << "(pf::bv) BitVectorProof::printOwnedSort( " << type << " )"
                   << std::endl;
-  Assert (type.isBitVector());
+  Assert(type.isBitVector());
   unsigned width = utils::getSize(type);
   os << "(BitVec " << width << ")";
 }
@@ -433,7 +434,7 @@ void BitVectorProof::printTermBitblasting(Expr term, std::ostream& os)
 {
   // TODO: once we have the operator elimination rules remove those that we
   // eliminated
-  Assert (term.getType().isBitVector());
+  Assert(term.getType().isBitVector());
   Kind kind = term.getKind();
 
   if (theory::Theory::isLeafOf(term, theory::THEORY_BV) && !term.isConst())
@@ -568,7 +569,7 @@ void BitVectorProof::printTermBitblasting(Expr term, std::ostream& os)
     return;
   }
 
-  default: Unreachable("BitVectorProof Unknown operator");
+  default: Unreachable() << "BitVectorProof Unknown operator";
   }
 }
 
@@ -601,7 +602,7 @@ void BitVectorProof::printAtomBitblasting(Expr atom,
 
     return;
   }
-  default: Unreachable("BitVectorProof Unknown atom kind");
+  default: Unreachable() << "BitVectorProof Unknown atom kind";
   }
 }
 
@@ -644,8 +645,8 @@ void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
   std::vector<Expr>::const_iterator it = d_bbTerms.begin();
   std::vector<Expr>::const_iterator end = d_bbTerms.end();
   for (; it != end; ++it) {
-    if (d_usedBB.find(*it) == d_usedBB.end() &&
-        options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER)
+    if (d_usedBB.find(*it) == d_usedBB.end()
+        && options::bitblastMode() != options::BitblastMode::EAGER)
       continue;
 
     // Is this term has an alias, we inject it through the decl_bblast statement
@@ -668,8 +669,8 @@ void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
   ExprToExpr::const_iterator ait = d_bbAtoms.begin();
   ExprToExpr::const_iterator aend = d_bbAtoms.end();
   for (; ait != aend; ++ait) {
-    if (d_usedBB.find(ait->first) == d_usedBB.end() &&
-        options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER)
+    if (d_usedBB.find(ait->first) == d_usedBB.end()
+        && options::bitblastMode() != options::BitblastMode::EAGER)
       continue;
 
     os << "(th_let_pf _ ";
@@ -739,9 +740,9 @@ bool BitVectorProof::hasAlias(Expr expr)
 void BitVectorProof::printConstantDisequalityProof(
     std::ostream& os, Expr c1, Expr c2, const ProofLetMap& globalLetMap)
 {
-  Assert (c1.isConst());
-  Assert (c2.isConst());
-  Assert (utils::getSize(c1) == utils::getSize(c2));
+  Assert(c1.isConst());
+  Assert(c2.isConst());
+  Assert(utils::getSize(c1) == utils::getSize(c2));
 
   os << "(bv_disequal_constants " << utils::getSize(c1) << " ";
 

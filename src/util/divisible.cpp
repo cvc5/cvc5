@@ -17,7 +17,7 @@
 
 #include "util/divisible.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "base/exception.h"
 
 using namespace std;

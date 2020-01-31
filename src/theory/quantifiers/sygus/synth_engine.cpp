@@ -18,7 +18,6 @@
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -33,14 +32,25 @@ namespace theory {
 namespace quantifiers {
 
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
-    : QuantifiersModule(qe)
+    : QuantifiersModule(qe), d_tds(qe->getTermDatabaseSygus())
 {
-  d_conjs.push_back(
-      std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+  d_conjs.push_back(std::unique_ptr<SynthConjecture>(
+      new SynthConjecture(d_quantEngine, this, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
 SynthEngine::~SynthEngine() {}
+
+void SynthEngine::presolve()
+{
+  Trace("cegqi-engine") << "SynthEngine::presolve" << std::endl;
+  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
+  {
+    d_conjs[i]->presolve();
+  }
+  Trace("cegqi-engine") << "SynthEngine::presolve finished" << std::endl;
+}
+
 bool SynthEngine::needsCheck(Theory::Effort e)
 {
   return e >= Theory::EFFORT_LAST_CALL;
@@ -130,7 +140,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 
 void SynthEngine::assignConjecture(Node q)
 {
-  Trace("cegqi-engine") << "--- Assign conjecture " << q << std::endl;
+  Trace("cegqi-engine") << "SynthEngine::assignConjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
     // the following does quantifier elimination as a preprocess step
@@ -255,30 +265,39 @@ void SynthEngine::assignConjecture(Node q)
   // allocate a new synthesis conjecture if not assigned
   if (d_conjs.back()->isAssigned())
   {
-    d_conjs.push_back(
-        std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+    d_conjs.push_back(std::unique_ptr<SynthConjecture>(
+        new SynthConjecture(d_quantEngine, this, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }
 
 void SynthEngine::registerQuantifier(Node q)
 {
-  if (d_quantEngine->getOwner(q) == this)
+  Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
+                       << std::endl;
+  if (d_quantEngine->getOwner(q) != this)
   {
-    Trace("cegqi") << "Register conjecture : " << q << std::endl;
-    if (options::sygusQePreproc())
-    {
-      d_waiting_conj.push_back(q);
-    }
-    else
-    {
-      // assign it now
-      assignConjecture(q);
-    }
+    return;
+  }
+  if (d_quantEngine->getQuantAttributes()->isFunDef(q))
+  {
+    Assert(options::sygusRecFun());
+    // If it is a recursive function definition, add it to the function
+    // definition evaluator class.
+    Trace("cegqi") << "Registering function definition : " << q << "\n";
+    FunDefEvaluator* fde = d_tds->getFunDefEvaluator();
+    fde->assertDefinition(q);
+    return;
+  }
+  Trace("cegqi") << "Register conjecture : " << q << std::endl;
+  if (options::sygusQePreproc())
+  {
+    d_waiting_conj.push_back(q);
   }
   else
   {
-    Trace("cegqi-debug") << "Register quantifier : " << q << std::endl;
+    // assign it now
+    assignConjecture(q);
   }
 }
 
@@ -302,8 +321,6 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     bool addedLemma = false;
     for (const Node& lem : cclems)
     {
-      Trace("cegqi-lemma") << "Cegqi::Lemma : counterexample : " << lem
-                           << std::endl;
       if (d_quantEngine->addLemma(lem))
       {
         ++(d_statistics.d_cegqi_lemmas_ce);
@@ -376,15 +393,23 @@ void SynthEngine::printSynthSolution(std::ostream& out)
   }
 }
 
-void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
+bool SynthEngine::getSynthSolutions(
+    std::map<Node, std::map<Node, Node> >& sol_map)
 {
+  bool ret = true;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
     if (d_conjs[i]->isAssigned())
     {
-      d_conjs[i]->getSynthSolutions(sol_map);
+      if (!d_conjs[i]->getSynthSolutions(sol_map))
+      {
+        // if one conjecture fails, we fail overall
+        ret = false;
+        break;
+      }
     }
   }
+  return ret;
 }
 
 void SynthEngine::preregisterAssertion(Node n)
@@ -396,33 +421,6 @@ void SynthEngine::preregisterAssertion(Node n)
     Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
     d_conj->preregisterConjecture(n);
   }
-}
-
-SynthEngine::Statistics::Statistics()
-    : d_cegqi_lemmas_ce("SynthEngine::cegqi_lemmas_ce", 0),
-      d_cegqi_lemmas_refine("SynthEngine::cegqi_lemmas_refine", 0),
-      d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
-      d_solutions("SynthConjecture::solutions", 0),
-      d_filtered_solutions("SynthConjecture::filtered_solutions", 0),
-      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print", 0)
-
-{
-  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
-  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_refine);
-  smtStatisticsRegistry()->registerStat(&d_cegqi_si_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_solutions);
-  smtStatisticsRegistry()->registerStat(&d_filtered_solutions);
-  smtStatisticsRegistry()->registerStat(&d_candidate_rewrites_print);
-}
-
-SynthEngine::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_ce);
-  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
-  smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_solutions);
-  smtStatisticsRegistry()->unregisterStat(&d_filtered_solutions);
-  smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites_print);
 }
 
 }  // namespace quantifiers

@@ -447,7 +447,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           {  // exclude single-var case; nothing to check there
             uint64_t sz = (uint64_t(1) << checks[pos_var].size()) - 1;
             sz = (sz == 0) ? -1 : sz;  // fix for overflow
-            Assert(sz == mark, "expected size %u == mark %u", sz, mark);
+            Assert(sz == mark) << "expected size " << sz << " == mark " << mark;
             for (size_t k = 0; k < checks[pos_var].size(); ++k)
             {
               if ((k & (k - 1)) != 0)
@@ -476,14 +476,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               }
               else
               {
-                Assert(checks[pos_var][k] == 0,
-                       "checks[(%s,%s)][%u] should be 0, but it's %s",
-                       pos.toString().c_str(),
-                       var.toString().c_str(),
-                       k,
-                       checks[pos_var][k]
-                           .toString()
-                           .c_str());  // we never set for single-positive-var
+                Assert(checks[pos_var][k] == 0)
+                    << "checks[(" << pos << "," << var << ")][" << k
+                    << "] should be 0, but it's "
+                    << checks[pos_var]
+                             [k];  // we never set for single-positive-var
               }
             }
           }
@@ -529,15 +526,15 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               SubstitutionMap nullMap(&fakeContext);
               Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
               status = te->solve(geq, nullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                     "unexpected solution from arith's ppAssert()");
-              Assert(nullMap.empty(),
-                     "unexpected substitution from arith's ppAssert()");
+              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
+                  << "unexpected solution from arith's ppAssert()";
+              Assert(nullMap.empty())
+                  << "unexpected substitution from arith's ppAssert()";
               status = te->solve(leq, nullMap);
-              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED,
-                     "unexpected solution from arith's ppAssert()");
-              Assert(nullMap.empty(),
-                     "unexpected substitution from arith's ppAssert()");
+              Assert(status == Theory::PP_ASSERT_STATUS_UNSOLVED)
+                  << "unexpected solution from arith's ppAssert()";
+              Assert(nullMap.empty())
+                  << "unexpected substitution from arith's ppAssert()";
               te->getModel()->addSubstitution(*ii, newVar.eqNode(one));
               newVars.push_back(newVar);
               varRef = newVar;

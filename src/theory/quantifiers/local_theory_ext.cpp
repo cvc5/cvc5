@@ -164,11 +164,11 @@ void LtePartialInst::getInstantiations( std::vector< Node >& lemmas ) {
   reset();
   for( unsigned i=0; i<d_lte_asserts.size(); i++ ){
     Node q = d_lte_asserts[i];
-    Assert( d_do_inst.find( q )!=d_do_inst.end() && d_do_inst[q] );
+    Assert(d_do_inst.find(q) != d_do_inst.end() && d_do_inst[q]);
     if( d_inst.find( q )==d_inst.end() ){
       Trace("lte-partial-inst") << "LTE : Get partial instantiations for " << q << "..." << std::endl;
       d_inst[q] = true;
-      Assert( !d_vars[q].empty() );
+      Assert(!d_vars[q].empty());
       //make bound list
       Node bvl;
       std::vector< Node > bvs;
@@ -189,7 +189,7 @@ void LtePartialInst::getInstantiations( std::vector< Node >& lemmas ) {
       }
 
       getPartialInstantiations( conj, q, bvl, d_vars[q], terms, types, NULL, 0, 0, 0 );
-      Assert( !conj.empty() );
+      Assert(!conj.empty());
       lemmas.push_back( NodeManager::currentNM()->mkNode( OR, q.negate(), conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj ) ) );
       d_wasInvoked = true;
     }
@@ -226,16 +226,16 @@ void LtePartialInst::getPartialInstantiations(std::vector<Node>& conj,
       conj.push_back( nq );
     }
   }else{
-    Assert( pindex<q[2][0].getNumChildren() );
+    Assert(pindex < q[2][0].getNumChildren());
     Node pat = q[2][0][pindex];
-    Assert( pat.getNumChildren()==0 || paindex<=pat.getNumChildren() );
+    Assert(pat.getNumChildren() == 0 || paindex <= pat.getNumChildren());
     if( pat.getKind()==APPLY_UF ){
-      Assert( paindex<=pat.getNumChildren() );
+      Assert(paindex <= pat.getNumChildren());
       if( paindex==pat.getNumChildren() ){
         getPartialInstantiations( conj, q, bvl, vars, terms, types, NULL, pindex+1, 0, iindex );
       }else{
         if( !curr ){
-          Assert( paindex==0 );
+          Assert(paindex == 0);
           //start traversing term index for the operator
           curr = d_quantEngine->getTermDatabase()->getTermArgTrie( pat.getOperator() );
         }

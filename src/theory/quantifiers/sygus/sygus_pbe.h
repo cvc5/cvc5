@@ -107,7 +107,8 @@ class SygusPbe : public SygusModule
   * of an enumerator is not ITE if it is being used to construct
   * return values for decision trees.
   */
-  bool initialize(Node n,
+  bool initialize(Node conj,
+                  Node n,
                   const std::vector<Node>& candidates,
                   std::vector<Node>& lemmas) override;
   /** get term list
@@ -152,32 +153,54 @@ class SygusPbe : public SygusModule
                            std::vector<Node>& lems) override;
   /** is PBE enabled for any enumerator? */
   bool isPbe() { return d_is_pbe; }
-  /** is the enumerator e associated with I/O example pairs? */
+  /**
+   * Is the enumerator e associated with examples? This is true if the
+   * function-to-synthesize associated with e is only applied to concrete
+   * arguments. Notice that the conjecture need not be in PBE form for this
+   * to be the case. For example, f has examples in:
+   *   exists f. f( 1 ) = 3 ^ f( 2 ) = 4
+   *   exists f. f( 45 ) > 0 ^ f( 99 ) > 0
+   *   exists f. forall x. ( x > 5 => f( 4 ) < x )
+   * It does not have examples in:
+   *   exists f. forall x. f( x ) > 5
+   *   exists f. f( f( 4 ) ) = 5
+   * This class implements techniques for functions-to-synthesize that
+   * have examples. In particular, the method addSearchVal below can be
+   * called.
+   */
   bool hasExamples(Node e);
-  /** get number of I/O example pairs for enumerator e */
+  /** get number of examples for enumerator e */
   unsigned getNumExamples(Node e);
-  /** get the input arguments for i^th I/O example for e, which is added to the
-   * vector ex */
+  /**
+   * Get the input arguments for i^th example for e, which is added to the
+   * vector ex
+   */
   void getExample(Node e, unsigned i, std::vector<Node>& ex);
-  /** get the output value of the i^th I/O example for enumerator e */
+  /**
+   * Get the output value of the i^th example for enumerator e, or null if
+   * it does not exist (an example does not have an associate output if it is
+   * not a top-level equality).
+   */
   Node getExampleOut(Node e, unsigned i);
 
   /** add the search val
-  * This function is called by the extension of quantifier-free datatypes
-  * procedure for SyGuS datatypes when we are considering a value of
-  * enumerator e of sygus type tn whose analog in the signature of builtin
-  * theory is bvr.
-  *
-  * For example, bvr = x + 1 when e is the datatype value Plus( x(), One() ) and
-  * tn is a sygus datatype that encodes a subsignature of the integers.
-  *
-  * This returns either:
-  * - A SyGuS term whose analog is equivalent to bvr up to examples
-  *   In the above example,
-  *   it may return a term t of the form Plus( One(), x() ), such that this
-  *   function was previously called with t as input.
-  * - e, indicating that no previous terms are equivalent to e up to examples.
-  */
+   * This function is called by the extension of quantifier-free datatypes
+   * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
+   * considering a value of enumerator e of sygus type tn whose analog in the
+   * signature of builtin theory is bvr.
+   *
+   * For example, bvr = x + 1 when e is the datatype value Plus( x(), One() )
+   * and tn is a sygus datatype that encodes a subsignature of the integers.
+   *
+   * This returns either:
+   * - A SyGuS term whose analog is equivalent to bvr up to examples
+   *   In the above example,
+   *   it may return a term t of the form Plus( One(), x() ), such that this
+   *   function was previously called with t as input.
+   * - e, indicating that no previous terms are equivalent to e up to examples.
+   *
+   * This method should only be called if hasExamples(e) returns true.
+   */
   Node addSearchVal(TypeNode tn, Node e, Node bvr);
   /** evaluate builtin
   * This returns the evaluation of bn on the i^th example for the

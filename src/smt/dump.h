@@ -24,7 +24,7 @@
 
 namespace CVC4 {
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE) && !defined(CVC4_PORTFOLIO)
+#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
 
 class CVC4_PUBLIC CVC4dumpstream
 {

@@ -22,7 +22,7 @@
 
 #include "cvc4autoconfig.h"
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "util/rational.h"
 
 #ifndef CVC4_GMP_IMP

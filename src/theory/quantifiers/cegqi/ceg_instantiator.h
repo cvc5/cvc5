@@ -30,16 +30,38 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
-class CegqiOutput {
-public:
-  virtual ~CegqiOutput() {}
-  virtual bool doAddInstantiation( std::vector< Node >& subs ) = 0;
-  virtual bool isEligibleForInstantiation( Node n ) = 0;
-  virtual bool addLemma( Node lem ) = 0;
-};
-
 class Instantiator;
 class InstantiatorPreprocess;
+class InstStrategyCegqi;
+
+/**
+ * Descriptions of the types of constraints that a term was solved for in.
+ */
+enum CegTermType
+{
+  // invalid
+  CEG_TT_INVALID,
+  // term was the result of solving an equality
+  CEG_TT_EQUAL,
+  // term was the result of solving a non-strict lower bound x >= t
+  CEG_TT_LOWER,
+  // term was the result of solving a strict lower bound x > t
+  CEG_TT_LOWER_STRICT,
+  // term was the result of solving a non-strict upper bound x <= t
+  CEG_TT_UPPER,
+  // term was the result of solving a strict upper bound x < t
+  CEG_TT_UPPER_STRICT,
+};
+/** make (non-strict term type) c a strict term type */
+CegTermType mkStrictCTT(CegTermType c);
+/** negate c (lower/upper bounds are swapped) */
+CegTermType mkNegateCTT(CegTermType c);
+/** is c a strict term type? */
+bool isStrictCTT(CegTermType c);
+/** is c a lower bound? */
+bool isLowerBoundCTT(CegTermType c);
+/** is c an upper bound? */
+bool isUpperBoundCTT(CegTermType c);
 
 /** Term Properties
  *
@@ -50,13 +72,15 @@ class InstantiatorPreprocess;
  * for the variable.
  */
 class TermProperties {
-public:
-  TermProperties() : d_type(0) {}
+ public:
+  TermProperties() : d_type(CEG_TT_EQUAL) {}
   virtual ~TermProperties() {}
 
-  // type of property for a term
-  //  for arithmetic this corresponds to bound type (0:equal, 1:upper bound, -1:lower bound)
-  int d_type;
+  /**
+   * Type for the solution term. For arithmetic this corresponds to bound type
+   * of the constraint that the constraint the term was solved for in.
+   */
+  CegTermType d_type;
   // for arithmetic
   Node d_coeff;
   // get cache node
@@ -181,10 +205,11 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
  */
 class CegInstantiator {
  public:
-  CegInstantiator(QuantifiersEngine* qe,
-                  CegqiOutput* out,
-                  bool use_vts_delta = true,
-                  bool use_vts_inf = true);
+  /**
+   * The instantiator will be constructing instantiations for quantified formula
+   * q, parent is the owner of this object.
+   */
+  CegInstantiator(Node q, InstStrategyCegqi* parent);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
@@ -214,8 +239,6 @@ class CegInstantiator {
    */
   void registerCounterexampleLemma(std::vector<Node>& lems,
                                    std::vector<Node>& ce_vars);
-  /** get the output channel of this class */
-  CegqiOutput* getOutput() { return d_out; }
   //------------------------------interface for instantiators
   /** get quantifiers engine */
   QuantifiersEngine* getQuantifiersEngine() { return d_qe; }
@@ -276,12 +299,14 @@ class CegInstantiator {
   bool isEligible(Node n);
   /** does n have variable pv? */
   bool hasVariable(Node n, Node pv);
-  /** are we using delta for LRA virtual term substitution? */
-  bool useVtsDelta() { return d_use_vts_delta; }
-  /** are we using infinity for LRA virtual term substitution? */
-  bool useVtsInfinity() { return d_use_vts_inf; }
   /** are we processing a nested quantified formula? */
-  bool hasNestedQuantification() { return d_is_nested_quant; }
+  bool hasNestedQuantification() const { return d_is_nested_quant; }
+  /**
+   * Are we allowed to instantiate the current quantified formula with n? This
+   * includes restrictions such as if n is a variable, it must occur free in
+   * the current quantified formula.
+   */
+  bool isEligibleForInstantiation(Node n) const;
   //------------------------------------ static queries
   /** Is k a kind for which counterexample-guided instantiation is possible?
    *
@@ -333,18 +358,12 @@ class CegInstantiator {
   static CegHandledStatus isCbqiQuant(Node q, QuantifiersEngine* qe = nullptr);
   //------------------------------------ end static queries
  private:
+  /** The quantified formula of this instantiator */
+  Node d_quant;
+  /** The parent of this instantiator */
+  InstStrategyCegqi* d_parent;
   /** quantified formula associated with this instantiator */
   QuantifiersEngine* d_qe;
-  /** output channel of this instantiator */
-  CegqiOutput* d_out;
-  /** whether we are using delta for virtual term substitution
-    * (for quantified LRA).
-    */
-  bool d_use_vts_delta;
-  /** whether we are using infinity for virtual term substitution
-    * (for quantified LRA).
-    */
-  bool d_use_vts_inf;
 
   //-------------------------------globally cached
   /** cache from nodes to the set of variables it contains
@@ -613,19 +632,19 @@ class CegInstantiator {
  */
 class Instantiator {
 public:
-  Instantiator( QuantifiersEngine * qe, TypeNode tn );
-  virtual ~Instantiator(){}
-  /** reset
-   * This is called once, prior to any of the below methods are called.
-   * This function sets up any initial information necessary for constructing
-   * instantiations for pv based on the current context.
-   */
-  virtual void reset(CegInstantiator* ci,
-                     SolvedForm& sf,
-                     Node pv,
-                     CegInstEffort effort)
-  {
-  }
+ Instantiator(TypeNode tn);
+ virtual ~Instantiator() {}
+ /** reset
+  * This is called once, prior to any of the below methods are called.
+  * This function sets up any initial information necessary for constructing
+  * instantiations for pv based on the current context.
+  */
+ virtual void reset(CegInstantiator* ci,
+                    SolvedForm& sf,
+                    Node pv,
+                    CegInstEffort effort)
+ {
+ }
 
   /** has process equal term
    *
@@ -819,15 +838,15 @@ public:
 
 class ModelValueInstantiator : public Instantiator {
 public:
-  ModelValueInstantiator( QuantifiersEngine * qe, TypeNode tn ) : Instantiator( qe, tn ){}
-  virtual ~ModelValueInstantiator(){}
-  bool useModelValue(CegInstantiator* ci,
-                     SolvedForm& sf,
-                     Node pv,
-                     CegInstEffort effort) override
-  {
-    return true;
-  }
+ ModelValueInstantiator(TypeNode tn) : Instantiator(tn) {}
+ virtual ~ModelValueInstantiator() {}
+ bool useModelValue(CegInstantiator* ci,
+                    SolvedForm& sf,
+                    Node pv,
+                    CegInstEffort effort) override
+ {
+   return true;
+ }
   std::string identify() const override { return "ModelValue"; }
 };
 

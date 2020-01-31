@@ -1,29 +1,26 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 source "$(dirname "$0")/get-script-header.sh"
 
-if [ -e cryptominisat5 ]; then
-  echo 'error: file or directory "cryptominisat5" exists; please move it out of the way.' >&2
-  exit 1
-fi
-
+CMS_DIR="$DEPS_DIR/cryptominisat5"
 version="5.6.3"
 
-webget https://github.com/msoos/cryptominisat/archive/$version.tar.gz cryptominisat-$version.tar.gz
-tar xfvz cryptominisat-$version.tar.gz
-rm cryptominisat-$version.tar.gz
-mv cryptominisat-$version cryptominisat5
+check_dep_dir "$CMS_DIR"
+setup_dep \
+  "https://github.com/msoos/cryptominisat/archive/$version.tar.gz" \
+  "$CMS_DIR"
+cd "$CMS_DIR"
 
-cd cryptominisat5
 mkdir build
 cd build
-
 cmake -DENABLE_PYTHON_INTERFACE=OFF \
       -DSTATICCOMPILE=ON \
       -DNOM4RI=ON \
+      -DONLY_SIMPLE=ON \
+      -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       ..
 
-make libcryptominisat5 -j$(nproc)
+make install -j$(nproc)
 
 echo
 echo ===================== Now configure CVC4 with =====================

@@ -191,6 +191,20 @@ protected:
   Expr mkGroundTerm() const;
 
   /**
+   * Construct and return a ground value for this Type.  Throws an
+   * exception if this type is not well-founded.
+   *
+   * This is the same as mkGroundTerm, but constructs a constant value instead
+   * of a canonical ground term. These two notions typically coincide. However,
+   * for uninterpreted sorts, they do not: mkGroundTerm returns a fresh variable
+   * whereas mkValue returns an uninterpreted constant. The motivation for
+   * mkGroundTerm is that unintepreted constants should never appear in lemmas.
+   * The motivation for mkGroundValue is for e.g. type enumeration and model
+   * construction.
+   */
+  Expr mkGroundValue() const;
+
+  /**
    * Is this type a subtype of the given type?
    */
   bool isSubtypeOf(Type t) const;

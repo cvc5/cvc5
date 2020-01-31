@@ -35,9 +35,6 @@ class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
   friend class SmtEngine;
 
-  /** the input name (file name, etc.) this model is associated to */
-  std::string d_inputName;
-
  protected:
   /** The SmtEngine we're associated with */
   SmtEngine& d_smt;
@@ -58,6 +55,13 @@ class Model {
   const SmtEngine* getSmtEngine() const { return &d_smt; }
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
+  /**
+   * Returns true if this model is guaranteed to be a model of the input
+   * formula. Notice that when CVC4 answers "unknown", it may have a model
+   * available for which this method returns false. In this case, this model is
+   * only a candidate solution.
+   */
+  bool isKnownSat() const { return d_isKnownSat; }
   //--------------------------- model cores
   /** set using model core
    *
@@ -96,6 +100,23 @@ class Model {
    * is a predicate over t that indicates a property that t satisfies.
    */
   virtual std::vector<std::pair<Expr, Expr> > getApproximations() const = 0;
+  /** get the domain elements for uninterpreted sort t
+   *
+   * This method gets the interpretation of an uninterpreted sort t.
+   * All models interpret uninterpreted sorts t as finite sets
+   * of domain elements v_1, ..., v_n. This method returns this list for t in
+   * this model.
+   */
+  virtual std::vector<Expr> getDomainElements(Type t) const = 0;
+
+ protected:
+  /** the input name (file name, etc.) this model is associated to */
+  std::string d_inputName;
+  /**
+   * Flag set to false if the model is associated with an "unknown" response
+   * from the solver.
+   */
+  bool d_isKnownSat;
 };/* class Model */
 
 class ModelBuilder {

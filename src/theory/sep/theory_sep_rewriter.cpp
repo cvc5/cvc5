@@ -25,7 +25,7 @@ namespace theory {
 namespace sep {
 
 void TheorySepRewriter::getStarChildren( Node n, std::vector< Node >& s_children, std::vector< Node >& ns_children ){
-  Assert( n.getKind()==kind::SEP_STAR );
+  Assert(n.getKind() == kind::SEP_STAR);
   Node tr = NodeManager::currentNM()->mkConst( true );
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     if( n[i].getKind()==kind::SEP_EMP ){
@@ -131,7 +131,7 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
         }
         ns_children.push_back( schild );
       }
-      Assert( !ns_children.empty() );
+      Assert(!ns_children.empty());
       if( ns_children.size()==1 ){
         retNode = ns_children[0];
       }else{

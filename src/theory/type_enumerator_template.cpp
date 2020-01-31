@@ -16,7 +16,7 @@
 
 #include <sstream>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "theory/type_enumerator.h"
 
@@ -32,26 +32,18 @@ namespace theory {
 TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
     TypeNode type, TypeEnumeratorProperties* tep)
 {
-  switch(type.getKind()) {
-  case kind::TYPE_CONSTANT:
-    switch(type.getConst<TypeConstant>()) {
-${mk_type_enumerator_type_constant_cases}
-    default:
+  switch (type.getKind())
+  {
+    case kind::TYPE_CONSTANT:
+      switch (type.getConst<TypeConstant>())
       {
-        stringstream ss;
-        ss << "No type enumerator for type `" << type << "'";
-        Unhandled(ss.str());
+        ${mk_type_enumerator_type_constant_cases}
+        default: Unhandled() << "No type enumerator for type `" << type << "'";
       }
-    }
-    Unreachable();
-${mk_type_enumerator_cases}
-#line 49 "${template}"
-  default:
-    {
-      stringstream ss;
-      ss << "No type enumerator for type `" << type << "'";
-      Unhandled(ss.str());
-    }
+      Unreachable();
+      ${mk_type_enumerator_cases}
+#line 46 "${template}"
+    default: Unhandled() << "No type enumerator for type `" << type << "'";
   }
   Unreachable();
 }

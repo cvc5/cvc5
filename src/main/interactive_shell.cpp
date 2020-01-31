@@ -69,10 +69,6 @@ static const std::string cvc_commands[] = {
 #include "main/cvc_tokens.h"
 };/* cvc_commands */
 
-static const std::string smt1_commands[] = {
-#include "main/smt1_tokens.h"
-};/* smt1_commands */
-
 static const std::string smt2_commands[] = {
 #include "main/smt2_tokens.h"
 };/* smt2_commands */
@@ -118,11 +114,6 @@ InteractiveShell::InteractiveShell(api::Solver* solver)
       d_historyFilename = string(getenv("HOME")) + "/.cvc4_history";
       commandsBegin = cvc_commands;
       commandsEnd = cvc_commands + sizeof(cvc_commands) / sizeof(*cvc_commands);
-      break;
-    case output::LANG_SMTLIB_V1:
-      d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_smtlib1";
-      commandsBegin = smt1_commands;
-      commandsEnd = smt1_commands + sizeof(smt1_commands) / sizeof(*smt1_commands);
       break;
     case output::LANG_TPTP:
       d_historyFilename = string(getenv("HOME")) + "/.cvc4_history_tptp";

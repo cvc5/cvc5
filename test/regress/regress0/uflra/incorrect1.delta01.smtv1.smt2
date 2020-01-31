@@ -1,0 +1,6 @@
+(set-option :incremental false)
+(set-info :status sat)
+(set-logic QF_UFLRA)
+(declare-fun p0 (Real Real) Bool)
+(declare-fun v0 () Real)
+(check-sat-assuming ( (let ((_let_0 (+ (+ (- 6) (ite (p0 (/ (- 6) 1) 6.0) 1 0)) (+ (- 6) (ite (p0 (/ (- 6) 1) 6.0) 1 0))))) (ite (=> (p0 6.0 (/ (+ (- 6) (ite (p0 (/ (- 6) 1) 6.0) 1 0)) 1)) (p0 (ite (distinct 6 (ite (p0 7.0 6.0) 1 0)) (ite (<= (ite (p0 v0 6.0) 1 0) (- 6)) 6 _let_0) v0) 6.0)) (p0 (/ _let_0 1) v0) false)) ))

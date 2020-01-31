@@ -1,21 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 source "$(dirname "$0")/get-script-header.sh"
 
-wdir="symfpu-CVC4"
-
-if [ -e $wdir ]; then
-  echo "error: file or directory "$wdir" exists; please move it out of the way." >&2
-  exit 1
-fi
-
+SYMFPU_DIR="$DEPS_DIR/symfpu-CVC4"
 commit="8fbe139bf0071cbe0758d2f6690a546c69ff0053"
 
-mkdir $wdir
-cd $wdir
-git clone https://github.com/martin-cs/symfpu.git symfpu
-cd symfpu
-git checkout $commit
+check_dep_dir "$SYMFPU_DIR"
+setup_dep \
+  "https://github.com/martin-cs/symfpu/archive/$commit.tar.gz" "$SYMFPU_DIR"
+cd "$SYMFPU_DIR"
+install_includes core symfpu
+install_includes utils symfpu
 
 echo
 echo "Using symfpu commit $commit"

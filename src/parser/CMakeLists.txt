@@ -37,10 +37,6 @@ set(libcvc4parser_src_files
   parser_builder.cpp
   parser_builder.h
   parser_exception.h
-  smt1/smt1.cpp
-  smt1/smt1.h
-  smt1/smt1_input.cpp
-  smt1/smt1_input.h
   smt2/parse_op.h
   smt2/smt2.cpp
   smt2/smt2.h
@@ -59,7 +55,7 @@ set(libcvc4parser_src_files
 #-----------------------------------------------------------------------------#
 # Generate parsers for all supported languages
 
-foreach(lang Cvc Smt1 Smt2 Tptp)
+foreach(lang Cvc Smt2 Tptp)
   string(TOLOWER ${lang} lang_dir)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${lang_dir})
   add_custom_command(
@@ -102,7 +98,7 @@ target_link_libraries(cvc4parser cvc4 ${ANTLR_LIBRARIES})
 target_include_directories(cvc4parser PRIVATE ${ANTLR_INCLUDE_DIR})
 install(TARGETS cvc4parser
   EXPORT cvc4-targets
-  DESTINATION lib)
+  DESTINATION ${LIBRARY_INSTALL_DIR})
 
 # The generated lexer/parser files define some functions as
 # __declspec(dllexport) via the ANTLR3_API macro, which leads to lots of

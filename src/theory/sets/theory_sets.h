@@ -42,9 +42,10 @@ class TheorySets : public Theory
              const LogicInfo& logicInfo);
   ~TheorySets() override;
 
+  /** finish initialization */
+  void finishInit() override;
   void addSharedTerm(TNode) override;
   void check(Effort) override;
-  bool needsCheckLastEffort() override;
   bool collectModelInfo(TheoryModel* m) override;
   void computeCareGraph() override;
   Node explain(TNode) override;

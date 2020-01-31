@@ -158,7 +158,9 @@ void DratInstruction::outputAsText(std::ostream& os) const
       os << '0' << std::endl;
       break;
     }
-    default: { Unreachable("Unknown DRAT instruction kind");
+    default:
+    {
+      Unreachable() << "Unknown DRAT instruction kind";
     }
   }
 }
@@ -267,7 +269,9 @@ void DratProof::outputAsLfsc(std::ostream& os, uint8_t indentation) const
         os << "DRATProofd ";
         break;
       }
-      default: { Unreachable("Unrecognized DRAT instruction kind");
+      default:
+      {
+        Unreachable() << "Unrecognized DRAT instruction kind";
       }
     }
     for (const SatLiteral& l : i.d_clause)

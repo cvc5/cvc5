@@ -15,7 +15,6 @@ libcvc4_add_sources(
   expr_manager_scope.h
   expr_stream.h
   kind_map.h
-  matcher.h
   match_trie.cpp
   match_trie.h
   node.cpp
@@ -33,10 +32,6 @@ libcvc4_add_sources(
   node_trie.h
   node_value.cpp
   node_value.h
-  pickle_data.cpp
-  pickle_data.h
-  pickler.cpp
-  pickler.h
   symbol_table.cpp
   symbol_table.h
   term_canonize.cpp
@@ -44,13 +39,23 @@ libcvc4_add_sources(
   type.cpp
   type.h
   type_checker.h
+  type_matcher.cpp
+  type_matcher.h
   type_node.cpp
   type_node.h
   variable_type_map.h
   datatype.h
   datatype.cpp
+  dtype.h
+  dtype.cpp
+  dtype_cons.h
+  dtype_cons.cpp
+  dtype_selector.h
+  dtype_selector.cpp
   record.cpp
   record.h
+  sygus_datatype.cpp
+  sygus_datatype.h
   uninterpreted_constant.cpp
   uninterpreted_constant.h
 )

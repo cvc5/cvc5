@@ -33,13 +33,11 @@ namespace CVC4 {
 namespace theory {
 namespace uf {
 
-class UfTermDb;
-class StrongSolverTheoryUF;
+class CardinalityExtension;
 class HoExtension;
 
 class TheoryUF : public Theory {
 
-  friend class StrongSolverTheoryUF;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 public:
@@ -120,8 +118,8 @@ private:
   /** The notify class */
   NotifyClass d_notify;
 
-  /** The associated theory strong solver (or nullptr if it does not exist) */
-  std::unique_ptr<StrongSolverTheoryUF> d_thss;
+  /** The associated cardinality extension (or nullptr if it does not exist) */
+  std::unique_ptr<CardinalityExtension> d_thss;
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 
@@ -218,8 +216,8 @@ private:
 
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
-  /** get a pointer to the strong solver (uf with cardinality) */
-  StrongSolverTheoryUF* getStrongSolver() const { return d_thss.get(); }
+  /** get a pointer to the uf with cardinality */
+  CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
   /** are we in conflict? */
   bool inConflict() const { return d_conflict; }
 

@@ -112,7 +112,8 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_arrayMerges(c),
       d_inCheckModel(false),
       d_proofReconstruction(&d_equalityEngine),
-      d_dstrat(new TheoryArraysDecisionStrategy(this))
+      d_dstrat(new TheoryArraysDecisionStrategy(this)),
+      d_dstratInit(false)
 {
   smtStatisticsRegistry()->registerStat(&d_numRow);
   smtStatisticsRegistry()->registerStat(&d_numExt);
@@ -188,7 +189,8 @@ void TheoryArrays::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 bool TheoryArrays::ppDisequal(TNode a, TNode b) {
   bool termsExist = d_ppEqualityEngine.hasTerm(a) && d_ppEqualityEngine.hasTerm(b);
-  Assert(!termsExist || !a.isConst() || !b.isConst() || a == b || d_ppEqualityEngine.areDisequal(a, b, false));
+  Assert(!termsExist || !a.isConst() || !b.isConst() || a == b
+         || d_ppEqualityEngine.areDisequal(a, b, false));
   return ((termsExist && d_ppEqualityEngine.areDisequal(a, b, false)) ||
           Rewriter::rewrite(a.eqNode(b)) == d_false);
 }
@@ -620,14 +622,17 @@ void TheoryArrays::checkWeakEquiv(bool arraysMerged) {
       Assert(pointer.isNull() == (weakEquivGetRep(n) == n));
       Assert(!pointer.isNull() || secondary.isNull());
       Assert(!index.isNull() || secondary.isNull());
-      Assert(d_infoMap.getWeakEquivSecondaryReason(n).isNull() || !secondary.isNull());
+      Assert(d_infoMap.getWeakEquivSecondaryReason(n).isNull()
+             || !secondary.isNull());
       if (!pointer.isNull()) {
         if (index.isNull()) {
           Assert(d_equalityEngine.areEqual(n, pointer));
         }
         else {
-          Assert((n.getKind() == kind::STORE && n[0] == pointer && n[1] == index) ||
-                 (pointer.getKind() == kind::STORE && pointer[0] == n && pointer[1] == index));
+          Assert(
+              (n.getKind() == kind::STORE && n[0] == pointer && n[1] == index)
+              || (pointer.getKind() == kind::STORE && pointer[0] == n
+                  && pointer[1] == index));
         }
       }
     }
@@ -693,7 +698,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
         TNode s = *it;
         if (!d_infoMap.rIntro1Applied(s)) {
           d_infoMap.setRIntro1Applied(s);
-          Assert(s.getKind()==kind::STORE);
+          Assert(s.getKind() == kind::STORE);
           Node ni = nm->mkNode(kind::SELECT, s, s[1]);
           if (ni != node) {
             preRegisterTermInternal(ni);
@@ -822,7 +827,8 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   }
   // Invariant: preregistered terms are exactly the terms in the equality engine
   // Disabled, see comment above for kind::EQUAL
-  // Assert(d_equalityEngine.hasTerm(node) || !d_equalityEngine.consistent());
+  // Assert(d_equalityEngine.hasTerm(node) ||
+  // !d_equalityEngine.consistent());
 }
 
 
@@ -914,7 +920,8 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
 
   if (r1[0] != r2[0]) {
     // If arrays are known to be disequal, or cannot become equal, we can continue
-    Assert(d_mayEqualEqualityEngine.hasTerm(r1[0]) && d_mayEqualEqualityEngine.hasTerm(r2[0]));
+    Assert(d_mayEqualEqualityEngine.hasTerm(r1[0])
+           && d_mayEqualEqualityEngine.hasTerm(r2[0]));
     if (r1[0].getType() != r2[0].getType() ||
         d_equalityEngine.areDisequal(r1[0], r2[0], false)) {
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): arrays can't be equal, skipping" << std::endl;
@@ -975,7 +982,8 @@ void TheoryArrays::computeCareGraph()
         if (eqStatusArr != EQUALITY_UNKNOWN) {
           continue;
         }
-        Assert(d_valuation.getEqualityStatus((*it1), (*it2)) == EQUALITY_UNKNOWN);
+        Assert(d_valuation.getEqualityStatus((*it1), (*it2))
+               == EQUALITY_UNKNOWN);
         addCarePair((*it1), (*it2));
         ++d_numSharedArrayVarSplits;
         return;
@@ -1132,7 +1140,7 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
           size_t it = 0;
           for(; it < instores->size(); ++it) {
             TNode instore = (*instores)[it];
-            Assert(instore.getKind()==kind::STORE);
+            Assert(instore.getKind() == kind::STORE);
             if (termSet.find(instore) != termSet.end() &&
                 !d_equalityEngine.areEqual(instore[1],n[1])) {
               Node r = nm->mkNode(kind::SELECT, instore, n[1]);
@@ -1202,7 +1210,8 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
         TypeNode valueType = nrep.getType().getArrayConstituentType();
         rep = defaultValuesSet.nextTypeEnum(valueType);
         if (rep.isNull()) {
-          Assert(defaultValuesSet.getSet(valueType)->begin() != defaultValuesSet.getSet(valueType)->end());
+          Assert(defaultValuesSet.getSet(valueType)->begin()
+                 != defaultValuesSet.getSet(valueType)->end());
           rep = *(defaultValuesSet.getSet(valueType)->begin());
         }
         Trace("arrays-models") << "New default value = " << rep << endl;
@@ -1252,9 +1261,15 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
 void TheoryArrays::presolve()
 {
   Trace("arrays")<<"Presolving \n";
-  // add the decision strategy
-  getDecisionManager()->registerStrategy(DecisionManager::STRAT_ARRAYS,
-                                         d_dstrat.get());
+  if (!d_dstratInit)
+  {
+    d_dstratInit = true;
+    // add the decision strategy, which is user-context-independent
+    getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_ARRAYS,
+        d_dstrat.get(),
+        DecisionManager::STRAT_SCOPE_CTX_INDEPENDENT);
+  }
 }
 
 
@@ -1551,7 +1566,8 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
           explained.insert(t);
         } else {
           // EXT lemma
-          Assert(t[1].getKind() == kind::NOT && t[1][0].getKind() == kind::EQUAL);
+          Assert(t[1].getKind() == kind::NOT
+                 && t[1][0].getKind() == kind::EQUAL);
           Assert(t[0].getKind() == kind::EQUAL);
           all.insert(t[0].notNode());
           explained.insert(t);
@@ -1611,7 +1627,7 @@ void TheoryArrays::setNonLinear(TNode a)
   // Propagate non-linearity down chain of stores
   for( ; it < st_a->size(); ++it) {
     TNode store = (*st_a)[it];
-    Assert(store.getKind()==kind::STORE);
+    Assert(store.getKind() == kind::STORE);
     setNonLinear(store[0]);
   }
 
@@ -1840,7 +1856,7 @@ void TheoryArrays::checkStore(TNode a) {
     d_infoMap.getInfo(a)->print();
   }
   Assert(a.getType().isArray());
-  Assert(a.getKind()==kind::STORE);
+  Assert(a.getKind() == kind::STORE);
   TNode b = a[0];
   TNode i = a[1];
 
@@ -1891,7 +1907,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
 
   for(; it < stores->size(); ++it) {
     TNode store = (*stores)[it];
-    Assert(store.getKind()==kind::STORE);
+    Assert(store.getKind() == kind::STORE);
     TNode j = store[1];
     if (i == j) continue;
     lem = std::make_tuple(store, store[0], j, i);
@@ -1903,7 +1919,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     it = 0;
     for(; it < instores->size(); ++it) {
       TNode instore = (*instores)[it];
-      Assert(instore.getKind()==kind::STORE);
+      Assert(instore.getKind() == kind::STORE);
       TNode j = instore[1];
       if (i == j) continue;
       lem = std::make_tuple(instore, instore[0], j, i);

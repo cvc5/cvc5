@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"

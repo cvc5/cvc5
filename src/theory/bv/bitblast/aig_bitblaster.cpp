@@ -18,7 +18,7 @@
 
 #include "theory/bv/bitblast/aig_bitblaster.h"
 
-#include "base/cvc4_check.h"
+#include "base/check.h"
 #include "options/bv_options.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
@@ -46,7 +46,7 @@ namespace bv {
 
 template <> inline
 std::string toString<Abc_Obj_t*> (const std::vector<Abc_Obj_t*>& bits) {
-  Unreachable("Don't know how to print AIG");
+  Unreachable() << "Don't know how to print AIG";
 } 
 
 
@@ -72,7 +72,7 @@ Abc_Obj_t* mkOr<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
 
 template <> inline
 Abc_Obj_t* mkOr<Abc_Obj_t*>(const std::vector<Abc_Obj_t*>& children) {
-  Assert (children.size());
+  Assert(children.size());
   if (children.size() == 1)
     return children[0];
   
@@ -91,7 +91,7 @@ Abc_Obj_t* mkAnd<Abc_Obj_t*>(Abc_Obj_t* a, Abc_Obj_t* b) {
 
 template <> inline
 Abc_Obj_t* mkAnd<Abc_Obj_t*>(const std::vector<Abc_Obj_t*>& children) {
-  Assert (children.size());
+  Assert(children.size());
   if (children.size() == 1)
     return children[0];
   
@@ -146,7 +146,7 @@ AigBitblaster::AigBitblaster()
   prop::SatSolver* solver = nullptr;
   switch (options::bvSatSolver())
   {
-    case SAT_SOLVER_MINISAT:
+    case options::SatSolverMode::MINISAT:
     {
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
@@ -156,11 +156,11 @@ AigBitblaster::AigBitblaster()
       solver = minisat;
       break;
     }
-    case SAT_SOLVER_CADICAL:
+    case options::SatSolverMode::CADICAL:
       solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
                                                      "AigBitblaster");
       break;
-    case SAT_SOLVER_CRYPTOMINISAT:
+    case options::SatSolverMode::CRYPTOMINISAT:
       solver = prop::SatSolverFactory::createCryptoMinisat(
           smtStatisticsRegistry(), "AigBitblaster");
       break;
@@ -172,7 +172,7 @@ AigBitblaster::AigBitblaster()
 AigBitblaster::~AigBitblaster() {}
 
 Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
-  Assert (node.getType().isBoolean());
+  Assert(node.getType().isBoolean());
   Debug("bitvector-bitblast") << "AigBitblaster::bbFormula "<< node << "\n"; 
   
   if (hasAig(node))
@@ -211,7 +211,7 @@ Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
     }
   case kind::IMPLIES:
     {
-      Assert (node.getNumChildren() == 2); 
+      Assert(node.getNumChildren() == 2);
       Abc_Obj_t* child1 = bbFormula(node[0]);
       Abc_Obj_t* child2 = bbFormula(node[1]);
 
@@ -220,7 +220,7 @@ Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
     }
   case kind::ITE:
     {
-      Assert (node.getNumChildren() == 3); 
+      Assert(node.getNumChildren() == 3);
       Abc_Obj_t* a = bbFormula(node[0]);
       Abc_Obj_t* b = bbFormula(node[1]);
       Abc_Obj_t* c = bbFormula(node[2]);
@@ -241,7 +241,7 @@ Abc_Obj_t* AigBitblaster::bbFormula(TNode node) {
   case kind::EQUAL:
     {
       if( node[0].getType().isBoolean() ){
-        Assert (node.getNumChildren() == 2); 
+        Assert(node.getNumChildren() == 2);
         Abc_Obj_t* child1 = bbFormula(node[0]);
         Abc_Obj_t* child2 = bbFormula(node[1]);
   
@@ -283,18 +283,18 @@ void AigBitblaster::bbTerm(TNode node, Bits& bits) {
     getBBTerm(node, bits);
     return;
   }
-  Assert( node.getType().isBitVector() );
+  Assert(node.getType().isBitVector());
 
   Debug("bitvector-bitblast") << "Bitblasting term " << node <<"\n";
   d_termBBStrategies[node.getKind()] (node, bits, this);
 
-  Assert (bits.size() == utils::getSize(node));
+  Assert(bits.size() == utils::getSize(node));
   storeBBTerm(node, bits);
 }
 
 
 void AigBitblaster::cacheAig(TNode node, Abc_Obj_t* aig) {
-  Assert (!hasAig(node));
+  Assert(!hasAig(node));
   d_aigCache.insert(std::make_pair(node, aig));
 }
 bool AigBitblaster::hasAig(TNode node) {
@@ -317,9 +317,9 @@ void AigBitblaster::makeVariable(TNode node, Bits& bits) {
 }
 
 Abc_Obj_t* AigBitblaster::mkInput(TNode input) {
-  Assert (!hasInput(input));
-  Assert(input.getKind() == kind::BITVECTOR_BITOF ||
-         (input.getType().isBoolean() && input.isVar()));
+  Assert(!hasInput(input));
+  Assert(input.getKind() == kind::BITVECTOR_BITOF
+         || (input.getType().isBoolean() && input.isVar()));
   Abc_Obj_t* aig_input = Abc_NtkCreatePi(currentAigNtk());
   // d_aigCache.insert(std::make_pair(input, aig_input));
   d_nodeToAigInput.insert(std::make_pair(input, aig_input));
@@ -333,7 +333,7 @@ bool AigBitblaster::hasInput(TNode input) {
 
 bool AigBitblaster::solve(TNode node) {
   // setting output of network to be the query
-  Assert (d_aigOutputNode == NULL);
+  Assert(d_aigOutputNode == NULL);
   Abc_Obj_t* query = bbFormula(node);
   d_aigOutputNode = Abc_NtkCreatePo(currentAigNtk());
   Abc_ObjAddFanin(d_aigOutputNode, query); 
@@ -345,7 +345,7 @@ bool AigBitblaster::solve(TNode node) {
   TimerStat::CodeTimer solveTimer(d_statistics.d_solveTime);
   prop::SatValue result = d_satSolver->solve();
 
-  Assert (result != prop::SAT_VALUE_UNKNOWN); 
+  Assert(result != prop::SAT_VALUE_UNKNOWN);
   return result == prop::SAT_VALUE_TRUE; 
 }
 
@@ -356,7 +356,7 @@ void AigBitblaster::simplifyAig() {
   TimerStat::CodeTimer simpTimer(d_statistics.d_simplificationTime);
 
   Abc_AigCleanup(currentAigM());
-  Assert (Abc_NtkCheck(currentAigNtk()));
+  Assert(Abc_NtkCheck(currentAigNtk()));
 
   const char* command = options::bitvectorAigSimplifications().c_str(); 
   Abc_Frame_t* pAbc = Abc_FrameGetGlobalFrame();
@@ -376,8 +376,8 @@ void AigBitblaster::convertToCnfAndAssert() {
   
   Aig_Man_t * pMan = NULL;
   Cnf_Dat_t * pCnf = NULL;
-  Assert( Abc_NtkIsStrash(currentAigNtk()) );
-  
+  Assert(Abc_NtkIsStrash(currentAigNtk()));
+
   // convert to the AIG manager
   pMan = Abc_NtkToDar(currentAigNtk(), 0, 0 );
   Abc_Stop(); 
@@ -385,9 +385,9 @@ void AigBitblaster::convertToCnfAndAssert() {
   // // free old network
   // Abc_NtkDelete(currentAigNtk());
   // s_abcAigNetwork = NULL;
-  
-  Assert (pMan != NULL);
-  Assert (Aig_ManCheck(pMan));
+
+  Assert(pMan != NULL);
+  Assert(Aig_ManCheck(pMan));
   pCnf = Cnf_DeriveFast( pMan, 0 );
 
   assertToSatSolver(pCnf); 
@@ -416,9 +416,9 @@ void AigBitblaster::assertToSatSolver(Cnf_Dat_t* pCnf) {
     prop::SatClause clause; 
     for (pLit = pCnf->pClauses[i], pStop = pCnf->pClauses[i+1]; pLit < pStop; pLit++ ) {
       int int_lit = Cnf_Lit2Var(*pLit);
-      Assert (int_lit != 0); 
+      Assert(int_lit != 0);
       unsigned index = int_lit < 0? -int_lit : int_lit;
-      Assert (index - 1 < sat_variables.size()); 
+      Assert(index - 1 < sat_variables.size());
       prop::SatLiteral lit(sat_variables[index-1], int_lit < 0); 
       clause.push_back(lit); 
     }
@@ -464,7 +464,7 @@ void AigBitblaster::storeBBAtom(TNode atom, Abc_Obj_t* atom_bb) {
 }
 
 Abc_Obj_t* AigBitblaster::getBBAtom(TNode atom) const {
-  Assert (hasBBAtom(atom));
+  Assert(hasBBAtom(atom));
   return d_bbAtoms.find(atom)->second;
 }
 

@@ -264,7 +264,7 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
 
   #ifdef CVC4_ASSERTIONS
   for (size_t i = 1; i < nrows; ++i) Assert(lhs[i].size() == ncols);
-  #endif
+#endif
   /* (1) if element in pivot column is non-zero and != 1, divide row elements
    *     by element in pivot column modulo prime, i.e., multiply row with
    *     multiplicative inverse of element in pivot column modulo prime
@@ -284,7 +284,10 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
     for (size_t j = prow; j < nrows; ++j)
     {
 #ifdef CVC4_ASSERTIONS
-      for (size_t k = 0; k < pcol; ++k) { Assert(lhs[j][k] == 0); }
+      for (size_t k = 0; k < pcol; ++k)
+      {
+        Assert(lhs[j][k] == 0);
+      }
 #endif
       /* normalize element in pivot column to modulo prime */
       lhs[j][pcol] = lhs[j][pcol].euclidianDivideRemainder(prime);
@@ -571,7 +574,10 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
   Assert(nvars);
   size_t nrows = vars.begin()->second.size();
 #ifdef CVC4_ASSERTIONS
-  for (const auto& p : vars) { Assert(p.second.size() == nrows); }
+  for (const auto& p : vars)
+  {
+    Assert(p.second.size() == nrows);
+  }
 #endif
 
   if (nrows < 1)
@@ -588,7 +594,10 @@ BVGauss::Result BVGauss::gaussElimRewriteForUrem(
   }
 
 #ifdef CVC4_ASSERTIONS
-  for (const auto& row : lhs) { Assert(row.size() == nvars); }
+  for (const auto& row : lhs)
+  {
+    Assert(row.size() == nvars);
+  }
   Assert(lhs.size() == rhs.size());
 #endif
 

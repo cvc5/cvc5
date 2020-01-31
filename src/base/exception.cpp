@@ -22,7 +22,7 @@
 #include <cstring>
 #include <string>
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 
 using namespace std;
 
@@ -65,9 +65,7 @@ std::string IllegalArgumentException::formatVariadic(const char* format, ...) {
 
   for (int i = 0; i < 2; ++i){
     Assert(n > 0);
-    if(buf != NULL){
-      delete [] buf;
-    }
+    delete[] buf;
     buf = new char[n];
 
     va_list args_copy;

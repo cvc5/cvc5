@@ -85,14 +85,17 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
   if( e==0 ){
     return STATUS_UNFINISHED;
   }else{
-    int peffort = d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT ? 2 : 1;
+    int peffort =
+        d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT ? 2
+                                                                            : 1;
     if( e<peffort ){
       return STATUS_UNFINISHED;
     }else if( e==peffort ){
       d_counter[f]++;
 
       Trace("inst-alg") << "-> User-provided instantiate " << f << "..." << std::endl;
-      if( d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT  ){
+      if (d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT)
+      {
         for( unsigned i=0; i<d_user_gen_wait[f].size(); i++ ){
           Trigger * t = Trigger::mkTrigger( d_quantEngine, f, d_user_gen_wait[f][i], true, Trigger::TR_RETURN_NULL );
           if( t ){
@@ -125,7 +128,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
 }
 
 void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
-  Assert( pat.getKind()==INST_PATTERN );
+  Assert(pat.getKind() == INST_PATTERN);
   //add to generators
   bool usable = true;
   std::vector< Node > nodes;
@@ -142,9 +145,12 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
   if( usable ){
     Trace("user-pat") << "Add user pattern: " << pat << " for " << q << std::endl;
     //check match option
-    if( d_quantEngine->getInstUserPatMode()==USER_PAT_MODE_RESORT ){
+    if (d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT)
+    {
       d_user_gen_wait[q].push_back( nodes );
-    }else{
+    }
+    else
+    {
       Trigger * t = Trigger::mkTrigger( d_quantEngine, q, nodes, true, Trigger::TR_MAKE_NEW );
       if( t ){
         d_user_gen[q].push_back( t );
@@ -187,11 +193,17 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
 }
 
 int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
-  UserPatMode upMode = d_quantEngine->getInstUserPatMode();
-  if( hasUserPatterns( f ) && upMode==USER_PAT_MODE_TRUST ){
+  options::UserPatMode upMode = d_quantEngine->getInstUserPatMode();
+  if (hasUserPatterns(f) && upMode == options::UserPatMode::TRUST)
+  {
     return STATUS_UNKNOWN;
-  }else{
-    int peffort = ( hasUserPatterns( f ) && upMode!=USER_PAT_MODE_IGNORE && upMode!=USER_PAT_MODE_RESORT ) ? 2 : 1;
+  }
+  else
+  {
+    int peffort = (hasUserPatterns(f) && upMode != options::UserPatMode::IGNORE
+                   && upMode != options::UserPatMode::RESORT)
+                      ? 2
+                      : 1;
     if( e<peffort ){
       return STATUS_UNFINISHED;
     }else{
@@ -219,17 +231,22 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       //  d_processed_trigger.clear();
       //  d_quantEngine->getEqualityQuery()->setLiberal( true );
       //}
-      if( options::triggerActiveSelMode()!=TRIGGER_ACTIVE_SEL_ALL ){
+      if (options::triggerActiveSelMode() != options::TriggerActiveSelMode::ALL)
+      {
         int max_score = -1;
         Trigger * max_trigger = NULL;
         for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[0][f].begin(); itt != d_auto_gen_trigger[0][f].end(); ++itt ){
           int score = itt->first->getActiveScore();
-          if( options::triggerActiveSelMode()==TRIGGER_ACTIVE_SEL_MIN ){
+          if (options::triggerActiveSelMode()
+              == options::TriggerActiveSelMode::MIN)
+          {
             if( score>=0 && ( score<max_score || max_score<0 ) ){
               max_score = score;
               max_trigger = itt->first;
-            } 
-          }else{
+            }
+          }
+          else
+          {
             if( score>max_score ){
               max_score = score;
               max_trigger = itt->first;
@@ -241,7 +258,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
           d_auto_gen_trigger[0][f][max_trigger] = true;
         }
       }
-      
+
       bool hasInst = false;
       for( unsigned r=0; r<2; r++ ){
         for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[r][f].begin(); itt != d_auto_gen_trigger[r][f].end(); ++itt ){
@@ -308,7 +325,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       if( Trace.isOn("auto-gen-trigger-debug") ){
         Trace("auto-gen-trigger-debug") << "Collected pat terms for " << bd << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
         for( unsigned i=0; i<patTermsF.size(); i++ ){
-          Assert( tinfo.find( patTermsF[i] )!=tinfo.end() );
+          Assert(tinfo.find(patTermsF[i]) != tinfo.end());
           Trace("auto-gen-trigger-debug") << "   " << patTermsF[i] << std::endl;
           Trace("auto-gen-trigger-debug2") << "     info = [" << tinfo[patTermsF[i]].d_reqPol << ", " << tinfo[patTermsF[i]].d_reqPolEq << ", " << tinfo[patTermsF[i]].d_fv.size() << "]" << std::endl;
         }
@@ -320,7 +337,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     std::map< Node, bool > rmPatTermsF;
     int last_weight = -1;
     for( unsigned i=0; i<patTermsF.size(); i++ ){
-      Assert( patTermsF[i].getKind()!=NOT );
+      Assert(patTermsF[i].getKind() != NOT);
       bool newVar = false;
       for( unsigned j=0; j<tinfo[ patTermsF[i] ].d_fv.size(); j++ ){
         if( vcMap.find( tinfo[ patTermsF[i] ].d_fv[j] )==vcMap.end() ){
@@ -362,32 +379,40 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         Trace("auto-gen-trigger-debug") << "...processing pattern " << pat << std::endl;
         Node mpat = pat;
         //process the pattern: if it has a required polarity, consider it
-        Assert( tinfo.find( pat )!=tinfo.end() );
+        Assert(tinfo.find(pat) != tinfo.end());
         int rpol = tinfo[pat].d_reqPol;
         Node rpoleq = tinfo[pat].d_reqPolEq;
         unsigned num_fv = tinfo[pat].d_fv.size();
         Trace("auto-gen-trigger-debug") << "...required polarity for " << pat << " is " << rpol << ", eq=" << rpoleq << std::endl;
         if( rpol!=0 ){
-          Assert( rpol==1 || rpol==-1 );
+          Assert(rpol == 1 || rpol == -1);
           if( Trigger::isRelationalTrigger( pat ) ){
             pat = rpol==-1 ? pat.negate() : pat;
           }else{
-            Assert( Trigger::isAtomicTrigger( pat ) );
+            Assert(Trigger::isAtomicTrigger(pat));
             if( pat.getType().isBoolean() && rpoleq.isNull() ){
-              if( options::literalMatchMode()==LITERAL_MATCH_USE ){
+              if (options::literalMatchMode() == options::LiteralMatchMode::USE)
+              {
                 pat = NodeManager::currentNM()->mkNode( EQUAL, pat, NodeManager::currentNM()->mkConst( rpol==-1 ) ).negate();
-              }else if( options::literalMatchMode()!=LITERAL_MATCH_NONE ){
+              }
+              else if (options::literalMatchMode()
+                       != options::LiteralMatchMode::NONE)
+              {
                 pat = NodeManager::currentNM()->mkNode( EQUAL, pat, NodeManager::currentNM()->mkConst( rpol==1 ) );
               }
             }else{
-              Assert( !rpoleq.isNull() );
+              Assert(!rpoleq.isNull());
               if( rpol==-1 ){
-                if( options::literalMatchMode()!=LITERAL_MATCH_NONE ){
+                if (options::literalMatchMode()
+                    != options::LiteralMatchMode::NONE)
+                {
                   //all equivalence classes except rpoleq
                   pat = NodeManager::currentNM()->mkNode( EQUAL, pat, rpoleq ).negate();
                 }
               }else if( rpol==1 ){
-                if( options::literalMatchMode()==LITERAL_MATCH_AGG ){
+                if (options::literalMatchMode()
+                    == options::LiteralMatchMode::AGG)
+                {
                   //only equivalence class rpoleq
                   pat = NodeManager::currentNM()->mkNode( EQUAL, pat, rpoleq );
                 }
@@ -436,8 +461,8 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         sortQuantifiersForSymbol sqfs;
         sqfs.d_quant_rel = d_quant_rel;
         for( unsigned i=0; i<patTerms.size(); i++ ){
-          Assert( d_pat_to_mpat.find( patTerms[i] )!=d_pat_to_mpat.end() );
-          Assert( d_pat_to_mpat[patTerms[i]].hasOperator() );
+          Assert(d_pat_to_mpat.find(patTerms[i]) != d_pat_to_mpat.end());
+          Assert(d_pat_to_mpat[patTerms[i]].hasOperator());
           sqfs.d_op_map[ patTerms[i] ] = d_pat_to_mpat[patTerms[i]].getOperator();
         }        
         //sort based on # occurrences (this will cause Trigger to select rarer symbols)
@@ -591,7 +616,7 @@ bool InstStrategyAutoGenTriggers::hasUserPatterns( Node q ) {
 }
 
 void InstStrategyAutoGenTriggers::addUserNoPattern( Node q, Node pat ) {
-  Assert( pat.getKind()==INST_NO_PATTERN && pat.getNumChildren()==1 );
+  Assert(pat.getKind() == INST_NO_PATTERN && pat.getNumChildren() == 1);
   if( std::find( d_user_no_gen[q].begin(), d_user_no_gen[q].end(), pat[0] )==d_user_no_gen[q].end() ){
     Trace("user-pat") << "Add user no-pattern: " << pat[0] << " for " << q << std::endl;
     d_user_no_gen[q].push_back( pat[0] );

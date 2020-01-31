@@ -18,7 +18,7 @@
 /* #include <gmock/gmock.h> */
 /* #include <gtest/gtest.h> */
 
-#include "base/cvc4_assert.h"
+#include "base/check.h"
 #include "context/context.h"
 #include "expr/expr_manager.h"
 #include "expr/node_manager.h"

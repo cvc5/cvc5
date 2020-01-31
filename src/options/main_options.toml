@@ -79,55 +79,6 @@ header = "options/main_options.h"
   help       = "do not run destructors at exit; default on except in debug builds"
 
 [[option]]
-  name       = "threads"
-  category   = "regular"
-  long       = "threads=N"
-  type       = "unsigned"
-  default    = "2"
-  predicates = ["unsignedGreater0"]
-  read_only  = true
-  help       = "Total number of threads for portfolio"
-
-[[option]]
-  category   = "regular"
-  long       = "threadN=string"
-  type       = "void"
-  handler    = "threadN"
-  read_only  = true
-  help       = "configures portfolio thread N (0..#threads-1)"
-
-[[option]]
-  name       = "threadStackSize"
-  category   = "regular"
-  long       = "thread-stack=N"
-  type       = "unsigned"
-  default    = "0"
-  read_only  = true
-  help       = "stack size for worker threads in MB (0 means use Boost/thread lib default)"
-
-[[option]]
-  name       = "threadArgv"
-  category   = "regular"
-  type       = "std::vector<std::string>"
-  includes   = ["<vector>", "<string>"]
-  help       = "Thread configuration (a string to be passed to parseOptions)"
-
-[[option]]
-  name       = "thread_id"
-  category   = "regular"
-  type       = "int"
-  default    = "-1"
-  help       = "Thread ID, for internal use in case of multi-threaded run"
-
-[[option]]
-  name       = "sharingFilterByLength"
-  category   = "regular"
-  long       = "filter-lemma-length=N"
-  type       = "int"
-  default    = "-1"
-  help       = "don't share (among portfolio threads) lemmas strictly longer than N"
-
-[[option]]
   name       = "fallbackSequential"
   category   = "regular"
   long       = "fallback-sequential"

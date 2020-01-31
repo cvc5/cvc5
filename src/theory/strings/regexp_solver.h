@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/solver_state.h"
 #include "util/regexp.h"
 
 namespace CVC4 {
@@ -44,6 +45,7 @@ class RegExpSolver
 
  public:
   RegExpSolver(TheoryStrings& p,
+               SolverState& s,
                InferenceManager& im,
                context::Context* c,
                context::UserContext* u);
@@ -64,6 +66,23 @@ class RegExpSolver
 
  private:
   /**
+   * Check memberships in equivalence class for regular expression
+   * inclusion.
+   *
+   * This method returns false if it discovered a conflict for this set of
+   * assertions, and true otherwise. It discovers a conflict e.g. if mems
+   * contains str.in.re(xi, Ri) and ~str.in.re(xj, Rj) and Rj includes Ri.
+   *
+   * @param mems Vector of memberships of the form: (~)str.in.re(x1, R1)
+   *             ... (~)str.in.re(xn, Rn) where x1 = ... = xn in the
+   *             current context. The function removes elements from this
+   *             vector that were marked as reduced.
+   * @param expForRe Additional explanations for regular expressions.
+   * @return False if a conflict was detected, true otherwise
+   */
+  bool checkEqcInclusion(std::vector<Node>& mems);
+
+  /**
    * Check memberships for equivalence class.
    * The vector mems is a vector of memberships of the form:
    *   (~) (x1 in R1 ) ... (~) (xn in Rn)
@@ -83,10 +102,22 @@ class RegExpSolver
   Node d_false;
   /** the parent of this object */
   TheoryStrings& d_parent;
+  /** The solver state of the parent of this object */
+  SolverState& d_state;
   /** the output channel of the parent of this object */
   InferenceManager& d_im;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
+  /**
+   * Check partial derivative
+   *
+   * Returns false if a lemma pertaining to checking the partial derivative
+   * of x in r was added. In this case, addedLemma is updated to true.
+   *
+   * The argument atom is the assertion that explains x in r, which is the
+   * normalized form of atom that may be modified using a substitution whose
+   * explanation is nf_exp.
+   */
   bool checkPDerivative(
       Node x, Node r, Node atom, bool& addedLemma, std::vector<Node>& nf_exp);
   Node getMembership(Node n, bool isPos, unsigned i);

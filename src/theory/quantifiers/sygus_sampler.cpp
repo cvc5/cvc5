@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -92,7 +93,7 @@ void SygusSampler::initializeSygus(TermDbSygus* tds,
   d_is_valid = true;
   d_ftn = f.getType();
   Assert(d_ftn.isDatatype());
-  const Datatype& dt = static_cast<DatatypeType>(d_ftn.toType()).getDatatype();
+  const DType& dt = d_ftn.getDType();
   Assert(dt.isSygus());
 
   Trace("sygus-sample") << "Register sampler for " << f << std::endl;
@@ -105,7 +106,7 @@ void SygusSampler::initializeSygus(TermDbSygus* tds,
   d_rvalue_null_cindices.clear();
   d_var_sygus_types.clear();
   // get the sygus variable list
-  Node var_list = Node::fromExpr(dt.getSygusVarList());
+  Node var_list = dt.getSygusVarList();
   if (!var_list.isNull())
   {
     for (const Node& sv : var_list)
@@ -659,7 +660,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
   {
     return getRandomValue(tn);
   }
-  const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   if (!dt.isSygus())
   {
     return getRandomValue(tn);
@@ -685,7 +686,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
         << "Recurse constructor index #" << index << std::endl;
     unsigned cindex = cindices[index];
     Assert(cindex < dt.getNumConstructors());
-    const DatatypeConstructor& dtc = dt[cindex];
+    const DTypeConstructor& dtc = dt[cindex];
     // more likely to terminate in recursive calls
     double rchance_new = rchance + (1.0 - rchance) * rinc;
     std::map<int, Node> pre;
@@ -718,7 +719,7 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
   }
   Trace("sygus-sample-grammar") << "...resort to random value" << std::endl;
   // if we did not generate based on the grammar, pick a random value
-  return getRandomValue(TypeNode::fromType(dt.getSygusType()));
+  return getRandomValue(dt.getSygusType());
 }
 
 // recursion depth bounded by number of types in grammar (small)
@@ -731,15 +732,15 @@ void SygusSampler::registerSygusType(TypeNode tn)
     {
       return;
     }
-    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
+    const DType& dt = tn.getDType();
     if (!dt.isSygus())
     {
       return;
     }
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
-      const DatatypeConstructor& dtc = dt[i];
-      Node sop = Node::fromExpr(dtc.getSygusOp());
+      const DTypeConstructor& dtc = dt[i];
+      Node sop = dtc.getSygusOp();
       bool isVar = std::find(d_vars.begin(), d_vars.end(), sop) != d_vars.end();
       if (isVar)
       {
@@ -813,8 +814,8 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
 
     if (options::sygusRewVerifyAbort())
     {
-      AlwaysAssert(false,
-                   "--sygus-rr-verify detected unsoundness in the rewriter!");
+      AlwaysAssert(false)
+          << "--sygus-rr-verify detected unsoundness in the rewriter!";
     }
   }
 }

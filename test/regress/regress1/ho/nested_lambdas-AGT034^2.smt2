@@ -96,6 +96,6 @@
 (assert (mvalid (mforall_ind (lambda ((X mu) (__flatten_var_0 $$unsorted)) (mforall_ind (lambda ((Y mu) (__flatten_var_0 $$unsorted)) (mimplies (mdia a2 (likes X Y)) (possibly_likes X Y) __flatten_var_0)) __flatten_var_0)))))
 (assert (mvalid (mforall_ind (lambda ((X mu) (__flatten_var_0 $$unsorted)) (mforall_ind (lambda ((Y mu) (__flatten_var_0 $$unsorted)) (mimplies (mdia a3 (likes X Y)) (possibly_likes X Y) __flatten_var_0)) __flatten_var_0)))))
 (assert (not (mvalid (very_much_likes jan cola))))
-(meta-info :filename "AGT034^2")
+(set-info :filename "AGT034^2")
 
 (check-sat)

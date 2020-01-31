@@ -234,6 +234,24 @@ public:
   virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
 };/* class EqualityQuery */
 
+/** Types of bounds that can be inferred for quantified formulas */
+enum BoundVarType
+{
+  // a variable has a finite bound because it has finite cardinality
+  BOUND_FINITE,
+  // a variable has a finite bound because it is in an integer range, e.g.
+  //   forall x. u <= x <= l => P(x)
+  BOUND_INT_RANGE,
+  // a variable has a finite bound because it is a member of a set, e.g.
+  //   forall x. x in S => P(x)
+  BOUND_SET_MEMBER,
+  // a variable has a finite bound because only a fixed set of terms are
+  // relevant for it in the domain of the quantified formula, e.g.
+  //   forall x. ( x = t1 OR ... OR x = tn ) => P(x)
+  BOUND_FIXED_SET,
+  // a bound has not been inferred for the variable
+  BOUND_NONE
+};
 }
 }
 

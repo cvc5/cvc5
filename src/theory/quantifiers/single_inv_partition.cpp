@@ -371,6 +371,7 @@ bool SingleInvocationPartition::init(std::vector<Node>& funcs,
   else
   {
     Trace("si-prt") << "...failed." << std::endl;
+    return false;
   }
   return true;
 }
@@ -512,8 +513,8 @@ bool SingleInvocationPartition::isAntiSkolemizableType(Node f)
   {
     TypeNode tn = f.getType();
     bool ret = false;
-    if (tn.getNumChildren() == d_arg_types.size() + 1
-        || (d_arg_types.empty() && tn.getNumChildren() == 0))
+    if (((tn.isFunction() && tn.getNumChildren() == d_arg_types.size() + 1)
+         || (d_arg_types.empty() && tn.getNumChildren() == 0)))
     {
       ret = true;
       std::vector<Node> children;

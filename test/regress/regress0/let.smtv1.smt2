@@ -1,0 +1,8 @@
+(set-option :incremental false)
+(set-info :status unsat)
+(set-logic QF_UF)
+(declare-sort U 0)
+(declare-fun a () U)
+(declare-fun b () U)
+(declare-fun f (U) U)
+(check-sat-assuming ( (let ((_let_0 (= a b))) (and _let_0 (not _let_0))) ))

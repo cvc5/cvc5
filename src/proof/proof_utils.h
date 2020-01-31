@@ -107,7 +107,7 @@ inline unsigned getSize(Type type) {
 
 
 inline unsigned getSize(Expr node) {
-  Assert (node.getType().isBitVector());
+  Assert(node.getType().isBitVector());
   return getSize(node.getType());
 }
 
@@ -147,7 +147,7 @@ inline Expr mkConst(const BitVector& value) {
 inline Expr mkOr(const std::vector<Expr>& nodes) {
   std::set<Expr> all;
   all.insert(nodes.begin(), nodes.end());
-  Assert(all.size() != 0 );
+  Assert(all.size() != 0);
 
   if (all.size() == 1) {
     // All the same, or just one
@@ -220,8 +220,7 @@ inline Expr mkSortedExpr(Kind kind, const std::vector<Expr>& children) {
 }/* mkSortedNode() */
 
 inline const bool getBit(Expr expr, unsigned i) {
-  Assert (i < utils::getSize(expr) &&
-          expr.isConst());
+  Assert(i < utils::getSize(expr) && expr.isConst());
   Integer bit = expr.getConst<BitVector>().extract(i, i).getValue();
   return (bit == 1u);
 }

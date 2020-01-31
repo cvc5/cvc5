@@ -16,8 +16,7 @@
 
 #include <iostream>
 
-// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
-#include "api/cvc4cpp.h"
+#include <cvc4/api/cvc4cpp.h>
 
 using namespace CVC4::api;
 
@@ -28,7 +27,7 @@ void test(Solver& slv, Sort& consListSort)
   // the complete spec for the datatype from the DatatypeSort, and
   // this Datatype object has constructor symbols (and others) filled in.
 
-  Datatype consList = consListSort.getDatatype();
+  const Datatype& consList = consListSort.getDatatype();
 
   // t = cons 0 nil
   //
@@ -37,11 +36,9 @@ void test(Solver& slv, Sort& consListSort)
   // which is equivalent to consList["cons"].getConstructor().  Note that
   // "nil" is a constructor too, so it needs to be applied with
   // APPLY_CONSTRUCTOR, even though it has no arguments.
-  Term t = slv.mkTerm(
-      APPLY_CONSTRUCTOR,
-      consList.getConstructorTerm("cons"),
-      slv.mkReal(0),
-      slv.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")));
+  Term t = slv.mkTerm(consList.getConstructorTerm("cons"),
+                      slv.mkReal(0),
+                      slv.mkTerm(consList.getConstructorTerm("nil")));
 
   std::cout << "t is " << t << std::endl
             << "sort of cons is "
@@ -54,8 +51,7 @@ void test(Solver& slv, Sort& consListSort)
   // Here we first get the DatatypeConstructor for cons (with
   // consList["cons"]) in order to get the "head" selector symbol
   // to apply.
-  Term t2 =
-      slv.mkTerm(APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), t);
+  Term t2 = slv.mkTerm(consList["cons"].getSelectorTerm("head"), t);
 
   std::cout << "t2 is " << t2 << std::endl
             << "simplify(t2) is " << slv.simplify(t2) << std::endl
@@ -89,8 +85,9 @@ void test(Solver& slv, Sort& consListSort)
   // This example builds a simple parameterized list of sort T, with one
   // constructor "cons".
   Sort sort = slv.mkParamSort("T");
-  DatatypeDecl paramConsListSpec("paramlist",
-                                 sort);  // give the datatype a name
+  DatatypeDecl paramConsListSpec =
+      slv.mkDatatypeDecl("paramlist",
+                         sort);  // give the datatype a name
   DatatypeConstructorDecl paramCons("cons");
   DatatypeConstructorDecl paramNil("nil");
   DatatypeSelectorDecl paramHead("head", sort);
@@ -104,7 +101,7 @@ void test(Solver& slv, Sort& consListSort)
   Sort paramConsIntListSort =
       paramConsListSort.instantiate(std::vector<Sort>{slv.getIntegerSort()});
 
-  Datatype paramConsList = paramConsListSort.getDatatype();
+  const Datatype& paramConsList = paramConsListSort.getDatatype();
 
   std::cout << "parameterized datatype sort is " << std::endl;
   for (const DatatypeConstructor& ctor : paramConsList)
@@ -119,8 +116,7 @@ void test(Solver& slv, Sort& consListSort)
   Term a = slv.mkConst(paramConsIntListSort, "a");
   std::cout << "term " << a << " is of sort " << a.getSort() << std::endl;
 
-  Term head_a = slv.mkTerm(
-      APPLY_SELECTOR, paramConsList["cons"].getSelectorTerm("head"), a);
+  Term head_a = slv.mkTerm(paramConsList["cons"].getSelectorTerm("head"), a);
   std::cout << "head_a is " << head_a << " of sort " << head_a.getSort()
             << std::endl
             << "sort of cons is "
@@ -144,7 +140,8 @@ int main()
   // Second, it is "resolved" to an actual sort, at which point function
   // symbols are assigned to its constructors, selectors, and testers.
 
-  DatatypeDecl consListSpec("list");  // give the datatype a name
+  DatatypeDecl consListSpec =
+      slv.mkDatatypeDecl("list");  // give the datatype a name
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", slv.getIntegerSort());
   DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
@@ -170,7 +167,13 @@ int main()
             << ">>> Alternatively, use declareDatatype" << std::endl;
   std::cout << std::endl;
 
-  std::vector<DatatypeConstructorDecl> ctors = {cons, nil};
+  DatatypeConstructorDecl cons2("cons");
+  DatatypeSelectorDecl head2("head", slv.getIntegerSort());
+  DatatypeSelectorDecl tail2("tail", DatatypeDeclSelfSort());
+  cons2.addSelector(head2);
+  cons2.addSelector(tail2);
+  DatatypeConstructorDecl nil2("nil");
+  std::vector<DatatypeConstructorDecl> ctors = {cons2, nil2};
   Sort consListSort2 = slv.declareDatatype("list2", ctors);
   test(slv, consListSort2);
 

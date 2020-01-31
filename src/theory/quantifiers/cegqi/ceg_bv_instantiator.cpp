@@ -53,15 +53,14 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
   CegInstantiator* d_ci;
 };
 
-BvInstantiator::BvInstantiator(QuantifiersEngine* qe, TypeNode tn)
-    : Instantiator(qe, tn), d_inst_id_counter(0)
+BvInstantiator::BvInstantiator(TypeNode tn, BvInverter* inv)
+    : Instantiator(tn), d_inverter(inv), d_inst_id_counter(0)
 {
-  // get the global inverter utility
-  // this must be global since we need to:
+  // The inverter utility d_inverter is global to all BvInstantiator classes.
+  // This must be global since we need to:
   // * process Skolem functions properly across multiple variables within the
   // same quantifier
   // * cache Skolem variables uniformly across multiple quantified formulas
-  d_inverter = qe->getBvInverter();
 }
 
 BvInstantiator::~BvInstantiator() {}
@@ -154,7 +153,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   {
     return Node::null();
   }
-  else if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_KEEP
+  else if (options::cbqiBvIneqMode() == options::CbqiBvIneqMode::KEEP
            || (pol && k == EQUAL))
   {
     return lit;
@@ -173,7 +172,7 @@ Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
   Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
 
   Node ret;
-  if (options::cbqiBvIneqMode() == CBQI_BV_INEQ_EQ_SLACK)
+  if (options::cbqiBvIneqMode() == options::CbqiBvIneqMode::EQ_SLACK)
   {
     // if using slack, we convert constraints to a positive equality based on
     // the current model M, e.g.:
@@ -385,7 +384,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
   std::stack<std::unordered_map<TNode, Node, TNodeHashFunction> > visited;
   visited.push(std::unordered_map<TNode, Node, TNodeHashFunction>());
   // whether the visited term contains pv
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited_contains_pv;
+  std::unordered_map<Node, bool, NodeHashFunction> visited_contains_pv;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::unordered_map<TNode, Node, TNodeHashFunction> curr_subs;
   std::stack<std::stack<TNode> > visit;
@@ -535,7 +534,7 @@ Node BvInstantiator::rewriteTermForSolvePv(
     Node pv,
     Node n,
     std::vector<Node>& children,
-    std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv)
+    std::unordered_map<Node, bool, NodeHashFunction>& contains_pv)
 {
   NodeManager* nm = NodeManager::currentNM();
 

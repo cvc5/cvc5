@@ -38,7 +38,7 @@ namespace quantifiers {
 class BvInstantiator : public Instantiator
 {
  public:
-  BvInstantiator(QuantifiersEngine* qe, TypeNode tn);
+  BvInstantiator(TypeNode tn, BvInverter* inv);
   ~BvInstantiator() override;
   /** reset */
   void reset(CegInstantiator* ci,
@@ -140,7 +140,7 @@ class BvInstantiator : public Instantiator
       Node pv,
       Node n,
       std::vector<Node>& children,
-      std::unordered_map<TNode, bool, TNodeHashFunction>& contains_pv);
+      std::unordered_map<Node, bool, NodeHashFunction>& contains_pv);
   /** process literal, called from processAssertion
    *
    * lit is the literal to solve for pv that has been rewritten according to

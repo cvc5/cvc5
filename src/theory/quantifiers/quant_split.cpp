@@ -33,43 +33,79 @@ QuantifiersModule( qe ), d_added_split( qe->getUserContext() ){
 
 void QuantDSplit::checkOwnership(Node q)
 {
-  int max_index = -1;
-  int max_score = -1;
-  if( q.getNumChildren()==3 ){
+  // If q is non-standard (marked as sygus, quantifier elimination, etc.), then
+  // do no split it.
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(q, qa);
+  if (!qa.isStandard())
+  {
     return;
   }
+  bool takeOwnership = false;
+  bool doSplit = false;
   Trace("quant-dsplit-debug") << "Check split quantified formula : " << q << std::endl;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
     if( tn.isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      if( dt.isRecursiveSingleton( tn.toType() ) ){
+      const DType& dt = tn.getDType();
+      if (dt.isRecursiveSingleton(tn))
+      {
         Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is recursive singleton." << std::endl;
-      }else{
-        int score = -1;
-        if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
-          score = dt.isInterpretedFinite( tn.toType() ) ? 1 : 0;
-        }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
-          //only split if goes from being unhandled -> handled by finite instantiation
-          //  an example is datatypes with uninterpreted sort fields, which are "interpreted finite" but not "finite"
-          if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
-            score = dt.isInterpretedFinite( tn.toType() ) ? 1 : -1;
+      }
+      else
+      {
+        if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
+        {
+          // split if it is a finite datatype
+          doSplit = dt.isInterpretedFinite(tn);
+        }
+        else if (options::quantDynamicSplit()
+                 == options::QuantDSplitMode::DEFAULT)
+        {
+          if (!d_quantEngine->isFiniteBound(q, q[0][i]))
+          {
+            if (dt.isInterpretedFinite(tn))
+            {
+              // split if goes from being unhandled -> handled by finite
+              // instantiation. An example is datatypes with uninterpreted sort
+              // fields which are "interpreted finite" but not "finite".
+              doSplit = true;
+              // we additionally take ownership of this formula, in other words,
+              // we mark it reduced.
+              takeOwnership = true;
+            }
+            else if (dt.getNumConstructors() == 1 && !dt.isCodatatype())
+            {
+              // split if only one constructor
+              doSplit = true;
+            }
           }
         }
-        Trace("quant-dsplit-debug") << "Datatype " << dt.getName() << " is score " << score << " (" << dt.isInterpretedFinite( tn.toType() ) << " " << dt.isFinite( tn.toType() ) << ")" << std::endl;
-        if( score>max_score ){
-          max_index = i;
-          max_score = score;
+        if (doSplit)
+        {
+          // store the index to split
+          d_quant_to_reduce[q] = i;
+          Trace("quant-dsplit-debug")
+              << "Split at index " << i << " based on datatype " << dt.getName()
+              << std::endl;
+          break;
         }
+        Trace("quant-dsplit-debug")
+            << "Do not split based on datatype " << dt.getName() << std::endl;
       }
     }
   }
 
-  if( max_index!=-1 ){
-    Trace("quant-dsplit-debug") << "Will split at index " << max_index << "." << std::endl;
-    d_quant_to_reduce[q] = max_index;
+  if (takeOwnership)
+  {
+    Trace("quant-dsplit-debug") << "Will take ownership." << std::endl;
     d_quantEngine->setOwner( q, this );
   }
+  // Notice we may not take ownership in some cases, meaning that both the
+  // original quantified formula and the split one are generated. This may
+  // increase our ability to answer "unsat", since quantifier instantiation
+  // heuristics may be more effective for one or the other (see issues #993
+  // and 3481).
 }
 
 /* whether this module needs to check this round */
@@ -86,62 +122,79 @@ bool QuantDSplit::checkCompleteFor( Node q ) {
 void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
 {
   //add lemmas ASAP (they are a reduction)
-  if (quant_e == QEFFORT_CONFLICT)
+  if (quant_e != QEFFORT_CONFLICT)
   {
-    std::vector< Node > lemmas;
-    for(std::map< Node, int >::iterator it = d_quant_to_reduce.begin(); it != d_quant_to_reduce.end(); ++it) {
-      Node q = it->first;
-      if( d_quantEngine->getModel()->isQuantifierAsserted( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
-        if( d_added_split.find( q )==d_added_split.end() ){
-          d_added_split.insert( q );
-          std::vector< Node > bvs;
-          for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-            if( (int)i!=it->second ){
-              bvs.push_back( q[0][i] );
-            }
-          }
-          std::vector< Node > disj;
-          disj.push_back( q.negate() );
-          TNode svar = q[0][it->second];
-          TypeNode tn = svar.getType();
-          if( tn.isDatatype() ){
-            std::vector< Node > cons;
-            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-            for( unsigned j=0; j<dt.getNumConstructors(); j++ ){
-              std::vector< Node > vars;
-              for( unsigned k=0; k<dt[j].getNumArgs(); k++ ){
-                TypeNode tns = TypeNode::fromType( dt[j][k].getRangeType() );
-                Node v = NodeManager::currentNM()->mkBoundVar( tns );
-                vars.push_back( v );
-              }
-              std::vector< Node > bvs_cmb;
-              bvs_cmb.insert( bvs_cmb.end(), bvs.begin(), bvs.end() );
-              bvs_cmb.insert( bvs_cmb.end(), vars.begin(), vars.end() );
-              vars.insert( vars.begin(), Node::fromExpr( dt[j].getConstructor() ) );
-              Node c = NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR, vars );
-              TNode ct = c;
-              Node body = q[1].substitute( svar, ct );
-              if( !bvs_cmb.empty() ){
-                body = NodeManager::currentNM()->mkNode( kind::FORALL, NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, bvs_cmb ), body );
-              }
-              cons.push_back( body );
-            }
-            Node conc = cons.size()==1 ? cons[0] : NodeManager::currentNM()->mkNode( kind::AND, cons );
-            disj.push_back( conc );
-          }else{
-            Assert( false );
-          }
-          lemmas.push_back( disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj ) );
+    return;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  FirstOrderModel* m = d_quantEngine->getModel();
+  std::vector<Node> lemmas;
+  for (std::map<Node, int>::iterator it = d_quant_to_reduce.begin();
+       it != d_quant_to_reduce.end();
+       ++it)
+  {
+    Node q = it->first;
+    if (m->isQuantifierAsserted(q) && m->isQuantifierActive(q)
+        && d_added_split.find(q) == d_added_split.end())
+    {
+      d_added_split.insert(q);
+      std::vector<Node> bvs;
+      for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+      {
+        if (static_cast<int>(i) != it->second)
+        {
+          bvs.push_back(q[0][i]);
         }
       }
+      std::vector<Node> disj;
+      disj.push_back(q.negate());
+      TNode svar = q[0][it->second];
+      TypeNode tn = svar.getType();
+      Assert(tn.isDatatype());
+      std::vector<Node> cons;
+      const DType& dt = tn.getDType();
+      for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+      {
+        std::vector<Node> vars;
+        for (unsigned k = 0, nargs = dt[j].getNumArgs(); k < nargs; k++)
+        {
+          TypeNode tns = dt[j][k].getRangeType();
+          Node v = nm->mkBoundVar(tns);
+          vars.push_back(v);
+        }
+        std::vector<Node> bvs_cmb;
+        bvs_cmb.insert(bvs_cmb.end(), bvs.begin(), bvs.end());
+        bvs_cmb.insert(bvs_cmb.end(), vars.begin(), vars.end());
+        vars.insert(vars.begin(), dt[j].getConstructor());
+        Node c = nm->mkNode(kind::APPLY_CONSTRUCTOR, vars);
+        TNode ct = c;
+        Node body = q[1].substitute(svar, ct);
+        if (!bvs_cmb.empty())
+        {
+          Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs_cmb);
+          std::vector<Node> children;
+          children.push_back(bvl);
+          children.push_back(body);
+          if (q.getNumChildren() == 3)
+          {
+            Node ipls = q[2].substitute(svar, ct);
+            children.push_back(ipls);
+          }
+          body = nm->mkNode(kind::FORALL, children);
+        }
+        cons.push_back(body);
+      }
+      Node conc = cons.size() == 1 ? cons[0] : nm->mkNode(kind::AND, cons);
+      disj.push_back(conc);
+      lemmas.push_back(disj.size() == 1 ? disj[0] : nm->mkNode(kind::OR, disj));
     }
+  }
 
-    //add lemmas to quantifiers engine
-    for( unsigned i=0; i<lemmas.size(); i++ ){
-      Trace("quant-dsplit") << "QuantDSplit lemma : " << lemmas[i] << std::endl;
-      d_quantEngine->addLemma( lemmas[i], false );
-    }
-    //d_quant_to_reduce.clear();
+  // add lemmas to quantifiers engine
+  for (const Node& lem : lemmas)
+  {
+    Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
+    d_quantEngine->addLemma(lem, false);
   }
 }
 

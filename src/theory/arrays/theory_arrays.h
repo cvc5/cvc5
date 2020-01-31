@@ -474,6 +474,8 @@ class TheoryArrays : public Theory {
   };
   /** an instance of the above decision strategy */
   std::unique_ptr<TheoryArraysDecisionStrategy> d_dstrat;
+  /** Have we registered the above strategy? (context-independent) */
+  bool d_dstratInit;
   /** get the next decision request
    *
    * If the "arrays-eager-index" option is enabled, then whenever a

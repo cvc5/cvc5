@@ -66,7 +66,7 @@ ClauseId BVMinisatSatSolver::addClause(SatClause& clause,
   // }
   ClauseId clause_id = ClauseIdError;
   d_minisat->addClause(minisat_clause, clause_id);
-  THEORY_PROOF(Assert (clause_id != ClauseIdError););
+  THEORY_PROOF(Assert(clause_id != ClauseIdError););
   return clause_id;
 }
 
