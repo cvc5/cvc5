@@ -176,18 +176,19 @@ void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1,
   getTheoryProof(theory::Theory::theoryOf(c1))->printConstantDisequalityProof(os, c1, c2, globalLetMap);
 }
 
-  void TheoryProofEngine::printTheoryTerm(Expr term,
-                       std::ostream& os,
-                       const ProofLetMap& map,
-                       TypeNode expectedType)
-  {
-    this->printTheoryTermAsType(term, os, map, expectedType);
-  }
+void TheoryProofEngine::printTheoryTerm(Expr term,
+                                        std::ostream& os,
+                                        const ProofLetMap& map,
+                                        TypeNode expectedType)
+{
+  this->printTheoryTermAsType(term, os, map, expectedType);
+}
 
 TypeNode TheoryProofEngine::equalityType(const Expr& left, const Expr& right)
 {
   Assert(theory::Theory::theoryOf(left) == theory::Theory::theoryOf(right));
-  return getTheoryProof(theory::Theory::theoryOf(left))->equalityType(left, right);
+  return getTheoryProof(theory::Theory::theoryOf(left))
+      ->equalityType(left, right);
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
@@ -883,13 +884,17 @@ void LFSCTheoryProofEngine::printBoundTermAsType(Expr term,
   // Since let-abbreviated terms are abbreviated with their default type, only
   // use the let map if there is no expectedType or the expectedType matches
   // the default.
-  if (expectedType.isNull() || TypeNode::fromType(term.getType()) == expectedType) {
+  if (expectedType.isNull()
+      || TypeNode::fromType(term.getType()) == expectedType)
+  {
     ProofLetMap::const_iterator it = map.find(term);
-    if (it != map.end()) {
+    if (it != map.end())
+    {
       unsigned id = it->second.id;
       unsigned count = it->second.count;
 
-      if (count > LET_COUNT) {
+      if (count > LET_COUNT)
+      {
         os << "let" << id;
         return;
       }
@@ -930,7 +935,9 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
 
   switch(k) {
   case kind::ITE: {
-    TypeNode armType = expectedType.isNull() ? TypeNode::fromType(term.getType()) : expectedType;
+    TypeNode armType = expectedType.isNull()
+                           ? TypeNode::fromType(term.getType())
+                           : expectedType;
     bool useFormulaType = term.getType().isBoolean();
     Assert(term[1].getType().isSubtypeOf(term.getType()));
     Assert(term[2].getType().isSubtypeOf(term.getType()));
@@ -986,7 +993,8 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
     return;
   }
 
-  case kind::DISTINCT: {
+  case kind::DISTINCT:
+  {
     // Distinct nodes can have any number of chidlren.
     Assert(term.getNumChildren() >= 2);
     TypeNode armType = equalityType(term[0], term[1]);
@@ -1368,13 +1376,13 @@ void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node
   os << "))";
 }
 
-  void TheoryProof::printOwnedTerm(Expr term,
-                      std::ostream& os,
-                      const ProofLetMap& map,
-                      TypeNode expectedType)
-  {
-    this->printOwnedTermAsType(term, os, map, expectedType);
-  }
+void TheoryProof::printOwnedTerm(Expr term,
+                                 std::ostream& os,
+                                 const ProofLetMap& map,
+                                 TypeNode expectedType)
+{
+  this->printOwnedTermAsType(term, os, map, expectedType);
+}
 
 TypeNode TheoryProof::equalityType(const Expr& left, const Expr& right)
 {
