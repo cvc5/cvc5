@@ -1138,7 +1138,6 @@ header = "options/quantifiers_options.h"
   long       = "sygus-unif-pi=MODE"
   type       = "SygusUnifPiMode"
   default    = "NONE"
-  read_only  = true
   help       = "mode for synthesis via piecewise-indepedent unification"
   help_mode  = "Modes for piecewise-independent unification."
 [[option.mode.NONE]]
