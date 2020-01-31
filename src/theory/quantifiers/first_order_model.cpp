@@ -59,6 +59,8 @@ Node FirstOrderModel::getAssertedQuantifier( unsigned i, bool ordered ) {
   if( !ordered || !d_forallRlvComputed ){
     return d_forall_asserts[i]; 
   }
+  // If we computed the relevant forall assertion vector, in reset_round,
+  // then it should have the same size as the default assertion vector.
   Assert(d_forall_rlv_assert.size() == d_forall_asserts.size());
   return d_forall_rlv_assert[i];
 }
