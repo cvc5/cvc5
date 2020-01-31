@@ -184,9 +184,8 @@ void SygusEnumerator::TermCache::initialize(Node e,
 
   // constructor class 0 is reserved for nullary operators with 0 weight
   // this is an optimization so that we always skip them for sizes >= 1
-  d_ccToCons[0].clear();
-  d_ccToTypes[0].clear();
-  d_ccToWeight[0] = 0;
+  ConstructorClass& ccZero = d_cclass[0];
+  ccZero.d_weight = 0;
   d_numConClasses = 1;
   // we must indicate that we should process zero weight constructor classes
   weightsToIndices[0].clear();
@@ -216,7 +215,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
     {
       if (argTypes[i].empty() && w == 0)
       {
-        d_ccToCons[0].push_back(i);
+        ccZero.d_cons.push_back(i);
       }
       else
       {
@@ -241,14 +240,15 @@ void SygusEnumerator::TermCache::initialize(Node e,
                                 << dt[i].getSygusOp() << " is " << cclassi
                                 << std::endl;
       // initialize the constructor class
-      if (d_ccToWeight.find(cclassi) == d_ccToWeight.end())
+      if (d_cclass.find(cclassi) == d_cclass.end())
       {
-        d_ccToWeight[cclassi] = w;
-        d_ccToTypes[cclassi].insert(
-            d_ccToTypes[cclassi].end(), argTypes[i].begin(), argTypes[i].end());
+        d_cclass[cclassi].d_weight = w;
+        d_cclass[cclassi].d_types.insert(d_cclass[cclassi].d_types.end(),
+                                         argTypes[i].begin(),
+                                         argTypes[i].end());
       }
       // add to constructor class
-      d_ccToCons[cclassi].push_back(i);
+      d_cclass[cclassi].d_cons.push_back(i);
     }
     Trace("sygus-enum-debug") << "#cons classes for weight <= " << w << " : "
                               << d_numConClasses << std::endl;
@@ -274,26 +274,26 @@ unsigned SygusEnumerator::TermCache::getNumConstructorClasses() const
 void SygusEnumerator::TermCache::getConstructorClass(
     unsigned i, std::vector<unsigned>& cclass) const
 {
-  std::map<unsigned, std::vector<unsigned>>::const_iterator it =
-      d_ccToCons.find(i);
-  Assert(it != d_ccToCons.end());
-  cclass.insert(cclass.end(), it->second.begin(), it->second.end());
+  std::map<unsigned, ConstructorClass>::const_iterator it = d_cclass.find(i);
+  Assert(it != d_cclass.end());
+  cclass.insert(
+      cclass.end(), it->second.d_cons.begin(), it->second.d_cons.end());
 }
 void SygusEnumerator::TermCache::getTypesForConstructorClass(
     unsigned i, std::vector<TypeNode>& types) const
 {
-  std::map<unsigned, std::vector<TypeNode>>::const_iterator it =
-      d_ccToTypes.find(i);
-  Assert(it != d_ccToTypes.end());
-  types.insert(types.end(), it->second.begin(), it->second.end());
+  std::map<unsigned, ConstructorClass>::const_iterator it = d_cclass.find(i);
+  Assert(it != d_cclass.end());
+  types.insert(
+      types.end(), it->second.d_types.begin(), it->second.d_types.end());
 }
 
 unsigned SygusEnumerator::TermCache::getWeightForConstructorClass(
     unsigned i) const
 {
-  std::map<unsigned, unsigned>::const_iterator it = d_ccToWeight.find(i);
-  Assert(it != d_ccToWeight.end());
-  return it->second;
+  std::map<unsigned, ConstructorClass>::const_iterator it = d_cclass.find(i);
+  Assert(it != d_cclass.end());
+  return it->second.d_weight;
 }
 
 bool SygusEnumerator::TermCache::addTerm(Node n)
