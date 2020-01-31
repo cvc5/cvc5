@@ -30,13 +30,13 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
+#include "theory/quantifiers/sygus/sygus_stats.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 class SynthEngine;
-class SygusStatistics;
 
 /**
  * A base class for generating values for actively-generated enumerators.

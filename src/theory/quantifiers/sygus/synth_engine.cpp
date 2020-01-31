@@ -18,7 +18,6 @@
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -31,33 +30,6 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-SygusStatistics::SygusStatistics()
-    : d_cegqi_lemmas_ce("SynthEngine::cegqi_lemmas_ce", 0),
-      d_cegqi_lemmas_refine("SynthEngine::cegqi_lemmas_refine", 0),
-      d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
-      d_solutions("SynthConjecture::solutions", 0),
-      d_filtered_solutions("SynthConjecture::filtered_solutions", 0),
-      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print", 0)
-
-{
-  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
-  smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_refine);
-  smtStatisticsRegistry()->registerStat(&d_cegqi_si_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_solutions);
-  smtStatisticsRegistry()->registerStat(&d_filtered_solutions);
-  smtStatisticsRegistry()->registerStat(&d_candidate_rewrites_print);
-}
-
-SygusStatistics::~SygusStatistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_ce);
-  smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
-  smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_solutions);
-  smtStatisticsRegistry()->unregisterStat(&d_filtered_solutions);
-  smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites_print);
-}
 
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe), d_tds(qe->getTermDatabaseSygus())

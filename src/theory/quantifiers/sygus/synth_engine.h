@@ -21,32 +21,11 @@
 #include "context/cdhashmap.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/quantifiers/sygus/sygus_stats.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-/**
- * All statistics managed for the synth engine.
- */
-class SygusStatistics
-{
- public:
-  SygusStatistics();
-  ~SygusStatistics();
-  /** Number of counterexample lemmas */
-  IntStat d_cegqi_lemmas_ce;
-  /** Number of refinement lemmas */
-  IntStat d_cegqi_lemmas_refine;
-  /** Number of single invocation lemmas */
-  IntStat d_cegqi_si_lemmas;
-  /** Number of solutions printed (could be >1 for --sygus-stream) */
-  IntStat d_solutions;
-  /** Number of solutions filtered */
-  IntStat d_filtered_solutions;
-  /** Number of candidate rewrites printed (for --sygus-rr) */
-  IntStat d_candidate_rewrites_print;
-};
 
 class SynthEngine : public QuantifiersModule
 {
