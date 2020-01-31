@@ -905,10 +905,12 @@ void LFSCTheoryProofEngine::printBoundTermAsType(Expr term,
       if (count > LET_COUNT)
       {
         os << "let" << id;
+        Debug("pf::tp::letmap") << "Using let map for " << term << std::endl;
         return;
       }
     }
   }
+  Debug("pf::tp::letmap") << "Skipping let map for " << term << std::endl;
 
   printTheoryTerm(term, os, map, expectedType);
 }
