@@ -174,12 +174,15 @@ bool ExampleInfer::collectExamples(Node n,
         else
         {
           Assert(n_output.isConst());
+          // finished processing this node if it was an I/O pair
+          return true;
         }
-        // finished processing this node
-        return true;
       }
-      d_examples_invalid[eh] = true;
-      d_examplesOut_invalid[eh] = true;
+      else
+      {
+        d_examples_invalid[eh] = true;
+        d_examplesOut_invalid[eh] = true;
+      }
     }
   }
   for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
