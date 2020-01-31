@@ -138,7 +138,7 @@ class ExampleInfer
   /**
    * For each function-to-synthesize f, the list of outputs according to the
    * I/O specification for f.
-   * The vector d_examplesOut[f] valid only if d_examplesOut_invalid[f]=true.
+   * The vector d_examplesOut[f] is valid only if d_examplesOut_invalid[f]=true.
    */
   std::map<Node, std::vector<Node>> d_examplesOut;
   /** the list of example terms
