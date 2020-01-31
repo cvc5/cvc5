@@ -564,6 +564,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_unif.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/sygus_abduct.cpp
   theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
@@ -590,6 +592,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_process_conj.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
   theory/quantifiers/sygus/sygus_repair_const.h
+  theory/quantifiers/sygus/sygus_stats.cpp
+  theory/quantifiers/sygus/sygus_stats.h
   theory/quantifiers/sygus/sygus_unif.cpp
   theory/quantifiers/sygus/sygus_unif.h
   theory/quantifiers/sygus/sygus_unif_io.cpp
