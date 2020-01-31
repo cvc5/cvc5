@@ -576,7 +576,7 @@ const Datatype& DatatypeType::getDatatype() const {
   if (d_typeNode->getKind() == kind::DATATYPE_TYPE)
   {
     DatatypeIndexConstant dic = d_typeNode->getConst<DatatypeIndexConstant>();
-    return d_nodeManager->getDatatypeForIndex(dic.getIndex());
+    return d_nodeManager->toExprManager()->getDatatypeForIndex(dic.getIndex());
   }
   Assert(d_typeNode->getKind() == kind::PARAMETRIC_DATATYPE);
   return DatatypeType((*d_typeNode)[0].toType()).getDatatype();

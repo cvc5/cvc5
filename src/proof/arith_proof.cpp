@@ -681,7 +681,11 @@ void ArithProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCArithProof::printOwnedTermAsType(Expr term,
+                                          std::ostream& os,
+                                          const ProofLetMap& map,
+                                          TypeNode expectedType)
+{
   Debug("pf::arith") << "Arith print term: " << term << ". Kind: " << term.getKind()
                      << ". Type: " << term.getType()
                      << ". Number of children: " << term.getNumChildren() << std::endl;
@@ -1191,6 +1195,13 @@ void LFSCArithProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
 
 void LFSCArithProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Nothing to do here at this point.
+}
+
+bool LFSCArithProof::printsAsBool(const Node& n)
+{
+  // Our boolean variables and constants print as sort Bool.
+  // All complex booleans print as formulas.
+  return n.getType().isBoolean() and (n.isVar() or n.isConst());
 }
 
 } /* CVC4  namespace */

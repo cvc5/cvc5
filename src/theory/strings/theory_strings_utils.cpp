@@ -225,6 +225,25 @@ void getRegexpComponents(Node r, std::vector<Node>& result)
   }
 }
 
+void printConcat(std::ostream& out, std::vector<Node>& n)
+{
+  for (unsigned i = 0, nsize = n.size(); i < nsize; i++)
+  {
+    if (i > 0)
+    {
+      out << " ++ ";
+    }
+    out << n[i];
+  }
+}
+
+void printConcatTrace(std::vector<Node>& n, const char* c)
+{
+  std::stringstream ss;
+  printConcat(ss, n);
+  Trace(c) << ss.str();
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

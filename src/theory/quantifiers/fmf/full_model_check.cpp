@@ -603,12 +603,15 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_quant_cond[f] = op;
       }
 
-      if( options::mbqiMode()==MBQI_NONE ){
+      if (options::mbqiMode() == options::MbqiMode::NONE)
+      {
         //just exhaustive instantiate
         Node c = mkCondDefault( fmfmc, f );
         d_quant_models[f].addEntry( fmfmc, c, d_false );
         return exhaustiveInstantiate( fmfmc, f, c, -1);
-      }else{
+      }
+      else
+      {
         //model check the quantifier
         doCheck(fmfmc, f, d_quant_models[f], f[1]);
         Trace("fmc") << "Definition for quantifier " << f << " is : " << std::endl;

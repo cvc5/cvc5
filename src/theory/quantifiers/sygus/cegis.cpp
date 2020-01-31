@@ -52,7 +52,7 @@ bool Cegis::initialize(Node conj,
   }
 
   // assign the cegis sampler if applicable
-  if (options::cegisSample() != CEGIS_SAMPLE_NONE)
+  if (options::cegisSample() != options::CegisSampleMode::NONE)
   {
     Trace("cegis-sample") << "Initialize sampler for " << d_base_body << "..."
                           << std::endl;
@@ -79,24 +79,22 @@ bool Cegis::processInitialize(Node conj,
     Trace("cegis") << "...register enumerator " << candidates[i];
     // We use symbolic constants if we are doing repair constants or if the
     // grammar construction was not simple.
-    bool useSymCons = false;
     if (options::sygusRepairConst()
-        || options::sygusGrammarConsMode() != SYGUS_GCONS_SIMPLE)
+        || options::sygusGrammarConsMode()
+               != options::SygusGrammarConsMode::SIMPLE)
     {
       TypeNode ctn = candidates[i].getType();
       d_tds->registerSygusType(ctn);
       SygusTypeInfo& cti = d_tds->getTypeInfo(ctn);
       if (cti.hasSubtermSymbolicCons())
       {
-        useSymCons = true;
         // remember that we are using symbolic constructors
         d_usingSymCons = true;
         Trace("cegis") << " (using symbolic constructors)";
       }
     }
     Trace("cegis") << std::endl;
-    d_tds->registerEnumerator(
-        candidates[i], candidates[i], d_parent, erole, useSymCons);
+    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent, erole);
   }
   return true;
 }
@@ -305,7 +303,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     return false;
   }
 
-  if (options::cegisSample() != CEGIS_SAMPLE_NONE && lems.empty())
+  if (options::cegisSample() != options::CegisSampleMode::NONE && lems.empty())
   {
     // if we didn't add a lemma, trying sampling to add a refinement lemma
     // that immediately refutes the candidate we just constructed
@@ -636,7 +634,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           Trace("cegqi-engine") << "  *** Refine by sampling" << std::endl;
           addRefinementLemma(rlem);
           // if trust, we are not interested in sending out refinement lemmas
-          if (options::cegisSample() != CEGIS_SAMPLE_TRUST)
+          if (options::cegisSample() != options::CegisSampleMode::TRUST)
           {
             Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
             lems.push_back(lem);

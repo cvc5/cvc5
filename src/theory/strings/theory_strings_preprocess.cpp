@@ -78,14 +78,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
     //length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
-    //length of second skolem is abs difference between end point and end of string
-    Node b13 = nm->mkNode(STRING_LENGTH, sk2)
-                   .eqNode(nm->mkNode(ITE,
-                                      nm->mkNode(GEQ, lt0, t12),
-                                      nm->mkNode(MINUS, lt0, t12),
-                                      d_zero));
+    Node lsk2 = nm->mkNode(STRING_LENGTH, sk2);
+    // Length of the suffix is either 0 (in the case where m + n > len(s)) or
+    // len(s) - n -m
+    Node b13 = nm->mkNode(
+        OR,
+        nm->mkNode(EQUAL, lsk2, nm->mkNode(MINUS, lt0, nm->mkNode(PLUS, n, m))),
+        nm->mkNode(EQUAL, lsk2, d_zero));
+    // Length of the result is at most m
+    Node b14 = nm->mkNode(LEQ, nm->mkNode(STRING_LENGTH, skt), m);
 
-    Node b1 = nm->mkNode(AND, b11, b12, b13);
+    Node b1 = nm->mkNode(AND, b11, b12, b13, b14);
     Node b2 = skt.eqNode(d_empty_str);
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
@@ -93,8 +96,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // IF    n >=0 AND n < len( s ) AND m > 0
     // THEN: s = sk1 ++ skt ++ sk2 AND
     //       len( sk1 ) = n AND
-    //       len( sk2 ) = ite( len( s ) >= n+m, len( s )-(n+m), 0 )
+    //       ( len( sk2 ) = len( s )-(n+m) OR len( sk2 ) = 0 ) AND
+    //       len( skt ) <= m
     // ELSE: skt = ""
+    //
+    // Note: The length of sk2 is either 0 (if the n + m is greater or equal to
+    // the length of s) or len(s) - (n + m) otherwise. If n + m is greater or
+    // equal to the length of s, then len(s) - (n + m) is negative and in
+    // conflict with lengths always being positive, so only len(sk2) = 0 may be
+    // satisfied. If n + m is less than the length of s, then len(sk2) = 0
+    // cannot be satisfied because we have the constraint that len(skt) <= m,
+    // so sk2 must be greater than 0.
     new_nodes.push_back( lemma );
 
     // Thus, substr( s, n, m ) = skt
@@ -476,9 +488,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node x = t[0];
     Node r = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "r");
 
-    Node lent = nm->mkNode(STRING_LENGTH, t);
+    Node lenx = nm->mkNode(STRING_LENGTH, x);
     Node lenr = nm->mkNode(STRING_LENGTH, r);
-    Node eqLenA = lent.eqNode(lenr);
+    Node eqLenA = lenx.eqNode(lenr);
 
     Node i = nm->mkBoundVar(nm->integerType());
     Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
@@ -498,7 +510,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         ci);
 
     Node bound =
-        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LEQ, i, lenr));
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, lenr));
     Node rangeA =
         nm->mkNode(FORALL, bvi, nm->mkNode(OR, bound.negate(), ri.eqNode(res)));
 
@@ -514,7 +526,40 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     // Thus, toLower( x ) = r
     retNode = r;
-  } else if( t.getKind() == kind::STRING_STRCTN ){
+  }
+  else if (t.getKind() == STRING_REV)
+  {
+    Node x = t[0];
+    Node r = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "r");
+
+    Node lenx = nm->mkNode(STRING_LENGTH, x);
+    Node lenr = nm->mkNode(STRING_LENGTH, r);
+    Node eqLenA = lenx.eqNode(lenr);
+
+    Node i = nm->mkBoundVar(nm->integerType());
+    Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
+
+    Node revi = nm->mkNode(
+        MINUS, nm->mkNode(STRING_LENGTH, x), nm->mkNode(PLUS, i, d_one));
+    Node ssr = nm->mkNode(STRING_SUBSTR, r, i, d_one);
+    Node ssx = nm->mkNode(STRING_SUBSTR, x, revi, d_one);
+
+    Node bound =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, lenr));
+    Node rangeA = nm->mkNode(
+        FORALL, bvi, nm->mkNode(OR, bound.negate(), ssr.eqNode(ssx)));
+    // assert:
+    //   len(r) = len(x) ^
+    //   forall i. 0 <= i < len(r) =>
+    //     substr(r,i,1) = substr(x,len(x)-(i+1),1)
+    Node assert = nm->mkNode(AND, eqLenA, rangeA);
+    new_nodes.push_back(assert);
+
+    // Thus, (str.rev x) = r
+    retNode = r;
+  }
+  else if (t.getKind() == kind::STRING_STRCTN)
+  {
     Node x = t[0];
     Node s = t[1];
     //negative contains reduces to existential

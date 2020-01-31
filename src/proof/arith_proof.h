@@ -82,9 +82,10 @@ public:
   LFSCArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* proofEngine)
     : ArithProof(arith, proofEngine)
   {}
-  void printOwnedTerm(Expr term,
-                      std::ostream& os,
-                      const ProofLetMap& map) override;
+  void printOwnedTermAsType(Expr term,
+                            std::ostream& os,
+                            const ProofLetMap& map,
+                            TypeNode expectedType) override;
   void printOwnedSort(Type type, std::ostream& os) override;
 
   /**
@@ -167,6 +168,11 @@ public:
   void printAliasingDeclarations(std::ostream& os,
                                  std::ostream& paren,
                                  const ProofLetMap& globalLetMap) override;
+
+  /**
+   * Return whether this node, when serialized to LFSC, has sort `Bool`. Otherwise, the sort is `formula`.
+   */
+  bool printsAsBool(const Node& n) override;
 };
 
 

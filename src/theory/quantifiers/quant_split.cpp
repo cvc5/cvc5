@@ -54,11 +54,16 @@ void QuantDSplit::checkOwnership(Node q)
       }
       else
       {
-        if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_AGG ){
+        if (options::quantDynamicSplit() == options::QuantDSplitMode::AGG)
+        {
           // split if it is a finite datatype
           doSplit = dt.isInterpretedFinite(tn);
-        }else if( options::quantDynamicSplit()==quantifiers::QUANT_DSPLIT_MODE_DEFAULT ){
-          if( !d_quantEngine->isFiniteBound( q, q[0][i] ) ){
+        }
+        else if (options::quantDynamicSplit()
+                 == options::QuantDSplitMode::DEFAULT)
+        {
+          if (!d_quantEngine->isFiniteBound(q, q[0][i]))
+          {
             if (dt.isInterpretedFinite(tn))
             {
               // split if goes from being unhandled -> handled by finite

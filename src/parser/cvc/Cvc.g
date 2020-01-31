@@ -227,6 +227,9 @@ tokens {
   STRING_STOI_TOK = 'STRING_TO_INTEGER';
   STRING_ITOS_TOK = 'INTEGER_TO_STRING';
   STRING_TO_REGEXP_TOK = 'STRING_TO_REGEXP';
+  STRING_TOLOWER_TOK = 'TOLOWER';
+  STRING_TOUPPER_TOK = 'TOUPPER';
+  STRING_REV_TOK = 'REVERSE';
   REGEXP_CONCAT_TOK = 'RE_CONCAT';
   REGEXP_UNION_TOK = 'RE_UNION';
   REGEXP_INTER_TOK = 'RE_INTER';
@@ -2038,6 +2041,12 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::STRING_ITOS, f); }   
   | STRING_TO_REGEXP_TOK LPAREN formula[f] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_TO_REGEXP, f); }
+  | STRING_TOLOWER_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_TOLOWER, f); }
+  | STRING_TOUPPER_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_TOUPPER, f); }
+  | STRING_REV_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_REV, f); }
   | REGEXP_CONCAT_TOK LPAREN formula[f] { args.push_back(f); }
     ( COMMA formula[f2] { args.push_back(f2); } )+ RPAREN
     { f = MK_EXPR(CVC4::kind::REGEXP_CONCAT, args); }

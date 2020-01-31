@@ -74,6 +74,9 @@ void TheoryModel::reset(){
   d_approximations.clear();
   d_approx_list.clear();
   d_reps.clear();
+  d_assignExcSet.clear();
+  d_aesMaster.clear();
+  d_aesSlaves.clear();
   d_rep_set.clear();
   d_uf_terms.clear();
   d_ho_uf_terms.clear();
@@ -518,6 +521,69 @@ void TheoryModel::assertSkeleton(TNode n)
   Trace("model-builder-reps") << "...rep eqc is : " << getRepresentative(n)
                               << std::endl;
   d_reps[ n ] = n;
+}
+
+void TheoryModel::setAssignmentExclusionSet(TNode n,
+                                            const std::vector<Node>& eset)
+{
+  // should not be assigned yet
+  Assert(d_assignExcSet.find(n) == d_assignExcSet.end());
+  Trace("model-builder-debug")
+      << "Exclude values of " << n << " : " << eset << std::endl;
+  std::vector<Node>& aes = d_assignExcSet[n];
+  aes.insert(aes.end(), eset.begin(), eset.end());
+}
+
+void TheoryModel::setAssignmentExclusionSetGroup(
+    const std::vector<TNode>& group, const std::vector<Node>& eset)
+{
+  if (group.empty())
+  {
+    return;
+  }
+  // for efficiency, we store a single copy of eset and set a slave/master
+  // relationship
+  setAssignmentExclusionSet(group[0], eset);
+  std::vector<Node>& gslaves = d_aesSlaves[group[0]];
+  for (unsigned i = 1, gsize = group.size(); i < gsize; ++i)
+  {
+    Node gs = group[i];
+    // set master
+    d_aesMaster[gs] = group[0];
+    // add to slaves
+    gslaves.push_back(gs);
+  }
+}
+
+bool TheoryModel::getAssignmentExclusionSet(TNode n,
+                                            std::vector<Node>& group,
+                                            std::vector<Node>& eset)
+{
+  // does it have a master?
+  std::map<Node, Node>::iterator itm = d_aesMaster.find(n);
+  if (itm != d_aesMaster.end())
+  {
+    return getAssignmentExclusionSet(itm->second, group, eset);
+  }
+  std::map<Node, std::vector<Node> >::iterator ita = d_assignExcSet.find(n);
+  if (ita == d_assignExcSet.end())
+  {
+    return false;
+  }
+  eset.insert(eset.end(), ita->second.begin(), ita->second.end());
+  group.push_back(n);
+  // does it have slaves?
+  ita = d_aesSlaves.find(n);
+  if (ita != d_aesSlaves.end())
+  {
+    group.insert(group.end(), ita->second.begin(), ita->second.end());
+  }
+  return true;
+}
+
+bool TheoryModel::hasAssignmentExclusionSets() const
+{
+  return !d_assignExcSet.empty();
 }
 
 void TheoryModel::recordApproximation(TNode n, TNode pred)

@@ -18,7 +18,6 @@
 #include "decision/decision_attributes.h"
 #include "decision/justification_heuristic.h"
 #include "expr/node.h"
-#include "options/decision_mode.h"
 #include "options/decision_options.h"
 #include "options/smt_options.h"
 
@@ -53,8 +52,8 @@ void DecisionEngine::init()
   Trace("decision-init") << " * options->decisionStopOnly: "
                          << options::decisionStopOnly() << std::endl;
 
-  if(options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL) { }
-  if(options::decisionMode() == decision::DECISION_STRATEGY_JUSTIFICATION) {
+  if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
+  {
     ITEDecisionStrategy* ds =
       new decision::JustificationHeuristic(this, d_userContext, d_satContext);
     enableStrategy(ds);

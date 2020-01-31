@@ -564,6 +564,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_unif.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/sygus_abduct.cpp
   theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
@@ -590,6 +592,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_process_conj.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
   theory/quantifiers/sygus/sygus_repair_const.h
+  theory/quantifiers/sygus/sygus_stats.cpp
+  theory/quantifiers/sygus/sygus_stats.h
   theory/quantifiers/sygus/sygus_unif.cpp
   theory/quantifiers/sygus/sygus_unif.h
   theory/quantifiers/sygus/sygus_unif_io.cpp
@@ -894,19 +898,11 @@ install(FILES
           ${INCLUDE_INSTALL_DIR}/cvc4/expr)
 install(FILES
           options/argument_extender.h
-          options/arith_heuristic_pivot_rule.h
-          options/arith_propagation_mode.h
-          options/arith_unate_lemma_mode.h
-          options/datatypes_modes.h
           options/language.h
           options/option_exception.h
           options/options.h
           options/printer_modes.h
-          options/quantifiers_modes.h
           options/set_language.h
-          options/smt_modes.h
-          options/sygus_out_mode.h
-          options/theoryof_mode.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/options)
 install(FILES

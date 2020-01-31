@@ -82,23 +82,23 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
 
       if (id == theory::THEORY_BV) {
         auto thBv = static_cast<theory::bv::TheoryBV*>(th);
-        if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-            && options::bvSatSolver() == theory::bv::SAT_SOLVER_CRYPTOMINISAT)
+        if (options::bitblastMode() == options::BitblastMode::EAGER
+            && options::bvSatSolver() == options::SatSolverMode::CRYPTOMINISAT)
         {
           proof::BitVectorProof* bvp = nullptr;
           switch (options::bvProofFormat())
           {
-            case theory::bv::BvProofFormat::BITVECTOR_PROOF_DRAT:
+            case options::BvProofFormat::DRAT:
             {
               bvp = new proof::LfscDratBitVectorProof(thBv, this);
               break;
             }
-            case theory::bv::BvProofFormat::BITVECTOR_PROOF_LRAT:
+            case options::BvProofFormat::LRAT:
             {
               bvp = new proof::LfscLratBitVectorProof(thBv, this);
               break;
             }
-            case theory::bv::BvProofFormat::BITVECTOR_PROOF_ER:
+            case options::BvProofFormat::ER:
             {
               bvp = new proof::LfscErBitVectorProof(thBv, this);
               break;
@@ -283,7 +283,11 @@ void LFSCTheoryProofEngine::printLetTerm(Expr term, std::ostream& os) {
   os << paren.str();
 }
 
-void LFSCTheoryProofEngine::printTheoryTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printTheoryTermAsType(Expr term,
+                                                  std::ostream& os,
+                                                  const ProofLetMap& map,
+                                                  TypeNode expectedType)
+{
   theory::TheoryId theory_id = theory::Theory::theoryOf(term);
 
   // boolean terms and ITEs are special because they
@@ -585,7 +589,8 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   //  finalizeBvConflicts(lemmas, os, paren, map);
   ProofManager::getBitVectorProof()->printBBDeclarationAndCnf(os, paren, map);
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == options::BitblastMode::EAGER)
+  {
     Assert(lemmas.size() == 1);
     // nothing more to do (no combination with eager so far)
     return;
@@ -854,7 +859,11 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   }
 }
 
-void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printBoundTermAsType(Expr term,
+                                                 std::ostream& os,
+                                                 const ProofLetMap& map,
+                                                 TypeNode expectedType)
+{
   Debug("pf::tp") << "LFSCTheoryProofEngine::printBoundTerm( " << term << " ) " << std::endl;
 
   ProofLetMap::const_iterator it = map.find(term);
@@ -871,7 +880,28 @@ void LFSCTheoryProofEngine::printBoundTerm(Expr term, std::ostream& os, const Pr
   printTheoryTerm(term, os, map);
 }
 
-void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCTheoryProofEngine::printBoundFormula(Expr term,
+                                              std::ostream& os,
+                                              const ProofLetMap& map)
+{
+  Assert(term.getType().isBoolean() or term.getType().isPredicate());
+  bool wrapWithBoolToPred = term.getType().isBoolean() and printsAsBool(term);
+  if (wrapWithBoolToPred)
+  {
+    os << "(p_app ";
+  }
+  printBoundTerm(term, os, map);
+  if (wrapWithBoolToPred)
+  {
+    os << ")";
+  }
+}
+
+void LFSCTheoryProofEngine::printCoreTerm(Expr term,
+                                          std::ostream& os,
+                                          const ProofLetMap& map,
+                                          Type expectedType)
+{
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);
     return;
@@ -881,17 +911,30 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
 
   switch(k) {
   case kind::ITE: {
-    os << (term.getType().isBoolean() ? "(ifte ": "(ite _ ");
+    bool useFormulaType = term.getType().isBoolean();
+    Assert(term[1].getType().isSubtypeOf(term.getType()));
+    Assert(term[2].getType().isSubtypeOf(term.getType()));
+    os << (useFormulaType ? "(ifte " : "(ite _ ");
 
-    bool booleanCase = term[0].getType().isBoolean();
-    if (booleanCase && printsAsBool(term[0])) os << "(p_app ";
-    printBoundTerm(term[0], os, map);
-    if (booleanCase && printsAsBool(term[0])) os << ")";
-
+    printBoundFormula(term[0], os, map);
     os << " ";
-    printBoundTerm(term[1], os, map);
+    if (useFormulaType)
+    {
+      printBoundFormula(term[1], os, map);
+    }
+    else
+    {
+      printBoundTerm(term[1], os, map);
+    }
     os << " ";
-    printBoundTerm(term[2], os, map);
+    if (useFormulaType)
+    {
+      printBoundFormula(term[2], os, map);
+    }
+    else
+    {
+      printBoundTerm(term[2], os, map);
+    }
     os << ")";
     return;
   }
@@ -1003,7 +1046,6 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
 
   default: Unhandled() << k;
   }
-
 }
 
 void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
@@ -1150,7 +1192,11 @@ void LFSCBooleanProof::printConstantDisequalityProof(std::ostream& os, Expr c1, 
     os << "(negsymm _ _ _ t_t_neq_f)";
 }
 
-void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCBooleanProof::printOwnedTermAsType(Expr term,
+                                            std::ostream& os,
+                                            const ProofLetMap& map,
+                                            TypeNode expectedType)
+{
   Assert(term.getType().isBoolean());
   if (term.isVariable()) {
     os << ProofManager::sanitize(term);
@@ -1228,7 +1274,6 @@ void LFSCBooleanProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLe
 
   default: Unhandled() << k;
   }
-
 }
 
 void LFSCBooleanProof::printOwnedSort(Type type, std::ostream& os) {

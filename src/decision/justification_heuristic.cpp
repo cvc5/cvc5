@@ -248,7 +248,9 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, SatValue satV
 
 DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity)
 {
-  if(options::decisionWeightInternal() != DECISION_WEIGHT_INTERNAL_USR1) {
+  if (options::decisionWeightInternal()
+      != options::DecisionWeightInternal::USR1)
+  {
     return getWeight(n);
   }
 
@@ -297,10 +299,11 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity
 
 DecisionWeight JustificationHeuristic::getWeight(TNode n) {
   if(!n.hasAttribute(DecisionWeightAttr()) ) {
+    options::DecisionWeightInternal combiningFn =
+        options::decisionWeightInternal();
 
-    DecisionWeightInternal combiningFn = options::decisionWeightInternal();
-
-    if (combiningFn == DECISION_WEIGHT_INTERNAL_OFF || n.getNumChildren() == 0)
+    if (combiningFn == options::DecisionWeightInternal::OFF
+        || n.getNumChildren() == 0)
     {
       if (options::decisionRandomWeight() != 0)
       {
@@ -308,15 +311,15 @@ DecisionWeight JustificationHeuristic::getWeight(TNode n) {
             Random::getRandom().pick(0, options::decisionRandomWeight()-1));
       }
     }
-    else if (combiningFn == DECISION_WEIGHT_INTERNAL_MAX)
+    else if (combiningFn == options::DecisionWeightInternal::MAX)
     {
       DecisionWeight dW = 0;
       for (TNode::iterator i = n.begin(); i != n.end(); ++i)
         dW = max(dW, getWeight(*i));
       n.setAttribute(DecisionWeightAttr(), dW);
     }
-    else if (combiningFn == DECISION_WEIGHT_INTERNAL_SUM
-             || combiningFn == DECISION_WEIGHT_INTERNAL_USR1)
+    else if (combiningFn == options::DecisionWeightInternal::SUM
+             || combiningFn == options::DecisionWeightInternal::USR1)
     {
       DecisionWeight dW = 0;
       for (TNode::iterator i = n.begin(); i != n.end(); ++i)

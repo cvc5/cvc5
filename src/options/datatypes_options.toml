@@ -151,12 +151,26 @@ header = "options/datatypes_options.h"
   name       = "sygusFair"
   category   = "regular"
   long       = "sygus-fair=MODE"
-  type       = "CVC4::theory::SygusFairMode"
-  default    = "CVC4::theory::SYGUS_FAIR_DT_SIZE"
-  handler    = "stringToSygusFairMode"
-  includes   = ["options/datatypes_modes.h"]
+  type       = "SygusFairMode"
+  default    = "DT_SIZE"
   read_only  = true
   help       = "if and how to apply fairness for sygus"
+  help_mode  = "Modes for enforcing fairness for counterexample guided quantifier instantion."
+[[option.mode.DIRECT]]
+  name = "direct"
+  help = "Enforce fairness using direct conflict lemmas."
+[[option.mode.DT_SIZE]]
+  name = "dt-size"
+  help = "Enforce fairness using size operator."
+[[option.mode.DT_HEIGHT_PRED]]
+  name = "dt-height-bound"
+  help = "Enforce fairness by height bound predicate."
+[[option.mode.DT_SIZE_PRED]]
+  name = "dt-size-bound"
+  help = "Enforce fairness by size bound predicate."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not enforce fairness."
 
 [[option]]
   name       = "sygusFairMax"

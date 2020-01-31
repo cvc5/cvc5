@@ -33,7 +33,6 @@
 #include "lib/ffs.h"
 #include "options/options.h"
 #include "options/theory_options.h"
-#include "options/theoryof_mode.h"
 #include "smt/command.h"
 #include "smt/dump.h"
 #include "smt/logic_request.h"
@@ -273,7 +272,7 @@ public:
   /**
    * Returns the ID of the theory responsible for the given node.
    */
-  static TheoryId theoryOf(TheoryOfMode mode, TNode node);
+  static TheoryId theoryOf(options::TheoryOfMode mode, TNode node);
 
   /**
    * Returns the ID of the theory responsible for the given node.
