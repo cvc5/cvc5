@@ -96,7 +96,7 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
     // TODO (#1123): support uninterpreted sorts with --finite-model-find
     std::stringstream message;
     message << "The cardinality " << card << " of the finite type " << t
-            << " is not supported yet." << endl;
+            << " is not supported yet.";
     throw LogicException(message.str());
   }
 
