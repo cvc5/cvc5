@@ -186,9 +186,18 @@ void TheoryProofEngine::printTheoryTerm(Expr term,
 
 TypeNode TheoryProofEngine::equalityType(const Expr& left, const Expr& right)
 {
-  Assert(theory::Theory::theoryOf(left) == theory::Theory::theoryOf(right));
-  return getTheoryProof(theory::Theory::theoryOf(left))
-      ->equalityType(left, right);
+  // Ask the two theories what they think..
+  TypeNode leftType = getTheoryProof(theory::Theory::theoryOf(left))->equalityType(left, right);
+  TypeNode rightType = getTheoryProof(theory::Theory::theoryOf(right))->equalityType(left, right);
+
+  // Error if the disagree.
+  Assert(leftType.isNull() || rightType.isNull() || leftType == rightType)
+    << "TheoryProofEngine::equalityType(" << left << ", " << right << "):" << std::endl
+    << "theories disagree about the type of an equality:" << std::endl
+    << "\tleft: " << leftType << std::endl
+    << "\tright:" << rightType;
+
+  return leftType.isNull() ? rightType : leftType;
 }
 
 void TheoryProofEngine::registerTerm(Expr term) {
@@ -1386,7 +1395,11 @@ void TheoryProof::printOwnedTerm(Expr term,
 
 TypeNode TheoryProof::equalityType(const Expr& left, const Expr& right)
 {
-  Assert(left.getType() == right.getType());
+  Assert(left.getType() == right.getType())
+    << "TheoryProof::equalityType(" << left << ", " << right << "):" << std::endl
+    << "types disagree:" << std::endl
+    << "\tleft: " << left.getType() << std::endl
+    << "\tright:" << right.getType();
   return TypeNode::fromType(left.getType());
 }
 
