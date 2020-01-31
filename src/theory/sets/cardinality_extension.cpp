@@ -93,19 +93,11 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
 
   if (card.isInfinite())
   {
-    if (d_state.getUnivSetEqClass(t).isNull())
-    {
-      // no need to compute the cardinality of univset if it is not used
-      return;
-    }
-    else
-    {
-      // TODO (#1123): support uninterpreted sorts with --finite-model-find
-      std::stringstream message;
-      message << "The cardinality " << card << " of the finite type " << t
-              << " is not supported yet." << endl;
-      Assert(false) << message.str().c_str();
-    }
+    // TODO (#1123): support uninterpreted sorts with --finite-model-find
+    std::stringstream message;
+    message << "The cardinality " << card << " of the finite type " << t
+            << " is not supported yet." << endl;
+    throw LogicException(message.str());
   }
 
   // get the universe set (as univset (Set t))
