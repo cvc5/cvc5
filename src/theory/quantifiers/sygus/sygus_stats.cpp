@@ -48,7 +48,6 @@ SygusStatistics::~SygusStatistics()
   smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites_print);
 }
 
-
 }  // namespace quantifiers
 }  // namespace theory
 } /* namespace CVC4 */
