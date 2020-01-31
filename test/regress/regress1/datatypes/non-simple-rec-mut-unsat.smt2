@@ -1,3 +1,5 @@
+; COMMAND_LINE: --dt-non-simple-rec
+; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
 (declare-datatypes ((E 0)(T 0)) (

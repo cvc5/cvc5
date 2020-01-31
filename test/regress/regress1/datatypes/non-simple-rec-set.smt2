@@ -1,3 +1,5 @@
+; COMMAND_LINE: --dt-non-simple-rec
+; EXPECT: unsat
 (set-logic ALL)
 (declare-datatype T
 ((Emp) (Container (s (Set T)) )

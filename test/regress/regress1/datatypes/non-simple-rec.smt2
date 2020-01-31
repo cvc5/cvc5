@@ -1,3 +1,5 @@
+; COMMAND_LINE: --dt-non-simple-rec
+; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
 (declare-datatypes ((T 0)) (((Nil) (Map (m (Array Int T)) ) ) ))
