@@ -2036,6 +2036,10 @@ void SmtEngine::setDefaults() {
       {
         options::sygusUnifPbe.set(false);
       }
+      if (options::sygusUnifPi.wasSetByUser())
+      {
+        options::sygusUnifPi.set(options::SygusUnifPiMode::NONE);
+      }
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
         options::sygusInvTemplMode.set(options::SygusInvTemplMode::NONE);
