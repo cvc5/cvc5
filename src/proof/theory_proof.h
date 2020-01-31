@@ -198,14 +198,15 @@ public:
   void printTheoryTerm(Expr term,
                        std::ostream& os,
                        const ProofLetMap& map,
-                       TypeNode expectedType = TypeNode())
-  {
-    this->printTheoryTermAsType(term, os, map, expectedType);
-  }
+                       TypeNode expectedType = TypeNode());
   virtual void printTheoryTermAsType(Expr term,
                                      std::ostream& os,
                                      const ProofLetMap& map,
                                      TypeNode expectedType) = 0;
+  /**
+   * Calls `TheoryProof::equalityType` on the appropriate theory.
+   */
+  TypeNode equalityType(const Expr& left, const Expr& right);
 
   bool printsAsBool(const Node &n);
 };
@@ -306,14 +307,27 @@ protected:
   void printOwnedTerm(Expr term,
                       std::ostream& os,
                       const ProofLetMap& map,
-                      TypeNode expectedType = TypeNode())
-  {
-    this->printOwnedTermAsType(term, os, map, expectedType);
-  }
+                      TypeNode expectedType = TypeNode());
+
   virtual void printOwnedTermAsType(Expr term,
                                     std::ostream& os,
                                     const ProofLetMap& map,
                                     TypeNode expectedType) = 0;
+
+  /**
+   * Return the type (at the SMT level, the sort) of an equality or disequality
+   * between `left` and `right`.
+   *
+   * The default implementation asserts that the two have the same type, and
+   * returns it.
+   *
+   * A theory may want to do something else.
+   *
+   * For example, the theory of arithmetic allows equalities between Reals and
+   * Integers. In this case the integer is upcast to a real, and the equality
+   * is over reals.
+   */
+  virtual TypeNode equalityType(const Expr& left, const Expr& right);
 
   /**
    * Print the proof representation of the given type that belongs to some theory.

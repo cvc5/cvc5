@@ -176,6 +176,20 @@ void TheoryProofEngine::printConstantDisequalityProof(std::ostream& os, Expr c1,
   getTheoryProof(theory::Theory::theoryOf(c1))->printConstantDisequalityProof(os, c1, c2, globalLetMap);
 }
 
+  void TheoryProofEngine::printTheoryTerm(Expr term,
+                       std::ostream& os,
+                       const ProofLetMap& map,
+                       TypeNode expectedType)
+  {
+    this->printTheoryTermAsType(term, os, map, expectedType);
+  }
+
+TypeNode TheoryProofEngine::equalityType(const Expr& left, const Expr& right)
+{
+  Assert(theory::Theory::theoryOf(left) == theory::Theory::theoryOf(right));
+  return getTheoryProof(theory::Theory::theoryOf(left))->equalityType(left, right);
+}
+
 void TheoryProofEngine::registerTerm(Expr term) {
   Debug("pf::tp::register") << "TheoryProofEngine::registerTerm: registering term: " << term << std::endl;
 
@@ -947,7 +961,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
 
   case kind::EQUAL: {
     bool booleanCase = term[0].getType().isBoolean();
-    TypeNode armType = TypeNode::fromType(term[0].getType());
+    TypeNode armType = equalityType(term[0], term[1]);
 
     os << "(";
     if (booleanCase) {
@@ -975,7 +989,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
   case kind::DISTINCT: {
     // Distinct nodes can have any number of chidlren.
     Assert(term.getNumChildren() >= 2);
-    TypeNode armType = TypeNode::fromType(term[0].getType());
+    TypeNode armType = equalityType(term[0], term[1]);
 
     if (term.getNumChildren() == 2) {
       os << "(not (= ";
@@ -993,6 +1007,7 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term,
 
       for (unsigned i = 0; i < term.getNumChildren(); ++i) {
         for (unsigned j = i + 1; j < term.getNumChildren(); ++j) {
+          TypeNode armType = equalityType(term[i], term[j]);
           if ((i != 0) || (j != 1)) {
             os << "(not (= ";
             printSort(term[0].getType(), os);
@@ -1351,6 +1366,20 @@ void TheoryProof::printRewriteProof(std::ostream& os, const Node &n1, const Node
   os << " ";
   d_proofEngine->printBoundTerm(n2.toExpr(), os, emptyMap);
   os << "))";
+}
+
+  void TheoryProof::printOwnedTerm(Expr term,
+                      std::ostream& os,
+                      const ProofLetMap& map,
+                      TypeNode expectedType)
+  {
+    this->printOwnedTermAsType(term, os, map, expectedType);
+  }
+
+TypeNode TheoryProof::equalityType(const Expr& left, const Expr& right)
+{
+  Assert(left.getType() == right.getType());
+  return TypeNode::fromType(left.getType());
 }
 
 bool TheoryProof::match(TNode n1, TNode n2)
