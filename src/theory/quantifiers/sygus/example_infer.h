@@ -112,13 +112,13 @@ class ExampleInfer
   TermDbSygus* d_tds;
   /** is this an examples conjecture for all functions-to-synthesize? */
   bool d_isExamples;
-  /** 
+  /**
    * For each candidate variable f (a function-to-synthesize), whether the
    * conjecture has examples for that function. In other words, all occurrences
    * of f are applied to constants only.
    */
   std::map<Node, bool> d_examples_invalid;
-  /** 
+  /**
    * For each function-to-synthesize , whether the conjecture is purely PBE for
    * f. In other words, is the specification for f a set of concrete I/O pairs?
    * An example of a conjecture for which d_examples_invalid is false but
