@@ -350,7 +350,7 @@ int RepSetIterator::incrementAtIndex(int i)
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   i = (int)d_index.size()-1;
 #endif
-    Trace("rsi-debug") << "RepSetIterator::incrementAtIndex: " << i << std::endl;
+  Trace("rsi-debug") << "RepSetIterator::incrementAtIndex: " << i << std::endl;
   //increment d_index
   if( i>=0){
     Trace("rsi-debug") << "domain size of " << i << " is " << domainSize(i) << std::endl;
@@ -373,7 +373,8 @@ int RepSetIterator::incrementAtIndex(int i)
 }
 
 int RepSetIterator::do_reset_increment( int i, bool initial ) {
-  Trace("rsi-debug") << "RepSetIterator::do_reset_increment: " << i << ", initial=" << initial << std::endl;
+  Trace("rsi-debug") << "RepSetIterator::do_reset_increment: " << i
+                     << ", initial=" << initial << std::endl;
   for( unsigned ii=(i+1); ii<d_index.size(); ii++ ){
     bool emptyDomain = false;
     int ri_res = resetIndex( ii, initial );
@@ -388,11 +389,12 @@ int RepSetIterator::do_reset_increment( int i, bool initial ) {
     //force next iteration if currently an empty domain
     if (emptyDomain)
     {
-      Trace("rsi-debug") << "This is an empty domain (index " << ii << ")." << std::endl;
-      if (ii>0)
+      Trace("rsi-debug") << "This is an empty domain (index " << ii << ")."
+                         << std::endl;
+      if (ii > 0)
       {
         // increment at the previous index
-        return incrementAtIndex(ii-1);
+        return incrementAtIndex(ii - 1);
       }
       else
       {
