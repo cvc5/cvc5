@@ -114,11 +114,16 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
     if (!lit.isNull())
     {
       lit = Rewriter::rewrite(lit);
-      lit = d_valuation.ensureLiteral(lit);
     }
     d_literals.push_back(lit);
   }
-  return d_literals[n];
+  Node ret = d_literals[n];
+  if (!ret.isNull())
+  {
+    // always ensure it is in the CNF stream
+    ret = d_valuation.ensureLiteral(ret);
+  }
+  return ret;
 }
 
 DecisionStrategySingleton::DecisionStrategySingleton(
