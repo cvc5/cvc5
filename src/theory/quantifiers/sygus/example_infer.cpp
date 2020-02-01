@@ -41,7 +41,8 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
     d_examplesOut[v].clear();
     d_examplesTerm[v].clear();
   }
-  std::map<std::pair<bool,bool>, std::unordered_set<Node, NodeHashFunction>> visited;
+  std::map<std::pair<bool, bool>, std::unordered_set<Node, NodeHashFunction>>
+      visited;
   // n is negated conjecture
   if (!collectExamples(n, visited, true, false))
   {
@@ -83,12 +84,14 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
   return true;
 }
 
-bool ExampleInfer::collectExamples(Node n,
-                                   std::map<std::pair<bool,bool>, std::unordered_set<Node, NodeHashFunction>>& visited,
-                                   bool hasPol,
-                                   bool pol)
+bool ExampleInfer::collectExamples(
+    Node n,
+    std::map<std::pair<bool, bool>, std::unordered_set<Node, NodeHashFunction>>&
+        visited,
+    bool hasPol,
+    bool pol)
 {
-  std::pair<bool,bool> cacheIndex = std::pair<bool,bool>(hasPol, pol );
+  std::pair<bool, bool> cacheIndex = std::pair<bool, bool>(hasPol, pol);
   if (visited[cacheIndex].find(n) != visited[cacheIndex].end())
   {
     // already visited
@@ -152,7 +155,8 @@ bool ExampleInfer::collectExamples(Node n,
     if (itx == d_examples_invalid.end())
     {
       // have we already processed this as an example term?
-      if (std::find(d_examplesTerm[eh].begin(),d_examplesTerm[eh].end(),neval)==d_examplesTerm[eh].end())
+      if (std::find(d_examplesTerm[eh].begin(), d_examplesTerm[eh].end(), neval)
+          == d_examplesTerm[eh].end())
       {
         // collect example
         bool success = true;

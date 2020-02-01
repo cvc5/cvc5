@@ -103,13 +103,15 @@ class ExampleInfer
    * This is called on the input conjecture, and will populate the above
    * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
    * function returns false if it finds two examples that are contradictory.
-   * 
+   *
    * visited[b] stores the cache of nodes we have visited with (hasPol, pol).
    */
-  bool collectExamples(Node n,
-                       std::map<std::pair<bool,bool>, std::unordered_set<Node, NodeHashFunction>>& visited,
-                       bool hasPol,
-                       bool pol);
+  bool collectExamples(
+      Node n,
+      std::map<std::pair<bool, bool>,
+               std::unordered_set<Node, NodeHashFunction>>& visited,
+      bool hasPol,
+      bool pol);
   /** Pointer to the sygus term database */
   TermDbSygus* d_tds;
   /** is this an examples conjecture for all functions-to-synthesize? */
