@@ -1,3 +1,4 @@
+;EXIT: 1
 ;EXPECT: (error "The cardinality beth[0] of the finite type a is not supported yet.")
 (set-logic ALL)
 (set-option :fmf-fun true)
