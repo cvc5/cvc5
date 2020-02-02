@@ -437,33 +437,6 @@ struct sortSiInstanceIndices {
   }
 };
 
-Node CegSingleInv::postProcessSolution(Node n)
-{
-  bool childChanged = false;
-  Kind k = n.getKind();
-  if( n.getKind()==INTS_DIVISION_TOTAL ){
-    k = INTS_DIVISION;
-    childChanged = true;
-  }else if( n.getKind()==INTS_MODULUS_TOTAL ){
-    k = INTS_MODULUS;
-    childChanged = true;
-  }
-  std::vector< Node > children;
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    Node nn = postProcessSolution( n[i] );
-    children.push_back( nn );
-    childChanged = childChanged || nn!=n[i];
-  }
-  if( childChanged ){
-    if( n.hasOperator() && k==n.getKind() ){
-      children.insert( children.begin(), n.getOperator() );
-    }
-    return NodeManager::currentNM()->mkNode( k, children );
-  }else{
-    return n;
-  }
-}
-
 Node CegSingleInv::getSolution(unsigned sol_index,
                                TypeNode stn,
                                int& reconstructed,
@@ -584,7 +557,6 @@ Node CegSingleInv::reconstructToSyntax(Node s,
           d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(
               d_solution);
     }
-    d_solution = postProcessSolution( d_solution );
     if( prev!=d_solution ){
       Trace("csi-sol") << "Solution (after post process) : " << d_solution << std::endl;
     }
@@ -676,7 +648,7 @@ bool CegSingleInv::solveTrivial(Node q)
     }
   }
   // if we solved all arguments
-  if (args.empty())
+  if (args.empty() && body.isConst() && !body.getConst<bool>())
   {
     Trace("cegqi-si-trivial-solve")
         << q << " is trivially solvable by substitution " << vars << " -> "
