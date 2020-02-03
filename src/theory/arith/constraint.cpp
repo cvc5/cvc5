@@ -526,6 +526,46 @@ bool Constraint::hasTrichotomyProof() const {
   return getProofType() == TrichotomyAP;
 }
 
+void Constraint::printProofTree(std::ostream& out, size_t depth) const
+{
+  const ConstraintRule& rule = getConstraintRule();
+  out << std::string(2 * depth, ' ') << "* " << getVariable() << " [";
+  if (hasLiteral())
+  {
+    out << getLiteral();
+  }
+  else
+  {
+    out << "NOLIT";
+  };
+  out << "]" << ' ' << getType() << ' ' << getValue() << " (" << getProofType()
+      << ")";
+  if (getProofType() == FarkasAP)
+  {
+    out << " [";
+    bool first = true;
+    for (const auto& coeff : *rule.d_farkasCoefficients)
+    {
+      if (not first)
+      {
+        out << ", ";
+      }
+      first = false;
+      out << coeff;
+    }
+    out << "]";
+  }
+  out << endl;
+
+  for (AntecedentId i = rule.d_antecedentEnd; i != AntecedentIdSentinel; --i) {
+    ConstraintCP antecdent = d_database->getAntecedent(i);
+    if (antecdent == NullConstraint) {
+      break;
+    }
+    antecdent->printProofTree(out, depth + 1);
+  }
+}
+
 bool Constraint::sanityChecking(Node n) const {
   Comparison cmp = Comparison::parseNormalForm(n);
   Kind k = cmp.comparisonKind();
@@ -1361,7 +1401,7 @@ Node Constraint::externalExplainByAssertions(const ConstraintCPVec& b){
 }
 
 Node Constraint::externalExplainConflict() const{
-  Debug("pf::arith") << this << std::endl;
+  Debug("pf::arith::explain") << this << std::endl;
   Assert(inConflict());
   NodeBuilder<> nb(kind::AND);
   externalExplainByAssertions(nb);
@@ -1431,11 +1471,11 @@ void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
   Assert(!isAssumption() || assertedToTheTheory());
   Assert(!isInternalAssumption());
 
-  if (Debug.isOn("pf::arith"))
+  if (Debug.isOn("pf::arith::explain"))
   {
-    Debug("pf::arith") << "Explaining: " << this << " with rule ";
-    getConstraintRule().print(Debug("pf::arith"));
-    Debug("pf::arith") << std::endl;
+    Debug("pf::arith::explain") << "Explaining: " << this << " with rule ";
+    getConstraintRule().print(Debug("pf::arith::explain"));
+    Debug("pf::arith::explain") << std::endl;
   }
 
   if(assertedBefore(order)){
@@ -1448,7 +1488,7 @@ void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
     ConstraintCP antecedent = d_database->d_antecedents[p];
 
     while(antecedent != NullConstraint){
-      Debug("pf::arith") << "Explain " << antecedent << std::endl;
+      Debug("pf::arith::explain") << "Explain " << antecedent << std::endl;
       antecedent->externalExplain(nb, order);
       --p;
       antecedent = d_database->d_antecedents[p];
