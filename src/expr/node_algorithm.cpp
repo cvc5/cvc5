@@ -542,7 +542,7 @@ void getComponentTypes(
         toProcess.push_back(t[i]);
       }
     }
-  }while(!toProcess.empty());
+  } while (!toProcess.empty());
 }
 
 }  // namespace expr
