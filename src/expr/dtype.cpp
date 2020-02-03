@@ -519,8 +519,10 @@ bool DType::isWellFounded() const
         }
       }
     }
-    // If it is parametric, we may match with a component type (e.g. (T Int)
-    // for (T x)). Thus, we must check this for all component types.
+    // If it is parametric, this type may match with a component type (e.g.
+    // we may have a field (T Int) for parametric datatype (T x) where x
+    // is a type parameter). Thus, we check whether the self type matches any
+    // component type using the TypeMatcher utility.
     if (isParametric())
     {
       for (const TypeNode& t : types)
