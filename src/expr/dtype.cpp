@@ -14,8 +14,8 @@
 #include "expr/dtype.h"
 
 #include "expr/node_algorithm.h"
-#include "options/datatypes_options.h"
 #include "expr/type_matcher.h"
+#include "options/datatypes_options.h"
 
 using namespace CVC4::kind;
 
@@ -484,7 +484,8 @@ bool DType::isWellFounded() const
   if (!computeWellFounded(processing))
   {
     // not well-founded since no ground term can be constructed
-          Trace("datatypes-init") << "DType::isWellFounded: false due to no ground terms." << std::endl;
+    Trace("datatypes-init")
+        << "DType::isWellFounded: false due to no ground terms." << std::endl;
     d_wellFounded = -1;
     return false;
   }
@@ -498,17 +499,19 @@ bool DType::isWellFounded() const
       for (unsigned j = 0, nargs = ctor->getNumArgs(); j < nargs; ++j)
       {
         TypeNode tn = ctor->getArgType(j);
-        if (tn==d_self)
+        if (tn == d_self)
         {
           // simple recursion is allowed
           continue;
         }
         expr::getComponentTypes(tn, types);
         // does types contain self now?
-        if (types.find(d_self)!=types.end())
+        if (types.find(d_self) != types.end())
         {
           // not well founded since not simply recursive
-          Trace("datatypes-init") << "DType::isWellFounded: false due to non-simple recursion." << std::endl;
+          Trace("datatypes-init")
+              << "DType::isWellFounded: false due to non-simple recursion."
+              << std::endl;
           d_wellFounded = -1;
           return false;
         }
@@ -518,13 +521,16 @@ bool DType::isWellFounded() const
     // for (T x)). Thus, we must check this for all component types.
     if (isParametric())
     {
-      for ( const TypeNode& t : types )
+      for (const TypeNode& t : types)
       {
         TypeMatcher m(d_self);
         Trace("datatypes-init") << "  " << t << std::endl;
-        if (m.doMatching(d_self,t))
+        if (m.doMatching(d_self, t))
         {
-          Trace("datatypes-init") << "DType::isWellFounded: false due to non-simple recursion for instantiated parametric datatype." << std::endl;
+          Trace("datatypes-init")
+              << "DType::isWellFounded: false due to non-simple recursion for "
+                 "instantiated parametric datatype."
+              << std::endl;
           d_wellFounded = -1;
           return false;
         }
