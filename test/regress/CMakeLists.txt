@@ -3,6 +3,11 @@
 
 set(regress_0_tests
   regress0/arith/ackermann.real.smt2
+  regress0/arith/arith-eq.smt2
+  regress0/arith/arith-mixed.smt2
+  regress0/arith/arith-strict.smt2
+  regress0/arith/arith-mixed-types-tighten.smt2
+  regress0/arith/arith-mixed-types-no-tighten.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc
