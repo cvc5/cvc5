@@ -151,15 +151,14 @@ Node substituteCaptureAvoiding(TNode n,
                                std::vector<Node>& src,
                                std::vector<Node>& dest);
 
-
-/** 
+/**
  * Get component types in type t. This adds the types that t is built from.
  * For example, if t is (Array T1 T2), then T1 and T2 are component types of t.
  * @param t The type node under investigation
  * @param types The set which component types are added to.
  */
-void getComponentTypes(TypeNode t,
-                       std::unordered_set<TypeNode, TypeNodeHashFunction>& types);
+void getComponentTypes(
+    TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types);
 
 }  // namespace expr
 }  // namespace CVC4
