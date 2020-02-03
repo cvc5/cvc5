@@ -528,6 +528,7 @@ bool Constraint::hasTrichotomyProof() const {
 
 void Constraint::printProofTree(std::ostream& out, size_t depth) const
 {
+#if IS_PROOFS_BUILD
   const ConstraintRule& rule = getConstraintRule();
   out << std::string(2 * depth, ' ') << "* " << getVariable() << " [";
   if (hasLiteral())
@@ -564,6 +565,9 @@ void Constraint::printProofTree(std::ostream& out, size_t depth) const
     }
     antecdent->printProofTree(out, depth + 1);
   }
+#else  /* IS_PROOFS_BUILD */
+  out << "Cannot print proof. This is not a proof build." << endl;
+#endif /* IS_PROOFS_BUILD */
 }
 
 bool Constraint::sanityChecking(Node n) const {
