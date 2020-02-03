@@ -7,6 +7,7 @@
 (declare-fun y () Real)
 (declare-fun z () Real)
 
+; Both strict and non-strict inequalities.
 (assert (< y 0))
 (assert (>= y x))
 (assert (>= y (- x)))

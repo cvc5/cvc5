@@ -6,6 +6,7 @@
 (declare-fun x_44 () Real)
 (declare-fun x_45 () Real)
 
+; This test is a subset of one of the `../lemmas` tests. I think `../lemmas/sc_init_frame_gap.induction.smtv1.smt2`.
 (declare-fun termITE_30 () Int)
 (declare-fun termITE_3 () Real)
 (declare-fun termITE_4 () Real)
@@ -17,6 +18,7 @@
     (let ((_let_0 (* (- 1.0) termITE_3)))
         (and
             (>= (+ termITE_8 (* (- 1.0) termITE_9)) 0.0)
+            ; This literal can be tightened to `termITE_31 <= 1`.
             (not (>= termITE_31 2))
             (>= (+ (* (- 1.0) x_44) (/ termITE_31 1)) 0.0)
             (>= (+ x_44 (* (- 1.0) termITE_4)) 0.0)
