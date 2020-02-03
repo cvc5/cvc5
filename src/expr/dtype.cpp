@@ -504,7 +504,8 @@ bool DType::isWellFounded() const
           // simple recursion is allowed
           continue;
         }
-        Trace("datatypes-init") << "Collect component types " << tn << std::endl;
+        Trace("datatypes-init")
+            << "Collect component types " << tn << std::endl;
         expr::getComponentTypes(tn, types);
         // does types contain self now?
         if (types.find(d_self) != types.end())
@@ -530,8 +531,8 @@ bool DType::isWellFounded() const
         {
           Trace("datatypes-init")
               << "DType::isWellFounded: false due to non-simple recursion for "
-                 "instantiated parametric datatype, " << d_self << " matching " << t
-              << std::endl;
+                 "instantiated parametric datatype, "
+              << d_self << " matching " << t << std::endl;
           d_wellFounded = -1;
           return false;
         }
