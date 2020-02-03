@@ -266,7 +266,7 @@ class TermDbSygus {
    */
   Node evaluateBuiltin(TypeNode tn,
                        Node bn,
-                       std::vector<Node>& args,
+                       const std::vector<Node>& args,
                        bool tryEval = true);
   /** evaluate with unfolding
    *
