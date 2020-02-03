@@ -38,9 +38,7 @@ namespace strings {
  */
 class BaseSolver
 {
-  friend class InferenceManager;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
 
  public:
   BaseSolver(context::Context* c,
@@ -101,6 +99,45 @@ class BaseSolver
   //-----------------------end query functions
 
  private:
+  /**
+   * A term index that considers terms modulo flattening and constant merging
+   * for concatenation terms.
+   */
+  class TermIndex
+  {
+   public:
+    /** Add n to this trie
+     *
+     * A term is indexed by flattening arguments of concatenation terms,
+     * and replacing them by (non-empty) constants when possible, for example
+     * if n is (str.++ x y z) and x = "abc" and y = "" are asserted, then n is
+     * indexed by ("abc", z).
+     *
+     * index: the child of n we are currently processing,
+     * s : reference to solver state,
+     * er : the representative of the empty equivalence class.
+     *
+     * We store the vector of terms that n was indexed by in the vector c.
+     */
+    Node add(TNode n,
+             unsigned index,
+             const SolverState& s,
+             Node er,
+             std::vector<Node>& c);
+    /** Clear this trie */
+    void clear() { d_children.clear(); }
+    /** The data at this node of the trie */
+    Node d_data;
+    /** The children of this node of the trie */
+    std::map<TNode, TermIndex> d_children;
+  };
+  /**
+   * This method is called as we are traversing the term index ti, where vecc
+   * accumulates the list of constants in the path to ti. If ti has a non-null
+   * data n, then we have inferred that d_data is equivalent to the
+   * constant specified by vecc.
+   */
+  void checkConstantEquivalenceClasses(TermIndex* ti, std::vector<Node>& vecc);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
@@ -143,48 +180,8 @@ class BaseSolver
   std::map<Node, Node> d_eqcToConstExp;
   /** The list of equivalence classes of type string */
   std::vector<Node> d_stringsEqc;
-  /**
-   * A term index that considers terms modulo flattening and constant merging
-   * for concatenationterms.
-   */
-  class TermIndex
-  {
-   public:
-    /** The data at this node of the trie */
-    Node d_data;
-    /** The children of this node of the trie */
-    std::map<TNode, TermIndex> d_children;
-    /** Add n to this trie
-     *
-     * A term is indexed by flattening arguments of concatenation terms,
-     * and replacing them by (non-empty) constants when possible, for example
-     * if n is (str.++ x y z) and x = "abc" and y = "" are asserted, then n is
-     * indexed by ("abc", z).
-     *
-     * index: the child of n we are currently processing,
-     * s : reference to solver state,
-     * er : the representative of the empty equivalence class.
-     *
-     * We store the vector of terms that n was indexed by in the vector c.
-     */
-    Node add(TNode n,
-             unsigned index,
-             const SolverState& s,
-             Node er,
-             std::vector<Node>& c);
-    /** Clear this trie */
-    void clear() { d_children.clear(); }
-  };
   /** A term index for each function kind */
   std::map<Kind, TermIndex> d_termIndex;
-
-  /**
-   * This method is called as we are traversing the term index ti, where vecc
-   * accumulates the list of constants in the path to ti. If ti has a non-null
-   * data n, then we have inferred that d_data is equivalent to the
-   * constant specified by vecc.
-   */
-  void checkConstantEquivalenceClasses(TermIndex* ti, std::vector<Node>& vecc);
 }; /* class BaseSolver */
 
 }  // namespace strings

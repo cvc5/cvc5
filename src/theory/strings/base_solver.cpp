@@ -234,7 +234,7 @@ void BaseSolver::checkInit()
 void BaseSolver::checkConstantEquivalenceClasses()
 {
   // do fixed point
-  unsigned prevSize;
+  size_t prevSize = 0;
   std::vector<Node> vecc;
   do
   {
@@ -267,8 +267,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
         }
         Trace("strings-debug") << std::endl;
       }
-      unsigned count = 0;
-      unsigned countc = 0;
+      size_t count = 0;
+      size_t countc = 0;
       std::vector<Node> exp;
       while (count < n.getNumChildren())
       {
