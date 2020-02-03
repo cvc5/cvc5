@@ -1437,6 +1437,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3481.smt2
   regress1/quantifiers/issue3537.smt2
   regress1/quantifiers/issue3628.smt2
+  regress1/quantifiers/issue3664.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1966,6 +1967,7 @@ set(regress_2_tests
   regress2/sygus/array_sum_dd.sy
   regress2/sygus/cegisunif-depth1-bv.sy
   regress2/sygus/ex23.sy
+  regress2/sygus/examples-deq.sy
   regress2/sygus/icfp_easy_mt_ite.sy
   regress2/sygus/inv_gen_n_c11.sy
   regress2/sygus/lustre-real.sy
