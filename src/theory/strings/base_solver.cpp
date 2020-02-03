@@ -48,8 +48,8 @@ void BaseSolver::checkInit()
   d_termIndex.clear();
   d_stringsEqc.clear();
 
-  std::map<Kind, unsigned> ncongruent;
-  std::map<Kind, unsigned> congruent;
+  std::map<Kind, uint32_t> ncongruent;
+  std::map<Kind, uint32_t> congruent;
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   Assert(d_state.getRepresentative(d_emptyString) == d_emptyString);
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
