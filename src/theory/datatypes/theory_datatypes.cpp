@@ -556,12 +556,23 @@ void TheoryDatatypes::finishInit() {
 }
 
 Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
+  Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  TypeNode tn = n.getType();
+  if (tn.isDatatype())
+  {
+    const DType& dt = tn.getDType();
+    if (!dt.isWellFounded())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle non-well-founded datatype " << dt.getName();
+      throw LogicException(ss.str());
+    }
+  }
   switch (n.getKind())
   {
     case kind::APPLY_SELECTOR:
     {
-      Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
       Node selector = n.getOperator();
       // APPLY_SELECTOR always applies to an external selector, cindexOf is
       // legal here
@@ -617,30 +628,29 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
     case TUPLE_UPDATE:
     case RECORD_UPDATE:
     {
-      TypeNode t = n.getType();
-      Assert(t.isDatatype());
-      const DType& dt = t.getDType();
+      Assert(tn.isDatatype());
+      const DType& dt = tn.getDType();
       NodeBuilder<> b(APPLY_CONSTRUCTOR);
       b << dt[0].getConstructor();
       size_t size, updateIndex;
       if (n.getKind() == TUPLE_UPDATE)
       {
-        Assert(t.isTuple());
-        size = t.getTupleLength();
+        Assert(tn.isTuple());
+        size = tn.getTupleLength();
         updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
       }
       else
       {
-        Assert(t.toType().isRecord());
+        Assert(tn.toType().isRecord());
         const Record& record =
-            DatatypeType(t.toType()).getRecord();
+            DatatypeType(tn.toType()).getRecord();
         size = record.getNumFields();
         updateIndex = record.getIndex(
             n.getOperator().getConst<RecordUpdate>().getField());
       }
       Debug("tuprec") << "expr is " << n << std::endl;
       Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
-      Debug("tuprec") << "t is " << t << std::endl;
+      Debug("tuprec") << "t is " << tn << std::endl;
       Debug("tuprec") << "t has arity " << size << std::endl;
       for (size_t i = 0; i < size; ++i)
       {
@@ -653,7 +663,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
         else
         {
           b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(t, i), n[0]);
+              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, i), n[0]);
           Debug("tuprec") << "arg " << i << " copies "
                           << b[b.getNumChildren() - 1] << std::endl;
         }

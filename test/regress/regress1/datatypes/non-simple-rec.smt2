@@ -1,4 +1,4 @@
-; COMMAND_LINE: --dt-non-simple-rec
+; COMMAND-LINE: --dt-non-simple-rec
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

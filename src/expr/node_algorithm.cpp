@@ -532,26 +532,10 @@ void getComponentTypes(
     return;
   }
   types.insert(t);
-  // special case: components of datatypes are specified in the datatype object
-  if (t.isDatatype())
+  // otherwise, we get component types from the children
+  for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
   {
-    const DType& dt = t.getDType();
-    for (unsigned i = 0, size = dt.getNumConstructors(); i < size; ++i)
-    {
-      for (unsigned j = 0, size_args = dt[i].getNumArgs(); j < size_args; ++j)
-      {
-        TypeNode tn = dt[i][j].getRangeType();
-        getComponentTypes(tn, types);
-      }
-    }
-  }
-  else
-  {
-    // otherwise, we get component types from the children
-    for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
-    {
-      getComponentTypes(t[i], types);
-    }
+    getComponentTypes(t[i], types);
   }
 }
 
