@@ -526,17 +526,23 @@ Node substituteCaptureAvoiding(TNode n,
 void getComponentTypes(
     TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types)
 {
-  if (types.find(t) != types.end())
+  std::vector<TypeNode> toProcess;
+  toProcess.push_back(t);
+  do
   {
-    // already visited
-    return;
-  }
-  types.insert(t);
-  // otherwise, we get component types from the children
-  for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
-  {
-    getComponentTypes(t[i], types);
-  }
+    TypeNode curr = toProcess.back();
+    toProcess.pop_back();
+    // if not already visited
+    if (types.find(t) == types.end())
+    {
+      types.insert(t);
+      // get component types from the children
+      for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
+      {
+        toProcess.push_back(t[i]);
+      }
+    }
+  }while(!toProcess.empty());
 }
 
 }  // namespace expr
