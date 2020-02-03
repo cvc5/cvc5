@@ -24,8 +24,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumerator::SygusEnumerator(TermDbSygus* tds, SynthConjecture* p)
-    : d_tds(tds), d_parent(p), d_tlEnum(nullptr), d_abortSize(-1)
+SygusEnumerator::SygusEnumerator(TermDbSygus* tds, SynthConjecture* p, SygusStatistics& s)
+    : d_tds(tds), d_parent(p), d_stats(s), d_tlEnum(nullptr), d_abortSize(-1)
 {
 }
 
@@ -149,12 +149,14 @@ SygusEnumerator::TermCache::TermCache()
       d_sampleRrVInit(false)
 {
 }
-void SygusEnumerator::TermCache::initialize(Node e,
+void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
+                                            Node e,
                                             TypeNode tn,
                                             TermDbSygus* tds,
                                             SygusPbe* pbe)
 {
   Trace("sygus-enum-debug") << "Init term cache " << tn << "..." << std::endl;
+  d_stats = s;
   d_enum = e;
   d_tn = tn;
   d_tds = tds;
@@ -312,6 +314,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
   {
     Node bn = d_tds->sygusToBuiltin(n);
     Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
+    ++(d_stats->d_enumTermsRewrite);
     if (options::sygusRewVerify())
     {
       if (bn != bnr)
@@ -334,6 +337,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     // if we are doing PBE symmetry breaking
     if (d_pbe != nullptr)
     {
+      ++(d_stats->d_enumTermsExampleEval);
       // Is it equivalent under examples?
       Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
       if (!bne.isNull())
@@ -350,6 +354,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
     d_bterms.insert(bnr);
   }
+  ++(d_stats->d_enumTerms);
   d_terms.push_back(n);
   return true;
 }
@@ -539,7 +544,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
       pbe = nullptr;
     }
   }
-  d_tcache[tn].initialize(d_enum, tn, d_tds, pbe);
+  d_tcache[tn].initialize(&d_stats,d_enum, tn, d_tds, pbe);
 }
 
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
