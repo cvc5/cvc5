@@ -25,6 +25,7 @@
 #include <unordered_set>
 
 #include "expr/expr.h"
+#include "expr/type_node.h"
 #include "proof/clause_id.h"
 #include "proof/proof_utils.h"
 #include "prop/sat_solver_types.h"
@@ -69,8 +70,34 @@ public:
    * @param os
    */
   virtual void printLetTerm(Expr term, std::ostream& os) = 0;
-  virtual void printBoundTerm(Expr term, std::ostream& os,
-                              const ProofLetMap& map) = 0;
+
+  /**
+   * Print a term in some (core or non-core) theory
+   *
+   * @param term expression representing term
+   * @param os output stream
+   * @param expectedType The type that this is expected to have in a parent
+   * node. Null if there are no such requirements. This is useful for requesting
+   * type conversions from the theory. e.g. in (5.5 == 4) the right-hand-side
+   * should be converted to a real.
+   *
+   * The first version of this function has a default value for expectedType
+   * (null) The second version is virtual.
+   *
+   * They are split to avoid mixing virtual function and default argument
+   * values, which behave weirdly when combined.
+   */
+  void printBoundTerm(Expr term,
+                      std::ostream& os,
+                      const ProofLetMap& map,
+                      TypeNode expectedType = TypeNode())
+  {
+    this->printBoundTermAsType(term, os, map, expectedType);
+  }
+  virtual void printBoundTermAsType(Expr term,
+                                    std::ostream& os,
+                                    const ProofLetMap& map,
+                                    TypeNode expectedType) = 0;
 
   /**
    * Print the proof representation of the given sort.
@@ -152,7 +179,34 @@ public:
 
   void printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap);
 
-  virtual void printTheoryTerm(Expr term, std::ostream& os, const ProofLetMap& map) = 0;
+  /**
+   * Print a term in some non-core theory
+   *
+   * @param term expression representing term
+   * @param os output stream
+   * @param expectedType The type that this is expected to have in a parent
+   * node. Null if there are no such requirements. This is useful for requesting
+   * type conversions from the theory. e.g. in (5.5 == 4) the right-hand-side
+   * should be converted to a real.
+   *
+   * The first version of this function has a default value for expectedType
+   * (null) The second version is virtual.
+   *
+   * They are split to avoid mixing virtual function and default argument
+   * values, which behave weirdly when combined.
+   */
+  void printTheoryTerm(Expr term,
+                       std::ostream& os,
+                       const ProofLetMap& map,
+                       TypeNode expectedType = TypeNode());
+  virtual void printTheoryTermAsType(Expr term,
+                                     std::ostream& os,
+                                     const ProofLetMap& map,
+                                     TypeNode expectedType) = 0;
+  /**
+   * Calls `TheoryProof::equalityType` on the appropriate theory.
+   */
+  TypeNode equalityType(const Expr& left, const Expr& right);
 
   bool printsAsBool(const Node &n);
 };
@@ -163,18 +217,23 @@ public:
   LFSCTheoryProofEngine()
     : TheoryProofEngine() {}
 
-  void printTheoryTerm(Expr term,
-                       std::ostream& os,
-                       const ProofLetMap& map) override;
+  void printTheoryTermAsType(Expr term,
+                             std::ostream& os,
+                             const ProofLetMap& map,
+                             TypeNode expectedType) override;
 
   void registerTermsFromAssertions() override;
   void printSortDeclarations(std::ostream& os, std::ostream& paren);
   void printTermDeclarations(std::ostream& os, std::ostream& paren);
-  void printCoreTerm(Expr term, std::ostream& os, const ProofLetMap& map);
+  void printCoreTerm(Expr term,
+                     std::ostream& os,
+                     const ProofLetMap& map,
+                     TypeNode expectedType = TypeNode());
   void printLetTerm(Expr term, std::ostream& os) override;
-  void printBoundTerm(Expr term,
-                      std::ostream& os,
-                      const ProofLetMap& map) override;
+  void printBoundTermAsType(Expr term,
+                            std::ostream& os,
+                            const ProofLetMap& map,
+                            TypeNode expectedType) override;
   void printAssertions(std::ostream& os, std::ostream& paren) override;
   void printLemmaRewrites(NodePairSet& rewrites,
                           std::ostream& os,
@@ -234,8 +293,42 @@ protected:
    *
    * @param term expression representing term
    * @param os output stream
+   * @param expectedType The type that this is expected to have in a parent
+   * node. Null if there are no such requirements. This is useful for requesting
+   * type conversions from the theory. e.g. in (5.5 == 4) the right-hand-side
+   * should be converted to a real.
+   *
+   * The first version of this function has a default value for expectedType
+   * (null) The second version is virtual.
+   *
+   * They are split to avoid mixing virtual function and default argument
+   * values, which behave weirdly when combined.
    */
-  virtual void printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) = 0;
+  void printOwnedTerm(Expr term,
+                      std::ostream& os,
+                      const ProofLetMap& map,
+                      TypeNode expectedType = TypeNode());
+
+  virtual void printOwnedTermAsType(Expr term,
+                                    std::ostream& os,
+                                    const ProofLetMap& map,
+                                    TypeNode expectedType) = 0;
+
+  /**
+   * Return the type (at the SMT level, the sort) of an equality or disequality
+   * between `left` and `right`.
+   *
+   * The default implementation asserts that the two have the same type, and
+   * returns it.
+   *
+   * A theory may want to do something else.
+   *
+   * For example, the theory of arithmetic allows equalities between Reals and
+   * Integers. In this case the integer is upcast to a real, and the equality
+   * is over reals.
+   */
+  virtual TypeNode equalityType(const Expr& left, const Expr& right);
+
   /**
    * Print the proof representation of the given type that belongs to some theory.
    *
@@ -388,9 +481,10 @@ public:
   LFSCBooleanProof(TheoryProofEngine* proofEngine)
     : BooleanProof(proofEngine)
   {}
-  void printOwnedTerm(Expr term,
-                      std::ostream& os,
-                      const ProofLetMap& map) override;
+  void printOwnedTermAsType(Expr term,
+                            std::ostream& os,
+                            const ProofLetMap& map,
+                            TypeNode ty) override;
   void printOwnedSort(Type type, std::ostream& os) override;
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
                              std::ostream& os,

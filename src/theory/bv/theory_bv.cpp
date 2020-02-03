@@ -618,21 +618,7 @@ int TheoryBV::getReduction(int effort, Node n, Node& nr)
   NodeManager* const nm = NodeManager::currentNM();
   if (n.getKind() == kind::BITVECTOR_TO_NAT)
   {
-    // taken from rewrite code
-    const unsigned size = utils::getSize(n[0]);
-    const Node z = nm->mkConst(Rational(0));
-    const Node bvone = utils::mkOne(1);
-    NodeBuilder<> result(kind::PLUS);
-    Integer i = 1;
-    for (unsigned bit = 0; bit < size; ++bit, i *= 2)
-    {
-      Node cond =
-          nm->mkNode(kind::EQUAL,
-                     nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), n[0]),
-                     bvone);
-      result << nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z);
-    }
-    nr = Node(result);
+    nr = utils::eliminateBv2Nat(n);
     return -1;
   }
   else if (n.getKind() == kind::INT_TO_BITVECTOR)
