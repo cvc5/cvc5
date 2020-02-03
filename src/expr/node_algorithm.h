@@ -152,8 +152,9 @@ Node substituteCaptureAvoiding(TNode n,
                                std::vector<Node>& dest);
 
 /**
- * Get component types in type t. This adds the types that t is built from.
- * For example, if t is (Array T1 T2), then T1 and T2 are component types of t.
+ * Get component types in type t. This adds all types that are subterms of t
+ * when viewed as a term. For example, if t is (Array T1 T2), then
+ * (Array T1 T2), T1 and T2 are component types of t.
  * @param t The type node under investigation
  * @param types The set which component types are added to.
  */
