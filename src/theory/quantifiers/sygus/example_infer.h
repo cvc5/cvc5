@@ -32,7 +32,7 @@ namespace quantifiers {
  * This class determines whether a formula "has examples", for details
  * see the method hasExamples below. This is important for certain
  * optimizations in enumerative SyGuS, include example-based symmetry breaking
- * (discarding terms that equivalent to a previous one up to examples).
+ * (discarding terms that are equivalent to a previous one up to examples).
  *
  * Additionally, it provides helper methods for retrieving the examples
  * for a function-to-synthesize and for evaluating terms under the inferred
@@ -103,23 +103,28 @@ class ExampleInfer
    * This is called on the input conjecture, and will populate the above
    * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
    * function returns false if it finds two examples that are contradictory.
+   *
+   * visited[b] stores the cache of nodes we have visited with (hasPol, pol).
    */
-  bool collectExamples(Node n,
-                       std::map<Node, bool>& visited,
-                       bool hasPol,
-                       bool pol);
+  bool collectExamples(
+      Node n,
+      std::map<std::pair<bool, bool>,
+               std::unordered_set<Node, NodeHashFunction>>& visited,
+      bool hasPol,
+      bool pol);
   /** Pointer to the sygus term database */
   TermDbSygus* d_tds;
   /** is this an examples conjecture for all functions-to-synthesize? */
   bool d_isExamples;
-  /** for each candidate variable f (a function-to-synthesize), whether the
-   * conjecture is purely PBE for that variable
-   * In other words, all occurrences of f are guarded by equalities that
-   * constraint its arguments to constants.
+  /**
+   * For each candidate variable f (a function-to-synthesize), whether the
+   * conjecture has examples for that function. In other words, all occurrences
+   * of f are applied to constants only.
    */
   std::map<Node, bool> d_examples_invalid;
-  /** for each candidate variable (function-to-synthesize), whether the
-   * conjecture is purely PBE for that variable.
+  /**
+   * For each function-to-synthesize , whether the conjecture is purely PBE for
+   * f. In other words, is the specification for f a set of concrete I/O pairs?
    * An example of a conjecture for which d_examples_invalid is false but
    * d_examplesOut_invalid is true is:
    *   exists f. forall x. ( f( 0 ) > 2 )
@@ -131,21 +136,22 @@ class ExampleInfer
    */
   std::map<Node, bool> d_examplesOut_invalid;
   /**
-   * For each candidate variable (function-to-synthesize), input of I/O
-   * examples
+   * For each function-to-synthesize f, the list of concrete inputs to f.
    */
   std::map<Node, std::vector<std::vector<Node>>> d_examples;
   /**
-   * For each candidate variable (function-to-synthesize), output of I/O
-   * examples.
+   * For each function-to-synthesize f, the list of outputs according to the
+   * I/O specification for f.
+   * The vector d_examplesOut[f] is valid only if d_examplesOut_invalid[f]=true.
    */
   std::map<Node, std::vector<Node>> d_examplesOut;
   /** the list of example terms
-   * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 )
+   * For example, if exists f. f( 1 ) = 3 ^ f( 2 ) = 4 is our conjecture,
+   * this is f( 1 ), f( 2 ).
    */
   std::map<Node, std::vector<Node>> d_examplesTerm;
   /**
-   * Map from example input terms to their output, for example [EX#1] above,
+   * Map from example input terms to their output, for the example above,
    * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.
    */
   std::map<Node, Node> d_exampleTermMap;

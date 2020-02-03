@@ -41,8 +41,8 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
     d_examplesOut[v].clear();
     d_examplesTerm[v].clear();
   }
-
-  std::map<Node, bool> visited;
+  std::map<std::pair<bool, bool>, std::unordered_set<Node, NodeHashFunction>>
+      visited;
   // n is negated conjecture
   if (!collectExamples(n, visited, true, false))
   {
@@ -84,17 +84,20 @@ bool ExampleInfer::initialize(Node n, const std::vector<Node>& candidates)
   return true;
 }
 
-bool ExampleInfer::collectExamples(Node n,
-                                   std::map<Node, bool>& visited,
-                                   bool hasPol,
-                                   bool pol)
+bool ExampleInfer::collectExamples(
+    Node n,
+    std::map<std::pair<bool, bool>, std::unordered_set<Node, NodeHashFunction>>&
+        visited,
+    bool hasPol,
+    bool pol)
 {
-  if (visited.find(n) != visited.end())
+  std::pair<bool, bool> cacheIndex = std::pair<bool, bool>(hasPol, pol);
+  if (visited[cacheIndex].find(n) != visited[cacheIndex].end())
   {
     // already visited
     return true;
   }
-  visited[n] = true;
+  visited[cacheIndex].insert(n);
   NodeManager* nm = NodeManager::currentNM();
   Node neval;
   Node n_output;
@@ -120,6 +123,7 @@ bool ExampleInfer::collectExamples(Node n,
           n_output = n[1 - r];
         }
         neval_is_evalapp = true;
+        break;
       }
     }
   }
@@ -150,36 +154,44 @@ bool ExampleInfer::collectExamples(Node n,
     std::map<Node, bool>::iterator itx = d_examples_invalid.find(eh);
     if (itx == d_examples_invalid.end())
     {
-      // collect example
-      bool success = true;
-      std::vector<Node> ex;
-      for (unsigned j = 1, nchild = neval.getNumChildren(); j < nchild; j++)
+      // have we already processed this as an example term?
+      if (std::find(d_examplesTerm[eh].begin(), d_examplesTerm[eh].end(), neval)
+          == d_examplesTerm[eh].end())
       {
-        if (!neval[j].isConst())
+        // collect example
+        bool success = true;
+        std::vector<Node> ex;
+        for (unsigned j = 1, nchild = neval.getNumChildren(); j < nchild; j++)
         {
-          success = false;
-          break;
+          if (!neval[j].isConst())
+          {
+            success = false;
+            break;
+          }
+          ex.push_back(neval[j]);
         }
-        ex.push_back(neval[j]);
-      }
-      if (success)
-      {
-        d_examples[eh].push_back(ex);
-        d_examplesOut[eh].push_back(n_output);
-        d_examplesTerm[eh].push_back(neval);
-        if (n_output.isNull())
+        if (success)
         {
-          d_examplesOut_invalid[eh] = true;
+          d_examples[eh].push_back(ex);
+          d_examplesOut[eh].push_back(n_output);
+          d_examplesTerm[eh].push_back(neval);
+          if (n_output.isNull())
+          {
+            d_examplesOut_invalid[eh] = true;
+          }
+          else
+          {
+            Assert(n_output.isConst());
+            // finished processing this node if it was an I/O pair
+            return true;
+          }
         }
         else
         {
-          Assert(n_output.isConst());
+          d_examples_invalid[eh] = true;
+          d_examplesOut_invalid[eh] = true;
         }
-        // finished processing this node
-        return true;
       }
-      d_examples_invalid[eh] = true;
-      d_examplesOut_invalid[eh] = true;
     }
   }
   for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
