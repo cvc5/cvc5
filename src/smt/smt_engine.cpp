@@ -2003,8 +2003,9 @@ void SmtEngine::setDefaults() {
     }
     // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
     // is one that is specialized for returning a single solution. Non-basic
-    // sygus algorithms currently include the PBE solver, static template
-    // inference for invariant synthesis, and single invocation techniques.
+    // sygus algorithms currently include the PBE solver, UNIF+PI, static
+    // template inference for invariant synthesis, and single invocation
+    // techniques.
     bool reqBasicSygus = false;
     if (options::produceAbducts())
     {
@@ -2035,11 +2036,10 @@ void SmtEngine::setDefaults() {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
-        // also disable PBE-specific symmetry breaking unless PBE was enabled
-        if (!options::sygusSymBreakPbe.wasSetByUser())
-        {
-          options::sygusSymBreakPbe.set(false);
-        }
+      }
+      if (options::sygusUnifPi.wasSetByUser())
+      {
+        options::sygusUnifPi.set(options::SygusUnifPiMode::NONE);
       }
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
@@ -4278,10 +4278,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
          || resultNode.getType().isSubtypeOf(expectedType))
       << "Run with -t smt for details.";
 
-  // Ensure it's a constant, or a lambda (for uninterpreted functions), or
-  // a choice (for approximate values).
-  Assert(resultNode.getKind() == kind::LAMBDA
-         || resultNode.getKind() == kind::CHOICE || resultNode.isConst());
+  // Ensure it's a constant, or a lambda (for uninterpreted functions). This
+  // assertion only holds for models that do not have approximate values.
+  Assert(m->hasApproximations() || resultNode.getKind() == kind::LAMBDA
+         || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);

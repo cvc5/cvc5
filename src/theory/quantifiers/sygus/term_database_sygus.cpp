@@ -952,7 +952,7 @@ unsigned TermDbSygus::getAnchorDepth( Node n ) {
 
 Node TermDbSygus::evaluateBuiltin(TypeNode tn,
                                   Node bn,
-                                  std::vector<Node>& args,
+                                  const std::vector<Node>& args,
                                   bool tryEval)
 {
   if (args.empty())
