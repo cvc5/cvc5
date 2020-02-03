@@ -14,6 +14,8 @@
 #include "expr/dtype.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/type_matcher.h"
+#include "options/datatypes_options.h"
 
 using namespace CVC4::kind;
 
@@ -471,21 +473,77 @@ bool DType::isInterpretedFinite() const
 
 bool DType::isWellFounded() const
 {
-  Trace("datatypes-init") << "DType::isWellFounded " << std::endl;
+  Trace("datatypes-init") << "DType::isWellFounded " << d_self << std::endl;
   Assert(isResolved());
-  if (d_wellFounded == 0)
+  if (d_wellFounded != 0)
   {
-    std::vector<TypeNode> processing;
-    if (computeWellFounded(processing))
+    // already computed
+    return d_wellFounded == 1;
+  }
+  std::vector<TypeNode> processing;
+  if (!computeWellFounded(processing))
+  {
+    // not well-founded since no ground term can be constructed
+    Trace("datatypes-init")
+        << "DType::isWellFounded: false due to no ground terms." << std::endl;
+    d_wellFounded = -1;
+    return false;
+  }
+  // If we do not permit non-simple recursion for datatypes, we must
+  // check whether any component type contains this.
+  if (!options::dtNonSimpleRec())
+  {
+    std::unordered_set<TypeNode, TypeNodeHashFunction> types;
+    for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
     {
-      d_wellFounded = 1;
+      for (unsigned j = 0, nargs = ctor->getNumArgs(); j < nargs; ++j)
+      {
+        TypeNode tn = ctor->getArgType(j);
+        if (tn == d_self)
+        {
+          // simple recursion is allowed
+          continue;
+        }
+        Trace("datatypes-init")
+            << "Collect component types " << tn << std::endl;
+        expr::getComponentTypes(tn, types);
+        // does types contain self now?
+        if (types.find(d_self) != types.end())
+        {
+          // not well founded since not simply recursive
+          Trace("datatypes-init")
+              << "DType::isWellFounded: false due to non-simple recursion."
+              << std::endl;
+          d_wellFounded = -1;
+          return false;
+        }
+      }
     }
-    else
+    // If it is parametric, this type may match with a component type (e.g.
+    // we may have a field (T Int) for parametric datatype (T x) where x
+    // is a type parameter). Thus, we check whether the self type matches any
+    // component type using the TypeMatcher utility.
+    if (isParametric())
     {
-      d_wellFounded = -1;
+      for (const TypeNode& t : types)
+      {
+        TypeMatcher m(d_self);
+        Trace("datatypes-init") << "  " << t << std::endl;
+        if (m.doMatching(d_self, t))
+        {
+          Trace("datatypes-init")
+              << "DType::isWellFounded: false due to non-simple recursion for "
+                 "instantiated parametric datatype, "
+              << d_self << " matching " << t << std::endl;
+          d_wellFounded = -1;
+          return false;
+        }
+      }
     }
   }
-  return d_wellFounded == 1;
+  Trace("datatypes-init") << "DType::isWellFounded: true." << std::endl;
+  d_wellFounded = 1;
+  return true;
 }
 
 bool DType::computeWellFounded(std::vector<TypeNode>& processing) const

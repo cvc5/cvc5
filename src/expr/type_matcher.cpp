@@ -86,6 +86,11 @@ bool TypeMatcher::doMatching(TypeNode pattern, TypeNode tn)
   {
     return false;
   }
+  else if (pattern.getNumChildren() == 0)
+  {
+    // fail if the type parameter or type constructors are different
+    return pattern == tn;
+  }
   for (size_t i = 0, nchild = pattern.getNumChildren(); i < nchild; i++)
   {
     if (!doMatching(pattern[i], tn[i]))
