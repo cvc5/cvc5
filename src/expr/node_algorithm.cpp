@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace expr {
@@ -520,6 +521,22 @@ Node substituteCaptureAvoiding(TNode n,
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
   return visited[n];
+}
+
+void getComponentTypes(
+    TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types)
+{
+  if (types.find(t) != types.end())
+  {
+    // already visited
+    return;
+  }
+  types.insert(t);
+  // otherwise, we get component types from the children
+  for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
+  {
+    getComponentTypes(t[i], types);
+  }
 }
 
 }  // namespace expr
