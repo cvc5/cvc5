@@ -164,12 +164,20 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_numConClasses;
     /** Map from weights to the starting constructor class for that weight. */
     std::map<unsigned, unsigned> d_weightToCcIndex;
-    /** constructor classes */
-    std::map<unsigned, std::vector<unsigned>> d_ccToCons;
-    /** maps constructor classes to children types */
-    std::map<unsigned, std::vector<TypeNode>> d_ccToTypes;
-    /** maps constructor classes to constructor weight */
-    std::map<unsigned, unsigned> d_ccToWeight;
+    /** Information for each constructor class */
+    class ConstructorClass
+    {
+     public:
+      ConstructorClass() : d_weight(0) {}
+      ~ConstructorClass() {}
+      /** The indices of the constructors in this constructor class */
+      std::vector<unsigned> d_cons;
+      /** The argument types of the constructor class */
+      std::vector<TypeNode> d_types;
+      /** Constructor weight */
+      unsigned d_weight;
+    };
+    std::map<unsigned, ConstructorClass> d_cclass;
     /** constructor to indices */
     std::map<unsigned, std::vector<unsigned>> d_cToCIndices;
     //-------------------------end static information about type

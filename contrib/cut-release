@@ -249,11 +249,11 @@ if ! $SHELL -c '\
 	./autogen.sh || echo "autoconf failed; does library_versions have something to match $version?"; \
 	mkdir "release-$version"; \
 	cd "release-$version"; \
-	../configure production-staticbinary --disable-shared --enable-unit-testing --with-portfolio --bsd '"$configantlr"'; \
+	../configure production-staticbinary --disable-shared --enable-unit-testing --with-portfolio --no-gpl '"$configantlr"'; \
 	make dist '"$makeargs"'; \
 	tar xf "cvc4-$version.tar.gz"; \
 	cd "cvc4-$version"; \
-	./configure production-staticbinary --disable-shared --enable-unit-testing --with-portfolio --bsd '"$configantlr"'; \
+	./configure production-staticbinary --disable-shared --enable-unit-testing --with-portfolio --no-gpl '"$configantlr"'; \
 	make check '"$makeargs"'; \
 	make distcheck '"$makeargs"'; \
 '; then

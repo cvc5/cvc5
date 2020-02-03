@@ -2003,8 +2003,9 @@ void SmtEngine::setDefaults() {
     }
     // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
     // is one that is specialized for returning a single solution. Non-basic
-    // sygus algorithms currently include the PBE solver, static template
-    // inference for invariant synthesis, and single invocation techniques.
+    // sygus algorithms currently include the PBE solver, UNIF+PI, static
+    // template inference for invariant synthesis, and single invocation
+    // techniques.
     bool reqBasicSygus = false;
     if (options::produceAbducts())
     {
@@ -2035,6 +2036,10 @@ void SmtEngine::setDefaults() {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
+      }
+      if (options::sygusUnifPi.wasSetByUser())
+      {
+        options::sygusUnifPi.set(options::SygusUnifPiMode::NONE);
       }
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
