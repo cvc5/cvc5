@@ -23,6 +23,7 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "expr/node_view.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
@@ -223,29 +224,10 @@ inline Node RewriteRule<FlattenAssocCommut>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")"
                       << std::endl;
-  std::vector<Node> processingStack;
-  processingStack.push_back(node);
-  std::vector<Node> children;
   Kind kind = node.getKind();
+  expr::FlatView fv(node, kind);
+  std::vector<Node> children(fv.begin(), fv.end());
 
-  while (!processingStack.empty())
-  {
-    TNode current = processingStack.back();
-    processingStack.pop_back();
-
-    // flatten expression
-    if (current.getKind() == kind)
-    {
-      for (unsigned i = 0; i < current.getNumChildren(); ++i)
-      {
-        processingStack.push_back(current[i]);
-      }
-    }
-    else
-    {
-      children.push_back(current);
-    }
-  }
   if (node.getKind() == kind::BITVECTOR_PLUS
       || node.getKind() == kind::BITVECTOR_MULT)
   {
@@ -1135,29 +1117,9 @@ bool RewriteRule<FlattenAssocCommutNoDuplicates>::applies(TNode node) {
 template<> inline
 Node RewriteRule<FlattenAssocCommutNoDuplicates>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<FlattenAssocCommut>(" << node << ")" << std::endl;
-  std::vector<Node> processingStack;
-  processingStack.push_back(node);
-  std::unordered_set<TNode, TNodeHashFunction> processed;
-  std::vector<Node> children;
-  Kind kind = node.getKind(); 
-  
-  while (! processingStack.empty()) {
-    TNode current = processingStack.back();
-    processingStack.pop_back();
-    if (processed.count(current))
-      continue;
-
-    processed.insert(current);
-    
-    // flatten expression
-    if (current.getKind() == kind) {
-      for (unsigned i = 0; i < current.getNumChildren(); ++i) {
-        processingStack.push_back(current[i]);
-      }
-    } else {
-      children.push_back(current); 
-    }
-  }
+  Kind kind = node.getKind();
+  expr::FlatView fv(node, kind, true);
+  std::vector<Node> children(fv.begin(), fv.end());
   return utils::mkSortedNode(kind, children);
 }
   

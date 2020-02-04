@@ -23,6 +23,7 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/node_value.h"
+#include "expr/node_view.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -96,5 +97,77 @@ class NodeWhite : public CxxTest::TestSuite {
     TS_ASSERT(v[0] == x_times_2);
     TS_ASSERT(v[1] == x_plus_y);
     TS_ASSERT(v[2] == y);
+  }
+
+  void testFlatView()
+  {
+    Node one = d_nm->mkConst(Rational(1));
+    Node two = d_nm->mkConst(Rational(2));
+    Node three = d_nm->mkConst(Rational(3));
+    Node four = d_nm->mkConst(Rational(4));
+    Node five = d_nm->mkConst(Rational(5));
+
+    std::vector<Node> flatv = {one, two, three, four, five};
+    std::vector<TNode> flattv = {one, two, three, four, five};
+
+    {
+      // (1 + 2) + (3 + 4) + 5
+      Node nested = d_nm->mkNode(PLUS,
+                                 d_nm->mkNode(PLUS, one, two),
+                                 d_nm->mkNode(PLUS, three, four),
+                                 five);
+
+      FlatView fv(nested, PLUS);
+      TS_ASSERT_EQUALS(flatv, std::vector<Node>(fv.begin(), fv.end()));
+
+      FlatTView ftv(TNode(nested), PLUS);
+      TS_ASSERT_EQUALS(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
+    }
+
+    {
+      // ((((1 + 2) + 3) + 4) + 5)
+      Node nested = d_nm->mkNode(
+          PLUS,
+          d_nm->mkNode(PLUS,
+                       d_nm->mkNode(PLUS, d_nm->mkNode(PLUS, one, two), three),
+                       four),
+          five);
+
+      FlatView fv(nested, PLUS);
+      TS_ASSERT_EQUALS(flatv, std::vector<Node>(fv.begin(), fv.end()));
+
+      FlatTView ftv(TNode(nested), PLUS);
+      TS_ASSERT_EQUALS(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
+    }
+
+    {
+      // (1 + (2 + (3 + (4 + 5))))
+      Node nested = d_nm->mkNode(
+          PLUS,
+          one,
+          d_nm->mkNode(
+              PLUS,
+              two,
+              d_nm->mkNode(PLUS, three, d_nm->mkNode(PLUS, four, five))));
+
+      FlatView fv(nested, PLUS);
+      TS_ASSERT_EQUALS(flatv, std::vector<Node>(fv.begin(), fv.end()));
+
+      FlatTView ftv(TNode(nested), PLUS);
+      TS_ASSERT_EQUALS(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
+    }
+
+    {
+      // ((1 + 2) + 3 + 1 + 4 + ((1 + 2) + 5)
+      Node onetwo = d_nm->mkNode(PLUS, one, two);
+      Node nested = d_nm->mkNode(
+          PLUS, onetwo, three, one, four, d_nm->mkNode(PLUS, onetwo, five));
+
+      FlatView fv(nested, PLUS, true);
+      TS_ASSERT_EQUALS(flatv, std::vector<Node>(fv.begin(), fv.end()));
+
+      FlatTView ftv(TNode(nested), PLUS, true);
+      TS_ASSERT_EQUALS(flattv, std::vector<TNode>(ftv.begin(), ftv.end()));
+    }
   }
 };
