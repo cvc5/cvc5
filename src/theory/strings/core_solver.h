@@ -51,28 +51,6 @@ class CoreSolver
   ~CoreSolver();
 
   //-----------------------inference steps
-  /** check initial
-   *
-   * This function initializes term indices for each strings function symbol.
-   * One key aspect of this construction is that concat terms are indexed by
-   * their list of non-empty components. For example, if x = "" is an equality
-   * asserted in this SAT context, then y ++ x ++ z may be indexed by (y,z).
-   * This method may infer various facts while building these term indices, for
-   * instance, based on congruence. An example would be inferring:
-   *   y ++ x ++ z = y ++ z
-   * if both terms are registered in this SAT context.
-   *
-   * This function should be called as a first step of any strategy.
-   */
-  void checkInit();
-  /** check constant equivalence classes
-   *
-   * This function infers whether CONCAT terms can be simplified to constants.
-   * For example, if x = "a" and y = "b" are equalities in the current SAT
-   * context, then we may infer x ++ "c" ++ y is equivalent to "acb". In this
-   * case, we infer the fact x ++ "c" ++ y = "acb".
-   */
-  void checkConstantEquivalenceClasses();
   /** check cycles
    *
    * This inference schema ensures that a containment ordering < over the
