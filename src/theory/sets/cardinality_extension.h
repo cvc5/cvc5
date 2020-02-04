@@ -379,7 +379,7 @@ class CardinalityExtension
   std::map<Node, Node> d_localBase;
 
   /**
-   * a map to store proxy nodes for the universe sets of finite types
+   * a map to store proxy nodes for the universe sets
    */
   std::map<Node, Node> d_univProxy;
 
@@ -402,12 +402,6 @@ class CardinalityExtension
    *  Default value is false
    */
   bool d_finite_type_constants_processed;
-
-  /**
-   * a vector that tracks which infinite type has cardinality constraints
-   * on its universe set
-   */
-  std::vector<TypeNode> d_infiniteTypeUnivCard;
 
   /*
    * a map that stores skolem nodes n that satisfies the constraint

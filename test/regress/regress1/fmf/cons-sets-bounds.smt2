@@ -1,7 +1,6 @@
 ; COMMAND-LINE: --fmf-bound
 ; EXPECT: sat
 (set-logic ALL)
-(set-option :sets-ext true)
 (declare-datatypes ((list 0)) (((cons (head Int) (tail list)) (nil))))
 
 (declare-fun P (Int) Bool)

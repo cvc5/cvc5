@@ -2,7 +2,6 @@
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
-(set-option :sets-ext true)
 (declare-sort U 0)
 (declare-fun P (Int Int U) Bool)
 

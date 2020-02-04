@@ -198,7 +198,7 @@ class SolverState
   Node getProxy(Node n);
   /** Get the empty set of type tn */
   Node getEmptySet(TypeNode tn);
-  /** Get the universe set of type tn */
+  /** Get the universe set of type tn if it exists or create a new one */
   Node getUnivSet(TypeNode tn);
   /**
    * Get the skolem cache of this theory, which manages a database of introduced

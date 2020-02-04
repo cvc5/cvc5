@@ -66,14 +66,6 @@ void CardinalityExtension::registerTerm(Node n)
     d_eqc_to_card_term[r] = n;
     registerCardinalityTerm(n[0]);
   }
-
-  Node univ = d_state.getUnivSet(tnc);
-  if (!tnc.isInterpretedFinite() && d_ee.hasTerm(univ)
-      && d_ee.areEqual(r, univ))
-  {
-    d_infiniteTypeUnivCard.push_back(tnc);
-  }
-
   Trace("sets-card-debug") << "...finished register term" << std::endl;
 }
 
@@ -91,15 +83,18 @@ void CardinalityExtension::checkTypesUnivCardinality()
 
 void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
 {
-  Assert(t.isInterpretedFinite());
+  // skip infinite types that do not have univset terms
+  if(!t.isInterpretedFinite() && d_state.getUnivSetEqClass(t).isNull())
+  {
+    return;
+  }
 
   // get the cardinality of the finite type t
   Cardinality card = t.getCardinality();
 
   // cardinality of an interpreted finite type t is infinite when t
   // is infinite without --fmf
-
-  if (card.isInfinite())
+  if (t.isInterpretedFinite() && card.isInfinite())
   {
     // TODO (#1123): support uninterpreted sorts with --finite-model-find
     std::stringstream message;
@@ -110,6 +105,8 @@ void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
 
   // get the universe set (as univset (Set t))
   NodeManager* nm = NodeManager::currentNM();
+  // here we call getUnivSet instead of getUnivSetEqClass to generate
+  // a univset term for finite types even if they are not used in the input
   Node univ = d_state.getUnivSet(nm->mkSetType(t));
   std::map<Node, Node>::iterator it = d_univProxy.find(univ);
 
@@ -129,21 +126,33 @@ void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
   // get all equivalent classes of type t
   vector<Node> representatives = d_state.getSetsEqClasses(t);
 
-  std::map<TypeNode, Node>::iterator skolemIt =
-      d_infiniteTypeUnivCardSkolems.find(t);
-  if (skolemIt == d_infiniteTypeUnivCardSkolems.end())
+  Node typeCardinality;
+  if (t.isInterpretedFinite())
   {
-    Node typeCardinality = nm->mkSkolem("univCard", nm->integerType());
-    d_infiniteTypeUnivCardSkolems[t] = typeCardinality;
-
-    Node cardUniv = nm->mkNode(kind::CARD, proxy);
-    Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
-
-    // (=> true (<= (card (as univset t)) cardUniv)
-    if (!d_state.isEntailed(leq, true))
+    typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
+  }
+  else
+  {
+    std::map<TypeNode, Node>::iterator skolemIt =
+        d_infiniteTypeUnivCardSkolems.find(t);
+    if (skolemIt == d_infiniteTypeUnivCardSkolems.end())
     {
-      d_im.assertInference(leq, d_true, "univset cardinality <= type cardinality", 1);
+      typeCardinality = nm->mkSkolem("univCard", nm->integerType());
+      d_infiniteTypeUnivCardSkolems[t] = typeCardinality;
     }
+    else
+    {
+      typeCardinality = skolemIt->second;
+    }
+  }
+
+  Node cardUniv = nm->mkNode(kind::CARD, proxy);
+  Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
+
+  // (=> true (<= (card (as univset t)) cardUniv)
+  if (!d_state.isEntailed(leq, true))
+  {
+    d_im.assertInference(leq, d_true, "univset cardinality <= type cardinality", 1);
   }
 
   // add subset lemmas for sets and membership lemmas for negative members

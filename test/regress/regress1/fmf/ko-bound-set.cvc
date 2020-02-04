@@ -2,7 +2,6 @@
 OPTION "finite-model-find";
 OPTION "fmf-bound-int";
 OPTION "produce-models";
-OPTION "sets-ext"
 
 X, Y : SET OF INT;
 

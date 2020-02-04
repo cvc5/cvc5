@@ -1,6 +1,5 @@
 ; EXPECT: unsat
 (set-logic QF_UFLIAFS)
-(set-option :sets-ext true)
 (declare-fun x () Int)
 (declare-fun c () (Set Int))
 (declare-fun alloc0 () (Set Int))
