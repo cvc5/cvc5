@@ -48,8 +48,8 @@ void BaseSolver::checkInit()
   d_termIndex.clear();
   d_stringsEqc.clear();
 
-  std::map<Kind, unsigned> ncongruent;
-  std::map<Kind, unsigned> congruent;
+  std::map<Kind, uint32_t> ncongruent;
+  std::map<Kind, uint32_t> congruent;
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   Assert(d_state.getRepresentative(d_emptyString) == d_emptyString);
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
@@ -94,7 +94,7 @@ void BaseSolver::checkInit()
                 if (n.getKind() == STRING_CONCAT && !d_state.areEqual(nc, n))
                 {
                   std::vector<Node> exp;
-                  unsigned count[2] = {0, 0};
+                  size_t count[2] = {0, 0};
                   while (count[0] < nc.getNumChildren()
                          || count[1] < n.getNumChildren())
                   {
@@ -234,7 +234,7 @@ void BaseSolver::checkInit()
 void BaseSolver::checkConstantEquivalenceClasses()
 {
   // do fixed point
-  unsigned prevSize;
+  size_t prevSize = 0;
   std::vector<Node> vecc;
   do
   {
@@ -267,8 +267,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
         }
         Trace("strings-debug") << std::endl;
       }
-      unsigned count = 0;
-      unsigned countc = 0;
+      size_t count = 0;
+      size_t countc = 0;
       std::vector<Node> exp;
       while (count < n.getNumChildren())
       {
