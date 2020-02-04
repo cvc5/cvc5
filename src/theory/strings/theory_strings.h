@@ -25,7 +25,10 @@
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
 #include "theory/strings/base_solver.h"
+<<<<<<< HEAD
 #include "theory/strings/core_solver.h"
+=======
+>>>>>>> d0f7a3922e38483908d4b86829241a48d8d8db57
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"

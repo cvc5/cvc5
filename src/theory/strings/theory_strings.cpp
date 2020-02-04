@@ -1330,7 +1330,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
             Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc << std::endl;
             d_im.sendInference(
                 einfo.d_exp, conc, effort == 0 ? "EXTF" : "EXTF-N", true);
-            if (!d_state.isInConflict())
+            if (d_state.isInConflict())
             {
               Trace("strings-extf-debug") << "  conflict, return." << std::endl;
               return;
