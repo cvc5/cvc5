@@ -4404,6 +4404,16 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
     {
       if (!m->assertEquality(p.first, p.second, true))
       {
+        // If we failed to assert an equality, it is likely due to theory
+        // combination, namely the repaired model for non-linear changed
+        // an equality status that was agreed upon by both (linear) arithmetic
+        // and another theory. In this case, we must add a lemma, or otherwise
+        // we would terminate with an invalid model. Thus, we add a splitting
+        // lemma of the form ( x = v V x != v ) where v is the model value
+        // assigned by the non-linear solver to x.
+        Node eq = p.first.eqNode(p.second);
+        Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
+        d_containing.d_out->lemma(lem);
         return false;
       }
     }
