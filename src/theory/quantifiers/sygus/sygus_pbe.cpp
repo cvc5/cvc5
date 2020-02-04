@@ -122,12 +122,15 @@ bool SygusPbe::collectExamples(Node n,
           else
           {
             Assert(n_output.isConst());
+            // finished processing this node if it was an I/O pair
+            return true;
           }
-          // finished processing this node
-          return true;
         }
-        d_examples_invalid[eh] = true;
-        d_examples_out_invalid[eh] = true;
+        else
+        {
+          d_examples_invalid[eh] = true;
+          d_examples_out_invalid[eh] = true;
+        }
       }
     }
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -420,7 +423,7 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
         d_sygus_unif[ee].clearExampleCache(e, bvr);
       }
     }
-    Assert(ret.getType() == bvr.getType());
+    Assert(ret.getType().isComparableTo(bvr.getType()));
     return ret;
   }
   return Node::null();

@@ -294,6 +294,7 @@ public:
 
   void testIntNormalForm() {
     Node x = d_nm->mkVar(*d_intType);
+    Node xr = d_nm->mkVar(*d_realType);
     Node c0 = d_nm->mkConst<Rational>(d_zero);
     Node c1 = d_nm->mkConst<Rational>(d_one);
     Node c2 = d_nm->mkConst<Rational>(Rational(2));
@@ -327,5 +328,10 @@ public:
     // (abs x) --> (abs x)
     Node absX = d_nm->mkNode(ABS, x);
     TS_ASSERT_EQUALS(Rewriter::rewrite(absX), absX);
+
+    // (exp (+ 2 + x)) --> (* (exp x) (exp 1) (exp 1))
+    Node t = d_nm->mkNode(EXPONENTIAL, d_nm->mkNode(PLUS, c2, xr)).eqNode(c0);
+    TS_ASSERT_EQUALS(Rewriter::rewrite(Rewriter::rewrite(t)),
+                     Rewriter::rewrite(t));
   }
 };

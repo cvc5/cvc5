@@ -91,26 +91,30 @@ void CardinalityExtension::checkTypesUnivCardinality()
 
 void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
 {
-  if (t.isInterpretedFinite())
+  Assert(t.isInterpretedFinite());
+
+  // get the cardinality of the finite type t
+  Cardinality card = t.getCardinality();
+
+  // cardinality of an interpreted finite type t is infinite when t
+  // is infinite without --fmf
+
+  if (card.isInfinite())
   {
-    // get the cardinality of the finite type t
-    Cardinality card = t.getCardinality();
-    if (!card.isFinite())
-    {
-      // TODO (#1123): support uninterpreted sorts with --finite-model-find
-      std::stringstream message;
-      message << "The cardinality " << card << " of the finite type " << t
-              << " is not supported yet." << endl;
-      Assert(false) << message.str().c_str();
-    }
+    // TODO (#1123): support uninterpreted sorts with --finite-model-find
+    std::stringstream message;
+    message << "The cardinality " << card << " of the finite type " << t
+            << " is not supported yet.";
+    throw LogicException(message.str());
   }
 
-  NodeManager* nm = NodeManager::currentNM();
-
   // get the universe set (as univset (Set t))
+  NodeManager* nm = NodeManager::currentNM();
   Node univ = d_state.getUnivSet(nm->mkSetType(t));
   std::map<Node, Node>::iterator it = d_univProxy.find(univ);
+
   Node proxy;
+
   if (it == d_univProxy.end())
   {
     // Force cvc4 to build the cardinality graph for the universe set
@@ -157,7 +161,7 @@ void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
         continue;
       }
 
-      /** (=> true (subset representative (as univset t)) */
+      // (=> true (subset representative (as univset t))
       Node subset = nm->mkNode(kind::SUBSET, variable, proxy);
       // subset terms are rewritten as union terms: (subset A B) implies (=
       // (union A B) B)
