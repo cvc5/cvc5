@@ -76,15 +76,15 @@ void CardinalityExtension::checkTypesUnivCardinality()
     TypeNode type = pair.first;
     if (pair.second)
     {
-      checkTypeUnivCardinality(type);
+      checkUnivsetCardinality(type);
     }
   }
 }
 
-void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
+void CardinalityExtension::checkUnivsetCardinality(TypeNode& t)
 {
   // skip infinite types that do not have univset terms
-  if(!t.isInterpretedFinite() && d_state.getUnivSetEqClass(t).isNull())
+  if (!t.isInterpretedFinite() && d_state.getUnivSetEqClass(t).isNull())
   {
     return;
   }
@@ -152,7 +152,8 @@ void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
   // (=> true (<= (card (as univset t)) cardUniv)
   if (!d_state.isEntailed(leq, true))
   {
-    d_im.assertInference(leq, d_true, "univset cardinality <= type cardinality", 1);
+    d_im.assertInference(
+        leq, d_true, "univset cardinality <= type cardinality", 1);
   }
 
   // add subset lemmas for sets and membership lemmas for negative members
@@ -160,7 +161,7 @@ void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
   {
     if (representative
         != d_ee.getRepresentative(
-        univ))  // the universe set is a subset of itself
+            univ))  // the universe set is a subset of itself
     {
       // here we only add representatives with variables to avoid adding
       // infinite equivalent generated terms to the cardinality graph
@@ -177,8 +178,7 @@ void CardinalityExtension::checkTypeUnivCardinality(TypeNode& t)
       subset = Rewriter::rewrite(subset);
       if (!d_state.isEntailed(subset, true))
       {
-        d_im.assertInference(
-            subset, d_true, "univset is a super set", 1);
+        d_im.assertInference(subset, d_true, "univset is a super set", 1);
       }
 
       // negative members are members in the universe set
@@ -1023,7 +1023,7 @@ void CardinalityExtension::mkModelValueElementsFor(
           // cardinality constraints are satisfied. Since this type is finite,
           // there is only one single cardinality graph for all sets of this
           // type because the universe cardinality constraint has been added by
-          // CardinalityExtension::checkTypeUnivCardinality. This means we have
+          // CardinalityExtension::checkUnivsetCardinality. This means we have
           // enough slack elements of this finite type for all disjoint leaves
           // in the cardinality graph. Therefore we can safely add new distinct
           // slack elements for the leaves without worrying about conflicts with

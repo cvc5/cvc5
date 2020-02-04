@@ -143,7 +143,7 @@ class CardinalityExtension
    * exclude these slack elements from the members in all sets of that type.
    */
   const std::map<TypeNode, std::vector<TNode> >& getFiniteTypeSlackElements()
-  const
+      const
   {
     return d_finite_type_slack_elements;
   }
@@ -324,9 +324,9 @@ class CardinalityExtension
   void checkNormalForm(Node eqc, std::vector<Node>& intro_sets);
 
   /**
-  * add cardinality lemmas for each type except uninterpreted sorts with
-  * finite-model-find
-  */
+   * add cardinality lemmas for each type except uninterpreted sorts with
+   * finite-model-find
+   */
   void checkTypesUnivCardinality();
   /**
    * This function adds the following lemmas for type t for each S
@@ -339,7 +339,7 @@ class CardinalityExtension
    * 3- (=> (not (member negativeMember S))) (member
    * negativeMember (as univset t)))
    */
-  void checkTypeUnivCardinality(TypeNode& t);
+  void checkUnivsetCardinality(TypeNode& t);
 
   /** element types of sets for which cardinality is enabled */
   std::map<TypeNode, bool> d_t_card_enabled;

@@ -437,7 +437,7 @@ void TheorySetsPrivate::fullEffortCheck()
             // finite cardinality (done)
             // 2- Supporting the universe cardinality for uninterpreted sorts
             // with finite-model-find (pending) See the implementation of
-            //    CardinalityExtension::checkTypeUnivCardinality
+            //    CardinalityExtension::checkUnivsetCardinality
             // 3- Supporting the universe cardinality for non-finite types
             // (done)
             // 4- Supporting cardinality for relations (hard)
