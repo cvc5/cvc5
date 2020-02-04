@@ -655,8 +655,9 @@ private:
     d_nlIncomplete = true;
   }
   void outputLemma(TNode lem);
-  inline void outputPropagate(TNode lit) { (d_containing.d_out)->propagate(lit); }
-  inline void outputRestart() { (d_containing.d_out)->demandRestart(); }
+  void outputConflict(TNode lit);
+  void outputPropagate(TNode lit);
+  void outputRestart();
 
   inline bool isSatLiteral(TNode l) const {
     return (d_containing.d_valuation).isSatLiteral(l);

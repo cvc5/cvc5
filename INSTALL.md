@@ -110,7 +110,7 @@ Configure CVC4 with `configure.sh --lfsc` to build with this dependency.
 ### SWIG >= 3.0.x (Simplified Wrapper and Interface Generator)
 
 SWIG 3.0.x (and a JDK) is necessary to build the Java API.
-See [Language Bindings](language-bindings) below for build instructions.
+See [Language Bindings](#language-bindings) below for build instructions.
 
 ### CLN >= v1.3 (Class Library for Numbers)
 
