@@ -1137,6 +1137,13 @@ Node ExtendedRewriter::extendedRewriteEqChain(
 {
   Assert(ret.getKind() == eqk);
 
+  // this rewrite is aggressive; it in fact has the precondition that other
+  // aggressive rewrites (including BCP) have been applied.
+  if (!d_aggr)
+  {
+    return Node::null();
+  }
+
   NodeManager* nm = NodeManager::currentNM();
 
   TypeNode tn = ret[0].getType();
