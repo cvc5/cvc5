@@ -327,7 +327,7 @@ class CardinalityExtension
    * add cardinality lemmas for each type except uninterpreted sorts with
    * finite-model-find
    */
-  void checkTypesUnivCardinality();
+  void checkUnivsetCardinality();
   /**
    * This function adds the following lemmas for type t for each S
    * where S is a (a representative) set term of type t, and for each negative

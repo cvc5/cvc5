@@ -69,7 +69,7 @@ void CardinalityExtension::registerTerm(Node n)
   Trace("sets-card-debug") << "...finished register term" << std::endl;
 }
 
-void CardinalityExtension::checkTypesUnivCardinality()
+void CardinalityExtension::checkUnivsetCardinality()
 {
   for (std::pair<const TypeNode, bool>& pair : d_t_card_enabled)
   {
@@ -83,8 +83,10 @@ void CardinalityExtension::checkTypesUnivCardinality()
 
 void CardinalityExtension::checkUnivsetCardinality(TypeNode& t)
 {
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode setType = nm->mkSetType(t);
   // skip infinite types that do not have univset terms
-  if (!t.isInterpretedFinite() && d_state.getUnivSetEqClass(t).isNull())
+  if (!t.isInterpretedFinite() && d_state.getUnivSetEqClass(setType).isNull())
   {
     return;
   }
@@ -103,11 +105,9 @@ void CardinalityExtension::checkUnivsetCardinality(TypeNode& t)
     throw LogicException(message.str());
   }
 
-  // get the universe set (as univset (Set t))
-  NodeManager* nm = NodeManager::currentNM();
   // here we call getUnivSet instead of getUnivSetEqClass to generate
   // a univset term for finite types even if they are not used in the input
-  Node univ = d_state.getUnivSet(nm->mkSetType(t));
+  Node univ = d_state.getUnivSet(setType);
   std::map<Node, Node>::iterator it = d_univProxy.find(univ);
 
   Node proxy;
@@ -204,7 +204,7 @@ void CardinalityExtension::checkUnivsetCardinality(TypeNode& t)
 
 void CardinalityExtension::check()
 {
-  checkTypesUnivCardinality();
+  checkUnivsetCardinality();
   checkRegister();
   if (d_im.hasProcessed())
   {
