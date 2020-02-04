@@ -327,7 +327,7 @@ class CardinalityExtension
    * add cardinality lemmas for each type except uninterpreted sorts with
    * finite-model-find
    */
-  void checkUnivsetCardinality();
+  void checkCardinalityExtended();
   /**
    * This function adds the following lemmas for type t for each S
    * where S is a (a representative) set term of type t, and for each negative
@@ -339,7 +339,7 @@ class CardinalityExtension
    * 3- (=> (not (member negativeMember S))) (member
    * negativeMember (as univset t)))
    */
-  void checkUnivsetCardinality(TypeNode& t);
+  void checkCardinalityExtended(TypeNode& t);
 
   /** element types of sets for which cardinality is enabled */
   std::map<TypeNode, bool> d_t_card_enabled;

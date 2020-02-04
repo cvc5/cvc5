@@ -69,19 +69,19 @@ void CardinalityExtension::registerTerm(Node n)
   Trace("sets-card-debug") << "...finished register term" << std::endl;
 }
 
-void CardinalityExtension::checkUnivsetCardinality()
+void CardinalityExtension::checkCardinalityExtended()
 {
   for (std::pair<const TypeNode, bool>& pair : d_t_card_enabled)
   {
     TypeNode type = pair.first;
     if (pair.second)
     {
-      checkUnivsetCardinality(type);
+      checkCardinalityExtended(type);
     }
   }
 }
 
-void CardinalityExtension::checkUnivsetCardinality(TypeNode& t)
+void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode setType = nm->mkSetType(t);
@@ -126,34 +126,18 @@ void CardinalityExtension::checkUnivsetCardinality(TypeNode& t)
   // get all equivalent classes of type t
   vector<Node> representatives = d_state.getSetsEqClasses(t);
 
-  Node typeCardinality;
   if (t.isInterpretedFinite())
   {
-    typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
-  }
-  else
-  {
-    std::map<TypeNode, Node>::iterator skolemIt =
-        d_infiniteTypeUnivCardSkolems.find(t);
-    if (skolemIt == d_infiniteTypeUnivCardSkolems.end())
-    {
-      typeCardinality = nm->mkSkolem("univCard", nm->integerType());
-      d_infiniteTypeUnivCardSkolems[t] = typeCardinality;
-    }
-    else
-    {
-      typeCardinality = skolemIt->second;
-    }
-  }
+    Node typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
+    Node cardUniv = nm->mkNode(kind::CARD, proxy);
+    Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
 
-  Node cardUniv = nm->mkNode(kind::CARD, proxy);
-  Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
-
-  // (=> true (<= (card (as univset t)) cardUniv)
-  if (!d_state.isEntailed(leq, true))
-  {
-    d_im.assertInference(
-        leq, d_true, "univset cardinality <= type cardinality", 1);
+    // (=> true (<= (card (as univset t)) cardUniv)
+    if (!d_state.isEntailed(leq, true))
+    {
+      d_im.assertInference(
+          leq, d_true, "univset cardinality <= type cardinality", 1);
+    }
   }
 
   // add subset lemmas for sets and membership lemmas for negative members
@@ -204,7 +188,7 @@ void CardinalityExtension::checkUnivsetCardinality(TypeNode& t)
 
 void CardinalityExtension::check()
 {
-  checkUnivsetCardinality();
+  checkCardinalityExtended();
   checkRegister();
   if (d_im.hasProcessed())
   {
@@ -1023,7 +1007,7 @@ void CardinalityExtension::mkModelValueElementsFor(
           // cardinality constraints are satisfied. Since this type is finite,
           // there is only one single cardinality graph for all sets of this
           // type because the universe cardinality constraint has been added by
-          // CardinalityExtension::checkUnivsetCardinality. This means we have
+          // CardinalityExtension::checkCardinalityExtended. This means we have
           // enough slack elements of this finite type for all disjoint leaves
           // in the cardinality graph. Therefore we can safely add new distinct
           // slack elements for the leaves without worrying about conflicts with
