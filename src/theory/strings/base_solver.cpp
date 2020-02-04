@@ -94,7 +94,7 @@ void BaseSolver::checkInit()
                 if (n.getKind() == STRING_CONCAT && !d_state.areEqual(nc, n))
                 {
                   std::vector<Node> exp;
-                  unsigned count[2] = {0, 0};
+                  size_t count[2] = {0, 0};
                   while (count[0] < nc.getNumChildren()
                          || count[1] < n.getNumChildren())
                   {
