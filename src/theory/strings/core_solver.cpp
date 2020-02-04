@@ -683,6 +683,39 @@ NormalForm& CoreSolver::getNormalForm(Node n)
   return itn->second;
 }
 
+Node CoreSolver::getNormalString(Node x, std::vector<Node>& nf_exp)
+{
+  if (!x.isConst())
+  {
+    Node xr = d_state.getRepresentative(x);
+    std::map<Node, NormalForm>::iterator it = d_normal_form.find(xr);
+    if (it != d_normal_form.end())
+    {
+      NormalForm& nf = it->second;
+      Node ret = utils::mkNConcat(nf.d_nf);
+      nf_exp.insert(nf_exp.end(), nf.d_exp.begin(), nf.d_exp.end());
+      d_im.addToExplanation(x, nf.d_base, nf_exp);
+      Trace("strings-debug")
+          << "Term: " << x << " has a normal form " << ret << std::endl;
+      return ret;
+    }
+    // if x does not have a normal form, then it should not occur in the
+    // equality engine and hence should be its own representative.
+    Assert(xr == x);
+    if (x.getKind() == kind::STRING_CONCAT)
+    {
+      std::vector<Node> vec_nodes;
+      for (unsigned i = 0; i < x.getNumChildren(); i++)
+      {
+        Node nc = getNormalString(x[i], nf_exp);
+        vec_nodes.push_back(nc);
+      }
+      return utils::mkNConcat(vec_nodes);
+    }
+  }
+  return x;
+}
+
 void CoreSolver::getNormalForms(Node eqc,
                                    std::vector<NormalForm>& normal_forms,
                                    std::map<Node, unsigned>& term_to_nf_index)

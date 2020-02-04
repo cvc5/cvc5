@@ -43,18 +43,6 @@ class CoreSolver {
  public:
   CoreSolver(context::Context* c, context::UserContext* u, SolverState& s,InferenceManager& im, SkolemCache& skc, BaseSolver& bs);
   ~CoreSolver();
- 
-  //--------------------------- helper functions
-  /** get normal string
-   *
-   * This method returns the node that is equivalent to the normal form of x,
-   * and adds the corresponding explanation to nf_exp.
-   *
-   * For example, if x = y ++ z is an assertion in the current context, then
-   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
-   */
-  Node getNormalString(Node x, std::vector<Node>& nf_exp);
-  //-------------------------- end helper functions
 
   //-----------------------inference steps
   /** check initial
@@ -190,6 +178,25 @@ class CoreSolver {
   //-----------------------end inference steps  
   
 
+  //--------------------------- query functions
+  /** 
+   * Get normal form for string term n. For details on this data structure,
+   * see theory/strings/normal_form.h.
+   * 
+   * This query is valid after a successful call to checkNormalFormsEq, e.g.
+   * a call where the inference manager was not given any lemmas or inferences.
+   */
+  NormalForm& getNormalForm(Node n);
+  /** get normal string
+   *
+   * This method returns the node that is equivalent to the normal form of x,
+   * and adds the corresponding explanation to nf_exp.
+   *
+   * For example, if x = y ++ z is an assertion in the current context, then
+   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
+   */
+  Node getNormalString(Node x, std::vector<Node>& nf_exp);
+  //-------------------------- end query functions
 private:  
   /** The solver state object */
   SolverState& d_state;
@@ -206,13 +213,13 @@ private:
   Node d_zero;
   Node d_one;
   Node d_neg_one;
+  /** empty vector (used for trivial explanations) */
+  std::vector<Node> d_emptyVec;
   /** 
    * The list of equivalence classes of type string. These are ordered based
    * on the ordering described in checkCycles.
    */
   std::vector<Node> d_strings_eqc;
-  /** empty vector (used for trivial explanations) */
-  std::vector<Node> d_emptyVec;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /** 
@@ -250,8 +257,6 @@ private:
    * updates the set of normal form pairs.
    */
   void doInferInfo(const InferInfo& ii);
-  /** get normal form */
-  NormalForm& getNormalForm(Node n);
   /** Add that (n1,n2) is a normal form pair in the current context. */
   void addNormalFormPair( Node n1, Node n2 );
   /** Is (n1,n2) a normal form pair in the current context? */
