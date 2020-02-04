@@ -1689,7 +1689,8 @@ void TheoryStrings::checkCodes()
   }
 }
 
-void TheoryStrings::registerTerm( Node n, int effort ) {
+void TheoryStrings::registerTerm(Node n, int effort)
+{
   TypeNode tn = n.getType();
   bool do_register = true;
   if (!tn.isString())
