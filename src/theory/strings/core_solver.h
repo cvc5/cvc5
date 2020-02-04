@@ -20,28 +20,34 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "theory/strings/base_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
-#include "theory/strings/base_solver.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
 /** The core solver for the theory of strings
- * 
+ *
  * This implements techniques for handling (dis)equalities involving
  * string concatenation terms based on the procedure by Liang et al CAV 2014.
  */
-class CoreSolver {
+class CoreSolver
+{
   friend class InferenceManager;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
 
  public:
-  CoreSolver(context::Context* c, context::UserContext* u, SolverState& s,InferenceManager& im, SkolemCache& skc, BaseSolver& bs);
+  CoreSolver(context::Context* c,
+             context::UserContext* u,
+             SolverState& s,
+             InferenceManager& im,
+             SkolemCache& skc,
+             BaseSolver& bs);
   ~CoreSolver();
 
   //-----------------------inference steps
@@ -175,14 +181,13 @@ class CoreSolver {
    * shown to be helpful.
    */
   void checkLengthsEqc();
-  //-----------------------end inference steps  
-  
+  //-----------------------end inference steps
 
   //--------------------------- query functions
-  /** 
+  /**
    * Get normal form for string term n. For details on this data structure,
    * see theory/strings/normal_form.h.
-   * 
+   *
    * This query is valid after a successful call to checkNormalFormsEq, e.g.
    * a call where the inference manager was not given any lemmas or inferences.
    */
@@ -197,7 +202,7 @@ class CoreSolver {
    */
   Node getNormalString(Node x, std::vector<Node>& nf_exp);
   //-------------------------- end query functions
-private:  
+ private:
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
@@ -215,20 +220,20 @@ private:
   Node d_neg_one;
   /** empty vector (used for trivial explanations) */
   std::vector<Node> d_emptyVec;
-  /** 
+  /**
    * The list of equivalence classes of type string. These are ordered based
    * on the ordering described in checkCycles.
    */
   std::vector<Node> d_strings_eqc;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
-  /** 
+  /**
    * In certain cases, we know that two terms are equivalent despite
    * not having to verify their normal forms are identical. For example,
    * after applying the R-Loop rule to two terms a and b, we know they
    * are entailed to be equal in the current context without having
    * to look at their normal forms. We call (a,b) a normal form pair.
-   * 
+   *
    * We map representative terms a to a list of nodes b1,...,bn such that
    * (a,b1) ... (a, bn) are normal form pairs. This list is SAT-context
    * dependent. We use a context-dependent integer along with a context
@@ -236,20 +241,20 @@ private:
    * the two data members below.
    */
   NodeIntMap d_nf_pairs;
-  std::map< Node, std::vector< Node > > d_nf_pairs_data;
+  std::map<Node, std::vector<Node> > d_nf_pairs_data;
   /** list of non-congruent concat terms in each equivalence class */
-  std::map< Node, std::vector< Node > > d_eqc;
-  /** 
+  std::map<Node, std::vector<Node> > d_eqc;
+  /**
    * The flat form for each equivalence class. For a term (str.++ t1 ... tn),
    * this is a list of the form (r_{i1} ... r_{im}) where each empty t1...tn
    * is dropped and the others are replaced in order with their representative.
    */
-  std::map< Node, std::vector< Node > > d_flat_form;
-  /** 
+  std::map<Node, std::vector<Node> > d_flat_form;
+  /**
    * For each component r_{i1} ... r_{im} in a flat form, this stores
    * the argument number of the t1 ... tn they were generated from.
    */
-  std::map< Node, std::vector< int > > d_flat_form_index;
+  std::map<Node, std::vector<int> > d_flat_form_index;
 
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
@@ -258,9 +263,9 @@ private:
    */
   void doInferInfo(const InferInfo& ii);
   /** Add that (n1,n2) is a normal form pair in the current context. */
-  void addNormalFormPair( Node n1, Node n2 );
+  void addNormalFormPair(Node n1, Node n2);
   /** Is (n1,n2) a normal form pair in the current context? */
-  bool isNormalFormPair( Node n1, Node n2 );
+  bool isNormalFormPair(Node n1, Node n2);
 
   //--------------------------for checkFlatForm
   /**
@@ -272,11 +277,11 @@ private:
    */
   void checkFlatForm(std::vector<Node>& eqc, size_t start, bool isRev);
   /** debug print current flat forms on trace tc */
-  void debugPrintFlatForms( const char * tc );
+  void debugPrintFlatForms(const char* tc);
   //--------------------------end for checkFlatForm
 
   //--------------------------for checkCycles
-  Node checkCycles( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp );
+  Node checkCycles(Node eqc, std::vector<Node>& curr, std::vector<Node>& exp);
   //--------------------------end for checkCycles
 
   //--------------------------for checkNormalFormsEq
@@ -289,7 +294,7 @@ private:
    * If it is not, then we add an inference via sendInference and abort the
    * call.
    */
-  void normalizeEquivalenceClass( Node n );
+  void normalizeEquivalenceClass(Node n);
   /**
    * For each term in the equivalence class of eqc, this adds data regarding its
    * normal form to normal_forms. The map term_to_nf_index maps terms to the
@@ -373,14 +378,22 @@ private:
   //--------------------------end for checkNormalFormsEq with loops
 
   //--------------------------for checkNormalFormsDeq
-  void processDeq( Node n1, Node n2 );
-  int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
-  int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
+  void processDeq(Node n1, Node n2);
+  int processReverseDeq(std::vector<Node>& nfi,
+                        std::vector<Node>& nfj,
+                        Node ni,
+                        Node nj);
+  int processSimpleDeq(std::vector<Node>& nfi,
+                       std::vector<Node>& nfj,
+                       Node ni,
+                       Node nj,
+                       unsigned& index,
+                       bool isRev);
   //--------------------------end for checkNormalFormsDeq
-};/* class CoreSolver */
+}; /* class CoreSolver */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__CORE_SOLVER_H */
