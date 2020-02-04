@@ -401,7 +401,7 @@ def main():
     if os.environ.get('VALGRIND') == '1' and not wrapper:
         wrapper = ['libtool', '--mode=execute', 'valgrind']
 
-    timeout = float(os.getenv('TEST_TIMEOUT', 600.0))
+    timeout = float(os.getenv('TEST_TIMEOUT', 1200.0))
 
     return run_regression(args.enable_proof, args.with_lfsc, args.dump,
                           args.use_skip_return_code, wrapper, cvc4_binary,
