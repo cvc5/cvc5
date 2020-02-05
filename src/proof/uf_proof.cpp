@@ -649,11 +649,13 @@ void LFSCUFProof::printOwnedTermAsType(Expr term,
     os << "(apply _ _ ";
   }
   os << func << " ";
+  Assert(func.getType().isFunction());
+  FunctionType funcType = static_cast<FunctionType>(func.getType());
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
 
     bool convertToBool = (term[i].getType().isBoolean() && !d_proofEngine->printsAsBool(term[i]));
     if (convertToBool) os << "(f_to_b ";
-    d_proofEngine->printBoundTerm(term[i], os, map);
+    d_proofEngine->printBoundTerm(term[i], os, map, TypeNode::fromType(funcType.getArgTypes()[i]));
     if (convertToBool) os << ")";
     os << ")";
   }
