@@ -324,13 +324,13 @@ class CardinalityExtension
   void checkNormalForm(Node eqc, std::vector<Node>& intro_sets);
 
   /**
-   * add cardinality lemmas for each type except uninterpreted sorts with
-   * finite-model-find
+   * Add cardinality lemmas for the univset of each type with cardinality terms.
+   * The lemmas are explained below.
    */
   void checkCardinalityExtended();
   /**
    * This function adds the following lemmas for type t for each S
-   * where S is a (a representative) set term of type t, and for each negative
+   * where S is a (representative) set term of type t, and for each negative
    * member x not in S:
    * 1- (=> true (<= (card (as univset t)) n) where n is the
    * cardinality of t, which may be symbolic

@@ -143,9 +143,8 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   // add subset lemmas for sets and membership lemmas for negative members
   for (Node& representative : representatives)
   {
-    if (representative
-        != d_ee.getRepresentative(
-            univ))  // the universe set is a subset of itself
+    // the universe set is a subset of itself
+    if (representative != d_ee.getRepresentative(univ))
     {
       // here we only add representatives with variables to avoid adding
       // infinite equivalent generated terms to the cardinality graph
