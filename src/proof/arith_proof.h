@@ -89,6 +89,15 @@ public:
   void printOwnedSort(Type type, std::ostream& os) override;
 
   /**
+   * Returns the LFSC identifier for the operator of this node.
+   *
+   * e.g. "+_Real".
+   *
+   * Does not include any parens.
+   */
+  static std::string getLfscFunction(const Node& n);
+
+  /**
    * Print a rational number in LFSC format.
    *        e.g. 5/8 or (~ 1/1)
    *
@@ -96,6 +105,15 @@ public:
    * @param r the rational to print
    */
   static void printRational(std::ostream& o, const Rational& r);
+
+  /**
+   * Print an integer in LFSC format.
+   *        e.g. 5 or (~ 1)
+   *
+   * @param o ostream to print to.
+   * @param i the integer to print
+   */
+  static void printInteger(std::ostream& o, const Integer& i);
 
   /**
    * Print a value of type poly_formula_norm
