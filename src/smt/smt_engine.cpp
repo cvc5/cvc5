@@ -4836,11 +4836,12 @@ void SmtEngine::checkModel(bool hardFailure) {
     // rewrite quantified formulas (see cvc4-wishues#43).
     if (!n.isConst())
     {
+      // Not constant, print a less severe warning message here.
       Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified assertion : " << n << endl;
       continue;
     }
-    // Assertions that simplify to false result in an InternalError being thrown
-    // below (when hardFailure is true).
+    // Assertions that simplify to false result in an InternalError or
+    // Warning being thrown below (when hardFailure is true).
     Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
               << endl;
     stringstream ss;
@@ -4852,7 +4853,7 @@ void SmtEngine::checkModel(bool hardFailure) {
         << "Run with `--check-models -v' for additional diagnostics.";
     if (hardFailure)
     {
-      // internal error if hardFailure is true and n = false
+      // internal error if hardFailure is true
       InternalError() << ss.str();
     }else {
       Warning() << ss.str() << endl;
