@@ -252,7 +252,7 @@ bool hasClosure(Node n)
     {
       for (auto i = n.begin(); i != n.end() && !hasC; ++i)
       {
-        hasC = hasBoundVar(*i);
+        hasC = hasClosure(*i);
       }
     }
     if (!hasC && n.hasOperator())
