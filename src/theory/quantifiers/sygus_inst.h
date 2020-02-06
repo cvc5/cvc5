@@ -17,6 +17,8 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INST_H
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_INST_H
 
+#include <unordered_map>
+
 #include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
@@ -109,6 +111,9 @@ class SygusInst : public QuantifiersModule
   // void assertNode(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   std::string identify() const override { return "SygusInst"; }
+
+ private:
+  std::unordered_map<Node, TypeNode, NodeHashFunction> d_var_types;
 };
 
 }  // namespace quantifiers
