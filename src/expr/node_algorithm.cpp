@@ -312,7 +312,7 @@ struct HasClosureComputedTag
 typedef expr::Attribute<HasClosureTag, bool> HasClosureAttr;
 typedef expr::Attribute<HasClosureComputedTag, bool> HasClosureComputedAttr;
 
-bool hasClosure( Node n )
+bool hasClosure(Node n)
 {
   if (!n.getAttribute(HasClosureComputedAttr()))
   {

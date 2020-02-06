@@ -1546,7 +1546,8 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
   if( itv!=visited[tindex].end() ){
     return itv->second;
   }
-  if( expr::hasClosure( n ) ){
+  if (expr::hasClosure(n))
+  {
     Node ret = n;
     if (topLevel
         && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
@@ -2174,7 +2175,7 @@ bool QuantifiersRewriter::isPrenexNormalForm( Node n ) {
   }else if( n.getKind()==NOT ){
     return n[0].getKind()!=NOT && isPrenexNormalForm( n[0] );
   }else{
-    return !expr::hasClosure( n );
+    return !expr::hasClosure(n);
   }
 }
 
@@ -2224,7 +2225,8 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   }else{
     //check if it contains a quantifier as a subterm
     //if so, we will write this node
-    if( expr::hasClosure( n ) ){
+    if (expr::hasClosure(n))
+    {
       if( ( n.getKind()==kind::ITE && n.getType().isBoolean() ) || ( n.getKind()==kind::EQUAL && n[0].getType().isBoolean() ) ){
         if( options::preSkolemQuantAgg() ){
           Node nn;

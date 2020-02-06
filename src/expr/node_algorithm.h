@@ -76,7 +76,7 @@ bool hasFreeVar(TNode n);
  * @param n The node under investigation
  * @return true iff this node contains a closure.
  */
-bool hasClosure( Node n );
+bool hasClosure(Node n);
 
 /**
  * Get the free variables in n, that is, the subterms of n of kind
