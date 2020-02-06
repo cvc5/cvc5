@@ -163,7 +163,12 @@ void CegSingleInv::initialize(Node q)
   std::vector<Node> sivars;
   d_sip->getSingleInvocationVariables(sivars);
   Node invariant = d_sip->getFunctionInvocationFor(prog);
-  Assert(!invariant.isNull());
+  if (invariant.isNull())
+  {
+    // the conjecture did not have an instance of the invariant
+    // (e.g. it is trivially true/false).
+    return;
+  }
   invariant = invariant.substitute(sivars.begin(),
                                    sivars.end(),
                                    prog_templ_vars.begin(),

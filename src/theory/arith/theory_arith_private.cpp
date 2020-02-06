@@ -1194,7 +1194,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
       // 0 <= n[0] - toIntSkolem < 1
       Node one = mkRationalNode(1);
       Node lem = mkAxiomForTotalIntDivision(n[0], one, toIntSkolem);
-      d_containing.d_out->lemma(lem);
+      outputLemma(lem);
     }else{
       toIntSkolem = (*it).second;
     }
@@ -1247,7 +1247,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
                                         nm->mkNode(kind::LT, num, nm->mkNode(kind::MULT, den, nm->mkNode(kind::PLUS, intVar, nm->mkConst(Rational(-1))))))));                
       }    
       if( !lem.isNull() ){
-        d_containing.d_out->lemma(lem);
+        outputLemma(lem);
       }
     }else{
       intVar = (*it).second;
@@ -1270,7 +1270,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
     if( it==d_div_skolem.end() ){
       var = nm->mkSkolem("nonlinearDiv", nm->realType(), "the result of a non-linear div term");
       d_div_skolem[rw] = var;
-      d_containing.d_out->lemma(nm->mkNode(kind::IMPLIES, den.eqNode(nm->mkConst(Rational(0))).negate(), nm->mkNode(kind::MULT, den, var).eqNode(num)));
+      outputLemma(nm->mkNode(kind::IMPLIES, den.eqNode(nm->mkConst(Rational(0))).negate(), nm->mkNode(kind::MULT, den, var).eqNode(num)));
     }else{
       var = (*it).second;
     }
@@ -2017,6 +2017,10 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
       ConstraintP floorConstraint = constraint->getFloor();
       if(!floorConstraint->isTrue()){
         bool inConflict = floorConstraint->negationHasProof();
+        if (Debug.isOn("arith::intbound")) {
+          Debug("arith::intbound") << "literal, before: " << constraint->getLiteral() << std::endl;
+          Debug("arith::intbound") << "constraint, after: " << floorConstraint << std::endl;
+        }
         floorConstraint->impliedByIntHole(constraint, inConflict);
         floorConstraint->tryToPropagate();
         if(inConflict){
@@ -2033,6 +2037,10 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
       ConstraintP ceilingConstraint = constraint->getCeiling();
       if(!ceilingConstraint->isTrue()){
         bool inConflict = ceilingConstraint->negationHasProof();
+        if (Debug.isOn("arith::intbound")) {
+          Debug("arith::intbound") << "literal, before: " << constraint->getLiteral() << std::endl;
+          Debug("arith::intbound") << "constraint, after: " << ceilingConstraint << std::endl;
+        }
         ceilingConstraint->impliedByIntHole(constraint, inConflict);
         ceilingConstraint->tryToPropagate();
         if(inConflict){
@@ -2172,6 +2180,11 @@ void TheoryArithPrivate::outputConflicts(){
               << conflict[conflict.getNumChildren() - i - 1];
         }
 
+        if (Debug.isOn("arith::pf::tree")) {
+          confConstraint->printProofTree(Debug("arith::pf::tree"));
+          confConstraint->getNegation()->printProofTree(Debug("arith::pf::tree"));
+        }
+
         Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
         d_containing.d_proofRecorder->saveFarkasCoefficients(
             conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
@@ -2181,7 +2194,7 @@ void TheoryArithPrivate::outputConflicts(){
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
       }
 
-      (d_containing.d_out)->conflict(conflict);
+      outputConflict(conflict);
     }
   }
   if(!d_blackBoxConflict.get().isNull()){
@@ -2195,13 +2208,28 @@ void TheoryArithPrivate::outputConflicts(){
       Debug("arith::conflict") << "(normalized to) " << bb << endl;
     }
 
-    (d_containing.d_out)->conflict(bb);
+    outputConflict(bb);
   }
 }
 
 void TheoryArithPrivate::outputLemma(TNode lem) {
-  Debug("arith::lemma") << "Arith Lemma: " << lem << std::endl;
+  Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
   (d_containing.d_out)->lemma(lem);
+}
+
+void TheoryArithPrivate::outputConflict(TNode lit) {
+  Debug("arith::channel") << "Arith conflict: " << lit << std::endl;
+  (d_containing.d_out)->conflict(lit);
+}
+
+void TheoryArithPrivate::outputPropagate(TNode lit) {
+  Debug("arith::channel") << "Arith propagation: " << lit << std::endl;
+  (d_containing.d_out)->propagate(lit);
+}
+
+void TheoryArithPrivate::outputRestart() {
+  Debug("arith::channel") << "Arith restart!" << std::endl;
+  (d_containing.d_out)->demandRestart();
 }
 
 // void TheoryArithPrivate::branchVector(const std::vector<ArithVar>& lemmas){
@@ -4376,6 +4404,16 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
     {
       if (!m->assertEquality(p.first, p.second, true))
       {
+        // If we failed to assert an equality, it is likely due to theory
+        // combination, namely the repaired model for non-linear changed
+        // an equality status that was agreed upon by both (linear) arithmetic
+        // and another theory. In this case, we must add a lemma, or otherwise
+        // we would terminate with an invalid model. Thus, we add a splitting
+        // lemma of the form ( x = v V x != v ) where v is the model value
+        // assigned by the non-linear solver to x.
+        Node eq = p.first.eqNode(p.second);
+        Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
+        d_containing.d_out->lemma(lem);
         return false;
       }
     }
@@ -4879,6 +4917,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
     //   * coeffs[i+1] is for explain[i]
     d_linEq.propagateRow(explain, ridx, rowUp, implied, coeffs);
     if(d_tableau.getRowLength(ridx) <= options::arithPropAsLemmaLength()){
+      if (Debug.isOn("arith::prop::pf")) {
+        for (const auto & constraint : explain) {
+          Assert(constraint->hasProof());
+          constraint->printProofTree(Debug("arith::prop::pf"));
+        }
+      }
       Node implication = implied->externalImplication(explain);
       Node clause = flattenImplication(implication);
       PROOF(if (d_containing.d_proofRecorder

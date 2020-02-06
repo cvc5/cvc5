@@ -3,6 +3,12 @@
 
 set(regress_0_tests
   regress0/arith/ackermann.real.smt2
+  regress0/arith/arith-eq.smt2
+  regress0/arith/arith-mixed.smt2
+  regress0/arith/arith-tighten-1.smt2
+  regress0/arith/arith-strict.smt2
+  regress0/arith/arith-mixed-types-tighten.smt2
+  regress0/arith/arith-mixed-types-no-tighten.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc
@@ -948,6 +954,7 @@ set(regress_0_tests
   regress0/sygus/no-syntax-test.sy
   regress0/sygus/parity-AIG-d0.sy
   regress0/sygus/parse-bv-let.sy
+  regress0/sygus/pbe-pred-contra.sy
   regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/sygus-no-wf.sy
@@ -1232,6 +1239,7 @@ set(regress_1_tests
   regress1/fmf/issue3587.smt2
   regress1/fmf/issue3615.smt2
   regress1/fmf/issue3626.smt2
+  regress1/fmf/issue3689.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
@@ -1286,6 +1294,7 @@ set(regress_1_tests
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
   regress1/nl/issue3441.smt2
+  regress1/nl/issue3617.smt2
   regress1/nl/issue3656.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
@@ -1595,6 +1604,7 @@ set(regress_1_tests
   regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
+  regress1/sets/finite-type/bug3663.smt2
   regress1/sets/finite-type/sets-card-arrcolor.smt2
   regress1/sets/finite-type/sets-card-arrunit.smt2
   regress1/sets/finite-type/sets-card-bool-1.smt2
