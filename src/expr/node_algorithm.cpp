@@ -229,6 +229,43 @@ bool hasFreeVar(TNode n)
   return getFreeVariables(n, fvs, false);
 }
 
+struct HasClosureTag
+{
+};
+struct HasClosureComputedTag
+{
+};
+/** Attribute true for expressions with closures in them */
+typedef expr::Attribute<HasClosureTag, bool> HasClosureAttr;
+typedef expr::Attribute<HasClosureComputedTag, bool> HasClosureComputedAttr;
+
+bool hasClosure(Node n)
+{
+  if (!n.getAttribute(HasClosureComputedAttr()))
+  {
+    bool hasC = false;
+    if (n.isClosure())
+    {
+      hasC = true;
+    }
+    else
+    {
+      for (auto i = n.begin(); i != n.end() && !hasC; ++i)
+      {
+        hasC = hasClosure(*i);
+      }
+    }
+    if (!hasC && n.hasOperator())
+    {
+      hasC = hasClosure(n.getOperator());
+    }
+    n.setAttribute(HasClosureAttr(), hasC);
+    n.setAttribute(HasClosureComputedAttr(), true);
+    return hasC;
+  }
+  return n.getAttribute(HasClosureAttr());
+}
+
 bool getFreeVariables(TNode n,
                       std::unordered_set<Node, NodeHashFunction>& fvs,
                       bool computeFv)
