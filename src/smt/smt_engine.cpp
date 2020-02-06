@@ -4828,7 +4828,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       // this is necessary until preprocessing passes explicitly record how they rewrite quantified formulas
       if( hardFailure && !n.isConst() && n.getKind() != kind::LAMBDA ){
         Notice() << "SmtEngine::checkModel(): -- relax check model wrt quantified formulas..." << endl;
-        AlwaysAssert(quantifiers::QuantifiersRewriter::containsQuantifiers(n));
+        AlwaysAssert(expr::hasClosure(n));
         Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified assertion : " << n << endl;
         continue;
       }

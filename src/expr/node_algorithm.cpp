@@ -302,6 +302,43 @@ bool getFreeVariables(TNode n,
   return !fvs.empty();
 }
 
+struct HasClosureTag
+{
+};
+struct HasClosureComputedTag
+{
+};
+/** Attribute true for expressions with bound variables in them */
+typedef expr::Attribute<HasClosureTag, bool> HasClosureAttr;
+typedef expr::Attribute<HasClosureComputedTag, bool> HasClosureComputedAttr;
+
+bool hasClosure( Node n )
+{
+  if (!n.getAttribute(HasClosureComputedAttr()))
+  {
+    bool hasClosure = false;
+    if (n.isClosure())
+    {
+      hasClosure = true;
+    }
+    else
+    {
+      for (auto i = n.begin(); i != n.end() && !hasClosure; ++i)
+      {
+        hasClosure = hasBoundVar(*i);
+      }
+    }
+    if (!hasClosure && n.hasOperator())
+    {
+      hasClosure = hasClosure(n.getOperator());
+    }
+    n.setAttribute(HasClosureAttr(), hasClosure);
+    n.setAttribute(HasClosureComputedAttr(), true);
+    return hasClosure;
+  }
+  return n.getAttribute(HasClosureAttr());
+}
+
 bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;

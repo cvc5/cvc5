@@ -1546,7 +1546,7 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
   if( itv!=visited[tindex].end() ){
     return itv->second;
   }
-  if( containsQuantifiers( n ) ){
+  if( expr::hasClosure( n ) ){
     Node ret = n;
     if (topLevel
         && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
@@ -2168,35 +2168,13 @@ Node QuantifiersRewriter::rewriteRewriteRule( Node r ) {
   return rn;
 }
 
-struct ContainsQuantAttributeId {};
-typedef expr::Attribute<ContainsQuantAttributeId, uint64_t> ContainsQuantAttribute;
-
-// check if the given node contains a universal quantifier
-bool QuantifiersRewriter::containsQuantifiers( Node n ){
-  if( n.hasAttribute(ContainsQuantAttribute()) ){
-    return n.getAttribute(ContainsQuantAttribute())==1;
-  }else if( n.isClosure() ){
-    return true;
-  }else{
-    bool cq = false;
-    for( unsigned i = 0; i < n.getNumChildren(); ++i ){
-      if( containsQuantifiers( n[i] ) ){
-        cq = true;
-        break;
-      }
-    }
-    ContainsQuantAttribute cqa;
-    n.setAttribute(cqa, cq ? 1 : 0);
-    return cq;
-  }
-}
 bool QuantifiersRewriter::isPrenexNormalForm( Node n ) {
   if( n.getKind()==FORALL ){
     return n[1].getKind()!=FORALL && isPrenexNormalForm( n[1] );
   }else if( n.getKind()==NOT ){
     return n[0].getKind()!=NOT && isPrenexNormalForm( n[0] );
   }else{
-    return !containsQuantifiers( n );
+    return !expr::hasClosure( n );
   }
 }
 
@@ -2246,7 +2224,7 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   }else{
     //check if it contains a quantifier as a subterm
     //if so, we will write this node
-    if( containsQuantifiers( n ) ){
+    if( expr::hasClosure( n ) ){
       if( ( n.getKind()==kind::ITE && n.getType().isBoolean() ) || ( n.getKind()==kind::EQUAL && n[0].getType().isBoolean() ) ){
         if( options::preSkolemQuantAgg() ){
           Node nn;
