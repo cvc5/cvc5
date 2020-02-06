@@ -308,7 +308,7 @@ struct HasClosureTag
 struct HasClosureComputedTag
 {
 };
-/** Attribute true for expressions with bound variables in them */
+/** Attribute true for expressions with closures in them */
 typedef expr::Attribute<HasClosureTag, bool> HasClosureAttr;
 typedef expr::Attribute<HasClosureComputedTag, bool> HasClosureComputedAttr;
 
