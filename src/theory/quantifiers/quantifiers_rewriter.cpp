@@ -2175,7 +2175,7 @@ typedef expr::Attribute<ContainsQuantAttributeId, uint64_t> ContainsQuantAttribu
 bool QuantifiersRewriter::containsQuantifiers( Node n ){
   if( n.hasAttribute(ContainsQuantAttribute()) ){
     return n.getAttribute(ContainsQuantAttribute())==1;
-  }else if( n.getKind() == kind::FORALL ){
+  }else if( n.isClosure() ){
     return true;
   }else{
     bool cq = false;
