@@ -490,7 +490,7 @@ Node InstStrategyCegqi::doNestedQENode(
     Trace("cbqi-nqe") << "  " << ceq << std::endl; 
     Trace("cbqi-nqe") << "  " << d_nested_qe[ceq] << std::endl;
     //should not contain quantifiers
-    Assert(!QuantifiersRewriter::containsQuantifiers(d_nested_qe[ceq]));
+    Assert(!expr::hasClosure(d_nested_qe[ceq]));
   }
   Assert(d_quantEngine->getTermUtil()->d_inst_constants[q].size()
          == inst_terms.size());
