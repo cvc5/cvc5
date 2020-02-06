@@ -4810,7 +4810,6 @@ void SmtEngine::checkModel(bool hardFailure) {
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
 
-    
     if (n.isConst())
     {
       if (n.getConst<bool>())
@@ -4837,25 +4836,29 @@ void SmtEngine::checkModel(bool hardFailure) {
     if (!n.isConst())
     {
       // Not constant, print a less severe warning message here.
-      Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified assertion : " << n << endl;
+      Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified "
+                   "assertion : "
+                << n << endl;
       continue;
     }
     // Assertions that simplify to false result in an InternalError or
     // Warning being thrown below (when hardFailure is true).
     Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
-              << endl;
+             << endl;
     stringstream ss;
     ss << "SmtEngine::checkModel(): "
-        << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-        << "assertion:     " << *i << endl
-        << "simplifies to: " << n << endl
-        << "expected `true'." << endl
-        << "Run with `--check-models -v' for additional diagnostics.";
+       << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+       << "assertion:     " << *i << endl
+       << "simplifies to: " << n << endl
+       << "expected `true'." << endl
+       << "Run with `--check-models -v' for additional diagnostics.";
     if (hardFailure)
     {
       // internal error if hardFailure is true
       InternalError() << ss.str();
-    }else {
+    }
+    else
+    {
       Warning() << ss.str() << endl;
     }
   }
