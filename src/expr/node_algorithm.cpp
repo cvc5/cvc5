@@ -316,25 +316,25 @@ bool hasClosure( Node n )
 {
   if (!n.getAttribute(HasClosureComputedAttr()))
   {
-    bool hasClosure = false;
+    bool hasC = false;
     if (n.isClosure())
     {
-      hasClosure = true;
+      hasC = true;
     }
     else
     {
-      for (auto i = n.begin(); i != n.end() && !hasClosure; ++i)
+      for (auto i = n.begin(); i != n.end() && !hasC; ++i)
       {
-        hasClosure = hasBoundVar(*i);
+        hasC = hasBoundVar(*i);
       }
     }
-    if (!hasClosure && n.hasOperator())
+    if (!hasC && n.hasOperator())
     {
-      hasClosure = hasClosure(n.getOperator());
+      hasC = hasClosure(n.getOperator());
     }
-    n.setAttribute(HasClosureAttr(), hasClosure);
+    n.setAttribute(HasClosureAttr(), hasC);
     n.setAttribute(HasClosureComputedAttr(), true);
-    return hasClosure;
+    return hasC;
   }
   return n.getAttribute(HasClosureAttr());
 }
