@@ -610,8 +610,8 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
         r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
     for (const Node& lem : rlemmas)
     {
-      // We may have computed the evaluation of all function applications
-      // via example-based symmetry breaking
+      // We may have computed the evaluation of some function applications
+      // via example-based symmetry breaking, stored in evalVisited.
       Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
