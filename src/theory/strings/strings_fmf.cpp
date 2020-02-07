@@ -25,7 +25,7 @@ namespace strings {
 
 StringsFmf::StringsFmf(context::Context* c,
                        context::UserContext* u,
-                       Valuation& valuation,
+                       Valuation valuation,
                        SkolemCache& skc)
     : d_satContext(c),
       d_userContext(u),

@@ -437,6 +437,7 @@ void TheoryStrings::presolve() {
         d_stringsFmf.getDecisionStrategy(),
         DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);
   }
+  Debug("strings-presolve") << "Finished presolve" << std::endl;
 }
 
 

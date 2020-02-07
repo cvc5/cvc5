@@ -41,7 +41,7 @@ class StringsFmf
  public:
   StringsFmf(context::Context* c,
              context::UserContext* u,
-             Valuation& valuation,
+             Valuation valuation,
              SkolemCache& skc);
   ~StringsFmf();
   /** preRegister term
@@ -68,7 +68,7 @@ class StringsFmf
   /** The user level assertion context for the theory of strings. */
   context::UserContext* d_userContext;
   /** The valuation object */
-  Valuation& d_valuation;
+  Valuation d_valuation;
   /** reference to the skolem cache */
   SkolemCache& d_skCache;
   /**
