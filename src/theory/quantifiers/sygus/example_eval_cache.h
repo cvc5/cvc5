@@ -41,6 +41,13 @@ class TermDbSygus;
  * to evaluate builtin terms.
  *
  * The use of (1) is required since we may be interested in computing the
+ * evaluation of terms on a fixed set of points P, and reusing it in multiple
+ * contexts, including:
+ * - Computing whether a term evaluates the same as another one on P,
+ * - Computing which I/O pairs a term satisfies (for decision tree learning)
+ * whose inputs are P,
+ * - Checking whether the term satisfies refinement lemmas where the function
+ * to synthesize is solely applied to points in P.
  *
  * A typical use case of (2) is the following.
  * During search, the extension of quantifier-free datatypes procedure for
@@ -48,9 +55,10 @@ class TermDbSygus;
  * discarded based on inferring when two candidate solutions are equivalent
  * up to examples. For example, the candidate solutions:
  *     f = \x ite( x < 0, x+1, x ) and f = \x x
- * are equivalent up to examples on the above conjecture, since they have
- * the same value on the points x = 0,5,6. Hence, we need only consider one of
- * them. The interface for querying this is
+ * are equivalent up to examples on a conjecture like:
+ *     exists f. f(0) = 1 ^ f(5) = 2 ^ f(6) = 3
+ * since they have the same value on the points x = 0,5,6. Hence, we need only
+ * consider one of them. The interface for querying this is
  *       ExampleEvalCache::addSearchVal(...).
  * For details, see Reynolds et al. SYNT 2017.
  */
@@ -69,7 +77,7 @@ class ExampleEvalCache
 
   /** Add search value
    *
-   * This function is called by the extension of quantifier-free datatypes
+   * This function can be called by the extension of quantifier-free datatypes
    * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
    * considering a value of enumerator e passed to the constructor of this
    * class whose analog in the signature of builtin theory is bvr.
@@ -78,7 +86,9 @@ class ExampleEvalCache
    * - A term that is equivalent to bvr up to examples that was passed as the
    * argument to a previous call to addSearchVal, or
    * - bvr, indicating that no previous terms are equivalent to bvr up to
-   * examples.
+   * examples,
+   * - null, indicating that symmetry breaking could not be applied (e.g.
+   * if the enumerator of this class is variable agnostic).
    *
    * If this method returns bvr (indicating it is not redundant), the
    * result of the evaluation of bvr is cached by this class, and can be
@@ -106,7 +116,6 @@ class ExampleEvalCache
    *   evaluateBuiltin( tn, bn, e, 0 ) = 7
    *   evaluateBuiltin( tn, bn, e, 1 ) = 9
    *   evaluateBuiltin( tn, bn, e, 2 ) = 10
-   * This
    */
   Node evaluate(Node bv, unsigned i) const;
   /** clear evaluation cache for bv */

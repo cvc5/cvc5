@@ -1386,7 +1386,8 @@ void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& ter
 void CegInstantiator::presolve( Node q ) {
   //at preregister time, add proxy of obvious instantiations up front, which helps learning during preprocessing
   //only if no nested quantifiers
-  if( !QuantifiersRewriter::containsQuantifiers( q[1] ) ){
+  if (!expr::hasClosure(q[1]))
+  {
     std::vector< Node > ps_vars;
     std::map< Node, std::vector< Node > > teq;
     for( unsigned i=0; i<q[0].getNumChildren(); i++ ){

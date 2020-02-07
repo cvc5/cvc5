@@ -51,18 +51,17 @@ Node ExampleEvalCache::addSearchVal(Node bv)
     return Node::null();
   }
   std::vector<Node> vals;
-  evaluateVec(bv, vals, true);
+  evaluateVec(bv, vals, false);
   Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
   Node ret = d_trie.addOrGetTerm(bv, vals);
   Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
-  // Clean up the cache data if necessary: if the enumerated term
+  // Only save the cache data if necessary: if the enumerated term
   // is redundant, its cached data will not be used later and thus should
-  // be cleared now.
-  if (ret != bv)
+  // be discarded.
+  if (ret == bv)
   {
-    // immediately clear it
-    Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
-    clearEvaluationCache(bv);
+    std::vector<Node>& eocv = d_exOutCache[bv];
+    eocv.insert(eocv.end(), vals.begin(), vals.end());
   }
   Assert(ret.getType().isComparableTo(bv.getType()));
   return ret;
