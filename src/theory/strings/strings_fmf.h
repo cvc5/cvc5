@@ -29,34 +29,39 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** Strings finite model finding 
- * 
+/** Strings finite model finding
+ *
  * This class manages the creation of a decision strategy that bounds the
  * sum of lengths of terms of type string.
  */
-class StringsFmf {
+class StringsFmf
+{
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  StringsFmf(context::Context* c, context::UserContext* u, Valuation& valuation, SkolemCache& skc);
+  StringsFmf(context::Context* c,
+             context::UserContext* u,
+             Valuation& valuation,
+             SkolemCache& skc);
   ~StringsFmf();
-  /** preRegister term 
-   * 
+  /** preRegister term
+   *
    * This determines if the term n should be added to d_inputVars, the set
    * of terms of type string whose length we are minimizing with this decision
    * strategy.
    */
   void preRegisterTerm(TNode n);
-  /** presolve 
-   * 
+  /** presolve
+   *
    * This initializes a (new copy) of the decision strategy d_sslds.
    */
   void presolve();
-  /** 
+  /**
    * Get the decision strategy, valid after a call to presolve in the duration
    * of a check-sat call.
    */
-  DecisionStrategy * getDecisionStrategy() const;
+  DecisionStrategy* getDecisionStrategy() const;
+
  private:
   /** The SAT search context for the theory of strings. */
   context::Context* d_satContext;
@@ -66,7 +71,7 @@ class StringsFmf {
   Valuation& d_valuation;
   /** reference to the skolem cache */
   SkolemCache& d_skCache;
-  /** 
+  /**
    * The set of terms of type string whose length we are minimizing
    * with this decision strategy.
    */
@@ -111,8 +116,8 @@ class StringsFmf {
   std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;
 };
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__STRINGS_FMF_H */

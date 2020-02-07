@@ -23,7 +23,10 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsFmf::StringsFmf(context::Context* c, context::UserContext* u, Valuation& valuation, SkolemCache& skc)
+StringsFmf::StringsFmf(context::Context* c,
+                       context::UserContext* u,
+                       Valuation& valuation,
+                       SkolemCache& skc)
     : d_satContext(c),
       d_userContext(u),
       d_valuation(valuation),
@@ -31,15 +34,14 @@ StringsFmf::StringsFmf(context::Context* c, context::UserContext* u, Valuation& 
       d_inputVars(u),
       d_sslds(nullptr)
 {
-
 }
 
-StringsFmf::~StringsFmf() {
+StringsFmf::~StringsFmf() {}
 
-}
-
-void StringsFmf::preRegisterTerm(TNode n) {
-  if( !n.getType().isString() ) {
+void StringsFmf::preRegisterTerm(TNode n)
+{
+  if (!n.getType().isString())
+  {
     return;
   }
   Kind k = n.getKind();
@@ -53,22 +55,23 @@ void StringsFmf::preRegisterTerm(TNode n) {
   }
 }
 
-void StringsFmf::presolve() {
+void StringsFmf::presolve()
+{
   d_sslds.reset(new StringSumLengthDecisionStrategy(
       d_satContext, d_userContext, d_valuation));
   Trace("strings-dstrat-reg")
       << "presolve: register decision strategy." << std::endl;
   std::vector<Node> inputVars;
   for (NodeSet::const_iterator itr = d_inputVars.begin();
-        itr != d_inputVars.end();
-        ++itr)
+       itr != d_inputVars.end();
+       ++itr)
   {
     inputVars.push_back(*itr);
   }
   d_sslds->initialize(inputVars);
 }
 
-DecisionStrategy * StringsFmf::getDecisionStrategy() const
+DecisionStrategy* StringsFmf::getDecisionStrategy() const
 {
   return d_sslds.get();
 }
@@ -116,8 +119,6 @@ std::string StringsFmf::StringSumLengthDecisionStrategy::identify() const
   return std::string("string_sum_len");
 }
 
-
-
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
