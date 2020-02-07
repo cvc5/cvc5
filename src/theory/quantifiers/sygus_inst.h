@@ -115,12 +115,33 @@ class SygusInst : public QuantifiersModule
   std::string identify() const override { return "SygusInst"; }
 
  private:
+  // Enumerator needs access to
+  //  - quantifiersEngine
+  //  - skolem with type (grammar)
+  class InstPool
+  {
+   public:
+    InstPool();
+    ~InstPool() = default;
+
+    void initialize(TermDbSygus* db, TypeNode& tn);
+
+    bool done();
+
+    TNode next();
+
+   private:
+    bool d_done;
+    std::unique_ptr<SygusEnumerator> d_enumerator;
+    std::vector<Node> d_terms;
+  };
+
   std::unordered_map<Node,
                      std::unordered_set<TNode, TNodeHashFunction>,
                      NodeHashFunction>
       d_quant_vars;
-  std::unordered_map<Node, std::unique_ptr<SygusEnumerator>, NodeHashFunction>
-      d_enumerators;
+
+  std::unordered_map<Node, InstPool, NodeHashFunction> d_inst_pools;
 };
 
 }  // namespace quantifiers

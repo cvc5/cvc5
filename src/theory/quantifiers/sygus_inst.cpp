@@ -29,7 +29,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusInst::SygusInst(QuantifiersEngine* qe)
-    : QuantifiersModule(qe), d_quant_vars(), d_enumerators()
+    : QuantifiersModule(qe), d_quant_vars(), d_inst_pools()
 {
 }
 
@@ -55,7 +55,7 @@ void SygusInst::registerQuantifier(Node q)
   Assert(d_quant_vars.find(q) == d_quant_vars.end());
   auto& vars = d_quant_vars[q];
   expr::getVariables(q, vars);
-  NodeManager* nm = NodeManager::currentNM();
+  TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
   for (const Node& var : vars)
   {
     TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(var.getType(),
@@ -68,10 +68,8 @@ void SygusInst::registerQuantifier(Node q)
     // std::cout << "tn for " << var << ": " << tn.getDType() << std::endl;
     Trace("sygus-inst") << "Construct (default) datatype for " << var
                         << std::endl;
-    d_enumerators.emplace(std::make_pair(
-        var,
-        new SygusEnumerator(d_quantEngine->getTermDatabaseSygus(), nullptr)));
-    d_enumerators.at(var)->initialize(nm->mkSkolem("", tn));
+
+    d_inst_pools[var].initialize(db, tn);
   }
 }
 
@@ -103,28 +101,23 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
     std::vector<Node> terms;
     for (const TNode& var : d_quant_vars[q])
     {
-      Assert(d_enumerators.find(var) != d_enumerators.end());
-      SygusEnumerator* senum = d_enumerators.at(var).get();
-      if (senum == nullptr)
+      Assert(d_inst_pools.find(var) != d_inst_pools.end());
+      InstPool& pool = d_inst_pools.at(var);
+
+      if (pool.done())
       {
+        Trace("sygus-inst") << "Enumerator finished for " << var << std::endl;
         continue;
       }
 
       Trace("sygus-inst") << "Enumerate variable " << var << std::endl;
       for (size_t j = 0; j < 10; ++j)
       {
-        Node n = senum->getCurrent();
-
-        /* Enumerator finished. */
-        if (!senum->increment())
-        {
-          Trace("sygus-inst") << "Enumerator finished for " << var << std::endl;
-          d_enumerators.at(var).reset();
-          break;
-        }
+        TNode n = pool.next();
 
         if (n.isNull())
         {
+          Assert(pool.done());
           continue;
         }
         Trace("sygus-inst-enum")
@@ -136,6 +129,36 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
     //{
     //}
   }
+}
+
+/* InstPool */
+
+SygusInst::InstPool::InstPool() : d_done(false), d_enumerator(), d_terms() {}
+
+void SygusInst::InstPool::initialize(TermDbSygus* db, TypeNode& tn)
+{
+  d_enumerator.reset(new SygusEnumerator(db, nullptr));
+  d_enumerator->initialize(NodeManager::currentNM()->mkSkolem("", tn));
+}
+
+bool SygusInst::InstPool::done() { return d_done; }
+
+TNode SygusInst::InstPool::next()
+{
+  Node cur;
+  do
+  {
+    cur = d_enumerator->getCurrent();
+    if (!d_enumerator->increment())
+    {
+      d_done = true;
+      break;
+    }
+  } while (cur.isNull());
+
+  if (!cur.isNull()) d_terms.push_back(cur);
+
+  return cur;
 }
 
 }  // namespace quantifiers
