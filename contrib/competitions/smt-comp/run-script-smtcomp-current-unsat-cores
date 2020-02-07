@@ -20,7 +20,7 @@ QF_LIA)
   finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --use-soi
   ;;
 QF_NIA)
-  finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
+  finishwith --nl-ext --nl-ext-tplanes
   ;;
 QF_NRA)
   finishwith --nl-ext --nl-ext-tplanes

@@ -62,30 +62,6 @@ std::ostream& operator<<(std::ostream& out, InferStep s)
   return out;
 }
 
-Node TheoryStrings::TermIndex::add(TNode n,
-                                   unsigned index,
-                                   const SolverState& s,
-                                   Node er,
-                                   std::vector<Node>& c)
-{
-  if( index==n.getNumChildren() ){
-    if( d_data.isNull() ){
-      d_data = n;
-    }
-    return d_data;
-  }else{
-    Assert(index < n.getNumChildren());
-    TNode nir = s.getRepresentative(n[index]);
-    //if it is empty, and doing CONCAT, ignore
-    if( nir==er && n.getKind()==kind::STRING_CONCAT ){
-      return add(n, index + 1, s, er, c);
-    }else{
-      c.push_back( nir );
-      return d_children[nir].add(n, index + 1, s, er, c);
-    }
-  }
-}
-
 TheoryStrings::TheoryStrings(context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
@@ -101,12 +77,12 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_registered_terms_cache(u),
       d_preproc(&d_sk_cache, u),
       d_extf_infer_cache(c),
-      d_congruent(c),
       d_proxy_var(u),
       d_proxy_var_to_length(u),
       d_functionsTerms(c),
       d_has_extf(c, false),
       d_has_str_code(false),
+      d_bsolver(c, u, d_state, d_im),
       d_regexp_solver(*this, d_state, d_im, c, u),
       d_input_vars(u),
       d_input_var_lsum(u),
@@ -297,22 +273,10 @@ Node TheoryStrings::getCurrentSubstitutionFor(int effort,
     return mv;
   }
   Node nr = d_state.getRepresentative(n);
-  std::map<Node, Node>::iterator itc = d_eqc_to_const.find(nr);
-  if (itc != d_eqc_to_const.end())
+  Node c = d_bsolver.explainConstantEqc(n, nr, exp);
+  if (!c.isNull())
   {
-    // constant equivalence classes
-    Trace("strings-subs") << "   constant eqc : " << d_eqc_to_const_exp[nr]
-                          << " " << d_eqc_to_const_base[nr] << " " << nr
-                          << std::endl;
-    if (!d_eqc_to_const_exp[nr].isNull())
-    {
-      exp.push_back(d_eqc_to_const_exp[nr]);
-    }
-    if (!d_eqc_to_const_base[nr].isNull())
-    {
-      d_im.addToExplanation(n, d_eqc_to_const_base[nr], exp);
-    }
-    return itc->second;
+    return c;
   }
   else if (effort >= 1 && n.getType().isString())
   {
@@ -1244,266 +1208,6 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
-void TheoryStrings::checkInit() {
-  //build term index
-  d_eqc_to_const.clear();
-  d_eqc_to_const_base.clear();
-  d_eqc_to_const_exp.clear();
-  d_eqc_to_len_term.clear();
-  d_term_index.clear();
-  d_strings_eqc.clear();
-
-  std::map< Kind, unsigned > ncongruent;
-  std::map< Kind, unsigned > congruent;
-  d_emptyString_r = d_state.getRepresentative(d_emptyString);
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-  while( !eqcs_i.isFinished() ){
-    Node eqc = (*eqcs_i);
-    TypeNode tn = eqc.getType();
-    if( !tn.isRegExp() ){
-      if( tn.isString() ){
-        d_strings_eqc.push_back( eqc );
-      }
-      Node var;
-      eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
-      while( !eqc_i.isFinished() ) {
-        Node n = *eqc_i;
-        if( n.isConst() ){
-          d_eqc_to_const[eqc] = n;
-          d_eqc_to_const_base[eqc] = n;
-          d_eqc_to_const_exp[eqc] = Node::null();
-        }else if( tn.isInteger() ){
-          if( n.getKind()==kind::STRING_LENGTH ){
-            Node nr = d_state.getRepresentative(n[0]);
-            d_eqc_to_len_term[nr] = n[0];
-          }
-        }else if( n.getNumChildren()>0 ){
-          Kind k = n.getKind();
-          if( k!=kind::EQUAL ){
-            if( d_congruent.find( n )==d_congruent.end() ){
-              std::vector< Node > c;
-              Node nc = d_term_index[k].add(n, 0, d_state, d_emptyString_r, c);
-              if( nc!=n ){
-                //check if we have inferred a new equality by removal of empty components
-                if (n.getKind() == kind::STRING_CONCAT
-                    && !d_state.areEqual(nc, n))
-                {
-                  std::vector< Node > exp;
-                  unsigned count[2] = { 0, 0 };
-                  while( count[0]<nc.getNumChildren() || count[1]<n.getNumChildren() ){
-                    //explain empty prefixes
-                    for( unsigned t=0; t<2; t++ ){
-                      Node nn = t==0 ? nc : n;
-                      while (
-                          count[t] < nn.getNumChildren()
-                          && (nn[count[t]] == d_emptyString
-                              || d_state.areEqual(nn[count[t]], d_emptyString)))
-                      {
-                        if( nn[count[t]]!=d_emptyString ){
-                          exp.push_back( nn[count[t]].eqNode( d_emptyString ) );
-                        }
-                        count[t]++;
-                      }
-                    }
-                    //explain equal components
-                    if( count[0]<nc.getNumChildren() ){
-                      Assert(count[1] < n.getNumChildren());
-                      if( nc[count[0]]!=n[count[1]] ){
-                        exp.push_back( nc[count[0]].eqNode( n[count[1]] ) );
-                      }
-                      count[0]++;
-                      count[1]++;
-                    }
-                  }
-                  //infer the equality
-                  d_im.sendInference(exp, n.eqNode(nc), "I_Norm");
-                }
-                else if (getExtTheory()->hasFunctionKind(n.getKind()))
-                {
-                  //mark as congruent : only process if neither has been reduced
-                  getExtTheory()->markCongruent( nc, n );
-                }
-                //this node is congruent to another one, we can ignore it
-                Trace("strings-process-debug")
-                    << "  congruent term : " << n << " (via " << nc << ")"
-                    << std::endl;
-                d_congruent.insert( n );
-                congruent[k]++;
-              }else if( k==kind::STRING_CONCAT && c.size()==1 ){
-                Trace("strings-process-debug") << "  congruent term by singular : " << n << " " << c[0] << std::endl;
-                //singular case
-                if (!d_state.areEqual(c[0], n))
-                {
-                  Node ns;
-                  std::vector< Node > exp;
-                  //explain empty components
-                  bool foundNEmpty = false;
-                  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-                    if (d_state.areEqual(n[i], d_emptyString))
-                    {
-                      if( n[i]!=d_emptyString ){
-                        exp.push_back( n[i].eqNode( d_emptyString ) );
-                      }
-                    }
-                    else
-                    {
-                      Assert(!foundNEmpty);
-                      ns = n[i];
-                      foundNEmpty = true;
-                    }
-                  }
-                  AlwaysAssert(foundNEmpty);
-                  //infer the equality
-                  d_im.sendInference(exp, n.eqNode(ns), "I_Norm_S");
-                }
-                d_congruent.insert( n );
-                congruent[k]++;
-              }else{
-                ncongruent[k]++;
-              }
-            }else{
-              congruent[k]++;
-            }
-          }
-        }else{
-          if( d_congruent.find( n )==d_congruent.end() ){
-            // We mark all but the oldest variable in the equivalence class as
-            // congruent.
-            if (var.isNull())
-            {
-              var = n;
-            }
-            else if (var > n)
-            {
-              Trace("strings-process-debug")
-                  << "  congruent variable : " << var << std::endl;
-              d_congruent.insert(var);
-              var = n;
-            }
-            else
-            {
-              Trace("strings-process-debug")
-                  << "  congruent variable : " << n << std::endl;
-              d_congruent.insert(n);
-            }
-          }
-        }
-        ++eqc_i;
-      }
-    }
-    ++eqcs_i;
-  }
-  if( Trace.isOn("strings-process") ){
-    for( std::map< Kind, TermIndex >::iterator it = d_term_index.begin(); it != d_term_index.end(); ++it ){
-      Trace("strings-process") << "  Terms[" << it->first << "] = " << ncongruent[it->first] << "/" << (congruent[it->first]+ncongruent[it->first]) << std::endl;
-    }
-  }
-}
-
-void TheoryStrings::checkConstantEquivalenceClasses()
-{
-  // do fixed point
-  unsigned prevSize;
-  std::vector<Node> vecc;
-  do
-  {
-    vecc.clear();
-    Trace("strings-process-debug") << "Check constant equivalence classes..."
-                                   << std::endl;
-    prevSize = d_eqc_to_const.size();
-    checkConstantEquivalenceClasses(&d_term_index[kind::STRING_CONCAT], vecc);
-  } while (!d_im.hasProcessed() && d_eqc_to_const.size() > prevSize);
-}
-
-void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc ) {
-  Node n = ti->d_data;
-  if( !n.isNull() ){
-    //construct the constant
-    Node c = utils::mkNConcat(vecc);
-    if (!d_state.areEqual(n, c))
-    {
-      Trace("strings-debug") << "Constant eqc : " << c << " for " << n << std::endl;
-      Trace("strings-debug") << "  ";
-      for( unsigned i=0; i<vecc.size(); i++ ){
-        Trace("strings-debug") << vecc[i] << " ";
-      }
-      Trace("strings-debug") << std::endl;
-      unsigned count = 0;
-      unsigned countc = 0;
-      std::vector< Node > exp;
-      while( count<n.getNumChildren() ){
-        while (count < n.getNumChildren()
-               && d_state.areEqual(n[count], d_emptyString))
-        {
-          d_im.addToExplanation(n[count], d_emptyString, exp);
-          count++;
-        }
-        if( count<n.getNumChildren() ){
-          Trace("strings-debug") << "...explain " << n[count] << " " << vecc[countc] << std::endl;
-          if (!d_state.areEqual(n[count], vecc[countc]))
-          {
-            Node nrr = d_state.getRepresentative(n[count]);
-            Assert(!d_eqc_to_const_exp[nrr].isNull());
-            d_im.addToExplanation(n[count], d_eqc_to_const_base[nrr], exp);
-            exp.push_back( d_eqc_to_const_exp[nrr] );
-          }
-          else
-          {
-            d_im.addToExplanation(n[count], vecc[countc], exp);
-          }
-          countc++;
-          count++;
-        }
-      }
-      //exp contains an explanation of n==c
-      Assert(countc == vecc.size());
-      if (d_state.hasTerm(c))
-      {
-        d_im.sendInference(exp, n.eqNode(c), "I_CONST_MERGE");
-        return;
-      }
-      else if (!d_im.hasProcessed())
-      {
-        Node nr = d_state.getRepresentative(n);
-        std::map< Node, Node >::iterator it = d_eqc_to_const.find( nr );
-        if( it==d_eqc_to_const.end() ){
-          Trace("strings-debug") << "Set eqc const " << n << " to " << c << std::endl;
-          d_eqc_to_const[nr] = c;
-          d_eqc_to_const_base[nr] = n;
-          d_eqc_to_const_exp[nr] = utils::mkAnd(exp);
-        }else if( c!=it->second ){
-          //conflict
-          Trace("strings-debug") << "Conflict, other constant was " << it->second << ", this constant was " << c << std::endl;
-          if( d_eqc_to_const_exp[nr].isNull() ){
-            // n==c ^ n == c' => false
-            d_im.addToExplanation(n, it->second, exp);
-          }else{
-            // n==c ^ n == d_eqc_to_const_base[nr] == c' => false
-            exp.push_back( d_eqc_to_const_exp[nr] );
-            d_im.addToExplanation(n, d_eqc_to_const_base[nr], exp);
-          }
-          d_im.sendInference(exp, d_false, "I_CONST_CONFLICT");
-          return;
-        }else{
-          Trace("strings-debug") << "Duplicate constant." << std::endl;
-        }
-      }
-    }
-  }
-  for( std::map< TNode, TermIndex >::iterator it = ti->d_children.begin(); it != ti->d_children.end(); ++it ){
-    std::map< Node, Node >::iterator itc = d_eqc_to_const.find( it->first );
-    if( itc!=d_eqc_to_const.end() ){
-      vecc.push_back( itc->second );
-      checkConstantEquivalenceClasses( &it->second, vecc );
-      vecc.pop_back();
-      if (d_im.hasProcessed())
-      {
-        break;
-      }
-    }
-  }
-}
-
 void TheoryStrings::checkExtfEval( int effort ) {
   Trace("strings-extf-list") << "Active extended functions, effort=" << effort << " : " << std::endl;
   d_extf_info_tmp.clear();
@@ -1515,11 +1219,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
     // Setup information about n, including if it is equal to a constant.
     ExtfInfoTmp& einfo = d_extf_info_tmp[n];
     Node r = d_state.getRepresentative(n);
-    std::map<Node, Node>::iterator itcit = d_eqc_to_const.find(r);
-    if (itcit != d_eqc_to_const.end())
-    {
-      einfo.d_const = itcit->second;
-    }
+    einfo.d_const = d_bsolver.getConstantEqc(r);
     // Get the current values of the children of n.
     // Notice that we look up the value of the direct children of n, and not
     // their free variables. In other words, given a term:
@@ -1629,7 +1329,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
             Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc << std::endl;
             d_im.sendInference(
                 einfo.d_exp, conc, effort == 0 ? "EXTF" : "EXTF-N", true);
-            if (!d_state.isInConflict())
+            if (d_state.isInConflict())
             {
               Trace("strings-extf-debug") << "  conflict, return." << std::endl;
               return;
@@ -1718,16 +1418,8 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   {
     // otherwise, must explain via base node
     Node r = d_state.getRepresentative(n);
-    // we have that:
-    //   d_eqc_to_const_exp[r] => d_eqc_to_const_base[r] = in.d_const
-    // thus:
-    //   n = d_eqc_to_const_base[r] ^ d_eqc_to_const_exp[r] => n = in.d_const
-    Assert(d_eqc_to_const_base.find(r) != d_eqc_to_const_base.end());
-    d_im.addToExplanation(n, d_eqc_to_const_base[r], in.d_exp);
-    Assert(d_eqc_to_const_exp.find(r) != d_eqc_to_const_exp.end());
-    in.d_exp.insert(in.d_exp.end(),
-                    d_eqc_to_const_exp[r].begin(),
-                    d_eqc_to_const_exp[r].end());
+    // explain using the base solver
+    d_bsolver.explainConstantEqc(n, r, in.d_exp);
   }
 
   // d_extf_infer_cache stores whether we have made the inferences associated
@@ -1932,15 +1624,6 @@ Node TheoryStrings::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
   }
 }
 
-Node TheoryStrings::getConstantEqc( Node eqc ) {
-  std::map< Node, Node >::iterator it = d_eqc_to_const.find( eqc );
-  if( it!=d_eqc_to_const.end() ){
-    return it->second;
-  }else{
-    return Node::null();
-  }
-}
-
 void TheoryStrings::debugPrintFlatForms( const char * tc ){
   for( unsigned k=0; k<d_strings_eqc.size(); k++ ){
     Node eqc = d_strings_eqc[k];
@@ -1949,9 +1632,10 @@ void TheoryStrings::debugPrintFlatForms( const char * tc ){
     }else{
       Trace( tc ) << "eqc [" << eqc << "]";
     }
-    std::map< Node, Node >::iterator itc = d_eqc_to_const.find( eqc );
-    if( itc!=d_eqc_to_const.end() ){
-      Trace( tc ) << "  C: " << itc->second;
+    Node c = d_bsolver.getConstantEqc(eqc);
+    if (!c.isNull())
+    {
+      Trace(tc) << "  C: " << c;
       if( d_eqc[eqc].size()>1 ){
         Trace( tc ) << std::endl;
       }
@@ -1962,11 +1646,14 @@ void TheoryStrings::debugPrintFlatForms( const char * tc ){
         Trace( tc ) << "    ";
         for( unsigned j=0; j<d_flat_form[n].size(); j++ ){
           Node fc = d_flat_form[n][j];
-          itc = d_eqc_to_const.find( fc );
+          Node fcc = d_bsolver.getConstantEqc(fc);
           Trace( tc ) << " ";
-          if( itc!=d_eqc_to_const.end() ){
-            Trace( tc ) << itc->second;
-          }else{
+          if (!fcc.isNull())
+          {
+            Trace(tc) << fcc;
+          }
+          else
+          {
             Trace( tc ) << fc;
           }
         }
@@ -2009,17 +1696,18 @@ void TheoryStrings::checkCycles()
   d_flat_form.clear();
   d_flat_form_index.clear();
   d_eqc.clear();
-  //rebuild strings eqc based on acyclic ordering
-  std::vector< Node > eqc;
-  eqc.insert( eqc.end(), d_strings_eqc.begin(), d_strings_eqc.end() );
+  // Rebuild strings eqc based on acyclic ordering, first copy the equivalence
+  // classes from the base solver.
+  std::vector<Node> eqc = d_bsolver.getStringEqc();
   d_strings_eqc.clear();
   if( options::stringBinaryCsp() ){
     //sort: process smallest constants first (necessary if doing binary splits)
     sortConstLength scl;
     for( unsigned i=0; i<eqc.size(); i++ ){
-      std::map< Node, Node >::iterator itc = d_eqc_to_const.find( eqc[i] );
-      if( itc!=d_eqc_to_const.end() ){
-        scl.d_const_length[eqc[i]] = itc->second.getConst<String>().size();
+      Node ci = d_bsolver.getConstantEqc(eqc[i]);
+      if (!ci.isNull())
+      {
+        scl.d_const_length[eqc[i]] = ci.getConst<String>().size();
       }
     }
     std::sort( eqc.begin(), eqc.end(), scl );
@@ -2049,7 +1737,7 @@ void TheoryStrings::checkFlatForms()
   //(1) approximate equality by containment, infer conflicts
   for (const Node& eqc : d_strings_eqc)
   {
-    Node c = getConstantEqc(eqc);
+    Node c = d_bsolver.getConstantEqc(eqc);
     if (!c.isNull())
     {
       // if equivalence class is constant, all component constants in flat forms
@@ -2071,13 +1759,7 @@ void TheoryStrings::checkFlatForms()
             // conflict, explanation is n = base ^ base = c ^ relevant portion
             // of ( n = f[n] )
             std::vector<Node> exp;
-            Assert(d_eqc_to_const_base.find(eqc) != d_eqc_to_const_base.end());
-            d_im.addToExplanation(n, d_eqc_to_const_base[eqc], exp);
-            Assert(d_eqc_to_const_exp.find(eqc) != d_eqc_to_const_exp.end());
-            if (!d_eqc_to_const_exp[eqc].isNull())
-            {
-              exp.push_back(d_eqc_to_const_exp[eqc]);
-            }
+            d_bsolver.explainConstantEqc(n, eqc, exp);
             for (int e = firstc; e <= lastc; e++)
             {
               if (d_flat_form[n][e].isConst())
@@ -2216,7 +1898,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
     else
     {
       Node curr = d_flat_form[a][count];
-      Node curr_c = getConstantEqc(curr);
+      Node curr_c = d_bsolver.getConstantEqc(curr);
       Node ac = a[d_flat_form_index[a][count]];
       std::vector<Node> lexp;
       Node lcurr = d_state.getLength(ac, lexp);
@@ -2254,7 +1936,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
             Node bc = b[d_flat_form_index[b][count]];
             inelig.push_back(b);
             Assert(!d_state.areEqual(curr, cc));
-            Node cc_c = getConstantEqc(cc);
+            Node cc_c = d_bsolver.getConstantEqc(cc);
             if (!curr_c.isNull() && !cc_c.isNull())
             {
               // check for constant conflict
@@ -2263,10 +1945,8 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                   cc_c, curr_c, index, isRev);
               if (s.isNull())
               {
-                d_im.addToExplanation(ac, d_eqc_to_const_base[curr], exp);
-                d_im.addToExplanation(d_eqc_to_const_exp[curr], exp);
-                d_im.addToExplanation(bc, d_eqc_to_const_base[cc], exp);
-                d_im.addToExplanation(d_eqc_to_const_exp[cc], exp);
+                d_bsolver.explainConstantEqc(ac, curr, exp);
+                d_bsolver.explainConstantEqc(bc, cc, exp);
                 conc = d_false;
                 infType = FlatFormInfer::CONST;
                 break;
@@ -2386,25 +2066,32 @@ Node TheoryStrings::checkCycles( Node eqc, std::vector< Node >& curr, std::vecto
     eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
     while( !eqc_i.isFinished() ) {
       Node n = (*eqc_i);
-      if( d_congruent.find( n )==d_congruent.end() ){
+      if (!d_bsolver.isCongruent(n))
+      {
         if( n.getKind() == kind::STRING_CONCAT ){
           Trace("strings-cycle") << eqc << " check term : " << n << " in " << eqc << std::endl;
-          if( eqc!=d_emptyString_r ){
+          if (eqc != d_emptyString)
+          {
             d_eqc[eqc].push_back( n );
           }
           for( unsigned i=0; i<n.getNumChildren(); i++ ){
             Node nr = d_state.getRepresentative(n[i]);
-            if( eqc==d_emptyString_r ){
+            if (eqc == d_emptyString)
+            {
               //for empty eqc, ensure all components are empty
-              if( nr!=d_emptyString_r ){
+              if (nr != d_emptyString)
+              {
                 std::vector< Node > exp;
                 exp.push_back( n.eqNode( d_emptyString ) );
                 d_im.sendInference(
                     exp, n[i].eqNode(d_emptyString), "I_CYCLE_E");
                 return Node::null();
               }
-            }else{
-              if( nr!=d_emptyString_r ){
+            }
+            else
+            {
+              if (nr != d_emptyString)
+              {
                 d_flat_form[n].push_back( nr );
                 d_flat_form_index[n].push_back( i );
               }
@@ -2460,7 +2147,7 @@ void TheoryStrings::checkRegisterTermsPreNormalForm()
     while (!eqc_i.isFinished())
     {
       Node n = (*eqc_i);
-      if (d_congruent.find(n) == d_congruent.end())
+      if (!d_bsolver.isCongruent(n))
       {
         registerTerm(n, 2);
       }
@@ -2686,7 +2373,8 @@ void TheoryStrings::getNormalForms(Node eqc,
   eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
   while( !eqc_i.isFinished() ){
     Node n = (*eqc_i);
-    if( d_congruent.find( n )==d_congruent.end() ){
+    if (!d_bsolver.isCongruent(n))
+    {
       if (n.getKind() == CONST_STRING || n.getKind() == STRING_CONCAT)
       {
         Trace("strings-process-debug") << "Get Normal Form : Process term " << n << " in eqc " << eqc << std::endl;
@@ -2867,7 +2555,7 @@ void TheoryStrings::getNormalForms(Node eqc,
     }
     
     //if equivalence class is constant, approximate as containment, infer conflicts
-    Node c = getConstantEqc( eqc );
+    Node c = d_bsolver.getConstantEqc(eqc);
     if( !c.isNull() ){
       Trace("strings-solve") << "Eqc is constant " << c << std::endl;
       for (unsigned i = 0, size = normal_forms.size(); i < size; i++)
@@ -2882,12 +2570,7 @@ void TheoryStrings::getNormalForms(Node eqc,
           Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
           //conflict, explanation is n = base ^ base = c ^ relevant porition of ( n = N[n] )
           std::vector< Node > exp;
-          Assert(d_eqc_to_const_base.find(eqc) != d_eqc_to_const_base.end());
-          d_im.addToExplanation(n, d_eqc_to_const_base[eqc], exp);
-          Assert(d_eqc_to_const_exp.find(eqc) != d_eqc_to_const_exp.end());
-          if( !d_eqc_to_const_exp[eqc].isNull() ){
-            exp.push_back( d_eqc_to_const_exp[eqc] );
-          }
+          d_bsolver.explainConstantEqc(n, eqc, exp);
           //TODO: this can be minimized based on firstc/lastc, normal_forms_exp_depend
           exp.insert(exp.end(), nf.d_exp.begin(), nf.d_exp.end());
           Node conc = d_false;
@@ -3850,7 +3533,7 @@ int TheoryStrings::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node
   {
     for (unsigned i = 0; i < 2; i++)
     {
-      Node c = getConstantEqc(i == 0 ? ni : nj);
+      Node c = d_bsolver.getConstantEqc(i == 0 ? ni : nj);
       if (!c.isNull())
       {
         int findex, lindex;
@@ -4465,8 +4148,8 @@ void TheoryStrings::runInferStep(InferStep s, int effort)
   Trace("strings-process") << "..." << std::endl;
   switch (s)
   {
-    case CHECK_INIT: checkInit(); break;
-    case CHECK_CONST_EQC: checkConstantEquivalenceClasses(); break;
+    case CHECK_INIT: d_bsolver.checkInit(); break;
+    case CHECK_CONST_EQC: d_bsolver.checkConstantEquivalenceClasses(); break;
     case CHECK_EXTF_EVAL: checkExtfEval(effort); break;
     case CHECK_CYCLES: checkCycles(); break;
     case CHECK_FLAT_FORMS: checkFlatForms(); break;
