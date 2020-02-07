@@ -25,7 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumerator::SygusEnumerator(TermDbSygus* tds, SynthConjecture* p, SygusStatistics& s)
+SygusEnumerator::SygusEnumerator(TermDbSygus* tds,
+                                 SynthConjecture* p,
+                                 SygusStatistics& s)
     : d_tds(tds), d_parent(p), d_stats(s), d_tlEnum(nullptr), d_abortSize(-1)
 {
 }
@@ -150,6 +152,7 @@ SygusEnumerator::TermCache::TermCache()
       d_sampleRrVInit(false)
 {
 }
+
 void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
                                             Node e,
                                             TypeNode tn,
@@ -541,7 +544,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
   {
     eec = d_parent->getExampleEvalCache(d_enum);
   }
-  d_tcache[tn].initialize(&d_stats,d_enum, tn, d_tds, eec);
+  d_tcache[tn].initialize(&d_stats, d_enum, tn, d_tds, pbe);
 }
 
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
