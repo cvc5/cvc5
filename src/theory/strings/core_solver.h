@@ -181,59 +181,6 @@ class CoreSolver
   Node getNormalString(Node x, std::vector<Node>& nf_exp);
   //-------------------------- end query functions
  private:
-  /** The solver state object */
-  SolverState& d_state;
-  /** The (custom) output channel of the theory of strings */
-  InferenceManager& d_im;
-  /** cache of all skolems */
-  SkolemCache& d_skCache;
-  /** reference to the base solver, used for certain queries */
-  BaseSolver& d_bsolver;
-  /** Commonly used constants */
-  Node d_emptyString;
-  Node d_true;
-  Node d_false;
-  Node d_zero;
-  Node d_one;
-  Node d_neg_one;
-  /** empty vector (used for trivial explanations) */
-  std::vector<Node> d_emptyVec;
-  /**
-   * The list of equivalence classes of type string. These are ordered based
-   * on the ordering described in checkCycles.
-   */
-  std::vector<Node> d_strings_eqc;
-  /** map from terms to their normal forms */
-  std::map<Node, NormalForm> d_normal_form;
-  /**
-   * In certain cases, we know that two terms are equivalent despite
-   * not having to verify their normal forms are identical. For example,
-   * after applying the R-Loop rule to two terms a and b, we know they
-   * are entailed to be equal in the current context without having
-   * to look at their normal forms. We call (a,b) a normal form pair.
-   *
-   * We map representative terms a to a list of nodes b1,...,bn such that
-   * (a,b1) ... (a, bn) are normal form pairs. This list is SAT-context
-   * dependent. We use a context-dependent integer along with a context
-   * indepedent map from nodes to lists of nodes to model this, given by
-   * the two data members below.
-   */
-  NodeIntMap d_nf_pairs;
-  std::map<Node, std::vector<Node> > d_nf_pairs_data;
-  /** list of non-congruent concat terms in each equivalence class */
-  std::map<Node, std::vector<Node> > d_eqc;
-  /**
-   * The flat form for each equivalence class. For a term (str.++ t1 ... tn),
-   * this is a list of the form (r_{i1} ... r_{im}) where each empty t1...tn
-   * is dropped and the others are replaced in order with their representative.
-   */
-  std::map<Node, std::vector<Node> > d_flat_form;
-  /**
-   * For each component r_{i1} ... r_{im} in a flat form, this stores
-   * the argument number of the t1 ... tn they were generated from.
-   */
-  std::map<Node, std::vector<int> > d_flat_form_index;
-
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, it introduces Skolems, and
@@ -368,6 +315,59 @@ class CoreSolver
                        unsigned& index,
                        bool isRev);
   //--------------------------end for checkNormalFormsDeq
+  
+  /** The solver state object */
+  SolverState& d_state;
+  /** The (custom) output channel of the theory of strings */
+  InferenceManager& d_im;
+  /** cache of all skolems */
+  SkolemCache& d_skCache;
+  /** reference to the base solver, used for certain queries */
+  BaseSolver& d_bsolver;
+  /** Commonly used constants */
+  Node d_emptyString;
+  Node d_true;
+  Node d_false;
+  Node d_zero;
+  Node d_one;
+  Node d_neg_one;
+  /** empty vector (used for trivial explanations) */
+  std::vector<Node> d_emptyVec;
+  /**
+   * The list of equivalence classes of type string. These are ordered based
+   * on the ordering described in checkCycles.
+   */
+  std::vector<Node> d_strings_eqc;
+  /** map from terms to their normal forms */
+  std::map<Node, NormalForm> d_normal_form;
+  /**
+   * In certain cases, we know that two terms are equivalent despite
+   * not having to verify their normal forms are identical. For example,
+   * after applying the R-Loop rule to two terms a and b, we know they
+   * are entailed to be equal in the current context without having
+   * to look at their normal forms. We call (a,b) a normal form pair.
+   *
+   * We map representative terms a to a list of nodes b1,...,bn such that
+   * (a,b1) ... (a, bn) are normal form pairs. This list is SAT-context
+   * dependent. We use a context-dependent integer along with a context
+   * indepedent map from nodes to lists of nodes to model this, given by
+   * the two data members below.
+   */
+  NodeIntMap d_nf_pairs;
+  std::map<Node, std::vector<Node> > d_nf_pairs_data;
+  /** list of non-congruent concat terms in each equivalence class */
+  std::map<Node, std::vector<Node> > d_eqc;
+  /**
+   * The flat form for each equivalence class. For a term (str.++ t1 ... tn),
+   * this is a list of the form (r_{i1} ... r_{im}) where each empty t1...tn
+   * is dropped and the others are replaced in order with their representative.
+   */
+  std::map<Node, std::vector<Node> > d_flat_form;
+  /**
+   * For each component r_{i1} ... r_{im} in a flat form, this stores
+   * the argument number of the t1 ... tn they were generated from.
+   */
+  std::map<Node, std::vector<int> > d_flat_form_index;
 }; /* class CoreSolver */
 
 }  // namespace strings
