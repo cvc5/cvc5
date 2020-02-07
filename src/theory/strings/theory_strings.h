@@ -23,7 +23,7 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
-#include "theory/decision_manager.h"
+#include "theory/strings/strings_fmf.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
@@ -591,52 +591,9 @@ private:
   RegExpSolver d_regexp_solver;
   /** regular expression elimination module */
   RegExpElimination d_regexp_elim;
-
-  // Finite Model Finding
- private:
-  NodeSet d_input_vars;
-  context::CDO< Node > d_input_var_lsum;
-  context::CDHashMap< int, Node > d_cardinality_lits;
-  context::CDO< int > d_curr_cardinality;
-  /** String sum of lengths decision strategy
-   *
-   * This decision strategy enforces that len(x_1) + ... + len(x_k) <= n
-   * for a minimal natural number n, where x_1, ..., x_n is the list of
-   * input variables of the problem of type String.
-   *
-   * This decision strategy is enabled by option::stringsFmf().
-   */
-  class StringSumLengthDecisionStrategy : public DecisionStrategyFmf
-  {
-   public:
-    StringSumLengthDecisionStrategy(context::Context* c,
-                                    context::UserContext* u,
-                                    Valuation valuation);
-    /** make literal */
-    Node mkLiteral(unsigned i) override;
-    /** identify */
-    std::string identify() const override;
-    /** is initialized */
-    bool isInitialized();
-    /** initialize */
-    void initialize(const std::vector<Node>& vars);
-
-    /*
-     * Do not hide the zero-argument version of initialize() inherited from the
-     * base class
-     */
-    using DecisionStrategyFmf::initialize;
-
-   private:
-    /**
-     * User-context-dependent node corresponding to the sum of the lengths of
-     * input variables of type string
-     */
-    context::CDO<Node> d_input_var_lsum;
-  };
-  /** an instance of the above class */
-  std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;
-
+  /** Strings finite model finding decision strategy */
+  StringsFmf d_stringsFmf;
+  
  public:
   // ppRewrite
   Node ppRewrite(TNode atom) override;
