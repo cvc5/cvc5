@@ -70,6 +70,15 @@ bool hasBoundVar(TNode n);
 bool hasFreeVar(TNode n);
 
 /**
+ * Returns true iff the node n contains a closure, that is, a node
+ * whose kind is FORALL, EXISTS, CHOICE, LAMBDA, or any other closure currently
+ * supported.
+ * @param n The node under investigation
+ * @return true iff this node contains a closure.
+ */
+bool hasClosure(Node n);
+
+/**
  * Get the free variables in n, that is, the subterms of n of kind
  * BOUND_VARIABLE that are not bound in n, adds these to fvs.
  * @param n The node under investigation

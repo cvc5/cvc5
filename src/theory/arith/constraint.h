@@ -517,6 +517,8 @@ class Constraint {
   /** Returns true if the node has a trichotomy proof. */
   bool hasTrichotomyProof() const;
 
+  void printProofTree(std::ostream & out, size_t depth = 0) const;
+
   /**
    * A sets the constraint to be an internal assumption.
    *
