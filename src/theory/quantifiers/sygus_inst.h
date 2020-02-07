@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "theory/evaluator.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
@@ -130,6 +131,8 @@ class SygusInst : public QuantifiersModule
 
     TNode next();
 
+    const std::vector<Node>& getTerms();
+
    private:
     bool d_done;
     std::unique_ptr<SygusEnumerator> d_enumerator;
@@ -142,6 +145,13 @@ class SygusInst : public QuantifiersModule
       d_quant_vars;
 
   std::unordered_map<Node, InstPool, NodeHashFunction> d_inst_pools;
+  Evaluator d_evaluator;
+
+  bool checkCandidate(TNode body,
+                      TNode var,
+                      TNode t,
+                      std::vector<Node>& args,
+                      std::vector<Node>& vals);
 };
 
 }  // namespace quantifiers

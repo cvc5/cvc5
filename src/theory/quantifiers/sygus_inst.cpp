@@ -29,7 +29,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusInst::SygusInst(QuantifiersEngine* qe)
-    : QuantifiersModule(qe), d_quant_vars(), d_inst_pools()
+    : QuantifiersModule(qe), d_quant_vars(), d_inst_pools(), d_evaluator()
 {
 }
 
@@ -43,18 +43,27 @@ void SygusInst::registerQuantifier(Node q)
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
   std::unordered_set<Node, NodeHashFunction> term_irrelevant;
 
-  std::unordered_set<Node, NodeHashFunction> symbols;
-  expr::getSymbols(q, symbols);
-  for (const TNode& sym : symbols)
-  {
-    TypeNode tn = sym.getType();
-    extra_cons[tn].insert(sym);
-    Trace("sygus-inst") << "Found symbol: " << sym << std::endl;
-  }
-
   Assert(d_quant_vars.find(q) == d_quant_vars.end());
   auto& vars = d_quant_vars[q];
-  expr::getVariables(q, vars);
+
+  std::unordered_set<TNode, TNodeHashFunction> all_vars;
+  expr::getVariables(q, all_vars);
+
+  for (const TNode& var : all_vars)
+  {
+    if (var.getKind() == kind::BOUND_VARIABLE)
+    {
+      vars.insert(var);
+    }
+    else
+    {
+      Assert(var.getKind() == kind::VARIABLE);
+      TypeNode tn = var.getType();
+      extra_cons[tn].insert(var);
+      Trace("sygus-inst") << "Found symbol: " << var << std::endl;
+    }
+  }
+
   TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
   for (const Node& var : vars)
   {
@@ -88,6 +97,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
   FirstOrderModel* model = d_quantEngine->getModel();
   Instantiate* inst = d_quantEngine->getInstantiate();
   uint32_t nasserted = model->getNumAssertedQuantifiers();
+
   for (uint32_t i = 0; i < nasserted; ++i)
   {
     Node q = model->getAssertedQuantifier(i);
@@ -95,11 +105,26 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
     {
       continue;
     }
-    Trace("sygus-inst") << "Active: " << q << std::endl;
+
     Assert(d_quant_vars.find(q) != d_quant_vars.end());
 
+    auto& vars = d_quant_vars.at(q);
+
+    Trace("sygus-inst") << "Active: " << q << std::endl;
+
+    std::vector<Node> args, vals;
+    std::unordered_set<Node, NodeHashFunction> symbols;
+    expr::getSymbols(q, symbols);
+    for (const TNode& sym : symbols)
+    {
+      args.push_back(sym);
+      vals.push_back(model->getValue(sym));
+      Trace("sygus-inst") << "Model for " << sym << ": " << model->getValue(sym)
+                          << std::endl;
+    }
+
     std::vector<Node> terms;
-    for (const TNode& var : d_quant_vars[q])
+    for (const TNode& var : vars)
     {
       Assert(d_inst_pools.find(var) != d_inst_pools.end());
       InstPool& pool = d_inst_pools.at(var);
@@ -110,25 +135,77 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
         continue;
       }
 
-      Trace("sygus-inst") << "Enumerate variable " << var << std::endl;
-      for (size_t j = 0; j < 10; ++j)
-      {
-        TNode n = pool.next();
+      Trace("sygus-inst") << "Find candidate for variable " << var << std::endl;
 
-        if (n.isNull())
+      Trace("sygus-inst") << "Check enumerated pool" << std::endl;
+      Node term;
+      for (const TNode& t : pool.getTerms())
+      {
+        if (checkCandidate(q[1], var, t, args, vals))
+        {
+          Trace("sygus-inst") << "Found existing candidate: " << t << std::endl;
+          term = t;
+          break;
+        }
+      }
+
+      while (term.isNull())
+      {
+        TNode t = pool.next();
+
+        if (t.isNull())
         {
           Assert(pool.done());
-          continue;
+          break;
         }
-        Trace("sygus-inst-enum")
-            << "enum: " << datatypes::utils::sygusToBuiltin(n) << std::endl;
+
+        if (checkCandidate(q[1], var, t, args, vals))
+        {
+          Trace("sygus-inst-enum") << "Found new candidate: " << t << std::endl;
+          term = t;
+          break;
+        }
+      }
+
+      // TODO: nested quantifiers not handled yet
+      if (!term.isNull())
+      {
+        terms.push_back(term);
+      }
+      else
+      {
+        Unimplemented();
       }
     }
 
-    // if (inst->addInstantiation(q, terms))
-    //{
-    //}
+    if (inst->addInstantiation(q, terms, true))
+    {
+      Trace("sygus-inst") << "Instantiate " << q << std::endl;
+    }
   }
+}
+
+bool SygusInst::checkCandidate(TNode body,
+                               TNode var,
+                               TNode t,
+                               std::vector<Node>& args,
+                               std::vector<Node>& vals)
+{
+  Node val = d_evaluator.eval(t, args, vals);
+
+  args.push_back(var);
+  vals.push_back(val);
+
+  Node fval = d_evaluator.eval(body, args, vals);
+
+  args.pop_back();
+  vals.pop_back();
+
+  if (!fval.getConst<bool>())
+  {
+    return true;
+  }
+  return false;
 }
 
 /* InstPool */
@@ -156,10 +233,16 @@ TNode SygusInst::InstPool::next()
     }
   } while (cur.isNull());
 
-  if (!cur.isNull()) d_terms.push_back(cur);
+  if (!cur.isNull())
+  {
+    cur = datatypes::utils::sygusToBuiltin(cur);
+    d_terms.push_back(cur);
+  }
 
   return cur;
 }
+
+const std::vector<Node>& SygusInst::InstPool::getTerms() { return d_terms; }
 
 }  // namespace quantifiers
 }  // namespace theory
