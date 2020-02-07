@@ -193,7 +193,6 @@ void SynthConjecture::assign(Node q)
     }
   }
   // initialize the example inference utility
-  std::vector<Node> guarded_lemmas;
   if (!d_exampleInfer->initialize(d_base_inst, d_candidates))
   {
     // there is a contradictory example pair, the conjecture is infeasible.
@@ -205,6 +204,7 @@ void SynthConjecture::assign(Node q)
 
   // register this term with sygus database and other utilities that impact
   // the enumerative sygus search
+  std::vector<Node> guarded_lemmas;
   if (!isSingleInvocation())
   {
     d_ceg_proc->initialize(d_base_inst, d_candidates);
