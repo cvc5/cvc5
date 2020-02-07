@@ -20,6 +20,7 @@
 #include <unordered_map>
 
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -114,6 +115,8 @@ class SygusInst : public QuantifiersModule
 
  private:
   std::unordered_map<Node, TypeNode, NodeHashFunction> d_var_types;
+  std::unordered_map<Node, std::unique_ptr<SygusEnumerator>, NodeHashFunction>
+      d_enumerators;
 };
 
 }  // namespace quantifiers

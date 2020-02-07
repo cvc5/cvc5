@@ -18,7 +18,10 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -26,7 +29,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusInst::SygusInst(QuantifiersEngine* qe)
-    : QuantifiersModule(qe), d_var_types()
+    : QuantifiersModule(qe), d_var_types(), d_enumerators()
 {
 }
 
@@ -49,19 +52,22 @@ void SygusInst::registerQuantifier(Node q)
     std::cout << "sym: " << sym << std::endl;
   }
 
+  NodeManager* nm = NodeManager::currentNM();
   for (const Node& var : q[0])
   {
     TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(var.getType(),
                                                             var,
-                                                            "",
+                                                            var.toString(),
                                                             extra_cons,
                                                             exclude_cons,
                                                             include_cons,
                                                             term_irrelevant);
-    std::cout << "tn: " << tn << " " << tn.isDatatype()
-              << tn.getDType().isSygus() << std::endl;
-    std::cout << tn.getDType() << std::endl;
+    std::cout << "tn for " << var << ": " << tn.getDType() << std::endl;
     d_var_types[var] = tn;
+    d_enumerators.emplace(std::make_pair(
+        var,
+        new SygusEnumerator(d_quantEngine->getTermDatabaseSygus(), nullptr)));
+    d_enumerators.at(var)->initialize(nm->mkSkolem("", tn));
   }
 }
 
@@ -75,10 +81,48 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 {
   std::cout << identify() << "::check " << e << ", " << quant_e << std::endl;
 
-  // Notes:
-  //
-  // * check active quantifiers via FirstOrderModel d_quantEngine->getModel()
-  //
+  if (quant_e != QEFFORT_STANDARD) return;
+
+  FirstOrderModel* model = d_quantEngine->getModel();
+  Instantiate* inst = d_quantEngine->getInstantiate();
+  uint32_t nasserted = model->getNumAssertedQuantifiers();
+  for (uint32_t i = 0; i < nasserted; ++i)
+  {
+    Node q = model->getAssertedQuantifier(i);
+    if (!model->isQuantifierActive(q))
+    {
+      continue;
+    }
+    std::cout << "active: " << q << std::endl;
+
+    std::vector<Node> terms;
+    for (const TNode& var : q[0])
+    {
+      Assert(d_var_types.find(var) != d_var_types.end());
+      Assert(d_enumerators.find(var) != d_enumerators.end());
+      SygusEnumerator* senum = d_enumerators.at(var).get();
+
+      std::cout << "var: " << var << std::endl;
+      for (size_t j = 0; j < 10; ++j)
+      {
+        Node n = senum->getCurrent();
+        senum->increment();
+
+        if (n.isNull())
+        {
+          std::cout << "null" << std::endl;
+          break;
+        }
+
+        std::cout << "enum: " << datatypes::utils::sygusToBuiltin(n)
+                  << std::endl;
+      }
+    }
+
+    // if (inst->addInstantiation(q, terms))
+    //{
+    //}
+  }
 }
 
 }  // namespace quantifiers
