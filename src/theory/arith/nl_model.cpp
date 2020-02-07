@@ -1200,8 +1200,8 @@ bool NlModel::getApproximateSqrt(Node c, Node& l, Node& u, unsigned iter) const
     Rational curr_sq = curr * curr;
     if (curr_sq == rc)
     {
-      rl = curr_sq;
-      ru = curr_sq;
+      rl = curr;
+      ru = curr;
       break;
     }
     else if (curr_sq < rc)
