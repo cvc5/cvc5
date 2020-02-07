@@ -544,7 +544,7 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
   {
     eec = d_parent->getExampleEvalCache(d_enum);
   }
-  d_tcache[tn].initialize(&d_stats, d_enum, tn, d_tds, pbe);
+  d_tcache[tn].initialize(&d_stats, d_enum, tn, d_tds, eec);
 }
 
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)

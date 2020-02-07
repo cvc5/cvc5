@@ -244,7 +244,6 @@ class SubsumeTrie
 };
 
 class SynthConjecture;
-class ExampleInfer;
 
 /** Sygus unification I/O utility
  *
