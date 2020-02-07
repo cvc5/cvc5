@@ -426,6 +426,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
     d_rl_eval_hds.push_back(term);
     d_rl_vals.push_back(val);
     d_refinement_lemma_unit.insert(lem);
+
     // apply to waiting lemmas beyond this one
     for (unsigned i = wcounter + 1, size = waiting.size(); i < size; i++)
     {
@@ -571,6 +572,54 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
     }
   }
   return ret;
+}
+
+bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
+                                      const std::vector<Node>& ms)
+{
+  // Maybe we already evaluated some terms in refinement lemmas.
+  // In particular, the example inference module may have some evaluations
+  // cached.
+  std::unordered_map<Node, Node, NodeHashFunction> evalVisited;
+  ExampleInfer* ei = d_parent->getExampleInfer();
+  for (unsigned i = 0, vsize = vs.size(); i < vsize; i++)
+  {
+    Node f = vs[i];
+    ExampleEvalCache* eec = d_parent->getExampleEvalCache(f);
+    if (eec != nullptr)
+    {
+      // get the results we obtained through the example evaluation utility
+      std::vector<Node> vsProc;
+      std::vector<Node> msProc;
+      Node bmsi = d_tds->sygusToBuiltin(ms[i]);
+      ei->getExampleTerms(f, vsProc);
+      eec->evaluateVec(bmsi, msProc);
+      Assert(vsProc.size() == msProc.size());
+      for (unsigned j = 0, psize = vsProc.size(); j < psize; j++)
+      {
+        evalVisited[vsProc[j]] = msProc[j];
+        Assert(vsProc[j].getType() == msProc[j].getType());
+      }
+    }
+  }
+
+  Evaluator* eval = d_tds->getEvaluator();
+  for (unsigned r = 0; r < 2; r++)
+  {
+    std::unordered_set<Node, NodeHashFunction>& rlemmas =
+        r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
+    for (const Node& lem : rlemmas)
+    {
+      // We may have computed the evaluation of all function applications
+      // via example-based symmetry breaking
+      Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
+      if (lemcsu.isConst() && !lemcsu.getConst<bool>())
+      {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
