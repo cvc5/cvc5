@@ -95,7 +95,6 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -4785,21 +4784,11 @@ void SmtEngine::checkModel(bool hardFailure) {
     Debug("boolean-terms") << "++ got " << n << endl;
     Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
 
-    if( n.getKind() != kind::REWRITE_RULE ){
-      // In case it's a quantifier (or contains one), look up its value before
-      // simplifying, or the quantifier might be irreparably altered.
-      n = m->getValue(n);
-      Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
-    } else {
-      // Note this "skip" is done here, rather than above.  This is
-      // because (1) the quantifier could in principle simplify to false,
-      // which should be reported, and (2) checking for the quantifier
-      // above, before simplification, doesn't catch buried quantifiers
-      // anyway (those not at the top-level).
-      Notice() << "SmtEngine::checkModel(): -- skipping rewrite-rules assertion"
-               << endl;
-      continue;
-    }
+    // We look up the value before simplifying. If n contains quantifiers,
+    // this may increases the chance of finding its value before the node is
+    // altered by simplification below.
+    n = m->getValue(n);
+    Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
 
     // Simplify the result.
     n = d_private->simplify(n);
@@ -4821,36 +4810,56 @@ void SmtEngine::checkModel(bool hardFailure) {
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
 
-    if( d_logic.isQuantified() ){
-      // AJR: since quantified formulas are not checkable, we assign them to true/false based on the satisfying assignment.
-      // however, quantified formulas can be modified during preprocess, so they may not correspond to those in the satisfying assignment.
-      // hence we use a relaxed version of check model here.
-      // this is necessary until preprocessing passes explicitly record how they rewrite quantified formulas
-      if( hardFailure && !n.isConst() && n.getKind() != kind::LAMBDA ){
-        Notice() << "SmtEngine::checkModel(): -- relax check model wrt quantified formulas..." << endl;
-        AlwaysAssert(quantifiers::QuantifiersRewriter::containsQuantifiers(n));
-        Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified assertion : " << n << endl;
+    if (n.isConst())
+    {
+      if (n.getConst<bool>())
+      {
+        // assertion is true, everything is fine
         continue;
       }
-    }else{
-      AlwaysAssert(!hardFailure || n.isConst() || n.getKind() == kind::LAMBDA);
     }
-    // The result should be == true.
-    if(n != NodeManager::currentNM()->mkConst(true)) {
-      Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
-               << endl;
-      stringstream ss;
-      ss << "SmtEngine::checkModel(): "
-         << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-         << "assertion:     " << *i << endl
-         << "simplifies to: " << n << endl
-         << "expected `true'." << endl
-         << "Run with `--check-models -v' for additional diagnostics.";
-      if(hardFailure) {
-        InternalError() << ss.str();
-      } else {
-        Warning() << ss.str() << endl;
-      }
+
+    // Otherwise, we did not succeed in showing the current assertion to be
+    // true. This may either indicate that our model is wrong, or that we cannot
+    // check it. The latter may be the case for several reasons.
+    // For example, quantified formulas are not checkable, although we assign
+    // them to true/false based on the satisfying assignment. However,
+    // quantified formulas can be modified during preprocess, so they may not
+    // correspond to those in the satisfying assignment. Hence we throw
+    // warnings for assertions that do not simplify to either true or false.
+    // Other theories such as non-linear arithmetic (in particular,
+    // transcendental functions) also have the property of not being able to
+    // be checked precisely here.
+    // Note that warnings like these can be avoided for quantified formulas
+    // by making preprocessing passes explicitly record how they
+    // rewrite quantified formulas (see cvc4-wishues#43).
+    if (!n.isConst())
+    {
+      // Not constant, print a less severe warning message here.
+      Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified "
+                   "assertion : "
+                << n << endl;
+      continue;
+    }
+    // Assertions that simplify to false result in an InternalError or
+    // Warning being thrown below (when hardFailure is false).
+    Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
+             << endl;
+    stringstream ss;
+    ss << "SmtEngine::checkModel(): "
+       << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+       << "assertion:     " << *i << endl
+       << "simplifies to: " << n << endl
+       << "expected `true'." << endl
+       << "Run with `--check-models -v' for additional diagnostics.";
+    if (hardFailure)
+    {
+      // internal error if hardFailure is true
+      InternalError() << ss.str();
+    }
+    else
+    {
+      Warning() << ss.str() << endl;
     }
   }
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;
