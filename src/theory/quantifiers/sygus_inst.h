@@ -18,6 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_INST_H
 
 #include <unordered_map>
+#include <unordered_set>
 
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
@@ -114,7 +115,10 @@ class SygusInst : public QuantifiersModule
   std::string identify() const override { return "SygusInst"; }
 
  private:
-  std::unordered_map<Node, TypeNode, NodeHashFunction> d_var_types;
+  std::unordered_map<Node,
+                     std::unordered_set<TNode, TNodeHashFunction>,
+                     NodeHashFunction>
+      d_quant_vars;
   std::unordered_map<Node, std::unique_ptr<SygusEnumerator>, NodeHashFunction>
       d_enumerators;
 };

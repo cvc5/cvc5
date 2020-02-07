@@ -29,14 +29,14 @@ namespace theory {
 namespace quantifiers {
 
 SygusInst::SygusInst(QuantifiersEngine* qe)
-    : QuantifiersModule(qe), d_var_types(), d_enumerators()
+    : QuantifiersModule(qe), d_quant_vars(), d_enumerators()
 {
 }
 
 // Note: Called once per q (context-independent initialization)
 void SygusInst::registerQuantifier(Node q)
 {
-  std::cout << identify() << "::register: " << q << std::endl;
+  Trace("sygus-inst") << "Register " << q << std::endl;
 
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exclude_cons;
@@ -49,11 +49,14 @@ void SygusInst::registerQuantifier(Node q)
   {
     TypeNode tn = sym.getType();
     extra_cons[tn].insert(sym);
-    std::cout << "sym: " << sym << std::endl;
+    Trace("sygus-inst") << "Found symbol: " << sym << std::endl;
   }
 
+  Assert(d_quant_vars.find(q) == d_quant_vars.end());
+  auto& vars = d_quant_vars[q];
+  expr::getVariables(q, vars);
   NodeManager* nm = NodeManager::currentNM();
-  for (const Node& var : q[0])
+  for (const Node& var : vars)
   {
     TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(var.getType(),
                                                             var,
@@ -62,8 +65,9 @@ void SygusInst::registerQuantifier(Node q)
                                                             exclude_cons,
                                                             include_cons,
                                                             term_irrelevant);
-    std::cout << "tn for " << var << ": " << tn.getDType() << std::endl;
-    d_var_types[var] = tn;
+    // std::cout << "tn for " << var << ": " << tn.getDType() << std::endl;
+    Trace("sygus-inst") << "Construct (default) datatype for " << var
+                        << std::endl;
     d_enumerators.emplace(std::make_pair(
         var,
         new SygusEnumerator(d_quantEngine->getTermDatabaseSygus(), nullptr)));
@@ -74,12 +78,12 @@ void SygusInst::registerQuantifier(Node q)
 // Note: Called once per SAT context
 void SygusInst::preRegisterQuantifier(Node q)
 {
-  std::cout << identify() << "::preRegister: " << q << std::endl;
+  // std::cout << identify() << "::preRegister: " << q << std::endl;
 }
 
 void SygusInst::check(Theory::Effort e, QEffort quant_e)
 {
-  std::cout << identify() << "::check " << e << ", " << quant_e << std::endl;
+  Trace("sygus-inst") << "Check " << e << ", " << quant_e << std::endl;
 
   if (quant_e != QEFFORT_STANDARD) return;
 
@@ -93,29 +97,38 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
     {
       continue;
     }
-    std::cout << "active: " << q << std::endl;
+    Trace("sygus-inst") << "Active: " << q << std::endl;
+    Assert(d_quant_vars.find(q) != d_quant_vars.end());
 
     std::vector<Node> terms;
-    for (const TNode& var : q[0])
+    for (const TNode& var : d_quant_vars[q])
     {
-      Assert(d_var_types.find(var) != d_var_types.end());
       Assert(d_enumerators.find(var) != d_enumerators.end());
       SygusEnumerator* senum = d_enumerators.at(var).get();
+      if (senum == nullptr)
+      {
+        continue;
+      }
 
-      std::cout << "var: " << var << std::endl;
+      Trace("sygus-inst") << "Enumerate variable " << var << std::endl;
       for (size_t j = 0; j < 10; ++j)
       {
         Node n = senum->getCurrent();
-        senum->increment();
 
-        if (n.isNull())
+        /* Enumerator finished. */
+        if (!senum->increment())
         {
-          std::cout << "null" << std::endl;
+          Trace("sygus-inst") << "Enumerator finished for " << var << std::endl;
+          d_enumerators.at(var).reset();
           break;
         }
 
-        std::cout << "enum: " << datatypes::utils::sygusToBuiltin(n)
-                  << std::endl;
+        if (n.isNull())
+        {
+          continue;
+        }
+        Trace("sygus-inst-enum")
+            << "enum: " << datatypes::utils::sygusToBuiltin(n) << std::endl;
       }
     }
 
