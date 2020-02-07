@@ -23,7 +23,6 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
-#include "theory/strings/strings_fmf.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
@@ -33,6 +32,7 @@
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
+#include "theory/strings/strings_fmf.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -593,7 +593,7 @@ private:
   RegExpElimination d_regexp_elim;
   /** Strings finite model finding decision strategy */
   StringsFmf d_stringsFmf;
-  
+
  public:
   // ppRewrite
   Node ppRewrite(TNode atom) override;
