@@ -4842,7 +4842,7 @@ void SmtEngine::checkModel(bool hardFailure) {
       continue;
     }
     // Assertions that simplify to false result in an InternalError or
-    // Warning being thrown below (when hardFailure is true).
+    // Warning being thrown below (when hardFailure is false).
     Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
              << endl;
     stringstream ss;
