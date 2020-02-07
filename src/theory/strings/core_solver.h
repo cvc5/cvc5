@@ -315,7 +315,7 @@ class CoreSolver
                        unsigned& index,
                        bool isRev);
   //--------------------------end for checkNormalFormsDeq
-  
+
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
