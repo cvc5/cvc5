@@ -578,8 +578,8 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
                                       const std::vector<Node>& ms)
 {
   // Maybe we already evaluated some terms in refinement lemmas.
-  // In particular, the example inference module may have some evaluations
-  // cached.
+  // In particular, the example eval cache for f may have some evaluations
+  // cached, which we add to evalVisited and pass to the evaluator below.
   std::unordered_map<Node, Node, NodeHashFunction> evalVisited;
   ExampleInfer* ei = d_parent->getExampleInfer();
   for (unsigned i = 0, vsize = vs.size(); i < vsize; i++)
