@@ -628,34 +628,35 @@ void LFSCUFProof::printOwnedTermAsType(Expr term,
                                        const ProofLetMap& map,
                                        TypeNode expectedType)
 {
-  Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printOwnedTerm: term = " << term << std::endl;
+  Node node = Node::fromExpr(term);
+  Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printOwnedTerm: term = " << node << std::endl;
 
-  Assert(theory::Theory::theoryOf(term) == theory::THEORY_UF);
+  Assert(theory::Theory::theoryOf(node) == theory::THEORY_UF);
 
-  if (term.getKind() == kind::VARIABLE ||
-      term.getKind() == kind::SKOLEM ||
-      term.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
-    os << term;
+  if (node.getKind() == kind::VARIABLE ||
+      node.getKind() == kind::SKOLEM ||
+      node.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
+    os << node;
     return;
   }
 
-  Assert(term.getKind() == kind::APPLY_UF);
+  Assert(node.getKind() == kind::APPLY_UF);
 
-  if(term.getType().isBoolean()) {
+  if(node.getType().isBoolean()) {
     os << "(p_app ";
   }
-  Expr func = term.getOperator();
+  Node func = node.getOperator();
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     os << "(apply _ _ ";
   }
   os << func << " ";
   Assert(func.getType().isFunction());
-  FunctionType funcType = static_cast<FunctionType>(func.getType());
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+  std::vector<TypeNode> argsTypes = node.getType().getArgTypes();
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
 
-    bool convertToBool = (term[i].getType().isBoolean() && !d_proofEngine->printsAsBool(term[i]));
+    bool convertToBool = (node[i].getType().isBoolean() && !d_proofEngine->printsAsBool(node[i]));
     if (convertToBool) os << "(f_to_b ";
-    d_proofEngine->printBoundTerm(term[i], os, map, TypeNode::fromType(funcType.getArgTypes()[i]));
+    d_proofEngine->printBoundTerm(term[i], os, map, argsTypes[i]);
     if (convertToBool) os << ")";
     os << ")";
   }
