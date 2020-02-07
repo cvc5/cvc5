@@ -651,7 +651,7 @@ void LFSCUFProof::printOwnedTermAsType(Expr term,
   }
   os << func << " ";
   Assert(func.getType().isFunction());
-  std::vector<TypeNode> argsTypes = node.getType().getArgTypes();
+  std::vector<TypeNode> argsTypes = node.getOperator().getType().getArgTypes();
   for (unsigned i = 0; i < node.getNumChildren(); ++i) {
 
     bool convertToBool = (node[i].getType().isBoolean() && !d_proofEngine->printsAsBool(node[i]));
