@@ -63,19 +63,6 @@ class StringsFmf
   DecisionStrategy* getDecisionStrategy() const;
 
  private:
-  /** The SAT search context for the theory of strings. */
-  context::Context* d_satContext;
-  /** The user level assertion context for the theory of strings. */
-  context::UserContext* d_userContext;
-  /** The valuation object */
-  Valuation d_valuation;
-  /** reference to the skolem cache */
-  SkolemCache& d_skCache;
-  /**
-   * The set of terms of type string whose length we are minimizing
-   * with this decision strategy.
-   */
-  NodeSet d_inputVars;
   /** String sum of lengths decision strategy
    *
    * This decision strategy enforces that len(x_1) + ... + len(x_k) <= n
@@ -114,6 +101,19 @@ class StringsFmf
   };
   /** an instance of the above class */
   std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;
+  /** The SAT search context for the theory of strings. */
+  context::Context* d_satContext;
+  /** The user level assertion context for the theory of strings. */
+  context::UserContext* d_userContext;
+  /** The valuation object */
+  Valuation d_valuation;
+  /** reference to the skolem cache */
+  SkolemCache& d_skCache;
+  /**
+   * The set of terms of type string whose length we are minimizing
+   * with this decision strategy.
+   */
+  NodeSet d_inputVars;
 };
 
 }  // namespace strings

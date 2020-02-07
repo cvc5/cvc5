@@ -27,12 +27,12 @@ StringsFmf::StringsFmf(context::Context* c,
                        context::UserContext* u,
                        Valuation valuation,
                        SkolemCache& skc)
-    : d_satContext(c),
+    : d_sslds(nullptr),
+      d_satContext(c),
       d_userContext(u),
       d_valuation(valuation),
       d_skCache(skc),
-      d_inputVars(u),
-      d_sslds(nullptr)
+      d_inputVars(u)
 {
 }
 
