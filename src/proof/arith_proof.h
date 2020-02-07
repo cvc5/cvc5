@@ -94,6 +94,10 @@ public:
    * e.g. "+_Real".
    *
    * Does not include any parens.
+   *
+   * Even if the operator is a comparison (e.g. >=) on integers, will not
+   * return a purely `Int` predicate like ">=_Int". Instead this treats the
+   * right hand side as a real.
    */
   static std::string getLfscFunction(const Node& n);
 
