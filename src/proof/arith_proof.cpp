@@ -870,6 +870,56 @@ void LFSCArithProof::printOwnedSort(Type type, std::ostream& os) {
   }
 }
 
+std::string LFSCArithProof::getLfscFunction(const Node & n) {
+  Assert(n.getType().isInteger() || n.getType().isReal() || n.getType().isBoolean());
+  std::string opString;
+  switch (n.getKind()) {
+    case kind::UMINUS:
+      opString = "u-_";
+      break;
+    case kind::PLUS:
+      opString = "+_";
+      break;
+    case kind::MINUS:
+      opString = "-_";
+      break;
+    case kind::MULT:
+      opString = "*_";
+      break;
+    case kind::DIVISION:
+    case kind::DIVISION_TOTAL:
+      opString = "/_";
+      break;
+    case kind::GT:
+      opString = ">_";
+      break;
+    case kind::GEQ:
+      opString = ">=_";
+      break;
+    case kind::LT:
+      opString = "<_";
+      break;
+    case kind::LEQ:
+      opString = "<=_";
+      break;
+    default:
+      Unreachable() << "Tried to get the operator for a non-operator kind: " << n.getKind();
+  }
+  std::string typeString;
+  if (n.getType().isInteger()) {
+    typeString = "Int";
+  } else if (n.getType().isReal()) {
+    typeString = "Real";
+  } else { // Boolean
+    if (n[0].getType().isInteger()) {
+      typeString = "IntReal";
+    } else {
+      typeString = "Real";
+    }
+  }
+  return opString + typeString;
+}
+
 void LFSCArithProof::printRational(std::ostream& o, const Rational& r)
 {
   if (r.sgn() < 0)
@@ -880,6 +930,18 @@ void LFSCArithProof::printRational(std::ostream& o, const Rational& r)
   else
   {
     o << r.getNumerator() << "/" << r.getDenominator();
+  }
+}
+
+void LFSCArithProof::printInteger(std::ostream& o, const Integer& i)
+{
+  if (i.sgn() < 0)
+  {
+    o << "(~ " << i.abs() << ")";
+  }
+  else
+  {
+    o << i;
   }
 }
 
