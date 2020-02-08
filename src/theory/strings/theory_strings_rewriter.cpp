@@ -3496,7 +3496,11 @@ bool TheoryStringsRewriter::canConstantContainList( Node c, std::vector< Node >&
   return true;
 }
 
-Node TheoryStringsRewriter::getNextConstantAt( std::vector< Node >& vec, unsigned& start_index, unsigned& end_index, bool isRev ) {
+Node TheoryStringsRewriter::getNextConstantAt(const std::vector<Node>& vec,
+                                              size_t& start_index,
+                                              size_t& end_index,
+                                              bool isRev)
+{
   while( vec.size()>start_index && !vec[ start_index ].isConst() ){
     //return Node::null();
     start_index++;
@@ -3509,7 +3513,9 @@ Node TheoryStringsRewriter::getNextConstantAt( std::vector< Node >& vec, unsigne
   }
 }
 
-Node TheoryStringsRewriter::collectConstantStringAt( std::vector< Node >& vec, unsigned& end_index, bool isRev ) {
+Node TheoryStringsRewriter::collectConstantStringAt(
+    const std::vector<Node>& vec, size_t& end_index, bool isRev)
+{
   std::vector< Node > c;
   while( vec.size()>end_index && vec[ end_index ].isConst() ){
     c.push_back( vec[ end_index ] );
