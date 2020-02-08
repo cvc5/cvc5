@@ -84,11 +84,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_bsolver(c, u, d_state, d_im),
       d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
       d_regexp_solver(*this, d_state, d_im, c, u),
-      d_input_vars(u),
-      d_input_var_lsum(u),
-      d_cardinality_lits(u),
-      d_curr_cardinality(c, 0),
-      d_sslds(nullptr),
+      d_stringsFmf(c, u, valuation, d_sk_cache),
       d_strategy_init(false)
 {
   setupExtTheory();
@@ -405,25 +401,15 @@ void TheoryStrings::presolve() {
   // if strings fmf is enabled, register the strategy
   if (options::stringFMF())
   {
-    d_sslds.reset(new StringSumLengthDecisionStrategy(
-        getSatContext(), getUserContext(), d_valuation));
-    Trace("strings-dstrat-reg")
-        << "presolve: register decision strategy." << std::endl;
-    std::vector<Node> inputVars;
-    for (NodeSet::const_iterator itr = d_input_vars.begin();
-         itr != d_input_vars.end();
-         ++itr)
-    {
-      inputVars.push_back(*itr);
-    }
-    d_sslds->initialize(inputVars);
+    d_stringsFmf.presolve();
     // This strategy is local to a check-sat call, since we refresh the strategy
     // on every call to presolve.
     getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_STRINGS_SUM_LENGTHS,
-        d_sslds.get(),
+        d_stringsFmf.getDecisionStrategy(),
         DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);
   }
+  Debug("strings-presolve") << "Finished presolve" << std::endl;
 }
 
 
@@ -749,17 +735,6 @@ void TheoryStrings::preRegisterTerm(TNode n) {
               }
             }
           }
-          // if finite model finding is enabled,
-          // then we minimize the length of this term if it is a variable
-          // but not an internally generated Skolem, or a term that does
-          // not belong to this theory.
-          if (options::stringFMF()
-              && (n.isVar() ? !d_sk_cache.isSkolem(n)
-                            : kindToTheoryId(k) != THEORY_STRINGS))
-          {
-            d_input_vars.insert(n);
-            Trace("strings-dstrat-reg") << "input variable: " << n << std::endl;
-          }
           d_equalityEngine.addTerm(n);
         } else if (tn.isBoolean()) {
           // Get triggered for both equal and dis-equal
@@ -782,6 +757,11 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           d_functionsTerms.push_back( n );
         }
       }
+    }
+    // register with finite model finding
+    if (options::stringFMF())
+    {
+      d_stringsFmf.preRegisterTerm(n);
     }
   }
 }
@@ -1930,52 +1910,6 @@ void TheoryStrings::checkCardinality() {
     }
   }
   Trace("strings-card") << "...end check cardinality" << std::endl;
-}
-
-
-//// Finite Model Finding
-
-TheoryStrings::StringSumLengthDecisionStrategy::StringSumLengthDecisionStrategy(
-    context::Context* c, context::UserContext* u, Valuation valuation)
-    : DecisionStrategyFmf(c, valuation), d_input_var_lsum(u)
-{
-}
-
-bool TheoryStrings::StringSumLengthDecisionStrategy::isInitialized()
-{
-  return !d_input_var_lsum.get().isNull();
-}
-
-void TheoryStrings::StringSumLengthDecisionStrategy::initialize(
-    const std::vector<Node>& vars)
-{
-  if (d_input_var_lsum.get().isNull() && !vars.empty())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    std::vector<Node> sum;
-    for (const Node& v : vars)
-    {
-      sum.push_back(nm->mkNode(STRING_LENGTH, v));
-    }
-    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(PLUS, sum);
-    d_input_var_lsum.set(sumn);
-  }
-}
-
-Node TheoryStrings::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
-{
-  if (d_input_var_lsum.get().isNull())
-  {
-    return Node::null();
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  Node lit = nm->mkNode(LEQ, d_input_var_lsum.get(), nm->mkConst(Rational(i)));
-  Trace("strings-fmf") << "StringsFMF::mkLiteral: " << lit << std::endl;
-  return lit;
-}
-std::string TheoryStrings::StringSumLengthDecisionStrategy::identify() const
-{
-  return std::string("string_sum_len");
 }
 
 Node TheoryStrings::ppRewrite(TNode atom) {
