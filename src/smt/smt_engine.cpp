@@ -4641,11 +4641,12 @@ void SmtEngine::checkUnsatCore() {
   }
   Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
   if(r.asSatisfiabilityResult().isUnknown()) {
-    InternalError()
-        << "SmtEngine::checkUnsatCore(): could not check core result unknown.";
+    Warning()
+        << "SmtEngine::checkUnsatCore(): could not check core result unknown."
+        << std::endl;
   }
-
-  if(r.asSatisfiabilityResult().isSat()) {
+  else if (r.asSatisfiabilityResult().isSat())
+  {
     InternalError()
         << "SmtEngine::checkUnsatCore(): produced core was satisfiable.";
   }
