@@ -562,6 +562,12 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_core_connective.h
   theory/quantifiers/sygus/cegis_unif.cpp
   theory/quantifiers/sygus/cegis_unif.h
+  theory/quantifiers/sygus/example_eval_cache.cpp
+  theory/quantifiers/sygus/example_eval_cache.h
+  theory/quantifiers/sygus/example_infer.cpp
+  theory/quantifiers/sygus/example_infer.h
+  theory/quantifiers/sygus/example_min_eval.cpp
+  theory/quantifiers/sygus/example_min_eval.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
   theory/quantifiers/sygus/example_infer.cpp
