@@ -1,4 +1,4 @@
-; COMMAND-LINE: --rewrite-rules
+; COMMAND-LINE: --rewrite-rules --quiet
 ;; Same than length.smt2 but the nil case is not a rewrite rule
 ;; So here the rewrite rules have no guards length
 

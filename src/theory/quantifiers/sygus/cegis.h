@@ -196,7 +196,8 @@ class Cegis : public SygusModule
    * techniques. It is used when we are using only fast enumerators for
    * all functions-to-synthesize.
    *
-   * Returns true if a refinement lemma is false for the current solution.
+   * Returns true if a refinement lemma is false for the solution
+   * { vs -> ms }.
    */
   bool checkRefinementEvalLemmas(const std::vector<Node>& vs,
                                  const std::vector<Node>& ms);

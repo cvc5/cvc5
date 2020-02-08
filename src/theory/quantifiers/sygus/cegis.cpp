@@ -580,8 +580,8 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
                                       const std::vector<Node>& ms)
 {
   // Maybe we already evaluated some terms in refinement lemmas.
-  // In particular, the example inference module may have some evaluations
-  // cached.
+  // In particular, the example eval cache for f may have some evaluations
+  // cached, which we add to evalVisited and pass to the evaluator below.
   std::unordered_map<Node, Node, NodeHashFunction> evalVisited;
   ExampleInfer* ei = d_parent->getExampleInfer();
   for (unsigned i = 0, vsize = vs.size(); i < vsize; i++)
@@ -612,9 +612,8 @@ bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
         r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
     for (const Node& lem : rlemmas)
     {
-      // If we are not doing structural generalization, just use the evaluator
-      // We may have computed the evaluation of all function applications
-      // via example-based symmetry breaking
+      // We may have computed the evaluation of some function applications
+      // via example-based symmetry breaking, stored in evalVisited.
       Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {

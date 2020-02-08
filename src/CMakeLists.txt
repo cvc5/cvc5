@@ -672,6 +672,8 @@ libcvc4_add_sources(
   theory/sort_inference.h
   theory/strings/base_solver.cpp
   theory/strings/base_solver.h
+  theory/strings/core_solver.cpp
+  theory/strings/core_solver.h
   theory/strings/infer_info.cpp
   theory/strings/infer_info.h
   theory/strings/inference_manager.cpp
