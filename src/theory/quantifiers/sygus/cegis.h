@@ -114,6 +114,7 @@ class Cegis : public SygusModule
   std::vector<Node> d_rl_vals;
   /** all variables appearing in refinement lemmas */
   std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_vars;
+
   /** adds lem as a refinement lemma */
   void addRefinementLemma(Node lem);
   /** add refinement lemma conjunct
@@ -175,7 +176,7 @@ class Cegis : public SygusModule
   /** Get refinement evaluation lemmas
    *
    * This method performs "refinement evaluation", that is, it tests
-   * whether the current solution, given by { candidates -> candidate_values },
+   * whether the current solution, given by { vs -> ms },
    * satisfies all current refinement lemmas. If it does not, it may add
    * blocking lemmas L to lems which exclude (a generalization of) the current
    * solution.
@@ -191,6 +192,17 @@ class Cegis : public SygusModule
                                const std::vector<Node>& ms,
                                std::vector<Node>& lems,
                                bool doGen);
+  /** Check refinement evaluation lemmas
+   *
+   * This method is similar to above, but does not perform any generalization
+   * techniques. It is used when we are using only fast enumerators for
+   * all functions-to-synthesize.
+   *
+   * Returns true if a refinement lemma is false for the solution
+   * { vs -> ms }.
+   */
+  bool checkRefinementEvalLemmas(const std::vector<Node>& vs,
+                                 const std::vector<Node>& ms);
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis
