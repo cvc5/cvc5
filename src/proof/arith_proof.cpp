@@ -23,6 +23,7 @@
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "theory/arith/constraint_forward.h"
+#include "theory/arith/normal_form.h"
 #include "theory/arith/theory_arith.h"
 
 #define CVC4_ARITH_VAR_TERM_PREFIX "term."
