@@ -838,8 +838,8 @@ class CVC4_PUBLIC SmtEngine
   typedef context::CDList<Node> NodeList;
 
   /**
-   * The current mode of the solver, see Figure 4.1 on page 52 of the
-   * SMT-LIB version 2.6 standard
+   * The current mode of the solver, which is an extension of Figure 4.1 on
+   * page 52 of the SMT-LIB version 2.6 standard
    * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
    */
   enum SmtMode
@@ -848,8 +848,10 @@ class CVC4_PUBLIC SmtEngine
     SMT_MODE_START,
     // normal state of the solver, after assert/push/pop/declare/define
     SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat" or "unknown"
+    // immediately after a check-sat returning "sat"
     SMT_MODE_SAT,
+    // immediately after a check-sat returning "unknown"
+    SMT_MODE_SAT_UNKNOWN,
     // immediately after a check-sat returning "unsat"
     SMT_MODE_UNSAT,
     // immediately after a successful call to get-abduct

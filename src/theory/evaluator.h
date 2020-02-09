@@ -85,26 +85,61 @@ class Evaluator
  public:
   /**
    * Evaluates node `n` under the substitution described by the variable names
-   * `args` and the corresponding values `vals`. The function returns a null
-   * node if there is a subterm that is not constant under the substitution or
-   * if an operator is not supported by the evaluator.
+   * `args` and the corresponding values `vals`. This method uses evaluation
+   * for subterms that evaluate to constants supported in the EvalResult
+   * class and substitution with rewriting for the others.
+   *
+   * The nodes in the vals must be constant values, that is, they must return
+   * true for isConst().
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
-            const std::vector<Node>& vals);
+            const std::vector<Node>& vals) const;
+  /**
+   * Same as above, but with a precomputed visited map.
+   */
+  Node eval(
+      TNode n,
+      const std::vector<Node>& args,
+      const std::vector<Node>& vals,
+      const std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
 
  private:
   /**
    * Evaluates node `n` under the substitution described by the variable names
    * `args` and the corresponding values `vals`. The internal version returns
-   * an EvalResult which has slightly less overhead for recursive calls. The
-   * function returns an invalid result if there is a subterm that is not
-   * constant under the substitution or if an operator is not supported by the
-   * evaluator.
+   * an EvalResult which has slightly less overhead for recursive calls.
+   *
+   * The method returns an invalid EvalResult if the result of the substitution
+   * on n does not result in a constant value that is one of those supported in
+   * the EvalResult class. Notice that e.g. datatype constants are not supported
+   * in this class.
+   *
+   * This method additionally adds subterms of n that could not be evaluated
+   * (in the above sense) to the map evalAsNode. For each such subterm n', we
+   * store the node corresponding to the result of applying the substitution
+   * `args` to `vals` and rewriting. Notice that this map contains an entry
+   * for n in the case that it cannot be evaluated.
    */
-  EvalResult evalInternal(TNode n,
-                          const std::vector<Node>& args,
-                          const std::vector<Node>& vals);
+  EvalResult evalInternal(
+      TNode n,
+      const std::vector<Node>& args,
+      const std::vector<Node>& vals,
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const;
+  /** reconstruct
+   *
+   * This function reconstructs the result of evaluating n using a combination
+   * of evaluation results (eresults) and substitution+rewriting (evalAsNode).
+   *
+   * Arguments eresults and evalAsNode are built within the context of the
+   * above method for some args and vals. This method ensures that the return
+   * value is equivalent to the rewritten form of n * { args -> vals }.
+   */
+  Node reconstruct(
+      TNode n,
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const;
 };
 
 }  // namespace theory

@@ -26,10 +26,56 @@ endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Generate compile_commands.json, which can be used for various code completion
 # plugins.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+#-----------------------------------------------------------------------------#
+# Policies
+
+# Required for FindGLPK since it sets CMAKE_REQUIRED_LIBRARIES
+if(POLICY CMP0075)
+  cmake_policy(SET CMP0075 NEW)
+endif()
+
+#-----------------------------------------------------------------------------#
+# Tell CMake where to find our dependencies
+
+if(ABC_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${ABC_DIR}")
+endif()
+if(ANTLR_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${ANTLR_DIR}")
+endif()
+if(CADICAL_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${CADICAL_DIR}")
+endif()
+if(CRYPTOMINISAT_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${CRYPTOMINISAT_DIR}")
+endif()
+if(CXXTEST_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${CXXTEST_DIR}")
+endif()
+if(DRAT2ER_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${DRAT2ER_DIR}")
+endif()
+if(GLPK_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${GLPK_DIR}")
+endif()
+if(GMP_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${GMP_DIR}")
+endif()
+if(LFSC_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${LFSC_DIR}")
+endif()
+if(SYMFPU_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${SYMFPU_DIR}")
+endif()
+
+# By default the contrib/get-* scripts install dependencies to deps/install.
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 
 #-----------------------------------------------------------------------------#
 
@@ -67,6 +113,7 @@ option(ENABLE_GPL "Enable GPL dependencies")
 #    > only necessary for options set for build types
 cvc4_option(ENABLE_ASAN           "Enable ASAN build")
 cvc4_option(ENABLE_UBSAN          "Enable UBSan build")
+cvc4_option(ENABLE_TSAN           "Enable TSan build")
 cvc4_option(ENABLE_ASSERTIONS     "Enable assertions")
 cvc4_option(ENABLE_COMP_INC_TRACK
             "Enable optimizations for incremental SMT-COMP tracks")
@@ -95,19 +142,19 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 # >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for ENABLE_BEST
-cvc4_option(USE_ABC      "Use ABC for AIG bit-blasting")
-cvc4_option(USE_CLN      "Use CLN instead of GMP")
-cvc4_option(USE_GLPK     "Use GLPK simplex solver")
-cvc4_option(USE_READLINE "Use readline for better interactive support")
+cvc4_option(USE_ABC           "Use ABC for AIG bit-blasting")
+cvc4_option(USE_CADICAL       "Use CaDiCaL SAT solver")
+cvc4_option(USE_CLN           "Use CLN instead of GMP")
+cvc4_option(USE_GLPK          "Use GLPK simplex solver")
+cvc4_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
+cvc4_option(USE_READLINE      "Use readline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
-option(USE_CADICAL       "Use CaDiCaL SAT solver")
-option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
-option(USE_DRAT2ER       "Include drat2er for making eager BV proofs")
-option(USE_LFSC          "Use LFSC proof checker")
-option(USE_SYMFPU        "Use SymFPU for floating point support")
-option(USE_PYTHON2       "Prefer using Python 2 (for Python bindings)")
-option(USE_PYTHON3       "Prefer using Python 3 (for Python bindings)")
+option(USE_DRAT2ER            "Include drat2er for making eager BV proofs")
+option(USE_LFSC               "Use LFSC proof checker")
+option(USE_SYMFPU             "Use SymFPU for floating point support")
+option(USE_PYTHON2            "Prefer using Python 2 (for Python bindings)")
+option(USE_PYTHON3            "Prefer using Python 3 (for Python bindings)")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -158,7 +205,7 @@ endif()
 #       to cmake standards (first letter uppercase).
 set(BUILD_TYPES Production Debug Testing Competition)
 
-if(ENABLE_ASAN OR ENABLE_UBSAN)
+if(ENABLE_ASAN OR ENABLE_UBSAN OR ENABLE_TSAN)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
@@ -190,6 +237,7 @@ add_check_c_flag("-fexceptions")
 add_check_c_cxx_flag("-Wno-deprecated")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
+add_check_c_cxx_flag("-Wimplicit-fallthrough")
 
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
@@ -286,7 +334,6 @@ else()
   find_package(PythonInterp REQUIRED)
 endif()
 
-set(GMP_HOME ${GMP_DIR})
 find_package(GMP REQUIRED)
 
 if(ENABLE_ASAN)
@@ -302,6 +349,14 @@ endif()
 if(ENABLE_UBSAN)
   add_required_c_cxx_flag("-fsanitize=undefined")
   add_definitions(-DCVC4_USE_UBSAN)
+endif()
+
+if(ENABLE_TSAN)
+  # -fsanitize=thread requires CMAKE_REQUIRED_FLAGS to be explicitely set,
+  # otherwise the -fsanitize=thread check will fail while linking.
+  set(CMAKE_REQUIRED_FLAGS -fsanitize=thread)
+  add_required_c_cxx_flag("-fsanitize=thread")
+  unset(CMAKE_REQUIRED_FLAGS)
 endif()
 
 if(ENABLE_ASSERTIONS)
@@ -375,13 +430,11 @@ if(ENABLE_VALGRIND)
 endif()
 
 if(USE_ABC)
-  set(ABC_HOME "${ABC_DIR}")
   find_package(ABC REQUIRED)
   add_definitions(-DCVC4_USE_ABC ${ABC_ARCH_FLAGS})
 endif()
 
 if(USE_CADICAL)
-  set(CaDiCaL_HOME ${CADICAL_DIR})
   find_package(CaDiCaL REQUIRED)
   add_definitions(-DCVC4_USE_CADICAL)
 endif()
@@ -403,27 +456,23 @@ if(USE_CRYPTOMINISAT)
   if(THREADS_HAVE_PTHREAD_ARG)
     add_c_cxx_flag(-pthread)
   endif()
-  set(CryptoMiniSat_HOME ${CRYPTOMINISAT_DIR})
   find_package(CryptoMiniSat REQUIRED)
   add_definitions(-DCVC4_USE_CRYPTOMINISAT)
 endif()
 
 if(USE_DRAT2ER)
-  set(Drat2Er_HOME ${DRAT2ER_DIR})
   find_package(Drat2Er REQUIRED)
   add_definitions(-DCVC4_USE_DRAT2ER)
 endif()
 
 if(USE_GLPK)
   set(GPL_LIBS "${GPL_LIBS} glpk")
-  set(GLPK_HOME ${GLPK_DIR})
   find_package(GLPK REQUIRED)
   add_definitions(-DCVC4_USE_GLPK)
 endif()
 
 if(USE_LFSC)
   set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --with-lfsc)
-  set(LFSC_HOME ${LFSC_DIR})
   find_package(LFSC REQUIRED)
   add_definitions(-DCVC4_USE_LFSC)
 endif()
@@ -438,7 +487,6 @@ if(USE_READLINE)
 endif()
 
 if(USE_SYMFPU)
-  set(SymFPU_HOME ${SYMFPU_DIR})
   find_package(SymFPU REQUIRED)
   add_definitions(-DCVC4_USE_SYMFPU)
   set(CVC4_USE_SYMFPU 1)
@@ -548,7 +596,9 @@ print_config("Replay                    :" ENABLE_REPLAY)
 print_config("Statistics                :" ENABLE_STATISTICS)
 print_config("Tracing                   :" ENABLE_TRACING)
 message("")
-print_config("Asan                      :" ENABLE_ASAN)
+print_config("ASan                      :" ENABLE_ASAN)
+print_config("UBSan                     :" ENABLE_UBSAN)
+print_config("TSan                      :" ENABLE_TSAN)
 print_config("Coverage (gcov)           :" ENABLE_COVERAGE)
 print_config("Profiling (gprof)         :" ENABLE_PROFILING)
 print_config("Unit tests                :" ENABLE_UNIT_TESTING)
@@ -562,12 +612,12 @@ print_config("Python bindings           :" BUILD_BINDINGS_PYTHON)
 print_config("Python2                   :" USE_PYTHON2)
 print_config("Python3                   :" USE_PYTHON3)
 message("")
-print_config("ABC                  :" USE_ABC)
-print_config("CaDiCaL              :" USE_CADICAL)
-print_config("CryptoMiniSat        :" USE_CRYPTOMINISAT)
-print_config("drat2er              :" USE_DRAT2ER)
-print_config("GLPK                 :" USE_GLPK)
-print_config("LFSC                 :" USE_LFSC)
+print_config("ABC                       :" USE_ABC)
+print_config("CaDiCaL                   :" USE_CADICAL)
+print_config("CryptoMiniSat             :" USE_CRYPTOMINISAT)
+print_config("drat2er                   :" USE_DRAT2ER)
+print_config("GLPK                      :" USE_GLPK)
+print_config("LFSC                      :" USE_LFSC)
 
 if(CVC4_USE_CLN_IMP)
   message("MP library                   : cln")

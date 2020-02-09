@@ -603,12 +603,15 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         d_quant_cond[f] = op;
       }
 
-      if( options::mbqiMode()==MBQI_NONE ){
+      if (options::mbqiMode() == options::MbqiMode::NONE)
+      {
         //just exhaustive instantiate
         Node c = mkCondDefault( fmfmc, f );
         d_quant_models[f].addEntry( fmfmc, c, d_false );
         return exhaustiveInstantiate( fmfmc, f, c, -1);
-      }else{
+      }
+      else
+      {
         //model check the quantifier
         doCheck(fmfmc, f, d_quant_models[f], f[1]);
         Trace("fmc") << "Definition for quantifier " << f << " is : " << std::endl;
@@ -793,13 +796,13 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       std::vector< Node > inst;
       for (unsigned i = 0; i < riter.getNumTerms(); i++)
       {
-        Node rr = riter.getCurrentTerm( i );
-        Node r = rr;
-        //if( r.getType().isSort() ){
-        r = fm->getRepresentative( r );
-        //}else{
-        //  r = fm->getCurrentModelValue( r );
-        //}
+        TypeNode tn = riter.getTypeOf(i);
+        // if the type is not closed enumerable (see
+        // TypeNode::isClosedEnumerable), then we must ensure that we are
+        // using a term and not a value. This ensures that e.g. uninterpreted
+        // constants do not appear in instantiations.
+        Node rr = riter.getCurrentTerm(i, !tn.isClosedEnumerable());
+        Node r = fm->getRepresentative(rr);
         debugPrint("fmc-exh-debug", r);
         Trace("fmc-exh-debug") << " (term : " << rr << ")";
         ev_inst.push_back( r );

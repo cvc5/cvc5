@@ -75,7 +75,7 @@ class Smt2 : public Parser
   std::unordered_map<std::string, Kind> operatorKindMap;
   /**
    * Maps indexed symbols to the kind of the operator (e.g. "extract" to
-   * BITVECTOR_EXTRACT_OP).
+   * BITVECTOR_EXTRACT).
    */
   std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
@@ -106,7 +106,7 @@ class Smt2 : public Parser
    *              BITVECTOR_EXTRACT). NOTE: this is an internal kind for now
    *              because that is what we use to create expressions. Eventually
    *              it will be an api::Kind.
-   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT_OP)
+   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT)
    * @param name The name of the symbol (e.g. "extract")
    */
   void addIndexedOperator(Kind tKind,
@@ -141,8 +141,8 @@ class Smt2 : public Parser
    * @return The operator term corresponding to the indexed operator or a parse
    *         error if the name is not valid.
    */
-  api::OpTerm mkIndexedOp(const std::string& name,
-                          const std::vector<uint64_t>& numerals);
+  api::Op mkIndexedOp(const std::string& name,
+                      const std::vector<uint64_t>& numerals);
 
   /**
    * Returns the expression that name should be interpreted as.
@@ -214,7 +214,7 @@ class Smt2 : public Parser
                                              const std::vector<Expr>& guards,
                                              const std::vector<Expr>& heads,
                                              Expr body);
-                                             
+
   /**
    * Class for creating instances of `SynthFunCommand`s. Creating an instance
    * of this class pushes the scope, destroying it pops the scope.
@@ -383,22 +383,25 @@ class Smt2 : public Parser
       CVC4::Type& ret,
       bool isNested = false);
 
-  static bool pushSygusDatatypeDef( Type t, std::string& dname,
-                                    std::vector< CVC4::Datatype >& datatypes,
-                                    std::vector< CVC4::Type>& sorts,
-                                    std::vector< std::vector<CVC4::Expr> >& ops,
-                                    std::vector< std::vector<std::string> >& cnames,
-                                    std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
-                                    std::vector< bool >& allow_const,
-                                    std::vector< std::vector< std::string > >& unresolved_gterm_sym );
+  bool pushSygusDatatypeDef(
+      Type t,
+      std::string& dname,
+      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<CVC4::Type>& sorts,
+      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<std::vector<std::string>>& cnames,
+      std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
+      std::vector<bool>& allow_const,
+      std::vector<std::vector<std::string>>& unresolved_gterm_sym);
 
-  static bool popSygusDatatypeDef( std::vector< CVC4::Datatype >& datatypes,
-                                   std::vector< CVC4::Type>& sorts,
-                                   std::vector< std::vector<CVC4::Expr> >& ops,
-                                   std::vector< std::vector<std::string> >& cnames,
-                                   std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
-                                   std::vector< bool >& allow_const,
-                                   std::vector< std::vector< std::string > >& unresolved_gterm_sym );
+  bool popSygusDatatypeDef(
+      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<CVC4::Type>& sorts,
+      std::vector<std::vector<CVC4::Expr>>& ops,
+      std::vector<std::vector<std::string>>& cnames,
+      std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
+      std::vector<bool>& allow_const,
+      std::vector<std::vector<std::string>>& unresolved_gterm_sym);
 
   void setSygusStartIndex(const std::string& fun,
                           int startIndex,
@@ -447,26 +450,21 @@ class Smt2 : public Parser
   {
     // if the symbol is something like "-1", we'll give the user a helpful
     // syntax hint.  (-1 is a valid identifier in SMT-LIB, NOT unary minus.)
-    if( check != CHECK_DECLARED ||
-        name[0] != '-' ||
-        name.find_first_not_of("0123456789", 1) != std::string::npos ) {
-      this->Parser::checkDeclaration(name, check, type, notes);
-      return;
-    }else{
-      //it is allowable in sygus
-      if (sygus_v1() && name[0] == '-')
+    if (name.length() > 1 && name[0] == '-'
+        && name.find_first_not_of("0123456789", 1) == std::string::npos)
+    {
+      if (sygus_v1())
       {
-        //do not check anything
+        // "-1" is allowed in SyGuS version 1.0
         return;
       }
+      std::stringstream ss;
+      ss << notes << "You may have intended to apply unary minus: `(- "
+         << name.substr(1) << ")'\n";
+      this->Parser::checkDeclaration(name, check, type, ss.str());
+      return;
     }
-
-    std::stringstream ss;
-    ss << notes
-       << "You may have intended to apply unary minus: `(- "
-       << name.substr(1)
-       << ")'\n";
-    this->Parser::checkDeclaration(name, check, type, ss.str());
+    this->Parser::checkDeclaration(name, check, type, notes);
   }
 
   void checkOperator(Kind kind, unsigned numArgs)

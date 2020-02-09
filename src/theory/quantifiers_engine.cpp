@@ -160,7 +160,7 @@ class QuantifiersEnginePrivate
       d_lte_part_inst.reset(new quantifiers::LtePartialInst(qe, c));
       modules.push_back(d_lte_part_inst.get());
     }
-    if (options::quantDynamicSplit() != quantifiers::QUANT_DSPLIT_MODE_NONE)
+    if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
     {
       d_qsplit.reset(new quantifiers::QuantDSplit(qe, c));
       modules.push_back(d_qsplit.get());
@@ -273,8 +273,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
-    if (options::mbqiMode() == quantifiers::MBQI_FMC
-        || options::mbqiMode() == quantifiers::MBQI_TRUST
+    if (options::mbqiMode() == options::MbqiMode::FMC
+        || options::mbqiMode() == options::MbqiMode::TRUST
         || options::fmfBound())
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
@@ -407,14 +407,15 @@ void QuantifiersEngine::setOwner(Node q, quantifiers::QAttributes& qa)
     // set rewrite engine as owner
     setOwner(q, d_private->d_rr_engine.get(), 2);
   }
-  if (qa.d_sygus)
+  if (qa.d_sygus || (options::sygusRecFun() && !qa.d_fundef_f.isNull()))
   {
     if (d_private->d_synth_e.get() == nullptr)
     {
       Trace("quant-warn") << "WARNING : synth engine is null, and we have : "
                           << q << std::endl;
     }
-    // set synth engine as owner
+    // set synth engine as owner since this is either a conjecture or a function
+    // definition to be used by sygus
     setOwner(q, d_private->d_synth_e.get(), 2);
   }
 }
@@ -1081,17 +1082,29 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;
   //determine if we should perform check, based on instWhenMode
   bool performCheck = false;
-  if( options::instWhenMode()==quantifiers::INST_WHEN_FULL ){
+  if (options::instWhenMode() == options::InstWhenMode::FULL)
+  {
     performCheck = ( e >= Theory::EFFORT_FULL );
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY ){
+  }
+  else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
+  {
     performCheck = ( e >= Theory::EFFORT_FULL ) && !getTheoryEngine()->needCheck();
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_LAST_CALL ){
+  }
+  else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
+  {
     performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_FULL_DELAY_LAST_CALL ){
+  }
+  else if (options::instWhenMode()
+           == options::InstWhenMode::FULL_DELAY_LAST_CALL)
+  {
     performCheck = ( ( e==Theory::EFFORT_FULL && !getTheoryEngine()->needCheck() && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
-  }else if( options::instWhenMode()==quantifiers::INST_WHEN_LAST_CALL ){
+  }
+  else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
+  {
     performCheck = ( e >= Theory::EFFORT_LAST_CALL );
-  }else{
+  }
+  else
+  {
     performCheck = true;
   }
   if( e==Theory::EFFORT_LAST_CALL ){
@@ -1104,10 +1117,15 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   return performCheck;
 }
 
-quantifiers::UserPatMode QuantifiersEngine::getInstUserPatMode() {
-  if( options::userPatternsQuant()==quantifiers::USER_PAT_MODE_INTERLEAVE ){
-    return d_ierCounter%2==0 ? quantifiers::USER_PAT_MODE_USE : quantifiers::USER_PAT_MODE_RESORT;
-  }else{
+options::UserPatMode QuantifiersEngine::getInstUserPatMode()
+{
+  if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
+  {
+    return d_ierCounter % 2 == 0 ? options::UserPatMode::USE
+                                 : options::UserPatMode::RESORT;
+  }
+  else
+  {
     return options::userPatternsQuant();
   }
 }

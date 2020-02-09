@@ -655,8 +655,9 @@ private:
     d_nlIncomplete = true;
   }
   void outputLemma(TNode lem);
-  inline void outputPropagate(TNode lit) { (d_containing.d_out)->propagate(lit); }
-  inline void outputRestart() { (d_containing.d_out)->demandRestart(); }
+  void outputConflict(TNode lit);
+  void outputPropagate(TNode lit);
+  void outputRestart();
 
   inline bool isSatLiteral(TNode l) const {
     return (d_containing.d_valuation).isSatLiteral(l);
@@ -828,11 +829,16 @@ private:
 
   Statistics d_statistics;
 
-  enum ArithSkolemId
+  enum class ArithSkolemId
   {
-    arith_skolem_div_by_zero,
-    arith_skolem_int_div_by_zero,
-    arith_skolem_mod_by_zero,
+    /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
+    DIV_BY_ZERO,
+    /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
+    INT_DIV_BY_ZERO,
+    /* an uninterpreted function f s.t. f(x) = x mod 0 */
+    MOD_BY_ZERO,
+    /* an uninterpreted function f s.t. f(x) = sqrt(x) */
+    SQRT,
   };
 
   /**

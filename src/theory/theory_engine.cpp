@@ -29,6 +29,7 @@
 #include "options/options.h"
 #include "options/proof_options.h"
 #include "options/quantifiers_options.h"
+#include "options/theory_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/cnf_proof.h"
 #include "proof/lemma_proof.h"
@@ -259,6 +260,7 @@ void TheoryEngine::EngineOutputChannel::conflict(TNode conflictNode,
   Trace("theory::conflict")
       << "EngineOutputChannel<" << d_theory << ">::conflict(" << conflictNode
       << ")" << std::endl;
+  Trace("dtview::conflict") << ":CONFLICT: " << conflictNode << std::endl;
   Assert(!proof);  // Theory shouldn't be producing proofs yet
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
@@ -1399,6 +1401,9 @@ void TheoryEngine::assertFact(TNode literal)
     return;
   }
 
+  Trace("dtview::prop") << std::string(d_context->getLevel(), ' ') << literal
+                        << endl;
+
   // Get the atom
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
@@ -1997,7 +2002,7 @@ void TheoryEngine::staticInitializeBVOptions(
     const std::vector<Node>& assertions)
 {
   bool useSlicer = true;
-  if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_ON)
+  if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::ON)
   {
     if (!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
       throw ModalException(
@@ -2012,11 +2017,11 @@ void TheoryEngine::staticInitializeBVOptions(
           "Slicer does not currently support model generation. Use "
           "--bv-eq-slicer=off");
   }
-  else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_OFF)
+  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::OFF)
   {
     return;
   }
-  else if (options::bitvectorEqualitySlicer() == bv::BITVECTOR_SLICER_AUTO)
+  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::AUTO)
   {
     if ((!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
         || options::incrementalSolving()
@@ -2238,7 +2243,12 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   }
 }
 
-std::pair<bool, Node> TheoryEngine::entailmentCheck(theory::TheoryOfMode mode, TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* seffects) {
+std::pair<bool, Node> TheoryEngine::entailmentCheck(
+    options::TheoryOfMode mode,
+    TNode lit,
+    const EntailmentCheckParameters* params,
+    EntailmentCheckSideEffects* seffects)
+{
   TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
   if( atom.getKind()==kind::AND || atom.getKind()==kind::OR || atom.getKind()==kind::IMPLIES ){
     //Boolean connective, recurse

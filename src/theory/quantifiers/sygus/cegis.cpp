@@ -31,12 +31,9 @@ namespace theory {
 namespace quantifiers {
 
 Cegis::Cegis(QuantifiersEngine* qe, SynthConjecture* p)
-    : SygusModule(qe, p), d_eval_unfold(nullptr), d_using_gr_repair(false)
+    : SygusModule(qe, p), d_eval_unfold(nullptr), d_usingSymCons(false)
 {
-  if (options::sygusEvalUnfold())
-  {
-    d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
-  }
+  d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
 }
 
 bool Cegis::initialize(Node conj,
@@ -55,7 +52,7 @@ bool Cegis::initialize(Node conj,
   }
 
   // assign the cegis sampler if applicable
-  if (options::cegisSample() != CEGIS_SAMPLE_NONE)
+  if (options::cegisSample() != options::CegisSampleMode::NONE)
   {
     Trace("cegis-sample") << "Initialize sampler for " << d_base_body << "..."
                           << std::endl;
@@ -80,23 +77,24 @@ bool Cegis::processInitialize(Node conj,
   for (unsigned i = 0; i < csize; i++)
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
-    bool do_repair_const = false;
-    if (options::sygusRepairConst())
+    // We use symbolic constants if we are doing repair constants or if the
+    // grammar construction was not simple.
+    if (options::sygusRepairConst()
+        || options::sygusGrammarConsMode()
+               != options::SygusGrammarConsMode::SIMPLE)
     {
       TypeNode ctn = candidates[i].getType();
       d_tds->registerSygusType(ctn);
       SygusTypeInfo& cti = d_tds->getTypeInfo(ctn);
       if (cti.hasSubtermSymbolicCons())
       {
-        do_repair_const = true;
-        // remember that we are doing grammar-based repair
-        d_using_gr_repair = true;
-        Trace("cegis") << " (using repair)";
+        // remember that we are using symbolic constructors
+        d_usingSymCons = true;
+        Trace("cegis") << " (using symbolic constructors)";
       }
     }
     Trace("cegis") << std::endl;
-    d_tds->registerEnumerator(
-        candidates[i], candidates[i], d_parent, erole, do_repair_const);
+    d_tds->registerEnumerator(candidates[i], candidates[i], d_parent, erole);
   }
   return true;
 }
@@ -135,7 +133,10 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   }
   NodeManager* nm = NodeManager::currentNM();
   bool addedEvalLemmas = false;
-  if (options::sygusRefEval())
+  // Refinement evaluation should not be done for grammars with symbolic
+  // constructors.
+  bool doRefEval = options::sygusRefEval() && !d_usingSymCons;
+  if (doRefEval)
   {
     Trace("cegqi-engine") << "  *** Do refinement lemma evaluation"
                           << (doGen ? " with conjecture-specific refinement"
@@ -169,7 +170,8 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     }
   }
   // we only do evaluation unfolding for passive enumerators
-  if (doGen && d_eval_unfold != nullptr)
+  bool doEvalUnfold = (doGen && options::sygusEvalUnfold()) || d_usingSymCons;
+  if (doEvalUnfold)
   {
     Trace("cegqi-engine") << "  *** Do evaluation unfolding..." << std::endl;
     std::vector<Node> eager_terms, eager_vals, eager_exps;
@@ -239,7 +241,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     }
   }
   // if we are using grammar-based repair
-  if (d_using_gr_repair)
+  if (d_usingSymCons && options::sygusRepairConst())
   {
     SygusRepairConst* src = d_parent->getRepairConst();
     Assert(src != nullptr);
@@ -301,12 +303,13 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     return false;
   }
 
-  if (options::cegisSample() != CEGIS_SAMPLE_NONE && lems.empty())
+  if (options::cegisSample() != options::CegisSampleMode::NONE && lems.empty())
   {
     // if we didn't add a lemma, trying sampling to add a refinement lemma
     // that immediately refutes the candidate we just constructed
-    if (sampleAddRefinementLemma(enums, enum_values, lems))
+    if (sampleAddRefinementLemma(candidates, candidate_values, lems))
     {
+      candidate_values.clear();
       // restart (should be guaranteed to add evaluation lemmas on this call)
       return constructCandidates(
           enums, enum_values, candidates, candidate_values, lems);
@@ -423,6 +426,7 @@ void Cegis::addRefinementLemmaConjunct(unsigned wcounter,
     d_rl_eval_hds.push_back(term);
     d_rl_vals.push_back(val);
     d_refinement_lemma_unit.insert(lem);
+
     // apply to waiting lemmas beyond this one
     for (unsigned i = wcounter + 1, size = waiting.size(); i < size; i++)
     {
@@ -570,6 +574,54 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   return ret;
 }
 
+bool Cegis::checkRefinementEvalLemmas(const std::vector<Node>& vs,
+                                      const std::vector<Node>& ms)
+{
+  // Maybe we already evaluated some terms in refinement lemmas.
+  // In particular, the example eval cache for f may have some evaluations
+  // cached, which we add to evalVisited and pass to the evaluator below.
+  std::unordered_map<Node, Node, NodeHashFunction> evalVisited;
+  ExampleInfer* ei = d_parent->getExampleInfer();
+  for (unsigned i = 0, vsize = vs.size(); i < vsize; i++)
+  {
+    Node f = vs[i];
+    ExampleEvalCache* eec = d_parent->getExampleEvalCache(f);
+    if (eec != nullptr)
+    {
+      // get the results we obtained through the example evaluation utility
+      std::vector<Node> vsProc;
+      std::vector<Node> msProc;
+      Node bmsi = d_tds->sygusToBuiltin(ms[i]);
+      ei->getExampleTerms(f, vsProc);
+      eec->evaluateVec(bmsi, msProc);
+      Assert(vsProc.size() == msProc.size());
+      for (unsigned j = 0, psize = vsProc.size(); j < psize; j++)
+      {
+        evalVisited[vsProc[j]] = msProc[j];
+        Assert(vsProc[j].getType() == msProc[j].getType());
+      }
+    }
+  }
+
+  Evaluator* eval = d_tds->getEvaluator();
+  for (unsigned r = 0; r < 2; r++)
+  {
+    std::unordered_set<Node, NodeHashFunction>& rlemmas =
+        r == 0 ? d_refinement_lemma_unit : d_refinement_lemma_conj;
+    for (const Node& lem : rlemmas)
+    {
+      // We may have computed the evaluation of some function applications
+      // via example-based symmetry breaking, stored in evalVisited.
+      Node lemcsu = eval->eval(lem, vs, ms, evalVisited);
+      if (lemcsu.isConst() && !lemcsu.getConst<bool>())
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
                                      const std::vector<Node>& vals,
                                      std::vector<Node>& lems)
@@ -631,7 +683,7 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
           Trace("cegqi-engine") << "  *** Refine by sampling" << std::endl;
           addRefinementLemma(rlem);
           // if trust, we are not interested in sending out refinement lemmas
-          if (options::cegisSample() != CEGIS_SAMPLE_TRUST)
+          if (options::cegisSample() != options::CegisSampleMode::TRUST)
           {
             Node lem = nm->mkNode(OR, d_parent->getGuard().negate(), rlem);
             lems.push_back(lem);

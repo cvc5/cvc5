@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --produce-abducts
+; COMMAND-LINE: --produce-abducts --sygus-core-connective
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
 (set-logic QF_UFLIRA)
@@ -19,6 +20,8 @@
 (get-abduct A (not (< x y))
 
 ; the grammar for the abduct-to-synthesize
+; notice it does not permit the sygus-core-connective algorithm; this regression
+; tests that we ignore this option properly.
 ((Start Bool) (StartInt Int))
 (
 (Start Bool ((< StartInt StartInt)))

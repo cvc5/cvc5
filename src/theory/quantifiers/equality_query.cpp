@@ -111,9 +111,12 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
       }
     }
   }
-  if( options::quantRepMode()==quantifiers::QUANT_REP_MODE_EE ){
+  if (options::quantRepMode() == options::QuantRepMode::EE)
+  {
     return r;
-  }else{
+  }
+  else
+  {
     TypeNode v_tn = q.isNull() ? a.getType() : q[0][index].getType();
     std::map<Node, Node>& v_int_rep = d_int_rep[v_tn];
     std::map<Node, Node>::const_iterator itir = v_int_rep.find(r);
@@ -164,7 +167,9 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
       if( d_rep_score.find( r_best )==d_rep_score.end() ){
         d_rep_score[ r_best ] = d_reset_count;
       }
-      Trace("internal-rep-select") << "...Choose " << r_best << " with score " << r_best_score << std::endl;
+      Trace("internal-rep-select")
+          << "...Choose " << r_best << " with score " << r_best_score
+          << " and type " << r_best.getType() << std::endl;
       Assert(r_best.getType().isSubtypeOf(v_tn));
       v_int_rep[r] = r_best;
       if( r_best!=a ){
@@ -239,11 +244,14 @@ int EqualityQueryQuantifiersEngine::getRepScore(Node n,
       return options::instLevelInputOnly() ? -1 : 0;
     }
   }else{
-    if( options::quantRepMode()==quantifiers::QUANT_REP_MODE_FIRST ){
+    if (options::quantRepMode() == options::QuantRepMode::FIRST)
+    {
       //score prefers earliest use of this term as a representative
       return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
-    }else{
-      Assert(options::quantRepMode() == quantifiers::QUANT_REP_MODE_DEPTH);
+    }
+    else
+    {
+      Assert(options::quantRepMode() == options::QuantRepMode::DEPTH);
       return quantifiers::TermUtil::getTermDepth( n );
     }
   }

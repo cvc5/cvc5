@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
+#include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -652,7 +653,9 @@ bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
     }
     //check if it is entailed
     Trace("qcf-tconstraint-debug") << "Check entailment of " << rew << "..." << std::endl;
-    std::pair<bool, Node> et = p->getQuantifiersEngine()->getTheoryEngine()->entailmentCheck(THEORY_OF_TYPE_BASED, rew );
+    std::pair<bool, Node> et =
+        p->getQuantifiersEngine()->getTheoryEngine()->entailmentCheck(
+            options::TheoryOfMode::THEORY_OF_TYPE_BASED, rew);
     ++(p->d_statistics.d_entailment_checks);
     Trace("qcf-tconstraint-debug") << "ET result : " << et.first << " " << et.second << std::endl;
     if( !et.first ){
@@ -1901,11 +1904,11 @@ bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   bool performCheck = false;
   if( options::quantConflictFind() && !d_conflict ){
     if( level==Theory::EFFORT_LAST_CALL ){
-      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_LAST_CALL;
+      performCheck = options::qcfWhenMode() == options::QcfWhenMode::LAST_CALL;
     }else if( level==Theory::EFFORT_FULL ){
-      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_DEFAULT;
+      performCheck = options::qcfWhenMode() == options::QcfWhenMode::DEFAULT;
     }else if( level==Theory::EFFORT_STANDARD ){
-      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_STD;
+      performCheck = options::qcfWhenMode() == options::QcfWhenMode::STD;
     }
   }
   return performCheck;
@@ -1956,8 +1959,9 @@ inline QuantConflictFind::Effort QcfEffortStart() {
 // Returns the beginning of a range of efforts. The value returned is included
 // in the range.
 inline QuantConflictFind::Effort QcfEffortEnd() {
-  return options::qcfMode() == QCF_PROP_EQ ? QuantConflictFind::EFFORT_PROP_EQ
-                                           : QuantConflictFind::EFFORT_CONFLICT;
+  return options::qcfMode() == options::QcfMode::PROP_EQ
+             ? QuantConflictFind::EFFORT_PROP_EQ
+             : QuantConflictFind::EFFORT_CONFLICT;
 }
 
 }  // namespace

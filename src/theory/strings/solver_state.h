@@ -22,7 +22,9 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "options/theory_options.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace theory {
@@ -86,8 +88,10 @@ class EqcInfo
  */
 class SolverState
 {
+  typedef context::CDList<Node> NodeList;
+
  public:
-  SolverState(context::Context* c, eq::EqualityEngine& ee);
+  SolverState(context::Context* c, eq::EqualityEngine& ee, Valuation& v);
   ~SolverState();
   //-------------------------------------- equality information
   /**
@@ -109,7 +113,18 @@ class SolverState
   bool areDisequal(Node a, Node b) const;
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() const;
+  /**
+   * Get the list of disequalities that are currently asserted to the equality
+   * engine.
+   */
+  const context::CDList<Node>& getDisequalityList() const;
   //-------------------------------------- end equality information
+  //-------------------------------------- notifications for equalities
+  /** called when two equivalence classes will merge */
+  void eqNotifyPreMerge(TNode t1, TNode t2);
+  /** called when two equivalence classes are made disequal */
+  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  //-------------------------------------- end notifications for equalities
   //------------------------------------------ conflicts
   /**
    * Set that the current state of the solver is in conflict. This should be
@@ -166,12 +181,33 @@ class SolverState
    * for some eqc that is currently equal to z.
    */
   void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
+  /** Entailment check
+   *
+   * This calls entailmentCheck on the Valuation object of theory of strings.
+   */
+  std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
+  /** Separate by length
+   *
+   * Separate the string representatives in argument n into a partition cols
+   * whose collections have equal length. The i^th vector in cols has length
+   * lts[i] for all elements in col.
+   */
+  void separateByLength(const std::vector<Node>& n,
+                        std::vector<std::vector<Node> >& cols,
+                        std::vector<Node>& lts);
 
  private:
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;
   /** Reference to equality engine of the theory of strings. */
   eq::EqualityEngine& d_ee;
+  /**
+   * The (SAT-context-dependent) list of disequalities that have been asserted
+   * to the equality engine above.
+   */
+  NodeList d_eeDisequalities;
+  /** Reference to the valuation of the theory of strings */
+  Valuation& d_valuation;
   /** Are we in conflict? */
   context::CDO<bool> d_conflict;
   /** The pending conflict if one exists */

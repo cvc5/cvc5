@@ -14,9 +14,11 @@
 
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
+#include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -308,8 +310,8 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
       Trace("quantifiers-rewrite-ite-debug") << "...condition already set " << itp->second << std::endl;
       computeDtTesterIteSplit( n[ itp->second==n[0] ? 1 : 2 ], pcons, ncons, conj );
     }else{
-      Expr testerExpr = n[0].getOperator().toExpr();
-      int index = Datatype::indexOf( testerExpr );
+      Node tester = n[0].getOperator();
+      int index = datatypes::utils::indexOf(tester);
       std::map< int, Node >::iterator itn = ncons[x].find( index );
       if( itn!=ncons[x].end() ){
         Trace("quantifiers-rewrite-ite-debug") << "...condition negated " << itn->second << std::endl;
@@ -328,6 +330,7 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
       }
     }
   }else{
+    NodeManager* nm = NodeManager::currentNM();
     Trace("quantifiers-rewrite-ite-debug") << "Return value : " << n << std::endl;
     std::vector< Node > children;
     children.push_back( n );
@@ -343,7 +346,7 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
       //only if we haven't settled on a positive tester
       if( std::find( vars.begin(), vars.end(), x )==vars.end() ){
         //check if we have exhausted all options but one
-        const Datatype& dt = DatatypeType(x.getType().toType()).getDatatype();
+        const DType& dt = x.getType().getDType();
         std::vector< Node > nchildren;
         int pos_cons = -1;
         for( int i=0; i<(int)dt.getNumConstructors(); i++ ){
@@ -355,9 +358,8 @@ void QuantifiersRewriter::computeDtTesterIteSplit( Node n, std::map< Node, Node 
           }
         }
         if( pos_cons>=0 ){
-          const DatatypeConstructor& c = dt[pos_cons];
-          Expr tester = c.getTester();
-          children.push_back( NodeManager::currentNM()->mkNode( kind::APPLY_TESTER, Node::fromExpr( tester ), x ).negate() );
+          Node tester = dt[pos_cons].getTester();
+          children.push_back(nm->mkNode(APPLY_TESTER, tester, x).negate());
         }else{
           children.insert( children.end(), nchildren.begin(), nchildren.end() );
         }
@@ -454,20 +456,21 @@ void setEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::v
   }
   if( addEntailedCond( n, pol, currCond, new_cond, conflict ) ){
     if( n.getKind()==APPLY_TESTER ){
-      const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-      unsigned index = Datatype::indexOf(n.getOperator().toExpr());
+      NodeManager* nm = NodeManager::currentNM();
+      const DType& dt = datatypes::utils::datatypeOf(n.getOperator());
+      unsigned index = datatypes::utils::indexOf(n.getOperator());
       Assert(dt.getNumConstructors() > 1);
       if( pol ){
         for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
           if( i!=index ){
-            Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[i].getTester() ), n[0] );
+            Node t = nm->mkNode(APPLY_TESTER, dt[i].getTester(), n[0]);
             addEntailedCond( t, false, currCond, new_cond, conflict );
           }
         }
       }else{
         if( dt.getNumConstructors()==2 ){
           int oindex = 1-index;
-          Node t = NodeManager::currentNM()->mkNode( APPLY_TESTER, Node::fromExpr( dt[oindex].getTester() ), n[0] );
+          Node t = nm->mkNode(APPLY_TESTER, dt[oindex].getTester(), n[0]);
           addEntailedCond( t, true, currCond, new_cond, conflict );
         }
       }
@@ -655,12 +658,15 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
     return iti->second;
   }else{
     Node prev = ret;
-    if( ret.getKind()==EQUAL && options::iteLiftQuant()!=ITE_LIFT_QUANT_MODE_NONE ){
+    if (ret.getKind() == EQUAL
+        && options::iteLiftQuant() != options::IteLiftQuantMode::NONE)
+    {
       for( size_t i=0; i<2; i++ ){
         if( ret[i].getKind()==ITE ){
           Node no = i==0 ? ret[1] : ret[0];
           if( no.getKind()!=ITE ){
-            bool doRewrite = options::iteLiftQuant()==ITE_LIFT_QUANT_MODE_ALL;
+            bool doRewrite =
+                options::iteLiftQuant() == options::IteLiftQuantMode::ALL;
             std::vector< Node > children;
             children.push_back( ret[i][0] );
             for( size_t j=1; j<=2; j++ ){
@@ -1011,16 +1017,16 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
     if (ita != args.end())
     {
       vars.push_back(lit[0]);
-      Expr testerExpr = lit.getOperator().toExpr();
-      int index = Datatype::indexOf(testerExpr);
-      const Datatype& dt = Datatype::datatypeOf(testerExpr);
-      const DatatypeConstructor& c = dt[index];
+      Node tester = lit.getOperator();
+      int index = datatypes::utils::indexOf(tester);
+      const DType& dt = datatypes::utils::datatypeOf(tester);
+      const DTypeConstructor& c = dt[index];
       std::vector<Node> newChildren;
-      newChildren.push_back(Node::fromExpr(c.getConstructor()));
+      newChildren.push_back(c.getConstructor());
       std::vector<Node> newVars;
       for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
       {
-        TypeNode tn = TypeNode::fromType(c[j].getRangeType());
+        TypeNode tn = c[j].getRangeType();
         Node v = nm->mkBoundVar(tn);
         newChildren.push_back(v);
         newVars.push_back(v);
@@ -1081,8 +1087,8 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
   {
     Trace("var-elim-dt") << "Expand datatype variable based on : " << lit
                          << std::endl;
-    Expr testerExpr = lit.getOperator().toExpr();
-    unsigned index = Datatype::indexOf(testerExpr);
+    Node tester = lit.getOperator();
+    unsigned index = datatypes::utils::indexOf(tester);
     Node s = datatypeExpand(index, lit[0], args);
     if (!s.isNull())
     {
@@ -1179,16 +1185,15 @@ Node QuantifiersRewriter::datatypeExpand(unsigned index,
   {
     return Node::null();
   }
-  const Datatype& dt =
-      static_cast<DatatypeType>(v.getType().toType()).getDatatype();
+  const DType& dt = v.getType().getDType();
   Assert(index < dt.getNumConstructors());
-  const DatatypeConstructor& c = dt[index];
+  const DTypeConstructor& c = dt[index];
   std::vector<Node> newChildren;
-  newChildren.push_back(Node::fromExpr(c.getConstructor()));
+  newChildren.push_back(c.getConstructor());
   std::vector<Node> newVars;
   for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
   {
-    TypeNode tn = TypeNode::fromType(c.getArgType(j));
+    TypeNode tn = c.getArgType(j);
     Node vn = NodeManager::currentNM()->mkBoundVar(tn);
     newChildren.push_back(vn);
     newVars.push_back(vn);
@@ -1541,9 +1546,13 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
   if( itv!=visited[tindex].end() ){
     return itv->second;
   }
-  if( containsQuantifiers( n ) ){
+  if (expr::hasClosure(n))
+  {
     Node ret = n;
-    if( topLevel && options::prenexQuant()==PRENEX_QUANT_DISJ_NORMAL && ( n.getKind()==AND || ( n.getKind()==NOT && n[0].getKind()==OR ) ) ){
+    if (topLevel
+        && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
+        && (n.getKind() == AND || (n.getKind() == NOT && n[0].getKind() == OR)))
+    {
       std::vector< Node > children;
       Node nc = n.getKind()==NOT ? n[0] : n;
       for( unsigned i=0; i<nc.getNumChildren(); i++ ){
@@ -1554,25 +1563,33 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
         children.push_back( ncc );
       }
       ret = NodeManager::currentNM()->mkNode( AND, children );
-    }else if( n.getKind()==NOT ){
+    }
+    else if (n.getKind() == NOT)
+    {
       ret = computePrenexAgg( n[0], false, visited ).negate();
-    }else if( n.getKind()==FORALL ){
-    /*
-      Node nn = computePrenexAgg( n[1], false );
-      if( nn!=n[1] ){
-        if( n.getNumChildren()==2 ){
-          return NodeManager::currentNM()->mkNode( FORALL, n[0], nn );
-        }else{
-          return NodeManager::currentNM()->mkNode( FORALL, n[0], nn, n[2] );
+    }
+    else if (n.getKind() == FORALL)
+    {
+      /*
+        Node nn = computePrenexAgg( n[1], false );
+        if( nn!=n[1] ){
+          if( n.getNumChildren()==2 ){
+            return NodeManager::currentNM()->mkNode( FORALL, n[0], nn );
+          }else{
+            return NodeManager::currentNM()->mkNode( FORALL, n[0], nn, n[2] );
+          }
         }
-      }
-      */
+        */
       std::vector< Node > children;
-      if( n[1].getKind()==OR && options::prenexQuant()==PRENEX_QUANT_DISJ_NORMAL ){
+      if (n[1].getKind() == OR
+          && options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL)
+      {
         for( unsigned i=0; i<n[1].getNumChildren(); i++ ){
           children.push_back( computePrenexAgg( n[1][i], false, visited ) );
         }
-      }else{
+      }
+      else
+      {
         children.push_back( computePrenexAgg( n[1], false, visited ) );
       }
       std::vector< Node > args;
@@ -1598,7 +1615,9 @@ Node QuantifiersRewriter::computePrenexAgg( Node n, bool topLevel, std::map< uns
       } 
       Node nb = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( OR, children );
       ret = mkForall( args, nb, iplc, true );
-    }else{
+    }
+    else
+    {
       std::vector< Node > args;
       std::vector< Node > nargs;
       Node nn = computePrenex( n, args, nargs, true, true );
@@ -1947,7 +1966,9 @@ Node QuantifiersRewriter::computeAggressiveMiniscoping( std::vector< Node >& arg
 }
 
 bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& qa ){
-  bool is_strict_trigger = qa.d_hasPattern && options::userPatternsQuant()==USER_PAT_MODE_TRUST;
+  bool is_strict_trigger =
+      qa.d_hasPattern
+      && options::userPatternsQuant() == options::UserPatMode::TRUST;
   bool is_std = qa.isStandard() && !is_strict_trigger;
   if (computeOption == COMPUTE_ELIM_SYMBOLS)
   {
@@ -1964,7 +1985,7 @@ bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& q
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
     return options::condRewriteQuant() || options::elimExtArithQuant()
-           || options::iteLiftQuant() != ITE_LIFT_QUANT_MODE_NONE;
+           || options::iteLiftQuant() != options::IteLiftQuantMode::NONE;
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
@@ -1973,7 +1994,7 @@ bool QuantifiersRewriter::doOperation( Node q, int computeOption, QAttributes& q
   }
   else if (computeOption == COMPUTE_PRENEX)
   {
-    return options::prenexQuant() != PRENEX_QUANT_NONE
+    return options::prenexQuant() != options::PrenexQuantMode::NONE
            && !options::aggressiveMiniscopeQuant() && is_std;
   }
   else if (computeOption == COMPUTE_VAR_ELIMINATION)
@@ -1997,7 +2018,9 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption, QAttribut
   if( computeOption==COMPUTE_ELIM_SYMBOLS ){
     n = computeElimSymbols( n );
   }else if( computeOption==COMPUTE_MINISCOPING ){
-    if( options::prenexQuant()==PRENEX_QUANT_DISJ_NORMAL || options::prenexQuant()==PRENEX_QUANT_NORMAL ){
+    if (options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
+        || options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+    {
       if( !qa.d_qid_num.isNull() ){
         //already processed this, return self
         return f;
@@ -2017,10 +2040,14 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption, QAttribut
   }else if( computeOption==COMPUTE_COND_SPLIT ){
     n = computeCondSplit(n, args, qa);
   }else if( computeOption==COMPUTE_PRENEX ){
-    if( options::prenexQuant()==PRENEX_QUANT_DISJ_NORMAL || options::prenexQuant()==PRENEX_QUANT_NORMAL ){
+    if (options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
+        || options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+    {
       //will rewrite at preprocess time
       return f;
-    }else{
+    }
+    else
+    {
       std::vector< Node > nargs;
       n = computePrenex( n, args, nargs, true, false );
       Assert(nargs.empty());
@@ -2142,35 +2169,13 @@ Node QuantifiersRewriter::rewriteRewriteRule( Node r ) {
   return rn;
 }
 
-struct ContainsQuantAttributeId {};
-typedef expr::Attribute<ContainsQuantAttributeId, uint64_t> ContainsQuantAttribute;
-
-// check if the given node contains a universal quantifier
-bool QuantifiersRewriter::containsQuantifiers( Node n ){
-  if( n.hasAttribute(ContainsQuantAttribute()) ){
-    return n.getAttribute(ContainsQuantAttribute())==1;
-  }else if( n.getKind() == kind::FORALL ){
-    return true;
-  }else{
-    bool cq = false;
-    for( unsigned i = 0; i < n.getNumChildren(); ++i ){
-      if( containsQuantifiers( n[i] ) ){
-        cq = true;
-        break;
-      }
-    }
-    ContainsQuantAttribute cqa;
-    n.setAttribute(cqa, cq ? 1 : 0);
-    return cq;
-  }
-}
 bool QuantifiersRewriter::isPrenexNormalForm( Node n ) {
   if( n.getKind()==FORALL ){
     return n[1].getKind()!=FORALL && isPrenexNormalForm( n[1] );
   }else if( n.getKind()==NOT ){
     return n[0].getKind()!=NOT && isPrenexNormalForm( n[0] );
   }else{
-    return !containsQuantifiers( n );
+    return !expr::hasClosure(n);
   }
 }
 
@@ -2220,7 +2225,8 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   }else{
     //check if it contains a quantifier as a subterm
     //if so, we will write this node
-    if( containsQuantifiers( n ) ){
+    if (expr::hasClosure(n))
+    {
       if( ( n.getKind()==kind::ITE && n.getType().isBoolean() ) || ( n.getKind()==kind::EQUAL && n[0].getType().isBoolean() ) ){
         if( options::preSkolemQuantAgg() ){
           Node nn;
@@ -2265,7 +2271,9 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
     }
   }
   //pull all quantifiers globally
-  if( options::prenexQuant()==PRENEX_QUANT_DISJ_NORMAL || options::prenexQuant()==PRENEX_QUANT_NORMAL ){
+  if (options::prenexQuant() == options::PrenexQuantMode::DISJ_NORMAL
+      || options::prenexQuant() == options::PrenexQuantMode::NORMAL)
+  {
     Trace("quantifiers-prenex") << "Prenexing : " << n << std::endl;
     std::map< unsigned, std::map< Node, Node > > visited;
     n = quantifiers::QuantifiersRewriter::computePrenexAgg( n, true, visited );

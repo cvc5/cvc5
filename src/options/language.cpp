@@ -68,6 +68,16 @@ bool isOutputLang_smt2_6(OutputLanguage lang, bool exact)
                   && lang <= output::LANG_SMTLIB_V2_END);
 }
 
+bool isInputLangSygus(InputLanguage lang)
+{
+  return lang == input::LANG_SYGUS || lang == input::LANG_SYGUS_V2;
+}
+
+bool isOutputLangSygus(OutputLanguage lang)
+{
+  return lang == output::LANG_SYGUS || lang == output::LANG_SYGUS_V2;
+}
+
 InputLanguage toInputLanguage(OutputLanguage language) {
   switch(language) {
   case output::LANG_SMTLIB_V2_0:

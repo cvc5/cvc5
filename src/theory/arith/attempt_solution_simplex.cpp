@@ -78,7 +78,7 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     }
   }
   d_errorSet.reduceToSignals();
-  d_errorSet.setSelectionRule(VAR_ORDER);
+  d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
 
   static int instance = 0;
   ++instance;

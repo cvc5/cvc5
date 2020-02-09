@@ -46,6 +46,7 @@ script:
  - ccache -z
  - ${CC} --version
  - ${CXX} --version
+ - sudo pip install toml
  - sudo python -m pip install Cython==0.29 --install-option="--no-cython-compile"
  - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
  - |

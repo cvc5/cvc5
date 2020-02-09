@@ -47,6 +47,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --python-bindings        build Python bindings based on new C++ API
   --asan                   build with ASan instrumentation
   --ubsan                  build with UBSan instrumentation
+  --tsan                   build with TSan instrumentation
 
 The following options configure parameterized features.
 
@@ -111,6 +112,7 @@ buildtype=default
 abc=default
 asan=default
 ubsan=default
+tsan=default
 assertions=default
 best=default
 cadical=default
@@ -175,6 +177,9 @@ do
 
     --ubsan) ubsan=ON;;
     --no-ubsan) ubsan=OFF;;
+
+    --tsan) tsan=ON;;
+    --no-tsan) tsan=OFF;;
 
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
@@ -361,6 +366,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
 [ $ubsan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
+[ $tsan != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_TSAN=$tsan"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
 [ $best != default ] \

@@ -11,7 +11,8 @@
 ; Both are detailed in this paper, along with their differences:
 ;   http://fmv.jku.at/papers/RebolaPardoBiere-POS18.pdf
 ;
-; This signature checks **Specified DRAT**.
+; This signature contains implementations for a checker for each.
+; **Specified DRAT** is first.
 
 ; A DRAT proof itself: a list of addition or deletion instructions.
 (declare DRATProof type)
@@ -23,7 +24,8 @@
 ; Functional  Programs ;
 ; ==================== ;
 
-; Are two clauses equal (in the set sense)
+; Are two clauses equal (i.e., if interpretted as sets of literals, are those
+; sets equal?)
 ;
 ; Assumes that marks 1,2,3,4 are clear for the constituent variables, and
 ; leaves them clear afterwards.
@@ -44,9 +46,11 @@
 ;    the mark 2 means (seen as - in c1, but not yet in c2)
 ;    the mark 4 means (seen as - in c1)
 ;
-; This implementation is robust to literal order, repeated literals, and
-; literals of opposite polarity in the same clause. It is true equality on sets
-; literals.
+; This implementation **does not**:
+;    1. assume that clauses do not have duplicates
+;       (so the clause [x v x v ~y] is an accceptable input)
+;    2. assume that clauses are non-tautological
+;       (so the clause [x v ~x] is an acceptable input)
 ;
 ; TODO(aozdemir) This implementation could be further optimized b/c once c1 is
 ; drained, we need not continue to pattern match on it.

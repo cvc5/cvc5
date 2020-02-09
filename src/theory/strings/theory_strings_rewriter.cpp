@@ -1600,6 +1600,12 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
       }
     }
+    else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER
+             || nk0 == STRING_REV)
+    {
+      // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
+      retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
+    }
   }
   else if (nk == kind::STRING_CHARAT)
   {
@@ -1640,6 +1646,10 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
   {
     retNode = rewriteStrConvert(node);
+  }
+  else if (nk == STRING_REV)
+  {
+    retNode = rewriteStrReverse(node);
   }
   else if (nk == kind::STRING_PREFIX || nk == kind::STRING_SUFFIX)
   {
@@ -2048,6 +2058,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
           NodeManager::currentNM()->mkConst(s.find(t) != std::string::npos);
       return returnRewrite(node, ret, "ctn-const");
     }else{
+      Node t = node[1];
       if (s.size() == 0)
       {
         Node len1 =
@@ -2060,6 +2071,24 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
           Node ret = NodeManager::currentNM()->mkConst(false);
           return returnRewrite(node, ret, "ctn-lhs-emptystr");
         }
+      }
+      else if (checkEntailLengthOne(t))
+      {
+        const std::vector<unsigned>& vec = s.getVec();
+
+        NodeBuilder<> nb(OR);
+        nb << nm->mkConst(String("")).eqNode(t);
+        for (unsigned c : vec)
+        {
+          std::vector<unsigned> sv = {c};
+          nb << nm->mkConst(String(sv)).eqNode(t);
+        }
+
+        // str.contains("ABCabc", t) --->
+        // t = "" v t = "A" v t = "B" v t = "C" v t = "a" v t = "b" v t = "c"
+        // if len(t) <= 1
+        Node ret = nb;
+        return returnRewrite(node, ret, "ctn-split");
       }
       else if (node[1].getKind() == kind::STRING_CONCAT)
       {
@@ -3194,6 +3223,39 @@ Node TheoryStringsRewriter::rewriteStrConvert(Node node)
   {
     // tolower( str.from.int( x ) ) --> str.from.int( x )
     return returnRewrite(node, node[0], "str-conv-itos");
+  }
+  return node;
+}
+
+Node TheoryStringsRewriter::rewriteStrReverse(Node node)
+{
+  Assert(node.getKind() == STRING_REV);
+  NodeManager* nm = NodeManager::currentNM();
+  Node x = node[0];
+  if (x.isConst())
+  {
+    std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
+    std::reverse(nvec.begin(), nvec.end());
+    Node retNode = nm->mkConst(String(nvec));
+    return returnRewrite(node, retNode, "str-conv-const");
+  }
+  else if (x.getKind() == STRING_CONCAT)
+  {
+    std::vector<Node> children;
+    for (const Node& nc : x)
+    {
+      children.push_back(nm->mkNode(STRING_REV, nc));
+    }
+    std::reverse(children.begin(), children.end());
+    // rev( x1 ++ x2 ) --> rev( x2 ) ++ rev( x1 )
+    Node retNode = nm->mkNode(STRING_CONCAT, children);
+    return returnRewrite(node, retNode, "str-rev-minscope-concat");
+  }
+  else if (x.getKind() == STRING_REV)
+  {
+    // rev( rev( x ) ) --> x
+    Node retNode = x[0];
+    return returnRewrite(node, retNode, "str-rev-idem");
   }
   return node;
 }

@@ -138,8 +138,15 @@ Node EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
   return Node::null();
 }
 
-SolverState::SolverState(context::Context* c, eq::EqualityEngine& ee)
-    : d_context(c), d_ee(ee), d_conflict(c, false), d_pendingConflict(c)
+SolverState::SolverState(context::Context* c,
+                         eq::EqualityEngine& ee,
+                         Valuation& v)
+    : d_context(c),
+      d_ee(ee),
+      d_eeDisequalities(c),
+      d_valuation(v),
+      d_conflict(c, false),
+      d_pendingConflict(c)
 {
 }
 SolverState::~SolverState()
@@ -193,6 +200,57 @@ bool SolverState::areDisequal(Node a, Node b) const
 }
 
 eq::EqualityEngine* SolverState::getEqualityEngine() const { return &d_ee; }
+
+const context::CDList<Node>& SolverState::getDisequalityList() const
+{
+  return d_eeDisequalities;
+}
+
+void SolverState::eqNotifyPreMerge(TNode t1, TNode t2)
+{
+  EqcInfo* e2 = getOrMakeEqcInfo(t2, false);
+  if (e2)
+  {
+    EqcInfo* e1 = getOrMakeEqcInfo(t1);
+    // add information from e2 to e1
+    if (!e2->d_lengthTerm.get().isNull())
+    {
+      e1->d_lengthTerm.set(e2->d_lengthTerm);
+    }
+    if (!e2->d_codeTerm.get().isNull())
+    {
+      e1->d_codeTerm.set(e2->d_codeTerm);
+    }
+    if (!e2->d_prefixC.get().isNull())
+    {
+      setPendingConflictWhen(
+          e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
+    }
+    if (!e2->d_suffixC.get().isNull())
+    {
+      setPendingConflictWhen(
+          e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
+    }
+    if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
+    {
+      e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
+    }
+    if (!e2->d_normalizedLength.get().isNull())
+    {
+      e1->d_normalizedLength.set(e2->d_normalizedLength);
+    }
+  }
+}
+
+void SolverState::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+{
+  if (t1.getType().isString())
+  {
+    // store disequalities between strings, may need to check if their lengths
+    // are equal/disequal
+    d_eeDisequalities.push_back(t1.eqNode(t2));
+  }
+}
 
 EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
 {
@@ -277,6 +335,52 @@ void SolverState::setPendingConflictWhen(Node conf)
 }
 
 Node SolverState::getPendingConflict() const { return d_pendingConflict; }
+
+std::pair<bool, Node> SolverState::entailmentCheck(options::TheoryOfMode mode,
+                                                   TNode lit)
+{
+  return d_valuation.entailmentCheck(mode, lit);
+}
+
+void SolverState::separateByLength(const std::vector<Node>& n,
+                                   std::vector<std::vector<Node> >& cols,
+                                   std::vector<Node>& lts)
+{
+  unsigned leqc_counter = 0;
+  std::map<Node, unsigned> eqc_to_leqc;
+  std::map<unsigned, Node> leqc_to_eqc;
+  std::map<unsigned, std::vector<Node> > eqc_to_strings;
+  NodeManager* nm = NodeManager::currentNM();
+  for (const Node& eqc : n)
+  {
+    Assert(d_ee.getRepresentative(eqc) == eqc);
+    EqcInfo* ei = getOrMakeEqcInfo(eqc, false);
+    Node lt = ei ? ei->d_lengthTerm : Node::null();
+    if (!lt.isNull())
+    {
+      lt = nm->mkNode(STRING_LENGTH, lt);
+      Node r = d_ee.getRepresentative(lt);
+      if (eqc_to_leqc.find(r) == eqc_to_leqc.end())
+      {
+        eqc_to_leqc[r] = leqc_counter;
+        leqc_to_eqc[leqc_counter] = r;
+        leqc_counter++;
+      }
+      eqc_to_strings[eqc_to_leqc[r]].push_back(eqc);
+    }
+    else
+    {
+      eqc_to_strings[leqc_counter].push_back(eqc);
+      leqc_counter++;
+    }
+  }
+  for (const std::pair<const unsigned, std::vector<Node> >& p : eqc_to_strings)
+  {
+    cols.push_back(std::vector<Node>());
+    cols.back().insert(cols.back().end(), p.second.begin(), p.second.end());
+    lts.push_back(leqc_to_eqc[p.first]);
+  }
+}
 
 }  // namespace strings
 }  // namespace theory

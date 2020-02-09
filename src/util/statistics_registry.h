@@ -780,11 +780,7 @@ public:
 /**
  * Resource-acquisition-is-initialization idiom for statistics
  * registry.  Useful for stack-based statistics (like in the driver).
- * Generally, for statistics kept in a member field of class, it's
- * better to use the above KEEP_STATISTIC(), which does declaration of
- * the member, construction of the statistic, and
- * registration/unregistration.  This RAII class only does
- * registration and unregistration.
+ * This RAII class only does registration and unregistration.
  */
 class CVC4_PUBLIC RegisterStatistic {
 public:

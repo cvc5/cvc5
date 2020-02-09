@@ -122,12 +122,15 @@ bool SygusPbe::collectExamples(Node n,
           else
           {
             Assert(n_output.isConst());
+            // finished processing this node if it was an I/O pair
+            return true;
           }
-          // finished processing this node
-          return true;
         }
-        d_examples_invalid[eh] = true;
-        d_examples_out_invalid[eh] = true;
+        else
+        {
+          d_examples_invalid[eh] = true;
+          d_examples_out_invalid[eh] = true;
+        }
       }
     }
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -235,7 +238,7 @@ bool SygusPbe::initialize(Node conj,
     for (const Node& e : d_candidate_to_enum[c])
     {
       TypeNode etn = e.getType();
-      d_tds->registerEnumerator(e, c, d_parent, ROLE_ENUM_POOL, false);
+      d_tds->registerEnumerator(e, c, d_parent, ROLE_ENUM_POOL);
       d_enum_to_candidate[e] = c;
       TNode te = e;
       // initialize static symmetry breaking lemmas for it
@@ -313,13 +316,16 @@ Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
 
 bool SygusPbe::hasExamples(Node e)
 {
-  if (isPbe()) {
-    e = d_tds->getSynthFunForEnumerator(e);
-    Assert(!e.isNull());
-    std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
-    if (itx == d_examples_invalid.end()) {
-      return d_examples.find(e) != d_examples.end();
-    }
+  e = d_tds->getSynthFunForEnumerator(e);
+  if (e.isNull())
+  {
+    // enumerator is not associated with synthesis function?
+    return false;
+  }
+  std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
+  if (itx == d_examples_invalid.end())
+  {
+    return d_examples.find(e) != d_examples.end();
   }
   return false;
 }
@@ -367,7 +373,6 @@ Node SygusPbe::getExampleOut(Node e, unsigned i)
 
 Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
 {
-  Assert(isPbe());
   Assert(!e.isNull());
   if (d_tds->isVariableAgnosticEnumerator(e))
   {
@@ -379,22 +384,46 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
   if (itx == d_examples_invalid.end()) {
-    // compute example values with the I/O utility
     std::vector<Node> vals;
     Trace("sygus-pbe-debug")
         << "Compute examples " << bvr << "..." << std::endl;
-    d_sygus_unif[ee].computeExamples(e, bvr, vals);
+    if (d_is_pbe)
+    {
+      // Compute example values with the I/O utility, which ensures they are
+      // not later recomputed when the enumerated term is given the I/O utility.
+      d_sygus_unif[ee].computeExamples(e, bvr, vals);
+    }
+    else
+    {
+      // If the I/O utility is not enabled (if the conjecture is not PBE),
+      // compute them separately. This handles the case when all applications
+      // of a function-to-synthesize are applied to constant arguments but
+      // the conjecture is not PBE.
+      TypeNode etn = e.getType();
+      std::vector<std::vector<Node>>& exs = d_examples[ee];
+      for (size_t i = 0, esize = exs.size(); i < esize; i++)
+      {
+        Node res = d_tds->evaluateBuiltin(etn, bvr, exs[i]);
+        vals.push_back(res);
+      }
+    }
     Assert(vals.size() == d_examples[ee].size());
     Trace("sygus-pbe-debug") << "...got " << vals << std::endl;
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
     Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
     Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
-    if (ret != bvr)
+    if (d_is_pbe)
     {
-      Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
-      d_sygus_unif[ee].clearExampleCache(e, bvr);
+      // Clean up the cache data if necessary: if the enumerated term
+      // is redundant, its cached data will not be used later and thus should
+      // be cleared now.
+      if (ret != bvr)
+      {
+        Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
+        d_sygus_unif[ee].clearExampleCache(e, bvr);
+      }
     }
-    Assert(ret.getType() == bvr.getType());
+    Assert(ret.getType().isComparableTo(bvr.getType()));
     return ret;
   }
   return Node::null();
