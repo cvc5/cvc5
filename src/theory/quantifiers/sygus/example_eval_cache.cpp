@@ -57,7 +57,8 @@ Node ExampleEvalCache::addSearchVal(Node bv)
   Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
   // Only save the cache data if necessary: if the enumerated term
   // is redundant, its cached data will not be used later and thus should
-  // be discarded.
+  // be discarded. This applies also to the case where the evaluation
+  // was cached prior to this call.
   if (ret != bv)
   {
     clearEvaluationCache(bv);
