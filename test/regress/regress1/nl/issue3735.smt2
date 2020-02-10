@@ -1,0 +1,8 @@
+(set-logic QF_NRA)
+(set-info :status sat)
+(declare-fun a () Int)
+(declare-fun b () Int)
+(declare-fun c () Real)
+(assert (< (/ (+ a b) c) 0.0))
+(assert (> c 1.0))
+(check-sat)
