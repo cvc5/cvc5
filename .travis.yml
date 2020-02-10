@@ -47,6 +47,8 @@ script:
  - ${CC} --version
  - ${CXX} --version
  - sudo pip install toml
+ # Need to install for both python2 and python3
+ - sudo python3 -m pip install toml
  - sudo python -m pip install Cython==0.29 --install-option="--no-cython-compile"
  - sudo python3 -m pip install Cython==0.29 --install-option="--no-cython-compile"
  - |
