@@ -1,4 +1,4 @@
-(set-logic QF_NRA)
+(set-logic QF_ALL)
 (set-info :status sat)
 (declare-fun a () Int)
 (declare-fun b () Int)
