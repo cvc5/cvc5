@@ -1,4 +1,4 @@
-; COMMAND-LINE: --rewrite-rules --quiet
+; COMMAND-LINE: --rewrite-rules --no-check-models
 ;; try to solve datatypes with rewriterules
 (set-logic AUFLIA)
 (set-info :status sat)

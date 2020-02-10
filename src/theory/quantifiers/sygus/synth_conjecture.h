@@ -26,6 +26,8 @@
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/cegis_core_connective.h"
 #include "theory/quantifiers/sygus/cegis_unif.h"
+#include "theory/quantifiers/sygus/example_eval_cache.h"
+#include "theory/quantifiers/sygus/example_infer.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
@@ -37,6 +39,7 @@ namespace theory {
 namespace quantifiers {
 
 class SynthEngine;
+class SygusStatistics;
 
 /**
  * A base class for generating values for actively-generated enumerators.
@@ -155,6 +158,10 @@ class SynthConjecture
   SynthConjectureProcess* getProcess() { return d_ceg_proc.get(); }
   /** get constant repair utility */
   SygusRepairConst* getRepairConst() { return d_sygus_rconst.get(); }
+  /** get example inference utility */
+  ExampleInfer* getExampleInfer() { return d_exampleInfer.get(); }
+  /** get the example evaluation cache utility for enumerator e */
+  ExampleEvalCache* getExampleEvalCache(Node e);
   /** get program by examples module */
   SygusPbe* getPbe() { return d_ceg_pbe.get(); }
   /** get the symmetry breaking predicate for type */
@@ -196,8 +203,10 @@ class SynthConjecture
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
   /** repair constant utility */
   std::unique_ptr<SygusRepairConst> d_sygus_rconst;
-  /** connective core utility */
-  std::unique_ptr<CegisCoreConnective> d_sygus_ccore;
+  /** example inference utility */
+  std::unique_ptr<ExampleInfer> d_exampleInfer;
+  /** example evaluation cache utility for each enumerator */
+  std::map<Node, std::unique_ptr<ExampleEvalCache> > d_exampleEvalCache;
 
   //------------------------modules
   /** program by examples module */
@@ -206,6 +215,8 @@ class SynthConjecture
   std::unique_ptr<Cegis> d_ceg_cegis;
   /** CEGIS UNIF module */
   std::unique_ptr<CegisUnif> d_ceg_cegisUnif;
+  /** connective core utility */
+  std::unique_ptr<CegisCoreConnective> d_sygus_ccore;
   /** the set of active modules (subset of the above list) */
   std::vector<SygusModule*> d_modules;
   /** master module
