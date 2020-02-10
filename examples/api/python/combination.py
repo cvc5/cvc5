@@ -18,7 +18,7 @@ import pycvc4
 from pycvc4 import kinds
 
 def prefixPrintGetValue(slv, t, level=0):
-    print("slv.getValue({})".format(slv.getValue(t)))
+    print("slv.getValue({}): {}".format(t, slv.getValue(t)))
     for c in t:
         prefixPrintGetValue(slv, c, level + 1)
 
