@@ -16,7 +16,7 @@ from cvc4 cimport DatatypeSelector as c_DatatypeSelector
 from cvc4 cimport DatatypeSelectorDecl as c_DatatypeSelectorDecl
 from cvc4 cimport Result as c_Result
 from cvc4 cimport RoundingMode as c_RoundingMode
-from cvc4 cimport OpTerm as c_OpTerm
+from cvc4 cimport Op as c_Op
 from cvc4 cimport Solver as c_Solver
 from cvc4 cimport Sort as c_Sort
 from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
@@ -70,9 +70,9 @@ cdef class Datatype:
         return dc
 
     def getConstructorTerm(self, str name):
-        opterm = OpTerm()
-        opterm.copterm = self.cd.getConstructorTerm(name.encode())
-        return opterm
+        op = Op()
+        op.cop = self.cd.getConstructorTerm(name.encode())
+        return op
 
     def getNumConstructors(self):
         return self.cd.getNumConstructors()
@@ -109,9 +109,9 @@ cdef class DatatypeConstructor:
         return ds
 
     def getSelectorTerm(self, str name):
-        opterm = OpTerm()
-        opterm.copterm = self.cdc.getSelectorTerm(name.encode())
-        return opterm
+        op = Op()
+        op.cop = self.cdc.getSelectorTerm(name.encode())
+        return op
 
     def __str__(self):
         return self.cdc.toString().decode()
@@ -142,42 +142,9 @@ cdef class DatatypeConstructorDecl:
 
 
 cdef class DatatypeDecl:
-    cdef c_DatatypeDecl* cdd
-    def __cinit__(self, str name, sorts_or_bool=None, isCoDatatype=None):
-        cdef vector[c_Sort] v
-
-        # argument cases
-        if sorts_or_bool is None and isCoDatatype is None:
-            self.cdd = new c_DatatypeDecl(name.encode())
-        elif sorts_or_bool is not None and isCoDatatype is None:
-            if isinstance(sorts_or_bool, bool):
-                self.cdd = new c_DatatypeDecl(<const string &> name.encode(),
-                                              <bint> sorts_or_bool)
-            elif isinstance(sorts_or_bool, Sort):
-                self.cdd = new c_DatatypeDecl(<const string &> name.encode(),
-                                              (<Sort> sorts_or_bool).csort)
-            elif isinstance(sorts_or_bool, list):
-                for s in sorts_or_bool:
-                    v.push_back((<Sort?> s).csort)
-                self.cdd = new c_DatatypeDecl(<const string &> name.encode(),
-                                              <const vector[c_Sort]&> v)
-            else:
-                raise ValueError("Unhandled second argument type {}"
-                                 .format(type(sorts_or_bool)))
-        elif sorts_or_bool is not None and isCoDatatype is not None:
-            if isinstance(sorts_or_bool, Sort):
-                self.cdd = new c_DatatypeDecl(<const string &> name.encode(),
-                                              (<Sort> sorts_or_bool).csort,
-                                              <bint> isCoDatatype)
-            elif isinstance(sorts_or_bool, list):
-                for s in sorts_or_bool:
-                    v.push_back((<Sort?> s).csort)
-                self.cdd = new c_DatatypeDecl(<const string &> name.encode(),
-                                              <const vector[c_Sort]&> v,
-                                              <bint> isCoDatatype)
-            else:
-                raise ValueError("Unhandled second argument type {}"
-                                 .format(type(sorts_or_bool)))
+    cdef c_DatatypeDecl cdd
+    def __cinit__(self):
+        pass
 
     def addConstructor(self, DatatypeConstructorDecl ctor):
         self.cdd.addConstructor(ctor.cddc[0])
@@ -228,53 +195,53 @@ cdef class DatatypeSelectorDecl:
         return self.cdsd.toString().decode()
 
 
-cdef class OpTerm:
-    cdef c_OpTerm copterm
+cdef class Op:
+    cdef c_Op cop
     def __cinit__(self):
-        self.copterm = c_OpTerm()
+        self.cop = c_Op()
 
-    def __eq__(self, OpTerm other):
-        return self.copterm == other.copterm
+    def __eq__(self, Op other):
+        return self.cop == other.cop
 
-    def __ne__(self, OpTerm other):
-        return self.copterm != other.copterm
+    def __ne__(self, Op other):
+        return self.cop != other.cop
 
     def __str__(self):
-        return self.copterm.toString().decode()
+        return self.cop.toString().decode()
 
     def __repr__(self):
-        return self.copterm.toString().decode()
+        return self.cop.toString().decode()
 
     def getKind(self):
-        return kind(<int> self.copterm.getKind())
+        return kind(<int> self.cop.getKind())
 
     def getSort(self):
         cdef Sort sort = Sort()
-        sort.csort = self.copterm.getSort()
+        sort.csort = self.cop.getSort()
         return sort
 
     def isNull(self):
-        return self.copterm.isNull()
+        return self.cop.isNull()
 
     def getIndices(self):
         indices = None
         try:
-            indices = self.copterm.getIndices[string]()
+            indices = self.cop.getIndices[string]()
         except:
             pass
 
         try:
-            indices = kind(<int> self.copterm.getIndices[c_Kind]())
+            indices = kind(<int> self.cop.getIndices[c_Kind]())
         except:
             pass
 
         try:
-            indices = self.copterm.getIndices[uint32_t]()
+            indices = self.cop.getIndices[uint32_t]()
         except:
             pass
 
         try:
-            indices = self.copterm.getIndices[pair[uint32_t, uint32_t]]()
+            indices = self.cop.getIndices[pair[uint32_t, uint32_t]]()
         except:
             pass
 
@@ -411,7 +378,7 @@ cdef class Solver:
 
     def mkDatatypeSort(self, DatatypeDecl dtypedecl):
         cdef Sort sort = Sort()
-        sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd[0])
+        sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
 
     def mkFunctionSort(self, sorts, Sort codomain):
@@ -505,11 +472,11 @@ cdef class Solver:
         return sort
 
     @expand_list_arg(num_req_args=1)
-    def mkTerm(self, kind k, *args):
+    def mkTerm(self, kind_or_op, *args):
         '''
             Supports the following arguments:
                     Term mkTerm(Kind kind)
-                    Term mkTerm(Kind kind, OpTerm child1, List[Term] children)
+                    Term mkTerm(Kind kind, Op child1, List[Term] children)
                     Term mkTerm(Kind kind, List[Term] children)
 
                 where List[Term] can also be comma-separated arguments
@@ -517,48 +484,47 @@ cdef class Solver:
         cdef Term term = Term()
         cdef vector[c_Term] v
 
+        op = kind_or_op
+        if isinstance(kind_or_op, kind):
+            op = self.mkOp(kind_or_op)
+
         if len(args) == 0:
-            term.cterm = self.csolver.mkTerm(k.k)
-        elif isinstance(args[0], OpTerm):
-            for a in args[1:]:
-                v.push_back((<Term?> a).cterm)
-            term.cterm = self.csolver.mkTerm(k.k,
-                                             (<OpTerm?> args[0]).copterm, v)
+            term.cterm = self.csolver.mkTerm((<Op?> op).cop)
         else:
             for a in args:
                 v.push_back((<Term?> a).cterm)
-            term.cterm = self.csolver.mkTerm(k.k, v)
+            term.cterm = self.csolver.mkTerm((<Op?> op).cop, v)
         return term
 
-    def mkOpTerm(self, kind k, arg0, arg1 = None):
+    def mkOp(self, kind k, arg0, arg1 = None):
         '''
         Supports the following uses:
-                OpTerm mkOpTerm(Kind kind, Kind k)
-                OpTerm mkOpTerm(Kind kind, const string& arg)
-                OpTerm mkOpTerm(Kind kind, uint32_t arg)
-                OpTerm mkOpTerm(Kind kind, uint32_t arg0, uint32_t arg1)
+                Op mkOp(Kind kind, Kind k)
+                Op mkOp(Kind kind, const string& arg)
+                Op mkOp(Kind kind, uint32_t arg)
+                Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
         '''
-        cdef OpTerm opterm = OpTerm()
+        cdef Op op = Op()
         if arg1 is None:
             if isinstance(arg0, kind):
-                opterm.copterm = self.csolver.mkOpTerm(k.k, (<kind?> arg0).k)
+                op.cop = self.csolver.mkOp(k.k, (<kind?> arg0).k)
             elif isinstance(arg0, str):
-                opterm.copterm = self.csolver.mkOpTerm(k.k,
-                                                       <const string &>
-                                                       arg0.encode())
+                op.cop = self.csolver.mkOp(k.k,
+                                           <const string &>
+                                           arg0.encode())
             elif isinstance(arg0, int):
-                opterm.copterm = self.csolver.mkOpTerm(k.k, <int?> arg0)
+                op.cop = self.csolver.mkOp(k.k, <int?> arg0)
             else:
                 raise ValueError("Unsupported signature"
-                                 " mkOpTerm: {}".format(" X ".join([k, arg0])))
+                                 " mkOp: {}".format(" X ".join([k, arg0])))
         else:
             if isinstance(arg0, int) and isinstance(arg1, int):
-                opterm.copterm = self.csolver.mkOpTerm(k.k, <int> arg0,
+                op.cop = self.csolver.mkOp(k.k, <int> arg0,
                                                        <int> arg1)
             else:
                 raise ValueError("Unsupported signature"
-                                 " mkOpTerm: {}".format(" X ".join([k, arg0, arg1])))
-        return opterm
+                                 " mkOp: {}".format(" X ".join([k, arg0, arg1])))
+        return op
 
     def mkTrue(self):
         cdef Term term = Term()
@@ -731,6 +697,43 @@ cdef class Solver:
             term.cterm = self.csolver.mkVar(sort.csort,
                                             (<str?> symbol).encode())
         return term
+
+    def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
+        cdef DatatypeDecl dd = DatatypeDecl()
+        cdef vector[c_Sort] v
+
+        # argument cases
+        if sorts_or_bool is None and isCoDatatype is None:
+            dd.cdd = self.csolver.mkDatatypeDecl(name.encode())
+        elif sorts_or_bool is not None and isCoDatatype is None:
+            if isinstance(sorts_or_bool, bool):
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     <bint> sorts_or_bool)
+            elif isinstance(sorts_or_bool, Sort):
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     (<Sort> sorts_or_bool).csort)
+            elif isinstance(sorts_or_bool, list):
+                for s in sorts_or_bool:
+                    v.push_back((<Sort?> s).csort)
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     <const vector[c_Sort]&> v)
+            else:
+                raise ValueError("Unhandled second argument type {}"
+                                 .format(type(sorts_or_bool)))
+        elif sorts_or_bool is not None and isCoDatatype is not None:
+            if isinstance(sorts_or_bool, Sort):
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     (<Sort> sorts_or_bool).csort,
+                                                     <bint> isCoDatatype)
+            elif isinstance(sorts_or_bool, list):
+                for s in sorts_or_bool:
+                    v.push_back((<Sort?> s).csort)
+                dd.cdd = self.csolver.mkDatatypeDecl(<const string &> name.encode(),
+                                                     <const vector[c_Sort]&> v,
+                                                     <bint> isCoDatatype)
+            else:
+                raise ValueError("Unhandled second argument type {}"
+                                 .format(type(sorts_or_bool)))
 
     def simplify(self, Term t):
         cdef Term term = Term()
@@ -1097,6 +1100,14 @@ cdef class Term:
         cdef Sort sort = Sort()
         sort.csort = self.cterm.getSort()
         return sort
+
+    def hasOp(self):
+        return self.cterm.hasOp()
+
+    def getOp(self):
+        cdef Op op = Op()
+        op.cop = self.cterm.getOp()
+        return op
 
     def isNull(self):
         return self.cterm.isNull()

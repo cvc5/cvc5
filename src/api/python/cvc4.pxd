@@ -23,7 +23,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Datatype() except +
         DatatypeConstructor operator[](const string& name) except +
         DatatypeConstructor getConstructor(const string& name) except +
-        OpTerm getConstructorTerm(const string& name) except +
+        Op getConstructorTerm(const string& name) except +
         size_t getNumConstructors() except +
         bint isParametric() except +
         string toString() except +
@@ -41,7 +41,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         DatatypeConstructor() except +
         DatatypeSelector operator[](const string& name) except +
         DatatypeSelector getSelector(const string& name) except +
-        OpTerm getSelectorTerm(const string& name) except +
+        Op getSelectorTerm(const string& name) except +
         string toString() except +
         cppclass const_iterator:
             const_iterator() except +
@@ -60,12 +60,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
 
 
     cdef cppclass DatatypeDecl:
-        DatatypeDecl(const string& name) except +
-        DatatypeDecl(const string& name, bint isCoDatatype) except +
-        DatatypeDecl(const string& name, Sort param) except +
-        DatatypeDecl(const string& name, Sort param, bint isCoDatatype) except +
-        DatatypeDecl(const string& name, const vector[Sort]& params) except +
-        DatatypeDecl(const string& name, const vector[Sort]& params, bint isCoDatatype) except +
         void addConstructor(const DatatypeConstructorDecl& ctor) except +
         bint isParametric() except +
         string toString() except +
@@ -86,10 +80,10 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         string toString() except +
 
 
-    cdef cppclass OpTerm:
-        OpTerm() except +
-        bint operator==(const OpTerm&) except +
-        bint operator!=(const OpTerm&) except +
+    cdef cppclass Op:
+        Op() except +
+        bint operator==(const Op&) except +
+        bint operator!=(const Op&) except +
         Kind getKind() except +
         Sort getSort() except +
         bint isNull() except +
@@ -134,13 +128,12 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Sort mkUninterpretedSort(const string& symbol) except +
         Sort mkSortConstructorSort(const string& symbol, size_t arity) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
-        Term mkTerm(Kind kind) except +
-        Term mkTerm(Kind kind, const vector[Term]& children) except +
-        Term mkTerm(Kind kind, OpTerm child, const vector[Term]& children) except +
-        OpTerm mkOpTerm(Kind kind, Kind k) except +
-        OpTerm mkOpTerm(Kind kind, const string& arg) except +
-        OpTerm mkOpTerm(Kind kind, uint32_t arg) except +
-        OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) except +
+        Term mkTerm(Op op) except +
+        Term mkTerm(Op op, const vector[Term]& children) except +
+        Op mkOp(Kind kind, Kind k) except +
+        Op mkOp(Kind kind, const string& arg) except +
+        Op mkOp(Kind kind, uint32_t arg) except +
+        Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) except +
         Term mkTrue() except +
         Term mkFalse() except +
         Term mkBoolean(bint val) except +
@@ -171,6 +164,12 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         # default value for symbol defined in cvc4cpp.h
         Term mkConst(Sort sort) except +
         Term mkVar(Sort sort, const string& symbol) except +
+        DatatypeDecl mkDatatypeDecl(const string& name) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, Sort param) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, Sort param, bint isCoDatatype) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params) except +
+        DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
         # default value for symbol defined in cvc4cpp.h
         Term mkVar(Sort sort) except +
         Term simplify(const Term& t) except +
@@ -245,6 +244,8 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint operator!=(const Term&) except +
         Kind getKind() except +
         Sort getSort() except +
+        bint hasOp() except +
+        Op getOp() except +
         bint isNull() except +
         Term notTerm() except +
         Term andTerm(const Term& t) except +

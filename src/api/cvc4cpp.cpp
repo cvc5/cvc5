@@ -1719,26 +1719,39 @@ DatatypeDecl::DatatypeDecl(const Solver* s,
       new CVC4::Datatype(s->getExprManager(), name, tparams, isCoDatatype));
 }
 
+bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
+
+DatatypeDecl::DatatypeDecl() {}
+
 DatatypeDecl::~DatatypeDecl() {}
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
+  CVC4_API_CHECK_NOT_NULL;
   d_dtype->addConstructor(*ctor.d_ctor);
 }
 
 size_t DatatypeDecl::getNumConstructors() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   return d_dtype->getNumConstructors();
 }
 
-bool DatatypeDecl::isParametric() const { return d_dtype->isParametric(); }
+bool DatatypeDecl::isParametric() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_dtype->isParametric();
+}
 
 std::string DatatypeDecl::toString() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   std::stringstream ss;
   ss << *d_dtype;
   return ss.str();
 }
+
+bool DatatypeDecl::isNull() const { return isNullHelper(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
