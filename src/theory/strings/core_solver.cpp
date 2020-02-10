@@ -1047,8 +1047,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       {
         // can infer that this string must be empty
         Node eq = nfkv[index_k].eqNode(d_emptyString);
-        // Trace("strings-lemma") << "Strings: Infer " << eq << " from " <<
-        // eq_exp << std::endl;
         Assert(!d_state.areEqual(d_emptyString, nfkv[index_k]));
         d_im.sendInference(curr_exp, eq, "N_EndpointEmp");
         index_k++;
@@ -1320,7 +1318,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           size_t cIndex = index;
           Node constStr = TheoryStringsRewriter::collectConstantStringAt(
               nfcv, cIndex, false);
-          Assert(!const_str.isNull());
+          Assert(!constStr.isNull());
           CVC4::String stra = constStr.getConst<String>();
           CVC4::String strb = nextConstStr.getConst<String>();
           // Since `nc` is non-empty, we start with character 1
