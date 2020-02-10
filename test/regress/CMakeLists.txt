@@ -4,11 +4,11 @@
 set(regress_0_tests
   regress0/arith/ackermann.real.smt2
   regress0/arith/arith-eq.smt2
-  regress0/arith/arith-mixed.smt2
-  regress0/arith/arith-tighten-1.smt2
-  regress0/arith/arith-strict.smt2
-  regress0/arith/arith-mixed-types-tighten.smt2
   regress0/arith/arith-mixed-types-no-tighten.smt2
+  regress0/arith/arith-mixed-types-tighten.smt2
+  regress0/arith/arith-mixed.smt2
+  regress0/arith/arith-strict.smt2
+  regress0/arith/arith-tighten-1.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc
@@ -34,6 +34,7 @@ set(regress_0_tests
   regress0/arith/issue1399.smt2
   regress0/arith/issue3412.smt2
   regress0/arith/issue3413.smt2
+  regress0/arith/issue3480.smt2
   regress0/arith/issue3683.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
@@ -700,6 +701,7 @@ set(regress_0_tests
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
+  regress0/quantifiers/issue3655.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
