@@ -29,8 +29,18 @@ namespace theory {
 namespace quantifiers {
 
 SygusInst::SygusInst(QuantifiersEngine* qe)
-    : QuantifiersModule(qe), d_quant_vars(), d_inst_pools(), d_evaluator()
+    : QuantifiersModule(qe), d_quantifiers(), d_inst_pools(), d_evaluator()
 {
+}
+
+bool SygusInst::needsCheck(Theory::Effort e)
+{
+  return e >= Theory::EFFORT_LAST_CALL;
+}
+
+QuantifiersModule::QEffort SygusInst::needsModel(Theory::Effort e)
+{
+  return QEFFORT_STANDARD;
 }
 
 // Note: Called once per q (context-independent initialization)
@@ -43,42 +53,54 @@ void SygusInst::registerQuantifier(Node q)
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
   std::unordered_set<Node, NodeHashFunction> term_irrelevant;
 
-  Assert(d_quant_vars.find(q) == d_quant_vars.end());
-  auto& vars = d_quant_vars[q];
+  Assert(d_quantifiers.find(q) == d_quantifiers.end());
+  // auto& quants = d_quantifiers[q];
+  std::vector<Node> quants;
+  TermUtil::computeQuantContains(q, quants);
 
-  std::unordered_set<TNode, TNodeHashFunction> all_vars;
-  expr::getVariables(q, all_vars);
-
-  for (const TNode& var : all_vars)
+  // TODO: Right now we can't handle nested quantifiers yet
+  if (quants.size() > 1)
   {
-    if (var.getKind() == kind::BOUND_VARIABLE)
-    {
-      vars.insert(var);
-    }
-    else
-    {
-      Assert(var.getKind() == kind::VARIABLE);
-      TypeNode tn = var.getType();
-      extra_cons[tn].insert(var);
-      Trace("sygus-inst") << "Found symbol: " << var << std::endl;
-    }
+    Trace("sygus-inst") << "Skip: unsupported nested quantifiers." << std::endl;
+    return;
+  }
+  // TODO: Right now we can't handle multiple variables
+  else if (quants.size() == 1 && quants[0][0].getNumChildren() > 1)
+  {
+    Trace("sygus-inst") << "Skip: unsupported multiple variables." << std::endl;
+    return;
+  }
+
+  d_quantifiers.emplace(std::make_pair(q, quants));
+
+  std::unordered_set<Node, NodeHashFunction> syms;
+  expr::getSymbols(q, syms);
+  for (const TNode& var : syms)
+  {
+    TypeNode tn = var.getType();
+    extra_cons[tn].insert(var);
+    Trace("sygus-inst") << "Found symbol: " << var << std::endl;
   }
 
   TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
-  for (const Node& var : vars)
+  for (const TNode& quant : quants)
   {
-    TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(var.getType(),
-                                                            var,
-                                                            var.toString(),
-                                                            extra_cons,
-                                                            exclude_cons,
-                                                            include_cons,
-                                                            term_irrelevant);
-    // std::cout << "tn for " << var << ": " << tn.getDType() << std::endl;
-    Trace("sygus-inst") << "Construct (default) datatype for " << var
-                        << std::endl;
+    Trace("sygus-inst") << "Process variables of " << quant << std::endl;
+    for (const Node& var : quant[0])
+    {
+      TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(var.getType(),
+                                                              var,
+                                                              var.toString(),
+                                                              extra_cons,
+                                                              exclude_cons,
+                                                              include_cons,
+                                                              term_irrelevant);
+      // std::cout << "tn for " << var << ": " << tn.getDType() << std::endl;
+      Trace("sygus-inst") << "Construct (default) datatype for " << var
+                          << std::endl;
 
-    d_inst_pools[var].initialize(db, tn);
+      d_inst_pools[var].initialize(db, tn);
+    }
   }
 }
 
@@ -106,9 +128,14 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
       continue;
     }
 
-    Assert(d_quant_vars.find(q) != d_quant_vars.end());
+    // TODO: We can't handle all quantifiers right now (nested, or more
+    // variables)
+    if (d_quantifiers.find(q) == d_quantifiers.end())
+    {
+      continue;
+    }
 
-    auto& vars = d_quant_vars.at(q);
+    auto& quants = d_quantifiers.at(q);
 
     Trace("sygus-inst") << "Active: " << q << std::endl;
 
@@ -123,77 +150,97 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
                           << std::endl;
     }
 
-    std::vector<Node> terms;
-    for (const TNode& var : vars)
+    for (const TNode& quant : quants)
     {
-      Assert(d_inst_pools.find(var) != d_inst_pools.end());
-      InstPool& pool = d_inst_pools.at(var);
+      bool do_inst = true;
+      std::vector<Node> terms;
 
-      if (pool.done())
+      /* Try to synthesize/find term for each variable.
+       * Note: Currently if we can't find a term for a variable, we don't
+       *       instantiate the quantifier at all.
+       */
+      for (const TNode& var : quant[0])
       {
-        Trace("sygus-inst") << "Enumerator finished for " << var << std::endl;
-        continue;
-      }
+        Assert(d_inst_pools.find(var) != d_inst_pools.end());
+        InstPool& pool = d_inst_pools.at(var);
 
-      Trace("sygus-inst") << "Find candidate for variable " << var << std::endl;
-
-      Trace("sygus-inst") << "Check enumerated pool" << std::endl;
-      Node term;
-      for (const TNode& t : pool.getTerms())
-      {
-        if (checkCandidate(q[1], var, t, args, vals))
+        if (pool.done())
         {
-          Trace("sygus-inst") << "Found existing candidate: " << t << std::endl;
-          term = t;
-          break;
-        }
-      }
-
-      while (term.isNull())
-      {
-        TNode t = pool.next();
-
-        if (t.isNull())
-        {
-          Assert(pool.done());
+          Trace("sygus-inst") << "Enumerator finished for " << var << std::endl;
+          do_inst = false;
           break;
         }
 
-        if (checkCandidate(q[1], var, t, args, vals))
+        Trace("sygus-inst")
+            << "Find candidate for variable " << var << std::endl;
+        Trace("sygus-inst") << "Check enumerated pool" << std::endl;
+        Node term;
+        for (const TNode& t : pool.getTerms())
         {
-          Trace("sygus-inst-enum") << "Found new candidate: " << t << std::endl;
-          term = t;
+          if (checkCandidate(q[1], var, t, args, vals))
+          {
+            Trace("sygus-inst")
+                << "Found existing candidate: " << t << std::endl;
+            term = t;
+            break;
+          }
+        }
+
+        if (term.isNull())
+        {
+          Trace("sygus-inst") << "No existing candidate found" << std::endl;
+        }
+
+        // TODO: This loop can run a long time, restrict to N iterations?
+        while (term.isNull())
+        {
+          TNode t = pool.next();
+
+          if (t.isNull())
+          {
+            Assert(pool.done());
+            break;
+          }
+
+          if (checkCandidate(q[1], var, t, args, vals))
+          {
+            Trace("sygus-inst") << "Found new candidate: " << t << std::endl;
+            term = t;
+            break;
+          }
+          else
+          {
+            Trace("sygus-inst-enum")
+                << "Candidate not used: " << t << std::endl;
+          }
+        }
+
+        if (term.isNull())
+        {
+          do_inst = false;
           break;
         }
-      }
 
-      // TODO: nested quantifiers not handled yet
-      if (!term.isNull())
-      {
         terms.push_back(term);
       }
-      else
-      {
-        Unimplemented();
-      }
-    }
 
-    if (inst->addInstantiation(q, terms, true))
-    {
-      Trace("sygus-inst") << "Instantiate " << q << std::endl;
+      if (do_inst && inst->addInstantiation(q, terms, true))
+      {
+        Trace("sygus-inst") << "Instantiate " << q << std::endl;
+      }
     }
   }
 }
 
 bool SygusInst::checkCandidate(TNode body,
-                               TNode var,
+                               TNode x,
                                TNode t,
                                std::vector<Node>& args,
                                std::vector<Node>& vals)
 {
   Node val = d_evaluator.eval(t, args, vals);
 
-  args.push_back(var);
+  args.push_back(x);
   vals.push_back(val);
 
   Node fval = d_evaluator.eval(body, args, vals);
@@ -223,6 +270,7 @@ bool SygusInst::InstPool::done() { return d_done; }
 TNode SygusInst::InstPool::next()
 {
   Node cur;
+  // TODO: We may not want to skip all null terms.
   do
   {
     cur = d_enumerator->getCurrent();

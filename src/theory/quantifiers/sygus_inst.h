@@ -47,7 +47,7 @@ class SygusInst : public QuantifiersModule
    * Returns true if this module wishes a call to be made
    * to check(e) during QuantifiersEngine::check(e).
    */
-  // bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
+  bool needsCheck(Theory::Effort e) override;
   /** Needs model.
    *
    * Whether this module needs a model built during a
@@ -56,7 +56,7 @@ class SygusInst : public QuantifiersModule
    * which specifies the quantifiers effort in which it requires the model to
    * be built.
    */
-  // QEffort needsModel(Theory::Effort e);
+  QEffort needsModel(Theory::Effort e) override;
   /** Reset.
    *
    * Called at the beginning of QuantifiersEngine::check(e).
@@ -116,42 +116,47 @@ class SygusInst : public QuantifiersModule
   std::string identify() const override { return "SygusInst"; }
 
  private:
-  // Enumerator needs access to
-  //  - quantifiersEngine
-  //  - skolem with type (grammar)
   class InstPool
   {
    public:
     InstPool();
     ~InstPool() = default;
 
+    /** Initialize pool with grammar 'tn'. */
     void initialize(TermDbSygus* db, TypeNode& tn);
 
+    /** Indicates whether the enumerator finished, i.e., no new candidates can
+     *  ben generated. */
     bool done();
 
+    /** Get next enumerated term. */
     TNode next();
 
+    /** Get all terms enumerated so far. */
     const std::vector<Node>& getTerms();
 
    private:
+    /** Indicates whether the enumerator has finished. */
     bool d_done;
     std::unique_ptr<SygusEnumerator> d_enumerator;
+    /** Enumerated terms. */
     std::vector<Node> d_terms;
   };
 
-  std::unordered_map<Node,
-                     std::unordered_set<TNode, TNodeHashFunction>,
-                     NodeHashFunction>
-      d_quant_vars;
-
-  std::unordered_map<Node, InstPool, NodeHashFunction> d_inst_pools;
-  Evaluator d_evaluator;
-
+  /** Check if candidate term 't' for variable 'x' evaluates 'body' to false. */
   bool checkCandidate(TNode body,
-                      TNode var,
+                      TNode x,
                       TNode t,
                       std::vector<Node>& args,
                       std::vector<Node>& vals);
+
+  /** Maps quantifier 'q' to the quantifiers contained in 'q'. */
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_quantifiers;
+
+  /** Maps variables to their corresponding instantiation pool. */
+  std::unordered_map<Node, InstPool, NodeHashFunction> d_inst_pools;
+
+  Evaluator d_evaluator;
 };
 
 }  // namespace quantifiers
