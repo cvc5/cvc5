@@ -1439,6 +1439,9 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       }
       else
       {
+        // Either `x` or `y` is constant but we couldn't make an inference
+        // because our inferences do not work when in the reverse direction.
+        // To avoid doing a F-Split here, we break out of the loop.
         break;
       }
     }
