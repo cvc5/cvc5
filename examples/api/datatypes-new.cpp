@@ -34,8 +34,7 @@ void test(Solver& slv, Sort& consListSort)
   // Here, consList["cons"] gives you the DatatypeConstructor.  To get
   // the constructor symbol for application, use .getConstructor("cons"),
   // which is equivalent to consList["cons"].getConstructor().  Note that
-  // "nil" is a constructor too, so it needs to be applied with
-  // APPLY_CONSTRUCTOR, even though it has no arguments.
+  // "nil" is a constructor too
   Term t = slv.mkTerm(consList.getConstructorTerm("cons"),
                       slv.mkReal(0),
                       slv.mkTerm(consList.getConstructorTerm("nil")));

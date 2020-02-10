@@ -496,16 +496,20 @@ cdef class Solver:
             term.cterm = self.csolver.mkTerm((<Op?> op).cop, v)
         return term
 
-    def mkOp(self, kind k, arg0, arg1 = None):
+    def mkOp(self, kind k, arg0=None, arg1 = None):
         '''
         Supports the following uses:
+                Op mkOp(Kind kind)
                 Op mkOp(Kind kind, Kind k)
                 Op mkOp(Kind kind, const string& arg)
                 Op mkOp(Kind kind, uint32_t arg)
                 Op mkOp(Kind kind, uint32_t arg0, uint32_t arg1)
         '''
         cdef Op op = Op()
-        if arg1 is None:
+
+        if arg0 is None:
+            op.cop = self.csolver.mkOp(k.k)
+        elif arg1 is None:
             if isinstance(arg0, kind):
                 op.cop = self.csolver.mkOp(k.k, (<kind?> arg0).k)
             elif isinstance(arg0, str):
@@ -734,6 +738,13 @@ cdef class Solver:
             else:
                 raise ValueError("Unhandled second argument type {}"
                                  .format(type(sorts_or_bool)))
+        else:
+            raise ValueError("Can't create DatatypeDecl with {}".format([type(a)
+                                                                         for a in [name,
+                                                                                   sorts_or_bool,
+                                                                                   isCoDatatype]]))
+
+        return dd
 
     def simplify(self, Term t):
         cdef Term term = Term()

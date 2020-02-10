@@ -110,8 +110,8 @@ if __name__ == "__main__":
     print("CVC4:", slv.checkValidAssuming(v))
 
     # Assert that a is odd
-    extract_op = slv.mkOpTerm(kinds.BVExtractOp, 0, 0)
-    lsb_of_a = slv.mkTerm(kinds.BVExtract, extract_op, a)
+    extract_op = slv.mkOp(kinds.BVExtract, 0, 0)
+    lsb_of_a = slv.mkTerm(extract_op, a)
     print("Sort of {} is {}".format(lsb_of_a, lsb_of_a.getSort()))
     a_odd = slv.mkTerm(kinds.Equal, lsb_of_a, slv.mkBitVector(1, 1))
     print("Assert", a_odd)

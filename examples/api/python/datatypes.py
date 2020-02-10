@@ -31,13 +31,11 @@ def test(slv, consListSort):
     # Here, consList["cons"] gives you the DatatypeConstructor.  To get
     # the constructor symbol for application, use .getConstructor("cons"),
     # which is equivalent to consList["cons"].getConstructor().  Note that
-    # "nil" is a constructor too, so it needs to be applied with
-    # APPLY_CONSTRUCTOR, even though it has no arguments.
+    # "nil" is a constructor too
 
-    t = slv.mkTerm(kinds.ApplyConstructor,
-                   consList.getConstructorTerm("cons"),
+    t = slv.mkTerm(consList.getConstructorTerm("cons"),
                    slv.mkReal(0),
-                   slv.mkTerm(kinds.ApplyConstructor, consList.getConstructorTerm("nil")))
+                   slv.mkTerm(consList.getConstructorTerm("nil")))
 
     print("t is {}\nsort of cons is {}\n sort of nil is {}".format(
         t,
@@ -50,7 +48,7 @@ def test(slv, consListSort):
     # consList["cons"]) in order to get the "head" selector symbol
     # to apply.
 
-    t2 = slv.mkTerm(kinds.ApplySelector, consList["cons"].getSelectorTerm("head"), t)
+    t2 = slv.mkTerm(consList["cons"].getSelectorTerm("head"), t)
 
     print("t2 is {}\nsimplify(t2) is {}\n\n".format(t2, slv.simplify(t2)))
 
@@ -66,7 +64,7 @@ def test(slv, consListSort):
     # This example builds a simple parameterized list of sort T, with one
     # constructor "cons".
     sort = slv.mkParamSort("T")
-    paramConsListSpec = pycvc4.DatatypeDecl("paramlist", sort)
+    paramConsListSpec = slv.mkDatatypeDecl("paramlist", sort)
     paramCons = pycvc4.DatatypeConstructorDecl("cons")
     paramNil = pycvc4.DatatypeConstructorDecl("nil")
     paramHead = pycvc4.DatatypeSelectorDecl("head", sort)
@@ -83,7 +81,7 @@ def test(slv, consListSort):
     a = slv.mkConst(paramConsIntListSort, "a")
     print("term {} is of sort {}".format(a, a.getSort()))
 
-    head_a = slv.mkTerm(kinds.ApplySelector, paramConsList["cons"].getSelectorTerm("head"), a)
+    head_a = slv.mkTerm(paramConsList["cons"].getSelectorTerm("head"), a)
     print("head_a is {} of sort {}".format(head_a, head_a.getSort()))
     print("sort of cons is", paramConsList.getConstructorTerm("cons").getSort())
 
@@ -105,7 +103,7 @@ if __name__ == "__main__":
     # Second, it is "resolved" to an actual sort, at which point function
     # symbols are assigned to its constructors, selectors, and testers.
 
-    consListSpec = pycvc4.DatatypeDecl("list") # give the datatype a name
+    consListSpec = slv.mkDatatypeDecl("list") # give the datatype a name
     cons = pycvc4.DatatypeConstructorDecl("cons")
     head = pycvc4.DatatypeSelectorDecl("head", slv.getIntegerSort())
     tail = pycvc4.DatatypeSelectorDecl("tail", pycvc4.DatatypeDeclSelfSort())
@@ -128,6 +126,12 @@ if __name__ == "__main__":
 
     print("### Alternatively, use declareDatatype")
 
-    ctors = [cons, nil]
+    cons2 = pycvc4.DatatypeConstructorDecl("cons")
+    head2 = pycvc4.DatatypeSelectorDecl("head", slv.getIntegerSort())
+    tail2 = pycvc4.DatatypeSelectorDecl("tail", pycvc4.DatatypeDeclSelfSort())
+    cons2.addSelector(head2)
+    cons2.addSelector(tail2)
+    nil2 = pycvc4.DatatypeConstructorDecl("nil")
+    ctors = [cons2, nil2]
     consListSort2 = slv.declareDatatype("list2", ctors)
     test(slv, consListSort2)
