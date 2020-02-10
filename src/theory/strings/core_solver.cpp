@@ -116,23 +116,13 @@ void CoreSolver::checkCycles()
   d_eqc.clear();
   // Rebuild strings eqc based on acyclic ordering, first copy the equivalence
   // classes from the base solver.
-  std::vector< Node > eqc = d_bsolver.getStringEqc();
+  const std::vector<Node>& eqc = d_bsolver.getStringEqc();
   d_strings_eqc.clear();
-  if( options::stringBinaryCsp() ){
-    //sort: process smallest constants first (necessary if doing binary splits)
-    sortConstLength scl;
-    for( unsigned i=0; i<eqc.size(); i++ ){
-      Node ci = d_bsolver.getConstantEqc(eqc[i]);
-      if( !ci.isNull() ){
-        scl.d_const_length[eqc[i]] = ci.getConst<String>().size();
-      }
-    }
-    std::sort( eqc.begin(), eqc.end(), scl );
-  }
-  for( unsigned i=0; i<eqc.size(); i++ ){
+  for (const Node& r : eqc)
+  {
     std::vector< Node > curr;
     std::vector< Node > exp;
-    checkCycles( eqc[i], curr, exp );
+    checkCycles(r, curr, exp);
     if (d_im.hasProcessed())
     {
       return;
@@ -1380,47 +1370,13 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           }
         }
 
-        Node const_str = nfcv[index];
-        NormalForm::getExplanationForPrefixEq(
-            nfi, nfj, index, index, info.d_ant);
-        CVC4::String stra = const_str.getConst<String>();
-        if (options::stringBinaryCsp() && stra.size() > 3)
-        {
-          // If binary constant splits are enabled, we essentially perform a
-          // binary search over how much overlap the constant has with `nc`.
-          //
-          // E.g. "abcdef" ++ ... = nc ++ ... ---> (nc = "abc" ++ k) v
-          //      (k != "" ^ "abc" = nc ++ k)
-          Node firstHalf = nm->mkConst(isRev ? stra.substr(stra.size() / 2)
-                                             : stra.substr(0, stra.size() / 2));
-          Node sk =
-              d_skCache.mkSkolemCached(nc,
-                                       firstHalf,
-                                       isRev ? SkolemCache::SK_ID_VC_BIN_SPT_REV
-                                             : SkolemCache::SK_ID_VC_BIN_SPT,
-                                       "cb_spt");
-          Trace("strings-csp")
-              << "Const Split: " << firstHalf << " is removed from "
-              << const_str << " (binary) " << std::endl;
-          info.d_conc = nm->mkNode(
-              OR,
-              nc.eqNode(isRev ? utils::mkNConcat(sk, firstHalf)
-                              : utils::mkNConcat(firstHalf, sk)),
-              nm->mkNode(AND,
-                         sk.eqNode(d_emptyString).negate(),
-                         firstHalf.eqNode(isRev ? utils::mkNConcat(sk, nc)
-                                                : utils::mkNConcat(nc, sk))));
-          info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
-          info.d_id = INFER_SSPLIT_CST_BINARY;
-          pinfer.push_back(info);
-          break;
-        }
-
         // Since non of the other inferences apply, we just infer that `nc` has
         // to start with the first character of the constant.
         //
         // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k
-        Node firstChar = stra.size() == 1 ? const_str
+        Node constStr = nfcv[index];
+        CVC4::String stra = constStr.getConst<String>();
+        Node firstChar = stra.size() == 1 ? constStr
                                           : nm->mkConst(isRev ? stra.suffix(1)
                                                               : stra.prefix(1));
         Node sk = d_skCache.mkSkolemCached(
@@ -1428,8 +1384,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
             isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
             "c_spt");
         Trace("strings-csp")
-            << "Const Split: " << firstChar << " is removed from " << const_str
+            << "Const Split: " << firstChar << " is removed from " << constStr
             << " (serial) " << std::endl;
+        NormalForm::getExplanationForPrefixEq(
+            nfi, nfj, index, index, info.d_ant);
         info.d_conc = nc.eqNode(isRev ? utils::mkNConcat(sk, firstChar)
                                       : utils::mkNConcat(firstChar, sk));
         info.d_new_skolem[LENGTH_SPLIT].push_back(sk);
