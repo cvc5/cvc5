@@ -92,11 +92,10 @@ void EquivSygusInvarianceTest::init(
   // compute the current examples
   d_bvr = bvr;
   Assert(tds != nullptr);
-  Node f = tds->getSynthFunForEnumerator(e);
   ExampleEvalCache* eec = aconj->getExampleEvalCache(e);
   if (eec != nullptr)
   {
-    // get the result of evaluating bvr on the examples of f.
+    // get the result of evaluating bvr on the examples of enumerator e.
     eec->evaluateVec(bvr, d_exo, false);
     d_conj = aconj;
     d_enum = e;
@@ -151,7 +150,7 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
       bool ex_equiv = true;
       ExampleEvalCache* eec = d_conj->getExampleEvalCache(d_enum);
       Assert(eec != nullptr);
-      for (unsigned j = 0; j < d_exo.size(); j++)
+      for (unsigned j = 0, esize = d_exo.size(); j < esize; j++)
       {
         Node nbvr_ex = eec->evaluate(nbvr, j);
         if (nbvr_ex != d_exo[j])
