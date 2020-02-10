@@ -1247,6 +1247,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           pinfer.push_back(info);
           break;
         }
+        else if (plr == ProcessLoopResult::CONFLICT)
+        {
+          break;
+        }
+        Assert(plr == ProcessLoopResult::SKIPPED);
       }
     }
 
