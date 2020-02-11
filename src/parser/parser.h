@@ -558,13 +558,13 @@ public:
   /**
    * Creates a new sort with the given name.
    */
-  SortType mkSort(const std::string& name,
+  api::Sort mkSort(const std::string& name,
                   uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  SortConstructorType mkSortConstructor(
+  api::Sort mkSortConstructor(
       const std::string& name,
       size_t arity,
       uint32_t flags = ExprManager::SORT_FLAG_NONE);
@@ -572,19 +572,19 @@ public:
   /**
    * Creates a new "unresolved type," used only during parsing.
    */
-  SortType mkUnresolvedType(const std::string& name);
+  api::Sort mkUnresolvedType(const std::string& name);
 
   /**
    * Creates a new unresolved (parameterized) type constructor of the given
    * arity.
    */
-  SortConstructorType mkUnresolvedTypeConstructor(const std::string& name, 
+  api::Sort mkUnresolvedTypeConstructor(const std::string& name, 
                                                   size_t arity);
   /**
    * Creates a new unresolved (parameterized) type constructor given the type
    * parameters.
    */
-  SortConstructorType mkUnresolvedTypeConstructor(const std::string& name, 
+  api::Sort mkUnresolvedTypeConstructor(const std::string& name, 
                                                   const std::vector<api::Sort>& params);
 
   /**

@@ -131,7 +131,7 @@ using namespace CVC4::parser;
 
 /**
  * Parses an expression.
- * @return the parsed expression, or the Null Expr if we've reached the end of the input
+ * @return the parsed expression, or the Null CVC4::api::Term if we've reached the end of the input
  */
 parseExpr returns [CVC4::parser::tptp::myExpr expr]
   : cnfFormula[expr]
@@ -144,7 +144,7 @@ parseExpr returns [CVC4::parser::tptp::myExpr expr]
  */
 parseCommand returns [CVC4::Command* cmd = NULL]
 @declarations {
-  Expr expr;
+  CVC4::api::Term expr;
   Tptp::FormulaRole fr;
   std::string name, inclSymbol;
 }
@@ -161,7 +161,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
   }
     (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
         Command* csen = new SetExpressionNameCommand(aexpr, name);
@@ -175,7 +175,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
     { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(true); }
     fofFormula[expr] (COMMA_TOK anything*)? RPAREN_TOK DOT_TOK
     {
-      Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+      CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
         Command* csen = new SetExpressionNameCommand(aexpr, name);
@@ -191,7 +191,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(false); }
       tffFormula[expr] (COMMA_TOK anything*)?
       {
-        Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+        CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
         if( !aexpr.isNull() ){
           // set the expression name (e.g. used with unsat core printing)
           Command* csen = new SetExpressionNameCommand(aexpr, name);
@@ -210,7 +210,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       { PARSER_STATE->setCnf(false); PARSER_STATE->setFof(false); }
       thfLogicFormula[expr] (COMMA_TOK anything*)?
       {
-        Expr aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
+        CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
         if (!aexpr.isNull())
         {
           // set the expression name (e.g. used with unsat core printing)
@@ -246,7 +246,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
     {
       CommandSequence* seq = new CommandSequence();
       // assert that all distinct constants are distinct
-      Expr aexpr = PARSER_STATE->getAssertionDistinctConstants();
+      CVC4::api::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
         seq->addCommand(new AssertCommand(aexpr, false));
@@ -300,12 +300,12 @@ formulaRole[CVC4::parser::Tptp::FormulaRole& role]
 /* It can parse a little more than the cnf grammar: false and true can appear.
  * Normally only false can appear and only at top level. */
 
-cnfFormula[CVC4::Expr& expr]
+cnfFormula[CVC4::api::Term& expr]
   : LPAREN_TOK cnfDisjunction[expr] RPAREN_TOK
   | cnfDisjunction[expr]
 ;
 
-cnfDisjunction[CVC4::Expr& expr]
+cnfDisjunction[CVC4::api::Term& expr]
 @declarations {
   std::vector<Expr> args;
 }
@@ -317,16 +317,16 @@ cnfDisjunction[CVC4::Expr& expr]
     }
 ;
 
-cnfLiteral[CVC4::Expr& expr]
+cnfLiteral[CVC4::api::Term& expr]
   : atomicFormula[expr]
   | NOT_TOK atomicFormula[expr] { expr = MK_EXPR(kind::NOT, expr); }
   ;
 
-atomicFormula[CVC4::Expr& expr]
+atomicFormula[CVC4::api::Term& expr]
 @declarations {
-  Expr expr2;
+  CVC4::api::Term expr2;
   std::string name;
-  std::vector<CVC4::Expr> args;
+  std::vector<CVC4::api::Term> args;
   bool equal;
 }
   : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
@@ -374,11 +374,11 @@ atomicFormula[CVC4::Expr& expr]
   | definedProp[expr]
   ;
 
-thfAtomicFormula[CVC4::Expr& expr]
+thfAtomicFormula[CVC4::api::Term& expr]
 @declarations {
-  Expr expr2;
+  CVC4::api::Term expr2;
   std::string name;
-  std::vector<CVC4::Expr> args;
+  std::vector<CVC4::api::Term> args;
   bool equal;
 }
   : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
@@ -414,12 +414,12 @@ thfAtomicFormula[CVC4::Expr& expr]
 //%----Using <plain_term> removes a reduce/reduce ambiguity in lex/yacc.
 //%----Note: "defined" means a word starting with one $ and "system" means $$.
 
-definedProp[CVC4::Expr& expr]
+definedProp[CVC4::api::Term& expr]
   : TRUE_TOK { expr = MK_CONST(bool(true)); }
   | FALSE_TOK  { expr = MK_CONST(bool(false)); }
   ;
 
-definedPred[CVC4::Expr& expr]
+definedPred[CVC4::api::Term& expr]
   : '$less' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LT); }
   | '$lesseq' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LEQ); }
   | '$greater' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::GT); }
@@ -428,19 +428,19 @@ definedPred[CVC4::Expr& expr]
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr q = EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType());
-      Expr qr = MK_EXPR(CVC4::kind::TO_REAL, q);
-      Expr r = EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType());
-      Expr rr = MK_EXPR(CVC4::kind::TO_REAL, r);
-      Expr body =
+    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      CVC4::api::Term q = EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType());
+      CVC4::api::Term qr = MK_EXPR(CVC4::kind::TO_REAL, q);
+      CVC4::api::Term r = EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType());
+      CVC4::api::Term rr = MK_EXPR(CVC4::kind::TO_REAL, r);
+      CVC4::api::Term body =
           MK_EXPR(CVC4::kind::AND,
                   MK_EXPR(CVC4::kind::NOT,
                           MK_EXPR(CVC4::kind::EQUAL, r, MK_CONST(Rational(0)))),
                   MK_EXPR(CVC4::kind::EQUAL, qr, MK_EXPR(CVC4::kind::MULT, n, rr)));
-      Expr bvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, q, r);
+      CVC4::api::Term bvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, q, r);
       body = MK_EXPR(CVC4::kind::EXISTS, bvl, body);
-      Expr lbvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
+      CVC4::api::Term lbvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
       expr = MK_EXPR(CVC4::kind::LAMBDA, lbvl, body);
     }
   | '$is_int' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::IS_INTEGER); }
@@ -450,7 +450,7 @@ definedPred[CVC4::Expr& expr]
   | OR_TOK { expr = EXPR_MANAGER->operatorOf(CVC4::kind::OR); }
   ;
 
-thfDefinedPred[CVC4::Expr& expr]
+thfDefinedPred[CVC4::api::Term& expr]
   : '$less' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LT); }
   | '$lesseq' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LEQ); }
   | '$greater' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::GT); }
@@ -460,19 +460,19 @@ thfDefinedPred[CVC4::Expr& expr]
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
     {
-      Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr q = EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType());
-      Expr qr = MK_EXPR(CVC4::kind::TO_REAL, q);
-      Expr r = EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType());
-      Expr rr = MK_EXPR(CVC4::kind::TO_REAL, r);
-      Expr body = MK_EXPR(
+      CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      CVC4::api::Term q = EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType());
+      CVC4::api::Term qr = MK_EXPR(CVC4::kind::TO_REAL, q);
+      CVC4::api::Term r = EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType());
+      CVC4::api::Term rr = MK_EXPR(CVC4::kind::TO_REAL, r);
+      CVC4::api::Term body = MK_EXPR(
           CVC4::kind::AND,
           MK_EXPR(CVC4::kind::NOT,
                   MK_EXPR(CVC4::kind::EQUAL, r, MK_CONST(Rational(0)))),
           MK_EXPR(CVC4::kind::EQUAL, qr, MK_EXPR(CVC4::kind::MULT, n, rr)));
-      Expr bvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, q, r);
+      CVC4::api::Term bvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, q, r);
       body = MK_EXPR(CVC4::kind::EXISTS, bvl, body);
-      Expr lbvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
+      CVC4::api::Term lbvl = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
       expr = MK_EXPR(CVC4::kind::LAMBDA, lbvl, body);
     }
   | '$is_int' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::IS_INTEGER); }
@@ -486,7 +486,7 @@ thfDefinedPred[CVC4::Expr& expr]
     RPAREN_TOK
   ;
 
-definedFun[CVC4::Expr& expr]
+definedFun[CVC4::api::Term& expr]
 @declarations {
   bool remainder = false;
 }
@@ -498,9 +498,9 @@ definedFun[CVC4::Expr& expr]
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }
     )
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n, d);
+    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      CVC4::api::Term d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
+      CVC4::api::Term formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n, d);
       expr = MK_EXPR(CVC4::kind::DIVISION_TOTAL, n, d);
       expr = MK_EXPR(CVC4::kind::ITE, MK_EXPR(CVC4::kind::GEQ, d, MK_CONST(Rational(0))),
                                       MK_EXPR(CVC4::kind::TO_INTEGER, expr),
@@ -513,9 +513,9 @@ definedFun[CVC4::Expr& expr]
   | ( '$quotient_t' { remainder = false; }
     | '$remainder_t' { remainder = true; }
     )
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n, d);
+    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      CVC4::api::Term d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
+      CVC4::api::Term formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n, d);
       expr = MK_EXPR(CVC4::kind::DIVISION_TOTAL, n, d);
       expr = MK_EXPR(CVC4::kind::ITE, MK_EXPR(CVC4::kind::GEQ, expr, MK_CONST(Rational(0))),
                                       MK_EXPR(CVC4::kind::TO_INTEGER, expr),
@@ -528,9 +528,9 @@ definedFun[CVC4::Expr& expr]
   | ( '$quotient_f' { remainder = false; }
     | '$remainder_f' { remainder = true; }
     )
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n, d);
+    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      CVC4::api::Term d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
+      CVC4::api::Term formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n, d);
       expr = MK_EXPR(CVC4::kind::DIVISION_TOTAL, n, d);
       expr = MK_EXPR(CVC4::kind::TO_INTEGER, expr);
       if(remainder) {
@@ -540,23 +540,23 @@ definedFun[CVC4::Expr& expr]
     }
   | '$floor' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::TO_INTEGER); }
   | '$ceiling'
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
+    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      CVC4::api::Term formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
       expr = MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, n)));
       expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
     }
   | '$truncate'
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
+    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      CVC4::api::Term formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
       expr = MK_EXPR(CVC4::kind::ITE, MK_EXPR(CVC4::kind::GEQ, n, MK_CONST(Rational(0))),
                                       MK_EXPR(CVC4::kind::TO_INTEGER, n),
                                       MK_EXPR(CVC4::kind::UMINUS, MK_EXPR(CVC4::kind::TO_INTEGER, MK_EXPR(CVC4::kind::UMINUS, n))));
       expr = MK_EXPR(CVC4::kind::LAMBDA, formals, expr);
     }
   | '$round'
-    { Expr n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      Expr formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
-      Expr decPart = MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::TO_INTEGER, n));
+    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+      CVC4::api::Term formals = MK_EXPR(CVC4::kind::BOUND_VAR_LIST, n);
+      CVC4::api::Term decPart = MK_EXPR(CVC4::kind::MINUS, n, MK_EXPR(CVC4::kind::TO_INTEGER, n));
       expr = MK_EXPR(CVC4::kind::ITE, MK_EXPR(CVC4::kind::LT, decPart, MK_CONST(Rational(1, 2))),
                                       // if decPart < 0.5, round down
                                       MK_EXPR(CVC4::kind::TO_INTEGER, n),
@@ -581,16 +581,16 @@ equalOp[bool& equal]
   | DISEQUAL_TOK { equal = false; }
   ;
 
-term[CVC4::Expr& expr]
+term[CVC4::api::Term& expr]
   : functionTerm[expr]
   | conditionalTerm[expr]
   | simpleTerm[expr]
   | letTerm[expr]
   ;
 
-letTerm[CVC4::Expr& expr]
+letTerm[CVC4::api::Term& expr]
 @declarations {
-  CVC4::Expr lhs, rhs;
+  CVC4::api::Term lhs, rhs;
 }
   : '$let_ft' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetFormulaDefn[lhs, rhs] COMMA_TOK
@@ -609,14 +609,14 @@ letTerm[CVC4::Expr& expr]
   ;
 
 /* Not an application */
-simpleTerm[CVC4::Expr& expr]
+simpleTerm[CVC4::api::Term& expr]
   : variable[expr]
   | NUMBER { expr = PARSER_STATE->d_tmp_expr; }
   | DISTINCT_OBJECT { expr = PARSER_STATE->convertStrToUnsorted(AntlrInput::tokenText($DISTINCT_OBJECT)); }
   ;
 
 /* Not an application */
-thfSimpleTerm[CVC4::Expr& expr]
+thfSimpleTerm[CVC4::api::Term& expr]
   : NUMBER { expr = PARSER_STATE->d_tmp_expr; }
   | DISTINCT_OBJECT
     {
@@ -625,9 +625,9 @@ thfSimpleTerm[CVC4::Expr& expr]
     }
   ;
 
-functionTerm[CVC4::Expr& expr]
+functionTerm[CVC4::api::Term& expr]
 @declarations {
-  std::vector<CVC4::Expr> args;
+  std::vector<CVC4::api::Term> args;
 }
   : plainTerm[expr]
   | definedFun[expr] LPAREN_TOK arguments[args] RPAREN_TOK
@@ -635,15 +635,15 @@ functionTerm[CVC4::Expr& expr]
 // | <system_term>
   ;
 
-conditionalTerm[CVC4::Expr& expr]
+conditionalTerm[CVC4::api::Term& expr]
 @declarations {
-  CVC4::Expr expr2, expr3;
+  CVC4::api::Term expr2, expr3;
 }
   : '$ite_t' LPAREN_TOK tffLogicFormula[expr] COMMA_TOK term[expr2] COMMA_TOK term[expr3] RPAREN_TOK
     { expr = EXPR_MANAGER->mkExpr(CVC4::kind::ITE, expr, expr2, expr3); }
   ;
 
-plainTerm[CVC4::Expr& expr]
+plainTerm[CVC4::api::Term& expr]
 @declarations {
   std::string name;
   std::vector<Expr> args;
@@ -654,15 +654,15 @@ plainTerm[CVC4::Expr& expr]
     }
   ;
 
-arguments[std::vector<CVC4::Expr>& args]
+arguments[std::vector<CVC4::api::Term>& args]
 @declarations {
-  Expr expr;
+  CVC4::api::Term expr;
 }
   :
   term[expr] { args.push_back(expr); } ( COMMA_TOK term[expr] { args.push_back(expr); } )*
   ;
 
-variable[CVC4::Expr& expr]
+variable[CVC4::api::Term& expr]
   : UPPER_WORD
     {
       std::string name = AntlrInput::tokenText($UPPER_WORD);
@@ -677,13 +677,13 @@ variable[CVC4::Expr& expr]
 
 /*******/
 /* FOF */
-fofFormula[CVC4::Expr& expr] : fofLogicFormula[expr] ;
+fofFormula[CVC4::api::Term& expr] : fofLogicFormula[expr] ;
 
-fofLogicFormula[CVC4::Expr& expr]
+fofLogicFormula[CVC4::api::Term& expr]
 @declarations {
   tptp::NonAssoc na;
-  std::vector< Expr > args;
-  Expr expr2;
+  std::vector< CVC4::api::Term > args;
+  CVC4::api::Term expr2;
 }
   : fofUnitaryFormula[expr]
     ( // Non-associative: <=> <~> ~& ~|
@@ -723,10 +723,10 @@ fofLogicFormula[CVC4::Expr& expr]
     )?
   ;
 
-fofUnitaryFormula[CVC4::Expr& expr]
+fofUnitaryFormula[CVC4::api::Term& expr]
 @declarations {
   Kind kind;
-  std::vector< Expr > bv;
+  std::vector< CVC4::api::Term > bv;
 }
   : atomicFormula[expr]
   | LPAREN_TOK fofLogicFormula[expr] RPAREN_TOK
@@ -741,7 +741,7 @@ fofUnitaryFormula[CVC4::Expr& expr]
     }
   ;
 
-bindvariable[CVC4::Expr& expr]
+bindvariable[CVC4::api::Term& expr]
   : UPPER_WORD
     { std::string name = AntlrInput::tokenText($UPPER_WORD);
       expr = PARSER_STATE->mkBoundVar(name, PARSER_STATE->d_unsorted);
@@ -783,8 +783,8 @@ thfQuantifier[CVC4::Kind& kind]
 thfAtomTyping[CVC4::Command*& cmd]
 // for now only supports mapping types (i.e. no applied types)
 @declarations {
-  CVC4::Expr expr;
-  CVC4::Type type;
+  CVC4::api::Term expr;
+  CVC4::api::Sort type;
   std::string name;
 }
   : LPAREN_TOK thfAtomTyping[cmd] RPAREN_TOK
@@ -838,7 +838,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         else
         {
           // as yet, it's undeclared
-          CVC4::Expr freshExpr;
+          CVC4::api::Term freshExpr;
           if (type.isFunction())
           {
             freshExpr = PARSER_STATE->mkVar(name, type);
@@ -853,11 +853,11 @@ thfAtomTyping[CVC4::Command*& cmd]
     )
   ;
 
-thfLogicFormula[CVC4::Expr& expr]
+thfLogicFormula[CVC4::api::Term& expr]
 @declarations {
   tptp::NonAssoc na;
-  std::vector< Expr > args;
-  Expr expr2;
+  std::vector< CVC4::api::Term > args;
+  CVC4::api::Term expr2;
   bool equal;
 }
   //prefix unary formula case
@@ -976,20 +976,20 @@ thfLogicFormula[CVC4::Expr& expr]
     )?
   ;
 
-thfTupleForm[std::vector<CVC4::Expr>& args]
+thfTupleForm[std::vector<CVC4::api::Term>& args]
 @declarations {
-  Expr expr;
+  CVC4::api::Term expr;
 }
   : thfUnitaryFormula[expr]
    { args.push_back(expr); }
    ( COMMA_TOK thfUnitaryFormula[expr] { args.push_back(expr); } )+
 ;
 
-thfUnitaryFormula[CVC4::Expr& expr]
+thfUnitaryFormula[CVC4::api::Term& expr]
 @declarations {
   Kind kind;
-  std::vector< Expr > bv;
-  Expr expr2;
+  std::vector< CVC4::api::Term > bv;
+  CVC4::api::Term expr2;
   bool equal;
 }
   : variable[expr]
@@ -1039,12 +1039,12 @@ thfUnitaryFormula[CVC4::Expr& expr]
 
 /*******/
 /* TFF */
-tffFormula[CVC4::Expr& expr] : tffLogicFormula[expr];
+tffFormula[CVC4::api::Term& expr] : tffLogicFormula[expr];
 
 tffTypedAtom[CVC4::Command*& cmd]
 @declarations {
-  CVC4::Expr expr;
-  CVC4::Type type;
+  CVC4::api::Term expr;
+  CVC4::api::Sort type;
   std::string name;
 }
   : LPAREN_TOK tffTypedAtom[cmd] RPAREN_TOK
@@ -1077,18 +1077,18 @@ tffTypedAtom[CVC4::Command*& cmd]
           }
         } else {
           // as yet, it's undeclared
-          CVC4::Expr expr = PARSER_STATE->mkVar(name, type);
+          CVC4::api::Term expr = PARSER_STATE->mkVar(name, type);
           cmd = new DeclareFunctionCommand(name, expr, type);
         }
       }
     )
   ;
 
-tffLogicFormula[CVC4::Expr& expr]
+tffLogicFormula[CVC4::api::Term& expr]
 @declarations {
   tptp::NonAssoc na;
-  std::vector< Expr > args;
-  Expr expr2;
+  std::vector< CVC4::api::Term > args;
+  CVC4::api::Term expr2;
 }
   : tffUnitaryFormula[expr]
     ( // Non Assoc <=> <~> ~& ~|
@@ -1128,11 +1128,11 @@ tffLogicFormula[CVC4::Expr& expr]
     )?
   ;
 
-tffUnitaryFormula[CVC4::Expr& expr]
+tffUnitaryFormula[CVC4::api::Term& expr]
 @declarations {
   Kind kind;
-  std::vector< Expr > bv;
-  Expr lhs, rhs;
+  std::vector< CVC4::api::Term > bv;
+  CVC4::api::Term lhs, rhs;
 }
   : atomicFormula[expr]
   | LPAREN_TOK tffLogicFormula[expr] RPAREN_TOK
@@ -1163,15 +1163,15 @@ tffUnitaryFormula[CVC4::Expr& expr]
     RPAREN_TOK
   ;
 
-tffLetTermDefn[CVC4::Expr& lhs, CVC4::Expr& rhs]
+tffLetTermDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
 @declarations {
-  std::vector<CVC4::Expr> bvlist;
+  std::vector<CVC4::api::Term> bvlist;
 }
   : (FORALL_TOK LBRACK_TOK tffVariableList[bvlist] RBRACK_TOK COLON_TOK)*
     tffLetTermBinding[bvlist, lhs, rhs]
   ;
 
-tffLetTermBinding[std::vector<CVC4::Expr>& bvlist, CVC4::Expr& lhs, CVC4::Expr& rhs]
+tffLetTermBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CVC4::api::Term& rhs]
   : term[lhs] EQUAL_TOK term[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
       rhs = MK_EXPR(CVC4::kind::LAMBDA, MK_EXPR(CVC4::kind::BOUND_VAR_LIST, lhs.getChildren()), rhs);
@@ -1180,15 +1180,15 @@ tffLetTermBinding[std::vector<CVC4::Expr>& bvlist, CVC4::Expr& lhs, CVC4::Expr& 
   | LPAREN_TOK tffLetTermBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
 
-tffLetFormulaDefn[CVC4::Expr& lhs, CVC4::Expr& rhs]
+tffLetFormulaDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
 @declarations {
-  std::vector<CVC4::Expr> bvlist;
+  std::vector<CVC4::api::Term> bvlist;
 }
   : (FORALL_TOK LBRACK_TOK tffVariableList[bvlist] RBRACK_TOK COLON_TOK)*
     tffLetFormulaBinding[bvlist, lhs, rhs]
   ;
 
-tffLetFormulaBinding[std::vector<CVC4::Expr>& bvlist, CVC4::Expr& lhs, CVC4::Expr& rhs]
+tffLetFormulaBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CVC4::api::Term& rhs]
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
       rhs = MK_EXPR(CVC4::kind::LAMBDA, MK_EXPR(CVC4::kind::BOUND_VAR_LIST, lhs.getChildren()), rhs);
@@ -1197,10 +1197,10 @@ tffLetFormulaBinding[std::vector<CVC4::Expr>& bvlist, CVC4::Expr& lhs, CVC4::Exp
   | LPAREN_TOK tffLetFormulaBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
 
-thfBindVariable[CVC4::Expr& expr]
+thfBindVariable[CVC4::api::Term& expr]
 @declarations {
   std::string name;
-  CVC4::Type type = PARSER_STATE->d_unsorted;
+  CVC4::api::Sort type = PARSER_STATE->d_unsorted;
 }
   : UPPER_WORD
     { name = AntlrInput::tokenText($UPPER_WORD); }
@@ -1211,9 +1211,9 @@ thfBindVariable[CVC4::Expr& expr]
   ;
 
 
-tffbindvariable[CVC4::Expr& expr]
+tffbindvariable[CVC4::api::Term& expr]
 @declarations {
-  CVC4::Type type = PARSER_STATE->d_unsorted;
+  CVC4::api::Sort type = PARSER_STATE->d_unsorted;
 }
   : UPPER_WORD
     ( COLON_TOK parseType[type] )?
@@ -1224,18 +1224,18 @@ tffbindvariable[CVC4::Expr& expr]
 
 // bvlist is accumulative; it can already contain elements
 // on the way in, which are left undisturbed
-tffVariableList[std::vector<CVC4::Expr>& bvlist]
+tffVariableList[std::vector<CVC4::api::Term>& bvlist]
 @declarations {
-  CVC4::Expr e;
+  CVC4::api::Term e;
 }
   : tffbindvariable[e] { bvlist.push_back(e); }
     ( COMMA_TOK tffbindvariable[e] { bvlist.push_back(e); } )*
   ;
 
-parseThfType[CVC4::Type& type]
+parseThfType[CVC4::api::Sort& type]
 // assumes only mapping types (arrows), no tuple type
 @declarations {
-  std::vector<CVC4::Type> sorts;
+  std::vector<CVC4::api::Sort> sorts;
 }
   : thfType[type] { sorts.push_back(type); }
     (
@@ -1255,17 +1255,17 @@ parseThfType[CVC4::Type& type]
     }
   ;
 
-thfType[CVC4::Type& type]
+thfType[CVC4::api::Sort& type]
 // assumes only mapping types (arrows), no tuple type
   : simpleType[type]
     | LPAREN_TOK parseThfType[type] RPAREN_TOK
     | LBRACK_TOK { UNSUPPORTED("Tuple types"); } parseThfType[type] RBRACK_TOK
   ;
 
-parseType[CVC4::Type & type]
+parseType[CVC4::api::Sort & type]
 @declarations
 {
-  std::vector<CVC4::Type> v;
+  std::vector<CVC4::api::Sort> v;
 }
   : simpleType[type]
   | ( simpleType[type] { v.push_back(type); }
@@ -1280,7 +1280,7 @@ parseType[CVC4::Type & type]
   ;
 
 // non-function types
-simpleType[CVC4::Type& type]
+simpleType[CVC4::api::Sort& type]
 @declarations {
   std::string name;
 }

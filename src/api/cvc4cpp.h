@@ -2715,8 +2715,8 @@ class CVC4_PUBLIC Solver
 
 
 // !!! These only temporarily public until the parser is fully migrated to the new API. !!!
-std::vector<Expr> convertTermVec(std::vector<Term>& terms);
-std::vector<Type> convertSortVec(std::vector<Sort>& sorts);
+std::vector<Expr> convertTermVec(const std::vector<Term>& terms);
+std::vector<Type> convertSortVec(const std::vector<Sort>& sorts);
 
 }  // namespace api
 }  // namespace CVC4

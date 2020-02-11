@@ -74,8 +74,8 @@ void Tptp::addTheory(Theory theory) {
     //TPTP (CNF and FOF) is unsorted so we define this common type
     {
       std::string d_unsorted_name = "$$unsorted";
-      d_unsorted = em->mkSort(d_unsorted_name);
-      preemptCommand( new DeclareTypeCommand(d_unsorted_name, 0, d_unsorted) );
+      d_unsorted = api::Sort(em->mkSort(d_unsorted_name));
+      preemptCommand( new DeclareTypeCommand(d_unsorted_name, 0, d_unsorted.getType()) );
     }
     // propositionnal
     defineType("Bool", em->booleanType());
@@ -183,24 +183,24 @@ void Tptp::includeFile(std::string fileName) {
   }
 }
 
-void Tptp::checkLetBinding(const std::vector<Expr>& bvlist, Expr lhs, Expr rhs,
+void Tptp::checkLetBinding(const std::vector<api::Term>& bvlist, api::Term lhs, api::Term rhs,
                            bool formula) {
-  if (lhs.getKind() != CVC4::kind::APPLY_UF) {
+  if (lhs.getKind() != kind::APPLY_UF) {
     parseError("malformed let: LHS must be a flat function application");
   }
-  const std::multiset<CVC4::Expr> vars{lhs.begin(), lhs.end()};
-  if(formula && !lhs.getType().isBoolean()) {
+  const std::multiset<api::Term> vars{lhs.begin(), lhs.end()};
+  if(formula && !lhs.getSort().isBoolean()) {
     parseError("malformed let: LHS must be formula");
   }
-  for (const CVC4::Expr& var : vars) {
-    if (var.hasOperator()) {
+  for (const CVC4::api::Term& var : vars) {
+    if (var.hasOp()) {
       parseError("malformed let: LHS must be flat, illegal child: " +
                  var.toString());
     }
   }
 
   // ensure all let-bound variables appear on the LHS, and appear only once
-  for (const Expr& bound_var : bvlist) {
+  for (const api::Term& bound_var : bvlist) {
     const size_t count = vars.count(bound_var);
     if (count == 0) {
       parseError(
@@ -220,32 +220,32 @@ void Tptp::forceLogic(const std::string& logic)
   preemptCommand(new SetBenchmarkLogicCommand(logic));
 }
 
-void Tptp::addFreeVar(Expr var) {
+void Tptp::addFreeVar(api::Term var) {
   assert(cnf());
   d_freeVar.push_back(var);
 }
 
-std::vector<Expr> Tptp::getFreeVar() {
+std::vector<api::Term> Tptp::getFreeVar() {
   assert(cnf());
-  std::vector<Expr> r;
+  std::vector<api::Term> r;
   r.swap(d_freeVar);
   return r;
 }
 
-Expr Tptp::convertRatToUnsorted(Expr expr) {
+api::Term Tptp::convertRatToUnsorted(api::Term expr) {
   ExprManager* em = getExprManager();
 
   // Create the conversion function If they doesn't exists
   if (d_rtu_op.isNull()) {
-    Type t;
+    api::Sort t;
     // Conversion from rational to unsorted
     t = em->mkFunctionType(em->realType(), d_unsorted);
-    d_rtu_op = em->mkVar("$$rtu", t);
-    preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op, t));
+    d_rtu_op = api::Term(em->mkVar("$$rtu", t));
+    preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op.getExpr(), t));
     // Conversion from unsorted to rational
     t = em->mkFunctionType(d_unsorted, em->realType());
-    d_utr_op = em->mkVar("$$utr", t);
-    preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op, t));
+    d_utr_op = api::Term(em->mkVar("$$utr", t));
+    preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op.getExpr(), t));
   }
   // Add the inverse in order to show that over the elements that
   // appear in the problem there is a bijection between unsorted and
@@ -257,65 +257,64 @@ Expr Tptp::convertRatToUnsorted(Expr expr) {
                          em->mkExpr(kind::APPLY_UF, d_utr_op, ret));
     preemptCommand(new AssertCommand(eq));
   }
-  return ret;
+  return api::Term(ret);
 }
 
-Expr Tptp::convertStrToUnsorted(std::string str) {
-  Expr& e = d_distinct_objects[str];
+api::Term Tptp::convertStrToUnsorted(std::string str) {
+  api::Term& e = d_distinct_objects[str];
   if (e.isNull())
   {
-    e = getExprManager()->mkVar(str, d_unsorted);
+    e = api::Term(getExprManager()->mkVar(str, d_unsorted));
   }
   return e;
 }
 
-void Tptp::makeApplication(Expr& expr, std::string& name,
-                           std::vector<Expr>& args, bool term) {
+void Tptp::makeApplication(api::Term& expr, std::string& name,
+                           std::vector<api::Term>& args, bool term) {
   if (args.empty()) {        // Its a constant
     if (isDeclared(name)) {  // already appeared
       expr = getVariable(name);
     } else {
-      Type t = term ? d_unsorted : getExprManager()->booleanType();
-      expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
-      preemptCommand(new DeclareFunctionCommand(name, expr, t));
+      api::Sort t = api::Sort(term ? d_unsorted : getExprManager()->booleanType());
+      expr = api::Term(mkVar(name, t.getSort().getType(), ExprManager::VAR_FLAG_GLOBAL));  // levelZero
+      preemptCommand(new DeclareFunctionCommand(name, expr.getExpr(), t.getType()));
     }
   } else {                   // Its an application
     if (isDeclared(name)) {  // already appeared
       expr = getVariable(name);
     } else {
-      std::vector<Type> sorts(args.size(), d_unsorted);
-      Type t = term ? d_unsorted : getExprManager()->booleanType();
-      t = getExprManager()->mkFunctionType(sorts, t);
+      std::vector<api::Sort> sorts(args.size(), d_unsorted);
+      api::Sort t = api::Sort(term ? d_unsorted : getExprManager()->booleanType());
+      t = api::Sort(getExprManager()->mkFunctionType(sorts, t));
       expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
-      preemptCommand(new DeclareFunctionCommand(name, expr, t));
+      preemptCommand(new DeclareFunctionCommand(name, expr.getExpr(), t.getType()));
     }
     // args might be rationals, in which case we need to create
     // distinct constants of the "unsorted" sort to represent them
     for (size_t i = 0; i < args.size(); ++i) {
       if (args[i].getType().isReal() &&
-          FunctionType(expr.getType()).getArgTypes()[i] == d_unsorted) {
+          expr.getSort().getFunctionDomainSorts()[i] == d_unsorted) {
         args[i] = convertRatToUnsorted(args[i]);
       }
     }
-    expr = getExprManager()->mkExpr(kind::APPLY_UF, expr, args);
+    expr = api::Term(getExprManager()->mkExpr(kind::APPLY_UF, expr.getExpr(), api::convertTermVec(args)));
   }
 }
 
-void Tptp::mkLambdaWrapper(Expr& expr, Type argType)
+void Tptp::mkLambdaWrapper(api::Term& expr, api::Sort argType)
 {
-  std::vector<Expr> lvars;
-  std::vector<Type> domainTypes =
-      (static_cast<FunctionType>(argType)).getArgTypes();
+  std::vector<api::Term> lvars;
+  std::vector<api::Sort> domainTypes = argType.getFunctionDomainSorts();
   for (unsigned i = 0, size = domainTypes.size(); i < size; ++i)
   {
     // the introduced variable is internal (not parsable)
     std::stringstream ss;
     ss << "_lvar_" << i;
-    Expr v = getExprManager()->mkBoundVar(ss.str(), domainTypes[i]);
+    api::Term v = api::Term(getExprManager()->mkBoundVar(ss.str(), domainTypes[i]));
     lvars.push_back(v);
   }
   // apply body of lambda to variables
-  Expr wrapper = getExprManager()->mkExpr(
+  api::Term wrapper = getExprManager()->mkExpr(
       kind::LAMBDA,
       getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars),
       getExprManager()->mkExpr(expr, lvars));
@@ -323,7 +322,7 @@ void Tptp::mkLambdaWrapper(Expr& expr, Type argType)
   expr = wrapper;
 }
 
-Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {
+api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr) {
   switch (fr) {
     case FR_AXIOM:
     case FR_HYPOTHESIS:
@@ -351,9 +350,9 @@ Expr Tptp::getAssertionExpr(FormulaRole fr, Expr expr) {
   return d_nullExpr;
 }
 
-Expr Tptp::getAssertionDistinctConstants()
+api::Term Tptp::getAssertionDistinctConstants()
 {
-  std::vector<Expr> constants;
+  std::vector<api::Term> constants;
   for (std::pair<const std::string, Expr>& cs : d_distinct_objects)
   {
     constants.push_back(cs.second);
@@ -365,7 +364,7 @@ Expr Tptp::getAssertionDistinctConstants()
   return d_nullExpr;
 }
 
-Command* Tptp::makeAssertCommand(FormulaRole fr, Expr expr, bool cnf, bool inUnsatCore) {
+Command* Tptp::makeAssertCommand(FormulaRole fr, api::Term expr, bool cnf, bool inUnsatCore) {
   // For SZS ontology compliance.
   // if we're in cnf() though, conjectures don't result in "Theorem" or
   // "CounterSatisfiable".

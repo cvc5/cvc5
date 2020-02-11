@@ -3997,7 +3997,7 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
 
-std::vector<Expr> convertTermVec(std::vector<Term>& terms)
+std::vector<Expr> convertTermVec(const std::vector<Term>& terms)
 {
   std::vector<Expr> exprs;
   for (size_t i=0,tsize=terms.size(); i<tsize; i++)
@@ -4007,7 +4007,7 @@ std::vector<Expr> convertTermVec(std::vector<Term>& terms)
   return exprs;
 }
 
-std::vector<Type> convertSortVec(std::vector<Sort>& sorts)
+std::vector<Type> convertSortVec(const std::vector<Sort>& sorts)
 {
   std::vector<Type> types;
   for (size_t i=0,ssize=sorts.size(); i<ssize; i++)

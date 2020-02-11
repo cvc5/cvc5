@@ -172,7 +172,7 @@ api::Sort Parser::getSort(const std::string& name) {
 api::Sort Parser::getSort(const std::string& name, const std::vector<api::Sort>& params) {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  api::Sort t = api::Sort(d_symtab->lookupType(name, params));
+  api::Sort t = api::Sort(d_symtab->lookupType(name, api::convertSortVec(params)));
   return t;
 }
 
@@ -224,9 +224,9 @@ std::vector<api::Term> Parser::mkBoundVars(
     std::vector<std::pair<std::string, api::Sort> >& sortedVarNames)
 {
   std::vector<api::Term> vars;
-  for (std::pair<std::string, CVC4::Type>& i : sortedVarNames)
+  for (std::pair<std::string, api::Sort>& i : sortedVarNames)
   {
-    vars.push_back(mkBoundVar(i.first, i.second));
+    vars.push_back(mkBoundVar(i.first, i.second.getType()));
   }
   return vars;
 }
@@ -265,9 +265,9 @@ std::vector<api::Term> Parser::mkBoundVars(const std::vector<std::string> names,
 void Parser::defineVar(const std::string& name, const api::Term& val,
                        bool levelZero, bool doOverload) {
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
-  if (!d_symtab->bind(name, val, levelZero, doOverload)) {
+  if (!d_symtab->bind(name, val.getExpr(), levelZero, doOverload)) {
     std::stringstream ss;
-    ss << "Cannot bind " << name << " to symbol of type " << val.getType();
+    ss << "Cannot bind " << name << " to symbol of type " << val.getSort();
     ss << ", maybe the symbol has already been defined?";
     parseError(ss.str()); 
   }
@@ -278,7 +278,7 @@ void Parser::defineType(const std::string& name,
                         const api::Sort& type,
                         bool levelZero)
 {
-  d_symtab->bindType(name, type, levelZero);
+  d_symtab->bindType(name, type.getType(), levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
@@ -287,7 +287,7 @@ void Parser::defineType(const std::string& name,
                         const api::Sort& type,
                         bool levelZero)
 {
-  d_symtab->bindType(name, params, type, levelZero);
+  d_symtab->bindType(name, api::convertSortVec(params), type.getType(), levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
@@ -307,7 +307,7 @@ void Parser::defineParameterizedType(const std::string& name,
   defineType(name, params, type);
 }
 
-Sortapi::Sort Parser::mkSort(const std::string& name, uint32_t flags) {
+api::Sort Parser::mkSort(const std::string& name, uint32_t flags) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
   api::Sort type = getExprManager()->mkSort(name, flags);
   defineType(
@@ -317,13 +317,13 @@ Sortapi::Sort Parser::mkSort(const std::string& name, uint32_t flags) {
   return type;
 }
 
-SortConstructorapi::Sort Parser::mkSortConstructor(const std::string& name,
+api::Sort Parser::mkSortConstructor(const std::string& name,
                                               size_t arity,
                                               uint32_t flags)
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  SortConstructorapi::Sort type =
+  api::Sort type =
       getExprManager()->mkSortConstructor(name, arity, flags);
   defineType(
       name,
@@ -333,25 +333,25 @@ SortConstructorapi::Sort Parser::mkSortConstructor(const std::string& name,
   return type;
 }
 
-Sortapi::Sort Parser::mkUnresolvedType(const std::string& name) {
-  Sortapi::Sort unresolved = mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
+api::Sort Parser::mkUnresolvedType(const std::string& name) {
+  api::Sort unresolved = mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
 
-SortConstructorapi::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
+api::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                         size_t arity) {
-  SortConstructorapi::Sort unresolved =
+  api::Sort unresolved =
       mkSortConstructor(name, arity, ExprManager::SORT_FLAG_PLACEHOLDER);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
 
-SortConstructorapi::Sort Parser::mkUnresolvedTypeConstructor(
+api::Sort Parser::mkUnresolvedTypeConstructor(
     const std::string& name, const std::vector<api::Sort>& params) {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  SortConstructorapi::Sort unresolved = getExprManager()->mkSortConstructor(
+  api::Sort unresolved = getExprManager()->mkSortConstructor(
       name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER);
   defineType(name, params, unresolved);
   api::Sort t = getSort(name, params);
