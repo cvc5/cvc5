@@ -598,7 +598,7 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  std::vector<DatatypeType>
+  std::vector<api::Sort>
   mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
 
   /** make flat function type

@@ -1633,18 +1633,18 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
   {
     Debug("parser") << "Empty set encountered: " << p.d_expr << " " << type
                     << std::endl;
-    p.d_expr = em->mkConst(EmptySet(type));
+    p.d_expr = api::Term(em->mkConst(EmptySet(type)));
   }
   else if (ekind == kind::UNIVERSE_SET)
   {
-    p.d_expr = em->mkNullaryOperator(type, kind::UNIVERSE_SET);
+    p.d_expr = api::Term(em->mkNullaryOperator(type, kind::UNIVERSE_SET));
   }
   else if (ekind == kind::SEP_NIL)
   {
     // We don't want the nil reference to be a constant: for instance, it
     // could be of type Int but is not a const rational. However, the
     // expression has 0 children. So we convert to a SEP_NIL variable.
-    p.d_expr = em->mkNullaryOperator(type, kind::SEP_NIL);
+    p.d_expr = api::Term(em->mkNullaryOperator(type, kind::SEP_NIL));
   }
   else if (etype != type)
   {
@@ -1670,7 +1670,7 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
         && p.d_name.find_first_not_of("0123456789", 1) == std::string::npos)
     {
       // allow unary minus in sygus version 1
-      expr = getExprManager()->mkConst(Rational(p.d_name));
+      expr = api::Term(getExprManager()->mkConst(Rational(p.d_name)));
     }
     else
     {

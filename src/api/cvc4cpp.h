@@ -1296,12 +1296,26 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   bool isResolved() const;
 
+  /** @return the name of this Datatype constructor. */
+  std::string getName() const;
+
   /**
    * Get the constructor operator of this datatype constructor.
    * @return the constructor operator
    */
   Op getConstructorTerm() const;
-
+  
+  /**
+   * Get the tester operator of this datatype constructor.
+   * @return the tester operator
+   */
+  Op getTesterTerm() const;
+  
+  /**
+   * @return the tester name for this Datatype constructor.
+   */
+  std::string getTesterName() const;
+  
   /**
    * Get the datatype selector with the given name.
    * This is a linear search through the selectors, so in case of
@@ -1468,12 +1482,14 @@ class CVC4_PUBLIC Datatype
    */
   Op getConstructorTerm(const std::string& name) const;
 
+  /** Get the name of this Datatype. */
+  std::string getName() const;
+  
   /** Get the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
 
   /** Is this Datatype parametric? */
   bool isParametric() const;
-
   /**
    * @return a string representation of this datatype
    */
@@ -2717,6 +2733,7 @@ class CVC4_PUBLIC Solver
 // !!! These only temporarily public until the parser is fully migrated to the new API. !!!
 std::vector<Expr> convertTermVec(const std::vector<Term>& terms);
 std::vector<Type> convertSortVec(const std::vector<Sort>& sorts);
+std::set<Type> convertSortSet(const std::set<Sort>& sorts);
 
 }  // namespace api
 }  // namespace CVC4

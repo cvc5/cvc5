@@ -239,11 +239,11 @@ api::Term Tptp::convertRatToUnsorted(api::Term expr) {
   if (d_rtu_op.isNull()) {
     api::Sort t;
     // Conversion from rational to unsorted
-    t = em->mkFunctionType(em->realType(), d_unsorted);
+    t = api::Sort(em->mkFunctionType(em->realType(), d_unsorted.getType()));
     d_rtu_op = api::Term(em->mkVar("$$rtu", t));
     preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op.getExpr(), t));
     // Conversion from unsorted to rational
-    t = em->mkFunctionType(d_unsorted, em->realType());
+    t = api::Sort(em->mkFunctionType(d_unsorted.getType(), em->realType()));
     d_utr_op = api::Term(em->mkVar("$$utr", t));
     preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op.getExpr(), t));
   }

@@ -151,6 +151,8 @@ using namespace CVC4::parser;
 #define MK_CONST EXPR_MANAGER->mkConst
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
+#undef MK_TERM
+#define MK_TERM SOLVER->mkTerm
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
@@ -756,7 +758,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
     CVC4::api::Term bvl;
     if (!sygus_vars.empty())
     {
-      bvl = MK_EXPR(kind::BOUND_VAR_LIST, sygus_vars);
+      bvl = MK_TERM(kind::BOUND_VAR_LIST, sygus_vars);
     }
     for (unsigned i = 0; i < ndatatypes; i++)
     {
@@ -1032,7 +1034,7 @@ sygusGrammar[CVC4::api::Sort & ret,
     CVC4::api::Term bvl;
     if (!sygusVars.empty())
     {
-      bvl = MK_EXPR(kind::BOUND_VAR_LIST, sygusVars);
+      bvl = MK_TERM(kind::BOUND_VAR_LIST, sygusVars);
     }
     Trace("parser-sygus2") << "Process " << dtProcessed << " sygus datatypes..." << std::endl;
     for (unsigned i = 0; i < dtProcessed; i++)
@@ -1590,7 +1592,7 @@ pattern[CVC4::api::Term& expr]
 }
   : LPAREN_TOK termList[patexpr,expr] RPAREN_TOK
     {
-      expr = MK_EXPR(kind::INST_PATTERN, patexpr);
+      expr = MK_TERM(kind::INST_PATTERN, patexpr);
     }
   ;
 
@@ -1725,14 +1727,14 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
         }
         args.push_back(f2); // guards
         args.push_back(f); // rule
-        expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
+        expr = MK_TERM(CVC4::kind::REWRITE_RULE, args);
         break;
       default:
         args.push_back(f);
         if(! f2.isNull()){
           args.push_back(f2);
         }
-        expr = MK_EXPR(kind, args);
+        expr = MK_TERM(kind, args);
       }
     }
   | LPAREN_TOK COMPREHENSION_TOK
@@ -1744,7 +1746,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
     term[f, f2] { args.push_back(f); }
     term[f, f2] { 
       args.push_back(f); 
-      expr = MK_EXPR(CVC4::kind::COMPREHENSION, args);
+      expr = MK_TERM(CVC4::kind::COMPREHENSION, args);
     }
     RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
@@ -1840,9 +1842,9 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           std::vector<CVC4::api::Term> cargs;
           cargs.push_back(f);
           cargs.insert(cargs.end(),args.begin(),args.end());
-          CVC4::api::Term c = MK_EXPR(kind::APPLY_CONSTRUCTOR,cargs);
-          CVC4::api::Term bvl = MK_EXPR(kind::BOUND_VAR_LIST,args);
-          CVC4::api::Term mc = MK_EXPR(kind::MATCH_BIND_CASE, bvl, c, f3);
+          CVC4::api::Term c = MK_TERM(kind::APPLY_CONSTRUCTOR,cargs);
+          CVC4::api::Term bvl = MK_TERM(kind::BOUND_VAR_LIST,args);
+          CVC4::api::Term mc = MK_TERM(kind::MATCH_BIND_CASE, bvl, c, f3);
           matchcases.push_back(mc);
           // now, pop the scope
           PARSER_STATE->popScope();
@@ -1860,7 +1862,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
               PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
             }
             // make nullary constructor application
-            f = MK_EXPR(kind::APPLY_CONSTRUCTOR, f);
+            f = MK_TERM(kind::APPLY_CONSTRUCTOR, f);
           }
           else
           {
@@ -1872,12 +1874,12 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           CVC4::api::Term mc;
           if (f.getKind() == kind::BOUND_VARIABLE)
           {
-            CVC4::api::Term bvl = MK_EXPR(kind::BOUND_VAR_LIST, f);
-            mc = MK_EXPR(kind::MATCH_BIND_CASE, bvl, f, f3);
+            CVC4::api::Term bvl = MK_TERM(kind::BOUND_VAR_LIST, f);
+            mc = MK_TERM(kind::MATCH_BIND_CASE, bvl, f, f3);
           }
           else
           {
-            mc = MK_EXPR(kind::MATCH_CASE, f, f3);
+            mc = MK_TERM(kind::MATCH_CASE, f, f3);
           }
           matchcases.push_back(mc);
         }
@@ -1892,7 +1894,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       std::vector<CVC4::api::Term> mchildren;
       mchildren.push_back(expr);
       mchildren.insert(mchildren.end(), matchcases.begin(), matchcases.end());
-      expr = MK_EXPR(kind::MATCH, mchildren);
+      expr = MK_TERM(kind::MATCH, mchildren);
     }
 
     /* attributed expressions */
@@ -1929,7 +1931,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
         }else{
           PARSER_STATE->parseError("Error parsing rewrite rule.");
         }
-        expr = MK_EXPR( kind, args );
+        expr = MK_TERM( kind, args );
       } else if(! patexprs.empty()) {
         if( !f2.isNull() && f2.getKind()==kind::INST_PATTERN_LIST ){
           for( size_t i=0; i<f2.getNumChildren(); i++ ){
@@ -1943,7 +1945,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
             }
           }
         }
-        expr2 = MK_EXPR(kind::INST_PATTERN_LIST, patexprs);
+        expr2 = MK_TERM(kind::INST_PATTERN_LIST, patexprs);
       } else {
         expr2 = f2;
       }
@@ -1957,7 +1959,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       args.push_back(bvl);
       args.push_back(f);
       PARSER_STATE->popScope();
-      expr = MK_EXPR(CVC4::kind::LAMBDA, args);
+      expr = MK_TERM(CVC4::kind::LAMBDA, args);
     }
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
   {
@@ -2240,7 +2242,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       if( success ){
         //Will set the attribute on auxiliary var (preserves attribute on
         //formula through rewriting).
-        retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
+        retExpr = MK_TERM(kind::INST_ATTRIBUTE, avar);
         Command* c = new SetUserAttributeCommand( attr_name, avar );
         c->setMuted(true);
         PARSER_STATE->preemptCommand(c);
@@ -2255,12 +2257,12 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
     )+ RPAREN_TOK
     {
       attr = std::string(":pattern");
-      retExpr = MK_EXPR(kind::INST_PATTERN, patexprs);
+      retExpr = MK_TERM(kind::INST_PATTERN, patexprs);
     }
   | ATTRIBUTE_NO_PATTERN_TOK term[patexpr, e2]
     {
       attr = std::string(":no-pattern");
-      retExpr = MK_EXPR(kind::INST_NO_PATTERN, patexpr);
+      retExpr = MK_TERM(kind::INST_NO_PATTERN, patexpr);
     }
   | tok=( ATTRIBUTE_INST_LEVEL | ATTRIBUTE_RR_PRIORITY ) INTEGER_LITERAL
     {
@@ -2271,7 +2273,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       attr_name.erase( attr_name.begin() );
       CVC4::api::Sort t = EXPR_MANAGER->booleanType();
       CVC4::api::Term avar = PARSER_STATE->mkVar(attr_name, t);
-      retExpr = MK_EXPR(kind::INST_ATTRIBUTE, avar);
+      retExpr = MK_TERM(kind::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand( attr_name, avar, values );
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
@@ -2414,7 +2416,7 @@ boundVarList[CVC4::api::Term& expr]
  : LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
    {
      std::vector<CVC4::api::Term> args = PARSER_STATE->mkBoundVars(sortedVarNames);
-     expr = MK_EXPR(kind::BOUND_VAR_LIST, args);
+     expr = MK_TERM(kind::BOUND_VAR_LIST, args);
    }
  ;
 

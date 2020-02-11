@@ -366,35 +366,43 @@ bool Parser::isUnresolvedType(const std::string& name) {
   return d_unresolved.find(getSort(name)) != d_unresolved.end();
 }
 
-std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
+std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
     std::vector<Datatype>& datatypes, bool doOverload) {
   try {
-    std::vector<DatatypeType> types =
-        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved);
+    std::set<CVC4::Type> tset = api::convertSortSet(d_unresolved);
+    //std::vector<api::Sort> types =
+    //    getExprManager()->mkMutualDatatypeTypes(datatypes, tset);
+    std::vector<DatatypeType> dtypes =
+        getExprManager()->mkMutualDatatypeTypes(datatypes, tset);
+    std::vector<api::Sort> types;
+    for (unsigned i=0, dtsize = dtypes.size(); i<dtsize; i++)
+    {
+      types.push_back(api::Sort(dtypes[i]));
+    }
 
     assert(datatypes.size() == types.size());
 
     for (unsigned i = 0; i < datatypes.size(); ++i) {
-      Datatypeapi::Sort t = types[i];
-      const Datatype& dt = t.getDatatype();
+      api::Sort t = types[i];
+      const api::Datatype& dt = t.getDatatype();
       const std::string& name = dt.getName();
       Debug("parser-idt") << "define " << name << " as " << t << std::endl;
       if (isDeclared(name, SYM_SORT)) {
         throw ParserException(name + " already declared");
       }
-      if (t.isParametric()) {
-        std::vector<api::Sort> paramTypes = t.getParamTypes();
+      if (t.isParametricDatatype()) {
+        std::vector<api::Sort> paramTypes = t.getDatatypeParamSorts();
         defineType(name, paramTypes, t, d_globalDeclarations);
       } else {
         defineType(name, t, d_globalDeclarations);
       }
       std::unordered_set< std::string > consNames;
       std::unordered_set< std::string > selNames;
-      for (Datatype::const_iterator j = dt.begin(), j_end = dt.end();
-           j != j_end; ++j) {
-        const DatatypeConstructor& ctor = *j;
+      for (unsigned j=0, ncons = dt.getNumConstructors(); j<ncons; j++)
+      {
+        const api::DatatypeConstructor& ctor = dt[j];
         expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
-        api::Term constructor = ctor.getConstructor();
+        api::Op constructor = ctor.getConstructorTerm();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
         if(consNames.find(constructorName)==consNames.end()) {
@@ -402,18 +410,18 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
             checkDeclaration(constructorName, CHECK_UNDECLARED);
           }
           defineVar(
-              constructorName, constructor, d_globalDeclarations, doOverload);
+              constructorName, constructor.getExpr(), d_globalDeclarations, doOverload);
           consNames.insert(constructorName);
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
         }
-        api::Term tester = ctor.getTester();
+        api::Op tester = ctor.getTesterTerm();
         Debug("parser-idt") << "+ define " << tester << std::endl;
         string testerName = ctor.getTesterName();
         if(!doOverload) {
           checkDeclaration(testerName, CHECK_UNDECLARED);
         }
-        defineVar(testerName, tester, d_globalDeclarations, doOverload);
+        defineVar(testerName, tester.getExpr(), d_globalDeclarations, doOverload);
         for (DatatypeConstructor::const_iterator k = ctor.begin(),
                                                  k_end = ctor.end();
              k != k_end; ++k) {
@@ -440,7 +448,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
 
     // throw exception if any datatype is not well-founded
     for (unsigned i = 0; i < datatypes.size(); ++i) {
-      const Datatype& dt = types[i].getDatatype();
+      const api::Datatype& dt = types[i].getDatatype();
       if (!dt.isCodatatype() && !dt.isWellFounded()) {
         throw ParserException(dt.getName() + " is not well-founded");
       }

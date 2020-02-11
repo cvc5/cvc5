@@ -1817,11 +1817,28 @@ DatatypeConstructor::~DatatypeConstructor() {}
 
 bool DatatypeConstructor::isResolved() const { return d_ctor->isResolved(); }
 
+std::string DatatypeConstructor::getName() const
+{
+  return d_ctor->getName();
+}
+  
 Op DatatypeConstructor::getConstructorTerm() const
 {
   CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
   CVC4::Expr ctor = d_ctor->getConstructor();
   return Op(APPLY_CONSTRUCTOR, ctor);
+}
+
+Op DatatypeConstructor::getTesterTerm() const
+{
+  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
+  CVC4::Expr tst = d_ctor->getTester();
+  return Op(APPLY_TESTER, tst);
+}
+
+std::string DatatypeConstructor::getTesterName() const
+{
+  return d_ctor->getTesterName();
 }
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
@@ -1974,6 +1991,11 @@ Op Datatype::getConstructorTerm(const std::string& name) const
   // CHECK: is resolved?
   CVC4::Expr ctor = d_dtype->getConstructor(name);
   return Op(APPLY_CONSTRUCTOR, ctor);
+}
+
+std::string Datatype::getName() const
+{
+  return d_dtype->getName();
 }
 
 size_t Datatype::getNumConstructors() const
@@ -4013,6 +4035,16 @@ std::vector<Type> convertSortVec(const std::vector<Sort>& sorts)
   for (size_t i=0,ssize=sorts.size(); i<ssize; i++)
   {
     types.push_back(sorts[i].getType());
+  }
+  return types;
+}
+
+std::set<Type> convertSortSet(const std::set<Sort>& sorts)
+{
+  std::set<Type> types;
+  for (const Sort& s : sorts)
+  {
+    types.insert(s.getType());
   }
   return types;
 }
