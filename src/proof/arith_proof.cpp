@@ -1341,4 +1341,9 @@ bool LFSCArithProof::printsAsBool(const Node& n)
   return n.getType().isBoolean() and (n.isVar() or n.isConst());
 }
 
+TypeNode LFSCArithProof::equalityType(const Expr& left, const Expr& right)
+{
+  return TypeNode::fromType(!left.getType().isInteger() ? left.getType() : right.getType());
+}
+
 } /* CVC4  namespace */
