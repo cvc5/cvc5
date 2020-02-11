@@ -84,6 +84,31 @@ using namespace CVC4::parser;
 #include "parser/smt2/parse_op.h"
 #include "smt/command.h"
 
+namespace CVC4 {
+  class Expr;
+
+  namespace api {
+    class Term;
+    class Sort;
+  }
+  
+  namespace parser {
+    namespace smt2 {
+      /**
+       * Just exists to provide the uintptr_t constructor that ANTLR
+       * requires.
+       */
+      struct myExpr : public CVC4::api::Term {
+        myExpr() : CVC4::api::Term() {}
+        myExpr(void*) : CVC4::api::Term() {}
+        myExpr(const Expr& e) : CVC4::api::Term(e) {}
+        myExpr(const myExpr& e) : CVC4::api::Term(e) {}
+      };/* struct myExpr */
+    }/* CVC4::parser::smt2 namespace */
+  }/* CVC4::parser namespace */
+
+}/* CVC4 namespace */
+
 }/* @parser::includes */
 
 @parser::postinclude {
@@ -130,6 +155,18 @@ using namespace CVC4::parser;
 
 }/* parser::postinclude */
 
+/**
+ * Parses an expression.
+ * @return the parsed expression, or the Null Expr if we've reached the
+ * end of the input
+ */
+parseExpr returns [CVC4::parser::smt2::myExpr expr]
+@declarations {
+  CVC4::api::Term expr2;
+}
+  : term[expr, expr2]
+  | EOF
+  ;
 
 /**
  * Parses a command

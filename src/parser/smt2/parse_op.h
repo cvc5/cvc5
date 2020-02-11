@@ -21,6 +21,7 @@
 
 #include "expr/expr.h"
 #include "expr/kind.h"
+#include "api/cvc4cpp.h"
 
 namespace CVC4 {
 
@@ -64,9 +65,9 @@ struct ParseOp
   /** The name associated with the parsed operator, if it exists */
   std::string d_name;
   /** The expression associated with the parsed operator, if it exists */
-  Expr d_expr;
+  api::Term d_expr;
   /** The type associated with the parsed operator, if it exists */
-  Type d_type;
+  api::Sort d_type;
 };
 
 }  // namespace CVC4

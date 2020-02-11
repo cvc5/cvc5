@@ -64,7 +64,7 @@ Command* SygusInput::parseCommand() {
 }
 
 Expr SygusInput::parseExpr() {
-  return d_pSmt2Parser->parseExpr(d_pSmt2Parser);
+  return d_pSmt2Parser->parseExpr(d_pSmt2Parser).getExpr();
 }
 
 }/* CVC4::parser namespace */
