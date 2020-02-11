@@ -208,6 +208,8 @@ public:
    * Return whether this node, when serialized to LFSC, has sort `Bool`. Otherwise, the sort is `formula`.
    */
   bool printsAsBool(const Node& n) override;
+
+  TypeNode equalityType(const Expr& left, const Expr& right) override;
 };
 
 
