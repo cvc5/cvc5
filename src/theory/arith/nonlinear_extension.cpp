@@ -793,15 +793,36 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       bool success = true;
       // tf is Figure 3 : tf( x )
       Node atf = d_model.computeConcreteModelValue(tf);
+      Trace("nl-ext-cm-debug") << "Value for is " << tf << " is " << atf << std::endl;
+      Node bl;
+      Node bu;
       if (k == PI)
       {
-        success = d_model.addCheckModelBound(atf, d_pi_bound[0], d_pi_bound[1]);
+        bl = d_pi_bound[0];
+        bu = d_pi_bound[1];
       }
       else if (d_model.isRefineableTfFun(tf))
       {
         d_model.setUsedApproximate();
         std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
-        success = d_model.addCheckModelBound(atf, bounds.first, bounds.second);
+        bl = bounds.first;
+        bu = bounds.second;
+      }
+      if (!bl.isNull() && !bu.isNull())
+      {
+        // it could be that sin(x) ---> sin(-c) ---> -sin(c), thus we need
+        // to negate the bounds.
+        if (atf.getKind()!=tf.getKind())
+        {
+          if (atf.getKind()==MULT && atf.getNumChildren()==2 && atf[0]==d_neg_one)
+          {
+            atf = atf[1];
+            Node btmp = bl;
+            bl = ArithMSum::negate(bu);
+            bu = ArithMSum::negate(btmp);
+          }
+        }
+        success = d_model.addCheckModelBound(atf, bl, bu);
       }
       if (!success)
       {
