@@ -793,7 +793,8 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       bool success = true;
       // tf is Figure 3 : tf( x )
       Node atf = d_model.computeConcreteModelValue(tf);
-      Trace("nl-ext-cm-debug") << "Value for is " << tf << " is " << atf << std::endl;
+      Trace("nl-ext-cm-debug")
+          << "Value for is " << tf << " is " << atf << std::endl;
       Node bl;
       Node bu;
       if (k == PI)
@@ -812,9 +813,10 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       {
         // it could be that sin(x) ---> sin(-c) ---> -sin(c), thus we need
         // to negate the bounds.
-        if (atf.getKind()!=tf.getKind())
+        if (atf.getKind() != tf.getKind())
         {
-          if (atf.getKind()==MULT && atf.getNumChildren()==2 && atf[0]==d_neg_one)
+          if (atf.getKind() == MULT && atf.getNumChildren() == 2
+              && atf[0] == d_neg_one)
           {
             atf = atf[1];
             Node btmp = bl;
