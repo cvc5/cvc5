@@ -185,13 +185,11 @@ class Cegis : public SygusModule
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
    * for previous refinements (d_refinement_lemmas).
    *
-   * Returns true if any such lemma exists. If doGen is false, then the
-   * lemmas are not generated or added to lems.
+   * Returns true if any such lemma exists.
    */
   bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,
-                               std::vector<Node>& lems,
-                               bool doGen);
+                               std::vector<Node>& lems);
   /** Check refinement evaluation lemmas
    *
    * This method is similar to above, but does not perform any generalization

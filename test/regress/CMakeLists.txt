@@ -1450,6 +1450,7 @@ set(regress_1_tests
   regress1/quantifiers/issue3537.smt2
   regress1/quantifiers/issue3628.smt2
   regress1/quantifiers/issue3664.smt2
+  regress1/quantifiers/issue3724-quant.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
