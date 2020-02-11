@@ -270,10 +270,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
         CVC4::api::Sort type = SOLVER->mkUninterpretedSort(name);
-        cmd->reset(new DeclareTypeCommand(name, 0, type));
+        cmd->reset(new DeclareTypeCommand(name, 0, type.getType()));
       } else {
         CVC4::api::Sort type = PARSER_STATE->mkSortConstructor(name, arity);
-        cmd->reset(new DeclareTypeCommand(name, arity, type));
+        cmd->reset(new DeclareTypeCommand(name, arity, type.getType()));
       }
     }
   | /* sort definition */
@@ -293,8 +293,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { PARSER_STATE->popScope();
       // Do NOT call mkSort, since that creates a new sort!
       // This name is not its own distinct sort, it's an alias.
-      PARSER_STATE->defineParameterizedType(name, sorts, t);
-      cmd->reset(new DefineTypeCommand(name, sorts, t));
+      PARSER_STATE->defineParameterizedType(name, sorts, t.getType());
+      cmd->reset(new DefineTypeCommand(name, sorts, t.getType()));
     }
   | /* function declaration */
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -318,7 +318,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       {
         // it is a higher-order universal variable
         CVC4::api::Term func = PARSER_STATE->mkBoundVar(name, t);
-        cmd->reset(new DeclareSygusFunctionCommand(name, func, t));
+        cmd->reset(new DeclareSygusFunctionCommand(name, func, t.getType()));
       }
       else if( PARSER_STATE->sygus() )
       {
@@ -328,7 +328,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       else
       {
         CVC4::api::Term func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        cmd->reset(new DeclareFunctionCommand(name, func, t));
+        cmd->reset(new DeclareFunctionCommand(name, func, t.getType()));
       }
     }
   | /* function definition */
@@ -367,7 +367,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // we allow overloading for function definitions
       CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
-      cmd->reset(new DefineFunctionCommand(name, func, terms, expr));
+      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), terms, expr.getExpr()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]

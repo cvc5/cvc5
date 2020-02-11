@@ -837,6 +837,10 @@ bool Sort::isParametricDatatype() const
   return DatatypeType(*d_type).isParametric();
 }
 
+bool Sort::isConstructor() const { return d_type->isFunction(); }
+bool Sort::isSelector() const { return d_type->isFunction(); }
+bool Sort::isTester() const { return d_type->isFunction(); }
+
 bool Sort::isFunction() const { return d_type->isFunction(); }
 
 bool Sort::isPredicate() const { return d_type->isPredicate(); }
@@ -886,6 +890,14 @@ std::string Sort::toString() const { return d_type->toString(); }
 // to the new API. !!!
 CVC4::Type Sort::getType(void) const { return *d_type; }
 
+/* Constructor sort ------------------------------------------------------- */
+
+size_t Sort::getConstructorArity() const
+{
+  CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
+  return ConstructorType(*d_type).getArity();
+}
+  
 /* Function sort ------------------------------------------------------- */
 
 size_t Sort::getFunctionArity() const
@@ -3983,6 +3995,27 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  * the new API. !!!
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
+
+
+std::vector<Expr> convertTermVec(std::vector<Term>& terms)
+{
+  std::vector<Expr> exprs;
+  for (size_t i=0,tsize=terms.size(); i<tsize; i++)
+  {
+    exprs.push_back(terms[i].getExpr());
+  }
+  return exprs;
+}
+
+std::vector<Type> convertSortVec(std::vector<Sort>& sorts)
+{
+  std::vector<Type> types;
+  for (size_t i=0,ssize=sorts.size(); i<ssize; i++)
+  {
+    types.push_back(sorts[i].getType());
+  }
+  return types;
+}
 
 }  // namespace api
 }  // namespace CVC4

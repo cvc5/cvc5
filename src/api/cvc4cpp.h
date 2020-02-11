@@ -291,6 +291,23 @@ class CVC4_PUBLIC Sort
   bool isParametricDatatype() const;
 
   /**
+   * Is this a constructor type?
+   * @return true if the type is a constructor type
+   */
+  bool isConstructor() const;
+
+  /**
+   * Is this a selector type?
+   * @return true if the type is a selector type
+   */
+  bool isSelector() const;
+
+  /**
+   * Is this a tester type?
+   * @return true if the type is a tester type
+   */
+  bool isTester() const;
+  /**
    * Is this a function sort?
    * @return true if the sort is a function sort
    */
@@ -395,6 +412,13 @@ class CVC4_PUBLIC Sort
   // to the new API. !!!
   CVC4::Type getType(void) const;
 
+  /* Constructor sort ------------------------------------------------------- */
+
+  /**
+   * @return the arity of a constructor sort
+   */
+  size_t getConstructorArity() const;
+  
   /* Function sort ------------------------------------------------------- */
 
   /**
@@ -2688,6 +2712,11 @@ class CVC4_PUBLIC Solver
   /* The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
 };
+
+
+// !!! These only temporarily public until the parser is fully migrated to the new API. !!!
+std::vector<Expr> convertTermVec(std::vector<Term>& terms);
+std::vector<Type> convertSortVec(std::vector<Sort>& sorts);
 
 }  // namespace api
 }  // namespace CVC4

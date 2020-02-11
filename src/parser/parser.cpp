@@ -83,7 +83,7 @@ ExprManager* Parser::getExprManager() const
 
 api::Solver* Parser::getSolver() const { return d_solver; }
 
-Expr Parser::getSymbol(const std::string& name, SymbolType type) {
+api::Term Parser::getSymbol(const std::string& name, SymbolType type) {
   checkDeclaration(name, CHECK_DECLARED, type);
   assert(isDeclared(name, type));
 
@@ -96,23 +96,23 @@ Expr Parser::getSymbol(const std::string& name, SymbolType type) {
   return Expr();
 }
 
-Expr Parser::getVariable(const std::string& name) {
+api::Term Parser::getVariable(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Expr Parser::getFunction(const std::string& name) {
+api::Term Parser::getFunction(const std::string& name) {
   return getSymbol(name, SYM_VARIABLE);
 }
 
-Expr Parser::getExpressionForName(const std::string& name) {
-  Type t;
+api::Term Parser::getExpressionForName(const std::string& name) {
+  api::Sort t;
   return getExpressionForNameAndType(name, t);
 }
 
-Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
+api::Term Parser::getExpressionForNameAndType(const std::string& name, api::Sort t) {
   assert(isDeclared(name));
   // first check if the variable is declared and not overloaded
-  Expr expr = getVariable(name);
+  api::Term expr = getVariable(name);
   if(expr.isNull()) {
     // the variable is overloaded, try with type if the type exists
     if(!t.isNull()) {
@@ -128,17 +128,17 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
   }
   // now, post-process the expression
   assert( !expr.isNull() );
-  Type te = expr.getType();
-  if (te.isConstructor() && ConstructorType(te).getArity() == 0)
+  api::Sort te = expr.getSort();
+  if (te.isConstructor() && te.getConstructorArity() == 0)
   {
     // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-    expr = getExprManager()->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
+    expr = api::Term(getExprManager()->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr.getExpr()));
   }
   return expr;
 }
 
-Kind Parser::getKindForFunction(Expr fun) {
-  Type t = fun.getType();
+Kind Parser::getKindForFunction(api::Term fun) {
+  api::Sort t = fun.getSort();
   if (t.isFunction())
   {
     return APPLY_UF;
@@ -162,17 +162,17 @@ Kind Parser::getKindForFunction(Expr fun) {
   }
 }
 
-Type Parser::getSort(const std::string& name) {
+api::Sort Parser::getSort(const std::string& name) {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  Type t = d_symtab->lookupType(name);
+  api::Sort t = api::Sort(d_symtab->lookupType(name));
   return t;
 }
 
-Type Parser::getSort(const std::string& name, const std::vector<Type>& params) {
+api::Sort Parser::getSort(const std::string& name, const std::vector<api::Sort>& params) {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  Type t = d_symtab->lookupType(name, params);
+  api::Sort t = api::Sort(d_symtab->lookupType(name, params));
   return t;
 }
 
@@ -184,46 +184,46 @@ size_t Parser::getArity(const std::string& sort_name) {
 
 /* Returns true if name is bound to a boolean variable. */
 bool Parser::isBoolean(const std::string& name) {
-  Expr expr = getVariable(name);
-  return !expr.isNull() && expr.getType().isBoolean();
+  api::Term expr = getVariable(name);
+  return !expr.isNull() && expr.getSort().isBoolean();
 }
 
-bool Parser::isFunctionLike(Expr fun) {
+bool Parser::isFunctionLike(api::Term fun) {
   if(fun.isNull()) {
     return false;
   }
-  Type type = fun.getType();
+  api::Sort type = fun.getSort();
   return type.isFunction() || type.isConstructor() || type.isTester() ||
          type.isSelector();
 }
 
 /* Returns true if name is bound to a function returning boolean. */
 bool Parser::isPredicate(const std::string& name) {
-  Expr expr = getVariable(name);
-  return !expr.isNull() && expr.getType().isPredicate();
+  api::Term expr = getVariable(name);
+  return !expr.isNull() && expr.getSort().isPredicate();
 }
 
-Expr Parser::mkVar(const std::string& name, const Type& type, uint32_t flags, bool doOverload) {
+api::Term Parser::mkVar(const std::string& name, const api::Sort& type, uint32_t flags, bool doOverload) {
   if (d_globalDeclarations) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = getExprManager()->mkVar(name, type, flags);
+  api::Term expr = api::Term(getExprManager()->mkVar(name, type.getType(), flags));
   defineVar(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
   return expr;
 }
 
-Expr Parser::mkBoundVar(const std::string& name, const Type& type) {
+api::Term Parser::mkBoundVar(const std::string& name, const api::Sort& type) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = getExprManager()->mkBoundVar(name, type);
+  api::Term expr = api::Term(getExprManager()->mkBoundVar(name, type.getType()));
   defineVar(name, expr, false);
   return expr;
 }
 
-std::vector<Expr> Parser::mkBoundVars(
-    std::vector<std::pair<std::string, Type> >& sortedVarNames)
+std::vector<api::Term> Parser::mkBoundVars(
+    std::vector<std::pair<std::string, api::Sort> >& sortedVarNames)
 {
-  std::vector<Expr> vars;
+  std::vector<api::Term> vars;
   for (std::pair<std::string, CVC4::Type>& i : sortedVarNames)
   {
     vars.push_back(mkBoundVar(i.first, i.second));
@@ -231,38 +231,38 @@ std::vector<Expr> Parser::mkBoundVars(
   return vars;
 }
 
-Expr Parser::mkAnonymousFunction(const std::string& prefix, const Type& type,
+api::Term Parser::mkAnonymousFunction(const std::string& prefix, const api::Sort& type,
                                  uint32_t flags) {
   if (d_globalDeclarations) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return getExprManager()->mkVar(name.str(), type, flags);
+  return api::Term(getExprManager()->mkVar(name.str(), type.getType(), flags));
 }
 
-std::vector<Expr> Parser::mkVars(const std::vector<std::string> names,
-                                 const Type& type, uint32_t flags, bool doOverload) {
+std::vector<api::Term> Parser::mkVars(const std::vector<std::string> names,
+                                 const api::Sort& type, uint32_t flags, bool doOverload) {
   if (d_globalDeclarations) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
-  std::vector<Expr> vars;
+  std::vector<api::Term> vars;
   for (unsigned i = 0; i < names.size(); ++i) {
     vars.push_back(mkVar(names[i], type, flags, doOverload));
   }
   return vars;
 }
 
-std::vector<Expr> Parser::mkBoundVars(const std::vector<std::string> names,
-                                      const Type& type) {
-  std::vector<Expr> vars;
+std::vector<api::Term> Parser::mkBoundVars(const std::vector<std::string> names,
+                                      const api::Sort& type) {
+  std::vector<api::Term> vars;
   for (unsigned i = 0; i < names.size(); ++i) {
     vars.push_back(mkBoundVar(names[i], type));
   }
   return vars;
 }
 
-void Parser::defineVar(const std::string& name, const Expr& val,
+void Parser::defineVar(const std::string& name, const api::Term& val,
                        bool levelZero, bool doOverload) {
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
   if (!d_symtab->bind(name, val, levelZero, doOverload)) {
@@ -275,7 +275,7 @@ void Parser::defineVar(const std::string& name, const Expr& val,
 }
 
 void Parser::defineType(const std::string& name,
-                        const Type& type,
+                        const api::Sort& type,
                         bool levelZero)
 {
   d_symtab->bindType(name, type, levelZero);
@@ -283,8 +283,8 @@ void Parser::defineType(const std::string& name,
 }
 
 void Parser::defineType(const std::string& name,
-                        const std::vector<Type>& params,
-                        const Type& type,
+                        const std::vector<api::Sort>& params,
+                        const api::Sort& type,
                         bool levelZero)
 {
   d_symtab->bindType(name, params, type, levelZero);
@@ -292,14 +292,14 @@ void Parser::defineType(const std::string& name,
 }
 
 void Parser::defineParameterizedType(const std::string& name,
-                                     const std::vector<Type>& params,
-                                     const Type& type) {
+                                     const std::vector<api::Sort>& params,
+                                     const api::Sort& type) {
   if (Debug.isOn("parser")) {
     Debug("parser") << "defineParameterizedType(" << name << ", "
                     << params.size() << ", [";
     if (params.size() > 0) {
       copy(params.begin(), params.end() - 1,
-           ostream_iterator<Type>(Debug("parser"), ", "));
+           ostream_iterator<api::Sort>(Debug("parser"), ", "));
       Debug("parser") << params.back();
     }
     Debug("parser") << "], " << type << ")" << std::endl;
@@ -307,9 +307,9 @@ void Parser::defineParameterizedType(const std::string& name,
   defineType(name, params, type);
 }
 
-SortType Parser::mkSort(const std::string& name, uint32_t flags) {
+Sortapi::Sort Parser::mkSort(const std::string& name, uint32_t flags) {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
-  Type type = getExprManager()->mkSort(name, flags);
+  api::Sort type = getExprManager()->mkSort(name, flags);
   defineType(
       name,
       type,
@@ -317,44 +317,44 @@ SortType Parser::mkSort(const std::string& name, uint32_t flags) {
   return type;
 }
 
-SortConstructorType Parser::mkSortConstructor(const std::string& name,
+SortConstructorapi::Sort Parser::mkSortConstructor(const std::string& name,
                                               size_t arity,
                                               uint32_t flags)
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  SortConstructorType type =
+  SortConstructorapi::Sort type =
       getExprManager()->mkSortConstructor(name, arity, flags);
   defineType(
       name,
-      vector<Type>(arity),
+      vector<api::Sort>(arity),
       type,
       d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
-SortType Parser::mkUnresolvedType(const std::string& name) {
-  SortType unresolved = mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
+Sortapi::Sort Parser::mkUnresolvedType(const std::string& name) {
+  Sortapi::Sort unresolved = mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
 
-SortConstructorType Parser::mkUnresolvedTypeConstructor(const std::string& name,
+SortConstructorapi::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                         size_t arity) {
-  SortConstructorType unresolved =
+  SortConstructorapi::Sort unresolved =
       mkSortConstructor(name, arity, ExprManager::SORT_FLAG_PLACEHOLDER);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
 
-SortConstructorType Parser::mkUnresolvedTypeConstructor(
-    const std::string& name, const std::vector<Type>& params) {
+SortConstructorapi::Sort Parser::mkUnresolvedTypeConstructor(
+    const std::string& name, const std::vector<api::Sort>& params) {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  SortConstructorType unresolved = getExprManager()->mkSortConstructor(
+  SortConstructorapi::Sort unresolved = getExprManager()->mkSortConstructor(
       name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER);
   defineType(name, params, unresolved);
-  Type t = getSort(name, params);
+  api::Sort t = getSort(name, params);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
@@ -375,7 +375,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
     assert(datatypes.size() == types.size());
 
     for (unsigned i = 0; i < datatypes.size(); ++i) {
-      DatatypeType t = types[i];
+      Datatypeapi::Sort t = types[i];
       const Datatype& dt = t.getDatatype();
       const std::string& name = dt.getName();
       Debug("parser-idt") << "define " << name << " as " << t << std::endl;
@@ -383,7 +383,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         throw ParserException(name + " already declared");
       }
       if (t.isParametric()) {
-        std::vector<Type> paramTypes = t.getParamTypes();
+        std::vector<api::Sort> paramTypes = t.getParamTypes();
         defineType(name, paramTypes, t, d_globalDeclarations);
       } else {
         defineType(name, t, d_globalDeclarations);
@@ -394,7 +394,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
            j != j_end; ++j) {
         const DatatypeConstructor& ctor = *j;
         expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
-        Expr constructor = ctor.getConstructor();
+        api::Term constructor = ctor.getConstructor();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
         if(consNames.find(constructorName)==consNames.end()) {
@@ -407,7 +407,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
         }
-        Expr tester = ctor.getTester();
+        api::Term tester = ctor.getTester();
         Debug("parser-idt") << "+ define " << tester << std::endl;
         string testerName = ctor.getTesterName();
         if(!doOverload) {
@@ -417,7 +417,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
         for (DatatypeConstructor::const_iterator k = ctor.begin(),
                                                  k_end = ctor.end();
              k != k_end; ++k) {
-          Expr selector = (*k).getSelector();
+          api::Term selector = (*k).getSelector();
           Debug("parser-idt") << "+++ define " << selector << std::endl;
           string selectorName = (*k).getName();
           if(selNames.find(selectorName)==selNames.end()) {
@@ -452,13 +452,13 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
   }
 }
 
-Type Parser::mkFlatFunctionType(std::vector<Type>& sorts,
-                                Type range,
-                                std::vector<Expr>& flattenVars)
+api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts,
+                                api::Sort range,
+                                std::vector<api::Term>& flattenVars)
 {
   if (range.isFunction())
   {
-    std::vector<Type> domainTypes =
+    std::vector<api::Sort> domainTypes =
         (static_cast<FunctionType>(range)).getArgTypes();
     for (unsigned i = 0, size = domainTypes.size(); i < size; i++)
     {
@@ -466,7 +466,7 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts,
       // the introduced variable is internal (not parsable)
       std::stringstream ss;
       ss << "__flatten_var_" << i;
-      Expr v = getExprManager()->mkBoundVar(ss.str(), domainTypes[i]);
+      api::Term v = getExprManager()->mkBoundVar(ss.str(), domainTypes[i]);
       flattenVars.push_back(v);
     }
     range = static_cast<FunctionType>(range).getRangeType();
@@ -478,7 +478,7 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts,
   return getExprManager()->mkFunctionType(sorts, range);
 }
 
-Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
+api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts, api::Sort range)
 {
   if (sorts.empty())
   {
@@ -488,7 +488,7 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
   if (Debug.isOn("parser"))
   {
     Debug("parser") << "mkFlatFunctionType: range " << range << " and domains ";
-    for (Type t : sorts)
+    for (api::Sort t : sorts)
     {
       Debug("parser") << " " << t;
     }
@@ -496,7 +496,7 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
   }
   while (range.isFunction())
   {
-    std::vector<Type> domainTypes =
+    std::vector<api::Sort> domainTypes =
         static_cast<FunctionType>(range).getArgTypes();
     sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
     range = static_cast<FunctionType>(range).getRangeType();
@@ -504,7 +504,7 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
   return getExprManager()->mkFunctionType(sorts, range);
 }
 
-Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
+api::Term Parser::mkHoApply(api::Term expr, std::vector<api::Term>& args)
 {
   for (unsigned i = 0; i < args.size(); i++)
   {
@@ -564,7 +564,7 @@ void Parser::checkDeclaration(const std::string& varName,
   }
 }
 
-void Parser::checkFunctionLike(Expr fun)
+void Parser::checkFunctionLike(api::Term fun)
 {
   if (d_checksEnabled && !isFunctionLike(fun)) {
     stringstream ss;
@@ -644,12 +644,12 @@ Command* Parser::nextCommand()
   return cmd;
 }
 
-Expr Parser::nextExpression()
+api::Term Parser::nextExpression()
 {
   Debug("parser") << "nextExpression()" << std::endl;
   const Options& options = getExprManager()->getOptions();
   d_resourceManager->spendResource(options.getParseStep());
-  Expr result;
+  api::Term result;
   if (!done()) {
     try {
       result = d_input->parseExpr();

@@ -31,6 +31,7 @@
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "util/unsafe_interrupt_exception.h"
+#include "api/cvc4cpp.h"
 
 namespace CVC4 {
 
@@ -40,9 +41,6 @@ class Command;
 class FunctionType;
 class Type;
 class ResourceManager;
-namespace api {
-class Solver;
-}
 
 //for sygus gterm two-pass parsing
 class CVC4_PUBLIC SygusGTerm {
@@ -57,9 +55,9 @@ public:
     gterm_unresolved,
     gterm_ignore,
   };
-  Type d_type;
-  Expr d_expr;
-  std::vector< Expr > d_let_vars;
+  api::Sort d_type;
+  api::Term d_expr;
+  std::vector< api::Term > d_let_vars;
   unsigned d_gterm_type;
   std::string d_name;
   std::vector< SygusGTerm > d_children;
@@ -223,7 +221,7 @@ private:
   * depend on mkMutualDatatypeTypes() to check everything and clear
   * this out.
   */
- std::set<Type> d_unresolved;
+ std::set<api::Sort> d_unresolved;
 
  /**
   * "Preemption commands": extra commands implied by subterms that
@@ -237,7 +235,7 @@ private:
  /** Lookup a symbol in the given namespace (as specified by the type).
   * Only returns a symbol if it is not overloaded, returns null otherwise.
   */
- Expr getSymbol(const std::string& var_name, SymbolType type);
+ api::Term getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
  /** The API Solver object. */
@@ -337,7 +335,7 @@ public:
    * @return the variable expression
    * Only returns a variable if its name is not overloaded, returns null otherwise.
    */
-  Expr getVariable(const std::string& name);
+  api::Term getVariable(const std::string& name);
 
   /**
    * Gets the function currently bound to name.
@@ -346,7 +344,7 @@ public:
    * @return the variable expression
    * Only returns a function if its name is not overloaded, returns null otherwise.
    */
-  Expr getFunction(const std::string& name);
+  api::Term getFunction(const std::string& name);
 
   /**
    * Returns the expression that name should be interpreted as, based on the current binding.
@@ -357,14 +355,14 @@ public:
    * a nullary constructor or a defined function.
    * Only returns an expression if its name is not overloaded, returns null otherwise.
    */
-  virtual Expr getExpressionForName(const std::string& name);
+  virtual api::Term getExpressionForName(const std::string& name);
   
   /**
    * Returns the expression that name should be interpreted as, based on the current binding.
    *
    * This is the same as above but where the name has been type cast to t. 
    */
-  virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
+  virtual api::Term getExpressionForNameAndType(const std::string& name, api::Sort t);
   
   /**
    * Returns the kind that should be used for applications of expression fun, where
@@ -375,19 +373,19 @@ public:
    *   APPLY_UF if fun has function type, 
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
-  Kind getKindForFunction(Expr fun);
+  Kind getKindForFunction(api::Term fun);
   
   /**
    * Returns a sort, given a name.
    * @param sort_name the name to look up
    */
-  Type getSort(const std::string& sort_name);
+  api::Sort getSort(const std::string& sort_name);
 
   /**
    * Returns a (parameterized) sort, given a name and args.
    */
-  Type getSort(const std::string& sort_name,
-               const std::vector<Type>& params);
+  api::Sort getSort(const std::string& sort_name,
+               const std::vector<api::Sort>& params);
 
   /**
    * Returns arity of a (parameterized) sort, given a name and args.
@@ -430,7 +428,7 @@ public:
    * @throws ParserException if checks are enabled and fun is not
    * a function
    */
-  void checkFunctionLike(Expr fun);
+  void checkFunctionLike(api::Term fun);
 
   /**
    * Check that <code>kind</code> can accept <code>numArgs</code> arguments.
@@ -462,7 +460,7 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  Expr mkVar(const std::string& name, const Type& type,
+  api::Term mkVar(const std::string& name, const api::Sort& type,
              uint32_t flags = ExprManager::VAR_FLAG_NONE, 
              bool doOverload = false);
 
@@ -476,8 +474,8 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  std::vector<Expr>
-    mkVars(const std::vector<std::string> names, const Type& type,
+  std::vector<api::Term>
+    mkVars(const std::vector<std::string> names, const api::Sort& type,
            uint32_t flags = ExprManager::VAR_FLAG_NONE, 
            bool doOverload = false);
 
@@ -485,14 +483,14 @@ public:
    * Create a new CVC4 bound variable expression of the given type. This binds
    * the symbol name to that variable in the current scope.
    */
-  Expr mkBoundVar(const std::string& name, const Type& type);
+  api::Term mkBoundVar(const std::string& name, const api::Sort& type);
   /**
    * Create a new CVC4 bound variable expressions of the given names and types.
    * Like the method above, this binds these names to those variables in the
    * current scope.
    */
-  std::vector<Expr> mkBoundVars(
-      std::vector<std::pair<std::string, Type> >& sortedVarNames);
+  std::vector<api::Term> mkBoundVars(
+      std::vector<std::pair<std::string, api::Sort> >& sortedVarNames);
 
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.
@@ -504,7 +502,7 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  std::vector<Expr> mkBoundVars(const std::vector<std::string> names, const Type& type);
+  std::vector<api::Term> mkBoundVars(const std::vector<std::string> names, const api::Sort& type);
 
   /**
    * Create a new CVC4 function expression of the given type,
@@ -514,7 +512,7 @@ public:
    * flags specify information about the variable, e.g. whether it is global or defined
    *   (see enum in expr_manager_template.h).
    */
-  Expr mkAnonymousFunction(const std::string& prefix, const Type& type,
+  api::Term mkAnonymousFunction(const std::string& prefix, const api::Sort& type,
                            uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /** Create a new variable definition (e.g., from a let binding). 
@@ -523,7 +521,7 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  void defineVar(const std::string& name, const Expr& val,
+  void defineVar(const std::string& name, const api::Term& val,
                  bool levelZero = false, bool doOverload = false);
 
   /**
@@ -535,7 +533,7 @@ public:
    *                  cannot be removed by poppoing the user context
    */
   void defineType(const std::string& name,
-                  const Type& type,
+                  const api::Sort& type,
                   bool levelZero = false);
 
   /**
@@ -548,14 +546,14 @@ public:
    *                  cannot be removed by poppoing the user context
    */
   void defineType(const std::string& name,
-                  const std::vector<Type>& params,
-                  const Type& type,
+                  const std::vector<api::Sort>& params,
+                  const api::Sort& type,
                   bool levelZero = false);
 
   /** Create a new type definition (e.g., from an SMT-LIBv2 define-sort). */
   void defineParameterizedType(const std::string& name,
-                               const std::vector<Type>& params,
-                               const Type& type);
+                               const std::vector<api::Sort>& params,
+                               const api::Sort& type);
 
   /**
    * Creates a new sort with the given name.
@@ -587,7 +585,7 @@ public:
    * parameters.
    */
   SortConstructorType mkUnresolvedTypeConstructor(const std::string& name, 
-                                                  const std::vector<Type>& params);
+                                                  const std::vector<api::Sort>& params);
 
   /**
    * Returns true IFF name is an unresolved type.
@@ -641,9 +639,9 @@ public:
    * where @ is (higher-order) application. In this example, z is added to
    * flattenVars.
    */
-  Type mkFlatFunctionType(std::vector<Type>& sorts,
-                          Type range,
-                          std::vector<Expr>& flattenVars);
+  api::Sort mkFlatFunctionType(std::vector<api::Sort>& sorts,
+                          api::Sort range,
+                          std::vector<api::Term>& flattenVars);
 
   /** make flat function type
    *
@@ -651,7 +649,7 @@ public:
    * This is used when the arguments of the function are not important (for
    * instance, if we are only using this type in a declare-fun).
    */
-  Type mkFlatFunctionType(std::vector<Type>& sorts, Type range);
+  api::Sort mkFlatFunctionType(std::vector<api::Sort>& sorts, api::Sort range);
 
   /** make higher-order apply
    *
@@ -666,7 +664,7 @@ public:
    * for each i where 0 <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
-  Expr mkHoApply(Expr expr, std::vector<Expr>& args);
+  api::Term mkHoApply(api::Term expr, std::vector<api::Term>& args);
 
   /**
    * Add an operator to the current legal set.
@@ -689,7 +687,7 @@ public:
   /** Is fun a function (or function-like thing)? 
   * Currently this means its type is either a function, constructor, tester, or selector.
   */
-  bool isFunctionLike(Expr fun);
+  bool isFunctionLike(api::Term fun);
 
   /** Is the symbol bound to a predicate? */
   bool isPredicate(const std::string& name);
@@ -698,7 +696,7 @@ public:
   Command* nextCommand();
 
   /** Parse and return the next expression. */
-  Expr nextExpression();
+  api::Term nextExpression();
 
   /** Issue a warning to the user. */
   void warning(const std::string& msg) { d_input->warning(msg); }
@@ -825,21 +823,21 @@ public:
   public:
     ExprStream(Parser* parser) : d_parser(parser) {}
     ~ExprStream() { delete d_parser; }
-    Expr nextExpr() override { return d_parser->nextExpression(); }
+    Expr nextExpr() override { return d_parser->nextExpression().getExpr(); }
   };/* class Parser::ExprStream */
   
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(Expr fun) {
-    return d_symtab->isOverloadedFunction(fun);
+  bool isOverloadedFunction(api::Term fun) {
+    return d_symtab->isOverloadedFunction(fun.getExpr());
   }
   
   /** Get overloaded constant for type.
    * If possible, it returns a defined symbol with name
    * that has type t. Otherwise returns null expression.
   */
-  Expr getOverloadedConstantForType(const std::string& name, Type t) {
-    return d_symtab->getOverloadedConstantForType(name, t);
+  api::Term getOverloadedConstantForType(const std::string& name, api::Sort t) {
+    return d_symtab->getOverloadedConstantForType(name, t.getType());
   }
   
   /**
@@ -847,8 +845,8 @@ public:
    * and a vector of expected argument types. Otherwise returns
    * null expression.
    */
-  Expr getOverloadedFunctionForTypes(const std::string& name, std::vector< Type >& argTypes) {
-    return d_symtab->getOverloadedFunctionForTypes(name, argTypes);
+  api::Term getOverloadedFunctionForTypes(const std::string& name, std::vector< api::Sort >& argTypes) {
+    return d_symtab->getOverloadedFunctionForTypes(name, api::convertSortVec(argTypes));
   }
   //------------------------ end operator overloading
 };/* class Parser */
