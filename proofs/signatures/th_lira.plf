@@ -59,8 +59,14 @@
     ((/_Real x y) (/_Real (reify_real_term x) (reify_real_term y)))
   ))
 
-; Predicates of the form (term Integer) >= (term Real) or negations thereof
-(declare >=_IntReal (! x (term Int) (! y (term Real) formula)))
+; Predicates of the form (term Integer) (comparison) (term Real)
+(define arithpred_IntReal (! x (term Int)
+                          (! y (term Real)
+                          formula)))
+(declare >_IntReal arithpred_IntReal)
+(declare >=_IntReal arithpred_IntReal)
+(declare <_IntReal  arithpred_IntReal)
+(declare <=_IntReal arithpred_IntReal)
 
 ; From an arith predicate, compute the equivalent real predicate
 ; All arith predicates are (possibly negated) >='s with a real on the right.

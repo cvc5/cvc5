@@ -1485,16 +1485,19 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
     // no non-linear constraints, we are done
     return;
   }
+  Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
   d_model.reset(d_containing.getValuation().getModel(), arithModel);
   // run a last call effort check
   d_cmiLemmas.clear();
   d_cmiLemmasPp.clear();
   if (!d_builtModel.get())
   {
+    Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
     modelBasedRefinement(d_cmiLemmas, d_cmiLemmasPp);
   }
   if (d_builtModel.get())
   {
+    Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
     d_approximations.clear();
     // modify the model values
     d_model.getModelValueRepair(arithModel, d_approximations);

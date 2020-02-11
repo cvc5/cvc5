@@ -69,26 +69,49 @@ void CardinalityExtension::registerTerm(Node n)
   Trace("sets-card-debug") << "...finished register term" << std::endl;
 }
 
-void CardinalityExtension::checkFiniteTypes()
+void CardinalityExtension::checkCardinalityExtended()
 {
   for (std::pair<const TypeNode, bool>& pair : d_t_card_enabled)
   {
     TypeNode type = pair.first;
-    if (pair.second && type.isInterpretedFinite())
+    if (pair.second)
     {
-      checkFiniteType(type);
+      checkCardinalityExtended(type);
     }
   }
 }
 
-void CardinalityExtension::checkFiniteType(TypeNode& t)
+void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
 {
-  Assert(t.isInterpretedFinite());
   NodeManager* nm = NodeManager::currentNM();
-  // get the universe set (as univset (Set t))
-  Node univ = d_state.getUnivSet(nm->mkSetType(t));
+  TypeNode setType = nm->mkSetType(t);
+  // skip infinite types that do not have univset terms
+  if (!t.isInterpretedFinite() && d_state.getUnivSetEqClass(setType).isNull())
+  {
+    return;
+  }
+
+  // get the cardinality of the finite type t
+  Cardinality card = t.getCardinality();
+
+  // cardinality of an interpreted finite type t is infinite when t
+  // is infinite without --fmf
+  if (t.isInterpretedFinite() && card.isInfinite())
+  {
+    // TODO (#1123): support uninterpreted sorts with --finite-model-find
+    std::stringstream message;
+    message << "The cardinality " << card << " of the finite type " << t
+            << " is not supported yet.";
+    throw LogicException(message.str());
+  }
+
+  // here we call getUnivSet instead of getUnivSetEqClass to generate
+  // a univset term for finite types even if they are not used in the input
+  Node univ = d_state.getUnivSet(setType);
   std::map<Node, Node>::iterator it = d_univProxy.find(univ);
+
   Node proxy;
+
   if (it == d_univProxy.end())
   {
     // Force cvc4 to build the cardinality graph for the universe set
@@ -102,29 +125,22 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
 
   // get all equivalent classes of type t
   vector<Node> representatives = d_state.getSetsEqClasses(t);
-  // get the cardinality of the finite type t
-  Cardinality card = t.getCardinality();
-  if (!card.isFinite())
+
+  if (t.isInterpretedFinite())
   {
-    // TODO (#1123): support uninterpreted sorts with --finite-model-find
-    std::stringstream message;
-    message << "The cardinality " << card << " of the finite type " << t
-            << " is not supported yet." << endl;
-    Assert(false) << message.str().c_str();
+    Node typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
+    Node cardUniv = nm->mkNode(kind::CARD, proxy);
+    Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
+
+    // (=> true (<= (card (as univset t)) cardUniv)
+    if (!d_state.isEntailed(leq, true))
+    {
+      d_im.assertInference(
+          leq, d_true, "univset cardinality <= type cardinality", 1);
+    }
   }
 
-  Node typeCardinality = nm->mkConst(Rational(card.getFiniteCardinality()));
-
-  Node cardUniv = nm->mkNode(kind::CARD, proxy);
-  Node leq = nm->mkNode(kind::LEQ, cardUniv, typeCardinality);
-
-  // (=> true (<= (card (as univset t)) cardUniv)
-  if (!d_state.isEntailed(leq, true))
-  {
-    d_im.assertInference(leq, d_true, "finite type cardinality", 1);
-  }
-
-  // add subset lemmas for sets, and membership lemmas for negative members
+  // add subset lemmas for sets and membership lemmas for negative members
   for (Node& representative : representatives)
   {
     // the universe set is a subset of itself
@@ -171,7 +187,7 @@ void CardinalityExtension::checkFiniteType(TypeNode& t)
 
 void CardinalityExtension::check()
 {
-  checkFiniteTypes();
+  checkCardinalityExtended();
   checkRegister();
   if (d_im.hasProcessed())
   {
@@ -990,11 +1006,11 @@ void CardinalityExtension::mkModelValueElementsFor(
           // cardinality constraints are satisfied. Since this type is finite,
           // there is only one single cardinality graph for all sets of this
           // type because the universe cardinality constraint has been added by
-          // CardinalityExtension::checkFiniteType. This means we have enough
-          // slack elements of this finite type for all disjoint leaves in the
-          // cardinality graph. Therefore we can safely add new distinct slack
-          // elements for the leaves without worrying about conflicts with the
-          // current members of this finite type.
+          // CardinalityExtension::checkCardinalityExtended. This means we have
+          // enough slack elements of this finite type for all disjoint leaves
+          // in the cardinality graph. Therefore we can safely add new distinct
+          // slack elements for the leaves without worrying about conflicts with
+          // the current members of this finite type.
 
           Node slack = nm->mkSkolem("slack", elementType);
           Node singleton = nm->mkNode(SINGLETON, slack);

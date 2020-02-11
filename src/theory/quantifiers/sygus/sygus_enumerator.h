@@ -44,7 +44,7 @@ class SygusPbe;
 class SygusEnumerator : public EnumValGenerator
 {
  public:
-  SygusEnumerator(TermDbSygus* tds, SynthConjecture* p);
+  SygusEnumerator(TermDbSygus* tds, SynthConjecture* p, SygusStatistics& s);
   ~SygusEnumerator() {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
@@ -60,6 +60,8 @@ class SygusEnumerator : public EnumValGenerator
   TermDbSygus* d_tds;
   /** pointer to the synth conjecture that owns this enumerator */
   SynthConjecture* d_parent;
+  /** reference to the statistics of parent */
+  SygusStatistics& d_stats;
   /** Term cache
    *
    * This stores a list of terms for a given sygus type. The key features of
@@ -68,8 +70,8 @@ class SygusEnumerator : public EnumValGenerator
    * natural number n, and redundancy criteria are used for discarding terms
    * that are not relevant. This includes discarding terms whose builtin version
    * is the same up to T-rewriting with another, or is equivalent under
-   * examples, if the conjecture in question is in PBE form and sygusSymBreakPbe
-   * is enabled.
+   * examples, if the conjecture in question is in examples form and
+   * sygusSymBreakPbe is enabled.
    *
    * This class also computes static information about sygus types that is
    * relevant for enumeration. Primarily, this includes mapping constructors
@@ -97,10 +99,11 @@ class SygusEnumerator : public EnumValGenerator
    public:
     TermCache();
     /** initialize this cache */
-    void initialize(Node e,
+    void initialize(SygusStatistics* s,
+                    Node e,
                     TypeNode tn,
                     TermDbSygus* tds,
-                    SygusPbe* pbe = nullptr);
+                    ExampleEvalCache* ece = nullptr);
     /** get last constructor class index for weight
      *
      * This returns a minimal index n such that all constructor classes at
@@ -141,14 +144,19 @@ class SygusEnumerator : public EnumValGenerator
     void setComplete();
 
    private:
+    /** reference to the statistics of parent */
+    SygusStatistics* d_stats;
     /** the enumerator this cache is for */
     Node d_enum;
     /** the sygus type of terms in this cache */
     TypeNode d_tn;
     /** pointer to term database sygus */
     TermDbSygus* d_tds;
-    /** pointer to the PBE utility (used for symmetry breaking) */
-    SygusPbe* d_pbe;
+    /**
+     * Pointer to the example evaluation cache utility (used for symmetry
+     * breaking).
+     */
+    ExampleEvalCache* d_eec;
     //-------------------------static information about type
     /** is d_tn a sygus type? */
     bool d_isSygusType;
@@ -156,12 +164,20 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_numConClasses;
     /** Map from weights to the starting constructor class for that weight. */
     std::map<unsigned, unsigned> d_weightToCcIndex;
-    /** constructor classes */
-    std::map<unsigned, std::vector<unsigned>> d_ccToCons;
-    /** maps constructor classes to children types */
-    std::map<unsigned, std::vector<TypeNode>> d_ccToTypes;
-    /** maps constructor classes to constructor weight */
-    std::map<unsigned, unsigned> d_ccToWeight;
+    /** Information for each constructor class */
+    class ConstructorClass
+    {
+     public:
+      ConstructorClass() : d_weight(0) {}
+      ~ConstructorClass() {}
+      /** The indices of the constructors in this constructor class */
+      std::vector<unsigned> d_cons;
+      /** The argument types of the constructor class */
+      std::vector<TypeNode> d_types;
+      /** Constructor weight */
+      unsigned d_weight;
+    };
+    std::map<unsigned, ConstructorClass> d_cclass;
     /** constructor to indices */
     std::map<unsigned, std::vector<unsigned>> d_cToCIndices;
     //-------------------------end static information about type

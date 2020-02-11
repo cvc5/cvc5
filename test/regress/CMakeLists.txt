@@ -3,6 +3,12 @@
 
 set(regress_0_tests
   regress0/arith/ackermann.real.smt2
+  regress0/arith/arith-eq.smt2
+  regress0/arith/arith-mixed-types-no-tighten.smt2
+  regress0/arith/arith-mixed-types-tighten.smt2
+  regress0/arith/arith-mixed.smt2
+  regress0/arith/arith-strict.smt2
+  regress0/arith/arith-tighten-1.smt2
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
   regress0/arith/arith.03.cvc
@@ -28,6 +34,8 @@ set(regress_0_tests
   regress0/arith/issue1399.smt2
   regress0/arith/issue3412.smt2
   regress0/arith/issue3413.smt2
+  regress0/arith/issue3480.smt2
+  regress0/arith/issue3683.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
@@ -460,6 +468,7 @@ set(regress_0_tests
   regress0/fmf/fmc_unsound_model.smt2
   regress0/fmf/fmf-strange-bounds-2.smt2
   regress0/fmf/forall_unit_data2.smt2
+  regress0/fmf/issue3661-ccard-dec.smt2
   regress0/fmf/krs-sat.smt2
   regress0/fmf/no-minimal-sat.smt2
   regress0/fmf/quant_real_univ.cvc
@@ -550,6 +559,8 @@ set(regress_0_tests
   regress0/nl/issue3411.smt2
   regress0/nl/issue3475.smt2
   regress0/nl/issue3652.smt2
+  regress0/nl/issue3718.smt2
+  regress0/nl/issue3719.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -690,6 +701,7 @@ set(regress_0_tests
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
+  regress0/quantifiers/issue3655.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
@@ -946,6 +958,7 @@ set(regress_0_tests
   regress0/sygus/no-syntax-test.sy
   regress0/sygus/parity-AIG-d0.sy
   regress0/sygus/parse-bv-let.sy
+  regress0/sygus/pbe-pred-contra.sy
   regress0/sygus/pLTL-sygus-syntax-err.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/sygus-no-wf.sy
@@ -1229,7 +1242,9 @@ set(regress_1_tests
   regress1/fmf/german73.smt2
   regress1/fmf/issue2034-preinit.smt2
   regress1/fmf/issue3587.smt2
+  regress1/fmf/issue3615.smt2
   regress1/fmf/issue3626.smt2
+  regress1/fmf/issue3689.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
@@ -1284,6 +1299,8 @@ set(regress_1_tests
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
   regress1/nl/issue3441.smt2
+  regress1/nl/issue3617.smt2
+  regress1/nl/issue3656.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -1432,6 +1449,9 @@ set(regress_1_tests
   regress1/quantifiers/issue3317.smt2
   regress1/quantifiers/issue3481.smt2
   regress1/quantifiers/issue3537.smt2
+  regress1/quantifiers/issue3628.smt2
+  regress1/quantifiers/issue3664.smt2
+  regress1/quantifiers/issue3724-quant.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1590,6 +1610,7 @@ set(regress_1_tests
   regress1/sets/comp-pos-member.smt2
   regress1/sets/copy_check_heap_access_33_4.smt2
   regress1/sets/deepmeas0.hs.fqout.cvc4.41.smt2
+  regress1/sets/finite-type/bug3663.smt2
   regress1/sets/finite-type/sets-card-arrcolor.smt2
   regress1/sets/finite-type/sets-card-arrunit.smt2
   regress1/sets/finite-type/sets-card-bool-1.smt2
@@ -1609,6 +1630,10 @@ set(regress_1_tests
   regress1/sets/fuzz14418.smt2
   regress1/sets/fuzz15201.smt2
   regress1/sets/fuzz31811.smt2
+  regress1/sets/infinite-type/sets-card-array-int-1.smt2
+  regress1/sets/infinite-type/sets-card-array-int-2.smt2
+  regress1/sets/infinite-type/sets-card-int-1.smt2
+  regress1/sets/infinite-type/sets-card-int-2.smt2
   regress1/sets/insert_invariant_37_2.smt2
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2
@@ -1793,6 +1818,7 @@ set(regress_1_tests
   regress1/sygus/issue3633.smt2
   regress1/sygus/issue3634.smt2
   regress1/sygus/issue3635.smt2
+  regress1/sygus/issue3644.smt2
   regress1/sygus/issue3648.smt2
   regress1/sygus/issue3649.sy
   regress1/sygus/large-const-simp.sy
@@ -1960,6 +1986,7 @@ set(regress_2_tests
   regress2/sygus/array_sum_dd.sy
   regress2/sygus/cegisunif-depth1-bv.sy
   regress2/sygus/ex23.sy
+  regress2/sygus/examples-deq.sy
   regress2/sygus/icfp_easy_mt_ite.sy
   regress2/sygus/inv_gen_n_c11.sy
   regress2/sygus/lustre-real.sy

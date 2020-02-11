@@ -163,7 +163,12 @@ void CegSingleInv::initialize(Node q)
   std::vector<Node> sivars;
   d_sip->getSingleInvocationVariables(sivars);
   Node invariant = d_sip->getFunctionInvocationFor(prog);
-  Assert(!invariant.isNull());
+  if (invariant.isNull())
+  {
+    // the conjecture did not have an instance of the invariant
+    // (e.g. it is trivially true/false).
+    return;
+  }
   invariant = invariant.substitute(sivars.begin(),
                                    sivars.end(),
                                    prog_templ_vars.begin(),
@@ -437,33 +442,6 @@ struct sortSiInstanceIndices {
   }
 };
 
-Node CegSingleInv::postProcessSolution(Node n)
-{
-  bool childChanged = false;
-  Kind k = n.getKind();
-  if( n.getKind()==INTS_DIVISION_TOTAL ){
-    k = INTS_DIVISION;
-    childChanged = true;
-  }else if( n.getKind()==INTS_MODULUS_TOTAL ){
-    k = INTS_MODULUS;
-    childChanged = true;
-  }
-  std::vector< Node > children;
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    Node nn = postProcessSolution( n[i] );
-    children.push_back( nn );
-    childChanged = childChanged || nn!=n[i];
-  }
-  if( childChanged ){
-    if( n.hasOperator() && k==n.getKind() ){
-      children.insert( children.begin(), n.getOperator() );
-    }
-    return NodeManager::currentNM()->mkNode( k, children );
-  }else{
-    return n;
-  }
-}
-
 Node CegSingleInv::getSolution(unsigned sol_index,
                                TypeNode stn,
                                int& reconstructed,
@@ -584,7 +562,6 @@ Node CegSingleInv::reconstructToSyntax(Node s,
           d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(
               d_solution);
     }
-    d_solution = postProcessSolution( d_solution );
     if( prev!=d_solution ){
       Trace("csi-sol") << "Solution (after post process) : " << d_solution << std::endl;
     }
