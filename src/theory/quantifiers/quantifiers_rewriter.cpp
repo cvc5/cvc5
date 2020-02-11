@@ -426,8 +426,9 @@ int getEntailedCond( Node n, std::map< Node, bool >& currCond ){
 bool addEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::vector< Node >& new_cond, bool& conflict ) {
   if (n.isConst())
   {
-    Trace("quantifiers-rewrite-term-debug") << "constant cond : " << n << " -> " << pol << std::endl;
-    if (n.getConst<bool>()!=pol)
+    Trace("quantifiers-rewrite-term-debug")
+        << "constant cond : " << n << " -> " << pol << std::endl;
+    if (n.getConst<bool>() != pol)
     {
       conflict = true;
     }
@@ -439,8 +440,11 @@ bool addEntailedCond( Node n, bool pol, std::map< Node, bool >& currCond, std::v
     new_cond.push_back( n );
     currCond[n] = pol;
     return true;
-  }else if( it->second!=pol ){
-    Trace("quantifiers-rewrite-term-debug") << "CONFLICTING cond : " << n << " -> " << pol << std::endl;
+  }
+  else if (it->second != pol)
+  {
+    Trace("quantifiers-rewrite-term-debug")
+        << "CONFLICTING cond : " << n << " -> " << pol << std::endl;
     conflict = true;
   }
   return false;
