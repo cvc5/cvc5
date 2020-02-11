@@ -17,6 +17,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "theory/quantifiers/sygus/example_min_eval.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers_engine.h"
@@ -143,30 +144,36 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                                     : "")
                           << "..." << std::endl;
     // see if any refinement lemma is refuted by evaluation
-    std::vector<Node> cre_lems;
-    bool ret =
-        getRefinementEvalLemmas(candidates, candidate_values, cre_lems, doGen);
-    if (ret && !doGen)
+    if (doGen)
     {
-      Trace("cegqi-engine") << "...(actively enumerated) candidate failed "
-                               "refinement lemma evaluation."
-                            << std::endl;
-      return true;
-    }
-    if (!cre_lems.empty())
-    {
-      lems.insert(lems.end(), cre_lems.begin(), cre_lems.end());
-      addedEvalLemmas = true;
-      if (Trace.isOn("cegqi-lemma"))
+      std::vector<Node> cre_lems;
+      getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
+      if (!cre_lems.empty())
       {
-        for (const Node& lem : cre_lems)
+        lems.insert(lems.end(), cre_lems.begin(), cre_lems.end());
+        addedEvalLemmas = true;
+        if (Trace.isOn("cegqi-lemma"))
         {
-          Trace("cegqi-lemma")
-              << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
+          for (const Node& lem : cre_lems)
+          {
+            Trace("cegqi-lemma")
+                << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
+          }
         }
+        /* we could, but do not return here. experimentally, it is better to
+          add the lemmas below as well, in parallel. */
       }
-      /* we could, but do not return here. experimentally, it is better to
-         add the lemmas below as well, in parallel. */
+    }
+    else
+    {
+      // just check whether the refinement lemmas are satisfied, fail if not
+      if (checkRefinementEvalLemmas(candidates, candidate_values))
+      {
+        Trace("cegqi-engine") << "...(actively enumerated) candidate failed "
+                                 "refinement lemma evaluation."
+                              << std::endl;
+        return true;
+      }
     }
   }
   // we only do evaluation unfolding for passive enumerators
@@ -481,8 +488,7 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
 bool Cegis::usingRepairConst() { return true; }
 bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     const std::vector<Node>& ms,
-                                    std::vector<Node>& lems,
-                                    bool doGen)
+                                    std::vector<Node>& lems)
 {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
                            << d_refinement_lemma_unit.size() << " unit and "
@@ -496,6 +502,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
   Node nfalse = nm->mkConst(false);
   Node neg_guard = d_parent->getGuard().negate();
   bool ret = false;
+
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node, NodeHashFunction>& rlemmas =
@@ -519,11 +526,6 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
-        if (!doGen)
-        {
-          // we are not generating the lemmas, instead just return
-          return true;
-        }
         ret = true;
         std::vector<Node> msu;
         std::vector<Node> mexp;

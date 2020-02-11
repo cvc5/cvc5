@@ -190,15 +190,6 @@ header = "options/strings_options.h"
   help       = "use model guessing to avoid string extended function reductions"
 
 [[option]]
-  name       = "stringBinaryCsp"
-  category   = "regular"
-  long       = "strings-binary-csp"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use binary search when splitting strings"
-
-[[option]]
   name       = "stringLenPropCsp"
   category   = "regular"
   long       = "strings-lprop-csp"

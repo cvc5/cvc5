@@ -1054,16 +1054,16 @@ Node SygusExtension::registerSearchValue(Node a,
       Node bad_val_bvr;
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
-        // TODO (github #1210) conjecture-specific symmetry breaking
-        // this should be generalized and encapsulated within the
-        // SynthConjecture class.
         // Is it equivalent under examples?
         Node bvr_equiv;
         if (options::sygusSymBreakPbe())
         {
-          if (aconj->getPbe()->hasExamples(a))
+          // If the enumerator has examples, see if it is equivalent up to its
+          // examples with a previous term.
+          quantifiers::ExampleEvalCache* eec = aconj->getExampleEvalCache(a);
+          if (eec != nullptr)
           {
-            bvr_equiv = aconj->getPbe()->addSearchVal(tn, a, bvr);
+            bvr_equiv = eec->addSearchVal(bvr);
           }
         }
         if( !bvr_equiv.isNull() ){

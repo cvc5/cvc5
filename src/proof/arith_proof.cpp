@@ -23,6 +23,7 @@
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "theory/arith/constraint_forward.h"
+#include "theory/arith/normal_form.h"
 #include "theory/arith/theory_arith.h"
 
 #define CVC4_ARITH_VAR_TERM_PREFIX "term."
@@ -1055,6 +1056,80 @@ void LFSCArithProof::printLinearPolynomialPredicateNormalizer(std::ostream& o,
   o << ")))";
 }
 
+std::pair<Node, std::string> LFSCArithProof::printProofAndMaybeTighten(
+    const Node& bound)
+{
+  const Node & nonNegBound = bound.getKind() == kind::NOT ? bound[0] : bound;
+  std::ostringstream pfOfPossiblyTightenedPredicate;
+  if (nonNegBound[0].getType().isInteger()) {
+    switch(bound.getKind())
+    {
+      case kind::NOT:
+      {
+        // Tighten ~[i >= r] to [i < r] to [i <= {r}] to [-i >= -{r}]
+        // where
+        //    * i is an integer
+        //    * r is a real
+        //    * {r} denotes the greatest int less than r
+        //      it is equivalent to (ceil(r) - 1)
+        Assert(nonNegBound[1].getKind() == kind::CONST_RATIONAL);
+        Rational oldBound = nonNegBound[1].getConst<Rational>();
+        Integer newBound = -(oldBound.ceiling() - 1);
+        pfOfPossiblyTightenedPredicate
+            << "("
+            << (oldBound.isIntegral() ? "tighten_not_>=_IntInt"
+                                      : "tighten_not_>=_IntReal")
+            << " _ _ _ _ ("
+            << (oldBound.isIntegral()
+                    ? "check_neg_of_greatest_integer_below_int "
+                    : "check_neg_of_greatest_integer_below ");
+        printInteger(pfOfPossiblyTightenedPredicate, newBound);
+        pfOfPossiblyTightenedPredicate << " ";
+        if (oldBound.isIntegral())
+        {
+          printInteger(pfOfPossiblyTightenedPredicate, oldBound.ceiling());
+        }
+        else
+        {
+          printRational(pfOfPossiblyTightenedPredicate, oldBound);
+        }
+        pfOfPossiblyTightenedPredicate << ") " << ProofManager::getLitName(bound.negate(), "") << ")";
+        Node newLeft = (theory::arith::Polynomial::parsePolynomial(nonNegBound[0]) * -1).getNode();
+        Node newRight = NodeManager::currentNM()->mkConst(Rational(newBound));
+        Node newTerm = NodeManager::currentNM()->mkNode(kind::GEQ, newLeft, newRight);
+        return std::make_pair(newTerm, pfOfPossiblyTightenedPredicate.str());
+      }
+      case kind::GEQ:
+      {
+        // Tighten [i >= r] to [i >= ceil(r)]
+        // where
+        //    * i is an integer
+        //    * r is a real
+        Assert(nonNegBound[1].getKind() == kind::CONST_RATIONAL);
+
+        Rational oldBound = nonNegBound[1].getConst<Rational>();
+        if (oldBound.isIntegral()) {
+          pfOfPossiblyTightenedPredicate << ProofManager::getLitName(bound.negate(), "");
+          return std::make_pair(bound, pfOfPossiblyTightenedPredicate.str());
+        } else {
+          Integer newBound = oldBound.ceiling();
+          pfOfPossiblyTightenedPredicate << "(tighten_>=_IntReal _ _ " <<
+            newBound << " " << ProofManager::getLitName(bound.negate(), "") << ")";
+          Node newRight = NodeManager::currentNM()->mkConst(Rational(newBound));
+          Node newTerm = NodeManager::currentNM()->mkNode(kind::GEQ, nonNegBound[0], newRight);
+          return std::make_pair(newTerm, pfOfPossiblyTightenedPredicate.str());
+        }
+        break;
+      }
+      default: Unreachable();
+    }
+  } else {
+    return std::make_pair(bound, ProofManager::getLitName(bound.negate(), ""));
+  }
+  // Silence compiler warnings about missing a return.
+  Unreachable();
+}
+
 void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                            std::ostream& os,
                                            std::ostream& paren,
@@ -1264,6 +1339,11 @@ bool LFSCArithProof::printsAsBool(const Node& n)
   // Our boolean variables and constants print as sort Bool.
   // All complex booleans print as formulas.
   return n.getType().isBoolean() and (n.isVar() or n.isConst());
+}
+
+TypeNode LFSCArithProof::equalityType(const Expr& left, const Expr& right)
+{
+  return TypeNode::fromType(!left.getType().isInteger() ? left.getType() : right.getType());
 }
 
 } /* CVC4  namespace */
