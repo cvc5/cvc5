@@ -811,8 +811,10 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       }
       if (!bl.isNull() && !bu.isNull())
       {
-        // it could be that sin(x) ---> sin(-c) ---> -sin(c), thus we need
-        // to negate the bounds.
+        // We have rewritten an application of a transcendental function
+        // based on the current model values.It could be that the model value
+        // rewrites sin(x) ---> sin(-c) ---> -sin(c), thus we need
+        // to negate the bounds in this case.
         if (atf.getKind() != tf.getKind())
         {
           if (atf.getKind() == MULT && atf.getNumChildren() == 2
