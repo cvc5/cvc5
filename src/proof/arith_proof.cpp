@@ -919,10 +919,8 @@ void LFSCArithProof::printLinearPolynomialNormalizer(std::ostream& o,
       break;
     }
     default:
-#ifdef CVC4_ASSERTIONS
       Unreachable() << "Invalid operation " << n.getKind()
                     << " in linear polynomial";
-#endif  // CVC4_ASSERTIONS
       break;
   }
 }
@@ -933,13 +931,11 @@ void LFSCArithProof::printLinearMonomialNormalizer(std::ostream& o,
   switch (n.getKind())
   {
     case kind::MULT: {
-#ifdef CVC4_ASSERTIONS
       Assert((n[0].getKind() == kind::CONST_RATIONAL
               && (n[1].getKind() == kind::VARIABLE
                   || n[1].getKind() == kind::SKOLEM)))
           << "node " << n << " is not a linear monomial"
           << " " << n[0].getKind() << " " << n[1].getKind();
-#endif  // CVC4_ASSERTIONS
 
       o << "\n        (is_aff_mul_c_L _ _ _ ";
       printConstRational(o, n[0]);
@@ -963,10 +959,8 @@ void LFSCArithProof::printLinearMonomialNormalizer(std::ostream& o,
       break;
     }
     default:
-#ifdef CVC4_ASSERTIONS
       Unreachable() << "Invalid operation " << n.getKind()
                     << " in linear monomial";
-#endif  // CVC4_ASSERTIONS
       break;
   }
 }
@@ -981,10 +975,8 @@ void LFSCArithProof::printConstRational(std::ostream& o, const Node& n)
 void LFSCArithProof::printVariableNormalizer(std::ostream& o, const Node& n)
 {
   std::ostringstream msg;
-#ifdef CVC4_ASSERTIONS
   Assert(n.getKind() == kind::VARIABLE || n.getKind() == kind::SKOLEM)
       << "Invalid variable kind " << n.getKind() << " in linear monomial";
-#endif  // CVC4_ASSERTIONS
   if (n.getType().isInteger()) {
     o << "(is_aff_var_int ";
   } else if (n.getType().isReal()) {
