@@ -2206,7 +2206,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       std::string name = sexpr.getValue();
       // bind name to expr with define-fun
       Command* c =
-        new DefineNamedFunctionCommand(name, func, std::vector<CVC4::api::Term>(), expr);
+        new DefineNamedFunctionCommand(name, func.getExpr(), std::vector<Expr>(), expr.getExpr());
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
@@ -2414,15 +2414,15 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
           if(args.size() != 2) {
             PARSER_STATE->parseError("Illegal array type.");
           }
-          t = EXPR_MANAGER->mkArrayType( args[0], args[1] );
+          t = SOLVER->mkArraySort( args[0], args[1] );
         } else if(name == "Set" &&
                   PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) ) {
           if(args.size() != 1) {
             PARSER_STATE->parseError("Illegal set type.");
           }
-          t = EXPR_MANAGER->mkSetType( args[0] );
+          t = SOLVER->mkSetSort( args[0] );
         } else if(name == "Tuple") {
-          t = EXPR_MANAGER->mkTupleType(args);
+          t = SOLVER->mkTupleSort(args);
         } else if(check == CHECK_DECLARED ||
                   PARSER_STATE->isDeclared(name, SYM_SORT)) {
           t = PARSER_STATE->getSort(name, args);
