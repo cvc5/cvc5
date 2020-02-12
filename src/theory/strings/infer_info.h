@@ -119,6 +119,53 @@ enum class Inference : uint32_t
   //        for fresh u, u1, u2.
   // This is the rule F-Loop from Figure 5 of Liang et al CAV 2014.
   FLOOP,
+  // Given two disequal normal forms of the same length, splits on whether a
+  // component in a normal form is empty.
+  //
+  // E.g. x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != len(y) --->
+  //      x = "" v x != ""
+  DEQ_DISL_EMP_SPLIT,
+  // Given two disequal normal forms of the same length, splits on whether a
+  // component of length one matches the first character in a constant.
+  //
+  // E.g. x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) = 1 --->
+  //      x = "a" v x != "a"
+  DEQ_DISL_FIRST_CHAR_EQ_SPLIT,
+  // Given two disequal normal forms of the same length, split a string into a
+  // string of length one and its remainder and splits on whether the string of
+  // length one matches the first character of a constant.
+  //
+  // E.g. x ++ x' ++ ... != "abc" ++ y' ++ ... ^ len(x) != "" --->
+  //      x = k1 ++ k2 ^ len(k1) = 1 ^ (k1 != "a" v x = "a" ++  k2)
+  DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
+  // Given two disequal normal forms of the same length, split the longer of
+  // two components at the same index into a prefix/suffix that matches the
+  // length of the shorter one.
+  //
+  // E.g. x ++ x' ++ ... != y ++ y' ++ ... ^ len(x) != len(y) --->
+  //      len(k1) = len(x) ^ len(k2) = len(y) ^
+  //        (y = k1 ++ k3 v x = k1 ++ k2)
+  DEQ_DISL_STRINGS_SPLIT,
+  // Given two disequal normal forms of the same length, splits on whether the
+  // components at a given index are equal or not.
+  //
+  // E.g. x ++ x' ++ ... != y ++ y' ++ ... ^ len(x) = len(y) --->
+  //      x = y v x != y
+  DEQ_STRINGS_EQ,
+  // Given two disequal normal forms of the same length, splits on whether
+  // components at a given index have the same length.
+  //
+  // E.g. x ++ x' ++ ... != y ++ y' ++ ... --->
+  //      len(x) = len(y) v len(x) != len(y)
+  DEQ_LENS_EQ,
+  // Given two disequal normal forms of the same length with different
+  // components, infers that the remainder of the longer normal form must be
+  // empty.
+  //
+  // E.g. px ++ x ++ ... != py ^
+  //        len(px ++ x ++ ...) = len(py) --->
+  //      x = "" ^ ...
+  DEQ_NORM_EMP,
   //-------------------------------------- end core solver
   //-------------------------------------- regexp solver
   // regular expression normal form conflict

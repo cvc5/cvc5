@@ -314,16 +314,16 @@ class CoreSolver
 
   //--------------------------for checkNormalFormsDeq
   void processDeq(Node n1, Node n2);
-  int processReverseDeq(std::vector<Node>& nfi,
+  bool processReverseDeq(std::vector<Node>& nfi,
+                         std::vector<Node>& nfj,
+                         Node ni,
+                         Node nj);
+  bool processSimpleDeq(std::vector<Node>& nfi,
                         std::vector<Node>& nfj,
                         Node ni,
-                        Node nj);
-  int processSimpleDeq(std::vector<Node>& nfi,
-                       std::vector<Node>& nfj,
-                       Node ni,
-                       Node nj,
-                       unsigned& index,
-                       bool isRev);
+                        Node nj,
+                        size_t& index,
+                        bool isRev);
   //--------------------------end for checkNormalFormsDeq
 
   /** The solver state object */
