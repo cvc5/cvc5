@@ -1338,7 +1338,6 @@ set(regress_1_tests
   regress1/push-pop/arith_lra_02.smt2
   regress1/push-pop/bug-fmf-fun-skolem.smt2
   regress1/push-pop/bug216.smt2
-  regress1/push-pop/bug326.smt2
   regress1/push-pop/fuzz_1.smt2
   regress1/push-pop/fuzz_10.smt2
   regress1/push-pop/fuzz_11.smt2

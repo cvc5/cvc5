@@ -185,15 +185,13 @@ RewriteResponse QuantifiersRewriter::postRewrite(TNode in) {
       //compute attributes
       QAttributes qa;
       QuantAttributes::computeQuantAttributes( in, qa );
-      if( !qa.isRewriteRule() ){
-        for( int op=0; op<COMPUTE_LAST; op++ ){
-          if( doOperation( in, op, qa ) ){
-            ret = computeOperation( in, op, qa );
-            if( ret!=in ){
-              rew_op = op;
-              status = REWRITE_AGAIN_FULL;
-              break;
-            }
+      for( int op=0; op<COMPUTE_LAST; op++ ){
+        if( doOperation( in, op, qa ) ){
+          ret = computeOperation( in, op, qa );
+          if( ret!=in ){
+            rew_op = op;
+            status = REWRITE_AGAIN_FULL;
+            break;
           }
         }
       }
