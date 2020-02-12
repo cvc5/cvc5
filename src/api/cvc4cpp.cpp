@@ -791,6 +791,7 @@ Sort::~Sort() {}
 
 bool Sort::isNullHelper() const { return d_type->isNull(); }
 
+// PARSER-TODO: can reuse
 std::vector<Sort> Sort::typeVectorToSorts(
                                           const std::vector<CVC4::Type>& types) const
 {
@@ -1023,7 +1024,7 @@ size_t Sort::getDatatypeArity() const
   CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
   return DatatypeType(*d_type).getArity();
 }
-
+  
 /* Tuple sort ---------------------------------------------------------- */
 
 size_t Sort::getTupleLength() const
@@ -4115,6 +4116,26 @@ std::set<Type> convertSortSet(const std::set<Sort>& sorts)
     types.insert(s.getType());
   }
   return types;
+}
+
+std::vector<Term> convertExprVec(const std::vector<Expr>& exprs)
+{
+  std::vector<Term> terms;
+  for (size_t i=0,esize=exprs.size(); i<esize; i++)
+  {
+    terms.push_back(Term(exprs[i]));
+  }
+  return terms;
+}
+
+std::vector<Sort> convertTypeVec(const std::vector<Type>& types)
+{
+  std::vector<Sort> sorts;
+  for (size_t i=0,tsize=types.size(); i<tsize; i++)
+  {
+    sorts.push_back(Sort(types[i]));
+  }
+  return sorts;
 }
 
 }  // namespace api

@@ -373,7 +373,7 @@ public:
    *   APPLY_UF if fun has function type, 
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
-  Kind getKindForFunction(api::Term fun);
+  api::Kind getKindForFunction(api::Term fun);
   
   /**
    * Returns a sort, given a name.
@@ -598,7 +598,7 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
-  std::vector<api::Sort>
+  std::vector<DatatypeType>
   mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, bool doOverload=false);
 
   /** make flat function type

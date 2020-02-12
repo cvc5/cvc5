@@ -588,7 +588,7 @@ using namespace CVC4::parser;
 #undef MK_EXPR
 #define MK_EXPR MK_TERM
 #undef MK_CONST
-#define MK_CONST EXPR_MANAGER->mkConst
+#define MK_CONST SOLVER->mkConst
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
@@ -755,8 +755,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( COMMA datatypeDef[dts] )*
     END_TOK
     { PARSER_STATE->popScope();
-      cmd->reset(new DatatypeDeclarationCommand(
-          PARSER_STATE->mkMutualDatatypeTypes(dts)));
+      cmd->reset(new DatatypeDeclarationCommand(PARSER_STATE->mkMutualDatatypeTypes(dts)));
     }
 
   | CONTEXT_TOK
@@ -902,11 +901,14 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     })?
     {
       if( f.getKind()==api::LAMBDA ){
+        // PARSER-FIXME
+        /*
         bvs.insert(bvs.end(), f[0].begin(), f[0].end());
         formals.push_back(bvs);
         bvs.clear();
         f = f[1];
         formulas.push_back(f);
+        */
       }
       else {
         formals.push_back(bvs);
@@ -923,12 +925,15 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       if(funcs.size()!=formulas.size()){
         PARSER_STATE->parseError("Number of functions doesn't match number of function definitions");
       }
+      //PARSER-FIXME
+      /*
       for(unsigned int i = 0, size = funcs.size(); i < size; i++){
         if(!funcs[i].getSort().isSubtypeOf(types[i])){
           PARSER_STATE->parseError("Type mismatch in definition");
         }
       }
       cmd->reset(new DefineFunctionRecCommand(api::convertTermVec(funcs),formals,api::convertTermVec(formulas)));
+      */
     }
   | toplevelDeclaration[cmd]
   ;
@@ -1125,9 +1130,12 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
       } else {
         // f is not null-- meaning this is a definition not a declaration
         //Check if the formula f has the correct type, declared as t.
+        //PARSER-FIXME
+        /*
         if(!f.getSort().isSubtypeOf(t)){
           PARSER_STATE->parseError("Type mismatch in definition");
         }
+        */
         if(!topLevel) {
           // must be top-level; doesn't make sense to write something
           // like e.g. FORALL(x:INT = 4): [...]
@@ -1140,7 +1148,8 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
             ++i) {
           Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
-          api::Term func = EXPR_MANAGER->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
+          // PARSER-FIXME
+          api::Term func; // = SOLVER->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
           PARSER_STATE->defineVar(*i, f);
           Command* decl = new DefineFunctionCommand(*i, func.getExpr(), f.getExpr());
           seq->addCommand(decl);
@@ -1203,18 +1212,18 @@ type[CVC4::api::Sort& t,
   : restrictedTypePossiblyFunctionLHS[t,check,lhs]
     { if(lhs) {
         assert(t.isTuple());
-        args = ((DatatypeType)t).getTupleTypes();
+        args = t.getTupleSorts();
       } else {
         args.push_back(t);
       }
     }
-    ( ARROW_TOK type[t2,check] { args.push_back(t2); } )?
+    ( ARROW_TOK type[t2,check] )?
     { if(t2.isNull()) {
         if(lhs) {
           PARSER_STATE->parseError("improperly-placed type list; expected `->' after to define a function; or else maybe these parentheses were meant to be square brackets, to define a tuple type?");
         }
       } else {
-        t = EXPR_MANAGER->mkFunctionType(args);
+        t = SOLVER->mkFunctionSort(args, t2);
       }
     }
 
@@ -1257,7 +1266,7 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
   api::Term f, f2;
   std::string id;
   std::vector<api::Sort> types;
-  std::vector< std::pair<std::string, Type> > typeIds;
+  std::vector< std::pair<std::string, api::Sort> > typeIds;
   //SymbolTable* symtab;
   Parser* parser;
   lhs = false;
@@ -1297,9 +1306,9 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
 
     /* array types */
   | ARRAY_TOK restrictedType[t,check] OF_TOK restrictedType[t2,check]
-    { t = EXPR_MANAGER->mkArrayType(t, t2); }
+    { t = SOLVER->mkArraySort(t, t2); }
   | SET_TOK OF_TOK restrictedType[t,check]
-    { t = EXPR_MANAGER->mkSetType(t); } 
+    { t = SOLVER->mkSetSort(t); } 
   
     /* subtypes */
   | SUBTYPE_TOK LPAREN
@@ -1315,8 +1324,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
       delete old;*/
       PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");
       /*t = f2.isNull() ?
-        EXPR_MANAGER->mkPredicateSubtype(f) :
-        EXPR_MANAGER->mkPredicateSubtype(f, f2);
+        SOLVER->mkPredicateSubtype(f) :
+        SOLVER->mkPredicateSubtype(f, f2);
       */
     }
 
@@ -1334,21 +1343,21 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
         PARSER_STATE->parseError("old-style function type syntax not supported anymore; please use the new syntax");
       } else {
         // tuple type [ T, U, V... ]
-        t = EXPR_MANAGER->mkTupleType(types);
+        t = SOLVER->mkTupleSort(types);
       }
     }
 
     /* record types */
   | SQHASH ( identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); }
     ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); } )* )? HASHSQ
-    { t = EXPR_MANAGER->mkRecordType(typeIds); }
+    { t = SOLVER->mkRecordType(typeIds); }
 
     /* bitvector types */
   | BITVECTOR_TOK LPAREN k=numeral RPAREN
     { if(k == 0) {
         PARSER_STATE->parseError("Illegal bitvector size: 0");
       }
-      t = EXPR_MANAGER->mkBitVectorType(k);
+      t = SOLVER->mkBitVectorType(k);
     }
 
     /* string type */
@@ -1364,7 +1373,7 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
      * parsing. */
   | LPAREN type[t,check] { types.push_back(t); }
     ( COMMA type[t,check] { lhs = true; types.push_back(t); } )* RPAREN
-    { if(lhs) { t = EXPR_MANAGER->mkTupleType(types); }
+    { if(lhs) { t = SOLVER->mkTupleSort(types); }
       // if !lhs, t is already set up correctly, nothing to do..
     }
   ;
@@ -1492,7 +1501,7 @@ prefixFormula[CVC4::api::Term& f]
     boundVarDeclsReturn[terms,types]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
-      api::Sort t = EXPR_MANAGER->mkFunctionType(types, f.getSort());
+      api::Sort t = SOLVER->mkFunctionSort(types, f.getSort());
       api::Term bvl = MK_TERM( api::BOUND_VAR_LIST, terms );
       f = MK_TERM( api::LAMBDA, bvl, f );
     }
@@ -1878,7 +1887,7 @@ relationTerm[CVC4::api::Term& f]
       std::vector<api::Term> args;
       args.push_back(f);
       types.push_back(f.getSort());
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      DatatypeType t = SOLVER->mkTupleSort(types);
       const Datatype& dt = t.getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
@@ -2116,7 +2125,7 @@ simpleTerm[CVC4::api::Term& f]
         for(std::vector<api::Term>::const_iterator i = args.begin(); i != args.end(); ++i) {
           types.push_back((*i).getSort());
         }
-        DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+        DatatypeType t = SOLVER->mkTupleSort(types);
         const Datatype& dt = t.getDatatype();
         args.insert( args.begin(), dt[0].getConstructor() );
         f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
@@ -2126,13 +2135,13 @@ simpleTerm[CVC4::api::Term& f]
     /* empty tuple literal */
   | LPAREN RPAREN
     { std::vector<api::Sort> types;
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      DatatypeType t = SOLVER->mkTupleSort(types);
       const Datatype& dt = t.getDatatype();
       f = MK_TERM(api::APPLY_CONSTRUCTOR, dt[0].getConstructor()); }       
                   
     /* empty record literal */
   | PARENHASH HASHPAREN
-    { DatatypeType t = EXPR_MANAGER->mkRecordType(std::vector< std::pair<std::string, Type> >());
+    { DatatypeType t = SOLVER->mkRecordSort(std::vector< std::pair<std::string, api::Sort> >());
       const Datatype& dt = t.getDatatype();
       f = MK_TERM(api::APPLY_CONSTRUCTOR, dt[0].getConstructor());
     }
@@ -2165,7 +2174,7 @@ simpleTerm[CVC4::api::Term& f]
     { /* Eventually if we support a bound var (like a lambda) for array
        * literals, we can use the push/pop scope. */
       /* PARSER_STATE->popScope(); */
-      t = EXPR_MANAGER->mkArrayType(t, t2);
+      t = SOLVER->mkArraySort(t, t2);
       if(!f.isConst()) {
         std::stringstream ss;
         ss << "expected constant term inside array constant, but found "
@@ -2213,12 +2222,12 @@ simpleTerm[CVC4::api::Term& f]
     /* record literals */
   | PARENHASH recordEntry[name,e] { names.push_back(name); args.push_back(e); }
     ( COMMA recordEntry[name,e] { names.push_back(name); args.push_back(e); } )* HASHPAREN
-    { std::vector< std::pair<std::string, Type> > typeIds;
+    { std::vector< std::pair<std::string, api::Sort> > typeIds;
       assert(names.size() == args.size());
       for(unsigned i = 0; i < names.size(); ++i) {
         typeIds.push_back(std::make_pair(names[i], args[i].getSort()));
       }
-      DatatypeType t = EXPR_MANAGER->mkRecordType(typeIds);
+      DatatypeType t = SOLVER->mkRecordSort(typeIds);
       const Datatype& dt = t.getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);

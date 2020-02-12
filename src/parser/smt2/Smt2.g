@@ -296,7 +296,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // Do NOT call mkSort, since that creates a new sort!
       // This name is not its own distinct sort, it's an alias.
       PARSER_STATE->defineParameterizedType(name, sorts, t.getType());
-      cmd->reset(new DefineTypeCommand(name, sorts, t.getType()));
+      cmd->reset(new DefineTypeCommand(name, api::convertSortVec(sorts), t.getType()));
     }
   | /* function declaration */
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -320,7 +320,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       {
         // it is a higher-order universal variable
         CVC4::api::Term func = PARSER_STATE->mkBoundVar(name, t);
-        cmd->reset(new DeclareSygusFunctionCommand(name, func, t.getType()));
+        cmd->reset(new DeclareSygusFunctionCommand(name, func.getExpr(), t.getType()));
       }
       else if( PARSER_STATE->sygus() )
       {
@@ -330,7 +330,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       else
       {
         CVC4::api::Term func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        cmd->reset(new DeclareFunctionCommand(name, func, t.getType()));
+        cmd->reset(new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
       }
     }
   | /* function definition */
@@ -369,14 +369,14 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // we allow overloading for function definitions
       CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
-      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), terms, expr.getExpr()));
+      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::convertTermVec(terms), expr.getExpr()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | /* value query */
     GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
-      { cmd->reset(new GetValueCommand(terms)); }
+      { cmd->reset(new GetValueCommand(api::convertTermVec(terms))); }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The get-value command expects a list of "
                                  "terms.  Perhaps you forgot a pair of "
@@ -391,11 +391,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
     { PARSER_STATE->clearLastNamedTerm(); }
     term[expr, expr2]
     { bool inUnsatCore = PARSER_STATE->lastNamedTerm().first == expr;
-      cmd->reset(new AssertCommand(expr, inUnsatCore));
+      cmd->reset(new AssertCommand(expr.getExpr(), inUnsatCore));
       if(inUnsatCore) {
         // set the expression name, if there was a named term
         std::pair<CVC4::api::Term, std::string> namedTerm = PARSER_STATE->lastNamedTerm();
-        Command* csen = new SetExpressionNameCommand(namedTerm.first, namedTerm.second);
+        Command* csen = new SetExpressionNameCommand(namedTerm.first.getExpr(), namedTerm.second);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
       }
@@ -415,11 +415,11 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }
     | { expr = CVC4::api::Term(); }
     )
-    { cmd->reset(new CheckSatCommand(expr)); }
+    { cmd->reset(new CheckSatCommand(expr.getExpr())); }
   | /* check-sat-assuming */
     CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
-      { cmd->reset(new CheckSatAssumingCommand(terms)); }
+      { cmd->reset(new CheckSatAssumingCommand(api::convertTermVec(terms))); }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The check-sat-assuming command expects a "
                                  "list of terms.  Perhaps you forgot a pair of "
@@ -564,7 +564,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     sortSymbol[t,CHECK_DECLARED]
     {
       CVC4::api::Term var = PARSER_STATE->mkBoundVar(name, t);
-      cmd.reset(new DeclareSygusVarCommand(name, var, t));
+      cmd.reset(new DeclareSygusVarCommand(name, var.getExpr(), t.getType()));
     }
   | /* declare-primed-var */
     DECLARE_PRIMED_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -574,7 +574,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     {
       // spurious command, we do not need to create a variable. We only keep
       // track of the command for sanity checking / dumping
-      cmd.reset(new DeclareSygusPrimedVarCommand(name, t));
+      cmd.reset(new DeclareSygusPrimedVarCommand(name, t.getType()));
     }
 
   | /* synth-fun */
@@ -629,7 +629,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     }
     term[expr, expr2]
     { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
-      cmd.reset(new SygusConstraintCommand(expr));
+      cmd.reset(new SygusConstraintCommand(expr.getExpr()));
     }
   | /* inv-constraint */
     INV_CONSTRAINT_TOK
@@ -1134,7 +1134,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[t,CHECK_DECLARED]
     { // allow overloading here
       CVC4::api::Term c = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-      cmd->reset(new DeclareFunctionCommand(name, c, t)); }
+      cmd->reset(new DeclareFunctionCommand(name, c.getExpr(), t.getType())); }
 
     /* get model */
   | GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1304,7 +1304,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         // allow overloading
         CVC4::api::Term func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, t));
+        seq->addCommand(new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
         sorts.clear();
       }
     )+
@@ -1329,7 +1329,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         // allow overloading
         CVC4::api::Term func = PARSER_STATE->mkVar(name, t, ExprManager::VAR_FLAG_NONE, true);
-        seq->addCommand(new DeclareFunctionCommand(name, func, t));
+        seq->addCommand(new DeclareFunctionCommand(name, func.getExpr(), t.getType()));
         sorts.clear();
       }
     )+
@@ -1342,7 +1342,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       term[e,e2]
       { CVC4::api::Term func = PARSER_STATE->mkVar(name, e.getType(),
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(new DefineFunctionCommand(name, func, e));
+        cmd->reset(new DefineFunctionCommand(name, func.getExpr(), e.getExpr()));
       }
     | LPAREN_TOK
       symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -1371,7 +1371,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(new DefineFunctionCommand(name, func, terms, e));
+        cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::convertTermVec(terms), e.getExpr()));
       }
     )
   | DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1390,7 +1390,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       // permitted)
       CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED);
-      cmd->reset(new DefineFunctionCommand(name, func, terms, e));
+      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::convertTermVec(terms), e.getExpr()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1398,10 +1398,10 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     { cmd->reset(new SimplifyCommand(e)); }
   | GET_QE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
-    { cmd->reset(new GetQuantifierEliminationCommand(e, true)); }
+    { cmd->reset(new GetQuantifierEliminationCommand(e.getExpr(), true)); }
   | GET_QE_DISJUNCT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
-    { cmd->reset(new GetQuantifierEliminationCommand(e, false)); }
+    { cmd->reset(new GetQuantifierEliminationCommand(e.getExpr(), false)); }
   | GET_ABDUCT_TOK { 
       PARSER_STATE->checkThatLogicIsSet();
     }
@@ -1411,7 +1411,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammar[t, terms, name]
     )? 
     {
-      cmd->reset(new GetAbductCommand(name,e, t));
+      cmd->reset(new GetAbductCommand(name,e.getExpr(), t.getType()));
     }
   | DECLARE_HEAP LPAREN_TOK 
     sortSymbol[t,CHECK_DECLARED] 
@@ -1424,7 +1424,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 
   | BLOCK_MODEL_VALUES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,e] RPAREN_TOK
-      { cmd->reset(new BlockModelValuesCommand(terms)); }
+      { cmd->reset(new BlockModelValuesCommand(api::convertTermVec(terms))); }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The block-model-value command expects a list "
                                  "of terms.  Perhaps you forgot a pair of "

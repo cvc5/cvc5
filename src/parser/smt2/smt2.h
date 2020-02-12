@@ -411,7 +411,7 @@ class Smt2 : public Parser
    */
   void addSygusConstructorTerm(Datatype& dt,
                                api::Term term,
-                               std::map<api::Term, Type>& ntsToUnres) const;
+                               std::map<api::Term, api::Sort>& ntsToUnres) const;
   /**
    * This adds constructors to dt for sygus variables in sygusVars whose
    * type is argument type. This method should be called when the sygus grammar
@@ -584,9 +584,9 @@ class Smt2 : public Parser
    * It appends a bound variable to lvars for each type in ltypes, and returns
    * a bound variable list whose children are lvars.
    */
-  api::Term makeSygusBoundVarList(Datatype& dt,
+  api::Term makeSygusBoundVarList(CVC4::Datatype& dt,
                              unsigned i,
-                             const std::vector<Type>& ltypes,
+                             const std::vector<api::Sort>& ltypes,
                              std::vector<api::Term>& lvars);
 
   /** Purify sygus grammar term
@@ -601,9 +601,9 @@ class Smt2 : public Parser
    * sygus constructor.
    */
   api::Term purifySygusGTerm(api::Term term,
-                        std::map<api::Term, Type>& ntsToUnres,
+                        std::map<api::Term, api::Sort>& ntsToUnres,
                         std::vector<api::Term>& args,
-                        std::vector<Type>& cargs) const;
+                        std::vector<api::Sort>& cargs) const;
 
   void addArithmeticOperators();
 

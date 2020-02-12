@@ -536,7 +536,7 @@ class CVC4_PUBLIC Sort
    * @return the arity of a datatype sort
    */
   size_t getDatatypeArity() const;
-
+  
   /* Tuple sort ---------------------------------------------------------- */
 
   /**
@@ -2807,6 +2807,8 @@ class CVC4_PUBLIC Solver
 // !!! These only temporarily public until the parser is fully migrated to the new API. !!!
 std::vector<Expr> convertTermVec(const std::vector<Term>& terms);
 std::vector<Type> convertSortVec(const std::vector<Sort>& sorts);
+std::vector<Term> convertExprVec(const std::vector<Expr>& terms);
+std::vector<Sort> convertTypeVec(const std::vector<Type>& sorts);
 std::set<Type> convertSortSet(const std::set<Sort>& sorts);
 
 }  // namespace api

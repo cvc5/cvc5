@@ -137,28 +137,28 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name, api::Sort
   return expr;
 }
 
-Kind Parser::getKindForFunction(api::Term fun) {
+api::Kind Parser::getKindForFunction(api::Term fun) {
   api::Sort t = fun.getSort();
   if (t.isFunction())
   {
-    return APPLY_UF;
+    return api::APPLY_UF;
   }
   else if (t.isConstructor())
   {
-    return APPLY_CONSTRUCTOR;
+    return api::APPLY_CONSTRUCTOR;
   }
   else if (t.isSelector())
   {
-    return APPLY_SELECTOR;
+    return api::APPLY_SELECTOR;
   }
   else if (t.isTester())
   {
-    return APPLY_TESTER;
+    return api::APPLY_TESTER;
   }
   else
   {
     parseError("internal error: unhandled function application kind");
-    return UNDEFINED_KIND;
+    return api::UNDEFINED_KIND;
   }
 }
 
@@ -366,7 +366,7 @@ bool Parser::isUnresolvedType(const std::string& name) {
   return d_unresolved.find(getSort(name)) != d_unresolved.end();
 }
 
-std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
+std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
     std::vector<Datatype>& datatypes, bool doOverload) {
   try {
     std::set<CVC4::Type> tset = api::convertSortSet(d_unresolved);
@@ -452,8 +452,13 @@ std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
         throw ParserException(dt.getName() + " is not well-founded");
       }
     }
-
-    return types;
+    // PARSER-TODO
+    std::vector<DatatypeType> retTypes;
+    for (unsigned i=0, ntypes=types.size(); i<ntypes; i++)
+    {
+      retTypes.push_back(DatatypeType(types[i].getType()));
+    }
+    return retTypes;
   } catch (IllegalArgumentException& ie) {
     throw ParserException(ie.getMessage());
   }
