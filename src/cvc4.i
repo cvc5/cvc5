@@ -113,7 +113,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 // Create a mapping from C++ Exceptions to Java Exceptions.
 // This is in a couple of throws typemaps, simply because it's sensitive to SWIG's concept of which namespace we're in.
 %typemap(throws) Exception %{
-  std::string name = "edu/nyu/acsys/CVC4/$1_type";
+  std::string name = "edu/stanford/CVC4/$1_type";
   /*
   size_t i = name.find("::");
   if(i != std::string::npos) {
@@ -132,7 +132,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   assert(status == 0);
 %}
 %typemap(throws) CVC4::Exception %{
-  std::string name = "edu/nyu/acsys/$1_type";
+  std::string name = "edu/stanford/$1_type";
   size_t i = name.find("::");
   if(i != std::string::npos) {
     size_t j = name.rfind("::");
@@ -186,17 +186,17 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %typemap(jtype) std::ostream& "long"
 %typemap(jstype) std::ostream& "java.io.OutputStream"
 %typemap(javain,
-         pre="    edu.nyu.acsys.CVC4.JavaOutputStreamAdapter temp$javainput = new edu.nyu.acsys.CVC4.JavaOutputStreamAdapter();", pgcppname="temp$javainput",
+         pre="    edu.stanford.CVC4.JavaOutputStreamAdapter temp$javainput = new edu.stanford.CVC4.JavaOutputStreamAdapter();", pgcppname="temp$javainput",
          post="    new java.io.PrintStream($javainput).print(temp$javainput.toString());")
-         std::ostream& "edu.nyu.acsys.CVC4.JavaOutputStreamAdapter.getCPtr(temp$javainput)"
+         std::ostream& "edu.stanford.CVC4.JavaOutputStreamAdapter.getCPtr(temp$javainput)"
 
 %typemap(jni) std::istream& "jlong"
 %typemap(jtype) std::istream& "long"
 %typemap(jstype) std::istream& "java.io.InputStream"
 %typemap(javain,
-         pre="    edu.nyu.acsys.CVC4.JavaInputStreamAdapter temp$javainput = edu.nyu.acsys.CVC4.JavaInputStreamAdapter.get($javainput);", pgcppname="temp$javainput",
+         pre="    edu.stanford.CVC4.JavaInputStreamAdapter temp$javainput = edu.stanford.CVC4.JavaInputStreamAdapter.get($javainput);", pgcppname="temp$javainput",
          post="")
-         std::istream& "edu.nyu.acsys.CVC4.JavaInputStreamAdapter.getCPtr(temp$javainput)"
+         std::istream& "edu.stanford.CVC4.JavaInputStreamAdapter.getCPtr(temp$javainput)"
 %typemap(in) jobject inputStream %{
   $1 = jenv->NewGlobalRef($input);
 %}
