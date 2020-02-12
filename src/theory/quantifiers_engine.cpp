@@ -30,7 +30,6 @@
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
@@ -111,7 +110,7 @@ class QuantifiersEnginePrivate
                   bool& needsBuilder)
   {
     // add quantifiers modules
-    if (options::quantConflictFind() || options::quantRewriteRules())
+    if (options::quantConflictFind())
     {
       d_qcf.reset(new quantifiers::QuantConflictFind(qe, c));
       modules.push_back(d_qcf.get());
@@ -149,11 +148,6 @@ class QuantifiersEnginePrivate
       modules.push_back(d_model_engine.get());
       // finite model finder has special ways of building the model
       needsBuilder = true;
-    }
-    if (options::quantRewriteRules())
-    {
-      d_rr_engine.reset(new quantifiers::RewriteEngine(c, qe, d_qcf.get()));
-      modules.push_back(d_rr_engine.get());
     }
     if (options::ltePartialInst())
     {
