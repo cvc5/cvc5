@@ -1191,6 +1191,7 @@ set(regress_1_tests
   regress1/bv/divtest.smt2
   regress1/bv/fuzz34.smtv1.smt2
   regress1/bv/fuzz38.smtv1.smt2
+  regress1/bv/issue3654.smt2
   regress1/bv/test-bv-abstraction.smt2
   regress1/bv/unsound1.smt2
   regress1/bvdiv2.smt2
@@ -1819,7 +1820,7 @@ set(regress_1_tests
   regress1/sygus/issue3635.smt2
   regress1/sygus/issue3644.smt2
   regress1/sygus/issue3648.smt2
-  regress1/sygus/issue3654.sy
+  regress1/sygus/issue3649.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
