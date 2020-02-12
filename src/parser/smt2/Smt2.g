@@ -892,7 +892,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
         Debug("parser-sygus") << "Sygus grammar " << fun
                               << " : unary minus integer literal " << name
                               << std::endl;
-        sgt.d_expr = MK_CONST(Rational(name));
+        sgt.d_expr = SOLVER->mkReal(name);
         sgt.d_name = name;
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }else if( PARSER_STATE->isDeclared(name,SYM_VARIABLE) ){
@@ -1748,7 +1748,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
     { PARSER_STATE->popScope(); }
   | /* match expression */
     LPAREN_TOK MATCH_TOK term[expr, f2] {
-      if( !expr.getType().isDatatype() ){
+      if( !expr.getSort().isDatatype() ){
         PARSER_STATE->parseError("Cannot match on non-datatype term.");
       }
     }
@@ -1759,17 +1759,18 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           args.clear();
           PARSER_STATE->pushScope(true);
           // f should be a constructor
-          type = f.getType();
+          type = f.getSort();
           Debug("parser-dt") << "Pattern head : " << f << " " << type << std::endl;
           if (!type.isConstructor())
           {
             PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
           }
-          if (Datatype::datatypeOf(f).isParametric())
+          Expr ef = f.getExpr();
+          if (Datatype::datatypeOf(ef).isParametric())
           {
-            type = Datatype::datatypeOf(f)[Datatype::indexOf(f)].getSpecializedConstructorType(expr.getType());
+            type = Datatype::datatypeOf(ef)[Datatype::indexOf(ef)].getSpecializedConstructorType(expr.getSort().getType());
           }
-          argTypes = static_cast<ConstructorType>(type).getArgTypes();
+          argTypes = type.getConstructorDomainSorts();
         }
         // arguments of the pattern
         ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
@@ -1800,9 +1801,9 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           if (PARSER_STATE->isDeclared(name,SYM_VARIABLE))
           {
             f = PARSER_STATE->getVariable(name);
-            type = f.getType();
+            type = f.getSort();
             if (!type.isConstructor() || 
-                !((ConstructorType)type).getArgTypes().empty())
+                !type.getConstructorDomainSorts().empty())
             {
               PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
             }
@@ -1812,12 +1813,12 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           else
           {
             // it has the type of the head expr
-            f = PARSER_STATE->mkBoundVar(name, expr.getType());
+            f = PARSER_STATE->mkBoundVar(name, expr.getSort());
           }
         }
         term[f3, f2] {
           CVC4::api::Term mc;
-          if (f.getKind() == api::BOUND_VARIABLE)
+          if (f.getKind() == api::VARIABLE)
           {
             CVC4::api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, f);
             mc = MK_TERM(api::MATCH_BIND_CASE, bvl, f, f3);
@@ -1886,7 +1887,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
     std::vector<api::Term> terms;
     for (const CVC4::api::Term& arg : args)
     {
-      sorts.emplace_back(arg.getType());
+      sorts.emplace_back(arg.getSort());
       terms.emplace_back(arg);
     }
     expr = SOLVER->mkTuple(sorts, terms).getExpr();
@@ -1993,21 +1994,22 @@ identifier[CVC4::ParseOp& p]
         if (f.getKind() == api::APPLY_CONSTRUCTOR && f.getNumChildren() == 0)
         {
           // for nullary constructors, must get the operator
-          f = f.getOperator();
+          f = api::Term(f.getOp().getExpr());
         }
-        if (!f.getType().isConstructor())
+        if (!f.getSort().isConstructor())
         {
           PARSER_STATE->parseError(
               "Bad syntax for test (_ is X), X must be a constructor.");
         }
-        p.d_expr = Datatype::datatypeOf(f)[Datatype::indexOf(f)].getTester();
+        Expr ef = f.getExpr();
+        p.d_expr = api::Term(Datatype::datatypeOf(ef)[Datatype::indexOf(ef)].getTester());
       }
     | TUPLE_SEL_TOK m=INTEGER_LITERAL
       {
         // we adopt a special syntax (_ tupSel n)
         p.d_kind = CVC4::api::APPLY_SELECTOR;
         // put m in expr so that the caller can deal with this case
-        p.d_expr = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
+        p.d_expr = SOLVER->mkReal(AntlrInput::tokenToUnsigned($m));
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
@@ -2130,10 +2132,10 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
         if( expr.getKind()!=api::EQUAL || expr[0].getKind()!=api::APPLY_UF ){
           success = false;
         }else{
-          FunctionType t = (FunctionType)expr[0].getOperator().getType();
+          api::Sort t = expr[0].getOp().getSort();
           for( unsigned i=0; i<expr[0].getNumChildren(); i++ ){
-            if( expr[0][i].getKind() != api::BOUND_VARIABLE ||
-                expr[0][i].getType() != t.getArgTypes()[i] ){
+            if( expr[0][i].getKind() != api::VARIABLE ||
+                expr[0][i].getSort() != t.getFunctionDomainSorts()[i] ){
               success = false;
               break;
             }else{
@@ -2162,7 +2164,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
         //Will set the attribute on auxiliary var (preserves attribute on
         //formula through rewriting).
         retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-        Command* c = new SetUserAttributeCommand( attr_name, avar );
+        Command* c = new SetUserAttributeCommand( attr_name, avar.getExpr() );
         c->setMuted(true);
         PARSER_STATE->preemptCommand(c);
       }
@@ -2193,7 +2195,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       CVC4::api::Sort t = EXPR_MANAGER->booleanType();
       CVC4::api::Term avar = PARSER_STATE->mkVar(attr_name, t);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand( attr_name, avar, values );
+      Command* c = new SetUserAttributeCommand( attr_name, avar.getExpr(), api::convertTermVec(values) );
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }

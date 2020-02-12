@@ -85,6 +85,9 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {OR, CVC4::Kind::OR},
     {XOR, CVC4::Kind::XOR},
     {ITE, CVC4::Kind::ITE},
+    {MATCH, CVC4::Kind::MATCH},
+    {MATCH_CASE, CVC4::Kind::MATCH_CASE},
+    {MATCH_BIND_CASE, CVC4::Kind::MATCH_BIND_CASE},
     /* UF ------------------------------------------------------------------ */
     {APPLY_UF, CVC4::Kind::APPLY_UF},
     {CARDINALITY_CONSTRAINT, CVC4::Kind::CARDINALITY_CONSTRAINT},
@@ -319,6 +322,9 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::OR, OR},
         {CVC4::Kind::XOR, XOR},
         {CVC4::Kind::ITE, ITE},
+        {CVC4::Kind::MATCH, MATCH},
+        {CVC4::Kind::MATCH_CASE, MATCH_CASE},
+        {CVC4::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
         /* UF -------------------------------------------------------------- */
         {CVC4::Kind::APPLY_UF, APPLY_UF},
         {CVC4::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
@@ -925,6 +931,13 @@ size_t Sort::getConstructorArity() const
   return ConstructorType(*d_type).getArity();
 }
   
+std::vector<Sort> Sort::getConstructorDomainSorts() const
+{
+  CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
+  std::vector<CVC4::Type> types = ConstructorType(*d_type).getArgTypes();
+  return typeVectorToSorts(types);
+}
+
 /* Function sort ------------------------------------------------------- */
 
 size_t Sort::getFunctionArity() const
@@ -1325,11 +1338,6 @@ Term::~Term() {}
 /* .......................................................................... */
 
 bool Term::isNullHelper() const { return d_expr->isNull(); }
-
-Term Term::operator[](size_t index) const
-{
-  return api::Term((*d_expr)[index]);
-}
   
 bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
@@ -1349,6 +1357,16 @@ bool Term::operator>(const Term& t) const {
 
 bool Term::operator>=(const Term& t) const {
   return *d_expr >= *t.d_expr;
+}
+
+size_t Term::getNumChildren() const
+{
+  return d_expr->getNumChildren();
+}
+  
+Term Term::operator[](size_t index) const
+{
+  return api::Term((*d_expr)[index]);
 }
 
 uint64_t Term::getId() const

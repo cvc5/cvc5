@@ -227,6 +227,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   ITE,
+  /* Match
+   */
+  MATCH,
+  /* Match bind case
+   */
+  MATCH_CASE,
+  /* Match bind case
+   */
+  MATCH_BIND_CASE,
 
   /* UF -------------------------------------------------------------------- */
 

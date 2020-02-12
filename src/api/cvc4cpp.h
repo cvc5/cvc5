@@ -441,6 +441,11 @@ class CVC4_PUBLIC Sort
    */
   size_t getConstructorArity() const;
   
+  /**
+   * @return the domain sorts of a constructor sort
+   */
+  std::vector<Sort> getConstructorDomainSorts() const;
+  
   /* Function sort ------------------------------------------------------- */
 
   /**
@@ -747,13 +752,6 @@ class CVC4_PUBLIC Term
    * Destructor.
    */
   ~Term();
-
-  /**
-   * Get the child term at a given index.
-   * @param index the index of the child term to return
-   * @return the child term with the given index
-   */
-  Term operator[](size_t index) const;
   
   /**
    * Syntactic equality operator.
@@ -788,6 +786,20 @@ class CVC4_PUBLIC Term
   /**
    */
   bool operator>=(const Term& t) const;
+  
+  /**
+   * Returns the number of children of this term.
+   *
+   * @return the number of term
+   */
+  size_t getNumChildren() const;
+
+  /**
+   * Get the child term at a given index.
+   * @param index the index of the child term to return
+   * @return the child term with the given index
+   */
+  Term operator[](size_t index) const;
   
   /**
    * @return the id of this term
