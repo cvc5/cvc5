@@ -870,9 +870,9 @@ bool Sort::isParametricDatatype() const
   return DatatypeType(*d_type).isParametric();
 }
 
-bool Sort::isConstructor() const { return d_type->isFunction(); }
-bool Sort::isSelector() const { return d_type->isFunction(); }
-bool Sort::isTester() const { return d_type->isFunction(); }
+bool Sort::isConstructor() const { return d_type->isConstructor(); }
+bool Sort::isSelector() const { return d_type->isSelector(); }
+bool Sort::isTester() const { return d_type->isTester(); }
 
 bool Sort::isFunction() const { return d_type->isFunction(); }
 

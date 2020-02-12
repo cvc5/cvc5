@@ -266,7 +266,7 @@ bool isRightToLeft(int type) {
   }
 }/* isRightToLeft() */
 
-int getOperatorPrecendence(int type) {
+int getOperatorPrecedence(int type) {
   switch(type) {
   case BITVECTOR_TOK: return 1;
   //case DOT:
@@ -351,9 +351,9 @@ int getOperatorPrecendence(int type) {
     ss << "internal error: no entry in precedence table for operator " << CvcParserTokenNames[type];
     throw ParserException(ss.str());
   }
-}/* getOperatorPrecendence() */
+}/* getOperatorPrecedence() */
 
-api::Kind getOpKind(int type, bool& negate) {
+api::Kind getOperatorKind(int type, bool& negate) {
   negate = false;
 
   switch(type) {
@@ -399,17 +399,17 @@ api::Kind getOpKind(int type, bool& negate) {
   ss << "internal error: no entry in operator-kind table for operator " << CvcParserTokenNames[type];
   throw ParserException(ss.str());
 
-}/* getOpKind() */
+}/* getOperatorKind() */
 
 unsigned findPivot(const std::vector<unsigned>& operators,
                    unsigned startIndex, unsigned stopIndex) {
   unsigned pivot = startIndex;
-  unsigned pivotRank = getOperatorPrecendence(operators[pivot]);
+  unsigned pivotRank = getOperatorPrecedence(operators[pivot]);
   /*Debug("prec") << "initial pivot at " << pivot
                 << "(" << CvcParserTokenNames[operators[pivot]] << ") "
                 << "level " << pivotRank << std::endl;*/
   for(unsigned i = startIndex + 1; i <= stopIndex; ++i) {
-    unsigned current = getOperatorPrecendence(operators[i]);
+    unsigned current = getOperatorPrecedence(operators[i]);
     bool rtl = isRightToLeft(operators[i]);
     if(current > pivotRank || (current == pivotRank && !rtl)) {
       /*Debug("prec") << "new pivot at " << i
@@ -438,7 +438,7 @@ CVC4::api::Term createPrecedenceTree(Parser* parser, api::Solver* solver,
   unsigned pivot = findPivot(operators, startIndex, stopIndex - 1);
   //Debug("prec") << "pivot[" << startIndex << "," << stopIndex - 1 << "] at " << pivot << std::endl;
   bool negate;
-  api::Kind k = getOpKind(operators[pivot], negate);
+  api::Kind k = getOperatorKind(operators[pivot], negate);
   CVC4::api::Term lhs = createPrecedenceTree(parser, solver, expressions, operators, startIndex, pivot);
   CVC4::api::Term rhs = createPrecedenceTree(parser, solver, expressions, operators, pivot + 1, stopIndex);
 
@@ -1320,14 +1320,8 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
     { /*symtab = PARSER_STATE->getSymbolTable();
       PARSER_STATE->useDeclarationsFrom(new SymbolTable());*/ }
     formula[f] ( COMMA formula[f2] )? RPAREN
-    { /*SymbolTable* old = PARSER_STATE->getSymbolTable();
-      PARSER_STATE->useDeclarationsFrom(symtab);
-      delete old;*/
+    { 
       PARSER_STATE->unimplementedFeature("predicate subtyping not supported in this release");
-      /*t = f2.isNull() ?
-        SOLVER->mkPredicateSubtype(f) :
-        SOLVER->mkPredicateSubtype(f, f2);
-      */
     }
 
     /* subrange types */
@@ -1678,11 +1672,8 @@ recordStore[CVC4::api::Term& f]
       if(! rec.contains(id)) {
         PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
       }
-      std::vector<api::Term> args;
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-      args.push_back( dt[0][id].getSelector() );
-      args.push_back( f );
-      f2 = MK_TERM(CVC4::api::APPLY_SELECTOR,args);
+      f2 = api::Term(MK_EXPR(CVC4::kind::APPLY_SELECTOR,dt[0][id].getSelector(), f.getExpr()));
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1800,7 +1791,7 @@ postfixTerm[CVC4::api::Term& f]
       { api::Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
         Debug("parser") << "kind is " << k << std::endl;
-        f = MK_TERM(k, args);
+        f = api::Term(MK_EXPR(extToIntKind(k), api::convertTermVec(args)));
       }
 
       /* record / tuple select */
@@ -1815,10 +1806,7 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
           const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-          std::vector<api::Term> sargs;
-          sargs.push_back( dt[0][id].getSelector() );
-          sargs.push_back( f );
-          f = MK_TERM(CVC4::api::APPLY_SELECTOR,sargs);
+          f = api::Term(MK_EXPR(CVC4::kind::APPLY_SELECTOR,dt[0][id].getSelector(), f.getExpr()));
         }
       | k=numeral
         { api::Sort t = f.getSort();
@@ -1832,10 +1820,7 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(ss.str());
           }
           const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-          std::vector<api::Term> sargs;
-          sargs.push_back( dt[0][k].getSelector() );
-          sargs.push_back( f );
-          f = MK_TERM(CVC4::api::APPLY_SELECTOR,sargs);
+          f = api::Term(MK_EXPR(CVC4::kind::APPLY_SELECTOR,dt[0][k].getSelector(), f.getExpr()));
         }
       )
     )*

@@ -1680,14 +1680,18 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (!p.d_expr.isNull())
   {
-    // An explicit operator, e.g. an indexed symbol.
-    args.insert(args.begin(), p.d_expr);
     if (p.d_expr.getSort().isTester())
     {
       // Testers are handled differently than other indexed operators,
       // since they require a kind.
-      kind = api::APPLY_TESTER;
+      if (args.size() != 1)
+      {
+        parseError("testers should only be applied to one argument");
+      }
+      return api::Term(getExprManager()->mkExpr(kind::APPLY_TESTER, p.d_expr.getExpr(), args[0].getExpr()));
     }
+    // An explicit operator, e.g. an indexed symbol.
+    args.insert(args.begin(), p.d_expr);
   }
   else
   {
@@ -1798,9 +1802,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError("index of tupSel is larger than size of unsigned int");
     }
     unsigned int n = x.toUnsignedInt();
-    if (args.size() > 1)
+    if (args.size() != 1)
     {
-      parseError("tupSel applied to more than one tuple argument");
+      parseError("tupSel should only be applied to one tuple argument");
     }
     api::Sort t = args[0].getSort();
     if (!t.isTuple())
@@ -1815,10 +1819,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-    std::vector<api::Term> selArgs;
-    selArgs.push_back(api::Term(dt[0][n].getSelector()));
-    selArgs.insert(selArgs.end(),args.begin(),args.end());
-    return d_solver->mkTerm(api::APPLY_SELECTOR, selArgs);
+    return api::Term(getExprManager()->mkExpr(kind::APPLY_SELECTOR, dt[0][n].getSelector(),args[0].getExpr()));
   }
   else if (p.d_kind != api::NULL_EXPR)
   {
@@ -1828,6 +1829,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   }
   else if (isBuiltinOperator)
   {
+    Trace("ajr-temp") << "mkTerm builtin operator" << std::endl;
     if (!em->getOptions().getUfHo()
         && (kind == api::EQUAL || kind == api::DISTINCT))
     {
@@ -1883,6 +1885,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     else
     {
       checkOperator(kind, args.size());
+      Trace("ajr-temp") << "mkTerm default from builtin : " << kind << std::endl;
       return d_solver->mkTerm(kind, args);
     }
   }
@@ -1909,6 +1912,12 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     std::vector<api::Term> eargs(args.begin() + 1, args.end());
     return mkBuiltinApp(args[0], eargs);
   }
+  // PARSER-TODO
+  if (kind == api::APPLY_SELECTOR || kind==api::APPLY_TESTER)
+  {
+    return api::Term(em->mkExpr(extToIntKind(kind), api::convertTermVec(args)));
+  }
+  Trace("ajr-temp") << "mkTerm default : " << kind << std::endl;
   return d_solver->mkTerm(kind, args);
 }
 
