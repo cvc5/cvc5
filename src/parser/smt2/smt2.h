@@ -344,10 +344,10 @@ class Smt2 : public Parser
   }
 
   void mkSygusVar(const std::string& name,
-                  const Type& type,
+                  const api::Sort& type,
                   bool isPrimed = false);
 
-  void mkSygusConstantsForType( const Type& type, std::vector<api::Term>& ops );
+  void mkSygusConstantsForType( const api::Sort& type, std::vector<api::Term>& ops );
 
   void processSygusGTerm(
       CVC4::SygusGTerm& sgt,

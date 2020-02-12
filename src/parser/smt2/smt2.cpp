@@ -703,7 +703,7 @@ std::unique_ptr<Command> Smt2::invConstraint(
     terms.push_back(getVariable(name));
   }
 
-  return std::unique_ptr<Command>(new SygusInvConstraintCommand(terms));
+  return std::unique_ptr<Command>(new SygusInvConstraintCommand(api::convertTermVec(terms)));
 }
 
 Command* Smt2::setLogic(std::string name, bool fromCommand)
@@ -929,7 +929,7 @@ void Smt2::mkSygusConstantsForType( const api::Sort& type, std::vector<api::Term
     ops.push_back(getExprManager()->mkConst(Rational(0)));
     ops.push_back(getExprManager()->mkConst(Rational(1)));
   }else if( type.isBitVector() ){
-    unsigned sz = ((BitVectorType)type).getSize();
+    unsigned sz = type.getBVSize();
     BitVector bval0(sz, (unsigned int)0);
     ops.push_back( getExprManager()->mkConst(bval0) );
     BitVector bval1(sz, (unsigned int)1);
@@ -963,16 +963,16 @@ void Smt2::processSygusGTerm(
   {
     Debug("parser-sygus") << "Add " << sgt.d_expr << " to datatype " << index
                           << std::endl;
-    Kind oldKind;
-    Kind newKind = api::UNDEFINED_KIND;
+    api::Kind oldKind;
+   api:: Kind newKind = api::UNDEFINED_KIND;
     //convert to UMINUS if one child of MINUS
-    if( sgt.d_children.size()==1 && sgt.d_expr==getExprManager()->operatorOf(api::MINUS) ){
+    if( sgt.d_children.size()==1 && sgt.d_expr==getExprManager()->operatorOf(MINUS) ){
       oldKind = api::MINUS;
       newKind = api::UMINUS;
     }
     if( newKind!=api::UNDEFINED_KIND ){
-      api::Term newapi::Term = getExprManager()->operatorOf(newKind);
-      Debug("parser-sygus") << "Replace " << sgt.d_expr << " with " << newapi::Term << std::endl;
+      api::Term newExpr = getExprManager()->operatorOf(api::extToIntKind(newKind));
+      Debug("parser-sygus") << "Replace " << sgt.d_expr << " with " << newExpr << std::endl;
       sgt.d_expr = newExpr;
       std::string oldName = api::kindToString(oldKind);
       std::string newName = api::kindToString(newKind);

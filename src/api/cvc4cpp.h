@@ -767,6 +767,22 @@ class CVC4_PUBLIC Term
   bool operator!=(const Term& t) const;
 
   /**
+   */
+  bool operator<(const Term& t) const;
+
+  /**
+   */
+  bool operator>(const Term& t) const;
+
+  /**
+   */
+  bool operator<=(const Term& t) const;
+
+  /**
+   */
+  bool operator>=(const Term& t) const;
+  
+  /**
    * @return the id of this term
    */
   uint64_t getId() const;

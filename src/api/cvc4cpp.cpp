@@ -1314,6 +1314,22 @@ bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
 
+bool Term::operator<(const Term& t) const {
+  return *d_expr < *t.d_expr;
+}
+
+bool Term::operator<=(const Term& t) const {
+  return *d_expr <= *t.d_expr;
+}
+
+bool Term::operator>(const Term& t) const {
+  return *d_expr > *t.d_expr;
+}
+
+bool Term::operator>=(const Term& t) const {
+  return *d_expr >= *t.d_expr;
+}
+
 uint64_t Term::getId() const
 {
   CVC4_API_CHECK_NOT_NULL;

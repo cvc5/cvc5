@@ -232,7 +232,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
   CVC4::api::Term expr, expr2;
   CVC4::api::Sort t;
   std::vector<CVC4::api::Term> terms;
-  std::vector<Type> sorts;
+  std::vector<api::Sort> sorts;
   std::vector<std::pair<std::string, CVC4::api::Sort> > sortedVarNames;
   std::vector<CVC4::api::Term> flattenVars;
 }
@@ -665,7 +665,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
   unsigned startIndex = 0;
   std::vector<std::vector<CVC4::SygusGTerm>> sgts;
   std::vector<CVC4::Datatype> datatypes;
-  std::vector<Type> sorts;
+  std::vector<api::Sort> sorts;
   std::vector<std::vector<CVC4::api::Term>> ops;
   std::vector<std::vector<std::string>> cnames;
   std::vector<std::vector<std::vector<CVC4::api::Sort>>> cargs;
@@ -945,7 +945,7 @@ sygusGrammar[CVC4::api::Sort & ret,
   std::string name;
   CVC4::api::Term e, e2;
   std::vector<CVC4::Datatype> datatypes;
-  std::vector<Type> unresTypes;
+  std::vector<api::Sort> unresTypes;
   std::map<CVC4::api::Term, CVC4::api::Sort> ntsToUnres;
   unsigned dtProcessed = 0;
   std::unordered_set<unsigned> allowConst;
@@ -1124,7 +1124,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<CVC4::api::Term> func_defs;
   CVC4::api::Term aexpr;
   std::unique_ptr<CVC4::CommandSequence> seq;
-  std::vector<Type> sorts;
+  std::vector<api::Sort> sorts;
   std::vector<CVC4::api::Term> flattenVars;
 }
     /* declare-const */
@@ -1248,7 +1248,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   std::string name;
   std::vector<std::string> names;
   std::vector<CVC4::api::Term> terms;
-  std::vector<Type> sorts;
+  std::vector<api::Sort> sorts;
   std::vector<std::pair<std::string, CVC4::api::Sort> > sortedVarNames;
   std::unique_ptr<CVC4::CommandSequence> seq;
 }
@@ -1438,7 +1438,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
   std::string name;
-  std::vector<Type> sorts;
+  std::vector<api::Sort> sorts;
   std::vector<std::string> dnames;
   std::vector<unsigned> arities;
 }
@@ -1506,7 +1506,7 @@ datatypesDef[bool isCo,
 @declarations {
   std::vector<CVC4::Datatype> dts;
   std::string name;
-  std::vector<Type> params;
+  std::vector<api::Sort> params;
 }
   : { PARSER_STATE->pushScope(true); }
     ( LPAREN_TOK {
@@ -1659,7 +1659,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
   CVC4::api::Sort type2;
   api::Term atomTerm;
   ParseOp p;
-  std::vector<Type> argTypes;
+  std::vector<api::Sort> argTypes;
 }
   : LPAREN_TOK quantOp[kind]
     { PARSER_STATE->pushScope(true); }
