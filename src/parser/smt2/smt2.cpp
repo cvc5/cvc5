@@ -1421,7 +1421,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
                          << cargs.size() << std::endl;
   std::shared_ptr<SygusPrintCallback> spc;
   // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(op, args);
+  spc = std::make_shared<printer::SygusExprPrintCallback>(op, api::convertTermVec(args));
   if (!args.empty())
   {
     bool pureVar = false;
@@ -1430,7 +1430,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
       pureVar = true;
       for (unsigned i = 0, nchild = op.getExpr().getNumChildren(); i < nchild; i++)
       {
-        if (op[i] != args[i])
+        if (op.getExpr()[i] != args[i].getExpr())
         {
           pureVar = false;
           break;
@@ -1438,11 +1438,11 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
       }
     }
     Trace("parser-sygus2") << "Pure var is " << pureVar
-                           << ", hasOp=" << op.hasOperator() << std::endl;
-    if (pureVar && op.hasOperator())
+                           << ", hasOp=" << op.hasOp() << std::endl;
+    if (pureVar && op.hasOp())
     {
       // optimization: use just the operator if it an application to only vars
-      op = op.getOperator();
+      op = op.getOp().getExpr();
     }
     else
     {

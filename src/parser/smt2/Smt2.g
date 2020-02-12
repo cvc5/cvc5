@@ -2425,7 +2425,7 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
                                   << std::endl;
           } else {
             t = PARSER_STATE->mkUnresolvedTypeConstructor(name,args);
-            t = CVC4::api::SortConstructorType(t).instantiate( args );
+            t = t.instantiate( args );
             Debug("parser-param")
                 << "param: make unres param type " << name << " " << args.size()
                 << " " << PARSER_STATE->getArity( name ) << std::endl;

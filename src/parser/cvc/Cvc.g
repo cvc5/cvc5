@@ -1297,7 +1297,7 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
           Debug("parser-param") << "param: make unres type " << id << std::endl;
         }else{
           t = PARSER_STATE->mkUnresolvedTypeConstructor(id,types);
-          t = SortConstructorType(t).instantiate( types );
+          t = t.instantiate( types );
           Debug("parser-param") << "param: make unres param type " << id << " " << types.size() << " "
                                 << PARSER_STATE->getArity( id ) << std::endl;
         }
