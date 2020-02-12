@@ -198,24 +198,6 @@ class Smt2 : public Parser
   void resetAssertions();
 
   /**
-   * Creates a command that asserts a rule.
-   *
-   * @param kind The kind of rule (RR_REWRITE, RR_REDUCTION, RR_DEDUCTION)
-   * @param bvl Bound variable list
-   * @param triggers List of triggers
-   * @param guards List of guards
-   * @param heads List of heads
-   * @param body The body of the rule
-   * @return The command that asserts the rewrite rule
-   */
-  std::unique_ptr<Command> assertRewriteRule(api::Kind kind,
-                                             api::Term bvl,
-                                             const std::vector<api::Term>& triggers,
-                                             const std::vector<api::Term>& guards,
-                                             const std::vector<api::Term>& heads,
-                                             api::Term body);
-
-  /**
    * Class for creating instances of `SynthFunCommand`s. Creating an instance
    * of this class pushes the scope, destroying it pops the scope.
    */
@@ -248,7 +230,7 @@ class Smt2 : public Parser
      * @param grammar Optional grammar associated with the synth-fun command
      * @return The instance of `SynthFunCommand`
      */
-    std::unique_ptr<Command> mkCommand(Type grammar);
+    std::unique_ptr<Command> mkCommand(api::Sort grammar);
 
    private:
     Smt2* d_smt2;

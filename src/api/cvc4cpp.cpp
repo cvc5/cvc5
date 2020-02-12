@@ -534,6 +534,10 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::EXISTS, EXISTS},
         {CVC4::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
         {CVC4::Kind::INST_CLOSURE, INST_CLOSURE},
+        {CVC4::Kind::INST_PATTERN, INST_PATTERN},
+        {CVC4::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
+        {CVC4::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
+        {CVC4::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
         /* ----------------------------------------------------------------- */
         {CVC4::Kind::LAST_KIND, LAST_KIND},
     };

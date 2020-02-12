@@ -215,7 +215,7 @@ api::Term Parser::mkVar(const std::string& name, const api::Sort& type, uint32_t
 
 api::Term Parser::mkBoundVar(const std::string& name, const api::Sort& type) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  api::Term expr = api::Term(getExprManager()->mkBoundVar(name, type.getType()));
+  api::Term expr = d_solver->mkVar(type, name);
   defineVar(name, expr, false);
   return expr;
 }

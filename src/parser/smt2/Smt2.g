@@ -1258,7 +1258,6 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | DECLARE_CODATATYPES_2_5_TOK datatypes_2_5_DefCommand[true, cmd]
   | DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
-  | rewriterulesCommand[cmd]
 
     /* Support some of Z3's extended SMT-LIB commands */
 
@@ -1549,53 +1548,6 @@ datatypesDef[bool isCo,
   }
   ;
 
-rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
-@declarations {
-  std::vector<CVC4::api::Term> guards, heads, triggers;
-  CVC4::api::Term head, body, bvl, expr, expr2;
-  Kind kind;
-}
-  : /* rewrite rules */
-    REWRITE_RULE_TOK { kind = CVC4::api::RR_REWRITE; }
-    { PARSER_STATE->pushScope(true); }
-    boundVarList[bvl]
-    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
-    LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
-    term[head, expr2]
-    term[body, expr2]
-    {
-      *cmd = PARSER_STATE->assertRewriteRule(
-          kind, bvl, triggers, guards, {head}, body);
-    }
-    /* propagation rule */
-  | rewritePropaKind[kind]
-    { PARSER_STATE->pushScope(true); }
-    boundVarList[bvl]
-    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
-    LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
-    LPAREN_TOK (termList[heads,expr])? RPAREN_TOK
-    term[body, expr2]
-    {
-      *cmd = PARSER_STATE->assertRewriteRule(
-          kind, bvl, triggers, guards, heads, body);
-    }
-  ;
-
-rewritePropaKind[CVC4::Kind& kind]
-  : REDUCTION_RULE_TOK    { $kind = CVC4::api::RR_REDUCTION; }
-  | PROPAGATION_RULE_TOK  { $kind = CVC4::api::RR_DEDUCTION; }
-  ;
-
-pattern[CVC4::api::Term& expr]
-@declarations {
-  std::vector<CVC4::api::Term> patexpr;
-}
-  : LPAREN_TOK termList[patexpr,expr] RPAREN_TOK
-    {
-      expr = MK_TERM(api::INST_PATTERN, patexpr);
-    }
-  ;
-
 simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
 @declarations {
   CVC4::Kind k;
@@ -1717,25 +1669,11 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       args.push_back(bvl);
 
       PARSER_STATE->popScope();
-      switch(f.getKind()) {
-      case CVC4::api::RR_REWRITE:
-      case CVC4::api::RR_REDUCTION:
-      case CVC4::api::RR_DEDUCTION:
-        if(kind == CVC4::api::EXISTS) {
-          PARSER_STATE->parseError("Use Exists instead of Forall for a rewrite "
-                                   "rule.");
-        }
-        args.push_back(f2); // guards
-        args.push_back(f); // rule
-        expr = MK_TERM(CVC4::api::REWRITE_RULE, args);
-        break;
-      default:
-        args.push_back(f);
-        if(! f2.isNull()){
-          args.push_back(f2);
-        }
-        expr = MK_TERM(kind, args);
+      args.push_back(f);
+      if(! f2.isNull()){
+        args.push_back(f2);
       }
+      expr = MK_TERM(kind, args);
     }
   | LPAREN_TOK COMPREHENSION_TOK
     { PARSER_STATE->pushScope(true); }
@@ -1906,33 +1844,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       }
     )+ RPAREN_TOK
     {
-      if(attr == ":rewrite-rule") {
-        CVC4::api::Term guard;
-        CVC4::api::Term body;
-        if(expr[1].getKind() == api::IMPLIES ||
-           expr[1].getKind() == api::EQUAL) {
-          guard = expr[0];
-          body = expr[1];
-        } else {
-          guard = MK_CONST(bool(true));
-          body = expr;
-        }
-        expr2 = guard;
-        args.push_back(body[0]);
-        args.push_back(body[1]);
-        if(!f2.isNull()) {
-          args.push_back(f2);
-        }
-
-        if( body.getKind()==api::IMPLIES ){
-          kind = api::RR_DEDUCTION;
-        }else if( body.getKind()==api::EQUAL ){
-          kind = body[0].getType().isBoolean() ? api::RR_REDUCTION : api::RR_REWRITE;
-        }else{
-          PARSER_STATE->parseError("Error parsing rewrite rule.");
-        }
-        expr = MK_TERM( kind, args );
-      } else if(! patexprs.empty()) {
+      if(! patexprs.empty()) {
         if( !f2.isNull() && f2.getKind()==api::INST_PATTERN_LIST ){
           for( size_t i=0; i<f2.getNumChildren(); i++ ){
             if( f2[i].getKind()==api::INST_PATTERN ){
@@ -2264,7 +2176,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       attr = std::string(":no-pattern");
       retExpr = MK_TERM(api::INST_NO_PATTERN, patexpr);
     }
-  | tok=( ATTRIBUTE_INST_LEVEL | ATTRIBUTE_RR_PRIORITY ) INTEGER_LITERAL
+  | tok=( ATTRIBUTE_INST_LEVEL ) INTEGER_LITERAL
     {
       CVC4::api::Term n = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) );
       std::vector<CVC4::api::Term> values;
@@ -2743,7 +2655,6 @@ ATTRIBUTE_PATTERN_TOK : ':pattern';
 ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
 ATTRIBUTE_NAMED_TOK : ':named';
 ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
-ATTRIBUTE_RR_PRIORITY : ':rr-priority';
 
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';

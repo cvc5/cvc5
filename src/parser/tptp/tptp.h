@@ -113,6 +113,10 @@ class Tptp : public Parser {
    *  (lambda x1:t1,...,xn:tn . (expr x)) : t
    */
   void mkLambdaWrapper(api::Term& expr, api::Sort argType);
+  /** 
+   * Make builtin application
+   */
+  api::Term mkBuiltinApp(api::Term f, const std::vector<api::Term>& args);
 
   /** get assertion expression, based on the formula role.
   * expr should have Boolean type.
@@ -136,7 +140,7 @@ class Tptp : public Parser {
   *   This may set a flag in the parser to mark that we have asserted a conjecture.
   */
   Command* makeAssertCommand(FormulaRole fr, api::Term expr, bool cnf, bool inUnsatCore);
-
+  
   /** Ugly hack because I don't know how to return an expression from a
       token */
   api::Term d_tmp_expr;

@@ -626,33 +626,6 @@ void Smt2::resetAssertions() {
   }
 }
 
-std::unique_ptr<Command> Smt2::assertRewriteRule(
-    api::Kind kind,
-    api::Term bvl,
-    const std::vector<api::Term>& triggers,
-    const std::vector<api::Term>& guards,
-    const std::vector<api::Term>& heads,
-    api::Term body)
-{
-  assert(kind == api::RR_REWRITE || kind == api::RR_REDUCTION
-         || kind == api::RR_DEDUCTION);
-
-  ExprManager* em = getExprManager();
-
-  std::vector<api::Term> args;
-  args.push_back(mkAnd(heads));
-  args.push_back(body);
-
-  if (!triggers.empty())
-  {
-    args.push_back(em->mkExpr(api::INST_PATTERN_LIST, triggers));
-  }
-
-  api::Term rhs = em->mkExpr(kind, args);
-  api::Term rule = em->mkExpr(api::REWRITE_RULE, bvl, mkAnd(guards), rhs);
-  return std::unique_ptr<Command>(new AssertCommand(rule, false));
-}
-
 Smt2::SynthFunFactory::SynthFunFactory(
     Smt2* smt2,
     const std::string& fun,
@@ -677,7 +650,7 @@ Smt2::SynthFunFactory::SynthFunFactory(
   Debug("parser-sygus") << "Define synth fun : " << fun << std::endl;
   api::Sort synthFunType =
       varSorts.size() > 0
-          ? d_smt2->getExprManager()->mkFunctionType(varSorts, range)
+          ? d_smt2->getSolver()->mkFunctionSort(varSorts, range)
           : range;
 
   // we do not allow overloading for synth fun
@@ -692,15 +665,15 @@ Smt2::SynthFunFactory::SynthFunFactory(
 
 Smt2::SynthFunFactory::~SynthFunFactory() { d_smt2->popScope(); }
 
-std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(Type grammar)
+std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(api::Sort grammar)
 {
   Debug("parser-sygus") << "...read synth fun " << d_fun << std::endl;
   return std::unique_ptr<Command>(
       new SynthFunCommand(d_fun,
-                          d_synthFun,
-                          grammar.isNull() ? d_sygusType : grammar,
+                          d_synthFun.getExpr(),
+                          grammar.isNull() ? d_sygusType.getType() : grammar.getType(),
                           d_isInv,
-                          d_sygusVars));
+                          api::convertTermVec(d_sygusVars)));
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -1607,12 +1580,12 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
       api::Term e = p.d_expr.getOperator();
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      v.push_back(em->mkExpr(
+      v.push_back(d_solver->mkTerm(
           api::APPLY_TYPE_ASCRIPTION,
           em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
           p.d_expr.getOperator()));
       v.insert(v.end(), p.d_expr.begin(), p.d_expr.end());
-      p.d_expr = em->mkExpr(api::APPLY_CONSTRUCTOR, v);
+      p.d_expr = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, v);
     }
   }
   else if (etype.isConstructor())
@@ -1623,7 +1596,7 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
     {
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(p.d_expr)[Datatype::indexOf(p.d_expr)];
-      p.d_expr = em->mkExpr(
+      p.d_expr = d_solver->mkTerm(
           api::APPLY_TYPE_ASCRIPTION,
           em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
           p.d_expr);
@@ -1842,7 +1815,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t).getDatatype();
-    return em->mkExpr(api::APPLY_SELECTOR, dt[0][n].getSelector(), args);
+    return d_solver->mkTerm(api::APPLY_SELECTOR, dt[0][n].getSelector(), args);
   }
   else if (p.d_kind != api::NULL_EXPR)
   {
@@ -1884,7 +1857,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
                || kind == api::LEQ || kind == api::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        return em->mkExpr(em->mkConst(Chain(kind)), args);
+        return d_solver->mkTerm(em->mkConst(Chain(kind)), args);
       }
     }
 
@@ -1902,12 +1875,12 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     else if (kind == api::MINUS && args.size() == 1)
     {
-      return em->mkExpr(api::UMINUS, args[0]);
+      return d_solver->mkTerm(api::UMINUS, args[0]);
     }
     else
     {
       checkOperator(kind, args.size());
-      return em->mkExpr(kind, args);
+      return d_solver->mkTerm(kind, args);
     }
   }
 
@@ -1931,9 +1904,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (kind == api::NULL_EXPR)
   {
     std::vector<api::Term> eargs(args.begin() + 1, args.end());
-    return em->mkExpr(args[0], eargs);
+    return d_solver->mkTerm(args[0], eargs);
   }
-  return em->mkExpr(kind, args);
+  return d_solver->mkTerm(kind, args);
 }
 
 api::Term Smt2::setNamedAttribute(api::Term& expr, const SExpr& sexpr)
@@ -1974,7 +1947,7 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
   }
   else
   {
-    return api::Term(em->mkExpr(api::AND, convertTermVec(es)));
+    return api::Term(d_solver->mkTerm(api::AND, convertTermVec(es)));
   }
 }
 

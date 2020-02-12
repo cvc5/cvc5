@@ -964,7 +964,7 @@ thfLogicFormula[CVC4::api::Term& expr]
         if (expr.getExpr().getKind() == kind::BUILTIN)
         {
           args.erase(args.begin());
-          expr = EXPR_MANAGER->mkExpr(expr, args);
+          expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
         }
         else
         {
@@ -983,7 +983,7 @@ thfLogicFormula[CVC4::api::Term& expr]
           }
           for (unsigned i = 1; i < args.size(); ++i)
           {
-            expr = MK_TERM(api::HO_APPLY, expr, args[i]);
+            expr = MK_TERM(api::HO_APPLY, expr.getExpr(), args[i].getExpr());
           }
         }
       }
@@ -1013,7 +1013,7 @@ thfUnitaryFormula[CVC4::api::Term& expr]
     RPAREN_TOK
   | NOT_TOK
     { expr = EXPR_MANAGER->operatorOf(kind::NOT); }
-    (thfUnitaryFormula[expr2] { expr = MK_TERM(expr,expr2); })?
+    (thfUnitaryFormula[expr2] { expr = api::Term(EXPR_MANAGER->mkExpr(expr.getExpr(),expr2.getExpr())); })?
   | // Quantified
     thfQuantifier[kind]
     LBRACK_TOK {PARSER_STATE->pushScope();}
@@ -1037,7 +1037,7 @@ thfUnitaryFormula[CVC4::api::Term& expr]
       // see documentation of mkFlatFunctionType for how it's done
       //
       // flatten body via flattening its type
-      std::vector<Type> sorts;
+      std::vector<api::Sort> sorts;
       std::vector<api::Term> flattenVars;
       PARSER_STATE->mkFlatFunctionType(sorts, expr.getSort(), flattenVars);
       if (!flattenVars.empty())
@@ -1092,7 +1092,7 @@ tffTypedAtom[CVC4::Command*& cmd]
         } else {
           // as yet, it's undeclared
           CVC4::api::Term expr = PARSER_STATE->mkVar(name, type);
-          cmd = new DeclareFunctionCommand(name, expr, type);
+          cmd = new DeclareFunctionCommand(name, expr.getExpr(), type.getType());
         }
       }
     )
@@ -1160,7 +1160,7 @@ tffUnitaryFormula[CVC4::api::Term& expr]
       expr = MK_TERM(kind, MK_TERM(api::BOUND_VAR_LIST, bv), expr);
     }
   | '$ite_f' LPAREN_TOK tffLogicFormula[expr] COMMA_TOK tffLogicFormula[lhs] COMMA_TOK tffLogicFormula[rhs] RPAREN_TOK
-    { expr = EXPR_MANAGER->mkExpr(api::ITE, expr, lhs, rhs); }
+    { expr = MK_TERM(api::ITE, expr, lhs, rhs); }
   | '$let_tf' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetTermDefn[lhs, rhs] COMMA_TOK
     tffFormula[expr]
@@ -1190,8 +1190,9 @@ tffLetTermDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
 tffLetTermBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CVC4::api::Term& rhs]
   : term[lhs] EQUAL_TOK term[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
-      rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lhs.getChildren()), rhs);
-      lhs = lhs.getOperator();
+      // PARSER-FIXME
+      //rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lhs.getChildren()), rhs);
+      lhs = lhs.getOp().getExpr();
     }
   | LPAREN_TOK tffLetTermBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
@@ -1207,8 +1208,9 @@ tffLetFormulaDefn[CVC4::api::Term& lhs, CVC4::api::Term& rhs]
 tffLetFormulaBinding[std::vector<CVC4::api::Term>& bvlist, CVC4::api::Term& lhs, CVC4::api::Term& rhs]
   : atomicFormula[lhs] IFF_TOK tffUnitaryFormula[rhs]
     { PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
-      rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lhs.getChildren()), rhs);
-      lhs = lhs.getOperator();
+      // PARSER-FIXME
+      // rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lhs.getChildren()), rhs);
+      lhs = lhs.getOp().getExpr();
     }
   | LPAREN_TOK tffLetFormulaBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
@@ -1290,8 +1292,7 @@ parseType[CVC4::api::Sort & type]
       RPAREN_TOK
     )
     ARROW_TOK simpleType[type]
-    { v.push_back(type);
-      type = EXPR_MANAGER->mkFunctionType(v);
+    { type = SOLVER->mkFunctionSort(v,type);
     }
   ;
 

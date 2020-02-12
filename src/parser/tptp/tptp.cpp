@@ -276,7 +276,7 @@ void Tptp::makeApplication(api::Term& expr, std::string& name,
       expr = getVariable(name);
     } else {
       api::Sort t = api::Sort(term ? d_unsorted : getExprManager()->booleanType());
-      expr = api::Term(mkVar(name, t.getSort().getType(), ExprManager::VAR_FLAG_GLOBAL));  // levelZero
+      expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
       preemptCommand(new DeclareFunctionCommand(name, expr.getExpr(), t.getType()));
     }
   } else {                   // Its an application
@@ -285,19 +285,22 @@ void Tptp::makeApplication(api::Term& expr, std::string& name,
     } else {
       std::vector<api::Sort> sorts(args.size(), d_unsorted);
       api::Sort t = api::Sort(term ? d_unsorted : getExprManager()->booleanType());
-      t = api::Sort(getExprManager()->mkFunctionType(sorts, t));
+      t = d_solver->mkFunctionSort(sorts, t);
       expr = mkVar(name, t, ExprManager::VAR_FLAG_GLOBAL);  // levelZero
       preemptCommand(new DeclareFunctionCommand(name, expr.getExpr(), t.getType()));
     }
     // args might be rationals, in which case we need to create
     // distinct constants of the "unsorted" sort to represent them
     for (size_t i = 0; i < args.size(); ++i) {
-      if (args[i].getType().isReal() &&
+      if (args[i].getSort().isReal() &&
           expr.getSort().getFunctionDomainSorts()[i] == d_unsorted) {
         args[i] = convertRatToUnsorted(args[i]);
       }
     }
-    expr = api::Term(getExprManager()->mkExpr(api::APPLY_UF, expr.getExpr(), api::convertTermVec(args)));
+    std::vector<api::Term> ufArgs;
+    ufArgs.push_back(expr);
+    ufArgs.insert(ufArgs.begin(),args.begin(),args.end());
+    expr = d_solver->mkTerm(api::APPLY_UF,ufArgs);
   }
 }
 
@@ -310,16 +313,21 @@ void Tptp::mkLambdaWrapper(api::Term& expr, api::Sort argType)
     // the introduced variable is internal (not parsable)
     std::stringstream ss;
     ss << "_lvar_" << i;
-    api::Term v = api::Term(getExprManager()->mkBoundVar(ss.str(), domainTypes[i]));
+    api::Term v = d_solver->mkVar(domainTypes[i], ss.str());
     lvars.push_back(v);
   }
   // apply body of lambda to variables
-  api::Term wrapper = getExprManager()->mkExpr(
+  api::Term wrapper = d_solver->mkTerm(
       api::LAMBDA,
-      getExprManager()->mkExpr(api::BOUND_VAR_LIST, lvars),
-      getExprManager()->mkExpr(expr, lvars));
+      d_solver->mkTerm(api::BOUND_VAR_LIST, lvars),
+      mkBuiltinApp(expr, lvars));
 
   expr = wrapper;
+}
+
+api::Term Tptp::mkBuiltinApp(api::Term f, const std::vector<api::Term>& args)
+{
+  return api::Term( getExprManager()->mkExpr(f.getExpr(), convertTermVec(args)));
 }
 
 api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr) {
@@ -336,7 +344,7 @@ api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr) {
       return expr;
     case FR_CONJECTURE:
       // it should be negated when asserted
-      return getExprManager()->mkExpr(api::NOT, expr);
+      return d_solver->mkTerm(api::NOT, expr);
     case FR_UNKNOWN:
     case FR_FI_DOMAIN:
     case FR_FI_FUNCTORS:
@@ -353,13 +361,13 @@ api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr) {
 api::Term Tptp::getAssertionDistinctConstants()
 {
   std::vector<api::Term> constants;
-  for (std::pair<const std::string, Expr>& cs : d_distinct_objects)
+  for (std::pair<const std::string, api::Term>& cs : d_distinct_objects)
   {
     constants.push_back(cs.second);
   }
   if (constants.size() > 1)
   {
-    return getExprManager()->mkExpr(api::DISTINCT, constants);
+    return d_solver->mkTerm(api::DISTINCT, constants);
   }
   return d_nullExpr;
 }
@@ -375,7 +383,7 @@ Command* Tptp::makeAssertCommand(FormulaRole fr, api::Term expr, bool cnf, bool 
   if( expr.isNull() ){
     return new EmptyCommand("Untreated role for expression");
   }else{
-    return new AssertCommand(expr, inUnsatCore);
+    return new AssertCommand(expr.getExpr(), inUnsatCore);
   }
 }
 

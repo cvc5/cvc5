@@ -2198,9 +2198,6 @@ enum CVC4_PUBLIC Kind : int32_t
   BOUND_VAR_LIST,
   /* predicate for specifying term in instantiation closure. */
   INST_CLOSURE,
-#if 0
-  /* instantiation constant */
-  INST_CONSTANT,
   /* instantiation pattern */
   INST_PATTERN,
   /* instantiation no-pattern */
@@ -2209,6 +2206,9 @@ enum CVC4_PUBLIC Kind : int32_t
   INST_ATTRIBUTE,
   /* a list of instantiation patterns */
   INST_PATTERN_LIST,
+#if 0
+  /* instantiation constant */
+  INST_CONSTANT,
   /* general rewrite rule (for rewrite-rules theory) */
   REWRITE_RULE,
   /* actual rewrite rule (for rewrite-rules theory) */
