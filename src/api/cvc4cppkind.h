@@ -1887,6 +1887,10 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   IDEN,
+  /**
+   * Set comprehension
+   */
+  COMPREHENSION,
 
   /* Strings --------------------------------------------------------------- */
 

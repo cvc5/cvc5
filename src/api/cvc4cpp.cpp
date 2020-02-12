@@ -250,6 +250,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {TCLOSURE, CVC4::Kind::TCLOSURE},
     {JOIN_IMAGE, CVC4::Kind::JOIN_IMAGE},
     {IDEN, CVC4::Kind::IDEN},
+    {COMPREHENSION, CVC4::Kind::COMPREHENSION},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, CVC4::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, CVC4::Kind::STRING_IN_REGEXP},
@@ -259,6 +260,13 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {STRING_STRCTN, CVC4::Kind::STRING_STRCTN},
     {STRING_STRIDOF, CVC4::Kind::STRING_STRIDOF},
     {STRING_STRREPL, CVC4::Kind::STRING_STRREPL},
+    {STRING_STRREPLALL, CVC4::Kind::STRING_STRREPLALL},
+    {STRING_TOLOWER, CVC4::Kind::STRING_TOLOWER},
+    {STRING_TOUPPER, CVC4::Kind::STRING_TOUPPER},
+    {STRING_REV, CVC4::Kind::STRING_REV},
+    {STRING_CODE, CVC4::Kind::STRING_CODE},
+    {STRING_LT, CVC4::Kind::STRING_LT},
+    {STRING_LEQ, CVC4::Kind::STRING_LEQ},
     {STRING_PREFIX, CVC4::Kind::STRING_PREFIX},
     {STRING_SUFFIX, CVC4::Kind::STRING_SUFFIX},
     {STRING_ITOS, CVC4::Kind::STRING_ITOS},
@@ -278,6 +286,12 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     /* Quantifiers --------------------------------------------------------- */
     {FORALL, CVC4::Kind::FORALL},
     {EXISTS, CVC4::Kind::EXISTS},
+    {BOUND_VAR_LIST, CVC4::Kind::BOUND_VAR_LIST},
+    {INST_CLOSURE, CVC4::Kind::INST_CLOSURE},
+    {INST_PATTERN, CVC4::Kind::INST_PATTERN},
+    {INST_NO_PATTERN, CVC4::Kind::INST_NO_PATTERN},
+    {INST_ATTRIBUTE, CVC4::Kind::INST_ATTRIBUTE},
+    {INST_PATTERN_LIST, CVC4::Kind::INST_PATTERN_LIST},
     {LAST_KIND, CVC4::Kind::LAST_KIND},
 };
 
@@ -497,6 +511,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::TCLOSURE, TCLOSURE},
         {CVC4::Kind::JOIN_IMAGE, JOIN_IMAGE},
         {CVC4::Kind::IDEN, IDEN},
+        {CVC4::Kind::COMPREHENSION, COMPREHENSION},
         /* Strings --------------------------------------------------------- */
         {CVC4::Kind::STRING_CONCAT, STRING_CONCAT},
         {CVC4::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},

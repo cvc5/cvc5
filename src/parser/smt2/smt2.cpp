@@ -1280,7 +1280,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
         ops[i] = d_solver->mkTerm(api::LAMBDA, lbvl, body);
         Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
         // callback prints as the expression
-        spc = std::make_shared<printer::SygusExprPrintCallback>(body, largs);
+        spc = std::make_shared<printer::SygusExprPrintCallback>(body.getExpr(), api::convertTermVec(largs));
       }
       else
       {
@@ -1421,7 +1421,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
                          << cargs.size() << std::endl;
   std::shared_ptr<SygusPrintCallback> spc;
   // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(op, api::convertTermVec(args));
+  spc = std::make_shared<printer::SygusExprPrintCallback>(op.getExpr(), api::convertTermVec(args));
   if (!args.empty())
   {
     bool pureVar = false;
@@ -1834,7 +1834,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // need --uf-ho if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
       {
-        if ((*i).getType().isFunction())
+        if ((*i).getSort().isFunction())
         {
           parseError(
               "Cannot apply equalty to functions unless --uf-ho is set.");
@@ -1849,26 +1849,26 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         // Builtin operators that are not tokenized, are left associative,
         // but not internally variadic must set this.
-        return api::Term(em->mkLeftAssociative(kind, api::convertTermVec(args)));
+        return api::Term(em->mkLeftAssociative(extToIntKind(kind), api::convertTermVec(args)));
       }
       else if (kind == api::IMPLIES)
       {
         /* right-associative, but CVC4 internally only supports 2 args */
-        return api::Term(em->mkRightAssociative(kind, api::convertTermVec(args)));
+        return api::Term(em->mkRightAssociative(extToIntKind(kind), api::convertTermVec(args)));
       }
       else if (kind == api::EQUAL || kind == api::LT || kind == api::GT
                || kind == api::LEQ || kind == api::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        return d_solver->mkTerm(api::Term(em->mkConst(Chain(kind))), args);
+        return api::Term(em->mkExpr(em->mkConst(Chain(extToIntKind(kind))), api::convertTermVec(args)));
       }
     }
 
-    if (api::isAssociative(kind) && args.size() > em->maxArity(kind))
+    if (kind::isAssociative(extToIntKind(kind)) && args.size() > em->maxArity(extToIntKind(kind)))
     {
       /* Special treatment for associative operators with lots of children
        */
-      return api::Term(em->mkAssociative(kind, api::convertTermVec(args)));
+      return api::Term(em->mkAssociative(extToIntKind(kind), api::convertTermVec(args)));
     }
     else if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
              && args.size() == 1)
@@ -1890,24 +1890,24 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (args.size() >= 2)
   {
     // may be partially applied function, in this case we use HO_APPLY
-    api::Sort argt = args[0].getType();
+    api::Sort argt = args[0].getSort();
     if (argt.isFunction())
     {
-      unsigned arity = static_cast<FunctionType>(argt).getArity();
+      unsigned arity = argt.getFunctionArity();
       if (args.size() - 1 < arity)
       {
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
         // must curry the partial application
-        return em->mkLeftAssociative(api::HO_APPLY, args);
+        return em->mkLeftAssociative(kind::HO_APPLY, api::convertTermVec(args));
       }
     }
   }
   if (kind == api::NULL_EXPR)
   {
     std::vector<api::Term> eargs(args.begin() + 1, args.end());
-    return d_solver->mkTerm(args[0], eargs);
+    return mkBuiltinApp(args[0], eargs);
   }
   return d_solver->mkTerm(kind, args);
 }
@@ -1938,11 +1938,9 @@ api::Term Smt2::setNamedAttribute(api::Term& expr, const SExpr& sexpr)
 
 api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
 {
-  ExprManager* em = getExprManager();
-
   if (es.size() == 0)
   {
-    return api::Term(em->mkConst(true));
+    return d_solver->mkTrue();
   }
   else if (es.size() == 1)
   {
@@ -1950,7 +1948,7 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
   }
   else
   {
-    return api::Term(d_solver->mkTerm(api::AND, convertTermVec(es)));
+    return d_solver->mkTerm(api::AND, es);
   }
 }
 

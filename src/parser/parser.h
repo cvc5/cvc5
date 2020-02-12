@@ -666,6 +666,11 @@ public:
    */
   api::Term mkHoApply(api::Term expr, std::vector<api::Term>& args);
 
+  /** 
+   * Make builtin application
+   */
+  api::Term mkBuiltinApp(api::Term f, const std::vector<api::Term>& args);
+  
   /**
    * Add an operator to the current legal set.
    *

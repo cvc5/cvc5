@@ -325,11 +325,6 @@ void Tptp::mkLambdaWrapper(api::Term& expr, api::Sort argType)
   expr = wrapper;
 }
 
-api::Term Tptp::mkBuiltinApp(api::Term f, const std::vector<api::Term>& args)
-{
-  return api::Term( getExprManager()->mkExpr(f.getExpr(), convertTermVec(args)));
-}
-
 api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr) {
   switch (fr) {
     case FR_AXIOM:

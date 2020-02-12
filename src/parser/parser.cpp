@@ -523,6 +523,11 @@ api::Term Parser::mkHoApply(api::Term expr, std::vector<api::Term>& args)
   return expr;
 }
 
+api::Term Parser::mkBuiltinApp(api::Term f, const std::vector<api::Term>& args)
+{
+  return api::Term( getExprManager()->mkExpr(f.getExpr(), convertTermVec(args)));
+}
+
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch (type) {
     case SYM_VARIABLE:
