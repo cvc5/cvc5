@@ -758,7 +758,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
     CVC4::api::Term bvl;
     if (!sygus_vars.empty())
     {
-      bvl = MK_TERM(api::kind::BOUND_VAR_LIST, sygus_vars);
+      bvl = MK_TERM(api::BOUND_VAR_LIST, sygus_vars);
     }
     for (unsigned i = 0; i < ndatatypes; i++)
     {
@@ -839,7 +839,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
           Debug("parser-sygus") << "Sygus grammar " << fun << " : builtin op : "
                                 << name << std::endl;
           k = PARSER_STATE->getOperatorKind(name);
-          sgt.d_name = api::kind::kindToString(k);
+          sgt.d_name = api::kindToString(k);
           sgt.d_gterm_type = SygusGTerm::gterm_op;
           sgt.d_expr = EXPR_MANAGER->operatorOf(k);
         }else{
@@ -1034,7 +1034,7 @@ sygusGrammar[CVC4::api::Sort & ret,
     CVC4::api::Term bvl;
     if (!sygusVars.empty())
     {
-      bvl = MK_TERM(api::kind::BOUND_VAR_LIST, sygusVars);
+      bvl = MK_TERM(api::BOUND_VAR_LIST, sygusVars);
     }
     Trace("parser-sygus2") << "Process " << dtProcessed << " sygus datatypes..." << std::endl;
     for (unsigned i = 0; i < dtProcessed; i++)
@@ -1556,7 +1556,7 @@ rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
   Kind kind;
 }
   : /* rewrite rules */
-    REWRITE_RULE_TOK { kind = CVC4::api::kind::RR_REWRITE; }
+    REWRITE_RULE_TOK { kind = CVC4::api::RR_REWRITE; }
     { PARSER_STATE->pushScope(true); }
     boundVarList[bvl]
     LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
@@ -1582,8 +1582,8 @@ rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
   ;
 
 rewritePropaKind[CVC4::Kind& kind]
-  : REDUCTION_RULE_TOK    { $kind = CVC4::api::kind::RR_REDUCTION; }
-  | PROPAGATION_RULE_TOK  { $kind = CVC4::api::kind::RR_DEDUCTION; }
+  : REDUCTION_RULE_TOK    { $kind = CVC4::api::RR_REDUCTION; }
+  | PROPAGATION_RULE_TOK  { $kind = CVC4::api::RR_DEDUCTION; }
   ;
 
 pattern[CVC4::api::Term& expr]
@@ -1592,7 +1592,7 @@ pattern[CVC4::api::Term& expr]
 }
   : LPAREN_TOK termList[patexpr,expr] RPAREN_TOK
     {
-      expr = MK_TERM(api::kind::INST_PATTERN, patexpr);
+      expr = MK_TERM(api::INST_PATTERN, patexpr);
     }
   ;
 
@@ -1667,7 +1667,7 @@ symbolicExpr[CVC4::SExpr& sexpr]
  */
 term[CVC4::api::Term& expr, CVC4::api::Term& expr2]
 @init {
-  Kind kind = api::kind::NULL_EXPR;
+  Kind kind = api::NULL_EXPR;
   CVC4::api::Term f;
   std::string name;
   CVC4::api::Sort type;
@@ -1691,7 +1691,7 @@ term[CVC4::api::Term& expr, CVC4::api::Term& expr2]
 termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
 @init {
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
-  Kind kind = api::kind::NULL_EXPR;
+  Kind kind = api::NULL_EXPR;
   std::string name;
   std::vector<CVC4::api::Term> args;
   std::vector< std::pair<std::string, CVC4::api::Sort> > sortedVarNames;
@@ -1718,16 +1718,16 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
 
       PARSER_STATE->popScope();
       switch(f.getKind()) {
-      case CVC4::api::kind::RR_REWRITE:
-      case CVC4::api::kind::RR_REDUCTION:
-      case CVC4::api::kind::RR_DEDUCTION:
-        if(kind == CVC4::api::kind::EXISTS) {
+      case CVC4::api::RR_REWRITE:
+      case CVC4::api::RR_REDUCTION:
+      case CVC4::api::RR_DEDUCTION:
+        if(kind == CVC4::api::EXISTS) {
           PARSER_STATE->parseError("Use Exists instead of Forall for a rewrite "
                                    "rule.");
         }
         args.push_back(f2); // guards
         args.push_back(f); // rule
-        expr = MK_TERM(CVC4::api::kind::REWRITE_RULE, args);
+        expr = MK_TERM(CVC4::api::REWRITE_RULE, args);
         break;
       default:
         args.push_back(f);
@@ -1746,7 +1746,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
     term[f, f2] { args.push_back(f); }
     term[f, f2] { 
       args.push_back(f); 
-      expr = MK_TERM(CVC4::api::kind::COMPREHENSION, args);
+      expr = MK_TERM(CVC4::api::COMPREHENSION, args);
     }
     RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
@@ -1842,9 +1842,9 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           std::vector<CVC4::api::Term> cargs;
           cargs.push_back(f);
           cargs.insert(cargs.end(),args.begin(),args.end());
-          CVC4::api::Term c = MK_TERM(api::kind::APPLY_CONSTRUCTOR,cargs);
-          CVC4::api::Term bvl = MK_TERM(api::kind::BOUND_VAR_LIST,args);
-          CVC4::api::Term mc = MK_TERM(api::kind::MATCH_BIND_CASE, bvl, c, f3);
+          CVC4::api::Term c = MK_TERM(api::APPLY_CONSTRUCTOR,cargs);
+          CVC4::api::Term bvl = MK_TERM(api::BOUND_VAR_LIST,args);
+          CVC4::api::Term mc = MK_TERM(api::MATCH_BIND_CASE, bvl, c, f3);
           matchcases.push_back(mc);
           // now, pop the scope
           PARSER_STATE->popScope();
@@ -1862,7 +1862,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
               PARSER_STATE->parseError("Must apply constructors of arity greater than 0 to arguments in pattern.");
             }
             // make nullary constructor application
-            f = MK_TERM(api::kind::APPLY_CONSTRUCTOR, f);
+            f = MK_TERM(api::APPLY_CONSTRUCTOR, f);
           }
           else
           {
@@ -1872,14 +1872,14 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
         }
         term[f3, f2] {
           CVC4::api::Term mc;
-          if (f.getKind() == api::kind::BOUND_VARIABLE)
+          if (f.getKind() == api::BOUND_VARIABLE)
           {
-            CVC4::api::Term bvl = MK_TERM(api::kind::BOUND_VAR_LIST, f);
-            mc = MK_TERM(api::kind::MATCH_BIND_CASE, bvl, f, f3);
+            CVC4::api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, f);
+            mc = MK_TERM(api::MATCH_BIND_CASE, bvl, f, f3);
           }
           else
           {
-            mc = MK_TERM(api::kind::MATCH_CASE, f, f3);
+            mc = MK_TERM(api::MATCH_CASE, f, f3);
           }
           matchcases.push_back(mc);
         }
@@ -1894,7 +1894,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       std::vector<CVC4::api::Term> mchildren;
       mchildren.push_back(expr);
       mchildren.insert(mchildren.end(), matchcases.begin(), matchcases.end());
-      expr = MK_TERM(api::kind::MATCH, mchildren);
+      expr = MK_TERM(api::MATCH, mchildren);
     }
 
     /* attributed expressions */
@@ -1909,8 +1909,8 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       if(attr == ":rewrite-rule") {
         CVC4::api::Term guard;
         CVC4::api::Term body;
-        if(expr[1].getKind() == api::kind::IMPLIES ||
-           expr[1].getKind() == api::kind::EQUAL) {
+        if(expr[1].getKind() == api::IMPLIES ||
+           expr[1].getKind() == api::EQUAL) {
           guard = expr[0];
           body = expr[1];
         } else {
@@ -1924,18 +1924,18 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           args.push_back(f2);
         }
 
-        if( body.getKind()==api::kind::IMPLIES ){
-          kind = api::kind::RR_DEDUCTION;
-        }else if( body.getKind()==api::kind::EQUAL ){
-          kind = body[0].getType().isBoolean() ? api::kind::RR_REDUCTION : api::kind::RR_REWRITE;
+        if( body.getKind()==api::IMPLIES ){
+          kind = api::RR_DEDUCTION;
+        }else if( body.getKind()==api::EQUAL ){
+          kind = body[0].getType().isBoolean() ? api::RR_REDUCTION : api::RR_REWRITE;
         }else{
           PARSER_STATE->parseError("Error parsing rewrite rule.");
         }
         expr = MK_TERM( kind, args );
       } else if(! patexprs.empty()) {
-        if( !f2.isNull() && f2.getKind()==api::kind::INST_PATTERN_LIST ){
+        if( !f2.isNull() && f2.getKind()==api::INST_PATTERN_LIST ){
           for( size_t i=0; i<f2.getNumChildren(); i++ ){
-            if( f2[i].getKind()==api::kind::INST_PATTERN ){
+            if( f2[i].getKind()==api::INST_PATTERN ){
               patexprs.push_back( f2[i] );
             }else{
               std::stringstream ss;
@@ -1945,7 +1945,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
             }
           }
         }
-        expr2 = MK_TERM(api::kind::INST_PATTERN_LIST, patexprs);
+        expr2 = MK_TERM(api::INST_PATTERN_LIST, patexprs);
       } else {
         expr2 = f2;
       }
@@ -1959,7 +1959,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       args.push_back(bvl);
       args.push_back(f);
       PARSER_STATE->popScope();
-      expr = MK_TERM(CVC4::api::kind::LAMBDA, args);
+      expr = MK_TERM(CVC4::api::LAMBDA, args);
     }
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
   {
@@ -2038,7 +2038,7 @@ qualIdentifier[CVC4::ParseOp& p]
   | LPAREN_TOK AS_TOK
     ( CONST_TOK sortSymbol[type, CHECK_DECLARED]
       {
-        p.d_kind = api::kind::STORE_ALL;
+        p.d_kind = api::STORE_ALL;
         PARSER_STATE->applyTypeAscription(p, type);
       }
     | identifier[p]
@@ -2071,7 +2071,7 @@ identifier[CVC4::ParseOp& p]
   | LPAREN_TOK INDEX_TOK
     ( TESTER_TOK term[f, f2]
       {
-        if (f.getKind() == api::kind::APPLY_CONSTRUCTOR && f.getNumChildren() == 0)
+        if (f.getKind() == api::APPLY_CONSTRUCTOR && f.getNumChildren() == 0)
         {
           // for nullary constructors, must get the operator
           f = f.getOperator();
@@ -2086,7 +2086,7 @@ identifier[CVC4::ParseOp& p]
     | TUPLE_SEL_TOK m=INTEGER_LITERAL
       {
         // we adopt a special syntax (_ tupSel n)
-        p.d_kind = CVC4::api::kind::APPLY_SELECTOR;
+        p.d_kind = CVC4::api::APPLY_SELECTOR;
         // put m in expr so that the caller can deal with this case
         p.d_expr = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
       }
@@ -2208,12 +2208,12 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       std::string attr_name = attr;
       attr_name.erase( attr_name.begin() );
       if( attr==":fun-def" ){
-        if( expr.getKind()!=api::kind::EQUAL || expr[0].getKind()!=api::kind::APPLY_UF ){
+        if( expr.getKind()!=api::EQUAL || expr[0].getKind()!=api::APPLY_UF ){
           success = false;
         }else{
           FunctionType t = (FunctionType)expr[0].getOperator().getType();
           for( unsigned i=0; i<expr[0].getNumChildren(); i++ ){
-            if( expr[0][i].getKind() != api::kind::BOUND_VARIABLE ||
+            if( expr[0][i].getKind() != api::BOUND_VARIABLE ||
                 expr[0][i].getType() != t.getArgTypes()[i] ){
               success = false;
               break;
@@ -2242,7 +2242,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       if( success ){
         //Will set the attribute on auxiliary var (preserves attribute on
         //formula through rewriting).
-        retExpr = MK_TERM(api::kind::INST_ATTRIBUTE, avar);
+        retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
         Command* c = new SetUserAttributeCommand( attr_name, avar );
         c->setMuted(true);
         PARSER_STATE->preemptCommand(c);
@@ -2257,12 +2257,12 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
     )+ RPAREN_TOK
     {
       attr = std::string(":pattern");
-      retExpr = MK_TERM(api::kind::INST_PATTERN, patexprs);
+      retExpr = MK_TERM(api::INST_PATTERN, patexprs);
     }
   | ATTRIBUTE_NO_PATTERN_TOK term[patexpr, e2]
     {
       attr = std::string(":no-pattern");
-      retExpr = MK_TERM(api::kind::INST_NO_PATTERN, patexpr);
+      retExpr = MK_TERM(api::INST_NO_PATTERN, patexpr);
     }
   | tok=( ATTRIBUTE_INST_LEVEL | ATTRIBUTE_RR_PRIORITY ) INTEGER_LITERAL
     {
@@ -2273,7 +2273,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       attr_name.erase( attr_name.begin() );
       CVC4::api::Sort t = EXPR_MANAGER->booleanType();
       CVC4::api::Term avar = PARSER_STATE->mkVar(attr_name, t);
-      retExpr = MK_TERM(api::kind::INST_ATTRIBUTE, avar);
+      retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand( attr_name, avar, values );
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
@@ -2360,8 +2360,8 @@ quantOp[CVC4::Kind& kind]
 @init {
   Debug("parser") << "quant: " << AntlrInput::tokenText(LT(1)) << std::endl;
 }
-  : EXISTS_TOK    { $kind = CVC4::api::kind::EXISTS; }
-  | FORALL_TOK    { $kind = CVC4::api::kind::FORALL; }
+  : EXISTS_TOK    { $kind = CVC4::api::EXISTS; }
+  | FORALL_TOK    { $kind = CVC4::api::FORALL; }
   ;
 
 /**
@@ -2416,7 +2416,7 @@ boundVarList[CVC4::api::Term& expr]
  : LPAREN_TOK sortedVarList[sortedVarNames] RPAREN_TOK
    {
      std::vector<CVC4::api::Term> args = PARSER_STATE->mkBoundVars(sortedVarNames);
-     expr = MK_TERM(api::kind::BOUND_VAR_LIST, args);
+     expr = MK_TERM(api::BOUND_VAR_LIST, args);
    }
  ;
 

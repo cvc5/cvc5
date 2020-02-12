@@ -165,7 +165,7 @@ class Smt2 : public Parser
    */
   api::Term mkDefineFunRec(
       const std::string& fname,
-      const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+      const std::vector<std::pair<std::string, api::Sort> >& sortedVarNames,
       api::Sort t,
       std::vector<api::Term>& flattenVars);
 
@@ -187,7 +187,7 @@ class Smt2 : public Parser
    *     that defined this definition and stores it in bvs.
    */
   void pushDefineFunRecScope(
-      const std::vector<std::pair<std::string, Type> >& sortedVarNames,
+      const std::vector<std::pair<std::string, api::Sort> >& sortedVarNames,
       api::Term func,
       const std::vector<api::Term>& flattenVars,
       std::vector<api::Term>& bvs,

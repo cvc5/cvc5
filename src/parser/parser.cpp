@@ -612,7 +612,7 @@ void Parser::checkOperator(Kind kind, unsigned numArgs)
   checkArity(kind, numArgs);
 }
 
-void Parser::addOperator(Kind kind) { d_logicOperators.insert(kind); }
+void Parser::addOperator(api::Kind kind) { d_logicOperators.insert(kind); }
 
 void Parser::preemptCommand(Command* cmd) { d_commandQueue.push_back(cmd); }
 Command* Parser::nextCommand()

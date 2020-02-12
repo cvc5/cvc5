@@ -671,7 +671,7 @@ public:
    *
    * @param kind the built-in operator to add
    */
-  void addOperator(Kind kind);
+  void addOperator(api::Kind kind);
 
   /**
    * Preempt the next returned command with other ones; used to
