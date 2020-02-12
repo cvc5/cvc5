@@ -901,14 +901,11 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     })?
     {
       if( f.getKind()==api::LAMBDA ){
-        // PARSER-FIXME
-        /*
         bvs.insert(bvs.end(), f[0].begin(), f[0].end());
         formals.push_back(bvs);
         bvs.clear();
         f = f[1];
         formulas.push_back(f);
-        */
       }
       else {
         formals.push_back(bvs);
@@ -1153,8 +1150,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
             ++i) {
           Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
-          // PARSER-FIXME
-          api::Term func; // = SOLVER->mkVar(*i, t, ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
+          api::Term func = api::Term(EXPR_MANAGER->mkVar(*i, t.getType(), ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED));
           PARSER_STATE->defineVar(*i, f);
           Command* decl = new DefineFunctionCommand(*i, func.getExpr(), f.getExpr());
           seq->addCommand(decl);
@@ -1650,11 +1646,8 @@ tupleStore[CVC4::api::Term& f]
         ss << "tuple is of length " << length << "; cannot update index " << k;
         PARSER_STATE->parseError(ss.str());
       }
-      std::vector<api::Term> args;
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-      args.push_back( dt[0][k].getSelector() );
-      args.push_back( f );
-      f2 = MK_TERM(CVC4::api::APPLY_SELECTOR,args);
+      f2 = api::Term(MK_EXPR(CVC4::kind::APPLY_SELECTOR,dt[0][k].getSelector(),f.getExpr()));
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]

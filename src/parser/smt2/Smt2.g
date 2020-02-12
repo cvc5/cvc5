@@ -271,7 +271,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
                       << "' arity=" << n << std::endl;
       unsigned arity = AntlrInput::tokenToUnsigned(n);
       if(arity == 0) {
-        CVC4::api::Sort type = SOLVER->mkUninterpretedSort(name);
+        CVC4::api::Sort type = PARSER_STATE->mkSort(name);
         cmd->reset(new DeclareTypeCommand(name, 0, type.getType()));
       } else {
         CVC4::api::Sort type = PARSER_STATE->mkSortConstructor(name, arity);
@@ -288,7 +288,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
             iend = names.end();
           i != iend;
           ++i) {
-        sorts.push_back(SOLVER->mkUninterpretedSort(*i));
+        sorts.push_back(PARSER_STATE->mkSort(*i));
       }
     }
     sortSymbol[t,CHECK_DECLARED]
@@ -1278,7 +1278,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     LPAREN_TOK
     ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
       { PARSER_STATE->checkUserSymbol(name);
-        CVC4::api::Sort type = SOLVER->mkUninterpretedSort(name);
+        CVC4::api::Sort type = PARSER_STATE->mkSort(name);
         seq->addCommand(new DeclareTypeCommand(name, 0, type.getType()));
       }
     )+
@@ -2525,11 +2525,11 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
      * below. */
   : symbol[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(true); }
    /* ( '[' symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = SOLVER->mkUninterpretedSort(id2);
+        t = PARSER_STATE->mkSort(id2);
         params.push_back( t );
       }
       ( symbol[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = SOLVER->mkUninterpretedSort(id2);
+        t = PARSER_STATE->mkSort(id2);
         params.push_back( t ); }
       )* ']'
     )?*/ //AJR: this isn't necessary if we use z3's style
