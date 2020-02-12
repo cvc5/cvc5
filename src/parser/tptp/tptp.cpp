@@ -81,14 +81,14 @@ void Tptp::addTheory(Theory theory) {
     defineType("Bool", em->booleanType());
     defineVar("$true", em->mkConst(true));
     defineVar("$false", em->mkConst(false));
-    addOperator(kind::AND);
-    addOperator(kind::EQUAL);
-    addOperator(kind::IMPLIES);
-    //addOperator(kind::ITE); //only for tff thf
-    addOperator(kind::NOT);
-    addOperator(kind::OR);
-    addOperator(kind::XOR);
-    addOperator(kind::APPLY_UF);
+    addOperator(api::AND);
+    addOperator(api::EQUAL);
+    addOperator(api::IMPLIES);
+    //addOperator(api::ITE); //only for tff thf
+    addOperator(api::NOT);
+    addOperator(api::OR);
+    addOperator(api::XOR);
+    addOperator(api::APPLY_UF);
     //Add quantifiers?
     break;
 
@@ -185,7 +185,7 @@ void Tptp::includeFile(std::string fileName) {
 
 void Tptp::checkLetBinding(const std::vector<api::Term>& bvlist, api::Term lhs, api::Term rhs,
                            bool formula) {
-  if (lhs.getKind() != kind::APPLY_UF) {
+  if (lhs.getKind() != api::APPLY_UF) {
     parseError("malformed let: LHS must be a flat function application");
   }
   const std::multiset<api::Term> vars{lhs.begin(), lhs.end()};
@@ -240,21 +240,21 @@ api::Term Tptp::convertRatToUnsorted(api::Term expr) {
     api::Sort t;
     // Conversion from rational to unsorted
     t = api::Sort(em->mkFunctionType(em->realType(), d_unsorted.getType()));
-    d_rtu_op = api::Term(em->mkVar("$$rtu", t));
-    preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op.getExpr(), t));
+    d_rtu_op = api::Term(em->mkVar("$$rtu", t.getType()));
+    preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op.getExpr(), t.getType()));
     // Conversion from unsorted to rational
     t = api::Sort(em->mkFunctionType(d_unsorted.getType(), em->realType()));
-    d_utr_op = api::Term(em->mkVar("$$utr", t));
-    preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op.getExpr(), t));
+    d_utr_op = api::Term(em->mkVar("$$utr", t.getType()));
+    preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op.getExpr(), t.getType()));
   }
   // Add the inverse in order to show that over the elements that
   // appear in the problem there is a bijection between unsorted and
   // rational
-  Expr ret = em->mkExpr(kind::APPLY_UF, d_rtu_op, expr);
+  Expr ret = em->mkExpr(api::APPLY_UF, d_rtu_op.getExpr(), expr.getExpr());
   if (d_r_converted.find(expr) == d_r_converted.end()) {
     d_r_converted.insert(expr);
-    Expr eq = em->mkExpr(kind::EQUAL, expr,
-                         em->mkExpr(kind::APPLY_UF, d_utr_op, ret));
+    Expr eq = em->mkExpr(api::EQUAL, expr,
+                         em->mkExpr(api::APPLY_UF, d_utr_op.getExpr(), ret));
     preemptCommand(new AssertCommand(eq));
   }
   return api::Term(ret);
@@ -297,7 +297,7 @@ void Tptp::makeApplication(api::Term& expr, std::string& name,
         args[i] = convertRatToUnsorted(args[i]);
       }
     }
-    expr = api::Term(getExprManager()->mkExpr(kind::APPLY_UF, expr.getExpr(), api::convertTermVec(args)));
+    expr = api::Term(getExprManager()->mkExpr(api::APPLY_UF, expr.getExpr(), api::convertTermVec(args)));
   }
 }
 
@@ -315,8 +315,8 @@ void Tptp::mkLambdaWrapper(api::Term& expr, api::Sort argType)
   }
   // apply body of lambda to variables
   api::Term wrapper = getExprManager()->mkExpr(
-      kind::LAMBDA,
-      getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars),
+      api::LAMBDA,
+      getExprManager()->mkExpr(api::BOUND_VAR_LIST, lvars),
       getExprManager()->mkExpr(expr, lvars));
 
   expr = wrapper;
@@ -336,7 +336,7 @@ api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr) {
       return expr;
     case FR_CONJECTURE:
       // it should be negated when asserted
-      return getExprManager()->mkExpr(kind::NOT, expr);
+      return getExprManager()->mkExpr(api::NOT, expr);
     case FR_UNKNOWN:
     case FR_FI_DOMAIN:
     case FR_FI_FUNCTORS:
@@ -359,7 +359,7 @@ api::Term Tptp::getAssertionDistinctConstants()
   }
   if (constants.size() > 1)
   {
-    return getExprManager()->mkExpr(kind::DISTINCT, constants);
+    return getExprManager()->mkExpr(api::DISTINCT, constants);
   }
   return d_nullExpr;
 }

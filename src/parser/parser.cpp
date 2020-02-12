@@ -398,7 +398,7 @@ std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
       }
       std::unordered_set< std::string > consNames;
       std::unordered_set< std::string > selNames;
-      for (unsigned j=0, ncons = dt.getNumConstructors(); j<ncons; j++)
+      for (size_t j=0, ncons = dt.getNumConstructors(); j<ncons; j++)
       {
         const api::DatatypeConstructor& ctor = dt[j];
         expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
@@ -422,17 +422,16 @@ std::vector<api::Sort> Parser::mkMutualDatatypeTypes(
           checkDeclaration(testerName, CHECK_UNDECLARED);
         }
         defineVar(testerName, tester.getExpr(), d_globalDeclarations, doOverload);
-        for (DatatypeConstructor::const_iterator k = ctor.begin(),
-                                                 k_end = ctor.end();
-             k != k_end; ++k) {
-          api::Term selector = (*k).getSelector();
+        for (size_t k=0, nargs = ctor.getNumArgs(); k<nargs; k++){
+          const api::DatatypeSelector& sel = ctor[k];
+          api::Op selector = sel.getSelectorTerm();
           Debug("parser-idt") << "+++ define " << selector << std::endl;
-          string selectorName = (*k).getName();
+          string selectorName = sel.getName();
           if(selNames.find(selectorName)==selNames.end()) {
             if(!doOverload) {
               checkDeclaration(selectorName, CHECK_UNDECLARED);
             }
-            defineVar(selectorName, selector, d_globalDeclarations, doOverload);
+            defineVar(selectorName, selector.getExpr(), d_globalDeclarations, doOverload);
             selNames.insert(selectorName);
           }else{
             throw ParserException(selectorName + " already declared in this datatype");
@@ -466,24 +465,23 @@ api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts,
 {
   if (range.isFunction())
   {
-    std::vector<api::Sort> domainTypes =
-        (static_cast<FunctionType>(range)).getArgTypes();
+    std::vector<api::Sort> domainTypes = range.getFunctionDomainSorts();
     for (unsigned i = 0, size = domainTypes.size(); i < size; i++)
     {
       sorts.push_back(domainTypes[i]);
       // the introduced variable is internal (not parsable)
       std::stringstream ss;
       ss << "__flatten_var_" << i;
-      api::Term v = getExprManager()->mkBoundVar(ss.str(), domainTypes[i]);
+      api::Term v = api::Term(getExprManager()->mkBoundVar(ss.str(), domainTypes[i].getType()));
       flattenVars.push_back(v);
     }
-    range = static_cast<FunctionType>(range).getRangeType();
+    range = range.getFunctionCodomainSort();
   }
   if (sorts.empty())
   {
     return range;
   }
-  return getExprManager()->mkFunctionType(sorts, range);
+  return api::Sort(getExprManager()->mkFunctionType(api::convertSortVec(sorts), range.getType()));
 }
 
 api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts, api::Sort range)
@@ -504,19 +502,18 @@ api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts, api::Sort ra
   }
   while (range.isFunction())
   {
-    std::vector<api::Sort> domainTypes =
-        static_cast<FunctionType>(range).getArgTypes();
+    std::vector<api::Sort> domainTypes = range.getFunctionDomainSorts();
     sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
-    range = static_cast<FunctionType>(range).getRangeType();
+    range = range.getFunctionCodomainSort();
   }
-  return getExprManager()->mkFunctionType(sorts, range);
+  return api::Sort(getExprManager()->mkFunctionType(api::convertSortVec(sorts), range.getType()));
 }
 
 api::Term Parser::mkHoApply(api::Term expr, std::vector<api::Term>& args)
 {
   for (unsigned i = 0; i < args.size(); i++)
   {
-    expr = getExprManager()->mkExpr(HO_APPLY, expr, args[i]);
+    expr = api::Term(getExprManager()->mkExpr(HO_APPLY, expr.getExpr(), args[i].getExpr()));
   }
   return expr;
 }

@@ -2166,13 +2166,13 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   EXISTS,
+  /* a list of bound variables (used to bind variables under a quantifier) */
+  BOUND_VAR_LIST,
 #if 0
   /* instantiation constant */
   INST_CONSTANT,
   /* instantiation pattern */
   INST_PATTERN,
-  /* a list of bound variables (used to bind variables under a quantifier) */
-  BOUND_VAR_LIST,
   /* instantiation no-pattern */
   INST_NO_PATTERN,
   /* instantiation attribute */

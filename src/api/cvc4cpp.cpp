@@ -811,6 +811,22 @@ bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
 
 bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
 
+bool Sort::operator<(const Sort& s) const {
+  return *d_type < *s.d_type;
+}
+
+bool Sort::operator<=(const Sort& s) const {
+  return *d_type <= *s.d_type;
+}
+
+bool Sort::operator>(const Sort& s) const {
+  return *d_type > *s.d_type;
+}
+
+bool Sort::operator>=(const Sort& s) const {
+  return *d_type >= *s.d_type;
+}
+
 bool Sort::isNull() const { return isNullHelper(); }
 
 bool Sort::isBoolean() const { return d_type->isBoolean(); }
@@ -1774,6 +1790,11 @@ DatatypeSelector::DatatypeSelector(const CVC4::DatatypeConstructorArg& stor)
 
 DatatypeSelector::~DatatypeSelector() {}
 
+std::string DatatypeSelector::getName() const
+{
+  return d_stor->getName();
+}
+
 bool DatatypeSelector::isResolved() const { return d_stor->isResolved(); }
 
 Op DatatypeSelector::getSelectorTerm() const
@@ -1839,6 +1860,16 @@ Op DatatypeConstructor::getTesterTerm() const
 std::string DatatypeConstructor::getTesterName() const
 {
   return d_ctor->getTesterName();
+}
+
+size_t DatatypeConstructor::getNumArgs() const
+{
+  return d_ctor->getNumArgs();
+}
+
+DatatypeSelector DatatypeConstructor::operator[](size_t index) const
+{
+  return (*d_ctor)[index];
 }
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
@@ -2004,7 +2035,33 @@ size_t Datatype::getNumConstructors() const
 }
 
 bool Datatype::isParametric() const { return d_dtype->isParametric(); }
+bool Datatype::isCodatatype() const { return d_dtype->isCodatatype(); }
 
+bool Datatype::isTuple() const { return d_dtype->isTuple(); }
+
+bool Datatype::isRecord() const { return d_dtype->isRecord(); }
+  
+bool Datatype::isFinite() const
+{
+  // CHECK: is resolved?
+  return d_dtype->isFinite();
+}
+bool Datatype::isInterpretedFinite() const
+{
+  // CHECK: is resolved?
+  return d_dtype->isInterpretedFinite();
+}
+bool Datatype::isWellFounded() const
+{
+  // CHECK: is resolved?
+  return d_dtype->isWellFounded();
+}
+bool Datatype::isRecursiveSingleton() const
+{
+  // CHECK: is resolved?
+  return d_dtype->isRecursiveSingleton();
+}
+  
 Datatype::const_iterator Datatype::begin() const
 {
   return Datatype::const_iterator(*d_dtype, true);

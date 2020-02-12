@@ -225,6 +225,27 @@ class CVC4_PUBLIC Sort
    */
   bool operator!=(const Sort& s) const;
 
+
+  /**
+   * An ordering on Types so they can be stored in maps, etc.
+   */
+  bool operator<(const Sort& t) const;
+
+  /**
+   * An ordering on Types so they can be stored in maps, etc.
+   */
+  bool operator<=(const Sort& t) const;
+
+  /**
+   * An ordering on Types so they can be stored in maps, etc.
+   */
+  bool operator>(const Sort& t) const;
+
+  /**
+   * An ordering on Types so they can be stored in maps, etc.
+   */
+  bool operator>=(const Sort& t) const;
+  
   /**
    * @return true if this Sort is a null sort.
    */
@@ -1234,6 +1255,9 @@ class CVC4_PUBLIC DatatypeSelector
    */
   ~DatatypeSelector();
 
+  /** @return the name of this Datatype selector. */
+  std::string getName() const;
+  
   /**
    * @return true if this datatype selector has been resolved.
    */
@@ -1315,7 +1339,14 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return the tester name for this Datatype constructor.
    */
   std::string getTesterName() const;
+
+  /**
+   * @return  the number of arguments (so far) of this Datatype constructor.
+   */
+  size_t getNumArgs() const;
   
+  /** Get the ith DatatypeConstructor arg. */
+  DatatypeSelector operator[](size_t index) const;
   /**
    * Get the datatype selector with the given name.
    * This is a linear search through the selectors, so in case of
@@ -1490,6 +1521,32 @@ class CVC4_PUBLIC Datatype
 
   /** Is this Datatype parametric? */
   bool isParametric() const;
+
+  /** is this a co-datatype? */
+  bool isCodatatype() const;
+
+  /** is this a tuple datatype? */
+  bool isTuple() const;
+
+  /** is this a record datatype? */
+  bool isRecord() const;
+
+  /**
+   */
+  bool isFinite() const;
+
+  /**
+   */
+  bool isInterpretedFinite() const;
+
+  /** is well-founded
+   */
+  bool isWellFounded() const;
+
+  /** is recursive singleton
+   */
+  bool isRecursiveSingleton() const;
+  
   /**
    * @return a string representation of this datatype
    */
