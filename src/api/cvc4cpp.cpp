@@ -1311,6 +1311,11 @@ Term::~Term() {}
 
 bool Term::isNullHelper() const { return d_expr->isNull(); }
 
+Term Term::operator[](size_t index) const
+{
+  return api::Term((*d_expr)[index]);
+}
+  
 bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }

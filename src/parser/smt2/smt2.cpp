@@ -1430,7 +1430,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
       pureVar = true;
       for (unsigned i = 0, nchild = op.getExpr().getNumChildren(); i < nchild; i++)
       {
-        if (op.getExpr()[i] != args[i].getExpr())
+        if (op[i] != args[i])
         {
           pureVar = false;
           break;
@@ -1442,7 +1442,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
     if (pureVar && op.hasOp())
     {
       // optimization: use just the operator if it an application to only vars
-      op = op.getOp().getExpr();
+      op = api::Term(op.getOp().getExpr());
     }
     else
     {
@@ -1482,7 +1482,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
   // like PLUS.
   if (term.isParameterized())
   {
-    pchildren.push_back(term.getOperator());
+    pchildren.push_back(api::Term(term.getOp().getExpr()));
   }
   bool childChanged = false;
   for (unsigned i = 0, nchild = term.getExpr().getNumChildren(); i < nchild; i++)
@@ -1512,7 +1512,7 @@ void Smt2::addSygusConstructorVariables(Datatype& dt,
   for (unsigned i = 0, size = sygusVars.size(); i < size; i++)
   {
     api::Term v = sygusVars[i];
-    if (v.getType() == type)
+    if (v.getSort() == type)
     {
       std::stringstream ss;
       ss << v;
@@ -1563,7 +1563,7 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
     }
   }
   ExprManager* em = getExprManager();
-  api::Sort etype = p.d_expr.getType();
+  api::Sort etype = p.d_expr.getSort();
   Kind ekind = p.d_expr.getKind();
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
   Trace("parser-qid") << " " << ekind << " " << etype;
@@ -1572,17 +1572,16 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
   {
     // nullary constructors with a type ascription
     // could be a parametric constructor or just an overloaded constructor
-    Datatypeapi::Sort dtype = static_cast<DatatypeType>(type);
-    if (dtype.isParametric())
+    if (type.isParametricDatatype())
     {
       std::vector<api::Term> v;
-      api::Term e = p.d_expr.getOperator();
+      Expr e = p.d_expr.getOp().getExpr();
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];
       v.push_back(d_solver->mkTerm(
           api::APPLY_TYPE_ASCRIPTION,
           em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
-          p.d_expr.getOperator()));
+          api::Term(p.d_expr.getOp().getExpr())));
       v.insert(v.end(), p.d_expr.begin(), p.d_expr.end());
       p.d_expr = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, v);
     }
@@ -1683,7 +1682,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   {
     // An explicit operator, e.g. an indexed symbol.
     args.insert(args.begin(), p.d_expr);
-    if (p.d_expr.getType().isTester())
+    if (p.d_expr.getSort().isTester())
     {
       // Testers are handled differently than other indexed operators,
       // since they require a kind.
@@ -1718,7 +1717,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         std::vector<api::Sort> argTypes;
         for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
         {
-          argTypes.push_back((*i).getType());
+          argTypes.push_back((*i).getSort());
         }
         api::Term op = getOverloadedFunctionForTypes(p.d_name, argTypes);
         if (!op.isNull())
@@ -1772,17 +1771,19 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         parseError(ss.str());
       }
     }
-    Arrayapi::Sort aqtype = static_cast<ArrayType>(p.d_type);
-    if (!aqtype.getConstituentType().isComparableTo(constVal.getType()))
+    // PARSER-FIXME 
+    /*
+    if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
          << "array type:          " << p.d_type << std::endl
-         << "expected const type: " << aqtype.getConstituentType() << std::endl
-         << "computed const type: " << constVal.getType();
+         << "expected const type: " << aqtype.getArrayElementSort() << std::endl
+         << "computed const type: " << constVal.getSort();
       parseError(ss.str());
     }
-    return em->mkConst(ArrayStoreAll(p.d_type, constVal));
+    */
+    return api::Term(em->mkConst(ArrayStoreAll(p.d_type.getType(), constVal.getExpr())));
   }
   else if (p.d_kind == api::APPLY_SELECTOR)
   {
@@ -1806,15 +1807,15 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       parseError("tupSel applied to non-tuple");
     }
-    size_t length = ((DatatypeType)t).getTupleLength();
+    size_t length = t.getTupleLength();
     if (n >= length)
     {
       std::stringstream ss;
       ss << "tuple is of length " << length << "; cannot access index " << n;
       parseError(ss.str());
     }
-    const Datatype& dt = ((DatatypeType)t).getDatatype();
-    return d_solver->mkTerm(api::APPLY_SELECTOR, dt[0][n].getSelector(), args);
+    const Datatype& dt = t.getType().getDatatype();
+    return d_solver->mkTerm(api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args);
   }
   else if (p.d_kind != api::NULL_EXPR)
   {
@@ -1845,18 +1846,18 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         // Builtin operators that are not tokenized, are left associative,
         // but not internally variadic must set this.
-        return em->mkLeftAssociative(kind, args);
+        return api::Term(em->mkLeftAssociative(kind, api::convertTermVec(args)));
       }
       else if (kind == api::IMPLIES)
       {
         /* right-associative, but CVC4 internally only supports 2 args */
-        return em->mkRightAssociative(kind, args);
+        return api::Term(em->mkRightAssociative(kind, api::convertTermVec(args)));
       }
       else if (kind == api::EQUAL || kind == api::LT || kind == api::GT
                || kind == api::LEQ || kind == api::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        return d_solver->mkTerm(em->mkConst(Chain(kind)), args);
+        return d_solver->mkTerm(api::Term(em->mkConst(Chain(kind))), args);
       }
     }
 
@@ -1864,7 +1865,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       /* Special treatment for associative operators with lots of children
        */
-      return em->mkAssociative(kind, args);
+      return api::Term(em->mkAssociative(kind, api::convertTermVec(args)));
     }
     else if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
              && args.size() == 1)

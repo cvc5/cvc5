@@ -749,6 +749,13 @@ class CVC4_PUBLIC Term
   ~Term();
 
   /**
+   * Get the child term at a given index.
+   * @param index the index of the child term to return
+   * @return the child term with the given index
+   */
+  Term operator[](size_t index) const;
+  
+  /**
    * Syntactic equality operator.
    * Return true if both terms are syntactically identical.
    * Both terms must belong to the same solver object.

@@ -770,7 +770,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
             "Internal error : could not infer "
             "builtin sort for nested gterm.");
       }
-      datatypes[i].setSygus(sorts[i], bvl, allow_const[i], false);
+      datatypes[i].setSygus(sorts[i].getType(), bvl.getExpr(), allow_const[i], false);
       PARSER_STATE->mkSygusDatatype(datatypes[i],
                                     ops[i],
                                     cnames[i],
@@ -802,7 +802,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
 sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
 @declarations {
   std::string name, name2;
-  Kind k;
+  CVC4::api::Kind k;
   CVC4::api::Sort t;
   std::string sname;
   std::vector< CVC4::api::Term > let_vars;
@@ -1041,7 +1041,7 @@ sygusGrammar[CVC4::api::Sort & ret,
     {
       bool aci = allowConst.find(i)!=allowConst.end();
       CVC4::api::Sort btt = sortedVarNames[i].second;
-      datatypes[i].setSygus(btt, bvl, aci, false);
+      datatypes[i].setSygus(btt.getType(), bvl.getExpr(), aci, false);
       Trace("parser-sygus2") << "- " << datatypes[i].getName()
                              << ", #cons= " << datatypes[i].getNumConstructors()
                              << ", aci= " << aci << std::endl;
