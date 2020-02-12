@@ -354,8 +354,8 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_DATATYPES:
   {
-    const std::vector<Type> types;
-    defineType("Tuple", getExprManager()->mkTupleType(types));
+    const std::vector<api::Sort> types;
+    defineType("Tuple", getExprManager()->mkTupleType(api::convertSortVec(types)));
     addDatatypesOperators();
     break;
   }
@@ -432,14 +432,14 @@ void Smt2::addTheory(Theory theory) {
   }
 }
 
-void Smt2::addOperator(Kind kind, const std::string& name) {
+void Smt2::addOperator(api::Kind kind, const std::string& name) {
   Debug("parser") << "Smt2::addOperator( " << kind << ", " << name << " )"
                   << std::endl;
   Parser::addOperator(kind);
   operatorKindMap[name] = kind;
 }
 
-void Smt2::addIndexedOperator(Kind tKind,
+void Smt2::addIndexedOperator(api::Kind tKind,
                               api::Kind opKind,
                               const std::string& name)
 {
@@ -447,7 +447,7 @@ void Smt2::addIndexedOperator(Kind tKind,
   d_indexedOpKindMap[name] = opKind;
 }
 
-Kind Smt2::getOperatorKind(const std::string& name) const {
+api::Kind Smt2::getOperatorKind(const std::string& name) const {
   // precondition: isOperatorEnabled(name)
   return operatorKindMap.find(name)->second;
 }
@@ -572,7 +572,7 @@ api::Term Smt2::mkDefineFunRec(
     api::Sort t,
     std::vector<api::Term>& flattenVars)
 {
-  std::vector<Type> sorts;
+  std::vector<api::Sort> sorts;
   for (const std::pair<std::string, api::Sort>& svn : sortedVarNames)
   {
     sorts.push_back(svn.second);
@@ -627,7 +627,7 @@ void Smt2::resetAssertions() {
 }
 
 std::unique_ptr<Command> Smt2::assertRewriteRule(
-    Kind kind,
+    api::Kind kind,
     api::Term bvl,
     const std::vector<api::Term>& triggers,
     const std::vector<api::Term>& guards,
@@ -669,7 +669,7 @@ Smt2::SynthFunFactory::SynthFunFactory(
   {
     smt2->parseError("Cannot use synth-fun with function return type.");
   }
-  std::vector<Type> varSorts;
+  std::vector<api::Sort> varSorts;
   for (const std::pair<std::string, api::Sort>& p : sortedVarNames)
   {
     varSorts.push_back(p.second);
@@ -1284,7 +1284,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
         Debug("parser-sygus") << "--> Duplicate gterm operator : " << ops[i]
                               << std::endl;
         // make into define-fun
-        std::vector<Type> ltypes;
+        std::vector<api::Sort> ltypes;
         for (unsigned j = 0, size = cargs[i].size(); j < size; j++)
         {
           ltypes.push_back(sygus_to_builtin[cargs[i][j]]);
@@ -1330,7 +1330,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
           // in which case we do not replace by a lambda.
           if (ops[i].getType().isFunction())
           {
-            std::vector<Type> ftypes =
+            std::vector<api::Sort> ftypes =
                 static_cast<FunctionType>(ops[i].getType()).getArgTypes();
             std::vector<api::Term> largs;
             api::Term lbvl = makeSygusBoundVarList(dt, i, ftypes, largs);
@@ -1413,7 +1413,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
 
 api::Term Smt2::makeSygusBoundVarList(Datatype& dt,
                                  unsigned i,
-                                 const std::vector<Type>& ltypes,
+                                 const std::vector<api::Sort>& ltypes,
                                  std::vector<api::Term>& lvars)
 {
   for (unsigned j = 0, size = ltypes.size(); j < size; j++)
@@ -1442,7 +1442,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   // Notice that let expressions are forbidden in the input syntax of term, so
   // this does not lead to exponential behavior with respect to input size.
   std::vector<api::Term> args;
-  std::vector<Type> cargs;
+  std::vector<api::Sort> cargs;
   api::Term op = purifySygusGTerm(term, ntsToUnres, args, cargs);
   Trace("parser-sygus2") << "Purified operator " << op
                          << ", #args/cargs=" << args.size() << "/"
@@ -1488,7 +1488,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
 api::Term Smt2::purifySygusGTerm(api::Term term,
                             std::map<api::Term, api::Sort>& ntsToUnres,
                             std::vector<api::Term>& args,
-                            std::vector<Type>& cargs) const
+                            std::vector<api::Sort>& cargs) const
 {
   Trace("parser-sygus2-debug")
       << "purifySygusGTerm: " << term << " #nchild=" << term.getNumChildren()
@@ -1743,7 +1743,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         // Could not find the expression. It may be an overloaded symbol,
         // in which case we may find it after knowing the types of its
         // arguments.
-        std::vector<Type> argTypes;
+        std::vector<api::Sort> argTypes;
         for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
         {
           argTypes.push_back((*i).getType());

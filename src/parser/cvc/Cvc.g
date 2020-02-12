@@ -442,7 +442,7 @@ CVC4::api::Term createPrecedenceTree(Parser* parser, ExprManager* em,
   CVC4::api::Term lhs = createPrecedenceTree(parser, em, expressions, operators, startIndex, pivot);
   CVC4::api::Term rhs = createPrecedenceTree(parser, em, expressions, operators, pivot + 1, stopIndex);
 
-  if (lhs.getType().isSet())
+  if (lhs.getSort().isSet())
   {
     switch (k)
     {
@@ -453,7 +453,7 @@ CVC4::api::Term createPrecedenceTree(Parser* parser, ExprManager* em,
       default: break;
     }
   }
-  else if (lhs.getType().isString())
+  else if (lhs.getSort().isString())
   {
     switch (k)
     {
@@ -597,7 +597,7 @@ using namespace CVC4::parser;
 
 #define ENSURE_BV_SIZE(k, f)                                   \
 {                                                              \
-  unsigned size = BitVectorType(f.getType()).getSize();        \
+  unsigned size = BitVectorType(f.getSort()).getSize();        \
   if(k > size) {                                               \
     f = MK_TERM(MK_CONST(BitVectorZeroExtend(k - size)), f);   \
   } else if (k < size) {                                       \
@@ -924,7 +924,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
         PARSER_STATE->parseError("Number of functions doesn't match number of function definitions");
       }
       for(unsigned int i = 0, size = funcs.size(); i < size; i++){
-        if(!funcs[i].getType().isSubtypeOf(types[i])){
+        if(!funcs[i].getSort().isSubtypeOf(types[i])){
           PARSER_STATE->parseError("Type mismatch in definition");
         }
       }
@@ -1097,7 +1097,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
             i != i_end;
             ++i) {
           if(PARSER_STATE->isDeclared(*i, SYM_VARIABLE)) {
-            api::Sort oldType = PARSER_STATE->getVariable(*i).getType();
+            api::Sort oldType = PARSER_STATE->getVariable(*i).getSort();
             Debug("parser") << "  " << *i << " was declared previously "
                             << "with type " << oldType << std::endl;
             if(oldType != t) {
@@ -1125,7 +1125,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
       } else {
         // f is not null-- meaning this is a definition not a declaration
         //Check if the formula f has the correct type, declared as t.
-        if(!f.getType().isSubtypeOf(t)){
+        if(!f.getSort().isSubtypeOf(t)){
           PARSER_STATE->parseError("Type mismatch in definition");
         }
         if(!topLevel) {
@@ -1492,7 +1492,7 @@ prefixFormula[CVC4::api::Term& f]
     boundVarDeclsReturn[terms,types]
     RPAREN COLON formula[f]
     { PARSER_STATE->popScope();
-      api::Sort t = EXPR_MANAGER->mkFunctionType(types, f.getType());
+      api::Sort t = EXPR_MANAGER->mkFunctionType(types, f.getSort());
       api::Term bvl = MK_TERM( kind::BOUND_VAR_LIST, terms );
       f = MK_TERM( kind::LAMBDA, bvl, f );
     }
@@ -1523,7 +1523,7 @@ letDecl
   std::string name;
 }
   : identifier[name,CHECK_NONE,SYM_VARIABLE] EQUAL_TOK formula[e]
-    { Debug("parser") << language::SetLanguage(language::output::LANG_CVC4) << e.getType() << std::endl;
+    { Debug("parser") << language::SetLanguage(language::output::LANG_CVC4) << e.getSort() << std::endl;
       PARSER_STATE->defineVar(name, e);
       Debug("parser") << "LET[" << PARSER_STATE->scopeLevel() << "]: "
                       << name << std::endl
@@ -1626,7 +1626,7 @@ tupleStore[CVC4::api::Term& f]
   api::Term f2;
 }
   : k=numeral
-    { api::Sort t = f.getType();
+    { api::Sort t = f.getSort();
       if(! t.isTuple()) {
         PARSER_STATE->parseError("tuple-update applied to non-tuple");
       }
@@ -1659,7 +1659,7 @@ recordStore[CVC4::api::Term& f]
   api::Term f2;
 }
   : identifier[id,CHECK_NONE,SYM_VARIABLE]
-    { api::Sort t = f.getType();
+    { api::Sort t = f.getSort();
       if(! t.isRecord()) {
         std::stringstream ss;
         ss << "record-update applied to non-record term" << std::endl
@@ -1717,7 +1717,7 @@ bvBinop[unsigned& op]
 bvNegTerm[CVC4::api::Term& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
-    { f = f.getType().isSet() ? MK_TERM(CVC4::kind::COMPLEMENT, f) : MK_TERM(CVC4::kind::BITVECTOR_NOT, f); }
+    { f = f.getSort().isSet() ? MK_TERM(CVC4::kind::COMPLEMENT, f) : MK_TERM(CVC4::kind::BITVECTOR_NOT, f); }
   | relationBinopTerm[f]
   ;
 
@@ -1779,7 +1779,7 @@ postfixTerm[CVC4::api::Term& f]
         if(left) {
           f = MK_TERM(kind::BITVECTOR_CONCAT, f, MK_CONST(BitVector(k)));
         } else {
-          unsigned n = BitVectorType(f.getType()).getSize();
+          unsigned n = BitVectorType(f.getSort()).getSize();
           f = MK_TERM(kind::BITVECTOR_CONCAT, MK_CONST(BitVector(k)),
                       MK_TERM(MK_CONST(BitVectorExtract(n - 1, k)), f));
         }
@@ -1799,7 +1799,7 @@ postfixTerm[CVC4::api::Term& f]
       /* record / tuple select */
     | DOT
       ( identifier[id,CHECK_NONE,SYM_VARIABLE]
-        { api::Sort t = f.getType();
+        { api::Sort t = f.getSort();
           if(! t.isRecord()) {
             PARSER_STATE->parseError("record-select applied to non-record");
           }
@@ -1814,7 +1814,7 @@ postfixTerm[CVC4::api::Term& f]
           f = MK_TERM(CVC4::kind::APPLY_SELECTOR,sargs);
         }
       | k=numeral
-        { api::Sort t = f.getType();
+        { api::Sort t = f.getSort();
           if(! t.isTuple()) {
             PARSER_STATE->parseError("tuple-select applied to non-tuple");
           }
@@ -1859,7 +1859,7 @@ postfixTerm[CVC4::api::Term& f]
         } else if(f.getKind() == CVC4::kind::UNIVERSE_SET && t.isSet()) {
           f = EXPR_MANAGER->mkNullaryOperator(t, kind::UNIVERSE_SET);
         } else {
-          if(f.getType() != t) {
+          if(f.getSort() != t) {
             PARSER_STATE->parseError("Type ascription not satisfied.");
           }
         }
@@ -1877,7 +1877,7 @@ relationTerm[CVC4::api::Term& f]
     { std::vector<api::Sort> types;
       std::vector<api::Term> args;
       args.push_back(f);
-      types.push_back(f.getType());
+      types.push_back(f.getSort());
       DatatypeType t = EXPR_MANAGER->mkTupleType(types);
       const Datatype& dt = t.getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
@@ -1966,7 +1966,7 @@ bvTerm[CVC4::api::Term& f]
     { f = MK_TERM(CVC4::kind::BITVECTOR_LSHR, f, f2); }
     /* BV sign extension */
   | SX_TOK LPAREN formula[f] COMMA k=numeral RPAREN
-    { unsigned n = BitVectorType(f.getType()).getSize();
+    { unsigned n = BitVectorType(f.getSort()).getSize();
       // Sign extension in TheoryBitVector is defined as in SMT-LIB
       // which is different than in the CVC language
       // SX(BITVECTOR(k), n) in CVC language extends to n bits
@@ -1974,7 +1974,7 @@ bvTerm[CVC4::api::Term& f]
       f = MK_TERM(MK_CONST(BitVectorSignExtend(k - n)), f); }
     /* BV zero extension */
   | BVZEROEXTEND_TOK LPAREN formula[f] COMMA k=numeral RPAREN
-    { unsigned n = BitVectorType(f.getType()).getSize();
+    { unsigned n = BitVectorType(f.getSort()).getSize();
       // Zero extension in TheoryBitVector is defined as in SMT-LIB
       // which is the same as in CVC3, but different than SX!
       // SX(BITVECTOR(k), n) in CVC language extends to n bits
@@ -2114,7 +2114,7 @@ simpleTerm[CVC4::api::Term& f]
          * there's nothing to do */
         std::vector<api::Sort> types;
         for(std::vector<api::Term>::const_iterator i = args.begin(); i != args.end(); ++i) {
-          types.push_back((*i).getType());
+          types.push_back((*i).getSort());
         }
         DatatypeType t = EXPR_MANAGER->mkTupleType(types);
         const Datatype& dt = t.getDatatype();
@@ -2173,12 +2173,12 @@ simpleTerm[CVC4::api::Term& f]
            << "the term: " << f;
         PARSER_STATE->parseError(ss.str());
       }
-      if(!t2.isComparableTo(f.getType())) {
+      if(!t2.isComparableTo(f.getSort())) {
         std::stringstream ss;
         ss << "type mismatch inside array constant term:" << std::endl
            << "array type:          " << t << std::endl
            << "expected const type: " << t2 << std::endl
-           << "computed const type: " << f.getType();
+           << "computed const type: " << f.getSort();
         PARSER_STATE->parseError(ss.str());
       }
       f = MK_CONST( ArrayStoreAll(t, f) );
@@ -2193,7 +2193,7 @@ simpleTerm[CVC4::api::Term& f]
      * selector! */
   | DECIMAL_LITERAL { 
       f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL));
-      if(f.getType().isInteger()) {
+      if(f.getSort().isInteger()) {
         // Must cast to Real to ensure correct type is passed to parametric type constructors.
         // We do this cast using division with 1.
         // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
@@ -2216,7 +2216,7 @@ simpleTerm[CVC4::api::Term& f]
     { std::vector< std::pair<std::string, Type> > typeIds;
       assert(names.size() == args.size());
       for(unsigned i = 0; i < names.size(); ++i) {
-        typeIds.push_back(std::make_pair(names[i], args[i].getType()));
+        typeIds.push_back(std::make_pair(names[i], args[i].getSort()));
       }
       DatatypeType t = EXPR_MANAGER->mkRecordType(typeIds);
       const Datatype& dt = t.getDatatype();
@@ -2229,7 +2229,7 @@ simpleTerm[CVC4::api::Term& f]
     /* ascriptions will be required for parameterized zero-ary constructors */
     { f = PARSER_STATE->getVariable(name);
       // datatypes: zero-ary constructors
-      api::Sort t2 = f.getType();
+      api::Sort t2 = f.getSort();
       if(t2.isConstructor() && ConstructorType(t2).getArity() == 0) {
         // don't require parentheses, immediately turn it into an apply
         f = MK_TERM(CVC4::kind::APPLY_CONSTRUCTOR, f);

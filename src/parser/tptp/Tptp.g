@@ -772,19 +772,19 @@ fofBinaryNonAssoc[CVC4::parser::tptp::NonAssoc& na]
   | REVIMPLIES_TOK { na = tptp::NA_REVIMPLIES; }
   ;
 
-folQuantifier[CVC4::Kind& kind]
-  : FORALL_TOK { kind = kind::FORALL; }
-  | EXISTS_TOK { kind = kind::EXISTS; }
+folQuantifier[CVC4::api::Kind& kind]
+  : FORALL_TOK { kind = api::FORALL; }
+  | EXISTS_TOK { kind = api::EXISTS; }
   ;
 
 /*******/
 /* THF */
 
-thfQuantifier[CVC4::Kind& kind]
-  : FORALL_TOK { kind = kind::FORALL; }
-  | EXISTS_TOK { kind = kind::EXISTS; }
-  | LAMBDA_TOK { kind = kind::LAMBDA; }
-  | CHOICE_TOK { kind = kind::CHOICE; }
+thfQuantifier[CVC4::api::Kind& kind]
+  : FORALL_TOK { kind = api::FORALL; }
+  | EXISTS_TOK { kind = api::EXISTS; }
+  | LAMBDA_TOK { kind = api::LAMBDA; }
+  | CHOICE_TOK { kind = api::CHOICE; }
   | DEF_DESC_TOK
     {
       UNSUPPORTED("Description quantifier");
@@ -821,7 +821,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         else
         {
           // as yet, it's undeclared
-          Type type = PARSER_STATE->mkSort(name);
+          api::Sort type = PARSER_STATE->mkSort(name);
           cmd = new DeclareTypeCommand(name, 0, type.getType());
         }
       }
@@ -836,7 +836,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         }
         else if (PARSER_STATE->isDeclared(name, SYM_VARIABLE))
         {
-          if (type == PARSER_STATE->getVariable(name).getType())
+          if (type == PARSER_STATE->getVariable(name).getSort())
           {
             // duplicate declaration is fine, they're compatible
             cmd = new EmptyCommand("compatible redeclaration of constant "
@@ -882,19 +882,19 @@ thfLogicFormula[CVC4::api::Term& expr]
       equalOp[equal]
       thfUnitaryFormula[expr2]
       {
-        if (expr.getKind() == kind::BUILTIN && expr2.getKind() != kind::BUILTIN)
+        if (expr.getExpr().getKind() == kind::BUILTIN && expr2.getExpr().getKind() != kind::BUILTIN)
         {
           // make expr with a lambda of the same type as expr
-          PARSER_STATE->mkLambdaWrapper(expr, expr2.getType());
+          PARSER_STATE->mkLambdaWrapper(expr, expr2.getSort());
         }
-        else if (expr2.getKind() == kind::BUILTIN
-                 && expr.getKind() != kind::BUILTIN)
+        else if (expr2.getExpr().getKind() == kind::BUILTIN
+                 && expr.getExpr().getKind() != kind::BUILTIN)
         {
           // make expr2 with a lambda of the same type as expr
-          PARSER_STATE->mkLambdaWrapper(expr2, expr.getType());
+          PARSER_STATE->mkLambdaWrapper(expr2, expr.getSort());
         }
-        else if (expr.getKind() == kind::BUILTIN
-                 && expr2.getKind() == kind::BUILTIN)
+        else if (expr.getExpr().getKind() == kind::BUILTIN
+                 && expr2.getExpr().getKind() == kind::BUILTIN)
         {
           // TODO create whatever lambda
         }
@@ -961,7 +961,7 @@ thfLogicFormula[CVC4::api::Term& expr]
       {
         expr = args[0];
         // also add case for total applications
-        if (expr.getKind() == kind::BUILTIN)
+        if (expr.getExpr().getKind() == kind::BUILTIN)
         {
           args.erase(args.begin());
           expr = EXPR_MANAGER->mkExpr(expr, args);
@@ -973,14 +973,13 @@ thfLogicFormula[CVC4::api::Term& expr]
           for (unsigned i = 1; i < args.size(); ++i)
           {
             // create a lambda wrapper, e.g. (\lambda x. ~ x)
-            if (args[i].getKind() != kind::BUILTIN)
+            if (args[i].getExpr().getKind() != kind::BUILTIN)
             {
               continue;
             }
             PARSER_STATE->mkLambdaWrapper(
                 args[i],
-                (static_cast<FunctionType>(args[0].getType()))
-                    .getArgTypes()[i - 1]);
+                args[0].getSort().getFunctionDomainSorts()[i - 1]);
           }
           for (unsigned i = 1; i < args.size(); ++i)
           {
@@ -1040,7 +1039,7 @@ thfUnitaryFormula[CVC4::api::Term& expr]
       // flatten body via flattening its type
       std::vector<Type> sorts;
       std::vector<api::Term> flattenVars;
-      PARSER_STATE->mkFlatFunctionType(sorts, expr.getType(), flattenVars);
+      PARSER_STATE->mkFlatFunctionType(sorts, expr.getSort(), flattenVars);
       if (!flattenVars.empty())
       {
         // apply body of lambda to flatten vars
@@ -1073,7 +1072,7 @@ tffTypedAtom[CVC4::Command*& cmd]
           PARSER_STATE->parseError("Symbol `" + name + "' previously declared as a constant; cannot also be a sort");
         } else {
           // as yet, it's undeclared
-          Type type = PARSER_STATE->mkSort(name);
+          api::Sort type = PARSER_STATE->mkSort(name);
           cmd = new DeclareTypeCommand(name, 0, type.getType());
         }
       }
@@ -1083,7 +1082,7 @@ tffTypedAtom[CVC4::Command*& cmd]
           PARSER_STATE->parseError("Symbol `" + name + "' previously declared as a sort");
           cmd = new EmptyCommand("compatible redeclaration of sort " + name);
         } else if(PARSER_STATE->isDeclared(name, SYM_VARIABLE)) {
-          if(type == PARSER_STATE->getVariable(name).getType()) {
+          if(type == PARSER_STATE->getVariable(name).getSort()) {
             // duplicate declaration is fine, they're compatible
             cmd = new EmptyCommand("compatible redeclaration of constant " + name);
           } else {
@@ -1265,7 +1264,7 @@ parseThfType[CVC4::api::Sort& type]
       }
       else
       {
-        Type range = sorts.back();
+        api::Sort range = sorts.back();
         sorts.pop_back();
         type = PARSER_STATE->mkFlatFunctionType(sorts, range);
       }

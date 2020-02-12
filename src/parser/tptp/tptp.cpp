@@ -240,22 +240,22 @@ api::Term Tptp::convertRatToUnsorted(api::Term expr) {
     api::Sort t;
     // Conversion from rational to unsorted
     t = api::Sort(em->mkFunctionType(em->realType(), d_unsorted.getType()));
-    d_rtu_op = api::Term(em->mkVar("$$rtu", t.getType()));
+    d_rtu_op = d_solver->mkVar(t, "$$rtu");
     preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op.getExpr(), t.getType()));
     // Conversion from unsorted to rational
     t = api::Sort(em->mkFunctionType(d_unsorted.getType(), em->realType()));
-    d_utr_op = api::Term(em->mkVar("$$utr", t.getType()));
+    d_utr_op = d_solver->mkVar(t, "$$utr");
     preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op.getExpr(), t.getType()));
   }
   // Add the inverse in order to show that over the elements that
   // appear in the problem there is a bijection between unsorted and
   // rational
-  Expr ret = em->mkExpr(api::APPLY_UF, d_rtu_op.getExpr(), expr.getExpr());
+  api::Term ret = d_solver->mkTerm(api::APPLY_UF, d_rtu_op, expr);
   if (d_r_converted.find(expr) == d_r_converted.end()) {
     d_r_converted.insert(expr);
-    Expr eq = em->mkExpr(api::EQUAL, expr,
-                         em->mkExpr(api::APPLY_UF, d_utr_op.getExpr(), ret));
-    preemptCommand(new AssertCommand(eq));
+    api::Term eq = d_solver->mkTerm(api::EQUAL, expr,
+                         d_solver->mkTerm(api::APPLY_UF, d_utr_op, ret));
+    preemptCommand(new AssertCommand(eq.getExpr()));
   }
   return api::Term(ret);
 }
@@ -264,7 +264,7 @@ api::Term Tptp::convertStrToUnsorted(std::string str) {
   api::Term& e = d_distinct_objects[str];
   if (e.isNull())
   {
-    e = api::Term(getExprManager()->mkVar(str, d_unsorted));
+    e = d_solver->mkVar(d_unsorted,str);
   }
   return e;
 }
