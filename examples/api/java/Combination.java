@@ -16,7 +16,7 @@
  ** The model is displayed using getValue().
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class Combination {
   private static void prefixPrintGetValue(SmtEngine smt, Expr e, int level) {
