@@ -209,7 +209,7 @@ private:
  std::string d_forcedLogic;
 
  /** The set of operators available in the current logic. */
- std::set<Kind> d_logicOperators;
+ std::set<api::Kind> d_logicOperators;
 
  /** The set of attributes already warned about. */
  std::set<std::string> d_attributesWarnedAbout;
@@ -438,7 +438,7 @@ public:
    * <code>kind</code> cannot be applied to <code>numArgs</code>
    * arguments.
    */
-  void checkArity(Kind kind, unsigned numArgs);
+  void checkArity(api::Kind kind, unsigned numArgs);
 
   /**
    * Check that <code>kind</code> is a legal operator in the current
@@ -449,7 +449,7 @@ public:
    * @throws ParserException if the parser mode is strict and the
    * operator <code>kind</code> has not been enabled
    */
-  void checkOperator(Kind kind, unsigned numArgs);
+  void checkOperator(api::Kind kind, unsigned numArgs);
 
   /** Create a new CVC4 variable expression of the given type. 
    *

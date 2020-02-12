@@ -78,7 +78,7 @@ class Smt2 : public Parser
    * BITVECTOR_EXTRACT).
    */
   std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
-  std::pair<Expr, std::string> d_lastNamedTerm;
+  std::pair<api::Term, std::string> d_lastNamedTerm;
   // for sygus
   std::vector<api::Term> d_sygusVars, d_sygusVarPrimed, d_sygusConstraints,
       d_sygusFunSymbols;
@@ -97,7 +97,7 @@ class Smt2 : public Parser
    */
   void addTheory(Theory theory);
 
-  void addOperator(Kind k, const std::string& name);
+  void addOperator(api::Kind k, const std::string& name);
 
   /**
    * Registers an indexed function symbol.
@@ -109,11 +109,11 @@ class Smt2 : public Parser
    * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT)
    * @param name The name of the symbol (e.g. "extract")
    */
-  void addIndexedOperator(Kind tKind,
+  void addIndexedOperator(api::Kind tKind,
                           api::Kind opKind,
                           const std::string& name);
 
-  Kind getOperatorKind(const std::string& name) const;
+  api::Kind getOperatorKind(const std::string& name) const;
 
   bool isOperatorEnabled(const std::string& name) const;
 
@@ -208,7 +208,7 @@ class Smt2 : public Parser
    * @param body The body of the rule
    * @return The command that asserts the rewrite rule
    */
-  std::unique_ptr<Command> assertRewriteRule(Kind kind,
+  std::unique_ptr<Command> assertRewriteRule(api::Kind kind,
                                              api::Term bvl,
                                              const std::vector<api::Term>& triggers,
                                              const std::vector<api::Term>& guards,
@@ -339,15 +339,15 @@ class Smt2 : public Parser
 
   void includeFile(const std::string& filename);
 
-  void setLastNamedTerm(Expr e, std::string name) {
+  void setLastNamedTerm(api::Term e, std::string name) {
     d_lastNamedTerm = std::make_pair(e, name);
   }
 
   void clearLastNamedTerm() {
-    d_lastNamedTerm = std::make_pair(Expr(), "");
+    d_lastNamedTerm = std::make_pair(api::Term(), "");
   }
 
-  std::pair<Expr, std::string> lastNamedTerm() {
+  std::pair<api::Term, std::string> lastNamedTerm() {
     return d_lastNamedTerm;
   }
 
@@ -429,7 +429,7 @@ class Smt2 : public Parser
    */
   void addSygusConstructorTerm(Datatype& dt,
                                api::Term term,
-                               std::map<Expr, Type>& ntsToUnres) const;
+                               std::map<api::Term, Type>& ntsToUnres) const;
   /**
    * This adds constructors to dt for sygus variables in sygusVars whose
    * type is argument type. This method should be called when the sygus grammar
@@ -467,7 +467,7 @@ class Smt2 : public Parser
     this->Parser::checkDeclaration(name, check, type, notes);
   }
 
-  void checkOperator(Kind kind, unsigned numArgs)
+  void checkOperator(api::Kind kind, unsigned numArgs)
   {
     Parser::checkOperator(kind, numArgs);
     // strict SMT-LIB mode enables extra checks for some bitvector operators
@@ -510,7 +510,7 @@ class Smt2 : public Parser
    * which is used later for tracking assertions in unsat cores. This
    * symbol is returned by this method.
    */
-  api::Term setNamedAttribute(Expr& expr, const SExpr& sexpr);
+  api::Term setNamedAttribute(api::Term& expr, const SExpr& sexpr);
 
   // Throw a ParserException with msg appended with the current logic.
   inline void parseErrorLogic(const std::string& msg)
@@ -618,8 +618,8 @@ class Smt2 : public Parser
    * by a lambda), and cargs contains the types of the arguments of the
    * sygus constructor.
    */
-  api::Term purifySygusGTerm(Expr term,
-                        std::map<Expr, Type>& ntsToUnres,
+  api::Term purifySygusGTerm(api::Term term,
+                        std::map<api::Term, Type>& ntsToUnres,
                         std::vector<api::Term>& args,
                         std::vector<Type>& cargs) const;
 

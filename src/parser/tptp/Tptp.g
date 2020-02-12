@@ -177,7 +177,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
-        Command* csen = new SetExpressionNameCommand(aexpr, name);
+        Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
       }
@@ -191,7 +191,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
       if( !aexpr.isNull() ){
         // set the expression name (e.g. used with unsat core printing)
-        Command* csen = new SetExpressionNameCommand(aexpr, name);
+        Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
         csen->setMuted(true);
         PARSER_STATE->preemptCommand(csen);
       }
@@ -207,7 +207,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
         CVC4::api::Term aexpr = PARSER_STATE->getAssertionExpr(fr,expr);
         if( !aexpr.isNull() ){
           // set the expression name (e.g. used with unsat core printing)
-          Command* csen = new SetExpressionNameCommand(aexpr, name);
+          Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
           csen->setMuted(true);
           PARSER_STATE->preemptCommand(csen);
         }
@@ -227,7 +227,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
         if (!aexpr.isNull())
         {
           // set the expression name (e.g. used with unsat core printing)
-          Command* csen = new SetExpressionNameCommand(aexpr, name);
+          Command* csen = new SetExpressionNameCommand(aexpr.getExpr(), name);
           csen->setMuted(true);
           PARSER_STATE->preemptCommand(csen);
         }
@@ -262,7 +262,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       CVC4::api::Term aexpr = PARSER_STATE->getAssertionDistinctConstants();
       if( !aexpr.isNull() )
       {
-        seq->addCommand(new AssertCommand(aexpr, false));
+        seq->addCommand(new AssertCommand(aexpr.getExpr(), false));
       }
 
       std::string filename = PARSER_STATE->getInput()->getInputStreamName();
@@ -275,7 +275,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       }
       seq->addCommand(new SetInfoCommand("filename", SExpr(filename)));
       if(PARSER_STATE->hasConjecture()) {
-        seq->addCommand(new QueryCommand(SOLVER->mkFalse()));
+        seq->addCommand(new QueryCommand(SOLVER->mkFalse().getExpr()));
       } else {
         seq->addCommand(new CheckSatCommand());
       }
@@ -358,7 +358,7 @@ atomicFormula[CVC4::api::Term& expr]
      LPAREN_TOK arguments[args] RPAREN_TOK
      equalOp[equal] term[expr2]
      {
-       expr = EXPR_MANAGER->mkExpr(expr, args);
+       expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
        expr = MK_TERM(api::EQUAL, expr, expr2);
        if (!equal)
        {
@@ -381,7 +381,7 @@ atomicFormula[CVC4::api::Term& expr]
     {
       if (!args.empty())
       {
-        expr = EXPR_MANAGER->mkExpr(expr, args);
+        expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
       }
     }
   | definedProp[expr]
@@ -403,7 +403,7 @@ thfAtomicFormula[CVC4::api::Term& expr]
       LPAREN_TOK arguments[args] RPAREN_TOK
       equalOp[equal] term[expr2]
       {
-        expr = EXPR_MANAGER->mkExpr(expr, args);
+        expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
         expr = MK_TERM(api::EQUAL, expr, expr2);
         if (!equal)
         {
@@ -418,7 +418,7 @@ thfAtomicFormula[CVC4::api::Term& expr]
     {
       if (!args.empty())
       {
-        expr = EXPR_MANAGER->mkExpr(expr, args);
+        expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
       }
     }
   | definedProp[expr]
@@ -433,10 +433,10 @@ definedProp[CVC4::api::Term& expr]
   ;
 
 definedPred[CVC4::api::Term& expr]
-  : '$less' { expr = EXPR_MANAGER->operatorOf(api::LT); }
-  | '$lesseq' { expr = EXPR_MANAGER->operatorOf(api::LEQ); }
-  | '$greater' { expr = EXPR_MANAGER->operatorOf(api::GT); }
-  | '$greatereq' { expr = EXPR_MANAGER->operatorOf(api::GEQ); }
+  : '$less' { expr = EXPR_MANAGER->operatorOf(kind::LT); }
+  | '$lesseq' { expr = EXPR_MANAGER->operatorOf(kind::LEQ); }
+  | '$greater' { expr = EXPR_MANAGER->operatorOf(kind::GT); }
+  | '$greatereq' { expr = EXPR_MANAGER->operatorOf(kind::GEQ); }
   | '$is_rat'
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
@@ -456,27 +456,27 @@ definedPred[CVC4::api::Term& expr]
       CVC4::api::Term lbvl = MK_TERM(api::BOUND_VAR_LIST, n);
       expr = MK_TERM(api::LAMBDA, lbvl, body);
     }
-  | '$is_int' { expr = EXPR_MANAGER->operatorOf(api::IS_INTEGER); }
-  | '$distinct' { expr = EXPR_MANAGER->operatorOf(api::DISTINCT); }
-  | AND_TOK { expr = EXPR_MANAGER->operatorOf(api::AND); }
-  | IMPLIES_TOK { expr = EXPR_MANAGER->operatorOf(api::IMPLIES); }
-  | OR_TOK { expr = EXPR_MANAGER->operatorOf(api::OR); }
+  | '$is_int' { expr = EXPR_MANAGER->operatorOf(kind::IS_INTEGER); }
+  | '$distinct' { expr = EXPR_MANAGER->operatorOf(kind::DISTINCT); }
+  | AND_TOK { expr = EXPR_MANAGER->operatorOf(kind::AND); }
+  | IMPLIES_TOK { expr = EXPR_MANAGER->operatorOf(kind::IMPLIES); }
+  | OR_TOK { expr = EXPR_MANAGER->operatorOf(kind::OR); }
   ;
 
 thfDefinedPred[CVC4::api::Term& expr]
-  : '$less' { expr = EXPR_MANAGER->operatorOf(api::LT); }
-  | '$lesseq' { expr = EXPR_MANAGER->operatorOf(api::LEQ); }
-  | '$greater' { expr = EXPR_MANAGER->operatorOf(api::GT); }
-  | '$greatereq' { expr = EXPR_MANAGER->operatorOf(api::GEQ); }
+  : '$less' { expr = EXPR_MANAGER->operatorOf(kind::LT); }
+  | '$lesseq' { expr = EXPR_MANAGER->operatorOf(kind::LEQ); }
+  | '$greater' { expr = EXPR_MANAGER->operatorOf(kind::GT); }
+  | '$greatereq' { expr = EXPR_MANAGER->operatorOf(kind::GEQ); }
   | '$is_rat'
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
     {
-      CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      CVC4::api::Term q = EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType());
+      CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
+      CVC4::api::Term q = api::Term(EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType()));
       CVC4::api::Term qr = MK_TERM(api::TO_REAL, q);
-      CVC4::api::Term r = EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType());
+      CVC4::api::Term r = api::Term(EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType()));
       CVC4::api::Term rr = MK_TERM(api::TO_REAL, r);
       CVC4::api::Term body = MK_TERM(
           api::AND,
@@ -488,13 +488,13 @@ thfDefinedPred[CVC4::api::Term& expr]
       CVC4::api::Term lbvl = MK_TERM(api::BOUND_VAR_LIST, n);
       expr = MK_TERM(api::LAMBDA, lbvl, body);
     }
-  | '$is_int' { expr = EXPR_MANAGER->operatorOf(api::IS_INTEGER); }
-  | '$distinct' { expr = EXPR_MANAGER->operatorOf(api::DISTINCT); }
+  | '$is_int' { expr = EXPR_MANAGER->operatorOf(kind::IS_INTEGER); }
+  | '$distinct' { expr = EXPR_MANAGER->operatorOf(kind::DISTINCT); }
   | LPAREN_TOK
     (
-      AND_TOK { expr = EXPR_MANAGER->operatorOf(api::AND); }
-    | OR_TOK { expr = EXPR_MANAGER->operatorOf(api::OR); }
-    | IMPLIES_TOK { expr = EXPR_MANAGER->operatorOf(api::IMPLIES); }
+      AND_TOK { expr = EXPR_MANAGER->operatorOf(kind::AND); }
+    | OR_TOK { expr = EXPR_MANAGER->operatorOf(kind::OR); }
+    | IMPLIES_TOK { expr = EXPR_MANAGER->operatorOf(kind::IMPLIES); }
     )
     RPAREN_TOK
   ;
@@ -503,11 +503,11 @@ definedFun[CVC4::api::Term& expr]
 @declarations {
   bool remainder = false;
 }
-  : '$uminus' { expr = EXPR_MANAGER->operatorOf(api::UMINUS); }
-  | '$sum' { expr = EXPR_MANAGER->operatorOf(api::PLUS); }
-  | '$difference' { expr = EXPR_MANAGER->operatorOf(api::MINUS); }
-  | '$product' { expr = EXPR_MANAGER->operatorOf(api::MULT); }
-  | '$quotient' { expr = EXPR_MANAGER->operatorOf(api::DIVISION_TOTAL); }
+  : '$uminus' { expr = EXPR_MANAGER->operatorOf(kind::UMINUS); }
+  | '$sum' { expr = EXPR_MANAGER->operatorOf(kind::PLUS); }
+  | '$difference' { expr = EXPR_MANAGER->operatorOf(kind::MINUS); }
+  | '$product' { expr = EXPR_MANAGER->operatorOf(kind::MULT); }
+  | '$quotient' { expr = EXPR_MANAGER->operatorOf(kind::DIVISION_TOTAL); }
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }
     )
@@ -551,7 +551,7 @@ definedFun[CVC4::api::Term& expr]
       }
       expr = MK_TERM(api::LAMBDA, formals, expr);
     }
-  | '$floor' { expr = EXPR_MANAGER->operatorOf(api::TO_INTEGER); }
+  | '$floor' { expr = EXPR_MANAGER->operatorOf(kind::TO_INTEGER); }
   | '$ceiling'
     { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
@@ -581,9 +581,9 @@ definedFun[CVC4::api::Term& expr]
                                       MK_TERM(api::MULT, MK_TERM(api::TO_INTEGER, MK_TERM(api::PLUS, MK_TERM(api::DIVISION_TOTAL, n, MK_CONST(Rational(2))), SOLVER->mkReal(1, 2))), SOLVER->mkReal(2, 1))));
       expr = MK_TERM(api::LAMBDA, formals, expr);
     }
-  | '$to_int' { expr = EXPR_MANAGER->operatorOf(api::TO_INTEGER); }
-  | '$to_rat' { expr = EXPR_MANAGER->operatorOf(api::TO_REAL); }
-  | '$to_real' { expr = EXPR_MANAGER->operatorOf(api::TO_REAL); }
+  | '$to_int' { expr = EXPR_MANAGER->operatorOf(kind::TO_INTEGER); }
+  | '$to_rat' { expr = EXPR_MANAGER->operatorOf(kind::TO_REAL); }
+  | '$to_real' { expr = EXPR_MANAGER->operatorOf(kind::TO_REAL); }
   ;
 
 //%----Pure CNF should not use $true or $false in problems, and use $false only
@@ -609,14 +609,16 @@ letTerm[CVC4::api::Term& expr]
     tffLetFormulaDefn[lhs, rhs] COMMA_TOK
     term[expr]
     { PARSER_STATE->popScope();
-      expr = expr.substitute(lhs, rhs);
+      //PARSER-FIXME
+      //expr = expr.substitute(lhs, rhs);
     }
     RPAREN_TOK
   | '$let_tt' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetTermDefn[lhs, rhs] COMMA_TOK
     term[expr]
     { PARSER_STATE->popScope();
-      expr = expr.substitute(lhs, rhs);
+      //PARSER-FIXME
+      //expr = expr.substitute(lhs, rhs);
     }
     RPAREN_TOK
   ;
@@ -644,7 +646,7 @@ functionTerm[CVC4::api::Term& expr]
 }
   : plainTerm[expr]
   | definedFun[expr] LPAREN_TOK arguments[args] RPAREN_TOK
-    { expr = EXPR_MANAGER->mkExpr(expr, args); }
+    { expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args)); }
 // | <system_term>
   ;
 
@@ -653,7 +655,7 @@ conditionalTerm[CVC4::api::Term& expr]
   CVC4::api::Term expr2, expr3;
 }
   : '$ite_t' LPAREN_TOK tffLogicFormula[expr] COMMA_TOK term[expr2] COMMA_TOK term[expr3] RPAREN_TOK
-    { expr = EXPR_MANAGER->mkExpr(api::ITE, expr, expr2, expr3); }
+    { expr = MK_TERM(api::ITE, expr, expr2, expr3); }
   ;
 
 plainTerm[CVC4::api::Term& expr]
@@ -820,7 +822,7 @@ thfAtomTyping[CVC4::Command*& cmd]
         {
           // as yet, it's undeclared
           Type type = PARSER_STATE->mkSort(name);
-          cmd = new DeclareTypeCommand(name, 0, type);
+          cmd = new DeclareTypeCommand(name, 0, type.getType());
         }
       }
     | parseThfType[type]
@@ -860,7 +862,7 @@ thfAtomTyping[CVC4::Command*& cmd]
           {
             freshExpr = PARSER_STATE->mkVar(name, type);
           }
-          cmd = new DeclareFunctionCommand(name, freshExpr, type);
+          cmd = new DeclareFunctionCommand(name, freshExpr.getExpr(), type.getType());
         }
       }
     )
@@ -1011,7 +1013,7 @@ thfUnitaryFormula[CVC4::api::Term& expr]
     thfLogicFormula[expr]
     RPAREN_TOK
   | NOT_TOK
-    { expr = EXPR_MANAGER->operatorOf(api::NOT); }
+    { expr = EXPR_MANAGER->operatorOf(kind::NOT); }
     (thfUnitaryFormula[expr2] { expr = MK_TERM(expr,expr2); })?
   | // Quantified
     thfQuantifier[kind]
@@ -1072,7 +1074,7 @@ tffTypedAtom[CVC4::Command*& cmd]
         } else {
           // as yet, it's undeclared
           Type type = PARSER_STATE->mkSort(name);
-          cmd = new DeclareTypeCommand(name, 0, type);
+          cmd = new DeclareTypeCommand(name, 0, type.getType());
         }
       }
     | parseType[type]
@@ -1164,14 +1166,16 @@ tffUnitaryFormula[CVC4::api::Term& expr]
     tffLetTermDefn[lhs, rhs] COMMA_TOK
     tffFormula[expr]
     { PARSER_STATE->popScope();
-      expr = expr.substitute(lhs, rhs);
+      //PARSER-FIXME
+      //expr = expr.substitute(lhs, rhs);
     }
     RPAREN_TOK
   | '$let_ff' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetFormulaDefn[lhs, rhs] COMMA_TOK
     tffFormula[expr]
     { PARSER_STATE->popScope();
-      expr = expr.substitute(lhs, rhs);
+      //PARSER-FIXME
+      //expr = expr.substitute(lhs, rhs);
     }
     RPAREN_TOK
   ;

@@ -254,14 +254,14 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   CARDINALITY_CONSTRAINT,
+  /* cardinality value of sort S:
+   * first parameter is (any) term of sort S */
+   CARDINALITY_VALUE,
 #if 0
   /* Combined cardinality constraint.  */
   COMBINED_CARDINALITY_CONSTRAINT,
   /* Partial uninterpreted function application.  */
   PARTIAL_APPLY_UF,
-  /* cardinality value of sort S:
-   * first parameter is (any) term of sort S */
-   CARDINALITY_VALUE,
 #endif
   /**
    * Higher-order applicative encoding of function application.
@@ -1666,9 +1666,9 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Op op,, const std::vector<Term>& children)
    */
   RECORD_UPDATE,
-#if 0
   /* datatypes size */
   DT_SIZE,
+#if 0
   /* datatypes height bound */
   DT_HEIGHT_BOUND,
   /* datatypes height bound */
@@ -1985,6 +1985,34 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   STRING_STRREPL,
   /**
+   * String replace all.
+   */
+  STRING_STRREPLALL,
+  /**
+   * String to lower.
+   */
+  STRING_TOLOWER,
+  /**
+   * String to upper.
+   */
+  STRING_TOUPPER,
+  /**
+   * String reverse.
+   */
+  STRING_REV,
+  /**
+   * String code.
+   */
+  STRING_CODE,
+  /**
+   * String less than.
+   */
+  STRING_LT,
+  /**
+   * String less than or equal.
+   */
+  STRING_LEQ,
+  /**
    * String prefix-of.
    * Checks whether a string s1 is a prefix of string s2. If string s1 is
    * empty, this operator returns true.
@@ -2168,6 +2196,8 @@ enum CVC4_PUBLIC Kind : int32_t
   EXISTS,
   /* a list of bound variables (used to bind variables under a quantifier) */
   BOUND_VAR_LIST,
+  /* predicate for specifying term in instantiation closure. */
+  INST_CLOSURE,
 #if 0
   /* instantiation constant */
   INST_CONSTANT,
@@ -2179,8 +2209,6 @@ enum CVC4_PUBLIC Kind : int32_t
   INST_ATTRIBUTE,
   /* a list of instantiation patterns */
   INST_PATTERN_LIST,
-  /* predicate for specifying term in instantiation closure. */
-  INST_CLOSURE,
   /* general rewrite rule (for rewrite-rules theory) */
   REWRITE_RULE,
   /* actual rewrite rule (for rewrite-rules theory) */

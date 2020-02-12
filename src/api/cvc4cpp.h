@@ -20,6 +20,7 @@
 #define CVC4__API__CVC4CPP_H
 
 #include "api/cvc4cppkind.h"
+#include "expr/kind.h"
 
 #include <map>
 #include <memory>
@@ -2793,5 +2794,9 @@ std::vector<Type> convertSortVec(const std::vector<Sort>& sorts);
 std::set<Type> convertSortSet(const std::set<Sort>& sorts);
 
 }  // namespace api
+
+CVC4::api::Kind intToExtKind(CVC4::Kind k);
+CVC4::Kind extToIntKind(CVC4::api::Kind k);
+
 }  // namespace CVC4
 #endif

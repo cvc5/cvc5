@@ -45,108 +45,108 @@ Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
 }
 
 void Smt2::addArithmeticOperators() {
-  addOperator(kind::PLUS, "+");
-  addOperator(kind::MINUS, "-");
-  // kind::MINUS is converted to kind::UMINUS if there is only a single operand
-  Parser::addOperator(kind::UMINUS);
-  addOperator(kind::MULT, "*");
-  addOperator(kind::LT, "<");
-  addOperator(kind::LEQ, "<=");
-  addOperator(kind::GT, ">");
-  addOperator(kind::GEQ, ">=");
+  addOperator(api::PLUS, "+");
+  addOperator(api::MINUS, "-");
+  // api::MINUS is converted to api::UMINUS if there is only a single operand
+  Parser::addOperator(api::UMINUS);
+  addOperator(api::MULT, "*");
+  addOperator(api::LT, "<");
+  addOperator(api::LEQ, "<=");
+  addOperator(api::GT, ">");
+  addOperator(api::GEQ, ">=");
 
   if (!strictModeEnabled())
   {
     // NOTE: this operator is non-standard
-    addOperator(kind::POW, "^");
+    addOperator(api::POW, "^");
   }
 }
 
 void Smt2::addTranscendentalOperators()
 {
-  addOperator(kind::EXPONENTIAL, "exp");
-  addOperator(kind::SINE, "sin");
-  addOperator(kind::COSINE, "cos");
-  addOperator(kind::TANGENT, "tan");
-  addOperator(kind::COSECANT, "csc");
-  addOperator(kind::SECANT, "sec");
-  addOperator(kind::COTANGENT, "cot");
-  addOperator(kind::ARCSINE, "arcsin");
-  addOperator(kind::ARCCOSINE, "arccos");
-  addOperator(kind::ARCTANGENT, "arctan");
-  addOperator(kind::ARCCOSECANT, "arccsc");
-  addOperator(kind::ARCSECANT, "arcsec");
-  addOperator(kind::ARCCOTANGENT, "arccot");
-  addOperator(kind::SQRT, "sqrt");
+  addOperator(api::EXPONENTIAL, "exp");
+  addOperator(api::SINE, "sin");
+  addOperator(api::COSINE, "cos");
+  addOperator(api::TANGENT, "tan");
+  addOperator(api::COSECANT, "csc");
+  addOperator(api::SECANT, "sec");
+  addOperator(api::COTANGENT, "cot");
+  addOperator(api::ARCSINE, "arcsin");
+  addOperator(api::ARCCOSINE, "arccos");
+  addOperator(api::ARCTANGENT, "arctan");
+  addOperator(api::ARCCOSECANT, "arccsc");
+  addOperator(api::ARCSECANT, "arcsec");
+  addOperator(api::ARCCOTANGENT, "arccot");
+  addOperator(api::SQRT, "sqrt");
 }
 
 void Smt2::addQuantifiersOperators()
 {
   if (!strictModeEnabled())
   {
-    addOperator(kind::INST_CLOSURE, "inst-closure");
+    addOperator(api::INST_CLOSURE, "inst-closure");
   }
 }
 
 void Smt2::addBitvectorOperators() {
-  addOperator(kind::BITVECTOR_CONCAT, "concat");
-  addOperator(kind::BITVECTOR_NOT, "bvnot");
-  addOperator(kind::BITVECTOR_AND, "bvand");
-  addOperator(kind::BITVECTOR_OR, "bvor");
-  addOperator(kind::BITVECTOR_NEG, "bvneg");
-  addOperator(kind::BITVECTOR_PLUS, "bvadd");
-  addOperator(kind::BITVECTOR_MULT, "bvmul");
-  addOperator(kind::BITVECTOR_UDIV, "bvudiv");
-  addOperator(kind::BITVECTOR_UREM, "bvurem");
-  addOperator(kind::BITVECTOR_SHL, "bvshl");
-  addOperator(kind::BITVECTOR_LSHR, "bvlshr");
-  addOperator(kind::BITVECTOR_ULT, "bvult");
-  addOperator(kind::BITVECTOR_NAND, "bvnand");
-  addOperator(kind::BITVECTOR_NOR, "bvnor");
-  addOperator(kind::BITVECTOR_XOR, "bvxor");
-  addOperator(kind::BITVECTOR_XNOR, "bvxnor");
-  addOperator(kind::BITVECTOR_COMP, "bvcomp");
-  addOperator(kind::BITVECTOR_SUB, "bvsub");
-  addOperator(kind::BITVECTOR_SDIV, "bvsdiv");
-  addOperator(kind::BITVECTOR_SREM, "bvsrem");
-  addOperator(kind::BITVECTOR_SMOD, "bvsmod");
-  addOperator(kind::BITVECTOR_ASHR, "bvashr");
-  addOperator(kind::BITVECTOR_ULE, "bvule");
-  addOperator(kind::BITVECTOR_UGT, "bvugt");
-  addOperator(kind::BITVECTOR_UGE, "bvuge");
-  addOperator(kind::BITVECTOR_SLT, "bvslt");
-  addOperator(kind::BITVECTOR_SLE, "bvsle");
-  addOperator(kind::BITVECTOR_SGT, "bvsgt");
-  addOperator(kind::BITVECTOR_SGE, "bvsge");
-  addOperator(kind::BITVECTOR_REDOR, "bvredor");
-  addOperator(kind::BITVECTOR_REDAND, "bvredand");
-  addOperator(kind::BITVECTOR_TO_NAT, "bv2nat");
+  addOperator(api::BITVECTOR_CONCAT, "concat");
+  addOperator(api::BITVECTOR_NOT, "bvnot");
+  addOperator(api::BITVECTOR_AND, "bvand");
+  addOperator(api::BITVECTOR_OR, "bvor");
+  addOperator(api::BITVECTOR_NEG, "bvneg");
+  addOperator(api::BITVECTOR_PLUS, "bvadd");
+  addOperator(api::BITVECTOR_MULT, "bvmul");
+  addOperator(api::BITVECTOR_UDIV, "bvudiv");
+  addOperator(api::BITVECTOR_UREM, "bvurem");
+  addOperator(api::BITVECTOR_SHL, "bvshl");
+  addOperator(api::BITVECTOR_LSHR, "bvlshr");
+  addOperator(api::BITVECTOR_ULT, "bvult");
+  addOperator(api::BITVECTOR_NAND, "bvnand");
+  addOperator(api::BITVECTOR_NOR, "bvnor");
+  addOperator(api::BITVECTOR_XOR, "bvxor");
+  addOperator(api::BITVECTOR_XNOR, "bvxnor");
+  addOperator(api::BITVECTOR_COMP, "bvcomp");
+  addOperator(api::BITVECTOR_SUB, "bvsub");
+  addOperator(api::BITVECTOR_SDIV, "bvsdiv");
+  addOperator(api::BITVECTOR_SREM, "bvsrem");
+  addOperator(api::BITVECTOR_SMOD, "bvsmod");
+  addOperator(api::BITVECTOR_ASHR, "bvashr");
+  addOperator(api::BITVECTOR_ULE, "bvule");
+  addOperator(api::BITVECTOR_UGT, "bvugt");
+  addOperator(api::BITVECTOR_UGE, "bvuge");
+  addOperator(api::BITVECTOR_SLT, "bvslt");
+  addOperator(api::BITVECTOR_SLE, "bvsle");
+  addOperator(api::BITVECTOR_SGT, "bvsgt");
+  addOperator(api::BITVECTOR_SGE, "bvsge");
+  addOperator(api::BITVECTOR_REDOR, "bvredor");
+  addOperator(api::BITVECTOR_REDAND, "bvredand");
+  addOperator(api::BITVECTOR_TO_NAT, "bv2nat");
 
   addIndexedOperator(
-      kind::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT, "extract");
-  addIndexedOperator(kind::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT, "repeat");
+      api::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT, "extract");
+  addIndexedOperator(api::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT, "repeat");
   addIndexedOperator(
-      kind::BITVECTOR_ZERO_EXTEND, api::BITVECTOR_ZERO_EXTEND, "zero_extend");
+      api::BITVECTOR_ZERO_EXTEND, api::BITVECTOR_ZERO_EXTEND, "zero_extend");
   addIndexedOperator(
-      kind::BITVECTOR_SIGN_EXTEND, api::BITVECTOR_SIGN_EXTEND, "sign_extend");
+      api::BITVECTOR_SIGN_EXTEND, api::BITVECTOR_SIGN_EXTEND, "sign_extend");
   addIndexedOperator(
-      kind::BITVECTOR_ROTATE_LEFT, api::BITVECTOR_ROTATE_LEFT, "rotate_left");
-  addIndexedOperator(kind::BITVECTOR_ROTATE_RIGHT,
+      api::BITVECTOR_ROTATE_LEFT, api::BITVECTOR_ROTATE_LEFT, "rotate_left");
+  addIndexedOperator(api::BITVECTOR_ROTATE_RIGHT,
                      api::BITVECTOR_ROTATE_RIGHT,
                      "rotate_right");
-  addIndexedOperator(kind::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR, "int2bv");
+  addIndexedOperator(api::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR, "int2bv");
 }
 
 void Smt2::addDatatypesOperators()
 {
-  Parser::addOperator(kind::APPLY_CONSTRUCTOR);
-  Parser::addOperator(kind::APPLY_TESTER);
-  Parser::addOperator(kind::APPLY_SELECTOR);
-  Parser::addOperator(kind::APPLY_SELECTOR_TOTAL);
+  Parser::addOperator(api::APPLY_CONSTRUCTOR);
+  Parser::addOperator(api::APPLY_TESTER);
+  Parser::addOperator(api::APPLY_SELECTOR);
+  Parser::addOperator(api::APPLY_SELECTOR_TOTAL);
 
   if (!strictModeEnabled())
   {
-    addOperator(kind::DT_SIZE, "dt.size");
+    addOperator(api::DT_SIZE, "dt.size");
   }
 }
 
@@ -156,123 +156,123 @@ void Smt2::addStringOperators() {
                 ->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma())
                 .getExpr());
 
-  addOperator(kind::STRING_CONCAT, "str.++");
-  addOperator(kind::STRING_LENGTH, "str.len");
-  addOperator(kind::STRING_SUBSTR, "str.substr" );
-  addOperator(kind::STRING_STRCTN, "str.contains" );
-  addOperator(kind::STRING_CHARAT, "str.at" );
-  addOperator(kind::STRING_STRIDOF, "str.indexof" );
-  addOperator(kind::STRING_STRREPL, "str.replace" );
-  addOperator(kind::STRING_STRREPLALL, "str.replaceall");
+  addOperator(api::STRING_CONCAT, "str.++");
+  addOperator(api::STRING_LENGTH, "str.len");
+  addOperator(api::STRING_SUBSTR, "str.substr" );
+  addOperator(api::STRING_STRCTN, "str.contains" );
+  addOperator(api::STRING_CHARAT, "str.at" );
+  addOperator(api::STRING_STRIDOF, "str.indexof" );
+  addOperator(api::STRING_STRREPL, "str.replace" );
+  addOperator(api::STRING_STRREPLALL, "str.replaceall");
   if (!strictModeEnabled())
   {
-    addOperator(kind::STRING_TOLOWER, "str.tolower");
-    addOperator(kind::STRING_TOUPPER, "str.toupper");
-    addOperator(kind::STRING_REV, "str.rev");
+    addOperator(api::STRING_TOLOWER, "str.tolower");
+    addOperator(api::STRING_TOUPPER, "str.toupper");
+    addOperator(api::STRING_REV, "str.rev");
   }
-  addOperator(kind::STRING_PREFIX, "str.prefixof" );
-  addOperator(kind::STRING_SUFFIX, "str.suffixof" );
+  addOperator(api::STRING_PREFIX, "str.prefixof" );
+  addOperator(api::STRING_SUFFIX, "str.suffixof" );
   // at the moment, we only use this syntax for smt2.6.1
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6_1)
   {
-    addOperator(kind::STRING_ITOS, "str.from-int");
-    addOperator(kind::STRING_STOI, "str.to-int");
-    addOperator(kind::STRING_IN_REGEXP, "str.in-re");
-    addOperator(kind::STRING_TO_REGEXP, "str.to-re");
+    addOperator(api::STRING_ITOS, "str.from-int");
+    addOperator(api::STRING_STOI, "str.to-int");
+    addOperator(api::STRING_IN_REGEXP, "str.in-re");
+    addOperator(api::STRING_TO_REGEXP, "str.to-re");
   }
   else
   {
-    addOperator(kind::STRING_ITOS, "int.to.str");
-    addOperator(kind::STRING_STOI, "str.to.int");
-    addOperator(kind::STRING_IN_REGEXP, "str.in.re");
-    addOperator(kind::STRING_TO_REGEXP, "str.to.re");
+    addOperator(api::STRING_ITOS, "int.to.str");
+    addOperator(api::STRING_STOI, "str.to.int");
+    addOperator(api::STRING_IN_REGEXP, "str.in.re");
+    addOperator(api::STRING_TO_REGEXP, "str.to.re");
   }
 
-  addOperator(kind::REGEXP_CONCAT, "re.++");
-  addOperator(kind::REGEXP_UNION, "re.union");
-  addOperator(kind::REGEXP_INTER, "re.inter");
-  addOperator(kind::REGEXP_STAR, "re.*");
-  addOperator(kind::REGEXP_PLUS, "re.+");
-  addOperator(kind::REGEXP_OPT, "re.opt");
-  addOperator(kind::REGEXP_RANGE, "re.range");
-  addOperator(kind::REGEXP_LOOP, "re.loop");
-  addOperator(kind::STRING_CODE, "str.code");
-  addOperator(kind::STRING_LT, "str.<");
-  addOperator(kind::STRING_LEQ, "str.<=");
+  addOperator(api::REGEXP_CONCAT, "re.++");
+  addOperator(api::REGEXP_UNION, "re.union");
+  addOperator(api::REGEXP_INTER, "re.inter");
+  addOperator(api::REGEXP_STAR, "re.*");
+  addOperator(api::REGEXP_PLUS, "re.+");
+  addOperator(api::REGEXP_OPT, "re.opt");
+  addOperator(api::REGEXP_RANGE, "re.range");
+  addOperator(api::REGEXP_LOOP, "re.loop");
+  addOperator(api::STRING_CODE, "str.code");
+  addOperator(api::STRING_LT, "str.<");
+  addOperator(api::STRING_LEQ, "str.<=");
 }
 
 void Smt2::addFloatingPointOperators() {
-  addOperator(kind::FLOATINGPOINT_FP, "fp");
-  addOperator(kind::FLOATINGPOINT_EQ, "fp.eq");
-  addOperator(kind::FLOATINGPOINT_ABS, "fp.abs");
-  addOperator(kind::FLOATINGPOINT_NEG, "fp.neg");
-  addOperator(kind::FLOATINGPOINT_PLUS, "fp.add");
-  addOperator(kind::FLOATINGPOINT_SUB, "fp.sub");
-  addOperator(kind::FLOATINGPOINT_MULT, "fp.mul");
-  addOperator(kind::FLOATINGPOINT_DIV, "fp.div");
-  addOperator(kind::FLOATINGPOINT_FMA, "fp.fma");
-  addOperator(kind::FLOATINGPOINT_SQRT, "fp.sqrt");
-  addOperator(kind::FLOATINGPOINT_REM, "fp.rem");
-  addOperator(kind::FLOATINGPOINT_RTI, "fp.roundToIntegral");
-  addOperator(kind::FLOATINGPOINT_MIN, "fp.min");
-  addOperator(kind::FLOATINGPOINT_MAX, "fp.max");
-  addOperator(kind::FLOATINGPOINT_LEQ, "fp.leq");
-  addOperator(kind::FLOATINGPOINT_LT, "fp.lt");
-  addOperator(kind::FLOATINGPOINT_GEQ, "fp.geq");
-  addOperator(kind::FLOATINGPOINT_GT, "fp.gt");
-  addOperator(kind::FLOATINGPOINT_ISN, "fp.isNormal");
-  addOperator(kind::FLOATINGPOINT_ISSN, "fp.isSubnormal");
-  addOperator(kind::FLOATINGPOINT_ISZ, "fp.isZero");
-  addOperator(kind::FLOATINGPOINT_ISINF, "fp.isInfinite");
-  addOperator(kind::FLOATINGPOINT_ISNAN, "fp.isNaN");
-  addOperator(kind::FLOATINGPOINT_ISNEG, "fp.isNegative");
-  addOperator(kind::FLOATINGPOINT_ISPOS, "fp.isPositive");
-  addOperator(kind::FLOATINGPOINT_TO_REAL, "fp.to_real");
+  addOperator(api::FLOATINGPOINT_FP, "fp");
+  addOperator(api::FLOATINGPOINT_EQ, "fp.eq");
+  addOperator(api::FLOATINGPOINT_ABS, "fp.abs");
+  addOperator(api::FLOATINGPOINT_NEG, "fp.neg");
+  addOperator(api::FLOATINGPOINT_PLUS, "fp.add");
+  addOperator(api::FLOATINGPOINT_SUB, "fp.sub");
+  addOperator(api::FLOATINGPOINT_MULT, "fp.mul");
+  addOperator(api::FLOATINGPOINT_DIV, "fp.div");
+  addOperator(api::FLOATINGPOINT_FMA, "fp.fma");
+  addOperator(api::FLOATINGPOINT_SQRT, "fp.sqrt");
+  addOperator(api::FLOATINGPOINT_REM, "fp.rem");
+  addOperator(api::FLOATINGPOINT_RTI, "fp.roundToIntegral");
+  addOperator(api::FLOATINGPOINT_MIN, "fp.min");
+  addOperator(api::FLOATINGPOINT_MAX, "fp.max");
+  addOperator(api::FLOATINGPOINT_LEQ, "fp.leq");
+  addOperator(api::FLOATINGPOINT_LT, "fp.lt");
+  addOperator(api::FLOATINGPOINT_GEQ, "fp.geq");
+  addOperator(api::FLOATINGPOINT_GT, "fp.gt");
+  addOperator(api::FLOATINGPOINT_ISN, "fp.isNormal");
+  addOperator(api::FLOATINGPOINT_ISSN, "fp.isSubnormal");
+  addOperator(api::FLOATINGPOINT_ISZ, "fp.isZero");
+  addOperator(api::FLOATINGPOINT_ISINF, "fp.isInfinite");
+  addOperator(api::FLOATINGPOINT_ISNAN, "fp.isNaN");
+  addOperator(api::FLOATINGPOINT_ISNEG, "fp.isNegative");
+  addOperator(api::FLOATINGPOINT_ISPOS, "fp.isPositive");
+  addOperator(api::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
-  addIndexedOperator(kind::FLOATINGPOINT_TO_FP_GENERIC,
+  addIndexedOperator(api::FLOATINGPOINT_TO_FP_GENERIC,
                      api::FLOATINGPOINT_TO_FP_GENERIC,
                      "to_fp");
-  addIndexedOperator(kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
+  addIndexedOperator(api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
                      api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
                      "to_fp_unsigned");
   addIndexedOperator(
-      kind::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
+      api::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV, "fp.to_ubv");
   addIndexedOperator(
-      kind::FLOATINGPOINT_TO_SBV, api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
+      api::FLOATINGPOINT_TO_SBV, api::FLOATINGPOINT_TO_SBV, "fp.to_sbv");
 
   if (!strictModeEnabled())
   {
-    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
                        api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
                        "to_fp_bv");
-    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
                        api::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
                        "to_fp_fp");
-    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_REAL,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_REAL,
                        api::FLOATINGPOINT_TO_FP_REAL,
                        "to_fp_real");
-    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
+    addIndexedOperator(api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
                        api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
                        "to_fp_signed");
   }
 }
 
 void Smt2::addSepOperators() {
-  addOperator(kind::SEP_STAR, "sep");
-  addOperator(kind::SEP_PTO, "pto");
-  addOperator(kind::SEP_WAND, "wand");
-  addOperator(kind::SEP_EMP, "emp");
-  Parser::addOperator(kind::SEP_STAR);
-  Parser::addOperator(kind::SEP_PTO);
-  Parser::addOperator(kind::SEP_WAND);
-  Parser::addOperator(kind::SEP_EMP);
+  addOperator(api::SEP_STAR, "sep");
+  addOperator(api::SEP_PTO, "pto");
+  addOperator(api::SEP_WAND, "wand");
+  addOperator(api::SEP_EMP, "emp");
+  Parser::addOperator(api::SEP_STAR);
+  Parser::addOperator(api::SEP_PTO);
+  Parser::addOperator(api::SEP_WAND);
+  Parser::addOperator(api::SEP_EMP);
 }
 
 void Smt2::addTheory(Theory theory) {
   switch(theory) {
   case THEORY_ARRAYS:
-    addOperator(kind::SELECT, "select");
-    addOperator(kind::STORE, "store");
+    addOperator(api::SELECT, "select");
+    addOperator(api::STORE, "store");
     break;
 
   case THEORY_BITVECTORS:
@@ -283,40 +283,40 @@ void Smt2::addTheory(Theory theory) {
     defineType("Bool", getExprManager()->booleanType());
     defineVar("true", getExprManager()->mkConst(true));
     defineVar("false", getExprManager()->mkConst(false));
-    addOperator(kind::AND, "and");
-    addOperator(kind::DISTINCT, "distinct");
-    addOperator(kind::EQUAL, "=");
-    addOperator(kind::IMPLIES, "=>");
-    addOperator(kind::ITE, "ite");
-    addOperator(kind::NOT, "not");
-    addOperator(kind::OR, "or");
-    addOperator(kind::XOR, "xor");
+    addOperator(api::AND, "and");
+    addOperator(api::DISTINCT, "distinct");
+    addOperator(api::EQUAL, "=");
+    addOperator(api::IMPLIES, "=>");
+    addOperator(api::ITE, "ite");
+    addOperator(api::NOT, "not");
+    addOperator(api::OR, "or");
+    addOperator(api::XOR, "xor");
     break;
 
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
-    addOperator(kind::DIVISION, "/");
-    addOperator(kind::TO_INTEGER, "to_int");
-    addOperator(kind::IS_INTEGER, "is_int");
-    addOperator(kind::TO_REAL, "to_real");
+    addOperator(api::DIVISION, "/");
+    addOperator(api::TO_INTEGER, "to_int");
+    addOperator(api::IS_INTEGER, "is_int");
+    addOperator(api::TO_REAL, "to_real");
     // falling through on purpose, to add Ints part of Reals_Ints
     CVC4_FALLTHROUGH;
   case THEORY_INTS:
     defineType("Int", getExprManager()->integerType());
     addArithmeticOperators();
-    addOperator(kind::INTS_DIVISION, "div");
-    addOperator(kind::INTS_MODULUS, "mod");
-    addOperator(kind::ABS, "abs");
-    addIndexedOperator(kind::DIVISIBLE, api::DIVISIBLE, "divisible");
+    addOperator(api::INTS_DIVISION, "div");
+    addOperator(api::INTS_MODULUS, "mod");
+    addOperator(api::ABS, "abs");
+    addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
     break;
 
   case THEORY_REALS:
     defineType("Real", getExprManager()->realType());
     addArithmeticOperators();
-    addOperator(kind::DIVISION, "/");
+    addOperator(api::DIVISION, "/");
     if (!strictModeEnabled())
     {
-      addOperator(kind::ABS, "abs");
+      addOperator(api::ABS, "abs");
     }
     break;
 
@@ -337,19 +337,19 @@ void Smt2::addTheory(Theory theory) {
     defineVar("univset",
               d_solver->mkUniverseSet(d_solver->getBooleanSort()).getExpr());
 
-    addOperator(kind::UNION, "union");
-    addOperator(kind::INTERSECTION, "intersection");
-    addOperator(kind::SETMINUS, "setminus");
-    addOperator(kind::SUBSET, "subset");
-    addOperator(kind::MEMBER, "member");
-    addOperator(kind::SINGLETON, "singleton");
-    addOperator(kind::INSERT, "insert");
-    addOperator(kind::CARD, "card");
-    addOperator(kind::COMPLEMENT, "complement");
-    addOperator(kind::JOIN, "join");
-    addOperator(kind::PRODUCT, "product");
-    addOperator(kind::TRANSPOSE, "transpose");
-    addOperator(kind::TCLOSURE, "tclosure");
+    addOperator(api::UNION, "union");
+    addOperator(api::INTERSECTION, "intersection");
+    addOperator(api::SETMINUS, "setminus");
+    addOperator(api::SUBSET, "subset");
+    addOperator(api::MEMBER, "member");
+    addOperator(api::SINGLETON, "singleton");
+    addOperator(api::INSERT, "insert");
+    addOperator(api::CARD, "card");
+    addOperator(api::COMPLEMENT, "complement");
+    addOperator(api::JOIN, "join");
+    addOperator(api::PRODUCT, "product");
+    addOperator(api::TRANSPOSE, "transpose");
+    addOperator(api::TCLOSURE, "tclosure");
     break;
 
   case THEORY_DATATYPES:
@@ -372,12 +372,12 @@ void Smt2::addTheory(Theory theory) {
     break;
 
   case THEORY_UF:
-    Parser::addOperator(kind::APPLY_UF);
+    Parser::addOperator(api::APPLY_UF);
 
     if (!strictModeEnabled() && d_logic.hasCardinalityConstraints())
     {
-      addOperator(kind::CARDINALITY_CONSTRAINT, "fmf.card");
-      addOperator(kind::CARDINALITY_VALUE, "fmf.card.val");
+      addOperator(api::CARDINALITY_CONSTRAINT, "fmf.card");
+      addOperator(api::CARDINALITY_VALUE, "fmf.card.val");
     }
     break;
 
@@ -634,8 +634,8 @@ std::unique_ptr<Command> Smt2::assertRewriteRule(
     const std::vector<api::Term>& heads,
     api::Term body)
 {
-  assert(kind == kind::RR_REWRITE || kind == kind::RR_REDUCTION
-         || kind == kind::RR_DEDUCTION);
+  assert(kind == api::RR_REWRITE || kind == api::RR_REDUCTION
+         || kind == api::RR_DEDUCTION);
 
   ExprManager* em = getExprManager();
 
@@ -645,11 +645,11 @@ std::unique_ptr<Command> Smt2::assertRewriteRule(
 
   if (!triggers.empty())
   {
-    args.push_back(em->mkExpr(kind::INST_PATTERN_LIST, triggers));
+    args.push_back(em->mkExpr(api::INST_PATTERN_LIST, triggers));
   }
 
   api::Term rhs = em->mkExpr(kind, args);
-  api::Term rule = em->mkExpr(kind::REWRITE_RULE, bvl, mkAnd(guards), rhs);
+  api::Term rule = em->mkExpr(api::REWRITE_RULE, bvl, mkAnd(guards), rhs);
   return std::unique_ptr<Command>(new AssertCommand(rule, false));
 }
 
@@ -991,18 +991,18 @@ void Smt2::processSygusGTerm(
     Debug("parser-sygus") << "Add " << sgt.d_expr << " to datatype " << index
                           << std::endl;
     Kind oldKind;
-    Kind newKind = kind::UNDEFINED_KIND;
+    Kind newKind = api::UNDEFINED_KIND;
     //convert to UMINUS if one child of MINUS
-    if( sgt.d_children.size()==1 && sgt.d_expr==getExprManager()->operatorOf(kind::MINUS) ){
-      oldKind = kind::MINUS;
-      newKind = kind::UMINUS;
+    if( sgt.d_children.size()==1 && sgt.d_expr==getExprManager()->operatorOf(api::MINUS) ){
+      oldKind = api::MINUS;
+      newKind = api::UMINUS;
     }
-    if( newKind!=kind::UNDEFINED_KIND ){
+    if( newKind!=api::UNDEFINED_KIND ){
       api::Term newapi::Term = getExprManager()->operatorOf(newKind);
       Debug("parser-sygus") << "Replace " << sgt.d_expr << " with " << newapi::Term << std::endl;
       sgt.d_expr = newExpr;
-      std::string oldName = kind::kindToString(oldKind);
-      std::string newName = kind::kindToString(newKind);
+      std::string oldName = api::kindToString(oldKind);
+      std::string newName = api::kindToString(newKind);
       size_t pos = 0;
       if((pos = sgt.d_name.find(oldName, pos)) != std::string::npos){
         sgt.d_name.replace(pos, oldName.length(), newName);
@@ -1147,7 +1147,7 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
     }
     api::Term sop = ops[sub_dt_index][0];
     api::Sort curr_t;
-    if( sop.getKind() != kind::BUILTIN && ( sop.isConst() || cargs[sub_dt_index][0].empty() ) ){
+    if( sop.getKind() != api::BUILTIN && ( sop.isConst() || cargs[sub_dt_index][0].empty() ) ){
       curr_t = sop.getType();
       Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getType() << ", debug=" << sop.isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
       // only cache if it is a singleton datatype (has unique expr)
@@ -1162,7 +1162,7 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
       }
     }else{
       std::vector< api::Term > children;
-      if( sop.getKind() != kind::BUILTIN ){
+      if( sop.getKind() != api::BUILTIN ){
         children.push_back( sop );
       }
       for( unsigned i=0; i<cargs[sub_dt_index][0].size(); i++ ){
@@ -1189,7 +1189,7 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
           children.push_back( it->second );
         }
       }
-      Kind sk = sop.getKind() != kind::BUILTIN
+      Kind sk = sop.getKind() != api::BUILTIN
                     ? getKindForFunction(sop)
                     : getExprManager()->operatorToKind(sop);
       Debug("parser-sygus") << ": operator " << sop << " with " << sop.getKind() << " " << sk << std::endl;
@@ -1294,17 +1294,17 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
 
         // make the let_body
         std::vector<api::Term> children;
-        if (ops[i].getKind() != kind::BUILTIN)
+        if (ops[i].getKind() != api::BUILTIN)
         {
           children.push_back(ops[i]);
         }
         children.insert(children.end(), largs.begin(), largs.end());
-        Kind sk = ops[i].getKind() != kind::BUILTIN
+        Kind sk = ops[i].getKind() != api::BUILTIN
                       ? getKindForFunction(ops[i])
                       : getExprManager()->operatorToKind(ops[i]);
         api::Term body = getExprManager()->mkExpr(sk, children);
         // replace by lambda
-        ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
+        ops[i] = getExprManager()->mkExpr(api::LAMBDA, lbvl, body);
         Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
         // callback prints as the expression
         spc = std::make_shared<printer::SygusExprPrintCallback>(body, largs);
@@ -1321,7 +1321,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
           // the given name.
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
         }
-        else if (ops[i].getKind() == kind::VARIABLE)
+        else if (ops[i].getKind() == api::VARIABLE)
         {
           Debug("parser-sygus") << "--> Defined function " << ops[i]
                                 << std::endl;
@@ -1335,8 +1335,8 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
             std::vector<api::Term> largs;
             api::Term lbvl = makeSygusBoundVarList(dt, i, ftypes, largs);
             largs.insert(largs.begin(), ops[i]);
-            api::Term body = getExprManager()->mkExpr(kind::APPLY_UF, largs);
-            ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
+            api::Term body = getExprManager()->mkExpr(api::APPLY_UF, largs);
+            ops[i] = getExprManager()->mkExpr(api::LAMBDA, lbvl, body);
             Debug("parser-sygus") << "  ...replace op : " << ops[i]
                                   << std::endl;
           }
@@ -1386,9 +1386,9 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
           api::Term var = mkBoundVar(ss.str(), bt);
           std::vector<api::Term> lchildren;
           lchildren.push_back(
-              getExprManager()->mkExpr(kind::BOUND_VAR_LIST, var));
+              getExprManager()->mkExpr(api::BOUND_VAR_LIST, var));
           lchildren.push_back(var);
-          api::Term id_op = getExprManager()->mkExpr(kind::LAMBDA, lchildren);
+          api::Term id_op = getExprManager()->mkExpr(api::LAMBDA, lchildren);
 
           // empty sygus callback (should not be printed)
           std::shared_ptr<SygusPrintCallback> sepc =
@@ -1423,7 +1423,7 @@ api::Term Smt2::makeSygusBoundVarList(Datatype& dt,
     api::Term v = mkBoundVar(ss.str(), ltypes[j]);
     lvars.push_back(v);
   }
-  return getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars);
+  return getExprManager()->mkExpr(api::BOUND_VAR_LIST, lvars);
 }
 
 void Smt2::addSygusConstructorTerm(Datatype& dt,
@@ -1474,9 +1474,9 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
     }
     else
     {
-      api::Term lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, args);
+      api::Term lbvl = getExprManager()->mkExpr(api::BOUND_VAR_LIST, args);
       // its operator is a lambda
-      op = getExprManager()->mkExpr(kind::LAMBDA, lbvl, op);
+      op = getExprManager()->mkExpr(api::LAMBDA, lbvl, op);
     }
   }
   Trace("parser-sygus2") << "Generated operator " << op << std::endl;
@@ -1559,7 +1559,7 @@ InputLanguage Smt2::getLanguage() const
 void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
 {
   // (as const (Array T1 T2))
-  if (p.d_kind == kind::STORE_ALL)
+  if (p.d_kind == api::STORE_ALL)
   {
     if (!type.isArray())
     {
@@ -1596,7 +1596,7 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
   Trace("parser-qid") << " " << ekind << " " << etype;
   Trace("parser-qid") << std::endl;
-  if (ekind == kind::APPLY_CONSTRUCTOR && type.isDatatype())
+  if (ekind == api::APPLY_CONSTRUCTOR && type.isDatatype())
   {
     // nullary constructors with a type ascription
     // could be a parametric constructor or just an overloaded constructor
@@ -1608,11 +1608,11 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];
       v.push_back(em->mkExpr(
-          kind::APPLY_TYPE_ASCRIPTION,
+          api::APPLY_TYPE_ASCRIPTION,
           em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
           p.d_expr.getOperator()));
       v.insert(v.end(), p.d_expr.begin(), p.d_expr.end());
-      p.d_expr = em->mkExpr(kind::APPLY_CONSTRUCTOR, v);
+      p.d_expr = em->mkExpr(api::APPLY_CONSTRUCTOR, v);
     }
   }
   else if (etype.isConstructor())
@@ -1624,27 +1624,27 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(p.d_expr)[Datatype::indexOf(p.d_expr)];
       p.d_expr = em->mkExpr(
-          kind::APPLY_TYPE_ASCRIPTION,
+          api::APPLY_TYPE_ASCRIPTION,
           em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
           p.d_expr);
     }
   }
-  else if (ekind == kind::EMPTYSET)
+  else if (ekind == api::EMPTYSET)
   {
     Debug("parser") << "Empty set encountered: " << p.d_expr << " " << type
                     << std::endl;
     p.d_expr = api::Term(em->mkConst(EmptySet(type)));
   }
-  else if (ekind == kind::UNIVERSE_SET)
+  else if (ekind == api::UNIVERSE_SET)
   {
-    p.d_expr = api::Term(em->mkNullaryOperator(type, kind::UNIVERSE_SET));
+    p.d_expr = api::Term(em->mkNullaryOperator(type, api::UNIVERSE_SET));
   }
-  else if (ekind == kind::SEP_NIL)
+  else if (ekind == api::SEP_NIL)
   {
     // We don't want the nil reference to be a constant: for instance, it
     // could be of type Int but is not a const rational. However, the
     // expression has 0 children. So we convert to a SEP_NIL variable.
-    p.d_expr = api::Term(em->mkNullaryOperator(type, kind::SEP_NIL));
+    p.d_expr = api::Term(em->mkNullaryOperator(type, api::SEP_NIL));
   }
   else if (etype != type)
   {
@@ -1655,7 +1655,7 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
 api::Term Smt2::parseOpToExpr(ParseOp& p)
 {
   api::Term expr;
-  if (p.d_kind != kind::NULL_EXPR || !p.d_type.isNull())
+  if (p.d_kind != api::NULL_EXPR || !p.d_type.isNull())
   {
     parseError(
         "Bad syntax for qualified identifier operator in term position.");
@@ -1691,7 +1691,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
 {
   bool isBuiltinOperator = false;
   // the builtin kind of the overall return expression
-  Kind kind = kind::NULL_EXPR;
+  Kind kind = api::NULL_EXPR;
   // First phase: process the operator
   if (Debug.isOn("parser"))
   {
@@ -1702,7 +1702,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       Debug("parser") << "++ " << *i << std::endl;
     }
   }
-  if (p.d_kind != kind::NULL_EXPR)
+  if (p.d_kind != api::NULL_EXPR)
   {
     // It is a special case, e.g. tupSel or array constant specification.
     // We have to wait until the arguments are parsed to resolve it.
@@ -1715,7 +1715,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       // Testers are handled differently than other indexed operators,
       // since they require a kind.
-      kind = kind::APPLY_TESTER;
+      kind = api::APPLY_TESTER;
     }
   }
   else
@@ -1767,7 +1767,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   // Second phase: apply the arguments to the parse op
   ExprManager* em = getExprManager();
   // handle special cases
-  if (p.d_kind == kind::STORE_ALL)
+  if (p.d_kind == api::STORE_ALL)
   {
     if (args.size() != 1)
     {
@@ -1784,7 +1784,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // like 5.0 which are converted to (/ 5 1) to distinguish them from
       // integer constants. We must ensure numerator and denominator are
       // constant and the denominator is non-zero.
-      if (constVal.getKind() == kind::DIVISION && constVal[0].isConst()
+      if (constVal.getKind() == api::DIVISION && constVal[0].isConst()
           && constVal[1].isConst()
           && !constVal[1].getConst<Rational>().isZero())
       {
@@ -1812,7 +1812,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     return em->mkConst(ArrayStoreAll(p.d_type, constVal));
   }
-  else if (p.d_kind == kind::APPLY_SELECTOR)
+  else if (p.d_kind == api::APPLY_SELECTOR)
   {
     if (p.d_expr.isNull())
     {
@@ -1829,7 +1829,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       parseError("tupSel applied to more than one tuple argument");
     }
-    api::Sort t = args[0].getType();
+    api::Sort t = args[0].getSort();
     if (!t.isTuple())
     {
       parseError("tupSel applied to non-tuple");
@@ -1842,9 +1842,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t).getDatatype();
-    return em->mkExpr(kind::APPLY_SELECTOR, dt[0][n].getSelector(), args);
+    return em->mkExpr(api::APPLY_SELECTOR, dt[0][n].getSelector(), args);
   }
-  else if (p.d_kind != kind::NULL_EXPR)
+  else if (p.d_kind != api::NULL_EXPR)
   {
     std::stringstream ss;
     ss << "Could not process parsed qualified identifier kind " << p.d_kind;
@@ -1853,7 +1853,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (isBuiltinOperator)
   {
     if (!em->getOptions().getUfHo()
-        && (kind == kind::EQUAL || kind == kind::DISTINCT))
+        && (kind == api::EQUAL || kind == api::DISTINCT))
     {
       // need --uf-ho if these operators are applied over function args
       for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
@@ -1867,42 +1867,42 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     if (args.size() > 2)
     {
-      if (kind == kind::INTS_DIVISION || kind == kind::XOR
-          || kind == kind::MINUS || kind == kind::DIVISION
-          || (kind == kind::BITVECTOR_XNOR && v2_6()))
+      if (kind == api::INTS_DIVISION || kind == api::XOR
+          || kind == api::MINUS || kind == api::DIVISION
+          || (kind == api::BITVECTOR_XNOR && v2_6()))
       {
         // Builtin operators that are not tokenized, are left associative,
         // but not internally variadic must set this.
         return em->mkLeftAssociative(kind, args);
       }
-      else if (kind == kind::IMPLIES)
+      else if (kind == api::IMPLIES)
       {
         /* right-associative, but CVC4 internally only supports 2 args */
         return em->mkRightAssociative(kind, args);
       }
-      else if (kind == kind::EQUAL || kind == kind::LT || kind == kind::GT
-               || kind == kind::LEQ || kind == kind::GEQ)
+      else if (kind == api::EQUAL || kind == api::LT || kind == api::GT
+               || kind == api::LEQ || kind == api::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
         return em->mkExpr(em->mkConst(Chain(kind)), args);
       }
     }
 
-    if (kind::isAssociative(kind) && args.size() > em->maxArity(kind))
+    if (api::isAssociative(kind) && args.size() > em->maxArity(kind))
     {
       /* Special treatment for associative operators with lots of children
        */
       return em->mkAssociative(kind, args);
     }
-    else if (!strictModeEnabled() && (kind == kind::AND || kind == kind::OR)
+    else if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
              && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
       return args[0];
     }
-    else if (kind == kind::MINUS && args.size() == 1)
+    else if (kind == api::MINUS && args.size() == 1)
     {
-      return em->mkExpr(kind::UMINUS, args[0]);
+      return em->mkExpr(api::UMINUS, args[0]);
     }
     else
     {
@@ -1924,11 +1924,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
         // must curry the partial application
-        return em->mkLeftAssociative(kind::HO_APPLY, args);
+        return em->mkLeftAssociative(api::HO_APPLY, args);
       }
     }
   }
-  if (kind == kind::NULL_EXPR)
+  if (kind == api::NULL_EXPR)
   {
     std::vector<api::Term> eargs(args.begin() + 1, args.end());
     return em->mkExpr(args[0], eargs);
@@ -1936,7 +1936,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   return em->mkExpr(kind, args);
 }
 
-api::Term Smt2::setNamedAttribute(Expr& expr, const SExpr& sexpr)
+api::Term Smt2::setNamedAttribute(api::Term& expr, const SExpr& sexpr)
 {
   if (!sexpr.isKeyword())
   {
@@ -1945,7 +1945,7 @@ api::Term Smt2::setNamedAttribute(Expr& expr, const SExpr& sexpr)
   std::string name = sexpr.getValue();
   checkUserSymbol(name);
   // ensure expr is a closed subterm
-  if (expr.hasFreeVariable())
+  if (expr.getExpr().hasFreeVariable())
   {
     std::stringstream ss;
     ss << ":named annotations can only name terms that are closed";
@@ -1954,7 +1954,7 @@ api::Term Smt2::setNamedAttribute(Expr& expr, const SExpr& sexpr)
   // check that sexpr is a fresh function symbol, and reserve it
   reserveSymbolAtAssertionLevel(name);
   // define it
-  api::Term func = mkVar(name, expr.getType(), ExprManager::VAR_FLAG_DEFINED);
+  api::Term func = mkVar(name, expr.getSort(), ExprManager::VAR_FLAG_DEFINED);
   // remember the last term to have been given a :named attribute
   setLastNamedTerm(expr, name);
   return func;
@@ -1966,7 +1966,7 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
 
   if (es.size() == 0)
   {
-    return em->mkConst(true);
+    return api::Term(em->mkConst(true));
   }
   else if (es.size() == 1)
   {
@@ -1974,7 +1974,7 @@ api::Term Smt2::mkAnd(const std::vector<api::Term>& es)
   }
   else
   {
-    return em->mkExpr(kind::AND, es);
+    return api::Term(em->mkExpr(api::AND, convertTermVec(es)));
   }
 }
 

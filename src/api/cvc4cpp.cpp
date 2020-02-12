@@ -88,6 +88,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     /* UF ------------------------------------------------------------------ */
     {APPLY_UF, CVC4::Kind::APPLY_UF},
     {CARDINALITY_CONSTRAINT, CVC4::Kind::CARDINALITY_CONSTRAINT},
+    {CARDINALITY_VALUE, CVC4::Kind::CARDINALITY_VALUE},
     {HO_APPLY, CVC4::Kind::HO_APPLY},
     /* Arithmetic ---------------------------------------------------------- */
     {PLUS, CVC4::Kind::PLUS},
@@ -471,6 +472,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::TUPLE_UPDATE, TUPLE_UPDATE},
         {CVC4::Kind::RECORD_UPDATE_OP, RECORD_UPDATE},
         {CVC4::Kind::RECORD_UPDATE, RECORD_UPDATE},
+        {CVC4::Kind::DT_SIZE, DT_SIZE},
         /* Separation Logic ------------------------------------------------ */
         {CVC4::Kind::SEP_NIL, SEP_NIL},
         {CVC4::Kind::SEP_EMP, SEP_EMP},
@@ -504,6 +506,13 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::STRING_STRCTN, STRING_STRCTN},
         {CVC4::Kind::STRING_STRIDOF, STRING_STRIDOF},
         {CVC4::Kind::STRING_STRREPL, STRING_STRREPL},
+        {CVC4::Kind::STRING_STRREPLALL, STRING_STRREPLALL},
+        {CVC4::Kind::STRING_TOLOWER, STRING_TOLOWER},
+        {CVC4::Kind::STRING_TOUPPER, STRING_TOUPPER},
+        {CVC4::Kind::STRING_REV, STRING_REV},
+        {CVC4::Kind::STRING_CODE, STRING_CODE},
+        {CVC4::Kind::STRING_LT, STRING_LT},
+        {CVC4::Kind::STRING_LEQ, STRING_LEQ},
         {CVC4::Kind::STRING_PREFIX, STRING_PREFIX},
         {CVC4::Kind::STRING_SUFFIX, STRING_SUFFIX},
         {CVC4::Kind::STRING_ITOS, STRING_ITOS},
@@ -523,6 +532,8 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         /* Quantifiers ----------------------------------------------------- */
         {CVC4::Kind::FORALL, FORALL},
         {CVC4::Kind::EXISTS, EXISTS},
+        {CVC4::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
+        {CVC4::Kind::INST_CLOSURE, INST_CLOSURE},
         /* ----------------------------------------------------------------- */
         {CVC4::Kind::LAST_KIND, LAST_KIND},
     };
@@ -561,26 +572,6 @@ bool isDefinedIntKind(CVC4::Kind k)
   return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
 }
 #endif
-
-Kind intToExtKind(CVC4::Kind k)
-{
-  auto it = s_kinds_internal.find(k);
-  if (it == s_kinds_internal.end())
-  {
-    return INTERNAL_KIND;
-  }
-  return it->second;
-}
-
-CVC4::Kind extToIntKind(Kind k)
-{
-  auto it = s_kinds.find(k);
-  if (it == s_kinds.end())
-  {
-    return CVC4::Kind::UNDEFINED_KIND;
-  }
-  return it->second;
-}
 
 uint32_t minArity(Kind k)
 {
@@ -4107,4 +4098,26 @@ std::set<Type> convertSortSet(const std::set<Sort>& sorts)
 }
 
 }  // namespace api
+
+CVC4::api::Kind intToExtKind(CVC4::Kind k)
+{
+  auto it = api::s_kinds_internal.find(k);
+  if (it == api::s_kinds_internal.end())
+  {
+    return api::INTERNAL_KIND;
+  }
+  return it->second;
+}
+
+CVC4::Kind extToIntKind(CVC4::api::Kind k)
+{
+  auto it = api::s_kinds.find(k);
+  if (it == api::s_kinds.end())
+  {
+    return CVC4::Kind::UNDEFINED_KIND;
+  }
+  return it->second;
+}
+  
+
 }  // namespace CVC4
