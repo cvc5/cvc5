@@ -1322,7 +1322,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           size_t p2 = stra1.rfind(strb);
           p = p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
           Trace("strings-csp-debug")
-              << "overlap : " << stra1 << " " << strb << " returned " << p
+              << "roverlap : " << stra1 << " " << strb << " returned " << p
               << " " << p2 << " " << (p2 == std::string::npos) << std::endl;
         }
         else
@@ -1365,7 +1365,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         }
       }
 
-      // Since non of the other inferences apply, we just infer that `nc` has
+      // Since none of the other inferences apply, we just infer that `nc` has
       // to start with the first character of the constant.
       //
       // E.g. "abc" ++ ... = nc ++ ... ---> nc = "a" ++ k

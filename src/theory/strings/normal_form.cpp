@@ -143,7 +143,6 @@ Node NormalForm::collectConstantStringAt(size_t& index)
   {
     c.push_back(d_nf[index]);
     index++;
-    // break;
   }
   if (!c.empty())
   {
