@@ -1500,6 +1500,26 @@ NUMBER
       }
     | SIGN[pos]? num=DECIMAL DOT den=DECIMAL (EXPONENT SIGN[posE]? e=DECIMAL)?
       { 
+        std::string snum = AntlrInput::tokenText($num);
+        std::string sden = AntlrInput::tokenText($den);
+        /* compute the numerator */
+        Integer inum(snum + sden);
+        // The sign
+        inum = pos ? inum : -inum;
+        // The exponent
+        size_t exp = ($e == NULL ? 0 : AntlrInput::tokenToUnsigned($e));
+        // Decimal part
+        size_t dec = sden.size();
+        /* multiply it by 10 raised to the exponent reduced by the
+         * number of decimal place in den (dec) */
+        Rational r;
+        if(!posE) r = Rational(inum, Integer(10).pow(exp + dec));
+        else if(exp == dec) r = Rational(inum);
+        else if(exp > dec) r = Rational(inum * Integer(10).pow(exp - dec));
+        else r = Rational(inum, Integer(10).pow(dec - exp));
+        PARSER_STATE->d_tmp_expr = api::Term(MK_CONST(r));
+        // PARSER_TODO
+        /*
         std::stringstream ss;
         ss << ( pos ? "" : "-" );
         ss << AntlrInput::tokenText($num) << "." << AntlrInput::tokenText($den);
@@ -1508,6 +1528,7 @@ NUMBER
           ss << "e" << AntlrInput::tokenText($e);
         }
         PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
+        */
       }
     | SIGN[pos]? num=DECIMAL SLASH den=DECIMAL
       { std::stringstream ss;

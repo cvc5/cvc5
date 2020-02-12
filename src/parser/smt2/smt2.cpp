@@ -1166,7 +1166,7 @@ api::Sort Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dnam
                     ? getKindForFunction(sop)
                     : intToExtKind(getExprManager()->operatorToKind(sop.getExpr()));
       Debug("parser-sygus") << ": operator " << sop << " with " << sop.getKind() << " " << sk << std::endl;
-      api::Term e = d_solver->mkTerm( sk, children );
+      api::Term e = mkTermSafe( sk, children );
       Debug("parser-sygus") << ": constructed " << e << ", which has type " << e.getSort() << std::endl;
       curr_t = e.getSort();
       sygus_to_builtin_expr[t] = e;
@@ -1275,7 +1275,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
         api::Kind sk = ops[i].getExpr().getKind() != kind::BUILTIN
                       ? getKindForFunction(ops[i])
                       : intToExtKind(getExprManager()->operatorToKind(ops[i].getExpr()));
-        api::Term body = d_solver->mkTerm(sk, children);
+        api::Term body = mkTermSafe(sk, children);
         // replace by lambda
         ops[i] = d_solver->mkTerm(api::LAMBDA, lbvl, body);
         Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
@@ -1498,7 +1498,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     Trace("parser-sygus2-debug") << "...no child changed" << std::endl;
     return term;
   }
-  api::Term nret = d_solver->mkTerm(term.getKind(), pchildren);
+  api::Term nret = mkTermSafe(term.getKind(), pchildren);
   Trace("parser-sygus2-debug")
       << "...child changed, return " << nret << std::endl;
   return nret;
@@ -1910,12 +1910,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     return mkBuiltinApp(args[0], eargs);
   }
   // PARSER-TODO
-  if (kind == api::APPLY_SELECTOR || kind==api::APPLY_TESTER)
-  {
-    return api::Term(em->mkExpr(extToIntKind(kind), api::convertTermVec(args)));
-  }
-  Trace("ajr-temp") << "mkTerm default : " << kind << std::endl;
-  return d_solver->mkTerm(kind, args);
+  return mkTermSafe(kind, args);
 }
 
 api::Term Smt2::setNamedAttribute(api::Term& expr, const SExpr& sexpr)

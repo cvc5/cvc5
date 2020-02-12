@@ -297,6 +297,11 @@ void Tptp::makeApplication(api::Term& expr, std::string& name,
         args[i] = convertRatToUnsorted(args[i]);
       }
     }
+    if( !expr.getSort().isFunction())
+    {
+      parseError("non-function in Tptp::makeApplication");
+    }
+    Trace("ajr-temp") << "Make application " << expr << " " << args << std::endl;
     /*
     std::vector<api::Term> ufArgs;
     ufArgs.push_back(expr);

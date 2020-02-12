@@ -666,10 +666,16 @@ public:
    */
   api::Term mkHoApply(api::Term expr, std::vector<api::Term>& args);
 
+  //!!!!!!!!!!! temporary
   /** 
    * Make builtin application
    */
-  api::Term mkBuiltinApp(api::Term f, const std::vector<api::Term>& args);
+  api::Term mkBuiltinApp(api::Term f, const std::vector<api::Term>& args) const;
+  /** 
+   * Make safe term
+   */
+  api::Term mkTermSafe(api::Kind k, const std::vector<api::Term>& args) const;
+  //!!!!!!!!!!! temporary
   
   /**
    * Add an operator to the current legal set.

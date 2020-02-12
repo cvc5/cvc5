@@ -523,9 +523,19 @@ api::Term Parser::mkHoApply(api::Term expr, std::vector<api::Term>& args)
   return expr;
 }
 
-api::Term Parser::mkBuiltinApp(api::Term f, const std::vector<api::Term>& args)
+api::Term Parser::mkBuiltinApp(api::Term f, const std::vector<api::Term>& args) const
 {
   return api::Term( getExprManager()->mkExpr(f.getExpr(), convertTermVec(args)));
+}
+
+api::Term Parser::mkTermSafe(api::Kind k, const std::vector<api::Term>& args) const
+{
+  if (k == api::APPLY_SELECTOR || k==api::APPLY_TESTER)
+  {
+    return api::Term(getExprManager()->mkExpr(extToIntKind(k), api::convertTermVec(args)));
+  }
+  return d_solver->mkTerm(k, args);
+  //return api::Term(getExprManager()->mkExpr(k, convertTermVec(args)));
 }
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
