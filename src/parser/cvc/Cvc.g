@@ -1350,23 +1350,23 @@ restrictedTypePossiblyFunctionLHS[CVC4::api::Sort& t,
     /* record types */
   | SQHASH ( identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); }
     ( COMMA identifier[id,CHECK_NONE,SYM_SORT] COLON type[t,check] { typeIds.push_back(std::make_pair(id, t)); } )* )? HASHSQ
-    { t = SOLVER->mkRecordType(typeIds); }
+    { t = SOLVER->mkRecordSort(typeIds); }
 
     /* bitvector types */
   | BITVECTOR_TOK LPAREN k=numeral RPAREN
     { if(k == 0) {
         PARSER_STATE->parseError("Illegal bitvector size: 0");
       }
-      t = SOLVER->mkBitVectorType(k);
+      t = SOLVER->mkBitVectorSort(k);
     }
 
     /* string type */
-  | STRING_TOK { t = EXPR_MANAGER->stringType(); }
+  | STRING_TOK { t = SOLVER->getStringSort(); }
 
     /* basic types */
-  | BOOLEAN_TOK { t = EXPR_MANAGER->booleanType(); }
-  | REAL_TOK { t = EXPR_MANAGER->realType(); }
-  | INT_TOK { t = EXPR_MANAGER->integerType(); }
+  | BOOLEAN_TOK { t = SOLVER->getBooleanSort(); }
+  | REAL_TOK { t = SOLVER->getRealSort(); }
+  | INT_TOK { t = SOLVER->getIntegerSort(); }
 
     /* Parenthesized general type, or the lhs of an ARROW (a list of
      * types).  These two things are combined to avoid conflicts in
@@ -1459,7 +1459,7 @@ prefixFormula[CVC4::api::Term& f]
   std::vector<api::Sort> types;
   std::vector<api::Term> bvs;
   api::Sort t;
-  Kind k;
+  api::Kind k;
   api::Term ipl;
 }
     /* quantifiers */
@@ -1639,14 +1639,14 @@ tupleStore[CVC4::api::Term& f]
       if(! t.isTuple()) {
         PARSER_STATE->parseError("tuple-update applied to non-tuple");
       }
-      size_t length = ((DatatypeType)t).getTupleLength();
+      size_t length = t.getTupleLength();
       if(k >= length) {
         std::stringstream ss;
         ss << "tuple is of length " << length << "; cannot update index " << k;
         PARSER_STATE->parseError(ss.str());
       }
       std::vector<api::Term> args;
-      const Datatype & dt = ((DatatypeType)t).getDatatype();
+      const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
       args.push_back( dt[0][k].getSelector() );
       args.push_back( f );
       f2 = MK_TERM(CVC4::api::APPLY_SELECTOR,args);
@@ -1676,12 +1676,12 @@ recordStore[CVC4::api::Term& f]
            << "its type: " << t;
         PARSER_STATE->parseError(ss.str());
       }
-      const Record& rec = ((DatatypeType)t).getRecord();
+      const Record& rec = ((DatatypeType)t.getType()).getRecord();
       if(! rec.contains(id)) {
         PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
       }
       std::vector<api::Term> args;
-      const Datatype & dt = ((DatatypeType)t).getDatatype();
+      const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
       args.push_back( dt[0][id].getSelector() );
       args.push_back( f );
       f2 = MK_TERM(CVC4::api::APPLY_SELECTOR,args);
@@ -1799,7 +1799,7 @@ postfixTerm[CVC4::api::Term& f]
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
       // TODO: check arity
-      { Kind k = PARSER_STATE->getKindForFunction(args.front());
+      { api::Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
         Debug("parser") << "kind is " << k << std::endl;
         f = MK_TERM(k, args);
@@ -1812,11 +1812,11 @@ postfixTerm[CVC4::api::Term& f]
           if(! t.isRecord()) {
             PARSER_STATE->parseError("record-select applied to non-record");
           }
-          const Record& rec = ((DatatypeType)t).getRecord();
+          const Record& rec = ((DatatypeType)t.getType()).getRecord();
           if(!rec.contains(id)){
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
-          const Datatype & dt = ((DatatypeType)t).getDatatype();
+          const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
           std::vector<api::Term> sargs;
           sargs.push_back( dt[0][id].getSelector() );
           sargs.push_back( f );
@@ -1827,13 +1827,13 @@ postfixTerm[CVC4::api::Term& f]
           if(! t.isTuple()) {
             PARSER_STATE->parseError("tuple-select applied to non-tuple");
           }
-          size_t length = ((DatatypeType)t).getTupleLength();
+          size_t length = t.getTupleLength();
           if(k >= length) {
             std::stringstream ss;
             ss << "tuple is of length " << length << "; cannot access index " << k;
             PARSER_STATE->parseError(ss.str());
           }
-          const Datatype & dt = ((DatatypeType)t).getDatatype();
+          const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
           std::vector<api::Term> sargs;
           sargs.push_back( dt[0][k].getSelector() );
           sargs.push_back( f );
@@ -1887,9 +1887,9 @@ relationTerm[CVC4::api::Term& f]
       std::vector<api::Term> args;
       args.push_back(f);
       types.push_back(f.getSort());
-      DatatypeType t = SOLVER->mkTupleSort(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert( args.begin(), dt[0].getConstructor() );
+      api::Sort t = SOLVER->mkTupleSort(types);
+      const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
+      args.insert( args.begin(), api::Term(dt[0].getConstructor()) );
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
   | IDEN_TOK LPAREN formula[f] RPAREN
@@ -2125,8 +2125,8 @@ simpleTerm[CVC4::api::Term& f]
         for(std::vector<api::Term>::const_iterator i = args.begin(); i != args.end(); ++i) {
           types.push_back((*i).getSort());
         }
-        DatatypeType t = SOLVER->mkTupleSort(types);
-        const Datatype& dt = t.getDatatype();
+        api::Sort t = SOLVER->mkTupleSort(types);
+        const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
         args.insert( args.begin(), dt[0].getConstructor() );
         f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
       }
@@ -2135,22 +2135,22 @@ simpleTerm[CVC4::api::Term& f]
     /* empty tuple literal */
   | LPAREN RPAREN
     { std::vector<api::Sort> types;
-      DatatypeType t = SOLVER->mkTupleSort(types);
-      const Datatype& dt = t.getDatatype();
-      f = MK_TERM(api::APPLY_CONSTRUCTOR, dt[0].getConstructor()); }       
+      api::Sort t = SOLVER->mkTupleSort(types);
+      const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
+      f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor())); }       
                   
     /* empty record literal */
   | PARENHASH HASHPAREN
-    { DatatypeType t = SOLVER->mkRecordSort(std::vector< std::pair<std::string, api::Sort> >());
-      const Datatype& dt = t.getDatatype();
-      f = MK_TERM(api::APPLY_CONSTRUCTOR, dt[0].getConstructor());
+    { api::Sort t = SOLVER->mkRecordSort(std::vector< std::pair<std::string, api::Sort> >());
+      const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
+      f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor()));
     }
     /* empty set literal */
   | LBRACE RBRACE
     { f = MK_CONST(EmptySet(Type())); }
   | UNIVSET_TOK
     { //booleanType is placeholder
-      f = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), api::UNIVERSE_SET);
+      f = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), UNIVERSE_SET);
     }
 
     /* finite set literal */
@@ -2227,8 +2227,8 @@ simpleTerm[CVC4::api::Term& f]
       for(unsigned i = 0; i < names.size(); ++i) {
         typeIds.push_back(std::make_pair(names[i], args[i].getSort()));
       }
-      DatatypeType t = SOLVER->mkRecordSort(typeIds);
-      const Datatype& dt = t.getDatatype();
+      api::Sort t = SOLVER->mkRecordSort(typeIds);
+      const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }

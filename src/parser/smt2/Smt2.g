@@ -841,7 +841,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
           k = PARSER_STATE->getOperatorKind(name);
           sgt.d_name = api::kindToString(k);
           sgt.d_gterm_type = SygusGTerm::gterm_op;
-          sgt.d_expr = EXPR_MANAGER->operatorOf(k);
+          sgt.d_expr = api::Term(EXPR_MANAGER->operatorOf(extToIntKind(k)));
         }else{
           // what is this sygus term trying to accomplish here, if the
           // symbol isn't yet declared?!  probably the following line will
@@ -1056,7 +1056,7 @@ sygusGrammar[CVC4::api::Sort & ret,
       // well-founded (see 3423).
       if (aci)
       {
-        CVC4::api::Term c = btt.mkGroundTerm();
+        CVC4::api::Term c = api::Term(btt.getType().mkGroundTerm());
         PARSER_STATE->addSygusConstructorTerm(datatypes[i], c, ntsToUnres);
       }
       else if (datatypes[i].getNumConstructors() == 0)
@@ -1174,7 +1174,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       if( !flattenVars.empty() ){
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
-      cmd->reset(new DefineFunctionRecCommand(func,bvs,expr));
+      cmd->reset(new DefineFunctionRecCommand(func.getExpr(),api::convertTermVec(bvs),expr.getExpr()));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}

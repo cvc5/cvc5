@@ -1564,7 +1564,7 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
   }
   ExprManager* em = getExprManager();
   api::Sort etype = p.d_expr.getSort();
-  Kind ekind = p.d_expr.getKind();
+  api::Kind ekind = p.d_expr.getKind();
   Trace("parser-qid") << "Resolve ascription " << type << " on " << p.d_expr;
   Trace("parser-qid") << " " << ekind << " " << etype;
   Trace("parser-qid") << std::endl;
@@ -1578,10 +1578,10 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
       Expr e = p.d_expr.getOp().getExpr();
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      v.push_back(d_solver->mkTerm(
-          api::APPLY_TYPE_ASCRIPTION,
-          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
-          api::Term(p.d_expr.getOp().getExpr())));
+      v.push_back(api::Term(em->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type.getType()))),
+          p.d_expr.getOp().getExpr())));
       v.insert(v.end(), p.d_expr.begin(), p.d_expr.end());
       p.d_expr = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, v);
     }
@@ -1589,33 +1589,33 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
   else if (etype.isConstructor())
   {
     // a non-nullary constructor with a type ascription
-    Datatypeapi::Sort dtype = static_cast<DatatypeType>(type);
-    if (dtype.isParametric())
+    if (type.isParametricDatatype())
     {
+      Expr e = p.d_expr.getOp().getExpr();
       const DatatypeConstructor& dtc =
-          Datatype::datatypeOf(p.d_expr)[Datatype::indexOf(p.d_expr)];
-      p.d_expr = d_solver->mkTerm(
-          api::APPLY_TYPE_ASCRIPTION,
-          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type))),
-          p.d_expr);
+          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+      p.d_expr = api::Term(em->mkExpr(
+          kind::APPLY_TYPE_ASCRIPTION,
+          em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type.getType()))),
+          p.d_expr.getExpr()));
     }
   }
   else if (ekind == api::EMPTYSET)
   {
     Debug("parser") << "Empty set encountered: " << p.d_expr << " " << type
                     << std::endl;
-    p.d_expr = api::Term(em->mkConst(EmptySet(type)));
+    p.d_expr = api::Term(em->mkConst(EmptySet(type.getType())));
   }
   else if (ekind == api::UNIVERSE_SET)
   {
-    p.d_expr = api::Term(em->mkNullaryOperator(type, api::UNIVERSE_SET));
+    p.d_expr = api::Term(em->mkNullaryOperator(type.getType(), kind::UNIVERSE_SET));
   }
   else if (ekind == api::SEP_NIL)
   {
     // We don't want the nil reference to be a constant: for instance, it
     // could be of type Int but is not a const rational. However, the
     // expression has 0 children. So we convert to a SEP_NIL variable.
-    p.d_expr = api::Term(em->mkNullaryOperator(type, api::SEP_NIL));
+    p.d_expr = api::Term(em->mkNullaryOperator(type.getType(), kind::SEP_NIL));
   }
   else if (etype != type)
   {
@@ -1745,7 +1745,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError("Too many arguments to array constant.");
     }
     api::Term constVal = args[0];
-    if (!constVal.isConst())
+    if (!constVal.getExpr().isConst())
     {
       // To parse array constants taking reals whose values are specified by
       // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
@@ -1755,14 +1755,14 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // like 5.0 which are converted to (/ 5 1) to distinguish them from
       // integer constants. We must ensure numerator and denominator are
       // constant and the denominator is non-zero.
-      if (constVal.getKind() == api::DIVISION && constVal[0].isConst()
-          && constVal[1].isConst()
-          && !constVal[1].getConst<Rational>().isZero())
+      if (constVal.getKind() == api::DIVISION && constVal[0].getExpr().isConst()
+          && constVal[1].getExpr().isConst()
+          && !constVal[1].getExpr().getConst<Rational>().isZero())
       {
-        constVal = em->mkConst(constVal[0].getConst<Rational>()
-                               / constVal[1].getConst<Rational>());
+        constVal = api::Term(em->mkConst(constVal[0].getExpr().getConst<Rational>()
+                               / constVal[1].getExpr().getConst<Rational>()));
       }
-      if (!constVal.isConst())
+      if (!constVal.getExpr().isConst())
       {
         std::stringstream ss;
         ss << "expected constant term inside array constant, but found "
@@ -1792,7 +1792,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError("Could not process parsed tuple selector.");
     }
     // tuple selector case
-    Integer x = p.d_expr.getConst<Rational>().getNumerator();
+    Integer x = p.d_expr.getExpr().getConst<Rational>().getNumerator();
     if (!x.fitsUnsignedInt())
     {
       parseError("index of tupSel is larger than size of unsigned int");
@@ -1814,8 +1814,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       ss << "tuple is of length " << length << "; cannot access index " << n;
       parseError(ss.str());
     }
-    const Datatype& dt = t.getType().getDatatype();
-    return d_solver->mkTerm(api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args);
+    const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
+    std::vector<api::Term> selArgs;
+    selArgs.push_back(api::Term(dt[0][n].getSelector()));
+    selArgs.insert(selArgs.end(),args.begin(),args.end());
+    return d_solver->mkTerm(api::APPLY_SELECTOR, selArgs);
   }
   else if (p.d_kind != api::NULL_EXPR)
   {
