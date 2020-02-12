@@ -609,16 +609,14 @@ letTerm[CVC4::api::Term& expr]
     tffLetFormulaDefn[lhs, rhs] COMMA_TOK
     term[expr]
     { PARSER_STATE->popScope();
-      //PARSER-FIXME
-      //expr = expr.substitute(lhs, rhs);
+      expr = expr.substitute(lhs, rhs);
     }
     RPAREN_TOK
   | '$let_tt' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetTermDefn[lhs, rhs] COMMA_TOK
     term[expr]
     { PARSER_STATE->popScope();
-      //PARSER-FIXME
-      //expr = expr.substitute(lhs, rhs);
+      expr = expr.substitute(lhs, rhs);
     }
     RPAREN_TOK
   ;

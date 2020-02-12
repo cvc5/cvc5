@@ -922,14 +922,11 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       if(funcs.size()!=formulas.size()){
         PARSER_STATE->parseError("Number of functions doesn't match number of function definitions");
       }
-      //PARSER-FIXME
-      /*
       for(unsigned int i = 0, size = funcs.size(); i < size; i++){
-        if(!funcs[i].getSort().isSubtypeOf(types[i])){
+        if(!funcs[i].getSort().isSubsortOf(types[i])){
           PARSER_STATE->parseError("Type mismatch in definition");
         }
       }
-      */
       std::vector<std::vector<Expr>> eformals;
       for (unsigned i=0, fsize = formals.size(); i<fsize; i++)
       {
@@ -1132,12 +1129,9 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
       } else {
         // f is not null-- meaning this is a definition not a declaration
         //Check if the formula f has the correct type, declared as t.
-        //PARSER-FIXME
-        /*
-        if(!f.getSort().isSubtypeOf(t)){
+        if(!f.getSort().isSubsortOf(t)){
           PARSER_STATE->parseError("Type mismatch in definition");
         }
-        */
         if(!topLevel) {
           // must be top-level; doesn't make sense to write something
           // like e.g. FORALL(x:INT = 4): [...]
@@ -2165,8 +2159,6 @@ simpleTerm[CVC4::api::Term& f]
            << "the term: " << f;
         PARSER_STATE->parseError(ss.str());
       }
-      // PARSER-FIXME
-      /*
       if(!t2.isComparableTo(f.getSort())) {
         std::stringstream ss;
         ss << "type mismatch inside array constant term:" << std::endl
@@ -2175,7 +2167,6 @@ simpleTerm[CVC4::api::Term& f]
            << "computed const type: " << f.getSort();
         PARSER_STATE->parseError(ss.str());
       }
-      */
       f = api::Term(MK_CONST( ArrayStoreAll(t.getType(), f.getExpr()) ));
     }
 

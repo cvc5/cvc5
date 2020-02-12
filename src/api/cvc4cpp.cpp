@@ -894,6 +894,16 @@ bool Sort::isFirstClass() const { return d_type->isFirstClass(); }
 
 bool Sort::isFunctionLike() const { return d_type->isFunctionLike(); }
 
+bool Sort::isSubsortOf(Sort s) const
+{
+  return d_type->isSubtypeOf(*s.d_type);
+}
+
+bool Sort::isComparableTo(Sort s) const
+{
+  return d_type->isComparableTo(*s.d_type);
+}
+
 Datatype Sort::getDatatype() const
 {
   CVC4_API_CHECK(isDatatype()) << "Expected datatype sort.";
@@ -1385,6 +1395,17 @@ Sort Term::getSort() const
 {
   CVC4_API_CHECK_NOT_NULL;
   return Sort(d_expr->getType());
+}
+
+Term Term::substitute(Term e, Term replacement) const
+{
+  return api::Term(d_expr->substitute(e.getExpr(),replacement.getExpr()));
+}
+
+Term Term::substitute(const std::vector<Term> exes,
+                const std::vector<Term>& replacements) const
+{
+  return api::Term(d_expr->substitute(convertTermVec(exes), convertTermVec(replacements)));
 }
 
 bool Term::hasOp() const

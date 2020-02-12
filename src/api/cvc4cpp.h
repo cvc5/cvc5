@@ -408,6 +408,17 @@ class CVC4_PUBLIC Sort
   bool isFunctionLike() const;
 
   /**
+   * Is this sort a subsort of the given sort?
+   */
+  bool isSubsortOf(Sort s) const;
+
+  /**
+   * Is this sort comparable to the given sort (i.e., do they share
+   * a common ancestor in the subsort tree)?
+   */
+  bool isComparableTo(Sort s) const;
+  
+  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -816,6 +827,17 @@ class CVC4_PUBLIC Term
    */
   Sort getSort() const;
 
+  /**
+   * Substitute "replacement" in for "e".
+   */
+  Term substitute(Term e, Term replacement) const;
+
+  /**
+   * Substitute "replacements" in for "exes".
+   */
+  Term substitute(const std::vector<Term> exes,
+                  const std::vector<Term>& replacements) const;
+                  
   /**
    * @return true iff this term has an operator
    */

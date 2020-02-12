@@ -1775,18 +1775,15 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         parseError(ss.str());
       }
     }
-    // PARSER-FIXME 
-    /*
     if (!p.d_type.getArrayElementSort().isComparableTo(constVal.getSort()))
     {
       std::stringstream ss;
       ss << "type mismatch inside array constant term:" << std::endl
          << "array type:          " << p.d_type << std::endl
-         << "expected const type: " << aqtype.getArrayElementSort() << std::endl
+         << "expected const type: " << p.d_type.getArrayElementSort() << std::endl
          << "computed const type: " << constVal.getSort();
       parseError(ss.str());
     }
-    */
     return api::Term(em->mkConst(ArrayStoreAll(p.d_type.getType(), constVal.getExpr())));
   }
   else if (p.d_kind == api::APPLY_SELECTOR)

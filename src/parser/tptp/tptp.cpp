@@ -239,11 +239,11 @@ api::Term Tptp::convertRatToUnsorted(api::Term expr) {
   if (d_rtu_op.isNull()) {
     api::Sort t;
     // Conversion from rational to unsorted
-    t = api::Sort(em->mkFunctionType(em->realType(), d_unsorted.getType()));
+    t = d_solver->mkFunctionSort(d_solver->getRealSort(), d_unsorted);
     d_rtu_op = d_solver->mkVar(t, "$$rtu");
     preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op.getExpr(), t.getType()));
     // Conversion from unsorted to rational
-    t = api::Sort(em->mkFunctionType(d_unsorted.getType(), em->realType()));
+    t = d_solver->mkFunctionSort(d_unsorted, d_solver->getRealSort());
     d_utr_op = d_solver->mkVar(t, "$$utr");
     preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op.getExpr(), t.getType()));
   }
@@ -297,10 +297,14 @@ void Tptp::makeApplication(api::Term& expr, std::string& name,
         args[i] = convertRatToUnsorted(args[i]);
       }
     }
+    /*
     std::vector<api::Term> ufArgs;
     ufArgs.push_back(expr);
     ufArgs.insert(ufArgs.begin(),args.begin(),args.end());
     expr = d_solver->mkTerm(api::APPLY_UF,ufArgs);
+    */
+    // PARSER-TODO
+    expr = api::Term(getExprManager()->mkExpr(kind::APPLY_UF, expr.getExpr(), api::convertTermVec(args)));
   }
 }
 
