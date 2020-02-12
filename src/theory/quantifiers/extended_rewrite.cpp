@@ -155,6 +155,16 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         // we may have subsumed children down to one
         ret = children[0];
       }
+      else if (isAssoc && children.size() > kind::metakind::getUpperBoundForKind(k))
+      {
+        Assert(kind::metakind::getUpperBoundForKind(k) >= 2);
+        // kind may require binary construction
+        ret = children[0];
+        for (unsigned i = 1, nchild = children.size(); i < nchild; i++)
+        {
+          ret = nm->mkNode(k, ret, children[i]);
+        }
+      }
       else
       {
         ret = nm->mkNode(k, children);
