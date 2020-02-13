@@ -1331,7 +1331,7 @@ void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
           // the given name.
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
         }
-        else if (!sop.isNull() && ops[i].d_expr.getKind() == kind::VARIABLE)
+        else if (!sop.isNull() && sop.getKind() == kind::VARIABLE)
         {
           Debug("parser-sygus") << "--> Defined function " << ops[i]
                                 << std::endl;
