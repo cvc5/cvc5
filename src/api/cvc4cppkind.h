@@ -245,7 +245,9 @@ enum CVC4_PUBLIC Kind : int32_t
   BOOLEAN_TERM_VARIABLE,
 #endif
   /**
-   * Cardinality constraint on sort S.
+   * Cardinality constraint on uninterpreted sort S.
+   * Interpreted as a predicate that is true when the cardinality of S
+   * is less than or equal to the value of the second argument.
    * Parameters: 2
    *   -[1]: Term of sort S
    *   -[2]: Positive integer constant that bounds the cardinality of sort S
@@ -254,8 +256,16 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   CARDINALITY_CONSTRAINT,
-  /* cardinality value of sort S:
-   * first parameter is (any) term of sort S */
+  /*
+   * Cardinality value for uninterpreted sort S.
+   * An operator that returns an integer indicating the value of the cardinality
+   * of sort S.
+   * Parameters: 1
+   *   -[1]: Term of sort S
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
   CARDINALITY_VALUE,
 #if 0
   /* Combined cardinality constraint.  */
