@@ -385,16 +385,16 @@ void InferenceManager::registerLength(Node n)
   if (n.getKind() == STRING_CONCAT)
   {
     std::vector<Node> nodeVec;
-    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    for (const Node& nc : n)
     {
-      if (n[i].getAttribute(StringsProxyVarAttribute()))
+      if (nc.getAttribute(StringsProxyVarAttribute()))
       {
-        Assert(d_proxyVarToLength.find(n[i]) != d_proxyVarToLength.end());
-        nodeVec.push_back(d_proxyVarToLength[n[i]]);
+        Assert(d_proxyVarToLength.find(nc) != d_proxyVarToLength.end());
+        nodeVec.push_back(d_proxyVarToLength[nc]);
       }
       else
       {
-        Node lni = nm->mkNode(STRING_LENGTH, n[i]);
+        Node lni = nm->mkNode(STRING_LENGTH, nc);
         nodeVec.push_back(lni);
       }
     }

@@ -71,7 +71,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_state(c, d_equalityEngine, d_valuation),
-      d_im(*this, c, u, d_state, out),
+      d_im(*this, c, u, d_state, d_sk_cache, out),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
       d_preproc(&d_sk_cache, u),
@@ -1229,7 +1229,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
           // only use symbolic definitions if option is set
           if (options::stringInferSym())
           {
-            nrs = getSymbolicDefinition(sn, exps);
+            nrs = d_im.getSymbolicDefinition(sn, exps);
           }
           if( !nrs.isNull() ){
             Trace("strings-extf-debug") << "  rewrite " << nrs << "..." << std::endl;
@@ -1572,7 +1572,7 @@ void TheoryStrings::checkCodes()
         Node cc = nm->mkNode(kind::STRING_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
-        Node cp = getProxyVariableFor(c);
+        Node cp = d_im.getProxyVariableFor(c);
         AlwaysAssert(!cp.isNull());
         Node vc = nm->mkNode(STRING_CODE, cp);
         if (!d_state.areEqual(cc, vc))
