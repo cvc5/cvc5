@@ -328,7 +328,6 @@ atomicFormula[CVC4::Expr& expr]
   std::string name;
   std::vector<CVC4::Expr> args;
   bool equal;
-  ParseOp p;
 }
   : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     ( equalOp[equal] term[expr2]
@@ -365,7 +364,7 @@ atomicFormula[CVC4::Expr& expr]
         }
       }
     )?
-  | definedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  | definedPred[expr] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
       if (!args.empty())
       {
@@ -381,7 +380,6 @@ thfAtomicFormula[CVC4::Expr& expr]
   std::string name;
   std::vector<CVC4::Expr> args;
   bool equal;
-  ParseOp p;
 }
   : atomicWord[name] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
@@ -403,7 +401,7 @@ thfAtomicFormula[CVC4::Expr& expr]
   | thfSimpleTerm[expr]
   | letTerm[expr]
   | conditionalTerm[expr]
-  | thfDefinedPred[p] (LPAREN_TOK arguments[args] RPAREN_TOK)?
+  | thfDefinedPred[expr] (LPAREN_TOK arguments[args] RPAREN_TOK)?
     {
       if (!args.empty())
       {
@@ -421,7 +419,7 @@ definedProp[CVC4::Expr& expr]
   | FALSE_TOK  { expr = MK_CONST(bool(false)); }
   ;
 
-definedPred[CVC4::ParseOp& p]
+definedPred[CVC4::Expr& expr]
   : '$less' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LT); }
   | '$lesseq' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LEQ); }
   | '$greater' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::GT); }
@@ -452,7 +450,7 @@ definedPred[CVC4::ParseOp& p]
   | OR_TOK { expr = EXPR_MANAGER->operatorOf(CVC4::kind::OR); }
   ;
 
-thfDefinedPred[CVC4::ParseOp& p]
+thfDefinedPred[CVC4::Expr& expr]
   : '$less' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LT); }
   | '$lesseq' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::LEQ); }
   | '$greater' { expr = EXPR_MANAGER->operatorOf(CVC4::kind::GT); }
