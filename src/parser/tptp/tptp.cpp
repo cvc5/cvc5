@@ -214,6 +214,18 @@ void Tptp::checkLetBinding(const std::vector<Expr>& bvlist, Expr lhs, Expr rhs,
   }
 }
 
+Expr Tptp::parseOpToExpr(ParseOp& p)
+{
+  // FIXME
+  return p.d_expr;
+}
+
+Expr Tptp::applyParseOp(ParseOp& p, std::vector<Expr>& args)
+{
+  // FIXME
+  return p.d_expr;
+}
+
 void Tptp::forceLogic(const std::string& logic)
 {
   Parser::forceLogic(logic);

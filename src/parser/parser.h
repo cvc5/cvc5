@@ -58,7 +58,8 @@ public:
     gterm_ignore,
   };
   Type d_type;
-  Expr d_expr;
+  /** The parsed operator */
+  ParseOp d_expr;
   std::vector< Expr > d_let_vars;
   unsigned d_gterm_type;
   std::string d_name;

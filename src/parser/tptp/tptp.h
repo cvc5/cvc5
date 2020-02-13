@@ -147,6 +147,15 @@ class Tptp : public Parser {
   /** Check a TPTP let binding for well-formedness. */
   void checkLetBinding(const std::vector<Expr>& bvlist, Expr lhs, Expr rhs,
                        bool formula);
+  /**
+   * This converts a ParseOp to expression, assuming it is a standalone term.
+   */
+  Expr parseOpToExpr(ParseOp& p);
+  /**
+   * Apply parse operator to list of arguments, and return the resulting
+   * expression.
+   */
+  Expr applyParseOp(ParseOp& p, std::vector<Expr>& args);
 
  private:
   void addArithmeticOperators();

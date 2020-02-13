@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Definitions of parsed operators in smt2.
+ ** \brief Definitions of parsed operators.
  **/
 
 #include "cvc4parser_private.h"
 
-#ifndef CVC4__PARSER__SMT2__PARSE_OP_H
-#define CVC4__PARSER__SMT2__PARSE_OP_H
+#ifndef CVC4__PARSER__PARSE_OP_H
+#define CVC4__PARSER__PARSE_OP_H
 
 #include <string>
 
@@ -27,8 +27,7 @@ namespace CVC4 {
 /** A parsed operator
  *
  * The purpose of this struct is to store information regarding a parsed term
- * in the smt2 language that might not be ready to associate with an
- * expression.
+ * that might not be ready to associate with an expression.
  *
  * While parsing terms in smt2, we may store a combination of one or more of
  * the following to track how to process this term:
@@ -71,4 +70,4 @@ struct ParseOp
 
 }  // namespace CVC4
 
-#endif /* CVC4__PARSER__SMT2__PARSE_OP_H */
+#endif /* CVC4__PARSER__PARSE_OP_H */
