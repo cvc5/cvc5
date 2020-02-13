@@ -73,6 +73,7 @@ struct QuantifierBoundVarListTypeRule {
     if( check ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
         if( n[i].getKind()!=kind::BOUND_VARIABLE ){
+          AlwaysAssert(false);
           throw TypeCheckingExceptionPrivate(n, "argument of bound var list is not bound variable");
         }
       }

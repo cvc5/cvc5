@@ -1475,14 +1475,15 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     cargs.push_back(itn->second);
     return ret;
   }
-  std::vector<api::Term> pchildren;
+  // PARSER-TODO
+  std::vector<Expr> pchildren;
   // To test whether the operator should be passed to mkapi::Term below, we check
   // whether this term is parameterized. This includes APPLY_UF terms and BV
   // extraction terms, but excludes applications of most interpreted symbols
   // like PLUS.
-  if (term.isParameterized())
+  if (term.getExpr().isParameterized())
   {
-    pchildren.push_back(api::Term(term.getOp().getExpr()));
+    pchildren.push_back(term.getExpr().getOperator());
   }
   bool childChanged = false;
   for (unsigned i = 0, nchild = term.getExpr().getNumChildren(); i < nchild; i++)
@@ -1490,7 +1491,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     Trace("parser-sygus2-debug")
         << "......purify child " << i << " : " << term[i] << std::endl;
     api::Term ptermc = purifySygusGTerm(term[i], ntsToUnres, args, cargs);
-    pchildren.push_back(ptermc);
+    pchildren.push_back(ptermc.getExpr());
     childChanged = childChanged || ptermc != term[i];
   }
   if (!childChanged)
@@ -1498,7 +1499,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     Trace("parser-sygus2-debug") << "...no child changed" << std::endl;
     return term;
   }
-  api::Term nret = mkTermSafe(term.getKind(), pchildren);
+  api::Term nret = api::Term(getExprManager()->mkExpr(extToIntKind(term.getKind()), pchildren));
   Trace("parser-sygus2-debug")
       << "...child changed, return " << nret << std::endl;
   return nret;
@@ -1575,13 +1576,13 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
     if (type.isParametricDatatype())
     {
       std::vector<api::Term> v;
-      Expr e = p.d_expr.getOp().getExpr();
+      Expr e = p.d_expr.getExpr().getOperator();
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];
       v.push_back(api::Term(em->mkExpr(
           kind::APPLY_TYPE_ASCRIPTION,
           em->mkConst(AscriptionType(dtc.getSpecializedConstructorType(type.getType()))),
-          p.d_expr.getOp().getExpr())));
+          p.d_expr.getExpr().getOperator())));
       v.insert(v.end(), p.d_expr.begin(), p.d_expr.end());
       p.d_expr = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, v);
     }
@@ -1591,7 +1592,7 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
     // a non-nullary constructor with a type ascription
     if (type.isParametricDatatype())
     {
-      Expr e = p.d_expr.getOp().getExpr();
+      Expr e = p.d_expr.getExpr();
       const DatatypeConstructor& dtc =
           Datatype::datatypeOf(e)[Datatype::indexOf(e)];
       p.d_expr = api::Term(em->mkExpr(
