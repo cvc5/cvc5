@@ -280,9 +280,9 @@ void Smt2::addTheory(Theory theory) {
     break;
 
   case THEORY_CORE:
-    defineType("Bool", getExprManager()->booleanType());
-    defineVar("true", getExprManager()->mkConst(true));
-    defineVar("false", getExprManager()->mkConst(false));
+    defineType("Bool", d_solver->getBooleanSort());
+    defineVar("true", d_solver->mkTrue());
+    defineVar("false", d_solver->mkFalse());
     addOperator(api::AND, "and");
     addOperator(api::DISTINCT, "distinct");
     addOperator(api::EQUAL, "=");
@@ -294,7 +294,7 @@ void Smt2::addTheory(Theory theory) {
     break;
 
   case THEORY_REALS_INTS:
-    defineType("Real", getExprManager()->realType());
+    defineType("Real", d_solver->getRealSort());
     addOperator(api::DIVISION, "/");
     addOperator(api::TO_INTEGER, "to_int");
     addOperator(api::IS_INTEGER, "is_int");
@@ -302,7 +302,7 @@ void Smt2::addTheory(Theory theory) {
     // falling through on purpose, to add Ints part of Reals_Ints
     CVC4_FALLTHROUGH;
   case THEORY_INTS:
-    defineType("Int", getExprManager()->integerType());
+    defineType("Int", d_solver->getIntegerSort());
     addArithmeticOperators();
     addOperator(api::INTS_DIVISION, "div");
     addOperator(api::INTS_MODULUS, "mod");
@@ -311,7 +311,7 @@ void Smt2::addTheory(Theory theory) {
     break;
 
   case THEORY_REALS:
-    defineType("Real", getExprManager()->realType());
+    defineType("Real", d_solver->getRealSort());
     addArithmeticOperators();
     addOperator(api::DIVISION, "/");
     if (!strictModeEnabled())
@@ -321,9 +321,7 @@ void Smt2::addTheory(Theory theory) {
     break;
 
   case THEORY_TRANSCENDENTALS:
-    defineVar("real.pi",
-              getExprManager()->mkNullaryOperator(getExprManager()->realType(),
-                                                  CVC4::kind::PI));
+    defineVar("real.pi", d_solver->mkTerm(api::PI));
     addTranscendentalOperators();
     break;
 
@@ -331,11 +329,11 @@ void Smt2::addTheory(Theory theory) {
 
   case THEORY_SETS:
     defineVar("emptyset",
-              d_solver->mkEmptySet(d_solver->getNullSort()).getExpr());
+              d_solver->mkEmptySet(d_solver->getNullSort()));
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
     defineVar("univset",
-              d_solver->mkUniverseSet(d_solver->getBooleanSort()).getExpr());
+              d_solver->mkUniverseSet(d_solver->getBooleanSort()));
 
     addOperator(api::UNION, "union");
     addOperator(api::INTERSECTION, "intersection");
@@ -363,10 +361,10 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_STRINGS:
     defineType("String", getExprManager()->stringType());
     defineType("RegLan", getExprManager()->regExpType());
-    defineType("Int", getExprManager()->integerType());
+    defineType("Int", d_solver->getIntegerSort());
 
-    defineVar("re.nostr", d_solver->mkRegexpEmpty().getExpr());
-    defineVar("re.allchar", d_solver->mkRegexpSigma().getExpr());
+    defineVar("re.nostr", d_solver->mkRegexpEmpty());
+    defineVar("re.allchar", d_solver->mkRegexpSigma());
 
     addStringOperators();
     break;
@@ -390,28 +388,28 @@ void Smt2::addTheory(Theory theory) {
 
     defineVar(
         "RNE",
-        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN).getExpr());
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
     defineVar(
         "roundNearestTiesToEven",
-        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN).getExpr());
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN));
     defineVar(
         "RNA",
-        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY).getExpr());
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
     defineVar(
         "roundNearestTiesToAway",
-        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY).getExpr());
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY));
     defineVar("RTP",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE).getExpr());
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
     defineVar("roundTowardPositive",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE).getExpr());
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE));
     defineVar("RTN",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE).getExpr());
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
     defineVar("roundTowardNegative",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE).getExpr());
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE));
     defineVar("RTZ",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO).getExpr());
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
     defineVar("roundTowardZero",
-              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO).getExpr());
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO));
 
     addFloatingPointOperators();
     break;
@@ -420,7 +418,7 @@ void Smt2::addTheory(Theory theory) {
     // the Boolean sort is a placeholder here since we don't have type info
     // without type annotation
     defineVar("sep.nil",
-              d_solver->mkSepNil(d_solver->getBooleanSort()).getExpr());
+              d_solver->mkSepNil(d_solver->getBooleanSort()));
 
     addSepOperators();
     break;
@@ -935,8 +933,8 @@ void Smt2::mkSygusConstantsForType( const api::Sort& type, std::vector<api::Term
     BitVector bval1(sz, (unsigned int)1);
     ops.push_back( getExprManager()->mkConst(bval1) );
   }else if( type.isBoolean() ){
-    ops.push_back(getExprManager()->mkConst(true));
-    ops.push_back(getExprManager()->mkConst(false));
+    ops.push_back(d_solver->mkTrue());
+    ops.push_back(d_solver->mkFalse());
   }
   //TODO : others?
 }
@@ -1120,9 +1118,9 @@ api::Sort Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dnam
     }
     api::Term sop = ops[sub_dt_index][0];
     api::Sort curr_t;
-    if( sop.getExpr().getKind() != kind::BUILTIN && ( sop.getExpr().isConst() || cargs[sub_dt_index][0].empty() ) ){
+    if( sop.getExpr().getKind() != kind::BUILTIN && ( sop.isConst() || cargs[sub_dt_index][0].empty() ) ){
       curr_t = sop.getSort();
-      Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getSort() << ", debug=" << sop.getExpr().isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
+      Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getSort() << ", debug=" << sop.isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
       // only cache if it is a singleton datatype (has unique expr)
       if (ops[sub_dt_index].size() == 1)
       {
@@ -1284,7 +1282,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
       }
       else
       {
-        if (ops[i].getSort().isBitVector() && ops[i].getExpr().isConst())
+        if (ops[i].getSort().isBitVector() && ops[i].isConst())
         {
           Debug("parser-sygus") << "--> Bit-vector constant " << ops[i] << " ("
                                 << cnames[i] << ")" << std::endl;
@@ -1642,7 +1640,7 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
         && p.d_name.find_first_not_of("0123456789", 1) == std::string::npos)
     {
       // allow unary minus in sygus version 1
-      expr = api::Term(getExprManager()->mkConst(Rational(p.d_name)));
+      expr = d_solver->mkReal(p.d_name);
     }
     else
     {
@@ -1689,7 +1687,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         parseError("testers should only be applied to one argument");
       }
-      return api::Term(getExprManager()->mkExpr(kind::APPLY_TESTER, p.d_expr.getExpr(), args[0].getExpr()));
+      return mkTermSafe(api::APPLY_TESTER, p.d_expr, args[0]);
     }
     // An explicit operator, e.g. an indexed symbol.
     args.insert(args.begin(), p.d_expr);
@@ -1750,7 +1748,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError("Too many arguments to array constant.");
     }
     api::Term constVal = args[0];
-    if (!constVal.getExpr().isConst())
+    if (!constVal.isConst())
     {
       // To parse array constants taking reals whose values are specified by
       // rationals, e.g. ((as const (Array Int Real)) (/ 1 3)), we must handle
@@ -1760,14 +1758,14 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // like 5.0 which are converted to (/ 5 1) to distinguish them from
       // integer constants. We must ensure numerator and denominator are
       // constant and the denominator is non-zero.
-      if (constVal.getKind() == api::DIVISION && constVal[0].getExpr().isConst()
-          && constVal[1].getExpr().isConst()
+      if (constVal.getKind() == api::DIVISION && constVal[0].isConst()
+          && constVal[1].isConst()
           && !constVal[1].getExpr().getConst<Rational>().isZero())
       {
         constVal = api::Term(em->mkConst(constVal[0].getExpr().getConst<Rational>()
                                / constVal[1].getExpr().getConst<Rational>()));
       }
-      if (!constVal.getExpr().isConst())
+      if (!constVal.isConst())
       {
         std::stringstream ss;
         ss << "expected constant term inside array constant, but found "
@@ -1817,7 +1815,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-    return api::Term(getExprManager()->mkExpr(kind::APPLY_SELECTOR, dt[0][n].getSelector(),args[0].getExpr()));
+    return mkTermSafe(api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args[0]);
   }
   else if (p.d_kind != api::NULL_EXPR)
   {

@@ -853,7 +853,14 @@ class CVC4_PUBLIC Term
    * @return true if this Term is a null term
    */
   bool isNull() const;
-
+  
+  /**
+   * Check if this is a Term representing a constant.
+   *
+   * @return true if a constant Term
+   */
+  bool isConst() const;
+  
   /**
    * @return true if this expression is parameterized.
    *

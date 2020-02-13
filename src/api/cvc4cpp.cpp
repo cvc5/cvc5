@@ -1443,6 +1443,12 @@ Op Term::getOp() const
 
 bool Term::isNull() const { return isNullHelper(); }
 
+bool Term::isConst() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->isConst();
+}
+  
 bool Term::isParameterized() const
 {
   CVC4_API_CHECK_NOT_NULL;

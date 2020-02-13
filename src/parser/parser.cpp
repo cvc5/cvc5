@@ -523,6 +523,7 @@ api::Term Parser::mkHoApply(api::Term expr, std::vector<api::Term>& args)
   return expr;
 }
 
+//!!!!!!!!!!! temporary
 api::Term Parser::mkBuiltinApp(api::Term f, const std::vector<api::Term>& args) const
 {
   return api::Term( getExprManager()->mkExpr(f.getExpr(), convertTermVec(args)));
@@ -535,8 +536,23 @@ api::Term Parser::mkTermSafe(api::Kind k, const std::vector<api::Term>& args) co
     return api::Term(getExprManager()->mkExpr(extToIntKind(k), api::convertTermVec(args)));
   }
   return d_solver->mkTerm(k, args);
-  //return api::Term(getExprManager()->mkExpr(k, convertTermVec(args)));
 }
+
+api::Term Parser::mkTermSafe(api::Kind k, api::Term t1) const
+{
+  std::vector<api::Term> args;
+  args.push_back(t1);
+  return mkTermSafe(k,args);
+}
+
+api::Term Parser::mkTermSafe(api::Kind k, api::Term t1, api::Term t2) const
+{
+  std::vector<api::Term> args;
+  args.push_back(t1);
+  args.push_back(t2);
+  return mkTermSafe(k,args);
+}
+//!!!!!!!!!!! temporary
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch (type) {
