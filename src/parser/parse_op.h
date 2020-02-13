@@ -66,7 +66,26 @@ struct ParseOp
   Expr d_expr;
   /** The type associated with the parsed operator, if it exists */
   Type d_type;
+  
+  /* Return true if this is equal to 'p'. */
+  bool operator==(const ParseOp& p) const
+  {
+    return d_kind==p.d_kind && d_name==p.d_name && d_expr==p.d_expr && d_type==p.d_type;
+  }
 };
+
+inline std::ostream& operator<<(std::ostream& os, const ParseOp& p)
+{
+  if (!p.d_expr.isNull())
+  {
+    return os << p.d_expr;
+  }
+  else if (p.d_kind!=kind::NULL_EXPR)
+  {
+    return os << p.d_kind;
+  }
+  return os << "ParseOp::unknown";
+}
 
 }  // namespace CVC4
 

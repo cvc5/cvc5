@@ -1148,15 +1148,16 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
     if( cargs[sub_dt_index].empty() ){
       parseError(std::string("Internal error : datatype for nested gterm does not have a constructor."));
     }
-    Expr sop = ops[sub_dt_index][0];
+    ParseOp op = ops[sub_dt_index][0];
     Type curr_t;
-    if( sop.getKind() != kind::BUILTIN && ( sop.isConst() || cargs[sub_dt_index][0].empty() ) ){
+    if( !op.d_expr.isNull() && ( op.d_expr.isConst() || cargs[sub_dt_index][0].empty() ) ){
+      Expr sop = op.d_expr;
       curr_t = sop.getType();
       Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getType() << ", debug=" << sop.isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
       // only cache if it is a singleton datatype (has unique expr)
       if (ops[sub_dt_index].size() == 1)
       {
-        sygus_to_builtin_expr[t] = sop;
+        sygus_to_builtin_expr[t] = op.d_expr;
         // store that term sop has dedicated sygus type t
         if (d_sygus_bound_var_type.find(sop) == d_sygus_bound_var_type.end())
         {
@@ -1165,9 +1166,6 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
       }
     }else{
       std::vector< Expr > children;
-      if( sop.getKind() != kind::BUILTIN ){
-        children.push_back( sop );
-      }
       for( unsigned i=0; i<cargs[sub_dt_index][0].size(); i++ ){
         std::map< CVC4::Type, CVC4::Expr >::iterator it = sygus_to_builtin_expr.find( cargs[sub_dt_index][0][i] );
         if( it==sygus_to_builtin_expr.end() ){
@@ -1192,11 +1190,7 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
           children.push_back( it->second );
         }
       }
-      Kind sk = sop.getKind() != kind::BUILTIN
-                    ? getKindForFunction(sop)
-                    : getExprManager()->operatorToKind(sop);
-      Debug("parser-sygus") << ": operator " << sop << " with " << sop.getKind() << " " << sk << std::endl;
-      Expr e = getExprManager()->mkExpr( sk, children );
+      Expr e = applyParseOp(op, children);
       Debug("parser-sygus") << ": constructed " << e << ", which has type " << e.getType() << std::endl;
       curr_t = e.getType();
       sygus_to_builtin_expr[t] = e;
@@ -1297,26 +1291,22 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
 
         // make the let_body
         std::vector<Expr> children;
-        if (ops[i].getKind() != kind::BUILTIN)
-        {
-          children.push_back(ops[i]);
-        }
         children.insert(children.end(), largs.begin(), largs.end());
-        Kind sk = ops[i].getKind() != kind::BUILTIN
-                      ? getKindForFunction(ops[i])
-                      : getExprManager()->operatorToKind(ops[i]);
-        Expr body = getExprManager()->mkExpr(sk, children);
+        Expr body = applyParseOp(ops[i],children);
         // replace by lambda
-        ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
+        ParseOp pLam;
+        pLam.d_expr = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body); 
+        ops[i] = pLam;
         Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
         // callback prints as the expression
         spc = std::make_shared<printer::SygusExprPrintCallback>(body, largs);
       }
       else
       {
-        if (ops[i].getType().isBitVector() && ops[i].isConst())
+        Expr sop = ops[i].d_expr;
+        if (!sop.isNull() && sop.getType().isBitVector() && sop.isConst())
         {
-          Debug("parser-sygus") << "--> Bit-vector constant " << ops[i] << " ("
+          Debug("parser-sygus") << "--> Bit-vector constant " << sop << " ("
                                 << cnames[i] << ")" << std::endl;
           // Since there are multiple output formats for bit-vectors and
           // we are required by sygus standards to print in the exact input
@@ -1324,22 +1314,22 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
           // the given name.
           spc = std::make_shared<printer::SygusNamedPrintCallback>(cnames[i]);
         }
-        else if (ops[i].getKind() == kind::VARIABLE)
+        else if (!sop.isNull() && ops[i].d_expr.getKind() == kind::VARIABLE)
         {
           Debug("parser-sygus") << "--> Defined function " << ops[i]
                                 << std::endl;
           // turn f into (lammbda (x) (f x))
           // in a degenerate case, ops[i] may be a defined constant,
           // in which case we do not replace by a lambda.
-          if (ops[i].getType().isFunction())
+          if (sop.getType().isFunction())
           {
             std::vector<Type> ftypes =
-                static_cast<FunctionType>(ops[i].getType()).getArgTypes();
+                static_cast<FunctionType>(sop.getType()).getArgTypes();
             std::vector<Expr> largs;
             Expr lbvl = makeSygusBoundVarList(dt, i, ftypes, largs);
-            largs.insert(largs.begin(), ops[i]);
+            largs.insert(largs.begin(), sop);
             Expr body = getExprManager()->mkExpr(kind::APPLY_UF, largs);
-            ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
+            ops[i].d_expr = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
             Debug("parser-sygus") << "  ...replace op : " << ops[i]
                                   << std::endl;
           }
@@ -1403,7 +1393,9 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
           dt.addSygusConstructor(id_op, unresolved_gterm_sym[i], id_carg, sepc);
 
           //add to operators
-          ops.push_back( id_op );
+          ParseOp idOp;
+          idOp.d_expr = id_op;
+          ops.push_back( idOp );
         }
       }else{
         std::stringstream ss;
