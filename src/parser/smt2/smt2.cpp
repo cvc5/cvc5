@@ -1309,9 +1309,7 @@ void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
         Expr lbvl = makeSygusBoundVarList(dt, i, ltypes, largs);
 
         // make the let_body
-        std::vector<Expr> children;
-        children.insert(children.end(), largs.begin(), largs.end());
-        Expr body = applyParseOp(ops[i], children);
+        Expr body = applyParseOp(ops[i], largs);
         // replace by lambda
         ParseOp pLam;
         pLam.d_expr = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
@@ -1738,11 +1736,13 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   {
     // An explicit operator, e.g. an indexed symbol.
     args.insert(args.begin(), p.d_expr);
-    if (p.d_expr.getType().isTester())
+    Kind fkind = getKindForFunction(p.d_expr);
+    if (fkind!=kind::UNDEFINED_KIND)
     {
+      // Some operators may require a specific kind.
       // Testers are handled differently than other indexed operators,
       // since they require a kind.
-      kind = kind::APPLY_TESTER;
+      kind = fkind;
     }
   }
   else
@@ -1794,7 +1794,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   // Second phase: apply the arguments to the parse op
   ExprManager* em = getExprManager();
   // handle special cases
-  if (p.d_kind == kind::STORE_ALL)
+  if (p.d_kind == kind::STORE_ALL && !p.d_type.isNull())
   {
     if (args.size() != 1)
     {
@@ -1839,12 +1839,8 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     }
     return em->mkConst(ArrayStoreAll(p.d_type, constVal));
   }
-  else if (p.d_kind == kind::APPLY_SELECTOR)
+  else if (p.d_kind == kind::APPLY_SELECTOR && !p.d_expr.isNull())
   {
-    if (p.d_expr.isNull())
-    {
-      parseError("Could not process parsed tuple selector.");
-    }
     // tuple selector case
     Integer x = p.d_expr.getConst<Rational>().getNumerator();
     if (!x.fitsUnsignedInt())
@@ -1873,9 +1869,14 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   }
   else if (p.d_kind != kind::NULL_EXPR)
   {
-    std::stringstream ss;
-    ss << "Could not process parsed qualified identifier kind " << p.d_kind;
-    parseError(ss.str());
+    if (!p.d_expr.isNull() || !p.d_type.isNull())
+    {
+      std::stringstream ss;
+      ss << "Could not process parsed qualified identifier kind " << p.d_kind;
+      parseError(ss.str());
+    }
+    // otherwise it is a simple application
+    kind = p.d_kind;
   }
   else if (isBuiltinOperator)
   {
