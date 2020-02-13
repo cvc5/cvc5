@@ -256,7 +256,7 @@ enum CVC4_PUBLIC Kind : int32_t
   CARDINALITY_CONSTRAINT,
   /* cardinality value of sort S:
    * first parameter is (any) term of sort S */
-   CARDINALITY_VALUE,
+  CARDINALITY_VALUE,
 #if 0
   /* Combined cardinality constraint.  */
   COMBINED_CARDINALITY_CONSTRAINT,
@@ -1668,9 +1668,9 @@ enum CVC4_PUBLIC Kind : int32_t
   RECORD_UPDATE,
   /* Match expressions.
    * For example, the smt2 syntax match term
-   *   (match l (((cons h t) h) (nil 0))) 
+   *   (match l (((cons h t) h) (nil 0)))
    * is represented by the AST
-   * (MATCH l 
+   * (MATCH l
    *   (MATCH_BIND_CASE (BOUND_VAR_LIST h t) (cons h t) h)
    *   (MATCH_CASE nil 0))
    * The type of the last argument of each case term could be equal.
@@ -1680,7 +1680,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
-   * 
+   *
    */
   MATCH,
   /* Match case
@@ -1704,7 +1704,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   MATCH_BIND_CASE,
-  /* 
+  /*
    * datatypes size
    * An operator mapping datatypes to an integer denoting the number of
    * non-nullary applications of constructors they contain.
@@ -2289,7 +2289,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   EXISTS,
-  /* 
+  /*
    * A list of bound variables (used to bind variables under a quantifier)
    * Parameters: n > 1
    *   -[1]..[n]: Terms with kind BOUND_VARIABLE
@@ -2299,15 +2299,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   BOUND_VAR_LIST,
-  /* 
-   * A predicate for specifying term in instantiation closure. 
+  /*
+   * A predicate for specifying term in instantiation closure.
    * Parameters: 1
    *   -[1]: Term
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
   INST_CLOSURE,
-  /* 
+  /*
    * An instantiation pattern.
    * Specifies a (list of) terms to be used as a pattern for quantifier
    * instantiation.
@@ -2319,7 +2319,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   INST_PATTERN,
-  /* 
+  /*
    * An instantiation no-pattern.
    * Specifies a (list of) terms that should not be used as a pattern for
    * quantifier instantiation.
@@ -2331,7 +2331,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   INST_NO_PATTERN,
-  /* 
+  /*
    * An instantiation attribute
    * Specifies a custom property for a quantified formula given by a
    * node that is ascribed a user attribute.
@@ -2341,7 +2341,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child)
    */
   INST_ATTRIBUTE,
-  /* 
+  /*
    * A list of instantiation patterns and/or attributes.
    * Parameters: n > 1
    *   -[1]..[n]: Terms with kind INST_PATTERN, INST_NO_PATTERN, or
