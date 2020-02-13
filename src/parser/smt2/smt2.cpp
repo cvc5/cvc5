@@ -1782,6 +1782,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     return api::Term(em->mkConst(ArrayStoreAll(p.d_type.getType(), constVal.getExpr())));
+    //return d_solver->mkConstArray(p.d_type, constVal);
   }
   else if (p.d_kind == api::APPLY_SELECTOR)
   {

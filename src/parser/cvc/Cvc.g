@@ -2126,7 +2126,9 @@ simpleTerm[CVC4::api::Term& f]
     }
     /* empty set literal */
   | LBRACE RBRACE
-    { f = MK_CONST(EmptySet(Type())); }
+    { 
+      f = MK_CONST(EmptySet(Type())); 
+    }
   | UNIVSET_TOK
     { //booleanType is placeholder
       f = SOLVER->mkUniverseSet(SOLVER->getBooleanSort());
@@ -2169,7 +2171,7 @@ simpleTerm[CVC4::api::Term& f]
            << "computed const type: " << f.getSort();
         PARSER_STATE->parseError(ss.str());
       }
-      f = api::Term(MK_CONST(ArrayStoreAll(t.getType(), f.getExpr()) ));
+      f = SOLVER->mkConstArray(t, f);
     }
 
     /* boolean literals */
@@ -2179,8 +2181,11 @@ simpleTerm[CVC4::api::Term& f]
     /* syntactic predicate: never match INTEGER.DIGIT as an integer and a dot!
      * This is a rational constant!  Otherwise the parser interprets it as a tuple
      * selector! */
-  | DECIMAL_LITERAL { 
-      f = MK_CONST(AntlrInput::tokenToRational($DECIMAL_LITERAL));
+  | DECIMAL_LITERAL {
+      Rational r = AntlrInput::tokenToRational($DECIMAL_LITERAL);
+      std::stringstream strRat;
+      strRat << r;
+      f = SOLVER->mkReal(strRat.str());
       if(f.getSort().isInteger()) {
         // Must cast to Real to ensure correct type is passed to parametric type constructors.
         // We do this cast using division with 1.
@@ -2188,7 +2193,12 @@ simpleTerm[CVC4::api::Term& f]
         f = MK_TERM(api::DIVISION, f, SOLVER->mkReal(1));
       } 
     }
-  | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
+  | INTEGER_LITERAL { 
+      Rational r = AntlrInput::tokenToRational($INTEGER_LITERAL);
+      std::stringstream strRat;
+      strRat << r;
+      f = SOLVER->mkReal(strRat.str());
+    }
     /* bitvector literals */
   | HEX_LITERAL
     { assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
