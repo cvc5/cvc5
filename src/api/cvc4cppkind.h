@@ -1946,6 +1946,21 @@ enum CVC4_PUBLIC Kind : int32_t
   IDEN,
   /**
    * Set comprehension
+   * A set comprehension is specified by a bound variable list x1 ... xn,
+   * a predicate P[x1...xn], and a term t[x1...xn]. A comprehension C with the
+   * above form has members given by the following semantics:
+   * forall y. ( exists x1...xn. P[x1...xn] ^ t[x1...xn] = y ) <=> (member y C)
+   * where y ranges over the element type of the (set) type of the
+   * comprehension. If t[x1..xn] is not provided, it is equivalent to y in the
+   * above formula.
+   * Parameters: 2 (3)
+   *   -[1]: Term BOUND_VAR_LIST
+   *   -[2]: Term denoting the predicate of the comprehension
+   *   -[3]: (optional) a Term denoting the generator for the comprehension
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   COMPREHENSION,
 
