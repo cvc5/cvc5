@@ -373,7 +373,7 @@ atomicFormula[CVC4::api::Term& expr]
     {
       if (!args.empty())
       {
-        expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
+        expr = PARSER_STATE->mkBuiltinApp(expr, args);
       }
     }
   | definedProp[expr]
@@ -395,7 +395,7 @@ thfAtomicFormula[CVC4::api::Term& expr]
       LPAREN_TOK arguments[args] RPAREN_TOK
       equalOp[equal] term[expr2]
       {
-        expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
+        expr = PARSER_STATE->mkBuiltinApp(expr, args);
         expr = MK_TERM(api::EQUAL, expr, expr2);
         if (!equal)
         {
@@ -410,7 +410,7 @@ thfAtomicFormula[CVC4::api::Term& expr]
     {
       if (!args.empty())
       {
-        expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
+        expr = PARSER_STATE->mkBuiltinApp(expr, args);
       }
     }
   | definedProp[expr]
@@ -433,10 +433,10 @@ definedPred[CVC4::api::Term& expr]
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
-    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
-      CVC4::api::Term q = api::Term(EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType()));
+    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      CVC4::api::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
       CVC4::api::Term qr = MK_TERM(api::TO_REAL, q);
-      CVC4::api::Term r = api::Term(EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType()));
+      CVC4::api::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
       CVC4::api::Term rr = MK_TERM(api::TO_REAL, r);
       CVC4::api::Term body =
           MK_TERM(api::AND,
@@ -465,10 +465,10 @@ thfDefinedPred[CVC4::api::Term& expr]
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
     {
-      CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
-      CVC4::api::Term q = api::Term(EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType()));
+      CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      CVC4::api::Term q = SOLVER->mkVar(SOLVER->getIntegerSort(), "Q");
       CVC4::api::Term qr = MK_TERM(api::TO_REAL, q);
-      CVC4::api::Term r = api::Term(EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType()));
+      CVC4::api::Term r = SOLVER->mkVar(SOLVER->getIntegerSort(), "R");
       CVC4::api::Term rr = MK_TERM(api::TO_REAL, r);
       CVC4::api::Term body = MK_TERM(
           api::AND,
@@ -503,8 +503,8 @@ definedFun[CVC4::api::Term& expr]
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }
     )
-    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
-      CVC4::api::Term d = api::Term(EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType()));
+    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      CVC4::api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       expr = MK_TERM(api::DIVISION_TOTAL, n, d);
       expr = MK_TERM(api::ITE, MK_TERM(api::GEQ, d, SOLVER->mkReal(0)),
@@ -518,8 +518,8 @@ definedFun[CVC4::api::Term& expr]
   | ( '$quotient_t' { remainder = false; }
     | '$remainder_t' { remainder = true; }
     )
-    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
-      CVC4::api::Term d = api::Term(EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType()));
+    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      CVC4::api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       expr = MK_TERM(api::DIVISION_TOTAL, n, d);
       expr = MK_TERM(api::ITE, MK_TERM(api::GEQ, expr, SOLVER->mkReal(0)),
@@ -533,8 +533,8 @@ definedFun[CVC4::api::Term& expr]
   | ( '$quotient_f' { remainder = false; }
     | '$remainder_f' { remainder = true; }
     )
-    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
-      CVC4::api::Term d = api::Term(EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType()));
+    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
+      CVC4::api::Term d = SOLVER->mkVar(SOLVER->getRealSort(), "D");
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       expr = MK_TERM(api::DIVISION_TOTAL, n, d);
       expr = MK_TERM(api::TO_INTEGER, expr);
@@ -545,13 +545,13 @@ definedFun[CVC4::api::Term& expr]
     }
   | '$floor' { expr = EXPR_MANAGER->operatorOf(kind::TO_INTEGER); }
   | '$ceiling'
-    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
+    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
       expr = MK_TERM(api::UMINUS, MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, n)));
       expr = MK_TERM(api::LAMBDA, formals, expr);
     }
   | '$truncate'
-    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
+    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
       expr = MK_TERM(api::ITE, MK_TERM(api::GEQ, n, SOLVER->mkReal(0)),
                                       MK_TERM(api::TO_INTEGER, n),
@@ -559,7 +559,7 @@ definedFun[CVC4::api::Term& expr]
       expr = MK_TERM(api::LAMBDA, formals, expr);
     }
   | '$round'
-    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
+    { CVC4::api::Term n = SOLVER->mkVar(SOLVER->getRealSort(), "N");
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
       CVC4::api::Term decPart = MK_TERM(api::MINUS, n, MK_TERM(api::TO_INTEGER, n));
       expr = MK_TERM(api::ITE, MK_TERM(api::LT, decPart, SOLVER->mkReal(1, 2)),
@@ -636,7 +636,7 @@ functionTerm[CVC4::api::Term& expr]
 }
   : plainTerm[expr]
   | definedFun[expr] LPAREN_TOK arguments[args] RPAREN_TOK
-    { expr = api::Term(EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args))); }
+    { expr = PARSER_STATE->mkBuiltinApp(expr, args); }
 // | <system_term>
   ;
 
@@ -954,7 +954,7 @@ thfLogicFormula[CVC4::api::Term& expr]
         if (expr.getExpr().getKind() == kind::BUILTIN)
         {
           args.erase(args.begin());
-          expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
+          expr = PARSER_STATE->mkBuiltinApp(expr, args);
         }
         else
         {
@@ -1003,7 +1003,7 @@ thfUnitaryFormula[CVC4::api::Term& expr]
     RPAREN_TOK
   | NOT_TOK
     { expr = EXPR_MANAGER->operatorOf(kind::NOT); }
-    (thfUnitaryFormula[expr2] { expr = api::Term(EXPR_MANAGER->mkExpr(expr.getExpr(),expr2.getExpr())); })?
+    (thfUnitaryFormula[expr2] { expr = PARSER_STATE->mkBuiltinApp(expr,expr2); })?
   | // Quantified
     thfQuantifier[kind]
     LBRACK_TOK {PARSER_STATE->pushScope();}
@@ -1302,10 +1302,10 @@ simpleType[CVC4::api::Sort& type]
   : DEFINED_SYMBOL
     { std::string s = AntlrInput::tokenText($DEFINED_SYMBOL);
       if(s == "\$i") type = PARSER_STATE->d_unsorted;
-      else if(s == "\$o") type = EXPR_MANAGER->booleanType();
-      else if(s == "\$int") type = EXPR_MANAGER->integerType();
-      else if(s == "\$rat") type = EXPR_MANAGER->realType();
-      else if(s == "\$real") type = EXPR_MANAGER->realType();
+      else if(s == "\$o") type = SOLVER->getBooleanSort();
+      else if(s == "\$int") type = SOLVER->getIntegerSort();
+      else if(s == "\$rat") type = SOLVER->getRealSort();
+      else if(s == "\$real") type = SOLVER->getRealSort();
       else if(s == "\$tType") PARSER_STATE->parseError("Type of types `\$tType' cannot be used here");
       else PARSER_STATE->parseError("unknown defined type `" + s + "'");
     }

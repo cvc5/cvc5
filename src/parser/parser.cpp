@@ -529,6 +529,13 @@ api::Term Parser::mkBuiltinApp(api::Term f, const std::vector<api::Term>& args) 
   return api::Term( getExprManager()->mkExpr(f.getExpr(), convertTermVec(args)));
 }
 
+api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1) const
+{
+  std::vector<api::Term> args;
+  args.push_back(t1);
+  return mkBuiltinApp(f,args);
+}
+
 api::Term Parser::mkTermSafe(api::Kind k, const std::vector<api::Term>& args) const
 {
   if (k == api::APPLY_SELECTOR || k==api::APPLY_TESTER)
