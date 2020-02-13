@@ -988,7 +988,7 @@ void Smt2::processSygusGTerm(
 {
   if (sgt.d_gterm_type == SygusGTerm::gterm_op)
   {
-    Debug("parser-sygus") << "Add " << sgt.d_op.d_expr << " to datatype "
+    Debug("parser-sygus") << "Add " << sgt.d_op << " to datatype "
                           << index << std::endl;
     Kind oldKind;
     Kind newKind = kind::UNDEFINED_KIND;
@@ -1171,7 +1171,7 @@ Type Smt2::processSygusNestedGTerm(
       // only cache if it is a singleton datatype (has unique expr)
       if (ops[sub_dt_index].size() == 1)
       {
-        sygus_to_builtin_expr[t] = op.d_expr;
+        sygus_to_builtin_expr[t] = sop;
         // store that term sop has dedicated sygus type t
         if (d_sygus_bound_var_type.find(sop) == d_sygus_bound_var_type.end())
         {
@@ -1369,7 +1369,8 @@ void Smt2::mkSygusDatatype(CVC4::Datatype& dt,
       cnames[i] = ss.str();
       Debug("parser-sygus") << "  construct the datatype " << cnames[i] << "..."
                             << std::endl;
-      // add the sygus constructor
+      // Add the sygus constructor, either using the expression operator of
+      // ops[i], or the kind.
       if (!ops[i].d_expr.isNull())
       {
         dt.addSygusConstructor(ops[i].d_expr, cnames[i], cargs[i], spc);
@@ -1869,6 +1870,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
   }
   else if (p.d_kind != kind::NULL_EXPR)
   {
+    // it should not have an expression or type specified at this point
     if (!p.d_expr.isNull() || !p.d_type.isNull())
     {
       std::stringstream ss;
