@@ -226,7 +226,6 @@ class CVC4_PUBLIC Sort
    */
   bool operator!=(const Sort& s) const;
 
-
   /**
    * Comparison for ordering on sorts.
    * @param s the sort to compare to
@@ -254,7 +253,7 @@ class CVC4_PUBLIC Sort
    * @return true if this sort is greater than or equal to s
    */
   bool operator>=(const Sort& s) const;
-  
+
   /**
    * @return true if this Sort is a null sort.
    */
@@ -427,7 +426,7 @@ class CVC4_PUBLIC Sort
    * @return true if this sort is comparable to s
    */
   bool isComparableTo(Sort s) const;
-  
+
   /**
    * @return the underlying datatype of a datatype sort
    */
@@ -461,17 +460,17 @@ class CVC4_PUBLIC Sort
    * @return the arity of a constructor sort
    */
   size_t getConstructorArity() const;
-  
+
   /**
    * @return the domain sorts of a constructor sort
    */
   std::vector<Sort> getConstructorDomainSorts() const;
-  
+
   /**
    * @return the codomain sort of a constructor sort
    */
   Sort getConstructorCodomainSort() const;
-  
+
   /* Function sort ------------------------------------------------------- */
 
   /**
@@ -567,7 +566,7 @@ class CVC4_PUBLIC Sort
    * @return the arity of a datatype sort
    */
   size_t getDatatypeArity() const;
-  
+
   /* Tuple sort ---------------------------------------------------------- */
 
   /**
@@ -778,7 +777,7 @@ class CVC4_PUBLIC Term
    * Destructor.
    */
   ~Term();
-  
+
   /**
    * Syntactic equality operator.
    * Return true if both terms are syntactically identical.
@@ -796,7 +795,6 @@ class CVC4_PUBLIC Term
    * @return true if terms are disequal
    */
   bool operator!=(const Term& t) const;
-
 
   /**
    * Comparison for ordering on terms.
@@ -825,7 +823,7 @@ class CVC4_PUBLIC Term
    * @return true if this term is greater than or equal to t
    */
   bool operator>=(const Term& t) const;
-  
+
   /**
    * Returns the number of children of this term.
    *
@@ -839,7 +837,7 @@ class CVC4_PUBLIC Term
    * @return the child term with the given index
    */
   Term operator[](size_t index) const;
-  
+
   /**
    * @return the id of this term
    */
@@ -866,7 +864,7 @@ class CVC4_PUBLIC Term
    */
   Term substitute(const std::vector<Term> es,
                   const std::vector<Term>& replacements) const;
-                  
+
   /**
    * @return true iff this term has an operator
    */
@@ -882,14 +880,14 @@ class CVC4_PUBLIC Term
    * @return true if this Term is a null term
    */
   bool isNull() const;
-  
+
   /**
    * Check if this is a Term representing a constant.
    *
    * @return true if a constant Term
    */
   bool isConst() const;
-  
+
   /**
    * @return true if this expression is parameterized.
    *
@@ -1351,7 +1349,7 @@ class CVC4_PUBLIC DatatypeSelector
 
   /** @return the name of this Datatype selector. */
   std::string getName() const;
-  
+
   /**
    * @return true if this datatype selector has been resolved.
    */
@@ -1422,13 +1420,13 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return the constructor operator
    */
   Op getConstructorTerm() const;
-  
+
   /**
    * Get the tester operator of this datatype constructor.
    * @return the tester operator
    */
   Op getTesterTerm() const;
-  
+
   /**
    * @return the tester name for this Datatype constructor.
    */
@@ -1438,7 +1436,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return the number of selectors (so far) of this Datatype constructor.
    */
   size_t getNumSelectors() const;
-  
+
   /** @return the i^th DatatypeSelector. */
   DatatypeSelector operator[](size_t index) const;
   /**
@@ -1609,7 +1607,7 @@ class CVC4_PUBLIC Datatype
 
   /** @return the name of this Datatype. */
   std::string getName() const;
-  
+
   /** @return the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
 
@@ -2870,8 +2868,8 @@ class CVC4_PUBLIC Solver
   std::unique_ptr<Random> d_rng;
 };
 
-
-// !!! These only temporarily public until the parser is fully migrated to the new API. !!!
+// !!! These only temporarily public until the parser is fully migrated to the
+// new API. !!!
 std::vector<Expr> convertTermVec(const std::vector<Term>& terms);
 std::vector<Type> convertSortVec(const std::vector<Sort>& sorts);
 std::vector<Term> convertExprVec(const std::vector<Expr>& terms);
