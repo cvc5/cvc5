@@ -77,12 +77,10 @@ using namespace CVC4::parser;
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
 #define MK_TERM SOLVER->mkTerm
-#undef MK_TERM_ASSOCIATIVE
-#define MK_TERM_ASSOCIATIVE SOLVER->mkTerm
+#undef MK_TERM
+#define MK_TERM SOLVER->mkTerm
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
-#undef MK_EXPR
-#define MK_EXPR EXPR_MANAGER->mkExpr
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
@@ -128,14 +126,8 @@ using namespace CVC4::parser;
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
 #define MK_TERM SOLVER->mkTerm
-#undef MK_TERM_ASSOCIATIVE
-#define MK_TERM_ASSOCIATIVE SOLVER->mkTerm
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
-#undef MK_EXPR
-#define MK_EXPR EXPR_MANAGER->mkExpr
-#undef MK_EXPR_ASSOCIATIVE
-#define MK_EXPR_ASSOCIATIVE EXPR_MANAGER->mkAssociative
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
@@ -325,7 +317,7 @@ cnfDisjunction[CVC4::api::Term& expr]
   : cnfLiteral[expr] { args.push_back(expr); }
     ( OR_TOK cnfLiteral[expr] { args.push_back(expr); } )*
     { if(args.size() > 1) {
-        expr = MK_TERM_ASSOCIATIVE(api::OR, args);
+        expr = MK_TERM(api::OR, args);
       } // else its already in the expr
     }
 ;
@@ -358,7 +350,7 @@ atomicFormula[CVC4::api::Term& expr]
      LPAREN_TOK arguments[args] RPAREN_TOK
      equalOp[equal] term[expr2]
      {
-       expr = api::Term(EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args)));
+       expr = PARSER_STATE->mkBuiltinApp(expr, args);
        expr = MK_TERM(api::EQUAL, expr, expr2);
        if (!equal)
        {
@@ -726,12 +718,12 @@ fofLogicFormula[CVC4::api::Term& expr]
     | // N-ary and &
       ( { args.push_back(expr); }
         ( AND_TOK fofUnitaryFormula[expr] { args.push_back(expr); } )+
-        { expr = MK_TERM_ASSOCIATIVE(api::AND, args); }
+        { expr = MK_TERM(api::AND, args); }
       )
     | // N-ary or |
       ( { args.push_back(expr); }
         ( OR_TOK fofUnitaryFormula[expr] { args.push_back(expr); } )+
-        { expr = MK_TERM_ASSOCIATIVE(api::OR, args); }
+        { expr = MK_TERM(api::OR, args); }
       )
     )?
   ;
@@ -930,14 +922,14 @@ thfLogicFormula[CVC4::api::Term& expr]
       ( { args.push_back(expr); }
         ( AND_TOK thfUnitaryFormula[expr] { args.push_back(expr); } )+
         {
-          expr = MK_TERM_ASSOCIATIVE(api::AND, args);
+          expr = MK_TERM(api::AND, args);
         }
       )
     | // N-ary or |
       ( { args.push_back(expr); }
         ( OR_TOK thfUnitaryFormula[expr] { args.push_back(expr); } )+
         {
-          expr = MK_TERM_ASSOCIATIVE(api::OR, args);
+          expr = MK_TERM(api::OR, args);
         }
       )
     | // N-ary @ |
