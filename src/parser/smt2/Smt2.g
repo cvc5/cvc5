@@ -145,8 +145,6 @@ using namespace CVC4::parser;
 #define PARSER_STATE ((Smt2*)PARSER->super)
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
-#undef MK_CONST
-#define MK_CONST EXPR_MANAGER->mkConst
 #undef SOLVER
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
@@ -2177,7 +2175,9 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
     }
   | tok=( ATTRIBUTE_INST_LEVEL ) INTEGER_LITERAL
     {
-      CVC4::api::Term n = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) );
+      std::stringstream sIntLit;
+      sIntLit << $INTEGER_LITERAL;
+      CVC4::api::Term n = SOLVER->mkReal(sIntLit.str());
       std::vector<CVC4::api::Term> values;
       values.push_back( n );
       std::string attr_name(AntlrInput::tokenText($tok));
