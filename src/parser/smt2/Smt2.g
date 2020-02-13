@@ -145,8 +145,6 @@ using namespace CVC4::parser;
 #define PARSER_STATE ((Smt2*)PARSER->super)
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
-#undef MK_EXPR
-#define MK_EXPR EXPR_MANAGER->mkExpr
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
 #undef SOLVER
@@ -579,7 +577,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
 
   | /* synth-fun */
     ( SYNTH_FUN_V1_TOK { isInv = false; }
-      | SYNTH_INV_V1_TOK { isInv = true; range = EXPR_MANAGER->booleanType(); }
+      | SYNTH_INV_V1_TOK { isInv = true; range = SOLVER->getBooleanSort(); }
     )
     { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -601,7 +599,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
     }
   | /* synth-fun */
     ( SYNTH_FUN_TOK { isInv = false; }
-      | SYNTH_INV_TOK { isInv = true; range = EXPR_MANAGER->booleanType(); }
+      | SYNTH_INV_TOK { isInv = true; range = SOLVER->getBooleanSort(); }
     )
     { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[fun,CHECK_UNDECLARED,SYM_VARIABLE]
@@ -1321,7 +1319,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( LPAREN_TOK symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       sortList[sorts] RPAREN_TOK
-      { CVC4::api::Sort t = EXPR_MANAGER->booleanType();
+      { CVC4::api::Sort t = SOLVER->getBooleanSort();
         if(sorts.size() > 0) {
           if(!PARSER_STATE->isTheoryEnabled(Smt2::THEORY_UF)) {
             PARSER_STATE->parseError(
@@ -1577,13 +1575,6 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
     }
   | str[s,false]
     { sexpr = SExpr(s); }
-//  | LPAREN_TOK STRCST_TOK
-//      ( INTEGER_LITERAL {
-//      s_vec.push_back( atoi( AntlrInput::tokenText($INTEGER_LITERAL) ) + 65 );
-//    } )* RPAREN_TOK
-//   {
-//  sexpr = SExpr( MK_CONST( ::CVC4::String(s_vec) ) );
-//  }
   | symbol[s,CHECK_NONE,SYM_SORT]
     { sexpr = SExpr(SExpr::Keyword(s)); }
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
@@ -2106,7 +2097,6 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
   : KEYWORD ( simpleSymbolicExprNoKeyword[sexpr] { hasValue = true; } )?
   {
     attr = AntlrInput::tokenText($KEYWORD);
-    // EXPR_MANAGER->setNamedAttribute( expr, attr );
     if(attr == ":rewrite-rule") {
       if(hasValue) {
         std::stringstream ss;
@@ -2157,7 +2147,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
           avar = expr[0];
         }
       }else{
-        CVC4::api::Sort t = EXPR_MANAGER->booleanType();
+        CVC4::api::Sort t = SOLVER->getBooleanSort();
         avar = PARSER_STATE->mkVar(attr_name, t);
       }
       if( success ){
@@ -2192,7 +2182,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       values.push_back( n );
       std::string attr_name(AntlrInput::tokenText($tok));
       attr_name.erase( attr_name.begin() );
-      CVC4::api::Sort t = EXPR_MANAGER->booleanType();
+      CVC4::api::Sort t = SOLVER->getBooleanSort();
       CVC4::api::Term avar = PARSER_STATE->mkVar(attr_name, t);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand( attr_name, avar.getExpr(), api::convertTermVec(values) );
@@ -2381,7 +2371,7 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
           if(numerals.front() == 0) {
             PARSER_STATE->parseError("Illegal bitvector size: 0");
           }
-          t = EXPR_MANAGER->mkBitVectorType(numerals.front());
+          t = SOLVER->mkBitVectorSort(numerals.front());
         } else if ( name == "FloatingPoint" ) {
           if( numerals.size() != 2 ) {
             PARSER_STATE->parseError("Illegal floating-point type.");
@@ -2392,7 +2382,7 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
           if(!validSignificandSize(numerals[1])) {
             PARSER_STATE->parseError("Illegal floating-point significand size");
           }
-          t = EXPR_MANAGER->mkFloatingPointType(numerals[0],numerals[1]);
+          t = SOLVER->mkFloatingPointSort(numerals[0],numerals[1]);
         } else {
           std::stringstream ss;
           ss << "unknown indexed sort symbol `" << name << "'";
