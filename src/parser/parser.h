@@ -374,7 +374,7 @@ public:
    * handles variables whose types are "function-like", i.e. where
    * checkFunctionLike(fun) returns true.
    * 
-   * For examples of the latter , this function returns
+   * For examples of the latter, this function returns
    *   APPLY_UF if fun has function type, 
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
