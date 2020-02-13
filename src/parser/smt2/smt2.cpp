@@ -1737,7 +1737,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
     // An explicit operator, e.g. an indexed symbol.
     args.insert(args.begin(), p.d_expr);
     Kind fkind = getKindForFunction(p.d_expr);
-    if (fkind!=kind::UNDEFINED_KIND)
+    if (fkind != kind::UNDEFINED_KIND)
     {
       // Some operators may require a specific kind.
       // Testers are handled differently than other indexed operators,
