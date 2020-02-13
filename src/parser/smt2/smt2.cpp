@@ -353,14 +353,14 @@ void Smt2::addTheory(Theory theory) {
   case THEORY_DATATYPES:
   {
     const std::vector<api::Sort> types;
-    defineType("Tuple", getExprManager()->mkTupleType(api::convertSortVec(types)));
+    defineType("Tuple", d_solver->mkTupleSort(types));
     addDatatypesOperators();
     break;
   }
 
   case THEORY_STRINGS:
-    defineType("String", getExprManager()->stringType());
-    defineType("RegLan", getExprManager()->regExpType());
+    defineType("String", d_solver->getStringSort());
+    defineType("RegLan", d_solver->getRegExpSort());
     defineType("Int", d_solver->getIntegerSort());
 
     defineVar("re.nostr", d_solver->mkRegexpEmpty());
@@ -380,11 +380,11 @@ void Smt2::addTheory(Theory theory) {
     break;
 
   case THEORY_FP:
-    defineType("RoundingMode", getExprManager()->roundingModeType());
-    defineType("Float16", getExprManager()->mkFloatingPointType(5, 11));
-    defineType("Float32", getExprManager()->mkFloatingPointType(8, 24));
-    defineType("Float64", getExprManager()->mkFloatingPointType(11, 53));
-    defineType("Float128", getExprManager()->mkFloatingPointType(15, 113));
+    defineType("RoundingMode", d_solver->getRoundingmodeSort());
+    defineType("Float16", d_solver->mkFloatingPointSort(5, 11));
+    defineType("Float32", d_solver->mkFloatingPointSort(8, 24));
+    defineType("Float64", d_solver->mkFloatingPointSort(11, 53));
+    defineType("Float128", d_solver->mkFloatingPointSort(15, 113));
 
     defineVar(
         "RNE",
@@ -924,14 +924,12 @@ void Smt2::includeFile(const std::string& filename) {
 
 void Smt2::mkSygusConstantsForType( const api::Sort& type, std::vector<api::Term>& ops ) {
   if( type.isInteger() ){
-    ops.push_back(getExprManager()->mkConst(Rational(0)));
-    ops.push_back(getExprManager()->mkConst(Rational(1)));
+    ops.push_back(d_solver->mkReal(0));
+    ops.push_back(d_solver->mkReal(1));
   }else if( type.isBitVector() ){
-    unsigned sz = type.getBVSize();
-    BitVector bval0(sz, (unsigned int)0);
-    ops.push_back( getExprManager()->mkConst(bval0) );
-    BitVector bval1(sz, (unsigned int)1);
-    ops.push_back( getExprManager()->mkConst(bval1) );
+    uint32_t sz = type.getBVSize();
+    ops.push_back( d_solver->mkBitVector(sz, 0) );
+    ops.push_back( d_solver->mkBitVector(sz, 1) );
   }else if( type.isBoolean() ){
     ops.push_back(d_solver->mkTrue());
     ops.push_back(d_solver->mkFalse());
