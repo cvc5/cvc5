@@ -828,21 +828,13 @@ bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
 
 bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
 
-bool Sort::operator<(const Sort& s) const {
-  return *d_type < *s.d_type;
-}
+bool Sort::operator<(const Sort& s) const { return *d_type < *s.d_type; }
 
-bool Sort::operator>(const Sort& s) const {
-  return *d_type > *s.d_type;
-}
+bool Sort::operator>(const Sort& s) const { return *d_type > *s.d_type; }
 
-bool Sort::operator<=(const Sort& s) const {
-  return *d_type <= *s.d_type;
-}
+bool Sort::operator<=(const Sort& s) const { return *d_type <= *s.d_type; }
 
-bool Sort::operator>=(const Sort& s) const {
-  return *d_type >= *s.d_type;
-}
+bool Sort::operator>=(const Sort& s) const { return *d_type >= *s.d_type; }
 
 bool Sort::isNull() const { return isNullHelper(); }
 
@@ -894,10 +886,7 @@ bool Sort::isFirstClass() const { return d_type->isFirstClass(); }
 
 bool Sort::isFunctionLike() const { return d_type->isFunctionLike(); }
 
-bool Sort::isSubsortOf(Sort s) const
-{
-  return d_type->isSubtypeOf(*s.d_type);
-}
+bool Sort::isSubsortOf(Sort s) const { return d_type->isSubtypeOf(*s.d_type); }
 
 bool Sort::isComparableTo(Sort s) const
 {
@@ -940,7 +929,7 @@ size_t Sort::getConstructorArity() const
   CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
   return ConstructorType(*d_type).getArity();
 }
-  
+
 std::vector<Sort> Sort::getConstructorDomainSorts() const
 {
   CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
@@ -1068,7 +1057,7 @@ size_t Sort::getDatatypeArity() const
   CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
   return DatatypeType(*d_type).getArity();
 }
-  
+
 /* Tuple sort ---------------------------------------------------------- */
 
 size_t Sort::getTupleLength() const
@@ -1354,32 +1343,21 @@ Term::~Term() {}
 /* .......................................................................... */
 
 bool Term::isNullHelper() const { return d_expr->isNull(); }
-  
+
 bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
 
-bool Term::operator<(const Term& t) const {
-  return *d_expr < *t.d_expr;
-}
+bool Term::operator<(const Term& t) const { return *d_expr < *t.d_expr; }
 
-bool Term::operator>(const Term& t) const {
-  return *d_expr > *t.d_expr;
-}
+bool Term::operator>(const Term& t) const { return *d_expr > *t.d_expr; }
 
-bool Term::operator<=(const Term& t) const {
-  return *d_expr <= *t.d_expr;
-}
+bool Term::operator<=(const Term& t) const { return *d_expr <= *t.d_expr; }
 
-bool Term::operator>=(const Term& t) const {
-  return *d_expr >= *t.d_expr;
-}
+bool Term::operator>=(const Term& t) const { return *d_expr >= *t.d_expr; }
 
-size_t Term::getNumChildren() const
-{
-  return d_expr->getNumChildren();
-}
-  
+size_t Term::getNumChildren() const { return d_expr->getNumChildren(); }
+
 Term Term::operator[](size_t index) const
 {
   return api::Term((*d_expr)[index]);
@@ -1405,13 +1383,14 @@ Sort Term::getSort() const
 
 Term Term::substitute(Term e, Term replacement) const
 {
-  return api::Term(d_expr->substitute(e.getExpr(),replacement.getExpr()));
+  return api::Term(d_expr->substitute(e.getExpr(), replacement.getExpr()));
 }
 
 Term Term::substitute(const std::vector<Term> es,
-                const std::vector<Term>& replacements) const
+                      const std::vector<Term>& replacements) const
 {
-  return api::Term(d_expr->substitute(convertTermVec(es), convertTermVec(replacements)));
+  return api::Term(
+      d_expr->substitute(convertTermVec(es), convertTermVec(replacements)));
 }
 
 bool Term::hasOp() const
@@ -1454,7 +1433,7 @@ bool Term::isConst() const
   CVC4_API_CHECK_NOT_NULL;
   return d_expr->isConst();
 }
-  
+
 bool Term::isParameterized() const
 {
   CVC4_API_CHECK_NOT_NULL;
@@ -1873,10 +1852,7 @@ DatatypeSelector::DatatypeSelector(const CVC4::DatatypeConstructorArg& stor)
 
 DatatypeSelector::~DatatypeSelector() {}
 
-std::string DatatypeSelector::getName() const
-{
-  return d_stor->getName();
-}
+std::string DatatypeSelector::getName() const { return d_stor->getName(); }
 
 bool DatatypeSelector::isResolved() const { return d_stor->isResolved(); }
 
@@ -1921,11 +1897,8 @@ DatatypeConstructor::~DatatypeConstructor() {}
 
 bool DatatypeConstructor::isResolved() const { return d_ctor->isResolved(); }
 
-std::string DatatypeConstructor::getName() const
-{
-  return d_ctor->getName();
-}
-  
+std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
+
 Op DatatypeConstructor::getConstructorTerm() const
 {
   CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
@@ -2107,10 +2080,7 @@ Op Datatype::getConstructorTerm(const std::string& name) const
   return Op(APPLY_CONSTRUCTOR, ctor);
 }
 
-std::string Datatype::getName() const
-{
-  return d_dtype->getName();
-}
+std::string Datatype::getName() const { return d_dtype->getName(); }
 
 size_t Datatype::getNumConstructors() const
 {
@@ -2123,7 +2093,7 @@ bool Datatype::isCodatatype() const { return d_dtype->isCodatatype(); }
 bool Datatype::isTuple() const { return d_dtype->isTuple(); }
 
 bool Datatype::isRecord() const { return d_dtype->isRecord(); }
-  
+
 bool Datatype::isFinite() const
 {
   // CHECK: is resolved?
@@ -2134,7 +2104,7 @@ bool Datatype::isWellFounded() const
   // CHECK: is resolved?
   return d_dtype->isWellFounded();
 }
-  
+
 Datatype::const_iterator Datatype::begin() const
 {
   return Datatype::const_iterator(*d_dtype, true);
@@ -4148,11 +4118,10 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
-
 std::vector<Expr> convertTermVec(const std::vector<Term>& terms)
 {
   std::vector<Expr> exprs;
-  for (size_t i=0,tsize=terms.size(); i<tsize; i++)
+  for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
   {
     exprs.push_back(terms[i].getExpr());
   }
@@ -4162,7 +4131,7 @@ std::vector<Expr> convertTermVec(const std::vector<Term>& terms)
 std::vector<Type> convertSortVec(const std::vector<Sort>& sorts)
 {
   std::vector<Type> types;
-  for (size_t i=0,ssize=sorts.size(); i<ssize; i++)
+  for (size_t i = 0, ssize = sorts.size(); i < ssize; i++)
   {
     types.push_back(sorts[i].getType());
   }
@@ -4182,7 +4151,7 @@ std::set<Type> convertSortSet(const std::set<Sort>& sorts)
 std::vector<Term> convertExprVec(const std::vector<Expr>& exprs)
 {
   std::vector<Term> terms;
-  for (size_t i=0,esize=exprs.size(); i<esize; i++)
+  for (size_t i = 0, esize = exprs.size(); i < esize; i++)
   {
     terms.push_back(Term(exprs[i]));
   }
@@ -4192,7 +4161,7 @@ std::vector<Term> convertExprVec(const std::vector<Expr>& exprs)
 std::vector<Sort> convertTypeVec(const std::vector<Type>& types)
 {
   std::vector<Sort> sorts;
-  for (size_t i=0,tsize=types.size(); i<tsize; i++)
+  for (size_t i = 0, tsize = types.size(); i < tsize; i++)
   {
     sorts.push_back(Sort(types[i]));
   }
@@ -4220,6 +4189,5 @@ CVC4::Kind extToIntKind(CVC4::api::Kind k)
   }
   return it->second;
 }
-  
 
 }  // namespace CVC4
