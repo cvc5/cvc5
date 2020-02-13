@@ -233,8 +233,6 @@ std::vector<api::Term> Tptp::getFreeVar() {
 }
 
 api::Term Tptp::convertRatToUnsorted(api::Term expr) {
-  ExprManager* em = getExprManager();
-
   // Create the conversion function If they doesn't exists
   if (d_rtu_op.isNull()) {
     api::Sort t;
