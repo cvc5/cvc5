@@ -228,24 +228,32 @@ class CVC4_PUBLIC Sort
 
 
   /**
-   * An ordering on Types so they can be stored in maps, etc.
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is less than s
    */
-  bool operator<(const Sort& t) const;
+  bool operator<(const Sort& s) const;
 
   /**
-   * An ordering on Types so they can be stored in maps, etc.
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is less than or equal to s
    */
-  bool operator<=(const Sort& t) const;
+  bool operator<=(const Sort& s) const;
 
   /**
-   * An ordering on Types so they can be stored in maps, etc.
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is greater than s
    */
-  bool operator>(const Sort& t) const;
+  bool operator>(const Sort& s) const;
 
   /**
-   * An ordering on Types so they can be stored in maps, etc.
+   * Comparison for ordering on sorts.
+   * @param s the sort to compare to
+   * @return true if this sort is greater than or equal to s
    */
-  bool operator>=(const Sort& t) const;
+  bool operator>=(const Sort& s) const;
   
   /**
    * @return true if this Sort is a null sort.
@@ -313,20 +321,20 @@ class CVC4_PUBLIC Sort
   bool isParametricDatatype() const;
 
   /**
-   * Is this a constructor type?
-   * @return true if the type is a constructor type
+   * Is this a constructor sort?
+   * @return true if the sort is a constructor sort
    */
   bool isConstructor() const;
 
   /**
-   * Is this a selector type?
-   * @return true if the type is a selector type
+   * Is this a selector sort?
+   * @return true if the sort is a selector sort
    */
   bool isSelector() const;
 
   /**
-   * Is this a tester type?
-   * @return true if the type is a tester type
+   * Is this a tester sort?
+   * @return true if the sort is a tester sort
    */
   bool isTester() const;
   /**
@@ -409,12 +417,14 @@ class CVC4_PUBLIC Sort
 
   /**
    * Is this sort a subsort of the given sort?
+   * @return true if this sort is a subsort of s
    */
   bool isSubsortOf(Sort s) const;
 
   /**
    * Is this sort comparable to the given sort (i.e., do they share
    * a common ancestor in the subsort tree)?
+   * @return true if this sort is comparable to s
    */
   bool isComparableTo(Sort s) const;
   
@@ -457,10 +467,15 @@ class CVC4_PUBLIC Sort
    */
   std::vector<Sort> getConstructorDomainSorts() const;
   
+  /**
+   * @return the codomain sort of a constructor sort
+   */
+  Sort getConstructorCodomainSort() const;
+  
   /* Function sort ------------------------------------------------------- */
 
   /**
-   * @return the arity  of a function sort
+   * @return the arity of a function sort
    */
   size_t getFunctionArity() const;
 

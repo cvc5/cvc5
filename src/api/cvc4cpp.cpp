@@ -948,6 +948,12 @@ std::vector<Sort> Sort::getConstructorDomainSorts() const
   return typeVectorToSorts(types);
 }
 
+Sort Sort::getConstructorCodomainSort() const
+{
+  CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
+  return ConstructorType(*d_type).getRangeType();
+}
+
 /* Function sort ------------------------------------------------------- */
 
 size_t Sort::getFunctionArity() const
