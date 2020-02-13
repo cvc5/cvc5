@@ -29,9 +29,9 @@
 #include "expr/kind.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
+#include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "util/unsafe_interrupt_exception.h"
-#include "parser/parse_op.h"
 
 namespace CVC4 {
 

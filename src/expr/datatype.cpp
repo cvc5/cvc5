@@ -254,16 +254,16 @@ void Datatype::addSygusConstructor(Expr op,
 }
 
 void Datatype::addSygusConstructor(Kind k,
-                          const std::string& cname,
-                          const std::vector<Type>& cargs,
-                          std::shared_ptr<SygusPrintCallback> spc,
-                          int weight)
+                                   const std::string& cname,
+                                   const std::vector<Type>& cargs,
+                                   std::shared_ptr<SygusPrintCallback> spc,
+                                   int weight)
 {
   ExprManagerScope ems(*d_em);
   Expr op = d_em->operatorOf(k);
-  addSygusConstructor(op,cname,cargs,spc,weight);
+  addSygusConstructor(op, cname, cargs, spc, weight);
 }
-                                    
+
 void Datatype::setTuple() {
   PrettyCheckArgument(
       !isResolved(), this, "cannot set tuple to a finalized Datatype");

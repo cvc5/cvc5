@@ -26,8 +26,8 @@
 #include <utility>
 
 #include "api/cvc4cpp.h"
-#include "parser/parser.h"
 #include "parser/parse_op.h"
+#include "parser/parser.h"
 #include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
@@ -409,10 +409,12 @@ class Smt2 : public Parser
                           std::vector<CVC4::Type>& sorts,
                           std::vector<std::vector<ParseOp>>& ops);
 
-  void mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
-                        std::vector<std::string>& cnames, std::vector< std::vector< CVC4::Type > >& cargs,
-                        std::vector<std::string>& unresolved_gterm_sym,
-                        std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
+  void mkSygusDatatype(CVC4::Datatype& dt,
+                       std::vector<ParseOp>& ops,
+                       std::vector<std::string>& cnames,
+                       std::vector<std::vector<CVC4::Type>>& cargs,
+                       std::vector<std::string>& unresolved_gterm_sym,
+                       std::map<CVC4::Type, CVC4::Type>& sygus_to_builtin);
 
   /**
    * Adds a constructor to sygus datatype dt whose sygus operator is term.
@@ -584,15 +586,19 @@ class Smt2 : public Parser
  private:
   std::map< CVC4::Expr, CVC4::Type > d_sygus_bound_var_type;
 
-  Type processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
-                                std::vector< CVC4::Type>& sorts,
-                                std::vector< std::vector<ParseOp> >& ops,
-                                std::vector< std::vector<std::string> >& cnames,
-                                std::vector< std::vector< std::vector< CVC4::Type > > >& cargs,
-                                std::vector< bool >& allow_const,
-                                std::vector< std::vector< std::string > >& unresolved_gterm_sym,
-                                std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin,
-                                std::map< CVC4::Type, CVC4::Expr >& sygus_to_builtin_expr, Type sub_ret );
+  Type processSygusNestedGTerm(
+      int sub_dt_index,
+      std::string& sub_dname,
+      std::vector<CVC4::Datatype>& datatypes,
+      std::vector<CVC4::Type>& sorts,
+      std::vector<std::vector<ParseOp>>& ops,
+      std::vector<std::vector<std::string>>& cnames,
+      std::vector<std::vector<std::vector<CVC4::Type>>>& cargs,
+      std::vector<bool>& allow_const,
+      std::vector<std::vector<std::string>>& unresolved_gterm_sym,
+      std::map<CVC4::Type, CVC4::Type>& sygus_to_builtin,
+      std::map<CVC4::Type, CVC4::Expr>& sygus_to_builtin_expr,
+      Type sub_ret);
 
   /** make sygus bound var list
    *
