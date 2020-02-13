@@ -24,6 +24,7 @@
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/base_solver.h"
+#include "theory/strings/theory_strings_preprocess.h"
 
 namespace CVC4 {
 namespace theory {
@@ -37,7 +38,7 @@ namespace strings {
 class ExtfSolver{
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
  public:
-  ExtfSolver(context::Context* c, SolverState& s, 
+  ExtfSolver(context::Context* c, context::UserContext* u, SolverState& s, 
              InferenceManager& im, 
              SkolemCache& skc,
              BaseSolver& bs, ExtTheory* et);
@@ -72,6 +73,8 @@ class ExtfSolver{
    * the rest.
    */
   void checkExtfReductions(int effort);
+  /** get preprocess */
+  StringsPreprocess* getPreprocess() { return &d_preproc; }
   
 private:
   /**
@@ -140,6 +143,8 @@ private:
   BaseSolver& d_bsolver;
   /** the extended theory object for the theory of strings */
   ExtTheory * d_extt;
+  /** preprocessing utility, for performing strings reductions */
+  StringsPreprocess d_preproc;
   /** Common constants */
   Node d_true;
   Node d_false;

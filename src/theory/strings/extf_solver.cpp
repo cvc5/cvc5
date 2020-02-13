@@ -17,6 +17,7 @@
 #include "options/strings_options.h"
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/theory_strings_preprocess.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -26,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-ExtfSolver::ExtfSolver(context::Context* c, SolverState& s, 
+ExtfSolver::ExtfSolver(context::Context* c, context::UserContext* u, SolverState& s, 
              InferenceManager& im, 
              SkolemCache& skc,
              BaseSolver& bs, ExtTheory* et)
@@ -35,6 +36,7 @@ ExtfSolver::ExtfSolver(context::Context* c, SolverState& s,
       d_skCache(skc),
       d_bsolver(bs),
       d_extt(et),
+      d_preproc(&skc, u),
       d_has_extf(c, false),
       d_extf_infer_cache(c)
 { 

@@ -71,23 +71,23 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_state(c, d_equalityEngine, d_valuation),
-      d_im(*this, c, u, d_state, out),
+      d_im(*this, c, u, d_state, d_sk_cache, out),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
-      d_preproc(&d_sk_cache, u),
       d_extf_infer_cache(c),
-      d_proxy_var(u),
-      d_proxy_var_to_length(u),
       d_functionsTerms(c),
       d_has_extf(c, false),
       d_has_str_code(false),
       d_bsolver(c, u, d_state, d_im),
       d_csolver(c, u, d_state, d_im, d_sk_cache, d_bsolver),
+      d_esolver(nullptr),
       d_regexp_solver(*this, d_state, d_im, c, u),
       d_stringsFmf(c, u, valuation, d_sk_cache),
       d_strategy_init(false)
 {
   setupExtTheory();
+  ExtTheory * extt = getExtTheory();
+  d_esolver.reset(new ExtfSolver(c, u, d_state, d_im, d_sk_cache, d_bsolver, extt));
   getExtTheory()->addFunctionKind(kind::STRING_SUBSTR);
   getExtTheory()->addFunctionKind(kind::STRING_STRIDOF);
   getExtTheory()->addFunctionKind(kind::STRING_ITOS);
@@ -372,7 +372,8 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
            || k == STRING_STRREPLALL || k == STRING_LEQ || k == STRING_TOLOWER
            || k == STRING_TOUPPER || k == STRING_REV);
     std::vector<Node> new_nodes;
-    Node res = d_preproc.simplify(n, new_nodes);
+    StringsPreprocess * p = d_esolver->getPreprocess();
+    Node res = p->simplify(n, new_nodes);
     Assert(res != n);
     new_nodes.push_back(res.eqNode(n));
     Node nnlem =
@@ -1231,7 +1232,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
           // only use symbolic definitions if option is set
           if (options::stringInferSym())
           {
-            nrs = getSymbolicDefinition(sn, exps);
+            nrs = d_im.getSymbolicDefinition(sn, exps);
           }
           if( !nrs.isNull() ){
             Trace("strings-extf-debug") << "  rewrite " << nrs << "..." << std::endl;
@@ -1531,51 +1532,6 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   }
 }
 
-Node TheoryStrings::getProxyVariableFor(Node n) const
-{
-  NodeNodeMap::const_iterator it = d_proxy_var.find(n);
-  if (it != d_proxy_var.end())
-  {
-    return (*it).second;
-  }
-  return Node::null();
-}
-Node TheoryStrings::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
-{
-  if( n.getNumChildren()==0 ){
-    Node pn = getProxyVariableFor(n);
-    if (pn.isNull())
-    {
-      return Node::null();
-    }
-    Node eq = n.eqNode(pn);
-    eq = Rewriter::rewrite(eq);
-    if (std::find(exp.begin(), exp.end(), eq) == exp.end())
-    {
-      exp.push_back(eq);
-    }
-    return pn;
-  }else{
-    std::vector< Node > children;
-    if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
-      children.push_back( n.getOperator() );
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( n.getKind()==kind::STRING_IN_REGEXP && i==1 ){
-        children.push_back( n[i] );
-      }else{
-        Node ns = getSymbolicDefinition( n[i], exp );
-        if( ns.isNull() ){
-          return Node::null();
-        }else{
-          children.push_back( ns );
-        }
-      }
-    }
-    return NodeManager::currentNM()->mkNode( n.getKind(), children );
-  }
-}
-
 void TheoryStrings::checkRegisterTermsPreNormalForm()
 {
   const std::vector<Node>& seqc = d_bsolver.getStringEqc();
@@ -1619,7 +1575,7 @@ void TheoryStrings::checkCodes()
         Node cc = nm->mkNode(kind::STRING_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
-        Node cp = getProxyVariableFor(c);
+        Node cp = d_im.getProxyVariableFor(c);
         AlwaysAssert(!cp.isNull());
         Node vc = nm->mkNode(STRING_CODE, cp);
         if (!d_state.areEqual(cc, vc))
@@ -1698,71 +1654,7 @@ void TheoryStrings::registerTerm(Node n, int effort)
                             << ", effort = " << effort << std::endl;
   if (tn.isString())
   {
-    // register length information:
-    //  for variables, split on empty vs positive length
-    //  for concat/const/replace, introduce proxy var and state length relation
-    Node lsum;
-    if (n.getKind() != STRING_CONCAT && n.getKind() != CONST_STRING)
-    {
-      Node lsumb = nm->mkNode(STRING_LENGTH, n);
-      lsum = Rewriter::rewrite(lsumb);
-      // can register length term if it does not rewrite
-      if (lsum == lsumb)
-      {
-        d_im.registerLength(n, LENGTH_SPLIT);
-        return;
-      }
-    }
-    Node sk = d_sk_cache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
-    StringsProxyVarAttribute spva;
-    sk.setAttribute(spva, true);
-    Node eq = Rewriter::rewrite(sk.eqNode(n));
-    Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq
-                           << std::endl;
-    d_proxy_var[n] = sk;
-    // If we are introducing a proxy for a constant or concat term, we do not
-    // need to send lemmas about its length, since its length is already
-    // implied.
-    if (n.isConst() || n.getKind() == STRING_CONCAT)
-    {
-      // do not send length lemma for sk.
-      d_im.registerLength(sk, LENGTH_IGNORE);
-    }
-    Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
-    d_out->lemma(eq);
-    Node skl = nm->mkNode(STRING_LENGTH, sk);
-    if (n.getKind() == STRING_CONCAT)
-    {
-      std::vector<Node> node_vec;
-      for (unsigned i = 0; i < n.getNumChildren(); i++)
-      {
-        if (n[i].getAttribute(StringsProxyVarAttribute()))
-        {
-          Assert(d_proxy_var_to_length.find(n[i])
-                 != d_proxy_var_to_length.end());
-          node_vec.push_back(d_proxy_var_to_length[n[i]]);
-        }
-        else
-        {
-          Node lni = nm->mkNode(STRING_LENGTH, n[i]);
-          node_vec.push_back(lni);
-        }
-      }
-      lsum = nm->mkNode(PLUS, node_vec);
-      lsum = Rewriter::rewrite(lsum);
-    }
-    else if (n.getKind() == CONST_STRING)
-    {
-      lsum = nm->mkConst(Rational(n.getConst<String>().size()));
-    }
-    Assert(!lsum.isNull());
-    d_proxy_var_to_length[sk] = lsum;
-    Node ceq = Rewriter::rewrite(skl.eqNode(lsum));
-    Trace("strings-lemma") << "Strings::Lemma LENGTH : " << ceq << std::endl;
-    Trace("strings-lemma-debug")
-        << "  prerewrite : " << skl.eqNode(lsum) << std::endl;
-    Trace("strings-assert") << "(assert " << ceq << ")" << std::endl;
-    d_out->lemma(ceq);
+    d_im.registerLength(n);
   }
   else if (n.getKind() == STRING_CODE)
   {
@@ -1930,7 +1822,8 @@ Node TheoryStrings::ppRewrite(TNode atom) {
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
-    Node ret = d_preproc.processAssertion( atom, new_nodes );
+    StringsPreprocess * p = d_esolver->getPreprocess();
+    Node ret = p->processAssertion( atom, new_nodes );
     if( ret!=atom ){
       Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
       for( unsigned i=0; i<new_nodes.size(); i++ ){
