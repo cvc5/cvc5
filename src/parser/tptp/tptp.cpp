@@ -240,11 +240,11 @@ api::Term Tptp::convertRatToUnsorted(api::Term expr) {
     api::Sort t;
     // Conversion from rational to unsorted
     t = d_solver->mkFunctionSort(d_solver->getRealSort(), d_unsorted);
-    d_rtu_op = d_solver->mkVar(t, "$$rtu");
+    d_rtu_op = d_solver->mkConst(t, "$$rtu");
     preemptCommand(new DeclareFunctionCommand("$$rtu", d_rtu_op.getExpr(), t.getType()));
     // Conversion from unsorted to rational
     t = d_solver->mkFunctionSort(d_unsorted, d_solver->getRealSort());
-    d_utr_op = d_solver->mkVar(t, "$$utr");
+    d_utr_op = d_solver->mkConst(t, "$$utr");
     preemptCommand(new DeclareFunctionCommand("$$utr", d_utr_op.getExpr(), t.getType()));
   }
   // Add the inverse in order to show that over the elements that
@@ -264,7 +264,7 @@ api::Term Tptp::convertStrToUnsorted(std::string str) {
   api::Term& e = d_distinct_objects[str];
   if (e.isNull())
   {
-    e = d_solver->mkVar(d_unsorted,str);
+    e = d_solver->mkConst(d_unsorted,str);
   }
   return e;
 }
