@@ -132,7 +132,7 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name, api::Sort
   if (te.isConstructor() && te.getConstructorArity() == 0)
   {
     // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-    expr = api::Term(getExprManager()->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr.getExpr()));
+    expr = d_solver->mkTerm(api::APPLY_CONSTRUCTOR, expr);
   }
   return expr;
 }
@@ -477,7 +477,7 @@ api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts,
       // the introduced variable is internal (not parsable)
       std::stringstream ss;
       ss << "__flatten_var_" << i;
-      api::Term v = api::Term(getExprManager()->mkBoundVar(ss.str(), domainTypes[i].getType()));
+      api::Term v = d_solver->mkVar(domainTypes[i],ss.str());
       flattenVars.push_back(v);
     }
     range = range.getFunctionCodomainSort();
@@ -486,7 +486,7 @@ api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts,
   {
     return range;
   }
-  return api::Sort(getExprManager()->mkFunctionType(api::convertSortVec(sorts), range.getType()));
+  return d_solver->mkFunctionSort(sorts, range);
 }
 
 api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts, api::Sort range)
@@ -511,14 +511,14 @@ api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts, api::Sort ra
     sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
     range = range.getFunctionCodomainSort();
   }
-  return api::Sort(getExprManager()->mkFunctionType(api::convertSortVec(sorts), range.getType()));
+  return d_solver->mkFunctionSort(sorts, range);
 }
 
 api::Term Parser::mkHoApply(api::Term expr, std::vector<api::Term>& args)
 {
   for (unsigned i = 0; i < args.size(); i++)
   {
-    expr = api::Term(getExprManager()->mkExpr(HO_APPLY, expr.getExpr(), args[i].getExpr()));
+    expr = d_solver->mkTerm(api::HO_APPLY, expr, args[i]);
   }
   return expr;
 }
