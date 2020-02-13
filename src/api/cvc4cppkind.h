@@ -2359,7 +2359,7 @@ enum CVC4_PUBLIC Kind : int32_t
   /*
    * An instantiation attribute
    * Specifies a custom property for a quantified formula given by a
-   * node that is ascribed a user attribute.
+   * term that is ascribed a user attribute.
    * Parameters: 1
    *   -[1]: Term with a user attribute.
    * Create with:
