@@ -103,7 +103,7 @@ class SygusEnumerator : public EnumValGenerator
                     Node e,
                     TypeNode tn,
                     TermDbSygus* tds,
-                    SygusPbe* pbe = nullptr);
+                    ExampleEvalCache* ece = nullptr);
     /** get last constructor class index for weight
      *
      * This returns a minimal index n such that all constructor classes at
@@ -152,8 +152,11 @@ class SygusEnumerator : public EnumValGenerator
     TypeNode d_tn;
     /** pointer to term database sygus */
     TermDbSygus* d_tds;
-    /** pointer to the PBE utility (used for symmetry breaking) */
-    SygusPbe* d_pbe;
+    /**
+     * Pointer to the example evaluation cache utility (used for symmetry
+     * breaking).
+     */
+    ExampleEvalCache* d_eec;
     //-------------------------static information about type
     /** is d_tn a sygus type? */
     bool d_isSygusType;

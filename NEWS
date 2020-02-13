@@ -1,5 +1,12 @@
 This file contains a summary of important user-visible changes.
 
+Changes since 1.7
+=================
+
+Changes:
+* Java API change: The name of CVC4's package is now `edu.stanford.CVC4`
+  instead of `edu.nyu.acsys.CVC4`.
+
 Changes since 1.6
 =================
 
