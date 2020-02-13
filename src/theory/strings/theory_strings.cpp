@@ -86,8 +86,9 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_strategy_init(false)
 {
   setupExtTheory();
-  ExtTheory * extt = getExtTheory();
-  d_esolver.reset(new ExtfSolver(c, u, d_state, d_im, d_sk_cache, d_bsolver, extt));
+  ExtTheory* extt = getExtTheory();
+  d_esolver.reset(
+      new ExtfSolver(c, u, d_state, d_im, d_sk_cache, d_bsolver, extt));
   getExtTheory()->addFunctionKind(kind::STRING_SUBSTR);
   getExtTheory()->addFunctionKind(kind::STRING_STRIDOF);
   getExtTheory()->addFunctionKind(kind::STRING_ITOS);
@@ -372,7 +373,7 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
            || k == STRING_STRREPLALL || k == STRING_LEQ || k == STRING_TOLOWER
            || k == STRING_TOUPPER || k == STRING_REV);
     std::vector<Node> new_nodes;
-    StringsPreprocess * p = d_esolver->getPreprocess();
+    StringsPreprocess* p = d_esolver->getPreprocess();
     Node res = p->simplify(n, new_nodes);
     Assert(res != n);
     new_nodes.push_back(res.eqNode(n));
@@ -1822,8 +1823,8 @@ Node TheoryStrings::ppRewrite(TNode atom) {
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
-    StringsPreprocess * p = d_esolver->getPreprocess();
-    Node ret = p->processAssertion( atom, new_nodes );
+    StringsPreprocess* p = d_esolver->getPreprocess();
+    Node ret = p->processAssertion(atom, new_nodes);
     if( ret!=atom ){
       Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
       for( unsigned i=0; i<new_nodes.size(); i++ ){

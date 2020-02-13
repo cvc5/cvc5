@@ -20,10 +20,10 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "theory/ext_theory.h"
-#include "theory/strings/solver_state.h"
+#include "theory/strings/base_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/skolem_cache.h"
-#include "theory/strings/base_solver.h"
+#include "theory/strings/solver_state.h"
 #include "theory/strings/theory_strings_preprocess.h"
 
 namespace CVC4 {
@@ -35,15 +35,20 @@ namespace strings {
  * functions for the theory of strings using a combination of context-dependent
  * simplification (Reynolds et al CAV 2017) and lazy reductions.
  */
-class ExtfSolver{
+class ExtfSolver
+{
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+
  public:
-  ExtfSolver(context::Context* c, context::UserContext* u, SolverState& s, 
-             InferenceManager& im, 
+  ExtfSolver(context::Context* c,
+             context::UserContext* u,
+             SolverState& s,
+             InferenceManager& im,
              SkolemCache& skc,
-             BaseSolver& bs, ExtTheory* et);
+             BaseSolver& bs,
+             ExtTheory* et);
   ~ExtfSolver();
-  
+
   /** check extended functions evaluation
    *
    * This applies "context-dependent simplification" for all active extended
@@ -75,8 +80,8 @@ class ExtfSolver{
   void checkExtfReductions(int effort);
   /** get preprocess */
   StringsPreprocess* getPreprocess() { return &d_preproc; }
-  
-private:
+
+ private:
   /**
    * Non-static information about an extended function t. This information is
    * constructed and used during the check extended function evaluation
@@ -142,24 +147,24 @@ private:
   /** reference to the base solver, used for certain queries */
   BaseSolver& d_bsolver;
   /** the extended theory object for the theory of strings */
-  ExtTheory * d_extt;
+  ExtTheory* d_extt;
   /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
   /** Common constants */
   Node d_true;
   Node d_false;
   /** Empty vector */
-  std::vector< Node > d_empty_vec;
+  std::vector<Node> d_empty_vec;
   /** map extended functions to the above information */
   std::map<Node, ExtfInfoTmp> d_extfInfoTmp;
   /** any non-reduced extended functions exist? */
-  context::CDO< bool > d_has_extf;
+  context::CDO<bool> d_has_extf;
   /** extended functions inferences cache */
   NodeSet d_extf_infer_cache;
-};/* class ExtfSolver */
+}; /* class ExtfSolver */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__EXTF_SOLVER_H */

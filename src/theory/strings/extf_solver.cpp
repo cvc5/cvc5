@@ -15,9 +15,9 @@
 #include "theory/strings/extf_solver.h"
 
 #include "options/strings_options.h"
+#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "theory/strings/theory_strings_preprocess.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -27,10 +27,13 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-ExtfSolver::ExtfSolver(context::Context* c, context::UserContext* u, SolverState& s, 
-             InferenceManager& im, 
-             SkolemCache& skc,
-             BaseSolver& bs, ExtTheory* et)
+ExtfSolver::ExtfSolver(context::Context* c,
+                       context::UserContext* u,
+                       SolverState& s,
+                       InferenceManager& im,
+                       SkolemCache& skc,
+                       BaseSolver& bs,
+                       ExtTheory* et)
     : d_state(s),
       d_im(im),
       d_skCache(skc),
@@ -39,7 +42,7 @@ ExtfSolver::ExtfSolver(context::Context* c, context::UserContext* u, SolverState
       d_preproc(&skc, u),
       d_has_extf(c, false),
       d_extf_infer_cache(c)
-{ 
+{
   d_extt->addFunctionKind(kind::STRING_SUBSTR);
   d_extt->addFunctionKind(kind::STRING_STRIDOF);
   d_extt->addFunctionKind(kind::STRING_ITOS);
@@ -53,14 +56,12 @@ ExtfSolver::ExtfSolver(context::Context* c, context::UserContext* u, SolverState
   d_extt->addFunctionKind(kind::STRING_TOLOWER);
   d_extt->addFunctionKind(kind::STRING_TOUPPER);
   d_extt->addFunctionKind(kind::STRING_REV);
-  
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-ExtfSolver::~ExtfSolver() {
-
-}
+ExtfSolver::~ExtfSolver() {}
 
 bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
 {
@@ -70,7 +71,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     // n is not active in the model, no need to reduce
     return false;
   }
-  //determine the effort level to process the extf at
+  // determine the effort level to process the extf at
   // 0 - at assertion time, 1+ - after no other reduction is applicable
   int r_effort = -1;
   // polarity : 1 true, -1 false, 0 neither
@@ -188,19 +189,21 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
   return true;
 }
 
-
-void ExtfSolver::checkExtfReductions( int effort ) {
+void ExtfSolver::checkExtfReductions(int effort)
+{
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
   // stratifying effort levels are done in doReduction below.
-  std::vector< Node > extf = d_extt->getActive();
+  std::vector<Node> extf = d_extt->getActive();
   Trace("strings-process") << "  checking " << extf.size() << " active extf"
                            << std::endl;
-  for( unsigned i=0; i<extf.size(); i++ ){
+  for (unsigned i = 0; i < extf.size(); i++)
+  {
     Assert(!d_state.isInConflict());
     Node n = extf[i];
-    Trace("strings-process") << "  check " << n << ", active in model="
-                             << d_extfInfoTmp[n].d_modelActive << std::endl;
+    Trace("strings-process")
+        << "  check " << n
+        << ", active in model=" << d_extfInfoTmp[n].d_modelActive << std::endl;
     // whether the reduction was context-dependent
     bool isCd = false;
     bool ret = doReduction(effort, n, isCd);
@@ -215,12 +218,14 @@ void ExtfSolver::checkExtfReductions( int effort ) {
   }
 }
 
-void ExtfSolver::checkExtfEval( int effort ) {
-  Trace("strings-extf-list") << "Active extended functions, effort=" << effort << " : " << std::endl;
+void ExtfSolver::checkExtfEval(int effort)
+{
+  Trace("strings-extf-list")
+      << "Active extended functions, effort=" << effort << " : " << std::endl;
   d_extfInfoTmp.clear();
   NodeManager* nm = NodeManager::currentNM();
   bool has_nreduce = false;
-  std::vector< Node > terms = d_extt->getActive();
+  std::vector<Node> terms = d_extt->getActive();
   for (const Node& n : terms)
   {
     // Setup information about n, including if it is equal to a constant.
@@ -261,13 +266,16 @@ void ExtfSolver::checkExtfEval( int effort ) {
           << std::endl;
       einfo.d_exp.insert(einfo.d_exp.end(), exp.begin(), exp.end());
       // inference is rewriting the substituted node
-      Node nrc = Rewriter::rewrite( sn );
-      //if rewrites to a constant, then do the inference and mark as reduced
-      if( nrc.isConst() ){
-        if( effort<3 ){
-          d_extt->markReduced( n );
-          Trace("strings-extf-debug") << "  resolvable by evaluation..." << std::endl;
-          std::vector< Node > exps;
+      Node nrc = Rewriter::rewrite(sn);
+      // if rewrites to a constant, then do the inference and mark as reduced
+      if (nrc.isConst())
+      {
+        if (effort < 3)
+        {
+          d_extt->markReduced(n);
+          Trace("strings-extf-debug")
+              << "  resolvable by evaluation..." << std::endl;
+          std::vector<Node> exps;
           // The following optimization gets the "symbolic definition" of
           // an extended term. The symbolic definition of a term t is a term
           // t' where constants are replaced by their corresponding proxy
@@ -281,43 +289,58 @@ void ExtfSolver::checkExtfEval( int effort ) {
           // instead of making this inference multiple times:
           //    x = "" => str.replace( x, x, x ) == ""
           //    y = "" => str.replace( y, y, y ) == ""
-          Trace("strings-extf-debug") << "  get symbolic definition..." << std::endl;
+          Trace("strings-extf-debug")
+              << "  get symbolic definition..." << std::endl;
           Node nrs;
           // only use symbolic definitions if option is set
           if (options::stringInferSym())
           {
             nrs = d_im.getSymbolicDefinition(sn, exps);
           }
-          if( !nrs.isNull() ){
-            Trace("strings-extf-debug") << "  rewrite " << nrs << "..." << std::endl;
+          if (!nrs.isNull())
+          {
+            Trace("strings-extf-debug")
+                << "  rewrite " << nrs << "..." << std::endl;
             Node nrsr = Rewriter::rewrite(nrs);
             // ensure the symbolic form is not rewritable
             if (nrsr != nrs)
             {
               // we cannot use the symbolic definition if it rewrites
-              Trace("strings-extf-debug") << "  symbolic definition is trivial..." << std::endl;
+              Trace("strings-extf-debug")
+                  << "  symbolic definition is trivial..." << std::endl;
               nrs = Node::null();
             }
-          }else{
-            Trace("strings-extf-debug") << "  could not infer symbolic definition." << std::endl;
+          }
+          else
+          {
+            Trace("strings-extf-debug")
+                << "  could not infer symbolic definition." << std::endl;
           }
           Node conc;
-          if( !nrs.isNull() ){
-            Trace("strings-extf-debug") << "  symbolic def : " << nrs << std::endl;
+          if (!nrs.isNull())
+          {
+            Trace("strings-extf-debug")
+                << "  symbolic def : " << nrs << std::endl;
             if (!d_state.areEqual(nrs, nrc))
             {
-              //infer symbolic unit
-              if( n.getType().isBoolean() ){
-                conc = nrc==d_true ? nrs : nrs.negate();
-              }else{
-                conc = nrs.eqNode( nrc );
+              // infer symbolic unit
+              if (n.getType().isBoolean())
+              {
+                conc = nrc == d_true ? nrs : nrs.negate();
+              }
+              else
+              {
+                conc = nrs.eqNode(nrc);
               }
               einfo.d_exp.clear();
             }
-          }else{
+          }
+          else
+          {
             if (!d_state.areEqual(n, nrc))
             {
-              if( n.getType().isBoolean() ){
+              if (n.getType().isBoolean())
+              {
                 if (d_state.areEqual(n, nrc == d_true ? d_false : d_true))
                 {
                   einfo.d_exp.push_back(nrc == d_true ? n.negate() : n);
@@ -325,15 +348,19 @@ void ExtfSolver::checkExtfEval( int effort ) {
                 }
                 else
                 {
-                  conc = nrc==d_true ? n : n.negate();
+                  conc = nrc == d_true ? n : n.negate();
                 }
-              }else{
-                conc = n.eqNode( nrc );
+              }
+              else
+              {
+                conc = n.eqNode(nrc);
               }
             }
           }
-          if( !conc.isNull() ){
-            Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc << std::endl;
+          if (!conc.isNull())
+          {
+            Trace("strings-extf")
+                << "  resolve extf : " << sn << " -> " << nrc << std::endl;
             d_im.sendInference(
                 einfo.d_exp, conc, effort == 0 ? "EXTF" : "EXTF-N", true);
             if (d_state.isInConflict())
@@ -342,11 +369,16 @@ void ExtfSolver::checkExtfEval( int effort ) {
               return;
             }
           }
-        }else{
-          //check if it is already equal, if so, mark as reduced. Otherwise, do nothing.
+        }
+        else
+        {
+          // check if it is already equal, if so, mark as reduced. Otherwise, do
+          // nothing.
           if (d_state.areEqual(n, nrc))
           {
-            Trace("strings-extf") << "  resolved extf, since satisfied by model: " << n << std::endl;
+            Trace("strings-extf")
+                << "  resolved extf, since satisfied by model: " << n
+                << std::endl;
             einfo.d_modelActive = false;
           }
         }
@@ -379,20 +411,25 @@ void ExtfSolver::checkExtfEval( int effort ) {
     {
       to_reduce = n;
     }
-    //if not reduced
-    if( !to_reduce.isNull() ){
+    // if not reduced
+    if (!to_reduce.isNull())
+    {
       Assert(effort < 3);
-      if( effort==1 ){
-        Trace("strings-extf") << "  cannot rewrite extf : " << to_reduce << std::endl;
+      if (effort == 1)
+      {
+        Trace("strings-extf")
+            << "  cannot rewrite extf : " << to_reduce << std::endl;
       }
       checkExtfInference(n, to_reduce, einfo, effort);
-      if( Trace.isOn("strings-extf-list") ){
+      if (Trace.isOn("strings-extf-list"))
+      {
         Trace("strings-extf-list") << "  * " << to_reduce;
         if (!einfo.d_const.isNull())
         {
           Trace("strings-extf-list") << ", const = " << einfo.d_const;
         }
-        if( n!=to_reduce ){
+        if (n != to_reduce)
+        {
           Trace("strings-extf-list") << ", from " << n;
         }
         Trace("strings-extf-list") << std::endl;
@@ -406,7 +443,11 @@ void ExtfSolver::checkExtfEval( int effort ) {
   d_has_extf = has_nreduce;
 }
 
-void ExtfSolver::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort ){
+void ExtfSolver::checkExtfInference(Node n,
+                                    Node nr,
+                                    ExtfInfoTmp& in,
+                                    int effort)
+{
   if (in.d_const.isNull())
   {
     return;
@@ -586,6 +627,6 @@ void ExtfSolver::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effor
   }
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4

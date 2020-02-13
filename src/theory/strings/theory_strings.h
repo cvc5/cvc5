@@ -25,6 +25,7 @@
 #include "expr/node_trie.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
+#include "theory/strings/extf_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
@@ -34,7 +35,6 @@
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/strings_fmf.h"
-#include "theory/strings/extf_solver.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -419,7 +419,7 @@ private:
    * with length constraints.
    */
   CoreSolver d_csolver;
-  /** 
+  /**
    * Extended function solver, responsible for reductions and simplifications
    * involving extended string functions.
    */
