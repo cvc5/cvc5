@@ -31,6 +31,7 @@
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "util/unsafe_interrupt_exception.h"
+#include "parser/parse_op.h"
 
 namespace CVC4 {
 
@@ -59,7 +60,7 @@ public:
   };
   Type d_type;
   /** The parsed operator */
-  ParseOp d_expr;
+  ParseOp d_op;
   std::vector< Expr > d_let_vars;
   unsigned d_gterm_type;
   std::string d_name;
