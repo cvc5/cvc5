@@ -1353,7 +1353,20 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
       Debug("parser-sygus") << "  construct the datatype " << cnames[i] << "..."
                             << std::endl;
       // add the sygus constructor
-      dt.addSygusConstructor(ops[i], cnames[i], cargs[i], spc);
+      if (!ops[i].d_expr.isNull())
+      {
+        dt.addSygusConstructor(ops[i].d_expr, cnames[i], cargs[i], spc);
+      }
+      else if (ops[i].d_kind!=kind::NULL_EXPR)
+      {
+        dt.addSygusConstructor(ops[i].d_kind, cnames[i], cargs[i], spc);
+      }
+      else
+      {
+        std::stringstream ss;
+        ss << "unexpected parse operator for sygus constructor" << ops[i];
+        parseError(ss.str());
+      }
       Debug("parser-sygus") << "  finished constructing the datatype"
                             << std::endl;
     }

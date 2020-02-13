@@ -12,7 +12,7 @@
  ** \brief Definitions of parsed operators.
  **/
 
-#include "cvc4parser_private.h"
+#include "cvc4parser_public.h"
 
 #ifndef CVC4__PARSER__PARSE_OP_H
 #define CVC4__PARSER__PARSE_OP_H
@@ -55,7 +55,7 @@ namespace CVC4 {
  * interpret this operator by converting the next parsed constant of type T2 to
  * an Array of type (Array T1 T2) over that constant.
  */
-struct ParseOp
+struct CVC4_PUBLIC ParseOp
 {
   ParseOp() : d_kind(kind::NULL_EXPR) {}
   /** The kind associated with the parsed operator, if it exists */
