@@ -1641,7 +1641,7 @@ tupleStore[CVC4::api::Term& f]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(TupleUpdate(k))), f, f2); }
+    { f = SOLVER->mkTerm(SOLVER->mkOp(api::TUPLE_UPDATE,k), f, f2); }
   ;
 
 /**
@@ -1673,7 +1673,7 @@ recordStore[CVC4::api::Term& f]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(RecordUpdate(id))), f, f2); }
+    { f = SOLVER->mkTerm(SOLVER->mkOp(api::RECORD_UPDATE,id), f, f2); }
   ;
 
 /** Parses a unary minus term. */
@@ -1825,7 +1825,7 @@ postfixTerm[CVC4::api::Term& f]
     | ABS_TOK LPAREN formula[f] RPAREN
       { f = MK_TERM(CVC4::api::ABS, f); }
     | DIVISIBLE_TOK LPAREN formula[f] COMMA n=numeral RPAREN
-      { f = MK_TERM(CVC4::api::DIVISIBLE, MK_CONST(CVC4::Divisible(n)), f); }
+      { f = MK_TERM(SOLVER->mkOp(CVC4::api::DIVISIBLE,n), f); }
     | DISTINCT_TOK LPAREN
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
