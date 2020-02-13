@@ -812,18 +812,6 @@ Sort::~Sort() {}
 
 bool Sort::isNullHelper() const { return d_type->isNull(); }
 
-// PARSER-TODO: can reuse
-std::vector<Sort> Sort::typeVectorToSorts(
-                                          const std::vector<CVC4::Type>& types) const
-{
-  std::vector<Sort> res;
-  for (const CVC4::Type& t : types)
-    {
-      res.push_back(Sort(t));
-    }
-  return res;
-}
-
 bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
 
 bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
@@ -1390,7 +1378,7 @@ Term Term::substitute(const std::vector<Term> es,
                       const std::vector<Term>& replacements) const
 {
   return api::Term(
-      d_expr->substitute(convertTermVec(es), convertTermVec(replacements)));
+      d_expr->substitute(termVectorToExprs(es), termVectorToExprs(replacements)));
 }
 
 bool Term::hasOp() const
@@ -4118,7 +4106,12 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
-std::vector<Expr> convertTermVec(const std::vector<Term>& terms)
+
+/* -------------------------------------------------------------------------- */
+/* Conversions                                                                */
+/* -------------------------------------------------------------------------- */
+
+std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms)
 {
   std::vector<Expr> exprs;
   for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
@@ -4128,7 +4121,7 @@ std::vector<Expr> convertTermVec(const std::vector<Term>& terms)
   return exprs;
 }
 
-std::vector<Type> convertSortVec(const std::vector<Sort>& sorts)
+std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts)
 {
   std::vector<Type> types;
   for (size_t i = 0, ssize = sorts.size(); i < ssize; i++)
@@ -4138,7 +4131,7 @@ std::vector<Type> convertSortVec(const std::vector<Sort>& sorts)
   return types;
 }
 
-std::set<Type> convertSortSet(const std::set<Sort>& sorts)
+std::set<Type> sortSetToTypes(const std::set<Sort>& sorts)
 {
   std::set<Type> types;
   for (const Sort& s : sorts)
@@ -4148,7 +4141,7 @@ std::set<Type> convertSortSet(const std::set<Sort>& sorts)
   return types;
 }
 
-std::vector<Term> convertExprVec(const std::vector<Expr>& exprs)
+std::vector<Term> exprVectorToTerms(const std::vector<Expr>& exprs)
 {
   std::vector<Term> terms;
   for (size_t i = 0, esize = exprs.size(); i < esize; i++)
@@ -4158,7 +4151,7 @@ std::vector<Term> convertExprVec(const std::vector<Expr>& exprs)
   return terms;
 }
 
-std::vector<Sort> convertTypeVec(const std::vector<Type>& types)
+std::vector<Sort> typeVectorToSorts(const std::vector<Type>& types)
 {
   std::vector<Sort> sorts;
   for (size_t i = 0, tsize = types.size(); i < tsize; i++)
@@ -4169,6 +4162,10 @@ std::vector<Sort> convertTypeVec(const std::vector<Type>& types)
 }
 
 }  // namespace api
+
+/* -------------------------------------------------------------------------- */
+/* Kind Conversions                                                           */
+/* -------------------------------------------------------------------------- */
 
 CVC4::api::Kind intToExtKind(CVC4::Kind k)
 {
