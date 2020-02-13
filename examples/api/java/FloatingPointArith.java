@@ -18,7 +18,7 @@
  ** IEEE 754-2008 bit-vector to a floating-point number.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 import java.util.Iterator;
 
 public class FloatingPointArith {
