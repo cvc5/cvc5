@@ -2185,7 +2185,7 @@ simpleTerm[CVC4::api::Term& f]
         // Must cast to Real to ensure correct type is passed to parametric type constructors.
         // We do this cast using division with 1.
         // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
-        f = MK_TERM(api::DIVISION, f, MK_CONST(Rational(1)));
+        f = MK_TERM(api::DIVISION, f, SOLVER->mkReal(1));
       } 
     }
   | INTEGER_LITERAL { f = MK_CONST(AntlrInput::tokenToInteger($INTEGER_LITERAL)); }
@@ -2193,11 +2193,13 @@ simpleTerm[CVC4::api::Term& f]
   | HEX_LITERAL
     { assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 4);
-      f = MK_CONST( BitVector(hexString, 16) ); }
+      f = SOLVER->mkBitVector(hexString, 16);
+    }
   | BINARY_LITERAL
     { assert( AntlrInput::tokenText($BINARY_LITERAL).find("0bin") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 4);
-      f = MK_CONST( BitVector(binString, 2) ); }
+      f = SOLVER->mkBitVector(binString, 2);
+    }
     /* record literals */
   | PARENHASH recordEntry[name,e] { names.push_back(name); args.push_back(e); }
     ( COMMA recordEntry[name,e] { names.push_back(name); args.push_back(e); } )* HASHPAREN
