@@ -292,7 +292,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // Do NOT call mkSort, since that creates a new sort!
       // This name is not its own distinct sort, it's an alias.
       PARSER_STATE->defineParameterizedType(name, sorts, t.getType());
-      cmd->reset(new DefineTypeCommand(name, api::convertSortVec(sorts), t.getType()));
+      cmd->reset(new DefineTypeCommand(name, api::sortVectorToTypes(sorts), t.getType()));
     }
   | /* function declaration */
     DECLARE_FUN_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -365,14 +365,14 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // we allow overloading for function definitions
       CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
-      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::convertTermVec(terms), expr.getExpr()));
+      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::termVectorToExprs(terms), expr.getExpr()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
   | /* value query */
     GET_VALUE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
-      { cmd->reset(new GetValueCommand(api::convertTermVec(terms))); }
+      { cmd->reset(new GetValueCommand(api::termVectorToExprs(terms))); }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The get-value command expects a list of "
                                  "terms.  Perhaps you forgot a pair of "
@@ -415,7 +415,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
   | /* check-sat-assuming */
     CHECK_SAT_ASSUMING_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
-      { cmd->reset(new CheckSatAssumingCommand(api::convertTermVec(terms))); }
+      { cmd->reset(new CheckSatAssumingCommand(api::termVectorToExprs(terms))); }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The check-sat-assuming command expects a "
                                  "list of terms.  Perhaps you forgot a pair of "
@@ -1170,7 +1170,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       if( !flattenVars.empty() ){
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
-      cmd->reset(new DefineFunctionRecCommand(func.getExpr(),api::convertTermVec(bvs),expr.getExpr()));
+      cmd->reset(new DefineFunctionRecCommand(func.getExpr(),api::termVectorToExprs(bvs),expr.getExpr()));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -1235,9 +1235,9 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       std::vector<std::vector<Expr>> eformals;
       for (unsigned i=0, fsize = formals.size(); i<fsize; i++)
       {
-        eformals.push_back(api::convertTermVec(formals[i]));
+        eformals.push_back(api::termVectorToExprs(formals[i]));
       }
-      cmd->reset( new DefineFunctionRecCommand(api::convertTermVec(funcs),eformals,api::convertTermVec(func_defs)));
+      cmd->reset( new DefineFunctionRecCommand(api::termVectorToExprs(funcs),eformals,api::termVectorToExprs(func_defs)));
     }
   ;
 
@@ -1372,7 +1372,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::convertTermVec(terms), e.getExpr()));
+        cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
       }
     )
   | DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1391,7 +1391,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       // permitted)
       CVC4::api::Term func = PARSER_STATE->mkVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED);
-      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::convertTermVec(terms), e.getExpr()));
+      cmd->reset(new DefineFunctionCommand(name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1425,7 +1425,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 
   | BLOCK_MODEL_VALUES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,e] RPAREN_TOK
-      { cmd->reset(new BlockModelValuesCommand(api::convertTermVec(terms))); }
+      { cmd->reset(new BlockModelValuesCommand(api::termVectorToExprs(terms))); }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The block-model-value command expects a list "
                                  "of terms.  Perhaps you forgot a pair of "
@@ -1529,7 +1529,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],api::convertSortVec(params),isCo));
+        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],api::sortVectorToTypes(params),isCo));
       }
       LPAREN_TOK
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
@@ -1539,7 +1539,7 @@ datatypesDef[bool isCo,
           PARSER_STATE->parseError("No parameters given for datatype.");
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
-        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],api::convertSortVec(params),isCo));
+        dts.push_back(Datatype(EXPR_MANAGER, dnames[dts.size()],api::sortVectorToTypes(params),isCo));
       }
       ( LPAREN_TOK constructorDef[dts.back()] RPAREN_TOK )+
     )
@@ -2185,7 +2185,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       CVC4::api::Sort t = SOLVER->getBooleanSort();
       CVC4::api::Term avar = PARSER_STATE->mkVar(attr_name, t);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand( attr_name, avar.getExpr(), api::convertTermVec(values) );
+      Command* c = new SetUserAttributeCommand( attr_name, avar.getExpr(), api::termVectorToExprs(values) );
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
@@ -2523,7 +2523,7 @@ datatypeDef[bool isCo, std::vector<CVC4::Datatype>& datatypes,
         params.push_back( t ); }
       )* ']'
     )?*/ //AJR: this isn't necessary if we use z3's style
-    { datatypes.push_back(Datatype(EXPR_MANAGER, id, api::convertSortVec(params), isCo));
+    { datatypes.push_back(Datatype(EXPR_MANAGER, id, api::sortVectorToTypes(params), isCo));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);

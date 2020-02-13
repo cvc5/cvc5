@@ -861,7 +861,7 @@ public:
    * null expression.
    */
   api::Term getOverloadedFunctionForTypes(const std::string& name, std::vector< api::Sort >& argTypes) {
-    return d_symtab->getOverloadedFunctionForTypes(name, api::convertSortVec(argTypes));
+    return d_symtab->getOverloadedFunctionForTypes(name, api::sortVectorToTypes(argTypes));
   }
   //------------------------ end operator overloading
 };/* class Parser */

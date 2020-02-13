@@ -172,7 +172,7 @@ api::Sort Parser::getSort(const std::string& name) {
 api::Sort Parser::getSort(const std::string& name, const std::vector<api::Sort>& params) {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
   assert(isDeclared(name, SYM_SORT));
-  api::Sort t = api::Sort(d_symtab->lookupType(name, api::convertSortVec(params)));
+  api::Sort t = api::Sort(d_symtab->lookupType(name, api::sortVectorToTypes(params)));
   return t;
 }
 
@@ -287,7 +287,7 @@ void Parser::defineType(const std::string& name,
                         const api::Sort& type,
                         bool levelZero)
 {
-  d_symtab->bindType(name, api::convertSortVec(params), type.getType(), levelZero);
+  d_symtab->bindType(name, api::sortVectorToTypes(params), type.getType(), levelZero);
   assert(isDeclared(name, SYM_SORT));
 }
 
@@ -369,7 +369,7 @@ bool Parser::isUnresolvedType(const std::string& name) {
 std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
     std::vector<Datatype>& datatypes, bool doOverload) {
   try {
-    std::set<CVC4::Type> tset = api::convertSortSet(d_unresolved);
+    std::set<CVC4::Type> tset = api::sortSetToTypes(d_unresolved);
     //std::vector<api::Sort> types =
     //    getExprManager()->mkMutualDatatypeTypes(datatypes, tset);
     std::vector<DatatypeType> dtypes =
@@ -526,7 +526,7 @@ api::Term Parser::mkHoApply(api::Term expr, std::vector<api::Term>& args)
 //!!!!!!!!!!! temporary
 api::Term Parser::mkBuiltinApp(api::Term f, const std::vector<api::Term>& args) const
 {
-  return api::Term( getExprManager()->mkExpr(f.getExpr(), convertTermVec(args)));
+  return api::Term( getExprManager()->mkExpr(f.getExpr(), termVectorToExprs(args)));
 }
 
 api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1) const
@@ -547,7 +547,7 @@ api::Term Parser::mkTermSafe(api::Kind k, const std::vector<api::Term>& args) co
 {
   if (k == api::APPLY_SELECTOR || k==api::APPLY_TESTER)
   {
-    return api::Term(getExprManager()->mkExpr(extToIntKind(k), api::convertTermVec(args)));
+    return api::Term(getExprManager()->mkExpr(extToIntKind(k), api::termVectorToExprs(args)));
   }
   return d_solver->mkTerm(k, args);
 }

@@ -307,7 +307,7 @@ void Tptp::makeApplication(api::Term& expr, std::string& name,
     expr = d_solver->mkTerm(api::APPLY_UF,ufArgs);
     */
     // PARSER-TODO
-    expr = api::Term(getExprManager()->mkExpr(kind::APPLY_UF, expr.getExpr(), api::convertTermVec(args)));
+    expr = api::Term(getExprManager()->mkExpr(kind::APPLY_UF, expr.getExpr(), api::termVectorToExprs(args)));
   }
 }
 

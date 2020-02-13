@@ -930,9 +930,9 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       std::vector<std::vector<Expr>> eformals;
       for (unsigned i=0, fsize = formals.size(); i<fsize; i++)
       {
-        eformals.push_back(api::convertTermVec(formals[i]));
+        eformals.push_back(api::termVectorToExprs(formals[i]));
       }
-      cmd->reset(new DefineFunctionRecCommand(api::convertTermVec(funcs),eformals,api::convertTermVec(formulas)));
+      cmd->reset(new DefineFunctionRecCommand(api::termVectorToExprs(funcs),eformals,api::termVectorToExprs(formulas)));
     }
   | toplevelDeclaration[cmd]
   ;
@@ -2307,7 +2307,7 @@ datatypeDef[std::vector<CVC4::Datatype>& datatypes]
         params.push_back( t ); }
       )* RBRACKET
     )?
-    { datatypes.push_back(Datatype(EXPR_MANAGER, id, api::convertSortVec(params), false));
+    { datatypes.push_back(Datatype(EXPR_MANAGER, id, api::sortVectorToTypes(params), false));
       if(!PARSER_STATE->isUnresolvedType(id)) {
         // if not unresolved, must be undeclared
         PARSER_STATE->checkDeclaration(id, CHECK_UNDECLARED, SYM_SORT);

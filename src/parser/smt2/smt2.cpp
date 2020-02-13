@@ -671,7 +671,7 @@ std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(api::Sort grammar)
                           d_synthFun.getExpr(),
                           grammar.isNull() ? d_sygusType.getType() : grammar.getType(),
                           d_isInv,
-                          api::convertTermVec(d_sygusVars)));
+                          api::termVectorToExprs(d_sygusVars)));
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -701,7 +701,7 @@ std::unique_ptr<Command> Smt2::invConstraint(
     terms.push_back(getVariable(name));
   }
 
-  return std::unique_ptr<Command>(new SygusInvConstraintCommand(api::convertTermVec(terms)));
+  return std::unique_ptr<Command>(new SygusInvConstraintCommand(api::termVectorToExprs(terms)));
 }
 
 Command* Smt2::setLogic(std::string name, bool fromCommand)
@@ -1276,7 +1276,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
         ops[i] = d_solver->mkTerm(api::LAMBDA, lbvl, body);
         Debug("parser-sygus") << "  ...replace op : " << ops[i] << std::endl;
         // callback prints as the expression
-        spc = std::make_shared<printer::SygusExprPrintCallback>(body.getExpr(), api::convertTermVec(largs));
+        spc = std::make_shared<printer::SygusExprPrintCallback>(body.getExpr(), api::termVectorToExprs(largs));
       }
       else
       {
@@ -1328,7 +1328,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
       Debug("parser-sygus") << "  construct the datatype " << cnames[i] << "..."
                             << std::endl;
       // add the sygus constructor
-      dt.addSygusConstructor(ops[i].getExpr(), cnames[i], api::convertSortVec(cargs[i]), spc);
+      dt.addSygusConstructor(ops[i].getExpr(), cnames[i], api::sortVectorToTypes(cargs[i]), spc);
       Debug("parser-sygus") << "  finished constructing the datatype"
                             << std::endl;
     }
@@ -1365,7 +1365,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
           //make the sygus argument list
           std::vector< api::Sort > id_carg;
           id_carg.push_back( t );
-          dt.addSygusConstructor(id_op.getExpr(), unresolved_gterm_sym[i], api::convertSortVec(id_carg), sepc);
+          dt.addSygusConstructor(id_op.getExpr(), unresolved_gterm_sym[i], api::sortVectorToTypes(id_carg), sepc);
 
           //add to operators
           ops.push_back( id_op );
@@ -1417,7 +1417,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
                          << cargs.size() << std::endl;
   std::shared_ptr<SygusPrintCallback> spc;
   // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(op.getExpr(), api::convertTermVec(args));
+  spc = std::make_shared<printer::SygusExprPrintCallback>(op.getExpr(), api::termVectorToExprs(args));
   if (!args.empty())
   {
     bool pureVar = false;
@@ -1450,7 +1450,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   Trace("parser-sygus2") << "Generated operator " << op << std::endl;
   std::stringstream ss;
   ss << op.getKind();
-  dt.addSygusConstructor(op.getExpr(), ss.str(), api::convertSortVec(cargs), spc);
+  dt.addSygusConstructor(op.getExpr(), ss.str(), api::sortVectorToTypes(cargs), spc);
 }
 
 api::Term Smt2::purifySygusGTerm(api::Term term,
@@ -1514,7 +1514,7 @@ void Smt2::addSygusConstructorVariables(Datatype& dt,
       std::stringstream ss;
       ss << v;
       std::vector<api::Sort> cargs;
-      dt.addSygusConstructor(v.getExpr(), ss.str(), api::convertSortVec(cargs));
+      dt.addSygusConstructor(v.getExpr(), ss.str(), api::sortVectorToTypes(cargs));
     }
   }
 }
@@ -1846,18 +1846,18 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         // Builtin operators that are not tokenized, are left associative,
         // but not internally variadic must set this.
-        return api::Term(em->mkLeftAssociative(extToIntKind(kind), api::convertTermVec(args)));
+        return api::Term(em->mkLeftAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
       }
       else if (kind == api::IMPLIES)
       {
         /* right-associative, but CVC4 internally only supports 2 args */
-        return api::Term(em->mkRightAssociative(extToIntKind(kind), api::convertTermVec(args)));
+        return api::Term(em->mkRightAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
       }
       else if (kind == api::EQUAL || kind == api::LT || kind == api::GT
                || kind == api::LEQ || kind == api::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        return api::Term(em->mkExpr(em->mkConst(Chain(extToIntKind(kind))), api::convertTermVec(args)));
+        return api::Term(em->mkExpr(em->mkConst(Chain(extToIntKind(kind))), api::termVectorToExprs(args)));
       }
     }
 
@@ -1865,7 +1865,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       /* Special treatment for associative operators with lots of children
        */
-      return api::Term(em->mkAssociative(extToIntKind(kind), api::convertTermVec(args)));
+      return api::Term(em->mkAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
     }
     else if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
              && args.size() == 1)
@@ -1898,7 +1898,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
         // must curry the partial application
-        return em->mkLeftAssociative(kind::HO_APPLY, api::convertTermVec(args));
+        return em->mkLeftAssociative(kind::HO_APPLY, api::termVectorToExprs(args));
       }
     }
   }
