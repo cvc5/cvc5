@@ -237,16 +237,16 @@ class CVC4_PUBLIC Sort
   /**
    * Comparison for ordering on sorts.
    * @param s the sort to compare to
-   * @return true if this sort is less than or equal to s
+   * @return true if this sort is greater than s
    */
-  bool operator<=(const Sort& s) const;
+  bool operator>(const Sort& s) const;
 
   /**
    * Comparison for ordering on sorts.
    * @param s the sort to compare to
-   * @return true if this sort is greater than s
+   * @return true if this sort is less than or equal to s
    */
-  bool operator>(const Sort& s) const;
+  bool operator<=(const Sort& s) const;
 
   /**
    * Comparison for ordering on sorts.
@@ -797,19 +797,32 @@ class CVC4_PUBLIC Term
    */
   bool operator!=(const Term& t) const;
 
+
   /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is less than t
    */
   bool operator<(const Term& t) const;
 
   /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is greater than t
    */
   bool operator>(const Term& t) const;
 
   /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is less than or equal to t
    */
   bool operator<=(const Term& t) const;
 
   /**
+   * Comparison for ordering on terms.
+   * @param t the term to compare to
+   * @return true if this term is greater than or equal to t
    */
   bool operator>=(const Term& t) const;
   
@@ -843,14 +856,15 @@ class CVC4_PUBLIC Term
   Sort getSort() const;
 
   /**
-   * Substitute "replacement" in for "e".
+   * @return the result of replacing "e" by "replacement" in this term
    */
   Term substitute(Term e, Term replacement) const;
 
   /**
-   * Substitute "replacements" in for "exes".
+   * @return the result of simulatenously replacing "es" by "replacements" in
+   * this term
    */
-  Term substitute(const std::vector<Term> exes,
+  Term substitute(const std::vector<Term> es,
                   const std::vector<Term>& replacements) const;
                   
   /**
@@ -1421,11 +1435,11 @@ class CVC4_PUBLIC DatatypeConstructor
   std::string getTesterName() const;
 
   /**
-   * @return  the number of arguments (so far) of this Datatype constructor.
+   * @return the number of selectors (so far) of this Datatype constructor.
    */
-  size_t getNumArgs() const;
+  size_t getNumSelectors() const;
   
-  /** Get the ith DatatypeConstructor arg. */
+  /** @return the i^th DatatypeSelector. */
   DatatypeSelector operator[](size_t index) const;
   /**
    * Get the datatype selector with the given name.
@@ -1593,40 +1607,30 @@ class CVC4_PUBLIC Datatype
    */
   Op getConstructorTerm(const std::string& name) const;
 
-  /** Get the name of this Datatype. */
+  /** @return the name of this Datatype. */
   std::string getName() const;
   
-  /** Get the number of constructors for this Datatype. */
+  /** @return the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
 
-  /** Is this Datatype parametric? */
+  /** @return true if this datatype is parametric */
   bool isParametric() const;
 
-  /** is this a co-datatype? */
+  /** @return true if this datatype corresponds to a co-datatype */
   bool isCodatatype() const;
 
-  /** is this a tuple datatype? */
+  /** @return true if this datatype corresponds to a tuple */
   bool isTuple() const;
 
-  /** is this a record datatype? */
+  /** @return true if this datatype corresponds to a record */
   bool isRecord() const;
 
-  /**
-   */
+  /** @return true if this datatype is finite */
   bool isFinite() const;
 
-  /**
-   */
-  bool isInterpretedFinite() const;
-
-  /** is well-founded
-   */
+  /** @return true if this datatype is well-founded */
   bool isWellFounded() const;
 
-  /** is recursive singleton
-   */
-  bool isRecursiveSingleton() const;
-  
   /**
    * @return a string representation of this datatype
    */

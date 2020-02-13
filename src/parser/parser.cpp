@@ -422,7 +422,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
           checkDeclaration(testerName, CHECK_UNDECLARED);
         }
         defineVar(testerName, tester.getExpr(), d_globalDeclarations, doOverload);
-        for (size_t k=0, nargs = ctor.getNumArgs(); k<nargs; k++){
+        for (size_t k=0, nargs = ctor.getNumSelectors(); k<nargs; k++){
           const api::DatatypeSelector& sel = ctor[k];
           api::Op selector = sel.getSelectorTerm();
           Debug("parser-idt") << "+++ define " << selector << std::endl;

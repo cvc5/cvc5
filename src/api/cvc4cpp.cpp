@@ -832,12 +832,12 @@ bool Sort::operator<(const Sort& s) const {
   return *d_type < *s.d_type;
 }
 
-bool Sort::operator<=(const Sort& s) const {
-  return *d_type <= *s.d_type;
-}
-
 bool Sort::operator>(const Sort& s) const {
   return *d_type > *s.d_type;
+}
+
+bool Sort::operator<=(const Sort& s) const {
+  return *d_type <= *s.d_type;
 }
 
 bool Sort::operator>=(const Sort& s) const {
@@ -1363,12 +1363,12 @@ bool Term::operator<(const Term& t) const {
   return *d_expr < *t.d_expr;
 }
 
-bool Term::operator<=(const Term& t) const {
-  return *d_expr <= *t.d_expr;
-}
-
 bool Term::operator>(const Term& t) const {
   return *d_expr > *t.d_expr;
+}
+
+bool Term::operator<=(const Term& t) const {
+  return *d_expr <= *t.d_expr;
 }
 
 bool Term::operator>=(const Term& t) const {
@@ -1408,10 +1408,10 @@ Term Term::substitute(Term e, Term replacement) const
   return api::Term(d_expr->substitute(e.getExpr(),replacement.getExpr()));
 }
 
-Term Term::substitute(const std::vector<Term> exes,
+Term Term::substitute(const std::vector<Term> es,
                 const std::vector<Term>& replacements) const
 {
-  return api::Term(d_expr->substitute(convertTermVec(exes), convertTermVec(replacements)));
+  return api::Term(d_expr->substitute(convertTermVec(es), convertTermVec(replacements)));
 }
 
 bool Term::hasOp() const
@@ -1945,7 +1945,7 @@ std::string DatatypeConstructor::getTesterName() const
   return d_ctor->getTesterName();
 }
 
-size_t DatatypeConstructor::getNumArgs() const
+size_t DatatypeConstructor::getNumSelectors() const
 {
   return d_ctor->getNumArgs();
 }
@@ -2129,20 +2129,10 @@ bool Datatype::isFinite() const
   // CHECK: is resolved?
   return d_dtype->isFinite();
 }
-bool Datatype::isInterpretedFinite() const
-{
-  // CHECK: is resolved?
-  return d_dtype->isInterpretedFinite();
-}
 bool Datatype::isWellFounded() const
 {
   // CHECK: is resolved?
   return d_dtype->isWellFounded();
-}
-bool Datatype::isRecursiveSingleton() const
-{
-  // CHECK: is resolved?
-  return d_dtype->isRecursiveSingleton();
 }
   
 Datatype::const_iterator Datatype::begin() const
