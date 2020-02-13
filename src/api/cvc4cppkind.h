@@ -227,15 +227,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   ITE,
-  /* Match
-   */
-  MATCH,
-  /* Match bind case
-   */
-  MATCH_CASE,
-  /* Match bind case
-   */
-  MATCH_BIND_CASE,
 
   /* UF -------------------------------------------------------------------- */
 
@@ -1675,7 +1666,54 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Op op,, const std::vector<Term>& children)
    */
   RECORD_UPDATE,
-  /* datatypes size */
+  /* Match expressions.
+   * For example, the smt2 syntax match term
+   *   (match l (((cons h t) h) (nil 0))) 
+   * is represented by the AST
+   * (MATCH l 
+   *   (MATCH_BIND_CASE (BOUND_VAR_LIST h t) (cons h t) h)
+   *   (MATCH_CASE nil 0))
+   * The type of the last argument of each case term could be equal.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of kind MATCH_CASE or MATCH_BIND_CASE
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   * 
+   */
+  MATCH,
+  /* Match case
+   * A (constant) case expression to be used within a match expression.
+   * Parameters: 2
+   *   -[1] Term denoting the pattern expression
+   *   -[2] Term denoting the return value
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  MATCH_CASE,
+  /* Match bind case
+   * A (non-constant) case expression to be used within a match expression.
+   * Parameters: 3
+   *   -[1] a BOUND_VAR_LIST Term containing the free variables of the case
+   *   -[2] Term denoting the pattern expression
+   *   -[3] Term denoting the return value
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  MATCH_BIND_CASE,
+  /* 
+   * datatypes size
+   * An operator mapping datatypes to an integer denoting the number of
+   * non-nullary applications of constructors they contain.
+   * Parameters: 1
+   *   -[1]: Datatype term
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
   DT_SIZE,
 #if 0
   /* datatypes height bound */
