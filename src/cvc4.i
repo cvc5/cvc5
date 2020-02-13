@@ -60,7 +60,6 @@ using namespace CVC4;
 #include "util/integer.h"
 #include "util/sexpr.h"
 #include "util/unsafe_interrupt_exception.h"
-#include "api/cvc4cpp.h"
 
 #ifdef SWIGJAVA
 #include "bindings/java_stream_adapters.h"
