@@ -599,9 +599,9 @@ using namespace CVC4::parser;
 {                                                              \
   unsigned size = f.getSort().getBVSize();        \
   if(k > size) {                                               \
-    f = api::Term(MK_EXPR(MK_CONST(BitVectorZeroExtend(k - size)), f.getExpr()));   \
+    f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(BitVectorZeroExtend(k - size))), f.getExpr());   \
   } else if (k < size) {                                       \
-    f = api::Term(MK_EXPR(MK_CONST(BitVectorExtract(k - 1, 0)), f.getExpr()));      \
+    f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(BitVectorExtract(k - 1, 0))), f.getExpr());      \
   }                                                            \
 }
 
@@ -1758,7 +1758,7 @@ postfixTerm[CVC4::api::Term& f]
       RBRACKET
       { if(extract) {
           /* bitvector extract */
-          f = api::Term(MK_EXPR(MK_CONST(BitVectorExtract(k1, k2)), f.getExpr()));
+          f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(BitVectorExtract(k1, k2))), f.getExpr());
         } else {
           /* array select */
           f = MK_TERM(CVC4::api::SELECT, f, f2);
@@ -1773,7 +1773,7 @@ postfixTerm[CVC4::api::Term& f]
         } else {
           unsigned n = f.getSort().getBVSize();
           f = MK_TERM(api::BITVECTOR_CONCAT, api::Term(MK_CONST(BitVector(k))),
-                      api::Term(MK_EXPR(MK_CONST(BitVectorExtract(n - 1, k)), f.getExpr())));
+                      PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(BitVectorExtract(n - 1, k))), f));
         }
       }
 
@@ -1957,7 +1957,7 @@ bvTerm[CVC4::api::Term& f]
       // which is different than in the CVC language
       // SX(BITVECTOR(k), n) in CVC language extends to n bits
       // In SMT-LIB, such a thing expands to k + n bits
-      f = api::Term(MK_EXPR(MK_CONST(BitVectorSignExtend(k - n)), f.getExpr())); }
+      f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(BitVectorSignExtend(k - n))), f.getExpr()); }
     /* BV zero extension */
   | BVZEROEXTEND_TOK LPAREN formula[f] COMMA k=numeral RPAREN
     { unsigned n = f.getSort().getBVSize();
@@ -1965,16 +1965,16 @@ bvTerm[CVC4::api::Term& f]
       // which is the same as in CVC3, but different than SX!
       // SX(BITVECTOR(k), n) in CVC language extends to n bits
       // BVZEROEXTEND(BITVECTOR(k), n) in CVC language extends to k + n bits
-      f = api::Term(MK_EXPR(MK_CONST(BitVectorZeroExtend(k)), f.getExpr())); }
+      f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(BitVectorZeroExtend(k))), f.getExpr()); }
     /* BV repeat operation */
   | BVREPEAT_TOK LPAREN formula[f] COMMA k=numeral RPAREN
-    { f = api::Term(MK_EXPR(MK_CONST(BitVectorRepeat(k)), f.getExpr())); }
+    { f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(BitVectorRepeat(k))), f.getExpr()); }
     /* BV rotate right */
   | BVROTR_TOK LPAREN formula[f] COMMA k=numeral RPAREN
-    { f = api::Term(MK_EXPR(MK_CONST(BitVectorRotateRight(k)), f.getExpr())); }
+    { f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(BitVectorRotateRight(k))), f.getExpr()); }
     /* BV rotate left */
   | BVROTL_TOK LPAREN formula[f] COMMA k=numeral RPAREN
-    { f = api::Term(MK_EXPR(MK_CONST(BitVectorRotateLeft(k)), f.getExpr())); }
+    { f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(BitVectorRotateLeft(k))), f.getExpr()); }
 
     /* BV comparisons */
   | BVLT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN

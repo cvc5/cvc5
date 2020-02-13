@@ -1521,8 +1521,7 @@ void Smt2::addSygusConstructorVariables(Datatype& dt,
 
 InputLanguage Smt2::getLanguage() const
 {
-  ExprManager* em = getExprManager();
-  return em->getOptions().getInputLanguage();
+  return getExprManager()->getOptions().getInputLanguage();
 }
 
 void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
@@ -1601,18 +1600,18 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
   {
     Debug("parser") << "Empty set encountered: " << p.d_expr << " " << type
                     << std::endl;
-    p.d_expr = api::Term(em->mkConst(EmptySet(type.getType())));
+    p.d_expr = d_solver->mkEmptySet(type);
   }
   else if (ekind == api::UNIVERSE_SET)
   {
-    p.d_expr = api::Term(em->mkNullaryOperator(type.getType(), kind::UNIVERSE_SET));
+    p.d_expr = d_solver->mkUniverseSet(type);
   }
   else if (ekind == api::SEP_NIL)
   {
     // We don't want the nil reference to be a constant: for instance, it
     // could be of type Int but is not a const rational. However, the
     // expression has 0 children. So we convert to a SEP_NIL variable.
-    p.d_expr = api::Term(em->mkNullaryOperator(type.getType(), kind::SEP_NIL));
+    p.d_expr = d_solver->mkSepNil(type);
   }
   else if (etype != type)
   {
@@ -1760,8 +1759,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
           && constVal[1].isConst()
           && !constVal[1].getExpr().getConst<Rational>().isZero())
       {
-        constVal = api::Term(em->mkConst(constVal[0].getExpr().getConst<Rational>()
-                               / constVal[1].getExpr().getConst<Rational>()));
+        std::stringstream sdiv;
+        sdiv << constVal[0] << "/" << constVal[1];
+        constVal = d_solver->mkReal(sdiv.str());
       }
       if (!constVal.isConst())
       {
