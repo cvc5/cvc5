@@ -1785,7 +1785,7 @@ postfixTerm[CVC4::api::Term& f]
       { api::Kind k = PARSER_STATE->getKindForFunction(args.front());
         Debug("parser") << "expr is " << args.front() << std::endl;
         Debug("parser") << "kind is " << k << std::endl;
-        f = api::Term(MK_EXPR(extToIntKind(k), api::convertTermVec(args)));
+        f = PARSER_STATE->mkTermSafe(k,args);
       }
 
       /* record / tuple select */
@@ -1800,7 +1800,7 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
           const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-          f = api::Term(MK_EXPR(CVC4::kind::APPLY_SELECTOR,dt[0][id].getSelector(), f.getExpr()));
+          f = PARSER_STATE->mkTermSafe(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
         }
       | k=numeral
         { api::Sort t = f.getSort();
@@ -1814,7 +1814,7 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(ss.str());
           }
           const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-          f = api::Term(MK_EXPR(CVC4::kind::APPLY_SELECTOR,dt[0][k].getSelector(), f.getExpr()));
+          f = PARSER_STATE->mkTermSafe(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()), f);
         }
       )
     )*
@@ -1843,7 +1843,7 @@ postfixTerm[CVC4::api::Term& f]
         } else if(f.getKind() == CVC4::api::EMPTYSET && t.isSet()) {
           f = SOLVER->mkEmptySet(t);
         } else if(f.getKind() == CVC4::api::UNIVERSE_SET && t.isSet()) {
-          f = api::Term(EXPR_MANAGER->mkNullaryOperator(t.getType(), kind::UNIVERSE_SET));
+          f = SOLVER->mkUniverseSet(t);
         } else {
           if(f.getSort() != t) {
             PARSER_STATE->parseError("Type ascription not satisfied.");
@@ -2127,7 +2127,7 @@ simpleTerm[CVC4::api::Term& f]
     { f = MK_CONST(EmptySet(Type())); }
   | UNIVSET_TOK
     { //booleanType is placeholder
-      f = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), kind::UNIVERSE_SET);
+      f = SOLVER->mkUniverseSet(SOLVER->getBooleanSort());
     }
 
     /* finite set literal */
