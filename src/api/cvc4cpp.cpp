@@ -85,9 +85,13 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {OR, CVC4::Kind::OR},
     {XOR, CVC4::Kind::XOR},
     {ITE, CVC4::Kind::ITE},
+    {MATCH, CVC4::Kind::MATCH},
+    {MATCH_CASE, CVC4::Kind::MATCH_CASE},
+    {MATCH_BIND_CASE, CVC4::Kind::MATCH_BIND_CASE},
     /* UF ------------------------------------------------------------------ */
     {APPLY_UF, CVC4::Kind::APPLY_UF},
     {CARDINALITY_CONSTRAINT, CVC4::Kind::CARDINALITY_CONSTRAINT},
+    {CARDINALITY_VALUE, CVC4::Kind::CARDINALITY_VALUE},
     {HO_APPLY, CVC4::Kind::HO_APPLY},
     /* Arithmetic ---------------------------------------------------------- */
     {PLUS, CVC4::Kind::PLUS},
@@ -249,6 +253,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {TCLOSURE, CVC4::Kind::TCLOSURE},
     {JOIN_IMAGE, CVC4::Kind::JOIN_IMAGE},
     {IDEN, CVC4::Kind::IDEN},
+    {COMPREHENSION, CVC4::Kind::COMPREHENSION},
     /* Strings ------------------------------------------------------------- */
     {STRING_CONCAT, CVC4::Kind::STRING_CONCAT},
     {STRING_IN_REGEXP, CVC4::Kind::STRING_IN_REGEXP},
@@ -258,6 +263,13 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {STRING_STRCTN, CVC4::Kind::STRING_STRCTN},
     {STRING_STRIDOF, CVC4::Kind::STRING_STRIDOF},
     {STRING_STRREPL, CVC4::Kind::STRING_STRREPL},
+    {STRING_STRREPLALL, CVC4::Kind::STRING_STRREPLALL},
+    {STRING_TOLOWER, CVC4::Kind::STRING_TOLOWER},
+    {STRING_TOUPPER, CVC4::Kind::STRING_TOUPPER},
+    {STRING_REV, CVC4::Kind::STRING_REV},
+    {STRING_CODE, CVC4::Kind::STRING_CODE},
+    {STRING_LT, CVC4::Kind::STRING_LT},
+    {STRING_LEQ, CVC4::Kind::STRING_LEQ},
     {STRING_PREFIX, CVC4::Kind::STRING_PREFIX},
     {STRING_SUFFIX, CVC4::Kind::STRING_SUFFIX},
     {STRING_ITOS, CVC4::Kind::STRING_ITOS},
@@ -277,6 +289,12 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     /* Quantifiers --------------------------------------------------------- */
     {FORALL, CVC4::Kind::FORALL},
     {EXISTS, CVC4::Kind::EXISTS},
+    {BOUND_VAR_LIST, CVC4::Kind::BOUND_VAR_LIST},
+    {INST_CLOSURE, CVC4::Kind::INST_CLOSURE},
+    {INST_PATTERN, CVC4::Kind::INST_PATTERN},
+    {INST_NO_PATTERN, CVC4::Kind::INST_NO_PATTERN},
+    {INST_ATTRIBUTE, CVC4::Kind::INST_ATTRIBUTE},
+    {INST_PATTERN_LIST, CVC4::Kind::INST_PATTERN_LIST},
     {LAST_KIND, CVC4::Kind::LAST_KIND},
 };
 
@@ -304,6 +322,9 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::OR, OR},
         {CVC4::Kind::XOR, XOR},
         {CVC4::Kind::ITE, ITE},
+        {CVC4::Kind::MATCH, MATCH},
+        {CVC4::Kind::MATCH_CASE, MATCH_CASE},
+        {CVC4::Kind::MATCH_BIND_CASE, MATCH_BIND_CASE},
         /* UF -------------------------------------------------------------- */
         {CVC4::Kind::APPLY_UF, APPLY_UF},
         {CVC4::Kind::CARDINALITY_CONSTRAINT, CARDINALITY_CONSTRAINT},
@@ -471,6 +492,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::TUPLE_UPDATE, TUPLE_UPDATE},
         {CVC4::Kind::RECORD_UPDATE_OP, RECORD_UPDATE},
         {CVC4::Kind::RECORD_UPDATE, RECORD_UPDATE},
+        {CVC4::Kind::DT_SIZE, DT_SIZE},
         /* Separation Logic ------------------------------------------------ */
         {CVC4::Kind::SEP_NIL, SEP_NIL},
         {CVC4::Kind::SEP_EMP, SEP_EMP},
@@ -495,6 +517,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::TCLOSURE, TCLOSURE},
         {CVC4::Kind::JOIN_IMAGE, JOIN_IMAGE},
         {CVC4::Kind::IDEN, IDEN},
+        {CVC4::Kind::COMPREHENSION, COMPREHENSION},
         /* Strings --------------------------------------------------------- */
         {CVC4::Kind::STRING_CONCAT, STRING_CONCAT},
         {CVC4::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
@@ -504,6 +527,13 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::STRING_STRCTN, STRING_STRCTN},
         {CVC4::Kind::STRING_STRIDOF, STRING_STRIDOF},
         {CVC4::Kind::STRING_STRREPL, STRING_STRREPL},
+        {CVC4::Kind::STRING_STRREPLALL, STRING_STRREPLALL},
+        {CVC4::Kind::STRING_TOLOWER, STRING_TOLOWER},
+        {CVC4::Kind::STRING_TOUPPER, STRING_TOUPPER},
+        {CVC4::Kind::STRING_REV, STRING_REV},
+        {CVC4::Kind::STRING_CODE, STRING_CODE},
+        {CVC4::Kind::STRING_LT, STRING_LT},
+        {CVC4::Kind::STRING_LEQ, STRING_LEQ},
         {CVC4::Kind::STRING_PREFIX, STRING_PREFIX},
         {CVC4::Kind::STRING_SUFFIX, STRING_SUFFIX},
         {CVC4::Kind::STRING_ITOS, STRING_ITOS},
@@ -523,6 +553,12 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         /* Quantifiers ----------------------------------------------------- */
         {CVC4::Kind::FORALL, FORALL},
         {CVC4::Kind::EXISTS, EXISTS},
+        {CVC4::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
+        {CVC4::Kind::INST_CLOSURE, INST_CLOSURE},
+        {CVC4::Kind::INST_PATTERN, INST_PATTERN},
+        {CVC4::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
+        {CVC4::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
+        {CVC4::Kind::INST_PATTERN_LIST, INST_PATTERN_LIST},
         /* ----------------------------------------------------------------- */
         {CVC4::Kind::LAST_KIND, LAST_KIND},
     };
@@ -561,26 +597,6 @@ bool isDefinedIntKind(CVC4::Kind k)
   return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
 }
 #endif
-
-Kind intToExtKind(CVC4::Kind k)
-{
-  auto it = s_kinds_internal.find(k);
-  if (it == s_kinds_internal.end())
-  {
-    return INTERNAL_KIND;
-  }
-  return it->second;
-}
-
-CVC4::Kind extToIntKind(Kind k)
-{
-  auto it = s_kinds.find(k);
-  if (it == s_kinds.end())
-  {
-    return CVC4::Kind::UNDEFINED_KIND;
-  }
-  return it->second;
-}
 
 uint32_t minArity(Kind k)
 {
@@ -796,6 +812,7 @@ Sort::~Sort() {}
 
 bool Sort::isNullHelper() const { return d_type->isNull(); }
 
+// PARSER-TODO: can reuse
 std::vector<Sort> Sort::typeVectorToSorts(
                                           const std::vector<CVC4::Type>& types) const
 {
@@ -810,6 +827,22 @@ std::vector<Sort> Sort::typeVectorToSorts(
 bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
 
 bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
+
+bool Sort::operator<(const Sort& s) const {
+  return *d_type < *s.d_type;
+}
+
+bool Sort::operator>(const Sort& s) const {
+  return *d_type > *s.d_type;
+}
+
+bool Sort::operator<=(const Sort& s) const {
+  return *d_type <= *s.d_type;
+}
+
+bool Sort::operator>=(const Sort& s) const {
+  return *d_type >= *s.d_type;
+}
 
 bool Sort::isNull() const { return isNullHelper(); }
 
@@ -837,6 +870,10 @@ bool Sort::isParametricDatatype() const
   return DatatypeType(*d_type).isParametric();
 }
 
+bool Sort::isConstructor() const { return d_type->isConstructor(); }
+bool Sort::isSelector() const { return d_type->isSelector(); }
+bool Sort::isTester() const { return d_type->isTester(); }
+
 bool Sort::isFunction() const { return d_type->isFunction(); }
 
 bool Sort::isPredicate() const { return d_type->isPredicate(); }
@@ -856,6 +893,16 @@ bool Sort::isSortConstructor() const { return d_type->isSortConstructor(); }
 bool Sort::isFirstClass() const { return d_type->isFirstClass(); }
 
 bool Sort::isFunctionLike() const { return d_type->isFunctionLike(); }
+
+bool Sort::isSubsortOf(Sort s) const
+{
+  return d_type->isSubtypeOf(*s.d_type);
+}
+
+bool Sort::isComparableTo(Sort s) const
+{
+  return d_type->isComparableTo(*s.d_type);
+}
 
 Datatype Sort::getDatatype() const
 {
@@ -885,6 +932,27 @@ std::string Sort::toString() const { return d_type->toString(); }
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
 CVC4::Type Sort::getType(void) const { return *d_type; }
+
+/* Constructor sort ------------------------------------------------------- */
+
+size_t Sort::getConstructorArity() const
+{
+  CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
+  return ConstructorType(*d_type).getArity();
+}
+  
+std::vector<Sort> Sort::getConstructorDomainSorts() const
+{
+  CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
+  std::vector<CVC4::Type> types = ConstructorType(*d_type).getArgTypes();
+  return typeVectorToSorts(types);
+}
+
+Sort Sort::getConstructorCodomainSort() const
+{
+  CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
+  return ConstructorType(*d_type).getRangeType();
+}
 
 /* Function sort ------------------------------------------------------- */
 
@@ -1000,7 +1068,7 @@ size_t Sort::getDatatypeArity() const
   CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
   return DatatypeType(*d_type).getArity();
 }
-
+  
 /* Tuple sort ---------------------------------------------------------- */
 
 size_t Sort::getTupleLength() const
@@ -1286,10 +1354,36 @@ Term::~Term() {}
 /* .......................................................................... */
 
 bool Term::isNullHelper() const { return d_expr->isNull(); }
-
+  
 bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
+
+bool Term::operator<(const Term& t) const {
+  return *d_expr < *t.d_expr;
+}
+
+bool Term::operator>(const Term& t) const {
+  return *d_expr > *t.d_expr;
+}
+
+bool Term::operator<=(const Term& t) const {
+  return *d_expr <= *t.d_expr;
+}
+
+bool Term::operator>=(const Term& t) const {
+  return *d_expr >= *t.d_expr;
+}
+
+size_t Term::getNumChildren() const
+{
+  return d_expr->getNumChildren();
+}
+  
+Term Term::operator[](size_t index) const
+{
+  return api::Term((*d_expr)[index]);
+}
 
 uint64_t Term::getId() const
 {
@@ -1307,6 +1401,17 @@ Sort Term::getSort() const
 {
   CVC4_API_CHECK_NOT_NULL;
   return Sort(d_expr->getType());
+}
+
+Term Term::substitute(Term e, Term replacement) const
+{
+  return api::Term(d_expr->substitute(e.getExpr(),replacement.getExpr()));
+}
+
+Term Term::substitute(const std::vector<Term> es,
+                const std::vector<Term>& replacements) const
+{
+  return api::Term(d_expr->substitute(convertTermVec(es), convertTermVec(replacements)));
 }
 
 bool Term::hasOp() const
@@ -1344,6 +1449,12 @@ Op Term::getOp() const
 
 bool Term::isNull() const { return isNullHelper(); }
 
+bool Term::isConst() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return d_expr->isConst();
+}
+  
 bool Term::isParameterized() const
 {
   CVC4_API_CHECK_NOT_NULL;
@@ -1762,6 +1873,11 @@ DatatypeSelector::DatatypeSelector(const CVC4::DatatypeConstructorArg& stor)
 
 DatatypeSelector::~DatatypeSelector() {}
 
+std::string DatatypeSelector::getName() const
+{
+  return d_stor->getName();
+}
+
 bool DatatypeSelector::isResolved() const { return d_stor->isResolved(); }
 
 Op DatatypeSelector::getSelectorTerm() const
@@ -1805,11 +1921,38 @@ DatatypeConstructor::~DatatypeConstructor() {}
 
 bool DatatypeConstructor::isResolved() const { return d_ctor->isResolved(); }
 
+std::string DatatypeConstructor::getName() const
+{
+  return d_ctor->getName();
+}
+  
 Op DatatypeConstructor::getConstructorTerm() const
 {
   CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
   CVC4::Expr ctor = d_ctor->getConstructor();
   return Op(APPLY_CONSTRUCTOR, ctor);
+}
+
+Op DatatypeConstructor::getTesterTerm() const
+{
+  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
+  CVC4::Expr tst = d_ctor->getTester();
+  return Op(APPLY_TESTER, tst);
+}
+
+std::string DatatypeConstructor::getTesterName() const
+{
+  return d_ctor->getTesterName();
+}
+
+size_t DatatypeConstructor::getNumSelectors() const
+{
+  return d_ctor->getNumArgs();
+}
+
+DatatypeSelector DatatypeConstructor::operator[](size_t index) const
+{
+  return (*d_ctor)[index];
 }
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
@@ -1964,13 +2107,34 @@ Op Datatype::getConstructorTerm(const std::string& name) const
   return Op(APPLY_CONSTRUCTOR, ctor);
 }
 
+std::string Datatype::getName() const
+{
+  return d_dtype->getName();
+}
+
 size_t Datatype::getNumConstructors() const
 {
   return d_dtype->getNumConstructors();
 }
 
 bool Datatype::isParametric() const { return d_dtype->isParametric(); }
+bool Datatype::isCodatatype() const { return d_dtype->isCodatatype(); }
 
+bool Datatype::isTuple() const { return d_dtype->isTuple(); }
+
+bool Datatype::isRecord() const { return d_dtype->isRecord(); }
+  
+bool Datatype::isFinite() const
+{
+  // CHECK: is resolved?
+  return d_dtype->isFinite();
+}
+bool Datatype::isWellFounded() const
+{
+  // CHECK: is resolved?
+  return d_dtype->isWellFounded();
+}
+  
 Datatype::const_iterator Datatype::begin() const
 {
   return Datatype::const_iterator(*d_dtype, true);
@@ -3984,5 +4148,78 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
+
+std::vector<Expr> convertTermVec(const std::vector<Term>& terms)
+{
+  std::vector<Expr> exprs;
+  for (size_t i=0,tsize=terms.size(); i<tsize; i++)
+  {
+    exprs.push_back(terms[i].getExpr());
+  }
+  return exprs;
+}
+
+std::vector<Type> convertSortVec(const std::vector<Sort>& sorts)
+{
+  std::vector<Type> types;
+  for (size_t i=0,ssize=sorts.size(); i<ssize; i++)
+  {
+    types.push_back(sorts[i].getType());
+  }
+  return types;
+}
+
+std::set<Type> convertSortSet(const std::set<Sort>& sorts)
+{
+  std::set<Type> types;
+  for (const Sort& s : sorts)
+  {
+    types.insert(s.getType());
+  }
+  return types;
+}
+
+std::vector<Term> convertExprVec(const std::vector<Expr>& exprs)
+{
+  std::vector<Term> terms;
+  for (size_t i=0,esize=exprs.size(); i<esize; i++)
+  {
+    terms.push_back(Term(exprs[i]));
+  }
+  return terms;
+}
+
+std::vector<Sort> convertTypeVec(const std::vector<Type>& types)
+{
+  std::vector<Sort> sorts;
+  for (size_t i=0,tsize=types.size(); i<tsize; i++)
+  {
+    sorts.push_back(Sort(types[i]));
+  }
+  return sorts;
+}
+
 }  // namespace api
+
+CVC4::api::Kind intToExtKind(CVC4::Kind k)
+{
+  auto it = api::s_kinds_internal.find(k);
+  if (it == api::s_kinds_internal.end())
+  {
+    return api::INTERNAL_KIND;
+  }
+  return it->second;
+}
+
+CVC4::Kind extToIntKind(CVC4::api::Kind k)
+{
+  auto it = api::s_kinds.find(k);
+  if (it == api::s_kinds.end())
+  {
+    return CVC4::Kind::UNDEFINED_KIND;
+  }
+  return it->second;
+}
+  
+
 }  // namespace CVC4
