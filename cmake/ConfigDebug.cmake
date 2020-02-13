@@ -1,8 +1,6 @@
 add_definitions(-DCVC4_DEBUG)
 set(CVC4_DEBUG 1)
 add_check_c_cxx_flag("-fno-inline")
-# enable_optimized=no
-cvc4_set_option(ENABLE_OPTIMIZED OFF)
 set(OPTIMIZATION_LEVEL 0)
 add_c_cxx_flag("-Og")
 # enable_debug_symbols=yes
