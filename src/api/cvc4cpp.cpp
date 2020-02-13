@@ -1377,8 +1377,8 @@ Term Term::substitute(Term e, Term replacement) const
 Term Term::substitute(const std::vector<Term> es,
                       const std::vector<Term>& replacements) const
 {
-  return api::Term(
-      d_expr->substitute(termVectorToExprs(es), termVectorToExprs(replacements)));
+  return api::Term(d_expr->substitute(termVectorToExprs(es),
+                                      termVectorToExprs(replacements)));
 }
 
 bool Term::hasOp() const
@@ -4105,7 +4105,6 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  * the new API. !!!
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
-
 
 /* -------------------------------------------------------------------------- */
 /* Conversions                                                                */
