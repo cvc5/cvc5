@@ -535,6 +535,13 @@ api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1) const
   args.push_back(t1);
   return mkBuiltinApp(f,args);
 }
+api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1, api::Term t2) const
+{
+  std::vector<api::Term> args;
+  args.push_back(t1);
+  args.push_back(t2);
+  return mkBuiltinApp(f,args);
+}
 
 api::Term Parser::mkTermSafe(api::Kind k, const std::vector<api::Term>& args) const
 {

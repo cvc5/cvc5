@@ -1635,13 +1635,13 @@ tupleStore[CVC4::api::Term& f]
         PARSER_STATE->parseError(ss.str());
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-      f2 = api::Term(MK_EXPR(CVC4::kind::APPLY_SELECTOR,dt[0][k].getSelector(),f.getExpr()));
+      f2 = PARSER_STATE->mkTermSafe(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()),f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = api::Term(MK_EXPR( MK_CONST(TupleUpdate(k)), f.getExpr(), f2.getExpr()) ); }
+    { f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(TupleUpdate(k))), f, f2); }
   ;
 
 /**
@@ -1667,13 +1667,13 @@ recordStore[CVC4::api::Term& f]
         PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
-      f2 = api::Term(MK_EXPR(CVC4::kind::APPLY_SELECTOR,dt[0][id].getSelector(), f.getExpr()));
+      f2 = PARSER_STATE->mkTermSafe(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
             | recordStore[f2] ) )
     | ASSIGN_TOK term[f2] )
-    { f = api::Term(MK_EXPR(MK_CONST(RecordUpdate(id)), f.getExpr(), f2.getExpr())); }
+    { f = PARSER_STATE->mkBuiltinApp(api::Term(MK_CONST(RecordUpdate(id))), f, f2); }
   ;
 
 /** Parses a unary minus term. */
@@ -2167,7 +2167,7 @@ simpleTerm[CVC4::api::Term& f]
            << "computed const type: " << f.getSort();
         PARSER_STATE->parseError(ss.str());
       }
-      f = api::Term(MK_CONST( ArrayStoreAll(t.getType(), f.getExpr()) ));
+      f = api::Term(MK_CONST(ArrayStoreAll(t.getType(), f.getExpr()) ));
     }
 
     /* boolean literals */

@@ -672,6 +672,7 @@ public:
    */
   api::Term mkBuiltinApp(api::Term f, const std::vector<api::Term>& args) const;
   api::Term mkBuiltinApp(api::Term f, api::Term t1) const;
+  api::Term mkBuiltinApp(api::Term f, api::Term t1, api::Term t2) const;
   /** 
    * Make safe term
    */
