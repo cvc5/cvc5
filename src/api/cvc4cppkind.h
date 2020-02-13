@@ -1916,7 +1916,8 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * String membership.
    * Parameters: 2
-   *   -[1]..[2]: Terms of String sort
+   *   -[1]: Term of String sort
+   *   -[2]: Term of RegExp sort
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
@@ -1999,30 +2000,73 @@ enum CVC4_PUBLIC Kind : int32_t
   STRING_STRREPL,
   /**
    * String replace all.
+   * Replaces all occurrences of a string s2 in a string s1 with string s3.
+   * If s2 does not appear in s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort String (string s2)
+   *   -[3]: Term of sort String (string s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   STRING_STRREPLALL,
   /**
-   * String to lower.
+   * String to lower case.
+   * Parameters: 1
+   *   -[1]: Term of String sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
    */
   STRING_TOLOWER,
   /**
-   * String to upper.
+   * String to upper case.
+   * Parameters: 1
+   *   -[1]: Term of String sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
    */
   STRING_TOUPPER,
   /**
    * String reverse.
+   * Parameters: 1
+   *   -[1]: Term of String sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
    */
   STRING_REV,
   /**
    * String code.
+   * Returns the code point of a string if it has length one, or returns -1
+   * otherwise.
+   * Parameters: 1
+   *   -[1]: Term of String sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
    */
   STRING_CODE,
   /**
    * String less than.
+   * Returns true if string s1 is (strictly) less than s2 based on a
+   * lexiographic ordering over code points.
+   * Parameters: 2
+   *   -[1]: Term of sort String (the string s1)
+   *   -[2]: Term of sort String (the string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   STRING_LT,
   /**
    * String less than or equal.
+   * Returns true if string s1 is less than or equal to s2 based on a
+   * lexiographic ordering over code points.
+   * Parameters: 2
+   *   -[1]: Term of sort String (the string s1)
+   *   -[2]: Term of sort String (the string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   STRING_LEQ,
   /**
@@ -2207,29 +2251,70 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   EXISTS,
-  /* a list of bound variables (used to bind variables under a quantifier) */
+  /* 
+   * A list of bound variables (used to bind variables under a quantifier)
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms with kind BOUND_VARIABLE
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
   BOUND_VAR_LIST,
-  /* predicate for specifying term in instantiation closure. */
+  /* 
+   * A predicate for specifying term in instantiation closure. 
+   * Parameters: 1
+   *   -[1]: Term
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
   INST_CLOSURE,
-  /* instantiation pattern */
+  /* 
+   * An instantiation pattern.
+   * Specifies a (list of) terms to be used as a pattern for quantifier
+   * instantiation.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms with kind BOUND_VARIABLE
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
   INST_PATTERN,
-  /* instantiation no-pattern */
+  /* 
+   * An instantiation no-pattern.
+   * Specifies a (list of) terms that should not be used as a pattern for
+   * quantifier instantiation.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms with kind BOUND_VARIABLE
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
   INST_NO_PATTERN,
-  /* instantiation attribute */
+  /* 
+   * An instantiation attribute
+   * Specifies a custom property for a quantified formula given by a
+   * node that is ascribed a user attribute.
+   * Parameters: 1
+   *   -[1]: Term with a user attribute.
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
   INST_ATTRIBUTE,
-  /* a list of instantiation patterns */
+  /* 
+   * A list of instantiation patterns and/or attributes.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms with kind INST_PATTERN, INST_NO_PATTERN, or
+   * INST_ATTRIBUTE.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
   INST_PATTERN_LIST,
 #if 0
-  /* instantiation constant */
-  INST_CONSTANT,
-  /* general rewrite rule (for rewrite-rules theory) */
-  REWRITE_RULE,
-  /* actual rewrite rule (for rewrite-rules theory) */
-  RR_REWRITE,
-  /* actual reduction rule (for rewrite-rules theory) */
-  RR_REDUCTION,
-  /* actual deduction rule (for rewrite-rules theory) */
-  RR_DEDUCTION,
 
   /* Sort Kinds ------------------------------------------------------------ */
 
