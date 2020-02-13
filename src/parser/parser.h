@@ -369,11 +369,12 @@ public:
   virtual Expr getExpressionForNameAndType(const std::string& name, Type t);
   
   /**
-   * Returns the kind that should be used for applications of expression fun, where
-   * fun has "function-like" type, i.e. where checkFunctionLike(fun) returns true. 
-   * Returns a parse error if fun does not have function-like type.
+   * Returns the kind that should be used for applications of expression fun.
+   * This is a generalization of ExprManager::operatorToKind that also
+   * handles variables whose types are "function-like", i.e. where
+   * checkFunctionLike(fun) returns true.
    * 
-   * For example, this function returns
+   * For examples of the latter , this function returns
    *   APPLY_UF if fun has function type, 
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
