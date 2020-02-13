@@ -358,7 +358,7 @@ atomicFormula[CVC4::api::Term& expr]
      LPAREN_TOK arguments[args] RPAREN_TOK
      equalOp[equal] term[expr2]
      {
-       expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args));
+       expr = api::Term(EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args)));
        expr = MK_TERM(api::EQUAL, expr, expr2);
        if (!equal)
        {
@@ -441,10 +441,10 @@ definedPred[CVC4::api::Term& expr]
     // a real n is a rational if there exists q,r integers such that
     //   to_real(q) = n*to_real(r),
     // where r is non-zero.
-    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      CVC4::api::Term q = EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType());
+    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
+      CVC4::api::Term q = api::Term(EXPR_MANAGER->mkBoundVar("Q", EXPR_MANAGER->integerType()));
       CVC4::api::Term qr = MK_TERM(api::TO_REAL, q);
-      CVC4::api::Term r = EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType());
+      CVC4::api::Term r = api::Term(EXPR_MANAGER->mkBoundVar("R", EXPR_MANAGER->integerType()));
       CVC4::api::Term rr = MK_TERM(api::TO_REAL, r);
       CVC4::api::Term body =
           MK_TERM(api::AND,
@@ -511,8 +511,8 @@ definedFun[CVC4::api::Term& expr]
   | ( '$quotient_e' { remainder = false; }
     | '$remainder_e' { remainder = true; }
     )
-    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      CVC4::api::Term d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
+    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
+      CVC4::api::Term d = api::Term(EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType()));
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       expr = MK_TERM(api::DIVISION_TOTAL, n, d);
       expr = MK_TERM(api::ITE, MK_TERM(api::GEQ, d, SOLVER->mkReal(0)),
@@ -526,8 +526,8 @@ definedFun[CVC4::api::Term& expr]
   | ( '$quotient_t' { remainder = false; }
     | '$remainder_t' { remainder = true; }
     )
-    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      CVC4::api::Term d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
+    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
+      CVC4::api::Term d = api::Term(EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType()));
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       expr = MK_TERM(api::DIVISION_TOTAL, n, d);
       expr = MK_TERM(api::ITE, MK_TERM(api::GEQ, expr, SOLVER->mkReal(0)),
@@ -541,8 +541,8 @@ definedFun[CVC4::api::Term& expr]
   | ( '$quotient_f' { remainder = false; }
     | '$remainder_f' { remainder = true; }
     )
-    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
-      CVC4::api::Term d = EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType());
+    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
+      CVC4::api::Term d = api::Term(EXPR_MANAGER->mkBoundVar("D", EXPR_MANAGER->realType()));
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       expr = MK_TERM(api::DIVISION_TOTAL, n, d);
       expr = MK_TERM(api::TO_INTEGER, expr);
@@ -553,13 +553,13 @@ definedFun[CVC4::api::Term& expr]
     }
   | '$floor' { expr = EXPR_MANAGER->operatorOf(kind::TO_INTEGER); }
   | '$ceiling'
-    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
       expr = MK_TERM(api::UMINUS, MK_TERM(api::TO_INTEGER, MK_TERM(api::UMINUS, n)));
       expr = MK_TERM(api::LAMBDA, formals, expr);
     }
   | '$truncate'
-    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
       expr = MK_TERM(api::ITE, MK_TERM(api::GEQ, n, SOLVER->mkReal(0)),
                                       MK_TERM(api::TO_INTEGER, n),
@@ -567,7 +567,7 @@ definedFun[CVC4::api::Term& expr]
       expr = MK_TERM(api::LAMBDA, formals, expr);
     }
   | '$round'
-    { CVC4::api::Term n = EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType());
+    { CVC4::api::Term n = api::Term(EXPR_MANAGER->mkBoundVar("N", EXPR_MANAGER->realType()));
       CVC4::api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n);
       CVC4::api::Term decPart = MK_TERM(api::MINUS, n, MK_TERM(api::TO_INTEGER, n));
       expr = MK_TERM(api::ITE, MK_TERM(api::LT, decPart, SOLVER->mkReal(1, 2)),
@@ -644,7 +644,7 @@ functionTerm[CVC4::api::Term& expr]
 }
   : plainTerm[expr]
   | definedFun[expr] LPAREN_TOK arguments[args] RPAREN_TOK
-    { expr = EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args)); }
+    { expr = api::Term(EXPR_MANAGER->mkExpr(expr.getExpr(), api::convertTermVec(args))); }
 // | <system_term>
   ;
 
@@ -1163,16 +1163,14 @@ tffUnitaryFormula[CVC4::api::Term& expr]
     tffLetTermDefn[lhs, rhs] COMMA_TOK
     tffFormula[expr]
     { PARSER_STATE->popScope();
-      //PARSER-FIXME
-      //expr = expr.substitute(lhs, rhs);
+      expr = expr.substitute(lhs, rhs);
     }
     RPAREN_TOK
   | '$let_ff' LPAREN_TOK { PARSER_STATE->pushScope(); }
     tffLetFormulaDefn[lhs, rhs] COMMA_TOK
     tffFormula[expr]
     { PARSER_STATE->popScope();
-      //PARSER-FIXME
-      //expr = expr.substitute(lhs, rhs);
+      expr = expr.substitute(lhs, rhs);
     }
     RPAREN_TOK
   ;
