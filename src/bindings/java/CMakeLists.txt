@@ -152,6 +152,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/Options.java
   ${CMAKE_CURRENT_BINARY_DIR}/OutputLanguage.java
   ${CMAKE_CURRENT_BINARY_DIR}/Parser.java
+  ${CMAKE_CURRENT_BINARY_DIR}/ParseOp.java
   ${CMAKE_CURRENT_BINARY_DIR}/ParserBuilder.java
   ${CMAKE_CURRENT_BINARY_DIR}/ParserEndOfFileException.java
   ${CMAKE_CURRENT_BINARY_DIR}/ParserException.java
