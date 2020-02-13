@@ -286,7 +286,7 @@ void ExtfSolver::checkExtfEval( int effort ) {
           // only use symbolic definitions if option is set
           if (options::stringInferSym())
           {
-            nrs = getSymbolicDefinition(sn, exps);
+            nrs = d_im.getSymbolicDefinition(sn, exps);
           }
           if( !nrs.isNull() ){
             Trace("strings-extf-debug") << "  rewrite " << nrs << "..." << std::endl;
