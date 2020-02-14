@@ -1636,6 +1636,7 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
 
 api::Term Smt2::parseOpToExpr(ParseOp& p)
 {
+  Debug("parser") << "parseOpToExpr: " << p << std::endl;
   api::Term expr;
   if (p.d_kind != api::NULL_EXPR || !p.d_type.isNull())
   {
@@ -1677,13 +1678,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   // First phase: process the operator
   if (Debug.isOn("parser"))
   {
-    Debug("parser") << "Apply parse op to:" << std::endl;
-    Debug("parser") << "args has size " << args.size() << std::endl;
+    Debug("parser") << "applyParseOp: " << p << " to:" << std::endl;
     for (std::vector<api::Term>::iterator i = args.begin(); i != args.end(); ++i)
     {
       Debug("parser") << "++ " << *i << std::endl;
     }
   }
+  api::Op op;
   if (p.d_kind != api::NULL_EXPR)
   {
     // It is a special case, e.g. tupSel or array constant specification.
@@ -1703,6 +1704,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
     // An explicit operator, e.g. an indexed symbol.
     args.insert(args.begin(), p.d_expr);
+  }
+  else if (!p.d_op.isNull())
+  {
+    // it was given an operator
+    op = p.d_op;
   }
   else
   {
@@ -1796,7 +1802,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
          << "computed const type: " << constVal.getSort();
       parseError(ss.str());
     }
-    return api::Term(em->mkConst(ArrayStoreAll(p.d_type.getType(), constVal.getExpr())));
+    api::Term ret = api::Term(em->mkConst(ArrayStoreAll(p.d_type.getType(), constVal.getExpr())));
+    Debug("parser") << "applyParseOp: return store all " << ret << std::endl;
+    return ret;
     //return d_solver->mkConstArray(p.d_type, constVal);
   }
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
@@ -1825,7 +1833,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-    return mkTermSafe(api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args[0]);
+    api::Term ret = mkTermSafe(api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args[0]);
+    Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
+    return ret;
   }
   else if (p.d_kind != api::NULL_EXPR)
   {
@@ -1863,18 +1873,24 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         // Builtin operators that are not tokenized, are left associative,
         // but not internally variadic must set this.
-        return api::Term(em->mkLeftAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
+        api::Term ret = api::Term(em->mkLeftAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
+        Debug("parser") << "applyParseOp: return left associative " << ret << std::endl;
+        return ret;
       }
       else if (kind == api::IMPLIES)
       {
         /* right-associative, but CVC4 internally only supports 2 args */
-        return api::Term(em->mkRightAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
+        api::Term ret = api::Term(em->mkRightAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
+        Debug("parser") << "applyParseOp: return right associative " << ret << std::endl;
+        return ret;
       }
       else if (kind == api::EQUAL || kind == api::LT || kind == api::GT
                || kind == api::LEQ || kind == api::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        return api::Term(em->mkExpr(em->mkConst(Chain(extToIntKind(kind))), api::termVectorToExprs(args)));
+        api::Term ret = api::Term(em->mkExpr(em->mkConst(Chain(extToIntKind(kind))), api::termVectorToExprs(args)));
+        Debug("parser") << "applyParseOp: return chain " << ret << std::endl;
+        return ret;
       }
     }
 
@@ -1882,23 +1898,29 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       /* Special treatment for associative operators with lots of children
        */
-      return api::Term(em->mkAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
+      api::Term ret = api::Term(em->mkAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
+      Debug("parser") << "applyParseOp: return large assoc " << ret << std::endl;
+      return ret;
     }
     else if (!strictModeEnabled() && (kind == api::AND || kind == api::OR)
              && args.size() == 1)
     {
       // Unary AND/OR can be replaced with the argument.
+      Debug("parser") << "applyParseOp: return unary " << args[0] << std::endl;
       return args[0];
     }
     else if (kind == api::MINUS && args.size() == 1)
     {
-      return d_solver->mkTerm(api::UMINUS, args[0]);
+      api::Term ret = d_solver->mkTerm(api::UMINUS, args[0]);
+      Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
+      return ret;
     }
     else
     {
       checkOperator(kind, args.size());
-      Trace("ajr-temp") << "mkTerm default from builtin : " << kind << std::endl;
-      return d_solver->mkTerm(kind, args);
+      api::Term ret = d_solver->mkTerm(kind, args);
+      Debug("parser") << "applyParseOp: return default builtin " << ret << std::endl;
+      return ret;
     }
   }
 
@@ -1914,18 +1936,30 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
+        api::Term ret = em->mkLeftAssociative(kind::HO_APPLY, api::termVectorToExprs(args));
+        Debug("parser") << "applyParseOp: return curry higher order " << ret << std::endl;
         // must curry the partial application
-        return em->mkLeftAssociative(kind::HO_APPLY, api::termVectorToExprs(args));
+        return ret;
       }
     }
+  }
+  if (!op.isNull())
+  {
+    api::Term ret = d_solver->mkTerm(op,args);
+    Debug("parser") << "applyParseOp: return op : " << ret << std::endl;
+    return ret;
   }
   if (kind == api::NULL_EXPR)
   {
     std::vector<api::Term> eargs(args.begin() + 1, args.end());
-    return mkBuiltinApp(args[0], eargs);
+    api::Term ret = mkBuiltinApp(args[0], eargs);
+    Debug("parser") << "applyParseOp: return builtin app : " << ret << std::endl;
+    return ret;
   }
   // PARSER-TODO
-  return mkTermSafe(kind, args);
+  api::Term ret = mkTermSafe(kind, args);
+  Debug("parser") << "applyParseOp: return : " << ret << std::endl;
+  return ret;
 }
 
 api::Term Smt2::setNamedAttribute(api::Term& expr, const SExpr& sexpr)

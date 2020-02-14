@@ -63,6 +63,8 @@ struct CVC4_PUBLIC ParseOp
   std::string d_name;
   /** The expression associated with the parsed operator, if it exists */
   api::Term d_expr;
+  /** The operator associated with the parsed operator, if it exists */
+  api::Op d_op;
   /** The type associated with the parsed operator, if it exists */
   api::Sort d_type;
 
@@ -76,15 +78,30 @@ struct CVC4_PUBLIC ParseOp
 
 inline std::ostream& operator<<(std::ostream& os, const ParseOp& p)
 {
+  std::stringstream out;
+  out << "(Parse op ";
   if (!p.d_expr.isNull())
   {
-    return os << p.d_expr;
+    out << ":expr " << p.d_expr;
   }
-  else if (p.d_kind != api::NULL_EXPR)
+  if (!p.d_op.isNull())
   {
-    return os << p.d_kind;
+    out << ":op " << p.d_op;
   }
-  return os << "ParseOp::unknown";
+  if (p.d_kind != api::NULL_EXPR)
+  {
+    out << ":kind " << p.d_kind;
+  }
+  if (!p.d_type.isNull())
+  {
+    out << ":type " << p.d_type;
+  }
+  if (!p.d_name.empty())
+  {
+    out << ":name " << p.d_name;
+  }
+  out << ")";
+  return os << out.str();
 }
 
 }  // namespace CVC4
