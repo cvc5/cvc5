@@ -1914,7 +1914,7 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
                || kind == kind::LEQ || kind == kind::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        api::Term ret = mkChain(intToExtKind(kind), api::termVectorToExprs(args));
+        api::Term ret = mkChain(intToExtKind(kind), api::exprVectorToTerms(args));
         return ret.getExpr();
       }
     }

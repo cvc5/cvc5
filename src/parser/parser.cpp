@@ -514,7 +514,7 @@ Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
   return expr;
 }
 
-api::Term Parser::mkChain(api::Kind k, std::vector<api::Term>& args)
+api::Term Parser::mkChain(api::Kind k, const std::vector<api::Term>& args)
 {
   if(args.size() == 2) 
   {

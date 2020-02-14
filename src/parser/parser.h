@@ -680,7 +680,7 @@ public:
    * It is expected that k is a kind denoting a predicate, and args is a list
    * of terms of size >= 2 such that the terms above are well-typed.
    */
-  api::Term mkChain(api::Kind k, std::vector<api::Term>& args);
+  api::Term mkChain(api::Kind k, const std::vector<api::Term>& args);
 
   /**
    * Add an operator to the current legal set.
