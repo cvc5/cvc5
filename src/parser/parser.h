@@ -32,6 +32,7 @@
 #include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "util/unsafe_interrupt_exception.h"
+#include "api/cvc4cpp.h"
 
 namespace CVC4 {
 
