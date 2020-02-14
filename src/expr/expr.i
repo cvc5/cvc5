@@ -99,18 +99,18 @@ namespace CVC4 {
 }
 
 // Expr is "iterable" on the Java side
-%typemap(javainterfaces) CVC4::Expr "java.lang.Iterable<edu.nyu.acsys.CVC4.Expr>";
+%typemap(javainterfaces) CVC4::Expr "java.lang.Iterable<edu.stanford.CVC4.Expr>";
 
 // the JavaIteratorAdapter should not be public, and implements Iterator
 %typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "java.util.Iterator<edu.nyu.acsys.CVC4.Expr>";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "java.util.Iterator<edu.stanford.CVC4.Expr>";
 // add some functions to the Java side (do it here because there's no way to do these in C++)
 %typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "
   public void remove() {
     throw new java.lang.UnsupportedOperationException();
   }
 
-  public edu.nyu.acsys.CVC4.Expr next() {
+  public edu.stanford.CVC4.Expr next() {
     if(hasNext()) {
       return getNext();
     } else {
