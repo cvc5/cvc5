@@ -1874,14 +1874,14 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       {
         // Builtin operators that are not tokenized, are left associative,
         // but not internally variadic must set this.
-        api::Term ret = api::Term(em->mkLeftAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
+        api::Term ret = mkLeftAssociative(kind, args);
         Debug("parser") << "applyParseOp: return left associative " << ret << std::endl;
         return ret;
       }
       else if (kind == api::IMPLIES)
       {
         /* right-associative, but CVC4 internally only supports 2 args */
-        api::Term ret = api::Term(em->mkRightAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
+        api::Term ret = mkRightAssociative(kind, args);
         Debug("parser") << "applyParseOp: return right associative " << ret << std::endl;
         return ret;
       }
@@ -1899,7 +1899,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       /* Special treatment for associative operators with lots of children
        */
-      api::Term ret = api::Term(em->mkAssociative(extToIntKind(kind), api::termVectorToExprs(args)));
+      api::Term ret = mkAssociative(kind, args);
       Debug("parser") << "applyParseOp: return large assoc " << ret << std::endl;
       return ret;
     }
