@@ -42,7 +42,7 @@ void InstStrategyEnum::presolve()
 }
 bool InstStrategyEnum::needsCheck(Theory::Effort e)
 {
-  if (!d_fullSaturateLimit==0)
+  if (d_fullSaturateLimit==0)
   {
     return false;
   }
