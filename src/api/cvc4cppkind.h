@@ -2378,7 +2378,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   INST_PATTERN_LIST,
 #if 0
-
   /* Sort Kinds ------------------------------------------------------------ */
 
   /* array type */
