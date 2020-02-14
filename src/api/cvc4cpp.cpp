@@ -562,26 +562,6 @@ bool isDefinedIntKind(CVC4::Kind k)
 }
 #endif
 
-Kind intToExtKind(CVC4::Kind k)
-{
-  auto it = s_kinds_internal.find(k);
-  if (it == s_kinds_internal.end())
-  {
-    return INTERNAL_KIND;
-  }
-  return it->second;
-}
-
-CVC4::Kind extToIntKind(Kind k)
-{
-  auto it = s_kinds.find(k);
-  if (it == s_kinds.end())
-  {
-    return CVC4::Kind::UNDEFINED_KIND;
-  }
-  return it->second;
-}
-
 uint32_t minArity(Kind k)
 {
   Assert(isDefinedKind(k));
