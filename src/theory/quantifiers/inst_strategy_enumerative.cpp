@@ -42,7 +42,7 @@ void InstStrategyEnum::presolve()
 }
 bool InstStrategyEnum::needsCheck(Theory::Effort e)
 {
-  if (d_fullSaturateLimit==0)
+  if (d_fullSaturateLimit == 0)
   {
     return false;
   }
@@ -68,7 +68,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;
-  if (d_fullSaturateLimit!=0)
+  if (d_fullSaturateLimit != 0)
   {
     if (options::fullSaturateInterleave())
     {
@@ -160,7 +160,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     Trace("fs-engine") << "Finished full saturation engine, time = "
                        << (clSet2 - clSet) << std::endl;
   }
-  if (d_fullSaturateLimit>0)
+  if (d_fullSaturateLimit > 0)
   {
     d_fullSaturateLimit--;
   }
