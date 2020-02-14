@@ -557,6 +557,15 @@ header = "options/quantifiers_options.h"
   help       = "whether to use relevant domain first for full saturation instantiation strategy"
 
 [[option]]
+  name       = "fullSaturateOnce"
+  category   = "regular"
+  long       = "full-saturate-quant-once"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "whether to only apply full saturation instantiation strategy once"
+
+[[option]]
   name       = "fullSaturateInterleave"
   category   = "regular"
   long       = "fs-interleave"

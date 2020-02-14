@@ -64,6 +64,8 @@ class InstStrategyEnum : public QuantifiersModule
  public:
   InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd);
   ~InstStrategyEnum() {}
+  /** Presolve */
+  void presolve() override;
   /** Needs check. */
   bool needsCheck(Theory::Effort e) override;
   /** Reset round. */
@@ -101,6 +103,12 @@ class InstStrategyEnum : public QuantifiersModule
    * term instantiations.
    */
   bool process(Node q, bool fullEffort, bool isRd);
+  /**
+   * Whether this strategy is active. This strategy can become inactive if
+   * fullSaturateOnce() is true, in which case we deactivate this strategy
+   * after it is run once.
+   */
+  bool d_active;
 }; /* class InstStrategyEnum */
 
 } /* CVC4::theory::quantifiers namespace */
