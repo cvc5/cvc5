@@ -934,7 +934,7 @@ Node BVToInt::createBitwiseNode(Node x,
    Assert(table.size() == max_value * max_value);
 
   /*
-   * Create the sum
+   * Create the sum.
    * For granularity 1, the sum has bvsize elements.
    * In contrast, if bvsize = granularity, sum has one element.
    * Each element in the sum is an ite that corresponds to the generated table,
