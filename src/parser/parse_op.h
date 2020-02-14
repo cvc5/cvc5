@@ -80,7 +80,7 @@ inline std::ostream& operator<<(std::ostream& os, const ParseOp& p)
   {
     return os << p.d_expr;
   }
-  else if (p.d_kind != kind::NULL_EXPR)
+  else if (p.d_kind != api::NULL_EXPR)
   {
     return os << p.d_kind;
   }

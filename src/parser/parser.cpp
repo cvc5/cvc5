@@ -137,13 +137,13 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name, api::Sort
   return expr;
 }
 
-Kind Parser::getKindForFunction(api::Term fun) {
+api::Kind Parser::getKindForFunction(api::Term fun) {
   Kind k = getExprManager()->operatorToKind(fun.getExpr());
   if (k != UNDEFINED_KIND)
   {
     return intToExtKind(k);
   }
-  Type t = fun.getType();
+  api::Sort t = fun.getSort();
   if (t.isFunction())
   {
     return api::APPLY_UF;

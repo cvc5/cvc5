@@ -1125,8 +1125,8 @@ api::Sort Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dnam
         && (op.d_expr.isConst() || cargs[sub_dt_index][0].empty()))
     {
       api::Term sop = op.d_expr;
-      curr_t = sop.getType();
-      Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getType() << ", debug=" << sop.isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
+      curr_t = sop.getSort();
+      Debug("parser-sygus") << ": it is constant/0-arg cons " << sop << " with type " << sop.getSort() << ", debug=" << sop.isConst() << " " << cargs[sub_dt_index][0].size() << std::endl;
       // only cache if it is a singleton datatype (has unique expr)
       if (ops[sub_dt_index].size() == 1)
       {
@@ -1211,7 +1211,7 @@ void Smt2::setSygusStartIndex(const std::string& fun,
 void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
                             std::vector<std::string>& cnames, std::vector< std::vector< api::Sort > >& cargs,
                             std::vector<std::string>& unresolved_gterm_sym,
-                            std::map< api::Sort, api::Sort >& sygus_to_builtin ) {
+                            std::map< api::Sort, api::Sort >& sygus_to_builtin )
 {
   Debug("parser-sygus") << "Making sygus datatype " << dt.getName() << std::endl;
   Debug("parser-sygus") << "  add constructors..." << std::endl;
@@ -1278,7 +1278,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
       else
       {
         api::Term sop = ops[i].d_expr;
-        if (!sop.isNull() && sop.getType().isBitVector() && sop.isConst())
+        if (!sop.isNull() && sop.getSort().isBitVector() && sop.isConst())
         {
           Debug("parser-sygus") << "--> Bit-vector constant " << sop << " ("
                                 << cnames[i] << ")" << std::endl;
@@ -1332,7 +1332,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
       {
         dt.addSygusConstructor(ops[i].d_expr.getExpr(), cnames[i], api::sortVectorToTypes(cargs[i]), spc);
       }
-      else if (ops[i].d_kind != kind::NULL_EXPR)
+      else if (ops[i].d_kind != api::NULL_EXPR)
       {
         dt.addSygusConstructor(extToIntKind(ops[i].d_kind), cnames[i], api::sortVectorToTypes(cargs[i]), spc);
       }
@@ -1693,8 +1693,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   {
     // An explicit operator, e.g. an indexed symbol.
     args.insert(args.begin(), p.d_expr);
-    Kind fkind = getKindForFunction(p.d_expr);
-    if (fkind != kind::UNDEFINED_KIND)
+    api::Kind fkind = getKindForFunction(p.d_expr);
+    if (fkind != api::UNDEFINED_KIND)
     {
       // Some operators may require a specific kind.
       // Testers are handled differently than other indexed operators,
