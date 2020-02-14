@@ -1254,8 +1254,6 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | DECLARE_CODATATYPES_2_5_TOK datatypes_2_5_DefCommand[true, cmd]
   | DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
-  | rewriterulesCommand[cmd]
-
     /* Support some of Z3's extended SMT-LIB commands */
 
   | DECLARE_SORTS_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1545,43 +1543,6 @@ datatypesDef[bool isCo,
   }
   ;
 
-rewriterulesCommand[std::unique_ptr<CVC4::Command>* cmd]
-@declarations {
-  std::vector<Expr> guards, heads, triggers;
-  Expr head, body, bvl, expr, expr2;
-  Kind kind;
-}
-  : /* rewrite rules */
-    REWRITE_RULE_TOK { kind = CVC4::kind::RR_REWRITE; }
-    { PARSER_STATE->pushScope(true); }
-    boundVarList[bvl]
-    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
-    LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
-    term[head, expr2]
-    term[body, expr2]
-    {
-      *cmd = PARSER_STATE->assertRewriteRule(
-          kind, bvl, triggers, guards, {head}, body);
-    }
-    /* propagation rule */
-  | rewritePropaKind[kind]
-    { PARSER_STATE->pushScope(true); }
-    boundVarList[bvl]
-    LPAREN_TOK ( pattern[expr] { triggers.push_back( expr ); } )* RPAREN_TOK
-    LPAREN_TOK (termList[guards,expr])? RPAREN_TOK
-    LPAREN_TOK (termList[heads,expr])? RPAREN_TOK
-    term[body, expr2]
-    {
-      *cmd = PARSER_STATE->assertRewriteRule(
-          kind, bvl, triggers, guards, heads, body);
-    }
-  ;
-
-rewritePropaKind[CVC4::Kind& kind]
-  : REDUCTION_RULE_TOK    { $kind = CVC4::kind::RR_REDUCTION; }
-  | PROPAGATION_RULE_TOK  { $kind = CVC4::kind::RR_DEDUCTION; }
-  ;
-
 pattern[CVC4::Expr& expr]
 @declarations {
   std::vector<Expr> patexpr;
@@ -1631,8 +1592,7 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
         | GET_UNSAT_CORE_TOK | EXIT_TOK
         | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK
         | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
-        | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK
-        | REDUCTION_RULE_TOK | PROPAGATION_RULE_TOK | SIMPLIFY_TOK)
+        | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | SIMPLIFY_TOK)
     { sexpr = SExpr(SExpr::Keyword(AntlrInput::tokenText($tok))); }
   ;
 
@@ -1713,25 +1673,11 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       args.push_back(bvl);
 
       PARSER_STATE->popScope();
-      switch(f.getKind()) {
-      case CVC4::kind::RR_REWRITE:
-      case CVC4::kind::RR_REDUCTION:
-      case CVC4::kind::RR_DEDUCTION:
-        if(kind == CVC4::kind::EXISTS) {
-          PARSER_STATE->parseError("Use Exists instead of Forall for a rewrite "
-                                   "rule.");
-        }
-        args.push_back(f2); // guards
-        args.push_back(f); // rule
-        expr = MK_EXPR(CVC4::kind::REWRITE_RULE, args);
-        break;
-      default:
-        args.push_back(f);
-        if(! f2.isNull()){
-          args.push_back(f2);
-        }
-        expr = MK_EXPR(kind, args);
+      args.push_back(f);
+      if(! f2.isNull()){
+        args.push_back(f2);
       }
+      expr = MK_EXPR(kind, args);
     }
   | LPAREN_TOK COMPREHENSION_TOK
     { PARSER_STATE->pushScope(true); }
@@ -1902,33 +1848,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       }
     )+ RPAREN_TOK
     {
-      if(attr == ":rewrite-rule") {
-        Expr guard;
-        Expr body;
-        if(expr[1].getKind() == kind::IMPLIES ||
-           expr[1].getKind() == kind::EQUAL) {
-          guard = expr[0];
-          body = expr[1];
-        } else {
-          guard = MK_CONST(bool(true));
-          body = expr;
-        }
-        expr2 = guard;
-        args.push_back(body[0]);
-        args.push_back(body[1]);
-        if(!f2.isNull()) {
-          args.push_back(f2);
-        }
-
-        if( body.getKind()==kind::IMPLIES ){
-          kind = kind::RR_DEDUCTION;
-        }else if( body.getKind()==kind::EQUAL ){
-          kind = body[0].getType().isBoolean() ? kind::RR_REDUCTION : kind::RR_REWRITE;
-        }else{
-          PARSER_STATE->parseError("Error parsing rewrite rule.");
-        }
-        expr = MK_EXPR( kind, args );
-      } else if(! patexprs.empty()) {
+      if(! patexprs.empty()) {
         if( !f2.isNull() && f2.getKind()==kind::INST_PATTERN_LIST ){
           for( size_t i=0; i<f2.getNumChildren(); i++ ){
             if( f2[i].getKind()==kind::INST_PATTERN ){
@@ -2702,9 +2622,6 @@ GET_MODEL_TOK : 'get-model';
 BLOCK_MODEL_TOK : 'block-model';
 BLOCK_MODEL_VALUES_TOK : 'block-model-values';
 ECHO_TOK : 'echo';
-REWRITE_RULE_TOK : 'assert-rewrite';
-REDUCTION_RULE_TOK : 'assert-reduction';
-PROPAGATION_RULE_TOK : 'assert-propagation';
 DECLARE_SORTS_TOK : 'declare-sorts';
 DECLARE_FUNS_TOK : 'declare-funs';
 DECLARE_PREDS_TOK : 'declare-preds';
