@@ -120,7 +120,6 @@ cvc4_option(ENABLE_COMP_INC_TRACK
 cvc4_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
 cvc4_option(ENABLE_DUMPING        "Enable dumping")
 cvc4_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
-cvc4_option(ENABLE_OPTIMIZED      "Enable optimization")
 cvc4_option(ENABLE_PROOFS         "Enable proof support")
 cvc4_option(ENABLE_REPLAY         "Enable the replay feature")
 cvc4_option(ENABLE_STATISTICS     "Enable statistics")
@@ -239,6 +238,19 @@ add_check_c_cxx_flag("-Wimplicit-fallthrough")
 # Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
 # cdlist.h warnings. Remove when fixed.
 add_check_cxx_flag("-Wno-class-memaccess")
+
+#-----------------------------------------------------------------------------#
+# Use ld.gold if available
+
+execute_process(COMMAND ${CMAKE_C_COMPILER}
+                -fuse-ld=gold
+                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
+if ("${LD_VERSION}" MATCHES "GNU gold")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=gold")
+  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
+  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
+  message(STATUS "Using GNU gold linker.")
+endif ()
 
 #-----------------------------------------------------------------------------#
 # Option defaults (three-valued options (cvc4_option(...)))
@@ -575,7 +587,6 @@ endif()
 message("")
 print_config("GPL                  :" ENABLE_GPL)
 print_config("Best configuration   :" ENABLE_BEST)
-print_config("Optimized            :" ENABLE_OPTIMIZED)
 print_config("Optimization level   :" OPTIMIZATION_LEVEL)
 message("")
 print_config("Assertions           :" ENABLE_ASSERTIONS)

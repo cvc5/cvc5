@@ -95,7 +95,6 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
@@ -2022,8 +2021,9 @@ void SmtEngine::setDefaults() {
     }
     // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
     // is one that is specialized for returning a single solution. Non-basic
-    // sygus algorithms currently include the PBE solver, static template
-    // inference for invariant synthesis, and single invocation techniques.
+    // sygus algorithms currently include the PBE solver, UNIF+PI, static
+    // template inference for invariant synthesis, and single invocation
+    // techniques.
     bool reqBasicSygus = false;
     if (options::produceAbducts())
     {
@@ -2054,11 +2054,10 @@ void SmtEngine::setDefaults() {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
-        // also disable PBE-specific symmetry breaking unless PBE was enabled
-        if (!options::sygusSymBreakPbe.wasSetByUser())
-        {
-          options::sygusSymBreakPbe.set(false);
-        }
+      }
+      if (options::sygusUnifPi.wasSetByUser())
+      {
+        options::sygusUnifPi.set(options::SygusUnifPiMode::NONE);
       }
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
@@ -3351,24 +3350,15 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["bv-intro-pow2"]->apply(&d_assertions);
   }
 
-  if (options::unsatCores())
-  {
-    // special rewriting pass for unsat cores, since many of the passes below
-    // are skipped
-    d_passes["rewrite"]->apply(&d_assertions);
-  }
-  else
+  // Since this pass is not robust for the information tracking necessary for
+  // unsat cores, it's only applied if we are not doing unsat core computation
+  if (!options::unsatCores())
   {
     d_passes["apply-substs"]->apply(&d_assertions);
   }
 
-  // Assertions ARE guaranteed to be rewritten by this point
-#ifdef CVC4_ASSERTIONS
-  for (unsigned i = 0; i < d_assertions.size(); ++i)
-  {
-    Assert(Rewriter::rewrite(d_assertions[i]) == d_assertions[i]);
-  }
-#endif
+  // Assertions MUST BE guaranteed to be rewritten by this point
+  d_passes["rewrite"]->apply(&d_assertions);
 
   // Lift bit-vectors of size 1 to bool
   if (options::bitvectorToBool())
@@ -3725,15 +3715,17 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 
 Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
 {
-  return checkSatisfiability(
-      assumption.isNull() ? std::vector<Expr>() : std::vector<Expr>{assumption},
-      inUnsatCore,
-      true);
+  return checkSatisfiability(assumption.isNull()
+                                 ? std::vector<Expr>()
+                                 : std::vector<Expr>{assumption},
+                             inUnsatCore,
+                             true)
+      .asValidityResult();
 }
 
 Result SmtEngine::query(const vector<Expr>& assumptions, bool inUnsatCore)
 {
-  return checkSatisfiability(assumptions, inUnsatCore, true);
+  return checkSatisfiability(assumptions, inUnsatCore, true).asValidityResult();
 }
 
 Result SmtEngine::checkSatisfiability(const Expr& expr,
@@ -3818,7 +3810,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       d_private->addFormula(e.getNode(), inUnsatCore, true, true);
     }
 
-    r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
+    r = check();
 
     if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
         && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -4323,10 +4315,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
          || resultNode.getType().isSubtypeOf(expectedType))
       << "Run with -t smt for details.";
 
-  // Ensure it's a constant, or a lambda (for uninterpreted functions), or
-  // a choice (for approximate values).
-  Assert(resultNode.getKind() == kind::LAMBDA
-         || resultNode.getKind() == kind::CHOICE || resultNode.isConst());
+  // Ensure it's a constant, or a lambda (for uninterpreted functions). This
+  // assertion only holds for models that do not have approximate values.
+  Assert(m->hasApproximations() || resultNode.getKind() == kind::LAMBDA
+         || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
     resultNode = d_private->mkAbstractValue(resultNode);
@@ -4687,11 +4679,12 @@ void SmtEngine::checkUnsatCore() {
   }
   Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
   if(r.asSatisfiabilityResult().isUnknown()) {
-    InternalError()
-        << "SmtEngine::checkUnsatCore(): could not check core result unknown.";
+    Warning()
+        << "SmtEngine::checkUnsatCore(): could not check core result unknown."
+        << std::endl;
   }
-
-  if(r.asSatisfiabilityResult().isSat()) {
+  else if (r.asSatisfiabilityResult().isSat())
+  {
     InternalError()
         << "SmtEngine::checkUnsatCore(): produced core was satisfiable.";
   }
@@ -4830,21 +4823,11 @@ void SmtEngine::checkModel(bool hardFailure) {
     Debug("boolean-terms") << "++ got " << n << endl;
     Notice() << "SmtEngine::checkModel(): -- substitutes to " << n << endl;
 
-    if( n.getKind() != kind::REWRITE_RULE ){
-      // In case it's a quantifier (or contains one), look up its value before
-      // simplifying, or the quantifier might be irreparably altered.
-      n = m->getValue(n);
-      Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
-    } else {
-      // Note this "skip" is done here, rather than above.  This is
-      // because (1) the quantifier could in principle simplify to false,
-      // which should be reported, and (2) checking for the quantifier
-      // above, before simplification, doesn't catch buried quantifiers
-      // anyway (those not at the top-level).
-      Notice() << "SmtEngine::checkModel(): -- skipping rewrite-rules assertion"
-               << endl;
-      continue;
-    }
+    // We look up the value before simplifying. If n contains quantifiers,
+    // this may increases the chance of finding its value before the node is
+    // altered by simplification below.
+    n = m->getValue(n);
+    Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
 
     // Simplify the result.
     n = d_private->simplify(n);
@@ -4866,36 +4849,56 @@ void SmtEngine::checkModel(bool hardFailure) {
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- model-substitutes to " << n << endl;
 
-    if( d_logic.isQuantified() ){
-      // AJR: since quantified formulas are not checkable, we assign them to true/false based on the satisfying assignment.
-      // however, quantified formulas can be modified during preprocess, so they may not correspond to those in the satisfying assignment.
-      // hence we use a relaxed version of check model here.
-      // this is necessary until preprocessing passes explicitly record how they rewrite quantified formulas
-      if( hardFailure && !n.isConst() && n.getKind() != kind::LAMBDA ){
-        Notice() << "SmtEngine::checkModel(): -- relax check model wrt quantified formulas..." << endl;
-        AlwaysAssert(quantifiers::QuantifiersRewriter::containsQuantifiers(n));
-        Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified assertion : " << n << endl;
+    if (n.isConst())
+    {
+      if (n.getConst<bool>())
+      {
+        // assertion is true, everything is fine
         continue;
       }
-    }else{
-      AlwaysAssert(!hardFailure || n.isConst() || n.getKind() == kind::LAMBDA);
     }
-    // The result should be == true.
-    if(n != NodeManager::currentNM()->mkConst(true)) {
-      Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
-               << endl;
-      stringstream ss;
-      ss << "SmtEngine::checkModel(): "
-         << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-         << "assertion:     " << *i << endl
-         << "simplifies to: " << n << endl
-         << "expected `true'." << endl
-         << "Run with `--check-models -v' for additional diagnostics.";
-      if(hardFailure) {
-        InternalError() << ss.str();
-      } else {
-        Warning() << ss.str() << endl;
-      }
+
+    // Otherwise, we did not succeed in showing the current assertion to be
+    // true. This may either indicate that our model is wrong, or that we cannot
+    // check it. The latter may be the case for several reasons.
+    // For example, quantified formulas are not checkable, although we assign
+    // them to true/false based on the satisfying assignment. However,
+    // quantified formulas can be modified during preprocess, so they may not
+    // correspond to those in the satisfying assignment. Hence we throw
+    // warnings for assertions that do not simplify to either true or false.
+    // Other theories such as non-linear arithmetic (in particular,
+    // transcendental functions) also have the property of not being able to
+    // be checked precisely here.
+    // Note that warnings like these can be avoided for quantified formulas
+    // by making preprocessing passes explicitly record how they
+    // rewrite quantified formulas (see cvc4-wishues#43).
+    if (!n.isConst())
+    {
+      // Not constant, print a less severe warning message here.
+      Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified "
+                   "assertion : "
+                << n << endl;
+      continue;
+    }
+    // Assertions that simplify to false result in an InternalError or
+    // Warning being thrown below (when hardFailure is false).
+    Notice() << "SmtEngine::checkModel(): *** PROBLEM: EXPECTED `TRUE' ***"
+             << endl;
+    stringstream ss;
+    ss << "SmtEngine::checkModel(): "
+       << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
+       << "assertion:     " << *i << endl
+       << "simplifies to: " << n << endl
+       << "expected `true'." << endl
+       << "Run with `--check-models -v' for additional diagnostics.";
+    if (hardFailure)
+    {
+      // internal error if hardFailure is true
+      InternalError() << ss.str();
+    }
+    else
+    {
+      Warning() << ss.str() << endl;
     }
   }
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !" << endl;

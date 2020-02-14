@@ -6,7 +6,7 @@ include_directories(${JNI_INCLUDE_DIRS})
 
 set(SWIG_MODULE_cvc4jni_EXTRA_DEPS cvc4 cvc4parser)
 set_property(SOURCE ${CVC4_SWIG_INTERFACE} PROPERTY CPLUSPLUS ON)
-set(CMAKE_SWIG_FLAGS -package edu.nyu.acsys.CVC4)
+set(CMAKE_SWIG_FLAGS -package edu.stanford.CVC4)
 
 if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
   swig_add_module(cvc4jni Java ${CVC4_SWIG_INTERFACE})
@@ -151,6 +151,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/OptionException.java
   ${CMAKE_CURRENT_BINARY_DIR}/Options.java
   ${CMAKE_CURRENT_BINARY_DIR}/OutputLanguage.java
+  ${CMAKE_CURRENT_BINARY_DIR}/ParseOp.java
   ${CMAKE_CURRENT_BINARY_DIR}/Parser.java
   ${CMAKE_CURRENT_BINARY_DIR}/ParserBuilder.java
   ${CMAKE_CURRENT_BINARY_DIR}/ParserEndOfFileException.java

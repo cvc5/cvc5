@@ -17,6 +17,7 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 
 using namespace CVC4::kind;
 
@@ -24,8 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumerator::SygusEnumerator(TermDbSygus* tds, SynthConjecture* p)
-    : d_tds(tds), d_parent(p), d_tlEnum(nullptr), d_abortSize(-1)
+SygusEnumerator::SygusEnumerator(TermDbSygus* tds,
+                                 SynthConjecture* p,
+                                 SygusStatistics& s)
+    : d_tds(tds), d_parent(p), d_stats(s), d_tlEnum(nullptr), d_abortSize(-1)
 {
 }
 
@@ -141,7 +144,7 @@ Node SygusEnumerator::getCurrent()
 
 SygusEnumerator::TermCache::TermCache()
     : d_tds(nullptr),
-      d_pbe(nullptr),
+      d_eec(nullptr),
       d_isSygusType(false),
       d_numConClasses(0),
       d_sizeEnum(0),
@@ -149,16 +152,19 @@ SygusEnumerator::TermCache::TermCache()
       d_sampleRrVInit(false)
 {
 }
-void SygusEnumerator::TermCache::initialize(Node e,
+
+void SygusEnumerator::TermCache::initialize(SygusStatistics* s,
+                                            Node e,
                                             TypeNode tn,
                                             TermDbSygus* tds,
-                                            SygusPbe* pbe)
+                                            ExampleEvalCache* eec)
 {
   Trace("sygus-enum-debug") << "Init term cache " << tn << "..." << std::endl;
+  d_stats = s;
   d_enum = e;
   d_tn = tn;
   d_tds = tds;
-  d_pbe = pbe;
+  d_eec = eec;
   d_sizeStartIndex[0] = 0;
   d_isSygusType = false;
 
@@ -184,9 +190,8 @@ void SygusEnumerator::TermCache::initialize(Node e,
 
   // constructor class 0 is reserved for nullary operators with 0 weight
   // this is an optimization so that we always skip them for sizes >= 1
-  d_ccToCons[0].clear();
-  d_ccToTypes[0].clear();
-  d_ccToWeight[0] = 0;
+  ConstructorClass& ccZero = d_cclass[0];
+  ccZero.d_weight = 0;
   d_numConClasses = 1;
   // we must indicate that we should process zero weight constructor classes
   weightsToIndices[0].clear();
@@ -216,7 +221,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
     {
       if (argTypes[i].empty() && w == 0)
       {
-        d_ccToCons[0].push_back(i);
+        ccZero.d_cons.push_back(i);
       }
       else
       {
@@ -241,14 +246,15 @@ void SygusEnumerator::TermCache::initialize(Node e,
                                 << dt[i].getSygusOp() << " is " << cclassi
                                 << std::endl;
       // initialize the constructor class
-      if (d_ccToWeight.find(cclassi) == d_ccToWeight.end())
+      if (d_cclass.find(cclassi) == d_cclass.end())
       {
-        d_ccToWeight[cclassi] = w;
-        d_ccToTypes[cclassi].insert(
-            d_ccToTypes[cclassi].end(), argTypes[i].begin(), argTypes[i].end());
+        d_cclass[cclassi].d_weight = w;
+        d_cclass[cclassi].d_types.insert(d_cclass[cclassi].d_types.end(),
+                                         argTypes[i].begin(),
+                                         argTypes[i].end());
       }
       // add to constructor class
-      d_ccToCons[cclassi].push_back(i);
+      d_cclass[cclassi].d_cons.push_back(i);
     }
     Trace("sygus-enum-debug") << "#cons classes for weight <= " << w << " : "
                               << d_numConClasses << std::endl;
@@ -274,26 +280,26 @@ unsigned SygusEnumerator::TermCache::getNumConstructorClasses() const
 void SygusEnumerator::TermCache::getConstructorClass(
     unsigned i, std::vector<unsigned>& cclass) const
 {
-  std::map<unsigned, std::vector<unsigned>>::const_iterator it =
-      d_ccToCons.find(i);
-  Assert(it != d_ccToCons.end());
-  cclass.insert(cclass.end(), it->second.begin(), it->second.end());
+  std::map<unsigned, ConstructorClass>::const_iterator it = d_cclass.find(i);
+  Assert(it != d_cclass.end());
+  cclass.insert(
+      cclass.end(), it->second.d_cons.begin(), it->second.d_cons.end());
 }
 void SygusEnumerator::TermCache::getTypesForConstructorClass(
     unsigned i, std::vector<TypeNode>& types) const
 {
-  std::map<unsigned, std::vector<TypeNode>>::const_iterator it =
-      d_ccToTypes.find(i);
-  Assert(it != d_ccToTypes.end());
-  types.insert(types.end(), it->second.begin(), it->second.end());
+  std::map<unsigned, ConstructorClass>::const_iterator it = d_cclass.find(i);
+  Assert(it != d_cclass.end());
+  types.insert(
+      types.end(), it->second.d_types.begin(), it->second.d_types.end());
 }
 
 unsigned SygusEnumerator::TermCache::getWeightForConstructorClass(
     unsigned i) const
 {
-  std::map<unsigned, unsigned>::const_iterator it = d_ccToWeight.find(i);
-  Assert(it != d_ccToWeight.end());
-  return it->second;
+  std::map<unsigned, ConstructorClass>::const_iterator it = d_cclass.find(i);
+  Assert(it != d_cclass.end());
+  return it->second.d_weight;
 }
 
 bool SygusEnumerator::TermCache::addTerm(Node n)
@@ -312,6 +318,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
   {
     Node bn = d_tds->sygusToBuiltin(n);
     Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
+    ++(d_stats->d_enumTermsRewrite);
     if (options::sygusRewVerify())
     {
       if (bn != bnr)
@@ -332,10 +339,11 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
       return false;
     }
     // if we are doing PBE symmetry breaking
-    if (d_pbe != nullptr)
+    if (d_eec != nullptr)
     {
+      ++(d_stats->d_enumTermsExampleEval);
       // Is it equivalent under examples?
-      Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
+      Node bne = d_eec->addSearchVal(bnr);
       if (!bne.isNull())
       {
         if (bnr != bne)
@@ -350,6 +358,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
     d_bterms.insert(bnr);
   }
+  ++(d_stats->d_enumTerms);
   d_terms.push_back(n);
   return true;
 }
@@ -529,17 +538,13 @@ void SygusEnumerator::TermEnumSlave::validateIndexNextEnd()
 void SygusEnumerator::initializeTermCache(TypeNode tn)
 {
   // initialize the term cache
-  // see if we use sygus PBE for symmetry breaking
-  SygusPbe* pbe = nullptr;
+  // see if we use an example evaluation cache for symmetry breaking
+  ExampleEvalCache* eec = nullptr;
   if (options::sygusSymBreakPbe())
   {
-    pbe = d_parent->getPbe();
-    if (!pbe->hasExamples(d_enum))
-    {
-      pbe = nullptr;
-    }
+    eec = d_parent->getExampleEvalCache(d_enum);
   }
-  d_tcache[tn].initialize(d_enum, tn, d_tds, pbe);
+  d_tcache[tn].initialize(&d_stats, d_enum, tn, d_tds, eec);
 }
 
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
@@ -871,12 +876,21 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         // if not, there is no use continuing.
         if (initializeChildren())
         {
-          Trace("sygus-enum-debug2") << "master(" << d_tn << "): success\n";
+          Trace("sygus-enum-debug2")
+              << "master(" << d_tn << "): success init children\n";
           Assert(d_currChildSize + d_ccWeight <= d_currSize);
           incSuccess = true;
         }
+        else
+        {
+          // failed to initialize the remaining children (likely due to a
+          // child having a non-zero minimum size bound).
+          Trace("sygus-enum-debug2")
+              << "master(" << d_tn << "): fail init children\n";
+          d_currChildSize -= d_children[i].getCurrentSize();
+        }
       }
-      else
+      if (!incSuccess)
       {
         Trace("sygus-enum-debug2") << "master(" << d_tn
                                    << "): fail, backtrack...\n";
@@ -900,14 +914,16 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
       << "master(" << d_tn << "): init children, start = " << d_childrenValid
       << ", #types=" << d_ccTypes.size() << ", sizes=" << d_currChildSize << "/"
       << d_currSize << std::endl;
+  unsigned currChildren = d_childrenValid;
   unsigned sizeMin = 0;
   // while we need to initialize the current child
   while (d_childrenValid < d_ccTypes.size())
   {
     if (!initializeChild(d_childrenValid, sizeMin))
     {
-      if (d_childrenValid == 0)
+      if (d_childrenValid == currChildren)
       {
+        // we are back to the child we started with, we terminate now.
         Trace("sygus-enum-debug2") << "master(" << d_tn
                                    << "): init children : failed, finished"
                                    << std::endl;
