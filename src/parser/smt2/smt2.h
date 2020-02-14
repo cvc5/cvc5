@@ -26,8 +26,8 @@
 #include <utility>
 
 #include "api/cvc4cpp.h"
+#include "parser/parse_op.h"
 #include "parser/parser.h"
-#include "parser/smt2/parse_op.h"
 #include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
@@ -354,7 +354,7 @@ class Smt2 : public Parser
       int index,
       std::vector<CVC4::Datatype>& datatypes,
       std::vector<api::Sort>& sorts,
-      std::vector<std::vector<api::Term>>& ops,
+      std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
       std::vector<std::vector<std::vector<api::Sort>>>& cargs,
       std::vector<bool>& allow_const,
@@ -370,7 +370,7 @@ class Smt2 : public Parser
       std::string& dname,
       std::vector<CVC4::Datatype>& datatypes,
       std::vector<api::Sort>& sorts,
-      std::vector<std::vector<api::Term>>& ops,
+      std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
       std::vector<std::vector<std::vector<api::Sort>>>& cargs,
       std::vector<bool>& allow_const,
@@ -379,7 +379,7 @@ class Smt2 : public Parser
   bool popSygusDatatypeDef(
       std::vector<CVC4::Datatype>& datatypes,
       std::vector<api::Sort>& sorts,
-      std::vector<std::vector<api::Term>>& ops,
+      std::vector<std::vector<ParseOp>>& ops,
       std::vector<std::vector<std::string>>& cnames,
       std::vector<std::vector<std::vector<api::Sort>>>& cargs,
       std::vector<bool>& allow_const,
@@ -389,9 +389,9 @@ class Smt2 : public Parser
                           int startIndex,
                           std::vector<CVC4::Datatype>& datatypes,
                           std::vector<api::Sort>& sorts,
-                          std::vector<std::vector<api::Term>>& ops);
+                          std::vector<std::vector<ParseOp>>& ops);
 
-  void mkSygusDatatype( CVC4::Datatype& dt, std::vector<api::Term>& ops,
+  void mkSygusDatatype( CVC4::Datatype& dt, std::vector<ParseOp>& ops,
                         std::vector<std::string>& cnames, std::vector< std::vector< api::Sort > >& cargs,
                         std::vector<std::string>& unresolved_gterm_sym,
                         std::map< api::Sort, api::Sort >& sygus_to_builtin );
@@ -568,7 +568,7 @@ class Smt2 : public Parser
 
   api::Sort processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, std::vector< CVC4::Datatype >& datatypes,
                                 std::vector< api::Sort>& sorts,
-                                std::vector< std::vector<api::Term> >& ops,
+                                std::vector< std::vector<ParseOp> >& ops,
                                 std::vector< std::vector<std::string> >& cnames,
                                 std::vector< std::vector< std::vector< api::Sort > > >& cargs,
                                 std::vector< bool >& allow_const,

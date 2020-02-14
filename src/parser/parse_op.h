@@ -9,18 +9,16 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Definitions of parsed operators in smt2.
+ ** \brief Definitions of parsed operators.
  **/
 
-#include "cvc4parser_private.h"
+#include "cvc4parser_public.h"
 
-#ifndef CVC4__PARSER__SMT2__PARSE_OP_H
-#define CVC4__PARSER__SMT2__PARSE_OP_H
+#ifndef CVC4__PARSER__PARSE_OP_H
+#define CVC4__PARSER__PARSE_OP_H
 
 #include <string>
 
-#include "expr/expr.h"
-#include "expr/kind.h"
 #include "api/cvc4cpp.h"
 
 namespace CVC4 {
@@ -28,8 +26,7 @@ namespace CVC4 {
 /** A parsed operator
  *
  * The purpose of this struct is to store information regarding a parsed term
- * in the smt2 language that might not be ready to associate with an
- * expression.
+ * that might not be ready to associate with an expression.
  *
  * While parsing terms in smt2, we may store a combination of one or more of
  * the following to track how to process this term:
@@ -57,7 +54,7 @@ namespace CVC4 {
  * interpret this operator by converting the next parsed constant of type T2 to
  * an Array of type (Array T1 T2) over that constant.
  */
-struct ParseOp
+struct CVC4_PUBLIC ParseOp
 {
   ParseOp() : d_kind(api::NULL_EXPR) {}
   /** The kind associated with the parsed operator, if it exists */
@@ -68,8 +65,28 @@ struct ParseOp
   api::Term d_expr;
   /** The type associated with the parsed operator, if it exists */
   api::Sort d_type;
+
+  /* Return true if this is equal to 'p'. */
+  bool operator==(const ParseOp& p) const
+  {
+    return d_kind == p.d_kind && d_name == p.d_name && d_expr == p.d_expr
+           && d_type == p.d_type;
+  }
 };
+
+inline std::ostream& operator<<(std::ostream& os, const ParseOp& p)
+{
+  if (!p.d_expr.isNull())
+  {
+    return os << p.d_expr;
+  }
+  else if (p.d_kind != kind::NULL_EXPR)
+  {
+    return os << p.d_kind;
+  }
+  return os << "ParseOp::unknown";
+}
 
 }  // namespace CVC4
 
-#endif /* CVC4__PARSER__SMT2__PARSE_OP_H */
+#endif /* CVC4__PARSER__PARSE_OP_H */

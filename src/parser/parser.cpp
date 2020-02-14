@@ -137,8 +137,13 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name, api::Sort
   return expr;
 }
 
-api::Kind Parser::getKindForFunction(api::Term fun) {
-  api::Sort t = fun.getSort();
+Kind Parser::getKindForFunction(api::Term fun) {
+  Kind k = getExprManager()->operatorToKind(fun.getExpr());
+  if (k != UNDEFINED_KIND)
+  {
+    return intToExtKind(k);
+  }
+  Type t = fun.getType();
   if (t.isFunction())
   {
     return api::APPLY_UF;
@@ -155,11 +160,7 @@ api::Kind Parser::getKindForFunction(api::Term fun) {
   {
     return api::APPLY_TESTER;
   }
-  else
-  {
-    parseError("internal error: unhandled function application kind");
-    return api::UNDEFINED_KIND;
-  }
+  return api::UNDEFINED_KIND;
 }
 
 api::Sort Parser::getSort(const std::string& name) {

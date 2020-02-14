@@ -81,7 +81,7 @@ using namespace CVC4::parser;
 
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
-#include "parser/smt2/parse_op.h"
+#include "parser/parse_op.h"
 #include "smt/command.h"
 
 namespace CVC4 {
@@ -662,7 +662,7 @@ sygusGrammarV1[CVC4::api::Sort & ret,
   std::vector<std::vector<CVC4::SygusGTerm>> sgts;
   std::vector<CVC4::Datatype> datatypes;
   std::vector<api::Sort> sorts;
-  std::vector<std::vector<CVC4::api::Term>> ops;
+  std::vector<std::vector<ParseOp>> ops;
   std::vector<std::vector<std::string>> cnames;
   std::vector<std::vector<std::vector<CVC4::api::Sort>>> cargs;
   std::vector<bool> allow_const;
@@ -837,7 +837,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
           k = PARSER_STATE->getOperatorKind(name);
           sgt.d_name = api::kindToString(k);
           sgt.d_gterm_type = SygusGTerm::gterm_op;
-          sgt.d_expr = api::Term(EXPR_MANAGER->operatorOf(extToIntKind(k)));
+          sgt.d_op.d_kind = k;
         }else{
           // what is this sygus term trying to accomplish here, if the
           // symbol isn't yet declared?!  probably the following line will
@@ -853,7 +853,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
           }
           sgt.d_name = name;
           sgt.d_gterm_type = SygusGTerm::gterm_op;
-          sgt.d_expr = PARSER_STATE->getVariable(name) ;
+          sgt.d_op.d_expr = PARSER_STATE->getVariable(name) ;
         }
       }
     )
@@ -878,7 +878,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
                               << "expression " << atomTerm << std::endl;
         std::stringstream ss;
         ss << atomTerm;
-        sgt.d_expr = atomTerm.getExpr();
+        sgt.d_op.d_expr = atomTerm.getExpr();
         sgt.d_name = ss.str();
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }
@@ -888,13 +888,13 @@ sygusGTerm[CVC4::SygusGTerm& sgt, const std::string& fun]
         Debug("parser-sygus") << "Sygus grammar " << fun
                               << " : unary minus integer literal " << name
                               << std::endl;
-        sgt.d_expr = SOLVER->mkReal(name);
+        sgt.d_op.d_expr = SOLVER->mkReal(name);
         sgt.d_name = name;
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }else if( PARSER_STATE->isDeclared(name,SYM_VARIABLE) ){
         Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol "
                               << name << std::endl;
-        sgt.d_expr = PARSER_STATE->getExpressionForName(name);
+        sgt.d_op.d_expr = PARSER_STATE->getExpressionForName(name);
         sgt.d_name = name;
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }else{

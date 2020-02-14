@@ -29,6 +29,7 @@
 #include "expr/kind.h"
 #include "expr/symbol_table.h"
 #include "parser/input.h"
+#include "parser/parse_op.h"
 #include "parser/parser_exception.h"
 #include "util/unsafe_interrupt_exception.h"
 #include "api/cvc4cpp.h"
@@ -56,7 +57,8 @@ public:
     gterm_ignore,
   };
   api::Sort d_type;
-  api::Term d_expr;
+  /** The parsed operator */
+  ParseOp d_op;
   std::vector< api::Term > d_let_vars;
   unsigned d_gterm_type;
   std::string d_name;
@@ -365,11 +367,12 @@ public:
   virtual api::Term getExpressionForNameAndType(const std::string& name, api::Sort t);
   
   /**
-   * Returns the kind that should be used for applications of expression fun, where
-   * fun has "function-like" type, i.e. where checkFunctionLike(fun) returns true. 
-   * Returns a parse error if fun does not have function-like type.
+   * Returns the kind that should be used for applications of expression fun.
+   * This is a generalization of ExprManager::operatorToKind that also
+   * handles variables whose types are "function-like", i.e. where
+   * checkFunctionLike(fun) returns true.
    * 
-   * For example, this function returns
+   * For examples of the latter, this function returns
    *   APPLY_UF if fun has function type, 
    *   APPLY_CONSTRUCTOR if fun has constructor type.
    */
