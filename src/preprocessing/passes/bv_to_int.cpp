@@ -241,7 +241,6 @@ Node BVToInt::eliminationPass(Node n)
           {
             builder << current.getOperator();
           }
-          int i=0;
           for (Node child : current)
           {
             Assert(d_eliminationCache.find(child) != d_eliminationCache.end());
@@ -297,6 +296,7 @@ Node BVToInt::bvToInt(Node n)
         // This is when we do the actual translation.
         if (currentNumChildren == 0)
         {
+          Assert(current.isVar() || current.isConst());
           if (current.isVar())
           {
             if (current.getType().isBitVector())
@@ -321,8 +321,9 @@ Node BVToInt::bvToInt(Node n)
               d_bvToIntCache[current] = current;
             }
           }
-          else if (current.isConst())
+          else
           {
+            // current is a const
             if (current.getKind() == kind::CONST_BITVECTOR)
             {
               // Bit-vector constants are transformed into their integer value.
@@ -335,10 +336,6 @@ Node BVToInt::bvToInt(Node n)
               // Other constants stay the same.
               d_bvToIntCache[current] = current;
             }
-          }
-          else
-          {
-            Unimplemented();
           }
         }
         else
@@ -760,6 +757,8 @@ Node BVToInt::bvToInt(Node n)
               }
               else
               {
+                // Currently, only QF_UFBV formulas are handled.
+                // In the future, more theories should be supported, e.g., arrays.
                 Unimplemented();
               }
             }
