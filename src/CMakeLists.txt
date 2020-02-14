@@ -924,6 +924,7 @@ install(FILES
           parser/parser.h
           parser/parser_builder.h
           parser/parser_exception.h
+          parser/parse_op.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES
