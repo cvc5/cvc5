@@ -667,7 +667,7 @@ public:
    * for each i where 0 <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
-  api::Term mkHoApply(api::Term expr, std::vector<api::Term>& args);
+  api::Term mkHoApply(api::Term expr, const std::vector<api::Term>& args);
 
   /** make chain
    * 
@@ -677,7 +677,7 @@ public:
    * It is expected that k is a kind denoting a predicate, and args is a list
    * of terms of size >= 2 such that the terms above are well-typed.
    */
-  api::Term mkChain(api::Kind k, std::vector<api::Term>& args);
+  api::Term mkChain(api::Kind k, const std::vector<api::Term>& args);
   //!!!!!!!!!!! temporary
   /** 
    * Make builtin application

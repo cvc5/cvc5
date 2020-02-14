@@ -515,7 +515,7 @@ api::Sort Parser::mkFlatFunctionType(std::vector<api::Sort>& sorts, api::Sort ra
   return d_solver->mkFunctionSort(sorts, range);
 }
 
-api::Term Parser::mkHoApply(api::Term expr, std::vector<api::Term>& args)
+api::Term Parser::mkHoApply(api::Term expr, const std::vector<api::Term>& args)
 {
   for (unsigned i = 0; i < args.size(); i++)
   {
@@ -524,7 +524,7 @@ api::Term Parser::mkHoApply(api::Term expr, std::vector<api::Term>& args)
   return expr;
 }
 
-api::Term Parser::mkChain(api::Kind k, std::vector<api::Term>& args)
+api::Term Parser::mkChain(api::Kind k, const std::vector<api::Term>& args)
 {
   if(args.size() == 2) 
   {
