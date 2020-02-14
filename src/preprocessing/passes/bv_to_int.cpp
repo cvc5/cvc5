@@ -34,13 +34,11 @@ namespace passes {
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
+namespace {
+
 Rational intpow2(uint64_t b)
 {
-  Integer one = Integer(1);
-  Integer two = Integer(2);
-  Integer p = two.pow(b);
-  Rational r = Rational(p, one);
-  return r;
+  return Rational(Integer(2).pow(b), Integer(1));
 }
 
 /**
@@ -57,6 +55,8 @@ bool oneBitXnor(bool a, bool b) { return a == b; }
 bool oneBitNand(bool a, bool b) { return !(a && b); }
 
 bool oneBitNor(bool a, bool b) { return !(a || b); }
+
+} //end empty namespace
 
 Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k)
 {
