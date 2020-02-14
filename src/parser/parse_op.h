@@ -79,26 +79,26 @@ struct CVC4_PUBLIC ParseOp
 inline std::ostream& operator<<(std::ostream& os, const ParseOp& p)
 {
   std::stringstream out;
-  out << "(Parse op ";
+  out << "(Parse op";
   if (!p.d_expr.isNull())
   {
-    out << ":expr " << p.d_expr;
+    out << " :expr " << p.d_expr;
   }
   if (!p.d_op.isNull())
   {
-    out << ":op " << p.d_op;
+    out << " :op " << p.d_op;
   }
   if (p.d_kind != api::NULL_EXPR)
   {
-    out << ":kind " << p.d_kind;
+    out << " :kind " << p.d_kind;
   }
   if (!p.d_type.isNull())
   {
-    out << ":type " << p.d_type;
+    out << " :type " << p.d_type;
   }
   if (!p.d_name.empty())
   {
-    out << ":name " << p.d_name;
+    out << " :name " << p.d_name;
   }
   out << ")";
   return os << out.str();

@@ -546,7 +546,7 @@ api::Term Parser::mkBuiltinApp(api::Term f, api::Term t1, api::Term t2) const
 
 api::Term Parser::mkTermSafe(api::Kind k, const std::vector<api::Term>& args) const
 {
-  if (k == api::APPLY_SELECTOR || k==api::APPLY_TESTER)
+  if (k == api::APPLY_CONSTRUCTOR || k == api::APPLY_SELECTOR || k==api::APPLY_TESTER)
   {
     return api::Term(getExprManager()->mkExpr(extToIntKind(k), api::termVectorToExprs(args)));
   }

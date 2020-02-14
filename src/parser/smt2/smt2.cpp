@@ -1564,6 +1564,7 @@ void Smt2::applyTypeAscription(ParseOp& p, api::Sort type)
     if (isDeclared(p.d_name, SYM_VARIABLE))
     {
       p.d_expr = getExpressionForNameAndType(p.d_name, type);
+      p.d_name = std::string("");
     }
     if (p.d_expr.isNull())
     {
@@ -1693,7 +1694,6 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (!p.d_expr.isNull())
   {
     // An explicit operator, e.g. an indexed symbol.
-    args.insert(args.begin(), p.d_expr);
     api::Kind fkind = getKindForFunction(p.d_expr);
     if (fkind != api::UNDEFINED_KIND)
     {
@@ -1701,6 +1701,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       // Testers are handled differently than other indexed operators,
       // since they require a kind.
       kind = fkind;
+      Debug("parser") << "Got function kind " << kind << " for expression " << std::endl;
     }
     // An explicit operator, e.g. an indexed symbol.
     args.insert(args.begin(), p.d_expr);
@@ -1952,11 +1953,13 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   if (kind == api::NULL_EXPR)
   {
     std::vector<api::Term> eargs(args.begin() + 1, args.end());
+    Debug("parser") << "Try builtin app..." << std::endl;
     api::Term ret = mkBuiltinApp(args[0], eargs);
     Debug("parser") << "applyParseOp: return builtin app : " << ret << std::endl;
     return ret;
   }
   // PARSER-TODO
+  Debug("parser") << "Try default term construction for kind " << kind << "#args = " << args.size() << "..." << std::endl;
   api::Term ret = mkTermSafe(kind, args);
   Debug("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
