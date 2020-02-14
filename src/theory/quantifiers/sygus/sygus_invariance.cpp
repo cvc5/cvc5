@@ -92,13 +92,16 @@ void EquivSygusInvarianceTest::init(
   // compute the current examples
   d_bvr = bvr;
   Assert(tds != nullptr);
-  ExampleEvalCache* eec = aconj->getExampleEvalCache(e);
-  if (eec != nullptr)
+  if (aconj != nullptr)
   {
-    // get the result of evaluating bvr on the examples of enumerator e.
-    eec->evaluateVec(bvr, d_exo, false);
-    d_conj = aconj;
-    d_enum = e;
+    ExampleEvalCache* eec = aconj->getExampleEvalCache(e);
+    if (eec != nullptr)
+    {
+      // get the result of evaluating bvr on the examples of enumerator e.
+      eec->evaluateVec(bvr, d_exo, false);
+      d_conj = aconj;
+      d_enum = e;
+    }
   }
 }
 

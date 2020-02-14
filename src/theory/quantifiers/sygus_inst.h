@@ -61,7 +61,7 @@ class SygusInst : public QuantifiersModule
    *
    * Called at the beginning of QuantifiersEngine::check(e).
    */
-  // void reset_round( Theory::Effort e ){}
+  void reset_round(Theory::Effort e) override;
   /** Check.
    *
    *   Called during QuantifiersEngine::check(e) depending
@@ -85,7 +85,7 @@ class SygusInst : public QuantifiersModule
    * "sat", unless
    * we are incomplete for other reasons.
    */
-  // bool checkCompleteFor( Node q ) { return false; }
+  bool checkCompleteFor(Node q) override;
   /** Check ownership
    *
    * Called once for new quantified formulas that are registered by the
@@ -141,7 +141,15 @@ class SygusInst : public QuantifiersModule
     std::unique_ptr<SygusEnumerator> d_enumerator;
     /** Enumerated terms. */
     std::vector<Node> d_terms;
+    SygusStatistics d_sygus_stats;
   };
+
+  void checkSygus(Theory::Effort e, QEffort quant_e);
+  void checkDatatypes(Theory::Effort e, QEffort quant_e);
+
+  Node getCeLiteral(Node n);
+
+  void registerCeLemma(Node q, std::vector<TypeNode>& dtypes);
 
   /** Check if candidate term 't' for variable 'x' evaluates 'body' to false. */
   bool checkCandidate(TNode body,
@@ -150,13 +158,25 @@ class SygusInst : public QuantifiersModule
                       std::vector<Node>& args,
                       std::vector<Node>& vals);
 
+  Evaluator d_evaluator;
+
   /** Maps quantifier 'q' to the quantifiers contained in 'q'. */
   std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_quantifiers;
 
   /** Maps variables to their corresponding instantiation pool. */
   std::unordered_map<Node, InstPool, NodeHashFunction> d_inst_pools;
 
-  Evaluator d_evaluator;
+  std::unordered_map<Node, Node, NodeHashFunction> d_var_inst;
+  std::unordered_map<Node, Node, NodeHashFunction> d_var_eval;
+  std::unordered_map<Node, Node, NodeHashFunction> d_ce_lits;
+
+  // context::CDHashSet<Node, NodeHashFunction> d_added_dt_lemma;
+
+  std::unordered_map<Node, std::unique_ptr<DecisionStrategy>, NodeHashFunction>
+      d_dstrat;
+
+  std::unordered_set<Node, NodeHashFunction> d_active_quant;
+  std::unordered_set<Node, NodeHashFunction> d_inactive_quant;
 };
 
 }  // namespace quantifiers

@@ -23,13 +23,14 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 SygusInst::SygusInst(QuantifiersEngine* qe)
-    : QuantifiersModule(qe), d_quantifiers(), d_inst_pools(), d_evaluator()
+    : QuantifiersModule(qe)  //, d_added_dt_lemma(qe->getUserContext())
 {
 }
 
@@ -43,9 +44,16 @@ QuantifiersModule::QEffort SygusInst::needsModel(Theory::Effort e)
   return QEFFORT_STANDARD;
 }
 
+bool SygusInst::checkCompleteFor(Node q)
+{
+  return d_inactive_quant.find(q) != d_inactive_quant.end();
+}
+
 // Note: Called once per q (context-independent initialization)
 void SygusInst::registerQuantifier(Node q)
 {
+  if (options::sygusInstDt()) return;
+
   Trace("sygus-inst") << "Register " << q << std::endl;
 
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
@@ -58,13 +66,13 @@ void SygusInst::registerQuantifier(Node q)
   std::vector<Node> quants;
   TermUtil::computeQuantContains(q, quants);
 
-  // TODO: Right now we can't handle nested quantifiers yet
+  // TODO: We can't handle nested quantifiers yet.
   if (quants.size() > 1)
   {
     Trace("sygus-inst") << "Skip: unsupported nested quantifiers." << std::endl;
     return;
   }
-  // TODO: Right now we can't handle multiple variables
+  // TODO: We can't handle multiple variables yet.
   else if (quants.size() == 1 && quants[0][0].getNumChildren() > 1)
   {
     Trace("sygus-inst") << "Skip: unsupported multiple variables." << std::endl;
@@ -104,18 +112,118 @@ void SygusInst::registerQuantifier(Node q)
   }
 }
 
+void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
+{
+  Assert(q[0].getNumChildren() == types.size());
+
+  /* Lemma already added for q */
+  if (d_ce_lits.find(q) != d_ce_lits.end()) return;
+
+  NodeManager* nm = NodeManager::currentNM();
+  TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
+
+  /* For each variable x_i of \forall x_i . P[x_i], create a fresh datatype
+   * skolem variable sk_i with type types[i] and wrap each sk_i in
+   * DT_SYGUS_EVAL(sk_i), which will be used to instantiate x_i. */
+  std::vector<Node> vars;
+  std::vector<Node> evals;
+  for (size_t i = 0, size = types.size(); i < size; ++i)
+  {
+    TypeNode tn = types[i];
+    TNode var = q[0][i];
+
+    Node sk = nm->mkSkolem("", tn);
+    db->registerEnumerator(sk, sk, nullptr, ROLE_ENUM_MULTI_SOLUTION);
+
+    std::vector<Node> args;
+    args.push_back(sk);
+
+    Node svl = tn.getDType().getSygusVarList();
+    if (!svl.isNull())
+    {
+      args.insert(args.end(), svl.begin(), svl.end());
+    }
+    Node eval = nm->mkNode(kind::DT_SYGUS_EVAL, args);
+
+    d_var_inst.emplace(std::make_pair(var, sk));
+    d_var_eval.emplace(std::make_pair(var, eval));
+
+    vars.push_back(var);
+    evals.push_back(eval);
+  }
+
+  Node lit = getCeLiteral(q);
+  d_quantEngine->addRequirePhase(lit, true);
+
+  // The decision strategy for this quantified formula ensures that its
+  // counterexample literal is decided on first. It is user-context
+  // dependent.
+  Assert(d_dstrat.find(q) == d_dstrat.end());
+  DecisionStrategy* ds =
+      new DecisionStrategySingleton("CeLiteral",
+                                    lit,
+                                    d_quantEngine->getSatContext(),
+                                    d_quantEngine->getValuation());
+
+  d_dstrat.emplace(std::make_pair(q, ds));
+  d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
+      DecisionManager::STRAT_QUANT_CEGQI_FEASIBLE, ds);
+
+  /* Add counterexample lemma (lit => ~P[x_i/eval_i]) */
+  Node body =
+      q[1].substitute(vars.begin(), vars.end(), evals.begin(), evals.end());
+  Node lem = nm->mkNode(kind::OR, lit.negate(), body.negate());
+  lem = Rewriter::rewrite(lem);
+  d_quantEngine->addLemma(lem, false);
+
+  Trace("sygus-inst") << "Register CE Lemma: " << lem << std::endl;
+}
+
 // Note: Called once per SAT context
 void SygusInst::preRegisterQuantifier(Node q)
 {
-  // std::cout << identify() << "::preRegister: " << q << std::endl;
+  Trace("sygus-inst") << "preRegister " << q << std::endl;
+
+  if (options::sygusInstDt())
+  {
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exclude_cons;
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
+    std::unordered_set<Node, NodeHashFunction> term_irrelevant;
+
+    std::unordered_set<Node, NodeHashFunction> syms;
+    expr::getSymbols(q, syms);
+    for (const TNode& var : syms)
+    {
+      TypeNode tn = var.getType();
+      extra_cons[tn].insert(var);
+      Trace("sygus-inst") << "Found symbol: " << var << std::endl;
+    }
+
+    Trace("sygus-inst") << "Process variables of " << q << std::endl;
+    std::vector<TypeNode> types;
+    for (const Node& var : q[0])
+    {
+      TypeNode tn = CegGrammarConstructor::mkSygusDefaultType(var.getType(),
+                                                              Node(),
+                                                              var.toString(),
+                                                              extra_cons,
+                                                              exclude_cons,
+                                                              include_cons,
+                                                              term_irrelevant);
+      types.push_back(tn);
+
+      // std::cout << "tn for " << var << ": " << tn.getDType() << std::endl;
+      Trace("sygus-inst") << "Construct (default) datatype for " << var
+                          << std::endl
+                          << tn << std::endl;
+    }
+    registerCeLemma(q, types);
+  }
 }
 
-void SygusInst::check(Theory::Effort e, QEffort quant_e)
+void SygusInst::checkSygus(Theory::Effort e, QEffort quant_e)
 {
-  Trace("sygus-inst") << "Check " << e << ", " << quant_e << std::endl;
-
-  if (quant_e != QEFFORT_STANDARD) return;
-
   FirstOrderModel* model = d_quantEngine->getModel();
   Instantiate* inst = d_quantEngine->getInstantiate();
   uint32_t nasserted = model->getNumAssertedQuantifiers();
@@ -224,11 +332,123 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
         terms.push_back(term);
       }
 
-      if (do_inst && inst->addInstantiation(q, terms, true))
+      if (do_inst && inst->addInstantiation(q, terms))
       {
         Trace("sygus-inst") << "Instantiate " << q << std::endl;
       }
     }
+  }
+}
+
+Node SygusInst::getCeLiteral(Node n)
+{
+  auto it = d_ce_lits.find(n);
+  if (it != d_ce_lits.end())
+  {
+    return it->second;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  Node g = nm->mkSkolem("CeLiteral", nm->booleanType());
+  Node lit = d_quantEngine->getValuation().ensureLiteral(g);
+  d_ce_lits[n] = lit;
+  return lit;
+}
+
+void SygusInst::reset_round(Theory::Effort e)
+{
+  if (!options::sygusInstDt()) return;
+
+  d_active_quant.clear();
+  d_inactive_quant.clear();
+
+  FirstOrderModel* model = d_quantEngine->getModel();
+  uint32_t nasserted = model->getNumAssertedQuantifiers();
+
+  for (uint32_t i = 0; i < nasserted; ++i)
+  {
+    Node q = model->getAssertedQuantifier(i);
+
+    if (model->isQuantifierActive(q))
+    {
+      d_active_quant.insert(q);
+      Node lit = getCeLiteral(q);
+
+      bool value;
+      if (d_quantEngine->getValuation().hasSatValue(lit, value))
+      {
+        if (!value)
+        {
+          if (!d_quantEngine->getValuation().isDecision(lit))
+          {
+            model->setQuantifierActive(q, false);
+            d_active_quant.erase(q);
+            d_inactive_quant.insert(q);
+            Trace("sygus-inst") << "Set inactive: " << q << std::endl;
+          }
+        }
+      }
+    }
+  }
+}
+
+void SygusInst::checkDatatypes(Theory::Effort e, QEffort quant_e)
+{
+  FirstOrderModel* model = d_quantEngine->getModel();
+  Instantiate* inst = d_quantEngine->getInstantiate();
+  TermDbSygus* db = d_quantEngine->getTermDatabaseSygus();
+  SygusExplain syexplain(db);
+  NodeManager* nm = NodeManager::currentNM();
+
+  for (const Node& q : d_active_quant)
+  {
+    std::vector<Node> terms;
+    for (const Node& var : q[0])
+    {
+      Node dt_var = d_var_inst[var];
+      Node dt_eval = d_var_eval[var];
+      Node value = model->getValue(dt_var);
+      Node t = datatypes::utils::sygusToBuiltin(value);
+      terms.push_back(t);
+
+      std::vector<Node> exp;
+      syexplain.getExplanationForEquality(dt_var, value, exp);
+      Node lem;
+      if (exp.empty())
+      {
+        lem = dt_eval.eqNode(t);
+      }
+      else
+      {
+        lem = nm->mkNode(kind::IMPLIES,
+                         exp.size() == 1 ? exp[0] : nm->mkNode(kind::AND, exp),
+                         dt_eval.eqNode(t));
+      }
+
+      Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
+      d_quantEngine->addLemma(lem, false);
+    }
+
+    if (inst->addInstantiation(q, terms))
+    {
+      Trace("sygus-inst") << "Instantiate " << q << std::endl;
+    }
+  }
+}
+
+void SygusInst::check(Theory::Effort e, QEffort quant_e)
+{
+  Trace("sygus-inst") << "Check " << e << ", " << quant_e << std::endl;
+
+  if (quant_e != QEFFORT_STANDARD) return;
+
+  if (options::sygusInstDt())
+  {
+    checkDatatypes(e, quant_e);
+  }
+  else
+  {
+    checkSygus(e, quant_e);
   }
 }
 
@@ -261,7 +481,7 @@ SygusInst::InstPool::InstPool() : d_done(false), d_enumerator(), d_terms() {}
 
 void SygusInst::InstPool::initialize(TermDbSygus* db, TypeNode& tn)
 {
-  d_enumerator.reset(new SygusEnumerator(db, nullptr));
+  d_enumerator.reset(new SygusEnumerator(db, nullptr, d_sygus_stats));
   d_enumerator->initialize(NodeManager::currentNM()->mkSkolem("", tn));
 }
 
