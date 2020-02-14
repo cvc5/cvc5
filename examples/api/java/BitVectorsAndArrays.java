@@ -14,7 +14,7 @@
  **
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 import java.util.*;
 
 public class BitVectorsAndArrays {
@@ -71,7 +71,7 @@ public class BitVectorsAndArrays {
 
     vectorExpr assertions = new vectorExpr();
     for (int i = 1; i < k; ++i) {
-      index = em.mkConst(new BitVector(index_size, new edu.nyu.acsys.CVC4.Integer(i)));
+      index = em.mkConst(new BitVector(index_size, new edu.stanford.CVC4.Integer(i)));
       Expr new_current = em.mkExpr(Kind.BITVECTOR_MULT, two, old_current);
       // current[i] = 2 * current[i-1]
       current_array = em.mkExpr(Kind.STORE, current_array, index, new_current);
