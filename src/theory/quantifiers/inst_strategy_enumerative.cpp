@@ -33,16 +33,16 @@ using namespace inst;
 namespace quantifiers {
 
 InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd)
-    : QuantifiersModule(qe), d_rd(rd), d_active(true)
+    : QuantifiersModule(qe), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()
 {
-  d_active = true;
+  d_fullSaturateLimit = options::fullSaturateLimit();
 }
 bool InstStrategyEnum::needsCheck(Theory::Effort e)
 {
-  if (!d_active)
+  if (!d_fullSaturateLimit==0)
   {
     return false;
   }
@@ -68,7 +68,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;
-  if (d_active)
+  if (d_fullSaturateLimit!=0)
   {
     if (options::fullSaturateInterleave())
     {
@@ -160,9 +160,9 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     Trace("fs-engine") << "Finished full saturation engine, time = "
                        << (clSet2 - clSet) << std::endl;
   }
-  if (options::fullSaturateOnce())
+  if (d_fullSaturateLimit>0)
   {
-    d_active = false;
+    d_fullSaturateLimit--;
   }
 }
 

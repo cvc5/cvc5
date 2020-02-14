@@ -104,11 +104,11 @@ class InstStrategyEnum : public QuantifiersModule
    */
   bool process(Node q, bool fullEffort, bool isRd);
   /**
-   * Whether this strategy is active. This strategy can become inactive if
-   * fullSaturateOnce() is true, in which case we deactivate this strategy
-   * after it is run once.
+   * A limit on the number of rounds to apply this strategy, where a value < 0
+   * means no limit. This value is set to the value of fullSaturateLimit()
+   * during presolve.
    */
-  bool d_active;
+  int32_t d_fullSaturateLimit;
 }; /* class InstStrategyEnum */
 
 } /* CVC4::theory::quantifiers namespace */
