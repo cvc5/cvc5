@@ -630,6 +630,14 @@ class CVC4_PUBLIC Datatype {
                            const std::vector<Type>& cargs,
                            std::shared_ptr<SygusPrintCallback> spc = nullptr,
                            int weight = -1);
+  /**
+   * Same as above, with builtin kind k.
+   */
+  void addSygusConstructor(Kind k,
+                           const std::string& cname,
+                           const std::vector<Type>& cargs,
+                           std::shared_ptr<SygusPrintCallback> spc = nullptr,
+                           int weight = -1);
 
   /** set that this datatype is a tuple */
   void setTuple();
