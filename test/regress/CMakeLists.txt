@@ -2174,7 +2174,7 @@ set(regression_disabled_tests
   regress0/ite_arith.smt2
   regress0/lemmas/fischer3-mutex-16.smtv1.smt2
   regress0/nl/all-logic.smt2
-  # no longer support print-preversing chains
+  # no longer support print-preserving chains
   regress0/printer/let_shadowing.smt2
   regress0/quantifiers/qbv-multi-lit-uge.smt2
   regress0/quantifiers/qbv-test-invert-bvshl-0-neq.smt2
