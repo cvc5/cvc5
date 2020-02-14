@@ -142,25 +142,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   CHOICE,
-  /**
-   * Chained operator.
-   * Parameters: 1
-   *   -[1]: Kind of the binary operation
-   * Create with:
-   *   mkOp(Kind opkind, Kind kind)
-
-   * Apply chained operation.
-   * Parameters: n > 1
-   *   -[1]: Op of kind CHAIN (represents a binary op)
-   *   -[2]..[n]: Arguments to that operator
-   * Create with:
-   *   mkTerm(Op op, Term child1, Term child2)
-   *   mkTerm(Op op, Term child1, Term child2, Term child3)
-   *   mkTerm(Op op, const std::vector<Term>& children)
-   * Turned into a conjunction of binary applications of the operator on
-   * adjoining parameters.
-   */
-  CHAIN,
 
   /* Boolean --------------------------------------------------------------- */
 

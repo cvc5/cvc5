@@ -193,9 +193,6 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::BUILTIN:
       out << smtKindString(n.getConst<Kind>(), d_variant);
       break;
-    case kind::CHAIN_OP:
-      out << smtKindString(n.getConst<Chain>().getOperator(), d_variant);
-      break;
     case kind::CONST_RATIONAL: {
       const Rational& r = n.getConst<Rational>();
       toStreamRational(
@@ -474,7 +471,6 @@ void Smt2Printer::toStream(std::ostream& out,
     out << smtKindString(k, d_variant) << " ";
     parametricTypeChildren = true;
     break;
-  case kind::CHAIN: break;
   case kind::FUNCTION_TYPE:
     out << "->";
     for (Node nc : n)
@@ -1027,7 +1023,6 @@ static string smtKindString(Kind k, Variant v)
     // builtin theory
   case kind::EQUAL: return "=";
   case kind::DISTINCT: return "distinct";
-  case kind::CHAIN: break;
   case kind::SEXPR: break;
 
     // bool theory
