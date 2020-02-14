@@ -636,7 +636,6 @@ set(regress_0_tests
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_sort.smt2
   regress0/printer/empty_symbol_name.smt2
-  regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc
   regress0/proof_no_support.smt2
@@ -2160,6 +2159,8 @@ set(regression_disabled_tests
   regress0/ite_arith.smt2
   regress0/lemmas/fischer3-mutex-16.smtv1.smt2
   regress0/nl/all-logic.smt2
+  # no longer support print-preserving chains
+  regress0/printer/let_shadowing.smt2
   regress0/quantifiers/qbv-multi-lit-uge.smt2
   regress0/quantifiers/qbv-test-invert-bvshl-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-0-neq.smt2

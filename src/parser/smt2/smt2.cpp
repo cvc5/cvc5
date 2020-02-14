@@ -1889,7 +1889,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
                || kind == api::LEQ || kind == api::GEQ)
       {
         /* "chainable", but CVC4 internally only supports 2 args */
-        api::Term ret = api::Term(em->mkExpr(em->mkConst(Chain(extToIntKind(kind))), api::termVectorToExprs(args)));
+        api::Term ret = mkChain(kind, args);
         Debug("parser") << "applyParseOp: return chain " << ret << std::endl;
         return ret;
       }

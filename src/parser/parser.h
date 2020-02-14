@@ -669,6 +669,15 @@ public:
    */
   api::Term mkHoApply(api::Term expr, std::vector<api::Term>& args);
 
+  /** make chain
+   * 
+   * Given a kind k and argument terms t_1, ..., t_n, this returns the
+   * conjunction of:
+   *  (k t_1 t_2) .... (k t_{n-1} t_n)
+   * It is expected that k is a kind denoting a predicate, and args is a list
+   * of terms of size >= 2 such that the terms above are well-typed.
+   */
+  api::Term mkChain(api::Kind k, std::vector<api::Term>& args);
   //!!!!!!!!!!! temporary
   /** 
    * Make builtin application
