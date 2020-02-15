@@ -1440,9 +1440,9 @@ void TheoryEngine::assertFact(TNode literal)
       AtomRequests::atom_iterator it = d_atomRequests.getAtomIterator(atom);
       while (!it.done()) {
         const AtomRequests::Request& request = it.get();
-        Node toAssert = polarity ? (Node) request.atom : request.atom.notNode();
+        Node toAssert = polarity ? (Node) request.d_atom : request.d_atom.notNode();
         Debug("theory::atoms") << "TheoryEngine::assertFact(" << literal << "): sending requested " << toAssert << endl;
-        assertToTheory(toAssert, literal, request.toTheory, THEORY_SAT_SOLVER);
+        assertToTheory(toAssert, literal, request.d_toTheory, THEORY_SAT_SOLVER);
         it.next();
       }
 
