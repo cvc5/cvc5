@@ -1450,7 +1450,6 @@ set(regress_1_tests
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
   regress1/quantifiers/mix-coeff.smt2
-  regress1/quantifiers/model_6_1_bv.smt2
   regress1/quantifiers/mutualrec2.cvc
   regress1/quantifiers/nested9_true-unreach-call.i_575.smt2
   regress1/quantifiers/nl-pow-trick.smt2
@@ -2291,9 +2290,11 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
-  # ajreynol: disabled these since they give different error messages on
-  # production and debug:
+  # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
+  # times out with competition build:
+  regress1/quantifiers/model_6_1_bv.smt2
+  # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2
   ###
