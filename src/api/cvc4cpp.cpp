@@ -1711,9 +1711,9 @@ DatatypeDecl::DatatypeDecl(const Solver* s,
                            bool isCoDatatype)
 {
   std::vector<Type> tparams;
-  for (const Sort& s : params)
+  for (const Sort& p : params)
   {
-    tparams.push_back(*s.d_type);
+    tparams.push_back(*p.d_type);
   }
   d_dtype = std::shared_ptr<CVC4::Datatype>(
       new CVC4::Datatype(s->getExprManager(), name, tparams, isCoDatatype));

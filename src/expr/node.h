@@ -1363,14 +1363,14 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
       nb << getOperator().substitute(node, replacement, cache);
     }
   }
-  for(const_iterator i = begin(),
+  for(const_iterator it = begin(),
         iend = end();
-      i != iend;
-      ++i) {
-    if(*i == node) {
+      it != iend;
+      ++it) {
+    if(*it == node) {
       nb << replacement;
     } else {
-      nb << (*i).substitute(node, replacement, cache);
+      nb << (*it).substitute(node, replacement, cache);
     }
   }
 
@@ -1429,11 +1429,11 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
                                      replacementsBegin, replacementsEnd,
                                      cache);
     }
-    for(const_iterator i = begin(),
+    for(const_iterator it = begin(),
           iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(nodesBegin, nodesEnd,
+        it != iend;
+        ++it) {
+      nb << (*it).substitute(nodesBegin, nodesEnd,
                             replacementsBegin, replacementsEnd,
                             cache);
     }
@@ -1480,11 +1480,11 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
       // push the operator
       nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);
     }
-    for(const_iterator i = begin(),
+    for(const_iterator it = begin(),
           iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(substitutionsBegin, substitutionsEnd, cache);
+        it != iend;
+        ++it) {
+      nb << (*it).substitute(substitutionsBegin, substitutionsEnd, cache);
     }
     Node n = nb;
     cache[*this] = n;

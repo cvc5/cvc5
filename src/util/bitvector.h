@@ -277,7 +277,7 @@ struct CVC4_PUBLIC BitVectorExtract
   /** The low bit of the range for this extract */
   unsigned low;
 
-  BitVectorExtract(unsigned high, unsigned low) : high(high), low(low) {}
+  BitVectorExtract(unsigned h, unsigned l) : high(h), low(l) {}
 
   bool operator==(const BitVectorExtract& extract) const
   {
@@ -303,22 +303,22 @@ struct CVC4_PUBLIC BitVectorBitOf
 struct CVC4_PUBLIC BitVectorSize
 {
   unsigned size;
-  BitVectorSize(unsigned size) : size(size) {}
+  BitVectorSize(unsigned s) : size(s) {}
   operator unsigned() const { return size; }
 }; /* struct BitVectorSize */
 
 struct CVC4_PUBLIC BitVectorRepeat
 {
   unsigned repeatAmount;
-  BitVectorRepeat(unsigned repeatAmount) : repeatAmount(repeatAmount) {}
+  BitVectorRepeat(unsigned ra) : repeatAmount(ra) {}
   operator unsigned() const { return repeatAmount; }
 }; /* struct BitVectorRepeat */
 
 struct CVC4_PUBLIC BitVectorZeroExtend
 {
   unsigned zeroExtendAmount;
-  BitVectorZeroExtend(unsigned zeroExtendAmount)
-      : zeroExtendAmount(zeroExtendAmount)
+  BitVectorZeroExtend(unsigned zea)
+      : zeroExtendAmount(zea)
   {
   }
   operator unsigned() const { return zeroExtendAmount; }
@@ -327,8 +327,8 @@ struct CVC4_PUBLIC BitVectorZeroExtend
 struct CVC4_PUBLIC BitVectorSignExtend
 {
   unsigned signExtendAmount;
-  BitVectorSignExtend(unsigned signExtendAmount)
-      : signExtendAmount(signExtendAmount)
+  BitVectorSignExtend(unsigned sea)
+      : signExtendAmount(sea)
   {
   }
   operator unsigned() const { return signExtendAmount; }
@@ -337,8 +337,8 @@ struct CVC4_PUBLIC BitVectorSignExtend
 struct CVC4_PUBLIC BitVectorRotateLeft
 {
   unsigned rotateLeftAmount;
-  BitVectorRotateLeft(unsigned rotateLeftAmount)
-      : rotateLeftAmount(rotateLeftAmount)
+  BitVectorRotateLeft(unsigned rla)
+      : rotateLeftAmount(rla)
   {
   }
   operator unsigned() const { return rotateLeftAmount; }
@@ -347,8 +347,8 @@ struct CVC4_PUBLIC BitVectorRotateLeft
 struct CVC4_PUBLIC BitVectorRotateRight
 {
   unsigned rotateRightAmount;
-  BitVectorRotateRight(unsigned rotateRightAmount)
-      : rotateRightAmount(rotateRightAmount)
+  BitVectorRotateRight(unsigned rra)
+      : rotateRightAmount(rra)
   {
   }
   operator unsigned() const { return rotateRightAmount; }
@@ -357,7 +357,7 @@ struct CVC4_PUBLIC BitVectorRotateRight
 struct CVC4_PUBLIC IntToBitVector
 {
   unsigned size;
-  IntToBitVector(unsigned size) : size(size) {}
+  IntToBitVector(unsigned s) : size(s) {}
   operator unsigned() const { return size; }
 }; /* struct IntToBitVector */
 

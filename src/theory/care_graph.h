@@ -34,8 +34,8 @@ struct CarePair {
   const TNode a, b;
   const TheoryId theory;
 
-  CarePair(TNode a, TNode b, TheoryId theory)
-      : a(a < b ? a : b), b(a < b ? b : a), theory(theory) {}
+  CarePair(TNode av, TNode bv, TheoryId t)
+      : a(av < bv ? av : bv), b(av < bv ? bv : av), theory(t) {}
 
   bool operator==(const CarePair& other) const {
     return (theory == other.theory) && (a == other.a) && (b == other.b);
