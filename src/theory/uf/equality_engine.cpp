@@ -67,7 +67,7 @@ public:
     d_watch = newValue;
   }
   ~ScopedBool() {
-    d_watch = oldValue;
+    d_watch = d_oldValue;
   }
 };
 
@@ -158,7 +158,7 @@ void EqualityEngine::setMasterEqualityEngine(EqualityEngine* master) {
 }
 
 void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
-  Debug("equality") << d_name << "::eq::enqueue(" << d_nodes[candidate.d_t1Id] << ", " << d_nodes[candidate.d_t2Id] << ", " << candidate.d_type << "). reason: " << candidate.reason << std::endl;
+  Debug("equality") << d_name << "::eq::enqueue(" << d_nodes[candidate.d_t1Id] << ", " << d_nodes[candidate.d_t2Id] << ", " << candidate.d_type << "). reason: " << candidate.d_reason << std::endl;
   if (back) {
     d_propagationQueue.push_back(candidate);
   } else {
@@ -169,7 +169,7 @@ void EqualityEngine::enqueue(const MergeCandidate& candidate, bool back) {
 EqualityNodeId EqualityEngine::newApplicationNode(TNode original, EqualityNodeId t1, EqualityNodeId t2, FunctionApplicationType type) {
   Debug("equality") << d_name << "::eq::newApplicationNode(" << original << ", " << t1 << ", " << t2 << ")" << std::endl;
 
-  ++ d_stats.functionTermsCount;
+  ++ d_stats.d_functionTermsCount;
 
   // Get another id for this
   EqualityNodeId funId = newNode(original);
@@ -801,7 +801,7 @@ void EqualityEngine::backtrack() {
       Equality& eq = d_assertedEqualities[i];
       // Undo the merge
       if (eq.d_lhs != null_id) {
-        undoMerge(d_equalityNodes[eq.d_lhs], d_equalityNodes[eq.rhs], eq.rhs);
+        undoMerge(d_equalityNodes[eq.d_lhs], d_equalityNodes[eq.d_rhs], eq.d_rhs);
       }
     }
 
@@ -1143,7 +1143,7 @@ void EqualityEngine::getExplanation(
 
     // The next node to visit
     BfsData current = bfsQueue[currentIndex];
-    EqualityNodeId currentNode = current.nodeId;
+    EqualityNodeId currentNode = current.d_nodeId;
 
     Debug("equality") << d_name << "::eq::getExplanation(): currentNode =  " << d_nodes[currentNode] << std::endl;
 
@@ -1159,7 +1159,7 @@ void EqualityEngine::getExplanation(
       const EqualityEdge& edge = d_equalityEdges[currentEdge];
 
       // If not just the backwards edge
-      if ((currentEdge | 1u) != (current.edgeId | 1u)) {
+      if ((currentEdge | 1u) != (current.d_edgeId | 1u)) {
 
         Debug("equality") << d_name << "::eq::getExplanation(): currentEdge = (" << d_nodes[currentNode] << "," << d_nodes[edge.getNodeId()] << ")" << std::endl;
 
@@ -1173,7 +1173,7 @@ void EqualityEngine::getExplanation(
           // Reconstruct the path
           do {
             // The current node
-            currentNode = bfsQueue[currentIndex].nodeId;
+            currentNode = bfsQueue[currentIndex].d_nodeId;
             EqualityNodeId edgeNode = d_equalityEdges[currentEdge].getNodeId();
             unsigned reasonType = d_equalityEdges[currentEdge].getReasonType();
             Node reason = d_equalityEdges[currentEdge].getReason();
@@ -1335,8 +1335,8 @@ void EqualityEngine::getExplanation(
             }
 
             // Go to the previous
-            currentEdge = bfsQueue[currentIndex].edgeId;
-            currentIndex = bfsQueue[currentIndex].previousIndex;
+            currentEdge = bfsQueue[currentIndex].d_edgeId;
+            currentIndex = bfsQueue[currentIndex].d_previousIndex;
 
             //---from Morgan---
             if (eqpc != NULL && eqpc->d_id == MERGED_THROUGH_REFLEXIVITY) {
@@ -1423,7 +1423,7 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
 void EqualityEngine::addTriggerPredicate(TNode predicate) {
   Assert(predicate.getKind() != kind::NOT
          && predicate.getKind() != kind::EQUAL);
-  Assert(d_congruenceKinds.d_tst(predicate.getKind()))
+  Assert(d_congruenceKinds.tst(predicate.getKind()))
       << "No point in adding non-congruence predicates";
 
   if (d_done) {
@@ -1596,7 +1596,7 @@ void EqualityEngine::propagate() {
     Assert(node2.getFind() == t2classId);
 
     // Add the actual equality to the equality graph
-    addGraphEdge(current.d_t1Id, current.d_t2Id, current.d_type, current.reason);
+    addGraphEdge(current.d_t1Id, current.d_t2Id, current.d_type, current.d_reason);
 
     // If constants are being merged we're done
     if (d_isConstant[t1classId] && d_isConstant[t2classId]) {
