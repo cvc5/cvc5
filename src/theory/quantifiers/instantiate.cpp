@@ -339,7 +339,6 @@ bool Instantiate::addInstantiation(
   }
   if (options::trackInstLemmas())
   {
-    bool recorded;
     if (options::incrementalSolving())
     {
       recorded = d_c_inst_match_trie[q]->recordInstLemma(q, terms, lem);
