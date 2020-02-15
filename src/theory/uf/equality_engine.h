@@ -211,13 +211,13 @@ public:
   /** Statistics about the equality engine instance */
   struct Statistics {
     /** Total number of merges */
-    IntStat mergesCount;
+    IntStat d_mergesCount;
     /** Number of terms managed by the system */
-    IntStat termsCount;
+    IntStat d_termsCount;
     /** Number of function terms managed by the system */
-    IntStat functionTermsCount;
+    IntStat d_functionTermsCount;
     /** Number of constant terms managed by the system */
-    IntStat constantTermsCount;
+    IntStat d_constantTermsCount;
 
     Statistics(std::string name);
 
@@ -300,12 +300,12 @@ private:
    */
   struct Equality {
     /** Left hand side of the equality */
-    EqualityNodeId lhs;
+    EqualityNodeId d_lhs;
     /** Right hand side of the equality */
-    EqualityNodeId rhs;
+    EqualityNodeId d_rhs;
     /** Equality constructor */
     Equality(EqualityNodeId l = null_id, EqualityNodeId r = null_id)
-    : lhs(l), rhs(r) {}
+    : d_lhs(l), d_rhs(r) {}
   };/* struct EqualityEngine::Equality */
 
   /** The ids of the classes we have merged */
