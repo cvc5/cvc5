@@ -109,11 +109,11 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
  * additional information.
  */
 struct MergeCandidate {
-  EqualityNodeId t1Id, t2Id;
-  unsigned type;
-  TNode reason;
+  EqualityNodeId d_t1Id, d_t2Id;
+  unsigned d_type;
+  TNode d_reason;
   MergeCandidate(EqualityNodeId x, EqualityNodeId y, unsigned type, TNode reason)
-  : t1Id(x), t2Id(y), type(type), reason(reason)
+  : d_t1Id(x), d_t2Id(y), d_type(type), d_reason(reason)
   {}
 };
 
@@ -121,10 +121,10 @@ struct MergeCandidate {
  * Just an index into the reasons array, and the number of merges to consume.
  */
 struct DisequalityReasonRef {
-  DefaultSizeType mergesStart;
-  DefaultSizeType mergesEnd;
+  DefaultSizeType d_mergesStart;
+  DefaultSizeType d_mergesEnd;
   DisequalityReasonRef(DefaultSizeType mergesStart = 0, DefaultSizeType mergesEnd = 0)
-  : mergesStart(mergesStart), mergesEnd(mergesEnd) {}
+  : d_mergesStart(mergesStart), d_mergesEnd(mergesEnd) {}
 };
 
 /**
@@ -289,32 +289,32 @@ enum FunctionApplicationType {
  */
 struct FunctionApplication {
   /** Type of application */
-  FunctionApplicationType type;
+  FunctionApplicationType d_type;
   /** The actual application elements */
-  EqualityNodeId a, b;
+  EqualityNodeId d_a, d_b;
 
   /** Construct an application */
   FunctionApplication(FunctionApplicationType type = APP_EQUALITY, EqualityNodeId a = null_id, EqualityNodeId b = null_id)
-  : type(type), a(a), b(b) {}
+  : d_type(type), d_a(a), d_b(b) {}
 
   /** Equality of two applications */
   bool operator == (const FunctionApplication& other) const {
-    return type == other.type && a == other.a && b == other.b;
+    return d_type == other.d_type && d_a == other.d_a && d_b == other.d_b;
   }
 
   /** Is this a null application */
   bool isNull() const {
-    return a == null_id || b == null_id;
+    return d_a == null_id || d_b == null_id;
   }
 
   /** Is this an equality */
   bool isEquality() const {
-    return type == APP_EQUALITY;
+    return d_type == APP_EQUALITY;
   }
 
   /** Is this an interpreted application (equality is special, i.e. not interpreted) */
   bool isInterpreted() const {
-    return type == APP_INTERPRETED;
+    return d_type == APP_INTERPRETED;
   }
 
 };
@@ -322,8 +322,8 @@ struct FunctionApplication {
 struct FunctionApplicationHashFunction {
   size_t operator () (const FunctionApplication& app) const {
     size_t hash = 0;
-    hash = 0x9e3779b9 + app.a;
-    hash ^= 0x9e3779b9 + app.b + (hash << 6) + (hash >> 2);
+    hash = 0x9e3779b9 + app.d_a;
+    hash ^= 0x9e3779b9 + app.d_b + (hash << 6) + (hash >> 2);
     return hash;
   }
 };
@@ -333,13 +333,13 @@ struct FunctionApplicationHashFunction {
  * we keep both the original, and the normalized version.
  */
 struct FunctionApplicationPair {
-  FunctionApplication original;
-  FunctionApplication normalized;
+  FunctionApplication d_original;
+  FunctionApplication d_normalized;
   FunctionApplicationPair() {}
   FunctionApplicationPair(const FunctionApplication& original, const FunctionApplication& normalized)
-  : original(original), normalized(normalized) {}
+  : d_original(original), d_normalized(normalized) {}
   bool isNull() const {
-    return original.isNull();
+    return d_original.isNull();
   }
 };
 
@@ -348,12 +348,12 @@ struct FunctionApplicationPair {
  */
 struct TriggerInfo {
   /** The trigger itself */
-  Node trigger;
+  Node d_trigger;
   /** Polarity of the trigger */
-  bool polarity;
-  TriggerInfo() : polarity(false) {}
+  bool d_polarity;
+  TriggerInfo() : d_polarity(false) {}
   TriggerInfo(Node trigger, bool polarity)
-      : trigger(trigger), polarity(polarity) {}
+      : d_trigger(trigger), d_polarity(polarity) {}
 };
 
 } // namespace eq

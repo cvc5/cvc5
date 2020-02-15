@@ -304,8 +304,8 @@ private:
     /** Right hand side of the equality */
     EqualityNodeId rhs;
     /** Equality constructor */
-    Equality(EqualityNodeId lhs = null_id, EqualityNodeId rhs = null_id)
-    : lhs(lhs), rhs(rhs) {}
+    Equality(EqualityNodeId l = null_id, EqualityNodeId r = null_id)
+    : lhs(l), rhs(r) {}
   };/* struct EqualityEngine::Equality */
 
   /** The ids of the classes we have merged */
@@ -402,12 +402,12 @@ private:
    */
   struct Trigger {
     /** The current class id of the LHS of the trigger */
-    EqualityNodeId classId;
+    EqualityNodeId d_classId;
     /** Next trigger for class */
-    TriggerId nextTrigger;
+    TriggerId d_nextTrigger;
 
     Trigger(EqualityNodeId classId = null_id, TriggerId nextTrigger = null_trigger)
-    : classId(classId), nextTrigger(nextTrigger) {}
+    : d_classId(classId), d_nextTrigger(nextTrigger) {}
   };/* struct EqualityEngine::Trigger */
 
   /**
@@ -618,10 +618,10 @@ private:
   context::CDO<DefaultSizeType> d_triggerDatabaseSize;
 
   struct TriggerSetUpdate {
-    EqualityNodeId classId;
-    TriggerTermSetRef oldValue;
+    EqualityNodeId d_classId;
+    TriggerTermSetRef d_oldValue;
     TriggerSetUpdate(EqualityNodeId classId = null_id, TriggerTermSetRef oldValue = null_set_id)
-    : classId(classId), oldValue(oldValue) {}
+    : d_classId(classId), d_oldValue(oldValue) {}
   };/* struct EqualityEngine::TriggerSetUpdate */
 
   /**
@@ -693,14 +693,14 @@ private:
    */
   struct TaggedEquality {
     /** Id of the equality */
-    EqualityNodeId equalityId;
+    EqualityNodeId d_equalityId;
     /** TriggerSet reference for the class of one of the sides */
-    TriggerTermSetRef triggerSetRef;
+    TriggerTermSetRef d_triggerSetRef;
     /** Is trigger equivalent to the lhs (rhs otherwise) */
-    bool lhs;
+    bool d_lhs;
 
     TaggedEquality(EqualityNodeId equalityId = null_id, TriggerTermSetRef triggerSetRef = null_set_id, bool lhs = true)
-    : equalityId(equalityId), triggerSetRef(triggerSetRef), lhs(lhs) {}
+    : d_equalityId(equalityId), d_triggerSetRef(triggerSetRef), d_lhs(lhs) {}
   };
 
   /** A map from equivalence class id's to tagged equalities */

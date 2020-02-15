@@ -1385,8 +1385,8 @@ bool RewriteRule<BitwiseSlicing>::applies(TNode node) {
       if (constant == BitVector(utils::getSize(node), 0u)) 
         return false; 
       
-      for (unsigned i = 0; i < constant.getSize(); ++i) {
-        if (!constant.isBitSet(i)) 
+      for (unsigned j = 0, csize = constant.getSize(); j < csize; ++j) {
+        if (!constant.isBitSet(j)) 
           return true; 
       }
       return false; 
