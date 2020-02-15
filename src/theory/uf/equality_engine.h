@@ -573,14 +573,14 @@ private:
   /** Set of trigger terms */
   struct TriggerTermSet {
     /** Set of theories in this set */
-    Theory::Set tags;
+    Theory::Set d_tags;
     /** The trigger terms */
-    EqualityNodeId triggers[0];
+    EqualityNodeId d_triggers[0];
     /** Returns the theory tags */
-    Theory::Set hasTrigger(TheoryId tag) const { return Theory::setContains(tag, tags); }
+    Theory::Set hasTrigger(TheoryId tag) const { return Theory::setContains(tag, d_tags); }
     /** Returns a trigger by tag */
     EqualityNodeId getTrigger(TheoryId tag) const {
-      return triggers[Theory::setIndex(tag, tags)];
+      return d_triggers[Theory::setIndex(tag, d_tags)];
     }
   };/* struct EqualityEngine::TriggerTermSet */
 

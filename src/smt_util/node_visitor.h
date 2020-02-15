@@ -59,13 +59,13 @@ public:
    */
   struct stack_element {
     /** The node to be visited */
-    TNode node;
+    TNode d_node;
     /** The parent of the node */
-    TNode parent;
+    TNode d_parent;
     /** Have the children been queued up for visitation */
     bool children_added;
     stack_element(TNode node, TNode parent)
-    : node(node), parent(parent), children_added(false) {}
+    : d_node(node), d_parent(parent), children_added(false) {}
   };/* struct preprocess_stack_element */
 
   /**
@@ -84,8 +84,8 @@ public:
     while (!toVisit.empty()) {
       stack_element& stackHead = toVisit.back();
       // The current node we are processing
-      TNode current = stackHead.node;
-      TNode parent = stackHead.parent;
+      TNode current = stackHead.d_node;
+      TNode parent = stackHead.d_parent;
 
       if (visitor.alreadyVisited(current, parent)) {
         // If already visited, we're done
