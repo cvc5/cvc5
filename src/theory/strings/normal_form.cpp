@@ -17,6 +17,7 @@
 
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -132,6 +133,30 @@ void NormalForm::getExplanation(int index, std::vector<Node>& curr_exp)
       Trace("strings-explain-prefix-debug") << "  exclude : ";
     }
     Trace("strings-explain-prefix-debug") << exp << std::endl;
+  }
+}
+
+Node NormalForm::collectConstantStringAt(size_t& index)
+{
+  std::vector<Node> c;
+  while (d_nf.size() > index && d_nf[index].isConst())
+  {
+    c.push_back(d_nf[index]);
+    index++;
+  }
+  if (!c.empty())
+  {
+    if (d_isRev)
+    {
+      std::reverse(c.begin(), c.end());
+    }
+    Node cc = Rewriter::rewrite(utils::mkConcat(STRING_CONCAT, c));
+    Assert(cc.isConst());
+    return cc;
+  }
+  else
+  {
+    return Node::null();
   }
 }
 
