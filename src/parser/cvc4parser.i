@@ -9,7 +9,8 @@ namespace CVC4 {}
 using namespace CVC4;
 %}
 
-%include "parser/parser_exception.i"
 %include "parser/input.i"
+%include "parser/parse_op.i"
 %include "parser/parser.i"
 %include "parser/parser_builder.i"
+%include "parser/parser_exception.i"
