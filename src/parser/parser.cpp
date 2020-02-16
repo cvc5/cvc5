@@ -371,7 +371,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
     std::vector<Datatype>& datatypes, bool doOverload) {
   try {
     std::vector<DatatypeType> types =
-        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved);
+        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved, doOverload);
 
     assert(datatypes.size() == types.size());
 
