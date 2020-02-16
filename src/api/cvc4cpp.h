@@ -2690,7 +2690,7 @@ class CVC4_PUBLIC Solver
   std::unique_ptr<Random> d_rng;
 };
 
-// !!! These only temporarily public until the parser is fully migrated to the
+// !!! Only temporarily public until the parser is fully migrated to the
 // new API. !!!
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
