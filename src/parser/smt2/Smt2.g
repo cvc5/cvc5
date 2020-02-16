@@ -784,7 +784,7 @@ sygusGrammarV1[CVC4::Type & ret,
                             << std::endl;
     }
     std::vector<DatatypeType> datatypeTypes =
-        PARSER_STATE->mkMutualDatatypeTypes(datatypes, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+        PARSER_STATE->mkMutualDatatypeTypes(datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     ret = datatypeTypes[0];
   };
 
@@ -1068,7 +1068,7 @@ sygusGrammar[CVC4::Type & ret,
     // now, make the sygus datatype
     Trace("parser-sygus2") << "Make the sygus datatypes..." << std::endl;
     std::vector<DatatypeType> datatypeTypes =
-        PARSER_STATE->mkMutualDatatypeTypes(datatypes, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+        PARSER_STATE->mkMutualDatatypeTypes(datatypes, false, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     // return is the first datatype
     ret = datatypeTypes[0];
   }
