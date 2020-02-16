@@ -603,8 +603,8 @@ public:
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    *
-   * flags specify information about the datatype, e.g. whether it should be printed
-   * out as a definition in models or not
+   * flags specify information about the datatype, e.g. whether it should be
+   * printed out as a definition in models or not
    *   (see enum in expr_manager_template.h).
    */
   std::vector<DatatypeType> mkMutualDatatypeTypes(
