@@ -21,6 +21,7 @@
 #include "expr/node.h"
 #include "theory/ext_theory.h"
 #include "theory/strings/base_solver.h"
+#include "theory/strings/core_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/solver_state.h"
@@ -30,6 +31,43 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/**
+  * Non-static information about an extended function t. This information is
+  * constructed and used during the check extended function evaluation
+  * inference schema.
+  *
+  * In the following, we refer to the "context-dependent simplified form"
+  * of a term t to be the result of rewriting t * sigma, where sigma is a
+  * derivable substitution in the current context. For example, the
+  * context-depdendent simplified form of contains( x++y, "a" ) given
+  * sigma = { x -> "" } is contains(y,"a").
+  */
+class ExtfInfoTmp
+{
+  public:
+  ExtfInfoTmp() : d_modelActive(true) {}
+  /**
+    * If s is in d_ctn[true] (resp. d_ctn[false]), then contains( t, s )
+    * (resp. ~contains( t, s )) holds in the current context. The vector
+    * d_ctnFrom is the explanation for why this holds. For example,
+    * if d_ctn[false][i] is "A", then d_ctnFrom[false][i] might be
+    * t = x ++ y AND x = "" AND y = "B".
+    */
+  std::map<bool, std::vector<Node> > d_ctn;
+  std::map<bool, std::vector<Node> > d_ctnFrom;
+  /**
+    * The constant that t is entailed to be equal to, or null if none exist.
+    */
+  Node d_const;
+  /**
+    * The explanation for why t is equal to its context-dependent simplified
+    * form.
+    */
+  std::vector<Node> d_exp;
+  /** This flag is false if t is reduced in the model. */
+  bool d_modelActive;
+};
+  
 /**
  * Extended function solver for the theory of strings. This manages extended
  * functions for the theory of strings using a combination of context-dependent
@@ -46,6 +84,7 @@ class ExtfSolver
              InferenceManager& im,
              SkolemCache& skc,
              BaseSolver& bs,
+             CoreSolver& cs,
              ExtTheory* et);
   ~ExtfSolver();
 
@@ -78,46 +117,32 @@ class ExtfSolver
    * the rest.
    */
   void checkExtfReductions(int effort);
-  /** get preprocess */
+  /** get preprocess module */
   StringsPreprocess* getPreprocess() { return &d_preproc; }
 
- private:
   /**
-   * Non-static information about an extended function t. This information is
-   * constructed and used during the check extended function evaluation
-   * inference schema.
+   * Get the current substitution for term n.
    *
-   * In the following, we refer to the "context-dependent simplified form"
-   * of a term t to be the result of rewriting t * sigma, where sigma is a
-   * derivable substitution in the current context. For example, the
-   * context-depdendent simplified form of contains( x++y, "a" ) given
-   * sigma = { x -> "" } is contains(y,"a").
+   * This method returns a term that n is currently equal to in the current
+   * context. It updates exp to contain an explanation of why it is currently
+   * equal to that term.
+   *
+   * The argument effort determines what kind of term to return, either
+   * a constant in the equivalence class of n (effort=0), the normal form of
+   * n (effort=1,2) or the model value of n (effort>=3). The latter is only
+   * valid at LAST_CALL effort. If a term of the above form cannot be returned,
+   * then n itself is returned.
    */
-  class ExtfInfoTmp
-  {
-   public:
-    ExtfInfoTmp() : d_modelActive(true) {}
-    /**
-     * If s is in d_ctn[true] (resp. d_ctn[false]), then contains( t, s )
-     * (resp. ~contains( t, s )) holds in the current context. The vector
-     * d_ctnFrom is the explanation for why this holds. For example,
-     * if d_ctn[false][i] is "A", then d_ctnFrom[false][i] might be
-     * t = x ++ y AND x = "" AND y = "B".
-     */
-    std::map<bool, std::vector<Node> > d_ctn;
-    std::map<bool, std::vector<Node> > d_ctnFrom;
-    /**
-     * The constant that t is entailed to be equal to, or null if none exist.
-     */
-    Node d_const;
-    /**
-     * The explanation for why t is equal to its context-dependent simplified
-     * form.
-     */
-    std::vector<Node> d_exp;
-    /** This flag is false if t is reduced in the model. */
-    bool d_modelActive;
-  };
+  Node getCurrentSubstitutionFor(int effort, Node n, std::vector<Node>& exp);
+  /** get mapping from extended functions to their information 
+   * 
+   * This information is valid during a full effort check after a call to
+   * checkExtfEval.
+   */
+  const std::map<Node, ExtfInfoTmp>& getInfo() const;
+  /** Are there any active extended functions? */
+  bool hasExtendedFunctions() const;
+ private:
   /** do reduction
    *
    * This is called when an extended function application n is not able to be
@@ -146,6 +171,8 @@ class ExtfSolver
   SkolemCache& d_skCache;
   /** reference to the base solver, used for certain queries */
   BaseSolver& d_bsolver;
+  /** reference to the core solver, used for certain queries */
+  CoreSolver& d_csolver;
   /** the extended theory object for the theory of strings */
   ExtTheory* d_extt;
   /** preprocessing utility, for performing strings reductions */
@@ -154,14 +181,14 @@ class ExtfSolver
   Node d_true;
   Node d_false;
   /** Empty vector */
-  std::vector<Node> d_empty_vec;
+  std::vector<Node> d_emptyVec;
   /** map extended functions to the above information */
   std::map<Node, ExtfInfoTmp> d_extfInfoTmp;
   /** any non-reduced extended functions exist? */
-  context::CDO<bool> d_has_extf;
+  context::CDO<bool> d_hasExtf;
   /** extended functions inferences cache */
-  NodeSet d_extf_infer_cache;
-}; /* class ExtfSolver */
+  NodeSet d_extfInferCache;
+};
 
 }  // namespace strings
 }  // namespace theory

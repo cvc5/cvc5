@@ -33,15 +33,17 @@ ExtfSolver::ExtfSolver(context::Context* c,
                        InferenceManager& im,
                        SkolemCache& skc,
                        BaseSolver& bs,
+             CoreSolver& cs,
                        ExtTheory* et)
     : d_state(s),
       d_im(im),
       d_skCache(skc),
       d_bsolver(bs),
+      d_csolver(cs),
       d_extt(et),
       d_preproc(&skc, u),
-      d_has_extf(c, false),
-      d_extf_infer_cache(c)
+      d_hasExtf(c, false),
+      d_extfInferCache(c)
 {
   d_extt->addFunctionKind(kind::STRING_SUBSTR);
   d_extt->addFunctionKind(kind::STRING_STRIDOF);
@@ -155,7 +157,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     Node eq = Rewriter::rewrite(x.eqNode(utils::mkNConcat(sk1, s, sk2)));
     std::vector<Node> exp_vec;
     exp_vec.push_back(n);
-    d_im.sendInference(d_empty_vec, exp_vec, eq, "POS-CTN", true);
+    d_im.sendInference(d_emptyVec, exp_vec, eq, "POS-CTN", true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
@@ -181,7 +183,7 @@ bool ExtfSolver::doReduction(int effort, Node n, bool& isCd)
     Trace("strings-red-lemma")
         << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
     Trace("strings-red-lemma") << "...from " << n << std::endl;
-    d_im.sendInference(d_empty_vec, nnlem, "Reduction", true);
+    d_im.sendInference(d_emptyVec, nnlem, "Reduction", true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on reduction." << std::endl;
     isCd = false;
@@ -440,7 +442,7 @@ void ExtfSolver::checkExtfEval(int effort)
       }
     }
   }
-  d_has_extf = has_nreduce;
+  d_hasExtf = has_nreduce;
 }
 
 void ExtfSolver::checkExtfInference(Node n,
@@ -470,7 +472,7 @@ void ExtfSolver::checkExtfInference(Node n,
     d_bsolver.explainConstantEqc(n, r, in.d_exp);
   }
 
-  // d_extf_infer_cache stores whether we have made the inferences associated
+  // d_extfInferCache stores whether we have made the inferences associated
   // with a node n,
   // this may need to be generalized if multiple inferences apply
 
@@ -493,9 +495,9 @@ void ExtfSolver::checkExtfInference(Node n,
       // If ~str.contains( str.++( x1, ..., xn ), y ),
       //   we may infer ~str.contains( x1, y ), ..., ~str.contains( xn, y )
       // This is also handled here.
-      if (d_extf_infer_cache.find(nr) == d_extf_infer_cache.end())
+      if (d_extfInferCache.find(nr) == d_extfInferCache.end())
       {
-        d_extf_infer_cache.insert(nr);
+        d_extfInferCache.insert(nr);
 
         int index = pol ? 1 : 0;
         std::vector<Node> children;
@@ -625,6 +627,50 @@ void ExtfSolver::checkExtfInference(Node n,
                                 << " ...reduces to " << inferEqrr << std::endl;
     d_im.sendInternalInference(in.d_exp, inferEqrr, "EXTF_equality_rew");
   }
+}
+
+
+Node ExtfSolver::getCurrentSubstitutionFor(int effort,
+                                              Node n,
+                                              std::vector<Node>& exp)
+{
+  if (effort >= 3)
+  {
+    // model values
+    Node mv = d_state.getModel()->getRepresentative(n);
+    Trace("strings-subs") << "   model val : " << mv << std::endl;
+    return mv;
+  }
+  Node nr = d_state.getRepresentative(n);
+  Node c = d_bsolver.explainConstantEqc(n, nr, exp);
+  if (!c.isNull())
+  {
+    return c;
+  }
+  else if (effort >= 1 && n.getType().isString())
+  {
+    Assert(effort < 3);
+    // normal forms
+    NormalForm& nfnr = d_csolver.getNormalForm(nr);
+    Node ns = d_csolver.getNormalString(nfnr.d_base, exp);
+    Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base
+                          << " " << nr << std::endl;
+    if (!nfnr.d_base.isNull())
+    {
+      d_im.addToExplanation(n, nfnr.d_base, exp);
+    }
+    return ns;
+  }
+  return n;
+}
+
+const std::map<Node, ExtfInfoTmp>& ExtfSolver::getInfo() const
+{
+  return d_extfInfoTmp;
+}
+bool ExtfSolver::hasExtendedFunctions() const
+{
+  return d_hasExtf.get();
 }
 
 }  // namespace strings
