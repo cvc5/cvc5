@@ -9,6 +9,8 @@
 #endif /* SWIGJAVA */
 %}
 
+%include "expr/kind.i"
+
 %extend std::vector< CVC4::Datatype > {
   /* These member functions have slightly different signatures in
    * different swig language packages.  The underlying issue is that

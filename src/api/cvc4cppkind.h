@@ -2181,14 +2181,6 @@ enum CVC4_PUBLIC Kind : int32_t
   INST_PATTERN_LIST,
   /* predicate for specifying term in instantiation closure. */
   INST_CLOSURE,
-  /* general rewrite rule (for rewrite-rules theory) */
-  REWRITE_RULE,
-  /* actual rewrite rule (for rewrite-rules theory) */
-  RR_REWRITE,
-  /* actual reduction rule (for rewrite-rules theory) */
-  RR_REDUCTION,
-  /* actual deduction rule (for rewrite-rules theory) */
-  RR_DEDUCTION,
 
   /* Sort Kinds ------------------------------------------------------------ */
 

@@ -3496,27 +3496,6 @@ bool TheoryStringsRewriter::canConstantContainList( Node c, std::vector< Node >&
   return true;
 }
 
-Node TheoryStringsRewriter::collectConstantStringAt(
-    const std::vector<Node>& vec, size_t& end_index, bool isRev)
-{
-  std::vector< Node > c;
-  while( vec.size()>end_index && vec[ end_index ].isConst() ){
-    c.push_back( vec[ end_index ] );
-    end_index++;
-    //break;
-  }
-  if( !c.empty() ){
-    if( isRev ){
-      std::reverse( c.begin(), c.end() );
-    }
-    Node cc = Rewriter::rewrite(utils::mkConcat(STRING_CONCAT, c));
-    Assert(cc.isConst());
-    return cc;
-  }else{
-    return Node::null();
-  }
-}
-
 bool TheoryStringsRewriter::stripSymbolicLength(std::vector<Node>& n1,
                                                 std::vector<Node>& nr,
                                                 int dir,

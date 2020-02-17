@@ -1655,6 +1655,9 @@ void TheoryStrings::registerTerm(Node n, int effort)
                             << ", effort = " << effort << std::endl;
   if (tn.isString())
   {
+    // register length information:
+    //  for variables, split on empty vs positive length
+    //  for concat/const/replace, introduce proxy var and state length relation
     d_im.registerLength(n);
   }
   else if (n.getKind() == STRING_CODE)

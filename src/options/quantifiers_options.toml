@@ -899,15 +899,6 @@ header = "options/quantifiers_options.h"
 ### Rewrite rules options
 
 [[option]]
-  name       = "quantRewriteRules"
-  category   = "regular"
-  long       = "rewrite-rules"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use rewrite rules module"
-
-[[option]]
   name       = "rrOneInstPerRound"
   category   = "regular"
   long       = "rr-one-inst-per-round"
