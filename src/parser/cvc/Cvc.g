@@ -585,8 +585,6 @@ using namespace CVC4::parser;
 #define PARSER_STATE ((Parser*)PARSER->super)
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
-#undef MK_EXPR
-#define MK_EXPR EXPR_MANAGER->mkExpr
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
 #undef SOLVER

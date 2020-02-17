@@ -81,8 +81,6 @@ using namespace CVC4::parser;
 #define MK_TERM SOLVER->mkTerm
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
-#undef MK_CONST
-#define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* @lexer::postinclude */
@@ -129,8 +127,6 @@ using namespace CVC4::parser;
 #define MK_TERM SOLVER->mkTerm
 #undef EXPR_MANAGER
 #define EXPR_MANAGER PARSER_STATE->getExprManager()
-#undef MK_CONST
-#define MK_CONST EXPR_MANAGER->mkConst
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
@@ -476,7 +472,7 @@ definedPred[CVC4::ParseOp& p]
       api::Term body =
           MK_TERM(api::AND,
                   MK_TERM(api::NOT,
-                          MK_TERM(api::EQUAL, r, MK_CONST(Rational(0)))),
+                          MK_TERM(api::EQUAL, r, SOLVER->mkReal(0))),
                   MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
       api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
       body = MK_TERM(api::EXISTS, bvl, body);
@@ -536,7 +532,7 @@ thfDefinedPred[CVC4::ParseOp& p]
       api::Term body = MK_TERM(
           api::AND,
           MK_TERM(api::NOT,
-                  MK_TERM(api::EQUAL, r, MK_CONST(Rational(0)))),
+                  MK_TERM(api::EQUAL, r, SOLVER->mkReal(0))),
           MK_TERM(api::EQUAL, qr, MK_TERM(api::MULT, n, rr)));
       api::Term bvl = MK_TERM(api::BOUND_VAR_LIST, q, r);
       body = MK_TERM(api::EXISTS, bvl, body);
@@ -603,7 +599,7 @@ definedFun[CVC4::ParseOp& p]
       api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       api::Term expr = MK_TERM(api::DIVISION_TOTAL, n, d);
       expr = MK_TERM(api::ITE,
-                     MK_TERM(api::GEQ, d, MK_CONST(Rational(0))),
+                     MK_TERM(api::GEQ, d, SOLVER->mkReal(0)),
                      MK_TERM(api::TO_INTEGER, expr),
                      MK_TERM(api::UMINUS,
                              MK_TERM(api::TO_INTEGER,
@@ -626,7 +622,7 @@ definedFun[CVC4::ParseOp& p]
       api::Term formals = MK_TERM(api::BOUND_VAR_LIST, n, d);
       api::Term expr = MK_TERM(api::DIVISION_TOTAL, n, d);
       expr = MK_TERM(api::ITE,
-                     MK_TERM(api::GEQ, expr, MK_CONST(Rational(0))),
+                     MK_TERM(api::GEQ, expr, SOLVER->mkReal(0)),
                      MK_TERM(api::TO_INTEGER, expr),
                      MK_TERM(api::UMINUS,
                              MK_TERM(api::TO_INTEGER,
@@ -1665,18 +1661,9 @@ NUMBER
         else if(exp == dec) r = Rational(inum);
         else if(exp > dec) r = Rational(inum * Integer(10).pow(exp - dec));
         else r = Rational(inum, Integer(10).pow(dec - exp));
-        PARSER_STATE->d_tmp_expr = api::Term(MK_CONST(r));
-        // PARSER_TODO
-        /*
         std::stringstream ss;
-        ss << ( pos ? "" : "-" );
-        ss << AntlrInput::tokenText($num) << "." << AntlrInput::tokenText($den);
-        if (posE)
-        {
-          ss << "e" << AntlrInput::tokenText($e);
-        }
+        ss << r;
         PARSER_STATE->d_tmp_expr = SOLVER->mkReal(ss.str());
-        */
       }
     | SIGN[pos]? num=DECIMAL SLASH den=DECIMAL
       { std::stringstream ss;
