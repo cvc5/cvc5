@@ -79,8 +79,6 @@ using namespace CVC4::parser;
 #define MK_TERM SOLVER->mkTerm
 #undef MK_TERM
 #define MK_TERM SOLVER->mkTerm
-#undef EXPR_MANAGER
-#define EXPR_MANAGER PARSER_STATE->getExprManager()
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* @lexer::postinclude */
@@ -125,8 +123,6 @@ using namespace CVC4::parser;
 #define SOLVER PARSER_STATE->getSolver()
 #undef MK_TERM
 #define MK_TERM SOLVER->mkTerm
-#undef EXPR_MANAGER
-#define EXPR_MANAGER PARSER_STATE->getExprManager()
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 }/* parser::postinclude */
