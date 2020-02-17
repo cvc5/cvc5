@@ -1061,10 +1061,8 @@ thfLogicFormula[CVC4::Expr& expr]
         }
       }
     | // N-ary and &
-      ( {
-  args.push_back(expr); }
-        ( AND_TOK thfUnitaryFormula[expr] {
-  args.push_back(expr); } )+
+      ( { args.push_back(expr); }
+        ( AND_TOK thfUnitaryFormula[expr] { args.push_back(expr); } )+
         {
           expr = MK_EXPR_ASSOCIATIVE(kind::AND, args);
         }
