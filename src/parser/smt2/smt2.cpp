@@ -1923,6 +1923,10 @@ Expr Smt2::applyParseOp(ParseOp& p, std::vector<Expr>& args)
       unsigned arity = static_cast<FunctionType>(argt).getArity();
       if (args.size() - 1 < arity)
       {
+        if (!em->getOptions().getUfHo())
+        {
+          parseError("Cannot partially apply functions unless --uf-ho is set.");
+        }
         Debug("parser") << "Partial application of " << args[0];
         Debug("parser") << " : #argTypes = " << arity;
         Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
