@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fmf-fun
+; COMMAND-LINE: --fmf-fun  --quiet
 ; EXPECT: sat
 
 (set-info :smt-lib-version 2.5)
