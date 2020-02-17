@@ -57,7 +57,7 @@ namespace CVC4 {
  */
 struct CVC4_PUBLIC ParseOp
 {
-  ParseOp() : d_kind(kind::NULL_EXPR) {}
+  ParseOp(Kind k = kind::NULL_EXPR) : d_kind(k) {}
   /** The kind associated with the parsed operator, if it exists */
   Kind d_kind;
   /** The name associated with the parsed operator, if it exists */

@@ -19,10 +19,10 @@
 #ifndef CVC4__PARSER__PARSER_STATE_H
 #define CVC4__PARSER__PARSER_STATE_H
 
-#include <string>
-#include <set>
-#include <list>
 #include <cassert>
+#include <list>
+#include <set>
+#include <string>
 
 #include "expr/expr.h"
 #include "expr/expr_stream.h"

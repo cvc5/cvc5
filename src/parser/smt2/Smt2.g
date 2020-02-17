@@ -80,8 +80,8 @@ using namespace CVC4::parser;
 #include <memory>
 
 #include "parser/antlr_tracing.h"
-#include "parser/parser.h"
 #include "parser/parse_op.h"
+#include "parser/parser.h"
 #include "smt/command.h"
 
 namespace CVC4 {
@@ -1410,8 +1410,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     {
       cmd->reset(new GetAbductCommand(name,e, t));
     }
-  | DECLARE_HEAP LPAREN_TOK 
-    sortSymbol[t,CHECK_DECLARED] 
+  | DECLARE_HEAP LPAREN_TOK
+    sortSymbol[t, CHECK_DECLARED]
     sortSymbol[t, CHECK_DECLARED]
     // We currently do nothing with the type information declared for the heap.
     { cmd->reset(new EmptyCommand()); }
@@ -1695,8 +1695,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     RPAREN_TOK
   | LPAREN_TOK qualIdentifier[p]
     termList[args,expr] RPAREN_TOK
-    { 
-      expr = PARSER_STATE->applyParseOp(p,args);
+    {
+      expr = PARSER_STATE->applyParseOp(p, args);
     }
   | /* a let or sygus let binding */
     LPAREN_TOK (
